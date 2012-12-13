@@ -1,0 +1,65 @@
+/g4sbs/filename kin1_e.root
+
+/g4sbs/beamcur  60.0 muA
+/g4sbs/target   3He
+/g4sbs/kine     elastic
+/g4sbs/targpres 10 atmosphere
+/g4sbs/targlen  55.0 cm
+
+/g4sbs/gemres 0.070 mm
+
+/g4sbs/rasterx  0.0 mm
+/g4sbs/rastery  0.0 mm
+
+/g4sbs/runtime     1.0 s
+/g4sbs/beamE       2.2 GeV
+/g4sbs/bbang      40.0 deg
+/g4sbs/bbdist      1.7 m
+/g4sbs/hcaldist   17.0 m
+/g4sbs/48D48dist   1.6 m
+
+
+/g4sbs/hcalang    39.4 deg
+/g4sbs/thmin      30.0 deg
+/g4sbs/thmax      50.0 deg
+/g4sbs/phmin     155.0 deg
+/g4sbs/phmax     205.0 deg
+
+/g4sbs/run 100000
+
+/g4sbs/filename kin2_e.root
+
+/g4sbs/beamE       4.4 GeV
+/g4sbs/bbang      34.0 deg
+/g4sbs/hcalang    29.9 deg
+/g4sbs/thmin      24.0 deg
+/g4sbs/thmax      44.0 deg
+/g4sbs/phmin     155.0 deg
+/g4sbs/phmax     205.0 deg
+
+/g4sbs/run 100000
+
+/g4sbs/filename kin3_e.root
+
+/g4sbs/beamE       6.6 GeV
+/g4sbs/bbang      34.0 deg
+/g4sbs/bbdist      1.7 m
+/g4sbs/hcalang    22.2 deg
+/g4sbs/thmin      24.0 deg
+/g4sbs/thmax      44.0 deg
+/g4sbs/phmin     155.0 deg
+/g4sbs/phmax     205.0 deg
+
+/g4sbs/run 100000
+
+/g4sbs/filename kin4_e.root
+
+/g4sbs/beamE       8.8 GeV
+/g4sbs/bbang      34.0 deg
+/g4sbs/hcalang    17.5 deg
+/g4sbs/thmin      24.0 deg
+/g4sbs/thmax      44.0 deg
+/g4sbs/phmin     155.0 deg
+/g4sbs/phmax     205.0 deg
+
+/g4sbs/run 100000

@@ -26,22 +26,27 @@ include(${Geant4_USE_FILE})
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(ROOT REQUIRED)
 
-include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR} ~/include)
-link_directories( ~/lib )
+include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/ )
 
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc)
-file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc )
+file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
+
+file(GLOB cteqsources ${PROJECT_SOURCE_DIR}/src/cteq/*.c  )
+file(GLOB cteqheaders ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
+add_library(sbscteq SHARED ${cteqsources} ${cteqheaders})
+SET_TARGET_PROPERTIES(sbscteq PROPERTIES COMPILE_FLAGS "-DCTEQ_TBL_PATH=\\\"${PROJECT_SOURCE_DIR}/cteq-tbls\\\"")
+
 add_executable(g4sbs g4sbs.cc ${sources} ${headers})
-target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} cteqpdf )
+target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} CLHEP sbscteq )
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

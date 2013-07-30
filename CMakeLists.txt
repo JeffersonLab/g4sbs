@@ -42,7 +42,7 @@ file(GLOB cteqheaders ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_library(sbscteq SHARED ${cteqsources} ${cteqheaders})
+add_library(sbscteq STATIC ${cteqsources} ${cteqheaders})
 SET_TARGET_PROPERTIES(sbscteq PROPERTIES COMPILE_FLAGS "-DCTEQ_TBL_PATH=\\\"${PROJECT_SOURCE_DIR}/cteq-tbls\\\"")
 
 add_executable(g4sbs g4sbs.cc ${sources} ${headers})

@@ -569,7 +569,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
       gempzsum += gempz[gpidx];
   }
 
-  char gpname[ngem][nplane][3][255];
+  char gpname[20][50][3][255];
 
 //  G4Box **gbox = new G4Box* [ngem*nplane];
 
@@ -1355,7 +1355,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
       gempzsum += gempz[gpidx];
   }
 
-  char gpname[ngem][nplane][3][255];
+  char gpname[20][50][3][255];
 
 //  G4Box **gbox = new G4Box* [ngem*nplane];
 

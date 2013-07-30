@@ -41,7 +41,7 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(g4sbs g4sbs.cc ${sources} ${headers})
-target_link_libraries(g4sbs ${Geant4_LIBRARIES} CLHEP-Matrix-2.1.0.1 ${ROOT_LIBRARIES} cteqpdf )
+target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} cteqpdf )
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

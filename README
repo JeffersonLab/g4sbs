@@ -4,8 +4,10 @@ Seamus Riordan
 riordan@jlab.org
 July 31, 2013
 
-Build using the standard cmake facilities
-CTEQ tables built in automatically for DIS
+Build using the standard cmake facilities. CTEQ tables built in automatically for DIS
+If you would like to get on a mail notification list, contact Seamus (riordan@jlab.org)
+
+*IF YOU ARE DOING DEVELOPMENT, PLEASE DO NOT WORK IN THE master BRANCH*
 
 You need the BigBite field map for this as well, which can be found
 
@@ -23,8 +25,7 @@ To run:
 
 ./g4sbs run_example.mac
 
-run_example.mac demonstrates most of the features by 
-example
+run_example.mac demonstrates most of the features by example
 
 
 # NOTE:  On the JLab farm, a newer version of cmake is available

@@ -91,8 +91,6 @@ int main(int argc, char** argv)
   G4UserSteppingAction* stepping_action = new G4SBSSteppingAction;
   runManager->SetUserAction(stepping_action);
 
-    G4UnitDefinition ( "hour", "hour", "Time", 3600.0*s );
-    G4UnitDefinition ( "day", "day", "Time", 24.0*3600.0*s);
 
   // Initialize Run manager
   runManager->Initialize();

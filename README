@@ -7,17 +7,29 @@ July 31, 2013
 Build using the standard cmake facilities
 CTEQ tables built in automatically for DIS
 
+You need the BigBite field map for this as well, which can be found
+
+http://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/map_696A.dat
 
 To build:
 
 mkdir build
 cd build
-cmake ../
+cmake ../g4sbs  
+#  see below if you get an error about old versions
 make
+
+To run:
+
 ./g4sbs run_example.mac
 
 run_example.mac demonstrates most of the features by 
 example
+
+
+# NOTE:  On the JLab farm, a newer version of cmake is available
+# So, if it complains about being too old, try:
+/apps/cmake/bin/cmake ../g4sbs
 
 #########################################################
 

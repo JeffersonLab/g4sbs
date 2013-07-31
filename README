@@ -2,9 +2,111 @@ g4sbs
 
 Seamus Riordan
 riordan@jlab.org
-July 30, 2013
+July 31, 2013
 
 Build using the standard cmake facilities
-
 CTEQ tables built in automatically for DIS
+
+
+To build:
+
+mkdir build
+cd build
+cmake ../
+make
+./g4sbs run_example.mac
+
+run_example.mac demonstrates most of the features by 
+example
+
+#########################################################
+
+Coordinate systems in hall:
+
++z is down the nominal beam axis
++y is "up" (away from gravity)
++x makes a right handed coordinate system
+
+Coordinate systems for detectors:
+
++z is nominally down the "central axis" in the particle direction
+
++x is "down" (into the floor)
+
++y makes a right handed coordinate system
+
+#########################################################
+
+Hits in the GEM chambers have tracking performed on them doing
+straight line fits with resolutions.
+
+At the moment tracking is done in a very dumb way for simplicity!  
+It will end up averaging all the hits together if there is more 
+than one track.  It would be wise to ensure that tr.nhit <= 4
+
+ROOT file output structure:
+
+-----------------------------------------------
+ev.*
+count	Counts given the beam time/luminosity
+rate	Counts per second given luminosity
+solang	Integrating over this variable will give solid angle 
+sigma	Cross section [cm^-2]
+W2	Invariant mass squared [GeV^2]
+xbj	Bjorken-x
+Q2	Q2 [GeV^2]
+th	Polar angle of electron with zaxis [rad]
+ph	Azimuthal angle of electron with zaxis [rad]
+Aperp	perp component of asymmetry
+Apar 	parallel component of asymmetry
+vx,y,z	Vertex position [cm]
+ep	Scattered electron momentum [GeV]
+np	Scattered nucleon momentum [GeV]
+epx,y,z Lab components of electron momentum  [GeV]
+npx,y,z Lab components of nucleon momentum  [GeV]
+nth 	Polar angle of nucleon wrt z-axis [rad]
+nph     Azimuthal angle of nucleon wrt z-axis [rad]
+pmperp	Missing momentum perp-component [GeV]
+pmpar 	Missing momentum par-component [GeV]
+nucl	Nucleon when scattering type, 0 for neutron, 1 for proton
+fnucl	Final nucleon type (pion prod may change flavor), 0 for neutron, 1 for proton
+
+-----------------------------------------------
+tr.*
+x	Track x coordinate intercept with z= 0 plane [m]
+y	Track y coordinate intercept with z= 0 plane [m]
+xp	Track dx/dz
+yp	Track dy/dz
+tx,ty,typ,txp
+	"True" track variables defined by track projection at first chamber
+hcal	0 if no hit in HCAL,  1 if hit
+bb	0 if no hit in BB cal, 1 if hit
+gemtr	0 if no track found in GEMs, 1 if track found
+hcx	HCAL x hit position [cm]
+hcy	HCAL y hit position [cm]
+bcx	BB cal x hit position [cm]
+bcy	BB cal y hit position [cm]
+hct	HCAL time-of-flight [ns]
+hctex	HCAL expected time-of-flight from momentum-transfer [ns]
+hclx,y,z
+	HCAL hit position in lab coordinates [cm]
+hcdang	HCAL angular difference between q and nucleon p [rad]
+
+-----------------------------------------------
+gen.*
+thbb	BigBite angle [rad]
+thhcal	HCAL angle [rad]
+dbb	BigBite distance from target [m]
+dhc	HCAL distance from target [m]
+Ebeam	Beam energy [GeV]
+
+-----------------------------------------------
+ht.*
+ndata	Number of hits in ht.* array
+gid	GEM ID (counting starts at 1)
+x,y,z	GEM hit position (incl. resolution effects) [m]
+dx,dy	dx/dz and dy/dz of track at hit
+tx,ty	"True" GEM hit position (perfect resolution) [m]
+
+
 

@@ -1,0 +1,77 @@
+/g4sbs/filename test.root
+
+/g4sbs/beamcur  10.5 muA
+
+# Have LH2, LD2 (gives scattering chamber)
+# GMn config
+/g4sbs/target   LD2
+/g4sbs/kine     elastic #Quasielastic
+/g4sbs/exp      gmn
+/g4sbs/targlen  10.0 cm
+
+#or 
+# GEn config
+# H2, 3He (gaseous cell)
+#/g4sbs/target   3He
+#/g4sbs/kine     elastic  #  Quasielastic
+#/g4sbs/targpres 10 atmosphere
+#/g4sbs/targlen  55.0 cm
+#/g4sbs/gen
+
+# GEp config
+#/g4sbs/target   LH2
+#/g4sbs/kine     elastic
+#/g4sbs/exp      gep   # <----  This is important for GEp
+#/g4sbs/targlen  40.0 cm
+
+# A1n
+#/g4sbs/target   3He
+#/g4sbs/kine     inelastic  <--  Christy/Bosted
+#/g4sbs/kine     dis        <--  CTEQ6.6m
+#/g4sbs/targlen  40.0 cm
+#/g4sbs/exp      a1n
+
+#/g4sbs/kine     flat       <--  Flat in phase space generation
+
+/g4sbs/gemres 0.070 mm  #GEM resolution
+
+# Raster settings
+/g4sbs/rasterx  4.0 mm 
+/g4sbs/rastery  4.0 mm
+
+/g4sbs/cerdist     0.57 m
+/g4sbs/cerdepth    0.75 m
+/g4sbs/gemsep      1.34 m
+/g4sbs/bbcaldist   1.4 m
+
+#  gemconfig = 1 for 4 gems, 2 x 5cm apart <- gemsep -> 2 x 5cm apart
+#  gemconfig = 2 for 5 gems, 1 <- gemsep -> 4 x 10 cm apart
+#  gemconfig = 3 for 3 gems, 1 <- gemsep -> 1 <- gemsep -> 1
+/g4sbs/gemconfig       2
+
+# Shoot geantinos instead of electrons (good for testing no interactions)
+#/g4sbs/shootgeantino
+
+/g4sbs/runtime     1.0 s
+/g4sbs/beamE       4.4 GeV
+/g4sbs/bbang      32.5 deg
+/g4sbs/bbdist      1.55 m
+/g4sbs/hcalang    31.1 deg
+/g4sbs/hcaldist    6.2 m
+/g4sbs/48D48dist   1.6 m
+/g4sbs/thmin      22.0 deg
+/g4sbs/thmax      42.0 deg
+/g4sbs/phmin     155.0 deg
+/g4sbs/phmax     205.0 deg
+
+/g4sbs/run 100000
+
+/g4sbs/filename test2.root
+/g4sbs/beamE       4.4 GeV
+/g4sbs/bbang      41.9 deg
+/g4sbs/hcalang    24.7 deg
+/g4sbs/hcaldist    6.2 m
+/g4sbs/48D48dist   1.6 m
+/g4sbs/thmin      32.0 deg
+/g4sbs/thmax      52.0 deg
+/g4sbs/run 100000

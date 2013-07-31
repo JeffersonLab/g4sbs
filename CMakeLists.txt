@@ -26,14 +26,8 @@ include(${Geant4_USE_FILE})
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(ROOT REQUIRED)
 
-find_package(CLHEP)
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/ )
-
-if(CLHEP_FOUND)
-    include_directories(${CLHEP_INCLUDE_DIRS})
-    link_directories(${CLHEP_LIBRARY_DIRS})
-endif()
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
@@ -54,12 +48,6 @@ SET_TARGET_PROPERTIES(sbscteq PROPERTIES COMPILE_FLAGS "-DCTEQ_TBL_PATH=\\\"${PR
 add_executable(g4sbs g4sbs.cc ${sources} ${headers})
 
 target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
-if(CLHEP_FOUND)
-    #    target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq CLHEP )
-    target_link_libraries(g4sbs ${CLHEP_LIBRARIES} )
-else()
-    #    target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
-endif()
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

@@ -14,8 +14,8 @@
 #include "G4UImanager.hh"
 #include "G4ios.hh"
 
-#include "CLHEP/Matrix/Matrix.h"
-#include "CLHEP/Matrix/Vector.h"
+#include "TMatrix.h"
+#include "TVector.h"
 
 #include "G4SBSIO.hh"
 
@@ -145,7 +145,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
   trdata.x = trdata.y = trdata.xp = trdata.yp = -1e9;
   trdata.gemtr = 0;
-  int idx, i, j, ierr, nhit, gid;
+  int idx, i, j, nhit, gid;
 
   int    map = 0;
   // Just use 4 GEMs for now
@@ -200,11 +200,11 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
 	  // Perform fitting
 
-	  CLHEP::HepMatrix mymat(nhit*2, 4);
-	  CLHEP::HepMatrix sigmamat(nhit*2, nhit*2);
+	  TMatrix mymat(nhit*2, 4);
+	  TMatrix sigmamat(nhit*2, nhit*2);
 	  // Go x0,y0,x1,y1...
 
-	  CLHEP::HepVector hitv(nhit*2);
+	  TVector hitv(nhit*2);
 	  for( i = 0; i < nhit; i++ ){
 	      mymat[2*i][0] = 1.0;
 	      mymat[2*i][1] = lz[i];
@@ -223,14 +223,19 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	      sigmamat[2*i+1][2*i+1] = 1.0/fGEMsigma[2*i+1];
 	  }
 
-	  CLHEP::HepMatrix alpha = mymat.T()*sigmamat*sigmamat*mymat;
-	  ierr = -10;
-	  alpha.invert(ierr);
+	  TMatrix mytrans = mymat;
 
-	  if( ierr == 0 ){
-	      CLHEP::HepMatrix fitmat = alpha*mymat.T();
+	  mytrans.T();
 
-	      CLHEP::HepVector track = fitmat*sigmamat*sigmamat*hitv;
+	  TMatrix alpha = mytrans*sigmamat*sigmamat*mymat;
+
+
+	  if( alpha.Determinant() != 0.0 ){
+	      alpha.Invert();
+
+	      TMatrix fitmat = alpha*mytrans;
+
+	      TVector track = fitmat*sigmamat*sigmamat*hitv;
 
 	      // Switch to "BigBite coordinates"
 	      // Larger momentum is correlated to larger x

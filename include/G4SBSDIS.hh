@@ -51,7 +51,7 @@ double dissigma( double ebeam, double th, double eprime, Nucl_t nucl ){
 	F2 += x*( e_u*e_u*qdv + e_d*e_d*quv ); 
     }
     // Sea quarks
-    F2  += 2.0*e_u*e_u*qubar + 2.0*e_d*e_d*(qdbar + qs);
+    F2  += x*(2.0*e_u*e_u*qubar + 2.0*e_d*e_d*(qdbar + qs));
     double F1 = F2/(2.0*x);
 
     // From PDG

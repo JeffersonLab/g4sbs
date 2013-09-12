@@ -14,6 +14,7 @@
 #include "G4UnionSolid.hh"
 #include "G4SubtractionSolid.hh"
 #include "G4Tubs.hh"
+#include "G4Polycone.hh"
 #include "G4LogicalVolume.hh"
 #include "G4ThreeVector.hh"
 #include "G4PVPlacement.hh"
@@ -72,7 +73,8 @@ G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
 G4VPhysicalVolume* G4SBSDetectorConstruction::Construct(){
     // Just nothing so we don't step on toes
     // ConstructAll is where the real magic happens
-  G4double a, iz, z, density;
+  //G4double a, iz, z, density;
+  G4double density;
   G4String name, symbol;
   G4int nel;
 
@@ -127,8 +129,9 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   G4Element *elBa = new G4Element("Barium", "Ba", 56, 137.327*g/mole );
 
    G4Element* elCl  = new G4Element("Chlorine",  "Cl", z=17, a=   35.453*g/mole);
-     G4Element* elAr  = new G4Element("Argon",     "Ar", z=18, a=    39.95*g/mole);
+   G4Element* elAr  = new G4Element("Argon",     "Ar", z=18, a=    39.95*g/mole);
 
+  G4Material* Vacuum = new G4Material(name="vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
 
   G4Material* Lead  = new G4Material(name="Lead", z=82., a=208.0*g/mole, density=11.34*g/cm3);
 
@@ -290,10 +293,13 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   double motherdepth = 600.0*cm;
 
+  double bbmagwidth  = 1670.0*mm;
+  double bbmagheight = 486.0*mm;
+
+  double eps = 0.1*mm;
+
   // Mother box
-  G4Box *bbmotherBox= new G4Box("bbmotherBox",100*cm, 250*cm, motherdepth/2.0);
-  G4LogicalVolume *bbmotherLog=new G4LogicalVolume(bbmotherBox,Air,
-						  "bbmotherLog", 0, 0, 0);
+  G4Box *bbmotherBox= new G4Box("bbmotherBox", bbmagwidth/2.0 + eps, 250*cm, motherdepth/2.0);
 
   // We need to account for offsets so we can fit BigBite and detectors in without running into
   // the target
@@ -303,13 +309,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   double motherr = fBBdist + motherdepth/2.0 - clear;
   
-  G4PVPlacement *bbmotherPhys=new G4PVPlacement(bbrm,
-	  G4ThreeVector(-motherr*sin(fBBang), 0.0, motherr*cos(fBBang)),
-					       bbmotherLog, "bbmotherPhys",
-					       WorldLog, 0,false,0);
 
-  double bbmagwidth  = 1670.0*mm;
-  double bbmagheight = 486.0*mm;
+
 
   std::vector<G4TwoVector> bbyokepts;
   bbyokepts.push_back( G4TwoVector( bbmagheight, 0.0*mm));
@@ -326,15 +327,15 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
 
   std::vector<G4TwoVector> bbairpts;
-  bbairpts.push_back( G4TwoVector(  (bbmagheight-133.1)*mm, 0.0*mm));
+  bbairpts.push_back( G4TwoVector(  bbmagheight-133.1*mm, 0.0*mm - eps));
   bbairpts.push_back( G4TwoVector(  bbmagheight, 464.1*mm));
   bbairpts.push_back( G4TwoVector( -bbmagheight, 805.1*mm));
-  bbairpts.push_back( G4TwoVector( -bbmagheight, 0.0*mm));
+  bbairpts.push_back( G4TwoVector( -bbmagheight, 0.0*mm - eps));
 
-  bbairpts.push_back( G4TwoVector(  (bbmagheight-133.1)*mm, 0.0*mm));
+  bbairpts.push_back( G4TwoVector(  bbmagheight-133.1*mm, 0.0*mm - eps));
   bbairpts.push_back( G4TwoVector(  bbmagheight, 464.1*mm));
   bbairpts.push_back( G4TwoVector( -bbmagheight, 805.1*mm));
-  bbairpts.push_back( G4TwoVector( -bbmagheight, 0.0*mm));
+  bbairpts.push_back( G4TwoVector( -bbmagheight, 0.0*mm - eps));
 
   double gapsize = 250.0*mm;
 
@@ -342,16 +343,17 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 	  gapsize/2.0, bbairpts );
 
 
+
   double coilsize = 320.0*mm;
   double coilwidth = 90.0*mm;
 
   std::vector<G4TwoVector> bbcoilpts;
-  bbcoilpts.push_back( G4TwoVector(  (bbmagheight-133.0)*mm+coilsize, 0.0*mm-coilsize));
+  bbcoilpts.push_back( G4TwoVector(  bbmagheight-133.0*mm+coilsize, 0.0*mm-coilsize));
   bbcoilpts.push_back( G4TwoVector(  bbmagheight+coilsize, 464.0*mm+coilsize*(1.0-tan(20.0*deg))));
   bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 805.0*mm+coilsize*(1.0+tan(20.0*deg))));
   bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 0.0*mm-coilsize));
 
-  bbcoilpts.push_back( G4TwoVector(  (bbmagheight-133.0)*mm+coilsize, 0.0*mm-coilsize));
+  bbcoilpts.push_back( G4TwoVector(  bbmagheight-133.0*mm+coilsize, 0.0*mm-coilsize));
   bbcoilpts.push_back( G4TwoVector(  bbmagheight+coilsize, 464.0*mm+coilsize*(1.0-tan(20.0*deg))));
   bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 805.0*mm+coilsize*(1.0+tan(20.0*deg))));
   bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 0.0*mm-coilsize));
@@ -369,6 +371,48 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   G4ThreeVector zcoil1 = G4ThreeVector( 0.0, 0.0, coilwidth+gapsize/2.0+(805.0*mm/2.0+coilsize)*tan(coilrot));
   G4ThreeVector zcoil2 = G4ThreeVector( 0.0, 0.0, -coilwidth-gapsize/2.0-(805.0*mm/2.0+coilsize)*tan(coilrot));
+  
+  // "Guitar" cuts
+  std::vector<G4TwoVector> bbleftcutpts;
+  bbleftcutpts.push_back( G4TwoVector(  0.0, ((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
+  bbleftcutpts.push_back( G4TwoVector(  bbmagheight,  bbmagwidth/2.0));
+  bbleftcutpts.push_back( G4TwoVector(  0.0,  bbmagwidth/2.0 + 1.0*cm));
+  bbleftcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  bbmagwidth/2.0));
+
+  bbleftcutpts.push_back( G4TwoVector(  0.0, ((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
+  bbleftcutpts.push_back( G4TwoVector(  bbmagheight,  bbmagwidth/2.0));
+  bbleftcutpts.push_back( G4TwoVector(  0.0,  bbmagwidth/2.0 + 1.0*cm));
+  bbleftcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  bbmagwidth/2.0));
+
+
+  G4GenericTrap *bbleftcutTrap = new G4GenericTrap("bbleftcutTrap",
+	  2010.1*mm, bbleftcutpts );
+
+  G4RotationMatrix *leftcutrot = new G4RotationMatrix;
+  leftcutrot->rotateX( -90*deg );
+
+  G4RotationMatrix *leftcutrot2 = new G4RotationMatrix;
+  leftcutrot2->rotateZ( -90*deg );
+
+  std::vector<G4TwoVector> bbrightcutpts;
+  bbrightcutpts.push_back( G4TwoVector(  0.0, -((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
+  bbrightcutpts.push_back( G4TwoVector(  bbmagheight,  -bbmagwidth/2.0));
+  bbrightcutpts.push_back( G4TwoVector(  0.0, -( bbmagwidth/2.0 + 1.0*cm)));
+  bbrightcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  -bbmagwidth/2.0));
+
+  bbrightcutpts.push_back( G4TwoVector(  0.0, -((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
+  bbrightcutpts.push_back( G4TwoVector(  bbmagheight,  -bbmagwidth/2.0));
+  bbrightcutpts.push_back( G4TwoVector(  0.0, -( bbmagwidth/2.0 + 1.0*cm)));
+  bbrightcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  -bbmagwidth/2.0));
+
+  G4GenericTrap *bbrightcutTrap = new G4GenericTrap("bbrightcutTrap",
+	 2010.1*mm, bbrightcutpts );
+
+  G4RotationMatrix *rightcutrot = new G4RotationMatrix;
+  rightcutrot->rotateX( 90*deg );
+
+  G4RotationMatrix *rightcutrot2 = new G4RotationMatrix;
+  rightcutrot2->rotateZ( -90*deg );
 
   G4UnionSolid *fullyoke;
 
@@ -387,6 +431,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   fullyoke = new G4UnionSolid("yokefull", fullyoke, yokebottombox, 0, bottomboxpos );
 
   G4SubtractionSolid* yokewgap = new G4SubtractionSolid("yoke_with_gap", fullyoke, bbairTrap);
+  yokewgap = new G4SubtractionSolid("yoke_with_gap_lcut", yokewgap, bbleftcutTrap, leftcutrot, G4ThreeVector());
+  yokewgap = new G4SubtractionSolid("yoke_with_gap_lrcut", yokewgap, bbrightcutTrap, leftcutrot, G4ThreeVector());
 
   G4LogicalVolume *bbyokewgapLog=new G4LogicalVolume(yokewgap, Fe,
 						  "bbyokewgapLog", 0, 0, 0);
@@ -397,6 +443,26 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   yokerm->rotateY(90.0*deg);
   yokerm->rotateZ(-90.0*deg);
   yokerm->rotateX(180.0*deg);
+
+  // Cut mother box
+  G4SubtractionSolid* bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxL", bbmotherBox, bbleftcutTrap, leftcutrot2, G4ThreeVector(-10*eps, 0.0, -motherdepth/2.0+clear));
+  bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR", bbmothercutBox, bbrightcutTrap, rightcutrot2, G4ThreeVector(10*eps, 0.0, -motherdepth/2.0+clear));
+
+  G4Box *frontboxcut = new G4Box("frontboxcut",(bbmagwidth-gapsize)/4.0-coilwidth, 250*cm + eps, clear/2);
+  bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fL", bbmothercutBox, frontboxcut, 0, G4ThreeVector( ((bbmagwidth+gapsize)/4.0+coilwidth)+ 10*eps +5*cm, 0, -motherdepth/2.0+clear/2 - 10*eps ));
+  bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR", bbmothercutBox, frontboxcut, 0, G4ThreeVector( -((bbmagwidth+gapsize)/4.0+coilwidth)-10*eps -5*cm, 0, -motherdepth/2.0+clear/2 - 10*eps ));
+
+
+
+  //   Make logical volume for mother vol and place
+  G4LogicalVolume *bbmotherLog=new G4LogicalVolume(bbmothercutBox,Air,
+						  "bbmotherLog", 0, 0, 0);
+
+  G4PVPlacement *bbmotherPhys=new G4PVPlacement(bbrm,
+	  G4ThreeVector(-motherr*sin(fBBang), 0.0, motherr*cos(fBBang)),
+					       bbmotherLog, "bbmotherPhys",
+					       WorldLog, 0,false,0);
+
 
   G4PVPlacement *bbyokewgapPhys=new G4PVPlacement(yokerm,G4ThreeVector(0.0, 0.0, -motherdepth/2.0+clear),
 	  				    bbyokewgapLog,
@@ -626,24 +692,32 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   double bigcoilwidth = 231.0*mm;
   double bigcoilheight = 323.0*mm;
 
+  double bigwidth = 2324.1*mm;
+
   double bigdepth = 1219.2*mm;
 
-  G4Box *bigbox  = new G4Box("bigbox", 2324.1*mm/2, 3721.1*mm/2,  bigdepth/2);
+  G4Box *bigbox  = new G4Box("bigbox", bigwidth/2, 3721.1*mm/2,  bigdepth/2);
   G4Box *biggap  = new G4Box("biggap",  469.9*mm/2+0.1*mm, 1219.2*mm/2+0.1*mm,  bigdepth/2+0.1*mm);
 
   G4SubtractionSolid* bigbase = new G4SubtractionSolid("bigbase", bigbox, biggap);
   //G4Box* bigbase = bigbox;
 
   G4Box *bigcoilbase = new G4Box("bigcoilbase", bigcoilheight+825.5/2.0*mm, 1866.9*mm/2, bigcoilwidth/2.0);
-  G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm, 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
+//  G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm, 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
+  G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm + 2.0*bigcoilheight , 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
 
-  G4SubtractionSolid* bigcoil = new G4SubtractionSolid("bigcoil", bigcoilbase, bigcoilgap);
+
+  // Pull out left side of gap
+//  G4SubtractionSolid* bigcoil_full = new G4SubtractionSolid("bigcoil_full", bigcoilbase, bigcoilgap);
+  G4SubtractionSolid *bigcoil = new G4SubtractionSolid("bigcoil", bigcoilbase, bigcoilgap, 0, G4ThreeVector(-2.0*bigcoilheight, 0.0, 0.0) );
 
   G4Box *bigcoilthr = new G4Box("bigcoilthr", bigcoilwidth,  bigcoilheight/2,  1416.0*mm/2.0+bigcoilwidth );
 
   // Sum together base iron plus coils
 
   G4UnionSolid* big48d48;
+
+  G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/5, 15*cm/2.0, 2.0*m ); // Height is roughly beam pipe outer radius at 3m
  
   big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, 0, 
 	  G4ThreeVector(0.0, (1219.2*mm+bigcoilheight)/2.0, 0.0));
@@ -653,8 +727,12 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 	  G4ThreeVector(0.0, 0.0, (1416.0*mm+bigcoilwidth)/2.0));
   big48d48 = new G4UnionSolid("big48d48_4", big48d48, bigcoil, 0, 
 	  G4ThreeVector(0.0, 0.0, -(1416.0*mm+bigcoilwidth)/2.0));
+  
+  //  Cut out slot
+  G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", big48d48, bigbeamslot, 0, 
+	  G4ThreeVector(-bigwidth*(0.5-0.1), 0.0, 0.0) );
 
-  G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48, Fe,
+  G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, Fe,
 						  "b48d48Log", 0, 0, 0);
 
   big48d48Log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
@@ -761,23 +839,76 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   G4VPhysicalVolume* targ_ucap_phys, *targ_dcap_phys;
 
+  G4double entpipe_rin = 31.75*mm;
+  G4double extpipe_rin = 41.28*mm;
+
+  G4double extpipestart = 2.06*m;
+  // 2.06m is where the main exit pipe starts
+  G4double extpipe_len;
+
+  if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
+      // Gas target
+      extpipe_len = extpipestart - 1.0*m;
+  } else {
+      // Cryotarget
+      extpipe_len = extpipestart - (swallthick + swallrad);
+  }
+
   G4Tubs *swall = new G4Tubs("scham_wall", swallrad, swallrad+swallthick, 0.75*m, 0.*deg, 360.*deg );
-  G4LogicalVolume *swall_log = new G4LogicalVolume(swall, Aluminum,"scham_wall_log");
+
+  G4Tubs *exttube = new G4Tubs("exitpipetube", extpipe_rin, extpipe_rin+0.120*cm, extpipe_len/2, 0.*deg, 360.*deg );
+  G4Tubs *extvactube = new G4Tubs("exitpipetube_vac", 0.0, extpipe_rin, extpipe_len, 0.*deg, 360.*deg );
+  G4LogicalVolume *extpipe_log = new G4LogicalVolume(exttube, Aluminum,"extpipe_log");
+  G4LogicalVolume *extvac_log = new G4LogicalVolume(extvactube, Vacuum,"extvac_log");
+
+  G4VPhysicalVolume* extpipephys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", WorldLog, false, 0);
+  G4VPhysicalVolume* extvacpipephys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extvacpipe_phys", WorldLog, false, 0);
+
+  if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
+      // Add in exit Al window
+
+      double extwin_thick = 5.0e-4*cm;
+      
+      G4Tubs *extwin = new G4Tubs("ent_win", 0.0, extpipe_rin, extwin_thick/2, 0.*deg, 360.*deg );
+      G4LogicalVolume *ext_winlog = new G4LogicalVolume(extwin, Aluminum, "entwin_log", 0, 0, 0);
+      G4PVPlacement *extwinphys =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -extpipe_len/2 + extwin_thick/2), ext_winlog, "extwin_phys", extvac_log,false,0);
+
+      ext_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.6,0.6,0.6)));
+  }
+
+
+  //  Place exit pipe tube
+
+  G4Tubs *swall_enthole = new G4Tubs("scham_wall_enthole", 0.0, entpipe_rin, swallthick+10.0*cm, 0.*deg, 360.*deg );
+  G4Tubs *swall_exthole = new G4Tubs("scham_wall_exthole", 0.0, extpipe_rin, swallthick+10.0*cm, 0.*deg, 360.*deg );
+
+  G4RotationMatrix *chamholerot = new G4RotationMatrix;
+  chamholerot->rotateX(90.0*deg);
+
+  //  Cut holes in the scattering chamber
+  G4SubtractionSolid* swall_holes = new G4SubtractionSolid("swall_enthole", swall, swall_enthole, chamholerot, G4ThreeVector(0.0, swallthick/2+swallrad, 0.0) );
+  swall_holes = new G4SubtractionSolid("swall_holes", swall_holes, swall_exthole, chamholerot, G4ThreeVector(0.0, -swallthick/2-swallrad, 0.0) );
+
+  G4LogicalVolume *swall_log = new G4LogicalVolume(swall_holes, Aluminum,"scham_wall_log");
 
   G4RotationMatrix *schamrot = new G4RotationMatrix;
   schamrot->rotateX(90.0*deg);
+
+  G4Tubs *chamber_inner = new G4Tubs("chamber_inner", 0.0, swallrad,  0.75*m, 0*deg, 360*deg );
+  G4LogicalVolume* chamber_inner_log = new G4LogicalVolume(chamber_inner, Vacuum, "cham_inner_log");
+
 
   /*
    * FIXME*/
   if( fTargType == kLH2 || fTargType == kLD2 ){
       G4VPhysicalVolume* targ_tube_phys
       = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), targ_tube_log,
-	      "targ_tube_phys", WorldLog, false, 0);
+	      "targ_tube_phys", chamber_inner_log, false, 0);
 
       targ_cap_phys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fTargLen/2.0+downcapthick/2.0), targ_dcap_log,
-	      "targ_dcap_phys", WorldLog, false, 0);
+	      "targ_dcap_phys", chamber_inner_log, false, 0);
       targ_cap_phys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, -fTargLen/2.0-upcapthick/2.0), targ_ucap_log,
-	      "targ_ucap_phys", WorldLog, false, 0);
+	      "targ_ucap_phys", chamber_inner_log, false, 0);
 
       // Scattering chamber
       G4VPhysicalVolume* swall_phys
@@ -802,7 +933,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   if( fTargType == kLD2 || fTargType == kLH2 ){
       G4VPhysicalVolume* cryo_tube_phys
 	  = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), cryo_tube_log,
-		  "cryo_tube_phys", WorldLog, false, 0);
+		  "cryo_tube_phys", chamber_inner_log, false, 0);
   }
  /*  */
 
@@ -918,6 +1049,9 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 //  thisz += cer_mirrorthick;
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_out/2.0 ), cer_winlog_out, "cerwin2", bbdetLog, false, 0, false);
 
+
+  ConstructBeamline(WorldLog);
+
    /* */
  
   //--------- Reference boxes -------------------------------
@@ -1000,6 +1134,10 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
     = new G4VisAttributes(G4Colour(0.7,0.7,1.0));
   swall_log->SetVisAttributes(schamVisAtt);
 
+    G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
+    extpipe_log->SetVisAttributes(pipeVisAtt);
+    extvac_log->SetVisAttributes(    G4VisAttributes::Invisible );
+
   /*
   hcallog->SetVisAttributes(G4VisAttributes::Invisible);
  big48d48Log->SetVisAttributes(G4VisAttributes::Invisible);
@@ -1073,9 +1211,13 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
   G4Element *elCa = new G4Element("Calcium", "Ca", 20, 40.078*g/mole );
   G4Element *elSr = new G4Element("Strontium", "Sr", 38, 87.62*g/mole );
   G4Element *elBa = new G4Element("Barium", "Ba", 56, 137.327*g/mole );
+  G4Element *elFe = new G4Element("Iron", "Fe", 26, 55.850*g/mole );
+  G4Element *elNa = new G4Element("Sodium", "Na", 11, 22.99*g/mole );
 
    G4Element* elCl  = new G4Element("Chlorine",  "Cl", z=17, a=   35.453*g/mole);
      G4Element* elAr  = new G4Element("Argon",     "Ar", z=18, a=    39.95*g/mole);
+
+  G4Material* Vacuum = new G4Material(name="vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
 
 
   G4Material* Lead  = new G4Material(name="Lead", z=82., a=208.0*g/mole, density=11.34*g/cm3);
@@ -1455,18 +1597,23 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
   double bigcoilwidth = 231.0*mm;
   double bigcoilheight = 323.0*mm;
 
+  double bigwidth = 2324.1*mm;
+
   double bigdepth = 1219.2*mm;
 
-  G4Box *bigbox  = new G4Box("bigbox", 2324.1*mm/2, 3721.1*mm/2,  bigdepth/2);
+  G4Box *bigbox  = new G4Box("bigbox", bigwidth/2, 3721.1*mm/2,  bigdepth/2);
   G4Box *biggap  = new G4Box("biggap",  469.9*mm/2+0.1*mm, 1219.2*mm/2+0.1*mm,  bigdepth/2+0.1*mm);
 
   G4SubtractionSolid* bigbase = new G4SubtractionSolid("bigbase", bigbox, biggap);
   //G4Box* bigbase = bigbox;
 
   G4Box *bigcoilbase = new G4Box("bigcoilbase", bigcoilheight+825.5/2.0*mm, 1866.9*mm/2, bigcoilwidth/2.0);
-  G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm, 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
+  //G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm, 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
+  G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm + 2.0*bigcoilheight , 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
 
-  G4SubtractionSolid* bigcoil = new G4SubtractionSolid("bigcoil", bigcoilbase, bigcoilgap);
+  // Pull out left side of gap
+//  G4SubtractionSolid* bigcoil_full = new G4SubtractionSolid("bigcoil_full", bigcoilbase, bigcoilgap);
+  G4SubtractionSolid *bigcoil = new G4SubtractionSolid("bigcoil", bigcoilbase, bigcoilgap, 0, G4ThreeVector(-2.0*bigcoilheight, 0.0, 0.0) );
 
   G4Box *bigcoilthr = new G4Box("bigcoilthr", bigcoilwidth,  bigcoilheight/2,  1416.0*mm/2.0+bigcoilwidth );
 
@@ -1483,7 +1630,13 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
   big48d48 = new G4UnionSolid("big48d48_4", big48d48, bigcoil, 0, 
 	  G4ThreeVector(0.0, 0.0, -(1416.0*mm+bigcoilwidth)/2.0));
 
-  G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48, Fe,
+  G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/5, 15*cm/2.0, 2.0*m ); // Height is roughly beam pipe outer radius at 3m
+
+  //  Cut out slot
+  G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", big48d48, bigbeamslot, 0, 
+	  G4ThreeVector(-bigwidth*(0.5-0.1), 0.0, 0.0) );
+
+  G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, Fe,
 						  "b48d48Log", 0, 0, 0);
 
   big48d48Log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
@@ -1589,26 +1742,48 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
 
   G4VPhysicalVolume* targ_ucap_phys, *targ_dcap_phys;
 
+  G4double entpipe_rin = 31.75*mm;
+  G4double extpipe_rin = 41.28*mm;
+
+  G4double extpipestart = 2.06*m;
+  // 2.06m is where the main exit pipe starts
+  G4double extpipe_len = extpipestart - (swallthick + swallrad);
+
   G4Tubs *swall = new G4Tubs("scham_wall", swallrad, swallrad+swallthick, 0.75*m, 0.*deg, 360.*deg );
-  G4LogicalVolume *swall_log = new G4LogicalVolume(swall, Aluminum,"scham_wall_log");
+  G4Tubs *swall_enthole = new G4Tubs("scham_wall_enthole", 0.0, entpipe_rin, swallthick, 0.*deg, 360.*deg );
+  G4Tubs *swall_exthole = new G4Tubs("scham_wall_exthole", 0.0, extpipe_rin, swallthick, 0.*deg, 360.*deg );
+
+  G4RotationMatrix *chamholerot = new G4RotationMatrix;
+  chamholerot->rotateX(90.0*deg);
+
+  //  Cut holes in the scattering chamber
+  G4SubtractionSolid* swall_holes = new G4SubtractionSolid("swall_enthole", swall, swall_enthole, chamholerot, G4ThreeVector(0.0, swallthick+swallrad/2.0, 0.0) );
+  swall_holes = new G4SubtractionSolid("swall_holes", swall_holes, swall_exthole, chamholerot, G4ThreeVector(0.0, -(swallthick+swallrad)/2.0, 0.0) );
+
+  G4LogicalVolume *swall_log = new G4LogicalVolume(swall_holes, Aluminum,"scham_wall_log");
 
   G4RotationMatrix *schamrot = new G4RotationMatrix;
   schamrot->rotateX(90.0*deg);
 
+  G4Tubs *chamber_inner = new G4Tubs("chamber_inner", 0.0, swallrad,  0.75*m, 0*deg, 360*deg );
+  G4LogicalVolume* chamber_inner_log = new G4LogicalVolume(chamber_inner, Vacuum, "cham_inner_log");
+
   if( fTargType == kLH2 || fTargType == kLD2 ){
+
       G4VPhysicalVolume* targ_tube_phys
       = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), targ_tube_log,
-	      "targ_tube_phys", WorldLog, false, 0);
+	      "targ_tube_phys", chamber_inner_log, false, 0);
 
       targ_cap_phys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fTargLen/2.0+downcapthick/2.0), targ_dcap_log,
-	      "targ_dcap_phys", WorldLog, false, 0);
+	      "targ_dcap_phys", chamber_inner_log, false, 0);
       targ_cap_phys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, -fTargLen/2.0-upcapthick/2.0), targ_ucap_log,
-	      "targ_ucap_phys", WorldLog, false, 0);
+	      "targ_ucap_phys", chamber_inner_log, false, 0);
 
       // Scattering chamber
       G4VPhysicalVolume* swall_phys
 	  = new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), swall_log,
 		  "scham_wall_phys", WorldLog, false, 0);
+
   }
 
   G4Tubs *cryo_tube = new G4Tubs("cryo_tube", 0.0, cellradius-wallthick,fTargLen/2.0, 0.*deg, 360.*deg );
@@ -1625,17 +1800,18 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
   if( fTargType == kLD2 || fTargType == kLH2 ){
       G4VPhysicalVolume* cryo_tube_phys
 	  = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), cryo_tube_log,
-		  "cryo_tube_phys", WorldLog, false, 0);
+		  "cryo_tube_phys", chamber_inner_log, false, 0);
   }
 
 
-
+  ConstructBeamline(WorldLog);
 
 
   //--------- Visualization attributes -------------------------------
   WorldLog->SetVisAttributes(G4VisAttributes::Invisible);
   sbslog->SetVisAttributes(G4VisAttributes::Invisible);
   bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
+  chamber_inner_log->SetVisAttributes(G4VisAttributes::Invisible);
 
   G4VisAttributes * yokeVisAtt
     = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
@@ -1664,5 +1840,135 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
 
   return WorldPhys;
 }
+
+
+void G4SBSDetectorConstruction::ConstructBeamline( G4LogicalVolume *worldlog ){
+
+    return;
+    G4double density;
+
+
+    G4Material* aluminum = new G4Material("Aluminum", 13., 26.98*g/mole, density=2.7*g/cm3);
+    G4Material* vacuum = new G4Material("vacuum", 1., 1.0*g/mole, density=1e-9*g/cm3);
+
+    G4Element *elO = new G4Element("Oxygen", "O", 8, 16.000*g/mole );
+    G4Element *elSi = new G4Element("Silicon", "Si", 14, 28.086*g/mole );
+    G4Element *elAl = new G4Element("Aluminum", "Al", 13, 26.982*g/mole );
+    G4Element *elCa = new G4Element("Calcium", "Ca", 20, 40.078*g/mole );
+    G4Element *elFe = new G4Element("Iron", "Fe", 26, 55.850*g/mole );
+    G4Element *elNa = new G4Element("Sodium", "Na", 11, 22.99*g/mole );
+    G4Element* elCr  = new G4Element("Chromium","Cr",24.,52.0*g/mole);
+    G4Element* elMn   =  new G4Element("Manganese","Mn", 25.,54.94*g/mole);
+    G4Element* elNi  = new G4Element("Nickel","Ni",28.,58.70*g/mole);
+
+    density = 2.5*g/cm3;
+    G4Material *Concrete = new G4Material("Concrete",density,6);
+    Concrete->AddElement(elO, 0.52);
+    Concrete->AddElement(elSi, 0.325);
+    Concrete->AddElement(elCa, 0.06);
+    Concrete->AddElement(elNa, 0.015);
+    Concrete->AddElement(elFe, 0.04);
+    Concrete->AddElement(elAl, 0.04);
+
+    density = 8.02*g/cm3 ;
+    G4Material *stainless = new G4Material("Stainless steel",density,5);
+    stainless->AddElement(elMn, 0.02);
+    stainless->AddElement(elSi, 0.01);
+    stainless->AddElement(elCr, 0.19);
+    stainless->AddElement(elNi, 0.10);
+    stainless->AddElement(elFe, 0.68);
+
+    density = 8.02*g/cm3 ;
+    G4Material *Be= new G4Material("Berylium", 1.85*g/mole,5);
+
+    double swallrad_orad = 1.037*m/2 + 0.38*mm;
+    double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
+
+    // Stainless
+    G4double ent_len = 10*m;
+    G4double ent_rin = 31.75*mm;
+    G4double ent_rou = ent_rin+0.120*mm;
+
+    G4Tubs *ent_tube = new G4Tubs("ent_tube", ent_rin, ent_rou, ent_len/2, 0.*deg, 360.*deg );
+    G4Tubs *ent_vac  = new G4Tubs("ent_vac", 0.0, ent_rin, ent_len, 0.*deg, 360.*deg );
+
+    G4LogicalVolume *entLog = new G4LogicalVolume(ent_tube, stainless, "ent_log", 0, 0, 0);
+    G4LogicalVolume *entvacLog = new G4LogicalVolume(ent_vac, vacuum, "entvac_log", 0, 0, 0);
+
+
+    if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
+	// gas target -  1.5m in air
+	G4PVPlacement *entPhys   =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entLog, "ent_phys", worldlog, false,0);
+	G4PVPlacement *entvachys =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entvacLog, "entvac_phys", worldlog,false,0);
+
+	// Add in Be window
+	G4double winthick = 0.0127*cm;
+
+	G4Tubs *ent_win = new G4Tubs("ent_win", 0.0, ent_rin, winthick/2, 0.*deg, 360.*deg );
+	G4LogicalVolume *ent_winlog = new G4LogicalVolume(ent_win, Be, "entwin_log", 0, 0, 0);
+	G4PVPlacement *entwinphys =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);
+	ent_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.7,1.0,0.0)));
+    } else {
+	// Cryotarget - up against the chamber wall
+	G4PVPlacement *entPhys   =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_orad), entLog, "ent_phys", worldlog, false,0);
+	G4PVPlacement *entvachys =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_orad), entvacLog, "entvac_phys", worldlog,false,0);
+    }
+
+    // Aluminum
+    int nsec = 13;
+    G4double exit_z[]   = {206*cm, 234.01*cm, 253.02*cm, 268.26*cm, 305.29*cm, 328.71*cm, 356.33*cm, 378.7*cm, 473.16*cm, 503.64*cm, 609.84*cm, 1161.02*cm, 2725.66*cm };
+    G4double exit_zero[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    G4double exit_rin[] = {4.128*cm, 4.128*cm, 4.445*cm, 4.763*cm, 5.08*cm, 6.35*cm, 7.62*cm, 10.16*cm, 10.478*cm, 12.7*cm, 15.24*cm, 30.48*cm, 45.72*cm  };
+    G4double exit_rou[] = {4.432*cm, 4.432*cm, 4.75*cm, 5.067*cm, 5.385*cm, 6.655*cm, 7.925*cm, 10.478*cm, 10.795*cm, 13.018*cm, 15.558*cm, 30.798*cm, 46.038*cm  };
+
+    G4Polycone *ext_cone = new G4Polycone("ext_tube", 0.0*deg, 360.0*deg, nsec, exit_z, exit_rin, exit_rou);
+    G4Polycone *ext_vac  = new G4Polycone("ext_vac ", 0.0*deg, 360.0*deg, nsec, exit_z, exit_zero, exit_rin);
+
+    G4LogicalVolume *extLog = new G4LogicalVolume(ext_cone, aluminum, "ext_log", 0, 0, 0);
+    G4LogicalVolume *extvacLog = new G4LogicalVolume(ext_vac, vacuum, "extvac_log", 0, 0, 0);
+
+    G4PVPlacement *extPhys    =new G4PVPlacement(0,G4ThreeVector(), extLog, "ext_phys", worldlog, false,0);
+    G4PVPlacement *extvacPhys =new G4PVPlacement(0,G4ThreeVector(), extvacLog, "extvac_phys", worldlog,false,0);
+
+
+    double floorthick = 1.0*m;
+    G4Tubs *floor_tube = new G4Tubs("floor_tube", 0.0, 30*m, floorthick/2, 0.*deg, 360.*deg );
+
+    G4RotationMatrix *floorrm = new G4RotationMatrix;
+    floorrm->rotateX(90*deg);
+
+    G4LogicalVolume *floorLog = new G4LogicalVolume(floor_tube, Concrete, "floor_log", 0, 0, 0);
+    G4PVPlacement *floorPhys = new G4PVPlacement(floorrm, G4ThreeVector(0.0, -floorthick/2 - beamheight, 0.0), floorLog, "floor_phys", worldlog, false, 0);
+
+
+    extvacLog->SetVisAttributes(G4VisAttributes::Invisible);
+    entvacLog->SetVisAttributes(G4VisAttributes::Invisible);
+
+    G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
+
+    extLog->SetVisAttributes(pipeVisAtt);
+    entLog->SetVisAttributes(pipeVisAtt);
+
+
+    G4VisAttributes *floorVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
+//    floorLog->SetVisAttributes(floorVisAtt);
+    floorLog->SetVisAttributes(G4VisAttributes::Invisible);
+
+    return;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

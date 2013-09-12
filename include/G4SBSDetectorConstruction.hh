@@ -21,6 +21,8 @@ public:
   G4VPhysicalVolume* ConstructAll();
   G4VPhysicalVolume* ConstructAllGEp();
 
+  void ConstructBeamline(G4LogicalVolume*);
+
   void SetTarget(Targ_t t){fTargType = t;}
   void SetTargLen(double len){ fTargLen = len;}
   void SetTargDen(double den){ fTargDen = den;}

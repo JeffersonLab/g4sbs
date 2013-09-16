@@ -452,6 +452,11 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fL", bbmothercutBox, frontboxcut, 0, G4ThreeVector( ((bbmagwidth+gapsize)/4.0+coilwidth)+ 10*eps +5*cm, 0, -motherdepth/2.0+clear/2 - 10*eps ));
   bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR", bbmothercutBox, frontboxcut, 0, G4ThreeVector( -((bbmagwidth+gapsize)/4.0+coilwidth)-10*eps -5*cm, 0, -motherdepth/2.0+clear/2 - 10*eps ));
 
+  
+
+  double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
+  G4Box *bottomboxcut = new G4Box("bottomboxcut",bbmagwidth+eps, 250*cm/2, motherdepth+eps);
+  bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR_floor", bbmothercutBox, bottomboxcut, 0, G4ThreeVector( 0.0, -1.25*m*2-20*cm, 0.0));
 
 
   //   Make logical volume for mother vol and place
@@ -826,16 +831,27 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   double downcapthick  = 102*um;
   cellradius  = 63.5*mm/2.0;
 
+  double sheight = 1.2*m;
+
   double swallthick   = 0.38*mm;
-  double swallrad     = 1.037*m/2;
+  double swallrad     = 1.143*m/2;
+  double swallrad_in  = 1.041*m/2;
+
+  double hcal_ang_min = -45*deg;
+  double hcal_ang_max = -7*deg;
+  double hcal_win_h = 0.4*m;
+
+  double bb_ang_min = 18*deg;
+  double bb_ang_max = 74*deg;
+  double bb_win_h = 0.5*m;
 
   targ_tube = new G4Tubs("targ_tube", cellradius-wallthick, cellradius, fTargLen/2.0, 0.*deg, 360.*deg );
   G4Tubs *targ_ucap = new G4Tubs("targ_ucap", 0.0, cellradius, upcapthick/2.0, 0.*deg, 360.*deg );
   G4Tubs *targ_dcap = new G4Tubs("targ_dcap", 0.0, cellradius, downcapthick/2.0, 0.*deg, 360.*deg );
 
   targ_tube_log = new G4LogicalVolume(targ_tube, Aluminum,"targ_tube_log");
-  G4LogicalVolume* targ_ucap_log = new G4LogicalVolume(targ_cap, Aluminum,"targ_ucap_log");
-  G4LogicalVolume* targ_dcap_log = new G4LogicalVolume(targ_cap, Aluminum,"targ_dcap_log");
+  G4LogicalVolume* targ_ucap_log = new G4LogicalVolume(targ_ucap, Aluminum,"targ_ucap_log");
+  G4LogicalVolume* targ_dcap_log = new G4LogicalVolume(targ_dcap, Aluminum,"targ_dcap_log");
 
   G4VPhysicalVolume* targ_ucap_phys, *targ_dcap_phys;
 
@@ -851,10 +867,23 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
       extpipe_len = extpipestart - 1.0*m;
   } else {
       // Cryotarget
-      extpipe_len = extpipestart - (swallthick + swallrad);
+      extpipe_len = extpipestart -  swallrad;
   }
 
-  G4Tubs *swall = new G4Tubs("scham_wall", swallrad, swallrad+swallthick, 0.75*m, 0.*deg, 360.*deg );
+  G4Tubs *swall = new G4Tubs("scham_wall", swallrad_in, swallrad, sheight/2, 0.*deg, 360.*deg );
+
+  // Cut out for windows
+  
+  printf("%f -> %f deg\n", ( hcal_ang_min+2.0*pi)/deg, (hcal_ang_max+2.0*pi)/deg );
+
+  G4Tubs *swall_hcalcut = new G4Tubs("scham_wall_hcalcut", swallrad_in-2*cm, swallrad+2*cm, hcal_win_h, hcal_ang_min, hcal_ang_max-hcal_ang_min);
+  G4Tubs *swall_bbcut = new G4Tubs("scham_wall_bbcut", swallrad_in-2*cm, swallrad+2*cm, bb_win_h, bb_ang_min, bb_ang_max-bb_ang_min);
+
+  G4SubtractionSolid *swallcut = new G4SubtractionSolid("swallcut1", swall, swall_hcalcut);
+  swallcut = new G4SubtractionSolid("swallcut2", swallcut, swall_bbcut);
+
+  G4Tubs *swall_hcalwin = new G4Tubs("scham_wall_hcalwin", swallrad_in, swallrad_in+swallthick, hcal_win_h, hcal_ang_min, hcal_ang_max-hcal_ang_min);
+  G4Tubs *swall_bbwin = new G4Tubs("scham_wall_bbwin", swallrad_in, swallrad_in+swallthick, bb_win_h, bb_ang_min, bb_ang_max-bb_ang_min);
 
   G4Tubs *exttube = new G4Tubs("exitpipetube", extpipe_rin, extpipe_rin+0.120*cm, extpipe_len/2, 0.*deg, 360.*deg );
   G4Tubs *extvactube = new G4Tubs("exitpipetube_vac", 0.0, extpipe_rin, extpipe_len, 0.*deg, 360.*deg );
@@ -862,11 +891,11 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   G4LogicalVolume *extvac_log = new G4LogicalVolume(extvactube, Vacuum,"extvac_log");
 
   G4VPhysicalVolume* extpipephys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", WorldLog, false, 0);
-  G4VPhysicalVolume* extvacpipephys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extvacpipe_phys", WorldLog, false, 0);
+  G4VPhysicalVolume* extvacpipephys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", WorldLog, false, 0);
 
   if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
       // Add in exit Al window
-
+      
       double extwin_thick = 5.0e-4*cm;
       
       G4Tubs *extwin = new G4Tubs("ent_win", 0.0, extpipe_rin, extwin_thick/2, 0.*deg, 360.*deg );
@@ -879,41 +908,68 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   //  Place exit pipe tube
 
-  G4Tubs *swall_enthole = new G4Tubs("scham_wall_enthole", 0.0, entpipe_rin, swallthick+10.0*cm, 0.*deg, 360.*deg );
-  G4Tubs *swall_exthole = new G4Tubs("scham_wall_exthole", 0.0, extpipe_rin, swallthick+10.0*cm, 0.*deg, 360.*deg );
+  G4Tubs *swall_enthole = new G4Tubs("scham_wall_enthole", 0.0, entpipe_rin, 20.0*cm, 0.*deg, 360.*deg );
+  G4Tubs *swall_exthole = new G4Tubs("scham_wall_exthole", 0.0, extpipe_rin, 20.0*cm, 0.*deg, 360.*deg );
 
   G4RotationMatrix *chamholerot = new G4RotationMatrix;
-  chamholerot->rotateX(90.0*deg);
+  chamholerot->rotateY(90.0*deg);
 
   //  Cut holes in the scattering chamber
-  G4SubtractionSolid* swall_holes = new G4SubtractionSolid("swall_enthole", swall, swall_enthole, chamholerot, G4ThreeVector(0.0, swallthick/2+swallrad, 0.0) );
-  swall_holes = new G4SubtractionSolid("swall_holes", swall_holes, swall_exthole, chamholerot, G4ThreeVector(0.0, -swallthick/2-swallrad, 0.0) );
+  G4SubtractionSolid* swall_holes = new G4SubtractionSolid("swall_enthole", swallcut, swall_enthole, chamholerot, G4ThreeVector(-(swallrad+swallrad_in)/2, 0.0, 0.0) );
+  swall_holes = new G4SubtractionSolid("swall_holes", swall_holes, swall_exthole, chamholerot, G4ThreeVector((swallrad+swallrad_in)/2, 0.0, 0.0) );
 
   G4LogicalVolume *swall_log = new G4LogicalVolume(swall_holes, Aluminum,"scham_wall_log");
 
-  G4RotationMatrix *schamrot = new G4RotationMatrix;
-  schamrot->rotateX(90.0*deg);
+  G4LogicalVolume *sc_hcalwin_log = new G4LogicalVolume(swall_hcalwin, Aluminum,"sc_hcalwin_log");
+  G4LogicalVolume *sc_bbwin_log = new G4LogicalVolume(swall_bbwin, Aluminum,"sc_bbwin_log");
 
-  G4Tubs *chamber_inner = new G4Tubs("chamber_inner", 0.0, swallrad,  0.75*m, 0*deg, 360*deg );
+  G4RotationMatrix *schamrot = new G4RotationMatrix;
+  schamrot->rotateX(-90.0*deg);
+  schamrot->rotateZ(-90.0*deg);
+
+  G4RotationMatrix *targrot = new G4RotationMatrix;
+  targrot->rotateY(90.0*deg);
+
+  G4Tubs *chamber_inner = new G4Tubs("chamber_inner", 0.0, swallrad_in,  sheight/2, 0*deg, 360*deg );
   G4LogicalVolume* chamber_inner_log = new G4LogicalVolume(chamber_inner, Vacuum, "cham_inner_log");
 
+  // Top and bottom
+  G4Tubs *sc_topbottom = new G4Tubs("scham_topbottom", 0.0, swallrad, (swallrad-swallrad_in)/2, 0.*deg, 360.*deg );
+  G4LogicalVolume* sc_topbottom_log = new G4LogicalVolume(sc_topbottom, Aluminum, "scham_topbottom_log");
 
   /*
    * FIXME*/
   if( fTargType == kLH2 || fTargType == kLD2 ){
       G4VPhysicalVolume* targ_tube_phys
-      = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), targ_tube_log,
+      = new G4PVPlacement(targrot, G4ThreeVector(0.0, 0.0, 0.0), targ_tube_log,
 	      "targ_tube_phys", chamber_inner_log, false, 0);
 
-      targ_cap_phys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fTargLen/2.0+downcapthick/2.0), targ_dcap_log,
+      targ_cap_phys = new G4PVPlacement(targrot, G4ThreeVector(fTargLen/2.0+downcapthick/2.0, 0.0, 0.0), targ_dcap_log,
 	      "targ_dcap_phys", chamber_inner_log, false, 0);
-      targ_cap_phys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, -fTargLen/2.0-upcapthick/2.0), targ_ucap_log,
+      targ_cap_phys = new G4PVPlacement(targrot, G4ThreeVector(-fTargLen/2.0-upcapthick/2.0, 0.0, 0.0), targ_ucap_log,
 	      "targ_ucap_phys", chamber_inner_log, false, 0);
 
       // Scattering chamber
       G4VPhysicalVolume* swall_phys
 	  = new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), swall_log,
 		  "scham_wall_phys", WorldLog, false, 0);
+        G4VPhysicalVolume* chamber_inner_phys
+	  = new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), chamber_inner_log,
+		  "chamber_inner_phys", WorldLog, false, 0);
+
+      G4VPhysicalVolume* sc_hcalwin_phys
+	  = new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), sc_hcalwin_log,
+		  "sc_hcalwin_phys", WorldLog, false, 0);
+      G4VPhysicalVolume* sc_bbwin_phys
+	  = new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), sc_bbwin_log,
+		  "sc_bbwin_phys", WorldLog, false, 0);
+
+      G4VPhysicalVolume* sc_top_phys
+	  = new G4PVPlacement(schamrot, G4ThreeVector(0.0, sheight/2.0 + (swallrad-swallrad_in)/2, 0.0), sc_topbottom_log,
+		  "scham_top_phys", WorldLog, false, 0);
+      G4VPhysicalVolume* sc_bot_phys
+	  = new G4PVPlacement(schamrot, G4ThreeVector(0.0, -sheight/2.0 - (swallrad-swallrad_in)/2, 0.0), sc_topbottom_log,
+		  "scham_bot_phys", WorldLog, false, 0);
   }
   /**/
 
@@ -932,7 +988,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
    * FIXME */
   if( fTargType == kLD2 || fTargType == kLH2 ){
       G4VPhysicalVolume* cryo_tube_phys
-	  = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), cryo_tube_log,
+	  = new G4PVPlacement(targrot, G4ThreeVector(0.0, 0.0, 0.0), cryo_tube_log,
 		  "cryo_tube_phys", chamber_inner_log, false, 0);
   }
  /*  */
@@ -1094,6 +1150,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   bbfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
   bbmotherLog->SetVisAttributes(G4VisAttributes::Invisible);
   bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
+  chamber_inner_log->SetVisAttributes(G4VisAttributes::Invisible);
 
   G4VisAttributes * yokeVisAtt
     = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
@@ -1133,10 +1190,18 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   G4VisAttributes * schamVisAtt
     = new G4VisAttributes(G4Colour(0.7,0.7,1.0));
   swall_log->SetVisAttributes(schamVisAtt);
+  sc_topbottom_log->SetVisAttributes(schamVisAtt);
 
     G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
     extpipe_log->SetVisAttributes(pipeVisAtt);
     extvac_log->SetVisAttributes(    G4VisAttributes::Invisible );
+
+    G4VisAttributes *cryoVisAtt= new G4VisAttributes(G4Colour(1.0,0.0,0.0));
+    cryo_tube_log->SetVisAttributes(cryoVisAtt);
+
+    G4VisAttributes *winVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
+    sc_hcalwin_log->SetVisAttributes(winVisAtt);
+    sc_bbwin_log->SetVisAttributes(winVisAtt);
 
   /*
   hcallog->SetVisAttributes(G4VisAttributes::Invisible);
@@ -1462,7 +1527,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
 	  gemh[i] = 200.0*cm;
       }
 
-      printf("i = %d  z = %f\n", i, gemz[i]/m);
+      //printf("i = %d  z = %f\n", i, gemz[i]/m);
   }
 
 
@@ -1728,17 +1793,29 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
   wallthick   = 100*um;
   double upcapthick    = 50*um;
   double downcapthick  = 50*um;
+  cellradius  = 63.5*mm/2.0;
+
+  double sheight = 1.2*m;
 
   double swallthick   = 0.38*mm;
-  double swallrad     = 1.037*m/2;
+  double swallrad     = 1.143*m/2;
+  double swallrad_in  = 1.041*m/2;
+
+  double hcal_ang_min = -45*deg;
+  double hcal_ang_max = -7*deg;
+  double hcal_win_h = 0.4*m;
+
+  double bb_ang_min = 18*deg;
+  double bb_ang_max = 74*deg;
+  double bb_win_h = 0.5*m;
 
   targ_tube = new G4Tubs("targ_tube", cellradius-wallthick, cellradius, fTargLen/2.0, 0.*deg, 360.*deg );
   G4Tubs *targ_ucap = new G4Tubs("targ_ucap", 0.0, cellradius, upcapthick/2.0, 0.*deg, 360.*deg );
   G4Tubs *targ_dcap = new G4Tubs("targ_dcap", 0.0, cellradius, downcapthick/2.0, 0.*deg, 360.*deg );
 
   targ_tube_log = new G4LogicalVolume(targ_tube, Aluminum,"targ_tube_log");
-  G4LogicalVolume* targ_ucap_log = new G4LogicalVolume(targ_cap, Aluminum,"targ_ucap_log");
-  G4LogicalVolume* targ_dcap_log = new G4LogicalVolume(targ_cap, Aluminum,"targ_dcap_log");
+  G4LogicalVolume* targ_ucap_log = new G4LogicalVolume(targ_ucap, Aluminum,"targ_ucap_log");
+  G4LogicalVolume* targ_dcap_log = new G4LogicalVolume(targ_dcap, Aluminum,"targ_dcap_log");
 
   G4VPhysicalVolume* targ_ucap_phys, *targ_dcap_phys;
 
@@ -1747,42 +1824,101 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
 
   G4double extpipestart = 2.06*m;
   // 2.06m is where the main exit pipe starts
-  G4double extpipe_len = extpipestart - (swallthick + swallrad);
+  G4double extpipe_len = 0.0;
+  if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
+      // Gas target
+      extpipe_len = extpipestart - 1.0*m;
+  } else {
+      // Cryotarget
+      extpipe_len = extpipestart - swallrad;
+  }
 
-  G4Tubs *swall = new G4Tubs("scham_wall", swallrad, swallrad+swallthick, 0.75*m, 0.*deg, 360.*deg );
-  G4Tubs *swall_enthole = new G4Tubs("scham_wall_enthole", 0.0, entpipe_rin, swallthick, 0.*deg, 360.*deg );
-  G4Tubs *swall_exthole = new G4Tubs("scham_wall_exthole", 0.0, extpipe_rin, swallthick, 0.*deg, 360.*deg );
+  G4Tubs *swall = new G4Tubs("scham_wall", swallrad_in, swallrad, sheight/2, 0.*deg, 360.*deg );
+  
+  // Cut out for windows
+
+  G4Tubs *swall_hcalcut = new G4Tubs("scham_wall_hcalcut", swallrad_in-2*cm, swallrad+2*cm, hcal_win_h, hcal_ang_min, hcal_ang_max-hcal_ang_min);
+  G4Tubs *swall_bbcut = new G4Tubs("scham_wall_bbcut", swallrad_in-2*cm, swallrad+2*cm, bb_win_h, bb_ang_min, bb_ang_max-bb_ang_min);
+
+  G4SubtractionSolid *swallcut = new G4SubtractionSolid("swallcut1", swall, swall_hcalcut);
+  swallcut = new G4SubtractionSolid("swallcut2", swallcut, swall_bbcut);
+
+  G4Tubs *swall_hcalwin = new G4Tubs("scham_wall_hcalwin", swallrad_in, swallrad_in+swallthick, hcal_win_h, hcal_ang_min, hcal_ang_max-hcal_ang_min);
+  G4Tubs *swall_bbwin = new G4Tubs("scham_wall_bbwin", swallrad_in, swallrad_in+swallthick, bb_win_h, bb_ang_min, bb_ang_max-bb_ang_min);
+
+  G4Tubs *exttube = new G4Tubs("exitpipetube", extpipe_rin, extpipe_rin+0.120*cm, extpipe_len/2, 0.*deg, 360.*deg );
+  G4Tubs *extvactube = new G4Tubs("exitpipetube_vac", 0.0, extpipe_rin, extpipe_len/2, 0.*deg, 360.*deg );
+  G4LogicalVolume *extpipe_log = new G4LogicalVolume(exttube, Aluminum,"extpipe_log");
+  G4LogicalVolume *extvac_log = new G4LogicalVolume(extvactube, Vacuum,"extvac_log");
+
+  G4VPhysicalVolume* extpipephys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", WorldLog, false, 0);
+  G4VPhysicalVolume* extvacpipephys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", WorldLog, false, 0);
+
+  if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
+      // Add in exit Al window
+      
+      double extwin_thick = 5.0e-4*cm;
+      
+      G4Tubs *extwin = new G4Tubs("ent_win", 0.0, extpipe_rin, extwin_thick/2, 0.*deg, 360.*deg );
+      G4LogicalVolume *ext_winlog = new G4LogicalVolume(extwin, Aluminum, "entwin_log", 0, 0, 0);
+      G4PVPlacement *extwinphys =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -extpipe_len/2 + extwin_thick/2), ext_winlog, "extwin_phys", extvac_log,false,0);
+
+      ext_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.6,0.6,0.6)));
+  }
+
+
+  //  Place exit pipe tube
+
+  G4Tubs *swall_enthole = new G4Tubs("scham_wall_enthole", 0.0, entpipe_rin, 20.0*cm, 0.*deg, 360.*deg );
+  G4Tubs *swall_exthole = new G4Tubs("scham_wall_exthole", 0.0, extpipe_rin, 20.0*cm, 0.*deg, 360.*deg );
 
   G4RotationMatrix *chamholerot = new G4RotationMatrix;
-  chamholerot->rotateX(90.0*deg);
+  chamholerot->rotateY(90.0*deg);
 
   //  Cut holes in the scattering chamber
-  G4SubtractionSolid* swall_holes = new G4SubtractionSolid("swall_enthole", swall, swall_enthole, chamholerot, G4ThreeVector(0.0, swallthick+swallrad/2.0, 0.0) );
-  swall_holes = new G4SubtractionSolid("swall_holes", swall_holes, swall_exthole, chamholerot, G4ThreeVector(0.0, -(swallthick+swallrad)/2.0, 0.0) );
+  G4SubtractionSolid* swall_holes = new G4SubtractionSolid("swall_enthole", swallcut, swall_enthole, chamholerot, G4ThreeVector(-(swallrad+swallrad_in)/2, 0.0, 0.0) );
+  swall_holes = new G4SubtractionSolid("swall_holes", swall_holes, swall_exthole, chamholerot, G4ThreeVector((swallrad+swallrad_in)/2, 0.0, 0.0) );
 
   G4LogicalVolume *swall_log = new G4LogicalVolume(swall_holes, Aluminum,"scham_wall_log");
 
-  G4RotationMatrix *schamrot = new G4RotationMatrix;
-  schamrot->rotateX(90.0*deg);
+  G4LogicalVolume *sc_hcalwin_log = new G4LogicalVolume(swall_hcalwin, Aluminum,"sc_hcalwin_log");
+  G4LogicalVolume *sc_bbwin_log = new G4LogicalVolume(swall_bbwin, Aluminum,"sc_bbwin_log");
 
-  G4Tubs *chamber_inner = new G4Tubs("chamber_inner", 0.0, swallrad,  0.75*m, 0*deg, 360*deg );
+  G4RotationMatrix *schamrot = new G4RotationMatrix;
+  schamrot->rotateX(-90.0*deg);
+  schamrot->rotateZ(-90.0*deg);
+
+  G4RotationMatrix *targrot = new G4RotationMatrix;
+  targrot->rotateY(90.0*deg);
+
+  G4Tubs *chamber_inner = new G4Tubs("chamber_inner", 0.0, swallrad_in,  sheight/2, 0*deg, 360*deg );
   G4LogicalVolume* chamber_inner_log = new G4LogicalVolume(chamber_inner, Vacuum, "cham_inner_log");
 
   if( fTargType == kLH2 || fTargType == kLD2 ){
 
       G4VPhysicalVolume* targ_tube_phys
-      = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), targ_tube_log,
+      = new G4PVPlacement(targrot, G4ThreeVector(0.0, 0.0, 0.0), targ_tube_log,
 	      "targ_tube_phys", chamber_inner_log, false, 0);
 
-      targ_cap_phys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fTargLen/2.0+downcapthick/2.0), targ_dcap_log,
+      targ_cap_phys = new G4PVPlacement(targrot, G4ThreeVector(fTargLen/2.0+downcapthick/2.0, 0.0, 0.0), targ_dcap_log,
 	      "targ_dcap_phys", chamber_inner_log, false, 0);
-      targ_cap_phys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, -fTargLen/2.0-upcapthick/2.0), targ_ucap_log,
+      targ_cap_phys = new G4PVPlacement(targrot, G4ThreeVector(-fTargLen/2.0-upcapthick/2.0, 0.0, 0.0), targ_ucap_log,
 	      "targ_ucap_phys", chamber_inner_log, false, 0);
 
       // Scattering chamber
       G4VPhysicalVolume* swall_phys
 	  = new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), swall_log,
 		  "scham_wall_phys", WorldLog, false, 0);
+      G4VPhysicalVolume* chamber_inner_phys
+	  = new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), chamber_inner_log,
+		  "chamber_inner_phys", WorldLog, false, 0);
+
+      G4VPhysicalVolume* sc_hcalwin_phys
+	  = new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), sc_hcalwin_log,
+		  "sc_hcalwin_phys", WorldLog, false, 0);
+      G4VPhysicalVolume* sc_bbwin_phys
+	  = new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), sc_bbwin_log,
+		  "sc_bbwin_phys", WorldLog, false, 0);
 
   }
 
@@ -1799,7 +1935,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
 
   if( fTargType == kLD2 || fTargType == kLH2 ){
       G4VPhysicalVolume* cryo_tube_phys
-	  = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), cryo_tube_log,
+	  = new G4PVPlacement(targrot, G4ThreeVector(0.0, 0.0, 0.0), cryo_tube_log,
 		  "cryo_tube_phys", chamber_inner_log, false, 0);
   }
 
@@ -1812,6 +1948,10 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
   sbslog->SetVisAttributes(G4VisAttributes::Invisible);
   bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
   chamber_inner_log->SetVisAttributes(G4VisAttributes::Invisible);
+
+    G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
+    extpipe_log->SetVisAttributes(pipeVisAtt);
+    extvac_log->SetVisAttributes(    G4VisAttributes::Invisible );
 
   G4VisAttributes * yokeVisAtt
     = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
@@ -1838,13 +1978,19 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
     = new G4VisAttributes(G4Colour(0.7,0.7,1.0));
   swall_log->SetVisAttributes(schamVisAtt);
 
+    G4VisAttributes *cryoVisAtt= new G4VisAttributes(G4Colour(1.0,0.0,0.0));
+    cryo_tube_log->SetVisAttributes(cryoVisAtt);
+
+    G4VisAttributes *winVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
+    sc_hcalwin_log->SetVisAttributes(winVisAtt);
+    sc_bbwin_log->SetVisAttributes(winVisAtt);
+
   return WorldPhys;
 }
 
 
 void G4SBSDetectorConstruction::ConstructBeamline( G4LogicalVolume *worldlog ){
 
-    return;
     G4double density;
 
 
@@ -1879,9 +2025,9 @@ void G4SBSDetectorConstruction::ConstructBeamline( G4LogicalVolume *worldlog ){
     stainless->AddElement(elFe, 0.68);
 
     density = 8.02*g/cm3 ;
-    G4Material *Be= new G4Material("Berylium", 1.85*g/mole,5);
+    G4Material* matBe = new G4Material("Berylium", 4., 9.012*g/mole, density=1.85*g/cm3);
 
-    double swallrad_orad = 1.037*m/2 + 0.38*mm;
+    double swallrad = 1.143*m/2;
     double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
 
     // Stainless
@@ -1905,13 +2051,13 @@ void G4SBSDetectorConstruction::ConstructBeamline( G4LogicalVolume *worldlog ){
 	G4double winthick = 0.0127*cm;
 
 	G4Tubs *ent_win = new G4Tubs("ent_win", 0.0, ent_rin, winthick/2, 0.*deg, 360.*deg );
-	G4LogicalVolume *ent_winlog = new G4LogicalVolume(ent_win, Be, "entwin_log", 0, 0, 0);
+	G4LogicalVolume *ent_winlog = new G4LogicalVolume(ent_win, matBe, "entwin_log", 0, 0, 0);
 	G4PVPlacement *entwinphys =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);
 	ent_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.7,1.0,0.0)));
     } else {
 	// Cryotarget - up against the chamber wall
-	G4PVPlacement *entPhys   =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_orad), entLog, "ent_phys", worldlog, false,0);
-	G4PVPlacement *entvachys =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_orad), entvacLog, "entvac_phys", worldlog,false,0);
+	G4PVPlacement *entPhys   =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad), entLog, "ent_phys", worldlog, false,0);
+	G4PVPlacement *entvachys =new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad), entvacLog, "entvac_phys", worldlog,false,0);
     }
 
     // Aluminum

@@ -22,6 +22,7 @@ public:
   G4VPhysicalVolume* ConstructAllGEp();
 
   void ConstructBeamline(G4LogicalVolume*);
+  void ConstructTarget(G4LogicalVolume*);
 
   void SetTarget(Targ_t t){fTargType = t;}
   void SetTargLen(double len){ fTargLen = len;}

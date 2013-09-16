@@ -32,8 +32,8 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   if( edep <= 0.5*GeV ) return false;
 
   // Only return primary electron hits
-  int trid = aStep->GetTrack()->GetParentID();
-  //if( trid != 0 ) return false;
+  /*int trid = aStep->GetTrack()->GetParentID();
+    if( trid != 0 ) return false; */
 
   G4SBSCalHit* hit = new G4SBSCalHit();
 

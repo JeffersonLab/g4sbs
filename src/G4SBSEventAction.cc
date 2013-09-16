@@ -145,7 +145,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
   trdata.x = trdata.y = trdata.xp = trdata.yp = -1e9;
   trdata.gemtr = 0;
-  int idx, i, j, nhit, gid;
+  int idx, i, nhit, gid;
 
   int    map = 0;
   // Just use 4 GEMs for now

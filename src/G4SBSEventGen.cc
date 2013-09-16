@@ -505,10 +505,10 @@ void G4SBSEventGen::GenerateDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVecto
 	return;
     }
 
-    double W  = sqrt(W2);
+    //double W  = sqrt(W2);
 
-    double thpi = acos( CLHEP::RandFlat::shoot(-1,1) );
-    double phpi = CLHEP::RandFlat::shoot(0.0, 2.0*3.14159);
+    //double thpi = acos( CLHEP::RandFlat::shoot(-1,1) );
+    //double phpi = CLHEP::RandFlat::shoot(0.0, 2.0*3.14159);
 
     if( CLHEP::RandFlat::shoot() < 2.0/3.0 ){
 	fFinalNucl = nucl;

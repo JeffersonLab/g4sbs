@@ -86,7 +86,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::Construct(){
   Air->AddElement(elN, .7);
   Air->AddElement(elO, .3);
 
-  G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 20*m);
+  G4Box *WorldBox= new G4Box("WorldBox",50*m, 50*m, 50*m);
   G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,Air,
 						  "WorldLogical", 0, 0, 0);
   G4PVPlacement *WorldPhys=new G4PVPlacement(0,G4ThreeVector(),
@@ -488,7 +488,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   G4Box *bbdetbox = new G4Box("bbdetbox", bbmagwidth/2.0, detboxheight/2.0, detboxdepth/2.0);
   G4LogicalVolume *bbdetLog=new G4LogicalVolume(bbdetbox, Air,
 						  "bbdetLog", 0, 0, 0);
-   G4PVPlacement(bbdetrot, G4ThreeVector(0.0, 
+  new G4PVPlacement(bbdetrot, G4ThreeVector(0.0, 
 	               (detboxplace+detboxdepth/2.0)*sin(detboxang),
 	               (detboxplace+detboxdepth/2.0)*cos(detboxang)+midplanez),
 	  bbdetLog, "bbdetPhysical", bbmotherLog, 0,false,0);
@@ -1829,7 +1829,7 @@ void G4SBSDetectorConstruction::ConstructBeamline( G4LogicalVolume *worldlog ){
     G4double ent_rou = ent_rin+0.120*mm;
 
     G4Tubs *ent_tube = new G4Tubs("ent_tube", ent_rin, ent_rou, ent_len/2, 0.*deg, 360.*deg );
-    G4Tubs *ent_vac  = new G4Tubs("ent_vac", 0.0, ent_rin, ent_len, 0.*deg, 360.*deg );
+    G4Tubs *ent_vac  = new G4Tubs("ent_vac", 0.0, ent_rin, ent_len/2, 0.*deg, 360.*deg );
 
     G4LogicalVolume *entLog = new G4LogicalVolume(ent_tube, stainless, "ent_log", 0, 0, 0);
     G4LogicalVolume *entvacLog = new G4LogicalVolume(ent_vac, vacuum, "entvac_log", 0, 0, 0);

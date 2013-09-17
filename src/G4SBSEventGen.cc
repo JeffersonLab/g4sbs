@@ -38,6 +38,7 @@ G4SBSEventGen::G4SBSEventGen(){
 
     // init DIS cteq pdf
     initcteqpdf();
+
 }
 
 
@@ -117,6 +118,10 @@ void G4SBSEventGen::GenerateEvent(){
 	    break;
 	case kFlat:
 	    GenerateFlat( thisnucl, ei, ni );
+	    break;
+	case kBeam:
+	    fVert.setZ( -5.0*m ); // Set at something upstream if just simple beam
+	    GenerateBeam( thisnucl, ei, ni );
 	    break;
 	default:
 	    GenerateElastic( thisnucl, ei, ni );
@@ -570,7 +575,7 @@ void G4SBSEventGen::GenerateDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVecto
 }
 
 
-void G4SBSEventGen::GenerateFlat( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+void G4SBSEventGen::GenerateFlat( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni){
     // Ignore initial nucleon
     double Mp = proton_mass_c2;
 
@@ -610,6 +615,32 @@ void G4SBSEventGen::GenerateFlat( Nucl_t nucl, G4LorentzVector ei, G4LorentzVect
 
     fNucleonP = nfp.vect();
     fNucleonE = sqrt(Mp*Mp + nfp.mag2());
+
+    fSigma    = 1.0;
+    fApar     = 0.0;
+    fAperp    = 0.0;
+
+    fFinalNucl = nucl;
+}
+
+
+void G4SBSEventGen::GenerateBeam( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ){
+
+    fQ2 = 0.0;
+    fPmisspar  = 0.0;
+
+    fPmissparSm  = 0.0;
+
+    fPmissperp = 0.0;
+
+    fW2 = 0.0;
+    fxbj = 0.0;
+
+    fElectronP = ei.vect();
+    fElectronE = ei.e();
+
+    fNucleonP = G4ThreeVector();
+    fNucleonE = proton_mass_c2;
 
     fSigma    = 1.0;
     fApar     = 0.0;

@@ -208,6 +208,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	    fevgen->SetKine(kDIS);
 	    validcmd = true;
 	}
+	if( newValue.compareTo("beam") == 0 ){
+	    fevgen->SetKine(kBeam);
+	    validcmd = true;
+	}
 	if( !validcmd ){
 	    fprintf(stderr, "%s: %s line %d - Error: kinematic type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
 	    exit(1);

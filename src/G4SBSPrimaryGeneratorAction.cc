@@ -101,7 +101,11 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   particleGun->SetParticlePosition(G4ThreeVector(0.*cm,0.*cm,0.*cm));
   */
 
-  particleGun->GeneratePrimaryVertex(anEvent);
+  // Only do final nucleon for generators other than
+  // the generic beam generator
+  if( sbsgen->GetKine() != kBeam ){
+      particleGun->GeneratePrimaryVertex(anEvent);
+  }
 
 
 }

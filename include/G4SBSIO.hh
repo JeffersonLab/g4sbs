@@ -45,6 +45,13 @@ typedef struct {
 	Double_t txp[MAXHITDATA], typ[MAXHITDATA];
 } hit_t;
 
+typedef struct {
+    Int_t hcndata, bcndata;
+	Double_t bcx[MAXHITDATA], bcy[MAXHITDATA], bce[MAXHITDATA];
+	Double_t hcx[MAXHITDATA], hcy[MAXHITDATA], hce[MAXHITDATA];
+	Int_t hctrid[MAXHITDATA], hcmid[MAXHITDATA], hcpid[MAXHITDATA];
+	Int_t bctrid[MAXHITDATA], bcmid[MAXHITDATA], bcpid[MAXHITDATA];
+} cal_t;
 
 class G4SBSIO {
     public:
@@ -53,6 +60,7 @@ class G4SBSIO {
 
 	void SetFilename(const char *fn){strcpy(fFilename, fn);}
 	void SetTrackData(tr_t td){ trdata = td; }
+	void SetCalData(cal_t cd){ caldata = cd; }
 	void SetEventData(ev_t ed){ evdata = ed; }
 	void SetHitData(hit_t ht){ hitdata = ht; }
 	void FillTree();
@@ -74,6 +82,7 @@ class G4SBSIO {
 	ev_t evdata;
 	gen_t gendata;
 	tr_t trdata;
+	cal_t caldata;
 	hit_t hitdata;
 
 	char fFilename[255];

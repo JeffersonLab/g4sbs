@@ -34,8 +34,23 @@ class G4SBSCalHit : public G4VHit
       G4ThreeVector pos;
       G4ThreeVector labpos;
       double time;
+      double energy;
+
+      G4int pid, mid, trid;
 
   public:
+      inline void SetEdep(G4double e)
+      { energy = e;};
+
+      inline void SetPID(G4int p)
+      { pid = p;};
+
+      inline void SetTrID(G4int t)
+      { trid = t;};
+
+      inline void SetMID(G4int m)
+      { mid = m;};
+
       inline void SetPos(G4ThreeVector v)
       { pos = v;};
       inline void SetLabPos(G4ThreeVector v)
@@ -43,6 +58,18 @@ class G4SBSCalHit : public G4VHit
 
     inline G4ThreeVector GetPos()
       { return pos;};
+
+    inline G4double GetEdep()
+      { return energy;};
+
+    inline G4double GetTrID()
+      { return trid;};
+
+    inline G4double GetMID()
+      { return mid;};
+
+    inline G4double GetPID()
+      { return pid;};
 
     inline G4ThreeVector GetLabPos()
       { return labpos;};

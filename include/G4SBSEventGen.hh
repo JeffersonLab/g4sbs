@@ -39,6 +39,7 @@ class G4SBSEventGen {
 	void SetRunTime(double t){fRunTime = t;}
 
 	void SetKine(Kine_t t ){fKineType = t;}
+	Kine_t GetKine(){return fKineType;}
 
 	void SetTarget(Targ_t t ){fTargType = t;}
 	void SetTargLen(double len){fTargLen = len;}
@@ -82,6 +83,7 @@ class G4SBSEventGen {
 	void GenerateInelastic( Nucl_t, G4LorentzVector, G4LorentzVector );
 	void GenerateDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
 	void GenerateFlat( Nucl_t, G4LorentzVector, G4LorentzVector );
+	void GenerateBeam( Nucl_t, G4LorentzVector, G4LorentzVector );
 
 	double deutpdist( double );
 	double he3pdist( Nucl_t, double );

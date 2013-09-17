@@ -28,8 +28,7 @@ void G4SBSCalSD::Initialize(G4HCofThisEvent*)
 G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
   double edep = aStep->GetTotalEnergyDeposit();
-
-  if( edep <= 0.5*GeV ) return false;
+//  if( edep <= 0.5*GeV ) return false;
 
   // Only return primary electron hits
   /*int trid = aStep->GetTrack()->GetParentID();
@@ -47,6 +46,14 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   hit->SetLabPos(aStep->GetPreStepPoint()->GetPosition());
 //  hit->SetTime(aStep->GetPreStepPoint()->GetGlobalTime());
   hit->SetTime(aStep->GetPostStepPoint()->GetLocalTime());
+
+  hit->SetTime(aStep->GetPostStepPoint()->GetLocalTime());
+
+  //printf("Hit with E %g\n", edep/MeV);
+
+  hit->SetEdep(edep);
+  hit->SetPID(aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding());
+  hit->SetMID(aStep->GetTrack()->GetParentID());
 
   /*
   printf("%f %f %f %f - dist %f beta %e momentum %f GeV\n", 

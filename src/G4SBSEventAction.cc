@@ -69,7 +69,8 @@ void G4SBSEventAction::LoadSigmas(const char filename[] ){
 
 void G4SBSEventAction::BeginOfEventAction(const G4Event*ev) {
    if( (ev->GetEventID()%1000)==0 ){
-	printf("Event %8d\n", ev->GetEventID());
+	printf("Event %8d\r", ev->GetEventID());
+	fflush(stdout);
     }
 
     return;
@@ -99,30 +100,91 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   bool hasbb   = false;
   bool hashcal = false;
 
+  int i;
+
   tr_t trdata;
+  cal_t caldata;
+
+  caldata.bcndata = 0;
+  caldata.hcndata = 0;
 
   if(bbcalHC) {
       if( bbcalHC->entries() > 0 ){
 	  hasbb = true;
-	  trdata.bcx = (*bbcalHC)[0]->GetPos().x()/cm;
-	  trdata.bcy = (*bbcalHC)[0]->GetPos().y()/cm;
+
+	  double xsum = 0.0;
+	  double ysum = 0.0;
+	  double esum = 0.0;
+
+	  caldata.bcndata = bbcalHC->entries();
+	  for( i = 0; i < bbcalHC->entries(); i++ ){
+	      xsum += (*bbcalHC)[i]->GetPos().x()*(*bbcalHC)[i]->GetEdep();
+	      ysum += (*bbcalHC)[i]->GetPos().y()*(*bbcalHC)[i]->GetEdep();
+	      esum += (*bbcalHC)[i]->GetEdep();
+
+	      caldata.bcx[i] = (*bbcalHC)[i]->GetPos().x()/cm;
+	      caldata.bcy[i] = (*bbcalHC)[i]->GetPos().y()/cm;
+	      caldata.bce[i] = (*bbcalHC)[i]->GetEdep()/GeV;
+
+	      caldata.bcpid[i] = (*bbcalHC)[i]->GetPID();
+	      caldata.bcmid[i] = (*bbcalHC)[i]->GetMID();
+	      caldata.bctrid[i] = (*bbcalHC)[i]->GetTrID();
+	  }
+	  
+	  //  Energy weighted sum
+	  trdata.bcx = xsum/esum/cm; 
+	  trdata.bcy = ysum/esum/cm;
       }
   }
   
   if(hcalHC) {
       if( hcalHC->entries() > 0 ){
 	  hashcal = true;
-      	  trdata.hcx = (*hcalHC)[0]->GetPos().x()/cm;
-	  trdata.hcy = (*hcalHC)[0]->GetPos().y()/cm;
-	  trdata.hct = (*hcalHC)[0]->GetTime()/ns + CLHEP::RandGauss::shoot(0.0, fevgen->GetToFres());
 
-	  trdata.hclx = (*hcalHC)[0]->GetLabPos().x()/cm;
-	  trdata.hcly = (*hcalHC)[0]->GetLabPos().y()/cm;
-	  trdata.hclz = (*hcalHC)[0]->GetLabPos().z()/cm;
+	  double xsum = 0.0;
+	  double ysum = 0.0;
+
+	  double xlsum = 0.0;
+	  double ylsum = 0.0;
+	  double zlsum = 0.0;
+
+	  double esum = 0.0;
+
+	  caldata.hcndata = hcalHC->entries();
+	  for( i = 0; i < hcalHC->entries(); i++ ){
+	      xsum += (*hcalHC)[i]->GetPos().x()*(*hcalHC)[i]->GetEdep();
+	      ysum += (*hcalHC)[i]->GetPos().y()*(*hcalHC)[i]->GetEdep();
+	      xlsum += (*hcalHC)[i]->GetLabPos().x()*(*hcalHC)[i]->GetEdep();
+	      ylsum += (*hcalHC)[i]->GetLabPos().y()*(*hcalHC)[i]->GetEdep();
+	      zlsum += (*hcalHC)[i]->GetLabPos().y()*(*hcalHC)[i]->GetEdep();
+	      esum += (*hcalHC)[i]->GetEdep();
+
+	      if( (*hcalHC)[i]->GetMID() == 0 ){
+		  trdata.hct = (*hcalHC)[i]->GetTime()/ns + CLHEP::RandGauss::shoot(0.0, fevgen->GetToFres());
+	      }
+
+	      caldata.hcx[i] = (*hcalHC)[i]->GetPos().x()/cm;
+	      caldata.hcy[i] = (*hcalHC)[i]->GetPos().y()/cm;
+	      caldata.hce[i] = (*hcalHC)[i]->GetEdep()/GeV;
+
+	      caldata.hcpid[i] = (*hcalHC)[i]->GetPID();
+	      caldata.hcmid[i] = (*hcalHC)[i]->GetMID();
+	      caldata.hctrid[i] = (*hcalHC)[i]->GetTrID();
+	  }
+
+
+      	  trdata.hcx = xsum/esum/cm;
+	  trdata.hcy = ysum/esum/cm;
+	  trdata.hclx = xlsum/esum/cm;
+	  trdata.hcly = ylsum/esum/cm;
+	  trdata.hclz = zlsum/esum/cm;
+
+	  G4ThreeVector avglab = G4ThreeVector( trdata.hclx, trdata.hcly, trdata.hclz);
+
 
 	  // Calculate expected time of flight
 	  G4ThreeVector q3m = fevgen->GetBeamP()-fevgen->GetElectronP();
-	  G4ThreeVector path = (*hcalHC)[0]->GetLabPos()-fevgen->GetV();
+	  G4ThreeVector path = avglab-fevgen->GetV();
 	  double hcd = path.mag();
 
 	  trdata.hctex = hcd/(q3m.mag()*(0.3*m/ns)/sqrt(q3m.mag()*q3m.mag()+proton_mass_c2*proton_mass_c2))/ns;
@@ -135,9 +197,11 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
   // If we don't have something in both arms end
   // and don't fill
+  /*
   if( !hasbb && !hashcal ){
       return;
   }
+  */
 
 
   trdata.hcal = hashcal;
@@ -145,7 +209,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
   trdata.x = trdata.y = trdata.xp = trdata.yp = -1e9;
   trdata.gemtr = 0;
-  int idx, i, nhit, gid;
+  int idx, nhit, gid;
 
   int    map = 0;
   // Just use 4 GEMs for now
@@ -267,6 +331,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   }
 
   fIO->SetTrackData(trdata);
+  fIO->SetCalData(caldata);
   fIO->SetHitData(hitdata);
   fIO->FillTree();
 

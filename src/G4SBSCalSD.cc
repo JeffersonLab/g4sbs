@@ -53,6 +53,7 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   hit->SetEdep(edep);
   hit->SetPID(aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding());
+  hit->SetTrID(aStep->GetTrack()->GetTrackID());
   hit->SetMID(aStep->GetTrack()->GetParentID());
 
   /*

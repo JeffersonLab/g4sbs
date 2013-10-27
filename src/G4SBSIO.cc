@@ -4,6 +4,8 @@
 #include <TTree.h>
 #include <TClonesArray.h>
 
+#include <assert.h>
+
 G4SBSIO::G4SBSIO(){
     fTree = NULL;
     InitializeTree();
@@ -19,12 +21,22 @@ G4SBSIO::G4SBSIO(){
 }
 
 G4SBSIO::~G4SBSIO(){
-    delete fTree;
+    if( fTree ){delete fTree;}
     fTree = NULL;
+
+    if( fFile ){delete fFile;}
+    fFile = NULL;
 }
 
 
 void G4SBSIO::InitializeTree(){
+    if( fFile ){
+	fFile->Close();
+	delete fFile;
+    }
+
+    fFile = new TFile(fFilename, "RECREATE");
+
     if( fTree ){ delete fTree; }
 
     fTree = new TTree("T", "Geant4 SBS Simulation");
@@ -74,12 +86,23 @@ void G4SBSIO::FillTree(){
 }
 
 void G4SBSIO::WriteTree(){
-    fFile = new TFile(fFilename, "RECREATE");
+    assert( fFile );
+    assert( fTree );
+    if( !fFile->IsOpen() ){
+	G4cerr << "ERROR: " << __FILE__ << " line " << __LINE__ << ": TFile not open" << G4endl;
+	exit(1);
+    }
+
     fFile->cd();
     fTree->Write("T", TObject::kOverwrite);
+
     fFile->Close();
     delete fFile;
     fFile = NULL;
+
+    fTree->ResetBranchAddresses();
+    delete fTree;
+    fTree = NULL;
 
     return;
 }

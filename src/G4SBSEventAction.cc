@@ -19,7 +19,7 @@
 
 #include "G4SBSIO.hh"
 
-#define MAXHIT 20
+#define MAXHIT 2000
 
 G4SBSEventAction::G4SBSEventAction()
 {
@@ -117,7 +117,14 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  double esum = 0.0;
 
 	  caldata.bcndata = bbcalHC->entries();
-	  for( i = 0; i < bbcalHC->entries(); i++ ){
+	  
+	  if( bbcalHC->entries() > MAXHITDATA ){
+	      G4cerr << "WARNING:  Number of hits exceeds array length - truncating" << G4endl;
+	      caldata.bcndata = MAXHITDATA;
+	  }
+
+
+	  for( i = 0; i < caldata.bcndata; i++ ){
 	      xsum += (*bbcalHC)[i]->GetPos().x()*(*bbcalHC)[i]->GetEdep();
 	      ysum += (*bbcalHC)[i]->GetPos().y()*(*bbcalHC)[i]->GetEdep();
 	      esum += (*bbcalHC)[i]->GetEdep();
@@ -151,7 +158,13 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  double esum = 0.0;
 
 	  caldata.hcndata = hcalHC->entries();
-	  for( i = 0; i < hcalHC->entries(); i++ ){
+
+	  if( hcalHC->entries() > MAXHITDATA ){
+	      G4cerr << "WARNING:  Number of hits exceeds array length - truncating" << G4endl;
+	      caldata.hcndata = MAXHITDATA;
+	  }
+
+	  for( i = 0; i < caldata.hcndata; i++ ){
 	      xsum += (*hcalHC)[i]->GetPos().x()*(*hcalHC)[i]->GetEdep();
 	      ysum += (*hcalHC)[i]->GetPos().y()*(*hcalHC)[i]->GetEdep();
 	      xlsum += (*hcalHC)[i]->GetLabPos().x()*(*hcalHC)[i]->GetEdep();
@@ -258,6 +271,11 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
 //	  printf("GEM HIT %d (%f) %f %f\n", (*gemHC)[idx]->GetGEMID(), lz[nhit]/cm, lx[nhit]/cm, ly[nhit]/cm );
 	  nhit++;
+
+	  if( nhit == MAXHITDATA ){
+	      G4cerr << "WARNING:  Number of hits exceeds array length - truncating" << G4endl;
+	      break;
+	  }
       }
 
       if( nhit >= 3 ){

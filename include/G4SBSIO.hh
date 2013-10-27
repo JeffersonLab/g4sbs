@@ -8,7 +8,7 @@
 class TFile;
 class TTree;
 
-#define MAXHITDATA 100
+#define MAXHITDATA 2000
 
 typedef struct {
     Double_t thbb, thhcal, dbb, dhcal, Ebeam;

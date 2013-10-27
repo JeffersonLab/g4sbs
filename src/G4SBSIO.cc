@@ -96,13 +96,13 @@ void G4SBSIO::WriteTree(){
     fFile->cd();
     fTree->Write("T", TObject::kOverwrite);
 
-    fFile->Close();
-    delete fFile;
-    fFile = NULL;
-
     fTree->ResetBranchAddresses();
     delete fTree;
     fTree = NULL;
+
+    fFile->Close();
+    delete fFile;
+    fFile = NULL;
 
     return;
 }

@@ -47,8 +47,12 @@ typedef struct {
 
 typedef struct {
     Int_t hcndata, bcndata;
-	Double_t bcx[MAXHITDATA], bcy[MAXHITDATA], bce[MAXHITDATA];
-	Double_t hcx[MAXHITDATA], hcy[MAXHITDATA], hce[MAXHITDATA];
+	Double_t bcx[MAXHITDATA], bcy[MAXHITDATA], bcz[MAXHITDATA], bce[MAXHITDATA];
+	Double_t hcx[MAXHITDATA], hcy[MAXHITDATA], hcz[MAXHITDATA], hce[MAXHITDATA];
+
+	Double_t bcvx[MAXHITDATA], bcvy[MAXHITDATA], bcvz[MAXHITDATA];
+	Double_t hcvx[MAXHITDATA], hcvy[MAXHITDATA], hcvz[MAXHITDATA];
+
 	Int_t hctrid[MAXHITDATA], hcmid[MAXHITDATA], hcpid[MAXHITDATA];
 	Int_t bctrid[MAXHITDATA], bcmid[MAXHITDATA], bcpid[MAXHITDATA];
 } cal_t;

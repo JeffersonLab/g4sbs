@@ -131,7 +131,12 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
 	      caldata.bcx[i] = (*bbcalHC)[i]->GetPos().x()/cm;
 	      caldata.bcy[i] = (*bbcalHC)[i]->GetPos().y()/cm;
+	      caldata.bcz[i] = (*bbcalHC)[i]->GetPos().z()/cm;
 	      caldata.bce[i] = (*bbcalHC)[i]->GetEdep()/GeV;
+
+	      caldata.bcvx[i] = (*bbcalHC)[i]->GetVertex().x()/cm;
+	      caldata.bcvy[i] = (*bbcalHC)[i]->GetVertex().y()/cm;
+	      caldata.bcvz[i] = (*bbcalHC)[i]->GetVertex().z()/cm;
 
 	      caldata.bcpid[i] = (*bbcalHC)[i]->GetPID();
 	      caldata.bcmid[i] = (*bbcalHC)[i]->GetMID();
@@ -178,7 +183,12 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
 	      caldata.hcx[i] = (*hcalHC)[i]->GetPos().x()/cm;
 	      caldata.hcy[i] = (*hcalHC)[i]->GetPos().y()/cm;
+	      caldata.hcz[i] = (*hcalHC)[i]->GetPos().z()/cm;
 	      caldata.hce[i] = (*hcalHC)[i]->GetEdep()/GeV;
+
+	      caldata.hcvx[i] = (*hcalHC)[i]->GetVertex().x()/cm;
+	      caldata.hcvy[i] = (*hcalHC)[i]->GetVertex().y()/cm;
+	      caldata.hcvz[i] = (*hcalHC)[i]->GetVertex().z()/cm;
 
 	      caldata.hcpid[i] = (*hcalHC)[i]->GetPID();
 	      caldata.hcmid[i] = (*hcalHC)[i]->GetMID();

@@ -1816,11 +1816,11 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog ){
   G4Box *bigbox  = new G4Box("bigbox", bigwidth/2, bigheight/2,  bigdepth/2);
   G4Box *biggap  = new G4Box("biggap",  469.9*mm/2+0.1*mm, 1219.2*mm/2+0.1*mm,  bigdepth/2+0.1*mm);
 
-  G4Box *bclampgap  = new G4Box("bclampgap",  23*cm, 65*cm,  bigdepth/2+0.1*mm);
-  G4Box *fclampgap  = new G4Box("fclampgap",  11*cm, 35*cm,  bigdepth/2+0.1*mm);
+  G4Box *bclampgap  = new G4Box("bclampgap",  23.*cm, 65.*cm,  12.*cm/2.);
+  G4Box *fclampgap  = new G4Box("fclampgap",  11.*cm, 35.*cm,  12.*cm/2.);
   // Cut off front notch
   double notchdepth = 25*cm;
-  G4Box *bignotch  = new G4Box("bignotch",  1*m, bigheight/2+0.1*mm,  notchdepth/2);
+  G4Box *bignotch  = new G4Box("bignotch",  1*m, bigheight/2+0.1*mm,  notchdepth);
   G4RotationMatrix *notchrm = new G4RotationMatrix;
   notchrm->rotateY(-45.*deg);
 
@@ -1856,9 +1856,9 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog ){
 	  G4ThreeVector(0.0, 0.0, -(1416.0*mm+bigcoilwidth)/2.0));
 
   G4RotationMatrix *beamslotrm = new G4RotationMatrix;
-  beamslotrm->rotateY(18.*deg);
+  beamslotrm->rotateY(0.*deg);
   
-  //  Cut out slot
+  //  Cut out slot - from magnet center to inside of cut is ~35cm
   G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", big48d48, bigbeamslot, beamslotrm, 
 	  G4ThreeVector(-bigwidth/2-35*cm, 0.0, 0.0) );
 
@@ -1903,36 +1903,36 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog ){
   double clampdepth = 10.*cm;
   double clampoffset = 35*cm;
 
-  G4Box *frontclampbase  = new G4Box("frontclampbase", (150+115)/2, bigheight/2,  clampdepth/2);
+  G4Box *frontclampbase  = new G4Box("frontclampbase", (150+115)*cm/2, bigheight/2,  clampdepth/2);
   G4SubtractionSolid *frontclamp = new G4SubtractionSolid("frontclamp1", frontclampbase, fclampgap, 0,
-	 G4ThreeVector( -clampoffset, 0,0 ) );
+	 G4ThreeVector( clampoffset, 0,0 ) );
 
 // G4Box *frontclampbeamhole  = new G4Box("frontclampbeamhole", 20.*cm/2, 20.*cm/2,  clampdepth/2+2*cm);
 //  frontclamp = new G4SubtractionSolid("frontclamp2", frontclamp, frontclampbeamhole, 0, G4ThreeVector(-55*cm, 0, 0) );
 //  frontclamp = new G4SubtractionSolid("frontclamp3", frontclamp, frontclampbeamhole, 0, G4ThreeVector(-28*cm, 0, 0) );
 
   G4Box *frontclampbeamhole  = new G4Box("frontclampbeamhole", 45.*cm/2, 14.*cm/2,  clampdepth/2+2*cm);
-  frontclamp = new G4SubtractionSolid("frontclamp2", frontclamp, frontclampbeamhole, 0, G4ThreeVector(-45*cm-clampoffset, 0, 0) );
+  frontclamp = new G4SubtractionSolid("frontclamp2", frontclamp, frontclampbeamhole, 0, G4ThreeVector(-45*cm+clampoffset, 0, 0) );
 
   G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclamp, Fe, "frontclampLog", 0, 0, 0);
   if( fTotalAbs ){
       frontclampLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
 
-  G4Box *backclampbase  = new G4Box("backclampbase", (150+115)*cm/2, 290.0/2,  clampdepth/2);
+  G4Box *backclampbase  = new G4Box("backclampbase", (150+115)*cm/2, 290.0*cm/2,  clampdepth/2);
 
   double backclampaddheight = 55.0*cm;
-  G4Box *backclampadd  = new G4Box("backclampadd", bigwidth/2, backclampaddheight/2,  clampdepth);
+  G4Box *backclampadd  = new G4Box("backclampadd", (150+115)*cm/2, backclampaddheight/2,  clampdepth);
   G4UnionSolid *backclampfull = new G4UnionSolid("backclampfull1", backclampbase, backclampadd, 0,
 	  G4ThreeVector( 0.0, bigheight/2.0 - backclampaddheight/2.0, clampdepth/2.0 ));
   backclampfull = new G4UnionSolid("backclampfull1", backclampfull, backclampadd, 0,
 	  G4ThreeVector( 0.0, -bigheight/2.0 + backclampaddheight/2.0, clampdepth/2.0 ));
 
   G4SubtractionSolid *backclamp = new G4SubtractionSolid("backclamp1", backclampfull, bclampgap, 0, 
-	 G4ThreeVector(-clampoffset, 0, 0) );
+	 G4ThreeVector(clampoffset, 0, 0) );
 
-  G4Box *backclampbeamhole  = new G4Box("backclampbeamhole", 30*cm/2, 20*cm/2,  clampdepth/2+2*cm);
-  backclamp = new G4SubtractionSolid("backclamp2", backclamp, backclampbeamhole, 0, G4ThreeVector(-95*cm-clampoffset, 0, 0) );
+  G4Box *backclampbeamhole  = new G4Box("backclampbeamhole", 40.*cm/2., 20.*cm/2.,  clampdepth/2+2*cm);
+  backclamp = new G4SubtractionSolid("backclamp2", backclamp, backclampbeamhole, 0, G4ThreeVector(-95*cm+clampoffset, 0, 0) );
 
   G4LogicalVolume *backclampLog=new G4LogicalVolume(backclamp, Fe, "backclampLog", 0, 0, 0);
 
@@ -1941,10 +1941,10 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog ){
   }
 
   new G4PVPlacement(bigrm, 
-	  G4ThreeVector(-(f48D48dist+bigdepth/2.0-120*cm)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0-120*cm)*cos(-f48D48ang)),
+	  G4ThreeVector(-(f48D48dist+bigdepth/2.0-120*cm)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0-120*cm)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 	  		    frontclampLog, "frontclampPhysical", worldlog, 0,false,0);
   new G4PVPlacement(bigrm, 
-	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+120*cm)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0+120*cm)*cos(-f48D48ang)),
+	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+120*cm)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0+120*cm)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 	  		    backclampLog, "backclampPhysical", worldlog, 0,false,0);
 
   bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);

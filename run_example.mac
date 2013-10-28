@@ -52,6 +52,10 @@
 # Shoot geantinos instead of electrons (good for testing no interactions)
 #/g4sbs/shootgeantino
 
+# Set magnet materials to total absorbers (otherwise you get tons of showers
+# when just looking at things like acceptances)  Default is true
+#/g4sbs/totalabs false
+
 /g4sbs/runtime     1.0 s
 /g4sbs/beamE       4.4 GeV
 /g4sbs/bbang      32.5 deg

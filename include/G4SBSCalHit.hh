@@ -32,6 +32,7 @@ class G4SBSCalHit : public G4VHit
 
   private:
       G4ThreeVector pos;
+      G4ThreeVector vertex;
       G4ThreeVector labpos;
       double time;
       double energy;
@@ -53,11 +54,18 @@ class G4SBSCalHit : public G4VHit
 
       inline void SetPos(G4ThreeVector v)
       { pos = v;};
+
+      inline void SetVertex(G4ThreeVector v)
+      { vertex = v;};
+
       inline void SetLabPos(G4ThreeVector v)
       { labpos = v;};
 
     inline G4ThreeVector GetPos()
       { return pos;};
+
+    inline G4ThreeVector GetVertex()
+      { return vertex;};
 
     inline G4double GetEdep()
       { return energy;};

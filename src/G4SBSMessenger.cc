@@ -53,6 +53,10 @@ G4SBSMessenger::G4SBSMessenger(){
     geantinoCmd->SetGuidance("Shoot a geantino instead of e-");
     geantinoCmd->SetParameterName("shootgeantino", false);
 
+    totalabsCmd = new G4UIcmdWithABool("/g4sbs/totalabs", this);
+    totalabsCmd->SetGuidance("Magnet materials are total absorbers");
+    totalabsCmd->SetParameterName("totalabs", false);
+
     tgtLenCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targlen",this);
     tgtLenCmd->SetGuidance("Target length");
     tgtLenCmd->SetParameterName("targlen", false);
@@ -304,6 +308,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	G4bool b = geantinoCmd->GetNewBoolValue(newValue);
 	fprigen->SetUseGeantino(b);
 	fdetcon->GetBBField()->SetUseGeantino(b);
+    }
+
+    if( cmd == totalabsCmd ){
+	G4bool b = totalabsCmd->GetNewBoolValue(newValue);
+	fdetcon->SetTotalAbs(b);
     }
 
     if( cmd == tgtLenCmd ){

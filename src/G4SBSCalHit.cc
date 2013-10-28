@@ -22,6 +22,7 @@ G4SBSCalHit::G4SBSCalHit(const G4SBSCalHit &right)
   : G4VHit()
 {
   pos = right.pos;
+  vertex = right.vertex;
   energy = right.energy;
   pid = right.pid;
   mid = right.mid;
@@ -31,6 +32,7 @@ G4SBSCalHit::G4SBSCalHit(const G4SBSCalHit &right)
 const G4SBSCalHit& G4SBSCalHit::operator=(const G4SBSCalHit &right)
 {
   pos = right.pos;
+  vertex = right.vertex;
   energy = right.energy;
   pid = right.pid;
   mid = right.mid;

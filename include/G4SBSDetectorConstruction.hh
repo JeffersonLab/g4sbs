@@ -23,6 +23,7 @@ public:
 
   void ConstructBeamline(G4LogicalVolume*);
   void ConstructTarget(G4LogicalVolume*);
+  void Make48D48(G4LogicalVolume*);
 
   void SetTarget(Targ_t t){fTargType = t;}
   void SetTargLen(double len){ fTargLen = len;}
@@ -46,6 +47,9 @@ public:
 
   G4SBSBigBiteField *GetBBField(){ return fbbfield; }
 
+  void SetTotalAbs(bool b){ fTotalAbs= b; }
+
+
 private:
   // messeneger
   G4SBSDetectorMessenger* theMessenger;
@@ -67,6 +71,8 @@ private:
   double fTargDen;
 
   Targ_t fTargType;
+
+  bool fTotalAbs;
 
   int  fGEMOption;
 

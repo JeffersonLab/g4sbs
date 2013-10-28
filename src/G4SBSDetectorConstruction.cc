@@ -1900,6 +1900,12 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog ){
 	  		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 
   // Clamps
+  
+  // The positioning and acceptance gaps were taken directly from CAD
+  // The position widths for the beam pipe holes are fudged around so
+  // that it doesn't interfere with the beam pipe
+  //
+
   double clampdepth = 10.*cm;
   double clampoffset = 35*cm;
 

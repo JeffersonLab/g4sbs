@@ -1,0 +1,32 @@
+/g4sbs/filename gmn_13.5.root 
+
+/g4sbs/beamcur  10.5 muA
+/g4sbs/target   LD2
+/g4sbs/kine     flat
+/g4sbs/targlen  10.0 cm
+
+/g4sbs/gemres 0.070 mm
+
+/g4sbs/rasterx  4.0 mm
+/g4sbs/rastery  4.0 mm
+
+/g4sbs/cerdist     0.57 m
+/g4sbs/cerdepth    0.75 m
+/g4sbs/gemsep      1.34 m
+/g4sbs/bbcaldist   1.4 m
+/g4sbs/gemconfig       2
+
+/g4sbs/runtime     1.0 s
+/g4sbs/beamE      11.0 GeV
+/g4sbs/bbang      33.0 deg
+/g4sbs/bbdist      1.55 m
+/g4sbs/hcalang    14.9 deg
+/g4sbs/hcaldist   17.0 m
+/g4sbs/48D48dist   3.1 m
+/g4sbs/thmin      23.0 deg
+/g4sbs/thmax      43.0 deg
+/g4sbs/phmin     155.0 deg
+/g4sbs/phmax     205.0 deg
+
+/g4sbs/run 10000
+

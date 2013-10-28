@@ -57,6 +57,20 @@ target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
 set(G4SBS_SCRIPTS
   vis.mac
   run_example.mac
+  scripts/gen_1.5GeV2.mac
+  scripts/gen_4GeV2.mac
+  scripts/gen_7GeV2.mac
+  scripts/gen_10GeV2.mac
+  scripts/gmn_3.5GeV2.mac
+  scripts/gmn_4.5GeV2.mac
+  scripts/gmn_6GeV2.mac
+  scripts/gmn_8.5GeV2.mac
+  scripts/gmn_10GeV2.mac
+  scripts/gmn_12GeV2.mac
+  scripts/gmn_13.5GeV2.mac
+  scripts/gep_5GeV2.mac
+  scripts/gep_8GeV2.mac
+  scripts/gep_12GeV2.mac
   )
 
 foreach(_script ${G4SBS_SCRIPTS})

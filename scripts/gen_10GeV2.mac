@@ -1,0 +1,33 @@
+/g4sbs/filename gen_10.root
+
+/g4sbs/beamcur  60.0 muA
+/g4sbs/target   3He
+/g4sbs/kine     elastic
+/g4sbs/targpres 10 atmosphere
+/g4sbs/targlen  55.0 cm
+
+/g4sbs/gemres 0.070 mm
+
+/g4sbs/rasterx  4.0 mm
+/g4sbs/rastery  4.0 mm
+
+/g4sbs/cerdist     0.57 m
+/g4sbs/cerdepth    0.75 m
+/g4sbs/gemsep      1.34 m
+/g4sbs/bbcaldist   1.4 m
+/g4sbs/gemconfig       2
+
+/g4sbs/runtime     1.0 s
+/g4sbs/beamE       8.8 GeV
+/g4sbs/bbang      34.0 deg
+/g4sbs/bbdist      1.7 m
+/g4sbs/hcaldist   17.0 m
+/g4sbs/48D48dist   1.6 m
+
+/g4sbs/hcalang    17.5 deg
+/g4sbs/thmin      24.0 deg
+/g4sbs/thmax      44.0 deg
+/g4sbs/phmin     155.0 deg
+/g4sbs/phmax     205.0 deg
+
+/g4sbs/run 20000

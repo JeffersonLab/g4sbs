@@ -67,6 +67,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
     fbbfield = new G4SBSBigBiteField( fBBdist, NULL );
 
     fGEMOption = 1;
+
+    fTotalAbs = true;
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -408,7 +410,9 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   G4LogicalVolume *bbyokewgapLog=new G4LogicalVolume(yokewgap, Fe,
 						  "bbyokewgapLog", 0, 0, 0);
 
-  bbyokewgapLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  if( fTotalAbs ){
+      bbyokewgapLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
 
   G4RotationMatrix *yokerm = new G4RotationMatrix;
   yokerm->rotateY(90.0*deg);
@@ -657,83 +661,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
  
   //--------- 48D48 -------------------------------
 
-  double bigcoilwidth = 231.0*mm;
-  double bigcoilheight = 323.0*mm;
-
-  double bigwidth = 2324.1*mm;
-
-  double bigdepth = 1219.2*mm;
-
-  G4Box *bigbox  = new G4Box("bigbox", bigwidth/2, 3721.1*mm/2,  bigdepth/2);
-  G4Box *biggap  = new G4Box("biggap",  469.9*mm/2+0.1*mm, 1219.2*mm/2+0.1*mm,  bigdepth/2+0.1*mm);
-
-  G4SubtractionSolid* bigbase = new G4SubtractionSolid("bigbase", bigbox, biggap);
-  //G4Box* bigbase = bigbox;
-
-  G4Box *bigcoilbase = new G4Box("bigcoilbase", bigcoilheight+825.5/2.0*mm, 1866.9*mm/2, bigcoilwidth/2.0);
-//  G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm, 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
-  G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm + 2.0*bigcoilheight , 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
-
-
-  // Pull out left side of gap
-//  G4SubtractionSolid* bigcoil_full = new G4SubtractionSolid("bigcoil_full", bigcoilbase, bigcoilgap);
-  G4SubtractionSolid *bigcoil = new G4SubtractionSolid("bigcoil", bigcoilbase, bigcoilgap, 0, G4ThreeVector(-2.0*bigcoilheight, 0.0, 0.0) );
-
-  G4Box *bigcoilthr = new G4Box("bigcoilthr", bigcoilwidth,  bigcoilheight/2,  1416.0*mm/2.0+bigcoilwidth );
-
-  // Sum together base iron plus coils
-
-  G4UnionSolid* big48d48;
-
-  G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/5, 15*cm/2.0, 2.0*m ); // Height is roughly beam pipe outer radius at 3m
- 
-  big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, 0, 
-	  G4ThreeVector(0.0, (1219.2*mm+bigcoilheight)/2.0, 0.0));
-  big48d48 = new G4UnionSolid("big48d48_2", big48d48, bigcoilthr, 0, 
-	  G4ThreeVector(0.0, -(1219.2*mm+bigcoilheight)/2.0, 0.0));
-  big48d48 = new G4UnionSolid("big48d48_3", big48d48, bigcoil, 0, 
-	  G4ThreeVector(0.0, 0.0, (1416.0*mm+bigcoilwidth)/2.0));
-  big48d48 = new G4UnionSolid("big48d48_4", big48d48, bigcoil, 0, 
-	  G4ThreeVector(0.0, 0.0, -(1416.0*mm+bigcoilwidth)/2.0));
-  
-  //  Cut out slot
-  G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", big48d48, bigbeamslot, 0, 
-	  G4ThreeVector(-bigwidth*(0.5-0.1), 0.0, 0.0) );
-
-  G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, Fe,
-						  "b48d48Log", 0, 0, 0);
-
-  big48d48Log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-
-  G4RotationMatrix *bigrm = new G4RotationMatrix;
-  bigrm->rotateY(-f48D48ang);
-
-  new G4PVPlacement(bigrm, 
-	  G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),
-	  		    big48d48Log, "big48d48Physical", WorldLog, 0,false,0);
-
-  // Associate magnetic field with gap
-
-  G4LogicalVolume *bigfieldLog=new G4LogicalVolume(biggap, Air,
-						  "bigfieldLog", 0, 0, 0);
-
-  // use uniform field for now with 48D48
-
-  double fieldValue = 1.4*tesla;
-  G4UniformMagField* magField
-            = new G4UniformMagField(G4ThreeVector(fieldValue*cos(f48D48ang), 0.0, -fieldValue*sin(f48D48ang)));
-
-  G4FieldManager *bigfm = new G4FieldManager(magField);
-
-  bigfm->SetDetectorField(magField);
-  bigfm->CreateChordFinder(magField);
-
-  bigfieldLog->SetFieldManager(bigfm,true);
-
-
-  new G4PVPlacement(bigrm, 
-	  G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),
-	  		    bigfieldLog, "bigfieldPhysical", WorldLog, 0,false,0);
+  Make48D48(WorldLog);
 
 
   ConstructTarget(WorldLog);
@@ -891,7 +819,6 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   bbdetLog->SetVisAttributes(G4VisAttributes::Invisible);
   bbfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
   bbmotherLog->SetVisAttributes(G4VisAttributes::Invisible);
-  bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
 
   G4VisAttributes * yokeVisAtt
     = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
@@ -1010,9 +937,11 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
   a = 4.0*g/mole;
   density = 0.1786e-03*g/cm3;
   
+  /*
   a = 55.85*g/mole;
   density = 7.87*g/cm3;
   G4Material* Fe = new G4Material(name="Fer", z=26., a, density);
+  */
   density = 1.29e-03*g/cm3;
   G4Material* Air = new G4Material(name="Air", density, nel=2);
   Air->AddElement(elN, .7);
@@ -1342,87 +1271,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
 
 
 
-
   //--------- 48D48 -------------------------------
-
-  double bigcoilwidth = 231.0*mm;
-  double bigcoilheight = 323.0*mm;
-
-  double bigwidth = 2324.1*mm;
-
-  double bigdepth = 1219.2*mm;
-
-  G4Box *bigbox  = new G4Box("bigbox", bigwidth/2, 3721.1*mm/2,  bigdepth/2);
-  G4Box *biggap  = new G4Box("biggap",  469.9*mm/2+0.1*mm, 1219.2*mm/2+0.1*mm,  bigdepth/2+0.1*mm);
-
-  G4SubtractionSolid* bigbase = new G4SubtractionSolid("bigbase", bigbox, biggap);
-  //G4Box* bigbase = bigbox;
-
-  G4Box *bigcoilbase = new G4Box("bigcoilbase", bigcoilheight+825.5/2.0*mm, 1866.9*mm/2, bigcoilwidth/2.0);
-  //G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm, 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
-  G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm + 2.0*bigcoilheight , 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
-
-  // Pull out left side of gap
-//  G4SubtractionSolid* bigcoil_full = new G4SubtractionSolid("bigcoil_full", bigcoilbase, bigcoilgap);
-  G4SubtractionSolid *bigcoil = new G4SubtractionSolid("bigcoil", bigcoilbase, bigcoilgap, 0, G4ThreeVector(-2.0*bigcoilheight, 0.0, 0.0) );
-
-  G4Box *bigcoilthr = new G4Box("bigcoilthr", bigcoilwidth,  bigcoilheight/2,  1416.0*mm/2.0+bigcoilwidth );
-
-  // Sum together base iron plus coils
-
-  G4UnionSolid* big48d48;
- 
-  big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, 0, 
-	  G4ThreeVector(0.0, (1219.2*mm+bigcoilheight)/2.0, 0.0));
-  big48d48 = new G4UnionSolid("big48d48_2", big48d48, bigcoilthr, 0, 
-	  G4ThreeVector(0.0, -(1219.2*mm+bigcoilheight)/2.0, 0.0));
-  big48d48 = new G4UnionSolid("big48d48_3", big48d48, bigcoil, 0, 
-	  G4ThreeVector(0.0, 0.0, (1416.0*mm+bigcoilwidth)/2.0));
-  big48d48 = new G4UnionSolid("big48d48_4", big48d48, bigcoil, 0, 
-	  G4ThreeVector(0.0, 0.0, -(1416.0*mm+bigcoilwidth)/2.0));
-
-  G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/5, 15*cm/2.0, 2.0*m ); // Height is roughly beam pipe outer radius at 3m
-
-  //  Cut out slot
-  G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", big48d48, bigbeamslot, 0, 
-	  G4ThreeVector(-bigwidth*(0.5-0.1), 0.0, 0.0) );
-
-  G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, Fe,
-						  "b48d48Log", 0, 0, 0);
-
-  big48d48Log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-
-  G4RotationMatrix *bigrm = new G4RotationMatrix;
-  bigrm->rotateY(-f48D48ang);
-
-  new G4PVPlacement(bigrm, 
-	  G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),
-	  big48d48Log, "big48d48Physical", WorldLog, 0,false,0);
-
-  // Associate magnetic field with gap
-
-  G4LogicalVolume *bigfieldLog=new G4LogicalVolume(biggap, Air,
-						  "bigfieldLog", 0, 0, 0);
-
-  // use uniform field for now with 48D48
-
-  double fieldValue = 1.4*tesla;
-  G4UniformMagField* magField
-            = new G4UniformMagField(G4ThreeVector(fieldValue*cos(f48D48ang), 0.0, -fieldValue*sin(f48D48ang)));
-
-  G4FieldManager *bigfm = new G4FieldManager(magField);
-
-  bigfm->SetDetectorField(magField);
-  bigfm->CreateChordFinder(magField);
-
-  bigfieldLog->SetFieldManager(bigfm,true);
-
-
-  new G4PVPlacement(bigrm, 
-	  G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),
-	  bigfieldLog, "bigfieldPhysical", WorldLog, 0,false,0);
-
-
+  Make48D48(WorldLog);
 
   ConstructTarget(WorldLog);
   ConstructBeamline(WorldLog);
@@ -1431,7 +1281,6 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
   //--------- Visualization attributes -------------------------------
   WorldLog->SetVisAttributes(G4VisAttributes::Invisible);
   sbslog->SetVisAttributes(G4VisAttributes::Invisible);
-  bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
 
 
   G4VisAttributes * dVisAtt
@@ -1667,12 +1516,12 @@ void G4SBSDetectorConstruction::ConstructTarget( G4LogicalVolume *worldlog ){
   double swallrad     = 1.143*m/2;
   double swallrad_in  = 1.041*m/2;
 
-  double hcal_ang_min = -45*deg;
+  double hcal_ang_min = -55*deg;
   double hcal_ang_max = -7*deg;
   double hcal_win_h = 0.4*m;
 
   double bb_ang_min = 18*deg;
-  double bb_ang_max = 74*deg;
+  double bb_ang_max = 80*deg;
   double bb_win_h = 0.5*m;
 
   if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
@@ -1802,8 +1651,8 @@ void G4SBSDetectorConstruction::ConstructTarget( G4LogicalVolume *worldlog ){
   //  Vis attributes
   chamber_inner_log->SetVisAttributes(G4VisAttributes::Invisible);
   G4VisAttributes * schamVisAtt
- //     = new G4VisAttributes(G4Colour(0.7,0.7,1.0));
-      = new G4VisAttributes(G4VisAttributes::Invisible);
+     = new G4VisAttributes(G4Colour(0.7,0.7,1.0));
+//      = new G4VisAttributes(G4VisAttributes::Invisible);
   swall_log->SetVisAttributes(schamVisAtt);
   sc_topbottom_log->SetVisAttributes(schamVisAtt);
 
@@ -1938,6 +1787,163 @@ void G4SBSDetectorConstruction::ConstructBeamline( G4LogicalVolume *worldlog ){
 }
 
 
+void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog ){
+    int nel;
+    double z;
+    G4String name;
+
+  G4Element *elN = new G4Element("Nitrogen", "N", 7, 14.007*g/mole );
+  G4Element *elO = new G4Element("Oxygen", "O", 8, 16.000*g/mole );
+
+
+    double a = 55.85*g/mole;
+  double density = 7.87*g/cm3;
+  G4Material* Fe = new G4Material(name="Fer", z=26., a, density);
+  density = 1.29e-03*g/cm3;
+  G4Material* Air = new G4Material(name="Air", density, nel=2);
+  Air->AddElement(elN, .7);
+  Air->AddElement(elO, .3);
+
+
+
+  double bigcoilwidth = 231.0*mm;
+  double bigcoilheight = 323.0*mm;
+
+  double bigwidth = 2324.1*mm;
+  double bigheight = 3721.1*mm;
+  double bigdepth = 1219.2*mm;
+
+  G4Box *bigbox  = new G4Box("bigbox", bigwidth/2, bigheight/2,  bigdepth/2);
+  G4Box *biggap  = new G4Box("biggap",  469.9*mm/2+0.1*mm, 1219.2*mm/2+0.1*mm,  bigdepth/2+0.1*mm);
+  G4Box *smallgap  = new G4Box("biggap",  (469.9*mm/2+0.1*mm)*0.5, (1219.2*mm/2+0.1*mm)*0.5,  bigdepth/2+0.1*mm);
+  // Cut off front notch
+  double notchdepth = 60*cm;
+  G4Box *bignotch  = new G4Box("bignotch",  1*m, bigheight/2+0.1*mm,  notchdepth/2);
+  G4RotationMatrix *notchrm = new G4RotationMatrix;
+  notchrm->rotateY(-45.*deg);
+
+  G4SubtractionSolid* bigbase = new G4SubtractionSolid("bigbase", bigbox, biggap);
+  bigbase = new G4SubtractionSolid("bigbase", bigbase, bignotch, notchrm,
+	  G4ThreeVector( -bigwidth/2.0, 0, -bigdepth/2.0 ));
+  //G4Box* bigbase = bigbox;
+
+  G4Box *bigcoilbase = new G4Box("bigcoilbase", bigcoilheight+825.5/2.0*mm, 1866.9*mm/2, bigcoilwidth/2.0);
+//  G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm, 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
+  G4Box *bigcoilgap = new G4Box("bigcoilgap", (825.5/2.0)*mm+1*mm + 2.0*bigcoilheight , 1219.2*mm/2+1*mm, bigcoilwidth/2.0+1*mm);
+
+
+  // Pull out left side of gap
+//  G4SubtractionSolid* bigcoil_full = new G4SubtractionSolid("bigcoil_full", bigcoilbase, bigcoilgap);
+  G4SubtractionSolid *bigcoil = new G4SubtractionSolid("bigcoil", bigcoilbase, bigcoilgap, 0, G4ThreeVector(-2.0*bigcoilheight, 0.0, 0.0) );
+
+  G4Box *bigcoilthr = new G4Box("bigcoilthr", bigcoilwidth,  bigcoilheight/2,  1416.0*mm/2.0+bigcoilwidth );
+
+  // Sum together base iron plus coils
+
+  G4UnionSolid* big48d48;
+
+  G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/2, 15*cm/2.0, 2.0*m ); // Height is roughly beam pipe outer radius at 3m
+ 
+  big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, 0, 
+	  G4ThreeVector(0.0, (1219.2*mm+bigcoilheight)/2.0, 0.0));
+  big48d48 = new G4UnionSolid("big48d48_2", big48d48, bigcoilthr, 0, 
+	  G4ThreeVector(0.0, -(1219.2*mm+bigcoilheight)/2.0, 0.0));
+  big48d48 = new G4UnionSolid("big48d48_3", big48d48, bigcoil, 0, 
+	  G4ThreeVector(0.0, 0.0, (1416.0*mm+bigcoilwidth)/2.0));
+  big48d48 = new G4UnionSolid("big48d48_4", big48d48, bigcoil, 0, 
+	  G4ThreeVector(0.0, 0.0, -(1416.0*mm+bigcoilwidth)/2.0));
+
+  G4RotationMatrix *beamslotrm = new G4RotationMatrix;
+  beamslotrm->rotateY(18.*deg);
+  
+  //  Cut out slot
+  G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", big48d48, bigbeamslot, beamslotrm, 
+	  G4ThreeVector(-bigwidth/2-60*cm, 0.0, 0.0) );
+
+  G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, Fe,
+						  "b48d48Log", 0, 0, 0);
+
+  if( fTotalAbs ){
+      big48d48Log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+
+  G4RotationMatrix *bigrm = new G4RotationMatrix;
+  bigrm->rotateY(-f48D48ang);
+
+  new G4PVPlacement(bigrm, 
+	  G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),
+	  		    big48d48Log, "big48d48Physical", worldlog, 0,false,0);
+
+  // Associate magnetic field with gap
+
+  G4LogicalVolume *bigfieldLog=new G4LogicalVolume(biggap, Air,
+						  "bigfieldLog", 0, 0, 0);
+
+  // use uniform field for now with 48D48
+
+  double fieldValue = 1.4*tesla;
+  G4UniformMagField* magField
+            = new G4UniformMagField(G4ThreeVector(fieldValue*cos(f48D48ang), 0.0, -fieldValue*sin(f48D48ang)));
+
+  G4FieldManager *bigfm = new G4FieldManager(magField);
+
+  bigfm->SetDetectorField(magField);
+  bigfm->CreateChordFinder(magField);
+
+  bigfieldLog->SetFieldManager(bigfm,true);
+
+
+  new G4PVPlacement(bigrm, 
+	  G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),
+	  		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
+
+  // Clamps
+  double clampdepth = 10.*cm;
+
+  G4Box *frontclampbase  = new G4Box("frontclampbase", bigwidth/2, bigheight/2,  clampdepth/2);
+  G4SubtractionSolid *frontclamp = new G4SubtractionSolid("frontclamp1", frontclampbase, smallgap );
+
+// G4Box *frontclampbeamhole  = new G4Box("frontclampbeamhole", 20.*cm/2, 20.*cm/2,  clampdepth/2+2*cm);
+//  frontclamp = new G4SubtractionSolid("frontclamp2", frontclamp, frontclampbeamhole, 0, G4ThreeVector(-55*cm, 0, 0) );
+//  frontclamp = new G4SubtractionSolid("frontclamp3", frontclamp, frontclampbeamhole, 0, G4ThreeVector(-28*cm, 0, 0) );
+
+  G4Box *frontclampbeamhole  = new G4Box("frontclampbeamhole", 45.*cm/2, 20.*cm/2,  clampdepth/2+2*cm);
+  frontclamp = new G4SubtractionSolid("frontclamp2", frontclamp, frontclampbeamhole, 0, G4ThreeVector(-45*cm, 0, 0) );
+
+  G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclamp, Fe, "frontclampLog", 0, 0, 0);
+  if( fTotalAbs ){
+      frontclampLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+
+  G4Box *backclampbase  = new G4Box("backclampbase", bigwidth/2, (bigheight-80*cm)/2,  clampdepth/2);
+
+  double backclampaddheight = 60.0*cm;
+  G4Box *backclampadd  = new G4Box("backclampadd", bigwidth/2, backclampaddheight/2,  clampdepth);
+  G4UnionSolid *backclampfull = new G4UnionSolid("backclampfull1", backclampbase, backclampadd, 0,
+	  G4ThreeVector( 0.0, bigheight/2.0 - backclampaddheight/2.0, clampdepth/2.0 ));
+  backclampfull = new G4UnionSolid("backclampfull1", backclampfull, backclampadd, 0,
+	  G4ThreeVector( 0.0, -bigheight/2.0 + backclampaddheight/2.0, clampdepth/2.0 ));
+
+  G4SubtractionSolid *backclamp = new G4SubtractionSolid("backclamp1", backclampfull, biggap );
+
+  G4Box *backclampbeamhole  = new G4Box("backclampbeamhole", 40*cm/2, 20*cm/2,  clampdepth/2+2*cm);
+  backclamp = new G4SubtractionSolid("backclamp2", backclamp, backclampbeamhole, 0, G4ThreeVector(-95*cm, 0, 0) );
+
+  G4LogicalVolume *backclampLog=new G4LogicalVolume(backclamp, Fe, "backclampLog", 0, 0, 0);
+
+  if( fTotalAbs ){
+      backclampLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+
+  new G4PVPlacement(bigrm, 
+	  G4ThreeVector(-(f48D48dist+bigdepth/2.0-120*cm)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0-120*cm)*cos(-f48D48ang)),
+	  		    frontclampLog, "frontclampPhysical", worldlog, 0,false,0);
+  new G4PVPlacement(bigrm, 
+	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+120*cm)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0+120*cm)*cos(-f48D48ang)),
+	  		    backclampLog, "backclampPhysical", worldlog, 0,false,0);
+
+  bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
+}
 
 
 

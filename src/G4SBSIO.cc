@@ -59,6 +59,7 @@ void G4SBSIO::InitializeTree(){
     fTree->Branch("ht.trid", &hitdata.trid, "ht.trid[ht.ndata]/I");
     fTree->Branch("ht.pid", &hitdata.pid, "ht.pid[ht.ndata]/I");
     fTree->Branch("ht.mid", &hitdata.mid, "ht.mid[ht.ndata]/I");
+    fTree->Branch("ht.edep", &hitdata.edep, "ht.edep[ht.ndata]/I");
 
     fTree->Branch("ht.tx", &hitdata.tx, "ht.tx[ht.ndata]/D");
     fTree->Branch("ht.ty", &hitdata.ty, "ht.ty[ht.ndata]/D");

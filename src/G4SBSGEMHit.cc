@@ -27,6 +27,7 @@ G4SBSGEMHit::G4SBSGEMHit(const G4SBSGEMHit &right)
   mid = right.mid;
   pid = right.pid;
   p = right.p;
+  edep = right.edep;
 }
 
 const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
@@ -36,6 +37,7 @@ const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
   xp = right.xp;
   yp = right.yp;
   p = right.p;
+  edep = right.edep;
 
   vert = right.vert;
   trid = right.trid;

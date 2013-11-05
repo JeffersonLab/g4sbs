@@ -40,7 +40,7 @@ class G4SBSGEMHit : public G4VHit
 
       G4double xp;
       G4double yp;
-      G4double p;
+      G4double p, edep;
 
   public:
       inline void SetVertex(G4ThreeVector v)
@@ -59,6 +59,8 @@ class G4SBSGEMHit : public G4VHit
       { pid= i;};
       inline void SetMom(G4double x)
       { p=x;};
+      inline void SetEdep(G4double x)
+      {edep=x;};
 
       inline G4ThreeVector GetPos()
       { return pos;};
@@ -75,6 +77,7 @@ class G4SBSGEMHit : public G4VHit
       inline G4double GetXp(){ return xp; }
       inline G4double GetYp(){ return yp; }
       inline G4double GetMom(){ return p; }
+      inline G4double GetEdep(){ return edep; }
 
 };
 

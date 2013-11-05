@@ -36,8 +36,8 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   if( edep <= 0.0 && !(particle->GetParticleName()=="chargedgeantino") ) return false;
 
   // Only return primary electron hits
-  int trid = aStep->GetTrack()->GetParentID();
-  if( trid != 0 ) return false;
+//  int trid = aStep->GetTrack()->GetParentID();
+//  if( trid != 0 ) return false;
 
 //  G4ThreeVector mom = aStep->GetTrack()->GetMomentum();
 
@@ -94,6 +94,7 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 //  printf("Hit by %d at det %d,  (%f %f %f) %f?\n", trid, copyID, pos.getX()/cm, pos.getY()/cm, pos.getZ()/cm, boxz/cm );
 
+  hit->SetEdep(edep);
   hit->SetPos(pos);
   hit->SetVertex(aStep->GetTrack()->GetVertexPosition());
   hit->SetMID(aStep->GetTrack()->GetParentID());

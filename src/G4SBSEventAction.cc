@@ -277,6 +277,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  hitdata.y[nhit] = -lx[nhit]/m;
 	  hitdata.z[nhit] = lz[nhit]/m;
 	  hitdata.p[nhit] = (*gemHC)[idx]->GetMom()/GeV;
+	  hitdata.edep[nhit] = (*gemHC)[idx]->GetEdep()/GeV;
 
 	  hitdata.vx[nhit] =  (*gemHC)[idx]->GetVertex().getX()/m;
 	  hitdata.vy[nhit] =  (*gemHC)[idx]->GetVertex().getY()/m;

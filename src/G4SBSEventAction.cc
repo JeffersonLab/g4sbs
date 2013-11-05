@@ -270,9 +270,17 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  lz[nhit] = (*gemHC)[idx]->GetPos().getZ();
 
 	  hitdata.gid[nhit] = (*gemHC)[idx]->GetGEMID();
+	  hitdata.trid[nhit] = (*gemHC)[idx]->GetTrID();
+	  hitdata.pid[nhit] = (*gemHC)[idx]->GetPID();
+	  hitdata.mid[nhit] = (*gemHC)[idx]->GetMID();
 	  hitdata.x[nhit] =  ly[nhit]/m;
 	  hitdata.y[nhit] = -lx[nhit]/m;
 	  hitdata.z[nhit] = lz[nhit]/m;
+	  hitdata.p[nhit] = (*gemHC)[idx]->GetMom()/GeV;
+
+	  hitdata.vx[nhit] =  (*gemHC)[idx]->GetVertex().getX()/m;
+	  hitdata.vy[nhit] =  (*gemHC)[idx]->GetVertex().getY()/m;
+	  hitdata.vz[nhit] =  (*gemHC)[idx]->GetVertex().getZ()/m;
 
 	  hitdata.tx[nhit] =  (*gemHC)[idx]->GetPos().getY()/m;
 	  hitdata.ty[nhit] = -(*gemHC)[idx]->GetPos().getX()/m;

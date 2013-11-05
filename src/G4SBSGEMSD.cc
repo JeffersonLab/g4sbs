@@ -95,6 +95,11 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 //  printf("Hit by %d at det %d,  (%f %f %f) %f?\n", trid, copyID, pos.getX()/cm, pos.getY()/cm, pos.getZ()/cm, boxz/cm );
 
   hit->SetPos(pos);
+  hit->SetVertex(aStep->GetTrack()->GetVertexPosition());
+  hit->SetMID(aStep->GetTrack()->GetParentID());
+  hit->SetTrID(aStep->GetTrack()->GetTrackID());
+  hit->SetPID(aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding());
+  hit->SetMom(aStep->GetTrack()->GetMomentum().mag());
 //  hit->SetDir(mom.getX()/mom.getZ(), mom.getY()/mom.getZ());
   hit->SetDir(thisdelta.getX()/thisdelta.getZ(), thisdelta.getY()/thisdelta.getZ());
   hit->SetGEMID(copyID);

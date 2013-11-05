@@ -32,25 +32,49 @@ class G4SBSGEMHit : public G4VHit
 
   private:
       G4ThreeVector pos;
+      G4ThreeVector vert;
       G4int	GEMID;
+      G4int	trid;
+      G4int	mid;
+      G4int	pid;
 
       G4double xp;
       G4double yp;
+      G4double p;
 
   public:
+      inline void SetVertex(G4ThreeVector v)
+      { vert= v;};
       inline void SetPos(G4ThreeVector v)
       { pos = v;};
       inline void SetDir(G4double x, G4double y)
       { xp = x; yp =y;};
       inline void SetGEMID(G4int i)
       { GEMID = i;};
+      inline void SetTrID(G4int i)
+      { trid= i;};
+      inline void SetMID(G4int i)
+      { mid= i;};
+      inline void SetPID(G4int i)
+      { pid= i;};
+      inline void SetMom(G4double x)
+      { p=x;};
 
       inline G4ThreeVector GetPos()
       { return pos;};
+      inline G4ThreeVector GetVertex()
+      { return vert;};
       inline G4int GetGEMID()
       { return GEMID;};
+      inline G4int GetPID()
+      { return pid;};
+      inline G4int GetMID()
+      { return mid;};
+      inline G4int GetTrID()
+      { return trid;};
       inline G4double GetXp(){ return xp; }
       inline G4double GetYp(){ return yp; }
+      inline G4double GetMom(){ return p; }
 
 };
 

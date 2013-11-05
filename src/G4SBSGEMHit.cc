@@ -21,6 +21,12 @@ G4SBSGEMHit::G4SBSGEMHit(const G4SBSGEMHit &right)
   xp = right.xp;
   yp = right.yp;
   GEMID = right.GEMID;
+
+  vert = right.vert;
+  trid = right.trid;
+  mid = right.mid;
+  pid = right.pid;
+  p = right.p;
 }
 
 const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
@@ -29,6 +35,13 @@ const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
   GEMID= right.GEMID;
   xp = right.xp;
   yp = right.yp;
+  p = right.p;
+
+  vert = right.vert;
+  trid = right.trid;
+  mid = right.mid;
+  pid = right.pid;
+
   return *this;
 }
 

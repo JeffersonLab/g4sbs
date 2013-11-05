@@ -662,7 +662,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
  
   //--------- 48D48 -------------------------------
 
-  Make48D48(WorldLog, f48D48dist + 1216.*mm/2 );
+  Make48D48(WorldLog, f48D48dist + 1219.2*mm/2 );
 
 
   ConstructTarget(WorldLog);
@@ -1288,7 +1288,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
 
 
   //--------- 48D48 -------------------------------
-  Make48D48(WorldLog, f48D48dist);
+  Make48D48(WorldLog, f48D48dist + 1219.2*mm/2 );
 
   ConstructTarget(WorldLog);
   ConstructBeamline(WorldLog);
@@ -2003,11 +2003,11 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
 //  frontclamp = new G4SubtractionSolid("frontclamp2", frontclamp, frontclampbeamhole, 0, G4ThreeVector(-55*cm, 0, 0) );
 //  frontclamp = new G4SubtractionSolid("frontclamp3", frontclamp, frontclampbeamhole, 0, G4ThreeVector(-28*cm, 0, 0) );
 
-  G4Box *frontclampbeamhole  = new G4Box("frontclampbeamhole", 45.*cm/2, 14.*cm/2,  clampdepth/2+2*cm);
-  frontclamp = new G4SubtractionSolid("frontclamp2", frontclamp, frontclampbeamhole, 0, G4ThreeVector(-35*cm+clampoffset, 0, 0) );
+  G4Box *frontclampbeamhole  = new G4Box("frontclampbeamhole", 50.*cm/2, 14.*cm/2,  clampdepth/2+2*cm);
+  frontclamp = new G4SubtractionSolid("frontclamp2", frontclamp, frontclampbeamhole, 0, G4ThreeVector(-55*cm+clampoffset, 0, 0) );
 
-  G4Box *frontclampecalhole  = new G4Box("frontclampecalhole", 80.*cm/2, 236.*cm/4.,  clampdepth/2+2*cm);
-  frontclamp = new G4SubtractionSolid("frontclamp3", frontclamp, frontclampecalhole, 0, G4ThreeVector(-110*cm+clampoffset, 0, 0) );
+  G4Box *frontclampecalhole  = new G4Box("frontclampecalhole", 100.*cm/2, 236.*cm/4.,  clampdepth/2+2*cm);
+  frontclamp = new G4SubtractionSolid("frontclamp3", frontclamp, frontclampecalhole, 0, G4ThreeVector(-120*cm+clampoffset, 0, 0) );
 
   G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclamp, Fe, "frontclampLog", 0, 0, 0);
   if( fTotalAbs ){
@@ -2028,8 +2028,8 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
   G4SubtractionSolid *backclamp = new G4SubtractionSolid("backclamp1", backclampfull, bclampgap, 0, 
 	 G4ThreeVector(clampoffset, 0, 0) );
 
-  G4Box *backclampbeamhole  = new G4Box("backclampbeamhole", 45.*cm/2., 16.*cm/2.,  clampdepth/2+2*cm);
-  backclamp = new G4SubtractionSolid("backclamp2", backclamp, backclampbeamhole, 0, G4ThreeVector(-90*cm+clampoffset, 0, 0) );
+  G4Box *backclampbeamhole  = new G4Box("backclampbeamhole", 83.*cm/2., 16.*cm/2.,  clampdepth/2+2*cm);
+  backclamp = new G4SubtractionSolid("backclamp2", backclamp, backclampbeamhole, 0, G4ThreeVector(-128*cm+clampoffset, 0, 0) );
 
   G4LogicalVolume *backclampLog=new G4LogicalVolume(backclamp, Fe, "backclampLog", 0, 0, 0);
 

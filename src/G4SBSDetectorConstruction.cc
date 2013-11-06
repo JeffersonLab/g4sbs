@@ -1231,8 +1231,9 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
 
 	  // Assign sensitive volume
 //	  if( gpidx == 5 && gidx < 6 ){ // just make first six tracking for now
+	  if( gpidx == 5 ){
 	      gplog->SetSensitiveDetector(GEMSD);
-//	  }
+	  }
       }
 
       sprintf(gemname[gidx], "gemphys_%02d", gidx);

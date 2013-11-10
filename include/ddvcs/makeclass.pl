@@ -10,6 +10,7 @@ print INC_FILE "#include \"G4SBS$classname.hh\"\n";
 print INC_FILE "\n";
 print INC_FILE "class $dvcsn : public G4SBS$classname\n";
 print INC_FILE "{\n";
+print INC_FILE "public:\n";
 print INC_FILE "$dvcsn();\n";
 print INC_FILE "\~$dvcsn();\n";
 print INC_FILE "};\n";

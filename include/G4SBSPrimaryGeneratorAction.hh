@@ -24,7 +24,7 @@ class G4SBSPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 
     void SetUseGeantino(bool b){ fUseGeantino = b; }
 
-  private:
+  protected:
     G4ParticleGun* particleGun;
     G4SBSEventGen* sbsgen;
 

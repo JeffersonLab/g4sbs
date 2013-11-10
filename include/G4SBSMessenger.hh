@@ -30,7 +30,7 @@ class G4SBSMessenger : public G4UImessenger {
 
 	void SetNewValue(G4UIcommand* cmd, G4String newValue);
 
-    private:
+    protected:
 	G4SBSIO *fIO;
 	G4SBSEventGen *fevgen;
 	G4SBSDetectorConstruction *fdetcon;

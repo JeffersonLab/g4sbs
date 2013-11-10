@@ -57,7 +57,7 @@ class G4SBSEventGen {
 
 	double GetHcalDist(){ return fHCALdist; }
 	double GetToFres(){ return fToFres; }
-    private:
+    protected:
 	double fElectronE, fNucleonE, fBeamE;
 	G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
 

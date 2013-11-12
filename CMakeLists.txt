@@ -27,14 +27,14 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(ROOT REQUIRED)
 
 
-include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/ddvcs ${ROOT_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/ )
+include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/ )
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc ${PROJECT_SOURCE_DIR}/src/ddvcs/DDVCS*.cc )
-file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/ddvcs/*.hh ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc )
+file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
 
 file(GLOB cteqsources ${PROJECT_SOURCE_DIR}/src/cteq/*.c  )
 file(GLOB cteqheaders ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
@@ -47,10 +47,7 @@ SET_TARGET_PROPERTIES(sbscteq PROPERTIES COMPILE_FLAGS "-DCTEQ_TBL_PATH=\\\"${PR
 
 add_executable(g4sbs g4sbs.cc ${sources} ${headers})
 
-add_executable(ddvcs ddvcs.cc ${sources} ${headers})
-
 target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
-target_link_libraries(ddvcs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

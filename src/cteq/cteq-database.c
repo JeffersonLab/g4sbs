@@ -16,6 +16,12 @@
 /* cteq-pdf includes */
 #include "cteqpdf.h"
 
+//Add by Jixie: in case the makefile does not define CTEQ_TBL_PATH
+//use this definition
+#ifndef CTEQ_TBL_PATH
+#define  CTEQ_TBL_PATH "cteq-tbls"
+#endif
+
 #define CTEQ6STD_TBL_PATH    CTEQ_TBL_PATH"/cteq6std/"
 #define CTEQ6_TBL_PATH       CTEQ_TBL_PATH"/cteq6/"
 #define CTEQ65S_TBL_PATH     CTEQ_TBL_PATH"/ctq65s/"
@@ -33,7 +39,7 @@ static const cteq_pdfset_t __cteq_pdfset_database[] = {
   {400, "CTEQ66.00",  "description", CTEQ66M_TBL_PATH, "ctq66.00.pds", 2},
   
   /*  End of the list */
-  {0,0,0,0,0}
+  {0,0,0,0,0,2}
 };
 
 

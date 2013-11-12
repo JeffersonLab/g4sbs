@@ -25,7 +25,8 @@ static cteq_pdf_t **__f77_cteq_pdf_array = 0;
 static
 void __f77_cteq_pdf_array_alloc(size_t n)
 {
-  if(!(__f77_cteq_pdf_array = realloc(__f77_cteq_pdf_array, n*sizeof(cteq_pdf_t *)))) {
+  if(!(__f77_cteq_pdf_array = (cteq_pdf_t **)(realloc(__f77_cteq_pdf_array, n*sizeof(cteq_pdf_t *))))) 
+  {
    fprintf(stderr, "F77 CTEQ PDF: Unable to allocate memory for the array of pdf objects.");
    exit(1);
   }
@@ -70,7 +71,7 @@ int cteq_pdf_alloc_name_(char *name, long int len)
 	__f77_cteq_pdf_array_alloc(__f77_cteq_pdf_array_size + 50);
   
   /*   Create the pdf   */
-  char *__name = malloc((len+1)*sizeof(char));
+  char *__name = (char*)(malloc((len+1)*sizeof(char)));
   
   if(!__name) return -1;
   strncpy(__name, name, len); __name[len]='\0';

@@ -221,8 +221,9 @@ cteq_pdf_t * __cteq_pdf_alloc_read_tbl(FILE *file)
   unsigned int i;
   
   /*   Allocate the pdf set   */
-  cteq_pdf_t *pdf = malloc(sizeof(cteq_pdf_t));
-  if(!pdf) return 0;
+  //cteq_pdf_t *pdf =  static_cast<cteq_pdf_t*> (malloc(sizeof(cteq_pdf_t)));
+  cteq_pdf_t *pdf =  (cteq_pdf_t*) (malloc(sizeof(cteq_pdf_t)));
+    if(!pdf) return 0;
   
   /*   Reading the first two line    */
   int del;
@@ -314,7 +315,8 @@ cteq_pdf_t * __cteq_pdf_alloc_read_pds(FILE *file)
   unsigned int i;
   
   /*   Allocate the pdf set   */
-  cteq_pdf_t *pdf = malloc(sizeof(cteq_pdf_t));
+  cteq_pdf_t *pdf =  (cteq_pdf_t*) (malloc(sizeof(cteq_pdf_t)));
+
   if(!pdf) return 0;
   
   /*   Reading the first two line    */
@@ -420,7 +422,8 @@ cteq_pdf_t * cteq_pdf_alloc(const cteq_pdfset_t *pdfset)
   
   /*   we need the full filename with the absolute path */
   size_t len = strlen(pdfset->path) + strlen(pdfset->filename);
-  char *filename = malloc((len+1)*sizeof(char));
+  //char *filename = static_cast<char*>(malloc((len+1)*sizeof(char)));
+  char *filename = (char*)(malloc((len+1)*sizeof(char)));
   
   if(!filename) {
 	fprintf(stderr, "cteq_pdf: Unable to determine the full filename of the table file!\n");

@@ -439,9 +439,16 @@ cteq_pdf_t * cteq_pdf_alloc(const cteq_pdfset_t *pdfset)
   FILE *file = fopen(filename, "r");
   
   if(!file) {
-	fprintf(stderr, "cteq_pdf: Unable to open file %s\n", filename);
-	free(filename);
-	return pdf;
+      // Try top open locally stored file as a backup
+
+      file = fopen(pdfset->filename, "r");
+
+      if( !file ){
+	  fprintf(stderr, "cteq_pdf: Unable to open file %s or local file %s\n", filename, pdfset->filename);
+
+	  free(filename);
+	  return pdf;
+      }
   }
   
   /*    Creating the pdf set   */

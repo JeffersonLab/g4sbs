@@ -10,6 +10,8 @@ cteq_pdf_t *__dis_pdf;
 
 void initcteqpdf(){
      __dis_pdf = cteq_pdf_alloc_id(400); // mode 400 = cteq6.6?
+
+     assert(__dis_pdf);
 }
 
 double dissigma( double ebeam, double th, double eprime, Nucl_t nucl ){

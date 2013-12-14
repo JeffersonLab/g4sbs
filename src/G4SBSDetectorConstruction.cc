@@ -1108,7 +1108,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
 
   SDman->AddNewDetector(BBCalSD);
   bigcallog->SetSensitiveDetector(BBCalSD);
-  bigcallog->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+//  bigcallog->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
 
   /////////////////////////////////////////////////////////
   G4RotationMatrix *hcalrm = new G4RotationMatrix;

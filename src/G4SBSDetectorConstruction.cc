@@ -1020,6 +1020,11 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
   CH2->AddElement(elC, 1);
   CH2->AddElement(elH, 2);
 
+  G4double density_CH = 0.95*g/cm3;
+  G4Material* CH = new G4Material("CH", density_CH, nel=2);
+  CH->AddElement(elC, 1);
+  CH->AddElement(elH, 1);
+
   // 1.5 Atmosphere C4F8O for cerkenkov
   G4double density_C4F8O = 9.64*mg/cm3; // density at 1ATM
   G4Material* C4F8O = new G4Material("C4F8O", density_C4F8O*1.5, nel=3);
@@ -1071,11 +1076,26 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
   double bigcaldepth  = 15.75*2.54*cm;
   double bbr = fBBdist+bigcaldepth/2.0;
 
+  double CH2depth = 15.0*cm;
+  double CHdepth  = 6.0*cm;
+
   G4Box *bigcalbox = new G4Box("bigcalbox", bigcalwidth/2.0, bigcalheight/2.0, bigcaldepth/2.0 );
   G4LogicalVolume* bigcallog = new G4LogicalVolume(bigcalbox, Lead, "bigcallog");
 
+  G4Box *CH2box = new G4Box("ch2box", bigcalwidth/2.0, bigcalheight/2.0, CH2depth/2.0 );
+  G4LogicalVolume* ch2boxlog = new G4LogicalVolume(CH2box, CH2, "ch2log");
+  G4Box *CHbox = new G4Box("chbox", bigcalwidth/2.0, bigcalheight/2.0, CHdepth/2.0 );
+  G4LogicalVolume* chboxlog = new G4LogicalVolume(CHbox, CH, "chlog");
+
+  double ch2r = bbr - bigcaldepth/2.0 - CHdepth - CH2depth/2.0;
+  double chr = bbr - bigcaldepth/2.0 - CHdepth/2.0;
+
   new G4PVPlacement(bbrm, G4ThreeVector(bbr*sin(-fBBang), 0.0, bbr*cos(-fBBang) ), bigcallog,
 	      "bigcalphys", WorldLog, false, 0, false);
+  new G4PVPlacement(bbrm, G4ThreeVector(ch2r*sin(-fBBang), 0.0, ch2r*cos(-fBBang) ), ch2boxlog,
+	      "ch2boxphys", WorldLog, false, 0, false);
+  new G4PVPlacement(bbrm, G4ThreeVector(chr*sin(-fBBang), 0.0, chr*cos(-fBBang) ), chboxlog,
+	      "chboxphys", WorldLog, false, 0, false);
 
   G4String BBCALSDname = "G4SBS/BBCal";
   G4String BBCALcolname = "BBCalcol";
@@ -1313,6 +1333,14 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
     = new G4VisAttributes(G4Colour(0.0,0.6,0.0));
   bigcallog->SetVisAttributes(bbcalVisAtt);
   hcallog->SetVisAttributes(bbcalVisAtt);
+
+  G4VisAttributes * ch2VisAtt
+    = new G4VisAttributes(G4Colour(1.0,0.7,0.0));
+  G4VisAttributes * chVisAtt
+    = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
+
+  ch2boxlog->SetVisAttributes(ch2VisAtt);
+  chboxlog->SetVisAttributes(chVisAtt);
 
   G4VisAttributes * anaVisAtt
     = new G4VisAttributes(G4Colour(0.6,0.6,0.0));

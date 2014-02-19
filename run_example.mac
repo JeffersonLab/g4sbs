@@ -49,6 +49,9 @@
 #  gemconfig = 3 for 3 gems, 1 <- gemsep -> 1 <- gemsep -> 1
 /g4sbs/gemconfig       2
 
+
+#/g4sbs/48d48field 1 // Use GEn 10GeV2 field for 48d48
+
 # Shoot geantinos instead of electrons (good for testing no interactions)
 #/g4sbs/shootgeantino
 

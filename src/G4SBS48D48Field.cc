@@ -30,16 +30,17 @@ void G4SBS48D48Field::GetFieldValue(const double Point[3],double *Bfield) const 
     double point[3];
 
     G4ThreeVector pt(Point[0], Point[1], Point[2]);
-    pt = ((*frm)*pt) - G4ThreeVector(0.0, 0.0, fZOffset - 48*2.54*cm/2.);
+    pt = ((*frm)*pt) - G4ThreeVector(0.0, 0.0, fZOffset + 48*2.54*cm/2.);
 
 //    printf("Querying point %f %f %f\n", pt[0]/m, pt[1]/m, pt[2]/m);
 
     // Use a trilinear interpolation
     // Convert fed point to field map coordinates (180 degree rotation about y)
-    // Offset accounts for box positioning
-    point[0] = -pt[0];
-    point[1] =  pt[1];
-    point[2] = -pt[2];
+    // Overall - is from wrong polarity in field, primarily goes down +x-axis
+    // which would deflect protons into the floor
+    point[0] =  pt[0];
+    point[1] = -pt[1];
+    point[2] =  pt[2];
 
     // Calculate index values for position
 
@@ -84,9 +85,9 @@ void G4SBS48D48Field::GetFieldValue(const double Point[3],double *Bfield) const 
 
     ///////////////////////////////////////////////
     // Make sure to put in local coordinates
-    Bfield[0] =  interp[0];
-    Bfield[1] = -interp[1];
-    Bfield[2] =  interp[2];
+    Bfield[0] = -interp[0];
+    Bfield[1] =  interp[1];
+    Bfield[2] = -interp[2];
 
 
     G4ThreeVector newB(Bfield[0], Bfield[1], Bfield[2]);
@@ -136,8 +137,8 @@ void G4SBS48D48Field::ReadField(){
 
 
     // Ensure we have enough space to read this
-    if( fN[0] > MAXPT || fN[1] > MAXPT || fN[2] > MAXPT  ){
-	fprintf(stderr, "Error: %s Line %d, %s - File %s is too big\nRead parameters nx = %d ny = %d nz = %d, but MAXPT = %d\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename, fN[0], fN[1], fN[2], MAXPT ); 
+    if( fN[0] > MAX48D48PT || fN[1] > MAX48D48PT || fN[2] > MAX48D48PT  ){
+	fprintf(stderr, "Error: %s Line %d, %s - File %s is too big\nRead parameters nx = %d ny = %d nz = %d, but MAX48D48PT = %d\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename, fN[0], fN[1], fN[2], MAX48D48PT ); 
 	exit(1);
     }
 
@@ -162,9 +163,9 @@ void G4SBS48D48Field::ReadField(){
     for( i = 0; i < fN[0]; i++ ){
 	for( j = 0; j < fN[1]; j++ ){
 	    for( k = 0; k < fN[2]; k++ ){
-		fscanf(f, "%lf%lf%lf%lf%lf%lf%lf", &x[0], &x[1], &x[2], &fB[0], &fB[1], &fB[2], &ddouble );
+		fscanf(f, "%lf%lf%lf%lf%lf%lf", &x[0], &x[1], &x[2], &fB[0], &fB[1], &fB[2]);
 
-	//	printf("%f %f %f %f %f %f\n", x[0], x[1], x[2], fB[0], fB[1], fB[2]);
+//		printf("%f %f %f %f %f %f\n", x[0], x[1], x[2], fB[0], fB[1], fB[2]);
 
 		// Grab limits as we go alone.  Assume this is a square grid
 		for( idx = 0; idx < 3; idx++ ){

@@ -49,6 +49,10 @@ G4SBSMessenger::G4SBSMessenger(){
     expCmd->SetGuidance("Experiment type");
     expCmd->SetParameterName("exptype", false);
 
+    bigfieldCmd = new G4UIcmdWithAnInteger("/g4sbs/48d48field", this);
+    bigfieldCmd->SetGuidance("48d48 magnet field");
+    bigfieldCmd->SetParameterName("48d48field", false);
+
     geantinoCmd = new G4UIcmdWithABool("/g4sbs/shootgeantino", this);
     geantinoCmd->SetGuidance("Shoot a geantino instead of e-");
     geantinoCmd->SetParameterName("shootgeantino", false);
@@ -304,11 +308,18 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     }
 
+    if( cmd == bigfieldCmd ){
+	G4int n = bigfieldCmd->GetNewIntValue(newValue);
+	fdetcon->Set48D48Field(n);
+    }
+
     if( cmd == geantinoCmd ){
 	G4bool b = geantinoCmd->GetNewBoolValue(newValue);
 	fprigen->SetUseGeantino(b);
 	fdetcon->GetBBField()->SetUseGeantino(b);
-	fdetcon->Get48D48Field()->SetUseGeantino(b);
+	if( fdetcon->Get48D48Field() ){
+	    fdetcon->Get48D48Field()->SetUseGeantino(b);
+	}
     }
 
     if( cmd == totalabsCmd ){

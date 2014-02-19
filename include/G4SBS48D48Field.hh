@@ -5,8 +5,7 @@
 #include "G4MagneticField.hh"
 #include "G4RotationMatrix.hh"
 
-#define MAXPT 120
-
+#define MAX48D48PT 241
 
 class G4SBS48D48Field : public G4MagneticField {
     public:
@@ -28,14 +27,14 @@ class G4SBS48D48Field : public G4MagneticField {
 	int fN[3];
 	double fMin[3], fMax[3];
 
-	double fFieldVal[MAXPT][MAXPT][MAXPT][3];
-
 	void ReadField();
 
 	G4bool fUseGeantino;
 
 	double fZOffset;
 	G4RotationMatrix *frm;
+
+	double fFieldVal[MAX48D48PT][MAX48D48PT][MAX48D48PT][3];
 };
 
 #endif//G4SBS48D48Field_hh

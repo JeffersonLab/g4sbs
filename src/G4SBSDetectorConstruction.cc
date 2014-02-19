@@ -67,12 +67,15 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
     fGEMDist  = 70.0*cm;
 
     fbbfield = new G4SBSBigBiteField( fBBdist, NULL );
-    f48d48field = new G4SBS48D48Field( f48D48dist, NULL );
+    
+    f48d48field = NULL;
 
     fGEMOption = 1;
 
     fTotalAbs = true;
 }
+
+
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
 {;}
@@ -1597,19 +1600,24 @@ void G4SBSDetectorConstruction::ConstructTarget( G4LogicalVolume *worldlog ){
   G4LogicalVolume *extpipe_log = new G4LogicalVolume(exttube, Aluminum,"extpipe_log");
   G4LogicalVolume *extvac_log = new G4LogicalVolume(extvactube, Vacuum,"extvac_log");
 
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", worldlog, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", worldlog, false, 0);
 
   if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
       // Add in exit Al window
       
       double extwin_thick = 5.0e-4*cm;
       
-      G4Tubs *extwin = new G4Tubs("ent_win", 0.0, extpipe_rin, extwin_thick/2, 0.*deg, 360.*deg );
-      G4LogicalVolume *ext_winlog = new G4LogicalVolume(extwin, Aluminum, "entwin_log", 0, 0, 0);
-      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -extpipe_len/2 + extwin_thick/2), ext_winlog, "extwin_phys", extvac_log,false,0);
+      // 5cm is exit pipe opening
+      G4Tubs *extwin = new G4Tubs("ent_win", 0.0, 5.0*cm, extwin_thick/2, 0.*deg, 360.*deg );
+      G4LogicalVolume *ext_winlog = new G4LogicalVolume(extwin, Aluminum, "extwin_log", 0, 0, 0);
+      //  place at beginning of pipe
+      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 162.2*cm - extwin_thick/2), ext_winlog, "extwin_phys", worldlog,false,0);
 
       ext_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.6,0.6,0.6)));
+  } else {
+      // Scattering chamber parts
+
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", worldlog, false, 0);
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", worldlog, false, 0);
   }
 
 
@@ -1791,12 +1799,22 @@ void G4SBSDetectorConstruction::ConstructBeamline( G4LogicalVolume *worldlog ){
     }
 
     // Aluminum
+    /*
     int nsec = 24;
     //  Definition taken from HAPLOG 2722 by Juliette, but offset by 31.54 cm
     G4double exit_z[]   = {206*cm, 234.01*cm, 234.02*cm, 253.02*cm, 253.03*cm, 268.26*cm, 268.27*cm,305.29*cm, 305.30*cm,328.71*cm, 328.72*cm, 356.33*cm,356.34*cm, 378.7*cm,378.71*cm, 473.16*cm,473.17*cm, 503.64*cm,503.65*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };
     G4double exit_zero[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     G4double exit_rin[] = {4.128*cm, 4.128*cm, 4.445*cm, 4.445*cm,4.763*cm, 4.763*cm, 5.08*cm,5.08*cm, 6.35*cm, 6.35*cm, 7.62*cm, 7.62*cm,10.16*cm, 10.16*cm,10.478*cm, 10.478*cm,12.7*cm, 12.7*cm,15.24*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };
     G4double exit_rou[] = {4.432*cm, 4.432*cm, 4.75*cm, 4.75*cm,5.067*cm, 5.067*cm, 5.385*cm,5.385*cm, 6.655*cm, 6.655*cm, 7.925*cm, 7.925*cm, 10.478*cm,10.478*cm,  10.795*cm, 10.795*cm, 13.018*cm, 13.018*cm,15.558*cm, 15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };
+    */
+    int nsec = 7;
+    //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
+    G4double exit_z[]   = { 162.2*cm, 592.2*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };
+    G4double exit_zero[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    G4double exit_rin[] = { 4.8*cm, 14.8*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };
+    G4double exit_rou[] = { 5.0*cm, 15.0*cm,15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };
+
+
 
     G4Polycone *ext_cone = new G4Polycone("ext_tube", 0.0*deg, 360.0*deg, nsec, exit_z, exit_rin, exit_rou);
     G4Polycone *ext_vac  = new G4Polycone("ext_vac ", 0.0*deg, 360.0*deg, nsec, exit_z, exit_zero, exit_rin);
@@ -1883,7 +1901,7 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
   bigboxaddrm->rotateX( 90.*deg);
 
 
-  G4Box *bclampgap  = new G4Box("bclampgap",  23.*cm, 65.*cm,  12.*cm/2.);
+  G4Box *bclampgap  = new G4Box("bclampgap",  23.*cm, 65.*cm,  15.5*cm);
   G4Box *fclampgap  = new G4Box("fclampgap",  11.*cm, 35.*cm,  12.*cm/2.);
 
   G4SubtractionSolid* bigbase = new G4SubtractionSolid("bigbase", bigbox_ext, biggap, bigboxaddrm, G4ThreeVector());
@@ -1948,7 +1966,7 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
 
   G4UnionSolid* big48d48;
 
-  G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/2, 15.5*cm/2.0, 2.0*m ); // Height is roughly beam pipe outer radius at 3m
+  G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/2, 15.5*cm, 2.0*m ); // Height is roughly beam pipe outer radius at 3m
  
   big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, bigboxaddrm, 
 	  G4ThreeVector(0.0, 0.0, (coilgapheight+bigcoilheight)/2.0));
@@ -2005,13 +2023,15 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
 
   G4FieldManager *bigfm = NULL;
 
-  f48d48field->SetRM( bigrm );
-  if( f48d48field->GoodParams() ){
-      bigfm = new G4FieldManager(f48d48field);
-      G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fbbfield); 
-      G4MagIntegratorStepper *stepper = new G4ExplicitEuler(fequation, 8);
-      new G4ChordFinder(fbbfield, 1.0*nm, stepper);
-      worldlog->SetFieldManager(bigfm,true);
+  if( f48d48field ){
+      f48d48field->SetRM( bigrm );
+      if( f48d48field->GoodParams() ){
+	  bigfm = new G4FieldManager(f48d48field);
+	  G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fbbfield); 
+	  G4MagIntegratorStepper *stepper = new G4ExplicitEuler(fequation, 8);
+	  new G4ChordFinder(fbbfield, 1.0*nm, stepper);
+	  worldlog->SetFieldManager(bigfm,true);
+      }
   } else {
       bigfm = new G4FieldManager(magField);
       bigfm->SetDetectorField(magField);
@@ -2079,16 +2099,20 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
   }
 
   double frontclampz = -100*cm + clampdepth/2.0;
-  double backclampz  =  100*cm - clampdepth/2.0;
 
   new G4PVPlacement(bigrm, 
 //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+frontclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0+frontclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 	  G4ThreeVector(-(r48d48+frontclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+frontclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 	  		    frontclampLog, "frontclampPhysical", worldlog, 0,false,0);
+
+
+  /*
+   *  No more back clamp in GEN-10M
+  double backclampz  =  100*cm - clampdepth/2.0;
   new G4PVPlacement(bigrm, 
-//	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 	  G4ThreeVector(-(r48d48+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 	  		    backclampLog, "backclampPhysical", worldlog, 0,false,0);
+			    */
 
   bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
 //  backclampLog->SetVisAttributes(G4VisAttributes::Invisible);
@@ -2097,7 +2121,20 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
 
 
 
-
+void G4SBSDetectorConstruction::Set48D48Field(int n){
+    switch(n){
+	case 1:
+	    f48d48field = new G4SBS48D48Field( f48D48dist, NULL );
+	    break;
+	case 0:
+	    if( f48d48field ){ delete f48d48field; }
+	    f48d48field = NULL;
+	    break;
+	default:
+	    break;
+    }
+    return;
+}
 
 
 

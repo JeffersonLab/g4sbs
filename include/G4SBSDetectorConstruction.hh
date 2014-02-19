@@ -49,6 +49,8 @@ public:
   G4SBSBigBiteField *GetBBField(){ return fbbfield; }
   G4SBS48D48Field *Get48D48Field(){ return f48d48field; }
 
+  void Set48D48Field(int n);
+
   void SetTotalAbs(bool b){ fTotalAbs= b; }
 
 

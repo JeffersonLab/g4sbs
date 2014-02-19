@@ -49,6 +49,7 @@ class G4SBSMessenger : public G4UImessenger {
 	G4UIcmdWithAString   *expCmd;
 
 	G4UIcmdWithABool *geantinoCmd;
+	G4UIcmdWithAnInteger  *bigfieldCmd;
 	G4UIcmdWithABool *totalabsCmd;
 
 	G4UIcmdWithAnInteger *gemconfigCmd;

@@ -20,6 +20,7 @@
 // G4ParameterisationManagerProcess):
 //-----------------------------------
 #include "LHEP.hh"
+#include "QGSP_BERT.hh"
 
 #include "G4UImanager.hh"
 #include "G4RunManager.hh"
@@ -65,7 +66,8 @@ int main(int argc, char** argv)
   runManager->SetUserInitialization(detector);
   
   // PhysicsList (including G4FastSimulationManagerProcess)
-  G4VModularPhysicsList* physicsList = new LHEP();
+//  G4VModularPhysicsList* physicsList = new LHEP();
+  G4VModularPhysicsList* physicsList = new QGSP_BERT();
   physicsList->RegisterPhysics(new G4StepLimiterBuilder());
   runManager->SetUserInitialization(physicsList);
 

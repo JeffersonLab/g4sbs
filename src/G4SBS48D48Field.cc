@@ -129,7 +129,7 @@ void G4SBS48D48Field::ReadField(){
     // file indices
     
     int dint, idx, i,j,k;
-    double ddouble, x[3], fB[3];
+    double x[3], fB[3];
 
     char dstring[MAXBUFF];
 

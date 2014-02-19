@@ -30,6 +30,7 @@
 #include "G4UniformMagField.hh"
 #include "G4MagneticField.hh"
 #include "G4SBSBigBiteField.hh"
+#include "G4SBS48D48Field.hh"
 #include "G4FieldManager.hh"
 
 #include "G4MagIntegratorStepper.hh"
@@ -66,6 +67,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
     fGEMDist  = 70.0*cm;
 
     fbbfield = new G4SBSBigBiteField( fBBdist, NULL );
+    f48d48field = new G4SBS48D48Field( f48D48dist, NULL );
 
     fGEMOption = 1;
 
@@ -2001,13 +2003,23 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
   G4UniformMagField* magField
             = new G4UniformMagField(G4ThreeVector(fieldValue*cos(f48D48ang), 0.0, -fieldValue*sin(f48D48ang)));
 
-  G4FieldManager *bigfm = new G4FieldManager(magField);
+  G4FieldManager *bigfm = NULL;
 
-  bigfm->SetDetectorField(magField);
-  bigfm->CreateChordFinder(magField);
+  f48d48field->SetRM( bigrm );
+  if( f48d48field->GoodParams() ){
+      bigfm = new G4FieldManager(f48d48field);
+      G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fbbfield); 
+      G4MagIntegratorStepper *stepper = new G4ExplicitEuler(fequation, 8);
+      new G4ChordFinder(fbbfield, 1.0*nm, stepper);
+      worldlog->SetFieldManager(bigfm,true);
+  } else {
+      bigfm = new G4FieldManager(magField);
+      bigfm->SetDetectorField(magField);
+      bigfm->CreateChordFinder(magField);
+      bigfieldLog->SetFieldManager(bigfm,true);
+  }
 
-  bigfieldLog->SetFieldManager(bigfm,true);
-
+  assert(bigfm);
 
   new G4PVPlacement(bigrm, 
 //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),

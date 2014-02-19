@@ -7,6 +7,7 @@
 #include "globals.hh"
 
 #include "G4SBSBigBiteField.hh"
+#include "G4SBS48D48Field.hh"
 
 class G4SBSDetectorMessenger;
 
@@ -46,6 +47,7 @@ public:
   void SetGEMConfig(int gc ){ fGEMOption = gc; }
 
   G4SBSBigBiteField *GetBBField(){ return fbbfield; }
+  G4SBS48D48Field *Get48D48Field(){ return f48d48field; }
 
   void SetTotalAbs(bool b){ fTotalAbs= b; }
 
@@ -54,6 +56,7 @@ private:
   // messeneger
   G4SBSDetectorMessenger* theMessenger;
   G4SBSBigBiteField *fbbfield;
+  G4SBS48D48Field *f48d48field;
   
   double fBBang;
   double fBBdist;

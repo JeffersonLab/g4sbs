@@ -129,14 +129,14 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	      ysum += (*bbcalHC)[i]->GetPos().y()*(*bbcalHC)[i]->GetEdep();
 	      esum += (*bbcalHC)[i]->GetEdep();
 
-	      caldata.bcx[i] = (*bbcalHC)[i]->GetPos().x()/cm;
-	      caldata.bcy[i] = (*bbcalHC)[i]->GetPos().y()/cm;
-	      caldata.bcz[i] = (*bbcalHC)[i]->GetPos().z()/cm;
+	      caldata.bcx[i] = (*bbcalHC)[i]->GetPos().x()/m;
+	      caldata.bcy[i] = (*bbcalHC)[i]->GetPos().y()/m;
+	      caldata.bcz[i] = (*bbcalHC)[i]->GetPos().z()/m;
 	      caldata.bce[i] = (*bbcalHC)[i]->GetEdep()/GeV;
 
-	      caldata.bcvx[i] = (*bbcalHC)[i]->GetVertex().x()/cm;
-	      caldata.bcvy[i] = (*bbcalHC)[i]->GetVertex().y()/cm;
-	      caldata.bcvz[i] = (*bbcalHC)[i]->GetVertex().z()/cm;
+	      caldata.bcvx[i] = (*bbcalHC)[i]->GetVertex().x()/m;
+	      caldata.bcvy[i] = (*bbcalHC)[i]->GetVertex().y()/m;
+	      caldata.bcvz[i] = (*bbcalHC)[i]->GetVertex().z()/m;
 
 	      caldata.bcpid[i] = (*bbcalHC)[i]->GetPID();
 	      caldata.bcmid[i] = (*bbcalHC)[i]->GetMID();
@@ -144,8 +144,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  }
 	  
 	  //  Energy weighted sum
-	  trdata.bcx = xsum/esum/cm; 
-	  trdata.bcy = ysum/esum/cm;
+	  trdata.bcx = xsum/esum/m; 
+	  trdata.bcy = ysum/esum/m;
       }
   }
   
@@ -181,14 +181,14 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 		  trdata.hct = (*hcalHC)[i]->GetTime()/ns + CLHEP::RandGauss::shoot(0.0, fevgen->GetToFres());
 	      }
 
-	      caldata.hcx[i] = (*hcalHC)[i]->GetPos().x()/cm;
-	      caldata.hcy[i] = (*hcalHC)[i]->GetPos().y()/cm;
-	      caldata.hcz[i] = (*hcalHC)[i]->GetPos().z()/cm;
+	      caldata.hcx[i] = (*hcalHC)[i]->GetPos().x()/m;
+	      caldata.hcy[i] = (*hcalHC)[i]->GetPos().y()/m;
+	      caldata.hcz[i] = (*hcalHC)[i]->GetPos().z()/m;
 	      caldata.hce[i] = (*hcalHC)[i]->GetEdep()/GeV;
 
-	      caldata.hcvx[i] = (*hcalHC)[i]->GetVertex().x()/cm;
-	      caldata.hcvy[i] = (*hcalHC)[i]->GetVertex().y()/cm;
-	      caldata.hcvz[i] = (*hcalHC)[i]->GetVertex().z()/cm;
+	      caldata.hcvx[i] = (*hcalHC)[i]->GetVertex().x()/m;
+	      caldata.hcvy[i] = (*hcalHC)[i]->GetVertex().y()/m;
+	      caldata.hcvz[i] = (*hcalHC)[i]->GetVertex().z()/m;
 
 	      caldata.hcpid[i] = (*hcalHC)[i]->GetPID();
 	      caldata.hcmid[i] = (*hcalHC)[i]->GetMID();
@@ -196,11 +196,11 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  }
 
 
-      	  trdata.hcx = xsum/esum/cm;
-	  trdata.hcy = ysum/esum/cm;
-	  trdata.hclx = xlsum/esum/cm;
-	  trdata.hcly = ylsum/esum/cm;
-	  trdata.hclz = zlsum/esum/cm;
+      	  trdata.hcx = xsum/esum/m;
+	  trdata.hcy = ysum/esum/m;
+	  trdata.hclx = xlsum/esum/m;
+	  trdata.hcly = ylsum/esum/m;
+	  trdata.hclz = zlsum/esum/m;
 
 	  G4ThreeVector avglab = G4ThreeVector( trdata.hclx, trdata.hcly, trdata.hclz);
 

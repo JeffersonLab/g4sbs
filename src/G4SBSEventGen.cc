@@ -873,9 +873,9 @@ ev_t G4SBSEventGen::GetEventData(){
     data.Q2    = fQ2/(GeV*GeV);
     data.th    = fElectronP.theta()/rad;
     data.ph    = fElectronP.phi()/rad;
-    data.vx    = fVert.x()/cm;
-    data.vy    = fVert.y()/cm;
-    data.vz    = fVert.z()/cm;
+    data.vx    = fVert.x()/m;
+    data.vy    = fVert.y()/m;
+    data.vz    = fVert.z()/m;
     data.ep    = fElectronP.mag()/GeV;
     data.np    = fNucleonP.mag()/GeV;
     data.epx    = fElectronP.x()/GeV;

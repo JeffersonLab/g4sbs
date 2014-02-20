@@ -1432,17 +1432,17 @@ void G4SBSDetectorConstruction::ConstructTarget( G4LogicalVolume *worldlog ){
   GE180->AddMaterial(SrO, 0.0034);
 
 
-  double gasden = fTargDen;
+  double gasden = fTargDen;  // This is in units of N/V
 //  gasden = 10.5*atmosphere/(300*kelvin*k_Boltzmann);
-  G4Material *refH2 = new G4Material("refH2", gasden, 1 );
+  G4Material *refH2 = new G4Material("refH2", gasden*(1.0079*2*g/Avogadro), 1 );
   refH2->AddElement(elH, 1);
 
  // gasden = 10.5*atmosphere/(300*kelvin*k_Boltzmann);
-  G4Material *refN2 = new G4Material("refN2", gasden, 1 );
+  G4Material *refN2 = new G4Material("refN2", gasden*(14.0067*2*g/Avogadro), 1 );
   refN2->AddElement(elN, 1);
 
  // gasden = 10.77*atmosphere/(300*kelvin*k_Boltzmann);
-  G4Material *pol3He = new G4Material("pol3He", gasden, 1 );
+  G4Material *pol3He = new G4Material("pol3He", gasden*(3.016*g/Avogadro), 1 );
   pol3He->AddElement(el3He, 1);
 
   double LH2den = 0.071*g/cm3;

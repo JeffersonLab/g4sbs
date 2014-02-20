@@ -86,25 +86,25 @@ double Gamma_p( int i, int j, double W2 ){
     pcm  = 0.0;
     pcmM = 0.0;
 
-    double m;
+    double mass;
 
     if( j == 0 || j == 2 ){
 	// single pion or eta
-	if( j == 0 ){ m = 0.140; } else { m = 0.538; }
+	if( j == 0 ){ mass = 0.140; } else { mass = 0.538; }
 
-	if( sqrt(W2) < Mp+m ) return 0.0;
-	if( M[i] < Mp+m ) return 0.0;
+	if( sqrt(W2) < Mp+mass ) return 0.0;
+	if( M[i] < Mp+mass ) return 0.0;
 
 	/*
 	pcm  = 0.5*sqrt( ( pow(W2 - Mp*Mp - m*m,2.0) - 4.0*m*m*Mp*Mp )/W2 );
 	pcmM = 0.5*sqrt( pow(M[i]*M[i] - Mp*Mp - m*m, 2.0) - 4.0*m*m*Mp*Mp )/M[i];
 	*/
 
-	Ecm  = (W2 + m*m - Mp*Mp)/2.0/sqrt(W2);
-	EcmM = (M[i]*M[i] + m*m - Mp*Mp)/2.0/M[i];
+	Ecm  = (W2 + mass*mass - Mp*Mp)/2.0/sqrt(W2);
+	EcmM = (M[i]*M[i] + mass*mass - Mp*Mp)/2.0/M[i];
 
-	pcm  = sqrt(Ecm*Ecm - m*m);
-	pcmM = sqrt(EcmM*EcmM - m*m);
+	pcm  = sqrt(Ecm*Ecm - mass*mass);
+	pcmM = sqrt(EcmM*EcmM - mass*mass);
 
 	double t0 = Gamma[i];
 	double t1 = pow(pcm/pcmM, 2.0*l[i]+1.0);
@@ -114,21 +114,21 @@ double Gamma_p( int i, int j, double W2 ){
     }
     if( j == 1 ){
 	// Double pion
-	m = 0.140*2.0;
+	mass = 0.140*2.0;
 
-	if( sqrt(W2) < Mp+m ) return 0.0;
-	if( M[i] < Mp+m ) return 0.0;
+	if( sqrt(W2) < Mp+mass ) return 0.0;
+	if( M[i] < Mp+mass ) return 0.0;
 
 	/*
 	pcm  = 0.5*sqrt( ( pow(W2 - Mp*Mp - m*m, 2.0) - 4.0*m*m*Mp*Mp )/W2 );
 	pcmM = 0.5*sqrt( pow(M[i]*M[i] - Mp*Mp - m*m, 2.0) - 4.0*m*m*Mp*Mp )/M[i];
 	*/
 
-	Ecm  = (W2 + m*m - Mp*Mp)/2.0/sqrt(W2);
-	EcmM = (M[i]*M[i] + m*m - Mp*Mp)/2.0/M[i];
+	Ecm  = (W2 + mass*mass - Mp*Mp)/2.0/sqrt(W2);
+	EcmM = (M[i]*M[i] + mass*mass - Mp*Mp)/2.0/M[i];
 
-	pcm  = sqrt(Ecm*Ecm - m*m);
-	pcmM = sqrt(EcmM*EcmM - m*m);
+	pcm  = sqrt(Ecm*Ecm - mass*mass);
+	pcmM = sqrt(EcmM*EcmM - mass*mass);
 
 	double t0 = Gamma[i]*sqrt(W2)/M[i];
 	double t1 = pow(pcm/pcmM, 2.0*l[i]+4.0);

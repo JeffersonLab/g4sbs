@@ -6,6 +6,7 @@
 #include "G4ParticleDefinition.hh"
 #include "G4SBSEventGen.hh"
 #include "G4SBSIO.hh"
+#include "G4SBSRunAction.hh"
 #include "sbstypes.hh"
 #include "globals.hh"
 
@@ -48,7 +49,13 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   // Let's start with e'N elastic
 
   //  Roll up random values
-  sbsgen->GenerateEvent();
+  int ntries = 1;
+  while( !sbsgen->GenerateEvent() ){ ntries++; }
+
+  G4cout << "Got event, ntries = " << ntries << G4endl;
+
+  int ntries_run = RunAction->GetNtries();
+  RunAction->SetNtries( ntries_run + ntries );
 
   evdata = sbsgen->GetEventData();
   fIO->SetEventData(evdata);
@@ -74,25 +81,55 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   // Not necessarily kinematically allowed
   particleGun->GeneratePrimaryVertex(anEvent);
 
-  switch( sbsgen->GetFinalNucleon() ){
-      case kProton:
-	  particle = particleTable->FindParticle(particleName="proton");
-	  break;
-      case kNeutron:
-	  particle = particleTable->FindParticle(particleName="neutron");
-	  break;
-      default:
-	  particle = particleTable->FindParticle(particleName="geantino");
-	  break;
-  } 
-  particleGun->SetParticleDefinition(particle);
+  if( sbsgen->GetKine() != kSIDIS ){ //Then we are generating a final nucleon
+    switch( sbsgen->GetFinalNucleon() ){
+    case kProton:
+      particle = particleTable->FindParticle(particleName="proton");
+      break;
+    case kNeutron:
+      particle = particleTable->FindParticle(particleName="neutron");
+      break;
+    default:
+      particle = particleTable->FindParticle(particleName="geantino");
+      break;
+    } 
+    particleGun->SetParticleDefinition(particle);
 
-  // Ensure we're doing something sensible for Geant4
-  if( sbsgen->GetNucleonE()-particle->GetPDGMass() > 0.0 ) {
+    // Ensure we're doing something sensible for Geant4
+    if( sbsgen->GetNucleonE()-particle->GetPDGMass() > 0.0 ) {
       particleGun->SetParticleMomentumDirection(sbsgen->GetNucleonP().unit() );
       // This is KINETIC energy
       particleGun->SetParticleEnergy(sbsgen->GetNucleonE()-particle->GetPDGMass());
       particleGun->SetParticlePosition(sbsgen->GetV());
+    }
+  } else { //SIDIS case: generate a final hadron:
+    switch( sbsgen->GetHadronType() ){
+    case kPiPlus:
+      particle = particleTable->FindParticle(particleName="pi+");
+      break;
+    case kPiMinus:
+      particle = particleTable->FindParticle(particleName="pi-");
+      break;
+    case kPi0:
+      particle = particleTable->FindParticle(particleName="pi0");
+      break;
+    case kKPlus:
+      particle = particleTable->FindParticle(particleName="kaon+");
+      break;
+    case kKMinus:
+      particle = particleTable->FindParticle(particleName="kaon-");
+      break;
+    default:
+      particle = particleTable->FindParticle(particleName="pi+");
+      break;
+    }
+
+    particleGun->SetParticleDefinition( particle );
+    if( sbsgen->GetHadronE()-particle->GetPDGMass() > 0.0 ) {
+      particleGun->SetParticleMomentumDirection( sbsgen->GetHadronP().unit() );
+      particleGun->SetParticleEnergy( sbsgen->GetHadronE()-particle->GetPDGMass() );
+      particleGun->SetParticlePosition( sbsgen->GetV() );
+    }
   }
 
   /*

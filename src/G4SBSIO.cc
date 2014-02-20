@@ -40,7 +40,7 @@ void G4SBSIO::InitializeTree(){
     if( fTree ){ delete fTree; }
 
     fTree = new TTree("T", "Geant4 SBS Simulation");
-    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:nucl/I:fnucl/I");
+    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX/D:nucl/I:fnucl/I:hadr/I");
     fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
     fTree->Branch("gen", &gendata, "thbb/D:thhcal/D:dbb/D:dhcal/D:Ebeam/D");
     // Tedious, but we want dynamically scaled
@@ -89,6 +89,38 @@ void G4SBSIO::InitializeTree(){
     fTree->Branch("bc.trid", &caldata.bctrid, "bc.trid[bc.ndata]/I");
     fTree->Branch("bc.mid", &caldata.bcmid, "bc.mid[bc.ndata]/I");
     fTree->Branch("bc.pid", &caldata.bcpid, "bc.pid[bc.ndata]/I");
+
+    //Declare RICH-related branches of the tree:
+    //richdata are stored as STL vectors (basically dynamically sized arrays). Newer ROOT versions know how to handle this, older may not.
+    fTree->Branch("RICH_nhits", &(richdata.nhits_RICH), "nhits_RICH/I");
+    fTree->Branch("RICH_pmt", &(richdata.PMTnumber) );
+    fTree->Branch("RICH_row", &(richdata.row) );
+    fTree->Branch("RICH_col", &(richdata.col) );
+    fTree->Branch("RICH_nphe", &(richdata.NumPhotoelectrons) );
+    fTree->Branch("RICH_tavg", &(richdata.Time_avg) );
+    fTree->Branch("RICH_trms", &(richdata.Time_rms) );
+    fTree->Branch("RICH_mID", &(richdata.mTrackNo) );
+    fTree->Branch("RICH_vol", &(richdata.volume_flag) );
+    fTree->Branch("RICH_xhit", &(richdata.xhit) );
+    fTree->Branch("RICH_yhit", &(richdata.yhit) );
+    fTree->Branch("RICH_zhit", &(richdata.zhit) );
+    fTree->Branch("RICH_pxhit", &(richdata.pxhit) );
+    fTree->Branch("RICH_pyhit", &(richdata.pyhit) );
+    fTree->Branch("RICH_pzhit", &(richdata.pzhit) );
+    fTree->Branch("RICH_vxhit", &(richdata.pvx) );
+    fTree->Branch("RICH_vyhit", &(richdata.pvy) );
+    fTree->Branch("RICH_vzhit", &(richdata.pvz) );
+    fTree->Branch("RICH_vpxhit", &(richdata.ppx) );
+    fTree->Branch("RICH_vpyhit", &(richdata.ppy) );
+    fTree->Branch("RICH_vpzhit", &(richdata.ppz) );
+    fTree->Branch("RICH_ntracks", &(richdata.ntracks_RICH), "ntracks_RICH/I");
+    fTree->Branch("RICH_mPID", &(richdata.mPID) );
+    fTree->Branch("RICH_mvx", &(richdata.mvx) );
+    fTree->Branch("RICH_mvy", &(richdata.mvy) );
+    fTree->Branch("RICH_mvz", &(richdata.mvz) );
+    fTree->Branch("RICH_mpx", &(richdata.mpx) );
+    fTree->Branch("RICH_mpy", &(richdata.mpy) );
+    fTree->Branch("RICH_mpz", &(richdata.mpz) );
 
     return;
 }

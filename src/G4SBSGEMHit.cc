@@ -5,6 +5,10 @@
 #include "G4VisAttributes.hh"
 #include "G4LogicalVolume.hh"
 #include "G4ios.hh"
+#include "G4UnitsTable.hh"
+#include "G4AttValue.hh"
+#include "G4AttDef.hh"
+#include "G4AttCheck.hh"
 
 G4Allocator<G4SBSGEMHit> G4SBSGEMHitAllocator;
 

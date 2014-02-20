@@ -9,8 +9,8 @@
 // Include fictional neutron target
 enum Targ_t { kH2, kLH2, kLD2, k3He, kNeutTarg };
 enum Nucl_t { kProton, kNeutron };
-enum Pion_t { kpip, kpim, kpi0 };
-enum Kine_t { kElastic, kFlat, kInelastic, kDIS, kBeam };
-enum Exp_t { kGEp, kNeutronExp };
+enum Hadron_t { kPiPlus, kPiMinus, kPi0, kKPlus, kKMinus }; //Hadron types for SIDIS event generator
+enum Kine_t { kElastic, kFlat, kInelastic, kDIS, kBeam, kSIDIS };
+enum Exp_t { kGEp, kNeutronExp, kSIDISExp };
 
 #endif//SBSTYPES_HH

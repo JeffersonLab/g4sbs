@@ -49,8 +49,8 @@ class G4SBSCalHit : public G4VHit
       inline void SetTrID(G4int t)
       { trid = t;};
 
-      inline void SetMID(G4int m)
-      { mid = m;};
+      inline void SetMID(G4int mother)
+      { mid = mother;};
 
       inline void SetPos(G4ThreeVector v)
       { pos = v;};

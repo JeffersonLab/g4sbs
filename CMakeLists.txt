@@ -27,14 +27,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(ROOT REQUIRED)
 
 
-include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/ )
+include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR}
+${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc )
-file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc ${PROJECT_SOURCE_DIR}/src/dss2007/*.cc )
+file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/src/cteq/*.h ${PROJECT_SOURCE_DIR}/src/dss2007/*.hh)
 
 file(GLOB cteqsources ${PROJECT_SOURCE_DIR}/src/cteq/*.c  )
 file(GLOB cteqheaders ${PROJECT_SOURCE_DIR}/src/cteq/*.h )

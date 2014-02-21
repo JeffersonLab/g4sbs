@@ -65,6 +65,10 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
     f48D48ang  = 39.4*deg;
     f48D48dist = 2.8*m;
+
+    f48D48_uniform_bfield = 1.4*tesla;
+    f48D48_fieldclamp_config = 1; //0 = No field clamps. 1 = GEp (default). 2 = BigBite experiments:
+
     fHCALdist  = 17.0*m;
 
     fRICHdist  = 15.0*m;
@@ -933,279 +937,6 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   return WorldPhys;
 }
 
-
-// G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAllGEp()
-// {
-//   G4cout << "\nG4SBSDetectorConstruction....\n" << G4endl;
-  
-//   if( MaterialsMap.empty() ) ConstructMaterials();
-
-//   G4SDManager* SDman = G4SDManager::GetSDMpointer();
-//   //--------- Material definition (was moved to ConstructMaterials)--------
-
-//   //--------- G4VSolid, G4LogicalVolume, G4VPhysicalVolume  ---------
-  
-//   //--------------
-//   // World:
-//   //--------------
-//   G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 20*m);
-//   G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,GetMaterial("Air"),
-// 						  "WorldLogical", 0, 0, 0);
-//   G4PVPlacement *WorldPhys=new G4PVPlacement(0,G4ThreeVector(),
-// 					       "WorldPhysical",
-// 					       WorldLog,
-// 					       0,false,0);
-
-  
-
-  
-
-  
-
-  
-
-//   /////////////////////////////////////////////////////////
-//   G4RotationMatrix *hcalrm = new G4RotationMatrix;
-//   hcalrm->rotateY(-f48D48ang);
-
-//   double sbsboxpitch = 5.0*deg;
-
-//   G4RotationMatrix *gemrm = new G4RotationMatrix;
-//   gemrm->rotateY(-f48D48ang);
-//   gemrm->rotateX( sbsboxpitch );
-
-//   // SBS box
-
-//   double sbsdepth  = 3.0*m;
-//   double sbswidth  = 2.0*m;
-//   double sbsheight = 2.1*m;
-
-//   double sbsr = fHCALdist-4.106*m + sbsheight*sin(sbsboxpitch)/2+sbsdepth/2;
-
-//   G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
-//   G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
-//   new G4PVPlacement(gemrm, G4ThreeVector(sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) ), sbslog,
-// 	      "sbsphys", WorldLog, false, 0, false);
-
-//   //  6 GEMs in the front tracker
-
-//   double detoffset = 0.05*m - sbsdepth/2.0;
-
-//   const int nplane = 24;
-
-//   int i;
-//   int ngem = 0;
-//   //double gemdsep;
-//   double *gemz;
-//   double *gemw;
-//   double *gemh;
-
-//   ngem = 14;
-// //  gemdsep = 0.05*m;
-
-//   //double pairspac  = 0.30*m;
-//   //
-//   // GEM option 1
-  
-//   gemz = new double[ngem];
-//   gemw = new double[ngem];
-//   gemh = new double[ngem];
-
-//   for( i = 0; i < ngem; i++ ){
-//       if( i < 6 ){
-// 	  gemz[i] = ((double) i)*9*cm;
-// 	  gemw[i] = 40.0*cm;
-// 	  gemh[i] = 150.0*cm;
-//       } else if( i < 10 ) {
-// 	  gemz[i] = ((double) i-6)*16*cm + 1.2*m;
-// //	  gemz[i] = pairspac*((i-6)/2) + (i%2)*gemdsep + 1.2*m;
-// 	  gemw[i] = 50.0*cm;
-// 	  gemh[i] = 200.0*cm;
-//       } else {
-// 	  gemz[i] = ((double) i-10)*16.*cm + 2.316*m;
-// //	  gemz[i] = pairspac*((i-10)/2) + (i%2)*gemdsep + 2.316*m;
-// 	  gemw[i] = 50.0*cm;
-// 	  gemh[i] = 200.0*cm;
-//       }
-
-//       //printf("i = %d  z = %f\n", i, gemz[i]/m);
-//   }
-
-
-//   double gempz[] = {
-//       120.0*um, 3.0*mm, 120.0*um, 5.0*um, 50.0*um, 3.0*mm, // cover + cathode
-//       5.0*um, 50.0*um, 5.0*um, 2.0*mm, // GEM0
-//       5.0*um, 50.0*um, 5.0*um, 2.0*mm, // GEM1
-//       5.0*um, 50.0*um, 5.0*um, 2.0*mm, // GEM2
-//       10.0*um, 50.0*um, 180.0*um, 120.0*um, 3.0*mm, 120.0*um // readout + honeycomb
-//   };
-
-//   G4Material *gempm[] = {
-//     GetMaterial("NEMAG10"), GetMaterial("NOMEX"), GetMaterial("NEMAG10"), GetMaterial("Copper"), GetMaterial("Kapton"), GetMaterial("GEMgas"),
-//     GetMaterial("Copper"), GetMaterial("Kapton"), GetMaterial("Copper"), GetMaterial("GEMgas"),
-//     GetMaterial("Copper"), GetMaterial("Kapton"), GetMaterial("Copper"), GetMaterial("GEMgas"),
-//     GetMaterial("Copper"), GetMaterial("Kapton"), GetMaterial("Copper"), GetMaterial("GEMgas"),
-//     GetMaterial("Copper"), GetMaterial("Kapton"), GetMaterial("NEMAG10"), GetMaterial("NEMAG10"), GetMaterial("NOMEX"), GetMaterial("NEMAG10")
-//   };
-
-//   int gidx, gpidx; 
-
-//   double gemmaxw = 0.0;
-//   double gemmaxh = 0.0;
-
-//   for( gidx = 0; gidx < ngem; gidx++ ){
-//       if( gemw[gidx] > gemmaxw ) gemmaxw = gemw[gidx];
-//       if( gemh[gidx] > gemmaxh ) gemmaxh = gemh[gidx];
-//   }
-
-//   double gempzsum = 0.0;
-//   for( gpidx = 0; gpidx < nplane; gpidx++ ){
-//       gempzsum += gempz[gpidx];
-//   }
-
-//   char gpname[20][50][3][255];
-
-// //  G4Box **gbox = new G4Box* [ngem*nplane];
-
-
-//   G4Box *gpbox;
-//   G4LogicalVolume *gplog;
-
-//   G4String GEMSDname = "G4SBS/GEM";
-//   G4String GEMcolname = "GEMcol";
-//   G4SBSGEMSD* GEMSD;
-
-//   if( !(GEMSD = (G4SBSGEMSD*) SDman->FindSensitiveDetector(GEMSDname)) ){
-//       GEMSD = new G4SBSGEMSD( GEMSDname, GEMcolname );
-//       SDman->AddNewDetector(GEMSD);
-//   }
-
-//   char gemname[100][255], gemboxname[100][255], gemlogname[100][255];
-
-//   for(  gidx = 0; gidx < ngem; gidx++ ){
-//       sprintf(gemboxname[gidx], "gembox_%02d", gidx);
-//       sprintf(gemlogname[gidx], "gemlog_%02d", gidx);
-
-// //      G4Box *gembox = new G4Box("gembox", gemmaxw/2.0, gemmaxh/2.0, gempzsum/2.0 );
-//       G4Box *gembox = new G4Box(gemboxname[gidx], gemw[gidx]/2.0, gemh[gidx]/2.0, gempzsum/2.0 );
-//       G4LogicalVolume *gemlog = new G4LogicalVolume(gembox, GetMaterial("Air"), gemlogname[gidx], 0, 0, 0);
-
-//       double zrun = 0.0;
-//       for( gpidx = 0; gpidx < nplane; gpidx++ ){
-// 	  sprintf(gpname[gidx][gpidx][0], "gemplane_%02d_%03d_box", gidx, gpidx );
-// 	  sprintf(gpname[gidx][gpidx][1], "gemplane_%02d_%03d_log", gidx, gpidx );
-// 	  sprintf(gpname[gidx][gpidx][2], "gemplane_%02d_%03d_phy", gidx, gpidx );
-
-// 	  zrun += gempz[gpidx]/2.0;
-// 	  gpbox = new G4Box( gpname[gidx][gpidx][0], gemw[gidx]/2.0, gemh[gidx]/2.0, gempz[gpidx]/2.0);
-// 	  gplog = new G4LogicalVolume(gpbox, gempm[gpidx], gpname[gidx][gpidx][1], 0, 0, 0);
-// 	          new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zrun-gempzsum/2.0), gplog, 
-// 		  gpname[gidx][gpidx][2], gemlog, 0, 0, false );
-// 	  zrun += gempz[gpidx]/2.0;
-
-// 	  // Assign sensitive volume
-// //	  if( gpidx == 5 && gidx < 6 ){ // just make first six tracking for now
-// 	  if( gpidx == 5 ){
-// 	      gplog->SetSensitiveDetector(GEMSD);
-// 	  }
-//       }
-
-//       sprintf(gemname[gidx], "gemphys_%02d", gidx);
-//       new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, gemz[gidx]+detoffset), gemlog, 
-// 	      gemname[gidx], sbslog, true, gidx+1, false );
-//   }
- 
-//   ////   CH2 blocks
-
-//   double anaheight = 200.0*cm;
-//   double anawidth  = 44.0*2.54*cm;
-//   double anadepth  = 22.0*2.54*cm;
-  
-//   G4Box *anabox = new G4Box("anabox", anawidth/2.0, anaheight/2.0, anadepth/2.0 );
-//   G4LogicalVolume* analog = new G4LogicalVolume(anabox, GetMaterial("CH2"), "analog");
-
-//      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset +  58.53*cm + anadepth/2.0 ), analog,
-// 	      "anaphys1", sbslog, false, 0, false);
-//      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset + 170.3*cm + anadepth/2.0 ), analog,
-// 	      "anaphys1", sbslog, false, 0, false);
-
-//   //  HCAL
-  
-//   double hcalheight = 330.0*cm;
-//   double hcalwidth  = 165.0*cm;
-//   double hcaldepth  = 101.0*cm;
-
-//   G4Box *hcalbox = new G4Box("hcalbox", hcalwidth/2.0, hcalheight/2.0, hcaldepth/2.0 );
-//   G4LogicalVolume* hcallog = new G4LogicalVolume(hcalbox, GetMaterial("Lead"), "hcallog");
-
-//   /*
-//   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset + 2.97*m + hcaldepth/2.0 ), hcallog,
-// 	      "hcalphys", sbslog, false, 0, false);
-// 	      */
-
-//   double HCALvertoffset = 49.7*cm;
-//   new G4PVPlacement(hcalrm, G4ThreeVector( (fHCALdist + hcaldepth/2.0)*sin(f48D48ang), HCALvertoffset, (fHCALdist + hcaldepth/2.0)*cos(f48D48ang) ), hcallog,
-// 	      "hcalphys", WorldLog, false, 0, false);
-
-//   G4String HCALSDname = "G4SBS/HCAL";
-//   G4String HCALcolname = "HCALcol";
-//   G4SBSCalSD* HCalSD;
-
-//   if( !(HCalSD = (G4SBSCalSD*) SDman->FindSensitiveDetector(HCALSDname)) ){
-//       HCalSD = new G4SBSCalSD( HCALSDname, HCALcolname );
-//       SDman->AddNewDetector(HCalSD);
-//   }
-
-//   SDman->AddNewDetector(HCalSD);
-//   hcallog->SetSensitiveDetector(HCalSD);
-//   hcallog->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-
-
-
-//   //--------- 48D48 -------------------------------
-//   Make48D48(WorldLog, f48D48dist + 1219.2*mm/2 );
-
-//   ConstructTarget(WorldLog);
-//   ConstructBeamline(WorldLog);
-
-
-  
-
-//   //--------- Visualization attributes -------------------------------
-//   WorldLog->SetVisAttributes(G4VisAttributes::Invisible);
-//   sbslog->SetVisAttributes(G4VisAttributes::Invisible);
-
-
-//   G4VisAttributes * dVisAtt
-//     = new G4VisAttributes(G4Colour(1.0,0.0,0.0));
-//   dVisAtt->SetForceWireframe(true);
-
-//   G4VisAttributes * xVisAtt
-//     = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
-//   xVisAtt->SetForceWireframe(true);
-
-
-//   G4VisAttributes * bbcalVisAtt
-//     = new G4VisAttributes(G4Colour(0.0,0.6,0.0));
-//   bigcallog->SetVisAttributes(bbcalVisAtt);
-//   hcallog->SetVisAttributes(bbcalVisAtt);
-
-//   G4VisAttributes * ch2VisAtt
-//     = new G4VisAttributes(G4Colour(1.0,0.7,0.0));
-//   G4VisAttributes * chVisAtt
-//     = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
-
-//   ch2boxlog->SetVisAttributes(ch2VisAtt);
-//   chboxlog->SetVisAttributes(chVisAtt);
-
-//   G4VisAttributes * anaVisAtt
-//     = new G4VisAttributes(G4Colour(0.6,0.6,0.0));
-//   analog->SetVisAttributes(anaVisAtt);
-
-
-//   return WorldPhys;
-// }
-
 void G4SBSDetectorConstruction::ConstructTarget( G4LogicalVolume *worldlog ){
 
   //Material definition was moved to ConstructMaterials();
@@ -1597,9 +1328,9 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
   bigboxaddrm->rotateZ( -180.*deg);
   bigboxaddrm->rotateX( 90.*deg);
 
-
-  G4Box *bclampgap  = new G4Box("bclampgap",  23.*cm, 65.*cm,  12.*cm/2.);
-  G4Box *fclampgap  = new G4Box("fclampgap",  11.*cm, 35.*cm,  12.*cm/2.);
+  //moved definition of clamp gaps to field clamp method:
+  // G4Box *bclampgap  = new G4Box("bclampgap",  23.*cm, 65.*cm,  12.*cm/2.);
+  // G4Box *fclampgap  = new G4Box("fclampgap",  11.*cm, 35.*cm,  12.*cm/2.);
 
   G4SubtractionSolid* bigbase = new G4SubtractionSolid("bigbase", bigbox_ext, biggap, bigboxaddrm, G4ThreeVector());
 
@@ -1714,7 +1445,7 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
 
   // use uniform field for now with 48D48
 
-  double fieldValue = 1.4*tesla;
+  double fieldValue = f48D48_uniform_bfield;
   G4UniformMagField* magField
             = new G4UniformMagField(G4ThreeVector(fieldValue*cos(f48D48ang), 0.0, -fieldValue*sin(f48D48ang)));
 
@@ -1731,15 +1462,32 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
 	  G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
 	  		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 
+
+  
   // Clamps
   
   // The positioning and acceptance gaps were taken directly from CAD
   // The position widths for the beam pipe holes are fudged around so
   // that it doesn't interfere with the beam pipe
   //
+  if( f48D48_fieldclamp_config != 0 ){
 
+    MakeSBSFieldClamps(worldlog);
+
+  }
+
+  bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
+//  backclampLog->SetVisAttributes(G4VisAttributes::Invisible);
+//  frontclampLog->SetVisAttributes(G4VisAttributes::Invisible);
+}
+
+void G4SBSDetectorConstruction::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
   double clampdepth = 10.*cm;
   double clampoffset = 35*cm;
+  double bigheight = 3721.1*mm;
+
+  G4Box *bclampgap  = new G4Box("bclampgap",  23.*cm, 65.*cm,  12.*cm/2.);
+  G4Box *fclampgap  = new G4Box("fclampgap",  11.*cm, 35.*cm,  12.*cm/2.);
 
   G4Box *frontclampbase  = new G4Box("frontclampbase", (150+115)*cm/2, bigheight/2,  clampdepth/2);
   G4SubtractionSolid *frontclamp = new G4SubtractionSolid("frontclamp1", frontclampbase, fclampgap, 0,
@@ -1785,19 +1533,20 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
 
   double frontclampz = -100*cm + clampdepth/2.0;
   double backclampz  =  100*cm - clampdepth/2.0;
+  
+  G4RotationMatrix *rot = new G4RotationMatrix;
+  rot->rotateY( -f48D48ang );
 
-  new G4PVPlacement(bigrm, 
-//	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+frontclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0+frontclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
-	  G4ThreeVector(-(r48d48+frontclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+frontclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
-	  		    frontclampLog, "frontclampPhysical", worldlog, 0,false,0);
-  new G4PVPlacement(bigrm, 
-//	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
-	  G4ThreeVector(-(r48d48+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
-	  		    backclampLog, "backclampPhysical", worldlog, 0,false,0);
+  double r48d48 = f48D48dist + 1219.2*mm/2.0;
 
-  bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
-//  backclampLog->SetVisAttributes(G4VisAttributes::Invisible);
-//  frontclampLog->SetVisAttributes(G4VisAttributes::Invisible);
+  new G4PVPlacement(rot, 
+		    //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+frontclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0+frontclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
+		    G4ThreeVector(-(r48d48+frontclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+frontclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
+		    frontclampLog, "frontclampPhysical", motherlog, 0,false,0);
+  new G4PVPlacement(rot, 
+		    //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
+		    G4ThreeVector(-(r48d48+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
+		    backclampLog, "backclampPhysical", motherlog, 0,false,0);
 }
 
 void G4SBSDetectorConstruction::MakeBigBite( G4LogicalVolume *motherlog ){

@@ -195,6 +195,14 @@ G4SBSMessenger::G4SBSMessenger(){
     RICHdistCmd->SetGuidance("RICH distance from target");
     RICHdistCmd->SetParameterName("dist",false);
 
+    SBSMagFieldCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbsmagfield",this);
+    SBSMagFieldCmd->SetGuidance("SBS magnetic field setting");
+    SBSMagFieldCmd->SetParameterName("sbsbfield",false);
+
+    SBSFieldClampOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/sbsclampopt",this);
+    SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 1=BigBite(default), 2=GEp");
+    SBSFieldClampOptionCmd->SetParameterName("sbsclampoption",false);
+
     //Optical physics toggle commands:
     UseCerenkovCmd = new G4UIcmdWithABool( "/g4sbs/usecerenkov",this );
     UseCerenkovCmd->SetGuidance("Activate Cherenkov radiation (default true)");
@@ -593,6 +601,15 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fdetcon->SetRICHdist(v);
     }
 
+    if( cmd == SBSMagFieldCmd ){
+      G4double v = SBSMagFieldCmd->GetNewDoubleValue(newValue);
+      fdetcon->SetUniformMagneticField48D48( v );
+    }
+
+    if( cmd == SBSFieldClampOptionCmd ){
+      G4int i = SBSFieldClampOptionCmd->GetNewIntValue(newValue);
+      fdetcon->SetFieldClampConfig48D48( i );
+    }
 
     if( cmd == UseCerenkovCmd ){
       G4bool isactive = UseCerenkovCmd->GetNewBoolValue(newValue);

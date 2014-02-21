@@ -35,6 +35,7 @@ public:
   void ConstructBeamline(G4LogicalVolume*);
   void ConstructTarget(G4LogicalVolume*);
   void Make48D48(G4LogicalVolume*, double);
+  void MakeSBSFieldClamps(G4LogicalVolume*);
   void MakeBigBite(G4LogicalVolume*);
   void MakeHCAL(G4LogicalVolume*, G4double);
   void MakeBigCal(G4LogicalVolume*);
@@ -70,6 +71,9 @@ public:
   void SetRICHdist( double d ){ fRICHdist = d; } //Set RICH detector distance
 
   void SetExpType( Exp_t et ){ fExpType = et; }
+  
+  void SetUniformMagneticField48D48( double B ){ f48D48_uniform_bfield = B; }
+  void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
 
 private:
   // messeneger
@@ -90,8 +94,8 @@ private:
   double f48D48dist;
 
   //Let's define some additional configurable properties of 48D48:
-  double f48D48_uniform_bfield; //set magnitude (and polarity) of SBS magnetic field.
-  int f48D48fieldclamp_config; //Configuration of field clamp. There could be several of these.
+  double f48D48_uniform_bfield; //set magnitude (and polarity) of SBS magnetic field (direction is fixed)
+  int f48D48_fieldclamp_config; //Configuration of field clamp. There could be several of these.
 
   double fHCALdist;
 

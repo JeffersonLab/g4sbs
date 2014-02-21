@@ -102,6 +102,10 @@ private:
   
   // Commands needed to specify RICH positioning:
   G4UIcmdWithADoubleAndUnit *RICHdistCmd; //Set RICH distance
+
+  // Commands to set configurable properties of SBS:
+  G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd; 
+  G4UIcmdWithAnInteger      *SBSFieldClampOptionCmd;
   
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
   G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov

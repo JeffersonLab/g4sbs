@@ -2,19 +2,10 @@
 
 #define MAXBUFF 1024
 
-G4SBS48D48Field::G4SBS48D48Field(double zoffset, G4RotationMatrix *rm) {
-    printf("Creating G4SBS48D48Field\n");
-    strcpy(fFilename, "GEN-map1.table");
-    ReadField();
-
-    // Intrinsic x offset to the map
-    fZOffset = zoffset;
-    frm = rm;
-
-    // This map is not translatable or rotateable  (due to the inclusion of the beamline)
-    // Check to make sure that the passed parameters are correct
-
-    fUseGeantino = false;
+G4SBS48D48Field::G4SBS48D48Field(G4ThreeVector offset, G4RotationMatrix *rm) 
+    : G4SBSMappedField( offset, rm,  "GEN-map1.table" ) 
+{
+    
 }
 
 
@@ -30,7 +21,7 @@ void G4SBS48D48Field::GetFieldValue(const double Point[3],double *Bfield) const 
     double point[3];
 
     G4ThreeVector pt(Point[0], Point[1], Point[2]);
-    pt = ((*frm)*pt) - G4ThreeVector(0.0, 0.0, fZOffset + 48*2.54*cm/2.);
+    pt = ((*frm)*pt) - fOffset + G4ThreeVector(0.0, 0.0, 48*2.54*cm/2.);
 
 //    printf("Querying point %f %f %f\n", pt[0]/m, pt[1]/m, pt[2]/m);
 
@@ -97,7 +88,7 @@ void G4SBS48D48Field::GetFieldValue(const double Point[3],double *Bfield) const 
     // Rotate to global coordinates
     newB = (frm->inverse())*newB;
 
-    if( !fUseGeantino ){
+    if( !fInverted ){
 	Bfield[0] = newB.x();
 	Bfield[1] = newB.y();
 	Bfield[2] = newB.z();

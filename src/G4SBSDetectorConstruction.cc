@@ -67,8 +67,11 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
     fGEMDist  = 70.0*cm;
 
     fbbfield = new G4SBSBigBiteField( fBBdist, NULL );
-    
     f48d48field = NULL;
+
+    fGlobalField = new G4SBSGlobalField();
+
+    fGlobalField->AddField( fbbfield );
 
     fGEMOption = 1;
 
@@ -453,29 +456,22 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   //  Bigbite field log volume
   G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, Air,
 						  "bbfieldLog", 0, 0, 0);
-
   fbbfield->SetRM( bbrm );
-  G4FieldManager *bbfm = new G4FieldManager(fbbfield);
 
-//  G4EqMagElectricField* fequation= new G4EqMagElectricField(fbbfield); 
-  G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fbbfield); 
+
+
+  G4FieldManager *fm = new G4FieldManager(fGlobalField);
+
+  G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fGlobalField); 
   G4MagIntegratorStepper *stepper = new G4ExplicitEuler(fequation, 8);
-//  G4MagIntegratorStepper *stepper = new G4ImplicitEuler(fequation, 8);
-//  G4MagIntegratorStepper *stepper = new G4CashKarpRKF45(fequation);
-//  G4MagIntegratorStepper *stepper = new G4SimpleRunge(fequation, 8);
-    
-//  G4MagInt_Driver *intgrDriver = new G4MagInt_Driver(100.0*um, stepper, stepper->GetNumberOfVariables() );
- // G4ChordFinder *chordfinder = new G4ChordFinder(fbbfield, 1.0*nm, stepper);
-  new G4ChordFinder(fbbfield, 1.0*nm, stepper);
-//  bbfm->SetChordFinder(chordfinder);
-// bbfm->GetChordFinder()->SetDeltaChord(1.0*um);
+  new G4ChordFinder(fGlobalField, 1.0*nm, stepper);
 
   /*
   bbfm->SetMinimumEpsilonStep( 1e-6 );
   bbfm->SetMaximumEpsilonStep( 1e-5 );
   */
 
-  bbmotherLog->SetFieldManager(bbfm,true);
+  WorldLog->SetFieldManager(fm,true);
 
   new G4PVPlacement(0, G4ThreeVector(), bbfieldLog, "bbfieldPhysical", bbyokewgapLog, 0,false,0);
 
@@ -2018,25 +2014,21 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
   // use uniform field for now with 48D48
 
   double fieldValue = 1.4*tesla;
-  G4UniformMagField* magField
-            = new G4UniformMagField(G4ThreeVector(fieldValue*cos(f48D48ang), 0.0, -fieldValue*sin(f48D48ang)));
-
-  G4FieldManager *bigfm = NULL;
+  G4SBSConstField* magField
+            = new G4SBSConstField(
+			G4ThreeVector( 0., 0., f48D48dist + 48.0*2.54*cm/2 ),
+			bigrm,
+			G4ThreeVector( 469.9*mm/2+0.1*mm, 187.*cm/2.-bigcoilheight,  bigdepth/2+0.1*mm),
+			G4ThreeVector( fieldValue, 0., 0. ) );
+		       
 
   if( f48d48field ){
       f48d48field->SetRM( bigrm );
       if( f48d48field->GoodParams() ){
-	  bigfm = new G4FieldManager(f48d48field);
-	  G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fbbfield); 
-	  G4MagIntegratorStepper *stepper = new G4ExplicitEuler(fequation, 8);
-	  new G4ChordFinder(fbbfield, 1.0*nm, stepper);
-	  worldlog->SetFieldManager(bigfm,true);
+	  fGlobalField->AddField(f48d48field);
       }
   } else {
-      bigfm = new G4FieldManager(magField);
-      bigfm->SetDetectorField(magField);
-      bigfm->CreateChordFinder(magField);
-      bigfieldLog->SetFieldManager(bigfm,true);
+      fGlobalField->AddField(magField);
   }
 
   assert(bigfm);

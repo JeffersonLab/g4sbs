@@ -316,10 +316,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == geantinoCmd ){
 	G4bool b = geantinoCmd->GetNewBoolValue(newValue);
 	fprigen->SetUseGeantino(b);
-	fdetcon->GetBBField()->SetUseGeantino(b);
-	if( fdetcon->Get48D48Field() ){
-	    fdetcon->Get48D48Field()->SetUseGeantino(b);
-	}
+	fdetcon->GetGlobalField()->Invert(b);
     }
 
     if( cmd == totalabsCmd ){

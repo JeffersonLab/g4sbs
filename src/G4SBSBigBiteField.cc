@@ -2,15 +2,9 @@
 
 #define MAXBUFF 1024
 
-G4SBSBigBiteField::G4SBSBigBiteField(double zoffset, G4RotationMatrix *rm) {
-    printf("Creating G4SBSBigBiteField\n");
-    strcpy(fFilename, "map_696A.dat");
-    ReadField();
+G4SBSBigBiteField::G4SBSBigBiteField(G4ThreeVector offset, G4RotationMatrix *rm) 
+	: G4SBSMappedField( offset, rm, "map_696A.dat" ) {
 
-    fZOffset = zoffset;
-    frm = rm;
-
-    fUseGeantino = false;
 }
 
 
@@ -26,7 +20,7 @@ void G4SBSBigBiteField::GetFieldValue(const double Point[3],double *Bfield) cons
     double point[3];
 
     G4ThreeVector pt(Point[0], Point[1], Point[2]);
-    pt = ((*frm)*pt) - G4ThreeVector(0.0, 0.0, fZOffset);
+    pt = ((*frm)*pt) - fOffset;
 
 //    printf("Querying point %f %f %f\n", pt[0]/m, pt[1]/m, pt[2]/m);
 
@@ -92,13 +86,11 @@ void G4SBSBigBiteField::GetFieldValue(const double Point[3],double *Bfield) cons
     // Rotate to global coordinates
     newB = (frm->inverse())*newB;
 
-    if( !fUseGeantino ){
+    if( !fInverted ){
 	Bfield[0] = newB.x();
 	Bfield[1] = newB.y();
 	Bfield[2] = newB.z();
     } else {
-	//  Flip sign of field if geantino
-	//  since it's backwards and stupid
 	Bfield[0] = -newB.x();
 	Bfield[1] = -newB.y();
 	Bfield[2] = -newB.z();

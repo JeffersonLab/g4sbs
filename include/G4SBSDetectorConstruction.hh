@@ -34,8 +34,8 @@ public:
   void SetBBDist(double a){ fBBdist= a; fbbfield->SetOffset(a); }
 
   void SetHCALAng(double a){ f48D48ang = a; }
-  void SetHCALDist(double a){ fHCALdist= a; }
-  void Set48D48Dist(double a){ f48D48dist= a; }
+  void SetHCALDist(double a){ fHCALdist= a;   }
+  void Set48D48Dist(double a){ f48D48dist= a; f48d48field->SetOffset(a);}
 
   void SetCerDepth(double a){ fCerDepth = a; }
   void SetCerDist(double a){fCerDist = a;}
@@ -46,6 +46,7 @@ public:
 
   void SetGEMConfig(int gc ){ fGEMOption = gc; }
 
+  G4SBSGlobalField *GetGlobalField(){ return fGlobalField; }
   G4SBSBigBiteField *GetBBField(){ return fbbfield; }
   G4SBS48D48Field *Get48D48Field(){ return f48d48field; }
 
@@ -57,6 +58,9 @@ public:
 private:
   // messeneger
   G4SBSDetectorMessenger* theMessenger;
+
+  G4SBSMagneticField *fGlobalField;
+
   G4SBSBigBiteField *fbbfield;
   G4SBS48D48Field *f48d48field;
   

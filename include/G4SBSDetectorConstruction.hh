@@ -6,8 +6,12 @@
 #include "sbstypes.hh"
 #include "globals.hh"
 
-#include "G4SBSBigBiteField.hh"
-#include "G4SBS48D48Field.hh"
+
+class G4SBSGlobalField;
+class G4SBSMagneticField;
+class G4SBSBigBiteField;
+class G4SBS48D48Field;
+
 
 class G4SBSDetectorMessenger;
 
@@ -31,11 +35,11 @@ public:
   void SetTargDen(double den){ fTargDen = den;}
 
   void SetBBAng(double a){ fBBang = a; }
-  void SetBBDist(double a){ fBBdist= a; fbbfield->SetOffset(a); }
+  void SetBBDist(double a);
 
   void SetHCALAng(double a){ f48D48ang = a; }
   void SetHCALDist(double a){ fHCALdist= a;   }
-  void Set48D48Dist(double a){ f48D48dist= a; f48d48field->SetOffset(a);}
+  void Set48D48Dist(double a);
 
   void SetCerDepth(double a){ fCerDepth = a; }
   void SetCerDist(double a){fCerDist = a;}
@@ -59,7 +63,7 @@ private:
   // messeneger
   G4SBSDetectorMessenger* theMessenger;
 
-  G4SBSMagneticField *fGlobalField;
+  G4SBSGlobalField *fGlobalField;
 
   G4SBSBigBiteField *fbbfield;
   G4SBS48D48Field *f48d48field;

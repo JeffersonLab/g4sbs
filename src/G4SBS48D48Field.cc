@@ -128,8 +128,8 @@ void G4SBS48D48Field::ReadField(){
 
 
     // Ensure we have enough space to read this
-    if( fN[0] > MAX48D48PT || fN[1] > MAX48D48PT || fN[2] > MAX48D48PT  ){
-	fprintf(stderr, "Error: %s Line %d, %s - File %s is too big\nRead parameters nx = %d ny = %d nz = %d, but MAX48D48PT = %d\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename, fN[0], fN[1], fN[2], MAX48D48PT ); 
+    if( fN[0] > MAXPT || fN[1] > MAXPT || fN[2] > MAXPT  ){
+	fprintf(stderr, "Error: %s Line %d, %s - File %s is too big\nRead parameters nx = %d ny = %d nz = %d, but MAXPT = %d\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename, fN[0], fN[1], fN[2], MAXPT ); 
 	exit(1);
     }
 
@@ -181,7 +181,7 @@ void G4SBS48D48Field::ReadField(){
 
 bool G4SBS48D48Field::GoodParams() {
 
-    if( fabs(fZOffset - 2.8*m)>1*mm ) return false;
+    if( fabs(fOffset.z() - 2.8*m)>1*mm ) return false;
     // FIXME:  This needs a rotation angle check
     
     return true;

@@ -2,10 +2,9 @@
 #define G4SBSGlobalField_hh
 
 #include "globals.hh"
-#include "G4MagneticField.hh"
-#include "G4SBSMagneticField.hh"
+#include <vector>
 
-#define MAXPT 120
+#include "G4SBSMagneticField.hh"
 
 
 class G4SBSGlobalField : public G4MagneticField {
@@ -19,7 +18,7 @@ class G4SBSGlobalField : public G4MagneticField {
 
 	void AddField( G4SBSMagneticField *f );
     private:
-	vector<G4SBSMagneticField *> fFields;
+	std::vector<G4SBSMagneticField *> fFields;
 
 	bool fInverted;
 };

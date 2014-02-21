@@ -23,6 +23,6 @@ G4SBSMappedField::G4SBSMappedField(G4ThreeVector off, G4RotationMatrix *rm, cons
 }
 
 
-G4SBSMapped::~G4SBSMapped() {
+G4SBSMappedField::~G4SBSMappedField() {
 }
 

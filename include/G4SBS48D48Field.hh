@@ -2,12 +2,10 @@
 #define G4SBS48D48Field_hh
 
 #include "globals.hh"
-#include "G4MagneticField.hh"
+#include "G4SBSMagneticField.hh"
 #include "G4RotationMatrix.hh"
 
-#define MAX48D48PT 241
-
-class G4SBS48D48Field : public G4MagneticField {
+class G4SBS48D48Field : public G4SBSMappedField {
     public:
 	G4SBS48D48Field(G4ThreeVector , G4RotationMatrix *);
 	~G4SBS48D48Field();

@@ -5,12 +5,9 @@
 #include "G4SBSMagneticField.hh"
 #include "G4RotationMatrix.hh"
 
-#define MAXPT 120
-
-
 class G4SBSConstantField : public G4SBSMagneticField {
     public:
-	G4SBSConstantField(G4ThreeVector , G4RotationMatrix *, G4ThreeVector);
+	G4SBSConstantField(G4ThreeVector , G4RotationMatrix *, G4ThreeVector, G4ThreeVector);
 	~G4SBSConstantField();
 
 	void GetFieldValue( const  double Point[3], double *Bfield ) const;

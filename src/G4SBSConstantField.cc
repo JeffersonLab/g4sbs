@@ -3,7 +3,7 @@
 #define MAXBUFF 1024
 
 G4SBSConstantField::G4SBSConstantField(G4ThreeVector offset, G4RotationMatrix *rm, G4ThreeVector boxdim, G4ThreeVector fval) 
-	: G4SBSMappedField( offset, rm) {
+	: G4SBSMagneticField( offset, rm) {
 
 	    fBoxDim   = boxdim;
 	    fFieldVal = fval;

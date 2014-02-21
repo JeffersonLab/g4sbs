@@ -9,6 +9,11 @@
 #include "G4SBSIO.hh"
 #include "G4SBSEventGen.hh"
 #include "G4SBSEventAction.hh"
+
+#include "G4MagneticField.hh"
+#include "G4SBSGlobalField.hh"
+#include "G4SBSMagneticField.hh"
+#include "G4SBS48D48Field.hh"
 #include "G4SBSBigBiteField.hh"
 #include "G4SBSPrimaryGeneratorAction.hh"
 
@@ -316,7 +321,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == geantinoCmd ){
 	G4bool b = geantinoCmd->GetNewBoolValue(newValue);
 	fprigen->SetUseGeantino(b);
-	fdetcon->GetGlobalField()->Invert(b);
+	fdetcon->GetGlobalField()->SetInvertField(b);
     }
 
     if( cmd == totalabsCmd ){

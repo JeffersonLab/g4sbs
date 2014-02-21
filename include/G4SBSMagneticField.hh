@@ -20,7 +20,7 @@ class G4SBSMagneticField : public G4MagneticField {
 	void SetOffset( G4ThreeVector off ){ fOffset = off; }
 	void SetRM( G4RotationMatrix *rm ){ frm = rm; }
 
-    private:
+    protected:
 	G4bool fInverted;
 
 	G4ThreeVector fOffset;
@@ -35,9 +35,8 @@ class G4SBSMappedField: public G4SBSMagneticField {
 	G4SBSMappedField(G4ThreeVector, G4RotationMatrix *, const char *);
 	virtual ~G4SBSMappedField();
 
-    private:
-
-	virtual void ReadField() = 0;
+    protected:
+	virtual void ReadField(){;}
 
 	char fFilename[255];
 

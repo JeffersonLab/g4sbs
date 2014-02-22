@@ -53,7 +53,21 @@ void G4SBSGlobalField::AddField( G4SBSMagneticField *f ){
 }
 
 
+void G4SBSGlobalField::AddToscaField( const char *fn ){ 
+    G4SBSToscaField *f = new G4SBSToscaField(fn);
+    AddField(f);
+    G4TransportationManager::GetTransportationManager()->GetFieldManager()->CreateChordFinder(this);
+    return;
+}
 
+void G4SBSGlobalField::DropField( G4SBSMagneticField *f ){ 
+     for (std::vector<G4SBSMagneticField *>::iterator it = fFields.begin(); it != fFields.end(); it++){
+	 if( (*it) == f ){ fFields.erase(it); }
+     }
+    G4TransportationManager::GetTransportationManager()->GetFieldManager()->CreateChordFinder(this);
+
+     return;
+}
 
 
 

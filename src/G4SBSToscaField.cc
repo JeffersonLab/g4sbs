@@ -1,15 +1,15 @@
-#include "G4SBS48D48Field.hh"
+#include "G4SBSToscaField.hh"
 
 #define MAXBUFF 1024
 
-G4SBS48D48Field::G4SBS48D48Field(G4ThreeVector offset, G4RotationMatrix *rm) 
-    : G4SBSMappedField( offset, rm,  "GEN-map1.table" ) 
+G4SBSToscaField::G4SBSToscaField( const char *filename) 
+    : G4SBSMappedField( offset, rm,  filename ) 
 {
 	ReadField();    
 }
 
 
-G4SBS48D48Field::~G4SBS48D48Field() {
+G4SBSToscaField::~G4SBSToscaField() {
     int i,j,k;
 
     for( i = 0; i < fN[0]; i++ ){
@@ -24,10 +24,12 @@ G4SBS48D48Field::~G4SBS48D48Field() {
     delete fFieldVal;
 
     fFieldVal = NULL;
+
+    delete frm;
     return;
 }
 
-void G4SBS48D48Field::GetFieldValue(const double Point[3],double *Bfield) const {
+void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const {
     double s[3];
     int idx, jdx;
     int i, j, k;
@@ -36,7 +38,7 @@ void G4SBS48D48Field::GetFieldValue(const double Point[3],double *Bfield) const 
     double point[3];
 
     G4ThreeVector pt(Point[0], Point[1], Point[2]);
-    pt = ((*frm)*pt) - fOffset + G4ThreeVector(0.0, 0.0, 48*2.54*cm/2.);
+    pt = ((*frm)*pt) - fOffset;
 
 //    printf("Querying point %f %f %f\n", pt[0]/m, pt[1]/m, pt[2]/m);
 
@@ -121,8 +123,8 @@ void G4SBS48D48Field::GetFieldValue(const double Point[3],double *Bfield) const 
     return;
 }
 
-void G4SBS48D48Field::ReadField(){
-    printf("G4SBS48D48Field - Reading in field\n");
+void G4SBSToscaField::ReadField(){
+    printf("G4SBSToscaField - Reading in field from %s\n", fFilename);
     FILE *f = fopen(fFilename, "r");
 
     if( !f ){
@@ -130,8 +132,19 @@ void G4SBS48D48Field::ReadField(){
 	exit(1);
     }
 
+    double x,y,z, ang;
 
-    // First line should have 4 values with the size of the
+    // First line is the position offset
+    fscanf(f, "%lf%lf%lf", &x, &y, &z);
+    fOffset = G4ThreeVector(x,y,z);
+    
+    // Second line is the rotation
+    
+    fscanf(f, "%lf", &ang );
+    frm = new G4RotationMatrix();
+    frm->RotateY(ang*deg);
+
+    // Third line should have 4 values with the size of the
     // file indices
     
     int dint, idx, i,j,k;
@@ -162,10 +175,9 @@ void G4SBS48D48Field::ReadField(){
 	}
     }
 
-    // Next 8 lines are not useful
-    int nskip = 8; 
+    dstring[0] = 'x';
 
-    for( idx = 0; idx < nskip; idx++ ){
+    while( dstring[0] != '0' ){
 	if( !fgets(dstring, MAXBUFF, f) ){
 	    fprintf(stderr, "Error: %s Line %d, %s - File %s has line too long (> %d)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename, MAXBUFF); 
 	    exit(1);
@@ -186,7 +198,7 @@ void G4SBS48D48Field::ReadField(){
 
 //		printf("%f %f %f %f %f %f\n", x[0], x[1], x[2], fB[0], fB[1], fB[2]);
 
-		// Grab limits as we go alone.  Assume this is a square grid
+		// Grab limits as we go along. 
 		for( idx = 0; idx < 3; idx++ ){
 		    if( x[idx]*cm < fMin[idx] ){ 
 			fMin[idx] = x[idx]*cm; 
@@ -202,44 +214,8 @@ void G4SBS48D48Field::ReadField(){
 	}
     }
 
-    printf("G4SBS48D48Field - Field complete\n");
+    printf("G4SBSToscaField - Field complete\n");
 
     return;
 }
-
-bool G4SBS48D48Field::GoodParams() {
-
-    if( fabs(fOffset.z() - 2.8*m)>1*mm ) return false;
-    // FIXME:  This needs a rotation angle check
-    
-    return true;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

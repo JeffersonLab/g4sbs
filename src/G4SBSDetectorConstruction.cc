@@ -30,7 +30,7 @@
 #include "G4MagneticField.hh"
 #include "G4SBSGlobalField.hh"
 #include "G4SBSBigBiteField.hh"
-#include "G4SBS48D48Field.hh"
+#include "G4SBSToscaField.hh"
 #include "G4SBSConstantField.hh"
 #include "G4FieldManager.hh"
 
@@ -67,12 +67,11 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
     fGEMDist  = 70.0*cm;
 
-    fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fBBdist), NULL );
-    f48d48field = NULL;
+    fbbfield      = NULL;
+    f48d48field   = NULL;
 
     fGlobalField = new G4SBSGlobalField();
 
-    fGlobalField->AddField( fbbfield );
 
     fGEMOption = 1;
 
@@ -457,9 +456,6 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   //  Bigbite field log volume
   G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, Air,
 						  "bbfieldLog", 0, 0, 0);
-  fbbfield->SetRM( bbrm );
-
-
 
   G4FieldManager *fm = new G4FieldManager(fGlobalField);
 
@@ -2014,23 +2010,7 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
 
   // use uniform field for now with 48D48
 
-  double fieldValue = 1.4*tesla;
-  G4SBSConstantField* magField
-            = new G4SBSConstantField(
-			G4ThreeVector( 0., 0., f48D48dist + 48.0*2.54*cm/2 ),
-			bigrm,
-			G4ThreeVector( 469.9*mm/2+0.1*mm, 187.*cm/2.-bigcoilheight,  bigdepth/2+0.1*mm),
-			G4ThreeVector( fieldValue, 0., 0. ) );
 		       
-
-  if( f48d48field ){
-      f48d48field->SetRM( bigrm );
-      if( f48d48field->GoodParams() ){
-	  fGlobalField->AddField(f48d48field);
-      }
-  } else {
-      fGlobalField->AddField(magField);
-  }
 
   new G4PVPlacement(bigrm, 
 //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),
@@ -2111,13 +2091,42 @@ void G4SBSDetectorConstruction::Make48D48( G4LogicalVolume *worldlog, double r48
 }
 
 
-
-void G4SBSDetectorConstruction::Set48D48Field(int n){
+void G4SBSDetectorConstruction::SetBigBiteField(int n){
+    G4RotationMatrix bbrm;
     switch(n){
 	case 1:
-	    f48d48field = new G4SBS48D48Field( G4ThreeVector(0.0, 0.0, f48D48dist), NULL );
+	    bbrm.rotateY(fBBang);
+	    fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fBBdist), bbrm );
+	    fGlobalField->AddField( fbbfield );
+	    break;
+	case 0: // No field
+	    fGlobalField->DropField( fbbfield );
+	    if( fbbfield ){ delete fbbfield; }
+	    fbbfield = NULL;
+	    break;
+	default:
+	    break;
+    }
+    return;
+}
+
+void G4SBSDetectorConstruction::Set48D48Field(int n){
+    G4RotationMatrix rm;
+
+    double fieldValue = 1.4*tesla;
+            = 
+    switch(n){
+	case 1:
+	    rm.rotateY(f48D48ang);
+	    f48d48field = new G4SBSConstantField(
+			G4ThreeVector( 0., 0., f48D48dist + 48.0*2.54*cm/2 ),
+			rm,
+			G4ThreeVector( 469.9*mm/2+0.1*mm, 187.*cm/2.-bigcoilheight,  bigdepth/2+0.1*mm),
+			G4ThreeVector( fieldValue, 0., 0. ) );
+	    fGlobalField->AddField( f48d48field );
 	    break;
 	case 0:
+	    fGlobalField->DropField( f48d48field );
 	    if( f48d48field ){ delete f48d48field; }
 	    f48d48field = NULL;
 	    break;
@@ -2132,14 +2141,27 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
 
 void G4SBSDetectorConstruction::SetBBDist(double a){ 
     fBBdist= a; 
-    fbbfield->SetOffset(G4ThreeVector(0.0, 0.0, a) ); 
+    if( fbbfield ) fbbfield->SetOffset(G4ThreeVector(0.0, 0.0, a) ); 
+}
+
+void G4SBSDetectorConstruction::SetBBAng(double a){ 
+    fBBang = a; 
+    G4RotationMatrix rm;
+    rm.rotateY(fBBang);
+    if( fbbfield ) fbbfield->SetRM(rm); 
 }
 
 void G4SBSDetectorConstruction::Set48D48Dist(double a){ 
     f48D48dist= a; 
-    f48d48field->SetOffset(G4ThreeVector(0.0, 0.0, a) ); 
+    if( f48d48field )  f48d48field->SetOffset(G4ThreeVector(0.0, 0.0, a+ 48.0*2.54*cm/2 ) ); 
 }
 
+void G4SBSDetectorConstruction::SetHCALAng(double a){ 
+    f48D48ang = a; 
+    G4RotationMatrix rm;
+    rm.rotateY(f48D48ang);
+    if( f48d48field ) f48d48field->SetRM(rm); 
+}
 
 
 

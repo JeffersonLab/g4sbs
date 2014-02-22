@@ -34,10 +34,10 @@ public:
   void SetTargLen(double len){ fTargLen = len;}
   void SetTargDen(double den){ fTargDen = den;}
 
-  void SetBBAng(double a){ fBBang = a; }
+  void SetBBAng(double a);
   void SetBBDist(double a);
 
-  void SetHCALAng(double a){ f48D48ang = a; }
+  void SetHCALAng(double a);
   void SetHCALDist(double a){ fHCALdist= a;   }
   void Set48D48Dist(double a);
 

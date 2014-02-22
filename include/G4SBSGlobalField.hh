@@ -16,7 +16,10 @@ class G4SBSGlobalField : public G4MagneticField {
 
 	void SetInvertField( G4bool b );
 
+	void AddToscaField(const char *);
+
 	void AddField( G4SBSMagneticField *f );
+	void DropField( G4SBSMagneticField *f );
     private:
 	std::vector<G4SBSMagneticField *> fFields;
 

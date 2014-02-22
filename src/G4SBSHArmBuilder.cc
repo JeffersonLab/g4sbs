@@ -228,7 +228,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
     G4UnionSolid* big48d48;
 
-    G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/2, 15.5*cm/2.0, 2.0*m ); // Height is roughly beam pipe outer radius at 3m
+    G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/2, 15.5*cm, 2.0*m ); // Height is roughly beam pipe outer radius at 3m
 
     big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, bigboxaddrm, 
 	    G4ThreeVector(0.0, 0.0, (coilgapheight+bigcoilheight)/2.0));
@@ -363,10 +363,14 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 	    //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+frontclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0+frontclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 	    G4ThreeVector(-(r48d48+frontclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+frontclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 	    frontclampLog, "frontclampPhysical", motherlog, 0,false,0);
+
+    /*
+      No more back clamp
     new G4PVPlacement(rot, 
 	    //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 	    G4ThreeVector(-(r48d48+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 	    backclampLog, "backclampPhysical", motherlog, 0,false,0);
+	    */
 }
 
 

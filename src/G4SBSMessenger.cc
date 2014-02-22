@@ -83,6 +83,10 @@ G4SBSMessenger::G4SBSMessenger(){
     bbfieldCmd->SetGuidance("Bigbite field");
     bbfieldCmd->SetParameterName("bbfield", false);
 
+    tosfieldCmd = new G4UIcmdWithAString("/g4sbs/tosfield", this);
+    tosfieldCmd->SetGuidance("Tosca field");
+    tosfieldCmd->SetParameterName("tosfield", false);
+
     geantinoCmd = new G4UIcmdWithABool("/g4sbs/shootgeantino", this);
     geantinoCmd->SetGuidance("Shoot a geantino instead of e-");
     geantinoCmd->SetParameterName("shootgeantino", false);
@@ -471,6 +475,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == bbfieldCmd ){
 	G4int n = bbfieldCmd->GetNewIntValue(newValue);
 	fdetcon->SetBigBiteField(n);
+    }
+
+    if( cmd == tosfieldCmd ){
+	fdetcon->GetGlobalField()->AddToscaField(newValue.data());
     }
 
     if( cmd == geantinoCmd ){

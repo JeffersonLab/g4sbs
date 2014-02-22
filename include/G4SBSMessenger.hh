@@ -55,6 +55,7 @@ private:
 
   G4UIcmdWithAnInteger *bigfieldCmd;
   G4UIcmdWithAnInteger *bbfieldCmd;
+  G4UIcmdWithAString *tosfieldCmd;
 
   G4UIcmdWithABool *geantinoCmd;
   G4UIcmdWithABool *totalabsCmd;

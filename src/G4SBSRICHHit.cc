@@ -98,7 +98,7 @@ G4int G4SBSRICHHit::calc_row( G4int PMT ){
   
   //total of 73 columns, 
 
-  G4int super_col = PMT/53;
+  //G4int super_col = PMT/53;
   G4int super_row = PMT%53; //ranges from 0..52
   //if 
   G4int sub_col = super_row/26;
@@ -111,7 +111,7 @@ G4int G4SBSRICHHit::calc_col( G4int PMT ){
   G4int super_col = PMT/53; 
   G4int super_row = PMT%53; 
   G4int sub_col = (super_row-1)/26;
-  G4int sub_row = super_row%26;
+  //G4int sub_row = super_row%26;
 
   return 2*super_col + sub_col; //should have value from 0..72
 }

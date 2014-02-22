@@ -1,5 +1,7 @@
 #include "TBuffer.h"
 #include "TString.h"
+#include "THashTable.h"
+
 #include "G4SBSEventGen.hh"
 #include "G4RotationMatrix.hh"
 #include "G4SBSInelastic.hh"

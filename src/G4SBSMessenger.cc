@@ -79,6 +79,9 @@ G4SBSMessenger::G4SBSMessenger(){
     bigfieldCmd->SetGuidance("48d48 magnet field");
     bigfieldCmd->SetParameterName("48d48field", false);
 
+    bbfieldCmd = new G4UIcmdWithAnInteger("/g4sbs/bbfield", this);
+    bbfieldCmd->SetGuidance("Bigbite field");
+    bbfieldCmd->SetParameterName("bbfield", false);
 
     geantinoCmd = new G4UIcmdWithABool("/g4sbs/shootgeantino", this);
     geantinoCmd->SetGuidance("Shoot a geantino instead of e-");
@@ -463,6 +466,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == bigfieldCmd ){
 	G4int n = bigfieldCmd->GetNewIntValue(newValue);
 	fdetcon->Set48D48Field(n);
+    }
+
+    if( cmd == bbfieldCmd ){
+	G4int n = bbfieldCmd->GetNewIntValue(newValue);
+	fdetcon->SetBigBiteField(n);
     }
 
     if( cmd == geantinoCmd ){

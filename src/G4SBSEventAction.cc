@@ -1,5 +1,6 @@
 #include "TMatrix.h"
 #include "TVector.h"
+#include "THashTable.h"
 
 #include "G4SBSEventAction.hh"
 

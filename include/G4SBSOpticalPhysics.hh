@@ -20,25 +20,22 @@
 
 class G4SBSOpticalPhysics : public G4VPhysicsConstructor 
 {
-public:
-  
-  G4SBSOpticalPhysics();
-  virtual ~G4SBSOpticalPhysics();
-  
-  virtual void ConstructParticle();
-  virtual void ConstructProcess();
+    public:
 
-private:
-  
-  //G4ParticleTable::G4PTblDicIterator *theParticleIterator;
+	G4SBSOpticalPhysics();
+	virtual ~G4SBSOpticalPhysics();
 
-  //G4OpWLS*             theWLSProcess;
-  G4Cerenkov*          theCerenkovProcess;
-  G4Scintillation*     theScintProcess;
-  G4OpAbsorption*      theAbsorptionProcess;
-  G4OpRayleigh*        theRayleighScattering;
-  //G4OpMieHG*           theMieHGScatteringProcess;
-  G4OpBoundaryProcess* theBoundaryProcess;
+	virtual void ConstructParticle();
+	virtual void ConstructProcess();
+
+    private:
+
+
+	G4Cerenkov*          theCerenkovProcess;
+	G4Scintillation*     theScintProcess;
+	G4OpAbsorption*      theAbsorptionProcess;
+	G4OpRayleigh*        theRayleighScattering;
+	G4OpBoundaryProcess* theBoundaryProcess;
 
 };
 

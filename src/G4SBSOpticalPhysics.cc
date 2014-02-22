@@ -67,14 +67,14 @@ void G4SBSOpticalPhysics::ConstructProcess()
   G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();
   theScintProcess->AddSaturation(emSaturation);
   
-  //theParticleIterator->reset();
-  G4ParticleTable::G4PTblDicIterator *theParticleIterator = theParticleTable->GetIterator();
+  //aParticleIterator->reset();
+  G4ParticleTable::G4PTblDicIterator *aParticleIterator = theParticleTable->GetIterator();
 
-  theParticleIterator->reset();
+  aParticleIterator->reset();
 
-  while ( (*theParticleIterator)() ){
+  while ( (*aParticleIterator)() ){
     
-    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4ParticleDefinition* particle = aParticleIterator->value();
     G4String particleName = particle->GetParticleName();
 
     pManager = particle->GetProcessManager();

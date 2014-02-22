@@ -37,7 +37,7 @@ G4bool G4SBSRICHSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
   G4Track *track = aStep->GetTrack();
   //Get pointers to pre-step point and post-step point:
   G4StepPoint *prestep = aStep->GetPreStepPoint();
-  G4StepPoint *poststep = aStep->GetPostStepPoint();
+//  G4StepPoint *poststep = aStep->GetPostStepPoint();
 
   //Where to get all the information needed for the hit? 
   //From get methods of G4Step, G4Track, and G4StepPoint

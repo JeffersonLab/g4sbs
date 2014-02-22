@@ -17,7 +17,7 @@ G4SBSSteppingAction::G4SBSSteppingAction()
 ///  new G4SBSSteppingActionMessenger(this);
 }
 
-void G4SBSSteppingAction::UserSteppingAction(const G4Step* s)
+void G4SBSSteppingAction::UserSteppingAction(const G4Step*)
 {
   // G4StepPoint *prestep = s->GetPreStepPoint();
 

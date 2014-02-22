@@ -3,6 +3,8 @@
 
 #include "G4SBSComponent.hh"
 
+class G4LogicalVolume;
+
 class G4SBSEArmBuilder: public G4SBSComponent {
     public:
 	G4SBSEArmBuilder(G4SBSDetectorConstruction *);
@@ -10,8 +12,8 @@ class G4SBSEArmBuilder: public G4SBSComponent {
 
 	void BuildComponent(G4LogicalVolume *);
 
-	void SetBBAng(double a);
-	void SetBBDist(double a);
+	void SetBBAng(double a){ fBBang = a; }
+	void SetBBDist(double a){ fBBdist= a; }
 
 	void SetCerDepth(double a){ fCerDepth = a; }
 	void SetCerDist(double a){fCerDist = a;}
@@ -21,8 +23,9 @@ class G4SBSEArmBuilder: public G4SBSComponent {
 	void SetBBCalDist(double a){ fBBCaldist= a; }
 	void SetGEMConfig(int gc ){ fGEMOption = gc; }
 
+	void MakeBigBite(G4LogicalVolume *);
+	void MakeBigCal(G4LogicalVolume *);
 
-    private:
 
 	double fBBang;
 	double fBBdist;
@@ -37,6 +40,7 @@ class G4SBSEArmBuilder: public G4SBSComponent {
 
 	int  fGEMOption;
 
-}
+    private:
+};
 
 #endif//__G4SBSEArmBuilder_hh

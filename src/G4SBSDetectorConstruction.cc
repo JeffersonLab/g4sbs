@@ -1,7 +1,4 @@
 #include "G4SBSDetectorConstruction.hh"
-#include "G4SBSGEMSD.hh"
-#include "G4SBSCalSD.hh"
-#include "G4SBSRICHSD.hh"
 
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
@@ -11,26 +8,16 @@
 #include "G4MaterialTable.hh"
 #include "G4MaterialPropertiesTable.hh" 
 #include "G4NistManager.hh"
+#include "G4Box.hh"
 #include "G4Element.hh"
 #include "G4ProductionCuts.hh"
-#include "G4ExtrudedSolid.hh"
 #include "G4ElementTable.hh"
-#include "G4Box.hh"
-#include "G4Sphere.hh"
-#include "G4Cons.hh"
-#include "G4GenericTrap.hh"
-#include "G4UnionSolid.hh"
-#include "G4SubtractionSolid.hh"
-#include "G4IntersectionSolid.hh"
-#include "G4Tubs.hh"
-#include "G4Polycone.hh"
 #include "G4LogicalVolume.hh"
 #include "G4ThreeVector.hh"
 #include "G4PVPlacement.hh"
 #include "G4SDManager.hh"
 #include "G4VisAttributes.hh"
 #include "G4Colour.hh"
-#include "G4TwoVector.hh"
 #include "G4RotationMatrix.hh"
 
 #include "G4MagneticField.hh"
@@ -52,6 +39,11 @@
 #include "G4OpticalSurface.hh"
 #include "G4LogicalSkinSurface.hh"
 
+#include "G4SBSBeamlineBuilder.hh"
+#include "G4SBSTargetBuilder.hh"
+#include "G4SBSEArmBuilder.hh"
+#include "G4SBSHArmBuilder.hh"
+
 #include <vector>
 #include <map>
 //#include <pair>
@@ -62,7 +54,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 {
     f48D48_uniform_bfield = 1.4*tesla;
 
-    fbbfield = new G4SBSBigBiteField( fBBdist, NULL );
+    fbbfield = NULL;;
+    f48d48field = NULL;;
 
 
     fTotalAbs = true;
@@ -72,9 +65,9 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
     ConstructMaterials(); //Now we want to construct all materials at the beginning, so that the physics tables can get built properly!!!
 
     fTargetBuilder   = new G4SBSTargetBuilder(this);
-    fBeamlineBuilder = new G4SBSTargetBuilder(this);
-    fEarmBuilder     = new G4SBSEarmBuilder(this);
-    fHarmBuilder     = new G4SBSHarmBuilder(this);
+    fBeamlineBuilder = new G4SBSBeamlineBuilder(this);
+    fEArmBuilder     = new G4SBSEArmBuilder(this);
+    fHArmBuilder     = new G4SBSHArmBuilder(this);
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -136,7 +129,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4Element *elH = new G4Element("Hydrogen", "H", 1, 1.007*g/mole );
     G4Element *elD = new G4Element("Deuterium", "D", 1, 2.014*g/mole );
     G4Element *el3He = new G4Element("Helium3", "3He", 2, 3.016*g/mole );
-    G4Element *elC = new G4Element("Carbon", "C", 6, 12.011*g/mole ); );
+    G4Element *elC = new G4Element("Carbon", "C", 6, 12.011*g/mole ) ;
     G4Element *elF = new G4Element("Fluorine", "F", 9, 18.998*g/mole );
     G4Element *elNa = new G4Element("Sodium", "Na", 11, 22.99*g/mole );
     G4Element *elAl = new G4Element("Aluminum", "Al", 13, 26.982*g/mole );
@@ -309,20 +302,19 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     fMaterialsMap["CH"] = CH;
 
     //Target materials:
-    double gasden = fTargDen;
-    //  gasden = 10.5*atmosphere/(300*kelvin*k_Boltzmann);
+    double gasden = 10.5*atmosphere*(1.0079*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
     G4Material *refH2 = new G4Material("refH2", gasden, 1 );
     refH2->AddElement(elH, 1);
 
     fMaterialsMap["refH2"] = refH2;
 
-    // gasden = 10.5*atmosphere/(300*kelvin*k_Boltzmann);
+    gasden = 10.5*atmosphere*(14.0067*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
     G4Material *refN2 = new G4Material("refN2", gasden, 1 );
     refN2->AddElement(elN, 1);
 
     fMaterialsMap["refN2"] = refN2;
 
-    // gasden = 10.77*atmosphere/(300*kelvin*k_Boltzmann);
+    gasden = 10.77*atmosphere*(3.016*g/Avogadro)/(300*kelvin*k_Boltzmann);
     G4Material *pol3He = new G4Material("pol3He", gasden, 1 );
     pol3He->AddElement(el3He, 1);
 
@@ -580,8 +572,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     Photocathode_material->AddElement( K, natoms=2 );
     Photocathode_material->AddElement( Cs, natoms=1 );
 
-    G4double Ephot_Rcathode[2] = {1.77*eV, 6.20*eV};
-    G4double Rcathode[2] = {0.0, 0.0};
+    //G4double Ephot_Rcathode[2] = {1.77*eV, 6.20*eV};
+    //G4double Rcathode[2] = {0.0, 0.0};
 
     MPT_temp = new G4MaterialPropertiesTable();
     MPT_temp->AddProperty("EFFICIENCY", Ephoton_QE, PMT_QuantumEfficiency, nentries_QE );
@@ -616,7 +608,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     // T = A exp(-C t/ lambda^4 ), where T is the transmission. From NIM A 40, 338, we find that the measured average value of A is 0.964
     // and the measured average value of Ct is 0.0094 um^4. 
 
-    G4double A_aerogel = 0.964; //for a thickness of 1 cm. This implies that A = e^{-1 cm/Labs}; ln A = -1 cm / Labs --> Labs = -1 cm / ln(A)
+    //G4double A_aerogel = 0.964; //for a thickness of 1 cm. This implies that A = e^{-1 cm/Labs}; ln A = -1 cm / Labs --> Labs = -1 cm / ln(A)
     G4double Ct_aerogel = 0.0094; //microns^4
 
     G4double t_aerogel = 0.5*(1.125+1.0); //nominal average thickness of aerogel tile in cm
@@ -633,9 +625,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4double hbarc_eV_nm = 197.3269718; //eV nm
 
 
-    G4double Ephoton_aerogel[nsteps];
-    G4double Rindex_aerogel[nsteps];
-    G4double Rayleigh_aerogel[nsteps];
+    G4double *Ephoton_aerogel  = new G4double [nsteps];
+    G4double *Rindex_aerogel   = new G4double [nsteps];
+    G4double *Rayleigh_aerogel = new G4double [nsteps];
 
     G4bool inrange = true;
 
@@ -854,29 +846,74 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
     return WorldPhys;
 }
 
+void G4SBSDetectorConstruction::SetBigBiteField(int n){
+    G4RotationMatrix rm;
 
+    switch(n){
+	case 1:
+	    rm.rotateY(fEArmBuilder->fBBang);
 
+	    fbbfield = new G4SBSBigBiteField( 
+		    G4ThreeVector(0.0, 0.0, fEArmBuilder->fBBdist),  rm );
+		    // Dimensions of the box
+	    fGlobalField->AddField(fbbfield);
+	    break;
+	case 0:
+	    fGlobalField->DropField(fbbfield);
+	    delete fbbfield;
+	    fbbfield = NULL;
+	    break;
+	default:
+	    break;
+    }
+    return;
+}
+void G4SBSDetectorConstruction::Set48D48Field(int n){
+    G4RotationMatrix rm;
+
+    switch(n){
+	case 1:
+	    rm.rotateY(fHArmBuilder->f48D48ang);
+
+	    f48d48field = new G4SBSConstantField( 
+		    G4ThreeVector(0.0, 0.0, fHArmBuilder->f48D48dist),  rm,
+		    // Dimensions of the box
+		    G4ThreeVector(469.9*mm/2+0.1*mm, 187.*cm/2.-263.7*mm,  1219.2*mm/2+0.1*mm), 
+		    G4ThreeVector(f48D48_uniform_bfield, 0.0, 0.0)
+		    );
+	    fGlobalField->AddField(f48d48field);
+	    break;
+	case 0:
+	    fGlobalField->DropField(f48d48field);
+	    delete f48d48field;
+	    f48d48field = NULL;
+	    break;
+	default:
+	    break;
+    }
+    return;
+}
 
 void G4SBSDetectorConstruction::SetBBDist(double a){ 
-    fBBdist= a; 
+    fEArmBuilder->SetBBDist(a); 
     if( fbbfield ) fbbfield->SetOffset(G4ThreeVector(0.0, 0.0, a) ); 
 }
 
 void G4SBSDetectorConstruction::SetBBAng(double a){ 
-    fBBang = a; 
+    fEArmBuilder->SetBBAng(a); 
     G4RotationMatrix rm;
-    rm.rotateY(fBBang);
+    rm.rotateY(a);
     if( fbbfield ) fbbfield->SetRM(rm); 
 }
 
 void G4SBSDetectorConstruction::Set48D48Dist(double a){ 
-    f48D48dist= a; 
+    fHArmBuilder->Set48D48Dist(a); 
     if( f48d48field )  f48d48field->SetOffset(G4ThreeVector(0.0, 0.0, a+ 48.0*2.54*cm/2 ) ); 
 }
 
-void G4SBSDetectorConstruction::SetHCALAng(double a){ 
-    f48D48ang = a; 
+void G4SBSDetectorConstruction::Set48D48Ang(double a){ 
+    fHArmBuilder->Set48D48Ang(a); 
     G4RotationMatrix rm;
-    rm.rotateY(f48D48ang);
+    rm.rotateY(a);
     if( f48d48field ) f48d48field->SetRM(rm); 
 }

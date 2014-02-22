@@ -1,12 +1,28 @@
 #include "G4SBSBeamlineBuilder.hh"
 
+#include "G4SBSHArmBuilder.hh"
+#include "G4SBSDetectorConstruction.hh"
+#include "G4LogicalVolume.hh"
+#include "G4PVPlacement.hh"
+#include "G4VisAttributes.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4UnionSolid.hh"
+#include "G4IntersectionSolid.hh"
+#include "G4UserLimits.hh"
+#include "G4SDManager.hh"
+#include "G4Tubs.hh"
+#include "G4Cons.hh"
+#include "G4Polycone.hh"
+
 G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
 }
 
-G4SBSBeamlineBuilder::~G4SBSBeamlineBuilder();
+G4SBSBeamlineBuilder::~G4SBSBeamlineBuilder(){;}
 
 void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
-//Material definition moved to "ConstructMaterials":
+    Targ_t targtype = fDetCon->fTargType;
+    
+    //Material definition moved to "ConstructMaterials":
 
 
     //G4Material* aluminum = new G4Material("Aluminum", 13., 26.98*g/mole, density=2.7*g/cm3);
@@ -28,7 +44,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4LogicalVolume *entvacLog = new G4LogicalVolume(ent_vac, GetMaterial("Vacuum"), "entvac_log", 0, 0, 0);
 
 
-    if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
+    if( targtype == kH2 || targtype == k3He || targtype == kNeutTarg ){
 	// gas target -  1.5m in air
 	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entLog, "ent_phys", worldlog, false,0);
 	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entvacLog, "entvac_phys", worldlog,false,0);

@@ -2,6 +2,10 @@
 #ifndef G4SBSEventAction_h
 #define G4SBSEventAction_h 1
 
+#include "TBuffer.h"
+#include "TString.h"
+#include "TMatrixTBase.h"
+
 #include "G4UserEventAction.hh"
 #include "globals.hh"
 
@@ -25,7 +29,7 @@ public:
   virtual void EndOfEventAction(const G4Event*);
   
   void SetIO( G4SBSIO *io ){ fIO = io; }
-  void SetEvGen( G4SBSEventGen *g ){ fevgen = g; }
+  void SetEvGen( G4SBSEventGen *gen ){ fevgen = gen; }
   void SetGEMRes( double r ){ fGEMres = r; }
   
   void LoadSigmas(const char *filename);

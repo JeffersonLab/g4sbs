@@ -1,3 +1,7 @@
+#include "TBuffer.h"
+#include "TString.h"
+#include "TMatrixTBase.h"
+#include "THashTable.h"
 #include "G4SBSMessenger.hh"
 
 #include "G4UIcmdWithAnInteger.hh"
@@ -18,6 +22,11 @@
 #include "G4SBSPrimaryGeneratorAction.hh"
 #include "G4SBSPhysicsList.hh"
 #include "G4OpticalPhysics.hh"
+
+#include "G4SBSBeamlineBuilder.hh"
+#include "G4SBSTargetBuilder.hh"
+#include "G4SBSEArmBuilder.hh"
+#include "G4SBSHArmBuilder.hh"
 
 #include "G4SolidStore.hh"
 #include "G4LogicalVolumeStore.hh"
@@ -296,7 +305,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     if( cmd == gemconfigCmd ){
 	int gemconfval = gemconfigCmd->GetNewIntValue(newValue);
-	fdetcon->SetGEMConfig(gemconfval);
+	fdetcon->fEArmBuilder->SetGEMConfig(gemconfval);
     }
 
     if( cmd == kineCmd ){
@@ -386,6 +395,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	fevgen->SetHadronType( kKMinus );
 	validcmd = true; 
       }
+
+      if( !validcmd ){
+	  fprintf(stderr, "%s: %s line %d - Error: Hadron type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
+	  exit(1);
+      }
+
+
     }
 
     if( cmd == tgtCmd ){
@@ -396,7 +412,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
 	    G4double den = (0.071*g/cm3)*Avogadro/(1.008*g/mole);
 	    fevgen->SetTargDen(den);
-	    fdetcon->SetTargDen(den);
+	    fdetcon->fTargetBuilder->SetTargDen(den);
 	    validcmd = true;
 	}
 	if( newValue.compareTo("H2") == 0 ){
@@ -405,7 +421,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
 	    G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann);
 	    fevgen->SetTargDen(den);
-	    fdetcon->SetTargDen(den);
+	    fdetcon->fTargetBuilder->SetTargDen(den);
 	    validcmd = true;
 	}
 	if( newValue.compareTo("LD2") == 0 ){
@@ -414,7 +430,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
 	    G4double den = (162.4*kg/m3)*Avogadro/(2.014*g/mole);
 	    fevgen->SetTargDen(den);
-	    fdetcon->SetTargDen(den);
+	    fdetcon->fTargetBuilder->SetTargDen(den);
 	    validcmd = true;
 	}
 	if( newValue.compareTo("3He") == 0 ){
@@ -423,7 +439,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
 	    G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann);
 	    fevgen->SetTargDen(den);
-	    fdetcon->SetTargDen(den);
+	    fdetcon->fTargetBuilder->SetTargDen(den);
 	    validcmd = true;
 
 	}
@@ -433,7 +449,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
 	    G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann);
 	    fevgen->SetTargDen(den);
-	    fdetcon->SetTargDen(den);
+	    fdetcon->fTargetBuilder->SetTargDen(den);
 	    validcmd = true;
 	}
 
@@ -463,19 +479,19 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == tgtLenCmd ){
 	G4double len = tgtLenCmd->GetNewDoubleValue(newValue);
 	fevgen->SetTargLen(len);
-	fdetcon->SetTargLen(len);
+	fdetcon->fTargetBuilder->SetTargLen(len);
     }
 
     if( cmd == tgtDenCmd ){
 	G4double den = tgtDenCmd->GetNewDoubleValue(newValue);
 	fevgen->SetTargDen(den);
-	fdetcon->SetTargDen(den);
+	fdetcon->fTargetBuilder->SetTargDen(den);
     }
     if( cmd == tgtPresCmd ){
 	G4double pre = tgtPresCmd->GetNewDoubleValue(newValue);
 	G4double den = pre/(296.0*kelvin*k_Boltzmann);
 	fevgen->SetTargDen(den);
-	fdetcon->SetTargDen(den);
+	fdetcon->fTargetBuilder->SetTargDen(den);
     }
 
     if( cmd == beamcurCmd ){
@@ -519,13 +535,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     if( cmd == hcalangCmd ){
 	G4double v = hcalangCmd->GetNewDoubleValue(newValue);
-	fdetcon->SetHCALAng(v);
+	fdetcon->Set48D48Ang(v);
 	fIO->SetHcalTheta(v);
     }
 
     if( cmd == hcaldistCmd ){
 	G4double v = hcaldistCmd->GetNewDoubleValue(newValue);
-	fdetcon->SetHCALDist(v);
+	fdetcon->fHArmBuilder->SetHCALDist(v);
 	fevgen->SetHCALDist(v);
 	fIO->SetHcalDist(v);
     }
@@ -537,22 +553,22 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     if( cmd == cerDepCmd ){
 	G4double v = cerDepCmd->GetNewDoubleValue(newValue);
-	fdetcon->SetCerDepth(v);
+	fdetcon->fEArmBuilder->SetCerDepth(v);
     }
 
     if( cmd == cerDisCmd ){
 	G4double v = cerDisCmd->GetNewDoubleValue(newValue);
-	fdetcon->SetCerDist(v);
+	fdetcon->fEArmBuilder->SetCerDist(v);
     }
 
     if( cmd == gemSepCmd ){
 	G4double v = gemSepCmd->GetNewDoubleValue(newValue);
-	fdetcon->SetGEMSep(v);
+	fdetcon->fEArmBuilder->SetGEMSep(v);
     }
 
     if( cmd == bbCalDistCmd ){
 	G4double v = bbCalDistCmd->GetNewDoubleValue(newValue);
-	fdetcon->SetBBCalDist(v);
+	fdetcon->fEArmBuilder->SetBBCalDist(v);
     }
 
     if( cmd == thminCmd ){
@@ -613,7 +629,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     if( cmd == RICHdistCmd ){
       G4double v = RICHdistCmd->GetNewDoubleValue(newValue);
-      fdetcon->SetRICHdist(v);
+      fdetcon->fHArmBuilder->SetRICHdist(v);
     }
 
     if( cmd == SBSMagFieldCmd ){
@@ -623,7 +639,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     if( cmd == SBSFieldClampOptionCmd ){
       G4int i = SBSFieldClampOptionCmd->GetNewIntValue(newValue);
-      fdetcon->SetFieldClampConfig48D48( i );
+      fdetcon->fHArmBuilder->SetFieldClampConfig48D48( i );
     }
 
     if( cmd == UseCerenkovCmd ){

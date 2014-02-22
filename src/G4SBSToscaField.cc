@@ -1,9 +1,11 @@
 #include "G4SBSToscaField.hh"
+#include "G4ThreeVector.hh"
+#include "G4RotationMatrix.hh"
 
 #define MAXBUFF 1024
 
 G4SBSToscaField::G4SBSToscaField( const char *filename) 
-    : G4SBSMappedField( offset, rm,  filename ) 
+    : G4SBSMappedField( G4ThreeVector(), G4RotationMatrix(),  filename ) 
 {
 	ReadField();    
 }
@@ -25,12 +27,11 @@ G4SBSToscaField::~G4SBSToscaField() {
 
     fFieldVal = NULL;
 
-    delete frm;
     return;
 }
 
 void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const {
-    double s[3];
+    double scale[3];
     int idx, jdx;
     int i, j, k;
     double sx, sy, sz;
@@ -38,7 +39,7 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
     double point[3];
 
     G4ThreeVector pt(Point[0], Point[1], Point[2]);
-    pt = ((*frm)*pt) - fOffset;
+    pt = frm*pt - fOffset;
 
 //    printf("Querying point %f %f %f\n", pt[0]/m, pt[1]/m, pt[2]/m);
 
@@ -53,10 +54,10 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
     // Calculate index values for position
 
     for( idx = 0; idx < 3; idx++ ){
-	s[idx] = (point[idx] - fMin[idx])/(fMax[idx] - fMin[idx]);
+	scale[idx] = (point[idx] - fMin[idx])/(fMax[idx] - fMin[idx]);
 
 
-	if( s[idx] < 0.0 || s[idx] >= 1.0 ){
+	if( scale[idx] < 0.0 || scale[idx] >= 1.0 ){
 	    // Out of range, return 0 field
 //	    printf("Out of range\n");
 	    for( jdx = 0; jdx < 3; jdx++ ){
@@ -66,13 +67,13 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
 	}
     }
 
-    i = (int) floor( (fN[0]-1)*s[0] );
-    j = (int) floor( (fN[1]-1)*s[1] );
-    k = (int) floor( (fN[2]-1)*s[2] );
+    i = (int) floor( (fN[0]-1)*scale[0] );
+    j = (int) floor( (fN[1]-1)*scale[1] );
+    k = (int) floor( (fN[2]-1)*scale[2] );
 
-    sx = (fN[0]-1)*s[0] - (double) i;
-    sy = (fN[1]-1)*s[1] - (double) j;
-    sz = (fN[2]-1)*s[2] - (double) k;
+    sx = (fN[0]-1)*scale[0] - (double) i;
+    sy = (fN[1]-1)*scale[1] - (double) j;
+    sz = (fN[2]-1)*scale[2] - (double) k;
 
 
     // Perform interpolation
@@ -103,7 +104,7 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
 //    printf("%f %f %f -> %f %f %f\n", point[0]/cm, point[1]/cm, point[2]/cm, Bfield[0]/tesla, Bfield[1]/tesla, Bfield[2]/tesla );
 
     // Rotate to global coordinates
-    newB = (frm->inverse())*newB;
+    newB = (frm.inverse())*newB;
 
     if( !fInverted ){
 	Bfield[0] = newB.x();
@@ -141,14 +142,14 @@ void G4SBSToscaField::ReadField(){
     // Second line is the rotation
     
     fscanf(f, "%lf", &ang );
-    frm = new G4RotationMatrix();
-    frm->RotateY(ang*deg);
+    frm = G4RotationMatrix();
+    frm.rotateY(ang*deg);
 
     // Third line should have 4 values with the size of the
     // file indices
     
     int dint, idx, i,j,k;
-    double x[3], fB[3];
+    double r[3], fB[3];
 
     char dstring[MAXBUFF];
 
@@ -194,17 +195,17 @@ void G4SBSToscaField::ReadField(){
     for( i = 0; i < fN[0]; i++ ){
 	for( j = 0; j < fN[1]; j++ ){
 	    for( k = 0; k < fN[2]; k++ ){
-		fscanf(f, "%lf%lf%lf%lf%lf%lf", &x[0], &x[1], &x[2], &fB[0], &fB[1], &fB[2]);
+		fscanf(f, "%lf%lf%lf%lf%lf%lf", &r[0], &r[1], &r[2], &fB[0], &fB[1], &fB[2]);
 
 //		printf("%f %f %f %f %f %f\n", x[0], x[1], x[2], fB[0], fB[1], fB[2]);
 
 		// Grab limits as we go along. 
 		for( idx = 0; idx < 3; idx++ ){
-		    if( x[idx]*cm < fMin[idx] ){ 
-			fMin[idx] = x[idx]*cm; 
+		    if( r[idx]*cm < fMin[idx] ){ 
+			fMin[idx] = r[idx]*cm; 
 		    }
-		    if( x[idx]*cm > fMax[idx] ){ 
-			fMax[idx] = x[idx]*cm;
+		    if( r[idx]*cm > fMax[idx] ){ 
+			fMax[idx] = r[idx]*cm;
 		    }
 
 		    fFieldVal[i][j][k][idx] = fB[idx]*gauss;

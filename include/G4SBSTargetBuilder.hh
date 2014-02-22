@@ -2,10 +2,13 @@
 #define __G4SBSTargetBuilder_hh
 
 #include "G4SBSComponent.hh"
+#include "sbstypes.hh"
+
+class G4DetectorConstruction;
 
 class G4SBSTargetBuilder: public G4SBSComponent {
     public:
-	G4SBSTargetBuilder(G4DetectorConstruction *);
+	G4SBSTargetBuilder(G4SBSDetectorConstruction *);
 	~G4SBSTargetBuilder();
 
 	void BuildComponent(G4LogicalVolume *);
@@ -19,6 +22,6 @@ class G4SBSTargetBuilder: public G4SBSComponent {
 	double fTargDen;
 
 	Targ_t fTargType;
-}
+};
 
 #endif//__G4SBSTargetBuilder_hh

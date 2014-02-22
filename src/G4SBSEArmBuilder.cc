@@ -1,5 +1,25 @@
 #include "G4SBSEArmBuilder.hh"
 
+#include "G4SBSHArmBuilder.hh"
+#include "G4SBSDetectorConstruction.hh"
+#include "G4LogicalVolume.hh"
+#include "G4PVPlacement.hh"
+#include "G4VisAttributes.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4UnionSolid.hh"
+#include "G4IntersectionSolid.hh"
+#include "G4UserLimits.hh"
+#include "G4SDManager.hh"
+#include "G4Tubs.hh"
+#include "G4Cons.hh"
+#include "G4Box.hh"
+#include "G4TwoVector.hh"
+#include "G4GenericTrap.hh"
+#include "G4Polycone.hh"
+
+#include "G4SBSTrackerBuilder.hh"
+#include "G4SBSCalSD.hh"
+
 G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
     fBBang  = 40.0*deg;
     fBBdist = 1.5*m;
@@ -13,18 +33,20 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
 
 }
 
-G4SBSEArmBuilder::~G4SBSEArmBuilder();
+G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}
 
 void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
+    Exp_t exptype = fDetCon->fExpType;
+
    //  The neutron experiments and the SIDIS experiment use BigBite:
     //------------ BigBite: -----------------------------------------------------
-    if( fExpType == kNeutronExp || fExpType == kSIDISExp ) 
+    if( exptype == kNeutronExp || exptype == kSIDISExp ) 
     {
-	MakeBigBite( WorldLog );
+	MakeBigBite( worldlog );
     }
-    if( fExpType == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+    if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
-	MakeBigCal( WorldLog );
+	MakeBigCal( worldlog );
     }
 }
 
@@ -179,7 +201,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     G4LogicalVolume *bbyokewgapLog=new G4LogicalVolume(yokewgap, GetMaterial("Fer"),
 	    "bbyokewgapLog", 0, 0, 0);
 
-    if( fTotalAbs ){
+    if( fDetCon->fTotalAbs ){
 	bbyokewgapLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     }
 
@@ -205,7 +227,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 	    "bbmotherLog", 0, 0, 0);
 
     new G4PVPlacement(bbrm, G4ThreeVector(-motherr*sin(fBBang), 0.0, motherr*cos(fBBang)),
-	    bbmotherLog, "bbmotherPhys", motherlog, 0,false,0);
+	    bbmotherLog, "bbmotherPhys", worldlog, 0,false,0);
 
 
     new G4PVPlacement(yokerm,G4ThreeVector(0.0, 0.0, -motherdepth/2.0+clear),
@@ -215,28 +237,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
 	    "bbfieldLog", 0, 0, 0);
 
-    fbbfield->SetRM( bbrm );
-    G4FieldManager *bbfm = new G4FieldManager(fbbfield);
-
-    //  G4EqMagElectricField* fequation= new G4EqMagElectricField(fbbfield); 
-    G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fbbfield); 
-    G4MagIntegratorStepper *stepper = new G4ExplicitEuler(fequation, 8);
-    //  G4MagIntegratorStepper *stepper = new G4ImplicitEuler(fequation, 8);
-    //  G4MagIntegratorStepper *stepper = new G4CashKarpRKF45(fequation);
-    //  G4MagIntegratorStepper *stepper = new G4SimpleRunge(fequation, 8);
-
-    //  G4MagInt_Driver *intgrDriver = new G4MagInt_Driver(100.0*um, stepper, stepper->GetNumberOfVariables() );
-    // G4ChordFinder *chordfinder = new G4ChordFinder(fbbfield, 1.0*nm, stepper);
-    new G4ChordFinder(fbbfield, 1.0*nm, stepper);
-    //  bbfm->SetChordFinder(chordfinder);
-    // bbfm->GetChordFinder()->SetDeltaChord(1.0*um);
-
-    /*
-       bbfm->SetMinimumEpsilonStep( 1e-6 );
-       bbfm->SetMaximumEpsilonStep( 1e-5 );
-       */
-
-    bbmotherLog->SetFieldManager(bbfm,true);
 
     new G4PVPlacement(0, G4ThreeVector(), bbfieldLog, "bbfieldPhysical", bbyokewgapLog, 0,false,0);
 
@@ -382,9 +382,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     G4String BBCalcolname = "BBCalcol";
     G4SBSCalSD* BBCalSD;
 
-    if( !(BBCalSD = (G4SBSCalSD*) fSDman->FindSensitiveDetector(BBCalSDname)) ){
+    if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCalSDname)) ){
 	BBCalSD = new G4SBSCalSD( BBCalSDname, BBCalcolname );
-	fSDman->AddNewDetector(BBCalSD);
+	fDetCon->fSDman->AddNewDetector(BBCalSD);
     }
 
     bbcallog->SetSensitiveDetector(BBCalSD);
@@ -495,22 +495,22 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     double chr = bbr - bigcaldepth/2.0 - CHdepth/2.0;
 
     new G4PVPlacement(bbrm, G4ThreeVector(bbr*sin(-fBBang), 0.0, bbr*cos(-fBBang) ), bigcallog,
-	    "bigcalphys", Mother, false, 0, false);
+	    "bigcalphys", worldlog, false, 0, false);
     new G4PVPlacement(bbrm, G4ThreeVector(ch2r*sin(-fBBang), 0.0, ch2r*cos(-fBBang) ), ch2boxlog,
-	    "ch2boxphys", Mother, false, 0, false);
+	    "ch2boxphys", worldlog, false, 0, false);
     new G4PVPlacement(bbrm, G4ThreeVector(chr*sin(-fBBang), 0.0, chr*cos(-fBBang) ), chboxlog,
-	    "chboxphys", Mother, false, 0, false);
+	    "chboxphys", worldlog, false, 0, false);
 
     G4String BBCALSDname = "G4SBS/BBCal";
     G4String BBCALcolname = "BBCalcol";
     G4SBSCalSD* BBCalSD;
 
-    if( !(BBCalSD = (G4SBSCalSD*) fSDman->FindSensitiveDetector(BBCALSDname)) ){
+    if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCALSDname)) ){
 	BBCalSD = new G4SBSCalSD( BBCALSDname, BBCALcolname );
-	fSDman->AddNewDetector(BBCalSD);
+	fDetCon->fSDman->AddNewDetector(BBCalSD);
     }
 
-    fSDman->AddNewDetector(BBCalSD);
+    fDetCon->fSDman->AddNewDetector(BBCalSD);
     bigcallog->SetSensitiveDetector(BBCalSD);
     bigcallog->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
 

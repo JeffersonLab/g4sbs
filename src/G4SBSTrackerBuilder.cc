@@ -1,10 +1,30 @@
 #include "G4SBSTrackerBuilder.hh"
 
-G4SBSTrackerBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
+#include "G4SBSDetectorConstruction.hh"
+#include "G4LogicalVolume.hh"
+#include "G4PVPlacement.hh"
+#include "G4VisAttributes.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4UnionSolid.hh"
+#include "G4IntersectionSolid.hh"
+#include "G4UserLimits.hh"
+#include "G4SDManager.hh"
+#include "G4Tubs.hh"
+#include "G4Cons.hh"
+#include "G4Box.hh"
+#include "G4Sphere.hh"
+#include "G4TwoVector.hh"
+#include "G4GenericTrap.hh"
+#include "G4Polycone.hh"
+#include "G4RotationMatrix.hh"
+
+#include "G4SBSGEMSD.hh"
+
+G4SBSTrackerBuilder::G4SBSTrackerBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
 
 }
 
-G4SBSTrackerBuilder::~G4SBSEArmBuilder();
+G4SBSTrackerBuilder::~G4SBSTrackerBuilder(){;}
 
 void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *){
     // This shouldn't get called
@@ -12,7 +32,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *){
 }
 
 //This routine allows us to flexibly position GEM modules without code duplication:
-void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *motherlog, G4RotationMatrix *rot, G4ThreeVector pos, G4int nplanes, vector<double> zplanes, vector<double> wplanes, vector<double> hplanes) 
+void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos, unsigned int nplanes, vector<double> zplanes, vector<double> wplanes, vector<double> hplanes) 
 {
     //This routine will create and position a GEM tracker consisting of nplanes planes centered at position pos oriented with rotation rot wrt logical volume Mother. 
     //The list of z coordinates, widths and heights of the planes are passed as arguments:
@@ -26,9 +46,9 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *motherlog, G4RotationM
     G4String GEMcolname = "GEMcol";
     G4SBSGEMSD* GEMSD;
 
-    if( !(GEMSD = (G4SBSGEMSD*) fSDman->FindSensitiveDetector(GEMSDname)) ){
+    if( !(GEMSD = (G4SBSGEMSD*) fDetCon->fSDman->FindSensitiveDetector(GEMSDname)) ){
 	GEMSD = new G4SBSGEMSD( GEMSDname, GEMcolname );
-	fSDman->AddNewDetector(GEMSD);
+	fDetCon->fSDman->AddNewDetector(GEMSD);
     }
 
     if( !( nplanes > 0 && zplanes.size() == nplanes && wplanes.size() == nplanes && hplanes.size() == nplanes ) ){
@@ -38,7 +58,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *motherlog, G4RotationM
 
     //Define z extent of various GEM layer components:
 
-    const int nlayers = 24;
+    const unsigned int nlayers = 24;
 
     double gempz[nlayers] = {
 	120.0*um, 3.0*mm, 120.0*um, 5.0*um, 50.0*um, 3.0*mm, // cover + cathode
@@ -58,7 +78,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *motherlog, G4RotationM
 	GetMaterial("Copper"), GetMaterial("Kapton"), GetMaterial("NEMAG10"), GetMaterial("NEMAG10"), GetMaterial("NOMEX"), GetMaterial("NEMAG10")
     };
 
-    int gidx, gpidx;
+    unsigned int gidx, gpidx;
 
     //Determine the largest transverse dimensions of a plane in this tracker:
     double gemmaxw = 0.0;

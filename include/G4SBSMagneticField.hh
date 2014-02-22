@@ -7,7 +7,7 @@
 
 class G4SBSMagneticField : public G4MagneticField {
     public:
-	G4SBSMagneticField(G4ThreeVector, G4RotationMatrix *);
+	G4SBSMagneticField(G4ThreeVector, G4RotationMatrix);
 	virtual ~G4SBSMagneticField();
 
 	virtual void GetFieldValue( const  double Point[3], double *Bfield ) const = 0;
@@ -15,13 +15,13 @@ class G4SBSMagneticField : public G4MagneticField {
 	void InvertField( G4bool b ){ fInverted = b; }
 
 	void SetOffset( G4ThreeVector off ){ fOffset = off; }
-	void SetRM( G4RotationMatrix *rm ){ frm = rm; }
+	void SetRM( G4RotationMatrix rm ){ frm = rm; }
 
     protected:
 	G4bool fInverted;
 
 	G4ThreeVector fOffset;
-	G4RotationMatrix *frm;
+	G4RotationMatrix frm;
 };
 
 
@@ -29,7 +29,7 @@ class G4SBSMagneticField : public G4MagneticField {
 
 class G4SBSMappedField: public G4SBSMagneticField {
     public:
-	G4SBSMappedField(G4ThreeVector, G4RotationMatrix *, const char *);
+	G4SBSMappedField(G4ThreeVector, G4RotationMatrix,  const char *);
 	virtual ~G4SBSMappedField();
 
     protected:

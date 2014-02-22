@@ -1,4 +1,8 @@
+#include "TMatrix.h"
+#include "TVector.h"
+
 #include "G4SBSEventAction.hh"
+
 #include "G4SBSEventGen.hh"
 #include "G4SBSCalHit.hh"
 #include "G4SBSGEMHit.hh"
@@ -14,8 +18,6 @@
 #include "G4UImanager.hh"
 #include "G4ios.hh"
 
-#include "TMatrix.h"
-#include "TVector.h"
 
 #include "G4SBSIO.hh"
 #include "G4SystemOfUnits.hh"
@@ -715,7 +717,7 @@ void G4SBSEventAction::MapTracks( const G4Event *evt ){
   
   if( tracklist ){
 
-    for(G4int i=0; i<tracklist->size(); i++){
+    for(unsigned int i=0; i<tracklist->size(); i++){
       G4Trajectory *track = (G4Trajectory*) (*tracklist)[i]; 
       // G4ThreeVector momentum = track->GetInitialMomentum();
       // G4ThreeVector pos = track->GetPoint(0)->GetPosition();

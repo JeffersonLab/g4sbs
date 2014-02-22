@@ -1,3 +1,7 @@
+#include "TString.h"  //  These need to come first or the
+#include "TBuffer.h"  //  compiler bitches about shadowed variables
+#include "TMatrixTBase.h"  
+#include "THashTable.h"  
 #include "CLHEP/Random/Random.h"
 
 #include "G4SBSRunAction.hh"

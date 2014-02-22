@@ -9,7 +9,7 @@
 
 class G4SBSBigBiteField : public G4SBSMappedField {
     public:
-	G4SBSBigBiteField(G4ThreeVector, G4RotationMatrix *);
+	G4SBSBigBiteField(G4ThreeVector, G4RotationMatrix);
 	~G4SBSBigBiteField();
 
 	void GetFieldValue( const double Point[3], double *Bfield ) const;

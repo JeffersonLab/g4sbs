@@ -3,15 +3,18 @@
 
 #include "G4SBSComponent.hh"
 
+class G4LogicalVolume;
+class GSBSDetectorConstruction;
+
 class G4SBSBeamlineBuilder: public G4SBSComponent {
     public:
-	G4SBSBeamlineBuilder(G4DetectorConstruction *);
+	G4SBSBeamlineBuilder(G4SBSDetectorConstruction *);
 	~G4SBSBeamlineBuilder();
 
 	void BuildComponent(G4LogicalVolume *);
 
 
     private:
-}
+};
 
 #endif//__G4SBSBeamlineBuilder_hh

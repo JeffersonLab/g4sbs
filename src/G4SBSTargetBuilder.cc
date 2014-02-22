@@ -1,4 +1,21 @@
-#include "G4SBSTargetBuilder.hh"
+#include "G4SBSTargetBuilder.hh" 
+
+#include "G4SBSDetectorConstruction.hh"
+#include "G4LogicalVolume.hh"
+#include "G4PVPlacement.hh"
+#include "G4VisAttributes.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4UnionSolid.hh"
+#include "G4IntersectionSolid.hh"
+#include "G4UserLimits.hh"
+#include "G4SDManager.hh"
+#include "G4Tubs.hh"
+#include "G4Cons.hh"
+#include "G4Box.hh"
+#include "G4Sphere.hh"
+#include "G4TwoVector.hh"
+#include "G4GenericTrap.hh"
+#include "G4Polycone.hh"
 
 G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
     fTargLen = 60.0*cm;
@@ -6,7 +23,7 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
     fTargDen = 10.5*atmosphere/(300*kelvin*k_Boltzmann);
 }
 
-G4SBSTargetBuilder::~G4SBSTargetBuilder();
+G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
 
 void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 

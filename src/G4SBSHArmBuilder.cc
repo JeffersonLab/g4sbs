@@ -1,4 +1,32 @@
 #include "G4SBSHArmBuilder.hh"
+#include "G4SBSDetectorConstruction.hh"
+#include "G4LogicalVolume.hh"
+#include "G4PVPlacement.hh"
+#include "G4VisAttributes.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4UnionSolid.hh"
+#include "G4IntersectionSolid.hh"
+#include "G4UserLimits.hh"
+#include "G4SDManager.hh"
+#include "G4Tubs.hh"
+#include "G4Cons.hh"
+#include "G4SBSRICHSD.hh"
+
+#include "G4OpticalSurface.hh"
+#include "G4LogicalSkinSurface.hh"
+#include "G4TwoVector.hh"
+#include "G4ExtrudedSolid.hh"
+#include "G4SBSTrackerBuilder.hh"
+#include "G4Sphere.hh"
+
+#include "G4SBSCalSD.hh"
+#include "G4Box.hh"
+#include "sbstypes.hh"
+
+#include <vector>
+#include <map>
+
+using namespace std;
 
 G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
     f48D48ang  = 39.4*deg;
@@ -10,23 +38,27 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
     fRICHdist  = 15.0*m;
 }
 
-G4SBSHArmBuilder::~G4SBSHArmBuilder();
+G4SBSHArmBuilder::~G4SBSHArmBuilder(){
+}
 
 void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
+    Exp_t exptype = fDetCon->fExpType;
+
+
     // All three types of experiments have a 48D48 magnet:
-    Make48D48(WorldLog, f48D48dist + 1219.2*mm/2 );
+    Make48D48(worldlog, f48D48dist + 1219.2*mm/2 );
 
     //--------------- HCAL --------------------------
     //All the experiments use HCAL:
 
     G4double HCAL_vertical_offset = 0.0*cm; //Neutron/SIDIS experiments have no vertical offset for HCAL (in Neutron case because it is detecting neutrons, which don't bend in a magnetic field, and in SIDIS case because we are detecting +/- charged hadrons simultaneously, want to have symmetric acceptance).
-    if( fExpType == kGEp ) HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
+    if( exptype == kGEp ) HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
 
-    MakeHCAL( WorldLog, HCAL_vertical_offset );
+    MakeHCAL( worldlog, HCAL_vertical_offset );
 
     //The SIDIS experiment uses a  RICH in SBS:
     //--------- RICH (experimental): -------------------------
-    if( fExpType == kSIDISExp ) //SIDIS experiment requires a RICH detector and a tracker for SBS: 
+    if( exptype == kSIDISExp ) //SIDIS experiment requires a RICH detector and a tracker for SBS: 
     {
 	//Let's make a simple tracker: 6 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~60 cm + about 1.6 cm
 	G4double SBStracker_dist = fRICHdist - 0.5*m;
@@ -41,7 +73,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 	G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
 
-	new G4PVPlacement( SBStracker_rot, SBStracker_pos, SBStracker_log, "SBStracker_phys", WorldLog, false, 0 );
+	new G4PVPlacement( SBStracker_rot, SBStracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
 
 	int ngems_SBStracker = 6;
 	vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
@@ -55,14 +87,16 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	    hplanes_SBStracker.push_back( 200.0*cm );
 	}
 
-	MakeTracker( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
+	G4SBSTrackerBuilder trackerbuilder(fDetCon);
+
+	trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
 		ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker );
-	MakeRICH( WorldLog );
+	MakeRICH( worldlog );
 
 	SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
     }
     //---------------------------------------------------------
-    if( fExpType == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+    if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
 	//Let's make a box and then put the FPP in it:
 	//Define the rotation matrix for the FPP (pitch angle of 5 deg relative to vertical): 
@@ -84,7 +118,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	sbslog->SetVisAttributes( G4VisAttributes::Invisible );
 	//Now position and orient the FPP "box":
 	new G4PVPlacement(SBS_FPP_rm, G4ThreeVector(sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) ), sbslog,
-		"sbsphys", WorldLog, false, 0, false);
+		"sbsphys", worldlog, false, 0, false);
 
 	G4RotationMatrix *rot_I = new G4RotationMatrix;
 
@@ -98,8 +132,6 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 
 void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
-    int nel;
-    double z;
     G4String name;
 
     double bigcoilwidth = 214.5*mm;
@@ -218,10 +250,10 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", big48d48, bigbeamslot, bigboxaddrm, 
 	    G4ThreeVector( bigwidth/2+35*cm, 0.0, 0.0) );
 
-    G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, Fe,
+    G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, GetMaterial("Fe"),
 	    "b48d48Log", 0, 0, 0);
 
-    if( fTotalAbs ){
+    if( fDetCon->fTotalAbs ){
 	big48d48Log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     }
 
@@ -242,22 +274,8 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
     // Associate magnetic field with gap
 
-    G4LogicalVolume *bigfieldLog=new G4LogicalVolume(biggap, Air,
+    G4LogicalVolume *bigfieldLog=new G4LogicalVolume(biggap, GetMaterial("Air"),
 	    "bigfieldLog", 0, 0, 0);
-
-    // use uniform field for now with 48D48
-
-    double fieldValue = f48D48_uniform_bfield;
-    G4UniformMagField* magField
-	= new G4UniformMagField(G4ThreeVector(fieldValue*cos(f48D48ang), 0.0, -fieldValue*sin(f48D48ang)));
-
-    G4FieldManager *bigfm = new G4FieldManager(magField);
-
-    bigfm->SetDetectorField(magField);
-    bigfm->CreateChordFinder(magField);
-
-    bigfieldLog->SetFieldManager(bigfm,true);
-
 
     new G4PVPlacement(bigrm, 
 	    //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),
@@ -306,7 +324,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     frontclamp = new G4SubtractionSolid("frontclamp3", frontclamp, frontclampecalhole, 0, G4ThreeVector(-120*cm+clampoffset, 0, 0) );
 
     G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclamp, GetMaterial("Fer"), "frontclampLog", 0, 0, 0);
-    if( fTotalAbs ){
+    if( fDetCon->fTotalAbs ){
 	frontclampLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     }
 
@@ -329,7 +347,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     G4LogicalVolume *backclampLog=new G4LogicalVolume(backclamp, GetMaterial("Fer"), "backclampLog", 0, 0, 0);
 
-    if( fTotalAbs ){
+    if( fDetCon->fTotalAbs ){
 	backclampLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     }
 
@@ -351,8 +369,6 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 	    backclampLog, "backclampPhysical", motherlog, 0,false,0);
 }
 
-void G4SBSHArmBuilder::MakeBigBite( G4LogicalVolume *motherlog ){
-}
 
 void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOffset=0.0*cm ){
     //G4SDManager* SDman = G4SDManager::GetSDMpointer();
@@ -376,12 +392,14 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     G4String HCALcolname = "HCALcol";
     G4SBSCalSD* HCalSD;
 
-    if( !(HCalSD = (G4SBSCalSD*) fSDman->FindSensitiveDetector(HCALSDname)) ){
+    G4SDManager *sdman = fDetCon->fSDman;
+
+    if( !(HCalSD = (G4SBSCalSD*) sdman->FindSensitiveDetector(HCALSDname)) ){
 	HCalSD = new G4SBSCalSD( HCALSDname, HCALcolname );
-	fSDman->AddNewDetector(HCalSD);
+	sdman->AddNewDetector(HCalSD);
     }
 
-    fSDman->AddNewDetector(HCalSD);
+    sdman->AddNewDetector(HCalSD);
     hcallog->SetSensitiveDetector(HCalSD);
     hcallog->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
 
@@ -467,7 +485,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     G4double x0_entrywindow = -RICHbox_dx/2.0 + aero_xoffset + Lx_aero/2.0;
 
     //Position entry and exit windows inside RICHbox:
-    G4VPhysicalVolume *RICH_entrywindow_pv = new G4PVPlacement( 0, 
+    new G4PVPlacement( 0, 
 	    G4ThreeVector( x0_entrywindow, y0_entrywindow, z0_entrywindow), 
 	    RICH_entrywindow_log, 
 	    "RICH_entrywindow_pv", 
@@ -481,7 +499,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     G4double z0_aeroexit = z0_entrywindow + RICH_entrywindow_dz + Lz_aero + Aero_exit_dz;
 
     //This is aerogel exit window.
-    G4VPhysicalVolume *Aero_exitwindow_pv = new G4PVPlacement( 0, 
+    new G4PVPlacement( 0, 
 	    G4ThreeVector( x0_aeroexit, y0_aeroexit, z0_aeroexit ),
 	    Aero_exitwindow, 
 	    "Aero_exitwindow_pv",
@@ -493,7 +511,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     G4double y0_RICHexit = 0.0;
     G4double z0_RICHexit = RICHbox_dz/2.0 - RICH_exitwindow_dz;
 
-    G4VPhysicalVolume *RICH_exitwindow_pv = new G4PVPlacement( 0, 
+    new G4PVPlacement( 0, 
 	    G4ThreeVector( x0_RICHexit, y0_RICHexit, z0_RICHexit ),
 	    RICH_exitwindow, 
 	    "RICH_exitwindow_pv",
@@ -510,7 +528,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 
     G4LogicalVolume *RICH_container_walls = new G4LogicalVolume( RICHbox_wall_entryexitcut, GetMaterial("RICHAluminum"), "RICH_container_walls" );
 
-    G4VPhysicalVolume *RICH_container_walls_placement = new G4PVPlacement( 0, G4ThreeVector(0,0,0), RICH_container_walls, "RICH_container_walls_placement", RICHbox_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(0,0,0), RICH_container_walls, "RICH_container_walls_placement", RICHbox_log, false, 0 );
 
     //We also need to define the Tedlar spacers: Let us define horizontal and vertical spacers. Our convention will be that the 
     //vertical spacer fills the corner region:
@@ -632,7 +650,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     G4IntersectionSolid *Mirror_solid = new G4IntersectionSolid( "Mirror_solid", RICH_mirror_shell, RICH_mirror_cutbox, 0, RelativeCoords );
     G4LogicalVolume *Mirror_log = new G4LogicalVolume( Mirror_solid, GetMaterial("MirrorComposite"), "Mirror_log" );
 
-    G4VPhysicalVolume *Mirror_pv = new G4PVPlacement( 0, 
+    new G4PVPlacement( 0, 
 	    MirrorCenterCoords, 
 	    Mirror_log, 
 	    "Mirror_pv",
@@ -640,7 +658,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 	    false,
 	    0 );
 
-    G4LogicalSkinSurface *Mirrskin = new G4LogicalSkinSurface( "Mirrskin", Mirror_log, GetOpticalSurface("Mirrsurf") );
+    new G4LogicalSkinSurface( "Mirrskin", Mirror_log, GetOpticalSurface("Mirrsurf") );
 
     //What is left? We've done the mirror, the aerogel, the gas box. All that remains is the PMTs and the structure of the containment vessel. Let's start with the PMTs: 
 
@@ -661,7 +679,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     G4Cons *CollectionCone = new G4Cons( "CollectionCone", 0.75*cm, (2.13/2.0)*cm, (2.13/2.0)*cm, (2.13/2.0)*cm, 0.75*cm, 0.0, twopi );
 
     G4double PMT_total_length = 10.65*cm;
-    G4double PMT_max_radius = 1.065*cm;
+    //    G4double PMT_max_radius = 1.065*cm;
 
     G4LogicalVolume *PMTwindow_log  = new G4LogicalVolume( PMTwindow, GetMaterial("UVglass"), "PMTwindow_log" );
     G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material"), "PMTcathode_log" );
@@ -669,186 +687,186 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     //PMTcathode_log is the sensitive detector for the RICH:
 
     //  G4SDManager *fSDman = G4SDManager::GetSDMpointer();
+    G4SDManager *sdman = fDetCon->fSDman;
 
     G4String RICHSDname = "G4SBS/RICH";
     G4String RICHcollname = "RICHcoll";
     G4SBSRICHSD *RICHSD = NULL;
 
-    if( !( (G4SBSRICHSD*) fSDman->FindSensitiveDetector(RICHSDname) ) ){
+    if( !( (G4SBSRICHSD*) sdman->FindSensitiveDetector(RICHSDname) ) ){
 	G4cout << "Adding RICH sensitive detector to SDman..." << G4endl;
 	RICHSD = new G4SBSRICHSD( RICHSDname, RICHcollname );
-	fSDman->AddNewDetector( RICHSD );
+	sdman->AddNewDetector( RICHSD );
     }
     //}
 
-PMTcathode_log->SetSensitiveDetector( RICHSD ); //This assigns the sensitive detector type "RICHSD" to the logical volume PMTcathode!
-//We make this a hollow cylinder with length and radius approximately equal to that of the PMT housing, made of steel 
-//to approximate the material shielding the PMT.
-G4LogicalVolume *PMTtube_log    = new G4LogicalVolume( PMTtube, GetMaterial("Steel"), "PMTtube_log" ); 
-G4LogicalVolume *PMTquartzwindow_log = new G4LogicalVolume( PMTQuartzWindow, GetMaterial("QuartzWindow"), "PMTQuartzWindow_log" );
-G4LogicalVolume *CollectionCone_log = new G4LogicalVolume( CollectionCone, GetMaterial("Steel"), "CollectionCone_log" );
-//Define a logical skin surface for the collection cone and assign it the same reflectivity as the mirror:
-G4LogicalSkinSurface *Coneskin = new G4LogicalSkinSurface( "Coneskin", CollectionCone_log, GetOpticalSurface("Mirrsurf") );
+    PMTcathode_log->SetSensitiveDetector( RICHSD ); //This assigns the sensitive detector type "RICHSD" to the logical volume PMTcathode!
+    //We make this a hollow cylinder with length and radius approximately equal to that of the PMT housing, made of steel 
+    //to approximate the material shielding the PMT.
+    G4LogicalVolume *PMTtube_log    = new G4LogicalVolume( PMTtube, GetMaterial("Steel"), "PMTtube_log" ); 
+    G4LogicalVolume *PMTquartzwindow_log = new G4LogicalVolume( PMTQuartzWindow, GetMaterial("QuartzWindow"), "PMTQuartzWindow_log" );
+    G4LogicalVolume *CollectionCone_log = new G4LogicalVolume( CollectionCone, GetMaterial("Steel"), "CollectionCone_log" );
+    //Define a logical skin surface for the collection cone and assign it the same reflectivity as the mirror:
+    new G4LogicalSkinSurface( "Coneskin", CollectionCone_log, GetOpticalSurface("Mirrsurf") );
 
-//Within the RICHbox, each PMT assembly unit is rotated so that its z-axis makes an angle of 50 degrees with respect to the 
-//local z axis of the RICHbox. Therefore, we rotate by an angle of 
-G4double PMT_rotation_angle = 50.0*degree;
-G4RotationMatrix *rot_PMT = new G4RotationMatrix;
-rot_PMT->rotateY( PMT_rotation_angle );
+    //Within the RICHbox, each PMT assembly unit is rotated so that its z-axis makes an angle of 50 degrees with respect to the 
+    //local z axis of the RICHbox. Therefore, we rotate by an angle of 
+    G4double PMT_rotation_angle = 50.0*degree;
+    G4RotationMatrix *rot_PMT = new G4RotationMatrix;
+    rot_PMT->rotateY( PMT_rotation_angle );
 
-G4int icopy_PMT_assembly = 0;
+    G4int icopy_PMT_assembly = 0;
 
-G4double xfp = 119.350*cm - RICHbox_dx/2.0;
-G4double yfp = 0.0;
-G4double zfp = 42.521*cm - RICHbox_dz/2.0;
+    G4double xfp = 119.350*cm - RICHbox_dx/2.0;
+    G4double yfp = 0.0;
+    G4double zfp = 42.521*cm - RICHbox_dz/2.0;
 
-G4ThreeVector focalpoint_position( xfp, yfp, zfp );
+    G4ThreeVector focalpoint_position( xfp, yfp, zfp );
 
-G4ThreeVector PMT_zaxis( -sin(PMT_rotation_angle), 0.0, cos(PMT_rotation_angle) );
-G4ThreeVector PMT_yaxis( 0, 1, 0 );
-G4ThreeVector PMT_xaxis( (PMT_yaxis.cross( PMT_zaxis ) ).unit() );
+    G4ThreeVector PMT_zaxis( -sin(PMT_rotation_angle), 0.0, cos(PMT_rotation_angle) );
+    G4ThreeVector PMT_yaxis( 0, 1, 0 );
+    G4ThreeVector PMT_xaxis( (PMT_yaxis.cross( PMT_zaxis ) ).unit() );
 
-G4double ymin_PMT = -72.5376*cm, ymax_PMT = 72.5376*cm;
-G4double xmin_PMT[2] = { -29.083*cm, -30.24632*cm };
-G4double xmax_PMT[2] = { 29.083*cm, 30.24632*cm };
-G4int nrows_PMT[2] = {26, 27};
+    G4double ymin_PMT = -72.5376*cm, ymax_PMT = 72.5376*cm;
+    G4double xmin_PMT[2] = { -29.083*cm, -30.24632*cm };
+    G4double xmax_PMT[2] = { 29.083*cm, 30.24632*cm };
+    G4int nrows_PMT[2] = {26, 27};
 
-for( G4int icol=0; icol<=72; icol++){
-    G4int evenoddcol = icol%2;
-    for( G4int irow=0; irow<nrows_PMT[evenoddcol]; irow++ ){
-	G4double xtemp = xmin_PMT[evenoddcol] + irow * ( xmax_PMT[evenoddcol] - xmin_PMT[evenoddcol] )/( G4double(nrows_PMT[evenoddcol]-1) );
-	G4double ytemp = ymin_PMT + icol*(ymax_PMT-ymin_PMT)/( 72.0 );
+    for( G4int icol=0; icol<=72; icol++){
+	G4int evenoddcol = icol%2;
+	for( G4int irow=0; irow<nrows_PMT[evenoddcol]; irow++ ){
+	    G4double xtemp = xmin_PMT[evenoddcol] + irow * ( xmax_PMT[evenoddcol] - xmin_PMT[evenoddcol] )/( G4double(nrows_PMT[evenoddcol]-1) );
+	    G4double ytemp = ymin_PMT + icol*(ymax_PMT-ymin_PMT)/( 72.0 );
 
-	G4ThreeVector PMT_position = focalpoint_position - PMT_zaxis * PMT_total_length/2.0 + xtemp * PMT_xaxis + ytemp * PMT_yaxis;
+	    G4ThreeVector PMT_position = focalpoint_position - PMT_zaxis * PMT_total_length/2.0 + xtemp * PMT_xaxis + ytemp * PMT_yaxis;
 
-	//Place PMT components inside RICHbox.
-	G4ThreeVector Pos_temp;
-	//Steel tube (mainly for visualization and shielding
-	G4double ztube = -PMT_total_length/2.0 + 4.35*cm;
-	Pos_temp = PMT_position + ztube * PMT_zaxis;
-	G4VPhysicalVolume *PMTtube_pv = new G4PVPlacement( rot_PMT, Pos_temp, PMTtube_log, "PMTtube_pv", RICHbox_log, false, icopy_PMT_assembly );
-	//Photocathode (this is the sensitive part!!):
-	G4double zcathode = ztube + 4.375*cm;
-	Pos_temp = PMT_position + zcathode * PMT_zaxis;
-	G4VPhysicalVolume *PMTcathode_pv = new G4PVPlacement( rot_PMT, Pos_temp, PMTcathode_log, "PMTcathode_pv", RICHbox_log, false, icopy_PMT_assembly );
-	//UV-glass PMT window:
-	G4double zwindow = zcathode + 0.075*cm;
-	Pos_temp = PMT_position + zwindow * PMT_zaxis;
-	G4VPhysicalVolume *PMTwindow_pv = new G4PVPlacement( rot_PMT, Pos_temp, PMTwindow_log, "PMTwindow_pv", RICHbox_log, false, icopy_PMT_assembly );
-	//Quartz window between PMT and gas:
-	G4double zquartz = zwindow + 0.2*cm;
-	Pos_temp = PMT_position + zquartz * PMT_zaxis;
-	G4VPhysicalVolume *PMTquartzwindow_pv = new G4PVPlacement( rot_PMT, Pos_temp, PMTquartzwindow_log, "PMTquartzwindow_pv", RICHbox_log, false, icopy_PMT_assembly );
-	//Light collection cone:
-	G4double zcone = zquartz + 0.9*cm;
-	Pos_temp = PMT_position + zcone * PMT_zaxis;
-	G4VPhysicalVolume *CollectionCone_pv = new G4PVPlacement( rot_PMT, Pos_temp, CollectionCone_log, "CollectionCone_pv", RICHbox_log, false, icopy_PMT_assembly );
+	    //Place PMT components inside RICHbox.
+	    G4ThreeVector Pos_temp;
+	    //Steel tube (mainly for visualization and shielding
+	    G4double ztube = -PMT_total_length/2.0 + 4.35*cm;
+	    Pos_temp = PMT_position + ztube * PMT_zaxis;
+	    new G4PVPlacement( rot_PMT, Pos_temp, PMTtube_log, "PMTtube_pv", RICHbox_log, false, icopy_PMT_assembly );
+	    //Photocathode (this is the sensitive part!!):
+	    G4double zcathode = ztube + 4.375*cm;
+	    Pos_temp = PMT_position + zcathode * PMT_zaxis;
+	    new G4PVPlacement( rot_PMT, Pos_temp, PMTcathode_log, "PMTcathode_pv", RICHbox_log, false, icopy_PMT_assembly );
+	    //UV-glass PMT window:
+	    G4double zwindow = zcathode + 0.075*cm;
+	    Pos_temp = PMT_position + zwindow * PMT_zaxis;
+	    new G4PVPlacement( rot_PMT, Pos_temp, PMTwindow_log, "PMTwindow_pv", RICHbox_log, false, icopy_PMT_assembly );
+	    //Quartz window between PMT and gas:
+	    G4double zquartz = zwindow + 0.2*cm;
+	    Pos_temp = PMT_position + zquartz * PMT_zaxis;
+	    new G4PVPlacement( rot_PMT, Pos_temp, PMTquartzwindow_log, "PMTquartzwindow_pv", RICHbox_log, false, icopy_PMT_assembly );
+	    //Light collection cone:
+	    G4double zcone = zquartz + 0.9*cm;
+	    Pos_temp = PMT_position + zcone * PMT_zaxis;
+	    new G4PVPlacement( rot_PMT, Pos_temp, CollectionCone_log, "CollectionCone_pv", RICHbox_log, false, icopy_PMT_assembly );
 
-	// G4VPhysicalVolume *PMT_placement = new G4PVPlacement( rot_PMT, 
-	// 							   PMT_position, 
-	// 							   PMT_assembly, 
-	// 							   "PMT_placement", 
-	// 							   RICHbox_log, 
-	// 							   false, 
-	// 							   icopy_PMT_assembly++ );
-	icopy_PMT_assembly++;
+	    // G4VPhysicalVolume *PMT_placement = new G4PVPlacement( rot_PMT, 
+	    // 							   PMT_position, 
+	    // 							   PMT_assembly, 
+	    // 							   "PMT_placement", 
+	    // 							   RICHbox_log, 
+	    // 							   false, 
+	    // 							   icopy_PMT_assembly++ );
+	    icopy_PMT_assembly++;
 
 
+	}
     }
-}
 
 
-////////////////////////////////////////////////////////////////////////
-//                         !!!END OF PMTS!!!                                 //
-////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    //                         !!!END OF PMTS!!!                                 //
+    ////////////////////////////////////////////////////////////////////////
 
-//At the end we have to define the translation and rotation to apply for correct positioning of RICHbox:
-//Rotation is easy, same as HCAL, we rotate about the Y axis by -f48D48ang:
+    //At the end we have to define the translation and rotation to apply for correct positioning of RICHbox:
+    //Rotation is easy, same as HCAL, we rotate about the Y axis by -f48D48ang:
 
-G4RotationMatrix *rot_RICH = new G4RotationMatrix;
-rot_RICH->rotateY( -f48D48ang );
+    G4RotationMatrix *rot_RICH = new G4RotationMatrix;
+    rot_RICH->rotateY( -f48D48ang );
 
-//We want the center of the RICH entry window to be located at a distance equal to fRICHdist along the line at angle f48D48ang from the origin. For this condition to be satisfied, the center of the RICH box must be offset from this line:
-G4ThreeVector RICHcoord_global( fRICHdist*sin( f48D48ang ), 0.0, fRICHdist*cos( f48D48ang ) );
+    //We want the center of the RICH entry window to be located at a distance equal to fRICHdist along the line at angle f48D48ang from the origin. For this condition to be satisfied, the center of the RICH box must be offset from this line:
+    G4ThreeVector RICHcoord_global( fRICHdist*sin( f48D48ang ), 0.0, fRICHdist*cos( f48D48ang ) );
 
-G4ThreeVector RICH_zaxis( RICHcoord_global.unit() );
-G4ThreeVector RICH_yaxis( 0.0, 1.0, 0.0 );
-G4ThreeVector RICH_xaxis( (RICH_yaxis.cross( RICH_zaxis )).unit() );
+    G4ThreeVector RICH_zaxis( RICHcoord_global.unit() );
+    G4ThreeVector RICH_yaxis( 0.0, 1.0, 0.0 );
+    G4ThreeVector RICH_xaxis( (RICH_yaxis.cross( RICH_zaxis )).unit() );
 
-//RICH center coordinates
+    //RICH center coordinates
 
-G4ThreeVector RICH_centercoord_global = RICHcoord_global - x0_entrywindow * RICH_xaxis - y0_entrywindow * RICH_yaxis - z0_entrywindow * RICH_zaxis;
+    G4ThreeVector RICH_centercoord_global = RICHcoord_global - x0_entrywindow * RICH_xaxis - y0_entrywindow * RICH_yaxis - z0_entrywindow * RICH_zaxis;
 
-G4VPhysicalVolume *RICHbox_pv = new G4PVPlacement( rot_RICH, 
-	RICH_centercoord_global,
-	RICHbox_log,
-	"RICHbox_pv",
-	motherlog, 
-	false, 
-	0 );
+    new G4PVPlacement( rot_RICH, 
+	    RICH_centercoord_global,
+	    RICHbox_log,
+	    "RICHbox_pv",
+	    motherlog, 
+	    false, 
+	    0 );
 
 
-G4VisAttributes *RICHbox_vis = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
-RICHbox_vis->SetForceWireframe(true);
+    G4VisAttributes *RICHbox_vis = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
+    RICHbox_vis->SetForceWireframe(true);
 
-RICHbox_log->SetVisAttributes( RICHbox_vis ); 
+    RICHbox_log->SetVisAttributes( RICHbox_vis ); 
 
-//Set color and transparency for RICH windows (Aluminum)
-G4VisAttributes *RICHwindow_visatt = new G4VisAttributes( G4Colour( 0.75,0.75,0.75) );
+    //Set color and transparency for RICH windows (Aluminum)
+    G4VisAttributes *RICHwindow_visatt = new G4VisAttributes( G4Colour( 0.75,0.75,0.75) );
 
-//RICH entry and exit windows are not inherently interesting, so we force them to wireframe:
-RICHwindow_visatt->SetForceWireframe(true);
+    //RICH entry and exit windows are not inherently interesting, so we force them to wireframe:
+    RICHwindow_visatt->SetForceWireframe(true);
 
-RICH_exitwindow->SetVisAttributes( RICHwindow_visatt );
-RICH_entrywindow_log->SetVisAttributes( RICHwindow_visatt );
+    RICH_exitwindow->SetVisAttributes( RICHwindow_visatt );
+    RICH_entrywindow_log->SetVisAttributes( RICHwindow_visatt );
 
-//Set aerogel exit window to a magenta color (equal parts red and blue) and also wireframe:
-G4VisAttributes *Lucitewindow_visatt = new G4VisAttributes( G4Colour( 1.0,0.0,1.0 ) );
-Lucitewindow_visatt->SetForceWireframe(true); 
+    //Set aerogel exit window to a magenta color (equal parts red and blue) and also wireframe:
+    G4VisAttributes *Lucitewindow_visatt = new G4VisAttributes( G4Colour( 1.0,0.0,1.0 ) );
+    Lucitewindow_visatt->SetForceWireframe(true); 
 
-Aero_exitwindow->SetVisAttributes( Lucitewindow_visatt );
+    Aero_exitwindow->SetVisAttributes( Lucitewindow_visatt );
 
-G4VisAttributes *aero_tile_visatt = new G4VisAttributes( G4Colour( 0.0, 0.8, 0.8 ) );
-Aerogel_tile_log->SetVisAttributes( aero_tile_visatt );
+    G4VisAttributes *aero_tile_visatt = new G4VisAttributes( G4Colour( 0.0, 0.8, 0.8 ) );
+    Aerogel_tile_log->SetVisAttributes( aero_tile_visatt );
 
-G4VisAttributes *tedlar_vis = new G4VisAttributes( G4Colour(0.3,0.3,0.3) );
-Vertical_spacer_log->SetVisAttributes( tedlar_vis );
-Horizontal_spacer_log->SetVisAttributes( tedlar_vis );
+    G4VisAttributes *tedlar_vis = new G4VisAttributes( G4Colour(0.3,0.3,0.3) );
+    Vertical_spacer_log->SetVisAttributes( tedlar_vis );
+    Horizontal_spacer_log->SetVisAttributes( tedlar_vis );
 
-G4VisAttributes *mirror_vis = new G4VisAttributes( G4Colour(0.0, 0.5, 1.0) );
-Mirror_log->SetVisAttributes( mirror_vis );
+    G4VisAttributes *mirror_vis = new G4VisAttributes( G4Colour(0.0, 0.5, 1.0) );
+    Mirror_log->SetVisAttributes( mirror_vis );
 
-//PMT_assembly->SetVisAttributes( G4VisAttributes::GetInvisible() );
+    //PMT_assembly->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
-//  G4VisAttributes for PMT assemblies:
+    //  G4VisAttributes for PMT assemblies:
 
-G4VisAttributes *PMTtube_vis = new G4VisAttributes( G4Colour( 0.4, 0.4, 0.4 ) );
-PMTtube_vis->SetForceLineSegmentsPerCircle( 24 );
-PMTtube_log->SetVisAttributes( PMTtube_vis );
+    G4VisAttributes *PMTtube_vis = new G4VisAttributes( G4Colour( 0.4, 0.4, 0.4 ) );
+    PMTtube_vis->SetForceLineSegmentsPerCircle( 24 );
+    PMTtube_log->SetVisAttributes( PMTtube_vis );
 
-G4VisAttributes *PMTwindow_vis = new G4VisAttributes( G4Colour::Cyan() );
-PMTwindow_vis->SetForceLineSegmentsPerCircle( 24 );
-PMTwindow_vis->SetForceWireframe( true );
-PMTwindow_log->SetVisAttributes( PMTwindow_vis );
+    G4VisAttributes *PMTwindow_vis = new G4VisAttributes( G4Colour::Cyan() );
+    PMTwindow_vis->SetForceLineSegmentsPerCircle( 24 );
+    PMTwindow_vis->SetForceWireframe( true );
+    PMTwindow_log->SetVisAttributes( PMTwindow_vis );
 
-//  PMTcathode_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
-G4VisAttributes *PMTcathode_vis = new G4VisAttributes( G4Colour::Blue() );
-PMTcathode_vis->SetForceLineSegmentsPerCircle( 24 );
-PMTcathode_log->SetVisAttributes( PMTcathode_vis );
+    //  PMTcathode_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+    G4VisAttributes *PMTcathode_vis = new G4VisAttributes( G4Colour::Blue() );
+    PMTcathode_vis->SetForceLineSegmentsPerCircle( 24 );
+    PMTcathode_log->SetVisAttributes( PMTcathode_vis );
 
-G4VisAttributes *PMTquartzwindow_vis = new G4VisAttributes( G4Colour::Green() );
-PMTquartzwindow_vis->SetForceLineSegmentsPerCircle( 24 );
-PMTquartzwindow_vis->SetForceWireframe( true );
-PMTquartzwindow_log->SetVisAttributes( PMTquartzwindow_vis );
+    G4VisAttributes *PMTquartzwindow_vis = new G4VisAttributes( G4Colour::Green() );
+    PMTquartzwindow_vis->SetForceLineSegmentsPerCircle( 24 );
+    PMTquartzwindow_vis->SetForceWireframe( true );
+    PMTquartzwindow_log->SetVisAttributes( PMTquartzwindow_vis );
 
-G4VisAttributes *CollectionCone_vis = new G4VisAttributes( G4Colour::Red() );
-CollectionCone_vis->SetForceLineSegmentsPerCircle( 24 );
-CollectionCone_log->SetVisAttributes( CollectionCone_vis );
+    G4VisAttributes *CollectionCone_vis = new G4VisAttributes( G4Colour::Red() );
+    CollectionCone_vis->SetForceLineSegmentsPerCircle( 24 );
+    CollectionCone_log->SetVisAttributes( CollectionCone_vis );
 
-G4VisAttributes *RICHwalls_vis = new G4VisAttributes( G4Colour::Gray() );
-RICHwalls_vis->SetForceWireframe( true );
-RICH_container_walls->SetVisAttributes( RICHwalls_vis );
-
+    G4VisAttributes *RICHwalls_vis = new G4VisAttributes( G4Colour::Gray() );
+    RICHwalls_vis->SetForceWireframe( true );
+    RICH_container_walls->SetVisAttributes( RICHwalls_vis );
 
 }
 

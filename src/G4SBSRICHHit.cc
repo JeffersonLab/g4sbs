@@ -76,7 +76,7 @@ G4int G4SBSRICHHit::operator==(const G4SBSRICHHit &hit ) const
 
 //std::map<G4String, G4AttDef> G4SBSRICHHit::fAttDefs;
 
-void G4SBSRICHHit::Draw() const
+void G4SBSRICHHit::Draw() 
 {
   G4VVisManager *pVVisManager = G4VVisManager::GetConcreteInstance();
   if( pVVisManager ){
@@ -89,7 +89,7 @@ void G4SBSRICHHit::Draw() const
   }
 }
 
-void G4SBSRICHHit::Print() const {;}
+void G4SBSRICHHit::Print() {;}
 
 
 G4int G4SBSRICHHit::calc_row( G4int PMT ){

@@ -1,4 +1,5 @@
 
+#include "G4SBSIO.hh"
 // Make this appear first!
 #include "G4Timer.hh"
 
@@ -6,7 +7,6 @@
 #include "G4Run.hh"
 #include "G4UImanager.hh"
 #include "G4ios.hh"
-#include "G4SBSIO.hh"
 
 G4SBSRunAction::G4SBSRunAction()
 {

@@ -3,6 +3,8 @@
 #include "G4FieldManager.hh"
 #include "G4TransportationManager.hh"
 
+#include "G4SBSToscaField.hh"
+
 #include <vector>
 
 #define MAXBUFF 1024

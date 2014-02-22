@@ -21,8 +21,8 @@ public:
   inline void * operator new(size_t);
   inline void operator delete(void *aHit);
   
-  virtual void Draw() const;
-  virtual void Print() const;
+  virtual void Draw();
+  virtual void Print();
 
   //const std::map<G4String, G4AttDef> *GetAttDefs() const;
   //std::vector<G4AttValue> *CreateAttValues() const;

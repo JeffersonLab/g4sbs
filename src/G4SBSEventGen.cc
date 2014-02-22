@@ -1,3 +1,5 @@
+#include "TBuffer.h"
+#include "TString.h"
 #include "G4SBSEventGen.hh"
 #include "G4RotationMatrix.hh"
 #include "G4SBSInelastic.hh"
@@ -730,8 +732,8 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   double d = cteq_pdf_evolvepdf(__dis_pdf, 2, x, sqrt(Q2)/GeV );
   double ubar = cteq_pdf_evolvepdf(__dis_pdf, -1, x, sqrt(Q2)/GeV );
   double dbar = cteq_pdf_evolvepdf(__dis_pdf, -2, x, sqrt(Q2)/GeV );
-  double s = cteq_pdf_evolvepdf(__dis_pdf, 3, x, sqrt(Q2)/GeV );
-  double sbar = s;
+  double st = cteq_pdf_evolvepdf(__dis_pdf, 3, x, sqrt(Q2)/GeV );
+  double sbar = st;
   
   //Gaussian model for transverse momentum widths of quark distribution (kperp) and fragmentation (pperp):
   double kperp2_avg = 0.25 * GeV * GeV;
@@ -795,12 +797,12 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   //Compute SIDIS structure function for a proton:
   double H2 = x * b/twopi*exp(-b*pow(Ph_perp,2)) * ( pow(e_u,2) * (u * Dqh[0] + ubar * Dqh[1]) + 
 						     pow(e_d,2) * (d * Dqh[2] + dbar * Dqh[3]) + 
-						     pow(e_s,2) * (s * Dqh[4] + sbar * Dqh[5]) );
+						     pow(e_s,2) * (st * Dqh[4] + sbar * Dqh[5]) );
   
   if( nucl == kNeutron ){ //Interchange u and d quarks: the d quark density in a neutron = u quark density in a proton
     H2 = x * b/twopi*exp(-b*pow(Ph_perp,2)) * ( pow(e_u,2) * (d * Dqh[0] + dbar * Dqh[1]) + 
 						pow(e_d,2) * (u * Dqh[2] + ubar * Dqh[3]) + 
-						pow(e_s,2) * (s * Dqh[4] + sbar * Dqh[5]) );
+						pow(e_s,2) * (st * Dqh[4] + sbar * Dqh[5]) );
   }
 
   double H1 = H2/(2.0*x); //Callan-Gross relation

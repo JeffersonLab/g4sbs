@@ -4,7 +4,7 @@
 //#include "G4PhysListFactory.hh"
 
 #include "G4DecayPhysics.hh"
-#include "G4EMStandardPhysics.hh"
+#include "G4EmStandardPhysics.hh"
 #include "G4EmExtraPhysics.hh"
 #include "G4HadronElasticPhysics.hh"
 #include "G4IonPhysics.hh"
@@ -90,9 +90,9 @@ void G4SBSPhysicsList::SetOpticalPhysicsProcessActive( G4int pindex, G4bool isac
   //G4VProcess *process;
   G4String processname = "";
   
-  bool goodindex = true;
+//  bool goodindex = true;
   if( pindex < 0 || pindex >= kNoProcess ) {
-    goodindex = false;
+//   goodindex = false;
     return;
   }
 

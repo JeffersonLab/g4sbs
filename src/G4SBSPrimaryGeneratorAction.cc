@@ -1,3 +1,8 @@
+#include "TBuffer.h"
+#include "TMatrixTBase.h"
+#include "TString.h"
+#include "THashTable.h"
+
 #include "G4SBSPrimaryGeneratorAction.hh"
 
 #include "G4Event.hh"

@@ -14,22 +14,25 @@
 */
 
 #include <map>
-#include "G4String.hh";
+#include "G4String.hh"
 
 class G4Material;
 class G4SensitiveDetectorManager;
 class G4LogicalVolume;
+class G4OpticalSurface;
+class G4SBSDetectorConstruction;
 
 class G4SBSComponent {
     public:
 	G4SBSComponent(G4SBSDetectorConstruction * );
 	virtual ~G4SBSComponent();
-	virtual BuildComponent(G4LogicalVolume *) = 0;
+	virtual void BuildComponent(G4LogicalVolume *) = 0;
 
-    private:
+    protected:
 	G4SBSDetectorConstruction *fDetCon;
-	GetMaterial(G4String);
-}
+	G4Material *GetMaterial(G4String);
+	G4OpticalSurface*GetOpticalSurface(G4String);
+};
 
 
 #endif//__G4SBSComponent_hh

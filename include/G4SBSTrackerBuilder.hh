@@ -1,7 +1,14 @@
 #ifndef __G4SBSTrackerBuilder_hh
 #define __G4SBSTrackerBuilder_hh
 
+
 #include "G4SBSComponent.hh"
+
+#include "G4RotationMatrix.hh"
+#include "G4ThreeVector.hh"
+#include <vector>
+
+using namespace std;
 
 class G4SBSTrackerBuilder: public G4SBSComponent {
     public:
@@ -9,10 +16,10 @@ class G4SBSTrackerBuilder: public G4SBSComponent {
 	~G4SBSTrackerBuilder();
 
 	void BuildComponent(G4LogicalVolume *);
-	void BuildComponent(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector, G4int, vector<double>, vector<double>, vector<double>);
+	void BuildComponent(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector, unsigned int, vector<double>, vector<double>, vector<double>);
 	
 
     private:
-}
+};
 
 #endif//__G4SBSTrackerBuilder_hh

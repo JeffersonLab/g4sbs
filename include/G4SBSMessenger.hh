@@ -11,6 +11,7 @@ class G4SBSEventGen;
 class G4SBSDetectorConstruction;
 class G4SBSEventAction;
 class G4SBSPrimaryGeneratorAction;
+class G4SBSPhysicsList;
 
 class G4UIcmdWithAnInteger;
 class G4UIcmdWithADoubleAndUnit;
@@ -51,6 +52,8 @@ private:
   G4UIcmdWithAString   *expCmd;
   
   G4UIcmdWithAString   *HadrCmd;
+
+  G4UIcmdWithAnInteger *bigfieldCmd;
 
   G4UIcmdWithABool *geantinoCmd;
   G4UIcmdWithABool *totalabsCmd;

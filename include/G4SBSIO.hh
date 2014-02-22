@@ -3,6 +3,7 @@
 
 #include "TROOT.h"
 #include "TObject.h"
+#include "THashTable.h"
 #include "G4Run.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4SBSRICHoutput.hh"

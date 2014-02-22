@@ -3,7 +3,7 @@
 
 #define MAXBUFF 1024
 
-G4SBSBigBiteField::G4SBSBigBiteField(G4ThreeVector offset, G4RotationMatrix *rm) 
+G4SBSBigBiteField::G4SBSBigBiteField(G4ThreeVector offset, G4RotationMatrix rm) 
 	: G4SBSMappedField( offset, rm, "map_696A.dat" ) {
 	    ReadField();
 }
@@ -26,7 +26,7 @@ G4SBSBigBiteField::~G4SBSBigBiteField() {
 }
 
 void G4SBSBigBiteField::GetFieldValue(const double Point[3],double *Bfield) const {
-    double s[3];
+    double scale[3];
     int idx, jdx;
     int i, j, k;
     double sx, sy, sz;
@@ -34,7 +34,7 @@ void G4SBSBigBiteField::GetFieldValue(const double Point[3],double *Bfield) cons
     double point[3];
 
     G4ThreeVector pt(Point[0], Point[1], Point[2]);
-    pt = ((*frm)*pt) - fOffset;
+    pt = frm*pt - fOffset;
 
 //    printf("Querying point %f %f %f\n", pt[0]/m, pt[1]/m, pt[2]/m);
 
@@ -48,10 +48,10 @@ void G4SBSBigBiteField::GetFieldValue(const double Point[3],double *Bfield) cons
     // Calculate index values for position
 
     for( idx = 0; idx < 3; idx++ ){
-	s[idx] = (point[idx] - fMin[idx])/(fMax[idx] - fMin[idx]);
+	scale[idx] = (point[idx] - fMin[idx])/(fMax[idx] - fMin[idx]);
 
-	if( (int) floor( (fN[idx]-1)*s[idx] ) < 0 || 
-	    (int) floor( (fN[idx]-1)*s[idx] ) >= fN[idx]-1 ){
+	if( (int) floor( (fN[idx]-1)*scale[idx] ) < 0 || 
+	    (int) floor( (fN[idx]-1)*scale[idx] ) >= fN[idx]-1 ){
 
 ///	if( s[idx] < 0.0 || s[idx] >= 1.0 ){
 	    // Out of range, return 0 field
@@ -64,13 +64,13 @@ void G4SBSBigBiteField::GetFieldValue(const double Point[3],double *Bfield) cons
 
     }
 
-    i = (int) floor( (fN[0]-1)*s[0] );
-    j = (int) floor( (fN[1]-1)*s[1] );
-    k = (int) floor( (fN[2]-1)*s[2] );
+    i = (int) floor( (fN[0]-1)*scale[0] );
+    j = (int) floor( (fN[1]-1)*scale[1] );
+    k = (int) floor( (fN[2]-1)*scale[2] );
 
-    sx = (fN[0]-1)*s[0] - (double) i;
-    sy = (fN[1]-1)*s[1] - (double) j;
-    sz = (fN[2]-1)*s[2] - (double) k;
+    sx = (fN[0]-1)*scale[0] - (double) i;
+    sy = (fN[1]-1)*scale[1] - (double) j;
+    sz = (fN[2]-1)*scale[2] - (double) k;
 
      
 
@@ -102,7 +102,7 @@ void G4SBSBigBiteField::GetFieldValue(const double Point[3],double *Bfield) cons
 //    printf("%f %f %f -> %f %f %f\n", point[0]/cm, point[1]/cm, point[2]/cm, Bfield[0]/tesla, Bfield[1]/tesla, Bfield[2]/tesla );
 
     // Rotate to global coordinates
-    newB = (frm->inverse())*newB;
+    newB = (frm.inverse())*newB;
 
     if( !fInverted ){
 	Bfield[0] = newB.x();

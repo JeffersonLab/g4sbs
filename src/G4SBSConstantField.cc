@@ -2,7 +2,7 @@
 
 #define MAXBUFF 1024
 
-G4SBSConstantField::G4SBSConstantField(G4ThreeVector offset, G4RotationMatrix *rm, G4ThreeVector boxdim, G4ThreeVector fval) 
+G4SBSConstantField::G4SBSConstantField(G4ThreeVector offset, G4RotationMatrix rm, G4ThreeVector boxdim, G4ThreeVector fval) 
 	: G4SBSMagneticField( offset, rm) {
 
 	    fBoxDim   = boxdim;
@@ -34,7 +34,7 @@ G4SBSConstantField::~G4SBSConstantField() {
 void G4SBSConstantField::GetFieldValue(const double Point[3],double *Bfield) const {
     G4ThreeVector pt(Point[0], Point[1], Point[2]);
 
-    pt = ((*frm)*pt) - fOffset;
+    pt = frm*pt - fOffset;
 
     int jdx;
     bool isinbox = true;
@@ -57,7 +57,7 @@ void G4SBSConstantField::GetFieldValue(const double Point[3],double *Bfield) con
     G4ThreeVector newB(Bfield[0], Bfield[1], Bfield[2]);
 
     // Rotate to global coordinates
-    newB = (frm->inverse())*newB;
+    newB = (frm.inverse())*newB;
 
     if( !fInverted ){
 	Bfield[0] = newB.x();

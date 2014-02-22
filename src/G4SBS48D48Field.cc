@@ -5,11 +5,26 @@
 G4SBS48D48Field::G4SBS48D48Field(G4ThreeVector offset, G4RotationMatrix *rm) 
     : G4SBSMappedField( offset, rm,  "GEN-map1.table" ) 
 {
-    
+	ReadField();    
 }
 
 
 G4SBS48D48Field::~G4SBS48D48Field() {
+    int i,j,k;
+
+    for( i = 0; i < fN[0]; i++ ){
+	for( j = 0; j < fN[1]; j++ ){
+	    for( k = 0; k < fN[2]; k++ ){
+		delete fFieldVal[i][j][k];
+	    }
+	    delete fFieldVal[i][j];
+	}
+	delete fFieldVal[i];
+    }
+    delete fFieldVal;
+
+    fFieldVal = NULL;
+    return;
 }
 
 void G4SBS48D48Field::GetFieldValue(const double Point[3],double *Bfield) const {
@@ -126,13 +141,26 @@ void G4SBS48D48Field::ReadField(){
 
     fscanf(f, "%d%d%d%d", &fN[2], &fN[1], &fN[0], &dint);
 
+    /*
 
     // Ensure we have enough space to read this
     if( fN[0] > MAXPT || fN[1] > MAXPT || fN[2] > MAXPT  ){
 	fprintf(stderr, "Error: %s Line %d, %s - File %s is too big\nRead parameters nx = %d ny = %d nz = %d, but MAXPT = %d\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename, fN[0], fN[1], fN[2], MAXPT ); 
 	exit(1);
     }
+    */
 
+    // Dynamically allocate table
+    fFieldVal = new double *** [fN[0]];
+    for( i = 0; i < fN[0]; i++ ){
+	fFieldVal[i] = new double ** [fN[1]];
+	for( j = 0; j < fN[1]; j++ ){
+	    fFieldVal[i][j] = new double * [fN[2]];
+	    for( k = 0; k < fN[2]; k++ ){
+		fFieldVal[i][j][k] = new double[3];
+	    }
+	}
+    }
 
     // Next 8 lines are not useful
     int nskip = 8; 

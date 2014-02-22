@@ -5,9 +5,6 @@
 #include "G4MagneticField.hh"
 #include "G4RotationMatrix.hh"
 
-#define MAXPT 240
-
-
 class G4SBSMagneticField : public G4MagneticField {
     public:
 	G4SBSMagneticField(G4ThreeVector, G4RotationMatrix *);
@@ -36,14 +33,14 @@ class G4SBSMappedField: public G4SBSMagneticField {
 	virtual ~G4SBSMappedField();
 
     protected:
-	virtual void ReadField(){;}
+	virtual void ReadField() = 0;
 
 	char fFilename[255];
 
 	int fN[3];
 	double fMin[3], fMax[3];
 
-	double fFieldVal[MAXPT][MAXPT][MAXPT][3];
+	double ****fFieldVal;
 };
 
 #endif//G4SBSMagneticField_hh

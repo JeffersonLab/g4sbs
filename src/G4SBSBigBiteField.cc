@@ -1,4 +1,5 @@
 #include "G4SBSBigBiteField.hh"
+#include "G4SystemOfUnits.hh"
 
 #define MAXBUFF 1024
 

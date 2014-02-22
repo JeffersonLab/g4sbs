@@ -6,6 +6,10 @@
 #include "G4VSensitiveDetector.hh"
 #include "G4Step.hh"
 
+class G4Step;
+class G4HCofThisEvent;
+class G4TouchableHistory;
+
 class G4SBSCalSD : public G4VSensitiveDetector
 {
 

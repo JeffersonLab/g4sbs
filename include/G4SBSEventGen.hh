@@ -8,87 +8,119 @@
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandGauss.h"
 #include "G4SBSIO.hh"
+#include "DSS2007FF.hh"
 
 #define MAXMOMPT 1000 // N points for targets momentum distribution interpolations
 
 class G4SBSEventGen {
-    public:
-	G4SBSEventGen();
-	~G4SBSEventGen();
+public:
+  G4SBSEventGen();
+  ~G4SBSEventGen();
+  
+  double GetBeamE(){ return fBeamE; }
+  G4ThreeVector GetBeamP(){ return fBeamP; }
+  
+  G4ThreeVector GetV(){ return fVert; }
+  
+  double GetElectronE(){ return fElectronE; }
+  double GetNucleonE(){ return fNucleonE; }
+  double GetHadronE(){ return fHadronE; }
+ 
+  G4ThreeVector GetElectronP(){ return fElectronP; }
+  G4ThreeVector GetNucleonP(){ return fNucleonP; }
+  G4ThreeVector GetHadronP(){ return fHadronP; }
+ 
+  Nucl_t GetNucleonType(){ return fNuclType; }
+  Nucl_t GetFinalNucleon(){ return fFinalNucl; }
 
-	double GetBeamE(){ return fBeamE; }
-	G4ThreeVector GetBeamP(){ return fBeamP; }
+  Hadron_t GetHadronType(){ return fHadronType; }
+  
+  bool GenerateEvent();
+  
+  ev_t GetEventData();
+  
+  void SetNevents(int n){fNevt = n;}
+  void SetBeamCur(double c){fBeamCur = c;}
+  void SetBeamE(double c){fBeamE= c; fBeamP = G4ThreeVector(0.0, 0.0, c); }
+  void SetRunTime(double t){fRunTime = t;}
+  
+  void SetKine(Kine_t t ){fKineType = t;}
+  Kine_t GetKine(){return fKineType;}
+  
+  void SetTarget(Targ_t t ){fTargType = t;}
+  void SetTargLen(double len){fTargLen = len;}
+  void SetTargDen(double den){fTargDen = den;}
+  
+  void SetRasterX(double v){fRasterX = v;}
+  void SetRasterY(double v){fRasterY = v;}
+  
+  void SetThMin(double v){fThMin = v;}
+  void SetThMax(double v){fThMax = v;}
+  void SetPhMin(double v){fPhMin = v;}
+  void SetPhMax(double v){fPhMax = v;}
+  
+  void SetEeMin(double v){fEeMin = v;}
+  void SetEeMax(double v){fEeMax = v;}
 
-	G4ThreeVector GetV(){ return fVert; }
+  void SetEhadMin(double v){fEhadMin = v;}
+  void SetEhadMax(double v){fEhadMax = v;}
+  void SetThMin_had(double v){fThMin_had = v; }
+  void SetThMax_had(double v){fThMax_had = v; }
+  void SetPhMin_had(double v){fPhMin_had = v; }
+  void SetPhMax_had(double v){fPhMax_had = v; }
 
-	double GetElectronE(){ return fElectronE; }
-	double GetNucleonE(){ return fNucleonE; }
-	G4ThreeVector GetElectronP(){ return fElectronP; }
-	G4ThreeVector GetNucleonP(){ return fNucleonP; }
+  void SetHadronType( Hadron_t h ){fHadronType = h; }
 
-	Nucl_t GetNucleonType(){ return fNuclType; }
-	Nucl_t GetFinalNucleon(){ return fFinalNucl; }
+  void SetHCALDist(double v){ fHCALdist = v;}
+  
+  double GetHcalDist(){ return fHCALdist; }
+  double GetToFres(){ return fToFres; }
+private:
+  double fElectronE, fNucleonE, fHadronE, fBeamE;
+  G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
+  G4ThreeVector fHadronP;
 
-	void GenerateEvent();
+  double fWeight, fQ2, fW2, fxbj, fSigma, fAperp, fApar;
+  
+  //Define additional kinematic quantities for SIDIS:
+  double fz, fPh_perp, fphi_h, fphi_S, fMx;
 
-	ev_t GetEventData();
+  double fBeamCur;
+  double fRunTime;
+  int    fNevt;
+  double Wfact;
+  
+  Nucl_t fNuclType, fFinalNucl;
+  Targ_t fTargType;
+  Kine_t fKineType;
+  
+  // Which hadron species are we considering for pi/K SIDIS?
+  Hadron_t fHadronType; //Currently available: pi+/-/0, K+/-
 
-	void SetNevents(int n){fNevt = n;}
-	void SetBeamCur(double c){fBeamCur = c;}
-	void SetBeamE(double c){fBeamE= c; fBeamP = G4ThreeVector(0.0, 0.0, c); }
-	void SetRunTime(double t){fRunTime = t;}
+  double fThMin, fThMax, fPhMin, fPhMax; //Angular generation limits for electron arm
+  double fEeMin, fEeMax; //Electron energy generation limits
+  double fThMin_had, fThMax_had, fPhMin_had, fPhMax_had; //Angular generation limits for hadron arm 
+  double fEhadMin, fEhadMax; //Hadron (total) energy generation limits (for SIDIS case)--Later we will want to add exclusive hadron production.
+  double fTargLen, fRasterX, fRasterY, fTargDen;
+  double fPmisspar, fPmissperp, fPmissparSm;
+  double fHCALdist, fToFres;
+  
+  G4LorentzVector GetInitialNucl( Targ_t, Nucl_t );
+  
+  bool GenerateElastic( Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateInelastic( Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateFlat( Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateBeam( Nucl_t, G4LorentzVector, G4LorentzVector );
+  
+  bool GenerateSIDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
+  
+  double deutpdist( double );
+  double he3pdist( Nucl_t, double );
+  
+  DSS2007FF fFragFunc; //Class to calculate fragmentation functions using DSS2007
 
-	void SetKine(Kine_t t ){fKineType = t;}
-	Kine_t GetKine(){return fKineType;}
-
-	void SetTarget(Targ_t t ){fTargType = t;}
-	void SetTargLen(double len){fTargLen = len;}
-	void SetTargDen(double den){fTargDen = den;}
-
-	void SetRasterX(double v){fRasterX = v;}
-	void SetRasterY(double v){fRasterY = v;}
-
-	void SetThMin(double v){fThMin = v;}
-	void SetThMax(double v){fThMax = v;}
-	void SetPhMin(double v){fPhMin = v;}
-	void SetPhMax(double v){fPhMax = v;}
-
-	void SetHCALDist(double v){ fHCALdist = v;}
-
-	double GetHcalDist(){ return fHCALdist; }
-	double GetToFres(){ return fToFres; }
-    private:
-	double fElectronE, fNucleonE, fBeamE;
-	G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
-
-	double fWeight, fQ2, fW2, fxbj, fSigma, fAperp, fApar;
-
-	double fBeamCur;
-	double fRunTime;
-	int    fNevt;
-	double Wfact;
-
-	Nucl_t fNuclType, fFinalNucl;
-	Targ_t fTargType;
-	Kine_t fKineType;
-
-	double fThMin, fThMax, fPhMin, fPhMax;
-	double fTargLen, fRasterX, fRasterY, fTargDen;
-	double fPmisspar, fPmissperp, fPmissparSm;
-	double fHCALdist, fToFres;
-
-	G4LorentzVector GetInitialNucl( Targ_t, Nucl_t );
-
-	void GenerateElastic( Nucl_t, G4LorentzVector, G4LorentzVector );
-	void GenerateInelastic( Nucl_t, G4LorentzVector, G4LorentzVector );
-	void GenerateDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
-	void GenerateFlat( Nucl_t, G4LorentzVector, G4LorentzVector );
-	void GenerateBeam( Nucl_t, G4LorentzVector, G4LorentzVector );
-
-	double deutpdist( double );
-	double he3pdist( Nucl_t, double );
-
-	void LoadTargetData();
+  void LoadTargetData();
 };
 
 #endif//G4SBSEVENTGEN_HH

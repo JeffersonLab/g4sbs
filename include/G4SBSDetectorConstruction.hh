@@ -6,6 +6,10 @@
 #include "sbstypes.hh"
 #include "globals.hh"
 
+#include "G4Material.hh"
+#include "G4OpticalSurface.hh"
+#include "G4SDManager.hh"
+#include <map>
 
 class G4SBSGlobalField;
 class G4SBSMagneticField;
@@ -24,73 +28,56 @@ public:
 public:
   G4VPhysicalVolume* Construct();
   G4VPhysicalVolume* ConstructAll();
-  G4VPhysicalVolume* ConstructAllGEp();
 
+  void ConstructMaterials();  //Construct materials and optical surfaces
+  G4Material *GetMaterial( G4String );
+  G4OpticalSurface *GetOpticalSurface( G4String );
+
+  //Build the various subsystems (BeamLine, Target, SBS Magnet, HCAL, BigCal, RICH, GEMs, etc.):
   void ConstructBeamline(G4LogicalVolume*);
   void ConstructTarget(G4LogicalVolume*);
-  void Make48D48(G4LogicalVolume*, double);
-
-  void SetTarget(Targ_t t){fTargType = t;}
-  void SetTargLen(double len){ fTargLen = len;}
-  void SetTargDen(double den){ fTargDen = den;}
-
-  void SetBBAng(double a);
-  void SetBBDist(double a);
-
-  void SetHCALAng(double a);
-  void SetHCALDist(double a){ fHCALdist= a;   }
-  void Set48D48Dist(double a);
-
-  void SetCerDepth(double a){ fCerDepth = a; }
-  void SetCerDist(double a){fCerDist = a;}
-
-  void SetGEMSep(double a){fGEMDist = a;}
-
-  void SetBBCalDist(double a){ fBBCaldist= a; }
-
-  void SetGEMConfig(int gc ){ fGEMOption = gc; }
-
-  G4SBSGlobalField *GetGlobalField(){ return fGlobalField; }
+  
   G4SBSBigBiteField *GetBBField(){ return fbbfield; }
   G4SBS48D48Field *Get48D48Field(){ return f48d48field; }
 
+  void SetBigBiteField(int n);
   void Set48D48Field(int n);
 
   void SetTotalAbs(bool b){ fTotalAbs= b; }
 
+  void SetExpType( Exp_t et ){ fExpType = et; }
+  
+  void SetUniformMagneticField48D48( double B ){ f48D48_uniform_bfield = B; }
 
 private:
   // messeneger
-  G4SBSDetectorMessenger* theMessenger;
 
-  G4SBSGlobalField *fGlobalField;
+  G4SDManager *fSDman; 
+
+  map<G4String, G4Material*> fMaterialsMap;
+  map<G4String, G4OpticalSurface*> fOpticalSurfacesMap;
 
   G4SBSBigBiteField *fbbfield;
-  G4SBS48D48Field *f48d48field;
+  G4SBSMagneticField *f48d48field;
   
-  double fBBang;
-  double fBBdist;
-  double fBBCaldist;
 
-  double f48D48ang;
-  double f48D48dist;
-  double fHCALdist;
 
-  double fCerDepth;
-  double fCerDist;
-  double fGEMDist;
+  //Let's define some additional configurable properties of 48D48:
+  double f48D48_uniform_bfield; //set magnitude (and polarity) of SBS magnetic field (direction is fixed)
 
-  double fTargLen;
-  double fTargDen;
 
-  Targ_t fTargType;
+
 
   bool fTotalAbs;
 
-  int  fGEMOption;
+  Exp_t fExpType;
 
 };
 
+
+gicalVolume*, double);
+  void MakeSBSFieldClamps(G4LogicalVolume*);
+    void MakeHCAL(G4LogicalVolume*, G4double);
 
 #endif
 

@@ -5,7 +5,6 @@
 #include "G4SBSEventAction.hh"
 #include "G4SBSSteppingAction.hh"
 
-#include "G4StepLimiterBuilder.hh"
 
 //------------
 // Geometries:
@@ -19,8 +18,7 @@
 // G4SBSPhysicsList (makes use of the
 // G4ParameterisationManagerProcess):
 //-----------------------------------
-#include "LHEP.hh"
-#include "QGSP_BERT.hh"
+#include "G4SBSPhysicsList.hh"
 
 #include "G4UImanager.hh"
 #include "G4RunManager.hh"
@@ -59,17 +57,18 @@ int main(int argc, char** argv)
   G4SBSMessenger *sbsmess = new G4SBSMessenger();
   sbsmess->SetIO(io);
 
+  G4VModularPhysicsList *physicslist = new G4SBSPhysicsList;
+  sbsmess->SetPhysicsList( ( (G4SBSPhysicsList*) physicslist ) );
+  
+  runManager->SetUserInitialization(physicslist);
+
   // Detector/mass geometry and parallel geometry(ies):
   G4VUserDetectorConstruction* detector = new G4SBSDetectorConstruction();
   sbsmess->SetDetCon((G4SBSDetectorConstruction *) detector);
 
   runManager->SetUserInitialization(detector);
   
-  // PhysicsList (including G4FastSimulationManagerProcess)
-//  G4VModularPhysicsList* physicsList = new LHEP();
-  G4VModularPhysicsList* physicsList = new QGSP_BERT();
-  physicsList->RegisterPhysics(new G4StepLimiterBuilder());
-  runManager->SetUserInitialization(physicsList);
+  
 
   //-------------------------------
   // UserAction classes
@@ -82,6 +81,9 @@ int main(int argc, char** argv)
   ((G4SBSPrimaryGeneratorAction *) gen_action)->SetIO(io);
   sbsmess->SetEvGen(((G4SBSPrimaryGeneratorAction *) gen_action)->GetEvGen());
   sbsmess->SetPriGen((G4SBSPrimaryGeneratorAction *) gen_action);
+
+  ( (G4SBSPrimaryGeneratorAction*) gen_action )->SetRunAction( (G4SBSRunAction*) run_action );
+  
   runManager->SetUserAction(gen_action);
   //
   G4UserEventAction* event_action = new G4SBSEventAction;
@@ -96,10 +98,7 @@ int main(int argc, char** argv)
 
   // Initialize Run manager
   runManager->Initialize();
-  
-    // New units
-
-
+ 
   //----------------
   // Visualization:
   //----------------

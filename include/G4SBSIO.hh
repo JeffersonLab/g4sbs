@@ -4,9 +4,12 @@
 #include "TROOT.h"
 #include "TObject.h"
 #include "G4Run.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4SBSRICHoutput.hh"
 
 class TFile;
 class TTree;
+
 
 #define MAXHITDATA 2000
 
@@ -24,7 +27,9 @@ typedef struct {
     Double_t npx, npy, npz;
     Double_t nth, nph;
     Double_t pmperp, pmpar, pmparsm;
+  Double_t z, phperp, phih, MX;
     Int_t nucl, fnucl;
+  Int_t hadr;
 } ev_t;
 
 typedef struct {
@@ -70,6 +75,8 @@ class G4SBSIO {
 	void SetCalData(cal_t cd){ caldata = cd; }
 	void SetEventData(ev_t ed){ evdata = ed; }
 	void SetHitData(hit_t ht){ hitdata = ht; }
+  void SetRICHData( G4SBSRICHoutput rd ) { richdata = rd; }
+
 	void FillTree();
 	void WriteTree();
 
@@ -91,6 +98,8 @@ class G4SBSIO {
 	tr_t trdata;
 	cal_t caldata;
 	hit_t hitdata;
+  
+  G4SBSRICHoutput richdata;
 
 	char fFilename[255];
 

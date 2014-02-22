@@ -365,12 +365,12 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 	    frontclampLog, "frontclampPhysical", motherlog, 0,false,0);
 
     /*
-      No more back clamp
-    new G4PVPlacement(rot, 
-	    //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
-	    G4ThreeVector(-(r48d48+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
-	    backclampLog, "backclampPhysical", motherlog, 0,false,0);
-	    */
+       No more back clamp
+       new G4PVPlacement(rot, 
+    //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (f48D48dist+bigdepth/2.0+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
+    G4ThreeVector(-(r48d48+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
+    backclampLog, "backclampPhysical", motherlog, 0,false,0);
+    */
 }
 
 
@@ -704,173 +704,173 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     }
     //}
 
-    PMTcathode_log->SetSensitiveDetector( RICHSD ); //This assigns the sensitive detector type "RICHSD" to the logical volume PMTcathode!
-    //We make this a hollow cylinder with length and radius approximately equal to that of the PMT housing, made of steel 
-    //to approximate the material shielding the PMT.
-    G4LogicalVolume *PMTtube_log    = new G4LogicalVolume( PMTtube, GetMaterial("Steel"), "PMTtube_log" ); 
-    G4LogicalVolume *PMTquartzwindow_log = new G4LogicalVolume( PMTQuartzWindow, GetMaterial("QuartzWindow"), "PMTQuartzWindow_log" );
-    G4LogicalVolume *CollectionCone_log = new G4LogicalVolume( CollectionCone, GetMaterial("Steel"), "CollectionCone_log" );
-    //Define a logical skin surface for the collection cone and assign it the same reflectivity as the mirror:
-    new G4LogicalSkinSurface( "Coneskin", CollectionCone_log, GetOpticalSurface("Mirrsurf") );
+PMTcathode_log->SetSensitiveDetector( RICHSD ); //This assigns the sensitive detector type "RICHSD" to the logical volume PMTcathode!
+//We make this a hollow cylinder with length and radius approximately equal to that of the PMT housing, made of steel 
+//to approximate the material shielding the PMT.
+G4LogicalVolume *PMTtube_log    = new G4LogicalVolume( PMTtube, GetMaterial("Steel"), "PMTtube_log" ); 
+G4LogicalVolume *PMTquartzwindow_log = new G4LogicalVolume( PMTQuartzWindow, GetMaterial("QuartzWindow"), "PMTQuartzWindow_log" );
+G4LogicalVolume *CollectionCone_log = new G4LogicalVolume( CollectionCone, GetMaterial("Steel"), "CollectionCone_log" );
+//Define a logical skin surface for the collection cone and assign it the same reflectivity as the mirror:
+new G4LogicalSkinSurface( "Coneskin", CollectionCone_log, GetOpticalSurface("Mirrsurf") );
 
-    //Within the RICHbox, each PMT assembly unit is rotated so that its z-axis makes an angle of 50 degrees with respect to the 
-    //local z axis of the RICHbox. Therefore, we rotate by an angle of 
-    G4double PMT_rotation_angle = 50.0*degree;
-    G4RotationMatrix *rot_PMT = new G4RotationMatrix;
-    rot_PMT->rotateY( PMT_rotation_angle );
+//Within the RICHbox, each PMT assembly unit is rotated so that its z-axis makes an angle of 50 degrees with respect to the 
+//local z axis of the RICHbox. Therefore, we rotate by an angle of 
+G4double PMT_rotation_angle = 50.0*degree;
+G4RotationMatrix *rot_PMT = new G4RotationMatrix;
+rot_PMT->rotateY( PMT_rotation_angle );
 
-    G4int icopy_PMT_assembly = 0;
+G4int icopy_PMT_assembly = 0;
 
-    G4double xfp = 119.350*cm - RICHbox_dx/2.0;
-    G4double yfp = 0.0;
-    G4double zfp = 42.521*cm - RICHbox_dz/2.0;
+G4double xfp = 119.350*cm - RICHbox_dx/2.0;
+G4double yfp = 0.0;
+G4double zfp = 42.521*cm - RICHbox_dz/2.0;
 
-    G4ThreeVector focalpoint_position( xfp, yfp, zfp );
+G4ThreeVector focalpoint_position( xfp, yfp, zfp );
 
-    G4ThreeVector PMT_zaxis( -sin(PMT_rotation_angle), 0.0, cos(PMT_rotation_angle) );
-    G4ThreeVector PMT_yaxis( 0, 1, 0 );
-    G4ThreeVector PMT_xaxis( (PMT_yaxis.cross( PMT_zaxis ) ).unit() );
+G4ThreeVector PMT_zaxis( -sin(PMT_rotation_angle), 0.0, cos(PMT_rotation_angle) );
+G4ThreeVector PMT_yaxis( 0, 1, 0 );
+G4ThreeVector PMT_xaxis( (PMT_yaxis.cross( PMT_zaxis ) ).unit() );
 
-    G4double ymin_PMT = -72.5376*cm, ymax_PMT = 72.5376*cm;
-    G4double xmin_PMT[2] = { -29.083*cm, -30.24632*cm };
-    G4double xmax_PMT[2] = { 29.083*cm, 30.24632*cm };
-    G4int nrows_PMT[2] = {26, 27};
+G4double ymin_PMT = -72.5376*cm, ymax_PMT = 72.5376*cm;
+G4double xmin_PMT[2] = { -29.083*cm, -30.24632*cm };
+G4double xmax_PMT[2] = { 29.083*cm, 30.24632*cm };
+G4int nrows_PMT[2] = {26, 27};
 
-    for( G4int icol=0; icol<=72; icol++){
-	G4int evenoddcol = icol%2;
-	for( G4int irow=0; irow<nrows_PMT[evenoddcol]; irow++ ){
-	    G4double xtemp = xmin_PMT[evenoddcol] + irow * ( xmax_PMT[evenoddcol] - xmin_PMT[evenoddcol] )/( G4double(nrows_PMT[evenoddcol]-1) );
-	    G4double ytemp = ymin_PMT + icol*(ymax_PMT-ymin_PMT)/( 72.0 );
+for( G4int icol=0; icol<=72; icol++){
+    G4int evenoddcol = icol%2;
+    for( G4int irow=0; irow<nrows_PMT[evenoddcol]; irow++ ){
+	G4double xtemp = xmin_PMT[evenoddcol] + irow * ( xmax_PMT[evenoddcol] - xmin_PMT[evenoddcol] )/( G4double(nrows_PMT[evenoddcol]-1) );
+	G4double ytemp = ymin_PMT + icol*(ymax_PMT-ymin_PMT)/( 72.0 );
 
-	    G4ThreeVector PMT_position = focalpoint_position - PMT_zaxis * PMT_total_length/2.0 + xtemp * PMT_xaxis + ytemp * PMT_yaxis;
+	G4ThreeVector PMT_position = focalpoint_position - PMT_zaxis * PMT_total_length/2.0 + xtemp * PMT_xaxis + ytemp * PMT_yaxis;
 
-	    //Place PMT components inside RICHbox.
-	    G4ThreeVector Pos_temp;
-	    //Steel tube (mainly for visualization and shielding
-	    G4double ztube = -PMT_total_length/2.0 + 4.35*cm;
-	    Pos_temp = PMT_position + ztube * PMT_zaxis;
-	    new G4PVPlacement( rot_PMT, Pos_temp, PMTtube_log, "PMTtube_pv", RICHbox_log, false, icopy_PMT_assembly );
-	    //Photocathode (this is the sensitive part!!):
-	    G4double zcathode = ztube + 4.375*cm;
-	    Pos_temp = PMT_position + zcathode * PMT_zaxis;
-	    new G4PVPlacement( rot_PMT, Pos_temp, PMTcathode_log, "PMTcathode_pv", RICHbox_log, false, icopy_PMT_assembly );
-	    //UV-glass PMT window:
-	    G4double zwindow = zcathode + 0.075*cm;
-	    Pos_temp = PMT_position + zwindow * PMT_zaxis;
-	    new G4PVPlacement( rot_PMT, Pos_temp, PMTwindow_log, "PMTwindow_pv", RICHbox_log, false, icopy_PMT_assembly );
-	    //Quartz window between PMT and gas:
-	    G4double zquartz = zwindow + 0.2*cm;
-	    Pos_temp = PMT_position + zquartz * PMT_zaxis;
-	    new G4PVPlacement( rot_PMT, Pos_temp, PMTquartzwindow_log, "PMTquartzwindow_pv", RICHbox_log, false, icopy_PMT_assembly );
-	    //Light collection cone:
-	    G4double zcone = zquartz + 0.9*cm;
-	    Pos_temp = PMT_position + zcone * PMT_zaxis;
-	    new G4PVPlacement( rot_PMT, Pos_temp, CollectionCone_log, "CollectionCone_pv", RICHbox_log, false, icopy_PMT_assembly );
+	//Place PMT components inside RICHbox.
+	G4ThreeVector Pos_temp;
+	//Steel tube (mainly for visualization and shielding
+	G4double ztube = -PMT_total_length/2.0 + 4.35*cm;
+	Pos_temp = PMT_position + ztube * PMT_zaxis;
+	new G4PVPlacement( rot_PMT, Pos_temp, PMTtube_log, "PMTtube_pv", RICHbox_log, false, icopy_PMT_assembly );
+	//Photocathode (this is the sensitive part!!):
+	G4double zcathode = ztube + 4.375*cm;
+	Pos_temp = PMT_position + zcathode * PMT_zaxis;
+	new G4PVPlacement( rot_PMT, Pos_temp, PMTcathode_log, "PMTcathode_pv", RICHbox_log, false, icopy_PMT_assembly );
+	//UV-glass PMT window:
+	G4double zwindow = zcathode + 0.075*cm;
+	Pos_temp = PMT_position + zwindow * PMT_zaxis;
+	new G4PVPlacement( rot_PMT, Pos_temp, PMTwindow_log, "PMTwindow_pv", RICHbox_log, false, icopy_PMT_assembly );
+	//Quartz window between PMT and gas:
+	G4double zquartz = zwindow + 0.2*cm;
+	Pos_temp = PMT_position + zquartz * PMT_zaxis;
+	new G4PVPlacement( rot_PMT, Pos_temp, PMTquartzwindow_log, "PMTquartzwindow_pv", RICHbox_log, false, icopy_PMT_assembly );
+	//Light collection cone:
+	G4double zcone = zquartz + 0.9*cm;
+	Pos_temp = PMT_position + zcone * PMT_zaxis;
+	new G4PVPlacement( rot_PMT, Pos_temp, CollectionCone_log, "CollectionCone_pv", RICHbox_log, false, icopy_PMT_assembly );
 
-	    // G4VPhysicalVolume *PMT_placement = new G4PVPlacement( rot_PMT, 
-	    // 							   PMT_position, 
-	    // 							   PMT_assembly, 
-	    // 							   "PMT_placement", 
-	    // 							   RICHbox_log, 
-	    // 							   false, 
-	    // 							   icopy_PMT_assembly++ );
-	    icopy_PMT_assembly++;
+	// G4VPhysicalVolume *PMT_placement = new G4PVPlacement( rot_PMT, 
+	// 							   PMT_position, 
+	// 							   PMT_assembly, 
+	// 							   "PMT_placement", 
+	// 							   RICHbox_log, 
+	// 							   false, 
+	// 							   icopy_PMT_assembly++ );
+	icopy_PMT_assembly++;
 
 
-	}
     }
+}
 
 
-    ////////////////////////////////////////////////////////////////////////
-    //                         !!!END OF PMTS!!!                                 //
-    ////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//                         !!!END OF PMTS!!!                                 //
+////////////////////////////////////////////////////////////////////////
 
-    //At the end we have to define the translation and rotation to apply for correct positioning of RICHbox:
-    //Rotation is easy, same as HCAL, we rotate about the Y axis by -f48D48ang:
+//At the end we have to define the translation and rotation to apply for correct positioning of RICHbox:
+//Rotation is easy, same as HCAL, we rotate about the Y axis by -f48D48ang:
 
-    G4RotationMatrix *rot_RICH = new G4RotationMatrix;
-    rot_RICH->rotateY( -f48D48ang );
+     G4RotationMatrix *rot_RICH = new G4RotationMatrix;
+     rot_RICH->rotateY( -f48D48ang );
 
-    //We want the center of the RICH entry window to be located at a distance equal to fRICHdist along the line at angle f48D48ang from the origin. For this condition to be satisfied, the center of the RICH box must be offset from this line:
-    G4ThreeVector RICHcoord_global( fRICHdist*sin( f48D48ang ), 0.0, fRICHdist*cos( f48D48ang ) );
+     //We want the center of the RICH entry window to be located at a distance equal to fRICHdist along the line at angle f48D48ang from the origin. For this condition to be satisfied, the center of the RICH box must be offset from this line:
+     G4ThreeVector RICHcoord_global( fRICHdist*sin( f48D48ang ), 0.0, fRICHdist*cos( f48D48ang ) );
 
-    G4ThreeVector RICH_zaxis( RICHcoord_global.unit() );
-    G4ThreeVector RICH_yaxis( 0.0, 1.0, 0.0 );
-    G4ThreeVector RICH_xaxis( (RICH_yaxis.cross( RICH_zaxis )).unit() );
+     G4ThreeVector RICH_zaxis( RICHcoord_global.unit() );
+     G4ThreeVector RICH_yaxis( 0.0, 1.0, 0.0 );
+     G4ThreeVector RICH_xaxis( (RICH_yaxis.cross( RICH_zaxis )).unit() );
 
-    //RICH center coordinates
+     //RICH center coordinates
 
-    G4ThreeVector RICH_centercoord_global = RICHcoord_global - x0_entrywindow * RICH_xaxis - y0_entrywindow * RICH_yaxis - z0_entrywindow * RICH_zaxis;
+     G4ThreeVector RICH_centercoord_global = RICHcoord_global - x0_entrywindow * RICH_xaxis - y0_entrywindow * RICH_yaxis - z0_entrywindow * RICH_zaxis;
 
-    new G4PVPlacement( rot_RICH, 
-	    RICH_centercoord_global,
-	    RICHbox_log,
-	    "RICHbox_pv",
-	    motherlog, 
-	    false, 
-	    0 );
+     new G4PVPlacement( rot_RICH, 
+	     RICH_centercoord_global,
+	     RICHbox_log,
+	     "RICHbox_pv",
+	     motherlog, 
+	     false, 
+	     0 );
 
 
-    G4VisAttributes *RICHbox_vis = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
-    RICHbox_vis->SetForceWireframe(true);
+     G4VisAttributes *RICHbox_vis = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
+     RICHbox_vis->SetForceWireframe(true);
 
-    RICHbox_log->SetVisAttributes( RICHbox_vis ); 
+     RICHbox_log->SetVisAttributes( RICHbox_vis ); 
 
-    //Set color and transparency for RICH windows (Aluminum)
-    G4VisAttributes *RICHwindow_visatt = new G4VisAttributes( G4Colour( 0.75,0.75,0.75) );
+     //Set color and transparency for RICH windows (Aluminum)
+     G4VisAttributes *RICHwindow_visatt = new G4VisAttributes( G4Colour( 0.75,0.75,0.75) );
 
-    //RICH entry and exit windows are not inherently interesting, so we force them to wireframe:
-    RICHwindow_visatt->SetForceWireframe(true);
+     //RICH entry and exit windows are not inherently interesting, so we force them to wireframe:
+     RICHwindow_visatt->SetForceWireframe(true);
 
-    RICH_exitwindow->SetVisAttributes( RICHwindow_visatt );
-    RICH_entrywindow_log->SetVisAttributes( RICHwindow_visatt );
+     RICH_exitwindow->SetVisAttributes( RICHwindow_visatt );
+     RICH_entrywindow_log->SetVisAttributes( RICHwindow_visatt );
 
-    //Set aerogel exit window to a magenta color (equal parts red and blue) and also wireframe:
-    G4VisAttributes *Lucitewindow_visatt = new G4VisAttributes( G4Colour( 1.0,0.0,1.0 ) );
-    Lucitewindow_visatt->SetForceWireframe(true); 
+     //Set aerogel exit window to a magenta color (equal parts red and blue) and also wireframe:
+     G4VisAttributes *Lucitewindow_visatt = new G4VisAttributes( G4Colour( 1.0,0.0,1.0 ) );
+     Lucitewindow_visatt->SetForceWireframe(true); 
 
-    Aero_exitwindow->SetVisAttributes( Lucitewindow_visatt );
+     Aero_exitwindow->SetVisAttributes( Lucitewindow_visatt );
 
-    G4VisAttributes *aero_tile_visatt = new G4VisAttributes( G4Colour( 0.0, 0.8, 0.8 ) );
-    Aerogel_tile_log->SetVisAttributes( aero_tile_visatt );
+     G4VisAttributes *aero_tile_visatt = new G4VisAttributes( G4Colour( 0.0, 0.8, 0.8 ) );
+     Aerogel_tile_log->SetVisAttributes( aero_tile_visatt );
 
-    G4VisAttributes *tedlar_vis = new G4VisAttributes( G4Colour(0.3,0.3,0.3) );
-    Vertical_spacer_log->SetVisAttributes( tedlar_vis );
-    Horizontal_spacer_log->SetVisAttributes( tedlar_vis );
+     G4VisAttributes *tedlar_vis = new G4VisAttributes( G4Colour(0.3,0.3,0.3) );
+     Vertical_spacer_log->SetVisAttributes( tedlar_vis );
+     Horizontal_spacer_log->SetVisAttributes( tedlar_vis );
 
-    G4VisAttributes *mirror_vis = new G4VisAttributes( G4Colour(0.0, 0.5, 1.0) );
-    Mirror_log->SetVisAttributes( mirror_vis );
+     G4VisAttributes *mirror_vis = new G4VisAttributes( G4Colour(0.0, 0.5, 1.0) );
+     Mirror_log->SetVisAttributes( mirror_vis );
 
-    //PMT_assembly->SetVisAttributes( G4VisAttributes::GetInvisible() );
+     //PMT_assembly->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
-    //  G4VisAttributes for PMT assemblies:
+     //  G4VisAttributes for PMT assemblies:
 
-    G4VisAttributes *PMTtube_vis = new G4VisAttributes( G4Colour( 0.4, 0.4, 0.4 ) );
-    PMTtube_vis->SetForceLineSegmentsPerCircle( 24 );
-    PMTtube_log->SetVisAttributes( PMTtube_vis );
+     G4VisAttributes *PMTtube_vis = new G4VisAttributes( G4Colour( 0.4, 0.4, 0.4 ) );
+     PMTtube_vis->SetForceLineSegmentsPerCircle( 24 );
+     PMTtube_log->SetVisAttributes( PMTtube_vis );
 
-    G4VisAttributes *PMTwindow_vis = new G4VisAttributes( G4Colour::Cyan() );
-    PMTwindow_vis->SetForceLineSegmentsPerCircle( 24 );
-    PMTwindow_vis->SetForceWireframe( true );
-    PMTwindow_log->SetVisAttributes( PMTwindow_vis );
+     G4VisAttributes *PMTwindow_vis = new G4VisAttributes( G4Colour::Cyan() );
+     PMTwindow_vis->SetForceLineSegmentsPerCircle( 24 );
+     PMTwindow_vis->SetForceWireframe( true );
+     PMTwindow_log->SetVisAttributes( PMTwindow_vis );
 
-    //  PMTcathode_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
-    G4VisAttributes *PMTcathode_vis = new G4VisAttributes( G4Colour::Blue() );
-    PMTcathode_vis->SetForceLineSegmentsPerCircle( 24 );
-    PMTcathode_log->SetVisAttributes( PMTcathode_vis );
+     //  PMTcathode_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+     G4VisAttributes *PMTcathode_vis = new G4VisAttributes( G4Colour::Blue() );
+     PMTcathode_vis->SetForceLineSegmentsPerCircle( 24 );
+     PMTcathode_log->SetVisAttributes( PMTcathode_vis );
 
-    G4VisAttributes *PMTquartzwindow_vis = new G4VisAttributes( G4Colour::Green() );
-    PMTquartzwindow_vis->SetForceLineSegmentsPerCircle( 24 );
-    PMTquartzwindow_vis->SetForceWireframe( true );
-    PMTquartzwindow_log->SetVisAttributes( PMTquartzwindow_vis );
+     G4VisAttributes *PMTquartzwindow_vis = new G4VisAttributes( G4Colour::Green() );
+     PMTquartzwindow_vis->SetForceLineSegmentsPerCircle( 24 );
+     PMTquartzwindow_vis->SetForceWireframe( true );
+     PMTquartzwindow_log->SetVisAttributes( PMTquartzwindow_vis );
 
-    G4VisAttributes *CollectionCone_vis = new G4VisAttributes( G4Colour::Red() );
-    CollectionCone_vis->SetForceLineSegmentsPerCircle( 24 );
-    CollectionCone_log->SetVisAttributes( CollectionCone_vis );
+     G4VisAttributes *CollectionCone_vis = new G4VisAttributes( G4Colour::Red() );
+     CollectionCone_vis->SetForceLineSegmentsPerCircle( 24 );
+     CollectionCone_log->SetVisAttributes( CollectionCone_vis );
 
-    G4VisAttributes *RICHwalls_vis = new G4VisAttributes( G4Colour::Gray() );
-    RICHwalls_vis->SetForceWireframe( true );
-    RICH_container_walls->SetVisAttributes( RICHwalls_vis );
+     G4VisAttributes *RICHwalls_vis = new G4VisAttributes( G4Colour::Gray() );
+     RICHwalls_vis->SetForceWireframe( true );
+     RICH_container_walls->SetVisAttributes( RICHwalls_vis );
 
 }
 

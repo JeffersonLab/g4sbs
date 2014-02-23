@@ -882,6 +882,10 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
 
     switch(n){
 	case 1:
+	    if( f48d48field ){
+		fGlobalField->DropField(f48d48field);
+		delete f48d48field;
+	    }
 	    rm.rotateY(fHArmBuilder->f48D48ang);
 
 	    f48d48field = new G4SBSConstantField( 
@@ -926,3 +930,14 @@ void G4SBSDetectorConstruction::Set48D48Ang(double a){
     rm.rotateY(-a);
     if( f48d48field ) f48d48field->SetRM(rm); 
 }
+
+void G4SBSDetectorConstruction::SetUniformMagneticField48D48( double B ) { 
+    f48D48_uniform_bfield = B; 
+    if( f48d48field ){
+	G4SBSConstantField *f = dynamic_cast<G4SBSConstantField *>(f48d48field);
+	if( f ){
+	    f->SetFieldVector(G4ThreeVector(f48D48_uniform_bfield, 0.0, 0.0));
+	}
+    }
+}
+

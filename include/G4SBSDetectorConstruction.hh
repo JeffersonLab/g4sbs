@@ -56,7 +56,7 @@ class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
 	void SetExpType( Exp_t et ){ fExpType = et; }
 	void SetTarget( Targ_t tg ){ fTargType = tg; }
 
-	void SetUniformMagneticField48D48( double B ){ f48D48_uniform_bfield = B; }
+	void SetUniformMagneticField48D48( double B );
 
 	Exp_t fExpType;
 	Targ_t fTargType;

@@ -10,6 +10,8 @@ class G4SBSConstantField : public G4SBSMagneticField {
 	G4SBSConstantField(G4ThreeVector , G4RotationMatrix, G4ThreeVector, G4ThreeVector);
 	~G4SBSConstantField();
 
+	void SetFieldVector( G4ThreeVector B ){ fFieldVal = B; }
+
 	void GetFieldValue( const  double Point[3], double *Bfield ) const;
     private:
 

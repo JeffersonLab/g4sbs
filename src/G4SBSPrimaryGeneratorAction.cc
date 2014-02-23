@@ -57,7 +57,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   int ntries = 1;
   while( !sbsgen->GenerateEvent() ){ ntries++; }
 
-  G4cout << "Got event, ntries = " << ntries << G4endl;
+//  G4cout << "Got event, ntries = " << ntries << G4endl;
 
   int ntries_run = RunAction->GetNtries();
   RunAction->SetNtries( ntries_run + ntries );

@@ -3,6 +3,7 @@
 #include "TMatrixTBase.h"
 #include "THashTable.h"
 #include "G4SBSMessenger.hh"
+#include "G4SBSRun.hh"
 
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4UIcmdWithAString.hh"
@@ -344,6 +345,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	if( !validcmd ){
 	    fprintf(stderr, "%s: %s line %d - Error: kinematic type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
 	    exit(1);
+	} else {
+	    G4SBSRun::GetRun()->GetData()->SetGenName(newValue.data());
 	}
     }
 
@@ -371,7 +374,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	  validcmd = true;
 	}
 
-	if( validcmd ) fdetcon->SetExpType( fExpType );
+	if( validcmd ){
+	    fdetcon->SetExpType( fExpType );
+	    G4SBSRun::GetRun()->GetData()->SetExpType(newValue.data());
+	}
 
 	if( !validcmd ){
 	    fprintf(stderr, "%s: %s line %d - Error: kinematic type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
@@ -534,6 +540,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	G4double v = beamECmd->GetNewDoubleValue(newValue);
 	fevgen->SetBeamE(v);
 	fIO->SetBeamE(v);
+
+	G4SBSRun::GetRun()->GetData()->SetBeamE(v/GeV);
     }
 
     if( cmd == bbangCmd ){

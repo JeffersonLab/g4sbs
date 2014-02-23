@@ -6,6 +6,7 @@
 G4SBSRunData::G4SBSRunData(){
     fNthrown = -1;
     fBeamE   = -1e9;
+    fExpType[0]  = '\0';
     fGenName[0]  = '\0';
     fGitInfo[0]  = '\0';
     fHostName[0] = '\0';
@@ -17,6 +18,7 @@ G4SBSRunData::~G4SBSRunData(){
 void G4SBSRunData::Init(){
     fNthrown = 0;
     fBeamE   = 0;
+    strcpy(fExpType, "default");
     strcpy(fGenName, "default");
     strcpy(fGitInfo, gGitInfoStr);
     if(gethostname(fHostName,__RUNSTR_LEN) == -1){
@@ -37,6 +39,7 @@ void G4SBSRunData::Print(Option_t *) const {
     printf("Run Path %s\n", fRunPath);
     printf("N generated = %ld\n", fNthrown);
     printf("Beam Energy = %f GeV\n", fBeamE);
+    printf("Experiment  = %s\n", fExpType);
     printf("Generator   = %s\n", fGenName);
 
     printf("Field maps:\n");

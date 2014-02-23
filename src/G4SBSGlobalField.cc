@@ -1,3 +1,4 @@
+#include <TMD5.h>
 #include "TCanvas.h"
 #include "TH2F.h"
 #include "G4SBSGlobalField.hh"
@@ -5,7 +6,11 @@
 #include "G4FieldManager.hh"
 #include "G4TransportationManager.hh"
 
+#include "sbstypes.hh"
+
 #include "G4SBSToscaField.hh"
+#include "G4SBSRun.hh"
+#include <sys/stat.h>
 
 #include <vector>
 
@@ -61,6 +66,27 @@ void G4SBSGlobalField::AddToscaField( const char *fn ){
     G4SBSToscaField *f = new G4SBSToscaField(fn);
     AddField(f);
     G4TransportationManager::GetTransportationManager()->GetFieldManager()->CreateChordFinder(this);
+
+    G4SBSRunData *rd = G4SBSRun::GetRun()->GetData();
+    TMD5 *md5 = TMD5::FileChecksum(fn);
+    filedata_t fdata;
+
+    strcpy(fdata.filename, fn);
+    strcpy(fdata.hashsum, md5->AsString() );
+
+    G4cout << "MD5 checksum " << md5->AsString() << G4endl;
+
+    delete md5;
+
+    struct stat fs;
+    stat(fn, &fs);
+    fdata.timestamp = TTimeStamp( fs.st_mtime );
+
+    fdata.timestamp.Print();
+
+    rd->AddMagData(fdata);
+
+
     return;
 }
 

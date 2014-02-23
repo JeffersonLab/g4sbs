@@ -8,6 +8,8 @@
 #include "G4SBSPrimaryGeneratorAction.hh"
 #include "G4SBSEventAction.hh"
 #include "G4SBSSteppingAction.hh"
+#include "G4SBSRun.hh"
+#include "G4SBSRunData.hh"
 
 
 //------------
@@ -57,6 +59,8 @@ int main(int argc, char** argv)
     }
 
     CLHEP::HepRandom::setTheSeed(seed);
+
+    G4SBSRun::GetRun()->GetData()->SetSeed(seed);
 
     G4SBSIO *io = new G4SBSIO();
 
@@ -112,6 +116,8 @@ int main(int argc, char** argv)
 
   // Initialize Run manager
   runManager->Initialize();
+
+  G4SBSRunData *rundata = G4SBSRun::GetRun()->GetData();
  
   //----------------
   // Visualization:
@@ -151,9 +157,11 @@ int main(int argc, char** argv)
   }
   else
   {
+    rundata->SetMacroFile(argv[1]);
     G4String command = "/control/execute ";
     G4String fileName = argv[1];
     UImanager->ApplyCommand(command+fileName);
+
   }
 
   // Free the store: user actions, physics_list and detector_description are

@@ -32,6 +32,9 @@ class G4SBSRunData : public TObject {
 	void SetGenName(const char *n){ strcpy(fGenName, n); }
 	const char *GetGenName(){ return fGenName; }
 
+	void SetExpType(const char *n){ strcpy(fExpType, n); }
+	const char *GetExpType(){ return fExpType; }
+
 	void SetBeamE(double E){ fBeamE = E; }
 	void SetSeed(unsigned int seed){ fSeed = seed; }
 
@@ -46,6 +49,7 @@ class G4SBSRunData : public TObject {
 	long int  fNthrown;
 	unsigned int  fSeed;
 	double fBeamE;
+	char fExpType[__RUNSTR_LEN];
 	char fGenName[__RUNSTR_LEN];
 	char fGitInfo[__GITMAXINFO_SIZE];
 

@@ -4,6 +4,7 @@
 #include <TTree.h>
 #include <TClonesArray.h>
 
+#include "G4SBSRun.hh"
 #include "G4SBSIO.hh"
 #include <assert.h>
 
@@ -145,6 +146,8 @@ void G4SBSIO::WriteTree(){
 
     fFile->cd();
     fTree->Write("T", TObject::kOverwrite);
+
+    G4SBSRun::GetRun()->GetData()->Write("run_data", TObject::kOverwrite);
 
     fTree->ResetBranchAddresses();
     delete fTree;

@@ -52,7 +52,8 @@
 
 /g4sbs/bbfield 1 // Use standard BB field
 /g4sbs/48d48field 1 // Use constant 48D48field
-#/g4sbs/toscafield GEN-map1.table // Read field
+# If you wanted to use a tosca field map
+#/g4sbs/tosfield GEN-map1.table
 
 # Shoot geantinos instead of electrons (good for testing no interactions)
 #/g4sbs/shootgeantino

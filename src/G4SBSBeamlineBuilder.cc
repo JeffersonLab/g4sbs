@@ -89,6 +89,19 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     new G4PVPlacement(0,G4ThreeVector(), extLog, "ext_phys", worldlog, false,0);
     new G4PVPlacement(0,G4ThreeVector(), extvacLog, "extvac_phys", worldlog,false,0);
 
+    // Seal this up if we have a gas target
+    if( fDetCon->fTargType == kH2 || fDetCon->fTargType == k3He || fDetCon->fTargType == kNeutTarg ){
+	// Add in exit Al window
+
+	double extwin_thick = 5.0e-4*cm;
+
+	G4Tubs *extwin = new G4Tubs("ext_win", 0.0, exit_rin[0], extwin_thick/2, 0.*deg, 360.*deg );
+	G4LogicalVolume *ext_winlog = new G4LogicalVolume(extwin, GetMaterial("Aluminum"), "entwin_log", 0, 0, 0);
+	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, exit_z[0] - extwin_thick/2), ext_winlog, "extwin_phys", worldlog,false,0);
+
+	ext_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.6,0.6,0.6)));
+    }
+
 
     double floorthick = 1.0*m;
     G4Tubs *floor_tube = new G4Tubs("floor_tube", 0.0, 30*m, floorthick/2, 0.*deg, 360.*deg );

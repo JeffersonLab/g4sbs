@@ -177,17 +177,6 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", worldlog, false, 0);
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", worldlog, false, 0);
 
-    if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
-	// Add in exit Al window
-
-	double extwin_thick = 5.0e-4*cm;
-
-	G4Tubs *extwin = new G4Tubs("ent_win", 0.0, extpipe_rin, extwin_thick/2, 0.*deg, 360.*deg );
-	G4LogicalVolume *ext_winlog = new G4LogicalVolume(extwin, GetMaterial("Aluminum"), "entwin_log", 0, 0, 0);
-	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -extpipe_len/2 + extwin_thick/2), ext_winlog, "extwin_phys", extvac_log,false,0);
-
-	ext_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.6,0.6,0.6)));
-    }
 
 
     //  Place exit pipe tube

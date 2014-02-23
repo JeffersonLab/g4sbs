@@ -36,6 +36,8 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
     fHCALdist  = 17.0*m;
 
     fRICHdist  = 15.0*m;
+
+    assert(fDetCon);
 }
 
 G4SBSHArmBuilder::~G4SBSHArmBuilder(){

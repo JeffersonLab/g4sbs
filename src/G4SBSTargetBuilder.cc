@@ -18,6 +18,7 @@
 #include "G4Polycone.hh"
 
 G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
+    assert(fDetCon);
     fTargLen = 60.0*cm;
     fTargType = kH2;
     fTargDen = 10.5*atmosphere/(300*kelvin*k_Boltzmann);
@@ -26,6 +27,7 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
 
 void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
+    fTargType = fDetCon->fTargType;
 
     //Material definition was moved to ConstructMaterials();
     //--------- Glass target cell -------------------------------
@@ -58,7 +60,7 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
     // gas
     G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, cellradius-wallthick,fTargLen/2.0, 0.*deg, 360.*deg );
-    G4LogicalVolume* gas_tube_log;
+    G4LogicalVolume* gas_tube_log = NULL;
 
 
     if( fTargType == kH2 || fTargType == kNeutTarg ){
@@ -71,6 +73,7 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     /*
      * FIXME*/
     if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
+	assert(gas_tube_log);
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), gas_tube_log,
 		"gas_tube_phys", worldlog, false, 0);
     }
@@ -128,10 +131,10 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //////////////////////////////////////////////////////////////////
 
     G4double entpipe_rin = 31.75*mm;
-    G4double extpipe_rin = 41.28*mm;
+    G4double extpipe_rin = 48.00*mm;
 
-    G4double extpipestart = 2.06*m;
-    // 2.06m is where the main exit pipe starts
+    G4double extpipestart = 1.62*m;
+    // 1.62m is where the main exit pipe starts
     G4double extpipe_len;
 
     double sheight = 1.2*m;
@@ -174,9 +177,6 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4LogicalVolume *extpipe_log = new G4LogicalVolume(exttube, GetMaterial("Aluminum"),"extpipe_log");
     G4LogicalVolume *extvac_log = new G4LogicalVolume(extvactube, GetMaterial("Vacuum"),"extvac_log");
 
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", worldlog, false, 0);
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", worldlog, false, 0);
-
 
 
     //  Place exit pipe tube
@@ -213,6 +213,11 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     /*
      * FIXME*/
     if( fTargType == kLH2 || fTargType == kLD2 ){
+
+	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", worldlog, false, 0);
+	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", worldlog, false, 0);
+
+
 	new G4PVPlacement(targrot, G4ThreeVector(0.0, 0.0, 0.0), targ_tube_log,
 		"targ_tube_phys", chamber_inner_log, false, 0);
 

@@ -31,6 +31,7 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
     fGEMDist  = 70.0*cm;
     fGEMOption = 1;
 
+    assert(fDetCon);
 }
 
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}

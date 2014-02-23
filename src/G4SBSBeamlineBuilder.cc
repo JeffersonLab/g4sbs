@@ -15,6 +15,7 @@
 #include "G4Polycone.hh"
 
 G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
+    assert(dc);
 }
 
 G4SBSBeamlineBuilder::~G4SBSBeamlineBuilder(){;}

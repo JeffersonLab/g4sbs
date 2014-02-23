@@ -515,6 +515,17 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     bigcallog->SetSensitiveDetector(BBCalSD);
     bigcallog->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
 
+    G4VisAttributes * bcVisAtt
+	= new G4VisAttributes(G4Colour(0.0,1.0,1.0));
+    bigcallog->SetVisAttributes(bcVisAtt);
+
+    G4VisAttributes * chVisAtt
+	= new G4VisAttributes(G4Colour(1.0,0.6,0.0));
+    chboxlog->SetVisAttributes(chVisAtt);
+
+    G4VisAttributes * ch2VisAtt
+	= new G4VisAttributes(G4Colour(1.0,0.8,0.0));
+    ch2boxlog->SetVisAttributes(ch2VisAtt);
 
 }
 

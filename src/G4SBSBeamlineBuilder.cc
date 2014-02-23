@@ -127,9 +127,25 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	  floorLog->SetVisAttributes(floorVisAtt); */
     floorLog->SetVisAttributes(G4VisAttributes::Invisible);
 
-    return;
-
+    if( fDetCon->fExpType == kGEp ){
+	MakeGEpLead(worldlog);
+    }
 
     return;
 
 }
+
+
+void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
+
+}
+
+
+
+
+
+
+
+
+
+

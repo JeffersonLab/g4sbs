@@ -13,8 +13,9 @@ class G4SBSBeamlineBuilder: public G4SBSComponent {
 
 	void BuildComponent(G4LogicalVolume *);
 
-
     private:
+	void MakeGEpLead(G4LogicalVolume *);
+
 };
 
 #endif//__G4SBSBeamlineBuilder_hh

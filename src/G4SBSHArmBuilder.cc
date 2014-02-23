@@ -286,6 +286,24 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 	    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 
 
+    if( fDetCon->fExpType == kGEp ){
+	// Addtional iron inside the field region
+	G4Box *ironslab = new G4Box("ironslab", 8*cm/2, 56*cm, 61*cm );
+	G4LogicalVolume *ironslabLog=new G4LogicalVolume(ironslab, GetMaterial("Fer"),
+		"ironslabLog", 0, 0, 0);
+	new G4PVPlacement(bigrm, 
+	    G4ThreeVector(-r48d48*sin(-f48D48ang)+19*cm*cos(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)+19*cm*sin(-f48D48ang)),
+	    ironslabLog, "ironslab1Physical", worldlog, 0,false,0);
+
+    	new G4PVPlacement(bigrm, 
+	    G4ThreeVector(-r48d48*sin(-f48D48ang)-19*cm*cos(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)+19*cm*sin(-f48D48ang)),
+	    ironslabLog, "ironslab2Physical", worldlog, 0,false,0);
+
+	G4VisAttributes * slabVisAtt
+	    = new G4VisAttributes(G4Colour(1.0,0.1,0.0));
+
+	ironslabLog->SetVisAttributes(slabVisAtt);
+    }
 
     // Clamps
 
@@ -377,7 +395,14 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
 
     G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclampun, GetMaterial("Fer"), "frontclampLog", 0, 0, 0);
-    G4LogicalVolume *frontextfaceLog=new G4LogicalVolume(extface_whole, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
+
+    G4LogicalVolume *frontextfaceLog= NULL;
+    if( fDetCon->fExpType == kGEp ){
+	frontextfaceLog = new G4LogicalVolume(extface_whole, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
+    } else {
+	frontextfaceLog = new G4LogicalVolume(extface, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
+    }
+
     if( fDetCon->fTotalAbs ){
 	frontclampLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
 	frontextfaceLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );

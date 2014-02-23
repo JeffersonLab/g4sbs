@@ -47,9 +47,14 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
     // Convert fed point to field map coordinates (180 degree rotation about y)
     // Overall - is from wrong polarity in field, primarily goes down +x-axis
     // which would deflect protons into the floor
+    /*
     point[0] =  pt[0];
     point[1] = -pt[1];
     point[2] =  pt[2];
+    */
+    point[0] = -pt[0];
+    point[1] = -pt[1];
+    point[2] = -pt[2];
 
     // Calculate index values for position
 
@@ -137,7 +142,7 @@ void G4SBSToscaField::ReadField(){
 
     // First line is the position offset
     fscanf(f, "%lf%lf%lf", &x, &y, &z);
-    fOffset = G4ThreeVector(x,y,z);
+    fOffset = G4ThreeVector(x*cm,y*cm,z*cm);
     
     // Second line is the rotation
     

@@ -54,8 +54,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 {
     f48D48_uniform_bfield = 1.4*tesla;
 
-    fbbfield = NULL;;
-    f48d48field = NULL;;
+    fbbfield = NULL;
+    f48d48field = NULL;
 
 
     fTotalAbs = true;
@@ -68,6 +68,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
     fBeamlineBuilder = new G4SBSBeamlineBuilder(this);
     fEArmBuilder     = new G4SBSEArmBuilder(this);
     fHArmBuilder     = new G4SBSHArmBuilder(this);
+
+    fGlobalField = new G4SBSGlobalField();
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -753,6 +755,13 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
     fEArmBuilder->BuildComponent(WorldLog);
     fHArmBuilder->BuildComponent(WorldLog);
 
+    G4FieldManager *fm = new G4FieldManager(fGlobalField);
+
+    G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fGlobalField);
+    G4MagIntegratorStepper *stepper = new G4ExplicitEuler(fequation, 8);
+    new G4ChordFinder(fGlobalField, 1.0*nm, stepper);
+    WorldLog->SetFieldManager(fm,true);
+
     /* */
 
     //--------- Reference boxes -------------------------------
@@ -914,6 +923,6 @@ void G4SBSDetectorConstruction::Set48D48Dist(double a){
 void G4SBSDetectorConstruction::Set48D48Ang(double a){ 
     fHArmBuilder->Set48D48Ang(a); 
     G4RotationMatrix rm;
-    rm.rotateY(a);
+    rm.rotateY(-a);
     if( f48d48field ) f48d48field->SetRM(rm); 
 }

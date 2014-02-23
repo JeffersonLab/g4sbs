@@ -1,3 +1,5 @@
+#include "TCanvas.h"
+#include "TH2F.h"
 #include "G4SBSGlobalField.hh"
 #include "G4SBSMagneticField.hh"
 #include "G4FieldManager.hh"
@@ -72,6 +74,45 @@ void G4SBSGlobalField::DropField( G4SBSMagneticField *f ){
 }
 
 
+void G4SBSGlobalField::DebugField(){ 
+    // Make a heatmap of the field strength in x-z plane for x direction
+    int nstep = 100;
+
+    double xmin = -4*m; double xmax =  4*m;
+    double zmin = -1*m; double zmax =  7*m;
+
+    TH2F *hx = new TH2F("heatmap_x", "heatmap x", nstep, xmin, xmax, nstep, zmin, zmax );
+    TH2F *hz = new TH2F("heatmap_z", "heatmap z", nstep, xmin, xmax, nstep, zmin, zmax );
+
+    int i,j;
+
+    double p[3];
+    double B[3];
+
+    for( i = 0; i < nstep; i++ ){
+	for( j = 0; j < nstep; j++ ){
+	    p[1] = 0.0;
+
+	    p[0] = (xmax-xmin)*((double) i)/nstep + xmin;
+	    p[2] = (zmax-zmin)*((double) j)/nstep + zmin;
+
+	    GetFieldValue(p,B);
+
+	    hx->SetBinContent(i+1, j+2, B[0]/tesla);
+	    hz->SetBinContent(i+1, j+2, B[2]/tesla);
+
+	    if( B[0] != 0 ){
+		printf("B = %f at %f %f\n", B[0]/tesla, p[0]/m, p[2]/m);
+	    }
+	}
+    }
+
+    TCanvas *c = new TCanvas();
+    hx->Draw("COLZ");
+    c->Print("heatmap_x.png");
+    hz->Draw("COLZ");
+    c->Print("heatmap_z.png");
+}
 
 
 

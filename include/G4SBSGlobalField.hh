@@ -20,6 +20,8 @@ class G4SBSGlobalField : public G4MagneticField {
 
 	void AddField( G4SBSMagneticField *f );
 	void DropField( G4SBSMagneticField *f );
+
+	void DebugField();
     private:
 	std::vector<G4SBSMagneticField *> fFields;
 

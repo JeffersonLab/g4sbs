@@ -6,6 +6,7 @@
 
 #include "G4SBSMagneticField.hh"
 
+class TH2F;
 
 class G4SBSGlobalField : public G4MagneticField {
     public:
@@ -22,6 +23,8 @@ class G4SBSGlobalField : public G4MagneticField {
 	void DropField( G4SBSMagneticField *f );
 
 	void DebugField();
+
+	std::vector<TH2F *> fFieldPlots;
     private:
 	std::vector<G4SBSMagneticField *> fFields;
 

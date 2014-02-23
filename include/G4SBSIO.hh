@@ -10,6 +10,7 @@
 
 class TFile;
 class TTree;
+class G4SBSGlobalField;
 
 
 #define MAXHITDATA 2000
@@ -76,7 +77,7 @@ class G4SBSIO {
 	void SetCalData(cal_t cd){ caldata = cd; }
 	void SetEventData(ev_t ed){ evdata = ed; }
 	void SetHitData(hit_t ht){ hitdata = ht; }
-  void SetRICHData( G4SBSRICHoutput rd ) { richdata = rd; }
+	void SetRICHData( G4SBSRICHoutput rd ) { richdata = rd; }
 
 	void FillTree();
 	void WriteTree();
@@ -86,6 +87,8 @@ class G4SBSIO {
 	void SetBigBiteDist(double d){ gendata.dbb = d/m; }
 	void SetHcalTheta(double th){ gendata.thhcal = th; }
 	void SetHcalDist(double d){ gendata.dhcal = d/m; }
+
+	void SetGlobalField(G4SBSGlobalField *gf){fGlobalField = gf; }
 
 	ev_t GetEventData(){ return evdata; }
 
@@ -100,7 +103,9 @@ class G4SBSIO {
 	cal_t caldata;
 	hit_t hitdata;
   
-  G4SBSRICHoutput richdata;
+	G4SBSRICHoutput richdata;
+
+	G4SBSGlobalField *fGlobalField;
 
 	char fFilename[255];
 

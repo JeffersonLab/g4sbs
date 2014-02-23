@@ -2,8 +2,10 @@
 
 #include <TFile.h>
 #include <TTree.h>
+#include <TH2F.h>
 #include <TClonesArray.h>
 
+#include "G4SBSGlobalField.hh"
 #include "G4SBSRun.hh"
 #include "G4SBSIO.hh"
 #include <assert.h>
@@ -148,6 +150,12 @@ void G4SBSIO::WriteTree(){
     fTree->Write("T", TObject::kOverwrite);
 
     G4SBSRun::GetRun()->GetData()->Write("run_data", TObject::kOverwrite);
+
+    // Produce and write out field map graphics
+    fGlobalField->DebugField();
+    for( vector<TH2F *>::iterator it = fGlobalField->fFieldPlots.begin(); it!= fGlobalField->fFieldPlots.end(); it++ ){
+	(*it)->Write((*it)->GetName(), TObject::kOverwrite );
+    }
 
     fTree->ResetBranchAddresses();
     delete fTree;

@@ -83,6 +83,8 @@ int main(int argc, char** argv)
   // Detector/mass geometry and parallel geometry(ies):
   G4VUserDetectorConstruction* detector = new G4SBSDetectorConstruction();
   sbsmess->SetDetCon((G4SBSDetectorConstruction *) detector);
+  // This lets us output graphical field maps
+  io->SetGlobalField( ((G4SBSDetectorConstruction *) detector)->GetGlobalField() );
 
   runManager->SetUserInitialization(detector);
   

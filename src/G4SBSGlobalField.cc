@@ -1,6 +1,7 @@
 #include <TMD5.h>
 #include "TCanvas.h"
 #include "TH2F.h"
+#include "TStyle.h"
 #include "G4SBSGlobalField.hh"
 #include "G4SBSMagneticField.hh"
 #include "G4FieldManager.hh"
@@ -102,13 +103,34 @@ void G4SBSGlobalField::DropField( G4SBSMagneticField *f ){
 
 void G4SBSGlobalField::DebugField(){ 
     // Make a heatmap of the field strength in x-z plane for x direction
-    int nstep = 100;
+    int nstep = 200;
 
     double xmin = -4*m; double xmax =  4*m;
     double zmin = -1*m; double zmax =  7*m;
 
-    TH2F *hx = new TH2F("heatmap_x", "heatmap x", nstep, xmin, xmax, nstep, zmin, zmax );
-    TH2F *hz = new TH2F("heatmap_z", "heatmap z", nstep, xmin, xmax, nstep, zmin, zmax );
+    TH2F *hx = new TH2F("field_x", "Field x component", nstep, xmin, xmax, nstep, zmin, zmax );
+    TH2F *hy = new TH2F("field_y", "Field y component", nstep, xmin, xmax, nstep, zmin, zmax );
+    TH2F *hz = new TH2F("field_z", "Field z component", nstep, xmin, xmax, nstep, zmin, zmax );
+    TH2F *h = new TH2F("field", "Field total magnitude", nstep, xmin, xmax, nstep, zmin, zmax );
+
+
+
+    hx->GetXaxis()->SetTitle("x [m]");
+    hx->GetXaxis()->CenterTitle();
+    hx->GetYaxis()->SetTitle("z [m]");
+    hx->GetYaxis()->CenterTitle();
+    hy->GetXaxis()->SetTitle("x [m]");
+    hy->GetXaxis()->CenterTitle();
+    hy->GetYaxis()->SetTitle("z [m]");
+    hy->GetYaxis()->CenterTitle();
+    hz->GetXaxis()->SetTitle("x [m]");
+    hz->GetXaxis()->CenterTitle();
+    hz->GetYaxis()->SetTitle("z [m]");
+    hz->GetYaxis()->CenterTitle();
+    h->GetXaxis()->SetTitle("x [m]");
+    h->GetXaxis()->CenterTitle();
+    h->GetYaxis()->SetTitle("z [m]");
+    h->GetYaxis()->CenterTitle();
 
     int i,j;
 
@@ -124,20 +146,17 @@ void G4SBSGlobalField::DebugField(){
 
 	    GetFieldValue(p,B);
 
-	    hx->SetBinContent(i+1, j+2, B[0]/tesla);
-	    hz->SetBinContent(i+1, j+2, B[2]/tesla);
-
-	    if( B[0] != 0 ){
-		printf("B = %f at %f %f\n", B[0]/tesla, p[0]/m, p[2]/m);
-	    }
+	    hx->SetBinContent(i+1, j+1, B[0]/tesla);
+	    hy->SetBinContent(i+1, j+1, B[1]/tesla);
+	    hz->SetBinContent(i+1, j+1, B[2]/tesla);
+	    h->SetBinContent(i+1, j+1, sqrt(B[0]*B[0]+B[1]*B[1]+B[2]*B[2])/tesla);
 	}
     }
 
-    TCanvas *c = new TCanvas();
-    hx->Draw("COLZ");
-    c->Print("heatmap_x.png");
-    hz->Draw("COLZ");
-    c->Print("heatmap_z.png");
+    fFieldPlots.push_back(hx);
+    fFieldPlots.push_back(hy);
+    fFieldPlots.push_back(hz);
+    fFieldPlots.push_back(h);
 }
 
 

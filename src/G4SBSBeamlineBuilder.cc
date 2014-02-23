@@ -12,6 +12,7 @@
 #include "G4SDManager.hh"
 #include "G4Tubs.hh"
 #include "G4Cons.hh"
+#include "G4Box.hh"
 #include "G4Polycone.hh"
 
 G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
@@ -127,7 +128,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	  floorLog->SetVisAttributes(floorVisAtt); */
     floorLog->SetVisAttributes(G4VisAttributes::Invisible);
 
-    if( fDetCon->fExpType == kGEp ){
+    if( fDetCon->fExpType == kGEp && fDetCon->fLeadOption == 1 ){
 	MakeGEpLead(worldlog);
     }
 
@@ -137,6 +138,66 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 
 void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
+    double maxrad = 25*cm;
+
+    // Lead from scattering chamber to exit pipe in TargetBuilder
+    
+    // Lead in magnet
+    int nsec = 4;
+    //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
+    G4double exit_z[4]   = {130.0*cm, 162.2*cm, 592.2*cm, 609.84*cm};
+    G4double exit_rou[4] = {7.0*cm,  7.0*cm, 17.0*cm ,18.00*cm};
+    G4double exit_rin[4] = {0.0*cm,  0.0*cm, 0.0*cm, 0.0*cm };
+
+
+    // 160 -> 310 cm  box in the magnet
+    
+    double leadstart = 160*cm;
+    double leadend   = 310*cm;
+    double magleadlen = leadend-leadstart;
+
+    G4Box  *leadbox = new G4Box( "leadbox",  maxrad, 15.0*cm, magleadlen/2 );
+    G4Polycone *ext_cone = new G4Polycone("hollowing_tube", 0.0*deg, 360.0*deg, nsec, exit_z, exit_rin, exit_rou);
+
+    G4SubtractionSolid *leadinmag = new G4SubtractionSolid("lead_w_hole", leadbox, ext_cone, 0, G4ThreeVector(0.0, 0.0, -magleadlen/2 - leadstart ) );
+
+    double cbsize = 50*cm;
+    G4Box *leadclip = new G4Box("leadclip_beam", cbsize, cbsize, cbsize);
+    G4RotationMatrix *cliprm = new G4RotationMatrix();
+    double ang48d48 = fDetCon->fHArmBuilder->f48D48ang;
+    cliprm->rotateY( -ang48d48 );
+
+    // Cut away side that interferes with magnet
+    leadinmag = new G4SubtractionSolid("lead_w_hole_cut", leadinmag, leadclip, cliprm, 
+	    G4ThreeVector( 12.0*cm + cbsize, 0.0, -magleadlen/2 ) );
+
+    G4LogicalVolume *leadinmag_log = new G4LogicalVolume( leadinmag, GetMaterial("Lead"), "leadinmag", 0, 0, 0 );
+
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadinmag_log, "leadinmag_phys", worldlog,false,0);
+
+    
+
+    // Lead from magnet on
+    // 311 cm -> 592 cm
+    leadstart = 311*cm;
+    leadend   = 592*cm;
+    magleadlen = leadend-leadstart;
+
+    G4Tubs *leadtube= new G4Tubs( "leadtube",  0*cm, maxrad, magleadlen/2, 0.*deg, 360*deg );
+    G4SubtractionSolid *leadafter = new G4SubtractionSolid("lead_after", leadtube, ext_cone, 0, G4ThreeVector(0.0, 0.0, -leadstart-magleadlen/2 ) );
+
+    G4LogicalVolume *leadafter_log = new G4LogicalVolume( leadafter, GetMaterial("Lead"), "leadafter_log", 0, 0, 0 );
+
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadafter_log, "leadafter_phys", worldlog,false,0);
+
+
+
+
+
+
+    G4VisAttributes *leadVisAtt= new G4VisAttributes(G4Colour(0.15,0.15,0.15));
+    leadinmag_log->SetVisAttributes(leadVisAtt);
+    leadafter_log->SetVisAttributes(leadVisAtt);
 
 }
 

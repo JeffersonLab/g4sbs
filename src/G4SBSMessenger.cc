@@ -230,6 +230,10 @@ G4SBSMessenger::G4SBSMessenger(){
     SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 1=BigBite(default), 2=GEp");
     SBSFieldClampOptionCmd->SetParameterName("sbsclampoption",false);
 
+    SBSLeadOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/uselead",this);
+    SBSLeadOptionCmd->SetGuidance("SBS lead configuration: 0= nope 1=yaes");
+    SBSLeadOptionCmd->SetParameterName("uselead",false);
+
     //Optical physics toggle commands:
     UseCerenkovCmd = new G4UIcmdWithABool( "/g4sbs/usecerenkov",this );
     UseCerenkovCmd->SetGuidance("Activate Cherenkov radiation (default true)");
@@ -664,6 +668,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == SBSFieldClampOptionCmd ){
       G4int i = SBSFieldClampOptionCmd->GetNewIntValue(newValue);
       fdetcon->fHArmBuilder->SetFieldClampConfig48D48( i );
+    }
+
+    if( cmd == SBSLeadOptionCmd ){
+      G4int i = SBSLeadOptionCmd->GetNewIntValue(newValue);
+      fdetcon->fLeadOption = i;
     }
 
     if( cmd == UseCerenkovCmd ){

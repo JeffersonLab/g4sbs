@@ -231,7 +231,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
     G4UnionSolid* big48d48;
 
-    G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/2, 15.5*cm, 2.0*m ); // Height is roughly beam pipe outer radius at 3m
+    G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/2, 15.5*cm, 2.0*m ); 
 
     big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, bigboxaddrm, 
 	    G4ThreeVector(0.0, 0.0, (coilgapheight+bigcoilheight)/2.0));
@@ -291,13 +291,19 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 	G4Box *ironslab = new G4Box("ironslab", 8*cm/2, 56*cm, 61*cm );
 	G4LogicalVolume *ironslabLog=new G4LogicalVolume(ironslab, GetMaterial("Fer"),
 		"ironslabLog", 0, 0, 0);
+	if( fDetCon->fTotalAbs ){
+	    ironslabLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+	}
+
 	new G4PVPlacement(bigrm, 
 	    G4ThreeVector(-r48d48*sin(-f48D48ang)+19*cm*cos(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)+19*cm*sin(-f48D48ang)),
 	    ironslabLog, "ironslab1Physical", worldlog, 0,false,0);
 
     	new G4PVPlacement(bigrm, 
-	    G4ThreeVector(-r48d48*sin(-f48D48ang)-19*cm*cos(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)+19*cm*sin(-f48D48ang)),
+	    G4ThreeVector(-r48d48*sin(-f48D48ang)-19*cm*cos(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)-19*cm*sin(-f48D48ang)),
 	    ironslabLog, "ironslab2Physical", worldlog, 0,false,0);
+
+
 
 	G4VisAttributes * slabVisAtt
 	    = new G4VisAttributes(G4Colour(1.0,0.1,0.0));
@@ -380,7 +386,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4RotationMatrix *faceholerm = new G4RotationMatrix();
     faceholerm->rotateZ(-extang);
     faceholerm->rotateX(90*deg);
-    G4Tubs *facehole = new G4Tubs("facehole", 0.0, 25*cm, 12.*cm, 0, 360*deg);
+
+    // FIXME:  This hole needs to be actually placed properly 
+    G4Tubs *facehole = new G4Tubs("facehole", 0.0, 7*cm, 12.*cm, 0, 360*deg);
     G4SubtractionSolid *extface_whole = new G4SubtractionSolid("extface_whole", extface, facehole, faceholerm, G4ThreeVector( (-80+11)*cm/2 -sin(extang)*clampdepth*1.5 , -cos(extang)*clampdepth*1.5, 0.0) );
 
 

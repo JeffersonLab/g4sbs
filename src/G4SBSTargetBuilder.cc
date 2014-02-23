@@ -17,6 +17,8 @@
 #include "G4GenericTrap.hh"
 #include "G4Polycone.hh"
 
+#include "G4SBSHArmBuilder.hh"
+
 G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
     assert(fDetCon);
     fTargLen = 60.0*cm;
@@ -144,7 +146,8 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     double swallrad_in  = 1.041*m/2;
 
     double hcal_ang_min = -55*deg;
-    double hcal_ang_max = -7*deg;
+//    double hcal_ang_max = -7*deg;
+    double hcal_ang_max = -10.5*deg;
     double hcal_win_h = 0.4*m;
 
     double bb_ang_min = 18*deg;
@@ -172,12 +175,39 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4Tubs *swall_hcalwin = new G4Tubs("scham_wall_hcalwin", swallrad_in, swallrad_in+swallthick, hcal_win_h, hcal_ang_min, hcal_ang_max-hcal_ang_min);
     G4Tubs *swall_bbwin = new G4Tubs("scham_wall_bbwin", swallrad_in, swallrad_in+swallthick, bb_win_h, bb_ang_min, bb_ang_max-bb_ang_min);
 
+    ////   SHIELDING and exit pipe
+    //
     G4Tubs *exttube = new G4Tubs("exitpipetube", extpipe_rin, extpipe_rin+0.120*cm, extpipe_len/2, 0.*deg, 360.*deg );
     G4Tubs *extvactube = new G4Tubs("exitpipetube_vac", 0.0, extpipe_rin, extpipe_len, 0.*deg, 360.*deg );
+
+    
+    double shieldlen = 57*cm;
+    double shieldrad = 25.*cm;
+
+    G4Tubs *exttubelead = new G4Tubs("exitpipeleadtube", extpipe_rin+0.120*cm, shieldrad, shieldlen/2, 0.*deg, 360.*deg );
+    double cbsize = shieldlen;
+    G4Box *leadclip = new G4Box("leadclip", cbsize, cbsize, cbsize);
+    G4RotationMatrix *cliprm = new G4RotationMatrix();
+    double ang48d48 = fDetCon->fHArmBuilder->f48D48ang;
+    cliprm->rotateY( -ang48d48 );
+    G4SubtractionSolid *extshield = new G4SubtractionSolid("extshield", exttubelead, leadclip, cliprm, 
+	    G4ThreeVector(0.0, cbsize*cm*sin(ang48d48) - shieldrad, (cbsize + shieldlen/2 )*cos(ang48d48) - shieldrad*sin(ang48d48) ) );
+            // snout clear 
+    cliprm = new G4RotationMatrix();
+    cliprm->rotateY( hcal_ang_max );
+    double pipeclear = 3.*cm;
+    extshield = new G4SubtractionSolid("extshield2", exttubelead, leadclip, cliprm, 
+	    G4ThreeVector( pipeclear + cbsize - sin(hcal_ang_max)*cbsize, 0.0 ,-extpipe_len/2 + cos(hcal_ang_max)*cbsize ) );
+
     G4LogicalVolume *extpipe_log = new G4LogicalVolume(exttube, GetMaterial("Aluminum"),"extpipe_log");
     G4LogicalVolume *extvac_log = new G4LogicalVolume(extvactube, GetMaterial("Vacuum"),"extvac_log");
+    G4LogicalVolume *extshield_log = new G4LogicalVolume(extshield, GetMaterial("Lead"),"extshield_log");
 
+    double shieldlen2 = 30*cm;
 
+    G4Tubs *exttubelead2 = new G4Tubs("exitpipelead2tube", extpipe_rin+0.120*cm, shieldrad, shieldlen2/2, 0.*deg, 360.*deg );
+
+    G4LogicalVolume *extshield2_log = new G4LogicalVolume(exttubelead2, GetMaterial("Lead"),"extshield2_log");
 
     //  Place exit pipe tube
 
@@ -244,6 +274,11 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", worldlog, false, 0);
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", worldlog, false, 0);
 
+	if( fDetCon->fExpType == kGEp && fDetCon->fLeadOption == 1 ){
+	    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, swallrad+shieldlen/2), extshield_log, "extshield_phys", worldlog, false, 0);
+	    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 128*cm+shieldlen2/2), extshield2_log, "extshield2_phys", worldlog, false, 0);
+	}
+
 
 	new G4PVPlacement(targrot, G4ThreeVector(0.0, 0.0, 0.0), targ_tube_log,
 		"targ_tube_phys", chamber_inner_log, false, 0);
@@ -291,13 +326,10 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("LD2mat"), "cryo_tube_log");
     }
 
-    /*
-     * FIXME */
     if( fTargType == kLD2 || fTargType == kLH2 ){
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, cryooffset), cryo_tube_log,
 		"cryo_tube_phys", targ_tube_log, false, 0);
     }
-    /*  */
 
 
     //  Vis attributes
@@ -321,6 +353,9 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     sc_hcalwin_log->SetVisAttributes(winVisAtt);
     sc_bbwin_log->SetVisAttributes(winVisAtt);
 
+    G4VisAttributes *leadVisAtt = new G4VisAttributes(G4Colour(0.15,0.15,0.15));
+    extshield_log->SetVisAttributes(leadVisAtt);
+    extshield2_log->SetVisAttributes(leadVisAtt);
     return;
 
 }

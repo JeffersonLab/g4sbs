@@ -109,6 +109,7 @@ private:
   // Commands to set configurable properties of SBS:
   G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd; 
   G4UIcmdWithAnInteger      *SBSFieldClampOptionCmd;
+  G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
   
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
   G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov

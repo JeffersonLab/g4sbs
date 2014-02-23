@@ -58,6 +58,8 @@ class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
 
 	void SetUniformMagneticField48D48( double B );
 
+	int  fLeadOption;
+
 	Exp_t fExpType;
 	Targ_t fTargType;
 

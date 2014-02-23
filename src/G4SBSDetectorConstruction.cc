@@ -70,6 +70,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
     fHArmBuilder     = new G4SBSHArmBuilder(this);
 
     fGlobalField = new G4SBSGlobalField();
+
+    fLeadOption = 0;
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -747,10 +749,10 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
     // In the new version of ConstructAll(), now we call individual modular subsystem creation routines depending on fExpType:
 
     //All three types of experiments have a target:
-//    fTargetBuilder->BuildComponent(WorldLog);
+    fTargetBuilder->BuildComponent(WorldLog);
 
     //All three types of experiments have a beam line:
- //   fBeamlineBuilder->BuildComponent(WorldLog);
+    fBeamlineBuilder->BuildComponent(WorldLog);
 
     fEArmBuilder->BuildComponent(WorldLog);
     fHArmBuilder->BuildComponent(WorldLog);

@@ -210,8 +210,35 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4Tubs *sc_topbottom = new G4Tubs("scham_topbottom", 0.0, swallrad, (swallrad-swallrad_in)/2, 0.*deg, 360.*deg );
     G4LogicalVolume* sc_topbottom_log = new G4LogicalVolume(sc_topbottom, GetMaterial("Aluminum"), "scham_topbottom_log");
 
-    /*
-     * FIXME*/
+    //  SNOUT ////////////////////////////////////////////////
+
+    double snout_r = 5*m;
+    if( fTargType == kLH2 ){
+	// GEp kinematic - 48d48 is 1.6m away
+	snout_r = 1.2*m;
+    }
+    if(fTargType == kLD2 ){
+	// GMn kinematic - 48d48 is 3 m away
+	snout_r = 2.2*m;
+    }
+
+    double snoutang_min = hcal_ang_min - (swallrad-swallrad_in)/swallrad/4;
+    double snoutang_max = hcal_ang_max + (swallrad-swallrad_in)/swallrad/4;
+
+    G4Tubs *snoutbase= new G4Tubs("snoutbase", swallrad, snout_r, hcal_win_h+(swallrad-swallrad_in)/2, -snoutang_max, snoutang_max-snoutang_min );
+    
+    G4Tubs *snouthollow= new G4Tubs("snouthollow", swallrad_in, snout_r-swallthick, hcal_win_h, -hcal_ang_max, hcal_ang_max-hcal_ang_min );
+    G4SubtractionSolid *snoutsub = new G4SubtractionSolid("snoutsub", snoutbase, snouthollow );
+
+    G4LogicalVolume* snout_log = new G4LogicalVolume(snoutsub, GetMaterial("Aluminum"), "snout_log");
+    G4LogicalVolume* snoutvacuum_log = new G4LogicalVolume(snouthollow, GetMaterial("Vacuum"), "snoutvacuum_log");
+
+    G4RotationMatrix *rm_snout = new G4RotationMatrix();
+    rm_snout->rotateY(90*deg);
+    rm_snout->rotateX(90*deg);
+    
+    //////////////////////////////////////////////////////////
+
     if( fTargType == kLH2 || fTargType == kLD2 ){
 
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", worldlog, false, 0);
@@ -234,8 +261,10 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), chamber_inner_log,
 		"chamber_inner_phys", worldlog, false, 0);
 
+	/*   Don't use this, we have a snout
 	new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), sc_hcalwin_log,
 		"sc_hcalwin_phys", worldlog, false, 0);
+		*/
 	new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), sc_bbwin_log,
 		"sc_bbwin_phys", worldlog, false, 0);
 
@@ -243,6 +272,11 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 		"scham_top_phys", worldlog, false, 0);
 	new G4PVPlacement(schamrot, G4ThreeVector(0.0, -sheight/2.0 - (swallrad-swallrad_in)/2, 0.0), sc_topbottom_log,
 		"scham_bot_phys", worldlog, false, 0);
+
+
+	new G4PVPlacement(rm_snout, G4ThreeVector(0,0,0), snout_log, "snout_phys", worldlog, false, 0);
+	new G4PVPlacement(rm_snout, G4ThreeVector(0,0,0), snoutvacuum_log, "snoutvacuum_phys", worldlog, false, 0);
+
     }
     /**/
 

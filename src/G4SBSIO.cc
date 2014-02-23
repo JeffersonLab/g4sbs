@@ -155,7 +155,9 @@ void G4SBSIO::WriteTree(){
     fGlobalField->DebugField();
     for( vector<TH2F *>::iterator it = fGlobalField->fFieldPlots.begin(); it!= fGlobalField->fFieldPlots.end(); it++ ){
 	(*it)->Write((*it)->GetName(), TObject::kOverwrite );
+	delete (*it);
     }
+    fGlobalField->fFieldPlots.clear();
 
     fTree->ResetBranchAddresses();
     delete fTree;

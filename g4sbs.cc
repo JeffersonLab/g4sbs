@@ -46,7 +46,17 @@ int main(int argc, char** argv)
   //-------------------------------
 
     CLHEP::HepRandom::createInstance();
-    CLHEP::HepRandom::setTheSeed(time(0));
+
+    unsigned int seed = time(0) + (int) getpid();
+    unsigned int devrandseed = 0;
+    FILE *fdrand = fopen("/dev/urandom", "r");
+    if( fdrand ){
+	fread(&devrandseed, sizeof(int), 1, fdrand);
+	seed += devrandseed;
+	fclose(fdrand);
+    }
+
+    CLHEP::HepRandom::setTheSeed(seed);
 
     G4SBSIO *io = new G4SBSIO();
 

@@ -1,3 +1,7 @@
+#define  _L_UNIT m
+#define  _E_UNIT GeV
+#define  _T_UNIT ns
+
 #include "TMatrix.h"
 #include "TVector.h"
 #include "THashTable.h"
@@ -166,14 +170,14 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  ysum += (*bbcalHC)[i]->GetPos().y()*(*bbcalHC)[i]->GetEdep();
 	  esum += (*bbcalHC)[i]->GetEdep();
 	  
-	  caldata.bcx[i] = (*bbcalHC)[i]->GetPos().x()/cm;
-	  caldata.bcy[i] = (*bbcalHC)[i]->GetPos().y()/cm;
-	  caldata.bcz[i] = (*bbcalHC)[i]->GetPos().z()/cm;
-	  caldata.bce[i] = (*bbcalHC)[i]->GetEdep()/GeV;
+	  caldata.bcx[i] = (*bbcalHC)[i]->GetPos().x()/_L_UNIT;
+	  caldata.bcy[i] = (*bbcalHC)[i]->GetPos().y()/_L_UNIT;
+	  caldata.bcz[i] = (*bbcalHC)[i]->GetPos().z()/_L_UNIT;
+	  caldata.bce[i] = (*bbcalHC)[i]->GetEdep()/_E_UNIT;
 	  
-	  caldata.bcvx[i] = (*bbcalHC)[i]->GetVertex().x()/cm;
-	  caldata.bcvy[i] = (*bbcalHC)[i]->GetVertex().y()/cm;
-	  caldata.bcvz[i] = (*bbcalHC)[i]->GetVertex().z()/cm;
+	  caldata.bcvx[i] = (*bbcalHC)[i]->GetVertex().x()/_L_UNIT;
+	  caldata.bcvy[i] = (*bbcalHC)[i]->GetVertex().y()/_L_UNIT;
+	  caldata.bcvz[i] = (*bbcalHC)[i]->GetVertex().z()/_L_UNIT;
 	  
 	  caldata.bcpid[i] = (*bbcalHC)[i]->GetPID();
 	  caldata.bcmid[i] = (*bbcalHC)[i]->GetMID();
@@ -226,14 +230,14 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	    trdata.hct = (*hcalHC)[i]->GetTime()/ns + CLHEP::RandGauss::shoot(0.0, fevgen->GetToFres());
 	  }
 	  
-	  caldata.hcx[i] = (*hcalHC)[i]->GetPos().x()/cm;
-	  caldata.hcy[i] = (*hcalHC)[i]->GetPos().y()/cm;
-	  caldata.hcz[i] = (*hcalHC)[i]->GetPos().z()/cm;
-	  caldata.hce[i] = (*hcalHC)[i]->GetEdep()/GeV;
+	  caldata.hcx[i] = (*hcalHC)[i]->GetPos().x()/_L_UNIT;
+	  caldata.hcy[i] = (*hcalHC)[i]->GetPos().y()/_L_UNIT;
+	  caldata.hcz[i] = (*hcalHC)[i]->GetPos().z()/_L_UNIT;
+	  caldata.hce[i] = (*hcalHC)[i]->GetEdep()/_E_UNIT;
 	  
-	  caldata.hcvx[i] = (*hcalHC)[i]->GetVertex().x()/cm;
-	  caldata.hcvy[i] = (*hcalHC)[i]->GetVertex().y()/cm;
-	  caldata.hcvz[i] = (*hcalHC)[i]->GetVertex().z()/cm;
+	  caldata.hcvx[i] = (*hcalHC)[i]->GetVertex().x()/_L_UNIT;
+	  caldata.hcvy[i] = (*hcalHC)[i]->GetVertex().y()/_L_UNIT;
+	  caldata.hcvz[i] = (*hcalHC)[i]->GetVertex().z()/_L_UNIT;
 	  
 	  caldata.hcpid[i] = (*hcalHC)[i]->GetPID();
 	  caldata.hcmid[i] = (*hcalHC)[i]->GetMID();
@@ -255,7 +259,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	G4ThreeVector path = avglab-fevgen->GetV();
 	double hcd = path.mag();
 	
-	trdata.hctex = hcd/(q3m.mag()*(0.3*m/ns)/sqrt(q3m.mag()*q3m.mag()+proton_mass_c2*proton_mass_c2))/ns;
+	trdata.hctex = hcd/(q3m.mag()*(0.3*m/ns)/sqrt(q3m.mag()*q3m.mag()+proton_mass_c2*proton_mass_c2))/_T_UNIT;
 	// Angular difference between q and reconstructed vector
 	double cosang = q3m.unit()*path.unit();
 	if( cosang > 1.0 ){ cosang = 1.0; } //  Apparent numerical problems in this dot product
@@ -327,15 +331,15 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	hitdata.x[nhit] =  ly[nhit]/m;
 	hitdata.y[nhit] = -lx[nhit]/m;
 	hitdata.z[nhit] = lz[nhit]/m;
-	hitdata.p[nhit] = (*gemHC)[idx]->GetMom()/GeV;
-	hitdata.edep[nhit] = (*gemHC)[idx]->GetEdep()/GeV;
+	hitdata.p[nhit] = (*gemHC)[idx]->GetMom()/_E_UNIT;
+	hitdata.edep[nhit] = (*gemHC)[idx]->GetEdep()/_E_UNIT;
 	
-	hitdata.vx[nhit] =  (*gemHC)[idx]->GetVertex().getX()/m;
-	hitdata.vy[nhit] =  (*gemHC)[idx]->GetVertex().getY()/m;
-	hitdata.vz[nhit] =  (*gemHC)[idx]->GetVertex().getZ()/m;
+	hitdata.vx[nhit] =  (*gemHC)[idx]->GetVertex().getX()/_L_UNIT;
+	hitdata.vy[nhit] =  (*gemHC)[idx]->GetVertex().getY()/_L_UNIT;
+	hitdata.vz[nhit] =  (*gemHC)[idx]->GetVertex().getZ()/_L_UNIT;
 	
-	hitdata.tx[nhit] =  (*gemHC)[idx]->GetPos().getY()/m;
-	hitdata.ty[nhit] = -(*gemHC)[idx]->GetPos().getX()/m;
+	hitdata.tx[nhit] =  (*gemHC)[idx]->GetPos().getY()/_L_UNIT;
+	hitdata.ty[nhit] = -(*gemHC)[idx]->GetPos().getX()/_L_UNIT;
 	hitdata.txp[nhit] =  (*gemHC)[idx]->GetYp();
 	hitdata.typ[nhit] = -(*gemHC)[idx]->GetXp();
 	
@@ -392,14 +396,14 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  // Switch to "BigBite coordinates"
 	  // Larger momentum is correlated to larger x
 	  // larger angle is correlated with smaller y
-	  trdata.x  = track[2]/m;
+	  trdata.x  = track[2]/_L_UNIT;
 	  trdata.xp = track[3];
-	  trdata.y  = -track[0]/m;
+	  trdata.y  = -track[0]/_L_UNIT;
 	  trdata.yp = -track[1];
 	  
-	  trdata.tx  = ty/m;
+	  trdata.tx  = ty/_L_UNIT;
 	  trdata.txp = typ;
-	  trdata.ty  = -tx/m;
+	  trdata.ty  = -tx/_L_UNIT;
 	  trdata.typ = -txp;
 	  
 	  trdata.gemtr = 1;
@@ -410,8 +414,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	    double dy = track[2] + track[3]*lz[i] - ly[i];
 	    //		  printf("Position deviations = %f um\n", sqrt(dx*dx+dy*dy)/um);
 	    
-	    hitdata.dx[i] =  dy/m;
-	    hitdata.dy[i] = -dx/m;
+	    hitdata.dx[i] =  dy/_L_UNIT;
+	    hitdata.dy[i] = -dx/_L_UNIT;
 	  }
 	  hitdata.ndata = nhit;
 	}
@@ -645,17 +649,17 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
 	richoutput.mTrackNo.push_back( PMT_mTID[pmt] ); 
 	//For now, this is the mother track of the first photon detected by this PMT. This does not account for the possibility of the same PMT detecting photons produced by different tracks in the same event.
 	//Hopefully, the probability of this occurrence is quite low?
-	richoutput.xhit.push_back( PMT_pos[pmt].x()/cm ); //Later we will go back to the hit definition and make sure this is the LOCAL position of the hit
-	richoutput.yhit.push_back( PMT_pos[pmt].y()/cm );
-	richoutput.zhit.push_back( PMT_pos[pmt].z()/cm );
+	richoutput.xhit.push_back( PMT_pos[pmt].x()/_L_UNIT ); //Later we will go back to the hit definition and make sure this is the LOCAL position of the hit
+	richoutput.yhit.push_back( PMT_pos[pmt].y()/_L_UNIT );
+	richoutput.zhit.push_back( PMT_pos[pmt].z()/_L_UNIT );
 	
 	richoutput.pxhit.push_back( PMT_dir[pmt].x() ); //Later we will go back to the hit definition and make sure this is the LOCAL position of the hit
 	richoutput.pyhit.push_back( PMT_dir[pmt].y() );
 	richoutput.pzhit.push_back( PMT_dir[pmt].z() );
 	
-	richoutput.pvx.push_back( PMT_vpos[pmt].x()/cm );
-	richoutput.pvy.push_back( PMT_vpos[pmt].y()/cm );
-	richoutput.pvz.push_back( PMT_vpos[pmt].z()/cm );
+	richoutput.pvx.push_back( PMT_vpos[pmt].x()/_L_UNIT );
+	richoutput.pvy.push_back( PMT_vpos[pmt].y()/_L_UNIT );
+	richoutput.pvz.push_back( PMT_vpos[pmt].z()/_L_UNIT );
 	
 	richoutput.ppx.push_back( PMT_vdir[pmt].x() );
 	richoutput.ppy.push_back( PMT_vdir[pmt].y() );
@@ -684,15 +688,15 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
     
     richoutput.mPID.push_back( track->GetPDGEncoding() );
 
-    richoutput.mpx.push_back( pinitial.x()/GeV );
-    richoutput.mpy.push_back( pinitial.y()/GeV );
-    richoutput.mpz.push_back( pinitial.z()/GeV );
+    richoutput.mpx.push_back( pinitial.x()/_E_UNIT );
+    richoutput.mpy.push_back( pinitial.y()/_E_UNIT);
+    richoutput.mpz.push_back( pinitial.z()/_E_UNIT );
     
     G4ThreeVector vinitial = track->GetPoint(0)->GetPosition();
     
-    richoutput.mvx.push_back( vinitial.x()/cm );
-    richoutput.mvy.push_back( vinitial.y()/cm );
-    richoutput.mvz.push_back( vinitial.z()/cm );
+    richoutput.mvx.push_back( vinitial.x()/_L_UNIT );
+    richoutput.mvy.push_back( vinitial.y()/_L_UNIT );
+    richoutput.mvz.push_back( vinitial.z()/_L_UNIT );
 
     mtrackindex[mTrackID] = richoutput.ntracks_RICH;
 

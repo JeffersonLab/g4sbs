@@ -138,6 +138,13 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   int i;
 
   tr_t trdata;
+  trdata.x = trdata.y = trdata.xp = trdata.yp = -1e9;
+  trdata.tx = trdata.ty = trdata.txp = trdata.typ = -1e9;
+  trdata.hcal = trdata.bb = trdata.gemtr = 0;
+  trdata.hcx = trdata.hcy = trdata.bcx = trdata.bcy = -1e9;
+  trdata.hct = trdata.hctex = -1e9;
+  trdata.hclx = trdata.hcly = trdata.hclz = trdata.hcdang = -1e9;
+
   cal_t caldata;
 
   caldata.bcndata = 0;
@@ -289,6 +296,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   double lx[MAXHIT], ly[MAXHIT], lz[MAXHIT];
 
   double txp, typ, tx, ty;
+  tx  = ty  = txp = typ =  -1e9;
 
   hit_t hitdata;
 
@@ -308,6 +316,10 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	
 	if( gid == 0 ) continue;
 	
+	tx  =  -1e9;
+	ty  =  -1e9;
+	txp =  -1e9;
+	typ =  -1e9;
 	
 	if( gid == 1 ){
 	  //  Project back to z = 0 plane

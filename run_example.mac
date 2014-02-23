@@ -62,6 +62,11 @@
 # when just looking at things like acceptances)  Default is true
 #/g4sbs/totalabs false
 
+# Use lead shielding or not  1 = yes
+# * This is only optmized for the GEp 12 GeV point *
+#Otherwise use 0 for no shielidng
+#/g4sbs/uselead  1
+
 /g4sbs/runtime     1.0 s
 /g4sbs/beamE       4.4 GeV
 /g4sbs/bbang      32.5 deg

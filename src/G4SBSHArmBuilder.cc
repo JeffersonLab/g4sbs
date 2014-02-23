@@ -389,7 +389,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     // FIXME:  This hole needs to be actually placed properly 
     G4Tubs *facehole = new G4Tubs("facehole", 0.0, 7*cm, 12.*cm, 0, 360*deg);
-    G4SubtractionSolid *extface_whole = new G4SubtractionSolid("extface_whole", extface, facehole, faceholerm, G4ThreeVector( (-80+11)*cm/2 -sin(extang)*clampdepth*1.5 , -cos(extang)*clampdepth*1.5, 0.0) );
+    G4SubtractionSolid *extface_whole = new G4SubtractionSolid("extface_whole", extface, facehole, faceholerm, G4ThreeVector( (-80+20)*cm/2 -sin(extang)*clampdepth*1.5 , -cos(extang)*clampdepth*1.5, 0.0) );
 
 
     G4GenericTrap *exttop  = new G4GenericTrap("exttop", clampdepth/2, topverts );

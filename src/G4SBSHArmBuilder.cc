@@ -57,6 +57,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4double HCAL_vertical_offset = 0.0*cm; //Neutron/SIDIS experiments have no vertical offset for HCAL (in Neutron case because it is detecting neutrons, which don't bend in a magnetic field, and in SIDIS case because we are detecting +/- charged hadrons simultaneously, want to have symmetric acceptance).
     if( exptype == kGEp ) HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
 
+
     MakeHCAL( worldlog, HCAL_vertical_offset );
 
     //The SIDIS experiment uses a  RICH in SBS:

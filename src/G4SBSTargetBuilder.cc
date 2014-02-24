@@ -241,8 +241,11 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4LogicalVolume* sc_topbottom_log = new G4LogicalVolume(sc_topbottom, GetMaterial("Aluminum"), "scham_topbottom_log");
 
     //  SNOUT ////////////////////////////////////////////////
+    
+    // 0.4m is to give clearance for clamps
+    double snout_r = fDetCon->fHArmBuilder->f48D48dist - 0.4*m; 
 
-    double snout_r = 5*m;
+    /*
     if( fTargType == kLH2 ){
 	// GEp kinematic - 48d48 is 1.6m away
 	snout_r = 1.2*m;
@@ -251,6 +254,7 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	// GMn kinematic - 48d48 is 3 m away
 	snout_r = 2.2*m;
     }
+    */
 
     double snoutang_min = hcal_ang_min - (swallrad-swallrad_in)/swallrad/4;
     double snoutang_max = hcal_ang_max + (swallrad-swallrad_in)/swallrad/4;
@@ -334,11 +338,13 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
     //  Vis attributes
     chamber_inner_log->SetVisAttributes(G4VisAttributes::Invisible);
+    snoutvacuum_log->SetVisAttributes(G4VisAttributes::Invisible);
     G4VisAttributes * schamVisAtt
 	= new G4VisAttributes(G4Colour(0.7,0.7,1.0));
     //      = new G4VisAttributes(G4VisAttributes::Invisible);
     swall_log->SetVisAttributes(schamVisAtt);
     sc_topbottom_log->SetVisAttributes(schamVisAtt);
+    snout_log->SetVisAttributes(schamVisAtt);
 
     G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
     extpipe_log->SetVisAttributes(pipeVisAtt);

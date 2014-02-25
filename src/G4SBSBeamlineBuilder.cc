@@ -255,8 +255,6 @@ void G4SBSBeamlineBuilder::MakeGEnLead(G4LogicalVolume *worldlog){
     G4double shield_rin[] = { 0.0, 0.0 };
     G4double shield_rou[] = { 10.50*cm, 17.*cm };
 
-    G4Polycone *shield_cone1 = new G4Polycone("shield_cone1", 0.0*deg, 360.0*deg, nsec, shield_z, shield_rin, shield_rou);
-    
     double leadstart = 290*cm;
     double leadend   = 435*cm;
     double magleadlen = leadend-leadstart;
@@ -272,7 +270,6 @@ void G4SBSBeamlineBuilder::MakeGEnLead(G4LogicalVolume *worldlog){
 
     ///////////  around opening of 48D48 ///////////////////////////////////////////////
 
-    double gapwidth = 22*cm;
     double gapheight= 70*cm;
 
     double shieldblock3_height = (fDetCon->fHArmBuilder->f48D48depth - gapheight)/2;

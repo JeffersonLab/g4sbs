@@ -145,10 +145,6 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     double bigcoilwidth = 214.5*mm;
     double bigcoilheight = 263.7*mm;
 
-    double bigwidth = 2324.1*mm;
-    double bigheight = 3721.1*mm;
-    double bigdepth = 1219.2*mm;
-
     double notchdepth = 25*cm;
 
     G4Box *biggap  = new G4Box("biggap",  469.9*mm/2+0.1*mm, 187.*cm/2.-bigcoilheight,  f48D48depth/2+0.1*mm);

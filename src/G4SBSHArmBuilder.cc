@@ -289,27 +289,56 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
     if( fDetCon->fExpType == kGEp ){
 	// Addtional iron inside the field region
-	G4Box *ironslab = new G4Box("ironslab", 8*cm/2, 56*cm, 61*cm );
-	G4LogicalVolume *ironslabLog=new G4LogicalVolume(ironslab, GetMaterial("Fer"),
-		"ironslabLog", 0, 0, 0);
+
+	std::vector<G4TwoVector> leftverts;
+
+	leftverts.push_back( G4TwoVector( -12*cm, -45*cm ) );
+	leftverts.push_back( G4TwoVector( -12*cm,  45*cm ) );
+	leftverts.push_back( G4TwoVector( -23.5*cm, 45*cm ) );
+	leftverts.push_back( G4TwoVector( -23.5*cm, -45*cm ) );
+
+	leftverts.push_back( G4TwoVector( -17.75*cm, -61*cm ) );
+	leftverts.push_back( G4TwoVector( -17.75*cm, 61*cm ) );
+	leftverts.push_back( G4TwoVector( -23.5*cm, 61*cm ) );
+	leftverts.push_back( G4TwoVector( -23.5*cm, -61*cm ) );
+
+	std::vector<G4TwoVector> rightverts;
+
+	rightverts.push_back( G4TwoVector( 23.5*cm, -45*cm ) );
+	rightverts.push_back( G4TwoVector( 23.5*cm, 45*cm ) );
+	rightverts.push_back( G4TwoVector( 12*cm,  45*cm ) );
+	rightverts.push_back( G4TwoVector( 12*cm, -45*cm ) );
+
+	rightverts.push_back( G4TwoVector( 23.5*cm, -61*cm ) );
+	rightverts.push_back( G4TwoVector( 23.5*cm, 61*cm ) );
+	rightverts.push_back( G4TwoVector( 17.75*cm, 61*cm ) );
+	rightverts.push_back( G4TwoVector( 17.75*cm, -61*cm ) );
+
+
+	double slabdepth= 61*cm;
+	G4GenericTrap *leftslab = new G4GenericTrap("leftslab", slabdepth, leftverts );
+	G4GenericTrap *rightslab = new G4GenericTrap("rightslab", slabdepth, rightverts );
+
+	G4LogicalVolume *leftslabLog=new G4LogicalVolume(leftslab, GetMaterial("Fer"), "leftslabLog", 0, 0, 0);
+	G4LogicalVolume *rightslabLog=new G4LogicalVolume(rightslab, GetMaterial("Fer"), "rightslabLog", 0, 0, 0);
+
 	if( fDetCon->fTotalAbs ){
-	    ironslabLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+		leftslabLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+		rightslabLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
 	}
 
 	new G4PVPlacement(bigrm, 
-	    G4ThreeVector(-r48d48*sin(-f48D48ang)+19*cm*cos(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)+19*cm*sin(-f48D48ang)),
-	    ironslabLog, "ironslab1Physical", worldlog, 0,false,0);
-
-    	new G4PVPlacement(bigrm, 
-	    G4ThreeVector(-r48d48*sin(-f48D48ang)-19*cm*cos(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)-19*cm*sin(-f48D48ang)),
-	    ironslabLog, "ironslab2Physical", worldlog, 0,false,0);
-
-
+	    G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
+	    leftslabLog, "leftslabPhysical", worldlog, 0,false,0);
+	new G4PVPlacement(bigrm, 
+	    G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
+	    rightslabLog, "rightslabPhysical", worldlog, 0,false,0);
 
 	G4VisAttributes * slabVisAtt
 	    = new G4VisAttributes(G4Colour(1.0,0.1,0.0));
 
-	ironslabLog->SetVisAttributes(slabVisAtt);
+	leftslabLog->SetVisAttributes(slabVisAtt);
+	rightslabLog->SetVisAttributes(slabVisAtt);
     }
 
     // Clamps
@@ -332,7 +361,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     double clampdepth = 10.*cm;
     double clampoffset = 45*cm/2;
-    double bigheight = 3721.1*mm;
+    //double bigheight = 3721.1*mm;
 
     G4Box *bclampgap  = new G4Box("bclampgap",  23.*cm, 65.*cm,  12.*cm/2.);
 

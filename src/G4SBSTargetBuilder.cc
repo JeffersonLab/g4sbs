@@ -376,6 +376,8 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("LD2mat"), "cryo_tube_log");
     }
 
+//    cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("Vacuum"), "cryo_tube_vacuum_log");
+
     if( fTargType == kLD2 || fTargType == kLH2 ){
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, cryooffset), cryo_tube_log,
 		"cryo_tube_phys", targ_tube_log, false, 0);

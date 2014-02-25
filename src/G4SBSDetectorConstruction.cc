@@ -894,7 +894,7 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
 		    G4ThreeVector(0.0, 0.0, fHArmBuilder->f48D48dist),  rm,
 		    // Dimensions of the box
 		    G4ThreeVector(469.9*mm/2+0.1*mm, 187.*cm/2.-263.7*mm,  1219.2*mm/2+0.1*mm), 
-		    G4ThreeVector(f48D48_uniform_bfield, 0.0, 0.0)
+		    G4ThreeVector(-f48D48_uniform_bfield, 0.0, 0.0)
 		    );
 	    fGlobalField->AddField(f48d48field);
 	    break;
@@ -938,7 +938,8 @@ void G4SBSDetectorConstruction::SetUniformMagneticField48D48( double B ) {
     if( f48d48field ){
 	G4SBSConstantField *f = dynamic_cast<G4SBSConstantField *>(f48d48field);
 	if( f ){
-	    f->SetFieldVector(G4ThreeVector(f48D48_uniform_bfield, 0.0, 0.0));
+	    // Relative - is so protons bend up
+	    f->SetFieldVector(G4ThreeVector(-f48D48_uniform_bfield, 0.0, 0.0));
 	}
     }
 }

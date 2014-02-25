@@ -132,6 +132,10 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	MakeGEpLead(worldlog);
     }
 
+    if( fDetCon->fExpType == kNeutronExp && fDetCon->fTargType != kLD2 ){
+	MakeGEnClamp(worldlog);
+    }
+
     return;
 
 }
@@ -203,6 +207,8 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
 
 
+void G4SBSBeamlineBuilder::MakeGEnClamp(G4LogicalVolume *worldlog){
+}
 
 
 

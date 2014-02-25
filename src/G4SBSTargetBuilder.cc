@@ -192,6 +192,7 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
    
 
     ///////////////////////// SHIELDING //////////////////////////////////////////////////////////////////////////
+    //  FIXME  This should be moved to HArmBuilder
     double shieldrad = 25.*cm;
     double gapwidth = 22*cm;
     double gapheight= 70*cm;
@@ -228,7 +229,7 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
     // We now also need blocks for the top and bottom of the window
     // Window is 70*cm high, but full magnet gap height is 48in
-    double shieldblock3_height = (48*2.54*cm - gapheight)/2;
+    double shieldblock3_height = (fDetCon->fHArmBuilder->f48D48depth - gapheight)/2;
 
     G4Box *shieldblock3 = new G4Box("shieldblock3", 22*cm/2, shieldblock3_height/2, 10*cm  );
 

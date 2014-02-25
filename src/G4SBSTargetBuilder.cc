@@ -326,10 +326,10 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 129*cm+shieldlen2/2), extshield2_log, "extshield2_phys", worldlog, false, 0);
 
 	    G4RotationMatrix *iwindowshieldrm = new G4RotationMatrix( windowshieldrm->inverse() );
-	    new G4PVPlacement(windowshieldrm, (*iwindowshieldrm)*G4ThreeVector(19*cm, 0.0, fDetCon->fHArmBuilder->f48D48dist-15*cm), windowshield_log, "windowshield_phys", worldlog, false, 0);
+	    new G4PVPlacement(windowshieldrm, (*iwindowshieldrm)*G4ThreeVector(19*cm, 0.0, fDetCon->fHArmBuilder->f48D48dist-15*cm), windowshield_log, "windowshield_phys2", worldlog, false, 0);
 
-	    new G4PVPlacement(windowshieldrm, (*iwindowshieldrm)*G4ThreeVector(-2.5*cm, gapheight/2+shieldblock3_height/2, fDetCon->fHArmBuilder->f48D48dist-15*cm), shieldblock3_log, "windowshield_phys", worldlog, false, 0);
-	    new G4PVPlacement(windowshieldrm, (*iwindowshieldrm)*G4ThreeVector(-2.5*cm, -gapheight/2-shieldblock3_height/2, fDetCon->fHArmBuilder->f48D48dist-15*cm), shieldblock3_log, "windowshield_phys", worldlog, false, 0);
+	    new G4PVPlacement(windowshieldrm, (*iwindowshieldrm)*G4ThreeVector(-2.5*cm, gapheight/2+shieldblock3_height/2, fDetCon->fHArmBuilder->f48D48dist-15*cm), shieldblock3_log, "windowshield_phys3", worldlog, false, 0);
+	    new G4PVPlacement(windowshieldrm, (*iwindowshieldrm)*G4ThreeVector(-2.5*cm, -gapheight/2-shieldblock3_height/2, fDetCon->fHArmBuilder->f48D48dist-15*cm), shieldblock3_log, "windowshield_phys4", worldlog, false, 0);
 	}
 
 

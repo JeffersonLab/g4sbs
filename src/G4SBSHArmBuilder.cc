@@ -38,6 +38,10 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
 
     fRICHdist  = 15.0*m;
 
+    f48D48depth = 1219.2*mm;
+    f48D48width = 2324.1*mm;
+    f48D48height = 3721.1*mm;
+
     assert(fDetCon);
 }
 
@@ -49,13 +53,14 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 
     // All three types of experiments have a 48D48 magnet:
-   Make48D48(worldlog, f48D48dist + 1219.2*mm/2 );
+   Make48D48(worldlog, f48D48dist + f48D48depth/2 );
 
     //--------------- HCAL --------------------------
     //All the experiments use HCAL:
 
     G4double HCAL_vertical_offset = 0.0*cm; //Neutron/SIDIS experiments have no vertical offset for HCAL (in Neutron case because it is detecting neutrons, which don't bend in a magnetic field, and in SIDIS case because we are detecting +/- charged hadrons simultaneously, want to have symmetric acceptance).
     if( exptype == kGEp ) HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
+
 
     MakeHCAL( worldlog, HCAL_vertical_offset );
 
@@ -140,22 +145,18 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     double bigcoilwidth = 214.5*mm;
     double bigcoilheight = 263.7*mm;
 
-    double bigwidth = 2324.1*mm;
-    double bigheight = 3721.1*mm;
-    double bigdepth = 1219.2*mm;
-
     double notchdepth = 25*cm;
 
-    G4Box *biggap  = new G4Box("biggap",  469.9*mm/2+0.1*mm, 187.*cm/2.-bigcoilheight,  bigdepth/2+0.1*mm);
+    G4Box *biggap  = new G4Box("biggap",  469.9*mm/2+0.1*mm, 187.*cm/2.-bigcoilheight,  f48D48depth/2+0.1*mm);
 
     std::vector<G4TwoVector> bigpoly;
-    bigpoly.push_back( G4TwoVector(-bigwidth/2.0,  bigdepth/2.0 ));
-    bigpoly.push_back( G4TwoVector(-bigwidth/2.0, -bigdepth/2.0 ));
-    bigpoly.push_back( G4TwoVector( bigwidth/2.0, -bigdepth/2.0 ));
-    bigpoly.push_back( G4TwoVector( bigwidth/2.0, bigdepth/2.0 - notchdepth*sqrt(2.0) ));
-    bigpoly.push_back( G4TwoVector( bigwidth/2.0 - notchdepth*sqrt(2.0), bigdepth/2.0  ));
+    bigpoly.push_back( G4TwoVector(-f48D48width/2.0,  f48D48depth/2.0 ));
+    bigpoly.push_back( G4TwoVector(-f48D48width/2.0, -f48D48depth/2.0 ));
+    bigpoly.push_back( G4TwoVector( f48D48width/2.0, -f48D48depth/2.0 ));
+    bigpoly.push_back( G4TwoVector( f48D48width/2.0, f48D48depth/2.0 - notchdepth*sqrt(2.0) ));
+    bigpoly.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), f48D48depth/2.0  ));
 
-    G4ExtrudedSolid *bigbox_ext = new G4ExtrudedSolid("bigbox_ext", bigpoly, bigheight/2.0, G4TwoVector(), 1.0, G4TwoVector(), 1.0);
+    G4ExtrudedSolid *bigbox_ext = new G4ExtrudedSolid("bigbox_ext", bigpoly, f48D48height/2.0, G4TwoVector(), 1.0, G4TwoVector(), 1.0);
     G4RotationMatrix *bigboxrm = new G4RotationMatrix;
     bigboxrm->rotateY(-f48D48ang);
     bigboxrm->rotateX( -90.*deg);
@@ -183,36 +184,36 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
 
     std::vector<G4TwoVector> woundpoly;
-    woundpoly.push_back( G4TwoVector(0.0,  -bigdepth/2.0 -coilspace ));
-    woundpoly.push_back( G4TwoVector(0.0, -bigdepth/2.0 -coilspace-bigcoilwidth));
-    woundpoly.push_back( G4TwoVector( bigwidth/2.0+coilspace+bigcoilwidth, -bigdepth/2.0 -coilspace-bigcoilwidth));
-    woundpoly.push_back( G4TwoVector( bigwidth/2.0+coilspace+bigcoilwidth, bigdepth/2.0 - notchdepth*sqrt(2.0) ));
+    woundpoly.push_back( G4TwoVector(0.0,  -f48D48depth/2.0 -coilspace ));
+    woundpoly.push_back( G4TwoVector(0.0, -f48D48depth/2.0 -coilspace-bigcoilwidth));
+    woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace+bigcoilwidth, -f48D48depth/2.0 -coilspace-bigcoilwidth));
+    woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace+bigcoilwidth, f48D48depth/2.0 - notchdepth*sqrt(2.0) ));
 
-    woundpoly.push_back( G4TwoVector( bigwidth/2.0+coilspace+bigcoilwidth  - 2.0*(coilspace+bigcoilwidth)*sin(pi/8.)*sin(pi/8.) , 
-		bigdepth/2.0 - notchdepth*sqrt(2.0) + 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*cos(pi/8) ));
+    woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace+bigcoilwidth  - 2.0*(coilspace+bigcoilwidth)*sin(pi/8.)*sin(pi/8.) , 
+		f48D48depth/2.0 - notchdepth*sqrt(2.0) + 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*cos(pi/8) ));
 
-    woundpoly.push_back( G4TwoVector( bigwidth/2.0- notchdepth*sqrt(2.0) + 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*cos(pi/8) , 
-		bigdepth/2.0 + coilspace+bigcoilwidth  - 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*sin(pi/8) ));
+    woundpoly.push_back( G4TwoVector( f48D48width/2.0- notchdepth*sqrt(2.0) + 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*cos(pi/8) , 
+		f48D48depth/2.0 + coilspace+bigcoilwidth  - 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*sin(pi/8) ));
 
-    woundpoly.push_back( G4TwoVector( bigwidth/2.0 - notchdepth*sqrt(2.0), bigdepth/2.0 +coilspace+bigcoilwidth ));
+    woundpoly.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), f48D48depth/2.0 +coilspace+bigcoilwidth ));
 
     ////
-    woundpoly.push_back( G4TwoVector(0.0,  bigdepth/2.0 +coilspace+bigcoilwidth));
-    woundpoly.push_back( G4TwoVector(0.0,  bigdepth/2.0 +coilspace ));
+    woundpoly.push_back( G4TwoVector(0.0,  f48D48depth/2.0 +coilspace+bigcoilwidth));
+    woundpoly.push_back( G4TwoVector(0.0,  f48D48depth/2.0 +coilspace ));
 
-    woundpoly.push_back( G4TwoVector( bigwidth/2.0 - notchdepth*sqrt(2.0), bigdepth/2.0 +coilspace ));
+    woundpoly.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), f48D48depth/2.0 +coilspace ));
 
     // arc here
-    woundpoly.push_back( G4TwoVector( bigwidth/2.0+coilspace  - 2.0*(coilspace)*sin(pi/8.)*sin(pi/8.) , 
-		bigdepth/2.0 - notchdepth*sqrt(2.0) + 2.0*(coilspace)*sin(pi/8)*cos(pi/8) ));
+    woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace  - 2.0*(coilspace)*sin(pi/8.)*sin(pi/8.) , 
+		f48D48depth/2.0 - notchdepth*sqrt(2.0) + 2.0*(coilspace)*sin(pi/8)*cos(pi/8) ));
 
-    woundpoly.push_back( G4TwoVector( bigwidth/2.0- notchdepth*sqrt(2.0) + 2.0*(coilspace)*sin(pi/8)*cos(pi/8) , 
-		bigdepth/2.0 + coilspace - 2.0*(coilspace)*sin(pi/8)*sin(pi/8) ));
+    woundpoly.push_back( G4TwoVector( f48D48width/2.0- notchdepth*sqrt(2.0) + 2.0*(coilspace)*sin(pi/8)*cos(pi/8) , 
+		f48D48depth/2.0 + coilspace - 2.0*(coilspace)*sin(pi/8)*sin(pi/8) ));
 
-    woundpoly.push_back( G4TwoVector( bigwidth/2.0+coilspace, bigdepth/2.0 - notchdepth*sqrt(2.0) ));
+    woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace, f48D48depth/2.0 - notchdepth*sqrt(2.0) ));
 
-    woundpoly.push_back( G4TwoVector( bigwidth/2.0+coilspace, bigdepth/2.0 +coilspace - notchdepth*sqrt(2.0) ));
-    woundpoly.push_back( G4TwoVector( bigwidth/2.0+coilspace, -bigdepth/2.0 -coilspace));
+    woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace, f48D48depth/2.0 +coilspace - notchdepth*sqrt(2.0) ));
+    woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace, -f48D48depth/2.0 -coilspace));
 
     G4ExtrudedSolid *woundcoil_ext = new G4ExtrudedSolid("woundcoil_ext", woundpoly, bigcoilheight/2.0, G4TwoVector(), 1.0, G4TwoVector(), 1.0);
 
@@ -220,7 +221,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     G4SubtractionSolid *bigcoil = new G4SubtractionSolid("bigcoil", bigcoilbase, bigcoilgap, 0, G4ThreeVector(-coilgapwidth/4.0, 0.0, 0.0) );
 
     //  double coilfrontback = 150*cm;
-    double coilfrontback = bigdepth+2.0*coilspace+bigcoilwidth;
+    double coilfrontback = f48D48depth+2.0*coilspace+bigcoilwidth;
 
     G4Box *bigcoilthr = new G4Box("bigcoilthr", bigcoilwidth,  bigcoilheight/2,  coilfrontback/2.0 );
 
@@ -231,7 +232,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
     G4UnionSolid* big48d48;
 
-    G4Box *bigbeamslot = new G4Box("bigbeamslot",  bigwidth/2, 15.5*cm, 2.0*m ); 
+    G4Box *bigbeamslot = new G4Box("bigbeamslot",  f48D48width/2, 15.5*cm, 2.0*m ); 
 
     big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, bigboxaddrm, 
 	    G4ThreeVector(0.0, 0.0, (coilgapheight+bigcoilheight)/2.0));
@@ -251,7 +252,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
     //  Cut out slot - from magnet center to inside of cut is ~35cm
     G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", big48d48, bigbeamslot, bigboxaddrm, 
-	    G4ThreeVector( bigwidth/2+35*cm, 0.0, 0.0) );
+	    G4ThreeVector( f48D48width/2+35*cm, 0.0, 0.0) );
 
     G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, GetMaterial("Fe"),
 	    "b48d48Log", 0, 0, 0);
@@ -265,13 +266,13 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
     /*
        new G4PVPlacement(bigrm, 
-       G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),
+       G4ThreeVector(-(f48D48dist+f48D48depth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+f48D48depth/2.0)*cos(-f48D48ang)),
        big48d48Log, "big48d48Physical", worldlog, 0,false,0);
        */
 
 
     new G4PVPlacement(bigboxrm, 
-	    //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),
+	    //	  G4ThreeVector(-(f48D48dist+f48D48depth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+f48D48depth/2.0)*cos(-f48D48ang)),
 	    G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
 	    big48d48Log, "big48d48Physical", worldlog, 0,false,0);
 
@@ -281,34 +282,63 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 	    "bigfieldLog", 0, 0, 0);
 
     new G4PVPlacement(bigrm, 
-	    //	  G4ThreeVector(-(f48D48dist+bigdepth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+bigdepth/2.0)*cos(-f48D48ang)),
+	    //	  G4ThreeVector(-(f48D48dist+f48D48depth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+f48D48depth/2.0)*cos(-f48D48ang)),
 	    G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
 	    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 
 
     if( fDetCon->fExpType == kGEp ){
 	// Addtional iron inside the field region
-	G4Box *ironslab = new G4Box("ironslab", 8*cm/2, 56*cm, 61*cm );
-	G4LogicalVolume *ironslabLog=new G4LogicalVolume(ironslab, GetMaterial("Fer"),
-		"ironslabLog", 0, 0, 0);
+
+	std::vector<G4TwoVector> leftverts;
+
+	leftverts.push_back( G4TwoVector( -12*cm, -45*cm ) );
+	leftverts.push_back( G4TwoVector( -12*cm,  45*cm ) );
+	leftverts.push_back( G4TwoVector( -23.5*cm, 45*cm ) );
+	leftverts.push_back( G4TwoVector( -23.5*cm, -45*cm ) );
+
+	leftverts.push_back( G4TwoVector( -17.75*cm, -61*cm ) );
+	leftverts.push_back( G4TwoVector( -17.75*cm, 61*cm ) );
+	leftverts.push_back( G4TwoVector( -23.5*cm, 61*cm ) );
+	leftverts.push_back( G4TwoVector( -23.5*cm, -61*cm ) );
+
+	std::vector<G4TwoVector> rightverts;
+
+	rightverts.push_back( G4TwoVector( 23.5*cm, -45*cm ) );
+	rightverts.push_back( G4TwoVector( 23.5*cm, 45*cm ) );
+	rightverts.push_back( G4TwoVector( 12*cm,  45*cm ) );
+	rightverts.push_back( G4TwoVector( 12*cm, -45*cm ) );
+
+	rightverts.push_back( G4TwoVector( 23.5*cm, -61*cm ) );
+	rightverts.push_back( G4TwoVector( 23.5*cm, 61*cm ) );
+	rightverts.push_back( G4TwoVector( 17.75*cm, 61*cm ) );
+	rightverts.push_back( G4TwoVector( 17.75*cm, -61*cm ) );
+
+
+	double slabdepth= 61*cm;
+	G4GenericTrap *leftslab = new G4GenericTrap("leftslab", slabdepth, leftverts );
+	G4GenericTrap *rightslab = new G4GenericTrap("rightslab", slabdepth, rightverts );
+
+	G4LogicalVolume *leftslabLog=new G4LogicalVolume(leftslab, GetMaterial("Fer"), "leftslabLog", 0, 0, 0);
+	G4LogicalVolume *rightslabLog=new G4LogicalVolume(rightslab, GetMaterial("Fer"), "rightslabLog", 0, 0, 0);
+
 	if( fDetCon->fTotalAbs ){
-	    ironslabLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+		leftslabLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+		rightslabLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
 	}
 
 	new G4PVPlacement(bigrm, 
-	    G4ThreeVector(-r48d48*sin(-f48D48ang)+19*cm*cos(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)+19*cm*sin(-f48D48ang)),
-	    ironslabLog, "ironslab1Physical", worldlog, 0,false,0);
-
-    	new G4PVPlacement(bigrm, 
-	    G4ThreeVector(-r48d48*sin(-f48D48ang)-19*cm*cos(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)-19*cm*sin(-f48D48ang)),
-	    ironslabLog, "ironslab2Physical", worldlog, 0,false,0);
-
-
+	    G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
+	    leftslabLog, "leftslabPhysical", worldlog, 0,false,0);
+	new G4PVPlacement(bigrm, 
+	    G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
+	    rightslabLog, "rightslabPhysical", worldlog, 0,false,0);
 
 	G4VisAttributes * slabVisAtt
 	    = new G4VisAttributes(G4Colour(1.0,0.1,0.0));
 
-	ironslabLog->SetVisAttributes(slabVisAtt);
+	leftslabLog->SetVisAttributes(slabVisAtt);
+	rightslabLog->SetVisAttributes(slabVisAtt);
     }
 
     // Clamps
@@ -331,7 +361,6 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     double clampdepth = 10.*cm;
     double clampoffset = 45*cm/2;
-    double bigheight = 3721.1*mm;
 
     G4Box *bclampgap  = new G4Box("bclampgap",  23.*cm, 65.*cm,  12.*cm/2.);
 
@@ -340,6 +369,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     double frontclampwidth = 160*cm;
     double frontclampheight = 3*m;
+
+    double frontclampz = -100*cm + clampdepth/2.0;
+    double backclampz  =  100*cm - clampdepth/2.0;
 
     G4Box *frontclampbase  = new G4Box("frontclampbase", frontclampwidth/2, frontclampheight/2,  clampdepth/2);
     G4SubtractionSolid *frontclamp = new G4SubtractionSolid("frontclamp1", frontclampbase, fclampgap, 0,
@@ -384,13 +416,19 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4GenericTrap *extface = new G4GenericTrap("extface", extheight/2-clampdepth-0.5*mm, faceverts );
     // Cut out hole for face at 16deg
     G4RotationMatrix *faceholerm = new G4RotationMatrix();
-    faceholerm->rotateZ(-extang);
+    faceholerm->rotateZ(-f48D48ang);
     faceholerm->rotateX(90*deg);
 
-    // FIXME:  This hole needs to be actually placed properly 
-    G4Tubs *facehole = new G4Tubs("facehole", 0.0, 7*cm, 12.*cm, 0, 360*deg);
-    G4SubtractionSolid *extface_whole = new G4SubtractionSolid("extface_whole", extface, facehole, faceholerm, G4ThreeVector( (-80+20)*cm/2 -sin(extang)*clampdepth*1.5 , -cos(extang)*clampdepth*1.5, 0.0) );
-
+    G4Tubs *facehole;
+   
+    if( fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2 ){
+	facehole = new G4Tubs("facehole", 0.0, 5.5*cm, 40.*cm, 0, 360*deg);
+    } else {
+	facehole = new G4Tubs("facehole", 0.0, 8*cm, 40.*cm, 0, 360*deg);
+    }
+    G4SubtractionSolid *extface_whole = NULL;
+   
+    extface_whole = new G4SubtractionSolid("extface_whole", extface, facehole, faceholerm, G4ThreeVector(  tan(-f48D48ang)*(f48D48dist+frontclampz + f48D48depth/2.0), 0.0, 0.0));
 
     G4GenericTrap *exttop  = new G4GenericTrap("exttop", clampdepth/2, topverts );
 
@@ -405,7 +443,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclampun, GetMaterial("Fer"), "frontclampLog", 0, 0, 0);
 
     G4LogicalVolume *frontextfaceLog= NULL;
-    if( fDetCon->fExpType == kGEp ){
+    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kNeutronExp){
 	frontextfaceLog = new G4LogicalVolume(extface_whole, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
     } else {
 	frontextfaceLog = new G4LogicalVolume(extface, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
@@ -440,8 +478,6 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 	backclampLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     }
 
-    double frontclampz = -100*cm + clampdepth/2.0;
-    double backclampz  =  100*cm - clampdepth/2.0;
 
     G4RotationMatrix *rot = new G4RotationMatrix;
     rot->rotateY( -f48D48ang );

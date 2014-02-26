@@ -32,6 +32,11 @@ class G4SBSHArmBuilder: public G4SBSComponent {
 	int f48D48_fieldclamp_config; //Configuration of field clamp. There could be several of these.
 	double fHCALdist;
 	double fRICHdist;
+
+	// Useful constants
+	double f48D48depth;
+	double f48D48height;
+	double f48D48width;
     private:
 
 };

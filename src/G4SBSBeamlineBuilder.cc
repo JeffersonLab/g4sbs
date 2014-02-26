@@ -132,6 +132,14 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	MakeGEpLead(worldlog);
     }
 
+    if( fDetCon->fExpType == kNeutronExp && fDetCon->fTargType != kLD2 ){
+	MakeGEnClamp(worldlog);
+    }
+
+    if( fDetCon->fExpType == kNeutronExp && fDetCon->fTargType != kLD2 && fDetCon->fLeadOption == 1){
+	MakeGEnLead(worldlog);
+    }
+
     return;
 
 }
@@ -201,8 +209,102 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
 }
 
+void G4SBSBeamlineBuilder::MakeGEnClamp(G4LogicalVolume *worldlog){
+    int nsec = 2;
+    //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
+    G4double shield_z[]   = { 2.5*m, 5.35*m };
+    G4double shield_rin[] = { 8.12*cm, 14.32*cm};
+    G4double shield_rou[] = { 10.11*cm, 16.33*cm };
+
+    G4Polycone *shield_cone1 = new G4Polycone("shield_cone1", 0.0*deg, 360.0*deg, nsec, shield_z, shield_rin, shield_rou);
+    G4LogicalVolume *shield_cone1_log = new G4LogicalVolume( shield_cone1, GetMaterial("Lead"), "shield_cone1_log", 0, 0, 0 );
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 0.0), shield_cone1_log, "shield_cone1_phys", worldlog,false,0);
+}
 
 
+void G4SBSBeamlineBuilder::MakeGEnLead(G4LogicalVolume *worldlog){
+
+    int nsec = 2;
+    G4double clamp1_z[]   = { 162.2*cm, 228.0*cm};
+    G4double clamp1_rin[] = { 5.0*cm, 10.5*cm};
+    G4double clamp1_rou[] = { 25.0*cm, 25.0*cm};
+
+    G4double clamp2_z[]   = { 2.45*m, 2.85*m,  };
+    G4double clamp2_rin[] = { 11.00*cm, 12.0*cm };
+    G4double clamp2_rou[] = { 25.0*cm, 25.0*cm};
+
+    G4double clamp3_z[]   = { 4.4*m, 5.90*m,  };
+    G4double clamp3_rin[] = { 16.0*cm, 17.00*cm };
+    G4double clamp3_rou[] = { 25.0*cm, 25.0*cm};
+
+    G4Polycone *clamp_cone1 = new G4Polycone("clamp_cone1", 0.0*deg, 360.0*deg, nsec, clamp1_z, clamp1_rin, clamp1_rou);
+    G4LogicalVolume *clamp_cone1_log = new G4LogicalVolume( clamp_cone1, GetMaterial("Lead"), "clamp_cone1_log", 0, 0, 0 );
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 0.0), clamp_cone1_log, "clamp_cone1_phys", worldlog,false,0);
+
+    G4Polycone *clamp_cone2 = new G4Polycone("clamp_cone2", 0.0*deg, 360.0*deg, nsec, clamp2_z, clamp2_rin, clamp2_rou);
+    G4LogicalVolume *clamp_cone2_log = new G4LogicalVolume( clamp_cone2, GetMaterial("Lead"), "clamp_cone2_log", 0, 0, 0 );
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 0.0), clamp_cone2_log, "clamp_cone2_phys", worldlog,false,0);
+    
+    G4Polycone *clamp_cone3 = new G4Polycone("clamp_cone3", 0.0*deg, 360.0*deg, nsec, clamp3_z, clamp3_rin, clamp3_rou);
+    G4LogicalVolume *clamp_cone3_log = new G4LogicalVolume( clamp_cone3, GetMaterial("Lead"), "clamp_cone3_log", 0, 0, 0 );
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 0.0), clamp_cone3_log, "clamp_cone3_phys", worldlog,false,0);
+
+
+    // 290 -> 435 cm  box in the magnet
+    G4double shield_z[]   = { 2.855*m, 4.395*m };
+    G4double shield_rin[] = { 0.0, 0.0 };
+    G4double shield_rou[] = { 10.50*cm, 17.*cm };
+
+    double leadstart = 290*cm;
+    double leadend   = 435*cm;
+    double magleadlen = leadend-leadstart;
+
+    G4Box  *leadbox = new G4Box( "leadbox",  25*cm, 15.0*cm, magleadlen/2 );
+    G4Polycone *ext_cone = new G4Polycone("hollowing_tube", 0.0*deg, 360.0*deg, nsec, shield_z, shield_rin, shield_rou);
+
+    G4SubtractionSolid *leadinmag = new G4SubtractionSolid("lead_w_hole", leadbox, ext_cone, 0, G4ThreeVector(0.0, 0.0, -magleadlen/2 - leadstart ) );
+
+    G4LogicalVolume *leadinmag_log = new G4LogicalVolume( leadinmag, GetMaterial("Lead"), "leadinmag", 0, 0, 0 );
+
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadinmag_log, "leadinmag_phys", worldlog,false,0);
+
+    ///////////  around opening of 48D48 ///////////////////////////////////////////////
+
+    double gapheight= 70*cm;
+
+    double shieldblock3_height = (fDetCon->fHArmBuilder->f48D48depth - gapheight)/2;
+
+    G4Box *extblocklead2 = new G4Box("extblocklead2", 10*cm, 65*cm, 10*cm );
+    G4Box *shieldblock3 = new G4Box("shieldblock3", 17*cm/2, shieldblock3_height/2, 10*cm  );
+    G4RotationMatrix *windowshieldrm = new G4RotationMatrix();
+    windowshieldrm->rotateY(-fDetCon->fHArmBuilder->f48D48ang);
+
+    G4LogicalVolume *windowshield_log = new G4LogicalVolume(extblocklead2, GetMaterial("Lead"),"windowshield_log");
+    G4LogicalVolume *shieldblock3_log = new G4LogicalVolume(shieldblock3, GetMaterial("Lead"),"shieldblock3_log");
+
+    G4RotationMatrix *iwindowshieldrm = new G4RotationMatrix( windowshieldrm->inverse() );
+    new G4PVPlacement(windowshieldrm, (*iwindowshieldrm)*G4ThreeVector(19*cm, 0.0, fDetCon->fHArmBuilder->f48D48dist-15*cm), windowshield_log, "windowshield_phys", worldlog, false, 0);
+    new G4PVPlacement(windowshieldrm, (*iwindowshieldrm)*G4ThreeVector(-19*cm, 0.0, fDetCon->fHArmBuilder->f48D48dist-15*cm), windowshield_log, "windowshield_phys2", worldlog, false, 0);
+
+    new G4PVPlacement(windowshieldrm, (*iwindowshieldrm)*G4ThreeVector(0*cm, gapheight/2+shieldblock3_height/2, fDetCon->fHArmBuilder->f48D48dist-15*cm), shieldblock3_log, "windowshield_phys3", worldlog, false, 0);
+    new G4PVPlacement(windowshieldrm, (*iwindowshieldrm)*G4ThreeVector(0*cm, -gapheight/2-shieldblock3_height/2, fDetCon->fHArmBuilder->f48D48dist-15*cm), shieldblock3_log, "windowshield_phys4", worldlog, false, 0);
+
+    
+
+
+
+
+
+
+    G4VisAttributes *leadVisAtt= new G4VisAttributes(G4Colour(0.15,0.15,0.15));
+    clamp_cone1_log->SetVisAttributes(leadVisAtt);
+    clamp_cone2_log->SetVisAttributes(leadVisAtt);
+    clamp_cone3_log->SetVisAttributes(leadVisAtt);
+    leadinmag_log->SetVisAttributes(leadVisAtt);
+    windowshield_log->SetVisAttributes(leadVisAtt);
+    shieldblock3_log->SetVisAttributes(leadVisAtt);
+
+}
 
 
 

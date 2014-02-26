@@ -5,6 +5,7 @@
 
 G4SBSRunData::G4SBSRunData(){
     fNthrown = -1;
+    fNtries = -1;
     fBeamE   = -1e9;
     fExpType[0]  = '\0';
     fGenName[0]  = '\0';
@@ -17,6 +18,7 @@ G4SBSRunData::~G4SBSRunData(){
 
 void G4SBSRunData::Init(){
     fNthrown = 0;
+    fNtries = 0;
     fBeamE   = 0;
     strcpy(fExpType, "default");
     strcpy(fGenName, "default");
@@ -38,6 +40,7 @@ void G4SBSRunData::Print(Option_t *) const {
     printf("Run at %s on %s\n", fRunTime.AsString("ls"), fHostName);
     printf("Run Path %s\n", fRunPath);
     printf("N generated = %ld\n", fNthrown);
+    printf("N tries     = %ld\n", fNtries);
     printf("Beam Energy = %f GeV\n", fBeamE);
     printf("Experiment  = %s\n", fExpType);
     printf("Generator   = %s\n", fGenName);

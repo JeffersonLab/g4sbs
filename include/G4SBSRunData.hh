@@ -26,6 +26,7 @@ class G4SBSRunData : public TObject {
 
 	unsigned long long int GetNthrown(){ return fNthrown; }
 	void SetNthrown(unsigned long long int n){ fNthrown = n; }
+  void SetNtries(unsigned long long int n){ fNtries = n; } //Number of tries to generate Nthrown events.
 
 	void Init();
 
@@ -47,6 +48,7 @@ class G4SBSRunData : public TObject {
 	TTimeStamp fRunTime;
 
 	long int  fNthrown;
+  long int fNtries;
 	unsigned int  fSeed;
 	double fBeamE;
 	char fExpType[__RUNSTR_LEN];

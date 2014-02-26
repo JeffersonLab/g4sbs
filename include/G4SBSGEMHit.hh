@@ -34,6 +34,7 @@ class G4SBSGEMHit : public G4VHit
       G4ThreeVector pos;
       G4ThreeVector vert;
       G4int	GEMID;
+  G4int TrackerID;
       G4int	trid;
       G4int	mid;
       G4int	pid;
@@ -51,6 +52,8 @@ class G4SBSGEMHit : public G4VHit
       { xp = x; yp =y;};
       inline void SetGEMID(G4int i)
       { GEMID = i;};
+  inline void SetTrackerID(G4int i) 
+  { TrackerID= i; }
       inline void SetTrID(G4int i)
       { trid= i;};
       inline void SetMID(G4int i)
@@ -68,6 +71,8 @@ class G4SBSGEMHit : public G4VHit
       { return vert;};
       inline G4int GetGEMID()
       { return GEMID;};
+  inline G4int GetTrackerID()
+  { return TrackerID; };
       inline G4int GetPID()
       { return pid;};
       inline G4int GetMID()

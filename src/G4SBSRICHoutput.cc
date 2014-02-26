@@ -48,6 +48,8 @@ void G4SBSRICHoutput::Clear(){
   volume_flag.clear();
   
   mPID.clear();
+  mTID.clear();
+  mMID.clear();
   mvx.clear();
   mvy.clear();
   mvz.clear();

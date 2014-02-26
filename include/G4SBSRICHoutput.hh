@@ -53,6 +53,8 @@ public:
   //"Track" variables:
   int ntracks_RICH; //number of tracks producing RICH hits.
   vector<int> mPID; //Particle ID of tracks producing RICH hits. (according to PDG encoding scheme).
+  vector<int> mTID; //Track ID number of tracks producing RICH hits
+  vector<int> mMID; //Mother Track ID number of tracks producing RICH hits: for primary particles, this is zero!
   //vertex position of production of track producing RICH hits:
   vector<double> mvx; 
   vector<double> mvy;

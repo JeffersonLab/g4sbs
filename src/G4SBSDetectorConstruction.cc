@@ -72,6 +72,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
     fGlobalField = new G4SBSGlobalField();
 
     fLeadOption = 0;
+
+    TrackerIDnumber = 0;
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -730,6 +732,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
     G4cout << "\nG4SBSDetectorConstruction....\n" << G4endl;
 
     if( fMaterialsMap.empty() ) ConstructMaterials();
+
+    TrackerIDnumber = 0; //Initialize TrackerIDnumber to zero. This gets incremented with each call to TrackerBuilder::BuildComponent!
 
     fSDman = G4SDManager::GetSDMpointer();
     //--------- Material definition was moved to ConstructMaterials()---------

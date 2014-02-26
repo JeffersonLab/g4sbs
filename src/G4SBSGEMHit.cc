@@ -25,6 +25,7 @@ G4SBSGEMHit::G4SBSGEMHit(const G4SBSGEMHit &right)
   xp = right.xp;
   yp = right.yp;
   GEMID = right.GEMID;
+  TrackerID = right.TrackerID;
 
   vert = right.vert;
   trid = right.trid;
@@ -38,6 +39,7 @@ const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
 {
   pos = right.pos;
   GEMID= right.GEMID;
+  TrackerID = right.TrackerID;
   xp = right.xp;
   yp = right.yp;
   p = right.p;

@@ -88,11 +88,13 @@ G4bool G4SBSRICHSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
 
   int PMTno;
 
+  //G4cout << "RICH hit physical volume name, pre-step = " << prestep->GetPhysicalVolume()->GetName() << G4endl; 
+
   newHit->SetPMTnumber( PMTno = prestep->GetPhysicalVolume()->GetCopyNo() );
 
   // G4cout << "Hit RICH PMT number " << newHit->GetPMTnumber() << G4endl;
 
-  // G4cout << "Physical volume name = " << prestep->GetPhysicalVolume()->GetName() << G4endl;
+  //G4cout << "Physical volume name = " << prestep->GetPhysicalVolume()->GetName() << ", copy = " << prestep->GetPhysicalVolume()->GetCopyNo() << G4endl;
 
   newHit->Setrownumber( newHit->calc_row( PMTno ) );
   newHit->Setcolnumber( newHit->calc_col( PMTno ) );

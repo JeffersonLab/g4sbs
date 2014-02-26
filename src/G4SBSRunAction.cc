@@ -42,6 +42,8 @@ void G4SBSRunAction::EndOfRunAction(const G4Run* aRun)
   //       << " " << *timer << G4endl;
   G4cout << "number of tries = " << Ntries << G4endl;
 
+  G4SBSRun::GetRun()->GetData()->SetNtries( Ntries );
+
   fIO->WriteTree();
 }
 

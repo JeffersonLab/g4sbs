@@ -6,6 +6,10 @@
 #include "G4VSensitiveDetector.hh"
 #include "G4Step.hh"
 
+#include <map>
+
+using namespace std;
+
 class G4SBSGEMSD : public G4VSensitiveDetector
 {
 
@@ -21,10 +25,14 @@ class G4SBSGEMSD : public G4VSensitiveDetector
       void PrintAll();
 
       void SetZoffset(double z){ fZoffset = z; }
+  
+  map<G4String, int> GEMTrackerIDs; //Map to associate logical volume names with tracking modules
+  
+private:
+  G4SBSGEMHitsCollection *hitCollection;
+  double fZoffset;
 
-  private:
-      G4SBSGEMHitsCollection *hitCollection;
-      double fZoffset;
+  
 };
 
 

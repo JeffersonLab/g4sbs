@@ -606,7 +606,7 @@ bool G4SBSEventGen::GenerateDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVecto
 
 bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
   //Get hadron mass:
-  G4cout << "Generating SIDIS event..." << G4endl;
+  
   double Mh;
   int icharge = 1;
   int ihadron = 0;
@@ -642,8 +642,6 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
     ihadron = 0;
     break;
   }
-  
-  G4cout << "Using hadron type " << ihadron << " charge = " << icharge << " mass = " << Mh/GeV << G4endl;
 
   //The nucleon could be a proton or a neutron. It has initial 4-momentum ni:
   //Boost to the nucleon rest frame:
@@ -655,8 +653,6 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   
   double Ebeam_Nrest = ei_Nrest.e();
 
-  G4cout << "Ebeam in the nucleon rest frame = " << Ebeam_Nrest/GeV << G4endl;
-
   //Generate electron and hadron kinematics, checking whether an event is kinematically allowed:
   
   //Generate electron and hadron angles and energies in the LAB frame:
@@ -666,12 +662,12 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   double etheta = acos( CLHEP::RandFlat::shoot( cos( fThMax ), cos( fThMin ) ) ); //same as DIS case.
   double ephi = CLHEP::RandFlat::shoot( fPhMin, fPhMax );
   
-  G4cout << "Generated (etheta, ephi) = (" << etheta/deg << ", " << ephi/deg << ")" << G4endl;
+  //G4cout << "Generated (etheta, ephi) = (" << etheta/deg << ", " << ephi/deg << ")" << G4endl;
 
   double Eeprime = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
   double Peprime = sqrt(pow(Eeprime,2) - ei.m2() );
 
-  G4cout << "Generated Eeprime, Peprime = " << Eeprime/GeV << ", " << Peprime/GeV << G4endl;
+  //G4cout << "Generated Eeprime, Peprime = " << Eeprime/GeV << ", " << Peprime/GeV << G4endl;
    
   G4LorentzVector ef_lab( Eeprime, G4ThreeVector( Peprime*sin(etheta)*cos(ephi), Peprime*sin(etheta)*sin(ephi), Peprime*cos(etheta) ) );
 
@@ -680,12 +676,12 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 
   double Eh = CLHEP::RandFlat::shoot( fEhadMin, fEhadMax );
 
-  G4cout << "Generated (Eh, htheta, hphi)=(" << Eh/GeV << ", " << htheta/deg << ", " << hphi/deg << ")" << G4endl;
+  //G4cout << "Generated (Eh, htheta, hphi)=(" << Eh/GeV << ", " << htheta/deg << ", " << hphi/deg << ")" << G4endl;
   
   //For now we assume that Eh > Mh:
   double Ph = sqrt( pow(Eh,2)-pow(Mh,2) );
 
-  G4cout << "Generated Ph = " << Ph/GeV << G4endl;
+  //G4cout << "Generated Ph = " << Ph/GeV << G4endl;
 
   G4LorentzVector Phad_lab( Eh, G4ThreeVector( Ph*sin(htheta)*cos(hphi), Ph*sin(htheta)*sin(hphi), Ph*cos(htheta) ) );
 
@@ -714,7 +710,7 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 
   //double W2 
 
-  G4cout << "(x, Q2)=(" << x << ", " << Q2/pow(GeV,2) << ")" << endl;
+  //G4cout << "(x, Q2)=(" << x << ", " << Q2/pow(GeV,2) << ")" << endl;
 
   if( x > 1.0 ){ //Kinematically forbidden --> abort:
     fSigma = 0.0;
@@ -745,7 +741,7 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   // z = P dot Ph / P dot q:
   double z = ni_Nrest.dot( Phad_Nrest ) / ni_Nrest.dot( q_Nrest ); //This quantity is also Lorentz-invariant
 
-  G4cout << "z = " << z << endl;
+  //G4cout << "z = " << z << endl;
 
   if( z > 1.0 ){ //Kinematically forbidden --> abort:
     fSigma = 0.0;
@@ -760,14 +756,17 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
     return false ;
   }
 
+  fxbj = x;
+  fQ2  = Q2;
+
   vector<double> Dqh;
   fFragFunc.GetFFs( ihadron, icharge, z, sqrt(Q2)/GeV, Dqh );
 
-  G4cout << "Got fragmentation functions..." << G4endl;
+  //G4cout << "Got fragmentation functions..." << G4endl;
 
-  for( int iparton=0; iparton<6; iparton++ ){
-    G4cout << "iparton, Dhq = " << iparton << ", " << Dqh[iparton] << endl;
-  }
+  // for( int iparton=0; iparton<6; iparton++ ){
+  //   G4cout << "iparton, Dhq = " << iparton << ", " << Dqh[iparton] << endl;
+  // }
   
   //Pperp = ph - (ph dot q) * q/q^2 
   G4ThreeVector phad_Nrest_vect = Phad_Nrest.vect();
@@ -825,7 +824,7 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   //This jacobian factor converts the cross section from d5sig/dE'dOmega_e dz dPh_perp^2 dphi_h  to 
   // d5sig/dE'dOmega_e dE_h dOmega_h. 
   
-  //Finally, we have the modification of the flux factor (this is the only part of the cross section that is not Lorentz-invariant!):
+  //Finally, we have the modification of the flux factor (this is the only part of the cross section that is not Lorentz-invariant--it transforms like a cross-sectional area!):
   // Ratio F(lab)/F(Nrest) = 4Ee_lab*En_lab*| v_e - v_n |_lab/4M E_e_Nrest
   // |v_e - v_n| = sqrt( v_e^2 + v_n^2 - 2v_e v_n cos( theta_en ) )
   // v_e^2 = 1, v_n^2 = p_n^2/E_n^2, v_e v_n = p_n/E_n:
@@ -1184,9 +1183,9 @@ ev_t G4SBSEventGen::GetEventData(){
     data.nph    = fNucleonP.phi()/rad;
 
     data.z   = fz;
-    data.phperp = fPh_perp;
+    data.phperp = fPh_perp/GeV;
     data.phih   = fphi_h;
-    data.MX     = fMx;
+    data.MX     = fMx/pow(GeV,2);
 
     if( fKineType == kSIDIS ){ //Then replace final nucleon variables with final hadron variables:
       data.np = fHadronP.mag()/GeV;

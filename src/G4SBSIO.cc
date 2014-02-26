@@ -44,12 +44,13 @@ void G4SBSIO::InitializeTree(){
     if( fTree ){ delete fTree; }
 
     fTree = new TTree("T", "Geant4 SBS Simulation");
-    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX/D:nucl/I:fnucl/I:hadr/I");
+    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:nucl/I:fnucl/I:hadr/I");
     fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
     fTree->Branch("gen", &gendata, "thbb/D:thhcal/D:dbb/D:dhcal/D:Ebeam/D");
     // Tedious, but we want dynamically scaled
     fTree->Branch("ht.ndata", &hitdata.ndata, "ht.ndata/I");
     fTree->Branch("ht.gid", &hitdata.gid, "ht.gid[ht.ndata]/I");
+    fTree->Branch("ht.trkrid", &hitdata.trkrid, "ht.trkrid[ht.ndata]/I");
     fTree->Branch("ht.x", &hitdata.x, "ht.x[ht.ndata]/D");
     fTree->Branch("ht.y", &hitdata.y, "ht.y[ht.ndata]/D");
     fTree->Branch("ht.z", &hitdata.z, "ht.z[ht.ndata]/D");
@@ -119,6 +120,8 @@ void G4SBSIO::InitializeTree(){
     fTree->Branch("RICH_vpzhit", &(richdata.ppz) );
     fTree->Branch("RICH_ntracks", &(richdata.ntracks_RICH), "ntracks_RICH/I");
     fTree->Branch("RICH_mPID", &(richdata.mPID) );
+    fTree->Branch("RICH_mTID", &(richdata.mTID) );
+    fTree->Branch("RICH_mMID", &(richdata.mMID) );
     fTree->Branch("RICH_mvx", &(richdata.mvx) );
     fTree->Branch("RICH_mvy", &(richdata.mvy) );
     fTree->Branch("RICH_mvz", &(richdata.mvz) );

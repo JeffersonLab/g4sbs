@@ -32,14 +32,19 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *){
 }
 
 //This routine allows us to flexibly position GEM modules without code duplication:
-void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos, unsigned int nplanes, vector<double> zplanes, vector<double> wplanes, vector<double> hplanes) 
+void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos, unsigned int nplanes, vector<double> zplanes, vector<double> wplanes, vector<double> hplanes, G4int TrackerID=0) 
 {
     //This routine will create and position a GEM tracker consisting of nplanes planes centered at position pos oriented with rotation rot wrt logical volume Mother. 
     //The list of z coordinates, widths and heights of the planes are passed as arguments:
 
-    G4String MotherName = Mother->GetName();
+  //    G4String MotherName = Mother->GetName();
 
     //  G4SDManager* fSDman = G4SDManager::GetSDMpointer();
+
+  char ctrid[20];
+  sprintf( ctrid, "%02d", TrackerID );
+  
+  G4String TrackerPrefix = G4String("Tracker_") + ctrid; 
 
     //Define sensitive detector, if not already done:
     G4String GEMSDname = "G4SBS/GEM";
@@ -114,9 +119,9 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
 	// sprintf(gemboxname[gidx], "gembox_%02d", gidx);
 	// sprintf(gemlogname[gidx], "gemlog_%02d", gidx);
-	G4String gemboxname = MotherName + G4String("_gembox_");
+	G4String gemboxname =  TrackerPrefix + G4String("_gembox_");
 	gemboxname += cgidx;
-	G4String gemlogname = MotherName + G4String("_gemlog_");
+	G4String gemlogname = TrackerPrefix + G4String("_gemlog_");
 	gemlogname += cgidx;
 
 	G4Box *gembox = new G4Box( gemboxname, wplanes[gidx]/2.0, hplanes[gidx]/2.0, gempzsum/2.0 );
@@ -126,13 +131,13 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
 	double ztemp = 0.0;
 	for( gpidx = 0; gpidx < nlayers; gpidx++ ){
-	    sprintf( cgpidx, "_%02d_%03d_", gidx, gpidx );
+	  sprintf( cgpidx, "_%02d_%03d_trkr%02d_", gidx, gpidx, TrackerID );
 	    // sprintf(gpname[gidx][gpidx][0], "gemplane_%02d_%03d_box", gidx, gpidx );
 	    // sprintf(gpname[gidx][gpidx][1], "gemplane_%02d_%03d_log", gidx, gpidx );
 	    // sprintf(gpname[gidx][gpidx][2], "gemplane_%02d_%03d_phy", gidx, gpidx );
-	    G4String gempboxname = MotherName + G4String("_gemplane") + cgpidx + G4String("box");
-	    G4String gemplogname = MotherName + G4String("_gemplane") + cgpidx + G4String("log");
-	    G4String gempphysname = MotherName + G4String("_gemplane") + cgpidx + G4String("phy");
+	    G4String gempboxname = TrackerPrefix + G4String("_gemplane") + cgpidx + G4String("box");
+	    G4String gemplogname = TrackerPrefix + G4String("_gemplane") + cgpidx + G4String("log");
+	    G4String gempphysname = TrackerPrefix + G4String("_gemplane") + cgpidx + G4String("phy");
 
 	    ztemp += gempz[gpidx]/2.0;
 
@@ -149,12 +154,16 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 	    if( gpidx == 5 ){
 		gplog->SetSensitiveDetector(GEMSD);
 		gplog->SetVisAttributes( gemsdvisatt );
+
+		G4cout << "Assigning sensitive volume " << gempphysname << " to tracker ID " << TrackerID << G4endl;
+
+		(GEMSD->GEMTrackerIDs)[ gempphysname ] = TrackerID;
 	    } else {
 		gplog->SetVisAttributes( G4VisAttributes::Invisible );
 	    }
 	}
 
-	G4String gemname = MotherName + G4String("_gemphys_") + cgidx;
+	G4String gemname = TrackerPrefix + G4String("_gemphys_") + cgidx;
 	//Now place the fully constructed GEM plane in the mother logical volume:
 	G4ThreeVector plane_pos = pos + G4ThreeVector( 0.0, 0.0, zplanes[gidx] );
 	new G4PVPlacement( rot, plane_pos, gemlog, gemname, Mother, true, gidx+1, false );

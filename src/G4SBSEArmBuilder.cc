@@ -346,10 +346,12 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
     G4SBSTrackerBuilder trackerbuilder(fDetCon);
 
+    
+
     //This routine creates and positions GEM planes in bbdetLog:
 
     //------------------------------------------- BigBite GEMs: ----------------------------------------//
-    trackerbuilder.BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset ), ngem, gemz, gemw, gemh );
+    trackerbuilder.BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset ), ngem, gemz, gemw, gemh, (fDetCon->TrackerIDnumber)++ );
     //----- Note: Lines of code that are common to the construction of all individual GEM planes/modules were moved to MakeTracker() -----// 
     //----- All we do here in MakeBigBite() is define the number of planes, their z positions, and their transverse dimensions ------//
 

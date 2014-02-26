@@ -338,6 +338,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	
 	hitdata.gid[nhit] = (*gemHC)[idx]->GetGEMID();
 	hitdata.trid[nhit] = (*gemHC)[idx]->GetTrID();
+	hitdata.trkrid[nhit] = (*gemHC)[idx]->GetTrackerID();
 	hitdata.pid[nhit] = (*gemHC)[idx]->GetPID();
 	hitdata.mid[nhit] = (*gemHC)[idx]->GetMID();
 	hitdata.x[nhit] =  ly[nhit]/m;
@@ -510,9 +511,6 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
   //int num_photons = 0;
   //Loop over all steps in the hits collection of the RICH:
 
-  
-
-  
   for( int step = 0; step < nG4hits; step++ ){
     //Retrieve all relevant information for this step:
     int pmt = (*hits)[step]->GetPMTnumber();
@@ -699,6 +697,8 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
     G4ThreeVector pinitial = track->GetInitialMomentum();
     
     richoutput.mPID.push_back( track->GetPDGEncoding() );
+    richoutput.mTID.push_back( track->GetTrackID() );
+    richoutput.mMID.push_back( track->GetParentID() );
 
     richoutput.mpx.push_back( pinitial.x()/_E_UNIT );
     richoutput.mpy.push_back( pinitial.y()/_E_UNIT);
@@ -719,6 +719,8 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
     set<int>::iterator pos = mTIDs_unique.find( richoutput.mTrackNo[ihit] );
     if( pos != mTIDs_unique.end() ){
       richoutput.mTrackNo[ihit] = mtrackindex[ *pos ];
+    } else {
+      richoutput.mTrackNo[ihit] = -1; //This should never happen!
     }
   }
 }
@@ -740,8 +742,8 @@ void G4SBSEventAction::MapTracks( const G4Event *evt ){
       // G4ThreeVector pos = track->GetPoint(0)->GetPosition();
       
       // G4cout << "Trajectory " << i << ", ID = " << track->GetTrackID() <<", MID = " << track->GetParentID() << ", PID = " 
-      // 	 << track->GetPDGEncoding() << ", (px,py,pz)=(" << momentum.x() << ", " << momentum.y() << ", " << momentum.z() 
-      // 	 << "), (vx,vy,vz)=(" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")" << G4endl; 
+      // 	     << track->GetPDGEncoding() << ", (px,py,pz)=(" << momentum.x() << ", " << momentum.y() << ", " << momentum.z() 
+      // 	     << "), (vx,vy,vz)=(" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")" << G4endl; 
       G4int TrackID = track->GetTrackID();
       G4int MotherID = track->GetParentID();
       //TrackIDs.push_back( TrackID ); //This is the track ID number corresponding to trajectory number i

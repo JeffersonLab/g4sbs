@@ -16,6 +16,7 @@ G4SBSGEMSD::G4SBSGEMSD( G4String name, G4String colname )
   : G4VSensitiveDetector(name)
 {
     collectionName.insert(colname);
+    GEMTrackerIDs.clear();
 }
 
 G4SBSGEMSD::~G4SBSGEMSD()
@@ -32,6 +33,9 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   double edep = aStep->GetTotalEnergyDeposit();
   const G4ParticleDefinition *particle = aStep->GetTrack()->GetParticleDefinition();
 
+  //Get logical volume name for Tracker ID assignment. Must do this before "MoveUpHistory" or it won't work properly
+  G4String volname = (aStep->GetPreStepPoint()->GetPhysicalVolume() )->GetName();
+
   // Charged geantinos always get tracked
   if( edep <= 0.0 && !(particle->GetParticleName()=="chargedgeantino") ) return false;
 
@@ -42,8 +46,15 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 //  G4ThreeVector mom = aStep->GetTrack()->GetMomentum();
 
   G4TouchableHistory* hist = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
+
+  // G4cout << "GEMSD: Before MoveUpHistory, volume name = " << hist->GetVolume()->GetName() << 
+  //   " prestep volume name = " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName() <<  G4endl;
+
   hist->MoveUpHistory();
   
+  // G4cout << "GEMSD: After MoveUpHistory, volume name = " << hist->GetVolume()->GetName() << 
+  //   " prestep volume name = " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
+
   //  This is where the box position will be
   
   G4AffineTransform bTrans = hist->GetHistory()->GetTransform(  hist->GetHistory()->GetDepth()-1 );
@@ -90,7 +101,18 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   printf("pos = %f %f %f\n", pos.getX()/m, pos.getY()/m, pos.getZ()/m);
   printf("mom = %f %f %f (%f)\n", mom.getX()/GeV, mom.getY()/GeV, mom.getZ()/GeV, mom.mag()/GeV);
   */
+  
+  map<G4String,int>::iterator trackerID = GEMTrackerIDs.find( volname );
+  
+  if( trackerID != GEMTrackerIDs.end() ){
+    hit->SetTrackerID( trackerID->second );
 
+    //G4cout << "GEM Hit: Assigned tracker ID " << hit->GetTrackerID() << G4endl;
+  } else {
+    hit->SetTrackerID( -1 );
+
+    //    G4cout << "GEM Hit: Assigned tracker ID " << hit->GetTrackerID() << G4endl;
+  }
 
 //  printf("Hit by %d at det %d,  (%f %f %f) %f?\n", trid, copyID, pos.getX()/cm, pos.getY()/cm, pos.getZ()/cm, boxz/cm );
 

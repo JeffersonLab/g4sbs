@@ -93,7 +93,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	G4SBSTrackerBuilder trackerbuilder(fDetCon);
 
 	trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
-		ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker );
+				       ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, (fDetCon->TrackerIDnumber)++ );
 	MakeRICH( worldlog );
 
 	SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
@@ -780,14 +780,15 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     G4Tubs *PMTwindow = new G4Tubs( "PMTwindow", 0.0*cm, (1.86/2.0)*cm, 0.05*cm, 0.0, twopi ); 
     //Define the PMT photocathode as a thin disc of 15 mm
     G4Tubs *PMTcathode = new G4Tubs( "PMTcathode", 0.0*cm, (1.50/2.0)*cm, 0.025*cm, 0.0, twopi );
-    G4Tubs *PMTtube    = new G4Tubs( "PMTtube", (1.66/2.0)*cm, (1.86/2.0)*cm, (8.7/2.0)*cm, 0.0, twopi );
+    G4Tubs *PMTtube    = new G4Tubs( "PMTtube", (1.66/2.0)*cm, (1.86/2.0)*cm, ((8.7+0.3)/2.0)*cm, 0.0, twopi );
+    G4Tubs *PMTendcap  = new G4Tubs( "PMTendcap", 0.0*cm, (1.66/2.0)*cm, 0.15*cm, 0.0, twopi );
 
     //"Quartz window" is a different, sealed window that separates the PMT from the C4F10 environment.
     G4Tubs *PMTQuartzWindow = new G4Tubs( "PMTQuartzWindow", 0.0*cm, (2.13/2.0)*cm, 0.15*cm, 0.0, twopi );
     //CollectionCone is a light-collecting cone that increases the effective collection efficiency:
     G4Cons *CollectionCone = new G4Cons( "CollectionCone", 0.75*cm, (2.13/2.0)*cm, (2.13/2.0)*cm, (2.13/2.0)*cm, 0.75*cm, 0.0, twopi );
 
-    G4double PMT_total_length = 10.65*cm;
+    G4double PMT_total_length = 10.9*cm;
     //    G4double PMT_max_radius = 1.065*cm;
 
     G4LogicalVolume *PMTwindow_log  = new G4LogicalVolume( PMTwindow, GetMaterial("UVglass"), "PMTwindow_log" );
@@ -812,6 +813,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     //We make this a hollow cylinder with length and radius approximately equal to that of the PMT housing, made of steel 
     //to approximate the material shielding the PMT.
     G4LogicalVolume *PMTtube_log    = new G4LogicalVolume( PMTtube, GetMaterial("Steel"), "PMTtube_log" ); 
+    G4LogicalVolume *PMTendcap_log  = new G4LogicalVolume( PMTendcap, GetMaterial("Steel"), "PMTendcap_log" );
     G4LogicalVolume *PMTquartzwindow_log = new G4LogicalVolume( PMTQuartzWindow, GetMaterial("QuartzWindow"), "PMTQuartzWindow_log" );
     G4LogicalVolume *CollectionCone_log = new G4LogicalVolume( CollectionCone, GetMaterial("Steel"), "CollectionCone_log" );
     //Define a logical skin surface for the collection cone and assign it the same reflectivity as the mirror:
@@ -851,11 +853,15 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 	    //Place PMT components inside RICHbox.
 	    G4ThreeVector Pos_temp;
 	    //Steel tube (mainly for visualization and shielding
-	    G4double ztube = -PMT_total_length/2.0 + 4.35*cm;
+	    G4double ztube = -PMT_total_length/2.0 + 4.5*cm;
 	    Pos_temp = PMT_position + ztube * PMT_zaxis;
 	    new G4PVPlacement( rot_PMT, Pos_temp, PMTtube_log, "PMTtube_pv", RICHbox_log, false, icopy_PMT_assembly );
+	    //Endcap of steel tube (keep optical photons originating from behind PMTs from hitting the cathode):
+	    G4double zendcap = -PMT_total_length/2.0 + 0.15*cm;
+	    Pos_temp = PMT_position + zendcap * PMT_zaxis;
+	    new G4PVPlacement( rot_PMT, Pos_temp, PMTendcap_log, "PMTendcap_pv", RICHbox_log, false, icopy_PMT_assembly );
 	    //Photocathode (this is the sensitive part!!):
-	    G4double zcathode = ztube + 4.375*cm;
+	    G4double zcathode = ztube + 4.475*cm;
 	    Pos_temp = PMT_position + zcathode * PMT_zaxis;
 	    new G4PVPlacement( rot_PMT, Pos_temp, PMTcathode_log, "PMTcathode_pv", RICHbox_log, false, icopy_PMT_assembly );
 	    //UV-glass PMT window:
@@ -952,6 +958,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     G4VisAttributes *PMTtube_vis = new G4VisAttributes( G4Colour( 0.4, 0.4, 0.4 ) );
     PMTtube_vis->SetForceLineSegmentsPerCircle( 24 );
     PMTtube_log->SetVisAttributes( PMTtube_vis );
+    PMTendcap_log->SetVisAttributes( PMTtube_vis );
 
     G4VisAttributes *PMTwindow_vis = new G4VisAttributes( G4Colour::Cyan() );
     PMTwindow_vis->SetForceLineSegmentsPerCircle( 24 );
@@ -983,54 +990,58 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos ){
     //FPP consists of GEM tracker interspersed w/CH2 analyzers:
 
-    int i;
-    int ngem = 0;
+  int i, j;
+  //int ngem = 0;
+  
+  vector<double> gemz, gemw, gemh;
+  
+  int ntracker = 3; //FT, FPP1, FPP2
+  int ngem[3] = {6,4,4};
+  
+  //int TrackerID = 2;
+  G4SBSTrackerBuilder trackerbuilder(fDetCon);
 
-    vector<double> gemz, gemw, gemh;
-
-    ngem = 14; 
-    gemz.resize(ngem);
-    gemw.resize(ngem);
-    gemh.resize(ngem);
-
-    for( i = 0; i < ngem; i++ ){
-	if( i < 6 ){
-	    gemz[i] = ((double) i)*9*cm;
-	    gemw[i] = 40.0*cm;
-	    gemh[i] = 150.0*cm;
-	} else if( i < 10 ) {
-	    gemz[i] = ((double) i-6)*16*cm + 1.2*m;
-	    //	  gemz[i] = pairspac*((i-6)/2) + (i%2)*gemdsep + 1.2*m;
-	    gemw[i] = 50.0*cm;
-	    gemh[i] = 200.0*cm;
-	} else {
-	    gemz[i] = ((double) i-10)*16.*cm + 2.316*m;
-	    //	  gemz[i] = pairspac*((i-10)/2) + (i%2)*gemdsep + 2.316*m;
-	    gemw[i] = 50.0*cm;
-	    gemh[i] = 200.0*cm;
-	}
-
-	//printf("i = %d  z = %f\n", i, gemz[i]/m);
+  for( i = 0; i<ntracker; i++){
+    gemz.resize( ngem[i] );
+    gemw.resize( ngem[i] );
+    gemh.resize( ngem[i] );
+    for( j = 0; j < ngem[i]; j++ ){
+      if( i == 0 ){
+	gemz[j] = ((double) j)*9*cm;
+	gemw[j] = 40.0*cm;
+	gemh[j] = 150.0*cm;
+      } else if( i == 1 ){
+	gemz[j] = ((double) j)*16*cm + 1.2*m;
+	//	  gemz[i] = pairspac*((i-6)/2) + (i%2)*gemdsep + 1.2*m;
+	gemw[j] = 50.0*cm;
+	gemh[j] = 200.0*cm;
+      } else {
+	gemz[j] = ((double) j)*16.*cm + 2.316*m;
+	//	  gemz[i] = pairspac*((i-10)/2) + (i%2)*gemdsep + 2.316*m;
+	gemw[j] = 50.0*cm;
+	gemh[j] = 200.0*cm;
+      }
+      
+      trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, (fDetCon->TrackerIDnumber)++ );
+      
+      //printf("i = %d  z = %f\n", i, gemz[i]/m);
     }
-
-    G4SBSTrackerBuilder trackerbuilder(fDetCon);
-    trackerbuilder.BuildComponent( Mother, rot, pos, ngem, gemz, gemw, gemh );
-
-    //CH2 analyzers:
-
-    double anaheight = 200.0*cm;
-    double anawidth  = 44.0*2.54*cm;
-    double anadepth  = 22.0*2.54*cm;
-
-    G4Box *anabox = new G4Box("anabox", anawidth/2.0, anaheight/2.0, anadepth/2.0 );
-    G4LogicalVolume* analog = new G4LogicalVolume(anabox, GetMaterial("CH2"), "analog");
-
-    G4ThreeVector Ana1_pos = pos + G4ThreeVector( 0.0, 0.0, 58.53*cm + anadepth/2.0 );
-    G4ThreeVector Ana2_pos = pos + G4ThreeVector( 0.0, 0.0, 170.3*cm + anadepth/2.0 );
-
-    new G4PVPlacement(0, Ana1_pos, analog,
-	    "anaphys1", Mother, false, 0, false);
-    new G4PVPlacement(0, Ana2_pos, analog,
-	    "anaphys1", Mother, false, 0, false);
-
+  }
+  //CH2 analyzers:
+  
+  double anaheight = 200.0*cm;
+  double anawidth  = 44.0*2.54*cm;
+  double anadepth  = 22.0*2.54*cm;
+  
+  G4Box *anabox = new G4Box("anabox", anawidth/2.0, anaheight/2.0, anadepth/2.0 );
+  G4LogicalVolume* analog = new G4LogicalVolume(anabox, GetMaterial("CH2"), "analog");
+  
+  G4ThreeVector Ana1_pos = pos + G4ThreeVector( 0.0, 0.0, 58.53*cm + anadepth/2.0 );
+  G4ThreeVector Ana2_pos = pos + G4ThreeVector( 0.0, 0.0, 170.3*cm + anadepth/2.0 );
+  
+  new G4PVPlacement(0, Ana1_pos, analog,
+		    "anaphys1", Mother, false, 0, false);
+  new G4PVPlacement(0, Ana2_pos, analog,
+		    "anaphys1", Mother, false, 0, false);
+  
 }

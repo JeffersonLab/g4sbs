@@ -75,6 +75,8 @@ class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
 	void SetBBAng( double);
 	void Set48D48Dist( double);
 	void Set48D48Ang( double);
+
+  int TrackerIDnumber;
     private:
 
 	map<G4String, G4Material*> fMaterialsMap;

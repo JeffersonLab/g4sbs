@@ -362,10 +362,10 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 
     if( fTargType == kLH2 ){
-	cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("LH2mat"), "cryo_tube_log");
+	cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("LH2"), "cryo_tube_log");
     }
     if( fTargType == kLD2 ){
-	cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("LD2mat"), "cryo_tube_log");
+	cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("LD2"), "cryo_tube_log");
     }
 
 //    cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("Vacuum"), "cryo_tube_vacuum_log");

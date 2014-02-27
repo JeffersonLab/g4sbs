@@ -1057,11 +1057,11 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 	gemw[j] = 50.0*cm;
 	gemh[j] = 200.0*cm;
       }
+    }
       
-      trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, (fDetCon->TrackerIDnumber)++ );
+    trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, (fDetCon->TrackerIDnumber)++ );
       
       //printf("i = %d  z = %f\n", i, gemz[i]/m);
-    }
   }
   //CH2 analyzers:
   

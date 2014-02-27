@@ -430,9 +430,10 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	    hitdata.dx[i] =  dy/_L_UNIT;
 	    hitdata.dy[i] = -dx/_L_UNIT;
 	  }
-	  hitdata.ndata = nhit;
 	}
       }
+      // Write out hits even if we don't have a track
+      hitdata.ndata = nhit;
     }
   }
 

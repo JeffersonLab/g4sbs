@@ -42,7 +42,8 @@ class G4SBSGEMHit : public G4VHit
       G4double xp;
       G4double yp;
       G4double p, edep;
-
+  G4double hittime;
+  G4double beta; //v/c, for timing:
   public:
       inline void SetVertex(G4ThreeVector v)
       { vert= v;};
@@ -64,6 +65,10 @@ class G4SBSGEMHit : public G4VHit
       { p=x;};
       inline void SetEdep(G4double x)
       {edep=x;};
+  inline void SetHittime( G4double t )
+  { hittime = t; }
+  inline void SetBeta( G4double b )
+  { beta = b; }
 
       inline G4ThreeVector GetPos()
       { return pos;};
@@ -83,7 +88,8 @@ class G4SBSGEMHit : public G4VHit
       inline G4double GetYp(){ return yp; }
       inline G4double GetMom(){ return p; }
       inline G4double GetEdep(){ return edep; }
-
+  inline G4double GetHittime(){ return hittime; }
+  inline G4double GetBeta(){ return beta; }
 };
 
 typedef G4THitsCollection<G4SBSGEMHit> G4SBSGEMHitsCollection;

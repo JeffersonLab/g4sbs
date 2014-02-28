@@ -252,8 +252,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
     G4RotationMatrix *bbdetrot = new G4RotationMatrix();
     // Y is "down"
-    bbdetrot->rotateZ(180.0*deg);
-    bbdetrot->rotateX(-detboxang);
+    //bbdetrot->rotateZ(180.0*deg);
+    //bbdetrot->rotateX(-detboxang);
+
+    bbdetrot->rotateX( detboxang );
 
     // 325mm is about half the depth of the field volume
     // this is in mother box coords
@@ -351,6 +353,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     //This routine creates and positions GEM planes in bbdetLog:
 
     //------------------------------------------- BigBite GEMs: ----------------------------------------//
+
+    (fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kEarm;
+    
     trackerbuilder.BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset ), ngem, gemz, gemw, gemh, (fDetCon->TrackerIDnumber)++ );
     //----- Note: Lines of code that are common to the construction of all individual GEM planes/modules were moved to MakeTracker() -----// 
     //----- All we do here in MakeBigBite() is define the number of planes, their z positions, and their transverse dimensions ------//
@@ -388,6 +393,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCalSDname)) ){
 	BBCalSD = new G4SBSCalSD( BBCalSDname, BBCalcolname );
 	fDetCon->fSDman->AddNewDetector(BBCalSD);
+	fDetCon->SDlist[BBCalSDname] = BBCalSD;
     }
 
     bbcallog->SetSensitiveDetector(BBCalSD);
@@ -511,6 +517,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCALSDname)) ){
 	BBCalSD = new G4SBSCalSD( BBCALSDname, BBCALcolname );
 	fDetCon->fSDman->AddNewDetector(BBCalSD);
+	fDetCon->SDlist[BBCALSDname] = BBCalSD;
     }
 
     fDetCon->fSDman->AddNewDetector(BBCalSD);

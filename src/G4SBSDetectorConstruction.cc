@@ -74,6 +74,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
     fLeadOption = 0;
 
     TrackerIDnumber = 0;
+    TrackerArm.clear();
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -734,6 +735,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
     if( fMaterialsMap.empty() ) ConstructMaterials();
 
     TrackerIDnumber = 0; //Initialize TrackerIDnumber to zero. This gets incremented with each call to TrackerBuilder::BuildComponent!
+    TrackerArm.clear();  //Clear mapping of tracker modules to spectrometers (E arm or H arm)
 
     fSDman = G4SDManager::GetSDMpointer();
     //--------- Material definition was moved to ConstructMaterials()---------

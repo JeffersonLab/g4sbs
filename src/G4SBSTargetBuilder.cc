@@ -44,8 +44,6 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4LogicalVolume* targ_tube_log = new G4LogicalVolume(targ_tube, GetMaterial("GE180"),"targ_tube_log");
     G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("GE180"),"targ_cap_log");
 
-    /* FIXME
-     * */
     if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), targ_tube_log,
 		"targ_tube_phys", worldlog, false, 0);
@@ -55,9 +53,6 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, -fTargLen/2.0-capthick/2.0), targ_cap_log,
 		"targ_cap_phys2", worldlog, false, 0);
     }
-
-
-    /**/
 
 
     // gas
@@ -72,14 +67,11 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("pol3He"), "gas_tube_log");
     }
 
-    /*
-     * FIXME*/
     if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
 	assert(gas_tube_log);
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), gas_tube_log,
 		"gas_tube_phys", worldlog, false, 0);
     }
-    /**/
 
     //--------- Cryo target cell -------------------------------
 
@@ -370,10 +362,10 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 
     if( fTargType == kLH2 ){
-	cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("LH2mat"), "cryo_tube_log");
+	cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("LH2"), "cryo_tube_log");
     }
     if( fTargType == kLD2 ){
-	cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("LD2mat"), "cryo_tube_log");
+	cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("LD2"), "cryo_tube_log");
     }
 
 //    cryo_tube_log = new G4LogicalVolume(cryovol, GetMaterial("Vacuum"), "cryo_tube_vacuum_log");

@@ -259,7 +259,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", big48d48, bigbeamslot, bigboxaddrm, 
 	    G4ThreeVector( f48D48width/2+35*cm, 0.0, 0.0) );
 
-    G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, GetMaterial("Fe"),
+    G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, GetMaterial("Fer"),
 	    "b48d48Log", 0, 0, 0);
 
     if( fDetCon->fTotalAbs ){
@@ -1064,10 +1064,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 	gemw[j] = 50.0*cm;
 	gemh[j] = 200.0*cm;
       }
-      //printf("i = %d  z = %f\n", i, gemz[i]/m);
     }
-    (fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //1 is H arm.
-    
+    (fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //1 is H arm.  
     trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, (fDetCon->TrackerIDnumber)++ );
   }
   //CH2 analyzers:

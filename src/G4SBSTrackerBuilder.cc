@@ -156,7 +156,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
 	    ztemp += gempz[gpidx]/2.0;
 
-	    //Assign sensitive volume: why 5?
+	    //Assign sensitive volume: why 5?  // SPR: This is the gas drift region
 	    if( gpidx == 5 ){
 		gplog->SetSensitiveDetector(GEMSD);
 		gplog->SetVisAttributes( gemsdvisatt );

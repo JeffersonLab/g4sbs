@@ -712,8 +712,9 @@ G4Material *G4SBSDetectorConstruction::GetMaterial(G4String name){
     if( it != fMaterialsMap.end() ){ 
 	return fMaterialsMap[name];
     } else {
-	it = fMaterialsMap.begin();
-	return it->second;
+	fprintf(stderr, "ERROR %s:%d - Material %s not found\n", __FILE__, __LINE__, name.data());
+	exit(1);
+	return NULL;
     }
 }
 

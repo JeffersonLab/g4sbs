@@ -288,7 +288,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 	    break;
 	case 2:
 	    ngem = 5;
-	    gemdsep = 0.10*m;
+	    gemdsep = 0.15*m;
 	    break;
 	case 3:
 	    ngem = 3;
@@ -310,7 +310,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     double gemh_opt1[] = { 150.0*cm, 150.0*cm, 200.0*cm, 200.0*cm };
 
     // GEM option 2
-    gemdsep = 0.15*m; //Is this intended?
     double gemz_opt2[] = { 0.0*cm, gemdsep, 2.0*gemdsep, 3.0*gemdsep, fGEMDist};
     double gemw_opt2[] = { 40.0*cm, 40.0*cm, 40.0*cm, 40.0*cm, 50.0*cm };
     double gemh_opt2[] = { 150.0*cm, 150.0*cm, 150.0*cm, 150.0*cm, 200.0*cm };

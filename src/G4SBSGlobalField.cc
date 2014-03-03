@@ -18,6 +18,7 @@
 #define MAXBUFF 1024
 
 G4SBSGlobalField::G4SBSGlobalField() {
+    fInverted = false;
 }
 
 

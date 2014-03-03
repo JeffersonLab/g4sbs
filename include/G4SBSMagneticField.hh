@@ -17,8 +17,8 @@ class G4SBSMagneticField : public G4MagneticField {
 	void SetOffset( G4ThreeVector off ){ fOffset = off; }
 	void SetRM( G4RotationMatrix rm ){ frm = rm; }
 
-    protected:
 	G4bool fInverted;
+    protected:
 
 	G4ThreeVector fOffset;
 	G4RotationMatrix frm;

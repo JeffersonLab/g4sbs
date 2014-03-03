@@ -12,6 +12,7 @@
 #include "G4Cons.hh"
 #include "G4GenericTrap.hh"
 #include "G4SBSRICHSD.hh"
+#include "G4SBSGlobalField.hh"
 
 #include "G4OpticalSurface.hh"
 #include "G4LogicalSkinSurface.hh"
@@ -23,6 +24,13 @@
 #include "G4SBSCalSD.hh"
 #include "G4Box.hh"
 #include "sbstypes.hh"
+
+#include "G4FieldManager.hh"
+#include "G4UniformMagField.hh"
+#include "G4Mag_UsualEqRhs.hh"
+#include "G4MagIntegratorStepper.hh"
+#include "G4ExplicitEuler.hh"
+#include "G4ChordFinder.hh"
 
 #include <vector>
 #include <map>
@@ -41,6 +49,9 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
     f48D48depth = 1219.2*mm;
     f48D48width = 2324.1*mm;
     f48D48height = 3721.1*mm;
+
+    fUseLocalField = false;
+    fFieldStrength = 1.4*tesla;
 
     assert(fDetCon);
 }
@@ -264,25 +275,31 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     G4RotationMatrix *bigrm = new G4RotationMatrix;
     bigrm->rotateY(-f48D48ang);
 
-    /*
-       new G4PVPlacement(bigrm, 
-       G4ThreeVector(-(f48D48dist+f48D48depth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+f48D48depth/2.0)*cos(-f48D48ang)),
-       big48d48Log, "big48d48Physical", worldlog, 0,false,0);
-       */
-
 
     new G4PVPlacement(bigboxrm, 
-	    //	  G4ThreeVector(-(f48D48dist+f48D48depth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+f48D48depth/2.0)*cos(-f48D48ang)),
 	    G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
 	    big48d48Log, "big48d48Physical", worldlog, 0,false,0);
-
-    // Associate magnetic field with gap
 
     G4LogicalVolume *bigfieldLog=new G4LogicalVolume(biggap, GetMaterial("Air"),
 	    "bigfieldLog", 0, 0, 0);
 
+    // Associate magnetic field with gap
+
+    double sign = 1.0;
+    if( fDetCon->fGlobalField->fInverted ) sign = -1.0;
+    G4UniformMagField* magField
+	= new G4UniformMagField(G4ThreeVector(sign*fFieldStrength*cos(f48D48ang), 0.0, -sign*fFieldStrength*sin(f48D48ang)));
+
+    G4FieldManager *bigfm = new G4FieldManager(magField);
+    bigfm->SetDetectorField(magField);
+    bigfm->CreateChordFinder(magField);
+
+    if( fUseLocalField ){
+	bigfieldLog->SetFieldManager(bigfm,true);
+    }
+
+
     new G4PVPlacement(bigrm, 
-	    //	  G4ThreeVector(-(f48D48dist+f48D48depth/2.0)*sin(-f48D48ang), 0.0, (f48D48dist+f48D48depth/2.0)*cos(-f48D48ang)),
 	    G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
 	    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 

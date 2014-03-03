@@ -76,6 +76,12 @@ class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
 	void Set48D48Dist( double);
 	void Set48D48Ang( double);
 
+	void AddToscaField(const char *);
+
+	bool fUseGlobalField;
+
+	G4SBSGlobalField *fGlobalField;
+
   int TrackerIDnumber;
     private:
 
@@ -85,7 +91,6 @@ class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
 	G4SBSMagneticField *fbbfield;
 	G4SBSMagneticField *f48d48field;
 
-	G4SBSGlobalField *fGlobalField;
 
 
 	//Let's define some additional configurable properties of 48D48:

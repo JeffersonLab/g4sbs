@@ -25,10 +25,11 @@ class G4SBSGlobalField : public G4MagneticField {
 	void DebugField();
 
 	std::vector<TH2F *> fFieldPlots;
+
+	bool fInverted;
     private:
 	std::vector<G4SBSMagneticField *> fFields;
 
-	bool fInverted;
 };
 
 #endif//G4SBSGlobalField_hh

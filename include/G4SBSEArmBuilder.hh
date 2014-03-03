@@ -4,6 +4,7 @@
 #include "G4SBSComponent.hh"
 
 class G4LogicalVolume;
+class G4SBSBigBiteField;
 
 class G4SBSEArmBuilder: public G4SBSComponent {
     public:
@@ -31,6 +32,7 @@ class G4SBSEArmBuilder: public G4SBSComponent {
 	double fBBdist;
 	double fBBCaldist;
 
+	G4SBSBigBiteField *fbbfield;
 
 	double fRICHdist; //distance from target of RICH detector
 
@@ -39,6 +41,8 @@ class G4SBSEArmBuilder: public G4SBSComponent {
 	double fGEMDist;
 
 	int  fGEMOption;
+
+	bool fUseLocalField;
 
     private:
 };

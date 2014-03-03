@@ -69,7 +69,11 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
     fEArmBuilder     = new G4SBSEArmBuilder(this);
     fHArmBuilder     = new G4SBSHArmBuilder(this);
 
+    fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;
+
     fGlobalField = new G4SBSGlobalField();
+
+    fUseGlobalField = false;
 
     fLeadOption = 0;
 
@@ -767,7 +771,10 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
     G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fGlobalField);
     G4MagIntegratorStepper *stepper = new G4ExplicitEuler(fequation, 8);
     new G4ChordFinder(fGlobalField, 1.0*nm, stepper);
-    WorldLog->SetFieldManager(fm,true);
+
+    if( fUseGlobalField ){
+	WorldLog->SetFieldManager(fm,true);
+    }
 
     /* */
 
@@ -873,9 +880,11 @@ void G4SBSDetectorConstruction::SetBigBiteField(int n){
 		    G4ThreeVector(0.0, 0.0, fEArmBuilder->fBBdist),  rm );
 		    // Dimensions of the box
 	    fGlobalField->AddField(fbbfield);
+	    if( !fUseGlobalField ) fEArmBuilder->fUseLocalField = true;
 	    break;
 	case 0:
 	    fGlobalField->DropField(fbbfield);
+	    if( fUseGlobalField ) fEArmBuilder->fUseLocalField = false;
 	    delete fbbfield;
 	    fbbfield = NULL;
 	    break;
@@ -902,9 +911,11 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
 		    G4ThreeVector(-f48D48_uniform_bfield, 0.0, 0.0)
 		    );
 	    fGlobalField->AddField(f48d48field);
+	    if( !fUseGlobalField ) fHArmBuilder->fUseLocalField = true;
 	    break;
 	case 0:
 	    fGlobalField->DropField(f48d48field);
+	    if( fUseGlobalField ) fHArmBuilder->fUseLocalField = false;
 	    delete f48d48field;
 	    f48d48field = NULL;
 	    break;
@@ -944,8 +955,20 @@ void G4SBSDetectorConstruction::SetUniformMagneticField48D48( double B ) {
 	G4SBSConstantField *f = dynamic_cast<G4SBSConstantField *>(f48d48field);
 	if( f ){
 	    // Relative - is so protons bend up
-	    f->SetFieldVector(G4ThreeVector(-f48D48_uniform_bfield, 0.0, 0.0));
+	    f->SetFieldVector(G4ThreeVector(f48D48_uniform_bfield, 0.0, 0.0));
 	}
+	fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;
     }
+}
+
+void G4SBSDetectorConstruction::AddToscaField( const char *fn ) { 
+    fGlobalField->AddToscaField(fn);
+
+    if( !fUseGlobalField ){
+	fUseGlobalField = true;
+	fEArmBuilder->fUseLocalField = false;
+	fHArmBuilder->fUseLocalField = false;
+    }
+
 }
 

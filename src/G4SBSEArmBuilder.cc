@@ -17,8 +17,16 @@
 #include "G4GenericTrap.hh"
 #include "G4Polycone.hh"
 
+#include "G4SBSBigBiteField.hh"
 #include "G4SBSTrackerBuilder.hh"
 #include "G4SBSCalSD.hh"
+#include "G4SBSGlobalField.hh"
+
+#include "G4FieldManager.hh"
+#include "G4Mag_UsualEqRhs.hh"
+#include "G4MagIntegratorStepper.hh"
+#include "G4ExplicitEuler.hh"
+#include "G4ChordFinder.hh"
 
 G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
     fBBang  = 40.0*deg;
@@ -31,7 +39,11 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
     fGEMDist  = 70.0*cm;
     fGEMOption = 1;
 
+    fUseLocalField = false;
+
     assert(fDetCon);
+
+    fbbfield =  NULL;  
 }
 
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}
@@ -238,6 +250,19 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
 	    "bbfieldLog", 0, 0, 0);
 
+
+    fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fBBdist), *bbrm );
+
+    fbbfield->fInverted = fDetCon->fGlobalField->fInverted;
+
+    G4FieldManager *bbfm = new G4FieldManager(fbbfield);
+    G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fbbfield); 
+    G4MagIntegratorStepper *stepper = new G4ExplicitEuler(fequation, 8);
+    new G4ChordFinder(fbbfield, 1.0*nm, stepper);
+
+    if( fUseLocalField ){
+	bbmotherLog->SetFieldManager(bbfm,true);
+    }
 
     new G4PVPlacement(0, G4ThreeVector(), bbfieldLog, "bbfieldPhysical", bbyokewgapLog, 0,false,0);
 

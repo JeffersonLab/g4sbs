@@ -99,9 +99,9 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
 
     ///////////////////////////////////////////////
     // Make sure to put in local coordinates
-    Bfield[0] = -interp[0];
-    Bfield[1] =  interp[1];
-    Bfield[2] = -interp[2];
+    Bfield[0] =  interp[0];
+    Bfield[1] = -interp[1];
+    Bfield[2] =  interp[2];
 
 
     G4ThreeVector newB(Bfield[0], Bfield[1], Bfield[2]);

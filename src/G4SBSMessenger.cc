@@ -488,7 +488,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
 
     if( cmd == tosfieldCmd ){
-	fdetcon->GetGlobalField()->AddToscaField(newValue.data());
+	fdetcon->AddToscaField(newValue.data());
     }
 
     if( cmd == geantinoCmd ){

@@ -37,6 +37,10 @@ class G4SBSHArmBuilder: public G4SBSComponent {
 	double f48D48depth;
 	double f48D48height;
 	double f48D48width;
+
+	bool fUseLocalField;
+
+	double fFieldStrength;
     private:
 
 };

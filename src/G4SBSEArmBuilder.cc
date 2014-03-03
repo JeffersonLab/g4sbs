@@ -255,10 +255,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
     fbbfield->fInverted = fDetCon->fGlobalField->fInverted;
 
+
     G4FieldManager *bbfm = new G4FieldManager(fbbfield);
-    G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fbbfield); 
-    G4MagIntegratorStepper *stepper = new G4ExplicitEuler(fequation, 8);
-    new G4ChordFinder(fbbfield, 1.0*nm, stepper);
+    new G4ChordFinder(fbbfield);
 
     if( fUseLocalField ){
 	bbmotherLog->SetFieldManager(bbfm,true);

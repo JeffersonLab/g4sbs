@@ -11,6 +11,8 @@
 
 #include "G4SBSRICHHit.hh"
 #include "G4SBSRICHoutput.hh"
+#include "G4SBSGEMHit.hh"
+#include "G4SBSTrackerOutput.hh"
 
 #define __MAXGEM 100
 
@@ -36,11 +38,14 @@ public:
   
   void MapTracks(const G4Event *);
   void FillRICHData( const G4Event*, G4SBSRICHHitsCollection*, G4SBSRICHoutput &);
+  void FillTrackData( const G4Event*, G4SBSGEMHitsCollection*, G4SBSTrackerOutput &);
+
+  map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run. 
 
 private:
   //Hit collection IDs:
   G4int gemCollID, hcalCollID, bbcalCollID, RICHCollID;
-  
+
   //maps associating trajectory index with track ID, parent track ID and particle ID:
   //For Track IDs, we only need to use vector, because there is a one-to-one mapping between 
   //trajectory number and track ID. 
@@ -61,5 +66,4 @@ public:
 };
 
 #endif
-
-    
+  

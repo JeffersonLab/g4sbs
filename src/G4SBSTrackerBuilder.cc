@@ -41,6 +41,11 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
     //  G4SDManager* fSDman = G4SDManager::GetSDMpointer();
 
+  // How should we interpret the rotation Matrix rot? It is the rotation that orients the z axis of the tracker with respect to the mother volume. Since pos is the nominal position of the tracker with respect to the mother volume, 
+  // the positioning of the centers of the tracker planes should be pos + zplane * tracker_zaxis
+  G4ThreeVector zaxis(0,0,1);
+  zaxis *= rot->inverse();
+
   char ctrid[20];
   sprintf( ctrid, "%02d", TrackerID );
   
@@ -54,6 +59,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
     if( !(GEMSD = (G4SBSGEMSD*) fDetCon->fSDman->FindSensitiveDetector(GEMSDname)) ){
 	GEMSD = new G4SBSGEMSD( GEMSDname, GEMcolname );
 	fDetCon->fSDman->AddNewDetector(GEMSD);
+	fDetCon->SDlist[GEMSDname] = GEMSD;
     }
 
     if( !( nplanes > 0 && zplanes.size() == nplanes && wplanes.size() == nplanes && hplanes.size() == nplanes ) ){
@@ -155,9 +161,10 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 		gplog->SetSensitiveDetector(GEMSD);
 		gplog->SetVisAttributes( gemsdvisatt );
 
-		G4cout << "Assigning sensitive volume " << gempphysname << " to tracker ID " << TrackerID << G4endl;
+		//		G4cout << "Assigning sensitive volume " << gempphysname << " to tracker ID " << TrackerID << G4endl;
 
 		(GEMSD->GEMTrackerIDs)[ gempphysname ] = TrackerID;
+		(GEMSD->GEMArmIDs)[TrackerID]          = (fDetCon->TrackerArm)[TrackerID];
 	    } else {
 		gplog->SetVisAttributes( G4VisAttributes::Invisible );
 	    }
@@ -165,7 +172,8 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
 	G4String gemname = TrackerPrefix + G4String("_gemphys_") + cgidx;
 	//Now place the fully constructed GEM plane in the mother logical volume:
-	G4ThreeVector plane_pos = pos + G4ThreeVector( 0.0, 0.0, zplanes[gidx] );
+	//G4ThreeVector plane_pos = pos + G4ThreeVector( 0.0, 0.0, zplanes[gidx] );
+	G4ThreeVector plane_pos = pos + zplanes[gidx] * zaxis;
 	new G4PVPlacement( rot, plane_pos, gemlog, gemname, Mother, true, gidx+1, false );
     }
 }

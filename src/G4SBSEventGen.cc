@@ -643,14 +643,23 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
     break;
   }
 
+  G4LorentzVector Pisum_lab = ei + ni;
+
   //The nucleon could be a proton or a neutron. It has initial 4-momentum ni:
   //Boost to the nucleon rest frame:
   G4ThreeVector boost_Nrest = ni.boostVector();
 
-  G4LorentzVector ei_Nrest = ei.boost( -boost_Nrest ); 
+  //G4LorentzVector ei_Nrest = ei.boost( -boost_Nrest ); 
 
-  G4LorentzVector ni_Nrest = ni.boost( -boost_Nrest ); //This should equal (M, 0, 0, 0);
+  //G4LorentzVector ni_Nrest = ni.boost( -boost_Nrest ); //This should equal (M, 0, 0, 0);
   
+  //Just in case, copy ei and ni to ei_Nrest and ni_Nrest before boosting:
+  G4LorentzVector ei_Nrest = ei;
+  G4LorentzVector ni_Nrest = ni;
+
+  ei_Nrest.boost( -boost_Nrest );
+  ni_Nrest.boost( -boost_Nrest );
+
   double Ebeam_Nrest = ei_Nrest.e();
 
   //Generate electron and hadron kinematics, checking whether an event is kinematically allowed:
@@ -685,11 +694,40 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 
   G4LorentzVector Phad_lab( Eh, G4ThreeVector( Ph*sin(htheta)*cos(hphi), Ph*sin(htheta)*sin(hphi), Ph*cos(htheta) ) );
 
+  //Check energy and momentum conservation: 
+  //1. the sum of outgoing electron and hadron energies cannot exceed the incoming electron and nucleon energies (assuming the collision takes place on a single nucleon):
+  //2. 
+  G4LorentzVector Pfsum_lab = Phad_lab + ef_lab;
+  //G4LorentzVector Pisum_lab = ei + ni;
+
+  if( Pfsum_lab.m2() > Pisum_lab.m2() || Pfsum_lab.e() > Pisum_lab.e() ){
+    fSigma = 0.0;
+    fHadronE = 0.0;
+    fHadronP = G4ThreeVector();
+    fElectronE = 0.0;
+    fElectronP = G4ThreeVector();
+    fWeight = 0.0;
+    fxbj = -1.0;
+    fz = -1.0;
+    //fW2 = (ni_Nrest + q_Nrest).m2();
+    return false;
+  }
+
+  
+  
+
   //To compute cross section, boost outgoing electron and hadron momenta to nucleon rest frame:
   
-  G4LorentzVector ef_Nrest = ef_lab.boost( -boost_Nrest );
-  G4LorentzVector Phad_Nrest = Phad_lab.boost( -boost_Nrest );
+  // G4LorentzVector ef_Nrest = ef_lab.boost( -boost_Nrest );
+  // G4LorentzVector Phad_Nrest = Phad_lab.boost( -boost_Nrest );
   
+  //Just in case, copy before boosting so we don't modify lab-frame quantities:
+  G4LorentzVector ef_Nrest = ef_lab;
+  G4LorentzVector Phad_Nrest = Phad_lab;
+
+  ef_Nrest.boost( -boost_Nrest );
+  Phad_Nrest.boost( -boost_Nrest );
+
   //Q2 is Lorentz-invariant and depends only on initial and outgoing electron momenta, which are measured in the lab:
   double Q2 = -(ei - ef_lab).m2();
 
@@ -843,6 +881,9 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   sigsemi *= flux_Nrest/flux_lab; //This is the cross section dsig/dEe' dOmega_e dE_h dOmega_h in units of area/energy^2
   
   fSigma = sigsemi;
+
+  // G4cout << "(x, Q2, z, phperp, MX2)=(" << x << ", " << Q2/pow(GeV,2) << ", " << z << ", " 
+  // 	 << Ph_perp/GeV << ", " << fMx/pow(GeV,2) << ")" << ", fSigma = "<< fSigma * pow(GeV,2) / pow(cm,2) << " cm^2/GeV^2/sr^2" << G4endl;
 
   //These are the four-momenta of outgoing hadron and electron needed for generation of primary particles in GEANT4:
   fHadronE = Phad_lab.e();
@@ -1135,14 +1176,13 @@ ev_t G4SBSEventGen::GetEventData(){
 		      *fTargLen       // Nuclei/area
 		      *fBeamCur/(e_SI*ampere*second);
 
-    /*
-    printf("density = %e N/m3\n", fTargDen*m3);
-    printf("density = %e N/cm3\n", fTargDen*cm3);
-    printf("targlen = %f m\n", fTargLen/m);
-    printf("%e e-/s (I = %f uA)\n", fBeamCur/(e_SI*ampere), fBeamCur/(1e-6*ampere) );
-    printf("luminosity = %e Hz/cm2\n", lumin*second*cm2);
-    printf("e_SI = %e, ampere = %f, \n", e_SI);
-    */
+    
+    // printf("density = %e N/m3\n", fTargDen*m3);
+    // printf("density = %e N/cm3\n", fTargDen*cm3);
+    // printf("targlen = %f m\n", fTargLen/m);
+    // printf("%e e-/s (I = %f uA)\n", fBeamCur/(e_SI*ampere), fBeamCur/(1e-6*ampere) );
+    // printf("luminosity = %e Hz/cm2\n", lumin*second*cm2);
+    // printf("e_SI = %e, ampere = %f, \n", e_SI);
 
     double genvol   = (fPhMax-fPhMin)*(cos(fThMin)-cos(fThMax));
     double thisrate = fSigma*lumin*genvol/fNevt;
@@ -1161,6 +1201,9 @@ ev_t G4SBSEventGen::GetEventData(){
     data.solang = genvol/fNevt; 
 
     data.sigma = fSigma/cm2;
+    if( fKineType == kSIDIS ){ //The SIDIS cross section is also differential in e- energy and hadron energy and has units of area/energy^2/sr^2, so we also need to express it in the correct energy units:
+      data.sigma = fSigma/cm2*pow(GeV,2);
+    }
     data.Aperp  = fAperp;
     data.Apar   = fApar;
     data.W2    = fW2/(GeV*GeV);
@@ -1244,6 +1287,9 @@ ev_t G4SBSEventGen::GetEventData(){
       break;
     }
     
+    data.earmaccept = 0;
+    data.harmaccept = 0;
+
     return data;
 }
 

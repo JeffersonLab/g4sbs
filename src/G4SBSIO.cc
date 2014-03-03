@@ -44,8 +44,8 @@ void G4SBSIO::InitializeTree(){
     if( fTree ){ delete fTree; }
 
     fTree = new TTree("T", "Geant4 SBS Simulation");
-    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:nucl/I:fnucl/I:hadr/I");
-    fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
+    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
+    //fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
     fTree->Branch("gen", &gendata, "thbb/D:thhcal/D:dbb/D:dhcal/D:Ebeam/D");
     // Tedious, but we want dynamically scaled
     fTree->Branch("ht.ndata", &hitdata.ndata, "ht.ndata/I");
@@ -54,6 +54,7 @@ void G4SBSIO::InitializeTree(){
     fTree->Branch("ht.x", &hitdata.x, "ht.x[ht.ndata]/D");
     fTree->Branch("ht.y", &hitdata.y, "ht.y[ht.ndata]/D");
     fTree->Branch("ht.z", &hitdata.z, "ht.z[ht.ndata]/D");
+    fTree->Branch("ht.t", &hitdata.t, "ht.t[ht.ndata]/D");
     fTree->Branch("ht.vx", &hitdata.vx, "ht.vx[ht.ndata]/D");
     fTree->Branch("ht.vy", &hitdata.vy, "ht.vy[ht.ndata]/D");
     fTree->Branch("ht.vz", &hitdata.vz, "ht.vz[ht.ndata]/D");
@@ -76,6 +77,7 @@ void G4SBSIO::InitializeTree(){
     fTree->Branch("hc.y", &caldata.hcy, "hc.y[hc.ndata]/D");
     fTree->Branch("hc.z", &caldata.hcz, "hc.z[hc.ndata]/D");
     fTree->Branch("hc.e", &caldata.hce, "hc.e[hc.ndata]/D");
+    fTree->Branch("hc.t", &caldata.hct, "hc.t[hc.ndata]/D");
     fTree->Branch("hc.vx", &caldata.hcvx, "hc.vx[hc.ndata]/D");
     fTree->Branch("hc.vy", &caldata.hcvy, "hc.vy[hc.ndata]/D");
     fTree->Branch("hc.vz", &caldata.hcvz, "hc.vz[hc.ndata]/D");
@@ -88,12 +90,33 @@ void G4SBSIO::InitializeTree(){
     fTree->Branch("bc.y", &caldata.bcy, "bc.y[bc.ndata]/D");
     fTree->Branch("bc.z", &caldata.bcz, "bc.z[bc.ndata]/D");
     fTree->Branch("bc.e", &caldata.bce, "bc.e[bc.ndata]/D");
+    fTree->Branch("bc.t", &caldata.bct, "bc.t[bc.ndata]/D");
     fTree->Branch("bc.vx", &caldata.bcvx, "bc.vx[bc.ndata]/D");
     fTree->Branch("bc.vy", &caldata.bcvy, "bc.vy[bc.ndata]/D");
     fTree->Branch("bc.vz", &caldata.bcvz, "bc.vz[bc.ndata]/D");
     fTree->Branch("bc.trid", &caldata.bctrid, "bc.trid[bc.ndata]/I");
     fTree->Branch("bc.mid", &caldata.bcmid, "bc.mid[bc.ndata]/I");
     fTree->Branch("bc.pid", &caldata.bcpid, "bc.pid[bc.ndata]/I");
+
+    //Declare new "vectorized" Tracking output branches:
+    fTree->Branch("ntracks", &(trackdata.ntracks), "ntracks/I");
+    fTree->Branch("trackerid", &(trackdata.TrackerID) );
+    fTree->Branch("trackid", &(trackdata.TrackTID) );
+    fTree->Branch("trackpid", &(trackdata.TrackPID) );
+    fTree->Branch("tracknhits", &(trackdata.NumHits) );
+    fTree->Branch("tracknplanes", &(trackdata.NumPlanes) );
+    fTree->Branch("trackndf", &(trackdata.NDF) );
+    fTree->Branch("trackchi2", &(trackdata.Chi2fit) );
+    fTree->Branch("trackchi2true", &(trackdata.Chi2true) );
+    fTree->Branch("trackx", &(trackdata.TrackX) );
+    fTree->Branch("tracky", &(trackdata.TrackY) );
+    fTree->Branch("trackxp", &(trackdata.TrackXp) );
+    fTree->Branch("trackyp", &(trackdata.TrackYp) );
+    fTree->Branch("trackt", &(trackdata.TrackT) );
+    fTree->Branch("trackxfit", &(trackdata.TrackXfit) );
+    fTree->Branch("trackyfit", &(trackdata.TrackYfit) );
+    fTree->Branch("trackxpfit", &(trackdata.TrackXpfit) );
+    fTree->Branch("trackypfit", &(trackdata.TrackYpfit) );
 
     //Declare RICH-related branches of the tree:
     //richdata are stored as STL vectors (basically dynamically sized arrays). Newer ROOT versions know how to handle this, older may not.
@@ -118,6 +141,7 @@ void G4SBSIO::InitializeTree(){
     fTree->Branch("RICH_vpxhit", &(richdata.ppx) );
     fTree->Branch("RICH_vpyhit", &(richdata.ppy) );
     fTree->Branch("RICH_vpzhit", &(richdata.ppz) );
+    //The RICH parent track data only gets filled if /tracking/storeTrajectory 1 has been issued by the user (because keeping track of this info is CPU and memory intensive).
     fTree->Branch("RICH_ntracks", &(richdata.ntracks_RICH), "ntracks_RICH/I");
     fTree->Branch("RICH_mPID", &(richdata.mPID) );
     fTree->Branch("RICH_mTID", &(richdata.mTID) );

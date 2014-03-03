@@ -293,8 +293,9 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	G4PhysicalVolumeStore::GetInstance()->Clean();
 	
 	G4RunManager::GetRunManager()->DefineWorldVolume(pWorld = fdetcon->ConstructAll());
-       
 	G4RunManager::GetRunManager()->GeometryHasBeenModified();
+
+	fevact->SDlist = fdetcon->SDlist;
 
 	// Clobber old gdml if it exists and write out the
 	// present geometry

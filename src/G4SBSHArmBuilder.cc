@@ -60,7 +60,7 @@ G4SBSHArmBuilder::~G4SBSHArmBuilder(){
 }
 
 void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
-    Exp_t exptype = fDetCon->fExpType;
+  Exp_t exptype = fDetCon->fExpType;
 
 
     // All three types of experiments have a 48D48 magnet:
@@ -85,6 +85,9 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 	G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
 
+	//Just a test:
+	//SBStracker_rot_I->rotateY( 14.0*deg );
+
 	G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
 	SBStracker_rot->rotateY( -f48D48ang );
 
@@ -107,6 +110,8 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	}
 
 	G4SBSTrackerBuilder trackerbuilder(fDetCon);
+
+	(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
 
 	trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
 				       ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, (fDetCon->TrackerIDnumber)++ );
@@ -559,6 +564,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     if( !(HCalSD = (G4SBSCalSD*) sdman->FindSensitiveDetector(HCALSDname)) ){
 	HCalSD = new G4SBSCalSD( HCALSDname, HCALcolname );
 	sdman->AddNewDetector(HCalSD);
+	fDetCon->SDlist[HCALSDname] = HCalSD;
     }
 
     sdman->AddNewDetector(HCalSD);
@@ -860,6 +866,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 	G4cout << "Adding RICH sensitive detector to SDman..." << G4endl;
 	RICHSD = new G4SBSRICHSD( RICHSDname, RICHcollname );
 	sdman->AddNewDetector( RICHSD );
+	fDetCon->SDlist[RICHSDname] = RICHSD;
     }
 
     PMTcathode_log->SetSensitiveDetector( RICHSD ); //This assigns the sensitive detector type "RICHSD" to the logical volume PMTcathode!
@@ -1075,10 +1082,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 	gemh[j] = 200.0*cm;
       }
     }
-      
+    (fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //1 is H arm.  
     trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, (fDetCon->TrackerIDnumber)++ );
-      
-      //printf("i = %d  z = %f\n", i, gemz[i]/m);
   }
   //CH2 analyzers:
   
@@ -1096,5 +1101,10 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 		    "anaphys1", Mother, false, 0, false);
   new G4PVPlacement(0, Ana2_pos, analog,
 		    "anaphys1", Mother, false, 0, false);
+
+  G4VisAttributes *CH2anavisatt = new G4VisAttributes( G4Colour(0.0, 0.0, 1.0) );
+  CH2anavisatt->SetForceWireframe(true);
+
+  analog->SetVisAttributes( CH2anavisatt );
   
 }

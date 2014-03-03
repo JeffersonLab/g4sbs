@@ -45,10 +45,10 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   hit->SetPos(pos);
   hit->SetLabPos(aStep->GetPreStepPoint()->GetPosition());
   hit->SetVertex(aStep->GetTrack()->GetVertexPosition());
-//  hit->SetTime(aStep->GetPreStepPoint()->GetGlobalTime());
-  hit->SetTime(aStep->GetPostStepPoint()->GetLocalTime());
+  hit->SetTime(aStep->GetPreStepPoint()->GetGlobalTime());
+  //hit->SetTime(aStep->GetPostStepPoint()->GetLocalTime());
 
-  hit->SetTime(aStep->GetPostStepPoint()->GetLocalTime());
+  //  hit->SetTime(aStep->GetPostStepPoint()->GetLocalTime());
 
   //printf("Hit with E %g\n", edep/MeV);
 

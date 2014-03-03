@@ -4,6 +4,8 @@
 
 #include "TMatrix.h"
 #include "TVector.h"
+#include "TMatrixD.h"
+#include "TVectorD.h"
 #include "THashTable.h"
 
 #include "G4SBSEventAction.hh"
@@ -11,6 +13,7 @@
 #include "G4SBSEventGen.hh"
 #include "G4SBSCalHit.hh"
 #include "G4SBSGEMHit.hh"
+#include "G4SBSGEMSD.hh"
 
 #include "G4Event.hh"
 #include "G4EventManager.hh"
@@ -32,6 +35,8 @@
 #include "G4MaterialPropertyVector.hh"
 #include "G4TrajectoryContainer.hh"
 
+#include <map>
+//#include <unordered_map>
 #include <vector>
 #include <set>
 
@@ -51,7 +56,7 @@ G4SBSEventAction::G4SBSEventAction()
 	fGEMsigma[idx] = 1.0;
     }
 
-
+    SDlist.clear();
 }
 
 G4SBSEventAction::~G4SBSEventAction()
@@ -109,12 +114,25 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   bool HCALSD_exists = false;
   bool RICHSD_exists = false; 
   
+  G4bool warn = false;
+
+  G4SBSGEMSD *GEMSDptr;
+
   //Now set flags for existence of sensitive detectors ***WITHOUT*** warnings:
-  if( SDman->FindSensitiveDetector( GEMSDname, false ) ) GEMSD_exists = true;
-  if( SDman->FindSensitiveDetector( BBCalSDname, false ) ) BBCalSD_exists = true;
-  if( SDman->FindSensitiveDetector( HCalSDname, false ) ) HCALSD_exists = true;
-  if( SDman->FindSensitiveDetector( RICHSDname, false ) ) RICHSD_exists = true;
-  
+  // if( (GEMSDptr = ( (G4SBSGEMSD*) SDman->FindSensitiveDetector( GEMSDname, warn ) ) ) )GEMSD_exists = true;
+  // if( SDman->FindSensitiveDetector( BBCalSDname, warn ) ) BBCalSD_exists = true;
+  // if( SDman->FindSensitiveDetector( HCalSDname, warn ) ) HCALSD_exists = true;
+  // G4cout << "checking for RICH SD" << G4endl;
+  // if( SDman->FindSensitiveDetector( RICHSDname, warn ) ) RICHSD_exists = true;
+  // G4cout << "RICH detector exists = " << RICHSD_exists << G4endl;
+
+  if( SDlist.find( GEMSDname ) != SDlist.end() ) GEMSD_exists = true;
+  if( SDlist.find( BBCalSDname ) != SDlist.end() ) BBCalSD_exists = true;
+  if( SDlist.find( HCalSDname ) != SDlist.end() ) HCALSD_exists = true;
+  if( SDlist.find( RICHSDname ) != SDlist.end() ) RICHSD_exists = true;
+
+  if( GEMSD_exists ) GEMSDptr = ( (G4SBSGEMSD*) SDman->FindSensitiveDetector( GEMSDname, false ) );
+
   bool anySD_exists = GEMSD_exists || BBCalSD_exists || HCALSD_exists || RICHSD_exists;
 
   if( !anySD_exists ) return;
@@ -136,14 +154,6 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   bool hashcal = false;
 
   int i;
-
-  tr_t trdata;
-  trdata.x = trdata.y = trdata.xp = trdata.yp = -1e9;
-  trdata.tx = trdata.ty = trdata.txp = trdata.typ = -1e9;
-  trdata.hcal = trdata.bb = trdata.gemtr = 0;
-  trdata.hcx = trdata.hcy = trdata.bcx = trdata.bcy = -1e9;
-  trdata.hct = trdata.hctex = -1e9;
-  trdata.hclx = trdata.hcly = trdata.hclz = trdata.hcdang = -1e9;
 
   cal_t caldata;
 
@@ -181,6 +191,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  caldata.bcy[i] = (*bbcalHC)[i]->GetPos().y()/_L_UNIT;
 	  caldata.bcz[i] = (*bbcalHC)[i]->GetPos().z()/_L_UNIT;
 	  caldata.bce[i] = (*bbcalHC)[i]->GetEdep()/_E_UNIT;
+	  caldata.bct[i] = (*bbcalHC)[i]->GetTime()/_T_UNIT;
 	  
 	  caldata.bcvx[i] = (*bbcalHC)[i]->GetVertex().x()/_L_UNIT;
 	  caldata.bcvy[i] = (*bbcalHC)[i]->GetVertex().y()/_L_UNIT;
@@ -190,10 +201,6 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  caldata.bcmid[i] = (*bbcalHC)[i]->GetMID();
 	  caldata.bctrid[i] = (*bbcalHC)[i]->GetTrID();
 	}
-	
-	//  Energy weighted sum
-	trdata.bcx = xsum/esum/cm; 
-	trdata.bcy = ysum/esum/cm;
       }
     }
   }
@@ -233,14 +240,15 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  zlsum += (*hcalHC)[i]->GetLabPos().y()*(*hcalHC)[i]->GetEdep();
 	  esum += (*hcalHC)[i]->GetEdep();
 	  
-	  if( (*hcalHC)[i]->GetMID() == 0 ){
-	    trdata.hct = (*hcalHC)[i]->GetTime()/ns + CLHEP::RandGauss::shoot(0.0, fevgen->GetToFres());
-	  }
+	  // if( (*hcalHC)[i]->GetMID() == 0 ){
+	  //   //trdata.hct = (*hcalHC)[i]->GetTime()/ns + CLHEP::RandGauss::shoot(0.0, fevgen->GetToFres());
+	  // }
 	  
 	  caldata.hcx[i] = (*hcalHC)[i]->GetPos().x()/_L_UNIT;
 	  caldata.hcy[i] = (*hcalHC)[i]->GetPos().y()/_L_UNIT;
 	  caldata.hcz[i] = (*hcalHC)[i]->GetPos().z()/_L_UNIT;
 	  caldata.hce[i] = (*hcalHC)[i]->GetEdep()/_E_UNIT;
+	  caldata.hct[i] = (*hcalHC)[i]->GetTime()/_T_UNIT;
 	  
 	  caldata.hcvx[i] = (*hcalHC)[i]->GetVertex().x()/_L_UNIT;
 	  caldata.hcvy[i] = (*hcalHC)[i]->GetVertex().y()/_L_UNIT;
@@ -250,27 +258,21 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  caldata.hcmid[i] = (*hcalHC)[i]->GetMID();
 	  caldata.hctrid[i] = (*hcalHC)[i]->GetTrID();
 	}
+      
+	
+	// G4ThreeVector avglab = G4ThreeVector( trdata.hclx, trdata.hcly, trdata.hclz);
 	
 	
-	trdata.hcx = xsum/esum/cm;
-	trdata.hcy = ysum/esum/cm;
-	trdata.hclx = xlsum/esum/cm;
-	trdata.hcly = ylsum/esum/cm;
-	trdata.hclz = zlsum/esum/cm;
+	// // Calculate expected time of flight
+	// G4ThreeVector q3m = fevgen->GetBeamP()-fevgen->GetElectronP();
+	// G4ThreeVector path = avglab-fevgen->GetV();
+	// double hcd = path.mag();
 	
-	G4ThreeVector avglab = G4ThreeVector( trdata.hclx, trdata.hcly, trdata.hclz);
-	
-	
-	// Calculate expected time of flight
-	G4ThreeVector q3m = fevgen->GetBeamP()-fevgen->GetElectronP();
-	G4ThreeVector path = avglab-fevgen->GetV();
-	double hcd = path.mag();
-	
-	trdata.hctex = hcd/(q3m.mag()*(0.3*m/ns)/sqrt(q3m.mag()*q3m.mag()+proton_mass_c2*proton_mass_c2))/_T_UNIT;
-	// Angular difference between q and reconstructed vector
-	double cosang = q3m.unit()*path.unit();
-	if( cosang > 1.0 ){ cosang = 1.0; } //  Apparent numerical problems in this dot product
-	trdata.hcdang = acos(cosang);
+	// trdata.hctex = hcd/(q3m.mag()*(0.3*m/ns)/sqrt(q3m.mag()*q3m.mag()+proton_mass_c2*proton_mass_c2))/_T_UNIT;
+	// // Angular difference between q and reconstructed vector
+	// double cosang = q3m.unit()*path.unit();
+	// if( cosang > 1.0 ){ cosang = 1.0; } //  Apparent numerical problems in this dot product
+	// trdata.hcdang = acos(cosang);
       }
     }
   }
@@ -284,66 +286,75 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   */
 
 
-  trdata.hcal = hashcal;
-  trdata.bb   = hasbb;
+  // trdata.hcal = hashcal;
+  // trdata.bb   = hasbb;
 
-  trdata.x = trdata.y = trdata.xp = trdata.yp = -1e9;
-  trdata.gemtr = 0;
+  // trdata.x = trdata.y = trdata.xp = trdata.yp = -1e9;
+  // trdata.gemtr = 0;
   int idx, nhit, gid;
-
-  int    map = 0;
-  // Just use 4 GEMs for now
-  double lx[MAXHIT], ly[MAXHIT], lz[MAXHIT];
-
-  double txp, typ, tx, ty;
-  tx  = ty  = txp = typ =  -1e9;
 
   hit_t hitdata;
 
   hitdata.ndata = 0;
   
+  G4SBSTrackerOutput Toutput;
+
+  int has_earm_track = 0;
+  int has_harm_track = 0;
+
   if( GEMSD_exists ){
 
     gemCollID   = SDman->GetCollectionID(colNam="GEMcol");
     
     if( HCE && gemCollID >= 0 ){
       gemHC   = (G4SBSGEMHitsCollection*)(HCE->GetHC(gemCollID));
-    // Need at least three hits to draw a line
+      // Need at least three hits to draw a line
       
+      FillTrackData( evt, gemHC, Toutput ); 
+     
+      if( Toutput.ntracks > 0 ){
+	for(int track=0; track<Toutput.ntracks; track++){
+	  if( (GEMSDptr->GEMArmIDs)[Toutput.TrackerID[track]] == kEarm ) has_earm_track += 1;
+	  if( (GEMSDptr->GEMArmIDs)[Toutput.TrackerID[track]] == kHarm ) has_harm_track += 1;
+	}
+      }
+
       nhit = 0;
       for( idx = 0; idx < gemHC->entries() && idx < MAXHIT; idx++ ){
 	gid = (*gemHC)[idx]->GetGEMID();
 	
 	if( gid == 0 ) continue;
 	
-	tx  =  -1e9;
-	ty  =  -1e9;
-	txp =  -1e9;
-	typ =  -1e9;
+	// tx  =  -1e9;
+	// ty  =  -1e9;
+	// txp =  -1e9;
+	// typ =  -1e9;
 	
-	if( gid == 1 ){
-	  //  Project back to z = 0 plane
-	  tx  =  (*gemHC)[idx]->GetPos().getX() - (*gemHC)[idx]->GetXp()*(*gemHC)[idx]->GetPos().getZ();
-	  ty  =  (*gemHC)[idx]->GetPos().getY() - (*gemHC)[idx]->GetYp()*(*gemHC)[idx]->GetPos().getZ();
-	  txp =  (*gemHC)[idx]->GetXp();
-	  typ =  (*gemHC)[idx]->GetYp();
-	};
+	// if( gid == 1 ){
+	//   //  Project back to z = 0 plane
+	//   tx  =  (*gemHC)[idx]->GetPos().getX() - (*gemHC)[idx]->GetXp()*(*gemHC)[idx]->GetPos().getZ();
+	//   ty  =  (*gemHC)[idx]->GetPos().getY() - (*gemHC)[idx]->GetYp()*(*gemHC)[idx]->GetPos().getZ();
+	//   txp =  (*gemHC)[idx]->GetXp();
+	//   typ =  (*gemHC)[idx]->GetYp();
+	// };
 	
-	map |= (1 << (*gemHC)[idx]->GetGEMID());
+	//What is the purpose of the following line?
+	//map |= (1 << (*gemHC)[idx]->GetGEMID()); 
 	
 	// Smear by resolution
-	lx[nhit] = (*gemHC)[idx]->GetPos().getX() + CLHEP::RandGauss::shoot(0.0, fGEMres);
-	ly[nhit] = (*gemHC)[idx]->GetPos().getY() + CLHEP::RandGauss::shoot(0.0, fGEMres);
-	lz[nhit] = (*gemHC)[idx]->GetPos().getZ();
+	double lx = (*gemHC)[idx]->GetPos().getX() + CLHEP::RandGauss::shoot(0.0, fGEMres);
+	double ly = (*gemHC)[idx]->GetPos().getY() + CLHEP::RandGauss::shoot(0.0, fGEMres);
+	double lz = (*gemHC)[idx]->GetPos().getZ();
 	
 	hitdata.gid[nhit] = (*gemHC)[idx]->GetGEMID();
 	hitdata.trid[nhit] = (*gemHC)[idx]->GetTrID();
 	hitdata.trkrid[nhit] = (*gemHC)[idx]->GetTrackerID();
 	hitdata.pid[nhit] = (*gemHC)[idx]->GetPID();
 	hitdata.mid[nhit] = (*gemHC)[idx]->GetMID();
-	hitdata.x[nhit] =  ly[nhit]/m;
-	hitdata.y[nhit] = -lx[nhit]/m;
-	hitdata.z[nhit] = lz[nhit]/m;
+	hitdata.x[nhit] =  -ly/_L_UNIT; 
+	hitdata.y[nhit] = lx/_L_UNIT;
+	hitdata.z[nhit] = lz/_L_UNIT;
+	hitdata.t[nhit] = (*gemHC)[idx]->GetHittime()/_T_UNIT;
 	hitdata.p[nhit] = (*gemHC)[idx]->GetMom()/_E_UNIT;
 	hitdata.edep[nhit] = (*gemHC)[idx]->GetEdep()/_E_UNIT;
 	
@@ -351,91 +362,26 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	hitdata.vy[nhit] =  (*gemHC)[idx]->GetVertex().getY()/_L_UNIT;
 	hitdata.vz[nhit] =  (*gemHC)[idx]->GetVertex().getZ()/_L_UNIT;
 	
-	hitdata.tx[nhit] =  (*gemHC)[idx]->GetPos().getY()/_L_UNIT;
-	hitdata.ty[nhit] = -(*gemHC)[idx]->GetPos().getX()/_L_UNIT;
-	hitdata.txp[nhit] =  (*gemHC)[idx]->GetYp();
-	hitdata.typ[nhit] = -(*gemHC)[idx]->GetXp();
+	hitdata.tx[nhit] =  -(*gemHC)[idx]->GetPos().getY()/_L_UNIT;
+	hitdata.ty[nhit] =   (*gemHC)[idx]->GetPos().getX()/_L_UNIT;
+	hitdata.txp[nhit] =  -(*gemHC)[idx]->GetYp();
+	hitdata.typ[nhit] = (*gemHC)[idx]->GetXp();
 	
 	//	  printf("GEM HIT %d (%f) %f %f\n", (*gemHC)[idx]->GetGEMID(), lz[nhit]/cm, lx[nhit]/cm, ly[nhit]/cm );
 	nhit++;
 	
+	
+
 	if( nhit == MAXHITDATA ){
 	  G4cerr << "WARNING:  Number of hits exceeds array length - truncating" << G4endl;
 	  break;
 	}
       }
-      
-      if( nhit >= 3 ){
-	
-	// Perform fitting
-	
-	TMatrix mymat(nhit*2, 4);
-	TMatrix sigmamat(nhit*2, nhit*2);
-	// Go x0,y0,x1,y1...
-	
-	TVector hitv(nhit*2);
-	for( i = 0; i < nhit; i++ ){
-	  mymat[2*i][0] = 1.0;
-	  mymat[2*i][1] = lz[i];
-	  mymat[2*i][2] = 0.0;
-	  mymat[2*i][3] = 0.0;
-	  
-	  mymat[2*i+1][0] = 0.0;
-	  mymat[2*i+1][1] = 0.0;
-	  mymat[2*i+1][2] = 1.0;
-	  mymat[2*i+1][3] = lz[i];
-	  
-	  hitv[2*i]   = lx[i];
-	  hitv[2*i+1] = ly[i];
-	  
-	  sigmamat[2*i][2*i]     = 1.0/fGEMsigma[2*i];
-	  sigmamat[2*i+1][2*i+1] = 1.0/fGEMsigma[2*i+1];
-	}
-	
-	TMatrix mytrans = mymat;
-	
-	mytrans.T();
-	
-	TMatrix alpha = mytrans*sigmamat*sigmamat*mymat;
-	
-	
-	if( alpha.Determinant() != 0.0 ){
-	  alpha.Invert();
-	  
-	  TMatrix fitmat = alpha*mytrans;
-	  
-	  TVector track = fitmat*sigmamat*sigmamat*hitv;
-	  
-	  // Switch to "BigBite coordinates"
-	  // Larger momentum is correlated to larger x
-	  // larger angle is correlated with smaller y
-	  trdata.x  = track[2]/_L_UNIT;
-	  trdata.xp = track[3];
-	  trdata.y  = -track[0]/_L_UNIT;
-	  trdata.yp = -track[1];
-	  
-	  trdata.tx  = ty/_L_UNIT;
-	  trdata.txp = typ;
-	  trdata.ty  = -tx/_L_UNIT;
-	  trdata.typ = -txp;
-	  
-	  trdata.gemtr = 1;
-	  
-	  //	      printf("Reconstructed track = (%f, %f) (%f, %f)\n\n", trdata.x, trdata.y, trdata.xp, trdata.yp);
-	  for( i = 0; i < nhit; i++ ){
-	    double dx = track[0] + track[1]*lz[i] - lx[i];
-	    double dy = track[2] + track[3]*lz[i] - ly[i];
-	    //		  printf("Position deviations = %f um\n", sqrt(dx*dx+dy*dy)/um);
-	    
-	    hitdata.dx[i] =  dy/_L_UNIT;
-	    hitdata.dy[i] = -dx/_L_UNIT;
-	  }
-	}
-      }
-      // Write out hits even if we don't have a track
       hitdata.ndata = nhit;
     }
   }
+
+  
 
   G4SBSRICHoutput richdata;
 
@@ -450,10 +396,25 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     }
   }
 
-  fIO->SetTrackData(trdata);
+  ev_t evdata = fIO->GetEventData();
+
+  if( hasbb && has_earm_track != 0 ){
+    evdata.earmaccept = 1;
+  } else {
+    evdata.earmaccept = 0;
+  } 
+  if( hashcal && has_harm_track != 0 ){
+    evdata.harmaccept = 1;
+  } else {
+    evdata.harmaccept = 0;
+  }
+
+  fIO->SetEventData( evdata );
+  //fIO->SetTrackData(trdata);
   fIO->SetCalData(caldata);
   fIO->SetHitData(hitdata);
   fIO->SetRICHData(richdata);
+  fIO->SetTrackData( Toutput );
 
   fIO->FillTree();
 
@@ -751,6 +712,218 @@ void G4SBSEventAction::MapTracks( const G4Event *evt ){
       TrajectoryIndex[ TrackID ] = i; 
       MotherTrackIDs[ TrackID ] = MotherID; //This is the mother track ID number corresponding to Track ID number 
       
+    }
+  }
+}
+
+void G4SBSEventAction::FillTrackData( const G4Event *evt, G4SBSGEMHitsCollection *HC, G4SBSTrackerOutput &Toutput){
+  set<int> TrackerIDs_unique; //ID numbers of unique trackers with hits in this event:
+  set<int> TrackTIDs_unique; //Track numbers of unique tracks causing GEM hits in this event:
+  //set<int> GEMIDs; // ID numbers of unique GEM planes with hits in this event:
+
+  map<int, map<int, vector<int> > > HitList;
+
+  //Toutput.Clear();
+
+  // map<int,int>     TrackerIDs; //mapping between hit indices and tracker IDs 
+  // map<int,int>     GEMIDs;     //mapping between hit indices and plane IDs
+  // map<int,int>     PIDs;       //mapping between hit indices and particle IDs
+  // map<int,int>     MIDs;       //mapping between hit indices and Mother IDs ***Here we are only interested in hits with MID=0!***
+  // map<int,int>     TIDs;
+
+  // map<int,G4ThreeVector> HitPos;
+  // map<int,G4ThreeVector> HitVertex;
+  // map<int,double> HitXp;
+  // map<int,double> HitYp;
+  // map<int,double> HitP;
+  // map<int,double> HitEdep;
+  // map<int,double> HitTime;
+  // map<int,double> HitBeta;
+
+  G4int nhits = HC->entries();
+
+  //First, map all the hits to Tracker IDs/GEM IDs:
+  for(int i=0; i<nhits; i++){
+    int tid =    (*HC)[i]->GetTrID();
+    int trkrid = (*HC)[i]->GetTrackerID();
+    //int pid =    (*HC)[i]->GetPID();
+    int mid =    (*HC)[i]->GetMID();
+    //int gid =    (*HC)[i]->GetGEMID();
+
+    // G4ThreeVector pos = (*HC)[i]->GetPos();
+    // G4ThreeVector vtx = (*HC)[i]->GetVertex();
+    
+    // double Xp = (*HC)[i]->GetXp();
+    // double Yp = (*HC)[i]->GetYp();
+    // double P  = (*HC)[i]->GetMom();
+    double edep = (*HC)[i]->GetEdep();
+
+    // double hittime = (*HC)[i]->GetHittime();
+    // double beta    = (*HC)[i]->GetBeta();
+
+    //Only consider hits with MID == 0 (primary particles):
+    if( mid == 0 && edep > 0.0 ){
+      TrackerIDs_unique.insert( trkrid );
+      TrackTIDs_unique.insert( tid );
+      
+      HitList[trkrid][tid].push_back( i );
+
+      // TrackerIDs[i] = trkrid;
+      // GEMIDs[i]     = gid;
+      // PIDs[i]       = pid;
+      // MIDs[i]       = mid; 
+      // TIDs[i]       = tid; 
+      
+      // HitPos[i]    = pos;
+      // HitVertex[i] = vtx;
+      // HitP[i]      = P;
+      // HitXp[i]     = Xp;
+      // HitYp[i]     = Yp;
+      // HitEdep[i]   = edep;
+
+      // HitTime[i]   = hittime;
+      // HitBeta[i]   = beta;
+    }
+  }
+
+  int nplanes_min = 3; //Minimum number of valid hits to define a track:
+
+  //For the "true" track, we simply take the average of all points for x, y, xp, yp 
+  //Fit procedure: minimize chi^2 defined as sum_i=1,N (xi - (x0 + xp*z))^2/sigmax^2 + (yi - (y0+yp*z))^2/sigmay^2:
+
+  for(set<int>::iterator trkr=TrackerIDs_unique.begin(); trkr != TrackerIDs_unique.end(); trkr++ ){
+    for(set<int>::iterator trk=TrackTIDs_unique.begin(); trk != TrackTIDs_unique.end(); trk++ ){
+      int tracker = *trkr;
+      int track   = *trk;
+      //Define sums to keep track of: 
+      int nhittrk = 0;
+      int nplanetrk = 0;
+      
+      set<int> GEMIDs_unique; //List of unique GEM plane ids on this track:
+
+      double x0avg = 0.0, y0avg = 0.0, xpavg = 0.0, ypavg = 0.0;
+      double x0avg2 = 0.0, y0avg2 = 0.0, xpavg2 = 0.0, ypavg2 = 0.0;
+      double tavg = 0.0, tavg2 = 0.0;
+
+      TMatrixD M(4,4);
+      TVectorD b(4);
+      TVectorD btrue(4);
+
+      //Initialize linear fitting matrices to zero:
+      for(int i=0; i<4; i++){
+	for(int j=0; j<4; j++){
+	  M(i,i) = 0.0;
+	}
+	b(i) = 0.0;
+	btrue(i) = 0.0;
+      }
+      
+      nhittrk = HitList[tracker][track].size();
+
+      if( nhittrk >= 3 ){
+	
+	vector<double> xsmear,ysmear,xtrue,ytrue,ztrue,hittime,beta;
+
+	int PID = 0;
+
+	for(int idx = 0; idx<nhittrk; idx++ ){ //First pass: determine number of unique GEM planes and compute average slopes of "true track". Also compute the sums for the linear fit:
+	  int hit = HitList[tracker][track][idx];
+	  
+	  G4SBSGEMHit *Hit = (*HC)[hit];
+
+	  if( idx == 0 ) PID = Hit->GetPID();
+
+	  GEMIDs_unique.insert( Hit->GetGEMID() );
+
+	  xtrue.push_back( Hit->GetPos().x() );
+	  ytrue.push_back( Hit->GetPos().y() );
+
+	  xsmear.push_back( xtrue[idx] + CLHEP::RandGauss::shoot(0.0, fGEMres) );
+	  ysmear.push_back( ytrue[idx] + CLHEP::RandGauss::shoot(0.0, fGEMres) );
+	  
+	  ztrue.push_back( Hit->GetPos().z() );
+	 
+	  hittime.push_back( Hit->GetHittime() );
+	  beta.push_back( Hit->GetBeta() );
+	  
+	  //Indices of fit parameters in matrix are: 0 = x0, 1 = xp, 2 = y0, 3 = yp:
+	  M(0,0) += pow(1.0/fGEMres,2); 
+	  M(0,1) += pow(1.0/fGEMres,2) * ztrue[idx];
+	  M(0,2) += 0.0; //No cross term between x0 and y0
+	  M(0,3) += 0.0; //No cross term between x0 and yp
+	  M(1,0) += pow(1.0/fGEMres,2) * ztrue[idx];
+	  M(1,1) += pow(ztrue[idx]/fGEMres,2);
+	  M(1,2) += 0.0;
+	  M(1,3) += 0.0;
+	  M(2,0) += 0.0;
+	  M(2,1) += 0.0;
+	  M(2,2) += pow(1.0/fGEMres,2);
+	  M(2,3) += pow(1.0/fGEMres,2) * ztrue[idx];
+	  M(3,0) += 0.0;
+	  M(3,1) += 0.0;
+	  M(3,2) += pow(1.0/fGEMres,2) * ztrue[idx];
+	  M(3,3) += pow(ztrue[idx]/fGEMres,2);
+	  
+	  b(0) += xsmear[idx] / pow(fGEMres,2);
+	  b(1) += ztrue[idx] * xsmear[idx] / pow(fGEMres,2);
+	  b(2) += ysmear[idx] / pow(fGEMres,2);
+	  b(3) += ztrue[idx] * ysmear[idx] / pow(fGEMres,2);
+	  
+	  btrue(0) += xtrue[idx] / pow(fGEMres,2);
+	  btrue(1) += ztrue[idx] * xtrue[idx] / pow(fGEMres,2);
+	  btrue(2) += ytrue[idx] / pow(fGEMres,2);
+	  btrue(3) += ztrue[idx] * ytrue[idx] / pow(fGEMres,2);
+
+	}
+
+	TMatrixD Minv = M.Invert();
+	TVectorD FitTrack = Minv * b;
+	TVectorD TrueTrack = Minv * btrue;
+	
+	if( GEMIDs_unique.size() >= nplanes_min ){
+	  Toutput.ntracks++;
+	  Toutput.TrackerID.push_back(tracker);
+	  Toutput.TrackTID.push_back(track);
+	  Toutput.TrackPID.push_back( PID );
+	  Toutput.NumHits.push_back( nhittrk );
+	  Toutput.NumPlanes.push_back( GEMIDs_unique.size() );
+	  
+	  Toutput.TrackX.push_back( -TrueTrack(2)/_L_UNIT );
+	  Toutput.TrackXp.push_back( -TrueTrack(3) );
+	  Toutput.TrackY.push_back( TrueTrack(0)/_L_UNIT );
+	  Toutput.TrackYp.push_back( TrueTrack(1) );
+
+	  Toutput.TrackXfit.push_back( -FitTrack(2)/_L_UNIT );
+	  Toutput.TrackXpfit.push_back( -FitTrack(3) );
+	  Toutput.TrackYfit.push_back( FitTrack(0)/_L_UNIT );
+	  Toutput.TrackYpfit.push_back( FitTrack(1) );
+
+	  int ndf = 0;
+	  double chi2 = 0.0, chi2_true = 0.0;
+	  //Compute chi^2 and focal plane times projected to local origin:
+	  for(int idx = 0; idx<nhittrk; idx++){
+
+	    //tfp is hit time corrected for time of flight:
+	    double tfp = hittime[idx] - ztrue[idx]*sqrt( 1.0 + pow(TrueTrack(1),2)+pow(TrueTrack(3),2) ) / (beta[idx]*c_light);
+	    
+	    chi2 += pow( (xsmear[idx] - (FitTrack(0) + FitTrack(1)*ztrue[idx] ) )/fGEMres, 2 );
+	    chi2 += pow( (ysmear[idx] - (FitTrack(2) + FitTrack(3)*ztrue[idx] ) )/fGEMres, 2 );
+
+	    chi2_true += pow( (xtrue[idx] - (TrueTrack(0) + TrueTrack(1)*ztrue[idx] ) )/fGEMres, 2 );
+	    chi2_true += pow( (ytrue[idx] - (TrueTrack(2) + TrueTrack(3)*ztrue[idx] ) )/fGEMres, 2 );
+
+	    tavg += tfp/double(nhittrk);
+
+	    ndf += 2;
+	  }
+
+	  Toutput.Chi2fit.push_back( chi2 );
+	  Toutput.Chi2true.push_back( chi2_true );
+	  Toutput.NDF.push_back( ndf );
+	  Toutput.TrackT.push_back( tavg/_T_UNIT );
+
+	}
+      }
     }
   }
 }

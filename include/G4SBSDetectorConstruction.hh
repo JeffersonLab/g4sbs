@@ -63,6 +63,7 @@ class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
 	Exp_t fExpType;
 	Targ_t fTargType;
 
+  map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run.
 	G4SDManager *fSDman; 
 	bool fTotalAbs;
 
@@ -83,6 +84,8 @@ class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
 	G4SBSGlobalField *fGlobalField;
 
   int TrackerIDnumber;
+  map<int,Arm_t> TrackerArm; //Is tracker in E arm or P arm?
+
     private:
 
 	map<G4String, G4Material*> fMaterialsMap;

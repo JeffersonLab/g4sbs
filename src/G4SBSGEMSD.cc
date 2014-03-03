@@ -77,8 +77,8 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 
  // G4ThreeVector mom = aStep->GetPreStepPoint()->GetMomentum();
-  G4ThreeVector mom = aStep->GetDeltaPosition();
-
+  //  G4ThreeVector mom = aStep->GetDeltaPosition();
+  G4ThreeVector mom = aStep->GetTrack()->GetMomentumDirection();
   
   G4ThreeVector thisdelta = aStep->GetPreStepPoint()->GetPosition() + aStep->GetDeltaPosition();
   thisdelta = aTrans.TransformPoint(thisdelta);
@@ -86,7 +86,8 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 //  printf("%f %f %f\n", aStep->GetDeltaPosition().x()/mom.x(), aStep->GetDeltaPosition().y()/mom.y(), aStep->GetDeltaPosition().z()/mom.z());
 //  printf("%f %f %f\n", mom.x(), mom.y(), mom.z());
-  mom *= aTrans.NetRotation();
+  //mom *= aTrans.NetRotation();
+  mom *= aTrans.NetRotation().inverse();
   /*
   printf("mom:    %f %f %f\n", mom.unit().x(), mom.unit().y(), mom.unit().z());
   printf("thisdel %f %f %f\n", thisdelta.unit().x(), thisdelta.unit().y(), thisdelta.unit().z());
@@ -123,9 +124,11 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   hit->SetTrID(aStep->GetTrack()->GetTrackID());
   hit->SetPID(aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding());
   hit->SetMom(aStep->GetTrack()->GetMomentum().mag());
-//  hit->SetDir(mom.getX()/mom.getZ(), mom.getY()/mom.getZ());
-  hit->SetDir(thisdelta.getX()/thisdelta.getZ(), thisdelta.getY()/thisdelta.getZ());
+  hit->SetDir(mom.getX()/mom.getZ(), mom.getY()/mom.getZ());
+//  hit->SetDir(thisdelta.getX()/thisdelta.getZ(), thisdelta.getY()/thisdelta.getZ());
   hit->SetGEMID(copyID);
+  hit->SetBeta( aStep->GetPreStepPoint()->GetBeta() );
+  hit->SetHittime( aStep->GetPreStepPoint()->GetGlobalTime() );
 
   hitCollection->insert( hit );
 

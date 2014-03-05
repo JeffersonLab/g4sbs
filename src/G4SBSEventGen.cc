@@ -1181,7 +1181,7 @@ ev_t G4SBSEventGen::GetEventData(){
     // printf("density = %e N/cm3\n", fTargDen*cm3);
     // printf("targlen = %f m\n", fTargLen/m);
     // printf("%e e-/s (I = %f uA)\n", fBeamCur/(e_SI*ampere), fBeamCur/(1e-6*ampere) );
-    // printf("luminosity = %e Hz/cm2\n", lumin*second*cm2);
+    //printf("luminosity = %e Hz/cm2\n", lumin*second*cm2);
     // printf("e_SI = %e, ampere = %f, \n", e_SI);
 
     double genvol   = (fPhMax-fPhMin)*(cos(fThMin)-cos(fThMax));
@@ -1199,7 +1199,9 @@ ev_t G4SBSEventGen::GetEventData(){
     data.count  = thisrate*fRunTime;
     data.rate   = thisrate*second;
     data.solang = genvol/fNevt; 
-
+    if( fKineType == kSIDIS ){ //convert genvol to units of GeV^2 in SIDIS case
+      data.solang /= pow(GeV,2);
+    }
     data.sigma = fSigma/cm2;
     if( fKineType == kSIDIS ){ //The SIDIS cross section is also differential in e- energy and hadron energy and has units of area/energy^2/sr^2, so we also need to express it in the correct energy units:
       data.sigma = fSigma/cm2*pow(GeV,2);

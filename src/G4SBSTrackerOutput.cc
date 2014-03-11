@@ -25,6 +25,7 @@ void G4SBSTrackerOutput::Clear(){
   TrackXp.clear();
   TrackYp.clear();
   TrackT.clear();
+  TrackP.clear();
   
   TrackXfit.clear();
   TrackYfit.clear();

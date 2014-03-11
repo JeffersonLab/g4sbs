@@ -113,6 +113,7 @@ void G4SBSIO::InitializeTree(){
     fTree->Branch("trackxp", &(trackdata.TrackXp) );
     fTree->Branch("trackyp", &(trackdata.TrackYp) );
     fTree->Branch("trackt", &(trackdata.TrackT) );
+    fTree->Branch("trackp", &(trackdata.TrackP) );
     fTree->Branch("trackxfit", &(trackdata.TrackXfit) );
     fTree->Branch("trackyfit", &(trackdata.TrackYfit) );
     fTree->Branch("trackxpfit", &(trackdata.TrackXpfit) );

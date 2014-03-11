@@ -32,7 +32,8 @@ public:
   vector<double> TrackXp; //Track dx/dz in local tracker coordinates
   vector<double> TrackYp; //Track dy/dz in local tracker coordinates
   vector<double> TrackT; //Track time at "focal plane" in spectrometer coordinates
-  
+  vector<double> TrackP; //Track initial momentum:
+
   //"Reconstructed" track info:
   vector<double> TrackXfit; //reconstructed (straight-line fit to hits smeared by position resolution)
   vector<double> TrackYfit; //reconstructed 

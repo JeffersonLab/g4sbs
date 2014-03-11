@@ -804,6 +804,7 @@ void G4SBSEventAction::FillTrackData( const G4Event *evt, G4SBSGEMHitsCollection
       double x0avg = 0.0, y0avg = 0.0, xpavg = 0.0, ypavg = 0.0;
       double x0avg2 = 0.0, y0avg2 = 0.0, xpavg2 = 0.0, ypavg2 = 0.0;
       double tavg = 0.0, tavg2 = 0.0;
+      double pavg = 0.0;
 
       TMatrixD M(4,4);
       TVectorD b(4);
@@ -834,6 +835,8 @@ void G4SBSEventAction::FillTrackData( const G4Event *evt, G4SBSGEMHitsCollection
 	  if( idx == 0 ) PID = Hit->GetPID();
 
 	  GEMIDs_unique.insert( Hit->GetGEMID() );
+
+	  pavg += Hit->GetMom()/double(nhittrk);
 
 	  xtrue.push_back( Hit->GetPos().x() );
 	  ytrue.push_back( Hit->GetPos().y() );
@@ -922,6 +925,7 @@ void G4SBSEventAction::FillTrackData( const G4Event *evt, G4SBSGEMHitsCollection
 	  Toutput.NDF.push_back( ndf );
 	  Toutput.TrackT.push_back( tavg/_T_UNIT );
 
+	  Toutput.TrackP.push_back( pavg/_E_UNIT );
 	}
       }
     }

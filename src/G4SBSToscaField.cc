@@ -158,7 +158,10 @@ void G4SBSToscaField::ReadField(){
 
     char dstring[MAXBUFF];
 
+    int readorder[3];
+
     fscanf(f, "%d%d%d%d", &fN[2], &fN[1], &fN[0], &dint);
+    fscanf(f, "%d%d%d", &readorder[2], &readorder[1], &readorder[0]);
 
     /*
 
@@ -197,6 +200,8 @@ void G4SBSToscaField::ReadField(){
 
     // Read in the field map
 
+    int effidx[3];
+
     for( i = 0; i < fN[0]; i++ ){
 	for( j = 0; j < fN[1]; j++ ){
 	    for( k = 0; k < fN[2]; k++ ){
@@ -213,7 +218,11 @@ void G4SBSToscaField::ReadField(){
 			fMax[idx] = r[idx]*cm;
 		    }
 
-		    fFieldVal[i][j][k][idx] = fB[idx]*gauss;
+		    readorder[0] < 0 ? effidx[0] = fN[0]-i-1: effidx[0] = i;
+		    readorder[1] < 0 ? effidx[1] = fN[1]-j-1: effidx[1] = j;
+		    readorder[2] < 0 ? effidx[2] = fN[2]-k-1: effidx[2] = k;
+
+		    fFieldVal[effidx[0]][effidx[1]][effidx[2]][idx] = fB[idx]*gauss;
 		}
 
 	    }

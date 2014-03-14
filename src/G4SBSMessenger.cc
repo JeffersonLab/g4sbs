@@ -92,6 +92,10 @@ G4SBSMessenger::G4SBSMessenger(){
     geantinoCmd->SetGuidance("Shoot a geantino instead of e-");
     geantinoCmd->SetParameterName("shootgeantino", false);
 
+    invertCmd = new G4UIcmdWithABool("/g4sbs/invertfield", this);
+    invertCmd->SetGuidance("invert field polarity");
+    invertCmd->SetParameterName("invert", false);
+
     totalabsCmd = new G4UIcmdWithABool("/g4sbs/totalabs", this);
     totalabsCmd->SetGuidance("Magnet materials are total absorbers");
     totalabsCmd->SetParameterName("totalabs", false);
@@ -495,6 +499,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == geantinoCmd ){
 	G4bool b = geantinoCmd->GetNewBoolValue(newValue);
 	fprigen->SetUseGeantino(b);
+	fdetcon->GetGlobalField()->SetInvertField(b);
+    }
+
+    if( cmd == invertCmd ){
+	G4bool b = invertCmd->GetNewBoolValue(newValue);
 	fdetcon->GetGlobalField()->SetInvertField(b);
     }
 

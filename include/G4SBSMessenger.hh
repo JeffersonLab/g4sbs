@@ -58,6 +58,7 @@ private:
   G4UIcmdWithAString *tosfieldCmd;
 
   G4UIcmdWithABool *geantinoCmd;
+  G4UIcmdWithABool *invertCmd;
   G4UIcmdWithABool *totalabsCmd;
   
   G4UIcmdWithAnInteger *gemconfigCmd;

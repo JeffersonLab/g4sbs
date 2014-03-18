@@ -363,6 +363,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	hitdata.vy[nhit] =  (*gemHC)[idx]->GetVertex().getY()/_L_UNIT;
 	hitdata.vz[nhit] =  (*gemHC)[idx]->GetVertex().getZ()/_L_UNIT;
 
+	hitdata.vp[nhit] =  (*gemHC)[idx]->GetVertexMom().mag()/_E_UNIT;
+
 	hitdata.vpx[nhit] =  (*gemHC)[idx]->GetVertexMom().getX()/_E_UNIT;
 	hitdata.vpy[nhit] =  (*gemHC)[idx]->GetVertexMom().getY()/_E_UNIT;
 	hitdata.vpz[nhit] =  (*gemHC)[idx]->GetVertexMom().getZ()/_E_UNIT;

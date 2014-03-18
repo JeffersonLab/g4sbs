@@ -55,7 +55,7 @@ typedef struct {
 	Double_t txp[MAXHITDATA], typ[MAXHITDATA];
 	Int_t trid[MAXHITDATA], mid[MAXHITDATA], pid[MAXHITDATA];
 	Double_t vx[MAXHITDATA], vy[MAXHITDATA], vz[MAXHITDATA];
-	Double_t vpx[MAXHITDATA], vpy[MAXHITDATA], vpz[MAXHITDATA];
+	Double_t vp[MAXHITDATA], vpx[MAXHITDATA], vpy[MAXHITDATA], vpz[MAXHITDATA];
 	Double_t p[MAXHITDATA], edep[MAXHITDATA];
 	Double_t pathl[MAXHITDATA];
 } hit_t;

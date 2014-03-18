@@ -643,18 +643,29 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4bool inrange = true;
 
     G4double Ephoton_633 = ( twopi * hbarc_eV_nm / 633.0 )*eV;
-    G4double nquartz_633 = ( ( QuartzWindow->GetMaterialPropertiesTable() )->GetProperty("RINDEX") )->GetValue( Ephoton_633, inrange );
+    //G4double nquartz_633 = ( ( QuartzWindow->GetMaterialPropertiesTable() )->GetProperty("RINDEX") )->GetValue( Ephoton_633, inrange );
+    G4double nquartz_633 = 1.542599196;
+    G4double nair_633 = 1.00027653;
+
+    G4double Bratio = (1.0304-nair_633)/(nquartz_633 - nair_633);
 
     for(int i=0; i<nsteps; i++){
 	G4double ltemp = lmin + i*lstep; //nm
-	Ephoton_aerogel[i] = (twopi * hbarc_eV_nm / ltemp )*eV;
+
+	G4double nquartz = sqrt( 1.28604141 + 1.07044083*pow(ltemp/1000.0,2)/(pow(ltemp/1000.0,2)-1.00585997e-2) + 1.10202242*pow(ltemp/1000.0,2)/(pow(ltemp/1000.0,2)-100) );
+	G4double nair = 1 + 5792105E-8/(238.0185-pow(ltemp/1000.0,-2)) + 167917E-8/(57.362-pow(ltemp/1000.0,-2));
+	  
+	int idx = nsteps - (i+1);
+	  
+	
+	Ephoton_aerogel[idx] = (twopi * hbarc_eV_nm / ltemp )*eV;
 	//Since C is in um^3, we need to compute lambda^4 in um^4. The result will be in microns, which we then convert to cm:
-	Rayleigh_aerogel[i] = (pow( ltemp/1000.0, 4 )/C_aerogel / 10000.0 )*cm; //scattering length in cm
+	Rayleigh_aerogel[idx] = (pow( ltemp/1000.0, 4 )/C_aerogel / 10000.0 )*cm; //scattering length in cm
 	//From the references above, the mean refractive index at 633 nm is 1.0304;
 	// Assume that the dispersion follows that of fused silica, so scale n at each wavelength by the ratio of 
 	// fused silica at that wavelength to fused silica at 633 nm. 
-	G4double nquartz_temp = ( ( QuartzWindow->GetMaterialPropertiesTable() )->GetProperty("RINDEX") )->GetValue( Ephoton_aerogel[i], inrange );
-	Rindex_aerogel[i] = 1.0304 * nquartz_temp / nquartz_633;
+	//G4double nquartz_temp = ( ( QuartzWindow->GetMaterialPropertiesTable() )->GetProperty("RINDEX") )->GetValue( Ephoton_aerogel[i], inrange );
+	Rindex_aerogel[idx] = (1.0-Bratio)*nair + Bratio*nquartz;
     }
 
     MPT_temp = new G4MaterialPropertiesTable();

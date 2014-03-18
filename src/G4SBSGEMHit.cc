@@ -28,11 +28,13 @@ G4SBSGEMHit::G4SBSGEMHit(const G4SBSGEMHit &right)
   TrackerID = right.TrackerID;
 
   vert = right.vert;
+  vertp = right.vertp;
   trid = right.trid;
   mid = right.mid;
   pid = right.pid;
   p = right.p;
   edep = right.edep;
+  pathl = right.pathl;
 }
 
 const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
@@ -44,8 +46,10 @@ const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
   yp = right.yp;
   p = right.p;
   edep = right.edep;
+  pathl= right.pathl;
 
   vert = right.vert;
+  vertp = right.vertp;
   trid = right.trid;
   mid = right.mid;
   pid = right.pid;

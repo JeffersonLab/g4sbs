@@ -33,6 +33,7 @@ class G4SBSGEMHit : public G4VHit
   private:
       G4ThreeVector pos;
       G4ThreeVector vert;
+      G4ThreeVector vertp;
       G4int	GEMID;
   G4int TrackerID;
       G4int	trid;
@@ -41,12 +42,15 @@ class G4SBSGEMHit : public G4VHit
 
       G4double xp;
       G4double yp;
+      G4double pathl;
       G4double p, edep;
   G4double hittime;
   G4double beta; //v/c, for timing:
   public:
       inline void SetVertex(G4ThreeVector v)
       { vert= v;};
+      inline void SetVertexMom(G4ThreeVector v)
+      { vertp= v;};
       inline void SetPos(G4ThreeVector v)
       { pos = v;};
       inline void SetDir(G4double x, G4double y)
@@ -65,6 +69,8 @@ class G4SBSGEMHit : public G4VHit
       { p=x;};
       inline void SetEdep(G4double x)
       {edep=x;};
+      inline void SetPathl(G4double x)
+      {pathl=x;};
   inline void SetHittime( G4double t )
   { hittime = t; }
   inline void SetBeta( G4double b )
@@ -74,6 +80,8 @@ class G4SBSGEMHit : public G4VHit
       { return pos;};
       inline G4ThreeVector GetVertex()
       { return vert;};
+      inline G4ThreeVector GetVertexMom()
+      { return vertp;};
       inline G4int GetGEMID()
       { return GEMID;};
   inline G4int GetTrackerID()
@@ -90,6 +98,7 @@ class G4SBSGEMHit : public G4VHit
       inline G4double GetEdep(){ return edep; }
   inline G4double GetHittime(){ return hittime; }
   inline G4double GetBeta(){ return beta; }
+  inline G4double GetPathl(){ return pathl; }
 };
 
 typedef G4THitsCollection<G4SBSGEMHit> G4SBSGEMHitsCollection;

@@ -117,9 +117,18 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 //  printf("Hit by %d at det %d,  (%f %f %f) %f?\n", trid, copyID, pos.getX()/cm, pos.getY()/cm, pos.getZ()/cm, boxz/cm );
 
+  G4ThreeVector vmom = aStep->GetTrack()->GetVertexMomentumDirection().unit();
+  G4double vT = aStep->GetTrack()->GetVertexKineticEnergy();
+  G4double mass = aStep->GetTrack()->GetDefinition()->GetPDGMass();
+  G4double vmom_mag = sqrt( pow(vT + mass,2.0) - mass*mass );
+
+
+  vmom *= vmom_mag;
+
   hit->SetEdep(edep);
   hit->SetPos(pos);
   hit->SetVertex(aStep->GetTrack()->GetVertexPosition());
+  hit->SetVertexMom(vmom);
   hit->SetMID(aStep->GetTrack()->GetParentID());
   hit->SetTrID(aStep->GetTrack()->GetTrackID());
   hit->SetPID(aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding());
@@ -129,6 +138,7 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   hit->SetGEMID(copyID);
   hit->SetBeta( aStep->GetPreStepPoint()->GetBeta() );
   hit->SetHittime( aStep->GetPreStepPoint()->GetGlobalTime() );
+  hit->SetPathl( aStep->GetTrack()->GetTrackLength() );
 
   hitCollection->insert( hit );
 

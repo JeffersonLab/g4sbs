@@ -72,7 +72,6 @@ target_link_libraries(g4sbsroot ${ROOT_LIBRARIES} )
 # relies on these scripts being in the current working directory.
 #
 set(G4SBS_SCRIPTS
-  rootlogon.C
   vis.mac
   run_example.mac
   scripts/gen_1.5GeV2.mac
@@ -114,6 +113,8 @@ foreach(_script ${G4SBS_SCRIPTS})
     COPYONLY
     )
 endforeach()
+
+configure_file( ${PROJECT_SOURCE_DIR}/rootlogon.C ${PROJECT_BINARY_DIR}/rootlogon.C )
 
 set(DSS2007_GRIDS HLO.GRID HNLO.GRID KALO.GRID KNLO.GRID PILO.GRID PLO.GRID PNLO.GRID)
 

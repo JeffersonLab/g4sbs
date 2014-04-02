@@ -800,10 +800,10 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   vector<double> Dqh;
   fFragFunc.GetFFs( ihadron, icharge, z, sqrt(Q2)/GeV, Dqh );
 
-  //G4cout << "Got fragmentation functions..." << G4endl;
+  // G4cout << "Got fragmentation functions..." << G4endl;
 
   // for( int iparton=0; iparton<6; iparton++ ){
-  //   G4cout << "iparton, Dhq = " << iparton << ", " << Dqh[iparton] << endl;
+  //   G4cout << "iparton, z, Q2, Dhq = " << iparton << ", " << z << ", " << Q2/pow(GeV,2) << ", " << Dqh[iparton] << endl;
   // }
   
   //Pperp = ph - (ph dot q) * q/q^2 
@@ -838,7 +838,7 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 						     pow(e_d,2) * (d * Dqh[2] + dbar * Dqh[3]) + 
 						     pow(e_s,2) * (st * Dqh[4] + sbar * Dqh[5]) );
   
-  if( nucl == kNeutron ){ //Interchange u and d quarks: the d quark density in a neutron = u quark density in a proton
+  if( nucl == kNeutron ){ //Interchange u and d quarks: the d quark density in a neutron = u quark density in a proton etc.
     H2 = x * b/twopi*exp(-b*pow(Ph_perp,2)) * ( pow(e_u,2) * (d * Dqh[0] + dbar * Dqh[1]) + 
 						pow(e_d,2) * (u * Dqh[2] + ubar * Dqh[3]) + 
 						pow(e_s,2) * (st * Dqh[4] + sbar * Dqh[5]) );

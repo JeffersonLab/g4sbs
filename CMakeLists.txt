@@ -104,6 +104,8 @@ set(G4SBS_SCRIPTS
   scripts/sidis_pip_11gev_upbend.mac
   scripts/sidis_pip_8.8gev_downbend.mac
   scripts/sidis_pip_8.8gev_upbend.mac
+  scripts/sidis_pi0_11gev.mac
+  scripts/sidis_pi0_8.8gev.mac
   )
 
 foreach(_script ${G4SBS_SCRIPTS})

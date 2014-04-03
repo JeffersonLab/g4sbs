@@ -6,7 +6,7 @@
 /g4sbs/rasterx  2.0 mm
 /g4sbs/rastery  2.0 mm
 /g4sbs/exp      sidis
-/g4sbs/hadron   K+
+/g4sbs/hadron   pi0
 /g4sbs/kine     sidis
 
 /g4sbs/runtime    480.0 hour

@@ -6,11 +6,11 @@
 /g4sbs/rasterx  2.0 mm
 /g4sbs/rastery  2.0 mm
 /g4sbs/exp      sidis
-/g4sbs/hadron   K+
+/g4sbs/hadron   pi0
 /g4sbs/kine     sidis
 
 /g4sbs/runtime    480.0 hour
-/g4sbs/beamE       8.8 GeV
+/g4sbs/beamE      11.0 GeV
 /g4sbs/bbang      30.0 deg
 /g4sbs/bbdist      1.55 m
 /g4sbs/hcalang    14.0 deg
@@ -30,6 +30,6 @@
 /g4sbs/hphmin    -60.0 deg
 /g4sbs/hphmax     60.0 deg
 /g4sbs/eemin      0.5 GeV
-/g4sbs/eemax      5.3 GeV
+/g4sbs/eemax      6.0 GeV
 /g4sbs/ehmin      1.0 GeV
-/g4sbs/ehmax      8.3 GeV
+/g4sbs/ehmax      10.5 GeV

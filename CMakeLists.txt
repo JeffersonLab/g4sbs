@@ -88,24 +88,9 @@ set(G4SBS_SCRIPTS
   scripts/gep_5GeV2.mac
   scripts/gep_8GeV2.mac
   scripts/gep_12GeV2.mac
-  scripts/sidis_km_11gev_downbend.mac
-  scripts/sidis_km_11gev_upbend.mac
-  scripts/sidis_km_8.8gev_downbend.mac
-  scripts/sidis_km_8.8gev_upbend.mac
-  scripts/sidis_kp_11gev_downbend.mac
-  scripts/sidis_kp_11gev_upbend.mac
-  scripts/sidis_kp_8.8gev_downbend.mac
-  scripts/sidis_kp_8.8gev_upbend.mac
-  scripts/sidis_pim_11gev_downbend.mac
-  scripts/sidis_pim_11gev_upbend.mac
-  scripts/sidis_pim_8.8gev_downbend.mac
-  scripts/sidis_pim_8.8gev_upbend.mac
-  scripts/sidis_pip_11gev_downbend.mac
-  scripts/sidis_pip_11gev_upbend.mac
-  scripts/sidis_pip_8.8gev_downbend.mac
-  scripts/sidis_pip_8.8gev_upbend.mac
-  scripts/sidis_pi0_11gev.mac
-  scripts/sidis_pi0_8.8gev.mac
+  scripts/sidis_template.mac
+  scripts/make_SIDIS_scripts.C
+  scripts/vis_sidis.mac
   )
 
 foreach(_script ${G4SBS_SCRIPTS})
@@ -118,7 +103,7 @@ endforeach()
 
 configure_file( ${PROJECT_SOURCE_DIR}/rootlogon.C ${PROJECT_BINARY_DIR}/rootlogon.C )
 
-set(DSS2007_GRIDS HLO.GRID HNLO.GRID KALO.GRID KNLO.GRID PILO.GRID PLO.GRID PNLO.GRID)
+set(DSS2007_GRIDS HLO.GRID HNLO.GRID KALO.GRID KNLO.GRID PILO.GRID PROLO.GRID PLO.GRID PNLO.GRID)
 
 foreach(_grid ${DSS2007_GRIDS})
   configure_file( ${PROJECT_SOURCE_DIR}/src/dss2007/${_grid} ${PROJECT_BINARY_DIR}/${_grid} COPYONLY )

@@ -40,6 +40,10 @@
 #include "G4UIExecutive.hh"
 #endif
 
+#ifdef __APPLE__
+#include "unistd.h"
+#endif
+
 int main(int argc, char** argv)
 {
   //-------------------------------

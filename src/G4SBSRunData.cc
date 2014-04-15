@@ -3,6 +3,10 @@
 #include <string.h>
 #include <errno.h>
 
+#ifdef __APPLE__
+#include "unistd.h"
+#endif
+
 G4SBSRunData::G4SBSRunData(){
     fNthrown = -1;
     fNtries = -1;

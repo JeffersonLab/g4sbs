@@ -53,6 +53,12 @@ else()
   find_package(Geant4 REQUIRED)
 endif()
 
+option(WITH_G4SBS_GDML "Build g4sbs with GDML output" ON)
+if( WITH_G4SBS_GDML)
+    set_source_files_properties(${PROJECT_SOURCE_DIR}/src/G4SBSMessenger.cc
+    PROPERTIES COMPILE_FLAGS "-DG4SBS_USE_GDML")
+endif()
+
 include(${Geant4_USE_FILE})
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries

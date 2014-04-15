@@ -35,8 +35,9 @@
 
 #include "G4UImanager.hh"
 #include "G4RunManager.hh"
-
+#ifdef G4SBS_USE_GDML
 #include "G4GDMLParser.hh"
+#endif
 #include "G4VPhysicalVolume.hh"
 
 using namespace CLHEP;
@@ -283,8 +284,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     char cmdstr[255];
 
     if( cmd == runCmd ){
-	// Save geometry to GDML file
-	G4GDMLParser parser;
+	
 	G4VPhysicalVolume* pWorld;
 
 	G4int nevt = runCmd->GetNewIntValue(newValue);
@@ -303,9 +303,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
 	// Clobber old gdml if it exists and write out the
 	// present geometry
+	// Save geometry to GDML file
+#ifdef G4SBS_USE_GDML
+	G4GDMLParser parser;
 	unlink("g4sbs.gdml");
 	parser.Write("g4sbs.gdml", pWorld);
-
+#endif
 	// Run the simulation
 	G4UImanager * UImanager = G4UImanager::GetUIpointer();
 	sprintf(cmdstr, "/run/beamOn %d", nevt);

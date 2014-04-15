@@ -26,7 +26,7 @@ void make_SIDIS_scripts( const char *inputfilename ){
 
   ifstream inputfile(inputfilename);
 
-  inputfile >> nevents;
+  //inputfile >> nevents;
   inputfile >> itgt; //0 = LH2, 1 = LD2, 2 = H2 gas, 3 = 3He gas:
   inputfile >> fieldclamp;
   inputfile >> ckov_flag;
@@ -354,8 +354,8 @@ void make_SIDIS_scripts( const char *inputfilename ){
       TString rootfilename = outfilename;
       rootfilename.ReplaceAll(".mac",".root");
 
-      outputfile << "/g4sbs/filename " << rootfilename.Data() << endl;
-      outputfile << "/g4sbs/run " << nevents << endl;
+      // outputfile << "/g4sbs/filename " << rootfilename.Data() << endl;
+      // outputfile << "/g4sbs/run " << nevents << endl;
     }
   }
 

@@ -97,6 +97,7 @@ set(G4SBS_SCRIPTS
   scripts/sidis_template.mac
   scripts/make_SIDIS_scripts.C
   scripts/vis_sidis.mac
+  scripts/sidis_background.mac
   )
 
 foreach(_script ${G4SBS_SCRIPTS})

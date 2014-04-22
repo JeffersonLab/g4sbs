@@ -34,5 +34,6 @@
 /g4sbs/ehmin      1.0 GeV
 /g4sbs/ehmax      10.5 GeV
 
+/g4sbs/totalabs false
 /tracking/storeTrajectory 1
 

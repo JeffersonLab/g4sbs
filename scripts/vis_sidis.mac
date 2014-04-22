@@ -1,6 +1,7 @@
+/control/execute scripts/sidis_template.mac
 
 # Use this open statement to create an OpenGL view:
-/vis/open OGL 800x800-0+0
+/vis/open OGLI 800x800-0+0
 #
 # Use this open statement to create a .prim file suitable for
 # viewing in DAWN:

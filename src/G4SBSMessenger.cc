@@ -420,6 +420,14 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	fevgen->SetHadronType( kKMinus );
 	validcmd = true; 
       }
+      if( newValue.compareTo("p") == 0 ){
+	fevgen->SetHadronType( kP );
+	validcmd = true;
+      } 
+      if( newValue.compareTo("pbar") == 0 ){
+	fevgen->SetHadronType( kPbar );
+	validcmd = true;
+      }
 
       if( !validcmd ){
 	  fprintf(stderr, "%s: %s line %d - Error: Hadron type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());

@@ -11,6 +11,8 @@
 #include "G4KaonPlus.hh"
 #include "G4KaonMinus.hh"
 #include "G4PionZero.hh"
+#include "G4Proton.hh"
+#include "G4AntiProton.hh"
 
 #include <errno.h>
 
@@ -635,6 +637,16 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
     Mh = G4KaonMinus::KaonMinusDefinition()->GetPDGMass();
     icharge = -1;
     ihadron = 1;
+    break;
+  case kP:
+    Mh = G4Proton::ProtonDefinition()->GetPDGMass();
+    icharge = 1;
+    ihadron = 2;
+    break;
+  case kPbar:
+    Mh = G4AntiProton::AntiProtonDefinition()->GetPDGMass();
+    icharge = -1;
+    ihadron = 2;
     break;
   default:
     Mh = G4PionPlus::PionPlusDefinition()->GetPDGMass();

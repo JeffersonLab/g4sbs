@@ -98,6 +98,11 @@ set(G4SBS_SCRIPTS
   scripts/make_SIDIS_scripts.C
   scripts/vis_sidis.mac
   scripts/sidis_background.mac
+  root_macros/G4SBS_optics_fit.C 
+  root_macros/RICH_analysis.C    
+  root_macros/g4sbs_tree.C       
+  root_macros/g4sbs_tree.h       
+  root_macros/rate_table.C
   )
 
 foreach(_script ${G4SBS_SCRIPTS})

@@ -42,9 +42,12 @@ double get_R(double x, double Q2, double &dR){
   return (Ra + Rb + Rc)/3.0;
 }
 
-void rate_table( const char *inputfilename, const char *outputfilename ){
+void rate_table( const char *inputfilename, const char *outputfilename, const char *rootfilename ){
 
-  TFile *fout = new TFile("temp.root", "RECREATE");
+  // TString rootfilename(outputfilename);
+  // rootfilename.ReplaceAll(".txt",".root");
+
+  TFile *fout = new TFile(rootfilename, "RECREATE");
 
   TRandom3 num(0);
 
@@ -61,6 +64,8 @@ void rate_table( const char *inputfilename, const char *outputfilename ){
   double xmin, xmax, zmin, zmax;
   
   double PB,PT;
+
+  double chargesep_m, chargesep_b;
 
   ifstream inputfile(inputfilename);
   ofstream outputfile(outputfilename);
@@ -127,9 +132,14 @@ void rate_table( const char *inputfilename, const char *outputfilename ){
   inputfile >> nbins_z >> zmin >> zmax;
   inputfile >> PB >> PT;
   inputfile >> ndays;
-
+ 
   inputfile >> pi0flag;
   
+  chargesep_m = 0.25;
+  chargesep_b = 0.0;
+
+  inputfile >> chargesep_m >> chargesep_b;
+
   currentline.ReadLine( inputfile );
   ifstream sbsopticsfile_up(currentline.Data());
   currentline.ReadLine( inputfile );
@@ -137,25 +147,44 @@ void rate_table( const char *inputfilename, const char *outputfilename ){
   currentline.ReadLine( inputfile );
   ifstream bbopticsfile(currentline.Data());
 
-  vector<vector<double> > SBScoeff(4);
-  vector<vector<int> > SBSexpon(5);
+  vector<vector<double> > SBScoeff_up(4);
+  vector<vector<int> > SBSexpon_up(5);
+
+  vector<vector<double> > SBScoeff_down(4);
+  vector<vector<int> > SBSexpon_down(5);
 
   vector<vector<double> > BBcoeff(4);
   vector<vector<int> > BBexpon(5);
 
-  int nparams_SBS=0;
-  sbsopticsfile >> nparams_SBS;
+  int nparams_SBS_down=0;
+  sbsopticsfile_down >> nparams_SBS_down;
   for(int i=0; i<5; i++){
-    if( i < 4) SBScoeff[i].resize(nparams_SBS);
-    SBSexpon[i].resize(nparams_SBS);
+    if( i < 4) SBScoeff_down[i].resize(nparams_SBS_down);
+    SBSexpon_down[i].resize(nparams_SBS_down);
   }
 
-  for(int ipar=0; ipar<nparams_SBS; ipar++){
+  for(int ipar=0; ipar<nparams_SBS_down; ipar++){
     for(int icoeff=0; icoeff<4; icoeff++){
-      sbsopticsfile >> SBScoeff[icoeff][ipar];
+      sbsopticsfile_down >> SBScoeff_down[icoeff][ipar];
     }
     for(int iexpon=0; iexpon<5; iexpon++){
-      sbsopticsfile >> SBSexpon[iexpon][ipar];
+      sbsopticsfile_down >> SBSexpon_down[iexpon][ipar];
+    }
+  }
+
+  int nparams_SBS_up=0;
+  sbsopticsfile_up >> nparams_SBS_up;
+  for(int i=0; i<5; i++){
+    if( i < 4) SBScoeff_up[i].resize(nparams_SBS_up);
+    SBSexpon_up[i].resize(nparams_SBS_up);
+  }
+
+  for(int ipar=0; ipar<nparams_SBS_up; ipar++){
+    for(int icoeff=0; icoeff<4; icoeff++){
+      sbsopticsfile_up >> SBScoeff_up[icoeff][ipar];
+    }
+    for(int iexpon=0; iexpon<5; iexpon++){
+      sbsopticsfile_up >> SBSexpon_up[iexpon][ipar];
     }
   }
 
@@ -242,6 +271,9 @@ void rate_table( const char *inputfilename, const char *outputfilename ){
   TH2D *hphih_z     = new TH2D("hphih_z","",100,0.0,1.0,100,-PI,PI);
   TH2D *hphih_Phperp = new TH2D("hphih_Phperp","",100,0.0,1.6,100,-PI,PI);
   
+  TH1D *hevzdiff = new TH1D("hevzdiff","",200,-0.2,0.2);
+  TH1D *hhvzdiff = new TH1D("hhvzdiff","",200,-0.2,0.2);
+
   TH1D* hQ2diff = new TH1D("hQ2diff","",200,-1.0,1.0);
   TH1D* hxbjdiff = new TH1D("hxbjdiff","",200,-0.3,0.3);
   TH1D* hzdiff   = new TH1D("hzdiff","",200,-0.1,0.1);
@@ -307,6 +339,9 @@ void rate_table( const char *inputfilename, const char *outputfilename ){
 	hxpfp = (*(T->trackxpfit))[itrack];
 	hypfp = (*(T->trackypfit))[itrack];
 	hptrack = (*(T->trackp))[itrack];
+
+	//determine up-bending or down-bending track:
+	
 	
 	int pid = (*(T->trackpid))[itrack];
 
@@ -324,15 +359,31 @@ void rate_table( const char *inputfilename, const char *outputfilename ){
 	double recon_sum[4] = {0,0,0,0};
 	double pinv;
 	
-	for(int iter=0; iter<3; iter++){
+	//hxtar = 0.0;
+
+	for(int iter=0; iter<2; iter++){
 	  for(int coeff=0; coeff<4; coeff++){
 	    recon_sum[coeff] = 0.0;
 	  }
-	  
-	  for(int par=0; par<nparams_SBS; par++){
-	    for(int coeff=0; coeff<4; coeff++){
-	      recon_sum[coeff] += SBScoeff[coeff][par] * pow( hxfp, SBSexpon[0][par] ) * pow( hyfp, SBSexpon[1][par] ) * pow( hxpfp, SBSexpon[2][par] ) *
-		pow( hypfp, SBSexpon[3][par] ) * pow( hxtar, SBSexpon[4][par] );
+
+	  if( hxpfp < chargesep_b + chargesep_m * hxfp ){ //up-bending:
+
+	    for(int par=0; par<nparams_SBS_up; par++){
+	      for(int coeff=0; coeff<4; coeff++){
+		//is this an up-bending or downbending track?
+	      
+		recon_sum[coeff] += SBScoeff_up[coeff][par] * pow( hxfp, SBSexpon_up[0][par] ) * pow( hyfp, SBSexpon_up[1][par] ) * pow( hxpfp, SBSexpon_up[2][par] ) *
+		  pow( hypfp, SBSexpon_up[3][par] ) * pow( hxtar, SBSexpon_up[4][par] );
+	      }
+	    }
+	  } else { //down-bending:
+	    for(int par=0; par<nparams_SBS_down; par++){
+	      for(int coeff=0; coeff<4; coeff++){
+		//is this an up-bending or downbending track?
+	      
+		recon_sum[coeff] += SBScoeff_down[coeff][par] * pow( hxfp, SBSexpon_down[0][par] ) * pow( hyfp, SBSexpon_down[1][par] ) * pow( hxpfp, SBSexpon_down[2][par] ) *
+		  pow( hypfp, SBSexpon_down[3][par] ) * pow( hxtar, SBSexpon_down[4][par] );
+	      }
 	    }
 	  }
 	  
@@ -342,6 +393,13 @@ void rate_table( const char *inputfilename, const char *outputfilename ){
 	  hprecon = 1.0/recon_sum[3];
 	  
 	  double vztemp = -hytar / ( sin(sbstheta) + hyptar*cos(sbstheta) );
+
+	  //	  cout << "iteration, vzrecon, vztrue = " << iter << ", " << vztemp << ", " << T->ev_vz << endl;
+
+	  if( iter == 1 ){
+	    hhvzdiff->Fill( vztemp - T->ev_vz );
+	  }
+
 	  hxtar = vspec_SBS.X() - vztemp * cos( sbstheta ) * hxptar;
 	}
       }
@@ -356,7 +414,9 @@ void rate_table( const char *inputfilename, const char *outputfilename ){
 	double recon_sum[4] = {0,0,0,0};
 	double pinv;
 	
-	for(int iter=0; iter<3; iter++){
+	extar = 0.0;
+
+	for(int iter=0; iter<2; iter++){
 	  for(int coeff=0; coeff<4; coeff++){
 	    recon_sum[coeff] = 0.0;
 	  }
@@ -374,6 +434,13 @@ void rate_table( const char *inputfilename, const char *outputfilename ){
 	  eprecon = 1.0/recon_sum[3];
 	  
 	  double vztemp = eytar / ( sin(bbtheta) - eyptar*cos(bbtheta) );
+
+	  // cout << "iteration, vzrecon, vztrue = " << iter << ", " << vztemp << ", " << T->ev_vz << endl;
+
+	  if( iter == 1 ){
+	    hevzdiff->Fill( vztemp - T->ev_vz );
+	  }
+
 	  extar = vspec_BB.X() - vztemp * cos( bbtheta ) * exptar;
 	}
 	
@@ -467,6 +534,12 @@ void rate_table( const char *inputfilename, const char *outputfilename ){
 
 	    TwoPhotons = photon1 + photon2;
 
+	    // cout << "True pi0:" << endl;
+	    // TLorentzVector TruePi0( T->ev_npx, T->ev_npy, T->ev_npz, sqrt(pow(T->ev_np,2)+pow(mpi0,2)) );
+	    // TruePi0.Print();
+	    // cout << "Reconstructed pi0:" << endl;
+	    // TwoPhotons.Print();
+
 	    pi0accept = 1;
 	  }
 	}
@@ -500,7 +573,7 @@ void rate_table( const char *inputfilename, const char *outputfilename ){
       double xbj_recon = Q2_recon/(2.0*P.Dot(qrecon));
       double z_recon = P.Dot(Ph)/P.Dot(qrecon);
 
-      TVector3 Ph_perp_vect = hpvect - hpvect.Dot( qrecon.Vect() ) / ( (qrecon.Vect()).Mag2() )  * qrecon.Vect();
+      TVector3 Ph_perp_vect = Ph.Vect() - (Ph.Vect() ).Dot( qrecon.Vect() ) / ( (qrecon.Vect()).Mag2() )  * qrecon.Vect();
 
       double Ph_perp_recon = Ph_perp_vect.Mag();
       

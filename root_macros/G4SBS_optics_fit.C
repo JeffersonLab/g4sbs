@@ -149,11 +149,21 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
   TH2D *hpdiff_ypfp = new TH2D("hpdiff_ypfp", "", nbins, fpmin[3], fpmax[3], nbins, -0.2, 0.2 );
 
   TH1D *hpinvdiff = new TH1D("hpinvdiff", "", nbins, -0.05, 0.05 );
+
+  TH1D *hvzdiff = new TH1D("hvzdiff", "", nbins, -0.3, 0.3 );
+
+  TH2D *hvzdiff_xtar = new TH2D("hvzdiff_xtar", "", nbins, tgtmin[4],tgtmax[4], nbins, -0.3,0.3);
+  TH2D *hvzdiff_ytar = new TH2D("hvzdiff_ytar", "", nbins, tgtmin[2],tgtmax[2], nbins, -0.3,0.3);
+  TH2D *hvzdiff_xptar = new TH2D("hvzdiff_xptar", "", nbins, tgtmin[0],tgtmax[0], nbins, -0.3,0.3);
+  TH2D *hvzdiff_yptar = new TH2D("hvzdiff_yptar", "", nbins, tgtmin[1],tgtmax[1], nbins, -0.3,0.3);
+  TH2D *hvzdiff_p = new TH2D("hvzdiff_p", "", nbins, tgtmin[3],tgtmax[3], nbins, -0.3,0.3);
   
   int nparams = 0;
 
   vector<int> xtar_expon;
-  
+  vector<int> xfp_expon;
+  vector<int> xpfp_expon;
+
   for(int i=0; i<=order; i++){
     for(int j=0; j<=order-i; j++){
       for(int k=0; k<=order-i-j; k++){
@@ -161,6 +171,8 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
 	  for(int m=0; m<=order-i-j-k-l; m++){
 	    nparams++;
 	    xtar_expon.push_back( i );
+	    xfp_expon.push_back( m );
+	    xpfp_expon.push_back( k );
 	  }
 	}
       }
@@ -205,12 +217,13 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
     TVector3 vertex(vx,vy,vz);
 
     if( arm == 0 ){
-      //p = T->ev_ep;
-      px = T->ev_epx;
-      py = T->ev_epy;
-      pz = T->ev_epz;
+      p = T->ev_ep;
+
+      //px = T->ev_epx;
+      //py = T->ev_epy;
+      //pz = T->ev_epz;
       
-      TVector3 pvect( px, py, pz );
+      TVector3 pvect( p*sin(T->ev_th)*cos(T->ev_ph), p*sin(T->ev_th)*sin(T->ev_ph), p*cos(T->ev_th) );
       TVector3 BB_zaxis( -sin(theta0), 0.0, cos(theta0) ); //BB is on beam right, global x axis points to beam left
       TVector3 BB_xaxis(0,-1,0); //X axis of transport coordinates is vertically down:
       //TVector3 BB_xaxis = (BB_yaxis.Cross(BB_zaxis)).Unit();
@@ -228,12 +241,12 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
       xtar = vertex_BB.X() - xptar * vertex_BB.Z();
       
     } else {
-      //    p = T->ev_np;
+      p = T->ev_np;
       px = T->ev_npx;
       py = T->ev_npy;
       pz = T->ev_npz;
       
-      TVector3 pvect(px,py,pz);
+      TVector3 pvect(p*sin(T->ev_nth)*cos(T->ev_nph), p*sin(T->ev_nth)*sin(T->ev_nph), p*cos(T->ev_nth) );
       TVector3 SBS_zaxis( sin(theta0), 0, cos(theta0) );
       TVector3 SBS_xaxis(0,-1,0);
       TVector3 SBS_yaxis = (SBS_zaxis.Cross(SBS_xaxis)).Unit();
@@ -320,6 +333,8 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
 		  b_yptar(ipar) += term[ipar]*yptar;
 		  b_ytar(ipar) += term[ipar]*ytar;
 		}
+		  //b_ytar(ipar) += term[ipar]*T->ev_vz;
+		  //} 
 		//b_pinv(ipar) += term[ipar]*(p/pcentral[arm]-1.0);
 		b_pinv(ipar) += term[ipar]/p;
 		ipar++;
@@ -347,10 +362,10 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
   TDecompSVD A_pinv(M);
   
   for(int ipar=0; ipar<nparams; ipar++){
-    if( xtar_expon[ipar] != 0 ){
+    if( xtar_expon[ipar] > 0 ){
       M(ipar,ipar) = 1.0;
       for(int jpar=0; jpar<nparams; jpar++){
-	if( jpar != ipar ) M(ipar,jpar) = 0.0;
+  	if( jpar != ipar ) M(ipar,jpar) = 0.0;
       }
     }
   }
@@ -439,12 +454,12 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
     TVector3 vertex(vx,vy,vz);
 
     if( arm == 0 ){
-      //p = T->ev_ep;
-      px = T->ev_epx;
-      py = T->ev_epy;
-      pz = T->ev_epz;
+      p = T->ev_ep;
+      //px = T->ev_epx;
+      //py = T->ev_epy;
+      //pz = T->ev_epz;
       
-      TVector3 pvect( px, py, pz );
+      TVector3 pvect( p*sin(T->ev_th)*cos(T->ev_ph), p*sin(T->ev_th)*sin(T->ev_ph), p*cos(T->ev_th) );
       TVector3 BB_zaxis( -sin(theta0), 0.0, cos(theta0) ); //BB is on beam right, global x axis points to beam left
       TVector3 BB_xaxis(0,-1,0); //X axis of transport coordinates is vertically down:
       //TVector3 BB_xaxis = (BB_yaxis.Cross(BB_zaxis)).Unit();
@@ -462,12 +477,13 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
       xtar = vertex_BB.X() - xptar * vertex_BB.Z();
       
     } else {
-      //p = T->ev_np;
+      p = T->ev_np;
       px = T->ev_npx;
       py = T->ev_npy;
       pz = T->ev_npz;
       
-      TVector3 pvect(px,py,pz);
+      //TVector3 pvect(px,py,pz);
+      TVector3 pvect( p*sin(T->ev_nth)*cos(T->ev_nph), p*sin(T->ev_nth)*sin(T->ev_nph), p*cos(T->ev_nth) );
       TVector3 SBS_zaxis( sin(theta0), 0, cos(theta0) );
       TVector3 SBS_xaxis(0,-1,0);
       TVector3 SBS_yaxis = (SBS_zaxis.Cross(SBS_xaxis)).Unit();
@@ -570,46 +586,73 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
       //p_fit = pcentral[arm]*(1.0 + pinv_fit);
       //p_recon = pcentral[arm]*(1.0 + pinv_recon);
 
-      hpinvdiff->Fill( pinv_recon - 1.0/p );
+      // double vz_fit = ytar_fit / ( sin( theta;
+      // double vz_recon = ytar_recon;
+      double vz_fit, vz_recon;
 
-      hytarrecon->Fill( ytar_recon );
-      hyptarrecon->Fill( yptar_recon );
-      hxptarrecon->Fill( xptar_recon );
-      hprecon->Fill(p_recon );
+      if( arm == 0 ){ //BB, beam right:
+	vz_fit = ytar_fit / (sin(theta0) - cos(theta0)*yptar_fit);
+	vz_recon = ytar_recon / (sin(theta0) - cos(theta0)*yptar_recon);
+      } else { //SBS, beam left:
+	vz_fit = -ytar_fit / (sin(theta0) + cos(theta0)*yptar_fit);
+	vz_recon = -ytar_recon / (sin(theta0) + cos(theta0)*yptar_recon);
+      }
 
-      hytardiff->Fill( ytar_recon - ytar );
-      hxptardiff->Fill( xptar_recon - xptar );
-      hyptardiff->Fill( yptar_recon - yptar );
-      hpdiff->Fill( (p_recon/p - 1.0) );
+      hvzdiff->Fill( vz_fit - T->ev_vz );
+      hvzdiff_xtar->Fill(xtar, vz_fit - T->ev_vz );
+      hvzdiff_ytar->Fill(ytar, vz_fit - T->ev_vz );
+      hvzdiff_xptar->Fill(xptar, vz_fit - T->ev_vz );
+      hvzdiff_yptar->Fill(yptar, vz_fit - T->ev_vz );
+      hvzdiff_p->Fill(p, vz_fit - T->ev_vz );
+
+      // if( arm == 0 ){ //bigbite, beam right:
+      // 	ytar_fit = vz_fit * (sin(theta0) - cos(theta0)*yptar_fit);
+      // 	ytar_recon = vz_recon * (sin(theta0) - cos(theta0)*yptar_recon);
+      // } else { //SBS, beam left:
+      // 	ytar_fit = -vz_fit * (sin(theta0) + cos(theta0)*yptar_fit);
+      // 	ytar_recon = -vz_recon * (sin(theta0) + cos(theta0)*yptar_recon);
+      // }
+
+      hpinvdiff->Fill( pinv_fit - 1.0/p );
+
+      hytarrecon->Fill( ytar_fit );
+      hyptarrecon->Fill( yptar_fit );
+      hxptarrecon->Fill( xptar_fit );
+      hprecon->Fill(p_fit );
+
+      hytardiff->Fill( ytar_fit - ytar );
+      hxptardiff->Fill( xptar_fit - xptar );
+      hyptardiff->Fill( yptar_fit - yptar );
+      hpdiff->Fill( (p_fit/p - 1.0) );
       
-      hxptardiff_xtar->Fill( xtar, xptar_recon - xptar );
-      hxptardiff_xptar->Fill( xptar, xptar_recon - xptar );
-      hxptardiff_yptar->Fill( yptar, xptar_recon - xptar );
-      hxptardiff_ytar->Fill( ytar, xptar_recon - xptar );
-      hxptardiff_p->Fill( p, xptar_recon - xptar );
+      hxptardiff_xtar->Fill( xtar, xptar_fit - xptar );
+      hxptardiff_xptar->Fill( xptar, xptar_fit - xptar );
+      hxptardiff_yptar->Fill( yptar, xptar_fit - xptar );
+      hxptardiff_ytar->Fill( ytar, xptar_fit - xptar );
+      hxptardiff_p->Fill( p, xptar_fit - xptar );
 
-      hyptardiff_xtar->Fill(xtar, yptar_recon - yptar );
-      hyptardiff_xptar->Fill( xptar, yptar_recon - yptar );
-      hyptardiff_yptar->Fill( yptar, yptar_recon - yptar );
-      hyptardiff_ytar->Fill( ytar, yptar_recon - yptar );
-      hyptardiff_p->Fill( p, yptar_recon - yptar );
+      hyptardiff_xtar->Fill(xtar, yptar_fit - yptar );
+      hyptardiff_xptar->Fill( xptar, yptar_fit - yptar );
+      hyptardiff_yptar->Fill( yptar, yptar_fit - yptar );
+      hyptardiff_ytar->Fill( ytar, yptar_fit - yptar );
+      hyptardiff_p->Fill( p, yptar_fit - yptar );
       
-      hytardiff_xtar->Fill( xtar, ytar_recon - ytar );
-      hytardiff_xptar->Fill( xptar, ytar_recon - ytar );
-      hytardiff_yptar->Fill( yptar, ytar_recon - ytar );
-      hytardiff_ytar->Fill( ytar, ytar_recon - ytar );
-      hytardiff_p->Fill( p, ytar_recon - ytar );
+      hytardiff_xtar->Fill( xtar, ytar_fit - ytar );
+      hytardiff_xptar->Fill( xptar, ytar_fit - ytar );
+      hytardiff_yptar->Fill( yptar, ytar_fit - ytar );
+      hytardiff_ytar->Fill( ytar, ytar_fit - ytar );
+      hytardiff_p->Fill( p, ytar_fit - ytar );
       
-      hpdiff_xtar->Fill( xtar, p_recon/p - 1.0 );
-      hpdiff_xptar->Fill( xptar, p_recon/p - 1.0 );
-      hpdiff_yptar->Fill( yptar, p_recon/p - 1.0 );
-      hpdiff_ytar->Fill( ytar, p_recon/p - 1.0 );
-      hpdiff_p->Fill( p, p_recon/p - 1.0 );
+      hpdiff_xtar->Fill( xtar, p_fit/p - 1.0 );
+      hpdiff_xptar->Fill( xptar, p_fit/p - 1.0 );
+      hpdiff_yptar->Fill( yptar, p_fit/p - 1.0 );
+      hpdiff_ytar->Fill( ytar, p_fit/p - 1.0 );
+      hpdiff_p->Fill( p, p_fit/p - 1.0 );
 
-      hpdiff_xfp->Fill( xfp, p_recon/p - 1.0 );
-      hpdiff_yfp->Fill( yfp, p_recon/p - 1.0 );
-      hpdiff_xpfp->Fill( xpfp, p_recon/p - 1.0 );
-      hpdiff_ypfp->Fill( ypfp, p_recon/p - 1.0 );
+      hpdiff_xfp->Fill( xfp, p_fit/p - 1.0 );
+      hpdiff_yfp->Fill( yfp, p_fit/p - 1.0 );
+      hpdiff_xpfp->Fill( xpfp, p_fit/p - 1.0 );
+      hpdiff_ypfp->Fill( ypfp, p_fit/p - 1.0 );
       
     }
   }

@@ -33,3 +33,5 @@
 /g4sbs/eemax      6.0 GeV
 /g4sbs/ehmin      1.0 GeV
 /g4sbs/ehmax      10.5 GeV
+
+/g4sbs/treeflag 1

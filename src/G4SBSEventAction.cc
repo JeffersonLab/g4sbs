@@ -46,6 +46,7 @@ using namespace std;
 
 G4SBSEventAction::G4SBSEventAction()
 {
+  fTreeFlag = 0;
     fGEMres = 70.0*um;
 
     // Load up resolution file if it exists
@@ -416,7 +417,9 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   fIO->SetRICHData(richdata);
   fIO->SetTrackData( Toutput );
 
-  fIO->FillTree();
+  bool anyhits = (hasbb || hashcal || hitdata.ndata > 0 || richdata.nhits_RICH > 0 );
+
+  if( fTreeFlag == 0 || anyhits ) fIO->FillTree();
 
   return;
 }

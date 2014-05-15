@@ -239,6 +239,10 @@ G4SBSMessenger::G4SBSMessenger(){
     SBSLeadOptionCmd->SetGuidance("SBS lead configuration: 0= nope 1=yaes");
     SBSLeadOptionCmd->SetParameterName("uselead",false);
 
+    TreeFlagCmd = new G4UIcmdWithAnInteger("/g4sbs/treeflag",this);
+    TreeFlagCmd->SetGuidance("G4SBS ROOT tree filling: 0=keep all, 1=keep only evts w/hits");
+    TreeFlagCmd->SetParameterName("treeflag",false);
+
     //Optical physics toggle commands:
     UseCerenkovCmd = new G4UIcmdWithABool( "/g4sbs/usecerenkov",this );
     UseCerenkovCmd->SetGuidance("Activate Cherenkov radiation (default true)");
@@ -695,6 +699,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       G4int i = SBSLeadOptionCmd->GetNewIntValue(newValue);
       fdetcon->fLeadOption = i;
     }
+
+    if( cmd == TreeFlagCmd ){
+      G4int flag = TreeFlagCmd->GetNewIntValue(newValue);
+      fevact->SetTreeFlag( flag );
+    }
+    
 
     if( cmd == UseCerenkovCmd ){
       G4bool isactive = UseCerenkovCmd->GetNewBoolValue(newValue);

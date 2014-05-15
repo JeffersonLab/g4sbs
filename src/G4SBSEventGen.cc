@@ -762,7 +762,7 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 
   //G4cout << "(x, Q2)=(" << x << ", " << Q2/pow(GeV,2) << ")" << endl;
 
-  if( x > 1.0 ){ //Kinematically forbidden --> abort:
+  if( x >= 1.0 || x <= 0.0 ){ //Kinematically forbidden --> abort:
     fSigma = 0.0;
     fHadronE = 0.0;
     fHadronP = G4ThreeVector();

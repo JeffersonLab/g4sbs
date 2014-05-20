@@ -712,7 +712,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
     Mirrsurf->SetMaterialPropertiesTable( MPT_temp );
 
-
+    fOpticalSurfacesMap["Mirrsurf"] = Mirrsurf;
 
     //G4cout << "Material properties for Mirrsurf:" << G4endl;
 

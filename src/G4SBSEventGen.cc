@@ -1268,6 +1268,12 @@ ev_t G4SBSEventGen::GetEventData(){
       case kKMinus:
 	data.hadr = -2;
 	break;
+      case kP:
+	data.hadr = 3;
+	break;
+      case kPbar:
+	data.hadr = -3;
+	break;
       default:
 	data.hadr = 1;
 	break;

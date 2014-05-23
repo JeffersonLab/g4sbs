@@ -75,7 +75,7 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
   double chargesep_b = 0.0;
   
   double ndays;
-  setupfile >> ndays;
+  //setupfile >> ndays;
   setupfile >> chargesep_m >> chargesep_b;
 
   TString fname_sbs_optics_upbend, fname_sbs_optics_downbend, fname_bb_optics;
@@ -174,8 +174,8 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
   double mpi0recon; //only applicable for pi0 case.
   
   Tout->Branch("Weight", &Weight, "Weight/D");
-  Tout->Branch("Hadron", &hadron, "Hadron/D");
-  Tout->Branch("Nucleon", &nucleon, "Nucleon/D");
+  Tout->Branch("Hadron", &hadron, "Hadron/I");
+  Tout->Branch("Nucleon", &nucleon, "Nucleon/I");
   Tout->Branch("ThetaBB", &ThetaBB, "ThetaBB/D");
   Tout->Branch("ThetaSBS", &ThetaSBS, "ThetaSBS/D");
   Tout->Branch("Ebeam", &Ebeam, "Ebeam/D");
@@ -239,12 +239,13 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
 
   long nevent=0;
   while( T->GetEntry( nevent++ ) ){
-    if( nevent%1000 == 0 ) cout << "nevent = " << nevent << endl;
+    //cout << "loaded New event, event = " << nevent << endl;
+    if( nevent%10000 == 0 ) cout << "nevent = " << nevent << ", tree number = " << T->fChain->GetTreeNumber() << endl;
     
     Ebeam = T->gen_Ebeam; //GeV
     ThetaBB = T->gen_thbb; //rad
     ThetaSBS = T->gen_thhcal; //rad
-    
+
     TVector3 BBxaxis(0,-1,0);
     TVector3 BBzaxis(-sin(ThetaBB),0,cos(ThetaBB));
     TVector3 BByaxis = (BBzaxis.Cross(BBxaxis)).Unit();
@@ -255,15 +256,15 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
 
     nucleon = T->ev_nucl; //proton or neutron?
     hadron = T->ev_hadr; //pion, kaon, charge?
-    
+
     Weight = T->ev_rate * file_weights[T->fChain->GetTreeNumber()];
+    
     vx = T->ev_vx;
     vy = T->ev_vy;
     vz = T->ev_vz;
     ep = T->ev_ep;
     eth = T->ev_th;
     eph = T->ev_ph;
-    
 
     hp = T->ev_np;
     Eh = sqrt(pow( Mh[hadron+3],2) + pow(hp,2));
@@ -283,26 +284,27 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
     //Reconstruct electron side, regardless whether this is a pi0 event:
     bool goodelectrontrack = false;
     bool goodhadrontrack = false;
-    //if( T->ev_earmaccept > 0 ){
     for(int track=0; track<T->ntracks; track++){
       if( (*(T->trackerid))[track] == 0 && (*(T->trackid))[track] == 1 ){ //Primary electron track!
-	exfp = (*(T->trackx))[track];
-	eyfp = (*(T->tracky))[track];
-	expfp = (*(T->trackxp))[track];
-	eypfp = (*(T->trackyp))[track];
+	exfp = (*(T->trackxfit))[track];
+	eyfp = (*(T->trackyfit))[track];
+	expfp = (*(T->trackxpfit))[track];
+	eypfp = (*(T->trackypfit))[track];
 	goodelectrontrack = true;
       }
-
+    
       if( (*(T->trackerid))[track] == 1 && (*(T->trackid))[track] == 2 ){ //Primary hadron track!
-	hxfp = (*(T->trackx))[track];
-	hyfp = (*(T->tracky))[track];
-	hxpfp = (*(T->trackxp))[track];
-	hypfp = (*(T->trackyp))[track];
+	hxfp = (*(T->trackxfit))[track];
+	hyfp = (*(T->trackyfit))[track];
+	hxpfp = (*(T->trackxpfit))[track];
+	hypfp = (*(T->trackypfit))[track];
 	goodhadrontrack = true;
       }
     }
     
+    
     if( goodelectrontrack ){
+     
       //Reconstruct electron side:
       extar = 0.0;
       for(int iter=0; iter<2; iter++){
@@ -321,6 +323,8 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
 	extar = -vy - evzrecon * cos(ThetaBB) * exptar;
       }
 
+      
+
       TVector3 ephat_spec( exptar, eyptar, 1.0 );
       ephat_spec = ephat_spec.Unit();
       
@@ -330,6 +334,9 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
       TLorentzVector qVect = kBeam - kPrime;
       TLorentzVector PVect(0,0,0,mp);
       TLorentzVector WVect = PVect + qVect;
+
+      ethrecon = kPrime.Theta();
+      ephrecon = kPrime.Phi();
 
       Q2recon = -qVect.M2();
       xrecon = Q2recon / (2.0*mp*(Ebeam-eprecon));
@@ -376,8 +383,8 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
 	      double E2recon = num.Gaus( ehit2, 0.14*sqrt(ehit2) );
 
 	      if( (abs(ix1-ix2) > 1 || abs(iy1-iy2) > 1) && (E1recon >= 2.0 || E2recon >= 2.0) ){
-		TLorentzVector Photon1( E1recon*ray1recon, E1recon );
-		TLorentzVector Photon2( E2recon*ray2recon, E2recon );
+		TLorentzVector Photon1( E1recon*ray1recon.Unit(), E1recon );
+		TLorentzVector Photon2( E2recon*ray2recon.Unit(), E2recon );
 
 		TLorentzVector TwoPhotons = Photon1 + Photon2;
 
@@ -392,7 +399,7 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
 
 		zrecon = TwoPhotons.Dot(PVect)/qVect.Dot(PVect);
 
-		TVector3 pTVect = TwoPhotons.Vect() - TwoPhotons.Vect().Dot(qVect.Vect())  / qVect.Mag2() * qVect.Vect();
+		TVector3 pTVect = TwoPhotons.Vect() - TwoPhotons.Vect().Dot(qVect.Vect())  / qVect.Vect().Mag2() * qVect.Vect();
 		pTrecon = pTVect.Mag();
 		phihrecon = atan2( pTVect.Dot( lepton_plane_yaxis ), pTVect.Dot( lepton_plane_xaxis ) );
 	      } 
@@ -405,7 +412,8 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
 	if( hxpfp > chargesep_b + chargesep_m * hxfp ){ //downbending:
 	  polarity = 1;
 	}
-	
+
+
 	for(int iter=0; iter<2; iter++){
 	  double recon_sum[4] = {0,0,0,0};
 	  for(int coeff=0; coeff<4; coeff++){
@@ -426,10 +434,34 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
 	  hvzrecon = -hytar / ( sin(ThetaSBS) + cos(ThetaSBS)*hyptar );
 	  hxtar = -vy - hvzrecon * cos(ThetaSBS) * hxptar;
 	}
+       
+
+	TVector3 hphat_spec(hxptar,hyptar,1.0);
+	hphat_spec = hphat_spec.Unit();
+
+	TVector3 hphat = hphat_spec.X() * SBSxaxis + hphat_spec.Y() * SBSyaxis + hphat_spec.Z() * SBSzaxis;
+	TLorentzVector Ph( hprecon * hphat, sqrt(pow(hprecon,2) + pow(Mh[hadron+3],2) ) );
+
+	hthrecon = Ph.Theta();
+	hphrecon = Ph.Phi();
+
+	zrecon = Ph.Dot(PVect)/qVect.Dot(PVect);
+
+	TLorentzVector XVect = WVect - Ph;
+	MX2recon = XVect.M2();
+
+	TVector3 pTVect = Ph.Vect() - Ph.Vect().Dot(qVect.Vect()) / qVect.Vect().Mag2() * qVect.Vect();
+	pTrecon = pTVect.Mag();
+	phihrecon = atan2( pTVect.Dot( lepton_plane_yaxis ), pTVect.Dot( lepton_plane_xaxis ) );
+
 
       }
     }
+    
+
     if( goodelectrontrack && goodhadrontrack ) Tout->Fill();
+
+    
   }
 
   Tout->Write();

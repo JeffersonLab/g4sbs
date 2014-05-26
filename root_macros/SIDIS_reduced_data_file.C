@@ -20,6 +20,110 @@ const double mK   = 0.493677;
 const double mp   = 0.938272046;
 const double mn   = 0.939565379;
 
+//Declare tree variables at global scope:
+//Kinematics:
+double ThetaBB, ThetaSBS, Ebeam;
+
+//"True" kinematic variables:
+double vx, vy, vz;
+double ep, eth, eph, Eh, hp, hth, hph;
+double xbj,y,z,Q2,pT,phih,W2,MX2;
+int nucleon;
+int hadron;
+double Weight;
+
+//Track variables:
+double exfp, eyfp, expfp, eypfp;
+double hxfp, hyfp, hxpfp, hypfp;
+
+//"Reconstructed" target quantities:
+double extar, eytar, exptar, eyptar, evzrecon, eprecon, ethrecon, ephrecon;
+double hxtar, hytar, hxptar, hyptar, hvzrecon, hprecon, hthrecon, hphrecon;
+
+//"Reconstructed" SIDIS kinematic quantities:
+double xrecon, yrecon, zrecon, Q2recon, pTrecon, phihrecon,W2recon,MX2recon;
+double mpi0recon; //only applicable for pi0 case.
+
+TFile *fout;
+TTree *Tout;
+
+void init_tree(){
+  Tout = new TTree("Tout", "SIDIS reduced data file");
+  
+  Tout->Branch("Weight", &Weight, "Weight/D");
+  Tout->Branch("Hadron", &hadron, "Hadron/I");
+  Tout->Branch("Nucleon", &nucleon, "Nucleon/I");
+  Tout->Branch("ThetaBB", &ThetaBB, "ThetaBB/D");
+  Tout->Branch("ThetaSBS", &ThetaSBS, "ThetaSBS/D");
+  Tout->Branch("Ebeam", &Ebeam, "Ebeam/D");
+  Tout->Branch("vx", &vx, "vx/D");
+  Tout->Branch("vy", &vy, "vy/D");
+  Tout->Branch("vz", &vz, "vz/D");
+  Tout->Branch("ep", &ep, "ep/D");
+  Tout->Branch("eth", &eth, "eth/D");
+  Tout->Branch("eph", &eph, "eph/D");
+  Tout->Branch("Eh", &Eh, "Eh/D");
+  Tout->Branch("hp", &hp, "hp/D");
+  Tout->Branch("hth", &hth, "hth/D");
+  Tout->Branch("hph", &hph, "hph/D");
+  Tout->Branch("x", &xbj, "x/D");
+  Tout->Branch("y", &y, "y/D");
+  Tout->Branch("z", &z, "z/D");
+  Tout->Branch("Q2", &Q2, "Q2/D");
+  Tout->Branch("pT", &pT, "pT/D");
+  Tout->Branch("phih", &phih, "phih/D");
+  Tout->Branch("W2", &W2, "W2/D");
+  Tout->Branch("MX2", &MX2, "MX2/D");
+  //focal plane track variables:
+  Tout->Branch("exfp", &exfp, "exfp/D");
+  Tout->Branch("eyfp", &eyfp, "eyfp/D");
+  Tout->Branch("expfp", &exfp, "expfp/D");
+  Tout->Branch("eypfp", &eyfp, "eypfp/D");
+  Tout->Branch("hxfp", &hxfp, "hxfp/D");
+  Tout->Branch("hyfp", &hyfp, "hyfp/D");
+  Tout->Branch("hxpfp", &hxfp, "hxpfp/D");
+  Tout->Branch("hypfp", &hyfp, "hypfp/D");
+  //reconstructed particle kinematics:
+  Tout->Branch("extar",&extar,"extar/D");
+  Tout->Branch("eytar",&eytar,"eytar/D");
+  Tout->Branch("exptar",&exptar,"exptar/D");
+  Tout->Branch("eyptar",&eyptar,"eyptar/D");
+  Tout->Branch("evzrecon",&evzrecon,"evzrecon/D");
+  Tout->Branch("eprecon",&eprecon,"eprecon/D");
+  Tout->Branch("ethrecon",&ethrecon,"ethrecon/D");
+  Tout->Branch("ephrecon",&ephrecon,"ephrecon/D");
+  
+  Tout->Branch("hxtar",&hxtar,"hxtar/D");
+  Tout->Branch("hytar",&hytar,"hytar/D");
+  Tout->Branch("hxptar",&hxptar,"hxptar/D");
+  Tout->Branch("hyptar",&hyptar,"hyptar/D");
+  Tout->Branch("hvzrecon",&hvzrecon,"hvzrecon/D");
+  Tout->Branch("hprecon",&hprecon,"hprecon/D");
+  Tout->Branch("hthrecon",&hthrecon,"hthrecon/D");
+  Tout->Branch("hphrecon",&hphrecon,"hphrecon/D");
+  
+  //Reconstructed SIDIS quantities:
+  Tout->Branch("xrecon", &xrecon, "xrecon/D");
+  Tout->Branch("yrecon", &yrecon, "yrecon/D");
+  Tout->Branch("zrecon", &zrecon, "zrecon/D");
+  Tout->Branch("Q2recon", &Q2recon, "Q2recon/D");
+  Tout->Branch("pTrecon", &pTrecon, "pTrecon/D");
+  Tout->Branch("phihrecon", &phihrecon, "phihrecon/D");
+  Tout->Branch("W2recon", &W2recon, "W2recon/D");
+  Tout->Branch("MX2recon", &MX2recon, "MX2recon/D");
+  Tout->Branch("mpi0recon", &mpi0recon, "mpi0recon/D");
+}
+
+void change_file(const char *newfilename){
+  fout->cd();
+  Tout->Write();
+  fout->Close();
+  
+  //fout->Open(newfilename,"RECREATE");
+  fout = new TFile(newfilename,"RECREATE");
+  init_tree();
+}
+
 void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilename ){
   
   double pixelsize = 0.15;
@@ -146,98 +250,19 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
     //file_weights[i] *= ndays * 24.0 * 3600.0;
   }
 
-  TFile *fout = new TFile( outputfilename, "RECREATE" );
+  int max_events_per_file=1000000;
 
-  TTree *Tout = new TTree("Tout", "SIDIS reduced data file");
+  int ifile=0;
+  TString prefix = outputfilename;
+  prefix.ReplaceAll(".root","");
+  TString outfilename;
+  outfilename.Form("%s_%d.root",prefix.Data(),ifile);
 
-  //Kinematics:
-  double ThetaBB, ThetaSBS, Ebeam;
-
-  //"True" kinematic variables:
-  double vx, vy, vz;
-  double ep, eth, eph, Eh, hp, hth, hph;
-  double x,y,z,Q2,pT,phih,W2,MX2;
-  int nucleon;
-  int hadron;
-  double Weight;
-
-  //Track variables:
-  double exfp, eyfp, expfp, eypfp;
-  double hxfp, hyfp, hxpfp, hypfp;
+  fout = new TFile( outfilename, "RECREATE" );
+  init_tree();
   
-  //"Reconstructed" target quantities:
-  double extar, eytar, exptar, eyptar, evzrecon, eprecon, ethrecon, ephrecon;
-  double hxtar, hytar, hxptar, hyptar, hvzrecon, hprecon, hthrecon, hphrecon;
-
-  //"Reconstructed" SIDIS kinematic quantities:
-  double xrecon, yrecon, zrecon, Q2recon, pTrecon, phihrecon,W2recon,MX2recon;
-  double mpi0recon; //only applicable for pi0 case.
-  
-  Tout->Branch("Weight", &Weight, "Weight/D");
-  Tout->Branch("Hadron", &hadron, "Hadron/I");
-  Tout->Branch("Nucleon", &nucleon, "Nucleon/I");
-  Tout->Branch("ThetaBB", &ThetaBB, "ThetaBB/D");
-  Tout->Branch("ThetaSBS", &ThetaSBS, "ThetaSBS/D");
-  Tout->Branch("Ebeam", &Ebeam, "Ebeam/D");
-  Tout->Branch("vx", &vx, "vx/D");
-  Tout->Branch("vy", &vy, "vy/D");
-  Tout->Branch("vz", &vz, "vz/D");
-  Tout->Branch("ep", &ep, "ep/D");
-  Tout->Branch("eth", &eth, "eth/D");
-  Tout->Branch("eph", &eph, "eph/D");
-  Tout->Branch("Eh", &Eh, "Eh/D");
-  Tout->Branch("hp", &hp, "hp/D");
-  Tout->Branch("hth", &hth, "hth/D");
-  Tout->Branch("hph", &hph, "hph/D");
-  Tout->Branch("x", &x, "x/D");
-  Tout->Branch("y", &y, "y/D");
-  Tout->Branch("z", &z, "z/D");
-  Tout->Branch("Q2", &Q2, "Q2/D");
-  Tout->Branch("pT", &pT, "pT/D");
-  Tout->Branch("phih", &phih, "phih/D");
-  Tout->Branch("W2", &W2, "W2/D");
-  Tout->Branch("MX2", &MX2, "MX2/D");
-  //focal plane track variables:
-  Tout->Branch("exfp", &exfp, "exfp/D");
-  Tout->Branch("eyfp", &eyfp, "eyfp/D");
-  Tout->Branch("expfp", &exfp, "expfp/D");
-  Tout->Branch("eypfp", &eyfp, "eypfp/D");
-  Tout->Branch("hxfp", &hxfp, "hxfp/D");
-  Tout->Branch("hyfp", &hyfp, "hyfp/D");
-  Tout->Branch("hxpfp", &hxfp, "hxpfp/D");
-  Tout->Branch("hypfp", &hyfp, "hypfp/D");
-  //reconstructed particle kinematics:
-  Tout->Branch("extar",&extar,"extar/D");
-  Tout->Branch("eytar",&eytar,"eytar/D");
-  Tout->Branch("exptar",&exptar,"exptar/D");
-  Tout->Branch("eyptar",&eyptar,"eyptar/D");
-  Tout->Branch("evzrecon",&evzrecon,"evzrecon/D");
-  Tout->Branch("eprecon",&eprecon,"eprecon/D");
-  Tout->Branch("ethrecon",&ethrecon,"ethrecon/D");
-  Tout->Branch("ephrecon",&ephrecon,"ephrecon/D");
-  
-  Tout->Branch("hxtar",&hxtar,"hxtar/D");
-  Tout->Branch("hytar",&hytar,"hytar/D");
-  Tout->Branch("hxptar",&hxptar,"hxptar/D");
-  Tout->Branch("hyptar",&hyptar,"hyptar/D");
-  Tout->Branch("hvzrecon",&hvzrecon,"hvzrecon/D");
-  Tout->Branch("hprecon",&hprecon,"hprecon/D");
-  Tout->Branch("hthrecon",&hthrecon,"hthrecon/D");
-  Tout->Branch("hphrecon",&hphrecon,"hphrecon/D");
-  
-  //Reconstructed SIDIS quantities:
-  Tout->Branch("xrecon", &xrecon, "xrecon/D");
-  Tout->Branch("yrecon", &yrecon, "yrecon/D");
-  Tout->Branch("zrecon", &zrecon, "zrecon/D");
-  Tout->Branch("Q2recon", &Q2recon, "Q2recon/D");
-  Tout->Branch("pTrecon", &pTrecon, "pTrecon/D");
-  Tout->Branch("phihrecon", &phihrecon, "phihrecon/D");
-  Tout->Branch("W2recon", &W2recon, "W2recon/D");
-  Tout->Branch("MX2recon", &MX2recon, "MX2recon/D");
-  Tout->Branch("mpi0recon", &mpi0recon, "mpi0recon/D");
-
-
   long nevent=0;
+  int ngood = 0;
   while( T->GetEntry( nevent++ ) ){
     //cout << "loaded New event, event = " << nevent << endl;
     if( nevent%10000 == 0 ) cout << "nevent = " << nevent << ", tree number = " << T->fChain->GetTreeNumber() << endl;
@@ -271,7 +296,7 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
     hth = T->ev_nth;
     hph = T->ev_nph;
     
-    x = T->ev_xbj; // = Q2/2P dot q
+    xbj = T->ev_xbj; // = Q2/2P dot q
     y = 1.0 - ep/Ebeam;
     z = T->ev_z;
     Q2 = T->ev_Q2;
@@ -459,9 +484,15 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
     }
     
 
-    if( goodelectrontrack && goodhadrontrack ) Tout->Fill();
-
-    
+    if( goodelectrontrack && goodhadrontrack ){
+      Tout->Fill();
+      ngood++;
+      if( ngood == max_events_per_file ){
+	ifile++;
+	outfilename.Form("%s_%d.root",prefix.Data(),ifile);
+	change_file( outfilename.Data() );
+      }
+    }
   }
 
   Tout->Write();

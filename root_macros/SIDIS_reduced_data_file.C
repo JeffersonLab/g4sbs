@@ -487,7 +487,7 @@ void SIDIS_reduced_data_file( const char *setupfilename, const char *outputfilen
     if( goodelectrontrack && goodhadrontrack ){
       Tout->Fill();
       ngood++;
-      if( ngood == max_events_per_file ){
+      if( ngood%max_events_per_file == 0 ){
 	ifile++;
 	outfilename.Form("%s_%d.root",prefix.Data(),ifile);
 	change_file( outfilename.Data() );

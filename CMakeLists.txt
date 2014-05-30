@@ -104,6 +104,9 @@ set(G4SBS_SCRIPTS
   root_macros/g4sbs_tree.h       
   root_macros/rate_table.C
   root_macros/SIDIS_reduced_data_file.C
+  root_macros/SIDIS_DST.C
+  root_macros/SIDIS_DST.h
+  root_macros/rate_table_DST.C
   )
 
 foreach(_script ${G4SBS_SCRIPTS})

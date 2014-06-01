@@ -93,6 +93,11 @@ void G4SBSIO::InitializeTree(){
     return;
 }
 
+ TBranch * G4SBSIO::AddObject(const char * name,TObject * obj)
+ {
+   fTree->Branch(name,obj,32000,99);
+ }
+
 void G4SBSIO::FillTree(){
     if( !fTree ){ 
 	fprintf(stderr, "Error %s: %s line %d - Trying to fill non-existant tree\n", __PRETTY_FUNCTION__, __FILE__, __LINE__ );

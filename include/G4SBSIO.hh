@@ -2,6 +2,7 @@
 #define G4SBSIO_H
 
 #include "TROOT.h"
+#include "TTree.h"
 #include "TObject.h"
 #include "G4Run.hh"
 
@@ -72,7 +73,7 @@ class G4SBSIO {
 	void SetHitData(hit_t ht){ hitdata = ht; }
 	void FillTree();
 	void WriteTree();
-
+        TBranch * AddObject(const char * name,TObject * obj);
 	void SetBeamE(double E){ gendata.Ebeam = E/GeV; }
 	void SetBigBiteTheta(double th){ gendata.thbb = th; }
 	void SetBigBiteDist(double d){ gendata.dbb = d/m; }

@@ -19,6 +19,7 @@
 #include "TRandom.h"
 #include "TObjArray.h"
 #include "TObjString.h"
+#include "TClonesArray.h"
 //class G4SBSRunData;
 //#include "G4SBSDict.h"
 //include "G4SBSDict.cxx"
@@ -116,6 +117,11 @@ void rate_table( const char *inputfilename, const char *outputfilename, const ch
     }
   }
 
+  inputfile >> nbins_x >> xmin >> xmax;
+  inputfile >> nbins_z >> zmin >> zmax;
+  inputfile >> nbins_pT >> pTmin >> pTmax;
+  inputfile >> PB >> PT;
+
   TEventList *elist = new TEventList("elist");
 
   C->Draw(">>elist",cut);
@@ -123,10 +129,7 @@ void rate_table( const char *inputfilename, const char *outputfilename, const ch
   //g4sbs_tree *T = new g4sbs_tree(C);
   SIDIS_DST *T = new SIDIS_DST(C);
 
-  inputfile >> nbins_x >> xmin >> xmax;
-  inputfile >> nbins_z >> zmin >> zmax;
-  inputfile >> nbins_pT >> pTmin >> pTmax;
-  inputfile >> PB >> PT;
+  
   //inputfile >> ndays;
  
   //inputfile >> pi0flag;
@@ -213,6 +216,17 @@ void rate_table( const char *inputfilename, const char *outputfilename, const ch
   
   fout->cd();
 
+  TClonesArray *histos_pT_phih_xz = new TClonesArray("TH2D",nbins_x*nbins_z);
+
+  for(int i=0; i<nbins_x; i++){
+    for(int j=0; j<nbins_z; j++){
+      TString histname;
+      histname.Form("hpT_phih_x%d_z%d",i,j);
+
+      new( (*histos_pT_phih_xz)[j+i*nbins_z] ) TH2D(histname.Data(),"",200,-PI,PI,200,0.0,2.0);
+    }
+  }
+
   TH1D *hQ2 = new TH1D("hQ2", "", 200, 0.0, 15.0 );
   TH1D *hxbj = new TH1D("hxbj", "", 200, 0.0, 1.0 );
   TH1D *hz   = new TH1D("hz", "", 200, 0.0, 1.0 );
@@ -229,6 +243,14 @@ void rate_table( const char *inputfilename, const char *outputfilename, const ch
   TH2D *hphih_z     = new TH2D("hphih_z","",200,0.0,1.0,200,-PI,PI);
   TH2D *hphih_Phperp = new TH2D("hphih_Phperp","",200,0.0,1.6,200,-PI,PI);
   
+  TH2D *hQ2_xbj_nosmear = new TH2D("hQ2_xbj_nosmear","",200,0.0, 1.0, 200, 0.0, 15.0 );
+  TH2D *hz_xbj_nosmear  = new TH2D("hz_xbj_nosmear","",200,0.0,1.0,200,0.0,1.0);
+  TH2D *hPhperp_xbj_nosmear = new TH2D("hPhperp_xbj_nosmear","",200,0.0,1.0,200,0.0,2.0);
+  TH2D *hPhperp_z_nosmear   = new TH2D("hPhperp_z_nosmear","",200,0.0,1.0,200,0.0,2.0);
+  TH2D *hphih_xbj_nosmear   = new TH2D("hphih_xbj_nosmear","",200,0.0,1.0,200,-PI,PI);
+  TH2D *hphih_z_nosmear     = new TH2D("hphih_z_nosmear","",200,0.0,1.0,200,-PI,PI);
+  TH2D *hphih_Phperp_nosmear = new TH2D("hphih_Phperp_nosmear","",200,0.0,1.6,200,-PI,PI);
+
   TH1D *hevzdiff = new TH1D("hevzdiff","",200,-0.2,0.2);
   TH1D *hhvzdiff = new TH1D("hhvzdiff","",200,-0.2,0.2);
   TH1D *hehvzdiff = new TH1D("hehvzdiff","",200,-0.2,0.2);
@@ -237,14 +259,14 @@ void rate_table( const char *inputfilename, const char *outputfilename, const ch
   TH1D *hhpdiff = new TH1D("hhpdiff","",200,-0.1,0.1);
 
   TH1D* hQ2diff = new TH1D("hQ2diff","",200,-1.0,1.0);
-  TH1D* hxbjdiff = new TH1D("hxbjdiff","",200,-0.3,0.3);
+  TH1D* hxbjdiff = new TH1D("hxbjdiff","",200,-0.2,0.2);
   TH1D* hzdiff   = new TH1D("hzdiff","",200,-0.1,0.1);
   TH1D* hPhperpdiff = new TH1D("hPhperpdiff","",200,-0.2,0.2);
   TH1D* hphihdiff = new TH1D("hphihdiff","",200,-0.5,0.5);
 
   TH1D *hQ2diff_nofermi = new TH1D("hQ2diff_nofermi","",200,-1.0,1.0);
-  TH1D *hxbjdiff_nofermi = new TH1D("hxbjdiff_nofermi","",200,-0.05,0.05);
-  TH1D *hzdiff_nofermi = new TH1D("hzdiff_nofermi","",200,-0.05,0.05);
+  TH1D *hxbjdiff_nofermi = new TH1D("hxbjdiff_nofermi","",200,-0.2,0.2);
+  TH1D *hzdiff_nofermi = new TH1D("hzdiff_nofermi","",200,-0.1,0.1);
   TH1D *hPhperpdiff_nofermi = new TH1D("hPhperpdiff_nofermi","",200,-0.2,0.2);
   TH1D *hphihdiff_nofermi = new TH1D("hphihdiff_nofermi","",200,-0.5,0.5);
 
@@ -319,10 +341,14 @@ void rate_table( const char *inputfilename, const char *outputfilename, const ch
     int bin_x = int( (xbj-xmin)*double(nbins_x)/(xmax-xmin) );
     int bin_z = int( (z - zmin)*double(nbins_z)/(zmax-zmin) );
     int bin_pT = int( (pT - pTmin)*double(nbins_pT)/(pTmax-pTmin) );
+
+    
       
     if( bin_x >= 0 && bin_x < nbins_x && 
 	bin_z >= 0 && bin_z < nbins_z && 
 	bin_pT >= 0 && bin_pT < nbins_pT ){
+      
+
       Nsim[bin_x][bin_z][bin_pT] += 1;
       nevents[bin_x][bin_z][bin_pT] += rate*weights[T->fChain->GetTreeNumber()];
       if( T->Nucleon == 0 ){ 
@@ -339,7 +365,12 @@ void rate_table( const char *inputfilename, const char *outputfilename, const ch
     }
     
     double Weight = rate*weights[T->fChain->GetTreeNumber()];
-    
+
+    if( bin_x >= 0 && bin_x < nbins_x && 
+	bin_z >= 0 && bin_z < nbins_z ){
+      ( (TH2D*) (*histos_pT_phih_xz)[bin_z+nbins_z*bin_x] )->Fill(phih,pT,Weight);
+    }
+
     hQ2->Fill( Q2, Weight );
     hxbj->Fill( xbj, Weight );
     hz->Fill( z, Weight );
@@ -373,13 +404,25 @@ void rate_table( const char *inputfilename, const char *outputfilename, const ch
     hphihdiff_pT->Fill( pT, T->phihrecon - phih, Weight );
     
     hQ2diff_nofermi->Fill( T->Q2recon - 2.0*T->Ebeam*T->ep*(1.0-cos(T->eth)), Weight );
-    hxbjdiff_nofermi->Fill( T->xrecon - T->Q2recon/(2.0*mp*(Ebeam - T->ep) ), Weight );
+    hxbjdiff_nofermi->Fill( T->xrecon - 2.0*T->Ebeam*T->ep*(1.0-cos(T->eth))/(2.0*mp*(Ebeam - T->ep) ), Weight );
     hzdiff_nofermi->Fill( T->zrecon - sqrt(pow(T->hp,2)+pow(Mh,2))/(Ebeam-T->ep), Weight );
     
+    double Q2_nosmear = 2.0*T->Ebeam*T->ep*(1.0-cos(T->eth));
+    double x_nosmear = Q2_nosmear/(2.0*mp*(Ebeam-T->ep));
+    double z_nosmear = sqrt(pow(T->hp,2)+pow(Mh,2))/(Ebeam-T->ep); 
+
+    double W2_nosmear = pow(mp,2) + Q2_nosmear*(1.0-x_nosmear)/x_nosmear;
+
+
     TLorentzVector ElectronPrime( TVector3( T->ep*sin(T->eth)*cos(T->eph), T->ep*sin(T->eth)*sin(T->eph), T->ep*cos(T->eth)), T->ep );
     TLorentzVector HadronPrime( TVector3( T->hp*sin(T->hth)*cos(T->hph), T->hp*sin(T->hth)*sin(T->hph), T->hp*cos(T->hth)), sqrt(pow(T->hp,2)+pow(Mh,2)) );
     TLorentzVector Beam( 0.0, 0.0, Ebeam, Ebeam );
+    TLorentzVector NucleonRest( 0.0, 0.0, 0.0, mp );
     TLorentzVector q = Beam - ElectronPrime;
+    TLorentzVector Xprime = NucleonRest + q - HadronPrime;
+    
+    double MX2_nosmear = Xprime.M2();
+
     //How to compute phih and Phperp?
     TVector3 lepton_plane_yaxis = (q.Vect().Cross(Beam.Vect())).Unit();
     TVector3 lepton_plane_zaxis = (q.Vect()).Unit();
@@ -389,6 +432,20 @@ void rate_table( const char *inputfilename, const char *outputfilename, const ch
     hPhperpdiff_nofermi->Fill( T->pTrecon - HadronPerp.Mag(), Weight );
     hphihdiff_nofermi->Fill( T->phihrecon - atan2( HadronPerp.Dot(lepton_plane_yaxis), HadronPerp.Dot(lepton_plane_xaxis) ), Weight );
 
+    double phih_nosmear = atan2( HadronPerp.Dot(lepton_plane_yaxis), HadronPerp.Dot(lepton_plane_xaxis) );
+    
+    if( W2_nosmear >= 4.0 && MX2_nosmear >= 2.25 && Q2_nosmear >= 1.0 ){
+
+      hQ2_xbj_nosmear->Fill( x_nosmear, Q2_nosmear, Weight );
+      hz_xbj_nosmear->Fill( x_nosmear, z_nosmear, Weight );
+
+      hPhperp_xbj_nosmear->Fill( x_nosmear, HadronPerp.Mag(), Weight );
+      hPhperp_z_nosmear->Fill( z_nosmear, HadronPerp.Mag(), Weight );
+      hphih_xbj_nosmear->Fill( x_nosmear, phih_nosmear, Weight );
+      hphih_z_nosmear->Fill( z_nosmear, phih_nosmear, Weight );
+      hphih_Phperp_nosmear->Fill( HadronPerp.Mag(), phih_nosmear, Weight );
+
+    }
   }
 
   char header[255];
@@ -428,6 +485,8 @@ void rate_table( const char *inputfilename, const char *outputfilename, const ch
   }
   
   elist->Delete();
+
+  //histos_pT_phih_xz->Write();
 
   fout->Write();
   fout->Close();

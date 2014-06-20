@@ -17,6 +17,7 @@ class G4SBSBeamlineBuilder: public G4SBSComponent {
 	void MakeGEpLead(G4LogicalVolume *);
 	void MakeGEnLead(G4LogicalVolume *);
 	void MakeGEnClamp(G4LogicalVolume *);
+  void MakeSIDISLead( G4LogicalVolume * );
 
 };
 

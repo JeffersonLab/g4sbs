@@ -140,6 +140,10 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	MakeGEnLead(worldlog);
     }
 
+    if( fDetCon->fExpType == kSIDISExp && fDetCon->fLeadOption == 1 ){
+      MakeSIDISLead(worldlog);
+    }
+
     return;
 
 }
@@ -308,6 +312,95 @@ void G4SBSBeamlineBuilder::MakeGEnLead(G4LogicalVolume *worldlog){
 
 
 
+void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
+  //Let's fill the beam slot of the magnet with lead: 
+  //Height = 31 cm
+  //Width = magnet width / 2 - 35 cm
+  //depth = magnet depth:
+  G4double Beamslot_lead_width = (fDetCon->fHArmBuilder->f48D48width)/2.0-35.0*cm;
+  G4double Beamslot_lead_height = 31.0*cm;
+  G4double Beamslot_lead_depth = fDetCon->fHArmBuilder->f48D48depth;
+
+  G4Box *Beamslot_lead_box = new G4Box("Beamslot_lead_box", Beamslot_lead_width/2.0, Beamslot_lead_height/2.0, Beamslot_lead_depth/2.0 );
+  //G4LogicalVolume *Beamslot_lead_log = new G4LogicalVolume( 
+
+  G4double SBSang = fDetCon->fHArmBuilder->f48D48ang;
+
+  G4RotationMatrix *Beamslot_lead_rm = new G4RotationMatrix;
+  Beamslot_lead_rm->rotateY( -SBSang );
+
+  G4ThreeVector SBS_zaxis( sin(SBSang), 0.0, cos(SBSang) );
+  G4ThreeVector SBS_yaxis( 0.0, 1.0, 0.0 );
+  G4ThreeVector SBS_xaxis( cos(SBSang), 0.0, -sin(SBSang) );
+
+  G4double Beamslot_lead_xoffset = 35.0*cm + Beamslot_lead_width/2.0;
+
+  G4ThreeVector Beamslot_lead_position = (fDetCon->fHArmBuilder->f48D48dist + (fDetCon->fHArmBuilder->f48D48depth)/2.0) * SBS_zaxis - Beamslot_lead_xoffset * SBS_xaxis;
+
+  //Define a subtraction cone for the beam slot in the SBS magnet:
+  // G4double zbeampipe[2] = {162.2*cm, 592.2*cm};
+  // G4double rinbeampipe[2] = {0.0*cm, 0.0*cm};
+
+  G4double beampipe_subtraction_cone_dz = ((592.2 - 162.2)/2.0)*cm;
+  G4double beampipe_subtraction_cone_zpos = ((592.2+162.2)/2.0)*cm;
+
+  G4ThreeVector beampipe_subtraction_cone_position( 0.0, 0.0, beampipe_subtraction_cone_zpos );
+
+  G4Cons *beampipe_subtraction_cone = new G4Cons( "beampipe_subtraction_cone", 0.0*cm, 5.1*cm, 0.0*cm, 15.1*cm, beampipe_subtraction_cone_dz, 0.0*deg, 360.0*deg );
+
+  G4RotationMatrix *Beamslot_lead_rm_inv = new G4RotationMatrix;
+  Beamslot_lead_rm_inv->rotateY( SBSang );
+
+  G4ThreeVector beampipe_beamslot_relative_position = beampipe_subtraction_cone_position - Beamslot_lead_position;
+
+  G4ThreeVector beampipe_beamslot_relative_position_local( beampipe_beamslot_relative_position.dot( SBS_xaxis ), 
+							   beampipe_beamslot_relative_position.dot( SBS_yaxis ), 
+							   beampipe_beamslot_relative_position.dot( SBS_zaxis ) );
+
+  //The subtraction that we want to perform is Beamslot lead box - beampipe cone:
+  G4SubtractionSolid *Beamslot_lead_with_hole = new G4SubtractionSolid( "Beamslot_lead_with_hole", Beamslot_lead_box, beampipe_subtraction_cone, Beamslot_lead_rm_inv, beampipe_beamslot_relative_position_local );
+
+  G4LogicalVolume *Beamslot_lead_log = new G4LogicalVolume( Beamslot_lead_with_hole, GetMaterial("Lead"), "Beamslot_lead_log" );
+  G4PVPlacement *Beamslot_lead_pv = new G4PVPlacement( Beamslot_lead_rm, Beamslot_lead_position, Beamslot_lead_log, "Beamslot_lead_pv", worldlog, 0, false, 0 );
+
+  //Let's assume a thickness of 5 cm (2 inches lead, whose inner dimensions follow those of the downstream beamline:
+  // int nz = 2;
+  // G4double zlead[2] = {162.2*cm, 592.2*cm};
+  // G4double rinlead[2] = {5.1*cm, 15.1*cm};
+  // G4double routlead[2] = {10.1*cm, 20.1*cm};
+
+  //  G4double zstart = Beamslot_lead_position.z();
+  G4double zstart = 162.2*cm;
+  G4double rinstart = 5.1*cm + (zstart-162.2*cm)/(2.0*beampipe_subtraction_cone_dz) * 10.0*cm;
+  G4double zend = 592.2*cm;
+  G4double rinend = 15.1*cm;
+
+  G4Cons *leadcone = new G4Cons("leadcone", rinstart, rinstart+5.0*cm, rinend, rinend + 5.0*cm, (zend-zstart)/2.0, 0.0*deg, 360.0*deg );
+
+  G4ThreeVector leadcone_global_position(0.0, 0.0, (zstart+zend)/2.0 );
+
+  // G4ThreeVector leadcone_relative_position = leadcone_global_position - Beamslot_lead_position;
+  // G4ThreeVector leadcone_relative_position_local( leadcone_relative_position.dot( SBS_xaxis ), 
+  // 						  leadcone_relative_position.dot( SBS_yaxis ),
+  // 						  leadcone_relative_position.dot( SBS_zaxis ) );
+  G4ThreeVector cutbox_relative_position = Beamslot_lead_position - leadcone_global_position;
+
+  G4SubtractionSolid *leadcone_cut = new G4SubtractionSolid( "leadcone_cut", leadcone, Beamslot_lead_box, Beamslot_lead_rm, cutbox_relative_position );
+  
+  G4LogicalVolume *leadcone_cut_log = new G4LogicalVolume( leadcone_cut, GetMaterial("Lead"), "leadcone_cut_log" );
+  G4PVPlacement *leadcone_cut_pv = new G4PVPlacement( 0, leadcone_global_position, leadcone_cut_log, "leadcone_cut_pv", worldlog, 0, false, 0 );
+
+  // G4Polycone *SIDISlead_cone = new G4Polycone( "SIDISlead_cone", 0.0*deg, 360.0*deg, nz, zlead, rinlead, routlead );
+  // G4LogicalVolume *SIDISlead_log = new G4LogicalVolume( SIDISlead_cone, GetMaterial("Lead"), "SIDISlead_log", 0, 0, 0 );
+  // G4PVPlacement *SIDISlead_pv = new G4PVPlacement( 0, G4ThreeVector(), SIDISlead_log, "SIDISlead_pv", worldlog, false, 0 );
+
+  G4VisAttributes *leadVisAtt= new G4VisAttributes(G4Colour(0.25,0.25,0.25));
+  //SIDISlead_log->SetVisAttributes(leadVisAtt);
+
+  Beamslot_lead_log->SetVisAttributes(leadVisAtt);
+  leadcone_cut_log->SetVisAttributes(leadVisAtt);
+
+}
 
 
 

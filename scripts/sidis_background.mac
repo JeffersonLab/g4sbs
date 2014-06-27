@@ -37,3 +37,6 @@
 /g4sbs/totalabs false
 /tracking/storeTrajectory 1
 
+/g4sbs/treeflag 1
+/g4sbs/uselead 1
+

@@ -63,6 +63,9 @@ private:
   
   G4UIcmdWithAnInteger *gemconfigCmd;
   
+  //Flag to build evacuated scattering chamber for gas target:
+  G4UIcmdWithAnInteger *SchamGasTgtCmd;
+
   G4UIcmdWithADoubleAndUnit *tgtLenCmd;
   G4UIcmdWithADoubleAndUnit *tgtDenCmd;
   G4UIcmdWithADoubleAndUnit *tgtPresCmd;

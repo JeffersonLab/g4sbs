@@ -113,6 +113,10 @@ G4SBSMessenger::G4SBSMessenger(){
     tgtPresCmd->SetGuidance("Gaseous Target pressure");
     tgtPresCmd->SetParameterName("targpres", false);
 
+    SchamGasTgtCmd = new G4UIcmdWithAnInteger("/g4sbs/schbrflag",this);
+    SchamGasTgtCmd->SetGuidance("Build evacuated scattering chamber for gas target? (1=yes, 0=no)");
+    SchamGasTgtCmd->SetParameterName("schbrflag",false);
+
     beamcurCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamcur",this);
     beamcurCmd->SetGuidance("Beam current");
     beamcurCmd->SetParameterName("beamcur", false);
@@ -543,6 +547,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	G4double den = pre/(296.0*kelvin*k_Boltzmann);
 	fevgen->SetTargDen(den);
 	fdetcon->fTargetBuilder->SetTargDen(den);
+    }
+
+    if( cmd == SchamGasTgtCmd ){
+      G4int flag = SchamGasTgtCmd->GetNewIntValue( newValue );
+      fdetcon->fTargetBuilder->SetSchamFlag( flag );
     }
 
     if( cmd == beamcurCmd ){

@@ -62,23 +62,24 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   G4LogicalVolume *entvacLog_cut = new G4LogicalVolume(ent_vac_cut, GetMaterial("Vacuum"), "entvac_log_cut", 0, 0, 0);
 
   if( targtype == kH2 || targtype == k3He || targtype == kNeutTarg ){
+    //if( fDetCon->fTargetBuilder->GetSchamFlag() != 1 ){
+    // gas target -  1.5m in air
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entLog, "ent_phys", worldlog, false,0);
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entvacLog, "entvac_phys", worldlog,false,0);
+    
+    // Add in Be window if no scattering chamber is to be defined:
     if( fDetCon->fTargetBuilder->GetSchamFlag() != 1 ){
-      // gas target -  1.5m in air
-      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entLog, "ent_phys", worldlog, false,0);
-      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entvacLog, "entvac_phys", worldlog,false,0);
-
-      // Add in Be window
       G4double winthick = 0.0127*cm;
-
+    
       G4Tubs *ent_win = new G4Tubs("ent_win", 0.0, ent_rin, winthick/2, 0.*deg, 360.*deg );
       G4LogicalVolume *ent_winlog = new G4LogicalVolume(ent_win, GetMaterial("Beryllium"), "entwin_log", 0, 0, 0);
       new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);
       ent_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.7,1.0,0.0)));
-    } else {
-      //Don't add window: we want the beam to interact with the target first. Butt up against the outer edge of the scattering chamber:
-      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entLog_cut, "ent_phys", worldlog, false,0);
-      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entvacLog_cut, "entvac_phys", worldlog,false,0);
-    }
+    } // else {
+    //   //Don't add window: we want the beam to interact with the target first. Butt up against the outer edge of the scattering chamber:
+    //   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entLog_cut, "ent_phys", worldlog, false,0);
+    //   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entvacLog_cut, "entvac_phys", worldlog,false,0);
+    // }
   } else {
     // Cryotarget - up against the chamber wall
     new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entLog_cut, "ent_phys", worldlog, false,0);
@@ -416,13 +417,48 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   // G4Polycone *SIDISlead_cone = new G4Polycone( "SIDISlead_cone", 0.0*deg, 360.0*deg, nz, zlead, rinlead, routlead );
   // G4LogicalVolume *SIDISlead_log = new G4LogicalVolume( SIDISlead_cone, GetMaterial("Lead"), "SIDISlead_log", 0, 0, 0 );
   // G4PVPlacement *SIDISlead_pv = new G4PVPlacement( 0, G4ThreeVector(), SIDISlead_log, "SIDISlead_pv", worldlog, false, 0 );
+  
+  //We also want to put some lead and/or Iron shielding, i.e., a "collimator" in front of the SBS magnet gap:
+
+  double SBScollwidth = 469.9*mm;
+  double SBScollheight = 1219.2*mm;
+  double SBScolldepth = 10.0*cm;
+  
+  double coilspace = 214.5*mm + 20.63*mm;
+  double SBS_coll_R = fDetCon->fHArmBuilder->f48D48dist - coilspace - SBScolldepth/2.0 - 5.0*cm;
+
+  double SBS_coll_gapwidth = 50.0*cm*SBS_coll_R/(fDetCon->fHArmBuilder->fRICHdist - 0.5*m) + fDetCon->fTargetBuilder->GetTargLen()*sin( SBSang );
+  double SBS_coll_gapheight = 200.0*cm*SBS_coll_R/(fDetCon->fHArmBuilder->fRICHdist - 0.5*m);
+
+  G4Box *SBScoll = new G4Box("SBScoll", 1.5*SBScollwidth, 1.5*SBScollheight, SBScolldepth/2.0 );
+  G4Box *SBScoll_hole = new G4Box("SBScoll_hole", SBS_coll_gapwidth/2.0, SBS_coll_gapheight/2.0, SBScolldepth/2.0+1.0*cm );
+
+  G4Cons *SBScoll_cutcone = new G4Cons("SBScoll_cutcone", 0.0*cm, rinstart+5.0*cm, 0.0, rinend + 5.0*cm, (zend-zstart)/2.0, 0.0*deg, 360.0*deg );
+
+  
+
+  G4ThreeVector SBScoll_pos( SBS_coll_R*sin(SBSang), 0.0, SBS_coll_R*cos(SBSang) );
+  G4ThreeVector cutcone_relative_pos = leadcone_global_position - SBScoll_pos;
+
+  G4ThreeVector cutcone_relative_pos_local( cutcone_relative_pos.dot(SBS_xaxis),
+					    cutcone_relative_pos.dot(SBS_yaxis),
+					    cutcone_relative_pos.dot(SBS_zaxis) );
+
+  G4SubtractionSolid *SBS_collimator = new G4SubtractionSolid( "SBS_collimator", SBScoll, SBScoll_hole );
+  G4SubtractionSolid *SBS_collimator_beamcut = new G4SubtractionSolid("SBS_collimator_beamcut", SBS_collimator, SBScoll_cutcone, Beamslot_lead_rm_inv, 
+								      cutcone_relative_pos_local );
+
+  G4LogicalVolume *SBS_collimator_log = new G4LogicalVolume( SBS_collimator_beamcut, GetMaterial("Lead"), "SBS_collimator_log" );
+    
+  new G4PVPlacement( Beamslot_lead_rm, G4ThreeVector( SBS_coll_R*sin(SBSang), 0.0, SBS_coll_R*cos(SBSang) ), SBS_collimator_log, "SBS_collimator_phys", worldlog, 
+		     0, false, 0 );
 
   G4VisAttributes *leadVisAtt= new G4VisAttributes(G4Colour(0.25,0.25,0.25));
   //SIDISlead_log->SetVisAttributes(leadVisAtt);
 
   Beamslot_lead_log->SetVisAttributes(leadVisAtt);
   leadcone_cut_log->SetVisAttributes(leadVisAtt);
-
+  SBS_collimator_log->SetVisAttributes(leadVisAtt);
 }
 
 

@@ -23,6 +23,7 @@ public:
   void SetSchamFlag(int flag){ fSchamFlag = flag; }
 
   int GetSchamFlag() const { return fSchamFlag; }
+  double GetTargLen() const { return fTargLen; }
 
 private:
   double fTargLen;

@@ -698,9 +698,10 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   double Eh = CLHEP::RandFlat::shoot( fEhadMin, fEhadMax );
 
   //G4cout << "Generated (Eh, htheta, hphi)=(" << Eh/GeV << ", " << htheta/deg << ", " << hphi/deg << ")" << G4endl;
-  
+
   //For now we assume that Eh > Mh:
   double Ph = sqrt( pow(Eh,2)-pow(Mh,2) );
+  
 
   //G4cout << "Generated Ph = " << Ph/GeV << G4endl;
 

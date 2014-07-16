@@ -248,40 +248,40 @@ G4SBSMessenger::G4SBSMessenger(){
     TreeFlagCmd->SetParameterName("treeflag",false);
 
     //Optical physics toggle commands:
-    UseCerenkovCmd = new G4UIcmdWithABool( "/g4sbs/usecerenkov",this );
-    UseCerenkovCmd->SetGuidance("Activate Cherenkov radiation (default true)");
-    UseCerenkovCmd->SetParameterName("useckov",true);
-    UseCerenkovCmd->SetDefaultValue(true);
+    // UseCerenkovCmd = new G4UIcmdWithABool( "/g4sbs/usecerenkov",this );
+    // UseCerenkovCmd->SetGuidance("Activate Cherenkov radiation (default true)");
+    // UseCerenkovCmd->SetParameterName("useckov",true);
+    // UseCerenkovCmd->SetDefaultValue(true);
 
-    UseScintCmd = new G4UIcmdWithABool( "/g4sbs/usescint",this );
-    UseScintCmd->SetGuidance("Activate Scintillation (default false)");
-    UseScintCmd->SetParameterName("usescint",true);
-    UseScintCmd->SetDefaultValue(false);
+    // UseScintCmd = new G4UIcmdWithABool( "/g4sbs/usescint",this );
+    // UseScintCmd->SetGuidance("Activate Scintillation (default false)");
+    // UseScintCmd->SetParameterName("usescint",true);
+    // UseScintCmd->SetDefaultValue(false);
 
-    UseOpRayleighCmd = new G4UIcmdWithABool( "/g4sbs/userayleigh",this );
-    UseOpRayleighCmd->SetGuidance("Activate Rayleigh scattering of optical photons (default true)");
-    UseOpRayleighCmd->SetParameterName("useoprayleigh",true);
-    UseOpRayleighCmd->SetDefaultValue(true);
+    // UseOpRayleighCmd = new G4UIcmdWithABool( "/g4sbs/userayleigh",this );
+    // UseOpRayleighCmd->SetGuidance("Activate Rayleigh scattering of optical photons (default true)");
+    // UseOpRayleighCmd->SetParameterName("useoprayleigh",true);
+    // UseOpRayleighCmd->SetDefaultValue(true);
     
-    UseOpAbsorbCmd = new G4UIcmdWithABool( "/g4sbs/useabsorb",this );
-    UseOpAbsorbCmd->SetGuidance("Activate absorption of optical photons (default true)");
-    UseOpAbsorbCmd->SetParameterName("useabsorb",true);
-    UseOpAbsorbCmd->SetDefaultValue(true);
+    // UseOpAbsorbCmd = new G4UIcmdWithABool( "/g4sbs/useabsorb",this );
+    // UseOpAbsorbCmd->SetGuidance("Activate absorption of optical photons (default true)");
+    // UseOpAbsorbCmd->SetParameterName("useabsorb",true);
+    // UseOpAbsorbCmd->SetDefaultValue(true);
 
-    UseOpBdryCmd = new G4UIcmdWithABool( "/g4sbs/useboundary",this );
-    UseOpBdryCmd->SetGuidance("Activate optical boundary processes (default true)");
-    UseOpBdryCmd->SetParameterName("usebdry",true);
-    UseOpBdryCmd->SetDefaultValue(true);
+    // UseOpBdryCmd = new G4UIcmdWithABool( "/g4sbs/useboundary",this );
+    // UseOpBdryCmd->SetGuidance("Activate optical boundary processes (default true)");
+    // UseOpBdryCmd->SetParameterName("usebdry",true);
+    // UseOpBdryCmd->SetDefaultValue(true);
 
-    UseOpWLSCmd = new G4UIcmdWithABool( "/g4sbs/usewls",this );
-    UseOpWLSCmd->SetGuidance("Activate optical wavelength shifting process (default false)");
-    UseOpWLSCmd->SetParameterName("usewls",true);
-    UseOpWLSCmd->SetDefaultValue(false);
+    // UseOpWLSCmd = new G4UIcmdWithABool( "/g4sbs/usewls",this );
+    // UseOpWLSCmd->SetGuidance("Activate optical wavelength shifting process (default false)");
+    // UseOpWLSCmd->SetParameterName("usewls",true);
+    // UseOpWLSCmd->SetDefaultValue(false);
 
-    UseOpMieHGCmd = new G4UIcmdWithABool( "/g4sbs/usemie",this );
-    UseOpMieHGCmd->SetGuidance("Activate Mie scattering (default false)");
-    UseOpMieHGCmd->SetParameterName("usemie",true);
-    UseOpMieHGCmd->SetDefaultValue(false);
+    // UseOpMieHGCmd = new G4UIcmdWithABool( "/g4sbs/usemie",this );
+    // UseOpMieHGCmd->SetGuidance("Activate Mie scattering (default false)");
+    // UseOpMieHGCmd->SetParameterName("usemie",true);
+    // UseOpMieHGCmd->SetDefaultValue(false);
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -714,39 +714,4 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevact->SetTreeFlag( flag );
     }
     
-
-    if( cmd == UseCerenkovCmd ){
-      G4bool isactive = UseCerenkovCmd->GetNewBoolValue(newValue);
-      fphyslist->SetOpticalPhysicsProcessActive( kCerenkov, isactive );
-    }
-
-    if( cmd == UseScintCmd ){
-      G4bool isactive = UseScintCmd->GetNewBoolValue(newValue);
-      fphyslist->SetOpticalPhysicsProcessActive( kScintillation, isactive );
-    }
-    
-    if( cmd == UseOpRayleighCmd ){
-      G4bool isactive = UseOpRayleighCmd->GetNewBoolValue(newValue);
-      fphyslist->SetOpticalPhysicsProcessActive( kRayleigh, isactive );
-    }
-
-    if( cmd == UseOpAbsorbCmd ){
-      G4bool isactive = UseOpAbsorbCmd->GetNewBoolValue(newValue);
-      fphyslist->SetOpticalPhysicsProcessActive( kAbsorption, isactive );
-    }
-
-    if( cmd == UseOpBdryCmd ){
-      G4bool isactive = UseOpBdryCmd->GetNewBoolValue(newValue);
-      fphyslist->SetOpticalPhysicsProcessActive( kBoundary, isactive );
-    }
-
-    if( cmd == UseOpWLSCmd ){
-      G4bool isactive = UseOpWLSCmd->GetNewBoolValue(newValue);
-      fphyslist->SetOpticalPhysicsProcessActive( kWLS, isactive );
-    }
-
-    if( cmd == UseOpMieHGCmd ){
-      G4bool isactive = UseOpMieHGCmd->GetNewBoolValue(newValue);
-      fphyslist->SetOpticalPhysicsProcessActive( kMieHG, isactive );
-    }
 }

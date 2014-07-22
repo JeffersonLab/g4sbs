@@ -115,6 +115,10 @@ void DSS2007FF::Interpolate(int ihadron, double x, double Q2, vector<double> &xD
     double fxint_Qhigh = xfrac * f22 + (1.0-xfrac) * f12; //Interpolate in x at high Q2 point
     double fxyint      = Qfrac * fxint_Qhigh + (1.0-Qfrac) * fxint_Qlow; //Interpolate in Q2 between low and high interpolated x points:
 
+    // cout << "log(z), log(Q2), zfrac, Q2frac, f11, f12, f21, f22, f = " << logx << ", " 
+    // 	 << logQ2 << ", " << xfrac << ", " << Qfrac << ", " << f11 << ", " << f12 << ", " << f21 << ", " << f22 
+    // 	 << ", " << fxyint << endl;
+
     xDout[iparton] = fxyint;
   }
 }
@@ -138,6 +142,7 @@ void DSS2007FF::GetFFs( int ihadron, int icharge, double z, double Q2, vector<do
 
   for(int i=0; i<Nparton; i++){
     xDtemp[i] *= pow(1.0-z,exponent[0][i])*pow(z, exponent[1][i] );
+    //cout << "iparton, xD(iparton) = " << i << ", " << xDtemp[i] << endl;
   }
 
   double Up = (xDtemp[0]+xDtemp[6])/2.0;
@@ -177,4 +182,9 @@ void DSS2007FF::GetFFs( int ihadron, int icharge, double z, double Q2, vector<do
   Dqh[6] = Cp;
   Dqh[7] = Bp;
   Dqh[8] = xDtemp[5]/2.0;
+
+  for(int i=0; i<Nparton; i++){
+    Dqh[i] /= z;
+  }
+  
 }

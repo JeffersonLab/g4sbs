@@ -33,7 +33,8 @@ public:
   void SetIO( G4SBSIO *io ){ fIO = io; }
   void SetEvGen( G4SBSEventGen *gen ){ fevgen = gen; }
   void SetGEMRes( double r ){ fGEMres = r; }
-  
+  void SetTreeFlag( G4int f ){ fTreeFlag = f; }
+
   void LoadSigmas(const char *filename);
   
   void MapTracks(const G4Event *);
@@ -61,6 +62,8 @@ private:
   G4SBSEventGen *fevgen;
   
   double fGEMsigma[__MAXGEM];
+
+  G4int fTreeFlag;
   
 public:
 };

@@ -1,0 +1,16 @@
+scripts/sidis_km_11gev_downbend.mac
+scripts/sidis_km_11gev_upbend.mac
+scripts/sidis_km_8.8gev_downbend.mac
+scripts/sidis_km_8.8gev_upbend.mac
+scripts/sidis_kp_11gev_downbend.mac
+scripts/sidis_kp_11gev_upbend.mac
+scripts/sidis_kp_8.8gev_downbend.mac
+scripts/sidis_kp_8.8gev_upbend.mac
+scripts/sidis_pim_11gev_downbend.mac
+scripts/sidis_pim_11gev_upbend.mac
+scripts/sidis_pim_8.8gev_downbend.mac
+scripts/sidis_pim_8.8gev_upbend.mac
+scripts/sidis_pip_11gev_downbend.mac
+scripts/sidis_pip_11gev_upbend.mac
+scripts/sidis_pip_8.8gev_downbend.mac
+scripts/sidis_pip_8.8gev_upbend.mac

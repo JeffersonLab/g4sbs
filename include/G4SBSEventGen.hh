@@ -95,7 +95,7 @@ private:
   Kine_t fKineType;
   
   // Which hadron species are we considering for pi/K SIDIS?
-  Hadron_t fHadronType; //Currently available: pi+/-/0, K+/-
+  Hadron_t fHadronType; //Currently available: pi+/-/0, K+/-, p/pbar
 
   double fThMin, fThMax, fPhMin, fPhMax; //Angular generation limits for electron arm
   double fEeMin, fEeMax; //Electron energy generation limits

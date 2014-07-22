@@ -39,7 +39,7 @@ void G4SBSIO::InitializeTree(){
 	delete fFile;
     }
 
-    fFile = new TFile(fFilename, "RECREATE");
+    fFile = new TFile(fFilename, "RECREATE"); 
 
     if( fTree ){ delete fTree; }
 

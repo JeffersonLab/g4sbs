@@ -1016,27 +1016,27 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     //  G4VisAttributes for PMT assemblies:
 
     G4VisAttributes *PMTtube_vis = new G4VisAttributes( G4Colour( 0.4, 0.4, 0.4 ) );
-    PMTtube_vis->SetForceLineSegmentsPerCircle( 24 );
+    PMTtube_vis->SetForceLineSegmentsPerCircle( 12 );
     PMTtube_log->SetVisAttributes( PMTtube_vis );
     PMTendcap_log->SetVisAttributes( PMTtube_vis );
 
     G4VisAttributes *PMTwindow_vis = new G4VisAttributes( G4Colour::Cyan() );
-    PMTwindow_vis->SetForceLineSegmentsPerCircle( 24 );
+    PMTwindow_vis->SetForceLineSegmentsPerCircle( 12 );
     PMTwindow_vis->SetForceWireframe( true );
     PMTwindow_log->SetVisAttributes( PMTwindow_vis );
 
     //  PMTcathode_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
     G4VisAttributes *PMTcathode_vis = new G4VisAttributes( G4Colour::Blue() );
-    PMTcathode_vis->SetForceLineSegmentsPerCircle( 24 );
+    PMTcathode_vis->SetForceLineSegmentsPerCircle( 12 );
     PMTcathode_log->SetVisAttributes( PMTcathode_vis );
 
     G4VisAttributes *PMTquartzwindow_vis = new G4VisAttributes( G4Colour::Green() );
-    PMTquartzwindow_vis->SetForceLineSegmentsPerCircle( 24 );
+    PMTquartzwindow_vis->SetForceLineSegmentsPerCircle( 12 );
     PMTquartzwindow_vis->SetForceWireframe( true );
     PMTquartzwindow_log->SetVisAttributes( PMTquartzwindow_vis );
 
     G4VisAttributes *CollectionCone_vis = new G4VisAttributes( G4Colour::Red() );
-    CollectionCone_vis->SetForceLineSegmentsPerCircle( 24 );
+    CollectionCone_vis->SetForceLineSegmentsPerCircle( 12 );
     CollectionCone_log->SetVisAttributes( CollectionCone_vis );
 
     G4VisAttributes *RICHwalls_vis = new G4VisAttributes( G4Colour::Gray() );

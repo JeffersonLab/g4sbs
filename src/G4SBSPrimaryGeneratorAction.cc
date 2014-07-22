@@ -124,6 +124,12 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     case kKMinus:
       particle = particleTable->FindParticle(particleName="kaon-");
       break;
+    case kP:
+      particle = particleTable->FindParticle(particleName="proton");
+      break;
+    case kPbar:
+      particle = particleTable->FindParticle(particleName="anti_proton");
+      break;
     default:
       particle = particleTable->FindParticle(particleName="pi+");
       break;

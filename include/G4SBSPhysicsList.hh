@@ -14,7 +14,7 @@ public:
   
   void SetCuts();
   //void ConstructOptical();
-  void SetOpticalPhysicsProcessActive( G4int, G4bool );
+  //void SetOpticalPhysicsProcessActive( G4int, G4bool );
 
 private:
   
@@ -23,14 +23,14 @@ private:
   G4double cutPositron;
   G4double cutProton;
 
-  G4VPhysicsConstructor *G4SBSEMPhysics;
-  G4VPhysicsConstructor *G4SBSParticleList;
-  vector<G4VPhysicsConstructor*> G4SBSHadronicPhysics;
-  //G4VPhysicsConstructor *G4SBSOpticalPhysics;
+  // G4VPhysicsConstructor *G4SBSEMPhysics;
+  // G4VPhysicsConstructor *G4SBSParticleList;
+  // vector<G4VPhysicsConstructor*> G4SBSHadronicPhysics;
   G4VPhysicsConstructor *G4SBSOpticalPhysics;
+  // G4VPhysicsConstructor *G4SBSOpticalPhysics;
 
-  void ConstructParticle();
-  void ConstructProcess();
+  // void ConstructParticle();
+  // void ConstructProcess();
 
 };
 

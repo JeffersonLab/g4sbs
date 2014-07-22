@@ -66,13 +66,18 @@ add_library(g4sbsroot SHARED ${libsources} ${libheaders} G4SBSDict.cxx)
 target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
 target_link_libraries(g4sbsroot ${ROOT_LIBRARIES} )
 
+option(WITH_G4SBS_GDML "Build g4sbs with GDML output" ON)
+if( WITH_G4SBS_GDML)
+    set_target_properties(g4sbs 
+    PROPERTIES COMPILE_FLAGS "-DG4SBS_USE_GDML")
+endif()
+
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
 # build g4sbs. This is so that we can run the executable directly because it
 # relies on these scripts being in the current working directory.
 #
 set(G4SBS_SCRIPTS
-  rootlogon.C
   vis.mac
   run_example.mac
   scripts/gen_1.5GeV2.mac
@@ -89,6 +94,19 @@ set(G4SBS_SCRIPTS
   scripts/gep_5GeV2.mac
   scripts/gep_8GeV2.mac
   scripts/gep_12GeV2.mac
+  scripts/sidis_template.mac
+  scripts/make_SIDIS_scripts.C
+  scripts/vis_sidis.mac
+  scripts/sidis_background.mac
+  root_macros/G4SBS_optics_fit.C 
+  root_macros/RICH_analysis.C    
+  root_macros/g4sbs_tree.C       
+  root_macros/g4sbs_tree.h       
+  root_macros/rate_table.C
+  root_macros/SIDIS_reduced_data_file.C
+  root_macros/SIDIS_DST.C
+  root_macros/SIDIS_DST.h
+  root_macros/rate_table_DST.C
   )
 
 foreach(_script ${G4SBS_SCRIPTS})
@@ -97,6 +115,14 @@ foreach(_script ${G4SBS_SCRIPTS})
     ${PROJECT_BINARY_DIR}/${_script}
     COPYONLY
     )
+endforeach()
+
+configure_file( ${PROJECT_SOURCE_DIR}/rootlogon.C ${PROJECT_BINARY_DIR}/rootlogon.C )
+
+set(DSS2007_GRIDS HLO.GRID HNLO.GRID KALO.GRID KNLO.GRID PILO.GRID PROLO.GRID PLO.GRID PNLO.GRID)
+
+foreach(_grid ${DSS2007_GRIDS})
+  configure_file( ${PROJECT_SOURCE_DIR}/src/dss2007/${_grid} ${PROJECT_BINARY_DIR}/${_grid} COPYONLY )
 endforeach()
 
 #----------------------------------------------------------------------------

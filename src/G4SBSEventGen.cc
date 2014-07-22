@@ -11,6 +11,8 @@
 #include "G4KaonPlus.hh"
 #include "G4KaonMinus.hh"
 #include "G4PionZero.hh"
+#include "G4Proton.hh"
+#include "G4AntiProton.hh"
 
 #include <errno.h>
 
@@ -636,6 +638,16 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
     icharge = -1;
     ihadron = 1;
     break;
+  case kP:
+    Mh = G4Proton::ProtonDefinition()->GetPDGMass();
+    icharge = 1;
+    ihadron = 2;
+    break;
+  case kPbar:
+    Mh = G4AntiProton::AntiProtonDefinition()->GetPDGMass();
+    icharge = -1;
+    ihadron = 2;
+    break;
   default:
     Mh = G4PionPlus::PionPlusDefinition()->GetPDGMass();
     icharge = 1;
@@ -686,9 +698,10 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   double Eh = CLHEP::RandFlat::shoot( fEhadMin, fEhadMax );
 
   //G4cout << "Generated (Eh, htheta, hphi)=(" << Eh/GeV << ", " << htheta/deg << ", " << hphi/deg << ")" << G4endl;
-  
+
   //For now we assume that Eh > Mh:
   double Ph = sqrt( pow(Eh,2)-pow(Mh,2) );
+  
 
   //G4cout << "Generated Ph = " << Ph/GeV << G4endl;
 
@@ -750,7 +763,7 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 
   //G4cout << "(x, Q2)=(" << x << ", " << Q2/pow(GeV,2) << ")" << endl;
 
-  if( x > 1.0 ){ //Kinematically forbidden --> abort:
+  if( x >= 1.0 || x <= 0.0 ){ //Kinematically forbidden --> abort:
     fSigma = 0.0;
     fHadronE = 0.0;
     fHadronP = G4ThreeVector();
@@ -800,10 +813,10 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   vector<double> Dqh;
   fFragFunc.GetFFs( ihadron, icharge, z, sqrt(Q2)/GeV, Dqh );
 
-  //G4cout << "Got fragmentation functions..." << G4endl;
+  // G4cout << "Got fragmentation functions..." << G4endl;
 
   // for( int iparton=0; iparton<6; iparton++ ){
-  //   G4cout << "iparton, Dhq = " << iparton << ", " << Dqh[iparton] << endl;
+  //   G4cout << "iparton, z, Q2, Dhq = " << iparton << ", " << z << ", " << Q2/pow(GeV,2) << ", " << Dqh[iparton] << endl;
   // }
   
   //Pperp = ph - (ph dot q) * q/q^2 
@@ -838,7 +851,7 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 						     pow(e_d,2) * (d * Dqh[2] + dbar * Dqh[3]) + 
 						     pow(e_s,2) * (st * Dqh[4] + sbar * Dqh[5]) );
   
-  if( nucl == kNeutron ){ //Interchange u and d quarks: the d quark density in a neutron = u quark density in a proton
+  if( nucl == kNeutron ){ //Interchange u and d quarks: the d quark density in a neutron = u quark density in a proton etc.
     H2 = x * b/twopi*exp(-b*pow(Ph_perp,2)) * ( pow(e_u,2) * (d * Dqh[0] + dbar * Dqh[1]) + 
 						pow(e_d,2) * (u * Dqh[2] + ubar * Dqh[3]) + 
 						pow(e_s,2) * (st * Dqh[4] + sbar * Dqh[5]) );
@@ -1255,6 +1268,12 @@ ev_t G4SBSEventGen::GetEventData(){
 	break;
       case kKMinus:
 	data.hadr = -2;
+	break;
+      case kP:
+	data.hadr = 3;
+	break;
+      case kPbar:
+	data.hadr = -3;
 	break;
       default:
 	data.hadr = 1;

@@ -63,6 +63,9 @@ private:
   
   G4UIcmdWithAnInteger *gemconfigCmd;
   
+  //Flag to build evacuated scattering chamber for gas target:
+  G4UIcmdWithAnInteger *SchamGasTgtCmd;
+
   G4UIcmdWithADoubleAndUnit *tgtLenCmd;
   G4UIcmdWithADoubleAndUnit *tgtDenCmd;
   G4UIcmdWithADoubleAndUnit *tgtPresCmd;
@@ -111,15 +114,17 @@ private:
   G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd; 
   G4UIcmdWithAnInteger      *SBSFieldClampOptionCmd;
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
+
+  G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree
   
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
-  G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov
-  G4UIcmdWithABool *UseScintCmd;      //Scintillation
-  G4UIcmdWithABool *UseOpRayleighCmd; //Rayleigh for optical photons
-  G4UIcmdWithABool *UseOpAbsorbCmd;   //optical absorption
-  G4UIcmdWithABool *UseOpBdryCmd;     //optical boundary process (reflection/refraction/absorption)
-  G4UIcmdWithABool *UseOpWLSCmd;      //Wavelength shifting of optical photons
-  G4UIcmdWithABool *UseOpMieHGCmd;    //Mie scattering;
+  // G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov
+  // G4UIcmdWithABool *UseScintCmd;      //Scintillation
+  // G4UIcmdWithABool *UseOpRayleighCmd; //Rayleigh for optical photons
+  // G4UIcmdWithABool *UseOpAbsorbCmd;   //optical absorption
+  // G4UIcmdWithABool *UseOpBdryCmd;     //optical boundary process (reflection/refraction/absorption)
+  // G4UIcmdWithABool *UseOpWLSCmd;      //Wavelength shifting of optical photons
+  // G4UIcmdWithABool *UseOpMieHGCmd;    //Mie scattering;
 };
 
 #endif//G4SBSMessenger_HH

@@ -104,7 +104,7 @@ private:
   double fTargLen, fRasterX, fRasterY, fTargDen;
   double fPmisspar, fPmissperp, fPmissparSm;
   double fHCALdist, fToFres;
-  
+
   G4LorentzVector GetInitialNucl( Targ_t, Nucl_t );
   
   bool GenerateElastic( Nucl_t, G4LorentzVector, G4LorentzVector );
@@ -114,6 +114,7 @@ private:
   bool GenerateBeam( Nucl_t, G4LorentzVector, G4LorentzVector );
   
   bool GenerateSIDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   
   double deutpdist( double );
   double he3pdist( Nucl_t, double );

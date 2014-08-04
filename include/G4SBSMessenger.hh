@@ -51,6 +51,7 @@ private:
   G4UIcmdWithAString   *kineCmd;
   G4UIcmdWithAString   *expCmd;
   
+  G4UIcmdWithAString   *GunParticleCmd;
   G4UIcmdWithAString   *HadrCmd;
 
   G4UIcmdWithAnInteger *bigfieldCmd;

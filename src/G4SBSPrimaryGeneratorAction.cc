@@ -24,6 +24,8 @@ G4SBSPrimaryGeneratorAction::G4SBSPrimaryGeneratorAction()
   G4String particleName;
   G4ParticleDefinition* particle;
 
+  GunParticleName = "e-";
+
   particle = particleTable->FindParticle(particleName="e-");
 
   particleGun->SetParticleDefinition(particle);
@@ -31,6 +33,8 @@ G4SBSPrimaryGeneratorAction::G4SBSPrimaryGeneratorAction()
   particleGun->SetParticleMomentumDirection(G4ThreeVector(sin(-40.0*deg),0.0,cos(-40.0*deg)));
   particleGun->SetParticleEnergy(1.0*GeV);
   particleGun->SetParticlePosition(G4ThreeVector(0.*cm,0.*cm,0.*cm));
+
+  GunParticleType = particle;
 
   sbsgen = new G4SBSEventGen();
 
@@ -65,16 +69,25 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   evdata = sbsgen->GetEventData();
   fIO->SetEventData(evdata);
 
-  if( !fUseGeantino ){
-      particle = particleTable->FindParticle(particleName="e-");
+  if( !fUseGeantino && sbsgen->GetKine() != kGun ){
+    particle = particleTable->FindParticle(particleName="e-");
+  } else if( fUseGeantino ){
+    particle = particleTable->FindParticle(particleName="chargedgeantino");
   } else {
-      particle = particleTable->FindParticle(particleName="chargedgeantino");
+    particle = particleTable->FindParticle( GunParticleName );
+    if( particle != 0 ) SetParticleType( particle );
+    particle = GunParticleType;
   }
 
   particleGun->SetParticleDefinition(particle);
 
   particleGun->SetParticleMomentumDirection(sbsgen->GetElectronP().unit() );
-  particleGun->SetParticleEnergy(sbsgen->GetElectronE());
+  if( sbsgen->GetKine() != kGun ){ 
+    particleGun->SetParticleEnergy(sbsgen->GetElectronE());
+  } else {
+    particleGun->SetParticleEnergy( sqrt( pow( sbsgen->GetElectronP().mag(), 2) + pow( GunParticleType->GetPDGMass(), 2 ) ) );
+  }
+
   particleGun->SetParticlePosition(sbsgen->GetV());
 	  
   /*
@@ -151,10 +164,9 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   // Only do final nucleon for generators other than
   // the generic beam generator
-  if( sbsgen->GetKine() != kBeam ){
+  if( sbsgen->GetKine() != kBeam && sbsgen->GetKine() != kGun ){
       particleGun->GeneratePrimaryVertex(anEvent);
   }
-
 
 }
 

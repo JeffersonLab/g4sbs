@@ -14,6 +14,7 @@
 #include "G4Proton.hh"
 #include "G4AntiProton.hh"
 
+
 #include <errno.h>
 
 using namespace CLHEP;
@@ -155,6 +156,8 @@ bool G4SBSEventGen::GenerateEvent(){
       fVert.setZ( -5.0*m ); // Set at something upstream if just simple beam
       success = GenerateBeam( thisnucl, ei, ni );
       break;
+    case kGun:
+      success = GenerateGun();
     default:
       success = GenerateElastic( thisnucl, ei, ni );
       break;
@@ -988,6 +991,21 @@ bool G4SBSEventGen::GenerateBeam( Nucl_t nucl, G4LorentzVector ei, G4LorentzVect
     fFinalNucl = nucl;
 
     return true;
+}
+
+bool G4SBSEventGen::GenerateGun(){
+  G4double ep = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
+  G4double etheta = acos( CLHEP::RandFlat::shoot( cos(fThMax), cos(fThMin) ) );
+  G4double ephi   = CLHEP::RandFlat::shoot( fPhMin, fPhMax );
+
+  //Generate a random momentum and vertex and store the results in fElectronP and fVert:
+  fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
+  
+  fVert.set( CLHEP::RandFlat::shoot( -fRasterX/2.0, fRasterX/2.0 ),
+	     CLHEP::RandFlat::shoot( -fRasterY/2.0, fRasterY/2.0 ),
+	     CLHEP::RandFlat::shoot( -fTargLen/2.0, fTargLen/2.0 ) );
+
+  return true;
 }
 
 double G4SBSEventGen::deutpdist( double p ){

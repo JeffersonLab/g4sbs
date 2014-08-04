@@ -73,6 +73,10 @@ G4SBSMessenger::G4SBSMessenger(){
     expCmd->SetGuidance("Experiment type");
     expCmd->SetParameterName("exptype", false);
 
+    GunParticleCmd = new G4UIcmdWithAString("/g4sbs/particle",this);
+    GunParticleCmd->SetGuidance("Particle type for gun generator");
+    GunParticleCmd->SetParameterName("ptype", false );
+
     HadrCmd = new G4UIcmdWithAString("/g4sbs/hadron",this);
     HadrCmd->SetGuidance("Hadron type h for SIDIS N(e,e'h)X reaction");
     HadrCmd->SetParameterName("hadrontype", false );
@@ -362,6 +366,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	  fevgen->SetKine( kSIDIS );
 	  validcmd = true;
 	}
+	if( newValue.compareTo("gun") == 0 ){
+	  fevgen->SetKine( kGun );
+	  validcmd = true;
+	}
+
 	if( !validcmd ){
 	    fprintf(stderr, "%s: %s line %d - Error: kinematic type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
 	    exit(1);
@@ -405,6 +414,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	}
     }
 
+    if( cmd == GunParticleCmd ){
+      bool validcmd = false;
+      fprigen->SetParticleName( newValue );
+    }
 
     if( cmd == HadrCmd ){
       bool validcmd = false;

@@ -99,7 +99,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   // Not necessarily kinematically allowed
   particleGun->GeneratePrimaryVertex(anEvent);
 
-  if( sbsgen->GetKine() != kSIDIS ){ //Then we are generating a final nucleon
+  if( sbsgen->GetKine() != kSIDIS && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kBeam ){ //Then we are generating a final nucleon
     switch( sbsgen->GetFinalNucleon() ){
     case kProton:
       particle = particleTable->FindParticle(particleName="proton");
@@ -120,7 +120,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       particleGun->SetParticleEnergy(sbsgen->GetNucleonE()-particle->GetPDGMass());
       particleGun->SetParticlePosition(sbsgen->GetV());
     }
-  } else { //SIDIS case: generate a final hadron:
+  } else if( sbsgen->GetKine() == kSIDIS ){ //SIDIS case: generate a final hadron:
     switch( sbsgen->GetHadronType() ){
     case kPiPlus:
       particle = particleTable->FindParticle(particleName="pi+");
@@ -162,7 +162,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   particleGun->SetParticlePosition(G4ThreeVector(0.*cm,0.*cm,0.*cm));
   */
 
-  // Only do final nucleon for generators other than
+  // Only do final nucleon/hadron for generators other than
   // the generic beam generator
   if( sbsgen->GetKine() != kBeam && sbsgen->GetKine() != kGun ){
       particleGun->GeneratePrimaryVertex(anEvent);

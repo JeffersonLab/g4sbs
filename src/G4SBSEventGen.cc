@@ -158,6 +158,7 @@ bool G4SBSEventGen::GenerateEvent(){
       break;
     case kGun:
       success = GenerateGun();
+      break;
     default:
       success = GenerateElastic( thisnucl, ei, ni );
       break;
@@ -994,6 +995,12 @@ bool G4SBSEventGen::GenerateBeam( Nucl_t nucl, G4LorentzVector ei, G4LorentzVect
 }
 
 bool G4SBSEventGen::GenerateGun(){
+
+  // G4cout << "Gun generator: (Emin,Emax,thmin,thmax,phmin,phmax)=("
+  // 	 << fEeMin/GeV << ", " << fEeMax/GeV << ", " 
+  // 	 << fThMin/deg << ", " << fThMax/deg << ", " 
+  // 	 << fPhMin/deg << ", " << fPhMax/deg << ")" << G4endl;
+
   G4double ep = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
   G4double etheta = acos( CLHEP::RandFlat::shoot( cos(fThMax), cos(fThMin) ) );
   G4double ephi   = CLHEP::RandFlat::shoot( fPhMin, fPhMax );
@@ -1001,9 +1008,12 @@ bool G4SBSEventGen::GenerateGun(){
   //Generate a random momentum and vertex and store the results in fElectronP and fVert:
   fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
   
-  fVert.set( CLHEP::RandFlat::shoot( -fRasterX/2.0, fRasterX/2.0 ),
-	     CLHEP::RandFlat::shoot( -fRasterY/2.0, fRasterY/2.0 ),
-	     CLHEP::RandFlat::shoot( -fTargLen/2.0, fTargLen/2.0 ) );
+  // G4cout << "Gun generator: Actual p, theta, phi = " << ep/GeV << ", " << etheta/deg << ", " << ephi/deg << G4endl;
+  // G4cout << "Gun generator: (px, py, pz)=(" << fElectronP.x()/GeV << ", " << fElectronP.y()/GeV << ", " << fElectronP.z()/GeV << ")" << G4endl;
+
+  // fVert.set( CLHEP::RandFlat::shoot( -fRasterX/2.0, fRasterX/2.0 ),
+  // 	     CLHEP::RandFlat::shoot( -fRasterY/2.0, fRasterY/2.0 ),
+  // 	     CLHEP::RandFlat::shoot( -fTargLen/2.0, fTargLen/2.0 ) );
 
   return true;
 }

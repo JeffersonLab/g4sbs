@@ -40,6 +40,10 @@
 #endif
 #include "G4VPhysicalVolume.hh"
 
+#ifdef __APPLE__
+#include <unistd.h>
+#endif
+
 using namespace CLHEP;
 
 G4SBSMessenger::G4SBSMessenger(){

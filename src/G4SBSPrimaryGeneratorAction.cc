@@ -85,7 +85,10 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   if( sbsgen->GetKine() != kGun ){ 
     particleGun->SetParticleEnergy(sbsgen->GetElectronE());
   } else {
-    particleGun->SetParticleEnergy( sqrt( pow( sbsgen->GetElectronP().mag(), 2) + pow( GunParticleType->GetPDGMass(), 2 ) ) );
+    //SetParticleEnergy sets the ***kinetic energy*** of particles
+    //GenerateGun() generates the ***momentum***; therefore we need:
+    // T = E - M --> (T + M)^2 = p^2 + M^2 --> T^2 + 2MT = p^2 
+    particleGun->SetParticleEnergy( sqrt( pow( sbsgen->GetElectronP().mag(), 2) + pow( GunParticleType->GetPDGMass(), 2 ) ) - GunParticleType->GetPDGMass() );
   }
 
   particleGun->SetParticlePosition(sbsgen->GetV());

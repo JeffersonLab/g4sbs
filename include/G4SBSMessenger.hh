@@ -28,7 +28,7 @@ public:
   void SetPriGen( G4SBSPrimaryGeneratorAction *pg ){ fprigen = pg; }
   void SetDetCon( G4SBSDetectorConstruction *dc ){ fdetcon= dc; }
   void SetEvAct( G4SBSEventAction *ev ){ fevact = ev; }
-  void SetPhysicsList( G4SBSPhysicsList *pl ){ fphyslist = pl; }
+  
 
   void SetNewValue(G4UIcommand* cmd, G4String newValue);
 
@@ -38,7 +38,7 @@ private:
   G4SBSDetectorConstruction *fdetcon;
   G4SBSEventAction *fevact;
   G4SBSPrimaryGeneratorAction *fprigen;
-  G4SBSPhysicsList *fphyslist;
+  
 
   Exp_t fExpType;
   

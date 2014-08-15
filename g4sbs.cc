@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   sbsmess->SetIO(io);
 
   G4VModularPhysicsList *physicslist = new G4SBSPhysicsList;
-  sbsmess->SetPhysicsList( ( (G4SBSPhysicsList*) physicslist ) );
+  
   
   runManager->SetUserInitialization(physicslist);
 

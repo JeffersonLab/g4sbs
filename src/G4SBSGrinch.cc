@@ -7,6 +7,8 @@
  */
 #include "G4SBSGrinch.hh"
 
+#define CHAR_LEN 255
+
 enum E_VERTICES {
 	k_BOTTOM_LEFT,
 	k_TOP_LEFT,
@@ -26,9 +28,9 @@ enum E_VERTICES {
  *
  * @return vector<G4TwoVector> output
  */
-inline vector<G4TwoVector> Two_Trapezoid_Planes(const G4ThreeVector& aTop,const G4ThreeVector& aBottom,const G4ThreeVector& aEntrance,
+inline std::vector<G4TwoVector> Two_Trapezoid_Planes(const G4ThreeVector& aTop,const G4ThreeVector& aBottom,const G4ThreeVector& aEntrance,
 		const G4double& aCorner_Bend_Angle,const G4double& aBB_Bottom_Length) {
-	vector<G4TwoVector> output; //0=4, 1=5, 2=6, 3=7
+    std::vector<G4TwoVector> output; //0=4, 1=5, 2=6, 3=7
 	G4TwoVector vertices;
 	G4int i;
 	for ( i = 0; i < 2; ++i ) { //2=two planes
@@ -231,7 +233,7 @@ inline G4VSolid* Construct_Square_Opening_Cone(G4String aName, G4double aRmin1, 
 /**
  * @brief Construct Function
  */
-G4SBSGrinch::G4SBSGrinch() {
+G4SBSGrinch::G4SBSGrinch(G4SBSDetectorConstruction *dc):G4SBSComponent(dc) {
 }
 
 G4SBSGrinch::~G4SBSGrinch() {
@@ -244,249 +246,15 @@ G4SBSGrinch::~G4SBSGrinch() {
  * @return Always world physics
  */
 void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
-//	BGCUserManager* usermanager=BGCUserManager::GetUserManager();
-
-	G4double GC_Gas_Pressure=usermanager->GetGC_Tank_Pressure();
-	G4NistManager* nist_man=G4NistManager::Instance();
 
 	G4ThreeVector Translation(0,0,0);
 	G4RotationMatrix Rotation;
 	G4int i,j;
 
 
+
 	G4RotationMatrix rm, PMTrm;
 	G4Transform3D movetocenter,offset,combine;
-
-	//hc/(1eV)=1240nm wavelength of 1 eV particle
-	//****************************************
-	//for 185nm~200nm,E=6.71*eV~6.20*eV
-	//p0                        =      57.1302   +/-   4.35232e+07
-	//p1                        =     -1.12253   +/-   452877
-	//p2                        =   0.00585938   +/-   1176.3
-	//
-	//****************************************
-	//for 200nm~210nm,E=6.199*eV~5.904*eV
-	//p0                        =       -13903   +/-   2058.18
-	//p1                        =       135.85   +/-   20.0863
-	//p2                        =        -0.33   +/-   0.0489898
-	//
-	//****************************************
-	//for 210nm~350nm,E=5.90*eV~3.543*eV
-	//p0                        =     -504.252   +/-   43.524
-	//p1                        =       5.9471   +/-   0.486514
-	//p2                        =   -0.0198695   +/-   0.00178926
-	//p3                        =  2.21164e-05   +/-   2.16139e-06
-	//
-	//****************************************
-	//for 350nm~650nm,E=3.54*eV~1.91*eV
-	//p0                        =      80.3607   +/-   2.66686
-	//p1                        =    0.0553214   +/-   0.0114894
-	//p2                        = -6.78571e-05   +/-   1.20585e-05
-	//
-	const G4int nEntries=25;
-	G4double PhotonWaveLength[nEntries]={
-		650*nm, 600*nm, 550*nm, 500*nm, 450*nm, 400*nm, 350*nm,
-		350*nm, 330*nm, 310*nm, 290*nm, 270*nm, 250*nm, 230*nm, 210*nm,
-		210*nm, 208*nm, 206*nm, 204*nm, 202*nm, 200*nm, 
-		199*nm, 195*nm, 190*nm, 185*nm
-	};
-	G4double nm_lambda;
-	G4double PhotonEnergy[nEntries];
-	G4double Std_RefractiveIndex[nEntries];
-	for ( i = 0; i < nEntries; ++i ) {
-		PhotonEnergy[i]=(1240*nm/PhotonWaveLength[i])*eV;
-		Std_RefractiveIndex[i]=1.00;
-	}
-
-	G4double density;
-	vector<G4Material*> v_Material_List; /**< Material list: Air,Vacuum,CO2,Lucite,Glass,C4F8O,Al,Stainless_Steel,Carbon_Steel,Mylar,mu_metal */
-	/* --------------------------------------------------------------------------*/
-	//Define Element
-	G4Element* H=nist_man->FindOrBuildElement("H");
-	G4Element* C=nist_man->FindOrBuildElement("C");
-	G4Element* O=nist_man->FindOrBuildElement("O");
-	G4Element* F=nist_man->FindOrBuildElement("F");
-	G4Element* Fe=nist_man->FindOrBuildElement("Fe");
-	G4Element* Cr=nist_man->FindOrBuildElement("Cr");
-	G4Element* Ni=nist_man->FindOrBuildElement("Ni");
-	G4Element* Mn=nist_man->FindOrBuildElement("Mn");
-	G4Element* P=nist_man->FindOrBuildElement("P");
-	G4Element* S=nist_man->FindOrBuildElement("S");
-	G4Element* Mo=nist_man->FindOrBuildElement("Mo");
-	G4Element* Si=nist_man->FindOrBuildElement("Si");
-	G4Element* He=nist_man->FindOrBuildElement("He");
-
-
-	G4MaterialPropertiesTable* Std_MPT = new G4MaterialPropertiesTable();
-	Std_MPT->AddProperty("RINDEX", PhotonEnergy, Std_RefractiveIndex, nEntries);
-	//Define Material
-	//Air
-	G4Material* Air=nist_man->FindOrBuildMaterial("G4_AIR");
-	Air->SetMaterialPropertiesTable(Std_MPT);
-	Air->SetName("Air");
-	v_Material_List.push_back(Air);
-
-	//Vacuum
-	G4Material* Vacuum=nist_man->FindOrBuildMaterial("G4_Galactic");
-	Vacuum->SetMaterialPropertiesTable(Std_MPT);
-	Vacuum->SetName("Vacuum");
-	v_Material_List.push_back(Vacuum);
-
-	//CO2
-	G4Material* CO2=nist_man->FindOrBuildMaterial("G4_CARBON_DIOXIDE");
-	G4double CO2_RefractiveIndex[nEntries];
-	for ( i = 0; i < nEntries; ++i ) {
-		CO2_RefractiveIndex[i]=1.00045;
-		CO2_RefractiveIndex[i]=1+(CO2_RefractiveIndex[i]-1)*GC_Gas_Pressure/atmosphere;
-	}
-	G4MaterialPropertiesTable* MPCO2 = new G4MaterialPropertiesTable();
-	MPCO2->AddProperty("RINDEX",PhotonEnergy, CO2_RefractiveIndex, nEntries);
-	CO2->SetMaterialPropertiesTable(MPCO2);
-	CO2->SetName("CO2");
-	v_Material_List.push_back(CO2);
-
-	//Lucite
-	G4Material* Lucite=nist_man->FindOrBuildMaterial("G4_LUCITE");
-	G4double Lucite_RefractiveIndex[nEntries];
-	for ( i = 0; i < nEntries; ++i ) {
-		Lucite_RefractiveIndex[i]=1.5;
-	}
-	G4MaterialPropertiesTable* MPLucite = new G4MaterialPropertiesTable();
-	MPLucite->AddProperty("RINDEX",PhotonEnergy, Lucite_RefractiveIndex, nEntries);
-	Lucite->SetMaterialPropertiesTable(MPLucite);
-	Lucite->SetName("Lucite");
-	v_Material_List.push_back(Lucite);
-
-	G4Material* Target_Glass=nist_man->FindOrBuildMaterial("G4_GLASS_PLATE");
-	Target_Glass->SetName("Target_Glass");
-	//G4double RefractiveIndexTaget_Glass[nEntries];
-	//G4double AbsorptionLengthTaget_Glass[nEntries];
-	//for ( i = 0; i < nEntries; ++i ) {
-	//	RefractiveIndexTaget_Glass[i]=1.52;
-	//	AbsorptionLengthTaget_Glass[i]=1e3*m;
-	//}
-	//G4MaterialPropertiesTable* mptTarget_Glass=new G4MaterialPropertiesTable();
-	//mptTarget_Glass->AddProperty("RINDEX", PhotonEnergy,RefractiveIndexTaget_Glass,nEntries);
-	//mptTarget_Glass->AddProperty("ABSLENGTH", PhotonEnergy,AbsorptionLengthTaget_Glass,nEntries);
-	//Target_Glass->SetMaterialPropertiesTable(mptTarget_Glass);
-	v_Material_List.push_back(Target_Glass);
-	
-	//Glass
-	//G4Material* Glass=nist_man->FindOrBuildMaterial("G4_GLASS_PLATE");
-	//Glass->SetName("Glass");
-	G4Material* Glass=new G4Material("Glass",1.397*g/cm3,3);
-	Glass->AddElement(H,8);
-	Glass->AddElement(C,10);
-	Glass->AddElement(O,4);
-	v_Material_List.push_back(Glass);
-
-	//C4F8O
-	//G4Material* C4F8O = new G4Material("C4F8O", density=17.5*mg/cm3,3); // at 27 degrees
-	G4Material* C4F8O = new G4Material("C4F8O", density=26.25*mg/cm3,3); // at 27 degrees for 1.5atm
-	C4F8O->AddElement(C, 4);
-	C4F8O->AddElement(F, 8);
-	C4F8O->AddElement(O, 1);
-	G4double C4F8O_RefractiveIndex[nEntries]; //at 1.atm
-	G4double C4F8O_ABSLENGTH[nEntries]; //at 1.atm
-	for ( i = 0; i < nEntries; ++i ) {
-		C4F8O_RefractiveIndex[i]=1.00135;
-		C4F8O_ABSLENGTH[i]=7424.75*cm;
-		C4F8O_RefractiveIndex[i]=1+(C4F8O_RefractiveIndex[i]-1)*GC_Gas_Pressure/atmosphere;
-	}
-	G4MaterialPropertiesTable* MPC4F8O = new G4MaterialPropertiesTable();
-	MPC4F8O->AddProperty("RINDEX",PhotonEnergy, C4F8O_RefractiveIndex, nEntries);
-	MPC4F8O->AddProperty("ABSLENGTH",PhotonEnergy, C4F8O_ABSLENGTH, nEntries);
-	C4F8O->SetMaterialPropertiesTable(MPC4F8O);
-	//		G4Material* C4F8O = new G4Material("C4F8O", density=26.25*mg/cm3,3); // at 27 degrees for 1.5 atm
-	//		G4double C4F8O_RefractiveIndex[nEntries]={ 1.002025, 1.002025 };  // for 1.5 atm
-	v_Material_List.push_back(C4F8O);
-
-	//Al
-	G4Material* Al=nist_man->FindOrBuildMaterial("G4_Al");
-	Al->SetName("Al");
-	v_Material_List.push_back(Al);
-
-	//Stainless_Steel
-	G4Material* Stainless_Steel=nist_man->FindOrBuildMaterial("G4_STAINLESS-STEEL");
-	Stainless_Steel->SetName("Stainless_Steel");
-	v_Material_List.push_back(Stainless_Steel);
-
-	//Carbon Steel
-	G4Material* Carbon_Steel = new G4Material("Carbon_Steel", density=7.85*g/cm3, 7);
-	Carbon_Steel->AddElement(Fe, 73.4*perCent);
-	Carbon_Steel->AddElement(Cr, 8.*perCent);
-	Carbon_Steel->AddElement(Ni, 18.*perCent);
-	Carbon_Steel->AddElement(C, 0.1*perCent);
-	Carbon_Steel->AddElement(Mn, 0.41*perCent);
-	Carbon_Steel->AddElement(P, 0.04*perCent);
-	Carbon_Steel->AddElement(S, 0.05*perCent);
-	v_Material_List.push_back(Carbon_Steel);
-
-	//Mylar
-	G4Material* Mylar=new G4Material("Mylar", density= 1.397*g/cm3, 3);
-	Mylar->AddElement(C, 10);
-	Mylar->AddElement(H, 8);
-	Mylar->AddElement(O, 4);
-	//G4MaterialPropertiesTable* mptMylar = new G4MaterialPropertiesTable();
-	//G4double AbsorptionLengthMylar = 100.*cm;
-	//G4double refractiveIndexMylar = 1.640;
-	//mptMylar->AddConstProperty("RINDEX",refractiveIndexMylar);
-	//mptMylar->AddConstProperty("ABSLENGTH",AbsorptionLengthMylar);
-	//Mylar->SetMaterialPropertiesTable(mptMylar);
-	v_Material_List.push_back(Mylar);
-
-
-	//mu-metal
-	G4Material* mu_metal=new G4Material("mu-metal", density= 8.250*g/cm3, 6);
-	mu_metal->AddElement(C, 0.02*perCent);
-	mu_metal->AddElement(Ni, 80.00*perCent);
-	mu_metal->AddElement(Mn, 0.50*perCent);
-	mu_metal->AddElement(Mo, 4.20*perCent);
-	mu_metal->AddElement(Si, 0.35*perCent);
-	mu_metal->AddElement(Fe, 14.93*perCent);
-	v_Material_List.push_back(mu_metal);
-
-	//Quartz (fused silica) From QWeak
-	//G4Material* Quartz=nist_man->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
-	//Quartz->SetName("Quartz");
-	G4Material* Quartz=new G4Material("Quartz", density= 2.200*g/cm3, 2);
-	Quartz->AddElement(Si, 1);
-	Quartz->AddElement(O, 2);
-	G4double rindex_Quartz[nEntries];
-	G4double absl_Quartz[nEntries];
-	for ( i = 0; i < nEntries; ++i ) {
-		nm_lambda=PhotonWaveLength[i]/nm;
-		rindex_Quartz[i]=1.736-0.001396*nm_lambda+2.326e-06*nm_lambda*nm_lambda-1.281e-09*nm_lambda*nm_lambda*nm_lambda;
-		absl_Quartz[i]=(-93.08+0.07151*nm_lambda+0.001799*nm_lambda*nm_lambda-1.678e-06*nm_lambda*nm_lambda*nm_lambda)*m;
-		if ( absl_Quartz[i]<0 ) {
-			absl_Quartz[i]=0;
-		}
-	}
-	G4MaterialPropertiesTable* mptQuartz=new G4MaterialPropertiesTable();
-	mptQuartz->AddProperty("RINDEX",PhotonEnergy,rindex_Quartz,nEntries);
-	mptQuartz->AddProperty("ABSLENGTH",PhotonEnergy,absl_Quartz,nEntries);
-	Quartz->SetMaterialPropertiesTable(mptQuartz);
-	v_Material_List.push_back(Quartz);
-	
-
-	//helium3
-	 //G4int protons=2, neutrons=1, nucleons=protons+neutrons;
-     //G4double atomicMass = 3.016*g/mole;
-     //G4Isotope* he3 = new G4Isotope("he3", protons, nucleons, atomicMass);
-	 //G4int isotopes=1;
-     //G4Element* He3 = new G4Element("He3", "he3", isotopes);
-     //He3->AddIsotope(he3, 100*perCent);
-     //G4double pressure = 0.1*bar;
-     //G4double temperature = 2*kelvin;
-     //G4double molar_constant = Avogadro*k_Boltzmann;  //from clhep
-     //density = (atomicMass*pressure)/(temperature*molar_constant);
-     //G4Material* Helium3_Gas = new G4Material("He3", density, 1, kStateGas, temperature, pressure);
-     //Helium3_Gas->AddElement(He3, 100*perCent); 
-     G4Material* Helium3_Gas = new G4Material("He3", density=0.1787*mg/cm3, 1, kStateGas, 273.15*kelvin, 1*atmosphere);
-	 Helium3_Gas->AddElement(He,1);
-	 v_Material_List.push_back(Helium3_Gas);
-
-	//G4cout << *(G4Material::GetMaterialTable()) << endl;
 
 
 	char tmpname[CHAR_LEN];
@@ -494,64 +262,66 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 
 	/* --------------------------------------------------------------------------*/
 	//GC_Tank
-	G4String GC_Tank_Name=usermanager->GetGC_Tank_Name();
-	G4String GC_Tank_Material=usermanager->GetGC_Tank_Material();
-	G4ThreeVector GC_Tank_Inner_FullSize=usermanager->GetGC_Tank_Inner_FullSize();
-	G4double GC_Tank_Thickness=usermanager->GetGC_Tank_Thickness();
-	G4VSolid* GC_Tank_Solid=ConstructSimple(GC_Tank_Name,usermanager->GetGC_Tank_Shape(),GC_Tank_Inner_FullSize);
-	GC_Tank_log=new G4LogicalVolume(GC_Tank_Solid,GetMaterial(GC_Tank_Material,v_Material_List),GC_Tank_Name+"_log");
+	G4String GC_Tank_Name("GC_Tank");
+	G4String GC_Tank_Material=("C4F8O");
+	G4ThreeVector GC_Tank_Inner_FullSize(92*cm, 200*cm, 150.229*cm);
+	G4double GC_Tank_Thickness= 1.27*cm;
+	G4VSolid* GC_Tank_Solid=ConstructSimple(GC_Tank_Name,G4String("G4Box"),GC_Tank_Inner_FullSize);
+	GC_Tank_log=new G4LogicalVolume(GC_Tank_Solid,GetMaterial(GC_Tank_Material),GC_Tank_Name+"_log");
 
 	G4VisAttributes* GC_Tank_log_VisAtt = new G4VisAttributes();
-	GC_Tank_log_VisAtt->SetColor(GetColor(usermanager->GetGC_Tank_Color()));
-	GC_Tank_log_VisAtt->SetVisibility(usermanager->GetGC_Tank_Visibility());
-	GC_Tank_log_VisAtt->SetForceWireframe(usermanager->GetGC_Tank_ForceWireframe());
+	GC_Tank_log_VisAtt->SetColor(GetColor(G4String("Cyan")));
+	GC_Tank_log_VisAtt->SetVisibility(true);
+	GC_Tank_log_VisAtt->SetForceWireframe(true);
 	GC_Tank_log->SetVisAttributes(GC_Tank_log_VisAtt);
 
 
 	/* --------------------------------------------------------------------------*/
 	//GC_Tank_Entrance_Window
-	G4String GC_Tank_Entrance_Window_Name=usermanager->GetGC_Tank_Entrance_Window_Name();
-	G4String GC_Tank_Entrance_Window_Material=usermanager->GetGC_Tank_Entrance_Window_Material();
-	G4ThreeVector GC_Tank_Entrance_Window_FullSize=usermanager->GetGC_Tank_Entrance_Window_FullSize();
-	G4VSolid* GC_Tank_Entrance_Window_Solid=ConstructSimple(GC_Tank_Entrance_Window_Name,usermanager->GetGC_Tank_Entrance_Window_Shape(),GC_Tank_Entrance_Window_FullSize);
-	G4LogicalVolume* GC_Tank_Entrance_Window_log=new G4LogicalVolume(GC_Tank_Entrance_Window_Solid,GetMaterial(GC_Tank_Entrance_Window_Material,v_Material_List),GC_Tank_Entrance_Window_Name+"_log");
+	G4String GC_Tank_Entrance_Window_Name("GC_Tank_Entrance_Window");
+	G4String GC_Tank_Entrance_Window_Material("Mylar");
+	G4ThreeVector GC_Tank_Entrance_Window_FullSize(0.01*cm, 170*cm, 45*cm);
+	G4VSolid* GC_Tank_Entrance_Window_Solid=ConstructSimple(GC_Tank_Entrance_Window_Name,G4String("G4Box"),GC_Tank_Entrance_Window_FullSize);
+	G4LogicalVolume* GC_Tank_Entrance_Window_log=new G4LogicalVolume(GC_Tank_Entrance_Window_Solid,GetMaterial(GC_Tank_Entrance_Window_Material),GC_Tank_Entrance_Window_Name+"_log");
 
 	G4VisAttributes* GC_Tank_Entrance_Window_log_VisAtt = new G4VisAttributes();
-	GC_Tank_Entrance_Window_log_VisAtt->SetColor(GetColor(usermanager->GetGC_Tank_Entrance_Window_Color()));
-	GC_Tank_Entrance_Window_log_VisAtt->SetVisibility(usermanager->GetGC_Tank_Entrance_Window_Visibility());
-	GC_Tank_Entrance_Window_log_VisAtt->SetForceWireframe(usermanager->GetGC_Tank_Entrance_Window_ForceWireframe());
+	GC_Tank_Entrance_Window_log_VisAtt->SetColor(GetColor(G4String("Black")));
+	GC_Tank_Entrance_Window_log_VisAtt->SetVisibility(true);
+	GC_Tank_Entrance_Window_log_VisAtt->SetForceWireframe(false);
 	GC_Tank_Entrance_Window_log->SetVisAttributes(GC_Tank_Entrance_Window_log_VisAtt);
 
 
 
 	/* --------------------------------------------------------------------------*/
 	//GC_Tank_Exit_Window
-	G4String GC_Tank_Exit_Window_Name=usermanager->GetGC_Tank_Exit_Window_Name();
-	G4String GC_Tank_Exit_Window_Material=usermanager->GetGC_Tank_Exit_Window_Material();
-	G4ThreeVector GC_Tank_Exit_Window_FullSize=usermanager->GetGC_Tank_Exit_Window_FullSize();
-	G4VSolid* GC_Tank_Exit_Window_Solid=ConstructSimple(GC_Tank_Exit_Window_Name,usermanager->GetGC_Tank_Exit_Window_Shape(),GC_Tank_Exit_Window_FullSize);
-	G4LogicalVolume* GC_Tank_Exit_Window_log=new G4LogicalVolume(GC_Tank_Exit_Window_Solid,GetMaterial(GC_Tank_Exit_Window_Material,v_Material_List),GC_Tank_Exit_Window_Name+"_log");
+	G4String GC_Tank_Exit_Window_Name("GC_Tank_Exit_Window");
+	G4String GC_Tank_Exit_Window_Material("Mylar");
+	G4ThreeVector GC_Tank_Exit_Window_FullSize(0.01*cm, 200*cm, 55*cm);
+	G4VSolid* GC_Tank_Exit_Window_Solid=ConstructSimple(GC_Tank_Exit_Window_Name,G4String("G4Box"),GC_Tank_Exit_Window_FullSize);
+	G4LogicalVolume* GC_Tank_Exit_Window_log=new G4LogicalVolume(GC_Tank_Exit_Window_Solid,GetMaterial(GC_Tank_Exit_Window_Material),GC_Tank_Exit_Window_Name+"_log");
 
 	G4VisAttributes* GC_Tank_Exit_Window_log_VisAtt = new G4VisAttributes();
-	GC_Tank_Exit_Window_log_VisAtt->SetColor(GetColor(usermanager->GetGC_Tank_Exit_Window_Color()));
-	GC_Tank_Exit_Window_log_VisAtt->SetVisibility(usermanager->GetGC_Tank_Exit_Window_Visibility());
-	GC_Tank_Exit_Window_log_VisAtt->SetForceWireframe(usermanager->GetGC_Tank_Exit_Window_ForceWireframe());
+	GC_Tank_Exit_Window_log_VisAtt->SetColor(GetColor(G4String("Black")));
+	GC_Tank_Exit_Window_log_VisAtt->SetVisibility(true);
+	GC_Tank_Exit_Window_log_VisAtt->SetForceWireframe(false);
 	GC_Tank_Exit_Window_log->SetVisAttributes(GC_Tank_Exit_Window_log_VisAtt);
+
 
 	//GC_Tank_Box
 	G4VSolid* GC_Tank_Box_Solid=Construct_GC_Tank_Box(GC_Tank_Name+"_Box", GC_Tank_Inner_FullSize, GC_Tank_Thickness, GC_Tank_Entrance_Window_FullSize, GC_Tank_Exit_Window_FullSize);
-	G4LogicalVolume* GC_Tank_Box_log=new G4LogicalVolume(GC_Tank_Box_Solid,GetMaterial("Stainless_Steel",v_Material_List),GC_Tank_Name+"_Box_log");
+	G4LogicalVolume* GC_Tank_Box_log=new G4LogicalVolume(GC_Tank_Box_Solid,GetMaterial("Stainless_Steel"),GC_Tank_Name+"_Box_log");
 
 	G4VisAttributes* GC_Tank_Box_log_VisAtt = new G4VisAttributes();
-	GC_Tank_Box_log_VisAtt->SetColor(GetColor(usermanager->GetGC_Tank_Color()));
-	GC_Tank_Box_log_VisAtt->SetVisibility(usermanager->GetGC_Tank_Visibility());
-	GC_Tank_Box_log_VisAtt->SetForceWireframe(usermanager->GetGC_Tank_ForceWireframe());
+	GC_Tank_Box_log_VisAtt->SetColor(GetColor(G4String("Cyan")));
+	GC_Tank_Box_log_VisAtt->SetVisibility(true);
+	GC_Tank_Box_log_VisAtt->SetForceWireframe(true);
 	GC_Tank_Box_log->SetVisAttributes(GC_Tank_Box_log_VisAtt);
 
 
 
 	G4AssemblyVolume* assemblyWindow = new G4AssemblyVolume();
 	rm = rm.IDENTITY;
+
 
 	Translation.set(0,0,0);
 	assemblyWindow->AddPlacedVolume(GC_Tank_Box_log, Translation, &rm);
@@ -562,13 +332,13 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 
 	Translation.set(0,0,0);
 	assemblyWindow->MakeImprint(GC_Tank_log, Translation, &rm);
-	usermanager->Inc_PMT_ID_Offset(1);//count GC_Tank_Box
-	usermanager->Inc_PMT_ID_Offset(2);//count GC_Tank_Entrance_Window,GC_Tank_Exit_Window
-	usermanager->Inc_PMT_ID_Offset(1);//count GC_Tank
+//	usermanager->Inc_PMT_ID_Offset(1);//count GC_Tank_Box
+//	usermanager->Inc_PMT_ID_Offset(2);//count GC_Tank_Entrance_Window,GC_Tank_Exit_Window
+//	usermanager->Inc_PMT_ID_Offset(1);//count GC_Tank
 
 	/* --------------------------------------------------------------------------*/
 	//GC_Mirror
-	G4int num_of_mirrors=usermanager->GetGC_Num_of_Mirrors();
+	const G4int num_of_mirrors=4;
 	G4VSolid** GC_Mirror=new G4VSolid*[num_of_mirrors];
 	G4LogicalVolume** GC_Mirror_log=new G4LogicalVolume*[num_of_mirrors];
 	G4VisAttributes** GC_Mirror_log_VisAtt=new G4VisAttributes*[num_of_mirrors];
@@ -581,18 +351,31 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	G4int mirror_index;
 	G4ThreeVector newAxis;
 	G4String mirror_name;
+
+        char tempstr[255];
+
+        double mirror_radius[num_of_mirrors] = { 130*cm, 130*cm, 130*cm, 130*cm };
+        double mirror_ver_size[num_of_mirrors] = { 40*cm, 60*cm, 60*cm, 40*cm };
+        double mirror_hor_size[num_of_mirrors] = { 70*cm, 70*cm, 70*cm, 70*cm };
+        double mirror_thickness[num_of_mirrors] = { 0.635*cm, 0.635*cm, 0.635*cm, 0.635*cm };
+        double mirror_rot_y_angle[num_of_mirrors] = { 27.5*deg, 27.5*deg, 27.5*deg, 27.5*deg };
+        double mirror_rot_axis_angle[num_of_mirrors] = { 10*deg, 0*deg, 0*deg, -10*deg };
+        G4String mirror_color[num_of_mirrors] = {G4String("Yellow"), G4String("Blue"), G4String("Red"), G4String("Blue")};
+        G4ThreeVector mirror_new_offset[num_of_mirrors] = {G4ThreeVector(16.9194*cm, 80*cm, 1.60364*cm), G4ThreeVector(), G4ThreeVector(), G4ThreeVector(16.9194*cm, -80*cm, 1.60364*cm)  };
+
 	for ( i = 0; i < num_of_mirrors; ++i ) {
 		mirror_index=i+1;
-		GC_Mirror_Radius[i]=usermanager->GetGC_Mirror_Radius(mirror_index);
-		GC_Mirror_Ver_Size[i]=usermanager->GetGC_Mirror_Ver_Size(mirror_index);
-		GC_Mirror_Rot_Y_Angle[i]=usermanager->GetGC_Mirror_RotY_Angle(mirror_index);
-		GC_Mirror_Rot_Axis_Angle[i]=usermanager->GetGC_Mirror_Rot_Axis_Angle(mirror_index);
-		mirror_name=usermanager->GetGC_Mirror_Name(mirror_index);
-		GC_Mirror[i]=Construct_CylinderMirror(mirror_name,2*GC_Mirror_Radius[i],GC_Mirror_Ver_Size[i],usermanager->GetGC_Mirror_Hor_Size(mirror_index),usermanager->GetGC_Mirror_Thickness(mirror_index));
-		GC_Mirror_log[i]=new G4LogicalVolume(GC_Mirror[i], GetMaterial(usermanager->GetGC_Mirror_Material(mirror_index),v_Material_List), mirror_name+"_log", 0, 0, 0);
+		GC_Mirror_Radius[i]= mirror_radius[mirror_index-1];
+		GC_Mirror_Ver_Size[i]= mirror_ver_size[mirror_index-1];
+		GC_Mirror_Rot_Y_Angle[i]=mirror_rot_y_angle[mirror_index-1];
+		GC_Mirror_Rot_Axis_Angle[i]=mirror_rot_axis_angle[mirror_index-1];
+                sprintf(tempstr, "GC_Mirror_%d", mirror_index);
+		mirror_name=G4String(tempstr);
+		GC_Mirror[i]=Construct_CylinderMirror(mirror_name,2*GC_Mirror_Radius[i],GC_Mirror_Ver_Size[i], mirror_hor_size[mirror_index-1],mirror_thickness[mirror_index-1]);
+		GC_Mirror_log[i]=new G4LogicalVolume(GC_Mirror[i], GetMaterial(G4String("Glass")), mirror_name+"_log", 0, 0, 0);
 		GC_Mirror_log_VisAtt[i]=new G4VisAttributes();
-		GC_Mirror_log_VisAtt[i]->SetColor(GetColor(usermanager->GetGC_Mirror_Color(mirror_index)));
-		GC_Mirror_log_VisAtt[i]->SetVisibility(usermanager->GetGC_Mirror_Visibility(mirror_index));
+		GC_Mirror_log_VisAtt[i]->SetColor(GetColor(mirror_color[mirror_index-1]));
+		GC_Mirror_log_VisAtt[i]->SetVisibility(true);
 		GC_Mirror_log[i]->SetVisAttributes(GC_Mirror_log_VisAtt[i]);
 
 		rm=rm.IDENTITY;
@@ -604,7 +387,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 		newAxis.set(0,0,1);//First Z-axis
 		newAxis.rotateY(GC_Mirror_Rot_Y_Angle[i]);
 		rm.rotate(GC_Mirror_Rot_Axis_Angle[i],newAxis);
-		Translation=usermanager->GetGC_Mirror_New_Offset(mirror_index);
+		Translation=mirror_new_offset[mirror_index-1];
 		offset=G4Transform3D(rm,Translation);//After offset, mirror center is at right position
 		combine=offset*movetocenter;
 		assemblyMir->AddPlacedVolume(GC_Mirror_log[i], combine);
@@ -612,62 +395,62 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	rm = rm.IDENTITY;
 	Translation.set(0,0,0);
 	assemblyMir->MakeImprint(GC_Tank_log, Translation, &rm);
-	usermanager->Inc_PMT_ID_Offset(num_of_mirrors);//Count num_of_mirrors
+//	usermanager->Inc_PMT_ID_Offset(num_of_mirrors);//Count num_of_mirrors
 	/* --------------------------------------------------------------------------*/
 
 
 
 	/* --------------------------------------------------------------------------*/
 	//GC PMT Box and PMT array
-	G4ThreeVector GC_PMT_Box_FullSize=usermanager->GetGC_PMT_Box_FullSize();
-	G4double GC_PMT_Box_Thickness=usermanager->GetGC_PMT_Box_Thickness();
-	G4String GC_PMT_Box_Name=usermanager->GetGC_PMT_Box_Name();
+	G4ThreeVector GC_PMT_Box_FullSize(18.75*cm, 192*cm, 33.9*cm);
+	G4double GC_PMT_Box_Thickness=0.635*cm;
+	G4String GC_PMT_Box_Name("GC_PMT_Box");
 	G4Box* GC_PMT_Outer_Box = new G4Box("GC_PMT_Outer_Box", (GC_PMT_Box_FullSize.x()+GC_PMT_Box_Thickness)*0.5, (GC_PMT_Box_FullSize.y()+2*GC_PMT_Box_Thickness)*0.5, (GC_PMT_Box_FullSize.z()+2*GC_PMT_Box_Thickness)*0.5);
 	G4Box* GC_PMT_Inner_Box = new G4Box("GC_PMT_Inner_Box", GC_PMT_Box_FullSize.x()*0.5, GC_PMT_Box_FullSize.y()*0.5, GC_PMT_Box_FullSize.z()*0.5);
 	rm = rm.IDENTITY;
 	Translation.set(GC_PMT_Box_Thickness*0.5,0,0);
 	G4SubtractionSolid* GC_PMT_Box = new G4SubtractionSolid(GC_PMT_Box_Name.data(), GC_PMT_Outer_Box, GC_PMT_Inner_Box, G4Transform3D(rm,Translation));
 	//G4Box* GC_PMT_Box = new G4Box("GC_PMT_Box", GC_PMT_Box_FullSize.x()*0.5, GC_PMT_Box_FullSize.y()*0.5, GC_PMT_Box_FullSize.z()*0.5);
-	G4LogicalVolume* GC_PMT_Box_log = new G4LogicalVolume(GC_PMT_Box, GetMaterial(usermanager->GetGC_PMT_Box_Material(),v_Material_List), GC_PMT_Box_Name+"_log", 0, 0, 0);
+	G4LogicalVolume* GC_PMT_Box_log = new G4LogicalVolume(GC_PMT_Box, GetMaterial(G4String("Stainless_Steel")), GC_PMT_Box_Name+"_log", 0, 0, 0);
 	G4VisAttributes* GC_PMT_Box_log_VisAtt = new G4VisAttributes();
-	GC_PMT_Box_log_VisAtt->SetColor(GetColor(usermanager->GetGC_PMT_Box_Color()));
-	GC_PMT_Box_log_VisAtt->SetVisibility(usermanager->GetGC_PMT_Box_Visibility());
-	GC_PMT_Box_log_VisAtt->SetForceWireframe(usermanager->GetGC_PMT_Box_ForceWireframe());
+	GC_PMT_Box_log_VisAtt->SetColor(GetColor(G4String("Grey")));
+	GC_PMT_Box_log_VisAtt->SetVisibility(true);
+	GC_PMT_Box_log_VisAtt->SetForceWireframe(true);
 	GC_PMT_Box_log->SetVisAttributes(GC_PMT_Box_log_VisAtt);
 
 	//GC PMT Jail
-	G4ThreeVector GC_PMT_Box_Jail_FullSize=usermanager->GetGC_PMT_Box_Jail_FullSize();
-	G4double GC_PMT_Box_Jail_Space=usermanager->GetGC_PMT_Box_Jail_Space();
-	G4String GC_PMT_Box_Jail_Name=usermanager->GetGC_PMT_Box_Jail_Name();
-	G4int Num_Of_GC_PMT_Box_Jail_Bars=usermanager->Get_Num_Of_GC_PMT_Box_Jail_Bars();
+	G4ThreeVector GC_PMT_Box_Jail_FullSize(10*cm, 0.1*cm, 33.9*cm);
+	G4double GC_PMT_Box_Jail_Space=-5.0*cm;
+	G4String GC_PMT_Box_Jail_Name("GC_PMT_Box_Jail");
+	G4int Num_Of_GC_PMT_Box_Jail_Bars=61;
 	G4Box* GC_PMT_Box_Jail = new G4Box(GC_PMT_Box_Jail_Name.data(), GC_PMT_Box_Jail_FullSize.x()*0.5, GC_PMT_Box_Jail_FullSize.y()*0.5, GC_PMT_Box_Jail_FullSize.z()*0.5);
-	G4LogicalVolume* GC_PMT_Box_Jail_log = new G4LogicalVolume(GC_PMT_Box_Jail, GetMaterial(usermanager->GetGC_PMT_Box_Jail_Material(),v_Material_List), GC_PMT_Box_Jail_Name+"_log", 0, 0, 0);
+	G4LogicalVolume* GC_PMT_Box_Jail_log = new G4LogicalVolume(GC_PMT_Box_Jail, GetMaterial(G4String("mu-metal")), GC_PMT_Box_Jail_Name+"_log", 0, 0, 0);
 	G4VisAttributes* GC_PMT_Box_Jail_log_VisAtt = new G4VisAttributes();
-	GC_PMT_Box_Jail_log_VisAtt->SetColor(GetColor(usermanager->GetGC_PMT_Box_Jail_Color()));
-	GC_PMT_Box_Jail_log_VisAtt->SetVisibility(usermanager->GetGC_PMT_Box_Jail_Visibility());
-	GC_PMT_Box_Jail_log_VisAtt->SetForceWireframe(usermanager->GetGC_PMT_Box_Jail_ForceWireframe());
+	GC_PMT_Box_Jail_log_VisAtt->SetColor(GetColor(G4String("Black")));
+	GC_PMT_Box_Jail_log_VisAtt->SetVisibility(true);
+	GC_PMT_Box_Jail_log_VisAtt->SetForceWireframe(false);
 	GC_PMT_Box_Jail_log->SetVisAttributes(GC_PMT_Box_Jail_log_VisAtt);
 
 	//GC PMT
-	G4double GC_PMT_Radius = usermanager->GetGC_PMT_Radius();
-	G4double GC_PMT_Cover_Radius = usermanager->GetGC_PMT_Cover_Radius();
-	G4double GC_PMT_Length = usermanager->GetGC_PMT_Length();
-	G4String GC_PMT_Name=usermanager->GetGC_PMT_Name();
+	G4double GC_PMT_Radius = 1.25*cm;
+	G4double GC_PMT_Cover_Radius = 1.5*cm;
+	G4double GC_PMT_Length = 13.75*cm;
+	G4String GC_PMT_Name("GC_PMT");
 	G4String GC_PMT_Glass_Name=GC_PMT_Name+"_Glass";
-	G4double GC_PMT_Glass_Thickness=usermanager->GetGC_PMT_Glass_Thickness();
+	G4double GC_PMT_Glass_Thickness=0.3*cm;
 
 	G4Tubs* GC_PMT = new G4Tubs(GC_PMT_Name.data(), 0, GC_PMT_Radius, (GC_PMT_Length-GC_PMT_Glass_Thickness)*0.5, 0, 360*deg);
-	G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(usermanager->GetGC_PMT_Material(),v_Material_List), GC_PMT_Name+"_log", 0, 0, 0);
+	G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Al")), GC_PMT_Name+"_log", 0, 0, 0);
 	G4VisAttributes* GC_PMT_log_VisAtt = new G4VisAttributes();
-	GC_PMT_log_VisAtt->SetColor(GetColor(usermanager->GetGC_PMT_Color()));
-	GC_PMT_log_VisAtt->SetVisibility(usermanager->GetGC_PMT_Visibility());
+	GC_PMT_log_VisAtt->SetColor(GetColor(G4String("Blue")));
+	GC_PMT_log_VisAtt->SetVisibility(true);
 	GC_PMT_log->SetVisAttributes(GC_PMT_log_VisAtt);
 
 	G4Tubs* GC_PMT_Cover = new G4Tubs("GC_PMT_Cover", GC_PMT_Radius, GC_PMT_Cover_Radius, GC_PMT_Length*0.5, 0, 360*deg);
-	G4LogicalVolume* GC_PMT_Cover_log = new G4LogicalVolume(GC_PMT_Cover, GetMaterial("Stainless_Steel",v_Material_List), "GC_PMT_Cover_log", 0, 0, 0);
+	G4LogicalVolume* GC_PMT_Cover_log = new G4LogicalVolume(GC_PMT_Cover, GetMaterial("Stainless_Steel"), "GC_PMT_Cover_log", 0, 0, 0);
 	G4VisAttributes* GC_PMT_Cover_log_VisAtt = new G4VisAttributes();
-	GC_PMT_Cover_log_VisAtt->SetColor(GetColor(usermanager->GetGC_PMT_Cover_Color()));
-	GC_PMT_Cover_log_VisAtt->SetVisibility(usermanager->GetGC_PMT_Cover_Visibility());
+	GC_PMT_Cover_log_VisAtt->SetColor(GetColor(G4String("Grey")));
+	GC_PMT_Cover_log_VisAtt->SetVisibility(true);
 	GC_PMT_Cover_log->SetVisAttributes(GC_PMT_Cover_log_VisAtt);
 
 	G4Tubs* GC_PMT_Glass;
@@ -675,21 +458,21 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	G4VisAttributes* GC_PMT_Glass_log_VisAtt;
 	if ( fabs(GC_PMT_Glass_Thickness)>1e-5 ) {
 		GC_PMT_Glass = new G4Tubs(GC_PMT_Glass_Name.data(), 0, GC_PMT_Radius, GC_PMT_Glass_Thickness*0.5, 0, 360*deg);
-		GC_PMT_Glass_log = new G4LogicalVolume(GC_PMT_Glass, GetMaterial(usermanager->GetGC_PMT_Glass_Material(),v_Material_List), GC_PMT_Glass_Name+"_log", 0, 0, 0);
+		GC_PMT_Glass_log = new G4LogicalVolume(GC_PMT_Glass, GetMaterial(G4String("Quartz")), GC_PMT_Glass_Name+"_log", 0, 0, 0);
 		GC_PMT_Glass_log_VisAtt = new G4VisAttributes();
-		GC_PMT_Glass_log_VisAtt->SetColor(GetColor(usermanager->GetGC_PMT_Glass_Color()));
-		GC_PMT_Glass_log_VisAtt->SetVisibility(usermanager->GetGC_PMT_Glass_Visibility());
+		GC_PMT_Glass_log_VisAtt->SetColor(GetColor(G4String("Cyan")));
+		GC_PMT_Glass_log_VisAtt->SetVisibility(true);
 		GC_PMT_Glass_log->SetVisAttributes(GC_PMT_Glass_log_VisAtt);
 	}
 
 
 	//GC_PMT_Cone
-	G4String GC_PMT_Cone_Name=usermanager->GetGC_PMT_Cone_Name();
-	G4String GC_PMT_Cone_Shape=usermanager->GetGC_PMT_Cone_Shape();
-	G4double GC_PMT_Cone_Max_Inner_Radius=usermanager->GetGC_PMT_Cone_Max_Inner_Radius();
-	G4double GC_PMT_Cone_Min_Inner_Radius=usermanager->GetGC_PMT_Cone_Min_Inner_Radius();
-	G4double GC_PMT_Cone_Length=usermanager->GetGC_PMT_Cone_Length();
-	G4double GC_PMT_Cone_Thickness=usermanager->GetGC_PMT_Cone_Thickness();
+	G4String GC_PMT_Cone_Name("GC_PMT_Cone");
+	G4String GC_PMT_Cone_Shape("G4Cons");
+	G4double GC_PMT_Cone_Max_Inner_Radius=2.15555*cm;
+	G4double GC_PMT_Cone_Min_Inner_Radius=1.25*cm;
+	G4double GC_PMT_Cone_Length=3.0185*cm;
+	G4double GC_PMT_Cone_Thickness=0.001*cm;
 
 
 	G4VSolid* GC_PMT_Cone;
@@ -719,13 +502,13 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 		GC_PMT_Cone=Construct_Square_Opening_Cone(GC_PMT_Cone_Name,
 				0,GC_PMT_Cone_Max_Inner_Radius,0,GC_PMT_Cone_Min_Inner_Radius,
 				GC_PMT_Cone_Length*0.5,0,360*deg,
-				usermanager->GetGC_PMT_Ver_Space(),usermanager->GetGC_PMT_Hor_Space());
+				3.1*cm,3.1*cm);
 	}
 
-	G4LogicalVolume* GC_PMT_Cone_log = new G4LogicalVolume(GC_PMT_Cone, GetMaterial(usermanager->GetGC_PMT_Cone_Material(),v_Material_List), GC_PMT_Cone_Name+"_log", 0, 0, 0);
+	G4LogicalVolume* GC_PMT_Cone_log = new G4LogicalVolume(GC_PMT_Cone, GetMaterial(G4String("Glass")), GC_PMT_Cone_Name+"_log", 0, 0, 0);
 	G4VisAttributes* GC_PMT_Cone_log_VisAtt = new G4VisAttributes();
-	GC_PMT_Cone_log_VisAtt->SetColor(GetColor(usermanager->GetGC_PMT_Cone_Color()));
-	GC_PMT_Cone_log_VisAtt->SetVisibility(usermanager->GetGC_PMT_Cone_Visibility());
+	GC_PMT_Cone_log_VisAtt->SetColor(GetColor(G4String("Yellow")));
+	GC_PMT_Cone_log_VisAtt->SetVisibility(true);
 	GC_PMT_Cone_log->SetVisAttributes(GC_PMT_Cone_log_VisAtt);
 
 	// in principle, frame area is (2R*sin(60)*(Num_of_rows-1)+2R)*9*2R and covered area is pi*R^2*((Nint(Num_of_rows*0.5)+Num_of_rows%2)*9+Nint(Num_of_rows*0.5)*8)
@@ -734,18 +517,18 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 
 	G4AssemblyVolume* assemblyPMT = new G4AssemblyVolume();
 
-	G4int Num_of_rows = usermanager->GetGC_PMT_Num_Of_Rows();
-	G4int Num_Of_PMTs_In_Odd_Row=usermanager->GetGC_PMT_Num_Of_PMTs_In_Odd_Row();
-	G4int Num_Of_PMTs_In_Even_Row=usermanager->GetGC_PMT_Num_Of_PMTs_In_Even_Row();
-	G4bool PMT_Is_Sandwiched=usermanager->GetGC_PMT_Is_Sandwiched();
-	G4int Max_Number_Of_PMTs_In_A_Row=usermanager->GetGC_Max_Num_Of_PMTs_In_A_Row();
+	G4int Num_of_rows = 60;
+	G4int Num_Of_PMTs_In_Odd_Row= 9;
+	G4int Num_Of_PMTs_In_Even_Row= 8;
+	G4bool PMT_Is_Sandwiched=true;
+	G4int Max_Number_Of_PMTs_In_A_Row=9;
 	G4double Space_Between_Rows = 2*GC_PMT_Cover_Radius*sin(60.*deg);
-	G4double VSpace=usermanager->GetGC_PMT_Ver_Space();
+	G4double VSpace=3.1*cm;
 	if ( VSpace>Space_Between_Rows ) {
 		Space_Between_Rows=VSpace;
 	}
 	G4double Space_Between_Cols=2*GC_PMT_Cover_Radius;
-	G4double HSpace=usermanager->GetGC_PMT_Hor_Space();
+	G4double HSpace=3.1*cm;
 	if ( HSpace>Space_Between_Cols ) {
 		Space_Between_Cols=HSpace;
 	}
@@ -840,25 +623,42 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	//newAxis.set(-1,0,0);//-X-axis
 	//newAxis.rotateY(usermanager->GetGC_PMT_Box_RotY_Angle());
 	//Translation=Translation+newAxis*(usermanager->GetGC_PMT_Box_Distance()+GC_PMT_Length*0.5);
-	
-	rm=usermanager->Get_RM_From_GC_Center_To_PMT_Front_Surface();
-	Translation=usermanager->Get_Translation_From_GC_Center_To_PMT_Front_Surface();
 
-	assemblyPMT->MakeImprint(GC_Tank_log,Translation,&rm);//Do not use G4VPhysicalVolume otherwise no reflection for pmt_cone
+
+        G4RotationMatrix PACS_rm;
+        G4ThreeVector myTranslation,mynewAxis;
+        PACS_rm      = PACS_rm.IDENTITY;
+        PACS_rm.rotateY(55*deg);
+        myTranslation.set(0.0,0,0);
+        mynewAxis.set(-1,0,0);//-X-axis
+        mynewAxis.rotateY(55*deg);
+        myTranslation=myTranslation+mynewAxis*(65*cm+13.75*cm*0.5);//Original center is PMT center, so move PMT_Length*0.5 to surface
+
+        G4ThreeVector PACS_offset=myTranslation;
+
+
+	
+
+	assemblyPMT->MakeImprint(GC_Tank_log,PACS_offset,&PACS_rm);//Do not use G4VPhysicalVolume otherwise no reflection for pmt_cone
 
 	/* --------------------------------------------------------------------------*/
 	//Tank_phys
-	G4double BB_Det_Bend_Angle=usermanager->GetBB_Det_Bend_Angle();
-	G4double BB_Distance_To_GC=usermanager->GetBB_Distance_To_GC();
-
-	rm = rm.IDENTITY;
-	rm.rotateZ(BB_Det_Bend_Angle);
-	Translation.set(BB_Distance_To_GC*cos(BB_Det_Bend_Angle), BB_Distance_To_GC*sin(BB_Det_Bend_Angle), 0);
-	Tank_phys = new G4PVPlacement(G4Transform3D(rm,Translation), GC_Tank_log, GC_Tank_Name+"_phys", bblog, false, 0);
+	Tank_phys = new G4PVPlacement(NULL, G4ThreeVector(), GC_Tank_log, GC_Tank_Name+"_phys", bblog, false, 0);
 
 
 
 	G4ThreeVector V1,V2;
+
+
+        const G4int nEntries=25;
+        G4double nm_lambda;
+        G4double PhotonEnergy[nEntries];
+        G4double PhotonWaveLength[nEntries]={
+            650*nm, 600*nm, 550*nm, 500*nm, 450*nm, 400*nm, 350*nm,
+            350*nm, 330*nm, 310*nm, 290*nm, 270*nm, 250*nm, 230*nm, 210*nm,
+            210*nm, 208*nm, 206*nm, 204*nm, 202*nm, 200*nm,
+            199*nm, 195*nm, 190*nm, 185*nm
+        };
 
 
 	/* --------------------------------------------------------------------------*/
@@ -897,25 +697,22 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	for ( i = 0; i < num_of_mirrors; ++i ) {
 		mirror_index=i+1;
 		for ( j = 0; j < nEntries; ++j ) {
-			Mirror_Reflectivity[j]=usermanager->GetGC_Mirror_Reflectivity(mirror_index);
-			nm_lambda=PhotonWaveLength[j]/nm;
-			if ( Mirror_Reflectivity[j]<0 ) {
-				if ( j<7 ) {
-					Mirror_Reflectivity[j]=80.3607+0.0553214*nm_lambda-6.78571e-05*nm_lambda*nm_lambda;
-				}
-				else if ( j<15 ) {
-					Mirror_Reflectivity[j]=-504.252+5.9471*nm_lambda-0.0198695*nm_lambda*nm_lambda+2.21164e-05*nm_lambda*nm_lambda*nm_lambda;
-				}
-				else if ( j<21 ) {
-					Mirror_Reflectivity[j]=-13903.+135.85*nm_lambda-0.33*nm_lambda*nm_lambda;
-				}
-				else {
-					Mirror_Reflectivity[j]=57.1302-1.12253*nm_lambda+0.00585938*nm_lambda*nm_lambda;
-				}
-				Mirror_Reflectivity[j]/=100.;
-			}
-			Mirror_Efficiency[j]=0.;
-			//if ( i==0 ) {
+                    nm_lambda=PhotonWaveLength[j]/nm;
+                    if ( j<7 ) {
+                        Mirror_Reflectivity[j]=80.3607+0.0553214*nm_lambda-6.78571e-05*nm_lambda*nm_lambda;
+                    }
+                    else if ( j<15 ) {
+                        Mirror_Reflectivity[j]=-504.252+5.9471*nm_lambda-0.0198695*nm_lambda*nm_lambda+2.21164e-05*nm_lambda*nm_lambda*nm_lambda;
+                    }
+                    else if ( j<21 ) {
+                        Mirror_Reflectivity[j]=-13903.+135.85*nm_lambda-0.33*nm_lambda*nm_lambda;
+                    }
+                    else {
+                        Mirror_Reflectivity[j]=57.1302-1.12253*nm_lambda+0.00585938*nm_lambda*nm_lambda;
+                    }
+                    Mirror_Reflectivity[j]/=100.;
+                    Mirror_Efficiency[j]=0.;
+                    //if ( i==0 ) {
 			//	printf("Line %d:lamdba=%g nm, Mirror_Reflectivity[%d]=%g\n",__LINE__,nm_lambda,j,Mirror_Reflectivity[j]);
 			//}
 		}
@@ -990,7 +787,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	GC_PMT_Cover_Surface = new G4LogicalSkinSurface("GC_PMT_Cover_Surface", GC_PMT_Cover_log, OpPMTCoverSurface);
 
 	//GC_PMT_Cone
-	G4double gc_pmt_cone_ref=usermanager->GetGC_PMT_Cone_Reflectivity();
+	G4double gc_pmt_cone_ref= 0.95;
 	G4double PMT_Cone_Reflectivity[nEntries];
 	G4double PMT_Cone_Efficiency[nEntries];
 	for ( i = 0; i < nEntries; ++i ) {
@@ -1019,7 +816,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	//Ground:  spike reflection, lobe reflection, backscatter, lambertian reflection and fresnel refraction
 	//GroundFrontPainted: lambertian reflection and absorption
 	//GroundBackPainted:  spike reflection, lobe reflection, backscatter, lambertian reflection, fresnel refraction and absorption
-	G4double gc_pmt_box_jail_ref=usermanager->GetGC_PMT_Box_Jail_Reflectivity();
+	G4double gc_pmt_box_jail_ref=0.8;
 	G4double PMT_Box_Jail_Reflectivity[nEntries];
 	G4double PMT_Box_Jail_Efficiency[nEntries];
 	for ( i = 0; i < nEntries; ++i ) {
@@ -1060,33 +857,6 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 G4VSolid* G4SBSGrinch::ConstructSimple(const G4String& aName, const G4String& aShape, const G4ThreeVector& aFullSize) {
 	if ( aShape=="G4Box" ) {
 		return new G4Box(aName,aFullSize.x()*0.5,aFullSize.y()*0.5,aFullSize.z()*0.5);
-	}
-}
-
-/* --------------------------------------------------------------------------*/
-/**
- * @brief Get Material from v_Material_List based on input Material name
- *
- * @param aMaterialName input Material name
- * @param av_Material_List v_Material_List
- *
- * @return G4Material used by G4LogicalVolume
- */
-G4Material* G4SBSGrinch::GetMaterial(const G4String& aMaterialName,const vector<G4Material*> av_Material_List) {
-//	BGCUserManager* usermanager=BGCUserManager::GetUserManager();
-	G4int i=0;
-	while ( aMaterialName.compareTo(av_Material_List[i]->GetName().data(),G4String::ignoreCase) && i<av_Material_List.size() ) {
-		i++;
-	}
-	if ( i<(G4int)av_Material_List.size() ) {
-		return av_Material_List[i];
-	}
-	else {
-		//FIXME: No error output. hyao 05/23/2012.
-		char error[CHAR_LEN];
-		sprintf(error,"Error at %d in %s: No %s material found.\n",__LINE__,__FILE__,aMaterialName.data());
-		printf("%s\n",error);
-//		usermanager->PrintError(BGCUserManager::k_CFG_ERROR,error);
 	}
 }
 

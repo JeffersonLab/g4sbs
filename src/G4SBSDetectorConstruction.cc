@@ -105,6 +105,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::Construct(){
 }
 
 void G4SBSDetectorConstruction::ConstructMaterials(){
+    int i;
 
     G4NistManager *man = G4NistManager::Instance();
 
@@ -115,6 +116,28 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4double density;
     G4String name, symbol;
     G4int nel, natoms;
+
+    G4double GC_Gas_Pressure= 1.0*atmosphere;
+
+    const G4int nEntries=25;
+    G4double PhotonWaveLength[nEntries]={
+        650*nm, 600*nm, 550*nm, 500*nm, 450*nm, 400*nm, 350*nm,
+        350*nm, 330*nm, 310*nm, 290*nm, 270*nm, 250*nm, 230*nm, 210*nm,
+        210*nm, 208*nm, 206*nm, 204*nm, 202*nm, 200*nm,
+        199*nm, 195*nm, 190*nm, 185*nm
+    };
+    G4double nm_lambda;
+    G4double PhotonEnergy[nEntries];
+    G4double Std_RefractiveIndex[nEntries];
+    for ( i = 0; i < nEntries; ++i ) {
+        PhotonEnergy[i]=(1240*nm/PhotonWaveLength[i])*eV;
+        Std_RefractiveIndex[i]=1.00;
+    }
+
+    G4MaterialPropertiesTable* Std_MPT = new G4MaterialPropertiesTable();
+    Std_MPT->AddProperty("RINDEX", PhotonEnergy, Std_RefractiveIndex, nEntries);
+
+
 
     map<G4String,G4Material*>::iterator itest;
     //pair<G4String, G4Material>  ptest;
@@ -157,7 +180,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4Element* elMn   =  new G4Element("Manganese","Mn", 25.,54.94*g/mole);
     G4Element* elNi  = new G4Element("Nickel","Ni",28.,58.70*g/mole);
 
-    fMaterialsMap["Vacuum"] = new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
+    G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
+    Vacuum->SetMaterialPropertiesTable(Std_MPT);
+    fMaterialsMap["Vacuum"] = Vacuum;
 
 
 
@@ -184,6 +209,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4Material* Air = new G4Material(name="Air", density, nel=2);
     Air->AddElement(elN, .7);
     Air->AddElement(elO, .3);
+
+
+    Air->SetMaterialPropertiesTable(Std_MPT);
 
     fMaterialsMap["Air"] = Air;
 
@@ -268,6 +296,18 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4Material* CO2 = new G4Material("CO2", density_CO2, nel=2);
     CO2->AddElement(elC, 1);
     CO2->AddElement(elO, 2);
+
+
+    G4double CO2_RefractiveIndex[nEntries];
+    for ( i = 0; i < nEntries; ++i ) {
+        CO2_RefractiveIndex[i]=1.00045;
+        CO2_RefractiveIndex[i]=1+(CO2_RefractiveIndex[i]-1)*GC_Gas_Pressure/atmosphere;
+    }
+    G4MaterialPropertiesTable* MPCO2 = new G4MaterialPropertiesTable();
+    MPCO2->AddProperty("RINDEX",PhotonEnergy, CO2_RefractiveIndex, nEntries);
+    CO2->SetMaterialPropertiesTable(MPCO2);
+
+
     fMaterialsMap["CO2"] = CO2;
 
     // 1.5 Atmosphere C4F8O for cerkenkov
@@ -276,6 +316,19 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     C4F8O->AddElement(elC, 4);
     C4F8O->AddElement(elF, 8);
     C4F8O->AddElement(elO, 1);
+
+    G4double C4F8O_RefractiveIndex[nEntries]; //at 1.atm
+    G4double C4F8O_ABSLENGTH[nEntries]; //at 1.atm
+    for ( i = 0; i < nEntries; ++i ) {
+        C4F8O_RefractiveIndex[i]=1.00135;
+        C4F8O_ABSLENGTH[i]=7424.75*cm;
+        C4F8O_RefractiveIndex[i]=1+(C4F8O_RefractiveIndex[i]-1)*GC_Gas_Pressure/atmosphere;
+    }
+    G4MaterialPropertiesTable* MPC4F8O = new G4MaterialPropertiesTable();
+    MPC4F8O->AddProperty("RINDEX",PhotonEnergy, C4F8O_RefractiveIndex, nEntries);
+    MPC4F8O->AddProperty("ABSLENGTH",PhotonEnergy, C4F8O_ABSLENGTH, nEntries);
+    C4F8O->SetMaterialPropertiesTable(MPC4F8O);
+
     fMaterialsMap["C4F8O"] = C4F8O;
 
     G4double density_ArCO2 = .7*density_Ar + .3*density_CO2;
@@ -446,8 +499,69 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
     fMaterialsMap["UVT_Lucite"] = UVT_Lucite;
 
+
+    // Grinch Lucite
+
+    G4Material* Lucite=man->FindOrBuildMaterial("G4_LUCITE");
+    G4double Lucite_RefractiveIndex[nEntries];
+    for ( i = 0; i < nEntries; ++i ) {
+        Lucite_RefractiveIndex[i]=1.5;
+    }
+    G4MaterialPropertiesTable* MPLucite = new G4MaterialPropertiesTable();
+    MPLucite->AddProperty("RINDEX",PhotonEnergy, Lucite_RefractiveIndex, nEntries);
+    Lucite->SetMaterialPropertiesTable(MPLucite);
+    Lucite->SetName("Lucite");
+    fMaterialsMap["Lucite"] = Lucite;
+
+
+    G4Material* Glass=new G4Material("Glass",1.397*g/cm3,3);
+    Glass->AddElement(H,8);
+    Glass->AddElement(C,10);
+    Glass->AddElement(O,4);
+    fMaterialsMap["Glass"] = Glass;
+
+    G4Material* matAl=man->FindOrBuildMaterial("G4_Al");
+    matAl->SetName("Al");
+    fMaterialsMap["Al"] = matAl;
+
+    G4Element *Fe = man->FindOrBuildElement("Fe");
+    G4Element *Cr = man->FindOrBuildElement("Cr");
+    G4Element *Ni = man->FindOrBuildElement("Ni");
+    G4Element *Mn = man->FindOrBuildElement("Mn");
+    G4Element *P = man->FindOrBuildElement("P");
+    G4Element *S = man->FindOrBuildElement("S");
+    G4Element *Mo = man->FindOrBuildElement("Mo");
+
+    G4Material* Carbon_Steel = new G4Material("Carbon_Steel", density=7.85*g/cm3, 7);
+    Carbon_Steel->AddElement(Fe, 73.4*perCent);
+    Carbon_Steel->AddElement(Cr, 8.*perCent);
+    Carbon_Steel->AddElement(Ni, 18.*perCent);
+    Carbon_Steel->AddElement(C, 0.1*perCent);
+    Carbon_Steel->AddElement(Mn, 0.41*perCent);
+    Carbon_Steel->AddElement(P, 0.04*perCent);
+    Carbon_Steel->AddElement(S, 0.05*perCent);
+    fMaterialsMap["Carbon_Steel"] = Carbon_Steel;
+
+    G4Material* Mylar=new G4Material("Mylar", density= 1.397*g/cm3, 3);
+    Mylar->AddElement(C, 10);
+    Mylar->AddElement(H, 8);
+    Mylar->AddElement(O, 4);
+    fMaterialsMap["Mylar"] = Mylar;
+
+    G4Material* mu_metal=new G4Material("mu-metal", density= 8.250*g/cm3, 6);
+    mu_metal->AddElement(C, 0.02*perCent);
+    mu_metal->AddElement(Ni, 80.00*perCent);
+    mu_metal->AddElement(Mn, 0.50*perCent);
+    mu_metal->AddElement(Mo, 4.20*perCent);
+    mu_metal->AddElement(Si, 0.35*perCent);
+    mu_metal->AddElement(Fe, 14.93*perCent);
+    fMaterialsMap["mu-metal"] = mu_metal;
+
+
+
     G4Material *Steel = man->FindOrBuildMaterial("G4_STAINLESS-STEEL");
     fMaterialsMap["Steel"] = Steel;
+    fMaterialsMap["Stainless_Steel"] = Steel;
 
     //Need to define "QuartzWindow" *before* Aerogel because 
     //the Aerogel Material properties definition refers to Quartz Window:
@@ -667,6 +781,30 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 	//G4double nquartz_temp = ( ( QuartzWindow->GetMaterialPropertiesTable() )->GetProperty("RINDEX") )->GetValue( Ephoton_aerogel[i], inrange );
 	Rindex_aerogel[idx] = (1.0-Bratio)*nair + Bratio*nquartz;
     }
+
+
+    // Grinch Quartz
+
+    G4Material* Quartz=new G4Material("Quartz", density= 2.200*g/cm3, 2);
+    Quartz->AddElement(Si, 1);
+    Quartz->AddElement(O, 2);
+    G4double rindex_Quartz[nEntries];
+    G4double absl_Quartz[nEntries];
+    for ( i = 0; i < nEntries; ++i ) {
+        nm_lambda=PhotonWaveLength[i]/nm;
+        rindex_Quartz[i]=1.736-0.001396*nm_lambda+2.326e-06*nm_lambda*nm_lambda-1.281e-09*nm_lambda*nm_lambda*nm_lambda;
+        absl_Quartz[i]=(-93.08+0.07151*nm_lambda+0.001799*nm_lambda*nm_lambda-1.678e-06*nm_lambda*nm_lambda*nm_lambda)*m;
+        if ( absl_Quartz[i]<0 ) {
+            absl_Quartz[i]=0;
+        }
+    }
+    G4MaterialPropertiesTable* mptQuartz=new G4MaterialPropertiesTable();
+    mptQuartz->AddProperty("RINDEX",PhotonEnergy,rindex_Quartz,nEntries);
+    mptQuartz->AddProperty("ABSLENGTH",PhotonEnergy,absl_Quartz,nEntries);
+    Quartz->SetMaterialPropertiesTable(mptQuartz);
+    fMaterialsMap["Quartz"] = Quartz;
+
+
 
     MPT_temp = new G4MaterialPropertiesTable();
     MPT_temp->AddProperty("RINDEX", Ephoton_aerogel, Rindex_aerogel, nsteps );

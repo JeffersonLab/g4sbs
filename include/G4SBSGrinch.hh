@@ -58,7 +58,7 @@ class G4LogicalVolume;
 
 class G4SBSGrinch : public G4SBSComponent {
 	public:
-		G4SBSGrinch();
+		G4SBSGrinch( G4SBSDetectorConstruction *dc);
 		~G4SBSGrinch();
 
 	public:
@@ -67,16 +67,11 @@ class G4SBSGrinch : public G4SBSComponent {
 	private:
 		G4VSolid* ConstructSimple(const G4String& aName, const G4String& aShape, const G4ThreeVector& aFullSize);
 		G4LogicalVolume* Hall_log;
-		G4Material* GetMaterial(const G4String& aMaterialName,const vector<G4Material*> av_Material_List);
 		G4Colour GetColor(const G4String& aColor);
 
 	private:
 		G4LogicalVolume* GC_Tank_log;
-		G4LogicalVolume* Bigbite_log;
-
-		G4VPhysicalVolume* Hall_phys;
 		G4VPhysicalVolume* Tank_phys;
-		G4VPhysicalVolume* Bigbite_phys;
 }
 ;
 

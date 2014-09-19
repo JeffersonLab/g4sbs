@@ -30,6 +30,7 @@ G4bool G4SBSRICHSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
   //For the RICH, we only consider optical photons to be part of the hit (this is what we are sensitive to)
   if( aStep->GetTrack()->GetParticleDefinition() != G4OpticalPhoton::OpticalPhotonDefinition() )
     return false;
+
   
   G4SBSRICHHit *newHit = new G4SBSRICHHit();
 

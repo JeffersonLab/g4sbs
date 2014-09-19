@@ -7,6 +7,9 @@
  */
 #include "G4SBSGrinch.hh"
 
+#include "G4SBSRICHSD.hh"
+#include "G4SBSDetectorConstruction.hh"
+
 #define CHAR_LEN 255
 
 enum E_VERTICES {
@@ -409,11 +412,28 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	G4double GC_PMT_Glass_Thickness=0.3*cm;
 
 	G4Tubs* GC_PMT = new G4Tubs(GC_PMT_Name.data(), 0, GC_PMT_Radius, (GC_PMT_Length-GC_PMT_Glass_Thickness)*0.5, 0, 360*deg);
-	G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Al")), GC_PMT_Name+"_log", 0, 0, 0);
+//	G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Al")), GC_PMT_Name+"_log", 0, 0, 0);
+	G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Photocathode_material")), GC_PMT_Name+"_log", 0, 0, 0);
 	G4VisAttributes* GC_PMT_log_VisAtt = new G4VisAttributes();
 	GC_PMT_log_VisAtt->SetColor(GetColor(G4String("Blue")));
 	GC_PMT_log_VisAtt->SetVisibility(true);
 	GC_PMT_log->SetVisAttributes(GC_PMT_log_VisAtt);
+        //  This guy is our sensitive detector
+
+         G4SDManager *sdman = fDetCon->fSDman;
+
+         G4String RICHSDname = "G4SBS/RICH";
+         G4String RICHcollname = "RICHcoll";
+         G4SBSRICHSD *RICHSD = NULL;
+
+         if( !( (G4SBSRICHSD*) sdman->FindSensitiveDetector(RICHSDname) ) ){
+             G4cout << "Adding RICH sensitive detector to SDman..." << G4endl;
+             RICHSD = new G4SBSRICHSD( RICHSDname, RICHcollname );
+             sdman->AddNewDetector( RICHSD );
+             fDetCon->SDlist[RICHSDname] = RICHSD;
+         }
+
+         GC_PMT_log->SetSensitiveDetector( RICHSD ); 
 
 	G4Tubs* GC_PMT_Cover = new G4Tubs("GC_PMT_Cover", GC_PMT_Radius, GC_PMT_Cover_Radius, GC_PMT_Length*0.5, 0, 360*deg);
 	G4LogicalVolume* GC_PMT_Cover_log = new G4LogicalVolume(GC_PMT_Cover, GetMaterial("Stainless_Steel"), "GC_PMT_Cover_log", 0, 0, 0);
@@ -726,14 +746,14 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 
 	GC_PMT_Surface = new G4LogicalSkinSurface("GC_PMT_Surface", GC_PMT_log, OpPMTSurface);
 
-	////GC_PMT_Glass Surface
-	//G4OpticalSurface* OpPMTGlassSurface = new G4OpticalSurface("OpPMTGlassSurface");
-	//OpPMTGlassSurface->SetType(dielectric_dielectric);
-	//OpPMTGlassSurface->SetFinish(polished);
-	//OpPMTGlassSurface->SetModel(unified);
-	//G4LogicalSkinSurface* GC_PMT_Glass_Surface;
+	//GC_PMT_Glass Surface
+	G4OpticalSurface* OpPMTGlassSurface = new G4OpticalSurface("OpPMTGlassSurface");
+	OpPMTGlassSurface->SetType(dielectric_dielectric);
+	OpPMTGlassSurface->SetFinish(polished);
+	OpPMTGlassSurface->SetModel(unified);
+	G4LogicalSkinSurface* GC_PMT_Glass_Surface;
 
-	//GC_PMT_Glass_Surface = new G4LogicalSkinSurface("GC_PMT_Glass_Surface", GC_PMT_Glass_log, OpPMTGlassSurface);
+	GC_PMT_Glass_Surface = new G4LogicalSkinSurface("GC_PMT_Glass_Surface", GC_PMT_Glass_log, OpPMTGlassSurface);
 
 	//GC_PMT_Cover surface
 	G4double PMT_Cover_Reflectivity[nEntries];

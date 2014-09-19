@@ -64,6 +64,8 @@ class G4SBSGrinch : public G4SBSComponent {
 	public:
 		void  BuildComponent(G4LogicalVolume *);
 
+                void SetZOffset(G4double off){ fDetOffset = off ;}
+
 	private:
 		G4VSolid* ConstructSimple(const G4String& aName, const G4String& aShape, const G4ThreeVector& aFullSize);
 		G4LogicalVolume* Hall_log;
@@ -72,6 +74,8 @@ class G4SBSGrinch : public G4SBSComponent {
 	private:
 		G4LogicalVolume* GC_Tank_log;
 		G4VPhysicalVolume* Tank_phys;
+
+                G4double fDetOffset;
 }
 ;
 

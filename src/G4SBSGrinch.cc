@@ -16,40 +16,6 @@ enum E_VERTICES {
 	k_BOTTOM_RIGHT
 };
 
-/* --------------------------------------------------------------------------*/
-/**
- * @brief Calculate all vertices on two trapezoid planes used in BB_EM and BB_M
- *
- * @param aTop Top Box full size
- * @param aBottom Bottom Box full size
- * @param aEntrance Entrance Box full size
- * @param aCorner_Bend_Angle Corner Bending angle
- * @param aBB_Bottom_Length BB Bottom Length defined in BGCUserManager.hh
- *
- * @return vector<G4TwoVector> output
- */
-inline std::vector<G4TwoVector> Two_Trapezoid_Planes(const G4ThreeVector& aTop,const G4ThreeVector& aBottom,const G4ThreeVector& aEntrance,
-		const G4double& aCorner_Bend_Angle,const G4double& aBB_Bottom_Length) {
-    std::vector<G4TwoVector> output; //0=4, 1=5, 2=6, 3=7
-	G4TwoVector vertices;
-	G4int i;
-	for ( i = 0; i < 2; ++i ) { //2=two planes
-		//0/4
-		vertices.set(-aBB_Bottom_Length*0.5,-aEntrance.y()*0.5);
-		output.push_back(vertices);
-		//1/5
-		vertices.set(-aBB_Bottom_Length*0.5,aEntrance.y()*0.5);
-		output.push_back(vertices);
-		//2/6
-		vertices.set(aTop.x()*cos(aCorner_Bend_Angle)-aBB_Bottom_Length*0.5,aTop.x()*sin(aCorner_Bend_Angle)+aEntrance.y()*0.5);
-		output.push_back(vertices);
-		//3/7
-		vertices.set(aBottom.x()-aBB_Bottom_Length*0.5,-aEntrance.y()*0.5);
-		output.push_back(vertices);
-	}
-
-	return output;
-}
 
 inline G4VSolid* Construct_GC_Tank_Box(G4String aName, G4ThreeVector aInner_Full_Size, G4double aThickness, G4ThreeVector aEntrance_Window_Full_Size, G4ThreeVector aExit_Window_Full_Size)
 {
@@ -234,6 +200,7 @@ inline G4VSolid* Construct_Square_Opening_Cone(G4String aName, G4double aRmin1, 
  * @brief Construct Function
  */
 G4SBSGrinch::G4SBSGrinch(G4SBSDetectorConstruction *dc):G4SBSComponent(dc) {
+    fDetOffset = 0.0*m;
 }
 
 G4SBSGrinch::~G4SBSGrinch() {
@@ -643,7 +610,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 
 	/* --------------------------------------------------------------------------*/
 	//Tank_phys
-	Tank_phys = new G4PVPlacement(NULL, G4ThreeVector(), GC_Tank_log, GC_Tank_Name+"_phys", bblog, false, 0);
+	Tank_phys = new G4PVPlacement(NULL, G4ThreeVector(0.0, 0.0, fDetOffset), GC_Tank_log, GC_Tank_Name+"_phys", bblog, false, 0);
 
 
 

@@ -1057,11 +1057,8 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   fW2 = 0;
   fxbj = -1.0;
 
-  fElectronP = G4ThreeVector(0.0, 0.0, 1.0);
-  fElectronE = electron_mass_c2;
-
-  fNucleonP = G4ThreeVector(0.0, 0.0, 1.0);
-  fNucleonE = proton_mass_c2;
+  fElectronP =Phad_lab.vect();
+  fElectronE =Phad_lab.e();
 
   fHadronE = Phad_lab.e();
   fHadronP = Phad_lab.vect();

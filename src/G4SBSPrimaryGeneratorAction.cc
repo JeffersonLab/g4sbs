@@ -100,7 +100,10 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   */
 
   // Not necessarily kinematically allowed
-  particleGun->GeneratePrimaryVertex(anEvent);
+
+  if( sbsgen->GetKine()!= kWiser ){
+      particleGun->GeneratePrimaryVertex(anEvent);
+  }
 
   if( sbsgen->GetKine() != kSIDIS && sbsgen->GetKine() != kWiser && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kBeam ){ //Then we are generating a final nucleon
     switch( sbsgen->GetFinalNucleon() ){

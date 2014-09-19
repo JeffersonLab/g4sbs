@@ -64,10 +64,12 @@ G4SBSEventGen::G4SBSEventGen(){
     fEeMax = 5.0*GeV;
     fEhadMin = 1.0*GeV;
     fEhadMax = 10.0*GeV;
+
+    // Selecting a broad range of these so they're more inclusive
     fThMin_had = 5.0*deg;
-    fThMax_had = 35.0*deg;
-    fPhMin_had = -30.0*deg;
-    fPhMax_had = 30.0*deg;
+    fThMax_had = 60.0*deg;
+    fPhMin_had = 0.0*deg;
+    fPhMax_had = 360.0*deg;
 
 }
 
@@ -932,6 +934,7 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   double Mh;
   int icharge, ihadron;
 
+  switch( fHadronType ){
   case kPiPlus:
     Mh = G4PionPlus::PionPlusDefinition()->GetPDGMass();
     icharge = 1;
@@ -974,6 +977,8 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
     break;
   }
 
+  double Ph = sqrt(Eh*Eh - Mh*Mh);
+
    G4LorentzVector Phad_lab( Eh, G4ThreeVector( Ph*sin(htheta)*cos(hphi), Ph*sin(htheta)*sin(hphi), Ph*cos(htheta) ) );
 
    double intrad = 0.05;
@@ -983,31 +988,28 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 
    double targlen_passed = fVert.z() + fTargLen/2.0;
 
-   double gaspress = fTargDen*(296.0*kelvin*k_Boltzmann);
-
-   double radlen;
+   double rad_len;
    switch( fTargType ){
        case kH2:
-           radlen = glasswallradlen + targlen_passed/(52.*g/cm2)/(fTargDensity*g*mol);
+           rad_len = glasswallradlen + targlen_passed/(52.*g/cm2)/(fTargDen*g/6.022e23);
        case kNeutTarg:
-           radlen = glasswallradlen;
+           rad_len = glasswallradlen;
            break;
        case k3He:
-           radlen = glasswallradlen + targlen_passed/(94.32*3.*g/cm2/4.)/(fTargDensity*3*g*mol);
+           rad_len = glasswallradlen + targlen_passed/(94.32*3.*g/cm2/4.)/(fTargDen*3*g/6.022e23);
            break;
        case kLH2:
-           radlen = targlen_passed/(63.04*cm/0.071);
+           rad_len = targlen_passed/(63.04*cm/0.071);
            break;
        case kLD2:
-           radlen = targlen_passed/(125.97*cm/0.169);
+           rad_len = targlen_passed/(125.97*cm/0.169);
            break;
    }
 
-printf("density = %f g/cm3\n", (fTargDensity*3*g*mol)*cm3/g);
-exit(1);
 
-   double sigpip = wiser_sigma(beamE/GeV, Phad_lab.vect().mag()/GeV, htheta, rad_len*4.0/3.0 + intrad, 0)*nanobarn/GeV;
-   double sigpim = wiser_sigma(beamE/GeV, Phad_lab.vect().mag/GeV, htheta, rad_len*4.0/3.0 + intrad, 1)*nanobarn/GeV;
+   double sigpip = wiser_sigma(ei.e()/GeV, Phad_lab.vect().mag()/GeV, htheta, rad_len*4.0/3.0 + intrad, 0)*nanobarn/GeV;
+   double sigpim = wiser_sigma(ei.e()/GeV, Phad_lab.vect().mag()/GeV, htheta, rad_len*4.0/3.0 + intrad, 1)*nanobarn/GeV;
+
 
    if( fNuclType == kProton ){
        switch( fHadronType ){
@@ -1052,17 +1054,19 @@ exit(1);
 
   fPmissperp = -1e9;
 
-  fW2 = W2;
+  fW2 = 0;
   fxbj = -1.0;
 
-  fElectronP = G4ThreeVector();
-  fElectronE = 0.511*keV;
+  fElectronP = G4ThreeVector(0.0, 0.0, 1.0);
+  fElectronE = electron_mass_c2;
 
+  fNucleonP = G4ThreeVector(0.0, 0.0, 1.0);
+  fNucleonE = proton_mass_c2;
 
-  fNucleonP = Phad_lab.e();
-  fNucleonE = Phad_lab.vect();
+  fHadronE = Phad_lab.e();
+  fHadronP = Phad_lab.vect();
 
-
+  return true;
 }
 
 

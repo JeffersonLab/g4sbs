@@ -370,6 +370,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	  fevgen->SetKine( kSIDIS );
 	  validcmd = true;
 	}
+	if( newValue.compareTo("wiser") == 0 ){
+	  fevgen->SetKine( kWiser);
+	  validcmd = true;
+	}
 	if( newValue.compareTo("gun") == 0 ){
 	  fevgen->SetKine( kGun );
 	  validcmd = true;

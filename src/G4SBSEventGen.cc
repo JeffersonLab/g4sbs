@@ -15,6 +15,8 @@
 #include "G4AntiProton.hh"
 
 
+#include "wiser_pion.h"
+
 #include <errno.h>
 
 using namespace CLHEP;
@@ -158,6 +160,9 @@ bool G4SBSEventGen::GenerateEvent(){
       break;
     case kGun:
       success = GenerateGun();
+      break;
+    case kWiser:
+      success = GenerateWiser( thisnucl, ei, ni );
       break;
     default:
       success = GenerateElastic( thisnucl, ei, ni );
@@ -915,6 +920,151 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   
   return true;
 }
+
+
+bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+
+  
+  double htheta = acos( CLHEP::RandFlat::shoot( cos( fThMax_had ), cos( fThMin_had ) ) );
+  double hphi = CLHEP::RandFlat::shoot( fPhMin_had, fPhMax_had );
+  double Eh = CLHEP::RandFlat::shoot( fEhadMin, fEhadMax );
+
+  double Mh;
+  int icharge, ihadron;
+
+  case kPiPlus:
+    Mh = G4PionPlus::PionPlusDefinition()->GetPDGMass();
+    icharge = 1;
+    ihadron = 0;
+    break;
+  case kPiMinus:
+    Mh = G4PionMinus::PionMinusDefinition()->GetPDGMass();
+    icharge = -1;
+    ihadron = 0;
+    break;
+  case kPi0:
+    Mh = G4PionZero::PionZeroDefinition()->GetPDGMass();
+    icharge = 0;
+    ihadron = 0;
+    break;
+  case kKPlus:
+    Mh = G4KaonPlus::KaonPlusDefinition()->GetPDGMass();
+    icharge = 1;
+    ihadron = 1;
+    break;
+  case kKMinus:
+    Mh = G4KaonMinus::KaonMinusDefinition()->GetPDGMass();
+    icharge = -1;
+    ihadron = 1;
+    break;
+  case kP:
+    Mh = G4Proton::ProtonDefinition()->GetPDGMass();
+    icharge = 1;
+    ihadron = 2;
+    break;
+  case kPbar:
+    Mh = G4AntiProton::AntiProtonDefinition()->GetPDGMass();
+    icharge = -1;
+    ihadron = 2;
+    break;
+  default:
+    Mh = G4PionPlus::PionPlusDefinition()->GetPDGMass();
+    icharge = 1;
+    ihadron = 0;
+    break;
+  }
+
+   G4LorentzVector Phad_lab( Eh, G4ThreeVector( Ph*sin(htheta)*cos(hphi), Ph*sin(htheta)*sin(hphi), Ph*cos(htheta) ) );
+
+   double intrad = 0.05;
+
+   // This is from 130um wall thickness and 7 cm rad len for GE180
+   double glasswallradlen = 0.002;
+
+   double targlen_passed = fVert.z() + fTargLen/2.0;
+
+   double gaspress = fTargDen*(296.0*kelvin*k_Boltzmann);
+
+   double radlen;
+   switch( fTargType ){
+       case kH2:
+           radlen = glasswallradlen + targlen_passed/(52.*g/cm2)/(fTargDensity*g*mol);
+       case kNeutTarg:
+           radlen = glasswallradlen;
+           break;
+       case k3He:
+           radlen = glasswallradlen + targlen_passed/(94.32*3.*g/cm2/4.)/(fTargDensity*3*g*mol);
+           break;
+       case kLH2:
+           radlen = targlen_passed/(63.04*cm/0.071);
+           break;
+       case kLD2:
+           radlen = targlen_passed/(125.97*cm/0.169);
+           break;
+   }
+
+printf("density = %f g/cm3\n", (fTargDensity*3*g*mol)*cm3/g);
+exit(1);
+
+   double sigpip = wiser_sigma(beamE/GeV, Phad_lab.vect().mag()/GeV, htheta, rad_len*4.0/3.0 + intrad, 0)*nanobarn/GeV;
+   double sigpim = wiser_sigma(beamE/GeV, Phad_lab.vect().mag/GeV, htheta, rad_len*4.0/3.0 + intrad, 1)*nanobarn/GeV;
+
+   if( fNuclType == kProton ){
+       switch( fHadronType ){
+           case kPiPlus:
+               fSigma = sigpip;
+               break;
+           case kPiMinus:
+               fSigma = sigpim;
+               break;
+           case kPi0:
+               fSigma = (sigpip +sigpim)/2.0;
+               break;
+           default:
+               fSigma = 0;
+               break;
+       }
+   } else {
+       switch( fHadronType ){
+           case kPiPlus:
+               fSigma = sigpim;
+               break;
+           case kPiMinus:
+               fSigma = sigpip;
+               break;
+           case kPi0:
+               fSigma = (sigpip +sigpim)/2.0;
+               break;
+           default:
+               fSigma = 0;
+               break;
+       }
+   }
+
+  fSigma *= (fEhadMax-fEhadMin)*(cos( fThMax_had) - cos( fThMin_had ))*(fPhMax_had-fPhMin_had)/(cos(fThMax)-cos(fThMin) )/(fPhMax-fPhMin);
+
+  fApar  = 0.0;
+  fAperp = 0.0;
+  fFinalNucl = fNuclType;
+
+  fPmisspar  = -1e9;
+  fPmissparSm  = -1e9;
+
+  fPmissperp = -1e9;
+
+  fW2 = W2;
+  fxbj = -1.0;
+
+  fElectronP = G4ThreeVector();
+  fElectronE = 0.511*keV;
+
+
+  fNucleonP = Phad_lab.e();
+  fNucleonE = Phad_lab.vect();
+
+
+}
+
 
 bool G4SBSEventGen::GenerateFlat( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni){
     // Ignore initial nucleon

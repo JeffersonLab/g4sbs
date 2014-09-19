@@ -123,7 +123,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       particleGun->SetParticleEnergy(sbsgen->GetNucleonE()-particle->GetPDGMass());
       particleGun->SetParticlePosition(sbsgen->GetV());
     }
-  } else if( sbsgen->GetKine() == kSIDIS ){ //SIDIS case: generate a final hadron:
+  } else if( sbsgen->GetKine() == kSIDIS || sbsgen->GetKine() == kWiser ){ //SIDIS case: generate a final hadron:
     switch( sbsgen->GetHadronType() ){
     case kPiPlus:
       particle = particleTable->FindParticle(particleName="pi+");

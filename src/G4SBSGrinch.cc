@@ -201,6 +201,7 @@ inline G4VSolid* Construct_Square_Opening_Cone(G4String aName, G4double aRmin1, 
  */
 G4SBSGrinch::G4SBSGrinch(G4SBSDetectorConstruction *dc):G4SBSComponent(dc) {
     fDetOffset = 0.0*m;
+    fCerDepth = 0.0*m;
 }
 
 G4SBSGrinch::~G4SBSGrinch() {
@@ -227,11 +228,12 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	char tmpname[CHAR_LEN];
 
 
+
 	/* --------------------------------------------------------------------------*/
 	//GC_Tank
 	G4String GC_Tank_Name("GC_Tank");
 	G4String GC_Tank_Material=("C4F8O");
-	G4ThreeVector GC_Tank_Inner_FullSize(92*cm, 200*cm, 150.229*cm);
+	G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth, 200*cm, 150.229*cm);
 	G4double GC_Tank_Thickness= 1.27*cm;
 	G4VSolid* GC_Tank_Solid=ConstructSimple(GC_Tank_Name,G4String("G4Box"),GC_Tank_Inner_FullSize);
 	GC_Tank_log=new G4LogicalVolume(GC_Tank_Solid,GetMaterial(GC_Tank_Material),GC_Tank_Name+"_log");
@@ -328,7 +330,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
         double mirror_rot_y_angle[num_of_mirrors] = { 27.5*deg, 27.5*deg, 27.5*deg, 27.5*deg };
         double mirror_rot_axis_angle[num_of_mirrors] = { 10*deg, 0*deg, 0*deg, -10*deg };
         G4String mirror_color[num_of_mirrors] = {G4String("Yellow"), G4String("Blue"), G4String("Red"), G4String("Blue")};
-        G4ThreeVector mirror_new_offset[num_of_mirrors] = {G4ThreeVector(16.9194*cm, 80*cm, 1.60364*cm), G4ThreeVector(), G4ThreeVector(), G4ThreeVector(16.9194*cm, -80*cm, 1.60364*cm)  };
+        G4ThreeVector mirror_new_offset[num_of_mirrors] = {G4ThreeVector(16.9194*cm, 80*cm, 1.60364*cm), G4ThreeVector(20*cm, 30*cm, 0*cm), G4ThreeVector(20*cm, -30*cm, 0*cm), G4ThreeVector(16.9194*cm, -80*cm, 1.60364*cm)  };
 
 	for ( i = 0; i < num_of_mirrors; ++i ) {
 		mirror_index=i+1;
@@ -596,10 +598,10 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
         G4ThreeVector myTranslation,mynewAxis;
         PACS_rm      = PACS_rm.IDENTITY;
         PACS_rm.rotateY(55*deg);
-        myTranslation.set(0.0,0,0);
+        myTranslation.set(20.0*cm,0,0);
         mynewAxis.set(-1,0,0);//-X-axis
         mynewAxis.rotateY(55*deg);
-        myTranslation=myTranslation+mynewAxis*(65*cm+13.75*cm*0.5);//Original center is PMT center, so move PMT_Length*0.5 to surface
+        myTranslation=myTranslation+mynewAxis*(65*cm+GC_PMT_Length*0.5);//Original center is PMT center, so move PMT_Length*0.5 to surface
 
         G4ThreeVector PACS_offset=myTranslation;
 
@@ -610,7 +612,10 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 
 	/* --------------------------------------------------------------------------*/
 	//Tank_phys
-	Tank_phys = new G4PVPlacement(NULL, G4ThreeVector(0.0, 0.0, fDetOffset), GC_Tank_log, GC_Tank_Name+"_phys", bblog, false, 0);
+
+        G4RotationMatrix *tankrm = new G4RotationMatrix;
+        tankrm->rotateY(90*deg);
+	Tank_phys = new G4PVPlacement(tankrm, G4ThreeVector(0.0, 0.0, fDetOffset+fCerDepth/2), GC_Tank_log, GC_Tank_Name+"_phys", bblog, false, 0);
 
 
 

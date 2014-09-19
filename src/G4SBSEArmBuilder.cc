@@ -33,11 +33,11 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
     fBBang  = 40.0*deg;
     fBBdist = 1.5*m;
 
-    fBBCaldist = 0.8*m;
-    fCerDepth = 60.0*cm;
+    fCerDepth = 92.0*cm;
     fCerDist  =  7.0*cm;
 
-    fGEMDist  = 70.0*cm;
+    fBBCaldist = 20*cm + fCerDepth;
+    fGEMDist   = 10*cm + fCerDepth;
     fGEMOption = 1;
 
     fUseLocalField = false;
@@ -466,6 +466,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
     G4SBSGrinch *grinch = new G4SBSGrinch(fDetCon);
     grinch->SetZOffset( detoffset + fCerDist );
+    grinch->SetCerDepth( fCerDepth);
     grinch->BuildComponent(bbdetLog);
 
     //--------- Visualization attributes -------------------------------

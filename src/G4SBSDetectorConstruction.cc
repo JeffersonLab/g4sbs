@@ -716,6 +716,93 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
     //G4cout << "Material properties for Mirrsurf:" << G4endl;
 
+    
+    //********************************************************************
+    //************                 ECAL             **********************
+    //********************************************************************  
+    //Additional elements needed for the materials:
+    G4Element* elK = new G4Element( "Potassium", "K", 19, 39.098*g/mole );
+    G4Element* elAs = new G4Element( "Arsenic", "As", 33, 74.922*g/mole );
+    G4Element* elPb = new G4Element( "Lead", "Pb", 82, 207.2*g/mole );
+    G4Element* elBe = new G4Element( "Beryllium", "Be", 4, 9.012*g/mole );
+    //Materials necessary to build TF1 aka lead-glass
+    G4Material* PbO = new G4Material("TF1_PbO", bigden, 2);
+    PbO->AddElement(elPb, 1);
+    PbO->AddElement(elO, 1);
+    fMaterialsMap["TF1_PbO"] = PbO;
+
+    G4Material* K2O = new G4Material("TF1_K2O", bigden, 2);
+    K2O->AddElement(elK, 2);
+    K2O->AddElement(elO, 1);
+    fMaterialsMap["TF1_K2O"] = K2O;
+
+    G4Material* As2O3 = new G4Material("TF1_As2O3", bigden, 2);
+    As2O3->AddElement(elAs, 2);
+    As2O3->AddElement(elO, 3);
+    fMaterialsMap["TF1_As2O3"] = As2O3;
+
+    //Density 3.86 g/cm^3
+    //Index of Refraction 1.6522
+    G4Material* TF1 = new G4Material("TF1", 3.86*g/cm3, 4);
+    TF1->AddMaterial(PbO, 0.512);
+    TF1->AddMaterial(SiO2, 0.413);
+    TF1->AddMaterial(K2O, 0.070);
+    TF1->AddMaterial(As2O3, 0.005);
+
+    MPT_temp = new G4MaterialPropertiesTable();
+    const G4int nentries_TF1 = 2;
+    G4double Ephoton_TF1[nentries_TF1] = { 1.91*eV, 3.95*eV };
+    G4double Rindex_TF1[nentries_TF1] = {1.6522, 1.6522};
+    G4double Abslength_TF1[nentries_TF1] = {40.0*cm, 40.0*cm};
+
+    MPT_temp->AddProperty("RINDEX", Ephoton_TF1, Rindex_TF1, nentries_TF1 );
+    MPT_temp->AddProperty("ABSLENGTH", Ephoton_TF1, Abslength_TF1, nentries_TF1 );
+
+    TF1->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap["TF1"] = TF1;
+
+    G4Material *Mylar = man->FindOrBuildMaterial("G4_MYLAR");
+    fMaterialsMap["Mylar"] = Mylar;
+
+    //Need material for PMTcathode (note: varies from RICH cathodes)
+    //Values come from old GSTAR code written by K.Shestermanov 
+    //found in the 'PHOT' routine
+     const G4int nentries_ecal_QE = 37;
+    G4double PMT_ECAL_QE[nentries_ecal_QE] = {
+      0.004, 0.016, 0.031, 0.043, 0.052,
+      0.059, 0.069, 0.083, 0.100, 0.110,
+      0.131, 0.150, 0.171, 0.184, 0.191,
+      0.196, 0.200, 0.198, 0.195, 0.193,
+      0.190, 0.188, 0.185, 0.183, 0.180,
+      0.177, 0.173, 0.169, 0.163, 0.160,
+      0.155, 0.150, 0.139, 0.123, 0.084,
+      0.023, 0.003 }; 
+    
+    G4double Ephoton_ECAL_QE[nentries_ecal_QE] = {
+      1.91*eV, 1.98*eV, 2.07*eV, 2.11*eV, 2.16*eV,
+      2.20*eV, 2.25*eV, 2.31*eV, 2.37*eV, 2.41*eV,
+      2.52*eV, 2.60*eV, 2.71*eV, 2.77*eV, 2.84*eV,
+      2.90*eV, 2.97*eV, 3.03*eV, 3.07*eV, 3.09*eV,
+      3.11*eV, 3.13*eV, 3.15*eV, 3.16*eV, 3.18*eV,
+      3.20*eV, 3.22*eV, 3.25*eV, 3.27*eV, 3.29*eV,
+      3.31*eV, 3.33*eV, 3.36*eV, 3.42*eV, 3.54*eV,
+      3.81*eV, 3.95*eV};  
+
+    //Refractive index data recycled from RICH routine (Rindex_quartz w/ nentries_quartz = 51)
+    G4double den_photocathode_ecal = 2.57*g/cm3;
+    G4Material *Photocathode_material_ecal = new G4Material( "Photocathode_material_ecal", den_photocathode_ecal, nel=3 );
+    Photocathode_material_ecal->AddElement( Sb, natoms=1 );
+    Photocathode_material_ecal->AddElement( K, natoms=2 );
+    Photocathode_material_ecal->AddElement( Cs, natoms=1 );
+
+    MPT_temp = new G4MaterialPropertiesTable();
+    MPT_temp->AddProperty("EFFICIENCY", Ephoton_ECAL_QE, PMT_QuantumEfficiency, nentries_QE ); 
+    MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz );
+
+    Photocathode_material_ecal->SetMaterialPropertiesTable( MPT_temp );
+
+    fMaterialsMap["Photocathode_material_ecal"] = Photocathode_material_ecal;
+
 }
 
 G4Material *G4SBSDetectorConstruction::GetMaterial(G4String name){

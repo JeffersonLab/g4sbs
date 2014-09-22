@@ -8,7 +8,7 @@
 #include "TVectorD.h"
 #include "THashTable.h"
 
-#include "G4SBSEventAction.hh"
+#include "G4SBSEventAction.hh" //RICHHit.hh, RICHoutput.hh, ECalHit.hh, ECaloutput.hh are here
 
 #include "G4SBSEventGen.hh"
 #include "G4SBSCalHit.hh"
@@ -109,11 +109,13 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   G4String BBCalSDname = "G4SBS/BBCal";
   G4String HCalSDname = "G4SBS/HCAL";
   G4String RICHSDname = "G4SBS/RICH";
+  G4String ECalSDname = "G4SBS/ECal";
 
   bool GEMSD_exists = false;
   bool BBCalSD_exists = false;
   bool HCALSD_exists = false;
   bool RICHSD_exists = false; 
+  bool ECalSD_exists = false;
   
   G4bool warn = false;
 
@@ -131,6 +133,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   if( SDlist.find( BBCalSDname ) != SDlist.end() ) BBCalSD_exists = true;
   if( SDlist.find( HCalSDname ) != SDlist.end() ) HCALSD_exists = true;
   if( SDlist.find( RICHSDname ) != SDlist.end() ) RICHSD_exists = true;
+  if( SDlist.find( ECalSDname ) != SDlist.end() ) ECalSD_exists = true;
 
   if( GEMSD_exists ) GEMSDptr = ( (G4SBSGEMSD*) SDman->FindSensitiveDetector( GEMSDname, false ) );
 
@@ -140,9 +143,6 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
   G4String colNam;
 
-  //G4cout << "RICHCollID = " << RICHCollID << endl;
-  //G4cout << ">>> Event " << evt->GetEventID() << G4endl;
-  
   MapTracks(evt);
 
   G4HCofThisEvent * HCE = evt->GetHCofThisEvent();
@@ -150,6 +150,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   G4SBSCalHitsCollection* hcalHC = 0;
   G4SBSGEMHitsCollection* gemHC = 0;
   G4SBSRICHHitsCollection *RICHHC = 0;
+  G4SBSECalHitsCollection *ECalHC = 0;
  
   bool hasbb   = false;
   bool hashcal = false;
@@ -382,7 +383,18 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     }
   }
 
-  
+  G4SBSECaloutput ecaldata;
+
+  ecaldata.timewindow = 10.0*ns; //Do we need to update these values????
+  ecaldata.threshold =  0.5; 
+
+  if( ECalSD_exists ){
+    ECalCollID = SDman->GetCollectionID(colNam="ECalcoll");
+    if( HCE && ECalCollID >= 0 ){
+      ECalHC = (G4SBSECalHitsCollection*)(HCE->GetHC(ECalCollID));
+      //FillECalData( evt, ECalHC, ecaldata );
+    }
+  }
 
   G4SBSRICHoutput richdata;
 
@@ -416,6 +428,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   fIO->SetHitData(hitdata);
   fIO->SetRICHData(richdata);
   fIO->SetTrackData( Toutput );
+  //fIO->SetECalData( ecaldata );
 
   bool anyhits = (hasbb || hashcal || hitdata.ndata > 0 || richdata.nhits_RICH > 0 );
 

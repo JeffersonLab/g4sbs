@@ -8,6 +8,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4SBSRICHoutput.hh"
 #include "G4SBSTrackerOutput.hh"
+#include "G4SBSECaloutput.hh"
 
 class TFile;
 class TTree;
@@ -82,6 +83,7 @@ public:
   void SetHitData(hit_t ht){ hitdata = ht; }
   void SetRICHData( G4SBSRICHoutput rd ) { richdata = rd; }
   void SetTrackData( G4SBSTrackerOutput td ){ trackdata = td; }
+  void SetECalData( G4SBSECaloutput ed ){ ecaldata = ed; }
   
   void FillTree();
   void WriteTree();
@@ -109,7 +111,8 @@ private:
   
   G4SBSRICHoutput richdata;
   G4SBSTrackerOutput trackdata;
-  
+  G4SBSECaloutput ecaldata;
+
   G4SBSGlobalField *fGlobalField;
   
   char fFilename[255];

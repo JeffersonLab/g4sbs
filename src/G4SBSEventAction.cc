@@ -392,7 +392,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     ECalCollID = SDman->GetCollectionID(colNam="ECalcoll");
     if( HCE && ECalCollID >= 0 ){
       ECalHC = (G4SBSECalHitsCollection*)(HCE->GetHC(ECalCollID));
-      //FillECalData( evt, ECalHC, ecaldata );
+      FillECalData( evt, ECalHC, ecaldata );
     }
   }
 
@@ -701,6 +701,10 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
       richoutput.mTrackNo[ihit] = -1; //This should never happen!
     }
   }
+}
+
+void G4SBSEventAction::FillECalData( const G4Event *evt, G4SBSECalHitsCollection *HC, G4SBSECaloutput &ECout ){
+  ;
 }
 
 void G4SBSEventAction::MapTracks( const G4Event *evt ){

@@ -31,6 +31,7 @@
 #include "G4OpticalSurface.hh"
 #include "G4LogicalSkinSurface.hh"
 #include "G4SBSRICHSD.hh"
+#include "G4SBSECalSD.hh"
 
 G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
     fBBang  = 40.0*deg;
@@ -640,17 +641,17 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     //PMTcathode_ecal_log is the sensitive detector, assigned to RICHSD which detects optical photons
     G4SDManager *sdman = fDetCon->fSDman;
 
-    G4String RICHSDname = "G4SBS/RICH";
-    G4String RICHcollname = "RICHcoll";
-    G4SBSRICHSD *RICHSD = NULL;
+    G4String ECalSDname = "G4SBS/ECal";
+    G4String ECalcollname = "ECalcoll";
+    G4SBSECalSD *ECalSD = NULL;
 
-    if( !( (G4SBSRICHSD*) sdman->FindSensitiveDetector(RICHSDname) ) ){
-	G4cout << "Adding RICH sensitive detector to SDman..." << G4endl;
-	RICHSD = new G4SBSRICHSD( RICHSDname, RICHcollname );
-	sdman->AddNewDetector( RICHSD );
-	fDetCon->SDlist[RICHSDname] = RICHSD;
+    if( !( (G4SBSECalSD*) sdman->FindSensitiveDetector(ECalSDname) ) ){
+	G4cout << "Adding ECal sensitive detector to SDman..." << G4endl;
+	ECalSD = new G4SBSECalSD( ECalSDname, ECalcollname );
+	sdman->AddNewDetector( ECalSD );
+	fDetCon->SDlist[ECalSDname] = ECalSD;
     }
-    PMTcathode_ecal_log->SetSensitiveDetector( RICHSD );
+    PMTcathode_ecal_log->SetSensitiveDetector( ECalSD );
     
     //Placing the blocks inside mother volume - looking downstream, iteration starts top left corner of mother volume
     //Mylar

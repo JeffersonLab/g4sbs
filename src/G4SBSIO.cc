@@ -154,6 +154,14 @@ void G4SBSIO::InitializeTree(){
     fTree->Branch("RICH_mpy", &(richdata.mpy) );
     fTree->Branch("RICH_mpz", &(richdata.mpz) );
 
+    //ECal uses the same approach as RICH
+    fTree->Branch("ECal_nhits", &(ecaldata.nhits_ECal), "nhits_ECal/I");
+    fTree->Branch("ECal_pmt", &(ecaldata.PMTnumber) );
+    fTree->Branch("ECal_row", &(ecaldata.row) );
+    fTree->Branch("ECal_col", &(ecaldata.col) );
+    fTree->Branch("ECal_nphe", &(ecaldata.NumPhotoelectrons) );
+    fTree->Branch("ECal_tavg", &(ecaldata.Time_avg) );
+    fTree->Branch("ECal_trms", &(ecaldata.Time_rms) );
     return;
 }
 

@@ -4,7 +4,7 @@
 G4SBSECaloutput::G4SBSECaloutput(){
   //Set sensible default values for threshold and time window:
 
-  timewindow = 100.0*ns; 
+  timewindow = 250.0*ns; //Also declared in G4SBSEventAction.cc -> G4SBSECaloutput section
   threshold  = 0.5; //single photo-electron threshold!
   
 
@@ -26,6 +26,7 @@ void G4SBSECaloutput::Clear(){
   NumPhotoelectrons.clear();
   Time_avg.clear();
   Time_rms.clear();
+  /* 
   mTrackNo.clear();
 
   xhit.clear();
@@ -43,7 +44,7 @@ void G4SBSECaloutput::Clear(){
   ppx.clear();
   ppy.clear();
   ppz.clear();
-  
+  */
   //  thetaC.clear();
   // volume_flag.clear();
   

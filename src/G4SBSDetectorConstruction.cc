@@ -753,7 +753,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     const G4int nentries_TF1 = 2;
     G4double Ephoton_TF1[nentries_TF1] = { 1.91*eV, 3.95*eV };
     G4double Rindex_TF1[nentries_TF1] = {1.6522, 1.6522};
-    G4double Abslength_TF1[nentries_TF1] = {40.0*cm, 40.0*cm};
+    G4double Abslength_TF1[nentries_TF1] = {40.0*m, 40.0*m};
 
     MPT_temp->AddProperty("RINDEX", Ephoton_TF1, Rindex_TF1, nentries_TF1 );
     MPT_temp->AddProperty("ABSLENGTH", Ephoton_TF1, Abslength_TF1, nentries_TF1 );
@@ -796,7 +796,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     Photocathode_material_ecal->AddElement( Cs, natoms=1 );
 
     MPT_temp = new G4MaterialPropertiesTable();
-    MPT_temp->AddProperty("EFFICIENCY", Ephoton_ECAL_QE, PMT_QuantumEfficiency, nentries_QE ); 
+    MPT_temp->AddProperty("EFFICIENCY", Ephoton_ECAL_QE, PMT_ECAL_QE, nentries_QE ); 
     MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz );
 
     Photocathode_material_ecal->SetMaterialPropertiesTable( MPT_temp );

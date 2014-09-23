@@ -98,7 +98,7 @@ G4int G4SBSECalHit::calc_row( G4int PMT ){
   G4int sub_col = super_row/26;
   G4int sub_row = super_row%26; 
   
-  return sub_row + 26*(sub_col/2); //sub_col/2 returns 0 unless super_row==52, in which case it returns 1, so for this one result row number == 26 
+  return sub_row + 26*(sub_col/2); //sub_col/2 returns 0 unless super_row==52, in which case it returns 1, so for this one result row number == 26
 }
 
 G4int G4SBSECalHit::calc_col( G4int PMT ){

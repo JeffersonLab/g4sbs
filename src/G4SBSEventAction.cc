@@ -843,6 +843,10 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
   }
 }
 
+void G4SBSEventAction::FillECalData( const G4Event *evt, G4SBSECalHitsCollection *HC, G4SBSECaloutput &ECout ){
+  ;
+}
+
 void G4SBSEventAction::MapTracks( const G4Event *evt ){
 
   //This step is actually computationally expensive due to the large number of "trajectories" in any given event:

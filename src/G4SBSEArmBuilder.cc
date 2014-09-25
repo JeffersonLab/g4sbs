@@ -611,7 +611,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     //Subtract out a slot so we can add in TF1
     G4Box *air_box1 = new G4Box( "air_box1", (3.800/2.0)*cm, (3.800/2.0)*cm, (45.000/2.0)*cm );
     G4SubtractionSolid *airwrap = new G4SubtractionSolid( "airwrap", air_box, air_box1, 0, G4ThreeVector(0,0,(mylar_plus_air/2.0)*cm));
-    G4LogicalVolume *airwrap_log = new G4LogicalVolume( airwrap, GetMaterial("RICH_Air"), "airwrap_log" );
+    G4LogicalVolume *airwrap_log = new G4LogicalVolume( airwrap, GetMaterial("ECal_Air"), "airwrap_log" );
 
     G4double x_TF1 = 3.800*cm, y_TF1 = 3.800*cm, z_TF1 = 45.000*cm;
     G4Box *TF1_box = new G4Box( "TF1_box", x_TF1/2.0, y_TF1/2.0, z_TF1/2.0 );

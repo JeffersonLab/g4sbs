@@ -396,10 +396,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4Element *Sb = man->FindOrBuildElement("Sb");
     G4Element *Cs = man->FindOrBuildElement("Cs");
 
-    //Define AIR for RICH mother volume:
-    G4Material *RICH_Air = man->FindOrBuildMaterial("G4_AIR");
-    fMaterialsMap["RICH_Air"] = RICH_Air;
-
     //Define tedlar for gaps between aerogel tiles. These will have no optical properties and therefore optical photons 
     //crossing tile boundaries will be killed.
     G4Material *Tedlar = man->FindOrBuildMaterial("G4_POLYVINYLIDENE_FLUORIDE");
@@ -817,6 +813,37 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     Photocathode_material_ecal->SetMaterialPropertiesTable( MPT_temp );
 
     fMaterialsMap["Photocathode_material_ecal"] = Photocathode_material_ecal;
+
+    //Define optical properties for AIR:
+    G4Material *ECal_Air = man->FindOrBuildMaterial("G4_AIR");
+
+    MPT_temp = new G4MaterialPropertiesTable();
+
+    G4double Rindex_air[nentries_ecal_QE] = {
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003};  
+
+    G4double Abslength_air[nentries_ecal_QE] = {
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm};
+
+    MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_air, nentries_ecal_QE );
+    MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_air, nentries_ecal_QE );
+
+    ECal_Air->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap["ECal_Air"] = ECal_Air;
 
 }
 

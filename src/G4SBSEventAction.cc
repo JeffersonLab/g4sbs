@@ -436,7 +436,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   return;
 }
 
-void G4SBSEventAction::FillECalData( const G4Event *evt, G4SBSECalHitsCollection *hits, G4SBSECaloutput &ecaloutput ){
+void G4SBSEventAction::FillECalData( const G4Event *evt, G4SBSECalHitsCollection *hits, G4SBSECaloutput &ecaloutput )
+{
   int nG4hits = hits->entries(); //Loop over nG4hits
   ecaloutput.Clear();
 
@@ -459,7 +460,7 @@ void G4SBSEventAction::FillECalData( const G4Event *evt, G4SBSECalHitsCollection
   map<int,double> PMT_hittime2; //hit time squared.
   map<int,double> PMT_rmstime;
   
-  G4MaterialPropertiesTable *MPT; //why do I need this command?
+  G4MaterialPropertiesTable *MPT; 
 
     for( int step = 0; step < nG4hits; step++ ){
     //Retrieve all relevant information for this step:
@@ -498,9 +499,9 @@ void G4SBSEventAction::FillECalData( const G4Event *evt, G4SBSECalHitsCollection
       Photon_PMT[ tid ] = pmt;
       Photon_row[ tid ] = row;
       Photon_col[ tid ] = col;
-      Photon_nsteps[ tid ] = 1;
-      
-    } else { //existing photon, additional step. Increment averages of position, direction, time, etc for all steps of a detected photon. Don't bother for 
+      Photon_nsteps[ tid ] = 1;   
+    }
+    else { //existing photon, additional step. Increment averages of position, direction, time, etc for all steps of a detected photon. Don't bother for 
       //undetected photons...
       if( Photon_detected[ tid ] ){
 	G4double average_time = (Photon_nsteps[ tid ] * Photon_hittime[ tid ] + Hittime )/double( Photon_nsteps[tid] + 1 );
@@ -535,8 +536,9 @@ void G4SBSEventAction::FillECalData( const G4Event *evt, G4SBSECalHitsCollection
 	  PMT_col[ pmt ] = Photon_col[tid];
 	  PMT_hittime[ pmt ] = Photon_hittime[tid];
 	  PMT_hittime2[ pmt ] = pow(Photon_hittime[tid],2);
+	}
 
-	} else if( fabs( Photon_hittime[tid] - PMT_hittime[pmt] ) <= ecaloutput.timewindow ){ //Existing pmt with multiple photon detections:
+	else if( fabs( Photon_hittime[tid] - PMT_hittime[pmt] ) <= ecaloutput.timewindow ){ //Existing pmt with multiple photon detections:
 	  G4double average_hittime = (PMT_Numphotoelectrons[pmt] * PMT_hittime[pmt] + Photon_hittime[tid])/double(PMT_Numphotoelectrons[pmt] + 1 );
 	  PMT_hittime[pmt] = average_hittime;
 	  G4double average_hittime2 = (PMT_Numphotoelectrons[pmt] * PMT_hittime2[pmt] + pow(Photon_hittime[tid],2))/double(PMT_Numphotoelectrons[pmt] + 1 );
@@ -545,11 +547,7 @@ void G4SBSEventAction::FillECalData( const G4Event *evt, G4SBSECalHitsCollection
 	  PMT_Numphotoelectrons[pmt] += 1;
 	  
 	  Photon_used[tid] = true;
-
 	}
-	
-	
-	
 	//If any photon is detected but not used, then remaining hits = true!
 	if( !(Photon_used[tid] ) ) remaining_hits = true;
       }
@@ -566,17 +564,14 @@ void G4SBSEventAction::FillECalData( const G4Event *evt, G4SBSECalHitsCollection
 	ecaloutput.PMTnumber.push_back( pmt );
 	ecaloutput.row.push_back( PMT_row[pmt] );
 	ecaloutput.col.push_back( PMT_col[pmt] );
-	ecaloutput.NumPhotoelectrons.push_back( PMT_Numphotoelectrons[pmt] );
+	ecaloutput.NumPhotoelectrons.push_back( PMT_Numphotoelectrons[pmt] ); //NumPhotoelectrons is vector<int> defined in ECaloutput.hh
 	ecaloutput.Time_avg.push_back( PMT_hittime[pmt] );
-	ecaloutput.Time_rms.push_back( sqrt(fabs(PMT_hittime2[pmt] - pow(PMT_hittime[pmt],2) ) ) );
-	
+	ecaloutput.Time_rms.push_back( sqrt(fabs(PMT_hittime2[pmt] - pow(PMT_hittime[pmt],2) ) ) );	
       }
-    } 
-  }
-  
+    } //while
+  }//for
+}//void
 
-
-}
 void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection *hits, G4SBSRICHoutput &richoutput ){
   //Here is where we traverse the hit collection of the RICH and extract useful output data. 
   
@@ -584,7 +579,7 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
   //This is the total number of tracking steps in our sensitive volume!
   int nG4hits = hits->entries();
 
-  //  cout << "Filling RICH data, nhits = " << nG4hits << endl;
+  //cout << "Filling RICH data, nhits = " << nG4hits << endl;
 
   richoutput.Clear();
 
@@ -841,10 +836,6 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
       richoutput.mTrackNo[ihit] = -1; //This should never happen!
     }
   }
-}
-
-void G4SBSEventAction::FillECalData( const G4Event *evt, G4SBSECalHitsCollection *HC, G4SBSECaloutput &ECout ){
-  ;
 }
 
 void G4SBSEventAction::MapTracks( const G4Event *evt ){

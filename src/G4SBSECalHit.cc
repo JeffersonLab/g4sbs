@@ -8,13 +8,13 @@
 
 G4Allocator<G4SBSECalHit> *G4SBSECalHitAllocator;
 
-G4SBSECalHit::G4SBSECalHit() : G4VHit() //Is invocation of the G4VHit() constructor needed?
+G4SBSECalHit::G4SBSECalHit() : G4VHit()
 {;}
 
 G4SBSECalHit::~G4SBSECalHit()
 {;}
 
-G4SBSECalHit::G4SBSECalHit(const G4SBSECalHit &hit ) : G4VHit() //copy constructor:
+G4SBSECalHit::G4SBSECalHit(const G4SBSECalHit &hit ) : G4VHit()
 {
   //copy all private data members:
   fTrackID = hit.GetTrackID();
@@ -41,7 +41,7 @@ G4SBSECalHit::G4SBSECalHit(const G4SBSECalHit &hit ) : G4VHit() //copy construct
  
 }
 
-const G4SBSECalHit& G4SBSECalHit::operator=(const G4SBSECalHit &hit) //assignment operator
+const G4SBSECalHit& G4SBSECalHit::operator=(const G4SBSECalHit &hit)
 {
   //copy all private data members and return the object pointed by this:
   fTrackID = hit.GetTrackID();
@@ -89,23 +89,16 @@ void G4SBSECalHit::Draw()
 
 void G4SBSECalHit::Print() {;}
 
-
 G4int G4SBSECalHit::calc_row( G4int PMT ){
 
-  //total of 73 columns
-  G4int super_row = PMT%53; //ranges from 0..52
-  //if 
-  G4int sub_col = super_row/26;
-  G4int sub_row = super_row%26; 
-  
-  return sub_row + 26*(sub_col/2); //sub_col/2 returns 0 unless super_row==52, in which case it returns 1, so for this one result row number == 26
+  G4int ecal_row = PMT%76; //0-75
+  return ecal_row;
+
 }
 
 G4int G4SBSECalHit::calc_col( G4int PMT ){
-  G4int super_col = PMT/53; 
-  G4int super_row = PMT%53; 
-  G4int sub_col = (super_row-1)/26;
-  //G4int sub_row = super_row%26;
 
-  return 2*super_col + sub_col; //should have value from 0..72
+  G4int ecal_col = PMT/76; //ranges from 0-19 as PMT goes to 20*76=1520 PMTs
+  return ecal_col;
+
 }

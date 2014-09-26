@@ -721,6 +721,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4Element* elAs = new G4Element( "Arsenic", "As", 33, 74.922*g/mole );
     G4Element* elPb = new G4Element( "Lead", "Pb", 82, 207.2*g/mole );
     G4Element* elBe = new G4Element( "Beryllium", "Be", 4, 9.012*g/mole );
+    
     //Materials necessary to build TF1 aka lead-glass
     G4Material* PbO = new G4Material("TF1_PbO", bigden, 2);
     PbO->AddElement(elPb, 1);
@@ -738,7 +739,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     fMaterialsMap["TF1_As2O3"] = As2O3;
 
     //Density 3.86 g/cm^3
-    //Index of Refraction 1.6522
     G4Material* TF1 = new G4Material("TF1", 3.86*g/cm3, 4);
     TF1->AddMaterial(PbO, 0.512);
     TF1->AddMaterial(SiO2, 0.413);
@@ -746,7 +746,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     TF1->AddMaterial(As2O3, 0.005);
 
     MPT_temp = new G4MaterialPropertiesTable();
-    //Need material for TF1/PMTcathode (note: varies from RICH cathodes)
+    //Need material/optical properties for TF1/PMTcathode/PMTWindow (note: varies from RICH cathodes/windows)
     //Values come from old GSTAR code written by K.Shestermanov 
     const G4int nentries_ecal_QE = 37;
     
@@ -789,6 +789,31 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4Material *Mylar = man->FindOrBuildMaterial("G4_MYLAR");
     fMaterialsMap["Mylar"] = Mylar;
 
+    //Photocathode & window material/optical properties!
+    G4double den_pmtwindow_ecal = 2.20*g/cm3;
+
+    G4Material *QuartzWindow_ECal = new G4Material( "QuartzWindow_ECal", den_pmtwindow_ecal, nel=2 );
+    QuartzWindow_ECal->AddElement( O, natoms=2 );
+    QuartzWindow_ECal->AddElement( Si, natoms=1 );
+    //Rindex comes from GSTAR code 
+    G4double Rindex_quartz_ecal[nentries_ecal_QE] = { 
+      1.41935, 1.42989, 1.44182, 1.44661, 1.45221,
+      1.45640, 1.46131, 1.46677, 1.47181, 1.47495,
+      1.48280, 1.48788, 1.49412, 1.49720, 1.50055,
+      1.50322, 1.50614, 1.50847, 1.50995, 1.51067,
+      1.51137, 1.51206, 1.51274, 1.51307, 1.51373,
+      1.51437, 1.51501, 1.51593, 1.51654, 1.51713,
+      1.51771, 1.51828, 1.51912, 1.52073, 1.52370,
+      1.52938, 1.53188};
+
+    MPT_temp = new G4MaterialPropertiesTable();
+    MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_quartz_ecal, nentries_ecal_QE);
+    MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_TF1, nentries_ecal_QE); //Do we need this?? 
+
+    QuartzWindow_ECal->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap["QuartzWindow_ECal"] = QuartzWindow_ECal;
+
+    //Photocathode material - RIndex same as QuartzWindow_ECal
     G4double PMT_ECAL_QE[nentries_ecal_QE] = {
       0.004, 0.016, 0.031, 0.043, 0.052,
       0.059, 0.069, 0.083, 0.100, 0.110,
@@ -799,7 +824,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       0.155, 0.150, 0.139, 0.123, 0.084,
       0.023, 0.003 }; 
 
-    //Refractive index data recycled from RICH routine (Rindex_quartz w/ nentries_quartz = 51)
     G4double den_photocathode_ecal = 2.57*g/cm3;
     G4Material *Photocathode_material_ecal = new G4Material( "Photocathode_material_ecal", den_photocathode_ecal, nel=3 );
     Photocathode_material_ecal->AddElement( Sb, natoms=1 );
@@ -808,10 +832,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
     MPT_temp = new G4MaterialPropertiesTable();
     MPT_temp->AddProperty("EFFICIENCY", Ephoton_ECAL_QE, PMT_ECAL_QE, nentries_ecal_QE ); 
-    MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz );
+    MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_quartz_ecal, nentries_ecal_QE );
 
     Photocathode_material_ecal->SetMaterialPropertiesTable( MPT_temp );
-
     fMaterialsMap["Photocathode_material_ecal"] = Photocathode_material_ecal;
 
     //Define optical properties for AIR:

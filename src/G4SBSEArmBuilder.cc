@@ -625,7 +625,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4double PMT_window_radius = 1.25*cm;
     G4double PMT_window_depth = 0.20*cm;
     G4Tubs *PMT_window = new G4Tubs( "PMT_window", 0.0*cm, PMT_window_radius, PMT_window_depth/2.0, 0.0, twopi );
-    G4LogicalVolume *PMT_window_log = new G4LogicalVolume( PMT_window, GetMaterial("QuartzWindow"), "PMT_window_log" );
+    G4LogicalVolume *PMT_window_log = new G4LogicalVolume( PMT_window, GetMaterial("QuartzWindow_ECal"), "PMT_window_log" );
     //PMT
     G4double PMT_radius = 1.25*cm;
     G4double PMT_depth = 0.20*cm;

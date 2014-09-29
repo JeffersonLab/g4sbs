@@ -429,7 +429,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   fIO->SetRICHData(richdata);
   fIO->SetTrackData( Toutput );
   fIO->SetECalData( ecaldata ); //defined in G4SBSIO.hh
-  bool anyhits = (hasbb || hashcal || hitdata.ndata > 0 || richdata.nhits_RICH > 0 );
+  bool anyhits = (hasbb || hashcal || hitdata.ndata > 0 || richdata.nhits_RICH > 0 || ecaldata.nhits_ECal > 0 );
 
   if( fTreeFlag == 0 || anyhits ) fIO->FillTree();
 

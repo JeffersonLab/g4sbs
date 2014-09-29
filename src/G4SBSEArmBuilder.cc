@@ -668,21 +668,21 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     for( G4int i=0; i<y_number_ecal; i++ ){
 
       G4double ytemp = y_block - i*(y_module_type1);
-      G4double ytemp_air = y_block - i*(y_air+2*mylar_wrapping_size);//.003
-      G4double ytemp_TF1 = y_block - i*(y_TF1+2*mylar_plus_air); //.012
+      //G4double ytemp_air = y_block - i*(y_air+2*mylar_wrapping_size);//.003
+      //G4double ytemp_TF1 = y_block - i*(y_TF1+2*mylar_plus_air); //.012
 
       for(G4int j=0; j<x_number_ecal; j++){
 
 	G4double xtemp = x_block - j*(x_module_type1);
-	G4double xtemp_air = x_block - j*(x_air + 2*mylar_wrapping_size); //.003
-        G4double xtemp_TF1 = x_block - j*(x_TF1 + 2*mylar_plus_air);//.012
+	//G4double xtemp_air = x_block - j*(x_air + 2*mylar_wrapping_size); //.003
+        //G4double xtemp_TF1 = x_block - j*(x_TF1 + 2*mylar_plus_air);//.012
 
 	//Mylar
 	new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, z_offset_mylar), mylar_wrap_log, "Mylar_pv", ecal_log, false, copy_number_PMT ); 
 	//Air
-        new G4PVPlacement( 0, G4ThreeVector(xtemp_air, ytemp_air, z_offset_air), airwrap_log, "Air_pv", ecal_log, false, copy_number_PMT );
+        new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, z_offset_air), airwrap_log, "Air_pv", ecal_log, false, copy_number_PMT );
 	//TF1
-        new G4PVPlacement( 0, G4ThreeVector(xtemp_TF1, ytemp_TF1, z_offset_TF1), TF1_log, "TF1_pv", ecal_log, false, copy_number_PMT );
+        new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, z_offset_TF1), TF1_log, "TF1_pv", ecal_log, false, copy_number_PMT );
 	//PMT_window
 	new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, z_module_type1/2.0 + PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
 	//PMT_cathode

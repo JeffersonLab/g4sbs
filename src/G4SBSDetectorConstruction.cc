@@ -768,7 +768,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       1.66171, 1.66229, 1.66286, 1.66314, 1.66369,
       1.66423, 1.66476, 1.66554, 1.66605, 1.66655,
       1.66704, 1.66752, 1.66823, 1.66958, 1.67209,
-      1.67690,1.67903};  
+      1.67690, 1.67903};  
 
     G4double Abslength_TF1[nentries_ecal_QE] = {
       300.0000*cm, 300.0000*cm, 300.0000*cm, 300.0000*cm, 300.0000*cm,
@@ -795,6 +795,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4Material *QuartzWindow_ECal = new G4Material( "QuartzWindow_ECal", den_pmtwindow_ecal, nel=2 );
     QuartzWindow_ECal->AddElement( O, natoms=2 );
     QuartzWindow_ECal->AddElement( Si, natoms=1 );
+
     //Rindex comes from GSTAR code 
     G4double Rindex_quartz_ecal[nentries_ecal_QE] = { 
       1.41935, 1.42989, 1.44182, 1.44661, 1.45221,
@@ -813,7 +814,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     QuartzWindow_ECal->SetMaterialPropertiesTable( MPT_temp );
     fMaterialsMap["QuartzWindow_ECal"] = QuartzWindow_ECal;
 
-    //Photocathode material - RIndex same as QuartzWindow_ECal
+    //Photocathode material - RIndex same as QuartzWindow_ECal, define a QE from GSTAR code
     G4double PMT_ECAL_QE[nentries_ecal_QE] = {
       0.004, 0.016, 0.031, 0.043, 0.052,
       0.059, 0.069, 0.083, 0.100, 0.110,
@@ -839,7 +840,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
     //Define optical properties for AIR:
     G4Material *ECal_Air = man->FindOrBuildMaterial("G4_AIR");
-
     MPT_temp = new G4MaterialPropertiesTable();
 
     G4double Rindex_air[nentries_ecal_QE] = {

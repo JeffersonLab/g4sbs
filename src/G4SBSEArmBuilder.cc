@@ -658,6 +658,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4double x_block = x_ecal/2.0-x_module_type1/2.0 , y_block = y_ecal/2.0-y_module_type1/2.0, z_offset_mylar = 0.0;
     //Air
     G4double z_offset_air = (mylar_wrapping_size/2.0);
+    //G4double z_offset_air = mylar_wrapping_size;
     //TF1
     G4double z_offset_TF1 = (mylar_plus_air/2.0);
     G4int x_number_ecal = 20;

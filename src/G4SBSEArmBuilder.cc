@@ -516,12 +516,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     double bigcalwidth  = 44.10*2.54*cm;
     double bigcaldepth  = 15.75*2.54*cm;
     double bbr = fBBdist+bigcaldepth/2.0;
-/*
+    /*
     double CH2depth = 15.0*cm;
     double CHdepth  = 6.0*cm;
-
-    G4Box *bigcalbox = new G4Box("bigcalbox", bigcalwidth/2.0, bigcalheight/2.0, bigcaldepth/2.0 );
-    G4LogicalVolume* bigcallog = new G4LogicalVolume(bigcalbox, GetMaterial("Lead"), "bigcallog");
 
     G4Box *CH2box = new G4Box("ch2box", bigcalwidth/2.0, bigcalheight/2.0, CH2depth/2.0 );
     G4LogicalVolume* ch2boxlog = new G4LogicalVolume(CH2box, GetMaterial("CH2"), "ch2log");
@@ -531,30 +528,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     double ch2r = bbr - bigcaldepth/2.0 - CHdepth - CH2depth/2.0;
     double chr = bbr - bigcaldepth/2.0 - CHdepth/2.0;
 
-    new G4PVPlacement(bbrm, G4ThreeVector(bbr*sin(-fBBang), 0.0, bbr*cos(-fBBang) ), bigcallog,
-	    "bigcalphys", worldlog, false, 0, false);
+
     new G4PVPlacement(bbrm, G4ThreeVector(ch2r*sin(-fBBang), 0.0, ch2r*cos(-fBBang) ), ch2boxlog,
 	    "ch2boxphys", worldlog, false, 0, false);
     new G4PVPlacement(bbrm, G4ThreeVector(chr*sin(-fBBang), 0.0, chr*cos(-fBBang) ), chboxlog,
 	    "chboxphys", worldlog, false, 0, false);
 
-    G4String BBCALSDname = "G4SBS/BBCal";
-    G4String BBCALcolname = "BBCalcol";
-    G4SBSCalSD* BBCalSD;
-
-    if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCALSDname)) ){
-	BBCalSD = new G4SBSCalSD( BBCALSDname, BBCALcolname );
-	fDetCon->fSDman->AddNewDetector(BBCalSD);
-	fDetCon->SDlist[BBCALSDname] = BBCalSD;
-    }
-
-    fDetCon->fSDman->AddNewDetector(BBCalSD);
-    bigcallog->SetSensitiveDetector(BBCalSD);
-    bigcallog->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-
-    G4VisAttributes * bcVisAtt
-	= new G4VisAttributes(G4Colour(0.0,1.0,1.0));
-    bigcallog->SetVisAttributes(bcVisAtt);
 
     G4VisAttributes * chVisAtt
 	= new G4VisAttributes(G4Colour(1.0,0.6,0.0));
@@ -563,10 +542,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4VisAttributes * ch2VisAtt
 	= new G4VisAttributes(G4Colour(1.0,0.8,0.0));
     ch2boxlog->SetVisAttributes(ch2VisAtt);
+    */
 
-}
 
-*/
 
     /*****************************************************************************
      ********************        DEVELOPMENT OF ECAL      ************************
@@ -576,56 +554,50 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4double x_ecal = 76.24*cm, y_ecal = 289.712*cm, z_ecal = 50.80*cm;
     G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
     G4LogicalVolume *ecal_log = new G4LogicalVolume( ecal_box, GetMaterial("Air"), "ecal_log" );
-    new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang)-bigcalwidth/2.0, 0, bbr*cos(fBBang)+0.75*m), ecal_log, "ecal",worldlog, false, 0 );
+    new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang), 0.0, bbr*cos(-fBBang) ), ecal_log, "ecal",worldlog, false, 0 );
 
     //dimensions of mylar/air wrapping:
     G4double mylar_wrapping_size = 0.00150*cm;
     G4double air_wrapping_size = 0.00450*cm;
     G4double mylar_plus_air = mylar_wrapping_size + air_wrapping_size;
 
-    //Type1 - 3.800 x 3.800 x 45.000 cm^3 + layer of air (0.0045cm) + layer of mylar (0.0015cm)
-    G4double x_module_type1 = 3.8000*cm + (2*mylar_plus_air);
-    G4double y_module_type1 = 3.8000*cm + (2*mylar_plus_air);
-    G4double z_module_type1 = 45.0000*cm + mylar_plus_air; 
-    G4Box *mylar_module1 = new G4Box( "mylar_module1", x_module_type1/2.0, y_module_type1/2.0, z_module_type1/2.0 );
-    
-    //Type2 - 4 x 4 x 40 cm^3 + layer of air (0.005cm) + layer of mylar (0.001cm)
-    //G4double x_module_type2 = 4.006*cm, y_module_type2 = 4.006*cm, z_module_type2 = 40.006*cm;
-    //G4Box *mylar_module2 = new G4Box( "mylar_module2", x_module_type2/2.0, y_module_type2/2.0, z_module_type2/2.0 );
+    //TYPE1 MODULE - 3.800 x 3.800 x 45.000 cm^3 + layer of air (0.0045cm) + layer of mylar (0.0015cm)
+    G4double x_module_type1 = 3.8000*cm + (2*mylar_plus_air); //3.812
+    G4double y_module_type1 = 3.8000*cm + (2*mylar_plus_air); //3.812
+    G4double z_module_type1 = 45.0000*cm + mylar_plus_air;    //45.006
+    G4Box *module_type1 = new G4Box( "module_type1", x_module_type1/2.0, y_module_type1/2.0, z_module_type1/2.0 );
 
-    //Type1 for now - subtraction solid to leave us with a 0.0015cm "mylar wrapping" with one end open
+    //Define a new mother volume which will house the contents of a module(i.e. TF1 & Mylar)
+    G4LogicalVolume *module_log_type1 = new G4LogicalVolume( module_type1, GetMaterial("ECal_Air"), "module_log_type1" );
+
+    //MYLAR
+    //Subtraction solid to leave us with a 0.0015cm "mylar wrapping" with one end open
     G4double x_sub = x_module_type1 - (2*mylar_wrapping_size);
     G4double y_sub = y_module_type1 - (2*mylar_wrapping_size);
-    G4double z_sub = z_module_type1; //going to be shifted in G4SubtractionSolid in order to get 0.0015cm of mylar on one end module
-
+    G4double z_sub = z_module_type1; //going to be shifted in G4SubtractionSolid in order to get 0.0015cm of mylar on one end
     G4Box *mylar_module1_subtract = new G4Box( "mylar_module1_subtract", x_sub/2.0, y_sub/2.0, z_sub/2.0 );
-    G4SubtractionSolid *mylarwrap = new G4SubtractionSolid( "mylarwrap", mylar_module1, mylar_module1_subtract, 0, G4ThreeVector(0.0, 0.0, mylar_wrapping_size));
+    G4SubtractionSolid *mylarwrap = new G4SubtractionSolid( "mylarwrap", module_type1, mylar_module1_subtract, 0, G4ThreeVector(0.0, 0.0, mylar_wrapping_size));
     G4LogicalVolume *mylar_wrap_log = new G4LogicalVolume( mylarwrap, GetMaterial("Mylar"), "mylar_wrap_log" );
 
-    //Fill the Mylar box with a box of air
-    G4double x_air = x_module_type1 - (2*mylar_wrapping_size);
-    G4double y_air = y_module_type1 - (2*mylar_wrapping_size);
-    G4double z_air = z_module_type1 - mylar_wrapping_size;
-    G4Box *air_box = new G4Box( "air_box", x_air/2.0, y_air/2.0, z_air/2.0 );
-
-    //Subtract out a slot so we can add in TF1
-    G4Box *air_box1 = new G4Box( "air_box1", (3.800/2.0)*cm, (3.800/2.0)*cm, (45.000/2.0)*cm );
-    G4SubtractionSolid *airwrap = new G4SubtractionSolid( "airwrap", air_box, air_box1, 0, G4ThreeVector(0,0,(mylar_plus_air/2.0)*cm));
-    G4LogicalVolume *airwrap_log = new G4LogicalVolume( airwrap, GetMaterial("ECal_Air"), "airwrap_log" );
-
+    //TF1
     G4double x_TF1 = 3.800*cm, y_TF1 = 3.800*cm, z_TF1 = 45.000*cm;
     G4Box *TF1_box = new G4Box( "TF1_box", x_TF1/2.0, y_TF1/2.0, z_TF1/2.0 );
     G4LogicalVolume *TF1_log = new G4LogicalVolume ( TF1_box, GetMaterial("TF1"), "TF1_log" );
 
+    //Place TF1 & Mylar inside module_log_type1 which is already full of ECal_Air
+    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, 0.0), mylar_wrap_log, "Mylar_Wrap", module_log_type1, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, mylar_plus_air/2.0), TF1_log, "TF1", module_log_type1, false, 0 );
+
     //Want blocks to be optically independent => assign an optical skin
     new G4LogicalSkinSurface( "Mylar_skin", mylar_wrap_log, GetOpticalSurface( "Mirrsurf" ));
     
-    //Build PMT detector which will be placed at the end of the block
-    //Starting with the Quartz window - optical properties defined in DetConst.:
+    //Build PMT detector which will be placed at the end of the module
+    //Starting with the Quartz window
     G4double PMT_window_radius = 1.25*cm;
     G4double PMT_window_depth = 0.20*cm;
     G4Tubs *PMT_window = new G4Tubs( "PMT_window", 0.0*cm, PMT_window_radius, PMT_window_depth/2.0, 0.0, twopi );
     G4LogicalVolume *PMT_window_log = new G4LogicalVolume( PMT_window, GetMaterial("QuartzWindow_ECal"), "PMT_window_log" );
+
     //PMT
     G4double PMT_radius = 1.25*cm;
     G4double PMT_depth = 0.20*cm;
@@ -654,36 +626,22 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     PMTcathode_ecal_log->SetSensitiveDetector( ECalSD );
     
     //Placing the blocks inside mother volume - looking downstream, iteration starts top left corner of mother volume
-    //Mylar
-    G4double x_block = x_ecal/2.0-x_module_type1/2.0 , y_block = y_ecal/2.0-y_module_type1/2.0, z_offset_mylar = 0.0;
-    //Air
-    G4double z_offset_air = (mylar_wrapping_size/2.0);
-    //G4double z_offset_air = mylar_wrapping_size;
-    //TF1
-    G4double z_offset_TF1 = (mylar_plus_air/2.0);
+    //Type1 Module:
+    G4double x_block = x_ecal/2.0-x_module_type1/2.0 , y_block = y_ecal/2.0-y_module_type1/2.0;
+
     G4int x_number_ecal = 20;
     G4int y_number_ecal = 76;   //76x20 array
     G4int copy_number_PMT = 0;  //label modules
 
     //Iterating to building ECAL
     for( G4int i=0; i<y_number_ecal; i++ ){
-
       G4double ytemp = y_block - i*(y_module_type1);
-      //G4double ytemp_air = y_block - i*(y_air+2*mylar_wrapping_size);//.003
-      //G4double ytemp_TF1 = y_block - i*(y_TF1+2*mylar_plus_air); //.012
 
-      for(G4int j=0; j<x_number_ecal; j++){
-
+      for(G4int j=0; j<x_number_ecal; j++){	
 	G4double xtemp = x_block - j*(x_module_type1);
-	//G4double xtemp_air = x_block - j*(x_air + 2*mylar_wrapping_size); //.003
-        //G4double xtemp_TF1 = x_block - j*(x_TF1 + 2*mylar_plus_air);//.012
 
-	//Mylar
-	new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, z_offset_mylar), mylar_wrap_log, "Mylar_pv", ecal_log, false, copy_number_PMT ); 
-	//Air
-        new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, z_offset_air), airwrap_log, "Air_pv", ecal_log, false, copy_number_PMT );
-	//TF1
-        new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, z_offset_TF1), TF1_log, "TF1_pv", ecal_log, false, copy_number_PMT );
+	//Type1 Module
+	new G4PVPlacement( 0, G4ThreeVector( xtemp, ytemp, 0.0), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
 	//PMT_window
 	new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, z_module_type1/2.0 + PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
 	//PMT_cathode
@@ -704,7 +662,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
 	//Air
 	G4VisAttributes *air_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));
-	airwrap_log->SetVisAttributes(air_colour);
+	module_log_type1->SetVisAttributes(air_colour);
 
 	//TF1
 	G4VisAttributes *TF1_colour = new G4VisAttributes(G4Colour( 0.8, 0.8, 0.0 ) );
@@ -722,5 +680,6 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	//Shielding
 	//box_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
 	  						    
+
 }
 

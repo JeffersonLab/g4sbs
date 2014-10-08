@@ -551,10 +551,10 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     ******************************************************************************/
 
     //Define a Mother Volume to place the ECAL modules
-    G4double x_ecal = 78.146*cm, y_ecal = 289.712*cm, z_ecal = 50.80*cm;
+    G4double x_ecal = 203.942*cm, y_ecal = 301.148*cm, z_ecal = 50.80*cm;
     G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
     G4LogicalVolume *ecal_log = new G4LogicalVolume( ecal_box, GetMaterial("Air"), "ecal_log" );
-    new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang), 0.0, bbr*cos(-fBBang) ), ecal_log, "ecal",worldlog, false, 0 );
+    new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang), 0.0, bbr*cos(-fBBang) ), ecal_log, "ecal", worldlog, false, 0 );
 
     //dimensions of mylar/air wrapping:
     G4double mylar_wrapping_size = 0.00150*cm;
@@ -610,7 +610,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4LogicalVolume *Al_log = new G4LogicalVolume ( Al_box, GetMaterial("RICHAluminum"), "Al_log" );
     new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -z_module_type1/2.0 - z_Al/2.0), Al_log, "Aluminum_Shielding", ecal_log, false, 0 );
 
-    //PMTcathode_ecal_log is the sensitive detector, assigned to RICHSD which detects optical photons
+    //PMTcathode_ecal_log is the sensitive detector, assigned to ECalSD which detects optical photons
     G4SDManager *sdman = fDetCon->fSDman;
 
     G4String ECalSDname = "G4SBS/ECal";
@@ -630,8 +630,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
  
     G4double x_position = x_ecal/2.0-x_module_type1/2.0 , y_position = y_ecal/2.0-y_module_type1/2.0;
 
-    G4int x_number_ecal = 20;
-    G4int y_number_ecal = 76;   //76x20 array
+    G4int x_number_ecal = 53;
+    G4int y_number_ecal = 79;   //76x20 array
     G4int copy_number_PMT = 0;  //label modules
 
     //Need a Steel module to fill voids when rows are staggered - x dimension should be half the size
@@ -707,7 +707,6 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	G4VisAttributes *Al_colour = new G4VisAttributes(G4Colour(0.9, 0.9, 0.9));
         Al_log->SetVisAttributes(Al_colour);
  
-
 	//Shielding
 	//box_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
 	  						    

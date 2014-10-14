@@ -502,20 +502,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
 void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
-    //-----------------------------
-    //  BigCal: Currently just a box with dimensions and sensitivity
-
     printf("BigCal at %f deg\n", fBBang/deg);
 
-    G4RotationMatrix *bbrm = new G4RotationMatrix;
-    bbrm->rotateY(fBBang);
-
-    // Ecal will act as BBcal detector
-
-    double bigcalheight = (24*4.5+32*4.0)*cm;
-    double bigcalwidth  = 44.10*2.54*cm;
-    double bigcaldepth  = 15.75*2.54*cm;
-    double bbr = fBBdist+bigcaldepth/2.0;
     /*
     double CH2depth = 15.0*cm;
     double CHdepth  = 6.0*cm;
@@ -545,13 +533,39 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     */
 
 
-
     /*****************************************************************************
      ********************        DEVELOPMENT OF ECAL      ************************
     ******************************************************************************/
+    G4RotationMatrix *bbrm = new G4RotationMatrix;
+    bbrm->rotateY(fBBang);
+
+    // ECal will act as BBcal detector
+    G4double x_ecal = 203.942*cm, y_ecal = 301.148*cm, z_ecal = 50.80*cm;
+    double bbr = fBBdist + z_ecal/2.0;
+
+    
+    // //CH2 Box - located infront of Coordinate Detector
+    // G4double CH2depth = 20.0*cm;
+    // G4Box *CH2box = new G4Box("CH2box", x_ecal/2.0, y_ecal/2.0, CH2depth/2.0 );
+    // G4LogicalVolume *CH2box_log = new G4LogicalVolume(CH2box, GetMaterial("CH2"), "CH2box_log");
+
+    // //Coordinate Detector - 2 planes
+    // G4double CDmother_depth = 10*cm;
+    // G4double CD_depth = 1*cm;
+    // G4Box *CD_mother_box = new G4Box("CD_mother_box", x_ecal/2.0, y_ecal/2.0, CDmother_depth/2.0 );
+    // G4LogicalVolume *CD_log = new G4LogicalVolume(CD_mother_box, GetMaterial("Air"), "CD_log");
+    
+    // G4Box *planes = new G4Box("planes", x_ecal/2.0, y_ecal/2.0, CD_depth/2.0);
+    // G4LogicalVolume *planes_log = new G4LogicalVolume( planes, GetMaterial("Air"), "planes_log" );
+
+    // new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -2.0*cm), planes_log, "plane1", CD_log, false, 1 );
+    // new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, 2.0*cm ), planes_log, "plane2", CD_log, false, 2 );
+
+    // //Place CD 15 cm away from ECal
+    // double cdr = bbr - 15*cm - CDmother_depth/2.0;
+    // new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang), 0.0, cdr*cos(fBBang) ), CD_log, "CD", worldlog, false, 0 );
 
     //Define a Mother Volume to place the ECAL modules
-    G4double x_ecal = 203.942*cm, y_ecal = 301.148*cm, z_ecal = 50.80*cm;
     G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
     G4LogicalVolume *ecal_log = new G4LogicalVolume( ecal_box, GetMaterial("Air"), "ecal_log" );
     new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang), 0.0, bbr*cos(-fBBang) ), ecal_log, "ecal", worldlog, false, 0 );

@@ -79,8 +79,8 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //--------- RICH (experimental): -------------------------
     if( exptype == kSIDISExp ) //SIDIS experiment requires a RICH detector and a tracker for SBS: 
     {
-	//Let's make a simple tracker: 6 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~60 cm + about 1.6 cm
-	G4double SBStracker_dist = fRICHdist - 0.5*m;
+	//Let's make a simple tracker: 5 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~50 cm + about 1.6 cm
+	G4double SBStracker_dist = fRICHdist - 0.3*m;
 	G4ThreeVector SBStracker_pos( SBStracker_dist * sin( f48D48ang ), 0.0, SBStracker_dist * cos( f48D48ang ) );
 
 	G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
@@ -91,21 +91,22 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
 	SBStracker_rot->rotateY( -f48D48ang );
 
-	G4Box *SBStracker_box = new G4Box("SBStracker_box", 26.0*cm, 102.0*cm, 30.0*cm );
+	G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
 
 	G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
-
+	
+	//For consistency with BigBite, place "Tracker" volume before GEMs are placed in it:
 	new G4PVPlacement( SBStracker_rot, SBStracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
-
-	int ngems_SBStracker = 6;
+	
+	int ngems_SBStracker = 5;
 	vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
 
 	G4double zspacing_SBStracker = 10.0*cm;
-	G4double zoffset_SBStracker = -25.0*cm;
+	G4double zoffset_SBStracker = -20.0*cm;
 
 	for(int i=0; i<ngems_SBStracker; i++ ){
 	    zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
-	    wplanes_SBStracker.push_back( 50.0*cm );
+	    wplanes_SBStracker.push_back( 60.0*cm );
 	    hplanes_SBStracker.push_back( 200.0*cm );
 	}
 
@@ -115,6 +116,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 	trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
 				       ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, (fDetCon->TrackerIDnumber)++ );
+
 	MakeRICH( worldlog );
 
 	SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);

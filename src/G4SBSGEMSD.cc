@@ -47,38 +47,81 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   G4TouchableHistory* hist = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
 
+  // G4cout << G4endl << G4endl << "*******************************************************************" << G4endl;
+  // G4cout << "GEM hit history depth = " << hist->GetHistory()->GetDepth() << endl;
+
   // G4cout << "GEMSD: Before MoveUpHistory, volume name = " << hist->GetVolume()->GetName() << 
   //   " prestep volume name = " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName() <<  G4endl;
 
-  hist->MoveUpHistory();
+  // for(G4int i=0; i<=hist->GetHistoryDepth(); i++){
+  //   //G4ThreeVector trans = hist->GetTranslation(i);
+  //   //G4RotationMatrix *rm = hist->GetRotation(i);
+    
+  //   G4cout << "at depth " << i << G4endl;
+  //   G4cout << "Replica Number: " << hist->GetReplicaNumber(i) << G4endl;
+  //   G4cout << "Physical volume = " << hist->GetVolume(i)->GetName() << G4endl;
+  //   G4cout << "Logical volume = " << hist->GetVolume(i)->GetLogicalVolume()->GetName() << G4endl;
+  //   // G4cout << "Translation (x,y,z)=(" << trans.x()/m << ", " << trans.y()/m << ", " << trans.z()/m << ")" << G4endl;
+  //   // G4cout << "Rotation ( xx, xy, xz " << hist->GetRotation(i)->xx() << ", " << hist->GetRotation(i)->xy() << ", " << hist->GetRotation(i)->xz() << ", " << G4endl 
+  //   // 	   << "          yx, yy, yz  " << hist->GetRotation(i)->yx() << ", " << hist->GetRotation(i)->yy() << ", " << hist->GetRotation(i)->yz() << ", " << G4endl 
+  //   // 	   << "          zx, zy, zz )" << hist->GetRotation(i)->zx() << ", " << hist->GetRotation(i)->zy() << ", " << hist->GetRotation(i)->zz() << ", " << G4endl;
+
+  //   G4AffineTransform transform = hist->GetHistory()->GetTransform(i);
+  //   G4cout << "Net translation (x,y,z)=(" << transform.NetTranslation().x()/m << ", " << transform.NetTranslation().y()/m << ", " << transform.NetTranslation().z()/m << ")" << G4endl;
+  //   G4cout << "Net rotation:" << G4endl
+  // 	   << "| xx, xy, xz |   |" << transform.NetRotation().xx() << ", " << transform.NetRotation().xy() << ", " << transform.NetRotation().xz() << "|" << G4endl
+  // 	   << "| yx, yy, yz | = |" << transform.NetRotation().yx() << ", " << transform.NetRotation().yy() << ", " << transform.NetRotation().yz() << "|" << G4endl
+  // 	   << "| zx, zy, zz | = |" << transform.NetRotation().zx() << ", " << transform.NetRotation().zy() << ", " << transform.NetRotation().zz() << "|" << G4endl;
+  // }      
+
+  //hist->MoveUpHistory();
   
   // G4cout << "GEMSD: After MoveUpHistory, volume name = " << hist->GetVolume()->GetName() << 
   //   " prestep volume name = " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
 
   //  This is where the box position will be
-  
-  G4AffineTransform bTrans = hist->GetHistory()->GetTransform(  hist->GetHistory()->GetDepth()-1 );
-  double boxz = bTrans.TransformPoint(hist->GetTranslation()).getZ();
 
-  G4int copyID = hist->GetReplicaNumber();
+
+  
+  // G4AffineTransform bTrans = hist->GetHistory()->GetTransform(  hist->GetHistory()->GetDepth()-1 );
+  // double boxz = bTrans.TransformPoint(hist->GetTranslation()).getZ();
+
+  // G4cout << "boxz = " << boxz/m << G4endl;
+
+  G4int copyID = hist->GetReplicaNumber(1);
+  //  G4cout << "copyID = " << copyID << endl;
 
   //  Go to detector box
-  hist->MoveUpHistory();
+  //hist->MoveUpHistory();
 
-  double offset = ((G4Box *) hist->GetSolid())->GetZHalfLength();
-  boxz += offset;
+  double offset = ((G4Box *) hist->GetSolid(2))->GetZHalfLength();
+  //boxz += offset;
 
   G4SBSGEMHit* hit = new G4SBSGEMHit();
 
-  G4AffineTransform aTrans = hist->GetHistory()->GetTopTransform();
+  //G4AffineTransform aTrans = hist->GetHistory()->GetTopTransform();
+  G4AffineTransform aTrans = hist->GetHistory()->GetTransform(hist->GetHistoryDepth()-2);
+
+  // G4cout << "Top transform:" << G4endl;
+  // G4cout << "Net translation (x,y,z)=(" << aTrans.NetTranslation().x()/m << ", " << aTrans.NetTranslation().y()/m << ", " << aTrans.NetTranslation().z()/m << ")" << G4endl;
+  // G4cout << "Net rotation:" << G4endl
+  // 	 << "| xx, xy, xz |   |" << aTrans.NetRotation().xx() << ", " << aTrans.NetRotation().xy() << ", " << aTrans.NetRotation().xz() << "|" << G4endl
+  // 	 << "| yx, yy, yz | = |" << aTrans.NetRotation().yx() << ", " << aTrans.NetRotation().yy() << ", " << aTrans.NetRotation().yz() << "|" << G4endl
+  // 	 << "| zx, zy, zz | = |" << aTrans.NetRotation().zx() << ", " << aTrans.NetRotation().zy() << ", " << aTrans.NetRotation().zz() << "|" << G4endl;
+
   G4ThreeVector pos = aStep->GetPreStepPoint()->GetPosition();
 
   pos = aTrans.TransformPoint(pos);
 
+  // for(int i=0; i<=hist->GetHistoryDepth(); i++){
+  //   G4AffineTransform boxTrans = hist->GetHistory()->GetTransform(i);
+  //   G4ThreeVector trackerpos = boxTrans.TransformPoint(aStep->GetPreStepPoint()->GetPosition());
 
+  //   G4cout << "at depth " << i << ", local trackerpos (x,y,z)=(" << trackerpos.x()/m << ", " << trackerpos.y()/m << ", " << trackerpos.z()/m << ")" << G4endl;
+  // }
  // G4ThreeVector mom = aStep->GetPreStepPoint()->GetMomentum();
   //  G4ThreeVector mom = aStep->GetDeltaPosition();
-  G4ThreeVector mom = aStep->GetTrack()->GetMomentumDirection();
+  G4ThreeVector mom = aStep->GetPreStepPoint()->GetMomentumDirection();
   
   G4ThreeVector thisdelta = aStep->GetPreStepPoint()->GetPosition() + aStep->GetDeltaPosition();
   thisdelta = aTrans.TransformPoint(thisdelta);
@@ -87,7 +130,12 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 //  printf("%f %f %f\n", aStep->GetDeltaPosition().x()/mom.x(), aStep->GetDeltaPosition().y()/mom.y(), aStep->GetDeltaPosition().z()/mom.z());
 //  printf("%f %f %f\n", mom.x(), mom.y(), mom.z());
   //mom *= aTrans.NetRotation();
-  mom *= aTrans.NetRotation().inverse();
+  //mom *= aTrans.NetRotation().inverse();
+  mom = aTrans.TransformAxis(mom);
+
+  //printf("mom:    %f %f %f\n", mom.unit().x(), mom.unit().y(), mom.unit().z());
+
+
   /*
   printf("mom:    %f %f %f\n", mom.unit().x(), mom.unit().y(), mom.unit().z());
   printf("thisdel %f %f %f\n", thisdelta.unit().x(), thisdelta.unit().y(), thisdelta.unit().z());
@@ -96,7 +144,7 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   //std::cout << aTrans.NetRotation() << std::endl;
 
 //  pos.setZ(  boxz );
-  pos.setZ(  pos.getZ() + offset );
+  pos.setZ( pos.getZ() + offset );
 
   /*
   printf("pos = %f %f %f\n", pos.getX()/m, pos.getY()/m, pos.getZ()/m);
@@ -123,7 +171,8 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   hit->SetMID(aStep->GetTrack()->GetParentID());
   hit->SetTrID(aStep->GetTrack()->GetTrackID());
   hit->SetPID(aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding());
-  hit->SetMom(aStep->GetTrack()->GetMomentum().mag());
+  //hit->SetMom(aStep->GetTrack()->GetMomentum().mag());
+  hit->SetMom(aStep->GetPreStepPoint()->GetMomentum().mag());
   hit->SetDir(mom.getX()/mom.getZ(), mom.getY()/mom.getZ());
 //  hit->SetDir(thisdelta.getX()/thisdelta.getZ(), thisdelta.getY()/thisdelta.getZ());
   hit->SetGEMID(copyID);

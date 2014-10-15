@@ -536,12 +536,16 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     /*****************************************************************************
      ********************        DEVELOPMENT OF ECAL      ************************
     ******************************************************************************/
+   
+
+    // ECal will act as BBcal detector
+    //Define  coordinates, rotations, and offsets:
     G4RotationMatrix *bbrm = new G4RotationMatrix;
     bbrm->rotateY(fBBang);
 
-    // ECal will act as BBcal detector
-    G4double x_ecal = 203.942*cm, y_ecal = 301.148*cm, z_ecal = 50.80*cm;
-    double bbr = fBBdist + z_ecal/2.0;
+    G4double x_ecal = 233.766*cm, y_ecal = 353.808*cm, z_ecal = 50.80*cm;
+    double bbr = fBBdist - z_ecal/2.0;
+    double offset = 15*cm; //Motivation - match SBS acceptance
 
     
     // //CH2 Box - located infront of Coordinate Detector
@@ -568,17 +572,17 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     //Define a Mother Volume to place the ECAL modules
     G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
     G4LogicalVolume *ecal_log = new G4LogicalVolume( ecal_box, GetMaterial("Air"), "ecal_log" );
-    new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang), 0.0, bbr*cos(-fBBang) ), ecal_log, "ecal", worldlog, false, 0 );
+    new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang)+offset*cos(fBBang), 0.0, bbr*cos(-fBBang)+offset*sin(fBBang) ), ecal_log, "ecal", worldlog, false, 0 );
 
     //dimensions of mylar/air wrapping:
     G4double mylar_wrapping_size = 0.00150*cm;
     G4double air_wrapping_size = 0.00450*cm;
     G4double mylar_plus_air = mylar_wrapping_size + air_wrapping_size;
 
-    //TYPE1 MODULE - 3.800 x 3.800 x 45.000 cm^3 + layer of air (0.0045cm) + layer of mylar (0.0015cm)
-    G4double x_module_type1 = 3.8000*cm + (2*mylar_plus_air); //3.812
-    G4double y_module_type1 = 3.8000*cm + (2*mylar_plus_air); //3.812
-    G4double z_module_type1 = 45.0000*cm + mylar_plus_air;    //45.006
+    //TYPE1 MODULE - 4.200 x 4.200 x 45.000 cm^3 + layer of air (0.0045cm) + layer of mylar (0.0015cm)
+    G4double x_module_type1 = 4.2000*cm + (2*mylar_plus_air); //4.212
+    G4double y_module_type1 = 4.2000*cm + (2*mylar_plus_air); //4.212
+    G4double z_module_type1 = 45.0000*cm + mylar_plus_air;    //45.006 - only one side in z has mylar+air
     G4Box *module_type1 = new G4Box( "module_type1", x_module_type1/2.0, y_module_type1/2.0, z_module_type1/2.0 );
 
     //Define a new mother volume which will house the contents of a module(i.e. TF1 & Mylar)
@@ -594,7 +598,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4LogicalVolume *mylar_wrap_log = new G4LogicalVolume( mylarwrap, GetMaterial("Mylar"), "mylar_wrap_log" );
 
     //TF1
-    G4double x_TF1 = 3.800*cm, y_TF1 = 3.800*cm, z_TF1 = 45.000*cm;
+    G4double x_TF1 = 4.200*cm, y_TF1 = 4.200*cm, z_TF1 = 45.000*cm;
     G4Box *TF1_box = new G4Box( "TF1_box", x_TF1/2.0, y_TF1/2.0, z_TF1/2.0 );
     G4LogicalVolume *TF1_log = new G4LogicalVolume ( TF1_box, GetMaterial("TF1"), "TF1_log" );
 
@@ -644,8 +648,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
  
     G4double x_position = x_ecal/2.0-x_module_type1/2.0 , y_position = y_ecal/2.0-y_module_type1/2.0;
 
-    G4int x_number_ecal = 53;
-    G4int y_number_ecal = 79;   //76x20 array
+    G4int x_number_ecal = 55;
+    G4int y_number_ecal = 84;   
     G4int copy_number_PMT = 0;  //label modules
 
     //Need a Steel module to fill voids when rows are staggered - x dimension should be half the size

@@ -543,9 +543,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4RotationMatrix *bbrm = new G4RotationMatrix;
     bbrm->rotateY(fBBang);
 
-    G4double x_ecal = 233.766*cm, y_ecal = 353.808*cm, z_ecal = 50.80*cm;
+    G4double x_ecal = 246.402*cm, y_ecal = 370.656*cm, z_ecal = 50.80*cm;
     double bbr = fBBdist - z_ecal/2.0;
-    double offset = 15*cm; //Motivation - match SBS acceptance
+    double offset = 22*cm; //Motivation - match SBS acceptance
 
     
     // //CH2 Box - located infront of Coordinate Detector
@@ -648,8 +648,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
  
     G4double x_position = x_ecal/2.0-x_module_type1/2.0 , y_position = y_ecal/2.0-y_module_type1/2.0;
 
-    G4int x_number_ecal = 55;
-    G4int y_number_ecal = 84;   
+    G4int x_number_ecal = 58;
+    G4int y_number_ecal = 88;   
     G4int copy_number_PMT = 0;  //label modules
 
     //Need a Steel module to fill voids when rows are staggered - x dimension should be half the size

@@ -862,7 +862,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     G4String RICHcollname = "RICHcoll";
     G4SBSRICHSD *RICHSD = NULL;
 
-    if( !( (G4SBSRICHSD*) sdman->FindSensitiveDetector(RICHSDname) ) ){
+    if( !( RICHSD = (G4SBSRICHSD*) sdman->FindSensitiveDetector(RICHSDname) ) ){
 	G4cout << "Adding RICH sensitive detector to SDman..." << G4endl;
 	RICHSD = new G4SBSRICHSD( RICHSDname, RICHcollname );
 	sdman->AddNewDetector( RICHSD );

@@ -547,6 +547,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     double bbr = fBBdist - z_ecal/2.0;
     double offset = 15*cm; //Motivation - match SBS acceptance
 
+
     
     // //CH2 Box - located infront of Coordinate Detector
     // G4double CH2depth = 20.0*cm;

@@ -543,7 +543,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4RotationMatrix *bbrm = new G4RotationMatrix;
     bbrm->rotateY(fBBang);
 
-    G4double x_ecal = 246.402*cm, y_ecal = 370.656*cm, z_ecal = 50.80*cm;
+    G4double x_ecal = 246.402*cm, y_ecal = 370.656*cm, z_ecal = 71.00*cm;
     double bbr = fBBdist - z_ecal/2.0;
     double offset = 15*cm; //Motivation - match SBS acceptance
 
@@ -624,7 +624,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4LogicalVolume *PMTcathode_ecal_log = new G4LogicalVolume( PMTcathode_ecal, GetMaterial("Photocathode_material_ecal"), "PMTcathode_ecal_log" );
 
     //Aluminum Shielding in front of ECAL - use same x/y dimensions as mother volume
-    G4double z_Al = 2.40*cm;
+    G4double z_Al = 12.50*cm;
     G4Box *Al_box = new G4Box( "Al_box", x_ecal/2.0, y_ecal/2.0, z_Al/2.0 );
     G4LogicalVolume *Al_log = new G4LogicalVolume ( Al_box, GetMaterial("RICHAluminum"), "Al_log" );
     new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -z_module_type1/2.0 - z_Al/2.0), Al_log, "Aluminum_Shielding", ecal_log, false, 0 );

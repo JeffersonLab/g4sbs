@@ -32,6 +32,8 @@
 #include "G4LogicalSkinSurface.hh"
 #include "G4SBSRICHSD.hh"
 #include "G4SBSECalSD.hh"
+#include "map"
+#include "set"
 
 G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
     fBBang  = 40.0*deg;
@@ -623,11 +625,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4Tubs *PMTcathode_ecal = new G4Tubs( "PMTcathode_ecal", 0.0*cm, PMT_radius, PMT_depth/2.0, 0.0, twopi );
     G4LogicalVolume *PMTcathode_ecal_log = new G4LogicalVolume( PMTcathode_ecal, GetMaterial("Photocathode_material_ecal"), "PMTcathode_ecal_log" );
 
-    //Aluminum Shielding in front of ECAL - use same x/y dimensions as mother volume
-    G4double z_Al = 12.50*cm;
-    G4Box *Al_box = new G4Box( "Al_box", x_ecal/2.0, y_ecal/2.0, z_Al/2.0 );
+    //Aluminum Shielding in front of ECAL - make it big enough to enclose crescent
+    //I chose columns 6-48 && rows 8-80 => note the offset in placement
+    G4double  x_Al = 183.222*cm, y_Al = 307.476*cm, z_Al = 12.50*cm;
+    G4Box *Al_box = new G4Box( "Al_box", x_Al/2.0, y_Al/2.0, z_Al/2.0 );
     G4LogicalVolume *Al_log = new G4LogicalVolume ( Al_box, GetMaterial("RICHAluminum"), "Al_log" );
-    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -z_module_type1/2.0 - z_Al/2.0), Al_log, "Aluminum_Shielding", ecal_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector( 1.5*x_module_type1, -0.5*y_module_type1, -z_module_type1/2.0 - z_Al/2.0), Al_log, "Aluminum_Shielding", ecal_log, false, 0 );
 
     //PMTcathode_ecal_log is the sensitive detector, assigned to ECalSD which detects optical photons
     G4SDManager *sdman = fDetCon->fSDman;
@@ -643,7 +646,176 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	fDetCon->SDlist[ECalSDname] = ECalSD;
     }
     PMTcathode_ecal_log->SetSensitiveDetector( ECalSD );
-    
+
+    //***********SBS ACCEPTANCE MATCHING**********
+    //The following is the result of a macro - 10/23/2014
+    map<int, set<int> > crescent;
+
+    //Example: The next three lines means that in column 7, we will place modules
+    //in rows 25 and 26.  
+    int rowints7[]={25,26};
+    set<int> rowset7(rowints7, rowints7 + sizeof(rowints7) / sizeof(int) );
+    crescent.insert(make_pair(7,rowset7));
+
+    int rowints8[]={25,26};
+    set<int> rowset8(rowints8, rowints8 + sizeof(rowints8) / sizeof(int) );
+    crescent.insert(make_pair(8,rowset8));
+
+    int rowints9[]={22,23,24,25,26};
+    set<int> rowset9(rowints9, rowints9 + sizeof(rowints9) / sizeof(int) );
+    crescent.insert(make_pair(9,rowset9));
+
+    int rowints10[]={22,23,24,25,26};
+    set<int> rowset10(rowints10, rowints10 + sizeof(rowints10) / sizeof(int) );
+    crescent.insert(make_pair(10,rowset10));
+
+    int rowints11[]={21,22,23,24,25,26,27,28,61,62};
+    set<int> rowset11(rowints11, rowints11 + sizeof(rowints11) / sizeof(int) );
+    crescent.insert(make_pair(11,rowset11));
+
+    int rowints12[]={20,21,22,23,24,25,26,27,28,29,60,61,62,63,64};
+    set<int> rowset12(rowints12, rowints12 + sizeof(rowints12) / sizeof(int) );
+    crescent.insert(make_pair(12,rowset12));
+
+    int rowints13[]={18,19,20,21,22,23,24,25,26,27,28,29,58,59,60,61,62,63,64,65,66};
+    set<int> rowset13(rowints13, rowints13 + sizeof(rowints13) / sizeof(int) );
+    crescent.insert(make_pair(13,rowset13));
+
+    int rowints14[]={17,18,19,20,21,22,23,24,25,26,27,28,29,30,58,59,60,61,62,63,64,65,66,67};
+    set<int> rowset14(rowints14, rowints14 + sizeof(rowints14) / sizeof(int) );
+    crescent.insert(make_pair(14,rowset14));
+
+    int rowints15[]={16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,58,59,60,61,62,63,64,65,66,67,68};
+    set<int> rowset15(rowints15, rowints15 + sizeof(rowints15) / sizeof(int) );
+    crescent.insert(make_pair(15,rowset15));
+
+    int rowints16[]={15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70};
+    set<int> rowset16(rowints16, rowints16 + sizeof(rowints16) / sizeof(int) );
+    crescent.insert(make_pair(16,rowset16));
+
+    int rowints17[]={14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72};
+    set<int> rowset17(rowints17, rowints17 + sizeof(rowints17) / sizeof(int) );
+    crescent.insert(make_pair(17,rowset17));
+  
+    int rowints18[]={13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74};
+    set<int> rowset18(rowints18, rowints18 + sizeof(rowints18) / sizeof(int) );
+    crescent.insert(make_pair(18,rowset18));
+
+    int rowints19[]={12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75};
+    set<int> rowset19(rowints19, rowints19 + sizeof(rowints19) / sizeof(int) );
+    crescent.insert(make_pair(19,rowset19));
+
+    int rowints20[]={12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75};
+    set<int> rowset20(rowints20, rowints20 + sizeof(rowints20) / sizeof(int) );
+    crescent.insert(make_pair(20,rowset20));
+  
+    int rowints21[]={12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76};
+    set<int> rowset21(rowints21, rowints21 + sizeof(rowints21) / sizeof(int) );
+    crescent.insert(make_pair(21,rowset21));
+  
+    int rowints22[]={11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77};
+    set<int> rowset22(rowints22, rowints22 + sizeof(rowints22) / sizeof(int) );
+    crescent.insert(make_pair(22,rowset22));
+  
+    int rowints23[]={11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77};
+    set<int> rowset23(rowints23, rowints23 + sizeof(rowints23) / sizeof(int) );
+    crescent.insert(make_pair(23,rowset23));
+   
+    int rowints24[]={10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78};
+    set<int> rowset24(rowints24, rowints24 + sizeof(rowints24) / sizeof(int) );
+    crescent.insert(make_pair(24,rowset24));
+  
+    int rowints25[]={10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78};
+    set<int> rowset25(rowints25, rowints25 + sizeof(rowints25) / sizeof(int) );
+    crescent.insert(make_pair(25,rowset25));
+  
+    int rowints26[]={11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79};
+    set<int> rowset26(rowints26, rowints26 + sizeof(rowints26) / sizeof(int) );
+    crescent.insert(make_pair(26,rowset26));
+   
+    int rowints27[]={11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78};
+    set<int> rowset27(rowints27, rowints27 + sizeof(rowints27) / sizeof(int) );
+    crescent.insert(make_pair(27,rowset27));
+  
+    int rowints28[]={13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77};
+    set<int> rowset28(rowints28, rowints28 + sizeof(rowints28) / sizeof(int) );
+    crescent.insert(make_pair(28,rowset28));
+ 
+    int rowints29[]={13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77};
+    set<int> rowset29(rowints29, rowints29 + sizeof(rowints29) / sizeof(int) );
+    crescent.insert(make_pair(29,rowset29));
+   
+    int rowints30[]={13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76};
+    set<int> rowset30(rowints30, rowints30 + sizeof(rowints30) / sizeof(int) );
+    crescent.insert(make_pair(30,rowset30));
+  
+    int rowints31[]={13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75};
+    set<int> rowset31(rowints31, rowints31 + sizeof(rowints31) / sizeof(int) );
+    crescent.insert(make_pair(31,rowset31));
+  
+    int rowints32[]={15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75};
+    set<int> rowset32(rowints32, rowints32 + sizeof(rowints32) / sizeof(int) );
+    crescent.insert(make_pair(32,rowset32));
+  
+    int rowints33[]={15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73};
+    set<int> rowset33(rowints33, rowints33 + sizeof(rowints33) / sizeof(int) );
+    crescent.insert(make_pair(33,rowset33));
+   
+    int rowints34[]={16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73};
+    set<int> rowset34(rowints34, rowints34 + sizeof(rowints34) / sizeof(int) );
+    crescent.insert(make_pair(34,rowset34));
+  
+    int rowints35[]={17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72};
+    set<int> rowset35(rowints35, rowints35 + sizeof(rowints35) / sizeof(int) );
+    crescent.insert(make_pair(35,rowset35));
+  
+    int rowints36[]={19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71};
+    set<int> rowset36(rowints36, rowints36 + sizeof(rowints36) / sizeof(int) );
+    crescent.insert(make_pair(36,rowset36));
+  
+    int rowints37[]={20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69};
+    set<int> rowset37(rowints37, rowints37 + sizeof(rowints37) / sizeof(int) );
+    crescent.insert(make_pair(37,rowset37));
+   
+    int rowints38[]={21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69};
+    set<int> rowset38(rowints38, rowints38 + sizeof(rowints38) / sizeof(int) );
+    crescent.insert(make_pair(38,rowset38));
+  
+    int rowints39[]={22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67};
+    set<int> rowset39(rowints39, rowints39 + sizeof(rowints39) / sizeof(int) );
+    crescent.insert(make_pair(39,rowset39));
+   
+    int rowints40[]={23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65};
+    set<int> rowset40(rowints40, rowints40 + sizeof(rowints40) / sizeof(int) );
+    crescent.insert(make_pair(40,rowset40));
+ 
+    int rowints41[]={24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65};
+    set<int> rowset41(rowints41, rowints41 + sizeof(rowints41) / sizeof(int) );
+    crescent.insert(make_pair(41,rowset41));
+ 
+    int rowints42[]={27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61};
+    set<int> rowset42(rowints42, rowints42 + sizeof(rowints42) / sizeof(int) );
+    crescent.insert(make_pair(42,rowset42));
+  
+    int rowints43[]={29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60};
+    set<int> rowset43(rowints43, rowints43 + sizeof(rowints43) / sizeof(int) );
+    crescent.insert(make_pair(43,rowset43));
+
+    int rowints44[]={33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57};
+    set<int> rowset44(rowints44, rowints44 + sizeof(rowints44) / sizeof(int) );
+    crescent.insert(make_pair(44,rowset44));
+
+    int rowints45[]={35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55};
+    set<int> rowset45(rowints45, rowints45 + sizeof(rowints45) / sizeof(int) );
+    crescent.insert(make_pair(45,rowset45));
+
+    int rowints46[]={39,40,41,42,43};
+    set<int> rowset46(rowints46, rowints46 + sizeof(rowints46) / sizeof(int) );
+    crescent.insert(make_pair(46,rowset46));
+
+    map< int, set<int> >::iterator map_it;
+    set<int>::iterator set_it;
+
     //***************MODULE PLACEMENT***********
     //Placing the blocks inside mother volume - looking downstream, iteration starts top left corner of mother volume
  
@@ -653,46 +825,72 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4int y_number_ecal = 88;   
     G4int copy_number_PMT = 0;  //label modules
 
-    //Need a Steel module to fill voids when rows are staggered - x dimension should be half the size
-    //of a type 1 module
-    G4int x_steel = (x_module_type1/2.0), y_steel = 3.812*cm, z_steel = 45.006*cm;
+    //Need a Steel module to fill voids
+    G4int x_steel = x_module_type1, y_steel = y_module_type1, z_steel = z_module_type1;
     G4Box *steel_box = new G4Box("steel_box", x_steel/2.0, y_steel/2.0, z_steel/2.0);
     G4LogicalVolume *steel_log = new G4LogicalVolume( steel_box, GetMaterial("Steel"), "steel_log");
 
+    //And another Steel module to fill in voids caused by staggering
+    G4Box *steel_box_half = new G4Box("steel_box_half", 0.5*(x_steel/2.0), y_steel/2.0, z_steel/2.0);
+    G4LogicalVolume *steel_log_half = new G4LogicalVolume( steel_box_half, GetMaterial("Steel"), "steel_log");
+
     //Iterating to building ECAL 
-    for( G4int i=0; i<y_number_ecal; i++ ){
-      G4double ytemp = y_position - i*(y_module_type1);
+    for(G4int j=0; j<x_number_ecal; j++){	
+      G4double xtemp_even = x_position - j*(x_module_type1);
+      G4double xtemp_odd = x_position - x_module_type1/2.0 - j*(x_module_type1);
+	
+	for( G4int i=0; i<y_number_ecal; i++ ){
+	  G4double ytemp = y_position - i*(y_module_type1);
 
-      for(G4int j=0; j<x_number_ecal; j++){	
-	G4double xtemp_even = x_position - j*(x_module_type1);
-	G4double xtemp_odd = x_position - x_module_type1/2.0 - j*(x_module_type1);
-  
-	//EVEN ROWS
-	if(i%2==0){ 
-	//Type1 Module
-	new G4PVPlacement( 0, G4ThreeVector( xtemp_even, ytemp, 0.0), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
-	//PMT_window
-	new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_module_type1/2.0 + PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
-	//PMT_cathode
-	new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_module_type1/2.0 + PMT_window_depth + PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
-	//Steel module
-	new G4PVPlacement(0, G4ThreeVector(-(x_ecal/2.0)+x_steel/2.0, ytemp, 0.0 ), steel_log, "steel_pv", ecal_log, false, 0);
+	  //Iterate modules based on the crescent map defined above
+	  for(map_it = crescent.begin(); map_it != crescent.end(); ++map_it){
+	    if(map_it->first==j%58){
+	      for(set_it = map_it->second.begin(); set_it != map_it->second.end(); ++set_it){
+		if(*set_it==i){
+		  //EVEN ROWS
+		  if(i%2==0){ 
+		    //Type1 Module
+		    new G4PVPlacement( 0, G4ThreeVector( xtemp_even, ytemp, 0.0), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
+		    //PMT_window
+		    new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_module_type1/2.0 + PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
+		    //PMT_cathode
+		    new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_module_type1/2.0 + PMT_window_depth + PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
+		  
+		  }
+
+		  //ODD ROWS
+		  else{
+		    //Type1 Module
+		    new G4PVPlacement( 0, G4ThreeVector( xtemp_odd, ytemp, 0.0), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
+		    //PMT_window
+		    new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_module_type1/2.0 + PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
+		    //PMT_cathode
+		    new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_module_type1/2.0 + PMT_window_depth + PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
+		    
+		  }
+
+		  copy_number_PMT++;
+		}
+	      }
+	    }
+	    //Fill remaining empty slots with steel 
+	    else{
+	      if(i>=8 && i<=80){
+		if(j>=6 && j<=48){
+		  if(i%2==0){
+		    new G4PVPlacement(0, G4ThreeVector(xtemp_even, ytemp, 0.0 ), steel_log, "steel_pv", ecal_log, false, 0);
+		    new G4PVPlacement(0, G4ThreeVector(-(x_Al/2.0)+(x_steel/4.0)+1.5*x_module_type1, ytemp, 0.0 ), steel_log_half, "steel_pv", ecal_log, false, 0);
+		  }
+		  else{
+		    new G4PVPlacement(0, G4ThreeVector(xtemp_odd, ytemp, 0.0 ), steel_log, "steel_pv", ecal_log, false, 0);
+		    new G4PVPlacement(0, G4ThreeVector((x_Al/2.0)-(x_steel/4.0)+1.5*x_module_type1, ytemp, 0.0 ), steel_log_half, "steel_pv", ecal_log, false, 0);
+		  }
+		}
+	      }
+	    }
+
+	  }
 	}
-
-	//ODD ROWS
-	else{
-	  //Type1 Module
-	new G4PVPlacement( 0, G4ThreeVector( xtemp_odd, ytemp, 0.0), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
-	//PMT_window
-	new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_module_type1/2.0 + PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
-	//PMT_cathode
-	new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_module_type1/2.0 + PMT_window_depth + PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
-	//Steel module
-	new G4PVPlacement(0, G4ThreeVector((x_ecal/2.0)-x_steel/2.0, ytemp, 0.0 ), steel_log, "steel_pv", ecal_log, false, 0);
-	}
-
-	copy_number_PMT++;
-      }
     }
     //END MODULE PLACEMENT
 
@@ -716,6 +914,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
         //Steel
        	G4VisAttributes *steel_colour = new G4VisAttributes(G4Colour( 0.4, 0.4, 0.4 ) );
 	steel_log->SetVisAttributes(steel_colour);
+	steel_log_half->SetVisAttributes(steel_colour);
 
 	//PMTcathode
 	G4VisAttributes *PMT_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));

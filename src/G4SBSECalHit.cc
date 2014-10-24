@@ -91,14 +91,14 @@ void G4SBSECalHit::Print() {;}
 
 G4int G4SBSECalHit::calc_row( G4int PMT ){
 
-  G4int ecal_row = PMT/58; //0-75
+  G4int ecal_row = PMT/58; 
   return ecal_row;
 
 }
 
 G4int G4SBSECalHit::calc_col( G4int PMT ){
 
-  G4int ecal_col = PMT%58; //ranges from 0-19 as PMT goes to 20*76=1520 PMTs
+  G4int ecal_col = PMT%58; 
   return ecal_col;
 
 }

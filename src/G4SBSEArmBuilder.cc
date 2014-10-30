@@ -535,9 +535,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     */
 
 
-    /*****************************************************************************
-     ********************        DEVELOPMENT OF ECAL      ************************
-    ******************************************************************************/
+    /*************************************************************************************
+     ********************        DEVELOPMENT OF Electron Arm      ************************
+     *************************************************************************************/
    
 
     // ECal will act as BBcal detector
@@ -545,32 +545,35 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4RotationMatrix *bbrm = new G4RotationMatrix;
     bbrm->rotateY(fBBang);
 
-    G4double x_ecal = 246.402*cm, y_ecal = 370.656*cm, z_ecal = 71.00*cm;
+    G4double x_ecal = 246.402*cm, y_ecal = 370.656*cm, z_ecal = 49.806*cm;
     double bbr = fBBdist - z_ecal/2.0;
     double offset = 15*cm; //Motivation - match SBS acceptance
 
+    //Electron Arm - 
+    //1)Polyethylene 
+    //2)CDet
+    //3)ECal
 
-    
-    // //CH2 Box - located infront of Coordinate Detector
-    // G4double CH2depth = 20.0*cm;
-    // G4Box *CH2box = new G4Box("CH2box", x_ecal/2.0, y_ecal/2.0, CH2depth/2.0 );
-    // G4LogicalVolume *CH2box_log = new G4LogicalVolume(CH2box, GetMaterial("CH2"), "CH2box_log");
+    G4double x_earm=104.0*cm, y_earm=294.0*cm, z_earm=23.0*cm;
+    double cdr = bbr - z_ecal/2.0 - z_earm/2.0;
+    G4Box *earm_mother_box = new G4Box("earm_mother_box", x_earm/2.0, y_earm/2.0, z_earm/2.0);
+    G4LogicalVolume *earm_mother_log = new G4LogicalVolume(earm_mother_box, GetMaterial("Air"), "earm_mother_log");
 
-    // //Coordinate Detector - 2 planes
-    // G4double CDmother_depth = 10*cm;
-    // G4double CD_depth = 1*cm;
-    // G4Box *CD_mother_box = new G4Box("CD_mother_box", x_ecal/2.0, y_ecal/2.0, CDmother_depth/2.0 );
-    // G4LogicalVolume *CD_log = new G4LogicalVolume(CD_mother_box, GetMaterial("Air"), "CD_log");
-    
-    // G4Box *planes = new G4Box("planes", x_ecal/2.0, y_ecal/2.0, CD_depth/2.0);
-    // G4LogicalVolume *planes_log = new G4LogicalVolume( planes, GetMaterial("Air"), "planes_log" );
+    //Polyethylene Box - located infront of Coordinate Detector
+    G4double polydepth = 15.0*cm;
+    G4Box *polybox = new G4Box("polybox", x_earm/2.0, y_earm/2.0, polydepth/2.0 );
+    G4LogicalVolume *polybox_log = new G4LogicalVolume(polybox, GetMaterial("Polyethylene"), "polybox_log");
 
-    // new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -2.0*cm), planes_log, "plane1", CD_log, false, 1 );
-    // new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, 2.0*cm ), planes_log, "plane2", CD_log, false, 2 );
+    //Coordinate Detector - 2 planes
+    G4double CD_depth = 4.0*cm;
+    G4Box *CD_box = new G4Box("CD_box", x_earm/2.0, y_earm/2.0, CD_depth/2.0 );
+    G4LogicalVolume *CD_log = new G4LogicalVolume(CD_box, GetMaterial("PLASTIC_SC_VINYLTOLUENE"), "CD_log");
 
-    // //Place CD 15 cm away from ECal
-    // double cdr = bbr - 15*cm - CDmother_depth/2.0;
-    // new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang), 0.0, cdr*cos(fBBang) ), CD_log, "CD", worldlog, false, 0 );
+    //Place everything inside the Earm Mother Volume
+    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0-CD_depth/2.0), CD_log, "plane1", earm_mother_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0-CD_depth/2.0-CD_depth ), CD_log, "plane2", earm_mother_log, false, 1 );
+    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -z_earm/2.0+polydepth/2.0 ), polybox_log, "Polyethylene", earm_mother_log, false, 0 );
+    new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang)+offset*cos(fBBang), 0.0, cdr*cos(-fBBang)+offset*sin(fBBang) ), earm_mother_log, "CDet & Filter",worldlog, false, 0);
 
     //Define a Mother Volume to place the ECAL modules
     G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
@@ -627,7 +630,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
     //Aluminum Shielding in front of ECAL - make it big enough to enclose crescent
     //I chose columns 6-50 && rows 8-80 => note the offset in placement
-    G4double  x_Al = 191.646*cm, y_Al = 307.476*cm, z_Al = 12.50*cm;
+    G4double  x_Al = 191.646*cm, y_Al = 307.476*cm, z_Al = 2.40*cm;
     G4Box *Al_box = new G4Box( "Al_box", x_Al/2.0, y_Al/2.0, z_Al/2.0 );
     G4LogicalVolume *Al_log = new G4LogicalVolume ( Al_box, GetMaterial("RICHAluminum"), "Al_log" );
     new G4PVPlacement( 0, G4ThreeVector(0.5*x_module_type1, -0.5*x_module_type1, -z_module_type1/2.0 - z_Al/2.0), Al_log, "Aluminum_Shielding", ecal_log, false, 0 );
@@ -785,43 +788,43 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     set<int> rowset39(rowints39, rowints39 + sizeof(rowints39) / sizeof(int) );
     crescent.insert(make_pair(39,rowset39));
    
-    int rowints40[]={21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66};
+    int rowints40[]={21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67};
     set<int> rowset40(rowints40, rowints40 + sizeof(rowints40) / sizeof(int) );
     crescent.insert(make_pair(40,rowset40));
  
-    int rowints41[]={22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64};
+    int rowints41[]={22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66};
     set<int> rowset41(rowints41, rowints41 + sizeof(rowints41) / sizeof(int) );
     crescent.insert(make_pair(41,rowset41));
  
-    int rowints42[]={23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63};
+    int rowints42[]={23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65};
     set<int> rowset42(rowints42, rowints42 + sizeof(rowints42) / sizeof(int) );
     crescent.insert(make_pair(42,rowset42));
   
-    int rowints43[]={24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62};
+    int rowints43[]={24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64};
     set<int> rowset43(rowints43, rowints43 + sizeof(rowints43) / sizeof(int) );
     crescent.insert(make_pair(43,rowset43));
 
-    int rowints44[]={26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60};
+    int rowints44[]={26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62};
     set<int> rowset44(rowints44, rowints44 + sizeof(rowints44) / sizeof(int) );
     crescent.insert(make_pair(44,rowset44));
 
-    int rowints45[]={28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58};
+    int rowints45[]={28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60};
     set<int> rowset45(rowints45, rowints45 + sizeof(rowints45) / sizeof(int) );
     crescent.insert(make_pair(45,rowset45));
 
-    int rowints46[]={30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56};
+    int rowints46[]={30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58};
     set<int> rowset46(rowints46, rowints46 + sizeof(rowints46) / sizeof(int) );
     crescent.insert(make_pair(46,rowset46));
     
-    int rowints47[]={32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54};
+    int rowints47[]={32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56};
     set<int> rowset47(rowints47, rowints47 + sizeof(rowints47) / sizeof(int) );
     crescent.insert(make_pair(47,rowset47));
 
-    int rowints48[]={34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52};
+    int rowints48[]={34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54};
     set<int> rowset48(rowints48, rowints48 + sizeof(rowints48) / sizeof(int) );
     crescent.insert(make_pair(48,rowset48));
 
-    int rowints49[]={36,37,38,39,40,41,42,43,44,45,46,47,48,49,50};
+    int rowints49[]={36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52};
     set<int> rowset49(rowints49, rowints49 + sizeof(rowints49) / sizeof(int) );
     crescent.insert(make_pair(49,rowset49));
 
@@ -937,7 +940,21 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	//Al Shielding
 	G4VisAttributes *Al_colour = new G4VisAttributes(G4Colour(0.9, 0.9, 0.9));
         Al_log->SetVisAttributes(Al_colour);
- 
+
+	//Electron Arm Package - Houses CDet & Polyethylene
+	G4VisAttributes *earm_mother_vis = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
+	earm_mother_vis->SetForceWireframe(true);
+	earm_mother_log->SetVisAttributes(earm_mother_vis);
+
+	//Polyethylene
+	G4VisAttributes *poly_colour = new G4VisAttributes(G4Colour( 0.2,0.3,0.4 ));
+        polybox_log->SetVisAttributes(poly_colour);
+
+	//CDet
+	G4VisAttributes *CD_colour = new G4VisAttributes(G4Colour(0.5, 0.4, 0.1));
+        CD_log->SetVisAttributes(CD_colour);
+
+
 	//Shielding
 	//box_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
 	  

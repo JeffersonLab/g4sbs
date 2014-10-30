@@ -554,7 +554,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     //2)CDet
     //3)ECal
 
-    G4double x_earm=104.0*cm, y_earm=294.0*cm, z_earm=23.0*cm;
+    G4double x_earm=191.646*cm, y_earm=307.476*cm, z_earm=23.0*cm;
     double cdr = bbr - z_ecal/2.0 - z_earm/2.0;
     G4Box *earm_mother_box = new G4Box("earm_mother_box", x_earm/2.0, y_earm/2.0, z_earm/2.0);
     G4LogicalVolume *earm_mother_log = new G4LogicalVolume(earm_mother_box, GetMaterial("Air"), "earm_mother_log");
@@ -573,7 +573,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0-CD_depth/2.0), CD_log, "plane1", earm_mother_log, false, 0 );
     new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0-CD_depth/2.0-CD_depth ), CD_log, "plane2", earm_mother_log, false, 1 );
     new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -z_earm/2.0+polydepth/2.0 ), polybox_log, "Polyethylene", earm_mother_log, false, 0 );
-    new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang)+offset*cos(fBBang), 0.0, cdr*cos(-fBBang)+offset*sin(fBBang) ), earm_mother_log, "CDet & Filter",worldlog, false, 0);
+    new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang)+offset*cos(fBBang)+0.5*4.212*cm, -0.5*4.212*cm, cdr*cos(-fBBang)+offset*sin(fBBang) ), earm_mother_log, "CDet & Filter",worldlog, false, 0);
 
     //Define a Mother Volume to place the ECAL modules
     G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
@@ -942,9 +942,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
         Al_log->SetVisAttributes(Al_colour);
 
 	//Electron Arm Package - Houses CDet & Polyethylene
-	G4VisAttributes *earm_mother_vis = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
-	earm_mother_vis->SetForceWireframe(true);
-	earm_mother_log->SetVisAttributes(earm_mother_vis);
+	//G4VisAttributes *earm_mother_vis = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
+	//earm_mother_vis->SetForceWireframe(true);
+	earm_mother_log->SetVisAttributes(G4VisAttributes::Invisible);
 
 	//Polyethylene
 	G4VisAttributes *poly_colour = new G4VisAttributes(G4Colour( 0.2,0.3,0.4 ));
@@ -958,7 +958,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	//Shielding
 	//box_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
 	  
-	G4cout<<module_number;
+	//cout<<module_number;
 
 }
 

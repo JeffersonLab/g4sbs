@@ -345,8 +345,18 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   G4double Beamslot_lead_height = 31.0*cm;
   G4double Beamslot_lead_depth = fDetCon->fHArmBuilder->f48D48depth;
 
+  G4double notchdepth = 25.0*cm;
+
   G4Box *Beamslot_lead_box = new G4Box("Beamslot_lead_box", Beamslot_lead_width/2.0, Beamslot_lead_height/2.0, Beamslot_lead_depth/2.0 );
   //G4LogicalVolume *Beamslot_lead_log = new G4LogicalVolume( 
+
+  G4Box *beamslot_lead_cutbox = new G4Box("Beamslot_lead_cutbox", notchdepth*sqrt(2.0), Beamslot_lead_height, notchdepth );
+  
+  G4RotationMatrix *notch_rm = new G4RotationMatrix;
+  notch_rm->rotateY(-45.0*deg);
+
+  G4SubtractionSolid *Beamslot_lead_with_notch = new G4SubtractionSolid( "Beamslot_lead_with_notch", Beamslot_lead_box, beamslot_lead_cutbox, notch_rm, 
+									 G4ThreeVector( -Beamslot_lead_width/2.0, 0.0, -Beamslot_lead_depth/2.0) );
 
   G4double SBSang = fDetCon->fHArmBuilder->f48D48ang;
 
@@ -382,7 +392,7 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
 							   beampipe_beamslot_relative_position.dot( SBS_zaxis ) );
 
   //The subtraction that we want to perform is Beamslot lead box - beampipe cone:
-  G4SubtractionSolid *Beamslot_lead_with_hole = new G4SubtractionSolid( "Beamslot_lead_with_hole", Beamslot_lead_box, beampipe_subtraction_cone, Beamslot_lead_rm_inv, beampipe_beamslot_relative_position_local );
+  G4SubtractionSolid *Beamslot_lead_with_hole = new G4SubtractionSolid( "Beamslot_lead_with_hole", Beamslot_lead_with_notch, beampipe_subtraction_cone, Beamslot_lead_rm_inv, beampipe_beamslot_relative_position_local );
 
   G4LogicalVolume *Beamslot_lead_log = new G4LogicalVolume( Beamslot_lead_with_hole, GetMaterial("Lead"), "Beamslot_lead_log" );
   G4PVPlacement *Beamslot_lead_pv = new G4PVPlacement( Beamslot_lead_rm, Beamslot_lead_position, Beamslot_lead_log, "Beamslot_lead_pv", worldlog, 0, false, 0 );
@@ -450,8 +460,8 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
 
   G4LogicalVolume *SBS_collimator_log = new G4LogicalVolume( SBS_collimator_beamcut, GetMaterial("Lead"), "SBS_collimator_log" );
     
-  new G4PVPlacement( Beamslot_lead_rm, G4ThreeVector( SBS_coll_R*sin(SBSang), 0.0, SBS_coll_R*cos(SBSang) ), SBS_collimator_log, "SBS_collimator_phys", worldlog, 
-		     0, false, 0 );
+  // new G4PVPlacement( Beamslot_lead_rm, G4ThreeVector( SBS_coll_R*sin(SBSang), 0.0, SBS_coll_R*cos(SBSang) ), SBS_collimator_log, "SBS_collimator_phys", worldlog, 
+  // 		     0, false, 0 );
 
   G4VisAttributes *leadVisAtt= new G4VisAttributes(G4Colour(0.25,0.25,0.25));
   //SIDISlead_log->SetVisAttributes(leadVisAtt);

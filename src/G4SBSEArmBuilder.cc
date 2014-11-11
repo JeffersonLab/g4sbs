@@ -655,7 +655,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     map<int, set<int> > crescent;
 
     //Example: The next three lines means that in column 7, we will place modules
-    //in rows 25 and 26.  
+    //in rows 24 and 25.  
     int rowints7[]={24,25};
     set<int> rowset7(rowints7, rowints7 + sizeof(rowints7) / sizeof(int) );
     crescent.insert(make_pair(7,rowset7));

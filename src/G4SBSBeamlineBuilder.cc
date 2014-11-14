@@ -16,6 +16,9 @@
 #include "G4Box.hh"
 #include "G4Polycone.hh"
 
+
+
+
 G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   assert(dc);
 }
@@ -24,6 +27,74 @@ G4SBSBeamlineBuilder::~G4SBSBeamlineBuilder(){;}
 
 void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   Targ_t targtype = fDetCon->fTargType;
+
+/////////////////////////////////////////////////////////////////////
+//  09/16/2014  implement of correcting magnet ob beam line 
+
+
+  //  Entry iron tube to shield beam from stray field
+  //
+   
+  G4double tRmin = 5.*cm;
+  G4double tRmax = 7.*cm;
+  G4double tDzz = 20.*cm/2;
+  G4double tSPhi = 0.*deg;
+  G4double tDphi = 360.*deg;
+
+
+ G4Tubs *iron_ent_tube = new G4Tubs("iron_ent_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+
+  G4LogicalVolume *iron_ent_tube_log = new G4LogicalVolume(iron_ent_tube, GetMaterial("Iron"), "iron_ent_tube", 0, 0, 0 );
+
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 110.936*cm + tDzz), iron_ent_tube_log, "iron_ent_tube_phys", worldlog,false,0);
+
+  //  next entrance correction magnet
+
+  G4Box* box_1 = new G4Box("EnMag_1",50.*cm/2., 50.*cm/2., 16.*cm/2.);
+  G4Box* box_2 = new G4Box("EnMag_2",20.*cm/2., 30.*cm/2., 17.*cm/2.); // aperture to pass beam
+  G4SubtractionSolid* EnMag = new G4SubtractionSolid("EnMag", box_1, box_2);   
+  G4LogicalVolume * EnMag_log = new G4LogicalVolume(EnMag , GetMaterial("Iron"), "EnMag", 0, 0, 0); 
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 134.935*cm+8.*cm), EnMag_log, "EnMag_phys", worldlog, false, 0);
+
+  // exit correction magnet 
+
+  G4Box* box_3 = new G4Box("ExtMag_1",50.*cm/2., 54.*cm/2., 40.*cm/2.);
+  G4Box* box_4 = new G4Box("ExtMag_2",20.*cm/2., 40.*cm/2., 41.*cm/2.); // aperture to pass beam
+  G4SubtractionSolid* ExtMag = new G4SubtractionSolid("ExtMag", box_3, box_4);   
+  G4LogicalVolume * ExtMag_log = new G4LogicalVolume(ExtMag , GetMaterial("Iron"), "ExtMag", 0, 0, 0); 
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 351.435*cm+20.*cm), ExtMag_log, "ExtMag_phys", worldlog, false, 0);
+
+  // iron conical tube on the beamline inside SBS magnet split
+
+  G4double tcRmin1 = 7.4*cm;
+  G4double tcRmax1 = 8.68*cm;
+  G4double tcRmin2 = 10.55*cm;
+  G4double tcRmax2 = 11.82*cm;
+  G4double tcDzz = 120.*cm/2;
+  G4double tcSPhi = 0.*deg;
+  G4double tcDphi = 360.*deg;
+  
+ G4Cons *iron_con_tube = new G4Cons("iron_con_tube", tcRmin1, tcRmax1,tcRmin2, tcRmax2, tcDzz, tcSPhi, tcDphi);
+
+  G4LogicalVolume *iron_con_tube_log = new G4LogicalVolume(iron_con_tube, GetMaterial("Iron"), "iron_con_tube", 0, 0, 0 );
+
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 170.944*cm + tcDzz), iron_con_tube_log, "iron_con_tube_phys", worldlog,false,0);
+
+
+
+
+
+  G4VisAttributes *McorrVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
+  iron_con_tube_log->SetVisAttributes(McorrVisAtt);
+  ExtMag_log->SetVisAttributes(McorrVisAtt);
+  EnMag_log->SetVisAttributes(McorrVisAtt);
+  iron_ent_tube_log->SetVisAttributes(McorrVisAtt);
+
+
+
+
+//---------------------------------------------------------------------------
+
 
   //Material definition moved to "ConstructMaterials":
 
@@ -73,7 +144,11 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     
       G4Tubs *ent_win = new G4Tubs("ent_win", 0.0, ent_rin, winthick/2, 0.*deg, 360.*deg );
       G4LogicalVolume *ent_winlog = new G4LogicalVolume(ent_win, GetMaterial("Beryllium"), "entwin_log", 0, 0, 0);
+
+      /*  // my cancel Be window for GEp experiment 09/29/2014
       new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);
+      */  // my cancel Be window for GEp experiment 09/29/2014
+
       ent_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.7,1.0,0.0)));
     } // else {
     //   //Don't add window: we want the beam to interact with the target first. Butt up against the outer edge of the scattering chamber:
@@ -99,19 +174,26 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   int nsec = 7;
   //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
   G4double exit_z[]   = { 162.2*cm, 592.2*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };
+  G4double exit_z_vac[] = { 162.5*cm, 592.5*cm, 610.24*cm,610.35*cm, 1161.52*cm, 1161.53*cm,2726.46*cm };
+
   G4double exit_zero[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   G4double exit_rin[] = { 4.8*cm, 14.8*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };
   G4double exit_rou[] = { 5.0*cm, 15.0*cm,15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };
 
 
-  G4Polycone *ext_cone = new G4Polycone("ext_tube", 0.0*deg, 360.0*deg, nsec, exit_z, exit_rin, exit_rou);
-  G4Polycone *ext_vac  = new G4Polycone("ext_vac ", 0.0*deg, 360.0*deg, nsec, exit_z, exit_zero, exit_rin);
+  G4Polycone *ext_cone = new G4Polycone("ext_cone", 0.0*deg, 360.0*deg, nsec, exit_z, exit_rin, exit_rou);
+  G4Polycone *ext_vac  = new G4Polycone("ext_vac ", 0.0*deg, 360.0*deg, nsec, exit_z_vac, exit_zero, exit_rin);
 
   G4LogicalVolume *extLog = new G4LogicalVolume(ext_cone, GetMaterial("Aluminum"), "ext_log", 0, 0, 0);
   G4LogicalVolume *extvacLog = new G4LogicalVolume(ext_vac, GetMaterial("Vacuum"), "extvac_log", 0, 0, 0);
 
   new G4PVPlacement(0,G4ThreeVector(), extLog, "ext_phys", worldlog, false,0);
   new G4PVPlacement(0,G4ThreeVector(), extvacLog, "extvac_phys", worldlog,false,0);
+
+
+  G4VisAttributes *extVisAtt= new G4VisAttributes(G4Colour(0.9,0.1,0.9));
+  extLog->SetVisAttributes(extVisAtt);
+
 
   // Seal this up if we have a gas target
   if( fDetCon->fTargType == kH2 || fDetCon->fTargType == k3He || fDetCon->fTargType == kNeutTarg ){
@@ -121,9 +203,14 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
     G4Tubs *extwin = new G4Tubs("ext_win", 0.0, exit_rin[0], extwin_thick/2, 0.*deg, 360.*deg );
     G4LogicalVolume *ext_winlog = new G4LogicalVolume(extwin, GetMaterial("Aluminum"), "entwin_log", 0, 0, 0);
-    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, exit_z[0] - extwin_thick/2), ext_winlog, "extwin_phys", worldlog,false,0);
 
-    ext_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.6,0.6,0.6)));
+
+    /*  cancel Al window to vacuum pipe 10/02/14
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, exit_z[0] - extwin_thick/2), ext_winlog, "extwin_phys", worldlog,false,0);
+    */   //cancel Al window to vacuum pipe 10/02/14
+
+
+    ext_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.5,0.2,0.6)));
   }
 
 
@@ -142,7 +229,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   entvacLog_cut->SetVisAttributes(G4VisAttributes::Invisible);
 
-  G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
+  G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.2,0.6,0.2));
 
   extLog->SetVisAttributes(pipeVisAtt);
   entLog->SetVisAttributes(pipeVisAtt);
@@ -172,6 +259,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 }
 
+//  Here is lead shield of beam line for GEp
 
 void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   double maxrad = 25*cm;
@@ -209,9 +297,11 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
   G4LogicalVolume *leadinmag_log = new G4LogicalVolume( leadinmag, GetMaterial("Lead"), "leadinmag", 0, 0, 0 );
 
+   /*    remove magnet conical 09/30/2014 
   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadinmag_log, "leadinmag_phys", worldlog,false,0);
 
-    
+   */   // 09/30/2014 we will shield by lead bloks around beam line
+
 
   // Lead from magnet on
   // 311 cm -> 592 cm
@@ -224,14 +314,15 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
   G4LogicalVolume *leadafter_log = new G4LogicalVolume( leadafter, GetMaterial("Lead"), "leadafter_log", 0, 0, 0 );
 
+  /*   cancell 09/30/2014  we will shield by lead bloks around beam line
   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadafter_log, "leadafter_phys", worldlog,false,0);
+  */   // cancell 09/30/2014
 
 
 
 
 
-
-  G4VisAttributes *leadVisAtt= new G4VisAttributes(G4Colour(0.15,0.15,0.15));
+  G4VisAttributes *leadVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
   leadinmag_log->SetVisAttributes(leadVisAtt);
   leadafter_log->SetVisAttributes(leadVisAtt);
 
@@ -345,18 +436,8 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   G4double Beamslot_lead_height = 31.0*cm;
   G4double Beamslot_lead_depth = fDetCon->fHArmBuilder->f48D48depth;
 
-  G4double notchdepth = 25.0*cm;
-
   G4Box *Beamslot_lead_box = new G4Box("Beamslot_lead_box", Beamslot_lead_width/2.0, Beamslot_lead_height/2.0, Beamslot_lead_depth/2.0 );
   //G4LogicalVolume *Beamslot_lead_log = new G4LogicalVolume( 
-
-  G4Box *beamslot_lead_cutbox = new G4Box("Beamslot_lead_cutbox", notchdepth*sqrt(2.0), Beamslot_lead_height, notchdepth );
-  
-  G4RotationMatrix *notch_rm = new G4RotationMatrix;
-  notch_rm->rotateY(-45.0*deg);
-
-  G4SubtractionSolid *Beamslot_lead_with_notch = new G4SubtractionSolid( "Beamslot_lead_with_notch", Beamslot_lead_box, beamslot_lead_cutbox, notch_rm, 
-									 G4ThreeVector( -Beamslot_lead_width/2.0, 0.0, -Beamslot_lead_depth/2.0) );
 
   G4double SBSang = fDetCon->fHArmBuilder->f48D48ang;
 
@@ -392,7 +473,7 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
 							   beampipe_beamslot_relative_position.dot( SBS_zaxis ) );
 
   //The subtraction that we want to perform is Beamslot lead box - beampipe cone:
-  G4SubtractionSolid *Beamslot_lead_with_hole = new G4SubtractionSolid( "Beamslot_lead_with_hole", Beamslot_lead_with_notch, beampipe_subtraction_cone, Beamslot_lead_rm_inv, beampipe_beamslot_relative_position_local );
+  G4SubtractionSolid *Beamslot_lead_with_hole = new G4SubtractionSolid( "Beamslot_lead_with_hole", Beamslot_lead_box, beampipe_subtraction_cone, Beamslot_lead_rm_inv, beampipe_beamslot_relative_position_local );
 
   G4LogicalVolume *Beamslot_lead_log = new G4LogicalVolume( Beamslot_lead_with_hole, GetMaterial("Lead"), "Beamslot_lead_log" );
   G4PVPlacement *Beamslot_lead_pv = new G4PVPlacement( Beamslot_lead_rm, Beamslot_lead_position, Beamslot_lead_log, "Beamslot_lead_pv", worldlog, 0, false, 0 );
@@ -428,7 +509,7 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   // G4LogicalVolume *SIDISlead_log = new G4LogicalVolume( SIDISlead_cone, GetMaterial("Lead"), "SIDISlead_log", 0, 0, 0 );
   // G4PVPlacement *SIDISlead_pv = new G4PVPlacement( 0, G4ThreeVector(), SIDISlead_log, "SIDISlead_pv", worldlog, false, 0 );
   
-  //We also want to put some lead and/or Iron shielding, i.e., a "collimator" in front of the SBS magnet gap:
+  //We also want to put some lead and/or Fe shielding, i.e., a "collimator" in front of the SBS magnet gap:
 
   double SBScollwidth = 469.9*mm;
   double SBScollheight = 1219.2*mm;
@@ -460,8 +541,8 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
 
   G4LogicalVolume *SBS_collimator_log = new G4LogicalVolume( SBS_collimator_beamcut, GetMaterial("Lead"), "SBS_collimator_log" );
     
-  // new G4PVPlacement( Beamslot_lead_rm, G4ThreeVector( SBS_coll_R*sin(SBSang), 0.0, SBS_coll_R*cos(SBSang) ), SBS_collimator_log, "SBS_collimator_phys", worldlog, 
-  // 		     0, false, 0 );
+  new G4PVPlacement( Beamslot_lead_rm, G4ThreeVector( SBS_coll_R*sin(SBSang), 0.0, SBS_coll_R*cos(SBSang) ), SBS_collimator_log, "SBS_collimator_phys", worldlog, 
+		     0, false, 0 );
 
   G4VisAttributes *leadVisAtt= new G4VisAttributes(G4Colour(0.25,0.25,0.25));
   //SIDISlead_log->SetVisAttributes(leadVisAtt);
@@ -471,6 +552,16 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   SBS_collimator_log->SetVisAttributes(leadVisAtt);
 }
 
+//++++++++++++++++++++++++++++++++++++++++++  correcting magnets ++++ 09/23/2014
+
+/////////////////////////////////////////////////////////////////////
+//  09/16/2014  implement of correcting magnet ob beam line 
+
+//void G4SBSBeamlineBuilder::MakeGEpCorrMag(G4LogicalVolume *worldlog){
+// }
+
+
+///////////////////////////////////////////////////////////////////////////
 
 
 

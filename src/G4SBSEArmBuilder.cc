@@ -539,17 +539,15 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
      ********************************        ECAL      ***********************************
      *************************************************************************************/
    
-
-    // ECal will act as BBcal detector
     //Define  coordinates, rotations, and offsets:
     G4RotationMatrix *bbrm = new G4RotationMatrix;
     bbrm->rotateY(fBBang);
 
-    G4double x_ecal = 246.402*cm, y_ecal = 370.656*cm, z_ecal = 49.806*cm;
+    G4double x_ecal = 246.402*cm, y_ecal = 370.656*cm, z_ecal = 45.406*cm; //45.006cm(module) + 2*0.2(pmt depth)
     double bbr = fBBdist - z_ecal/2.0; //backside of ECal should be located at fBBdist
     double offset = 15*cm; //Motivation - match SBS acceptance
 
-    //Electron Arm - order of materials
+    //Electron Arm - order of materials - all "right next" to each other in z-hat_spectrometer coordinates
     //1)20cm Polyethylene 
     //2)2 4cm CDet planes
     //3)2.4cm Al
@@ -559,8 +557,11 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     //x_earm = 46.5*4.212 (the .5 comes from staggering effects)
     //y_earm = 74*4.212
     //z_earm = 20+2*4
+
+    G4double z_Al = 2.40*cm; 
+
     G4double x_earm = 195.858*cm, y_earm = 311.688*cm, z_earm = 28.0*cm; 
-    double cdr = fBBdist - z_ecal - z_earm/2.0;
+    double cdr = fBBdist - z_ecal - z_Al - z_earm/2.0;
     G4Box *earm_mother_box = new G4Box("earm_mother_box", x_earm/2.0, y_earm/2.0, z_earm/2.0);
     G4LogicalVolume *earm_mother_log = new G4LogicalVolume(earm_mother_box, GetMaterial("Air"), "earm_mother_log");
 
@@ -574,18 +575,25 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4Box *CD_box = new G4Box("CD_box", x_earm/2.0, y_earm/2.0, CD_depth/2.0 );
     G4LogicalVolume *CD_log = new G4LogicalVolume(CD_box, GetMaterial("PLASTIC_SC_VINYLTOLUENE"), "CD_log");
 
+    //Aluminum Shielding in front of ECAL - make it big enough to enclose crescent
+    //Columns 6-51 && Rows 7-80
+    G4double alr = fBBdist - z_ecal - z_Al/2.0;
+    G4Box *Al_box = new G4Box( "Al_box", x_earm/2.0, y_earm/2.0, z_Al/2.0 );
+    G4LogicalVolume *Al_log = new G4LogicalVolume ( Al_box, GetMaterial("RICHAluminum"), "Al_log" );
+    new G4PVPlacement( bbrm, G4ThreeVector( alr*sin(-fBBang)+offset*cos(fBBang), 0.0, alr*cos(-fBBang)+offset*sin(fBBang) ), Al_log, "Aluminum_Shielding", worldlog, false, 0 );
+
     //Place everything inside the Earm Mother Volume
-     new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0-CD_depth/2.0), CD_log, "plane1", earm_mother_log, false, 0 );
-     new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0-CD_depth/2.0-CD_depth ), CD_log, "plane2", earm_mother_log, false, 1 );
-     new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -z_earm/2.0+polydepth/2.0 ), polybox_log, "Polyethylene", earm_mother_log, false, 0 );
-     new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang)+offset*cos(fBBang), 0.0, cdr*cos(-fBBang)+offset*sin(fBBang) ), earm_mother_log, "CDet & Filter",worldlog, false, 0);
+    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0-CD_depth/2.0), CD_log, "plane1", earm_mother_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0-CD_depth/2.0-CD_depth ), CD_log, "plane2", earm_mother_log, false, 1 );
+    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -z_earm/2.0+polydepth/2.0 ), polybox_log, "Polyethylene", earm_mother_log, false, 0 );
+    new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang)+offset*cos(fBBang), 0.0, cdr*cos(-fBBang)+offset*sin(fBBang) ), earm_mother_log, "CDet & Filter",worldlog, false, 0);
 
     //Define a Mother Volume to place the ECAL modules
     G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
     G4LogicalVolume *ecal_log = new G4LogicalVolume( ecal_box, GetMaterial("Air"), "ecal_log" );
-    new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang)+offset*cos(fBBang), 0.0, bbr*cos(-fBBang)+offset*sin(fBBang) ), ecal_log, "ecal", worldlog, false, 0 );
+    new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang)+offset*cos(fBBang), 0.0, bbr*cos(-fBBang)+offset*sin(fBBang) ), ecal_log, "ECal Mother", worldlog, false, 0 );
 
-    //dimensions of mylar/air wrapping:
+    //Dimensions of mylar/air wrapping:
     G4double mylar_wrapping_size = 0.00150*cm;
     G4double air_wrapping_size = 0.00450*cm;
     G4double mylar_plus_air = mylar_wrapping_size + air_wrapping_size;
@@ -632,13 +640,6 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4double PMT_depth = 0.20*cm;
     G4Tubs *PMTcathode_ecal = new G4Tubs( "PMTcathode_ecal", 0.0*cm, PMT_radius, PMT_depth/2.0, 0.0, twopi );
     G4LogicalVolume *PMTcathode_ecal_log = new G4LogicalVolume( PMTcathode_ecal, GetMaterial("Photocathode_material_ecal"), "PMTcathode_ecal_log" );
-
-    //Aluminum Shielding in front of ECAL - make it big enough to enclose crescent
-    //I chose columns 6-51 && rows 7-80
-    G4double z_Al = 2.40*cm;
-    G4Box *Al_box = new G4Box( "Al_box", x_earm/2.0, y_earm/2.0, z_Al/2.0 );
-    G4LogicalVolume *Al_log = new G4LogicalVolume ( Al_box, GetMaterial("RICHAluminum"), "Al_log" );
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -z_module_type1/2.0 - z_Al/2.0), Al_log, "Aluminum_Shielding", ecal_log, false, 0 );
 
     //PMTcathode_ecal_log is the sensitive detector, assigned to ECalSD which detects optical photons
     G4SDManager *sdman = fDetCon->fSDman;
@@ -871,22 +872,22 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 		  //EVEN ROWS
 		  if(i%2==0){ 
 		    //Type1 Module
-		    new G4PVPlacement( 0, G4ThreeVector( xtemp_even, ytemp, 0.0), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
+		    new G4PVPlacement(0, G4ThreeVector( xtemp_even, ytemp, -PMT_depth), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
 		    //PMT_window
-		    new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_module_type1/2.0 + PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
+		    new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_ecal/2.0-PMT_depth-PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
 		    //PMT_cathode
-		    new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_module_type1/2.0 + PMT_window_depth + PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
+		    new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_ecal/2.0-PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
 		  
 		  }
 
 		  //ODD ROWS
 		  else{
 		    //Type1 Module
-		    new G4PVPlacement( 0, G4ThreeVector( xtemp_odd, ytemp, 0.0), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
+		    new G4PVPlacement( 0, G4ThreeVector( xtemp_odd, ytemp, -PMT_depth), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
 		    //PMT_window
-		    new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_module_type1/2.0 + PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
+		    new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_ecal/2.0-PMT_depth-PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
 		    //PMT_cathode
-		    new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_module_type1/2.0 + PMT_window_depth + PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
+		    new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_ecal/2.0-PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
 		    
 		  }
 		  module_number++;
@@ -899,12 +900,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	      if(i>=7 && i<=80){
 		if(j>=6 && j<=51){
 		  if(i%2==0){
-		    new G4PVPlacement(0, G4ThreeVector(xtemp_even, ytemp, 0.0 ), steel_log, "steel_pv", ecal_log, false, 0);
-		    new G4PVPlacement(0, G4ThreeVector(-(x_earm/2.0)+(x_steel/4.0), ytemp, 0.0 ), steel_log_half, "steel_pv", ecal_log, false, 0);
+		    new G4PVPlacement(0, G4ThreeVector(xtemp_even, ytemp, -PMT_depth ), steel_log, "steel_pv", ecal_log, false, 0);
+		    new G4PVPlacement(0, G4ThreeVector(-(x_earm/2.0)+(x_steel/4.0), ytemp, -PMT_depth ), steel_log_half, "steel_pv", ecal_log, false, 0);
 		  }
 		  else{
-		    new G4PVPlacement(0, G4ThreeVector(xtemp_odd, ytemp, 0.0 ), steel_log, "steel_pv", ecal_log, false, 0);
-		    new G4PVPlacement(0, G4ThreeVector((x_earm/2.0)-(x_steel/4.0), ytemp, 0.0 ), steel_log_half, "steel_pv", ecal_log, false, 0);
+		    new G4PVPlacement(0, G4ThreeVector(xtemp_odd, ytemp, -PMT_depth ), steel_log, "steel_pv", ecal_log, false, 0);
+		    new G4PVPlacement(0, G4ThreeVector((x_earm/2.0)-(x_steel/4.0), ytemp, -PMT_depth ), steel_log_half, "steel_pv", ecal_log, false, 0);
 		  }
 		}
 	      }
@@ -919,7 +920,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
 	//Make mother volume invisible
         ecal_log->SetVisAttributes( G4VisAttributes::Invisible );
- 
+	
 	//Mylar
 	G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );
 	mylar_wrap_log->SetVisAttributes(mylar_colour);

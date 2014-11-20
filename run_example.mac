@@ -72,6 +72,12 @@
 #Otherwise use 0 for no shielidng
 #/g4sbs/uselead  1
 
+# SBS Clamp Option
+#
+#/g4sbs/sbsclampopt 1
+# 1 for Bigbite (neutron experiments)
+# 2 for GEp
+
 /g4sbs/runtime     1.0 s
 /g4sbs/beamE       4.4 GeV
 /g4sbs/bbang      32.5 deg

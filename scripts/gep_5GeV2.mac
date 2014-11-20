@@ -11,6 +11,10 @@
 /g4sbs/rasterx  4.0 mm
 /g4sbs/rastery  4.0 mm
 
+/g4sbs/48d48field 1
+/g4sbs/sbsclampopt 2
+
+
 /g4sbs/runtime     1.0 s
 /g4sbs/beamE       6.6 GeV
 /g4sbs/bbang      26.1 deg

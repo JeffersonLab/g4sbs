@@ -114,6 +114,7 @@ private:
   bool GenerateBeam( Nucl_t, G4LorentzVector, G4LorentzVector );
   
   bool GenerateSIDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateWiser( Nucl_t, G4LorentzVector, G4LorentzVector );
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   
   double deutpdist( double );

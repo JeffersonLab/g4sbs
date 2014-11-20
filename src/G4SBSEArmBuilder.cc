@@ -17,6 +17,7 @@
 #include "G4GenericTrap.hh"
 #include "G4Polycone.hh"
 
+#include "G4SBSGrinch.hh"
 #include "G4SBSBigBiteField.hh"
 #include "G4SBSTrackerBuilder.hh"
 #include "G4SBSCalSD.hh"
@@ -32,11 +33,11 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
     fBBang  = 40.0*deg;
     fBBdist = 1.5*m;
 
-    fBBCaldist = 0.8*m;
-    fCerDepth = 60.0*cm;
+    fCerDepth = 92.0*cm;
     fCerDist  =  7.0*cm;
 
-    fGEMDist  = 70.0*cm;
+    fBBCaldist = 20*cm + fCerDepth;
+    fGEMDist   = 10*cm + fCerDepth;
     fGEMOption = 1;
 
     fUseLocalField = false;
@@ -425,6 +426,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
     //--------- BigBite Cerenkov ------------------------------
 
+    /*
     //  double cer_mirrorthick = 0.635*mm;
     double cer_mirrorthick = 3.00*mm;
     //double cer_winthick_in   = 1.0*mm;
@@ -448,8 +450,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
     double thisz = detoffset+fCerDist;
 
-    /*
-     *  FIXME  - NO CERENKOV */
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_in/2.0 ), cer_winlog_in, "cerwin1", bbdetLog, false, 0, false);
     thisz += cer_winthick_in;
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + fCerDepth/2.0 ), cer_gaslog, "cergas", bbdetLog, false, 0, false);
@@ -462,6 +462,12 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     }
     //  thisz += cer_mirrorthick;
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_out/2.0 ), cer_winlog_out, "cerwin2", bbdetLog, false, 0, false);
+    */
+
+    G4SBSGrinch *grinch = new G4SBSGrinch(fDetCon);
+    grinch->SetZOffset( detoffset + fCerDist );
+    grinch->SetCerDepth( fCerDepth);
+    grinch->BuildComponent(bbdetLog);
 
     //--------- Visualization attributes -------------------------------
     bbdetLog->SetVisAttributes(G4VisAttributes::Invisible);
@@ -473,6 +479,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     //  yokeVisAtt->SetForceWireframe(true);
     bbyokewgapLog->SetVisAttributes(yokeVisAtt);
 
+    /*
     G4VisAttributes * alVisAtt
 	= new G4VisAttributes(G4Colour(0.1,0.1,0.1));
     cer_winlog_in->SetVisAttributes(alVisAtt);
@@ -482,6 +489,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 	= new G4VisAttributes(G4Colour(0.6,0.6,1.0));
     gasVisAtt->SetForceWireframe(true);
     cer_gaslog->SetVisAttributes(gasVisAtt);
+    */
 
     G4VisAttributes * psVisAtt
 	= new G4VisAttributes(G4Colour(0.3,0.9,0.3));

@@ -557,10 +557,10 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     //x_earm = 46.5*4.212 (the .5 comes from staggering effects)
     //y_earm = 74*4.212
     //z_earm = 20+2*4
-
-    G4double z_Al = 2.40*cm; 
-
     G4double x_earm = 195.858*cm, y_earm = 311.688*cm, z_earm = 28.0*cm; 
+
+
+    G4double z_Al = 2.40*cm; //Aluminium thickness 
     double cdr = fBBdist - z_ecal - z_Al - z_earm/2.0;
     G4Box *earm_mother_box = new G4Box("earm_mother_box", x_earm/2.0, y_earm/2.0, z_earm/2.0);
     G4LogicalVolume *earm_mother_log = new G4LogicalVolume(earm_mother_box, GetMaterial("Air"), "earm_mother_log");
@@ -657,7 +657,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     PMTcathode_ecal_log->SetSensitiveDetector( ECalSD );
 
     //***********SBS ACCEPTANCE MATCHING**********
-    //The following is the result of a macro - 10/23/2014
+    //The following is the result of a macro - 10/23/2014 - and the map crescent tells
+    //us how to iterate the modules in order to get a crescent
+
     map<int, set<int> > crescent;
 
     //Example: The next three lines means that in column 7, we will place modules
@@ -854,7 +856,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     //And a half Steel module to fill in voids caused by staggering
     G4Box *steel_box_half = new G4Box("steel_box_half", 0.5*(x_steel/2.0), y_steel/2.0, z_steel/2.0);
     G4LogicalVolume *steel_log_half = new G4LogicalVolume( steel_box_half, GetMaterial("Steel"), "steel_log");
-    int module_number;
+    int module_number; //counts modules if needed
 
     //Iterating to build ECal 
     for(G4int j=0; j<x_number_ecal; j++){	

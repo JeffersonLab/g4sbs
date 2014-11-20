@@ -13,8 +13,11 @@
 #include "G4HadronPhysicsQGSP_BERT.hh"
 #include "G4OpticalPhysics.hh"
 //#include "G4StepLimiterBuilder.hh"
+#include "G4StepLimiterPhysics.hh"
 #include "G4ProcessManager.hh"
 #include "G4DataQuestionaire.hh"
+
+#include "G4PhysicsListHelper.hh"
 
 G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
   
@@ -33,6 +36,7 @@ G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
   RegisterPhysics( new G4StoppingPhysics(verb) );
   RegisterPhysics( G4SBSOpticalPhysics = new G4OpticalPhysics(verb) );
 //  RegisterPhysics( new G4StepLimiterBuilder(verb) );
+  RegisterPhysics( new G4StepLimiterPhysics(verb) );
 
   // //G4SBSParticleList = new G4DecayPhysics("decays");
   // G4SBSParticleList = new G4DecayPhysics(verb);

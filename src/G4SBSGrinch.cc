@@ -6,6 +6,7 @@
  * @date 2012-05-04
  */
 #include "G4SBSGrinch.hh"
+#include "G4SystemOfUnits.hh"
 
 #include "G4SBSRICHSD.hh"
 #include "G4SBSDetectorConstruction.hh"

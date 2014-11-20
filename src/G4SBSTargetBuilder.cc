@@ -1,5 +1,7 @@
 #include "G4SBSTargetBuilder.hh" 
 
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
 #include "G4SBSDetectorConstruction.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"

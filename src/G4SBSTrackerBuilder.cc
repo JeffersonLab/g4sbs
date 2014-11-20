@@ -18,6 +18,9 @@
 #include "G4Polycone.hh"
 #include "G4RotationMatrix.hh"
 
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
 #include "G4SBSGEMSD.hh"
 
 G4SBSTrackerBuilder::G4SBSTrackerBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){

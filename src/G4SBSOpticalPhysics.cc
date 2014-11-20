@@ -4,11 +4,10 @@
 #include "G4SBSOpticalPhysics.hh"
 
 //#include "G4VPhysicsConstructor.hh"
+#include "G4ParticleTable.hh"
 
 #include "G4ParticleDefinition.hh"
 #include "G4ParticleTypes.hh"
-#include "G4ParticleTable.hh"
-#include "G4ParticleTableIterator.hh"
 
 #include "G4ProcessManager.hh"
 
@@ -67,8 +66,9 @@ void G4SBSOpticalPhysics::ConstructProcess()
   G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();
   theScintProcess->AddSaturation(emSaturation);
   
-  //aParticleIterator->reset();
-  G4ParticleTable::G4PTblDicIterator *aParticleIterator = theParticleTable->GetIterator();
+  // Apparently this already exists
+  aParticleIterator->reset();
+//  G4ParticleTable::G4PTblDicIterator *aParticleIterator = theParticleTable->GetIterator();
 
   aParticleIterator->reset();
 

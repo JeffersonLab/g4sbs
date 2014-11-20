@@ -29,6 +29,9 @@
 #include "G4ExplicitEuler.hh"
 #include "G4ChordFinder.hh"
 
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
 G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
     fBBang  = 40.0*deg;
     fBBdist = 1.5*m;

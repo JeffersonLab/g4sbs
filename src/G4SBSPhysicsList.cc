@@ -10,10 +10,9 @@
 #include "G4IonPhysics.hh"
 #include "G4NeutronTrackingCut.hh"
 #include "G4StoppingPhysics.hh"
-#include "HadronPhysicsFTFP_BERT.hh"
-//#include "HadronPhysicsQGSP_BERT.hh"
+#include "G4HadronPhysicsQGSP_BERT.hh"
 #include "G4OpticalPhysics.hh"
-#include "G4StepLimiterBuilder.hh"
+//#include "G4StepLimiterBuilder.hh"
 #include "G4ProcessManager.hh"
 #include "G4DataQuestionaire.hh"
 
@@ -30,10 +29,10 @@ G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
   RegisterPhysics( new G4HadronElasticPhysics(verb) );
   RegisterPhysics( new G4IonPhysics(verb) );
   RegisterPhysics( new G4NeutronTrackingCut(verb) );
-  RegisterPhysics( new HadronPhysicsFTFP_BERT(verb) );
+  RegisterPhysics( new G4HadronPhysicsQGSP_BERT(verb) );
   RegisterPhysics( new G4StoppingPhysics(verb) );
   RegisterPhysics( G4SBSOpticalPhysics = new G4OpticalPhysics(verb) );
-  RegisterPhysics( new G4StepLimiterBuilder(verb) );
+//  RegisterPhysics( new G4StepLimiterBuilder(verb) );
 
   // //G4SBSParticleList = new G4DecayPhysics("decays");
   // G4SBSParticleList = new G4DecayPhysics(verb);

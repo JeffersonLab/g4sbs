@@ -1030,7 +1030,6 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 
 	}
     }
-  }
 
 
     ////////////////////////////////////////////////////////////////////////

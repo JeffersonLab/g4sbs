@@ -34,489 +34,489 @@
 #include "G4SBSECalSD.hh"
 
 G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
-    fBBang  = 40.0*deg;
-    fBBdist = 1.5*m;
+  fBBang  = 40.0*deg;
+  fBBdist = 1.5*m;
 
-    fBBCaldist = 0.8*m;
-    fCerDepth = 60.0*cm;
-    fCerDist  =  7.0*cm;
+  fBBCaldist = 0.8*m;
+  fCerDepth = 60.0*cm;
+  fCerDist  =  7.0*cm;
 
-    fGEMDist  = 70.0*cm;
-    fGEMOption = 1;
+  fGEMDist  = 70.0*cm;
+  fGEMOption = 1;
 
-    fUseLocalField = false;
+  fUseLocalField = false;
 
-    assert(fDetCon);
+  assert(fDetCon);
 
-    fbbfield =  NULL;  
+  fbbfield =  NULL;  
 }
 
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}
 
 void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
-    Exp_t exptype = fDetCon->fExpType;
+  Exp_t exptype = fDetCon->fExpType;
 
-   //  The neutron experiments and the SIDIS experiment use BigBite:
-    //------------ BigBite: -----------------------------------------------------
-    if( exptype == kNeutronExp || exptype == kSIDISExp ) 
+  //  The neutron experiments and the SIDIS experiment use BigBite:
+  //------------ BigBite: -----------------------------------------------------
+  if( exptype == kNeutronExp || exptype == kSIDISExp ) 
     {
-	MakeBigBite( worldlog );
+      MakeBigBite( worldlog );
     }
-    if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+  if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
-	MakeBigCal( worldlog );
+      MakeBigCal( worldlog );
     }
 }
 
 void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
-    //Lines of code used to build BigBite moved to their own method:
-    printf("BigBite at %f deg\n", fBBang/deg);
+  //Lines of code used to build BigBite moved to their own method:
+  printf("BigBite at %f deg\n", fBBang/deg);
 
-    G4RotationMatrix *bbrm = new G4RotationMatrix;
-    bbrm->rotateY(fBBang);
+  G4RotationMatrix *bbrm = new G4RotationMatrix;
+  bbrm->rotateY(fBBang);
 
-    G4RotationMatrix *bbykrm = new G4RotationMatrix;
-    bbykrm->rotateX(90.0*deg);
+  G4RotationMatrix *bbykrm = new G4RotationMatrix;
+  bbykrm->rotateX(90.0*deg);
 
-    double motherdepth = 600.0*cm;
+  double motherdepth = 600.0*cm;
 
-    double bbmagwidth  = 1670.0*mm;
-    double bbmagheight = 486.0*mm;
+  double bbmagwidth  = 1670.0*mm;
+  double bbmagheight = 486.0*mm;
 
-    double eps = 0.1*mm;
+  double eps = 0.1*mm;
 
-    // Mother box
-    G4Box *bbmotherBox= new G4Box("bbmotherBox", bbmagwidth/2.0 + eps, 250*cm, motherdepth/2.0);
+  // Mother box
+  G4Box *bbmotherBox= new G4Box("bbmotherBox", bbmagwidth/2.0 + eps, 250*cm, motherdepth/2.0);
 
-    // We need to account for offsets so we can fit BigBite and detectors in without running into
-    // the target
-    // Need 70 cm clearance from front of the spectrometer to front of the mother volume
+  // We need to account for offsets so we can fit BigBite and detectors in without running into
+  // the target
+  // Need 70 cm clearance from front of the spectrometer to front of the mother volume
 
-    double clear = 70.0*cm;
+  double clear = 70.0*cm;
 
-    double motherr = fBBdist + motherdepth/2.0 - clear;
+  double motherr = fBBdist + motherdepth/2.0 - clear;
 
-    std::vector<G4TwoVector> bbyokepts;
-    bbyokepts.push_back( G4TwoVector( bbmagheight, 0.0*mm));
-    bbyokepts.push_back( G4TwoVector( bbmagheight, 464.0*mm));
-    bbyokepts.push_back( G4TwoVector( -bbmagheight, 805.0*mm));
-    bbyokepts.push_back( G4TwoVector( -bbmagheight, 0.0*mm));
-    bbyokepts.push_back( G4TwoVector( bbmagheight, 0.0*mm));
-    bbyokepts.push_back( G4TwoVector( bbmagheight, 464.0*mm));
-    bbyokepts.push_back( G4TwoVector( -bbmagheight, 805.0*mm));
-    bbyokepts.push_back( G4TwoVector( -bbmagheight, 0.0*mm));
+  std::vector<G4TwoVector> bbyokepts;
+  bbyokepts.push_back( G4TwoVector( bbmagheight, 0.0*mm));
+  bbyokepts.push_back( G4TwoVector( bbmagheight, 464.0*mm));
+  bbyokepts.push_back( G4TwoVector( -bbmagheight, 805.0*mm));
+  bbyokepts.push_back( G4TwoVector( -bbmagheight, 0.0*mm));
+  bbyokepts.push_back( G4TwoVector( bbmagheight, 0.0*mm));
+  bbyokepts.push_back( G4TwoVector( bbmagheight, 464.0*mm));
+  bbyokepts.push_back( G4TwoVector( -bbmagheight, 805.0*mm));
+  bbyokepts.push_back( G4TwoVector( -bbmagheight, 0.0*mm));
 
-    G4GenericTrap *bbyokeTrap = new G4GenericTrap("bbyokeTrap",
-	    bbmagwidth/2.0, bbyokepts );
-
-
-    std::vector<G4TwoVector> bbairpts;
-    bbairpts.push_back( G4TwoVector(  bbmagheight-133.1*mm, 0.0*mm - eps));
-    bbairpts.push_back( G4TwoVector(  bbmagheight, 464.1*mm));
-    bbairpts.push_back( G4TwoVector( -bbmagheight, 805.1*mm));
-    bbairpts.push_back( G4TwoVector( -bbmagheight, 0.0*mm - eps));
-
-    bbairpts.push_back( G4TwoVector(  bbmagheight-133.1*mm, 0.0*mm - eps));
-    bbairpts.push_back( G4TwoVector(  bbmagheight, 464.1*mm));
-    bbairpts.push_back( G4TwoVector( -bbmagheight, 805.1*mm));
-    bbairpts.push_back( G4TwoVector( -bbmagheight, 0.0*mm - eps));
-
-    double gapsize = 250.0*mm;
-
-    G4GenericTrap *bbairTrap = new G4GenericTrap("bbairTrap",
-	    gapsize/2.0, bbairpts );
-
-    double coilsize = 320.0*mm;
-    double coilwidth = 90.0*mm;
-
-    std::vector<G4TwoVector> bbcoilpts;
-    bbcoilpts.push_back( G4TwoVector(  bbmagheight-133.0*mm+coilsize, 0.0*mm-coilsize));
-    bbcoilpts.push_back( G4TwoVector(  bbmagheight+coilsize, 464.0*mm+coilsize*(1.0-tan(20.0*deg))));
-    bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 805.0*mm+coilsize*(1.0+tan(20.0*deg))));
-    bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 0.0*mm-coilsize));
-
-    bbcoilpts.push_back( G4TwoVector(  bbmagheight-133.0*mm+coilsize, 0.0*mm-coilsize));
-    bbcoilpts.push_back( G4TwoVector(  bbmagheight+coilsize, 464.0*mm+coilsize*(1.0-tan(20.0*deg))));
-    bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 805.0*mm+coilsize*(1.0+tan(20.0*deg))));
-    bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 0.0*mm-coilsize));
+  G4GenericTrap *bbyokeTrap = new G4GenericTrap("bbyokeTrap",
+						bbmagwidth/2.0, bbyokepts );
 
 
-    G4GenericTrap *bbcoilTrap = new G4GenericTrap("bbyokeTrap",
-	    coilwidth, bbcoilpts );
+  std::vector<G4TwoVector> bbairpts;
+  bbairpts.push_back( G4TwoVector(  bbmagheight-133.1*mm, 0.0*mm - eps));
+  bbairpts.push_back( G4TwoVector(  bbmagheight, 464.1*mm));
+  bbairpts.push_back( G4TwoVector( -bbmagheight, 805.1*mm));
+  bbairpts.push_back( G4TwoVector( -bbmagheight, 0.0*mm - eps));
 
-    double coilrot = 40.0*mrad;
+  bbairpts.push_back( G4TwoVector(  bbmagheight-133.1*mm, 0.0*mm - eps));
+  bbairpts.push_back( G4TwoVector(  bbmagheight, 464.1*mm));
+  bbairpts.push_back( G4TwoVector( -bbmagheight, 805.1*mm));
+  bbairpts.push_back( G4TwoVector( -bbmagheight, 0.0*mm - eps));
 
-    G4RotationMatrix *coilrot1 = new G4RotationMatrix;
-    coilrot1->rotateX(-coilrot );
-    G4RotationMatrix *coilrot2 = new G4RotationMatrix;
-    coilrot2->rotateX( coilrot );
+  double gapsize = 250.0*mm;
 
-    G4ThreeVector zcoil1 = G4ThreeVector( 0.0, 0.0, coilwidth+gapsize/2.0+(805.0*mm/2.0+coilsize)*tan(coilrot));
-    G4ThreeVector zcoil2 = G4ThreeVector( 0.0, 0.0, -coilwidth-gapsize/2.0-(805.0*mm/2.0+coilsize)*tan(coilrot));
+  G4GenericTrap *bbairTrap = new G4GenericTrap("bbairTrap",
+					       gapsize/2.0, bbairpts );
 
-    // "Guitar" cuts
-    std::vector<G4TwoVector> bbleftcutpts;
-    bbleftcutpts.push_back( G4TwoVector(  0.0, ((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
-    bbleftcutpts.push_back( G4TwoVector(  bbmagheight,  bbmagwidth/2.0));
-    bbleftcutpts.push_back( G4TwoVector(  0.0,  bbmagwidth/2.0 + 1.0*cm));
-    bbleftcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  bbmagwidth/2.0));
+  double coilsize = 320.0*mm;
+  double coilwidth = 90.0*mm;
 
-    bbleftcutpts.push_back( G4TwoVector(  0.0, ((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
-    bbleftcutpts.push_back( G4TwoVector(  bbmagheight,  bbmagwidth/2.0));
-    bbleftcutpts.push_back( G4TwoVector(  0.0,  bbmagwidth/2.0 + 1.0*cm));
-    bbleftcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  bbmagwidth/2.0));
+  std::vector<G4TwoVector> bbcoilpts;
+  bbcoilpts.push_back( G4TwoVector(  bbmagheight-133.0*mm+coilsize, 0.0*mm-coilsize));
+  bbcoilpts.push_back( G4TwoVector(  bbmagheight+coilsize, 464.0*mm+coilsize*(1.0-tan(20.0*deg))));
+  bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 805.0*mm+coilsize*(1.0+tan(20.0*deg))));
+  bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 0.0*mm-coilsize));
+
+  bbcoilpts.push_back( G4TwoVector(  bbmagheight-133.0*mm+coilsize, 0.0*mm-coilsize));
+  bbcoilpts.push_back( G4TwoVector(  bbmagheight+coilsize, 464.0*mm+coilsize*(1.0-tan(20.0*deg))));
+  bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 805.0*mm+coilsize*(1.0+tan(20.0*deg))));
+  bbcoilpts.push_back( G4TwoVector( -bbmagheight-coilsize, 0.0*mm-coilsize));
 
 
-    G4GenericTrap *bbleftcutTrap = new G4GenericTrap("bbleftcutTrap",
-	    2010.1*mm, bbleftcutpts );
+  G4GenericTrap *bbcoilTrap = new G4GenericTrap("bbyokeTrap",
+						coilwidth, bbcoilpts );
 
-    G4RotationMatrix *leftcutrot = new G4RotationMatrix;
-    leftcutrot->rotateX( -90*deg );
+  double coilrot = 40.0*mrad;
 
-    G4RotationMatrix *leftcutrot2 = new G4RotationMatrix;
-    leftcutrot2->rotateZ( -90*deg );
+  G4RotationMatrix *coilrot1 = new G4RotationMatrix;
+  coilrot1->rotateX(-coilrot );
+  G4RotationMatrix *coilrot2 = new G4RotationMatrix;
+  coilrot2->rotateX( coilrot );
 
-    std::vector<G4TwoVector> bbrightcutpts;
-    bbrightcutpts.push_back( G4TwoVector(  0.0, -((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
-    bbrightcutpts.push_back( G4TwoVector(  bbmagheight,  -bbmagwidth/2.0));
-    bbrightcutpts.push_back( G4TwoVector(  0.0, -( bbmagwidth/2.0 + 1.0*cm)));
-    bbrightcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  -bbmagwidth/2.0));
+  G4ThreeVector zcoil1 = G4ThreeVector( 0.0, 0.0, coilwidth+gapsize/2.0+(805.0*mm/2.0+coilsize)*tan(coilrot));
+  G4ThreeVector zcoil2 = G4ThreeVector( 0.0, 0.0, -coilwidth-gapsize/2.0-(805.0*mm/2.0+coilsize)*tan(coilrot));
 
-    bbrightcutpts.push_back( G4TwoVector(  0.0, -((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
-    bbrightcutpts.push_back( G4TwoVector(  bbmagheight,  -bbmagwidth/2.0));
-    bbrightcutpts.push_back( G4TwoVector(  0.0, -( bbmagwidth/2.0 + 1.0*cm)));
-    bbrightcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  -bbmagwidth/2.0));
+  // "Guitar" cuts
+  std::vector<G4TwoVector> bbleftcutpts;
+  bbleftcutpts.push_back( G4TwoVector(  0.0, ((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
+  bbleftcutpts.push_back( G4TwoVector(  bbmagheight,  bbmagwidth/2.0));
+  bbleftcutpts.push_back( G4TwoVector(  0.0,  bbmagwidth/2.0 + 1.0*cm));
+  bbleftcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  bbmagwidth/2.0));
 
-    G4GenericTrap *bbrightcutTrap = new G4GenericTrap("bbrightcutTrap",
-	    2010.1*mm, bbrightcutpts );
+  bbleftcutpts.push_back( G4TwoVector(  0.0, ((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
+  bbleftcutpts.push_back( G4TwoVector(  bbmagheight,  bbmagwidth/2.0));
+  bbleftcutpts.push_back( G4TwoVector(  0.0,  bbmagwidth/2.0 + 1.0*cm));
+  bbleftcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  bbmagwidth/2.0));
 
-    G4RotationMatrix *rightcutrot = new G4RotationMatrix;
-    rightcutrot->rotateX( 90*deg );
 
-    G4RotationMatrix *rightcutrot2 = new G4RotationMatrix;
-    rightcutrot2->rotateZ( -90*deg );
+  G4GenericTrap *bbleftcutTrap = new G4GenericTrap("bbleftcutTrap",
+						   2010.1*mm, bbleftcutpts );
 
-    G4UnionSolid *fullyoke;
+  G4RotationMatrix *leftcutrot = new G4RotationMatrix;
+  leftcutrot->rotateX( -90*deg );
 
-    fullyoke = new G4UnionSolid("yoke_coil1", bbyokeTrap, bbcoilTrap, coilrot1, zcoil1 );
-    fullyoke = new G4UnionSolid("yoke_coils", fullyoke, bbcoilTrap, coilrot2, zcoil2 );
+  G4RotationMatrix *leftcutrot2 = new G4RotationMatrix;
+  leftcutrot2->rotateZ( -90*deg );
 
-    double topheight = 66.0*cm;
-    G4Box *yoketopbox = new G4Box("yoketopbox", topheight/2.0, 464.0*mm/2.0, bbmagwidth/2.0);
-    G4ThreeVector topboxpos = G4ThreeVector( topheight/2.0 + bbmagheight, 464.0*mm/2.0, 0.0);
+  std::vector<G4TwoVector> bbrightcutpts;
+  bbrightcutpts.push_back( G4TwoVector(  0.0, -((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
+  bbrightcutpts.push_back( G4TwoVector(  bbmagheight,  -bbmagwidth/2.0));
+  bbrightcutpts.push_back( G4TwoVector(  0.0, -( bbmagwidth/2.0 + 1.0*cm)));
+  bbrightcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  -bbmagwidth/2.0));
 
-    double bottomheight = 82.0*cm;
-    G4Box *yokebottombox = new G4Box("yokebotbox", bottomheight/2.0, 805.0*mm/2.0, bbmagwidth/2.0);
-    G4ThreeVector bottomboxpos = G4ThreeVector( -bottomheight/2.0 - bbmagheight, 805.0*mm/2.0, 0.0);
+  bbrightcutpts.push_back( G4TwoVector(  0.0, -((bbmagwidth+gapsize)/2.0+coilwidth)/2.0 ));
+  bbrightcutpts.push_back( G4TwoVector(  bbmagheight,  -bbmagwidth/2.0));
+  bbrightcutpts.push_back( G4TwoVector(  0.0, -( bbmagwidth/2.0 + 1.0*cm)));
+  bbrightcutpts.push_back( G4TwoVector(  -bbmagheight*2.0/3.0,  -bbmagwidth/2.0));
 
-    fullyoke = new G4UnionSolid("yoke_top", fullyoke, yoketopbox, 0, topboxpos );
-    fullyoke = new G4UnionSolid("yokefull", fullyoke, yokebottombox, 0, bottomboxpos );
+  G4GenericTrap *bbrightcutTrap = new G4GenericTrap("bbrightcutTrap",
+						    2010.1*mm, bbrightcutpts );
 
-    G4SubtractionSolid* yokewgap = new G4SubtractionSolid("yoke_with_gap", fullyoke, bbairTrap);
-    yokewgap = new G4SubtractionSolid("yoke_with_gap_lcut", yokewgap, bbleftcutTrap, leftcutrot, G4ThreeVector());
-    yokewgap = new G4SubtractionSolid("yoke_with_gap_lrcut", yokewgap, bbrightcutTrap, leftcutrot, G4ThreeVector());
+  G4RotationMatrix *rightcutrot = new G4RotationMatrix;
+  rightcutrot->rotateX( 90*deg );
 
-    G4LogicalVolume *bbyokewgapLog=new G4LogicalVolume(yokewgap, GetMaterial("Fer"),
-	    "bbyokewgapLog", 0, 0, 0);
+  G4RotationMatrix *rightcutrot2 = new G4RotationMatrix;
+  rightcutrot2->rotateZ( -90*deg );
 
-    if( fDetCon->fTotalAbs ){
-	bbyokewgapLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  G4UnionSolid *fullyoke;
+
+  fullyoke = new G4UnionSolid("yoke_coil1", bbyokeTrap, bbcoilTrap, coilrot1, zcoil1 );
+  fullyoke = new G4UnionSolid("yoke_coils", fullyoke, bbcoilTrap, coilrot2, zcoil2 );
+
+  double topheight = 66.0*cm;
+  G4Box *yoketopbox = new G4Box("yoketopbox", topheight/2.0, 464.0*mm/2.0, bbmagwidth/2.0);
+  G4ThreeVector topboxpos = G4ThreeVector( topheight/2.0 + bbmagheight, 464.0*mm/2.0, 0.0);
+
+  double bottomheight = 82.0*cm;
+  G4Box *yokebottombox = new G4Box("yokebotbox", bottomheight/2.0, 805.0*mm/2.0, bbmagwidth/2.0);
+  G4ThreeVector bottomboxpos = G4ThreeVector( -bottomheight/2.0 - bbmagheight, 805.0*mm/2.0, 0.0);
+
+  fullyoke = new G4UnionSolid("yoke_top", fullyoke, yoketopbox, 0, topboxpos );
+  fullyoke = new G4UnionSolid("yokefull", fullyoke, yokebottombox, 0, bottomboxpos );
+
+  G4SubtractionSolid* yokewgap = new G4SubtractionSolid("yoke_with_gap", fullyoke, bbairTrap);
+  yokewgap = new G4SubtractionSolid("yoke_with_gap_lcut", yokewgap, bbleftcutTrap, leftcutrot, G4ThreeVector());
+  yokewgap = new G4SubtractionSolid("yoke_with_gap_lrcut", yokewgap, bbrightcutTrap, leftcutrot, G4ThreeVector());
+
+  G4LogicalVolume *bbyokewgapLog=new G4LogicalVolume(yokewgap, GetMaterial("Fer"),
+						     "bbyokewgapLog", 0, 0, 0);
+
+  if( fDetCon->fTotalAbs ){
+    bbyokewgapLog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+
+  G4RotationMatrix *yokerm = new G4RotationMatrix;
+  yokerm->rotateY(90.0*deg);
+  yokerm->rotateZ(-90.0*deg);
+  yokerm->rotateX(180.0*deg);
+
+  // Cut mother box
+  G4SubtractionSolid* bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxL", bbmotherBox, bbleftcutTrap, leftcutrot2, G4ThreeVector(-10*eps, 0.0, -motherdepth/2.0+clear));
+  bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR", bbmothercutBox, bbrightcutTrap, rightcutrot2, G4ThreeVector(10*eps, 0.0, -motherdepth/2.0+clear));
+
+  G4Box *frontboxcut = new G4Box("frontboxcut",(bbmagwidth-gapsize)/4.0-coilwidth, 250*cm + eps, clear/2);
+  bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fL", bbmothercutBox, frontboxcut, 0, G4ThreeVector( ((bbmagwidth+gapsize)/4.0+coilwidth)+ 10*eps +5*cm, 0, -motherdepth/2.0+clear/2 - 10*eps ));
+  bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR", bbmothercutBox, frontboxcut, 0, G4ThreeVector( -((bbmagwidth+gapsize)/4.0+coilwidth)-10*eps -5*cm, 0, -motherdepth/2.0+clear/2 - 10*eps ));
+
+  G4Box *bottomboxcut = new G4Box("bottomboxcut",bbmagwidth+eps, 250*cm/2, motherdepth+eps);
+  bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR_floor", bbmothercutBox, bottomboxcut, 0, G4ThreeVector( 0.0, -1.25*m*2-20*cm, 0.0));
+
+
+  //   Make logical volume for mother vol and place
+  G4LogicalVolume *bbmotherLog=new G4LogicalVolume(bbmothercutBox,GetMaterial("Air"),
+						   "bbmotherLog", 0, 0, 0);
+
+  new G4PVPlacement(bbrm, G4ThreeVector(-motherr*sin(fBBang), 0.0, motherr*cos(fBBang)),
+		    bbmotherLog, "bbmotherPhys", worldlog, 0,false,0);
+
+
+  new G4PVPlacement(yokerm,G4ThreeVector(0.0, 0.0, -motherdepth/2.0+clear),
+		    bbyokewgapLog, "bbyokewgapPhysical", bbmotherLog, 0,false,0);
+
+  //  Bigbite field log volume
+  G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
+						  "bbfieldLog", 0, 0, 0);
+
+
+  fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fBBdist), *bbrm );
+
+  fbbfield->fInverted = fDetCon->fGlobalField->fInverted;
+
+
+  G4FieldManager *bbfm = new G4FieldManager(fbbfield);
+  new G4ChordFinder(fbbfield);
+
+  if( fUseLocalField ){
+    bbmotherLog->SetFieldManager(bbfm,true);
+  }
+
+  new G4PVPlacement(0, G4ThreeVector(), bbfieldLog, "bbfieldPhysical", bbyokewgapLog, 0,false,0);
+
+  //--------- BigBite Detector Volumes ------------
+  //
+  // Mother volume is at 10 degrees with BigBite
+
+  double detboxang    = 10.0*deg;
+  double detboxheight = 2.5*m;
+  double detboxdepth  = 4.0*m;
+  double detboxplace  = 0.8*m; // From midplane pivot
+
+  G4RotationMatrix *bbdetrot = new G4RotationMatrix();
+  // Y is "down"
+  //bbdetrot->rotateZ(180.0*deg);
+  //bbdetrot->rotateX(-detboxang);
+
+  bbdetrot->rotateX( detboxang );
+
+  // 325mm is about half the depth of the field volume
+  // this is in mother box coords
+  double midplanez    = -motherdepth/2.0+clear+325.0*mm;
+
+  G4Box *bbdetbox = new G4Box("bbdetbox", bbmagwidth/2.0, detboxheight/2.0, detboxdepth/2.0);
+  G4LogicalVolume *bbdetLog=new G4LogicalVolume(bbdetbox, GetMaterial("Air"),
+						"bbdetLog", 0, 0, 0);
+  new G4PVPlacement(bbdetrot, G4ThreeVector(0.0, 
+					    (detboxplace+detboxdepth/2.0)*sin(detboxang),
+					    (detboxplace+detboxdepth/2.0)*cos(detboxang)+midplanez),
+		    bbdetLog, "bbdetPhysical", bbmotherLog, 0,false,0);
+
+  //  Just interested in the GEMs for now:
+
+  double detoffset = 0.05*m -detboxdepth/2.0; //z offset of GEM plane positions within BB detector volume: "global" GEM plane z = detoffset + gemz[plane]
+
+  int i;
+  int ngem = 0;
+  double gemdsep;
+  // double *gemz;
+  // double *gemw;
+  // double *gemh;
+  vector<double> gemz, gemw, gemh;
+
+  switch( fGEMOption ){
+  case 1:
+    ngem = 4;
+    gemdsep = 0.05*m;
+    break;
+  case 2:
+    ngem = 5;
+    gemdsep = 0.15*m;
+    break;
+  case 3:
+    ngem = 3;
+    gemdsep = 0.35*m;
+    break;
+  default:
+    ngem = 4;
+    gemdsep = 0.05*m;
+    break;
+  }
+
+  gemz.resize(ngem);
+  gemw.resize(ngem);
+  gemh.resize(ngem);
+  //
+  // GEM option 1
+  double gemz_opt1[] = { 0.0*cm, gemdsep, fGEMDist, fGEMDist+gemdsep};
+  double gemw_opt1[] = { 40.0*cm, 40.0*cm, 50.0*cm, 50.0*cm };
+  double gemh_opt1[] = { 150.0*cm, 150.0*cm, 200.0*cm, 200.0*cm };
+
+  // GEM option 2
+  double gemz_opt2[] = { 0.0*cm, gemdsep, 2.0*gemdsep, 3.0*gemdsep, fGEMDist};
+  double gemw_opt2[] = { 40.0*cm, 40.0*cm, 40.0*cm, 40.0*cm, 50.0*cm };
+  double gemh_opt2[] = { 150.0*cm, 150.0*cm, 150.0*cm, 150.0*cm, 200.0*cm };
+
+  // GEM option 3
+  double gemz_opt3[] = { 0.0*cm, gemdsep, gemdsep*2.0};
+  double gemw_opt3[] = { 40.0*cm, 50.0*cm, 50.0*cm};
+  double gemh_opt3[] = { 150.0*cm, 200.0*cm, 200.0*cm};
+
+  for( i = 0; i < ngem; i++ ){
+    if( fGEMOption == 1 ){
+      for( i = 0; i < ngem; i++ ){
+	gemz[i] = gemz_opt1[i];
+	gemw[i] = gemw_opt1[i];
+	gemh[i] = gemh_opt1[i];
+      }
     }
-
-    G4RotationMatrix *yokerm = new G4RotationMatrix;
-    yokerm->rotateY(90.0*deg);
-    yokerm->rotateZ(-90.0*deg);
-    yokerm->rotateX(180.0*deg);
-
-    // Cut mother box
-    G4SubtractionSolid* bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxL", bbmotherBox, bbleftcutTrap, leftcutrot2, G4ThreeVector(-10*eps, 0.0, -motherdepth/2.0+clear));
-    bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR", bbmothercutBox, bbrightcutTrap, rightcutrot2, G4ThreeVector(10*eps, 0.0, -motherdepth/2.0+clear));
-
-    G4Box *frontboxcut = new G4Box("frontboxcut",(bbmagwidth-gapsize)/4.0-coilwidth, 250*cm + eps, clear/2);
-    bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fL", bbmothercutBox, frontboxcut, 0, G4ThreeVector( ((bbmagwidth+gapsize)/4.0+coilwidth)+ 10*eps +5*cm, 0, -motherdepth/2.0+clear/2 - 10*eps ));
-    bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR", bbmothercutBox, frontboxcut, 0, G4ThreeVector( -((bbmagwidth+gapsize)/4.0+coilwidth)-10*eps -5*cm, 0, -motherdepth/2.0+clear/2 - 10*eps ));
-
-    G4Box *bottomboxcut = new G4Box("bottomboxcut",bbmagwidth+eps, 250*cm/2, motherdepth+eps);
-    bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR_floor", bbmothercutBox, bottomboxcut, 0, G4ThreeVector( 0.0, -1.25*m*2-20*cm, 0.0));
-
-
-    //   Make logical volume for mother vol and place
-    G4LogicalVolume *bbmotherLog=new G4LogicalVolume(bbmothercutBox,GetMaterial("Air"),
-	    "bbmotherLog", 0, 0, 0);
-
-    new G4PVPlacement(bbrm, G4ThreeVector(-motherr*sin(fBBang), 0.0, motherr*cos(fBBang)),
-	    bbmotherLog, "bbmotherPhys", worldlog, 0,false,0);
-
-
-    new G4PVPlacement(yokerm,G4ThreeVector(0.0, 0.0, -motherdepth/2.0+clear),
-	    bbyokewgapLog, "bbyokewgapPhysical", bbmotherLog, 0,false,0);
-
-    //  Bigbite field log volume
-    G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
-	    "bbfieldLog", 0, 0, 0);
-
-
-    fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fBBdist), *bbrm );
-
-    fbbfield->fInverted = fDetCon->fGlobalField->fInverted;
-
-
-    G4FieldManager *bbfm = new G4FieldManager(fbbfield);
-    new G4ChordFinder(fbbfield);
-
-    if( fUseLocalField ){
-	bbmotherLog->SetFieldManager(bbfm,true);
+    if( fGEMOption == 2 ){
+      for( i = 0; i < ngem; i++ ){
+	gemz[i] = gemz_opt2[i];
+	gemw[i] = gemw_opt2[i];
+	gemh[i] = gemh_opt2[i];
+      }
     }
-
-    new G4PVPlacement(0, G4ThreeVector(), bbfieldLog, "bbfieldPhysical", bbyokewgapLog, 0,false,0);
-
-    //--------- BigBite Detector Volumes ------------
-    //
-    // Mother volume is at 10 degrees with BigBite
-
-    double detboxang    = 10.0*deg;
-    double detboxheight = 2.5*m;
-    double detboxdepth  = 4.0*m;
-    double detboxplace  = 0.8*m; // From midplane pivot
-
-    G4RotationMatrix *bbdetrot = new G4RotationMatrix();
-    // Y is "down"
-    //bbdetrot->rotateZ(180.0*deg);
-    //bbdetrot->rotateX(-detboxang);
-
-    bbdetrot->rotateX( detboxang );
-
-    // 325mm is about half the depth of the field volume
-    // this is in mother box coords
-    double midplanez    = -motherdepth/2.0+clear+325.0*mm;
-
-    G4Box *bbdetbox = new G4Box("bbdetbox", bbmagwidth/2.0, detboxheight/2.0, detboxdepth/2.0);
-    G4LogicalVolume *bbdetLog=new G4LogicalVolume(bbdetbox, GetMaterial("Air"),
-	    "bbdetLog", 0, 0, 0);
-    new G4PVPlacement(bbdetrot, G4ThreeVector(0.0, 
-		(detboxplace+detboxdepth/2.0)*sin(detboxang),
-		(detboxplace+detboxdepth/2.0)*cos(detboxang)+midplanez),
-	    bbdetLog, "bbdetPhysical", bbmotherLog, 0,false,0);
-
-    //  Just interested in the GEMs for now:
-
-    double detoffset = 0.05*m -detboxdepth/2.0; //z offset of GEM plane positions within BB detector volume: "global" GEM plane z = detoffset + gemz[plane]
-
-    int i;
-    int ngem = 0;
-    double gemdsep;
-    // double *gemz;
-    // double *gemw;
-    // double *gemh;
-    vector<double> gemz, gemw, gemh;
-
-    switch( fGEMOption ){
-	case 1:
-	    ngem = 4;
-	    gemdsep = 0.05*m;
-	    break;
-	case 2:
-	    ngem = 5;
-	    gemdsep = 0.15*m;
-	    break;
-	case 3:
-	    ngem = 3;
-	    gemdsep = 0.35*m;
-	    break;
-	default:
-	    ngem = 4;
-	    gemdsep = 0.05*m;
-	    break;
+    if( fGEMOption == 3 ){
+      for( i = 0; i < ngem; i++ ){
+	gemz[i] = gemz_opt3[i];
+	gemw[i] = gemw_opt3[i];
+	gemh[i] = gemh_opt3[i];
+      }
     }
+  }
 
-    gemz.resize(ngem);
-    gemw.resize(ngem);
-    gemh.resize(ngem);
-    //
-    // GEM option 1
-    double gemz_opt1[] = { 0.0*cm, gemdsep, fGEMDist, fGEMDist+gemdsep};
-    double gemw_opt1[] = { 40.0*cm, 40.0*cm, 50.0*cm, 50.0*cm };
-    double gemh_opt1[] = { 150.0*cm, 150.0*cm, 200.0*cm, 200.0*cm };
+  G4RotationMatrix *rot_identity = new G4RotationMatrix;
 
-    // GEM option 2
-    double gemz_opt2[] = { 0.0*cm, gemdsep, 2.0*gemdsep, 3.0*gemdsep, fGEMDist};
-    double gemw_opt2[] = { 40.0*cm, 40.0*cm, 40.0*cm, 40.0*cm, 50.0*cm };
-    double gemh_opt2[] = { 150.0*cm, 150.0*cm, 150.0*cm, 150.0*cm, 200.0*cm };
-
-    // GEM option 3
-    double gemz_opt3[] = { 0.0*cm, gemdsep, gemdsep*2.0};
-    double gemw_opt3[] = { 40.0*cm, 50.0*cm, 50.0*cm};
-    double gemh_opt3[] = { 150.0*cm, 200.0*cm, 200.0*cm};
-
-    for( i = 0; i < ngem; i++ ){
-	if( fGEMOption == 1 ){
-	    for( i = 0; i < ngem; i++ ){
-		gemz[i] = gemz_opt1[i];
-		gemw[i] = gemw_opt1[i];
-		gemh[i] = gemh_opt1[i];
-	    }
-	}
-	if( fGEMOption == 2 ){
-	    for( i = 0; i < ngem; i++ ){
-		gemz[i] = gemz_opt2[i];
-		gemw[i] = gemw_opt2[i];
-		gemh[i] = gemh_opt2[i];
-	    }
-	}
-	if( fGEMOption == 3 ){
-	    for( i = 0; i < ngem; i++ ){
-		gemz[i] = gemz_opt3[i];
-		gemw[i] = gemw_opt3[i];
-		gemh[i] = gemh_opt3[i];
-	    }
-	}
-    }
-
-    G4RotationMatrix *rot_identity = new G4RotationMatrix;
-
-    G4SBSTrackerBuilder trackerbuilder(fDetCon);
+  G4SBSTrackerBuilder trackerbuilder(fDetCon);
 
     
 
-    //This routine creates and positions GEM planes in bbdetLog:
+  //This routine creates and positions GEM planes in bbdetLog:
 
-    //------------------------------------------- BigBite GEMs: ----------------------------------------//
+  //------------------------------------------- BigBite GEMs: ----------------------------------------//
 
-    (fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kEarm;
+  (fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kEarm;
     
-    trackerbuilder.BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset ), ngem, gemz, gemw, gemh, (fDetCon->TrackerIDnumber)++ );
-    //----- Note: Lines of code that are common to the construction of all individual GEM planes/modules were moved to MakeTracker() -----// 
-    //----- All we do here in MakeBigBite() is define the number of planes, their z positions, and their transverse dimensions ------//
+  trackerbuilder.BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset ), ngem, gemz, gemw, gemh, (fDetCon->TrackerIDnumber)++ );
+  //----- Note: Lines of code that are common to the construction of all individual GEM planes/modules were moved to MakeTracker() -----// 
+  //----- All we do here in MakeBigBite() is define the number of planes, their z positions, and their transverse dimensions ------//
 
-    // BigBite Preshower 
-    // AJP: Why make a preshower box if it's just going to be full of air and not a sensitive detector?
+  // BigBite Preshower 
+  // AJP: Why make a preshower box if it's just going to be full of air and not a sensitive detector?
 
-    double psheight = 27*8.5*cm;
-    double pswidth  = 2.0*37.0*cm;
-    double psdepth  = 8.5*cm;
+  double psheight = 27*8.5*cm;
+  double pswidth  = 2.0*37.0*cm;
+  double psdepth  = 8.5*cm;
 
-    G4Box *bbpsbox = new G4Box("bbpsbox", pswidth/2.0, psheight/2.0, psdepth/2.0 );
+  G4Box *bbpsbox = new G4Box("bbpsbox", pswidth/2.0, psheight/2.0, psdepth/2.0 );
 
-    G4LogicalVolume* bbpslog = new G4LogicalVolume(bbpsbox, GetMaterial("Air"), "bbpslog");
+  G4LogicalVolume* bbpslog = new G4LogicalVolume(bbpsbox, GetMaterial("Air"), "bbpslog");
 
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth/2.0), bbpslog,
-	    "bbpsphys", bbdetLog, false, 0, false);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth/2.0), bbpslog,
+		    "bbpsphys", bbdetLog, false, 0, false);
 
-    // BigBite Shower
+  // BigBite Shower
 
-    double calheight = 27*8.5*cm;
-    double calwidth  = 7*8.5*cm;
-    double caldepth  = 37.0*cm;
+  double calheight = 27*8.5*cm;
+  double calwidth  = 7*8.5*cm;
+  double caldepth  = 37.0*cm;
 
-    G4Box *bbcalbox = new G4Box("bbcalbox", calwidth/2.0, calheight/2.0, caldepth/2.0 );
-    G4LogicalVolume* bbcallog = new G4LogicalVolume(bbcalbox, GetMaterial("Lead"), "bbcallog");
+  G4Box *bbcalbox = new G4Box("bbcalbox", calwidth/2.0, calheight/2.0, caldepth/2.0 );
+  G4LogicalVolume* bbcallog = new G4LogicalVolume(bbcalbox, GetMaterial("Lead"), "bbcallog");
 
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+caldepth/2.0+5.0*cm), bbcallog,
-	    "bbcalphys", bbdetLog, false, 0, false);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+caldepth/2.0+5.0*cm), bbcallog,
+		    "bbcalphys", bbdetLog, false, 0, false);
 
-    G4String BBCalSDname = "G4SBS/BBCal";
-    G4String BBCalcolname = "BBCalcol";
-    G4SBSCalSD* BBCalSD;
+  G4String BBCalSDname = "G4SBS/BBCal";
+  G4String BBCalcolname = "BBCalcol";
+  G4SBSCalSD* BBCalSD;
 
-    if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCalSDname)) ){
-	BBCalSD = new G4SBSCalSD( BBCalSDname, BBCalcolname );
-	fDetCon->fSDman->AddNewDetector(BBCalSD);
-	fDetCon->SDlist[BBCalSDname] = BBCalSD;
-    }
+  if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCalSDname)) ){
+    BBCalSD = new G4SBSCalSD( BBCalSDname, BBCalcolname );
+    fDetCon->fSDman->AddNewDetector(BBCalSD);
+    fDetCon->SDlist[BBCalSDname] = BBCalSD;
+  }
 
-    bbcallog->SetSensitiveDetector(BBCalSD);
-    bbcallog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  bbcallog->SetSensitiveDetector(BBCalSD);
+  bbcallog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
 
 
-    //--------- BigBite Cerenkov ------------------------------
+  //--------- BigBite Cerenkov ------------------------------
 
-    //  double cer_mirrorthick = 0.635*mm;
-    double cer_mirrorthick = 3.00*mm;
-    //double cer_winthick_in   = 1.0*mm;
-    double cer_winthick_in   = 0.1*mm;
-    double cer_winthick_out  = 0.2*mm;
+  //  double cer_mirrorthick = 0.635*mm;
+  double cer_mirrorthick = 3.00*mm;
+  //double cer_winthick_in   = 1.0*mm;
+  double cer_winthick_in   = 0.1*mm;
+  double cer_winthick_out  = 0.2*mm;
 
-    double cer_width  =  50.0*cm;
-    double cer_height = 200.0*cm;
+  double cer_width  =  50.0*cm;
+  double cer_height = 200.0*cm;
 
-    //  G4Box *cer_winbox = new G4Box("cer_winbox", cer_width/2.0, cer_height/2.0, cer_winthick/2.0 );
-    G4Box *cer_winbox_in = new G4Box("cer_winbox_in", cer_width/2.0, cer_height/2.0, cer_winthick_in/2.0 );
-    G4Box *cer_winbox_out = new G4Box("cer_winbox_out", cer_width/2.0, cer_height/2.0, cer_winthick_out/2.0 );
-    G4Box *cer_mirbox = new G4Box("cer_mirbox", cer_width/2.0, cer_height/2.0, cer_mirrorthick/2.0 );
-    G4Box *cer_gasbox = new G4Box("cer_gasbox", cer_width/2.0, cer_height/2.0, fCerDepth/2.0 );
+  //  G4Box *cer_winbox = new G4Box("cer_winbox", cer_width/2.0, cer_height/2.0, cer_winthick/2.0 );
+  G4Box *cer_winbox_in = new G4Box("cer_winbox_in", cer_width/2.0, cer_height/2.0, cer_winthick_in/2.0 );
+  G4Box *cer_winbox_out = new G4Box("cer_winbox_out", cer_width/2.0, cer_height/2.0, cer_winthick_out/2.0 );
+  G4Box *cer_mirbox = new G4Box("cer_mirbox", cer_width/2.0, cer_height/2.0, cer_mirrorthick/2.0 );
+  G4Box *cer_gasbox = new G4Box("cer_gasbox", cer_width/2.0, cer_height/2.0, fCerDepth/2.0 );
 
-    G4LogicalVolume* cer_winlog_in = new G4LogicalVolume(cer_winbox_in, GetMaterial("Aluminum"), "cer_winlog_in");
-    G4LogicalVolume* cer_winlog_out = new G4LogicalVolume(cer_winbox_out, GetMaterial("Aluminum"), "cer_winlog_out");
-    //  G4LogicalVolume* cer_mirlog = new G4LogicalVolume(cer_mirbox, SiO2, "cer_mirlog");
-    G4LogicalVolume* cer_mirlog = new G4LogicalVolume(cer_mirbox, GetMaterial("Acrylic"), "cer_mirlog");
-    G4LogicalVolume* cer_gaslog = new G4LogicalVolume(cer_gasbox, GetMaterial("C4F8O"), "cer_gaslog");
+  G4LogicalVolume* cer_winlog_in = new G4LogicalVolume(cer_winbox_in, GetMaterial("Aluminum"), "cer_winlog_in");
+  G4LogicalVolume* cer_winlog_out = new G4LogicalVolume(cer_winbox_out, GetMaterial("Aluminum"), "cer_winlog_out");
+  //  G4LogicalVolume* cer_mirlog = new G4LogicalVolume(cer_mirbox, SiO2, "cer_mirlog");
+  G4LogicalVolume* cer_mirlog = new G4LogicalVolume(cer_mirbox, GetMaterial("Acrylic"), "cer_mirlog");
+  G4LogicalVolume* cer_gaslog = new G4LogicalVolume(cer_gasbox, GetMaterial("C4F8O"), "cer_gaslog");
 
-    double thisz = detoffset+fCerDist;
+  double thisz = detoffset+fCerDist;
 
-    /*
-     *  FIXME  - NO CERENKOV */
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_in/2.0 ), cer_winlog_in, "cerwin1", bbdetLog, false, 0, false);
-    thisz += cer_winthick_in;
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + fCerDepth/2.0 ), cer_gaslog, "cergas", bbdetLog, false, 0, false);
-    thisz += fCerDepth;
-    // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_mirrorthick/2.0 ), cer_mirlog, "cermir", bbdetLog, false, 0, false);
-    if( fCerDepth > 20.0*cm ){
-	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fCerDepth/2.0-20.0*cm ), cer_mirlog, "cermir", cer_gaslog, false, 0, false);
-    } else {
-	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fCerDepth/2.0 ), cer_mirlog, "cermir", cer_gaslog, false, 0, false);
-    }
-    //  thisz += cer_mirrorthick;
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_out/2.0 ), cer_winlog_out, "cerwin2", bbdetLog, false, 0, false);
+  /*
+   *  FIXME  - NO CERENKOV */
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_in/2.0 ), cer_winlog_in, "cerwin1", bbdetLog, false, 0, false);
+  thisz += cer_winthick_in;
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + fCerDepth/2.0 ), cer_gaslog, "cergas", bbdetLog, false, 0, false);
+  thisz += fCerDepth;
+  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_mirrorthick/2.0 ), cer_mirlog, "cermir", bbdetLog, false, 0, false);
+  if( fCerDepth > 20.0*cm ){
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fCerDepth/2.0-20.0*cm ), cer_mirlog, "cermir", cer_gaslog, false, 0, false);
+  } else {
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fCerDepth/2.0 ), cer_mirlog, "cermir", cer_gaslog, false, 0, false);
+  }
+  //  thisz += cer_mirrorthick;
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_out/2.0 ), cer_winlog_out, "cerwin2", bbdetLog, false, 0, false);
 
-    //--------- Visualization attributes -------------------------------
-    bbdetLog->SetVisAttributes(G4VisAttributes::Invisible);
-    bbfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
-    bbmotherLog->SetVisAttributes(G4VisAttributes::Invisible);
+  //--------- Visualization attributes -------------------------------
+  bbdetLog->SetVisAttributes(G4VisAttributes::Invisible);
+  bbfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
+  bbmotherLog->SetVisAttributes(G4VisAttributes::Invisible);
 
-    G4VisAttributes * yokeVisAtt
-	= new G4VisAttributes(G4Colour(0.0,0.0,1.0));
-    //  yokeVisAtt->SetForceWireframe(true);
-    bbyokewgapLog->SetVisAttributes(yokeVisAtt);
+  G4VisAttributes * yokeVisAtt
+    = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
+  //  yokeVisAtt->SetForceWireframe(true);
+  bbyokewgapLog->SetVisAttributes(yokeVisAtt);
 
-    G4VisAttributes * alVisAtt
-	= new G4VisAttributes(G4Colour(0.1,0.1,0.1));
-    cer_winlog_in->SetVisAttributes(alVisAtt);
-    cer_winlog_out->SetVisAttributes(alVisAtt);
+  G4VisAttributes * alVisAtt
+    = new G4VisAttributes(G4Colour(0.1,0.1,0.1));
+  cer_winlog_in->SetVisAttributes(alVisAtt);
+  cer_winlog_out->SetVisAttributes(alVisAtt);
 
-    G4VisAttributes * gasVisAtt
-	= new G4VisAttributes(G4Colour(0.6,0.6,1.0));
-    gasVisAtt->SetForceWireframe(true);
-    cer_gaslog->SetVisAttributes(gasVisAtt);
+  G4VisAttributes * gasVisAtt
+    = new G4VisAttributes(G4Colour(0.6,0.6,1.0));
+  gasVisAtt->SetForceWireframe(true);
+  cer_gaslog->SetVisAttributes(gasVisAtt);
 
-    G4VisAttributes * psVisAtt
-	= new G4VisAttributes(G4Colour(0.3,0.9,0.3));
-    psVisAtt->SetForceWireframe(true);
-    bbpslog->SetVisAttributes(psVisAtt);
+  G4VisAttributes * psVisAtt
+    = new G4VisAttributes(G4Colour(0.3,0.9,0.3));
+  psVisAtt->SetForceWireframe(true);
+  bbpslog->SetVisAttributes(psVisAtt);
 
-    G4VisAttributes * bbcalVisAtt
-	= new G4VisAttributes(G4Colour(0.0,0.6,0.0));
-    bbcallog->SetVisAttributes(bbcalVisAtt);
+  G4VisAttributes * bbcalVisAtt
+    = new G4VisAttributes(G4Colour(0.0,0.6,0.0));
+  bbcallog->SetVisAttributes(bbcalVisAtt);
 
 
 }
 
 void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
-    //-----------------------------
-    //  BigCal: Currently just a box with dimensions and sensitivity
+  //-----------------------------
+  //  BigCal: Currently just a box with dimensions and sensitivity
 
-    printf("BigCal at %f deg\n", fBBang/deg);
+  printf("BigCal at %f deg\n", fBBang/deg);
 
-    G4RotationMatrix *bbrm = new G4RotationMatrix;
-    bbrm->rotateY(fBBang);
+  G4RotationMatrix *bbrm = new G4RotationMatrix;
+  bbrm->rotateY(fBBang);
 
-    // Ecal will act as BBcal detector
+  // Ecal will act as BBcal detector
 
-    double bigcalheight = (24*4.5+32*4.0)*cm;
-    double bigcalwidth  = 44.10*2.54*cm;
-    double bigcaldepth  = 15.75*2.54*cm;
-    double bbr = fBBdist+bigcaldepth/2.0;
-    /*
+  double bigcalheight = (24*4.5+32*4.0)*cm;
+  double bigcalwidth  = 44.10*2.54*cm;
+  double bigcaldepth  = 15.75*2.54*cm;
+  double bbr = fBBdist+bigcaldepth/2.0;
+  /*
     double CH2depth = 15.0*cm;
     double CHdepth  = 6.0*cm;
 
@@ -530,126 +530,139 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
 
     new G4PVPlacement(bbrm, G4ThreeVector(ch2r*sin(-fBBang), 0.0, ch2r*cos(-fBBang) ), ch2boxlog,
-	    "ch2boxphys", worldlog, false, 0, false);
+    "ch2boxphys", worldlog, false, 0, false);
     new G4PVPlacement(bbrm, G4ThreeVector(chr*sin(-fBBang), 0.0, chr*cos(-fBBang) ), chboxlog,
-	    "chboxphys", worldlog, false, 0, false);
+    "chboxphys", worldlog, false, 0, false);
 
 
     G4VisAttributes * chVisAtt
-	= new G4VisAttributes(G4Colour(1.0,0.6,0.0));
+    = new G4VisAttributes(G4Colour(1.0,0.6,0.0));
     chboxlog->SetVisAttributes(chVisAtt);
 
     G4VisAttributes * ch2VisAtt
-	= new G4VisAttributes(G4Colour(1.0,0.8,0.0));
+    = new G4VisAttributes(G4Colour(1.0,0.8,0.0));
     ch2boxlog->SetVisAttributes(ch2VisAtt);
-    */
+  */
 
 
 
-    /*****************************************************************************
-     ********************        DEVELOPMENT OF ECAL      ************************
-    ******************************************************************************/
+  /*****************************************************************************
+   ********************        DEVELOPMENT OF ECAL      ************************
+   ******************************************************************************/
 
-    //Define a Mother Volume to place the ECAL modules
-    G4double x_ecal = 203.942*cm, y_ecal = 301.148*cm, z_ecal = 50.80*cm;
-    G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
-    G4LogicalVolume *ecal_log = new G4LogicalVolume( ecal_box, GetMaterial("Air"), "ecal_log" );
-    new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang), 0.0, bbr*cos(-fBBang) ), ecal_log, "ecal", worldlog, false, 0 );
+  //Define a Mother Volume to place the ECAL modules
+  G4double x_ecal = 203.942*cm, y_ecal = 301.148*cm, z_ecal = 50.80*cm;
+  G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
+  G4LogicalVolume *ecal_log = new G4LogicalVolume( ecal_box, GetMaterial("Air"), "ecal_log" );
+  new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang), 0.0, bbr*cos(-fBBang) ), ecal_log, "ecal", worldlog, false, 0 );
 
-    //dimensions of mylar/air wrapping:
-    G4double mylar_wrapping_size = 0.00150*cm;
-    G4double air_wrapping_size = 0.00450*cm;
-    G4double mylar_plus_air = mylar_wrapping_size + air_wrapping_size;
+  //dimensions of mylar/air wrapping:
+  G4double mylar_wrapping_size = 0.00150*cm;
+  G4double air_wrapping_size = 0.00450*cm;
+  G4double mylar_plus_air = mylar_wrapping_size + air_wrapping_size;
 
-    //TYPE1 MODULE - 3.800 x 3.800 x 45.000 cm^3 + layer of air (0.0045cm) + layer of mylar (0.0015cm)
-    G4double x_module_type1 = 3.8000*cm + (2*mylar_plus_air); //3.812
-    G4double y_module_type1 = 3.8000*cm + (2*mylar_plus_air); //3.812
-    G4double z_module_type1 = 45.0000*cm + mylar_plus_air;    //45.006
-    G4Box *module_type1 = new G4Box( "module_type1", x_module_type1/2.0, y_module_type1/2.0, z_module_type1/2.0 );
+  //TYPE1 MODULE - 3.800 x 3.800 x 45.000 cm^3 + layer of air (0.0045cm) + layer of mylar (0.0015cm)
+  G4double x_module_type1 = 3.8000*cm + (2*mylar_plus_air); //3.812
+  G4double y_module_type1 = 3.8000*cm + (2*mylar_plus_air); //3.812
+  G4double z_module_type1 = 45.0000*cm + mylar_plus_air;    //45.006
+  G4Box *module_type1 = new G4Box( "module_type1", x_module_type1/2.0, y_module_type1/2.0, z_module_type1/2.0 );
 
-    //Define a new mother volume which will house the contents of a module(i.e. TF1 & Mylar)
-    G4LogicalVolume *module_log_type1 = new G4LogicalVolume( module_type1, GetMaterial("ECal_Air"), "module_log_type1" );
+  //Define a new mother volume which will house the contents of a module(i.e. TF1 & Mylar)
+  G4LogicalVolume *module_log_type1 = new G4LogicalVolume( module_type1, GetMaterial("ECal_Air"), "module_log_type1" );
 
-    //MYLAR
-    //Subtraction solid to leave us with a 0.0015cm "mylar wrapping" with one end open
-    G4double x_sub = x_module_type1 - (2*mylar_wrapping_size);
-    G4double y_sub = y_module_type1 - (2*mylar_wrapping_size);
-    G4double z_sub = z_module_type1; //going to be shifted in G4SubtractionSolid in order to get 0.0015cm of mylar on one end
-    G4Box *mylar_module1_subtract = new G4Box( "mylar_module1_subtract", x_sub/2.0, y_sub/2.0, z_sub/2.0 );
-    G4SubtractionSolid *mylarwrap = new G4SubtractionSolid( "mylarwrap", module_type1, mylar_module1_subtract, 0, G4ThreeVector(0.0, 0.0, mylar_wrapping_size));
-    G4LogicalVolume *mylar_wrap_log = new G4LogicalVolume( mylarwrap, GetMaterial("Mylar"), "mylar_wrap_log" );
+  //MYLAR
+  //Subtraction solid to leave us with a 0.0015cm "mylar wrapping" with one end open
+  G4double x_sub = x_module_type1 - (2*mylar_wrapping_size);
+  G4double y_sub = y_module_type1 - (2*mylar_wrapping_size);
+  G4double z_sub = z_module_type1; //going to be shifted in G4SubtractionSolid in order to get 0.0015cm of mylar on one end
+  G4Box *mylar_module1_subtract = new G4Box( "mylar_module1_subtract", x_sub/2.0, y_sub/2.0, z_sub/2.0 );
+  G4SubtractionSolid *mylarwrap = new G4SubtractionSolid( "mylarwrap", module_type1, mylar_module1_subtract, 0, G4ThreeVector(0.0, 0.0, mylar_wrapping_size));
+  G4LogicalVolume *mylar_wrap_log = new G4LogicalVolume( mylarwrap, GetMaterial("Mylar"), "mylar_wrap_log" );
 
-    //TF1
-    G4double x_TF1 = 3.800*cm, y_TF1 = 3.800*cm, z_TF1 = 45.000*cm;
-    G4Box *TF1_box = new G4Box( "TF1_box", x_TF1/2.0, y_TF1/2.0, z_TF1/2.0 );
-    G4LogicalVolume *TF1_log = new G4LogicalVolume ( TF1_box, GetMaterial("TF1"), "TF1_log" );
+  //TF1
+  G4double x_TF1 = 3.800*cm, y_TF1 = 3.800*cm, z_TF1 = 45.000*cm;
+  G4Box *TF1_box = new G4Box( "TF1_box", x_TF1/2.0, y_TF1/2.0, z_TF1/2.0 );
+  G4LogicalVolume *TF1_log = new G4LogicalVolume ( TF1_box, GetMaterial("TF1"), "TF1_log" );
 
-    //Place TF1 & Mylar inside module_log_type1 which is already full of ECal_Air
-    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, 0.0), mylar_wrap_log, "Mylar_Wrap", module_log_type1, false, 0 );
-    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, mylar_plus_air/2.0), TF1_log, "TF1", module_log_type1, false, 0 );
+  G4String ECalTF1SDname = "G4SBS/ECalLeadGlass";
+  G4String ECalTF1collname = "G4SBS/ECalLeadGlassColl";
+  G4SBSCalSD *ECalTF1SD = NULL;
 
-    //Want blocks to be optically independent => assign an optical skin
-    new G4LogicalSkinSurface( "Mylar_skin", mylar_wrap_log, GetOpticalSurface( "Mirrsurf" ));
+  if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(ECalTF1SDname) ) ){
+    G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
+    ECalTF1SD = new G4SBSCalSD( ECalTF1SDname, ECalTF1collname );
+    sdman->AddNewDetector( ECalTF1SD );
+    fDetCon->SDlist[ECalTF1SDname] = ECalTF1SD;
+  }
+  TF1_log->SetSensitiveDetector( ECalTF1SD );
+
+  //Place TF1 & Mylar inside module_log_type1 which is already full of ECal_Air
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, 0.0), mylar_wrap_log, "Mylar_Wrap", module_log_type1, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, mylar_plus_air/2.0), TF1_log, "TF1", module_log_type1, false, 0 );
+
+  //Want blocks to be optically independent => assign an optical skin
+  new G4LogicalSkinSurface( "Mylar_skin", mylar_wrap_log, GetOpticalSurface( "Mirrsurf" ));
     
-    //Build PMT detector which will be placed at the end of the module
-    //Starting with the Quartz window
-    G4double PMT_window_radius = 1.25*cm;
-    G4double PMT_window_depth = 0.20*cm;
-    G4Tubs *PMT_window = new G4Tubs( "PMT_window", 0.0*cm, PMT_window_radius, PMT_window_depth/2.0, 0.0, twopi );
-    G4LogicalVolume *PMT_window_log = new G4LogicalVolume( PMT_window, GetMaterial("QuartzWindow_ECal"), "PMT_window_log" );
+  //Build PMT detector which will be placed at the end of the module
+  //Starting with the Quartz window
+  G4double PMT_window_radius = 1.25*cm;
+  G4double PMT_window_depth = 0.20*cm;
+  G4Tubs *PMT_window = new G4Tubs( "PMT_window", 0.0*cm, PMT_window_radius, PMT_window_depth/2.0, 0.0, twopi );
+  G4LogicalVolume *PMT_window_log = new G4LogicalVolume( PMT_window, GetMaterial("QuartzWindow_ECal"), "PMT_window_log" );
 
-    //PMT
-    G4double PMT_radius = 1.25*cm;
-    G4double PMT_depth = 0.20*cm;
-    G4Tubs *PMTcathode_ecal = new G4Tubs( "PMTcathode_ecal", 0.0*cm, PMT_radius, PMT_depth/2.0, 0.0, twopi );
-    G4LogicalVolume *PMTcathode_ecal_log = new G4LogicalVolume( PMTcathode_ecal, GetMaterial("Photocathode_material_ecal"), "PMTcathode_ecal_log" );
+  //PMT
+  G4double PMT_radius = 1.25*cm;
+  G4double PMT_depth = 0.20*cm;
+  G4Tubs *PMTcathode_ecal = new G4Tubs( "PMTcathode_ecal", 0.0*cm, PMT_radius, PMT_depth/2.0, 0.0, twopi );
+  G4LogicalVolume *PMTcathode_ecal_log = new G4LogicalVolume( PMTcathode_ecal, GetMaterial("Photocathode_material_ecal"), "PMTcathode_ecal_log" );
 
-    //Aluminum Shielding in front of ECAL - use same x/y dimensions as mother volume
-    G4double z_Al = 2.40*cm;
-    G4Box *Al_box = new G4Box( "Al_box", x_ecal/2.0, y_ecal/2.0, z_Al/2.0 );
-    G4LogicalVolume *Al_log = new G4LogicalVolume ( Al_box, GetMaterial("RICHAluminum"), "Al_log" );
-    new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -z_module_type1/2.0 - z_Al/2.0), Al_log, "Aluminum_Shielding", ecal_log, false, 0 );
+  //Aluminum Shielding in front of ECAL - use same x/y dimensions as mother volume
+  G4double z_Al = 2.40*cm;
+  G4Box *Al_box = new G4Box( "Al_box", x_ecal/2.0, y_ecal/2.0, z_Al/2.0 );
+  G4LogicalVolume *Al_log = new G4LogicalVolume ( Al_box, GetMaterial("RICHAluminum"), "Al_log" );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -z_module_type1/2.0 - z_Al/2.0), Al_log, "Aluminum_Shielding", ecal_log, false, 0 );
 
-    //PMTcathode_ecal_log is the sensitive detector, assigned to ECalSD which detects optical photons
-    G4SDManager *sdman = fDetCon->fSDman;
+  //PMTcathode_ecal_log is the sensitive detector, assigned to ECalSD which detects optical photons
+  G4SDManager *sdman = fDetCon->fSDman;
 
-    G4String ECalSDname = "G4SBS/ECal";
-    G4String ECalcollname = "ECalcoll";
-    G4SBSECalSD *ECalSD = NULL;
+  G4String ECalSDname = "G4SBS/ECal";
+  G4String ECalcollname = "ECalcoll";
+  G4SBSECalSD *ECalSD = NULL;
 
-    if( !( (G4SBSECalSD*) sdman->FindSensitiveDetector(ECalSDname) ) ){
-	G4cout << "Adding ECal sensitive detector to SDman..." << G4endl;
-	ECalSD = new G4SBSECalSD( ECalSDname, ECalcollname );
-	sdman->AddNewDetector( ECalSD );
-	fDetCon->SDlist[ECalSDname] = ECalSD;
-    }
-    PMTcathode_ecal_log->SetSensitiveDetector( ECalSD );
+  if( !( (G4SBSECalSD*) sdman->FindSensitiveDetector(ECalSDname) ) ){
+    G4cout << "Adding ECal sensitive detector to SDman..." << G4endl;
+    ECalSD = new G4SBSECalSD( ECalSDname, ECalcollname );
+    sdman->AddNewDetector( ECalSD );
+    fDetCon->SDlist[ECalSDname] = ECalSD;
+  }
+  PMTcathode_ecal_log->SetSensitiveDetector( ECalSD );
     
-    //***************MODULE PLACEMENT***********
-    //Placing the blocks inside mother volume - looking downstream, iteration starts top left corner of mother volume
+  //***************MODULE PLACEMENT***********
+  //Placing the blocks inside mother volume - looking downstream, iteration starts top left corner of mother volume
  
-    G4double x_position = x_ecal/2.0-x_module_type1/2.0 , y_position = y_ecal/2.0-y_module_type1/2.0;
+  G4double x_position = x_ecal/2.0-x_module_type1/2.0 , y_position = y_ecal/2.0-y_module_type1/2.0;
 
-    G4int x_number_ecal = 53;
-    G4int y_number_ecal = 79;   //76x20 array
-    G4int copy_number_PMT = 0;  //label modules
+  G4int x_number_ecal = 53;
+  G4int y_number_ecal = 79;   //76x20 array
+  G4int copy_number_PMT = 0;  //label modules
 
-    //Need a Steel module to fill voids when rows are staggered - x dimension should be half the size
-    //of a type 1 module
-    G4int x_steel = (x_module_type1/2.0), y_steel = 3.812*cm, z_steel = 45.006*cm;
-    G4Box *steel_box = new G4Box("steel_box", x_steel/2.0, y_steel/2.0, z_steel/2.0);
-    G4LogicalVolume *steel_log = new G4LogicalVolume( steel_box, GetMaterial("Steel"), "steel_log");
+  //Need a Steel module to fill voids when rows are staggered - x dimension should be half the size
+  //of a type 1 module
+  G4int x_steel = (x_module_type1/2.0), y_steel = 3.812*cm, z_steel = 45.006*cm;
+  G4Box *steel_box = new G4Box("steel_box", x_steel/2.0, y_steel/2.0, z_steel/2.0);
+  G4LogicalVolume *steel_log = new G4LogicalVolume( steel_box, GetMaterial("Steel"), "steel_log");
 
-    //Iterating to building ECAL 
-    for( G4int i=0; i<y_number_ecal; i++ ){
-      G4double ytemp = y_position - i*(y_module_type1);
+  //Iterating to building ECAL 
+  for( G4int i=0; i<y_number_ecal; i++ ){
+    G4double ytemp = y_position - i*(y_module_type1);
 
-      for(G4int j=0; j<x_number_ecal; j++){	
-	G4double xtemp_even = x_position - j*(x_module_type1);
-	G4double xtemp_odd = x_position - x_module_type1/2.0 - j*(x_module_type1);
+    for(G4int j=0; j<x_number_ecal; j++){	
+      G4double xtemp_even = x_position - j*(x_module_type1);
+      G4double xtemp_odd = x_position - x_module_type1/2.0 - j*(x_module_type1);
   
-	//EVEN ROWS
-	if(i%2==0){ 
+      G4double xcell=xtemp_even,ycell=ytemp;
+      //EVEN ROWS
+      if(i%2==0){ 
 	//Type1 Module
 	new G4PVPlacement( 0, G4ThreeVector( xtemp_even, ytemp, 0.0), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
 	//PMT_window
@@ -658,11 +671,13 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_module_type1/2.0 + PMT_window_depth + PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
 	//Steel module
 	new G4PVPlacement(0, G4ThreeVector(-(x_ecal/2.0)+x_steel/2.0, ytemp, 0.0 ), steel_log, "steel_pv", ecal_log, false, 0);
-	}
+	
+	xcell = xtemp_even;
+      }
 
-	//ODD ROWS
-	else{
-	  //Type1 Module
+      //ODD ROWS
+      else{
+	//Type1 Module
 	new G4PVPlacement( 0, G4ThreeVector( xtemp_odd, ytemp, 0.0), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
 	//PMT_window
 	new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_module_type1/2.0 + PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
@@ -670,45 +685,52 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_module_type1/2.0 + PMT_window_depth + PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
 	//Steel module
 	new G4PVPlacement(0, G4ThreeVector((x_ecal/2.0)-x_steel/2.0, ytemp, 0.0 ), steel_log, "steel_pv", ecal_log, false, 0);
-	}
-
-	copy_number_PMT++;
+	xcell = xtemp_odd;
       }
+
+      (ECalTF1SD->RowMap)[ECalTF1SDname][copy_number_PMT] = i;
+      (ECalTF1SD->ColMap)[ECalTF1SDname][copy_number_PMT] = j;
+      (ECalTF1SD->XMap)[ECalTF1SDname][copy_number_PMT] = xcell;
+      (ECalTF1SD->YMap)[ECalTF1SDname][copy_number_PMT] = ycell;
+      (ECalTF1SD->DepthMap)[ECalTF1SDname][copy_number_PMT] = 1;
+
+      copy_number_PMT++;
     }
-    //END MODULE PLACEMENT
+  }
+  //END MODULE PLACEMENT
 
-	//VISUALIZATIONS:
+  //VISUALIZATIONS:
 
-	//Make mother volume invisible
-        ecal_log->SetVisAttributes( G4VisAttributes::Invisible );
+  //Make mother volume invisible
+  ecal_log->SetVisAttributes( G4VisAttributes::Invisible );
  
-	//Mylar
-	G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );
-	mylar_wrap_log->SetVisAttributes(mylar_colour);
+  //Mylar
+  G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );
+  mylar_wrap_log->SetVisAttributes(mylar_colour);
 
-	//Air
-	G4VisAttributes *air_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));
-	module_log_type1->SetVisAttributes(air_colour);
+  //Air
+  G4VisAttributes *air_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));
+  module_log_type1->SetVisAttributes(air_colour);
 
-	//TF1
-	G4VisAttributes *TF1_colour = new G4VisAttributes(G4Colour( 0.8, 0.8, 0.0 ) );
-	TF1_log->SetVisAttributes(TF1_colour);
+  //TF1
+  G4VisAttributes *TF1_colour = new G4VisAttributes(G4Colour( 0.8, 0.8, 0.0 ) );
+  TF1_log->SetVisAttributes(TF1_colour);
 
-        //Steel
-       	G4VisAttributes *steel_colour = new G4VisAttributes(G4Colour( 0.4, 0.4, 0.4 ) );
-	steel_log->SetVisAttributes(steel_colour);
+  //Steel
+  G4VisAttributes *steel_colour = new G4VisAttributes(G4Colour( 0.4, 0.4, 0.4 ) );
+  steel_log->SetVisAttributes(steel_colour);
 
-	//PMTcathode
-	G4VisAttributes *PMT_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));
-        PMT_colour->SetForceLineSegmentsPerCircle( 12 );
-        PMTcathode_ecal_log->SetVisAttributes(PMT_colour);
+  //PMTcathode
+  G4VisAttributes *PMT_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));
+  PMT_colour->SetForceLineSegmentsPerCircle( 12 );
+  PMTcathode_ecal_log->SetVisAttributes(PMT_colour);
 
-	//Al Shielding
-	G4VisAttributes *Al_colour = new G4VisAttributes(G4Colour(0.9, 0.9, 0.9));
-        Al_log->SetVisAttributes(Al_colour);
+  //Al Shielding
+  G4VisAttributes *Al_colour = new G4VisAttributes(G4Colour(0.9, 0.9, 0.9));
+  Al_log->SetVisAttributes(Al_colour);
  
-	//Shielding
-	//box_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
+  //Shielding
+  //box_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
 	  						    
 
 }

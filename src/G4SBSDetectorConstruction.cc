@@ -205,6 +205,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     density = 7.87*g/cm3;
     fMaterialsMap["Fer"] = new G4Material(name="Fer", z=26., a, density);
 
+    fMaterialsMap["Iron"] = man->FindOrBuildMaterial("G4_Fe");
+
     density = 1.29e-03*g/cm3;
     G4Material* Air = new G4Material(name="Air", density, nel=2);
     Air->AddElement(elN, .7);

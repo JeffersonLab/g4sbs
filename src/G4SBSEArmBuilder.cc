@@ -32,6 +32,12 @@
 #include "G4LogicalSkinSurface.hh"
 #include "G4SBSRICHSD.hh"
 #include "G4SBSECalSD.hh"
+#include <map>
+#include <set>
+#include <iostream>
+#include <fstream>
+
+using namespace std;
 
 G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fBBang  = 40.0*deg;
@@ -507,16 +513,16 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
   printf("BigCal at %f deg\n", fBBang/deg);
 
-  G4RotationMatrix *bbrm = new G4RotationMatrix;
-  bbrm->rotateY(fBBang);
-
   // Ecal will act as BBcal detector
 
   double bigcalheight = (24*4.5+32*4.0)*cm;
   double bigcalwidth  = 44.10*2.54*cm;
   double bigcaldepth  = 15.75*2.54*cm;
-  double bbr = fBBdist+bigcaldepth/2.0;
+  //double bbr = fBBdist+bigcaldepth/2.0;
   /*
+    printf("BigCal at %f deg\n", fBBang/deg);
+
+    /*
     double CH2depth = 15.0*cm;
     double CHdepth  = 6.0*cm;
 
@@ -544,27 +550,73 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     ch2boxlog->SetVisAttributes(ch2VisAtt);
   */
 
+  /*************************************************************************************
+   ********************************        ECAL      ***********************************
+   *************************************************************************************/
+   
+  //Define  coordinates, rotations, and offsets:
+  G4RotationMatrix *bbrm = new G4RotationMatrix;
+  bbrm->rotateY(fBBang);
+
+  G4double x_ecal = 246.402*cm, y_ecal = 370.656*cm, z_ecal = 45.406*cm; //45.006cm(module) + 2*0.2(pmt depth)
+  double bbr = fBBdist - z_ecal/2.0; //backside of ECal should be located at fBBdist
+  double offset = 15*cm; //Motivation - match SBS acceptance
+
+  //Electron Arm - order of materials - all "right next" to each other in z-hat_spectrometer coordinates
+  //1)20cm Polyethylene 
+  //2)2 4cm CDet planes
+  //3)2.4cm Al
+  //4)ECal - geometry specified below
+
+  //Dimensions are different than ecal_log because ECal was shrunk significantly when the crescent shape was developed
+  //x_earm = 46.5*4.212 (the .5 comes from staggering effects)
+  //y_earm = 74*4.212
+  //z_earm = 20+2*4
+  G4double x_earm = 195.858*cm, y_earm = 311.688*cm, z_earm = 28.0*cm; 
 
 
-  /*****************************************************************************
-   ********************        DEVELOPMENT OF ECAL      ************************
-   ******************************************************************************/
+  G4double z_Al = 2.40*cm; //Aluminium thickness 
+  double cdr = fBBdist - z_ecal - z_Al - z_earm/2.0;
+  G4Box *earm_mother_box = new G4Box("earm_mother_box", x_earm/2.0, y_earm/2.0, z_earm/2.0);
+  G4LogicalVolume *earm_mother_log = new G4LogicalVolume(earm_mother_box, GetMaterial("Air"), "earm_mother_log");
+
+  //Polyethylene Box - located infront of Coordinate Detector
+  G4double polydepth = 20.0*cm;
+  G4Box *polybox = new G4Box("polybox", x_earm/2.0, y_earm/2.0, polydepth/2.0 );
+  G4LogicalVolume *polybox_log = new G4LogicalVolume(polybox, GetMaterial("Polyethylene"), "polybox_log");
+
+  //Coordinate Detector - 2 planes
+  G4double CD_depth = 4.0*cm;
+  G4Box *CD_box = new G4Box("CD_box", x_earm/2.0, y_earm/2.0, CD_depth/2.0 );
+  G4LogicalVolume *CD_log = new G4LogicalVolume(CD_box, GetMaterial("PLASTIC_SC_VINYLTOLUENE"), "CD_log");
+
+  //Aluminum Shielding in front of ECAL - make it big enough to enclose crescent
+  //Columns 6-51 && Rows 7-80
+  G4double alr = fBBdist - z_ecal - z_Al/2.0;
+  G4Box *Al_box = new G4Box( "Al_box", x_earm/2.0, y_earm/2.0, z_Al/2.0 );
+  G4LogicalVolume *Al_log = new G4LogicalVolume ( Al_box, GetMaterial("RICHAluminum"), "Al_log" );
+  new G4PVPlacement( bbrm, G4ThreeVector( alr*sin(-fBBang)+offset*cos(fBBang), 0.0, alr*cos(-fBBang)+offset*sin(fBBang) ), Al_log, "Aluminum_Shielding", worldlog, false, 0 );
+
+  //Place everything inside the Earm Mother Volume
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0-CD_depth/2.0), CD_log, "plane1", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0-CD_depth/2.0-CD_depth ), CD_log, "plane2", earm_mother_log, false, 1 );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -z_earm/2.0+polydepth/2.0 ), polybox_log, "Polyethylene", earm_mother_log, false, 0 );
+  new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang)+offset*cos(fBBang), 0.0, cdr*cos(-fBBang)+offset*sin(fBBang) ), earm_mother_log, "CDet & Filter",worldlog, false, 0);
 
   //Define a Mother Volume to place the ECAL modules
-  G4double x_ecal = 203.942*cm, y_ecal = 301.148*cm, z_ecal = 50.80*cm;
   G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
   G4LogicalVolume *ecal_log = new G4LogicalVolume( ecal_box, GetMaterial("Air"), "ecal_log" );
-  new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang), 0.0, bbr*cos(-fBBang) ), ecal_log, "ecal", worldlog, false, 0 );
+  new G4PVPlacement( bbrm, G4ThreeVector( bbr*sin(-fBBang)+offset*cos(fBBang), 0.0, bbr*cos(-fBBang)+offset*sin(fBBang) ), ecal_log, "ECal Mother", worldlog, false, 0 );
 
-  //dimensions of mylar/air wrapping:
+  //Dimensions of mylar/air wrapping:
   G4double mylar_wrapping_size = 0.00150*cm;
   G4double air_wrapping_size = 0.00450*cm;
   G4double mylar_plus_air = mylar_wrapping_size + air_wrapping_size;
 
-  //TYPE1 MODULE - 3.800 x 3.800 x 45.000 cm^3 + layer of air (0.0045cm) + layer of mylar (0.0015cm)
-  G4double x_module_type1 = 3.8000*cm + (2*mylar_plus_air); //3.812
-  G4double y_module_type1 = 3.8000*cm + (2*mylar_plus_air); //3.812
-  G4double z_module_type1 = 45.0000*cm + mylar_plus_air;    //45.006
+  //TYPE1 MODULE - 4.200 x 4.200 x 45.000 cm^3 + layer of air (0.0045cm) + layer of mylar (0.0015cm)
+  G4double x_module_type1 = 4.2000*cm + (2*mylar_plus_air); //4.212
+  G4double y_module_type1 = 4.2000*cm + (2*mylar_plus_air); //4.212
+  G4double z_module_type1 = 45.0000*cm + mylar_plus_air;    //45.006 - only one side in z has mylar+air
   G4Box *module_type1 = new G4Box( "module_type1", x_module_type1/2.0, y_module_type1/2.0, z_module_type1/2.0 );
 
   //Define a new mother volume which will house the contents of a module(i.e. TF1 & Mylar)
@@ -580,18 +632,18 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   G4LogicalVolume *mylar_wrap_log = new G4LogicalVolume( mylarwrap, GetMaterial("Mylar"), "mylar_wrap_log" );
 
   //TF1
-  G4double x_TF1 = 3.800*cm, y_TF1 = 3.800*cm, z_TF1 = 45.000*cm;
+  G4double x_TF1 = 4.200*cm, y_TF1 = 4.200*cm, z_TF1 = 45.000*cm;
   G4Box *TF1_box = new G4Box( "TF1_box", x_TF1/2.0, y_TF1/2.0, z_TF1/2.0 );
   G4LogicalVolume *TF1_log = new G4LogicalVolume ( TF1_box, GetMaterial("TF1"), "TF1_log" );
 
   G4String ECalTF1SDname = "G4SBS/ECalLeadGlass";
   G4String ECalTF1collname = "G4SBS/ECalLeadGlassColl";
   G4SBSCalSD *ECalTF1SD = NULL;
-
+    
   if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(ECalTF1SDname) ) ){
     G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
     ECalTF1SD = new G4SBSCalSD( ECalTF1SDname, ECalTF1collname );
-    sdman->AddNewDetector( ECalTF1SD );
+    fDetCon->fSDman->AddNewDetector( ECalTF1SD );
     fDetCon->SDlist[ECalTF1SDname] = ECalTF1SD;
   }
   TF1_log->SetSensitiveDetector( ECalTF1SD );
@@ -600,7 +652,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, 0.0), mylar_wrap_log, "Mylar_Wrap", module_log_type1, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, mylar_plus_air/2.0), TF1_log, "TF1", module_log_type1, false, 0 );
 
-  //Want blocks to be optically independent => assign an optical skin
+  //Want blocks to be optically independent => assign an optical skin to the Mylar
   new G4LogicalSkinSurface( "Mylar_skin", mylar_wrap_log, GetOpticalSurface( "Mirrsurf" ));
     
   //Build PMT detector which will be placed at the end of the module
@@ -616,12 +668,6 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   G4Tubs *PMTcathode_ecal = new G4Tubs( "PMTcathode_ecal", 0.0*cm, PMT_radius, PMT_depth/2.0, 0.0, twopi );
   G4LogicalVolume *PMTcathode_ecal_log = new G4LogicalVolume( PMTcathode_ecal, GetMaterial("Photocathode_material_ecal"), "PMTcathode_ecal_log" );
 
-  //Aluminum Shielding in front of ECAL - use same x/y dimensions as mother volume
-  G4double z_Al = 2.40*cm;
-  G4Box *Al_box = new G4Box( "Al_box", x_ecal/2.0, y_ecal/2.0, z_Al/2.0 );
-  G4LogicalVolume *Al_log = new G4LogicalVolume ( Al_box, GetMaterial("RICHAluminum"), "Al_log" );
-  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -z_module_type1/2.0 - z_Al/2.0), Al_log, "Aluminum_Shielding", ecal_log, false, 0 );
-
   //PMTcathode_ecal_log is the sensitive detector, assigned to ECalSD which detects optical photons
   G4SDManager *sdman = fDetCon->fSDman;
 
@@ -636,74 +682,106 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     fDetCon->SDlist[ECalSDname] = ECalSD;
   }
   PMTcathode_ecal_log->SetSensitiveDetector( ECalSD );
-    
-  //***************MODULE PLACEMENT***********
-  //Placing the blocks inside mother volume - looking downstream, iteration starts top left corner of mother volume
- 
-  G4double x_position = x_ecal/2.0-x_module_type1/2.0 , y_position = y_ecal/2.0-y_module_type1/2.0;
 
-  G4int x_number_ecal = 53;
-  G4int y_number_ecal = 79;   //76x20 array
+  G4int x_number_ecal = 58;
+  G4int y_number_ecal = 88;   
+
+  int maxrow = -1;
+  int maxcol = -1;
+  int minrow = y_number_ecal;
+  int mincol = x_number_ecal;
+
+  ifstream ecal_map_file("ecal_map.txt");
+    
+  set<pair<int,int> > active_cells;
+
+  G4String Line;
+
+  while ( Line.readLine( ecal_map_file ) ){
+    G4cout << "Read Line from ecal map file: \"" <<  Line.data() << "\"" << G4endl;
+    if( !(Line[0] == '#') ){
+      int row, col;
+      sscanf( Line.data(), "%d %d", &row, &col );
+      if( active_cells.size() == 0 || row > maxrow ) maxrow = row;
+      if( active_cells.size() == 0 || row < minrow ) minrow = row;
+      if( active_cells.size() == 0 || col > maxcol ) maxcol = col;
+      if( active_cells.size() == 0 || col < mincol ) mincol = col;
+      active_cells.insert(make_pair(row,col));
+    } 
+  }
+
+  // map< int, set<int> >::iterator map_it;
+  // set<int>::iterator set_it;
+    
+  G4double x_position = x_ecal/2.0-x_module_type1/2.0 , y_position = y_ecal/2.0-y_module_type1/2.0;
+  
+    
   G4int copy_number_PMT = 0;  //label modules
 
-  //Need a Steel module to fill voids when rows are staggered - x dimension should be half the size
-  //of a type 1 module
-  G4int x_steel = (x_module_type1/2.0), y_steel = 3.812*cm, z_steel = 45.006*cm;
+  //Need a Steel module to fill voids
+  G4int x_steel = x_module_type1, y_steel = y_module_type1, z_steel = z_module_type1;
   G4Box *steel_box = new G4Box("steel_box", x_steel/2.0, y_steel/2.0, z_steel/2.0);
   G4LogicalVolume *steel_log = new G4LogicalVolume( steel_box, GetMaterial("Steel"), "steel_log");
 
-  //Iterating to building ECAL 
-  for( G4int i=0; i<y_number_ecal; i++ ){
-    G4double ytemp = y_position - i*(y_module_type1);
+  //And a half Steel module to fill in voids caused by staggering
+  G4Box *steel_box_half = new G4Box("steel_box_half", 0.5*(x_steel/2.0), y_steel/2.0, z_steel/2.0);
+  G4LogicalVolume *steel_log_half = new G4LogicalVolume( steel_box_half, GetMaterial("Steel"), "steel_log");
+  int module_number; //counts modules if needed
 
-    for(G4int j=0; j<x_number_ecal; j++){	
-      G4double xtemp_even = x_position - j*(x_module_type1);
-      G4double xtemp_odd = x_position - x_module_type1/2.0 - j*(x_module_type1);
-  
-      G4double xcell=xtemp_even,ycell=ytemp;
-      //EVEN ROWS
-      if(i%2==0){ 
-	//Type1 Module
-	new G4PVPlacement( 0, G4ThreeVector( xtemp_even, ytemp, 0.0), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
-	//PMT_window
-	new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_module_type1/2.0 + PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
-	//PMT_cathode
-	new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_module_type1/2.0 + PMT_window_depth + PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
-	//Steel module
-	new G4PVPlacement(0, G4ThreeVector(-(x_ecal/2.0)+x_steel/2.0, ytemp, 0.0 ), steel_log, "steel_pv", ecal_log, false, 0);
+  //Iterating to build ECal 
+  for(G4int j=0; j<x_number_ecal; j++){	
+    G4double xtemp_even = x_position - j*(x_module_type1);
+    G4double xtemp_odd = x_position - x_module_type1/2.0 - j*(x_module_type1);
 	
-	xcell = xtemp_even;
+    for( G4int i=0; i<y_number_ecal; i++ ){
+      G4double ytemp = y_position - i*(y_module_type1);
+	  
+      pair<int,int> rowcol( i, j );
+	  
+      if( active_cells.find( rowcol ) != active_cells.end() ){ //This row and column are active:
+	//EVEN ROWS
+	if(i%2==0){ 
+	  //Type1 Module
+	  new G4PVPlacement(0, G4ThreeVector( xtemp_even, ytemp, -PMT_depth), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
+	  //PMT_window
+	  new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_ecal/2.0-PMT_depth-PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
+	  //PMT_cathode
+	  new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_ecal/2.0-PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
+	      
+	}
+
+	//ODD ROWS
+	else{
+	  //Type1 Module
+	  new G4PVPlacement( 0, G4ThreeVector( xtemp_odd, ytemp, -PMT_depth), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
+	  //PMT_window
+	  new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_ecal/2.0-PMT_depth-PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
+	  //PMT_cathode
+	  new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_ecal/2.0-PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
+	      
+	}
+	module_number++;
+	copy_number_PMT++;
+      } else { //Filler steel:
+	if( i>=minrow-2 && i<=maxrow+2 && j>=mincol-2 && j<=maxcol+2 ){
+	  if(i%2==0){
+	    new G4PVPlacement(0, G4ThreeVector(xtemp_even, ytemp, -PMT_depth ), steel_log, "steel_pv", ecal_log, false, 0);
+	    new G4PVPlacement(0, G4ThreeVector(-(x_earm/2.0)+(x_steel/4.0), ytemp, -PMT_depth ), steel_log_half, "steel_pv", ecal_log, false, 0);
+	  }	else{
+	    new G4PVPlacement(0, G4ThreeVector(xtemp_odd, ytemp, -PMT_depth ), steel_log, "steel_pv", ecal_log, false, 0);
+	    new G4PVPlacement(0, G4ThreeVector((x_earm/2.0)-(x_steel/4.0), ytemp, -PMT_depth ), steel_log_half, "steel_pv", ecal_log, false, 0);
+	  }
+	}
+
       }
-
-      //ODD ROWS
-      else{
-	//Type1 Module
-	new G4PVPlacement( 0, G4ThreeVector( xtemp_odd, ytemp, 0.0), module_log_type1, "Type1Module", ecal_log, false, copy_number_PMT );
-	//PMT_window
-	new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_module_type1/2.0 + PMT_window_depth/2.0), PMT_window_log,"PMT_window_pv", ecal_log, false, copy_number_PMT );
-	//PMT_cathode
-	new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_module_type1/2.0 + PMT_window_depth + PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
-	//Steel module
-	new G4PVPlacement(0, G4ThreeVector((x_ecal/2.0)-x_steel/2.0, ytemp, 0.0 ), steel_log, "steel_pv", ecal_log, false, 0);
-	xcell = xtemp_odd;
-      }
-
-      (ECalTF1SD->RowMap)[ECalTF1SDname][copy_number_PMT] = i;
-      (ECalTF1SD->ColMap)[ECalTF1SDname][copy_number_PMT] = j;
-      (ECalTF1SD->XMap)[ECalTF1SDname][copy_number_PMT] = xcell;
-      (ECalTF1SD->YMap)[ECalTF1SDname][copy_number_PMT] = ycell;
-      (ECalTF1SD->DepthMap)[ECalTF1SDname][copy_number_PMT] = 1;
-
-      copy_number_PMT++;
     }
   }
-  //END MODULE PLACEMENT
 
-  //VISUALIZATIONS:
+  //END MODULE PLACEMENT
 
   //Make mother volume invisible
   ecal_log->SetVisAttributes( G4VisAttributes::Invisible );
- 
+	
   //Mylar
   G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );
   mylar_wrap_log->SetVisAttributes(mylar_colour);
@@ -719,6 +797,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   //Steel
   G4VisAttributes *steel_colour = new G4VisAttributes(G4Colour( 0.4, 0.4, 0.4 ) );
   steel_log->SetVisAttributes(steel_colour);
+  steel_log_half->SetVisAttributes(steel_colour);
 
   //PMTcathode
   G4VisAttributes *PMT_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));
@@ -728,10 +807,24 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   //Al Shielding
   G4VisAttributes *Al_colour = new G4VisAttributes(G4Colour(0.9, 0.9, 0.9));
   Al_log->SetVisAttributes(Al_colour);
- 
+
+  //Electron Arm Package - Houses CDet & Polyethylene
+  //G4VisAttributes *earm_mother_vis = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
+  //earm_mother_vis->SetForceWireframe(true);
+  earm_mother_log->SetVisAttributes(G4VisAttributes::Invisible);
+
+  //Polyethylene
+  G4VisAttributes *poly_colour = new G4VisAttributes(G4Colour( 0.2,0.3,0.4 ));
+  polybox_log->SetVisAttributes(poly_colour);
+
+  //CDet
+  G4VisAttributes *CD_colour = new G4VisAttributes(G4Colour(0.5, 0.4, 0.1));
+  CD_log->SetVisAttributes(CD_colour);
+
+
   //Shielding
   //box_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
-	  						    
-
+	  
+  //cout<<module_number;
 }
 

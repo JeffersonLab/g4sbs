@@ -868,6 +868,13 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     ECal_Air->SetMaterialPropertiesTable( MPT_temp );
     fMaterialsMap["ECal_Air"] = ECal_Air;
 
+    //CDet & Poly "filter"
+    G4Material *Polyethylene = man->FindOrBuildMaterial("G4_POLYETHYLENE");
+    fMaterialsMap["Polyethylene"] = Polyethylene;
+
+    G4Material *PLASTIC_SC_VINYLTOLUENE = man->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+    fMaterialsMap["PLASTIC_SC_VINYLTOLUENE"] = PLASTIC_SC_VINYLTOLUENE;
+
 }
 
 G4Material *G4SBSDetectorConstruction::GetMaterial(G4String name){

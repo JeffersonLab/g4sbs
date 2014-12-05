@@ -62,7 +62,7 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   hit->SetMID(aStep->GetTrack()->GetParentID());
 
 
-  hit->SetCell( aStep->GetPreStepPoint()->GetPhysicalVolume()->GetCopyNo( DepthMap[this->GetName()][hit->GetCell()] ) );
+  hit->SetCell( hist->GetVolume( DepthMap[this->GetName()][hit->GetCell()] )->GetCopyNo() );
   hit->SetRow( RowMap[this->GetName()][hit->GetCell()] );
   hit->SetCol( ColMap[this->GetName()][hit->GetCell()] );
   hit->SetXCell( XMap[this->GetName()][hit->GetCell()] );

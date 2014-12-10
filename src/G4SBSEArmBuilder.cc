@@ -966,7 +966,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	//Shielding
 	//box_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
 	  
-	//cout<<module_number;
+	cout<<module_number;
 
 }
 

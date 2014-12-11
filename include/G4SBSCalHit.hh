@@ -11,82 +11,104 @@
 
 class G4SBSCalHit : public G4VHit
 {
-  public:
+public:
 
-      G4SBSCalHit();
-      ~G4SBSCalHit();
-      G4SBSCalHit(const G4SBSCalHit &right);
-      const G4SBSCalHit& operator=(const G4SBSCalHit &right);
-      G4int operator==(const G4SBSCalHit &right) const;
+  G4SBSCalHit();
+  ~G4SBSCalHit();
+  G4SBSCalHit(const G4SBSCalHit &right);
+  const G4SBSCalHit& operator=(const G4SBSCalHit &right);
+  G4int operator==(const G4SBSCalHit &right) const;
 
 
-      inline void *operator new(size_t);
-      inline void operator delete(void *aHit);
-      void *operator new(size_t,void*p){return p;}
+  inline void *operator new(size_t);
+  inline void operator delete(void *aHit);
+  void *operator new(size_t,void*p){return p;}
 #ifndef G4NOT_ISO_DELETES
-      void operator delete(void *,void*){}
+  void operator delete(void *,void*){}
 #endif
 
-      void Draw();
-      void Print();
+  void Draw();
+  void Print();
 
-  private:
-      G4ThreeVector pos;
-      G4ThreeVector vertex;
-      G4ThreeVector labpos;
-      double time;
-      double energy;
+private:
+  G4ThreeVector pos;
+  G4ThreeVector vertex;
+  G4ThreeVector labpos;
+  double time;
+  double energy;
 
-      G4int pid, mid, trid;
+  G4int cell, row, col; 
+  G4double xcell, ycell; //"local" coordinates of center of cell in which hit occurred.
 
-  public:
-      inline void SetEdep(G4double e)
-      { energy = e;};
+  G4int pid, mid, trid;
 
-      inline void SetPID(G4int p)
-      { pid = p;};
+public:
+  inline void SetCell(G4int c)
+  { cell = c; }
+  
+  inline void SetRow(G4int r)
+  { row = r; }
+  
+  inline void SetCol(G4int c)
+  { col = c; }
 
-      inline void SetTrID(G4int t)
-      { trid = t;};
+  inline void SetXCell( G4double x )
+  { xcell = x; }
+  
+  inline void SetYCell( G4double y )
+  { ycell = y; }
 
-      inline void SetMID(G4int mother)
-      { mid = mother;};
+  inline void SetEdep(G4double e)
+  { energy = e;};
 
-      inline void SetPos(G4ThreeVector v)
-      { pos = v;};
+  inline void SetPID(G4int p)
+  { pid = p;};
 
-      inline void SetVertex(G4ThreeVector v)
-      { vertex = v;};
+  inline void SetTrID(G4int t)
+  { trid = t;};
 
-      inline void SetLabPos(G4ThreeVector v)
-      { labpos = v;};
+  inline void SetMID(G4int mother)
+  { mid = mother;};
 
-    inline G4ThreeVector GetPos()
-      { return pos;};
+  inline void SetPos(G4ThreeVector v)
+  { pos = v;};
 
-    inline G4ThreeVector GetVertex()
-      { return vertex;};
+  inline void SetVertex(G4ThreeVector v)
+  { vertex = v;};
 
-    inline G4double GetEdep()
-      { return energy;};
+  inline void SetLabPos(G4ThreeVector v)
+  { labpos = v;};
 
-    inline G4double GetTrID()
-      { return trid;};
+  inline G4int GetCell() { return cell; }
+  inline G4int GetRow() { return row; }
+  inline G4int GetCol() { return col; }
 
-    inline G4double GetMID()
-      { return mid;};
+  inline G4ThreeVector GetPos()
+  { return pos;};
 
-    inline G4double GetPID()
-      { return pid;};
+  inline G4ThreeVector GetVertex()
+  { return vertex;};
 
-    inline G4ThreeVector GetLabPos()
-      { return labpos;};
+  inline G4double GetEdep()
+  { return energy;};
 
-      inline void SetTime(double v)
-      { time = v;};
+  inline G4double GetTrID()
+  { return trid;};
 
-    inline double GetTime()
-      { return time;};
+  inline G4double GetMID()
+  { return mid;};
+
+  inline G4double GetPID()
+  { return pid;};
+
+  inline G4ThreeVector GetLabPos()
+  { return labpos;};
+
+  inline void SetTime(double v)
+  { time = v;};
+
+  inline double GetTime()
+  { return time;};
 
 };
 

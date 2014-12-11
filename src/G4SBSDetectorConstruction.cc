@@ -1144,3 +1144,6 @@ void G4SBSDetectorConstruction::AddToscaField( const char *fn ) {
 
 }
 
+void G4SBSDetectorConstruction::SetECALmapfilename( G4String s ){
+  fECALmapfilename = s;
+}

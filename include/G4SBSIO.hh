@@ -70,6 +70,9 @@ typedef struct {
   
   Int_t hctrid[MAXHITDATA], hcmid[MAXHITDATA], hcpid[MAXHITDATA];
   Int_t bctrid[MAXHITDATA], bcmid[MAXHITDATA], bcpid[MAXHITDATA];
+
+  Int_t row[MAXHITDATA], col[MAXHITDATA], xcell[MAXHITDATA], ycell[MAXHITDATA];
+
 } cal_t;
 
 class G4SBSIO {

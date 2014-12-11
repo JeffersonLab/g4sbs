@@ -27,6 +27,9 @@ G4SBSCalHit::G4SBSCalHit(const G4SBSCalHit &right)
   pid = right.pid;
   mid = right.mid;
   trid = right.trid;
+  cell = right.cell;
+  row = right.row;
+  col = right.col;
 }
 
 const G4SBSCalHit& G4SBSCalHit::operator=(const G4SBSCalHit &right)
@@ -37,6 +40,9 @@ const G4SBSCalHit& G4SBSCalHit::operator=(const G4SBSCalHit &right)
   pid = right.pid;
   mid = right.mid;
   trid = right.trid;
+  cell = right.cell;
+  row = right.row;
+  col = right.col;
   return *this;
 }
 

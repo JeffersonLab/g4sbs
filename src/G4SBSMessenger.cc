@@ -57,6 +57,10 @@ G4SBSMessenger::G4SBSMessenger(){
     gemconfigCmd->SetGuidance("Change between GEM configurations");
     gemconfigCmd->SetParameterName("gemconfig", false);
 
+    ECALmapfileCmd = new G4UIcmdWithAString("/g4sbs/ECALmap",this);
+    ECALmapfileCmd->SetGuidance("Name of text file listing active ECAL cells");
+    ECALmapfileCmd->SetParameterName("ECALmapfile",false);
+
     fileCmd = new G4UIcmdWithAString("/g4sbs/filename",this);
     fileCmd->SetGuidance("Output filename");
     fileCmd->SetParameterName("filename", false);
@@ -342,6 +346,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == gemconfigCmd ){
 	int gemconfval = gemconfigCmd->GetNewIntValue(newValue);
 	fdetcon->fEArmBuilder->SetGEMConfig(gemconfval);
+    }
+
+    if( cmd == ECALmapfileCmd ){
+      fdetcon->SetECALmapfilename( newValue );
     }
 
     if( cmd == kineCmd ){

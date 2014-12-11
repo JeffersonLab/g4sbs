@@ -691,23 +691,41 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   int minrow = y_number_ecal;
   int mincol = x_number_ecal;
 
-  ifstream ecal_map_file("ecal_map.txt");
-    
+  G4String filename = fDetCon->GetECALmapfilename();
+  ifstream ecal_map_file;
+  
+  if( filename != "" ){
+    ecal_map_file.open(filename.data());
+  }
+ 
   set<pair<int,int> > active_cells;
 
   G4String Line;
 
-  while ( Line.readLine( ecal_map_file ) ){
-    G4cout << "Read Line from ecal map file: \"" <<  Line.data() << "\"" << G4endl;
-    if( !(Line[0] == '#') ){
-      int row, col;
-      sscanf( Line.data(), "%d %d", &row, &col );
-      if( active_cells.size() == 0 || row > maxrow ) maxrow = row;
-      if( active_cells.size() == 0 || row < minrow ) minrow = row;
-      if( active_cells.size() == 0 || col > maxcol ) maxcol = col;
-      if( active_cells.size() == 0 || col < mincol ) mincol = col;
-      active_cells.insert(make_pair(row,col));
-    } 
+  if( ecal_map_file.is_open() ){
+    while ( Line.readLine( ecal_map_file ) ){
+      G4cout << "Read Line from ecal map file: \"" <<  Line.data() << "\"" << G4endl;
+      if( !(Line[0] == '#') ){
+	int row, col;
+	sscanf( Line.data(), "%d %d", &row, &col );
+	if( active_cells.size() == 0 || row > maxrow ) maxrow = row;
+	if( active_cells.size() == 0 || row < minrow ) minrow = row;
+	if( active_cells.size() == 0 || col > maxcol ) maxcol = col;
+	if( active_cells.size() == 0 || col < mincol ) mincol = col;
+	active_cells.insert(make_pair(row,col));
+      } 
+    }
+  } else {
+    for( G4int i=0; i<x_number_ecal; i++){
+      for( G4int j=0; j<y_number_ecal; j++){
+	active_cells.insert(make_pair(j,i));
+	int row=j, col=i; 
+	if( active_cells.size() == 0 || row > maxrow ) maxrow = row;
+	if( active_cells.size() == 0 || row < minrow ) minrow = row;
+	if( active_cells.size() == 0 || col > maxcol ) maxcol = col;
+	if( active_cells.size() == 0 || col < mincol ) mincol = col;
+      }
+    }
   }
 
   // map< int, set<int> >::iterator map_it;
@@ -729,12 +747,13 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   int module_number; //counts modules if needed
 
   //Iterating to build ECal 
-  for(G4int j=0; j<x_number_ecal; j++){	
-    G4double xtemp_even = x_position - j*(x_module_type1);
-    G4double xtemp_odd = x_position - x_module_type1/2.0 - j*(x_module_type1);
-	
-    for( G4int i=0; i<y_number_ecal; i++ ){
-      G4double ytemp = y_position - i*(y_module_type1);
+ 	
+  for( G4int i=0; i<y_number_ecal; i++ ){
+    G4double ytemp = y_position - i*(y_module_type1);
+
+    for(G4int j=0; j<x_number_ecal; j++){	
+      G4double xtemp_even = x_position - j*(x_module_type1);
+      G4double xtemp_odd = x_position - x_module_type1/2.0 - j*(x_module_type1);
 	  
       pair<int,int> rowcol( i, j );
 	  
@@ -762,17 +781,28 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	}
 	module_number++;
 	copy_number_PMT++;
-      } else { //Filler steel:
+      } else { //Steel Filler:
 	if( i>=minrow-2 && i<=maxrow+2 && j>=mincol-2 && j<=maxcol+2 ){
 	  if(i%2==0){
 	    new G4PVPlacement(0, G4ThreeVector(xtemp_even, ytemp, -PMT_depth ), steel_log, "steel_pv", ecal_log, false, 0);
-	    new G4PVPlacement(0, G4ThreeVector(-(x_earm/2.0)+(x_steel/4.0), ytemp, -PMT_depth ), steel_log_half, "steel_pv", ecal_log, false, 0);
-	  }	else{
-	    new G4PVPlacement(0, G4ThreeVector(xtemp_odd, ytemp, -PMT_depth ), steel_log, "steel_pv", ecal_log, false, 0);
-	    new G4PVPlacement(0, G4ThreeVector((x_earm/2.0)-(x_steel/4.0), ytemp, -PMT_depth ), steel_log_half, "steel_pv", ecal_log, false, 0);
+	    
+	  } else {
+	    new G4PVPlacement(0, G4ThreeVector(xtemp_odd, ytemp, -PMT_depth ), steel_log, "steel_pv", ecal_log, false, 0);   
 	  }
 	}
+      }
+    }
 
+    if( i >= minrow-2 && i <= maxrow+2 ){
+      double x_left = x_position - (mincol-2)*x_module_type1 + x_steel/4.0;
+      double x_right = x_position - (maxcol+2+0.5)*x_module_type1 - x_steel/4.0;
+
+      if( i%2 == 0 ){
+	// new G4PVPlacement(0, G4ThreeVector( (x_earm/2.0)-(x_steel/4.0), ytemp, -PMT_depth ), steel_log_half, "steel_pv", ecal_log, false, 0);
+	new G4PVPlacement(0, G4ThreeVector( x_right, ytemp, -PMT_depth ), steel_log_half, "steel_pv", ecal_log, false, 0);
+      } else {
+	// new G4PVPlacement(0, G4ThreeVector(-(x_earm/2.0)+(x_steel/4.0), ytemp, -PMT_depth ), steel_log_half, "steel_pv", ecal_log, false, 0);
+	new G4PVPlacement(0, G4ThreeVector( x_left, ytemp, -PMT_depth ), steel_log_half, "steel_pv", ecal_log, false, 0);
       }
     }
   }

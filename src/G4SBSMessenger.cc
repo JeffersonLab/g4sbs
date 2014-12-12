@@ -58,7 +58,7 @@ G4SBSMessenger::G4SBSMessenger(){
     gemconfigCmd->SetParameterName("gemconfig", false);
 
     ECALmapfileCmd = new G4UIcmdWithAString("/g4sbs/ECALmap",this);
-    ECALmapfileCmd->SetGuidance("Name of text file listing active ECAL cells");
+    ECALmapfileCmd->SetGuidance("Name of text file listing active ECAL cells (assumed to be located in database/)");
     ECALmapfileCmd->SetParameterName("ECALmapfile",false);
 
     fileCmd = new G4UIcmdWithAString("/g4sbs/filename",this);

@@ -37,6 +37,7 @@
 #include <set>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -702,10 +703,11 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   int minrow = y_number_ecal;
   int mincol = x_number_ecal;
 
-  G4String filename = fDetCon->GetECALmapfilename();
+  G4String filename = "database/";
+  filename += fDetCon->GetECALmapfilename();
   ifstream ecal_map_file;
   
-  if( filename != "" ){
+  if( fDetCon->GetECALmapfilename() != "" ){
     ecal_map_file.open(filename.data());
   }
  
@@ -805,8 +807,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     }
 
     if( i >= minrow-2 && i <= maxrow+2 ){
-      double x_left = x_position - (mincol-2)*x_module_type1 + x_steel/4.0;
-      double x_right = x_position - (maxcol+2+0.5)*x_module_type1 - x_steel/4.0;
+
+      int colleft = max(0,mincol-2);
+      int colright = min(maxcol+2,x_number_ecal-1);
+
+      double x_left = x_position - (colleft)*x_module_type1 + x_steel/4.0;
+      double x_right = x_position - (colright+0.5)*x_module_type1 - x_steel/4.0;
 
       if( i%2 == 0 ){
 	// new G4PVPlacement(0, G4ThreeVector( (x_earm/2.0)-(x_steel/4.0), ytemp, -PMT_depth ), steel_log_half, "steel_pv", ecal_log, false, 0);

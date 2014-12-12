@@ -107,6 +107,7 @@ set(G4SBS_SCRIPTS
   root_macros/SIDIS_DST.C
   root_macros/SIDIS_DST.h
   root_macros/rate_table_DST.C
+  database/ecal_map.txt
   )
 
 foreach(_script ${G4SBS_SCRIPTS})

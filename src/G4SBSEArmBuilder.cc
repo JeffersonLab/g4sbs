@@ -418,62 +418,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   double calwidth  = 7*8.5*cm;
   double caldepth  = 37.0*cm;
 
-<<<<<<< HEAD
-    if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCalSDname)) ){
-	BBCalSD = new G4SBSCalSD( BBCalSDname, BBCalcolname );
-	fDetCon->fSDman->AddNewDetector(BBCalSD);
-	fDetCon->SDlist[BBCalSDname] = BBCalSD;
-    }
-
-    bbcallog->SetSensitiveDetector(BBCalSD);
-    bbcallog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-
-
-    //--------- BigBite Cerenkov ------------------------------
-
-    /*
-    //  double cer_mirrorthick = 0.635*mm;
-    double cer_mirrorthick = 3.00*mm;
-    //double cer_winthick_in   = 1.0*mm;
-    double cer_winthick_in   = 0.1*mm;
-    double cer_winthick_out  = 0.2*mm;
-
-    double cer_width  =  50.0*cm;
-    double cer_height = 200.0*cm;
-
-    //  G4Box *cer_winbox = new G4Box("cer_winbox", cer_width/2.0, cer_height/2.0, cer_winthick/2.0 );
-    G4Box *cer_winbox_in = new G4Box("cer_winbox_in", cer_width/2.0, cer_height/2.0, cer_winthick_in/2.0 );
-    G4Box *cer_winbox_out = new G4Box("cer_winbox_out", cer_width/2.0, cer_height/2.0, cer_winthick_out/2.0 );
-    G4Box *cer_mirbox = new G4Box("cer_mirbox", cer_width/2.0, cer_height/2.0, cer_mirrorthick/2.0 );
-    G4Box *cer_gasbox = new G4Box("cer_gasbox", cer_width/2.0, cer_height/2.0, fCerDepth/2.0 );
-
-    G4LogicalVolume* cer_winlog_in = new G4LogicalVolume(cer_winbox_in, GetMaterial("Aluminum"), "cer_winlog_in");
-    G4LogicalVolume* cer_winlog_out = new G4LogicalVolume(cer_winbox_out, GetMaterial("Aluminum"), "cer_winlog_out");
-    //  G4LogicalVolume* cer_mirlog = new G4LogicalVolume(cer_mirbox, SiO2, "cer_mirlog");
-    G4LogicalVolume* cer_mirlog = new G4LogicalVolume(cer_mirbox, GetMaterial("Acrylic"), "cer_mirlog");
-    G4LogicalVolume* cer_gaslog = new G4LogicalVolume(cer_gasbox, GetMaterial("C4F8O"), "cer_gaslog");
-
-    double thisz = detoffset+fCerDist;
-
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_in/2.0 ), cer_winlog_in, "cerwin1", bbdetLog, false, 0, false);
-    thisz += cer_winthick_in;
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + fCerDepth/2.0 ), cer_gaslog, "cergas", bbdetLog, false, 0, false);
-    thisz += fCerDepth;
-    // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_mirrorthick/2.0 ), cer_mirlog, "cermir", bbdetLog, false, 0, false);
-    if( fCerDepth > 20.0*cm ){
-	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fCerDepth/2.0-20.0*cm ), cer_mirlog, "cermir", cer_gaslog, false, 0, false);
-    } else {
-	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fCerDepth/2.0 ), cer_mirlog, "cermir", cer_gaslog, false, 0, false);
-    }
-    //  thisz += cer_mirrorthick;
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_out/2.0 ), cer_winlog_out, "cerwin2", bbdetLog, false, 0, false);
-    */
-
-    G4SBSGrinch *grinch = new G4SBSGrinch(fDetCon);
-    grinch->SetZOffset( detoffset + fCerDist );
-    grinch->SetCerDepth( fCerDepth);
-    grinch->BuildComponent(bbdetLog);
-
+  G4Box *bbcalbox = new G4Box("bbcalbox", calwidth/2.0, calheight/2.0, caldepth/2.0 );
+  G4LogicalVolume* bbcallog = new G4LogicalVolume(bbcalbox, GetMaterial("Lead"), "bbcallog");
 
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+caldepth/2.0+5.0*cm), bbcallog,
 		    "bbcalphys", bbdetLog, false, 0, false);
@@ -482,27 +428,91 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4String BBCalcolname = "BBCalcol";
   G4SBSCalSD* BBCalSD;
 
-<<<<<<< HEAD
-    /*
+  if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCalSDname)) ){
+    BBCalSD = new G4SBSCalSD( BBCalSDname, BBCalcolname );
+    fDetCon->fSDman->AddNewDetector(BBCalSD);
+    fDetCon->SDlist[BBCalSDname] = BBCalSD;
+  }
+
+  bbcallog->SetSensitiveDetector(BBCalSD);
+  bbcallog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+
+
+  //--------- BigBite Cerenkov ------------------------------
+
+  /*
+  //  double cer_mirrorthick = 0.635*mm;
+  double cer_mirrorthick = 3.00*mm;
+  //double cer_winthick_in   = 1.0*mm;
+  double cer_winthick_in   = 0.1*mm;
+  double cer_winthick_out  = 0.2*mm;
+
+  double cer_width  =  50.0*cm;
+  double cer_height = 200.0*cm;
+
+  //  G4Box *cer_winbox = new G4Box("cer_winbox", cer_width/2.0, cer_height/2.0, cer_winthick/2.0 );
+  G4Box *cer_winbox_in = new G4Box("cer_winbox_in", cer_width/2.0, cer_height/2.0, cer_winthick_in/2.0 );
+  G4Box *cer_winbox_out = new G4Box("cer_winbox_out", cer_width/2.0, cer_height/2.0, cer_winthick_out/2.0 );
+  G4Box *cer_mirbox = new G4Box("cer_mirbox", cer_width/2.0, cer_height/2.0, cer_mirrorthick/2.0 );
+  G4Box *cer_gasbox = new G4Box("cer_gasbox", cer_width/2.0, cer_height/2.0, fCerDepth/2.0 );
+
+  G4LogicalVolume* cer_winlog_in = new G4LogicalVolume(cer_winbox_in, GetMaterial("Aluminum"), "cer_winlog_in");
+  G4LogicalVolume* cer_winlog_out = new G4LogicalVolume(cer_winbox_out, GetMaterial("Aluminum"), "cer_winlog_out");
+  //  G4LogicalVolume* cer_mirlog = new G4LogicalVolume(cer_mirbox, SiO2, "cer_mirlog");
+  G4LogicalVolume* cer_mirlog = new G4LogicalVolume(cer_mirbox, GetMaterial("Acrylic"), "cer_mirlog");
+  G4LogicalVolume* cer_gaslog = new G4LogicalVolume(cer_gasbox, GetMaterial("C4F8O"), "cer_gaslog");
+
+  double thisz = detoffset+fCerDist;
+
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_in/2.0 ), cer_winlog_in, "cerwin1", bbdetLog, false, 0, false);
+  thisz += cer_winthick_in;
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + fCerDepth/2.0 ), cer_gaslog, "cergas", bbdetLog, false, 0, false);
+  thisz += fCerDepth;
+  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_mirrorthick/2.0 ), cer_mirlog, "cermir", bbdetLog, false, 0, false);
+  if( fCerDepth > 20.0*cm ){
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fCerDepth/2.0-20.0*cm ), cer_mirlog, "cermir", cer_gaslog, false, 0, false);
+  } else {
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fCerDepth/2.0 ), cer_mirlog, "cermir", cer_gaslog, false, 0, false);
+  }
+  //  thisz += cer_mirrorthick;
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_out/2.0 ), cer_winlog_out, "cerwin2", bbdetLog, false, 0, false);
+  */
+
+  G4SBSGrinch *grinch = new G4SBSGrinch(fDetCon);
+  grinch->SetZOffset( detoffset + fCerDist );
+  grinch->SetCerDepth( fCerDepth);
+  grinch->BuildComponent(bbdetLog);
+
+  //--------- Visualization attributes -------------------------------
+  bbdetLog->SetVisAttributes(G4VisAttributes::Invisible);
+  bbfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
+  bbmotherLog->SetVisAttributes(G4VisAttributes::Invisible);
+
+  G4VisAttributes * yokeVisAtt
+    = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
+  //  yokeVisAtt->SetForceWireframe(true);
+  bbyokewgapLog->SetVisAttributes(yokeVisAtt);
+
+  /*
     G4VisAttributes * alVisAtt
-	= new G4VisAttributes(G4Colour(0.1,0.1,0.1));
+    = new G4VisAttributes(G4Colour(0.1,0.1,0.1));
     cer_winlog_in->SetVisAttributes(alVisAtt);
     cer_winlog_out->SetVisAttributes(alVisAtt);
 
     G4VisAttributes * gasVisAtt
-	= new G4VisAttributes(G4Colour(0.6,0.6,1.0));
+    = new G4VisAttributes(G4Colour(0.6,0.6,1.0));
     gasVisAtt->SetForceWireframe(true);
     cer_gaslog->SetVisAttributes(gasVisAtt);
-    */
+  */
 
-    G4VisAttributes * psVisAtt
-	= new G4VisAttributes(G4Colour(0.3,0.9,0.3));
-    psVisAtt->SetForceWireframe(true);
-    bbpslog->SetVisAttributes(psVisAtt);
+  G4VisAttributes * psVisAtt
+    = new G4VisAttributes(G4Colour(0.3,0.9,0.3));
+  psVisAtt->SetForceWireframe(true);
+  bbpslog->SetVisAttributes(psVisAtt);
 
-    G4VisAttributes * bbcalVisAtt
-	= new G4VisAttributes(G4Colour(0.0,0.6,0.0));
-    bbcallog->SetVisAttributes(bbcalVisAtt);
+  G4VisAttributes * bbcalVisAtt
+    = new G4VisAttributes(G4Colour(0.0,0.6,0.0));
+  bbcallog->SetVisAttributes(bbcalVisAtt);
 
 }
 

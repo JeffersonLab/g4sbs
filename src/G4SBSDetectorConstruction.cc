@@ -181,7 +181,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4Element* elNi  = new G4Element("Nickel","Ni",28.,58.70*g/mole);
 
     G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
-    Vacuum->SetMaterialPropertiesTable(Std_MPT);
+    //Vacuum->SetMaterialPropertiesTable(Std_MPT);
     fMaterialsMap["Vacuum"] = Vacuum;
 
 
@@ -214,7 +214,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     Air->AddElement(elO, .3);
 
 
-    Air->SetMaterialPropertiesTable(Std_MPT);
+    //    Air->SetMaterialPropertiesTable(Std_MPT);
 
     fMaterialsMap["Air"] = Air;
 
@@ -541,11 +541,11 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     Carbon_Steel->AddElement(S, 0.05*perCent);
     fMaterialsMap["Carbon_Steel"] = Carbon_Steel;
 
-    G4Material* Mylar=new G4Material("Mylar", density= 1.397*g/cm3, 3);
-    Mylar->AddElement(C, 10);
-    Mylar->AddElement(H, 8);
-    Mylar->AddElement(O, 4);
-    fMaterialsMap["Mylar"] = Mylar;
+    // G4Material* Mylar=new G4Material("Mylar", density= 1.397*g/cm3, 3);
+    // Mylar->AddElement(C, 10);
+    // Mylar->AddElement(H, 8);
+    // Mylar->AddElement(O, 4);
+    // fMaterialsMap["Mylar"] = Mylar;
 
     G4Material* mu_metal=new G4Material("mu-metal", density= 8.250*g/cm3, 6);
     mu_metal->AddElement(C, 0.02*perCent);

@@ -452,10 +452,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4Element *Sb = man->FindOrBuildElement("Sb");
     G4Element *Cs = man->FindOrBuildElement("Cs");
 
-    //Define AIR for RICH mother volume:
-    G4Material *RICH_Air = man->FindOrBuildMaterial("G4_AIR");
-    fMaterialsMap["RICH_Air"] = RICH_Air;
-
     //Define tedlar for gaps between aerogel tiles. These will have no optical properties and therefore optical photons 
     //crossing tile boundaries will be killed.
     G4Material *Tedlar = man->FindOrBuildMaterial("G4_POLYVINYLIDENE_FLUORIDE");
@@ -857,6 +853,169 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
     //G4cout << "Material properties for Mirrsurf:" << G4endl;
 
+    
+    //********************************************************************
+    //************                 ECAL             **********************
+    //********************************************************************  
+    //Additional elements needed for the materials:
+    G4Element* elK = new G4Element( "Potassium", "K", 19, 39.098*g/mole );
+    G4Element* elAs = new G4Element( "Arsenic", "As", 33, 74.922*g/mole );
+    G4Element* elPb = new G4Element( "Lead", "Pb", 82, 207.2*g/mole );
+    G4Element* elBe = new G4Element( "Beryllium", "Be", 4, 9.012*g/mole );
+    
+    //Materials necessary to build TF1 aka lead-glass
+    G4Material* PbO = new G4Material("TF1_PbO", bigden, 2);
+    PbO->AddElement(elPb, 1);
+    PbO->AddElement(elO, 1);
+    fMaterialsMap["TF1_PbO"] = PbO;
+
+    G4Material* K2O = new G4Material("TF1_K2O", bigden, 2);
+    K2O->AddElement(elK, 2);
+    K2O->AddElement(elO, 1);
+    fMaterialsMap["TF1_K2O"] = K2O;
+
+    G4Material* As2O3 = new G4Material("TF1_As2O3", bigden, 2);
+    As2O3->AddElement(elAs, 2);
+    As2O3->AddElement(elO, 3);
+    fMaterialsMap["TF1_As2O3"] = As2O3;
+
+    //Density 3.86 g/cm^3
+    G4Material* TF1 = new G4Material("TF1", 3.86*g/cm3, 4);
+    TF1->AddMaterial(PbO, 0.512);
+    TF1->AddMaterial(SiO2, 0.413);
+    TF1->AddMaterial(K2O, 0.070);
+    TF1->AddMaterial(As2O3, 0.005);
+
+    MPT_temp = new G4MaterialPropertiesTable();
+    //Need material/optical properties for TF1/PMTcathode/PMTWindow (note: varies from RICH cathodes/windows)
+    //Values come from old GSTAR code written by K.Shestermanov 
+    const G4int nentries_ecal_QE = 37;
+    
+    G4double Ephoton_ECAL_QE[nentries_ecal_QE] = {
+      1.91*eV, 1.98*eV, 2.07*eV, 2.11*eV, 2.16*eV,
+      2.20*eV, 2.25*eV, 2.31*eV, 2.37*eV, 2.41*eV,
+      2.52*eV, 2.60*eV, 2.71*eV, 2.77*eV, 2.84*eV,
+      2.90*eV, 2.97*eV, 3.03*eV, 3.07*eV, 3.09*eV,
+      3.11*eV, 3.13*eV, 3.15*eV, 3.16*eV, 3.18*eV,
+      3.20*eV, 3.22*eV, 3.25*eV, 3.27*eV, 3.29*eV,
+      3.31*eV, 3.33*eV, 3.36*eV, 3.42*eV, 3.54*eV,
+      3.81*eV, 3.95*eV}; 
+
+    G4double Rindex_TF1[nentries_ecal_QE] = {
+      1.58546, 1.59412, 1.60393, 1.60788, 1.61250,
+      1.61597, 1.62003, 1.62455, 1.62873, 1.63133,
+      1.63786, 1.64208, 1.64728, 1.64985, 1.65265,
+      1.65489, 1.65732, 1.65928, 1.66052, 1.66112,
+      1.66171, 1.66229, 1.66286, 1.66314, 1.66369,
+      1.66423, 1.66476, 1.66554, 1.66605, 1.66655,
+      1.66704, 1.66752, 1.66823, 1.66958, 1.67209,
+      1.67690, 1.67903};  
+
+    G4double Abslength_TF1[nentries_ecal_QE] = {
+      300.0000*cm, 300.0000*cm, 300.0000*cm, 300.0000*cm, 300.0000*cm,
+      300.0000*cm, 300.0000*cm, 300.0000*cm, 293.8310*cm, 284.1470*cm,
+      264.2000*cm, 236.9510*cm, 214.8510*cm, 190.8860*cm, 172.2030*cm,
+      156.7000*cm, 137.0000*cm, 116.9000*cm, 102.2920*cm, 92.5750*cm,
+      85.2866*cm, 80.0355*cm, 70.8671*cm, 63.0679*cm, 56.3423*cm,
+      50.5331*cm, 45.2678*cm, 40.6448*cm, 36.3173*cm, 32.5037*cm,
+      28.8809*cm, 25.3716*cm, 22.0407*cm, 17.8329*cm, 14.7174*cm,
+      10.7150*cm,  4.88581*cm}; 
+
+    MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
+    MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_TF1, nentries_ecal_QE );
+
+    TF1->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap["TF1"] = TF1;
+
+    G4Material *Mylar = man->FindOrBuildMaterial("G4_MYLAR");
+    fMaterialsMap["Mylar"] = Mylar;
+
+    //Photocathode & window material/optical properties!
+    G4double den_pmtwindow_ecal = 2.20*g/cm3;
+
+    G4Material *QuartzWindow_ECal = new G4Material( "QuartzWindow_ECal", den_pmtwindow_ecal, nel=2 );
+    QuartzWindow_ECal->AddElement( O, natoms=2 );
+    QuartzWindow_ECal->AddElement( Si, natoms=1 );
+
+    //Rindex comes from GSTAR code 
+    G4double Rindex_quartz_ecal[nentries_ecal_QE] = { 
+      1.41935, 1.42989, 1.44182, 1.44661, 1.45221,
+      1.45640, 1.46131, 1.46677, 1.47181, 1.47495,
+      1.48280, 1.48788, 1.49412, 1.49720, 1.50055,
+      1.50322, 1.50614, 1.50847, 1.50995, 1.51067,
+      1.51137, 1.51206, 1.51274, 1.51307, 1.51373,
+      1.51437, 1.51501, 1.51593, 1.51654, 1.51713,
+      1.51771, 1.51828, 1.51912, 1.52073, 1.52370,
+      1.52938, 1.53188};
+
+    MPT_temp = new G4MaterialPropertiesTable();
+    MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_quartz_ecal, nentries_ecal_QE);
+    MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_TF1, nentries_ecal_QE); //Do we need this?? 
+
+    QuartzWindow_ECal->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap["QuartzWindow_ECal"] = QuartzWindow_ECal;
+
+    //Photocathode material - RIndex same as QuartzWindow_ECal, define a QE from GSTAR code
+    G4double PMT_ECAL_QE[nentries_ecal_QE] = {
+      0.004, 0.016, 0.031, 0.043, 0.052,
+      0.059, 0.069, 0.083, 0.100, 0.110,
+      0.131, 0.150, 0.171, 0.184, 0.191,
+      0.196, 0.200, 0.198, 0.195, 0.193,
+      0.190, 0.188, 0.185, 0.183, 0.180,
+      0.177, 0.173, 0.169, 0.163, 0.160,
+      0.155, 0.150, 0.139, 0.123, 0.084,
+      0.023, 0.003 }; 
+
+    G4double den_photocathode_ecal = 2.57*g/cm3;
+    G4Material *Photocathode_material_ecal = new G4Material( "Photocathode_material_ecal", den_photocathode_ecal, nel=3 );
+    Photocathode_material_ecal->AddElement( Sb, natoms=1 );
+    Photocathode_material_ecal->AddElement( K, natoms=2 );
+    Photocathode_material_ecal->AddElement( Cs, natoms=1 );
+
+    MPT_temp = new G4MaterialPropertiesTable();
+    MPT_temp->AddProperty("EFFICIENCY", Ephoton_ECAL_QE, PMT_ECAL_QE, nentries_ecal_QE ); 
+    MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_quartz_ecal, nentries_ecal_QE );
+
+    Photocathode_material_ecal->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap["Photocathode_material_ecal"] = Photocathode_material_ecal;
+
+    //Define optical properties for AIR:
+    G4Material *ECal_Air = man->FindOrBuildMaterial("G4_AIR");
+    MPT_temp = new G4MaterialPropertiesTable();
+
+    G4double Rindex_air[nentries_ecal_QE] = {
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003, 1.003, 1.003, 1.003,
+      1.003, 1.003};  
+
+    G4double Abslength_air[nentries_ecal_QE] = {
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
+      1000.0*cm, 1000.0*cm};
+
+    MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_air, nentries_ecal_QE );
+    MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_air, nentries_ecal_QE );
+
+    ECal_Air->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap["ECal_Air"] = ECal_Air;
+
+    //CDet & Poly "filter"
+    G4Material *Polyethylene = man->FindOrBuildMaterial("G4_POLYETHYLENE");
+    fMaterialsMap["Polyethylene"] = Polyethylene;
+
+    G4Material *PLASTIC_SC_VINYLTOLUENE = man->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+    fMaterialsMap["PLASTIC_SC_VINYLTOLUENE"] = PLASTIC_SC_VINYLTOLUENE;
+
 }
 
 G4Material *G4SBSDetectorConstruction::GetMaterial(G4String name){
@@ -1126,3 +1285,6 @@ void G4SBSDetectorConstruction::AddToscaField( const char *fn ) {
 
 }
 
+void G4SBSDetectorConstruction::SetECALmapfilename( G4String s ){
+  fECALmapfilename = s;
+}

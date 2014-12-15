@@ -879,18 +879,38 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     As2O3->AddElement(elO, 3);
     fMaterialsMap["TF1_As2O3"] = As2O3;
 
-    //Density 3.86 g/cm^3
-    G4Material* TF1 = new G4Material("TF1", 3.86*g/cm3, 4);
-    TF1->AddMaterial(PbO, 0.512);
-    TF1->AddMaterial(SiO2, 0.413);
-    TF1->AddMaterial(K2O, 0.070);
-    TF1->AddMaterial(As2O3, 0.005);
+    //Simulating annealing: http://hallaweb.jlab.org/12GeV/SuperBigBite/SBS-minutes/2014/Sergey_Abrahamyan_LGAnnealing_2014.pdf
+    //TF1 is divided into 5 sections, each section has a unique absorption array labeled Absorption_1 - 5
+    //Therefore, 5 TF1 materials will be defined
+    const G4int nentries_annealing_model=50;
 
-    MPT_temp = new G4MaterialPropertiesTable();
-    //Need material/optical properties for TF1/PMTcathode/PMTWindow (note: varies from RICH cathodes/windows)
+    G4double Ephoton_annealing_model[nentries_annealing_model] = {
+      1.513*eV, 1.531*eV, 1.548*eV, 1.569*eV, 1.590*eV,
+      1.609*eV, 1.632*eV, 1.653*eV, 1.676*eV, 1.698*eV,
+      1.724*eV, 1.746*eV, 1.773*eV, 1.797*eV, 1.825*eV,
+      1.849*eV, 1.878*eV, 1.909*eV, 1.935*eV, 1.965*eV,
+      2.001*eV, 2.033*eV, 2.069*eV, 2.100*eV, 2.135*eV,
+      2.171*eV, 2.213*eV, 2.259*eV, 2.297*eV, 2.337*eV,
+      2.386*eV, 2.431*eV, 2.481*eV, 2.530*eV, 2.587*eV,
+      2.638*eV, 2.697*eV, 2.752*eV, 2.820*eV, 2.887*eV,
+      2.954*eV, 3.024*eV, 3.102*eV, 3.179*eV, 3.261*eV,
+      3.351*eV, 3.447*eV, 3.543*eV, 3.655*eV, 3.752*eV};
+
+    G4double Absorption_avg[nentries_annealing_model] = {
+      197.05*cm, 197.62*cm, 197.05*cm, 197.01*cm, 197.48*cm, 
+      196.86*cm, 197.39*cm, 196.74*cm, 197.25*cm, 196.61*cm, 
+      196.55*cm, 197.08*cm, 196.45*cm, 196.40*cm, 196.94*cm, 
+      196.88*cm, 196.85*cm, 195.69*cm, 196.25*cm, 196.21*cm, 
+      196.16*cm, 194.94*cm, 192.57*cm, 189.58*cm, 184.89*cm, 
+      179.64*cm, 174.91*cm, 167.96*cm, 160.95*cm, 154.04*cm, 
+      148.19*cm, 140.62*cm, 137.08*cm, 135.03*cm, 130.38*cm, 
+      124.69*cm, 116.54*cm, 106.33*cm,  95.16*cm,  83.84*cm, 
+       74.26*cm,  70.30*cm,  60.21*cm,  43.32*cm,  33.15*cm, 
+       20.07*cm,   9.22*cm,   5.19*cm,   1.73*cm,   0.58*cm}; 
+
     //Values come from old GSTAR code written by K.Shestermanov 
     const G4int nentries_ecal_QE = 37;
-    
+
     G4double Ephoton_ECAL_QE[nentries_ecal_QE] = {
       1.91*eV, 1.98*eV, 2.07*eV, 2.11*eV, 2.16*eV,
       2.20*eV, 2.25*eV, 2.31*eV, 2.37*eV, 2.41*eV,
@@ -921,11 +941,34 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       28.8809*cm, 25.3716*cm, 22.0407*cm, 17.8329*cm, 14.7174*cm,
       10.7150*cm,  4.88581*cm}; 
 
+    //Density 3.86 g/cm^3
+    //TF1 as defined by GSTAR code - uses arrays of size nentries_ecal_QE only
+    G4Material* TF1 = new G4Material("TF1", 3.86*g/cm3, 4);
+    TF1->AddMaterial(PbO, 0.512);
+    TF1->AddMaterial(SiO2, 0.413);
+    TF1->AddMaterial(K2O, 0.070);
+    TF1->AddMaterial(As2O3, 0.005);
+
+    MPT_temp = new G4MaterialPropertiesTable();
     MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
     MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_TF1, nentries_ecal_QE );
 
     TF1->SetMaterialPropertiesTable( MPT_temp );
     fMaterialsMap["TF1"] = TF1;
+
+    //****  TF1 implementing annealing model  ****
+    G4Material* TF1_anneal = new G4Material("TF1_anneal", 3.86*g/cm3, 4);
+    TF1_anneal->AddMaterial(PbO, 0.512);
+    TF1_anneal->AddMaterial(SiO2, 0.413);
+    TF1_anneal->AddMaterial(K2O, 0.070);
+    TF1_anneal->AddMaterial(As2O3, 0.005);
+
+    MPT_temp = new G4MaterialPropertiesTable();
+    MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
+    MPT_temp->AddProperty("ABSLENGTH", Ephoton_annealing_model, Absorption_avg, nentries_annealing_model );
+
+    TF1_anneal->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap["TF1_anneal"] = TF1_anneal;
 
     G4Material *Mylar = man->FindOrBuildMaterial("G4_MYLAR");
     fMaterialsMap["Mylar"] = Mylar;

@@ -19,6 +19,8 @@
 
 #include "G4PhysicsListHelper.hh"
 
+#include "G4SystemOfUnits.hh"
+
 G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
   
   G4LossTableManager::Instance();

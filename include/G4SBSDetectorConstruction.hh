@@ -83,6 +83,9 @@ class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
 
 	G4SBSGlobalField *fGlobalField;
 
+  void SetECALmapfilename( G4String );
+  G4String GetECALmapfilename(){ return fECALmapfilename; }
+
   int TrackerIDnumber;
   map<int,Arm_t> TrackerArm; //Is tracker in E arm or P arm?
 
@@ -94,7 +97,7 @@ class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
 	G4SBSMagneticField *fbbfield;
 	G4SBSMagneticField *f48d48field;
 
-
+  G4String fECALmapfilename;
 
 	//Let's define some additional configurable properties of 48D48:
 	double f48D48_uniform_bfield; //set magnitude (and polarity) of SBS magnetic field (direction is fixed)

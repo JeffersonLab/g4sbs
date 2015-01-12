@@ -1,4 +1,3 @@
-
 #ifndef G4SBSEventAction_h
 #define G4SBSEventAction_h 1
 
@@ -11,6 +10,8 @@
 
 #include "G4SBSRICHHit.hh"
 #include "G4SBSRICHoutput.hh"
+#include "G4SBSECalHit.hh"
+#include "G4SBSECaloutput.hh"
 #include "G4SBSGEMHit.hh"
 #include "G4SBSTrackerOutput.hh"
 
@@ -38,14 +39,15 @@ public:
   void LoadSigmas(const char *filename);
   
   void MapTracks(const G4Event *);
-  void FillRICHData( const G4Event*, G4SBSRICHHitsCollection*, G4SBSRICHoutput &);
-  void FillTrackData( const G4Event*, G4SBSGEMHitsCollection*, G4SBSTrackerOutput &);
+  void FillRICHData( const G4Event*, G4SBSRICHHitsCollection*, G4SBSRICHoutput & );
+  void FillTrackData( const G4Event*, G4SBSGEMHitsCollection*, G4SBSTrackerOutput & );
+  void FillECalData( const G4Event*, G4SBSECalHitsCollection*, G4SBSECaloutput & );
 
   map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run. 
 
 private:
   //Hit collection IDs:
-  G4int gemCollID, hcalCollID, bbcalCollID, RICHCollID;
+  G4int gemCollID, hcalCollID, bbcalCollID, RICHCollID, ECalCollID;
 
   //maps associating trajectory index with track ID, parent track ID and particle ID:
   //For Track IDs, we only need to use vector, because there is a one-to-one mapping between 

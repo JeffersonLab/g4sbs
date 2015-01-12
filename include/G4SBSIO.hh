@@ -7,7 +7,9 @@
 #include "G4Run.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4SBSRICHoutput.hh"
+#include "G4SBSECaloutput.hh"
 #include "G4SBSTrackerOutput.hh"
+#include "G4SBSECaloutput.hh"
 
 class TFile;
 class TTree;
@@ -30,7 +32,7 @@ typedef struct {
     Double_t npx, npy, npz;
     Double_t nth, nph;
     Double_t pmperp, pmpar, pmparsm;
-  Double_t z, phperp, phih, MX;
+    Double_t z, phperp, phih, MX;
     Int_t nucl, fnucl;
   Int_t hadr;
   Int_t earmaccept, harmaccept;
@@ -68,6 +70,9 @@ typedef struct {
   
   Int_t hctrid[MAXHITDATA], hcmid[MAXHITDATA], hcpid[MAXHITDATA];
   Int_t bctrid[MAXHITDATA], bcmid[MAXHITDATA], bcpid[MAXHITDATA];
+
+  Int_t row[MAXHITDATA], col[MAXHITDATA], xcell[MAXHITDATA], ycell[MAXHITDATA];
+
 } cal_t;
 
 class G4SBSIO {
@@ -82,6 +87,9 @@ public:
   void SetHitData(hit_t ht){ hitdata = ht; }
   void SetRICHData( G4SBSRICHoutput rd ) { richdata = rd; }
   void SetTrackData( G4SBSTrackerOutput td ){ trackdata = td; }
+
+  void SetECalData( G4SBSECaloutput ed ){ ecaldata = ed; }
+
   
   void FillTree();
   void WriteTree();
@@ -109,7 +117,8 @@ private:
   
   G4SBSRICHoutput richdata;
   G4SBSTrackerOutput trackdata;
-  
+  G4SBSECaloutput ecaldata;
+
   G4SBSGlobalField *fGlobalField;
   
   char fFilename[255];

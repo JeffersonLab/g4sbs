@@ -14,6 +14,8 @@ G4SBSCalSD::G4SBSCalSD( G4String name, G4String colname )
   : G4VSensitiveDetector(name)
 {
     collectionName.insert(colname);
+    RowMap.clear();
+    ColMap.clear();
 }
 
 G4SBSCalSD::~G4SBSCalSD()
@@ -39,7 +41,9 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   G4ThreeVector pos = aStep->GetPreStepPoint()->GetPosition();
 
   G4TouchableHistory* hist = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
-  G4AffineTransform aTrans = hist->GetHistory()->GetTransform(hist->GetHistory()->GetDepth() );
+  //G4AffineTransform aTrans = hist->GetHistory()->GetTransform(hist->GetHistory()->GetDepth() );
+  G4AffineTransform aTrans = hist->GetHistory()->GetTopTransform();
+
   pos = aTrans.TransformPoint(pos);
 
   hit->SetPos(pos);
@@ -57,6 +61,12 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   hit->SetTrID(aStep->GetTrack()->GetTrackID());
   hit->SetMID(aStep->GetTrack()->GetParentID());
 
+
+  hit->SetCell( hist->GetVolume( DepthMap[this->GetName()][hit->GetCell()] )->GetCopyNo() );
+  hit->SetRow( RowMap[this->GetName()][hit->GetCell()] );
+  hit->SetCol( ColMap[this->GetName()][hit->GetCell()] );
+  hit->SetXCell( XMap[this->GetName()][hit->GetCell()] );
+  hit->SetYCell( YMap[this->GetName()][hit->GetCell()] );
   /*
   printf("%f %f %f %f - dist %f beta %e momentum %f GeV\n", 
 	  aStep->GetPreStepPoint()->GetLocalTime()/ns,

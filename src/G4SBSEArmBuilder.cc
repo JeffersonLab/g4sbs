@@ -1,3 +1,4 @@
+#include "G4SystemOfUnits.hh"
 #include "G4SBSEArmBuilder.hh"
 
 #include "G4SBSHArmBuilder.hh"
@@ -524,16 +525,15 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
     printf("BigCal at %f deg\n", fBBang/deg);
 
-    G4RotationMatrix *bbrm = new G4RotationMatrix;
-    bbrm->rotateY(fBBang);
-
     // Ecal will act as BBcal detector
 
     double bigcalheight = (24*4.5+32*4.0)*cm;
     double bigcalwidth  = 44.10*2.54*cm;
     double bigcaldepth  = 15.75*2.54*cm;
-    double bbr = fBBdist+bigcaldepth/2.0;
 
+    //double bbr = fBBdist+bigcaldepth/2.0;
+
+    /*
     double CH2depth = 15.0*cm;
     double CHdepth  = 6.0*cm;
 
@@ -559,7 +559,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     G4VisAttributes * ch2VisAtt
 	= new G4VisAttributes(G4Colour(1.0,0.8,0.0));
     ch2boxlog->SetVisAttributes(ch2VisAtt);
-  */
+    */
 
   /*************************************************************************************
    ********************************        ECAL      ***********************************
@@ -664,6 +664,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
   //Want blocks to be optically independent => assign an optical skin to the Mylar
   new G4LogicalSkinSurface( "Mylar_skin", mylar_wrap_log, GetOpticalSurface( "Mirrsurf" ));
+
+  double twopi = 2.0*3.14159;
     
   //Build PMT detector which will be placed at the end of the module
   //Starting with the Quartz window

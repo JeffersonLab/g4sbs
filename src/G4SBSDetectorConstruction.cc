@@ -766,7 +766,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
     G4double Bratio = (1.0304-nair_633)/(nquartz_633 - nair_633);
 
-    for(int i=0; i<nsteps; i++){
+    for(i=0; i<nsteps; i++){
 	G4double ltemp = lmin + i*lstep; //nm
 
 	G4double nquartz = sqrt( 1.28604141 + 1.07044083*pow(ltemp/1000.0,2)/(pow(ltemp/1000.0,2)-1.00585997e-2) + 1.10202242*pow(ltemp/1000.0,2)/(pow(ltemp/1000.0,2)-100) );
@@ -974,8 +974,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     TF1_anneal->SetMaterialPropertiesTable( MPT_temp );
     fMaterialsMap["TF1_anneal"] = TF1_anneal;
 
-    G4Material *Mylar = man->FindOrBuildMaterial("G4_MYLAR");
-    fMaterialsMap["Mylar"] = Mylar;
+    //G4Material *Mylar = man->FindOrBuildMaterial("G4_MYLAR");
+    //fMaterialsMap["Mylar"] = Mylar;
 
     //Photocathode & window material/optical properties!
     G4double den_pmtwindow_ecal = 2.20*g/cm3;
@@ -1332,6 +1332,6 @@ void G4SBSDetectorConstruction::AddToscaField( const char *fn ) {
 
 }
 
-void G4SBSDetectorConstruction::SetECALmapfilename( G4String s ){
-  fECALmapfilename = s;
+void G4SBSDetectorConstruction::SetECALmapfilename( G4String astr ){
+  fECALmapfilename = astr;
 }

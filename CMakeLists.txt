@@ -66,7 +66,7 @@ add_library(g4sbsroot SHARED ${libsources} ${libheaders} G4SBSDict.cxx)
 target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
 target_link_libraries(g4sbsroot ${ROOT_LIBRARIES} )
 
-option(WITH_G4SBS_GDML "Build g4sbs with GDML output" ON)
+option(WITH_G4SBS_GDML "Build g4sbs with GDML output" OFF)
 if( WITH_G4SBS_GDML)
     set_target_properties(g4sbs 
     PROPERTIES COMPILE_FLAGS "-DG4SBS_USE_GDML")

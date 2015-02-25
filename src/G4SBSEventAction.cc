@@ -360,8 +360,8 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
 	gemoutput.trms.push_back( sqrt(t2[gemID][trackID]/double(nsteps_track_layer[gemID][trackID]) - pow(t[gemID][trackID],2))/_T_UNIT );
 	gemoutput.tmin.push_back( tmin[gemID][trackID]/_T_UNIT );
 	gemoutput.tmax.push_back( tmax[gemID][trackID]/_T_UNIT );
-	gemoutput.tx.push_back( tx[gemID][trackID]/_L_UNIT );
-	gemoutput.ty.push_back( ty[gemID][trackID]/_L_UNIT );
+	gemoutput.tx.push_back( -ty[gemID][trackID]/_L_UNIT );
+	gemoutput.ty.push_back( tx[gemID][trackID]/_L_UNIT );
 	gemoutput.txp.push_back( -typ[gemID][trackID] );
 	gemoutput.typ.push_back( txp[gemID][trackID] );
 	gemoutput.trid.push_back( trackID );

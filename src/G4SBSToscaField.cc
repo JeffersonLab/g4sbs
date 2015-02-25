@@ -2,6 +2,9 @@
 #include "G4ThreeVector.hh"
 #include "G4RotationMatrix.hh"
 
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
 #define MAXBUFF 1024
 
 G4SBSToscaField::G4SBSToscaField( const char *filename) 

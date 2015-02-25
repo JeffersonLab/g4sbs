@@ -16,7 +16,7 @@
 #include "G4Box.hh"
 #include "G4Polycone.hh"
 
-
+#include "G4SystemOfUnits.hh"
 
 
 G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){

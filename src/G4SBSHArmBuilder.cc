@@ -35,6 +35,9 @@
 #include "G4ChordFinder.hh"
 #include "TString.h"
 
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
 #include <vector>
 #include <map>
 

@@ -10,6 +10,9 @@
 #include "G4SBSRICHSD.hh"
 #include "G4SBSDetectorConstruction.hh"
 
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
 #define CHAR_LEN 255
 
 enum E_VERTICES {

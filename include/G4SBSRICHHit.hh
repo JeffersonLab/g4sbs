@@ -21,15 +21,15 @@ public:
   inline void * operator new(size_t);
   inline void operator delete(void *aHit);
   
-  virtual void Draw();
-  virtual void Print();
+  void Draw();
+  void Print();
 
   //const std::map<G4String, G4AttDef> *GetAttDefs() const;
   //std::vector<G4AttValue> *CreateAttValues() const;
 
   //Utility functions to map rows and columns to PMT numbers
-  G4int calc_row( G4int PMT );
-  G4int calc_col( G4int PMT );
+  // G4int calc_row( G4int PMT );
+  // G4int calc_col( G4int PMT );
 
 private:
   
@@ -53,6 +53,7 @@ private:
   G4ThreeVector fpos;          //position of the step (global)
   G4ThreeVector fLpos;         //position of the step  (local to the volume)
   G4ThreeVector fdirection;    //momentum direction of the step
+  G4ThreeVector fLdirection;   //Local direction of the step:
   G4ThreeVector fvertex;       //Primary vertex of the current track
   G4ThreeVector fMothervertex; //Primary vertex of the track's mother
   G4ThreeVector fvertexdirection; //momentum direction at the primary vertex;
@@ -65,6 +66,9 @@ private:
   G4int frownumber;            //PMT row number
   G4int fcolnumber;            //PMT column number
   G4int foriginvol;            //Volume in which the track of this optical photon originated (1=Aerogel, 2=RICHbox, 3=lucite, 0=other)
+
+  G4ThreeVector fCellCoord;       //Local coordinates of center of PMT photocathode
+  G4ThreeVector fGlobalCellCoord; //Global coordinates of center of PMT photocathode
 
   //Need to store a pointer to logical volume in order to retrieve quantum efficiency info later:
   G4LogicalVolume *fvolume_log;
@@ -97,6 +101,9 @@ public:
   
   inline void SetDirection( G4ThreeVector n ){ fdirection = n.unit(); }
   inline G4ThreeVector GetDirection() const { return fdirection; }
+  
+  inline void SetLDirection( G4ThreeVector n ){ fLdirection = n.unit(); }
+  inline G4ThreeVector GetLDirection() const { return fLdirection; }
 
   inline void SetVertex( G4ThreeVector v ){ fvertex = v; }
   inline G4ThreeVector GetVertex() const { return fvertex; }
@@ -117,8 +124,8 @@ public:
   inline void Setdx( G4double d ){ fdx = d; }
   inline G4double Getdx() const { return fdx; }
   
-  inline void Setenergy( G4double E ){ fenergy = E; }
-  inline G4double Getenergy() const { return fenergy; }
+  inline void SetEnergy( G4double E ){ fenergy = E; }
+  inline G4double GetEnergy() const { return fenergy; }
   
   inline void SetTime( G4double t ){ ftime = t; }
   inline G4double GetTime() const { return ftime; }
@@ -135,6 +142,12 @@ public:
   
   inline void SetOriginVol( G4int i ){ foriginvol = i; }
   inline G4int GetOriginVol() const { return foriginvol; }
+
+  inline void SetCellCoord( G4ThreeVector x ){ fCellCoord = x; }
+  inline G4ThreeVector GetCellCoord(){ return fCellCoord; }
+  
+  inline void SetGlobalCellCoord( G4ThreeVector x ){ fGlobalCellCoord = x; }
+  inline G4ThreeVector GetGlobalCellCoord(){ return fGlobalCellCoord; }
 
   inline void SetLogicalVolume( G4LogicalVolume *v ){  fvolume_log = v; }
   inline G4LogicalVolume *GetLogicalVolume() { return fvolume_log; }

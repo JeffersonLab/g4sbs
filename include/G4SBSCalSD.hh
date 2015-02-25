@@ -5,9 +5,7 @@
 
 #include "G4VSensitiveDetector.hh"
 #include "G4Step.hh"
-#include <map>
-#include <set>
-#include <vector>
+#include "G4SBSDetMap.hh"
 
 using namespace std;
 
@@ -29,11 +27,7 @@ public:
   void DrawAll();
   void PrintAll();
 
-  map<G4String, map<int, int> > RowMap; //Mapping of SD names to row and column maps (Calorimeters with different kinds of layouts)
-  map<G4String, map<int, int> > ColMap; //Mapping of SD names to row and column maps (Calorimeters with different layouts)
-  map<G4String, map<int, int> > DepthMap; //Number of levels up (or down?) the volume hierarchy the volume containing the row, col, cell, xcell, ycell info is
-  map<G4String, map<int, double> > XMap; //Mapping of "X" coordinate of rows and columns to SD names.
-  map<G4String, map<int, double> > YMap; //Mapping of "Y" coordinate of rows and columns to SD names.
+  G4SBSDetMap detmap;
 
 private:
 

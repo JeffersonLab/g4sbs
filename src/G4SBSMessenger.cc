@@ -54,7 +54,7 @@ G4SBSMessenger::G4SBSMessenger(){
     runCmd->SetParameterName("nevt", false);
 
     gemconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/gemconfig",this);
-    gemconfigCmd->SetGuidance("Change between GEM configurations");
+    gemconfigCmd->SetGuidance("BigBite GEM layout: option 1 (default), 2 or 3");
     gemconfigCmd->SetParameterName("gemconfig", false);
 
     ECALmapfileCmd = new G4UIcmdWithAString("/g4sbs/ECALmap",this);
@@ -62,43 +62,43 @@ G4SBSMessenger::G4SBSMessenger(){
     ECALmapfileCmd->SetParameterName("ECALmapfile",false);
 
     fileCmd = new G4UIcmdWithAString("/g4sbs/filename",this);
-    fileCmd->SetGuidance("Output filename");
+    fileCmd->SetGuidance("Output ROOT filename");
     fileCmd->SetParameterName("filename", false);
 
     sigfileCmd = new G4UIcmdWithAString("/g4sbs/sigmafile",this);
-    sigfileCmd->SetGuidance("GEM Sigma filename");
+    sigfileCmd->SetGuidance("File containing GEM coordinate resolutions by chamber ID number");
     sigfileCmd->SetParameterName("sigmafile", false);
 
     tgtCmd = new G4UIcmdWithAString("/g4sbs/target",this);
-    tgtCmd->SetGuidance("Target type from LH2, LD2, H2, 3He");
+    tgtCmd->SetGuidance("Target type from LH2, LD2, H2, 3He, (fictional) neutron target");
     tgtCmd->SetParameterName("targtype", false);
 
     kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
-    kineCmd->SetGuidance("Kinematic type");
+    kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun");
     kineCmd->SetParameterName("kinetype", false);
 
     expCmd = new G4UIcmdWithAString("/g4sbs/exp",this);
-    expCmd->SetGuidance("Experiment type");
+    expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis");
     expCmd->SetParameterName("exptype", false);
 
     GunParticleCmd = new G4UIcmdWithAString("/g4sbs/particle",this);
-    GunParticleCmd->SetGuidance("Particle type for gun generator");
+    GunParticleCmd->SetGuidance("Particle type for gun generator (valid GEANT4 particle names)");
     GunParticleCmd->SetParameterName("ptype", false );
 
     HadrCmd = new G4UIcmdWithAString("/g4sbs/hadron",this);
-    HadrCmd->SetGuidance("Hadron type h for SIDIS N(e,e'h)X reaction");
+    HadrCmd->SetGuidance("Hadron type h for SIDIS N(e,e'h)X generator: pi+/pi-/K+/K-/p/pbar possible");
     HadrCmd->SetParameterName("hadrontype", false );
 
     bigfieldCmd = new G4UIcmdWithAnInteger("/g4sbs/48d48field", this);
-    bigfieldCmd->SetGuidance("48d48 magnet field");
+    bigfieldCmd->SetGuidance("0 = turn off SBS constant magnetic field, 1 = turn on SBS constant magnetic field");
     bigfieldCmd->SetParameterName("48d48field", false);
 
     bbfieldCmd = new G4UIcmdWithAnInteger("/g4sbs/bbfield", this);
-    bbfieldCmd->SetGuidance("Bigbite field");
+    bbfieldCmd->SetGuidance("Turn on Bigbite field (requires field map)");
     bbfieldCmd->SetParameterName("bbfield", false);
 
     tosfieldCmd = new G4UIcmdWithAString("/g4sbs/tosfield", this);
-    tosfieldCmd->SetGuidance("Tosca field");
+    tosfieldCmd->SetGuidance("Use SBS TOSCA field map from file");
     tosfieldCmd->SetParameterName("tosfield", false);
 
     geantinoCmd = new G4UIcmdWithABool("/g4sbs/shootgeantino", this);
@@ -106,15 +106,15 @@ G4SBSMessenger::G4SBSMessenger(){
     geantinoCmd->SetParameterName("shootgeantino", false);
 
     invertCmd = new G4UIcmdWithABool("/g4sbs/invertfield", this);
-    invertCmd->SetGuidance("invert field polarity");
+    invertCmd->SetGuidance("invert global field polarity (inverts all global fields)");
     invertCmd->SetParameterName("invert", false);
 
     totalabsCmd = new G4UIcmdWithABool("/g4sbs/totalabs", this);
-    totalabsCmd->SetGuidance("Magnet materials are total absorbers");
+    totalabsCmd->SetGuidance("Magnet materials are total absorbers (default=false)");
     totalabsCmd->SetParameterName("totalabs", false);
 
     tgtLenCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targlen",this);
-    tgtLenCmd->SetGuidance("Target length");
+    tgtLenCmd->SetGuidance("Target length along beam direction");
     tgtLenCmd->SetParameterName("targlen", false);
 
     tgtDenCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targden",this);
@@ -122,19 +122,19 @@ G4SBSMessenger::G4SBSMessenger(){
     tgtDenCmd->SetParameterName("targden", false);
 
     tgtPresCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targpres",this);
-    tgtPresCmd->SetGuidance("Gaseous Target pressure");
+    tgtPresCmd->SetGuidance("Gas Target pressure (applies to H2, 3He)");
     tgtPresCmd->SetParameterName("targpres", false);
 
-    SchamGasTgtCmd = new G4UIcmdWithAnInteger("/g4sbs/schbrflag",this);
-    SchamGasTgtCmd->SetGuidance("Build evacuated scattering chamber for gas target? (1=yes, 0=no)");
-    SchamGasTgtCmd->SetParameterName("schbrflag",false);
+    // SchamGasTgtCmd = new G4UIcmdWithAnInteger("/g4sbs/schbrflag",this);
+    // SchamGasTgtCmd->SetGuidance("Build evacuated scattering chamber for gas target? (1=yes, 0=no)");
+    // SchamGasTgtCmd->SetParameterName("schbrflag",false);
 
     beamcurCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamcur",this);
     beamcurCmd->SetGuidance("Beam current");
     beamcurCmd->SetParameterName("beamcur", false);
 
     runtimeCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/runtime",this);
-    runtimeCmd->SetGuidance("Run time");
+    runtimeCmd->SetGuidance("Run time (used to convert event rate to counts, units must be defined in G4SystemOfUnits)");
     runtimeCmd->SetParameterName("runtime", false);
 
     rasterxCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/rasterx",this);
@@ -154,11 +154,11 @@ G4SBSMessenger::G4SBSMessenger(){
     bbangCmd->SetParameterName("angle", false);
 
     bbdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/bbdist",this);
-    bbdistCmd->SetGuidance("BigBite distance");
+    bbdistCmd->SetGuidance("BigBite distance, target to front face of magnet yoke");
     bbdistCmd->SetParameterName("dist", false);
 
-    hcalangCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalang",this);
-    hcalangCmd->SetGuidance("HCAL angle");
+    hcalangCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbsang",this);
+    hcalangCmd->SetGuidance("SBS angle");
     hcalangCmd->SetParameterName("angle", false);
 
     hcaldistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcaldist",this);
@@ -170,7 +170,7 @@ G4SBSMessenger::G4SBSMessenger(){
     hmagdistCmd->SetParameterName("dist", false);
 
     gemresCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/gemres",this);
-    gemresCmd->SetGuidance("GEM resolution");
+    gemresCmd->SetGuidance("GEM coordinate resolution");
     gemresCmd->SetParameterName("dist", false);
 
     // Detector position commands
@@ -184,11 +184,11 @@ G4SBSMessenger::G4SBSMessenger(){
     cerDepCmd->SetParameterName("dist", false);
 
     gemSepCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/gemsep",this);
-    gemSepCmd->SetGuidance("GEM separation from front to back set");
+    gemSepCmd->SetGuidance("GEM separation from front to back set (BigBite GEMs)");
     gemSepCmd->SetParameterName("dist", false);
 
     bbCalDistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/bbcaldist",this);
-    bbCalDistCmd->SetGuidance("BigBite caloriter distance from front GEM");
+    bbCalDistCmd->SetGuidance("BigBite calorimeter distance from front GEM");
     bbCalDistCmd->SetParameterName("dist", false);
 
     thminCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/thmin",this);
@@ -208,57 +208,67 @@ G4SBSMessenger::G4SBSMessenger(){
     phmaxCmd->SetParameterName("angle", false);
 
     HthminCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hthmin",this);
-    HthminCmd->SetGuidance("Minimum hadron generation polar angle");
+    HthminCmd->SetGuidance("Minimum hadron generation polar angle (SIDIS generator)");
     HthminCmd->SetParameterName("htheta",false);
 
     HthmaxCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hthmax",this);
-    HthmaxCmd->SetGuidance("Maximum hadron generation polar angle");
+    HthmaxCmd->SetGuidance("Maximum hadron generation polar angle (SIDIS generator)");
     HthmaxCmd->SetParameterName("htheta",false);
 
     HphminCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hphmin",this);
-    HphminCmd->SetGuidance("Minimum hadron generation azimuthal angle");
+    HphminCmd->SetGuidance("Minimum hadron generation azimuthal angle (SIDIS generator)");
     HphminCmd->SetParameterName("htheta",false);
 
     HphmaxCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hphmax",this);
-    HphmaxCmd->SetGuidance("Maximum hadron generation azimuthal angle");
+    HphmaxCmd->SetGuidance("Maximum hadron generation azimuthal angle (SIDIS generator)");
     HphmaxCmd->SetParameterName("htheta",false);
     
     EhminCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ehmin",this);
-    EhminCmd->SetGuidance("Minimum hadron generation energy");
+    EhminCmd->SetGuidance("Minimum hadron generation energy (SIDIS generator)");
     EhminCmd->SetParameterName("ehmin",false);
     
     EhmaxCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ehmax",this);
-    EhmaxCmd->SetGuidance("Maximum hadron generation energy");
+    EhmaxCmd->SetGuidance("Maximum hadron generation energy (SIDIS generator)");
     EhmaxCmd->SetParameterName("ehmax",false);
 
     EeminCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/eemin",this);
-    EeminCmd->SetGuidance("Minimum electron generation energy");
+    EeminCmd->SetGuidance("Minimum electron generation energy (SIDIS generator)");
     EeminCmd->SetParameterName("eemin",false);
     
     EemaxCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/eemax",this);
-    EemaxCmd->SetGuidance("Maximum electron generation energy");
+    EemaxCmd->SetGuidance("Maximum electron generation energy (SIDIS generator)");
     EemaxCmd->SetParameterName("eemax",false);
 
     RICHdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/richdist",this);
-    RICHdistCmd->SetGuidance("RICH distance from target");
+    RICHdistCmd->SetGuidance("SBS RICH distance from target");
     RICHdistCmd->SetParameterName("dist",false);
 
     SBSMagFieldCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbsmagfield",this);
-    SBSMagFieldCmd->SetGuidance("SBS magnetic field setting");
+    SBSMagFieldCmd->SetGuidance("SBS uniform magnetic field value");
     SBSMagFieldCmd->SetParameterName("sbsbfield",false);
 
     SBSFieldClampOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/sbsclampopt",this);
-    SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 1=BigBite(default), 2=GEp");
+    SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 0=no clamp, 1=BigBite(default), 2=GEp");
     SBSFieldClampOptionCmd->SetParameterName("sbsclampoption",false);
 
     SBSLeadOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/uselead",this);
-    SBSLeadOptionCmd->SetGuidance("SBS lead configuration: 0= nope 1=yaes");
+    SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
     SBSLeadOptionCmd->SetParameterName("uselead",false);
 
     TreeFlagCmd = new G4UIcmdWithAnInteger("/g4sbs/treeflag",this);
-    TreeFlagCmd->SetGuidance("G4SBS ROOT tree filling: 0=keep all, 1=keep only evts w/hits");
+    TreeFlagCmd->SetGuidance("G4SBS ROOT tree filling: 0=keep all, 1=keep only evts w/hits in sensitive volumes");
     TreeFlagCmd->SetParameterName("treeflag",false);
 
+    Earm_CAL_part_cmd = new G4UIcmdWithABool("/g4sbs/keep_part_earm_cal",this);
+    Earm_CAL_part_cmd->SetGuidance("Keep particle info in root tree for electron arm calorimeter (default = false)");
+    Earm_CAL_part_cmd->SetParameterName("keeppart",true);
+    Earm_CAL_part_cmd->SetDefaultValue( true );
+
+    Harm_CAL_part_cmd = new G4UIcmdWithABool("/g4sbs/keep_part_harm_cal",this);
+    Harm_CAL_part_cmd->SetGuidance("Keep particle info in root tree for hadron arm calorimeter (default = false)" );
+    Harm_CAL_part_cmd->SetParameterName("keeppart",true);
+    Harm_CAL_part_cmd->SetDefaultValue( true );
+    
     //Optical physics toggle commands:
     // UseCerenkovCmd = new G4UIcmdWithABool( "/g4sbs/usecerenkov",this );
     // UseCerenkovCmd->SetGuidance("Activate Cherenkov radiation (default true)");
@@ -319,7 +329,15 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	G4RunManager::GetRunManager()->DefineWorldVolume(pWorld = fdetcon->ConstructAll());
 	G4RunManager::GetRunManager()->GeometryHasBeenModified();
 
+	//Copy sensitive detector list and type codes to event action:
 	fevact->SDlist = fdetcon->SDlist;
+	fevact->SDtype = fdetcon->SDtype;
+	//fevact->SDarm = fdetcon->SDarm;
+
+	fIO->SetDetCon( fdetcon );
+	//fIO->InitializeTree();
+
+	G4cout << "InitializeTree() successful" << G4endl;
 
 	// Clobber old gdml if it exists and write out the
 	// present geometry
@@ -578,10 +596,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 	fdetcon->fTargetBuilder->SetTargDen(den);
     }
 
-    if( cmd == SchamGasTgtCmd ){
-      G4int flag = SchamGasTgtCmd->GetNewIntValue( newValue );
-      fdetcon->fTargetBuilder->SetSchamFlag( flag );
-    }
+    // if( cmd == SchamGasTgtCmd ){
+    //   G4int flag = SchamGasTgtCmd->GetNewIntValue( newValue );
+    //   fdetcon->fTargetBuilder->SetSchamFlag( flag );
+    // }
 
     if( cmd == beamcurCmd ){
 	G4double v = beamcurCmd->GetNewDoubleValue(newValue);
@@ -627,7 +645,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == hcalangCmd ){
 	G4double v = hcalangCmd->GetNewDoubleValue(newValue);
 	fdetcon->Set48D48Ang(v);
-	fIO->SetHcalTheta(v);
+	fIO->SetSBSTheta(v);
     }
 
     if( cmd == hcaldistCmd ){
@@ -640,7 +658,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == hmagdistCmd ){
 	G4double v = hmagdistCmd->GetNewDoubleValue(newValue);
 	fdetcon->Set48D48Dist(v);
-    }
+	fIO->SetSBSDist( v );
+    } 
 
     if( cmd == cerDepCmd ){
 	G4double v = cerDepCmd->GetNewDoubleValue(newValue);
@@ -721,6 +740,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == RICHdistCmd ){
       G4double v = RICHdistCmd->GetNewDoubleValue(newValue);
       fdetcon->fHArmBuilder->SetRICHdist(v);
+      fIO->SetRICHDist( v );
     }
 
     if( cmd == SBSMagFieldCmd ){
@@ -741,6 +761,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( cmd == TreeFlagCmd ){
       G4int flag = TreeFlagCmd->GetNewIntValue(newValue);
       fevact->SetTreeFlag( flag );
+    }
+
+    if( cmd == Earm_CAL_part_cmd ){ 
+      G4bool flag = Earm_CAL_part_cmd->GetNewBoolValue( newValue );
+      fIO->SetEarmCALpart_flag( flag );
+    }
+    
+    if( cmd == Harm_CAL_part_cmd ){
+      G4bool flag = Harm_CAL_part_cmd->GetNewBoolValue( newValue );
+      fIO->SetHarmCALpart_flag( flag );
     }
     
 }

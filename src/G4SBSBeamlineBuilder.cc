@@ -28,73 +28,72 @@ G4SBSBeamlineBuilder::~G4SBSBeamlineBuilder(){;}
 void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   Targ_t targtype = fDetCon->fTargType;
 
-/////////////////////////////////////////////////////////////////////
-//  09/16/2014  implement of correcting magnet ob beam line 
-
-
-  //  Entry iron tube to shield beam from stray field
-  //
+  if( fDetCon->fExpType == kGEp ){
+    /////////////////////////////////////////////////////////////////////
+    //  09/16/2014  implement of correcting magnet ob beam line 
+    // AJP 02/23/2015: Need experiment-dependent positioning of correction magnets: This configuration is technically only applicable to GEp 12 GeV^2 configuration! 
+    //
+    // 
+    //  Entry iron tube to shield beam from stray field
+    //
    
-  G4double tRmin = 5.*cm;
-  G4double tRmax = 7.*cm;
-  G4double tDzz = 20.*cm/2;
-  G4double tSPhi = 0.*deg;
-  G4double tDphi = 360.*deg;
+    G4double tRmin = 5.*cm;
+    G4double tRmax = 7.*cm;
+    G4double tDzz = 20.*cm/2;
+    G4double tSPhi = 0.*deg;
+    G4double tDphi = 360.*deg;
 
 
- G4Tubs *iron_ent_tube = new G4Tubs("iron_ent_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4Tubs *iron_ent_tube = new G4Tubs("iron_ent_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
 
-  G4LogicalVolume *iron_ent_tube_log = new G4LogicalVolume(iron_ent_tube, GetMaterial("Iron"), "iron_ent_tube", 0, 0, 0 );
+    G4LogicalVolume *iron_ent_tube_log = new G4LogicalVolume(iron_ent_tube, GetMaterial("Iron"), "iron_ent_tube", 0, 0, 0 );
 
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 110.936*cm + tDzz), iron_ent_tube_log, "iron_ent_tube_phys", worldlog,false,0);
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 110.936*cm + tDzz), iron_ent_tube_log, "iron_ent_tube_phys", worldlog,false,0);
 
-  //  next entrance correction magnet
+    //  next entrance correction magnet
 
-  G4Box* box_1 = new G4Box("EnMag_1",50.*cm/2., 50.*cm/2., 16.*cm/2.);
-  G4Box* box_2 = new G4Box("EnMag_2",20.*cm/2., 30.*cm/2., 17.*cm/2.); // aperture to pass beam
-  G4SubtractionSolid* EnMag = new G4SubtractionSolid("EnMag", box_1, box_2);   
-  G4LogicalVolume * EnMag_log = new G4LogicalVolume(EnMag , GetMaterial("Iron"), "EnMag", 0, 0, 0); 
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 134.935*cm+8.*cm), EnMag_log, "EnMag_phys", worldlog, false, 0);
+    G4Box* box_1 = new G4Box("EnMag_1",50.*cm/2., 50.*cm/2., 16.*cm/2.);
+    G4Box* box_2 = new G4Box("EnMag_2",20.*cm/2., 30.*cm/2., 17.*cm/2.); // aperture to pass beam
+    G4SubtractionSolid* EnMag = new G4SubtractionSolid("EnMag", box_1, box_2);   
+    G4LogicalVolume * EnMag_log = new G4LogicalVolume(EnMag , GetMaterial("Iron"), "EnMag", 0, 0, 0); 
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 134.935*cm+8.*cm), EnMag_log, "EnMag_phys", worldlog, false, 0);
 
-  // exit correction magnet 
+    // exit correction magnet 
 
-  G4Box* box_3 = new G4Box("ExtMag_1",50.*cm/2., 54.*cm/2., 40.*cm/2.);
-  G4Box* box_4 = new G4Box("ExtMag_2",20.*cm/2., 40.*cm/2., 41.*cm/2.); // aperture to pass beam
-  G4SubtractionSolid* ExtMag = new G4SubtractionSolid("ExtMag", box_3, box_4);   
-  G4LogicalVolume * ExtMag_log = new G4LogicalVolume(ExtMag , GetMaterial("Iron"), "ExtMag", 0, 0, 0); 
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 351.435*cm+20.*cm), ExtMag_log, "ExtMag_phys", worldlog, false, 0);
+    G4Box* box_3 = new G4Box("ExtMag_1",50.*cm/2., 54.*cm/2., 40.*cm/2.);
+    G4Box* box_4 = new G4Box("ExtMag_2",20.*cm/2., 40.*cm/2., 41.*cm/2.); // aperture to pass beam
+    G4SubtractionSolid* ExtMag = new G4SubtractionSolid("ExtMag", box_3, box_4);   
+    G4LogicalVolume * ExtMag_log = new G4LogicalVolume(ExtMag , GetMaterial("Iron"), "ExtMag", 0, 0, 0); 
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 351.435*cm+20.*cm), ExtMag_log, "ExtMag_phys", worldlog, false, 0);
 
-  // iron conical tube on the beamline inside SBS magnet split
+    // iron conical tube on the beamline inside SBS magnet split
 
-  G4double tcRmin1 = 7.4*cm;
-  G4double tcRmax1 = 8.68*cm;
-  G4double tcRmin2 = 10.55*cm;
-  G4double tcRmax2 = 11.82*cm;
-  G4double tcDzz = 120.*cm/2;
-  G4double tcSPhi = 0.*deg;
-  G4double tcDphi = 360.*deg;
+    G4double tcRmin1 = 7.4*cm;
+    G4double tcRmax1 = 8.68*cm;
+    G4double tcRmin2 = 10.55*cm;
+    G4double tcRmax2 = 11.82*cm;
+    G4double tcDzz = 120.*cm/2;
+    G4double tcSPhi = 0.*deg;
+    G4double tcDphi = 360.*deg;
   
- G4Cons *iron_con_tube = new G4Cons("iron_con_tube", tcRmin1, tcRmax1,tcRmin2, tcRmax2, tcDzz, tcSPhi, tcDphi);
+    G4Cons *iron_con_tube = new G4Cons("iron_con_tube", tcRmin1, tcRmax1,tcRmin2, tcRmax2, tcDzz, tcSPhi, tcDphi);
 
-  G4LogicalVolume *iron_con_tube_log = new G4LogicalVolume(iron_con_tube, GetMaterial("Iron"), "iron_con_tube", 0, 0, 0 );
+    G4LogicalVolume *iron_con_tube_log = new G4LogicalVolume(iron_con_tube, GetMaterial("Iron"), "iron_con_tube", 0, 0, 0 );
 
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 170.944*cm + tcDzz), iron_con_tube_log, "iron_con_tube_phys", worldlog,false,0);
-
-
-
-
-
-  G4VisAttributes *McorrVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
-  iron_con_tube_log->SetVisAttributes(McorrVisAtt);
-  ExtMag_log->SetVisAttributes(McorrVisAtt);
-  EnMag_log->SetVisAttributes(McorrVisAtt);
-  iron_ent_tube_log->SetVisAttributes(McorrVisAtt);
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 170.944*cm + tcDzz), iron_con_tube_log, "iron_con_tube_phys", worldlog,false,0);
 
 
 
 
-//---------------------------------------------------------------------------
 
+    G4VisAttributes *McorrVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
+    iron_con_tube_log->SetVisAttributes(McorrVisAtt);
+    ExtMag_log->SetVisAttributes(McorrVisAtt);
+    EnMag_log->SetVisAttributes(McorrVisAtt);
+    iron_ent_tube_log->SetVisAttributes(McorrVisAtt);
+    
+    //---------------------------------------------------------------------------
+  }
 
   //Material definition moved to "ConstructMaterials":
 
@@ -146,7 +145,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
       G4LogicalVolume *ent_winlog = new G4LogicalVolume(ent_win, GetMaterial("Beryllium"), "entwin_log", 0, 0, 0);
 
       /*  // my cancel Be window for GEp experiment 09/29/2014
-      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);
+	  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);
       */  // my cancel Be window for GEp experiment 09/29/2014
 
       ent_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.7,1.0,0.0)));
@@ -206,7 +205,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 
     /*  cancel Al window to vacuum pipe 10/02/14
-    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, exit_z[0] - extwin_thick/2), ext_winlog, "extwin_phys", worldlog,false,0);
+	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, exit_z[0] - extwin_thick/2), ext_winlog, "extwin_phys", worldlog,false,0);
     */   //cancel Al window to vacuum pipe 10/02/14
 
 
@@ -297,10 +296,10 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
   G4LogicalVolume *leadinmag_log = new G4LogicalVolume( leadinmag, GetMaterial("Lead"), "leadinmag", 0, 0, 0 );
 
-   /*    remove magnet conical 09/30/2014 
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadinmag_log, "leadinmag_phys", worldlog,false,0);
+  /*    remove magnet conical 09/30/2014 
+	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadinmag_log, "leadinmag_phys", worldlog,false,0);
 
-   */   // 09/30/2014 we will shield by lead bloks around beam line
+  */   // 09/30/2014 we will shield by lead bloks around beam line
 
 
   // Lead from magnet on
@@ -315,7 +314,7 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   G4LogicalVolume *leadafter_log = new G4LogicalVolume( leadafter, GetMaterial("Lead"), "leadafter_log", 0, 0, 0 );
 
   /*   cancell 09/30/2014  we will shield by lead bloks around beam line
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadafter_log, "leadafter_phys", worldlog,false,0);
+       new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadafter_log, "leadafter_phys", worldlog,false,0);
   */   // cancell 09/30/2014
 
 
@@ -432,6 +431,9 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   //Height = 31 cm
   //Width = magnet width / 2 - 35 cm
   //depth = magnet depth:
+  //Notch depth 25 cm
+  G4double Beamslot_notch_depth = 25.0*cm;
+  
   G4double Beamslot_lead_width = (fDetCon->fHArmBuilder->f48D48width)/2.0-35.0*cm;
   G4double Beamslot_lead_height = 31.0*cm;
   G4double Beamslot_lead_depth = fDetCon->fHArmBuilder->f48D48depth;
@@ -439,6 +441,18 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   G4Box *Beamslot_lead_box = new G4Box("Beamslot_lead_box", Beamslot_lead_width/2.0, Beamslot_lead_height/2.0, Beamslot_lead_depth/2.0 );
   //G4LogicalVolume *Beamslot_lead_log = new G4LogicalVolume( 
 
+  G4Box *Beamslot_cut_box = new G4Box( "Beamslot_cut_box", 50.0*cm/2.0, Beamslot_lead_height/2.0 + mm, Beamslot_notch_depth );
+
+  G4RotationMatrix *notch_rot = new G4RotationMatrix;
+  notch_rot->rotateY( -45.0*deg );
+
+  G4double notch_angle = 45.0*deg;
+  
+  G4SubtractionSolid *Beamslot_lead_box_cut = new G4SubtractionSolid( "Beamslot_lead_box_cut", Beamslot_lead_box, Beamslot_cut_box, notch_rot,
+								      G4ThreeVector( -Beamslot_lead_width/2.0,
+										     0.0,
+										     -Beamslot_lead_depth/2.0 ) );
+  
   G4double SBSang = fDetCon->fHArmBuilder->f48D48ang;
 
   G4RotationMatrix *Beamslot_lead_rm = new G4RotationMatrix;
@@ -473,7 +487,7 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
 							   beampipe_beamslot_relative_position.dot( SBS_zaxis ) );
 
   //The subtraction that we want to perform is Beamslot lead box - beampipe cone:
-  G4SubtractionSolid *Beamslot_lead_with_hole = new G4SubtractionSolid( "Beamslot_lead_with_hole", Beamslot_lead_box, beampipe_subtraction_cone, Beamslot_lead_rm_inv, beampipe_beamslot_relative_position_local );
+  G4SubtractionSolid *Beamslot_lead_with_hole = new G4SubtractionSolid( "Beamslot_lead_with_hole", Beamslot_lead_box_cut, beampipe_subtraction_cone, Beamslot_lead_rm_inv, beampipe_beamslot_relative_position_local );
 
   G4LogicalVolume *Beamslot_lead_log = new G4LogicalVolume( Beamslot_lead_with_hole, GetMaterial("Lead"), "Beamslot_lead_log" );
   G4PVPlacement *Beamslot_lead_pv = new G4PVPlacement( Beamslot_lead_rm, Beamslot_lead_position, Beamslot_lead_log, "Beamslot_lead_pv", worldlog, 0, false, 0 );
@@ -500,7 +514,7 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   // 						  leadcone_relative_position.dot( SBS_zaxis ) );
   G4ThreeVector cutbox_relative_position = Beamslot_lead_position - leadcone_global_position;
 
-  G4SubtractionSolid *leadcone_cut = new G4SubtractionSolid( "leadcone_cut", leadcone, Beamslot_lead_box, Beamslot_lead_rm, cutbox_relative_position );
+  G4SubtractionSolid *leadcone_cut = new G4SubtractionSolid( "leadcone_cut", leadcone, Beamslot_lead_box_cut, Beamslot_lead_rm, cutbox_relative_position );
   
   G4LogicalVolume *leadcone_cut_log = new G4LogicalVolume( leadcone_cut, GetMaterial("Lead"), "leadcone_cut_log" );
   G4PVPlacement *leadcone_cut_pv = new G4PVPlacement( 0, leadcone_global_position, leadcone_cut_log, "leadcone_cut_pv", worldlog, 0, false, 0 );
@@ -511,45 +525,47 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   
   //We also want to put some lead and/or Fe shielding, i.e., a "collimator" in front of the SBS magnet gap:
 
-  double SBScollwidth = 469.9*mm;
-  double SBScollheight = 1219.2*mm;
-  double SBScolldepth = 10.0*cm;
+  // double SBScollwidth = 469.9*mm;
+  // double SBScollheight = 1219.2*mm;
+  // double SBScolldepth = 10.0*cm;
   
-  double coilspace = 214.5*mm + 20.63*mm;
-  double SBS_coll_R = fDetCon->fHArmBuilder->f48D48dist - coilspace - SBScolldepth/2.0 - 5.0*cm;
+  // double coilspace = 214.5*mm + 20.63*mm;
+  // double SBS_coll_R = fDetCon->fHArmBuilder->f48D48dist - coilspace - SBScolldepth/2.0 - 5.0*cm;
 
-  double SBS_coll_gapwidth = 50.0*cm*SBS_coll_R/(fDetCon->fHArmBuilder->fRICHdist - 0.5*m) + fDetCon->fTargetBuilder->GetTargLen()*sin( SBSang );
-  double SBS_coll_gapheight = 200.0*cm*SBS_coll_R/(fDetCon->fHArmBuilder->fRICHdist - 0.5*m);
-
-  G4Box *SBScoll = new G4Box("SBScoll", 1.5*SBScollwidth, 1.5*SBScollheight, SBScolldepth/2.0 );
-  G4Box *SBScoll_hole = new G4Box("SBScoll_hole", SBS_coll_gapwidth/2.0, SBS_coll_gapheight/2.0, SBScolldepth/2.0+1.0*cm );
-
-  G4Cons *SBScoll_cutcone = new G4Cons("SBScoll_cutcone", 0.0*cm, rinstart+5.0*cm, 0.0, rinend + 5.0*cm, (zend-zstart)/2.0, 0.0*deg, 360.0*deg );
-
+  // // double SBS_coll_gapwidth = 50.0*cm*SBS_coll_R/(fDetCon->fHArmBuilder->fRICHdist - 0.5*m) + fDetCon->fTargetBuilder->GetTargLen()*sin( SBSang );
+  // // double SBS_coll_gapheight = 200.0*cm*SBS_coll_R/(fDetCon->fHArmBuilder->fRICHdist - 0.5*m)
+  // G4double SBS_coll_gapwidth =
   
 
-  G4ThreeVector SBScoll_pos( SBS_coll_R*sin(SBSang), 0.0, SBS_coll_R*cos(SBSang) );
-  G4ThreeVector cutcone_relative_pos = leadcone_global_position - SBScoll_pos;
+  // G4Box *SBScoll = new G4Box("SBScoll", 1.5*SBScollwidth, 1.5*SBScollheight, SBScolldepth/2.0 );
+  // G4Box *SBScoll_hole = new G4Box("SBScoll_hole", SBS_coll_gapwidth/2.0, SBS_coll_gapheight/2.0, SBScolldepth/2.0+1.0*cm );
 
-  G4ThreeVector cutcone_relative_pos_local( cutcone_relative_pos.dot(SBS_xaxis),
-					    cutcone_relative_pos.dot(SBS_yaxis),
-					    cutcone_relative_pos.dot(SBS_zaxis) );
+  // G4Cons *SBScoll_cutcone = new G4Cons("SBScoll_cutcone", 0.0*cm, rinstart+5.0*cm, 0.0, rinend + 5.0*cm, (zend-zstart)/2.0, 0.0*deg, 360.0*deg );
 
-  G4SubtractionSolid *SBS_collimator = new G4SubtractionSolid( "SBS_collimator", SBScoll, SBScoll_hole );
-  G4SubtractionSolid *SBS_collimator_beamcut = new G4SubtractionSolid("SBS_collimator_beamcut", SBS_collimator, SBScoll_cutcone, Beamslot_lead_rm_inv, 
-								      cutcone_relative_pos_local );
+  
 
-  G4LogicalVolume *SBS_collimator_log = new G4LogicalVolume( SBS_collimator_beamcut, GetMaterial("Lead"), "SBS_collimator_log" );
+  // G4ThreeVector SBScoll_pos( SBS_coll_R*sin(SBSang), 0.0, SBS_coll_R*cos(SBSang) );
+  // G4ThreeVector cutcone_relative_pos = leadcone_global_position - SBScoll_pos;
+
+  // G4ThreeVector cutcone_relative_pos_local( cutcone_relative_pos.dot(SBS_xaxis),
+  // 					    cutcone_relative_pos.dot(SBS_yaxis),
+  // 					    cutcone_relative_pos.dot(SBS_zaxis) );
+
+  // G4SubtractionSolid *SBS_collimator = new G4SubtractionSolid( "SBS_collimator", SBScoll, SBScoll_hole );
+  // G4SubtractionSolid *SBS_collimator_beamcut = new G4SubtractionSolid("SBS_collimator_beamcut", SBS_collimator, SBScoll_cutcone, Beamslot_lead_rm_inv, 
+  // 								      cutcone_relative_pos_local );
+
+  // G4LogicalVolume *SBS_collimator_log = new G4LogicalVolume( SBS_collimator_beamcut, GetMaterial("Lead"), "SBS_collimator_log" );
     
-  new G4PVPlacement( Beamslot_lead_rm, G4ThreeVector( SBS_coll_R*sin(SBSang), 0.0, SBS_coll_R*cos(SBSang) ), SBS_collimator_log, "SBS_collimator_phys", worldlog, 
-		     0, false, 0 );
+  // new G4PVPlacement( Beamslot_lead_rm, G4ThreeVector( SBS_coll_R*sin(SBSang), 0.0, SBS_coll_R*cos(SBSang) ), SBS_collimator_log, "SBS_collimator_phys", worldlog, 
+  // 		     0, false, 0 );
 
   G4VisAttributes *leadVisAtt= new G4VisAttributes(G4Colour(0.25,0.25,0.25));
   //SIDISlead_log->SetVisAttributes(leadVisAtt);
 
   Beamslot_lead_log->SetVisAttributes(leadVisAtt);
   leadcone_cut_log->SetVisAttributes(leadVisAtt);
-  SBS_collimator_log->SetVisAttributes(leadVisAtt);
+  //SBS_collimator_log->SetVisAttributes(leadVisAtt);
 }
 
 //++++++++++++++++++++++++++++++++++++++++++  correcting magnets ++++ 09/23/2014

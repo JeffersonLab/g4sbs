@@ -3,6 +3,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4UserLimits.hh"
+//#include "G4String.hh"
 
 #include "G4Material.hh"
 #include "G4MaterialTable.hh"
@@ -56,9 +57,9 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
     fbbfield = NULL;
     f48d48field = NULL;
+    //fIO = NULL;
 
-
-    fTotalAbs = true;
+    fTotalAbs = false;
 
     fExpType = kNeutronExp;
 
@@ -77,8 +78,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
     fLeadOption = 0;
 
-    TrackerIDnumber = 0;
-    TrackerArm.clear();
+    //    TrackerIDnumber = 0;
+    //TrackerArm.clear();
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -1093,8 +1094,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
     if( fMaterialsMap.empty() ) ConstructMaterials();
 
-    TrackerIDnumber = 0; //Initialize TrackerIDnumber to zero. This gets incremented with each call to TrackerBuilder::BuildComponent!
-    TrackerArm.clear();  //Clear mapping of tracker modules to spectrometers (E arm or H arm)
+    //    TrackerIDnumber = 0; //Initialize TrackerIDnumber to zero. This gets incremented with each call to TrackerBuilder::BuildComponent!
+    //TrackerArm.clear();  //Clear mapping of tracker modules to spectrometers (E arm or H arm)
 
     fSDman = G4SDManager::GetSDMpointer();
     //--------- Material definition was moved to ConstructMaterials()---------
@@ -1216,7 +1217,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
     //------------------------------------------------------------------
 
-*/
+    */
 
     //-----------------------
     // Returns the pointer to

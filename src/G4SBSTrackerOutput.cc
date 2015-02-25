@@ -10,9 +10,10 @@ G4SBSTrackerOutput::~G4SBSTrackerOutput(){
 
 void G4SBSTrackerOutput::Clear(){
   ntracks = 0;
-  TrackerID.clear();
+  //TrackerID.clear();
   TrackTID.clear();
   TrackPID.clear();
+  TrackMID.clear();
   
   NumHits.clear();
   NumPlanes.clear();

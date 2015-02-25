@@ -19,6 +19,7 @@
 #include "G4RotationMatrix.hh"
 
 #include "G4SBSGEMSD.hh"
+#include "sbstypes.hh"
 
 G4SBSTrackerBuilder::G4SBSTrackerBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
 
@@ -32,34 +33,33 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *){
 }
 
 //This routine allows us to flexibly position GEM modules without code duplication:
-void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos, unsigned int nplanes, vector<double> zplanes, vector<double> wplanes, vector<double> hplanes, G4int TrackerID=0) 
+void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos, unsigned int nplanes, vector<double> zplanes, vector<double> wplanes, vector<double> hplanes, G4String SDname ) 
 {
   //This routine will create and position a GEM tracker consisting of nplanes planes centered at position pos oriented with rotation rot wrt logical volume Mother. 
   //The list of z coordinates, widths and heights of the planes are passed as arguments:
 
-  //    G4String MotherName = Mother->GetName();
-
-  //  G4SDManager* fSDman = G4SDManager::GetSDMpointer();
-
-  // How should we interpret the rotation Matrix rot? It is the rotation that orients the z axis of the tracker with respect to the mother volume. Since pos is the nominal position of the tracker with respect to the mother volume, 
+  // How should we interpret the rotation Matrix rot? It is the rotation that orients the z axis of the tracker with respect to the mother volume. 
+  // Since pos is the nominal position of the tracker with respect to the mother volume, 
   // the positioning of the centers of the tracker planes should be pos + zplane * tracker_zaxis
   G4ThreeVector zaxis(0,0,1);
   zaxis *= rot->inverse();
-
-  char ctrid[20];
-  sprintf( ctrid, "%02d", TrackerID );
   
-  G4String TrackerPrefix = G4String("Tracker_") + ctrid; 
+  G4String TrackerPrefix = SDname; 
 
-  //Define sensitive detector, if not already done:
-  G4String GEMSDname = "G4SBS/GEM";
-  G4String GEMcolname = "GEMcol";
+  //Create sensitive detector for this tracker:
+  G4String GEMSDname = SDname;
+  G4String GEMSDname_nopath = SDname;
+  GEMSDname_nopath.remove(0,SDname.last('/')+1);
+  G4String GEMcolname = GEMSDname_nopath; //We have to remove all the directory structure from the Hits collection name or else GEANT4 SDmanager routines will not handle correctly.
+  GEMcolname += "HitsCollection";
+
   G4SBSGEMSD* GEMSD;
 
-  if( !(GEMSD = (G4SBSGEMSD*) fDetCon->fSDman->FindSensitiveDetector(GEMSDname)) ){
+  if( !(GEMSD = (G4SBSGEMSD*) fDetCon->fSDman->FindSensitiveDetector(GEMSDname)) ){ //Make sure SD with this name doesn't already exist
     GEMSD = new G4SBSGEMSD( GEMSDname, GEMcolname );
     fDetCon->fSDman->AddNewDetector(GEMSD);
-    fDetCon->SDlist[GEMSDname] = GEMSD;
+    (fDetCon->SDlist).insert(GEMSDname);
+    fDetCon->SDtype[GEMSDname] = kGEM;
   }
 
   if( !( nplanes > 0 && zplanes.size() == nplanes && wplanes.size() == nplanes && hplanes.size() == nplanes ) ){
@@ -137,10 +137,8 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
     double ztemp = 0.0;
     for( gpidx = 0; gpidx < nlayers; gpidx++ ){
-      sprintf( cgpidx, "_%02d_%03d_trkr%02d_", gidx, gpidx, TrackerID );
-      // sprintf(gpname[gidx][gpidx][0], "gemplane_%02d_%03d_box", gidx, gpidx );
-      // sprintf(gpname[gidx][gpidx][1], "gemplane_%02d_%03d_log", gidx, gpidx );
-      // sprintf(gpname[gidx][gpidx][2], "gemplane_%02d_%03d_phy", gidx, gpidx );
+      sprintf( cgpidx, "_%02d_%03d_", gidx, gpidx );
+      
       G4String gempboxname = TrackerPrefix + G4String("_gemplane") + cgpidx + G4String("box");
       G4String gemplogname = TrackerPrefix + G4String("_gemplane") + cgpidx + G4String("log");
       G4String gempphysname = TrackerPrefix + G4String("_gemplane") + cgpidx + G4String("phy");
@@ -150,9 +148,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
       gpbox = new G4Box( gempboxname, wplanes[gidx]/2.0, hplanes[gidx]/2.0, gempz[gpidx]/2.0 );
       gplog = new G4LogicalVolume( gpbox, gempm[gpidx], gemplogname, 0, 0, 0 );
 
-      //gplog->SetVisAttributes( 
-
-      new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, ztemp - gempzsum/2.0 ), gplog, gempphysname, gemlog, false, 0, false ); //??
+      new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, ztemp - gempzsum/2.0 ), gplog, gempphysname, gemlog, false, 0, false ); 
 
       ztemp += gempz[gpidx]/2.0;
 
@@ -160,11 +156,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
       if( gpidx == 5 ){
 	gplog->SetSensitiveDetector(GEMSD);
 	gplog->SetVisAttributes( gemsdvisatt );
-
-	//		G4cout << "Assigning sensitive volume " << gempphysname << " to tracker ID " << TrackerID << G4endl;
-
-	(GEMSD->GEMTrackerIDs)[ gempphysname ] = TrackerID;
-	(GEMSD->GEMArmIDs)[TrackerID]          = (fDetCon->TrackerArm)[TrackerID];
+	// Until we implement actual strips/wires in the GEM construction, the detmap is irrelevant for the GEMs
       } else {
 	gplog->SetVisAttributes( G4VisAttributes::Invisible );
       }

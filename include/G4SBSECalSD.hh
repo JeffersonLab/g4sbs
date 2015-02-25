@@ -3,6 +3,7 @@
 
 #include "G4VSensitiveDetector.hh"
 #include "G4SBSECalHit.hh"
+#include "G4SBSDetMap.hh"
 #include "G4Step.hh"
 
 class G4SBSECalSD : public G4VSensitiveDetector
@@ -18,6 +19,8 @@ public:
   void clear();
   void DrawAll();
   void PrintAll();
+
+  G4SBSDetMap detmap;
 
 private:
   G4SBSECalHitsCollection *hitCollection;

@@ -27,7 +27,7 @@ G4SBSRICHHit::G4SBSRICHHit(const G4SBSRICHHit &hit ) : G4VHit() //copy construct
   fMothervertex = hit.GetMotherVertex();
   fedep = hit.GetEdep();
   fdx = hit.Getdx();
-  fenergy = hit.Getenergy();
+  fenergy = hit.GetEnergy();
   ftime = hit.GetTime();
   fPMTnumber = hit.GetPMTnumber();
   frownumber = hit.Getrownumber();
@@ -54,7 +54,7 @@ const G4SBSRICHHit& G4SBSRICHHit::operator=(const G4SBSRICHHit &hit) //assignmen
   fMothervertex = hit.GetMotherVertex();
   fedep = hit.GetEdep();
   fdx = hit.Getdx();
-  fenergy = hit.Getenergy();
+  fenergy = hit.GetEnergy();
   ftime = hit.GetTime();
   fPMTnumber = hit.GetPMTnumber();
   frownumber = hit.Getrownumber();
@@ -92,26 +92,26 @@ void G4SBSRICHHit::Draw()
 void G4SBSRICHHit::Print() {;}
 
 
-G4int G4SBSRICHHit::calc_row( G4int PMT ){
-  //Bad practice to have these hard-coded, since we want to study the effects of changes later, but for now we go ahead:
-  //G4int nrow[2] = {26, 27};
+// G4int G4SBSRICHHit::calc_row( G4int PMT ){
+//   //Bad practice to have these hard-coded, since we want to study the effects of changes later, but for now we go ahead:
+//   //G4int nrow[2] = {26, 27};
   
-  //total of 73 columns, 
+//   //total of 73 columns, 
 
-  //G4int super_col = PMT/53;
-  G4int super_row = PMT%53; //ranges from 0..52
-  //if 
-  G4int sub_col = super_row/26;
-  G4int sub_row = super_row%26; 
+//   //G4int super_col = PMT/53;
+//   G4int super_row = PMT%53; //ranges from 0..52
+//   //if 
+//   G4int sub_col = super_row/26;
+//   G4int sub_row = super_row%26; 
   
-  return sub_row + 26*(sub_col/2); //sub_col/2 returns 0 unless super_row==52, in which case it returns 1, so for this one result row number == 26 
-}
+//   return sub_row + 26*(sub_col/2); //sub_col/2 returns 0 unless super_row==52, in which case it returns 1, so for this one result row number == 26 
+// }
 
-G4int G4SBSRICHHit::calc_col( G4int PMT ){
-  G4int super_col = PMT/53; 
-  G4int super_row = PMT%53; 
-  G4int sub_col = (super_row-1)/26;
-  //G4int sub_row = super_row%26;
+// G4int G4SBSRICHHit::calc_col( G4int PMT ){
+//   G4int super_col = PMT/53; 
+//   G4int super_row = PMT%53; 
+//   G4int sub_col = (super_row-1)/26;
+//   //G4int sub_row = super_row%26;
 
-  return 2*super_col + sub_col; //should have value from 0..72
-}
+//   return 2*super_col + sub_col; //should have value from 0..72
+// }

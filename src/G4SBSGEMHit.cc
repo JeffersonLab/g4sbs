@@ -22,33 +22,35 @@ G4SBSGEMHit::G4SBSGEMHit(const G4SBSGEMHit &right)
   : G4VHit()
 {
   pos = right.pos;
-  xp = right.xp;
-  yp = right.yp;
-  GEMID = right.GEMID;
-  TrackerID = right.TrackerID;
-
   vert = right.vert;
+  GEMID = right.GEMID;
+  //TrackerID = right.TrackerID;
   trid = right.trid;
   mid = right.mid;
   pid = right.pid;
+  xp = right.xp;
+  yp = right.yp;
   p = right.p;
   edep = right.edep;
+  hittime = right.hittime;
+  beta = right.beta;
 }
 
 const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
 {
   pos = right.pos;
-  GEMID= right.GEMID;
-  TrackerID = right.TrackerID;
+  vert = right.vert;
+  GEMID = right.GEMID;
+  //TrackerID = right.TrackerID;
+  trid = right.trid;
+  mid = right.mid;
+  pid = right.pid;
   xp = right.xp;
   yp = right.yp;
   p = right.p;
   edep = right.edep;
-
-  vert = right.vert;
-  trid = right.trid;
-  mid = right.mid;
-  pid = right.pid;
+  hittime = right.hittime;
+  beta = right.beta;
 
   return *this;
 }

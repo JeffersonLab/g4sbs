@@ -9,7 +9,9 @@
 #include "G4SBSRICHoutput.hh"
 #include "G4SBSECaloutput.hh"
 #include "G4SBSTrackerOutput.hh"
-#include "G4SBSECaloutput.hh"
+#include "G4SBSCaloutput.hh"
+#include "G4SBSGEMoutput.hh"
+#include "G4SBSDetectorConstruction.hh"
 
 class TFile;
 class TTree;
@@ -19,7 +21,7 @@ class G4SBSGlobalField;
 #define MAXHITDATA 2000
 
 typedef struct {
-    Double_t thbb, thhcal, dbb, dhcal, Ebeam;
+  Double_t thbb, thsbs, dbb, dsbs, dhcal, drich, dsbstrkr, Ebeam;
 } gen_t;
 
 
@@ -82,13 +84,21 @@ public:
   
   void SetFilename(const char *fn){strcpy(fFilename, fn);}
   //void SetTrackData(tr_t td){ trdata = td; }
-  void SetCalData(cal_t cd){ caldata = cd; }
+  //void SetCalData(cal_t cd){ caldata = cd; }
   void SetEventData(ev_t ed){ evdata = ed; }
-  void SetHitData(hit_t ht){ hitdata = ht; }
-  void SetRICHData( G4SBSRICHoutput rd ) { richdata = rd; }
-  void SetTrackData( G4SBSTrackerOutput td ){ trackdata = td; }
+  //void SetHitData(hit_t ht){ hitdata = ht; }
+  //void SetRICHData( G4SBSRICHoutput rd ) { richdata = rd; }
+  //void SetTrackData( G4SBSTrackerOutput td ){ trackdata = td; }
+  //void SetGEMData( G4SBSGEMoutput gd ){ GEMdata = gd; }
+  //void 
 
-  void SetECalData( G4SBSECaloutput ed ){ ecaldata = ed; }
+  void SetGEMData( G4String, G4SBSGEMoutput );
+  void SetTrackData( G4String, G4SBSTrackerOutput );
+  void SetCalData( G4String, G4SBSCALoutput );
+  void SetRICHData( G4String, G4SBSRICHoutput );
+  void SetECalData( G4String, G4SBSECaloutput );
+
+  //void SetECalData( G4SBSECaloutput ed ){ ecaldata = ed; }
 
   
   void FillTree();
@@ -97,31 +107,52 @@ public:
   void SetBeamE(double E){ gendata.Ebeam = E/GeV; }
   void SetBigBiteTheta(double th){ gendata.thbb = th; }
   void SetBigBiteDist(double d){ gendata.dbb = d/m; }
-  void SetHcalTheta(double th){ gendata.thhcal = th; }
+  void SetSBSTheta(double th){ gendata.thsbs = th; }
   void SetHcalDist(double d){ gendata.dhcal = d/m; }
+  void SetSBSDist(double d){ gendata.dsbs = d/m; }
+  void SetRICHDist(double d){ gendata.drich = d/m; }
+  void SetSBStrkrDist(double d){ gendata.dsbstrkr = d/m; }
   
   void SetGlobalField(G4SBSGlobalField *gf){fGlobalField = gf; }
   
   ev_t GetEventData(){ return evdata; }
   
   void InitializeTree();
+  void BranchGEM(G4String s);
+  void BranchCAL(G4String s);
+  void BranchRICH(G4String s);
+  //void BranchTracker(G4String s);
+  void BranchECAL(G4String s);
+
+  void SetDetCon(G4SBSDetectorConstruction *dc ){ fdetcon = dc; }
+
+  void SetEarmCALpart_flag( G4bool b ){ EarmCALpart_flag = b; }
+  void SetHarmCALpart_flag( G4bool b ){ HarmCALpart_flag = b; }
+  
 private:
   TFile *fFile;
   TTree *fTree;
-  
+ 
+  G4SBSDetectorConstruction *fdetcon;
+ 
   ev_t evdata;
   gen_t gendata;
   //tr_t trdata;
-  cal_t caldata;
-  hit_t hitdata;
-  
-  G4SBSRICHoutput richdata;
-  G4SBSTrackerOutput trackdata;
-  G4SBSECaloutput ecaldata;
+  // cal_t caldata;
+  // hit_t hitdata;
+
+  map<G4String,G4SBSGEMoutput> GEMdata;
+  map<G4String,G4SBSCALoutput> CALdata;
+  map<G4String,G4SBSRICHoutput> richdata;
+  map<G4String,G4SBSTrackerOutput> trackdata;
+  map<G4String,G4SBSECaloutput> ecaldata;
 
   G4SBSGlobalField *fGlobalField;
   
   char fFilename[255];
+
+  G4bool EarmCALpart_flag;
+  G4bool HarmCALpart_flag;
   
 };
 

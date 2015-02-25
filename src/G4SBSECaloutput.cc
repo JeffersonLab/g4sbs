@@ -22,10 +22,20 @@ void G4SBSECaloutput::Clear(){
   PMTnumber.clear();
   row.clear();
   col.clear();
+  xcell.clear();
+  ycell.clear();
+  zcell.clear();
+  xgcell.clear();
+  ygcell.clear();
+  zgcell.clear();
   //NumPhotons.clear();
   NumPhotoelectrons.clear();
   Time_avg.clear();
   Time_rms.clear();
+  Time_min.clear();
+  Time_max.clear();
+
+  //ParticleHistory.Clear();
   /* 
   mTrackNo.clear();
 

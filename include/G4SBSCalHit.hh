@@ -31,45 +31,23 @@ public:
   void Print();
 
 private:
-  G4ThreeVector pos;
-  G4ThreeVector vertex;
-  G4ThreeVector labpos;
-  double time;
-  double energy;
+  G4ThreeVector pos; //Local coordinate of the hit
+  G4ThreeVector vertex; //vertex coordinate of particle producing hit.
+  G4ThreeVector labpos; //Global coordinate of the hit.
+  G4ThreeVector mom; //momentum of the particle before the step
 
-  G4int cell, row, col; 
-  G4double xcell, ycell; //"local" coordinates of center of cell in which hit occurred.
+  double hittime; //time of the hit (since start of event)
+  double edep; //energy deposition of the hit
+  double energy; //Initial energy of the particle prior to the hit.
+  double Lstep; //spatial length of the step (magnitude)
 
-  G4int pid, mid, trid;
+  G4int cell, row, col; //Channel information 
+  G4ThreeVector CellCoords; //"local" coordinates of center of cell in which hit occurred
+  G4ThreeVector GlobalCellCoords; //"global" coordinates of center of cell in which hit occurred
+
+  G4int pid, mid, trid; //pid of particle causing hit, mother track id and track id.
 
 public:
-  inline void SetCell(G4int c)
-  { cell = c; }
-  
-  inline void SetRow(G4int r)
-  { row = r; }
-  
-  inline void SetCol(G4int c)
-  { col = c; }
-
-  inline void SetXCell( G4double x )
-  { xcell = x; }
-  
-  inline void SetYCell( G4double y )
-  { ycell = y; }
-
-  inline void SetEdep(G4double e)
-  { energy = e;};
-
-  inline void SetPID(G4int p)
-  { pid = p;};
-
-  inline void SetTrID(G4int t)
-  { trid = t;};
-
-  inline void SetMID(G4int mother)
-  { mid = mother;};
-
   inline void SetPos(G4ThreeVector v)
   { pos = v;};
 
@@ -79,37 +57,88 @@ public:
   inline void SetLabPos(G4ThreeVector v)
   { labpos = v;};
 
-  inline G4int GetCell() { return cell; }
-  inline G4int GetRow() { return row; }
-  inline G4int GetCol() { return col; }
+  inline void SetMomentum(G4ThreeVector v)
+  { mom = v; };
 
+  inline void SetTime(G4double t)
+  { hittime = t; };
+
+  inline void SetEdep(G4double e)
+  { edep = e;};
+
+  inline void SetEnergy(G4double E)
+  { energy = E; }
+
+  inline void SetLstep(G4double L)
+  { Lstep = L; }
+
+  inline void SetCell(G4int c)
+  { cell = c; }
+  
+  inline void SetRow(G4int r)
+  { row = r; }
+  
+  inline void SetCol(G4int c)
+  { col = c; }
+
+  inline void SetCellCoords( G4ThreeVector x )
+  { CellCoords = x; }
+
+  inline void SetGlobalCellCoords( G4ThreeVector x )
+  { GlobalCellCoords = x; }
+  
+
+  inline void SetPID(G4int p)
+  { pid = p;};
+
+  inline void SetMID(G4int mother)
+  { mid = mother;};
+
+  inline void SetTrID(G4int t)
+  { trid = t;};
+
+  
+  ////////GET methods://////////
   inline G4ThreeVector GetPos()
   { return pos;};
 
   inline G4ThreeVector GetVertex()
   { return vertex;};
 
-  inline G4double GetEdep()
-  { return energy;};
-
-  inline G4double GetTrID()
-  { return trid;};
-
-  inline G4double GetMID()
-  { return mid;};
-
-  inline G4double GetPID()
-  { return pid;};
-
   inline G4ThreeVector GetLabPos()
   { return labpos;};
 
-  inline void SetTime(double v)
-  { time = v;};
+  inline G4ThreeVector GetMomentum()
+  { return mom; };
 
   inline double GetTime()
-  { return time;};
+  { return hittime;};
 
+  inline G4double GetEdep()
+  { return edep;};
+
+  inline G4double GetEnergy()
+  { return energy; };
+
+  inline G4double GetLstep()
+  { return Lstep; }
+  
+  inline G4int GetCell() { return cell; }
+  inline G4int GetRow() { return row; }
+  inline G4int GetCol() { return col; }
+
+  inline G4ThreeVector GetCellCoords() { return CellCoords; }
+  inline G4ThreeVector GetGlobalCellCoords() { return GlobalCellCoords; }
+
+  inline G4int GetPID()
+  { return pid;};
+  
+  inline G4int GetMID()
+  { return mid;};
+
+  inline G4int GetTrID()
+  { return trid;};
+  
 };
 
 typedef G4THitsCollection<G4SBSCalHit> G4SBSCalHitsCollection;

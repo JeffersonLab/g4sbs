@@ -18,13 +18,8 @@ G4SBSECalHit::G4SBSECalHit(const G4SBSECalHit &hit ) : G4VHit()
 {
   //copy all private data members:
   fTrackID = hit.GetTrackID();
-  //fMotherID = hit.GetMotherID();
-  //fTrackPID = hit.GetTrackPID();
-  //fMotherPID = hit.GetMotherPID();
   fpos = hit.GetPos();
-  //fLpos = hit.GetLPos();
-  //fvertex = hit.GetVertex();
-  //fMothervertex = hit.GetMotherVertex();
+  fLpos = hit.GetLPos();
   fedep = hit.GetEdep();
   fdx = hit.Getdx();
   fenergy = hit.Getenergy();
@@ -32,26 +27,23 @@ G4SBSECalHit::G4SBSECalHit(const G4SBSECalHit &hit ) : G4VHit()
   fPMTnumber = hit.GetPMTnumber();
   frownumber = hit.Getrownumber();
   fcolnumber = hit.Getcolnumber();
+  CellCoords = hit.GetCellCoords();
+  GlobalCellCoords = hit.GetGlobalCellCoords();
 
   //fdirection = hit.GetDirection();
   //fvertexdirection = hit.GetVertexDirection();
   //fMothervertexdirection = hit.GetMotherVertexDirection();
 
-  //foriginvol = hit.GetOriginVol();
+  fvolume_log = hit.GetLogicalVolume();
  
 }
 
 const G4SBSECalHit& G4SBSECalHit::operator=(const G4SBSECalHit &hit)
 {
-  //copy all private data members and return the object pointed by this:
+  //copy all private data members:
   fTrackID = hit.GetTrackID();
-  //fMotherID = hit.GetMotherID();
-  //fTrackPID = hit.GetTrackPID();
-  //fMotherPID = hit.GetMotherPID();
   fpos = hit.GetPos();
-  //fLpos = hit.GetLPos();
-  //fvertex = hit.GetVertex();
-  //fMothervertex = hit.GetMotherVertex();
+  fLpos = hit.GetLPos();
   fedep = hit.GetEdep();
   fdx = hit.Getdx();
   fenergy = hit.Getenergy();
@@ -59,12 +51,14 @@ const G4SBSECalHit& G4SBSECalHit::operator=(const G4SBSECalHit &hit)
   fPMTnumber = hit.GetPMTnumber();
   frownumber = hit.Getrownumber();
   fcolnumber = hit.Getcolnumber();
+  CellCoords = hit.GetCellCoords();
+  GlobalCellCoords = hit.GetGlobalCellCoords();
 
   //fdirection = hit.GetDirection();
   //fvertexdirection = hit.GetVertexDirection();
   //fMothervertexdirection = hit.GetMotherVertexDirection();
 
-  //foriginvol = hit.GetOriginVol();
+  fvolume_log = hit.GetLogicalVolume();
 
   return *this;
 }
@@ -89,16 +83,16 @@ void G4SBSECalHit::Draw()
 
 void G4SBSECalHit::Print() {;}
 
-G4int G4SBSECalHit::calc_row( G4int PMT ){
+// G4int G4SBSECalHit::calc_row( G4int PMT ){
 
-  G4int ecal_row = PMT/58; 
-  return ecal_row;
+//   G4int ecal_row = PMT/58; 
+//   return ecal_row;
 
-}
+// }
 
-G4int G4SBSECalHit::calc_col( G4int PMT ){
+// G4int G4SBSECalHit::calc_col( G4int PMT ){
 
-  G4int ecal_col = PMT%58; 
-  return ecal_col;
+//   G4int ecal_col = PMT%58; 
+//   return ecal_col;
 
-}
+// }

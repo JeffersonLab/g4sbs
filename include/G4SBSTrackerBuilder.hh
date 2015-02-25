@@ -7,6 +7,7 @@
 #include "G4RotationMatrix.hh"
 #include "G4ThreeVector.hh"
 #include <vector>
+#include "sbstypes.hh"
 
 using namespace std;
 
@@ -16,7 +17,7 @@ class G4SBSTrackerBuilder: public G4SBSComponent {
 	~G4SBSTrackerBuilder();
 
 	void BuildComponent(G4LogicalVolume *);
-  void BuildComponent(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector, unsigned int, vector<double>, vector<double>, vector<double>, G4int );
+  void BuildComponent(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector, unsigned int, vector<double>, vector<double>, vector<double>, G4String );
 	
 
     private:

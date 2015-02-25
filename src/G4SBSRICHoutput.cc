@@ -17,7 +17,7 @@ G4SBSRICHoutput::~G4SBSRICHoutput(){
 
 void G4SBSRICHoutput::Clear(){
   nhits_RICH = 0;
-  ntracks_RICH = 0;
+  //  ntracks_RICH = 0;
   
   PMTnumber.clear();
   row.clear();
@@ -26,6 +26,8 @@ void G4SBSRICHoutput::Clear(){
   NumPhotoelectrons.clear();
   Time_avg.clear();
   Time_rms.clear();
+  Time_min.clear();
+  Time_max.clear();
   mTrackNo.clear();
 
   xhit.clear();
@@ -47,14 +49,23 @@ void G4SBSRICHoutput::Clear(){
   //  thetaC.clear();
   volume_flag.clear();
   
-  mPID.clear();
-  mTID.clear();
-  mMID.clear();
-  mvx.clear();
-  mvy.clear();
-  mvz.clear();
-  mpx.clear();
-  mpy.clear();
-  mpz.clear();
+  xpmt.clear();
+  ypmt.clear();
+  zpmt.clear();
+  xgpmt.clear();
+  ygpmt.clear();
+  zgpmt.clear();
+
+  // mPID.clear();
+  // mTID.clear();
+  // mMID.clear();
+  // mvx.clear();
+  // mvy.clear();
+  // mvz.clear();
+  // mpx.clear();
+  // mpy.clear();
+  // mpz.clear();
+
+  ParticleHistory.Clear();
 
 }

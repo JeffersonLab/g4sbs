@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Wed Mar 12 10:18:27 2014 by ROOT version 5.34/12
+// Fri Dec 19 11:54:36 2014 by ROOT version 5.34/18
 // from TTree T/Geant4 SBS Simulation
-// found on file: sidis_pip_11gev_upbend2.root
+// found on file: temp.root
 //////////////////////////////////////////////////////////
 
 #ifndef g4sbs_tree_h
@@ -160,6 +160,13 @@ public :
    vector<double>  *RICH_mpx;
    vector<double>  *RICH_mpy;
    vector<double>  *RICH_mpz;
+   Int_t           ECal_nhits;
+   vector<int>     *ECal_pmt;
+   vector<int>     *ECal_row;
+   vector<int>     *ECal_col;
+   vector<int>     *ECal_nphe;
+   vector<double>  *ECal_tavg;
+   vector<double>  *ECal_trms;
 
    // List of branches
    TBranch        *b_ev;   //!
@@ -259,6 +266,13 @@ public :
    TBranch        *b_RICH_mpx;   //!
    TBranch        *b_RICH_mpy;   //!
    TBranch        *b_RICH_mpz;   //!
+   TBranch        *b_nhits_ECal;   //!
+   TBranch        *b_ECal_pmt;   //!
+   TBranch        *b_ECal_row;   //!
+   TBranch        *b_ECal_col;   //!
+   TBranch        *b_ECal_nphe;   //!
+   TBranch        *b_ECal_tavg;   //!
+   TBranch        *b_ECal_trms;   //!
 
    g4sbs_tree(TTree *tree=0);
    virtual ~g4sbs_tree();
@@ -279,9 +293,9 @@ g4sbs_tree::g4sbs_tree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("sidis_pip_11gev_upbend2.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("temp.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("sidis_pip_11gev_upbend2.root");
+         f = new TFile("temp.root");
       }
       f->GetObject("T",tree);
 
@@ -372,6 +386,12 @@ void g4sbs_tree::Init(TTree *tree)
    RICH_mpx = 0;
    RICH_mpy = 0;
    RICH_mpz = 0;
+   ECal_pmt = 0;
+   ECal_row = 0;
+   ECal_col = 0;
+   ECal_nphe = 0;
+   ECal_tavg = 0;
+   ECal_trms = 0;
    // Set branch addresses and branch pointers
    if (!tree) return;
    fChain = tree;
@@ -414,17 +434,17 @@ void g4sbs_tree::Init(TTree *tree)
    fChain->SetBranchAddress("hc.mid", hc_mid, &b_hc_mid);
    fChain->SetBranchAddress("hc.pid", hc_pid, &b_hc_pid);
    fChain->SetBranchAddress("bc.ndata", &bc_ndata, &b_bc_ndata);
-   fChain->SetBranchAddress("bc.x", bc_x, &b_bc_x);
-   fChain->SetBranchAddress("bc.y", bc_y, &b_bc_y);
-   fChain->SetBranchAddress("bc.z", bc_z, &b_bc_z);
-   fChain->SetBranchAddress("bc.e", bc_e, &b_bc_e);
-   fChain->SetBranchAddress("bc.t", bc_t, &b_bc_t);
-   fChain->SetBranchAddress("bc.vx", bc_vx, &b_bc_vx);
-   fChain->SetBranchAddress("bc.vy", bc_vy, &b_bc_vy);
-   fChain->SetBranchAddress("bc.vz", bc_vz, &b_bc_vz);
-   fChain->SetBranchAddress("bc.trid", bc_trid, &b_bc_trid);
-   fChain->SetBranchAddress("bc.mid", bc_mid, &b_bc_mid);
-   fChain->SetBranchAddress("bc.pid", bc_pid, &b_bc_pid);
+   fChain->SetBranchAddress("bc.x", &bc_x, &b_bc_x);
+   fChain->SetBranchAddress("bc.y", &bc_y, &b_bc_y);
+   fChain->SetBranchAddress("bc.z", &bc_z, &b_bc_z);
+   fChain->SetBranchAddress("bc.e", &bc_e, &b_bc_e);
+   fChain->SetBranchAddress("bc.t", &bc_t, &b_bc_t);
+   fChain->SetBranchAddress("bc.vx", &bc_vx, &b_bc_vx);
+   fChain->SetBranchAddress("bc.vy", &bc_vy, &b_bc_vy);
+   fChain->SetBranchAddress("bc.vz", &bc_vz, &b_bc_vz);
+   fChain->SetBranchAddress("bc.trid", &bc_trid, &b_bc_trid);
+   fChain->SetBranchAddress("bc.mid", &bc_mid, &b_bc_mid);
+   fChain->SetBranchAddress("bc.pid", &bc_pid, &b_bc_pid);
    fChain->SetBranchAddress("ntracks", &ntracks, &b_ntracks);
    fChain->SetBranchAddress("trackerid", &trackerid, &b_trackerid);
    fChain->SetBranchAddress("trackid", &trackid, &b_trackid);
@@ -475,6 +495,13 @@ void g4sbs_tree::Init(TTree *tree)
    fChain->SetBranchAddress("RICH_mpx", &RICH_mpx, &b_RICH_mpx);
    fChain->SetBranchAddress("RICH_mpy", &RICH_mpy, &b_RICH_mpy);
    fChain->SetBranchAddress("RICH_mpz", &RICH_mpz, &b_RICH_mpz);
+   fChain->SetBranchAddress("ECal_nhits", &ECal_nhits, &b_nhits_ECal);
+   fChain->SetBranchAddress("ECal_pmt", &ECal_pmt, &b_ECal_pmt);
+   fChain->SetBranchAddress("ECal_row", &ECal_row, &b_ECal_row);
+   fChain->SetBranchAddress("ECal_col", &ECal_col, &b_ECal_col);
+   fChain->SetBranchAddress("ECal_nphe", &ECal_nphe, &b_ECal_nphe);
+   fChain->SetBranchAddress("ECal_tavg", &ECal_tavg, &b_ECal_tavg);
+   fChain->SetBranchAddress("ECal_trms", &ECal_trms, &b_ECal_trms);
    Notify();
 }
 

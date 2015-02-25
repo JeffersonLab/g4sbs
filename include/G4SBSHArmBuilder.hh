@@ -7,41 +7,43 @@
 #include "G4RotationMatrix.hh"
 
 class G4SBSHArmBuilder: public G4SBSComponent {
-    public:
-	G4SBSHArmBuilder(G4SBSDetectorConstruction *);
-	~G4SBSHArmBuilder();
+public:
+  G4SBSHArmBuilder(G4SBSDetectorConstruction *);
+  ~G4SBSHArmBuilder();
 
-	void BuildComponent(G4LogicalVolume *);
+  void BuildComponent(G4LogicalVolume *);
 
-	void Set48D48Ang(double a){ f48D48ang = a; }
-	void SetHCALDist(double a){ fHCALdist= a;   }
-	void Set48D48Dist(double a){ f48D48dist = a; }
-	void SetRICHdist( double d ){ fRICHdist = d; } //Set RICH detector distance
-	void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
+  void Set48D48Ang(double a){ f48D48ang = a; }
+  void SetHCALDist(double a){ fHCALdist= a;   }
+  void Set48D48Dist(double a){ f48D48dist = a; }
+  void SetRICHdist( double d ){ fRICHdist = d; } //Set RICH detector distance
+  void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
 
 
 
-	void Make48D48(G4LogicalVolume*, double);
-	void MakeSBSFieldClamps(G4LogicalVolume*);
-	void MakeHCAL(G4LogicalVolume*, G4double);
-	void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
-	void MakeRICH(G4LogicalVolume *);
+  void Make48D48(G4LogicalVolume*, double);
+  void MakeSBSFieldClamps(G4LogicalVolume*);
+  void MakeHCAL(G4LogicalVolume*, G4double);
+  void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
+  void MakeRICH(G4LogicalVolume *);
+  void MakeRICH_new(G4LogicalVolume *);
+  
 
-	double f48D48ang;
-	double f48D48dist;
-	int f48D48_fieldclamp_config; //Configuration of field clamp. There could be several of these.
-	double fHCALdist;
-	double fRICHdist;
+  double f48D48ang;
+  double f48D48dist;
+  int f48D48_fieldclamp_config; //Configuration of field clamp. There could be several of these.
+  double fHCALdist;
+  double fRICHdist;
 
-	// Useful constants
-	double f48D48depth;
-	double f48D48height;
-	double f48D48width;
+  // Useful constants
+  double f48D48depth;
+  double f48D48height;
+  double f48D48width;
 
-	bool fUseLocalField;
+  bool fUseLocalField;
 
-	double fFieldStrength;
-    private:
+  double fFieldStrength;
+private:
 
 };
 

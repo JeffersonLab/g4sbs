@@ -67,7 +67,7 @@ private:
   G4UIcmdWithAString *ECALmapfileCmd; //Set name of text file with list of active rows and columns for ECAL
 
   //Flag to build evacuated scattering chamber for gas target:
-  G4UIcmdWithAnInteger *SchamGasTgtCmd;
+  //G4UIcmdWithAnInteger *SchamGasTgtCmd;
 
   G4UIcmdWithADoubleAndUnit *tgtLenCmd;
   G4UIcmdWithADoubleAndUnit *tgtDenCmd;
@@ -119,7 +119,9 @@ private:
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
 
   G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree
-  
+
+  G4UIcmdWithABool *Earm_CAL_part_cmd;
+  G4UIcmdWithABool *Harm_CAL_part_cmd;
 
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
   // G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov

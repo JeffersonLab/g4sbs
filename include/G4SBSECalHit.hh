@@ -25,8 +25,8 @@ public:
   virtual void Print();
 
   //Utility functions to map rows and columns to PMT numbers
-  G4int calc_row( G4int PMT );
-  G4int calc_col( G4int PMT );
+  // G4int calc_row( G4int PMT );
+  // G4int calc_col( G4int PMT );
 
 private:
   
@@ -38,17 +38,9 @@ private:
   //       quantities because we expect ~10^4 - 10^5 optical photons to be 
   //       created during an EM shower.
 
-  G4int fTrackID;              //track number of current track
-  //G4int fMotherID;             //track number of mother of current track
-  //G4int fTrackPID;             //particle ID of current track
-  //G4int fMotherPID;            //particle ID of current track
-  G4ThreeVector fpos;          //position of the step (global)
-  //G4ThreeVector fLpos;         //position of the step  (local to the volume)
-  //G4ThreeVector fdirection;    //momentum direction of the step
-  //G4ThreeVector fvertex;       //Primary vertex of the current track
-  //G4ThreeVector fMothervertex; //Primary vertex of the track's mother
-  //G4ThreeVector fvertexdirection; //momentum direction at the primary vertex;
-  //G4ThreeVector fMothervertexdirection; //Mother particle momentum direction
+  G4int fTrackID;              //track number of current track: needed to access optical photon energy 
+  G4ThreeVector fpos;          //position of the step (global) 
+  G4ThreeVector fLpos;         //position of the step  (local to the volume)
   G4double fedep;              //Energy deposit
   G4double fdx;                //Step length
   G4double fenergy;            //optical photon energy in this step
@@ -56,7 +48,8 @@ private:
   G4int fPMTnumber;            //PMT number;
   G4int frownumber;            //PMT row number
   G4int fcolnumber;            //PMT column number
-  //G4int foriginvol;            //Volume in which the track of this optical photon originated (1=Aerogel, 2=RICHbox, 3=lucite, 0=other)
+  G4ThreeVector CellCoords;    //"local" coordinate of center of cell in which hit occurs.
+  G4ThreeVector GlobalCellCoords; //"global" coordinate of center of cell in which hit occurs:
 
   //Need to store a pointer to logical volume in order to retrieve quantum efficiency info later:
   G4LogicalVolume *fvolume_log;
@@ -67,38 +60,13 @@ public:
   //Track IDs:
   inline void SetTrackID( G4int tid ){ fTrackID = tid; }
   inline G4int GetTrackID() const { return fTrackID; }
-  
-  //inline void SetMotherID( G4int mid ){ fMotherID = mid; }
-  //inline G4int GetMotherID() const { return fMotherID; }
-  
-  //Particle IDs:
-  // inline void SetTrackPID( G4int tid ){ fTrackPID = tid; }
-  // inline G4int GetTrackPID() const { return fTrackPID; }
-  
-  // inline void SetMotherPID( G4int mid ){ fMotherPID = mid; }
-  // inline G4int GetMotherPID() const { return fMotherPID; }
 
   //Track positions and vertices:
   inline void SetPos( G4ThreeVector x ){ fpos = x; }
   inline G4ThreeVector GetPos() const { return fpos; }
 
-  // inline void SetLPos( G4ThreeVector x ){ fLpos = x; }
-  // inline G4ThreeVector GetLPos() const { return fLpos; }
-  
-  // inline void SetDirection( G4ThreeVector n ){ fdirection = n.unit(); }
-  // inline G4ThreeVector GetDirection() const { return fdirection; }
-
-  // inline void SetVertex( G4ThreeVector v ){ fvertex = v; }
-  // inline G4ThreeVector GetVertex() const { return fvertex; }
-
-  // inline void SetVertexDirection( G4ThreeVector n ) { fvertexdirection = n.unit(); }
-  // inline G4ThreeVector GetVertexDirection() const { return fvertexdirection; }
-
-  // inline void SetMotherVertex( G4ThreeVector v ){ fMothervertex = v; }
-  // inline G4ThreeVector GetMotherVertex() const { return fMothervertex; }
-
-  // inline void SetMotherVertexDirection( G4ThreeVector n ) { fMothervertexdirection = n.unit(); }
-  // inline G4ThreeVector GetMotherVertexDirection() const { return fMothervertexdirection; }
+  inline void SetLPos( G4ThreeVector x ){ fLpos = x; }
+  inline G4ThreeVector GetLPos() const { return fLpos; }
 
   //Step physical properties (energy deposit, energy, time, step length):
   inline void SetEdep( G4double dE ){ fedep = dE; }
@@ -122,12 +90,19 @@ public:
 
   inline void Setcolnumber( G4int i ){ fcolnumber = i; }
   inline G4int Getcolnumber() const { return fcolnumber; }
+
+  inline void SetCellCoords( G4ThreeVector x ){CellCoords = x;}
+  inline G4ThreeVector GetCellCoords() const { return CellCoords; }
+  
+  inline void SetGlobalCellCoords( G4ThreeVector x ){ GlobalCellCoords = x; }
+  inline G4ThreeVector GetGlobalCellCoords() const { return GlobalCellCoords; }
+  
   
   // inline void SetOriginVol( G4int i ){ foriginvol = i; }
   // inline G4int GetOriginVol() const { return foriginvol; }
 
   inline void SetLogicalVolume( G4LogicalVolume *v ){  fvolume_log = v; }
-  inline G4LogicalVolume *GetLogicalVolume() { return fvolume_log; }
+  inline G4LogicalVolume *GetLogicalVolume() const { return fvolume_log; }
 };
 
 typedef G4THitsCollection<G4SBSECalHit> G4SBSECalHitsCollection;

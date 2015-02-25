@@ -13,12 +13,13 @@ public:
   void Clear();
 
   // What variables should be stored here? 
-  // The tracks created by primary particles, and ONLY by primary particles, in all defined tracker modules:
+  // The tracks created by all particles, in all defined tracker modules:
   // An implicit assumption is made that tracks are straight lines
   int ntracks; //Number of tracks made by primary particles in tracker modules:
-  vector<int> TrackerID; //Tracker ID number of the track
+  //vector<int> TrackerID; //Tracker ID number of the track
   vector<int> TrackTID; //Track ID of the particle that caused this track
   vector<int> TrackPID; //PDG encoding of particle type which caused this track 
+  vector<int> TrackMID; //Mother track ID of particle that caused this track:f
   //No need to store mother ID info because we only output tracks made by primary particles
   vector<int> NumHits; //Total number of "hits" (actually, tracking steps that result in energy deposition in a sensitive volume) in this tracker
   vector<int> NumPlanes; //Total number of unique planes with at least one "hit" in this track.

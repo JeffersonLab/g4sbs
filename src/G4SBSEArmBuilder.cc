@@ -39,6 +39,8 @@
 #include <fstream>
 #include <algorithm>
 
+#include "sbstypes.hh"
+
 using namespace std;
 
 G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
@@ -393,14 +395,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   //------------------------------------------- BigBite GEMs: ----------------------------------------//
 
-  (fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kEarm;
+  //  (fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kEarm;
     
-  trackerbuilder.BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset ), ngem, gemz, gemw, gemh, (fDetCon->TrackerIDnumber)++ );
+  trackerbuilder.BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset ), ngem, gemz, gemw, gemh, "Earm/BBGEM" );
   //----- Note: Lines of code that are common to the construction of all individual GEM planes/modules were moved to MakeTracker() -----// 
   //----- All we do here in MakeBigBite() is define the number of planes, their z positions, and their transverse dimensions ------//
 
   // BigBite Preshower 
-  // AJP: Why make a preshower box if it's just going to be full of air and not a sensitive detector?
 
   double psheight = 27*8.5*cm;
   double pswidth  = 2.0*37.0*cm;
@@ -425,19 +426,26 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+caldepth/2.0+5.0*cm), bbcallog,
 		    "bbcalphys", bbdetLog, false, 0, false);
 
-  G4String BBCalSDname = "G4SBS/BBCal";
-  G4String BBCalcolname = "BBCalcol";
+  G4String BBCalSDname = "Earm/BBCal";
+  G4String BBCalcolname = "BBCalHitsCollection";
   G4SBSCalSD* BBCalSD;
 
   if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCalSDname)) ){
     BBCalSD = new G4SBSCalSD( BBCalSDname, BBCalcolname );
     fDetCon->fSDman->AddNewDetector(BBCalSD);
-    fDetCon->SDlist[BBCalSDname] = BBCalSD;
+    (fDetCon->SDlist).insert( BBCalSDname );
+    fDetCon->SDtype[BBCalSDname] = kCAL;
+    //fDetCon->SDarm[BBCalSDname] = kEarm;
   }
 
   bbcallog->SetSensitiveDetector(BBCalSD);
   bbcallog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
 
+  (BBCalSD->detmap).depth=0;
+  (BBCalSD->detmap).Row[0] = 0;
+  (BBCalSD->detmap).Col[0] = 0;
+  (BBCalSD->detmap).LocalCoord[0] = G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+caldepth/2.0+5.0*cm);
+  //(BBCalSD->detmap).GlobalCoord[0] = G4ThreeVector(0.0,0.0,0.0); //To be set later 
 
   //--------- BigBite Cerenkov ------------------------------
 
@@ -646,15 +654,19 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   G4Box *TF1_box = new G4Box( "TF1_box", x_TF1/2.0, y_TF1/2.0, z_TF1/2.0 );
   G4LogicalVolume *TF1_log = new G4LogicalVolume ( TF1_box, GetMaterial("TF1_anneal"), "TF1_log" );
 
-  G4String ECalTF1SDname = "G4SBS/ECalLeadGlass";
-  G4String ECalTF1collname = "G4SBS/ECalLeadGlassColl";
+  G4String ECalTF1SDname = "Earm/ECalTF1";
+  G4String ECalTF1collname = "ECalTF1HitsCollection";
   G4SBSCalSD *ECalTF1SD = NULL;
     
   if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(ECalTF1SDname) ) ){
     G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
     ECalTF1SD = new G4SBSCalSD( ECalTF1SDname, ECalTF1collname );
     fDetCon->fSDman->AddNewDetector( ECalTF1SD );
-    fDetCon->SDlist[ECalTF1SDname] = ECalTF1SD;
+    (fDetCon->SDlist).insert(ECalTF1SDname);
+    fDetCon->SDtype[ECalTF1SDname] = kCAL;
+    //fDetCon->SDarm[ECalTF1SDname] = kEarm;
+
+    (ECalTF1SD->detmap).depth = 1;
   }
   TF1_log->SetSensitiveDetector( ECalTF1SD ); 
 
@@ -681,15 +693,18 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   //PMTcathode_ecal_log is the sensitive detector, assigned to ECalSD which detects optical photons
   G4SDManager *sdman = fDetCon->fSDman;
 
-  G4String ECalSDname = "G4SBS/ECal";
-  G4String ECalcollname = "ECalcoll";
+  G4String ECalSDname = "Earm/ECal";
+  G4String ECalcollname = "ECalHitsCollection";
   G4SBSECalSD *ECalSD = NULL;
 
   if( !( (G4SBSECalSD*) sdman->FindSensitiveDetector(ECalSDname) ) ){
     G4cout << "Adding ECal sensitive detector to SDman..." << G4endl;
     ECalSD = new G4SBSECalSD( ECalSDname, ECalcollname );
     sdman->AddNewDetector( ECalSD );
-    fDetCon->SDlist[ECalSDname] = ECalSD;
+    (fDetCon->SDlist).insert(ECalSDname);
+    fDetCon->SDtype[ECalSDname] = kECAL;
+    //fDetCon->SDarm[ECalSDname] = kEarm;
+    (ECalSD->detmap).depth = 0;
   }
   PMTcathode_ecal_log->SetSensitiveDetector( ECalSD );
 
@@ -715,7 +730,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
   if( ecal_map_file.is_open() ){
     while ( Line.readLine( ecal_map_file ) ){
-      G4cout << "Read Line from ecal map file: \"" <<  Line.data() << "\"" << G4endl;
+      //G4cout << "Read Line from ecal map file: \"" <<  Line.data() << "\"" << G4endl;
       if( !(Line[0] == '#') ){
 	int row, col;
 	sscanf( Line.data(), "%d %d", &row, &col );
@@ -751,7 +766,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   //And a half Steel module to fill in voids caused by staggering
   G4Box *steel_box_half = new G4Box("steel_box_half", 0.5*(x_steel/2.0), y_steel/2.0, z_steel/2.0);
   G4LogicalVolume *steel_log_half = new G4LogicalVolume( steel_box_half, GetMaterial("Steel"), "steel_log");
-  int module_number; //counts modules if needed
+  //int module_number; //counts modules if needed
 
   //Iterating to build ECal 
  	
@@ -765,6 +780,10 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
       pair<int,int> rowcol( i, j );
 	  
       if( active_cells.find( rowcol ) != active_cells.end() ){ //This row and column are active:
+	(ECalSD->detmap).Row[copy_number_PMT] = i;
+	(ECalSD->detmap).Col[copy_number_PMT] = j;
+	(ECalTF1SD->detmap).Row[copy_number_PMT] = i;
+	(ECalTF1SD->detmap).Col[copy_number_PMT] = j;
 	//EVEN ROWS
 	if(i%2==0){ 
 	  //Type1 Module
@@ -774,6 +793,10 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	  //PMT_cathode
 	  new G4PVPlacement( 0, G4ThreeVector(xtemp_even, ytemp, z_ecal/2.0-PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
 	      
+	  (ECalSD->detmap).LocalCoord[copy_number_PMT] = G4ThreeVector(xtemp_even,ytemp,z_ecal/2.0-PMT_depth/2.0);
+	  //(ECalSD->detmap).GlobalCoord[copy_number_PMT] = G4ThreeVector(0.0,0.0,0.0);
+	  (ECalTF1SD->detmap).LocalCoord[copy_number_PMT] = G4ThreeVector(xtemp_even,ytemp,-PMT_depth);
+	  //(ECalTF1SD->detmap).GlobalCoord[copy_number_PMT] = G4ThreeVector(0.0,0.0,0.0);
 	}
 
 	//ODD ROWS
@@ -785,8 +808,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	  //PMT_cathode
 	  new G4PVPlacement( 0, G4ThreeVector(xtemp_odd, ytemp, z_ecal/2.0-PMT_depth/2.0), PMTcathode_ecal_log, "PMTcathode_pv", ecal_log, false, copy_number_PMT );
 	      
+	  (ECalSD->detmap).LocalCoord[copy_number_PMT] = G4ThreeVector(xtemp_odd,ytemp,z_ecal/2.0-PMT_depth/2.0);
+	  //(ECalSD->detmap).GlobalCoord[copy_number_PMT] = G4ThreeVector(0.0,0.0,0.0);
+	  (ECalTF1SD->detmap).LocalCoord[copy_number_PMT] = G4ThreeVector(xtemp_odd,ytemp,-PMT_depth);
+	  //(ECalTF1SD->detmap).GlobalCoord[copy_number_PMT] = G4ThreeVector(0.0,0.0,0.0);
 	}
-	module_number++;
+	//	module_number++;
 	copy_number_PMT++;
       } else { //Steel Filler:
 	if( i>=minrow-2 && i<=maxrow+2 && j>=mincol-2 && j<=maxcol+2 ){

@@ -9,22 +9,28 @@
 
 G4SBSRICHSD::G4SBSRICHSD( G4String name, G4String collname ) : G4VSensitiveDetector(name) {
   collectionName.insert( collname );
+  detmap.SDname = name;
+  detmap.clear();
 }
 
 G4SBSRICHSD::~G4SBSRICHSD(){;}
 
 void G4SBSRICHSD::Initialize( G4HCofThisEvent *HC ){
-  static int HCID = -1;
+  G4int HCID = -1;
   hitCollection = new G4SBSRICHHitsCollection( SensitiveDetectorName, collectionName[0] );
   
   if( HCID < 0 ){
     HCID = GetCollectionID(0);
   }
 
+  //  G4cout << "Adding hit collection " << collectionName[0] << " to HCE, HCID = " << HCID << ", SDname = " << SensitiveDetectorName << G4endl;
+
   HC->AddHitsCollection( HCID, hitCollection );
 }
 
 G4bool G4SBSRICHSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
+  //G4cout << "Processing RICH hits, SDname = " << SensitiveDetectorName << G4endl;
+
   G4double edep = aStep->GetTotalEnergyDeposit();
 
   //For the RICH, we only consider optical photons to be part of the hit (this is what we are sensitive to)
@@ -40,6 +46,8 @@ G4bool G4SBSRICHSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
   G4StepPoint *prestep = aStep->GetPreStepPoint();
 //  G4StepPoint *poststep = aStep->GetPostStepPoint();
 
+  G4TouchableHistory* hist = (G4TouchableHistory*) (prestep->GetTouchable());
+  
   //Where to get all the information needed for the hit? 
   //From get methods of G4Step, G4Track, and G4StepPoint
 
@@ -52,7 +60,7 @@ G4bool G4SBSRICHSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
   newHit->SetVertexDirection( track->GetVertexMomentumDirection() );
 
   //Record where was the optical photon produced:
-  //Three cases are interesting: Aerogel tiles, RICH box containing C4F10 gas, or UVT-lucite of aerogel exit window
+  //Three cases are interesting: Aerogel tiles, RICH box containing C4F10 gas, or UVT-lucite of aerogel exit window (also PMT windows, PMT cathode volume, or PMT Quartz window):
   G4String namevol_origin = track->GetLogicalVolumeAtVertex()->GetName();
   int origin_flag = 0; //default
   if( namevol_origin.contains("Aerogel_tile_log") ){  //Aerogel
@@ -61,6 +69,8 @@ G4bool G4SBSRICHSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
     origin_flag = 2;
   } else if (namevol_origin.contains("Aero_exitwindow") ){ //UVT lucite
     origin_flag = 3;
+  } else if (namevol_origin.contains("PMTwindow_log") || namevol_origin.contains("PMTcathode_log") || namevol_origin.contains("PMTQuartzWindow_log") ){
+    origin_flag = 4;
   }
 
   newHit->SetOriginVol( origin_flag );
@@ -68,37 +78,53 @@ G4bool G4SBSRICHSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
   newHit->Setdx( aStep->GetStepLength() );
   newHit->SetTime( prestep->GetGlobalTime() );
   newHit->SetEdep( edep );
-  newHit->Setenergy( prestep->GetTotalEnergy() );
+  newHit->SetEnergy( prestep->GetTotalEnergy() );
 
   //Let's change this so that it refers to the local position and direction of the hit:
   
   G4AffineTransform RICH_atrans = ( (G4TouchableHistory*) prestep->GetTouchable() )->GetHistory()->GetTopTransform();
 
-  G4ThreeVector pos = prestep->GetPosition();
+  G4ThreeVector pos = prestep->GetPosition(); //Global position
   
+  newHit->SetPos( pos ); //Global
+
   pos = RICH_atrans.TransformPoint(pos); 
 
   G4ThreeVector mom = prestep->GetMomentumDirection();
 
+  newHit->SetDirection( mom ); //Global
+
   mom *= (RICH_atrans.NetRotation()).inverse();
 
-  newHit->SetPos( pos );
-  newHit->SetDirection( mom );
+  //local position and direction:
+  newHit->SetLPos( pos );
+  newHit->SetLDirection( mom );
 
   //Get PMT identifying information:
 
-  int PMTno;
+  //int PMTno;
 
   //G4cout << "RICH hit physical volume name, pre-step = " << prestep->GetPhysicalVolume()->GetName() << G4endl; 
+  
+  newHit->SetPMTnumber( hist->GetVolume( detmap.depth )->GetCopyNo() );
 
-  newHit->SetPMTnumber( PMTno = prestep->GetPhysicalVolume()->GetCopyNo() );
+  
+  //  newHit->Setrownumber( newHit->calc_row( PMTno ) );
+  //  newHit->Setcolnumber( newHit->calc_col( PMTno ) );
+
+  newHit->Setrownumber( detmap.Row[newHit->GetPMTnumber()] );
+  newHit->Setcolnumber( detmap.Col[newHit->GetPMTnumber()] );
 
   // G4cout << "Hit RICH PMT number " << newHit->GetPMTnumber() << G4endl;
+  // G4cout << "Physical volume name = " << prestep->GetPhysicalVolume()->GetName() << ", copy = " << newHit->GetPMTnumber()
+  // 	 << " (row,col)=(" << newHit->Getrownumber() << ", " << newHit->Getcolnumber() << ")" << G4endl;
 
-  //G4cout << "Physical volume name = " << prestep->GetPhysicalVolume()->GetName() << ", copy = " << prestep->GetPhysicalVolume()->GetCopyNo() << G4endl;
-
-  newHit->Setrownumber( newHit->calc_row( PMTno ) );
-  newHit->Setcolnumber( newHit->calc_col( PMTno ) );
+  
+  newHit->SetCellCoord( detmap.LocalCoord[newHit->GetPMTnumber()] );
+  
+  G4AffineTransform RICH_atrans_inverse  = RICH_atrans.Inverse();
+  
+  newHit->SetGlobalCellCoord( RICH_atrans_inverse.TransformPoint( G4ThreeVector(0,0,0) ) );
 
   newHit->SetLogicalVolume( prestep->GetPhysicalVolume()->GetLogicalVolume() );
 

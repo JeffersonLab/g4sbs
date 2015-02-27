@@ -126,8 +126,10 @@ public:
 
   void SetDetCon(G4SBSDetectorConstruction *dc ){ fdetcon = dc; }
 
-  void SetEarmCALpart_flag( G4bool b ){ EarmCALpart_flag = b; }
-  void SetHarmCALpart_flag( G4bool b ){ HarmCALpart_flag = b; }
+  // void SetEarmCALpart_flag( G4bool b ){ EarmCALpart_flag = b; }
+  // void SetHarmCALpart_flag( G4bool b ){ HarmCALpart_flag = b; }
+  map<G4String,G4bool> KeepPartCALflags;
+  map<G4String,G4bool> KeepHistoryflags;
   
 private:
   TFile *fFile;
@@ -151,8 +153,8 @@ private:
   
   char fFilename[255];
 
-  G4bool EarmCALpart_flag;
-  G4bool HarmCALpart_flag;
+  // G4bool EarmCALpart_flag;
+  // G4bool HarmCALpart_flag;
   
 };
 

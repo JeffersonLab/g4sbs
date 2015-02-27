@@ -442,8 +442,17 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
 
   bbcallog->SetSensitiveDetector(BBCalSD);
-  bbcallog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
 
+  // G4cout << "fDetCon->StepLimiterList.size() == " << (fDetCon->StepLimiterList).size() << G4endl;
+  // for( set<G4String>::iterator itlist=(fDetCon->StepLimiterList).begin(); itlist != (fDetCon->StepLimiterList).end(); itlist++){
+  //   G4cout << "step limiter list element = " << *itlist << G4endl;
+  // }
+  
+  if( (fDetCon->StepLimiterList).find(BBCalSDname) != (fDetCon->StepLimiterList).end() ){
+    G4cout << "Creating user limits for " << BBCalSDname << G4endl;
+    bbcallog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+  
   (BBCalSD->detmap).depth=0;
   (BBCalSD->detmap).Row[0] = 0;
   (BBCalSD->detmap).Col[0] = 0;
@@ -671,7 +680,11 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
     (ECalTF1SD->detmap).depth = 1;
   }
-  TF1_log->SetSensitiveDetector( ECalTF1SD ); 
+  TF1_log->SetSensitiveDetector( ECalTF1SD );
+
+  if( (fDetCon->StepLimiterList).find( ECalTF1SDname ) != (fDetCon->StepLimiterList).end() ){
+    TF1_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
 
   //Place TF1 mother & Mylar inside module_log_type1 which is already full of ECal_Air
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, 0.0), mylar_wrap_log, "Mylar_Wrap", module_log_type1, false, 0 );

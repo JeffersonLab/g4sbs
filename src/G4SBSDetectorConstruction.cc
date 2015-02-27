@@ -78,6 +78,10 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
     fLeadOption = 0;
 
+    SDlist.clear();
+    SDtype.clear();
+    StepLimiterList.clear();
+    
     //    TrackerIDnumber = 0;
     //TrackerArm.clear();
 }

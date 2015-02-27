@@ -32,6 +32,9 @@ void G4SBSCALoutput::Clear(){
   tmax.clear();
 
   npart_CAL = 0;
+  px.clear();
+  py.clear();
+  pz.clear();
   x.clear();
   y.clear();
   z.clear();

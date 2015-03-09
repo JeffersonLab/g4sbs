@@ -9,7 +9,7 @@
 #include "G4SBSRICHoutput.hh"
 #include "G4SBSECaloutput.hh"
 #include "G4SBSTrackerOutput.hh"
-#include "G4SBSCaloutput.hh"
+#include "G4SBSCALoutput.hh"
 #include "G4SBSGEMoutput.hh"
 #include "G4SBSDetectorConstruction.hh"
 

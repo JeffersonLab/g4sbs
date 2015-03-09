@@ -1024,7 +1024,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     fMaterialsMap["Photocathode_material_ecal"] = Photocathode_material_ecal;
 
     //Define optical properties for AIR:
-    G4Material *ECal_Air = man->FindOrBuildMaterial("G4_AIR");
+    G4Material *Special_Air = man->FindOrBuildMaterial("G4_AIR");
     MPT_temp = new G4MaterialPropertiesTable();
 
     G4double Rindex_air[nentries_ecal_QE] = {
@@ -1050,8 +1050,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_air, nentries_ecal_QE );
     MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_air, nentries_ecal_QE );
 
-    ECal_Air->SetMaterialPropertiesTable( MPT_temp );
-    fMaterialsMap["ECal_Air"] = ECal_Air;
+    Special_Air->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap["Special_Air"] = Special_Air;
 
     //CDet & Poly "filter"
     G4Material *Polyethylene = man->FindOrBuildMaterial("G4_POLYETHYLENE");

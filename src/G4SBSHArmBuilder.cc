@@ -35,6 +35,9 @@
 #include "G4ChordFinder.hh"
 #include "TString.h"
 
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
 #include <vector>
 #include <map>
 
@@ -661,8 +664,11 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     //sdman->AddNewDetector(HCalSD);
     hcallog->SetSensitiveDetector(HCalSD);
   }
-  
-  hcallog->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+
+  if( (fDetCon->StepLimiterList).find( HCALSDname ) != (fDetCon->StepLimiterList).end() ){
+    G4cout << "Creating user limits for " << HCALSDname << G4endl;
+    hcallog->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
 
   G4VisAttributes * hcalVisAtt
     = new G4VisAttributes(G4Colour(0.0,0.6,0.0));

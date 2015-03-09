@@ -41,6 +41,9 @@
 
 #include "sbstypes.hh"
 
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
 using namespace std;
 
 G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
@@ -573,6 +576,12 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // (BBCalSD->detmap).Row[0] = 0;
   // (BBCalSD->detmap).Col[0] = 0;
   // (BBCalSD->detmap).LocalCoord[0] = G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+caldepth/2.0+5.0*cm);
+
+  // G4cout << "fDetCon->StepLimiterList.size() == " << (fDetCon->StepLimiterList).size() << G4endl;
+  // for( set<G4String>::iterator itlist=(fDetCon->StepLimiterList).begin(); itlist != (fDetCon->StepLimiterList).end(); itlist++){
+  //   G4cout << "step limiter list element = " << *itlist << G4endl;
+  // }
+
   //(BBCalSD->detmap).GlobalCoord[0] = G4ThreeVector(0.0,0.0,0.0); //To be set later 
 
   //--------- BigBite Cerenkov ------------------------------
@@ -767,7 +776,11 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
     (ECalTF1SD->detmap).depth = 1;
   }
-  TF1_log->SetSensitiveDetector( ECalTF1SD ); 
+  TF1_log->SetSensitiveDetector( ECalTF1SD );
+
+  if( (fDetCon->StepLimiterList).find( ECalTF1SDname ) != (fDetCon->StepLimiterList).end() ){
+    TF1_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
 
   //Place TF1 mother & Mylar inside module_log_type1 which is already full of Special_Air
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, 0.0), mylar_wrap_log, "Mylar_Wrap", module_log_type1, false, 0 );

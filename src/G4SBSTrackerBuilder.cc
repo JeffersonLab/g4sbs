@@ -21,6 +21,9 @@
 #include "G4SBSGEMSD.hh"
 #include "sbstypes.hh"
 
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
 G4SBSTrackerBuilder::G4SBSTrackerBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
 
 }

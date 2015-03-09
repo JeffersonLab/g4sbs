@@ -1,7 +1,6 @@
 /control/execute scripts/sidis_template.mac
 
 /g4sbs/uselead 1
-/g4sbs/schbrflag 1
 #/g4sbs/target LH2
 #/g4sbs/exp gep
 #/g4sbs/hcaldist 9.0 m

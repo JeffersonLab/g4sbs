@@ -69,7 +69,8 @@ public:
   set<G4String> SDlist;
   map<G4String, SDet_t> SDtype; //Mapping of sensitive detector names to sensitive detector types
   //map<G4String, Arm_t> SDarm; //Mapping of sensitive detector names to spectrometer arms
-
+  set<G4String> StepLimiterList; //List of sensitive detectors for which G4UserLimits are defined to stop all particles entering (only allowed for calorimeters!)
+  
   G4SDManager *fSDman; 
   bool fTotalAbs;
 

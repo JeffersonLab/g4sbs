@@ -443,7 +443,7 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
   map<int,map<int,double> > x,y,z,trt,E,trtmin,trtmax,L; //average coordinates, energy, path length for each unique track ID depositing energy in a cell:
   map<int,map<int,double> > vx,vy,vz; //production vertex coordinates of each unique track ID depositing energy in a cell
   map<int,map<int,int> > MID, PID; //mother ID and particle ID of unique tracks in each cell:
-  map<int,map<int,double> > p, edep; //initial momentum and total energy deposition of unique tracks in each cell:
+  map<int,map<int,double> > p, px, py, pz, edep; //initial momentum and total energy deposition of unique tracks in each cell:
   
   //Loop over all hits:
   for( G4int hit=0; hit<hits->entries(); hit++ ){
@@ -497,6 +497,9 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	MID[cell][track] = (*hits)[hit]->GetMID();
 	PID[cell][track] = pid;
 	p[cell][track] = (*hits)[hit]->GetMomentum().mag();
+	px[cell][track] = (*hits)[hit]->GetMomentum().x();
+	py[cell][track] = (*hits)[hit]->GetMomentum().y();
+	pz[cell][track] = (*hits)[hit]->GetMomentum().z();
 	edep[cell][track] = Edep;
       } else { //additional step in this cell:
 	double w = double(nsteps_track[cell][track])/(double(nsteps_track[cell][track]+1) );

@@ -28,8 +28,8 @@ G4SBSIO::G4SBSIO(){
     gendata.drich = 4.6;
     gendata.dsbstrkr = 4.3;
 
-    EarmCALpart_flag = true;
-    HarmCALpart_flag = true;
+    KeepPartCALflags.clear();
+    KeepHistoryflags.clear();
 }
 
 G4SBSIO::~G4SBSIO(){
@@ -326,20 +326,24 @@ void G4SBSIO::BranchGEM(G4String SDname="GEM"){
   fTree->Branch( branch_name.Format("%s.Track.Yfit",branch_prefix.Data() ), &(trackdata[SDname].TrackYfit) );
   fTree->Branch( branch_name.Format("%s.Track.Xpfit",branch_prefix.Data() ), &(trackdata[SDname].TrackXpfit) );
   fTree->Branch( branch_name.Format("%s.Track.Ypfit",branch_prefix.Data() ), &(trackdata[SDname].TrackYpfit) );
+  
+  map<G4String,G4bool>::iterator it = KeepHistoryflags.find( SDname );
 
-  //Branches with "Particle History" data:
-  fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.npart) );
-  fTree->Branch( branch_name.Format("%s.part.PID", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.PID) );
-  fTree->Branch( branch_name.Format("%s.part.MID", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.MID) );
-  fTree->Branch( branch_name.Format("%s.part.TID", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.TID) );
-  fTree->Branch( branch_name.Format("%s.part.nbounce", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.nbounce) );
-  fTree->Branch( branch_name.Format("%s.part.hitindex", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.hitindex) );
-  fTree->Branch( branch_name.Format("%s.part.vx", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.vx) );
-  fTree->Branch( branch_name.Format("%s.part.vy", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.vy) );
-  fTree->Branch( branch_name.Format("%s.part.vz", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.vz) );
-  fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.px) );
-  fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.py) );
-  fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.pz) );
+  if( it != KeepHistoryflags.end() && it->second ){
+    //Branches with "Particle History" data:
+    fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.npart) );
+    fTree->Branch( branch_name.Format("%s.part.PID", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.PID) );
+    fTree->Branch( branch_name.Format("%s.part.MID", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.MID) );
+    fTree->Branch( branch_name.Format("%s.part.TID", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.TID) );
+    fTree->Branch( branch_name.Format("%s.part.nbounce", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.nbounce) );
+    fTree->Branch( branch_name.Format("%s.part.hitindex", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.hitindex) );
+    fTree->Branch( branch_name.Format("%s.part.vx", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.vx) );
+    fTree->Branch( branch_name.Format("%s.part.vy", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.vy) );
+    fTree->Branch( branch_name.Format("%s.part.vz", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.vz) );
+    fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.px) );
+    fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.py) );
+    fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.pz) );
+  }
 
   return;
 }
@@ -366,11 +370,9 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
   fTree->Branch( branch_name.Format( "%s.hit.tmin", branch_prefix.Data() ), &(CALdata[SDname].tmin) );
   fTree->Branch( branch_name.Format( "%s.hit.tmax", branch_prefix.Data() ), &(CALdata[SDname].tmax) );
 
-  G4bool keeppart = true;
-  if( !EarmCALpart_flag && SDname.contains("Earm") ) keeppart = false;
-  if( !HarmCALpart_flag && SDname.contains("Harm") ) keeppart = false;
+  map<G4String,G4bool>::iterator it = KeepPartCALflags.find( SDname );
 
-  if( keeppart ){
+  if( it != KeepPartCALflags.end() && it->second ){
     //Define "particle" branches:
     fTree->Branch( branch_name.Format( "%s.npart_CAL", branch_prefix.Data() ), &(CALdata[SDname].npart_CAL), "npart_CAL/I" );
     fTree->Branch( branch_name.Format( "%s.ihit", branch_prefix.Data() ), &(CALdata[SDname].ihit) );
@@ -388,23 +390,31 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
     fTree->Branch( branch_name.Format( "%s.mid", branch_prefix.Data() ), &(CALdata[SDname].mid) );
     fTree->Branch( branch_name.Format( "%s.pid", branch_prefix.Data() ), &(CALdata[SDname].pid) );
     fTree->Branch( branch_name.Format( "%s.p", branch_prefix.Data() ), &(CALdata[SDname].p) );
+    fTree->Branch( branch_name.Format( "%s.px", branch_prefix.Data() ), &(CALdata[SDname].px) );
+    fTree->Branch( branch_name.Format( "%s.py", branch_prefix.Data() ), &(CALdata[SDname].py) );
+    fTree->Branch( branch_name.Format( "%s.pz", branch_prefix.Data() ), &(CALdata[SDname].pz) );
     fTree->Branch( branch_name.Format( "%s.edep", branch_prefix.Data() ), &(CALdata[SDname].edep) );
   }
 
-  //Branches with "Particle History" data:
-  fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.npart) );
-  fTree->Branch( branch_name.Format("%s.part.PID", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.PID) );
-  fTree->Branch( branch_name.Format("%s.part.MID", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.MID) );
-  fTree->Branch( branch_name.Format("%s.part.TID", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.TID) );
-  fTree->Branch( branch_name.Format("%s.part.nbounce", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.nbounce) );
-  fTree->Branch( branch_name.Format("%s.part.hitindex", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.hitindex) );
-  fTree->Branch( branch_name.Format("%s.part.vx", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.vx) );
-  fTree->Branch( branch_name.Format("%s.part.vy", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.vy) );
-  fTree->Branch( branch_name.Format("%s.part.vz", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.vz) );
-  fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.px) );
-  fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.py) );
-  fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.pz) );
+  it = KeepHistoryflags.find( SDname );
 
+  if( it != KeepHistoryflags.end() && it->second ){
+    //Branches with "Particle History" data:
+    fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.npart) );
+    fTree->Branch( branch_name.Format("%s.part.PID", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.PID) );
+    fTree->Branch( branch_name.Format("%s.part.MID", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.MID) );
+    fTree->Branch( branch_name.Format("%s.part.TID", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.TID) );
+    fTree->Branch( branch_name.Format("%s.part.nbounce", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.nbounce) );
+    fTree->Branch( branch_name.Format("%s.part.hitindex", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.hitindex) );
+    fTree->Branch( branch_name.Format("%s.part.vx", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.vx) );
+    fTree->Branch( branch_name.Format("%s.part.vy", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.vy) );
+    fTree->Branch( branch_name.Format("%s.part.vz", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.vz) );
+    fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.px) );
+    fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.py) );
+    fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(CALdata[SDname].ParticleHistory.pz) );
+  }
+
+  return;
 }
 
 void G4SBSIO::BranchRICH(G4String SDname="RICH"){
@@ -466,20 +476,23 @@ void G4SBSIO::BranchRICH(G4String SDname="RICH"){
   // branch_name.Format( "%s.mpz", branch_prefix.Data() );
   // fTree->Branch( branch_name.Data(), &(richdata[SDname].mpz) );
 
-  //Branches with "Particle History" data:
-  fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.npart) );
-  fTree->Branch( branch_name.Format("%s.part.PID", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.PID) );
-  fTree->Branch( branch_name.Format("%s.part.MID", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.MID) );
-  fTree->Branch( branch_name.Format("%s.part.TID", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.TID) );
-  fTree->Branch( branch_name.Format("%s.part.nbounce", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.nbounce) );
-  fTree->Branch( branch_name.Format("%s.part.hitindex", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.hitindex) );
-  fTree->Branch( branch_name.Format("%s.part.vx", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.vx) );
-  fTree->Branch( branch_name.Format("%s.part.vy", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.vy) );
-  fTree->Branch( branch_name.Format("%s.part.vz", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.vz) );
-  fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.px) );
-  fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.py) );
-  fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.pz) );
+  map<G4String,G4bool>::iterator it = KeepHistoryflags.find( SDname );
 
+  if( it != KeepHistoryflags.end() && it->second ){
+    //Branches with "Particle History" data:
+    fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.npart) );
+    fTree->Branch( branch_name.Format("%s.part.PID", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.PID) );
+    fTree->Branch( branch_name.Format("%s.part.MID", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.MID) );
+    fTree->Branch( branch_name.Format("%s.part.TID", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.TID) );
+    fTree->Branch( branch_name.Format("%s.part.nbounce", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.nbounce) );
+    fTree->Branch( branch_name.Format("%s.part.hitindex", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.hitindex) );
+    fTree->Branch( branch_name.Format("%s.part.vx", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.vx) );
+    fTree->Branch( branch_name.Format("%s.part.vy", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.vy) );
+    fTree->Branch( branch_name.Format("%s.part.vz", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.vz) );
+    fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.px) );
+    fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.py) );
+    fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.pz) );
+  }
   return;
 }
 

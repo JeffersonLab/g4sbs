@@ -19,6 +19,9 @@
 
 #include "G4SBSHArmBuilder.hh"
 
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
 G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   assert(fDetCon);
   fTargLen = 60.0*cm;

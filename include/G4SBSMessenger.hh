@@ -120,8 +120,12 @@ private:
 
   G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree
 
-  G4UIcmdWithABool *Earm_CAL_part_cmd;
-  G4UIcmdWithABool *Harm_CAL_part_cmd;
+  // G4UIcmdWithABool *Earm_CAL_part_cmd;
+  // G4UIcmdWithABool *Harm_CAL_part_cmd;
+
+  G4UIcommand *KeepPartCALcmd; //Command to keep extra particle trajectory information in the ROOT tree by sensitive detector name
+  G4UIcommand *KeepHistorycmd; //Command to store particle history information in the ROOT tree by sensitive detector name
+  G4UIcommand *LimitStepCALcmd; //Command to turn on step limiter physics for sensitive volumes defined as calorimeters, by detector name.
 
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
   // G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov

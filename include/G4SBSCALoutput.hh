@@ -28,6 +28,7 @@ public:
   vector<double> vx, vy, vz; //global vertex coordinates of particles in this hit
   vector<int> trid, mid, pid; //track ID, mother track ID and particle ID info
   vector<double> p, edep; //initial momentum and total energy deposition of particles.
+  vector<double> px,py,pz; //initial momentum components
 
   bool keeppart;
   

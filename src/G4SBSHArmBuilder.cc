@@ -674,6 +674,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     = new G4VisAttributes(G4Colour(0.0,0.6,0.0));
 
   hcallog->SetVisAttributes(hcalVisAtt);
+  
 }
 
 void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){

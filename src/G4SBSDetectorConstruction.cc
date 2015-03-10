@@ -885,8 +885,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     fMaterialsMap["TF1_As2O3"] = As2O3;
 
     //Simulating annealing: http://hallaweb.jlab.org/12GeV/SuperBigBite/SBS-minutes/2014/Sergey_Abrahamyan_LGAnnealing_2014.pdf
-    //TF1 is divided into 5 sections, each section has a unique absorption array labeled Absorption_1 - 5
-    //Therefore, 5 TF1 materials will be defined
     const G4int nentries_annealing_model=50;
 
     G4double Ephoton_annealing_model[nentries_annealing_model] = {
@@ -1335,4 +1333,8 @@ void G4SBSDetectorConstruction::AddToscaField( const char *fn ) {
 
 void G4SBSDetectorConstruction::SetECALmapfilename( G4String s ){
   fECALmapfilename = s;
+}
+
+void G4SBSDetectorConstruction::SetHCALspecsfilename( G4String s){
+  fHCALspecsfilename = s;
 }

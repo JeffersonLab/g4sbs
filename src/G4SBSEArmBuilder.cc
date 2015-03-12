@@ -591,14 +591,14 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       (BBPSTF1SD->detmap).Col[ps_copy_number] = l;
       (BBPSTF1SD->detmap).Row[ps_copy_number] = j;
       if(l==0) { //X Local Coordinate should be updated to represent center of PMT instead of center of module
-	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp-bbpmtz,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
-	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-bbpmtz,ytemp,0.0);
-	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-bbpmtz,ytemp,0.0);
+	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number, true );
+	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp+caldepth/2.0-bbpmtz/2.0, ytemp, 0.0);
+	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
 	ps_copy_number++;
       }
       if(l==1) {
 	new G4PVPlacement( bbpsrm_col2, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
-	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
+	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-caldepth/2.0+bbpmtz/2.0, ytemp, 0.0);
 	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
 	ps_copy_number++;
       }

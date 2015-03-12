@@ -1,6 +1,7 @@
 #include "G4SBSHArmBuilder.hh"
 #include "G4SBSDetectorConstruction.hh"
 #include "G4LogicalVolume.hh"
+#include "G4LogicalBorderSurface.hh"
 #include "G4PVPlacement.hh"
 #include "G4VisAttributes.hh"
 #include "G4SubtractionSolid.hh"
@@ -40,6 +41,8 @@
 
 #include <vector>
 #include <map>
+#include <stdlib.h>
+#include <cmath>
 
 using namespace std;
 
@@ -159,10 +162,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
       MakeFPP( sbslog, rot_I, G4ThreeVector( 0.0, 0.0, detoffset) );
     }
-
-
 }
-
 
 void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   G4String name;
@@ -626,55 +626,294 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
 
 void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOffset=0.0*cm ){
-  //G4SDManager* SDman = G4SDManager::GetSDMpointer();
 
-  // HCAL 
-  double hcalheight = 330.0*cm;
-  double hcalwidth  = 165.0*cm;
+
+  //******************************************************
+  //****************         HCAL         ****************
+  //****************************************************** 
+
+  //Code adopted from Vahe, specifically HCalo.cc && HCaloMaterials.cc
+
   double hcaldepth  = 101.0*cm;
   double hcalr = fHCALdist+hcaldepth/2.0;
 
-  G4RotationMatrix *hcalrm = new G4RotationMatrix;
-  hcalrm->rotateY(-f48D48ang);
+  G4RotationMatrix *mRotateZ = new G4RotationMatrix;
+  mRotateZ->rotateZ( 90 *degree );
+  
+  double AlFoilThick    = 0.02*cm;
+  double IronPlThick    = 1.27*cm;
+  double ScinPlThick    = 1.0*cm;
+  double PlateX         = 14.6*cm;
+  double PlateY         = 14.5*cm;
+  double TotalPlatesL   = 92.0*cm;    
+  double ModuleL        = 111.0*cm;
+  double ModuleX        = 15.3*cm;
+  double ModuleY        = 15.3*cm;     
+  double LightGuideX    = 14.2*cm;
+  double LightGuideY    = 0.5*cm;
+  double LightGuideZ    = 92.0*cm;
+  double ScinToLgGap    = 0.1*cm;
+  double ContainerThick = 0.3*cm;
+  int NRows             = 24;
+  int NColumns          = 11;
+  int NumberOfLayers    = 40;
+  G4double PlateGaps    = (TotalPlatesL-(NumberOfLayers*(IronPlThick+ScinPlThick)))/(2*NumberOfLayers - 1);
 
-  G4Box *hcalbox = new G4Box("hcalbox", hcalwidth/2.0, hcalheight/2.0, hcaldepth/2.0 );
-  G4LogicalVolume* hcallog = new G4LogicalVolume(hcalbox, GetMaterial("Lead"), "hcallog");
+  G4double CaloX = ModuleX * NRows * 1.001;
+  G4double CaloY = ModuleY * NColumns * 1.001;
+  G4double CaloL = ModuleL;
 
-  new G4PVPlacement(hcalrm, G4ThreeVector(hcalr*sin(f48D48ang), VerticalOffset, hcalr*cos(f48D48ang) ), hcallog,
-		    "hcalphys", motherlog, false, 0, false);
+  G4double PlateXHalf = PlateX/2.0 - ScinToLgGap - LightGuideY/2.0; 
+  
+  G4Box *solModule = new G4Box( "solModule", ModuleX/2.0, ModuleY/2.0, ModuleL/2.0 );
+  G4LogicalVolume *logModule = new G4LogicalVolume( solModule, GetMaterial("Special_Air"), "logModule" );
 
-  G4String HCALSDname = "Harm/HCAL";
-  G4String HCALcolname = "HCALHitsCollection";
-  G4SBSCalSD* HCalSD;
+  G4Box *solIronPl = new G4Box( "solIronPl", PlateXHalf/2.0, PlateY/2.0, IronPlThick/2.0 );
+  G4LogicalVolume *logIronPl = new G4LogicalVolume( solIronPl, GetMaterial("Iron"), "logIronPl" );
+
+  // ****Scintillator**** 
+  // is a Sensitive Detector of type CAL
+  G4Box *solScinPl = new G4Box( "solScinPl" , PlateXHalf/2.0, PlateY/2.0, ScinPlThick/2.0 );
+  G4LogicalVolume *logScinPl = new G4LogicalVolume( solScinPl, GetMaterial("EJ232"), "logScinPl" );
 
   G4SDManager *sdman = fDetCon->fSDman;
 
-  if( !(HCalSD = (G4SBSCalSD*) sdman->FindSensitiveDetector(HCALSDname)) ){
-    HCalSD = new G4SBSCalSD( HCALSDname, HCALcolname );
-    sdman->AddNewDetector(HCalSD);
-    (fDetCon->SDlist).insert(HCALSDname);
-    fDetCon->SDtype[HCALSDname] = kCAL;
-    //fDetCon->SDarm[HCALSDname] = kHarm;
+  G4String HCalScintSDname = "Harm/HCalScint";
+  G4String HCalScintcollname = "HCalScintHitsCollection";
+  G4SBSCalSD *HCalScintSD = NULL;
 
-    (HCalSD->detmap).Row[0] = 0;
-    (HCalSD->detmap).Col[0] = 0;
-    (HCalSD->detmap).LocalCoord[0] = G4ThreeVector(0,0,0);
+  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(HCalScintSDname)) ){
+    G4cout << "Adding HCal Scintillator Sensitive Detector to SDman..." << G4endl;
+    HCalScintSD = new G4SBSCalSD( HCalScintSDname, HCalScintcollname );
+    sdman->AddNewDetector(HCalScintSD);
+    (fDetCon->SDlist).insert(HCalScintSDname);
+    fDetCon->SDtype[HCalScintSDname] = kCAL;
+    //fDetCon->SDarm[HCalScintSDname] = kHarm;
+
+    //(HCalSD->detmap).Row[0] = 0;
+    //(HCalSD->detmap).Col[0] = 0;
+    //(HCalSD->detmap).LocalCoord[0] = G4ThreeVector(0,0,0);
     //(HCalSD->detmap).GlobalCoord[0] = G4ThreeVector(0,0,0);
+  }
+  logScinPl->SetSensitiveDetector(HCalScintSD);
 
-    //sdman->AddNewDetector(HCalSD);
-    hcallog->SetSensitiveDetector(HCalSD);
+  if( (fDetCon->StepLimiterList).find( HCalScintSDname ) != (fDetCon->StepLimiterList).end() ){
+    logScinPl->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
 
-  if( (fDetCon->StepLimiterList).find( HCALSDname ) != (fDetCon->StepLimiterList).end() ){
-    G4cout << "Creating user limits for " << HCALSDname << G4endl;
-    hcallog->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-  }
+  // Scintillator Wrap
+  G4Box *sBox1 = new G4Box("sBox1", (PlateX + AlFoilThick)/2.0,
+			   (PlateY + 0.5*AlFoilThick)/2.0, 
+			   (ScinPlThick + AlFoilThick)/2.0 );
 
-  G4VisAttributes * hcalVisAtt
-    = new G4VisAttributes(G4Colour(0.0,0.6,0.0));
+  G4double FoilThickness = AlFoilThick;
+  G4double DeltaX = PlateX/2.0 + FoilThickness;
+  G4double DeltaY = PlateY/2.0 + FoilThickness/2.0;
+  G4double DeltaZ = ScinPlThick/2.0 + FoilThickness;
 
-  hcallog->SetVisAttributes(hcalVisAtt);
+  G4Box* sBox2 = new G4Box("sBoxSc2", DeltaX, DeltaY, DeltaZ);
+
+  G4ThreeVector pos(0.0, FoilThickness/2.0+AlFoilThick/4.0, 0.0);
+
+  G4SubtractionSolid* solScinPlWrap = new G4SubtractionSolid("sScinPlWr", sBox2, sBox1, 0, pos);
+  G4LogicalVolume *logScinPlWrap = new G4LogicalVolume( solScinPlWrap, GetMaterial("Aluminum"), "lScinPlWr" );
+    
+  G4double Xpos, Ypos, Zpos;
+  pos.set(0.0,0.0,0.0);
+
+  for( int ii=0; ii<NumberOfLayers; ii++ ) {
+      G4double iron_gap = 2.0 * ii* PlateGaps;
+
+      Xpos = ( ScinToLgGap +  LightGuideY/2.0 + PlateXHalf/2.0 ); 
+      Zpos = (-ModuleL/2 + ContainerThick + IronPlThick/2 + ii * (IronPlThick + ScinPlThick)) + iron_gap;
+      pos.set(Xpos, 0.0, Zpos);
+      new G4PVPlacement( 0, pos, logIronPl, "FePl", logModule, false, ii );
+
+      pos.set(-Xpos, 0.0, Zpos); 
+      new G4PVPlacement( 0, pos, logIronPl, "FePl", logModule, false, NumberOfLayers + ii );
+      
+      G4double scin_gap = ( 1 + 2 * (ii)) * PlateGaps;
+      Zpos = (-ModuleL/2 + ContainerThick + IronPlThick + ScinPlThick/2.0 
+	      + ii * (IronPlThick + ScinPlThick)) + scin_gap;
+      pos.setZ(Zpos);
+      pos.set(Xpos,0.0,Zpos);      
+      new G4PVPlacement( 0, pos, logScinPl, "ScPlL", logModule, false, ii );
+     
+      pos.set(-Xpos,0.0,Zpos); 
+      new G4PVPlacement( 0, pos, logScinPl, "ScPlR", logModule, false, ii );
+      pos.setY(-AlFoilThick);     
+    }
+
+  pos.setZ(0.0);
+  Ypos = (PlateY/2 + ScinToLgGap + LightGuideY/2)*cm;
+  Zpos = (-(ModuleL - TotalPlatesL)/2 + ContainerThick )*cm;
+
+  // ****Lightguide****
+  G4Box* sBox = new G4Box( "sBox" , LightGuideX/2.0, LightGuideY/2.0, LightGuideZ/2.0 );
+
+  G4double pDx1   =  LightGuideX;
+  G4double pDx2   =  LightGuideX;
+  G4double pDy1   =  LightGuideY;
+  G4double pDx3   =  2.7*cm;
+  G4double pDx4   =  2.7*cm;
+  G4double pDy2   =  2.7*cm;
+  G4double pDz    =  2.0*LightGuideX;
+  G4double pTheta =  0*degree; 
+  G4double pPhi   =  90*degree;
+  G4double pAlp1  =  0*degree;
+  G4double pAlp2  =  pAlp1;
+
+  Zpos = LightGuideZ/2.0 + pDz/2.0; 
+  pos.set(0.0, 0.0, Zpos);
+
+  G4Trap *solTrap = new G4Trap( "sTrap1",
+  			pDz/2,   pTheta,
+  			pPhi,    pDy1/2,
+  			pDx1/2,  pDx2/2,
+  			pAlp1,   pDy2/2,
+  			pDx3/2,  pDx4/2,
+  			pAlp2);
+
+  //*****TEST*****
+  //G4LogicalVolume *test = new G4LogicalVolume(solTrap,GetMaterial("Air"),"test");
+  //new G4PVPlacement(lightg,G4ThreeVector(3*m,3*m,3*m),test,"testphys",motherlog,false,0);
+
+  G4UnionSolid *sol = new G4UnionSolid( "usol", sBox, solTrap, 0, pos );
+  //G4LogicalVolume *test1 = new G4LogicalVolume(sol,GetMaterial("Air"),"test");
+  //new G4PVPlacement(0,G4ThreeVector(3.2*m,3.2*m,3.2*m),test1,"test1phys",motherlog,false,0);
+  //*****END*****
+
+  Zpos = (-(ModuleL - TotalPlatesL)/2 + ContainerThick );
+  pos.set( 0.0, 0.0, Zpos);
+
+  //NOTE: "Ligd" OVERLAPS WITH MOTHERVOLUME
+  G4LogicalVolume *logLightG = new G4LogicalVolume( sol, GetMaterial("BC484"), "lLiGd");  
+  new G4PVPlacement(mRotateZ , pos , logLightG , "Ligd" , logModule , false , 0 , true );
+  new G4LogicalSkinSurface( "Lightguide Skin", logLightG, GetOpticalSurface("osWLSToAir") );   
+  //G4LogicalBorderSurface* WLSToAir = new G4LogicalBorderSurface("WLSToAir", phyLightG , phyModule , OpWLSToAir);
   
+  G4Box *solWLSPaper = new G4Box( "sLiGd" , LightGuideX/2.0, 0.01 *cm, LightGuideZ/2.0);
+  G4LogicalVolume *logWLSPaper = new G4LogicalVolume(solWLSPaper, GetMaterial("Paper"), "lPaper");
+ 
+  Ypos = PlateY/2 + ScinToLgGap + LightGuideY + 2.0*0.01;
+  pos.setY(Ypos);
+  //  phyWLSPaper = new G4PVPlacement(0 , pos , logWLSPaper , "Paper" ,logModule  , false , 0);
+  
+  // ****PMT****
+  double radiuscath   = 2.7*cm;
+  pDz    = 2.0*LightGuideX;
+  double LightGYpos = PlateY/2 + ScinToLgGap + LightGuideY/2;
+  G4double PMT_L = 0.5*cm;
+
+  G4Tubs *solCathod = new G4Tubs("scath", 0.0*cm, radiuscath/2.0 , PMT_L/2.0 , 0.0*deg , 360.0*deg);
+  G4LogicalVolume *logCathod = new G4LogicalVolume(solCathod,GetMaterial("Glass_HC"), "lcath");
+
+  // logCathod is the SD, assigned to ECalSD which detects optical photons
+  G4String HCalSDname = "Harm/HCal";
+  G4String HCalcollname = "HCalHitsCollection";
+  G4SBSCalSD* HCalSD = NULL;
+
+  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(HCalSDname)) ) {
+    G4cout << "Adding HCal PMT Sensitive Detector to SDman..." << G4endl;
+    HCalSD = new G4SBSCalSD( HCalSDname, HCalcollname );
+    sdman->AddNewDetector(HCalSD);
+    (fDetCon->SDlist).insert(HCalSDname);
+    fDetCon->SDtype[HCalSDname] = kECAL;
+    //fDetCon->SDarm[HCalSDname] = kHarm;
+    (HCalSD->detmap).depth = 0;
+  }
+  logCathod->SetSensitiveDetector(HCalSD);
+
+  pos.set( 0.0, 0.0, 0.0);
+  G4Box* abox0 = new G4Box("abox0", ModuleX/2.0, ModuleY/2.0, ModuleL/2.0 );
+  G4Box* abox1 = new G4Box("abox1", ModuleX/2.0 - ContainerThick, ModuleY/2.0 - ContainerThick, 
+  			   ModuleL/2.0 - ContainerThick );
+
+  G4SubtractionSolid* solContar = new G4SubtractionSolid("hollow-box", abox0 , abox1, 0, pos);
+  G4LogicalVolume *logContar = new G4LogicalVolume( solContar, GetMaterial("Steel"), "lCont" );  
+  new G4PVPlacement(0, pos, logContar, "Cont", logModule, false, 0);
+
+  //test to see if a module builds with PMT
+  //new G4PVPlacement(0 , G4ThreeVector(3*m,3*m,3*m+LightGuideZ/2.0+(3*LightGuideX)/2.0-2*ContainerThick-radiuscath/2.0), logCathod , "physcathode" , motherlog , false , 0);
+  //new G4PVPlacement(0,G4ThreeVector(3*m,3*m,3*m),logModule,"phys",motherlog,false,0);
+
+  const G4int    NSupportsPerModule  = 8;
+  const G4double SupportPlateDy      = 0.0*cm; 
+  const G4double SupportPlateDyExtra = ( NColumns / NSupportsPerModule - 1.0 ) * SupportPlateDy * cm; //-- 3 extra plates
+
+  //Make Mother Volume which will house all modules
+
+  G4RotationMatrix *hcalrm = new G4RotationMatrix;
+  hcalrm->rotateY(-f48D48ang);
+  hcalrm->rotateZ(90*degree);
+  G4RotationMatrix *modrot = new G4RotationMatrix;
+  modrot->rotateZ(-90*degree );
+
+  G4Box *solCalo = new G4Box( "sHCalo", CaloX/2.0, (CaloY+SupportPlateDyExtra)/2.0, LightGuideZ/2.0+(3*LightGuideX)/2.0+2*ContainerThick+radiuscath);
+  G4LogicalVolume *logCalo = new G4LogicalVolume( solCalo, GetMaterial("Air"), "lHCalo" );
+  new G4PVPlacement( hcalrm, G4ThreeVector( hcalr*sin(f48D48ang), VerticalOffset, hcalr*cos(f48D48ang) ), logCalo, "HCal Mother", motherlog, false, 0, false);
+
+  G4int copyid = 0;
+  for(int ii = 0; ii < NColumns; ii++) {
+      for(int jj = 0; jj < NRows; jj++) {
+
+  	  G4double xtemp = -CaloX/2 + (ModuleX/2 + ModuleX*jj);
+  	  G4double ytemp = CaloY/2.0 - ModuleY/2.0 - ii*ModuleY;
+  	  pos.set( xtemp, ytemp, 0.0);
+	  new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, LightGuideZ/2.0+(3*LightGuideX)/2.0-2*ContainerThick-radiuscath/2.0),
+			    logCathod, "physcathode", logCalo, false, copyid ); 
+	  new G4PVPlacement(modrot, pos, logModule, "module", logCalo, false, copyid);
+
+	  (HCalSD->detmap).Row[copyid] = jj;
+	  (HCalSD->detmap).Col[copyid] = ii;
+	  (HCalSD->detmap).LocalCoord[copyid] = G4ThreeVector(xtemp, ytemp, LightGuideZ/2.0+(3*LightGuideX)/2.0-2*ContainerThick-radiuscath/2.0);
+  	  copyid++;
+      }
+    }
+
+  //--- Front plate
+  G4double FrontPlatedZ = 2.0*2.54*cm;
+  pos.set(0.0,0.0,-(CaloL+FrontPlatedZ*1.1)/2.0 );
+  G4Box *solFrontPlate = new G4Box( "sFrontPlate" , CaloX/2.0, (CaloY+SupportPlateDyExtra)/2.0, FrontPlatedZ/2.0 );
+  G4LogicalVolume *logFrontPlate = new G4LogicalVolume( solFrontPlate , GetMaterial("Iron") , "lFrontPlate" );
+  //didn't place it yet
+
+
+// Visualization
+  
+  // Iron
+  G4VisAttributes * IronPlVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
+  logIronPl->SetVisAttributes(IronPlVisAtt);
+ 
+  // Scintillator
+  G4VisAttributes * ScinPlVisAtt = new G4VisAttributes(G4Colour(0.0,1.0,1.0));
+  logScinPl->SetVisAttributes(ScinPlVisAtt);
+
+  // LightGuide
+  G4VisAttributes * LightGVisAtt = new G4VisAttributes(G4Colour(0.54, 0.53, 0.79));
+  LightGVisAtt->SetForceSolid(true);
+  logLightG->SetVisAttributes(LightGVisAtt);
+
+  // PMT
+  logCathod->SetVisAttributes(G4Colour::Blue());
+  
+  // Module container vis
+  G4VisAttributes *logContarVis  = new G4VisAttributes(G4Colour::Blue());
+  logContarVis->SetForceWireframe(true);
+  logContarVis->SetColor(G4Colour::Grey());
+  logContar->SetVisAttributes(logContarVis);  
+
+  G4VisAttributes *logModuleVis  = new G4VisAttributes(G4Colour::Blue());
+  logModuleVis ->SetForceWireframe(true);
+  logModule->SetVisAttributes(logModuleVis);
+
+  // Scint Plate
+  logScinPlWrap->SetVisAttributes(G4VisAttributes::Invisible);
+
+  // Mother Volume
+  //G4VisAttributes * caloVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
+  //caloVisAtt->SetForceWireframe(true);
+  logCalo->SetVisAttributes(G4VisAttributes::Invisible);
 }
 
 void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){

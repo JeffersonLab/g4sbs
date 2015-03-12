@@ -110,7 +110,6 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::Construct(){
 }
 
 void G4SBSDetectorConstruction::ConstructMaterials(){
-    int i;
 
     G4NistManager *man = G4NistManager::Instance();
 
@@ -134,7 +133,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4double nm_lambda;
     G4double PhotonEnergy[nEntries];
     G4double Std_RefractiveIndex[nEntries];
-    for ( i = 0; i < nEntries; ++i ) {
+    for ( int i = 0; i < nEntries; ++i ) {
         PhotonEnergy[i]=(1240*nm/PhotonWaveLength[i])*eV;
         Std_RefractiveIndex[i]=1.00;
     }
@@ -189,8 +188,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     //Vacuum->SetMaterialPropertiesTable(Std_MPT);
     fMaterialsMap["Vacuum"] = Vacuum;
 
-
-
     if( fMaterialsMap.find("Lead") == fMaterialsMap.end() ){ 
 	fMaterialsMap["Lead"] = new G4Material(name="Lead", z=82., a=208.0*g/mole, density=11.34*g/cm3);
     }
@@ -204,7 +201,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     CsI->AddElement(elCs,.5);
 
     fMaterialsMap["CsI"] = CsI;
-
 
     a = 55.85*g/mole;
     density = 7.87*g/cm3;
@@ -307,7 +303,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
 
     G4double CO2_RefractiveIndex[nEntries];
-    for ( i = 0; i < nEntries; ++i ) {
+    for ( int i = 0; i < nEntries; ++i ) {
         CO2_RefractiveIndex[i]=1.00045;
         CO2_RefractiveIndex[i]=1+(CO2_RefractiveIndex[i]-1)*GC_Gas_Pressure/atmosphere;
     }
@@ -327,7 +323,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
     G4double C4F8O_RefractiveIndex[nEntries]; //at 1.atm
     G4double C4F8O_ABSLENGTH[nEntries]; //at 1.atm
-    for ( i = 0; i < nEntries; ++i ) {
+    for ( int i = 0; i < nEntries; ++i ) {
         C4F8O_RefractiveIndex[i]=1.00135;
         C4F8O_ABSLENGTH[i]=7424.75*cm;
         C4F8O_RefractiveIndex[i]=1+(C4F8O_RefractiveIndex[i]-1)*GC_Gas_Pressure/atmosphere;
@@ -508,7 +504,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
     G4Material* Lucite=man->FindOrBuildMaterial("G4_LUCITE");
     G4double Lucite_RefractiveIndex[nEntries];
-    for ( i = 0; i < nEntries; ++i ) {
+    for ( int i = 0; i < nEntries; ++i ) {
         Lucite_RefractiveIndex[i]=1.5;
     }
     G4MaterialPropertiesTable* MPLucite = new G4MaterialPropertiesTable();
@@ -794,7 +790,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     Quartz->AddElement(O, 2);
     G4double rindex_Quartz[nEntries];
     G4double absl_Quartz[nEntries];
-    for ( i = 0; i < nEntries; ++i ) {
+    for ( int i = 0; i < nEntries; ++i ) {
         nm_lambda=PhotonWaveLength[i]/nm;
         rindex_Quartz[i]=1.736-0.001396*nm_lambda+2.326e-06*nm_lambda*nm_lambda-1.281e-09*nm_lambda*nm_lambda*nm_lambda;
         absl_Quartz[i]=(-93.08+0.07151*nm_lambda+0.001799*nm_lambda*nm_lambda-1.678e-06*nm_lambda*nm_lambda*nm_lambda)*m;
@@ -1061,6 +1057,257 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
     G4Material *PLASTIC_SC_VINYLTOLUENE = man->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
     fMaterialsMap["PLASTIC_SC_VINYLTOLUENE"] = PLASTIC_SC_VINYLTOLUENE;
+
+    //****************
+    //***** HCAL *****
+    //**************** 
+    //Elements:
+    G4Element *Gd = new G4Element("Gadolinium", "Gd" , z=64.0 , a=157.25*g/mole);
+
+    //- EJ-232
+    G4Material* EJ232 = new G4Material("EJ232",density=1.02*g/cm3, nel=2,kStateSolid,293.15*kelvin,1.0*atmosphere);
+    EJ232->AddElement(H , natoms=11);
+    EJ232->AddElement(C , natoms=10);
+
+    // -- EJ232 optical properties 
+    const G4int nEntriesEJ232 = 66;
+    G4double PhotonWaveLength_HC[nEntriesEJ232] = 
+      {
+	235, 240, 245, 250, 255, 260, 265, 270, 275, 280,
+	285, 290, 295, 300, 305, 310, 315, 320, 325, 330,
+	335, 340, 345, 350, 355, 360, 365, 370, 375, 380,
+	385, 390, 395, 400, 405, 410, 415, 420, 425, 430,
+	435, 440, 445, 450, 455, 460, 465, 470, 475, 480,
+	485, 490, 495, 500, 505, 510, 515, 520, 525, 530,
+	535, 540, 545, 550, 555, 560 
+      };
+
+    G4double ABSL_EJ232[nEntriesEJ232] = 
+      { 
+	3.8000e-03, 3.6000e-03, 3.3000e-03, 3.1000e-03, 2.7000e-03, 2.4000e-03, 2.0000e-03, 1.6000e-03, 1.4000e-03, 1.1000e-03,
+	1.0000e-03, 9.0000e-04, 8.0000e-04, 6.9729e-04, 6.9946e-04, 6.9972e-04, 6.9983e-04, 7.9983e-04, 9.9978e-04, 1.1973e-02,
+	1.7947e-02, 2.9874e-02, 6.1538e-02, 2.2268e-01, 4.6133e+00, 8.9015e+00, 1.4659e+01, 4.2145e+01, 1.2060e+02, 1.5600e+02,
+	2.2000e+02, 3.4100e+02, 5.8400e+02, 1.1200e+03, 1.6000e+03, 1.8700e+03, 2.0000e+03, 2.8600e+03, 3.5300e+03, 3.8900e+03,
+	4.0500e+03, 4.1400e+03, 4.2000e+03, 4.2200e+03, 4.2400e+03, 4.2600e+03, 4.2800e+03, 4.3000e+03, 4.3300e+03, 4.3500e+03,
+	4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03,
+	4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03
+      };
+
+    G4double FAST_EJ232[nEntriesEJ232] = 
+      {
+	0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
+	0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.01,
+	0.02, 0.05, 0.12, 0.36, 0.52, 0.52, 0.71, 0.92, 1.00, 0.88,
+	0.83, 0.84, 0.77, 0.63, 0.53, 0.45, 0.39, 0.34, 0.30, 0.24,
+	0.19, 0.14, 0.11, 0.08, 0.06, 0.05, 0.04, 0.03, 0.02, 0.02,
+	0.02, 0.02, 0.02, 0.01, 0.01, 0.00, 0.00, 0.00, 0.00, 0.00,
+	0.00, 0.00, 0.00, 0.00, 0.00,0.00
+      };
+
+    G4double PhotonEnergyEJ232[nEntriesEJ232];
+    G4double RefractiveIndexEJ232[nEntriesEJ232];
+    for(int ii = 0; ii < nEntriesEJ232; ii++) {
+      PhotonEnergyEJ232[ii] = 1240.0/(PhotonWaveLength_HC[ii]) *eV;
+      RefractiveIndexEJ232[ii] = 1.58;
+      ABSL_EJ232[ii]           = ABSL_EJ232[ii]*mm;
+    }
+
+    G4MaterialPropertiesTable* MPT_EJ232 = new G4MaterialPropertiesTable();
+    MPT_EJ232->AddProperty("RINDEX"       , PhotonEnergyEJ232 , RefractiveIndexEJ232 , nEntriesEJ232);
+    MPT_EJ232->AddProperty("FASTCOMPONENT", PhotonEnergyEJ232 , FAST_EJ232           , nEntriesEJ232);
+    MPT_EJ232->AddProperty("ABSLENGTH",     PhotonEnergyEJ232 , ABSL_EJ232           , nEntriesEJ232);
+    MPT_EJ232->AddConstProperty("SCINTILLATIONYIELD", (8400.0/MeV * 5.51591522788642652e-01 * 0.5/1.4)/MeV);
+    MPT_EJ232->AddConstProperty("RESOLUTIONSCALE", 1.0);
+    MPT_EJ232->AddConstProperty("FASTTIMECONSTANT",1.40*ns);
+    MPT_EJ232->AddConstProperty("SLOWTIMECONSTANT",1.40*ns);
+    MPT_EJ232->AddConstProperty("YIELDRATIO",1.0);
+    EJ232->SetMaterialPropertiesTable(MPT_EJ232);
+    fMaterialsMap["EJ232"] = EJ232;
+    
+    //- EJ-280 Wave length shifter blue to green
+    G4double sigalpha;
+    G4Material* BC484 = new G4Material("BC484",density=1.023*g/cm3, nel=2,kStateSolid,293.15*kelvin,1.0*atmosphere);
+    BC484->AddElement(H , natoms=11);
+    BC484->AddElement(C , natoms=10);
+    //BC484 optical
+    const G4int nEntriesBC484 = 66;
+
+    G4double AbsWLSfiberBC484[nEntriesBC484] =
+      {
+	1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05,
+	1.0000e-05, 1.0000e-05, 1.0000e-05, 1.8000e-01, 1.1912e-02, 7.4242e-03, 5.3838e-03, 4.1792e-03, 3.2238e-03, 2.5249e-03,
+	1.9316e-03, 1.6394e-03, 1.3685e-03, 1.1648e-03, 9.7507e-04, 9.6058e-04, 9.5387e-04, 8.8492e-04, 8.0374e-04, 9.0456e-04,
+	1.1453e-03, 1.3248e-03, 1.3103e-03, 1.3398e-03, 2.0575e-03, 5.3914e-03, 2.7426e-02, 8.8128e-02, 3.5300e+03, 3.8900e+03,
+	4.0500e+03, 4.1400e+03, 4.2000e+03, 4.2200e+03, 4.2400e+03, 4.2600e+03, 4.2800e+03, 4.3000e+03, 4.3300e+03, 4.3500e+03,
+	4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03,
+	4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03
+      };
+    G4double EmissionFibBC484[nEntriesBC484] =
+      {
+	0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00,
+	0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00,
+	0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00,
+	0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 9.9600e-03, 4.6108e-02, 1.4920e-01, 4.3929e-01,
+	8.7405e-01, 9.8839e-01, 8.7609e-01, 7.5191e-01, 6.5761e-01, 6.1152e-01, 5.8572e-01, 5.6109e-01, 5.0687e-01, 4.6027e-01,
+	4.1532e-01, 3.6851e-01, 3.2695e-01, 2.9074e-01, 2.5784e-01, 2.2847e-01, 1.9965e-01, 1.7665e-01, 1.5485e-01, 1.3599e-01,
+	1.1646e-01, 1.0068e-01, 8.6331e-02, 7.1257e-02, 5.9146e-02, 4.7958e-02
+      };
+    G4double PhotonEnergyBC484[nEntriesBC484];
+    G4double RefractiveIndexBC484[nEntriesBC484];
+
+    for(int ii = 0; ii < nEntriesBC484; ii++) {
+      PhotonEnergyBC484[ii]    = 1240.0/(PhotonWaveLength_HC[ii]) *eV;
+      RefractiveIndexBC484[ii] = 1.58;
+      AbsWLSfiberBC484[ii]     = AbsWLSfiberBC484[ii]*cm;        
+    }
+    G4MaterialPropertiesTable* MPT_BC484 = new G4MaterialPropertiesTable();
+    MPT_BC484->AddProperty("RINDEX"              , PhotonEnergyBC484 , RefractiveIndexBC484 , nEntriesBC484);
+    MPT_BC484->AddProperty("WLSABSLENGTH"        , PhotonEnergyBC484 , AbsWLSfiberBC484     , nEntriesBC484);
+    MPT_BC484->AddProperty("WLSCOMPONENT"        , PhotonEnergyBC484 , EmissionFibBC484     , nEntriesBC484);
+    MPT_BC484->AddConstProperty("WLSTIMECONSTANT", 3.0*ns);
+    BC484->SetMaterialPropertiesTable(MPT_BC484);
+    fMaterialsMap["BC484"] = BC484;
+
+    //GSO
+    G4Material* GSiO = new G4Material("GSiO", density=6.71*g/cm3, nel=3);
+    GSiO->AddElement(Gd, natoms=2);
+    GSiO->AddElement(Si, natoms=1);
+    GSiO->AddElement(O , natoms=5);
+    GSiO->GetIonisation()->SetBirksConstant(5.25); 
+    fMaterialsMap["GSiO"] = GSiO;
+  
+    //Glass
+    G4Material* Glass_HC = new G4Material("Glass_HC", density=1.032*g/cm3,2);
+    Glass_HC->AddElement(C , 91.533*perCent);
+    Glass_HC->AddElement(H ,  8.467*perCent);
+
+    G4double Glass_HC_RIND[nEntriesEJ232] =
+      { 
+	1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 
+	1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 
+	1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 
+	1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 
+	1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 
+	1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 
+	1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 
+      };
+
+    G4double Glass_HC_AbsLength[nEntriesEJ232]=
+      { 
+	420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm ,
+	420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm ,
+	420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm ,
+	420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm ,
+	420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm ,
+	420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm ,
+	420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm , 420.0*cm 
+      };
+
+    G4MaterialPropertiesTable *Glass_HC_mt = new G4MaterialPropertiesTable();
+    Glass_HC_mt->AddProperty("ABSLENGTH", PhotonEnergyBC484 , Glass_HC_AbsLength , nEntriesEJ232 );
+    Glass_HC_mt->AddProperty("RINDEX"   , PhotonEnergyBC484 , Glass_HC_RIND      , nEntriesEJ232 );
+    Glass_HC->SetMaterialPropertiesTable(Glass_HC_mt);
+    fMaterialsMap["Glass_HC"] = Glass_HC; 
+
+    // -- Bialkali photocathode K2CsSb 
+    G4Material* BialkaliK2CsSb = new G4Material ("BialkaliK2CsSb" , density= 2.9 *g/cm3 , 3 ); 
+    BialkaliK2CsSb->AddElement( K  , 2 );
+    BialkaliK2CsSb->AddElement( Cs , 1 );
+    BialkaliK2CsSb->AddElement( Sb , 1 );
+    fMaterialsMap["BialkaliK2CsSb"] = BialkaliK2CsSb;    
+
+    G4Material* Paper = man->FindOrBuildMaterial("G4_TEFLON");
+  
+    G4double MilliPoreRefl[nEntriesEJ232] = {
+      0.818, 0.828, 0.839, 0.850, 0.860, 0.868, 0.876, 0.883, 0.888, 0.894,
+      0.898, 0.902, 0.906, 0.910, 0.913, 0.917, 0.920, 0.923, 0.926, 0.928,
+      0.931, 0.933, 0.936, 0.938, 0.940, 0.941, 0.943, 0.945, 0.946, 0.947,
+      0.948, 0.949, 0.949, 0.950, 0.950, 0.951, 0.951, 0.951, 0.951, 0.952,
+      0.952, 0.952, 0.952, 0.951, 0.951, 0.951, 0.951, 0.951, 0.951, 0.951,
+      0.951, 0.950, 0.950, 0.950, 0.950, 0.950, 0.949, 0.949, 0.949, 0.949,
+      0.949, 0.948, 0.948, 0.948, 0.948, 0.947
+    };
+    G4double MilliPoreRefrIndexl[nEntriesEJ232] = { 1.5 };
+    G4double MilliPoreSS[nEntriesEJ232] = { 0.1 };
+    G4double MilliPoreSL[nEntriesEJ232] = { 0.1 };
+    G4double MilliPoreBK[nEntriesEJ232] = { 0.1 };
+
+    G4MaterialPropertiesTable *Paper_MPT = new G4MaterialPropertiesTable();
+    Paper_MPT->AddProperty("RINDEX"                , PhotonEnergyBC484 , MilliPoreRefrIndexl , nEntriesEJ232);
+    Paper_MPT->AddProperty("REFLECTIVITY"          , PhotonEnergyBC484 , MilliPoreRefl       , nEntriesEJ232);
+    Paper_MPT->AddProperty("SPECULARLOBECONSTANT"  , PhotonEnergyBC484 , MilliPoreSL , nEntriesEJ232);
+    Paper_MPT->AddProperty("SPECULARSPIKECONSTANT" , PhotonEnergyBC484 , MilliPoreSS , nEntriesEJ232);
+    Paper_MPT->AddProperty("BACKSCATTERCONSTANT"   , PhotonEnergyBC484 , MilliPoreBK , nEntriesEJ232);
+
+    Paper->SetMaterialPropertiesTable(Paper_MPT);
+    fMaterialsMap["Paper"] = Paper;
+
+    G4double Foil_refl[nEntriesEJ232] = 
+      {
+	0.931, 0.932, 0.932, 0.932, 0.931, 0.930, 0.929, 0.928, 0.926, 0.924,
+	0.922, 0.920, 0.918, 0.916, 0.913, 0.911, 0.909, 0.906, 0.904, 0.901,
+	0.899, 0.896, 0.894, 0.892, 0.890, 0.887, 0.885, 0.883, 0.881, 0.880,
+	0.878, 0.876, 0.874, 0.873, 0.872, 0.870, 0.869, 0.868, 0.867, 0.866,
+	0.865, 0.864, 0.863, 0.863, 0.862, 0.862, 0.861, 0.861, 0.861, 0.860,
+	0.860, 0.860, 0.860, 0.860, 0.860, 0.860, 0.860, 0.860, 0.860, 0.860,
+	0.860, 0.860, 0.860, 0.860, 0.860, 0.861
+      };
+    G4double Zero_refl[nEntriesEJ232];
+
+    G4double Foil_efficiency[nEntriesEJ232];
+    for(int ii = 0; ii < nEntriesBC484; ii++) 
+      {
+	Foil_efficiency[ii] = 0.2;
+	Zero_refl[ii]       = 0.0;
+      }
+    G4OpticalSurface * OpFoilSurface = new G4OpticalSurface("FoilSurface", unified , polished , dielectric_metal);
+
+    G4MaterialPropertiesTable *foil_mpt = new G4MaterialPropertiesTable();
+    foil_mpt->AddProperty("REFLECTIVITY", PhotonEnergyBC484 , Foil_refl , nEntriesEJ232 );
+    OpFoilSurface->SetMaterialPropertiesTable(foil_mpt);
+
+    fOpticalSurfacesMap["Foil"] = OpFoilSurface;
+
+    // -- Surface between far end of WLS and light absorber 
+    G4double Absorber_reflectivity[nEntriesEJ232];
+    G4double Absorber_efficiency[nEntriesEJ232];
+    for(int ii = 0; ii < nEntriesBC484; ii++) {
+      Absorber_efficiency[ii]   = 1.0;
+      Absorber_reflectivity[ii] = 0.0;
+    }
+
+    G4OpticalSurface * AbsorberSurface = new G4OpticalSurface("AbsorberSurface", unified , polished , dielectric_metal);
+  
+    G4MaterialPropertiesTable *Absorber_mpt = new G4MaterialPropertiesTable();
+  
+    Absorber_mpt->AddProperty("REFLECTIVITY", PhotonEnergyBC484 , Absorber_reflectivity , nEntriesEJ232 );
+    AbsorberSurface->SetMaterialPropertiesTable(Absorber_mpt);
+    fOpticalSurfacesMap["Absorber"] = AbsorberSurface;
+
+    // -- Surface between WLS and air
+    G4double WLS_AirGapRefrIndex[nEntriesEJ232];
+    G4double WLS_reflectivity[nEntriesEJ232];
+    G4double WLS_SpecularLobe[nEntriesEJ232];
+    G4double WLS_SpecularSpike[nEntriesEJ232];
+    G4double WLS_Backscatter[nEntriesEJ232];
+  
+    for(int ii = 0; ii < nEntriesBC484; ii++) {
+      WLS_AirGapRefrIndex[ii] = 1.0;
+      WLS_reflectivity[ii]    = 0.0;
+      WLS_SpecularLobe[ii]    = 0.1;
+      WLS_SpecularSpike[ii]   = 0.9;
+      WLS_Backscatter[ii]     = 0.0;
+    }
+
+    G4OpticalSurface *osWLSToAir = new G4OpticalSurface("osWLSToAir" , unified , ground , dielectric_dielectric , sigalpha=1.3*deg);
+  
+    G4MaterialPropertiesTable *osWLSToAir_mpt = new G4MaterialPropertiesTable();
+    osWLSToAir_mpt->AddProperty("SPECULARLOBECONSTANT"   , PhotonEnergyBC484 , WLS_SpecularLobe    , nEntriesBC484);
+    osWLSToAir_mpt->AddProperty("SPECULARSPIKECONSTANT"  , PhotonEnergyBC484 , WLS_SpecularSpike   , nEntriesBC484);
+    osWLSToAir_mpt->AddProperty("BACKSCATTERCONSTANT"    , PhotonEnergyBC484 , WLS_Backscatter     , nEntriesBC484);
+  
+    osWLSToAir->SetMaterialPropertiesTable(osWLSToAir_mpt);
+    fOpticalSurfacesMap["osWLSToAir"] = osWLSToAir;
 
 }
 

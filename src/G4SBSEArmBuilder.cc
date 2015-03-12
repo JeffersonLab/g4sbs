@@ -421,7 +421,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // Preshower module - geometry will be assigned after Shower
 
-
   // **** BIGBITE HODOSCOPE **** 
   // Scintillator box - same dimensions as preshower
   double bbhododepth = 2.5*cm;
@@ -591,20 +590,20 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       (BBPSSD->detmap).Row[ps_copy_number] = j;
       (BBPSTF1SD->detmap).Col[ps_copy_number] = l;
       (BBPSTF1SD->detmap).Row[ps_copy_number] = j;
-    if(l==0) {
-      new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp-bbpmtz,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
-      (BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-bbpmtz,ytemp,0.0);
-      (BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-bbpmtz,ytemp,0.0);
-      ps_copy_number++;
-    }
-    if(l==1) {
-      new G4PVPlacement( bbpsrm_col2, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
-      (BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
-      (BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
-      ps_copy_number++;
+      if(l==0) { //X Local Coordinate should be updated to represent center of PMT instead of center of module
+	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp-bbpmtz,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
+	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-bbpmtz,ytemp,0.0);
+	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-bbpmtz,ytemp,0.0);
+	ps_copy_number++;
+      }
+      if(l==1) {
+	new G4PVPlacement( bbpsrm_col2, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
+	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
+	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
+	ps_copy_number++;
+      }
     }
   }
-}
   //--------- Visualization attributes -------------------------------
   //Mother volumes
   bbdetLog->SetVisAttributes( G4VisAttributes::Invisible );

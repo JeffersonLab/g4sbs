@@ -1047,11 +1047,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 	
   //Mylar
   G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );
-  mylar_wrap_log->SetVisAttributes(mylar_colour);
-
+  mylar_wrap_log->SetVisAttributes(G4VisAttributes::Invisible);
+  
+  
   //Air
   G4VisAttributes *air_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));
-  module_log_type1->SetVisAttributes(air_colour);
+  module_log_type1->SetVisAttributes(G4VisAttributes::Invisible);
 
   //TF1
   G4VisAttributes *TF1_colour = new G4VisAttributes(G4Colour( 0.8, 0.8, 0.0 ) );
@@ -1072,14 +1073,17 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
   //Polyethylene
   G4VisAttributes *poly_colour = new G4VisAttributes(G4Colour( 0.2,0.3,0.4 ));
+  poly_colour->SetForceWireframe(true);
   polybox_log->SetVisAttributes(poly_colour);
 
   //CDet
   G4VisAttributes *CD_colour = new G4VisAttributes(G4Colour(0.5, 0.4, 0.1));
+  CD_colour->SetForceWireframe(true);
   CD_log->SetVisAttributes(CD_colour);
 
   //Al
   G4VisAttributes *Al_colour = new G4VisAttributes(G4Colour(0.9, 0.9, 0.9));
+  Al_colour->SetForceWireframe(true);
   Al_log->SetVisAttributes(Al_colour);
 
 }

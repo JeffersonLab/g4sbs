@@ -93,6 +93,9 @@ public:
   void SetECALmapfilename( G4String );
   G4String GetECALmapfilename(){ return fECALmapfilename; }
 
+  void SetHCALspecsfilename( G4String );
+  G4String GetHCALspecsfilename(){ return fHCALspecsfilename; }
+
   // int TrackerIDnumber;
   // map<int,Arm_t> TrackerArm; //Is tracker in E arm or P arm?
 
@@ -108,6 +111,7 @@ private:
   G4SBSMagneticField *f48d48field;
 
   G4String fECALmapfilename;
+  G4String fHCALspecsfilename;
 
   //Let's define some additional configurable properties of 48D48:
   double f48D48_uniform_bfield; //set magnitude (and polarity) of SBS magnetic field (direction is fixed)

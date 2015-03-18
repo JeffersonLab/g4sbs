@@ -61,6 +61,10 @@ G4SBSMessenger::G4SBSMessenger(){
   ECALmapfileCmd->SetGuidance("Name of text file listing active ECAL cells (assumed to be located in database/)");
   ECALmapfileCmd->SetParameterName("ECALmapfile",false);
 
+  HCALspecsfileCmd = new G4UIcmdWithAString("/g4sbs/HCALspecs",this);
+  HCALspecsfileCmd->SetGuidance("Name of text file listing HCal specifications (assumed to be located in database/)");
+  HCALspecsfileCmd->SetParameterName("HCALspecsfile",false);
+
   fileCmd = new G4UIcmdWithAString("/g4sbs/filename",this);
   fileCmd->SetGuidance("Output ROOT filename");
   fileCmd->SetParameterName("filename", false);
@@ -398,6 +402,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == ECALmapfileCmd ){
     fdetcon->SetECALmapfilename( newValue );
+  }
+
+  if( cmd == HCALspecsfileCmd ){
+    fdetcon->SetHCALspecsfilename( newValue );
   }
 
   if( cmd == kineCmd ){

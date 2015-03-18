@@ -404,59 +404,268 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //----- Note: Lines of code that are common to the construction of all individual GEM planes/modules were moved to MakeTracker() -----// 
   //----- All we do here in MakeBigBite() is define the number of planes, their z positions, and their transverse dimensions ------//
 
-  // BigBite Preshower 
+  double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
+  double mylar_air_sum = mylarthickness + airthickness;
+  double bbpmtz = 0.20*cm;
+
+  // **** BIGBITE PRESHOWER **** 
+  // 2 columns, 27 rows
 
   double psheight = 27*8.5*cm;
   double pswidth  = 2.0*37.0*cm;
   double psdepth  = 8.5*cm;
 
   G4Box *bbpsbox = new G4Box("bbpsbox", pswidth/2.0, psheight/2.0, psdepth/2.0 );
+  G4LogicalVolume *bbpslog = new G4LogicalVolume(bbpsbox, GetMaterial("Air"), "bbpslog");
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth/2.0), bbpslog, "bbpsphys", bbdetLog, false, 0);
 
-  G4LogicalVolume* bbpslog = new G4LogicalVolume(bbpsbox, GetMaterial("Air"), "bbpslog");
+  // Preshower module - geometry will be assigned after Shower
 
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth/2.0), bbpslog,
-		    "bbpsphys", bbdetLog, false, 0, false);
+  // **** BIGBITE HODOSCOPE **** 
+  // Scintillator box - same dimensions as preshower
+  double bbhododepth = 2.5*cm;
+  G4Box *bbhodobox = new G4Box("bbhodobox", pswidth/2.0, psheight/2.0, bbhododepth/2.0 );
+  G4LogicalVolume *bbhodolog = new G4LogicalVolume( bbhodobox, GetMaterial("PLASTIC_SC_VINYLTOLUENE"), "bbhodolog" );
+  new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
 
-  // BigBite Shower
-
+  // **** BIGBITE SHOWER ****
+  // 7 columns, 27 rows
   double calheight = 27*8.5*cm;
   double calwidth  = 7*8.5*cm;
   double caldepth  = 37.0*cm;
+  G4Box *bbshowerbox = new G4Box("bbshowerbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
+  G4LogicalVolume *bbshowerlog = new G4LogicalVolume(bbshowerbox, GetMaterial("Air"), "bbshowerlog");
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+bbhododepth+caldepth/2.0), bbshowerlog, "bbshowerphys", bbdetLog, false, 0);
 
-  G4Box *bbcalbox = new G4Box("bbcalbox", calwidth/2.0, calheight/2.0, caldepth/2.0 );
-  G4LogicalVolume* bbcallog = new G4LogicalVolume(bbcalbox, GetMaterial("Lead"), "bbcallog");
+  // Shower module:
+  double bbmodule_x = 8.5*cm, bbmodule_y = 8.5*cm;  
+  double bbTF1_x = bbmodule_x - 2*mylar_air_sum;
+  double bbTF1_y = bbmodule_y - 2*mylar_air_sum;
+  double bbTF1_z = caldepth - 2*bbpmtz - mylar_air_sum;
 
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+caldepth/2.0+5.0*cm), bbcallog,
-		    "bbcalphys", bbdetLog, false, 0, false);
+  G4Box *showermodbox = new G4Box("showermodbox", bbmodule_x/2.0, bbmodule_y/2.0, caldepth/2.0);
+  G4LogicalVolume *showermodlog = new G4LogicalVolume(showermodbox, GetMaterial("Special_Air"), "showermodlog");
 
-  G4String BBCalSDname = "Earm/BBCal";
-  G4String BBCalcolname = "BBCalHitsCollection";
-  G4SBSCalSD* BBCalSD;
+  G4Box *tempbox = new G4Box("tempbox", bbmodule_x/2.0, bbmodule_y/2.0, (caldepth-2*bbpmtz)/2.0);
 
-  if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCalSDname)) ){
-    BBCalSD = new G4SBSCalSD( BBCalSDname, BBCalcolname );
-    fDetCon->fSDman->AddNewDetector(BBCalSD);
-    (fDetCon->SDlist).insert( BBCalSDname );
-    fDetCon->SDtype[BBCalSDname] = kCAL;
-    //fDetCon->SDarm[BBCalSDname] = kEarm;
+  // Subtraction
+  G4Box *showermodbox_sub = new G4Box( "showermodbox_sub", (bbmodule_x-2*mylarthickness)/2.0, (bbmodule_y-2*mylarthickness)/2.0, (caldepth-2*bbpmtz)/2.0 );
+  G4SubtractionSolid *bbmylarwrap = new G4SubtractionSolid( "bbmylarwrap", tempbox, showermodbox_sub, 0, G4ThreeVector(0.0, 0.0, mylarthickness) );
+  G4LogicalVolume *bbmylarwraplog = new G4LogicalVolume( bbmylarwrap, GetMaterial("Mylar"), "bbmylarwraplog" ); 
+  new G4LogicalSkinSurface( "BB Mylar Skin", bbmylarwraplog, GetOpticalSurface("Mirrsurf") );
+
+  // Make Lead Glass 
+  G4Box *bbTF1box = new G4Box( "bbTF1box", bbTF1_x/2.0, bbTF1_y/2.0, bbTF1_z/2.0 );
+  G4LogicalVolume *bbTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbTF1log" );
+  
+  // Shower TF1 SD of type CAL
+  G4SDManager *sdman = fDetCon->fSDman;
+
+  G4String BBSHTF1SDname = "Earm/BBSHTF1";
+  G4String BBSHTF1collname = "BBSHTF1HitsCollection";
+  G4SBSCalSD *BBSHTF1SD = NULL;
+
+  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(BBSHTF1SDname)) ) {
+    G4cout << "Adding BB Shower TF1 Sensitive Detector to SDman..." << G4endl;
+    BBSHTF1SD = new G4SBSCalSD( BBSHTF1SDname, BBSHTF1collname );
+    sdman->AddNewDetector( BBSHTF1SD );
+    (fDetCon->SDlist).insert( BBSHTF1SDname );
+    fDetCon->SDtype[BBSHTF1SDname] = kCAL;
+    (BBSHTF1SD->detmap).depth = 1;
+  }
+  bbTF1log->SetSensitiveDetector( BBSHTF1SD ); 
+
+  if( (fDetCon->StepLimiterList).find( BBSHTF1SDname ) != (fDetCon->StepLimiterList).end() ){
+    bbTF1log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
 
-  bbcallog->SetSensitiveDetector(BBCalSD);
+  // Make PMT/Window
+  double pmtrad = 1.13*cm;
+  G4Tubs *bbPMT = new G4Tubs( "bbPMT", 0.0*cm, pmtrad, bbpmtz/2.0, 0.0, twopi );
+  G4LogicalVolume *bbpmtwindowlog = new G4LogicalVolume( bbPMT, GetMaterial("QuartzWindow_ECal"), "bbpmtwindowlog" );
+  G4LogicalVolume *bbpmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpmtcathodelog" );
+
+  // Shower PMT SD of type ECAL
+  G4String BBSHSDname = "Earm/BBSH";
+  G4String BBSHcollname = "BBSHHitsCollection";
+  G4SBSECalSD *BBSHSD = NULL;
+
+  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(BBSHSDname)) ) {
+    G4cout << "Adding BB Shower Sensitive Detector to SDman..." << G4endl;
+    BBSHSD = new G4SBSECalSD( BBSHSDname, BBSHcollname );
+    sdman->AddNewDetector( BBSHSD );
+    (fDetCon->SDlist).insert(BBSHSDname);
+    fDetCon->SDtype[BBSHSDname] = kECAL;
+    (BBSHSD->detmap).depth = 1;
+  }
+  bbpmtcathodelog->SetSensitiveDetector( BBSHSD );
+
+  // Put everything in a BB Shower Module
+  int shower_copy_number = 0;
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-bbpmtz)/2.0), bbpmtcathodelog,"bbcathodephys", showermodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*bbpmtz)/2.0), bbpmtwindowlog, "bbwindowphys", showermodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbTF1log, "bbTF1phys", showermodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -bbpmtz), bbmylarwraplog, "bbmylarphys", showermodlog, false, 0 );
+
+  int bbscol = 7;
+  int bbsrow = 27;
+  for( int l=0; l<bbscol; l++ ) {
+    for( int j=0; j<bbsrow; j++ ) {
+      (BBSHSD->detmap).Col[shower_copy_number] = l;
+      (BBSHSD->detmap).Row[shower_copy_number] = j;
+      (BBSHTF1SD->detmap).Col[shower_copy_number] = l;
+      (BBSHTF1SD->detmap).Row[shower_copy_number] = j;
+      double xtemp = (calwidth - bbmodule_x)/2.0 - l*bbmodule_x;
+      double ytemp = (calheight - bbmodule_y)/2.0 - j*bbmodule_y;
+
+      new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,0.0), showermodlog, "showermodphys", bbshowerlog, false, shower_copy_number);
+      
+      (BBSHSD->detmap).LocalCoord[shower_copy_number] = G4ThreeVector( xtemp,ytemp,(caldepth-bbpmtz)/2.0  );
+      (BBSHTF1SD->detmap).LocalCoord[shower_copy_number] = G4ThreeVector( xtemp, ytemp, (caldepth-4*bbpmtz-bbTF1_z)/2.0 );
+      shower_copy_number++;
+    }
+  }
+
+  // ****Preshower Continued****
+  // Reusing modules from Shower (same variables), rotated by either +/- 90 deg depending on column #
+  G4Box *preshowermodbox = new G4Box( "preshowermodbox", bbmodule_x/2.0, bbmodule_y/2.0, caldepth/2.0 );
+  G4LogicalVolume *preshowermodlog = new G4LogicalVolume( preshowermodbox, GetMaterial("Special_Air"), "preshowermodlog" );
+ 
+  // Preshower TF1 SD of type CAL
+  G4LogicalVolume *bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbpsTF1log" );
+
+  G4String BBPSTF1SDname = "Earm/BBPSTF1";
+  G4String BBPSTF1collname = "BBPSTF1HitsCollection";
+  G4SBSCalSD *BBPSTF1SD = NULL;
+
+  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(BBPSTF1SDname)) ) {
+    G4cout << "Adding BB Preshower TF1 Sensitive Detector to SDman..." << G4endl;
+    BBPSTF1SD = new G4SBSCalSD( BBPSTF1SDname, BBPSTF1collname );
+    sdman->AddNewDetector( BBPSTF1SD );
+    (fDetCon->SDlist).insert( BBPSTF1SDname );
+    fDetCon->SDtype[BBPSTF1SDname] = kCAL;
+    (BBPSTF1SD->detmap).depth = 1;
+  }
+  bbpsTF1log->SetSensitiveDetector( BBPSTF1SD ); 
+
+  if( (fDetCon->StepLimiterList).find( BBPSTF1SDname ) != (fDetCon->StepLimiterList).end() ){
+    bbpsTF1log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+
+  // Preshower PMT SD of type ECAL
+  G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpspmtcathodelog" );
+
+  G4String BBPSSDname = "Earm/BBPS";
+  G4String BBPScollname = "BBPSHitsCollection";
+  G4SBSECalSD *BBPSSD = NULL;
+
+  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(BBPSSDname)) ) {
+    G4cout << "Adding BB Preshower Sensitive Detector to SDman..." << G4endl;
+    BBPSSD = new G4SBSECalSD( BBPSSDname, BBPScollname );
+    sdman->AddNewDetector( BBPSSD );
+    (fDetCon->SDlist).insert(BBPSSDname);
+    fDetCon->SDtype[BBPSSDname] = kECAL;
+    (BBPSSD->detmap).depth = 1;
+  }
+  bbpspmtcathodelog->SetSensitiveDetector( BBPSSD );
+
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-bbpmtz)/2.0), bbpspmtcathodelog,"bbpscathodephys", preshowermodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*bbpmtz)/2.0), bbpmtwindowlog, "bbpswindowphys", preshowermodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbpsTF1log, "bbpsTF1phys", preshowermodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -bbpmtz), bbmylarwraplog, "bbpsmylarphys", preshowermodlog, false, 0 );
+  
+  G4RotationMatrix *bbpsrm_col1 = new G4RotationMatrix;
+  bbpsrm_col1->rotateY(-90.0*deg);
+  G4RotationMatrix *bbpsrm_col2 = new G4RotationMatrix;
+  bbpsrm_col2->rotateY(90.0*deg);
+  
+  int bbpscol = 2;
+  int bbpsrow = 27;
+  int ps_copy_number = 0;
+  for(int l=0; l<bbpscol; l++) {
+    for(int j=0; j<bbpsrow; j++) {
+      double xtemp = (pswidth-caldepth)/2.0 - l*caldepth;
+      double ytemp = (psheight-bbmodule_y)/2.0 - j*bbmodule_y;
+      (BBPSSD->detmap).Col[ps_copy_number] = l;
+      (BBPSSD->detmap).Row[ps_copy_number] = j;
+      (BBPSTF1SD->detmap).Col[ps_copy_number] = l;
+      (BBPSTF1SD->detmap).Row[ps_copy_number] = j;
+      if(l==0) { //X Local Coordinate should be updated to represent center of PMT instead of center of module
+	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number, true );
+	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp+caldepth/2.0-bbpmtz/2.0, ytemp, 0.0);
+	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
+	ps_copy_number++;
+      }
+      if(l==1) {
+	new G4PVPlacement( bbpsrm_col2, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
+	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-caldepth/2.0+bbpmtz/2.0, ytemp, 0.0);
+	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
+	ps_copy_number++;
+      }
+    }
+  }
+  //--------- Visualization attributes -------------------------------
+  //Mother volumes
+  bbdetLog->SetVisAttributes( G4VisAttributes::Invisible );
+  bbfieldLog->SetVisAttributes( G4VisAttributes::Invisible );
+  bbmotherLog->SetVisAttributes( G4VisAttributes::Invisible );
+  
+  bbpslog->SetVisAttributes( G4VisAttributes::Invisible ); 
+  bbshowerlog->SetVisAttributes( G4VisAttributes::Invisible );
+
+  //Mylar
+  G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );
+  bbmylarwraplog->SetVisAttributes(mylar_colour);
+
+  //Air
+  showermodlog->SetVisAttributes( G4VisAttributes::Invisible );
+  preshowermodlog->SetVisAttributes( G4VisAttributes::Invisible );
+
+  //TF1
+  G4VisAttributes *TF1_colour = new G4VisAttributes(G4Colour( 0.8, 0.8, 0.0 ) );
+  bbTF1log->SetVisAttributes(TF1_colour);
+  bbpsTF1log->SetVisAttributes(TF1_colour);
+
+  //PMTcathode
+  G4VisAttributes *PMT_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));
+  PMT_colour->SetForceLineSegmentsPerCircle( 12 );
+  bbpmtcathodelog->SetVisAttributes(PMT_colour);
+  bbpspmtcathodelog->SetVisAttributes(PMT_colour);
+
+  //Yoke
+  G4VisAttributes * yokeVisAtt = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
+  bbyokewgapLog->SetVisAttributes(yokeVisAtt);
+
+//G4LogicalVolume* bbcallog = new G4LogicalVolume(bbcalbox, GetMaterial("Lead"), "bbcallog");
+  
+  //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+caldepth/2.0+5.0*cm), bbcallog,
+  //"bbcalphys", bbdetLog, false, 0, false);
+
+  // G4String BBCalSDname = "Earm/BBCal";
+  // G4String BBCalcolname = "BBCalHitsCollection";
+  // G4SBSCalSD* BBCalSD;
+
+  // if( !(BBCalSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(BBCalSDname)) ){
+  //   BBCalSD = new G4SBSCalSD( BBCalSDname, BBCalcolname );
+  //   fDetCon->fSDman->AddNewDetector(BBCalSD);
+  //   (fDetCon->SDlist).insert( BBCalSDname );
+  //   fDetCon->SDtype[BBCalSDname] = kCAL;
+  //   //fDetCon->SDarm[BBCalSDname] = kEarm;
+  // }
+
+  // bbcallog->SetSensitiveDetector(BBCalSD);
+  // bbcallog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+
+  // (BBCalSD->detmap).depth=0;
+  // (BBCalSD->detmap).Row[0] = 0;
+  // (BBCalSD->detmap).Col[0] = 0;
+  // (BBCalSD->detmap).LocalCoord[0] = G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+caldepth/2.0+5.0*cm);
 
   // G4cout << "fDetCon->StepLimiterList.size() == " << (fDetCon->StepLimiterList).size() << G4endl;
   // for( set<G4String>::iterator itlist=(fDetCon->StepLimiterList).begin(); itlist != (fDetCon->StepLimiterList).end(); itlist++){
   //   G4cout << "step limiter list element = " << *itlist << G4endl;
   // }
-  
-  if( (fDetCon->StepLimiterList).find(BBCalSDname) != (fDetCon->StepLimiterList).end() ){
-    G4cout << "Creating user limits for " << BBCalSDname << G4endl;
-    bbcallog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-  }
-  
-  (BBCalSD->detmap).depth=0;
-  (BBCalSD->detmap).Row[0] = 0;
-  (BBCalSD->detmap).Col[0] = 0;
-  (BBCalSD->detmap).LocalCoord[0] = G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+caldepth/2.0+5.0*cm);
+
   //(BBCalSD->detmap).GlobalCoord[0] = G4ThreeVector(0.0,0.0,0.0); //To be set later 
 
   //--------- BigBite Cerenkov ------------------------------
@@ -504,36 +713,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   grinch->SetCerDepth( fCerDepth);
   grinch->BuildComponent(bbdetLog);
 
-  //--------- Visualization attributes -------------------------------
-  bbdetLog->SetVisAttributes(G4VisAttributes::Invisible);
-  bbfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
-  bbmotherLog->SetVisAttributes(G4VisAttributes::Invisible);
 
-  G4VisAttributes * yokeVisAtt
-    = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
-  //  yokeVisAtt->SetForceWireframe(true);
-  bbyokewgapLog->SetVisAttributes(yokeVisAtt);
-
-  /*
-    G4VisAttributes * alVisAtt
-    = new G4VisAttributes(G4Colour(0.1,0.1,0.1));
-    cer_winlog_in->SetVisAttributes(alVisAtt);
-    cer_winlog_out->SetVisAttributes(alVisAtt);
-
-    G4VisAttributes * gasVisAtt
-    = new G4VisAttributes(G4Colour(0.6,0.6,1.0));
-    gasVisAtt->SetForceWireframe(true);
-    cer_gaslog->SetVisAttributes(gasVisAtt);
-  */
-
-  G4VisAttributes * psVisAtt
-    = new G4VisAttributes(G4Colour(0.3,0.9,0.3));
-  psVisAtt->SetForceWireframe(true);
-  bbpslog->SetVisAttributes(psVisAtt);
-
-  G4VisAttributes * bbcalVisAtt
-    = new G4VisAttributes(G4Colour(0.0,0.6,0.0));
-  bbcallog->SetVisAttributes(bbcalVisAtt);
 
 }
 
@@ -546,9 +726,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
   // Ecal will act as BBcal detector
 
-  double bigcalheight = (24*4.5+32*4.0)*cm;
-  double bigcalwidth  = 44.10*2.54*cm;
-  double bigcaldepth  = 15.75*2.54*cm;
+  //double bigcalheight = (24*4.5+32*4.0)*cm;
+  //double bigcalwidth  = 44.10*2.54*cm;
+  //double bigcaldepth  = 15.75*2.54*cm;
   //double bbr = fBBdist+bigcaldepth/2.0;
   /*
     printf("BigCal at %f deg\n", fBBang/deg);
@@ -650,7 +830,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   G4Box *module_type1 = new G4Box( "module_type1", x_module_type1/2.0, y_module_type1/2.0, z_module_type1/2.0 );
 
   //Define a new mother volume which will house the contents of a module(i.e. TF1 & Mylar)
-  G4LogicalVolume *module_log_type1 = new G4LogicalVolume( module_type1, GetMaterial("ECal_Air"), "module_log_type1" );
+  G4LogicalVolume *module_log_type1 = new G4LogicalVolume( module_type1, GetMaterial("Special_Air"), "module_log_type1" );
 
   //MYLAR
   //Subtraction solid to leave us with a 0.0015cm "mylar wrapping" with one end open
@@ -686,7 +866,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     TF1_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
 
-  //Place TF1 mother & Mylar inside module_log_type1 which is already full of ECal_Air
+  //Place TF1 mother & Mylar inside module_log_type1 which is already full of Special_Air
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, 0.0), mylar_wrap_log, "Mylar_Wrap", module_log_type1, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, mylar_plus_air/2.0), TF1_log, "TF1", module_log_type1, false, 0 );
 

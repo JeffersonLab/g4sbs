@@ -28,7 +28,6 @@
 #include "G4MagIntegratorStepper.hh"
 #include "G4ExplicitEuler.hh"
 #include "G4ChordFinder.hh"
-
 #include "G4OpticalSurface.hh"
 #include "G4LogicalSkinSurface.hh"
 #include "G4SBSRICHSD.hh"
@@ -480,10 +479,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
 
   // Make PMT/Window
-  double pmtrad = 1.13*cm;
+  double pmtrad = 7.62/2.0*cm;
   G4Tubs *bbPMT = new G4Tubs( "bbPMT", 0.0*cm, pmtrad, bbpmtz/2.0, 0.0, twopi );
   G4LogicalVolume *bbpmtwindowlog = new G4LogicalVolume( bbPMT, GetMaterial("QuartzWindow_ECal"), "bbpmtwindowlog" );
-  G4LogicalVolume *bbpmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpmtcathodelog" );
+  G4LogicalVolume *bbpmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_BB"), "bbpmtcathodelog" );
 
   // Shower PMT SD of type ECAL
   G4String BBSHSDname = "Earm/BBSH";
@@ -591,7 +590,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       (BBPSTF1SD->detmap).Col[ps_copy_number] = l;
       (BBPSTF1SD->detmap).Row[ps_copy_number] = j;
       if(l==0) { //X Local Coordinate should be updated to represent center of PMT instead of center of module
-	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number, true );
+	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
 	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp+caldepth/2.0-bbpmtz/2.0, ytemp, 0.0);
 	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
 	ps_copy_number++;

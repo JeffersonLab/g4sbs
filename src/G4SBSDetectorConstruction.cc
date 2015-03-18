@@ -1058,6 +1058,49 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4Material *PLASTIC_SC_VINYLTOLUENE = man->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
     fMaterialsMap["PLASTIC_SC_VINYLTOLUENE"] = PLASTIC_SC_VINYLTOLUENE;
 
+    //Preshower/shower photocathodes 
+    //Photonis XP3312B - http://www.qsl.net/k0ff/01%20Manuals/PMT/Photonis/XP3312B.pdf
+    const G4int nentries_BB = 35;
+    G4double den_photocathode_BB = 2.57*g/cm3;
+    G4Material *Photocathode_BB = new G4Material( "Photocathode_BB", den_photocathode_BB, nel=3 );
+    Photocathode_BB->AddElement( Sb, natoms=1 );
+    Photocathode_BB->AddElement( K, natoms=2 );
+    Photocathode_BB->AddElement( Cs, natoms=1 );
+
+    G4double EPhoton_BB[nentries_BB] = {
+      1.92794*eV, 1.97312*eV, 1.99651*eV, 2.01562*eV, 2.02532*eV, 
+      2.03511*eV, 2.04499*eV, 2.05247*eV, 2.06000*eV, 2.06759*eV, 
+      2.13847*eV, 2.20281*eV, 2.25290*eV, 2.34709*eV, 2.41439*eV, 
+      2.48200*eV, 2.63747*eV, 2.75843*eV, 3.09276*eV, 3.22296*eV, 
+      3.33795*eV, 3.51930*eV, 3.61758*eV, 3.71329*eV, 3.86675*eV, 
+      3.94834*eV, 4.06263*eV, 4.14257*eV, 4.17337*eV, 4.18373*eV, 
+      4.20463*eV, 4.23636*eV, 4.26858*eV, 4.30128*eV, 4.33448*eV };
+    
+    G4double PMT_BB_QE[nentries_BB] = {
+      0.001987, 0.003958, 0.00600, 0.00811, 0.01017, 
+      0.012283, 0.014383, 0.01644, 0.01836, 0.02083, 
+      0.042897, 0.065273, 0.09065, 0.11700, 0.14572, 
+      0.174573, 0.211272, 0.24593, 0.30927, 0.28516, 
+      0.267383, 0.245646, 0.21668, 0.18511, 0.15323, 
+      0.117895, 0.080874, 0.03693, 0.03343, 0.02942, 
+      0.025184, 0.021118, 0.01717, 0.01294, 0.00862 };
+
+    G4double Rindex_BB[nentries_BB] = { 
+      1.41935, 1.42989, 1.44182, 1.44661, 1.45221,
+      1.45640, 1.46131, 1.46677, 1.47181, 1.47495,
+      1.48280, 1.48788, 1.49412, 1.49720, 1.50055,
+      1.50322, 1.50614, 1.50847, 1.50995, 1.51067,
+      1.51137, 1.51206, 1.51274, 1.51307, 1.51373,
+      1.51437, 1.51501, 1.51593, 1.51654, 1.51713,
+      1.51771, 1.51828, 1.51912, 1.52073, 1.52370 };
+
+    MPT_temp = new G4MaterialPropertiesTable();
+    MPT_temp->AddProperty("EFFICIENCY", EPhoton_BB, PMT_BB_QE, nentries_BB ); 
+    MPT_temp->AddProperty("RINDEX", EPhoton_BB, Rindex_BB, nentries_BB );
+
+    Photocathode_BB->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap["Photocathode_BB"] = Photocathode_BB;
+
     //****************
     //***** HCAL *****
     //**************** 
@@ -1582,6 +1625,6 @@ void G4SBSDetectorConstruction::SetECALmapfilename( G4String s ){
   fECALmapfilename = s;
 }
 
-void G4SBSDetectorConstruction::SetHCALspecsfilename( G4String s){
-  fHCALspecsfilename = s;
+void G4SBSDetectorConstruction::SetHCALspecsfilename( G4String d){
+  fHCALspecsfilename = d;
 }

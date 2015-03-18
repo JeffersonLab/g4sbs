@@ -690,10 +690,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     fDetCon->SDtype[HCalScintSDname] = kCAL;
     //fDetCon->SDarm[HCalScintSDname] = kHarm;
 
-    //(HCalSD->detmap).Row[0] = 0;
-    //(HCalSD->detmap).Col[0] = 0;
-    //(HCalSD->detmap).LocalCoord[0] = G4ThreeVector(0,0,0);
-    //(HCalSD->detmap).GlobalCoord[0] = G4ThreeVector(0,0,0);
+    //(HCalScintSD->detmap).depth = 0;
   }
   logScinPl->SetSensitiveDetector(HCalScintSD);
 

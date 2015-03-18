@@ -1,10 +1,21 @@
 /control/execute scripts/sidis_template.mac
+/g4sbs/kine sidis
+/g4sbs/hthmin 14 deg
+/g4sbs/hthmax 14 deg
+/g4sbs/hphmin 0 deg
+/g4sbs/hphmax 0 deg
+/g4sbs/thmin 30 deg
+/g4sbs/thmax 30 deg
+/g4sbs/phmin 180 deg
+/g4sbs/phmax 180 deg
 
 /g4sbs/uselead 1
 #/g4sbs/target LH2
 #/g4sbs/exp gep
 #/g4sbs/hcaldist 9.0 m
 #/g4sbs/bbdist 2.0 m
+/g4sbs/steplimit Harm/HCAL 1
+/g4sbs/steplimit Earm/BBCal 1
 
 # Use this open statement to create an OpenGL view:
 /vis/open OGLI 800x800-0+0
@@ -55,18 +66,22 @@
 /vis/scene/add/hits
 #
 # To draw only gammas:
-#/vis/filtering/trajectories/create/particleFilter
-#/vis/filtering/trajectories/particleFilter-0/add gamma
+/vis/filtering/trajectories/create/particleFilter
+/vis/filtering/trajectories/particleFilter-0/add gamma
+/vis/filtering/trajectories/particleFilter-0/add neutron
 #
 # To invert the above, drawing all particles except gammas,
 # keep the above two lines but also add:
-#/vis/filtering/trajectories/particleFilter-0/invert true
+/vis/filtering/trajectories/particleFilter-0/invert true
 #
 # Many other options are available with /vis/modeling and /vis/filtering.
 # For example, to select colour by particle ID:
 /vis/modeling/trajectories/create/drawByParticleID
 /vis/modeling/trajectories/drawByParticleID-0/set e- blue
 /vis/modeling/trajectories/drawByParticleID-0/set opticalphoton white
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA pi- 1. 0.2 1.0 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon+ 0.3 1.0 0.5 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
 #
 # To superimpose all of the events from a given run:
 /vis/scene/endOfEventAction accumulate 10000
@@ -78,5 +93,5 @@
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
 /g4sbs/run  0
-/vis/geometry/set/visibility RICHbox_log -1 0
+#/vis/geometry/set/visibility RICHbox_log -1 0
 /vis/viewer/flush

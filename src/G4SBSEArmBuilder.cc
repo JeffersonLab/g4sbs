@@ -37,6 +37,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <cmath>
 
 #include "sbstypes.hh"
 
@@ -718,77 +719,239 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
 void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
-  //-----------------------------
-  //  BigCal: Currently just a box with dimensions and sensitivity
-
   printf("BigCal at %f deg\n", fBBang/deg);
 
-  // Ecal will act as BBcal detector
+  // Electron Arm - order of materials - all "right next" to each other in z-hat_spectrometer coordinates
+  //   1) 20cm Polyethylene 
+  //   2) 2 4cm CDet planes
+  //   3) 2.4cm Al
+  //   4) ECal
 
-  //double bigcalheight = (24*4.5+32*4.0)*cm;
-  //double bigcalwidth  = 44.10*2.54*cm;
-  //double bigcaldepth  = 15.75*2.54*cm;
-  //double bbr = fBBdist+bigcaldepth/2.0;
-  /*
-    printf("BigCal at %f deg\n", fBBang/deg);
-
-    
-    double CH2depth = 15.0*cm;
-    double CHdepth  = 6.0*cm;
-
-    G4Box *CH2box = new G4Box("ch2box", bigcalwidth/2.0, bigcalheight/2.0, CH2depth/2.0 );
-    G4LogicalVolume* ch2boxlog = new G4LogicalVolume(CH2box, GetMaterial("CH2"), "ch2log");
-    G4Box *CHbox = new G4Box("chbox", bigcalwidth/2.0, bigcalheight/2.0, CHdepth/2.0 );
-    G4LogicalVolume* chboxlog = new G4LogicalVolume(CHbox, GetMaterial("CH"), "chlog");
-
-    double ch2r = bbr - bigcaldepth/2.0 - CHdepth - CH2depth/2.0;
-    double chr = bbr - bigcaldepth/2.0 - CHdepth/2.0;
-
-
-    new G4PVPlacement(bbrm, G4ThreeVector(ch2r*sin(-fBBang), 0.0, ch2r*cos(-fBBang) ), ch2boxlog,
-    "ch2boxphys", worldlog, false, 0, false);
-    new G4PVPlacement(bbrm, G4ThreeVector(chr*sin(-fBBang), 0.0, chr*cos(-fBBang) ), chboxlog,
-    "chboxphys", worldlog, false, 0, false);
-
-
-    G4VisAttributes * chVisAtt
-    = new G4VisAttributes(G4Colour(1.0,0.6,0.0));
-    chboxlog->SetVisAttributes(chVisAtt);
-
-    G4VisAttributes * ch2VisAtt
-    = new G4VisAttributes(G4Colour(1.0,0.8,0.0));
-    ch2boxlog->SetVisAttributes(ch2VisAtt);
-  */
-
-  /*************************************************************************************
-   ********************************        ECAL      ***********************************
-   *************************************************************************************/
-   
-  //Define  coordinates, rotations, and offsets:
+  // Rotations, offsets, and distances from Target:
   G4RotationMatrix *bbrm = new G4RotationMatrix;
   bbrm->rotateY(fBBang);
 
+  //   -some of these variables are used in ECAL Section exclusively.
   G4double x_ecal = 246.402*cm, y_ecal = 370.656*cm, z_ecal = 45.406*cm; //45.006cm(module) + 2*0.2(pmt depth)
-  double bbr = fBBdist - z_ecal/2.0; //backside of ECal should be located at fBBdist
-  double offset = 15*cm; //Motivation - match SBS acceptance
-
-  //Electron Arm - order of materials - all "right next" to each other in z-hat_spectrometer coordinates
-  //1)20cm Polyethylene 
-  //2)2 4cm CDet planes
-  //3)2.4cm Al
-  //4)ECal - geometry specified below
-
-  //Dimensions are different than ecal_log because ECal was shrunk significantly when the crescent shape was developed
-  //x_earm = 47.5*4.212 (the .5 comes from staggering effects)
-  //y_earm = 75*4.212
-  //z_earm = 20 + 2*4 + 2.40
 
   G4double z_Al = 2.40*cm;
   G4double polydepth = 20.00*cm;
   G4double CD_depth = 4.00*cm;
   G4double x_earm = 200.070*cm, y_earm = 315.900*cm, z_earm = 30.40*cm; 
 
-  double cdr = fBBdist - z_ecal - z_earm/2.0;
+  double bbr = fBBdist - z_ecal/2.0; //backside of ECal should be located at fBBdist
+  double offset = 15*cm; //Motivation - match SBS acceptance
+
+
+  /*************************************************************************************
+   ********************************        CDet      ***********************************
+   *************************************************************************************/
+  G4double x_bar_CDet = 0.5*cm;
+  G4double y_bar_CDet = 4.0*cm;
+  G4double z_bar_CDet = 51*cm;
+
+  G4double mylar_CDet       = 0.025*cm;
+  G4double pmt_CDet_depth   = 0.010*cm;
+
+  G4double BoreHoleDiameter = 0.30*cm;
+  G4double WLSDiameter      = 0.20*cm; 
+
+  G4int CDetColumns = 2;
+  G4int CDetRows    = 196;
+
+  // Setting up the Scintillating Bars by defining a mother volume
+  G4Box *CDetBox = new G4Box("CDetBox",(x_bar_CDet+2*mylar_CDet)/2.0,
+			     (y_bar_CDet+2*mylar_CDet)/2.0,
+			     (z_bar_CDet+mylar_CDet)/2.0 );
+  G4LogicalVolume *CDetLog = new G4LogicalVolume( CDetBox, GetMaterial("Special_Air"), "CDetLog" );
+  
+  G4Box *CDetScintBox_temp = new G4Box("CDetScintBox_temp", x_bar_CDet/2.0, y_bar_CDet/2.0, z_bar_CDet/2.0);
+
+  // Setting up Mylar Wrap
+  G4SubtractionSolid *CDetMylarBox = new G4SubtractionSolid( "CDetMylar", CDetBox, CDetScintBox_temp, 0, G4ThreeVector(0.0,0.0,mylar_CDet/2.0) );
+  G4LogicalVolume *CDetMylarLog = new G4LogicalVolume( CDetMylarBox, GetMaterial("Mylar"), "CDetMylarLog" );
+  new G4LogicalSkinSurface( "CDet_Mylar_Skin", CDetMylarLog, GetOpticalSurface("Mirrsurf") );
+    
+  // Bore out cylindrical section of our scintillating material, CDetScintBox.
+  G4Tubs *BoreHole = new G4Tubs( "BoreHole", 0.0, BoreHoleDiameter/2.0, 1.001*z_bar_CDet/2.0, 0.0, twopi );
+  G4SubtractionSolid *CDScintBoreBox = new G4SubtractionSolid( "CDScintBoreBox", CDetScintBox_temp, BoreHole, 0, G4ThreeVector() );
+  G4LogicalVolume *CDScintBoreLog = new G4LogicalVolume( CDScintBoreBox, GetMaterial("EJ232"), "CDScintBoreLog" );
+
+  // Make a Lightguide
+  G4Tubs *WLSguide = new G4Tubs( "WLSguide", 0.0, WLSDiameter/2.0, z_bar_CDet/2.0, 0.0, twopi );
+  G4LogicalVolume *WLSguideLog = new G4LogicalVolume( WLSguide, GetMaterial("BC484"), "WLSguideLog" );
+
+  // Place these materials inside CDetBox.
+  new G4PVPlacement(0, G4ThreeVector(), CDetMylarLog, "CDetMylarLogPhys", CDetLog, false, 0); 
+  new G4PVPlacement(0, G4ThreeVector(0.0,0.0,mylar_CDet/2.0), CDScintBoreLog, "CDScintBorePhys", CDetLog, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0,0.0,mylar_CDet/2.0), WLSguideLog, "WLSguidePhys", CDetLog, false, 0);
+
+  // Make some PMT's
+  G4Tubs *CDetPMT = new G4Tubs( "CDetPMT", 0.0, WLSDiameter/2.0, pmt_CDet_depth/2.0, 0.0, twopi );
+  G4LogicalVolume *CDetPMTLog = new G4LogicalVolume( CDetPMT, GetMaterial("Photocathode_CDet"), "CDetPMTLog" ); //update
+
+  // Make the Final CDet Bar, housing CDetLog and CDetPMTLog!
+  G4double CDetBarX = x_bar_CDet + 2*mylar_CDet;
+  G4double CDetBarY = y_bar_CDet + 2*mylar_CDet;
+  G4double CDetBarZ = z_bar_CDet + mylar_CDet + pmt_CDet_depth;
+  G4Box *CDetBarBox = new G4Box( "CDetBarBox", CDetBarX/2.0, CDetBarY/2.0, CDetBarZ/2.0 );
+  G4LogicalVolume *CDetBarLog = new G4LogicalVolume( CDetBarBox, GetMaterial("Air"), "CDetBarLog" );
+
+  // Placing..
+  new G4PVPlacement(0, G4ThreeVector(0.0,0.0,(CDetBarZ-pmt_CDet_depth)/2.0), CDetPMTLog,"CDetPMTPhys", CDetBarLog, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0,0.0,-pmt_CDet_depth/2.0), CDetLog, "CDetPhys", CDetBarLog, false, 0);
+
+  G4RotationMatrix *CDetBarRot = new G4RotationMatrix;
+  CDetBarRot->rotateZ(90*deg);
+  //CDetBarRot->rotateX(90*deg);
+  //TEST to see if module looks like I expect
+  //new G4PVPlacement(CDetBarRot,G4ThreeVector(-5*m, 0*m, 3.0*m), CDetBarLog, "Ex", worldlog, false, 0,true );
+
+  // Lets define a CDet MODULE - 2 cols, 196 rows => 392 bars in 1 module:
+  G4double CDetModuleX = CDetColumns*CDetBarZ; 
+  G4double CDetModuleY = CDetRows*CDetBarX;
+  G4double CDetModuleZ = CDetBarY;
+  G4Box *CDetModuleBox = new G4Box( "CDetModuleBox", CDetModuleX/2.0, CDetModuleY/2.0, CDetModuleZ/2.0 );
+  G4LogicalVolume *CDetModuleLog = new G4LogicalVolume( CDetModuleBox, GetMaterial("Air"), "CDetModuleLog" );
+
+  // Place Bars in a Module, rotating based on Column. 
+  G4RotationMatrix *CDetBar_Col1 = new G4RotationMatrix;
+  CDetBar_Col1->rotateZ(90.0*deg);
+  CDetBar_Col1->rotateX(90.0*deg);
+  G4RotationMatrix *CDetBar_Col2 = new G4RotationMatrix;
+  CDetBar_Col2->rotateZ(-90.0*deg);
+  CDetBar_Col2->rotateX(90.0*deg);
+  G4int cdet_copy_number = 0;
+  
+  for(int l=0; l<CDetColumns; l++) {
+    for(int j=0; j<CDetRows; j++) {
+      double xtemp = (CDetModuleX - CDetBarZ)/2.0 - l*CDetBarZ;
+      double ytemp = (CDetModuleY - CDetBarX)/2.0 - j*CDetBarX;
+      if(l==0) {
+	new G4PVPlacement( CDetBar_Col1, G4ThreeVector(xtemp,ytemp,0.0), CDetBarLog, "CDetBarPhys", CDetModuleLog, false, cdet_copy_number );
+	cdet_copy_number++;
+      }
+      if(l==1) {
+	new G4PVPlacement( CDetBar_Col2, G4ThreeVector(xtemp,ytemp,0.0), CDetBarLog, "CDetBarPhys", CDetModuleLog, false, cdet_copy_number );
+	cdet_copy_number++;
+      }
+    }
+  }
+
+  //Test
+  //new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang)+(offset+ (4.212/2.0)*cm )*cos(fBBang), -(4.212/2.0)*cm, cdr*cos(-fBBang)+(offset+(4.212/2.0)*cm)*sin(fBBang) ), CDetModuleLog, "CDet", worldlog, false, 0);
+
+  // 3 Modules make up a "Plane" => CDet consists of two planes:
+  // Make a Plane box & Place "Modules" inside:
+
+  // Top and Bottom Module need to be rotated, optimizing normal incidence
+  
+  G4Box *AlBox = new G4Box( "AlBox", x_earm/2.0, y_earm/2.0, z_Al/2.0 );
+  G4LogicalVolume *Allog = new G4LogicalVolume ( AlBox, GetMaterial("RICHAluminum"), "Allog" );
+  
+  G4double PlaneX = x_earm;
+  G4double PlaneY = 3*CDetModuleY;;
+  G4double PlaneZ = CDetModuleZ + CDetModuleY*sin(25*deg);
+
+  // Mother Volume - houses 2 planes and Al
+  G4Box *PlaneBox = new G4Box( "PlaneBox", PlaneX/2.0, PlaneY/2.0, PlaneZ/2.0 );
+  G4LogicalVolume *PlaneLog = new G4LogicalVolume( PlaneBox, GetMaterial("Air"), "PlaneLog" );
+
+  double cdr = fBBdist - z_ecal - PlaneZ/2.0;
+  double CDetFrontRad = cdr + PlaneZ/2.0 - CDetModuleZ;
+  G4double Layeroffset = 0.30*cm;
+  G4double TopBottomModuleOffset = 0.0; // 4.212*cm;
+  G4double MiddleModuleOffset    = 0.0; //5*4.212*cm;
+
+  double CDetPhi = 2.0*asin( CDetModuleY/(2.0*CDetFrontRad) );
+
+  G4RotationMatrix *CDetModuleRotTop = new G4RotationMatrix;
+  CDetModuleRotTop->rotateX(CDetPhi);
+
+  G4RotationMatrix *CDetModuleRotBottom = new G4RotationMatrix;
+  CDetModuleRotBottom->rotateX(-CDetPhi);
+
+  G4ThreeVector CDetPos( cdr*sin(-fBBang)+(offset+ (4.212/2.0)*cm )*cos(fBBang), 
+			 -(4.212/2.0)*cm, 
+			 cdr*cos(-fBBang)+(offset+(4.212/2.0)*cm)*sin(fBBang) );
+
+  new G4PVPlacement( bbrm, CDetPos, PlaneLog, "CDet", worldlog, false, 0);
+
+  double DisplaceZ = (CDetModuleY/2.0)*sin(CDetPhi) + (CDetModuleZ/2.0)*( 1-cos(CDetPhi) );    // 0.053*cm;
+  double DisplaceY = (CDetModuleY/2.0)*( 1-cos(CDetPhi) ) - (CDetModuleZ/2.0)*sin(CDetPhi);
+
+  G4ThreeVector postop(TopBottomModuleOffset, CDetModuleY-DisplaceY, (PlaneZ-CDetModuleZ)/2.0-DisplaceZ-z_Al);
+  G4ThreeVector posbot(TopBottomModuleOffset, -CDetModuleY+DisplaceY, (PlaneZ-CDetModuleZ)/2.0-DisplaceZ-z_Al);
+
+  //Layer 2 (closest to ECal)
+  new G4PVPlacement( 0,G4ThreeVector(0.0,0.0,(PlaneZ-z_Al)/2.0), Allog, "AlShield", PlaneLog, false, 0 );
+
+  new G4PVPlacement( CDetModuleRotTop, postop, CDetModuleLog, "CDetModulePhys", PlaneLog, false, 1, true );
+  new G4PVPlacement( 0, G4ThreeVector(-MiddleModuleOffset, 0.0, PlaneZ/2.0-CDetModuleZ/2.0-z_Al),
+		     CDetModuleLog, "CDetModulePhys", PlaneLog, false, 2, true); 
+  new G4PVPlacement( CDetModuleRotBottom, posbot, CDetModuleLog, "CDetModulePhys", PlaneLog, false, 3, true );
+
+  //Layer 1(closest to Target)
+  CDetFrontRad = cdr + PlaneZ/2.0 - 2*CDetModuleZ; 
+  CDetPhi = 2.0*asin( CDetModuleY/(2.0*CDetFrontRad) );
+
+  G4RotationMatrix *CDetModuleRotTopLayer1 = new G4RotationMatrix;
+  CDetModuleRotTopLayer1->rotateX(CDetPhi);
+  G4RotationMatrix *CDetModuleRotBotLayer1 = new G4RotationMatrix;
+  CDetModuleRotBotLayer1->rotateX(-CDetPhi);
+
+  DisplaceZ = (CDetModuleY/2.0)*sin(CDetPhi) + (CDetModuleZ/2.0)*( 1-cos(CDetPhi) ); 
+  DisplaceY = (CDetModuleY/2.0)*( 1-cos(CDetPhi) ) - (CDetModuleZ/2.0)*sin(CDetPhi);
+
+  postop.set(TopBottomModuleOffset, CDetModuleY-DisplaceY, (PlaneZ-3*CDetModuleZ)/2.0-DisplaceZ-Layeroffset-z_Al);
+  posbot.set(TopBottomModuleOffset, -CDetModuleY+DisplaceY, (PlaneZ-3*CDetModuleZ)/2.0-DisplaceZ-Layeroffset-z_Al);
+
+  new G4PVPlacement( CDetModuleRotTopLayer1, postop, CDetModuleLog, "CDetModulePhys", PlaneLog, false, 4, true );
+  new G4PVPlacement( 0, G4ThreeVector(-MiddleModuleOffset, 0.0, (PlaneZ-3*CDetModuleZ)/2.0 - Layeroffset-z_Al),
+		     CDetModuleLog, "CDetModulePhys", PlaneLog, false, 5, true); 
+  new G4PVPlacement( CDetModuleRotBotLayer1, posbot, CDetModuleLog, "CDetModulePhys", PlaneLog, false, 6, true );
+
+  // VISUALIZATIONS
+  CDetLog->SetVisAttributes( G4VisAttributes::Invisible );
+  CDetBarLog->SetVisAttributes( G4VisAttributes::Invisible );
+  CDetModuleLog->SetVisAttributes( G4VisAttributes::Invisible );
+  PlaneLog->SetVisAttributes( G4VisAttributes::Invisible );
+
+  // G4VisAttributes *CDetPlaneVis = new G4VisAttributes( G4Colour::Green() );
+  // CDetPlaneVis->SetForceWireframe(true);
+  // PlaneLog->SetVisAttributes(CDetPlaneVis);
+
+  // Mylar
+  G4VisAttributes *CDetMylarVis = new G4VisAttributes( G4Colour(0.5,0.5,0.5) );
+  CDetMylarLog->SetVisAttributes( CDetMylarVis );
+  //CDetMylarLog->SetVisAttributes( G4VisAttributes::Invisible );
+
+  // Waveguide
+  G4VisAttributes *CDetWLSVis = new G4VisAttributes( G4Colour(0.0, 1.0, 1.0) );
+  WLSguideLog->SetVisAttributes( CDetWLSVis );
+
+  // Scintillating Material
+  G4VisAttributes *CDetScintVis = new G4VisAttributes( G4Colour( 0.5, 0.0, 0.8) );
+  CDScintBoreLog->SetVisAttributes( CDetScintVis );
+  
+  //PMT
+  G4VisAttributes *CDetPMTVis = new G4VisAttributes( G4Colour(0.3,0.3,0.3) );
+  CDetPMTLog->SetVisAttributes( CDetPMTVis );
+	
+  //Al
+  G4VisAttributes *AlVis = new G4VisAttributes(G4Colour(0.9, 0.9, 0.9));
+  AlVis->SetForceWireframe(true);
+  Allog->SetVisAttributes(AlVis);	    
+
+  /*************************************************************************************
+   ********************************        ECAL      ***********************************
+   *************************************************************************************/
+ 
+  //Dimensions are different than ecal_log because ECal was shrunk significantly when the crescent shape was developed
+  //x_earm = 47.5*4.212 (the .5 comes from staggering effects)
+  //y_earm = 75*4.212
+  //z_earm = 20 + 2*4 + 2.40
+
   G4Box *earm_mother_box = new G4Box("earm_mother_box", x_earm/2.0, y_earm/2.0, z_earm/2.0);
   G4LogicalVolume *earm_mother_log = new G4LogicalVolume(earm_mother_box, GetMaterial("Air"), "earm_mother_log");
 
@@ -810,7 +973,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0 - z_Al - CD_depth - CD_depth/2.0 ), CD_log, "plane2", earm_mother_log, false, 1 );
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0 - z_Al - 2*CD_depth - polydepth/2.0 ), polybox_log, "Polyethylene", earm_mother_log, false, 0 );
   //Note the offsets in x,y,z of 4.212/2.0
-  new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang)+(offset+ (4.212/2.0)*cm )*cos(fBBang), -(4.212/2.0)*cm, cdr*cos(-fBBang)+(offset+(4.212/2.0)*cm)*sin(fBBang) ), earm_mother_log, "CDet & Filter", worldlog, false, 0);
+  //new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang)+(offset+ (4.212/2.0)*cm )*cos(fBBang), -(4.212/2.0)*cm, cdr*cos(-fBBang)+(offset+(4.212/2.0)*cm)*sin(fBBang) ), earm_mother_log, "CDet & Filter", worldlog, false, 0);
 
   //Define a Mother Volume to place the ECAL modules
   G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
@@ -1049,7 +1212,6 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );
   mylar_wrap_log->SetVisAttributes(G4VisAttributes::Invisible);
   
-  
   //Air
   G4VisAttributes *air_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));
   module_log_type1->SetVisAttributes(G4VisAttributes::Invisible);
@@ -1085,6 +1247,5 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   G4VisAttributes *Al_colour = new G4VisAttributes(G4Colour(0.9, 0.9, 0.9));
   Al_colour->SetForceWireframe(true);
   Al_log->SetVisAttributes(Al_colour);
-
+		    
 }
-

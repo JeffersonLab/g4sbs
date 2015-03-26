@@ -81,6 +81,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
     SDlist.clear();
     SDtype.clear();
     StepLimiterList.clear();
+
+    fCDetOption = 1;
     
     //    TrackerIDnumber = 0;
     //TrackerArm.clear();
@@ -1676,6 +1678,6 @@ void G4SBSDetectorConstruction::SetECALmapfilename( G4String s ){
   fECALmapfilename = s;
 }
 
-void G4SBSDetectorConstruction::SetHCALspecsfilename( G4String d){
-  fHCALspecsfilename = d;
+void G4SBSDetectorConstruction::SetCDetconfig( int cdetconfig ){
+  fCDetOption = cdetconfig;
 }

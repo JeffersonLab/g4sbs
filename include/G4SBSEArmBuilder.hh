@@ -23,6 +23,7 @@ class G4SBSEArmBuilder: public G4SBSComponent {
 
 	void SetBBCalDist(double a){ fBBCaldist= a; }
 	void SetGEMConfig(int gc ){ fGEMOption = gc; }
+  //void SetCDetconfig(int cdetc){ fCDetOption = cdetc; }
 
 	void MakeBigBite(G4LogicalVolume *);
 	void MakeBigCal(G4LogicalVolume *);
@@ -41,6 +42,7 @@ class G4SBSEArmBuilder: public G4SBSComponent {
 	double fGEMDist;
 
 	int  fGEMOption;
+  //int  fCDetOption;
 
 	bool fUseLocalField;
 

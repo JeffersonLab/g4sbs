@@ -816,7 +816,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     (fDetCon->SDlist).insert( CDetSDname );
     fDetCon->SDtype[CDetSDname] = kECAL;
     //fDetCon->SDarm[CDetSDname] = kEarm;
-    (CDetSD->detmap).depth = 1;            // needs to be updated!!!!! and changed for each option most likely
+    //(CDetSD->detmap).depth = 1;            // needs to be updated!!!!! and changed for each option most likely
   }
   CDetPMTLog->SetSensitiveDetector( CDetSD );
     
@@ -855,6 +855,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   
   // Make modules for Options 2 & 3
   if( fDetCon->GetCDetConfigOption() == 2 || fDetCon->GetCDetConfigOption() == 3 ) {
+    (CDetSD->detmap).depth = 1; 
     for(int l=0; l<CDetColumns; l++) {
       for(int j=0; j<CDetRows; j++) {
 	double xtemp = (CDetModuleX - CDetBarZ)/2.0 - l*CDetBarZ;
@@ -887,12 +888,13 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   G4Box *PlaneBox = new G4Box( "PlaneBox", PlaneX/2.0, PlaneY/2.0, PlaneZ/2.0 );
   G4LogicalVolume *PlaneLog = new G4LogicalVolume( PlaneBox, GetMaterial("Air"), "PlaneLog" );
 
-  double Layeroffset = 0.0;                //Space inbetween planes, needed for Options 3 & 4
-  double TopBottomModuleOffset = 0.0;      //Offset top/bottom module
-  double MiddleModuleOffset    = 0.0;      //Offset middle module
-  double CDetPhi = 0.0;                    //Angle that rotates bars or modules
-  double CDetFrontRad = 0.0;               //Distance between origin & front of CDet - used for rotations of modules/bars                          
-  double cdr = 0.0;                        //Distance between origin and center of CDet - used to place mother
+  // Initialize some Geometry Variables:
+  double Layeroffset = 0.0;                // Space inbetween planes, needed for Options 3 & 4
+  double TopBottomModuleOffset = 0.0;      // Offset top/bottom module
+  double MiddleModuleOffset    = 0.0;      // Offset middle module
+  double CDetPhi = 0.0;                    // Angle that rotates bars or modules
+  double CDetFrontRad = 0.0;               // Distance between origin & front of CDet - used for rotations of modules/bars                          
+  double cdr = 0.0;                        // Distance between origin and center of CDet - used to place mother
 
   // Make the modules for Option 4, redefine some variables due to rotations
   double CDetBarX4 = 2*CDetBarZ; 
@@ -900,13 +902,14 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   double CDetBarZ4 = CDetBarY;
   G4Box *CDetModuleBox4 = new G4Box( "CDetModuleBox4", CDetBarX4/2.0, CDetBarY4/2.0, CDetBarZ4/2.0 );
   G4LogicalVolume *CDetModuleLog4 = new G4LogicalVolume( CDetModuleBox4, GetMaterial("Air"), "CDetModuleLog4");
-  //Place two bars in one of these modules
+  // Place two bars in one of these modules
   new G4PVPlacement(CDetBar_Col1, G4ThreeVector((CDetBarX4-CDetBarZ)/2.0,0.0,0.0), CDetBarLog, "CDetBarPhys4", CDetModuleLog4, false, 0, true);
   new G4PVPlacement(CDetBar_Col2, G4ThreeVector((-CDetBarX4+CDetBarZ)/2.0,0.0,0.0), CDetBarLog, "CDetBarPhys4", CDetModuleLog4, false, 0, true);
 
   int CDetOpt4_copyn = 0;
 
   if( fDetCon->GetCDetConfigOption() == 4 ) {
+    (CDetSD->detmap).depth = 2;  
     cdr = fBBdist - z_ecal - PlaneZ/2.0;  
     CDetFrontRad = cdr + PlaneZ/2.0 - CDetBarZ4/2.0;
     CDetPhi = 2*atan( CDetBarY4/(2*CDetFrontRad) );
@@ -928,6 +931,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
       double TLZ = 0.5*j*CDetBarY4*sin(angle)*cos(angle);
       double TLY = 0.1*j*CDetBarY4*sin(angle)*sin(angle);
       new G4PVPlacement(CDetBar4Rottop, G4ThreeVector(0.0,ytemp+dispy-TLY,-dispz-TLZ+ztemp), CDetModuleLog4, "CDetBarPhys4",PlaneLog, false, CDetOpt4_copyn,true);
+      // odd rows including 0
+      (CDetSD->detmap).LocalCoord[CDetOpt4_copyn] = G4ThreeVector(0.0,ytemp+dispy-TLY,-dispz-TLZ+ztemp);  
+      (CDetSD->detmap).Row[CDetOpt4_copyn] = j;                                                            
       CDetOpt4_copyn++;
 
       G4RotationMatrix *CDetBar4Rotbot = new G4RotationMatrix;
@@ -935,6 +941,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
       CDetBar4Rotbot->rotateX(angle);
       if(j>0) {
 	new G4PVPlacement(CDetBar4Rotbot, G4ThreeVector(0.0,-(ytemp+dispy-TLY),-dispz-TLZ+ztemp), CDetModuleLog4, "CDetBarPhys4",PlaneLog, false, CDetOpt4_copyn,true);
+	// even rows excluding 0
+	(CDetSD->detmap).LocalCoord[CDetOpt4_copyn] = G4ThreeVector(0.0,-(ytemp+dispy-TLY),-dispz-TLZ+ztemp);  
+	(CDetSD->detmap).Row[CDetOpt4_copyn] = j;
 	CDetOpt4_copyn++;
       }
     }
@@ -989,14 +998,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
     new G4PVPlacement( 0,G4ThreeVector(0.0,0.0,(PlaneZ-z_Al)/2.0), Allog, "AlShield", PlaneLog, false, 0 );
 
     new G4PVPlacement( CDetModuleRotTop, postop, CDetModuleLog, "CDetModulePhys", PlaneLog, false, 1, true );
-    //(CDetSD->detmap).Plane[1] = postop;
-
     new G4PVPlacement( 0, G4ThreeVector(-MiddleModuleOffset, 0.0, PlaneZ/2.0-CDetModuleZ/2.0-z_Al),
 		       CDetModuleLog, "CDetModulePhys", PlaneLog, false, 2, true); 
-    //(CDetSD->detmap).Plane[2] = G4ThreeVector(-MiddleModuleOffset, 0.0, PlaneZ/2.0-CDetModuleZ/2.0-z_Al);
-
     new G4PVPlacement( CDetModuleRotBottom, posbot, CDetModuleLog, "CDetModulePhys", PlaneLog, false, 3, true );
-    //(CDetSD->detmap).Plane[3] = posbot;
 
     //Layer 1(closest to Target)
     CDetFrontRad = cdr + PlaneZ/2.0 - 2*CDetModuleZ; 
@@ -1101,18 +1105,19 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0 - z_Al - CD_depth - CD_depth/2.0 ), CD_log, "plane2", earm_mother_log, false, 1 );
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, z_earm/2.0 - z_Al - 2*CD_depth - polydepth/2.0 ), polybox_log, "Polyethylene", earm_mother_log, false, 0 );
 
-    if( fDetCon->GetCDetConfigOption() == 1 ) {
-      cdr = fBBdist - z_ecal - z_earm/2.0;
-      //Note the offsets in x,y,z of 4.212/2.0
-      new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang)+(offset + (4.212/2.0)*cm )*cos(fBBang), 
-					      -(4.212/2.0)*cm, cdr*cos(-fBBang) + (offset+(4.212/2.0)*cm)*sin(fBBang) ), 
-			 earm_mother_log, "CDet & Filter", worldlog, false, 0);
-    }
-    if( fDetCon->GetCDetConfigOption() == 2 ) {
-      cdr = fBBdist - z_ecal - PlaneZ/2.0;  
-      new G4PVPlacement( 0, G4ThreeVector(0.0,0.0, PlaneZ/2.0 - z_Al - 2*CDetModuleZ - polydepth/2.0), 
-			 polybox_log, "Polyphys", PlaneLog, false, 0 );
-    }
+  if( fDetCon->GetCDetConfigOption() == 1 ) {
+    cdr = fBBdist - z_ecal - z_earm/2.0;
+    //Note the offsets in x,y,z of 4.212/2.0
+    new G4PVPlacement( bbrm, G4ThreeVector( cdr*sin(-fBBang)+(offset + (4.212/2.0)*cm )*cos(fBBang), 
+					    -(4.212/2.0)*cm, 
+					    cdr*cos(-fBBang) + (offset+(4.212/2.0)*cm)*sin(fBBang) ), 
+		       earm_mother_log, "CDet & Filter", worldlog, false, 0);
+  }
+  if( fDetCon->GetCDetConfigOption() == 2 ) {
+    cdr = fBBdist - z_ecal - PlaneZ/2.0;  
+    new G4PVPlacement( 0, G4ThreeVector(0.0,0.0, PlaneZ/2.0 - z_Al - 2*CDetModuleZ - polydepth/2.0), 
+		       polybox_log, "Polyphys", PlaneLog, false, 0 );
+  }
   
   //Define a Mother Volume to place the ECAL modules
   G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );

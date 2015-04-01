@@ -23,6 +23,7 @@
 #include "G4Sphere.hh"
 
 #include "G4SBSCalSD.hh"
+#include "G4SBSECalSD.hh"
 #include "G4Box.hh"
 #include "G4Trd.hh"
 #include "G4Trap.hh"
@@ -690,10 +691,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     fDetCon->SDtype[HCalScintSDname] = kCAL;
     //fDetCon->SDarm[HCalScintSDname] = kHarm;
 
-    //(HCalSD->detmap).Row[0] = 0;
-    //(HCalSD->detmap).Col[0] = 0;
-    //(HCalSD->detmap).LocalCoord[0] = G4ThreeVector(0,0,0);
-    //(HCalSD->detmap).GlobalCoord[0] = G4ThreeVector(0,0,0);
+    (HCalScintSD->detmap).depth = 1;
   }
   logScinPl->SetSensitiveDetector(HCalScintSD);
 
@@ -811,11 +809,11 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   // logCathod is the SD, assigned to ECalSD which detects optical photons
   G4String HCalSDname = "Harm/HCal";
   G4String HCalcollname = "HCalHitsCollection";
-  G4SBSCalSD* HCalSD = NULL;
+  G4SBSECalSD* HCalSD = NULL;
 
-  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(HCalSDname)) ) {
+  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(HCalSDname)) ) {
     G4cout << "Adding HCal PMT Sensitive Detector to SDman..." << G4endl;
-    HCalSD = new G4SBSCalSD( HCalSDname, HCalcollname );
+    HCalSD = new G4SBSECalSD( HCalSDname, HCalcollname );
     sdman->AddNewDetector(HCalSD);
     (fDetCon->SDlist).insert(HCalSDname);
     fDetCon->SDtype[HCalSDname] = kECAL;
@@ -867,6 +865,11 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 	  (HCalSD->detmap).Row[copyid] = jj;
 	  (HCalSD->detmap).Col[copyid] = ii;
 	  (HCalSD->detmap).LocalCoord[copyid] = G4ThreeVector(xtemp, ytemp, LightGuideZ/2.0+(3*LightGuideX)/2.0-2*ContainerThick-radiuscath/2.0);
+
+	  (HCalScintSD->detmap).Row[copyid] = jj;
+	  (HCalScintSD->detmap).Col[copyid] = ii;
+	  (HCalScintSD->detmap).LocalCoord[copyid] = G4ThreeVector(xtemp,ytemp,0.0);
+
   	  copyid++;
       }
     }

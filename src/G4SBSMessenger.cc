@@ -57,13 +57,13 @@ G4SBSMessenger::G4SBSMessenger(){
   gemconfigCmd->SetGuidance("BigBite GEM layout: option 1 (default), 2 or 3");
   gemconfigCmd->SetParameterName("gemconfig", false);
 
+  CDetconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/CDetconfig",this);
+  CDetconfigCmd->SetGuidance("CDet Geometry Options(integer 1,2,3, or 4): Option 1 (default) = Simplest option, only material budget with no SD assigned, Option 2 = Flat, 2 planes with sensitive regions, Option 3 = Top/Bottom 'modules' are angled relative to central 'module', and Option 4 = Each bar is shimmed in order to optimize normal incidence");
+  CDetconfigCmd->SetParameterName("CDetconfig",false);
+
   ECALmapfileCmd = new G4UIcmdWithAString("/g4sbs/ECALmap",this);
   ECALmapfileCmd->SetGuidance("Name of text file listing active ECAL cells (assumed to be located in database/)");
   ECALmapfileCmd->SetParameterName("ECALmapfile",false);
-
-  HCALspecsfileCmd = new G4UIcmdWithAString("/g4sbs/HCALspecs",this);
-  HCALspecsfileCmd->SetGuidance("Name of text file listing HCal specifications (assumed to be located in database/)");
-  HCALspecsfileCmd->SetParameterName("HCALspecsfile",false);
 
   fileCmd = new G4UIcmdWithAString("/g4sbs/filename",this);
   fileCmd->SetGuidance("Output ROOT filename");
@@ -399,13 +399,14 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     int gemconfval = gemconfigCmd->GetNewIntValue(newValue);
     fdetcon->fEArmBuilder->SetGEMConfig(gemconfval);
   }
+  
+  if( cmd == CDetconfigCmd ){
+    int cdetconf = CDetconfigCmd->GetNewIntValue(newValue);
+    fdetcon->SetCDetconfig(cdetconf);
+  }
 
   if( cmd == ECALmapfileCmd ){
     fdetcon->SetECALmapfilename( newValue );
-  }
-
-  if( cmd == HCALspecsfileCmd ){
-    fdetcon->SetHCALspecsfilename( newValue );
   }
 
   if( cmd == kineCmd ){

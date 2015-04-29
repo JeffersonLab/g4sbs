@@ -758,7 +758,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   //    /g4sbs/CDetconfig 4   -   All bars are rotated such that a line running from 
   //                              the origin to the  center of a "long" bar
   //                              is perpendicular to the face of a CDet bar. A "long" 
-  //                              bar is defined at two small bars 
+  //                              bar is defined as two small bars 
   //                              connected long ways, or one CDet row.
   G4double x_bar_CDet = 0.5*cm;
   G4double y_bar_CDet = 4.0*cm;
@@ -800,7 +800,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   new G4PVPlacement(0, G4ThreeVector(0.0,0.0,mylar_CDet/2.0), CDScintBoreLog, "CDScintBorePhys", CDetLog, false, 0);
   new G4PVPlacement(0, G4ThreeVector(0.0,0.0,mylar_CDet/2.0), WLSguideLog, "WLSguidePhys", CDetLog, false, 0);
 
-  // Make some PMT's
+  // Make some PMTs
   G4Tubs *CDetPMT = new G4Tubs( "CDetPMT", 0.0, WLSDiameter/2.0, pmt_CDet_depth/2.0, 0.0, twopi );
   G4LogicalVolume *CDetPMTLog = new G4LogicalVolume( CDetPMT, GetMaterial("Photocathode_CDet"), "CDetPMTLog" );
 
@@ -903,8 +903,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   G4Box *CDetModuleBox4 = new G4Box( "CDetModuleBox4", CDetBarX4/2.0, CDetBarY4/2.0, CDetBarZ4/2.0 );
   G4LogicalVolume *CDetModuleLog4 = new G4LogicalVolume( CDetModuleBox4, GetMaterial("Air"), "CDetModuleLog4");
   // Place two bars in one of these modules
-  new G4PVPlacement(CDetBar_Col1, G4ThreeVector((CDetBarX4-CDetBarZ)/2.0,0.0,0.0), CDetBarLog, "CDetBarPhys4", CDetModuleLog4, false, 0, true);
-  new G4PVPlacement(CDetBar_Col2, G4ThreeVector((-CDetBarX4+CDetBarZ)/2.0,0.0,0.0), CDetBarLog, "CDetBarPhys4", CDetModuleLog4, false, 0, true);
+  new G4PVPlacement(CDetBar_Col1, G4ThreeVector((CDetBarX4-CDetBarZ)/2.0,0.0,0.0), CDetBarLog, "CDetBarPhys4", CDetModuleLog4, false, 0);
+  new G4PVPlacement(CDetBar_Col2, G4ThreeVector((-CDetBarX4+CDetBarZ)/2.0,0.0,0.0), CDetBarLog, "CDetBarPhys4", CDetModuleLog4, false, 0);
 
   int CDetOpt4_copyn = 0;
 
@@ -928,8 +928,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 
       // Additional placement correction since modules are placed relative to top left (TL) corner of previous module:
       // currently this is just an approximation
-      double TLZ = 0.5*j*CDetBarY4*sin(angle)*cos(angle);
-      double TLY = 0.1*j*CDetBarY4*sin(angle)*sin(angle);
+      double TLZ = 0.565*j*CDetBarY4*sin(angle)*cos(angle);
+      double TLY = 0.1059*j*CDetBarY4*sin(angle)*sin(angle);
       new G4PVPlacement(CDetBar4Rottop, G4ThreeVector(0.0,ytemp+dispy-TLY,-dispz-TLZ+ztemp), CDetModuleLog4, "CDetBarPhys4",PlaneLog, false, CDetOpt4_copyn,true);
       // odd rows including 0
       (CDetSD->detmap).LocalCoord[CDetOpt4_copyn] = G4ThreeVector(0.0,ytemp+dispy-TLY,-dispz-TLZ+ztemp);  
@@ -1041,12 +1041,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   CDetLog->SetVisAttributes( G4VisAttributes::Invisible );
   CDetBarLog->SetVisAttributes( G4VisAttributes::Invisible );
   CDetModuleLog->SetVisAttributes( G4VisAttributes::Invisible );
-  //PlaneLog->SetVisAttributes( G4VisAttributes::Invisible );
+  PlaneLog->SetVisAttributes( G4VisAttributes::Invisible );
   CDetModuleLog4->SetVisAttributes( G4VisAttributes::Invisible );
 
-  G4VisAttributes *CDetPlaneVis = new G4VisAttributes( G4Colour::Green() );
-  CDetPlaneVis->SetForceWireframe(true);
-  PlaneLog->SetVisAttributes(CDetPlaneVis);
+  //G4VisAttributes *CDetPlaneVis = new G4VisAttributes( G4Colour::Green() );
+  //CDetPlaneVis->SetForceWireframe(true);
+  //PlaneLog->SetVisAttributes(CDetPlaneVis);
 
   G4VisAttributes *CDetMod4Vis = new G4VisAttributes( G4Colour::Green() );
   CDetMod4Vis->SetForceWireframe(true);
@@ -1072,7 +1072,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   // Al
   G4VisAttributes *AlVis = new G4VisAttributes(G4Colour(0.9, 0.9, 0.9));
   AlVis->SetForceWireframe(true);
-  Allog->SetVisAttributes(AlVis);	    
+  Allog->SetVisAttributes(AlVis);
 
   /*************************************************************************************
    ********************************        ECAL      ***********************************
@@ -1119,6 +1119,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
 		       polybox_log, "Polyphys", PlaneLog, false, 0 );
   }
   
+  // ECAL CONSTRUCTION - START
+
   //Define a Mother Volume to place the ECAL modules
   G4Box *ecal_box = new G4Box( "ecal_box", x_ecal/2.0, y_ecal/2.0, z_ecal/2.0 );
   G4LogicalVolume *ecal_log = new G4LogicalVolume( ecal_box, GetMaterial("Air"), "ecal_log" );

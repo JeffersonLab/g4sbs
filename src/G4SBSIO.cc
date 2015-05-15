@@ -280,7 +280,7 @@ void G4SBSIO::BranchGEM(G4String SDname="GEM"){
  
   //Branches with raw GEM data:
   
-  fTree->Branch( branch_name.Format( "%s.hit.nhits", branch_prefix.Data() ), &(GEMdata[SDname].nhits_GEM), "nhits_GEM/I" );
+  fTree->Branch( branch_name.Format( "%s.hit.nhits", branch_prefix.Data() ), &(GEMdata[SDname].nhits_GEM) );
   fTree->Branch( branch_name.Format( "%s.hit.plane", branch_prefix.Data() ), &(GEMdata[SDname].plane) );
   fTree->Branch( branch_name.Format( "%s.hit.strip", branch_prefix.Data() ), &(GEMdata[SDname].strip) );
   fTree->Branch( branch_name.Format( "%s.hit.x", branch_prefix.Data() ), &(GEMdata[SDname].x) );
@@ -307,7 +307,7 @@ void G4SBSIO::BranchGEM(G4String SDname="GEM"){
   fTree->Branch( branch_name.Format( "%s.hit.beta", branch_prefix.Data() ), &(GEMdata[SDname].beta) );
 
   //Branches with "Tracker output" data:
-  fTree->Branch( branch_name.Format("%s.Track.ntracks",branch_prefix.Data() ), &(trackdata[SDname].ntracks), "ntracks_GEM/I" );
+  fTree->Branch( branch_name.Format("%s.Track.ntracks",branch_prefix.Data() ), &(trackdata[SDname].ntracks) );
   fTree->Branch( branch_name.Format("%s.Track.TID",branch_prefix.Data() ), &(trackdata[SDname].TrackTID) );
   fTree->Branch( branch_name.Format("%s.Track.PID",branch_prefix.Data() ), &(trackdata[SDname].TrackPID) );
   fTree->Branch( branch_name.Format("%s.Track.MID",branch_prefix.Data() ), &(trackdata[SDname].TrackMID) );
@@ -355,7 +355,7 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
   branch_prefix.ReplaceAll("/",".");
   
   //Define "hit" branches: 
-  fTree->Branch( branch_name.Format( "%s.hit.nhits", branch_prefix.Data() ), &(CALdata[SDname].nhits_CAL), "nhits_CAL/I" );
+  fTree->Branch( branch_name.Format( "%s.hit.nhits", branch_prefix.Data() ), &(CALdata[SDname].nhits_CAL) );
   fTree->Branch( branch_name.Format( "%s.hit.row", branch_prefix.Data() ), &(CALdata[SDname].row) );
   fTree->Branch( branch_name.Format( "%s.hit.col", branch_prefix.Data() ), &(CALdata[SDname].col) );
   fTree->Branch( branch_name.Format( "%s.hit.xcell", branch_prefix.Data() ), &(CALdata[SDname].xcell) );
@@ -374,7 +374,7 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
 
   if( it != KeepPartCALflags.end() && it->second ){
     //Define "particle" branches:
-    fTree->Branch( branch_name.Format( "%s.npart_CAL", branch_prefix.Data() ), &(CALdata[SDname].npart_CAL), "npart_CAL/I" );
+    fTree->Branch( branch_name.Format( "%s.npart_CAL", branch_prefix.Data() ), &(CALdata[SDname].npart_CAL) );
     fTree->Branch( branch_name.Format( "%s.ihit", branch_prefix.Data() ), &(CALdata[SDname].ihit) );
     fTree->Branch( branch_name.Format( "%s.x", branch_prefix.Data() ), &(CALdata[SDname].x) );
     fTree->Branch( branch_name.Format( "%s.y", branch_prefix.Data() ), &(CALdata[SDname].y) );
@@ -424,7 +424,7 @@ void G4SBSIO::BranchRICH(G4String SDname="RICH"){
   
   //Branches for "hits": 
   
-  fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(richdata[SDname].nhits_RICH), "nhits_RICH/I" );
+  fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(richdata[SDname].nhits_RICH) );
   fTree->Branch( branch_name.Format("%s.hit.PMT", branch_prefix.Data() ), &(richdata[SDname].PMTnumber) );
   fTree->Branch( branch_name.Format("%s.hit.row", branch_prefix.Data() ), &(richdata[SDname].row) );
   fTree->Branch( branch_name.Format("%s.hit.col", branch_prefix.Data() ), &(richdata[SDname].col) );
@@ -501,7 +501,7 @@ void G4SBSIO::BranchECAL(G4String SDname="ECAL"){
   TString branch_name;
   branch_prefix.ReplaceAll("/",".");
   
-  fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(ecaldata[SDname].nhits_ECal), "nhits_ECAL/I" );
+  fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(ecaldata[SDname].nhits_ECal) );
   fTree->Branch( branch_name.Format("%s.hit.PMT", branch_prefix.Data() ), &(ecaldata[SDname].PMTnumber) );
   fTree->Branch( branch_name.Format("%s.hit.row", branch_prefix.Data() ), &(ecaldata[SDname].row) );
   fTree->Branch( branch_name.Format("%s.hit.col", branch_prefix.Data() ), &(ecaldata[SDname].col) );

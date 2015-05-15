@@ -147,7 +147,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       double sbswidth  = 2.0*m;
       double sbsheight = 2.1*m;
 
-      double sbsr = fHCALdist-4.106*m + sbsheight*sin(sbsboxpitch)/2+sbsdepth/2;
+      double sbsr = fHCALdist - 4.106*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
 
       G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
       G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
@@ -636,7 +636,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   //Code adopted from Vahe, specifically HCalo.cc && HCaloMaterials.cc
 
   double hcaldepth  = 101.0*cm;
-  double hcalr = fHCALdist+hcaldepth/2.0;
+  double hcalr = fHCALdist + hcaldepth/2.0;
 
   G4RotationMatrix *mRotateZ = new G4RotationMatrix;
   mRotateZ->rotateZ( 90 *degree );

@@ -28,7 +28,7 @@ public:
   void SetPriGen( G4SBSPrimaryGeneratorAction *pg ){ fprigen = pg; }
   void SetDetCon( G4SBSDetectorConstruction *dc ){ fdetcon= dc; }
   void SetEvAct( G4SBSEventAction *ev ){ fevact = ev; }
-  
+  void SetPhysList( G4SBSPhysicsList *pl ){ fphyslist = pl; }
 
   void SetNewValue(G4UIcommand* cmd, G4String newValue);
 
@@ -38,6 +38,7 @@ private:
   G4SBSDetectorConstruction *fdetcon;
   G4SBSEventAction *fevact;
   G4SBSPrimaryGeneratorAction *fprigen;
+  G4SBSPhysicsList *fphyslist;
   
 
   Exp_t fExpType;
@@ -129,13 +130,15 @@ private:
   G4UIcommand *LimitStepCALcmd; //Command to turn on step limiter physics for sensitive volumes defined as calorimeters, by detector name.
 
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
-  // G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov
-  // G4UIcmdWithABool *UseScintCmd;      //Scintillation
+  G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov
+  G4UIcmdWithABool *UseScintCmd;      //Scintillation
   // G4UIcmdWithABool *UseOpRayleighCmd; //Rayleigh for optical photons
   // G4UIcmdWithABool *UseOpAbsorbCmd;   //optical absorption
   // G4UIcmdWithABool *UseOpBdryCmd;     //optical boundary process (reflection/refraction/absorption)
   // G4UIcmdWithABool *UseOpWLSCmd;      //Wavelength shifting of optical photons
   // G4UIcmdWithABool *UseOpMieHGCmd;    //Mie scattering;
+  // G4UIcmdWithABool *DisableOpticalPhysicsCmd; //disable CPU-intensive optical photon physics
+
 };
 
 #endif//G4SBSMessenger_HH

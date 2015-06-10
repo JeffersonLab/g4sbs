@@ -302,42 +302,18 @@ G4SBSMessenger::G4SBSMessenger(){
   LimitStepCALcmd->SetParameter( new G4UIparameter("flag",'b',true) );
   LimitStepCALcmd->GetParameter(1)->SetDefaultValue(true);
     
-    
-  //Optical physics toggle commands:
-  // UseCerenkovCmd = new G4UIcmdWithABool( "/g4sbs/usecerenkov",this );
-  // UseCerenkovCmd->SetGuidance("Activate Cherenkov radiation (default true)");
-  // UseCerenkovCmd->SetParameterName("useckov",true);
-  // UseCerenkovCmd->SetDefaultValue(true);
-
-  // UseScintCmd = new G4UIcmdWithABool( "/g4sbs/usescint",this );
-  // UseScintCmd->SetGuidance("Activate Scintillation (default false)");
-  // UseScintCmd->SetParameterName("usescint",true);
-  // UseScintCmd->SetDefaultValue(false);
-
-  // UseOpRayleighCmd = new G4UIcmdWithABool( "/g4sbs/userayleigh",this );
-  // UseOpRayleighCmd->SetGuidance("Activate Rayleigh scattering of optical photons (default true)");
-  // UseOpRayleighCmd->SetParameterName("useoprayleigh",true);
-  // UseOpRayleighCmd->SetDefaultValue(true);
-    
-  // UseOpAbsorbCmd = new G4UIcmdWithABool( "/g4sbs/useabsorb",this );
-  // UseOpAbsorbCmd->SetGuidance("Activate absorption of optical photons (default true)");
-  // UseOpAbsorbCmd->SetParameterName("useabsorb",true);
-  // UseOpAbsorbCmd->SetDefaultValue(true);
-
-  // UseOpBdryCmd = new G4UIcmdWithABool( "/g4sbs/useboundary",this );
-  // UseOpBdryCmd->SetGuidance("Activate optical boundary processes (default true)");
-  // UseOpBdryCmd->SetParameterName("usebdry",true);
-  // UseOpBdryCmd->SetDefaultValue(true);
-
-  // UseOpWLSCmd = new G4UIcmdWithABool( "/g4sbs/usewls",this );
-  // UseOpWLSCmd->SetGuidance("Activate optical wavelength shifting process (default false)");
-  // UseOpWLSCmd->SetParameterName("usewls",true);
-  // UseOpWLSCmd->SetDefaultValue(false);
-
-  // UseOpMieHGCmd = new G4UIcmdWithABool( "/g4sbs/usemie",this );
-  // UseOpMieHGCmd->SetGuidance("Activate Mie scattering (default false)");
-  // UseOpMieHGCmd->SetParameterName("usemie",true);
-  // UseOpMieHGCmd->SetDefaultValue(false);
+  // DisableOpticalPhysicsCmd = new G4UIcmdWithABool("/g4sbs/useopticalphysics", this );
+  // DisableOpticalPhysicsCmd->SetGuidance("toggle optical physics on/off");
+  // DisableOpticalPhysicsCmd->SetGuidance("default = true (ON)");
+  // DisableOpticalPhysicsCmd->SetParameterName("optphys",true);
+  
+  UseCerenkovCmd = new G4UIcmdWithABool( "/g4sbs/useckov",this );
+  UseCerenkovCmd->SetGuidance( "Toggle Cerenkov process on/off (default = ON)" );
+  UseCerenkovCmd->SetParameterName("useckov",true);
+  
+  UseScintCmd = new G4UIcmdWithABool( "/g4sbs/usescint",this );
+  UseScintCmd->SetGuidance( "Toggle Scintillation process on/off (default = ON)" );
+  UseScintCmd->SetParameterName("usescint",true);
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -848,5 +824,31 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       (fdetcon->StepLimiterList).erase(SDname);
     }
   }
-    
+
+  // if( cmd == DisableOpticalPhysicsCmd ){
+  //   G4bool b = DisableOpticalPhysicsCmd->GetNewBoolValue(newValue);
+  //   if( b ){ 
+  //     //if( fphyslist->GetOpticalPhysics() != NULL ) fphyslist->RemovePhysics( fphyslist->GetOpticalPhysics() );
+  //     //fphyslist->SetOpticalPhysics( new G4OpticalPhysics(0) );
+  //     //G4VPhysicsConstructor *ctemp;
+  //     fphyslist->ReplacePhysics( new G4OpticalPhysics(0) );
+  //     //fphyslist->SetOpticalPhysics(ctemp);
+  //   } else {
+  //     G4VPhysicsConstructor *ctemp = new G4OpticalPhysics(0);
+  //     fphyslist->RemovePhysics( ctemp );
+  //     delete ctemp;
+  //   }
+  //   G4RunManager::GetRunManager()->PhysicsHasBeenModified();
+  // }
+
+  if( cmd == UseCerenkovCmd ){
+    G4bool b = UseCerenkovCmd->GetNewBoolValue(newValue);
+    fphyslist->ToggleCerenkov(b);
+  }
+
+  if( cmd == UseScintCmd ){
+    G4bool b = UseScintCmd->GetNewBoolValue(newValue);
+    fphyslist->ToggleScintillation(b);
+  }
+  
 }

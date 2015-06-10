@@ -57,6 +57,10 @@ void G4SBSRunData::Print(Option_t *) const {
 	printf("\t%s\n\n", fMagData[i].timestamp.AsString("ls"));
     }
 
+    printf("Pre-Init Macro run:\n---------------------------------------\n");
+
+    fPreInitMacro.Print();
+
     printf("Macro run:\n-------------------------------------------------\n");
 
     fMacro.Print();

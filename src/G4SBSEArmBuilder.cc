@@ -406,6 +406,34 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   double mylar_air_sum = mylarthickness + airthickness;
   double bbpmtz = 0.20*cm;
 
+  // **** BIGBITE CALORIMETER MOTHER VOLUME ****:
+  G4double bbcal_box_height = 27*8.5*cm;
+  G4double bbcal_box_width  = 2.0*37.0*cm;
+  G4double bbcal_box_depth  = (8.5+2.5+37.0)*cm;
+  
+  G4Box *bbcalbox = new G4Box( "bbcalbox", bbcal_box_width/2.0, bbcal_box_height/2.0, bbcal_box_depth/2.0 );
+  G4LogicalVolume *bbcal_mother_log = new G4LogicalVolume(bbcalbox, GetMaterial("Air"), "bbcal_mother_log");
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_box_depth/2.0 ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 ); 
+  
+  //option to "turn off" BBCAL (make total absorber)
+  if( (fDetCon->StepLimiterList).find( "bbcal_mother_log" ) != (fDetCon->StepLimiterList).end() ){
+    bbcal_mother_log->SetUserLimits( new G4UserLimits(0,0,0,DBL_MAX,DBL_MAX) );
+    G4String SDname = "Earm/BBCal";
+    G4String collname = "BBCalHitsCollection";
+    G4SBSCalSD *BBCalSD = NULL;
+    if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(SDname)) ){ //add sensitivity:
+      G4cout << "Adding BBCal sensitive detector to SDman..." << G4endl;
+      BBCalSD = new G4SBSCalSD( SDname, collname );
+      fDetCon->fSDman->AddNewDetector( BBCalSD );
+      (fDetCon->SDlist).insert( SDname );
+      fDetCon->SDtype[SDname] = kCAL;
+      (BBCalSD->detmap).depth = 0;
+      //(BBCalSD->detmap).Row[0] = 0;
+      //(BBCalSD->detmap).Col[0] = 0;
+      
+    }
+  }
+
   // **** BIGBITE PRESHOWER **** 
   // 2 columns, 27 rows
 
@@ -415,8 +443,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   G4Box *bbpsbox = new G4Box("bbpsbox", pswidth/2.0, psheight/2.0, psdepth/2.0 );
   G4LogicalVolume *bbpslog = new G4LogicalVolume(bbpsbox, GetMaterial("Air"), "bbpslog");
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth/2.0), bbpslog, "bbpsphys", bbdetLog, false, 0);
-
+  //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth/2.0), bbpslog, "bbpsphys", bbdetLog, false, 0);
+  new G4PVPlacement(0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth/2.0 ), bbpslog, "bbpsphys", bbcal_mother_log, false, 0 );
+  
   // Preshower module - geometry will be assigned after Shower
 
   // **** BIGBITE HODOSCOPE **** 
@@ -424,7 +453,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   double bbhododepth = 2.5*cm;
   G4Box *bbhodobox = new G4Box("bbhodobox", pswidth/2.0, psheight/2.0, bbhododepth/2.0 );
   G4LogicalVolume *bbhodolog = new G4LogicalVolume( bbhodobox, GetMaterial("PLASTIC_SC_VINYLTOLUENE"), "bbhodolog" );
-  new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
+  //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
+  new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
 
   // **** BIGBITE SHOWER ****
   // 7 columns, 27 rows
@@ -433,7 +463,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   double caldepth  = 37.0*cm;
   G4Box *bbshowerbox = new G4Box("bbshowerbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
   G4LogicalVolume *bbshowerlog = new G4LogicalVolume(bbshowerbox, GetMaterial("Air"), "bbshowerlog");
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+bbhododepth+caldepth/2.0), bbshowerlog, "bbshowerphys", bbdetLog, false, 0);
+  //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+bbhododepth+caldepth/2.0), bbshowerlog, "bbshowerphys", bbdetLog, false, 0);
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth + bbhododepth + caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
+  
 
   // Shower module:
   double bbmodule_x = 8.5*cm, bbmodule_y = 8.5*cm;  
@@ -1086,6 +1118,23 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){
   // Make CDet Option 1
   G4Box *earm_mother_box = new G4Box("earm_mother_box", x_earm/2.0, y_earm/2.0, z_earm/2.0);
   G4LogicalVolume *earm_mother_log = new G4LogicalVolume(earm_mother_box, GetMaterial("Air"), "earm_mother_log");
+
+  if( (fDetCon->StepLimiterList).find( "earm_mother_log" ) != (fDetCon->StepLimiterList).end() ){
+    earm_mother_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+
+    G4String sdname = "Earm/ECAL_box";
+    G4String collname = "Earm/ECAL_boxHitsCollection";
+    G4SBSCalSD *earm_mother_SD = NULL;
+    if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(sdname) ) ){
+      G4cout << "Adding ECAL_box sensitive detector to SDman..." << G4endl;
+      earm_mother_SD = new G4SBSCalSD( sdname, collname );
+      fDetCon->fSDman->AddNewDetector( earm_mother_SD );
+      (fDetCon->SDlist).insert( sdname );
+      fDetCon->SDtype[sdname] = kCAL;
+      (earm_mother_SD->detmap).depth = 0;
+    }
+    earm_mother_log->SetSensitiveDetector( earm_mother_SD );
+  }
 
   // Polyethylene Box
   G4Box *polybox = new G4Box("polybox", x_earm/2.0, y_earm/2.0, polydepth/2.0 );

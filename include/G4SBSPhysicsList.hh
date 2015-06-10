@@ -15,9 +15,15 @@ public:
   void SetCuts();
   //void ConstructOptical();
   //void SetOpticalPhysicsProcessActive( G4int, G4bool );
+  //inline G4VPhysicsConstructor *GetOpticalPhysics() const { return G4SBSOpticalPhysics; }
+  //void SetOpticalPhysics( G4VPhysicsConstructor *c ){ G4SBSOpticalPhysics = c; }
+  void ToggleCerenkov(G4bool);
+  void ToggleScintillation(G4bool);
 
 private:
-  
+
+  //G4bool UseOptical;
+
   G4double cutGamma;
   G4double cutElectron;
   G4double cutPositron;

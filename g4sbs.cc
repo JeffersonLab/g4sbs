@@ -46,27 +46,40 @@
 
 int main(int argc, char** argv)
 {
+  //Allow user to apply some (perhaps all?) commands in the pre-initialization phase:
+
   //-------------------------------
   // Initialize the CLHEP random engine used by
   // "shoot" type functions
   //-------------------------------
 
-    CLHEP::HepRandom::createInstance();
+  G4String preinit_macro = "";
+  G4String postinit_macro = "";
+  if( argc == 2 ){ //if only one command line argument is given, assume all commands are to be applied post-initialization:
+    postinit_macro = argv[1];
+  } else if( argc > 2 ){ //assume first argument is pre-init commands, second argument is post-init commands:
+    preinit_macro = argv[1];
+    postinit_macro = argv[2];
+  }
 
-    unsigned int seed = time(0) + (int) getpid();
-    unsigned int devrandseed = 0;
-    FILE *fdrand = fopen("/dev/urandom", "r");
-    if( fdrand ){
-	fread(&devrandseed, sizeof(int), 1, fdrand);
-	seed += devrandseed;
-	fclose(fdrand);
-    }
+  CLHEP::HepRandom::createInstance();
 
-    CLHEP::HepRandom::setTheSeed(seed);
+  unsigned int seed = time(0) + (int) getpid();
+  unsigned int devrandseed = 0;
+  FILE *fdrand = fopen("/dev/urandom", "r");
+  if( fdrand ){
+    fread(&devrandseed, sizeof(int), 1, fdrand);
+    seed += devrandseed;
+    fclose(fdrand);
+  }
 
-    G4SBSRun::GetRun()->GetData()->SetSeed(seed);
+  CLHEP::HepRandom::setTheSeed(seed);
 
-    G4SBSIO *io = new G4SBSIO();
+  G4SBSRunData *rundata = G4SBSRun::GetRun()->GetData();
+
+  rundata->SetSeed(seed);
+
+  G4SBSIO *io = new G4SBSIO();
 
 
 
@@ -79,10 +92,10 @@ int main(int argc, char** argv)
   G4SBSMessenger *sbsmess = new G4SBSMessenger();
   sbsmess->SetIO(io);
 
-  G4VModularPhysicsList *physicslist = new G4SBSPhysicsList;
-  
-  
+  G4VModularPhysicsList *physicslist = new G4SBSPhysicsList; 
   runManager->SetUserInitialization(physicslist);
+
+  sbsmess->SetPhysList( (G4SBSPhysicsList*) physicslist );
 
   // Detector/mass geometry and parallel geometry(ies):
   G4VUserDetectorConstruction* detector = new G4SBSDetectorConstruction();
@@ -119,11 +132,17 @@ int main(int argc, char** argv)
   G4UserSteppingAction* stepping_action = new G4SBSSteppingAction;
   runManager->SetUserAction(stepping_action);
 
+  G4UImanager * UImanager = G4UImanager::GetUIpointer();
+
+  if( preinit_macro != "" ){
+    rundata->SetPreInitMacroFile(preinit_macro);
+    G4String command = "/control/execute ";
+    command += preinit_macro;
+    UImanager->ApplyCommand(command);
+  }
 
   // Initialize Run manager
   runManager->Initialize();
-
-  G4SBSRunData *rundata = G4SBSRun::GetRun()->GetData();
  
   //----------------
   // Visualization:
@@ -136,7 +155,7 @@ int main(int argc, char** argv)
 
   // Setup commands
   //
-  G4UImanager * UImanager = G4UImanager::GetUIpointer();
+ 
   /*
   UImanager->ApplyCommand("/Step/Verbose 0");
   UImanager->ApplyCommand("/tracking/Verbose 1");
@@ -147,7 +166,7 @@ int main(int argc, char** argv)
   UImanager->ApplyCommand("/gun/direction 0 .3 1.");
   */
 
-  if(argc==1)
+  if( postinit_macro == "")
   {
     //--------------------------
     // Define (G)UI
@@ -160,14 +179,13 @@ int main(int argc, char** argv)
 
     delete ui;
 #endif
-  }
-  else
-  {
-    rundata->SetMacroFile(argv[1]);
+  } else {
+      
+    rundata->SetMacroFile(postinit_macro);
     G4String command = "/control/execute ";
-    G4String fileName = argv[1];
+    G4String fileName = postinit_macro;
     UImanager->ApplyCommand(command+fileName);
-
+    
   }
 
   // Free the store: user actions, physics_list and detector_description are

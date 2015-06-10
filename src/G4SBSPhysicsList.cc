@@ -80,6 +80,14 @@ G4SBSPhysicsList::~G4SBSPhysicsList(){
   ;
 }
 
+void G4SBSPhysicsList::ToggleCerenkov(G4bool useckov=true){
+  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->Configure( kCerenkov, useckov );
+}
+
+void G4SBSPhysicsList::ToggleScintillation( G4bool usescint=true ){
+  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->Configure( kScintillation, usescint );
+}
+
 void G4SBSPhysicsList::SetCuts()
 {
   // SetParticleCuts( cutGamma, G4Gamma::Gamma() );
@@ -89,4 +97,3 @@ void G4SBSPhysicsList::SetCuts()
 
   SetCutsWithDefault();
 }
-

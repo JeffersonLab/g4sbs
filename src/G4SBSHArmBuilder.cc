@@ -635,8 +635,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 
   //Code adopted from Vahe, specifically HCalo.cc && HCaloMaterials.cc
 
-  double hcaldepth  = 101.0*cm;
-  double hcalr = fHCALdist + hcaldepth/2.0;
+  
 
   G4RotationMatrix *mRotateZ = new G4RotationMatrix;
   mRotateZ->rotateZ( 90 *degree );
@@ -644,12 +643,12 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   double AlFoilThick    = 0.02*cm;
   double IronPlThick    = 1.27*cm;
   double ScinPlThick    = 1.0*cm;
-  double PlateX         = 14.6*cm;
+  double PlateX         = 14.6*cm; //difference of 1 mm: presumably to make room for WLS? 14.6+14.5 = 29.1 cm. 
   double PlateY         = 14.5*cm;
   double TotalPlatesL   = 92.0*cm;    
-  double ModuleL        = 111.0*cm;
-  double ModuleX        = 15.3*cm;
-  double ModuleY        = 15.3*cm;     
+  double ModuleL        = 111.0*cm; //total length of module:
+  double ModuleX        = 15.3*cm; //transverse dimensions of module:
+  double ModuleY        = 15.3*cm; //transverse dimensions of module:     
   double LightGuideX    = 14.2*cm;
   double LightGuideY    = 0.5*cm;
   double LightGuideZ    = 92.0*cm;
@@ -658,15 +657,31 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   int NRows             = 24;
   int NColumns          = 11;
   int NumberOfLayers    = 40;
-  G4double PlateGaps    = (TotalPlatesL-(NumberOfLayers*(IronPlThick+ScinPlThick)))/(2*NumberOfLayers - 1);
+  G4double PlateGaps    = (TotalPlatesL-(NumberOfLayers*(IronPlThick+ScinPlThick)))/(2*NumberOfLayers - 1); //Gap between each Fe/Scint plate
 
-  G4double CaloX = ModuleX * NRows * 1.001;
-  G4double CaloY = ModuleY * NColumns * 1.001;
-  G4double CaloL = ModuleL;
+  //  G4double CaloX = ModuleX * NRows * 1.001;
+  //G4double CaloY = ModuleY * NColumns * 1.001;
 
-  G4double PlateXHalf = PlateX/2.0 - ScinToLgGap - LightGuideY/2.0; 
+  //Interchange Y <--> X to avoid need for confusing 90-degree rotation!
+  G4double CaloX = ModuleX * NColumns * 1.001; 
+  G4double CaloY = ModuleY * NRows * 1.001;
   
-  G4Box *solModule = new G4Box( "solModule", ModuleX/2.0, ModuleY/2.0, ModuleL/2.0 );
+  //G4double CaloL = ModuleL;
+  //G4double CaloL = (LightGuideZ + 2.0 * LightGuideX + 0.5*cm) * 1.001; //this isn't actually used!
+  G4double ModuleLtotal = LightGuideZ + 2.0 * LightGuideX + ContainerThick;
+  G4double CaloL = (ModuleLtotal + 0.5*cm)* 1.001; //Add PMT photocathode thickness:
+
+  //We want hcalr to be the distance from the origin to the surface of HCAL:
+  //double hcaldepth  = 101.0*cm;
+  G4double hcaldepth = ModuleLtotal + 0.5*cm;
+  double hcalr = fHCALdist + hcaldepth/2.0;
+  
+  G4double PlateXHalf = PlateX/2.0 - ScinToLgGap - LightGuideY/2.0; // = 7.3 cm - 0.1 cm - 0.25 cm = 6.95 cm
+  
+  //G4Box *solModule = new G4Box( "solModule", ModuleX/2.0, ModuleY/2.0, ModuleL/2.0 );
+  //increase module box length so that it contains lightguide and PMT photocathode. We will need to change some of the positioning arguments of sub-volumes accordingly.
+  //This is to prevent geometry overlaps!
+  G4Box *solModule = new G4Box( "solModule", ModuleX/2.0, ModuleY/2.0, ModuleLtotal/2.0 );
   G4LogicalVolume *logModule = new G4LogicalVolume( solModule, GetMaterial("Special_Air"), "logModule" );
 
   G4Box *solIronPl = new G4Box( "solIronPl", PlateXHalf/2.0, PlateY/2.0, IronPlThick/2.0 );
@@ -676,7 +691,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   // is a Sensitive Detector of type CAL
   G4Box *solScinPl = new G4Box( "solScinPl" , PlateXHalf/2.0, PlateY/2.0, ScinPlThick/2.0 );
   G4LogicalVolume *logScinPl = new G4LogicalVolume( solScinPl, GetMaterial("EJ232"), "logScinPl" );
-
+  
   G4SDManager *sdman = fDetCon->fSDman;
 
   G4String HCalScintSDname = "Harm/HCalScint";
@@ -701,47 +716,64 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 
   // Scintillator Wrap
   G4Box *sBox1 = new G4Box("sBox1", (PlateX + AlFoilThick)/2.0,
-			   (PlateY + 0.5*AlFoilThick)/2.0, 
-			   (ScinPlThick + AlFoilThick)/2.0 );
+			   (PlateY + 0.5*AlFoilThick)/2.0,     
+			   (ScinPlThick + AlFoilThick)/2.0 ); //Why only half the foil thickness in y? sbox1 dimensions are (7.31 cm, 7.255 cm, 0.51 cm)
 
   G4double FoilThickness = AlFoilThick;
   G4double DeltaX = PlateX/2.0 + FoilThickness;
-  G4double DeltaY = PlateY/2.0 + FoilThickness/2.0;
+  G4double DeltaY = PlateY/2.0 + FoilThickness/2.0; //Why only half thickness in y?
   G4double DeltaZ = ScinPlThick/2.0 + FoilThickness;
 
-  G4Box* sBox2 = new G4Box("sBoxSc2", DeltaX, DeltaY, DeltaZ);
+  G4Box* sBox2 = new G4Box("sBoxSc2", DeltaX, DeltaY, DeltaZ); //( 7.32 cm, 7.26 cm, 0.52 cm ); 
 
-  G4ThreeVector pos(0.0, FoilThickness/2.0+AlFoilThick/4.0, 0.0);
+  //Total thickness:
+  // sBox1 = (14.62 cm, 14.51 cm, 1.02 cm);
+  // sBox2 = (14.64 cm, 14.52 cm, 1.04 cm);
+  
+  G4ThreeVector pos(0.0, FoilThickness/2.0+AlFoilThick/4.0, 0.0); //( 0, 0.015 cm, 0 ); 
 
   G4SubtractionSolid* solScinPlWrap = new G4SubtractionSolid("sScinPlWr", sBox2, sBox1, 0, pos);
+  //The subtraction solid shifts the y position of sBox1 up by .015 cm, so that on the +Y side we
+  //The thickness of the remaining solid is
+  // (0.01 at +X edge, 0.01 at -X edge, 0.02 at -Y edge, 0 at +Y edge, and 0.01 at -Z edge and 0.01 at +Z edge): Is that what we want?
+  // Seems incorrect, but probably doesn't matter much.
+
+  //This never gets placed, so ignore geometry!
   G4LogicalVolume *logScinPlWrap = new G4LogicalVolume( solScinPlWrap, GetMaterial("Aluminum"), "lScinPlWr" );
     
   G4double Xpos, Ypos, Zpos;
   pos.set(0.0,0.0,0.0);
 
+  //add offset to correct for new module thickness:
+  //We want z0 to be z0 = -(LightGuideZ + 2*LightGuideX + 0.5 cm)/2;
+  // instead everything here is -ModuleL/2
+  // z0desired = -ModuleL/2 + zoffset --> zoffset = z0desired + ModuleL/2
+  //G4double zoffset = ModuleL/2.0 - (TotalPlatesL + 2.0*LightGuideX + 0.5*cm)/2.0;
+  
   for( int ii=0; ii<NumberOfLayers; ii++ ) {
-      G4double iron_gap = 2.0 * ii* PlateGaps;
+    G4double iron_gap = 2.0 * ii* PlateGaps; 
 
-      Xpos = ( ScinToLgGap +  LightGuideY/2.0 + PlateXHalf/2.0 ); 
-      Zpos = (-ModuleL/2 + ContainerThick + IronPlThick/2 + ii * (IronPlThick + ScinPlThick)) + iron_gap;
-      pos.set(Xpos, 0.0, Zpos);
-      new G4PVPlacement( 0, pos, logIronPl, "FePl", logModule, false, ii );
+    Xpos = ( ScinToLgGap +  LightGuideY/2.0 + PlateXHalf/2.0 ); // = 0.1 cm + 0.25 cm + 6.95/2 cm
+    Zpos = (-ModuleLtotal/2 + ContainerThick + IronPlThick/2 + ii * (IronPlThick + ScinPlThick)) + iron_gap;
+    pos.set(Xpos, 0.0, Zpos);
+    new G4PVPlacement( 0, pos, logIronPl, "FePl", logModule, false, ii );
 
-      pos.set(-Xpos, 0.0, Zpos); 
-      new G4PVPlacement( 0, pos, logIronPl, "FePl", logModule, false, NumberOfLayers + ii );
+    pos.set(-Xpos, 0.0, Zpos); 
+    new G4PVPlacement( 0, pos, logIronPl, "FePl", logModule, false, NumberOfLayers + ii );
       
-      G4double scin_gap = ( 1 + 2 * (ii)) * PlateGaps;
-      Zpos = (-ModuleL/2 + ContainerThick + IronPlThick + ScinPlThick/2.0 
-	      + ii * (IronPlThick + ScinPlThick)) + scin_gap;
-      pos.setZ(Zpos);
-      pos.set(Xpos,0.0,Zpos);      
-      new G4PVPlacement( 0, pos, logScinPl, "ScPlL", logModule, false, ii );
+    G4double scin_gap = ( 1 + 2 * (ii)) * PlateGaps;
+    Zpos = (-ModuleLtotal/2 + ContainerThick + IronPlThick + ScinPlThick/2.0 
+	    + ii * (IronPlThick + ScinPlThick)) + scin_gap;
+    //pos.setZ(Zpos + zoffset);
+    pos.set(Xpos,0.0,Zpos);      
+    new G4PVPlacement( 0, pos, logScinPl, "ScPlL", logModule, false, ii );
      
-      pos.set(-Xpos,0.0,Zpos); 
-      new G4PVPlacement( 0, pos, logScinPl, "ScPlR", logModule, false, ii );
-      pos.setY(-AlFoilThick);     
-    }
+    pos.set(-Xpos,0.0,Zpos); 
+    new G4PVPlacement( 0, pos, logScinPl, "ScPlR", logModule, false, ii );
+    //pos.setY(-AlFoilThick); //this command appears to have no effect!     
+  }
 
+  //Are these statements relevant?
   pos.setZ(0.0);
   Ypos = (PlateY/2 + ScinToLgGap + LightGuideY/2)*cm;
   Zpos = (-(ModuleL - TotalPlatesL)/2 + ContainerThick )*cm;
@@ -751,26 +783,26 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 
   G4double pDx1   =  LightGuideX;
   G4double pDx2   =  LightGuideX;
-  G4double pDy1   =  LightGuideY;
+  G4double pDy1   =  LightGuideY; //5 mm = full length at -dz/2
   G4double pDx3   =  2.7*cm;
   G4double pDx4   =  2.7*cm;
   G4double pDy2   =  2.7*cm;
-  G4double pDz    =  2.0*LightGuideX;
+  G4double pDz    =  2.0*LightGuideX; //28.4 cm = full length along z.
   G4double pTheta =  0*degree; 
   G4double pPhi   =  90*degree;
   G4double pAlp1  =  0*degree;
   G4double pAlp2  =  pAlp1;
 
-  Zpos = LightGuideZ/2.0 + pDz/2.0; 
+  Zpos = LightGuideZ/2.0 + pDz/2.0; // = 46 cm + 14.2 cm = 60.2 cm
   pos.set(0.0, 0.0, Zpos);
 
   G4Trap *solTrap = new G4Trap( "sTrap1",
-  			pDz/2,   pTheta,
-  			pPhi,    pDy1/2,
-  			pDx1/2,  pDx2/2,
-  			pAlp1,   pDy2/2,
-  			pDx3/2,  pDx4/2,
-  			pAlp2);
+				pDz/2,   pTheta,
+				pPhi,    pDy1/2,
+				pDx1/2,  pDx2/2,
+				pAlp1,   pDy2/2,
+				pDx3/2,  pDx4/2,
+				pAlp2);
 
   //*****TEST*****
   //G4LogicalVolume *test = new G4LogicalVolume(solTrap,GetMaterial("Air"),"test");
@@ -781,9 +813,11 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   //new G4PVPlacement(0,G4ThreeVector(3.2*m,3.2*m,3.2*m),test1,"test1phys",motherlog,false,0);
   //*****END*****
 
-  Zpos = (-(ModuleL - TotalPlatesL)/2 + ContainerThick );
-  pos.set( 0.0, 0.0, Zpos);
+  Zpos = (-(ModuleLtotal - TotalPlatesL)/2 + ContainerThick );
+  pos.set( 0.0, 0.0, Zpos );
 
+  G4ThreeVector pos_lg = pos;
+  
   //NOTE: "Ligd" OVERLAPS WITH MOTHERVOLUME
   G4LogicalVolume *logLightG = new G4LogicalVolume( sol, GetMaterial("BC484"), "lLiGd");  
   new G4PVPlacement(mRotateZ , pos , logLightG , "Ligd" , logModule , false , 0 , true );
@@ -828,8 +862,15 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   			   ModuleL/2.0 - ContainerThick );
 
   G4SubtractionSolid* solContar = new G4SubtractionSolid("hollow-box", abox0 , abox1, 0, pos);
-  G4LogicalVolume *logContar = new G4LogicalVolume( solContar, GetMaterial("Steel"), "lCont" );  
-  new G4PVPlacement(0, pos, logContar, "Cont", logModule, false, 0);
+
+  //G4ThreeVector lg_container_offset = pos_lg - pos;
+  G4ThreeVector pos_container( 0.0, 0.0, -ModuleLtotal/2.0 + ModuleL/2.0 );
+  G4ThreeVector lg_container_offset = pos_lg - pos_container; 
+  
+  G4SubtractionSolid *container_minus_lightguide = new G4SubtractionSolid( "container-lightguide", solContar, sol, 0, lg_container_offset ); //prevent overlap between steel container and light-guide!
+  
+  G4LogicalVolume *logContar = new G4LogicalVolume( container_minus_lightguide, GetMaterial("Steel"), "lCont" );  
+  new G4PVPlacement(mRotateZ, pos_container, logContar, "Cont", logModule, false, 0);
 
   //test to see if a module builds with PMT
   //new G4PVPlacement(0 , G4ThreeVector(3*m,3*m,3*m+LightGuideZ/2.0+(3*LightGuideX)/2.0-2*ContainerThick-radiuscath/2.0), logCathod , "physcathode" , motherlog , false , 0);
@@ -843,36 +884,62 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 
   G4RotationMatrix *hcalrm = new G4RotationMatrix;
   hcalrm->rotateY(-f48D48ang);
-  hcalrm->rotateZ(90*degree);
+  //hcalrm->rotateZ(90*degree); //Do we really need this? Is this a needless complication?
   G4RotationMatrix *modrot = new G4RotationMatrix;
   modrot->rotateZ(-90*degree );
 
-  G4Box *solCalo = new G4Box( "sHCalo", CaloX/2.0, (CaloY+SupportPlateDyExtra)/2.0, LightGuideZ/2.0+(3*LightGuideX)/2.0+2*ContainerThick+radiuscath);
+  //G4Box *solCalo = new G4Box( "sHCalo", CaloX/2.0, (CaloY+SupportPlateDyExtra)/2.0, LightGuideZ/2.0+(3*LightGuideX)/2.0+2*ContainerThick+radiuscath);
+  //Since SupportPlateDyExtra is zero, don't needlessly confuse by including it!
+  G4Box *solCalo = new G4Box( "sHCalo", CaloX/2.0, CaloY/2.0, CaloL/2.0 );
   G4LogicalVolume *logCalo = new G4LogicalVolume( solCalo, GetMaterial("Air"), "lHCalo" );
   new G4PVPlacement( hcalrm, G4ThreeVector( hcalr*sin(f48D48ang), VerticalOffset, hcalr*cos(f48D48ang) ), logCalo, "HCal Mother", motherlog, false, 0, false);
 
+  if( (fDetCon->StepLimiterList).find( "lHCalo" ) != (fDetCon->StepLimiterList).end() ){
+    logCalo->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+    G4String sdname = "Harm/HCAL_box";
+    G4String collname = "HCAL_boxHitsCollection";
+    G4SBSCalSD *HCALboxSD = NULL;
+    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(sdname)) ){
+      G4cout << "Adding HCALbox sensitive detector to SDman..." << G4endl;
+      HCALboxSD = new G4SBSCalSD( sdname, collname );
+      sdman->AddNewDetector( HCALboxSD );
+      (fDetCon->SDlist).insert( sdname );
+      fDetCon->SDtype[sdname] = kCAL;
+      (HCALboxSD->detmap).depth = 0;
+      logCalo->SetSensitiveDetector( HCALboxSD );
+    }
+  }
+  
   G4int copyid = 0;
   for(int ii = 0; ii < NColumns; ii++) {
-      for(int jj = 0; jj < NRows; jj++) {
+    for(int jj = 0; jj < NRows; jj++) {
 
-  	  G4double xtemp = -CaloX/2 + (ModuleX/2 + ModuleX*jj);
-  	  G4double ytemp = CaloY/2.0 - ModuleY/2.0 - ii*ModuleY;
-  	  pos.set( xtemp, ytemp, 0.0);
-	  new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, LightGuideZ/2.0+(3*LightGuideX)/2.0-2*ContainerThick-radiuscath/2.0),
-			    logCathod, "physcathode", logCalo, false, copyid ); 
-	  new G4PVPlacement(modrot, pos, logModule, "module", logCalo, false, copyid);
+      G4double xtemp = -CaloX/2.0/1.001 + (ModuleX/2.0 + ModuleX*ii);
+      G4double ytemp = -CaloY/2.0/1.001 + (ModuleY/2.0 + ModuleY*jj);
+      G4double zmodule = -CaloL/2.0/1.001 + ModuleLtotal/2.0;
+      //pos.set( xtemp, ytemp, zmodule);
+      G4double zcathode = zmodule + ModuleLtotal/2.0 + 0.25*cm;
+      
+      //G4ThreeVector pos_cathode( xtemp, ytemp, 
+      
+      //     new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, LightGuideZ/2.0+(3*LightGuideX)/2.0-2*ContainerThick-radiuscath/2.0),
+      //		 logCathod, "physcathode", logCalo, false, copyid );
+      new G4PVPlacement( 0, G4ThreeVector(xtemp, ytemp, zcathode),
+			 logCathod, "physcathode", logCalo, false, copyid ); 
+      //new G4PVPlacement(modrot, pos, logModule, "module", logCalo, false, copyid);
+      new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,zmodule), logModule, "module", logCalo, false, copyid);
+      
+      (HCalSD->detmap).Row[copyid] = jj;
+      (HCalSD->detmap).Col[copyid] = ii;
+      (HCalSD->detmap).LocalCoord[copyid] = G4ThreeVector(xtemp, ytemp, 0.0);
 
-	  (HCalSD->detmap).Row[copyid] = jj;
-	  (HCalSD->detmap).Col[copyid] = ii;
-	  (HCalSD->detmap).LocalCoord[copyid] = G4ThreeVector(xtemp, ytemp, LightGuideZ/2.0+(3*LightGuideX)/2.0-2*ContainerThick-radiuscath/2.0);
+      (HCalScintSD->detmap).Row[copyid] = jj;
+      (HCalScintSD->detmap).Col[copyid] = ii;
+      (HCalScintSD->detmap).LocalCoord[copyid] = G4ThreeVector(xtemp,ytemp,0.0);
 
-	  (HCalScintSD->detmap).Row[copyid] = jj;
-	  (HCalScintSD->detmap).Col[copyid] = ii;
-	  (HCalScintSD->detmap).LocalCoord[copyid] = G4ThreeVector(xtemp,ytemp,0.0);
-
-  	  copyid++;
-      }
+      copyid++;
     }
+  }
 
   //--- Front plate
   G4double FrontPlatedZ = 2.0*2.54*cm;
@@ -882,7 +949,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   //didn't place it yet
 
 
-// Visualization
+  // Visualization
   
   // Iron
   G4VisAttributes * IronPlVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));

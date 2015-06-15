@@ -865,21 +865,21 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   G4LogicalVolume *Module_38_log = new G4LogicalVolume( Module_38, GetMaterial("Special_Air"), "Module_38_log" );
 
   //Next, we want to make a subtraction solid for the mylar:
-  G4Box *Mylar_42 = new G4Box( "Mylar_42", (width_42 - mylar_thick)/2.0, (width_42 - mylar_thick)/2.0, depth_leadglass/2.0 );
-  //
-  G4SubtractionSolid *Mylar_wrap_42 = new G4SubtractionSolid( "Mylar_wrap_42", Module_42, Mylar_42, 0, G4ThreeVector( 0, 0, mylar_thick ) );
+  G4Box *Mylar_42 = new G4Box( "Mylar_42", (width_42 - mylar_thick)/2.0, (width_42 - mylar_thick)/2.0, depth_leadglass/2.0 + 1.0*cm );
+  // x - Lz/2 - 1 cm = -Lz/2 + t --> x = 1 cm + t
+  G4SubtractionSolid *Mylar_wrap_42 = new G4SubtractionSolid( "Mylar_wrap_42", Module_42, Mylar_42, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
   G4LogicalVolume *Mylar_wrap_42_log = new G4LogicalVolume( Mylar_wrap_42, GetMaterial("Mylar"), "Mylar_wrap_42_log" );
   
   //Next, we want to make a subtraction solid for the mylar:
-  G4Box *Mylar_40 = new G4Box( "Mylar_40", (width_40 - mylar_thick)/2.0, (width_40 - mylar_thick)/2.0, depth_leadglass/2.0 );
+  G4Box *Mylar_40 = new G4Box( "Mylar_40", (width_40 - mylar_thick)/2.0, (width_40 - mylar_thick)/2.0, depth_leadglass/2.0 + 1.0*cm );
   //
-  G4SubtractionSolid *Mylar_wrap_40 = new G4SubtractionSolid( "Mylar_wrap_40", Module_40, Mylar_40, 0, G4ThreeVector( 0, 0, mylar_thick ) );
+  G4SubtractionSolid *Mylar_wrap_40 = new G4SubtractionSolid( "Mylar_wrap_40", Module_40, Mylar_40, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
   G4LogicalVolume *Mylar_wrap_40_log = new G4LogicalVolume( Mylar_wrap_40, GetMaterial("Mylar"), "Mylar_wrap_40_log" );
 
   //Next, we want to make a subtraction solid for the mylar:
-  G4Box *Mylar_38 = new G4Box( "Mylar_38", (width_38 - mylar_thick)/2.0, (width_38 - mylar_thick)/2.0, depth_leadglass/2.0 );
+  G4Box *Mylar_38 = new G4Box( "Mylar_38", (width_38 - mylar_thick)/2.0, (width_38 - mylar_thick)/2.0, depth_leadglass/2.0 + 1.0*cm );
   //
-  G4SubtractionSolid *Mylar_wrap_38 = new G4SubtractionSolid( "Mylar_wrap_38", Module_38, Mylar_38, 0, G4ThreeVector( 0, 0, mylar_thick ) );
+  G4SubtractionSolid *Mylar_wrap_38 = new G4SubtractionSolid( "Mylar_wrap_38", Module_38, Mylar_38, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm) );
   G4LogicalVolume *Mylar_wrap_38_log = new G4LogicalVolume( Mylar_wrap_38, GetMaterial("Mylar"), "Mylar_wrap_38_log" );
 
   //Make lead-glass:
@@ -914,6 +914,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   LeadGlass_38_log->SetSensitiveDetector( ECalTF1SD );
 
   //Place lead-glass and mylar wrap inside module:
+
+  //Positioning of lead-glass in module:
+  // z + Lz/2 - m/2 - a/2 = Lz/2 --> z = m/2 + a/2
   //lead-glass:
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, (mylar_thick + air_thick)/2.0 ), LeadGlass_42_log, "LeadGlass_42_phys", Module_42_log, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, (mylar_thick + air_thick)/2.0 ), LeadGlass_40_log, "LeadGlass_40_phys", Module_40_log, false, 0 );
@@ -1261,8 +1264,8 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
   G4double HoleDiameter = 0.3*cm;
   G4double WLSdiameter      = 0.2*cm;
 
-  //G4double mylar_thick = 0.25*0.001*2.54*cm; //.25 mil thickness of mylar
-  G4double mylar_thick = 0.1*mm;
+  G4double mylar_thick = 0.25*0.001*2.54*cm; //.25 mil thickness of mylar
+  //G4double mylar_thick = 0.1*mm;
   
   // G4int NColumns = 2;
   // G4int NRows    = 196;

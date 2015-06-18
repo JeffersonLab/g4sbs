@@ -19,6 +19,7 @@ void G4SBSCALoutput::Clear(){
 
   row.clear();
   col.clear();
+  plane.clear();
   xcell.clear();
   ycell.clear();
   zcell.clear();

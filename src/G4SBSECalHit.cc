@@ -27,6 +27,7 @@ G4SBSECalHit::G4SBSECalHit(const G4SBSECalHit &hit ) : G4VHit()
   fPMTnumber = hit.GetPMTnumber();
   frownumber = hit.Getrownumber();
   fcolnumber = hit.Getcolnumber();
+  fplanenumber = hit.Getplanenumber();
   CellCoords = hit.GetCellCoords();
   GlobalCellCoords = hit.GetGlobalCellCoords();
 
@@ -51,6 +52,7 @@ const G4SBSECalHit& G4SBSECalHit::operator=(const G4SBSECalHit &hit)
   fPMTnumber = hit.GetPMTnumber();
   frownumber = hit.Getrownumber();
   fcolnumber = hit.Getcolnumber();
+  fplanenumber = hit.Getplanenumber();
   CellCoords = hit.GetCellCoords();
   GlobalCellCoords = hit.GetGlobalCellCoords();
 

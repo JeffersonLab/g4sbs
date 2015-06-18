@@ -48,6 +48,7 @@ private:
   G4int fPMTnumber;            //PMT number;
   G4int frownumber;            //PMT row number
   G4int fcolnumber;            //PMT column number
+  G4int fplanenumber;          //PMT "plane" number:
   G4ThreeVector CellCoords;    //"local" coordinate of center of cell in which hit occurs.
   G4ThreeVector GlobalCellCoords; //"global" coordinate of center of cell in which hit occurs:
 
@@ -91,6 +92,9 @@ public:
   inline void Setcolnumber( G4int i ){ fcolnumber = i; }
   inline G4int Getcolnumber() const { return fcolnumber; }
 
+  inline void Setplanenumber( G4int i ){ fplanenumber = i; }
+  inline G4int Getplanenumber() const { return fplanenumber; }
+  
   inline void SetCellCoords( G4ThreeVector x ){CellCoords = x;}
   inline G4ThreeVector GetCellCoords() const { return CellCoords; }
   

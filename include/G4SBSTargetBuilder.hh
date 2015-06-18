@@ -3,6 +3,7 @@
 
 #include "G4SBSComponent.hh"
 #include "sbstypes.hh"
+#include "G4ThreeVector.hh"
 
 class G4DetectorConstruction;
 
@@ -28,6 +29,8 @@ public:
 private:
   double fTargLen;
   double fTargDen;
+  G4ThreeVector fTargPos;
+  G4ThreeVector fTargDir;
   int fSchamFlag;
 
   Targ_t fTargType;

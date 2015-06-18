@@ -83,6 +83,7 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   hit->SetRow( detmap.Row[hit->GetCell()] );
   hit->SetCol( detmap.Col[hit->GetCell()] );
+  hit->SetPlane( detmap.Plane[hit->GetCell()] );
   hit->SetCellCoords( detmap.LocalCoord[hit->GetCell()] );
 
   // G4cout << "During CAL hit processing, SDname = " << SensitiveDetectorName << " physical volume name = " << hist->GetVolume( detmap.depth )->GetName() 

@@ -41,7 +41,7 @@ private:
   double energy; //Initial energy of the particle prior to the hit.
   double Lstep; //spatial length of the step (magnitude)
 
-  G4int cell, row, col; //Channel information 
+  G4int cell, row, col, plane; //Channel information 
   G4ThreeVector CellCoords; //"local" coordinates of center of cell in which hit occurred
   G4ThreeVector GlobalCellCoords; //"global" coordinates of center of cell in which hit occurred
 
@@ -81,6 +81,9 @@ public:
   inline void SetCol(G4int c)
   { col = c; }
 
+  inline void SetPlane(G4int p)
+  { plane = p; }
+  
   inline void SetCellCoords( G4ThreeVector x )
   { CellCoords = x; }
 
@@ -126,7 +129,8 @@ public:
   inline G4int GetCell() { return cell; }
   inline G4int GetRow() { return row; }
   inline G4int GetCol() { return col; }
-
+  inline G4int GetPlane() { return plane; }
+  
   inline G4ThreeVector GetCellCoords() { return CellCoords; }
   inline G4ThreeVector GetGlobalCellCoords() { return GlobalCellCoords; }
 

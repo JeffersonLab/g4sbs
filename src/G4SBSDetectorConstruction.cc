@@ -1062,7 +1062,49 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     //   *          CDet        *
     //   ************************
     G4Material *PLASTIC_SC_VINYLTOLUENE = man->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
-    fMaterialsMap["PLASTIC_SC_VINYLTOLUENE"] = PLASTIC_SC_VINYLTOLUENE;
+    
+
+    const G4int nentries_CDET_scint = 46;
+
+    G4double Ephoton_CDET[nentries_CDET_scint] = {
+      2.40675006*eV, 2.445105532*eV, 2.488158883*eV, 2.522044473*eV, 2.555653572*eV,
+      2.588921153*eV, 2.603982726*eV, 2.6346434*eV, 2.656802618*eV, 2.667359638*eV,
+      2.696833226*eV, 2.709078112*eV, 2.722809302*eV, 2.745084471*eV, 2.762023812*eV,
+      2.795087475*eV, 2.806774486*eV, 2.81855964*eV, 2.831937605*eV, 2.843935469*eV,
+      2.863654459*eV, 2.888297428*eV, 2.905489513*eV, 2.921289742*eV, 2.938878028*eV,
+      2.953425474*eV, 2.969759939*eV, 2.976340141*eV, 2.98627609*eV, 2.996271359*eV,
+      3.011394009*eV, 3.019858358*eV, 3.030087486*eV, 3.038657397*eV, 3.050740039*eV,
+      3.06117225*eV, 3.073442588*eV, 3.084030912*eV, 3.107225739*eV, 3.12531095*eV,
+      3.154686087*eV, 3.195988284*eV, 3.234491656*eV, 3.265965379*eV, 3.326666918*eV,
+      3.413361452*eV };
+
+    G4double RelativeYield_CDET[nentries_CDET_scint] = {
+      0.0300926, 0.0486111, 0.0752315, 0.0983796, 0.131944,
+      0.168981, 0.190972, 0.234954, 0.283565, 0.313657,
+      0.380787, 0.413194, 0.446759, 0.491898, 0.525463,
+      0.599537, 0.645833, 0.738426, 0.840278, 0.90625,
+      0.961806, 0.990741, 0.974537, 0.943287, 0.893519,
+      0.861111, 0.805556, 0.77662, 0.721065, 0.678241,
+      0.597222, 0.549769, 0.491898, 0.456019, 0.398148,
+      0.356481, 0.297454, 0.25463, 0.201389, 0.173611,
+      0.136574, 0.0983796, 0.0787037, 0.0648148, 0.0451389,
+      0.03125 };
+
+    G4double Ephoton_rindex_CDET[2] = { 2.40675006*eV, 3.413361452*eV };
+    G4double Rindex_CDET[2] = { 1.58, 1.58 };
+    G4double AbsLength_CDET[2] = {3.80*m, 3.80*m};
+    
+    MPT_temp = new G4MaterialPropertiesTable();
+    MPT_temp->AddProperty("FASTCOMPONENT", Ephoton_CDET, RelativeYield_CDET, nentries_CDET_scint );
+    MPT_temp->AddConstProperty("FASTTIMECONSTANT", 2.1*ns);
+    MPT_temp->AddConstProperty("SCINTILLATIONYIELD", 0.64*17400.0/MeV);
+    MPT_temp->AddConstProperty("RESOLUTIONSCALE", 1.0 );
+    MPT_temp->AddProperty("RINDEX", Ephoton_rindex_CDET, Rindex_CDET, 2 );
+    MPT_temp->AddProperty("ABSLENGTH", Ephoton_rindex_CDET, AbsLength_CDET, 2 );
+
+    PLASTIC_SC_VINYLTOLUENE->SetMaterialPropertiesTable(MPT_temp);
+    
+    fMaterialsMap["CDET_BC408"] = PLASTIC_SC_VINYLTOLUENE;
     
     //Specs come from Hamamatsu Datasheet H8711 maPMT
     const G4int nentries_CDet = 37;
@@ -1108,6 +1150,86 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     Photocathode_CDet->SetMaterialPropertiesTable( MPT_temp );
     fMaterialsMap["Photocathode_CDet"] = Photocathode_CDet;
 
+    ///////////// TO DO: Make WLSFiber with actual cladding!!! //////////////////////////////
+
+    G4Material *BCF_92 = man->FindOrBuildMaterial( "G4_POLYSTYRENE" );
+
+    //Set up optical properties for BCF_92:
+      
+    MPT_temp = new G4MaterialPropertiesTable();
+
+    G4double Ephoton_BCF92_rindex[2] = {2.0*eV, 3.5*eV};
+    G4double Rindex_BCF_92[2] = {1.60, 1.60};
+    G4double Abslength_BCF_92[2] = {3.5*m, 3.5*m};
+    MPT_temp->AddProperty( "RINDEX", Ephoton_BCF92_rindex, Rindex_BCF_92, 2 );
+    MPT_temp->AddProperty( "ABSLENGTH", Ephoton_BCF92_rindex, Abslength_BCF_92, 2 );
+    MPT_temp->AddConstProperty( "WLSTIMECONSTANT", 2.7*ns );
+    
+    const G4int nentries_BCF92_abs = 27;
+
+    G4double Ephoton_BCF92_abs[nentries_BCF92_abs] = {
+      2.630707893*eV, 2.664734002*eV, 2.686117734*eV, 2.71333491*eV, 2.738300242*eV,
+      2.75709789*eV, 2.777106798*eV, 2.803271443*eV, 2.82594757*eV, 2.844966538*eV,
+      2.866276065*eV, 2.906722434*eV, 2.950487623*eV, 3.015832968*eV, 3.050184651*eV,
+      3.072345879*eV, 3.099605268*eV, 3.110406153*eV, 3.144492904*eV, 3.176817825*eV,
+      3.20982255*eV, 3.217527656*eV, 3.259302965*eV, 3.303523516*eV, 3.325399923*eV,
+      3.391382895*eV, 3.443709311*eV };
+
+    G4double WLSabslength_BCF92[nentries_BCF92_abs] = {
+      10.28081206*cm, 3.185612619*cm, 1.803324028*cm, 0.865410817*cm, 0.508661494*cm,
+      0.317450506*cm, 0.21767341*cm, 0.151335806*cm, 0.105467803*cm, 0.086143145*cm,
+      0.072386575*cm, 0.054623942*cm, 0.041499166*cm, 0.021491391*cm, 0.011369803*cm,
+      0.013554007*cm, 0.02312288*cm, 0.025719555*cm, 0.032357641*cm, 0.039288583*cm,
+      0.048017391*cm, 0.050098717*cm, 0.065481686*cm, 0.085430618*cm, 0.095633564*cm,
+      0.133619777*cm, 0.176473376*cm };
+
+    const G4int nentries_BCF92_emission = 32;
+
+    G4double Ephoton_BCF92_emission[nentries_BCF92_emission] = {
+      2.673600455*eV, 2.650668218*eV, 2.628984229*eV, 2.620410753*eV, 2.606807804*eV,
+      2.600056427*eV, 2.595017157*eV, 2.58250403*eV, 2.575883146*eV, 2.568471124*eV,
+      2.552964507*eV, 2.536839201*eV, 2.52408797*eV, 2.498190812*eV, 2.479684214*eV,
+      2.45918933*eV, 2.439035253*eV, 2.429443326*eV, 2.402566631*eV, 2.375567827*eV,
+      2.338914317*eV, 2.310000796*eV, 2.279201125*eV, 2.252992604*eV, 2.233575468*eV,
+      2.218774127*eV, 2.19813402*eV, 2.180237337*eV, 2.154512292*eV, 2.12207618*eV,
+      2.087884362*eV, 2.069597591*eV };
+
+    G4double BCF92_emission_relative[nentries_BCF92_emission] = {
+      0, 0.042618, 0.129376, 0.196347, 0.394216,
+      0.506849, 0.598174, 0.715373, 0.805175, 0.890411,
+      0.968037, 0.99239, 0.993912, 0.987823, 0.971081,
+      0.929985, 0.855403, 0.803653, 0.703196, 0.596651,
+      0.48554, 0.392694, 0.316591, 0.266362, 0.2207,
+      0.190259, 0.165906, 0.136986, 0.112633, 0.0791476,
+      0.0669711, 0.0502283 };
+    
+    MPT_temp->AddProperty("WLSABSLENGTH", Ephoton_BCF92_abs, WLSabslength_BCF92, nentries_BCF92_abs );
+    MPT_temp->AddProperty("WLSCOMPONENT", Ephoton_BCF92_emission, BCF92_emission_relative, nentries_BCF92_emission );
+    
+    BCF_92->SetMaterialPropertiesTable( MPT_temp );
+    
+    fMaterialsMap["BCF_92"] = BCF_92;
+
+    G4double cdet_acrylic_density = 1.19*g/cm3;
+    
+    G4Material *CDET_Acrylic = new G4Material( "CDET_Acrylic", cdet_acrylic_density, 3 );
+    CDET_Acrylic->AddElement( elH, fractionmass = 0.080538 );
+    CDET_Acrylic->AddElement( elC, fractionmass = 0.599848 );
+    CDET_Acrylic->AddElement( elO, fractionmass = 0.319614 );
+
+    MPT_temp = new G4MaterialPropertiesTable();
+
+    G4double ephoton_acrylic[2] = {2.0*eV, 3.5*eV};
+    G4double Rindex_acrylic[2] = {1.49, 1.49 };
+    G4double abslength_acrylic[2] = {3.5*m, 3.5*m};
+    
+    MPT_temp->AddProperty("RINDEX", ephoton_acrylic, Rindex_acrylic, 2 );
+    MPT_temp->AddProperty("ABSLENGTH", ephoton_acrylic, abslength_acrylic, 2 );
+
+    CDET_Acrylic->SetMaterialPropertiesTable(MPT_temp);
+
+    fMaterialsMap["CDET_Acrylic"] = CDET_Acrylic;
+    
     //  *****************************
     //  *     Preshower/Shower      * 
     //  *****************************

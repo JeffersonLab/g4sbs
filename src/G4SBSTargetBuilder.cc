@@ -27,6 +27,10 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fTargLen = 60.0*cm;
   fTargType = kH2;
   fTargDen = 10.5*atmosphere/(300*kelvin*k_Boltzmann);
+
+  fTargPos = G4ThreeVector( 0, 0, 0 );
+  fTargDir = G4ThreeVector( 0, 0, 1 );
+  
   fSchamFlag = 0;
 }
 
@@ -44,6 +48,77 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   return;
 
 }
+
+// void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
+
+  
+//   //New version of buildcryotarget updated with scattering chamber for GEP:
+//   //Start with vacuum snout:
+//   G4double inch = 2.54*cm;
+
+//   //In the following dimensions, "left" and "right" are as viewed from downstream!!!!
+//   G4double SnoutCenterPlate_width = 9.425*inch;
+//   G4double SnoutHeight = 37.75*inch;
+//   G4double SnoutLeftPlate_width = 34.364*inch;
+//   G4double SnoutRightPlate_width = 27.831*inch;
+//   G4double SnoutThick = 1.0*inch;
+
+//   //Window dimensions:
+//   G4double SnoutLeftWindow_Rbend_corners = 5.750*inch;
+//   G4double SnoutRightWindow_Rbend_corners = 5.000*inch;
+
+//   G4double SnoutLeftWindow_Width = 2.0*9.625*inch;
+//   G4double SnoutLeftWindow_Height = 2.0*15.875*inch;
+//   G4double SnoutRightWindow_Width = 2.0*8.438*inch;
+//   G4double SnoutRightWindow_Height = 2.0*9.563*inch;
+
+//   G4double SnoutLeftWindow_xcenter = 16.438*inch;
+//   G4double SnoutRightWindow_xcenter = 12.456*inch;
+
+//   G4double SnoutLeftWindowAngle = 27.5*deg;
+//   G4double SnoutRightWindowAngle = 22.0*deg;
+
+//   G4double SnoutUpstreamHoleDiameter = 4.870*inch; //All the way through:
+//   G4double SnoutDownstreamHoleDiameter = 5.010*inch; //To a depth of .26 inches from the front:
+//   G4double SnoutDownstreamHoleDepth = 0.260*inch;
+
+//   G4double SnoutBeamHole_xcenter = 4.591*inch;
+
+//   G4ThreeVector TargetCenter_GEP(0,0,16.5*cm);
+
+//   //Assume for the moment that this is the distance to the window on the proton side along the line at 22 deg from the target center, which is 16.5 cm downstream of the Hall A origin:
+//   G4double SnoutRightWindow_R = 41.74*inch;
+//   G4double SnoutRightWindow_zintercept = SnoutRightWindow_R/cos(SnoutRightWindowAngle) + TargetCenter_GEP.z();
+//   //The x coordinate of the front corner along the proton side:
+//   G4double SnoutFrontPlate_xintercept = SnoutCenterPlate_width - SnoutBeamHole_xcenter; //4.834 inches = 12.2784 cm = 
+//   //The z coordinate of the FRONT of the center plate:
+//   G4double SnoutFrontPlate_zfront = SnoutRightWindow_zintercept - SnoutFrontPlate_xintercept * tan( SnoutRightWindowAngle );
+
+//   //Now we need to make the solids; Start with the center plate:
+//   G4Box *SnoutCenterPlate_box = new G4Box("SnoutCenterPlate_box", SnoutCenterPlate_width/2.0, SnoutHeight/2.0, SnoutThick/2.0 );
+
+//   //Make cylindrical cutouts for beam through-hole:
+//   G4Tubs *SnoutBeamHoleInner = new G4Tubs("SnoutBeamHoleInner", 0.0, SnoutUpstreamHoleDiameter/2.0, SnoutThick/2.0 + 1.0*mm, 0.0, twopi );
+//   G4Tubs *SnoutBeamHoleOuter = new G4Tubs("SnoutBeamHoleOuter", 0.0, SnoutDownstreamHoleDiameter/2.0, SnoutDownstreamHoleDepth/2.0 + 1.0*mm, 0.0, twopi );
+
+//   //Subtract inner hole:
+//   G4SubtractionSolid *SnoutCenterPlate_minus_hole1 = new G4SubtractionSolid( "SnoutCenterPlate_minus_hole1", SnoutCenterPlate_box, SnoutBeamHoleInner, 0,
+// 									     G4ThreeVector( -SnoutCenterPlate_width/2.0 + SnoutBeamHole_xcenter, 0, 0 ) );
+
+//   //Subtract outer hole:
+//   //z coordinate should be such that z - (D/2 + 1 mm) + D = T/2 --> z = T/2 - D/2 + 1 mm
+//   G4SubtractionSolid *SnoutCenterPlate_minus_hole2 = new G4SubtractionSolid( "SnoutCenterPlate_minus_hole2", SnoutCenterPlate_minus_hole1, SnoutBeamHoleOuter, 0,
+// 									     G4ThreeVector( -SnoutCenterPlate_width/2.0 + SnoutBeamHole_xcenter, 0, SnoutThick/2.0 - SnoutDownstreamHoleDepth/2.0 + 1.0*mm ) );
+
+//   G4LogicalVolume *SnoutCenterPlate_log = new G4LogicalVolume( SnoutCenterPlate_minus_hole2, GetMaterial("Stainless_Steel"), "SnoutCenterPlate_log" );
+
+//   //x coordinate should be located such that the beam goes through the center of the hole in the center plate: 
+//   new G4PVPlacement( 0, G4ThreeVector( SnoutCenterPlate_width/2.0 - SnoutBeamHole_xcenter, 0, SnoutFrontPlate_zfront - SnoutThick/2.0 ), SnoutCenterPlate_log, "SnoutCenterPlate_phys", worldlog, false, 0 );
+
+//   G4VisAttributes *Snout_visatt = new G4VisAttributes( G4Colour( 0.6, 0.55, 0.65 ) );
+//   SnoutCenterPlate_log->SetVisAttributes( Snout_visatt );
+  
+// }
 
 void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   //////////////////////////////////////////////////////////////////

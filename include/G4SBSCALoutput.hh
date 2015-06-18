@@ -16,7 +16,7 @@ public:
 
   //"Hit" is defined as the sum of all energy deposition in a given cell during timewindow, provided the total energy deposition is above "threshold":
   int nhits_CAL; //Number of cells with above-threshold energy deposition:
-  vector<int> row, col; //"row" and "column" of cells
+  vector<int> row, col, plane; //"row" and "column" of cells
   vector<double> xcell, ycell, zcell; //"local" x and y coordinates of center of cell (assumes a rectangular, planar geometry)
   vector<double> xcellg,ycellg,zcellg; //"global" xyz coordinates of center of cell (no assumptions on geometry)
   vector<double> sumedep, tavg, trms, tmin, tmax; //Sum of energy deposition, average, rms, min and max global times of energy depositions in this cell

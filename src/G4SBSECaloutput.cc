@@ -22,6 +22,7 @@ void G4SBSECaloutput::Clear(){
   PMTnumber.clear();
   row.clear();
   col.clear();
+  plane.clear();
   xcell.clear();
   ycell.clear();
   zcell.clear();

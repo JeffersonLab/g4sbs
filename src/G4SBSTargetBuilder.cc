@@ -235,25 +235,28 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   
   // Scattering chamber
   new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), swall_log,
-		    "scham_wall_phys", worldlog, false, 0);
+  		    "scham_wall_phys", worldlog, false, 0);
   new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), chamber_inner_log,
-		    "chamber_inner_phys", worldlog, false, 0);
+  		    "chamber_inner_phys", worldlog, false, 0);
 
   new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), sc_bbwin_log,
-		    "sc_bbwin_phys", worldlog, false, 0);
+  		    "sc_bbwin_phys", worldlog, false, 0);
 
   new G4PVPlacement(schamrot, G4ThreeVector(0.0, sheight/2.0 + (swallrad-swallrad_in)/2, 0.0), sc_topbottom_log,
-		    "scham_top_phys", worldlog, false, 0);
+  		    "scham_top_phys", worldlog, false, 0);
   new G4PVPlacement(schamrot, G4ThreeVector(0.0, -sheight/2.0 - (swallrad-swallrad_in)/2, 0.0), sc_topbottom_log,
-		    "scham_bot_phys", worldlog, false, 0);
+  		    "scham_bot_phys", worldlog, false, 0);
 
   new G4PVPlacement(schamrot, G4ThreeVector(0.0, 0.0, 0.0), sc_entry_hole_vacuum_log, "sc_entry_hole_vacuum_phys",
-		    worldlog, false, 0 );
+  		    worldlog, false, 0 );
 
   
+  // **** 6/17/2015 commented out by RFO while importing Sergey's BeamlineBuilder code
+  // Also, should these lines be in BeamlineBuilder??
+  //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", worldlog, false, 0);
+  //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", worldlog, false, 0);
+  // **** 6/17/2015
 
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", worldlog, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", worldlog, false, 0);
 
   if( fDetCon->fExpType == kGEp && fDetCon->fLeadOption == 1 ){
     //	    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, swallrad+shieldlen/2), extshield_log, "extshield_phys", worldlog, false, 0);
@@ -328,7 +331,7 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   targrot->rotateY(-90.0*deg);
 
   new G4PVPlacement(targrot, G4ThreeVector(0.0, 0.0, 0.0), targ_tube_log,
-		      "targ_tube_phys", chamber_inner_log, false, 0);
+  		      "targ_tube_phys", chamber_inner_log, false, 0);
 
   /**/
 
@@ -347,7 +350,7 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
 
   
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, cryooffset), cryo_tube_log,
-		    "cryo_tube_phys", targ_tube_log, false, 0);
+  		    "cryo_tube_phys", targ_tube_log, false, 0);
   
 
   G4VisAttributes *cryoVisAtt= new G4VisAttributes(G4Colour(1.0,0.0,0.0));

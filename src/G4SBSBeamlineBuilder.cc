@@ -15,6 +15,8 @@
 #include "G4Cons.hh"
 #include "G4Box.hh"
 #include "G4Polycone.hh"
+#include "G4Trd.hh"
+#include "G4RotationMatrix.hh"
 
 #include "G4SystemOfUnits.hh"
 
@@ -37,70 +39,66 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //  Entry iron tube to shield beam from stray field
     //
    
-    G4double tRmin = 5.*cm;
-    G4double tRmax = 7.*cm;
-    G4double tDzz = 20.*cm/2;
-    G4double tSPhi = 0.*deg;
-    G4double tDphi = 360.*deg;
+    // *****6/17
+
+   //  G4double tRmin = 5.*cm;
+   //  G4double tRmax = 7.*cm;
+   //  G4double tDzz = 20.*cm/2;
+   //  G4double tSPhi = 0.*deg;
+   //  G4double tDphi = 360.*deg;
 
 
-    G4Tubs *iron_ent_tube = new G4Tubs("iron_ent_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+   //  G4Tubs *iron_ent_tube = new G4Tubs("iron_ent_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
 
-    G4LogicalVolume *iron_ent_tube_log = new G4LogicalVolume(iron_ent_tube, GetMaterial("Iron"), "iron_ent_tube", 0, 0, 0 );
+   //  G4LogicalVolume *iron_ent_tube_log = new G4LogicalVolume(iron_ent_tube, GetMaterial("Iron"), "iron_ent_tube", 0, 0, 0 );
 
-    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 110.936*cm + tDzz), iron_ent_tube_log, "iron_ent_tube_phys", worldlog,false,0);
+   // /new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 110.936*cm + tDzz), iron_ent_tube_log, "iron_ent_tube_phys", worldlog,false,0);
 
-    //  next entrance correction magnet
+   //  //  next entrance correction magnet
 
-    G4Box* box_1 = new G4Box("EnMag_1",50.*cm/2., 50.*cm/2., 16.*cm/2.);
-    G4Box* box_2 = new G4Box("EnMag_2",20.*cm/2., 30.*cm/2., 17.*cm/2.); // aperture to pass beam
-    G4SubtractionSolid* EnMag = new G4SubtractionSolid("EnMag", box_1, box_2);   
-    G4LogicalVolume * EnMag_log = new G4LogicalVolume(EnMag , GetMaterial("Iron"), "EnMag", 0, 0, 0); 
-    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 134.935*cm+8.*cm), EnMag_log, "EnMag_phys", worldlog, false, 0);
+   //  G4Box* box_1 = new G4Box("EnMag_1",50.*cm/2., 50.*cm/2., 16.*cm/2.);
+   //  G4Box* box_2 = new G4Box("EnMag_2",20.*cm/2., 30.*cm/2., 17.*cm/2.); // aperture to pass beam
+   //  G4SubtractionSolid* EnMag = new G4SubtractionSolid("EnMag", box_1, box_2);   
+   //  G4LogicalVolume * EnMag_log = new G4LogicalVolume(EnMag , GetMaterial("Iron"), "EnMag", 0, 0, 0); 
+   //  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 134.935*cm+8.*cm), EnMag_log, "EnMag_phys", worldlog, false, 0);
 
-    // exit correction magnet 
+   //  // exit correction magnet 
 
-    G4Box* box_3 = new G4Box("ExtMag_1",50.*cm/2., 54.*cm/2., 40.*cm/2.);
-    G4Box* box_4 = new G4Box("ExtMag_2",20.*cm/2., 40.*cm/2., 41.*cm/2.); // aperture to pass beam
-    G4SubtractionSolid* ExtMag = new G4SubtractionSolid("ExtMag", box_3, box_4);   
-    G4LogicalVolume * ExtMag_log = new G4LogicalVolume(ExtMag , GetMaterial("Iron"), "ExtMag", 0, 0, 0); 
-    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 351.435*cm+20.*cm), ExtMag_log, "ExtMag_phys", worldlog, false, 0);
+   //  G4Box* box_3 = new G4Box("ExtMag_1",50.*cm/2., 54.*cm/2., 40.*cm/2.);
+   //  G4Box* box_4 = new G4Box("ExtMag_2",20.*cm/2., 40.*cm/2., 41.*cm/2.); // aperture to pass beam
+   //  G4SubtractionSolid* ExtMag = new G4SubtractionSolid("ExtMag", box_3, box_4);   
+   //  G4LogicalVolume * ExtMag_log = new G4LogicalVolume(ExtMag , GetMaterial("Iron"), "ExtMag", 0, 0, 0); 
+   //  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 351.435*cm+20.*cm), ExtMag_log, "ExtMag_phys", worldlog, false, 0);
 
-    // iron conical tube on the beamline inside SBS magnet split
+   //  // iron conical tube on the beamline inside SBS magnet split
 
-    G4double tcRmin1 = 7.4*cm;
-    G4double tcRmax1 = 8.68*cm;
-    G4double tcRmin2 = 10.55*cm;
-    G4double tcRmax2 = 11.82*cm;
-    G4double tcDzz = 120.*cm/2;
-    G4double tcSPhi = 0.*deg;
-    G4double tcDphi = 360.*deg;
+   //  G4double tcRmin1 = 7.4*cm;
+   //  G4double tcRmax1 = 8.68*cm;
+   //  G4double tcRmin2 = 10.55*cm;
+   //  G4double tcRmax2 = 11.82*cm;
+   //  G4double tcDzz = 120.*cm/2;
+   //  G4double tcSPhi = 0.*deg;
+   //  G4double tcDphi = 360.*deg;
   
-    G4Cons *iron_con_tube = new G4Cons("iron_con_tube", tcRmin1, tcRmax1,tcRmin2, tcRmax2, tcDzz, tcSPhi, tcDphi);
+   //  G4Cons *iron_con_tube = new G4Cons("iron_con_tube", tcRmin1, tcRmax1,tcRmin2, tcRmax2, tcDzz, tcSPhi, tcDphi);
 
-    G4LogicalVolume *iron_con_tube_log = new G4LogicalVolume(iron_con_tube, GetMaterial("Iron"), "iron_con_tube", 0, 0, 0 );
+   //  G4LogicalVolume *iron_con_tube_log = new G4LogicalVolume(iron_con_tube, GetMaterial("Iron"), "iron_con_tube", 0, 0, 0 );
 
-    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 170.944*cm + tcDzz), iron_con_tube_log, "iron_con_tube_phys", worldlog,false,0);
+   //  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 170.944*cm + tcDzz), iron_con_tube_log, "iron_con_tube_phys", worldlog,false,0);
 
+   //  G4VisAttributes *McorrVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
+   //  iron_con_tube_log->SetVisAttributes(McorrVisAtt);
+   //  ExtMag_log->SetVisAttributes(McorrVisAtt);
+   //  EnMag_log->SetVisAttributes(McorrVisAtt);
+   //  iron_ent_tube_log->SetVisAttributes(McorrVisAtt);
 
-
-
-
-    G4VisAttributes *McorrVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
-    iron_con_tube_log->SetVisAttributes(McorrVisAtt);
-    ExtMag_log->SetVisAttributes(McorrVisAtt);
-    EnMag_log->SetVisAttributes(McorrVisAtt);
-    iron_ent_tube_log->SetVisAttributes(McorrVisAtt);
+    // *****6/17
     
-    //---------------------------------------------------------------------------
+    // Code Imported from BeamLine.F (Sergey) - 6/18/2015
+
+    MakeGEpBeamline(worldlog);
+
   }
-
-  //Material definition moved to "ConstructMaterials":
-
-
-  //G4Material* aluminum = new G4Material("Aluminum", 13., 26.98*g/mole, density=2.7*g/cm3);
-  // G4Material *aluminum = GetMaterial("Aluminum");
-  // G4Material* vacuum = GetMaterial("Vacuum");
 
   double swallrad = 1.143*m/2;
   double swallrad_inner = 1.041/2.0*m; 
@@ -152,12 +150,16 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     } // else {
     //   //Don't add window: we want the beam to interact with the target first. Butt up against the outer edge of the scattering chamber:
     //   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entLog_cut, "ent_phys", worldlog, false,0);
-    //   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entvacLog_cut, "entvac_phys", worldlog,false,0);
+    //new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entvacLog_cut, "entvac_phys", worldlog,false,0);
     // }
   } else {
     // Cryotarget - up against the chamber wall
-    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entLog_cut, "ent_phys", worldlog, false,0);
-    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entvacLog_cut, "entvac_phys", worldlog,false,0);
+
+    //*****6/17
+    //new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entLog_cut, "ent_phys", worldlog, false,0);
+    //new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entvacLog_cut, "entvac_phys", worldlog,false,0);
+    //*****6/17
+
   }
 
   // Aluminum
@@ -186,9 +188,10 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   G4LogicalVolume *extLog = new G4LogicalVolume(ext_cone, GetMaterial("Aluminum"), "ext_log", 0, 0, 0);
   G4LogicalVolume *extvacLog = new G4LogicalVolume(ext_vac, GetMaterial("Vacuum"), "extvac_log", 0, 0, 0);
 
-  new G4PVPlacement(0,G4ThreeVector(), extLog, "ext_phys", worldlog, false,0);
-  new G4PVPlacement(0,G4ThreeVector(), extvacLog, "extvac_phys", worldlog,false,0);
-
+  //*****6/17
+  //new G4PVPlacement(0,G4ThreeVector(), extLog, "ext_phys", worldlog, false,0);
+  //new G4PVPlacement(0,G4ThreeVector(), extvacLog, "extvac_phys", worldlog,false,0);
+  //*****6/17
 
   G4VisAttributes *extVisAtt= new G4VisAttributes(G4Colour(0.9,0.1,0.9));
   extLog->SetVisAttributes(extVisAtt);
@@ -258,6 +261,359 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 }
 
+// GEp Beamline Construction --- following Sergey's Fortran code
+void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
+
+    G4double tRmin = 0.0*cm;
+    G4double tRmax = 0.5*17.14*cm;
+    G4double tDzz  = 0.5*2.13*cm;
+    G4double tSPhi = 0.0*deg;
+    G4double tDphi = 360.0*deg;
+
+    G4double X=0, Y=0, Z=0;
+    G4ThreeVector zero(0.0, 0.0, 0.0);
+
+    // BeamLine-tube main with flanges
+    // Flange 1:
+    G4Tubs *FLN1_tube = new G4Tubs("FLN1_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+
+    // Bore out middle, fill with vaccum
+    tRmax = 0.5*8.93*cm;
+    tDzz += 0.01*cm;
+    G4Tubs *FVL1_tube = new G4Tubs("FVL1_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4SubtractionSolid *FLN1_sub = new G4SubtractionSolid( "FLN1_sub", FLN1_tube, FVL1_tube, 0, zero );
+    
+    // Convert into logical volumes
+    G4LogicalVolume *FLN1_log = new G4LogicalVolume( FLN1_sub, GetMaterial("Iron"), "FLN1_log" );
+    G4LogicalVolume *FVL1_log = new G4LogicalVolume( FVL1_tube, GetMaterial("Vacuum"), "FVL1_log");
+    // Then place the vacuum inside the Iron Tube
+    Z = (159.51 + 0.5*2.13)*cm;
+    new G4PVPlacement( 0, zero, FVL1_log, "Flange1_Vac", FLN1_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), FLN1_log, "Flange1_Iron", worldlog, false, 0 );
+
+    // Conical tube for vacuum
+    G4double pDz    = (352.636 - 2.13*0.5 - 2.84*0.5)*0.5*cm;
+    G4double pRmin1 = 0.0*cm;
+    G4double pRmax1 = (0.5*8.93 + 0.318)*cm;
+    G4double pRmin2 = 0.0*cm;
+    G4double pRmax2 = (0.5*27.62 + 0.318)*cm;
+
+    G4Cons *TB01_cons = new G4Cons( "TB01_cons", pRmin1, pRmax1, pRmin2, pRmax2, pDz, tSPhi, tDphi );
+    
+    // Bore out middle, fill with vacuum
+    pRmax1 = 0.5*8.93*cm;
+    pRmax2 = 0.5*27.62*cm;
+    pDz += 0.01*cm;
+    G4Cons *TVB1_cons = new G4Cons( "TVB1_cons", pRmin1, pRmax1, pRmin2, pRmax2, pDz, tSPhi, tDphi );
+    G4SubtractionSolid *TB01_sub = new G4SubtractionSolid( "TB01_sub", TB01_cons, TVB1_cons, 0, zero );
+
+    // Convert into logical volumes
+    G4LogicalVolume *TB01_log = new G4LogicalVolume( TB01_sub, GetMaterial("Iron"), "TB01_log" );
+    G4LogicalVolume *TVB1_log = new G4LogicalVolume( TVB1_cons, GetMaterial("Vacuum"), "TVB1_log" );
+    // Then place the vacuum inside the Iron Cone
+    Z = (159.51 + 2.13)*cm + pDz;
+    new G4PVPlacement( 0, zero, TVB1_log, "Cone1_Vac", TB01_log, false, 0);
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TB01_log, "Cone1_Iron", worldlog, false, 0 );
+
+    // Flange 2:
+    tRmin = 0.0*cm;
+    tRmax = 0.5*35.56*cm;
+    tDzz  = 0.5*2.84*cm;
+    G4Tubs *FLN2_tube = new G4Tubs("FLN2_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+
+    // Bore out middle, fill with vaccum
+    tRmax = 0.5*27.62*cm;
+    tDzz += 0.01*cm;
+    G4Tubs *FVL2_tube = new G4Tubs("FVL2_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4SubtractionSolid *FLN2_sub = new G4SubtractionSolid( "FLN2_sub", FLN2_tube, FVL2_tube, 0, zero );
+
+    // Convert into logical volumes
+    G4LogicalVolume *FLN2_log = new G4LogicalVolume( FLN2_sub, GetMaterial("Iron"), "FLN2_log" );
+    G4LogicalVolume *FVL2_log = new G4LogicalVolume( FVL2_tube, GetMaterial("Vacuum"), "FVL2_log");
+    // Then place the vacuum inside the Iron Tube
+    Z = (159.51 + 352.636 - 2.84*0.5)*cm;
+    new G4PVPlacement( 0, zero, FVL2_log, "Flange2_Vac", FLN2_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), FLN2_log, "Flange2_Iron", worldlog, false, 0 );
+
+    //last second big flange the same an placed at distance 4.237"
+    // ??? I am assuming this comment means "use flange2 again, place at distance of 4.237 inches "
+    Z = (159.51+352.636-2.84*0.5+4.237*2.54)*cm;
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), FLN2_log, "Flange7_Iron", worldlog, false, 0 );
+
+    // Here a bellow and we assign wall of 0.03 cm
+    tRmin = 0.0*cm;
+    tRmax = (0.5*27.62 + 0.03)*cm;
+    tDzz  = 0.5*(4.237*2.54 - 2.84)*cm;
+
+    G4Tubs *TBL8_tube = new G4Tubs("TBL8_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+
+    // Bore out middle, fill with vaccum
+    tRmax = (0.5*27.62)*cm;
+    tDzz += 0.01*cm;
+    G4Tubs *TVL8_tube = new G4Tubs("TVL8_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4SubtractionSolid *TBL8_sub = new G4SubtractionSolid( "TBL8_sub", TBL8_tube, TVL8_tube, 0, zero );
+
+    // Convert into logical volumes
+    G4LogicalVolume *TBL8_log = new G4LogicalVolume( TBL8_sub, GetMaterial("Iron"), "TBL8_log" );
+    G4LogicalVolume *TVL8_log = new G4LogicalVolume( TVL8_tube, GetMaterial("Vacuum"), "TVL8_log" );
+    // Then place the vacuum inside the Iron Tube
+    Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54*0.5)*cm;
+    new G4PVPlacement( 0, zero, TVL8_log, "Bellow_Vac", TBL8_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL8_log, "Bellow_Iron", worldlog, false, 0 );
+
+    // EXTEND VACUUM LINE by using Maduka geometry
+    // ============================================
+    tRmin = 0.0*cm;
+    tRmax = 13.0*2.54*0.5*cm;
+    tDzz  = 0.5*41.0*2.54*cm;
+
+    G4Tubs *TBL9_tube = new G4Tubs("TBL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+
+    // Bore out middle, fill with vaccum
+    tRmax = 0.5*12.0*2.54*cm;
+    tDzz += 0.01*cm;
+    G4Tubs *TVL9_tube = new G4Tubs("TVL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4SubtractionSolid *TBL9_sub = new G4SubtractionSolid( "TBL9_sub", TBL9_tube, TVL9_tube, 0, zero );
+
+    // Convert into logical volumes
+    G4LogicalVolume *TBL9_log = new G4LogicalVolume( TBL9_sub, GetMaterial("Aluminum"), "TBL9_log" );
+    G4LogicalVolume *TVL9_log = new G4LogicalVolume( TVL9_tube, GetMaterial("Vacuum"), "TVL9_log" );
+    // Then place the vacuum inside the Al Tube
+    Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54*0.5)*cm;
+    new G4PVPlacement( 0, zero, TVL9_log, "Extended_Vac1", TBL9_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL9_log, "Extended_Al1", worldlog, false, 0 );
+
+    tRmin = 0.0*cm;
+    tRmax = 25.0*2.54*0.5*cm;
+    tDzz  = 0.5*217.0*2.54*cm;
+    G4Tubs *TML9_tube = new G4Tubs( "TML9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+
+    // Bore out middle, fill with vaccum
+    tRmax = 0.5*24.0*2.54*cm;
+    tDzz += 0.01*cm;
+    G4Tubs *TMV9_tube = new G4Tubs("TMV9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4SubtractionSolid *TML9_sub = new G4SubtractionSolid( "TML9_sub", TML9_tube, TMV9_tube, 0, zero );
+
+    // Convert into logical volumes
+    G4LogicalVolume *TML9_log = new G4LogicalVolume( TML9_sub, GetMaterial("Aluminum"), "TML9_log" );
+    G4LogicalVolume *TMV9_log = new G4LogicalVolume( TMV9_tube, GetMaterial("Vacuum"), "TMV9_log" );
+    // Then place vac inside of Al tube
+    Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54 + 0.5*217.0*2.54)*cm;
+    new G4PVPlacement( 0, zero, TMV9_log, "Extended_Vac2", TML9_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 );
+
+    //-----------------------------------------------------
+    //       magnetic tubes 
+    pDz    = 120.9*0.5*cm;
+    pRmin1 = 0.5*11.06*cm;
+    pRmax1 = (0.5*11.06 + 0.635)*cm;
+    pRmin2 = 0.5*17.4*cm;
+    pRmax2 = (0.5*17.4 + 0.635)*cm;
+
+    G4Cons *TBM1_cons = new G4Cons( "TBM1_cons", pRmin1, pRmax1, pRmin2, pRmax2, pDz, tSPhi, tDphi );
+    G4LogicalVolume *TBM1_log = new G4LogicalVolume( TBM1_cons, GetMaterial("Iron"), "TBM1_log" );
+    Z = (187.41+120.9*0.5)*cm;
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBM1_log, "Magnetic_Tube1", worldlog, false, 0 );
+
+    pDz    = 132.96*0.5*cm;
+    pRmin1 = 0.5*20.9*cm;
+    pRmax1 = (0.5*20.9 + 0.635)*cm;
+    pRmin2 = 0.5*27.87*cm;
+    pRmax2 = (0.5*27.87 + 0.635)*cm;
+
+    G4Cons *TBM2_cons = new G4Cons( "TBM2_cons", pRmin1, pRmax1, pRmin2, pRmax2, pDz, tSPhi, tDphi );
+    G4LogicalVolume *TBM2_log = new G4LogicalVolume( TBM2_cons, GetMaterial("Iron"), "TBM2_log" );
+    Z = (187.41 + 187.96 + 132.96*0.5)*cm;
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBM2_log, "Magnetic_Tube2", worldlog, false, 0 );
+
+    //*       magnetic shield from rings  thickness reduced by factor 0.819
+    //*       thickness 12.7 mm * 0.819 = 10.4 mm , we need reduce outer radius
+    //*       by (12.7-10.4)/2 = 1.15 mm and increase internal by 1.15 mm
+    pDz    = 131.13*0.5*cm;
+    pRmin1 = (0.5*13.91 + 0.115)*cm;
+    pRmax1 = (0.5*13.91 + 1.27 - 0.115)*cm;
+    pRmin2 = (0.5*20.77 + 0.115)*cm;
+    pRmax2 = (0.5*20.77 + 1.27 - 0.115)*cm;
+
+    G4Cons *TBM3_cons = new G4Cons( "TBM3_cons", pRmin1, pRmax1, pRmin2, pRmax2, pDz, tSPhi, tDphi );
+    G4LogicalVolume *TBM3_log = new G4LogicalVolume( TBM3_cons, GetMaterial("Iron"), "TBM3_log" );
+    Z = (182.33 + 131.13*0.5)*cm;
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBM3_log, "Magnetic_Tube3", worldlog, false, 0 );
+
+    pDz    = 132.08*0.5*cm;
+    pRmin1 = (0.5*23.75 + 0.115)*cm;
+    pRmax1 = (0.5*23.75 + 1.27 - 0.115)*cm;
+    pRmin2 = (0.5*30.88 + 0.115)*cm;
+    pRmax2 = (0.5*30.88 + 1.27 - 0.115)*cm;
+
+    G4Cons *TBM4_cons = new G4Cons( "TBM4_cons", pRmin1, pRmax1, pRmin2, pRmax2, pDz, tSPhi, tDphi );
+    G4LogicalVolume *TBM4_log = new G4LogicalVolume( TBM4_cons, GetMaterial("Iron"), "TBM4_log" );
+    Z = (182.33 + 187.96 + 132.08*0.5)*cm;
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBM4_log, "Magnetic_Tube4", worldlog, false, 0 );
+
+    //*------------------------------------------------------
+    //*        flanges close to the scattered chamber
+    tRmin = 0.0*cm;
+    tRmax = 0.5*6.0*2.54*cm;
+    tDzz  = 0.5*0.84*2.54*cm;
+    G4Tubs *FLN3_tube = new G4Tubs("FLN3_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+
+    tRmax = 0.5*3.81*2.54*cm;
+    tDzz += 0.01*cm;
+    G4Tubs *FVL3_tube = new G4Tubs("FVL3_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4SubtractionSolid *FLN3_sub = new G4SubtractionSolid( "FLN3_sub", FLN3_tube, FVL3_tube, 0, zero );
+    G4LogicalVolume *FLN3_log = new G4LogicalVolume( FLN3_sub, GetMaterial("Iron"), "FLN3_log" );
+    G4LogicalVolume *FVL3_log = new G4LogicalVolume( FVL3_tube, GetMaterial("Vacuum"), "FVL3_log");
+
+    Z = (133.2 + 0.5*0.84*2.54)*cm;
+    new G4PVPlacement( 0, zero, FVL3_log, "Flange3_Vac", FLN3_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), FLN3_log, "Flange3_Iron", worldlog, false, 0 );
+
+
+    tRmin = 0.0*cm;
+    tRmax = 0.5*3.81*2.54*cm;
+    tDzz  = 0.5*0.84*2.54*cm;
+    G4Tubs *FVL5_tube = new G4Tubs("FVL5_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4LogicalVolume *FVL5_log = new G4LogicalVolume( FVL5_tube, GetMaterial("Vacuum"), "FVL5_log" );
+    Z = (148.4 - 0.5*0.84*2.54)*cm;
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), FVL5_log, "Flange5_Vac", worldlog, false, 0 );
+    
+    G4Tubs *FVL6_tube = new G4Tubs("FVL6_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4LogicalVolume *FVL6_log = new G4LogicalVolume( FVL6_tube, GetMaterial("Vacuum"), "FVL6_log" );
+    Z = (148.4 - 0.5*0.84*2.54 + 0.84*2.54)*cm;
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), FVL6_log, "Flange5_Vac", worldlog, false, 0 );
+
+
+    tRmin = 0.0*cm;
+    tRmax = 0.5*17.14*cm;
+    tDzz  = 0.5*2.13*cm;
+    G4Tubs *FLN7_tube = new G4Tubs("FLN7_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+
+    tRmax = 0.5*8.93*cm;
+    tDzz += 0.01*cm;
+    G4Tubs *FVL7_tube = new G4Tubs("FVL7_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4SubtractionSolid *FLN7_sub = new G4SubtractionSolid( "FLN7_sub", FLN7_tube, FVL7_tube, 0, zero );
+    G4LogicalVolume *FLN7_log = new G4LogicalVolume( FLN7_sub, GetMaterial("Iron"), "FLN7_log" );
+    G4LogicalVolume *FVL7_log = new G4LogicalVolume( FVL7_tube, GetMaterial("Vacuum"), "FVL7_log");
+
+    Z = (159.51 + 2.13*0.5 - 2.13)*cm;
+    new G4PVPlacement( 0, zero, FVL7_log, "Flange7_Vac", FLN7_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), FLN7_log, "Flange7_Iron", worldlog, false, 0 );
+
+    //*      we need to extend vacuum after FLN flange by using Maduka geometry
+    //*      of vacuum pipe
+
+    //* Describing tubes between flanges  
+    tRmin = 0.0*cm;
+    tRmax = 4.00*2.54*0.5*cm;
+    tDzz  = (3.25*2.54 - 0.84*2.54)*0.5*cm;
+    G4Tubs *TBT1_tube = new G4Tubs("TBT1_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+
+    tRmax = 3.76*2.54*0.5*cm;
+    tDzz += 0.01*cm;
+    G4Tubs *TTV1_tube = new G4Tubs("TTV1_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4SubtractionSolid *TBT1_sub = new G4SubtractionSolid( "TBT1_sub", TBT1_tube, TTV1_tube, 0, zero );
+    G4LogicalVolume *TBT1_log = new G4LogicalVolume( TBT1_sub, GetMaterial("Iron"), "TBT1_log" );
+    G4LogicalVolume *TTV1_log = new G4LogicalVolume( TTV1_tube, GetMaterial("Vacuum"), "TTV1_log");
+
+    Z = (148.4 + 0.84*2.54 + (3.25*2.54 - 0.84*2.54)*0.5)*cm;
+    new G4PVPlacement( 0, zero, TTV1_log, "TTV1_Vac", TBT1_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBT1_log, "TBT1_Iron", worldlog, false, 0 ); // between large and small flanges
+  
+    tRmin = 0.0*cm;
+    tRmax = (3.81*2.54*0.5 + 0.03)*cm;
+    tDzz  = (6.0 - 0.84 - 0.84)*2.54*0.5*cm;
+    G4Tubs *TBT2_tube = new G4Tubs("TBT2_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+
+    tRmax = 3.81*2.54*0.5*cm;
+    tDzz += 0.01*cm;
+    G4Tubs *TTV2_tube = new G4Tubs("TTV2_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+    G4SubtractionSolid *TBT2_sub = new G4SubtractionSolid( "TBT2_sub", TBT2_tube, TTV2_tube, 0, zero );
+    G4LogicalVolume *TBT2_log = new G4LogicalVolume( TBT2_sub, GetMaterial("Iron"), "TBT2_log" );
+    G4LogicalVolume *TTV2_log = new G4LogicalVolume( TTV2_tube, GetMaterial("Vacuum"), "TTV2_log");
+
+    Z = (133.2 + 0.84*2.54)*cm + tDzz;
+    new G4PVPlacement( 0, zero, TTV2_log, "TTV2_Vac", TBT2_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBT2_log, "TBT2_Iron", worldlog, false, 0 );
+
+    //C------BeamLine-Vacuum----------------------------------------------------------
+    //C-------------------------------------------------------------------------------
+
+
+    //*  ------ Shield of Beam Line tube------------
+    G4double deg2rad = 3.1415926/180.0;
+
+    G4double BLLength = 600.0;                                //cm
+    G4double BLDist = 53.73*2.54;                             //cm
+    G4double BLREntMin = 2.415*2.54;                          //cm  
+    G4double BLThick = 1.0;                                   //cm
+    G4double BLAngle = 1.5*(3.141592/180.0);                  //rad
+    G4double BLRExitMin = BLREntMin + BLLength*tan(BLAngle);  //cm
+    G4double BLREntMax = BLREntMin + BLThick;                 //cm
+    G4double BLRExitMax = BLRExitMin + BLThick;               //cm
+
+    G4double th1 = (90.0+1.5)*deg2rad;
+    G4double ph1 = 0.0*deg2rad;
+    G4double th2 = 90.0*deg2rad;
+    G4double ph2 = 90.0*deg2rad;
+    G4double th3 = 1.5*deg2rad;
+    G4double ph3 = 0.0*deg2rad;
+
+    G4ThreeVector u( sin(th1)*cos(ph1), sin(th1)*sin(ph1), cos(ph1) );
+    G4ThreeVector v( sin(th2)*cos(ph2), sin(th2)*sin(ph2), cos(ph2) );
+    G4ThreeVector w( sin(th3)*cos(ph3), sin(th3)*sin(ph3), cos(ph3) );
+    G4RotationMatrix *rotm1 = new G4RotationMatrix(u,v,w);
+
+    G4double  dx1 = 2.5*cm;
+    G4double  dx2 = 2.5*cm;
+    G4double  dy1 = (BLREntMax + 5.0 + 1.83 + 0.4 + 5.0)*cm;
+    G4double  dy2 = (BLRExitMax + 5.0 + 5.0)*cm;
+    G4double  dz  = (0.5*(BLLength - 70.0) - 7.0)*cm;
+
+    G4Trd *BLSH = new G4Trd( "BLSH", dx1, dx2, dy1, dy2, dz );
+    G4LogicalVolume *BLSH_log = new G4LogicalVolume( BLSH, GetMaterial("Lead"), "BLSH_log" );
+   
+    X = (dy1+dy2)*0.5 + 10.0*cm;
+    Z = (BLDist + 0.5*(BLLength+70.0) + 7.0)*cm;
+    //new G4PVPlacement( rotm1, G4ThreeVector(X, Y, Z), BLSH_log, "BLSH_Lead", worldlog, false, 0 );
+
+    // VISUALS
+    G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.52,0.47,0.47));
+    FLN1_log->SetVisAttributes( ironColor );
+    FLN2_log->SetVisAttributes( ironColor );
+    FLN3_log->SetVisAttributes( ironColor );
+    FLN7_log->SetVisAttributes( ironColor );
+    TB01_log->SetVisAttributes( ironColor );
+    TBL8_log->SetVisAttributes( ironColor );
+    TBM1_log->SetVisAttributes( ironColor );
+    TBM2_log->SetVisAttributes( ironColor );
+    TBM3_log->SetVisAttributes( ironColor );
+    TBM4_log->SetVisAttributes( ironColor );
+    TBT1_log->SetVisAttributes( ironColor );
+    TBT2_log->SetVisAttributes( ironColor );
+
+    G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.4,0.4,0.4));
+    TBL9_log->SetVisAttributes( AlColor );
+    TML9_log->SetVisAttributes( AlColor );
+
+    G4VisAttributes *leadColor= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
+    BLSH_log->SetVisAttributes( leadColor );
+
+    // Vacuum
+    FVL1_log->SetVisAttributes( G4VisAttributes::Invisible );
+    FVL2_log->SetVisAttributes( G4VisAttributes::Invisible );
+    FVL3_log->SetVisAttributes( G4VisAttributes::Invisible );
+    FVL5_log->SetVisAttributes( G4VisAttributes::Invisible );
+    FVL6_log->SetVisAttributes( G4VisAttributes::Invisible );
+    FVL7_log->SetVisAttributes( G4VisAttributes::Invisible );
+    TVB1_log->SetVisAttributes( G4VisAttributes::Invisible );
+    TVL8_log->SetVisAttributes( G4VisAttributes::Invisible );
+    TVL9_log->SetVisAttributes( G4VisAttributes::Invisible );
+    TMV9_log->SetVisAttributes( G4VisAttributes::Invisible );
+    TTV1_log->SetVisAttributes( G4VisAttributes::Invisible );
+    TTV2_log->SetVisAttributes( G4VisAttributes::Invisible );
+}
+
 //  Here is lead shield of beam line for GEp
 
 void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
@@ -316,9 +672,6 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   /*   cancell 09/30/2014  we will shield by lead bloks around beam line
        new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadafter_log, "leadafter_phys", worldlog,false,0);
   */   // cancell 09/30/2014
-
-
-
 
 
   G4VisAttributes *leadVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));

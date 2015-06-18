@@ -19,6 +19,8 @@ private:
   void MakeGEnClamp(G4LogicalVolume *);
   void MakeSIDISLead( G4LogicalVolume * );
 
+  void MakeGEpBeamline(G4LogicalVolume *);
+
 };
 
 #endif//__G4SBSBeamlineBuilder_hh

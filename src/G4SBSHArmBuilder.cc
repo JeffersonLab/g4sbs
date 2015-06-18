@@ -346,8 +346,9 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     rightverts.push_back( G4TwoVector( 17.75*cm, 61*cm ) );
     rightverts.push_back( G4TwoVector( 17.75*cm, -61*cm ) );
 
+    //These are the "pole shims":
 
-    double slabdepth= 61*cm;
+    double slabdepth= 61*cm; //actually slap half-depth: total depth = 122 cm
     G4GenericTrap *leftslab = new G4GenericTrap("leftslab", slabdepth, leftverts );
     G4GenericTrap *rightslab = new G4GenericTrap("rightslab", slabdepth, rightverts );
 

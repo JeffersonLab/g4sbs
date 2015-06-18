@@ -23,6 +23,7 @@ public:
   vector<int> PMTnumber;
   vector<int> row;
   vector<int> col;
+  vector<int> plane;
   vector<double> xcell,ycell,zcell, xgcell, ygcell, zgcell;
   //vector<int> NumPhotons;
   vector<int> NumPhotoelectrons;

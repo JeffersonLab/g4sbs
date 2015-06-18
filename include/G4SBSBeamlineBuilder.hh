@@ -14,6 +14,7 @@ public:
   void BuildComponent(G4LogicalVolume *);
 
 private:
+
   void MakeGEpLead(G4LogicalVolume *);
   void MakeGEnLead(G4LogicalVolume *);
   void MakeGEnClamp(G4LogicalVolume *);

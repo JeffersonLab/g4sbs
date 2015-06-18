@@ -1263,6 +1263,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 
   G4double HoleDiameter = 0.3*cm;
   G4double WLSdiameter      = 0.2*cm;
+  G4double WLScladding_thick = 0.03*WLSdiameter/2.0;
 
   G4double mylar_thick = 0.25*0.001*2.54*cm; //.25 mil thickness of mylar
   //G4double mylar_thick = 0.1*mm;
@@ -1289,8 +1290,9 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
   //This is to be used 
   G4Tubs *ScintHole = new G4Tubs( "ScintHole", 0.0, HoleDiameter/2.0, 1.01 * Lx_scint/2.0, 0.0, twopi );
   G4SubtractionSolid *Scint_strip_with_hole = new G4SubtractionSolid( "Scint_strip_with_hole", Scint_strip_nowrap, ScintHole, rot_fiber, G4ThreeVector(0,0,0) );
-
-  G4Tubs *WLSfiber = new G4Tubs( "WLSfiber", 0.0, WLSdiameter/2.0, Lx_scint/2.0, 0.0, twopi );
+  
+  G4Tubs *WLSfiber = new G4Tubs( "WLSfiber",                        0.0, 0.97*WLSdiameter/2.0, Lx_scint/2.0, 0.0, twopi );
+  G4Tubs *WLScladding = new G4Tubs( "WLScladding", 0.97*WLSdiameter/2.0,      WLSdiameter/2.0, Lx_scint/2.0, 0.0, twopi );
   
   G4LogicalVolume *Scint_module = new G4LogicalVolume( Scint_strip, GetMaterial("Special_Air"), "Scint_module" );
 
@@ -1298,13 +1300,15 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
   //Make Mylar reflective:
   new G4LogicalSkinSurface( "CDET_mylar_wrap_osurf", ScintWrapLog, GetOpticalSurface("Mirrsurf") ); 
   
-  G4LogicalVolume *ScintStripLog = new G4LogicalVolume( Scint_strip_with_hole, GetMaterial("EJ232"), "ScintStripLog" );
-  G4LogicalVolume *WLSFiberLog = new G4LogicalVolume( WLSfiber, GetMaterial("BC484"), "WLSFiberLog" );
+  G4LogicalVolume *ScintStripLog = new G4LogicalVolume( Scint_strip_with_hole, GetMaterial("CDET_BC408"), "ScintStripLog" );
+  G4LogicalVolume *WLSFiberLog = new G4LogicalVolume( WLSfiber, GetMaterial("BCF_92"), "WLSFiberLog" );
+  G4LogicalVolume *WLSCladdingLog = new G4LogicalVolume( WLScladding, GetMaterial("CDET_Acrylic"), "WLSCladdingLog" );
 
   new G4PVPlacement( 0, G4ThreeVector( 0,0,0 ), ScintWrapLog, "ScintWrapPhys", Scint_module, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector( -mylar_thick/2.0, 0, 0 ), ScintStripLog, "ScintStripPhys", Scint_module, false, 0 );
   new G4PVPlacement( rot_fiber, G4ThreeVector( -mylar_thick/2.0, 0, 0 ), WLSFiberLog, "WLSFiberPhys", Scint_module, false, 0 );
-
+  new G4PVPlacement( rot_fiber, G4ThreeVector( -mylar_thick/2.0, 0, 0 ), WLSCladdingLog, "WLSCladdingPhys", Scint_module, false, 0 );
+  
   G4Tubs *CDET_pmt_cathode = new G4Tubs( "CDET_pmt_cathode", 0.0, WLSdiameter/2.0, 0.1*cm, 0.0, twopi );
   G4LogicalVolume *CDET_pmt_cathode_log = new G4LogicalVolume( CDET_pmt_cathode, GetMaterial("Photocathode_CDet"), "CDET_pmt_cathode_log" );
 
@@ -1322,6 +1326,21 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
     fDetCon->SDtype[sdname] = kECAL;
     (cdet_sd->detmap).depth = 0;
     CDET_pmt_cathode_log->SetSensitiveDetector( cdet_sd );
+  }
+
+  sdname = "Earm/CDET_Scint";
+  collname = "CDET_ScintHitsCollection";
+
+  G4SBSCalSD *cdet_scint_sd = NULL;
+  
+  if( !( cdet_scint_sd = (G4SBSCalSD*) sdman->FindSensitiveDetector( sdname ) ) ){
+    G4cout << "Adding CDET Scint sensitive detector to sdman..." << G4endl;
+    cdet_scint_sd = new G4SBSCalSD( sdname, collname );
+    fDetCon->fSDman->AddNewDetector( cdet_scint_sd );
+    (fDetCon->SDlist).insert( sdname );
+    fDetCon->SDtype[sdname] = kCAL;
+    (cdet_scint_sd->detmap).depth = 1;
+    ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
   }
   
   //Now we need to define the coordinates of the "modules":
@@ -1369,10 +1388,20 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 	G4String pvolname = physname;
 	new G4PVPlacement( rot_strip, pos_strip, Scint_module, pvolname, mother, false, istrip );
 
-	G4ThreeVector pos_pmt( x0_modules[imod] + pow(-1,col)*(Lx_scint+mylar_thick+0.1*cm), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
+	G4ThreeVector pos_pmt( x0_modules[imod] + pow(-1,col+1)*(Lx_scint+mylar_thick+0.1*cm), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
 	sprintf( physname, "CDET_pmt_phys_plane%d_row%d_col%d", plane+1, row+295, col+1 );
 	pvolname = physname;
 	new G4PVPlacement( rot_fiber, pos_pmt, CDET_pmt_cathode_log, pvolname, mother, false, istrip );
+
+	(cdet_sd->detmap).Row[istrip] = row+295;
+	(cdet_sd->detmap).Col[istrip] = col+1;
+	(cdet_sd->detmap).Plane[istrip] = plane+1;
+	(cdet_sd->detmap).LocalCoord[istrip] = pos_strip;
+
+	(cdet_scint_sd->detmap).Row[istrip] = row+295;
+	(cdet_scint_sd->detmap).Col[istrip] = col+1;
+	(cdet_scint_sd->detmap).Plane[istrip] = plane+1;
+	(cdet_scint_sd->detmap).LocalCoord[istrip] = pos_pmt;
 	
 	istrip++;
 
@@ -1397,6 +1426,16 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 	pvolname = physname;
 	new G4PVPlacement( rot_fiber, pos_pmt, CDET_pmt_cathode_log, pvolname, mother, false, istrip );
 
+	(cdet_sd->detmap).Row[istrip] = 294-row;
+	(cdet_sd->detmap).Col[istrip] = col+1;
+	(cdet_sd->detmap).Plane[istrip] = plane+1;
+	(cdet_sd->detmap).LocalCoord[istrip] = pos_strip;
+
+	(cdet_scint_sd->detmap).Row[istrip] = 294-row;
+	(cdet_scint_sd->detmap).Col[istrip] = col+1;
+	(cdet_scint_sd->detmap).Plane[istrip] = plane+1;
+	(cdet_scint_sd->detmap).LocalCoord[istrip] = pos_pmt;
+	
 	istrip++;
 	
       }

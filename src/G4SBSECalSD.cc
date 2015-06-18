@@ -71,6 +71,7 @@ G4bool G4SBSECalSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
   newHit->SetPMTnumber( PMTno = prestep->GetPhysicalVolume()->GetCopyNo() );
   newHit->Setrownumber( detmap.Row[PMTno] );
   newHit->Setcolnumber( detmap.Col[PMTno] );
+  newHit->Setplanenumber( detmap.Plane[PMTno] );
 
   newHit->SetCellCoords( detmap.LocalCoord[PMTno] );
   //ECal_atrans is the transformation which, when applied to a position in the global coordinate system, gives the local coordinates of a point; 

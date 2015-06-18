@@ -432,6 +432,7 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
   map<int,int> nsteps_cell;
   map<int,int> Rows; //Mapping between cells and rows
   map<int,int> Cols; //Mapping between cells and columns
+  map<int,int> Planes; 
   map<int,double> XCell; //Mapping between cells and x coordinates of cell centers (local)
   map<int,double> YCell; //Mapping between cells and y coordinates of cell centers (local)
   map<int,double> ZCell; //Mapping between cells and z coordinates of cell centers (local);
@@ -460,6 +461,7 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	nsteps_cell[cell] = 1;
 	Rows[cell] = (*hits)[hit]->GetRow();
 	Cols[cell] = (*hits)[hit]->GetCol();
+	Planes[cell] = (*hits)[hit]->GetPlane();
 	XCell[cell] = (*hits)[hit]->GetCellCoords().x();
 	YCell[cell] = (*hits)[hit]->GetCellCoords().y();
 	ZCell[cell] = (*hits)[hit]->GetCellCoords().z();
@@ -529,6 +531,7 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
       HitList[cell] = caloutput.nhits_CAL;
       caloutput.row.push_back(Rows[cell]);
       caloutput.col.push_back(Cols[cell]);
+      caloutput.plane.push_back(Planes[cell]);
       caloutput.xcell.push_back( XCell[cell]/_L_UNIT );
       caloutput.ycell.push_back( YCell[cell]/_L_UNIT );
       caloutput.zcell.push_back( ZCell[cell]/_L_UNIT );
@@ -619,6 +622,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
   map<int,int> Photon_PMT;
   map<int,int> Photon_row;
   map<int,int> Photon_col;
+  map<int,int> Photon_plane;
   map<int,int> Photon_nsteps;
   map<int,G4ThreeVector> Photon_xpmt; //"local" xy and "global" (xyz) PMT coordinates
   map<int,G4ThreeVector> Photon_xgpmt;
@@ -626,6 +630,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
   map<int,int> PMT_Numphotoelectrons;
   map<int,int> PMT_row;
   map<int,int> PMT_col;
+  map<int,int> PMT_plane;
   map<int,G4ThreeVector> PMT_x, PMT_xg; //"local" xy and "global" (xyz) PMT coordinates
   map<int,double> PMT_hittime;
   map<int,double> PMT_hittime2; //hit time squared.
@@ -640,6 +645,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
     int pmt = (*hits)[step]->GetPMTnumber();
     int row = (*hits)[step]->Getrownumber();
     int col = (*hits)[step]->Getcolnumber();
+    int plane = (*hits)[step]->Getplanenumber();
     int tid = (*hits)[step]->GetTrackID();
     double Ephoton = (*hits)[step]->Getenergy();
     double Hittime = (*hits)[step]->GetTime();
@@ -675,6 +681,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
       Photon_PMT[ tid ] = pmt;
       Photon_row[ tid ] = row;
       Photon_col[ tid ] = col;
+      Photon_plane[ tid ] = plane;
 
       Photon_xpmt[tid] = xpmt;
       Photon_xgpmt[tid] = xgpmt;
@@ -713,6 +720,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	  PMT_Numphotoelectrons[ pmt ] = 1;
 	  PMT_row[ pmt ] = Photon_row[tid];
 	  PMT_col[ pmt ] = Photon_col[tid];
+	  PMT_plane[ pmt ] = Photon_plane[tid];
 	  PMT_hittime[ pmt ] = Photon_hittime[tid];
 	  PMT_hittime2[ pmt ] = pow(Photon_hittime[tid],2);
 	  PMT_tmin[ pmt ] = Photon_hittime[tid];
@@ -750,6 +758,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	ecaloutput.PMTnumber.push_back( pmt );
 	ecaloutput.row.push_back( PMT_row[pmt] );
 	ecaloutput.col.push_back( PMT_col[pmt] );
+	ecaloutput.plane.push_back( PMT_plane[pmt] );
 	ecaloutput.xcell.push_back( PMT_x[pmt].x()/_L_UNIT );
 	ecaloutput.ycell.push_back( PMT_x[pmt].y()/_L_UNIT );
 	ecaloutput.zcell.push_back( PMT_x[pmt].z()/_L_UNIT );

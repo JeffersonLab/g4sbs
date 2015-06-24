@@ -526,9 +526,36 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   rottemp = new G4RotationMatrix;
   rottemp->rotateZ( -90.0*deg );
 
-  new G4PVPlacement( rottemp, G4ThreeVector( -dxtemp, dytemp, 0 ), LeftCornerLog, "LeftCornerPhys4", LeftWindowCutoutVacuum_log, false, 3 );
+  new G4PVPlacement( rottemp, G4ThreeVector( -dxtemp, dytemp, 0 ), LeftCornerLog, "LeftCornerPhys4", LeftWindowCutoutVacuum_log, false, 3 );  
 
-  
+  //Now let's make a cryotarget:
+  G4double Rcell = 4.0*cm;
+  G4double uthick = 0.1*mm;
+  G4double dthick = 0.15*mm;
+  G4double sthick = 0.2*mm;
+
+  G4Tubs *TargetCell = new G4Tubs("TargetCell", 0, Rcell, fTargLen/2.0, 0, twopi );
+
+  G4LogicalVolume *TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LH2"), "TargetCell_log" );
+
+  G4Tubs *TargetWall = new G4Tubs("TargetWall", Rcell, Rcell + sthick, fTargLen/2.0, 0, twopi );
+
+  G4LogicalVolume *TargetWall_log = new G4LogicalVolume( TargetWall, GetMaterial("Al"), "TargetWall_log" );
+
+  G4Tubs *UpstreamWindow = new G4Tubs("UpstreamWindow", 0, Rcell + sthick, uthick/2.0, 0, twopi );
+  G4Tubs *DownstreamWindow = new G4Tubs("DownstreamWindow", 0, Rcell + sthick, dthick/2.0, 0, twopi );
+
+  G4LogicalVolume *uwindow_log = new G4LogicalVolume( UpstreamWindow, GetMaterial("Al"), "uwindow_log" );
+  G4LogicalVolume *dwindow_log = new G4LogicalVolume( DownstreamWindow, GetMaterial("Al"), "dwindow_log" );
+
+  // G4ThreeVector targ_pos(0,0,
+  //Now place everything:
+  //Need to fix this later: Union solid defining vacuum chamber needs to be defined with the cylinder as the first solid so that we can place the
+  //target as a daughter volume at the origin!
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), TargetCell_log, "TargetCell_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), TargetWall_log, "TargetWall_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,-(fTargLen+uthick)/2.0), uwindow_log, "uwindow_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,(fTargLen+dthick)/2.0 ), dwindow_log, "dwindow_phys", worldlog, false, 0 );
   
   // Left Window Corners
   // Top Left:

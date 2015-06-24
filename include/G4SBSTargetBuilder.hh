@@ -4,6 +4,8 @@
 #include "G4SBSComponent.hh"
 #include "sbstypes.hh"
 #include "G4ThreeVector.hh"
+#include "G4Box.hh"
+#include "G4SubtractionSolid.hh"
 
 class G4DetectorConstruction;
 
@@ -14,7 +16,6 @@ public:
 
   void BuildComponent(G4LogicalVolume *);
 
-  G4LogicalVolume* BuildScatteringChamber(G4LogicalVolume *);
   void BuildCryoTarget(G4LogicalVolume *);
   void BuildGasTarget(G4LogicalVolume *);
 
@@ -25,6 +26,7 @@ public:
 
   int GetSchamFlag() const { return fSchamFlag; }
   double GetTargLen() const { return fTargLen; }
+  G4LogicalVolume *BuildSnoutWindows(G4Box *, G4double, G4double, G4double, G4double, G4double);
 
 private:
   double fTargLen;

@@ -433,7 +433,11 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   // Top Left of Left Window
   G4SubtractionSolid *LeftCorner = new G4SubtractionSolid( "LeftCorner", LeftCornerBox, LeftTubSub, 0, place ); 
   G4LogicalVolume *LeftCornerLog = new G4LogicalVolume( LeftCorner, GetMaterial("Stainless_Steel"), "LeftCornerLog" );
-	
+
+  G4ThreeVector SnoutLeftZaxis( -sin( SnoutLeftWindowAngle ), 0, cos( SnoutLeftWindowAngle ) );
+  G4ThreeVector SnoutLeftYaxis( 0, 1, 0 );
+  G4ThreeVector SnoutLeftXaxis( cos( SnoutLeftWindowAngle ), 0, sin( SnoutLeftWindowAngle ) );
+  
   // Right:
   G4Box *RightCornerBox = new G4Box( "RightCornerBox", SnoutRightWindow_Rbend_corners/2.0, SnoutRightWindow_Rbend_corners/2.0, SnoutThick/2.0 );
   tRmin = 0.0*cm;
@@ -447,19 +451,85 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4SubtractionSolid *RightCorner = new G4SubtractionSolid( "RightCorner", RightCornerBox, RightTubSub, 0, place ); 
   G4LogicalVolume *RightCornerLog = new G4LogicalVolume( RightCorner, GetMaterial("Stainless_Steel"), "RightCornerLog" );
 
- // Define rotation matrices to get all four corners
-  G4RotationMatrix *BLRot = new G4RotationMatrix; //Bottom Left
-  BLRot->rotateZ( 90.0*deg ); 
-  G4RotationMatrix *BRRot = new G4RotationMatrix; //Bottom Right
-  BRRot->rotateZ( 180.0*deg );
-  G4RotationMatrix *TRRot = new G4RotationMatrix; //Top Right
-  TRRot->rotateZ( 270.0*deg );
+  G4ThreeVector SnoutRightZaxis( sin( SnoutRightWindowAngle ), 0, cos( SnoutRightWindowAngle ) );
+  G4ThreeVector SnoutRightYaxis( 0, 1, 0 );
+  G4ThreeVector SnoutRightXaxis( cos( SnoutRightWindowAngle ), 0, -sin( SnoutRightWindowAngle ) );
+  
+  
 
   // Placing Corners and Plates	
   // Plates
   place.set( SnoutCenterPlate_xpos, 0.0, BLPlateDist + 0.5*SnoutThick );
 
   new G4PVPlacement( 0, place, PlateUnionLog, "TestPhys", worldlog, false, 0 );
+
+  //Now get ready to place rounded corners of window cutouts:
+  G4ThreeVector FrontRightCornerPos = place + G4ThreeVector( SnoutCenterPlate_width/2.0, 0, SnoutThick/2.0 );
+  
+  G4ThreeVector RightWindowCutoutCenterPos = FrontRightCornerPos - SnoutThick/2.0 * SnoutRightZaxis + SnoutRightWindow_xcenter * SnoutRightXaxis;
+
+  //Make a box filled with vacuum for the cutout:
+  G4Box *RightWindowCutoutVacuum = new G4Box("RightWindowCutoutVacuum", SnoutRightWindow_Width/2.0, SnoutRightWindow_Height/2.0, SnoutThick/2.0 );
+  G4LogicalVolume *RightWindowCutoutVacuum_log = new G4LogicalVolume( RightWindowCutoutVacuum, GetMaterial("Vacuum"), "RightWindowCutoutVacuum_log" );
+  G4RotationMatrix *rottemp = new G4RotationMatrix;
+  rottemp->rotateY( -SnoutRightWindowAngle );
+  
+  new G4PVPlacement( rottemp, RightWindowCutoutCenterPos, RightWindowCutoutVacuum_log, "RightWindowCutoutVacuum_phys", worldlog, false, 0 );
+
+  //now place corners inside Vacuum volume:
+  G4double dxtemp = SnoutRightWindow_Width/2.0 - SnoutRightWindow_Rbend_corners/2.0;
+  G4double dytemp = SnoutRightWindow_Height/2.0 - SnoutRightWindow_Rbend_corners/2.0;
+
+  new G4PVPlacement( 0, G4ThreeVector( dxtemp, dytemp, 0 ), RightCornerLog, "RightCornerPhys1", RightWindowCutoutVacuum_log, false, 0 );
+  
+  rottemp = new G4RotationMatrix;
+  rottemp->rotateZ( 90.0*deg );
+
+  new G4PVPlacement( rottemp, G4ThreeVector( dxtemp, -dytemp, 0 ), RightCornerLog, "RightCornerPhys2", RightWindowCutoutVacuum_log, false, 1 );
+
+  rottemp = new G4RotationMatrix;
+  rottemp->rotateZ( 180.0*deg );
+
+  new G4PVPlacement( rottemp, G4ThreeVector( -dxtemp, -dytemp, 0 ), RightCornerLog, "RightCornerPhys3", RightWindowCutoutVacuum_log, false, 2 );
+
+  rottemp = new G4RotationMatrix;
+  rottemp->rotateZ( -90.0*deg );
+
+  new G4PVPlacement( rottemp, G4ThreeVector( -dxtemp, dytemp, 0 ), RightCornerLog, "RightCornerPhys4", RightWindowCutoutVacuum_log, false, 3 );
+
+  G4ThreeVector FrontLeftCornerPos = place + G4ThreeVector( -SnoutCenterPlate_width/2.0, 0, SnoutThick/2.0 );
+
+  G4ThreeVector LeftWindowCutoutCenterPos = FrontLeftCornerPos - SnoutThick/2.0 * SnoutLeftZaxis - (SnoutLeftPlate_width - SnoutLeftWindow_xcenter)*SnoutLeftXaxis;
+
+  G4Box *LeftWindowCutoutVacuum = new G4Box("LeftWindowCutoutVacuum", SnoutLeftWindow_Width/2.0, SnoutLeftWindow_Height/2.0, SnoutThick/2.0 );
+  G4LogicalVolume *LeftWindowCutoutVacuum_log = new G4LogicalVolume( LeftWindowCutoutVacuum, GetMaterial("Vacuum"), "LeftWindowCutoutVacuum_log" );
+  rottemp = new G4RotationMatrix;
+  rottemp->rotateY( SnoutLeftWindowAngle );
+
+  new G4PVPlacement( rottemp, LeftWindowCutoutCenterPos, LeftWindowCutoutVacuum_log, "LeftWindowCutoutVacuum_phys", worldlog, false, 0 );
+
+  dxtemp = SnoutLeftWindow_Width/2.0 - SnoutLeftWindow_Rbend_corners/2.0;
+  dytemp = SnoutLeftWindow_Height/2.0 - SnoutLeftWindow_Rbend_corners/2.0;
+
+  new G4PVPlacement( 0, G4ThreeVector( dxtemp, dytemp, 0 ), LeftCornerLog, "LeftCornerPhys1", LeftWindowCutoutVacuum_log, false, 0 );
+
+  rottemp = new G4RotationMatrix;
+  rottemp->rotateZ( 90.0*deg );
+
+  new G4PVPlacement( rottemp, G4ThreeVector( dxtemp, -dytemp, 0 ), LeftCornerLog, "LeftCornerPhys2", LeftWindowCutoutVacuum_log, false, 1 );
+
+  rottemp = new G4RotationMatrix;
+  rottemp->rotateZ( 180.0*deg );
+
+  new G4PVPlacement( rottemp, G4ThreeVector( -dxtemp, -dytemp, 0 ), LeftCornerLog, "LeftCornerPhys3", LeftWindowCutoutVacuum_log, false, 2 );
+
+  rottemp = new G4RotationMatrix;
+  rottemp->rotateZ( -90.0*deg );
+
+  new G4PVPlacement( rottemp, G4ThreeVector( -dxtemp, dytemp, 0 ), LeftCornerLog, "LeftCornerPhys4", LeftWindowCutoutVacuum_log, false, 3 );
+
+  
+  
   // Left Window Corners
   // Top Left:
   //place.setX(
@@ -482,7 +552,9 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   PlateUnionLog->SetVisAttributes( Snout_VisAtt );
   LeftCornerLog->SetVisAttributes( Snout_VisAtt );
   RightCornerLog->SetVisAttributes( Snout_VisAtt );
-
+  RightWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
+  LeftWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
+  
   G4VisAttributes *Snout_VisAttWire = new G4VisAttributes( G4Colour( 0.6, 0.55, 0.65 ) );
   Snout_VisAttWire->SetForceWireframe(true);
   Snout_ScChamb->SetVisAttributes( Snout_VisAttWire );

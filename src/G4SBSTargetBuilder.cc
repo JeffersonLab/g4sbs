@@ -225,7 +225,7 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4double s_temp = (-n1.cross(RightCenter - x1)).mag();
   G4double s_temp1 = (-n1.cross(xhat)).mag();
   G4double S_Right = s_temp / s_temp1;
-
+  cout << S_Right << endl;
 
   G4ThreeVector n1_EA(-cos(EAPlateAng), 0.0, -sin(EAPlateAng) );
   G4ThreeVector n2_EA(sin(EAPlateAng), 0.0, -cos(EAPlateAng) );
@@ -235,7 +235,7 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4double s_temp2 = (-n1_EA.cross(LeftCenter-x1)).mag();
   G4double s_temp3 = (-n1_EA.cross(xhat)).mag();
   G4double S_Left = s_temp2 / s_temp3;
-
+  cout << S_Left << endl;
 
   // Creating the Snout - need three Trapezoids (Left, Center, Right) which will be combined via UnionSolid
   // Volume 1 ( RIGHT SIDE ):
@@ -287,8 +287,7 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
 
   // "Unionize" Volumes 1-3 and Scattering Chamber
   // Center piece with Right (looking in -z direction)
-  G4double centeroff = (2*BLPlateX-S_Right-S_Left)/2.0;
-  unionize.set( centeroff+0.5*(BLPlateX + SnoutRightPlate_width*cos(SBPlateAng) - (BLPlateDist - ScChRmax)*sin(SBPlateAng)), 0.0, 0.0);
+  unionize.set( 0.5*(BLPlateX + SnoutRightPlate_width*cos(SBPlateAng) - (BLPlateDist - ScChRmax)*sin(SBPlateAng)), 0.0, 0.0);
   unionize.setZ( 0.5*(BLPlateDist - ScChRmax + 5.0*cm) - 0.5*(SnoutRightPlate_width*sin(SBPlateAng) + (BLPlateDist - ScChRmax)*cos(SBPlateAng))  ) ;
   G4UnionSolid *RightSide = new G4UnionSolid( "RightSide", BoreHoleInVIV2, VIV1_trap, SnoutRot2, unionize );
 
@@ -312,7 +311,8 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4RotationMatrix *ChamberRot = new G4RotationMatrix;
   ChamberRot->rotateX( 90.0*deg );
   // Rotation makes y' = z now, all unionize vectors will be constructed accordingly
-  unionize.set( 0.0, BLPlateDist - 0.5*(BLPlateDist - ScChRmax + 5.0*cm), 0.0);
+  G4double centeroff = (S_Right-S_Left)/2.0;
+  unionize.set( centeroff, BLPlateDist - 0.5*(BLPlateDist - ScChRmax + 5.0*cm), 0.0);
   G4UnionSolid *ScatPlusCenter = new G4UnionSolid( "ScatPlusCenter", SCCH_tube, BoreHoleInVIV2, ChamberRot, unionize );
 
   // Add on Left and Right Trapezoids

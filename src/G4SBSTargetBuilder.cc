@@ -225,7 +225,10 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4double s_temp = (-n1.cross(RightCenter - x1)).mag();
   G4double s_temp1 = (-n1.cross(xhat)).mag();
   G4double S_Right = s_temp / s_temp1;
-  cout << S_Right << endl;
+
+  G4double t_temp = ((x1-RightCenter).cross(xhat)).mag();
+  G4double t_temp1 = (-n1.cross(xhat)).mag();
+  G4double T_Right = t_temp / t_temp1;
 
   G4ThreeVector n1_EA(-cos(EAPlateAng), 0.0, -sin(EAPlateAng) );
   G4ThreeVector n2_EA(sin(EAPlateAng), 0.0, -cos(EAPlateAng) );
@@ -235,12 +238,17 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4double s_temp2 = (-n1_EA.cross(LeftCenter-x1)).mag();
   G4double s_temp3 = (-n1_EA.cross(xhat)).mag();
   G4double S_Left = s_temp2 / s_temp3;
-  cout << S_Left << endl;
+
+  G4double t_temp2 = ((x1-LeftCenter).cross(xhat)).mag();
+  G4double t_temp3 = (-n1_EA.cross(xhat)).mag();
+  G4double T_Left = t_temp2 / t_temp3;
+
+  G4double TrapOffset = (S_Right-S_Left)/2.0;
 
   // Creating the Snout - need three Trapezoids (Left, Center, Right) which will be combined via UnionSolid
   // Volume 1 ( RIGHT SIDE ):
   G4double dx1 = 0.5*SnoutRightPlate_width - (BLPlateDist - ScChRmax)*tan(VIAngle1) + 1.47*cm; // 1.47cm yields same dx1 from Sergey's code, and avoids a negative length declaration
-  G4double dx2 = 0.5*SnoutRightPlate_width;
+  G4double dx2 = 0.5*SnoutRightPlate_width - 0.5*(SnoutRightPlate_width*0.5 - T_Right);
   G4double dy1 = 0.5*ScChHeight;
   G4double dy2 = 0.5*ScChHeight;
   G4double dz = 0.5*(BLPlateDist - ScChRmax);
@@ -279,40 +287,34 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
 
   // Volume 3 ( LEFT SIDE ):
   dx1 = 0.5*SnoutLeftPlate_width - (BLPlateDist - ScChRmax)*tan(VIAngle2) + 1.2*cm; // 1.2cm yields same dx1 from Sergey's code, and avoids a negative length declaration
-  dx2 = 0.5*SnoutLeftPlate_width;
+  dx2 = 0.5*SnoutLeftPlate_width - 0.5*(SnoutLeftPlate_width*0.5 - T_Left);
   dy1 = 0.5*ScChHeight;
   dy2 = 0.5*ScChHeight;
   dz = 0.5*(BLPlateDist - ScChRmax);
   G4Trd *VIV3_trap = new G4Trd( "VIV3_trap", dx1, dx2, dy1, dy2, dz );
 
-  // "Unionize" Volumes 1-3 and Scattering Chamber
-  // Center piece with Right (looking in -z direction)
-  unionize.set( 0.5*(BLPlateX + SnoutRightPlate_width*cos(SBPlateAng) - (BLPlateDist - ScChRmax)*sin(SBPlateAng)), 0.0, 0.0);
-  unionize.setZ( 0.5*(BLPlateDist - ScChRmax + 5.0*cm) - 0.5*(SnoutRightPlate_width*sin(SBPlateAng) + (BLPlateDist - ScChRmax)*cos(SBPlateAng))  ) ;
-  G4UnionSolid *RightSide = new G4UnionSolid( "RightSide", BoreHoleInVIV2, VIV1_trap, SnoutRot2, unionize );
+  // // "Unionize" Volumes 1-3 and Scattering Chamber
+  // // Center piece with Right (looking in -z direction)
+  // unionize.set( 0.5*(BLPlateX + SnoutRightPlate_width*cos(SBPlateAng) - (BLPlateDist - ScChRmax)*sin(SBPlateAng)), 0.0, 0.0);
+  // unionize.setZ( 0.5*(BLPlateDist - ScChRmax + 5.0*cm) - 0.5*(SnoutRightPlate_width*sin(SBPlateAng) + (BLPlateDist - ScChRmax)*cos(SBPlateAng))  ) ;
+  // G4UnionSolid *RightSide = new G4UnionSolid( "RightSide", BoreHoleInVIV2, VIV1_trap, SnoutRot2, unionize );
 
-  //"RightSide" with Left
-  unionize.setX( 0.5*(-BLPlateX - SnoutLeftPlate_width*cos(EAPlateAng) + (BLPlateDist - ScChRmax)*sin(EAPlateAng)) );
-  unionize.setZ( 0.5*(BLPlateDist - ScChRmax + 5.0*cm) - 0.5*(SnoutLeftPlate_width*sin(EAPlateAng) + (BLPlateDist - ScChRmax)*cos(EAPlateAng)) ); 
-  G4UnionSolid *Snout_Union = new G4UnionSolid( "Snout_Union", RightSide, VIV3_trap, SnoutRot3, unionize );
+  // //"RightSide" with Left
+  // unionize.setX( 0.5*(-BLPlateX - SnoutLeftPlate_width*cos(EAPlateAng) + (BLPlateDist - ScChRmax)*sin(EAPlateAng)) );
+  // unionize.setZ( 0.5*(BLPlateDist - ScChRmax + 5.0*cm) - 0.5*(SnoutLeftPlate_width*sin(EAPlateAng) + (BLPlateDist - ScChRmax)*cos(EAPlateAng)) ); 
+  // G4UnionSolid *Snout_Union = new G4UnionSolid( "Snout_Union", RightSide, VIV3_trap, SnoutRot3, unionize );
 
-  // Snout_Union with Scattering Chamber
-  unionize.set(0.0, 0.0, -(BLPlateDist - 0.5*(BLPlateDist - ScChRmax + 5.0*cm)) );
-  //G4UnionSolid *Snout_ScChamb_Union = new G4UnionSolid( "Snout_ScChamb_Union", Snout_Union, SCCH_tube, ScatChambRot, unionize );
-  //G4LogicalVolume *Snout_ScChamb = new G4LogicalVolume( Snout_ScChamb_Union, GetMaterial("Vacuum"), "Snout_ScChamb" );
+  // // Snout_Union with Scattering Chamber
+  // unionize.set(0.0, 0.0, -(BLPlateDist - 0.5*(BLPlateDist - ScChRmax + 5.0*cm)) );
+  // G4UnionSolid *Snout_ScChamb_Union = new G4UnionSolid( "Snout_ScChamb_Union", Snout_Union, SCCH_tube, ScatChambRot, unionize );
+  // G4LogicalVolume *Snout_ScChamb = new G4LogicalVolume( Snout_ScChamb_Union, GetMaterial("Vacuum"), "Snout_ScChamb" );
 
-
-
-  // Place Snout & Scattering Chamber!
-  place.set(0.0, 0.0, BLPlateDist-0.5*(BLPlateDist - ScChRmax + 5.0*cm) );
-  //new G4PVPlacement( 0, place, Snout_ScChamb, "SnoutandChamber", worldlog, false, 0 );
 
   // Start with Scattering Chamber and Center Plate
   G4RotationMatrix *ChamberRot = new G4RotationMatrix;
   ChamberRot->rotateX( 90.0*deg );
   // Rotation makes y' = z now, all unionize vectors will be constructed accordingly
-  G4double centeroff = (S_Right-S_Left)/2.0;
-  unionize.set( centeroff, BLPlateDist - 0.5*(BLPlateDist - ScChRmax + 5.0*cm), 0.0);
+  unionize.set( TrapOffset, BLPlateDist - 0.5*(BLPlateDist - ScChRmax + 5.0*cm), 0.0);
   G4UnionSolid *ScatPlusCenter = new G4UnionSolid( "ScatPlusCenter", SCCH_tube, BoreHoleInVIV2, ChamberRot, unionize );
 
   // Add on Left and Right Trapezoids
@@ -320,8 +322,8 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4RotationMatrix *RightTrapRot = new G4RotationMatrix;
   RightTrapRot->rotateX( 90.0*deg );
   RightTrapRot->rotateY( -SBPlateAng );
-  unionize.setX( 0.5*(BLPlateX + SBPlateX*cos(SBPlateAng) - (BLPlateDist - ScChRmax)*sin(SBPlateAng)) );
-  unionize.setY( BLPlateDist - 0.5*(SBPlateX*sin(SBPlateAng) + (BLPlateDist - ScChRmax)*cos(SBPlateAng)) );
+  unionize.setX( 0.5*(BLPlateX + SBPlateX*cos(SBPlateAng) - (BLPlateDist - ScChRmax + 8.0*(0.5*SBPlateX-T_Right))*sin(SBPlateAng)) );
+  unionize.setY( BLPlateDist - 0.5*(SBPlateX*sin(SBPlateAng) + (BLPlateDist - ScChRmax - (1/4.0)*(0.5*SBPlateX-T_Right))*cos(SBPlateAng)) );
   unionize.setZ( 0.0 );
   G4UnionSolid *ScatPlusCenterPlusRight = new G4UnionSolid( "ScatPlusCenterPlusRight", ScatPlusCenter, VIV1_trap, RightTrapRot, unionize );
   
@@ -329,8 +331,10 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4RotationMatrix *LeftTrapRot = new G4RotationMatrix;
   LeftTrapRot->rotateX( 90.0*deg );
   LeftTrapRot->rotateY( EAPlateAng );
-  unionize.setX( 0.5*(-BLPlateX - EAPlateX*cos(EAPlateAng) + (BLPlateDist - ScChRmax)*sin(EAPlateAng)) );
-  unionize.setY( BLPlateDist - 0.5*(EAPlateX*sin(EAPlateAng) + (BLPlateDist - ScChRmax)*cos(EAPlateAng)) );
+  // unionize.setX( 0.5*(-BLPlateX - EAPlateX*cos(EAPlateAng) + (BLPlateDist - ScChRmax + 8.0*(0.5*EAPlateX-T_Left))*sin(EAPlateAng)) );
+  //unionize.setY( BLPlateDist - 0.5*(EAPlateX*sin(EAPlateAng) + (BLPlateDist - ScChRmax - (1/2.0)*(0.5*EAPlateX-T_Left) )*cos(EAPlateAng)) ); //(1/4.0)*(0.5*EAPlateX-T_Left)
+  unionize.setX( 0.5*(-BLPlateX - EAPlateX*cos(EAPlateAng) + (BLPlateDist - ScChRmax + 6.0*(0.5*EAPlateX-T_Left))*sin(EAPlateAng)) );
+  unionize.setY( BLPlateDist - 0.5*(EAPlateX*sin(EAPlateAng) + (BLPlateDist - ScChRmax - (1/2.0)*(0.5*EAPlateX-T_Left) )*cos(EAPlateAng)) );
   unionize.setZ( 0.0 );
   G4UnionSolid *Snout_ScChamb_Union = new G4UnionSolid( "Snout_ScChamb_Union", ScatPlusCenterPlusRight, VIV3_trap, LeftTrapRot, unionize );
 
@@ -346,7 +350,6 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   // Place Iron tube VIV2 inside CENTER piece
   place.set( 0.0, BLPlateDist - 0.5*BLTube1Z, 0.0);
   new G4PVPlacement( ChamberRot, place, TUB1_log, "TUB1", Snout_ScChamb, false, 0 ); 
-
 
 
   // Making Tube2 (outside of Snout - upstream from snout center plate)

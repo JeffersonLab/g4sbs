@@ -217,16 +217,16 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4ThreeVector n2(-sin(SBPlateAng), 0.0, -cos(SBPlateAng) );
   G4ThreeVector xhat(1,0,0);
 
-  G4ThreeVector x1(0.0, 0.0, BLPlateDist); //  plate center face
+  G4ThreeVector CenterPlateFace(0.0, 0.0, BLPlateDist); //  plate center face
   G4ThreeVector x2(BLPlateX/2.0, 0.0, SnoutThick); 
   G4ThreeVector x3 = (SnoutRightPlate_width/2.0)*n1;
   G4ThreeVector x4 = SnoutThick*n2;
-  G4ThreeVector RightCenter = x1+x2+x3+x4;
-  G4double s_temp = (-n1.cross(RightCenter - x1)).mag();
+  G4ThreeVector RightCenter = CenterPlateFace+x2+x3+x4;
+  G4double s_temp = (-n1.cross(RightCenter - CenterPlateFace)).mag();
   G4double s_temp1 = (-n1.cross(xhat)).mag();
   G4double S_Right = s_temp / s_temp1;
 
-  G4double t_temp = ((x1-RightCenter).cross(xhat)).mag();
+  G4double t_temp = ((CenterPlateFace-RightCenter).cross(xhat)).mag();
   G4double t_temp1 = (-n1.cross(xhat)).mag();
   G4double T_Right = t_temp / t_temp1;
 
@@ -234,14 +234,16 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4ThreeVector n2_EA(sin(EAPlateAng), 0.0, -cos(EAPlateAng) );
   G4ThreeVector x2_EA(-BLPlateX/2.0, 0.0, SnoutThick);
   
-  G4ThreeVector LeftCenter = x1 + x2_EA + (SnoutLeftPlate_width/2.0)*n1_EA + SnoutThick*n2_EA;
-  G4double s_temp2 = (-n1_EA.cross(LeftCenter-x1)).mag();
+  G4ThreeVector LeftCenter = CenterPlateFace + x2_EA + (SnoutLeftPlate_width/2.0)*n1_EA + SnoutThick*n2_EA;
+  G4double s_temp2 = (-n1_EA.cross(LeftCenter-CenterPlateFace)).mag();
   G4double s_temp3 = (-n1_EA.cross(xhat)).mag();
   G4double S_Left = s_temp2 / s_temp3;
 
-  G4double t_temp2 = ((x1-LeftCenter).cross(xhat)).mag();
-  G4double t_temp3 = (-n1_EA.cross(xhat)).mag();
-  G4double T_Left = t_temp2 / t_temp3;
+  // G4double t_temp2 = ((CenterPlateFace-LeftCenter).cross(xhat)).mag();
+  // G4double t_temp3 = (-n1_EA.cross(xhat)).mag();
+  G4double t_top2 = (-xhat.cross(CenterPlateFace - LeftCenter)).mag();
+  G4double t_bottom2 = ( -xhat.cross(-n1_EA) ).mag();
+  G4double T_Left = t_top2 / t_bottom2;
 
   G4double TrapOffset = (S_Right-S_Left)/2.0;
 
@@ -331,11 +333,14 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4RotationMatrix *LeftTrapRot = new G4RotationMatrix;
   LeftTrapRot->rotateX( 90.0*deg );
   LeftTrapRot->rotateY( EAPlateAng );
-  // unionize.setX( 0.5*(-BLPlateX - EAPlateX*cos(EAPlateAng) + (BLPlateDist - ScChRmax + 8.0*(0.5*EAPlateX-T_Left))*sin(EAPlateAng)) );
+  //unionize.setX( 0.5*(-BLPlateX - EAPlateX*cos(EAPlateAng) + (BLPlateDist - ScChRmax + 8.0*(0.5*EAPlateX-T_Left))*sin(EAPlateAng)) );
   //unionize.setY( BLPlateDist - 0.5*(EAPlateX*sin(EAPlateAng) + (BLPlateDist - ScChRmax - (1/2.0)*(0.5*EAPlateX-T_Left) )*cos(EAPlateAng)) ); //(1/4.0)*(0.5*EAPlateX-T_Left)
   unionize.setX( 0.5*(-BLPlateX - EAPlateX*cos(EAPlateAng) + (BLPlateDist - ScChRmax + 6.0*(0.5*EAPlateX-T_Left))*sin(EAPlateAng)) );
   unionize.setY( BLPlateDist - 0.5*(EAPlateX*sin(EAPlateAng) + (BLPlateDist - ScChRmax - (1/2.0)*(0.5*EAPlateX-T_Left) )*cos(EAPlateAng)) );
+  //unionize.setX( 0.5*(-BLPlateX - EAPlateX*cos(EAPlateAng) + (BLPlateDist - ScChRmax )*sin(EAPlateAng)) + (0.5*EAPlateX-T_Left)*cos(EAPlateAng));
+  //unionize.setY( BLPlateDist - 0.5*(EAPlateX*sin(EAPlateAng) + (BLPlateDist - ScChRmax)*cos(EAPlateAng)) - (0.5*EAPlateX-T_Left)*sin(EAPlateAng) );
   unionize.setZ( 0.0 );
+
   G4UnionSolid *Snout_ScChamb_Union = new G4UnionSolid( "Snout_ScChamb_Union", ScatPlusCenterPlusRight, VIV3_trap, LeftTrapRot, unionize );
 
   G4RotationMatrix *ChamberRot2 = new G4RotationMatrix;

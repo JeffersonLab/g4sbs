@@ -75,7 +75,7 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
 
   G4double SnoutHarmWindow_Rbend_corners = 5.000*inch;
   G4double SnoutHarmWindow_Width = 2.0*8.438*inch;
-  G4double SnoutHarmWindow_Height = 2.0*9.563*inch;
+  G4double SnoutHarmWindow_Height = 2.0*9.562*inch;
   //G4double SnoutRightOffset = -1.4595*inch;
 
   //Aluminium Dimensions - just need to be bigger than window
@@ -404,10 +404,138 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   G4LogicalVolume *SnoutVacuum_log = new G4LogicalVolume( SnoutTaperPgon_intersect, GetMaterial("Vacuum"), "SnoutVacuum_log" );
 
   new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), SnoutVacuum_log, "SnoutVacuum_phys", worldlog, false, 0 );
+
+  //Iron Tube inside the Snout vacuum volume:
+  G4double IronTube_Rmin = 5.0*cm;
+  G4double IronTube_Rmax = 7.0*cm;
+  G4double IronTube_Thick = 6.5*cm;
+
+  G4Tubs *IronTube = new G4Tubs("IronTube", IronTube_Rmin, IronTube_Rmax, IronTube_Thick/2.0, 0.0, twopi );
+  G4LogicalVolume *IronTube_log = new G4LogicalVolume( IronTube, GetMaterial("Iron"), "IronTube_log" );
+
+  IronTube_log->SetVisAttributes( new G4VisAttributes(G4Colour(0.3,0.3,0.3) ) );
+  
+  //relative to the origin of the snout polycone, the iron tube is at y = snout z - half thick:
+  G4ThreeVector IronTube_pos_rel( 0, SnoutBeamPlate_zcoord - IronTube_Thick/2.0, 0 );
+
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateX( 90.0*deg );
+
+  new G4PVPlacement( rot_temp, IronTube_pos_rel, IronTube_log, "IronTube_phys", SnoutVacuum_log, false, 0 );
   
 
   //Finally, put windows and bolt plates:
   
+  G4double HarmFlangeWidth = 2.0*11.44*inch;
+  G4double HarmFlangeHeight = 2.0*12.56*inch;
+  G4double HarmFlangeThick = 0.980*inch;
+
+  G4Box *HarmAlWindow_box = new G4Box("HarmAlWindow_box", HarmFlangeWidth/2.0, HarmFlangeHeight/2.0, HarmWindowThick/2.0 );
+  G4LogicalVolume *HarmWindow_log = new G4LogicalVolume( HarmAlWindow_box, GetMaterial("Aluminum"), "HarmWindow_log" );
+  //Figure out the placement of the Harm window:
+  G4ThreeVector Harm_window_pos = Snout_position_global + FrontRightCorner_pos_local + (-SnoutHarmPlate_Width/2.0 + SnoutHarmWindow_xcenter) * Harm_xaxis + (HarmWindowThick/2.0) * Harm_zaxis;
+
+  new G4PVPlacement( rot_harm_window, Harm_window_pos, HarmWindow_log, "HarmWindow_phys", worldlog, false, 0 );
+  
+  G4Box *HarmFlange_box = new G4Box("HarmFlange_box", HarmFlangeWidth/2.0, HarmFlangeHeight/2.0, HarmFlangeThick/2.0 );
+
+  G4SubtractionSolid *HarmFlange_cut = new G4SubtractionSolid( "HarmFlange_cut", HarmFlange_box, HarmWindowCutout_box, 0, G4ThreeVector(0,0,0) );
+  G4LogicalVolume *HarmFlange_log = new G4LogicalVolume( HarmFlange_cut, GetMaterial("Aluminum"), "HarmFlange_log" );
+
+  G4ThreeVector HarmFlange_pos = Harm_window_pos + (HarmWindowThick + HarmFlangeThick)/2.0 * Harm_zaxis;
+
+  new G4PVPlacement( rot_harm_window, HarmFlange_pos, HarmFlange_log, "HarmFlange_phys", worldlog, false, 0 );
+
+  //Create a new logical volume of aluminum instead of steel for the rounded corners of the flange:
+  G4LogicalVolume *HarmFlangeCorner_log = new G4LogicalVolume( HarmWindowCorner, GetMaterial("Aluminum"), "HarmFlangeCorner_log" );
+  
+  G4ThreeVector pos_temp;
+  
+  xtemp = SnoutHarmWindow_Width/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
+  ytemp = SnoutHarmWindow_Height/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
+
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY( SnoutHarmWindowAngle );
+  
+  pos_temp = HarmFlange_pos - xtemp * Harm_xaxis - ytemp * Harm_yaxis;
+  
+  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
+
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY( SnoutHarmWindowAngle );
+  rot_temp->rotateZ( 90.0*deg );
+  pos_temp = HarmFlange_pos - xtemp * Harm_xaxis + ytemp * Harm_yaxis;
+
+  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_right", worldlog, false, 1 );
+
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY( SnoutHarmWindowAngle );
+  rot_temp->rotateZ( -90.0*deg );
+  pos_temp = HarmFlange_pos + xtemp * Harm_xaxis - ytemp * Harm_yaxis;
+
+  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
+
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY( SnoutHarmWindowAngle );
+  rot_temp->rotateZ( 180.0*deg );
+  pos_temp = HarmFlange_pos + xtemp * Harm_xaxis + ytemp * Harm_yaxis;
+
+  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_left", worldlog, false, 3 );
+
+  G4double EarmFlangeWidth = 2.0*12.62*inch;
+  G4double EarmFlangeHeight = Snout_Height;
+  G4double EarmFlangeThick = 0.980*inch;
+
+  G4Box *EarmAlWindow_box = new G4Box( "EarmAlWindow_box", EarmFlangeWidth/2.0, EarmFlangeHeight/2.0, EarmWindowThick/2.0 );
+
+  G4LogicalVolume *EarmWindow_log = new G4LogicalVolume( EarmAlWindow_box, GetMaterial("Aluminum"), "EarmWindow_log" );
+  G4ThreeVector Earm_window_pos = Snout_position_global + FrontLeftCorner_pos_local + (SnoutEarmPlate_Width/2.0 + SnoutEarmWindow_xcenter) * Earm_xaxis + EarmWindowThick/2.0 * Earm_zaxis;
+
+  new G4PVPlacement( rot_earm_window, Earm_window_pos, EarmWindow_log, "EarmWindow_phys", worldlog, false, 0 );
+  
+  //Next: make flange:
+
+  G4Box *EarmFlangeBox = new G4Box( "EarmFlangeBox", EarmFlangeWidth/2.0, EarmFlangeHeight/2.0, EarmFlangeThick/2.0 );
+  G4SubtractionSolid *EarmFlange_cut = new G4SubtractionSolid( "EarmFlange_cut", EarmFlangeBox, EarmWindowCutout_box, 0, G4ThreeVector(0,0,0));
+
+  G4LogicalVolume *EarmFlange_log = new G4LogicalVolume( EarmFlange_cut, GetMaterial("Aluminum"), "EarmFlange_log" );
+
+  G4ThreeVector EarmFlange_pos = Earm_window_pos + (EarmWindowThick + EarmFlangeThick)/2.0 * Earm_zaxis;
+
+  new G4PVPlacement( rot_earm_window, EarmFlange_pos, EarmFlange_log, "EarmFlange_phys", worldlog, false, 0 );
+
+  G4LogicalVolume *EarmFlangeCorner_log = new G4LogicalVolume( EarmWindowCorner, GetMaterial("Aluminum"), "EarmFlangeCorner_log" );
+
+  xtemp = SnoutEarmWindow_Width/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
+  ytemp = SnoutEarmWindow_Height/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
+
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY( -SnoutEarmWindowAngle );
+  
+  pos_temp = EarmFlange_pos - xtemp * Earm_xaxis - ytemp * Earm_yaxis;
+  
+  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
+
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY( -SnoutEarmWindowAngle );
+  rot_temp->rotateZ( 90.0*deg );
+  pos_temp = EarmFlange_pos - xtemp * Earm_xaxis + ytemp * Earm_yaxis;
+  
+  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_right", worldlog, false, 1 );
+
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY( -SnoutEarmWindowAngle );
+  rot_temp->rotateZ( -90.0*deg );
+  pos_temp = EarmFlange_pos + xtemp * Earm_xaxis - ytemp * Earm_yaxis;
+  
+  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
+
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY( -SnoutEarmWindowAngle );
+  rot_temp->rotateZ( 180.0*deg );
+  pos_temp = EarmFlange_pos + xtemp * Earm_xaxis + ytemp * Earm_yaxis;
+  
+  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_left", worldlog, false, 3 );
   
   
   
@@ -420,6 +548,13 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   Snout_log->SetVisAttributes( Snout_VisAtt );
   HarmWindowCorner_log->SetVisAttributes( Snout_VisAtt );
   EarmWindowCorner_log->SetVisAttributes( Snout_VisAtt );
+
+  G4VisAttributes *Flange_VisAtt = new G4VisAttributes( G4Colour( 0.15, 0.8, 0.9 ) );
+  HarmFlange_log->SetVisAttributes( Flange_VisAtt );
+  HarmFlangeCorner_log->SetVisAttributes( Flange_VisAtt );
+
+  EarmFlange_log->SetVisAttributes( Flange_VisAtt );
+  EarmFlangeCorner_log->SetVisAttributes( Flange_VisAtt );
   // PlateUnionLog->SetVisAttributes( Snout_VisAtt );
   // LeftCornerLog->SetVisAttributes( Snout_VisAtt );
   // RightCornerLog->SetVisAttributes( Snout_VisAtt );
@@ -431,6 +566,11 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   
   G4VisAttributes *Snout_VisAttWire = new G4VisAttributes( G4Colour( 0.6, 0.55, 0.65 ) );
   Snout_VisAttWire->SetForceWireframe(true);
+
+  G4VisAttributes *Window_visatt = new G4VisAttributes( G4Colour( 0.9, 0.8, 0.15 ) );
+  Window_visatt->SetForceWireframe(true);
+  HarmWindow_log->SetVisAttributes( Window_visatt );
+  EarmWindow_log->SetVisAttributes( Window_visatt );
   //Snout_ScChamb->SetVisAttributes( Snout_VisAttWire );
 
   ScatChamber_log->SetVisAttributes( Snout_VisAttWire );

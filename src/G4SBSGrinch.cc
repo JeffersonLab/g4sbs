@@ -663,6 +663,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 
   G4RotationMatrix *tankrm = new G4RotationMatrix;
   tankrm->rotateY(90*deg);
+  tankrm->rotateX(180.0*deg);
   Tank_phys = new G4PVPlacement(tankrm, G4ThreeVector(0.0, 0.0, fDetOffset+fCerDepth/2), GC_Tank_log, GC_Tank_Name+"_phys", bblog, false, 0);
 
 

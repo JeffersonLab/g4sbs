@@ -31,6 +31,8 @@ G4SBSBeamlineBuilder::~G4SBSBeamlineBuilder(){;}
 
 void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   Targ_t targtype = fDetCon->fTargType;
+
+  double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
   
   if( fDetCon->fExpType == kGEp && (targtype == kLH2 || targtype == kLD2) ){
     
@@ -40,7 +42,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   
     double swallrad = 1.143*m/2;
     double swallrad_inner = 1.041/2.0*m; 
-    double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
+    
     
     // Stainless
     G4double ent_len = 10*m;
@@ -206,8 +208,9 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.3,0.3,0.3));
   G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
   G4VisAttributes *Vacuum_visatt = new G4VisAttributes(G4Colour(0.1, 0.5, 0.9 ) );
-  Vacuum_visatt->SetForceSolid(true);
-  G4VisAttributes *SteelColor = new G4VisAttributes( G4Colour( 0.45, 0.45, 0.45 ) );
+  //Vacuum_visatt->SetForceSolid(true);
+  Vacuum_visatt->SetVisibility(false);
+  G4VisAttributes *SteelColor = new G4VisAttributes( G4Colour( 0.75, 0.75, 0.75 ) );
   G4VisAttributes *CopperColor = new G4VisAttributes( G4Colour( 0.7, 0.3, 0.3 ) );
   
   G4double inch = 2.54*cm;
@@ -232,9 +235,9 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   Rout = 6.75*inch/2.0;
   
   Thick = 0.84*inch;
-  Rin1 = Rin - Thick/2.0*tan( 3.0*deg );
+  Rin1 = Rin - Thick/2.0*tan( 1.5*deg );
   Rout1 = Rout;
-  Rin2 = Rin + Thick/2.0*tan( 3.0*deg );
+  Rin2 = Rin + Thick/2.0*tan( 1.5*deg );
   Rout2 = Rout;
   
   //G4Cons *CVLW_Flange1 = new G4Cons( "CVLW_Flange1", Rin1, Rout1, Rin2, Rout2, Thick/2.0, 0.0, twopi );
@@ -244,8 +247,8 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   Rin = 0.0;
   Rout = 3.517*inch/2.0;
 
-  Rout1 = Rout - Thick/2.0 * tan( 3.0*deg );
-  Rout2 = Rout + Thick/2.0 * tan( 3.0*deg );
+  Rout1 = Rout - Thick/2.0 * tan( 1.5*deg );
+  Rout2 = Rout + Thick/2.0 * tan( 1.5*deg );
   
   //G4Cons *CVLW_Flange1_vac = new G4Cons("CVLW_Flange1_vac", Rin, Rout1, Rin, Rout2, Thick/2.0, 0.0, twopi );
   G4Tubs *CVLW_Flange1_vac = new G4Tubs("CVLW_Flange1_vac", Rin, Rout, Thick/2.0, 0.0, twopi );
@@ -294,9 +297,9 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   Rin = 10.734/2.0*inch;
   Rout = 14.0/2.0*inch;
   Thick = 1.12*inch;
-  Rin1 = Rin - Thick/2.0 * tan(3.0*deg);
+  Rin1 = Rin - Thick/2.0 * tan(1.5*deg);
   Rout1 = Rout;
-  Rin2 = Rin + Thick/2.0 * tan(3.0*deg);
+  Rin2 = Rin + Thick/2.0 * tan(1.5*deg);
   Rout2 = Rout;
   //G4Cons *CVLW_Flange2 = new G4Cons("CVLW_Flange2", Rin1, Rout1, Rin2, Rout2, Thick/2.0, 0.0, twopi );
   G4Tubs *CVLW_Flange2 = new G4Tubs("CVLW_Flange2", Rin, Rout, Thick/2.0, 0.0, twopi );
@@ -846,67 +849,78 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
 //  Here is lead shield of beam line for GEp
 
 void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
-  double maxrad = 25*cm;
 
-  // Lead from scattering chamber to exit pipe in TargetBuilder
-    
-  // Lead in magnet
-  int nsec = 4;
-  //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
-  G4double exit_z[4]   = {130.0*cm, 162.2*cm, 592.2*cm, 609.84*cm};
-  G4double exit_rou[4] = {7.0*cm,  7.0*cm, 17.0*cm ,18.00*cm};
-  G4double exit_rin[4] = {0.0*cm,  0.0*cm, 0.0*cm, 0.0*cm };
+  G4VisAttributes *lead_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
+  
+  G4double inch = 2.54*cm;
+  G4double TargetCenter_zoffset = 6.50*inch;
 
+  G4double z_outer_magnetic = 182.33*cm - TargetCenter_zoffset;
+  
+  G4double zstart_lead1 = 170.0*cm;
+  G4double z_formed_bellows = 133.2*cm - TargetCenter_zoffset;
+  G4double zstop_lead1 = z_formed_bellows + 75.0*inch;
 
-  // 160 -> 310 cm  box in the magnet
-    
-  double leadstart = 160*cm;
-  double leadend   = 310*cm;
-  double magleadlen = leadend-leadstart;
+  //G4cout << "zmag, zstart, zstop = " << z_outer_magnetic << ", " << zstart_lead1 << ", " << zstop_lead1 << G4endl;
+  
+  G4double Rin1 = 9.3*cm;
+  G4double Rout1 = Rin1 + 5.0*cm;
+  G4double Rin2 = Rin1 + (zstop_lead1 - zstart_lead1)*tan(1.5*deg );
+  G4double Rout2 = Rin2 + 5.0*cm;
 
-  G4Box  *leadbox = new G4Box( "leadbox",  maxrad, 15.0*cm, magleadlen/2 );
-  G4Polycone *ext_cone = new G4Polycone("hollowing_tube", 0.0*deg, 360.0*deg, nsec, exit_z, exit_rin, exit_rou);
+  G4Cons *leadcone1 = new G4Cons("leadcone1", Rin1, Rout1, Rin2, Rout2, (zstop_lead1-zstart_lead1)/2.0, 90.0*deg, 180.0*deg );
 
-  G4SubtractionSolid *leadinmag = new G4SubtractionSolid("lead_w_hole", leadbox, ext_cone, 0, G4ThreeVector(0.0, 0.0, -magleadlen/2 - leadstart ) );
+  G4double width = 0.5*fDetCon->fHArmBuilder->f48D48width;
+  G4double angle = fDetCon->fHArmBuilder->f48D48ang;
+  G4double dist = fDetCon->fHArmBuilder->f48D48dist;
+  G4double depth = fDetCon->fHArmBuilder->f48D48depth;
+  
+  //We want to subtract the overlap between the cone and the SBS magnet.
+  G4Box *cutbox1 = new G4Box( "cutbox1", width/2.0, Rout2+cm, depth/2.0 );
+  G4Box *slottemp = new G4Box( "slottemp", width/2.0, 15.5*cm, depth/2.0 + cm );
+  G4RotationMatrix *rot_temp = new G4RotationMatrix;
 
-  double cbsize = 50*cm;
-  G4Box *leadclip = new G4Box("leadclip_beam", cbsize, cbsize, cbsize);
-  G4RotationMatrix *cliprm = new G4RotationMatrix();
-  double ang48d48 = fDetCon->fHArmBuilder->f48D48ang;
-  cliprm->rotateY( -ang48d48 );
+  rot_temp->rotateY(angle);
 
-  // Cut away side that interferes with magnet
-  leadinmag = new G4SubtractionSolid("lead_w_hole_cut", leadinmag, leadclip, cliprm, 
-				     G4ThreeVector( 12.0*cm + cbsize, 0.0, -magleadlen/2 ) );
+  G4SubtractionSolid *boxwithslot = new G4SubtractionSolid( "boxwithslot", cutbox1, slottemp, 0, G4ThreeVector(35.0*cm,0,0) );
+  //G4LogicalVolume *boxwithslot_log = new G4LogicalVolume( boxwithslot, GetMaterial("Air"), "boxwithslot_log" );
+  
+  G4double Rbox = dist + depth/2.0;
+  
+  G4ThreeVector pos_box_withslot( -Rbox*sin(angle) + width/2.0*cos(angle), 0, Rbox*cos(angle) + width/2.0*sin(angle) );
 
-  G4LogicalVolume *leadinmag_log = new G4LogicalVolume( leadinmag, GetMaterial("Lead"), "leadinmag", 0, 0, 0 );
+  //new G4PVPlacement( rot_temp, pos_box_withslot, boxwithslot_log, "boxwithslot_phys", worldlog, false, 0 );
+  
+  G4ThreeVector pos(0,0,0.5*(zstart_lead1+zstop_lead1));
+  
+  G4ThreeVector posrel_boxwithslot = pos_box_withslot - pos;
+  
+  G4SubtractionSolid *leadcone1_cut = new G4SubtractionSolid("leadcone1_cut", leadcone1, boxwithslot, rot_temp, posrel_boxwithslot );
 
-  /*    remove magnet conical 09/30/2014 
-	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadinmag_log, "leadinmag_phys", worldlog,false,0);
+  G4LogicalVolume *leadcone1_log = new G4LogicalVolume(leadcone1_cut, GetMaterial("Lead"), "leadcone1_log" );
 
-  */   // 09/30/2014 we will shield by lead bloks around beam line
+  leadcone1_log->SetVisAttributes( lead_visatt );
+  
+  
+  new G4PVPlacement( 0, pos, leadcone1_log, "leadcone1_phys", worldlog, false, 0 );
+  
+  G4double zsections[3] = {z_outer_magnetic + 74.0*inch,
+			   201.632*inch - TargetCenter_zoffset,
+			   207.144*inch - TargetCenter_zoffset + 40.0*inch };
+  G4double Rin_sections[3] = { 15.0*inch/2.0 + (zsections[0]-zsections[1])*tan(1.5*deg),
+			       15.0*inch/2.0,
+			       15.0*inch/2.0 };
+  G4double Rout_sections[3] = {Rin_sections[0] + 5.*cm,
+			       Rin_sections[1] + 5.*cm,
+			       Rin_sections[2] + 5.*cm };
 
+  G4Polycone *leadshield2 = new G4Polycone( "leadshield2", 90.0*deg, 180.0*deg, 3, zsections, Rin_sections, Rout_sections );
+  G4LogicalVolume *leadshield2_log = new G4LogicalVolume( leadshield2, GetMaterial("Lead"), "leadshield2_log" );
 
-  // Lead from magnet on
-  // 311 cm -> 592 cm
-  leadstart = 311*cm;
-  leadend   = 592*cm;
-  magleadlen = leadend-leadstart;
-
-  G4Tubs *leadtube= new G4Tubs( "leadtube",  0*cm, maxrad, magleadlen/2, 0.*deg, 360*deg );
-  G4SubtractionSolid *leadafter = new G4SubtractionSolid("lead_after", leadtube, ext_cone, 0, G4ThreeVector(0.0, 0.0, -leadstart-magleadlen/2 ) );
-
-  G4LogicalVolume *leadafter_log = new G4LogicalVolume( leadafter, GetMaterial("Lead"), "leadafter_log", 0, 0, 0 );
-
-  /*   cancell 09/30/2014  we will shield by lead bloks around beam line
-       new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, leadstart + magleadlen/2), leadafter_log, "leadafter_phys", worldlog,false,0);
-  */   // cancell 09/30/2014
-
-
-  G4VisAttributes *leadVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
-  leadinmag_log->SetVisAttributes(leadVisAtt);
-  leadafter_log->SetVisAttributes(leadVisAtt);
-
+  leadshield2_log->SetVisAttributes( lead_visatt );
+  
+  new G4PVPlacement( 0, G4ThreeVector(), leadshield2_log, "leadshield2_phys", worldlog, false, 0 );
+  
 }
 
 void G4SBSBeamlineBuilder::MakeGEnClamp(G4LogicalVolume *worldlog){

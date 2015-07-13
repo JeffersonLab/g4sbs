@@ -221,6 +221,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
     fMaterialsMap["Air"] = Air;
 
+    G4Material *G4_polystyrene = man->FindOrBuildMaterial( "G4_POLYSTYRENE" );
+    fMaterialsMap["POLYSTYRENE"] = G4_polystyrene;
+    
     double bigden = 1e9*g/cm3;
 
     // Cell Glass - GE180 Aluminosilicate Glass

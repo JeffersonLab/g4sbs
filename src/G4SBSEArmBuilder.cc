@@ -87,7 +87,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   printf("BigBite at %f deg\n", fBBang/deg);
 
   G4RotationMatrix *bbrm = new G4RotationMatrix;
-  bbrm->rotateY(fBBang);
+  bbrm->rotateY(-fBBang);
 
   G4RotationMatrix *bbykrm = new G4RotationMatrix;
   bbykrm->rotateX(90.0*deg);
@@ -258,7 +258,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *bbmotherLog=new G4LogicalVolume(bbmothercutBox,GetMaterial("Air"),
 						   "bbmotherLog", 0, 0, 0);
 
-  new G4PVPlacement(bbrm, G4ThreeVector(-motherr*sin(fBBang), 0.0, motherr*cos(fBBang)),
+  new G4PVPlacement(bbrm, G4ThreeVector(motherr*sin(fBBang), 0.0, motherr*cos(fBBang)),
 		    bbmotherLog, "bbmotherPhys", worldlog, 0,false,0);
 
 
@@ -452,7 +452,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // Scintillator box - same dimensions as preshower
   double bbhododepth = 2.5*cm;
   G4Box *bbhodobox = new G4Box("bbhodobox", pswidth/2.0, psheight/2.0, bbhododepth/2.0 );
-  G4LogicalVolume *bbhodolog = new G4LogicalVolume( bbhodobox, GetMaterial("PLASTIC_SC_VINYLTOLUENE"), "bbhodolog" );
+  G4LogicalVolume *bbhodolog = new G4LogicalVolume( bbhodobox, GetMaterial("POLYSTYRENE"), "bbhodolog" );
   //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
   new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
 
@@ -799,8 +799,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   G4int ncol42_row[20], ncol40_row[20], ncol38_row[20];
   G4int nblock42_super_row[20], nblock40_super_row[20], nblock38_super_row[20];
   for(G4int row=0; row<20; row++){//
-    xcalomin_super_rows[row] = -yfpmax_super_rows[row];
-    xcalomax_super_rows[row] = -yfpmin_super_rows[row];
+    xcalomin_super_rows[row] = yfpmin_super_rows[row];
+    xcalomax_super_rows[row] = yfpmax_super_rows[row];
     width_super_rows[row] = xcalomax_super_rows[row] - xcalomin_super_rows[row];
     ncol42_row[row] = G4int( width_super_rows[row]/width_42 ) + 1; //truncate and add 1:
     ncol40_row[row] = G4int( width_super_rows[row]/width_40 ) + 1;
@@ -815,7 +815,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 				     
   // Rotations, offsets, and distances from Target:
   G4RotationMatrix *bbrm = new G4RotationMatrix;
-  bbrm->rotateY(fBBang);
+  bbrm->rotateY(-fBBang);
 
   G4Box *earm_mother_box = new G4Box( "earm_mother_box", width_earm/2.0, height_earm/2.0, depth_earm/2.0 );
   G4LogicalVolume *earm_mother_log = new G4LogicalVolume( earm_mother_box, GetMaterial("Air"), "earm_mother_log");
@@ -843,7 +843,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   G4double zback_ECAL = depth_earm/2.0 - depth_ecal_pmt;
   G4double R_Earm = fBBdist - zback_ECAL;
 
-  G4ThreeVector pos_ECAL( -R_Earm*sin(fBBang), 0.0, R_Earm*cos(fBBang) );
+  G4ThreeVector pos_ECAL( R_Earm*sin(fBBang), 0.0, R_Earm*cos(fBBang) );
   
   new G4PVPlacement( bbrm, pos_ECAL, earm_mother_log, "earm_mother_phys", motherlog, false, 0 );
 
@@ -1345,9 +1345,9 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
   
   //Now we need to define the coordinates of the "modules":
   //horizontal position within mother:
-  G4double x0_modules[3] = { -0.5*(-70.986+31.014)*cm,
-			     -0.5*(-63.493+38.507)*cm,
-			     -0.5*(-56.0+46.0)*cm };
+  G4double x0_modules[3] = { 0.5*(-70.986+31.014)*cm,
+			     0.5*(-63.493+38.507)*cm,
+			     0.5*(-56.0+46.0)*cm };
 			     // -0.5*(-63.493+38.507)*cm,
 			     // -0.5*(-70.986+31.014)*cm };
 

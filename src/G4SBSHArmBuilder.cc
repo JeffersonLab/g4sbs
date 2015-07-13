@@ -74,7 +74,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 
   // All three types of experiments have a 48D48 magnet:
-  Make48D48(worldlog, f48D48dist + f48D48depth/2 );
+  Make48D48(worldlog, f48D48dist + f48D48depth/2. );
 
   //--------------- HCAL --------------------------
   //All the experiments use HCAL:
@@ -91,7 +91,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     {
       //Let's make a simple tracker: 5 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~50 cm + about 1.6 cm
       G4double SBStracker_dist = fRICHdist - 0.3*m;
-      G4ThreeVector SBStracker_pos( SBStracker_dist * sin( f48D48ang ), 0.0, SBStracker_dist * cos( f48D48ang ) );
+      G4ThreeVector SBStracker_pos( -SBStracker_dist * sin( f48D48ang ), 0.0, SBStracker_dist * cos( f48D48ang ) );
 
       G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
 
@@ -99,7 +99,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       //SBStracker_rot_I->rotateY( 14.0*deg );
 
       G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
-      SBStracker_rot->rotateY( -f48D48ang );
+      SBStracker_rot->rotateY( f48D48ang );
 
       G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
 
@@ -139,7 +139,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       //Define the rotation matrix for the FPP (pitch angle of 5 deg relative to vertical): 
       G4double sbsboxpitch = 5.0*deg;
       G4RotationMatrix *SBS_FPP_rm = new G4RotationMatrix;
-      SBS_FPP_rm->rotateY( -f48D48ang );
+      SBS_FPP_rm->rotateY( f48D48ang );
       SBS_FPP_rm->rotateX( sbsboxpitch );
 
       //FPP box: 
@@ -154,7 +154,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
       sbslog->SetVisAttributes( G4VisAttributes::Invisible );
       //Now position and orient the FPP "box":
-      new G4PVPlacement(SBS_FPP_rm, G4ThreeVector(sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) ), sbslog,
+      new G4PVPlacement(SBS_FPP_rm, G4ThreeVector(-sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) ), sbslog,
 			"sbsphys", worldlog, false, 0, false);
 
       G4RotationMatrix *rot_I = new G4RotationMatrix;
@@ -166,6 +166,14 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 }
 
 void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
+
+  G4RotationMatrix *bigrm = new G4RotationMatrix;
+  //bigrm->rotateY(-f48D48ang);
+  bigrm->rotateY(f48D48ang);
+  G4ThreeVector SBS_xaxis( cos(f48D48ang), 0, sin(f48D48ang) );
+  G4ThreeVector SBS_yaxis(0,1,0);
+  G4ThreeVector SBS_zaxis( -sin(f48D48ang), 0, cos(f48D48ang) );
+  
   G4String name;
 
   double bigcoilwidth = 214.5*mm;
@@ -176,20 +184,31 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   G4Box *biggap  = new G4Box("biggap",  469.9*mm/2+0.1*mm, 187.*cm/2.-bigcoilheight,  f48D48depth/2+0.1*mm);
 
   std::vector<G4TwoVector> bigpoly;
-  bigpoly.push_back( G4TwoVector(-f48D48width/2.0,  f48D48depth/2.0 ));
-  bigpoly.push_back( G4TwoVector(-f48D48width/2.0, -f48D48depth/2.0 ));
-  bigpoly.push_back( G4TwoVector( f48D48width/2.0, -f48D48depth/2.0 ));
-  bigpoly.push_back( G4TwoVector( f48D48width/2.0, f48D48depth/2.0 - notchdepth*sqrt(2.0) ));
-  bigpoly.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), f48D48depth/2.0  ));
+  // bigpoly.push_back( G4TwoVector(-f48D48width/2.0,  f48D48depth/2.0 ));
+  // bigpoly.push_back( G4TwoVector(-f48D48width/2.0, -f48D48depth/2.0 ));
+  // bigpoly.push_back( G4TwoVector( f48D48width/2.0, -f48D48depth/2.0 ));
+  // bigpoly.push_back( G4TwoVector( f48D48width/2.0, f48D48depth/2.0 - notchdepth*sqrt(2.0) ));
+  // bigpoly.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), f48D48depth/2.0  ));
+
+  //How does this change when moving things to beam right?
+  //polygon should be in clockwise order:
+  //let the z axis of the extruded solid point vertically upward. Start with top right point:
+  bigpoly.push_back( G4TwoVector( -f48D48width/2.0, f48D48depth/2.0 ) ); //back right
+  bigpoly.push_back( G4TwoVector( -f48D48width/2.0, -f48D48depth/2.0 ) ); //front right
+  bigpoly.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), -f48D48depth/2.0 ) ); //front left:
+  bigpoly.push_back( G4TwoVector( f48D48width/2.0, -f48D48depth/2.0 + notchdepth*sqrt(2.0) ) ); //front left
+  bigpoly.push_back( G4TwoVector( f48D48width/2.0, f48D48depth/2.0 ) ); //back left:
 
   G4ExtrudedSolid *bigbox_ext = new G4ExtrudedSolid("bigbox_ext", bigpoly, f48D48height/2.0, G4TwoVector(), 1.0, G4TwoVector(), 1.0);
   G4RotationMatrix *bigboxrm = new G4RotationMatrix;
-  bigboxrm->rotateY(-f48D48ang);
+
+  //We want the z axis to point vertically up!
+  bigboxrm->rotateY(f48D48ang);
   bigboxrm->rotateX( -90.*deg);
-  bigboxrm->rotateZ( 180.*deg);
+  //bigboxrm->rotateZ( 180.*deg);
 
   G4RotationMatrix *bigboxaddrm = new G4RotationMatrix;
-  bigboxaddrm->rotateZ( -180.*deg);
+  //bigboxaddrm->rotateZ( -180.*deg);
   bigboxaddrm->rotateX( 90.*deg);
 
   //moved definition of clamp gaps to field clamp method:
@@ -198,101 +217,175 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
   G4SubtractionSolid* bigbase = new G4SubtractionSolid("bigbase", bigbox_ext, biggap, bigboxaddrm, G4ThreeVector());
 
-  double coilgapwidth = (60.*cm - bigcoilheight)*2;
-  double coilgapheight = 160*cm-bigcoilheight;
+  double coilgapwidth = (60.*cm - bigcoilheight)*2; //= 120 cm - 2*coilheight
+  double coilgapheight = 160*cm-bigcoilheight; //=160 cm - 1*coilheight
 
+  //bigcoilbase has width of (height+ 60 cm - height ) = 60cm,
+  //height/2 = bheight + 80cm - bheight/2 = 80 cm + bheight/2 --> height = 160 cm + bheight
+  //depth = bigcoil width
+  //bigcoil gap has width of coilgapwidth/2 + 2 mm = 60 cm - bheight + 2 mm
+
+  //G4Box *bigcoilbase = new G4Box( "bigcoilbase", 60.0*cm/2.0, 
+  
   G4Box *bigcoilbase = new G4Box("bigcoilbase", (bigcoilheight+coilgapwidth/2.0)/2.0, bigcoilheight+coilgapheight/2, bigcoilwidth/2.0);
-  G4Box *bigcoilgap = new G4Box("bigcoilgap", coilgapwidth/4.0+1.0*mm, coilgapheight/2, bigcoilwidth/2.0+0.1*mm);
+  G4Box *bigcoilgap = new G4Box("bigcoilgap", coilgapwidth/4.0, coilgapheight/2, bigcoilwidth/2.0+0.1*mm);
 
   //  double coilspace = 6.63*mm;
   double coilspace = 20.63*mm;
 
+  std::vector<G4TwoVector> woundpoly_outer;
+  std::vector<G4TwoVector> woundpoly_inner;
+  
+  woundpoly_outer.push_back( G4TwoVector( 0.0, f48D48depth/2.0 + coilspace + bigcoilwidth ) );
+  woundpoly_outer.push_back( G4TwoVector( f48D48width/2.0 + coilspace + bigcoilwidth, f48D48depth/2.0 + coilspace + bigcoilwidth ) );
+  woundpoly_outer.push_back( G4TwoVector( f48D48width/2.0 + coilspace + bigcoilwidth, -f48D48depth/2.0 + notchdepth*sqrt(2.0) ) );
+  woundpoly_outer.push_back( G4TwoVector( f48D48width/2.0 + coilspace + bigcoilwidth - 2.0*(coilspace+bigcoilwidth)*sin(pi/8.)*sin(pi/8.),
+					  -f48D48depth/2.0 + notchdepth*sqrt(2.0) - 2.0*(coilspace+bigcoilwidth)*sin(pi/8.)*cos(pi/8.) ) );
+  woundpoly_outer.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0) + 2.0*(coilspace+bigcoilwidth)*sin(pi/8.)*cos(pi/8.),
+					  -f48D48depth/2.0 - coilspace - bigcoilwidth + 2.0*(coilspace+bigcoilwidth)*sin(pi/8.)*sin(pi/8.) ) );
+  woundpoly_outer.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), -f48D48depth/2.0 - coilspace - bigcoilwidth ) );
+  woundpoly_outer.push_back( G4TwoVector( 0.0, -f48D48depth/2.0 - coilspace - bigcoilwidth ) );
 
+  //inner polygon: coil will be subtraction outer - inner:
+  woundpoly_inner.push_back( G4TwoVector( bigcoilwidth, f48D48depth/2.0 + coilspace ) );
+  woundpoly_inner.push_back( G4TwoVector( f48D48width/2.0 + coilspace, f48D48depth/2.0 + coilspace ) );
+  woundpoly_inner.push_back( G4TwoVector( f48D48width/2.0 + coilspace, -f48D48depth/2.0 + notchdepth*sqrt(2.0) ) );
+  woundpoly_inner.push_back( G4TwoVector( f48D48width/2.0 + coilspace - 2.0*(coilspace)*sin(pi/8.)*sin(pi/8.),
+					  -f48D48depth/2.0 + notchdepth*sqrt(2.0) - 2.0*(coilspace)*sin(pi/8.)*cos(pi/8.) ) );
+  woundpoly_inner.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0) + 2.0*(coilspace)*sin(pi/8.)*cos(pi/8.),
+					  -f48D48depth/2.0 - coilspace + 2.0*(coilspace)*sin(pi/8.)*sin(pi/8.) ) );
+  woundpoly_inner.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), -f48D48depth/2.0 - coilspace ) );
+  woundpoly_inner.push_back( G4TwoVector( bigcoilwidth, -f48D48depth/2.0 - coilspace ) );
+  
+  G4ExtrudedSolid *woundcoil_outer = new G4ExtrudedSolid( "woundcoil_outer", woundpoly_outer, bigcoilheight/2.0, G4TwoVector(), 1.0, G4TwoVector(), 1.0);
+  G4ExtrudedSolid *woundcoil_inner = new G4ExtrudedSolid( "woundcoil_inner", woundpoly_inner, bigcoilheight/2.0+mm, G4TwoVector(), 1.0, G4TwoVector(), 1.0);
+  G4SubtractionSolid *woundcoil = new G4SubtractionSolid( "woundcoil", woundcoil_outer, woundcoil_inner, 0, G4ThreeVector(0,0,0) );
+  G4LogicalVolume *woundcoil_log = new G4LogicalVolume( woundcoil, GetMaterial("Copper"), "woundcoil_log" );
+  G4VisAttributes *coil_color = new G4VisAttributes( G4Colour( 0.5, 0.15, 0.75 ) );
+  woundcoil_log->SetVisAttributes( coil_color );
 
-  std::vector<G4TwoVector> woundpoly;
-  woundpoly.push_back( G4TwoVector(0.0,  -f48D48depth/2.0 -coilspace ));
-  woundpoly.push_back( G4TwoVector(0.0, -f48D48depth/2.0 -coilspace-bigcoilwidth));
-  woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace+bigcoilwidth, -f48D48depth/2.0 -coilspace-bigcoilwidth));
-  woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace+bigcoilwidth, f48D48depth/2.0 - notchdepth*sqrt(2.0) ));
+  G4RotationMatrix *rot_coil = new G4RotationMatrix;
+  rot_coil->rotateY(f48D48ang);
+  rot_coil->rotateX(-90.0*deg);
 
-  woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace+bigcoilwidth  - 2.0*(coilspace+bigcoilwidth)*sin(pi/8.)*sin(pi/8.) , 
-				    f48D48depth/2.0 - notchdepth*sqrt(2.0) + 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*cos(pi/8) ));
+  if( fDetCon->fTotalAbs ){
+    woundcoil_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+  
+  G4ThreeVector woundcoil_pos1 = (coilgapheight+bigcoilheight)/2.0 * SBS_yaxis + r48d48 * SBS_zaxis;
+  new G4PVPlacement( rot_coil, woundcoil_pos1, woundcoil_log, "woundcoil_top_phys", worldlog, false, 0 );
+  G4ThreeVector woundcoil_pos2 = -(coilgapheight+bigcoilheight)/2.0 * SBS_yaxis + r48d48 * SBS_zaxis;
+  new G4PVPlacement( rot_coil, woundcoil_pos2, woundcoil_log, "woundcoil_bottom_phys", worldlog, false, 1 );
+  //////////////////////		       
+  
+  // woundpoly.push_back( G4TwoVector(0.0,  -f48D48depth/2.0 -coilspace )); 
+  // woundpoly.push_back( G4TwoVector(0.0, -f48D48depth/2.0 -coilspace-bigcoilwidth));
+  // woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace+bigcoilwidth, -f48D48depth/2.0 -coilspace-bigcoilwidth));
+  // woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace+bigcoilwidth, f48D48depth/2.0 - notchdepth*sqrt(2.0) ));
 
-  woundpoly.push_back( G4TwoVector( f48D48width/2.0- notchdepth*sqrt(2.0) + 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*cos(pi/8) , 
-				    f48D48depth/2.0 + coilspace+bigcoilwidth  - 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*sin(pi/8) ));
+  // woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace+bigcoilwidth  - 2.0*(coilspace+bigcoilwidth)*sin(pi/8.)*sin(pi/8.) , 
+  // 				    f48D48depth/2.0 - notchdepth*sqrt(2.0) + 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*cos(pi/8) ));
 
-  woundpoly.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), f48D48depth/2.0 +coilspace+bigcoilwidth ));
+  // woundpoly.push_back( G4TwoVector( f48D48width/2.0- notchdepth*sqrt(2.0) + 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*cos(pi/8) , 
+  // 				    f48D48depth/2.0 + coilspace+bigcoilwidth  - 2.0*(coilspace+bigcoilwidth)*sin(pi/8)*sin(pi/8) ));
 
-  ////
-  woundpoly.push_back( G4TwoVector(0.0,  f48D48depth/2.0 +coilspace+bigcoilwidth));
-  woundpoly.push_back( G4TwoVector(0.0,  f48D48depth/2.0 +coilspace ));
+  // woundpoly.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), f48D48depth/2.0 +coilspace+bigcoilwidth ));
 
-  woundpoly.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), f48D48depth/2.0 +coilspace ));
+  // ////
+  // woundpoly.push_back( G4TwoVector(0.0,  f48D48depth/2.0 +coilspace+bigcoilwidth));
+  // woundpoly.push_back( G4TwoVector(0.0,  f48D48depth/2.0 +coilspace ));
 
-  // arc here
-  woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace  - 2.0*(coilspace)*sin(pi/8.)*sin(pi/8.) , 
-				    f48D48depth/2.0 - notchdepth*sqrt(2.0) + 2.0*(coilspace)*sin(pi/8)*cos(pi/8) ));
+  // woundpoly.push_back( G4TwoVector( f48D48width/2.0 - notchdepth*sqrt(2.0), f48D48depth/2.0 +coilspace ));
 
-  woundpoly.push_back( G4TwoVector( f48D48width/2.0- notchdepth*sqrt(2.0) + 2.0*(coilspace)*sin(pi/8)*cos(pi/8) , 
-				    f48D48depth/2.0 + coilspace - 2.0*(coilspace)*sin(pi/8)*sin(pi/8) ));
+  // // arc here
+  // woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace  - 2.0*(coilspace)*sin(pi/8.)*sin(pi/8.) , 
+  // 				    f48D48depth/2.0 - notchdepth*sqrt(2.0) + 2.0*(coilspace)*sin(pi/8)*cos(pi/8) ));
 
-  woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace, f48D48depth/2.0 - notchdepth*sqrt(2.0) ));
+  // woundpoly.push_back( G4TwoVector( f48D48width/2.0- notchdepth*sqrt(2.0) + 2.0*(coilspace)*sin(pi/8)*cos(pi/8) , 
+  // 				    f48D48depth/2.0 + coilspace - 2.0*(coilspace)*sin(pi/8)*sin(pi/8) ));
 
-  woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace, f48D48depth/2.0 +coilspace - notchdepth*sqrt(2.0) ));
-  woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace, -f48D48depth/2.0 -coilspace));
+  // woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace, f48D48depth/2.0 - notchdepth*sqrt(2.0) ));
 
-  G4ExtrudedSolid *woundcoil_ext = new G4ExtrudedSolid("woundcoil_ext", woundpoly, bigcoilheight/2.0, G4TwoVector(), 1.0, G4TwoVector(), 1.0);
+  // woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace, f48D48depth/2.0 +coilspace - notchdepth*sqrt(2.0) ));
+  // woundpoly.push_back( G4TwoVector( f48D48width/2.0+coilspace, -f48D48depth/2.0 -coilspace));
+
+  //G4ExtrudedSolid *woundcoil_ext = new G4ExtrudedSolid("woundcoil_ext", woundpoly, bigcoilheight/2.0, G4TwoVector(), 1.0, G4TwoVector(), 1.0);
 
   // Pull out left side of gap
-  G4SubtractionSolid *bigcoil = new G4SubtractionSolid("bigcoil", bigcoilbase, bigcoilgap, 0, G4ThreeVector(-coilgapwidth/4.0, 0.0, 0.0) );
+  G4SubtractionSolid *bigcoil = new G4SubtractionSolid("bigcoil", bigcoilbase, bigcoilgap, 0, G4ThreeVector(coilgapwidth/4.0, 0.0, 0.0) );
+  G4LogicalVolume *bigcoil_log = new G4LogicalVolume(bigcoil, GetMaterial("Copper"), "bigcoil_log" );
+  bigcoil_log->SetVisAttributes( coil_color );
 
+  if( fDetCon->fTotalAbs ){
+    bigcoil_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+  
+  G4ThreeVector bigcoil_pos1 = -(bigcoilheight+coilgapwidth/2.0)/2.0*SBS_xaxis + (f48D48dist - coilspace - bigcoilwidth/2.0)*SBS_zaxis;
+  G4ThreeVector bigcoil_pos2 = -(bigcoilheight+coilgapwidth/2.0)/2.0*SBS_xaxis + (f48D48dist + f48D48depth + coilspace + bigcoilwidth/2.0)*SBS_zaxis;
+  
+  new G4PVPlacement( bigrm, bigcoil_pos1, bigcoil_log, "bigcoil_front_phys", worldlog, false, 0 );
+  new G4PVPlacement( bigrm, bigcoil_pos2, bigcoil_log, "bigcoil_back_phys", worldlog, false, 1 );
   //  double coilfrontback = 150*cm;
-  double coilfrontback = f48D48depth+2.0*coilspace+bigcoilwidth;
+  double coilfrontback = f48D48depth+2.0*coilspace;
 
-  G4Box *bigcoilthr = new G4Box("bigcoilthr", bigcoilwidth,  bigcoilheight/2,  coilfrontback/2.0 );
+  G4Box *bigcoilthr = new G4Box("bigcoilthr", bigcoilwidth/2.0,  bigcoilheight/2,  coilfrontback/2.0 );
+  G4LogicalVolume *bigcoilthr_log = new G4LogicalVolume(bigcoilthr, GetMaterial("Copper"), "bigcoilthr_log" );
 
+  if( fDetCon->fTotalAbs ){
+    bigcoilthr_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+  
+  bigcoilthr_log->SetVisAttributes( coil_color );
+
+  G4ThreeVector bigcoilthr_pos1 = -bigcoilwidth/2.0 * SBS_xaxis + (coilgapheight+bigcoilheight)/2.0 * SBS_yaxis + r48d48 * SBS_zaxis;
+  new G4PVPlacement( bigrm, bigcoilthr_pos1, bigcoilthr_log, "bigcoilthr_phys_top", worldlog, false, 0 );
+  G4ThreeVector bigcoilthr_pos2 = -bigcoilwidth/2.0 * SBS_xaxis - (coilgapheight+bigcoilheight)/2.0 * SBS_yaxis + r48d48 * SBS_zaxis;
+  new G4PVPlacement( bigrm, bigcoilthr_pos2, bigcoilthr_log, "bigcoilthr_phys_bottom", worldlog, false, 1 );
+  
   // Sum together coils
 
 
   // Sum together base iron plus coils
 
-  G4UnionSolid* big48d48;
+  //G4UnionSolid* big48d48;
 
   G4Box *bigbeamslot = new G4Box("bigbeamslot",  f48D48width/2, 15.5*cm, 2.0*m ); 
 
-  big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, bigboxaddrm, 
-			      G4ThreeVector(0.0, 0.0, (coilgapheight+bigcoilheight)/2.0));
-  big48d48 = new G4UnionSolid("big48d48_2", big48d48, bigcoilthr, bigboxaddrm, 
-			      G4ThreeVector(0.0, 0.0, -(coilgapheight+bigcoilheight)/2.0));
+  // big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, bigboxaddrm, 
+  // 			      G4ThreeVector(0.0, 0.0, (coilgapheight+bigcoilheight)/2.0));
+  // big48d48 = new G4UnionSolid("big48d48_2", big48d48, bigcoilthr, bigboxaddrm, 
+  // 			      G4ThreeVector(0.0, 0.0, -(coilgapheight+bigcoilheight)/2.0));
 
-  big48d48 = new G4UnionSolid("big48d48_3", big48d48, bigcoil, bigboxaddrm, 
-			      G4ThreeVector(-(bigcoilheight+coilgapwidth/2.0)/2.0-1.0*mm, coilfrontback/2.0, 0.0));
-  big48d48 = new G4UnionSolid("big48d48_4", big48d48, bigcoil, bigboxaddrm, 
-			      G4ThreeVector(-(bigcoilheight+coilgapwidth/2.0)/2.0-1.0*mm, -coilfrontback/2.0, 0.0));
+  // big48d48 = new G4UnionSolid("big48d48_3", big48d48, bigcoil, bigboxaddrm, 
+  // 			      G4ThreeVector(-(bigcoilheight+coilgapwidth/2.0)/2.0-1.0*mm, coilfrontback/2.0, 0.0));
+  // big48d48 = new G4UnionSolid("big48d48_4", big48d48, bigcoil, bigboxaddrm, 
+  // 			      G4ThreeVector(-(bigcoilheight+coilgapwidth/2.0)/2.0-1.0*mm, -coilfrontback/2.0, 0.0));
 
-  big48d48 = new G4UnionSolid("big48d48_5", big48d48, woundcoil_ext, 0, 
-			      G4ThreeVector( 1.0*mm, 0.0,  coilgapheight/2.+bigcoilheight/2.0));
-  big48d48 = new G4UnionSolid("big48d48_6", big48d48, woundcoil_ext, 0, 
-			      G4ThreeVector( 1.0*mm, 0.0,  -coilgapheight/2.-bigcoilheight/2.0));
+  // big48d48 = new G4UnionSolid("big48d48_5", big48d48, woundcoil_ext, 0, 
+  // 			      G4ThreeVector( 1.0*mm, 0.0,  coilgapheight/2.+bigcoilheight/2.0));
+  // big48d48 = new G4UnionSolid("big48d48_6", big48d48, woundcoil_ext, 0, 
+  // 			      G4ThreeVector( 1.0*mm, 0.0,  -coilgapheight/2.-bigcoilheight/2.0));
 
 
   //  Cut out slot - from magnet center to inside of cut is ~35cm
-  G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", big48d48, bigbeamslot, bigboxaddrm, 
+  G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", bigbase, bigbeamslot, bigboxaddrm, 
 							      G4ThreeVector( f48D48width/2+35*cm, 0.0, 0.0) );
 
   G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, GetMaterial("Fer"),
 						   "b48d48Log", 0, 0, 0);
 
+  G4VisAttributes *magnet_visatt = new G4VisAttributes( G4Colour( 0.75, 0.75, 0.75 ) );
+  big48d48Log->SetVisAttributes( magnet_visatt );
+  
   if( fDetCon->fTotalAbs ){
     big48d48Log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
 
-  G4RotationMatrix *bigrm = new G4RotationMatrix;
-  bigrm->rotateY(-f48D48ang);
-
+  
+  
 
   new G4PVPlacement(bigboxrm, 
-		    G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
+		    G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
 		    big48d48Log, "big48d48Physical", worldlog, 0,false,0);
 
   G4LogicalVolume *bigfieldLog=new G4LogicalVolume(biggap, GetMaterial("Air"),
@@ -315,7 +408,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
 
   new G4PVPlacement(bigrm, 
-		    G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
+		    G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
 		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 
 
@@ -361,10 +454,10 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     }
 
     new G4PVPlacement(bigrm, 
-		      G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
+		      G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
 		      leftslabLog, "leftslabPhysical", worldlog, 0,false,0);
     new G4PVPlacement(bigrm, 
-		      G4ThreeVector(-r48d48*sin(-f48D48ang), 0.0, r48d48*cos(-f48D48ang)),
+		      G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
 		      rightslabLog, "rightslabPhysical", worldlog, 0,false,0);
 
     G4VisAttributes * slabVisAtt
@@ -560,7 +653,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     //Position notch so that the distance from the right edge of the clamp to the left edge of the notch equals notch width:
     //xnotch + wnotch/2 + 1 cm + wclamp/2 = wnotch --> xnotch = wnotch/2- 1 cm - wclamp/2
-    G4double xnotch = FrontClamp_notch_width/2.0 - 1.0*cm - FrontClamp_width/2.0;
+
+    //xnotch - wnotch/2 - 1 cm = wclamp/2 - wnotch --> xnotch = wclamp/2 - wnotch/2 + 1 cm
+    G4double xnotch = -FrontClamp_notch_width/2.0 + 1.0*cm + FrontClamp_width/2.0;
 
     G4SubtractionSolid *FrontClamp = new G4SubtractionSolid( "FrontClamp", FrontClamp_Box, FrontClamp_Notch, 0, G4ThreeVector( xnotch, 0.0, 0.0 ) );
 
@@ -572,14 +667,14 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     
     G4double FrontClamp_xshift = 14.22*2.54*cm; //x offset of left edge of front clamp relative to left edge of magnet
 
-    G4double FrontClamp_xoffset = f48D48width/2.0 - FrontClamp_width/2.0 - FrontClamp_xshift; //net offset in position needed to align left edge of front clamp at correct position.
+    G4double FrontClamp_xoffset = -f48D48width/2.0 + FrontClamp_width/2.0 + FrontClamp_xshift; //net offset in position needed to align left edge of front clamp at correct position.
 
     G4RotationMatrix *clamp_rot = new G4RotationMatrix;
 
-    clamp_rot->rotateY( -f48D48ang );
+    clamp_rot->rotateY( f48D48ang );
 
     new G4PVPlacement( clamp_rot, 
-		       G4ThreeVector( FrontClamp_r*sin( f48D48ang ) + FrontClamp_xoffset*cos(f48D48ang), 0.0, FrontClamp_r*cos(f48D48ang) - FrontClamp_xoffset*sin(f48D48ang) ), 
+		       G4ThreeVector( -FrontClamp_r*sin( f48D48ang ) + FrontClamp_xoffset*cos(f48D48ang), 0.0, FrontClamp_r*cos(f48D48ang) + FrontClamp_xoffset*sin(f48D48ang) ), 
 		       FrontClamp_log, "FrontClamp_phys", motherlog, false, 0, false );
  
     ////REAR CLAMP:
@@ -599,11 +694,11 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4Box *RearClamp_Gap = new G4Box("RearClamp_Gap", RearClamp_GapWidth/2.0, RearClamp_GapHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
 
     G4SubtractionSolid *RearClamp_GapCutout = new G4SubtractionSolid( "RearClamp_GapCutout", RearClamp_Box, RearClamp_Gap, 0, 
-								      G4ThreeVector( RearClamp_width/2.0 - RearClamp_GapX - RearClamp_GapWidth/2.0, 0.0, 0.0 ) );
+								      G4ThreeVector( -RearClamp_width/2.0 + RearClamp_GapX + RearClamp_GapWidth/2.0, 0.0, 0.0 ) );
     
     G4Box *RearClamp_Notch = new G4Box("RearClamp_Notch", RearClamp_NotchWidth/2.0+1.0*cm, RearClamp_NotchHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
     
-    xnotch = RearClamp_NotchWidth/2.0 - 1.0*cm - RearClamp_width/2.0;
+    xnotch = -RearClamp_NotchWidth/2.0 + 1.0*cm + RearClamp_width/2.0;
 
     G4SubtractionSolid *RearClamp = new G4SubtractionSolid( "RearClamp", RearClamp_GapCutout, RearClamp_Notch, 0, 
 							    G4ThreeVector( xnotch, 0.0, 0.0 ) );
@@ -611,10 +706,10 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4LogicalVolume *RearClamp_log = new G4LogicalVolume( RearClamp, GetMaterial("Fer"), "RearClamp_log" );
 
     G4double RearClamp_zoffset = 11.43*2.54*cm + RearClamp_depth/2.0; 
-    G4double RearClamp_xoffset = f48D48width/2.0 - RearClamp_width/2.0; 
+    G4double RearClamp_xoffset = -f48D48width/2.0 + RearClamp_width/2.0; 
     G4double RearClamp_r = f48D48dist + f48D48depth + RearClamp_zoffset;
 
-    G4ThreeVector RearClamp_pos( RearClamp_r*sin(f48D48ang) + RearClamp_xoffset*cos(f48D48ang), 0.0, RearClamp_r*cos(f48D48ang) - RearClamp_xoffset * sin(f48D48ang) );
+    G4ThreeVector RearClamp_pos( -RearClamp_r*sin(f48D48ang) + RearClamp_xoffset*cos(f48D48ang), 0.0, RearClamp_r*cos(f48D48ang) + RearClamp_xoffset * sin(f48D48ang) );
 
     new G4PVPlacement( clamp_rot, RearClamp_pos, RearClamp_log, "RearClamp_phys", motherlog, false, 0, false );
 
@@ -623,6 +718,56 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     FrontClamp_log->SetVisAttributes(clampVisAtt);
     RearClamp_log->SetVisAttributes(clampVisAtt);
+
+    //Make lead shielding in clamp:
+    G4double angtrap = 10.0*deg;
+    G4double Trap_DZ = 70.0*cm; //length in z
+    G4double Trap_theta = 0.0; //polar angle between face at -dz/2 and +dz/2
+    G4double Trap_phi = 0.0; //azimuthal angle between face at -dz/2 and +dz/2
+    G4double Trap_H1 = 13.6*cm; //length in y at -dz
+    G4double Trap_BL1 = 16.0*cm; //width at -H1/2 and -dz/2
+    G4double Trap_TL1 = 20.0*cm; //width at +H1/2 and -dz/2
+    G4double Trap_alpha1 = angtrap; //
+    G4double Trap_H2 = 13.6*cm;
+    G4double Trap_BL2 = 16.0*cm;
+    G4double Trap_TL2 = 20.0*cm;
+    G4double Trap_alpha2 = angtrap;
+
+    G4Trap *FrontClampLeadInsert = new G4Trap( "FrontClampLeadInsert", Trap_DZ/2.0, Trap_theta, Trap_phi, Trap_H1/2.0, Trap_BL1/2.0, Trap_TL1/2.0, Trap_alpha1,
+					       Trap_H2/2.0, Trap_BL2/2.0, Trap_TL2/2.0, Trap_alpha2 );
+
+
+    G4LogicalVolume *FrontClampLeadInsert_log = new G4LogicalVolume( FrontClampLeadInsert, GetMaterial("Lead"), "FrontClampLeadInsert_log" );
+    G4VisAttributes *lead_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
+    FrontClampLeadInsert_log->SetVisAttributes( lead_visatt );
+    
+    G4ThreeVector FrontClampLeadInsert_posrel( +17.5*cm, 0.0, -102.9*cm ); //Position relative to SBS magnet
+    //rotation matrix has z axis along +y and x axis along +x, y axis along -z. This is a rotation about the x axis by 90 deg:
+    G4RotationMatrix *rot_lead = new G4RotationMatrix;
+    rot_lead->rotateY( f48D48ang );
+    //rot_lead->rotateZ( 180.0*deg );
+    rot_lead->rotateX( -90.0*deg );
+    //rot_lead->rotateX( 90.0*deg );
+   
+    G4ThreeVector SBS_xaxis( cos( f48D48ang ), 0, sin(f48D48ang ) );
+    G4ThreeVector SBS_yaxis(0,1,0);
+    G4ThreeVector SBS_zaxis( -sin( f48D48ang ), 0, cos(f48D48ang ) );
+    
+    G4ThreeVector FrontClampLeadInsert_pos = FrontClampLeadInsert_posrel.x() * SBS_xaxis + FrontClampLeadInsert_posrel.y() * SBS_yaxis + (FrontClampLeadInsert_posrel.z() + f48D48dist + 24.0*2.54*cm)* SBS_zaxis;
+
+    new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
+
+    //Add lead bar:
+    G4Box *FrontClampLeadBar = new G4Box( "FrontClampLeadBar", 25.0*cm, 10.0*cm, 2.3*cm );
+    G4LogicalVolume *FrontClampLeadBar_log = new G4LogicalVolume( FrontClampLeadBar, GetMaterial("Lead"), "FrontClampLeadBar_log" );
+    FrontClampLeadBar_log->SetVisAttributes( lead_visatt );
+    G4ThreeVector FrontClampLeadBar_posrel( 0.0, FrontClamp_notch_height/2.0 + 10.0*cm, -107.4*cm );
+    
+    G4ThreeVector FrontClampLeadBar_pos = FrontClampLeadBar_posrel.x()*SBS_xaxis + FrontClampLeadBar_posrel.y() * SBS_yaxis +
+      ( FrontClampLeadBar_posrel.z() + f48D48dist + 24.0*2.54*cm)*SBS_zaxis;
+
+    new G4PVPlacement( clamp_rot, FrontClampLeadBar_pos, FrontClampLeadBar_log, "FrontClampLeadBar_phys", motherlog, false, 0, false );
+    
   }
 }
 
@@ -884,7 +1029,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   //Make Mother Volume which will house all modules
 
   G4RotationMatrix *hcalrm = new G4RotationMatrix;
-  hcalrm->rotateY(-f48D48ang);
+  hcalrm->rotateY(f48D48ang);
   //hcalrm->rotateZ(90*degree); //Do we really need this? Is this a needless complication?
   G4RotationMatrix *modrot = new G4RotationMatrix;
   modrot->rotateZ(-90*degree );
@@ -893,7 +1038,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   //Since SupportPlateDyExtra is zero, don't needlessly confuse by including it!
   G4Box *solCalo = new G4Box( "sHCalo", CaloX/2.0, CaloY/2.0, CaloL/2.0 );
   G4LogicalVolume *logCalo = new G4LogicalVolume( solCalo, GetMaterial("Air"), "lHCalo" );
-  new G4PVPlacement( hcalrm, G4ThreeVector( hcalr*sin(f48D48ang), VerticalOffset, hcalr*cos(f48D48ang) ), logCalo, "HCal Mother", motherlog, false, 0, false);
+  new G4PVPlacement( hcalrm, G4ThreeVector( -hcalr*sin(f48D48ang), VerticalOffset, hcalr*cos(f48D48ang) ), logCalo, "HCal Mother", motherlog, false, 0, false);
 
   if( (fDetCon->StepLimiterList).find( "lHCalo" ) != (fDetCon->StepLimiterList).end() ){
     logCalo->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
@@ -990,9 +1135,10 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
 
   G4RotationMatrix *rot_RICH = new G4RotationMatrix;
-  rot_RICH->rotateY( -f48D48ang );
-
-  G4ThreeVector RICHcoord_global( fRICHdist*sin( f48D48ang ), 0.0, fRICHdist*cos( f48D48ang ) );
+  rot_RICH->rotateY( f48D48ang );
+  rot_RICH->rotateZ( 180.0*deg );
+  
+  G4ThreeVector RICHcoord_global( -fRICHdist*sin( f48D48ang ), 0.0, fRICHdist*cos( f48D48ang ) );
 
   G4ThreeVector RICH_zaxis( RICHcoord_global.unit() );
   G4ThreeVector RICH_yaxis( 0.0, 1.0, 0.0 );
@@ -1004,6 +1150,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   
   G4Box *RICHbox = new G4Box("RICHbox", RICHbox_w/2.0, RICHbox_h/2.0, RICHbox_thick/2.0  );
   G4LogicalVolume *RICHbox_log = new G4LogicalVolume( RICHbox, GetMaterial("C4F10_gas"), "SBS_RICH_log" );
+
+  //At the end, we will rotate it by 180 degrees about z:
   
   //Define the origin with the x and z coordinates at "bottom left" corner of the box (everything will be centered in y)
   G4ThreeVector origin( -RICHbox_w/2.0, 0.0, -RICHbox_thick/2.0 + 0.75*mm); //Add 0.75 mm to account for thickness of entry window!
@@ -1656,7 +1804,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   RICH_offset += origin;
   
 
-  G4ThreeVector RICH_centercoord_global = RICHcoord_global - (RICH_offset.x() * RICH_xaxis + RICH_offset.y() * RICH_yaxis + RICH_offset.z() * RICH_zaxis);
+  G4ThreeVector RICH_centercoord_global = RICHcoord_global - (-RICH_offset.x() * RICH_xaxis + RICH_offset.y() * RICH_yaxis + RICH_offset.z() * RICH_zaxis);
   
   //We want to position the RICH box so that the center of the entry window is aligned with the SBS axis:
   new G4PVPlacement( rot_RICH, RICH_centercoord_global, RICHbox_log, "SBS_RICH_pv", motherlog, false, 0 );

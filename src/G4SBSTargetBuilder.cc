@@ -595,38 +595,6 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   // TUB3_log->SetVisAttributes( ironColor );
 }
 
-G4LogicalVolume *G4SBSTargetBuilder::BuildSnoutWindows( G4Box *Plate, G4double x, G4double y, 
-							G4double z,   G4double r, G4double offset ) {
-  // Subtract out 4 circles, 2 rectangles - all have larger depths than Plate (Left/Right Snout Windows)
-  // Use circles to cut corners, creating the desired "bend radius", then remove remaining material with rectangles.
-  // x,y,z are conventional global coordinates
-  // r is bend radius of Snout Windows
-  // Windows are offset from center by some small amount according to CAD drawings
-
-  G4ThreeVector tempvec( offset, 0.0, 0.0 );
-
-  G4Box *box1 = new G4Box( "box1", (x-2*r)/2.0, y/2.0, z/2.0 );
-  G4SubtractionSolid *WindowCut1 = new G4SubtractionSolid( "WindowCut1", Plate, box1, 0, tempvec );
-
-  G4Box *box2 = new G4Box( "box2", x/2.0, (y-2*r)/2.0, z/2.0 );
-  G4SubtractionSolid *WindowCut2 = new G4SubtractionSolid( "WindowCut2", WindowCut1, box2, 0, tempvec );
-
-  tempvec.set( x/2.0 - r + offset, y/2.0 - r, 0.0 );
-  G4Tubs *CircleCut = new G4Tubs( "CircleCut", 0.0, r, z, 0.0, twopi );
-  G4SubtractionSolid *WindowCut3 = new G4SubtractionSolid( "WindowCut3", WindowCut2, CircleCut, 0, tempvec );
-
-  tempvec.set( 0.5*x - r + offset, -0.5*y + r, 0.0 );
-  G4SubtractionSolid *WindowCut4 = new G4SubtractionSolid( "WindowCut4", WindowCut3, CircleCut, 0, tempvec );
-
-  tempvec.set( -0.5*x + r + offset, 0.5*y - r, 0.0 );
-  G4SubtractionSolid *WindowCut5 = new G4SubtractionSolid( "WindowCut5", WindowCut4, CircleCut, 0, tempvec );
-
-  tempvec.set( -0.5*x + r + offset, -0.5*y + r, 0.0 );
-  G4SubtractionSolid *WindowCut6 = new G4SubtractionSolid( "WindowCut6", WindowCut5, CircleCut, 0, tempvec );
-  G4LogicalVolume *WindowLog = new G4LogicalVolume( WindowCut6, GetMaterial("Stainless_Steel"), "WindowLog" );
-  return WindowLog;
-}
-
 // void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
 //   //////////////////////////////////////////////////////////////////
 

@@ -21,12 +21,12 @@ public:
 
   void SetTarget(Targ_t t){fTargType = t;}
   void SetTargLen(double len){ fTargLen = len;}
-  void SetTargDen(double den){ fTargDen = den;}
+  void SetTargDen(double den){ fTargDen = den;} //Currently, fTargDen has NO effect!
   void SetSchamFlag(int flag){ fSchamFlag = flag; }
 
   int GetSchamFlag() const { return fSchamFlag; }
   double GetTargLen() const { return fTargLen; }
-  G4LogicalVolume *BuildSnoutWindows(G4Box *, G4double, G4double, G4double, G4double, G4double);
+  //G4LogicalVolume *BuildSnoutWindows(G4Box *, G4double, G4double, G4double, G4double, G4double);
 
 private:
   double fTargLen;

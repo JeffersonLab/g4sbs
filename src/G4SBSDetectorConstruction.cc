@@ -1582,8 +1582,10 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
     // In the new version of ConstructAll(), now we call individual modular subsystem creation routines depending on fExpType:
 
     //All three types of experiments have a target:
-    fTargetBuilder->BuildComponent(WorldLog);
+    //Target builder is called first:
+    fTargetBuilder->BuildComponent(WorldLog); 
 
+    //Beamline builder is called second.
     //All three types of experiments have a beam line:
     fBeamlineBuilder->BuildComponent(WorldLog);
 

@@ -1703,7 +1703,7 @@ void G4SBSDetectorConstruction::SetBigBiteField(int n){
 
     switch(n){
 	case 1:
-	    rm.rotateY(fEArmBuilder->fBBang);
+	    rm.rotateY(-fEArmBuilder->fBBang);
 
 	    fbbfield = new G4SBSBigBiteField( 
 		    G4ThreeVector(0.0, 0.0, fEArmBuilder->fBBdist),  rm );
@@ -1731,7 +1731,7 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
 		fGlobalField->DropField(f48d48field);
 		delete f48d48field;
 	    }
-	    rm.rotateY(fHArmBuilder->f48D48ang);
+	    rm.rotateY(-fHArmBuilder->f48D48ang);
 
 	    f48d48field = new G4SBSConstantField( 
 		    G4ThreeVector(0.0, 0.0, fHArmBuilder->f48D48dist),  rm,

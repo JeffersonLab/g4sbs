@@ -50,7 +50,7 @@ using namespace std;
 G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   f48D48ang  = 39.4*deg;
   f48D48dist = 2.8*m;
-  f48D48_fieldclamp_config = 1; //0 = No field clamps. 1 = GEp (default). 2 = BigBite experiments:
+  f48D48_fieldclamp_config = 2; //0 = No field clamps. 2 = GEp (default). 1 = BigBite experiments:
 
   fHCALdist  = 17.0*m;
 
@@ -396,7 +396,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   double sign = 1.0;
   if( fDetCon->fGlobalField->fInverted ) sign = -1.0;
   G4UniformMagField* magField
-    = new G4UniformMagField(G4ThreeVector(sign*fFieldStrength*cos(f48D48ang), 0.0, -sign*fFieldStrength*sin(f48D48ang)));
+    = new G4UniformMagField(G4ThreeVector(sign*fFieldStrength*cos(f48D48ang), 0.0, sign*fFieldStrength*sin(f48D48ang)));
 
   G4FieldManager *bigfm = new G4FieldManager(magField);
   bigfm->SetDetectorField(magField);
@@ -720,40 +720,69 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     RearClamp_log->SetVisAttributes(clampVisAtt);
 
     //Make lead shielding in clamp:
-    G4double angtrap = 10.0*deg;
-    G4double Trap_DZ = 70.0*cm; //length in z
-    G4double Trap_theta = 0.0; //polar angle between face at -dz/2 and +dz/2
-    G4double Trap_phi = 0.0; //azimuthal angle between face at -dz/2 and +dz/2
-    G4double Trap_H1 = 13.6*cm; //length in y at -dz
-    G4double Trap_BL1 = 16.0*cm; //width at -H1/2 and -dz/2
-    G4double Trap_TL1 = 20.0*cm; //width at +H1/2 and -dz/2
-    G4double Trap_alpha1 = angtrap; //
-    G4double Trap_H2 = 13.6*cm;
-    G4double Trap_BL2 = 16.0*cm;
-    G4double Trap_TL2 = 20.0*cm;
-    G4double Trap_alpha2 = angtrap;
+    // G4double angtrap = 10.0*deg;
+    // G4double Trap_DZ = 70.0*cm; //length in z
+    // G4double Trap_theta = 0.0; //polar angle between face at -dz/2 and +dz/2
+    // G4double Trap_phi = 0.0; //azimuthal angle between face at -dz/2 and +dz/2
+    // G4double Trap_H1 = 13.6*cm; //length in y at -dz
+    // G4double Trap_BL1 = 16.0*cm; //width at -H1/2 and -dz/2
+    // G4double Trap_TL1 = 20.0*cm; //width at +H1/2 and -dz/2
+    // G4double Trap_alpha1 = angtrap; //
+    // G4double Trap_H2 = 13.6*cm;
+    // G4double Trap_BL2 = 16.0*cm;
+    // G4double Trap_TL2 = 20.0*cm;
+    // G4double Trap_alpha2 = angtrap;
 
-    G4Trap *FrontClampLeadInsert = new G4Trap( "FrontClampLeadInsert", Trap_DZ/2.0, Trap_theta, Trap_phi, Trap_H1/2.0, Trap_BL1/2.0, Trap_TL1/2.0, Trap_alpha1,
-					       Trap_H2/2.0, Trap_BL2/2.0, Trap_TL2/2.0, Trap_alpha2 );
+    //Let us redefine this guy so that the sides make proper angles:
+    G4double Trap_DZ = 13.6*cm;
+    G4double Trap_Width1 = 15*cm;
+    G4double poleshim_angle = atan( (17.75-12.0)/122.0 ); //relative to SBS central axis
+    G4double ang_sbs_edge = 16.9*deg - poleshim_angle;
+    G4double dist_poleshim = 1.60*m;
+    G4double x_poleshim = 12.0*cm;
+
+    G4ThreeVector zaxis_temp( -sin(16.9*deg), 0, cos(16.9*deg) );
+    G4ThreeVector yaxis_temp(0,1,0);
+    G4ThreeVector xaxis_temp = (yaxis_temp.cross(zaxis_temp)).unit(); 
+
+    G4double zstart_leadinsert = -102.9*cm + dist_poleshim + f48D48depth/2.0 -Trap_DZ/2.0;
+    G4double xstart1_leadinsert = x_poleshim + tan(poleshim_angle)*(zstart_leadinsert - dist_poleshim );
+
+    G4double xstart2_leadinsert = xstart1_leadinsert + tan(poleshim_angle)*Trap_DZ;
+    G4double xstop1_leadinsert = xstart1_leadinsert + Trap_Width1;
+    G4double xstop2_leadinsert = xstop1_leadinsert + tan(16.9*deg)*Trap_DZ;
+
+    G4ThreeVector posrel_leadinsert( 0.25*(xstart1_leadinsert+xstart2_leadinsert+xstop1_leadinsert+xstop2_leadinsert), 0, zstart_leadinsert + 0.5*Trap_DZ );
+    G4double Trap_Width2 = xstop2_leadinsert - xstart2_leadinsert;
+
+    G4double Theta_leadinsert = atan( 0.5*(xstart2_leadinsert+xstop2_leadinsert - xstart1_leadinsert - xstop1_leadinsert)/Trap_DZ );
+    G4double Phi_leadinsert = 0.0;
+
+    G4double Trap_Dy = 70.0*cm;
+
+    // G4Trap *FrontClampLeadInsert = new G4Trap( "FrontClampLeadInsert", Trap_DZ/2.0, Trap_theta, Trap_phi, Trap_H1/2.0, Trap_BL1/2.0, Trap_TL1/2.0, Trap_alpha1,
+    //					       Trap_H2/2.0, Trap_BL2/2.0, Trap_TL2/2.0, Trap_alpha2 );
+
+    G4Trap *FrontClampLeadInsert =  new G4Trap( "FrontClampLeadInsert", Trap_DZ/2.0, Theta_leadinsert, Phi_leadinsert, Trap_Dy/2.0, Trap_Width1/2.0, Trap_Width1/2.0, 0.0, Trap_Dy/2.0, Trap_Width2/2.0, Trap_Width2/2.0, 0.0 );
 
 
     G4LogicalVolume *FrontClampLeadInsert_log = new G4LogicalVolume( FrontClampLeadInsert, GetMaterial("Lead"), "FrontClampLeadInsert_log" );
     G4VisAttributes *lead_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
     FrontClampLeadInsert_log->SetVisAttributes( lead_visatt );
     
-    G4ThreeVector FrontClampLeadInsert_posrel( +17.5*cm, 0.0, -102.9*cm ); //Position relative to SBS magnet
+    //G4ThreeVector FrontClampLeadInsert_posrel( +17.5*cm, 0.0, -102.9*cm ); //Position relative to SBS magnet
     //rotation matrix has z axis along +y and x axis along +x, y axis along -z. This is a rotation about the x axis by 90 deg:
     G4RotationMatrix *rot_lead = new G4RotationMatrix;
     rot_lead->rotateY( f48D48ang );
     //rot_lead->rotateZ( 180.0*deg );
-    rot_lead->rotateX( -90.0*deg );
+    //rot_lead->rotateX( -90.0*deg );
     //rot_lead->rotateX( 90.0*deg );
    
     G4ThreeVector SBS_xaxis( cos( f48D48ang ), 0, sin(f48D48ang ) );
     G4ThreeVector SBS_yaxis(0,1,0);
     G4ThreeVector SBS_zaxis( -sin( f48D48ang ), 0, cos(f48D48ang ) );
     
-    G4ThreeVector FrontClampLeadInsert_pos = FrontClampLeadInsert_posrel.x() * SBS_xaxis + FrontClampLeadInsert_posrel.y() * SBS_yaxis + (FrontClampLeadInsert_posrel.z() + f48D48dist + 24.0*2.54*cm)* SBS_zaxis;
+    G4ThreeVector FrontClampLeadInsert_pos = posrel_leadinsert.x() * SBS_xaxis + posrel_leadinsert.y() * SBS_yaxis + posrel_leadinsert.z() * SBS_zaxis;
 
     new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
 

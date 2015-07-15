@@ -8,13 +8,16 @@
 
 
 class G4SBSBigBiteField : public G4SBSMappedField {
-    public:
-	G4SBSBigBiteField(G4ThreeVector, G4RotationMatrix);
-	~G4SBSBigBiteField();
+public:
+  G4SBSBigBiteField(G4ThreeVector, G4RotationMatrix);
+  ~G4SBSBigBiteField();
 
-	void GetFieldValue( const double Point[3], double *Bfield ) const;
-    private:
-	void ReadField();
+  void GetFieldValue( const G4double Point[3], G4double *Bfield ) const;
+  
+  G4int GetIndex( G4int, G4int, G4int ) const;
+
+private:
+  void ReadField();
 };
 
 #endif//G4SBSBigBiteField_hh

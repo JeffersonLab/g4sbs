@@ -6,14 +6,16 @@
 #include "G4RotationMatrix.hh"
 
 class G4SBSToscaField : public G4SBSMappedField {
-    public:
-	G4SBSToscaField(const char *);
-	~G4SBSToscaField();
+public:
+  G4SBSToscaField(const char *);
+  ~G4SBSToscaField();
 
-	void GetFieldValue( const  double Point[3], double *Bfield ) const;
+  void GetFieldValue( const  double Point[3], double *Bfield ) const;
 
-    private:
-	void ReadField();
+  int GetIndex( int, int, int ) const;
+  
+private:
+  void ReadField();
 };
 
 #endif//G4SBSToscaField_hh

@@ -19,7 +19,8 @@ G4SBSMappedField::G4SBSMappedField(G4ThreeVector off, G4RotationMatrix rm, const
    : G4SBSMagneticField(off,rm) {
 
     strcpy( fFilename, fn);
-    fFieldVal = NULL;
+    //fFieldVal = NULL;
+    fBfield.clear();
     fN[0] = fN[1] = fN[2] = 0;
 }
 

@@ -1801,8 +1801,8 @@ void G4SBSDetectorConstruction::AddToscaField( const char *fn ) {
 
 }
 
-void G4SBSDetectorConstruction::SetECALmapfilename( G4String s ){
-  fECALmapfilename = s;
+void G4SBSDetectorConstruction::SetECALmapfilename( G4String sname ){
+  fECALmapfilename = sname;
 }
 
 void G4SBSDetectorConstruction::SetCDetconfig( int cdetconfig ){

@@ -46,7 +46,7 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
   G4ThreeVector pt(Point[0], Point[1], Point[2]);
   pt = frm*pt - fOffset;
 
-
+  //frm.print(G4cout);
 
   //As long as fOffset is defined in the local coordinate system relative to the 
   //origin, this is correct.
@@ -173,7 +173,9 @@ void G4SBSToscaField::ReadField(){
   frm.rotateX(ang_x*deg);
   frm.rotateY(ang_y*deg);
   frm.rotateZ(ang_z*deg);
-  
+
+
+  frm.print(G4cout);
 
   // Third line should have 4 values with the size of the
   // file indices

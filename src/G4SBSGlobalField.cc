@@ -67,8 +67,11 @@ void G4SBSGlobalField::AddField( G4SBSMagneticField *f ){
 }
 
 
-G4SBSMagneticField *G4SBSGlobalField::AddToscaField( const char *fn ){ 
+void G4SBSGlobalField::AddToscaField( const char *fn ){ 
     G4SBSToscaField *f = new G4SBSToscaField(fn);
+
+    f->fArm = kHarm; //for now, a TOSCA field is always associated with "HARM". we may wish to change in the future.
+    
     AddField(f);
     G4TransportationManager::GetTransportationManager()->GetFieldManager()->CreateChordFinder(this);
 
@@ -92,7 +95,7 @@ G4SBSMagneticField *G4SBSGlobalField::AddToscaField( const char *fn ){
     rd->AddMagData(fdata);
 
 
-    return f;
+    return;
 }
 
 void G4SBSGlobalField::DropField( G4SBSMagneticField *f ){ 
@@ -104,6 +107,13 @@ void G4SBSGlobalField::DropField( G4SBSMagneticField *f ){
      return;
 }
 
+void G4SBSGlobalField::ScaleFields( G4double scalefact, Arm_t arm ){
+  for( std::vector<G4SBSMagneticField *>::iterator it = fFields.begin(); it != fFields.end(); ++it ){
+    if( (*it)->fArm == arm ){
+      (*it)->fScaleFactor = scalefact;
+    }
+  }
+}
 
 void G4SBSGlobalField::DebugField(){ 
     // Make a heatmap of the field strength in x-z plane for x direction

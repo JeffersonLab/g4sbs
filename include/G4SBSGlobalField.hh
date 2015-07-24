@@ -2,6 +2,7 @@
 #define G4SBSGlobalField_hh
 
 #include "globals.hh"
+#include "sbstypes.hh"
 #include <vector>
 
 #include "G4SBSMagneticField.hh"
@@ -17,13 +18,15 @@ public:
 
   void SetInvertField( G4bool b );
 
-  G4SBSMagneticField *AddToscaField(const char *); //return a pointer to the added field so that we can store it in G4SBSDetectorConstruction
+  void AddToscaField(const char *); //return a pointer to the added field so that we can store it in G4SBSDetectorConstruction
 
   void AddField( G4SBSMagneticField *f );
   void DropField( G4SBSMagneticField *f );
 
   void DebugField();
 
+  void ScaleFields( G4double, Arm_t );
+  
   std::vector<TH2F *> fFieldPlots;
 
   bool fInverted;

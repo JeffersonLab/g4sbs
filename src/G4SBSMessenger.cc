@@ -775,18 +775,18 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == EARM_ScaleFieldCmd ){
     G4double v = EARM_ScaleFieldCmd->GetNewDoubleValue( newValue );
     fdetcon->SetFieldScale_BB( v );
-    if( fdetcon->GetBBField() != NULL ){
-      fdetcon->GetBBField()->fScaleFactor = s;
-    }
+    // if( fdetcon->GetBBField() != NULL ){
+    //   fdetcon->GetBBField()->fScaleFactor = s;
+    // }
   }
 
   if( cmd == HARM_ScaleFieldCmd ){
     G4double v = HARM_ScaleFieldCmd->GetNewDoubleValue( newValue );
     fdetcon->SetFieldScale_SBS(v);
-    if( fdetcon->Get48D48Field() != NULL ){
-      fdetcon->Get48D48Field()->fScaleFactor = s;
-      G4cout << "Setting SBS magnetic field scale factor to " << s << G4endl;
-    }
+    // if( fdetcon->Get48D48Field() != NULL ){
+    //   fdetcon->Get48D48Field()->fScaleFactor = s;
+    //   G4cout << "Setting SBS magnetic field scale factor to " << s << G4endl;
+    // }
 
     // if( fdetcon->fUseGlobalField ){
       

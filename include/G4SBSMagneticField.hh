@@ -4,6 +4,7 @@
 #include "globals.hh"
 #include "G4MagneticField.hh"
 #include "G4RotationMatrix.hh"
+#include "sbstypes.hh"
 #include <vector>
 
 using namespace std;
@@ -22,9 +23,11 @@ public:
 
   G4bool fInverted;
   G4double fScaleFactor; //Set overall scale factor for any magnetic field
+
+  Arm_t fArm; //kEarm or kHarm: defaults to Earm.
   
 protected:
-
+  
   G4ThreeVector fOffset;
   
   G4RotationMatrix frm;

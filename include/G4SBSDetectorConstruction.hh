@@ -112,7 +112,7 @@ private:
 
   G4SBSMagneticField *fbbfield;
   G4SBSMagneticField *f48d48field;
-
+  
   G4String fECALmapfilename;
 
   //Let's define some additional configurable properties of 48D48:

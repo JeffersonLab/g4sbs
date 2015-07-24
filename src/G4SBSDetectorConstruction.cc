@@ -1708,10 +1708,10 @@ void G4SBSDetectorConstruction::SetBigBiteField(int n){
   case 1:
     rm.rotateY(-fEArmBuilder->fBBang); //rotation is negative about y for BB on beam left
 
-    fbbfield = new G4SBSBigBiteField( 
-				     G4ThreeVector(0.0, 0.0, fEArmBuilder->fBBdist),  rm );
+    fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fEArmBuilder->fBBdist),  rm );
 
     fbbfield->fScaleFactor = fFieldScale_BB;
+    fbbfield->fArm = kEarm;
     // Dimensions of the box
     fGlobalField->AddField(fbbfield);
     if( !fUseGlobalField ) fEArmBuilder->fUseLocalField = true;
@@ -1747,6 +1747,7 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
 					 G4ThreeVector(f48D48_uniform_bfield, 0.0, 0.0)
 					  );
     f48d48field->fScaleFactor = fFieldScale_SBS;
+    f48d48field->fArm = kHarm;
     
     fGlobalField->AddField(f48d48field);
     if( !fUseGlobalField ) fHArmBuilder->fUseLocalField = true;
@@ -1772,19 +1773,19 @@ void G4SBSDetectorConstruction::SetBBDist(double a){
 void G4SBSDetectorConstruction::SetBBAng(double a){ 
   fEArmBuilder->SetBBAng(a); 
   G4RotationMatrix rm;
-  rm.rotateY(a);
+  rm.rotateY(-a);
   if( fbbfield ) fbbfield->SetRM(rm); 
 }
 
 void G4SBSDetectorConstruction::Set48D48Dist(double a){ 
   fHArmBuilder->Set48D48Dist(a); 
-  if( f48d48field )  f48d48field->SetOffset(G4ThreeVector(0.0, 0.0, a+ 48.0*2.54*cm/2 ) ); 
+  if( f48d48field )  f48d48field->SetOffset(G4ThreeVector(0.0, 0.0, a+ 48.0*2.54*cm/2.0 ) ); 
 }
 
 void G4SBSDetectorConstruction::Set48D48Ang(double a){ 
   fHArmBuilder->Set48D48Ang(a); 
   G4RotationMatrix rm;
-  rm.rotateY(-a);
+  rm.rotateY(a);
   if( f48d48field ) f48d48field->SetRM(rm); 
 }
 
@@ -1810,10 +1811,10 @@ void G4SBSDetectorConstruction::AddToscaField( const char *fn ) {
     f48d48field = NULL;
   }
   
-  f48d48field = fGlobalField->AddToscaField(fn); 
+  fGlobalField->AddToscaField(fn); 
 
   //When creating for the first time, initialize overall scale factor based on fFieldScale_SBS (defaults to 1, is overridden by messenger command).
-  f48d48field->fScaleFactor = fFieldScale_SBS;
+  //f48d48field->fScaleFactor = fFieldScale_SBS;
   
   if( !fUseGlobalField ){
     fUseGlobalField = true;
@@ -1834,8 +1835,20 @@ void G4SBSDetectorConstruction::SetCDetconfig( int cdetconfig ){
 void G4SBSDetectorConstruction::SetFieldScale_SBS( G4double v ){
   fFieldScale_SBS = v;
   //(fHArmBuilder->fFieldStrength) *= v;
+  if( f48d48field ){
+    f48d48field->fScaleFactor = v;
+  }
+
+  fGlobalField->ScaleFields( v, kHarm );
+  
 }
 
 void G4SBSDetectorConstruction::SetFieldScale_BB( G4double v ){
   fFieldScale_BB = v;
+
+  if( fbbfield ){
+    fbbfield->fScaleFactor = v;
+  }
+
+  fGlobalField->ScaleFields( v, kEarm );
 }

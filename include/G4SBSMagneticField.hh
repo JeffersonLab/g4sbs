@@ -21,6 +21,8 @@ public:
   void SetRM( G4RotationMatrix rm ){ frm = rm; }
 
   G4bool fInverted;
+  G4double fScaleFactor; //Set overall scale factor for any magnetic field
+  
 protected:
 
   G4ThreeVector fOffset;
@@ -50,7 +52,7 @@ protected:
   //how to define the grid:
   //vector<double> Bx, By, Bz; //array of field values; later convert to grid
   //map<G4int,G4ThreeVector> fBfield;
-  vector<G4ThreeVector> fBfield;//store in a single vector
+  vector<G4ThreeVector> fBfield;//store in a single vector, 1D array.
 };
 
 #endif//G4SBSMagneticField_hh

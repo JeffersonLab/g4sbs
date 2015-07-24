@@ -395,8 +395,12 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
   double sign = 1.0;
   if( fDetCon->fGlobalField->fInverted ) sign = -1.0;
+
+  //Since G4UniformMagField does not inherit from G4SBSMagneticField, we need to apply the scale factor here:
+  G4double FieldMag = fFieldStrength * fDetCon->GetFieldScale_SBS();
+  
   G4UniformMagField* magField
-    = new G4UniformMagField(G4ThreeVector(sign*fFieldStrength*cos(f48D48ang), 0.0, sign*fFieldStrength*sin(f48D48ang)));
+    = new G4UniformMagField(G4ThreeVector(sign*FieldMag*cos(f48D48ang), 0.0, sign*FieldMag*sin(f48D48ang)));
 
   G4FieldManager *bigfm = new G4FieldManager(magField);
   bigfm->SetDetectorField(magField);
@@ -784,8 +788,11 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     
     G4ThreeVector FrontClampLeadInsert_pos = posrel_leadinsert.x() * SBS_xaxis + posrel_leadinsert.y() * SBS_yaxis + posrel_leadinsert.z() * SBS_zaxis;
 
-    new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
-
+    // Add lead inserts IFF lead option is turned on:
+    if( fDetCon->fLeadOption == 1 ){
+      new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
+    }
+      
     //Add lead bar:
     G4Box *FrontClampLeadBar = new G4Box( "FrontClampLeadBar", 25.0*cm, 10.0*cm, 2.3*cm );
     G4LogicalVolume *FrontClampLeadBar_log = new G4LogicalVolume( FrontClampLeadBar, GetMaterial("Lead"), "FrontClampLeadBar_log" );
@@ -795,7 +802,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4ThreeVector FrontClampLeadBar_pos = FrontClampLeadBar_posrel.x()*SBS_xaxis + FrontClampLeadBar_posrel.y() * SBS_yaxis +
       ( FrontClampLeadBar_posrel.z() + f48D48dist + 24.0*2.54*cm)*SBS_zaxis;
 
-    new G4PVPlacement( clamp_rot, FrontClampLeadBar_pos, FrontClampLeadBar_log, "FrontClampLeadBar_phys", motherlog, false, 0, false );
+    if( fDetCon->fLeadOption == 1 ){
+      new G4PVPlacement( clamp_rot, FrontClampLeadBar_pos, FrontClampLeadBar_log, "FrontClampLeadBar_phys", motherlog, false, 0, false );
+    }
     
   }
 }

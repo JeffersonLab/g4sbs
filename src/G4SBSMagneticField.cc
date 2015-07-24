@@ -7,6 +7,7 @@ G4SBSMagneticField::G4SBSMagneticField(G4ThreeVector off, G4RotationMatrix rm) {
     frm = rm;
 
     fInverted= false;
+    fScaleFactor = 1.0;
 }
 
 

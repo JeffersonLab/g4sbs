@@ -99,6 +99,12 @@ public:
   void SetCDetconfig( int );
   int GetCDetConfigOption() { return fCDetOption; }
 
+  void SetFieldScale_SBS( G4double );
+  G4double GetFieldScale_SBS() { return fFieldScale_SBS; }
+
+  void SetFieldScale_BB( G4double );
+  G4double GetFieldScale_BB() { return fFieldScale_BB; }
+  
 private:
 
   map<G4String, G4Material*> fMaterialsMap;
@@ -110,8 +116,10 @@ private:
   G4String fECALmapfilename;
 
   //Let's define some additional configurable properties of 48D48:
-  double f48D48_uniform_bfield; //set magnitude (and polarity) of SBS magnetic field (direction is fixed)
-
+  G4double f48D48_uniform_bfield; //set magnitude (and polarity) of SBS magnetic field (direction is fixed)
+  G4double fFieldScale_SBS;
+  G4double fFieldScale_BB;
+  
   int fCDetOption;
 };
 

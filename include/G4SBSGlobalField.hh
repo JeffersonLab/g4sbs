@@ -9,27 +9,28 @@
 class TH2F;
 
 class G4SBSGlobalField : public G4MagneticField {
-    public:
-	G4SBSGlobalField();
-	~G4SBSGlobalField();
+public:
+  G4SBSGlobalField();
+  ~G4SBSGlobalField();
 
-	void GetFieldValue( const  double Point[3], double *Bfield ) const;
+  void GetFieldValue( const  double Point[3], double *Bfield ) const;
 
-	void SetInvertField( G4bool b );
+  void SetInvertField( G4bool b );
 
-	void AddToscaField(const char *);
+  G4SBSMagneticField *AddToscaField(const char *); //return a pointer to the added field so that we can store it in G4SBSDetectorConstruction
 
-	void AddField( G4SBSMagneticField *f );
-	void DropField( G4SBSMagneticField *f );
+  void AddField( G4SBSMagneticField *f );
+  void DropField( G4SBSMagneticField *f );
 
-	void DebugField();
+  void DebugField();
 
-	std::vector<TH2F *> fFieldPlots;
+  std::vector<TH2F *> fFieldPlots;
 
-	bool fInverted;
-    private:
-	std::vector<G4SBSMagneticField *> fFields;
-
+  bool fInverted;
+  
+  private:
+  std::vector<G4SBSMagneticField *> fFields;
+  //std::vector<G4double> fScaleFactor;
 };
 
 #endif//G4SBSGlobalField_hh

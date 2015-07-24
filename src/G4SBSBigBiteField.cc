@@ -109,6 +109,8 @@ void G4SBSBigBiteField::GetFieldValue(const G4double Point[3],G4double *Bfield) 
   // Rotate to global coordinates
   newB = (frm.inverse())*newB;
 
+  newB *= fScaleFactor;
+
   if( !fInverted ){
     Bfield[0] = newB.x();
     Bfield[1] = newB.y();

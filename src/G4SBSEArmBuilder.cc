@@ -273,15 +273,19 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fBBdist), *bbrm );
 
   fbbfield->fInverted = fDetCon->fGlobalField->fInverted;
-
+  fbbfield->fScaleFactor = fDetCon->GetFieldScale_BB();
+  
 
   G4FieldManager *bbfm = new G4FieldManager(fbbfield);
-  new G4ChordFinder(fbbfield);
-
+  //new G4ChordFinder(fbbfield);
+  bbfm->SetDetectorField(fbbfield);
+  bbfm->CreateChordFinder(fbbfield);
+  
   if( fUseLocalField ){
     bbmotherLog->SetFieldManager(bbfm,true);
   }
 
+  //does this volume serve any purpose?
   new G4PVPlacement(0, G4ThreeVector(), bbfieldLog, "bbfieldPhysical", bbyokewgapLog, 0,false,0);
 
   //--------- BigBite Detector Volumes ------------

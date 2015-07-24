@@ -128,6 +128,8 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
   // Rotate to global coordinates
   newB = (frm.inverse())*newB;
 
+  newB *= fScaleFactor;
+  
   if( !fInverted ){
     Bfield[0] = newB.x();
     Bfield[1] = newB.y();

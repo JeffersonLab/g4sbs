@@ -15,6 +15,7 @@ class G4SBSPhysicsList;
 
 class G4UIcmdWithAnInteger;
 class G4UIcmdWithADoubleAndUnit;
+class G4UIcmdWithADouble;
 class G4UIcmdWithAString;
 class G4UIcmdWithABool;
 
@@ -116,7 +117,12 @@ private:
   G4UIcmdWithADoubleAndUnit *RICHdistCmd; //Set RICH distance
 
   // Commands to set configurable properties of SBS:
-  G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd; 
+  G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd;
+
+  //Set overall scale factors for magnetic fields:
+  G4UIcmdWithADouble *EARM_ScaleFieldCmd;
+  G4UIcmdWithADouble *HARM_ScaleFieldCmd; 
+  
   G4UIcmdWithAnInteger      *SBSFieldClampOptionCmd;
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
 

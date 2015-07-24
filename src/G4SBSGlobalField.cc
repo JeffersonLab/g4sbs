@@ -67,7 +67,7 @@ void G4SBSGlobalField::AddField( G4SBSMagneticField *f ){
 }
 
 
-void G4SBSGlobalField::AddToscaField( const char *fn ){ 
+G4SBSMagneticField *G4SBSGlobalField::AddToscaField( const char *fn ){ 
     G4SBSToscaField *f = new G4SBSToscaField(fn);
     AddField(f);
     G4TransportationManager::GetTransportationManager()->GetFieldManager()->CreateChordFinder(this);
@@ -92,7 +92,7 @@ void G4SBSGlobalField::AddToscaField( const char *fn ){
     rd->AddMagData(fdata);
 
 
-    return;
+    return f;
 }
 
 void G4SBSGlobalField::DropField( G4SBSMagneticField *f ){ 

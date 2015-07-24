@@ -184,7 +184,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeGEpLead(worldlog);
   }
 
-  if( fDetCon->fExpType == kNeutronExp && fDetCon->fTargType != kLD2 ){
+  if( fDetCon->fExpType == kNeutronExp && fDetCon->fTargType != kLD2 ){ //ought to be in Harm builder?
     MakeGEnClamp(worldlog);
   }
 
@@ -934,7 +934,7 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   leadcone1_log->SetVisAttributes( lead_visatt );
   
   
-  new G4PVPlacement( 0, pos, leadcone1_log, "leadcone1_phys", worldlog, false, 0 );
+  //new G4PVPlacement( 0, pos, leadcone1_log, "leadcone1_phys", worldlog, false, 0 );
   
   G4double zsections[3] = {z_outer_magnetic + 74.0*inch,
 			   201.632*inch - TargetCenter_zoffset,
@@ -951,7 +951,10 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
   leadshield2_log->SetVisAttributes( lead_visatt );
   
-  new G4PVPlacement( 0, G4ThreeVector(), leadshield2_log, "leadshield2_phys", worldlog, false, 0 );
+  //new G4PVPlacement( 0, G4ThreeVector(), leadshield2_log, "leadshield2_phys", worldlog, false, 0 );
+
+  ////// New geometry with vertical wall: 
+  
   
 }
 

@@ -8,6 +8,7 @@
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWithADoubleAndUnit.hh"
+#include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithABool.hh"
 
 #include "G4SBSDetectorConstruction.hh"
@@ -251,6 +252,14 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSMagFieldCmd->SetGuidance("SBS uniform magnetic field value");
   SBSMagFieldCmd->SetParameterName("sbsbfield",false);
 
+  EARM_ScaleFieldCmd = new G4UIcmdWithADouble("/g4sbs/scalebbfield",this);
+  EARM_ScaleFieldCmd->SetGuidance("Scale factor applied to BigBite magnetic field");
+  EARM_ScaleFieldCmd->SetParameterName("bbfieldscale",false);
+
+  HARM_ScaleFieldCmd = new G4UIcmdWithADouble("/g4sbs/scalesbsfield",this);
+  HARM_ScaleFieldCmd->SetGuidance("Scale factor applied to SBS magnetic field");
+  HARM_ScaleFieldCmd->SetParameterName("sbsfieldscale",false);
+  
   SBSFieldClampOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/sbsclampopt",this);
   SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 0=no clamp, 1=BigBite(default), 2=GEp");
   SBSFieldClampOptionCmd->SetParameterName("sbsclampoption",false);
@@ -763,6 +772,27 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->SetUniformMagneticField48D48( v );
   }
 
+  if( cmd == EARM_ScaleFieldCmd ){
+    G4double v = EARM_ScaleFieldCmd->GetNewDoubleValue( newValue );
+    fdetcon->SetFieldScale_BB( v );
+    if( fdetcon->GetBBField() != NULL ){
+      fdetcon->GetBBField()->fScaleFactor = s;
+    }
+  }
+
+  if( cmd == HARM_ScaleFieldCmd ){
+    G4double v = HARM_ScaleFieldCmd->GetNewDoubleValue( newValue );
+    fdetcon->SetFieldScale_SBS(v);
+    if( fdetcon->Get48D48Field() != NULL ){
+      fdetcon->Get48D48Field()->fScaleFactor = s;
+      G4cout << "Setting SBS magnetic field scale factor to " << s << G4endl;
+    }
+
+    // if( fdetcon->fUseGlobalField ){
+      
+    // }
+  }
+  
   if( cmd == SBSFieldClampOptionCmd ){
     G4int i = SBSFieldClampOptionCmd->GetNewIntValue(newValue);
     fdetcon->fHArmBuilder->SetFieldClampConfig48D48( i );

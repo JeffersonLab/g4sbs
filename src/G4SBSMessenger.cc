@@ -823,7 +823,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     G4bool flag;
     G4String SDname;
-    is >> SDname >> flag;
+
+    //Let's do (somewhat) intelligent parsing of the string here:
+    if( newValue.contains("true") || newValue.contains("false") ){ //parse with the "boolalpha" flag:
+      is >> SDname >> std::boolalpha >> flag;
+    } else { //assume that the boolean parameter is given as 1 or 0:
+      is >> SDname >> flag;
+    }
 
     fIO->KeepPartCALflags[SDname] = flag;
   }
@@ -832,8 +838,17 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     std::istringstream is(newValue);
     G4bool flag;
     G4String SDname;
-    is >> SDname >> flag;
 
+    //Let's do (somewhat) intelligent parsing of the string here:
+    if( newValue.contains("true") || newValue.contains("false") ){ //parse with the "boolalpha" flag:
+      is >> SDname >> std::boolalpha >> flag;
+    } else { //assume that the boolean parameter is given as 1 or 0:
+      is >> SDname >> flag;
+    }
+    //is >> SDname >> std::boolalpha >> flag;
+
+    G4cout << "/g4sbs/keephistory invoked, (SDname, flag)=(" << SDname << ", " << flag << ")" << G4endl;
+    
     fIO->KeepHistoryflags[SDname] = flag;
   }
 
@@ -841,7 +856,15 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     std::istringstream is(newValue);
     G4bool flag;
     G4String SDname;
-    is >> SDname >> flag;
+
+    //Let's do (somewhat) intelligent parsing of the string here:
+    if( newValue.contains("true") || newValue.contains("false") ){ //parse with the "boolalpha" flag:
+      is >> SDname >> std::boolalpha >> flag;
+    } else { //assume that the boolean parameter is given as 1 or 0:
+      is >> SDname >> flag;
+    }
+    
+    //is >> SDname >> std::boolalpha >> flag;
 
     G4cout << "/g4sbs/steplimit invoked" << G4endl;
     G4cout << "newValue = " << newValue << G4endl;

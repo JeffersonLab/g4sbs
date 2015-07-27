@@ -1738,7 +1738,7 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
       delete f48d48field;
     }
     //rm.rotateY(-fHArmBuilder->f48D48ang);
-    rm.rotateY(fHArmBuilder->f48D48ang); //needed for SBS on beam right
+    rm.rotateY(fHArmBuilder->f48D48ang); //rotation about y axis is positive for SBS on beam right
 	    
     f48d48field = new G4SBSConstantField( 
 					 G4ThreeVector(0.0, 0.0, fHArmBuilder->f48D48dist),  rm,
@@ -1759,7 +1759,7 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
     delete f48d48field;
     f48d48field = NULL;
     break;
-  default:
+  default: //do nothing
     break;
   }
   return;
@@ -1773,7 +1773,7 @@ void G4SBSDetectorConstruction::SetBBDist(double a){
 void G4SBSDetectorConstruction::SetBBAng(double a){ 
   fEArmBuilder->SetBBAng(a); 
   G4RotationMatrix rm;
-  rm.rotateY(-a);
+  rm.rotateY(-a); //for BB on beam left, rotation about Y is negative (CCW).
   if( fbbfield ) fbbfield->SetRM(rm); 
 }
 
@@ -1785,7 +1785,7 @@ void G4SBSDetectorConstruction::Set48D48Dist(double a){
 void G4SBSDetectorConstruction::Set48D48Ang(double a){ 
   fHArmBuilder->Set48D48Ang(a); 
   G4RotationMatrix rm;
-  rm.rotateY(a);
+  rm.rotateY(a); //for SBS on beam right, rotation about Y is positive (CW).
   if( f48d48field ) f48d48field->SetRM(rm); 
 }
 

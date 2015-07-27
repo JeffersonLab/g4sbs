@@ -953,7 +953,8 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   
   //new G4PVPlacement( 0, G4ThreeVector(), leadshield2_log, "leadshield2_phys", worldlog, false, 0 );
 
-  ////// New geometry with vertical wall: 
+  ////// New geometry with vertical wall: No shielding directly in magnet gap:
+  
   
   
 }

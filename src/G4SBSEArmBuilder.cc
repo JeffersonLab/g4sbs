@@ -285,7 +285,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     bbmotherLog->SetFieldManager(bbfm,true);
   }
 
-  //does this volume serve any purpose?
+  //does this volume serve any purpose? Apparently not
   new G4PVPlacement(0, G4ThreeVector(), bbfieldLog, "bbfieldPhysical", bbyokewgapLog, 0,false,0);
 
   //--------- BigBite Detector Volumes ------------

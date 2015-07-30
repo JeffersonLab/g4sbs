@@ -19,6 +19,7 @@ public:
   vector<int> row, col, plane; //"row" and "column" of cells
   vector<double> xcell, ycell, zcell; //"local" x and y coordinates of center of cell (assumes a rectangular, planar geometry)
   vector<double> xcellg,ycellg,zcellg; //"global" xyz coordinates of center of cell (no assumptions on geometry)
+  vector<double> xhit, yhit, zhit; //weighted "average" global position of energy deposition
   vector<double> sumedep, tavg, trms, tmin, tmax; //Sum of energy deposition, average, rms, min and max global times of energy depositions in this cell
 
   //"Part" keeps track of all unique particles depositing energy in a "calorimeter" sensitive volume:

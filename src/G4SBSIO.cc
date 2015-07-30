@@ -365,6 +365,9 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
   fTree->Branch( branch_name.Format( "%s.hit.xcellg", branch_prefix.Data() ), &(CALdata[SDname].xcellg) );
   fTree->Branch( branch_name.Format( "%s.hit.ycellg", branch_prefix.Data() ), &(CALdata[SDname].ycellg) );
   fTree->Branch( branch_name.Format( "%s.hit.zcellg", branch_prefix.Data() ), &(CALdata[SDname].zcellg) );
+  fTree->Branch( branch_name.Format( "%s.hit.xhit", branch_prefix.Data() ), &(CALdata[SDname].xhit) );
+  fTree->Branch( branch_name.Format( "%s.hit.yhit", branch_prefix.Data() ), &(CALdata[SDname].yhit) );
+  fTree->Branch( branch_name.Format( "%s.hit.zhit", branch_prefix.Data() ), &(CALdata[SDname].zhit) );
   fTree->Branch( branch_name.Format( "%s.hit.sumedep", branch_prefix.Data() ), &(CALdata[SDname].sumedep) );
   fTree->Branch( branch_name.Format( "%s.hit.tavg", branch_prefix.Data() ), &(CALdata[SDname].tavg) );
   fTree->Branch( branch_name.Format( "%s.hit.trms", branch_prefix.Data() ), &(CALdata[SDname].trms) );
@@ -493,6 +496,7 @@ void G4SBSIO::BranchRICH(G4String SDname="RICH"){
     fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.px) );
     fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.py) );
     fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(richdata[SDname].ParticleHistory.pz) );
+    fTree->Branch( branch_name.Format("%s.part.Nphe_part", branch_prefix.Data() ), &(richdata[SDname].Nphe_part) );
   }
   return;
 }

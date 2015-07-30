@@ -67,5 +67,5 @@ void G4SBSRICHoutput::Clear(){
   // mpz.clear();
 
   ParticleHistory.Clear();
-
+  Nphe_part.clear();
 }

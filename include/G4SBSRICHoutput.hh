@@ -31,8 +31,7 @@ public:
   vector<double> Time_rms; //std. deviation of photon arrival times in this hit.
   vector<double> Time_min; //Earliest photon arrival time in this hit
   vector<double> Time_max; //Latest photon arrival time in this hit
-  vector<int> mTrackNo; //Track of the mother particle that produced this hit. Note: THIS IS NOT THE GEANT4 TRACK ID, BUT RATHER THE INDEX IN THE ARRAY THAT 
-                          //IS DEFINED BELOW!
+  vector<int> mTrackNo; //GEANT4 Track ID of the mother particle that produced the FIRST photon detected in this hit
   //Average position of photons in this hit (local coordinates):
   vector<double> xhit;
   vector<double> yhit;
@@ -76,6 +75,8 @@ public:
   
   G4SBSParticleOutput ParticleHistory;
 
+  vector<int> Nphe_part; //array size should be same as ParticleHistory
+  
 };
 
 #endif

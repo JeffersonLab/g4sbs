@@ -26,6 +26,9 @@ void G4SBSCALoutput::Clear(){
   xcellg.clear();
   ycellg.clear();
   zcellg.clear();
+  xhit.clear();
+  yhit.clear();
+  zhit.clear();
   sumedep.clear();
   tavg.clear();
   trms.clear();

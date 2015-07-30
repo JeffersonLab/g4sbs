@@ -953,9 +953,47 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   
   //new G4PVPlacement( 0, G4ThreeVector(), leadshield2_log, "leadshield2_phys", worldlog, false, 0 );
 
-  ////// New geometry with vertical wall: No shielding directly in magnet gap:
+  ////// New geometry with vertical wall(s): 
+
+  G4ThreeVector zaxis_temp( -sin(16.9*deg), 0.0, cos(16.9*deg) );
+  G4ThreeVector yaxis_temp( 0,1,0);
+  G4ThreeVector xaxis_temp = (yaxis_temp.cross(zaxis_temp)).unit();
   
+  G4ThreeVector frontcorner_pos = 1.6*m*zaxis_temp;
+
+  G4double zstart_lead_wall1 = z_outer_magnetic + 15*cm;
+  G4double zstop_lead_wall1 = zstart_lead_wall1 + 1.25*m;
+
+  G4Box *lead_wall1 = new G4Box("lead_wall1", 5.0*cm/2.0, 31.0*cm/2.0, 1.25*m/2.0 );
+  G4LogicalVolume *lead_wall1_log = new G4LogicalVolume( lead_wall1, GetMaterial("Lead"), "lead_wall1_log" );
+
+  G4double xtemp = -( 5.5*inch/2.0 + 1.5*inch + (1.25/2.0+0.15)*m*tan(1.5*deg) + 2.5*cm/cos(1.5*deg) );
   
+  rot_temp = new G4RotationMatrix;
+
+  rot_temp->rotateY( 1.5*deg );
+  
+  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, 0.0, zstart_lead_wall1 + 0.5*1.25*m ), lead_wall1_log, "lead_wall1_phys", worldlog, false, 0 );
+  
+  lead_wall1_log->SetVisAttributes( lead_visatt );
+
+  G4double zstart_lead_wall2 = z_formed_bellows + 76.09*inch + 1.71*inch + 15.75*inch + 1.0*inch;
+  G4double zstop_lead_wall2 = 207.144*inch - TargetCenter_zoffset + 40.0*inch;
+
+  G4double zpos_lead_wall2 = 0.5*(zstart_lead_wall2 + zstop_lead_wall2 );
+  //we want x position to have x = 
+  G4double xpos_lead_wall2 = -(8.0*inch + 2.5*cm + (zpos_lead_wall2 - 201.632*inch + TargetCenter_zoffset )*tan(1.5*deg));
+
+  G4Box *lead_wall2 = new G4Box("lead_wall2", 5.0*cm/2.0, 24.0*inch/2.0, 0.5*(zstop_lead_wall2 - zstart_lead_wall2) );
+
+  G4LogicalVolume *lead_wall2_log = new G4LogicalVolume( lead_wall2, GetMaterial("Lead"), "lead_wall2_log" );
+
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY( 1.5*deg );
+
+  new G4PVPlacement( rot_temp, G4ThreeVector( xpos_lead_wall2, 0, zpos_lead_wall2 ), lead_wall2_log, "lead_wall2_phys", worldlog, false, 0 );
+
+  lead_wall2_log->SetVisAttributes( lead_visatt );
   
 }
 
@@ -1076,27 +1114,27 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   G4Box *Beamslot_cut_box = new G4Box( "Beamslot_cut_box", 50.0*cm/2.0, Beamslot_lead_height/2.0 + mm, Beamslot_notch_depth );
 
   G4RotationMatrix *notch_rot = new G4RotationMatrix;
-  notch_rot->rotateY( -45.0*deg );
+  notch_rot->rotateY( 45.0*deg );
 
   G4double notch_angle = 45.0*deg;
   
   G4SubtractionSolid *Beamslot_lead_box_cut = new G4SubtractionSolid( "Beamslot_lead_box_cut", Beamslot_lead_box, Beamslot_cut_box, notch_rot,
-								      G4ThreeVector( -Beamslot_lead_width/2.0,
+								      G4ThreeVector( Beamslot_lead_width/2.0,
 										     0.0,
 										     -Beamslot_lead_depth/2.0 ) );
   
   G4double SBSang = fDetCon->fHArmBuilder->f48D48ang;
 
   G4RotationMatrix *Beamslot_lead_rm = new G4RotationMatrix;
-  Beamslot_lead_rm->rotateY( -SBSang );
+  Beamslot_lead_rm->rotateY( SBSang );
 
-  G4ThreeVector SBS_zaxis( sin(SBSang), 0.0, cos(SBSang) );
+  G4ThreeVector SBS_zaxis( -sin(SBSang), 0.0, cos(SBSang) );
   G4ThreeVector SBS_yaxis( 0.0, 1.0, 0.0 );
-  G4ThreeVector SBS_xaxis( cos(SBSang), 0.0, -sin(SBSang) );
+  G4ThreeVector SBS_xaxis( cos(SBSang), 0.0, sin(SBSang) );
 
   G4double Beamslot_lead_xoffset = 35.0*cm + Beamslot_lead_width/2.0;
 
-  G4ThreeVector Beamslot_lead_position = (fDetCon->fHArmBuilder->f48D48dist + (fDetCon->fHArmBuilder->f48D48depth)/2.0) * SBS_zaxis - Beamslot_lead_xoffset * SBS_xaxis;
+  G4ThreeVector Beamslot_lead_position = (fDetCon->fHArmBuilder->f48D48dist + (fDetCon->fHArmBuilder->f48D48depth)/2.0) * SBS_zaxis + Beamslot_lead_xoffset * SBS_xaxis;
 
   //Define a subtraction cone for the beam slot in the SBS magnet:
   // G4double zbeampipe[2] = {162.2*cm, 592.2*cm};
@@ -1110,7 +1148,7 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   G4Cons *beampipe_subtraction_cone = new G4Cons( "beampipe_subtraction_cone", 0.0*cm, 5.1*cm, 0.0*cm, 15.1*cm, beampipe_subtraction_cone_dz, 0.0*deg, 360.0*deg );
 
   G4RotationMatrix *Beamslot_lead_rm_inv = new G4RotationMatrix;
-  Beamslot_lead_rm_inv->rotateY( SBSang );
+  Beamslot_lead_rm_inv->rotateY( -SBSang );
 
   G4ThreeVector beampipe_beamslot_relative_position = beampipe_subtraction_cone_position - Beamslot_lead_position;
 

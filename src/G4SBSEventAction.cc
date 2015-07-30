@@ -437,6 +437,7 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
   map<int,double> YCell; //Mapping between cells and y coordinates of cell centers (local)
   map<int,double> ZCell; //Mapping between cells and z coordinates of cell centers (local);
   map<int,double> XCellG,YCellG,ZCellG; //Mapping between cells and xyz coordinates of cell centers (global).
+  map<int,double> xsum, ysum, zsum; //sum of global positions of tracks
   map<int,double> esum, t, t2, tmin, tmax;
 
   map<int,set<int> > TrackIDs; //mapping between cells and a list of unique track IDs depositing energy in a cell
@@ -468,30 +469,43 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	XCellG[cell] = (*hits)[hit]->GetGlobalCellCoords().x();
 	YCellG[cell] = (*hits)[hit]->GetGlobalCellCoords().y();
 	ZCellG[cell] = (*hits)[hit]->GetGlobalCellCoords().z();
+	xsum[cell] = Edep * (*hits)[hit]->GetLabPos().x();
+	ysum[cell] = Edep * (*hits)[hit]->GetLabPos().y();
+	zsum[cell] = Edep * (*hits)[hit]->GetLabPos().z();
 	esum[cell] = Edep;
-	t[cell] = (*hits)[hit]->GetTime();
-	t2[cell] = pow(t[cell],2);
-	tmin[cell] = t[cell];
-	tmax[cell] = t[cell];
+	t[cell] = Edep * (*hits)[hit]->GetTime();
+	t2[cell] = Edep * pow((*hits)[hit]->GetTime(),2);
+	tmin[cell] = (*hits)[hit]->GetTime();
+	tmax[cell] = tmin[cell];
       } else { //additional hit in existing cell:
-	double w = double(nsteps_cell[cell])/(double(nsteps_cell[cell]+1) );
+	//double w = double(nsteps_cell[cell])/(double(nsteps_cell[cell]+1) );
+	G4double w = Edep;
 	esum[cell] += Edep;
-	t[cell] = w * t[cell] + (1.0-w)*( (*hits)[hit]->GetTime() );
-	t2[cell] += pow( (*hits)[hit]->GetTime(),2 );
+	// t[cell] = w * t[cell] + (1.0-w)*( (*hits)[hit]->GetTime() );
+	// t2[cell] += pow( (*hits)[hit]->GetTime(),2 );
+	t[cell] += w * ( (*hits)[hit]->GetTime() );
+	t2[cell] += w * pow( (*hits)[hit]->GetTime(), 2 );
 	if( (*hits)[hit]->GetTime() < tmin[cell] ) tmin[cell] = (*hits)[hit]->GetTime();
 	if( (*hits)[hit]->GetTime() > tmax[cell] ) tmax[cell] = (*hits)[hit]->GetTime();
+
+	//xsum[cell] += w * xsum[cell] + (1.0-w)*( (*hits)[hit]->GetPos().x() );
+	//ysum[cell] += w * ysum[cell] + (1.0-w)*( (*hits)[hit]->GetPos().y() );
+	xsum[cell] += w * (*hits)[hit]->GetLabPos().x();
+	ysum[cell] += w * (*hits)[hit]->GetLabPos().y();
+	zsum[cell] += w * (*hits)[hit]->GetLabPos().z();
+	
 	nsteps_cell[cell]++;
       }
       //Track information:
       if( newtrack.second ){ //new track in this cell:
 	nsteps_track[cell][track] = 1;
-	x[cell][track] = (*hits)[hit]->GetPos().x(); //local
-	y[cell][track] = (*hits)[hit]->GetPos().y(); //
-	z[cell][track] = (*hits)[hit]->GetPos().z(); 
-	trt[cell][track] = (*hits)[hit]->GetTime();
+	x[cell][track] = Edep * (*hits)[hit]->GetPos().x(); //local
+	y[cell][track] = Edep * (*hits)[hit]->GetPos().y(); //
+	z[cell][track] = Edep * (*hits)[hit]->GetPos().z(); 
+	trt[cell][track] = Edep * (*hits)[hit]->GetTime();
 	E[cell][track] = (*hits)[hit]->GetEnergy();
-	trtmin[cell][track] = trt[cell][track];
-	trtmax[cell][track] = trt[cell][track];
+	trtmin[cell][track] =  (*hits)[hit]->GetTime();
+	trtmax[cell][track] =  (*hits)[hit]->GetTime();
 	L[cell][track] = (*hits)[hit]->GetLstep(); //path length
 	vx[cell][track] = (*hits)[hit]->GetVertex().x(); 
 	vy[cell][track] = (*hits)[hit]->GetVertex().y(); 
@@ -504,11 +518,15 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	pz[cell][track] = (*hits)[hit]->GetMomentum().z();
 	edep[cell][track] = Edep;
       } else { //additional step in this cell:
-	double w = double(nsteps_track[cell][track])/(double(nsteps_track[cell][track]+1) );
-	x[cell][track] = w * x[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().x(); //local
-	y[cell][track] = w * y[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().y();
-	z[cell][track] = w * z[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().z();
-	trt[cell][track] = w * trt[cell][track] + (1.0-w)*(*hits)[hit]->GetTime();
+	//double w = double(nsteps_track[cell][track])/(double(nsteps_track[cell][track]+1) );
+	// x[cell][track] = w * x[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().x(); //local
+	// y[cell][track] = w * y[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().y();
+	// z[cell][track] = w * z[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().z();
+	// trt[cell][track] = w * trt[cell][track] + (1.0-w)*(*hits)[hit]->GetTime();
+	x[cell][track] += Edep * (*hits)[hit]->GetPos().x();
+	y[cell][track] += Edep * (*hits)[hit]->GetPos().y();
+	z[cell][track] += Edep * (*hits)[hit]->GetPos().z();
+	trt[cell][track] += Edep * (*hits)[hit]->GetTime();
 	if( (*hits)[hit]->GetTime() < trtmin[cell][track] ) trtmin[cell][track] = (*hits)[hit]->GetTime();
 	if( (*hits)[hit]->GetTime() > trtmax[cell][track] ) trtmax[cell][track] = (*hits)[hit]->GetTime();
 	L[cell][track] += (*hits)[hit]->GetLstep();
@@ -539,8 +557,15 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
       caloutput.ycellg.push_back( YCellG[cell]/_L_UNIT );
       caloutput.zcellg.push_back( ZCellG[cell]/_L_UNIT );
       caloutput.sumedep.push_back( esum[cell]/_E_UNIT );
-      caloutput.tavg.push_back( t[cell]/_T_UNIT );
-      caloutput.trms.push_back( sqrt( t2[cell]/double(nsteps_cell[cell]) - pow(t[cell],2) )/_T_UNIT );
+
+      caloutput.tavg.push_back( t[cell]/esum[cell]/_T_UNIT );
+      caloutput.trms.push_back( sqrt( t2[cell]/esum[cell] - pow(t[cell]/esum[cell],2) )/_T_UNIT );
+      caloutput.xhit.push_back( xsum[cell]/esum[cell]/_L_UNIT );
+      caloutput.yhit.push_back( ysum[cell]/esum[cell]/_L_UNIT );
+      caloutput.zhit.push_back( zsum[cell]/esum[cell]/_L_UNIT );
+      
+      // caloutput.tavg.push_back( t[cell]/_T_UNIT );
+      // caloutput.trms.push_back( sqrt( t2[cell]/double(nsteps_cell[cell]) - pow(t[cell],2) )/_T_UNIT );
       caloutput.tmin.push_back( tmin[cell]/_T_UNIT );
       caloutput.tmax.push_back( tmax[cell]/_T_UNIT );
       
@@ -548,10 +573,10 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
       for( set<int>::iterator itrack = TrackIDs[cell].begin(); itrack != TrackIDs[cell].end(); itrack++ ){
 	int track = *itrack;
 	caloutput.ihit.push_back( HitList[cell] );
-	caloutput.x.push_back( x[cell][track]/_L_UNIT );
-	caloutput.y.push_back( y[cell][track]/_L_UNIT );
-	caloutput.z.push_back( z[cell][track]/_L_UNIT );
-	caloutput.t.push_back( trt[cell][track]/_T_UNIT );
+	caloutput.x.push_back( x[cell][track]/edep[cell][track]/_L_UNIT );
+	caloutput.y.push_back( y[cell][track]/edep[cell][track]/_L_UNIT );
+	caloutput.z.push_back( z[cell][track]/edep[cell][track]/_L_UNIT );
+	caloutput.t.push_back( trt[cell][track]/edep[cell][track]/_T_UNIT );
 	caloutput.dt.push_back( (trtmax[cell][track] - trtmin[cell][track])/_T_UNIT );
 	caloutput.E.push_back( E[cell][track]/_E_UNIT );
 	caloutput.L.push_back( L[cell][track]/_L_UNIT );
@@ -788,8 +813,9 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
 
   set<int> TIDs_unique;  //set of all unique photon tracks involved in RICH hits.
   set<int> PMTs_unique;  //set of all unique PMTs with detected photons.
-  set<int> mTIDs_unique;
-
+  set<int> mTIDs_unique; //set of all unique mother track IDs associated with RICH detected photons
+  map<int,int> Nphe_mTID; // count the number of photoelectrons generated by a given mother track (compromise?)
+  
   map<int,bool> Photon_used;
   map<int,bool> Photon_detected;
   map<int,double> Photon_energy;
@@ -945,8 +971,13 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
 	  PMT_x[ pmt ] = Photon_xpmt[tid];
 	  PMT_xg[ pmt ] = Photon_xgpmt[tid];
 
-	  mTIDs_unique.insert( Photon_mTID[tid] );
+	  std::pair<set<int>::iterator,bool> newmother = mTIDs_unique.insert( Photon_mTID[tid] );
 
+	  if( newmother.second ){
+	    Nphe_mTID[ Photon_mTID[tid] ] = 1;
+	  } else {
+	    Nphe_mTID[ Photon_mTID[tid] ] += 1;
+	  }
 	} else if( fabs( Photon_hittime[tid] - PMT_hittime[pmt] ) <= richoutput.timewindow ){ //Existing pmt with multiple photon detections:
 	  G4ThreeVector average_pos = (PMT_Numphotoelectrons[pmt] * PMT_pos[pmt] + Photon_position[tid])/double(PMT_Numphotoelectrons[pmt] + 1);
 	  PMT_pos[pmt] = average_pos;
@@ -968,10 +999,14 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
 	  
 	  Photon_used[tid] = true;
 
-	  mTIDs_unique.insert( Photon_mTID[tid] );
+	  std::pair<set<int>::iterator,bool> newmother = mTIDs_unique.insert( Photon_mTID[tid] );
+
+	  if( newmother.second ){
+	    Nphe_mTID[ Photon_mTID[tid] ] = 1;
+	  } else {
+	    Nphe_mTID[ Photon_mTID[tid] ] += 1;
+	  }
 	}
-	
-	
 	
 	//If any photon is detected but not used, then remaining hits = true!
 	if( !(Photon_used[tid] ) ) remaining_hits = true;
@@ -1076,6 +1111,7 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
 	richoutput.ParticleHistory.px.push_back( pinitial.x()/_E_UNIT );
 	richoutput.ParticleHistory.py.push_back( pinitial.y()/_E_UNIT );
 	richoutput.ParticleHistory.pz.push_back( pinitial.z()/_E_UNIT );
+	richoutput.Nphe_part.push_back( Nphe_mTID[ *it ] );
       }
       
       TIDtemp = MIDtemp;
@@ -1083,14 +1119,14 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
     } while ( MIDtemp != 0 );
   }
 
-  for(G4int ihit=0; ihit<richoutput.nhits_RICH; ihit++){
-    set<int>::iterator pos = mTIDs_unique.find( richoutput.mTrackNo[ihit] );
-    if( pos != mTIDs_unique.end() ){
-      richoutput.mTrackNo[ihit] = mtrackindex[ *pos ];
-    } else {
-      richoutput.mTrackNo[ihit] = -1; //This should never happen!
-    }
-  }
+  // for(G4int ihit=0; ihit<richoutput.nhits_RICH; ihit++){
+  //   set<int>::iterator pos = mTIDs_unique.find( richoutput.mTrackNo[ihit] );
+  //   if( pos != mTIDs_unique.end() ){
+  //     richoutput.mTrackNo[ihit] = mtrackindex[ *pos ];
+  //   } else {
+  //     richoutput.mTrackNo[ihit] = -1; //This should never happen!
+  //   }
+  // }
 }
 
 void G4SBSEventAction::MapTracks( const G4Event *evt ){

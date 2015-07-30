@@ -1072,7 +1072,7 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
 
   set<int> MotherTrajectories;
 
-  for(set<int>::iterator it=mTIDs_unique.begin(); it!=mTIDs_unique.end(); it++ ){
+  for(set<int>::iterator it=mTIDs_unique.begin(); it!=mTIDs_unique.end(); it++ ){ //this is a loop over all TIDs that produced photoelectrons:
 
     int PIDtemp = 0;
     int TIDtemp = *it;
@@ -1080,6 +1080,8 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
     int hitidx = -1;
     int nbouncetemp = 0;
 
+    G4cout << "Before history traversal, it = " << *it << G4endl;
+    
     do {
       G4Trajectory *track = (G4Trajectory*) ( (*tracklist)[TrajectoryIndex[TIDtemp]] );
     
@@ -1089,7 +1091,7 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
       PIDtemp = track->GetPDGEncoding();
       MIDtemp = MotherTrackIDs[TIDtemp];
     
-      std::pair<set<int>::iterator,bool> newtrajectory = MotherTrajectories.insert( TIDtemp );
+      std::pair<set<int>::iterator,bool> newtrajectory = MotherTrajectories.insert( TIDtemp ); //Whether this is a mother of a mother or not, this is the first time this TID is encountered!
       
       if( newtrajectory.second ){
 	richoutput.ParticleHistory.npart++;
@@ -1111,12 +1113,17 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
 	richoutput.ParticleHistory.px.push_back( pinitial.x()/_E_UNIT );
 	richoutput.ParticleHistory.py.push_back( pinitial.y()/_E_UNIT );
 	richoutput.ParticleHistory.pz.push_back( pinitial.z()/_E_UNIT );
-	richoutput.Nphe_part.push_back( Nphe_mTID[ *it ] );
+	if( mTIDs_unique.find( TIDtemp ) != mTIDs_unique.end() ){ //if this track is in the set of all tracks producing photodetections, record the number of photoelectrons associated:
+	  richoutput.Nphe_part.push_back( Nphe_mTID[ *it ] );
+	} else {
+	  richoutput.Nphe_part.push_back( 0 );
+	}
       }
       
       TIDtemp = MIDtemp;
       nbouncetemp++;
     } while ( MIDtemp != 0 );
+    G4cout << "After history traversal, it = " << *it << G4endl;
   }
 
   // for(G4int ihit=0; ihit<richoutput.nhits_RICH; ihit++){

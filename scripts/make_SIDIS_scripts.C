@@ -212,7 +212,7 @@ void make_SIDIS_scripts( const char *inputfilename ){
 	  unit = " m";
 	  cmd_temp = cmd_prefix + value + unit;
 	  outputfile << cmd_temp.Data() << endl;
-	} else if( cmd_prefix == "/g4sbs/hcalang"){
+	} else if( cmd_prefix == "/g4sbs/sbsang"){
 	  //value = " ";
 	  //value += thsbs;
 	  value.Form(" %5.3g", thsbs);

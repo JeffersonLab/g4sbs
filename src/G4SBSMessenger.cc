@@ -79,9 +79,13 @@ G4SBSMessenger::G4SBSMessenger(){
   tgtCmd->SetParameterName("targtype", false);
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
-  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun");
+  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6");
   kineCmd->SetParameterName("kinetype", false);
 
+  PYTHIAfileCmd = new G4UIcmdWithAString("/g4sbs/pythia6file",this);
+  PYTHIAfileCmd->SetGuidance("Name of ROOT file containing PYTHIA6 events as a ROOT tree");
+  PYTHIAfileCmd->SetParameterName("fname",false);
+  
   expCmd = new G4UIcmdWithAString("/g4sbs/exp",this);
   expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis");
   expCmd->SetParameterName("exptype", false);
@@ -337,6 +341,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4VPhysicalVolume* pWorld;
 
     G4int nevt = runCmd->GetNewIntValue(newValue);
+
+    //If the generator is PYTHIA, don't try to generate more events than we have available:
+    if( fevgen->GetKine() == kPYTHIA6 && fevgen->GetPythiaChain()->GetEntries() < nevt ){
+      nevt = fevgen->GetPythiaChain()->GetEntries();
+    }
+    
     fevgen->SetNevents(nevt);
 	
     //Clean out and rebuild the detector geometry from scratch: 
@@ -429,12 +439,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
 
+    if( newValue.compareTo("pythia6") == 0 ){
+      fevgen->SetKine( kPYTHIA6 );
+      validcmd = true;
+    }
+
     if( !validcmd ){
       fprintf(stderr, "%s: %s line %d - Error: kinematic type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
       exit(1);
     } else {
       G4SBSRun::GetRun()->GetData()->SetGenName(newValue.data());
     }
+  }
+
+  if( cmd == PYTHIAfileCmd ){
+    fevgen->LoadPythiaChain( newValue );
   }
 
   if( cmd == expCmd ){

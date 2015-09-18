@@ -39,10 +39,6 @@ private:
   G4SBSRunAction *RunAction;
   G4SBSIO *fIO;
 
-  //store a pointer to G4SBSRunAction:
-  
-  
-
   bool fUseGeantino;
 };
 

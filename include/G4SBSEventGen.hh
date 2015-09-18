@@ -9,6 +9,11 @@
 #include "CLHEP/Random/RandGauss.h"
 #include "G4SBSIO.hh"
 #include "DSS2007FF.hh"
+#include "G4SBSPythiaOutput.hh"
+#include "TFile.h"
+#include "TTree.h"
+#include "TChain.h"
+#include "Pythia6_tree.h"
 
 #define MAXMOMPT 1000 // N points for targets momentum distribution interpolations
 
@@ -75,6 +80,14 @@ public:
   
   double GetHcalDist(){ return fHCALdist; }
   double GetToFres(){ return fToFres; }
+
+  void SetPythiaEvent( G4SBSPythiaOutput ev ){ fPythiaEvent = ev; }
+  G4SBSPythiaOutput GetPythiaEvent(){ return fPythiaEvent; }
+
+  Pythia6_tree *GetPythiaTree(){ return fPythiaTree; }
+  TChain *GetPythiaChain(){ return fPythiaChain; }
+  
+  void LoadPythiaChain(G4String fname);
 private:
   double fElectronE, fNucleonE, fHadronE, fBeamE;
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
@@ -116,13 +129,22 @@ private:
   bool GenerateSIDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
   bool GenerateWiser( Nucl_t, G4LorentzVector, G4LorentzVector );
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
+  bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
   
   double deutpdist( double );
   double he3pdist( Nucl_t, double );
   
   DSS2007FF fFragFunc; //Class to calculate fragmentation functions using DSS2007
 
-  void LoadTargetData();
+  //void LoadTargetData(); //why is this here? Not implemented...
+
+  //TFile *fPythiaFile;
+  //TTree *fPythiaTree;
+  long fchainentry;
+  TChain *fPythiaChain;
+  Pythia6_tree *fPythiaTree;
+  
+  G4SBSPythiaOutput fPythiaEvent;
 };
 
 #endif//G4SBSEVENTGEN_HH

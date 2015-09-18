@@ -54,6 +54,8 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   ev_t evdata;
 
+  //G4SBSPythiaOutput Primaries;
+  
   // Several different types of scattering
   // Let's start with e'N elastic
 
@@ -68,6 +70,27 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   evdata = sbsgen->GetEventData();
   fIO->SetEventData(evdata);
+
+  if( sbsgen->GetKine() == kPYTHIA6 ){ //PYTHIA6 event:
+    G4SBSPythiaOutput Primaries = sbsgen->GetPythiaEvent();
+
+    for( int ipart = 0; ipart<Primaries.Nprimaries; ipart++ ){
+      if( Primaries.genflag[ipart] != 0 ){
+	particle = particleTable->FindParticle( Primaries.PID[ipart] );
+	particleGun->SetParticleDefinition(particle);
+	particleGun->SetNumberOfParticles(1);
+	particleGun->SetParticleEnergy( Primaries.E[ipart]-Primaries.M[ipart] );
+	particleGun->SetParticleMomentum( G4ParticleMomentum( Primaries.Px[ipart], Primaries.Py[ipart], Primaries.Pz[ipart] ) );
+	particleGun->SetParticlePosition( G4ThreeVector( Primaries.vx[ipart], Primaries.vy[ipart], Primaries.vz[ipart] ) );
+	particleGun->SetParticleTime( Primaries.t[ipart] );
+	particleGun->GeneratePrimaryVertex(anEvent);
+      }
+    }
+    
+    fIO->SetPythiaOutput( Primaries );
+    
+    return;
+  }
 
   if( !fUseGeantino && sbsgen->GetKine() != kGun ){
     particle = particleTable->FindParticle(particleName="e-");

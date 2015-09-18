@@ -12,6 +12,7 @@
 #include "G4SBSCALoutput.hh"
 #include "G4SBSGEMoutput.hh"
 #include "G4SBSDetectorConstruction.hh"
+#include "G4SBSPythiaOutput.hh"
 
 class TFile;
 class TTree;
@@ -26,44 +27,44 @@ typedef struct {
 
 
 typedef struct {
-    Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph;
-    Double_t Aperp, Apar;
-    Double_t vx, vy, vz;
-    Double_t ep, np;
-    Double_t epx, epy, epz;
-    Double_t npx, npy, npz;
-    Double_t nth, nph;
-    Double_t pmperp, pmpar, pmparsm;
-    Double_t z, phperp, phih, MX;
-    Int_t nucl, fnucl;
+  Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph;
+  Double_t Aperp, Apar;
+  Double_t vx, vy, vz;
+  Double_t ep, np;
+  Double_t epx, epy, epz;
+  Double_t npx, npy, npz;
+  Double_t nth, nph;
+  Double_t pmperp, pmpar, pmparsm;
+  Double_t z, phperp, phih, MX;
+  Int_t nucl, fnucl;
   Int_t hadr;
   Int_t earmaccept, harmaccept;
 } ev_t;
 
 typedef struct {
-    Double_t x, y, xp, yp;
-    Double_t tx, ty, txp, typ;
-    Int_t hcal, bb, gemtr;
-    Double_t hcx, hcy, bcx, bcy;
-    Double_t hct, hctex;
-    Double_t hclx, hcly, hclz, hcdang;
+  Double_t x, y, xp, yp;
+  Double_t tx, ty, txp, typ;
+  Int_t hcal, bb, gemtr;
+  Double_t hcx, hcy, bcx, bcy;
+  Double_t hct, hctex;
+  Double_t hclx, hcly, hclz, hcdang;
 } tr_t;
 
 typedef struct {
-    Int_t ndata;
-	Int_t gid[MAXHITDATA];
+  Int_t ndata;
+  Int_t gid[MAXHITDATA];
   Int_t trkrid[MAXHITDATA];
   Double_t x[MAXHITDATA], y[MAXHITDATA], z[MAXHITDATA], t[MAXHITDATA];
-	Double_t dx[MAXHITDATA], dy[MAXHITDATA];
-	Double_t tx[MAXHITDATA], ty[MAXHITDATA];
-	Double_t txp[MAXHITDATA], typ[MAXHITDATA];
-	Int_t trid[MAXHITDATA], mid[MAXHITDATA], pid[MAXHITDATA];
-	Double_t vx[MAXHITDATA], vy[MAXHITDATA], vz[MAXHITDATA];
-	Double_t p[MAXHITDATA], edep[MAXHITDATA];
+  Double_t dx[MAXHITDATA], dy[MAXHITDATA];
+  Double_t tx[MAXHITDATA], ty[MAXHITDATA];
+  Double_t txp[MAXHITDATA], typ[MAXHITDATA];
+  Int_t trid[MAXHITDATA], mid[MAXHITDATA], pid[MAXHITDATA];
+  Double_t vx[MAXHITDATA], vy[MAXHITDATA], vz[MAXHITDATA];
+  Double_t p[MAXHITDATA], edep[MAXHITDATA];
 } hit_t;
 
 typedef struct {
-    Int_t hcndata, bcndata;
+  Int_t hcndata, bcndata;
   Double_t bcx[MAXHITDATA], bcy[MAXHITDATA], bcz[MAXHITDATA], bce[MAXHITDATA], bct[MAXHITDATA];
   Double_t hcx[MAXHITDATA], hcy[MAXHITDATA], hcz[MAXHITDATA], hce[MAXHITDATA], hct[MAXHITDATA];
 
@@ -123,13 +124,16 @@ public:
   void BranchRICH(G4String s);
   //void BranchTracker(G4String s);
   void BranchECAL(G4String s);
-
+  void BranchPYTHIA();
+  
   void SetDetCon(G4SBSDetectorConstruction *dc ){ fdetcon = dc; }
 
   // void SetEarmCALpart_flag( G4bool b ){ EarmCALpart_flag = b; }
   // void SetHarmCALpart_flag( G4bool b ){ HarmCALpart_flag = b; }
   map<G4String,G4bool> KeepPartCALflags;
   map<G4String,G4bool> KeepHistoryflags;
+
+  void SetPythiaOutput( G4SBSPythiaOutput p ){ Primaries = p; }
   
 private:
   TFile *fFile;
@@ -149,6 +153,8 @@ private:
   map<G4String,G4SBSTrackerOutput> trackdata;
   map<G4String,G4SBSECaloutput> ecaldata;
 
+  G4SBSPythiaOutput Primaries;
+  
   G4SBSGlobalField *fGlobalField;
   
   char fFilename[255];

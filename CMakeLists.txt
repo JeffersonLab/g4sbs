@@ -32,8 +32,8 @@ ROOT_GENERATE_DICTIONARY(
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc ${PROJECT_SOURCE_DIR}/src/dss2007/*.cc )
-file(GLOB headers ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh $${PROJECT_SOURCE_DIR}/include/wiser_pion.h {PROJECT_SOURCE_DIR}/src/cteq/*.h ${PROJECT_SOURCE_DIR}/src/dss2007/*.hh )
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc ${PROJECT_SOURCE_DIR}/src/dss2007/*.cc ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.C)
+file(GLOB headers ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh $${PROJECT_SOURCE_DIR}/include/wiser_pion.h {PROJECT_SOURCE_DIR}/src/cteq/*.h ${PROJECT_SOURCE_DIR}/src/dss2007/*.hh ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.h)
 
 file(GLOB cteqsources ${PROJECT_SOURCE_DIR}/src/cteq/*.c  )
 file(GLOB cteqheaders ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
@@ -107,6 +107,7 @@ set(G4SBS_SCRIPTS
   root_macros/SIDIS_DST.C
   root_macros/SIDIS_DST.h
   root_macros/rate_table_DST.C
+  root_macros/Pythia6_minbias_gen.C
   database/ecal_map.txt
   )
 

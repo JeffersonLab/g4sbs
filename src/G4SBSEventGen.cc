@@ -1,6 +1,7 @@
 #include "TBuffer.h"
 #include "TString.h"
 #include "THashTable.h"
+#include "TGraph.h"
 
 #include "G4SBSEventGen.hh"
 #include "G4RotationMatrix.hh"
@@ -71,10 +72,34 @@ G4SBSEventGen::G4SBSEventGen(){
   fPhMin_had = 0.0*deg;
   fPhMax_had = 360.0*deg;
 
+  fPythiaChain = NULL;
+  fPythiaTree = NULL;
+  fchainentry = 0;
 }
 
 
 G4SBSEventGen::~G4SBSEventGen(){
+  delete fPythiaChain;
+  delete fPythiaTree;
+}
+
+void G4SBSEventGen::LoadPythiaChain( G4String fname ){
+  fPythiaChain = new TChain("Tout");
+  fPythiaChain->Add(fname);
+  fPythiaTree = new Pythia6_tree(fPythiaChain);
+
+  fchainentry = 0;
+ 
+  // if( !fPythiaTree ){
+  //   G4cerr << "Failed to initialize Pythia6 chain, from file " << fname << ", aborting..." << G4endl;
+  //   exit(-1);
+  // }
+
+  TFile *ftemp = fPythiaChain->GetFile();
+  TGraph *gtemp;
+
+  ftemp->GetObject( "graph_sigma", gtemp );
+  fPythiaEvent.Sigma = gtemp->GetY()[gtemp->GetN()-1];
 }
 
 bool G4SBSEventGen::GenerateEvent(){
@@ -165,6 +190,9 @@ bool G4SBSEventGen::GenerateEvent(){
     break;
   case kWiser:
     success = GenerateWiser( thisnucl, ei, ni );
+    break;
+  case kPYTHIA6:
+    success = GeneratePythia();
     break;
   default:
     success = GenerateElastic( thisnucl, ei, ni );
@@ -1359,7 +1387,73 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
 
   }
 */
+bool G4SBSEventGen::GeneratePythia(){
+  fPythiaTree->GetEntry(fchainentry++);
 
+  //Populate the pythiaoutput data structure:
+  fPythiaEvent.Clear();
+  //fPythiaEvent.Nprimaries = fPythiaTree->Nparticles;
+  fPythiaEvent.Ebeam = (*(fPythiaTree->E))[0];
+  fPythiaEvent.Eprime = (*(fPythiaTree->E))[2];
+  fPythiaEvent.theta_e = (*(fPythiaTree->theta))[2];
+  fPythiaEvent.phi_e = (*(fPythiaTree->phi))[2];
+  fPythiaEvent.px_e = (*(fPythiaTree->px))[2];
+  fPythiaEvent.py_e = (*(fPythiaTree->py))[2];
+  fPythiaEvent.pz_e = (*(fPythiaTree->pz))[2];
+  fPythiaEvent.vx_e = (*(fPythiaTree->vx))[2];
+  fPythiaEvent.vy_e = (*(fPythiaTree->vy))[2];
+  fPythiaEvent.vz_e = (*(fPythiaTree->vz))[2];
+  fPythiaEvent.Egamma = (*(fPythiaTree->E))[3];
+  fPythiaEvent.theta_gamma = (*(fPythiaTree->theta))[3];
+  fPythiaEvent.phi_gamma = (*(fPythiaTree->phi))[3];
+  fPythiaEvent.px_gamma = (*(fPythiaTree->px))[3];
+  fPythiaEvent.py_gamma = (*(fPythiaTree->py))[3];
+  fPythiaEvent.pz_gamma = (*(fPythiaTree->pz))[3];
+  fPythiaEvent.vx_gamma = (*(fPythiaTree->vx))[3];
+  fPythiaEvent.vy_gamma = (*(fPythiaTree->vy))[3];
+  fPythiaEvent.vz_gamma = (*(fPythiaTree->vz))[3];
+  fPythiaEvent.Q2 = fPythiaTree->Q2;
+  fPythiaEvent.xbj = fPythiaTree->xbj;
+  fPythiaEvent.y   = fPythiaTree->y;
+  fPythiaEvent.W2  = fPythiaTree->W2;
+
+  int ngood = 0;
+  
+  for( int i=0; i<fPythiaTree->Nparticles; i++ ){
+    //Only fill the first four particles (event header info) and final-state particles (primaries to be generated):
+    if( i<4 || (*(fPythiaTree->status))[i] == 1 ){
+      fPythiaEvent.PID.push_back( (*(fPythiaTree->pid))[i] );
+      //fPythiaEvent.genflag.push_back( 0 ); //Later we will generate in GEANT4 according to user-defined cuts!
+      fPythiaEvent.Px.push_back( (*(fPythiaTree->px))[i]*GeV );
+      fPythiaEvent.Py.push_back( (*(fPythiaTree->py))[i]*GeV );
+      fPythiaEvent.Pz.push_back( (*(fPythiaTree->pz))[i]*GeV );
+      fPythiaEvent.M.push_back( (*(fPythiaTree->M))[i]*GeV );
+      fPythiaEvent.E.push_back( (*(fPythiaTree->E))[i]*GeV );
+      fPythiaEvent.P.push_back( sqrt(pow(fPythiaEvent.Px[ngood],2)+pow(fPythiaEvent.Py[ngood],2)+pow(fPythiaEvent.Pz[ngood],2)) ); //units were already set for this
+      fPythiaEvent.t.push_back( (*(fPythiaTree->t))[i]*mm/c_light );
+      fPythiaEvent.vx.push_back( (*(fPythiaTree->vx))[i]*mm );
+      fPythiaEvent.vy.push_back( (*(fPythiaTree->vy))[i]*mm );
+      fPythiaEvent.vz.push_back( (*(fPythiaTree->vz))[i]*mm );
+      fPythiaEvent.theta.push_back( (*(fPythiaTree->theta))[i]*radian );
+      fPythiaEvent.phi.push_back( (*(fPythiaTree->phi))[i]*radian );
+      if( (*(fPythiaTree->status))[i] == 1 &&
+	  ( (fPythiaEvent.theta[ngood] >= fThMin && fPythiaEvent.theta[ngood] <= fThMax &&
+	     fPythiaEvent.phi[ngood] >= fPhMin && fPythiaEvent.phi[ngood] <= fPhMax &&
+	     fPythiaEvent.E[ngood] >= fEeMin && fPythiaEvent.E[ngood] <= fEeMax) ||
+	    (fPythiaEvent.theta[ngood] >= fThMin_had && fPythiaEvent.theta[ngood] <= fThMax_had &&
+	     fPythiaEvent.phi[ngood] >= fPhMin_had && fPythiaEvent.phi[ngood] <= fPhMax_had &&
+	     fPythiaEvent.E[ngood] >= fEhadMin && fPythiaEvent.E[ngood] <= fEhadMax) ) ){
+	fPythiaEvent.genflag.push_back( 1 );
+      } else {
+	fPythiaEvent.genflag.push_back( 0 );
+      }
+      ngood++;
+    }
+  }
+  fPythiaEvent.Nprimaries = fPythiaEvent.PID.size();
+  
+  return true;
+}
 
 ev_t G4SBSEventGen::GetEventData(){
   ev_t data;

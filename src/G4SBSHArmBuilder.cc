@@ -349,8 +349,23 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
   //G4UnionSolid* big48d48;
 
-  G4Box *bigbeamslot = new G4Box("bigbeamslot",  f48D48width/2, 15.5*cm, 2.0*m ); 
+  //G4Box *bigbeamslot = new G4Box("bigbeamslot",  f48D48width/2, 15.5*cm, 2.0*m ); 
+  G4Box *bigbeamslot = new G4Box("bigbeamslot", f48D48width/2.0, 2.0*m, 15.5*cm );
+  
+  G4double slot_angle = 6.71*deg;
+  G4double slot_depth_front = 58.85*2.54*cm;
 
+  G4ThreeVector beamslot_xaxis( cos(slot_angle), -sin(slot_angle), 0 );
+  G4ThreeVector beamslot_yaxis( sin(slot_angle), cos(slot_angle), 0 );
+  G4ThreeVector beamslot_zaxis = (beamslot_xaxis.cross(beamslot_yaxis)).unit();
+
+  G4ThreeVector beamslot_posrel( -f48D48width/2.0 + slot_depth_front + f48D48depth/2.0 * tan(slot_angle), 0, 0 );
+  beamslot_posrel += f48D48width/2.0 * beamslot_xaxis;
+  
+  G4RotationMatrix *rot_temp = new G4RotationMatrix;
+  rot_temp->rotateZ( slot_angle );
+  
+  
   // big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, bigboxaddrm, 
   // 			      G4ThreeVector(0.0, 0.0, (coilgapheight+bigcoilheight)/2.0));
   // big48d48 = new G4UnionSolid("big48d48_2", big48d48, bigcoilthr, bigboxaddrm, 
@@ -368,8 +383,8 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
 
   //  Cut out slot - from magnet center to inside of cut is ~35cm
-  G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_5", bigbase, bigbeamslot, bigboxaddrm, 
-							      G4ThreeVector( f48D48width/2+35*cm, 0.0, 0.0) );
+  G4SubtractionSolid *big48d48_wslot = new G4SubtractionSolid("big48d48_wslot", bigbase, bigbeamslot, rot_temp, 
+							      beamslot_posrel );
 
   G4LogicalVolume *big48d48Log=new G4LogicalVolume(big48d48_wslot, GetMaterial("Fer"),
 						   "b48d48Log", 0, 0, 0);

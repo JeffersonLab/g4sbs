@@ -30,7 +30,7 @@ G4SBSPrimaryGeneratorAction::G4SBSPrimaryGeneratorAction()
 
   particleGun->SetParticleDefinition(particle);
 
-  particleGun->SetParticleMomentumDirection(G4ThreeVector(sin(-40.0*deg),0.0,cos(-40.0*deg)));
+  particleGun->SetParticleMomentumDirection(G4ParticleMomentum(sin(-40.0*deg),0.0,cos(-40.0*deg)));
   particleGun->SetParticleEnergy(1.0*GeV);
   particleGun->SetParticlePosition(G4ThreeVector(0.*cm,0.*cm,0.*cm));
 
@@ -80,13 +80,17 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	particleGun->SetParticleDefinition(particle);
 	particleGun->SetNumberOfParticles(1);
 	particleGun->SetParticleEnergy( Primaries.E[ipart]-Primaries.M[ipart] );
-	particleGun->SetParticleMomentum( G4ParticleMomentum( Primaries.Px[ipart], Primaries.Py[ipart], Primaries.Pz[ipart] ) );
+	particleGun->SetParticleMomentumDirection( G4ThreeVector( Primaries.Px[ipart], Primaries.Py[ipart], Primaries.Pz[ipart] ).unit() );
+
+	//G4ThreeVector vertex( Primaries.vx[ipart], Primaries.vy[ipart], Primaries.vz[ipart] );
+	//vertex += sbsgen->GetV();
 	particleGun->SetParticlePosition( G4ThreeVector( Primaries.vx[ipart], Primaries.vy[ipart], Primaries.vz[ipart] ) );
 	particleGun->SetParticleTime( Primaries.t[ipart] );
 	particleGun->GeneratePrimaryVertex(anEvent);
       }
     }
-    
+
+    Primaries.ConvertToTreeUnits();
     fIO->SetPythiaOutput( Primaries );
     
     return;

@@ -9,6 +9,7 @@ public:
   G4SBSPythiaOutput();
   ~G4SBSPythiaOutput();
   void Clear();
+  void ConvertToTreeUnits();
 
   double Sigma; //PYTHIA6 calculated total cross section
   double Ebeam; //Incident beam energy

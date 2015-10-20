@@ -974,12 +974,16 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   rot_temp->rotateY( 1.5*deg );
   
   new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, 0.0, zstart_lead_wall1 + 0.5*1.25*m ), lead_wall1_log, "lead_wall1_phys", worldlog, false, 0 );
+
+  G4cout << "Lead wall A (x,y,z) = (" << xtemp/cm << ", " << 0.0 << ", " << (zstart_lead_wall1 + 0.5*1.25*m)/cm << ")" << G4endl;
   
   lead_wall1_log->SetVisAttributes( lead_visatt );
 
   G4double zstart_lead_wall2 = z_formed_bellows + 76.09*inch + 1.71*inch + 15.75*inch + 1.0*inch;
   G4double zstop_lead_wall2 = 207.144*inch - TargetCenter_zoffset + 40.0*inch;
 
+  G4cout << "Lead wall B zstart - zstop = " << (zstop_lead_wall2 - zstart_lead_wall2)/cm << G4endl;
+  
   G4double zpos_lead_wall2 = 0.5*(zstart_lead_wall2 + zstop_lead_wall2 );
   //we want x position to have x = 
   G4double xpos_lead_wall2 = -(8.0*inch + 2.5*cm + (zpos_lead_wall2 - 201.632*inch + TargetCenter_zoffset )*tan(1.5*deg));
@@ -993,6 +997,8 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
   new G4PVPlacement( rot_temp, G4ThreeVector( xpos_lead_wall2, 0, zpos_lead_wall2 ), lead_wall2_log, "lead_wall2_phys", worldlog, false, 0 );
 
+  G4cout << "Lead wall B (x,y,z) = (" << xpos_lead_wall2/cm << ", " << 0.0 << ", " << zpos_lead_wall2/cm << ")" << G4endl;
+  
   lead_wall2_log->SetVisAttributes( lead_visatt );
   
 }

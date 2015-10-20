@@ -30,6 +30,8 @@ G4SBSIO::G4SBSIO(){
 
     KeepPartCALflags.clear();
     KeepHistoryflags.clear();
+
+    fUsePythia = false;
 }
 
 G4SBSIO::~G4SBSIO(){
@@ -76,7 +78,7 @@ void G4SBSIO::InitializeTree(){
     fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
 
     //Instead of having the same tree structure as before, we want to dynamically generate tree branches depending on what kinds of detectors are present: Since we already require the ROOT libraries, we might as well use TStrings:
-
+    
     //For all tree branches representing data in sensitive detectors, we want to grab the information from fdetcon->SDlist
     //Later, we will add other kinds of sensitive detectors:
     for( set<G4String>::iterator d = (fdetcon->SDlist).begin(); d != (fdetcon->SDlist).end(); d++ ){
@@ -110,7 +112,9 @@ void G4SBSIO::InitializeTree(){
 	break;
       }
     }
-
+    if( fUsePythia ){
+      BranchPythia();
+    }
 
     // // Tedious, but we want dynamically scaled
     // fTree->Branch("ht.ndata", &hitdata.ndata, "ht.ndata/I");
@@ -524,3 +528,48 @@ void G4SBSIO::BranchECAL(G4String SDname="ECAL"){
   fTree->Branch( branch_name.Format("%s.hit.Time_max", branch_prefix.Data() ), &(ecaldata[SDname].Time_max) );
 
 }
+
+void G4SBSIO::BranchPythia(){
+  //Per-event variables:
+  fTree->Branch("primaries.Sigma",&(Primaries.Sigma),"primaries.Sigma/D");
+  fTree->Branch("primaries.Ebeam",&(Primaries.Ebeam),"primaries.Ebeam/D");
+  fTree->Branch("primaries.Eprime",&(Primaries.Eprime),"primaries.Eprime/D");
+  fTree->Branch("primaries.Q2",&(Primaries.Q2),"primaries.Q2/D");
+  fTree->Branch("primaries.xbj",&(Primaries.xbj),"primaries.xbj/D");
+  fTree->Branch("primaries.y",&(Primaries.y),"primaries.y/D");
+  fTree->Branch("primaries.W2",&(Primaries.W2),"primaries.W2/D");
+  fTree->Branch("primaries.theta_e",&(Primaries.theta_e),"primaries.theta_e/D");
+  fTree->Branch("primaries.phi_e",&(Primaries.phi_e),"primaries.phi_e/D");
+  fTree->Branch("primaries.px_e",&(Primaries.px_e),"primaries.px_e/D");
+  fTree->Branch("primaries.py_e",&(Primaries.py_e),"primaries.py_e/D");
+  fTree->Branch("primaries.pz_e",&(Primaries.pz_e),"primaries.pz_e/D");
+  fTree->Branch("primaries.vx_e",&(Primaries.vx_e),"primaries.vx_e/D");
+  fTree->Branch("primaries.vy_e",&(Primaries.vy_e),"primaries.vy_e/D");
+  fTree->Branch("primaries.vz_e",&(Primaries.vz_e),"primaries.vz_e/D");
+  fTree->Branch("primaries.Egamma",&(Primaries.Egamma),"primaries.Egamma/D");
+  fTree->Branch("primaries.theta_gamma",&(Primaries.theta_gamma),"primaries.theta_gamma/D");
+  fTree->Branch("primaries.phi_gamma",&(Primaries.phi_gamma),"primaries.phi_gamma/D");
+  fTree->Branch("primaries.px_gamma",&(Primaries.px_gamma),"primaries.px_gamma/D");
+  fTree->Branch("primaries.py_gamma",&(Primaries.py_gamma),"primaries.py_gamma/D");
+  fTree->Branch("primaries.pz_gamma",&(Primaries.pz_gamma),"primaries.pz_gamma/D");
+  fTree->Branch("primaries.vx_gamma",&(Primaries.vx_gamma),"primaries.vx_gamma/D");
+  fTree->Branch("primaries.vy_gamma",&(Primaries.vy_gamma),"primaries.vy_gamma/D");
+  fTree->Branch("primaries.vz_gamma",&(Primaries.vz_gamma),"primaries.vz_gamma/D");
+  //Primary particle arrays:
+  fTree->Branch("Primaries.Nprimaries",&(Primaries.Nprimaries),"Nprimaries/I");
+  fTree->Branch("Primaries.PID",&(Primaries.PID));
+  fTree->Branch("Primaries.genflag",&(Primaries.genflag));
+  fTree->Branch("Primaries.Px",&(Primaries.Px));
+  fTree->Branch("Primaries.Py",&(Primaries.Py));
+  fTree->Branch("Primaries.Pz",&(Primaries.Pz));
+  fTree->Branch("Primaries.vx",&(Primaries.vx));
+  fTree->Branch("Primaries.vy",&(Primaries.vy));
+  fTree->Branch("Primaries.vz",&(Primaries.vz));
+  fTree->Branch("Primaries.M",&(Primaries.M));
+  fTree->Branch("Primaries.E",&(Primaries.E));
+  fTree->Branch("Primaries.P",&(Primaries.P));
+  fTree->Branch("Primaries.t",&(Primaries.t));
+  fTree->Branch("Primaries.theta",&(Primaries.theta));
+  fTree->Branch("Primaries.phi",&(Primaries.phi));
+}
+

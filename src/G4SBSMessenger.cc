@@ -441,6 +441,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     if( newValue.compareTo("pythia6") == 0 ){
       fevgen->SetKine( kPYTHIA6 );
+      fIO->SetUsePythia6( true );
       validcmd = true;
     }
 

@@ -16,7 +16,6 @@
 #include <vector>
 #include <vector>
 
-using namespace std;
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
 class Pythia6_tree {

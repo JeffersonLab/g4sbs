@@ -124,7 +124,7 @@ public:
   void BranchRICH(G4String s);
   //void BranchTracker(G4String s);
   void BranchECAL(G4String s);
-  void BranchPYTHIA();
+  void BranchPythia();
   
   void SetDetCon(G4SBSDetectorConstruction *dc ){ fdetcon = dc; }
 
@@ -134,6 +134,7 @@ public:
   map<G4String,G4bool> KeepHistoryflags;
 
   void SetPythiaOutput( G4SBSPythiaOutput p ){ Primaries = p; }
+  void SetUsePythia6( G4bool b ){ fUsePythia = b; }
   
 private:
   TFile *fFile;
@@ -153,6 +154,8 @@ private:
   map<G4String,G4SBSTrackerOutput> trackdata;
   map<G4String,G4SBSECaloutput> ecaldata;
 
+
+  G4bool fUsePythia;
   G4SBSPythiaOutput Primaries;
   
   G4SBSGlobalField *fGlobalField;

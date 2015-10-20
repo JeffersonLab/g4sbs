@@ -1393,29 +1393,29 @@ bool G4SBSEventGen::GeneratePythia(){
   //Populate the pythiaoutput data structure:
   fPythiaEvent.Clear();
   //fPythiaEvent.Nprimaries = fPythiaTree->Nparticles;
-  fPythiaEvent.Ebeam = (*(fPythiaTree->E))[0];
-  fPythiaEvent.Eprime = (*(fPythiaTree->E))[2];
-  fPythiaEvent.theta_e = (*(fPythiaTree->theta))[2];
-  fPythiaEvent.phi_e = (*(fPythiaTree->phi))[2];
-  fPythiaEvent.px_e = (*(fPythiaTree->px))[2];
-  fPythiaEvent.py_e = (*(fPythiaTree->py))[2];
-  fPythiaEvent.pz_e = (*(fPythiaTree->pz))[2];
-  fPythiaEvent.vx_e = (*(fPythiaTree->vx))[2];
-  fPythiaEvent.vy_e = (*(fPythiaTree->vy))[2];
-  fPythiaEvent.vz_e = (*(fPythiaTree->vz))[2];
-  fPythiaEvent.Egamma = (*(fPythiaTree->E))[3];
-  fPythiaEvent.theta_gamma = (*(fPythiaTree->theta))[3];
-  fPythiaEvent.phi_gamma = (*(fPythiaTree->phi))[3];
-  fPythiaEvent.px_gamma = (*(fPythiaTree->px))[3];
-  fPythiaEvent.py_gamma = (*(fPythiaTree->py))[3];
-  fPythiaEvent.pz_gamma = (*(fPythiaTree->pz))[3];
-  fPythiaEvent.vx_gamma = (*(fPythiaTree->vx))[3];
-  fPythiaEvent.vy_gamma = (*(fPythiaTree->vy))[3];
-  fPythiaEvent.vz_gamma = (*(fPythiaTree->vz))[3];
-  fPythiaEvent.Q2 = fPythiaTree->Q2;
+  fPythiaEvent.Ebeam = (*(fPythiaTree->E))[0]*GeV;
+  fPythiaEvent.Eprime = (*(fPythiaTree->E))[2]*GeV;
+  fPythiaEvent.theta_e = (*(fPythiaTree->theta))[2]*radian;
+  fPythiaEvent.phi_e = (*(fPythiaTree->phi))[2]*radian;
+  fPythiaEvent.px_e = (*(fPythiaTree->px))[2]*GeV;
+  fPythiaEvent.py_e = (*(fPythiaTree->py))[2]*GeV;
+  fPythiaEvent.pz_e = (*(fPythiaTree->pz))[2]*GeV;
+  fPythiaEvent.vx_e = (*(fPythiaTree->vx))[2]*mm + fVert.x();
+  fPythiaEvent.vy_e = (*(fPythiaTree->vy))[2]*mm + fVert.y();
+  fPythiaEvent.vz_e = (*(fPythiaTree->vz))[2]*mm + fVert.z();
+  fPythiaEvent.Egamma = (*(fPythiaTree->E))[3]*GeV;
+  fPythiaEvent.theta_gamma = (*(fPythiaTree->theta))[3]*radian;
+  fPythiaEvent.phi_gamma = (*(fPythiaTree->phi))[3]*radian;
+  fPythiaEvent.px_gamma = (*(fPythiaTree->px))[3]*GeV;
+  fPythiaEvent.py_gamma = (*(fPythiaTree->py))[3]*GeV;
+  fPythiaEvent.pz_gamma = (*(fPythiaTree->pz))[3]*GeV;
+  fPythiaEvent.vx_gamma = (*(fPythiaTree->vx))[3]*mm + fVert.x();
+  fPythiaEvent.vy_gamma = (*(fPythiaTree->vy))[3]*mm + fVert.y();
+  fPythiaEvent.vz_gamma = (*(fPythiaTree->vz))[3]*mm + fVert.z();
+  fPythiaEvent.Q2 = fPythiaTree->Q2*GeV*GeV;
   fPythiaEvent.xbj = fPythiaTree->xbj;
   fPythiaEvent.y   = fPythiaTree->y;
-  fPythiaEvent.W2  = fPythiaTree->W2;
+  fPythiaEvent.W2  = fPythiaTree->W2*GeV*GeV;
 
   int ngood = 0;
   
@@ -1431,9 +1431,9 @@ bool G4SBSEventGen::GeneratePythia(){
       fPythiaEvent.E.push_back( (*(fPythiaTree->E))[i]*GeV );
       fPythiaEvent.P.push_back( sqrt(pow(fPythiaEvent.Px[ngood],2)+pow(fPythiaEvent.Py[ngood],2)+pow(fPythiaEvent.Pz[ngood],2)) ); //units were already set for this
       fPythiaEvent.t.push_back( (*(fPythiaTree->t))[i]*mm/c_light );
-      fPythiaEvent.vx.push_back( (*(fPythiaTree->vx))[i]*mm );
-      fPythiaEvent.vy.push_back( (*(fPythiaTree->vy))[i]*mm );
-      fPythiaEvent.vz.push_back( (*(fPythiaTree->vz))[i]*mm );
+      fPythiaEvent.vx.push_back( (*(fPythiaTree->vx))[i]*mm + fVert.x() );
+      fPythiaEvent.vy.push_back( (*(fPythiaTree->vy))[i]*mm + fVert.y() );
+      fPythiaEvent.vz.push_back( (*(fPythiaTree->vz))[i]*mm + fVert.z() );
       fPythiaEvent.theta.push_back( (*(fPythiaTree->theta))[i]*radian );
       fPythiaEvent.phi.push_back( (*(fPythiaTree->phi))[i]*radian );
       if( (*(fPythiaTree->status))[i] == 1 &&

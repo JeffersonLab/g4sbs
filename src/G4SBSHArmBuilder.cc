@@ -775,6 +775,8 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
       G4ThreeVector posrel_leadinsert( 0.25*(xstart1_leadinsert+xstart2_leadinsert+xstop1_leadinsert+xstop2_leadinsert), 0, zstart_leadinsert + 0.5*Trap_DZ );
       G4double Trap_Width2 = xstop2_leadinsert - xstart2_leadinsert;
 
+      G4cout << "Trap_Width2 = " << Trap_Width2/cm << " cm" << G4endl;
+      
       G4double Theta_leadinsert = atan( 0.5*(xstart2_leadinsert+xstop2_leadinsert - xstart1_leadinsert - xstop1_leadinsert)/Trap_DZ );
       G4double Phi_leadinsert = 0.0;
 

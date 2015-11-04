@@ -1,6 +1,6 @@
-/g4sbs/filename gep_12.root
+/g4sbs/filename gep_12_job5.root
 
-/g4sbs/ECALmap ecal_map.txt
+#/g4sbs/ECALmap ecal_map.txt
 
 /g4sbs/beamcur  75.0 muA
 /g4sbs/target   LH2
@@ -24,21 +24,29 @@
 /g4sbs/sbsang    16.9 deg
 /g4sbs/hcaldist   7.40 m
 /g4sbs/48D48dist   1.6 m
-/g4sbs/thmin       19.0 deg
-/g4sbs/thmax      40.0 deg
-/g4sbs/phmin      120.0 deg
-/g4sbs/phmax     240.0 deg
+#/g4sbs/thmin       19.0 deg
+#/g4sbs/thmax      40.0 deg
+#/g4sbs/phmin      120.0 deg
+#/g4sbs/phmax     240.0 deg
+/g4sbs/thmin 29 deg
+/g4sbs/thmax 29 deg
+/g4sbs/phmin 0 deg
+/g4sbs/phmax 0 deg
 
-/g4sbs/keephistory Harm/HCAL 1
-/g4sbs/keephistory Harm/FT 1
-/g4sbs/keephistory Harm/FPP1 1
-/g4sbs/keephistory Harm/FPP2 1
-/g4sbs/keephistory Earm/ECalTF1 1
-/g4sbs/keepcalparticles Harm/HCAL 1
-/g4sbs/keepcalparticles Earm/ECalTF1 1
-/g4sbs/steplimit Harm/HCAL 1
+#/g4sbs/keephistory Harm/HCAL 1
+#/g4sbs/keephistory Harm/FT 1
+#/g4sbs/keephistory Harm/FPP1 1
+#/g4sbs/keephistory Harm/FPP2 1
+#/g4sbs/keephistory Earm/ECalTF1 1
+#/g4sbs/keepcalparticles Harm/HCAL 1
+#/g4sbs/keepcalparticles Earm/ECalTF1 1
+#/g4sbs/steplimit Harm/HCAL 1
+/g4sbs/steplimit lHCalo 1
+/g4sbs/steplimit earm_mother_log 1
 
-/g4sbs/run 100
+#/g4sbs/run 0
 
 #/g4sbs/run 40000
 
+/g4sbs/totalabs true
+#/g4sbs/run 2000

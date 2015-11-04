@@ -74,7 +74,18 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
   map<int, double> threshold_ecal; //threshold by node number
   map<std::pair<int,int>, int > cell_rowcol_ecal; //cell numbers mapped by unique row and column pairs
   map<int,set<int> > nodes_cells_ecal; //mapping of nodes by cell number:
-
+  map<int,int> rows_cells_ecal;
+  map<int,int> cols_cells_ecal;
+  map<int,double> xcells_ecal;
+  map<int,double> ycells_ecal;
+  
+  //keep track of min and max x by row number:
+  double ycellmin,ycellmax;
+  map<int,double> ycell_rows;
+  map<int,double> cellsize_rows;
+  map<int,double> xcellmin_rows;
+  map<int,double> xcellmax_rows;
+  
   int minrow=1000,maxrow=-1;
   
   set<int> rows_ecal;
@@ -132,7 +143,29 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
 	threshold_ecal[nodenumber] = threshold;
 
 	nodes_cells_ecal[ cellnumber ].insert(nodenumber);
+
+	TString sxcell = ( (TObjString*) (*tokens)[4] )->GetString(); 
+	TString sycell = ( (TObjString*) (*tokens)[5] )->GetString(); 
+
+	cols_cells_ecal[cellnumber] = scol.Atoi(); 
+	rows_cells_ecal[cellnumber] = srow.Atoi();
+
+	xcells_ecal[cellnumber] = sxcell.Atof()/1000.0; //convert to m
+	ycells_ecal[cellnumber] = sycell.Atof()/1000.0; //convert to m
+
+	if( ycell_rows.empty() || sycell.Atof()/1000.0 < ycellmin ) ycellmin = sycell.Atof()/1000.0;
+	if( ycell_rows.empty() || sycell.Atof()/1000.0 > ycellmax ) ycellmax = sycell.Atof()/1000.0;
 	
+	ycell_rows[srow.Atoi()] = sycell.Atof()/1000.0;
+	TString ssize = ( (TObjString*) (*tokens)[6] )->GetString();
+	double size = ssize.Atof();
+
+	if( xcellmin_rows.empty() || sxcell.Atof()/1000.0 < xcellmin_rows[srow.Atoi()] ){
+	  xcellmin_rows[srow.Atoi()] = sxcell.Atof()/1000.0;
+	}
+	if( xcellmax_rows.empty() || sxcell.Atof()/1000.0 > xcellmax_rows[srow.Atoi()] ){
+	  xcellmax_rows[srow.Atoi()] = sxcell.Atof()/1000.0;
+	}
 	
       }
     }
@@ -217,18 +250,22 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
   TH2D *hnphesum_vs_node_ECAL_FTcut = new TH2D("hnphesum_vs_node_ECAL_FTcut","",list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5,100,0.0,5000.0);
   TH2D *hnphesum_vs_node_HCAL_FTcut = new TH2D("hnphesum_vs_node_HCAL_FTcut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
 
-  //TH2D *hnphesum_vs_node_ECAL_FPP2cut = new TH2D("hnphesum_vs_node_ECAL_FTcut","",list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5,100,0.0,5000.0);
-  TH2D *hnphesum_vs_node_HCAL_FPP2cut = new TH2D("hnphesum_vs_node_HCAL_FTcut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
+  TH2D *hnphesum_vs_node_HCAL_FPP1cut = new TH2D("hnphesum_vs_node_HCAL_FPP1cut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
+  TH2D *hnphesum_vs_node_HCAL_FPP2cut = new TH2D("hnphesum_vs_node_HCAL_FPP2cut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
+  TH2D *hnphesum_vs_node_HCAL_FPPbothcut = new TH2D("hnphesum_vs_node_HCAL_FPPbothcut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
+  TH2D *hnphesum_vs_node_HCAL_FPPeithercut = new TH2D("hnphesum_vs_node_HCAL_FPPeithercut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
+  
   
   TH2D *hmaxnode_ECAL_vs_HCAL = new TH2D("hmaxnode_ECAL_vs_HCAL","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5);
   TH2D *hallnodes_ECAL_vs_HCAL = new TH2D("hallnodes_ECAL_vs_HCAL","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5);
-  //TH2D *hallnodes_ECAL_vs_HCAL = new TH2D("hallnodes_ECAL_vs_HCAL","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5);
 
-  TH1D *hefficiency_vs_threshold_ECAL = new TH1D("hefficiency_vs_threshold_ECAL","",30,0.0,1.5);
-  //TH1D *hefficiency_vs_threshold_HCAL = new TH1D("hefficiency_vs_threshold_HCAL","",30,0.0,1.5);
+  TH2D *hmaxnode_ECAL_vs_HCAL = new TH2D("hmaxnode_ECAL_vs_HCAL","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5);
+  TH2D *hallnodes_ECAL_vs_HCAL = new TH2D("hallnodes_ECAL_vs_HCAL","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5);
   
+  TH1D *hefficiency_vs_threshold_ECAL = new TH1D("hefficiency_vs_threshold_ECAL","",30,0.0,1.5); 
   TH1D *hefficiency_vs_threshold_ECAL_FTcut = new TH1D("hefficiency_vs_threshold_ECAL","",30,0.0,1.5);
   TH1D *hefficiency_vs_threshold_HCAL_FTcut = new TH1D("hefficiency_vs_threshold_HCAL","",30,0.0,1.5);
+  TH1D *hefficiency_vs_threshold_HCAL_FPP1cut = new TH1D("hefficiency_vs_threshold_HCAL","",30,0.0,1.5);
   TH1D *hefficiency_vs_threshold_HCAL_FPP2cut = new TH1D("hefficiency_vs_threshold_HCAL","",30,0.0,1.5);
   
   

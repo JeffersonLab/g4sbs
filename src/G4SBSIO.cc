@@ -362,6 +362,7 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
   fTree->Branch( branch_name.Format( "%s.hit.nhits", branch_prefix.Data() ), &(CALdata[SDname].nhits_CAL) );
   fTree->Branch( branch_name.Format( "%s.hit.row", branch_prefix.Data() ), &(CALdata[SDname].row) );
   fTree->Branch( branch_name.Format( "%s.hit.col", branch_prefix.Data() ), &(CALdata[SDname].col) );
+  fTree->Branch( branch_name.Format( "%s.hit.cell", branch_prefix.Data() ), &(CALdata[SDname].cell) );
   fTree->Branch( branch_name.Format( "%s.hit.plane", branch_prefix.Data() ), &(CALdata[SDname].plane) );
   fTree->Branch( branch_name.Format( "%s.hit.xcell", branch_prefix.Data() ), &(CALdata[SDname].xcell) );
   fTree->Branch( branch_name.Format( "%s.hit.ycell", branch_prefix.Data() ), &(CALdata[SDname].ycell) );

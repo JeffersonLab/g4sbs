@@ -20,6 +20,8 @@ void G4SBSCALoutput::Clear(){
   row.clear();
   col.clear();
   plane.clear();
+  wire.clear();
+  cell.clear();
   xcell.clear();
   ycell.clear();
   zcell.clear();

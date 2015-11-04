@@ -547,6 +547,7 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
    
     if( esum[cell] >= caloutput.threshold ){
       HitList[cell] = caloutput.nhits_CAL;
+      caloutput.cell.push_back(cell);
       caloutput.row.push_back(Rows[cell]);
       caloutput.col.push_back(Cols[cell]);
       caloutput.plane.push_back(Planes[cell]);

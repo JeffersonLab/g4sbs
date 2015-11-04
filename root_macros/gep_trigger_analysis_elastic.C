@@ -32,7 +32,7 @@ TF1 *gaussplusexpo = new TF1("gaussplusexpo", "[0]*exp(-0.5*pow((x-[1])/[2],2))+
 const double Mp = 0.938272; //GeV
 const double PI = TMath::Pi();
 
-void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfilename_ecal, const char *logicfilename_hcal, const char *outputfilename ){
+void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfilename_ecal, const char *logicfilename_hcal, const char *outputfilename, int pheflag=0 ){
 
   double thetacal = thetacaldeg*PI/180.0;
   
@@ -160,6 +160,8 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
 	TString ssize = ( (TObjString*) (*tokens)[6] )->GetString();
 	double size = ssize.Atof();
 
+	cellsize_rows[srow.Atoi()] = size/1000.0; 
+	
 	if( xcellmin_rows.empty() || sxcell.Atof()/1000.0 < xcellmin_rows[srow.Atoi()] ){
 	  xcellmin_rows[srow.Atoi()] = sxcell.Atof()/1000.0;
 	}
@@ -261,12 +263,17 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
 
   TH2D *hmaxnode_ECAL_vs_HCAL = new TH2D("hmaxnode_ECAL_vs_HCAL","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5);
   TH2D *hallnodes_ECAL_vs_HCAL = new TH2D("hallnodes_ECAL_vs_HCAL","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5);
-  
-  TH1D *hefficiency_vs_threshold_ECAL = new TH1D("hefficiency_vs_threshold_ECAL","",30,0.0,1.5); 
-  TH1D *hefficiency_vs_threshold_ECAL_FTcut = new TH1D("hefficiency_vs_threshold_ECAL","",30,0.0,1.5);
-  TH1D *hefficiency_vs_threshold_HCAL_FTcut = new TH1D("hefficiency_vs_threshold_HCAL","",30,0.0,1.5);
-  TH1D *hefficiency_vs_threshold_HCAL_FPP1cut = new TH1D("hefficiency_vs_threshold_HCAL","",30,0.0,1.5);
-  TH1D *hefficiency_vs_threshold_HCAL_FPP2cut = new TH1D("hefficiency_vs_threshold_HCAL","",30,0.0,1.5);
+
+  TH1D *hshouldhit_vs_threshold_ECAL = new TH1D("hshouldhit_vs_threshold_ECAL","",30,0.0,1.5);
+  TH1D *hefficiency_vs_threshold_ECAL = new TH1D("hefficiency_vs_threshold_ECAL","",30,0.0,1.5);
+  TH1D *hshouldhit_vs_threshold_ECAL_FTcut = new TH1D("hshouldhit_vs_threshold_ECAL_FTcut","",30,0.0,1.5);
+  TH1D *hefficiency_vs_threshold_ECAL_FTcut = new TH1D("hefficiency_vs_threshold_ECAL_FTcut","",30,0.0,1.5);
+  TH1D *hefficiency_vs_threshold_HCAL_FTcut = new TH1D("hefficiency_vs_threshold_HCAL_FTcut","",30,0.0,1.5);
+  TH1D *hefficiency_vs_threshold_HCAL_FPP1cut = new TH1D("hefficiency_vs_threshold_HCAL_FPP1cut","",30,0.0,1.5);
+  TH1D *hefficiency_vs_threshold_HCAL_FPP2cut = new TH1D("hefficiency_vs_threshold_HCAL_FPP2cut","",30,0.0,1.5);
+
+  TH2D *hnphe_vs_sum_edep_ECAL = new TH2D("hnphe_vs_sum_edep_ECAL","",250,0.0,5.0,250,0.0,5000.0 );
+  TH2D *hnphe_vs_sum_edep_HCAL = new TH2D("hnphe_vs_sum_edep_HCAL","",250,0.0,1.0,250,0.0,2500.0 );
   
   
   double Ibeam = 75.0e-6; //Amps
@@ -285,6 +292,18 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
   for( nevent=0; nevent<C->GetEntries(); ++nevent ){
     T->GetEntry(nevent);
 
+    bool FTtrack = false;
+    for( int itrack=0; itrack<T->Harm_FT_Track_ntracks; itrack++ ){
+      if( (*(T->Harm_FT_Track_MID))[itrack] == 0 &&
+	  (*(T->Harm_FT_Track_PID))[itrack] == 2212 ){ //primary elastically scattered proton track in FT:
+	FTtrack = true;
+      }
+    }
+
+    double 
+    bool FPP1_singletrack = false, FPP2_singletrack = false;
+    if( FTtrack )
+    
     double nu = T->ev_Q2 / 2.0 / 0.938272;
     double pp_elastic = sqrt(pow(nu,2)+2.0*.938272*nu);
     
@@ -322,6 +341,27 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
       node_sums[ *inode ] = 0.0;
     }
 
+    bool should_hit_ECAL = false;
+
+    if( ycalo >= ycellmin && ycalo <= ycellmax ){
+      //make an initial guess at which row: (row runs from 1 to N):
+      int closest_row = int( (ycalo - ycellmin)/4.0 ) + 1;
+
+      map<int,double>::iterator rowguess = ycell_rows.find( closest_row );
+
+      while( rowguess != ycell_rows.end() && ycalo > ycell_rows[rowguess->first] + 0.5*cellsize_rows[rowguess->first] ){ ++rowguess; }
+      while( rowguess != ycell_rows.end() && ycalo < ycell_rows[rowguess->first] - 0.5*cellsize_rows[rowguess->first] ){ --rowguess; }
+
+      if( rowguess != ycell_rows.end() ){
+	closest_row = rowguess->first;
+	if( xcalo >= xcellmin_rows[closest_row] + 0.5*cellsize_rows[closest_row] &&
+	    xcalo <= xcellmax_rows[closest_row] - 0.5*cellsize_rows[closest_row] &&
+	    ycalo >= ycellmin + 0.5*cellsize_rows[closest_row] && ycalo <= ycellmax - 0.5*cellsize_rows[closest_row] ){
+	  should_hit_ECAL = true;
+	}
+      }
+    }
+    
     for( int ihit = 0; ihit<T->Earm_ECalTF1_hit_nhits; ihit++ ){
       int rowhit = ( *(T->Earm_ECalTF1_hit_row))[ihit]+1;
       int colhit = ( *(T->Earm_ECalTF1_hit_col))[ihit]+1;
@@ -333,17 +373,31 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
       
       double edep = (*(T->Earm_ECalTF1_hit_sumedep))[ihit];
 
-      int nphe = num.Poisson( phe_per_GeV_ECAL * edep );
-
-      for( set<int>::iterator inode = nodes_cells_ecal[cellhit].begin(); inode != nodes_cells_ecal[cellhit].end(); ++inode ){
-	node_sums[ *inode ] += double(nphe);
+      if( pheflag != 0 ){
+	for( int jhit = 0; jhit<T->Earm_ECAL_hit_nhits; jhit++ ){
+	  if( (*(T->Earm_ECAL_hit_row))[jhit] == rowhit &&
+	      (*(T->Earm_ECAL_hit_col))[jhit] == colhit &&
+	      fabs( (*(T->Earm_ECAL_hit_Time_avg))[jhit] - (*(T->Earm_ECalTF1_hit_tavg))[ihit] - 2.5 ) <= 10.0 ){
+	    hnphe_sum_vs_edep_ECAL->Fill( edep, (*(T->Earm_ECAL_hit_NumPhotoelectrons))[jhit] );
+	    for( set<int>::iterator inode = nodes_cells_ecal[cellhit].begin(); inode != nodes_cells_ecal[cellhit].end(); ++inode ){
+	      node_sums[*inode] += double( (*(T->Earm_ECAL_hit_NumPhotoelectrons))[jhit] );
+	    }
+	  }
+	}
+      } else {
+      
+	int nphe = num.Poisson( phe_per_GeV_ECAL * edep );
+	
+	for( set<int>::iterator inode = nodes_cells_ecal[cellhit].begin(); inode != nodes_cells_ecal[cellhit].end(); ++inode ){
+	  node_sums[ *inode ] += double(nphe);
+	}
       }
       
       //node_sums[ trigger_group ] += double(nphe);
     }
 
-    vector<int> trigger_nodes_fired(hrate_vs_threshold_ECAL->GetNbinsX());
-    for( int ithr=0; ithr<hrate_vs_threshold_ECAL->GetNbinsX(); ithr++ ){
+    vector<int> trigger_nodes_fired(hefficiency_vs_threshold_ECAL->GetNbinsX());
+    for( int ithr=0; ithr<hefficiency_vs_threshold_ECAL->GetNbinsX(); ithr++ ){
       trigger_nodes_fired[ithr] = 0;
     }
 
@@ -353,8 +407,8 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
     double maxsum_HCAL = 0.0;
     
     for( set<int>::iterator inode = list_of_nodes_ecal.begin(); inode != list_of_nodes_ecal.end(); ++inode ){
-      for( int bin=1; bin<=hrate_vs_threshold_ECAL->GetNbinsX(); bin++ ){
-	if( node_sums[*inode]/logic_mean_ecal[*inode] > hrate_vs_threshold_ECAL->GetBinLowEdge(bin) ){
+      for( int bin=1; bin<=hefficiency_vs_threshold_ECAL->GetNbinsX(); bin++ ){
+	if( node_sums[*inode]/logic_mean_ecal[*inode] > hefficiency_vs_threshold_ECAL->GetBinLowEdge(bin) ){
 	  //cout << "node above threshold, nphe, peak position = " << node_sums[*inode] << ", " << logic_mean_ecal[*inode] << endl;
 	  trigger_nodes_fired[bin-1]++;
 	}
@@ -367,10 +421,16 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
       
       if( node_sums[*inode] > 0.0 ) hnphesum_vs_node_ECAL->Fill( *inode, node_sums[*inode], weight );
     }
-    for( int ithr=0; ithr<hrate_vs_threshold_ECAL->GetNbinsX(); ithr++ ){
-      if( trigger_nodes_fired[ithr] > 0 ) hrate_vs_threshold_ECAL->Fill( hrate_vs_threshold_ECAL->GetBinCenter(ithr+1), weight );
-    }
 
+    if( should_hit_ECAL ){
+      for( int ithr=0; ithr<hefficiency_vs_threshold_ECAL->GetNbinsX(); ithr++ ){
+	hshouldhit_vs_threshold_ECAL->Fill( hefficiency_vs_threshold_ECAL->GetBinCenter(ithr+1), weight );
+	if( trigger_nodes_fired[ithr] > 0 ){
+	  hefficiency_vs_threshold_ECAL->Fill( hefficiency_vs_threshold_ECAL->GetBinCenter(ithr+1), weight );
+	}
+      }
+    }
+    
     map<int,double> node_sums_hcal;
     for( set<int>::iterator inode = list_of_nodes_hcal.begin(); inode != list_of_nodes_hcal.end(); ++inode ){
       node_sums_hcal[*inode] = 0.0;
@@ -413,9 +473,9 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
     }
     for( int ithr=0; ithr<hrate_vs_threshold_HCAL->GetNbinsX(); ithr++ ){
       if( trigger_nodes_fired_hcal[ithr] > 0 ) hrate_vs_threshold_HCAL->Fill( hrate_vs_threshold_HCAL->GetBinCenter(ithr+1),weight );
-      for( int jthr=0; jthr<hrate_vs_threshold_ECAL->GetNbinsX(); jthr++ ){
+      for( int jthr=0; jthr<hefficiency_vs_threshold_ECAL->GetNbinsX(); jthr++ ){
 	if( trigger_nodes_fired[jthr] > 0 && trigger_nodes_fired_hcal[ithr] > 0 ){
-	  htrue_coincidence_rate_vs_threshold_ECAL_HCAL->Fill( hrate_vs_threshold_HCAL->GetBinCenter(ithr+1),hrate_vs_threshold_ECAL->GetBinCenter(jthr+1),weight );
+	  htrue_coincidence_rate_vs_threshold_ECAL_HCAL->Fill( hrate_vs_threshold_HCAL->GetBinCenter(ithr+1),hefficiency_vs_threshold_ECAL->GetBinCenter(jthr+1),weight );
 	}
       }
     }
@@ -439,15 +499,15 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
   // c1->Divide(2,1);
 
   // c1->cd(1)->SetLogy();
-  // hrate_vs_threshold_ECAL->SetMarkerStyle(20);
-  // hrate_vs_threshold_ECAL->Draw();
+  // hefficiency_vs_threshold_ECAL->SetMarkerStyle(20);
+  // hefficiency_vs_threshold_ECAL->Draw();
   
   // c1->cd(2)->SetLogy();
   // hrate_vs_threshold_HCAL->SetMarkerStyle(20);
   // hrate_vs_threshold_HCAL->Draw();
 
   hrate_vs_threshold_HCAL->SetMarkerStyle(20);
-  hrate_vs_threshold_ECAL->SetMarkerStyle(20);
+  hefficiency_vs_threshold_ECAL->SetMarkerStyle(20);
   
   fout->Write();
   fout->Close();

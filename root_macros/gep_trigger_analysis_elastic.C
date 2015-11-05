@@ -563,9 +563,14 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
     }
 
     for( int bin=1; bin<=hefficiency_vs_threshold_HCAL_FTcut->GetNbinsX(); bin++ ){
+      if( FTtrack ) hshouldhit_HCAL_FTcut->Fill( hefficiency_vs_threshold_HCAL_FTcut->GetBinCenter(bin), weight );
+      if( FTtrack && FPP1track ) hshouldhit_HCAL_FPP1cut->Fill( hefficiency_vs_threshold_HCAL_FTcut->GetBinCenter(bin), weight );
+      if( FTtrack && FPP2track ) hshouldhit_HCAL_FPP2cut->Fill( hefficiency_vs_threshold_HCAL_FTcut->GetBinCenter(bin), weight );
       if( trigger_nodes_fired_hcal[bin-1] > 0 ){
 	if( FTtrack ){
 	  hefficiency_vs_threshold_HCAL_FTcut->Fill( hefficiency_vs_threshold_HCAL_FTcut->GetBinCenter(bin), weight );
+	  if( FPP1track ) hefficiency_vs_threshold_HCAL_FPP1cut->Fill( hefficiency_vs_threshold_HCAL_FTcut->GetBinCenter(bin), weight );
+	  if( FPP2track ) hefficiency_vs_threshold_HCAL_FPP2cut->Fill( hefficiency_vs_threshold_HCAL_FTcut->GetBinCenter(bin), weight );
 	}
       }
     }
@@ -602,6 +607,10 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
     }
     //}
   }
+
+  hefficiency_vs_threshold_HCAL_FTcut->Divide( hshouldhit_HCAL_FTcut );
+  hefficiency_vs_threshold_HCAL_FPP1cut->Divide( hshouldhit_HCAL_FPP1cut );
+  hefficiency_vs_threshold_HCAL_FPP2cut->Divide( hshouldhit_HCAL_FPP2cut );
  
   // TCanvas *c1 = new TCanvas("c1","c1",1200,900);
   

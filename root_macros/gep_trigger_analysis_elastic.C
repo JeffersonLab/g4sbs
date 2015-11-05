@@ -249,13 +249,19 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
   TH2D *hnphesum_vs_node_ECAL_all = new TH2D("hnphesum_vs_node_ECAL_all","",list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5,100,0.0,5000.0);
   TH2D *hnphesum_vs_node_HCAL_all = new TH2D("hnphesum_vs_node_HCAL_all","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
 
-  TH2D *hnphesum_vs_node_ECAL_FTcut = new TH2D("hnphesum_vs_node_ECAL_FTcut","",list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5,100,0.0,5000.0);
+  //TH2D *hnphesum_vs_node_ECAL_FTcut = new TH2D("hnphesum_vs_node_ECAL_FTcut","",list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5,100,0.0,5000.0);
   TH2D *hnphesum_vs_node_HCAL_FTcut = new TH2D("hnphesum_vs_node_HCAL_FTcut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
-
   TH2D *hnphesum_vs_node_HCAL_FPP1cut = new TH2D("hnphesum_vs_node_HCAL_FPP1cut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
   TH2D *hnphesum_vs_node_HCAL_FPP2cut = new TH2D("hnphesum_vs_node_HCAL_FPP2cut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
   TH2D *hnphesum_vs_node_HCAL_FPPbothcut = new TH2D("hnphesum_vs_node_HCAL_FPPbothcut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
   TH2D *hnphesum_vs_node_HCAL_FPPeithercut = new TH2D("hnphesum_vs_node_HCAL_FPPeithercut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
+
+  TH2D *hnphesum_vs_node_HCALmax_all = new TH2D("hnphesum_vs_node_HCALmax_all","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
+  TH2D *hnphesum_vs_node_HCALmax_FTcut = new TH2D("hnphesum_vs_node_HCALmax_FTcut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
+  TH2D *hnphesum_vs_node_HCALmax_FPP1cut = new TH2D("hnphesum_vs_node_HCALmax_FPP1cut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
+  TH2D *hnphesum_vs_node_HCALmax_FPP2cut = new TH2D("hnphesum_vs_node_HCALmax_FPP2cut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
+  TH2D *hnphesum_vs_node_HCALmax_FPPbothcut = new TH2D("hnphesum_vs_node_HCALmax_FPPbothcut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
+  TH2D *hnphesum_vs_node_HCALmax_FPPeithercut = new TH2D("hnphesum_vs_node_HCALmax_FPPeithercut","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,100,0.0,3500.0);
   
   
   TH2D *hmaxnode_ECAL_vs_HCAL = new TH2D("hmaxnode_ECAL_vs_HCAL","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5);
@@ -265,13 +271,17 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
   TH1D *hefficiency_vs_threshold_ECAL = new TH1D("hefficiency_vs_threshold_ECAL","",30,0.0,1.5);
   TH1D *hshouldhit_vs_threshold_ECAL_FTcut = new TH1D("hshouldhit_vs_threshold_ECAL_FTcut","",30,0.0,1.5);
   TH1D *hefficiency_vs_threshold_ECAL_FTcut = new TH1D("hefficiency_vs_threshold_ECAL_FTcut","",30,0.0,1.5);
+  
   TH1D *hefficiency_vs_threshold_HCAL_FTcut = new TH1D("hefficiency_vs_threshold_HCAL_FTcut","",30,0.0,1.5);
   TH1D *hefficiency_vs_threshold_HCAL_FPP1cut = new TH1D("hefficiency_vs_threshold_HCAL_FPP1cut","",30,0.0,1.5);
   TH1D *hefficiency_vs_threshold_HCAL_FPP2cut = new TH1D("hefficiency_vs_threshold_HCAL_FPP2cut","",30,0.0,1.5);
 
+  TH1D *hshouldhit_HCAL_FTcut = new TH1D("hshouldhit_HCAL_FTcut","",30,0.0,1.5);
+  TH1D *hshouldhit_HCAL_FPP1cut = new TH1D("hshouldhit_HCAL_FPP1cut","",30,0.0,1.5);
+  TH1D *hshouldhit_HCAL_FPP2cut = new TH1D("hshouldhit_HCAL_FPP2cut","",30,0.0,1.5);
+  
   TH2D *hnphe_vs_sum_edep_ECAL = new TH2D("hnphe_vs_sum_edep_ECAL","",250,0.0,5.0,250,0.0,5000.0 );
   TH2D *hnphe_vs_sum_edep_HCAL = new TH2D("hnphe_vs_sum_edep_HCAL","",250,0.0,1.0,250,0.0,2500.0 );
-  
   
   double Ibeam = 75.0e-6; //Amps
   double Ltarget = 40.0; //cm
@@ -481,40 +491,47 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
     for( set<int>::iterator inode = list_of_nodes_hcal.begin(); inode != list_of_nodes_hcal.end(); ++inode ){
       node_sums_hcal[*inode] = 0.0;
     }
+
+    int nphe = 0;
     
-    for( int ihit=0; ihit<T->Harm_HCalScint_hit_nhits; ihit++ ){
-      int rowhit = (*(T->Harm_HCalScint_hit_row))[ihit]+1;
-      int colhit = (*(T->Harm_HCalScint_hit_col))[ihit]+1;
-      std::pair<int,int> rowcolhit(rowhit,colhit);
-      int cellhit = cell_rowcol_hcal[rowcolhit];
-      //int trigger_group = nodes_cells_hcal[cellhit];
-      double edep = (*(T->Harm_HCalScint_hit_sumedep))[ihit];
-      int nphe = num.Poisson( phe_per_GeV_HCAL * edep );
-      //cout << "HCAL hit " << ihit+1 << " node, edep, nphe = " << trigger_group << ", " << edep << ", " << nphe << endl;
-      //node_sums_hcal[trigger_group] += double(nphe);
-      if( pheflag != 0 ){
-	for( int jhit=0; jhit<T->Harm_HCal_hit_nhits; jhit++ ){
-	  if( (*(T->Harm_HCal_hit_row))[jhit]+1 == rowhit &&
-	      (*(T->Harm_HCal_hit_col))[jhit]+1 == colhit &&
-	      fabs( (*(T->Harm_HCal_hit_Time_avg))[jhit]-(*(T->Harm_HCalScint_hit_tavg))[ihit]-8.6)<=10.0 ){
-	    nphe = (*(T->Harm_HCal_hit_NumPhotoelectrons))[jhit];
-	    if( FTtrack ){
-	      hnphe_vs_sum_edep_HCAL->Fill( edep, nphe );
-	    }
-	    for( set<int>::iterator inode = nodes_cells_hcal[cellhit].begin(); inode != nodes_cells_hcal[cellhit].end(); ++inode ){
-	      
-	      node_sums_hcal[*inode] += double(nphe);
-	      
-	    }
-	  }
-	}
-      } else {
-      
+    if( pheflag == 0 ){
+      for( int ihit=0; ihit<T->Harm_HCalScint_hit_nhits; ihit++ ){
+	int rowhit = (*(T->Harm_HCalScint_hit_row))[ihit]+1;
+	int colhit = (*(T->Harm_HCalScint_hit_col))[ihit]+1;
+	std::pair<int,int> rowcolhit(rowhit,colhit);
+	int cellhit = cell_rowcol_hcal[rowcolhit];
+	//int trigger_group = nodes_cells_hcal[cellhit];
+	double edep = (*(T->Harm_HCalScint_hit_sumedep))[ihit];
+	nphe = num.Poisson( phe_per_GeV_HCAL * edep );
+	//cout << "HCAL hit " << ihit+1 << " node, edep, nphe = " << trigger_group << ", " << edep << ", " << nphe << endl;
+	//node_sums_hcal[trigger_group] += double(nphe);
 	for( set<int>::iterator inode = nodes_cells_hcal[cellhit].begin(); inode != nodes_cells_hcal[cellhit].end(); ++inode ){
 	  
 	  node_sums_hcal[*inode] += double(nphe);
 	  
 	}
+      }
+    } else {
+      for( int jhit=0; jhit<T->Harm_HCal_hit_nhits; jhit++ ){
+	int rowhit = (*(T->Harm_HCal_hit_row))[jhit]+1;
+	int colhit = (*(T->Harm_HCal_hit_col))[jhit]+1;
+	std::pair<int,int> rowcolhit(rowhit,colhit);
+	int cellhit = cell_rowcol_hcal[rowcolhit];
+	nphe = (*(T->Harm_HCal_hit_NumPhotoelectrons))[jhit];
+	for( set<int>::iterator inode = nodes_cells_hcal[cellhit].begin(); inode != nodes_cells_hcal[cellhit].end(); ++inode ){
+	  
+	  node_sums_hcal[*inode] += double(nphe);
+	  
+	}
+
+	for( int khit=0; khit<T->Harm_HCalScint_hit_nhits; khit++ ){
+	  if( (*(T->Harm_HCalScint_hit_row))[khit]+1 == rowhit &&
+	      (*(T->Harm_HCalScint_hit_col))[khit]+1 == colhit &&
+	      fabs( (*(T->Harm_HCal_hit_Time_avg))[jhit]-(*(T->Harm_HCalScint_hit_tavg))[khit] - 8.6 )<=15.0 ){
+	    hnphe_vs_sum_edep_HCAL->Fill( (*(T->Harm_HCalScint_hit_sumedep))[khit], nphe );
+	  }
+	}
+	
       }
     }
     
@@ -533,17 +550,33 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
 	maxsum_HCAL = node_sums_hcal[*inode];
 	maxnode_HCAL = *inode;
       }
-	
+
+      hnphesum_vs_node_HCAL_all->Fill( *inode, node_sums_hcal[*inode], weight );
+      if( FTtrack ){
+	hnphesum_vs_node_HCAL_FTcut->Fill( *inode, node_sums_hcal[*inode], weight );
+	if( FPP1track ) hnphesum_vs_node_HCAL_FPP1cut->Fill( *inode, node_sums_hcal[*inode], weight );
+	if( FPP2track ) hnphesum_vs_node_HCAL_FPP2cut->Fill( *inode, node_sums_hcal[*inode], weight );
+	if( FPP1track && FPP2track ) hnphesum_vs_node_HCAL_FPPbothcut->Fill( *inode, node_sums_hcal[*inode], weight );
+	if( FPP1track || FPP2track ) hnphesum_vs_node_HCAL_FPPeithercut->Fill( *inode, node_sums_hcal[*inode], weight );
+      }
+      
     }
 
-
-    hnphesum_vs_node_HCAL_all->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
+    for( int bin=1; bin<=hefficiency_vs_threshold_HCAL_FTcut->GetNbinsX(); bin++ ){
+      if( trigger_nodes_fired_hcal[bin-1] > 0 ){
+	if( FTtrack ){
+	  hefficiency_vs_threshold_HCAL_FTcut->Fill( hefficiency_vs_threshold_HCAL_FTcut->GetBinCenter(bin), weight );
+	}
+      }
+    }
+    
+    hnphesum_vs_node_HCALmax_all->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
     if( FTtrack ){
-      hnphesum_vs_node_HCAL_FTcut->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
-      if( FPP1track ) hnphesum_vs_node_HCAL_FPP1cut->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
-      if( FPP2track ) hnphesum_vs_node_HCAL_FPP2cut->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
-      if( FPP1track && FPP2track ) hnphesum_vs_node_HCAL_FPPbothcut->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
-      if( FPP1track || FPP2track ) hnphesum_vs_node_HCAL_FPPeithercut->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
+      hnphesum_vs_node_HCALmax_FTcut->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
+      if( FPP1track ) hnphesum_vs_node_HCALmax_FPP1cut->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
+      if( FPP2track ) hnphesum_vs_node_HCALmax_FPP2cut->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
+      if( FPP1track && FPP2track ) hnphesum_vs_node_HCALmax_FPPbothcut->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
+      if( FPP1track || FPP2track ) hnphesum_vs_node_HCALmax_FPPeithercut->Fill( maxnode_HCAL, node_sums_hcal[maxnode_HCAL], weight );
     }
     
     // for( int ithr=0; ithr<hefficiency_vs_threshold_HCAL_FTcut->GetNbinsX(); ithr++ ){

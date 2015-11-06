@@ -320,24 +320,32 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
     double thetaFPP1, thetaFPP2, pFPP1, pFPP2;
     bool FPP1track = false, FPP2track = false;
     //    if( FTtrack )
-    if( T->Harm_FPP1_Track_ntracks == 1 && FTtrack ){
-      nhat_FPP1.SetXYZ( (*(T->Harm_FPP1_Track_Xp))[0],
-			(*(T->Harm_FPP1_Track_Yp))[0],
-			1.0 );
-      nhat_FPP1 = nhat_FPP1.Unit();
-      thetaFPP1 = acos( nhat_FPP1.Dot( nhat_FT ) );
-      pFPP1 = (*(T->Harm_FPP1_Track_P))[0];
-      FPP1track = thetaFPP1 < 12.0*PI/180.0 && pFPP1/T->ev_np > 0.5;
+    if( T->Harm_FPP1_Track_ntracks > 0 && FTtrack ){
+      for( int itrack=0; itrack<T->Harm_FPP1_Track_ntracks; itrack++ ){
+	
+	nhat_FPP1.SetXYZ( (*(T->Harm_FPP1_Track_Xp))[itrack],
+			  (*(T->Harm_FPP1_Track_Yp))[itrack],
+			  1.0 );
+	nhat_FPP1 = nhat_FPP1.Unit();
+	thetaFPP1 = acos( nhat_FPP1.Dot( nhat_FT ) );
+	pFPP1 = (*(T->Harm_FPP1_Track_P))[itrack];
+	FPP1track = true;
+      }
     }
 
-    if( T->Harm_FPP2_Track_ntracks == 1 && FTtrack ){
-      nhat_FPP2.SetXYZ( (*(T->Harm_FPP2_Track_Xp))[0],
-			(*(T->Harm_FPP2_Track_Yp))[0],
-			1.0 );
-      nhat_FPP2 = nhat_FPP2.Unit();
-      thetaFPP2 = acos( nhat_FPP2.Dot( nhat_FPP2 ) );
-      pFPP2 = (*(T->Harm_FPP2_Track_P))[0];
-      FPP2track = thetaFPP2 < 24.0*PI/180.0 && pFPP2/T->ev_np > 0.5;
+    if( T->Harm_FPP2_Track_ntracks > 0 && FTtrack ){
+      for( int itrack=0; itrack<T->Harm_FPP2_Track_ntracks; itrack++ ){
+	if( (*(T->Harm_FPP2_Track_MID))[itrack] == 0 ){
+	  nhat_FPP2.SetXYZ( (*(T->Harm_FPP2_Track_Xp))[itrack],
+			    (*(T->Harm_FPP2_Track_Yp))[itrack],
+			    1.0 );
+	  nhat_FPP2 = nhat_FPP2.Unit();
+	  thetaFPP2 = acos( nhat_FPP2.Dot( nhat_FPP2 ) );
+	  pFPP2 = (*(T->Harm_FPP2_Track_P))[itrack];
+	  //FPP2track = thetaFPP2 < 24.0*PI/180.0 && pFPP2/T->ev_np > 0.5;
+	  FPP2track = true;
+	}
+      }
     }
       
     double nu = T->ev_Q2 / 2.0 / 0.938272;
@@ -398,6 +406,8 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
       }
     }
 
+    int nphe = 0;
+    
     if( pheflag == 0 ){
       for( int ihit = 0; ihit<T->Earm_ECalTF1_hit_nhits; ihit++ ){
 	int rowhit = ( *(T->Earm_ECalTF1_hit_row))[ihit]+1;
@@ -410,7 +420,10 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
 	
 	double edep = (*(T->Earm_ECalTF1_hit_sumedep))[ihit];
 
-	int nphe = num.Poisson( phe_per_GeV_ECAL * edep );
+	double mean = 751.6*edep;
+	double sigma = 49.28*sqrt(edep) + 24.1*edep;
+
+	nphe = int(num.Gaus(mean,sigma));
 	
 	for( set<int>::iterator inode = nodes_cells_ecal[cellhit].begin(); inode != nodes_cells_ecal[cellhit].end(); ++inode ){
 	  node_sums[ *inode ] += double(nphe);
@@ -492,7 +505,7 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
       node_sums_hcal[*inode] = 0.0;
     }
 
-    int nphe = 0;
+    //int nphe = 0;
     
     if( pheflag == 0 ){
       for( int ihit=0; ihit<T->Harm_HCalScint_hit_nhits; ihit++ ){
@@ -502,7 +515,12 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
 	int cellhit = cell_rowcol_hcal[rowcolhit];
 	//int trigger_group = nodes_cells_hcal[cellhit];
 	double edep = (*(T->Harm_HCalScint_hit_sumedep))[ihit];
-	nphe = num.Poisson( phe_per_GeV_HCAL * edep );
+	//nphe = num.Poisson( phe_per_GeV_HCAL * edep );
+	double mean = 2981.0*edep;
+	double sigma = 62.88*sqrt(edep) + 182.8*edep;
+
+	nphe = int(num.Gaus(mean,sigma));
+	
 	//cout << "HCAL hit " << ihit+1 << " node, edep, nphe = " << trigger_group << ", " << edep << ", " << nphe << endl;
 	//node_sums_hcal[trigger_group] += double(nphe);
 	for( set<int>::iterator inode = nodes_cells_hcal[cellhit].begin(); inode != nodes_cells_hcal[cellhit].end(); ++inode ){

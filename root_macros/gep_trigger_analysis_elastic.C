@@ -280,8 +280,8 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
   TH1D *hshouldhit_HCAL_FPP1cut = new TH1D("hshouldhit_HCAL_FPP1cut","",30,0.0,1.5);
   TH1D *hshouldhit_HCAL_FPP2cut = new TH1D("hshouldhit_HCAL_FPP2cut","",30,0.0,1.5);
   
-  TH2D *hnphe_vs_sum_edep_ECAL = new TH2D("hnphe_vs_sum_edep_ECAL","",250,0.0,5.0,250,0.0,5000.0 );
-  TH2D *hnphe_vs_sum_edep_HCAL = new TH2D("hnphe_vs_sum_edep_HCAL","",250,0.0,1.0,250,0.0,2500.0 );
+  TH2D *hnphe_vs_sum_edep_ECAL = new TH2D("hnphe_vs_sum_edep_ECAL","",125,0.0,5.0,125,0.0,5000.0 );
+  TH2D *hnphe_vs_sum_edep_HCAL = new TH2D("hnphe_vs_sum_edep_HCAL","",125,0.0,0.75,125,0.0,2500.0 );
   
   double Ibeam = 75.0e-6; //Amps
   double Ltarget = 40.0; //cm

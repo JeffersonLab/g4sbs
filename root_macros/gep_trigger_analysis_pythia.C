@@ -327,7 +327,9 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
   // TH2D *hnphe_vs_sum_edep_HCAL = new TH2D("hnphe_vs_sum_edep_HCAL","",125,0.0,0.75,125,0.0,2500.0 );
 
   TH1D *hrate_vs_threshold_ECAL = new TH1D("hrate_vs_threshold_ECAL","",30,0.025,1.525);
+  TH1D *hrate_vs_fixed_energy_threshold_ECAL = new TH1D("hrate_vs_fixed_energy_threshold_ECAL","",35,0.0,7.0 );
   TH1D *hrate_vs_threshold_HCAL = new TH1D("hrate_vs_threshold_HCAL","",30,0.025,1.525);
+  TH1D *hrate_vs_fixed_energy_threshold_HCAL = new TH1D("hrate_vs_fixed_energy_threshold_HCAL","",30,0.0,10.0 );
   TH2D *hrate_vs_threshold_logic_sums_HCAL = new TH2D("hrate_vs_threshold_logic_sums_HCAL","",list_of_nodes_hcal.size(),0.5,0.5+list_of_nodes_hcal.size(),30,.025,1.525);
   TH2D *hrate_vs_threshold_logic_sums_HCALmax = new TH2D("hrate_vs_threshold_logic_sums_HCALmax","",list_of_nodes_hcal.size(),0.5,0.5+list_of_nodes_hcal.size(),30,.025,1.525);
   TH2D *hrate_E_vs_threshold_logic_sums_HCAL = new TH2D("hrate_E_vs_threshold_logic_sums_HCAL","",list_of_nodes_hcal.size(),0.5,0.5+list_of_nodes_hcal.size(),30,.025,1.525);
@@ -461,9 +463,14 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
       //node_sums[ trigger_group ] += double(nphe);
     }
 
+    vector<int> trigger_nodes_fired_vs_E(hrate_vs_fixed_energy_threshold_ECAL->GetNbinsX());
     vector<int> trigger_nodes_fired(hrate_vs_threshold_ECAL->GetNbinsX());
     for( int ithr=0; ithr<hrate_vs_threshold_ECAL->GetNbinsX(); ithr++ ){
       trigger_nodes_fired[ithr] = 0;
+    }
+
+    for( int ithr=0; ithr<trigger_nodes_fired_vs_E.size(); ithr++ ){
+      trigger_nodes_fired_vs_E[ithr] = 0;
     }
 
     int maxnode_ECAL=-1;
@@ -478,8 +485,14 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
 	  trigger_nodes_fired[bin-1]++;
 	  hrate_vs_threshold_logic_sums_ECAL->Fill( *inode, hrate_vs_threshold_ECAL->GetBinCenter(bin), weight );
 	}
-	
       }
+
+      for( int bin=1; bin<=hrate_vs_fixed_energy_threshold_ECAL->GetNbinsX(); bin++ ){
+	if( node_sums[*inode]/752.2 >= hrate_vs_fixed_energy_threshold_ECAL->GetBinCenter(bin) ){
+	  trigger_nodes_fired_vs_E[bin-1]++;
+	}
+      }
+      
       if( node_sums[*inode] > maxsum_ECAL ) {
 	maxsum_ECAL = node_sums[*inode];
 	maxnode_ECAL = *inode;
@@ -492,6 +505,13 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
       if( trigger_nodes_fired[ithr] > 0 ){
 	double threshold = hrate_vs_threshold_ECAL->GetBinCenter( ithr + 1 );
 	hrate_vs_threshold_ECAL->Fill( threshold, weight );
+      }
+    }
+
+    for( int ithr=0; ithr<trigger_nodes_fired_vs_E.size(); ithr++ ){
+      if( trigger_nodes_fired_vs_E[ithr] > 0 ){
+	double threshold = hrate_vs_fixed_energy_threshold_ECAL->GetBinCenter(ithr+1);
+	hrate_vs_fixed_energy_threshold_ECAL->Fill( threshold, weight );
       }
     }
     
@@ -540,8 +560,10 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
     }
     
     vector<int> trigger_nodes_fired_hcal(hrate_vs_threshold_HCAL->GetNbinsX());
+    vector<int> trigger_nodes_fired_vs_E_hcal(hrate_vs_threshold_HCAL->GetNbinsX());
     for( int ithr=0; ithr<hrate_vs_threshold_HCAL->GetNbinsX(); ithr++ ){
       trigger_nodes_fired_hcal[ithr] = 0;
+      trigger_nodes_fired_vs_E_hcal[ithr] = 0;
     }
 
     vector<int> coin_trigger_fired( hrate_vs_threshold_HCAL->GetNbinsX()*hrate_vs_threshold_ECAL->GetNbinsX() );
@@ -567,6 +589,10 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
 	      }
 	    }
 	  } 
+	}
+
+	if( node_sums_hcal[*inode]/logic_mean_hcal[*inode]*6.4 >= hrate_vs_fixed_energy_threshold_HCAL->GetBinCenter(bin) ){
+	  trigger_nodes_fired_vs_E_hcal[bin-1]++;
 	}
       }
       if( node_sums_hcal[*inode] > maxsum_HCAL ) {
@@ -606,7 +632,11 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
       if( node_sums_hcal[ maxnode_HCAL ]/logic_mean_hcal[maxnode_HCAL] >= threshold ){
 	hrate_vs_threshold_logic_sums_HCALmax->Fill( maxnode_HCAL, threshold, weight );
       }
+      if( trigger_nodes_fired_vs_E_hcal[ithr] > 0 ){
+	hrate_vs_fixed_energy_threshold_HCAL->Fill( hrate_vs_fixed_energy_threshold_HCAL->GetBinCenter( ithr+1 ), weight );
+      }
     }
+
     
   }
     

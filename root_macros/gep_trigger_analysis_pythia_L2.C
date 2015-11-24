@@ -11,6 +11,7 @@
 //#include "TIter.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TH3D.h"
 #include "TMath.h"
 
 #include "TVector3.h"
@@ -32,7 +33,7 @@ TF1 *gaussplusexpo = new TF1("gaussplusexpo", "[0]*exp(-0.5*pow((x-[1])/[2],2))+
 const double Mp = 0.938272; //GeV
 const double PI = TMath::Pi();
 
-void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfilename_ecal, const char *logicfilename_hcal, const char *thresholdfilename_ecal, const char *thresholdfilename_hcal, const char *outputfilename, int pheflag=0, const char *assocfilename="ECAL_HCAL_correlations_nophe.txt" ){
+void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *logicfilename_ecal, const char *thresholdfilename_ecal, const char *thresholdfilename_hcal, const char *outputfilename, int pheflag=0, const char *assocfilename="ECAL_HCAL_LUT_level2.txt" ){
 
   //double thetacal = thetacaldeg*PI/180.0;
   
@@ -181,51 +182,31 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
   map<std::pair<int,int>, int > cell_rowcol_hcal; //cell numbers mapped by unique row and column pairs
   map<int,set<int> > nodes_cells_hcal; //mapping of nodes by cell number:
 
-  ifstream logicfile_hcal(logicfilename_hcal);
+  
 
   current_node = 1;
   //  bool first_cell = true;
 
-  while( currentline.ReadLine(logicfile_hcal) ){
-    if( !currentline.BeginsWith("#") ){
-      TObjArray *tokens = currentline.Tokenize(" ");
-      int ntokens = tokens->GetEntries();
-      if( ntokens >= 11 ){
-	cout << currentline.Data() << ", ntokens = " << ntokens << endl;
-
-	TString snode = ( (TObjString*) (*tokens)[0] )->GetString();
-	int nodenumber = snode.Atoi();
-	
-	TString scell = ( (TObjString*) (*tokens)[1] )->GetString();
-	int cellnumber = scell.Atoi();
-	
-	TString speakpos = ( (TObjString*) (*tokens)[8] )->GetString();
-	double mean = speakpos.Atof();
-	
-	TString ssigma = ( (TObjString*) (*tokens)[9] )->GetString();
-	double sigma = ssigma.Atof();
-
-	TString sthreshold = ( (TObjString*) (*tokens)[10] )->GetString();
-	double threshold = sthreshold.Atof();
-
-	TString srow = ( (TObjString*) (*tokens)[2] )->GetString();
-	TString scol = ( (TObjString*) (*tokens)[3] )->GetString();
-
-	std::pair<int,int> rowcoltemp( srow.Atoi(), scol.Atoi() );
-
-	cell_rowcol_hcal[rowcoltemp] = cellnumber;
-	
-	list_of_nodes_hcal.insert( nodenumber );
-
-	cells_logic_sums_hcal[nodenumber].insert( cellnumber );
-
-	logic_mean_hcal[nodenumber] = mean;
-	logic_sigma_hcal[nodenumber] = sigma;
-	threshold_hcal[nodenumber] = threshold;
-
-	nodes_cells_hcal[ cellnumber ].insert(nodenumber);
-	
+  int nrows_hcal=24;
+  int ncols_hcal=12;
+  for( int row=1; row<=nrows_hcal-3; row++ ){
+    for( int col=1; col<=ncols_hcal-3; col++ ){
+      list_of_nodes_hcal.insert( current_node );
+      for( int m=col; m<=col+3; m++ ){ //Add all blocks in each 4x4 sum to the current node:
+	for( int n=row; n<=row+3; n++ ){ //Add
+	  int cell = (n-1) + nrows_hcal*(m-1) + 1;
+	  cells_logic_sums_hcal[current_node].insert( cell );
+	  nodes_cells_hcal[cell].insert(current_node);
+	  std::pair<int,int> rowcol(n,m);
+	  cell_rowcol_hcal[rowcol] = cell;
+	  //Use some sensible default value for logic mean and logic sigma:
+	}
       }
+
+      logic_mean_hcal[current_node] = 1500.0;
+      logic_sigma_hcal[current_node] = 450.0;
+      
+      current_node++;
     }
   }
   
@@ -358,8 +339,11 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
   TH2D *hother_p_vs_theta = new TH2D("hother_p_vs_theta","",200,0.0,45.0,200,0.0,11.0);
 
   //plot the "overlap rates" between node i and j for ECAL and HCAL:
-  TH2D *hrates_overlap_HCAL = new TH2D("hprob_overlap_HCAL","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5);
-  TH2D *hrates_overlap_ECAL = new TH2D("hprob_overlap_ECAL","",list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5,list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5);
+  TH3D *hrates_overlap_HCAL = new TH3D("hprob_overlap_HCAL","",list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5,30,0.025,1.525);
+  TH3D *hrates_overlap_ECAL = new TH3D("hprob_overlap_ECAL","",list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5,list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5,30,0.025,1.525);
+
+  TH2D *hNnodes_fired_ECAL_vs_threshold = new TH2D("hNnodes_fired_ECAL_vs_threshold","",30,0.025,1.525,list_of_nodes_ecal.size(),0.5,list_of_nodes_ecal.size()+0.5);
+  TH2D *hNnodes_fired_HCAL_vs_threshold = new TH2D("hNnodes_fired_HCAL_vs_threshold","",30,0.025,1.525,list_of_nodes_hcal.size(),0.5,list_of_nodes_hcal.size()+0.5);
   
   double Ibeam = 75.0e-6; //Amps
   double Ltarget = 40.0; //cm
@@ -469,6 +453,8 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
 
     vector<int> trigger_nodes_fired_vs_E(hrate_vs_fixed_energy_threshold_ECAL->GetNbinsX());
     vector<int> trigger_nodes_fired(hrate_vs_threshold_ECAL->GetNbinsX());
+    map<int, set<int> > list_of_nodes_fired_vs_threshold_ECAL; //map of threshold bins and list of fired ECAL nodes
+    
     for( int ithr=0; ithr<hrate_vs_threshold_ECAL->GetNbinsX(); ithr++ ){
       trigger_nodes_fired[ithr] = 0;
     }
@@ -488,6 +474,7 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
 	  //cout << "node above threshold, nphe, peak position = " << node_sums[*inode] << ", " << logic_mean_ecal[*inode] << endl;
 	  trigger_nodes_fired[bin-1]++;
 	  hrate_vs_threshold_logic_sums_ECAL->Fill( *inode, hrate_vs_threshold_ECAL->GetBinCenter(bin), weight );
+	  list_of_nodes_fired_vs_threshold_ECAL[bin].insert( *inode );
 	}
       }
 
@@ -509,6 +496,12 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
       if( trigger_nodes_fired[ithr] > 0 ){
 	double threshold = hrate_vs_threshold_ECAL->GetBinCenter( ithr + 1 );
 	hrate_vs_threshold_ECAL->Fill( threshold, weight );
+	hNnodes_fired_ECAL_vs_threshold->Fill( threshold, trigger_nodes_fired[ithr], weight );
+	for( set<int>::iterator inode = list_of_nodes_fired_vs_threshold_ECAL[ithr+1].begin(); inode != list_of_nodes_fired_vs_threshold_ECAL[ithr+1].end(); ++inode ){
+	  for( set<int>::iterator jnode = inode; jnode != list_of_nodes_fired_vs_threshold_ECAL[ithr+1].end(); ++jnode ){
+	    hrates_overlap_ECAL->Fill( *inode, *jnode, threshold, weight );
+	  }
+	}
       }
     }
 
@@ -565,6 +558,8 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
     
     vector<int> trigger_nodes_fired_hcal(hrate_vs_threshold_HCAL->GetNbinsX());
     vector<int> trigger_nodes_fired_vs_E_hcal(hrate_vs_threshold_HCAL->GetNbinsX());
+    map<int, set<int> > list_of_nodes_fired_vs_threshold_HCAL; //mapping between threshold bins and list of fired HCAL nodes:
+    
     for( int ithr=0; ithr<hrate_vs_threshold_HCAL->GetNbinsX(); ithr++ ){
       trigger_nodes_fired_hcal[ithr] = 0;
       trigger_nodes_fired_vs_E_hcal[ithr] = 0;
@@ -584,7 +579,9 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
 	  trigger_nodes_fired_hcal[bin-1]++;
 	  hrate_vs_threshold_logic_sums_HCAL->Fill( *inode, hrate_vs_threshold_HCAL->GetBinCenter(bin), weight );
 	  //bool anycoin_hcal = false;
-       
+
+	  list_of_nodes_fired_vs_threshold_HCAL[bin].insert( *inode );
+	  
 	  for( set<int>::iterator enode = ECAL_nodes_HCAL[*inode].begin(); enode != ECAL_nodes_HCAL[*inode].end(); ++enode ){
 	    for( int ebin=1; ebin<=hrate_vs_threshold_ECAL->GetNbinsX(); ebin++ ){ //check ECAL sums:
 	      if( node_sums[ *enode ]/logic_mean_ecal[*enode] > hrate_vs_threshold_ECAL->GetBinCenter(ebin) ){ //this ECAL sum fired:
@@ -632,6 +629,15 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
       double threshold = hrate_vs_threshold_HCAL->GetBinCenter( ithr + 1 );
       if( trigger_nodes_fired_hcal[ithr] > 0 ){
 	hrate_vs_threshold_HCAL->Fill( threshold, weight );
+	hNnodes_fired_HCAL_vs_threshold->Fill( threshold, trigger_nodes_fired_hcal[ithr], weight );
+
+	for( set<int>::iterator inode = list_of_nodes_fired_vs_threshold_HCAL[ithr+1].begin(); inode != list_of_nodes_fired_vs_threshold_HCAL[ithr+1].end(); ++inode ){
+	  for( set<int>::iterator jnode = inode; jnode != list_of_nodes_fired_vs_threshold_HCAL[ithr+1].end(); ++jnode ){
+	    
+	    hrates_overlap_HCAL->Fill( *inode, *jnode, threshold, weight );
+	    
+	  }
+	}
       }
       if( node_sums_hcal[ maxnode_HCAL ]/logic_mean_hcal[maxnode_HCAL] >= threshold ){
 	hrate_vs_threshold_logic_sums_HCALmax->Fill( maxnode_HCAL, threshold, weight );
@@ -640,8 +646,6 @@ void gep_trigger_analysis_pythia( const char *rootfilename, const char *logicfil
 	hrate_vs_fixed_energy_threshold_HCAL->Fill( hrate_vs_fixed_energy_threshold_HCAL->GetBinCenter( ithr+1 ), weight );
       }
     }
-
-    
   }
     
   //How to analyze accidental coincidence rate? First

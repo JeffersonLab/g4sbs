@@ -36,7 +36,7 @@ private:
   // G4VPhysicsConstructor *G4SBSOpticalPhysics;
 
   // void ConstructParticle();
-  // void ConstructProcess();
+  virtual void ConstructProcess();
 
 };
 

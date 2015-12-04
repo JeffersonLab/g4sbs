@@ -857,7 +857,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   double ScinToLgGap    = 0.1*cm;
   double ContainerThick = 0.3*cm;
   int NRows             = 24;
-  int NColumns          = 11;
+  int NColumns          = 12;
   int NumberOfLayers    = 40;
   G4double PlateGaps    = (TotalPlatesL-(NumberOfLayers*(IronPlThick+ScinPlThick)))/(2*NumberOfLayers - 1); //Gap between each Fe/Scint plate
 

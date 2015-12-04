@@ -1,4 +1,4 @@
-/g4sbs/filename gep_12_job5.root
+/g4sbs/filename gep_12_elastic_job3.root
 
 #/g4sbs/ECALmap ecal_map.txt
 
@@ -28,10 +28,10 @@
 #/g4sbs/thmax      40.0 deg
 #/g4sbs/phmin      120.0 deg
 #/g4sbs/phmax     240.0 deg
-/g4sbs/thmin 29 deg
-/g4sbs/thmax 29 deg
-/g4sbs/phmin 0 deg
-/g4sbs/phmax 0 deg
+/g4sbs/thmin 19 deg
+/g4sbs/thmax 39 deg
+/g4sbs/phmin -50 deg
+/g4sbs/phmax 50 deg
 
 #/g4sbs/keephistory Harm/HCAL 1
 #/g4sbs/keephistory Harm/FT 1
@@ -41,12 +41,15 @@
 #/g4sbs/keepcalparticles Harm/HCAL 1
 #/g4sbs/keepcalparticles Earm/ECalTF1 1
 #/g4sbs/steplimit Harm/HCAL 1
-/g4sbs/steplimit lHCalo 1
-/g4sbs/steplimit earm_mother_log 1
+#/g4sbs/steplimit lHCalo 1
+#/g4sbs/steplimit earm_mother_log 1
 
 #/g4sbs/run 0
 
 #/g4sbs/run 40000
 
-/g4sbs/totalabs true
+/g4sbs/totalabs false
 #/g4sbs/run 2000
+
+/g4sbs/treeflag 1
+/g4sbs/run 100000

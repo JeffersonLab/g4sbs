@@ -2,20 +2,23 @@
 /g4sbs/kine sidis
 /g4sbs/hthmin 14 deg
 /g4sbs/hthmax 14 deg
-/g4sbs/hphmin 0 deg
-/g4sbs/hphmax 0 deg
+/g4sbs/hphmin 180 deg
+/g4sbs/hphmax 180 deg
 /g4sbs/thmin 30 deg
 /g4sbs/thmax 30 deg
-/g4sbs/phmin 180 deg
-/g4sbs/phmax 180 deg
+/g4sbs/phmin 0 deg
+/g4sbs/phmax 0 deg
+/g4sbs/eemin 1.0 GeV
+/g4sbs/eemax 6.0 GeV
+/g4sbs/ehmin 2.0 GeV
+/g4sbs/ehmax 11.0 GeV
 
-/g4sbs/uselead 1
+/g4sbs/uselead 0
 #/g4sbs/target LH2
 #/g4sbs/exp gep
 #/g4sbs/hcaldist 9.0 m
 #/g4sbs/bbdist 2.0 m
-/g4sbs/steplimit Harm/HCAL 1
-/g4sbs/steplimit Earm/BBCal 1
+
 
 # Use this open statement to create an OpenGL view:
 /vis/open OGLI 800x800-0+0
@@ -92,6 +95,6 @@
 #
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
-/g4sbs/run  0
+/g4sbs/run  1
 #/vis/geometry/set/visibility RICHbox_log -1 0
 /vis/viewer/flush

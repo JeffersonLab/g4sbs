@@ -16,16 +16,16 @@ using namespace std;
 const double Mp = 0.938272046;
 const double me = 0.511e-3;
 
-void Pythia6_minbias_gen( const char *configfilename, const char *outputfilename ){
+void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ngen=125000 ){
   TFile *Fout = new TFile(outputfilename,"RECREATE");
   
-  ifstream infile(configfilename);
+  //ifstream infile(configfilename);
 
-  double Ebeam = 11.0;
-  infile >> Ebeam;
+  // double Ebeam = 11.0;
+  // infile >> Ebeam;
 
-  long ngen = 10000;
-  infile >> ngen;
+  // long ngen = 10000;
+  // infile >> ngen;
   
   double pbeam = sqrt(pow(Ebeam,2)-pow(me,2));
   

@@ -32,7 +32,7 @@ TF1 *gaussplusexpo = new TF1("gaussplusexpo", "[0]*exp(-0.5*pow((x-[1])/[2],2))+
 const double Mp = 0.938272; //GeV
 const double PI = TMath::Pi();
 
-void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfilename_ecal, const char *logicfilename_hcal, const char *thresholdfilename_ecal, const char *thresholdfilename_hcal, const char *outputfilename, double thetacaldeg=29.0, int pheflag=0, const char *assocfilename="ECAL_HCAL_correlations_nophe.txt", int Q2cut=0 ){
+void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logicfilename_ecal, const char *thresholdfilename_ecal, const char *thresholdfilename_hcal, const char *outputfilename, double thetacaldeg=29.0, int pheflag=0, const char *assocfilename="ECAL_HCAL_L2_correlations_nophe.txt", int Q2cut=0 ){
 
   double nominal_threshold_HCAL = 0.5;
   double nominal_threshold_ECAL = 0.9;
@@ -184,53 +184,32 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
   map<std::pair<int,int>, int > cell_rowcol_hcal; //cell numbers mapped by unique row and column pairs
   map<int,set<int> > nodes_cells_hcal; //mapping of nodes by cell number:
 
-  ifstream logicfile_hcal(logicfilename_hcal);
-
   current_node = 1;
   //  bool first_cell = true;
 
-  while( currentline.ReadLine(logicfile_hcal) ){
-    if( !currentline.BeginsWith("#") ){
-      TObjArray *tokens = currentline.Tokenize(" ");
-      int ntokens = tokens->GetEntries();
-      if( ntokens >= 11 ){
-	cout << currentline.Data() << ", ntokens = " << ntokens << endl;
-
-	TString snode = ( (TObjString*) (*tokens)[0] )->GetString();
-	int nodenumber = snode.Atoi();
-	
-	TString scell = ( (TObjString*) (*tokens)[1] )->GetString();
-	int cellnumber = scell.Atoi();
-	
-	TString speakpos = ( (TObjString*) (*tokens)[8] )->GetString();
-	double mean = speakpos.Atof();
-	
-	TString ssigma = ( (TObjString*) (*tokens)[9] )->GetString();
-	double sigma = ssigma.Atof();
-
-	TString sthreshold = ( (TObjString*) (*tokens)[10] )->GetString();
-	double threshold = sthreshold.Atof();
-
-	TString srow = ( (TObjString*) (*tokens)[2] )->GetString();
-	TString scol = ( (TObjString*) (*tokens)[3] )->GetString();
-
-	std::pair<int,int> rowcoltemp( srow.Atoi(), scol.Atoi() );
-
-	cell_rowcol_hcal[rowcoltemp] = cellnumber;
-	
-	list_of_nodes_hcal.insert( nodenumber );
-
-	cells_logic_sums_hcal[nodenumber].insert( cellnumber );
-
-	logic_mean_hcal[nodenumber] = mean;
-	logic_sigma_hcal[nodenumber] = sigma;
-	threshold_hcal[nodenumber] = threshold;
-
-	nodes_cells_hcal[ cellnumber ].insert(nodenumber);
-	
+  int nrows_hcal=24;
+  int ncols_hcal=12;
+  for( int row=1; row<=nrows_hcal-3; row++ ){
+    for( int col=1; col<=ncols_hcal-3; col++ ){
+      list_of_nodes_hcal.insert( current_node );
+      for( int m=col; m<=col+3; m++ ){ //Add all blocks in each 4x4 sum to the current node:
+	for( int n=row; n<=row+3; n++ ){ //Add
+	  int cell = (n-1) + nrows_hcal*(m-1) + 1;
+	  cells_logic_sums_hcal[current_node].insert( cell );
+	  nodes_cells_hcal[cell].insert(current_node);
+	  std::pair<int,int> rowcol(n,m);
+	  cell_rowcol_hcal[rowcol] = cell;
+	  //Use some sensible default value for logic mean and logic sigma:
+	}
       }
+
+      logic_mean_hcal[current_node] = 1500.0;
+      logic_sigma_hcal[current_node] = 450.0;
+      
+      current_node++;
     }
   }
+  
   
   TH1D::SetDefaultSumw2();
 
@@ -346,8 +325,6 @@ void gep_trigger_analysis_elastic( const char *rootfilename, const char *logicfi
 
   TH1D *hshouldhit_vs_Q2_ECAL_FTcut = new TH1D("hshouldhit_vs_Q2_ECAL_FTcut","",100,8.0,16.0);
   TH1D *hefficiency_vs_Q2_ECAL_FTcut = new TH1D("hefficiency_vs_Q2_ECAL_FTcut","",100,8.0,16.0);
-
-  
   
   double Ibeam = 75.0e-6; //Amps
   double Ltarget = 40.0; //cm

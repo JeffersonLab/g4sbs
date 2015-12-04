@@ -7,7 +7,7 @@
 /g4sbs/rastery  2.0 mm
 /g4sbs/exp      sidis
 /g4sbs/hadron   pi+
-#/g4sbs/kine     sidis
+/g4sbs/kine     sidis
 /g4sbs/kine beam
 
 /g4sbs/runtime   1.0 s
@@ -21,7 +21,7 @@
 /g4sbs/sbsmagfield  1.4 tesla
 /g4sbs/bbfield      1
 /g4sbs/sbsclampopt  0
-/g4sbs/richdist    4.3 m
+/g4sbs/richdist    4.6 m
 /g4sbs/thmin      22.0 deg
 /g4sbs/thmax      42.0 deg
 /g4sbs/phmin     150.0 deg
@@ -37,13 +37,16 @@
 
 /g4sbs/treeflag 1
 
-/g4sbs/steplimit Earm/BBCal 1
-/g4sbs/steplimit Harm/HCAL 1
-/g4sbs/keepcalparticles Earm/BBCal 1
-/g4sbs/keepcalparticles Harm/HCAL 1
+#/g4sbs/steplimit Earm/BBCal 1
+#/g4sbs/steplimit Harm/HCAL 1
+#/g4sbs/keepcalparticles Earm/BBCal 1
+#/g4sbs/keepcalparticles Harm/HCAL 1
 /g4sbs/keephistory Harm/RICH 1
-/g4sbs/keephistory Harm/HCAL 1
-/g4sbs/keephistory Harm/SBSGEM 1
-/g4sbs/keephistory Earm/GRINCH 1
-/g4sbs/keephistory Earm/BBGEM 1
-/g4sbs/keephistory Earm/BBCal 1
+#/g4sbs/keephistory Harm/HCAL 1
+#/g4sbs/keephistory Harm/SBSGEM 1
+#/g4sbs/keephistory Earm/GRINCH 1
+#/g4sbs/keephistory Earm/BBGEM 1
+#/g4sbs/keephistory Earm/BBCal 1
+
+/g4sbs/steplimit lHCalo 1
+/g4sbs/steplimit bbcal_mother_log 1

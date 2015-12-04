@@ -20,6 +20,9 @@
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 
+#include "G4Transportation.hh"
+#include "G4PhysicsListHelper.hh"
+
 G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
   
   G4LossTableManager::Instance();
@@ -69,6 +72,8 @@ G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
   // cutPositron  = defaultCutValue;
   // cutProton    = defaultCutValue;
 
+  
+  
 }
 
 //Destructor:
@@ -96,4 +101,12 @@ void G4SBSPhysicsList::SetCuts()
   // SetParticleCuts( cutProton, G4Proton::Proton() );
 
   SetCutsWithDefault();
+}
+
+void G4SBSPhysicsList::ConstructProcess(){
+  G4VModularPhysicsList::ConstructProcess();
+
+  G4Transportation::EnableUseMagneticMoment(true);
+  
+  AddTransportation();
 }

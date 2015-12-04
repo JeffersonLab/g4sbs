@@ -321,6 +321,7 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *logic
   //TH2D *htrue_coincidence_rate_vs_threshold_ECAL_HCAL = new TH2D("htrue_coincidence_rate_vs_threshold_ECAL_HCAL","",30,.025,1.525,30,.025,1.525);
   TH2D *htrue_coincidence_rate_vs_threshold_ECAL_HCAL = new TH2D("htrue_coincidence_rate_vs_threshold_ECAL_HCAL","",30,.025,1.525,30,.025,1.525);
   TH2D *haccidental_coincidence_rate_vs_threshold_ECAL_HCAL = new TH2D("haccidental_coincidence_rate_vs_threshold_ECAL_HCAL","",30,.025,1.525,30,.025,1.525);
+  //TH2D *haccidental_coincidence_rate_vs_threshold_ECAL_HCAL = new TH2D("haccidental_coincidence_rate_vs_threshold_ECAL_HCAL","",30,.025,1.525,30,.025,1.525);
   
   TH1D *hQ2 = new TH1D("hQ2","",200,0.0,10.0);
   TH1D *hW = new TH1D("hW","",200,0.0,6.0);

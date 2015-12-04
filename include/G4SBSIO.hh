@@ -29,6 +29,7 @@ typedef struct {
 typedef struct {
   Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph;
   Double_t Aperp, Apar;
+  Double_t Pt, Pl;
   Double_t vx, vy, vz;
   Double_t ep, np;
   Double_t epx, epy, epz;

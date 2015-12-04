@@ -45,6 +45,9 @@
 #include "G4SBSEArmBuilder.hh"
 #include "G4SBSHArmBuilder.hh"
 
+#include "G4Mag_SpinEqRhs.hh"
+#include "G4ClassicalRK4.hh"
+
 #include <vector>
 #include <map>
 //#include <pair>
@@ -1600,9 +1603,13 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   G4FieldManager *fm = new G4FieldManager(fGlobalField);
 
-  G4Mag_UsualEqRhs* fequation= new G4Mag_UsualEqRhs(fGlobalField);
+  G4Mag_UsualEqRhs* fequation = new G4Mag_UsualEqRhs(fGlobalField);
   G4MagIntegratorStepper *stepper = new G4ExplicitEuler(fequation, 8);
   new G4ChordFinder(fGlobalField, 1.0e-2*mm, stepper);
+
+  G4Mag_SpinEqRhs* fBMTequation = new G4Mag_SpinEqRhs(fGlobalField);
+  G4MagIntegratorStepper *pStepper = new G4ClassicalRK4(fBMTequation,12);
+  new G4ChordFinder(fGlobalField, 1.0e-2*mm, pStepper);
 
   if( fUseGlobalField ){
     WorldLog->SetFieldManager(fm,true);

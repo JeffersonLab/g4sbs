@@ -21,6 +21,9 @@ void G4SBSGEMoutput::Clear(){
   x.clear();
   y.clear();
   z.clear();
+  polx.clear();
+  poly.clear();
+  polz.clear();
   t.clear();
   trms.clear();
   tmin.clear();

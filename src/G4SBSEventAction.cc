@@ -269,6 +269,7 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
   map<int,map<int,int> > mid,pid; //don't need one for plane, trid as these are already keys
   map<int,map<int,double> > vx,vy,vz;
   map<int,map<int,double> > p,edep,beta;
+  map<int,map<int,double> > polx,poly,polz;
   
   //G4int nhit=0;
   //Loop over all "hits" (actually individual tracking steps):
@@ -286,6 +287,10 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
       x[gemID][trid] =  (*hits)[i]->GetPos().x();
       y[gemID][trid] =  (*hits)[i]->GetPos().y();
       z[gemID][trid] =  (*hits)[i]->GetPos().z();
+
+      polx[gemID][trid] = (*hits)[i]->GetPolarization().x();
+      poly[gemID][trid] = (*hits)[i]->GetPolarization().y();
+      polz[gemID][trid] = (*hits)[i]->GetPolarization().z();
 
       t[gemID][trid] =  (*hits)[i]->GetHittime();
       t2[gemID][trid] = pow( t[gemID][trid],2 );
@@ -309,7 +314,7 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
       
       edep[gemID][trid] = (*hits)[i]->GetEdep();
    
-      beta[gemID][trid] = (*hits)[i]->GetBeta(); 
+      beta[gemID][trid] = (*hits)[i]->GetBeta();     
  
     } else { //existing track in this layer, additional step; increment sums and averages:
       int nstep = nsteps_track_layer[gemID][trid];
@@ -356,6 +361,9 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
 	gemoutput.x.push_back( (-y[gemID][trackID] + CLHEP::RandGauss::shoot(0.0,fGEMres) )/_L_UNIT );
 	gemoutput.y.push_back( (x[gemID][trackID] + CLHEP::RandGauss::shoot(0.0,fGEMres) )/_L_UNIT );
 	gemoutput.z.push_back( z[gemID][trackID]/_L_UNIT );
+	gemoutput.polx.push_back( -poly[gemID][trackID] );
+	gemoutput.poly.push_back(  polx[gemID][trackID] );
+	gemoutput.polz.push_back(  polz[gemID][trackID] );
 	gemoutput.t.push_back( t[gemID][trackID]/_T_UNIT );
 	gemoutput.trms.push_back( sqrt(t2[gemID][trackID]/double(nsteps_track_layer[gemID][trackID]) - pow(t[gemID][trackID],2))/_T_UNIT );
 	gemoutput.tmin.push_back( tmin[gemID][trackID]/_T_UNIT );

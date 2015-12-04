@@ -24,6 +24,7 @@ public:
   
   double GetBeamE(){ return fBeamE; }
   G4ThreeVector GetBeamP(){ return fBeamP; }
+  G4ThreeVector GetBeamPol(){ return fBeamPol; }
   
   G4ThreeVector GetV(){ return fVert; }
   
@@ -39,6 +40,9 @@ public:
   Nucl_t GetFinalNucleon(){ return fFinalNucl; }
 
   Hadron_t GetHadronType(){ return fHadronType; }
+
+  double GetPt(){ return fPt; }
+  double GetPl(){ return fPl; }
   
   bool GenerateEvent();
   
@@ -92,8 +96,11 @@ private:
   double fElectronE, fNucleonE, fHadronE, fBeamE;
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
   G4ThreeVector fHadronP;
+  G4ThreeVector fBeamPol;
 
   double fWeight, fQ2, fW2, fxbj, fSigma, fAperp, fApar;
+  double fPt, fPl;  // born-approx polarization componenets
+  int fhel;         // electron beam helicity
   
   //Define additional kinematic quantities for SIDIS:
   double fz, fPh_perp, fphi_h, fphi_S, fMx;

@@ -61,6 +61,10 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   pos = aTrans.TransformPoint(pos); //local position in "tracker box"
 
+  // Track Polarization in the same manner as pos
+  G4ThreeVector polarization = aStep->GetPreStepPoint()->GetPolarization();
+  polarization = aTrans.TransformAxis(polarization);
+
   //Momentum direction in global coordinates:
   G4ThreeVector mom = aStep->GetPreStepPoint()->GetMomentumDirection();
   
@@ -78,6 +82,7 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   hit->SetEdep(edep); //energy deposition
   hit->SetPos(pos); //position in tracker box coordinates
+  hit->SetPolarization(polarization); //polarization
   hit->SetVertex(aStep->GetTrack()->GetVertexPosition()); //vertex location in global coordinates of particle that caused hit
   hit->SetMID(aStep->GetTrack()->GetParentID()); 
   hit->SetTrID(aStep->GetTrack()->GetTrackID());

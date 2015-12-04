@@ -17,6 +17,7 @@ public:
   int nhits_GEM;
   vector<int> plane, strip;
   vector<double> x,y,z,t,trms,tmin,tmax;
+  vector<double> polx,poly,polz;
   
   vector<double> dx,dy;
   vector<double> tx,ty,txp,typ;

@@ -4,6 +4,7 @@
 #include "G4Colour.hh"
 #include "G4VisAttributes.hh"
 #include "G4LogicalVolume.hh"
+#include "G4Circle.hh"
 #include "G4ios.hh"
 #include "G4UnitsTable.hh"
 #include "G4AttValue.hh"
@@ -23,6 +24,7 @@ G4SBSGEMHit::G4SBSGEMHit(const G4SBSGEMHit &right)
 {
   pos = right.pos;
   vert = right.vert;
+  polarization = right.polarization;
   GEMID = right.GEMID;
   //TrackerID = right.TrackerID;
   trid = right.trid;
@@ -40,6 +42,7 @@ const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
 {
   pos = right.pos;
   vert = right.vert;
+  polarization = right.polarization;
   GEMID = right.GEMID;
   //TrackerID = right.TrackerID;
   trid = right.trid;
@@ -62,6 +65,15 @@ G4int G4SBSGEMHit::operator==(const G4SBSGEMHit &right) const
 
 void G4SBSGEMHit::Draw()
 {
+  G4VVisManager *pVVisManager = G4VVisManager::GetConcreteInstance();
+  if( pVVisManager ){
+    G4Circle circle( pos );
+    circle.SetScreenSize(5);
+    circle.SetFillStyle( G4Circle::filled );
+    G4VisAttributes attribs(G4Colour(0.0,1.0,0.0) );
+    circle.SetVisAttributes( attribs );
+    pVVisManager->Draw(circle);
+  }
 }
 
 void G4SBSGEMHit::Print()

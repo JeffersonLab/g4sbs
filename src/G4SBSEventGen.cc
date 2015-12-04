@@ -43,6 +43,10 @@ G4SBSEventGen::G4SBSEventGen(){
 
   fBeamE = 2.2*GeV;
   fBeamP = G4ThreeVector( 0.0, 0.0, fBeamE );
+
+  fBeamPol = G4ThreeVector( 0.0, 0.0, 1.0 );
+  fhel = 1;
+
   fVert = G4ThreeVector();
 
   Wfact = 0.0;
@@ -286,6 +290,12 @@ bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzV
     (pow(GE/GM,2.0) + (tau + 2.0*tau*(1.0+tau)*pow(tan(th/2.0),2.0)  ));
   fAperp = -(GE/GM)*2.0*sqrt(tau*(tau+1.0))*tan(th/2.0)/
     (pow(GE/GM,2.0) + (tau + 2.0*tau*(1.0+tau)*pow(tan(th/2.0),2.0)  ));
+
+  // Calculate longitudinal / transverse polarization components 
+  double r = GE / GM;
+  double epsilon = pow(1.0 + 2.0*(1.0+tau)*tan(th/2.0)*tan(th/2.0), -1);
+  fPt = ( fhel*fBeamPol.z()*sqrt( (2.0*epsilon*(1.0-epsilon))/tau) ) * ( r / (1.0+epsilon*r*r/tau) );
+  fPl = ( fhel*fBeamPol.z()*sqrt(1.0-epsilon*epsilon) ) / ( 1.0+epsilon*r*r/tau );
 
   // Boost back
     
@@ -1494,16 +1504,18 @@ ev_t G4SBSEventGen::GetEventData(){
   }
   data.Aperp  = fAperp;
   data.Apar   = fApar;
-  data.W2    = fW2/(GeV*GeV);
-  data.xbj   = fxbj;
-  data.Q2    = fQ2/(GeV*GeV);
-  data.th    = fElectronP.theta()/rad;
-  data.ph    = fElectronP.phi()/rad;
-  data.vx    = fVert.x()/m;
-  data.vy    = fVert.y()/m;
-  data.vz    = fVert.z()/m;
-  data.ep    = fElectronP.mag()/GeV;
-  data.np    = fNucleonP.mag()/GeV;
+  data.Pt     = fPt;
+  data.Pl     = fPl;
+  data.W2     = fW2/(GeV*GeV);
+  data.xbj    = fxbj;
+  data.Q2     = fQ2/(GeV*GeV);
+  data.th     = fElectronP.theta()/rad;
+  data.ph     = fElectronP.phi()/rad;
+  data.vx     = fVert.x()/m;
+  data.vy     = fVert.y()/m;
+  data.vz     = fVert.z()/m;
+  data.ep     = fElectronP.mag()/GeV;
+  data.np     = fNucleonP.mag()/GeV;
   data.epx    = fElectronP.x()/GeV;
   data.epy    = fElectronP.y()/GeV;
   data.epz    = fElectronP.z()/GeV;
@@ -1513,7 +1525,7 @@ ev_t G4SBSEventGen::GetEventData(){
   data.nth    = fNucleonP.theta()/rad;
   data.nph    = fNucleonP.phi()/rad;
 
-  data.z   = fz;
+  data.z      = fz;
   data.phperp = fPh_perp/GeV;
   data.phih   = fphi_h;
   data.MX     = fMx/pow(GeV,2);

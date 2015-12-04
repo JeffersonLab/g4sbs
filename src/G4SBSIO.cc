@@ -73,7 +73,7 @@ void G4SBSIO::InitializeTree(){
     if( fTree ){ delete fTree; }
 
     fTree = new TTree("T", "Geant4 SBS Simulation");
-    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
+    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
     //fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
     fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
 
@@ -290,6 +290,9 @@ void G4SBSIO::BranchGEM(G4String SDname="GEM"){
   fTree->Branch( branch_name.Format( "%s.hit.x", branch_prefix.Data() ), &(GEMdata[SDname].x) );
   fTree->Branch( branch_name.Format( "%s.hit.y", branch_prefix.Data() ), &(GEMdata[SDname].y) );
   fTree->Branch( branch_name.Format( "%s.hit.z", branch_prefix.Data() ), &(GEMdata[SDname].z) );
+  fTree->Branch( branch_name.Format( "%s.hit.polx", branch_prefix.Data() ), &(GEMdata[SDname].polx) );
+  fTree->Branch( branch_name.Format( "%s.hit.poly", branch_prefix.Data() ), &(GEMdata[SDname].poly) );
+  fTree->Branch( branch_name.Format( "%s.hit.polz", branch_prefix.Data() ), &(GEMdata[SDname].polz) );
   fTree->Branch( branch_name.Format( "%s.hit.t", branch_prefix.Data() ), &(GEMdata[SDname].t) );
   fTree->Branch( branch_name.Format( "%s.hit.trms", branch_prefix.Data() ), &(GEMdata[SDname].trms) );
   fTree->Branch( branch_name.Format( "%s.hit.tmin", branch_prefix.Data() ), &(GEMdata[SDname].tmin) );

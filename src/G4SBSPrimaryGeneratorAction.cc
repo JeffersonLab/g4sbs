@@ -14,6 +14,7 @@
 #include "G4SBSRunAction.hh"
 #include "sbstypes.hh"
 #include "globals.hh"
+#include "TVector3.h"
 
 G4SBSPrimaryGeneratorAction::G4SBSPrimaryGeneratorAction()
 {
@@ -108,7 +109,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   particleGun->SetParticleDefinition(particle);
 
-  particleGun->SetParticleMomentumDirection(sbsgen->GetElectronP().unit() );
+  particleGun->SetParticleMomentumDirection( sbsgen->GetElectronP().unit() );
   if( sbsgen->GetKine() != kGun ){ 
     particleGun->SetParticleEnergy(sbsgen->GetElectronE());
   } else {
@@ -130,6 +131,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   if( sbsgen->GetKine()!= kWiser ){
       particleGun->GeneratePrimaryVertex(anEvent);
+      particleGun->SetParticlePolarization( G4ThreeVector(0.0,0.0,0.0) );
   }
 
   if( sbsgen->GetKine() != kSIDIS && sbsgen->GetKine() != kWiser && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kBeam ){ //Then we are generating a final nucleon
@@ -148,10 +150,18 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
     // Ensure we're doing something sensible for Geant4
     if( sbsgen->GetNucleonE()-particle->GetPDGMass() > 0.0 ) {
-      particleGun->SetParticleMomentumDirection(sbsgen->GetNucleonP().unit() );
+      particleGun->SetParticleMomentumDirection(sbsgen->GetNucleonP().unit());
       // This is KINETIC energy
       particleGun->SetParticleEnergy(sbsgen->GetNucleonE()-particle->GetPDGMass());
       particleGun->SetParticlePosition(sbsgen->GetV());
+
+      if( sbsgen->GetKine() == kElastic ) {
+	G4ThreeVector k_hat = sbsgen->GetBeamPol(); // beam polarization unit vector
+	G4ThreeVector n_hat = (sbsgen->GetNucleonP().unit()).cross(k_hat);
+	G4ThreeVector t_hat = n_hat.cross( (sbsgen->GetNucleonP().unit()) );
+	G4ThreeVector S_hat = (sbsgen->GetPl())*(sbsgen->GetNucleonP().unit()) + (sbsgen->GetPt())*t_hat;
+	particleGun->SetParticlePolarization( S_hat );
+      }
     }
   } else if( sbsgen->GetKine() == kSIDIS || sbsgen->GetKine() == kWiser ){ //SIDIS case: generate a final hadron:
     switch( sbsgen->GetHadronType() ){

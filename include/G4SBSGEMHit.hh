@@ -33,6 +33,7 @@ public:
 private:
   G4ThreeVector pos;
   G4ThreeVector vert;
+  G4ThreeVector polarization;
   G4int	GEMID;
   //G4int TrackerID;
 
@@ -45,11 +46,14 @@ private:
   G4double p, edep;
   G4double hittime;
   G4double beta; //v/c, for timing:
+
 public:
   inline void SetPos(G4ThreeVector v)
   { pos = v;};
   inline void SetVertex(G4ThreeVector v)
-  { vert= v;};
+  { vert = v;};
+  inline void SetPolarization(G4ThreeVector v)
+  { polarization = v;}
   inline void SetDir(G4double x, G4double y)
   { xp = x; yp =y;};
   inline void SetGEMID(G4int i)
@@ -57,15 +61,15 @@ public:
   // inline void SetTrackerID(G4int i) 
   // { TrackerID= i; }
   inline void SetTrID(G4int i)
-  { trid= i;};
+  { trid = i;};
   inline void SetMID(G4int i)
-  { mid= i;};
+  { mid = i;};
   inline void SetPID(G4int i)
-  { pid= i;};
+  { pid = i;};
   inline void SetMom(G4double x)
-  { p=x;};
+  { p = x;};
   inline void SetEdep(G4double x)
-  {edep=x;};
+  { edep = x;};
   inline void SetHittime( G4double t )
   { hittime = t; }
   inline void SetBeta( G4double b )
@@ -75,6 +79,8 @@ public:
   { return pos;};
   inline G4ThreeVector GetVertex()
   { return vert;};
+  inline G4ThreeVector GetPolarization()
+  { return polarization;}
   inline G4int GetGEMID()
   { return GEMID;};
   // inline G4int GetTrackerID()

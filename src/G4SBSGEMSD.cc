@@ -8,6 +8,8 @@
 #include "G4SDManager.hh"
 #include "G4ios.hh"
 
+//#include "G4Transportation.hh"
+
 #include "G4Box.hh"
 
 #include <iostream>
@@ -35,6 +37,9 @@ void G4SBSGEMSD::Initialize(G4HCofThisEvent*)
 G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
 
+  // G4cout << "Transporation magnetic moment enabled = "
+  // 	 << G4Transportation::EnableUseMagneticMoment(true) << G4endl;
+  
   double edep = aStep->GetTotalEnergyDeposit();
   const G4ParticleDefinition *particle = aStep->GetTrack()->GetParticleDefinition();
 
@@ -65,6 +70,9 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   G4ThreeVector polarization = aStep->GetPreStepPoint()->GetPolarization();
   polarization = aTrans.TransformAxis(polarization);
 
+  if( aStep->GetTrack()->GetParentID() == 0 && aStep->GetTrack()->GetTrackID() == 2 ){
+    //G4cout << "Pre-step point, polarization = " << polarization << G4endl;
+  }
   //Momentum direction in global coordinates:
   G4ThreeVector mom = aStep->GetPreStepPoint()->GetMomentumDirection();
   

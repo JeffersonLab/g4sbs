@@ -71,8 +71,8 @@ G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
   // cutElectron  = defaultCutValue;
   // cutPositron  = defaultCutValue;
   // cutProton    = defaultCutValue;
-
   
+  G4Transportation::EnableUseMagneticMoment(true);
   
 }
 
@@ -103,10 +103,12 @@ void G4SBSPhysicsList::SetCuts()
   SetCutsWithDefault();
 }
 
-void G4SBSPhysicsList::ConstructProcess(){
-  G4VModularPhysicsList::ConstructProcess();
+// void G4SBSPhysicsList::ConstructProcess(){
+//   G4VModularPhysicsList::ConstructProcess();
 
-  G4Transportation::EnableUseMagneticMoment(true);
+//   AddTransportation();
   
-  AddTransportation();
-}
+//   G4Transportation::EnableUseMagneticMoment(true);
+  
+  
+// }

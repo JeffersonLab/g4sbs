@@ -16,6 +16,9 @@
 #include "globals.hh"
 #include "TVector3.h"
 
+#include "G4PhysicalConstants.hh"
+#include "G4SystemOfUnits.hh"
+
 G4SBSPrimaryGeneratorAction::G4SBSPrimaryGeneratorAction()
 {
   G4int n_particle = 1;
@@ -130,8 +133,9 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   // Not necessarily kinematically allowed
 
   if( sbsgen->GetKine()!= kWiser ){
-      particleGun->GeneratePrimaryVertex(anEvent);
-      particleGun->SetParticlePolarization( G4ThreeVector(0.0,0.0,0.0) );
+    particleGun->SetParticlePolarization( G4ThreeVector(0.0,0.0,0.0) );
+    //G4cout << "Gun polarization for the primary electron: " << particleGun->GetParticlePolarization() << G4endl;
+    particleGun->GeneratePrimaryVertex(anEvent);
   }
 
   if( sbsgen->GetKine() != kSIDIS && sbsgen->GetKine() != kWiser && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kBeam ){ //Then we are generating a final nucleon
@@ -156,11 +160,20 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       particleGun->SetParticlePosition(sbsgen->GetV());
 
       if( sbsgen->GetKine() == kElastic ) {
+
+	G4double muB = 0.5*eplus*hbar_Planck/(particle->GetPDGMass()/c_squared);
+	
+	// G4cout << "Particle magnetic moment = "
+	//        << particle->GetPDGMagneticMoment()/muB << G4endl;
+	
 	G4ThreeVector k_hat = sbsgen->GetBeamPol(); // beam polarization unit vector
-	G4ThreeVector n_hat = (sbsgen->GetNucleonP().unit()).cross(k_hat);
+	G4ThreeVector n_hat = ((sbsgen->GetNucleonP().unit()).cross(k_hat)).unit();
 	G4ThreeVector t_hat = n_hat.cross( (sbsgen->GetNucleonP().unit()) );
 	G4ThreeVector S_hat = (sbsgen->GetPl())*(sbsgen->GetNucleonP().unit()) + (sbsgen->GetPt())*t_hat;
-	particleGun->SetParticlePolarization( S_hat );
+
+	// G4cout << "Initial polarization = " << S_hat << G4endl;
+	
+	particleGun->SetParticlePolarization( S_hat.unit() );
       }
     }
   } else if( sbsgen->GetKine() == kSIDIS || sbsgen->GetKine() == kWiser ){ //SIDIS case: generate a final hadron:
@@ -208,6 +221,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   // Only do final nucleon/hadron for generators other than
   // the generic beam generator
   if( sbsgen->GetKine() != kBeam && sbsgen->GetKine() != kGun ){
+    //G4cout << "Gun polarization = " << particleGun->GetParticlePolarization() << G4endl;
       particleGun->GeneratePrimaryVertex(anEvent);
   }
 

@@ -323,10 +323,12 @@ G4SBSMessenger::G4SBSMessenger(){
   UseCerenkovCmd = new G4UIcmdWithABool( "/g4sbs/useckov",this );
   UseCerenkovCmd->SetGuidance( "Toggle Cerenkov process on/off (default = ON)" );
   UseCerenkovCmd->SetParameterName("useckov",true);
+  UseCerenkovCmd->AvailableForStates(G4State_PreInit);
   
   UseScintCmd = new G4UIcmdWithABool( "/g4sbs/usescint",this );
   UseScintCmd->SetGuidance( "Toggle Scintillation process on/off (default = ON)" );
   UseScintCmd->SetParameterName("usescint",true);
+  UseScintCmd->AvailableForStates(G4State_PreInit);
 }
 
 G4SBSMessenger::~G4SBSMessenger(){

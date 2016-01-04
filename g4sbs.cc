@@ -44,6 +44,48 @@
 #include "unistd.h"
 #endif
 
+bool parseArgument(std::string arg, std::string &name, std::string &value)
+{
+  size_t length = arg.length();
+
+  // There are two possible types of parameters.
+  // 1) Parameters with a value (--name=value)
+  // 2) Parameters with no value (--name), also known as flags.
+
+  // Minimum size for the argument is 3, two dashes and at least one
+  // other character
+  if(length<3)
+    return false; // Not long enough to be a valid parameter
+
+  // Now, look for the double dash at the beginning that will signal
+  // that a parameter is being specified
+  size_t pos1 = arg.find_first_of("--");
+  if(pos1 != std::string::npos && pos1 == 0) { // Double dash found
+
+    // First, identify if it is parameter type 1 by looking for the equal sign
+    size_t pos2 = arg.find_first_of("=");
+    if(pos2 != std::string::npos && pos2 < length-1 && pos2>0) { // Param type 1
+      // Split name from value using on both sides of the equal sign
+      name = arg.substr(2,pos2-2);
+      value = arg.substr(pos2+1,length);
+      return true;
+    } else { // No equal sign means parameter type 2
+      name = arg.substr(2,length);
+      return true;
+    }
+  }
+  return false;
+}
+
+void executeMacro(G4String macro, G4UImanager *UImanager)
+{
+  if(macro.length()>0) {
+    G4String command = "/control/execute ";
+    UImanager->ApplyCommand(command+macro);
+  }
+}
+
+
 int main(int argc, char** argv)
 {
   //Allow user to apply some (perhaps all?) commands in the pre-initialization phase:
@@ -55,11 +97,53 @@ int main(int argc, char** argv)
 
   G4String preinit_macro = "";
   G4String postinit_macro = "";
-  if( argc == 2 ){ //if only one command line argument is given, assume all commands are to be applied post-initialization:
-    postinit_macro = argv[1];
-  } else if( argc > 2 ){ //assume first argument is pre-init commands, second argument is post-init commands:
-    preinit_macro = argv[1];
-    postinit_macro = argv[2];
+  bool flag_gui = false; // Display GUI flag
+
+  //-------------------------------
+  // Parse command line arguments.
+  //
+  // In order to maintain backwards compatibility with the old method
+  // let's keep track of a flag. If any of the new paramethers are found
+  // we will require the new way. If none are found, we'll proceed with
+  // the old method.
+  //-------------------------------
+  bool paramsFound = false;
+  for(int i = 1; i < argc; i++) {
+    std::string paramName;
+    std::string paramValue;
+    bool validParam = parseArgument(argv[i],paramName,paramValue);
+    if(validParam) {
+      paramsFound = true;
+      if(paramName.compare("pre") == 0) {
+        preinit_macro = paramValue;
+      } else if (paramName.compare("post") == 0) {
+        postinit_macro = paramValue;
+      } else if (paramName.compare("gui") == 0) {
+        flag_gui = true;
+      }
+    }
+  }
+
+  // If no valid parameters were found, revert to the old method, in which
+  // there are two possible parameters to specify the pre-init macro and
+  // post init-macro.
+  if(!paramsFound) {
+    if( argc == 2 ){ //if only one command line argument is given, assume all commands are to be applied post-initialization:
+      postinit_macro = argv[1];
+    } else if( argc > 2 ){ //assume first argument is pre-init commands, second argument is post-init commands:
+      preinit_macro = argv[1];
+      postinit_macro = argv[2];
+    }
+  }
+
+  bool use_gui = false;
+  // If no postinit macro specified, turn on the GUI
+  if(postinit_macro == "") {
+    use_gui = true;
+  }
+  // If the GUI flag/parameter is passed, always display GUI
+  if(flag_gui) {
+    use_gui = true;
   }
 
   CLHEP::HepRandom::createInstance();
@@ -136,9 +220,11 @@ int main(int argc, char** argv)
 
   if( preinit_macro != "" ){
     rundata->SetPreInitMacroFile(preinit_macro);
-    G4String command = "/control/execute ";
-    command += preinit_macro;
-    UImanager->ApplyCommand(command);
+    executeMacro(preinit_macro,UImanager);
+  }
+
+  if( postinit_macro != "") {
+    rundata->SetMacroFile(postinit_macro);
   }
 
   // Initialize Run manager
@@ -166,26 +252,24 @@ int main(int argc, char** argv)
   UImanager->ApplyCommand("/gun/direction 0 .3 1.");
   */
 
-  if( postinit_macro == "")
-  {
+  if( use_gui ) {
     //--------------------------
     // Define (G)UI
     //--------------------------
 #ifdef G4UI_USE
     G4UIExecutive * ui = new G4UIExecutive(argc,argv);
+#endif
 
+    executeMacro(postinit_macro, UImanager);
 
+#ifdef G4UI_USE
     ui->SessionStart();
 
     delete ui;
 #endif
   } else {
-      
-    rundata->SetMacroFile(postinit_macro);
-    G4String command = "/control/execute ";
-    G4String fileName = postinit_macro;
-    UImanager->ApplyCommand(command+fileName);
-    
+    // Run the postinit macro if one is specified
+    executeMacro(postinit_macro, UImanager);
   }
 
   // Free the store: user actions, physics_list and detector_description are

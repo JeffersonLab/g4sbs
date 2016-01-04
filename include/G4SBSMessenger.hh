@@ -87,6 +87,7 @@ private:
   G4UIcmdWithADoubleAndUnit *bbdistCmd;
   
   G4UIcmdWithADoubleAndUnit *hcaldistCmd;
+  G4UIcmdWithADoubleAndUnit *hcalvoffsetCmd;
   G4UIcmdWithADoubleAndUnit *hmagdistCmd;
   G4UIcmdWithADoubleAndUnit *hcalangCmd;
   

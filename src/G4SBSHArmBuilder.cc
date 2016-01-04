@@ -53,6 +53,7 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   f48D48_fieldclamp_config = 2; //0 = No field clamps. 2 = GEp (default). 1 = BigBite experiments:
 
   fHCALdist  = 17.0*m;
+  fHCALvertical_offset = 0.0*cm;
 
   fRICHdist  = 15.0*m;
 
@@ -79,11 +80,13 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   //--------------- HCAL --------------------------
   //All the experiments use HCAL:
 
-  G4double HCAL_vertical_offset = 0.0*cm; //Neutron/SIDIS experiments have no vertical offset for HCAL (in Neutron case because it is detecting neutrons, which don't bend in a magnetic field, and in SIDIS case because we are detecting +/- charged hadrons simultaneously, want to have symmetric acceptance).
-  if( exptype == kGEp ) HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
+  // Note (jc2): The vertical offset of the hadron calorimeter is now specified
+  // via macros in the same way that the distance is specified. Nothing is
+  // hardcoded now.
+  //G4double HCAL_vertical_offset = 0.0*cm; //Neutron/SIDIS experiments have no vertical offset for HCAL (in Neutron case because it is detecting neutrons, which don't bend in a magnetic field, and in SIDIS case because we are detecting +/- charged hadrons simultaneously, want to have symmetric acceptance).
+  //if( exptype == kGEp ) HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
 
-
-  MakeHCAL( worldlog, HCAL_vertical_offset );
+  MakeHCAL( worldlog, fHCALvertical_offset);
 
   //The SIDIS experiment uses a  RICH in SBS:
   //--------- RICH (experimental): -------------------------

@@ -24,6 +24,7 @@ G4SBSIO::G4SBSIO(){
     gendata.dbb = 1.5;
     gendata.thsbs = 39.4*deg;
     gendata.dhcal = 17.0;
+    gendata.voffhcal = 0.0;
     gendata.dsbs = 1.6;
     gendata.drich = 4.6;
     gendata.dsbstrkr = 4.3;
@@ -75,7 +76,7 @@ void G4SBSIO::InitializeTree(){
     fTree = new TTree("T", "Geant4 SBS Simulation");
     fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
     //fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
-    fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
+    fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:voffhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
 
     //Instead of having the same tree structure as before, we want to dynamically generate tree branches depending on what kinds of detectors are present: Since we already require the ROOT libraries, we might as well use TStrings:
     

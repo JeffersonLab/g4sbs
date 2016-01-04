@@ -15,6 +15,7 @@ public:
 
   void Set48D48Ang(double a){ f48D48ang = a; }
   void SetHCALDist(double a){ fHCALdist= a;   }
+  void SetHCALVOffset(double a){ fHCALvertical_offset = a; }
   void Set48D48Dist(double a){ f48D48dist = a; }
   void SetRICHdist( double d ){ fRICHdist = d; } //Set RICH detector distance
   void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
@@ -33,6 +34,7 @@ public:
   double f48D48dist;
   int f48D48_fieldclamp_config; //Configuration of field clamp. There could be several of these.
   double fHCALdist;
+  double fHCALvertical_offset;  // Vertical offset (from center) of HCAL
   double fRICHdist;
 
   // Useful constants

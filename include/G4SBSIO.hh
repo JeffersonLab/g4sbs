@@ -22,7 +22,7 @@ class G4SBSGlobalField;
 #define MAXHITDATA 2000
 
 typedef struct {
-  Double_t thbb, thsbs, dbb, dsbs, dhcal, drich, dsbstrkr, Ebeam;
+  Double_t thbb, thsbs, dbb, dsbs, dhcal,voffhcal, drich, dsbstrkr, Ebeam;
 } gen_t;
 
 
@@ -111,6 +111,7 @@ public:
   void SetBigBiteDist(double d){ gendata.dbb = d/m; }
   void SetSBSTheta(double th){ gendata.thsbs = th; }
   void SetHcalDist(double d){ gendata.dhcal = d/m; }
+  void SetHcalVOffset(double d){ gendata.voffhcal = d/m; }
   void SetSBSDist(double d){ gendata.dsbs = d/m; }
   void SetRICHDist(double d){ gendata.drich = d/m; }
   void SetSBStrkrDist(double d){ gendata.dsbstrkr = d/m; }

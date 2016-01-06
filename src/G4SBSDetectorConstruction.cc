@@ -1544,6 +1544,11 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //   ************************
   G4Material *Pyrex_Glass = man->FindOrBuildMaterial("G4_Pyrex_Glass");
   fMaterialsMap["Pyrex_Glass"] = Pyrex_Glass; 
+
+  G4Material *SiO2_C16 = new G4Material("SiO2_C16", density = 0.12*g/cm3, nel = 2 );
+  SiO2_C16->AddElement(elSi, 1);
+  SiO2_C16->AddElement(elO, 2);
+  fMaterialsMap["SiO2_C16"] = SiO2_C16;
 }
 
 G4Material *G4SBSDetectorConstruction::GetMaterial(G4String name){

@@ -145,7 +145,7 @@ private:
   // G4UIcmdWithABool *UseOpWLSCmd;      //Wavelength shifting of optical photons
   // G4UIcmdWithABool *UseOpMieHGCmd;    //Mie scattering;
   // G4UIcmdWithABool *DisableOpticalPhysicsCmd; //disable CPU-intensive optical photon physics
-
+  G4UIcmdWithAnInteger *SegmentC16Cmd;
 };
 
 #endif//G4SBSMessenger_HH

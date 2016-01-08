@@ -17,6 +17,8 @@ public:
   void BuildComponent(G4LogicalVolume *);
 
   void BuildCryoTarget(G4LogicalVolume *);
+  void BuildC16CryoTarget(G4LogicalVolume *);
+  void BuildStandardCryoTarget(G4LogicalVolume *);
   void BuildGasTarget(G4LogicalVolume *);
 
   void SetTarget(Targ_t t){fTargType = t;}

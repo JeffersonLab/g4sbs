@@ -150,7 +150,7 @@ private:
   // Command to set particle polarization for spin transport calculations:
   // ONLY relevant for particle gun generator!
   G4UIcmdWith3Vector *GunPolarizationCommand;
-  
+  G4UIcmdWithAnInteger *SegmentC16Cmd;
 };
 
 #endif//G4SBSMessenger_HH

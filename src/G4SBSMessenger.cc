@@ -336,6 +336,11 @@ G4SBSMessenger::G4SBSMessenger(){
   GunPolarizationCommand->SetGuidance( "Automatically converted to unit vector internally" );
   GunPolarizationCommand->SetGuidance( "Assumed to be given in TRANSPORT coordinates" );
   GunPolarizationCommand->SetParameterName("Sx","Sy","Sz",false);
+  
+  SegmentC16Cmd = new G4UIcmdWithAnInteger( "/g4sbs/segmentC16", this );
+  SegmentC16Cmd->SetGuidance( "Segment the TF1 SD during the C16 Experiment (default = OFF)" );
+  SegmentC16Cmd->SetParameterName("segmentC16",true);
+
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -407,6 +412,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == CDetconfigCmd ){
     int cdetconf = CDetconfigCmd->GetNewIntValue(newValue);
     fdetcon->SetCDetconfig(cdetconf);
+  }
+
+  if( cmd == SegmentC16Cmd ){
+    int segmentC16 = SegmentC16Cmd->GetNewIntValue(newValue);
+    fdetcon->SetC16Segmentation( segmentC16 );
   }
 
   if( cmd == ECALmapfileCmd ){
@@ -487,6 +497,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     //AJP: Add SIDIS as a valid experiment type:
     if( newValue.compareTo("sidis") == 0 ){
       fExpType = kSIDISExp;
+      validcmd = true;
+    }
+    if( newValue.compareTo("C16") == 0 ){
+      fExpType = kC16;
       validcmd = true;
     }
 

@@ -160,7 +160,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     
     entvacLog_cut->SetVisAttributes(G4VisAttributes::Invisible);
     
-    G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.2,0.6,0.2));
+    G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
     
     extLog->SetVisAttributes(pipeVisAtt);
     entLog->SetVisAttributes(pipeVisAtt);

@@ -629,19 +629,23 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   //Typical absorption length for fused silica from Thorlabs.com 
   //(uncoated UV fused silica, includes fresnel reflections)
-  G4double Abslength_quartz[nentries_quartz] = {
-    15.65792444*cm, 15.78550788*cm, 15.7794917*cm, 15.60910249*cm, 15.72664954*cm, 15.72488912*cm, 15.57290011*cm, 15.68021339*cm, 
-    15.73546266*cm, 15.55685196*cm, 15.55490625*cm, 15.63907251*cm, 15.48113765*cm, 15.54074565*cm, 15.39638598*cm, 15.50169846*cm, 
-    15.4950396*cm, 15.36125979*cm, 15.41113687*cm, 15.33874196*cm, 15.24165927*cm, 15.25602267*cm, 15.23330157*cm, 15.14071666*cm, 
-    15.13642486*cm, 15.06590584*cm, 15.05023293*cm, 14.99006002*cm, 14.91826095*cm, 14.79500397*cm, 14.80590431*cm, 14.66396966*cm, 
-    14.57959363*cm, 14.47194788*cm, 14.40952367*cm, 14.20967861*cm, 14.11981056*cm, 13.98888512*cm, 13.79714319*cm, 13.85187177*cm, 
-    13.61931079*cm, 13.27721911*cm, 12.75893298*cm, 12.51276543*cm, 12.13753406*cm, 11.84114847*cm, 10.96932156*cm, 10.13778162*cm, 
-    9.92333989*cm, 9.282597031*cm, 7.443241349*cm 
-  };
-
+  // G4double Abslength_quartz[nentries_quartz] = {
+  //   15.65792444*cm, 15.78550788*cm, 15.7794917*cm, 15.60910249*cm, 15.72664954*cm, 15.72488912*cm, 15.57290011*cm, 15.68021339*cm, 
+  //   15.73546266*cm, 15.55685196*cm, 15.55490625*cm, 15.63907251*cm, 15.48113765*cm, 15.54074565*cm, 15.39638598*cm, 15.50169846*cm, 
+  //   15.4950396*cm, 15.36125979*cm, 15.41113687*cm, 15.33874196*cm, 15.24165927*cm, 15.25602267*cm, 15.23330157*cm, 15.14071666*cm, 
+  //   15.13642486*cm, 15.06590584*cm, 15.05023293*cm, 14.99006002*cm, 14.91826095*cm, 14.79500397*cm, 14.80590431*cm, 14.66396966*cm, 
+  //   14.57959363*cm, 14.47194788*cm, 14.40952367*cm, 14.20967861*cm, 14.11981056*cm, 13.98888512*cm, 13.79714319*cm, 13.85187177*cm, 
+  //   13.61931079*cm, 13.27721911*cm, 12.75893298*cm, 12.51276543*cm, 12.13753406*cm, 11.84114847*cm, 10.96932156*cm, 10.13778162*cm, 
+  //   9.92333989*cm, 9.282597031*cm, 7.443241349*cm 
+  // };
+  //Internal transmittance data for UV grade fused silica from Melles-Griot (bulk absorption is actually much smaller than implied by external transmittance data; including this leads to "double-counting" absorption that is actually Fresnel reflections):
+  const G4int Nabs_quartz = 10;
+  G4double Ephoton_abs_quartz[Nabs_quartz] = {1.7491*eV,1.8793*eV,2.0012*eV,2.1734*eV,2.2993*eV,2.4195*eV,4.0372*eV,4.8901*eV,6.0646*eV,6.4897*eV};
+  G4double Abslength_quartz[Nabs_quartz] = {522.51*cm,2666.17*cm,1633.49*cm,756.50*cm,418.96*cm,233.58*cm,23.46*cm,22.58*cm,15.76*cm,14.74*cm};
+  
   MPT_temp = new G4MaterialPropertiesTable();
   MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz);
-  MPT_temp->AddProperty("ABSLENGTH", Ephoton_quartz, Abslength_quartz, nentries_quartz);
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, Nabs_quartz);
 
   QuartzWindow->SetMaterialPropertiesTable( MPT_temp );
   fMaterialsMap["QuartzWindow"] = QuartzWindow;

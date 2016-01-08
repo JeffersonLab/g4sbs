@@ -10,6 +10,7 @@
 #include "G4UIcmdWithADoubleAndUnit.hh"
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithABool.hh"
+#include "G4UIcmdWith3Vector.hh"
 
 #include "G4SBSDetectorConstruction.hh"
 #include "G4SBSIO.hh"
@@ -24,6 +25,7 @@
 #include "G4SBSPrimaryGeneratorAction.hh"
 #include "G4SBSPhysicsList.hh"
 #include "G4OpticalPhysics.hh"
+#include "G4ParticleGun.hh"
 
 #include "G4SBSBeamlineBuilder.hh"
 #include "G4SBSTargetBuilder.hh"
@@ -327,6 +329,13 @@ G4SBSMessenger::G4SBSMessenger(){
   UseScintCmd = new G4UIcmdWithABool( "/g4sbs/usescint",this );
   UseScintCmd->SetGuidance( "Toggle Scintillation process on/off (default = ON)" );
   UseScintCmd->SetParameterName("usescint",true);
+
+  GunPolarizationCommand = new G4UIcmdWith3Vector( "/g4sbs/gunpol", this );
+  GunPolarizationCommand->SetGuidance( "Set particle polarization for gun generator:" );
+  GunPolarizationCommand->SetGuidance( "Three-vector arguments are x,y,z components of polarization" );
+  GunPolarizationCommand->SetGuidance( "Automatically converted to unit vector internally" );
+  GunPolarizationCommand->SetGuidance( "Assumed to be given in TRANSPORT coordinates" );
+  GunPolarizationCommand->SetParameterName("Sx","Sy","Sz",false);
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -923,5 +932,9 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4bool b = UseScintCmd->GetNewBoolValue(newValue);
     fphyslist->ToggleScintillation(b);
   }
-  
+
+  if( cmd == GunPolarizationCommand ){
+    G4ThreeVector pol = GunPolarizationCommand->GetNew3VectorValue(newValue);
+    fprigen->SetGunPolarization( pol );
+  }
 }

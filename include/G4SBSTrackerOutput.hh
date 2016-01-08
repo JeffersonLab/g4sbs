@@ -35,6 +35,11 @@ public:
   vector<double> TrackT; //Track time at "focal plane" in spectrometer coordinates
   vector<double> TrackP; //Track initial momentum:
 
+  //Track polarization components:
+  vector<double> TrackSx;
+  vector<double> TrackSy;
+  vector<double> TrackSz;
+  
   //"Reconstructed" track info:
   vector<double> TrackXfit; //reconstructed (straight-line fit to hits smeared by position resolution)
   vector<double> TrackYfit; //reconstructed 

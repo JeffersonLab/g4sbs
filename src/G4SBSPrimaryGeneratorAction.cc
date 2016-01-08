@@ -18,6 +18,7 @@
 
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4ThreeVector.hh"
 
 G4SBSPrimaryGeneratorAction::G4SBSPrimaryGeneratorAction()
 {
@@ -37,9 +38,11 @@ G4SBSPrimaryGeneratorAction::G4SBSPrimaryGeneratorAction()
   particleGun->SetParticleMomentumDirection(G4ParticleMomentum(sin(-40.0*deg),0.0,cos(-40.0*deg)));
   particleGun->SetParticleEnergy(1.0*GeV);
   particleGun->SetParticlePosition(G4ThreeVector(0.*cm,0.*cm,0.*cm));
-
+  particleGun->SetParticlePolarization( G4ThreeVector(0,0,0) );
+  
   GunParticleType = particle;
-
+  GunPolarization = G4ThreeVector(0,0,0);
+  
   sbsgen = new G4SBSEventGen();
 
   fUseGeantino = false;
@@ -100,11 +103,11 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     return;
   }
 
-  if( !fUseGeantino && sbsgen->GetKine() != kGun ){
+  if( !fUseGeantino && sbsgen->GetKine() != kGun ){ //first primary is an electron!
     particle = particleTable->FindParticle(particleName="e-");
-  } else if( fUseGeantino ){
+  } else if( fUseGeantino ){ //first primary is a geantino!
     particle = particleTable->FindParticle(particleName="chargedgeantino");
-  } else {
+  } else { //first primary according to particle gun generator:
     particle = particleTable->FindParticle( GunParticleName );
     if( particle != 0 ) SetParticleType( particle );
     particle = GunParticleType;
@@ -115,7 +118,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   particleGun->SetParticleMomentumDirection( sbsgen->GetElectronP().unit() );
   if( sbsgen->GetKine() != kGun ){ 
     particleGun->SetParticleEnergy(sbsgen->GetElectronE());
-  } else {
+  } else { //kGun!
     //SetParticleEnergy sets the ***kinetic energy*** of particles
     //GenerateGun() generates the ***momentum***; therefore we need:
     // T = E - M --> (T + M)^2 = p^2 + M^2 --> T^2 + 2MT = p^2 
@@ -135,6 +138,25 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   if( sbsgen->GetKine()!= kWiser ){
     particleGun->SetParticlePolarization( G4ThreeVector(0.0,0.0,0.0) );
     //G4cout << "Gun polarization for the primary electron: " << particleGun->GetParticlePolarization() << G4endl;
+    if( sbsgen->GetKine() == kGun ){ //If a gun polarization is defined, transform polarization to TRANSPORT coordinates and set particle polarization:
+      gen_t gendata = fIO->GetGenData();
+      G4double sbsangle = gendata.thsbs;
+
+      G4ThreeVector sbsaxis( -sin(sbsangle), 0.0, cos(sbsangle) );
+      G4ThreeVector yaxis(0,1,0);
+      G4ThreeVector xaxis = (yaxis.cross(sbsaxis)).unit();
+
+      G4ThreeVector Pol_transport = GunPolarization.y() * xaxis - GunPolarization.x() * yaxis + GunPolarization.z() * sbsaxis;  
+
+      ev_t evdata = fIO->GetEventData();
+      evdata.Sx = GunPolarization.x();
+      evdata.Sy = GunPolarization.y();
+      evdata.Sz = GunPolarization.z();
+      fIO->SetEventData( evdata );
+      
+      particleGun->SetParticlePolarization( Pol_transport );
+
+    }
     particleGun->GeneratePrimaryVertex(anEvent);
   }
 
@@ -166,12 +188,12 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	// G4cout << "Particle magnetic moment = "
 	//        << particle->GetPDGMagneticMoment()/muB << G4endl;
 	
-	G4ThreeVector k_hat = sbsgen->GetBeamPol(); // beam polarization unit vector
+	G4ThreeVector k_hat(0,0,1.0); // beam polarization unit vector
 	G4ThreeVector n_hat = ((sbsgen->GetNucleonP().unit()).cross(k_hat)).unit();
 	G4ThreeVector t_hat = n_hat.cross( (sbsgen->GetNucleonP().unit()) );
 	G4ThreeVector S_hat = (sbsgen->GetPl())*(sbsgen->GetNucleonP().unit()) + (sbsgen->GetPt())*t_hat;
 
-	// G4cout << "Initial polarization = " << S_hat << G4endl;
+	//	G4cout << "Initial polarization = " << S_hat << G4endl;
 	
 	particleGun->SetParticlePolarization( S_hat.unit() );
       }

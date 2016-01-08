@@ -39,6 +39,7 @@ G4bool G4SBSECalSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
   G4Track *track = aStep->GetTrack();
   //Get pointers to pre-step point and post-step point:
   G4StepPoint *prestep = aStep->GetPreStepPoint();
+  G4TouchableHistory* hist = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
 //  G4StepPoint *poststep = aStep->GetPostStepPoint();
 
   //Where to get all the information needed for the hit? 
@@ -68,7 +69,8 @@ G4bool G4SBSECalSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
   //Get PMT identifying information:
 
   int PMTno;
-  newHit->SetPMTnumber( PMTno = prestep->GetPhysicalVolume()->GetCopyNo() );
+  //newHit->SetPMTnumber( PMTno = prestep->GetPhysicalVolume()->GetCopyNo() );
+  newHit->SetPMTnumber( PMTno = hist->GetVolume( detmap.depth )->GetCopyNo() );
   newHit->Setrownumber( detmap.Row[PMTno] );
   newHit->Setcolnumber( detmap.Col[PMTno] );
   newHit->Setplanenumber( detmap.Plane[PMTno] );

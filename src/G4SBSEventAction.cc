@@ -1214,6 +1214,8 @@ void G4SBSEventAction::FillTrackData( G4SBSGEMoutput gemdata, G4SBSTrackerOutput
     double x0avg2 = 0.0, y0avg2 = 0.0, xpavg2 = 0.0, ypavg2 = 0.0;
     double tavg = 0.0, tavg2 = 0.0;
     double pavg = 0.0;
+
+    double polx_avg = 0.0, poly_avg = 0.0, polz_avg = 0.0; //compute average track polarization for each track.
     
     TMatrixD M(4,4);
     TVectorD b(4);
@@ -1250,6 +1252,10 @@ void G4SBSEventAction::FillTrackData( G4SBSGEMoutput gemdata, G4SBSTrackerOutput
 	
 	pavg += gemdata.p[hit]/double(nhittrk);
 
+	polx_avg += gemdata.polx[hit]/double(nhittrk);
+	poly_avg += gemdata.poly[hit]/double(nhittrk);
+	polz_avg += gemdata.polz[hit]/double(nhittrk);
+	
 	xtrue.push_back( gemdata.tx[hit] );
 	ytrue.push_back( gemdata.ty[hit] );
 
@@ -1336,6 +1342,10 @@ void G4SBSEventAction::FillTrackData( G4SBSGEMoutput gemdata, G4SBSTrackerOutput
 	  ndf += 2;
 	}
 
+	Toutput.TrackSx.push_back( polx_avg );
+	Toutput.TrackSy.push_back( poly_avg );
+	Toutput.TrackSz.push_back( polz_avg );
+	
 	Toutput.Chi2fit.push_back( chi2 );
 	Toutput.Chi2true.push_back( chi2_true );
 	Toutput.NDF.push_back( ndf - 4 );

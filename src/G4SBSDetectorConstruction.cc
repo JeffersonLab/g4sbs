@@ -1547,6 +1547,37 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //   *          C16         *
   //   ************************
   G4Material *Pyrex_Glass = man->FindOrBuildMaterial("G4_Pyrex_Glass");
+
+  const G4int nentries_rindex_pyrex = 12;
+  G4double Ephoton_rindex_pyrex[nentries_rindex_pyrex] =
+    { 1.7551*eV, 1.8894*eV, 1.9261*eV, 1.9595*eV, 2.1042*eV, 2.2706*eV,
+      2.5509*eV, 2.5833*eV, 2.8453*eV, 3.0640*eV, 3.3973*eV, 3.7115*eV };
+
+  G4double Rindex_pyrex[nentries_rindex_pyrex] =
+    { 1.5129, 1.5143, 1.5147, 1.5151, 1.5167, 1.5187,
+      1.5224, 1.5228, 1.5267, 1.5302, 1.5363, 1.5427 };
+
+  const G4int nentries_abslength_pyrex = 20;
+  
+  G4double Ephoton_abslength_pyrex[nentries_abslength_pyrex] =
+    { 1.7714*eV, 1.8788*eV, 2.0000*eV, 2.1379*eV, 2.2711*eV,
+      2.4800*eV, 2.6957*eV, 2.8440*eV, 2.9524*eV, 3.0617*eV,
+      3.1000*eV, 3.1795*eV, 3.2632*eV, 3.3514*eV, 3.3973*eV,
+      3.5429*eV, 3.7126*eV, 3.8750*eV, 4.0000*eV, 4.1333*eV };   
+
+  G4double abslength_pyrex[nentries_abslength_pyrex] =
+    { 561.6245*cm, 457.4576*cm, 457.4576*cm, 499.1244*cm, 561.6245*cm,
+      457.4576*cm, 344.3622*cm, 322.0407*cm, 344.3622*cm, 344.3622*cm,
+      322.0407*cm, 237.7600*cm, 144.0809*cm, 109.0256*cm, 83.8915*cm,
+      29.8914*cm, 10.0400*cm, 3.8246*cm, 1.8024*cm, 0.8234*cm };
+
+  MPT_temp = new G4MaterialPropertiesTable();
+
+  MPT_temp->AddProperty("RINDEX", Ephoton_rindex_pyrex, Rindex_pyrex, nentries_rindex_pyrex );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_abslength_pyrex, abslength_pyrex, nentries_abslength_pyrex );
+
+  Pyrex_Glass->SetMaterialPropertiesTable( MPT_temp );
+  
   fMaterialsMap["Pyrex_Glass"] = Pyrex_Glass; 
 
   G4Material *SiO2_C16 = new G4Material("SiO2_C16", density = 0.12*g/cm3, nel = 2 );

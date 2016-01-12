@@ -10,6 +10,7 @@
 #include "G4UIcmdWithADoubleAndUnit.hh"
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithABool.hh"
+#include "G4UIcmdWith3Vector.hh"
 
 #include "G4SBSDetectorConstruction.hh"
 #include "G4SBSIO.hh"
@@ -24,6 +25,7 @@
 #include "G4SBSPrimaryGeneratorAction.hh"
 #include "G4SBSPhysicsList.hh"
 #include "G4OpticalPhysics.hh"
+#include "G4ParticleGun.hh"
 
 #include "G4SBSBeamlineBuilder.hh"
 #include "G4SBSTargetBuilder.hh"
@@ -87,7 +89,7 @@ G4SBSMessenger::G4SBSMessenger(){
   PYTHIAfileCmd->SetParameterName("fname",false);
   
   expCmd = new G4UIcmdWithAString("/g4sbs/exp",this);
-  expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis");
+  expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis, C16");
   expCmd->SetParameterName("exptype", false);
 
   GunParticleCmd = new G4UIcmdWithAString("/g4sbs/particle",this);
@@ -333,6 +335,18 @@ G4SBSMessenger::G4SBSMessenger(){
   UseScintCmd->SetGuidance( "Toggle Scintillation process on/off (default = ON)" );
   UseScintCmd->SetParameterName("usescint",true);
   UseScintCmd->AvailableForStates(G4State_PreInit);
+
+  GunPolarizationCommand = new G4UIcmdWith3Vector( "/g4sbs/gunpol", this );
+  GunPolarizationCommand->SetGuidance( "Set particle polarization for gun generator:" );
+  GunPolarizationCommand->SetGuidance( "Three-vector arguments are x,y,z components of polarization" );
+  GunPolarizationCommand->SetGuidance( "Automatically converted to unit vector internally" );
+  GunPolarizationCommand->SetGuidance( "Assumed to be given in TRANSPORT coordinates" );
+  GunPolarizationCommand->SetParameterName("Sx","Sy","Sz",false);
+  
+  SegmentC16Cmd = new G4UIcmdWithAnInteger( "/g4sbs/segmentC16", this );
+  SegmentC16Cmd->SetGuidance( "Segment the TF1 SD during the C16 Experiment (default = OFF)" );
+  SegmentC16Cmd->SetParameterName("segmentC16",true);
+
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -404,6 +418,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == CDetconfigCmd ){
     int cdetconf = CDetconfigCmd->GetNewIntValue(newValue);
     fdetcon->SetCDetconfig(cdetconf);
+  }
+
+  if( cmd == SegmentC16Cmd ){
+    int segmentC16 = SegmentC16Cmd->GetNewIntValue(newValue);
+    fdetcon->SetC16Segmentation( segmentC16 );
   }
 
   if( cmd == ECALmapfileCmd ){
@@ -484,6 +503,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     //AJP: Add SIDIS as a valid experiment type:
     if( newValue.compareTo("sidis") == 0 ){
       fExpType = kSIDISExp;
+      validcmd = true;
+    }
+    if( newValue.compareTo("C16") == 0 ){
+      fExpType = kC16;
       validcmd = true;
     }
 
@@ -937,5 +960,9 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4bool b = UseScintCmd->GetNewBoolValue(newValue);
     fphyslist->ToggleScintillation(b);
   }
-  
+
+  if( cmd == GunPolarizationCommand ){
+    G4ThreeVector pol = GunPolarizationCommand->GetNew3VectorValue(newValue);
+    fprigen->SetGunPolarization( pol );
+  }
 }

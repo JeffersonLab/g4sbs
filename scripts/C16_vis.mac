@@ -1,0 +1,109 @@
+/g4sbs/beamcur  75.0 muA
+/g4sbs/target   LH2
+/g4sbs/kine     elastic
+/g4sbs/exp	C16
+/g4sbs/targlen  15.0 cm
+
+/g4sbs/gemres 0.070 mm
+
+/g4sbs/rasterx  4.0 mm
+/g4sbs/rastery  4.0 mm
+
+#/g4sbs/48d48field 1
+#/g4sbs/sbsclampopt 2
+
+/g4sbs/runtime     1.0 s
+/g4sbs/beamE      11.0 GeV
+/g4sbs/bbang      31.0 deg
+/g4sbs/bbdist      6.9 m
+#/g4sbs/sbsang    16.9 deg
+#/g4sbs/hcaldist   7.40 m
+#/g4sbs/48D48dist   1.6 m
+/g4sbs/thmin       0.0 deg
+/g4sbs/thmax      36.9 deg
+/g4sbs/phmin      90.0 deg
+/g4sbs/phmax     270.0 deg
+
+/g4sbs/treeflag 1
+/g4sbs/segmentC16 1
+
+#For C16 Simulation - lead must be off, LH2, exp = C16, /g4sbs/segmentC16 1 turns on TF1 segmentation
+
+# Use this open statement to create an OpenGL view:
+/vis/open OGLI 800x800-0+0
+#
+# Use this open statement to create a .prim file suitable for
+# viewing in DAWN:
+#/vis/open DAWNFILE
+#
+# Use this open statement to create a .heprep file suitable for
+# viewing in HepRApp:
+#/vis/open HepRepFile
+#
+# Use this open statement to create a .wrl file suitable for
+# viewing in a VRML viewer:
+#/vis/open VRML2FILE
+#
+# Disable auto refresh and quieten vis messages whilst scene and
+# trajectories are established:
+/vis/viewer/set/autoRefresh false
+/vis/verbose errors
+#
+# Draw geometry:
+/vis/drawVolume worlds
+#
+# Set specific colour for identification : ghost parallel geometry envelope ("ghost") as yellow
+#
+# Specify view angle:
+/vis/viewer/set/viewpointThetaPhi 90 89 deg
+#
+# Specify zoom value:
+/vis/viewer/zoom 2.5
+#
+# Specify style (surface or wireframe):
+/vis/viewer/set/style surface
+#
+# Draw coordinate axes:
+#/vis/scene/add/axes 0 0 0 1 m
+#
+# Draw smooth trajectories at end of event, showing trajectory points
+# as markers 2 pixels wide:
+/vis/scene/add/trajectories smooth
+/vis/modeling/trajectories/create/drawByCharge
+/vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
+/vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 2
+# (if too many tracks cause core dump => /tracking/storeTrajectory 0)
+#
+# Draw hits at end of event:
+/vis/scene/add/hits
+#
+# To draw only gammas:
+/vis/filtering/trajectories/create/particleFilter
+/vis/filtering/trajectories/particleFilter-0/add gamma
+/vis/filtering/trajectories/particleFilter-0/add neutron
+#
+# To invert the above, drawing all particles except gammas,
+# keep the above two lines but also add:
+/vis/filtering/trajectories/particleFilter-0/invert true
+#
+# Many other options are available with /vis/modeling and /vis/filtering.
+# For example, to select colour by particle ID:
+/vis/modeling/trajectories/create/drawByParticleID
+/vis/modeling/trajectories/drawByParticleID-0/set e- blue
+/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton white
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA pi- 1. 0.2 1.0 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon+ 0.3 1.0 0.5 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
+#
+# To superimpose all of the events from a given run:
+/vis/scene/endOfEventAction accumulate 10000
+#
+# Re-establish auto refreshing and verbosity:
+/vis/viewer/set/autoRefresh true
+/vis/verbose warnings
+#
+# For file-based drivers, use this to create an empty detector view:
+#/vis/viewer/flush
+/g4sbs/run  0
+#/vis/geometry/set/visibility RICHbox_log -1 0
+/vis/viewer/flush

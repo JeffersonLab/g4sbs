@@ -75,8 +75,9 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 
   // All three types of experiments have a 48D48 magnet:
-  Make48D48(worldlog, f48D48dist + f48D48depth/2. );
-
+  if( exptype != kC16 ) {
+    Make48D48(worldlog, f48D48dist + f48D48depth/2. );
+  }
   //--------------- HCAL --------------------------
   //All the experiments use HCAL:
 
@@ -86,8 +87,9 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   //G4double HCAL_vertical_offset = 0.0*cm; //Neutron/SIDIS experiments have no vertical offset for HCAL (in Neutron case because it is detecting neutrons, which don't bend in a magnetic field, and in SIDIS case because we are detecting +/- charged hadrons simultaneously, want to have symmetric acceptance).
   //if( exptype == kGEp ) HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
 
-  MakeHCAL( worldlog, fHCALvertical_offset);
-
+  if( exptype != kC16 ) {
+    MakeHCAL( worldlog, fHCALvertical_offset );
+  }
   //The SIDIS experiment uses a  RICH in SBS:
   //--------- RICH (experimental): -------------------------
   if( exptype == kSIDISExp ) //SIDIS experiment requires a RICH detector and a tracker for SBS: 
@@ -594,7 +596,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclampun, GetMaterial("Fer"), "frontclampLog", 0, 0, 0);
 
     G4LogicalVolume *frontextfaceLog= NULL;
-    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kNeutronExp){
+    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kNeutronExp ){
       frontextfaceLog = new G4LogicalVolume(extface_whole, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
     } else {
       frontextfaceLog = new G4LogicalVolume(extface, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);

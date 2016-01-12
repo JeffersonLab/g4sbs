@@ -89,6 +89,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   StepLimiterList.clear();
 
   fCDetOption = 1;
+
+  fSegmentC16 = 0;
     
   //    TrackerIDnumber = 0;
   //TrackerArm.clear();
@@ -627,19 +629,23 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   //Typical absorption length for fused silica from Thorlabs.com 
   //(uncoated UV fused silica, includes fresnel reflections)
-  G4double Abslength_quartz[nentries_quartz] = {
-    15.65792444*cm, 15.78550788*cm, 15.7794917*cm, 15.60910249*cm, 15.72664954*cm, 15.72488912*cm, 15.57290011*cm, 15.68021339*cm, 
-    15.73546266*cm, 15.55685196*cm, 15.55490625*cm, 15.63907251*cm, 15.48113765*cm, 15.54074565*cm, 15.39638598*cm, 15.50169846*cm, 
-    15.4950396*cm, 15.36125979*cm, 15.41113687*cm, 15.33874196*cm, 15.24165927*cm, 15.25602267*cm, 15.23330157*cm, 15.14071666*cm, 
-    15.13642486*cm, 15.06590584*cm, 15.05023293*cm, 14.99006002*cm, 14.91826095*cm, 14.79500397*cm, 14.80590431*cm, 14.66396966*cm, 
-    14.57959363*cm, 14.47194788*cm, 14.40952367*cm, 14.20967861*cm, 14.11981056*cm, 13.98888512*cm, 13.79714319*cm, 13.85187177*cm, 
-    13.61931079*cm, 13.27721911*cm, 12.75893298*cm, 12.51276543*cm, 12.13753406*cm, 11.84114847*cm, 10.96932156*cm, 10.13778162*cm, 
-    9.92333989*cm, 9.282597031*cm, 7.443241349*cm 
-  };
-
+  // G4double Abslength_quartz[nentries_quartz] = {
+  //   15.65792444*cm, 15.78550788*cm, 15.7794917*cm, 15.60910249*cm, 15.72664954*cm, 15.72488912*cm, 15.57290011*cm, 15.68021339*cm, 
+  //   15.73546266*cm, 15.55685196*cm, 15.55490625*cm, 15.63907251*cm, 15.48113765*cm, 15.54074565*cm, 15.39638598*cm, 15.50169846*cm, 
+  //   15.4950396*cm, 15.36125979*cm, 15.41113687*cm, 15.33874196*cm, 15.24165927*cm, 15.25602267*cm, 15.23330157*cm, 15.14071666*cm, 
+  //   15.13642486*cm, 15.06590584*cm, 15.05023293*cm, 14.99006002*cm, 14.91826095*cm, 14.79500397*cm, 14.80590431*cm, 14.66396966*cm, 
+  //   14.57959363*cm, 14.47194788*cm, 14.40952367*cm, 14.20967861*cm, 14.11981056*cm, 13.98888512*cm, 13.79714319*cm, 13.85187177*cm, 
+  //   13.61931079*cm, 13.27721911*cm, 12.75893298*cm, 12.51276543*cm, 12.13753406*cm, 11.84114847*cm, 10.96932156*cm, 10.13778162*cm, 
+  //   9.92333989*cm, 9.282597031*cm, 7.443241349*cm 
+  // };
+  //Internal transmittance data for UV grade fused silica from Melles-Griot (bulk absorption is actually much smaller than implied by external transmittance data; including this leads to "double-counting" absorption that is actually Fresnel reflections):
+  const G4int Nabs_quartz = 10;
+  G4double Ephoton_abs_quartz[Nabs_quartz] = {1.7491*eV,1.8793*eV,2.0012*eV,2.1734*eV,2.2993*eV,2.4195*eV,4.0372*eV,4.8901*eV,6.0646*eV,6.4897*eV};
+  G4double Abslength_quartz[Nabs_quartz] = {522.51*cm,2666.17*cm,1633.49*cm,756.50*cm,418.96*cm,233.58*cm,23.46*cm,22.58*cm,15.76*cm,14.74*cm};
+  
   MPT_temp = new G4MaterialPropertiesTable();
   MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz);
-  MPT_temp->AddProperty("ABSLENGTH", Ephoton_quartz, Abslength_quartz, nentries_quartz);
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, Nabs_quartz);
 
   QuartzWindow->SetMaterialPropertiesTable( MPT_temp );
   fMaterialsMap["QuartzWindow"] = QuartzWindow;
@@ -837,8 +843,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4double Reflectivity_mirr[nentries_mirr] = { 0.867162, 0.872027, 0.879324, 0.882973, 0.884189, 0.884189, 0.882973, 
 						0.878108, 0.858649, 0.841622, 0.823378, 0.765, 0.687162, 0.619054, 0.557027 };
 
-  /// Optical surfaces (for mirrors, etc.):
-  //First, define a default optical surface for general use; Aluminum with 100% reflectivity:
+  // Optical surfaces (for mirrors, etc.):
+  // First, define a default optical surface for general use; Aluminum with 100% reflectivity:
   MPT_temp = new G4MaterialPropertiesTable();
   MPT_temp->AddConstProperty( "REFLECTIVITY", 1.0 );
   G4OpticalSurface *DefaultOpticalSurface = new G4OpticalSurface("MirrorDefault");
@@ -869,13 +875,13 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //********************************************************************
   //************                 ECAL             **********************
   //********************************************************************  
-  //Additional elements needed for the materials:
+  // Additional elements needed for the materials:
   G4Element* elK = new G4Element( "Potassium", "K", 19, 39.098*g/mole );
   G4Element* elAs = new G4Element( "Arsenic", "As", 33, 74.922*g/mole );
   G4Element* elPb = new G4Element( "Lead", "Pb", 82, 207.2*g/mole );
   G4Element* elBe = new G4Element( "Beryllium", "Be", 4, 9.012*g/mole );
     
-  //Materials necessary to build TF1 aka lead-glass
+  // Materials necessary to build TF1 aka lead-glass
   G4Material* PbO = new G4Material("TF1_PbO", bigden, 2);
   PbO->AddElement(elPb, 1);
   PbO->AddElement(elO, 1);
@@ -891,7 +897,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   As2O3->AddElement(elO, 3);
   fMaterialsMap["TF1_As2O3"] = As2O3;
 
-  //Simulating annealing: http://hallaweb.jlab.org/12GeV/SuperBigBite/SBS-minutes/2014/Sergey_Abrahamyan_LGAnnealing_2014.pdf
+  // Simulating annealing: http://hallaweb.jlab.org/12GeV/SuperBigBite/SBS-minutes/2014/Sergey_Abrahamyan_LGAnnealing_2014.pdf
   const G4int nentries_annealing_model=50;
 
   G4double Ephoton_annealing_model[nentries_annealing_model] = {
@@ -918,7 +924,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     74.26*cm,  70.30*cm,  60.21*cm,  43.32*cm,  33.15*cm, 
     20.07*cm,   9.22*cm,   5.19*cm,   1.73*cm,   0.58*cm}; 
 
-  //Values come from old GSTAR code written by K.Shestermanov 
+  // Values come from old GSTAR code written by K.Shestermanov 
   const G4int nentries_ecal_QE = 37;
 
   G4double Ephoton_ECAL_QE[nentries_ecal_QE] = {
@@ -1037,14 +1043,14 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp = new G4MaterialPropertiesTable();
 
   G4double Rindex_air[nentries_ecal_QE] = {
-    1.003, 1.003, 1.003, 1.003, 1.003,
-    1.003, 1.003, 1.003, 1.003, 1.003,
-    1.003, 1.003, 1.003, 1.003, 1.003,
-    1.003, 1.003, 1.003, 1.003, 1.003,
-    1.003, 1.003, 1.003, 1.003, 1.003,
-    1.003, 1.003, 1.003, 1.003, 1.003,
-    1.003, 1.003, 1.003, 1.003, 1.003,
-    1.003, 1.003};  
+    1.0003, 1.0003, 1.0003, 1.0003, 1.0003,
+    1.0003, 1.0003, 1.0003, 1.0003, 1.0003,
+    1.0003, 1.0003, 1.0003, 1.0003, 1.0003,
+    1.0003, 1.0003, 1.0003, 1.0003, 1.0003,
+    1.0003, 1.0003, 1.0003, 1.0003, 1.0003,
+    1.0003, 1.0003, 1.0003, 1.0003, 1.0003,
+    1.0003, 1.0003, 1.0003, 1.0003, 1.0003,
+    1.0003, 1.0003};  
 
   G4double Abslength_air[nentries_ecal_QE] = {
     1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm, 1000.0*cm,
@@ -1536,6 +1542,48 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   osWLSToAir->SetMaterialPropertiesTable(osWLSToAir_mpt);
   fOpticalSurfacesMap["osWLSToAir"] = osWLSToAir;
 
+
+  //   ************************
+  //   *          C16         *
+  //   ************************
+  G4Material *Pyrex_Glass = man->FindOrBuildMaterial("G4_Pyrex_Glass");
+
+  const G4int nentries_rindex_pyrex = 12;
+  G4double Ephoton_rindex_pyrex[nentries_rindex_pyrex] =
+    { 1.7551*eV, 1.8894*eV, 1.9261*eV, 1.9595*eV, 2.1042*eV, 2.2706*eV,
+      2.5509*eV, 2.5833*eV, 2.8453*eV, 3.0640*eV, 3.3973*eV, 3.7115*eV };
+
+  G4double Rindex_pyrex[nentries_rindex_pyrex] =
+    { 1.5129, 1.5143, 1.5147, 1.5151, 1.5167, 1.5187,
+      1.5224, 1.5228, 1.5267, 1.5302, 1.5363, 1.5427 };
+
+  const G4int nentries_abslength_pyrex = 20;
+  
+  G4double Ephoton_abslength_pyrex[nentries_abslength_pyrex] =
+    { 1.7714*eV, 1.8788*eV, 2.0000*eV, 2.1379*eV, 2.2711*eV,
+      2.4800*eV, 2.6957*eV, 2.8440*eV, 2.9524*eV, 3.0617*eV,
+      3.1000*eV, 3.1795*eV, 3.2632*eV, 3.3514*eV, 3.3973*eV,
+      3.5429*eV, 3.7126*eV, 3.8750*eV, 4.0000*eV, 4.1333*eV };   
+
+  G4double abslength_pyrex[nentries_abslength_pyrex] =
+    { 561.6245*cm, 457.4576*cm, 457.4576*cm, 499.1244*cm, 561.6245*cm,
+      457.4576*cm, 344.3622*cm, 322.0407*cm, 344.3622*cm, 344.3622*cm,
+      322.0407*cm, 237.7600*cm, 144.0809*cm, 109.0256*cm, 83.8915*cm,
+      29.8914*cm, 10.0400*cm, 3.8246*cm, 1.8024*cm, 0.8234*cm };
+
+  MPT_temp = new G4MaterialPropertiesTable();
+
+  MPT_temp->AddProperty("RINDEX", Ephoton_rindex_pyrex, Rindex_pyrex, nentries_rindex_pyrex );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_abslength_pyrex, abslength_pyrex, nentries_abslength_pyrex );
+
+  Pyrex_Glass->SetMaterialPropertiesTable( MPT_temp );
+  
+  fMaterialsMap["Pyrex_Glass"] = Pyrex_Glass; 
+
+  G4Material *SiO2_C16 = new G4Material("SiO2_C16", density = 0.12*g/cm3, nel = 2 );
+  SiO2_C16->AddElement(elSi, 1);
+  SiO2_C16->AddElement(elO, 2);
+  fMaterialsMap["SiO2_C16"] = SiO2_C16;
 }
 
 G4Material *G4SBSDetectorConstruction::GetMaterial(G4String name){
@@ -1839,6 +1887,10 @@ void G4SBSDetectorConstruction::SetECALmapfilename( G4String sname ){
 
 void G4SBSDetectorConstruction::SetCDetconfig( int cdetconfig ){
   fCDetOption = cdetconfig;
+}
+
+void G4SBSDetectorConstruction::SetC16Segmentation( int segmentC16 ){
+  fSegmentC16 = segmentC16;
 }
 
 void G4SBSDetectorConstruction::SetFieldScale_SBS( G4double v ){

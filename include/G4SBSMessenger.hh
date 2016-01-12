@@ -18,6 +18,7 @@ class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWithADouble;
 class G4UIcmdWithAString;
 class G4UIcmdWithABool;
+class G4UIcmdWith3Vector;
 
 class G4SBSMessenger : public G4UImessenger {
 public:
@@ -147,6 +148,10 @@ private:
   // G4UIcmdWithABool *UseOpMieHGCmd;    //Mie scattering;
   // G4UIcmdWithABool *DisableOpticalPhysicsCmd; //disable CPU-intensive optical photon physics
 
+  // Command to set particle polarization for spin transport calculations:
+  // ONLY relevant for particle gun generator!
+  G4UIcmdWith3Vector *GunPolarizationCommand;
+  G4UIcmdWithAnInteger *SegmentC16Cmd;
 };
 
 #endif//G4SBSMessenger_HH

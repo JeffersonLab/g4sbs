@@ -37,6 +37,7 @@ typedef struct {
   Double_t nth, nph;
   Double_t pmperp, pmpar, pmparsm;
   Double_t z, phperp, phih, MX;
+  Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator!
   Int_t nucl, fnucl;
   Int_t hadr;
   Int_t earmaccept, harmaccept;
@@ -119,6 +120,7 @@ public:
   void SetGlobalField(G4SBSGlobalField *gf){fGlobalField = gf; }
   
   ev_t GetEventData(){ return evdata; }
+  gen_t GetGenData(){ return gendata; }
   
   void InitializeTree();
   void BranchGEM(G4String s);

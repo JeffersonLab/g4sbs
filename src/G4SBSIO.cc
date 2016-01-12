@@ -74,7 +74,7 @@ void G4SBSIO::InitializeTree(){
     if( fTree ){ delete fTree; }
 
     fTree = new TTree("T", "Geant4 SBS Simulation");
-    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
+    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:Sx/D:Sy/D:Sz/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
     //fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
     fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:voffhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
 
@@ -330,6 +330,9 @@ void G4SBSIO::BranchGEM(G4String SDname="GEM"){
   fTree->Branch( branch_name.Format("%s.Track.Yp",branch_prefix.Data() ), &(trackdata[SDname].TrackYp) );
   fTree->Branch( branch_name.Format("%s.Track.T",branch_prefix.Data() ), &(trackdata[SDname].TrackT) );
   fTree->Branch( branch_name.Format("%s.Track.P",branch_prefix.Data() ), &(trackdata[SDname].TrackP) );
+  fTree->Branch( branch_name.Format("%s.Track.Sx",branch_prefix.Data() ), &(trackdata[SDname].TrackSx) );
+  fTree->Branch( branch_name.Format("%s.Track.Sy",branch_prefix.Data() ), &(trackdata[SDname].TrackSy) );
+  fTree->Branch( branch_name.Format("%s.Track.Sz",branch_prefix.Data() ), &(trackdata[SDname].TrackSz) );
   fTree->Branch( branch_name.Format("%s.Track.Xfit",branch_prefix.Data() ), &(trackdata[SDname].TrackXfit) );
   fTree->Branch( branch_name.Format("%s.Track.Yfit",branch_prefix.Data() ), &(trackdata[SDname].TrackYfit) );
   fTree->Branch( branch_name.Format("%s.Track.Xpfit",branch_prefix.Data() ), &(trackdata[SDname].TrackXpfit) );

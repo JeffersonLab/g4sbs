@@ -99,6 +99,9 @@ public:
   void SetCDetconfig( int );
   int GetCDetConfigOption() { return fCDetOption; }
 
+  void SetC16Segmentation( int );
+  int GetC16Segmentation() { return fSegmentC16; }
+
   void SetFieldScale_SBS( G4double );
   G4double GetFieldScale_SBS() { return fFieldScale_SBS; }
 
@@ -121,6 +124,7 @@ private:
   G4double fFieldScale_BB;
   
   int fCDetOption;
+  int fSegmentC16;
 };
 
 

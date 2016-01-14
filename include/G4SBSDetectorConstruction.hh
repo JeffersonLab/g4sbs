@@ -107,6 +107,12 @@ public:
 
   void SetFieldScale_BB( G4double );
   G4double GetFieldScale_BB() { return fFieldScale_BB; }
+
+  void SetSegmentThickC16( G4double );
+  G4double GetSegmentThickC16(){ return fSegmentThickC16; }
+
+  void SetDoseRateC16( G4double );
+  G4double GetDoseRateC16(){ return fDoseRateC16; }
   
 private:
 
@@ -123,8 +129,11 @@ private:
   G4double fFieldScale_SBS;
   G4double fFieldScale_BB;
   
-  int fCDetOption;
-  int fSegmentC16;
+  G4int fCDetOption;
+  G4int fSegmentC16;
+
+  G4double fSegmentThickC16;
+  G4double fDoseRateC16; //Dose rate at z = 0 of lead-glass.
 };
 
 

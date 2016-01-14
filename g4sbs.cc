@@ -44,6 +44,8 @@
 #include "unistd.h"
 #endif
 
+#include "TString.h"
+
 int main(int argc, char** argv)
 {
   //Allow user to apply some (perhaps all?) commands in the pre-initialization phase:
@@ -53,13 +55,84 @@ int main(int argc, char** argv)
   // "shoot" type functions
   //-------------------------------
 
+  G4bool batch_mode = false; //Run in interactive mode by default
+  
   G4String preinit_macro = "";
   G4String postinit_macro = "";
-  if( argc == 2 ){ //if only one command line argument is given, assume all commands are to be applied post-initialization:
-    postinit_macro = argv[1];
-  } else if( argc > 2 ){ //assume first argument is pre-init commands, second argument is post-init commands:
-    preinit_macro = argv[1];
-    postinit_macro = argv[2];
+  // if( argc == 2 ){ //if only one command line argument is given, assume all commands are to be applied post-initialization:
+  //   postinit_macro = argv[1];
+  // } else if( argc > 2 ){ //assume first argument is pre-init commands, second argument is post-init commands:
+  //   preinit_macro = argv[1];
+  //   postinit_macro = argv[2];
+  // }
+
+  if( argc > 1 ){ //command-line arguments were given: preserve previous behavior while adding new dials to turn:
+    TString argument;
+    G4int nmacros = 0; //ignore more than two macro definitions:
+    G4bool force_batch = false;
+
+    TString macrodefs[2];
+    
+    for( int iarg=1; iarg<argc; iarg++ ){
+      argument = argv[iarg];
+
+      if( argument.BeginsWith("batch=") ){
+	argument.ReplaceAll("batch=","");
+	std::istringstream is( argument.Data() );
+	force_batch = true;
+	if( argument.Contains("true")||argument.Contains("false") ){ //true/false
+	  is >> std::boolalpha >> batch_mode;
+	} else { //1/0
+	  is >> batch_mode;
+	}
+      }
+      
+      if( argument.EndsWith(".mac") && nmacros < 2 ){ //macro file:
+	//Parse command line arguments:
+	macrodefs[nmacros] = argument;
+	nmacros++;
+      }
+    }
+
+    if( nmacros == 0 ){
+      batch_mode = false; //no macro --> meaningless to run in batch!
+    } else if( nmacros == 1 ){
+      if( !macrodefs[0].BeginsWith("preinit=") ){
+      //only one macro definition was given and it was not forced to pre-init:
+      //default to post-init execution:
+	macrodefs[0].ReplaceAll("postinit=","");
+	postinit_macro = macrodefs[0].Data();
+	if( !force_batch ) batch_mode = true; //default to batch mode unless explicitly overridden by user
+      } else {
+	macrodefs[0].ReplaceAll("preinit=","");
+	preinit_macro = macrodefs[0].Data();
+	batch_mode = false; 
+      }
+    } 
+    if( nmacros == 2 ){ //assume first macrodef is preinit and second is post-init unless
+      //explicitly overridden by user:
+      TString m1 = macrodefs[0];
+      TString m2 = macrodefs[1];
+
+      TString mac1( m1(m1.Index("=")+1,m1.Length()-m1.Index("=")-1) );
+      TString mac2( m2(m2.Index("=")+1,m2.Length()-m2.Index("=")-1) );
+      
+      //under what conditions is m1 the postinit and m2 the pre-init?
+      // 1) m1 IS labeled as postinit and m2 is NOT explicitly labeled as postinit
+      // 2) m2 is explicitly labeled as preinit and m1 is NOT explicitly labeled as preinit
+      // These are the only cases that can override the default behavior of m1 being pre-init and
+      // m2 being post-init:
+      if( (m1.BeginsWith("postinit=") && !m2.BeginsWith("postinit=") ) ||
+	  (m2.BeginsWith("preinit=") && !m1.BeginsWith("preinit=") ) ){
+	postinit_macro = mac1.Data();
+	preinit_macro = mac2.Data();
+      } else {
+	preinit_macro = mac1.Data();
+	postinit_macro = mac2.Data();
+      }
+      //Run in batch mode unless explicitly overridden by user:
+      if( !force_batch ) batch_mode = true;
+    }
   }
 
   CLHEP::HepRandom::createInstance();
@@ -98,7 +171,7 @@ int main(int argc, char** argv)
   sbsmess->SetPhysList( (G4SBSPhysicsList*) physicslist );
 
   // Detector/mass geometry and parallel geometry(ies):
-  G4VUserDetectorConstruction* detector = new G4SBSDetectorConstruction();
+  G4SBSDetectorConstruction* detector = new G4SBSDetectorConstruction();
   sbsmess->SetDetCon((G4SBSDetectorConstruction *) detector);
   // This lets us output graphical field maps
   io->SetGlobalField( ((G4SBSDetectorConstruction *) detector)->GetGlobalField() );
@@ -166,20 +239,34 @@ int main(int argc, char** argv)
   UImanager->ApplyCommand("/gun/direction 0 .3 1.");
   */
 
-  if( postinit_macro == "")
+  G4cout << "batch mode = " << batch_mode << G4endl;
+  
+  
+  if( !batch_mode )
   {
     //--------------------------
     // Define (G)UI
     //--------------------------
+
+    
+    
 #ifdef G4UI_USE
     G4UIExecutive * ui = new G4UIExecutive(argc,argv);
-
+    
+    UImanager->SetSession( ui->GetSession() ); 
+    
+    if( postinit_macro != "" ){
+      rundata->SetMacroFile(postinit_macro);
+      G4String command = "/control/execute ";
+      command += postinit_macro;
+      UImanager->ApplyCommand(command);
+    }
 
     ui->SessionStart();
-
+			  
     delete ui;
 #endif
-  } else {
+  } else { //batch mode:
       
     rundata->SetMacroFile(postinit_macro);
     G4String command = "/control/execute ";

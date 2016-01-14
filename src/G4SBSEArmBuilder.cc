@@ -446,6 +446,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       (fDetCon->SDlist).insert( SDname );
       fDetCon->SDtype[SDname] = kCAL;
       (BBCalSD->detmap).depth = 0;
+      bbcal_mother_log->SetSensitiveDetector( BBCalSD );
       //(BBCalSD->detmap).Row[0] = 0;
       //(BBCalSD->detmap).Col[0] = 0;
       

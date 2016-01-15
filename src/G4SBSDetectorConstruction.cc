@@ -72,7 +72,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fExpType = kNeutronExp;
 
-  fSegmentC16 = 0; //default to 10 segments!
+  //flags controlling ECAL thermal annealing model:
+  fSegmentC16 = 0; //default to no segmentation!
   fSegmentThickC16 = 4.0*cm; //default thickness of 4 cm for lead-glass longitudinal segmentation.
   fDoseRateC16 = 0.0; //Default radiation dose rate of ZERO (no rad. damage!)
   
@@ -2056,7 +2057,7 @@ void G4SBSDetectorConstruction::SetC16Segmentation( int segmentC16 ){
 }
 
 void G4SBSDetectorConstruction::SetSegmentThickC16( G4double thick ){
-  fSegmentThickC16 = thick;
+  fSegmentThickC16 = fabs(thick);
 }
 
 void G4SBSDetectorConstruction::SetDoseRateC16( G4double rate ){

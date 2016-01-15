@@ -55,7 +55,6 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fBBang  = 40.0*deg;
   fBBdist = 1.5*m;
 
-
   fCerDepth = 92.0*cm;
   fCerDist  =  7.0*cm;
 
@@ -945,6 +944,15 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -C16_depth/2.0 + depth_leadglass + depth_WG/4.0), Al_wrap_endpiece_log, "Aluminum_wrap_endpiece_phys", C16_Log, false, copyID );
 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -depth_ecal_pmt/2.0 + depth_leadglass/2.0), C16_WG_Log, "C16_WG", C16_Log, false, copyID );
 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy,  depth_leadglass/2.0 + depth_WG/2.0), ecal_PMT_log, "C16_PMT", C16_Log, false, copyID );
+
+	(C16TF1SD->detmap).Row[copyID] = i;
+	(C16TF1SD->detmap).Col[copyID] = j;
+	(C16TF1SD->detmap).LocalCoord[copyID] = G4ThreeVector( tempx, tempy, 0.0 );
+
+	(C16SD->detmap).Row[copyID] = i;
+	(C16SD->detmap).Col[copyID] = j;
+	(C16SD->detmap).LocalCoord[copyID] = G4ThreeVector( tempx, tempy, 0.0 );
+	
 	copyID++;
       }
     }
@@ -1033,6 +1041,10 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, C16_depth/2.0 - depth_ecal_pmt/2.0), 
 			   ecal_PMT_log, "C16_PMT_phys", C16_Log, false, cell_number );
 
+	(C16SD->detmap).Row[cell_number] = i;
+	(C16SD->detmap).Col[cell_number] = j;
+	(C16SD->detmap).LocalCoord[cell_number] = G4ThreeVector( tempx, tempy, 0.0 );
+	
 	cell_number++;
 
 	for( G4int planeN = 0; planeN < Nsegments; planeN++ ) {
@@ -1055,7 +1067,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
 	  
 	  // Assign each TF1 segment a kCAL Sensitivity
 	  G4LogicalVolume *Segments_TF1_log;
-	  if( planeN + 1 < Nsegments ){
+	  if( planeN + 1 < Nsegments || Nsegments == 1 ){
 	    Segments_TF1_log = new G4LogicalVolume( Segments_TF1, GetMaterial(material_name.Data()), lv_name.Data() );
 	  } else {
 	    Segments_TF1_log = new G4LogicalVolume( LastSegment_TF1, GetMaterial(material_name.Data()), lv_name.Data() );

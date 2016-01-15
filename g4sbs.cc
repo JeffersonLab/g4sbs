@@ -239,7 +239,7 @@ int main(int argc, char** argv)
   UImanager->ApplyCommand("/gun/direction 0 .3 1.");
   */
 
-  G4cout << "batch mode = " << batch_mode << G4endl;
+  //G4cout << "batch mode = " << batch_mode << G4endl;
   
   
   if( !batch_mode )

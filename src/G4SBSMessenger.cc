@@ -971,6 +971,6 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == GunPolarizationCommand ){
     G4ThreeVector pol = GunPolarizationCommand->GetNew3VectorValue(newValue);
-    fprigen->SetGunPolarization( pol );
+    fprigen->SetGunPolarization( pol.unit() );
   }
 }

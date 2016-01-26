@@ -64,6 +64,8 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   G4ThreeVector pos = aStep->GetPreStepPoint()->GetPosition(); //global position of prestep point
 
+  hit->SetGlobalPos(pos);
+  
   pos = aTrans.TransformPoint(pos); //local position in "tracker box"
 
   // Track Polarization in the same manner as pos

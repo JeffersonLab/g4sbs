@@ -32,6 +32,7 @@ public:
 
 private:
   G4ThreeVector pos;
+  G4ThreeVector globalpos; //global position, for drawing
   G4ThreeVector vert;
   G4ThreeVector polarization;
   G4int	GEMID;
@@ -50,6 +51,8 @@ private:
 public:
   inline void SetPos(G4ThreeVector v)
   { pos = v;};
+  inline void SetGlobalPos( G4ThreeVector v )
+  { globalpos = v; }
   inline void SetVertex(G4ThreeVector v)
   { vert = v;};
   inline void SetPolarization(G4ThreeVector v)
@@ -77,6 +80,8 @@ public:
 
   inline G4ThreeVector GetPos()
   { return pos;};
+  inline G4ThreeVector GetGlobalPos()
+  { return globalpos; }
   inline G4ThreeVector GetVertex()
   { return vert;};
   inline G4ThreeVector GetPolarization()

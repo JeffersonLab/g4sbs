@@ -1089,7 +1089,7 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
     int hitidx = -1;
     int nbouncetemp = 0;
 
-    G4cout << "Before history traversal, it = " << *it << G4endl;
+    //G4cout << "Before history traversal, it = " << *it << G4endl;
     
     do {
       G4Trajectory *track = (G4Trajectory*) ( (*tracklist)[TrajectoryIndex[TIDtemp]] );

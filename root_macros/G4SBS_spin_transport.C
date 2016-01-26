@@ -147,13 +147,48 @@ void G4SBS_spin_transport( const char *inputfilename, const char *outputfilename
       psitrack = atan2( xaxis_comoving_fp.Dot( yaxis_comoving_tgt ), xaxis_comoving_fp.Dot( zaxis_comoving_tgt ) );
       thetatrack = acos( xaxis_comoving_fp.Dot( xaxis_comoving_tgt ) );
 
+      //In TRANSPORT coordinates at the target:
       Pxtg = T->ev_Sx;
       Pytg = T->ev_Sy;
       Pztg = T->ev_Sz;
 
+      
+      
+      //In TRANSPORT coordinates at the fp:
       Pxfp = (*(T->Harm_FT_Track_Sx))[0];
       Pyfp = (*(T->Harm_FT_Track_Sy))[0];
       Pzfp = (*(T->Harm_FT_Track_Sz))[0];
+
+      TVector3 SpinTg(Pxtg,Pytg,Pztg);
+      SpinTg = SpinTg.Unit();
+
+      TVector3 SpinFp(Pxfp,Pyfp,Pzfp);
+      SpinFp = SpinFp.Unit();
+
+      TVector3 Spin_rotation_axis = (SpinTg.Cross( SpinFp ) ).Unit();
+
+      //opening angle between initial and final spin vectors: ranges from zero to PI:
+      double SpinPolarAngle = acos( SpinTg.Dot( SpinFp ) );
+      
+      //In the geometric approximation, the spin rotates RELATIVE to the trajectory by angles
+      // phi = gamma kappa phitrack
+      // theta = gamma kappa thetatrack
+      // psi = gamma kappa psitrack
+
+      TRotation R;
+      R.Rotate( SpinPolarAngle, Spin_rotation_axis );
+
+      cout << "Spin at target:" << endl;
+      SpinTg.Print();
+      cout << endl << endl;
+      
+      cout << "| xx, xy, xz | = | " << R.XX() << ", " << R.XY() << ", " << R.XZ() << "|" << endl
+	   << "| yx, yy, yz | = | " << R.YX() << ", " << R.YY() << ", " << R.YZ() << "|" << endl
+	   << "| zx, zy, zz | = | " << R.ZX() << ", " << R.ZY() << ", " << R.ZZ() << "|" << endl;
+      
+      R.Print();
+      
+      //so that in "fixed" transport coordinates, 
 
       Tout->Fill();
     }

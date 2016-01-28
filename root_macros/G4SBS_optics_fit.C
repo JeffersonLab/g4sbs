@@ -9,7 +9,8 @@
 #include "TDecompSVD.h"
 #include "TCut.h"
 #include "TEventList.h"
-#include "g4sbs_tree.C"
+//#include "g4sbs_tree.C"
+#include "gep_tree_with_spin.C"
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TProfile.h"
@@ -50,7 +51,7 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
 
   C->Draw(">>elist",global_cut);
 
-  g4sbs_tree *T = new g4sbs_tree(C);
+  gep_tree_with_spin *T = new gep_tree_with_spin(C);
 
   //Expansion is of the form: 
   // ( xptar yptar 1/p ytar ) = sum_{i+j+k+l+m<=N} C_{ijklm} xfp^i yfp^j xpfp^k ypfp^l xtar^m 
@@ -66,7 +67,7 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
   inputfile >> chi2cut; 
   double tracker_pitch_angle = 0.0;
   inputfile >> tracker_pitch_angle; //Positive value means that for up-bending particles, thetabend = tracker_pitch + thetatgt - thetafp  
-  tracker_pitch_angle *= PI/180.0; //value is assumed to be given in degree
+  tracker_pitch_angle *= PI/180.0; //value is assumed to be given in degrees
   
   double pcentral[2] = {2.5,5.0};
 
@@ -201,9 +202,9 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
     
     double theta0;
     if( arm == 0 ){ //BB:
-      theta0 = T->gen_thbb; //on beam right
+      theta0 = T->gen_thbb; //on beam left:
     } else if( arm == 1 ){ //SBS:
-      theta0 = T->gen_thhcal; //on beam left
+      theta0 = T->gen_thsbs; //on beam right
     }
 
     double vx, vy, vz, px, py, pz;
@@ -216,7 +217,9 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
 
     TVector3 vertex(vx,vy,vz);
 
-    if( arm == 0 ){
+    
+    
+    if( arm == 0 ){ //BB
       p = T->ev_ep;
 
       //px = T->ev_epx;
@@ -224,7 +227,7 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
       //pz = T->ev_epz;
       
       TVector3 pvect( p*sin(T->ev_th)*cos(T->ev_ph), p*sin(T->ev_th)*sin(T->ev_ph), p*cos(T->ev_th) );
-      TVector3 BB_zaxis( -sin(theta0), 0.0, cos(theta0) ); //BB is on beam right, global x axis points to beam left
+      TVector3 BB_zaxis( sin(theta0), 0.0, cos(theta0) ); //BB is on beam left, global x axis points to beam left
       TVector3 BB_xaxis(0,-1,0); //X axis of transport coordinates is vertically down:
       //TVector3 BB_xaxis = (BB_yaxis.Cross(BB_zaxis)).Unit();
       TVector3 BB_yaxis = (BB_zaxis.Cross(BB_xaxis)).Unit();
@@ -247,7 +250,7 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
       pz = T->ev_npz;
       
       TVector3 pvect(p*sin(T->ev_nth)*cos(T->ev_nph), p*sin(T->ev_nth)*sin(T->ev_nph), p*cos(T->ev_nth) );
-      TVector3 SBS_zaxis( sin(theta0), 0, cos(theta0) );
+      TVector3 SBS_zaxis( -sin(theta0), 0, cos(theta0) );
       TVector3 SBS_xaxis(0,-1,0);
       TVector3 SBS_yaxis = (SBS_zaxis.Cross(SBS_xaxis)).Unit();
 
@@ -262,7 +265,7 @@ void G4SBS_optics_fit( const char *inputfilename, const char *outputfilename, in
       
     }    
 
-    bool goodtrack = false;
+   
 
     //Fill focal plane track variables:
     for(int itrack=0; itrack<T->ntracks; itrack++){

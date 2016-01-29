@@ -684,6 +684,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4SubtractionSolid *FrontClamp = new G4SubtractionSolid( "FrontClamp", FrontClamp_Box, FrontClamp_Notch, 0, G4ThreeVector( xnotch, 0.0, 0.0 ) );
 
     G4LogicalVolume *FrontClamp_log = new G4LogicalVolume( FrontClamp, GetMaterial("Fer"), "FrontClamp_log" );
+    if(fDetCon->fTotalAbs) {
+      FrontClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+    }
 
     G4double FrontClamp_zoffset = 13.40*2.54*cm + FrontClamp_depth/2.0;
 
@@ -728,6 +731,10 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 							    G4ThreeVector( xnotch, 0.0, 0.0 ) );
 
     G4LogicalVolume *RearClamp_log = new G4LogicalVolume( RearClamp, GetMaterial("Fer"), "RearClamp_log" );
+    
+    if(fDetCon->fTotalAbs) {
+      RearClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+    }
 
     G4double RearClamp_zoffset = 11.43*2.54*cm + RearClamp_depth/2.0; 
     G4double RearClamp_xoffset = -f48D48width/2.0 + RearClamp_width/2.0; 

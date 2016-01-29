@@ -469,6 +469,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fIO->SetUsePythia6( true );
       validcmd = true;
     }
+    if (newValue.compareTo("gmnelasticcheck") == 0 ){
+      fevgen->SetKine(kGMnElasticCheck);
+      validcmd = true;
+    }
 
     if( !validcmd ){
       fprintf(stderr, "%s: %s line %d - Error: kinematic type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());

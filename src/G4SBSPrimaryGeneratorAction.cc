@@ -160,6 +160,26 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     particleGun->GeneratePrimaryVertex(anEvent);
   }
 
+  if( sbsgen->GetKine() == kGMnElasticCheck ) { // In this case we
+    // generate TWO nucleons, a proton and neutron simultaneously
+    for(int i = 0; i < 2; i++ ) {
+      if(i==0)
+        particle = particleTable->FindParticle(particleName="neutron");
+      else
+        particle = particleTable->FindParticle(particleName="proton");
+
+      particleGun->SetParticleDefinition(particle);
+
+      particleGun->SetParticleMomentumDirection(sbsgen->GetNucleonP().unit());
+      // This is KINETIC energy
+      particleGun->SetParticleEnergy(sbsgen->GetNucleonE()-particle->GetPDGMass());
+      particleGun->SetParticlePosition(sbsgen->GetV());
+
+      // Generate the particle
+      particleGun->GeneratePrimaryVertex(anEvent);
+    }
+    return; // So that we don't generate any more particles by accident
+  }
   if( sbsgen->GetKine() != kSIDIS && sbsgen->GetKine() != kWiser && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kBeam ){ //Then we are generating a final nucleon
     switch( sbsgen->GetFinalNucleon() ){
     case kProton:

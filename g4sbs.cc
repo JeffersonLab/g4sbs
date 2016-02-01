@@ -85,6 +85,17 @@ void executeMacro(G4String macro, G4UImanager *UImanager)
   }
 }
 
+bool getBool(std::string value, bool default_value)
+{
+  if(value.compare("true") == 0) {
+    return true;
+  } else if(value.compare("false") == 0) {
+    return false;
+  } else {
+    return default_value;
+  }
+}
+
 
 int main(int argc, char** argv)
 {
@@ -119,7 +130,7 @@ int main(int argc, char** argv)
       } else if (paramName.compare("post") == 0) {
         postinit_macro = paramValue;
       } else if (paramName.compare("gui") == 0) {
-        flag_gui = true;
+        flag_gui = getBool(paramValue,true);
       }
     }
   }

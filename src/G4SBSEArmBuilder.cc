@@ -893,7 +893,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
 
   /////////////////////////////////////////////////////////////////////////////////
   //   There are two options to build the TF1 ( /g4sbs/segmentC16 int )          //
-  //     /g4sbs/segmentC16 1 segments the TF1 into 10 equal sections, used       //
+  //     /g4sbs/segmentC16 N segments the TF1 into N "equal" sections, used       //
   //     to analyze dose rate as a function of longitudinal dimension of module  //
   //                                                                             //
   //     /g4sbs/segmentC16 0 builds the normal ECal modules                      //
@@ -1060,7 +1060,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
 	  // G4String seg_TF1_material = "TF1_anneal_" + tempstring;
 
 	  TString material_name, lv_name, pv_name;
-	  material_name.Form( "TF1_anneal_C16_z%d", planeN );
+	  material_name.Form( "TF1_anneal_C16_row%d_col%d_z%d", i+1, j+1, planeN );
 
 	  lv_name.Form( "TF1_log_z%d", planeN );
 	  pv_name.Form( "TF1_pv_z%d", planeN );
@@ -1126,8 +1126,13 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   G4double width_40 = 4.0*cm;
   G4double width_38 = 3.8*cm;
 
-  G4double depth_leadglass = 40.0*cm;
+  G4double depth_42 = 34.3*cm;
+  G4double depth_40 = 40.0*cm;
+  G4double depth_38 = 45.0*cm;
+  
+  G4double depth_leadglass = 45.0*cm;
   G4double depth_ecal_pmt = 0.3*cm;
+  G4double depth_lightguide_short = 15.0*cm;
   G4double radius_ecal_pmt = 1.25*cm;
   G4double depth_ecal_frontplate = 2.54*cm;
   G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
@@ -1135,8 +1140,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   
   //Define "Earm" box a bit wider than total ECAL area:
   G4double width_earm = 150.0*cm;
-  G4double height_earm = 360.0*cm;
-  G4double depth_earm = depth_CH2 + depth_CDET + depth_ecal_frontplate + depth_ecal_pmt + depth_leadglass; // 
+  G4double height_earm = 340.0*cm;
+  G4double depth_earm = depth_CH2 + depth_CDET + depth_ecal_pmt + depth_leadglass + depth_lightguide_short; // 
   
   G4int nSuperRows = 20;
   //These are the "yfp" coordinates of the box lower and upper edges. +yfp
@@ -1154,7 +1159,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 				     56.0*cm, 56.0*cm, 56.0*cm, 48.0*cm, 48.0*cm,
 				     32.0*cm, 24.0*cm, 8.0*cm, -8.0*cm, -24.0*cm };
 
-  G4double ycalo_min = -160.0*cm; //This can be adjusted if necessary!
+  //G4double ycalo_min = -160.0*cm; //This can be adjusted if necessary!
+  G4double ycalo_min = -164.0*cm;
   
   G4double xcalomin_super_rows[20], xcalomax_super_rows[20], width_super_rows[20];
   G4int ncol42_row[20], ncol40_row[20], ncol38_row[20];
@@ -1178,7 +1184,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   G4RotationMatrix *bbrm = new G4RotationMatrix;
   bbrm->rotateY(-fBBang);
 
-  G4Box *earm_mother_box = new G4Box( "earm_mother_box", width_earm/2.0, height_earm/2.0, depth_earm/2.0 );
+  G4Box *earm_mother_box = new G4Box( "earm_mother_box", width_earm/2.0, height_earm/2.0, (depth_earm+1.0*mm)/2.0 );
   G4LogicalVolume *earm_mother_log = new G4LogicalVolume( earm_mother_box, GetMaterial("Air"), "earm_mother_log");
 
   //If "earm_mother_log" is in the step limiter list, make ECAL a total-absorber with "kCAL" sensitivity:
@@ -1200,58 +1206,81 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
     }
   }
 
-  //fBBdist is interpreted to mean the distance from the origin to the ****BACK**** of the ECAL lead-glass:
-  G4double zback_ECAL = depth_earm/2.0 - depth_ecal_pmt;
-  G4double R_Earm = fBBdist - zback_ECAL;
+  //fBBdist should now be interpreted to mean the distance from the origin to the ****FRONT**** of the ECAL lead-glass:
+  //G4double zback_ECAL = depth_earm/2.0 - depth_ecal_pmt;
+  G4double zfront_ECAL = depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass;
+  G4double R_Earm = fBBdist - zfront_ECAL;
 
   G4ThreeVector pos_ECAL( R_Earm*sin(fBBang), 0.0, R_Earm*cos(fBBang) );
   
   new G4PVPlacement( bbrm, pos_ECAL, earm_mother_log, "earm_mother_phys", motherlog, false, 0 );
 
-  //Now place things in ECAL:
-  //Start with the lead-glass modules and PMTs:
-
   //assume lead-glass is surrounded by 1-mil (.001") thickness of mylar:
   //assume lead-glass is also surrounded by another mil of air:
   G4double mylar_thick = 0.001*2.54*cm;
   G4double air_thick = mylar_thick;
+  
+  //Now place things in ECAL:
+  //Start with the lead-glass modules, PMTs and light guides:
+  G4Tubs *LightGuide_42 = new G4Tubs("LightGuide_42", 0.0, 2.5*cm/2.0, (depth_lightguide_short+depth_38-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LightGuide_42_log = new G4LogicalVolume( LightGuide_42, GetMaterial("Pyrex_Glass"), "LightGuide_42_log" );
 
-  G4Box *Module_42 = new G4Box( "Module_42", width_42/2.0, width_42/2.0, depth_leadglass/2.0 );
+  G4Tubs *LightGuide_40 = new G4Tubs("LightGuide_40", 0.0, 2.5*cm/2.0, (depth_lightguide_short+depth_38-depth_40)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LightGuide_40_log = new G4LogicalVolume( LightGuide_40, GetMaterial("Pyrex_Glass"), "LightGuide_40_log" );
+
+  G4Tubs *LightGuide_38 = new G4Tubs("LightGuide_38", 0.0, 2.5*cm/2.0, (depth_lightguide_short+depth_38-depth_38)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LightGuide_38_log = new G4LogicalVolume( LightGuide_38, GetMaterial("Pyrex_Glass"), "LightGuide_38_log" );
+
+  G4Tubs *LGWrap_42 = new G4Tubs( "LGWrap_42", 2.5*cm/2.0+air_thick, 2.5*cm/2.0 + air_thick + mylar_thick, (depth_lightguide_short+depth_38-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LGWrap_42_log = new G4LogicalVolume( LGWrap_42, GetMaterial("Mylar"), "LGWrap_42_log" );
+
+  G4Tubs *LGWrap_40 = new G4Tubs( "LGWrap_40", 2.5*cm/2.0+air_thick, 2.5*cm/2.0 + air_thick + mylar_thick, (depth_lightguide_short+depth_38-depth_40)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LGWrap_40_log = new G4LogicalVolume( LGWrap_40, GetMaterial("Mylar"), "LGWrap_40_log" );
+
+  G4Tubs *LGWrap_38 = new G4Tubs( "LGWrap_38", 2.5*cm/2.0+air_thick, 2.5*cm/2.0 + air_thick + mylar_thick, (depth_lightguide_short+depth_38-depth_38)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LGWrap_38_log = new G4LogicalVolume( LGWrap_38, GetMaterial("Mylar"), "LGWrap_38_log" );
+  
+  G4Tubs *LG42 = new G4Tubs("LG42", 0.0, 2.5*cm/2.0 + air_thick + mylar_thick+0.1*mm, (depth_lightguide_short+depth_38-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LG42_log = new G4LogicalVolume( LG42, GetMaterial("Special_Air"), "LG42_log" );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LightGuide_42_log, "LightGuide_42_phys", LG42_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LGWrap_42_log, "LGWrap_42_phys", LG42_log, false, 0 );
+
+  G4Tubs *LG40 = new G4Tubs("LG40", 0.0, 2.5*cm/2.0 + air_thick + mylar_thick+0.1*mm, (depth_lightguide_short+depth_38-depth_40)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LG40_log = new G4LogicalVolume( LG40, GetMaterial("Special_Air"), "LG40_log" );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LightGuide_40_log, "LightGuide_40_phys", LG40_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LGWrap_40_log, "LGWrap_40_phys", LG40_log, false, 0 );
+  
+  G4Tubs *LG38 = new G4Tubs("LG38", 0.0, 2.5*cm/2.0 + air_thick + mylar_thick+0.1*mm, (depth_lightguide_short+depth_38-depth_38)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LG38_log = new G4LogicalVolume( LG38, GetMaterial("Special_Air"), "LG38_log" );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LightGuide_38_log, "LightGuide_38_phys", LG38_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LGWrap_38_log, "LGWrap_38_phys", LG38_log, false, 0 );
+
+  G4Box *Module_42 = new G4Box( "Module_42", width_42/2.0, width_42/2.0, depth_42/2.0 );
   G4LogicalVolume *Module_42_log = new G4LogicalVolume( Module_42, GetMaterial("Special_Air"), "Module_42_log" );
 
-  G4Box *Module_40 = new G4Box( "Module_40", width_40/2.0, width_40/2.0, depth_leadglass/2.0 );
+  G4Box *Module_40 = new G4Box( "Module_40", width_40/2.0, width_40/2.0, depth_40/2.0 );
   G4LogicalVolume *Module_40_log = new G4LogicalVolume( Module_40, GetMaterial("Special_Air"), "Module_40_log" );
 
-  G4Box *Module_38 = new G4Box( "Module_38", width_38/2.0, width_38/2.0, depth_leadglass/2.0 );
+  G4Box *Module_38 = new G4Box( "Module_38", width_38/2.0, width_38/2.0, depth_38/2.0 );
   G4LogicalVolume *Module_38_log = new G4LogicalVolume( Module_38, GetMaterial("Special_Air"), "Module_38_log" );
 
   //Next, we want to make a subtraction solid for the mylar:
-  G4Box *Mylar_42 = new G4Box( "Mylar_42", (width_42 - mylar_thick)/2.0, (width_42 - mylar_thick)/2.0, depth_leadglass/2.0 + 1.0*cm );
+  G4Box *Mylar_42 = new G4Box( "Mylar_42", (width_42 - mylar_thick)/2.0, (width_42 - mylar_thick)/2.0, depth_42/2.0 + 1.0*cm );
   // x - Lz/2 - 1 cm = -Lz/2 + t --> x = 1 cm + t
   G4SubtractionSolid *Mylar_wrap_42 = new G4SubtractionSolid( "Mylar_wrap_42", Module_42, Mylar_42, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
   G4LogicalVolume *Mylar_wrap_42_log = new G4LogicalVolume( Mylar_wrap_42, GetMaterial("Mylar"), "Mylar_wrap_42_log" );
   
   //Next, we want to make a subtraction solid for the mylar:
-  G4Box *Mylar_40 = new G4Box( "Mylar_40", (width_40 - mylar_thick)/2.0, (width_40 - mylar_thick)/2.0, depth_leadglass/2.0 + 1.0*cm );
+  G4Box *Mylar_40 = new G4Box( "Mylar_40", (width_40 - mylar_thick)/2.0, (width_40 - mylar_thick)/2.0, depth_40/2.0 + 1.0*cm );
   //
   G4SubtractionSolid *Mylar_wrap_40 = new G4SubtractionSolid( "Mylar_wrap_40", Module_40, Mylar_40, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
   G4LogicalVolume *Mylar_wrap_40_log = new G4LogicalVolume( Mylar_wrap_40, GetMaterial("Mylar"), "Mylar_wrap_40_log" );
 
   //Next, we want to make a subtraction solid for the mylar:
-  G4Box *Mylar_38 = new G4Box( "Mylar_38", (width_38 - mylar_thick)/2.0, (width_38 - mylar_thick)/2.0, depth_leadglass/2.0 + 1.0*cm );
+  G4Box *Mylar_38 = new G4Box( "Mylar_38", (width_38 - mylar_thick)/2.0, (width_38 - mylar_thick)/2.0, depth_38/2.0 + 1.0*cm );
   //
   G4SubtractionSolid *Mylar_wrap_38 = new G4SubtractionSolid( "Mylar_wrap_38", Module_38, Mylar_38, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm) );
   G4LogicalVolume *Mylar_wrap_38_log = new G4LogicalVolume( Mylar_wrap_38, GetMaterial("Mylar"), "Mylar_wrap_38_log" );
-
-  //Make lead-glass:
-  G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", (width_42 - mylar_thick - air_thick)/2.0, (width_42 - mylar_thick - air_thick)/2.0, (depth_leadglass - mylar_thick - air_thick)/2.0 );
-  G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
-
-  G4Box *LeadGlass_40 = new G4Box("LeadGlass_40", (width_40 - mylar_thick - air_thick)/2.0, (width_40 - mylar_thick - air_thick)/2.0, (depth_leadglass - mylar_thick - air_thick)/2.0 );
-  G4LogicalVolume *LeadGlass_40_log = new G4LogicalVolume( LeadGlass_40, GetMaterial("TF1"), "LeadGlass_40_log" );
-
-  G4Box *LeadGlass_38 = new G4Box("LeadGlass_38", (width_38 - mylar_thick - air_thick)/2.0, (width_38 - mylar_thick - air_thick)/2.0, (depth_leadglass - mylar_thick - air_thick)/2.0 );
-  G4LogicalVolume *LeadGlass_38_log = new G4LogicalVolume( LeadGlass_38, GetMaterial("TF1"), "LeadGlass_38_log" );
   
   ////// Define Sensitive Detector for lead-glass:
   G4String ECalTF1SDname = "Earm/ECalTF1";
@@ -1269,19 +1298,167 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
     (ECalTF1SD->detmap).depth = 1;
   }
 
-  //Assign "kCAL" sensitivity to the lead-glass:
-  LeadGlass_42_log->SetSensitiveDetector( ECalTF1SD );
-  LeadGlass_40_log->SetSensitiveDetector( ECalTF1SD );
-  LeadGlass_38_log->SetSensitiveDetector( ECalTF1SD );
+  //Make lead-glass and place in modules:
+  
+  if( fDetCon->GetC16Segmentation() <= 0 ){
+    G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", (width_42 - mylar_thick - air_thick)/2.0, (width_42 - mylar_thick - air_thick)/2.0, (depth_42 - mylar_thick - air_thick)/2.0 );
+    G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
 
+    G4Box *LeadGlass_40 = new G4Box("LeadGlass_40", (width_40 - mylar_thick - air_thick)/2.0, (width_40 - mylar_thick - air_thick)/2.0, (depth_40 - mylar_thick - air_thick)/2.0 );
+    G4LogicalVolume *LeadGlass_40_log = new G4LogicalVolume( LeadGlass_40, GetMaterial("TF1"), "LeadGlass_40_log" );
+
+    G4Box *LeadGlass_38 = new G4Box("LeadGlass_38", (width_38 - mylar_thick - air_thick)/2.0, (width_38 - mylar_thick - air_thick)/2.0, (depth_38 - mylar_thick - air_thick)/2.0 );
+    G4LogicalVolume *LeadGlass_38_log = new G4LogicalVolume( LeadGlass_38, GetMaterial("TF1"), "LeadGlass_38_log" );
+
+    //Assign "kCAL" sensitivity to the lead-glass:
+    LeadGlass_42_log->SetSensitiveDetector( ECalTF1SD );
+    LeadGlass_40_log->SetSensitiveDetector( ECalTF1SD );
+    LeadGlass_38_log->SetSensitiveDetector( ECalTF1SD );
+
+    G4VisAttributes *TF1visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0 ) );
+    LeadGlass_42_log->SetVisAttributes( TF1visatt );
+    LeadGlass_40_log->SetVisAttributes( TF1visatt );
+    LeadGlass_38_log->SetVisAttributes( TF1visatt );
+    
+    //Positioning of lead-glass in module:
+    // z + Lz/2 - m/2 - a/2 = Lz/2 --> z = m/2 + a/2
+    //lead-glass:
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, (mylar_thick + air_thick)/2.0 ), LeadGlass_42_log, "LeadGlass_42_phys", Module_42_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, (mylar_thick + air_thick)/2.0 ), LeadGlass_40_log, "LeadGlass_40_phys", Module_40_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, (mylar_thick + air_thick)/2.0 ), LeadGlass_38_log, "LeadGlass_38_phys", Module_38_log, false, 0 );
+  } else {
+    G4int nsegments = fDetCon->GetC16Segmentation();
+    G4double segthick = fDetCon->GetSegmentThickC16();
+
+    //Segment the lead-glass longitudinally so that different optical properties can be defined:
+    G4int nseg_42 = G4int( (depth_42 - mylar_thick - air_thick)/segthick );
+    if( nseg_42 > nsegments ){
+      nseg_42 = nsegments;
+    }
+    G4double remainder_42 = (depth_42 - mylar_thick - air_thick) - nseg_42 * segthick; //remainder is always non-negative!
+
+    if( nseg_42 == 0 ){
+      nseg_42 = 1;
+      segthick = (depth_42 - mylar_thick - air_thick);
+      remainder_42 = 0.0;
+    }
+
+    G4Box *segment_42 = new G4Box( "segment_42", (width_42 - 2.*(mylar_thick+air_thick) )/2.0, (width_42 - 2.*(mylar_thick+air_thick) )/2.0, segthick/2.0 );
+    G4Box *lastsegment_42 = new G4Box( "lastsegment_42", (width_42 - 2.*(mylar_thick+air_thick) )/2.0, (width_42 - 2.*(mylar_thick+air_thick) )/2.0, (segthick+remainder_42)/2.0 );
+
+    G4double ztemp = -depth_42/2.0 + mylar_thick + air_thick;
+    
+    for( int seg42=0; seg42<nseg_42; seg42++ ){
+      TString material_name, lv_name, pv_name;
+      material_name.Form( "TF1_anneal_ECAL_z%d", seg42 );
+      lv_name.Form("segment_42_log_%d", seg42 );
+      pv_name.Form("segment_42_phys_%d", seg42 );
+      G4LogicalVolume *Seg42_log;
+      if( seg42 + 1 < nseg_42 || nseg_42 == 1 ){
+	Seg42_log = new G4LogicalVolume( segment_42, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += segthick/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg42_log, pv_name.Data(), Module_42_log, false, 0 );
+	ztemp += segthick/2.0;
+      } else {
+	Seg42_log = new G4LogicalVolume( lastsegment_42, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += (segthick+remainder_42)/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg42_log, pv_name.Data(), Module_42_log, false, 0 );
+	ztemp += (segthick+remainder_42)/2.0;
+      }
+      Seg42_log->SetSensitiveDetector( ECalTF1SD );
+
+      G4VisAttributes *Segment_VisAtt = new G4VisAttributes( G4Colour( 0.8*(seg42/15.0)+0.20, 0.8*(seg42/15.0)+0.20, 0.0 ) );
+      Seg42_log->SetVisAttributes( Segment_VisAtt );
+    }
+
+
+    //Segment the lead-glass longitudinally so that different optical properties can be defined:
+    G4int nseg_40 = G4int( (depth_40 - mylar_thick - air_thick)/segthick );
+    if( nseg_40 > nsegments ){
+      nseg_40 = nsegments;
+    }
+    G4double remainder_40 = (depth_40 - mylar_thick - air_thick) - nseg_40 * segthick; //remainder is always non-negative!
+
+    if( nseg_40 == 0 ){
+      nseg_40 = 1;
+      segthick = (depth_40 - mylar_thick - air_thick);
+      remainder_40 = 0.0;
+    }
+
+    G4Box *segment_40 = new G4Box( "segment_40", (width_40 - 2.*(mylar_thick+air_thick) )/2.0, (width_40 - 2.*(mylar_thick+air_thick) )/2.0, segthick/2.0 );
+    G4Box *lastsegment_40 = new G4Box( "lastsegment_40", (width_40 - 2.*(mylar_thick+air_thick) )/2.0, (width_40 - 2.*(mylar_thick+air_thick) )/2.0, (segthick+remainder_40)/2.0 );
+
+    ztemp = -depth_40/2.0 + mylar_thick + air_thick;
+    
+    for( int seg40=0; seg40<nseg_40; seg40++ ){
+      TString material_name, lv_name, pv_name;
+      material_name.Form( "TF1_anneal_ECAL_z%d", seg40 );
+      lv_name.Form("segment_40_log_%d", seg40 );
+      pv_name.Form("segment_40_phys_%d", seg40 );
+      G4LogicalVolume *Seg40_log;
+      if( seg40 + 1 < nseg_40 || nseg_40 == 1 ){
+	Seg40_log = new G4LogicalVolume( segment_40, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += segthick/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg40_log, pv_name.Data(), Module_40_log, false, 0 );
+	ztemp += segthick/2.0;
+      } else {
+	Seg40_log = new G4LogicalVolume( lastsegment_40, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += (segthick+remainder_40)/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg40_log, pv_name.Data(), Module_40_log, false, 0 );
+	ztemp += (segthick+remainder_40)/2.0;
+      }
+      Seg40_log->SetSensitiveDetector( ECalTF1SD );
+
+      G4VisAttributes *Segment_VisAtt = new G4VisAttributes( G4Colour( 0.8*(seg40/15.0)+0.20, 0.8*(seg40/15.0)+0.20, 0.0 ) );
+      Seg40_log->SetVisAttributes( Segment_VisAtt );
+    }
+
+    //Segment the lead-glass longitudinally so that different optical properties can be defined:
+    G4int nseg_38 = G4int( (depth_38 - mylar_thick - air_thick)/segthick );
+    if( nseg_38 > nsegments ){
+      nseg_38 = nsegments;
+    }
+    G4double remainder_38 = (depth_38 - mylar_thick - air_thick) - nseg_38 * segthick; //remainder is always non-negative!
+
+    if( nseg_38 == 0 ){
+      nseg_38 = 1;
+      segthick = (depth_38 - mylar_thick - air_thick);
+      remainder_38 = 0.0;
+    }
+
+    G4Box *segment_38 = new G4Box( "segment_38", (width_38 - 2.*(mylar_thick+air_thick) )/2.0, (width_38 - 2.*(mylar_thick+air_thick) )/2.0, segthick/2.0 );
+    G4Box *lastsegment_38 = new G4Box( "lastsegment_38", (width_38 - 2.*(mylar_thick+air_thick) )/2.0, (width_38 - 2.*(mylar_thick+air_thick) )/2.0, (segthick+remainder_38)/2.0 );
+
+    ztemp = -depth_38/2.0 + mylar_thick + air_thick;
+    
+    for( int seg38=0; seg38<nseg_38; seg38++ ){
+      TString material_name, lv_name, pv_name;
+      material_name.Form( "TF1_anneal_ECAL_z%d", seg38 );
+      lv_name.Form("segment_38_log_%d", seg38 );
+      pv_name.Form("segment_38_phys_%d", seg38 );
+      G4LogicalVolume *Seg38_log;
+      if( seg38 + 1 < nseg_38 || nseg_38 == 1 ){
+	Seg38_log = new G4LogicalVolume( segment_38, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += segthick/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg38_log, pv_name.Data(), Module_38_log, false, 0 );
+	ztemp += segthick/2.0;
+      } else {
+	Seg38_log = new G4LogicalVolume( lastsegment_38, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += (segthick+remainder_38)/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg38_log, pv_name.Data(), Module_38_log, false, 0 );
+	ztemp += (segthick+remainder_38)/2.0;
+      }
+      Seg38_log->SetSensitiveDetector( ECalTF1SD );
+
+      G4VisAttributes *Segment_VisAtt = new G4VisAttributes( G4Colour( 0.8*(seg38/15.0)+0.20, 0.8*(seg38/15.0)+0.20, 0.0 ) );
+      Seg38_log->SetVisAttributes( Segment_VisAtt );
+    }
+    
+  }
+    
   //Place lead-glass and mylar wrap inside module:
 
-  //Positioning of lead-glass in module:
-  // z + Lz/2 - m/2 - a/2 = Lz/2 --> z = m/2 + a/2
-  //lead-glass:
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, (mylar_thick + air_thick)/2.0 ), LeadGlass_42_log, "LeadGlass_42_phys", Module_42_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, (mylar_thick + air_thick)/2.0 ), LeadGlass_40_log, "LeadGlass_40_phys", Module_40_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, (mylar_thick + air_thick)/2.0 ), LeadGlass_38_log, "LeadGlass_38_phys", Module_38_log, false, 0 );
+  
 
   //mylar:
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), Mylar_wrap_42_log, "Mylar_wrap_42_phys", Module_42_log, false, 0 );
@@ -1291,6 +1468,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   new G4LogicalSkinSurface( "Mylar_skin_42", Mylar_wrap_42_log, GetOpticalSurface("Mirrsurf") );
   new G4LogicalSkinSurface( "Mylar_skin_40", Mylar_wrap_40_log, GetOpticalSurface("Mirrsurf") );
   new G4LogicalSkinSurface( "Mylar_skin_38", Mylar_wrap_38_log, GetOpticalSurface("Mirrsurf") );
+
+  new G4LogicalSkinSurface( "lgwrap_42", LGWrap_42_log, GetOpticalSurface("Mirrsurf") );
+  new G4LogicalSkinSurface( "lgwrap_40", LGWrap_40_log, GetOpticalSurface("Mirrsurf") );
+  new G4LogicalSkinSurface( "lgwrap_38", LGWrap_38_log, GetOpticalSurface("Mirrsurf") );
+
+  
 
   //Filling order:
   //G4int index_super_rows[20] = {0,19,1,18,2,17,3,16,4,15,5,14,6,13,7,12,8,11,9,10};
@@ -1330,10 +1513,10 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   //Fill out bottom with Al:
   G4Box *bottom_Al = new G4Box( "bottom_Al", width_earm/2.0, (ycalo_min + height_earm/2.0)/2.0, depth_leadglass/2.0 );
   G4LogicalVolume *bottom_Al_log = new G4LogicalVolume( bottom_Al, GetMaterial("Al"), "bottom_Al_log" );
-  new G4PVPlacement( 0, G4ThreeVector( 0, (ycalo_min - height_earm/2.0)/2.0, depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 ), bottom_Al_log, "bottom_Al_phys", earm_mother_log, false, 0 ); 
+  new G4PVPlacement( 0, G4ThreeVector( 0, (ycalo_min - height_earm/2.0)/2.0, depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 ), bottom_Al_log, "bottom_Al_phys", earm_mother_log, false, 0 ); 
 
-  bottom_Al_log->SetVisAttributes( Alvisatt );
-  
+  // bottom_Al_log->SetVisAttributes( Alvisatt );
+  bottom_Al_log->SetVisAttributes( G4VisAttributes::Invisible );
   for( int super_row=0; super_row<20; super_row++ ){
     for( int sub_row=0; sub_row<4; sub_row++ ){
       global_row = sub_row + 4*super_row;
@@ -1347,7 +1530,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	for( int col=0; col<ncol; col++ ){
 	  G4ThreeVector modpos( xcalomin_super_rows[super_row] + (col + 0.5*(1+sub_row%2))*width_42,
 				ysum + 0.5*width_42,
-				depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+				zfront_ECAL + depth_42/2.0 );
+				// depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
 	  new G4PVPlacement( 0, modpos, Module_42_log, "Module_42_phys", earm_mother_log, false, icell );
 
 	  (ECalTF1SD->detmap).Row[icell] = global_row;
@@ -1360,6 +1544,14 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  (ECalSD->detmap).Row[icell] = global_row;
 	  (ECalSD->detmap).Col[icell] = col;
 	  (ECalSD->detmap).LocalCoord[icell] = pmtpos;
+
+	  //Add light-guide with mylar wrap:
+	  G4ThreeVector LGpos( modpos.x(), modpos.y(), modpos.z() + depth_42/2.0 + LG42->GetZHalfLength() );
+	  new G4PVPlacement( 0, LGpos, LG42_log, "LG42_phys", earm_mother_log, false, icell );
+	  // new G4PVPlacement( 0, LGpos, LightGuide_42_log, "LightGuide_42_phys", earm_mother_log, false, icell );
+	  // new G4PVPlacement( 0, LGpos, LGWrap_42_log, "LGWrap_42_phys", earm_mother_log, false, icell );
+
+	  
 
 	  if( col == 0 ) xlow_row = modpos.x() - 0.5*width_42;
 	  if( col+1 == ncol ) xhigh_row = modpos.x() + 0.5*width_42;
@@ -1384,11 +1576,13 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4String logname = boxname + "log";
 	  
 	  G4LogicalVolume *Al_filler1_log = new G4LogicalVolume( Al_filler1, GetMaterial("Al"), logname );
-	  Al_filler1_log->SetVisAttributes( Alvisatt );
 	  
+	  //Al_filler1_log->SetVisAttributes( Alvisatt );
+	  Al_filler1_log->SetVisAttributes( G4VisAttributes::Invisible );
+
 	  G4ThreeVector pos( (xlow_row - width_earm/2.0)/2.0,
 			     ysum - 0.5*width_42,
-			     depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+			     depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 );
 
 	  G4String physname = boxname + "phys";
 	  
@@ -1403,12 +1597,14 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4String logname = boxname + "log";
 	  
 	  G4LogicalVolume *Al_filler2_log = new G4LogicalVolume( Al_filler2, GetMaterial("Al"), logname );
-	  Al_filler2_log->SetVisAttributes( Alvisatt );
+	  //Al_filler2_log->SetVisAttributes( Alvisatt );
+
+	  Al_filler2_log->SetVisAttributes( G4VisAttributes::Invisible );
 	  
 	  //G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0, modpos.y(), modpos.z() );
 	  G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0,
 			     ysum - 0.5*width_42,
-			     depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+			     depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 );
 	  
 	  G4String physname = boxname + "phys";
 	  
@@ -1420,7 +1616,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	for( int col=0; col<ncol; col++ ){
 	  G4ThreeVector modpos( xcalomin_super_rows[super_row] + (col + 0.5*(1+sub_row%2))*width_40,
 				ysum + 0.5*width_40,
-				depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+				zfront_ECAL + depth_40/2.0 );
+				//depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
 	  new G4PVPlacement( 0, modpos, Module_40_log, "Module_40_phys", earm_mother_log, false, icell );
 
 	  (ECalTF1SD->detmap).Row[icell] = global_row;
@@ -1434,6 +1631,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  (ECalSD->detmap).Col[icell] = col;
 	  (ECalSD->detmap).LocalCoord[icell] = pmtpos;
 
+	  //Add light-guide with mylar wrap:
+	  G4ThreeVector LGpos( modpos.x(), modpos.y(), modpos.z() + depth_40/2.0 + LightGuide_40->GetZHalfLength() );
+	  new G4PVPlacement( 0, LGpos, LG40_log, "LG40_phys", earm_mother_log, false, icell );
+	  // new G4PVPlacement( 0, LGpos, LightGuide_40_log, "LightGuide_40_phys", earm_mother_log, false, icell );
+	  // new G4PVPlacement( 0, LGpos, LGWrap_40_log, "LGWrap_40_phys", earm_mother_log, false, icell );
+	  
 	  if( col == 0 ) xlow_row = modpos.x() - 0.5*width_40;
 	  if( col+1 == ncol ) xhigh_row = modpos.x() + 0.5*width_40;
 	  
@@ -1454,11 +1657,13 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4String logname = boxname + "log";
 	  
 	  G4LogicalVolume *Al_filler1_log = new G4LogicalVolume( Al_filler1, GetMaterial("Al"), logname );
-	  Al_filler1_log->SetVisAttributes( Alvisatt );
+	  //Al_filler1_log->SetVisAttributes( Alvisatt );
+
+	  Al_filler1_log->SetVisAttributes( G4VisAttributes::Invisible );
 	  
 	  G4ThreeVector pos( (xlow_row - width_earm/2.0)/2.0,
 			     ysum - 0.5*width_40,
-			     depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+			     depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 );
 
 	  G4String physname = boxname + "phys";
 	  
@@ -1473,12 +1678,14 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4String logname = boxname + "log";
 	  
 	  G4LogicalVolume *Al_filler2_log = new G4LogicalVolume( Al_filler2, GetMaterial("Al"), logname );
-	  Al_filler2_log->SetVisAttributes( Alvisatt );
+	  //Al_filler2_log->SetVisAttributes( Alvisatt );
+
+	  Al_filler2_log->SetVisAttributes( G4VisAttributes::Invisible );
 	  
 	  //G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0, modpos.y(), modpos.z() );
 	  G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0,
 			     ysum - 0.5*width_40,
-			     depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+			     depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 );
 	  
 	  G4String physname = boxname + "phys";
 	  
@@ -1490,7 +1697,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	for( int col=0; col<ncol; col++ ){
 	  G4ThreeVector modpos( xcalomin_super_rows[super_row] + (col + 0.5*(1+sub_row%2))*width_38,
 				ysum + 0.5*width_38,
-				depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+				zfront_ECAL + depth_38/2.0 );
+				//depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
 	  new G4PVPlacement( 0, modpos, Module_38_log, "Module_38_phys", earm_mother_log, false, icell );
 
 	  (ECalTF1SD->detmap).Row[icell] = global_row;
@@ -1504,6 +1712,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  (ECalSD->detmap).Col[icell] = col;
 	  (ECalSD->detmap).LocalCoord[icell] = pmtpos;
 
+	   //Add light-guide with mylar wrap:
+	  G4ThreeVector LGpos( modpos.x(), modpos.y(), modpos.z() + depth_38/2.0 + LightGuide_38->GetZHalfLength() );
+	  new G4PVPlacement( 0, LGpos, LG38_log, "LG38_phys", earm_mother_log, false, icell );
+	  // new G4PVPlacement( 0, LGpos, LightGuide_38_log, "LightGuide_38_phys", earm_mother_log, false, icell );
+	  // new G4PVPlacement( 0, LGpos, LGWrap_38_log, "LGWrap_38_phys", earm_mother_log, false, icell );
+	  
 	  if( col == 0 ) xlow_row = modpos.x() - 0.5*width_38;
 	  if( col+1 == ncol ) xhigh_row = modpos.x() + 0.5*width_38;
 	  
@@ -1524,11 +1738,13 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4String logname = boxname + "log";
 	  
 	  G4LogicalVolume *Al_filler1_log = new G4LogicalVolume( Al_filler1, GetMaterial("Al"), logname );
-	  Al_filler1_log->SetVisAttributes( Alvisatt );
+	  //Al_filler1_log->SetVisAttributes( Alvisatt );
+
+	  Al_filler1_log->SetVisAttributes( G4VisAttributes::Invisible );
 	  
 	  G4ThreeVector pos( (xlow_row - width_earm/2.0)/2.0,
 			     ysum - 0.5*width_38,
-			     depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+			     depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 );
 
 	  G4String physname = boxname + "phys";
 	  
@@ -1543,12 +1759,14 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4String logname = boxname + "log";
 	  
 	  G4LogicalVolume *Al_filler2_log = new G4LogicalVolume( Al_filler2, GetMaterial("Al"), logname );
-	  Al_filler2_log->SetVisAttributes( Alvisatt );
+	  //Al_filler2_log->SetVisAttributes( Alvisatt );
+
+	  Al_filler2_log->SetVisAttributes( G4VisAttributes::Invisible );
 	  
 	  //G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0, modpos.y(), modpos.z() );
 	  G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0,
 			     ysum - 0.5*width_38,
-			     depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+			     depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 );
 	  
 	  G4String physname = boxname + "phys";
 	  
@@ -1562,23 +1780,25 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   //Fill out top with Al:
   G4Box *top_Al = new G4Box( "top_Al", width_earm/2.0, (-ysum + height_earm/2.0)/2.0, depth_leadglass/2.0 );
   G4LogicalVolume *top_Al_log = new G4LogicalVolume( top_Al, GetMaterial("Al"), "top_Al_log" );
-  new G4PVPlacement( 0, G4ThreeVector( 0, (ysum + height_earm/2.0)/2.0, depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 ), top_Al_log, "top_Al_phys", earm_mother_log, false, 0 ); 
+  new G4PVPlacement( 0, G4ThreeVector( 0, (ysum + height_earm/2.0)/2.0, depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 ), top_Al_log, "top_Al_phys", earm_mother_log, false, 0 ); 
 
-  top_Al_log->SetVisAttributes( Alvisatt );
-
+  //  top_Al_log->SetVisAttributes( Alvisatt );
+  top_Al_log->SetVisAttributes( G4VisAttributes::Invisible );
+  
   //Next: Put front Aluminum plate in front of ECAL (make wireframe):
   G4Box *ECAL_FrontPlate = new G4Box( "ECAL_FrontPlate", width_earm/2.0, height_earm/2.0, depth_ecal_frontplate/2.0 );
   G4LogicalVolume *ECAL_FrontPlate_log = new G4LogicalVolume( ECAL_FrontPlate, GetMaterial("Al"), "ECAL_FrontPlate_log" );
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, depth_earm/2.0 - depth_ecal_pmt - depth_leadglass - depth_ecal_frontplate/2.0 ), ECAL_FrontPlate_log, "ECAL_FrontPlate_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, zfront_ECAL - depth_ecal_frontplate/2.0 ), ECAL_FrontPlate_log, "ECAL_FrontPlate_phys", earm_mother_log, false, 0 );
 
   //Next: CH2 filter:
   G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );
   G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, depth_earm/2.0 - depth_ecal_pmt - depth_leadglass - depth_ecal_frontplate - depth_CDET - depth_CH2/2.0 ), CH2_filter_log, "CH2_filter_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, zfront_ECAL - depth_CDET - depth_CH2/2.0 ), CH2_filter_log, "CH2_filter_phys", earm_mother_log, false, 0 );
 
   G4double z0_CDET = -depth_earm/2.0 + depth_CH2;
   //G4double R0_CDET = R_Earm - depth_leadglass - depth_CDET;
-  G4double R0_CDET = fBBdist - depth_leadglass - depth_CDET;
+  //G4double R0_CDET = fBBdist - depth_leadglass - depth_CDET;
+  G4double R0_CDET = fBBdist - depth_CDET;
   
   MakeCDET( R0_CDET, z0_CDET, earm_mother_log );
 
@@ -1597,11 +1817,6 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
   Module_40_log->SetVisAttributes( G4VisAttributes::Invisible );
   Module_38_log->SetVisAttributes( G4VisAttributes::Invisible );
-
-  G4VisAttributes *TF1visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0 ) );
-  LeadGlass_42_log->SetVisAttributes( TF1visatt );
-  LeadGlass_40_log->SetVisAttributes( TF1visatt );
-  LeadGlass_38_log->SetVisAttributes( TF1visatt );
 
   G4VisAttributes *Mylarvisatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
   Mylarvisatt->SetForceWireframe(true);

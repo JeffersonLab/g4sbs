@@ -52,7 +52,7 @@ void ECAL_background_dose_rate(const char *rootfilename, const char *outfilename
   
   //For ECAL, we want to compute the total dose rate vs x/y at the face of the calorimeter,
   // Averaged over the face of ECAL as a function of depth;
-  TH1D *hdose_rate_vs_depth_ECAL = new TH1D("hdose_rate_vs_depth_ECAL","",100,0.0,50.0);
+  TH1D *hdose_rate_vs_depth_ECAL = new TH1D("hdose_rate_vs_depth_ECAL","",25,0.0,50.0);
   //TH1D *hdose_rate_vs_depth_ECAL_local = new TH1D("hdose_rate_vs_depth_ECAL_local","",100,0.0,50);
   TH2D *hdose_rate_vs_xy_ECAL = new TH2D("hdose_rate_vs_xy_ECAL","",100,-80.0,80.0,100,-200.0,200.0);
 
@@ -71,7 +71,7 @@ void ECAL_background_dose_rate(const char *rootfilename, const char *outfilename
 
   double weight = Ibeam/e/double(ngen);
 
-  double binwidth_Z = 0.5; //cm
+  double binwidth_Z = 2.0; //cm
   double volume_zbin = area * binwidth_Z;
   double mass_zbin = volume_zbin * rho / 1000.0; //kg
   
@@ -106,7 +106,7 @@ void ECAL_background_dose_rate(const char *rootfilename, const char *outfilename
 	//hdose_rate_vs_depth_ECAL_local->Fill( Zdepth, doserate * binwidth_Z/thick );
 	hdose_rate_vs_xy_ECAL->Fill( xcalo, ycalo, doserate );
 
-	hdose_rate_vs_row_col_ECAL->Fill( col, row, doserate * totalmass/avgblockmass );
+	hdose_rate_vs_row_col_ECAL->Fill( col+1, row+1, doserate * totalmass/avgblockmass );
 	
       }
       

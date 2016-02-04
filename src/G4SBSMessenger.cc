@@ -348,8 +348,8 @@ G4SBSMessenger::G4SBSMessenger(){
   SegmentThickC16Cmd->SetParameterName("thick",false);
 
   DoseRateCmd = new G4UIcmdWithADouble("/g4sbs/doserate", this );
-  DoseRateCmd->SetGuidance( "Total dose rate in lead glass for thermal annealing model");
-  DoseRateCmd->SetGuidance( "Assumed to be given in units of krad/hour" ); //Note 1 rad = 0.01 J/kg
+  DoseRateCmd->SetGuidance( "Overall scale factor for dose rate in lead-glass for ECAL/C16 (depth profile is hard-coded!)");
+  //DoseRateCmd->SetGuidance( "Assumed to be given in units of krad/hour" ); //Note 1 rad = 0.01 J/kg
   DoseRateCmd->SetParameterName("rate",false);
 }
 

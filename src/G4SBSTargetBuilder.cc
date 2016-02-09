@@ -19,6 +19,7 @@
 #include "G4Polycone.hh"
 #include "G4ExtrudedSolid.hh"
 
+#include "G4SBSCalSD.hh"
 
 #include "G4SBSHArmBuilder.hh"
 
@@ -33,6 +34,8 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
 
   fTargPos = G4ThreeVector( 0, 0, 0 );
   fTargDir = G4ThreeVector( 0, 0, 1 );
+
+  fFlux = false;
   
   fSchamFlag = 0;
 }
@@ -58,6 +61,29 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
 
+  if( fFlux ){ //Make a sphere to compute particle flux:
+    G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
+				   0.*deg, 150.*deg );
+    G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
+
+    fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+    
+    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", worldlog, false, 0 );
+
+    G4String FluxSDname = "FLUX";
+    G4String Fluxcollname = "FLUXHitsCollection";
+    G4SBSCalSD *FluxSD = NULL;
+    if( !( FluxSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(FluxSDname) ) ){
+      G4cout << "Adding FLUX SD to SDman..." << G4endl;
+      FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
+      fDetCon->fSDman->AddNewDetector( FluxSD );
+      (fDetCon->SDlist).insert( FluxSDname );
+      fDetCon->SDtype[FluxSDname] = kCAL;
+
+      (FluxSD->detmap).depth = 0;
+    }
+    fsph_log->SetSensitiveDetector( FluxSD );
+  }
   
   //New version of buildcryotarget updated with scattering chamber for GEP:
   //Start with vacuum snout:
@@ -955,7 +981,7 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
 // }
 
 void G4SBSTargetBuilder::BuildC16CryoTarget( G4LogicalVolume *worldlog ){
-
+  
   G4RotationMatrix *rot_temp;
   
   G4double inch = 2.54*cm;
@@ -1199,9 +1225,31 @@ void G4SBSTargetBuilder::BuildC16CryoTarget( G4LogicalVolume *worldlog ){
 
   // Place target at origin of the Scattering Chamber 
   G4RotationMatrix *targrot = new G4RotationMatrix;
-  targrot->rotateX(-90.0*deg);
+  targrot->rotateX(90.0*deg);
   new G4PVPlacement( targrot, G4ThreeVector(0.0, 0.0,0.0), TargetMother_log, "TargetMother_phys", scham_vacuum_log, false, 0 );
 
+  if( fFlux ){ //Make a sphere to compute particle flux:
+    G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
+				   0.*deg, 150.*deg );
+    G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
+    new G4PVPlacement( targrot, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", scham_vacuum_log, false, 0 );
+    
+    G4String FluxSDname = "FLUX";
+    G4String Fluxcollname = "FLUXHitsCollection";
+    G4SBSCalSD *FluxSD = NULL;
+    if( !( FluxSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(FluxSDname) ) ){
+      G4cout << "Adding FLUX SD to SDman..." << G4endl;
+      FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
+      fDetCon->fSDman->AddNewDetector( FluxSD );
+      (fDetCon->SDlist).insert( FluxSDname );
+      fDetCon->SDtype[FluxSDname] = kCAL;
+
+      (FluxSD->detmap).depth = 0;
+    }
+    fsph_log->SetSensitiveDetector( FluxSD );
+    fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+  
   //  VISUALS
   G4VisAttributes * schamVisAtt = new G4VisAttributes(G4Colour(0.7,0.7,1.0));
   schamVisAtt->SetForceWireframe(true);
@@ -1233,6 +1281,29 @@ void G4SBSTargetBuilder::BuildC16CryoTarget( G4LogicalVolume *worldlog ){
 
 void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
 
+  if( fFlux ){ //Make a sphere to compute particle flux:
+    G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
+				   0.*deg, 150.*deg );
+    G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
+    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", worldlog, false, 0 );
+
+    fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+    
+    G4String FluxSDname = "FLUX";
+    G4String Fluxcollname = "FLUXHitsCollection";
+    G4SBSCalSD *FluxSD = NULL;
+    if( !( FluxSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(FluxSDname) ) ){
+      G4cout << "Adding FLUX SD to SDman..." << G4endl;
+      FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
+      fDetCon->fSDman->AddNewDetector( FluxSD );
+      (fDetCon->SDlist).insert( FluxSDname );
+      fDetCon->SDtype[FluxSDname] = kCAL;
+
+      (FluxSD->detmap).depth = 0;
+    }
+    fsph_log->SetSensitiveDetector( FluxSD );
+  }
+  
   //Desired minimum scattering angle for SBS = 5 deg (for SIDIS @10 deg):
   double sbs_scattering_angle_min = 5.0*deg;
   double sc_exitpipe_radius_inner = 48.0*mm;

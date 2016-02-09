@@ -81,8 +81,10 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   //All the experiments use HCAL:
 
   G4double HCAL_vertical_offset = 0.0*cm; //Neutron/SIDIS experiments have no vertical offset for HCAL (in Neutron case because it is detecting neutrons, which don't bend in a magnetic field, and in SIDIS case because we are detecting +/- charged hadrons simultaneously, want to have symmetric acceptance).
-  if( exptype == kGEp ) HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
-
+  if( exptype == kGEp ){
+    //HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
+    HCAL_vertical_offset = 45.*cm;
+  }
   if( exptype != kC16 ) {
     MakeHCAL( worldlog, HCAL_vertical_offset );
   }
@@ -148,8 +150,9 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       double sbswidth  = 2.0*m;
       double sbsheight = 2.1*m;
 
-      double sbsr = fHCALdist - 4.106*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
-
+      //double sbsr = fHCALdist - 4.106*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
+      double sbsr = f48D48dist + 1.694*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
+      
       G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
       G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
 

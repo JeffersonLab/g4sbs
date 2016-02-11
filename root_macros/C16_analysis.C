@@ -61,7 +61,8 @@ void C16_analysis( const char *infilename, const char *outputfilename ){
   TH1D *hNphesum_4x4_cut = new TH1D("hNphesum_4x4_cut","",250,0.0,2500.0);
 
   TH2D *hNphe_vs_sumedep = new TH2D("hNphe_vs_sumedep","",50,0.0,2.0,50,0.0,2000.0);
-
+  TProfile *hNphe_vs_sumedep_prof = new TProfile("hNphe_vs_sumedep_prof","",50,0.0,2.0);
+  
   TH2D *Dose_rate_vs_row_col = new TH2D("Dose_rate_vs_row_col","",4,0.5,4.5,4,0.5,4.5);
   TH1D *Dose_rate_vs_Zdepth = new TH1D("Dose_rate_vs_Zdepth","",25,0.0,50.0);
   TClonesArray *histos_Dose_rate = new TClonesArray("TH1D",16);
@@ -136,6 +137,7 @@ void C16_analysis( const char *infilename, const char *outputfilename ){
 	  }
 	}
 	hNphe_vs_sumedep->Fill( sumedep_same_cell, (*(T->Earm_C16_hit_NumPhotoelectrons))[hit] );
+	hNphe_vs_sumedep_prof->Fill( sumedep_same_cell, (*(T->Earm_C16_hit_NumPhotoelectrons))[hit] );
 	double nphe = double( (*(T->Earm_C16_hit_NumPhotoelectrons))[hit] );
 	if( nphe > nphe_max ){
 	  nphe_max = nphe;

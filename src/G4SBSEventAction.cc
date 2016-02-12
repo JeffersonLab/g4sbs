@@ -596,6 +596,9 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	caloutput.pid.push_back( PID[cell][track] );
 	caloutput.trid.push_back( track );
 	caloutput.p.push_back( p[cell][track]/_E_UNIT );
+	caloutput.px.push_back( px[cell][track]/_E_UNIT );
+	caloutput.py.push_back( py[cell][track]/_E_UNIT );
+	caloutput.pz.push_back( pz[cell][track]/_E_UNIT );
 	caloutput.edep.push_back( edep[cell][track]/_E_UNIT );
 	caloutput.npart_CAL++;
 

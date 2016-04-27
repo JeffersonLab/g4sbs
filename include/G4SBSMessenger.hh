@@ -152,6 +152,8 @@ private:
   // ONLY relevant for particle gun generator!
   G4UIcmdWith3Vector *GunPolarizationCommand;
   G4UIcmdWithAnInteger *SegmentC16Cmd;
+  G4UIcmdWithADoubleAndUnit *SegmentThickC16Cmd;
+  G4UIcmdWithADouble *DoseRateCmd;
 };
 
 #endif//G4SBSMessenger_HH

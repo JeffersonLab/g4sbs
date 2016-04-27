@@ -48,8 +48,11 @@
 #include "G4Mag_SpinEqRhs.hh"
 #include "G4ClassicalRK4.hh"
 
+#include "TSpline.h"
+
 #include <vector>
 #include <map>
+#include <algorithm>
 //#include <pair>
 
 using namespace std;
@@ -69,7 +72,12 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fExpType = kNeutronExp;
 
-  ConstructMaterials(); //Now we want to construct all materials at the beginning, so that the physics tables can get built properly!!!
+  //flags controlling ECAL thermal annealing model:
+  fSegmentC16 = 0; //default to no segmentation!
+  fSegmentThickC16 = 4.0*cm; //default thickness of 4 cm for lead-glass longitudinal segmentation.
+  fDoseRateC16 = 0.0; //Default radiation dose rate of ZERO (no rad. damage!)
+  
+  //ConstructMaterials(); //Now we want to construct all materials at the beginning, so that the physics tables can get built properly (do this in "Construct()", not here)!!!
 
   fTargetBuilder   = new G4SBSTargetBuilder(this);
   fBeamlineBuilder = new G4SBSBeamlineBuilder(this);
@@ -89,9 +97,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   StepLimiterList.clear();
 
   fCDetOption = 1;
-
-  fSegmentC16 = 0;
-    
+  
   //    TrackerIDnumber = 0;
   //TrackerArm.clear();
 }
@@ -667,8 +673,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["UVglass"] = UVglass;
 
-  G4double den_C4F10 = 10.62*mg/cm3; //Wow, that really is a heavy gas, heavier 
-  //than HTCC mirror substrates made of Rohacell31!
+  G4double den_C4F10 = 10.62*mg/cm3; //Wow, that really is a heavy gas,
   //We also need to define the radiator gas C4F10.
   G4Material *C4F10_gas = new G4Material( "C4F10_gas", den_C4F10, nel=2 );
 
@@ -720,7 +725,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp = new G4MaterialPropertiesTable();
   MPT_temp->AddProperty("EFFICIENCY", Ephoton_QE, PMT_QuantumEfficiency, nentries_QE );
   MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz );
-  MPT_temp->AddProperty("ABSLENGTH", Ephoton_quartz, Abslength_quartz, nentries_quartz );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, nentries_quartz );
   //MPT_temp->AddProperty("REFLECTIVITY", Ephot_Rcathode, Rcathode, 2 );
 
   Photocathode_material->SetMaterialPropertiesTable( MPT_temp );
@@ -898,32 +903,110 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["TF1_As2O3"] = As2O3;
 
   // Simulating annealing: http://hallaweb.jlab.org/12GeV/SuperBigBite/SBS-minutes/2014/Sergey_Abrahamyan_LGAnnealing_2014.pdf
-  const G4int nentries_annealing_model=50;
+  // const G4int nentries_annealing_model=50;
 
-  G4double Ephoton_annealing_model[nentries_annealing_model] = {
-    1.513*eV, 1.531*eV, 1.548*eV, 1.569*eV, 1.590*eV,
-    1.609*eV, 1.632*eV, 1.653*eV, 1.676*eV, 1.698*eV,
-    1.724*eV, 1.746*eV, 1.773*eV, 1.797*eV, 1.825*eV,
-    1.849*eV, 1.878*eV, 1.909*eV, 1.935*eV, 1.965*eV,
-    2.001*eV, 2.033*eV, 2.069*eV, 2.100*eV, 2.135*eV,
-    2.171*eV, 2.213*eV, 2.259*eV, 2.297*eV, 2.337*eV,
-    2.386*eV, 2.431*eV, 2.481*eV, 2.530*eV, 2.587*eV,
-    2.638*eV, 2.697*eV, 2.752*eV, 2.820*eV, 2.887*eV,
-    2.954*eV, 3.024*eV, 3.102*eV, 3.179*eV, 3.261*eV,
-    3.351*eV, 3.447*eV, 3.543*eV, 3.655*eV, 3.752*eV};
+  // G4double Ephoton_annealing_model[nentries_annealing_model] = {
+  //   1.513*eV, 1.531*eV, 1.548*eV, 1.569*eV, 1.590*eV,
+  //   1.609*eV, 1.632*eV, 1.653*eV, 1.676*eV, 1.698*eV,
+  //   1.724*eV, 1.746*eV, 1.773*eV, 1.797*eV, 1.825*eV,
+  //   1.849*eV, 1.878*eV, 1.909*eV, 1.935*eV, 1.965*eV,
+  //   2.001*eV, 2.033*eV, 2.069*eV, 2.100*eV, 2.135*eV,
+  //   2.171*eV, 2.213*eV, 2.259*eV, 2.297*eV, 2.337*eV,
+  //   2.386*eV, 2.431*eV, 2.481*eV, 2.530*eV, 2.587*eV,
+  //   2.638*eV, 2.697*eV, 2.752*eV, 2.820*eV, 2.887*eV,
+  //   2.954*eV, 3.024*eV, 3.102*eV, 3.179*eV, 3.261*eV,
+  //   3.351*eV, 3.447*eV, 3.543*eV, 3.655*eV, 3.752*eV};
 
-  G4double Absorption_avg[nentries_annealing_model] = {
-    197.05*cm, 197.62*cm, 197.05*cm, 197.01*cm, 197.48*cm, 
-    196.86*cm, 197.39*cm, 196.74*cm, 197.25*cm, 196.61*cm, 
-    196.55*cm, 197.08*cm, 196.45*cm, 196.40*cm, 196.94*cm, 
-    196.88*cm, 196.85*cm, 195.69*cm, 196.25*cm, 196.21*cm, 
-    196.16*cm, 194.94*cm, 192.57*cm, 189.58*cm, 184.89*cm, 
-    179.64*cm, 174.91*cm, 167.96*cm, 160.95*cm, 154.04*cm, 
-    148.19*cm, 140.62*cm, 137.08*cm, 135.03*cm, 130.38*cm, 
-    124.69*cm, 116.54*cm, 106.33*cm,  95.16*cm,  83.84*cm, 
-    74.26*cm,  70.30*cm,  60.21*cm,  43.32*cm,  33.15*cm, 
-    20.07*cm,   9.22*cm,   5.19*cm,   1.73*cm,   0.58*cm}; 
+  // G4double Absorption_avg[nentries_annealing_model] = {
+  //   197.05*cm, 197.62*cm, 197.05*cm, 197.01*cm, 197.48*cm, 
+  //   196.86*cm, 197.39*cm, 196.74*cm, 197.25*cm, 196.61*cm, 
+  //   196.55*cm, 197.08*cm, 196.45*cm, 196.40*cm, 196.94*cm, 
+  //   196.88*cm, 196.85*cm, 195.69*cm, 196.25*cm, 196.21*cm, 
+  //   196.16*cm, 194.94*cm, 192.57*cm, 189.58*cm, 184.89*cm, 
+  //   179.64*cm, 174.91*cm, 167.96*cm, 160.95*cm, 154.04*cm, 
+  //   148.19*cm, 140.62*cm, 137.08*cm, 135.03*cm, 130.38*cm, 
+  //   124.69*cm, 116.54*cm, 106.33*cm,  95.16*cm,  83.84*cm, 
+  //   74.26*cm,  70.30*cm,  60.21*cm,  43.32*cm,  33.15*cm, 
+  //   20.07*cm,   9.22*cm,   5.19*cm,   1.73*cm,   0.58*cm}; 
 
+  //AJRP Jan. 10, 2016: Sergey's model:
+
+  const G4int nentries_atilde = 31;
+
+  G4double Ephoton_atilde[nentries_atilde] =
+    { 1.905921267*eV, 2.004354622*eV, 2.032730235*eV, 2.067855684*eV, 2.10114292*eV, 2.138694327*eV,
+      2.174317107*eV, 2.21455858*eV, 2.25631769*eV, 2.296002918*eV, 2.34092119*eV, 2.383666502*eV,
+      2.43211172*eV, 2.47828998*eV, 2.530700045*eV, 2.585380093*eV, 2.637618826*eV, 2.697071068*eV,
+      2.753970493*eV, 2.818848091*eV, 2.881060974*eV, 2.946081949*eV, 3.020448926*eV, 3.091991741*eV,
+      3.181036915*eV, 3.260489442*eV, 3.351822418*eV, 3.440153808*eV, 3.550739785*eV, 3.650021782*eV,
+      3.75501552*eV };   
+
+  G4double atilde[nentries_atilde] =
+    { 198.544*cm, 199.029*cm, 197.573*cm, 195.146*cm, 191.748*cm, 186.893*cm, 182.524*cm, 176.699*cm, 170.388*cm, 164.078*cm,
+      156.796*cm, 150*cm, 143.204*cm, 139.806*cm, 138.35*cm, 133.981*cm, 127.67*cm, 119.417*cm, 109.223*cm, 98.0583*cm,
+      85.9223*cm, 75.2427*cm, 71.3592*cm, 61.6505*cm, 44.6602*cm, 34.466*cm, 20.8738*cm, 9.70874*cm, 5.82524*cm, 1.94175*cm, 0.970874*cm };
+
+  TSpline3 *spline_atilde = new TSpline3( "spline_atilde", Ephoton_atilde, atilde, nentries_atilde ); 
+  
+  const G4int nentries_btilde = 33;
+
+  G4double Ephoton_btilde[nentries_btilde] =
+    { 1.90414474*eV, 1.934990559*eV, 1.964154186*eV, 1.994213564*eV, 2.03094239*eV, 2.063097508*eV, 2.099357157*eV, 2.136910476*eV,
+      2.172538068*eV, 2.212780233*eV, 2.251005237*eV, 2.294239978*eV, 2.339163636*eV, 2.381921981*eV, 2.430381335*eV, 2.480858377*eV,
+      2.533476625*eV, 2.579056398*eV, 2.635970367*eV, 2.70052486*eV, 2.752381143*eV, 2.817298211*eV, 2.879548933*eV, 2.950680798*eV,
+      3.025408552*eV, 3.090643078*eV, 3.179772544*eV, 3.251904593*eV, 3.350726486*eV, 3.439151972*eV, 3.541106824*eV, 3.64002501*eV,
+      3.744617113*eV };
+
+  G4double btilde[nentries_btilde] =
+    { 29.1935*cm, 28.871*cm, 28.0645*cm, 27.2581*cm, 25.8065*cm, 24.1935*cm, 22.2581*cm, 20.4839*cm,
+      18.7097*cm, 17.0968*cm, 15.3226*cm, 14.0323*cm, 12.5806*cm, 11.6129*cm, 10.1613*cm, 9.03226*cm,
+      8.3871*cm, 7.58065*cm, 6.77419*cm, 6.12903*cm, 5.96774*cm, 5.32258*cm, 4.83871*cm, 4.51613*cm,
+      4.03226*cm, 4.03226*cm, 3.70968*cm, 3.54839*cm, 3.22581*cm, 3.22581*cm, 3.22581*cm, 2.41935*cm,
+      2.58065*cm };
+
+  TSpline3 *spline_btilde = new TSpline3( "spline_btilde", Ephoton_btilde, btilde, nentries_btilde );
+  
+  const G4int nentries_Cz0 = 47;
+
+  G4double z_Cz0[nentries_Cz0] =
+    { 0.794393*cm, 1.58879*cm, 2.38318*cm, 3.2243*cm, 3.97196*cm, 4.81308*cm, 5.60748*cm, 6.40187*cm, 7.19626*cm, 8.03738*cm,
+      8.83178*cm, 9.62617*cm, 10.4206*cm, 11.215*cm, 12.0093*cm, 12.8037*cm, 13.5981*cm, 14.3925*cm, 15.1869*cm, 16.028*cm,
+      16.8224*cm, 17.6168*cm, 18.4112*cm, 19.2056*cm, 20*cm, 20.7477*cm, 21.5888*cm, 22.4299*cm, 23.2243*cm, 24.0187*cm, 24.8131*cm,
+      25.6542*cm, 26.4486*cm, 27.1963*cm, 27.9907*cm, 28.785*cm, 29.6262*cm, 30.4206*cm, 31.215*cm, 32.0093*cm, 32.8505*cm, 33.5981*cm,
+      36.028*cm, 36.8224*cm, 37.6636*cm, 38.4579*cm, 40*cm };
+
+  G4double Cz0[nentries_Cz0] =
+    { 0.759136, 0.750884, 0.72613, 0.691749, 0.649116, 0.607859, 0.565226, 0.521218, 0.482711,
+      0.446955, 0.413949, 0.385069, 0.358939, 0.33556, 0.313556, 0.294303, 0.276424, 0.259921,
+      0.247544, 0.232417, 0.218664, 0.206287, 0.195285, 0.185658, 0.174656, 0.166405, 0.159528,
+      0.154028, 0.147151, 0.143026, 0.1389, 0.134774, 0.133399, 0.129273, 0.126523, 0.123772,
+      0.121022, 0.118271, 0.115521, 0.11277, 0.111395, 0.11002, 0.104519, 0.101768, 0.101768,
+      0.100393, 0.0990177 };
+
+  TSpline3* spline_Cz0 = new TSpline3( "Rad_damage_profile_80krad", z_Cz0, Cz0, nentries_Cz0 ); 
+  
+  //Annealing lifetime is given in hours by:
+  // tau = tau_0 * exp( -T / T0 ) (where T is absolute temperature in Kelvin).
+  G4double AnnealingLifetime_T0 = 43.5; //Kelvin
+  G4double AnnealingLifetime_tau0 = 1.674e5; //h
+
+  //Temperature profile is linear with "z"
+  const G4double Temp_front_C16 = 250.0; //Degrees C
+  const G4double Temp_back_C16 = 190.0; //Degrees C
+
+  const G4double Temp_front_ECAL = 225.0; //Degrees C
+  const G4double Temp_back_ECAL = 185.0; //Degrees C
+  
+  // Absorption increase with temperature,
+  // parametrized as absorption in 40 cm = Amin + C * T^2
+  // absorption in 40 cm is related to absorption length by:
+  // I(40)/I0 = exp( -40 cm/Labs ) = 1 - A40cm;
+  // -40 cm/L = ln( 1 - A40cm );
+  // L = -40 cm/ln( 1 - A40cm );
+  // Ratio L/L0 = -ln( 1 - A40cm_min )/-ln
+  const G4double Abs40cm_min = 0.336;
+  const G4double Abs40cm_T2coeff = 6.06e-6;
+  
   // Values come from old GSTAR code written by K.Shestermanov 
   const G4int nentries_ecal_QE = 37;
 
@@ -967,24 +1050,104 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   MPT_temp = new G4MaterialPropertiesTable();
   MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
-  MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_TF1, nentries_ecal_QE );
-
+  //MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_TF1, nentries_ecal_QE );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_atilde, atilde, nentries_atilde );
+  
   TF1->SetMaterialPropertiesTable( MPT_temp );
-  fMaterialsMap["TF1"] = TF1;
+  fMaterialsMap["TF1"] = TF1; //Default TF1: no temperature increase, no rad. damage.
 
+  //For C16 and/or ECAL, we need the following configurations of lead-glass:
+  //C16: Elevated temp, no rad. damage: z-dependent temperature --> z-dependent absorption
+  //C16: Elevated temp, rad. damage: z-dependent temperature and z-dependent radiation dose rate/thermal annealing rate.
+  //ECAL: Default: room temp., no rad damage (only need one material property here)
+  //ECAL: Equilibrium state between elevated temperature and rad. damage rate/thermal annealing rate
+  //We will need to make spline interpolations of all the various curves: atilde, btilde, Cz0
+  //
+  const G4int Ntemp = 40;
+
+  //G4cout << "Number of C16 segments = " << fSegmentC16 << G4endl;
+  
+  for( G4int segment=0; segment<fSegmentC16; segment++ ){
+    //define nsegments different lead-glass material properties: 
+    G4double zsegment = (segment + 0.5) * fSegmentThickC16;
+    //Get temperature, dose rate at z=0 and annealing rate of the segment:
+    G4double Temp_z_ECAL = Temp_front_ECAL + (Temp_back_ECAL - Temp_front_ECAL)/(G4double(fSegmentC16*fSegmentThickC16)) * zsegment;
+    G4double Temp_z_C16 = Temp_front_C16 + (Temp_back_C16 - Temp_front_C16)/(G4double(fSegmentC16*fSegmentThickC16)) * zsegment;
+    
+    G4double AbsIncreaseFactor_ECAL = log( 1.0 - Abs40cm_min )/log( 1.0 - (Abs40cm_min + Abs40cm_T2coeff * pow( max(Temp_z_ECAL-20.0,0.0), 2 ) ) );
+    G4double AbsIncreaseFactor_C16 = log( 1.0 - Abs40cm_min )/log( 1.0 - (Abs40cm_min + Abs40cm_T2coeff * pow( max(Temp_z_C16-20.0,0.0), 2 ) ) );
+    
+    G4double tau_annealing_ECAL = AnnealingLifetime_tau0 * exp( -( (Temp_z_ECAL + 273.15)/AnnealingLifetime_T0 ) ); //in hours!
+    G4double tau_annealing_C16 = AnnealingLifetime_tau0 * exp( -( (Temp_z_C16 + 273.15)/AnnealingLifetime_T0 ) ); //in hours!
+    
+    //This computes the equilibrium radiation damage profile as a function of z!
+    double zmin = spline_Cz0->GetXmin();
+    double zmax = spline_Cz0->GetXmax();
+    double zeval = zsegment >= zmin ? zsegment : zmin;
+    zeval = zsegment <= zmax ? zsegment : zmax;
+    
+    G4double Cz_eq_ECAL = spline_Cz0->Eval( zeval ) * fDoseRateC16 * tau_annealing_ECAL / 80.0; //dose rate is assumed to be given in krad/hour!
+    G4double Cz_eq_C16 = spline_Cz0->Eval( zeval ) * fDoseRateC16 * tau_annealing_C16 / 80.0; //dose rate is assume to be given in krad/hour!
+    
+    G4double Ephot_min = 1.91*eV;
+    G4double Ephot_max = 3.74*eV;
+
+    G4double Ephoton_abslength[Ntemp+1];
+    G4double abslength_ECAL[Ntemp+1];
+    G4double abslength_C16[Ntemp+1];
+
+    //   G4cout << "Ntemp = " << Ntemp << G4endl;
+    
+    for( G4int iE=0; iE<=Ntemp; iE++ ){
+      Ephoton_abslength[iE] = Ephot_min + (Ephot_max-Ephot_min)/G4double(Ntemp) * iE;
+      abslength_ECAL[iE] = AbsIncreaseFactor_ECAL / (1.0/spline_atilde->Eval( Ephoton_abslength[iE] ) + Cz_eq_ECAL / spline_btilde->Eval( Ephoton_abslength[iE] ) );
+      abslength_C16[iE] = AbsIncreaseFactor_C16 / (1.0/spline_atilde->Eval( Ephoton_abslength[iE] ) + Cz_eq_C16 / spline_btilde->Eval( Ephoton_abslength[iE] ) );
+
+      // G4cout << "z, Ephoton, lambda, Labs(ECAL), Labs(C16), atilde = " << zsegment/cm << ", "
+      // 	     << Ephoton_abslength[iE] / eV << ", "
+      // 	     << twopi * hbarc / Ephoton_abslength[iE] / nm << ", "
+      // 	     << abslength_ECAL[iE]/cm << ", " << abslength_C16[iE]/cm << ", " << spline_atilde->Eval( Ephoton_abslength[iE] )/cm << G4endl;
+    }
+
+    //Next: define new materials!
+    TString matname;
+    matname.Form( "TF1_anneal_ECAL_z%d", segment );
+    G4Material *mat_temp = new G4Material( matname.Data(), 3.86*g/cm3, 1 );
+    mat_temp->AddMaterial( TF1, 1.0 );
+
+    MPT_temp = new G4MaterialPropertiesTable();
+    MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
+    MPT_temp->AddProperty("ABSLENGTH", Ephoton_abslength, abslength_ECAL, Ntemp+1 );
+    
+    mat_temp->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap[matname.Data()] = mat_temp;
+
+    matname.Form( "TF1_anneal_C16_z%d", segment );
+    mat_temp = new G4Material( matname.Data(), 3.86*g/cm3, 1 );
+    mat_temp->AddMaterial( TF1, 1.0 );
+
+    MPT_temp = new G4MaterialPropertiesTable();
+    MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
+    MPT_temp->AddProperty("ABSLENGTH", Ephoton_abslength, abslength_C16, Ntemp+1 );
+
+    mat_temp->SetMaterialPropertiesTable( MPT_temp );
+    fMaterialsMap[matname.Data()] = mat_temp;
+    
+  }
+  
   //****  TF1 implementing annealing model  ****
-  G4Material* TF1_anneal = new G4Material("TF1_anneal", 3.86*g/cm3, 4);
-  TF1_anneal->AddMaterial(PbO, 0.512);
-  TF1_anneal->AddMaterial(SiO2, 0.413);
-  TF1_anneal->AddMaterial(K2O, 0.070);
-  TF1_anneal->AddMaterial(As2O3, 0.005);
+  // G4Material* TF1_anneal = new G4Material("TF1_anneal", 3.86*g/cm3, 4);
+  // TF1_anneal->AddMaterial(PbO, 0.512);
+  // TF1_anneal->AddMaterial(SiO2, 0.413);
+  // TF1_anneal->AddMaterial(K2O, 0.070);
+  // TF1_anneal->AddMaterial(As2O3, 0.005);
 
-  MPT_temp = new G4MaterialPropertiesTable();
-  MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
-  MPT_temp->AddProperty("ABSLENGTH", Ephoton_annealing_model, Absorption_avg, nentries_annealing_model );
+  // MPT_temp = new G4MaterialPropertiesTable();
+  // MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
+  // MPT_temp->AddProperty("ABSLENGTH", Ephoton_annealing_model, Absorption_avg, nentries_annealing_model );
 
-  TF1_anneal->SetMaterialPropertiesTable( MPT_temp );
-  fMaterialsMap["TF1_anneal"] = TF1_anneal;
+  // TF1_anneal->SetMaterialPropertiesTable( MPT_temp );
+  // fMaterialsMap["TF1_anneal"] = TF1_anneal;
 
   G4Material *Mylar = man->FindOrBuildMaterial("G4_MYLAR");
   fMaterialsMap["Mylar"] = Mylar;
@@ -1891,6 +2054,14 @@ void G4SBSDetectorConstruction::SetCDetconfig( int cdetconfig ){
 
 void G4SBSDetectorConstruction::SetC16Segmentation( int segmentC16 ){
   fSegmentC16 = segmentC16;
+}
+
+void G4SBSDetectorConstruction::SetSegmentThickC16( G4double thick ){
+  fSegmentThickC16 = fabs(thick);
+}
+
+void G4SBSDetectorConstruction::SetDoseRateC16( G4double rate ){
+  fDoseRateC16 = rate; 
 }
 
 void G4SBSDetectorConstruction::SetFieldScale_SBS( G4double v ){

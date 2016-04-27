@@ -23,6 +23,7 @@ G4SBSGEMHit::G4SBSGEMHit(const G4SBSGEMHit &right)
   : G4VHit()
 {
   pos = right.pos;
+  globalpos = right.globalpos;
   vert = right.vert;
   polarization = right.polarization;
   GEMID = right.GEMID;
@@ -41,6 +42,7 @@ G4SBSGEMHit::G4SBSGEMHit(const G4SBSGEMHit &right)
 const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
 {
   pos = right.pos;
+  globalpos = right.globalpos;
   vert = right.vert;
   polarization = right.polarization;
   GEMID = right.GEMID;
@@ -67,7 +69,7 @@ void G4SBSGEMHit::Draw()
 {
   G4VVisManager *pVVisManager = G4VVisManager::GetConcreteInstance();
   if( pVVisManager ){
-    G4Circle circle( pos );
+    G4Circle circle( globalpos );
     circle.SetScreenSize(5);
     circle.SetFillStyle( G4Circle::filled );
     G4VisAttributes attribs(G4Colour(0.0,1.0,0.0) );

@@ -96,7 +96,6 @@ bool getBool(std::string value, bool default_value)
   }
 }
 
-
 int main(int argc, char** argv)
 {
   //Allow user to apply some (perhaps all?) commands in the pre-initialization phase:
@@ -106,6 +105,8 @@ int main(int argc, char** argv)
   // "shoot" type functions
   //-------------------------------
 
+  G4bool batch_mode = false; //Run in interactive mode by default
+  
   G4String preinit_macro = "";
   G4String postinit_macro = "";
   bool flag_gui = false; // Display GUI flag
@@ -193,7 +194,7 @@ int main(int argc, char** argv)
   sbsmess->SetPhysList( (G4SBSPhysicsList*) physicslist );
 
   // Detector/mass geometry and parallel geometry(ies):
-  G4VUserDetectorConstruction* detector = new G4SBSDetectorConstruction();
+  G4SBSDetectorConstruction* detector = new G4SBSDetectorConstruction();
   sbsmess->SetDetCon((G4SBSDetectorConstruction *) detector);
   // This lets us output graphical field maps
   io->SetGlobalField( ((G4SBSDetectorConstruction *) detector)->GetGlobalField() );
@@ -267,8 +268,10 @@ int main(int argc, char** argv)
     //--------------------------
     // Define (G)UI
     //--------------------------
+
 #ifdef G4UI_USE
     G4UIExecutive * ui = new G4UIExecutive(argc,argv);
+    UImanager->SetSession( ui->GetSession() ); 
 #endif
 
     executeMacro(postinit_macro, UImanager);

@@ -45,7 +45,7 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   if( (fTargType == kLH2 || fTargType == kLD2) && fDetCon->fExpType != kC16 ){
     BuildCryoTarget( worldlog ); //The cryotarget is placed entirely inside the scattering chamber vacuum:
   } 
-  else if( fTargType == kLH2 && (fDetCon->fExpType == kC16) ) {
+  else if( (fTargType == kLH2 || fTargType == kLD2) && (fDetCon->fExpType == kC16) ) {
     BuildC16CryoTarget( worldlog );
   } 
   else {

@@ -46,6 +46,9 @@ public:
   int  fGEMOption;
   //int  fCDetOption;
 
+  int fnzsegments_leadglass_ECAL;
+  int fnzsegments_leadglass_C16;
+  
   bool fUseLocalField;
 
 private:

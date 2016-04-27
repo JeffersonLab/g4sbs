@@ -343,10 +343,20 @@ G4SBSMessenger::G4SBSMessenger(){
   GunPolarizationCommand->SetGuidance( "Assumed to be given in TRANSPORT coordinates" );
   GunPolarizationCommand->SetParameterName("Sx","Sy","Sz",false);
   
-  SegmentC16Cmd = new G4UIcmdWithAnInteger( "/g4sbs/segmentC16", this );
-  SegmentC16Cmd->SetGuidance( "Segment the TF1 SD during the C16 Experiment (default = OFF)" );
-  SegmentC16Cmd->SetParameterName("segmentC16",true);
+  SegmentC16Cmd = new G4UIcmdWithAnInteger( "/g4sbs/segmentTF1", this );
+  SegmentC16Cmd->SetGuidance( "Longitudinally segment the TF1 lead glass for ECAL/C16 into N segments for thermal annealing model" );
+  SegmentC16Cmd->SetGuidance( "0 = OFF (one segment, optical properties based on no rad damage, no temperature increase)" );
+  SegmentC16Cmd->SetGuidance( "1..N: Use N segments; linear temperature profile assumed" );
+  SegmentC16Cmd->SetParameterName("N",false);
 
+  SegmentThickC16Cmd = new G4UIcmdWithADoubleAndUnit( "/g4sbs/segthickTF1", this );
+  SegmentThickC16Cmd->SetGuidance( "Longitudinal segment thickness for TF1 lead glass of ECAL/C16 for thermal annealing model (default = 4 cm)" );
+  SegmentThickC16Cmd->SetParameterName("thick",false);
+
+  DoseRateCmd = new G4UIcmdWithADouble("/g4sbs/doserate", this );
+  DoseRateCmd->SetGuidance( "Total dose rate in lead glass for thermal annealing model");
+  DoseRateCmd->SetGuidance( "Assumed to be given in units of krad/hour" ); //Note 1 rad = 0.01 J/kg
+  DoseRateCmd->SetParameterName("rate",false);
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -411,20 +421,32 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
 
   if( cmd == gemconfigCmd ){
-    int gemconfval = gemconfigCmd->GetNewIntValue(newValue);
+    G4int gemconfval = gemconfigCmd->GetNewIntValue(newValue);
     fdetcon->fEArmBuilder->SetGEMConfig(gemconfval);
   }
   
   if( cmd == CDetconfigCmd ){
-    int cdetconf = CDetconfigCmd->GetNewIntValue(newValue);
+    G4int cdetconf = CDetconfigCmd->GetNewIntValue(newValue);
     fdetcon->SetCDetconfig(cdetconf);
   }
 
   if( cmd == SegmentC16Cmd ){
-    int segmentC16 = SegmentC16Cmd->GetNewIntValue(newValue);
+    G4int segmentC16 = SegmentC16Cmd->GetNewIntValue(newValue);
+
+    //G4cout << "segmentC16 = " << segmentC16 << G4endl;
     fdetcon->SetC16Segmentation( segmentC16 );
   }
 
+  if( cmd == SegmentThickC16Cmd ){
+    G4double thick = SegmentThickC16Cmd->GetNewDoubleValue(newValue);
+    fdetcon->SetSegmentThickC16( thick );
+  }
+
+  if( cmd == DoseRateCmd ){
+    G4double rate = DoseRateCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetDoseRateC16( rate );
+  } 
+  
   if( cmd == ECALmapfileCmd ){
     fdetcon->SetECALmapfilename( newValue );
   }
@@ -967,6 +989,6 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == GunPolarizationCommand ){
     G4ThreeVector pol = GunPolarizationCommand->GetNew3VectorValue(newValue);
-    fprigen->SetGunPolarization( pol );
+    fprigen->SetGunPolarization( pol.unit() );
   }
 }

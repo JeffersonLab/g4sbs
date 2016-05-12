@@ -79,7 +79,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   //  The neutron experiments and the SIDIS experiment use BigBite:
   //------------ BigBite: -----------------------------------------------------
-  if( exptype == kNeutronExp || exptype == kSIDISExp ) 
+  if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kOld_GEn ) 
     {
       MakeBigBite( worldlog );
     }
@@ -87,10 +87,13 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     {
       MakeBigCal( worldlog );
     }
-  if( exptype == kC16 ) 
-    {
-      MakeC16( worldlog );
-    }
+  // if( exptype == kC16 ) 
+  //   {
+  //     MakeC16( worldlog );
+  //   }
+  if( exptype == kOld_GEn ) {
+    //MakeOld_GEn( worldlog );
+  }
 }
 
 void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
@@ -413,7 +416,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   //  (fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kEarm;
     
-  trackerbuilder.BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset ), ngem, gemz, gemw, gemh, "Earm/BBGEM" );
+  if( fDetCon->fExpType != kOld_GEn ) {
+    trackerbuilder.BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset ), ngem, gemz, gemw, gemh, "Earm/BBGEM" );
+  }
   //----- Note: Lines of code that are common to the construction of all individual GEM planes/modules were moved to MakeTracker() -----// 
   //----- All we do here in MakeBigBite() is define the number of planes, their z positions, and their transverse dimensions ------//
 
@@ -755,356 +760,357 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //  thisz += cer_mirrorthick;
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_winthick_out/2.0 ), cer_winlog_out, "cerwin2", bbdetLog, false, 0, false);
   */
-
-  G4SBSGrinch *grinch = new G4SBSGrinch(fDetCon);
-  grinch->SetZOffset( detoffset + fCerDist );
-  grinch->SetCerDepth( fCerDepth);
-  grinch->BuildComponent(bbdetLog);
-
+ 
+  if( fDetCon->fExpType != kOld_GEn ) {
+    G4SBSGrinch *grinch = new G4SBSGrinch(fDetCon);
+    grinch->SetZOffset( detoffset + fCerDist );
+    grinch->SetCerDepth( fCerDepth);
+    grinch->BuildComponent(bbdetLog);
+  }
 }
 
-void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
-  printf("C16 at %f deg\n", fBBang/deg);
+// void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
+//   printf("C16 at %f deg\n", fBBang/deg);
 
-  G4SDManager *sdman = fDetCon->fSDman;
+//   G4SDManager *sdman = fDetCon->fSDman;
 
-  // Module specs
-  G4double width_42 = 4.2*cm;
-  G4double depth_leadglass = 34.3*cm;
-  G4int nrows = 4;
-  G4int ncols = 4;
+//   // Module specs
+//   G4double width_42 = 4.2*cm;
+//   G4double depth_leadglass = 34.3*cm;
+//   G4int nrows = 4;
+//   G4int ncols = 4;
 
-  // Wave-guide specs
-  G4double depth_WG  = 15.0*cm;
-  G4double radius_WG = 1.25*cm;
+//   // Wave-guide specs
+//   G4double depth_WG  = 15.0*cm;
+//   G4double radius_WG = 1.25*cm;
   
-  // PMT specs
-  G4double depth_ecal_pmt = 0.3*cm;
-  G4double radius_ecal_pmt = 1.25*cm;
+//   // PMT specs
+//   G4double depth_ecal_pmt = 0.3*cm;
+//   G4double radius_ecal_pmt = 1.25*cm;
 
-  // We should be using aluminized foil instead of mylar.
-  G4double alum_thick = 0.001*2.54*cm;
-  G4double air_thick = alum_thick;
+//   // We should be using aluminized foil instead of mylar.
+//   G4double alum_thick = 0.001*2.54*cm;
+//   G4double air_thick = alum_thick;
 
-  // Make a C16 Mother Volume to house all the modules+WG+PMTs:
-  G4double C16_width  = nrows*width_42;
-  G4double C16_depth  = depth_leadglass + depth_WG + depth_ecal_pmt;
+//   // Make a C16 Mother Volume to house all the modules+WG+PMTs:
+//   G4double C16_width  = nrows*width_42;
+//   G4double C16_depth  = depth_leadglass + depth_WG + depth_ecal_pmt;
 
-  // Geometric information & C16 placing
-  G4double r_C16 = fBBdist + C16_depth/2.0;      // Distance from target to front of C16
-  G4double angle_C16 = fBBang;                    // C16 BB angle
-  G4ThreeVector R_C16( r_C16*sin( angle_C16 ), 0.0, r_C16*cos( angle_C16 ) );
+//   // Geometric information & C16 placing
+//   G4double r_C16 = fBBdist + C16_depth/2.0;      // Distance from target to front of C16
+//   G4double angle_C16 = fBBang;                    // C16 BB angle
+//   G4ThreeVector R_C16( r_C16*sin( angle_C16 ), 0.0, r_C16*cos( angle_C16 ) );
 
-  G4RotationMatrix *bbrm_C16 = new G4RotationMatrix;
-  bbrm_C16->rotateY( -angle_C16 );
+//   G4RotationMatrix *bbrm_C16 = new G4RotationMatrix;
+//   bbrm_C16->rotateY( -angle_C16 );
 
-  G4Box *C16_Box = new G4Box( "C16_Box", C16_width/2.0, C16_width/2.0, C16_depth/2.0 );
-  G4LogicalVolume *C16_Log = new G4LogicalVolume( C16_Box, GetMaterial("Special_Air"), "C16_Log" );
-  new G4PVPlacement( bbrm_C16, R_C16, C16_Log, "C16_Phys", motherlog, false, 0 );
+//   G4Box *C16_Box = new G4Box( "C16_Box", C16_width/2.0, C16_width/2.0, C16_depth/2.0 );
+//   G4LogicalVolume *C16_Log = new G4LogicalVolume( C16_Box, GetMaterial("Special_Air"), "C16_Log" );
+//   new G4PVPlacement( bbrm_C16, R_C16, C16_Log, "C16_Phys", motherlog, false, 0 );
 
-  // Getting the PMTs set up - use same PMT as ECal, same sensitivity
-  G4Tubs *ecal_PMT = new G4Tubs( "ecal_PMT", 0.0, radius_ecal_pmt, depth_ecal_pmt/2.0, 0.0, twopi );
-  G4LogicalVolume *ecal_PMT_log = new G4LogicalVolume( ecal_PMT, GetMaterial("Photocathode_material_ecal"), "ecal_PMT_log" );
+//   // Getting the PMTs set up - use same PMT as ECal, same sensitivity
+//   G4Tubs *ecal_PMT = new G4Tubs( "ecal_PMT", 0.0, radius_ecal_pmt, depth_ecal_pmt/2.0, 0.0, twopi );
+//   G4LogicalVolume *ecal_PMT_log = new G4LogicalVolume( ecal_PMT, GetMaterial("Photocathode_material_ecal"), "ecal_PMT_log" );
 
-  G4String C16SDname = "Earm/C16";
-  G4String collname = "C16HitsCollection";
-  G4SBSECalSD *C16SD = NULL;
+//   G4String C16SDname = "Earm/C16";
+//   G4String collname = "C16HitsCollection";
+//   G4SBSECalSD *C16SD = NULL;
 
-  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector( C16SDname )) ){
-    G4cout << "Adding C16 PMT sensitive detector to SDman..." << G4endl;
-    C16SD = new G4SBSECalSD( C16SDname, collname );
-    sdman->AddNewDetector( C16SD );
-    (fDetCon->SDlist).insert( C16SDname );
-    fDetCon->SDtype[C16SDname] = kECAL;
-    (C16SD->detmap).depth = 0;
-  }
+//   if( !((G4SBSECalSD*) sdman->FindSensitiveDetector( C16SDname )) ){
+//     G4cout << "Adding C16 PMT sensitive detector to SDman..." << G4endl;
+//     C16SD = new G4SBSECalSD( C16SDname, collname );
+//     sdman->AddNewDetector( C16SD );
+//     (fDetCon->SDlist).insert( C16SDname );
+//     fDetCon->SDtype[C16SDname] = kECAL;
+//     (C16SD->detmap).depth = 0;
+//   }
 
-  ecal_PMT_log->SetSensitiveDetector( C16SD );
+//   ecal_PMT_log->SetSensitiveDetector( C16SD );
 
-  // Getting the Wave Guides set up, *****need to UPDATE material properties*****
-  G4Tubs *C16_WG = new G4Tubs( "C16_WG", 0.0, radius_WG, depth_WG/2.0, 0.0, twopi );
-  G4LogicalVolume *C16_WG_Log = new G4LogicalVolume( C16_WG, GetMaterial("Pyrex_Glass"), "C16_WG_Log" );
-  //new G4LogicalSkinSurface( "C16_WG_Skin", C16_WG_Log, GetOpticalSurface("osWLSToAir") );
+//   // Getting the Wave Guides set up, *****need to UPDATE material properties*****
+//   G4Tubs *C16_WG = new G4Tubs( "C16_WG", 0.0, radius_WG, depth_WG/2.0, 0.0, twopi );
+//   G4LogicalVolume *C16_WG_Log = new G4LogicalVolume( C16_WG, GetMaterial("Pyrex_Glass"), "C16_WG_Log" );
+//   //new G4LogicalSkinSurface( "C16_WG_Skin", C16_WG_Log, GetOpticalSurface("osWLSToAir") );
 
-  // Make a trapzoidal aluminum piece that starts at the end of the TF1 and ends
-  // half way down the WG
-  G4double  dx1 = width_42 / 2.0;
-  G4double  dx2 = (radius_WG + 2*alum_thick + 2*air_thick);
-  G4double  dy1 = width_42 / 2.0;
-  G4double  dy2 = (radius_WG + 2*alum_thick + 2*air_thick);
-  G4double  dz  = depth_WG / 4.0;
-  G4Trd *Al_endpiece = new G4Trd( "Al_endpiece", dx1, dx2, dy1, dy2, dz );
+//   // Make a trapzoidal aluminum piece that starts at the end of the TF1 and ends
+//   // half way down the WG
+//   G4double  dx1 = width_42 / 2.0;
+//   G4double  dx2 = (radius_WG + 2*alum_thick + 2*air_thick);
+//   G4double  dy1 = width_42 / 2.0;
+//   G4double  dy2 = (radius_WG + 2*alum_thick + 2*air_thick);
+//   G4double  dz  = depth_WG / 4.0;
+//   G4Trd *Al_endpiece = new G4Trd( "Al_endpiece", dx1, dx2, dy1, dy2, dz );
 
-  // Make a subtraction in order to get Trapezoidal Al foil
-  dx1 = (width_42 - 2*alum_thick - 2*air_thick) / 2.0;
-  dx2 = radius_WG;
-  dy1 = (width_42 - 2*alum_thick - 2*air_thick) / 2.0;
-  dy2 = radius_WG;
-  dz = (depth_WG + 0.1*cm) / 4.0;
-  G4Trd *Al_wrap_endpiece_sub = new G4Trd( "Al_wrap_endpiece_sub", dx1, dx2, dy1, dy2, dz );
-  G4SubtractionSolid *Al_wrap_endpiece = new G4SubtractionSolid( "Al_wrap_endpiece", Al_endpiece, Al_wrap_endpiece_sub, 0, G4ThreeVector(0.0,0.0,0.0) );
-  G4LogicalVolume *Al_wrap_endpiece_log = new G4LogicalVolume( Al_wrap_endpiece, GetMaterial("Aluminum"), "Al_wrap_endpiece_log" );
-  new G4LogicalSkinSurface( "Al_endpiece_skin", Al_wrap_endpiece_log, GetOpticalSurface("Mirrsurf") );
+//   // Make a subtraction in order to get Trapezoidal Al foil
+//   dx1 = (width_42 - 2*alum_thick - 2*air_thick) / 2.0;
+//   dx2 = radius_WG;
+//   dy1 = (width_42 - 2*alum_thick - 2*air_thick) / 2.0;
+//   dy2 = radius_WG;
+//   dz = (depth_WG + 0.1*cm) / 4.0;
+//   G4Trd *Al_wrap_endpiece_sub = new G4Trd( "Al_wrap_endpiece_sub", dx1, dx2, dy1, dy2, dz );
+//   G4SubtractionSolid *Al_wrap_endpiece = new G4SubtractionSolid( "Al_wrap_endpiece", Al_endpiece, Al_wrap_endpiece_sub, 0, G4ThreeVector(0.0,0.0,0.0) );
+//   G4LogicalVolume *Al_wrap_endpiece_log = new G4LogicalVolume( Al_wrap_endpiece, GetMaterial("Aluminum"), "Al_wrap_endpiece_log" );
+//   new G4LogicalSkinSurface( "Al_endpiece_skin", Al_wrap_endpiece_log, GetOpticalSurface("Mirrsurf") );
 
-  // There is a 10cm Foam Glass wrap around everything except the PMT area
-  G4double foam_thick = 10.0*cm;
-  G4double foam_XY = C16_width + 2*foam_thick;
-  G4double foam_Z  = C16_depth + foam_thick - depth_ecal_pmt;
-  G4Box *foam_box = new G4Box( "foam_box", foam_XY/2.0, foam_XY/2.0, foam_Z/2.0 );
+//   // There is a 10cm Foam Glass wrap around everything except the PMT area
+//   G4double foam_thick = 10.0*cm;
+//   G4double foam_XY = C16_width + 2*foam_thick;
+//   G4double foam_Z  = C16_depth + foam_thick - depth_ecal_pmt;
+//   G4Box *foam_box = new G4Box( "foam_box", foam_XY/2.0, foam_XY/2.0, foam_Z/2.0 );
 
-  // Cut out the inside, but keep 10cm on one longitudinal face
-  G4Box *foam_sub = new G4Box( "foam_sub", C16_width/2.0, C16_width/2.0, foam_Z/2.0 );
-  G4SubtractionSolid *foam_wrap = new G4SubtractionSolid( "foam_wrap", foam_box, foam_sub, 0, G4ThreeVector(0.0,0.0,foam_thick) );
-  G4LogicalVolume *foam_wrap_log = new G4LogicalVolume( foam_wrap, GetMaterial("SiO2_C16"), "foam_wrap_log" );
-  G4ThreeVector R_TF1_Foam( (depth_ecal_pmt/2.0+foam_thick/2.0)*sin( angle_C16 ), 0.0, (depth_ecal_pmt/2.0+foam_thick/2.0)*cos( angle_C16 ) );
-  G4ThreeVector R_Foam = R_C16 - R_TF1_Foam;
-  new G4PVPlacement(bbrm_C16, R_Foam, foam_wrap_log, "Foam_phys", motherlog, false, 0 ,true);
+//   // Cut out the inside, but keep 10cm on one longitudinal face
+//   G4Box *foam_sub = new G4Box( "foam_sub", C16_width/2.0, C16_width/2.0, foam_Z/2.0 );
+//   G4SubtractionSolid *foam_wrap = new G4SubtractionSolid( "foam_wrap", foam_box, foam_sub, 0, G4ThreeVector(0.0,0.0,foam_thick) );
+//   G4LogicalVolume *foam_wrap_log = new G4LogicalVolume( foam_wrap, GetMaterial("SiO2_C16"), "foam_wrap_log" );
+//   G4ThreeVector R_TF1_Foam( (depth_ecal_pmt/2.0+foam_thick/2.0)*sin( angle_C16 ), 0.0, (depth_ecal_pmt/2.0+foam_thick/2.0)*cos( angle_C16 ) );
+//   G4ThreeVector R_Foam = R_C16 - R_TF1_Foam;
+//   new G4PVPlacement(bbrm_C16, R_Foam, foam_wrap_log, "Foam_phys", motherlog, false, 0 ,true);
 
-  // There is a small Aluminium plate 5" upstream of the lead-glass face
-  G4double Al_depth = 0.25*2.54*cm;
-  G4double Al_width = 6.0*2.54*cm;
-  G4double Distfrom_TF1 = 5.0*2.54*cm + C16_depth/2.0;
-  G4ThreeVector R_TF1_Al( Distfrom_TF1*sin( angle_C16 ), 0.0, Distfrom_TF1*cos( angle_C16 ) );
-  G4ThreeVector R_Al = R_C16 - R_TF1_Al;
+//   // There is a small Aluminium plate 5" upstream of the lead-glass face
+//   G4double Al_depth = 0.25*2.54*cm;
+//   G4double Al_width = 6.0*2.54*cm;
+//   G4double Distfrom_TF1 = 5.0*2.54*cm + C16_depth/2.0;
+//   G4ThreeVector R_TF1_Al( Distfrom_TF1*sin( angle_C16 ), 0.0, Distfrom_TF1*cos( angle_C16 ) );
+//   G4ThreeVector R_Al = R_C16 - R_TF1_Al;
 
-  G4Box *Al_Plate_Box = new G4Box( "Al_Plate_Box", Al_width/2.0, Al_width/2.0, Al_depth/2.0 );
-  G4LogicalVolume *Al_Plate_Log = new G4LogicalVolume( Al_Plate_Box, GetMaterial("Aluminum"), "Al_Plate_Log" );
-  new G4PVPlacement( bbrm_C16, R_Al, Al_Plate_Log, "Al_Plate", motherlog, false, 0 );
+//   G4Box *Al_Plate_Box = new G4Box( "Al_Plate_Box", Al_width/2.0, Al_width/2.0, Al_depth/2.0 );
+//   G4LogicalVolume *Al_Plate_Log = new G4LogicalVolume( Al_Plate_Box, GetMaterial("Aluminum"), "Al_Plate_Log" );
+//   new G4PVPlacement( bbrm_C16, R_Al, Al_Plate_Log, "Al_Plate", motherlog, false, 0 );
 
-  // VISUALS
-  G4VisAttributes *TF1visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0 ) );
-  G4VisAttributes *Alvisatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
-  G4VisAttributes *ECALpmtvisatt = new G4VisAttributes( G4Colour( 0, 0, 1 ) );
-  G4VisAttributes *C16WG_visatt = new G4VisAttributes( G4Colour(0.54, 0.53, 0.79) );
-  G4VisAttributes *Foam_visatt = new G4VisAttributes( G4Colour( 0.0, 0.6, 0.6) );
-  // C16 Mother:
-  C16_Log->SetVisAttributes( G4VisAttributes::Invisible );
-  // Al Plate & Foil:
-  Alvisatt->SetForceWireframe(true);
-  Al_Plate_Log->SetVisAttributes( Alvisatt );
-  Al_wrap_endpiece_log->SetVisAttributes( Alvisatt );
-  // PMTs:
-  ecal_PMT_log->SetVisAttributes( ECALpmtvisatt );
-  // WaveGuides:
-  C16_WG_Log->SetVisAttributes( C16WG_visatt );
-  // Foam Wrap
-  Foam_visatt->SetForceWireframe(true);
-  foam_wrap_log->SetVisAttributes( Foam_visatt );
+//   // VISUALS
+//   G4VisAttributes *TF1visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0 ) );
+//   G4VisAttributes *Alvisatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
+//   G4VisAttributes *ECALpmtvisatt = new G4VisAttributes( G4Colour( 0, 0, 1 ) );
+//   G4VisAttributes *C16WG_visatt = new G4VisAttributes( G4Colour(0.54, 0.53, 0.79) );
+//   G4VisAttributes *Foam_visatt = new G4VisAttributes( G4Colour( 0.0, 0.6, 0.6) );
+//   // C16 Mother:
+//   C16_Log->SetVisAttributes( G4VisAttributes::Invisible );
+//   // Al Plate & Foil:
+//   Alvisatt->SetForceWireframe(true);
+//   Al_Plate_Log->SetVisAttributes( Alvisatt );
+//   Al_wrap_endpiece_log->SetVisAttributes( Alvisatt );
+//   // PMTs:
+//   ecal_PMT_log->SetVisAttributes( ECALpmtvisatt );
+//   // WaveGuides:
+//   C16_WG_Log->SetVisAttributes( C16WG_visatt );
+//   // Foam Wrap
+//   Foam_visatt->SetForceWireframe(true);
+//   foam_wrap_log->SetVisAttributes( Foam_visatt );
 
-  /////////////////////////////////////////////////////////////////////////////////
-  //   There are two options to build the TF1 ( /g4sbs/segmentC16 int )          //
-  //     /g4sbs/segmentC16 N segments the TF1 into N "equal" sections, used       //
-  //     to analyze dose rate as a function of longitudinal dimension of module  //
-  //                                                                             //
-  //     /g4sbs/segmentC16 0 builds the normal ECal modules                      //
-  /////////////////////////////////////////////////////////////////////////////////
+//   /////////////////////////////////////////////////////////////////////////////////
+//   //   There are two options to build the TF1 ( /g4sbs/segmentC16 int )          //
+//   //     /g4sbs/segmentC16 N segments the TF1 into N "equal" sections, used       //
+//   //     to analyze dose rate as a function of longitudinal dimension of module  //
+//   //                                                                             //
+//   //     /g4sbs/segmentC16 0 builds the normal ECal modules                      //
+//   /////////////////////////////////////////////////////////////////////////////////
 
-  if( fDetCon->GetC16Segmentation() <= 0 ) { //Default case: room temperature, no radiation damage:
-    // Make a C16 Module  
-    G4Box *Module_42 = new G4Box( "Module_42", width_42/2.0, width_42/2.0, depth_leadglass/2.0 );
-    G4LogicalVolume *Module_42_log = new G4LogicalVolume( Module_42, GetMaterial("Special_Air"), "Module_42_log" );
-    // Next, we want to make a subtraction solid for the Al:
-    G4Box *Al_42 = new G4Box( "Al_42", (width_42 - alum_thick)/2.0, (width_42 - alum_thick)/2.0, depth_leadglass/2.0 + 1.0*cm );
-    //
-    G4SubtractionSolid *Al_wrap_42 = new G4SubtractionSolid( "Al_wrap_42", Module_42, Al_42, 0, G4ThreeVector( 0, 0, alum_thick + 1.0*cm ) );
-    G4LogicalVolume *Al_wrap_42_log = new G4LogicalVolume( Al_wrap_42, GetMaterial("Aluminum"), "Al_wrap_42_log" );
-    // Make lead-glass
-    G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", (width_42 - alum_thick - air_thick)/2.0, (width_42 - alum_thick - air_thick)/2.0, (depth_leadglass - alum_thick - air_thick)/2.0 );
-    G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
+//   if( fDetCon->GetC16Segmentation() <= 0 ) { //Default case: room temperature, no radiation damage:
+//     // Make a C16 Module  
+//     G4Box *Module_42 = new G4Box( "Module_42", width_42/2.0, width_42/2.0, depth_leadglass/2.0 );
+//     G4LogicalVolume *Module_42_log = new G4LogicalVolume( Module_42, GetMaterial("Special_Air"), "Module_42_log" );
+//     // Next, we want to make a subtraction solid for the Al:
+//     G4Box *Al_42 = new G4Box( "Al_42", (width_42 - alum_thick)/2.0, (width_42 - alum_thick)/2.0, depth_leadglass/2.0 + 1.0*cm );
+//     //
+//     G4SubtractionSolid *Al_wrap_42 = new G4SubtractionSolid( "Al_wrap_42", Module_42, Al_42, 0, G4ThreeVector( 0, 0, alum_thick + 1.0*cm ) );
+//     G4LogicalVolume *Al_wrap_42_log = new G4LogicalVolume( Al_wrap_42, GetMaterial("Aluminum"), "Al_wrap_42_log" );
+//     // Make lead-glass
+//     G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", (width_42 - alum_thick - air_thick)/2.0, (width_42 - alum_thick - air_thick)/2.0, (depth_leadglass - alum_thick - air_thick)/2.0 );
+//     G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
 
-    // Define Sensitive Detector for lead-glass of type kCAL
-    G4String C16TF1SDname = "Earm/C16TF1";
-    G4String C16TF1collname = "C16TF1HitsCollection";
-    G4SBSCalSD *C16TF1SD = NULL;
+//     // Define Sensitive Detector for lead-glass of type kCAL
+//     G4String C16TF1SDname = "Earm/C16TF1";
+//     G4String C16TF1collname = "C16TF1HitsCollection";
+//     G4SBSCalSD *C16TF1SD = NULL;
     
-    if( !( C16TF1SD = (G4SBSCalSD*) sdman->FindSensitiveDetector(C16TF1SDname) ) ){
-      G4cout << "Adding C16 TF1 Sensitive Detector to SDman..." << G4endl;
-      C16TF1SD = new G4SBSCalSD( C16TF1SDname, C16TF1collname );
-      fDetCon->fSDman->AddNewDetector( C16TF1SD );
-      (fDetCon->SDlist).insert( C16TF1SDname );
-      fDetCon->SDtype[C16TF1SDname] = kCAL;
-      (C16TF1SD->detmap).depth = 1;
-    }
-    // Assign "kCAL" sensitivity to the lead-glass:
-    LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
+//     if( !( C16TF1SD = (G4SBSCalSD*) sdman->FindSensitiveDetector(C16TF1SDname) ) ){
+//       G4cout << "Adding C16 TF1 Sensitive Detector to SDman..." << G4endl;
+//       C16TF1SD = new G4SBSCalSD( C16TF1SDname, C16TF1collname );
+//       fDetCon->fSDman->AddNewDetector( C16TF1SD );
+//       (fDetCon->SDlist).insert( C16TF1SDname );
+//       fDetCon->SDtype[C16TF1SDname] = kCAL;
+//       (C16TF1SD->detmap).depth = 1;
+//     }
+//     // Assign "kCAL" sensitivity to the lead-glass:
+//     LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
 
-    // Place lead-glass and Al wrap inside module:
-    new G4PVPlacement( 0, G4ThreeVector( 0, 0, (alum_thick + air_thick)/2.0 ), LeadGlass_42_log, "LeadGlass_42_phys", Module_42_log, false, 0 );
-    // Al:
-    new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), Al_wrap_42_log, "Al_wrap_42_phys", Module_42_log, false, 0 );
-    new G4LogicalSkinSurface( "Al_skin_42", Al_wrap_42_log, GetOpticalSurface("Mirrsurf") );
+//     // Place lead-glass and Al wrap inside module:
+//     new G4PVPlacement( 0, G4ThreeVector( 0, 0, (alum_thick + air_thick)/2.0 ), LeadGlass_42_log, "LeadGlass_42_phys", Module_42_log, false, 0 );
+//     // Al:
+//     new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), Al_wrap_42_log, "Al_wrap_42_phys", Module_42_log, false, 0 );
+//     new G4LogicalSkinSurface( "Al_skin_42", Al_wrap_42_log, GetOpticalSurface("Mirrsurf") );
 
-    // Construct C16
-    G4int copyID = 0;
-    for( G4int i=0; i<nrows; i++ ) {
-      for( G4int j=0; j<ncols; j++ ) {
-	G4double tempx = C16_width/2.0 - width_42/2.0 - j*width_42;
-	G4double tempy = C16_width/2.0 - width_42/2.0 - i*width_42;
-	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -depth_WG/2.0 - depth_ecal_pmt/2.0), Module_42_log, "C16_Module", C16_Log, false, copyID );
-	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -C16_depth/2.0 + depth_leadglass + depth_WG/4.0), Al_wrap_endpiece_log, "Aluminum_wrap_endpiece_phys", C16_Log, false, copyID );
-	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -depth_ecal_pmt/2.0 + depth_leadglass/2.0), C16_WG_Log, "C16_WG", C16_Log, false, copyID );
-	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy,  depth_leadglass/2.0 + depth_WG/2.0), ecal_PMT_log, "C16_PMT", C16_Log, false, copyID );
+//     // Construct C16
+//     G4int copyID = 0;
+//     for( G4int i=0; i<nrows; i++ ) {
+//       for( G4int j=0; j<ncols; j++ ) {
+// 	G4double tempx = C16_width/2.0 - width_42/2.0 - j*width_42;
+// 	G4double tempy = C16_width/2.0 - width_42/2.0 - i*width_42;
+// 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -depth_WG/2.0 - depth_ecal_pmt/2.0), Module_42_log, "C16_Module", C16_Log, false, copyID );
+// 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -C16_depth/2.0 + depth_leadglass + depth_WG/4.0), Al_wrap_endpiece_log, "Aluminum_wrap_endpiece_phys", C16_Log, false, copyID );
+// 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -depth_ecal_pmt/2.0 + depth_leadglass/2.0), C16_WG_Log, "C16_WG", C16_Log, false, copyID );
+// 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy,  depth_leadglass/2.0 + depth_WG/2.0), ecal_PMT_log, "C16_PMT", C16_Log, false, copyID );
 
-	(C16TF1SD->detmap).Row[copyID] = i;
-	(C16TF1SD->detmap).Col[copyID] = j;
-	(C16TF1SD->detmap).LocalCoord[copyID] = G4ThreeVector( tempx, tempy, 0.0 );
+// 	(C16TF1SD->detmap).Row[copyID] = i;
+// 	(C16TF1SD->detmap).Col[copyID] = j;
+// 	(C16TF1SD->detmap).LocalCoord[copyID] = G4ThreeVector( tempx, tempy, 0.0 );
 
-	(C16SD->detmap).Row[copyID] = i;
-	(C16SD->detmap).Col[copyID] = j;
-	(C16SD->detmap).LocalCoord[copyID] = G4ThreeVector( tempx, tempy, 0.0 );
+// 	(C16SD->detmap).Row[copyID] = i;
+// 	(C16SD->detmap).Col[copyID] = j;
+// 	(C16SD->detmap).LocalCoord[copyID] = G4ThreeVector( tempx, tempy, 0.0 );
 	
-	copyID++;
-      }
-    }
-    // Set Visuals
-    Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
-    LeadGlass_42_log->SetVisAttributes( TF1visatt );
-    Al_wrap_42_log->SetVisAttributes( Alvisatt );  
-  } else {
-    // The strategy is to place the aluminum wrap within C16_Log (the mother volume), then iteratively
-    // place TF1 modules in the longitudinal direction. Therefore, we can define different material properties
-    // to each TF1 "segment" within a C16 Module.
+// 	copyID++;
+//       }
+//     }
+//     // Set Visuals
+//     Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
+//     LeadGlass_42_log->SetVisAttributes( TF1visatt );
+//     Al_wrap_42_log->SetVisAttributes( Alvisatt );  
+//   } else {
+//     // The strategy is to place the aluminum wrap within C16_Log (the mother volume), then iteratively
+//     // place TF1 modules in the longitudinal direction. Therefore, we can define different material properties
+//     // to each TF1 "segment" within a C16 Module.
 
-    // Make a C16 Module  
-    G4Box *Module_42 = new G4Box( "Module_42", width_42/2.0, width_42/2.0, depth_leadglass/2.0 );
-    G4LogicalVolume *Module_42_log = new G4LogicalVolume( Module_42, GetMaterial("Special_Air"), "Module_42_log" );
+//     // Make a C16 Module  
+//     G4Box *Module_42 = new G4Box( "Module_42", width_42/2.0, width_42/2.0, depth_leadglass/2.0 );
+//     G4LogicalVolume *Module_42_log = new G4LogicalVolume( Module_42, GetMaterial("Special_Air"), "Module_42_log" );
     
-    // Next, we want to make a subtraction solid for the Al:
-    G4Box *Al_42 = new G4Box( "Al_42", (width_42 - alum_thick)/2.0, (width_42 - alum_thick)/2.0, depth_leadglass/2.0 + 1.0*cm );
-    G4SubtractionSolid *Al_wrap_42 = new G4SubtractionSolid( "Al_wrap_42", Module_42, Al_42, 0, G4ThreeVector( 0, 0, alum_thick + 1.0*cm ) );
-    G4LogicalVolume *Al_wrap_42_log = new G4LogicalVolume( Al_wrap_42, GetMaterial("Aluminum"), "Al_wrap_42_log" );
-    new G4LogicalSkinSurface( "Al_skin_42", Al_wrap_42_log, GetOpticalSurface("Mirrsurf") );
+//     // Next, we want to make a subtraction solid for the Al:
+//     G4Box *Al_42 = new G4Box( "Al_42", (width_42 - alum_thick)/2.0, (width_42 - alum_thick)/2.0, depth_leadglass/2.0 + 1.0*cm );
+//     G4SubtractionSolid *Al_wrap_42 = new G4SubtractionSolid( "Al_wrap_42", Module_42, Al_42, 0, G4ThreeVector( 0, 0, alum_thick + 1.0*cm ) );
+//     G4LogicalVolume *Al_wrap_42_log = new G4LogicalVolume( Al_wrap_42, GetMaterial("Aluminum"), "Al_wrap_42_log" );
+//     new G4LogicalSkinSurface( "Al_skin_42", Al_wrap_42_log, GetOpticalSurface("Mirrsurf") );
 
-    // Make TF1 - Logical Volume will be defined iteratively below in order to change material 
-    // properties based on segmentation 
-    //G4double Nsegments = 10.0;
-    //    G4double Nsegments = G4double(fDetCon->GetC16Segmentation());
-    //G4double segment_depth = (depth_leadglass - alum_thick - air_thick) / Nsegments;
-    //Note: Because segment thickness is always the same for the detector and the material definition,
-    // as long as nsegments * segmentthick > depth of lead glass, the material definition will always exist!
-    G4double segment_depth = fDetCon->GetSegmentThickC16();
+//     // Make TF1 - Logical Volume will be defined iteratively below in order to change material 
+//     // properties based on segmentation 
+//     //G4double Nsegments = 10.0;
+//     //    G4double Nsegments = G4double(fDetCon->GetC16Segmentation());
+//     //G4double segment_depth = (depth_leadglass - alum_thick - air_thick) / Nsegments;
+//     //Note: Because segment thickness is always the same for the detector and the material definition,
+//     // as long as nsegments * segmentthick > depth of lead glass, the material definition will always exist!
+//     G4double segment_depth = fDetCon->GetSegmentThickC16();
 
-    G4int Nsegments = G4int( (depth_leadglass - alum_thick - air_thick ) / segment_depth ); //truncate the remainder.
+//     G4int Nsegments = G4int( (depth_leadglass - alum_thick - air_thick ) / segment_depth ); //truncate the remainder.
     
-    G4double remainder = (depth_leadglass - alum_thick - air_thick ) - Nsegments * segment_depth; //remainder is always non-negative!
+//     G4double remainder = (depth_leadglass - alum_thick - air_thick ) - Nsegments * segment_depth; //remainder is always non-negative!
 
-    if( Nsegments > fDetCon->GetC16Segmentation() ){
-      Nsegments = fDetCon->GetC16Segmentation();
-      remainder = (depth_leadglass - alum_thick - air_thick ) - Nsegments * segment_depth;
-    }
+//     if( Nsegments > fDetCon->GetC16Segmentation() ){
+//       Nsegments = fDetCon->GetC16Segmentation();
+//       remainder = (depth_leadglass - alum_thick - air_thick ) - Nsegments * segment_depth;
+//     }
     
-    if( Nsegments == 0 ){
-      Nsegments = 1;
-      segment_depth = (depth_leadglass - alum_thick - air_thick );
-      remainder = 0.0;
-    }
+//     if( Nsegments == 0 ){
+//       Nsegments = 1;
+//       segment_depth = (depth_leadglass - alum_thick - air_thick );
+//       remainder = 0.0;
+//     }
     
-    G4Box *Segments_TF1 = new G4Box( "Segments_TF1", (width_42 - 2.0*alum_thick - 2.0*air_thick)/2.0, 
-					   (width_42 - 2.0*alum_thick - 2.0*air_thick)/2.0, segment_depth/2.0 );
+//     G4Box *Segments_TF1 = new G4Box( "Segments_TF1", (width_42 - 2.0*alum_thick - 2.0*air_thick)/2.0, 
+// 					   (width_42 - 2.0*alum_thick - 2.0*air_thick)/2.0, segment_depth/2.0 );
 
-    //Always add the remainder to the last segment, since optical properties will be varying less with z deeper in the glass anyway!
-    G4Box *LastSegment_TF1 = new G4Box( "LastSegment_TF1",
-					(width_42 - 2.0*alum_thick - 2.0*air_thick)/2.0, 
-					(width_42 - 2.0*alum_thick - 2.0*air_thick)/2.0,
-					(segment_depth + remainder)/2.0 );  
-    // TF1 is a Sensitive Detector of type kCAL. Sensitivity will be assigned to a LV
-    // within the loop below:
-    G4String C16TF1SDname = "Earm/C16TF1";
-    G4String C16TF1collname = "C16TF1HitsCollection";
-    G4SBSCalSD *C16TF1SD = NULL;
+//     //Always add the remainder to the last segment, since optical properties will be varying less with z deeper in the glass anyway!
+//     G4Box *LastSegment_TF1 = new G4Box( "LastSegment_TF1",
+// 					(width_42 - 2.0*alum_thick - 2.0*air_thick)/2.0, 
+// 					(width_42 - 2.0*alum_thick - 2.0*air_thick)/2.0,
+// 					(segment_depth + remainder)/2.0 );  
+//     // TF1 is a Sensitive Detector of type kCAL. Sensitivity will be assigned to a LV
+//     // within the loop below:
+//     G4String C16TF1SDname = "Earm/C16TF1";
+//     G4String C16TF1collname = "C16TF1HitsCollection";
+//     G4SBSCalSD *C16TF1SD = NULL;
     
-    if( !( C16TF1SD = (G4SBSCalSD*) sdman->FindSensitiveDetector(C16TF1SDname) ) ){
-      G4cout << "Adding C16 TF1 Segmented Sensitive Detector to SDman..." << G4endl;
-      C16TF1SD = new G4SBSCalSD( C16TF1SDname, C16TF1collname );
-      fDetCon->fSDman->AddNewDetector( C16TF1SD );
-      (fDetCon->SDlist).insert( C16TF1SDname );
-      fDetCon->SDtype[C16TF1SDname] = kCAL;
-      (C16TF1SD->detmap).depth = 0;
-    }
+//     if( !( C16TF1SD = (G4SBSCalSD*) sdman->FindSensitiveDetector(C16TF1SDname) ) ){
+//       G4cout << "Adding C16 TF1 Segmented Sensitive Detector to SDman..." << G4endl;
+//       C16TF1SD = new G4SBSCalSD( C16TF1SDname, C16TF1collname );
+//       fDetCon->fSDman->AddNewDetector( C16TF1SD );
+//       (fDetCon->SDlist).insert( C16TF1SDname );
+//       fDetCon->SDtype[C16TF1SDname] = kCAL;
+//       (C16TF1SD->detmap).depth = 0;
+//     }
 
-    G4int cell_number = 0 ;    // cell #
-    G4int TF1_number = 0 ;     // TF1 identifier
-    for( G4int i = 0; i < nrows; i++ ) {
-      for( G4int j = 0; j < ncols; j++ ) {
-	G4double tempx = C16_width/2.0 - width_42/2.0 - j*width_42;
-	G4double tempy = C16_width/2.0 - width_42/2.0 - i*width_42;
+//     G4int cell_number = 0 ;    // cell #
+//     G4int TF1_number = 0 ;     // TF1 identifier
+//     for( G4int i = 0; i < nrows; i++ ) {
+//       for( G4int j = 0; j < ncols; j++ ) {
+// 	G4double tempx = C16_width/2.0 - width_42/2.0 - j*width_42;
+// 	G4double tempy = C16_width/2.0 - width_42/2.0 - i*width_42;
 	
-	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -C16_depth/2.0 + depth_leadglass/2.0), 
-			   Al_wrap_42_log, "Aluminum_wrap_phys", C16_Log, false, cell_number );
+// 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -C16_depth/2.0 + depth_leadglass/2.0), 
+// 			   Al_wrap_42_log, "Aluminum_wrap_phys", C16_Log, false, cell_number );
 
-	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -C16_depth/2.0 + depth_leadglass + depth_WG/4.0), 
-			   Al_wrap_endpiece_log, "Aluminum_wrap_endpiece_phys", C16_Log, false, cell_number );
+// 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, -C16_depth/2.0 + depth_leadglass + depth_WG/4.0), 
+// 			   Al_wrap_endpiece_log, "Aluminum_wrap_endpiece_phys", C16_Log, false, cell_number );
 
-	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, C16_depth/2.0 - depth_ecal_pmt - depth_WG/2.0), 
-			   C16_WG_Log, "C16_WG_phys", C16_Log, false, cell_number );
+// 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, C16_depth/2.0 - depth_ecal_pmt - depth_WG/2.0), 
+// 			   C16_WG_Log, "C16_WG_phys", C16_Log, false, cell_number );
 
-	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, C16_depth/2.0 - depth_ecal_pmt/2.0), 
-			   ecal_PMT_log, "C16_PMT_phys", C16_Log, false, cell_number );
+// 	new G4PVPlacement( 0, G4ThreeVector(tempx, tempy, C16_depth/2.0 - depth_ecal_pmt/2.0), 
+// 			   ecal_PMT_log, "C16_PMT_phys", C16_Log, false, cell_number );
 
-	(C16SD->detmap).Row[cell_number] = i;
-	(C16SD->detmap).Col[cell_number] = j;
-	(C16SD->detmap).LocalCoord[cell_number] = G4ThreeVector( tempx, tempy, 0.0 );
+// 	(C16SD->detmap).Row[cell_number] = i;
+// 	(C16SD->detmap).Col[cell_number] = j;
+// 	(C16SD->detmap).LocalCoord[cell_number] = G4ThreeVector( tempx, tempy, 0.0 );
 	
-	cell_number++;
+// 	cell_number++;
 
-	for( G4int planeN = 0; planeN < Nsegments; planeN++ ) {
-	  // ostringstream temp, temp1, temp2;
-	  // temp << planeN;// segment #
-	  // temp1 << i;    // row #
-	  // temp2 << j;    // col #
-	  // G4String tempstring  = temp.str();
-	  // G4String tempstring1 = temp1.str();
-	  // G4String tempstring2 = temp2.str();
-	  // G4String seg_TF1_name_log  = "TF1_log_seg_"  + tempstring + "_row_" + tempstring1 + "_col_" + tempstring2;
-	  // G4String seg_TF1_name_phys = "TF1_phys_seg_" + tempstring + "_row_" + tempstring1 + "_col_" + tempstring2;
-	  // G4String seg_TF1_material = "TF1_anneal_" + tempstring;
+// 	for( G4int planeN = 0; planeN < Nsegments; planeN++ ) {
+// 	  // ostringstream temp, temp1, temp2;
+// 	  // temp << planeN;// segment #
+// 	  // temp1 << i;    // row #
+// 	  // temp2 << j;    // col #
+// 	  // G4String tempstring  = temp.str();
+// 	  // G4String tempstring1 = temp1.str();
+// 	  // G4String tempstring2 = temp2.str();
+// 	  // G4String seg_TF1_name_log  = "TF1_log_seg_"  + tempstring + "_row_" + tempstring1 + "_col_" + tempstring2;
+// 	  // G4String seg_TF1_name_phys = "TF1_phys_seg_" + tempstring + "_row_" + tempstring1 + "_col_" + tempstring2;
+// 	  // G4String seg_TF1_material = "TF1_anneal_" + tempstring;
 
-	  TString material_name, lv_name, pv_name;
-	  material_name.Form( "TF1_anneal_C16_row%d_col%d_z%d", i+1, j+1, planeN );
+// 	  TString material_name, lv_name, pv_name;
+// 	  material_name.Form( "TF1_anneal_C16_row%d_col%d_z%d", i+1, j+1, planeN );
 
-	  lv_name.Form( "TF1_log_z%d", planeN );
-	  pv_name.Form( "TF1_pv_z%d", planeN );
+// 	  lv_name.Form( "TF1_log_z%d", planeN );
+// 	  pv_name.Form( "TF1_pv_z%d", planeN );
 	  
-	  // Assign each TF1 segment a kCAL Sensitivity
-	  G4LogicalVolume *Segments_TF1_log;
-	  if( planeN + 1 < Nsegments || Nsegments == 1 ){
-	    Segments_TF1_log = new G4LogicalVolume( Segments_TF1, GetMaterial(material_name.Data()), lv_name.Data() );
-	  } else {
-	    Segments_TF1_log = new G4LogicalVolume( LastSegment_TF1, GetMaterial(material_name.Data()), lv_name.Data() );
-	  }
+// 	  // Assign each TF1 segment a kCAL Sensitivity
+// 	  G4LogicalVolume *Segments_TF1_log;
+// 	  if( planeN + 1 < Nsegments || Nsegments == 1 ){
+// 	    Segments_TF1_log = new G4LogicalVolume( Segments_TF1, GetMaterial(material_name.Data()), lv_name.Data() );
+// 	  } else {
+// 	    Segments_TF1_log = new G4LogicalVolume( LastSegment_TF1, GetMaterial(material_name.Data()), lv_name.Data() );
+// 	  }
 	    
-	  Segments_TF1_log->SetSensitiveDetector( C16TF1SD );
+// 	  Segments_TF1_log->SetSensitiveDetector( C16TF1SD );
 
-	  G4VisAttributes *Segment_VisAtt = new G4VisAttributes( G4Colour( 0.8*(planeN/15.0)+0.20, 0.8*(planeN/15.0)+0.20, 0.0 ) );
-	  Segments_TF1_log->SetVisAttributes( Segment_VisAtt );
+// 	  G4VisAttributes *Segment_VisAtt = new G4VisAttributes( G4Colour( 0.8*(planeN/15.0)+0.20, 0.8*(planeN/15.0)+0.20, 0.0 ) );
+// 	  Segments_TF1_log->SetVisAttributes( Segment_VisAtt );
 
-	  // Place the TF1 segments longitudinally down the module
-	  // Therefore, seg_0 corresponds to the face of C16
-	  G4double tempz;
-	  if( planeN + 1 < Nsegments ){
-	    tempz = -C16_depth/2.0 + air_thick + alum_thick + (planeN + 0.5)*segment_depth;
-	  } else {
-	    tempz = -C16_depth/2.0 + air_thick + alum_thick + (Nsegments-1)*segment_depth +
-	      0.5* ( segment_depth + remainder );
-	  }
-	  //G4double tempz = -C16_depth/2.0 + segment_depth/2.0 + air_thick + alum_thick + planeN*segment_depth;
+// 	  // Place the TF1 segments longitudinally down the module
+// 	  // Therefore, seg_0 corresponds to the face of C16
+// 	  G4double tempz;
+// 	  if( planeN + 1 < Nsegments ){
+// 	    tempz = -C16_depth/2.0 + air_thick + alum_thick + (planeN + 0.5)*segment_depth;
+// 	  } else {
+// 	    tempz = -C16_depth/2.0 + air_thick + alum_thick + (Nsegments-1)*segment_depth +
+// 	      0.5* ( segment_depth + remainder );
+// 	  }
+// 	  //G4double tempz = -C16_depth/2.0 + segment_depth/2.0 + air_thick + alum_thick + planeN*segment_depth;
 	    
-	  new G4PVPlacement(0, G4ThreeVector(tempx, tempy, tempz), Segments_TF1_log, pv_name.Data(), C16_Log, false, TF1_number );
+// 	  new G4PVPlacement(0, G4ThreeVector(tempx, tempy, tempz), Segments_TF1_log, pv_name.Data(), C16_Log, false, TF1_number );
 	  
-	  // Record useful information using Detmap:
-	  (C16TF1SD->detmap).Row[TF1_number] = i;
-	  (C16TF1SD->detmap).Col[TF1_number] = j;
-	  (C16TF1SD->detmap).LocalCoord[TF1_number] = G4ThreeVector(tempx,tempy,tempz);
-	  (C16TF1SD->detmap).Plane[TF1_number] = planeN;
-	  TF1_number++;
-	}
-      }
-    }
-    // Set Visuals
-    Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
-    Al_wrap_42_log->SetVisAttributes( Alvisatt );
-  }
-}
+// 	  // Record useful information using Detmap:
+// 	  (C16TF1SD->detmap).Row[TF1_number] = i;
+// 	  (C16TF1SD->detmap).Col[TF1_number] = j;
+// 	  (C16TF1SD->detmap).LocalCoord[TF1_number] = G4ThreeVector(tempx,tempy,tempz);
+// 	  (C16TF1SD->detmap).Plane[TF1_number] = planeN;
+// 	  TF1_number++;
+// 	}
+//       }
+//     }
+//     // Set Visuals
+//     Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
+//     Al_wrap_42_log->SetVisAttributes( Alvisatt );
+//   }
+// }
 
 void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   printf("BigCal at %f deg\n", fBBang/deg);
@@ -2029,6 +2035,12 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
   G4VisAttributes *scintwrap_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0 ) );
   ScintWrapLog->SetVisAttributes( scintwrap_visatt );
   
+}
+
+void G4SBSEArmBuilder::MakeOld_GEn(G4LogicalVolume *worldlog) {
+
+
+
 }
 
 // void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){

@@ -529,6 +529,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fExpType = kC16;
       validcmd = true;
     }
+    if( newValue.compareTo("Old_GEn") == 0 ){
+      fExpType = kOld_GEn;
+      validcmd = true;
+    }
 
     if( validcmd ){
       fdetcon->SetExpType( fExpType );

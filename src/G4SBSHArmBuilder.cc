@@ -74,7 +74,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 
   // All three types of experiments have a 48D48 magnet:
-  if( exptype != kC16 ) {
+  if( exptype != kC16 && exptype != kOld_GEn ) {
     Make48D48(worldlog, f48D48dist + f48D48depth/2. );
   }
   //--------------- HCAL --------------------------
@@ -85,7 +85,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
     HCAL_vertical_offset = 45.*cm;
   }
-  if( exptype != kC16 ) {
+  if( exptype != kC16 && exptype != kOld_GEn ) {
     MakeHCAL( worldlog, HCAL_vertical_offset );
   }
   //The SIDIS experiment uses a  RICH in SBS:

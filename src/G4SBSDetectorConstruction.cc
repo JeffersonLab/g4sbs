@@ -44,6 +44,7 @@
 #include "G4SBSTargetBuilder.hh"
 #include "G4SBSEArmBuilder.hh"
 #include "G4SBSHArmBuilder.hh"
+#include "G4SBSNeutronDetector.hh"
 
 #include "G4Mag_SpinEqRhs.hh"
 #include "G4ClassicalRK4.hh"
@@ -83,6 +84,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fBeamlineBuilder = new G4SBSBeamlineBuilder(this);
   fEArmBuilder     = new G4SBSEArmBuilder(this);
   fHArmBuilder     = new G4SBSHArmBuilder(this);
+  fNeutronDetector = new G4SBSNeutronDetector(this);
 
   fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;
 
@@ -97,6 +99,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   StepLimiterList.clear();
 
   fCDetOption = 1;
+
+  fGEnTargetOption = 0; // Default corresponds to a reference cell
   
   //    TrackerIDnumber = 0;
   //TrackerArm.clear();
@@ -199,6 +203,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element* elCr  = new G4Element("Chromium","Cr",24.,52.0*g/mole);
   G4Element* elMn   =  new G4Element("Manganese","Mn", 25.,54.94*g/mole);
   G4Element* elNi  = new G4Element("Nickel","Ni",28.,58.70*g/mole);
+  G4Element *elMg = new G4Element("Magnesium", "Mg", 12, 24.305*g/mole );
+  G4Element *elK = new G4Element("Potassium", "K", 19, 39.098*g/mole );
 
   G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
   //Vacuum->SetMaterialPropertiesTable(Std_MPT);
@@ -881,7 +887,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //************                 ECAL             **********************
   //********************************************************************  
   // Additional elements needed for the materials:
-  G4Element* elK = new G4Element( "Potassium", "K", 19, 39.098*g/mole );
   G4Element* elAs = new G4Element( "Arsenic", "As", 33, 74.922*g/mole );
   G4Element* elPb = new G4Element( "Lead", "Pb", 82, 207.2*g/mole );
   G4Element* elBe = new G4Element( "Beryllium", "Be", 4, 9.012*g/mole );
@@ -1834,6 +1839,101 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   SiO2_C16->AddElement(elSi, 1);
   SiO2_C16->AddElement(elO, 2);
   fMaterialsMap["SiO2_C16"] = SiO2_C16;
+
+
+  //   ************************************
+  //   *          Neutron Detector        *
+  //   ************************************
+  G4Material* Styro =  man->FindOrBuildMaterial("G4_POLYSTYRENE");
+  fMaterialsMap["Styro"] = Styro;
+  G4Element *elB = new G4Element("Boron","B", 5, 10.811*g/mole );
+
+  G4Material* Scintillator = man->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+
+  const int nent = 1;
+  G4double scint_e[nent] = {9.9*eV};
+  G4double amp[nent]     = {1.0};
+  G4double scint_rind[nent]     = {1.58};
+  G4double scint_absl[nent]     = {4.0*m};
+
+  MPT_temp = new G4MaterialPropertiesTable();
+  MPT_temp->AddProperty("FASTCOMPONENT", scint_e, amp, nent);
+  MPT_temp->AddProperty("SLOWCOMPONENT", scint_e, amp, nent);
+  MPT_temp->AddProperty("RINDEX",    scint_e, scint_rind, nent);
+  MPT_temp->AddProperty("ABSLENGTH", scint_e, scint_absl, nent); 
+  MPT_temp->AddConstProperty("RESOLUTIONSCALE",1.0);
+  MPT_temp->AddConstProperty("FASTTIMECONSTANT",20.*ns);
+  MPT_temp->AddConstProperty("SLOWTIMECONSTANT",45.*ns);
+  MPT_temp->AddConstProperty("YIELDRATIO",1.0);
+
+  MPT_temp -> AddConstProperty("SCINTILLATIONYIELD",20./MeV);
+  Scintillator->SetMaterialPropertiesTable(MPT_temp);
+  fMaterialsMap["Scintillator"] = Scintillator;
+
+  // PMT Glass - Just need something that will hold light
+  G4double glass_rind[nent]     = {1.49};
+  G4double glass_absl[nent]     = {420.0*m};
+  G4Material* Glass_ND = man->FindOrBuildMaterial("G4_GLASS_PLATE");
+  MPT_temp = new G4MaterialPropertiesTable();
+  MPT_temp->AddProperty("RINDEX",    scint_e, glass_rind, nent);
+  MPT_temp->AddProperty("ABSLENGTH", scint_e, glass_absl, nent); 
+  Glass_ND->SetMaterialPropertiesTable(MPT_temp);
+  fMaterialsMap["Glass_ND"] = Glass_ND;
+
+  // Light guide material
+  G4double pglass_rind[nent]     = {1.49};
+  G4double pglass_absl[nent]     = {420.0*m};
+  G4Material* pglass    =  man->FindOrBuildMaterial("G4_PLEXIGLASS");
+  MPT_temp = new G4MaterialPropertiesTable();
+  MPT_temp->AddProperty("RINDEX",    scint_e, pglass_rind, nent);
+  MPT_temp->AddProperty("ABSLENGTH", scint_e, pglass_absl, nent); 
+  pglass->SetMaterialPropertiesTable(MPT_temp);
+  fMaterialsMap["pglass"] = pglass;
+
+  bigden = 1e9*g/cm3;
+  // Macor - Target ladder material
+  G4Material* MgO = new G4Material("MgO", bigden, 2 );
+  MgO->AddElement(elMg, 1);
+  MgO->AddElement(elO, 1);
+  G4Material* B2O3 = new G4Material("B2O3", bigden, 2 );
+  B2O3->AddElement(elB, 2);
+  B2O3->AddElement(elO, 3);
+
+  G4Material* macor = new G4Material("Macor", 2.52*g/cm3, 6);
+  macor->AddMaterial(SiO2, 0.46);
+  macor->AddMaterial(MgO,  0.17);
+  macor->AddMaterial(Al2O3,  0.16);
+  macor->AddMaterial(K2O,  0.10);
+  macor->AddMaterial(B2O3,  0.07);
+  macor->AddElement(elF,  0.04);
+  fMaterialsMap["Macor"] = macor;
+
+  G4Material* SiO4 = new G4Material("SiO4", bigden, 2 );
+  SiO4->AddElement(elSi, 1);
+  SiO4->AddElement(elO, 4);
+
+  // Density 1.91 g/cm^3
+  G4Material* G10 = new G4Material("G10", 1.91*g/cm3, 3);
+  G10->AddElement(elC, 0.9*0.9 );
+  G10->AddElement(elH, 0.1*0.9 );
+  G10->AddMaterial(SiO4, 0.1 );
+  fMaterialsMap["G10"] = G10;
+
+  // Scint wrap
+  G4OpticalSurface* ScintWrap = new G4OpticalSurface("ScintWrap");
+  ScintWrap->SetType(dielectric_metal);
+  ScintWrap->SetFinish(polished);
+  ScintWrap->SetModel(glisur);
+
+  G4double reflectivity[nent] = {1.0};
+  G4double efficiency[nent] = {0.0};
+
+  G4MaterialPropertiesTable* ScintWrapProperty = new G4MaterialPropertiesTable();
+
+  ScintWrapProperty->AddProperty("REFLECTIVITY",scint_e,reflectivity,nent);
+  ScintWrapProperty->AddProperty("EFFICIENCY",scint_e,efficiency,nent);
+  ScintWrap->SetMaterialPropertiesTable(ScintWrapProperty);
+  fOpticalSurfacesMap["ScintWrap"] = ScintWrap;
 }
 
 G4Material *G4SBSDetectorConstruction::GetMaterial(G4String name){
@@ -2072,6 +2172,16 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
   return;
 }
 
+ void G4SBSDetectorConstruction::SetNDDist(double a){
+   fNeutronDetector->SetNDDist(a);
+}
+
+void G4SBSDetectorConstruction::SetNDAng(double a){
+  fNeutronDetector->SetNDAngle(a);
+  G4RotationMatrix rm;
+  rm.rotateY(a); 
+}
+
 void G4SBSDetectorConstruction::SetBBDist(double a){ 
   fEArmBuilder->SetBBDist(a); 
   if( fbbfield ) fbbfield->SetOffset(G4ThreeVector(0.0, 0.0, a) ); 
@@ -2149,6 +2259,10 @@ void G4SBSDetectorConstruction::SetSegmentThickC16( G4double thick ){
 
 void G4SBSDetectorConstruction::SetDoseRateC16( G4double rate ){
   fDoseRateC16 = rate; 
+}
+
+void G4SBSDetectorConstruction::SetGEnTarget( G4int option ){
+  fGEnTargetOption = option;
 }
 
 void G4SBSDetectorConstruction::SetFieldScale_SBS( G4double v ){

@@ -91,9 +91,6 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   //   {
   //     MakeC16( worldlog );
   //   }
-  if( exptype == kOld_GEn ) {
-    //MakeOld_GEn( worldlog );
-  }
 }
 
 void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
@@ -2035,12 +2032,6 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
   G4VisAttributes *scintwrap_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0 ) );
   ScintWrapLog->SetVisAttributes( scintwrap_visatt );
   
-}
-
-void G4SBSEArmBuilder::MakeOld_GEn(G4LogicalVolume *worldlog) {
-
-
-
 }
 
 // void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){

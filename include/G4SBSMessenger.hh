@@ -155,6 +155,11 @@ private:
   G4UIcmdWithAnInteger *SegmentC16Cmd;
   G4UIcmdWithADoubleAndUnit *SegmentThickC16Cmd;
   G4UIcmdWithADouble *DoseRateCmd;
+
+  G4UIcmdWithADouble *NDAngCmd;
+  G4UIcmdWithADouble *NDDistCmd;
+  G4UIcmdWithAnInteger *NDTargCmd;
+
 };
 
 #endif//G4SBSMessenger_HH

@@ -355,6 +355,19 @@ G4SBSMessenger::G4SBSMessenger(){
   DoseRateCmd->SetGuidance( "Overall scale factor for dose rate in lead-glass for ECAL/C16 (depth profile is hard-coded!)");
   //DoseRateCmd->SetGuidance( "Assumed to be given in units of krad/hour" ); //Note 1 rad = 0.01 J/kg
   DoseRateCmd->SetParameterName("rate",false);
+
+  NDAngCmd = new G4UIcmdWithADouble("/g4sbs/NDAng", this );
+  NDAngCmd->SetGuidance( "Set the angle of the Neutron Detector for the old GEn exp" );
+  NDAngCmd->SetParameterName("NDAng",false);
+
+  NDDistCmd = new G4UIcmdWithADouble("/g4sbs/NDDist",this);
+  NDDistCmd->SetGuidance( "Set Neutron Detector distance from target" );
+  NDDistCmd->SetParameterName("NDDist",false);
+
+  NDTargCmd = new G4UIcmdWithAnInteger("/g4sbs/NDTargetOption", this);
+  NDTargCmd->SetGuidance("Option to set GEn target (default = 0)");
+  NDTargCmd->SetGuidance("0=reference cell, 1 = Edna");
+  NDTargCmd->SetParameterName("NDTargetOption",false);
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -865,7 +878,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       
     // }
   }
-  
+  if( cmd == NDAngCmd ){
+    G4double v = NDAngCmd->GetNewDoubleValue( newValue );
+    fdetcon->SetNDAng( v );
+  }
+
+  if( cmd == NDDistCmd ) {
+    G4double v = NDDistCmd->GetNewDoubleValue( newValue );
+    fdetcon->SetNDDist( v );
+  }
+
+  if( cmd == NDTargCmd ) {
+    G4int i = NDTargCmd->GetNewIntValue( newValue );
+    fdetcon->SetGEnTarget( i );
+  }
+
   if( cmd == SBSFieldClampOptionCmd ){
     G4int i = SBSFieldClampOptionCmd->GetNewIntValue(newValue);
     fdetcon->fHArmBuilder->SetFieldClampConfig48D48( i );

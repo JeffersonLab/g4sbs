@@ -27,7 +27,7 @@ public:
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
   void MakeRICH(G4LogicalVolume *);
   void MakeRICH_new(G4LogicalVolume *);
-  
+  void MakeNeutronDet(G4LogicalVolume *);
 
   double f48D48ang;
   double f48D48dist;

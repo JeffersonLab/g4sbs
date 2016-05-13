@@ -40,6 +40,8 @@
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 
+#include "G4SBSNeutronDetector.hh"
+
 #include <vector>
 #include <map>
 #include <stdlib.h>
@@ -72,7 +74,9 @@ G4SBSHArmBuilder::~G4SBSHArmBuilder(){
 void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   Exp_t exptype = fDetCon->fExpType;
 
-
+  if( exptype == kOld_GEn ){
+    MakeNeutronDet(worldlog);
+  }
   // All three types of experiments have a 48D48 magnet:
   if( exptype != kC16 && exptype != kOld_GEn ) {
     Make48D48(worldlog, f48D48dist + f48D48depth/2. );
@@ -2511,4 +2515,9 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 
   analog->SetVisAttributes( CH2anavisatt );
   
+}
+
+void G4SBSHArmBuilder::MakeNeutronDet(G4LogicalVolume* world){
+  G4SBSNeutronDetector *ND = new G4SBSNeutronDetector(fDetCon);
+  ND->BuildComponent(world);
 }

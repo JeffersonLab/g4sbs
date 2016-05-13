@@ -24,7 +24,7 @@ class G4SBSBeamlineBuilder;
 class G4SBSTargetBuilder;
 class G4SBSEArmBuilder;
 class G4SBSHArmBuilder;
-
+class G4SBSNeutronDetector;
 
 class G4SBSDetectorMessenger;
 
@@ -78,6 +78,7 @@ public:
   G4SBSTargetBuilder   *fTargetBuilder;
   G4SBSEArmBuilder     *fEArmBuilder;
   G4SBSHArmBuilder     *fHArmBuilder;
+  G4SBSNeutronDetector  *fNeutronDetector;
 
   void SetBBDist( double);
   void SetBBAng( double);
@@ -113,6 +114,11 @@ public:
 
   void SetDoseRateC16( G4double );
   G4double GetDoseRateC16(){ return fDoseRateC16; }
+
+  void SetNDDist( G4double );
+  void SetNDAng( G4double );
+  void SetGEnTarget( G4int );
+  int GetGEnTarget() { return fGEnTargetOption; }
   
 private:
 
@@ -135,6 +141,7 @@ private:
   G4double fSegmentThickC16;
   G4double fDoseRateC16; //Dose rate at z = 0 of lead-glass.
 
+  G4int fGEnTargetOption;
 };
 
 

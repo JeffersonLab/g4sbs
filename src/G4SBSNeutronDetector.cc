@@ -29,7 +29,11 @@
 G4SBSNeutronDetector::G4SBSNeutronDetector(G4SBSDetectorConstruction *dc) : G4SBSComponent(dc) {
   int i, j;
   G4double inch = 2.54*cm;
-  
+
+  fNDdist = fDetCon->GetNDdist() * m;
+  fNDang  = fDetCon->GetNDang() * deg;
+  fTarget = fDetCon->GetGEnTarget();
+
   // Scintillator block dimensions
   //  Veto long length is 100 cm (despite what Tim's document says)
   //                         CMU       UVA    JLab       Glas      Vlong     Vshort
@@ -191,14 +195,6 @@ G4SBSNeutronDetector::G4SBSNeutronDetector(G4SBSDetectorConstruction *dc) : G4SB
   for( i = 0; i < NBARTYPES; i++ ){
     fThreshold[i]  = 10000.0;
   }
-
-  // Needs to be updated
-  //fNDdist = 11.58*m;
-  //fNDang = 30.25*deg;
-  fTarget = 0;
-
-  NDangle = fNDang;
-  NDdistance = fNDdist;
 }
 
 void G4SBSNeutronDetector::BuildComponent(G4LogicalVolume* world) {
@@ -244,9 +240,11 @@ G4LogicalVolume* G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   }
 
   // BUILD ND
-  std::cout << "dist = " << fNDdist << " ang = " << fNDang << " option = " << fTarget << std::endl;
+  NDangle = fNDang;
+  NDdistance = fNDdist;
 
   const G4double theta_norm = 30.17*deg;
+  //const G4double theta_norm = fNDang;
   const G4double bob_z0_dist = 64.0*cm;
   const G4double bob_targ_dist = NDdistance - bob_z0_dist;
   G4double ND_x = 3.0*m;

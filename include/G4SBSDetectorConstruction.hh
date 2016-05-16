@@ -115,8 +115,12 @@ public:
   void SetDoseRateC16( G4double );
   G4double GetDoseRateC16(){ return fDoseRateC16; }
 
-  void SetNDDist( G4double );
-  void SetNDAng( G4double );
+  void SetNDdist( G4double );
+  G4double GetNDdist() { return fNDdist; }
+
+  void SetNDang( G4double );
+  G4double GetNDang() { return fNDang; }
+
   void SetGEnTarget( G4int );
   int GetGEnTarget() { return fGEnTargetOption; }
   
@@ -142,6 +146,8 @@ private:
   G4double fDoseRateC16; //Dose rate at z = 0 of lead-glass.
 
   G4int fGEnTargetOption;
+  G4double fNDdist;
+  G4double fNDang;
 };
 
 

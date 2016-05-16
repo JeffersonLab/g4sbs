@@ -366,7 +366,7 @@ G4SBSMessenger::G4SBSMessenger(){
 
   NDTargCmd = new G4UIcmdWithAnInteger("/g4sbs/NDTargetOption", this);
   NDTargCmd->SetGuidance("Option to set GEn target (default = 0)");
-  NDTargCmd->SetGuidance("0=reference cell, 1 = Edna");
+  NDTargCmd->SetGuidance("0 = reference cell, 1 = Edna");
   NDTargCmd->SetParameterName("NDTargetOption",false);
 }
 
@@ -880,12 +880,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
   if( cmd == NDAngCmd ){
     G4double v = NDAngCmd->GetNewDoubleValue( newValue );
-    fdetcon->SetNDAng( v );
+    fdetcon->SetNDang( v );
   }
 
   if( cmd == NDDistCmd ) {
     G4double v = NDDistCmd->GetNewDoubleValue( newValue );
-    fdetcon->SetNDDist( v );
+    fdetcon->SetNDdist( v );
   }
 
   if( cmd == NDTargCmd ) {

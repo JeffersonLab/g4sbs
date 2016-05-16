@@ -24,11 +24,17 @@ public :
   void  BuildComponent(G4LogicalVolume *); 
    
   G4int GetNRows(int i) { return NRows[i]; } 
-  void SetNDDist( double d ){ fNDdist = d; }
-  void SetNDAngle( double a ){ fNDang = a; }
-  void SetNDTarg( int a ) {fTarget = a; }
 
 private:
+
+  double fNDdist;
+  double fNDang;
+  int fTarget;
+
+  double NDdistance;
+  double NDangle;
+
+  double fThreshold[NBARTYPES];
     
   G4LogicalVolume* ConstructND(G4LogicalVolume*);     
 
@@ -59,13 +65,5 @@ private:
 
   double casbarY[NCASSETTE_TYPES];
   CassType_t casType[NLAYERS][MAX_CASS];
-
-  double fNDdist;
-  double fNDang;
-  double NDdistance;
-  double NDangle;
-
-  double fThreshold[NBARTYPES];
-  int fTarget;
 };
 #endif

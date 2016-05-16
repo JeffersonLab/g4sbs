@@ -2172,14 +2172,16 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
   return;
 }
 
- void G4SBSDetectorConstruction::SetNDDist(double a){
-   fNeutronDetector->SetNDDist(a);
+void G4SBSDetectorConstruction::SetNDdist(double a){
+  fNDdist = a;
 }
 
-void G4SBSDetectorConstruction::SetNDAng(double a){
-  fNeutronDetector->SetNDAngle(a);
-  G4RotationMatrix rm;
-  rm.rotateY(a); 
+void G4SBSDetectorConstruction::SetNDang(double a){
+  fNDang = a;
+}
+
+void G4SBSDetectorConstruction::SetGEnTarget( G4int option ){
+  fGEnTargetOption = option;
 }
 
 void G4SBSDetectorConstruction::SetBBDist(double a){ 
@@ -2259,10 +2261,6 @@ void G4SBSDetectorConstruction::SetSegmentThickC16( G4double thick ){
 
 void G4SBSDetectorConstruction::SetDoseRateC16( G4double rate ){
   fDoseRateC16 = rate; 
-}
-
-void G4SBSDetectorConstruction::SetGEnTarget( G4int option ){
-  fGEnTargetOption = option;
 }
 
 void G4SBSDetectorConstruction::SetFieldScale_SBS( G4double v ){

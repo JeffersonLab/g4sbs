@@ -1,4 +1,4 @@
-## Configure G4SBS for GEn (Q^2 = 10 GeV^2)
+## Configure G4SBS for GEn (Q^2 = %%$q2%% GeV^2)
 /g4sbs/filename gen_10.root ## Rootfile name
 
 ## Configure the target
@@ -12,9 +12,9 @@
 /g4sbs/beamcur    60.0 muA
 /g4sbs/rasterx    4.0 mm
 /g4sbs/rastery    4.0 mm
-/g4sbs/beamE       GeV
-/g4sbs/thmin      24.0 deg
-/g4sbs/thmax      44.0 deg
+/g4sbs/beamE      %%$beamE%% GeV
+/g4sbs/thmin      %%$th_min%% deg
+/g4sbs/thmax      %%$th_max%% deg
 /g4sbs/phmin     155.0 deg
 /g4sbs/phmax     205.0 deg
 
@@ -31,10 +31,10 @@
 ## Configure the magnets
 /g4sbs/bbfield    1         ## Enable BigBite magnet
 /g4sbs/48d48field 1         ## Enable 48D48 magnet
-/g4sbs/bbang      17.5 deg   ## Angle of the BigBite arm
+/g4sbs/bbang      %%$theta_bb%% deg   ## Angle of the BigBite arm
 /g4sbs/bbdist     1.7 m     ## Distance from target to BigBite magnet
-/g4sbs/sbsang     34.0 deg  ## Angle of the SBS arm
+/g4sbs/sbsang     %%$theta_sbs%% deg  ## Angle of the SBS arm
 /g4sbs/48D48dist  1.6 m     ## Distance from target to 48D48 magnet
 
-## Run 100 events
-/g4sbs/run 100
+## Run %%$numOfEvents%% events
+/g4sbs/run %%$numOfEvents%%

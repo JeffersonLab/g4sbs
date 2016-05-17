@@ -1,6 +1,9 @@
 #include "G4SBSNeutronDetector.hh"
 #include "G4SBSDetectorConstruction.hh"
 
+#include "G4SBSECalSD.hh"
+#include "G4SDManager.hh"
+
 #include "G4Material.hh"
 #include "G4Box.hh"
 #include "G4Trd.hh"
@@ -232,8 +235,11 @@ G4LogicalVolume* G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   G4VisAttributes* invisVisAtt= new G4VisAttributes(G4Colour(0.0,0.0,0.0));
   invisVisAtt->SetVisibility(false);
 
-  G4VisAttributes *testVis  = new G4VisAttributes(G4Colour::Blue());
-  testVis ->SetForceWireframe(true);
+  G4VisAttributes *ND_MotherVis  = new G4VisAttributes(G4Colour::Blue());
+  ND_MotherVis ->SetForceWireframe(true);
+
+  G4VisAttributes *vetoVis  = new G4VisAttributes(G4Colour::Cyan());
+  G4VisAttributes *ndVis  = new G4VisAttributes(G4Colour(0.49,0.0,1.0));
   
   for( int i = 0; i < NPLATES; i++ ){
     plateMat.push_back( platemat[i] );
@@ -258,7 +264,7 @@ G4LogicalVolume* G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   G4LogicalVolume *neutronarm_log = new G4LogicalVolume(neutronarm_box,
 							GetMaterial("Air"),"neutronarm_log");
   
-  neutronarm_log->SetVisAttributes( testVis );
+  neutronarm_log->SetVisAttributes( ND_MotherVis );
 
   double x3 = bob_targ_dist*sin(NDangle)+bob_z0_dist*sin(theta_norm);
   double y3 = 0.0;
@@ -288,41 +294,74 @@ G4LogicalVolume* G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   cathlen = 6.0*inch;
   glasslen= 1.0*inch;
 
+  // Make two types of PMT Cathodes which will be a SD
+  G4SDManager *sdman = fDetCon->fSDman;
 
+  G4Tubs* veto_tub = new G4Tubs("veto_tub", 0.0, 0.55*inch*1.3, cathlen/2.0, 0.0, twopi );
+  G4Tubs* others_tub = new G4Tubs("others_tub", 0.0, 1.0*inch*1.3, cathlen/2.0, 0.0, twopi );
+  G4LogicalVolume* veto_log = new G4LogicalVolume(veto_tub, GetMaterial("Aluminum"), "veto_log");
+  G4LogicalVolume* others_log = new G4LogicalVolume(others_tub, GetMaterial("Aluminum"), "others_log");
+  
+  // Set up Sensitive Detector:
+  G4String NDSDname = "Harm/ND";
+  G4String NDcollname = "NDHitsCollection";
+  G4SBSECalSD* NDSD = NULL;
+
+  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(NDSDname)) ) {
+    G4cout << "Adding ND PMT Sensitive Detector to SDman..." << G4endl;
+    NDSD = new G4SBSECalSD( NDSDname, NDcollname );
+    sdman->AddNewDetector(NDSD);
+    (fDetCon->SDlist).insert(NDSDname);
+    fDetCon->SDtype[NDSDname] = kECAL;
+    (NDSD->detmap).depth = 1;
+  }
+  veto_log->SetSensitiveDetector(NDSD);
+  others_log->SetSensitiveDetector(NDSD);
+  
   for( layer = 0; layer < NLAYERS; layer++ ){
     // PMT
     // Use the same PMT design for all of these
     // Change radius for veto layers
-
+    
     sprintf(blockName, "solpmt_%1d",layer+1 );
     solidPMT= new G4Tubs(blockName, 0.0, pmtRad[layer]*1.3, (cathlen+glasslen)/2.0, 360.0*deg, 360.0*deg  );
 
     sprintf(blockName, "solpmtgl_%1d",layer+1 );
     solidPMTglass= new G4Tubs(blockName, 0.0, pmtRad[layer], glasslen/2.0, 360.0*deg, 360.0*deg  );
     sprintf(blockName, "logpmtgl_%1d",layer+1 );
-    logicPMTglass = new G4LogicalVolume( solidPMTglass, GetMaterial("Glass_ND"), blockName );
+    
+    logicPMTglass = new G4LogicalVolume( solidPMTglass, GetMaterial("Glass_HC"), blockName ); // changed glass material
 
-#ifdef SHOWONLY1LAYER
-    if( layer == LAYERTOSHOW )
-#endif
-      logicPMTglass->SetVisAttributes( lgVisAtt );
-#ifdef SHOWONLY1LAYER
-    else
-      logicPMTglass->SetVisAttributes( invisVisAtt );
-#endif
+// #ifdef SHOWONLY1LAYER
+//     if( layer == LAYERTOSHOW )
+// #endif
+//       logicPMTglass->SetVisAttributes( lgVisAtt );
+// #ifdef SHOWONLY1LAYER
+//     else
+//       logicPMTglass->SetVisAttributes( invisVisAtt );
+// #endif
 
     sprintf(blockName, "solpmtca_%1d",layer+1 );
     solidPMTcath = new G4Tubs(blockName, 0.0, pmtRad[layer]*1.3, cathlen/2.0, 360.0*deg, 360.0*deg  );
     sprintf(blockName, "logpmtca_%1d",layer+1 );
-    logicPMTcath = new G4LogicalVolume( solidPMTcath, GetMaterial("Aluminum"), blockName );
-#ifdef SHOWONLY1LAYER
-    if( layer == LAYERTOSHOW )
-#endif
-      logicPMTcath->SetVisAttributes( alVisAtt );
-#ifdef SHOWONLY1LAYER
-    else
-      logicPMTcath->SetVisAttributes( invisVisAtt );
-#endif
+    //logicPMTcath = new G4LogicalVolume( solidPMTcath, GetMaterial("Aluminum"), blockName );
+
+    if( layer==0 || layer==1 ) {
+      logicPMTcath = veto_log;
+      logicPMTcath->SetVisAttributes( vetoVis );
+    } else {
+      logicPMTcath = others_log;
+      logicPMTcath->SetVisAttributes( ndVis );
+    }
+
+// #ifdef SHOWONLY1LAYER
+//     if( layer == LAYERTOSHOW )
+// #endif
+//       logicPMTcath->SetVisAttributes( alVisAtt );
+// #ifdef SHOWONLY1LAYER
+//     else
+//       logicPMTcath->SetVisAttributes( invisVisAtt );
+// #endif
     ///////////////////////////////////////////////////////////
 
     sprintf(blockName, "logpmt_%1d",layer+1 );
@@ -341,7 +380,7 @@ G4LogicalVolume* G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -cathlen/2.0), logicPMTglass, blockName, logicPMT[layer], false, 0 );
     sprintf(blockName, "physpmtca_%1d",layer+1 );
     new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, glasslen/2.0), logicPMTcath, blockName, logicPMT[layer], false, 0 );
-    ///////////////////////////////////////////////////////////
+    ///////////////////////////////this a tiny comment////////////////////////////////////////////lil bitsss////////
 
     for( type = kBarCMU; type < NBARTYPES; type++ ){
       sprintf(blockName, "%ssolblock_%1d", barname[type], layer+1 );
@@ -351,7 +390,7 @@ G4LogicalVolume* G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 
       // Lightguide
       sprintf(blockName, "%ssollg_%1d", barname[type], layer+1 );
-      solidLG = new G4Trd(blockName,  lgFarDepth[type]/2.0, lgNearDepth[type]/2.0, X[type]/2.0, lgSize[type]/2.0, lgLength[type]/2.0   );
+      solidLG = new G4Trd( blockName,  lgFarDepth[type]/2.0, lgNearDepth[type]/2.0, X[type]/2.0, lgSize[type]/2.0, lgLength[type]/2.0 );
       sprintf(blockName, "%sloglg_%1d", barname[type], layer+1 );
       lightguidelog = new G4LogicalVolume(solidLG, GetMaterial("pglass"), blockName);
 #ifdef SHOWONLY1LAYER
@@ -364,7 +403,7 @@ G4LogicalVolume* G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 #endif
 
       sprintf(blockName, "%ssollgcyl_%1d", barname[type], layer+1 );
-      solidLGcyl = new G4Tubs(blockName, 0.0, lgSize[type]/2.0, lgcylLen[type]/2.0, 360.0*deg, 360.0*deg  );
+      solidLGcyl = new G4Tubs(blockName, 0.0, lgSize[type]/2.0, lgcylLen[type]/2.0, 360.0*deg, 360.0*deg );
       sprintf(blockName, "%sloglgcyl_%1d", barname[type], layer+1 );
       lightguidecyllog = new G4LogicalVolume(solidLGcyl, GetMaterial("pglass"), blockName);
 #ifdef SHOWONLY1LAYER

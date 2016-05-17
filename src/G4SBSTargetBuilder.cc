@@ -50,7 +50,10 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   } 
   else if( (fTargType == kLH2 || fTargType == kLD2) && (fDetCon->fExpType == kC16) ) {
     BuildC16CryoTarget( worldlog );
-  } 
+  }
+  else if( fTargType == k3He && (fDetCon->fExpType == kOld_GEn) ){
+    BuildGEnTarget( worldlog );
+  }
   else {
     BuildGasTarget( worldlog );
   }
@@ -1029,8 +1032,6 @@ void G4SBSTargetBuilder::BuildC16CryoTarget( G4LogicalVolume *worldlog ){
   // G4Tubs *swall_hcalcut = new G4Tubs("scham_wall_hcalcut", swallrad_in-2*cm, swallrad+2*cm, hcal_win_h, hcal_ang_min, hcal_ang_max-hcal_ang_min);
   // G4Tubs *swall_bbcut = new G4Tubs("scham_wall_bbcut", swallrad_in-2*cm, swallrad+2*cm, bb_win_h, bb_ang_min, bb_ang_max-bb_ang_min);
 
-  //  G4Tubs *bigdvcscut = new G4Tubs("bigdvcscut", 
-
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateX(-90.0*deg);
   rot_temp->rotateY(180.0*deg);
@@ -1413,5 +1414,208 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
 
   G4VisAttributes *tgt_gas_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
   gas_tube_log->SetVisAttributes( tgt_gas_visatt );
+
+}
+
+void G4SBSTargetBuilder::BuildGEnTarget( G4LogicalVolume* world ) {
+
+  // 0 = reference cell
+  // 1 = "Edna"
+  int fTarget = fDetCon->GetGEnTarget();
+
+  G4Tubs *target_tube = new G4Tubs("target_tube", 0.0, 1.0*cm,
+				   fTargLen, 0.0*deg, 360.0*deg);
+  G4LogicalVolume *target_log = new G4LogicalVolume(target_tube, GetMaterial("Air"), "target_log");
+  G4VPhysicalVolume *target_phys = new G4PVPlacement(0,G4ThreeVector(0,0,0),
+						     target_log,"target",
+						     world, false, 0);
+
+  double wallthick, capthick, radius, targlength;
+  G4VisAttributes* G10VisAtt = new G4VisAttributes(G4Colour(0.0,1.0,1.0));
+  G10VisAtt->SetVisibility(true);
+  G4VisAttributes* leadVisAtt = new G4VisAttributes(G4Colour(0.0,1.0,0.0));
+  leadVisAtt->SetVisibility(true);
+  G4VisAttributes* LadVisAtt = new G4VisAttributes(G4Colour(.207,.776,.063));
+  LadVisAtt->SetVisibility(true);
+
+
+  if( fTarget ==1 ){
+    // Edna
+    wallthick = 1.61*mm;
+    capthick  = 0.126*mm;
+  }
+  if( fTarget == 0 ){
+    // Reference Cell
+    wallthick = 0.85*mm;
+    capthick  = 0.127*mm;
+  }
+  radius    = 0.75*2.54*cm/2.0;
+  targlength = fTargLen;
+
+  // gas
+  G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, radius-wallthick,targlength/2.0, 0.*deg, 360.*deg );
+  G4LogicalVolume* gas_tube_log;
+       
+  if( fTarget == 1 ){
+    gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("pol3He"), "gas_tube_log");
+  } else {
+    gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refH2"), "gas_tube_log");
+  }
+
+  //	G4LogicalVolume* gas_tube_log = new G4LogicalVolume(gas_tube, refN2, "gas_tube_log");
+  G4VPhysicalVolume* gas_tube_phys
+    = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), gas_tube_log, 
+			"gas_tube_phys", world, false, 0);
+
+  // Glass
+  G4Tubs *targ_tube = new G4Tubs("targ_tube", radius-wallthick, radius, targlength/2.0, 0.*deg, 360.*deg );
+  G4Tubs *targ_cap = new G4Tubs("targ_cap", 0.0, radius, capthick/2.0, 0.*deg, 360.*deg );
+
+  G4LogicalVolume* targ_tube_log = new G4LogicalVolume(targ_tube, GetMaterial("GE180") ,"targ_tube_log");
+  G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("GE180"),"targ_cap_log");
+
+  G4VPhysicalVolume* targ_tube_phys
+    = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), targ_tube_log, 
+			"targ_tube_phys", world, false, 0);
+
+  G4VPhysicalVolume* targ_cap_phys;
+  targ_cap_phys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, targlength/2.0+capthick/2.0), targ_cap_log, 
+				    "targ_cap_phys1", world, false, 0);
+  targ_cap_phys = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, -targlength/2.0-capthick/2.0), targ_cap_log, 
+				    "targ_cap_phys2", world, false, 0);
+
+
+  // Target Ladder (polarized cell only)
+
+  double ladderheight = 5.00*2.54*cm;
+  double ladderwidth = 11.853*2.54*cm;
+  double ladderthick = 0.5*2.54*cm; // 1/2 inch
+
+  G4Box *ladderbox = new G4Box("ladderbox", ladderthick/2.0, ladderheight/2.0, ladderwidth/2.0 );
+
+  double holeheight = 0.75*2.54*cm; // 3/2 inch
+  double holewidth = 2.25*2.54*cm;
+
+  G4Box *hole = new G4Box("hole", ladderthick/2.0, holeheight/2.0, holewidth/2.0 );
+
+  G4SubtractionSolid* subtraction;
+  subtraction = new G4SubtractionSolid("hole1", ladderbox, hole, 0, G4ThreeVector(0.0, 0.0, -4.33*2.54*cm ));
+  subtraction = new G4SubtractionSolid("hole2", subtraction, hole, 0, G4ThreeVector(0.0, 0.0, -1.77*2.54*cm) );
+  subtraction = new G4SubtractionSolid("hole3", subtraction, hole, 0, G4ThreeVector(0.0, 0.0, 1.77*2.54*cm) );
+  subtraction = new G4SubtractionSolid("hole4", subtraction, hole, 0, G4ThreeVector(0.0, 0.0, 4.33*2.54*cm) );
+
+  // Ceramic
+  G4LogicalVolume* targladder_log = new G4LogicalVolume(subtraction, GetMaterial("Macor") ,"targladder_log");
+
+  // Target is 3He
+  if( fTarget == 1 ){
+    new G4PVPlacement(0, G4ThreeVector(1.23*2.54*cm, 0.0, 0.0), targladder_log, 
+			  "targladder_phys", world, false, 0);
+  }
+ 
+  // // Target Box
+  double boxrot = -30.0*deg;
+  G4RotationMatrix* targboxrot = new G4RotationMatrix();
+  targboxrot->rotateY(boxrot);
+
+  double boxheight = 1.0*m;
+  double boxwidth  = 2.0*m;
+  double boxthick  = 0.25*2.54*cm;
+
+  // G4Box *targbox = new G4Box("targbox", boxthick/2.0, boxheight/2.0, boxwidth/2.0 );
+
+  // // Side wall
+  // G4LogicalVolume* targbox_log = new G4LogicalVolume(targbox, GetMaterial("Iron") ,"targbox_log");
+  // G4VPhysicalVolume* targbox_phys
+  //   = new G4PVPlacement(targboxrot, G4ThreeVector(0.5*m*cos(boxrot), 0.0, 0.5*m*sin(boxrot)), targbox_log, 
+  // 			"targbox_phys", world, false, 0);
+
+  // targbox_phys
+  //   = new G4PVPlacement(targboxrot, G4ThreeVector(-0.5*m*cos(boxrot), 0.0, -0.5*m*sin(boxrot)), targbox_log, 
+  // 			"targbox_phys", world, false, 0);
+
+  // // Side where all the neutrons go through
+  // double G10windowsize = 8.0*2.54*cm;
+  // G4Box *targwin = new G4Box("targwin", boxwidth/4.0, boxheight/2.0, boxthick/2.0 );
+  // hole = new G4Box("G10hole", G10windowsize/2, G10windowsize/2, boxthick/2.0 );
+
+  // subtraction = new G4SubtractionSolid("targ_side_wall", targwin, hole, 0, G4ThreeVector(-boxwidth/4.0+G10windowsize/2.+4.5*2.54*cm, 0.0, 0.0) );
+
+  // G4LogicalVolume* targwin_log = new G4LogicalVolume(subtraction, GetMaterial("Iron") ,"targwin_log");
+  // G4VPhysicalVolume* targwin_phys
+  //   = new G4PVPlacement(targboxrot, G4ThreeVector(-1.0*m*sin(boxrot), 0.0, 1.0*m*cos(boxrot)), targwin_log, 
+  // 			"targwin_phys", world, false, 0);
+
+  // G4LogicalVolume* G10win_log = new G4LogicalVolume(hole, GetMaterial("G10"), "G10win_log");
+  // G10win_log->SetVisAttributes( G10VisAtt );
+  // G4VPhysicalVolume* G10win_phys = new G4PVPlacement(targboxrot, 
+  // 						     G4ThreeVector(-1.0*m*sin(boxrot)+cos(boxrot)*(-boxwidth/4.0+G10windowsize/2.+4.5*2.54*cm), 
+  // 								   0.0, 
+  // 								   1.0*m*cos(boxrot)+sin(boxrot)*(-boxwidth/4.0+G10windowsize/2.+4.5*2.54*cm)), 
+  // 						     G10win_log, "targwin_phys", world, false, 0);
+
+
+// Lead Bricks
+  double brickheight = 5.5*2.54*cm;
+  double brickwidth  = 11.0*2.54*cm;
+
+  double left_thick  = 2.0*2.54*cm;
+  double right_thick  = 1.0*2.54*cm;
+
+  G4Box *leadbrick_left = new G4Box("leftbrick", brickwidth/2.0, brickheight/2.0, left_thick/2.0 );
+  G4Box *leadbrick_right = new G4Box("rightbrick", brickwidth/2.0, brickheight/2.0, right_thick/2.0 );
+
+  G4LogicalVolume* leadbrick_left_log = new G4LogicalVolume(leadbrick_left, GetMaterial("Iron"), "leftbrick_log");
+  leadbrick_left_log->SetVisAttributes(leadVisAtt);
+  G4LogicalVolume* leadbrick_right_log = new G4LogicalVolume(leadbrick_right, GetMaterial("Iron"), "rightbrick_log");
+  leadbrick_right_log->SetVisAttributes(leadVisAtt);
+
+  G4Box *leadbrick_spacer = new G4Box("spacerbrick", 5.5*2.54*cm/2.0, 0.5*2.54*cm/2.0, 2.0*2.54*cm/2.0 );
+  G4LogicalVolume* leadbrick_spacer_log = new G4LogicalVolume(leadbrick_spacer, GetMaterial("Iron") ,"spacerbrick_log");
+  leadbrick_spacer_log->SetVisAttributes(leadVisAtt);
+
+  // Brick placement
+  // These aren't really placed in any good systematic way, so we'll
+  // do them by hand
+
+  double brickx, bricky, brickz;
+
+  // Left bricks
+  brickx = - boxwidth/4.0 + 4.5*2.54*cm;
+  brickz = left_thick/2.0 + boxwidth/2.0 + boxthick + 1.0*2.54*cm;
+	
+  G4VPhysicalVolume* brick_phys;
+
+  bricky = 0.0;
+  brick_phys = new G4PVPlacement(targboxrot, G4ThreeVector(-brickz*sin(boxrot)+brickx*cos(boxrot), bricky, brickz*cos(boxrot)+brickx*sin(boxrot)), leadbrick_left_log, "brickleft_2_phys", world, false, 0);
+
+  bricky = brickheight;
+  brick_phys = new G4PVPlacement(targboxrot, G4ThreeVector(-brickz*sin(boxrot)+brickx*cos(boxrot), bricky, brickz*cos(boxrot)+brickx*sin(boxrot)), leadbrick_left_log, "brickleft_3_phys", world, false, 0);
+
+  bricky = -brickheight-0.5*2.54*cm;
+  brick_phys = new G4PVPlacement(targboxrot, G4ThreeVector(-brickz*sin(boxrot)+brickx*cos(boxrot), bricky, brickz*cos(boxrot)+brickx*sin(boxrot)), leadbrick_left_log, "brickleft_1_phys", world, false, 0);
+	
+  // Spacer brick
+  bricky = -brickheight/2.0-0.25*2.54*cm;
+  brick_phys = new G4PVPlacement(targboxrot, G4ThreeVector(-brickz*sin(boxrot)+brickx*cos(boxrot), bricky, brickz*cos(boxrot)+brickx*sin(boxrot)), leadbrick_spacer_log, "spacerbrick_phys", world, false, 0);
+	
+  // Right bricks
+  brickx = boxwidth/4.0 - 4.5*2.54*cm;
+  brickz = right_thick/2.0 + boxwidth/2.0 + boxthick + 1.0*2.54*cm;
+
+  bricky = 0.0;
+  brick_phys = new G4PVPlacement(targboxrot, G4ThreeVector(-brickz*sin(boxrot)+brickx*cos(boxrot), bricky, brickz*cos(boxrot)+brickx*sin(boxrot)), leadbrick_right_log, "brickright_3_phys", world, false, 0);
+
+  bricky = brickheight;
+  brick_phys = new G4PVPlacement(targboxrot, G4ThreeVector(-brickz*sin(boxrot)+brickx*cos(boxrot), bricky, brickz*cos(boxrot)+brickx*sin(boxrot)), leadbrick_right_log, "brickleft_4_phys", world, false, 0);
+
+  bricky = 2*brickheight;
+  brick_phys = new G4PVPlacement(targboxrot, G4ThreeVector(-brickz*sin(boxrot)+brickx*cos(boxrot), bricky, brickz*cos(boxrot)+brickx*sin(boxrot)), leadbrick_right_log, "brickleft_5_phys", world, false, 0);
+
+  bricky = -2*brickheight;
+  brick_phys = new G4PVPlacement(targboxrot, G4ThreeVector(-brickz*sin(boxrot)+brickx*cos(boxrot), bricky, brickz*cos(boxrot)+brickx*sin(boxrot)), leadbrick_right_log, "brickleft_1_phys", world, false, 0);
+
+  bricky = -brickheight;
+  brick_phys = new G4PVPlacement(targboxrot, G4ThreeVector(-brickz*sin(boxrot)+brickx*cos(boxrot), bricky, brickz*cos(boxrot)+brickx*sin(boxrot)), leadbrick_right_log, "brickleft_2_phys", world, false, 0);
 
 }

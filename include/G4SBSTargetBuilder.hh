@@ -18,6 +18,7 @@ public:
 
   void BuildCryoTarget(G4LogicalVolume *);
   void BuildC16CryoTarget(G4LogicalVolume *);
+  void BuildGEnTarget( G4LogicalVolume *);
   void BuildStandardCryoTarget(G4LogicalVolume *);
   void BuildGasTarget(G4LogicalVolume *);
 

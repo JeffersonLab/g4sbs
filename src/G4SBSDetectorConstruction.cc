@@ -398,19 +398,16 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   double gasden = 10.5*atmosphere*(1.0079*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
   G4Material *refH2 = new G4Material("refH2", gasden, 1 );
   refH2->AddElement(elH, 1);
-
   fMaterialsMap["refH2"] = refH2;
 
   gasden = 10.5*atmosphere*(14.0067*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
   G4Material *refN2 = new G4Material("refN2", gasden, 1 );
   refN2->AddElement(elN, 1);
-
   fMaterialsMap["refN2"] = refN2;
 
   gasden = 10.77*atmosphere*(3.016*g/Avogadro)/(300*kelvin*k_Boltzmann);
   G4Material *pol3He = new G4Material("pol3He", gasden, 1 );
   pol3He->AddElement(el3He, 1);
-
   fMaterialsMap["pol3He"] = pol3He;
 
   double LH2den = 0.071*g/cm3;

@@ -98,7 +98,11 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   printf("BigBite at %f deg\n", fBBang/deg);
 
   G4RotationMatrix *bbrm = new G4RotationMatrix;
+  if( fDetCon->fExpType==kOld_GEn ){
+    fBBang*=-1;
+  }
   bbrm->rotateY(-fBBang);
+ 
 
   G4RotationMatrix *bbykrm = new G4RotationMatrix;
   bbykrm->rotateX(90.0*deg);

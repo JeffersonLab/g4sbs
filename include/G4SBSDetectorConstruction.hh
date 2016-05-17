@@ -134,6 +134,7 @@ private:
 
   G4double fSegmentThickC16;
   G4double fDoseRateC16; //Dose rate at z = 0 of lead-glass.
+
 };
 
 

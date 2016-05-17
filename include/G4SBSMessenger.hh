@@ -148,6 +148,8 @@ private:
   // G4UIcmdWithABool *UseOpMieHGCmd;    //Mie scattering;
   // G4UIcmdWithABool *DisableOpticalPhysicsCmd; //disable CPU-intensive optical photon physics
 
+  G4UIcmdWithABool *FluxCmd; //Make sphere around target and use to compute flux of particles
+  
   // Command to set particle polarization for spin transport calculations:
   // ONLY relevant for particle gun generator!
   G4UIcmdWith3Vector *GunPolarizationCommand;

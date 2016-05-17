@@ -336,6 +336,10 @@ G4SBSMessenger::G4SBSMessenger(){
   UseScintCmd->SetParameterName("usescint",true);
   UseScintCmd->AvailableForStates(G4State_PreInit);
 
+  FluxCmd = new G4UIcmdWithABool("/g4sbs/fluxcalc",this);
+  FluxCmd->SetGuidance( "Compute particle flux as a function of angles, energy");
+  FluxCmd->SetParameterName( "fluxcalc", false);  
+  
   GunPolarizationCommand = new G4UIcmdWith3Vector( "/g4sbs/gunpol", this );
   GunPolarizationCommand->SetGuidance( "Set particle polarization for gun generator:" );
   GunPolarizationCommand->SetGuidance( "Three-vector arguments are x,y,z components of polarization" );
@@ -354,8 +358,8 @@ G4SBSMessenger::G4SBSMessenger(){
   SegmentThickC16Cmd->SetParameterName("thick",false);
 
   DoseRateCmd = new G4UIcmdWithADouble("/g4sbs/doserate", this );
-  DoseRateCmd->SetGuidance( "Total dose rate in lead glass for thermal annealing model");
-  DoseRateCmd->SetGuidance( "Assumed to be given in units of krad/hour" ); //Note 1 rad = 0.01 J/kg
+  DoseRateCmd->SetGuidance( "Overall scale factor for dose rate in lead-glass for ECAL/C16 (depth profile is hard-coded!)");
+  //DoseRateCmd->SetGuidance( "Assumed to be given in units of krad/hour" ); //Note 1 rad = 0.01 J/kg
   DoseRateCmd->SetParameterName("rate",false);
 }
 
@@ -977,6 +981,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   //   G4RunManager::GetRunManager()->PhysicsHasBeenModified();
   // }
 
+  if( cmd == FluxCmd ){
+    G4bool b = FluxCmd->GetNewBoolValue(newValue);
+    fdetcon->fTargetBuilder->SetFlux(b);
+    fIO->KeepPartCALflags["FLUX"] = b;
+  }
+  
   if( cmd == UseCerenkovCmd ){
     G4bool b = UseCerenkovCmd->GetNewBoolValue(newValue);
     fphyslist->ToggleCerenkov(b);

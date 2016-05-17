@@ -30,6 +30,9 @@ public:
   double GetTargLen() const { return fTargLen; }
   //G4LogicalVolume *BuildSnoutWindows(G4Box *, G4double, G4double, G4double, G4double, G4double);
 
+  G4bool GetFlux() const { return fFlux; }
+  void SetFlux(G4bool b){fFlux = b;}
+  
 private:
   double fTargLen;
   double fTargDen;
@@ -37,6 +40,8 @@ private:
   G4ThreeVector fTargDir;
   int fSchamFlag;
 
+  G4bool fFlux;
+  
   Targ_t fTargType;
 };
 

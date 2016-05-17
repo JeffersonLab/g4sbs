@@ -966,24 +966,71 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   TSpline3 *spline_btilde = new TSpline3( "spline_btilde", Ephoton_btilde, btilde, nentries_btilde );
   
-  const G4int nentries_Cz0 = 47;
+  // const G4int nentries_Cz0 = 47;
 
-  G4double z_Cz0[nentries_Cz0] =
-    { 0.794393*cm, 1.58879*cm, 2.38318*cm, 3.2243*cm, 3.97196*cm, 4.81308*cm, 5.60748*cm, 6.40187*cm, 7.19626*cm, 8.03738*cm,
-      8.83178*cm, 9.62617*cm, 10.4206*cm, 11.215*cm, 12.0093*cm, 12.8037*cm, 13.5981*cm, 14.3925*cm, 15.1869*cm, 16.028*cm,
-      16.8224*cm, 17.6168*cm, 18.4112*cm, 19.2056*cm, 20*cm, 20.7477*cm, 21.5888*cm, 22.4299*cm, 23.2243*cm, 24.0187*cm, 24.8131*cm,
-      25.6542*cm, 26.4486*cm, 27.1963*cm, 27.9907*cm, 28.785*cm, 29.6262*cm, 30.4206*cm, 31.215*cm, 32.0093*cm, 32.8505*cm, 33.5981*cm,
-      36.028*cm, 36.8224*cm, 37.6636*cm, 38.4579*cm, 40*cm };
+  // G4double z_Cz0[nentries_Cz0] =
+  //   { 0.794393*cm, 1.58879*cm, 2.38318*cm, 3.2243*cm, 3.97196*cm, 4.81308*cm, 5.60748*cm, 6.40187*cm, 7.19626*cm, 8.03738*cm,
+  //     8.83178*cm, 9.62617*cm, 10.4206*cm, 11.215*cm, 12.0093*cm, 12.8037*cm, 13.5981*cm, 14.3925*cm, 15.1869*cm, 16.028*cm,
+  //     16.8224*cm, 17.6168*cm, 18.4112*cm, 19.2056*cm, 20*cm, 20.7477*cm, 21.5888*cm, 22.4299*cm, 23.2243*cm, 24.0187*cm, 24.8131*cm,
+  //     25.6542*cm, 26.4486*cm, 27.1963*cm, 27.9907*cm, 28.785*cm, 29.6262*cm, 30.4206*cm, 31.215*cm, 32.0093*cm, 32.8505*cm, 33.5981*cm,
+  //     36.028*cm, 36.8224*cm, 37.6636*cm, 38.4579*cm, 40*cm };
 
-  G4double Cz0[nentries_Cz0] =
-    { 0.759136, 0.750884, 0.72613, 0.691749, 0.649116, 0.607859, 0.565226, 0.521218, 0.482711,
-      0.446955, 0.413949, 0.385069, 0.358939, 0.33556, 0.313556, 0.294303, 0.276424, 0.259921,
-      0.247544, 0.232417, 0.218664, 0.206287, 0.195285, 0.185658, 0.174656, 0.166405, 0.159528,
-      0.154028, 0.147151, 0.143026, 0.1389, 0.134774, 0.133399, 0.129273, 0.126523, 0.123772,
-      0.121022, 0.118271, 0.115521, 0.11277, 0.111395, 0.11002, 0.104519, 0.101768, 0.101768,
-      0.100393, 0.0990177 };
+  // G4double Cz0[nentries_Cz0] =
+  //   { 0.759136, 0.750884, 0.72613, 0.691749, 0.649116, 0.607859, 0.565226, 0.521218, 0.482711,
+  //     0.446955, 0.413949, 0.385069, 0.358939, 0.33556, 0.313556, 0.294303, 0.276424, 0.259921,
+  //     0.247544, 0.232417, 0.218664, 0.206287, 0.195285, 0.185658, 0.174656, 0.166405, 0.159528,
+  //     0.154028, 0.147151, 0.143026, 0.1389, 0.134774, 0.133399, 0.129273, 0.126523, 0.123772,
+  //     0.121022, 0.118271, 0.115521, 0.11277, 0.111395, 0.11002, 0.104519, 0.101768, 0.101768,
+  //     0.100393, 0.0990177 };
 
-  TSpline3* spline_Cz0 = new TSpline3( "Rad_damage_profile_80krad", z_Cz0, Cz0, nentries_Cz0 ); 
+  const G4double C0_80krad = 0.76; //"Rad damage at Z = 0 at 410 nm for 80 krad radiation dose"
+  // For C16, we'll define dose rates as a function of z individually by row and column
+  // For ECAL, we'll define a universal dose rate profile vs z, averaged over the surface of the calorimeter.
+
+  const G4int nbins_z_ECAL_dose = 20;
+  G4double z_ECAL_dose[nbins_z_ECAL_dose] = { 1.0*cm, 3.0*cm, 5.0*cm, 7.0*cm, 9.0*cm,
+					      11.0*cm, 13.0*cm, 15.0*cm, 17.0*cm, 19.0*cm,
+					      21.0*cm, 23.0*cm, 25.0*cm, 27.0*cm, 29.0*cm,
+					      31.0*cm, 33.0*cm, 35.0*cm, 37.0*cm, 39.0*cm };
+  G4double DoseRate_ECAL_vs_z[nbins_z_ECAL_dose] =
+    { 0.0987343, 0.080827, 0.0721091, 0.064972, 0.0559033, 
+      0.0489642, 0.0380918, 0.0306929, 0.0245048, 0.0211042, 
+      0.0155789, 0.0140177, 0.0110763, 0.00985617, 0.00788075, 
+      0.00623784, 0.00566375, 0.0045522, 0.00399444, 0.00439388 }; //in krad/h
+
+  G4double z_DoseRate_C16[17];
+  G4double DoseRate_C16_vs_z[17][4][4];
+  for( int i=0; i<4; i++){
+    for( int j=0; j<4; j++ ){
+      for( int k=0; k<16; k++ ){
+	DoseRate_C16_vs_z[k][i][j] = 0.0;
+      }
+    }
+  }
+  TString line;
+  ifstream infile("database/C16_doserate.txt");
+
+  while( infile && !infile.eof() ){
+    int nbinstemp;
+    double ztemp, ratetemp;
+    int row, col;
+    if( infile >> row >> col >> nbinstemp ){
+      //cout << "row, col, nbins = " << row << ", " << col << ", " << nbinstemp << endl;
+      for( int bin=0; bin<nbinstemp; bin++ ){
+	infile >> ztemp >> ratetemp;
+	//cout << "z, rate = " << ztemp << ", " << ratetemp << endl;
+	if( bin<17 ){
+	  z_DoseRate_C16[bin] = ztemp*cm;
+	  DoseRate_C16_vs_z[bin][row-1][col-1] = ratetemp;
+	}
+      }
+    } else break;
+  }
+  
+  
+  TSpline3 *spline_DoseRate_ECAL = new TSpline3( "spline_DoseRate_ECAL", z_ECAL_dose, DoseRate_ECAL_vs_z, nbins_z_ECAL_dose );
+  
+  //TSpline3* spline_Cz0 = new TSpline3( "Rad_damage_profile_80krad", z_Cz0, Cz0, nentries_Cz0 ); 
   
   //Annealing lifetime is given in hours by:
   // tau = tau_0 * exp( -T / T0 ) (where T is absolute temperature in Kelvin).
@@ -1074,35 +1121,62 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     G4double Temp_z_ECAL = Temp_front_ECAL + (Temp_back_ECAL - Temp_front_ECAL)/(G4double(fSegmentC16*fSegmentThickC16)) * zsegment;
     G4double Temp_z_C16 = Temp_front_C16 + (Temp_back_C16 - Temp_front_C16)/(G4double(fSegmentC16*fSegmentThickC16)) * zsegment;
     
-    G4double AbsIncreaseFactor_ECAL = log( 1.0 - Abs40cm_min )/log( 1.0 - (Abs40cm_min + Abs40cm_T2coeff * pow( max(Temp_z_ECAL-20.0,0.0), 2 ) ) );
-    G4double AbsIncreaseFactor_C16 = log( 1.0 - Abs40cm_min )/log( 1.0 - (Abs40cm_min + Abs40cm_T2coeff * pow( max(Temp_z_C16-20.0,0.0), 2 ) ) );
+    // G4double AbsIncreaseFactor_ECAL = log( 1.0 - Abs40cm_min )/log( 1.0 - (Abs40cm_min + Abs40cm_T2coeff * pow( max(Temp_z_ECAL-20.0,0.0), 2 ) ) );
+    // G4double AbsIncreaseFactor_C16 = log( 1.0 - Abs40cm_min )/log( 1.0 - (Abs40cm_min + Abs40cm_T2coeff * pow( max(Temp_z_C16-20.0,0.0), 2 ) ) );
     
     G4double tau_annealing_ECAL = AnnealingLifetime_tau0 * exp( -( (Temp_z_ECAL + 273.15)/AnnealingLifetime_T0 ) ); //in hours!
     G4double tau_annealing_C16 = AnnealingLifetime_tau0 * exp( -( (Temp_z_C16 + 273.15)/AnnealingLifetime_T0 ) ); //in hours!
     
     //This computes the equilibrium radiation damage profile as a function of z!
-    double zmin = spline_Cz0->GetXmin();
-    double zmax = spline_Cz0->GetXmax();
+    double zmin = spline_DoseRate_ECAL->GetXmin();
+    double zmax = spline_DoseRate_ECAL->GetXmax();
     double zeval = zsegment >= zmin ? zsegment : zmin;
     zeval = zsegment <= zmax ? zsegment : zmax;
+
+    //Re-interpret user dose rate parameter as an overall scale factor for the dose rate.
+    G4double Cz_eq_ECAL = C0_80krad * spline_DoseRate_ECAL->Eval( zeval ) * fDoseRateC16 / 80.0 * tau_annealing_ECAL;
     
-    G4double Cz_eq_ECAL = spline_Cz0->Eval( zeval ) * fDoseRateC16 * tau_annealing_ECAL / 80.0; //dose rate is assumed to be given in krad/hour!
-    G4double Cz_eq_C16 = spline_Cz0->Eval( zeval ) * fDoseRateC16 * tau_annealing_C16 / 80.0; //dose rate is assume to be given in krad/hour!
+    //G4double Cz_eq_ECAL = spline_Cz0->Eval( zeval ) * fDoseRateC16 * tau_annealing_ECAL / 80.0; //dose rate is assumed to be given in krad/hour!
+    //G4double Cz_eq_C16 = spline_Cz0->Eval( zeval ) * fDoseRateC16 * tau_annealing_C16 / 80.0; //dose rate is assume to be given in krad/hour!
+
+    G4double Cz_eq_C16[4][4];
+    for( int row=0; row<4; row++ ){
+      for( int col=0; col<4; col++ ){
+	G4double rate_temp[17];
+	for( int bintemp=0; bintemp<17; bintemp++ ){
+	  rate_temp[bintemp] = DoseRate_C16_vs_z[bintemp][row][col];
+	}
+	TSpline3 stemp( "splinetemp", z_DoseRate_C16, rate_temp, 17 );
+	zeval = zsegment >= z_DoseRate_C16[0] ? zsegment : z_DoseRate_C16[0];
+	zeval = zsegment <= z_DoseRate_C16[16] ? zsegment : z_DoseRate_C16[16];
+	
+	Cz_eq_C16[row][col] = C0_80krad * stemp.Eval( zeval ) * fDoseRateC16 / 80.0 * tau_annealing_C16;
+
+	// G4cout << "Row, Col, zeval, doserate, Ceq(z) = " << row+1 << ", " << col+1 << ", " << zeval/cm
+	//        << ", " << stemp.Eval( zeval ) * fDoseRateC16 << ", " << Cz_eq_C16[row][col] << G4endl;
+      }
+    }
     
     G4double Ephot_min = 1.91*eV;
     G4double Ephot_max = 3.74*eV;
 
     G4double Ephoton_abslength[Ntemp+1];
     G4double abslength_ECAL[Ntemp+1];
-    G4double abslength_C16[Ntemp+1];
+    G4double abslength_C16[Ntemp+1][4][4];
 
     //   G4cout << "Ntemp = " << Ntemp << G4endl;
     
     for( G4int iE=0; iE<=Ntemp; iE++ ){
       Ephoton_abslength[iE] = Ephot_min + (Ephot_max-Ephot_min)/G4double(Ntemp) * iE;
-      abslength_ECAL[iE] = AbsIncreaseFactor_ECAL / (1.0/spline_atilde->Eval( Ephoton_abslength[iE] ) + Cz_eq_ECAL / spline_btilde->Eval( Ephoton_abslength[iE] ) );
-      abslength_C16[iE] = AbsIncreaseFactor_C16 / (1.0/spline_atilde->Eval( Ephoton_abslength[iE] ) + Cz_eq_C16 / spline_btilde->Eval( Ephoton_abslength[iE] ) );
+      abslength_ECAL[iE] = 1.0 / (1.0/spline_atilde->Eval( Ephoton_abslength[iE] ) + Cz_eq_ECAL / spline_btilde->Eval( Ephoton_abslength[iE] ) );
+      //abslength_C16[iE] = 1.0 / (1.0/spline_atilde->Eval( Ephoton_abslength[iE] ) + Cz_eq_C16 / spline_btilde->Eval( Ephoton_abslength[iE] ) );
 
+      for( int row=0; row<4; row++ ){
+	for( int col=0; col<4; col++ ){
+	  abslength_C16[iE][row][col] = 1.0 / (1.0/spline_atilde->Eval( Ephoton_abslength[iE] ) + Cz_eq_C16[row][col] / spline_btilde->Eval( Ephoton_abslength[iE] ) );
+	}
+      }
+      
       // G4cout << "z, Ephoton, lambda, Labs(ECAL), Labs(C16), atilde = " << zsegment/cm << ", "
       // 	     << Ephoton_abslength[iE] / eV << ", "
       // 	     << twopi * hbarc / Ephoton_abslength[iE] / nm << ", "
@@ -1122,17 +1196,30 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     mat_temp->SetMaterialPropertiesTable( MPT_temp );
     fMaterialsMap[matname.Data()] = mat_temp;
 
-    matname.Form( "TF1_anneal_C16_z%d", segment );
-    mat_temp = new G4Material( matname.Data(), 3.86*g/cm3, 1 );
-    mat_temp->AddMaterial( TF1, 1.0 );
+    for( int row=0; row<4; row++ ){
+      for( int col=0; col<4; col++ ){
+	
+	matname.Form( "TF1_anneal_C16_row%d_col%d_z%d", row+1, col+1, segment );
+	mat_temp = new G4Material( matname.Data(), 3.86*g/cm3, 1 );
+	mat_temp->AddMaterial( TF1, 1.0 );
 
-    MPT_temp = new G4MaterialPropertiesTable();
-    MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
-    MPT_temp->AddProperty("ABSLENGTH", Ephoton_abslength, abslength_C16, Ntemp+1 );
+	MPT_temp = new G4MaterialPropertiesTable();
+	MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
 
-    mat_temp->SetMaterialPropertiesTable( MPT_temp );
-    fMaterialsMap[matname.Data()] = mat_temp;
-    
+	G4double abslength_temp[Ntemp+1];
+	for( int iE=0; iE<Ntemp+1; iE++ ){
+	  abslength_temp[iE] = abslength_C16[iE][row][col];
+	  // G4cout << "Row " << row+1 << " Column " << col+1 << " Ephoton = " << Ephoton_abslength[iE]/eV
+	  // 	 << " eV, Abs. length = " << abslength_temp[iE]/cm << " cm, atilde = "
+	  // 	 << spline_atilde->Eval( Ephoton_abslength[iE] )/cm << G4endl;
+	}
+	
+	MPT_temp->AddProperty("ABSLENGTH", Ephoton_abslength, abslength_temp, Ntemp+1 );
+
+	mat_temp->SetMaterialPropertiesTable( MPT_temp );
+	fMaterialsMap[matname.Data()] = mat_temp;
+      }
+    } 
   }
   
   //****  TF1 implementing annealing model  ****

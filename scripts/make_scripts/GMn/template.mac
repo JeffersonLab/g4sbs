@@ -1,0 +1,25 @@
+## Configure G4SBS for GMn Kin%%$kin%% (Q^2 = %%$q2%% GeV^2)
+/g4sbs/beamcur      44 muA   ## From proposal, but no longer sure it's correct
+/g4sbs/target       LD2         ## Target
+/g4sbs/kine         elastic     ## Generator
+/g4sbs/exp          gmn         ## Experiment configuration
+/g4sbs/targlen      10.0 cm     ## Length of cryo-target
+/g4sbs/beamE        %%$beam_e%% GeV     ## Kinematics from proposal
+/g4sbs/bbang        %%$theta_bb%% deg    ## e' angle (big bite angle)
+/g4sbs/bbdist       %%$dist_bb%% m      ## Distance of bb from target
+/g4sbs/sbsang       %%$theta_sbs%% deg    ## angle of hadron side (sbs) formerly hcal angle
+/g4sbs/hcaldist     %%$dist_hcal%% m       ## Distance of hcal to target
+/g4sbs/hcalvoffset  %%$voff_hcal%% m      ## HCal vertical offset
+/g4sbs/48D48dist    %%$dist_mag%% m       ## Distance of 48D48 magnet from target
+/g4sbs/sbsmagfield  %%$field_mag%% tesla  ## The 48D48 constant magnetic field value
+/g4sbs/48d48field   1           ## Turn on the constant 48D48 magnetic field
+/g4sbs/bbfield      1           ## Turn on the BB magnetic field
+
+## Specify the range of angles to generate
+/g4sbs/thmin        %%$th_min%% deg   ## Min polar angle of electron (generator)
+/g4sbs/thmax        %%$th_max%% deg   ## Max polar angle of electron (generator)
+/g4sbs/phmin        %%$ph_min%% deg     ## Min azymuthal angle of electron (generator)
+/g4sbs/phmax        %%$ph_max%% deg     ## Max azymuthal angle of electron (generator)
+
+## Run %%$numOfEvents%% events
+/g4sbs/run %%$numOfEvents%%

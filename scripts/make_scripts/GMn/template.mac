@@ -18,8 +18,8 @@
 ## Specify the range of angles to generate
 /g4sbs/thmin        %%$th_min%% deg   ## Min polar angle of electron (generator)
 /g4sbs/thmax        %%$th_max%% deg   ## Max polar angle of electron (generator)
-/g4sbs/phmin        %%$ph_min%% deg     ## Min azymuthal angle of electron (generator)
-/g4sbs/phmax        %%$ph_max%% deg     ## Max azymuthal angle of electron (generator)
+/g4sbs/phmin        -30 deg    ## Min azymuthal angle of electron (generator)
+/g4sbs/phmax        30 deg     ## Max azymuthal angle of electron (generator)
 
 ## Run %%$numOfEvents%% events
 /g4sbs/run %%$numOfEvents%%

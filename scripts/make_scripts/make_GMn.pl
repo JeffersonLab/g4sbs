@@ -27,7 +27,7 @@ while(my $line = <$gmnFH>) {
     my $kin = sprintf("%02d",++$kinNum);
 
     my ($tmp,$q2,$beam_e,$theta_bb,$theta_sbs,$dist_bb,$dist_mag,$dist_hcal,$bdl,
-      $voff_hcal,$th_min,$th_max,$ph_min,$ph_max) = split(" ",$line);
+      $voff_hcal,$th_min,$th_max) = split(" ",$line);
     $th_min=$theta_bb-10;
     $th_max=$theta_bb+10;
 

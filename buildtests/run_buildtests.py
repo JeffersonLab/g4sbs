@@ -9,6 +9,9 @@ g4sbs_repo='https://github.com/JeffersonLab/g4sbs.git'
 ## Specify path to temp directory
 g4sbs_tmpdir='/volatile/halla/sbs/g4sbs_buildtests/'
 
+## Specify branch to use
+g4sbs_branch='cmu_dev'
+
 import os
 import sys
 import re
@@ -83,6 +86,14 @@ def main():
   ## Clone a fresh copy of the repository
   myOutLog('\n\nCloning fresh copy of G4SBS from ' + g4sbs_repo,True)
   runExit('git','clone',g4sbs_repo)
+  os.chdir('g4sbs')
+  ## Fetch all remote branches
+  runExit('git','fetch')
+  ## Switch to branch to test
+  runExit('git','checkout',g4sbs_branch)
+  ## Show last commit
+  runExit('git','log','-1')
+  os.chdir('../')
 
   ## Build G4SBS
   myOutLog('\n\nBuilding G4SBS.....')

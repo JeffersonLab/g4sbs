@@ -1,35 +1,35 @@
-/g4sbs/filename gmn_13.5.root 
+## Configure G4SBS for gmn (Q^2 = 13.5 GeV^2)
+/g4sbs/filename        gmn_13.5.root     ## Output rootfile
 
-/g4sbs/beamcur  10.5 muA
-/g4sbs/target   LD2
-/g4sbs/kine     flat
-/g4sbs/targlen  10.0 cm
+## Configure Experiment
+/g4sbs/exp             gmn
 
-/g4sbs/gemres 0.070 mm
+## Configure the target
+/g4sbs/target          LD2
+/g4sbs/targlen         10.0 cm           ## Target Length
 
-/g4sbs/rasterx  4.0 mm
-/g4sbs/rastery  4.0 mm
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/beamcur         44 muA
+/g4sbs/beamE           11.0 GeV
+/g4sbs/thmin           25.0 deg
+/g4sbs/thmax           44.0 deg
+/g4sbs/phmin           -30 deg
+/g4sbs/phmax           30 deg
 
-/g4sbs/cerdist     0.57 m
-/g4sbs/cerdepth    0.75 m
-/g4sbs/gemsep      1.34 m
-/g4sbs/bbcaldist   1.4 m
-/g4sbs/gemconfig       2
+## Configure standard detector settings
+/g4sbs/hcaldist        17.0 m
+/g4sbs/hcalvoffset     0.00 m
+/g4sbs/sbsclampopt     0                 ## Disable all field clamps
 
-/g4sbs/bbfield 1
-/g4sbs/48d48field 1
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/48d48field      1
+/g4sbs/bbang           33.0 deg
+/g4sbs/bbdist          1.55 m
+/g4sbs/sbsang          14.9 deg
+/g4sbs/48D48dist       3.1 m
+/g4sbs/sbsmagfield     0.9 tesla
 
-/g4sbs/runtime     1.0 s
-/g4sbs/beamE      11.0 GeV
-/g4sbs/bbang      33.0 deg
-/g4sbs/bbdist      1.55 m
-/g4sbs/sbsang    14.9 deg
-/g4sbs/hcaldist   17.0 m
-/g4sbs/48D48dist   3.1 m
-/g4sbs/thmin      23.0 deg
-/g4sbs/thmax      43.0 deg
-/g4sbs/phmin     155.0 deg
-/g4sbs/phmax     205.0 deg
-
-/g4sbs/run 10000
-
+## Run 100 events
+/g4sbs/run             100

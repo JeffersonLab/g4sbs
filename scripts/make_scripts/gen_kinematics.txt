@@ -1,0 +1,33 @@
+##  Kinematics & settings for GEn experiment
+
+## Configure the standard settings
+config.target=3He
+config.targpres=10 atmosphere
+config.targlen=55.0 cm
+config.kine=elastic
+config.beamcur=60.0 muA
+config.runtime=1.0 s
+config.rasterx=4.0 mm
+config.rastery=4.0 mm
+config.gemres=0.070 mm
+config.cerdist=0.57 m
+config.gemsep=1.34 m
+config.bbcaldist=1.4 m
+config.gemconfig=1
+config_comment.gemconfig=(Used to be 2, but changed to 1 on the recommendation of documentation on wiki)
+config.hcaldist=17.0 m
+config.hcalvoffset=0.0
+config.bbfield=1
+config.48d48field=1
+config.bbdist=1.7 m
+config.48D48dist=1.6 m
+config.phmin=155.0 deg
+config.phmax=205.0 deg
+
+## Configure the table
+config_table=q2,beamE:GeV,bbang:deg,sbsang:deg,thmin:deg,thmax:deg
+##  Q^2   E_beam  theta_bb  theta_sbs th_min  th_max
+    1.5     2.2    39.4      40.0      30.0    50.0
+    4       4.4    29.9      34.0      24.0    44.0
+    7       6.6    22.2      34.0      24.0    44.0
+    10      8.8    17.5      34.0      24.0    44.0

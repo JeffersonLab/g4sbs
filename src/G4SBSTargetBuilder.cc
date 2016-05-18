@@ -1522,37 +1522,35 @@ void G4SBSTargetBuilder::BuildGEnTarget( G4LogicalVolume* world ) {
   double boxwidth  = 2.0*m;
   double boxthick  = 0.25*2.54*cm;
 
-  // G4Box *targbox = new G4Box("targbox", boxthick/2.0, boxheight/2.0, boxwidth/2.0 );
+  G4Box *targbox = new G4Box("targbox", boxthick/2.0, boxheight/2.0, boxwidth/2.0 );
 
-  // // Side wall
-  // G4LogicalVolume* targbox_log = new G4LogicalVolume(targbox, GetMaterial("Iron") ,"targbox_log");
-  // G4VPhysicalVolume* targbox_phys
-  //   = new G4PVPlacement(targboxrot, G4ThreeVector(0.5*m*cos(boxrot), 0.0, 0.5*m*sin(boxrot)), targbox_log, 
-  // 			"targbox_phys", world, false, 0);
+  // Side wall
+  G4LogicalVolume* targbox_log = new G4LogicalVolume(targbox, GetMaterial("Iron") ,"targbox_log");
+  new G4PVPlacement(targboxrot, G4ThreeVector(0.5*m*cos(boxrot), 0.0, 0.5*m*sin(boxrot)), targbox_log, 
+  			"targbox_phys", world, false, 0);
 
-  // targbox_phys
-  //   = new G4PVPlacement(targboxrot, G4ThreeVector(-0.5*m*cos(boxrot), 0.0, -0.5*m*sin(boxrot)), targbox_log, 
-  // 			"targbox_phys", world, false, 0);
+  new G4PVPlacement(targboxrot, G4ThreeVector(-0.5*m*cos(boxrot), 0.0, -0.5*m*sin(boxrot)), targbox_log, 
+  		    "targbox_phys", world, false, 0);
+  
+  // Side where all the neutrons go through
+  double G10windowsize = 8.0*2.54*cm;
+  G4Box *targwin = new G4Box("targwin", boxwidth/4.0, boxheight/2.0, boxthick/2.0 );
+  hole = new G4Box("G10hole", G10windowsize/2.0, G10windowsize/2.0, boxthick/2.0 );
+  
+  subtraction = new G4SubtractionSolid("targ_side_wall", targwin, hole, 0, G4ThreeVector(-boxwidth/4.0+G10windowsize/2.+4.5*2.54*cm, 0.0, 0.0) );
 
-  // // Side where all the neutrons go through
-  // double G10windowsize = 8.0*2.54*cm;
-  // G4Box *targwin = new G4Box("targwin", boxwidth/4.0, boxheight/2.0, boxthick/2.0 );
-  // hole = new G4Box("G10hole", G10windowsize/2, G10windowsize/2, boxthick/2.0 );
+  G4LogicalVolume* targwin_log = new G4LogicalVolume(subtraction, GetMaterial("Iron") ,"targwin_log");
 
-  // subtraction = new G4SubtractionSolid("targ_side_wall", targwin, hole, 0, G4ThreeVector(-boxwidth/4.0+G10windowsize/2.+4.5*2.54*cm, 0.0, 0.0) );
+  new G4PVPlacement(targboxrot, G4ThreeVector(-1.0*m*sin(boxrot), 0.0, 1.0*m*cos(boxrot)), targwin_log, 
+  			"targwin_phys", world, false, 0);
 
-  // G4LogicalVolume* targwin_log = new G4LogicalVolume(subtraction, GetMaterial("Iron") ,"targwin_log");
-  // G4VPhysicalVolume* targwin_phys
-  //   = new G4PVPlacement(targboxrot, G4ThreeVector(-1.0*m*sin(boxrot), 0.0, 1.0*m*cos(boxrot)), targwin_log, 
-  // 			"targwin_phys", world, false, 0);
-
-  // G4LogicalVolume* G10win_log = new G4LogicalVolume(hole, GetMaterial("G10"), "G10win_log");
-  // G10win_log->SetVisAttributes( G10VisAtt );
-  // G4VPhysicalVolume* G10win_phys = new G4PVPlacement(targboxrot, 
-  // 						     G4ThreeVector(-1.0*m*sin(boxrot)+cos(boxrot)*(-boxwidth/4.0+G10windowsize/2.+4.5*2.54*cm), 
-  // 								   0.0, 
-  // 								   1.0*m*cos(boxrot)+sin(boxrot)*(-boxwidth/4.0+G10windowsize/2.+4.5*2.54*cm)), 
-  // 						     G10win_log, "targwin_phys", world, false, 0);
+  G4LogicalVolume* G10win_log = new G4LogicalVolume(hole, GetMaterial("G10"), "G10win_log");
+  G10win_log->SetVisAttributes( G10VisAtt );
+  new G4PVPlacement(targboxrot, 
+		    G4ThreeVector(-1.0*m*sin(boxrot)+cos(boxrot)*(-boxwidth/4.0+G10windowsize/2.+4.5*2.54*cm), 
+				  0.0, 
+				  1.0*m*cos(boxrot)+sin(boxrot)*(-boxwidth/4.0+G10windowsize/2.+4.5*2.54*cm)), 
+		    G10win_log, "targwin_phys", world, false, 0);
 
 
 // Lead Bricks

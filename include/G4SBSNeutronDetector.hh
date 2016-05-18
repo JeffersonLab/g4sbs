@@ -36,7 +36,7 @@ private:
 
   double fThreshold[NBARTYPES];
     
-  G4LogicalVolume* ConstructND(G4LogicalVolume*);     
+  void ConstructND(G4LogicalVolume*);     
 
   G4int NRows[NLAYERS];
   G4LogicalVolume* logicPMT[NLAYERS];

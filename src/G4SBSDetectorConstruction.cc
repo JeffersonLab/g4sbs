@@ -321,12 +321,18 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Argon->AddElement(elAr, 1);
   fMaterialsMap["Argon"] = Argon;
 
+  G4Material *G4_ethane = man->FindOrBuildMaterial( "G4_ETHANE" );
+  G4Material* MWDC_gas = new G4Material("MWDC_gas", density = 0.001523*g/cm3, 2);
+  MWDC_gas->AddMaterial(Argon,0.50);
+  MWDC_gas->AddMaterial(G4_ethane,0.50);
+  fMaterialsMap["MWDC_gas"] = MWDC_gas;
+
   G4double density_CO2 = 1.977*mg/cm3;
   G4Material* CO2 = new G4Material("CO2", density_CO2, nel=2);
   CO2->AddElement(elC, 1);
   CO2->AddElement(elO, 2);
 
-
+  
   G4double CO2_RefractiveIndex[nEntries];
   for ( int i = 0; i < nEntries; ++i ) {
     CO2_RefractiveIndex[i]=1.00045;

@@ -47,6 +47,8 @@
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 
+#include "G4SBSMWDC.hh"
+
 #include "TString.h"
 
 using namespace std;
@@ -409,8 +411,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   G4SBSTrackerBuilder trackerbuilder(fDetCon);
 
-    
-
   //This routine creates and positions GEM planes in bbdetLog:
 
   //------------------------------------------- BigBite GEMs: ----------------------------------------//
@@ -422,6 +422,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
   //----- Note: Lines of code that are common to the construction of all individual GEM planes/modules were moved to MakeTracker() -----// 
   //----- All we do here in MakeBigBite() is define the number of planes, their z positions, and their transverse dimensions ------//
+
+
+  // Make MWDC - GEn
+  G4SBSMWDC* mwdc = new G4SBSMWDC(fDetCon);
+  mwdc->BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset ), "Earm/BBMWDC");
+
+
 
   double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
   double mylar_air_sum = mylarthickness + airthickness;

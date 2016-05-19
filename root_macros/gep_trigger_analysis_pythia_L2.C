@@ -498,11 +498,11 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *logic
 	double threshold = hrate_vs_threshold_ECAL->GetBinCenter( ithr + 1 );
 	hrate_vs_threshold_ECAL->Fill( threshold, weight );
 	hNnodes_fired_ECAL_vs_threshold->Fill( threshold, trigger_nodes_fired[ithr], weight );
-	for( set<int>::iterator inode = list_of_nodes_fired_vs_threshold_ECAL[ithr+1].begin(); inode != list_of_nodes_fired_vs_threshold_ECAL[ithr+1].end(); ++inode ){
-	  for( set<int>::iterator jnode = inode; jnode != list_of_nodes_fired_vs_threshold_ECAL[ithr+1].end(); ++jnode ){
-	    hrates_overlap_ECAL->Fill( *inode, *jnode, threshold, weight );
-	  }
-	}
+	//for( set<int>::iterator inode = list_of_nodes_fired_vs_threshold_ECAL[ithr+1].begin(); inode != list_of_nodes_fired_vs_threshold_ECAL[ithr+1].end(); ++inode ){
+	//  for( set<int>::iterator jnode = inode; jnode != list_of_nodes_fired_vs_threshold_ECAL[ithr+1].end(); ++jnode ){
+	//    hrates_overlap_ECAL->Fill( *inode, *jnode, threshold, weight );
+	//  }
+	//}
       }
     }
 
@@ -632,13 +632,13 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *logic
 	hrate_vs_threshold_HCAL->Fill( threshold, weight );
 	hNnodes_fired_HCAL_vs_threshold->Fill( threshold, trigger_nodes_fired_hcal[ithr], weight );
 
-	for( set<int>::iterator inode = list_of_nodes_fired_vs_threshold_HCAL[ithr+1].begin(); inode != list_of_nodes_fired_vs_threshold_HCAL[ithr+1].end(); ++inode ){
-	  for( set<int>::iterator jnode = inode; jnode != list_of_nodes_fired_vs_threshold_HCAL[ithr+1].end(); ++jnode ){
+	//for( set<int>::iterator inode = list_of_nodes_fired_vs_threshold_HCAL[ithr+1].begin(); inode != list_of_nodes_fired_vs_threshold_HCAL[ithr+1].end(); ++inode ){
+	//  for( set<int>::iterator jnode = inode; jnode != list_of_nodes_fired_vs_threshold_HCAL[ithr+1].end(); ++jnode ){
 	    
-	    hrates_overlap_HCAL->Fill( *inode, *jnode, threshold, weight );
+	//    hrates_overlap_HCAL->Fill( *inode, *jnode, threshold, weight );
 	    
-	  }
-	}
+	//  }
+	//}
       }
       if( node_sums_hcal[ maxnode_HCAL ]/logic_mean_hcal[maxnode_HCAL] >= threshold ){
 	hrate_vs_threshold_logic_sums_HCALmax->Fill( maxnode_HCAL, threshold, weight );

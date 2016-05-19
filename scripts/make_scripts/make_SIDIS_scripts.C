@@ -105,7 +105,7 @@ void make_SIDIS_scripts( const char *inputfilename ){
     
     for(int sbspol=-1; sbspol<=1; sbspol += 2 ){
 
-      outfilename = "sidis_";
+      outfilename = "../sidis_";
       outfilename += hadrons[ihadron+2];
 
       if( sbspol*ihadron > 0 ){

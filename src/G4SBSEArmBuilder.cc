@@ -104,6 +104,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     fBBang*=-1;
   }
   bbrm->rotateY(-fBBang);
+
+
  
 
   G4RotationMatrix *bbykrm = new G4RotationMatrix;
@@ -426,7 +428,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // Make MWDC - GEn
   G4SBSMWDC* mwdc = new G4SBSMWDC(fDetCon);
-  mwdc->BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset ), "Earm/BBMWDC");
+  mwdc->BuildComponent(bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset+50*cm ), "Earm/BBMWDC");
 
 
 

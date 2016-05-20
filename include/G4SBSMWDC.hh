@@ -19,8 +19,8 @@ public:
   void BuildComponent(G4LogicalVolume *, G4RotationMatrix *, 
 		      G4ThreeVector, G4String );  
 
-  G4LogicalVolume* BuildX(double,double,int,int);
-  G4LogicalVolume* BuildUorV(double,double,G4String,int,int);
+  G4LogicalVolume* BuildX(double,double,int,int,int);
+  G4LogicalVolume* BuildUorV(double,double,G4String,int,int,int);
 
 private:
 
@@ -49,11 +49,19 @@ private:
 
   double fCath2WireDist;
   double fGlassThick;
+  double fSpacer;
+
+  G4RotationMatrix* fWireRot;
 
   // VISUALS:
   G4VisAttributes* mylarVisAtt;
   G4VisAttributes* cuVisAtt;
   G4VisAttributes* glassVisAtt;
   G4VisAttributes* gasVisAtt;
+  G4VisAttributes* mothVisAtt;
+  G4VisAttributes* chamVisAtt;
+  G4VisAttributes* sigwireVisAtt;
+  G4VisAttributes* fieldwireVisAtt;
+  
 };
 #endif

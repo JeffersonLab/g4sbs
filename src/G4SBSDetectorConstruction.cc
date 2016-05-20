@@ -327,6 +327,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MWDC_gas->AddMaterial(G4_ethane,0.50);
   fMaterialsMap["MWDC_gas"] = MWDC_gas;
 
+  G4Material *mwdc_tungsten = man->FindOrBuildMaterial("G4_W");
+  fMaterialsMap["Tungsten"] = mwdc_tungsten;
+
   G4double density_CO2 = 1.977*mg/cm3;
   G4Material* CO2 = new G4Material("CO2", density_CO2, nel=2);
   CO2->AddElement(elC, 1);

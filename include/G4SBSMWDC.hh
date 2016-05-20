@@ -16,7 +16,7 @@ public:
   ~G4SBSMWDC();
 
   void BuildComponent(G4LogicalVolume *);
-  void BuildComponent(G4LogicalVolume *, G4RotationMatrix *, 
+  void BuildComponent(G4LogicalVolume *,G4LogicalVolume *, G4RotationMatrix *, 
 		      G4ThreeVector, G4String );  
 
   G4LogicalVolume* BuildX(double,double,int,int,int);
@@ -50,8 +50,8 @@ private:
   double fCath2WireDist;
   double fGlassThick;
   double fSpacer;
-
-  G4RotationMatrix* fWireRot;
+  double fUtheta, fVtheta;
+  G4RotationMatrix *fWireRotX, *fWireRotU, *fWireRotV;
 
   // VISUALS:
   G4VisAttributes* mylarVisAtt;

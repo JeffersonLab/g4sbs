@@ -7,12 +7,13 @@
 #include "G4Tubs.hh"
 #include "G4Box.hh"
 #include "G4PVPlacement.hh"
-
+#include "TMath.h"
 #include "sbstypes.hh"
 
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 
+#include <cmath>
 
 G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fFieldD = 90*um;
@@ -27,6 +28,9 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
 
   fGlassThick = 3.0*mm;
   fSpacer = 1.0*mm;
+
+  fUtheta = -30.0*deg;
+  fVtheta =  30.0*deg;
 
   int chamberN[3] = {  1,   2,   3};
   int nplanes[3]  = {  6,   3,   6};
@@ -87,8 +91,15 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fieldwireVisAtt = new G4VisAttributes(G4Colour(G4Colour::White()));
  
   // Define rotation for the wires
-  fWireRot = new G4RotationMatrix;
-  fWireRot->rotateY(90.0*deg);
+  fWireRotX = new G4RotationMatrix;
+  fWireRotX->rotateY(90.0*deg);
+
+  fWireRotU = new G4RotationMatrix;
+  fWireRotU->rotateY(90.0*deg);
+  fWireRotU->rotateX(fUtheta);
+  fWireRotV = new G4RotationMatrix;
+  fWireRotV->rotateY(90.0*deg);
+  fWireRotV->rotateX(fVtheta);
 }
 
 G4SBSMWDC::~G4SBSMWDC(){;}
@@ -97,7 +108,7 @@ void G4SBSMWDC::BuildComponent(G4LogicalVolume *){
   ;
 }
 
-void G4SBSMWDC::BuildComponent( G4LogicalVolume* world, G4RotationMatrix* rot, 
+void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* world, G4RotationMatrix* rot, 
 				G4ThreeVector pos, G4String SDname ) {
   double mX = 1.0*m;
   double mY = 2.1*m;
@@ -144,16 +155,19 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* world, G4RotationMatrix* rot,
   std::vector<G4String>::iterator vit;
   char temp_name[255];
   int copyID = 0;
-  double mother_length = 0.0;
+  G4LogicalVolume* test_log;
+
   for( mit = fGEn_Setup.begin(); mit != fGEn_Setup.end(); mit++ ) {
     // Make a Chamber:
     int chamber_number = mit->first;
     int num_planes = (mit->second).size();
     double chamber_thick = fPlaneThick*num_planes + 2.0*fGlassThick + fSpacer*(num_planes+1);
-    mother_length+=chamber_thick;
+
+    // I added an "arbitrary" 2.0*cm to the chamber height, this is a result of offsetting
+    // the signal/ field wires.
     sprintf(temp_name, "chamber_%1d_box", chamber_number);
     G4Box *chamber_temp = new G4Box(temp_name, fNwidth[chamber_number]/2.0, 
-    				    fNheight[chamber_number]/2.0, chamber_thick/2.0);
+    				    fNheight[chamber_number]/2.0 + 2.0*cm/2.0, chamber_thick/2.0);
   
     sprintf(temp_name, "chamber_%1d_log", chamber_number);
     G4LogicalVolume* chamber_log = new G4LogicalVolume(chamber_temp, GetMaterial("Air"), temp_name);
@@ -183,20 +197,30 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* world, G4RotationMatrix* rot,
       	plane_log = BuildX( fNwidth[chamber_number], fNheight[chamber_number], chamber_number, planeN, copyID);
       } else {
 	plane_log = BuildUorV(fNwidth[chamber_number], fNheight[chamber_number], plane_type, chamber_number, planeN, copyID);
+
+	if( chamber_number==0 ){
+	  if( planeN == 0 ) {
+	    test_log = plane_log;
+	  }
+	}
       }
  
       double z = -chamber_thick/2.0 + fGlassThick + (planeN+0.5)*fPlaneThick + fSpacer*(planeN+1);
       sprintf(temp_name, "chamber%1d_plane%1d_log", chamber_number, planeN);
-      new G4PVPlacement(0, G4ThreeVector(0.0,0.0,z), plane_log, temp_name, chamber_log, false, copyID,true);
+      new G4PVPlacement(0, G4ThreeVector(0.0,0.0,z), plane_log, temp_name, chamber_log, false, copyID);
 
       planeN++;
       copyID++;
     }
     sprintf(temp_name, "chamber%1d_phys",chamber_number);    
     new G4PVPlacement(0,G4ThreeVector(0.0,0.0, -mZ/2.0 + chamber_thick/2.0 + fDist_z0[chamber_number]), 
-    		      chamber_log, temp_name, mother_log, false, chamber_number,true);
+    		      chamber_log, temp_name, mother_log, false, chamber_number);
   }
   new G4PVPlacement(rot, pos, mother_log, "MWDC_mother_phys", world, false, 0);
+
+  // test
+  new G4PVPlacement( rot, G4ThreeVector(0.0, 2.0*m, 2.0*m), test_log, "test", realworld, false, 0 );
+
 }
 
 
@@ -225,7 +249,7 @@ G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int
   		    temp_name, Xlog, false, 0, true);
 
   // Now Let's make the signal / field wires:
-  G4Tubs *signaltub = new G4Tubs( "wire_tub", 0.0*cm, fSignalD/2.0, width/2.0, 0.0, twopi );
+  G4Tubs *signaltub = new G4Tubs( "signal_tub", 0.0*cm, fSignalD/2.0, width/2.0, 0.0, twopi );
   G4Tubs *fieldtub = new G4Tubs( "field_tub", 0.0*cm, fFieldD/2.0, width/2.0, 0.0, twopi );
 
   // Signal wire is actually gold plated-tungsten, not sure on the dimensions so I simply chose Tungsten
@@ -245,15 +269,15 @@ G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int
   int field_count = fNwires[chamber];
 
   for( int i=0; i<fNwires[chamber]; i++ ){
-    double y_signal = -height/2.0 + i*fWireSep + offset;
+    double y_signal = -height/2.0 + i*fWireSep + offset + fSignalD/2.0;
     double y_field  = y_signal + fWireSep/2.0;
 
     sprintf(temp_name, "X_chamber%1d_plane%1d_signalwire%1d", chamber, planeN, i);
-    new G4PVPlacement( fWireRot, G4ThreeVector(0.0, y_signal, 0.0), signal_log, temp_name,
+    new G4PVPlacement( fWireRotX, G4ThreeVector(0.0, y_signal, 0.0), signal_log, temp_name,
 		       Xlog, false, i, true);
 
     sprintf(temp_name, "X_chamber%1d_plane%1d_fieldwire%1d", chamber, planeN, field_count); 
-    new G4PVPlacement( fWireRot, G4ThreeVector(0.0, y_field, 0.0), field_log, temp_name,
+    new G4PVPlacement( fWireRotX, G4ThreeVector(0.0, y_field, 0.0), field_log, temp_name,
 		       Xlog, false, field_count, true );
 
     field_count++;
@@ -293,5 +317,38 @@ G4LogicalVolume* G4SBSMWDC::BuildUorV(double width, double height, G4String type
   new G4PVPlacement(0, G4ThreeVector(0.0,0.0,fPlaneThick/2.0 - fCathodeThick/2.0), fCathodes[chamber], 
   		    temp_name, UorVlog, false, 0 );
 
+  // TEST:
+  double length = width / TMath::Cos( fUtheta );
+
+  G4Tubs *signaltub = new G4Tubs( "wire_tub", 0.0*cm, fSignalD/2.0, length/2.0, 0.0, twopi );
+  G4LogicalVolume* signal_log = new G4LogicalVolume( signaltub, GetMaterial("Tungsten"), "signal_log" );
+  signal_log->SetVisAttributes( sigwireVisAtt );
+
+  G4Tubs *fieldtub = new G4Tubs( "field_tub", 0.0*cm, fFieldD/2.0, length/2.0, 0.0, twopi );
+  G4LogicalVolume* field_log = new G4LogicalVolume( fieldtub, GetMaterial("Copper"), "field_log" );
+  field_log->SetVisAttributes( fieldwireVisAtt );
+
+  double offset = 0.0*cm;
+  if( (offindex+1) % 2 == 0 ) {
+    offset = fWireSep / 2.0; // should be 0.5*cm for GEn
+  }
+
+  int field_count = fNwires[chamber];
+
+  if( type == "U" ) {
+    for( int i=0; i<fNwires[chamber]; i++ ){
+      double y_signal = -height/2.0 + i*fWireSep + offset + fSignalD/2.0;
+
+      sprintf(temp_name, "U_chamber%1d_plane%1d_signalwire%1d", chamber, planeN, i);
+   
+      new G4PVPlacement( fWireRotU, G4ThreeVector(0.0,y_signal,0.0), signal_log, "test", UorVlog, false, 0 );
+    
+      field_count++;
+    }
+  }
+
+  if( type == "V" ) {
+    new G4PVPlacement( fWireRotV, G4ThreeVector(0.0,0.0,0.0), signal_log, "test", UorVlog, false, 0 );
+  }
   return UorVlog;
 }

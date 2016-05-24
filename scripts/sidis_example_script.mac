@@ -1,0 +1,54 @@
+# Example SIDIS script:
+# To run with no optical photon production, do:
+# ./g4sbs scripts/preinit_nockov_noscint.mac scripts/sidis_example_script.mac
+# To run with Cerenkov ONLY:
+# ./g4sbs scripts/preinit_ckov_noscint.mac scripts/sidis_example_script.mac
+# To run with Scintillation ONLY:
+# ./g4sbs scripts/preinit_nockov_scint.mac scripts/sidis_example_scripts.mac
+# To run with both Cerenkov and Scintillation ON, do:
+# ./g4sbs scripts/preinit_ckov_scint.mac scripts/sidis_example_scripts.mac
+/g4sbs/filename sidis_example.root
+/g4sbs/beamcur  40.0 muA
+/g4sbs/target   3He
+/g4sbs/targpres 10.0 atmosphere
+/g4sbs/targlen  60.0 cm
+
+/g4sbs/rasterx  2.0 mm
+/g4sbs/rastery  2.0 mm
+/g4sbs/exp      sidis
+/g4sbs/hadron   pi+
+/g4sbs/kine     sidis
+#/g4sbs/kine beam
+
+/g4sbs/runtime   1.0 s
+/g4sbs/beamE      11.0 GeV
+/g4sbs/bbang      30.0 deg
+/g4sbs/bbdist      1.55 m
+/g4sbs/sbsang    14.0 deg
+/g4sbs/hcaldist    7.0 m
+/g4sbs/48D48dist   2.5 m
+/g4sbs/sbsmagfield  1.4 tesla
+/g4sbs/48d48field   1
+/g4sbs/bbfield      1
+/g4sbs/sbsclampopt  0
+/g4sbs/uselead 0
+/g4sbs/richdist    4.6 m
+/g4sbs/thmin      22.0 deg
+/g4sbs/thmax      42.0 deg
+/g4sbs/phmin     -40.0 deg
+/g4sbs/phmax      30.0 deg
+#/g4sbs/phmin     150.0 deg
+#/g4sbs/phmax     220.0 deg
+/g4sbs/hthmin     9.0 deg
+/g4sbs/hthmax    23.0 deg
+/g4sbs/hphmin    120.0 deg
+/g4sbs/hphmax    240.0 deg
+/g4sbs/eemin      0.5 GeV
+/g4sbs/eemax      6.0 GeV
+/g4sbs/ehmin      1.0 GeV
+/g4sbs/ehmax      10.5 GeV
+/g4sbs/totalabs   false
+
+/g4sbs/treeflag 1
+
+/g4sbs/run 100

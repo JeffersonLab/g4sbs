@@ -65,12 +65,19 @@ void C16_analysis( const char *infilename, const char *outputfilename ){
   
   TH2D *Dose_rate_vs_row_col = new TH2D("Dose_rate_vs_row_col","",4,0.5,4.5,4,0.5,4.5);
   TH1D *Dose_rate_vs_Zdepth = new TH1D("Dose_rate_vs_Zdepth","",25,0.0,50.0);
+  
   TClonesArray *histos_Dose_rate = new TClonesArray("TH1D",16);
   TClonesArray *histos_Dose_rate_vs_plane = new TClonesArray("TH1D",16);
   // double total_dose_rate_row_col_plane[4][4][10];
   // double total_dose_rate_row_col[4][4];
 
   TClonesArray *histos_nphe_vs_edep = new TClonesArray("TProfile",16);
+  
+  TH2D *hnphe_vs_block = new TH2D("hnphe_vs_block","",16,0.5,16.5,100,0.0,1500.0);
+  TH2D *hnphe_vs_block_cut = new TH2D("hnphe_vs_block_cut","",16,0.5,16.5,100,0.0,1500.0);
+
+  TH2D *hedep_vs_block = new TH2D("hedep_vs_block","",16,0.5,16.5,100,0.0,1.5);
+  TH2D *hedep_vs_block_cut = new TH2D("hedep_vs_block_cut","",16,0.5,16.5,100,0.0,1.5);
   
   int cell=0;
   for( int row=1; row<=4; row++ ){
@@ -126,7 +133,15 @@ void C16_analysis( const char *infilename, const char *outputfilename ){
       double sum_nphe = 0.0;
     
       double nphe_max = 0.0;
+      double edep_max = 0.0;
       int rowmax = -1, colmax = -1;
+      double edep_block[16];
+      double nphe_block[16];
+      for( int block=0; block<16; block++ ){
+	edep_block[block] = 0.0;
+	nphe_block[block] = 0.0;
+      }
+      
       for( int hit=0; hit<T->Earm_C16_hit_nhits; hit++ ){
 	sum_nphe += (*(T->Earm_C16_hit_NumPhotoelectrons))[hit];
 	double sumedep_same_cell = 0.0;
@@ -149,15 +164,29 @@ void C16_analysis( const char *infilename, const char *outputfilename ){
 	int col = (*(T->Earm_C16_hit_col))[hit];
 	int plane = (*(T->Earm_C16_hit_plane))[hit];
 	int cell = col + 4*row;
-
+	//row increases from top to bottom, while col increases from large-angle to small angle:
+	int block = 4*row + 4-col;
+	edep_block[block-1] = sumedep_same_cell;
+	nphe_block[block-1] = (*(T->Earm_C16_hit_NumPhotoelectrons))[hit];
+	
 	( (TH2D*) (*histos_nphe_vs_edep)[cell] )->Fill( sumedep_same_cell, (*(T->Earm_C16_hit_NumPhotoelectrons))[hit] );
 	
       }
-    
+
+      for( int block=0; block<16; block++ ){
+	hedep_vs_block->Fill( block+1, edep_block[block] );
+	hnphe_vs_block->Fill( block+1, nphe_block[block] );
+      }
+      
       hNphesum_4x4_all->Fill( sum_nphe );
       if( rowmax >= 2 && rowmax <= 3 &&
 	  colmax >= 2 && colmax <= 3 ){ //ignore clusters with max at edge
 	hNphesum_4x4_cut->Fill( sum_nphe );
+
+	for( int block=0; block<16; block++ ){
+	  hedep_vs_block_cut->Fill( block+1, edep_block[block] );
+	  hnphe_vs_block_cut->Fill( block+1, nphe_block[block] );
+	}
       }
       double Dbb = T->gen_dbb*100.0; //convert to cm
       double thbb = T->gen_thbb;

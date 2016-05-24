@@ -19,8 +19,8 @@ public:
   void BuildComponent(G4LogicalVolume *,G4LogicalVolume *, G4RotationMatrix *, 
 		      G4ThreeVector, G4String );  
 
-  G4LogicalVolume* BuildX(double,double,int,int,int);
-  G4LogicalVolume* BuildUorV(double,double,G4String,int,int,int);
+  G4LogicalVolume* BuildX(double,double,int,int);
+  G4LogicalVolume* BuildUorV(double,double,G4String,int,int);
 
 private:
 
@@ -47,16 +47,16 @@ private:
   double fMylarThick;    // thickness of mylar wrt cathode
   double fCuThick;       // thickness of cu wtt cathode
 
-  double fCath2WireDist;
-  double fGlassThick;
-  double fSpacer;
-  double fUtheta, fVtheta;
+  double fCath2WireDist;  // distance bt cathode and wire 
+  double fGasThick;       // thickness of gas windows
+  double fSpacer;         // space inbetween adjacent planes within a chamber
+  double fUtheta, fVtheta;// wire angles wrt to X 
   G4RotationMatrix *fWireRotX, *fWireRotU, *fWireRotV;
 
   // VISUALS:
   G4VisAttributes* mylarVisAtt;
   G4VisAttributes* cuVisAtt;
-  G4VisAttributes* glassVisAtt;
+  G4VisAttributes* winVisAtt;
   G4VisAttributes* gasVisAtt;
   G4VisAttributes* mothVisAtt;
   G4VisAttributes* chamVisAtt;

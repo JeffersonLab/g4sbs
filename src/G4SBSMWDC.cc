@@ -12,6 +12,7 @@
 
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
+#include "TVector3.h"
 
 #include <cmath>
 
@@ -26,9 +27,10 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fMylarThick = 12.0*um - 2.0*fCuThick;
   fPlaneThick = 2.0*fCathodeThick + 2.0*fCath2WireDist;
 
-  fGlassThick = 3.0*mm;
+  fGasThick = 12*um;
   fSpacer = 1.0*mm;
 
+  // **NOTE** -- angles are assumed to be equal!
   fUtheta = -30.0*deg;
   fVtheta =  30.0*deg;
 
@@ -44,20 +46,22 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   G4String pattern[15] = { "U","U","X","X","V","V",
 			   "U","X","V",
 			   "U","U","X","X","V","V" };
-  for(int i=0; i<6; i++){
-    fChamber0.push_back(pattern[i]);
+
+  // Fill our GEn map:
+  for(int i=0; i<nplanes[0]; i++){
+    fChamber0.push_back( pattern[i] );
   }
-  for(int i=6; i<9; i++){
-    fChamber1.push_back(pattern[i]);
+  for(int i=nplanes[0]; i<(nplanes[0]+nplanes[1]); i++){
+    fChamber1.push_back( pattern[i] );
   }
-  for(int i=9; i<15; i++){
-    fChamber2.push_back(pattern[i]);
+  for(int i=(nplanes[0]+nplanes[1]); i<(nplanes[0]+nplanes[1]+nplanes[2]); i++){
+    fChamber2.push_back( pattern[i] );
   }
 
   fGEn_Setup[0] = fChamber0;
   fGEn_Setup[1] = fChamber1;
   fGEn_Setup[2] = fChamber2;
-  
+
   // Fill all the vectors
   for(int i=0; i<3; i++){
     fChamberNumber.push_back( chamberN[i] );
@@ -75,8 +79,8 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   cuVisAtt = new G4VisAttributes(G4Colour(0.76,0.47,0.043));
   cuVisAtt->SetForceWireframe(true);
 
-  glassVisAtt = new G4VisAttributes(G4Colour(0.25,0.86,0.94));
-  glassVisAtt->SetForceWireframe(true);
+  winVisAtt = new G4VisAttributes(G4Colour(0.25,0.86,0.94));
+  winVisAtt->SetForceWireframe(true);
 
   gasVisAtt = new G4VisAttributes(G4Colour(1.0,0.0,0.0,0.08));
   //gasVisAtt->SetForceWireframe(true);
@@ -88,7 +92,7 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   chamVisAtt->SetForceWireframe(true);
 
   sigwireVisAtt = new G4VisAttributes( G4Colour(0.0,0.8,0.0) );
-  fieldwireVisAtt = new G4VisAttributes(G4Colour(G4Colour::White()));
+  fieldwireVisAtt = new G4VisAttributes(G4Colour(G4Colour::Red()));
  
   // Define rotation for the wires
   fWireRotX = new G4RotationMatrix;
@@ -120,7 +124,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
 
   ///////////////////////////////////////////////////////////////////////////////
   // Cathodes:
-  //////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
 
   // Generate the Cathodes for chambers 1-3, and
   // put into a vector
@@ -155,16 +159,16 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
   std::vector<G4String>::iterator vit;
   char temp_name[255];
   int copyID = 0;
-  G4LogicalVolume* test_log;
+  G4LogicalVolume* test_log, *test_log1;
 
   for( mit = fGEn_Setup.begin(); mit != fGEn_Setup.end(); mit++ ) {
     // Make a Chamber:
     int chamber_number = mit->first;
     int num_planes = (mit->second).size();
-    double chamber_thick = fPlaneThick*num_planes + 2.0*fGlassThick + fSpacer*(num_planes+1);
+    double chamber_thick = fPlaneThick*num_planes + 2.0*fGasThick + fSpacer*(num_planes+1);
 
     // I added an "arbitrary" 2.0*cm to the chamber height, this is a result of offsetting
-    // the signal/ field wires.
+    // the signal / field wires.
     sprintf(temp_name, "chamber_%1d_box", chamber_number);
     G4Box *chamber_temp = new G4Box(temp_name, fNwidth[chamber_number]/2.0, 
     				    fNheight[chamber_number]/2.0 + 2.0*cm/2.0, chamber_thick/2.0);
@@ -173,17 +177,17 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
     G4LogicalVolume* chamber_log = new G4LogicalVolume(chamber_temp, GetMaterial("Air"), temp_name);
     chamber_log->SetVisAttributes( chamVisAtt );
     
-    // Make the glass, and place it at front / back of a chamber:    
-    G4Box* glass_winbox = new G4Box("glass_winbox", fNwidth[chamber_number]/2.0, 
-    				    fNheight[chamber_number]/2.0, fGlassThick/2.0);
-    G4LogicalVolume* glass_winlog = new G4LogicalVolume(glass_winbox, GetMaterial("Glass"), 
-    							"glass_winlog" );
-    glass_winlog->SetVisAttributes( glassVisAtt );
+    // Make the gas windows, and place it at front / back of a chamber:    
+    G4Box* gas_winbox = new G4Box("gas_winbox", fNwidth[chamber_number]/2.0, 
+				  fNheight[chamber_number]/2.0, fGasThick/2.0);
+    G4LogicalVolume* gas_winlog = new G4LogicalVolume(gas_winbox, GetMaterial("Mylar"), 
+						      "gas_winlog" );
+    gas_winlog->SetVisAttributes( winVisAtt );
 
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, -chamber_thick/2.0 + fGlassThick/2.0),
-    		      glass_winlog, "glass_phys_front", chamber_log, false, 0, true);
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0,  chamber_thick/2.0 - fGlassThick/2.0),
-    		      glass_winlog, "glass_phys_back", chamber_log, false, 0 , true);
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, -chamber_thick/2.0 + fGasThick/2.0),
+    		      gas_winlog, "gas_phys_front", chamber_log, false, 0, true);
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0,  chamber_thick/2.0 - fGasThick/2.0),
+    		      gas_winlog, "gas_phys_back", chamber_log, false, 0 , true);
     
     int planeN = 0;
 
@@ -194,18 +198,20 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
       G4LogicalVolume* plane_log;
    
       if( plane_type == "X" ) {
-      	plane_log = BuildX( fNwidth[chamber_number], fNheight[chamber_number], chamber_number, planeN, copyID);
+      	plane_log = BuildX( fNwidth[chamber_number], fNheight[chamber_number], 
+			    chamber_number, planeN);
       } else {
-	plane_log = BuildUorV(fNwidth[chamber_number], fNheight[chamber_number], plane_type, chamber_number, planeN, copyID);
-
-	if( chamber_number==0 ){
-	  if( planeN == 0 ) {
-	    test_log = plane_log;
-	  }
-	}
+	plane_log = BuildUorV( fNwidth[chamber_number], fNheight[chamber_number], plane_type,
+			       chamber_number, planeN);
+	// Tests
+	// if( chamber_number==1 ){
+	//   if( planeN == 0 ) {
+	//     test_log = plane_log;
+	//   }
+	// }
       }
  
-      double z = -chamber_thick/2.0 + fGlassThick + (planeN+0.5)*fPlaneThick + fSpacer*(planeN+1);
+      double z = -chamber_thick/2.0 + fGasThick + (planeN+0.5)*fPlaneThick + fSpacer*(planeN+1);
       sprintf(temp_name, "chamber%1d_plane%1d_log", chamber_number, planeN);
       new G4PVPlacement(0, G4ThreeVector(0.0,0.0,z), plane_log, temp_name, chamber_log, false, copyID);
 
@@ -219,8 +225,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
   new G4PVPlacement(rot, pos, mother_log, "MWDC_mother_phys", world, false, 0);
 
   // test
-  new G4PVPlacement( rot, G4ThreeVector(0.0, 2.0*m, 2.0*m), test_log, "test", realworld, false, 0 );
-
+  //  new G4PVPlacement( rot, G4ThreeVector(0.0, 2.0*m, 2.0*m), test_log, "test", realworld, false, 0 ); 
 }
 
 
@@ -228,9 +233,11 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
 //            height = plane height
 //            chamber = chamber #
 //            planeN = plane number
-//            offindex = counting device to get signal/field wire offset. Successive planes
-//                       have signal wires offset by 0.5*cm in order to increase the resolution
-G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int planeN, int offindex) {
+//            planeN is also used as a counting device to get signal/field wire offset. 
+//            Successive planes of the same type have offset = 0.5*cm in order to increase
+//            the resolution
+
+G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int planeN) {
   char temp_name[255];
   sprintf(temp_name, "X_chamber%1d_plane%1d_box", chamber, planeN);
  
@@ -243,10 +250,10 @@ G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int
   // Put in the cathodes
   sprintf(temp_name, "X_chamber%1d_plane%1d_cathodefront", chamber, planeN);
   new G4PVPlacement(0, G4ThreeVector(0.0,0.0,-fPlaneThick/2.0 + fCathodeThick/2.0), fCathodes[chamber], 
-  		    temp_name, Xlog, false, 0, true);
+  		    temp_name, Xlog, false, 0);
   sprintf(temp_name, "X_chamber%1d_plane%1d_cathodeback", chamber, planeN);
   new G4PVPlacement(0, G4ThreeVector(0.0,0.0,fPlaneThick/2.0 - fCathodeThick/2.0), fCathodes[chamber], 
-  		    temp_name, Xlog, false, 0, true);
+  		    temp_name, Xlog, false, 0);
 
   // Now Let's make the signal / field wires:
   G4Tubs *signaltub = new G4Tubs( "signal_tub", 0.0*cm, fSignalD/2.0, width/2.0, 0.0, twopi );
@@ -260,12 +267,18 @@ G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int
   G4LogicalVolume* field_log = new G4LogicalVolume( fieldtub, GetMaterial("Copper"), "field_log" );
   field_log->SetVisAttributes( fieldwireVisAtt );
 
-  // Lets Generate the wire mesh:
+  // Offset for two adjacent planes of same type
   double offset = 0.0*cm;
-  if( (offindex+1) % 2 == 0 ) {
+  if( (planeN+1) % 2 == 0 && fNplanes[chamber] > 3) {
     offset = fWireSep / 2.0; // should be 0.5*cm for GEn
   }
+  ////////////////////////////////////////
+  // Lets Generate the wire mesh:
+  ////////////////////////////////////////
 
+  // Used to give unique ID number to field wires:
+  // signal wires are 0->fNWires[chamber]-1
+  // field wires are fNwires[chamber]->2*fNwires[chamber]-1
   int field_count = fNwires[chamber];
 
   for( int i=0; i<fNwires[chamber]; i++ ){
@@ -274,11 +287,11 @@ G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int
 
     sprintf(temp_name, "X_chamber%1d_plane%1d_signalwire%1d", chamber, planeN, i);
     new G4PVPlacement( fWireRotX, G4ThreeVector(0.0, y_signal, 0.0), signal_log, temp_name,
-		       Xlog, false, i, true);
+		       Xlog, false, i );
 
     sprintf(temp_name, "X_chamber%1d_plane%1d_fieldwire%1d", chamber, planeN, field_count); 
     new G4PVPlacement( fWireRotX, G4ThreeVector(0.0, y_field, 0.0), field_log, temp_name,
-		       Xlog, false, field_count, true );
+		       Xlog, false, field_count );
 
     field_count++;
   }
@@ -286,9 +299,10 @@ G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int
  return Xlog;
 }
 
-G4LogicalVolume* G4SBSMWDC::BuildUorV(double width, double height, G4String type, int chamber, int planeN, int offindex) {
+G4LogicalVolume* G4SBSMWDC::BuildUorV(double width, double height, G4String type, int chamber, int planeN) {
   char temp_name[255];
   char temp_namelog[255];
+
   if( type == "U" ) {
     sprintf(temp_name, "U_chamber%1d_plane%1d_box", chamber, planeN);
     sprintf(temp_namelog, "U_chamber%1d_plane%1d_log", chamber, planeN);
@@ -304,11 +318,11 @@ G4LogicalVolume* G4SBSMWDC::BuildUorV(double width, double height, G4String type
 
   // Put in the cathodes
   if( type == "U" ) {
-  sprintf(temp_name, "U_chamber%1d_plane%1d_cathodefront", chamber, planeN);
-  sprintf(temp_name, "U_chamber%1d_plane%1d_cathodeback", chamber, planeN);
+    sprintf(temp_name, "U_chamber%1d_plane%1d_cathodefront", chamber, planeN);
+    sprintf(temp_name, "U_chamber%1d_plane%1d_cathodeback", chamber, planeN);
   } else {
-  sprintf(temp_name, "V_chamber%1d_plane%1d_cathodefront", chamber, planeN);
-  sprintf(temp_name, "V_chamber%1d_plane%1d_cathodeback", chamber, planeN);
+    sprintf(temp_name, "V_chamber%1d_plane%1d_cathodefront", chamber, planeN);
+    sprintf(temp_name, "V_chamber%1d_plane%1d_cathodeback", chamber, planeN);
   }
 
   new G4PVPlacement(0, G4ThreeVector(0.0,0.0,-fPlaneThick/2.0 + fCathodeThick/2.0), fCathodes[chamber], 
@@ -317,38 +331,145 @@ G4LogicalVolume* G4SBSMWDC::BuildUorV(double width, double height, G4String type
   new G4PVPlacement(0, G4ThreeVector(0.0,0.0,fPlaneThick/2.0 - fCathodeThick/2.0), fCathodes[chamber], 
   		    temp_name, UorVlog, false, 0 );
 
-  // TEST:
-  double length = width / TMath::Cos( fUtheta );
-
-  G4Tubs *signaltub = new G4Tubs( "wire_tub", 0.0*cm, fSignalD/2.0, length/2.0, 0.0, twopi );
-  G4LogicalVolume* signal_log = new G4LogicalVolume( signaltub, GetMaterial("Tungsten"), "signal_log" );
-  signal_log->SetVisAttributes( sigwireVisAtt );
-
-  G4Tubs *fieldtub = new G4Tubs( "field_tub", 0.0*cm, fFieldD/2.0, length/2.0, 0.0, twopi );
-  G4LogicalVolume* field_log = new G4LogicalVolume( fieldtub, GetMaterial("Copper"), "field_log" );
-  field_log->SetVisAttributes( fieldwireVisAtt );
-
   double offset = 0.0*cm;
-  if( (offindex+1) % 2 == 0 ) {
-    offset = fWireSep / 2.0; // should be 0.5*cm for GEn
+  if( (planeN+1) % 2 == 0 && fNplanes[chamber] > 3) {
+    offset = fWireSep / 2.0;
   }
+
+  // Vertical offsets should be the same (assuming the angles are the same),
+  // so its easier to work with a positive angle:
+  double utheta = fabs(fUtheta);
+  double vtheta = fabs(fVtheta);
+  TVector3 nhat(0.0,0.0,0.0);
+  TVector3 nhat_top(0.0,0.0,0.0);
+
+  if( type == "U" ) {
+    TVector3 uhat( cos(utheta), sin(utheta), 0.0 );
+    TVector3 uhat_top( -cos(utheta), -sin(utheta), 0.0 );
+    nhat = uhat;
+    nhat_top = uhat_top;
+  } else {
+    TVector3 vhat( -cos(vtheta), sin(vtheta), 0.0 );
+    TVector3 vhat_top( cos(vtheta), -sin(vtheta), 0.0 );
+    nhat = vhat;
+    nhat_top = vhat_top;
+  }
+  double initial_offset = 0.25*cm;
+
+  double length = width / TMath::Cos( utheta );
+  double wiresep = fWireSep / TMath::Cos( utheta );
 
   int field_count = fNwires[chamber];
 
-  if( type == "U" ) {
-    for( int i=0; i<fNwires[chamber]; i++ ){
-      double y_signal = -height/2.0 + i*fWireSep + offset + fSignalD/2.0;
+  double y_start = -0.5*height - 0.5*length*sin( utheta );         // start iteration from here  
+  double y_normal = -0.5*height + 0.5*length*sin( utheta ); // where lengths are normal
+  double y_lowest = y_start;
+  double y_highest = 0.5*height + 0.5*length*sin( utheta ); 
+  double y_normal_top = 0.5*height - 0.5*length*sin( utheta );
 
-      sprintf(temp_name, "U_chamber%1d_plane%1d_signalwire%1d", chamber, planeN, i);
-   
-      new G4PVPlacement( fWireRotU, G4ThreeVector(0.0,y_signal,0.0), signal_log, "test", UorVlog, false, 0 );
-    
+  for( int i=0; i<fNwires[chamber]-2; i++ ){
+      double y_signal = y_start + i*wiresep + offset + fSignalD/2.0 + initial_offset;   // increment through the detector
+      double y_field  = y_signal + wiresep/2.0;
+
+      // need to find the y difference b/t y_lowest and y_signal:
+      double diff = 0.0;
+      double diff_field = 0.0;
+
+      if( y_signal < y_normal ) {
+	diff = fabs(y_lowest - y_signal);
+      }
+      if( y_signal > y_normal_top ) {
+	diff = fabs(y_highest - y_signal);
+      }
+      
+      if( y_field < y_normal ) {
+	diff_field = fabs(y_lowest - y_field);
+      }
+      if( y_field > y_normal_top ) {
+	diff_field = fabs(y_highest - y_field);
+      }
+      
+      double newlength = 0.0;
+      double newlength_field = 0.0;
+      if( type == "U" ) {
+	newlength = diff / sin( utheta ); 
+	newlength_field = diff_field / sin( utheta );
+      } else {
+	newlength = diff / sin( vtheta ); 
+	newlength_field = diff_field / sin( vtheta );
+      }
+
+      if( fabs(y_signal) <= fabs(y_normal) ) {
+	newlength = length;
+      }
+      if( fabs(y_field) <= fabs(y_normal) ){
+	newlength_field = length;
+      }
+
+      G4Tubs *signaltub = new G4Tubs( "wire_tub", 0.0*cm, fSignalD/2.0, newlength/2.0, 0.0, twopi );
+      G4LogicalVolume* signal_log = new G4LogicalVolume( signaltub, GetMaterial("Tungsten"), "signal_log" );
+      signal_log->SetVisAttributes( sigwireVisAtt );
+
+      G4Tubs *fieldtub = new G4Tubs( "field_tub", 0.0*cm, fFieldD/2.0, newlength_field/2.0, 0.0, twopi );
+      G4LogicalVolume* field_log = new G4LogicalVolume( fieldtub, GetMaterial("Copper"), "field_log" );
+      field_log->SetVisAttributes( fieldwireVisAtt );
+
+      // Place the Wires:
+      TVector3 zero(0.0,0.0,0.0);
+      double offset_from_ysig = length/2.0 - newlength;
+      TVector3 start(0.0, y_signal, 0.0);
+      TVector3 move = zero;
+      TVector3 wireC = zero;
+
+      double offset_from_ysig_field = length/2.0 - newlength_field;
+      TVector3 start_field(0.0, y_field, 0.0);
+      TVector3 move_field = zero;
+      TVector3 wireC_field = zero;
+
+      if( y_signal < y_normal ) {
+	move = start + offset_from_ysig * nhat;
+	wireC = move + newlength/2.0 * nhat;
+      }
+      if( y_signal > y_normal_top ) {
+	move = start + offset_from_ysig * nhat_top;
+	wireC = move + newlength/2.0 * nhat_top;
+      }
+      if( fabs(y_signal) <= fabs(y_normal) ) {
+	wireC = start;
+      }
+
+      if( y_field < y_normal ) {
+	move_field = start_field + offset_from_ysig_field * nhat;
+	wireC_field = move_field + newlength_field/2.0 * nhat;
+      }
+      if( y_field > y_normal_top ) {
+	move_field = start_field + offset_from_ysig_field * nhat_top;
+	wireC_field = move_field + newlength_field/2.0 * nhat_top;
+      }
+      if( fabs(y_field) <= fabs(y_normal) ){
+	wireC_field = start_field;
+      }
+
+      if( type == "U" ) {
+	sprintf(temp_name, "U_chamber%1d_plane%1d_signalwire%1d", chamber, planeN, i);
+	new G4PVPlacement( fWireRotU, G4ThreeVector(wireC.X(), wireC.Y(), wireC.Z()), signal_log, 
+			   temp_name, UorVlog, false, i );
+
+	sprintf(temp_name, "U_chamber%1d_plane%1d_fieldwire%1d", chamber, planeN, field_count);
+	new G4PVPlacement( fWireRotU, G4ThreeVector(wireC_field.X(), wireC_field.Y(), wireC_field.Z()), field_log, 
+			   temp_name, UorVlog, false, field_count );
+
+      } else {
+	sprintf(temp_name, "V_chamber%1d_plane%1d_signalwire%1d", chamber, planeN, i);
+	new G4PVPlacement( fWireRotV, G4ThreeVector(wireC.X(), wireC.Y(), wireC.Z()), signal_log, 
+			   temp_name, UorVlog, false, i );
+
+	sprintf(temp_name, "V_chamber%1d_plane%1d_fieldwire%1d", chamber, planeN, field_count);
+	new G4PVPlacement( fWireRotV, G4ThreeVector(wireC_field.X(), wireC_field.Y(), wireC_field.Z()), field_log, 
+			   temp_name, UorVlog, false, field_count );
+      }
+
       field_count++;
-    }
-  }
-
-  if( type == "V" ) {
-    new G4PVPlacement( fWireRotV, G4ThreeVector(0.0,0.0,0.0), signal_log, "test", UorVlog, false, 0 );
   }
   return UorVlog;
 }

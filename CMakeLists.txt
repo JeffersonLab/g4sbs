@@ -94,8 +94,8 @@ set(G4SBS_SCRIPTS
   scripts/gep_5GeV2.mac
   scripts/gep_8GeV2.mac
   scripts/gep_12GeV2.mac
-  scripts/sidis_template.mac
-  scripts/make_SIDIS_scripts.C
+  #scripts/sidis_template.mac
+  #scripts/make_SIDIS_scripts.C
   scripts/vis_sidis.mac
   scripts/sidis_background.mac
   root_macros/G4SBS_optics_fit.C 

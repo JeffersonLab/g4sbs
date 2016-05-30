@@ -106,8 +106,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   bbrm->rotateY(-fBBang);
 
 
- 
-
   G4RotationMatrix *bbykrm = new G4RotationMatrix;
   bbykrm->rotateX(90.0*deg);
 
@@ -428,7 +426,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // Make MWDC - GEn
   G4SBSMWDC* mwdc = new G4SBSMWDC(fDetCon);
-  mwdc->BuildComponent(worldlog,bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset+50*cm ), "Earm/BBMWDC");
+  // chambers mother volume is 1*m in z, so offset it by 0.5m
+  mwdc->BuildComponent(worldlog, bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset + 0.5*m + 2.5*cm), "Earm/BBMWDC");
 
 
 
@@ -443,10 +442,15 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   G4Box *bbcalbox = new G4Box( "bbcalbox", bbcal_box_width/2.0, bbcal_box_height/2.0, bbcal_box_depth/2.0+mm );
   G4LogicalVolume *bbcal_mother_log = new G4LogicalVolume(bbcalbox, GetMaterial("Air"), "bbcal_mother_log");
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_box_depth/2.0 ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 ); 
 
-  bbcal_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
-  
+  double BB_z_wrt_z0MWDCplane = detoffset + 0.5*cm + bbcal_box_depth/2.0 + 0.85*m;
+
+  if(fDetCon->fExpType != kOld_GEn ) {
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_box_depth/2.0 ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 ); 
+  }else {
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, BB_z_wrt_z0MWDCplane ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 );
+  }
+
   //option to "turn off" BBCAL (make total absorber)
   if( (fDetCon->StepLimiterList).find( "bbcal_mother_log" ) != (fDetCon->StepLimiterList).end() ){
     bbcal_mother_log->SetUserLimits( new G4UserLimits(0,0,0,DBL_MAX,DBL_MAX) );
@@ -669,12 +673,21 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
   //--------- Visualization attributes -------------------------------
   //Mother volumes
+  G4VisAttributes *testVisAtt = new G4VisAttributes( G4Colour(G4Colour::White()) );
+  testVisAtt->SetForceWireframe(true);
+
   bbdetLog->SetVisAttributes( G4VisAttributes::Invisible );
   bbfieldLog->SetVisAttributes( G4VisAttributes::Invisible );
   bbmotherLog->SetVisAttributes( G4VisAttributes::Invisible );
   
+  //test---
+  //bbdetLog->SetVisAttributes( testVisAtt );
+  //bbcal_mother_log->SetVisAttributes( testVisAtt );
+  
+  bbcal_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
   bbpslog->SetVisAttributes( G4VisAttributes::Invisible ); 
   bbshowerlog->SetVisAttributes( G4VisAttributes::Invisible );
+
 
   //Mylar
   G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );

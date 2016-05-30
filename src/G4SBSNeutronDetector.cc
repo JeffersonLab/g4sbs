@@ -30,6 +30,7 @@
 #include "TString.h"
 #include <map>
 #include <iostream>
+#include <vector>
 
 #define LAYERTOSHOW 2
 
@@ -219,18 +220,23 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 				   GetMaterial("Iron"), GetMaterial("Iron")};
 
   // VISUALS:
-  G4VisAttributes* leadVisAtt    = new G4VisAttributes(G4Colour(0.0,1.0,0.0));
-  G4VisAttributes* alVisAtt      = new G4VisAttributes(G4Colour(0.5,0.5,0.5));
-  G4VisAttributes* lgVisAtt      = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
-  G4VisAttributes* pmtVisAtt     = new G4VisAttributes(G4Colour(0.1,0.1,0.1));
-  G4VisAttributes* ironVisAtt    = new G4VisAttributes(G4Colour(1.0,1.0,1.0));
-  G4VisAttributes* styroVisAtt   = new G4VisAttributes(G4Colour(0.8,0.8,0.8));
-  G4VisAttributes* invisVisAtt   = new G4VisAttributes(G4Colour(0.0,0.0,0.0));
+  G4VisAttributes* leadVisAtt = new G4VisAttributes(G4Colour(0.0,1.0,0.0));
+  leadVisAtt->SetForceWireframe(true);
+  G4VisAttributes* alVisAtt = new G4VisAttributes(G4Colour(0.5,0.5,0.5));
+  alVisAtt->SetForceWireframe(true);
+
+  G4VisAttributes* lgVisAtt = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
+  G4VisAttributes* pmtVisAtt = new G4VisAttributes(G4Colour(0.1,0.1,0.1));
+  G4VisAttributes* ironVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,1.0));
+  ironVisAtt->SetForceWireframe(true);
+  G4VisAttributes* styroVisAtt = new G4VisAttributes(G4Colour(0.8,0.8,0.8));
+
+  G4VisAttributes* invisVisAtt = new G4VisAttributes(G4Colour(0.0,0.0,0.0));
   invisVisAtt->SetVisibility(false);
-  G4VisAttributes *ND_MotherVis  = new G4VisAttributes(G4Colour::Blue());
+  G4VisAttributes *ND_MotherVis = new G4VisAttributes(G4Colour::Blue());
   ND_MotherVis ->SetForceWireframe(true);
-  G4VisAttributes *vetoVis       = new G4VisAttributes(G4Colour::Cyan());
-  G4VisAttributes *ndVis         = new G4VisAttributes(G4Colour(0.49,0.0,1.0));
+  G4VisAttributes *vetoVis  = new G4VisAttributes(G4Colour::Cyan());
+  G4VisAttributes *ndVis = new G4VisAttributes(G4Colour(0.49,0.0,1.0));
   
   for( int i = 0; i < NPLATES; i++ ){
     plateMat.push_back( platemat[i] );
@@ -239,13 +245,15 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   // BUILD NEUTRON DETECTOR
   NDangle = fNDang;
   NDdistance = fNDdist;
+
   // ************************************************************
   // this needs to be updated, need to find this information    *
-  //const G4double theta_norm = 30.17*deg;                      *
-  const G4double theta_norm = fNDang;                           
+  const G4double theta_norm = 30.17*deg;      
+                
+  //const G4double theta_norm = fNDang;                           
   const G4double bob_z0_dist = 64.0*cm;                         
-  //const G4double bob_targ_dist = NDdistance - bob_z0_dist;    *
-  const G4double bob_targ_dist = NDdistance;
+  const G4double bob_targ_dist = NDdistance - bob_z0_dist;   
+  //const G4double bob_targ_dist = NDdistance;
   //*************************************************************
 
   G4double ND_x = 3.0*m;
@@ -334,6 +342,8 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 
   G4Box* temp;
   G4LogicalVolume* temp_log;
+
+  // Necessary to make the scintillators a SD using Seamus' setup:
   map<int,G4LogicalVolume*> scint_map;
 
   for( type = kBarCMU; type < NBARTYPES; type++ ){
@@ -353,6 +363,15 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     scint_map[type] = temp_log;
   }
   
+  // Get Scint Position within each bar type
+  // Tim's document states that there are 340 bars. This code generates
+  // 341 - the discrepancy is ***i think*** Plane 3, top row.
+
+  // key is type of bar, value is the position. pmt needs two values for each bar, 
+  // with the exception of vetos. They only have one PMT
+  map<int,G4ThreeVector> scint_type_pos_logBar;
+  map<int,vector<G4ThreeVector> > pmt_type_pos_logBar;
+
 
   // Seamus makes a mother volume called solidPMT, then inserts glass + cathode.
   for( layer = 0; layer < NLAYERS; layer++ ){
@@ -372,6 +391,7 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     sprintf(blockName, "logpmtca_%1d",layer+1 );
     //logicPMTcath = new G4LogicalVolume( solidPMTcath, GetMaterial("Aluminum"), blockName );
 
+    // Necessary as vetos are different from the "others" :
     if( layer==0 || layer==1 ) {
       logicPMTcath = veto_log;
       logicPMTcath->SetVisAttributes( vetoVis );
@@ -390,17 +410,22 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     // called logicPMT where placement = layer.
     ///////////////////////////////////////////////////////////
     sprintf(blockName, "physpmtgl_%1d",layer+1 );
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -cathlen/2.0), logicPMTglass, blockName, logicPMT[layer], false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -cathlen/2.0), logicPMTglass, blockName, logicPMT[layer], false, 0, true );
     sprintf(blockName, "physpmtca_%1d",layer+1 );
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, glasslen/2.0), logicPMTcath, blockName, logicPMT[layer], false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, glasslen/2.0), logicPMTcath, blockName, logicPMT[layer], false, 0, true );
+
 
     // Make the Scintillating Bars:
     for( type = kBarCMU; type < NBARTYPES; type++ ){
+
       sprintf(blockName, "%ssolblock_%1d", barname[type], layer+1 );
       solidBlock = new G4Box(blockName, X[type]/2.0, Y[type]/2.0, Z[type]/2.0 );
+
       sprintf(blockName, "%slogblock_%1d", barname[type], layer+1 );
+  
       //  logBlock[type][layer] = new G4LogicalVolume(solidBlock, GetMaterial("Scintillator"), blockName);
-      logBlock[type][layer] = scint_map[type];
+      // make these before all the iterating, so we can assign a sensitivity.
+      logBlock[type][layer] = scint_map[type]; 
 
       // Lightguide
       sprintf(blockName, "%ssollg_%1d", barname[type], layer+1 );
@@ -429,33 +454,52 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
       }
 
       sprintf(blockName, "%slogbar_%1d", barname[type], layer+1 );
-      logBar[type][layer] = new G4LogicalVolume(solidBar, GetMaterial("Air"), blockName);
+      // Changed the material from Air to Special_Air: 
+      logBar[type][layer] = new G4LogicalVolume(solidBar, GetMaterial("Special_Air"), blockName);
 
       // Make a "logBar" mother volume which will house the Scintillator SD, PMT SD, & LightGuides
 
       sprintf(blockName, "%sphysblock_%1d", barname[type], layer+1 );
 
       // Placing the bars (logBlock) inside logBar:
+
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      // GRAB THE SCINTILLATOR INFORMATION --- THESE ARE DUMMY CONTAINERS, WILL BE USED
+      // TO FILL THE DETMAP VARIABLES IN A ROUTINE BELOW!!!                            
+      //////////////////////////////////////////////////////////////////////////////////////////////
+
       switch( type ){
       case kBarVetoLong:
 	lgoffset = -(barl-Y[type])/2.0;
 	new G4PVPlacement(0, G4ThreeVector(0.0, lgoffset,  0.0), logBlock[type][layer],
 			  blockName, logBar[type][layer], false, 0 );
+	scint_type_pos_logBar[type] =  G4ThreeVector(0.0, lgoffset,  0.0);
 	break;
+
       case kBarVetoShort:
 	lgoffset = (barl-Y[type])/2.0;
 	new G4PVPlacement(0, G4ThreeVector(0.0, lgoffset, 0.0), logBlock[type][layer],
 			  blockName, logBar[type][layer], false, 0 );
+	scint_type_pos_logBar[type] =  G4ThreeVector(0.0, lgoffset,  0.0);
 	break;
+
       default:
 	lgoffset = 0.0;
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), logBlock[type][layer],
 			  blockName, logBar[type][layer], false, 0 );
+	scint_type_pos_logBar[type] =  G4ThreeVector(0.0, lgoffset,  0.0);
 	break;
       }
 
       // Placing the Waveguides and PMTs inside logBar:
       // Get the appropriate rotations, make two copies of PMT + Waveguides (either side)
+
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      // GRAB THE PMT INFORMATION --- THESE ARE DUMMY CONTAINERS, WILL BE USED
+      // TO FILL THE DETMAP VARIABLES IN A ROUTINE BELOW!!!                            
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      G4ThreeVector pmt_pos(0.0,0.0,0.0);
+
       if( type != kBarVetoShort ){
 	sprintf(blockName, "%sphyslg_l_%1d", barname[type], layer+1 );
 	new G4PVPlacement( lgleftrot, G4ThreeVector(0.0, lgoffset+Y[type]/2.0+lgLength[type]/2.0, 0.0), 
@@ -468,7 +512,12 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 	sprintf(blockName, "%sphyspmt_l_%1d", barname[type], layer+1 );
 	new G4PVPlacement( lgleftrot, G4ThreeVector(0.0, lgoffset+Y[type]/2.0+lgLength[type]+lgcylLen[type]+(cathlen+glasslen)/2.0, 0.0), 
 	logicPMT[layer], blockName, logBar[type][layer], false, 0 );
+
+	pmt_pos = G4ThreeVector(0.0, lgoffset+Y[type]/2.0+lgLength[type]+lgcylLen[type]+(cathlen+glasslen)/2.0, 0.0 );
       }
+
+      pmt_type_pos_logBar[type].push_back(pmt_pos);
+
       if( type != kBarVetoLong ){
 	sprintf(blockName, "%sphyslg_r_%1d", barname[type], layer+1 );
 	new G4PVPlacement( lgrightrot, G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]/2.0, 0.0), 
@@ -481,9 +530,61 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 	sprintf(blockName, "%sphyspmt_r_%1d", barname[type], layer+1 );
 	new G4PVPlacement( lgrightrot, G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]-lgcylLen[type]-(cathlen+glasslen)/2.0, 0.0), 
 	logicPMT[layer], blockName, logBar[type][layer], false, 0 );
+
+	pmt_pos = G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]-lgcylLen[type]-(cathlen+glasslen)/2.0, 0.0);
+      }
+
+      pmt_type_pos_logBar[type].push_back(pmt_pos);	    
+    }
+  }
+  // Cut up the PMT map to kill duplicates, insert into pmt_types:
+  // There should be 6 types, all of which having a vector size of 2
+  // except for the VETO short / long layers.
+  map<int,vector<G4ThreeVector> > pmt_types;
+
+  map<int,vector<G4ThreeVector> >::iterator tit;
+  vector<G4ThreeVector>::iterator it1;
+
+  for(tit=pmt_type_pos_logBar.begin(); tit!=pmt_type_pos_logBar.end(); tit++){
+    int count = 1;
+    for(it1=tit->second.begin(); it1!=tit->second.end(); it1++){
+      if(count <= 2 ) {
+	if( tit->first != 4 && tit->first != 5 ) {
+	  pmt_types[tit->first].push_back( *it1 );
+	  count++;
+	} else {
+	  if( tit->first == 4 ){
+	    count = 3;
+	    pmt_types[tit->first].push_back( *it1 );
+	  } else {
+	    if( count==2 ){
+	      pmt_types[tit->first].push_back( *it1 );
+	    }
+	    count++;
+	    
+	  }
+	}
+
       }
     }
-  } 
+  }
+  // Check to make sure that pmt_types is correct - here is the output:
+  // type = 0 size = 2
+  //   (0,1238.08,0)
+  //   (0,-1238.08,0)
+  // type = 1 size = 2
+  //   (0,1032.69,0)
+  //   (0,-1032.69,0)
+  // type = 2 size = 2
+  //   (0,1032.69,0)
+  //   (0,-1032.69,0)
+  // type = 3 size = 2
+  //   (0,1244.31,0)
+  //   (0,-1244.31,0)
+  // type = 4 size = 1
+  //   (0,609.644,0)
+  // type = 5 size = 1
+  //   (0,-459.644,0)
 
 
   //////////////////////////////////////////////////////////////////////////////
@@ -495,8 +596,13 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   double platez;
   int ctype;
 
+  // Get Scint Position within each Cassette:
+  map<int,vector<G4ThreeVector> > scint_casstype_pos_logCass;
+  map<int,vector<G4ThreeVector> > pmt_casstype_pos_logCass;
+  
   for( layer = 0; layer < NLAYERS; layer++ ){
     for( ctype = 0; ctype < NCASSETTE_TYPES; ctype++ ){
+
       sprintf(blockName, "%ssolcassette_%1d", casname[ctype], layer+1 );
       solidBlock = new G4Box(blockName, casX[ctype]/2.0, casY[ctype]/2.0, casZ[ctype]/2.0 );
       sprintf(blockName, "%slogcassette_%1d", casname[ctype], layer+1 );
@@ -660,10 +766,17 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
       double x;
       double vetolen, vetooff;
  
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////
+      // Place bars in the CASSETTES:
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-      // Place bars 
+      // Grab the necessary information Sensitive Detector Information:
+      G4ThreeVector scint_pos_in_bar = scint_type_pos_logBar[ctype];
+      vector<G4ThreeVector> pmt_pos_in_bar = pmt_types[ctype];
+
       if( ctype == kCassVeto1 || ctype == kCassVeto2 ){
 	for( int bar = 0; bar < Nbars[ctype]; bar++ ){
+
 	  x = barspacing[ctype]*bar + X[kBarVetoLong]/2.0 - casX[ctype]/2.0;
 
 	  // Full veto length
@@ -675,7 +788,12 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 
 	  sprintf(blockName, "%sphysbar_%1d_%1d_%1d", barname[kBarVetoShort], layer+1, ctype, bar );
 	  new G4PVPlacement( 0, G4ThreeVector(x, vetooff, casbarZ[ctype]), logBar[kBarVetoShort][layer],
-			     blockName, logCassette[ctype][layer], false, bar );
+	  		     blockName, logCassette[ctype][layer], false, bar );
+	  
+	  G4ThreeVector vetoshortpos(x, vetooff, casbarZ[ctype]);
+	  scint_casstype_pos_logCass[kBarVetoShort].push_back( vetoshortpos + scint_pos_in_bar );
+	  pmt_casstype_pos_logCass[kBarVetoShort].push_back( vetoshortpos + pmt_pos_in_bar[0] );
+	  
 
 	  barl = Y[kBarVetoLong] + lgLength[kBarVetoLong] + lgcylLen[kBarVetoLong] +  glasslen + cathlen;
 	  vetooff = (vetolen - barl)/2.0 + casbarY[ctype];
@@ -683,6 +801,11 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 	  sprintf(blockName, "%sphysbar_%1d_%1d_%1d", barname[kBarVetoLong], layer+1, ctype, bar );
 	  new G4PVPlacement( 0, G4ThreeVector(x, vetooff, casbarZ[ctype]), logBar[kBarVetoLong][layer],
 			     blockName, logCassette[ctype][layer], false, bar );
+
+	  G4ThreeVector vetolongpos(x, vetooff, casbarZ[ctype]);
+	  scint_casstype_pos_logCass[kBarVetoLong].push_back( vetolongpos + scint_pos_in_bar );
+	  pmt_casstype_pos_logCass[kBarVetoLong].push_back( vetolongpos + pmt_pos_in_bar[0] );
+ 
 	}
       } else {
 	for( int bar = 0; bar < Nbars[ctype]; bar++ ){
@@ -690,13 +813,66 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 	  sprintf(blockName, "%sphysbar_%1d_%1d_%1d", barname[ctype], layer+1, ctype, bar );
 	  new G4PVPlacement( 0, G4ThreeVector(x, casbarY[ctype], casbarZ[ctype]), logBar[ctype][layer],
 			     blockName, logCassette[ctype][layer], false, bar );
+	  scint_casstype_pos_logCass[ctype].push_back(  G4ThreeVector(x, casbarY[ctype], casbarZ[ctype]) );
+	  
+	  // These should have two PMTs, so we need to iterate through the vector:
+	  for( it1 = pmt_pos_in_bar.begin(); it1 != pmt_pos_in_bar.end(); it1++ ) {
+	    pmt_casstype_pos_logCass[ctype].push_back( G4ThreeVector(x, casbarY[ctype], casbarZ[ctype]) + *it1   );
+	  }
+
 	}
       }
-
+ 
     }
   }
+  
+  // There is over counting in my vectors, therefore lets remove everything and
+  // use scint_logCass / pmt_logCass instead.
+  // key = cassette type, value = vector of scintillator positions within the cassette
+  map<int,vector<G4ThreeVector> > scint_logCass, pmt_logCass;  
+  map<int,vector<G4ThreeVector> >::iterator vit;
+  vector<G4ThreeVector>::iterator vit2;
 
+  for(vit = scint_casstype_pos_logCass.begin(); vit!=scint_casstype_pos_logCass.end(); vit++){
+    int counter = 1;
+    for( vit2=vit->second.begin(); vit2!=vit->second.end(); vit2++ ){
+      if( counter <= Nbars[vit->first]) { 
+	scint_logCass[vit->first].push_back( *vit2 );
+	counter++;
+      }
+    }   
+  }
+  for(vit = pmt_casstype_pos_logCass.begin(); vit!=pmt_casstype_pos_logCass.end(); vit++){
+    int counter = 1;
+    for( vit2=vit->second.begin(); vit2!=vit->second.end(); vit2++ ){
+      if( counter <= 2.0*Nbars[vit->first]) { 
+	pmt_logCass[vit->first].push_back( *vit2 );
+	counter++;
+      }
+    }   
+  }
 
+  // Testing the output.. Looks pretty good.
+  // for(vit = pmt_logCass.begin(); vit!=pmt_logCass.end(); vit++){
+  //   cout << vit->first << "    total = " << (vit->second).size() << endl;
+  //   for( vit2=vit->second.begin(); vit2!=vit->second.end(); vit2++ ){
+  //     cout << *vit2 << endl;
+  //   }
+  // }
+  // sample output:
+  // 3    total = 10
+  //   (-409.5,1218.31,13.1)
+  //   (-409.5,-1270.31,13.1)
+  //   (-205.7,1218.31,13.1)
+  //   (-205.7,-1270.31,13.1)
+  //   (-1.9,1218.31,13.1)
+  //   (-1.9,-1270.31,13.1)
+  //   (201.9,1218.31,13.1)
+  //   (201.9,-1270.31,13.1)
+  //   (405.7,1218.31,13.1)
+  //   (405.7,-1270.31,13.1)
+
+    
   // Spacer configuration
   double spacer[NLAYERS][6] =
   // Tim's document suggests there's no spacer for the bottom
@@ -718,7 +894,10 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 		  
   double x;
   G4VPhysicalVolume *phys;
-  int copyID = 0;
+
+  int scint_dummy = 0;
+  int pmt_dummy = 0;
+
   for( layer = 0; layer < NLAYERS; layer++ ){
     // Build layers from cassettes
 
@@ -727,27 +906,61 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     //barno = 0;
     // This was done backwards...
     x = layerBottom[layer];
+    int number = 1;
     for( int cass = 0; cass < Ncass[layer]; cass++ ){
+
+      // We need to grab to correct cassette vector, then add
+      // to our current positions
+      vector<G4ThreeVector> scint_pos_cass = scint_logCass[casType[layer][cass]];
+      vector<G4ThreeVector> pmt_pos_cass = pmt_logCass[casType[layer][cass]];
+     
       x -= casX[casType[layer][cass]]/2.0;
-      //			printf("\tcass type %d at %f cm\n", casType[layer][cass], x/cm );
+
       // Fronts of cassettes are flush with layer z
       sprintf(blockName, "physcas_%1d_%1d", cass, layer+1 );
-      phys = new G4PVPlacement( 0, G4ThreeVector(x, 0.0, layerZ[layer]+casZ[casType[layer][cass]]/2.0),
+      G4ThreeVector cassette_placement( x, 0.0, layerZ[layer]+casZ[casType[layer][cass]]/2.0 );
+      phys = new G4PVPlacement( 0, cassette_placement,
 				logCassette[casType[layer][cass]][layer], blockName, neutronarm_log, false, cass );
 
 
-      copyID = layer + cass;
-      (NDSD->detmap).LocalCoord[copyID] = G4ThreeVector(x,0.0,layerZ[layer]+casZ[casType[layer][cass]]/2.0);
-      (NDSD->detmap).Plane[copyID] = layer;
-    
-      (NDScintSD->detmap).LocalCoord[copyID] = G4ThreeVector(x,0.0,layerZ[layer]+casZ[casType[layer][cass]]/2.0);
-      (NDScintSD->detmap).Plane[copyID] = layer;
-      
       x -= (casX[casType[layer][cass]]/2.0 + spacer[layer][cass]);
       // set up NRows here too
       NRows[layer] += Nbars[casType[layer][cass]];
+
+      ///////////////////////////////////////////////////////////////////////
+      // DETMAP 
+      ///////////////////////////////////////////////////////////////////////
+      // Finish up gathering information for our DetMap:
+      for( vit2=scint_pos_cass.begin(); vit2!=scint_pos_cass.end(); vit2++ ){	  
+	G4ThreeVector block_position = *vit2;
+	// Fill the detmap for the scintillators ( Col = Scintillator type since it has no real meaning ):
+	(NDScintSD->detmap).LocalCoord[scint_dummy] = block_position + cassette_placement;
+	(NDScintSD->detmap).Plane[scint_dummy] = layer;
+	// This is not really column, but scintillator type
+	(NDScintSD->detmap).Col[scint_dummy] = casType[layer][cass];
+
+	scint_dummy++;
+      }
+      for( vit2=pmt_pos_cass.begin(); vit2!=pmt_pos_cass.end(); vit2++ ){	
+	G4ThreeVector block_position = *vit2;
+	(NDSD->detmap).LocalCoord[pmt_dummy] = block_position + cassette_placement;
+	(NDSD->detmap).Plane[pmt_dummy] = layer;
+	// This is not really column, but block type
+	(NDSD->detmap).Col[pmt_dummy] = casType[layer][cass];
+	
+	pmt_dummy++;
+      }
+      
     }
   }
+  cout << ((NDSD->detmap).LocalCoord).size() << endl;
+
+  // Test:
+  //map<int,G4ThreeVector>::iterator vit3;
+  //for(vit3 = final_scint.begin(); vit3!=final_scint.end(); vit3++){
+    //cout << vit3->first << "    " << vit3->second << endl;
+  //}
+
 
   int plate;
 			  // printf("Generating plates\n");
@@ -757,14 +970,22 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 
     sprintf(blockName, "logplate_%1d",plate+1 );
     logplate   = new G4LogicalVolume(solidBlock, plateMat[plate], blockName );
+    
+    if( plateMat[plate]==GetMaterial("Lead") ) {
+      logplate->SetVisAttributes( leadVisAtt );
+    } else {
+      logplate->SetVisAttributes( ironVisAtt );
+    }    
 
     phys = new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, plateZ[plate] + plateThick[plate]/2.0), logplate, blockName, neutronarm_log, false,0 );
   }
 
   G4VisAttributes* barVisAtt     = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
   G4VisAttributes* vetoVisAtt    = new G4VisAttributes(G4Colour(1.0,0.0,0.0));
-  G4VisAttributes* veto2VisAtt   = new G4VisAttributes(G4Colour(1.0,0.2,0.2));
-  G4VisAttributes* vetobarVisAtt = new G4VisAttributes(G4Colour(0.5,0.0,0.0));
+  G4VisAttributes* veto2VisAtt   = new G4VisAttributes(G4Colour(1.0,0.4,0.2));
+  G4VisAttributes* GlasVisAtt = new G4VisAttributes( G4Colour(0.78,0.78,0.0) );
+  G4VisAttributes* CMUVisAtt = new G4VisAttributes( G4Colour(0.78,0.0,0.0) );
+  G4VisAttributes* UVAVisAtt = new G4VisAttributes( G4Colour(0.0,0.784,0.0) );
 
   // Cassettes are invisible
   for( layer = 0; layer < NLAYERS; layer++ ){
@@ -783,6 +1004,15 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 	break;
       case kBarVetoLong:
 	logBlock[type][layer]->SetVisAttributes( veto2VisAtt  );
+	break;
+      case kBarUVA:
+	logBlock[type][layer]->SetVisAttributes( UVAVisAtt  );
+	break;
+      case kBarCMU:
+	logBlock[type][layer]->SetVisAttributes( CMUVisAtt  );
+	break;
+      case kBarGlasgow:
+	logBlock[type][layer]->SetVisAttributes( GlasVisAtt  );
 	break;
       default:
 	logBlock[type][layer]->SetVisAttributes( barVisAtt  );

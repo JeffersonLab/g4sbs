@@ -1427,13 +1427,14 @@ void G4SBSTargetBuilder::BuildGEnTarget( G4LogicalVolume* world ) {
   G4Tubs *target_tube = new G4Tubs( "target_tube", 0.0, 1.0*cm,
 				    fTargLen, 0.0, twopi );
   G4LogicalVolume *target_log = new G4LogicalVolume(target_tube, GetMaterial("Air"), "target_log");
+  //target_log->SetVisAttributes(  G4VisAttributes::Invisible );
   //G4VPhysicalVolume *target_phys = new G4PVPlacement(0,G4ThreeVector(0,0,0),
   //						     target_log,"target",
   //						     world, false, 0);
 
   double wallthick, capthick, radius, targlength;
+  //Visuals:
   G4VisAttributes* G10VisAtt = new G4VisAttributes(G4Colour(0.0,1.0,1.0));
-
   G4VisAttributes* leadVisAtt = new G4VisAttributes(G4Colour(0.8,0.8,0.8));
   leadVisAtt->SetForceWireframe(true);
   G4VisAttributes* LadVisAtt = new G4VisAttributes(G4Colour(.207,.776,.063));
@@ -1548,35 +1549,6 @@ void G4SBSTargetBuilder::BuildGEnTarget( G4LogicalVolume* world ) {
   new G4PVPlacement(targboxrot, G4ThreeVector(0.0,0.0,0.0),targethouse_log, "targethouse_phys", world, false, 0 );
 
   targethouse_log->SetVisAttributes(TargetBoxVisAtt);
-
-
-  // G4Box *targbox = new G4Box("targbox", boxthick/2.0, boxheight/2.0, boxwidth/2.0 );
-
-  // // Side wall
-  // G4LogicalVolume* targbox_log = new G4LogicalVolume(targbox, GetMaterial("Iron") ,"targbox_log");
-  // new G4PVPlacement(targboxrot, G4ThreeVector(0.5*m*cos(boxrot), 0.0, 0.5*m*sin(boxrot)), targbox_log, 
-  // 			"targbox_phys", world, false, 0);
-
-  // new G4PVPlacement(targboxrot, G4ThreeVector(-0.5*m*cos(boxrot), 0.0, -0.5*m*sin(boxrot)), targbox_log, 
-  // 		    "targbox_phys", world, false, 0);
-  
-  // Side where all the neutrons go through
-
-  // G4Box *targwin = new G4Box("targwin", boxwidth/4.0, boxheight/2.0, boxthick/2.0 );
-
-  // G4LogicalVolume* targwin_log = new G4LogicalVolume(subtraction, GetMaterial("Iron") ,"targwin_log");
-
-  // new G4PVPlacement(targboxrot, G4ThreeVector(-1.0*m*sin(boxrot), 0.0, 1.0*m*cos(boxrot)), targwin_log, 
-  // 			"targwin_phys", world, false, 0);
-
-  // G4LogicalVolume* G10win_log = new G4LogicalVolume(hole, GetMaterial("G10"), "G10win_log");
-  // G10win_log->SetVisAttributes( G10VisAtt );
-  // new G4PVPlacement(targboxrot, 
-  // 		    G4ThreeVector(-1.0*m*sin(boxrot)+cos(boxrot)*(-boxwidth/4.0+G10windowsize/2.+4.5*2.54*cm), 
-  // 				  0.0, 
-  // 				  1.0*m*cos(boxrot)+sin(boxrot)*(-boxwidth/4.0+G10windowsize/2.+4.5*2.54*cm)), 
-  // 		    G10win_log, "targwin_phys", world, false, 0);
-
 
 // Lead Bricks
   double brickheight = 5.5*2.54*cm;

@@ -6,6 +6,7 @@
 #include "G4RotationMatrix.hh"
 #include "G4LogicalVolume.hh"
 #include "G4VisAttributes.hh"
+#include "G4SBSMWDCSD.hh"
 
 #include <vector>
 #include <map>
@@ -52,6 +53,9 @@ private:
   double fSpacer;         // space inbetween adjacent planes within a chamber
   double fUtheta, fVtheta;// wire angles wrt to X 
   G4RotationMatrix *fWireRotX, *fWireRotU, *fWireRotV;
+
+  // Sensitivity:
+  G4SBSMWDCSD* fMWDCSD;
 
   // VISUALS:
   G4VisAttributes* mylarVisAtt;

@@ -31,6 +31,12 @@ public:
   map<G4int,G4ThreeVector>  LocalCoord; //local coordinates of the center of the sensitive volume (relative to some "mother" logical volume that contains the 
                                         //sensitive detector
   //map<G4int,G4ThreeVector>  GlobalCoord; //Global coordinates of the center of the sensitive volume 
+  //Drift-chamber specific detmap info:
+  map<G4int,G4double> w0; //coordinate of first wire along direction measured by that wire plane
+  map<G4int,G4double> WireSpacing; //spacing of wires within planes (along direction measured by the plane);
+  //directional cosines to compute w(x,y)
+  map<G4int,G4double> Px; // w = x * Px + y * Py
+  map<G4int,G4double> Py; // w = x * Px + y * Py
 
 };
 

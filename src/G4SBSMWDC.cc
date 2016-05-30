@@ -8,6 +8,7 @@
 #include "G4Box.hh"
 #include "G4PVPlacement.hh"
 #include "TMath.h"
+
 #include "sbstypes.hh"
 
 #include "G4SystemOfUnits.hh"
@@ -30,7 +31,7 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fGasThick = 12*um;
   fSpacer = 1.0*mm;
 
-  // **NOTE** -- angles are assumed to be equal!
+  // **NOTE** -- abs val of angles are assumed to be equal!
   fUtheta = -30.0*deg;
   fVtheta =  30.0*deg;
 
@@ -118,9 +119,27 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
   double mY = 2.1*m;
   double mZ = 1.0*m;
   G4Box* mother = new G4Box("mother", mX/2.0, mY/2.0, mZ/2.0);
-  G4LogicalVolume* mother_log = new G4LogicalVolume(mother,GetMaterial("Vacuum"),"mother_log");
+  G4LogicalVolume* mother_log = new G4LogicalVolume(mother,GetMaterial("Air"),"mother_log");
   mother_log->SetVisAttributes( G4VisAttributes::Invisible );
   G4ThreeVector origin(0.0,0.0,0.0);
+
+  ///////////////////////////////////////////////////////////////////////////////
+  // Define MWDC Sensitivity
+  ///////////////////////////////////////////////////////////////////////////////
+
+  G4String MWDCSDname = SDname;
+  G4String MWDCSDname_nopath = SDname;
+  MWDCSDname_nopath.remove(0,SDname.last('/')+1);
+  G4String MWDCcolname = MWDCSDname_nopath;
+  MWDCcolname += "HitsCollection";
+
+  if( !(fMWDCSD = (G4SBSMWDCSD*) fDetCon->fSDman->FindSensitiveDetector(MWDCSDname)) ){
+    fMWDCSD = new G4SBSMWDCSD( MWDCSDname, MWDCcolname );
+    fDetCon->fSDman->AddNewDetector(fMWDCSD);
+    (fDetCon->SDlist).insert(MWDCSDname);
+    fDetCon->SDtype[MWDCSDname] = kMWDC;
+  }
+
 
   ///////////////////////////////////////////////////////////////////////////////
   // Cathodes:
@@ -246,6 +265,7 @@ G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int
   sprintf(temp_name, "X_chamber%1d_plane%1d_log", chamber, planeN);
   G4LogicalVolume* Xlog = new G4LogicalVolume( Xbox, GetMaterial("MWDC_gas"), temp_name );
   Xlog->SetVisAttributes( gasVisAtt );
+  Xlog->SetSensitiveDetector( fMWDCSD );
 
   // Put in the cathodes
   sprintf(temp_name, "X_chamber%1d_plane%1d_cathodefront", chamber, planeN);
@@ -272,9 +292,10 @@ G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int
   if( (planeN+1) % 2 == 0 && fNplanes[chamber] > 3) {
     offset = fWireSep / 2.0; // should be 0.5*cm for GEn
   }
-  ////////////////////////////////////////
-  // Lets Generate the wire mesh:
-  ////////////////////////////////////////
+
+  ///////////////////////////////////////////////////////////////////////////////
+  // Generate wire mesh:
+  ///////////////////////////////////////////////////////////////////////////////
 
   // Used to give unique ID number to field wires:
   // signal wires are 0->fNWires[chamber]-1
@@ -315,6 +336,7 @@ G4LogicalVolume* G4SBSMWDC::BuildUorV(double width, double height, G4String type
 
   G4LogicalVolume* UorVlog = new G4LogicalVolume( UorVbox, GetMaterial("MWDC_gas"), temp_namelog );
   UorVlog->SetVisAttributes( gasVisAtt );
+  UorVlog->SetSensitiveDetector( fMWDCSD );
 
   // Put in the cathodes
   if( type == "U" ) {

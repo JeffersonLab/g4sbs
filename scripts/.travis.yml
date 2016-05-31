@@ -1,0 +1,12 @@
+sudo: false
+os: linux
+compiler: gcc
+language: cpp
+before_install:
+script:
+  - ls
+  - echo Full Travis-CI implementation coming soon... (work on uconn/cmu_dev branch first)
+# whitelist (only cmu_dev for now, where the Travis-CI work is going on)
+branches:
+  only:
+    - cmu_dev

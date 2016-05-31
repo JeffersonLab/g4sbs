@@ -1,5 +1,5 @@
 ## Configure G4SBS for gmn (Q^2 = 6 GeV^2)
-/g4sbs/filename        gmn_6.root        ## Output rootfile
+/g4sbs/filename        gmn_6GeV2.root    ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gmn

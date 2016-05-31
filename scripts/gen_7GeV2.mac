@@ -1,5 +1,5 @@
 ## Configure G4SBS for gen (Q^2 = 7 GeV^2)
-/g4sbs/filename        gen_7.root        ## Output rootfile
+/g4sbs/filename        gen_7GeV2.root    ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gen

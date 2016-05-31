@@ -24,74 +24,48 @@ com = {}
 ## A variable that will hold the column information
 cols = [[]]
 
+## Clear a dicionary variable
+def clearDictionaryVar(cmd):
+  kin[cmd] = 'Undefined'
+  com[cmd] = 'Undefined'
+
+## Clears all variables
 def clearAll():
   global status,cols,exps,numOfEvents,kin,com,cols
   status = 1
   cols = [[]]
   kin['run']          =  numOfEvents
-  kin['q2']           =  'Undefined'
-  kin['beamcur']      =  'Undefined'
-  kin['target']       =  'Undefined'
-  kin['kine']         =  'Undefined'
-  kin['targpres']    =  'Undefined'
-  kin['targlen']      =  'Undefined'
-  kin['gemres']       =  'Undefined'
-  kin['rasterx']      =  'Undefined'
-  kin['rastery']      =  'Undefined'
-  kin['cerdist']      =  'Undefined'
-  kin['cerdepth']     =  'Undefined'
-  kin['gemsep']       =  'Undefined'
-  kin['bbcaldist']    =  'Undefined'
-  kin['gemconfig']    =  'Undefined'
-  kin['bbfield']      =  'Undefined'
-  kin['48d48field']   =  'Undefined'
-  kin['runtime']      =  'Undefined'
-  kin['beamE']        =  'Undefined'
-  kin['bbang']        =  'Undefined'
-  kin['bbdist']       =  'Undefined'
-  kin['hcaldist']     =  'Undefined'
-  kin['48D48dist']    =  'Undefined'
-  kin['sbsang']       =  'Undefined'
-  kin['thmin']        =  'Undefined'
-  kin['thmax']        =  'Undefined'
-  kin['phmin']        =  'Undefined'
-  kin['phmax']        =  'Undefined'
-  kin['sbsclampopt']  =  'Undefined'
-  kin['exp']          =  'Undefined'
-  kin['sbsmagfield']  =  'Undefined'
-  kin['filename']     =  'Undefined'
-  com['run']          =  'Undefined'
-  com['q2']           =  'Undefined'
-  com['beamcur']      =  'Undefined'
-  com['target']       =  'Undefined'
-  com['kine']         =  'Undefined'
-  com['targpres']    =  'Undefined'
-  com['targlen']      =  'Undefined'
-  com['gemres']       =  'Undefined'
-  com['rasterx']      =  'Undefined'
-  com['rastery']      =  'Undefined'
-  com['cerdist']      =  'Undefined'
-  com['cerdepth']     =  'Undefined'
-  com['gemsep']       =  'Undefined'
-  com['bbcaldist']    =  'Undefined'
-  com['gemconfig']    =  'Undefined'
-  com['bbfield']      =  'Undefined'
-  com['48d48field']   =  'Undefined'
-  com['runtime']      =  'Undefined'
-  com['beamE']        =  'Undefined'
-  com['bbang']        =  'Undefined'
-  com['bbdist']       =  'Undefined'
-  com['hcaldist']     =  'Undefined'
-  com['48D48dist']    =  'Undefined'
-  com['sbsang']       =  'Undefined'
-  com['thmin']        =  'Undefined'
-  com['thmax']        =  'Undefined'
-  com['phmin']        =  'Undefined'
-  com['phmax']        =  'Undefined'
-  com['sbsclampopt']  =  'Undefined'
-  com['exp']          =  'Undefined'
-  com['sbsmagfield']  =  'Undefined'
-  com['filename']     =  'Undefined'
+  clearDictionaryVar('q2')
+  clearDictionaryVar('beamcur')
+  clearDictionaryVar('target')
+  clearDictionaryVar('kine')
+  clearDictionaryVar('targpres')
+  clearDictionaryVar('targlen')
+  clearDictionaryVar('gemres')
+  clearDictionaryVar('rasterx')
+  clearDictionaryVar('rastery')
+  clearDictionaryVar('cerdist')
+  clearDictionaryVar('cerdepth')
+  clearDictionaryVar('gemsep')
+  clearDictionaryVar('bbcaldist')
+  clearDictionaryVar('gemconfig')
+  clearDictionaryVar('bbfield')
+  clearDictionaryVar('48d48field')
+  clearDictionaryVar('runtime')
+  clearDictionaryVar('beamE')
+  clearDictionaryVar('bbang')
+  clearDictionaryVar('bbdist')
+  clearDictionaryVar('hcaldist')
+  clearDictionaryVar('48D48dist')
+  clearDictionaryVar('sbsang')
+  clearDictionaryVar('thmin')
+  clearDictionaryVar('thmax')
+  clearDictionaryVar('phmin')
+  clearDictionaryVar('phmax')
+  clearDictionaryVar('sbsclampopt')
+  clearDictionaryVar('exp')
+  clearDictionaryVar('sbsmagfield')
+  clearDictionaryVar('filename')
 
 def g4sbsCmdPrint(cmd,comment = ''):
   global status,cols,exps,numOfEvents,kin,com,cols
@@ -114,7 +88,7 @@ def makeKin():
   print("%s" % kin['q2']),
   fOut = open('%s%s_%sGeV2.mac' % (outputPath,kin['exp'].lower(),kin['q2']),'w')
   fOut.write('## Configure G4SBS for %s (Q^2 = %s GeV^2)\n' % (kin['exp'],kin['q2']))
-  kin['filename'] = "%s_%s.root" % (kin['exp'].lower(),kin['q2']);
+  kin['filename'] = "%s_%sGeV2.root" % (kin['exp'].lower(),kin['q2']);
   g4sbsCmdPrint('filename',"Output rootfile")
 
   fOut.write('\n## Configure Experiment\n')

@@ -1,5 +1,5 @@
 ## Configure G4SBS for gep (Q^2 = 8 GeV^2)
-/g4sbs/filename        gep_8.root        ## Output rootfile
+/g4sbs/filename        gep_8GeV2.root    ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gep

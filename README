@@ -2,7 +2,15 @@ g4sbs
 
 Seamus Riordan
 riordan@jlab.org
-July 31, 2013
+March 11, 2016
+
+Requirements:
+
+Geant4.9.6 (for 4.10 see geant44.10 branch)
+cmake > 2.6
+root 5.34
+python
+git (optional)
 
 Build using the standard cmake facilities. CTEQ tables built in automatically for DIS
 If you would like to get on a mail notification list, contact Seamus (riordan@jlab.org)
@@ -13,7 +21,7 @@ You need the BigBite field map for this as well, which can be found
 
 http://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/map_696A.dat
 
-To build:
+To build immediately after cloning (not in g4sbs/):
 
 mkdir build
 cd build

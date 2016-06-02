@@ -11,6 +11,7 @@
 #include "G4SBSTrackerOutput.hh"
 #include "G4SBSCALoutput.hh"
 #include "G4SBSGEMoutput.hh"
+#include "G4SBSMWDCoutput.hh"
 #include "G4SBSDetectorConstruction.hh"
 #include "G4SBSPythiaOutput.hh"
 
@@ -96,6 +97,7 @@ public:
   //void 
 
   void SetGEMData( G4String, G4SBSGEMoutput );
+  void SetMWDCData( G4String, G4SBSMWDCoutput );
   void SetTrackData( G4String, G4SBSTrackerOutput );
   void SetCalData( G4String, G4SBSCALoutput );
   void SetRICHData( G4String, G4SBSRICHoutput );
@@ -123,6 +125,7 @@ public:
   
   void InitializeTree();
   void BranchGEM(G4String s);
+  void BranchMWDC(G4String s);
   void BranchCAL(G4String s);
   void BranchRICH(G4String s);
   //void BranchTracker(G4String s);
@@ -152,11 +155,11 @@ private:
   // hit_t hitdata;
 
   map<G4String,G4SBSGEMoutput> GEMdata;
+  map<G4String,G4SBSMWDCoutput> MWDCdata;
   map<G4String,G4SBSCALoutput> CALdata;
   map<G4String,G4SBSRICHoutput> richdata;
   map<G4String,G4SBSTrackerOutput> trackdata;
   map<G4String,G4SBSECaloutput> ecaldata;
-
 
   G4bool fUsePythia;
   G4SBSPythiaOutput Primaries;

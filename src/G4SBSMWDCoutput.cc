@@ -43,6 +43,10 @@ void G4SBSMWDCoutput::Clear(){
   p.clear();
   edep.clear();
   beta.clear();
+  wire_number.clear();
+  drift_dist.clear();
+  wx.clear();
+  wy.clear();
 
   ParticleHistory.Clear();
 }

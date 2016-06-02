@@ -16,6 +16,9 @@
 #include "G4SBSECaloutput.hh"
 #include "G4SBSGEMHit.hh"
 #include "G4SBSGEMoutput.hh"
+#include "G4SBSMWDCHit.hh"
+#include "G4SBSMWDCoutput.hh"
+#include "G4SBSMWDCSD.hh"
 #include "G4SBSTrackerOutput.hh"
 #include "G4SBSParticleOutput.hh"
 #include "sbstypes.hh"
@@ -52,6 +55,8 @@ public:
   void FillRICHData( const G4Event*, G4SBSRICHHitsCollection*, G4SBSRICHoutput & );
   void FillTrackData( G4SBSGEMoutput, G4SBSTrackerOutput & );
   void FillECalData( G4SBSECalHitsCollection*, G4SBSECaloutput & );
+  void FillMWDCData( const G4Event*, G4SBSMWDCHitsCollection*, G4SBSMWDCSD*, G4SBSMWDCoutput & );
+  void FillMWDCTrackData( G4SBSMWDCoutput, G4SBSTrackerOutput & );
 
   //map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run. 
   set<G4String> SDlist;
@@ -61,7 +66,7 @@ public:
 
 private:
   //Hit collection IDs:
-  G4int gemCollID, hcalCollID, bbcalCollID, RICHCollID, ECalCollID;
+  G4int gemCollID, hcalCollID, bbcalCollID, RICHCollID, ECalCollID, mwdcCollID;
 
   //maps associating trajectory index with track ID, parent track ID and particle ID
   //For mother track IDs, we use map, because many tracks can have the same mother. 
@@ -71,6 +76,7 @@ private:
   map<G4int,G4int> MotherTrackIDs;
 
   double fGEMres;
+  double fMWDCres;
   
   G4SBSIO *fIO;
   G4SBSEventGen *fevgen;

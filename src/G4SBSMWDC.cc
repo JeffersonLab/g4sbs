@@ -178,7 +178,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
   std::vector<G4String>::iterator vit;
   char temp_name[255];
   int copyID = 0;
-  G4LogicalVolume* test_log, *test_log1;
+  G4LogicalVolume* test_log;
 
   for( mit = fGEn_Setup.begin(); mit != fGEn_Setup.end(); mit++ ) {
     // Make a Chamber:
@@ -204,9 +204,9 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
     gas_winlog->SetVisAttributes( winVisAtt );
 
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, -chamber_thick/2.0 + fGasThick/2.0),
-    		      gas_winlog, "gas_phys_front", chamber_log, false, 0, true);
+    		      gas_winlog, "gas_phys_front", chamber_log, false, 0);
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0,  chamber_thick/2.0 - fGasThick/2.0),
-    		      gas_winlog, "gas_phys_back", chamber_log, false, 0 , true);
+    		      gas_winlog, "gas_phys_back", chamber_log, false, 0);
     
     int planeN = 0;
 
@@ -218,13 +218,13 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
    
       if( plane_type == "X" ) {
       	plane_log = BuildX( fNwidth[chamber_number], fNheight[chamber_number], 
-			    chamber_number, planeN);
+			    chamber_number, planeN, copyID );
       } else {
 	plane_log = BuildUorV( fNwidth[chamber_number], fNheight[chamber_number], plane_type,
-			       chamber_number, planeN);
-	// Tests
+			       chamber_number, planeN, copyID );
+	// Tests:
 	// if( chamber_number==1 ){
-	//   if( planeN == 0 ) {
+	//   if( planeN == 2 ) {
 	//     test_log = plane_log;
 	//   }
 	// }
@@ -243,20 +243,21 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
   }
   new G4PVPlacement(rot, pos, mother_log, "MWDC_mother_phys", world, false, 0);
 
-  // test
-  //  new G4PVPlacement( rot, G4ThreeVector(0.0, 2.0*m, 2.0*m), test_log, "test", realworld, false, 0 ); 
+  // Test to see what a single plane looks like:
+  //new G4PVPlacement( rot, G4ThreeVector(0.0, 2.0*m, 2.0*m), test_log, "test", realworld, false, 0 ); 
 }
 
 
 // Arguments: width = plane width
 //            height = plane height
 //            chamber = chamber #
-//            planeN = plane number
+//            planeN = plane number in chamber
 //            planeN is also used as a counting device to get signal/field wire offset. 
 //            Successive planes of the same type have offset = 0.5*cm in order to increase
 //            the resolution
+//            copyID = global plane number - needed for DetMap
 
-G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int planeN) {
+G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int planeN, int global_planeN) {
   char temp_name[255];
   sprintf(temp_name, "X_chamber%1d_plane%1d_box", chamber, planeN);
  
@@ -301,6 +302,7 @@ G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int
   // signal wires are 0->fNWires[chamber]-1
   // field wires are fNwires[chamber]->2*fNwires[chamber]-1
   int field_count = fNwires[chamber];
+  G4ThreeVector w0_pos(0.0,0.0,0.0);
 
   for( int i=0; i<fNwires[chamber]; i++ ){
     double y_signal = -height/2.0 + i*fWireSep + offset + fSignalD/2.0;
@@ -315,12 +317,25 @@ G4LogicalVolume* G4SBSMWDC::BuildX(double width, double height, int chamber, int
 		       Xlog, false, field_count );
 
     field_count++;
+
+    // Grab the position of the first signal wire for DetMap:
+    if( i == 0 ) {
+      w0_pos = G4ThreeVector(0.0, y_signal, 0.0);
+    }
   }
+
+  // Fill the DetMap:
+  (fMWDCSD->detmap).w0[global_planeN] = w0_pos;
+  (fMWDCSD->detmap).WireSpacing[global_planeN] = fNwirespacing[chamber];
+  // These coordinates will be rotated in EventAction, so it makes sense that Px is the only component
+  (fMWDCSD->detmap).Px[global_planeN] = 1.0; 
+  (fMWDCSD->detmap).Py[global_planeN] = 0.0; 
+  (fMWDCSD->detmap).Plane_nhat[global_planeN] = G4ThreeVector(0.0, 1.0, 0.0);
 
  return Xlog;
 }
 
-G4LogicalVolume* G4SBSMWDC::BuildUorV(double width, double height, G4String type, int chamber, int planeN) {
+G4LogicalVolume* G4SBSMWDC::BuildUorV(double width, double height, G4String type, int chamber, int planeN, int global_planeN) {
   char temp_name[255];
   char temp_namelog[255];
 
@@ -383,11 +398,13 @@ G4LogicalVolume* G4SBSMWDC::BuildUorV(double width, double height, G4String type
 
   int field_count = fNwires[chamber];
 
-  double y_start = -0.5*height - 0.5*length*sin( utheta );         // start iteration from here  
-  double y_normal = -0.5*height + 0.5*length*sin( utheta ); // where lengths are normal
+  double y_start = -0.5*height - 0.5*length*sin( utheta );      // start iteration from here  
+  double y_normal = -0.5*height + 0.5*length*sin( utheta );     // where lengths are normal
   double y_lowest = y_start;
   double y_highest = 0.5*height + 0.5*length*sin( utheta ); 
   double y_normal_top = 0.5*height - 0.5*length*sin( utheta );
+
+  G4ThreeVector w0_pos(0.0,0.0,0.0);
 
   for( int i=0; i<fNwires[chamber]-2; i++ ){
       double y_signal = y_start + i*wiresep + offset + fSignalD/2.0 + initial_offset;   // increment through the detector
@@ -491,7 +508,28 @@ G4LogicalVolume* G4SBSMWDC::BuildUorV(double width, double height, G4String type
 			   temp_name, UorVlog, false, field_count );
       }
 
+      if( i == 0 ){
+	w0_pos = G4ThreeVector(wireC.X(), wireC.Y(), wireC.Z());
+      }
+     
+
       field_count++;
   }
+
+  // Fill the DetMap:
+  (fMWDCSD->detmap).w0[global_planeN] = w0_pos;
+  (fMWDCSD->detmap).WireSpacing[global_planeN] = fNwirespacing[chamber];
+  if( type == "U" ) {
+    (fMWDCSD->detmap).Px[global_planeN] = cos( fabs(fUtheta) );
+    (fMWDCSD->detmap).Py[global_planeN] = sin( fabs(fUtheta) );
+    (fMWDCSD->detmap).Plane_nhat[global_planeN] = 
+      G4ThreeVector( -cos(fabs(fUtheta)), sin(fabs(fUtheta)), 0.0 );
+  }
+  if( type == "V" ) {
+    (fMWDCSD->detmap).Px[global_planeN] = cos( fabs(fVtheta) );
+    (fMWDCSD->detmap).Py[global_planeN] = -sin( fabs(fVtheta) );
+    (fMWDCSD->detmap).Plane_nhat[global_planeN]
+      = G4ThreeVector( cos(fabs(fUtheta)), sin(fabs(fUtheta)), 0.0 );
+  }     
   return UorVlog;
 }

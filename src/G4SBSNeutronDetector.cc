@@ -410,9 +410,9 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     // called logicPMT where placement = layer.
     ///////////////////////////////////////////////////////////
     sprintf(blockName, "physpmtgl_%1d",layer+1 );
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -cathlen/2.0), logicPMTglass, blockName, logicPMT[layer], false, 0, true );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -cathlen/2.0), logicPMTglass, blockName, logicPMT[layer], false, 0 );
     sprintf(blockName, "physpmtca_%1d",layer+1 );
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, glasslen/2.0), logicPMTcath, blockName, logicPMT[layer], false, 0, true );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, glasslen/2.0), logicPMTcath, blockName, logicPMT[layer], false, 0 );
 
 
     // Make the Scintillating Bars:
@@ -953,7 +953,6 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
       
     }
   }
-  cout << ((NDSD->detmap).LocalCoord).size() << endl;
 
   // Test:
   //map<int,G4ThreeVector>::iterator vit3;

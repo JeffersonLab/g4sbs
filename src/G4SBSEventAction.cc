@@ -4,6 +4,7 @@
 
 #include "TMatrix.h"
 #include "TVector.h"
+#include "TVector3.h"
 #include "TMatrixD.h"
 #include "TVectorD.h"
 #include "THashTable.h"
@@ -17,6 +18,7 @@
 #include "G4SBSCalSD.hh"
 #include "G4SBSRICHSD.hh"
 #include "G4SBSECalSD.hh"
+#include "G4SBSMWDCSD.hh"
 
 #include "G4Event.hh"
 #include "G4EventManager.hh"
@@ -42,6 +44,7 @@
 //#include <unordered_map>
 #include <vector>
 #include <set>
+#include <iostream>
 
 using namespace std;
 
@@ -50,17 +53,19 @@ using namespace std;
 G4SBSEventAction::G4SBSEventAction()
 {
   fTreeFlag = 0;
-    fGEMres = 70.0*um;
+  fGEMres = 70.0*um;
+  fMWDCres = 200.0*um; //Kelleher Thesis
 
-    // Load up resolution file if it exists
+  // Load up resolution file if it exists
 
-    int idx;
+  int idx;
 
-    for( idx = 0; idx < __MAXGEM; idx++ ){
-	fGEMsigma[idx] = 1.0;
-    }
+  for( idx = 0; idx < __MAXGEM; idx++ ){
+    fGEMsigma[idx] = 1.0;
+  }
 
-    SDlist.clear();
+  SDlist.clear();
+
 }
 
 G4SBSEventAction::~G4SBSEventAction()
@@ -126,6 +131,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   G4bool warn = false;
 
   G4SBSGEMSD *GEMSDptr;
+  G4SBSMWDCSD *MWDCSDptr;
   G4SBSCalSD *CalSDptr;
   G4SBSRICHSD *RICHSDptr;
   G4SBSECalSD *ECalSDptr;
@@ -133,6 +139,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   G4HCofThisEvent * HCE = evt->GetHCofThisEvent();
   G4SBSCalHitsCollection* calHC = 0;
   G4SBSGEMHitsCollection* gemHC = 0;
+  G4SBSMWDCHitsCollection* mwdcHC = 0;
   G4SBSRICHHitsCollection *RICHHC = 0;
   G4SBSECalHitsCollection *ECalHC = 0;
 
@@ -150,8 +157,9 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
     SDet_t Det_type = SDtype[*d];
     //Arm_t Det_arm = SDarm[d->first];
-
+  
     G4SBSGEMoutput gd;
+    G4SBSMWDCoutput md;
     G4SBSTrackerOutput td;
     G4SBSCALoutput cd;
     G4SBSRICHoutput rd;
@@ -173,6 +181,30 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  
 	  
 	  FillTrackData( gd, td );
+	  
+	  if( td.ntracks > 0 ){
+	    if( (*d).contains("Earm") ) has_earm_track = true;
+	    if( (*d).contains("Harm") ) has_harm_track = true;
+	    
+	  }
+	  fIO->SetTrackData( *d, td );
+	}
+      }
+      break;
+    case kMWDC:
+      MWDCSDptr = (G4SBSMWDCSD*) SDman->FindSensitiveDetector( *d, false );
+      
+      if( MWDCSDptr != NULL ){
+	mwdcHC = (G4SBSMWDCHitsCollection*) (HCE->GetHC(SDman->GetCollectionID(colNam=MWDCSDptr->GetCollectionName(0))));
+	
+	if( mwdcHC != NULL ){
+
+	  FillMWDCData(evt, mwdcHC, MWDCSDptr, md);
+	  fIO->SetMWDCData( *d, md );
+	
+	  anyhits = (anyhits || md.nhits_MWDC > 0);	  
+	  
+	  FillMWDCTrackData( md, td );
 	  
 	  if( td.ntracks > 0 ){
 	    if( (*d).contains("Earm") ) has_earm_track = true;
@@ -277,7 +309,7 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
 
     int trid = (*hits)[i]->GetTrID();
     int gemID = (*hits)[i]->GetGEMID();
-    
+
     std::pair<set<int>::iterator, bool> track = tracks_layers[gemID].insert( trid );
 
     if( track.second ){ //new track in this layer, first step:
@@ -419,6 +451,228 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
 	}
 
 	gemoutput.nhits_GEM++;
+      }
+    }
+  }
+}
+
+void G4SBSEventAction::FillMWDCData( const G4Event *evt, G4SBSMWDCHitsCollection *hits, G4SBSMWDCSD* ptr, G4SBSMWDCoutput &mwdcoutput ){
+  mwdcoutput.Clear();
+  mwdcoutput.timewindow = 1000.0*ns;
+  mwdcoutput.threshold = 0.0*eV;
+
+  //Need to map unique layers and then unique tracks within layers:
+  map<int,set<int> > tracks_layers; //key is MWDC plane #, value is a set of unique tracks with energy deposition in the layer
+  //For each unique particle track in each MWDC layer, we want to tabulate sums/averages of coordinates, etc:
+  map<int,map<int,int> > nsteps_track_layer; //number of steps by track/layer
+  map<int,map<int,double> > x,y,z,t,t2,tmin,tmax;
+  map<int,map<int,double> > tx,ty,txp,typ;
+  map<int,map<int,int> > mid,pid; //don't need one for plane, trid as these are already keys
+  map<int,map<int,double> > vx,vy,vz;
+  map<int,map<int,double> > p,edep,beta;
+  map<int,map<int,double> > polx,poly,polz;
+
+  map<int,map<int,int> > wire_number;
+  map<int,map<int,double> > wx, wy;
+  map<int,map<int,double> > drift_distance;
+  
+  //G4int nhit=0;
+  //Loop over all "hits" (actually individual tracking steps):
+  for( G4int i=0; i < hits->entries(); i++ ){
+
+    int trid = (*hits)[i]->GetTrID();
+    int mwdcID = (*hits)[i]->GetMWDCID(); // plane #
+
+    // w0 is the position of the "first" wire placed in a plane
+    // for "U" = bottom left (looking in z-hat)
+    // "V" = bottom right
+    // "X" = bottom center
+    // (Px,Py) is perp to plane_nhat
+
+    G4ThreeVector w0_pos = ((ptr->detmap).w0)[mwdcID];
+    double wire_spacing = ((ptr->detmap).WireSpacing)[mwdcID];
+    double Px = ((ptr->detmap).Px)[mwdcID];
+    double Py = ((ptr->detmap).Py)[mwdcID];
+    G4ThreeVector plane_nhat = ((ptr->detmap).Plane_nhat)[mwdcID];
+
+    TVector3 w0(w0_pos.getX(), w0_pos.getY(), 0.0);
+    TVector3 nhat(plane_nhat.getX(), plane_nhat.getY(), 0.0);
+    nhat.Unit();
+
+    std::pair<set<int>::iterator, bool> track = tracks_layers[mwdcID].insert( trid );
+
+    if( track.second ){ //new track in this layer, first step:
+      nsteps_track_layer[mwdcID][trid] = 1;
+      //The coordinates below represent local MWDC hit coordinates in the TRANSPORT system 
+      //(+x = vertical down, +y = horizontal left when looking in the direction of particle motion)
+      x[mwdcID][trid] =  (*hits)[i]->GetPos().x();
+      y[mwdcID][trid] =  (*hits)[i]->GetPos().y();
+      z[mwdcID][trid] =  (*hits)[i]->GetPos().z();
+
+      polx[mwdcID][trid] = (*hits)[i]->GetPolarization().x();
+      poly[mwdcID][trid] = (*hits)[i]->GetPolarization().y();
+      polz[mwdcID][trid] = (*hits)[i]->GetPolarization().z();
+
+      t[mwdcID][trid] =  (*hits)[i]->GetHittime();
+      t2[mwdcID][trid] = pow( t[mwdcID][trid],2 );
+      tmin[mwdcID][trid] = tmax[mwdcID][trid] = t[mwdcID][trid];
+      
+      //Track coordinates in TRANSPORT system:
+      tx[mwdcID][trid] = x[mwdcID][trid];
+      ty[mwdcID][trid] = y[mwdcID][trid];
+      txp[mwdcID][trid] = (*hits)[i]->GetXp();
+      typ[mwdcID][trid] = (*hits)[i]->GetYp();
+      
+      mid[mwdcID][trid] = (*hits)[i]->GetMID();
+      pid[mwdcID][trid] = (*hits)[i]->GetPID();
+      
+      //Vertex coordinates of track in GLOBAL coordinates:
+      vx[mwdcID][trid] = (*hits)[i]->GetVertex().x();
+      vy[mwdcID][trid] = (*hits)[i]->GetVertex().y();
+      vz[mwdcID][trid] = (*hits)[i]->GetVertex().z();
+      
+      p[mwdcID][trid] = (*hits)[i]->GetMom();
+      
+      edep[mwdcID][trid] = (*hits)[i]->GetEdep();
+   
+      beta[mwdcID][trid] = (*hits)[i]->GetBeta();
+
+      // Get the closest wire:
+      TVector3 hitpos( x[mwdcID][trid], y[mwdcID][trid], 0.0 );
+      TVector3 hit_from_w0 = hitpos - w0;
+      wire_number[mwdcID][trid] = int( ((hit_from_w0).Dot(nhat)) / wire_spacing );
+      
+      TVector3 center2closest_wire = w0 + wire_number[mwdcID][trid] * nhat;
+      TVector3 hit2closest_wire = center2closest_wire - hitpos;
+      double driftdist = fabs( hit2closest_wire.Dot(nhat) );
+      cout << driftdist << endl;
+
+      drift_distance[mwdcID][trid] = driftdist;
+
+      wx[mwdcID][trid] = Px * x[mwdcID][trid];
+      wy[mwdcID][trid] = Py * y[mwdcID][trid];
+       
+
+    } else { //existing track in this layer, additional step; increment sums and averages:
+      int nstep = nsteps_track_layer[mwdcID][trid];
+      double w = double(nstep)/(double(nstep+1) );
+
+      //The coordinates below represent local MWDC hit coordinates in the TRANSPORT system 
+      //(+x = vertical down, +y = horizontal left when looking in the direction of particle motion)
+      x[mwdcID][trid] = x[mwdcID][trid]*w +( (*hits)[i]->GetPos().x() )*(1.0-w);
+      y[mwdcID][trid] = y[mwdcID][trid]*w +( (*hits)[i]->GetPos().y() )*(1.0-w);
+      z[mwdcID][trid] = z[mwdcID][trid]*w +( (*hits)[i]->GetPos().z() )*(1.0-w);
+      
+      t[mwdcID][trid] = t[mwdcID][trid]*w +( (*hits)[i]->GetHittime() )*(1.0-w);
+      t2[mwdcID][trid] += pow((*hits)[i]->GetHittime(),2);
+      if( (*hits)[i]->GetHittime() < tmin[mwdcID][trid] ) tmin[mwdcID][trid] = (*hits)[i]->GetHittime();
+      if( (*hits)[i]->GetHittime() > tmax[mwdcID][trid] ) tmax[mwdcID][trid] = (*hits)[i]->GetHittime();
+      
+      //Track coordinates in TRANSPORT system:
+      tx[mwdcID][trid] = x[mwdcID][trid];
+      ty[mwdcID][trid] = y[mwdcID][trid];
+      txp[mwdcID][trid] = txp[mwdcID][trid]*w +( (*hits)[i]->GetXp() )*(1.0-w);
+      typ[mwdcID][trid] = typ[mwdcID][trid]*w +( (*hits)[i]->GetYp() )*(1.0-w);
+
+      //For edep, we do the sum:
+      edep[mwdcID][trid] += (*hits)[i]->GetEdep();
+
+      TVector3 hitpos( x[mwdcID][trid], y[mwdcID][trid], 0.0 );
+      TVector3 hit_from_w0 = hitpos - w0;
+      wire_number[mwdcID][trid] = int( ((hit_from_w0).Dot(nhat)) / wire_spacing );
+      
+      TVector3 center2closest_wire = w0 + wire_number[mwdcID][trid] * nhat;
+      TVector3 hit2closest_wire = center2closest_wire - hitpos;
+      double driftdist = fabs( hit2closest_wire.Dot(nhat) );
+      drift_distance[mwdcID][trid] = driftdist;
+
+      wx[mwdcID][trid] = Px * x[mwdcID][trid];
+      wy[mwdcID][trid] = Py * y[mwdcID][trid];
+
+      nsteps_track_layer[mwdcID][trid]++;
+    }
+  }
+  
+  G4TrajectoryContainer *trajectorylist = evt->GetTrajectoryContainer(); //For particle history information:
+
+  set<int> TIDs_unique; //all unique track IDs involved in MWDC hits in this event (for filling particle history tree)
+
+  for(map<int,set<int> >::iterator hit=tracks_layers.begin(); hit!=tracks_layers.end(); hit++ ){
+    set<int> tracklist = hit->second;
+    int mwdcID = hit->first;
+
+    for(set<int>::iterator track=tracklist.begin(); track!=tracklist.end(); track++ ){
+      int trackID = *track;
+      if( edep[mwdcID][trackID] >= mwdcoutput.threshold ){
+	mwdcoutput.plane.push_back( mwdcID );
+	mwdcoutput.strip.push_back( 0 );
+	//Difference between "x" and "tx" is that "x" is smeared by MWDC coordinate resolution:
+	mwdcoutput.x.push_back( (-y[mwdcID][trackID] + CLHEP::RandGauss::shoot(0.0,fMWDCres) )/_L_UNIT );
+	mwdcoutput.y.push_back( (x[mwdcID][trackID] + CLHEP::RandGauss::shoot(0.0,fMWDCres) )/_L_UNIT );
+	mwdcoutput.z.push_back( z[mwdcID][trackID]/_L_UNIT );
+	mwdcoutput.polx.push_back( -poly[mwdcID][trackID] );
+	mwdcoutput.poly.push_back(  polx[mwdcID][trackID] );
+	mwdcoutput.polz.push_back(  polz[mwdcID][trackID] );
+	mwdcoutput.t.push_back( t[mwdcID][trackID]/_T_UNIT );
+	mwdcoutput.trms.push_back( sqrt(t2[mwdcID][trackID]/double(nsteps_track_layer[mwdcID][trackID]) - pow(t[mwdcID][trackID],2))/_T_UNIT );
+	mwdcoutput.tmin.push_back( tmin[mwdcID][trackID]/_T_UNIT );
+	mwdcoutput.tmax.push_back( tmax[mwdcID][trackID]/_T_UNIT );
+	mwdcoutput.tx.push_back( -ty[mwdcID][trackID]/_L_UNIT );
+	mwdcoutput.ty.push_back( tx[mwdcID][trackID]/_L_UNIT );
+	mwdcoutput.txp.push_back( -typ[mwdcID][trackID] );
+	mwdcoutput.typ.push_back( txp[mwdcID][trackID] );
+	mwdcoutput.trid.push_back( trackID );
+	mwdcoutput.mid.push_back( mid[mwdcID][trackID] );
+	mwdcoutput.pid.push_back( pid[mwdcID][trackID] );
+	mwdcoutput.vx.push_back( vx[mwdcID][trackID]/_L_UNIT );
+	mwdcoutput.vy.push_back( vy[mwdcID][trackID]/_L_UNIT );
+	mwdcoutput.vz.push_back( vz[mwdcID][trackID]/_L_UNIT );
+	mwdcoutput.p.push_back( p[mwdcID][trackID]/_E_UNIT );
+	mwdcoutput.edep.push_back( edep[mwdcID][trackID]/_E_UNIT );
+	mwdcoutput.beta.push_back( beta[mwdcID][trackID] );
+
+	mwdcoutput.wire_number.push_back( wire_number[mwdcID][trackID] );
+	mwdcoutput.drift_dist.push_back( drift_distance[mwdcID][trackID]/_L_UNIT );
+	mwdcoutput.wx.push_back( (wx[mwdcID][trackID] + CLHEP::RandGauss::shoot(0.0,fMWDCres) )/_L_UNIT );
+      	mwdcoutput.wy.push_back( (wy[mwdcID][trackID] + CLHEP::RandGauss::shoot(0.0,fMWDCres) )/_L_UNIT );
+	
+	if( trajectorylist ){ //Fill Particle History, starting with the particle itself and working all the way back to primary particles:
+	  int MIDtemp = mid[mwdcID][trackID];
+	  int TIDtemp = trackID;
+	  int PIDtemp = pid[mwdcID][trackID];
+	  int hitidx = mwdcoutput.nhits_MWDC;
+	  int nbouncetemp = 0;
+	  do {
+	    G4Trajectory *trajectory = (G4Trajectory*) (*trajectorylist)[TrajectoryIndex[TIDtemp]];
+	    
+	    PIDtemp = trajectory->GetPDGEncoding();
+	    MIDtemp = MotherTrackIDs[TIDtemp];
+
+	    std::pair<set<int>::iterator, bool > newtrajectory = TIDs_unique.insert( TIDtemp );
+	    
+	    if( newtrajectory.second ){ //This trajectory does not yet exist in the particle history of this detector for this event. Add it:
+	      mwdcoutput.ParticleHistory.PID.push_back( PIDtemp );
+	      mwdcoutput.ParticleHistory.MID.push_back( MIDtemp );
+	      mwdcoutput.ParticleHistory.TID.push_back( TIDtemp );
+	      mwdcoutput.ParticleHistory.hitindex.push_back( hitidx ); //Of course, this means that if a trajectory is involved in multiple hits in this detector, this variable will point to the first hit encountered only!
+	      mwdcoutput.ParticleHistory.nbounce.push_back( nbouncetemp );
+	      mwdcoutput.ParticleHistory.vx.push_back( (trajectory->GetPoint(0)->GetPosition() ).x()/_L_UNIT );
+	      mwdcoutput.ParticleHistory.vy.push_back( (trajectory->GetPoint(0)->GetPosition() ).y()/_L_UNIT );
+	      mwdcoutput.ParticleHistory.vz.push_back( (trajectory->GetPoint(0)->GetPosition() ).z()/_L_UNIT );
+	      mwdcoutput.ParticleHistory.px.push_back( (trajectory->GetInitialMomentum() ).x()/_E_UNIT );
+	      mwdcoutput.ParticleHistory.py.push_back( (trajectory->GetInitialMomentum() ).y()/_E_UNIT );
+	      mwdcoutput.ParticleHistory.pz.push_back( (trajectory->GetInitialMomentum() ).z()/_E_UNIT );
+	      mwdcoutput.ParticleHistory.npart++;
+	    }
+	    
+	    TIDtemp = MIDtemp;
+	    
+	    nbouncetemp++;
+
+	  } while( MIDtemp != 0 );
+	}
+
+	mwdcoutput.nhits_MWDC++;
       }
     }
   }
@@ -1315,6 +1569,189 @@ void G4SBSEventAction::FillTrackData( G4SBSGEMoutput gemdata, G4SBSTrackerOutput
 	Toutput.NumPlanes.push_back( GEMIDs_unique.size() );
 	  
 	//Everything should already be expressed in the desired units in gemdata:
+	Toutput.TrackX.push_back( TrueTrack(0) );
+	Toutput.TrackXp.push_back( TrueTrack(1) );
+	Toutput.TrackY.push_back( TrueTrack(2) );
+	Toutput.TrackYp.push_back( TrueTrack(3) );
+
+	Toutput.TrackXfit.push_back( FitTrack(0) );
+	Toutput.TrackXpfit.push_back( FitTrack(1) );
+	Toutput.TrackYfit.push_back( FitTrack(2) );
+	Toutput.TrackYpfit.push_back( FitTrack(3) );
+
+	int ndf = 0;
+	double chi2 = 0.0, chi2_true = 0.0;
+	//Compute chi^2 and focal plane times projected to local origin:
+	for(int idx = 0; idx<nhittrk; idx++){
+
+	  //tfp is hit time corrected for time of flight: ztrue has units of meters, while hittime has units of ns
+	  //convert z to meters, then the tof correction term will have units of seconds, so we need to divide by _T_UNIT to get ns!
+	  double tfp = hittime[idx] - ztrue[idx]*sqrt( 1.0 + pow(TrueTrack(1),2)+pow(TrueTrack(3),2) ) / (beta[idx]*c_light)*(_L_UNIT/_T_UNIT);
+	    
+	  chi2 += pow( (xsmear[idx] - (FitTrack(0) + FitTrack(1)*ztrue[idx] ) )/sigma, 2 );
+	  chi2 += pow( (ysmear[idx] - (FitTrack(2) + FitTrack(3)*ztrue[idx] ) )/sigma, 2 );
+
+	  chi2_true += pow( (xtrue[idx] - (TrueTrack(0) + TrueTrack(1)*ztrue[idx] ) )/sigma, 2 );
+	  chi2_true += pow( (ytrue[idx] - (TrueTrack(2) + TrueTrack(3)*ztrue[idx] ) )/sigma, 2 );
+
+	  tavg += tfp/double(nhittrk);
+
+	  ndf += 2;
+	}
+
+	Toutput.TrackSx.push_back( polx_avg );
+	Toutput.TrackSy.push_back( poly_avg );
+	Toutput.TrackSz.push_back( polz_avg );
+	
+	Toutput.Chi2fit.push_back( chi2 );
+	Toutput.Chi2true.push_back( chi2_true );
+	Toutput.NDF.push_back( ndf - 4 );
+	Toutput.TrackT.push_back( tavg ); //tavg already in ns!
+
+	Toutput.TrackP.push_back( pavg ); //pavg already in GeV!
+      }
+    }
+  }
+}
+
+void G4SBSEventAction::FillMWDCTrackData( G4SBSMWDCoutput mwdcdata, G4SBSTrackerOutput &Toutput){
+  //Note: mwdcdata have already been normalized to the correct units (meters, ns, GeV) and are already expressed in TRANSPORT coordinates:
+  //Also note that mwdcdata.x and mwdcdata.y have already been smeared by coordinate resolution!
+
+  set<int> TrackTIDs_unique; //Track numbers of unique tracks causing MWDC hits in this event:
+  
+  map<int, vector<int> > HitList; //list of indices in the hit array of hits associated with a given track:
+
+  G4int nhits = mwdcdata.nhits_MWDC;
+
+  //First, map all hits to track IDs:
+  for(int i=0; i<nhits; i++){
+    int tid = mwdcdata.trid[i];   
+   
+    double edep = mwdcdata.edep[i];
+
+    if( edep > 0.0 ){
+      TrackTIDs_unique.insert( tid );
+      
+      HitList[tid].push_back( i );
+    }
+  }
+
+  int nplanes_min = 3; //Minimum number of valid hits to define a track:
+
+  //For the "true" track, we simply take the average of all points for x, y, xp, yp 
+  //Fit procedure: minimize chi^2 defined as sum_i=1,N (xi - (x0 + xp*z))^2/sigmax^2 + (yi - (y0+yp*z))^2/sigmay^2:
+
+  for(set<int>::iterator trk=TrackTIDs_unique.begin(); trk != TrackTIDs_unique.end(); trk++ ){
+    int track   = *trk;
+    //Define sums to keep track of: 
+    int nhittrk = 0;
+    int nplanetrk = 0;
+      
+    set<int> MWDCIDs_unique; //List of unique MWDC plane ids on this track:
+
+    double x0avg = 0.0, y0avg = 0.0, xpavg = 0.0, ypavg = 0.0;
+    double x0avg2 = 0.0, y0avg2 = 0.0, xpavg2 = 0.0, ypavg2 = 0.0;
+    double tavg = 0.0, tavg2 = 0.0;
+    double pavg = 0.0;
+
+    double polx_avg = 0.0, poly_avg = 0.0, polz_avg = 0.0; //compute average track polarization for each track.
+    
+    TMatrixD M(4,4);
+    TVectorD b(4);
+    TVectorD btrue(4);
+    
+    //Initialize linear fitting matrices to zero:
+    for(int i=0; i<4; i++){
+      for(int j=0; j<4; j++){
+	M(i,i) = 0.0;
+      }
+      b(i) = 0.0;
+      btrue(i) = 0.0;
+    }
+      
+    nhittrk = HitList[track].size();
+
+    if( nhittrk >= nplanes_min ){
+	
+      vector<double> xsmear,ysmear,xtrue,ytrue,ztrue,hittime,beta;
+      
+      int PID = 0, MID = -1;
+      
+      double sigma = fMWDCres/_L_UNIT;
+
+      for(int idx = 0; idx<nhittrk; idx++ ){ //First pass: determine number of unique MWDC planes and compute average slopes of "true track". Also compute the sums for the linear fit:
+	int hit = HitList[track][idx];
+	
+	if( idx == 0 ) {
+	  PID = mwdcdata.pid[hit];
+	  MID = mwdcdata.mid[hit];
+	}
+	
+	MWDCIDs_unique.insert( mwdcdata.plane[hit] );
+	
+	pavg += mwdcdata.p[hit]/double(nhittrk);
+
+	polx_avg += mwdcdata.polx[hit]/double(nhittrk);
+	poly_avg += mwdcdata.poly[hit]/double(nhittrk);
+	polz_avg += mwdcdata.polz[hit]/double(nhittrk);
+	
+	xtrue.push_back( mwdcdata.tx[hit] );
+	ytrue.push_back( mwdcdata.ty[hit] );
+
+	xsmear.push_back( mwdcdata.x[hit] );
+	ysmear.push_back( mwdcdata.y[hit] );
+	  
+	ztrue.push_back( mwdcdata.z[hit] );
+	 
+	hittime.push_back( mwdcdata.t[hit] );
+	beta.push_back( mwdcdata.beta[hit] );
+	  
+	//Indices of fit parameters in matrix are: 0 = x0, 1 = xp, 2 = y0, 3 = yp:
+	M(0,0) += pow(1.0/sigma,2); 
+	M(0,1) += pow(1.0/sigma,2) * ztrue[idx];
+	M(0,2) += 0.0; //No cross term between x0 and y0
+	M(0,3) += 0.0; //No cross term between x0 and yp
+	M(1,0) += pow(1.0/sigma,2) * ztrue[idx];
+	M(1,1) += pow(ztrue[idx]/sigma,2);
+	M(1,2) += 0.0;
+	M(1,3) += 0.0;
+	M(2,0) += 0.0;
+	M(2,1) += 0.0;
+	M(2,2) += pow(1.0/sigma,2);
+	M(2,3) += pow(1.0/sigma,2) * ztrue[idx];
+	M(3,0) += 0.0;
+	M(3,1) += 0.0;
+	M(3,2) += pow(1.0/sigma,2) * ztrue[idx];
+	M(3,3) += pow(ztrue[idx]/sigma,2);
+	  
+	b(0) += xsmear[idx] / pow(sigma,2);
+	b(1) += ztrue[idx] * xsmear[idx] / pow(sigma,2);
+	b(2) += ysmear[idx] / pow(sigma,2);
+	b(3) += ztrue[idx] * ysmear[idx] / pow(sigma,2);
+	  
+	btrue(0) += xtrue[idx] / pow(sigma,2);
+	btrue(1) += ztrue[idx] * xtrue[idx] / pow(sigma,2);
+	btrue(2) += ytrue[idx] / pow(sigma,2);
+	btrue(3) += ztrue[idx] * ytrue[idx] / pow(sigma,2);
+
+      }
+	
+      if( MWDCIDs_unique.size() >= nplanes_min ){
+
+	TMatrixD Minv = M.Invert();
+	TVectorD FitTrack = Minv * b;
+	TVectorD TrueTrack = Minv * btrue;
+
+	Toutput.ntracks++;
+	
+	Toutput.TrackTID.push_back(track);
+	Toutput.TrackPID.push_back( PID );
+	Toutput.TrackMID.push_back( MID );
+	Toutput.NumHits.push_back( nhittrk );
+	Toutput.NumPlanes.push_back( MWDCIDs_unique.size() );
+	  
+	//Everything should already be expressed in the desired units in mwdcdata:
 	Toutput.TrackX.push_back( TrueTrack(0) );
 	Toutput.TrackXp.push_back( TrueTrack(1) );
 	Toutput.TrackY.push_back( TrueTrack(2) );

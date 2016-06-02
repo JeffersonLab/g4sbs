@@ -25,9 +25,7 @@ G4SBSMWDCSD::G4SBSMWDCSD( G4String name, G4String colname )
     detmap.clear();
 }
 
-G4SBSMWDCSD::~G4SBSMWDCSD()
-{
-}
+G4SBSMWDCSD::~G4SBSMWDCSD(){}
 
 void G4SBSMWDCSD::Initialize(G4HCofThisEvent*)
 {
@@ -51,7 +49,7 @@ G4bool G4SBSMWDCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   //The sensitive region of the MWDC is positioned inside a mother MWDC chamber, this is why plane number is one level up the geometry hierarchy
   //from the sensitive region:
-  G4int copyID = hist->GetReplicaNumber(1);
+  G4int copyID = hist->GetReplicaNumber(0);
  
   //Each MWDC chamber is placed inside a mother box, the entrance of which is defined as the Z position for tracking 
   double offset = ((G4Box *) hist->GetSolid(2))->GetZHalfLength();

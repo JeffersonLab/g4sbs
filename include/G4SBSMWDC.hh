@@ -20,8 +20,8 @@ public:
   void BuildComponent(G4LogicalVolume *,G4LogicalVolume *, G4RotationMatrix *, 
 		      G4ThreeVector, G4String );  
 
-  G4LogicalVolume* BuildX(double,double,int,int);
-  G4LogicalVolume* BuildUorV(double,double,G4String,int,int);
+  G4LogicalVolume* BuildX(double,double,int,int,int);
+  G4LogicalVolume* BuildUorV(double,double,G4String,int,int,int);
 
 private:
 

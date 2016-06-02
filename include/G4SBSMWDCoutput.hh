@@ -24,6 +24,10 @@ public:
   vector<int> trid,mid,pid;
   vector<double> vx,vy,vz;
   vector<double> p,edep,beta;
+
+  vector<int> wire_number;
+  vector<double> drift_dist;
+  vector<double> wx,wy;
   
   G4SBSParticleOutput ParticleHistory;
 

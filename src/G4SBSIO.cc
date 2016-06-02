@@ -46,6 +46,10 @@ void G4SBSIO::SetGEMData( G4String SDname, G4SBSGEMoutput gd ){
   GEMdata[SDname] = gd;
 }
 
+void G4SBSIO::SetMWDCData( G4String SDname, G4SBSMWDCoutput md ){
+  MWDCdata[SDname] = md;
+}
+
 void G4SBSIO::SetTrackData( G4String SDname, G4SBSTrackerOutput td ){
   trackdata[SDname] = td;
 }
@@ -95,6 +99,13 @@ void G4SBSIO::InitializeTree(){
 	trackdata[SDname] = G4SBSTrackerOutput();
 	
 	BranchGEM(SDname);
+	
+	break;
+      case kMWDC:
+	MWDCdata[SDname] = G4SBSMWDCoutput();
+	trackdata[SDname] = G4SBSTrackerOutput();
+	
+	BranchMWDC(SDname);
 	
 	break;
       case kCAL: //"CAL": Add appropriate branches:
@@ -353,6 +364,88 @@ void G4SBSIO::BranchGEM(G4String SDname="GEM"){
     fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.px) );
     fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.py) );
     fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(GEMdata[SDname].ParticleHistory.pz) );
+  }
+
+  return;
+}
+
+void G4SBSIO::BranchMWDC(G4String SDname="MWDC"){
+  TString branch_prefix = SDname.data();
+  TString branch_name;
+  
+  branch_prefix.ReplaceAll("/",".");
+ 
+  //Branches with raw MWDC data:
+  
+  fTree->Branch( branch_name.Format( "%s.hit.nhits", branch_prefix.Data() ), &(MWDCdata[SDname].nhits_MWDC) );
+  fTree->Branch( branch_name.Format( "%s.hit.plane", branch_prefix.Data() ), &(MWDCdata[SDname].plane) );
+  fTree->Branch( branch_name.Format( "%s.hit.strip", branch_prefix.Data() ), &(MWDCdata[SDname].strip) );
+  fTree->Branch( branch_name.Format( "%s.hit.x", branch_prefix.Data() ), &(MWDCdata[SDname].x) );
+  fTree->Branch( branch_name.Format( "%s.hit.y", branch_prefix.Data() ), &(MWDCdata[SDname].y) );
+  fTree->Branch( branch_name.Format( "%s.hit.z", branch_prefix.Data() ), &(MWDCdata[SDname].z) );
+  fTree->Branch( branch_name.Format( "%s.hit.polx", branch_prefix.Data() ), &(MWDCdata[SDname].polx) );
+  fTree->Branch( branch_name.Format( "%s.hit.poly", branch_prefix.Data() ), &(MWDCdata[SDname].poly) );
+  fTree->Branch( branch_name.Format( "%s.hit.polz", branch_prefix.Data() ), &(MWDCdata[SDname].polz) );
+  fTree->Branch( branch_name.Format( "%s.hit.t", branch_prefix.Data() ), &(MWDCdata[SDname].t) );
+  fTree->Branch( branch_name.Format( "%s.hit.trms", branch_prefix.Data() ), &(MWDCdata[SDname].trms) );
+  fTree->Branch( branch_name.Format( "%s.hit.tmin", branch_prefix.Data() ), &(MWDCdata[SDname].tmin) );
+  fTree->Branch( branch_name.Format( "%s.hit.tmax", branch_prefix.Data() ), &(MWDCdata[SDname].tmax) );
+  // fTree->Branch( branch_name.Format( "%s.hit.dx", branch_prefix.Data() ), &(MWDCdata[SDname].dx) );
+  // fTree->Branch( branch_name.Format( "%s.hit.dy", branch_prefix.Data() ), &(MWDCdata[SDname].dy) );
+  fTree->Branch( branch_name.Format( "%s.hit.tx", branch_prefix.Data() ), &(MWDCdata[SDname].tx) );
+  fTree->Branch( branch_name.Format( "%s.hit.ty", branch_prefix.Data() ), &(MWDCdata[SDname].ty) );
+  fTree->Branch( branch_name.Format( "%s.hit.txp", branch_prefix.Data() ), &(MWDCdata[SDname].txp) );
+  fTree->Branch( branch_name.Format( "%s.hit.typ", branch_prefix.Data() ), &(MWDCdata[SDname].typ) );
+  fTree->Branch( branch_name.Format( "%s.hit.trid", branch_prefix.Data() ), &(MWDCdata[SDname].trid) );
+  fTree->Branch( branch_name.Format( "%s.hit.mid", branch_prefix.Data() ), &(MWDCdata[SDname].mid) );
+  fTree->Branch( branch_name.Format( "%s.hit.pid", branch_prefix.Data() ), &(MWDCdata[SDname].pid) );
+  fTree->Branch( branch_name.Format( "%s.hit.vx", branch_prefix.Data() ), &(MWDCdata[SDname].vx) );
+  fTree->Branch( branch_name.Format( "%s.hit.vy", branch_prefix.Data() ), &(MWDCdata[SDname].vy) );
+  fTree->Branch( branch_name.Format( "%s.hit.vz", branch_prefix.Data() ), &(MWDCdata[SDname].vz) );
+  fTree->Branch( branch_name.Format( "%s.hit.p", branch_prefix.Data() ), &(MWDCdata[SDname].p) );
+  fTree->Branch( branch_name.Format( "%s.hit.edep", branch_prefix.Data() ), &(MWDCdata[SDname].edep) );
+  fTree->Branch( branch_name.Format( "%s.hit.beta", branch_prefix.Data() ), &(MWDCdata[SDname].beta) );
+
+  //Branches with "Tracker output" data:
+  fTree->Branch( branch_name.Format("%s.Track.ntracks",branch_prefix.Data() ), &(trackdata[SDname].ntracks) );
+  fTree->Branch( branch_name.Format("%s.Track.TID",branch_prefix.Data() ), &(trackdata[SDname].TrackTID) );
+  fTree->Branch( branch_name.Format("%s.Track.PID",branch_prefix.Data() ), &(trackdata[SDname].TrackPID) );
+  fTree->Branch( branch_name.Format("%s.Track.MID",branch_prefix.Data() ), &(trackdata[SDname].TrackMID) );
+  fTree->Branch( branch_name.Format("%s.Track.NumHits",branch_prefix.Data() ), &(trackdata[SDname].NumHits) );
+  fTree->Branch( branch_name.Format("%s.Track.NumPlanes",branch_prefix.Data() ), &(trackdata[SDname].NumPlanes) );
+  fTree->Branch( branch_name.Format("%s.Track.NDF",branch_prefix.Data() ), &(trackdata[SDname].NDF) );
+  fTree->Branch( branch_name.Format("%s.Track.Chi2fit",branch_prefix.Data() ), &(trackdata[SDname].Chi2fit) );
+  fTree->Branch( branch_name.Format("%s.Track.Chi2true",branch_prefix.Data() ), &(trackdata[SDname].Chi2true) );
+  fTree->Branch( branch_name.Format("%s.Track.X",branch_prefix.Data() ), &(trackdata[SDname].TrackX) );
+  fTree->Branch( branch_name.Format("%s.Track.Y",branch_prefix.Data() ), &(trackdata[SDname].TrackY) );
+  fTree->Branch( branch_name.Format("%s.Track.Xp",branch_prefix.Data() ), &(trackdata[SDname].TrackXp) );
+  fTree->Branch( branch_name.Format("%s.Track.Yp",branch_prefix.Data() ), &(trackdata[SDname].TrackYp) );
+  fTree->Branch( branch_name.Format("%s.Track.T",branch_prefix.Data() ), &(trackdata[SDname].TrackT) );
+  fTree->Branch( branch_name.Format("%s.Track.P",branch_prefix.Data() ), &(trackdata[SDname].TrackP) );
+  fTree->Branch( branch_name.Format("%s.Track.Sx",branch_prefix.Data() ), &(trackdata[SDname].TrackSx) );
+  fTree->Branch( branch_name.Format("%s.Track.Sy",branch_prefix.Data() ), &(trackdata[SDname].TrackSy) );
+  fTree->Branch( branch_name.Format("%s.Track.Sz",branch_prefix.Data() ), &(trackdata[SDname].TrackSz) );
+  fTree->Branch( branch_name.Format("%s.Track.Xfit",branch_prefix.Data() ), &(trackdata[SDname].TrackXfit) );
+  fTree->Branch( branch_name.Format("%s.Track.Yfit",branch_prefix.Data() ), &(trackdata[SDname].TrackYfit) );
+  fTree->Branch( branch_name.Format("%s.Track.Xpfit",branch_prefix.Data() ), &(trackdata[SDname].TrackXpfit) );
+  fTree->Branch( branch_name.Format("%s.Track.Ypfit",branch_prefix.Data() ), &(trackdata[SDname].TrackYpfit) );
+  
+  map<G4String,G4bool>::iterator it = KeepHistoryflags.find( SDname );
+
+  if( it != KeepHistoryflags.end() && it->second ){
+    //Branches with "Particle History" data:
+    fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.npart) );
+    fTree->Branch( branch_name.Format("%s.part.PID", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.PID) );
+    fTree->Branch( branch_name.Format("%s.part.MID", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.MID) );
+    fTree->Branch( branch_name.Format("%s.part.TID", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.TID) );
+    fTree->Branch( branch_name.Format("%s.part.nbounce", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.nbounce) );
+    fTree->Branch( branch_name.Format("%s.part.hitindex", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.hitindex) );
+    fTree->Branch( branch_name.Format("%s.part.vx", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.vx) );
+    fTree->Branch( branch_name.Format("%s.part.vy", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.vy) );
+    fTree->Branch( branch_name.Format("%s.part.vz", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.vz) );
+    fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.px) );
+    fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.py) );
+    fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(MWDCdata[SDname].ParticleHistory.pz) );
   }
 
   return;

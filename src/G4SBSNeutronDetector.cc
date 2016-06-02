@@ -13,12 +13,8 @@
 #include "G4SubtractionSolid.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
-#include "G4TransportationManager.hh"
 #include "G4SDManager.hh"
-#include "G4RunManager.hh"
-#include "G4LogicalBorderSurface.hh"
-
-#include "G4OpticalSurface.hh"
+#include "G4LogicalSkinSurface.hh"
 
 #include "G4VisAttributes.hh"
 #include "G4Colour.hh"
@@ -237,6 +233,14 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   ND_MotherVis ->SetForceWireframe(true);
   G4VisAttributes *vetoVis  = new G4VisAttributes(G4Colour::Cyan());
   G4VisAttributes *ndVis = new G4VisAttributes(G4Colour(0.49,0.0,1.0));
+
+  G4VisAttributes* barVisAtt     = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
+  G4VisAttributes* vetoVisAtt    = new G4VisAttributes(G4Colour(1.0,0.0,0.0));
+  G4VisAttributes* veto2VisAtt   = new G4VisAttributes(G4Colour(1.0,0.4,0.2));
+  G4VisAttributes* GlasVisAtt = new G4VisAttributes( G4Colour(0.78,0.78,0.0) );
+  G4VisAttributes* CMUVisAtt = new G4VisAttributes( G4Colour(0.78,0.0,0.0) );
+  G4VisAttributes* UVAVisAtt = new G4VisAttributes( G4Colour(0.0,0.784,0.0) );
+
   
   for( int i = 0; i < NPLATES; i++ ){
     plateMat.push_back( platemat[i] );
@@ -320,7 +324,7 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     sdman->AddNewDetector(NDSD);
     (fDetCon->SDlist).insert(NDSDname);
     fDetCon->SDtype[NDSDname] = kECAL;
-    (NDSD->detmap).depth = 3; // needs to be rechecked !!!!!!!!!!!!!!!
+    (NDSD->detmap).depth = 3; 
   }
   veto_log->SetSensitiveDetector(NDSD);
   others_log->SetSensitiveDetector(NDSD);
@@ -337,29 +341,75 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     sdman->AddNewDetector(NDScintSD);
     (fDetCon->SDlist).insert(NDScintSDname);
     fDetCon->SDtype[NDScintSDname] = kCAL;
-    (NDScintSD->detmap).depth = 2; // needs to be rechecked!!!!!!!!!!!!
+    (NDScintSD->detmap).depth = 3;
   }
-
-  G4Box* temp;
-  G4LogicalVolume* temp_log;
 
   // Necessary to make the scintillators a SD using Seamus' setup:
   map<int,G4LogicalVolume*> scint_map;
+  G4Box* temp;
+  G4LogicalVolume* temp_log;
+  G4double mylar_thick = 0.001*2.54*cm; 
 
   for( type = kBarCMU; type < NBARTYPES; type++ ){
+    
+    // Make a Mother that will house mylar wrapping + scintillator:
+    temp = new G4Box("temp", X[type]/2.0, Y[type]/2.0, Z[type]/2.0 );
+    temp_log = new G4LogicalVolume(temp, GetMaterial("Air"), blockName); 
 
-    sprintf(blockName, "%s_box_temp", barname[type] );
-    temp = new G4Box("temp_b", X[type]/2.0, Y[type]/2.0, Z[type]/2.0 );
+    // Make Scintillator, assign Sensitivity:
+    sprintf(blockName, "%s_scint_temp", barname[type] );
+    G4Box *scint_temp = new G4Box(blockName, X[type]/2.0 - mylar_thick,
+				  Y[type]/2.0, Z[type]/2.0 - mylar_thick);
+    sprintf(blockName, "%s_scint_log_temp", barname[type] );
 
-    sprintf(blockName, "%s_log_temp", barname[type] );
-    temp_log = new G4LogicalVolume(temp, GetMaterial("EJ232"), blockName); //changed material from Scintillator to EJ232
-
-    temp_log->SetSensitiveDetector(NDScintSD);
+    G4LogicalVolume *scint_log_temp = new G4LogicalVolume(scint_temp, GetMaterial("EJ232"), blockName); //changed material from Scintillator to EJ232
+    scint_log_temp->SetSensitiveDetector(NDScintSD);
 
     if( (fDetCon->StepLimiterList).find( NDScintSDname ) != (fDetCon->StepLimiterList).end() ){
       temp_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     }
 
+    // Need to subtract scint_temp from temp in order to get a wrapping
+    G4Box *subbox = new G4Box("subtemp", X[type]/2.0 - mylar_thick,
+			      Y[type]/2.0 + 1*cm, Z[type]/2.0 - mylar_thick);
+
+    sprintf(blockName, "%s_mylar_temp", barname[type] );
+    G4SubtractionSolid *mylar_wrap = new G4SubtractionSolid( blockName, temp, subbox, 0, G4ThreeVector(0.0,0.0,0.0) );
+ 
+    sprintf(blockName, "%s_mylar_log", barname[type] );
+    G4LogicalVolume *mylar = new G4LogicalVolume(mylar_wrap, GetMaterial("Mylar"), blockName);
+    sprintf(blockName, "%s_mylar_skin", barname[type] );
+    new G4LogicalSkinSurface( blockName, mylar, GetOpticalSurface("Mirrsurf") );
+
+    mylar->SetVisAttributes( G4VisAttributes::Invisible );
+    temp_log->SetVisAttributes( G4VisAttributes::Invisible );
+  
+    // Place in the mother
+    sprintf(blockName, "%s_mylar_phys", barname[type] );
+    new G4PVPlacement( 0, G4ThreeVector(0.0,0.0,0.0), mylar, blockName, temp_log, false, 0 );
+    sprintf(blockName, "%s_scint_phys", barname[type] );
+    new G4PVPlacement( 0, G4ThreeVector(0.0,0.0,0.0), scint_log_temp, blockName, temp_log, false, 0 );
+
+    switch(type){
+    case kBarVetoShort:
+      scint_log_temp->SetVisAttributes( vetoVisAtt  );
+      break;
+    case kBarVetoLong:
+      scint_log_temp->SetVisAttributes( veto2VisAtt  );
+      break;
+    case kBarUVA:
+      scint_log_temp->SetVisAttributes( UVAVisAtt  );
+      break;
+    case kBarCMU:
+      scint_log_temp->SetVisAttributes( CMUVisAtt  );
+      break;
+    case kBarGlasgow:
+      scint_log_temp->SetVisAttributes( GlasVisAtt  );
+      break;
+    default:
+      scint_log_temp->SetVisAttributes( barVisAtt  );
+    break;
+    }
     scint_map[type] = temp_log;
   }
   
@@ -456,18 +506,16 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
       sprintf(blockName, "%slogbar_%1d", barname[type], layer+1 );
       // Changed the material from Air to Special_Air: 
       logBar[type][layer] = new G4LogicalVolume(solidBar, GetMaterial("Special_Air"), blockName);
-
-      // Make a "logBar" mother volume which will house the Scintillator SD, PMT SD, & LightGuides
-
-      sprintf(blockName, "%sphysblock_%1d", barname[type], layer+1 );
-
-      // Placing the bars (logBlock) inside logBar:
+      logBar[type][layer]->SetVisAttributes(  G4VisAttributes::Invisible   );
 
       //////////////////////////////////////////////////////////////////////////////////////////////
       // GRAB THE SCINTILLATOR INFORMATION --- THESE ARE DUMMY CONTAINERS, WILL BE USED
       // TO FILL THE DETMAP VARIABLES IN A ROUTINE BELOW!!!                            
       //////////////////////////////////////////////////////////////////////////////////////////////
-
+      // Make a "logBar" mother volume which will house the Scintillator SD, PMT SD, & LightGuides
+      // Placing the bars (logBlock) inside logBar:
+      sprintf(blockName, "%sphysblock_%1d", barname[type], layer+1 );
+	    
       switch( type ){
       case kBarVetoLong:
 	lgoffset = -(barl-Y[type])/2.0;
@@ -979,13 +1027,6 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     phys = new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, plateZ[plate] + plateThick[plate]/2.0), logplate, blockName, neutronarm_log, false,0 );
   }
 
-  G4VisAttributes* barVisAtt     = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
-  G4VisAttributes* vetoVisAtt    = new G4VisAttributes(G4Colour(1.0,0.0,0.0));
-  G4VisAttributes* veto2VisAtt   = new G4VisAttributes(G4Colour(1.0,0.4,0.2));
-  G4VisAttributes* GlasVisAtt = new G4VisAttributes( G4Colour(0.78,0.78,0.0) );
-  G4VisAttributes* CMUVisAtt = new G4VisAttributes( G4Colour(0.78,0.0,0.0) );
-  G4VisAttributes* UVAVisAtt = new G4VisAttributes( G4Colour(0.0,0.784,0.0) );
-
   // Cassettes are invisible
   for( layer = 0; layer < NLAYERS; layer++ ){
     for( type = kBarCMU; type < NCASSETTE_TYPES; type++ ){
@@ -994,30 +1035,30 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   }
 
   // Bars are yellow, vetos are red
-  for( layer = 0; layer < NLAYERS; layer++ ){
-    for( type = kBarCMU; type < NBARTYPES; type++ ){
-      logBar[type][layer]->SetVisAttributes(  G4VisAttributes::Invisible   );
-      switch(type){
-      case kBarVetoShort:
-	logBlock[type][layer]->SetVisAttributes( vetoVisAtt  );
-	break;
-      case kBarVetoLong:
-	logBlock[type][layer]->SetVisAttributes( veto2VisAtt  );
-	break;
-      case kBarUVA:
-	logBlock[type][layer]->SetVisAttributes( UVAVisAtt  );
-	break;
-      case kBarCMU:
-	logBlock[type][layer]->SetVisAttributes( CMUVisAtt  );
-	break;
-      case kBarGlasgow:
-	logBlock[type][layer]->SetVisAttributes( GlasVisAtt  );
-	break;
-      default:
-	logBlock[type][layer]->SetVisAttributes( barVisAtt  );
-	break;
-      }
-    }
-  }
+  // for( layer = 0; layer < NLAYERS; layer++ ){
+  //   for( type = kBarCMU; type < NBARTYPES; type++ ){
+  //     logBar[type][layer]->SetVisAttributes(  G4VisAttributes::Invisible   );
+  //     switch(type){
+  //     case kBarVetoShort:
+  // 	logBlock[type][layer]->SetVisAttributes( vetoVisAtt  );
+  // 	break;
+  //     case kBarVetoLong:
+  // 	logBlock[type][layer]->SetVisAttributes( veto2VisAtt  );
+  // 	break;
+  //     case kBarUVA:
+  // 	logBlock[type][layer]->SetVisAttributes( UVAVisAtt  );
+  // 	break;
+  //     case kBarCMU:
+  // 	logBlock[type][layer]->SetVisAttributes( CMUVisAtt  );
+  // 	break;
+  //     case kBarGlasgow:
+  // 	logBlock[type][layer]->SetVisAttributes( GlasVisAtt  );
+  // 	break;
+  //     default:
+  // 	logBlock[type][layer]->SetVisAttributes( barVisAtt  );
+  // 	break;
+  //     }
+  //   }
+  // }
 
 }

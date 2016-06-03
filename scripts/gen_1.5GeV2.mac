@@ -18,8 +18,8 @@
 /g4sbs/beamE           2.2 GeV
 /g4sbs/thmin           30.0 deg
 /g4sbs/thmax           50.0 deg
-/g4sbs/phmin           155.0 deg
-/g4sbs/phmax           205.0 deg
+/g4sbs/phmin           -50.0 deg
+/g4sbs/phmax           50.0 deg
 
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
@@ -33,10 +33,10 @@
 ## Configure the magnets
 /g4sbs/bbfield         1
 /g4sbs/48d48field      1
-/g4sbs/bbang           39.4 deg
-/g4sbs/bbdist          1.7 m
-/g4sbs/sbsang          40.0 deg
-/g4sbs/48D48dist       1.6 m
+/g4sbs/bbang           40.0 deg
+/g4sbs/bbdist          1.5 m
+/g4sbs/sbsang          39.4 deg
+/g4sbs/48D48dist       2.8 m
 
 ## Run 100 events
 /g4sbs/run             100

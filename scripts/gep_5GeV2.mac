@@ -14,11 +14,11 @@
 /g4sbs/beamcur         75.0 muA
 /g4sbs/rasterx         4.0 mm
 /g4sbs/rastery         4.0 mm
-/g4sbs/beamE           2.2 GeV
-/g4sbs/thmin           10.0 deg
-/g4sbs/thmax           46.0 deg
-/g4sbs/phmin           90.0 deg
-/g4sbs/phmax           270.0 deg
+/g4sbs/beamE           6.6 GeV
+/g4sbs/thmin           16.1 deg
+/g4sbs/thmax           36.1 deg
+/g4sbs/phmin           -50.0 deg
+/g4sbs/phmax           50.0 deg
 
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
@@ -27,6 +27,7 @@
 /g4sbs/sbsclampopt     2
 
 ## Configure the magnets
+/g4sbs/bbfield         1
 /g4sbs/48d48field      1
 /g4sbs/bbang           26.1 deg
 /g4sbs/bbdist          4.2 m

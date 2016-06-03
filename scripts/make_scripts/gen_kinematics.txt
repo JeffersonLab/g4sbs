@@ -19,15 +19,17 @@ config.hcaldist=17.0 m
 config.hcalvoffset=0.0 m
 config.bbfield=1
 config.48d48field=1
-config.bbdist=1.7 m
-config.48D48dist=1.6 m
-config.phmin=155.0 deg
-config.phmax=205.0 deg
+config.bbdist=1.5 m
+config.48D48dist=2.8 m
+#config.phmin=155.0 deg
+#config.phmax=205.0 deg
+config.phmin=-50.0 deg
+config.phmax=50.0 deg
 
 ## Configure the table
 config_table=q2,beamE:GeV,bbang:deg,sbsang:deg,thmin:deg,thmax:deg
 ##  Q^2   E_beam  theta_bb  theta_sbs th_min  th_max
-    1.5     2.2    39.4      40.0      30.0    50.0
-    4       4.4    29.9      34.0      24.0    44.0
-    7       6.6    22.2      34.0      24.0    44.0
-    10      8.8    17.5      34.0      24.0    44.0
+    1.5     2.2    40.0      39.4      30.0    50.0
+    4       4.4    34.0      29.9      24.0    44.0
+    7       6.6    34.0      22.2      24.0    44.0
+    10      8.8    34.0      17.5      24.0    44.0

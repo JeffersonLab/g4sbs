@@ -26,6 +26,7 @@ cols = [[]]
 
 ## Clear a dicionary variable
 def clearDictionaryVar(cmd):
+  global kin, com
   kin[cmd] = 'Undefined'
   com[cmd] = 'Undefined'
 
@@ -50,6 +51,7 @@ def clearAll():
   clearDictionaryVar('bbcaldist')
   clearDictionaryVar('gemconfig')
   clearDictionaryVar('bbfield')
+  clearDictionaryVar('tosfield')
   clearDictionaryVar('48d48field')
   clearDictionaryVar('runtime')
   clearDictionaryVar('beamE')
@@ -124,6 +126,7 @@ def makeKin():
 
   fOut.write('\n## Configure the magnets\n')
   g4sbsCmdPrint('bbfield')
+  g4sbsCmdPrint('tosfield')
   g4sbsCmdPrint('48d48field')
   g4sbsCmdPrint('bbang')
   g4sbsCmdPrint('bbdist')
@@ -153,6 +156,10 @@ def main():
         ## the variable name, and the setting
         var = line[7:].split('=')
         kin[var[0]] = var[1]
+
+      ## Look for a configuration unset line (removes previous set value)
+      elif re.search(r'^config_unset\.',line):
+        clearDictionaryVar(line[13:])
 
       ## Look for a configuration comment line
       elif re.search(r'^config_comment\.',line):

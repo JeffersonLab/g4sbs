@@ -56,6 +56,7 @@ conf_clone_new_repo = False
 conf_build_g4sbs = False
 conf_link_fieldmaps = False
 conf_make_temp_dir = False
+conf_make_build_dir = True
 conf_repo_dir = ''
 conf_build_dir = ''
 
@@ -204,6 +205,7 @@ def init():
     conf_build_g4sbs = True
     conf_link_fieldmaps = True
     conf_make_temp_dir = True
+    conf_make_build_dir = True
   elif conf['env_type'].lower() == 'travis':
     conf_clone_new_repo = False
     conf_build_g4sbs = True
@@ -211,7 +213,7 @@ def init():
     conf_make_temp_dir = False
     conf_repo_dir = conf['local_repo_path']
     conf_build_dir = conf['local_build_path']
-    os.mkdir(conf_build_dir)
+    conf_make_build_dir = True
   elif conf['env_type'].lower() == 'local':
     conf_clone_new_repo == False
     conf_build_g4sbs = False
@@ -219,6 +221,7 @@ def init():
     conf_make_temp_dir = False
     conf_repo_dir = conf['local_repo_path']
     conf_build_dir = conf['local_build_path']
+    conf_make_build_dir = False
   else:
     myErr("Invalid env_type selected")
     sys.exit(1000)
@@ -233,6 +236,10 @@ def init():
     myOutLog('Setting up temporary directory: ' + temp_dir_name, True)
     conf_repo_dir = temp_dir_name + '/g4sbs'
     conf_build_dir = temp_dir_name + '/build'
+
+  ## Make the build directory?
+  if conf_make_build_dir:
+    os.mkdir(conf_build_dir)
 
 ## Clone a fresh copy of the repository
 def cloneRepo():
@@ -254,8 +261,7 @@ def cloneRepo():
 def buildG4SBS():
   pwd = os.getcwd() ## Get the current working directory
 
-  ## Make and change into the build directory
-  os.mkdir(conf_build_dir)
+  ## Change into the build directory
   os.chdir(conf_build_dir)
 
   myOutLog('\n\n')

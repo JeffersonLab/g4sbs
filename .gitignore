@@ -2,3 +2,6 @@
 *.swp
 map_696A.dat
 GEN-map1.table
+GEP_12map0.table
+## Should probably ignore root files too
+*.root

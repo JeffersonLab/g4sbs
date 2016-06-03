@@ -1875,6 +1875,55 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp -> AddConstProperty("SCINTILLATIONYIELD",20./MeV);
   Scintillator->SetMaterialPropertiesTable(MPT_temp);
   fMaterialsMap["Scintillator"] = Scintillator;
+  
+  G4Material* MWDC_Scint = new G4Material("MWDC_Scint",density=1.02*g/cm3, nel=2,kStateSolid,293.15*kelvin,1.0*atmosphere);
+  MWDC_Scint->AddElement(H , natoms=11);
+  MWDC_Scint->AddElement(C , natoms=10);
+
+  // -- MWDC_Scint optical properties 
+  const G4int nEntriesMWDC_Scint = 66;
+
+  G4double ABSL_MWDC_Scint[nEntriesMWDC_Scint] = 
+    { 
+      3.8000e-03, 3.6000e-03, 3.3000e-03, 3.1000e-03, 2.7000e-03, 2.4000e-03, 2.0000e-03, 1.6000e-03, 1.4000e-03, 1.1000e-03,
+      1.0000e-03, 9.0000e-04, 8.0000e-04, 6.9729e-04, 6.9946e-04, 6.9972e-04, 6.9983e-04, 7.9983e-04, 9.9978e-04, 1.1973e-02,
+      1.7947e-02, 2.9874e-02, 6.1538e-02, 2.2268e-01, 4.6133e+00, 8.9015e+00, 1.4659e+01, 4.2145e+01, 1.2060e+02, 1.5600e+02,
+      2.2000e+02, 3.4100e+02, 5.8400e+02, 1.1200e+03, 1.6000e+03, 1.8700e+03, 2.0000e+03, 2.8600e+03, 3.5300e+03, 3.8900e+03,
+      4.0500e+03, 4.1400e+03, 4.2000e+03, 4.2200e+03, 4.2400e+03, 4.2600e+03, 4.2800e+03, 4.3000e+03, 4.3300e+03, 4.3500e+03,
+      4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03,
+      4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03, 4.3500e+03
+    };
+
+  G4double FAST_MWDC_Scint[nEntriesMWDC_Scint] = 
+    {
+      0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
+      0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.01,
+      0.02, 0.05, 0.12, 0.36, 0.52, 0.52, 0.71, 0.92, 1.00, 0.88,
+      0.83, 0.84, 0.77, 0.63, 0.53, 0.45, 0.39, 0.34, 0.30, 0.24,
+      0.19, 0.14, 0.11, 0.08, 0.06, 0.05, 0.04, 0.03, 0.02, 0.02,
+      0.02, 0.02, 0.02, 0.01, 0.01, 0.00, 0.00, 0.00, 0.00, 0.00,
+      0.00, 0.00, 0.00, 0.00, 0.00,0.00
+    };
+
+  G4double PhotonEnergyMWDC_Scint[nEntriesMWDC_Scint];
+  G4double RefractiveIndexMWDC_Scint[nEntriesMWDC_Scint];
+  for(int ii = 0; ii < nEntriesMWDC_Scint; ii++) {
+    PhotonEnergyMWDC_Scint[ii] = 1240.0/(PhotonWaveLength_HC[ii]) *eV;
+    RefractiveIndexMWDC_Scint[ii] = 1.58;
+    ABSL_MWDC_Scint[ii]           = ABSL_MWDC_Scint[ii]*mm;
+  }
+
+  G4MaterialPropertiesTable* MPT_MWDC_Scint = new G4MaterialPropertiesTable();
+  MPT_MWDC_Scint->AddProperty("RINDEX"       , PhotonEnergyMWDC_Scint , RefractiveIndexMWDC_Scint , nEntriesMWDC_Scint);
+  MPT_MWDC_Scint->AddProperty("FASTCOMPONENT", PhotonEnergyMWDC_Scint , FAST_MWDC_Scint           , nEntriesMWDC_Scint);
+  MPT_MWDC_Scint->AddProperty("ABSLENGTH",     PhotonEnergyMWDC_Scint , ABSL_MWDC_Scint           , nEntriesMWDC_Scint);
+  MPT_MWDC_Scint->AddConstProperty("SCINTILLATIONYIELD", (8400.0/MeV * 5.51591522788642652e-01 * 0.5/1.4)/MeV);
+  MPT_MWDC_Scint->AddConstProperty("RESOLUTIONSCALE", 1.0);
+  MPT_MWDC_Scint->AddConstProperty("FASTTIMECONSTANT",20.0*ns);
+  MPT_MWDC_Scint->AddConstProperty("SLOWTIMECONSTANT",45.0*ns);
+  MPT_MWDC_Scint->AddConstProperty("YIELDRATIO",1.0);
+  MWDC_Scint->SetMaterialPropertiesTable(MPT_MWDC_Scint);
+  fMaterialsMap["MWDC_Scint"] = MWDC_Scint;
 
   // PMT Glass - Just need something that will hold light
   G4double glass_rind[nent]     = {1.49};

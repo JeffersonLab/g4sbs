@@ -18,8 +18,8 @@
 #include <cmath>
 
 G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
-  fFieldD = 90*um;
-  fSignalD = 20*um;
+  fFieldD = 90.0*um;
+  fSignalD = 20.0*um;
   fWireSep = 1.0*cm;
   fCath2WireDist = 3.0*mm;
 
@@ -28,7 +28,7 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fMylarThick = 12.0*um - 2.0*fCuThick;
   fPlaneThick = 2.0*fCathodeThick + 2.0*fCath2WireDist;
 
-  fGasThick = 12*um;
+  fGasThick = 12.0*um;
   fSpacer = 1.0*mm;
 
   // **NOTE** -- abs val of angles are assumed to be equal!
@@ -95,13 +95,14 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   sigwireVisAtt = new G4VisAttributes( G4Colour(0.0,0.8,0.0) );
   fieldwireVisAtt = new G4VisAttributes(G4Colour(G4Colour::Red()));
  
-  // Define rotation for the wires
+  // Define rotations for the wires
   fWireRotX = new G4RotationMatrix;
   fWireRotX->rotateY(90.0*deg);
 
   fWireRotU = new G4RotationMatrix;
   fWireRotU->rotateY(90.0*deg);
   fWireRotU->rotateX(fUtheta);
+
   fWireRotV = new G4RotationMatrix;
   fWireRotV->rotateY(90.0*deg);
   fWireRotV->rotateX(fVtheta);
@@ -113,6 +114,8 @@ void G4SBSMWDC::BuildComponent(G4LogicalVolume *){
   ;
 }
 
+// Note: realworld was used for testing, nothing more. It was difficult to see if my building algorithm 
+//       was doing what I thought it was doing, so I needed a way to test it.
 void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* world, G4RotationMatrix* rot, 
 				G4ThreeVector pos, G4String SDname ) {
   double mX = 1.0*m;
@@ -145,7 +148,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
   // Cathodes:
   ///////////////////////////////////////////////////////////////////////////////
 
-  // Generate the Cathodes for chambers 1-3, and
+  // Generate the Cathodes for chambers 0-2, and
   // put into a vector
 
   for(unsigned int i=0; i<fChamberNumber.size(); i++){
@@ -230,6 +233,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
 	// }
       }
  
+      // Place the built plane inside a chamber:
       double z = -chamber_thick/2.0 + fGasThick + (planeN+0.5)*fPlaneThick + fSpacer*(planeN+1);
       sprintf(temp_name, "chamber%1d_plane%1d_log", chamber_number, planeN);
       new G4PVPlacement(0, G4ThreeVector(0.0,0.0,z), plane_log, temp_name, chamber_log, false, copyID);
@@ -237,10 +241,12 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
       planeN++;
       copyID++;
     }
+    // Place the Chamber inside our mother:
     sprintf(temp_name, "chamber%1d_phys",chamber_number);    
     new G4PVPlacement(0,G4ThreeVector(0.0,0.0, -mZ/2.0 + chamber_thick/2.0 + fDist_z0[chamber_number]), 
     		      chamber_log, temp_name, mother_log, false, chamber_number);
   }
+  // Place the MWDC (Chambers 0-2, all planes) inside the world:
   new G4PVPlacement(rot, pos, mother_log, "MWDC_mother_phys", world, false, 0);
 
   // Test to see what a single plane looks like:
@@ -512,7 +518,6 @@ G4LogicalVolume* G4SBSMWDC::BuildUorV(double width, double height, G4String type
 	w0_pos = G4ThreeVector(wireC.X(), wireC.Y(), wireC.Z());
       }
      
-
       field_count++;
   }
 

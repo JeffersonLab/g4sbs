@@ -24,7 +24,9 @@ public:
 
 private:
   G4SBSECalHitsCollection *hitCollection;
-
+  G4String fSDname;
+  void SetName(G4String name) {fSDname = name;} 
+  G4String GetSDName() {return fSDname;}
 };
 
 #endif

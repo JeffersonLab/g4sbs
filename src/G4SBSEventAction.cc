@@ -475,6 +475,14 @@ void G4SBSEventAction::FillMWDCData( const G4Event *evt, G4SBSMWDCHitsCollection
   map<int,map<int,int> > wire_number;
   map<int,map<int,double> > wx, wy;
   map<int,map<int,double> > drift_distance;
+
+  // TO DO LIST:
+  // Fix the GEM z0 positioning:
+  // Double check plane positioning
+
+  // Fix the ND positioning
+  
+
   
   //G4int nhit=0;
   //Loop over all "hits" (actually individual tracking steps):
@@ -485,8 +493,8 @@ void G4SBSEventAction::FillMWDCData( const G4Event *evt, G4SBSMWDCHitsCollection
 
     // w0 is the position of the "first" wire placed in a plane
     // for "U" = bottom left (looking in z-hat)
-    // "V" = bottom right
-    // "X" = bottom center
+    //     "V" = bottom right
+    //     "X" = bottom center
     // (Px,Py) is perp to plane_nhat
 
     G4ThreeVector w0_pos = ((ptr->detmap).w0)[mwdcID];
@@ -540,18 +548,14 @@ void G4SBSEventAction::FillMWDCData( const G4Event *evt, G4SBSMWDCHitsCollection
       // Get the closest wire:
       TVector3 hitpos( x[mwdcID][trid], y[mwdcID][trid], 0.0 );
       TVector3 hit_from_w0 = hitpos - w0;
-      wire_number[mwdcID][trid] = int( ((hit_from_w0).Dot(nhat)) / wire_spacing );
+      wire_number[mwdcID][trid] = int( ((hit_from_w0).Dot(nhat)) / wire_spacing + 0.5 );
       
-      TVector3 center2closest_wire = w0 + wire_number[mwdcID][trid] * nhat;
-      TVector3 hit2closest_wire = center2closest_wire - hitpos;
-      double driftdist = fabs( hit2closest_wire.Dot(nhat) );
-      cout << driftdist << endl;
+      double driftdist = hit_from_w0.Dot(nhat) - wire_number[mwdcID][trid]*wire_spacing;
 
       drift_distance[mwdcID][trid] = driftdist;
 
       wx[mwdcID][trid] = Px * x[mwdcID][trid];
       wy[mwdcID][trid] = Py * y[mwdcID][trid];
-       
 
     } else { //existing track in this layer, additional step; increment sums and averages:
       int nstep = nsteps_track_layer[mwdcID][trid];
@@ -579,11 +583,10 @@ void G4SBSEventAction::FillMWDCData( const G4Event *evt, G4SBSMWDCHitsCollection
 
       TVector3 hitpos( x[mwdcID][trid], y[mwdcID][trid], 0.0 );
       TVector3 hit_from_w0 = hitpos - w0;
-      wire_number[mwdcID][trid] = int( ((hit_from_w0).Dot(nhat)) / wire_spacing );
+      wire_number[mwdcID][trid] = int( ((hit_from_w0).Dot(nhat)) / wire_spacing + 0.5 );
       
-      TVector3 center2closest_wire = w0 + wire_number[mwdcID][trid] * nhat;
-      TVector3 hit2closest_wire = center2closest_wire - hitpos;
-      double driftdist = fabs( hit2closest_wire.Dot(nhat) );
+      double driftdist = hit_from_w0.Dot(nhat) - wire_number[mwdcID][trid]*wire_spacing;
+
       drift_distance[mwdcID][trid] = driftdist;
 
       wx[mwdcID][trid] = Px * x[mwdcID][trid];
@@ -632,7 +635,7 @@ void G4SBSEventAction::FillMWDCData( const G4Event *evt, G4SBSMWDCHitsCollection
 	mwdcoutput.beta.push_back( beta[mwdcID][trackID] );
 
 	mwdcoutput.wire_number.push_back( wire_number[mwdcID][trackID] );
-	mwdcoutput.drift_dist.push_back( drift_distance[mwdcID][trackID]/_L_UNIT );
+	mwdcoutput.drift_dist.push_back( drift_distance[mwdcID][trackID] ); // mm
 	mwdcoutput.wx.push_back( (wx[mwdcID][trackID] + CLHEP::RandGauss::shoot(0.0,fMWDCres) )/_L_UNIT );
       	mwdcoutput.wy.push_back( (wy[mwdcID][trackID] + CLHEP::RandGauss::shoot(0.0,fMWDCres) )/_L_UNIT );
 	

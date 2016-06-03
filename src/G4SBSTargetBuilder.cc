@@ -1420,17 +1420,18 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
 
 void G4SBSTargetBuilder::BuildGEnTarget( G4LogicalVolume* world ) {
 
-  // 0 = reference cell
+  // 0 = reference cell H2
   // 1 = "Edna"
+  // 2 = reference cell N2
   int fTarget = fDetCon->GetGEnTarget();
 
   G4Tubs *target_tube = new G4Tubs( "target_tube", 0.0, 1.0*cm,
 				    fTargLen, 0.0, twopi );
   G4LogicalVolume *target_log = new G4LogicalVolume(target_tube, GetMaterial("Air"), "target_log");
-  //target_log->SetVisAttributes(  G4VisAttributes::Invisible );
-  //G4VPhysicalVolume *target_phys = new G4PVPlacement(0,G4ThreeVector(0,0,0),
-  //						     target_log,"target",
-  //						     world, false, 0);
+  target_log->SetVisAttributes(  G4VisAttributes::Invisible );
+  G4VPhysicalVolume *target_phys = new G4PVPlacement(0,G4ThreeVector(0,0,0),
+  						     target_log,"target",
+  						     world, false, 0);
 
   double wallthick, capthick, radius, targlength;
   //Visuals:

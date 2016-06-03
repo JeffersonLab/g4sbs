@@ -318,6 +318,8 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   G4String NDcollname = "NDHitsCollection";
   G4SBSECalSD* NDSD = NULL;
 
+  // The depths are irrelevant for ND:
+
   if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(NDSDname)) ) {
     G4cout << "Adding ND PMT Sensitive Detector to SDman..." << G4endl;
     NDSD = new G4SBSECalSD( NDSDname, NDcollname );
@@ -360,24 +362,26 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     sprintf(blockName, "%s_scint_temp", barname[type] );
     G4Box *scint_temp = new G4Box(blockName, X[type]/2.0 - mylar_thick,
 				  Y[type]/2.0, Z[type]/2.0 - mylar_thick);
-    sprintf(blockName, "%s_scint_log_temp", barname[type] );
 
-    G4LogicalVolume *scint_log_temp = new G4LogicalVolume(scint_temp, GetMaterial("EJ232"), blockName); //changed material from Scintillator to EJ232
+    sprintf(blockName, "%s_scint_log_temp", barname[type] );
+    G4LogicalVolume *scint_log_temp = new G4LogicalVolume(scint_temp, GetMaterial("MWDC_Scint"), blockName); //changed material from Scintillator to MWDC_Scint
     scint_log_temp->SetSensitiveDetector(NDScintSD);
 
     if( (fDetCon->StepLimiterList).find( NDScintSDname ) != (fDetCon->StepLimiterList).end() ){
       temp_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     }
 
-    // Need to subtract scint_temp from temp in order to get a wrapping
+    // Need to subtract scint_temp from temp in order to get a wrapping,
+    // make it bigger in y-hat to avoid "undefined" subtraction behaviour:
     G4Box *subbox = new G4Box("subtemp", X[type]/2.0 - mylar_thick,
-			      Y[type]/2.0 + 1*cm, Z[type]/2.0 - mylar_thick);
+			      Y[type]/2.0 + 1.0*cm, Z[type]/2.0 - mylar_thick);
 
     sprintf(blockName, "%s_mylar_temp", barname[type] );
     G4SubtractionSolid *mylar_wrap = new G4SubtractionSolid( blockName, temp, subbox, 0, G4ThreeVector(0.0,0.0,0.0) );
  
     sprintf(blockName, "%s_mylar_log", barname[type] );
     G4LogicalVolume *mylar = new G4LogicalVolume(mylar_wrap, GetMaterial("Mylar"), blockName);
+
     sprintf(blockName, "%s_mylar_skin", barname[type] );
     new G4LogicalSkinSurface( blockName, mylar, GetOpticalSurface("Mirrsurf") );
 
@@ -421,7 +425,6 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   // with the exception of vetos. They only have one PMT
   map<int,G4ThreeVector> scint_type_pos_logBar;
   map<int,vector<G4ThreeVector> > pmt_type_pos_logBar;
-
 
   // Seamus makes a mother volume called solidPMT, then inserts glass + cathode.
   for( layer = 0; layer < NLAYERS; layer++ ){
@@ -520,21 +523,21 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
       case kBarVetoLong:
 	lgoffset = -(barl-Y[type])/2.0;
 	new G4PVPlacement(0, G4ThreeVector(0.0, lgoffset,  0.0), logBlock[type][layer],
-			  blockName, logBar[type][layer], false, 0 );
+			  blockName, logBar[type][layer], false, type );
 	scint_type_pos_logBar[type] =  G4ThreeVector(0.0, lgoffset,  0.0);
 	break;
 
       case kBarVetoShort:
 	lgoffset = (barl-Y[type])/2.0;
 	new G4PVPlacement(0, G4ThreeVector(0.0, lgoffset, 0.0), logBlock[type][layer],
-			  blockName, logBar[type][layer], false, 0 );
+			  blockName, logBar[type][layer], false, type );
 	scint_type_pos_logBar[type] =  G4ThreeVector(0.0, lgoffset,  0.0);
 	break;
 
       default:
 	lgoffset = 0.0;
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), logBlock[type][layer],
-			  blockName, logBar[type][layer], false, 0 );
+			  blockName, logBar[type][layer], false, type );
 	scint_type_pos_logBar[type] =  G4ThreeVector(0.0, lgoffset,  0.0);
 	break;
       }
@@ -569,15 +572,15 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
       if( type != kBarVetoLong ){
 	sprintf(blockName, "%sphyslg_r_%1d", barname[type], layer+1 );
 	new G4PVPlacement( lgrightrot, G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]/2.0, 0.0), 
-	lightguidelog, blockName, logBar[type][layer], false, 0 );
+	lightguidelog, blockName, logBar[type][layer], false, 1 );
 
 	sprintf(blockName, "%sphyslgcyl_r_%1d", barname[type], layer+1 );
 	new G4PVPlacement( lgrightrot, G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]-lgcylLen[type]/2.0, 0.0), 
-	lightguidecyllog, blockName, logBar[type][layer], false, 0 );
+	lightguidecyllog, blockName, logBar[type][layer], false, 1 );
 
 	sprintf(blockName, "%sphyspmt_r_%1d", barname[type], layer+1 );
 	new G4PVPlacement( lgrightrot, G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]-lgcylLen[type]-(cathlen+glasslen)/2.0, 0.0), 
-	logicPMT[layer], blockName, logBar[type][layer], false, 0 );
+	logicPMT[layer], blockName, logBar[type][layer], false, 1 );
 
 	pmt_pos = G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]-lgcylLen[type]-(cathlen+glasslen)/2.0, 0.0);
       }
@@ -826,7 +829,7 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 	for( int bar = 0; bar < Nbars[ctype]; bar++ ){
 
 	  x = barspacing[ctype]*bar + X[kBarVetoLong]/2.0 - casX[ctype]/2.0;
-
+	  x*=-1;
 	  // Full veto length
 	  vetolen = Y[kBarVetoLong] + Y[kBarVetoShort] +lgLength[kBarVetoShort] + lgLength[kBarVetoLong] + lgcylLen[kBarVetoShort] + lgcylLen[kBarVetoLong] +2.0*glasslen+2.0*cathlen;
 
@@ -858,6 +861,7 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
       } else {
 	for( int bar = 0; bar < Nbars[ctype]; bar++ ){
 	  x = barspacing[ctype]*bar + X[ctype]/2.0 - casX[ctype]/2.0;
+	  x*=-1;
 	  sprintf(blockName, "%sphysbar_%1d_%1d_%1d", barname[ctype], layer+1, ctype, bar );
 	  new G4PVPlacement( 0, G4ThreeVector(x, casbarY[ctype], casbarZ[ctype]), logBar[ctype][layer],
 			     blockName, logCassette[ctype][layer], false, bar );
@@ -943,8 +947,11 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   double x;
   G4VPhysicalVolume *phys;
 
-  int scint_dummy = 0;
-  int pmt_dummy = 0;
+  int scint_dummy = 1;
+  int pmt_dummy = 1;
+
+  int barNo = 1;
+
 
   for( layer = 0; layer < NLAYERS; layer++ ){
     // Build layers from cassettes
@@ -955,6 +962,10 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     // This was done backwards...
     x = layerBottom[layer];
     int number = 1;
+    int rowNo_pmt = 1;
+    int rowNo = 1;
+ 
+
     for( int cass = 0; cass < Ncass[layer]; cass++ ){
 
       // We need to grab to correct cassette vector, then add
@@ -965,11 +976,13 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
       x -= casX[casType[layer][cass]]/2.0;
 
       // Fronts of cassettes are flush with layer z
+
       sprintf(blockName, "physcas_%1d_%1d", cass, layer+1 );
       G4ThreeVector cassette_placement( x, 0.0, layerZ[layer]+casZ[casType[layer][cass]]/2.0 );
       phys = new G4PVPlacement( 0, cassette_placement,
-				logCassette[casType[layer][cass]][layer], blockName, neutronarm_log, false, cass );
+				logCassette[casType[layer][cass]][layer], blockName, neutronarm_log, false, barNo );
 
+      barNo += Nbars[casType[layer][cass]];
 
       x -= (casX[casType[layer][cass]]/2.0 + spacer[layer][cass]);
       // set up NRows here too
@@ -986,7 +999,9 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 	(NDScintSD->detmap).Plane[scint_dummy] = layer;
 	// This is not really column, but scintillator type
 	(NDScintSD->detmap).Col[scint_dummy] = casType[layer][cass];
-
+	(NDScintSD->detmap).Row[scint_dummy] = rowNo;
+       
+	rowNo++;
 	scint_dummy++;
       }
       for( vit2=pmt_pos_cass.begin(); vit2!=pmt_pos_cass.end(); vit2++ ){	
@@ -996,6 +1011,13 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 	// This is not really column, but block type
 	(NDSD->detmap).Col[pmt_dummy] = casType[layer][cass];
 	
+	(NDSD->detmap).Row[pmt_dummy] = rowNo_pmt;
+
+	if( number%2==0 ) {
+	  rowNo_pmt++;
+	}
+	number++;
+    
 	pmt_dummy++;
       }
       
@@ -1007,7 +1029,10 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   //for(vit3 = final_scint.begin(); vit3!=final_scint.end(); vit3++){
     //cout << vit3->first << "    " << vit3->second << endl;
   //}
-
+  // map<int,int>::iterator tet;
+  // for( tet=((NDSD->detmap).Plane).begin(); tet!=((NDSD->detmap).Plane).end(); tet++ ){
+  //   cout << tet->first << "     " << tet->second << endl;
+  // }
 
   int plate;
 			  // printf("Generating plates\n");

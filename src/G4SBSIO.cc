@@ -405,6 +405,10 @@ void G4SBSIO::BranchMWDC(G4String SDname="MWDC"){
   fTree->Branch( branch_name.Format( "%s.hit.p", branch_prefix.Data() ), &(MWDCdata[SDname].p) );
   fTree->Branch( branch_name.Format( "%s.hit.edep", branch_prefix.Data() ), &(MWDCdata[SDname].edep) );
   fTree->Branch( branch_name.Format( "%s.hit.beta", branch_prefix.Data() ), &(MWDCdata[SDname].beta) );
+  fTree->Branch( branch_name.Format( "%s.hit.WireNum", branch_prefix.Data() ), &(MWDCdata[SDname].wire_number) );
+  fTree->Branch( branch_name.Format( "%s.hit.DriftDis_mm", branch_prefix.Data() ), &(MWDCdata[SDname].drift_dist) );
+  fTree->Branch( branch_name.Format( "%s.hit.Wx", branch_prefix.Data() ), &(MWDCdata[SDname].wx) );
+  fTree->Branch( branch_name.Format( "%s.hit.Wy", branch_prefix.Data() ), &(MWDCdata[SDname].wy) );
 
   //Branches with "Tracker output" data:
   fTree->Branch( branch_name.Format("%s.Track.ntracks",branch_prefix.Data() ), &(trackdata[SDname].ntracks) );

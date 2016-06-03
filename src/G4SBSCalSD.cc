@@ -16,6 +16,8 @@ G4SBSCalSD::G4SBSCalSD( G4String name, G4String colname )
     collectionName.insert(colname);
     detmap.SDname = name;
     detmap.clear();
+
+    SetName(name);
 }
 
 G4SBSCalSD::~G4SBSCalSD()
@@ -76,15 +78,31 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   hit->SetMID(aStep->GetTrack()->GetParentID());
 
   //hit->SetCell( hist->GetVolume( DepthMap[this->GetName()][hit->GetCell()] )->GetCopyNo() );
+  G4String temp = GetSDName();
+  G4String SDname = temp.remove(0,temp.last('/')+1);
 
-  hit->SetCell( hist->GetVolume( detmap.depth )->GetCopyNo() );
-
+  if( SDname == "NDScint" ) {
   
+    int bar_inside_cass =  hist->GetVolume( 2 )->GetCopyNo();
+    int cass_inside_mother =  hist->GetVolume( 3 )->GetCopyNo();
 
-  hit->SetRow( detmap.Row[hit->GetCell()] );
-  hit->SetCol( detmap.Col[hit->GetCell()] );
-  hit->SetPlane( detmap.Plane[hit->GetCell()] );
-  hit->SetCellCoords( detmap.LocalCoord[hit->GetCell()] );
+    // std::cout <<  hist->GetVolume( 1 )->GetName() << " = " << pmt_inside_bar << ", " 
+    // 	      <<  hist->GetVolume( 2 )->GetName() << " = " << bar_inside_cass << ", "
+    // 	      <<  hist->GetVolume( 3 )->GetName() << " = " << cass_inside_mother  << std::endl;
+
+    int cellNo = cass_inside_mother + bar_inside_cass;
+    hit->SetCell( cellNo );
+    hit->SetRow( detmap.Row[cellNo] );
+    hit->SetCol( detmap.Col[cellNo] );
+    hit->SetPlane( detmap.Plane[cellNo] );
+    hit->SetCellCoords( detmap.LocalCoord[cellNo] );
+  } else {
+    hit->SetCell( hist->GetVolume( detmap.depth )->GetCopyNo() );
+    hit->SetRow( detmap.Row[hit->GetCell()] );
+    hit->SetCol( detmap.Col[hit->GetCell()] );
+    hit->SetPlane( detmap.Plane[hit->GetCell()] );
+    hit->SetCellCoords( detmap.LocalCoord[hit->GetCell()] );
+  }
 
   // G4cout << "During CAL hit processing, SDname = " << SensitiveDetectorName << " physical volume name = " << hist->GetVolume( detmap.depth )->GetName() 
   // 	 << " copy number = " << hit->GetCell() << " (row,col)=(" << hit->GetRow() << ", " << hit->GetCol() << ")" << G4endl;

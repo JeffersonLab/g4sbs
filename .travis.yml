@@ -2,7 +2,7 @@ sudo: false
 os: linux
 compiler: gcc
 language: cpp
-before_install:
+#before_install:
 script:
   - ls
   - echo Full Travis-CI implementation coming soon... (work on uconn/cmu_dev branch first)
@@ -10,3 +10,7 @@ script:
 branches:
   only:
     - cmu_dev
+notifications:
+    email:
+      recipients:
+        - cornejo@jlab.org

@@ -34,10 +34,10 @@ conf['local_repo_path']   = '/home/travis/build/Jeffersonlab/g4sbs'
 conf['local_build_path']  = '/home/travis/build/Jeffersonlab/build_g4sbs'
 
 ## Path to the field maps directory
-conf['fieldmap_dir']      = '/work/halla/sbs/g4sbs_buildtests/fieldmaps/'
+conf['fieldmap_dir']      = '/work/halla/sbs/g4sbs_buildtests/fieldmaps'
 
 ## Path to temp directory (used only when env_type is set to clone)
-conf['tmpdir']            = '/volatile/halla/sbs/g4sbs_buildtests/'
+conf['tmpdir']            = '/volatile/halla/sbs/g4sbs_buildtests'
 
 ## Path to logs directory
 conf['logs_dir']          = '/work/halla/sbs/g4sbs_buildtests/logs'
@@ -280,11 +280,11 @@ def linkFieldMaps():
   os.chdir(conf_repo_dir)
   myOutLog('\n\nLinking in field maps.',True)
   ## Link in all field maps
-  helper_files = glob.glob(conf['fieldmap_dir'] + '*')
+  helper_files = glob.glob(conf['fieldmap_dir'] + '/*')
   for filename in helper_files:
     myOutLog('Linking ' + filename + ' -> ' + 
-        filename.replace(conf['fieldmap_dir'],''), True)
-    os.symlink(filename,filename.replace(conf['fieldmap_dir'],''))
+        filename.replace(conf['fieldmap_dir'] +'/',''), True)
+    os.symlink(filename,filename.replace(conf['fieldmap_dir']+'/',''))
   os.chdir(pwd) ## Change back into previous working directory
 
 ## Run the tests on a script and return the status

@@ -11,6 +11,8 @@ script:
   - source travis/travis_env.sh
   - echo "Starting the tests"
   - travis_wait 60 python run_buildtests.py travis/travis.conf
+  - echo "Done with the tests"
+  - cat /home/travis/build*.log
 # whitelist (only cmu_dev for now, where the Travis-CI work is going on)
 branches:
   only:

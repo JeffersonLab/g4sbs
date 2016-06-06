@@ -133,6 +133,9 @@ endforeach()
 #
 #add_custom_target(G4SBS DEPENDS g4sbs)
 
+add_dependencies(g4sbs _gitinfo)
+add_dependencies(g4sbsroot _gitinfo)
+
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #

@@ -6,6 +6,7 @@ language: cpp
 script:
   - ls
   - echo Full Travis-CI implementation coming soon... (work on uconn/cmu_dev branch first)
+  - echo This should only exist in the cmu_dev branch....
 # whitelist (only cmu_dev for now, where the Travis-CI work is going on)
 branches:
   only:

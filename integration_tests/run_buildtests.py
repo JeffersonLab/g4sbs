@@ -282,7 +282,7 @@ def linkFieldMaps():
   ## Link in all field maps
   helper_files = glob.glob(conf['fieldmap_dir'] + '/*')
   for filename in helper_files:
-    myOutLog('Linking ' + filename + ' -> ' + 
+    myLog('Linking ' + filename + ' -> ' + 
         filename.replace(conf['fieldmap_dir'] +'/',''), True)
     os.symlink(filename,filename.replace(conf['fieldmap_dir']+'/',''))
   os.chdir(pwd) ## Change back into previous working directory

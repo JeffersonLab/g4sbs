@@ -114,7 +114,7 @@ void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ng
     //2 is the scattered electron, and 3 is the virtual photon
     
     //compute global kinematic variables from header information:
-    Q2 = -( (TMCParticle*) (*Particles)[3] )->GetMass();
+    Q2 = pow( ( (TMCParticle*) (*Particles)[3] )->GetMass(), 2 );
     //xbj = Q2/2Pdot q = Q2/(2*Mp*Egamma);
     xbj = Q2/(2.0*( (TMCParticle*) (*Particles)[1] )->GetMass()*( (TMCParticle*) (*Particles)[3] )->GetEnergy() );
     //y = nu/Ebeam:

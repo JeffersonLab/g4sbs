@@ -16,6 +16,7 @@ script:
 # whitelist (only cmu_dev for now, where the Travis-CI work is going on)
 branches:
   only:
+    - master
     - cmu_dev
 notifications:
     email:

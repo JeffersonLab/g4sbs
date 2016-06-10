@@ -430,7 +430,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   mwdc->BuildComponent(worldlog, bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset + 0.5*m + 2.5*cm), "Earm/BBMWDC");
 
 
-
   double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
   double mylar_air_sum = mylarthickness + airthickness;
   double bbpmtz = 0.20*cm;
@@ -465,9 +464,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       fDetCon->SDtype[SDname] = kCAL;
       (BBCalSD->detmap).depth = 0;
       bbcal_mother_log->SetSensitiveDetector( BBCalSD );
-      //(BBCalSD->detmap).Row[0] = 0;
-      //(BBCalSD->detmap).Col[0] = 0;
-      
     }
   }
 
@@ -503,7 +499,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+bbhododepth+caldepth/2.0), bbshowerlog, "bbshowerphys", bbdetLog, false, 0);
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth + bbhododepth + caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
   
-
   // Shower module:
   double bbmodule_x = 8.5*cm, bbmodule_y = 8.5*cm;  
   double bbTF1_x = bbmodule_x - 2*mylar_air_sum;
@@ -678,8 +673,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   bbdetLog->SetVisAttributes( G4VisAttributes::Invisible );
   bbfieldLog->SetVisAttributes( G4VisAttributes::Invisible );
-  bbmotherLog->SetVisAttributes( G4VisAttributes::Invisible );
-  
+  //bbmotherLog->SetVisAttributes( G4VisAttributes::Invisible );
+  bbmotherLog->SetVisAttributes( testVisAtt );
+
   //test---
   //bbdetLog->SetVisAttributes( testVisAtt );
   //bbcal_mother_log->SetVisAttributes( testVisAtt );

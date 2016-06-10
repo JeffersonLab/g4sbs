@@ -29,7 +29,9 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fPlaneThick = 2.0*fCathodeThick + 2.0*fCath2WireDist;
 
   fGasThick = 12.0*um;
-  fSpacer = 1.0*mm;
+  // number calculated by comparing pg 89 of Seamus' Thesis to g4sbs, 
+  // see spreadsheet for more information on MWDC positions:
+  fSpacer = 0.000376*m; 
 
   // **NOTE** -- abs val of angles are assumed to be equal!
   fUtheta = -30.0*deg;
@@ -42,11 +44,18 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   double wirespace[3] = {1.0*cm, 1.0*cm, 1.0*cm};     // cm
   double height[3]    = {1.40*m, 2.00*m, 2.0*m };     // m
   double width[3]     = {0.35*m, 0.50*m, 0.50*m};     // m
-  double z0_dis[3]    = {0.00*m, 0.36*m, 0.71*m};     // m
+  double z0_dis[3]    = {0.00*m, 0.3598*m, 0.705*m};     // m - numbers are taken from pg 89 Seamus Thesis
 
   G4String pattern[15] = { "U","U","X","X","V","V",
 			   "U","X","V",
 			   "U","U","X","X","V","V" };
+
+  // These are spacing differences between g4sbs and page 89 of Seamus' thesis where
+  // a survey recorded z0 distances for each plane. I think I have convinced myself
+  // that the differences are small enough that they may be ignored.
+  double diff_survey_g4sbs[15] = {0.0*m,  0.0*m,    0.0*m,   0.0032*m, 0.0032*m, 0.32*m,
+				  0.0*m,  0.0*m,    0.0099*m,
+				  0.0*m, -0.0005*m, 0.0*m,   0.0074*m, 0.0079*m, 0.0074*m };
 
   // Fill our GEn map:
   for(int i=0; i<nplanes[0]; i++){
@@ -235,6 +244,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
  
       // Place the built plane inside a chamber:
       double z = -chamber_thick/2.0 + fGasThick + (planeN+0.5)*fPlaneThick + fSpacer*(planeN+1);
+ 
       sprintf(temp_name, "chamber%1d_plane%1d_log", chamber_number, planeN);
       new G4PVPlacement(0, G4ThreeVector(0.0,0.0,z), plane_log, temp_name, chamber_log, false, copyID);
 

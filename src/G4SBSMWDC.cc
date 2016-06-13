@@ -28,10 +28,7 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fMylarThick = 12.0*um - 2.0*fCuThick;
   fPlaneThick = 2.0*fCathodeThick + 2.0*fCath2WireDist;
 
-  fGasThick = 12.0*um;
-  // number calculated by comparing pg 89 of Seamus' Thesis to g4sbs, 
-  // see spreadsheet for more information on MWDC positions:
-  fSpacer = 0.000376*m; 
+  fGasWinThick = 12.0*um;
 
   // **NOTE** -- abs val of angles are assumed to be equal!
   fUtheta = -30.0*deg;
@@ -50,27 +47,50 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
 			   "U","X","V",
 			   "U","U","X","X","V","V" };
 
-  // These are spacing differences between g4sbs and page 89 of Seamus' thesis where
-  // a survey recorded z0 distances for each plane. I think I have convinced myself
-  // that the differences are small enough that they may be ignored.
-  double diff_survey_g4sbs[15] = {0.0*m,  0.0*m,    0.0*m,   0.0032*m, 0.0032*m, 0.32*m,
-				  0.0*m,  0.0*m,    0.0099*m,
-				  0.0*m, -0.0005*m, 0.0*m,   0.0074*m, 0.0079*m, 0.0074*m };
+  // *** Distanes between MWDC Planes need some special care ***
+  // number calculated by comparing pg 89 of Seamus' Thesis to g4sbs, 
+  // see spreadsheet for more information on MWDC positions:
+  fSpacer = 0.000376*m; 
 
+  // These are spacing differences between g4sbs and page 89 of Seamus' thesis where
+  // a survey recorded z0 distances for each plane. I think these distances are important
+  // as they are on the order of wire spacing => let's incorporate it into the simulation:
+  // chamber 2, plane 2 has negative spacing so I just made it zero to avoid overlaps
+  double offsets[15] = {0.00*m, 0.00*m, 0.00*m, 0.0032*m, 0.0032*m, 0.0032*m, 
+			0.00*m, 0.00*m, 0.0099*m,
+			0.00*m, 0.00*m, 0.00*m, 0.0074*m, 0.0079*m, 0.0074*m };
+  
+  double diff_survey_g4sbs[15] = {0.00*m, fSpacer, fSpacer, fSpacer, fSpacer, fSpacer, 
+				  0.00*m, fSpacer, fSpacer,
+				  0.00*m, fSpacer, 0.00*m, fSpacer, fSpacer, fSpacer};
+
+  std::vector<double> temp0,temp1,temp2,tempp0,tempp1,tempp2;
   // Fill our GEn map:
   for(int i=0; i<nplanes[0]; i++){
     fChamber0.push_back( pattern[i] );
+    temp0.push_back( diff_survey_g4sbs[i] );
+    tempp0.push_back( offsets[i] );
   }
   for(int i=nplanes[0]; i<(nplanes[0]+nplanes[1]); i++){
     fChamber1.push_back( pattern[i] );
+    temp1.push_back( diff_survey_g4sbs[i] );
+    tempp1.push_back( offsets[i] );
   }
   for(int i=(nplanes[0]+nplanes[1]); i<(nplanes[0]+nplanes[1]+nplanes[2]); i++){
     fChamber2.push_back( pattern[i] );
+    temp2.push_back( diff_survey_g4sbs[i] );
+    tempp2.push_back( offsets[i] );
   }
 
   fGEn_Setup[0] = fChamber0;
   fGEn_Setup[1] = fChamber1;
   fGEn_Setup[2] = fChamber2;
+  fSpace_Survey[0] = temp0;
+  fSpace_Survey[1] = temp1;
+  fSpace_Survey[2] = temp2;
+  fSpace_Offset[0] = tempp0;
+  fSpace_Offset[1] = tempp1;
+  fSpace_Offset[2] = tempp2;
 
   // Fill all the vectors
   for(int i=0; i<3; i++){
@@ -82,6 +102,11 @@ G4SBSMWDC::G4SBSMWDC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
     fNwidth.push_back( width[i] );
     fDist_z0.push_back( z0_dis[i] );
   }
+
+  // Needed to build chamber first, then fill it with planes => Get depth of chamber needed to avoid seg fault:
+  fSpace_Total_Chamber[0] = (0.000000 + 0.000000 + 0.000000 + 0.003200 + 0.003200 + 0.003200)*m + fSpacer*6.0;
+  fSpace_Total_Chamber[1] = (0.000000 + 0.000000 + 0.009900)*m + fSpacer*3.0;
+  fSpace_Total_Chamber[2] = (0.000000 + 0.000000 + 0.000000 + 0.007400 + 0.007900 + 0.007400)*m + fSpacer*6.0;
 
   mylarVisAtt = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );
   mylarVisAtt->SetForceWireframe(true);
@@ -186,6 +211,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
   /////////////////////////////////////////////////////////////////////////////////////////////////////
   // CHAMBERS
   /////////////////////////////////////////////////////////////////////////////////////////////////////
+
   std::map<int,std::vector<G4String> >::iterator mit;
   std::vector<G4String>::iterator vit;
   char temp_name[255];
@@ -196,7 +222,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
     // Make a Chamber:
     int chamber_number = mit->first;
     int num_planes = (mit->second).size();
-    double chamber_thick = fPlaneThick*num_planes + 2.0*fGasThick + fSpacer*(num_planes+1);
+    double chamber_thick = fPlaneThick*num_planes + 2.0*fGasWinThick + fSpace_Total_Chamber[chamber_number];
 
     // I added an "arbitrary" 2.0*cm to the chamber height, this is a result of offsetting
     // the signal / field wires.
@@ -210,20 +236,42 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
     
     // Make the gas windows, and place it at front / back of a chamber:    
     G4Box* gas_winbox = new G4Box("gas_winbox", fNwidth[chamber_number]/2.0, 
-				  fNheight[chamber_number]/2.0, fGasThick/2.0);
+				  fNheight[chamber_number]/2.0, fGasWinThick/2.0);
     G4LogicalVolume* gas_winlog = new G4LogicalVolume(gas_winbox, GetMaterial("Mylar"), 
 						      "gas_winlog" );
     gas_winlog->SetVisAttributes( winVisAtt );
 
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, -chamber_thick/2.0 + fGasThick/2.0),
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, -chamber_thick/2.0 + fGasWinThick/2.0),
     		      gas_winlog, "gas_phys_front", chamber_log, false, 0);
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0,  chamber_thick/2.0 - fGasThick/2.0),
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0,  chamber_thick/2.0 - fGasWinThick/2.0),
     		      gas_winlog, "gas_phys_back", chamber_log, false, 0);
     
     int planeN = 0;
 
-    // Fill the chamber with planes
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // PLANES
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    std::vector<double> plane_positions_from_survey = fSpace_Survey[chamber_number];
+    std::vector<double> plane_offset = fSpace_Offset[chamber_number];
+    int weight = 1;
+     
     for( vit = mit->second.begin(); vit != mit->second.end(); vit++ ) {
+
+      // This annoying routine was the only way I could get the planes to match Seamus' Thesis. 
+      // When I did a simple difference between G4SBS numbers and Seamus' numbers, that gave me the 
+      // "offsets" described in the Constructor. However, in order to get the placement to match,
+      // I needed some stupid averaging - hence the introduction of "weight"
+      double plane_placement = 0.0*m;
+      for( int pln=0; pln<=planeN; pln++ ){
+	if(pln<3){
+	  plane_placement += plane_positions_from_survey[pln] + plane_offset[pln];
+	} else {
+	  plane_placement += plane_positions_from_survey[pln] + plane_offset[pln] / double(weight);
+	}
+      }
+
+      if( planeN >=3 ) weight++;
 
       G4String plane_type = *vit;
       G4LogicalVolume* plane_log;
@@ -243,8 +291,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
       }
  
       // Place the built plane inside a chamber:
-      double z = -chamber_thick/2.0 + fGasThick + (planeN+0.5)*fPlaneThick + fSpacer*(planeN+1);
- 
+      double z = -chamber_thick/2.0 + fGasWinThick + (planeN+0.5)*fPlaneThick + plane_placement;
       sprintf(temp_name, "chamber%1d_plane%1d_log", chamber_number, planeN);
       new G4PVPlacement(0, G4ThreeVector(0.0,0.0,z), plane_log, temp_name, chamber_log, false, copyID);
 

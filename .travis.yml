@@ -1,0 +1,24 @@
+sudo: false
+os: linux
+compiler: gcc
+language: cpp
+#before_install:
+script:
+  - ls
+  - pwd
+  - cd integration_tests
+  - travis/travis_setup.sh
+  - source travis/travis_env.sh
+  - echo "Starting the tests"
+  - travis_wait 60 python run_buildtests.py travis/travis.conf
+  - echo "Done with the tests"
+  - cat /home/travis/build*.log
+# whitelist (only cmu_dev for now, where the Travis-CI work is going on)
+branches:
+  only:
+    - master
+    - cmu_dev
+notifications:
+    email:
+      recipients:
+        - cornejo@jlab.org

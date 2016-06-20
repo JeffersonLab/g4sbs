@@ -10,6 +10,8 @@
 #include "gitinfo.hh"
 #include "G4SBSTextFile.hh"
 
+
+#define __LINE_STRLEN 4096
 /*!
  * All the information on the run
  * This will get put into the output
@@ -40,8 +42,21 @@ public:
   void SetSeed(unsigned int seed){ fSeed = seed; }
 
   void AddMagData(filedata_t d){fMagData.push_back(d);}
-  void SetMacroFile(const char *fn){ fMacro = G4SBSTextFile(fn); }
-  void SetPreInitMacroFile(const char *fn){ fPreInitMacro = G4SBSTextFile(fn); }
+
+  /**
+   * \fn FindExternalMacros
+   * \brief Finds and reads in external macros called from current macro.
+   */
+  void FindExternalMacros(G4SBSTextFile macro);
+
+  void SetMacroFile(const char *fn){
+    fMacro = G4SBSTextFile(fn);
+    FindExternalMacros(fMacro);
+  }
+  void SetPreInitMacroFile(const char *fn){
+    fPreInitMacro = G4SBSTextFile(fn);
+    FindExternalMacros(fPreInitMacro);
+  }
 
   void Print(Option_t *) const;
   void Print() const;
@@ -61,6 +76,8 @@ public:
 
   G4SBSTextFile              fMacro;
   G4SBSTextFile   fPreInitMacro; //PreInit Commands
+  std::vector<G4SBSTextFile> fExternalMacros; ///< External macros called by
+                                              ///< the pre-init or post macro
 
   std::vector<filedata_t> fMagData;
 

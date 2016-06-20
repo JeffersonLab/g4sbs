@@ -24,6 +24,8 @@ class G4SBSTextFile : public TObject {
 	void Recreate(const char *fn = NULL, bool clobber = false);
 	void RecreateInDir(const char *path, bool clobber = false);
 
+	char* GetBuffer(){ return fBuffer;}
+
     private:
 	int fFilenameSize;
 	char *fFilename;

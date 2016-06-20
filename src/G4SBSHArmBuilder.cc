@@ -53,6 +53,7 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   f48D48_fieldclamp_config = 2; //0 = No field clamps. 2 = GEp (default). 1 = BigBite experiments:
 
   fHCALdist  = 17.0*m;
+  fHCALvertical_offset = 0.0*cm;
 
   fRICHdist  = 15.0*m;
 
@@ -80,13 +81,14 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   //--------------- HCAL --------------------------
   //All the experiments use HCAL:
 
-  G4double HCAL_vertical_offset = 0.0*cm; //Neutron/SIDIS experiments have no vertical offset for HCAL (in Neutron case because it is detecting neutrons, which don't bend in a magnetic field, and in SIDIS case because we are detecting +/- charged hadrons simultaneously, want to have symmetric acceptance).
-  if( exptype == kGEp ){
-    //HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
-    HCAL_vertical_offset = 45.*cm;
-  }
+  // Note (jc2): The vertical offset of the hadron calorimeter is now specified
+  // via macros in the same way that the distance is specified. Nothing is
+  // hardcoded now.
+  //G4double HCAL_vertical_offset = 0.0*cm; //Neutron/SIDIS experiments have no vertical offset for HCAL (in Neutron case because it is detecting neutrons, which don't bend in a magnetic field, and in SIDIS case because we are detecting +/- charged hadrons simultaneously, want to have symmetric acceptance).
+  //if( exptype == kGEp ) HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
+
   if( exptype != kC16 ) {
-    MakeHCAL( worldlog, HCAL_vertical_offset );
+    MakeHCAL( worldlog, fHCALvertical_offset );
   }
   //The SIDIS experiment uses a  RICH in SBS:
   //--------- RICH (experimental): -------------------------
@@ -683,6 +685,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4SubtractionSolid *FrontClamp = new G4SubtractionSolid( "FrontClamp", FrontClamp_Box, FrontClamp_Notch, 0, G4ThreeVector( xnotch, 0.0, 0.0 ) );
 
     G4LogicalVolume *FrontClamp_log = new G4LogicalVolume( FrontClamp, GetMaterial("Fer"), "FrontClamp_log" );
+    if(fDetCon->fTotalAbs) {
+      FrontClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+    }
 
     G4double FrontClamp_zoffset = 13.40*2.54*cm + FrontClamp_depth/2.0;
 
@@ -727,6 +732,10 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 							    G4ThreeVector( xnotch, 0.0, 0.0 ) );
 
     G4LogicalVolume *RearClamp_log = new G4LogicalVolume( RearClamp, GetMaterial("Fer"), "RearClamp_log" );
+    
+    if(fDetCon->fTotalAbs) {
+      RearClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+    }
 
     G4double RearClamp_zoffset = 11.43*2.54*cm + RearClamp_depth/2.0; 
     G4double RearClamp_xoffset = -f48D48width/2.0 + RearClamp_width/2.0; 

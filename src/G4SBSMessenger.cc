@@ -176,6 +176,10 @@ G4SBSMessenger::G4SBSMessenger(){
   hcaldistCmd->SetGuidance("HCAL distance");
   hcaldistCmd->SetParameterName("dist", false);
 
+  hcalvoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalvoffset",this);
+  hcalvoffsetCmd->SetGuidance("HCAL vertical offset");
+  hcalvoffsetCmd->SetParameterName("dist", false);
+
   hmagdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/48D48dist",this);
   hmagdistCmd->SetGuidance("48D48 distance");
   hmagdistCmd->SetParameterName("dist", false);
@@ -325,10 +329,12 @@ G4SBSMessenger::G4SBSMessenger(){
   UseCerenkovCmd = new G4UIcmdWithABool( "/g4sbs/useckov",this );
   UseCerenkovCmd->SetGuidance( "Toggle Cerenkov process on/off (default = ON)" );
   UseCerenkovCmd->SetParameterName("useckov",true);
+  UseCerenkovCmd->AvailableForStates(G4State_PreInit);
   
   UseScintCmd = new G4UIcmdWithABool( "/g4sbs/usescint",this );
   UseScintCmd->SetGuidance( "Toggle Scintillation process on/off (default = ON)" );
   UseScintCmd->SetParameterName("usescint",true);
+  UseScintCmd->AvailableForStates(G4State_PreInit);
 
   FluxCmd = new G4UIcmdWithABool("/g4sbs/fluxcalc",this);
   FluxCmd->SetGuidance( "Compute particle flux as a function of angles, energy");
@@ -487,6 +493,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( newValue.compareTo("pythia6") == 0 ){
       fevgen->SetKine( kPYTHIA6 );
       fIO->SetUsePythia6( true );
+      validcmd = true;
+    }
+    if (newValue.compareTo("gmnelasticcheck") == 0 ){
+      fevgen->SetKine(kGMnElasticCheck);
       validcmd = true;
     }
 
@@ -747,6 +757,14 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevgen->SetHCALDist(v);
     fIO->SetHcalDist(v);
   }
+
+  if( cmd == hcalvoffsetCmd ){
+    G4double v = hcalvoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetHCALVOffset(v);
+    fevgen->SetHCALDist(v);
+    fIO->SetHcalVOffset(v);
+  }
+
 
   if( cmd == hmagdistCmd ){
     G4double v = hmagdistCmd->GetNewDoubleValue(newValue);

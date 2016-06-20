@@ -44,7 +44,57 @@
 #include "unistd.h"
 #endif
 
-#include "TString.h"
+bool parseArgument(std::string arg, std::string &name, std::string &value)
+{
+  size_t length = arg.length();
+
+  // There are two possible types of parameters.
+  // 1) Parameters with a value (--name=value)
+  // 2) Parameters with no value (--name), also known as flags.
+
+  // Minimum size for the argument is 3, two dashes and at least one
+  // other character
+  if(length<3)
+    return false; // Not long enough to be a valid parameter
+
+  // Now, look for the double dash at the beginning that will signal
+  // that a parameter is being specified
+  size_t pos1 = arg.find_first_of("--");
+  if(pos1 != std::string::npos && pos1 == 0) { // Double dash found
+
+    // First, identify if it is parameter type 1 by looking for the equal sign
+    size_t pos2 = arg.find_first_of("=");
+    if(pos2 != std::string::npos && pos2 < length-1 && pos2>0) { // Param type 1
+      // Split name from value using on both sides of the equal sign
+      name = arg.substr(2,pos2-2);
+      value = arg.substr(pos2+1,length);
+      return true;
+    } else { // No equal sign means parameter type 2
+      name = arg.substr(2,length);
+      return true;
+    }
+  }
+  return false;
+}
+
+void executeMacro(G4String macro, G4UImanager *UImanager)
+{
+  if(macro.length()>0) {
+    G4String command = "/control/execute ";
+    UImanager->ApplyCommand(command+macro);
+  }
+}
+
+bool getBool(std::string value, bool default_value)
+{
+  if(value.compare("true") == 0) {
+    return true;
+  } else if(value.compare("false") == 0) {
+    return false;
+  } else {
+    return default_value;
+  }
+}
 
 int main(int argc, char** argv)
 {
@@ -59,80 +109,53 @@ int main(int argc, char** argv)
   
   G4String preinit_macro = "";
   G4String postinit_macro = "";
-  // if( argc == 2 ){ //if only one command line argument is given, assume all commands are to be applied post-initialization:
-  //   postinit_macro = argv[1];
-  // } else if( argc > 2 ){ //assume first argument is pre-init commands, second argument is post-init commands:
-  //   preinit_macro = argv[1];
-  //   postinit_macro = argv[2];
-  // }
+  bool flag_gui = false; // Display GUI flag
 
-  if( argc > 1 ){ //command-line arguments were given: preserve previous behavior while adding new dials to turn:
-    TString argument;
-    G4int nmacros = 0; //ignore more than two macro definitions:
-    G4bool force_batch = false;
-
-    TString macrodefs[2];
-    
-    for( int iarg=1; iarg<argc; iarg++ ){
-      argument = argv[iarg];
-
-      if( argument.BeginsWith("batch=") ){
-	argument.ReplaceAll("batch=","");
-	std::istringstream is( argument.Data() );
-	force_batch = true;
-	if( argument.Contains("true")||argument.Contains("false") ){ //true/false
-	  is >> std::boolalpha >> batch_mode;
-	} else { //1/0
-	  is >> batch_mode;
-	}
-      }
-      
-      if( argument.EndsWith(".mac") && nmacros < 2 ){ //macro file:
-	//Parse command line arguments:
-	macrodefs[nmacros] = argument;
-	nmacros++;
+  //-------------------------------
+  // Parse command line arguments.
+  //
+  // In order to maintain backwards compatibility with the old method
+  // let's keep track of a flag. If any of the new paramethers are found
+  // we will require the new way. If none are found, we'll proceed with
+  // the old method.
+  //-------------------------------
+  bool paramsFound = false;
+  for(int i = 1; i < argc; i++) {
+    std::string paramName;
+    std::string paramValue;
+    bool validParam = parseArgument(argv[i],paramName,paramValue);
+    if(validParam) {
+      paramsFound = true;
+      if(paramName.compare("pre") == 0) {
+        preinit_macro = paramValue;
+      } else if (paramName.compare("post") == 0) {
+        postinit_macro = paramValue;
+      } else if (paramName.compare("gui") == 0) {
+        flag_gui = getBool(paramValue,true);
       }
     }
+  }
 
-    if( nmacros == 0 ){
-      batch_mode = false; //no macro --> meaningless to run in batch!
-    } else if( nmacros == 1 ){
-      if( !macrodefs[0].BeginsWith("preinit=") ){
-      //only one macro definition was given and it was not forced to pre-init:
-      //default to post-init execution:
-	macrodefs[0].ReplaceAll("postinit=","");
-	postinit_macro = macrodefs[0].Data();
-	if( !force_batch ) batch_mode = true; //default to batch mode unless explicitly overridden by user
-      } else {
-	macrodefs[0].ReplaceAll("preinit=","");
-	preinit_macro = macrodefs[0].Data();
-	batch_mode = false; 
-      }
-    } 
-    if( nmacros == 2 ){ //assume first macrodef is preinit and second is post-init unless
-      //explicitly overridden by user:
-      TString m1 = macrodefs[0];
-      TString m2 = macrodefs[1];
-
-      TString mac1( m1(m1.Index("=")+1,m1.Length()-m1.Index("=")-1) );
-      TString mac2( m2(m2.Index("=")+1,m2.Length()-m2.Index("=")-1) );
-      
-      //under what conditions is m1 the postinit and m2 the pre-init?
-      // 1) m1 IS labeled as postinit and m2 is NOT explicitly labeled as postinit
-      // 2) m2 is explicitly labeled as preinit and m1 is NOT explicitly labeled as preinit
-      // These are the only cases that can override the default behavior of m1 being pre-init and
-      // m2 being post-init:
-      if( (m1.BeginsWith("postinit=") && !m2.BeginsWith("postinit=") ) ||
-	  (m2.BeginsWith("preinit=") && !m1.BeginsWith("preinit=") ) ){
-	postinit_macro = mac1.Data();
-	preinit_macro = mac2.Data();
-      } else {
-	preinit_macro = mac1.Data();
-	postinit_macro = mac2.Data();
-      }
-      //Run in batch mode unless explicitly overridden by user:
-      if( !force_batch ) batch_mode = true;
+  // If no valid parameters were found, revert to the old method, in which
+  // there are two possible parameters to specify the pre-init macro and
+  // post init-macro.
+  if(!paramsFound) {
+    if( argc == 2 ){ //if only one command line argument is given, assume all commands are to be applied post-initialization:
+      postinit_macro = argv[1];
+    } else if( argc > 2 ){ //assume first argument is pre-init commands, second argument is post-init commands:
+      preinit_macro = argv[1];
+      postinit_macro = argv[2];
     }
+  }
+
+  bool use_gui = false;
+  // If no postinit macro specified, turn on the GUI
+  if(postinit_macro == "") {
+    use_gui = true;
+  }
+  // If the GUI flag/parameter is passed, always display GUI
+  if(flag_gui) {
+    use_gui = true;
   }
 
   CLHEP::HepRandom::createInstance();
@@ -209,9 +232,11 @@ int main(int argc, char** argv)
 
   if( preinit_macro != "" ){
     rundata->SetPreInitMacroFile(preinit_macro);
-    G4String command = "/control/execute ";
-    command += preinit_macro;
-    UImanager->ApplyCommand(command);
+    executeMacro(preinit_macro,UImanager);
+  }
+
+  if( postinit_macro != "") {
+    rundata->SetMacroFile(postinit_macro);
   }
 
   // Initialize Run manager
@@ -239,40 +264,26 @@ int main(int argc, char** argv)
   UImanager->ApplyCommand("/gun/direction 0 .3 1.");
   */
 
-  //G4cout << "batch mode = " << batch_mode << G4endl;
-  
-  
-  if( !batch_mode )
-  {
+  if( use_gui ) {
     //--------------------------
     // Define (G)UI
     //--------------------------
 
-    
-    
 #ifdef G4UI_USE
     G4UIExecutive * ui = new G4UIExecutive(argc,argv);
-    
     UImanager->SetSession( ui->GetSession() ); 
-    
-    if( postinit_macro != "" ){
-      rundata->SetMacroFile(postinit_macro);
-      G4String command = "/control/execute ";
-      command += postinit_macro;
-      UImanager->ApplyCommand(command);
-    }
+#endif
 
+    executeMacro(postinit_macro, UImanager);
+
+#ifdef G4UI_USE
     ui->SessionStart();
-			  
+
     delete ui;
 #endif
-  } else { //batch mode:
-      
-    rundata->SetMacroFile(postinit_macro);
-    G4String command = "/control/execute ";
-    G4String fileName = postinit_macro;
-    UImanager->ApplyCommand(command+fileName);
-    
+  } else {
+    // Run the postinit macro if one is specified
+    executeMacro(postinit_macro, UImanager);
   }
 
   // Free the store: user actions, physics_list and detector_description are

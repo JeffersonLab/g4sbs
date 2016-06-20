@@ -1,30 +1,38 @@
-/g4sbs/filename gep_5.root
+## Configure G4SBS for gep (Q^2 = 5 GeV^2)
+/g4sbs/filename        gep_5GeV2.root    ## Output rootfile
 
-/g4sbs/beamcur  75.0 muA
-/g4sbs/target   LH2
-/g4sbs/kine     elastic
-/g4sbs/exp	gep
-/g4sbs/targlen  40.0 cm
+## Configure Experiment
+/g4sbs/exp             gep
 
-/g4sbs/gemres 0.070 mm
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         40.0 cm           ## Target Length
 
-/g4sbs/rasterx  4.0 mm
-/g4sbs/rastery  4.0 mm
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         75.0 muA
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           6.6 GeV
+/g4sbs/thmin           16.1 deg
+/g4sbs/thmax           36.1 deg
+/g4sbs/phmin           -50.0 deg
+/g4sbs/phmax           50.0 deg
 
-/g4sbs/48d48field 1
-/g4sbs/sbsclampopt 2
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        7.4 m
+/g4sbs/hcalvoffset     45.0 cm
+/g4sbs/sbsclampopt     2
 
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/48d48field      1
+/g4sbs/bbang           26.1 deg
+/g4sbs/bbdist          4.2 m
+/g4sbs/sbsang          28.2 deg
+/g4sbs/48D48dist       1.6 m
 
-/g4sbs/runtime     1.0 s
-/g4sbs/beamE       6.6 GeV
-/g4sbs/bbang      26.1 deg
-/g4sbs/bbdist      4.2 m
-/g4sbs/sbsang    28.2 deg
-/g4sbs/hcaldist   7.40 m
-/g4sbs/48D48dist   1.6 m
-/g4sbs/thmin      10.0 deg
-/g4sbs/thmax      46.0 deg
-/g4sbs/phmin      90.0 deg
-/g4sbs/phmax     270.0 deg
-
-/g4sbs/run 40000
+## Run 100 events
+/g4sbs/run             100

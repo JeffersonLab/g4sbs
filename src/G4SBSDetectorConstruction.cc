@@ -97,7 +97,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   StepLimiterList.clear();
 
   fCDetOption = 1;
-  
+
+  fGEMflip = false;
   //    TrackerIDnumber = 0;
   //TrackerArm.clear();
 }
@@ -2170,4 +2171,8 @@ void G4SBSDetectorConstruction::SetFieldScale_BB( G4double v ){
   }
 
   fGlobalField->ScaleFields( v, kEarm );
+}
+
+void G4SBSDetectorConstruction::SetFlipGEM( G4bool b ){
+  fGEMflip = b;
 }

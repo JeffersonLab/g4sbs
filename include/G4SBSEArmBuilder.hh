@@ -24,7 +24,7 @@ public:
   void SetBBCalDist(double a){ fBBCaldist= a; }
   void SetGEMConfig(int gc ){ fGEMOption = gc; }
   //void SetCDetconfig(int cdetc){ fCDetOption = cdetc; }
-
+  
   void MakeBigBite(G4LogicalVolume *);
   void MakeBigCal(G4LogicalVolume *);
   void MakeC16(G4LogicalVolume *);
@@ -42,7 +42,7 @@ public:
   double fCerDepth;
   double fCerDist;
   double fGEMDist;
-
+  
   int  fGEMOption;
   //int  fCDetOption;
 

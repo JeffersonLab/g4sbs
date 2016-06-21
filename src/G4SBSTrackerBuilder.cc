@@ -41,6 +41,8 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
   //This routine will create and position a GEM tracker consisting of nplanes planes centered at position pos oriented with rotation rot wrt logical volume Mother. 
   //The list of z coordinates, widths and heights of the planes are passed as arguments:
 
+  G4bool GEMflip = fDetCon->GetFlipGEM();
+  
   // How should we interpret the rotation Matrix rot? It is the rotation that orients the z axis of the tracker with respect to the mother volume. 
   // Since pos is the nominal position of the tracker with respect to the mother volume, 
   // the positioning of the centers of the tracker planes should be pos + zplane * tracker_zaxis
@@ -70,6 +72,8 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
     return;
   }
 
+  //Best way to handle "flipping" of GEMs? Boxes are symmetric, just flip ordering of z positions!
+  
   //Define z extent of various GEM layer components:
 
   const unsigned int nlayers = 24;
@@ -139,6 +143,12 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
     gemlog->SetVisAttributes( gemvisatt );
 
     double ztemp = 0.0;
+    double sign = 1.0;
+    if( GEMflip ) { //this reverses ordering of GEM materials front-to-back!
+      ztemp = gempzsum;
+      sign = -1.0;
+    }
+      
     for( gpidx = 0; gpidx < nlayers; gpidx++ ){
       sprintf( cgpidx, "_%02d_%03d_", gidx, gpidx );
       
@@ -146,14 +156,14 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
       G4String gemplogname = TrackerPrefix + G4String("_gemplane") + cgpidx + G4String("log");
       G4String gempphysname = TrackerPrefix + G4String("_gemplane") + cgpidx + G4String("phy");
 
-      ztemp += gempz[gpidx]/2.0;
+      ztemp += sign*gempz[gpidx]/2.0;
 
       gpbox = new G4Box( gempboxname, wplanes[gidx]/2.0, hplanes[gidx]/2.0, gempz[gpidx]/2.0 );
       gplog = new G4LogicalVolume( gpbox, gempm[gpidx], gemplogname, 0, 0, 0 );
 
       new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, ztemp - gempzsum/2.0 ), gplog, gempphysname, gemlog, false, 0, false ); 
 
-      ztemp += gempz[gpidx]/2.0;
+      ztemp += sign*gempz[gpidx]/2.0;
 
       //Assign sensitive volume: why 5?  // SPR: This is the gas drift region
       if( gpidx == 5 ){

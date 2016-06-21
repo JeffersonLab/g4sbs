@@ -69,7 +69,8 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   
   assert(fDetCon);
 
-  fbbfield =  NULL;  
+  fbbfield =  NULL;
+
 }
 
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}

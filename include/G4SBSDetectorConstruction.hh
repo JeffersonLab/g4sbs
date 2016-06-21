@@ -113,6 +113,9 @@ public:
 
   void SetDoseRateC16( G4double );
   G4double GetDoseRateC16(){ return fDoseRateC16; }
+
+  void SetFlipGEM( G4bool );
+  G4bool GetFlipGEM(){ return fGEMflip; }
   
 private:
 
@@ -134,6 +137,8 @@ private:
 
   G4double fSegmentThickC16;
   G4double fDoseRateC16; //Dose rate at z = 0 of lead-glass.
+
+  G4bool fGEMflip;
 
 };
 

@@ -63,7 +63,7 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
 
   fUseLocalField = false;
   fFieldStrength = 1.4*tesla;
-
+  
   assert(fDetCon);
 }
 

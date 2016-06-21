@@ -64,6 +64,11 @@ G4SBSMessenger::G4SBSMessenger(){
   CDetconfigCmd->SetGuidance("CDet Geometry Options(integer 1,2,3, or 4): Option 1 (default) = Simplest option, only material budget with no SD assigned, Option 2 = Flat, 2 planes with sensitive regions, Option 3 = Top/Bottom 'modules' are angled relative to central 'module', and Option 4 = Each bar is shimmed in order to optimize normal incidence");
   CDetconfigCmd->SetParameterName("CDetconfig",false);
 
+  flipGEMCmd = new G4UIcmdWithABool("/g4sbs/flipGEM",this);
+  flipGEMCmd->SetGuidance("Reverse GEM orientation front-to-back (bool). Applies to ALL GEMs!");
+  flipGEMCmd->SetParameterName("flipGEM", false );
+  
+  
   ECALmapfileCmd = new G4UIcmdWithAString("/g4sbs/ECALmap",this);
   ECALmapfileCmd->SetGuidance("Name of text file listing active ECAL cells (assumed to be located in database/)");
   ECALmapfileCmd->SetParameterName("ECALmapfile",false);
@@ -434,6 +439,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->SetCDetconfig(cdetconf);
   }
 
+  if( cmd == flipGEMCmd ){
+    G4bool val = flipGEMCmd->GetNewBoolValue(newValue);
+    fdetcon->SetFlipGEM(val);
+  }
+  
   if( cmd == SegmentC16Cmd ){
     G4int segmentC16 = SegmentC16Cmd->GetNewIntValue(newValue);
 

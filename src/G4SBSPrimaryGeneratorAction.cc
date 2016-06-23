@@ -59,7 +59,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   G4String particleName;
   G4ParticleDefinition* particle;
 
-  ev_t evdata;
+  //ev_t evdata;
 
   //G4SBSPythiaOutput Primaries;
   
@@ -75,8 +75,8 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   int ntries_run = RunAction->GetNtries();
   RunAction->SetNtries( ntries_run + ntries );
 
-  evdata = sbsgen->GetEventData();
-  fIO->SetEventData(evdata);
+  //evdata = sbsgen->GetEventData();
+  fIO->SetEventData(sbsgen->GetEventData());
 
   if( sbsgen->GetKine() == kPYTHIA6 ){ //PYTHIA6 event:
     G4SBSPythiaOutput Primaries = sbsgen->GetPythiaEvent();

@@ -22,7 +22,7 @@
 
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
-/g4sbs/hcaldist        7.4 m
+/g4sbs/hcaldist        6.8 m
 /g4sbs/hcalvoffset     45.0 cm
 /g4sbs/sbsclampopt     2
 
@@ -30,7 +30,7 @@
 /g4sbs/bbfield         0
 /g4sbs/48d48field      1
 /g4sbs/bbang           26.7 deg
-/g4sbs/bbdist          3.7 m
+/g4sbs/bbdist          6.5 m
 /g4sbs/sbsang          22.1 deg
 /g4sbs/48D48dist       1.6 m
 

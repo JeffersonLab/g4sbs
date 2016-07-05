@@ -12,8 +12,8 @@
 /g4sbs/kine            elastic           ## Generator
 /g4sbs/beamcur         44 muA
 /g4sbs/beamE           8.8 GeV
-/g4sbs/thmin           35.0 deg
-/g4sbs/thmax           55.0 deg
+/g4sbs/thmin           34.2 deg
+/g4sbs/thmax           54.2 deg
 /g4sbs/phmin           -30 deg
 /g4sbs/phmax           30 deg
 
@@ -28,8 +28,8 @@
 /g4sbs/bbang           44.2 deg
 /g4sbs/bbdist          1.55 m
 /g4sbs/sbsang          13.3 deg
-/g4sbs/48D48dist       2.1 m
-/g4sbs/sbsmagfield     1.2 tesla
+/g4sbs/48D48dist       2.25 m
+/g4sbs/sbsmagfield     1.22 tesla
 
 ## Run 100 events
 /g4sbs/run             100

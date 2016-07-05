@@ -12,8 +12,8 @@
 /g4sbs/kine            elastic           ## Generator
 /g4sbs/beamcur         44 muA
 /g4sbs/beamE           6.6 GeV
-/g4sbs/thmin           40.0 deg
-/g4sbs/thmax           57.0 deg
+/g4sbs/thmin           33.0 deg
+/g4sbs/thmax           53.0 deg
 /g4sbs/phmin           -30 deg
 /g4sbs/phmax           30 deg
 
@@ -25,11 +25,11 @@
 ## Configure the magnets
 /g4sbs/bbfield         1
 /g4sbs/48d48field      1
-/g4sbs/bbang           46.5 deg
+/g4sbs/bbang           43.0 deg
 /g4sbs/bbdist          1.55 m
-/g4sbs/sbsang          16.2 deg
-/g4sbs/48D48dist       1.8 m
-/g4sbs/sbsmagfield     1.2 tesla
+/g4sbs/sbsang          17.5 deg
+/g4sbs/48D48dist       2.25 m
+/g4sbs/sbsmagfield     1.22 tesla
 
 ## Run 100 events
 /g4sbs/run             100

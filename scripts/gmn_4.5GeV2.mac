@@ -28,8 +28,8 @@
 /g4sbs/bbang           41.9 deg
 /g4sbs/bbdist          1.55 m
 /g4sbs/sbsang          24.7 deg
-/g4sbs/48D48dist       1.8 m
-/g4sbs/sbsmagfield     1.7 tesla
+/g4sbs/48D48dist       2.25 m
+/g4sbs/sbsmagfield     1.70 tesla
 
 ## Run 100 events
 /g4sbs/run             100

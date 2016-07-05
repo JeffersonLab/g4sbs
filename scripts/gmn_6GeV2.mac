@@ -25,11 +25,11 @@
 ## Configure the magnets
 /g4sbs/bbfield         1
 /g4sbs/48d48field      1
-/g4sbs/bbang           64.3 deg
+/g4sbs/bbang           58.4 deg
 /g4sbs/bbdist          1.55 m
-/g4sbs/sbsang          15.6 deg
-/g4sbs/48D48dist       1.6 m
-/g4sbs/sbsmagfield     0.7 tesla
+/g4sbs/sbsang          17.5 deg
+/g4sbs/48D48dist       2.25 m
+/g4sbs/sbsmagfield     0.72 tesla
 
 ## Run 100 events
 /g4sbs/run             100

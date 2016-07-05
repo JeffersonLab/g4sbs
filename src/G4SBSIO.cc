@@ -20,9 +20,9 @@ G4SBSIO::G4SBSIO(){
     fFile = NULL;
 
     gendata.Ebeam = 2.2;
-    gendata.thbb = 40.0*deg;
+    gendata.thbb = 40.0*CLHEP::deg;
     gendata.dbb = 1.5;
-    gendata.thsbs = 39.4*deg;
+    gendata.thsbs = 39.4*CLHEP::deg;
     gendata.dhcal = 17.0;
     gendata.voffhcal = 0.0;
     gendata.dsbs = 1.6;

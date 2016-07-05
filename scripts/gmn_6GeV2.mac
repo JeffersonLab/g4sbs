@@ -12,13 +12,13 @@
 /g4sbs/kine            elastic           ## Generator
 /g4sbs/beamcur         44 muA
 /g4sbs/beamE           4.4 GeV
-/g4sbs/thmin           55.0 deg
-/g4sbs/thmax           75.0 deg
+/g4sbs/thmin           48.0 deg
+/g4sbs/thmax           68.4 deg
 /g4sbs/phmin           -30 deg
 /g4sbs/phmax           30 deg
 
 ## Configure standard detector settings
-/g4sbs/hcaldist        11.0 m
+/g4sbs/hcaldist        9.0 m
 /g4sbs/hcalvoffset     0.00 m
 /g4sbs/sbsclampopt     0                 ## Disable all field clamps
 
@@ -29,7 +29,7 @@
 /g4sbs/bbdist          1.55 m
 /g4sbs/sbsang          17.5 deg
 /g4sbs/48D48dist       2.25 m
-/g4sbs/sbsmagfield     0.72 tesla
+/g4sbs/sbsmagfield     1.00 tesla
 
 ## Run 100 events
 /g4sbs/run             100

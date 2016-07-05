@@ -12,8 +12,8 @@
 /g4sbs/kine            elastic           ## Generator
 /g4sbs/beamcur         44 muA
 /g4sbs/beamE           11.0 GeV
-/g4sbs/thmin           25.0 deg
-/g4sbs/thmax           44.0 deg
+/g4sbs/thmin           23.0 deg
+/g4sbs/thmax           43.0 deg
 /g4sbs/phmin           -30 deg
 /g4sbs/phmax           30 deg
 

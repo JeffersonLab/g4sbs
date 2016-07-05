@@ -73,102 +73,54 @@ G4SBSHArmBuilder::~G4SBSHArmBuilder(){
 void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   Exp_t exptype = fDetCon->fExpType;
 
-
-  // All three types of experiments have a 48D48 magnet:
+  // Build the 48D48 magnet and HCAL
   if( exptype != kC16 ) {
     Make48D48(worldlog, f48D48dist + f48D48depth/2. );
-  }
-  //--------------- HCAL --------------------------
-  //All the experiments use HCAL:
-
-  // Note (jc2): The vertical offset of the hadron calorimeter is now specified
-  // via macros in the same way that the distance is specified. Nothing is
-  // hardcoded now.
-  //G4double HCAL_vertical_offset = 0.0*cm; //Neutron/SIDIS experiments have no vertical offset for HCAL (in Neutron case because it is detecting neutrons, which don't bend in a magnetic field, and in SIDIS case because we are detecting +/- charged hadrons simultaneously, want to have symmetric acceptance).
-  //if( exptype == kGEp ) HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
-
-  if( exptype != kC16 ) {
     MakeHCAL( worldlog, fHCALvertical_offset );
   }
-  //The SIDIS experiment uses a  RICH in SBS:
-  //--------- RICH (experimental): -------------------------
-  if( exptype == kSIDISExp ) //SIDIS experiment requires a RICH detector and a tracker for SBS: 
-    {
-      //Let's make a simple tracker: 5 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~50 cm + about 1.6 cm
-      G4double SBStracker_dist = fRICHdist - 0.3*m;
-      G4ThreeVector SBStracker_pos( -SBStracker_dist * sin( f48D48ang ), 0.0, SBStracker_dist * cos( f48D48ang ) );
 
-      G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
+  // Now build special components for experiments
+  if( exptype == kSIDISExp ) {
+    //SIDIS experiment requires a RICH detector and a tracker for SBS: 
+    MakeTracker(worldlog);
+    //MakeRICH( worldlog );
+    MakeRICH_new( worldlog );
+  } else if ( exptype == kGEp ) {
+    //Subsystems unique to the GEp experiment include FPP and BigCal:
+    MakeGEpFPP(worldlog);
+  }
+}
 
-      //Just a test:
-      //SBStracker_rot_I->rotateY( 14.0*deg );
+void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
+{
+  //Let's make a box and then put the FPP in it:
+  //Define the rotation matrix for the FPP (pitch angle of 5 deg relative to vertical): 
+  G4double sbsboxpitch = 5.0*deg;
+  G4RotationMatrix *SBS_FPP_rm = new G4RotationMatrix;
+  SBS_FPP_rm->rotateY( f48D48ang );
+  SBS_FPP_rm->rotateX( sbsboxpitch );
 
-      G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
-      SBStracker_rot->rotateY( f48D48ang );
+  //FPP box: 
+  double sbsdepth  = 3.0*m;
+  double sbswidth  = 2.0*m;
+  double sbsheight = 2.1*m;
 
-      G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
+  //double sbsr = fHCALdist - 4.106*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
+  double sbsr = f48D48dist + 1.694*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
 
-      G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
-	
-      //For consistency with BigBite, place "Tracker" volume before GEMs are placed in it:
-      new G4PVPlacement( SBStracker_rot, SBStracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
-	
-      int ngems_SBStracker = 5;
-      vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
+  G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
+  G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
 
-      G4double zspacing_SBStracker = 10.0*cm;
-      G4double zoffset_SBStracker = -20.0*cm;
+  sbslog->SetVisAttributes( G4VisAttributes::Invisible );
+  //Now position and orient the FPP "box":
+  new G4PVPlacement(SBS_FPP_rm, G4ThreeVector(-sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) ), sbslog,
+      "sbsphys", worldlog, false, 0, false);
 
-      for(int i=0; i<ngems_SBStracker; i++ ){
-	zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
-	wplanes_SBStracker.push_back( 60.0*cm );
-	hplanes_SBStracker.push_back( 200.0*cm );
-      }
+  G4RotationMatrix *rot_I = new G4RotationMatrix;
 
-      G4SBSTrackerBuilder trackerbuilder(fDetCon);
+  double detoffset = 0.05*m - sbsdepth/2.0;
 
-      //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
-
-      trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
-				     ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
-
-      //MakeRICH( worldlog );
-      MakeRICH_new( worldlog );
-
-      SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
-    }
-  //---------------------------------------------------------
-  if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
-    {
-      //Let's make a box and then put the FPP in it:
-      //Define the rotation matrix for the FPP (pitch angle of 5 deg relative to vertical): 
-      G4double sbsboxpitch = 5.0*deg;
-      G4RotationMatrix *SBS_FPP_rm = new G4RotationMatrix;
-      SBS_FPP_rm->rotateY( f48D48ang );
-      SBS_FPP_rm->rotateX( sbsboxpitch );
-
-      //FPP box: 
-      double sbsdepth  = 3.0*m;
-      double sbswidth  = 2.0*m;
-      double sbsheight = 2.1*m;
-
-      //double sbsr = fHCALdist - 4.106*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
-      double sbsr = f48D48dist + 1.694*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
-      
-      G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
-      G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
-
-      sbslog->SetVisAttributes( G4VisAttributes::Invisible );
-      //Now position and orient the FPP "box":
-      new G4PVPlacement(SBS_FPP_rm, G4ThreeVector(-sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) ), sbslog,
-			"sbsphys", worldlog, false, 0, false);
-
-      G4RotationMatrix *rot_I = new G4RotationMatrix;
-
-      double detoffset = 0.05*m - sbsdepth/2.0;
-
-      MakeFPP( sbslog, rot_I, G4ThreeVector( 0.0, 0.0, detoffset) );
-    }
+  MakeFPP( sbslog, rot_I, G4ThreeVector( 0.0, 0.0, detoffset) );
 }
 
 void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
@@ -1199,6 +1151,50 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   //G4VisAttributes * caloVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
   //caloVisAtt->SetForceWireframe(true);
   logCalo->SetVisAttributes(G4VisAttributes::Invisible);
+}
+
+void G4SBSHArmBuilder::MakeTracker( G4LogicalVolume *worldlog)
+{
+  // 2016/06/23 (jc2): Moved SIDIS tracker to its own function
+  //Let's make a simple tracker: 5 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~50 cm + about 1.6 cm
+  G4double SBStracker_dist = fRICHdist - 0.3*m;
+  G4ThreeVector SBStracker_pos( -SBStracker_dist * sin( f48D48ang ), 0.0, SBStracker_dist * cos( f48D48ang ) );
+
+  G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
+
+  //Just a test:
+  //SBStracker_rot_I->rotateY( 14.0*deg );
+
+  G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
+  SBStracker_rot->rotateY( f48D48ang );
+
+  G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
+
+  G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
+
+  //For consistency with BigBite, place "Tracker" volume before GEMs are placed in it:
+  new G4PVPlacement( SBStracker_rot, SBStracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
+
+  int ngems_SBStracker = 5;
+  vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
+
+  G4double zspacing_SBStracker = 10.0*cm;
+  G4double zoffset_SBStracker = -20.0*cm;
+
+  for(int i=0; i<ngems_SBStracker; i++ ){
+    zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
+    wplanes_SBStracker.push_back( 60.0*cm );
+    hplanes_SBStracker.push_back( 200.0*cm );
+  }
+
+  G4SBSTrackerBuilder trackerbuilder(fDetCon);
+
+  //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
+
+  trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
+      ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
+
+  SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
 }
 
 void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){

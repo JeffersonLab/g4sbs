@@ -5,7 +5,6 @@
 #include "TObject.h"
 #include "THashTable.h"
 #include "G4Run.hh"
-#include "G4SystemOfUnits.hh"
 #include "G4SBSRICHoutput.hh"
 #include "G4SBSECaloutput.hh"
 #include "G4SBSTrackerOutput.hh"
@@ -107,15 +106,15 @@ public:
   void FillTree();
   void WriteTree();
   
-  void SetBeamE(double E){ gendata.Ebeam = E/GeV; }
+  void SetBeamE(double E){ gendata.Ebeam = E/CLHEP::GeV; }
   void SetBigBiteTheta(double th){ gendata.thbb = th; }
-  void SetBigBiteDist(double d){ gendata.dbb = d/m; }
+  void SetBigBiteDist(double d){ gendata.dbb = d/CLHEP::m; }
   void SetSBSTheta(double th){ gendata.thsbs = th; }
-  void SetHcalDist(double d){ gendata.dhcal = d/m; }
-  void SetHcalVOffset(double d){ gendata.voffhcal = d/m; }
-  void SetSBSDist(double d){ gendata.dsbs = d/m; }
-  void SetRICHDist(double d){ gendata.drich = d/m; }
-  void SetSBStrkrDist(double d){ gendata.dsbstrkr = d/m; }
+  void SetHcalDist(double d){ gendata.dhcal = d/CLHEP::m; }
+  void SetHcalVOffset(double d){ gendata.voffhcal = d/CLHEP::m; }
+  void SetSBSDist(double d){ gendata.dsbs = d/CLHEP::m; }
+  void SetRICHDist(double d){ gendata.drich = d/CLHEP::m; }
+  void SetSBStrkrDist(double d){ gendata.dsbstrkr = d/CLHEP::m; }
   
   void SetGlobalField(G4SBSGlobalField *gf){fGlobalField = gf; }
   

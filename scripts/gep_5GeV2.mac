@@ -27,7 +27,7 @@
 /g4sbs/sbsclampopt     2
 
 ## Configure the magnets
-/g4sbs/bbfield         1
+/g4sbs/bbfield         0
 /g4sbs/48d48field      1
 /g4sbs/bbang           26.1 deg
 /g4sbs/bbdist          4.2 m

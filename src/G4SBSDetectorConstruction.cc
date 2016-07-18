@@ -1,6 +1,5 @@
 #include "G4SBSDetectorConstruction.hh"
 
-#include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4UserLimits.hh"
 //#include "G4String.hh"
@@ -54,6 +53,9 @@
 #include <map>
 #include <algorithm>
 //#include <pair>
+
+// To supress errors with TString, system of units should be included last
+#include "G4SystemOfUnits.hh"
 
 using namespace std;
 

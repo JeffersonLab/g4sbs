@@ -44,10 +44,12 @@
 
 #include "sbstypes.hh"
 
-#include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 
 #include "TString.h"
+
+// To supress errors with TString, system of units should be included last
+#include "G4SystemOfUnits.hh"
 
 using namespace std;
 

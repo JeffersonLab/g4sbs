@@ -51,8 +51,7 @@ void G4SBSRunData::Print(Option_t *) const {
     printf("Generator   = %s\n", fGenName);
 
     printf("Field maps:\n");
-    unsigned int i;
-    for( i = 0; i < fMagData.size(); i++ ){
+    for( unsigned int i = 0; i < fMagData.size(); i++ ){
 	printf("\t%s\n", fMagData[i].filename);
 	printf("\t%s\n", fMagData[i].hashsum);
 	printf("\t%s\n\n", fMagData[i].timestamp.AsString("ls"));

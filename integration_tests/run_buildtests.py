@@ -74,7 +74,7 @@ temp_dir_name = ''
 
 ## List of experiments to run
 #experiment_script_list = ( 'GEn', 'GMn', 'GEp' )
-experiment_script_list = { 'GEn', 'GMn', 'GEp' }
+experiment_script_list = [ 'GEn', 'GMn', 'GEp' ]
 #experiment_script_list = { 'GEp' }
 
 ## Exit the program with given code number returned.

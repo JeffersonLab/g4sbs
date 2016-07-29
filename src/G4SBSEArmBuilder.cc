@@ -50,6 +50,7 @@
 #include "G4SBSMWDC.hh"
 
 #include "TString.h"
+#include "TVector3.h"
 
 using namespace std;
 
@@ -105,7 +106,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
   bbrm->rotateY(-fBBang);
 
-
   G4RotationMatrix *bbykrm = new G4RotationMatrix;
   bbykrm->rotateX(90.0*deg);
 
@@ -117,7 +117,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   double eps = 0.1*mm;
 
   // Mother box
-  G4Box *bbmotherBox= new G4Box("bbmotherBox", bbmagwidth/2.0 + eps, 250*cm, motherdepth/2.0);
+  G4Box *bbmotherBox= new G4Box("bbmotherBox", bbmagwidth/2.0 + eps, 250.0*cm, motherdepth/2.0);
 
   // We need to account for offsets so we can fit BigBite and detectors in without running into
   // the target
@@ -275,6 +275,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *bbmotherLog=new G4LogicalVolume(bbmothercutBox,GetMaterial("Air"),
 						   "bbmotherLog", 0, 0, 0);
 
+
   new G4PVPlacement(bbrm, G4ThreeVector(motherr*sin(fBBang), 0.0, motherr*cos(fBBang)),
 		    bbmotherLog, "bbmotherPhys", worldlog, 0,false,0);
 
@@ -335,7 +336,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   //  Just interested in the GEMs for now:
 
-  double detoffset = 0.05*m -detboxdepth/2.0; //z offset of GEM plane positions within BB detector volume: "global" GEM plane z = detoffset + gemz[plane]
+  double detoffset = 0.05*m - detboxdepth/2.0; //z offset of GEM plane positions within BB detector volume: "global" GEM plane z = detoffset + gemz[plane]
 
   int i;
   int ngem = 0;
@@ -426,10 +427,30 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // Make MWDC - GEn
   G4SBSMWDC* mwdc = new G4SBSMWDC(fDetCon);
-  // chambers mother volume is 1*m in z, so offset it by 0.5m
+  // Chambers mother volume is 1*m in z, so offset it by 0.5m
   mwdc->BuildComponent(worldlog, bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset + 0.5*m + 2.5*cm), "Earm/BBMWDC");
 
 
+  // Where exactly is the first chamber of MWDC?
+  // Mother Volume, note motherr = fBBdist - 6*m + clear:
+  G4ThreeVector trackMWDC_dist = G4ThreeVector(motherr*sin(fBBang), 0.0, motherr*cos(fBBang));
+
+  // MWDC is placed inside bbmotherlog which is placed inside Mother Volume
+  G4ThreeVector BB_inside_mother(0.0, (detboxplace+detboxdepth/2.0)*sin(detboxang),
+				 (detboxplace+detboxdepth/2.0)*cos(detboxang)+midplanez);
+
+  double off = 5.0*cm + 48.024*0.5*mm; // 5cm defined above, 2.5cm defined by me, 48mm is depth of chamber1
+  trackMWDC_dist += G4ThreeVector( 0.0, off*sin(detboxang), off*cos(detboxang) );
+  trackMWDC_dist += BB_inside_mother;
+
+
+
+  TVector3 MWDC(trackMWDC_dist.getX(), trackMWDC_dist.getY(), trackMWDC_dist.getZ() );
+  cout << MWDC.X() << "  " << MWDC.Y() << "   " << MWDC.Z() << endl;
+
+
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
   double mylar_air_sum = mylarthickness + airthickness;
   double bbpmtz = 0.20*cm;
@@ -677,7 +698,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   bbmotherLog->SetVisAttributes( testVisAtt );
 
   //test---
-  //bbdetLog->SetVisAttributes( testVisAtt );
+  bbdetLog->SetVisAttributes( testVisAtt );
   //bbcal_mother_log->SetVisAttributes( testVisAtt );
   
   bbcal_mother_log->SetVisAttributes( G4VisAttributes::Invisible );

@@ -122,10 +122,14 @@ void G4SBSGlobalField::DebugField(){
     double xmin = -4*m; double xmax =  4*m;
     double zmin = -1*m; double zmax =  7*m;
 
-    TH2F *hx = new TH2F("field_x", "Field x component", nstep, xmin, xmax, nstep, zmin, zmax );
-    TH2F *hy = new TH2F("field_y", "Field y component", nstep, xmin, xmax, nstep, zmin, zmax );
-    TH2F *hz = new TH2F("field_z", "Field z component", nstep, xmin, xmax, nstep, zmin, zmax );
-    TH2F *h = new TH2F("field", "Field total magnitude", nstep, xmin, xmax, nstep, zmin, zmax );
+    TH2F *hx = new TH2F("field_x", "Field x component",
+        nstep, xmin/m, xmax/m, nstep, zmin/m, zmax/m );
+    TH2F *hy = new TH2F("field_y", "Field y component",
+        nstep, xmin/m, xmax/m, nstep, zmin/m, zmax/m );
+    TH2F *hz = new TH2F("field_z", "Field z component",
+        nstep, xmin/m, xmax/m, nstep, zmin/m, zmax/m );
+    TH2F *h = new TH2F("field", "Field total magnitude",
+        nstep, xmin/m, xmax/m, nstep, zmin/m, zmax/m );
 
 
 

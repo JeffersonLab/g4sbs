@@ -68,6 +68,8 @@ private:
   
   G4UIcmdWithAnInteger *gemconfigCmd;
   G4UIcmdWithAnInteger *CDetconfigCmd;
+
+  G4UIcmdWithABool *flipGEMCmd;
   
   G4UIcmdWithAString *ECALmapfileCmd; //Set name of text file with list of active rows and columns for ECAL
 

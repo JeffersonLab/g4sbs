@@ -23,109 +23,102 @@ enum E_VERTICES {
 };
 
 
-inline G4VSolid* Construct_GC_Tank_Box(G4String aName, G4ThreeVector aInner_Full_Size, G4double aThickness, G4ThreeVector aEntrance_Window_Full_Size, G4ThreeVector aExit_Window_Full_Size)
+inline G4VSolid* Construct_GC_Tank_Box(G4String aName, G4ThreeVector aInner_Full_Size, G4double aThickness, G4ThreeVector aEntrance_Window_Full_Size, G4ThreeVector aExit_Window_Full_Size, G4double yoffset, G4bool isfull = false)
 {
   G4Box*                  box;
+  G4Trap*                 cutwedgeout;
+  G4Box*                  pmtbox;
+  G4SubtractionSolid*     sub_solidp0;
+  G4UnionSolid*           u_solidp0;
+  
   G4Box*                  cutbox;
+  G4Trap*                 cutwedgein;
+  G4Box*                  pmtcutbox;
+  G4SubtractionSolid*     sub_solidp1;
+  G4UnionSolid*           u_solidp1;
+  
   G4Box*                  cutentrance;
   G4Box*                  cutexit;
   G4SubtractionSolid*     sub_solid0;
   G4SubtractionSolid*     sub_solid1;
   G4SubtractionSolid*     sub_solid2;
-
-  G4Trap*                 cutwedge;
-  G4SubtractionSolid*     sub_solidp0;
   
-  G4Box*                  pmtbox;
-  G4Box*                  pmtcutbox;
-  G4SubtractionSolid*     sub_solidp1;
-  G4UnionSolid*           u_solid;
+  G4ThreeVector GC_PMT_Box_FullSize(18.75*cm, 192*cm, 33.9*cm);
+  G4double GC_PMT_Length = 13.75*cm;
+  G4double GC_PMT_Box_Thickness=0.635*cm;
+  G4double GC_PMT_Box_addThickness=0.05*cm;
   
   G4ThreeVector trans;
   G4RotationMatrix tempRM = tempRM.IDENTITY;
+  G4ThreeVector newAxis;
 
   box=new G4Box("box",aInner_Full_Size.x()*0.5+aThickness,aInner_Full_Size.y()*0.5+aThickness,aInner_Full_Size.z()*0.5+aThickness);
-  cutbox=new G4Box("cutbox",aInner_Full_Size.x()*0.5,aInner_Full_Size.y()*0.5,aInner_Full_Size.z()*0.5);
-  cutentrance=new G4Box("cutentrance",(aEntrance_Window_Full_Size.x()+aThickness)*0.5,aEntrance_Window_Full_Size.y()*0.5,aEntrance_Window_Full_Size.z()*0.5);
-  cutexit=new G4Box("cutexit",(aExit_Window_Full_Size.x()+aThickness)*0.5,aExit_Window_Full_Size.y()*0.5,aExit_Window_Full_Size.z()*0.5);
+  cutwedgeout=new G4Trap("cutwedgeout",aInner_Full_Size.y()+4*aThickness,60.0*cm+aThickness, 60.00*cm*tan(35*deg)+aThickness, 0.01*cm+aThickness); 
+  pmtbox=new G4Box("pmtbox",GC_PMT_Box_FullSize.x()*0.5+GC_PMT_Box_Thickness+GC_PMT_Box_addThickness, (GC_PMT_Box_FullSize.y()+2*GC_PMT_Box_Thickness)*0.5+GC_PMT_Box_addThickness, (GC_PMT_Box_FullSize.z()+2*GC_PMT_Box_Thickness)*0.5+GC_PMT_Box_addThickness);
   
-  cutwedge=new G4Trap("cutwedge",aInner_Full_Size.z()+2*aThickness,56.67*cm, 36.02*cm, 0.01*cm); 
-  
-  G4ThreeVector GC_PMT_Box_FullSize(18.75*cm, 192*cm, 33.9*cm);
-  G4double GC_PMT_Box_Thickness=0.635*cm;
-  G4double GC_PMT_Box_addThickness=4.5*cm;
-  //G4String GC_PMT_Box_Name("GC_PMT_Box");
-  //G4Box* GC_PMT_Outer_Box = new G4Box("GC_PMT_Outer_Box", (GC_PMT_Box_FullSize.x()+GC_PMT_Box_Thickness)*0.5, (GC_PMT_Box_FullSize.y()+2*GC_PMT_Box_Thickness)*0.5, (GC_PMT_Box_FullSize.z()+2*GC_PMT_Box_Thickness)*0.5);  
-  
-  pmtcutbox=new G4Box("pmtcutbox",(GC_PMT_Box_FullSize.x()+GC_PMT_Box_Thickness)*0.5, (GC_PMT_Box_FullSize.y()+2*GC_PMT_Box_Thickness)*0.5, (GC_PMT_Box_FullSize.z()+2*GC_PMT_Box_Thickness)*0.5);
-  
-  pmtbox=new G4Box("pmtcutbox",(GC_PMT_Box_FullSize.x()+GC_PMT_Box_Thickness)*0.5+GC_PMT_Box_addThickness, (GC_PMT_Box_FullSize.y()+2*GC_PMT_Box_Thickness)*0.5+GC_PMT_Box_addThickness, (GC_PMT_Box_FullSize.z()+2*GC_PMT_Box_Thickness)*0.5+GC_PMT_Box_addThickness);
-  
-  trans.set(GC_PMT_Box_addThickness,0,0);
-  sub_solidp1 = new G4SubtractionSolid("sub_solidp1", pmtbox, pmtcutbox, G4Transform3D(tempRM,trans));
-  
-  
-  
-  // std::vector<G4TwoVector> grinchtank_inpts;
-  // grinchtank_inpts.push_back( G4TwoVector(  46.0*cm, 505.14*mm));
-  // grinchtank_inpts.push_back( G4TwoVector( -46.0*cm, 505.14*mm));
-  // grinchtank_inpts.push_back( G4TwoVector( -46.0*cm, -289.12*mm));
-  // grinchtank_inpts.push_back( G4TwoVector(  563.51*mm, -615.70*mm));
-  // grinchtank_inpts.push_back( G4TwoVector(  46.0*cm, -615.70*mm));
-  
-  // grinchtank_inpts.push_back( G4TwoVector(  46.0*cm, 505.14*mm));
-  // grinchtank_inpts.push_back( G4TwoVector( -46.0*cm, 505.14*mm));
-  // grinchtank_inpts.push_back( G4TwoVector( -46.0*cm, -289.12*mm));
-  // grinchtank_inpts.push_back( G4TwoVector(  103.51*mm, -615.70*mm));
-  // grinchtank_inpts.push_back( G4TwoVector(  46.0*cm, -615.70*mm));
-
-  // std::vector<G4TwoVector> grinchtank_outpts;
-  // grinchtank_outpts.push_back( G4TwoVector(  46.0*cm+aThickness, 505.14*mm+aThickness));
-  // grinchtank_outpts.push_back( G4TwoVector( -46.0*cm+aThickness, 505.14*mm+aThickness));
-  // grinchtank_outpts.push_back( G4TwoVector( -46.0*cm+aThickness, -289.12*mm+aThickness));
-  // grinchtank_outpts.push_back( G4TwoVector(  563.51*mm+aThickness, -615.70*mm+aThickness));
-  // grinchtank_outpts.push_back( G4TwoVector(  46.0*cm+aThickness, -615.70*mm+aThickness));
-  
-  // grinchtank_outpts.push_back( G4TwoVector(  46.0*cm+aThickness, 505.14*mm+aThickness));
-  // grinchtank_outpts.push_back( G4TwoVector( -46.0*cm+aThickness, 505.14*mm+aThickness));
-  // grinchtank_outpts.push_back( G4TwoVector( -46.0*cm+aThickness, -289.12*mm+aThickness));
-  // grinchtank_outpts.push_back( G4TwoVector(  563.51*mm+aThickness, -615.70*mm+aThickness));
-  // grinchtank_outpts.push_back( G4TwoVector(  46.0*cm+aThickness, -615.70*mm+aThickness));
-  
-  // G4GenericTrap *grinchtanktrap_inner = new G4GenericTrap("GrinchTankTrap_inner",
-  // 					       247.96*cm/2.0, grinchtank_inpts );
-  
-  // G4GenericTrap *grinchtanktrap_outer = new G4GenericTrap("GrinchTankTrap_outer",
-  // 					       245.73*cm/2.0, grinchtank_outpts );
-  
-  //sub_solid0 = new G4SubtractionSolid("sub_solid0", grinchtanktrap_outer, grinchtanktrap_inner);
-  
-  sub_solid0 = new G4SubtractionSolid("sub_solid0", box, cutbox);
-  
-  trans.set(-aInner_Full_Size.x()*0.5-aThickness*0.5,0,0);
-  sub_solid1 = new G4SubtractionSolid("sub_solid1", sub_solid0, cutentrance, G4Transform3D(tempRM,trans));
-
-  trans.set(aInner_Full_Size.x()*0.5+aThickness*0.5,0,0);
-  //sub_solid2 = new G4SubtractionSolid(aName, sub_solid1, cutexit, G4Transform3D(tempRM,trans));
-  sub_solid2 = new G4SubtractionSolid("sub_solid2", sub_solid1, cutexit, G4Transform3D(tempRM,trans));
-  
-  //trans.set(0,0,0);
-  //sub_solidp0 = new G4SubtractionSolid(aName, sub_solid2, cutwedge, G4Transform3D(tempRM,trans));
-  
-  //trans.set(0,aInner_Full_Size.y()*0.5+aThickness*0.5+(GC_PMT_Box_FullSize.y()+2*GC_PMT_Box_Thickness)*0.5,0);
-  //trans.set(-aInner_Full_Size.x()*0.5-aThickness*0.5-(GC_PMT_Box_FullSize.x()+2*GC_PMT_Box_Thickness)*0.5,0,aInner_Full_Size.z()*0.5+aThickness*0.5+(GC_PMT_Box_FullSize.z()+2*GC_PMT_Box_Thickness)*0.5);
-  
-  G4ThreeVector newAxis;
   trans.set(20.0*cm,0,0);
   newAxis.set(-1,0,0);//-X-axis
   newAxis.rotateY(55*deg);
-  trans=trans+newAxis*(65*cm+(GC_PMT_Box_FullSize.x()+GC_PMT_Box_Thickness+GC_PMT_Box_addThickness)*0.5);//Original center is PMT center, so move PMT_Length*0.5 to surface
-
-  tempRM.rotateY(55.0*deg);
-  u_solid = new G4UnionSolid(aName,sub_solid2,sub_solidp1,G4Transform3D(tempRM,trans));
+  trans=trans+newAxis*(65*cm+aThickness+4.5*cm);
   
-  //return sub_solid2;
-  return u_solid;
+  tempRM.rotateX(90*deg);  
+  tempRM.rotateY(90*deg);
+  sub_solidp0 = new G4SubtractionSolid(aName, box, cutwedgeout, G4Transform3D(tempRM,trans));
+  
+  trans.set(20.0*cm,0,0);
+  newAxis.set(-1,0,0);//-X-axis
+  newAxis.rotateY(55*deg);
+  trans=trans+newAxis*(65*cm+GC_PMT_Length*0.5+aThickness+GC_PMT_Box_Thickness+0.5*cm);//Original center is PMT center, so move PMT_Length*0.5 to surface
+  tempRM = tempRM.IDENTITY;
+  tempRM.rotateY(55.0*deg);
+
+  u_solidp0 = new G4UnionSolid(aName,sub_solidp0, pmtbox,G4Transform3D(tempRM,trans));
+  
+  cutbox=new G4Box("cutbox",aInner_Full_Size.x()*0.5,aInner_Full_Size.y()*0.5,aInner_Full_Size.z()*0.5);
+  cutwedgein=new G4Trap("cutwedgein",aInner_Full_Size.y()+2*aThickness,60.0*cm, 60.00*cm*tan(35*deg), 0.01*cm); 
+  pmtcutbox=new G4Box("pmtcutbox", GC_PMT_Box_FullSize.x()*0.5+GC_PMT_Box_Thickness, (GC_PMT_Box_FullSize.y()+2*GC_PMT_Box_Thickness)*0.5, (GC_PMT_Box_FullSize.z()+2*GC_PMT_Box_Thickness)*0.5);
+  
+  trans.set(20.0*cm,0,0);
+  newAxis.set(-1,0,0);//-X-axis
+  newAxis.rotateY(55*deg);
+  trans=trans+newAxis*(65*cm+4.5*cm);
+  
+  tempRM = tempRM.IDENTITY;
+  tempRM.rotateX(90*deg);  
+  tempRM.rotateY(90*deg);
+  sub_solidp1 = new G4SubtractionSolid(aName, cutbox, cutwedgein, G4Transform3D(tempRM,trans));
+  
+  trans.set(20.0*cm,0,0);
+  newAxis.set(-1,0,0);//-X-axis
+  newAxis.rotateY(55*deg);
+  trans=trans+newAxis*(65*cm+GC_PMT_Length*0.5+GC_PMT_Box_Thickness+0.5*cm);//Original center is PMT center, so move PMT_Length*0.5 to surface
+  tempRM = tempRM.IDENTITY;
+  tempRM.rotateY(55.0*deg);
+  
+  u_solidp1 = new G4UnionSolid(aName,sub_solidp0, pmtbox,G4Transform3D(tempRM,trans));
+
+  if(!isfull){
+    cutentrance=new G4Box("cutentrance",(aEntrance_Window_Full_Size.x()+aThickness)*0.5,aEntrance_Window_Full_Size.y()*0.5,aEntrance_Window_Full_Size.z()*0.5);
+    cutexit=new G4Box("cutexit",(aExit_Window_Full_Size.x()+aThickness)*0.5,aExit_Window_Full_Size.y()*0.5,aExit_Window_Full_Size.z()*0.5);
+    
+    tempRM = tempRM.IDENTITY;
+    //sub_solid0 = new G4SubtractionSolid("sub_solid0", box, cutbox);
+    sub_solid0 = new G4SubtractionSolid("sub_solid0", u_solidp0, u_solidp1);
+    
+    trans.set(-aInner_Full_Size.x()*0.5-aThickness*0.5,0,0);
+    sub_solid1 = new G4SubtractionSolid("sub_solid1", sub_solid0, cutentrance, G4Transform3D(tempRM,trans));
+    
+    trans.set(aInner_Full_Size.x()*0.5+aThickness*0.5,0,0);
+    sub_solid2 = new G4SubtractionSolid(aName, sub_solid1, cutexit, G4Transform3D(tempRM,trans));
+  }
+  
+  
+  if(isfull){
+    //return ;
+    return u_solidp1;
+  }else{
+    return sub_solid2;
+  }
 }
 
 /* --------------------------------------------------------------------------*/
@@ -300,26 +293,25 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   G4ThreeVector Translation(0,0,0);
   G4RotationMatrix Rotation;
   G4int i,j;
-
-
-
+  
+  G4double TankYOffset = 0.0;
+  
   G4RotationMatrix rm, PMTrm;
   G4Transform3D movetocenter,offset,combine;
-
-
+  
+  
   char tmpname[CHAR_LEN];
-
-
 
   /* --------------------------------------------------------------------------*/
   //GC_Tank
   G4String GC_Tank_Name("GC_Tank");
   G4String GC_Tank_Material=("C4F8O");
-  G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth, 200.0*cm, 150.229*cm);
-  G4double GC_Tank_Thickness= 1.27*cm;
-  //G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth, 247.0*cm, 114.8*cm);
-  //G4double GC_Tank_Thickness= 6.35*mm;
-  G4VSolid* GC_Tank_Solid=ConstructSimple(GC_Tank_Name,G4String("G4Box"),GC_Tank_Inner_FullSize);
+  //G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth, 200.0*cm, 150.229*cm);
+  //G4double GC_Tank_Thickness= 1.27*cm;
+  G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth, 247.0*cm, 114.8*cm);
+  G4double GC_Tank_Thickness= 6.35*mm;
+  //G4VSolid* GC_Tank_Solid=ConstructSimple(GC_Tank_Name,G4String("G4Box"),GC_Tank_Inner_FullSize);
+  G4VSolid* GC_Tank_Solid=Construct_GC_Tank_Box(GC_Tank_Name+"_Box", GC_Tank_Inner_FullSize, GC_Tank_Thickness, G4ThreeVector(0,0,0), G4ThreeVector(0,0,0), TankYOffset, true);
   GC_Tank_log=new G4LogicalVolume(GC_Tank_Solid,GetMaterial(GC_Tank_Material),GC_Tank_Name+"_log");
 
   G4VisAttributes* GC_Tank_log_VisAtt = new G4VisAttributes();
@@ -363,7 +355,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 
 
   //GC_Tank_Box
-  G4VSolid* GC_Tank_Box_Solid=Construct_GC_Tank_Box(GC_Tank_Name+"_Box", GC_Tank_Inner_FullSize, GC_Tank_Thickness, GC_Tank_Entrance_Window_FullSize, GC_Tank_Exit_Window_FullSize);
+  G4VSolid* GC_Tank_Box_Solid=Construct_GC_Tank_Box(GC_Tank_Name+"_Box", GC_Tank_Inner_FullSize, GC_Tank_Thickness, GC_Tank_Entrance_Window_FullSize, GC_Tank_Exit_Window_FullSize, TankYOffset);
   G4LogicalVolume* GC_Tank_Box_log=new G4LogicalVolume(GC_Tank_Box_Solid,GetMaterial("Stainless_Steel"),GC_Tank_Name+"_Box_log");
 
   G4VisAttributes* GC_Tank_Box_log_VisAtt = new G4VisAttributes();

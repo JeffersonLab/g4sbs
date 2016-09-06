@@ -542,6 +542,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Glass->AddElement(O,4);
   fMaterialsMap["Glass"] = Glass;
 
+  G4Material* Polycarbonate=man->FindOrBuildMaterial("G4_POLYCARBONATE");
+  fMaterialsMap["PolyCarbonate"] = Polycarbonate;
+ 
+  
   G4Material* matAl=man->FindOrBuildMaterial("G4_Al");
   matAl->SetName("Al");
   fMaterialsMap["Al"] = matAl;

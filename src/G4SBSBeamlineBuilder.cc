@@ -39,7 +39,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeGEpBeamline(worldlog);
     
   } else {
-  
+    
     double swallrad = 1.143*m/2;
     double swallrad_inner = 1.041/2.0*m; 
     
@@ -85,12 +85,12 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	G4Tubs *ent_win = new G4Tubs("ent_win", 0.0, ent_rin, winthick/2, 0.*deg, 360.*deg );
 	G4LogicalVolume *ent_winlog = new G4LogicalVolume(ent_win, GetMaterial("Beryllium"), "entwin_log", 0, 0, 0);
 	
-	// => uncommented on 2016/09/07 for background studies
 	// my cancel Be window for GEp experiment 09/29/2014 
-	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);
+	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);	// => uncommented on 2016/09/07 for background studies
 	// my cancel Be window for GEp experiment 09/29/2014
-	// => uncommented on 2016/09/07 for background studies
-	
+	/* Note from  2016/09/07: */ 
+	/* Is that normal that this was commented ? My guess would be not. */
+      	
 	ent_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.7,1.0,0.0)));
       } else {
 	//Don't add window: we want the beam to interact with the target first. Butt up against the outer edge of the scattering chamber:

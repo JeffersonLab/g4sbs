@@ -72,7 +72,7 @@ inline G4VSolid* Construct_GC_Tank_Box(G4String aName, G4ThreeVector aInner_Full
   G4RotationMatrix tempRM = tempRM.IDENTITY;
   G4ThreeVector newAxis;
 
-  box=new G4Box("box",aInner_Full_Size.x()*0.5+1.0*cm,aInner_Full_Size.y()*0.5,aInner_Full_Size.z()*0.5+aThickness);
+  box=new G4Box("box",aInner_Full_Size.x()*0.5+1.0*cm,aInner_Full_Size.y()*0.5+aThickness,aInner_Full_Size.z()*0.5+aThickness);
   cutwedgeout=new G4Trap("cutwedgeout",aInner_Full_Size.y()+4*aThickness,60.0*cm+aThickness, 60.00*cm*tan(35*deg)+aThickness, 0.01*cm+aThickness); 
   pmtbox=new G4Box("pmtbox",GC_PMT_Box_FullSize.x()*0.5+GC_PMT_Box_Thickness+GC_PMT_Box_addThickness, (GC_PMT_Box_FullSize.y()+2*GC_PMT_Box_Thickness)*0.5+GC_PMT_Box_addThickness, (GC_PMT_Box_FullSize.z()+2*GC_PMT_Box_Thickness)*0.5+GC_PMT_Box_addThickness);
   
@@ -95,11 +95,11 @@ inline G4VSolid* Construct_GC_Tank_Box(G4String aName, G4ThreeVector aInner_Full
   u_solidp0 = new G4UnionSolid(aName,sub_solidp0, pmtbox,G4Transform3D(tempRM,trans));
   
   cutbox=new G4Box("cutbox",aInner_Full_Size.x()*0.5,aInner_Full_Size.y()*0.5,aInner_Full_Size.z()*0.5);
-  if(!isfull){
-    cutbox->SetXHalfLength(aInner_Full_Size.x()*0.5+aThickness);
-    cutbox->SetYHalfLength(aInner_Full_Size.y()*0.5+aThickness);
-    cutbox->SetZHalfLength(aInner_Full_Size.z()*0.5+aThickness);
-  }
+  // if(!isfull){
+  //   cutbox->SetXHalfLength(aInner_Full_Size.x()*0.5+aThickness);
+  //   cutbox->SetYHalfLength(aInner_Full_Size.y()*0.5+aThickness);
+  //   cutbox->SetZHalfLength(aInner_Full_Size.z()*0.5+aThickness);
+  // }
   cutwedgein=new G4Trap("cutwedgein",aInner_Full_Size.y()+2*aThickness,60.0*cm, 60.00*cm*tan(35*deg), 0.01*cm); 
   pmtcutbox=new G4Box("pmtcutbox", GC_PMT_Box_FullSize.x()*0.5+GC_PMT_Box_Thickness, (GC_PMT_Box_FullSize.y()+2*GC_PMT_Box_Thickness)*0.5, (GC_PMT_Box_FullSize.z()+2*GC_PMT_Box_Thickness)*0.5);
   
@@ -123,8 +123,8 @@ inline G4VSolid* Construct_GC_Tank_Box(G4String aName, G4ThreeVector aInner_Full
   u_solidp1 = new G4UnionSolid(aName,sub_solidp0, pmtbox,G4Transform3D(tempRM,trans));
 
   if(!isfull){
-    cutentrance=new G4Box("cutentrance",(aEntrance_Window_Full_Size.x()+aThickness)*0.5,aEntrance_Window_Full_Size.y()*0.5,aEntrance_Window_Full_Size.z()*0.5);
-    cutexit=new G4Box("cutexit",(aExit_Window_Full_Size.x()+aThickness)*0.5,aExit_Window_Full_Size.y()*0.5,aExit_Window_Full_Size.z()*0.5);
+    cutentrance=new G4Box("cutentrance",(aEntrance_Window_Full_Size.x()+1.0*cm)*0.5,aEntrance_Window_Full_Size.y()*0.5,aEntrance_Window_Full_Size.z()*0.5);
+    cutexit=new G4Box("cutexit",(aExit_Window_Full_Size.x()+1.0*cm)*0.5,aExit_Window_Full_Size.y()*0.5,aExit_Window_Full_Size.z()*0.5);
     
     tempRM = tempRM.IDENTITY; 
     //to restore former configuration:

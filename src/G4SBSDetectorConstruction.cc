@@ -384,6 +384,11 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["CH2"] = CH2;
 
+  G4Material* H20 = new G4Material("H20",1.00, nel=2);
+  H20->AddElement(elH,2);
+  H20->AddElement(elO,1);
+  fMaterialsMap["Water"] = H20;
+
   G4double density_CH = 0.95*g/cm3;
   G4Material* CH = new G4Material("CH", density_CH, nel=2);
   CH->AddElement(elC, 1);

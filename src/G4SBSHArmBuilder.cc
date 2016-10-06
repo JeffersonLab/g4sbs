@@ -1201,9 +1201,10 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   logCalo->SetVisAttributes(G4VisAttributes::Invisible);
 
 
-  ///////////////////////////////////////////////////////////////////////
-  //Adding shielding hut for GEM electronics (D.Adikaram)-2016.01.21   //
-  ///////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////
+  // Adding shielding hut for GEM electronics (D.Adikaram)-2016.01.21   //
+  // and F. Obrecht - 9/6/2016                                          //
+  ////////////////////////////////////////////////////////////////////////
   
   G4double GboxX = 52.0*2.54*cm;
   G4double GboxY = 26.0*2.54*cm;

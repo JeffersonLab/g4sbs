@@ -855,23 +855,23 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   G4RotationMatrix *mRotateZ = new G4RotationMatrix;
   mRotateZ->rotateZ( 90 *degree );
   
-  double AlFoilThick    = 0.02*cm;
-  double IronPlThick    = 1.27*cm;
-  double ScinPlThick    = 1.0*cm;
-  double PlateX         = 14.6*cm; //difference of 1 mm: presumably to make room for WLS? 14.6+14.5 = 29.1 cm. 
-  double PlateY         = 14.5*cm;
-  double TotalPlatesL   = 92.0*cm;    
-  double ModuleL        = 111.0*cm; //total length of module:
-  double ModuleX        = 15.3*cm; //transverse dimensions of module:
-  double ModuleY        = 15.3*cm; //transverse dimensions of module:     
-  double LightGuideX    = 14.2*cm;
-  double LightGuideY    = 0.5*cm;
-  double LightGuideZ    = 92.0*cm;
-  double ScinToLgGap    = 0.1*cm;
-  double ContainerThick = 0.3*cm;
-  int NRows             = 24;
-  int NColumns          = 12;
-  int NumberOfLayers    = 40;
+  G4double AlFoilThick    = 0.02*cm;
+  G4double IronPlThick    = 1.27*cm;
+  G4double ScinPlThick    = 1.0*cm;
+  G4double PlateX         = 14.6*cm; //difference of 1 mm: presumably to make room for WLS? 14.6+14.5 = 29.1 cm. 
+  G4double PlateY         = 14.5*cm;
+  G4double TotalPlatesL   = 92.0*cm;    
+  G4double ModuleL        = 111.0*cm; //total length of module:
+  G4double ModuleX        = 15.3*cm; //transverse dimensions of module:
+  G4double ModuleY        = 15.3*cm; //transverse dimensions of module:     
+  G4double LightGuideX    = 14.2*cm;
+  G4double LightGuideY    = 0.5*cm;
+  G4double LightGuideZ    = 92.0*cm;
+  G4double ScinToLgGap    = 0.1*cm;
+  G4double ContainerThick = 0.3*cm;
+  G4int NRows             = 24;
+  G4int NColumns          = 12;
+  G4int NumberOfLayers    = 40;
   G4double PlateGaps    = (TotalPlatesL-(NumberOfLayers*(IronPlThick+ScinPlThick)))/(2*NumberOfLayers - 1); //Gap between each Fe/Scint plate
 
   //  G4double CaloX = ModuleX * NRows * 1.001;
@@ -889,7 +889,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   //We want hcalr to be the distance from the origin to the surface of HCAL:
   //double hcaldepth  = 101.0*cm;
   G4double hcaldepth = ModuleLtotal + 0.5*cm;
-  double hcalr = fHCALdist + hcaldepth/2.0;
+  G4double hcalr = fHCALdist + hcaldepth/2.0;
   
   G4double PlateXHalf = PlateX/2.0 - ScinToLgGap - LightGuideY/2.0; // = 7.3 cm - 0.1 cm - 0.25 cm = 6.95 cm
   
@@ -965,7 +965,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   // z0desired = -ModuleL/2 + zoffset --> zoffset = z0desired + ModuleL/2
   //G4double zoffset = ModuleL/2.0 - (TotalPlatesL + 2.0*LightGuideX + 0.5*cm)/2.0;
   
-  for( int ii=0; ii<NumberOfLayers; ii++ ) {
+  for( G4int ii=0; ii<NumberOfLayers; ii++ ) {
     G4double iron_gap = 2.0 * ii* PlateGaps; 
 
     Xpos = ( ScinToLgGap +  LightGuideY/2.0 + PlateXHalf/2.0 ); // = 0.1 cm + 0.25 cm + 6.95/2 cm
@@ -1047,9 +1047,9 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   //  phyWLSPaper = new G4PVPlacement(0 , pos , logWLSPaper , "Paper" ,logModule  , false , 0);
   
   // ****PMT****
-  double radiuscath   = 2.7*cm;
+  G4double radiuscath   = 2.7*cm;
   pDz    = 2.0*LightGuideX;
-  double LightGYpos = PlateY/2 + ScinToLgGap + LightGuideY/2;
+  G4double LightGYpos = PlateY/2 + ScinToLgGap + LightGuideY/2;
   G4double PMT_L = 0.5*cm;
 
   G4Tubs *solCathod = new G4Tubs("scath", 0.0*cm, radiuscath/2.0 , PMT_L/2.0 , 0.0*deg , 360.0*deg);
@@ -1126,8 +1126,8 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   }
   
   G4int copyid = 0;
-  for(int ii = 0; ii < NColumns; ii++) {
-    for(int jj = 0; jj < NRows; jj++) {
+  for(G4int ii = 0; ii < NColumns; ii++) {
+    for(G4int jj = 0; jj < NRows; jj++) {
 
       G4double xtemp = -CaloX/2.0/1.001 + (ModuleX/2.0 + ModuleX*ii);
       G4double ytemp = -CaloY/2.0/1.001 + (ModuleY/2.0 + ModuleY*jj);
@@ -1199,7 +1199,142 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   //G4VisAttributes * caloVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
   //caloVisAtt->SetForceWireframe(true);
   logCalo->SetVisAttributes(G4VisAttributes::Invisible);
+
+
+  ///////////////////////////////////////////////////////////////////////
+  //Adding shielding hut for GEM electronics (D.Adikaram)-2016.01.21   //
+  ///////////////////////////////////////////////////////////////////////
+  
+  G4double GboxX = 52.0*2.54*cm;
+  G4double GboxY = 26.0*2.54*cm;
+  G4double GboxZ = 52.0*2.54*cm;
+   
+  G4double SPlateX = 120.0*2.54*cm;
+  G4double SPlateY =   5.0*2.54*cm;
+  G4double SPlateZ =  43.0*2.54*cm;
+
+  // Vertical plate
+  G4double GPlateX1 = 96.0*2.54*cm;
+  G4double GPlateY1 = GboxY - 2.5*2.54*cm;
+  G4double GPlateZ1 = 7.5*2.54*cm;
+
+  // Horizontal plate to match the heights
+  G4double GPlateX2 = 96.0*2.54*cm;
+  G4double GPlateY2 = 2.5*2.54*cm;
+  G4double GPlateZ2 = GboxX;
+
+  // Make all the parts:
+  G4Box *GreenBox = new G4Box( "GreenBox",GboxX/2.0, GboxY/2.0, GboxZ/2.0);
+  G4LogicalVolume *GreenBox_log = new G4LogicalVolume( GreenBox, GetMaterial("Steel"), 
+						       "GreenBox_log" );
+
+  G4Box *SteelPlate = new G4Box( "SteelPlate", SPlateX/2.0, SPlateY/2.0, SPlateZ/2.0);
+  G4LogicalVolume *SteelPlate_log = new G4LogicalVolume( SteelPlate, GetMaterial("Steel"), 
+							 "SteelPlate_log" );
+
+  G4Box *GreenPlate1 = new G4Box( "GreenPlate1", GPlateX1/2.0, GPlateY1/2.0, GPlateZ1/2.0);
+  G4LogicalVolume *GreenPlate1_log = new G4LogicalVolume( GreenPlate1, GetMaterial("Steel"), 
+							  "GreenPlate1_log" );
+
+  G4Box *GreenPlate2 = new G4Box( "GreenPlate2", GPlateX2/2.0, GPlateY2/2.0, GPlateZ2/2.0);
+  G4LogicalVolume *GreenPlate2_log = new G4LogicalVolume( GreenPlate2, GetMaterial("Steel"), 
+							  "GreenPlate2_log" );
+
+  // Make a Mother Volume to house everything:
+  G4double ShieldMotherX = 2.0*GboxX + GPlateX1;
+  G4double ShieldMotherY = GboxY + SPlateY;
+  G4double ShieldMotherZ = GboxZ;
+
+  G4Box *ShieldBox = new G4Box( "ShieldBox", ShieldMotherX/2.0, ShieldMotherY/2.0, 
+				ShieldMotherZ/2.0 );
+  G4LogicalVolume *ShieldLog = new G4LogicalVolume( ShieldBox, GetMaterial("Air"), "ShieldLog");
+  G4VisAttributes *temp = new G4VisAttributes(G4Colour(0.0,0.6,0.0));
+  temp->SetForceWireframe(true);
+  ShieldLog->SetVisAttributes(temp);
+ 
+  // And place everything within the Mother:
+  new G4PVPlacement( 0, G4ThreeVector(-ShieldMotherX/2.0 + GboxX/2.0, -SPlateY/2.0, 0.0 ), GreenBox_log, "LeftBox",  ShieldLog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( ShieldMotherX/2.0 - GboxX/2.0, -SPlateY/2.0, 0.0 ), GreenBox_log, "RightBox", ShieldLog, false, 1 );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, ShieldMotherY/2.0 - SPlateY/2.0, 0.0 ), SteelPlate_log, "TopPlate", ShieldLog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, -ShieldMotherY/2.0 + GPlateY1/2.0 + GPlateY2, ShieldMotherZ/2.0 - GPlateZ1/2.0 ), 
+		     GreenPlate1_log, "VerticalPlate", ShieldLog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, -ShieldMotherY/2.0 + GPlateY2/2.0, 0.0), GreenPlate2_log, "BottomPlate", ShieldLog, false, 0 );
+
+  // In order to calculate the dose, we need a SD of type CAL:
+  G4double ElecX = GPlateX1 - 10.0*cm;
+  G4double ElecY = GPlateY1 - 10.0*cm;
+  G4double ElecZ = GboxZ - GPlateZ1 - 10.0*cm;
+ 
+  G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
+  G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Air"), "Electronics_log" );
+  
+  G4String GEMElectronicsname = "Harm/GEMElectronics";
+  G4String  GEMElectronicscollname = "GEMElectronicsHitsCollection";
+  G4SBSCalSD *GEMElecSD = NULL;
+  
+  if( !( (G4SBSCalSD*) sdman->FindSensitiveDetector(GEMElectronicsname) )){
+    G4cout << "Adding GEM electronics Sensitive Detector to SDman..." << G4endl;
+    GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
+    sdman->AddNewDetector(GEMElecSD);
+    (fDetCon->SDlist).insert(GEMElectronicsname);
+    fDetCon->SDtype[GEMElectronicsname] = kCAL;
+    (GEMElecSD->detmap).depth = 1;
+  }
+  Electronics_log->SetSensitiveDetector( GEMElecSD );
+  
+  if( (fDetCon->StepLimiterList).find( GEMElectronicsname ) != (fDetCon->StepLimiterList).end() ){
+    Electronics_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+
+  // Place the electronics in our hut:
+  new G4PVPlacement( 0, G4ThreeVector(0.0, -ShieldMotherY/2.0 + GPlateY2 + ElecY/2.0, ShieldMotherZ/2.0 - GPlateZ1 - ElecZ/2.0),
+		     Electronics_log, "Electronics", ShieldLog, false, 0);
+
+  G4ThreeVector pos_mom( -(hcalr + CaloL + 9.5*cm/2.0)*sin(f48D48ang),
+			 -120.0*2.54*cm + ShieldMotherY/2.0, 
+			 (hcalr + CaloL + 9.5*cm/2.0)*cos(f48D48ang) );
+  new G4PVPlacement( hcalrm, pos_mom, ShieldLog, "ShieldMother", motherlog, false, 0 );
+ 
+  // Place Iron below Polarimeters:
+  G4double IronBoxX = 140.0*2.54*cm;
+  G4double IronBoxY =  48.0*2.54*cm;
+  G4double IronBoxL = (60.0+73.0)*2.54*cm;
+
+  G4double IronBox_holeX = (140.0 - 2.0)*2.54*cm;
+  G4double IronBox_holeY =  (48.0 - 2.0)*2.54*cm;
+  G4double IronBox_holeL =  (60.0 - 2.0)*2.54*cm;
+  G4Box *IronBox = new G4Box( "IronBox", IronBoxX/2.0, IronBoxY/2.0, IronBoxL/2.0);
+  G4Box *IronBox_hole = new G4Box( "IronBox_hole", IronBox_holeX/2.0, IronBox_holeY/2.0, 
+				   IronBox_holeL/2.0);
+
+  G4ThreeVector pos_IronBox_hole( 0.0, 0.0, -36.5*2.54*cm );
+  G4SubtractionSolid *IronBox_cut = new G4SubtractionSolid( "IronBox_cut", IronBox, IronBox_hole , 0, pos_IronBox_hole);
+  G4LogicalVolume *IronBox_log = new G4LogicalVolume( IronBox_cut, GetMaterial("Steel"), "IronBox_log" );
+
+  G4ThreeVector pos_IronBox( -(hcalr - CaloL/2.0 - IronBoxL/2.0)*sin(f48D48ang), 
+			     -116.0*2.54*cm + IronBoxY/2.0,
+			     (hcalr - CaloL/2.0 - IronBoxL/2.0)*cos(f48D48ang));
+  new G4PVPlacement( hcalrm, pos_IronBox, IronBox_log, "ironbox_phys", motherlog, false, 0, false);
+
+  // VISUALS:
+  G4VisAttributes *GreenBoxAtt = new G4VisAttributes(G4Colour(0.0,1.0,0.0));
+  GreenBox_log->SetVisAttributes(GreenBoxAtt);
+
+  G4VisAttributes *SteelPlateAtt = new G4VisAttributes(G4Colour(0.0,0.5,1.0));
+  SteelPlate_log->SetVisAttributes(SteelPlateAtt);
+
+  G4VisAttributes *GreenPlateAtt = new G4VisAttributes(G4Colour(0.7,0.9,0.3));
+  GreenPlate1_log->SetVisAttributes(GreenPlateAtt);
+  GreenPlate2_log->SetVisAttributes(GreenPlateAtt);
+
+  G4VisAttributes *IronBoxAtt = new G4VisAttributes(G4Colour(1.0,0.8,1.0));
+  IronBox_log->SetVisAttributes(IronBoxAtt);  
+
+  G4VisAttributes *ElecAtt = new G4VisAttributes(G4Colour(0.8,0.0,0.0));
+  ElecAtt->SetForceWireframe(true);
+  Electronics_log->SetVisAttributes(ElecAtt);
 }
+
 
 void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
 

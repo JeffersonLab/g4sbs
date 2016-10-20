@@ -446,7 +446,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
 
   TVector3 MWDC(trackMWDC_dist.getX(), trackMWDC_dist.getY(), trackMWDC_dist.getZ() );
-  cout << MWDC.X() << "  " << MWDC.Y() << "   " << MWDC.Z() << endl;
+  // cout << MWDC.X() << "  " << MWDC.Y() << "   " << MWDC.Z() << endl;
 
 
 

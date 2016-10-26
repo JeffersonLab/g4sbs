@@ -428,7 +428,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // Make MWDC - GEn
   G4SBSMWDC* mwdc = new G4SBSMWDC(fDetCon);
   // Chambers mother volume is 1*m in z, so offset it by 0.5m
-  mwdc->BuildComponent(worldlog, bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset + 0.5*m + 2.5*cm), "Earm/BBMWDC");
+  mwdc->BuildComponent(worldlog, bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset + 0.4*m + 2.5*cm), "Earm/BBMWDC");
 
 
   // Where exactly is the first chamber of MWDC?
@@ -439,11 +439,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4ThreeVector BB_inside_mother(0.0, (detboxplace+detboxdepth/2.0)*sin(detboxang),
 				 (detboxplace+detboxdepth/2.0)*cos(detboxang)+midplanez);
 
+  G4ThreeVector more(0.0, 0.0, -(detoffset+0.5*m+2.5*cm)*cos(detboxang));
+
+  G4ThreeVector postemp = trackMWDC_dist + BB_inside_mother + more;
+
   double off = 5.0*cm + 48.024*0.5*mm; // 5cm defined above, 2.5cm defined by me, 48mm is depth of chamber1
   trackMWDC_dist += G4ThreeVector( 0.0, off*sin(detboxang), off*cos(detboxang) );
   trackMWDC_dist += BB_inside_mother;
-
-
 
   TVector3 MWDC(trackMWDC_dist.getX(), trackMWDC_dist.getY(), trackMWDC_dist.getZ() );
   // cout << MWDC.X() << "  " << MWDC.Y() << "   " << MWDC.Z() << endl;
@@ -463,7 +465,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *bbcalbox = new G4Box( "bbcalbox", bbcal_box_width/2.0, bbcal_box_height/2.0, bbcal_box_depth/2.0+mm );
   G4LogicalVolume *bbcal_mother_log = new G4LogicalVolume(bbcalbox, GetMaterial("Air"), "bbcal_mother_log");
 
-  double BB_z_wrt_z0MWDCplane = detoffset + 0.5*cm + bbcal_box_depth/2.0 + 0.85*m;
+  double BB_z_wrt_z0MWDCplane = detoffset - 0.4*cm + bbcal_box_depth/2.0 + 0.85*m;
 
   if(fDetCon->fExpType != kOld_GEn ) {
     new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_box_depth/2.0 ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 ); 
@@ -512,19 +514,19 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // **** BIGBITE SHOWER ****
   // 7 columns, 27 rows
-  double calheight = 27*8.5*cm;
-  double calwidth  = 7*8.5*cm;
+  double calheight = 27.0*8.5*cm;
+  double calwidth  = 7.0*8.5*cm;
   double caldepth  = 37.0*cm;
   G4Box *bbshowerbox = new G4Box("bbshowerbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
   G4LogicalVolume *bbshowerlog = new G4LogicalVolume(bbshowerbox, GetMaterial("Air"), "bbshowerlog");
   //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+bbhododepth+caldepth/2.0), bbshowerlog, "bbshowerphys", bbdetLog, false, 0);
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth + bbhododepth + caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -bbcal_box_depth/2.0 + psdepth + bbhododepth + caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
   
   // Shower module:
   double bbmodule_x = 8.5*cm, bbmodule_y = 8.5*cm;  
-  double bbTF1_x = bbmodule_x - 2*mylar_air_sum;
-  double bbTF1_y = bbmodule_y - 2*mylar_air_sum;
-  double bbTF1_z = caldepth - 2*bbpmtz - mylar_air_sum;
+  double bbTF1_x = bbmodule_x - 2.0*mylar_air_sum;
+  double bbTF1_y = bbmodule_y - 2.0*mylar_air_sum;
+  double bbTF1_z = caldepth - 2.0*bbpmtz - mylar_air_sum;
 
   G4Box *showermodbox = new G4Box("showermodbox", bbmodule_x/2.0, bbmodule_y/2.0, caldepth/2.0);
   G4LogicalVolume *showermodlog = new G4LogicalVolume(showermodbox, GetMaterial("Special_Air"), "showermodlog");
@@ -532,7 +534,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *tempbox = new G4Box("tempbox", bbmodule_x/2.0, bbmodule_y/2.0, (caldepth-2*bbpmtz)/2.0);
 
   // Subtraction
-  G4Box *showermodbox_sub = new G4Box( "showermodbox_sub", (bbmodule_x-2*mylarthickness)/2.0, (bbmodule_y-2*mylarthickness)/2.0, (caldepth-2*bbpmtz)/2.0 );
+  G4Box *showermodbox_sub = new G4Box( "showermodbox_sub", (bbmodule_x-2.0*mylarthickness)/2.0, (bbmodule_y-2.0*mylarthickness)/2.0, (caldepth-2.0*bbpmtz)/2.0 );
   G4SubtractionSolid *bbmylarwrap = new G4SubtractionSolid( "bbmylarwrap", tempbox, showermodbox_sub, 0, G4ThreeVector(0.0, 0.0, mylarthickness) );
   G4LogicalVolume *bbmylarwraplog = new G4LogicalVolume( bbmylarwrap, GetMaterial("Mylar"), "bbmylarwraplog" ); 
   new G4LogicalSkinSurface( "BB Mylar Skin", bbmylarwraplog, GetOpticalSurface("Mirrsurf") );
@@ -586,8 +588,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // Put everything in a BB Shower Module
   int shower_copy_number = 0;
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-bbpmtz)/2.0), bbpmtcathodelog,"bbcathodephys", showermodlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*bbpmtz)/2.0), bbpmtwindowlog, "bbwindowphys", showermodlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbTF1log, "bbTF1phys", showermodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3.0*bbpmtz)/2.0), bbpmtwindowlog, "bbwindowphys", showermodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4.0*bbpmtz-bbTF1_z)/2.0), bbTF1log, "bbTF1phys", showermodlog, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -bbpmtz), bbmylarwraplog, "bbmylarphys", showermodlog, false, 0 );
 
   int bbscol = 7;

@@ -154,10 +154,12 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
 				G4ThreeVector pos, G4String SDname ) {
   double mX = 1.0*m;
   double mY = 2.1*m;
-  double mZ = 1.0*m;
+  //double mZ = 1.0*m;
+  double mZ = 0.80*m;
   G4Box* mother = new G4Box("mother", mX/2.0, mY/2.0, mZ/2.0);
   G4LogicalVolume* mother_log = new G4LogicalVolume(mother,GetMaterial("Air"),"mother_log");
   mother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  mother_log->SetVisAttributes( chamVisAtt );
   G4ThreeVector origin(0.0,0.0,0.0);
 
   ///////////////////////////////////////////////////////////////////////////////

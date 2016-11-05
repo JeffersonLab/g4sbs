@@ -88,7 +88,8 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     }
   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
-      MakeBigCal( worldlog );
+      // MakeBigCal( worldlog );
+      MakeSBSElectronicsBunker( worldlog );
     }
   if( exptype == kC16 ) 
     {
@@ -751,7 +752,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   thisz += fCerDepth;
   // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, thisz + cer_mirrorthick/2.0 ), cer_mirlog, "cermir", bbdetLog, false, 0, false);
   if( fCerDepth > 20.0*cm ){
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fCerDepth/2.0-20.0*cm ), cer_mirlog, "cermir", cer_gaslog, false, 0, false);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, ferDepth/2.0-20.0*cm ), cer_mirlog, "cermir", cer_gaslog, false, 0, false);
   } else {
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fCerDepth/2.0 ), cer_mirlog, "cermir", cer_gaslog, false, 0, false);
   }
@@ -2032,6 +2033,237 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
   G4VisAttributes *scintwrap_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0 ) );
   ScintWrapLog->SetVisAttributes( scintwrap_visatt );
   
+}
+
+void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
+  
+  // Dimensions / drawings came from Chris Soova and Alan Gavalya
+  // Put into SBS by F. Obrecht 11/5/2016
+  
+  G4double inch = 2.54*cm;
+
+  // There are 77 Large Shielding Blocks (lsbox):
+  double lsx = 52.0 * inch;
+  double lsy = 52.0 * inch;
+  double lsz = 26.0 * inch;
+  G4Box *lsbox = new G4Box( "lsbox",lsx/2.0, lsy/2.0, lsz/2.0 );
+  G4LogicalVolume *lslog = new G4LogicalVolume( lsbox, GetMaterial("Steel"), "lslog" );
+
+  // There are 4 Small Shielding Blocks (ssbox): 
+  double ssx = 26.0 * inch;
+  double ssy = 13.0 * inch;
+  double ssz = 26.0 * inch;
+  G4Box *ssbox = new G4Box( "ssbox",ssx/2.0, ssy/2.0, ssz/2.0 );
+  G4LogicalVolume *sslog = new G4LogicalVolume( ssbox, GetMaterial("Steel"), "sslog" );
+
+  // There are Very Small Shielding Blocks (vssbox):
+  double vssx = 16.0 * inch;
+  double vssy = 26.0 * inch;
+  double vssz = 13.0 * inch;
+  G4Box *vssbox = new G4Box( "vssbox",vssx/2.0, vssy/2.0, vssz/2.0 );
+  G4LogicalVolume *vsslog = new G4LogicalVolume( vssbox, GetMaterial("Steel"), "vsslog" );
+
+  // There are 4 Steel Roof Beams (rbbox) :
+  double rbx = 192.0 * inch;
+  double rby = 96.0 * inch;
+  double rbz = 4.0 * inch;
+  G4Box *rbbox = new G4Box( "rbbox",rbx/2.0, rby/2.0, rbz/2.0 );
+  G4LogicalVolume *rblog = new G4LogicalVolume( rbbox, GetMaterial("Steel"), "rblog" );
+
+  // Let's make a mother volume full of air:
+  double mx = 550.0 *inch;//486.436 * inch;
+  double my = 138.0   * inch;
+  double mz = 442.020 * inch;
+  G4Box *mbox = new G4Box( "mbox", mx/2.0, my/2.0, mz/2.0 );
+  G4LogicalVolume *mlog = new G4LogicalVolume( mbox, GetMaterial("Air"), "mlog" );
+
+  // Placing...
+  double dfront = 504.798 * inch + mz/2.0;
+  double theta  = 28.4934 * deg;
+
+  G4RotationMatrix *hutrm = new G4RotationMatrix;
+  hutrm->rotateY(theta);
+
+  G4ThreeVector pos( dfront*sin(theta), 0.0, -dfront*cos(theta) );
+  new G4PVPlacement( hutrm, pos, mlog, "sbs_hut_phys", worldlog, false, 0 );
+
+  G4RotationMatrix *boxrm = new G4RotationMatrix;
+  boxrm->rotateX(90.0*deg);
+
+  G4RotationMatrix *boxsidermtop = new G4RotationMatrix;
+  boxsidermtop->rotateY(90.0*deg);  
+
+  // Visuals:
+  G4VisAttributes *HutAtt = new G4VisAttributes(G4Colour(0.8,0.0,0.0));
+  HutAtt->SetForceWireframe(true);
+  mlog->SetVisAttributes(HutAtt);
+
+  G4VisAttributes *BlockAtt = new G4VisAttributes(G4Colour(0.6,0.6,0.6));
+  G4VisAttributes *SmallBlockAtt = new G4VisAttributes(G4Colour(0.9,0.0,0.6));
+  lslog->SetVisAttributes(BlockAtt);
+  sslog->SetVisAttributes(SmallBlockAtt);
+  vsslog->SetVisAttributes(SmallBlockAtt);
+  rblog->SetVisAttributes(BlockAtt);
+  
+  // Let's place the bottom front blocks:
+  bool offset_front_bottom[4] = {0,0,0,1};
+  int counter = 0;
+  char name[50];
+
+  for(int i=0; i<=3; i++){
+    double xtemp = i * lsx;
+    double ytemp = -my/2.0 + lsz/2.0;
+    double ztemp = mz/2.0 - lsy/2.0;
+
+    if( offset_front_bottom[i] ) ztemp -= lsz/2.0;
+    sprintf(name,"front_block_%d",counter);
+    new G4PVPlacement( boxrm, G4ThreeVector(xtemp,ytemp,ztemp ), lslog, name, mlog, false, counter );
+    counter++;
+    if( i>0 ){
+      sprintf(name,"front_block_%d",counter);
+      new G4PVPlacement( boxrm, G4ThreeVector(-xtemp,ytemp,ztemp), lslog, name, mlog, false, counter );
+      counter++;
+    }    
+  }
+  
+  // Let's place the next two levels of blocks in front:
+  for(int plane=0; plane<2; plane++){
+    for(int row=0; row<2; row++) {
+      for(int i=0; i<=3; i++){
+	double xtemp = i * lsx;
+	double ytemp = -my/2.0 + lsz + lsy/2.0 + lsy*row;
+	double ztemp = mz/2.0 - lsz/2.0 - lsz*plane;
+	
+	// Only need 2 rows of 5 blocks in first plane, 2 rows of 7 in second plane 
+	if(plane==0 ){
+	  if( i==3 ) {continue;}
+	}
+	sprintf(name,"front_block_%d",counter);
+	new G4PVPlacement( 0, G4ThreeVector(xtemp,ytemp,ztemp ), lslog, name, mlog, false, counter );
+	counter++;
+	if( i>0 ){
+	  sprintf(name,"front_block_%d",counter);
+	  new G4PVPlacement( 0, G4ThreeVector(-xtemp,ytemp,ztemp), lslog, name, mlog, false, counter );
+	  counter++;
+	}    
+      }
+    }
+  }
+	      
+  // Now we need to take care of the sides:
+
+  // 1) Right/Left Hand Bottom Row:
+  double xoff_bot_r = (129.999 + 51.997 + 39.002) * inch - lsx/2.0;
+  double xoff_bot_l = (129.999 + 52.003 + 38.998) * inch - lsx/2.0;
+
+  double yoff_bot = -my/2.0 + lsz/2.0;
+  double zoff_bot = 78.00*inch;
+
+  for(int i=0; i<=4; i++){
+    double ztemp = mz/2.0 - lsx/2.0 - zoff_bot - lsx * i;
+    G4ThreeVector postempr( xoff_bot_r, yoff_bot, ztemp );
+
+    // Right only has four, Left has 5
+    if(i<4) {
+      sprintf(name, "right_bot_block_%d",counter);
+      new G4PVPlacement( boxrm, postempr, lslog, name, mlog, false, counter );
+      counter++;
+
+      // Handle the two small blocks on the Right Side:
+      if( i==3 ){
+	double x = (129.999 + 51.997) * inch;
+	double y = -my/2.0 + ssy/2.0;
+	double z =  ztemp - lsx/2.0 - ssx/2.0;
+
+	sprintf(name, "right_bot_smallblock_%d",counter);
+	new G4PVPlacement( 0, G4ThreeVector(x,y,z), sslog, name, mlog, false, counter );
+	counter++;
+
+	y += ssy;
+	sprintf(name, "right_bot_smallblock_%d",counter);
+	new G4PVPlacement( 0, G4ThreeVector(x,y,z), sslog, name, mlog, false, counter );
+	counter++;
+      }
+    }
+
+    G4ThreeVector postempl( -xoff_bot_l, yoff_bot, ztemp );
+    sprintf(name, "left_bot_block_%d",counter);
+    new G4PVPlacement( boxrm, postempl, lslog, name, mlog, false, counter );
+    counter++;
+
+    // Handle the two small blocks on the Left Side:
+    if( i==4 ){
+      double x = (129.999 + 52.003 + 38.998) * inch + ssx/2.0;
+      double y = -my/2.0 + ssy/2.0;
+      double z =  ztemp - lsx/2.0 + ssx/2.0;
+      sprintf(name, "left_bot_smallblock_%d",counter);
+      new G4PVPlacement( 0, G4ThreeVector(-x,y,z), sslog, name, mlog, false, counter,true );
+      counter++;
+
+      y += ssy;
+      sprintf(name, "left_bot_smallblock_%d",counter);
+      new G4PVPlacement( 0, G4ThreeVector(-x,y,z), sslog, name, mlog, false, counter,true );
+      counter++;
+    }
+  }
+
+  // 2) Right/Left Hand Middle and Top Rows:
+  double xoff_r = (129.999 + 51.997) * inch;
+  double xoff_l = (129.999 + 52.003) * inch;
+  double zoff = 52.00*inch;
+  const char* rowstr[2] = {"mid","top"};
+  for(int row=0; row<=1; row++){
+    for(int i=0; i<5; i++){
+      double ytemp = -my/2.0 + lsz + lsy/2.0 + lsy*row;
+      double ztemp = mz/2.0 - lsx/2.0 - zoff - lsx*i;
+
+      sprintf(name, "right_%s_block_%d", rowstr[row], counter);   
+      G4ThreeVector postemp_r(xoff_r,ytemp,ztemp);
+      new G4PVPlacement( boxsidermtop, postemp_r, lslog, name, mlog, false, counter );
+      counter++;
+
+      sprintf(name, "left_%s_block_%d", rowstr[row], counter);   
+      G4ThreeVector postemp_l(-xoff_l,ytemp,ztemp);
+      new G4PVPlacement( boxsidermtop, postemp_l, lslog, name, mlog, false, counter );
+      counter++;
+
+      // Handle the remaining blocks on LHS:
+      if(row==0 && i==4){
+	// Above the small shielding blocks:
+	double x = -xoff_l + lsz/2.0 - 44.438*inch; 
+	double z = ztemp - lsx/2.0 - lsz/2.0;
+	for(int k = 0; k<2; k++){
+	  double y = ytemp + k*lsy;
+	  sprintf(name, "left_%s_block_%d", rowstr[row], counter);   
+	  new G4PVPlacement( 0, G4ThreeVector(x,y,z), lslog, name, mlog, false, counter );
+	  counter++;
+	}
+	
+	// Bottom blocks:
+	for(int k = 0; k<2; k++){
+	  x = -xoff_l + lsz/2.0 - 44.438*inch - lsx/2.0;
+	  double y = -my/2.0 + lsz/2.0;
+	  z = ztemp - lsz - lsx - lsx*k;
+	  sprintf(name, "left_bot_back_block_%d", counter);   
+	  new G4PVPlacement( boxrm, G4ThreeVector(x,y,z), lslog, name, mlog, false, counter );
+	  counter++;
+	}
+	for(int k=0; k<2; k++){
+	  for(int p=0; p<2; p++ ){
+	    x = -xoff_l - 44.438*inch;
+	    double y = -my/2.0 + lsz + lsy/2.0 + lsy*p;
+	    z =  ztemp - lsz - lsx - lsx*k;
+	    sprintf(name, "left_%s_back_block_%d", rowstr[p], counter);   
+	    new G4PVPlacement( boxsidermtop, G4ThreeVector(x,y,z), lslog, name, mlog, false, counter,true );
+	    counter++;
+	  }
+	}
+      }
+    }
+  }
+
+  std::cout << counter << std::endl;
+
 }
 
 // void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){

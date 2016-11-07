@@ -2056,22 +2056,8 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
   G4Box *ssbox = new G4Box( "ssbox",ssx/2.0, ssy/2.0, ssz/2.0 );
   G4LogicalVolume *sslog = new G4LogicalVolume( ssbox, GetMaterial("Steel"), "sslog" );
 
-  // There are Very Small Shielding Blocks (vssbox):
-  double vssx = 16.0 * inch;
-  double vssy = 26.0 * inch;
-  double vssz = 13.0 * inch;
-  G4Box *vssbox = new G4Box( "vssbox",vssx/2.0, vssy/2.0, vssz/2.0 );
-  G4LogicalVolume *vsslog = new G4LogicalVolume( vssbox, GetMaterial("Steel"), "vsslog" );
-
-  // There are 4 Steel Roof Beams (rbbox) :
-  double rbx = 192.0 * inch;
-  double rby = 96.0 * inch;
-  double rbz = 4.0 * inch;
-  G4Box *rbbox = new G4Box( "rbbox",rbx/2.0, rby/2.0, rbz/2.0 );
-  G4LogicalVolume *rblog = new G4LogicalVolume( rbbox, GetMaterial("Steel"), "rblog" );
-
   // Let's make a mother volume full of air:
-  double mx = 550.0 *inch;//486.436 * inch;
+  double mx = 540.0 *inch + 1.7*96.0*inch;
   double my = 138.0   * inch;
   double mz = 442.020 * inch;
   G4Box *mbox = new G4Box( "mbox", mx/2.0, my/2.0, mz/2.0 );
@@ -2080,7 +2066,7 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
   // Placing...
   double dfront = 504.798 * inch + mz/2.0;
   double theta  = 28.4934 * deg;
-
+ 
   G4RotationMatrix *hutrm = new G4RotationMatrix;
   hutrm->rotateY(theta);
 
@@ -2092,18 +2078,6 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
 
   G4RotationMatrix *boxsidermtop = new G4RotationMatrix;
   boxsidermtop->rotateY(90.0*deg);  
-
-  // Visuals:
-  G4VisAttributes *HutAtt = new G4VisAttributes(G4Colour(0.8,0.0,0.0));
-  HutAtt->SetForceWireframe(true);
-  mlog->SetVisAttributes(HutAtt);
-
-  G4VisAttributes *BlockAtt = new G4VisAttributes(G4Colour(0.6,0.6,0.6));
-  G4VisAttributes *SmallBlockAtt = new G4VisAttributes(G4Colour(0.9,0.0,0.6));
-  lslog->SetVisAttributes(BlockAtt);
-  sslog->SetVisAttributes(SmallBlockAtt);
-  vsslog->SetVisAttributes(SmallBlockAtt);
-  rblog->SetVisAttributes(BlockAtt);
   
   // Let's place the bottom front blocks:
   bool offset_front_bottom[4] = {0,0,0,1};
@@ -2262,8 +2236,107 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
     }
   }
 
-  std::cout << counter << std::endl;
+  // There are 4 Steel Roof Beams (rbbox) :
+  double rbx = 192.0 * inch;
+  double rby = 4.0 * inch;
+  double rbz = 96.0 * inch;
+  G4Box *rbbox = new G4Box( "rbbox",rbx/2.0, rby/2.0, rbz/2.0 );
+  G4LogicalVolume *rblog = new G4LogicalVolume( rbbox, GetMaterial("Steel"), "rblog" );
 
+  // Place the Roofing:
+  double yroof = -my/2.0 + 138.0*inch - rby/2.0;
+  double zoffset = 5.5*inch;
+  int count = 1;
+  for(int i=0; i<=1; i++){
+    for(int j=0; j<=1; j++){
+      double xtemp = rbx/2.0 - rbx*i;
+      double ztemp = mz/2.0 - rbz/2.0 - lsx + zoffset - j*rbz;
+      G4ThreeVector postemp( xtemp, yroof, ztemp );
+      sprintf(name,"roof_panel_%d",count);
+      new G4PVPlacement(0,postemp, rblog, name, mlog, false, count);
+      count++;
+    }
+  }
+
+  // There is a "Transportainer Box" - there is no information about its y-dimension, therefore
+  // make it the same dimensions as the Bunker Wall. There is no info about the material, use steel then.
+  double tbx = 96.00 * inch;
+  double tby = 138.00 * inch;
+  double tbz = 240.0 * inch;
+  G4Box *tbbox = new G4Box("tbbox", tbx/2.0, tby/2.0, tbz/2.0);
+  G4LogicalVolume *tblog = new G4LogicalVolume( tbbox, GetMaterial("Steel"), "tblog" );
+
+  // I am going to place this in the world:
+  double x = (129.999 + 51.997 + 39.002 + 19.552 )*inch + tbx/2.0;
+  double y = -my/2.0 + tby/2.0;
+  double z = mz/2.0 - tbz/2.0 - (78.00 + 63.225) * inch;
+  G4ThreeVector tbpos(x,y,z);
+  new G4PVPlacement( 0, tbpos, tblog, "Transportainer_Box", mlog, false, 0, true );
+
+  ////////////////////////////////////////////////////////////////////////////
+  // The "stuff" that is inside the Hut:
+  // There are four blocks in the back on the beam-side:
+  double bkx = 24.25 * inch;
+  double bky = 80.00 * inch;
+  double bkz = 48.00 * inch;
+  G4Box *bkbox = new G4Box("bkbox",bkx/2.0, bky/2.0, bkz/2.0);
+  G4LogicalVolume *bklog = new G4LogicalVolume( bkbox, GetMaterial("Steel"), "bklog" );
+  
+  y = -my/2.0 + bky/2.0;
+  z =  mz/2.0 - bkz/2.0 - 6.0*lsx - lsz - 29.48*inch;
+  for(int i=0; i<=3; i++){
+    double xtemp =(-129.999 - 52.003 ) * inch + lsz/2.0 - (44.438-36.00)*inch + bkx/2.0 + i*bkx;
+    G4ThreeVector postemp(xtemp,y,z);
+    sprintf(name,"4set_back_block_%d",i);
+    new G4PVPlacement(0,postemp,bklog,name,mlog,false,i);
+  }
+
+  // There are a bunch of hollowed out blocks 
+  double inx = 23.62 * inch;
+  double iny = 91.25 * inch;
+  double inz = inx;
+  double thick = 1.25 * inch; // This is simply a guess
+
+  G4Box *inbox_temp = new G4Box( "inbox", inx/2.0, iny/2.0, inz/2.0 );
+  G4Box *cut = new G4Box( "cut", (inx-2.0*thick)/2.0, (iny+5.0)/2.0, (inz-2.0*thick)/2.0 );
+  G4SubtractionSolid *inbox = new G4SubtractionSolid("inbox",inbox_temp, cut);
+
+  // The material is simply a guess as well, not enough info.
+  G4LogicalVolume *inlog = new G4LogicalVolume( inbox, GetMaterial("Steel"), "inlog" );
+  count = 0;
+  for(int i=0; i<=3; i++){
+    x = (168.998 - 33.96) *inch - inx/2.0;
+    y = -my/2.0 + iny/2.0;
+    z = mz/2.0 - lsx - (30.14 + 127.00 + 10.50)*inch - inz/2.0 - i*inz;
+    sprintf(name, "inner_cutbox_%d", count);
+    new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
+    count++;
+
+    x -= (48.00*inch + inx);
+    sprintf(name, "inner_cutbox_%d", count);
+    new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
+    count++;
+  }
+
+
+  // Visuals:
+  G4VisAttributes *HutAtt = new G4VisAttributes(G4Colour(0.8,0.0,0.0));
+  //HutAtt->SetForceWireframe(true);
+  mlog->SetVisAttributes(G4VisAttributes::Invisible);
+  inlog->SetVisAttributes(HutAtt);
+
+  G4VisAttributes *BlockAtt = new G4VisAttributes(G4Colour(0.6,0.6,0.6));
+  lslog->SetVisAttributes(BlockAtt);
+
+  G4VisAttributes *RoofAtt = new G4VisAttributes(G4Colour(0.3,0.3,0.3));
+  RoofAtt->SetForceAuxEdgeVisible(true);
+  rblog->SetVisAttributes(RoofAtt);
+  sslog->SetVisAttributes(RoofAtt);
+  bklog->SetVisAttributes(RoofAtt);
+
+  G4VisAttributes *TBAtt = new G4VisAttributes(G4Colour(0.0,0.7,0.7));
+  TBAtt->SetForceWireframe(true);
+  tblog->SetVisAttributes( TBAtt );
 }
 
 // void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){

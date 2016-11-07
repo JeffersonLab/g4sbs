@@ -88,7 +88,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     }
   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
-      // MakeBigCal( worldlog );
+      MakeBigCal( worldlog );
       MakeSBSElectronicsBunker( worldlog );
     }
   if( exptype == kC16 ) 
@@ -2304,7 +2304,7 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
   // The material is simply a guess as well, not enough info.
   G4LogicalVolume *inlog = new G4LogicalVolume( inbox, GetMaterial("Steel"), "inlog" );
   count = 0;
-  for(int i=0; i<=3; i++){
+  for(int i=0; i<=4; i++){
     x = (168.998 - 33.96) *inch - inx/2.0;
     y = -my/2.0 + iny/2.0;
     z = mz/2.0 - lsx - (30.14 + 127.00 + 10.50)*inch - inz/2.0 - i*inz;
@@ -2317,7 +2317,27 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
     new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
     count++;
   }
+  // The drawing doesn't tell me where the boxes are located within the iron frames, so
+  // an estimate would be the following
+  double est = (96.0 - 3.0*23.62) * inch;
+  est /= 4.0;
 
+  for(int i=0; i<=7; i++){
+    x = -(337.998 - 168.998) * inch + 16.418*inch + 2.0*est + inx/2.0;
+    y = -my/2.0 + iny/2.0;;
+    z = mz/2.0 - (13.00 + 17.14)*inch - lsx - inx/2.0 - 2.0*est - inz*i;
+    if(i>=5){
+      z -= (4.0*est + 11.00*inch);
+    }
+    sprintf(name, "inner_cutbox_%d", count);
+    new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
+    count++;
+
+    x += (48.00*inch + inx);
+    sprintf(name, "inner_cutbox_%d", count);
+    new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
+    count++;
+  }
 
   // Visuals:
   G4VisAttributes *HutAtt = new G4VisAttributes(G4Colour(0.8,0.0,0.0));

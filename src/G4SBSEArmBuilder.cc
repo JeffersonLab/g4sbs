@@ -2057,7 +2057,7 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
   G4LogicalVolume *sslog = new G4LogicalVolume( ssbox, GetMaterial("Steel"), "sslog" );
 
   // Let's make a mother volume full of air:
-  double mx = 540.0 *inch + 1.7*96.0*inch;
+  double mx = 540.0 *inch;
   double my = 138.0   * inch;
   double mz = 442.020 * inch;
   G4Box *mbox = new G4Box( "mbox", mx/2.0, my/2.0, mz/2.0 );
@@ -2171,12 +2171,12 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
       double y = -my/2.0 + ssy/2.0;
       double z =  ztemp - lsx/2.0 + ssx/2.0;
       sprintf(name, "left_bot_smallblock_%d",counter);
-      new G4PVPlacement( 0, G4ThreeVector(-x,y,z), sslog, name, mlog, false, counter,true );
+      new G4PVPlacement( 0, G4ThreeVector(-x,y,z), sslog, name, mlog, false, counter );
       counter++;
 
       y += ssy;
       sprintf(name, "left_bot_smallblock_%d",counter);
-      new G4PVPlacement( 0, G4ThreeVector(-x,y,z), sslog, name, mlog, false, counter,true );
+      new G4PVPlacement( 0, G4ThreeVector(-x,y,z), sslog, name, mlog, false, counter );
       counter++;
     }
   }
@@ -2228,7 +2228,7 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
 	    double y = -my/2.0 + lsz + lsy/2.0 + lsy*p;
 	    z =  ztemp - lsz - lsx - lsx*k;
 	    sprintf(name, "left_%s_back_block_%d", rowstr[p], counter);   
-	    new G4PVPlacement( boxsidermtop, G4ThreeVector(x,y,z), lslog, name, mlog, false, counter,true );
+	    new G4PVPlacement( boxsidermtop, G4ThreeVector(x,y,z), lslog, name, mlog, false, counter );
 	    counter++;
 	  }
 	}
@@ -2260,18 +2260,17 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
 
   // There is a "Transportainer Box" - there is no information about its y-dimension, therefore
   // make it the same dimensions as the Bunker Wall. There is no info about the material, use steel then.
-  double tbx = 96.00 * inch;
-  double tby = 138.00 * inch;
-  double tbz = 240.0 * inch;
-  G4Box *tbbox = new G4Box("tbbox", tbx/2.0, tby/2.0, tbz/2.0);
-  G4LogicalVolume *tblog = new G4LogicalVolume( tbbox, GetMaterial("Steel"), "tblog" );
+  // double tbx = 96.00 * inch;
+  // double tby = 138.00 * inch;
+  // double tbz = 240.0 * inch;
+  // G4Box *tbbox = new G4Box("tbbox", tbx/2.0, tby/2.0, tbz/2.0);
+  // G4LogicalVolume *tblog = new G4LogicalVolume( tbbox, GetMaterial("Steel"), "tblog" );
 
-  // I am going to place this in the world:
-  double x = (129.999 + 51.997 + 39.002 + 19.552 )*inch + tbx/2.0;
-  double y = -my/2.0 + tby/2.0;
-  double z = mz/2.0 - tbz/2.0 - (78.00 + 63.225) * inch;
-  G4ThreeVector tbpos(x,y,z);
-  new G4PVPlacement( 0, tbpos, tblog, "Transportainer_Box", mlog, false, 0, true );
+  // double x = (129.999 + 51.997 + 39.002 + 19.552 )*inch + tbx/2.0;
+  // double y = -my/2.0 + tby/2.0;
+  // double z = mz/2.0 - tbz/2.0 - (78.00 + 63.225) * inch;
+  // G4ThreeVector tbpos(x,y,z);
+  // new G4PVPlacement( 0, tbpos, tblog, "Transportainer_Box", mlog, false, 0 );
 
   ////////////////////////////////////////////////////////////////////////////
   // The "stuff" that is inside the Hut:
@@ -2282,8 +2281,8 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
   G4Box *bkbox = new G4Box("bkbox",bkx/2.0, bky/2.0, bkz/2.0);
   G4LogicalVolume *bklog = new G4LogicalVolume( bkbox, GetMaterial("Steel"), "bklog" );
   
-  y = -my/2.0 + bky/2.0;
-  z =  mz/2.0 - bkz/2.0 - 6.0*lsx - lsz - 29.48*inch;
+  double y = -my/2.0 + bky/2.0;
+  double z =  mz/2.0 - bkz/2.0 - 6.0*lsx - lsz - 29.48*inch;
   for(int i=0; i<=3; i++){
     double xtemp =(-129.999 - 52.003 ) * inch + lsz/2.0 - (44.438-36.00)*inch + bkx/2.0 + i*bkx;
     G4ThreeVector postemp(xtemp,y,z);
@@ -2292,58 +2291,123 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
   }
 
   // There are a bunch of hollowed out blocks 
-  double inx = 23.62 * inch;
-  double iny = 91.25 * inch;
-  double inz = inx;
-  double thick = 1.25 * inch; // This is simply a guess
+  // double inx = 23.62 * inch;
+  // double iny = 91.25 * inch;
+  // double inz = inx;
+  // double thick = 1.25 * inch; // This is simply a guess
 
-  G4Box *inbox_temp = new G4Box( "inbox", inx/2.0, iny/2.0, inz/2.0 );
-  G4Box *cut = new G4Box( "cut", (inx-2.0*thick)/2.0, (iny+5.0)/2.0, (inz-2.0*thick)/2.0 );
-  G4SubtractionSolid *inbox = new G4SubtractionSolid("inbox",inbox_temp, cut);
+  // G4Box *inbox_temp = new G4Box( "inbox", inx/2.0, iny/2.0, inz/2.0 );
+  // G4Box *cut = new G4Box( "cut", (inx-2.0*thick)/2.0, (iny+5.0)/2.0, (inz-2.0*thick)/2.0 );
+  // G4SubtractionSolid *inbox = new G4SubtractionSolid("inbox",inbox_temp, cut);
 
-  // The material is simply a guess as well, not enough info.
-  G4LogicalVolume *inlog = new G4LogicalVolume( inbox, GetMaterial("Steel"), "inlog" );
-  count = 0;
-  for(int i=0; i<=4; i++){
-    x = (168.998 - 33.96) *inch - inx/2.0;
-    y = -my/2.0 + iny/2.0;
-    z = mz/2.0 - lsx - (30.14 + 127.00 + 10.50)*inch - inz/2.0 - i*inz;
-    sprintf(name, "inner_cutbox_%d", count);
-    new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
-    count++;
+  // // The material is simply a guess as well, not enough info.
+  // G4LogicalVolume *inlog = new G4LogicalVolume( inbox, GetMaterial("Steel"), "inlog" );
+  // count = 0;
+  // for(int i=0; i<=4; i++){
+  //   x = (168.998 - 33.96) *inch - inx/2.0;
+  //   y = -my/2.0 + iny/2.0;
+  //   z = mz/2.0 - lsx - (30.14 + 127.00 + 10.50)*inch - inz/2.0 - i*inz;
+  //   sprintf(name, "inner_cutbox_%d", count);
+  //   new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
+  //   count++;
 
-    x -= (48.00*inch + inx);
-    sprintf(name, "inner_cutbox_%d", count);
-    new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
-    count++;
-  }
-  // The drawing doesn't tell me where the boxes are located within the iron frames, so
-  // an estimate would be the following
-  double est = (96.0 - 3.0*23.62) * inch;
-  est /= 4.0;
+  //   x -= (48.00*inch + inx);
+  //   sprintf(name, "inner_cutbox_%d", count);
+  //   new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
+  //   count++;
+  // }
+  // // The drawing doesn't tell me where the boxes are located within the iron frames, so
+  // // an estimate would be the following
+  // double est = (96.0 - 3.0*23.62) * inch;
+  // est /= 4.0;
 
-  for(int i=0; i<=7; i++){
-    x = -(337.998 - 168.998) * inch + 16.418*inch + 2.0*est + inx/2.0;
-    y = -my/2.0 + iny/2.0;;
-    z = mz/2.0 - (13.00 + 17.14)*inch - lsx - inx/2.0 - 2.0*est - inz*i;
-    if(i>=5){
-      z -= (4.0*est + 11.00*inch);
+  // for(int i=0; i<=7; i++){
+  //   x = -(337.998 - 168.998) * inch + 16.418*inch + 2.0*est + inx/2.0;
+  //   y = -my/2.0 + iny/2.0;;
+  //   z = mz/2.0 - (13.00 + 17.14)*inch - lsx - inx/2.0 - 2.0*est - inz*i;
+  //   if(i>=5){
+  //     z -= (4.0*est + 11.00*inch);
+  //   }
+  //   sprintf(name, "inner_cutbox_%d", count);
+  //   new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
+  //   count++;
+
+  //   x += (48.00*inch + inx);
+  //   sprintf(name, "inner_cutbox_%d", count);
+  //   new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
+  //   count++;
+  // }
+
+  // There are four regions where electronics will be stored, or at least it looks like that:
+  // Indices are as follows: 0 = TR, 1 = TL, 2 = BR, 3 = BL
+  double tlx = 2.0*23.62*inch + 48.00*inch;
+  double xval[4] = {133.00*inch,         tlx, 120.0*inch,  120.0*inch };
+  double yval[4] = { 91.25*inch,  91.25*inch, 100.0*inch,  100.0*inch};
+  double zval[4] = {127.00*inch, 115.00*inch, 144.00*inch,  96.00*inch };
+  
+  const char* loc[4]  = {"TL","TR","BR","BL"};
+  G4String loc_str[4] = {"TL","TR","BR","BL"};
+
+  vector<G4LogicalVolume*> sd_logs;
+  for(int i=0; i<4; i++){
+    sprintf(name,"electronics_box_%s_%d",loc[i],i);
+    G4Box* boxtemp = new G4Box(name,xval[i]/2.0, yval[i]/2.0, zval[i]/2.0 );
+    sprintf(name,"electronics_log_%s_%d",loc[i],i);
+    G4LogicalVolume *boxlogtemp = new G4LogicalVolume(boxtemp,GetMaterial("Air"),name);
+    sd_logs.push_back( boxlogtemp );
+
+    // Need to assign these boxes a sensitivity of type Cal:
+    G4SDManager *sdman = fDetCon->fSDman;
+  
+    G4String SBSBunkername = "Earm/SBSElectronicsBunker" + loc_str[i];
+    G4String SBSBunkercollname = "SBSElectronicsBunker" + loc_str[i];
+
+    G4SBSCalSD *SBSBunkerSD = NULL;
+  
+    if( !( (G4SBSCalSD*) sdman->FindSensitiveDetector(SBSBunkername) )){
+      G4cout << "Adding " << SBSBunkername << " to SDman..." << G4endl;
+
+      SBSBunkerSD = new G4SBSCalSD( SBSBunkername, SBSBunkercollname );
+      sdman->AddNewDetector(SBSBunkerSD);
+      (fDetCon->SDlist).insert(SBSBunkername);
+      fDetCon->SDtype[SBSBunkername] = kCAL;
+      (SBSBunkerSD->detmap).depth = 1;
     }
-    sprintf(name, "inner_cutbox_%d", count);
-    new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
-    count++;
-
-    x += (48.00*inch + inx);
-    sprintf(name, "inner_cutbox_%d", count);
-    new G4PVPlacement(0, G4ThreeVector(x,y,z), inlog, name, mlog, false, count, true);
-    count++;
+    sd_logs[i]->SetSensitiveDetector( SBSBunkerSD );
+    
+    if( (fDetCon->StepLimiterList).find( SBSBunkername ) != (fDetCon->StepLimiterList).end() ){
+      sd_logs[i]->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+      G4cout << "Turning StepLimit on for " << SBSBunkername << "!" << G4endl;
+    }
   }
+  
+  // Need to place the four detectors inside mlog:
+  double trx = (168.998 - 15.08)*inch - xval[0]/2.0;
+  tlx = (168.998 - 33.96)*inch - xval[1]/2.0;
+  double brx = -(337.998 - 168.998)*inch + 16.418*inch + xval[2]/2.0;
+  double blx = -(337.998 - 168.998)*inch + 16.418*inch + xval[3]/2.0;
+  double xpos[4] = {trx, tlx, brx, blx};
 
+  double trz = mz/2.0 - lsx - 30.14*inch - zval[0]/2.0;
+  double tlz = mz/2.0 - lsx - (30.14 + 127.0 + 10.50)*inch - zval[1]/2.0;
+  double brz = mz/2.0 - lsx - 30.14*inch - zval[2]/2.0;
+  double blz = mz/2.0 - lsx - 30.14*inch - zval[2] - 11.00*inch - zval[3]/2.0;
+  double zpos[4] = {trz,tlz,brz,blz};
+
+  for(int i=0; i<4; i++){
+    double ytemp = -my/2.0 + yval[i]/2.0;
+    sprintf(name,"electronics_phys_%s_%d",loc[i],i);
+    new G4PVPlacement(0,G4ThreeVector(xpos[i],ytemp,zpos[i]),sd_logs[i],name,mlog,false,i);
+  }
+  
   // Visuals:
   G4VisAttributes *HutAtt = new G4VisAttributes(G4Colour(0.8,0.0,0.0));
-  //HutAtt->SetForceWireframe(true);
+  HutAtt->SetForceWireframe(true);
   mlog->SetVisAttributes(G4VisAttributes::Invisible);
-  inlog->SetVisAttributes(HutAtt);
+  //mlog->SetVisAttributes(HutAtt);
+    
+  for(int i=0; i<4; i++){ sd_logs[i]->SetVisAttributes( HutAtt ); }
+  //inlog->SetVisAttributes(HutAtt);
 
   G4VisAttributes *BlockAtt = new G4VisAttributes(G4Colour(0.6,0.6,0.6));
   lslog->SetVisAttributes(BlockAtt);
@@ -2354,9 +2418,9 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
   sslog->SetVisAttributes(RoofAtt);
   bklog->SetVisAttributes(RoofAtt);
 
-  G4VisAttributes *TBAtt = new G4VisAttributes(G4Colour(0.0,0.7,0.7));
-  TBAtt->SetForceWireframe(true);
-  tblog->SetVisAttributes( TBAtt );
+  // G4VisAttributes *TBAtt = new G4VisAttributes(G4Colour(0.0,0.7,0.7));
+  // TBAtt->SetForceWireframe(true);
+  // tblog->SetVisAttributes( TBAtt );
 }
 
 // void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *worldlog){

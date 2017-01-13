@@ -1223,17 +1223,38 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   G4double mylar_thick = 0.001*2.54*cm;
   G4double air_thick = mylar_thick;
   
+  //EFuchey 2017-01-11: Declaring sensitive detector for light guide 
+  // shall be temporary, and not end in the repo...
+  G4String ECalLGSDname = "Earm/ECalLG";
+  G4String ECalLGcollname = "ECalLGHitsCollection";
+  G4SBSCalSD *ECalLGSD = NULL;
+  if( !( ECalLGSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(ECalLGSDname) ) ){
+    G4cout << "Adding ECal light guide Sensitive Detector to SDman..." << G4endl;
+    ECalLGSD = new G4SBSCalSD( ECalLGSDname, ECalLGcollname );
+    fDetCon->fSDman->AddNewDetector( ECalLGSD );
+    (fDetCon->SDlist).insert(ECalLGSDname);
+    fDetCon->SDtype[ECalLGSDname] = kCAL;
+    (ECalLGSD->detmap).depth = 1;//?????
+  }
+  
   //Now place things in ECAL:
   //Start with the lead-glass modules, PMTs and light guides:
   G4Tubs *LightGuide_42 = new G4Tubs("LightGuide_42", 0.0, 2.5*cm/2.0, (depth_lightguide_short+depth_38-depth_42)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LightGuide_42_log = new G4LogicalVolume( LightGuide_42, GetMaterial("Pyrex_Glass"), "LightGuide_42_log" );
-
+  
   G4Tubs *LightGuide_40 = new G4Tubs("LightGuide_40", 0.0, 2.5*cm/2.0, (depth_lightguide_short+depth_38-depth_40)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LightGuide_40_log = new G4LogicalVolume( LightGuide_40, GetMaterial("Pyrex_Glass"), "LightGuide_40_log" );
 
   G4Tubs *LightGuide_38 = new G4Tubs("LightGuide_38", 0.0, 2.5*cm/2.0, (depth_lightguide_short+depth_38-depth_38)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LightGuide_38_log = new G4LogicalVolume( LightGuide_38, GetMaterial("Pyrex_Glass"), "LightGuide_38_log" );
 
+  //EFuchey 2017-01-11: Need to make sensitive the three volumes above, to measure their dose.
+  // shall be temporary, and not end in the repo...
+  LightGuide_42_log->SetSensitiveDetector( ECalLGSD );
+  LightGuide_40_log->SetSensitiveDetector( ECalLGSD );
+  LightGuide_38_log->SetSensitiveDetector( ECalLGSD );
+  
+  
   G4Tubs *LGWrap_42 = new G4Tubs( "LGWrap_42", 2.5*cm/2.0+air_thick, 2.5*cm/2.0 + air_thick + mylar_thick, (depth_lightguide_short+depth_38-depth_42)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LGWrap_42_log = new G4LogicalVolume( LGWrap_42, GetMaterial("Mylar"), "LGWrap_42_log" );
 
@@ -1300,7 +1321,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 
     (ECalTF1SD->detmap).depth = 1;
   }
-
+  
   //Make lead-glass and place in modules:
   
   if( fDetCon->GetC16Segmentation() <= 0 ){
@@ -1554,7 +1575,11 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  // new G4PVPlacement( 0, LGpos, LightGuide_42_log, "LightGuide_42_phys", earm_mother_log, false, icell );
 	  // new G4PVPlacement( 0, LGpos, LGWrap_42_log, "LGWrap_42_phys", earm_mother_log, false, icell );
 
-	  
+	  //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
+	  // shall be temporary, and not end in the repo...
+	  (ECalLGSD->detmap).Row[icell] = global_row;
+	  (ECalLGSD->detmap).Col[icell] = col;
+	  (ECalLGSD->detmap).LocalCoord[icell] = modpos;
 
 	  if( col == 0 ) xlow_row = modpos.x() - 0.5*width_42;
 	  if( col+1 == ncol ) xhigh_row = modpos.x() + 0.5*width_42;
@@ -1640,6 +1665,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  // new G4PVPlacement( 0, LGpos, LightGuide_40_log, "LightGuide_40_phys", earm_mother_log, false, icell );
 	  // new G4PVPlacement( 0, LGpos, LGWrap_40_log, "LGWrap_40_phys", earm_mother_log, false, icell );
 	  
+	  //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
+	  // shall be temporary, and not end in the repo...
+	  (ECalLGSD->detmap).Row[icell] = global_row;
+	  (ECalLGSD->detmap).Col[icell] = col;
+	  (ECalLGSD->detmap).LocalCoord[icell] = modpos;
+	  
 	  if( col == 0 ) xlow_row = modpos.x() - 0.5*width_40;
 	  if( col+1 == ncol ) xhigh_row = modpos.x() + 0.5*width_40;
 	  
@@ -1720,6 +1751,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  new G4PVPlacement( 0, LGpos, LG38_log, "LG38_phys", earm_mother_log, false, icell );
 	  // new G4PVPlacement( 0, LGpos, LightGuide_38_log, "LightGuide_38_phys", earm_mother_log, false, icell );
 	  // new G4PVPlacement( 0, LGpos, LGWrap_38_log, "LGWrap_38_phys", earm_mother_log, false, icell );
+
+	  //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
+	  // shall be temporary, and not end in the repo...
+	  (ECalLGSD->detmap).Row[icell] = global_row;
+	  (ECalLGSD->detmap).Col[icell] = col;
+	  (ECalLGSD->detmap).LocalCoord[icell] = modpos;
 	  
 	  if( col == 0 ) xlow_row = modpos.x() - 0.5*width_38;
 	  if( col+1 == ncol ) xhigh_row = modpos.x() + 0.5*width_38;

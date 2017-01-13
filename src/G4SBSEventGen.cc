@@ -116,7 +116,7 @@ bool G4SBSEventGen::GenerateEvent(){
   G4LorentzVector ni; 
 
   // Generate initial nucleon - target dependent
-
+  
   Nucl_t thisnucl;
   Wfact = 0.0;
 
@@ -1452,7 +1452,7 @@ bool G4SBSEventGen::GeneratePythia(){
 	     fPythiaEvent.E[ngood] >= fEeMin && fPythiaEvent.E[ngood] <= fEeMax) ||
 	    (fPythiaEvent.theta[ngood] >= fThMin_had && fPythiaEvent.theta[ngood] <= fThMax_had &&
 	     fPythiaEvent.phi[ngood] >= fPhMin_had && fPythiaEvent.phi[ngood] <= fPhMax_had &&
-	     fPythiaEvent.E[ngood] >= fEhadMin && fPythiaEvent.E[ngood] <= fEhadMax) ) ){
+	     fPythiaEvent.E[ngood] >= fEhadMin && fPythiaEvent.E[ngood] <= fEhadMax) ) ){ 
 	fPythiaEvent.genflag.push_back( 1 );
       } else {
 	fPythiaEvent.genflag.push_back( 0 );

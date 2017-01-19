@@ -298,12 +298,12 @@ void G4SBSIO::BranchGEM(G4String SDname="GEM"){
   fTree->Branch( branch_name.Format( "%s.hit.trms", branch_prefix.Data() ), &(GEMdata[SDname].trms) );
   fTree->Branch( branch_name.Format( "%s.hit.tmin", branch_prefix.Data() ), &(GEMdata[SDname].tmin) );
   fTree->Branch( branch_name.Format( "%s.hit.tmax", branch_prefix.Data() ), &(GEMdata[SDname].tmax) );
-  fTree->Branch( branch_name.Format( "%s.hit.x_in", branch_prefix.Data() ), &(GEMdata[SDname].x_in) );
-  fTree->Branch( branch_name.Format( "%s.hit.y_in", branch_prefix.Data() ), &(GEMdata[SDname].y_in) );
-  fTree->Branch( branch_name.Format( "%s.hit.z_in", branch_prefix.Data() ), &(GEMdata[SDname].z_in) );
-  fTree->Branch( branch_name.Format( "%s.hit.x_out", branch_prefix.Data() ), &(GEMdata[SDname].x_out) );
-  fTree->Branch( branch_name.Format( "%s.hit.y_out", branch_prefix.Data() ), &(GEMdata[SDname].y_out) );
-  fTree->Branch( branch_name.Format( "%s.hit.z_out", branch_prefix.Data() ), &(GEMdata[SDname].z_out) );
+  // fTree->Branch( branch_name.Format( "%s.hit.x_in", branch_prefix.Data() ), &(GEMdata[SDname].x_in) );
+  // fTree->Branch( branch_name.Format( "%s.hit.y_in", branch_prefix.Data() ), &(GEMdata[SDname].y_in) );
+  // fTree->Branch( branch_name.Format( "%s.hit.z_in", branch_prefix.Data() ), &(GEMdata[SDname].z_in) );
+  // fTree->Branch( branch_name.Format( "%s.hit.x_out", branch_prefix.Data() ), &(GEMdata[SDname].x_out) );
+  // fTree->Branch( branch_name.Format( "%s.hit.y_out", branch_prefix.Data() ), &(GEMdata[SDname].y_out) );
+  // fTree->Branch( branch_name.Format( "%s.hit.z_out", branch_prefix.Data() ), &(GEMdata[SDname].z_out) );
   // fTree->Branch( branch_name.Format( "%s.hit.dx", branch_prefix.Data() ), &(GEMdata[SDname].dx) );
   // fTree->Branch( branch_name.Format( "%s.hit.dy", branch_prefix.Data() ), &(GEMdata[SDname].dy) );
   fTree->Branch( branch_name.Format( "%s.hit.tx", branch_prefix.Data() ), &(GEMdata[SDname].tx) );

@@ -1225,17 +1225,17 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   
   //EFuchey 2017-01-11: Declaring sensitive detector for light guide 
   // shall be temporary, and not end in the repo...
-  G4String ECalLGSDname = "Earm/ECalLG";
-  G4String ECalLGcollname = "ECalLGHitsCollection";
-  G4SBSCalSD *ECalLGSD = NULL;
-  if( !( ECalLGSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(ECalLGSDname) ) ){
-    G4cout << "Adding ECal light guide Sensitive Detector to SDman..." << G4endl;
-    ECalLGSD = new G4SBSCalSD( ECalLGSDname, ECalLGcollname );
-    fDetCon->fSDman->AddNewDetector( ECalLGSD );
-    (fDetCon->SDlist).insert(ECalLGSDname);
-    fDetCon->SDtype[ECalLGSDname] = kCAL;
-    (ECalLGSD->detmap).depth = 1;//?????
-  }
+  // G4String ECalLGSDname = "Earm/ECalLG";
+  // G4String ECalLGcollname = "ECalLGHitsCollection";
+  // G4SBSCalSD *ECalLGSD = NULL;
+  // if( !( ECalLGSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(ECalLGSDname) ) ){
+  //   G4cout << "Adding ECal light guide Sensitive Detector to SDman..." << G4endl;
+  //   ECalLGSD = new G4SBSCalSD( ECalLGSDname, ECalLGcollname );
+  //   fDetCon->fSDman->AddNewDetector( ECalLGSD );
+  //   (fDetCon->SDlist).insert(ECalLGSDname);
+  //   fDetCon->SDtype[ECalLGSDname] = kCAL;
+  //   (ECalLGSD->detmap).depth = 1;//?????
+  // }
   
   //Now place things in ECAL:
   //Start with the lead-glass modules, PMTs and light guides:
@@ -1250,9 +1250,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 
   //EFuchey 2017-01-11: Need to make sensitive the three volumes above, to measure their dose.
   // shall be temporary, and not end in the repo...
-  LightGuide_42_log->SetSensitiveDetector( ECalLGSD );
-  LightGuide_40_log->SetSensitiveDetector( ECalLGSD );
-  LightGuide_38_log->SetSensitiveDetector( ECalLGSD );
+  // LightGuide_42_log->SetSensitiveDetector( ECalLGSD );
+  // LightGuide_40_log->SetSensitiveDetector( ECalLGSD );
+  // LightGuide_38_log->SetSensitiveDetector( ECalLGSD );
   
   
   G4Tubs *LGWrap_42 = new G4Tubs( "LGWrap_42", 2.5*cm/2.0+air_thick, 2.5*cm/2.0 + air_thick + mylar_thick, (depth_lightguide_short+depth_38-depth_42)/2.0, 0.0*deg, 360.0*deg );
@@ -1575,12 +1575,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  // new G4PVPlacement( 0, LGpos, LightGuide_42_log, "LightGuide_42_phys", earm_mother_log, false, icell );
 	  // new G4PVPlacement( 0, LGpos, LGWrap_42_log, "LGWrap_42_phys", earm_mother_log, false, icell );
 
-	  //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
-	  // shall be temporary, and not end in the repo...
-	  (ECalLGSD->detmap).Row[icell] = global_row;
-	  (ECalLGSD->detmap).Col[icell] = col;
-	  (ECalLGSD->detmap).LocalCoord[icell] = modpos;
-
+	  // //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
+	  // // shall be temporary, and not end in the repo...
+	  // (ECalLGSD->detmap).Row[icell] = global_row;
+	  // (ECalLGSD->detmap).Col[icell] = col;
+	  // (ECalLGSD->detmap).LocalCoord[icell] = modpos;
+	  
 	  if( col == 0 ) xlow_row = modpos.x() - 0.5*width_42;
 	  if( col+1 == ncol ) xhigh_row = modpos.x() + 0.5*width_42;
 	  
@@ -1667,9 +1667,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  
 	  //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
 	  // shall be temporary, and not end in the repo...
-	  (ECalLGSD->detmap).Row[icell] = global_row;
-	  (ECalLGSD->detmap).Col[icell] = col;
-	  (ECalLGSD->detmap).LocalCoord[icell] = modpos;
+	  // (ECalLGSD->detmap).Row[icell] = global_row;
+	  // (ECalLGSD->detmap).Col[icell] = col;
+	  // (ECalLGSD->detmap).LocalCoord[icell] = modpos;
 	  
 	  if( col == 0 ) xlow_row = modpos.x() - 0.5*width_40;
 	  if( col+1 == ncol ) xhigh_row = modpos.x() + 0.5*width_40;
@@ -1754,9 +1754,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 
 	  //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
 	  // shall be temporary, and not end in the repo...
-	  (ECalLGSD->detmap).Row[icell] = global_row;
-	  (ECalLGSD->detmap).Col[icell] = col;
-	  (ECalLGSD->detmap).LocalCoord[icell] = modpos;
+	  // (ECalLGSD->detmap).Row[icell] = global_row;
+	  // (ECalLGSD->detmap).Col[icell] = col;
+	  // (ECalLGSD->detmap).LocalCoord[icell] = modpos;
 	  
 	  if( col == 0 ) xlow_row = modpos.x() - 0.5*width_38;
 	  if( col+1 == ncol ) xhigh_row = modpos.x() + 0.5*width_38;

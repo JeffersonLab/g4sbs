@@ -29,12 +29,12 @@ void G4SBSGEMoutput::Clear(){
   tmin.clear();
   tmax.clear();
   //EFuchey 2017-01-13: add track position at the entrance and exit of the ionizable gas layer
-  x_in.clear();
-  y_in.clear();
-  z_in.clear();
-  x_out.clear();
-  y_out.clear();
-  z_out.clear();
+  // x_in.clear();
+  // y_in.clear();
+  // z_in.clear();
+  // x_out.clear();
+  // y_out.clear();
+  // z_out.clear();
   dx.clear();
   dy.clear();
   tx.clear();

@@ -79,6 +79,8 @@ G4SBSEventGen::G4SBSEventGen(){
   fPythiaChain = NULL;
   fPythiaTree = NULL;
   fchainentry = 0;
+
+  fESEPP = new G4SBSESEPP();
 }
 
 
@@ -197,6 +199,9 @@ bool G4SBSEventGen::GenerateEvent(){
     break;
   case kPYTHIA6:
     success = GeneratePythia();
+    break;
+  case kESEPP:
+    success = GenerateESEPP();
     break;
   default:
     success = GenerateElastic( thisnucl, ei, ni );
@@ -1203,6 +1208,20 @@ bool G4SBSEventGen::GenerateGun(){
   // fVert.set( CLHEP::RandFlat::shoot( -fRasterX/2.0, fRasterX/2.0 ),
   // 	     CLHEP::RandFlat::shoot( -fRasterY/2.0, fRasterY/2.0 ),
   // 	     CLHEP::RandFlat::shoot( -fTargLen/2.0, fTargLen/2.0 ) );
+
+  return true;
+}
+
+bool G4SBSEventGen::GenerateESEPP(){
+  unsigned int ev = fESEPP->CurrentEvent();
+  G4double ep = fESEPP->GetEprime(ev);
+  G4double etheta = fESEPP->GetEtheta(ev);
+  G4double ephi = fESEPP->GetEphi(ev);
+
+  // std::cout << ev << "  " << ep << "    " << etheta << "   " << ephi << std::endl;
+
+  fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
+  fESEPP->SetUpNextEvent();
 
   return true;
 }

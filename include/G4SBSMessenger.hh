@@ -71,6 +71,8 @@ private:
   
   G4UIcmdWithAString *ECALmapfileCmd; //Set name of text file with list of active rows and columns for ECAL
 
+  G4UIcmdWithAString *ESEPPfileCmd;
+
   //Flag to build evacuated scattering chamber for gas target:
   //G4UIcmdWithAnInteger *SchamGasTgtCmd;
 

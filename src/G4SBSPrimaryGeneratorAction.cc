@@ -70,7 +70,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   int ntries = 1;
   while( !sbsgen->GenerateEvent() ){ ntries++; }
 
-//  G4cout << "Got event, ntries = " << ntries << G4endl;
+  //cout << "Got event, ntries = " << ntries << endl;
 
   int ntries_run = RunAction->GetNtries();
   RunAction->SetNtries( ntries_run + ntries );
@@ -112,11 +112,12 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     if( particle != 0 ) SetParticleType( particle );
     particle = GunParticleType;
   }
-
+  
   particleGun->SetParticleDefinition(particle);
 
   particleGun->SetParticleMomentumDirection( sbsgen->GetElectronP().unit() );
-  if( sbsgen->GetKine() != kGun ){ 
+
+  if( sbsgen->GetKine() != kGun && sbsgen->GetKine() != kESEPP ){ 
     particleGun->SetParticleEnergy(sbsgen->GetElectronE());
   } else { //kGun!
     //SetParticleEnergy sets the ***kinetic energy*** of particles
@@ -138,7 +139,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   if( sbsgen->GetKine()!= kWiser ){
     particleGun->SetParticlePolarization( G4ThreeVector(0.0,0.0,0.0) );
     //G4cout << "Gun polarization for the primary electron: " << particleGun->GetParticlePolarization() << G4endl;
-    if( sbsgen->GetKine() == kGun ){ //If a gun polarization is defined, transform polarization to TRANSPORT coordinates and set particle polarization:
+    if( sbsgen->GetKine() == kGun ||  sbsgen->GetKine() == kESEPP ){ //If a gun polarization is defined, transform polarization to TRANSPORT coordinates and set particle polarization:
       gen_t gendata = fIO->GetGenData();
       G4double sbsangle = gendata.thsbs;
 
@@ -242,7 +243,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   // Only do final nucleon/hadron for generators other than
   // the generic beam generator
-  if( sbsgen->GetKine() != kBeam && sbsgen->GetKine() != kGun ){
+  if( sbsgen->GetKine() != kBeam && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kESEPP ){
     //G4cout << "Gun polarization = " << particleGun->GetParticlePolarization() << G4endl;
       particleGun->GeneratePrimaryVertex(anEvent);
   }

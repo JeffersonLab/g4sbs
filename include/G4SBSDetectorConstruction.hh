@@ -92,6 +92,7 @@ public:
   G4SBSGlobalField *fGlobalField;
 
   void SetECALmapfilename( G4String );
+  void SetESEPPfilename( G4String );
   G4String GetECALmapfilename(){ return fECALmapfilename; }
 
   // int TrackerIDnumber;
@@ -133,6 +134,7 @@ private:
   G4SBSMagneticField *f48d48field;
   
   G4String fECALmapfilename;
+  G4String fESEPPfilename;
 
   //Let's define some additional configurable properties of 48D48:
   G4double f48D48_uniform_bfield; //set magnitude (and polarity) of SBS magnetic field (direction is fixed)

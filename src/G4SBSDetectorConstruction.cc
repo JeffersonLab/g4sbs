@@ -2302,6 +2302,10 @@ void G4SBSDetectorConstruction::SetECALmapfilename( G4String sname ){
   fECALmapfilename = sname;
 }
 
+void G4SBSDetectorConstruction::SetESEPPfilename( G4String sname ){
+  fESEPPfilename = sname;
+}
+
 void G4SBSDetectorConstruction::SetCDetconfig( int cdetconfig ){
   fCDetOption = cdetconfig;
 }

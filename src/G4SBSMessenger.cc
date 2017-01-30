@@ -68,6 +68,10 @@ G4SBSMessenger::G4SBSMessenger(){
   ECALmapfileCmd->SetGuidance("Name of text file listing active ECAL cells (assumed to be located in database/)");
   ECALmapfileCmd->SetParameterName("ECALmapfile",false);
 
+  ESEPPfileCmd = new G4UIcmdWithAString("/g4sbs/ESEPPfile",this);
+  ESEPPfileCmd->SetGuidance("Name of ESEPP output file, located in database/)");
+  ESEPPfileCmd->SetParameterName("ESEPPfile",false);
+
   fileCmd = new G4UIcmdWithAString("/g4sbs/filename",this);
   fileCmd->SetGuidance("Output ROOT filename");
   fileCmd->SetParameterName("filename", false);
@@ -81,7 +85,7 @@ G4SBSMessenger::G4SBSMessenger(){
   tgtCmd->SetParameterName("targtype", false);
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
-  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6");
+  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, esepp");
   kineCmd->SetParameterName("kinetype", false);
 
   PYTHIAfileCmd = new G4UIcmdWithAString("/g4sbs/pythia6file",this);
@@ -462,6 +466,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->SetECALmapfilename( newValue );
   }
 
+  if( cmd == ESEPPfileCmd ){
+    fdetcon->SetESEPPfilename( newValue );
+  }
+
   if( cmd == kineCmd ){
     bool validcmd = false;
     if( newValue.compareTo("elastic") == 0 ){
@@ -500,6 +508,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( newValue.compareTo("pythia6") == 0 ){
       fevgen->SetKine( kPYTHIA6 );
       fIO->SetUsePythia6( true );
+      validcmd = true;
+    }
+    if( newValue.compareTo("esepp") == 0 ){
+      fevgen->SetKine( kESEPP );
       validcmd = true;
     }
 

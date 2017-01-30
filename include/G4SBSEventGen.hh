@@ -14,6 +14,7 @@
 #include "TTree.h"
 #include "TChain.h"
 #include "Pythia6_tree.h"
+#include "G4SBSESEPP.hh"
 
 #define MAXMOMPT 1000 // N points for targets momentum distribution interpolations
 
@@ -137,7 +138,8 @@ private:
   bool GenerateWiser( Nucl_t, G4LorentzVector, G4LorentzVector );
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
-  
+  bool GenerateESEPP();
+
   double deutpdist( double );
   double he3pdist( Nucl_t, double );
   
@@ -152,6 +154,7 @@ private:
   Pythia6_tree *fPythiaTree;
   
   G4SBSPythiaOutput fPythiaEvent;
+  G4SBSESEPP *fESEPP;
 };
 
 #endif//G4SBSEVENTGEN_HH

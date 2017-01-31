@@ -341,7 +341,7 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
       ty[gemID][trid] = y[gemID][trid];
       txp[gemID][trid] = txp[gemID][trid]*w +( (*hits)[i]->GetXp() )*(1.0-w);
       typ[gemID][trid] = typ[gemID][trid]*w +( (*hits)[i]->GetYp() )*(1.0-w);
-
+      
       xg[gemID][trid] = xg[gemID][trid]*w +( (*hits)[i]->GetGlobalPos().x() )*(1.0-w);
       yg[gemID][trid] = yg[gemID][trid]*w +( (*hits)[i]->GetGlobalPos().y() )*(1.0-w);
       zg[gemID][trid] = zg[gemID][trid]*w +( (*hits)[i]->GetGlobalPos().z() )*(1.0-w);

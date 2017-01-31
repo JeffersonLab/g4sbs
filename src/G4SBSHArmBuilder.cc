@@ -144,9 +144,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       //Define the rotation matrix for the FPP (pitch angle of 5 deg relative to vertical): 
       G4double sbsboxpitch = 5.0*deg;
       G4RotationMatrix *SBS_FPP_rm = new G4RotationMatrix;
-      SBS_FPP_rm->rotateY( f48D48ang );
-      SBS_FPP_rm->rotateX( sbsboxpitch );
-
+      
       //FPP box: 
       double sbsdepth  = 3.0*m;
       double sbswidth  = 2.0*m;

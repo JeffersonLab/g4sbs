@@ -173,6 +173,12 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       particle = particleTable->FindParticle(particleName="geantino");
       break;
     } 
+
+    // Only protons for ESEPP:
+    // if( sbsgen->GetKine() == kESEPP ){
+    //particle = particleTable->FindParticle(particleName="proton");
+    //}
+
     particleGun->SetParticleDefinition(particle);
 
     // Ensure we're doing something sensible for Geant4
@@ -226,6 +232,10 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       particle = particleTable->FindParticle(particleName="pi+");
       break;
     }
+
+    // if( sbsgen->GetKine() == kESEPP ){
+    // particle = particleTable->FindParticle(particleName="gamma");
+    // }
 
     particleGun->SetParticleDefinition( particle );
     if( sbsgen->GetHadronE()-particle->GetPDGMass() > 0.0 ) {

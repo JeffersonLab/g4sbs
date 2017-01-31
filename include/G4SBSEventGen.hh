@@ -83,6 +83,11 @@ public:
 
   void SetHCALDist(double v){ fHCALdist = v;}
   
+  void SetESEPP_Rad(bool state)   { fESEPP_Rad = state;   }
+  void SetESEPP_Rosen(bool state) { fESEPP_Rosen = state; }
+  void InitESEPPGenerator(TString name);
+  void LoadESEPPGenerator();
+
   double GetHcalDist(){ return fHCALdist; }
   double GetToFres(){ return fToFres; }
 
@@ -94,6 +99,8 @@ public:
   
   void LoadPythiaChain(G4String fname);
 private:
+  bool fESEPP_Rad, fESEPP_Rosen;
+
   double fElectronE, fNucleonE, fHadronE, fBeamE;
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
   G4ThreeVector fHadronP;

@@ -68,8 +68,16 @@ G4SBSMessenger::G4SBSMessenger(){
   ECALmapfileCmd->SetGuidance("Name of text file listing active ECAL cells (assumed to be located in database/)");
   ECALmapfileCmd->SetParameterName("ECALmapfile",false);
 
+  ESEPP_RadCmd = new G4UIcmdWithABool("/g4sbs/ESEPP_RadEvents", this);
+  ESEPP_RadCmd->SetGuidance("Generate radiative corrections using ESEPP generator.");
+  ESEPP_RadCmd->SetParameterName("ESEPP_RadEvents", false);
+
+  ESEPP_RosenCmd = new G4UIcmdWithABool("/g4sbs/ESEPP_RosenEvents", this);
+  ESEPP_RosenCmd->SetGuidance("Generate Rosenbluth events using ESEPP generator.");
+  ESEPP_RosenCmd->SetParameterName("ESEPP_RosenEvents", false);
+
   ESEPPfileCmd = new G4UIcmdWithAString("/g4sbs/ESEPPfile",this);
-  ESEPPfileCmd->SetGuidance("Name of ESEPP output file, located in database/)");
+  ESEPPfileCmd->SetGuidance("Name of ESEPP output file, located in database/. Must be last ESEPP command.");
   ESEPPfileCmd->SetParameterName("ESEPPfile",false);
 
   fileCmd = new G4UIcmdWithAString("/g4sbs/filename",this);
@@ -393,7 +401,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     
     fevgen->SetNevents(nevt);
-	
+
+    // Constructor Needs # of Events
+    fevgen->LoadESEPPGenerator();
+    
     //Clean out and rebuild the detector geometry from scratch: 
 
     G4SolidStore::GetInstance()->Clean();
@@ -466,10 +477,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->SetECALmapfilename( newValue );
   }
 
-  if( cmd == ESEPPfileCmd ){
-    fdetcon->SetESEPPfilename( newValue );
+  if( cmd ==  ESEPP_RadCmd ){
+    fevgen->SetESEPP_Rad( newValue );
   }
-
+  if( cmd == ESEPP_RosenCmd ){
+    fevgen->SetESEPP_Rosen( newValue );
+  }
   if( cmd == kineCmd ){
     bool validcmd = false;
     if( newValue.compareTo("elastic") == 0 ){
@@ -525,6 +538,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == PYTHIAfileCmd ){
     fevgen->LoadPythiaChain( newValue );
+  }
+
+  if( cmd == ESEPPfileCmd ){
+    fevgen->InitESEPPGenerator( newValue );
   }
 
   if( cmd == expCmd ){

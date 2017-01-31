@@ -8,23 +8,37 @@
 class G4SBSESEPP{
 private:
 
-public:
-  G4SBSESEPP();
-  ~G4SBSESEPP(){};
-  void Clear();
-  void ConvertToTreeUnits();
-  void LoadESEPPOutput(TString);
-
-  void SetUpNextEvent(){ fEvent++; }
-  int CurrentEvent(){ return fEvent; }
-
   // List of outgoing particle energies (MeV):
-  std::vector<double> fEp, fPp, fGp;
+  // fEp = Outgoing Electron
+  // fPp = Outgoing Proton
+  // fGp = Outgoing Brem Photon
+  std::vector<double> fEp, fPp, fGp; // should be const..
+
   // List of outgoing angles (Radians):
   std::vector<double> fEth, fEphi, fPth, fPphi, fGth, fGphi;
 
-  static unsigned int fEvent; // Global index to access event level info
-  int GetNEvents() { return fEp.size(); }
+  TString fRadFileName;   // File name for Radiative Events
+  TString fRosenFileName; // File name for Rosenbluth Events
+  bool fRosenbluth;       // Do we want Rosenbluth events as well?
+  bool fRad;              // Do we want Radiative Events?
+  int fUserEvents;        // Nevents defined in .mac file
+  
+  void LoadRadEvents();
+  void LoadRosenbluthEvents();
+  void Clear();
+  void OpenFile(TString);
+
+public:
+  G4SBSESEPP(bool,bool); // # of events, name of file, rad, rosenbluth
+  ~G4SBSESEPP(){};
+
+  void SetUpNextEvent(){ fEvent++; }
+  int CurrentEvent(){ return fEvent; }
+  void LoadFiles(int);
+  void SetName(TString);
+
+  // Global index to access vectors on an event basis
+  static unsigned int fEvent;
 
   double GetEprime(unsigned int index);
   double GetEtheta(unsigned int index);

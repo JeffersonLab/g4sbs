@@ -80,13 +80,26 @@ G4SBSEventGen::G4SBSEventGen(){
   fPythiaTree = NULL;
   fchainentry = 0;
 
-  fESEPP = new G4SBSESEPP();
+  fESEPP_Rad   = true;
+  fESEPP_Rosen = false;
 }
 
 
 G4SBSEventGen::~G4SBSEventGen(){
   delete fPythiaChain;
   delete fPythiaTree;
+  delete fESEPP;
+}
+
+void G4SBSEventGen::InitESEPPGenerator(TString name){
+  // Initialize & Set ESEPP File Name
+  fESEPP = new G4SBSESEPP(fESEPP_Rad,fESEPP_Rosen);
+  fESEPP->SetName(name);
+}
+
+void G4SBSEventGen::LoadESEPPGenerator(){
+  // Open up the appropriate text files
+  fESEPP->LoadFiles(fNevt);
 }
 
 void G4SBSEventGen::LoadPythiaChain( G4String fname ){
@@ -1214,15 +1227,29 @@ bool G4SBSEventGen::GenerateGun(){
 
 bool G4SBSEventGen::GenerateESEPP(){
   unsigned int ev = fESEPP->CurrentEvent();
+  // Electron
   G4double ep = fESEPP->GetEprime(ev);
   G4double etheta = fESEPP->GetEtheta(ev);
   G4double ephi = fESEPP->GetEphi(ev);
-
+  // Proton
+  // G4double pp = fESEPP->GetPprime(ev);
+  // G4double ptheta = fESEPP->GetPtheta(ev);
+  // G4double pphi = fESEPP->GetPphi(ev);
+  // // Brem Photon
+  // G4double gp = fESEPP->GetGprime(ev);
+  // G4double gtheta = fESEPP->GetGtheta(ev);
+  // G4double gphi = fESEPP->GetGphi(ev);
   // std::cout << ev << "  " << ep << "    " << etheta << "   " << ephi << std::endl;
 
   fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
-  fESEPP->SetUpNextEvent();
+  
+  // fNucleonP.set( pp*sin(ptheta)*cos(pphi), pp*sin(ptheta)*sin(pphi), pp*cos(ptheta) );
+  // fNucleonE = pp;
 
+  // fHadronE = gp;
+  // fHadronP.set( gp*sin(gtheta)*cos(gphi), gp*sin(gtheta)*sin(gphi), gp*cos(gtheta) );
+
+  fESEPP->SetUpNextEvent();
   return true;
 }
 

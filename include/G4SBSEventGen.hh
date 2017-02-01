@@ -83,9 +83,9 @@ public:
 
   void SetHCALDist(double v){ fHCALdist = v;}
   
-  void SetESEPP_Rad(bool state)   { fESEPP_Rad = state;   }
-  void SetESEPP_Rosen(bool state) { fESEPP_Rosen = state; }
-  void InitESEPPGenerator(TString name);
+  void SetESEPP_Rad(bool v){ std::cout << "SetRad " << v << std::endl; fRad = v; }
+  void SetESEPP_Rosen(bool v){  std::cout << "SetRose " << v << std::endl; fRosen = v; }
+  void SetESEPP_name(TString a){ fESEPPname = a; }
   void LoadESEPPGenerator();
 
   double GetHcalDist(){ return fHCALdist; }
@@ -98,8 +98,13 @@ public:
   TChain *GetPythiaChain(){ return fPythiaChain; }
   
   void LoadPythiaChain(G4String fname);
+
+  int GetNevt() {return fNevt;}
+
 private:
-  bool fESEPP_Rad, fESEPP_Rosen;
+  bool fRad;
+  bool fRosen;
+  TString fESEPPname;
 
   double fElectronE, fNucleonE, fHadronE, fBeamE;
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
@@ -107,7 +112,7 @@ private:
   G4ThreeVector fBeamPol;
 
   double fWeight, fQ2, fW2, fxbj, fSigma, fAperp, fApar;
-  double fPt, fPl;  // born-approx polarization componenets
+  double fPt, fPl;  // born-approx polarization components
   int fhel;         // electron beam helicity
   
   //Define additional kinematic quantities for SIDIS:
@@ -161,6 +166,7 @@ private:
   Pythia6_tree *fPythiaTree;
   
   G4SBSPythiaOutput fPythiaEvent;
+
   G4SBSESEPP *fESEPP;
 };
 

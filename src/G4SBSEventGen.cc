@@ -15,7 +15,6 @@
 #include "G4Proton.hh"
 #include "G4AntiProton.hh"
 
-
 #include "wiser_pion.h"
 
 #include <errno.h>
@@ -80,8 +79,11 @@ G4SBSEventGen::G4SBSEventGen(){
   fPythiaTree = NULL;
   fchainentry = 0;
 
-  fESEPP_Rad   = true;
-  fESEPP_Rosen = false;
+  fRad = true;
+  fRosen = false;
+  fESEPP = 0;
+
+  fESEPPname = "";
 }
 
 
@@ -91,15 +93,18 @@ G4SBSEventGen::~G4SBSEventGen(){
   delete fESEPP;
 }
 
-void G4SBSEventGen::InitESEPPGenerator(TString name){
-  // Initialize & Set ESEPP File Name
-  fESEPP = new G4SBSESEPP(fESEPP_Rad,fESEPP_Rosen);
-  fESEPP->SetName(name);
-}
-
 void G4SBSEventGen::LoadESEPPGenerator(){
   // Open up the appropriate text files
-  fESEPP->LoadFiles(fNevt);
+  fESEPP = new G4SBSESEPP();
+  fESEPP->LoadFiles(fNevt,fESEPPname,fRad,fRosen);
+  // The results of user input and/or ESEPP file can change the 
+  // number of events generated..
+  int evts = fESEPP->GetEventN();
+  if( evts != fNevt ){
+    fNevt = evts;
+    std::cout << "Notice: ESEPP is changing number of events to be generated "
+	      << "to " << fNevt << "!" << std::endl;
+  }
 }
 
 void G4SBSEventGen::LoadPythiaChain( G4String fname ){

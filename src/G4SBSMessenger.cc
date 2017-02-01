@@ -69,15 +69,15 @@ G4SBSMessenger::G4SBSMessenger(){
   ECALmapfileCmd->SetParameterName("ECALmapfile",false);
 
   ESEPP_RadCmd = new G4UIcmdWithABool("/g4sbs/ESEPP_RadEvents", this);
-  ESEPP_RadCmd->SetGuidance("Generate radiative corrections using ESEPP generator.");
+  ESEPP_RadCmd->SetGuidance("Generate radiative corrections using ESEPP generator (default = true)");
   ESEPP_RadCmd->SetParameterName("ESEPP_RadEvents", false);
 
   ESEPP_RosenCmd = new G4UIcmdWithABool("/g4sbs/ESEPP_RosenEvents", this);
-  ESEPP_RosenCmd->SetGuidance("Generate Rosenbluth events using ESEPP generator.");
+  ESEPP_RosenCmd->SetGuidance("Generate Rosenbluth events using ESEPP generator (default = false)");
   ESEPP_RosenCmd->SetParameterName("ESEPP_RosenEvents", false);
 
   ESEPPfileCmd = new G4UIcmdWithAString("/g4sbs/ESEPPfile",this);
-  ESEPPfileCmd->SetGuidance("Name of ESEPP output file, located in database/. Must be last ESEPP command.");
+  ESEPPfileCmd->SetGuidance("Name of ESEPP output file, must be located in esepp/");
   ESEPPfileCmd->SetParameterName("ESEPPfile",false);
 
   fileCmd = new G4UIcmdWithAString("/g4sbs/filename",this);
@@ -402,9 +402,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
     fevgen->SetNevents(nevt);
 
-    // Constructor Needs # of Events
+    // ESEPP related info:
+    // There is a possibility that ESEPP will update the # of events
     fevgen->LoadESEPPGenerator();
-    
+    nevt = fevgen->GetNevt();
+
     //Clean out and rebuild the detector geometry from scratch: 
 
     G4SolidStore::GetInstance()->Clean();
@@ -477,12 +479,6 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->SetECALmapfilename( newValue );
   }
 
-  if( cmd ==  ESEPP_RadCmd ){
-    fevgen->SetESEPP_Rad( newValue );
-  }
-  if( cmd == ESEPP_RosenCmd ){
-    fevgen->SetESEPP_Rosen( newValue );
-  }
   if( cmd == kineCmd ){
     bool validcmd = false;
     if( newValue.compareTo("elastic") == 0 ){
@@ -541,7 +537,17 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
 
   if( cmd == ESEPPfileCmd ){
-    fevgen->InitESEPPGenerator( newValue );
+    fevgen->SetESEPP_name( newValue );
+  }
+
+  if( cmd ==  ESEPP_RadCmd ){
+    G4bool b = ESEPP_RadCmd->GetNewBoolValue(newValue);
+    fevgen->SetESEPP_Rad( b );
+  }
+
+  if( cmd == ESEPP_RosenCmd ){
+    G4bool b = ESEPP_RosenCmd->GetNewBoolValue(newValue);
+    fevgen->SetESEPP_Rosen( b );
   }
 
   if( cmd == expCmd ){

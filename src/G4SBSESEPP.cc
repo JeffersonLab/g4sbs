@@ -1,9 +1,15 @@
 #include "G4SBSESEPP.hh"
 #include <fstream>
 
-G4SBSESEPP::G4SBSESEPP(bool rad=true, bool rosenbluth=false) :
-  fRad(rad), fRosenbluth(rosenbluth) {
+G4SBSESEPP::G4SBSESEPP() {
   Clear();
+  fRadFileName = "";
+  fRosenFileName = "";
+  fRad = true;
+  fRosenbluth = false;
+  fUserEvents = 0;
+  fRadEvents = 0;
+  fRosenEvents = 0;
 }
 
 void G4SBSESEPP::Clear(){
@@ -17,17 +23,25 @@ void G4SBSESEPP::Clear(){
   fGth.clear();
   fGphi.clear();
 }
-
+////////////////////////////////////////////////////////////////////////////////
+// The all important global index - accesses all containers within this
+// class and gets incremented once per event. Doesn't have to be static...
+//
 unsigned int G4SBSESEPP::fEvent = 0;
 
-void G4SBSESEPP::SetName(TString name){
-  fRadFileName = "database/" + name;
-}
-
-void G4SBSESEPP::LoadFiles(int n){
+////////////////////////////////////////////////////////////////////////////////
+// Allow G4SBSEventGen access
+//
+void G4SBSESEPP::LoadFiles(int n,TString name,bool rad,bool rose){
   fUserEvents = n;
+  fRadFileName = "esepp/" + name;
+  fRad = rad;
+  fRosenbluth = rose;
 
-  if( fRad && fRosenbluth ) fUserEvents /= 2;
+  if( fRad && fRosenbluth ) {
+    if( fUserEvents == 1 ) fUserEvents++;
+    fUserEvents /= 2;
+  }
 
   if( fRad )  LoadRadEvents();
 
@@ -40,6 +54,10 @@ void G4SBSESEPP::LoadFiles(int n){
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Open .dat files - handle containers - change N events to be generated
+// if necessary
+//
 void  G4SBSESEPP::OpenFile(TString name){
   const char* filename = name;
   int temp = 0; // line #
@@ -74,7 +92,9 @@ void  G4SBSESEPP::OpenFile(TString name){
     }
   } else {
     std::cerr << "Error: " << name << " did not "
-	      << "open properly. Check for typos in .mac file." << std::endl;
+	      << "open properly. Check for typos in .mac file or " 
+	      << "add the /g4sbs/ESEPPfile <filename> command. Put file "
+	      << "in the esepp/ directory." << std::endl;
   }
   input.close();
 
@@ -86,19 +106,29 @@ void  G4SBSESEPP::OpenFile(TString name){
   
   std::cout << "Loaded " << temp << " ESEPP events from " 
 	    << name << "." << std::endl;
+
+  // This will change # of events to be generated, if necessary.
+  if(fRad) fRadEvents = temp;
+  if(fRosenbluth) fRosenEvents = temp;
 }
 
-
+////////////////////////////////////////////////////////////////////////////////
+// Load up standard ESEPP .dat file output.
+//
 void G4SBSESEPP::LoadRadEvents(){
   OpenFile(fRadFileName);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Load up optional ESEPP Rosenbluth .dat file output.
+//
 void G4SBSESEPP::LoadRosenbluthEvents(){
   OpenFile(fRosenFileName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Some get-methods to access the containers
+//
 double G4SBSESEPP::GetEprime(unsigned int index){
   if( index >= fEp.size() ) {
     std::cerr << "Error accessing Eprime due to bad index!" << std::endl;

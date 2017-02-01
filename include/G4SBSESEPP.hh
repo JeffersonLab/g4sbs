@@ -19,27 +19,35 @@ private:
 
   TString fRadFileName;   // File name for Radiative Events
   TString fRosenFileName; // File name for Rosenbluth Events
-  bool fRosenbluth;       // Do we want Rosenbluth events as well?
-  bool fRad;              // Do we want Radiative Events?
+  bool fRad;              // Radiative Flag
+  bool fRosenbluth;       // Rosenbluth Flag
   int fUserEvents;        // Nevents defined in .mac file
   
-  void LoadRadEvents();
-  void LoadRosenbluthEvents();
-  void Clear();
-  void OpenFile(TString);
+  void LoadRadEvents();        // Easier to read
+  void LoadRosenbluthEvents(); // " "
+  void Clear();                // 
+  void OpenFile(TString);      //
+
+  int fRadEvents,fRosenEvents; // N events actually found in .dat files
 
 public:
-  G4SBSESEPP(bool,bool); // # of events, name of file, rad, rosenbluth
+  G4SBSESEPP();
   ~G4SBSESEPP(){};
 
+  // Keep track of global index within EventGen:
   void SetUpNextEvent(){ fEvent++; }
   int CurrentEvent(){ return fEvent; }
-  void LoadFiles(int);
-  void SetName(TString);
 
-  // Global index to access vectors on an event basis
+  // Load files within EventGen:
+  void LoadFiles(int,TString,bool,bool);
+
+  // Global index to access vectors on an event basis:
   static unsigned int fEvent;
 
+  // Get # events found in files:
+  int GetEventN(){ return fRadEvents + fRosenEvents; }
+
+  // Access containers:
   double GetEprime(unsigned int index);
   double GetEtheta(unsigned int index);
   double GetEphi(unsigned int index);

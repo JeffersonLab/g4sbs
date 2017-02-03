@@ -1244,7 +1244,7 @@ bool G4SBSEventGen::GenerateESEPP(){
   // G4double gp = fESEPP->GetGprime(ev);
   // G4double gtheta = fESEPP->GetGtheta(ev);
   // G4double gphi = fESEPP->GetGphi(ev);
-  // std::cout << ev << "  " << ep << "    " << etheta << "   " << ephi << std::endl;
+  //std::cout << ev << "  " << ep << "    " << etheta << "   " << ephi << std::endl;
 
   fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
   

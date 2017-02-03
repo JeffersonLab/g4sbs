@@ -304,6 +304,9 @@ void G4SBSIO::BranchGEM(G4String SDname="GEM"){
   fTree->Branch( branch_name.Format( "%s.hit.ty", branch_prefix.Data() ), &(GEMdata[SDname].ty) );
   fTree->Branch( branch_name.Format( "%s.hit.txp", branch_prefix.Data() ), &(GEMdata[SDname].txp) );
   fTree->Branch( branch_name.Format( "%s.hit.typ", branch_prefix.Data() ), &(GEMdata[SDname].typ) );
+  fTree->Branch( branch_name.Format( "%s.hit.xg", branch_prefix.Data() ), &(GEMdata[SDname].xg) );
+  fTree->Branch( branch_name.Format( "%s.hit.yg", branch_prefix.Data() ), &(GEMdata[SDname].yg) );
+  fTree->Branch( branch_name.Format( "%s.hit.zg", branch_prefix.Data() ), &(GEMdata[SDname].zg) );
   fTree->Branch( branch_name.Format( "%s.hit.trid", branch_prefix.Data() ), &(GEMdata[SDname].trid) );
   fTree->Branch( branch_name.Format( "%s.hit.mid", branch_prefix.Data() ), &(GEMdata[SDname].mid) );
   fTree->Branch( branch_name.Format( "%s.hit.pid", branch_prefix.Data() ), &(GEMdata[SDname].pid) );

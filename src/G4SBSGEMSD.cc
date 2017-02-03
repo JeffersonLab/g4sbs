@@ -42,7 +42,7 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   
   double edep = aStep->GetTotalEnergyDeposit();
   const G4ParticleDefinition *particle = aStep->GetTrack()->GetParticleDefinition();
-
+  
   // Charged geantinos always get tracked
   if( edep <= 0.0 && !(particle->GetParticleName()=="chargedgeantino") ) return false;
 
@@ -63,11 +63,12 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   G4AffineTransform aTrans = hist->GetHistory()->GetTransform(hist->GetHistoryDepth()-2);
 
   G4ThreeVector pos = aStep->GetPreStepPoint()->GetPosition(); //global position of prestep point
-
+  G4ThreeVector gpos = pos;// variable for global position
+  
   hit->SetGlobalPos(pos);
   
   pos = aTrans.TransformPoint(pos); //local position in "tracker box"
-
+  
   // Track Polarization in the same manner as pos
   G4ThreeVector polarization = aStep->GetPreStepPoint()->GetPolarization();
   polarization = aTrans.TransformAxis(polarization);
@@ -92,6 +93,7 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   hit->SetEdep(edep); //energy deposition
   hit->SetPos(pos); //position in tracker box coordinates
+  hit->SetGlobalPos(gpos); //position in lab frame
   hit->SetPolarization(polarization); //polarization
   hit->SetVertex(aStep->GetTrack()->GetVertexPosition()); //vertex location in global coordinates of particle that caused hit
   hit->SetMID(aStep->GetTrack()->GetParentID()); 

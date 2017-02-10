@@ -18,8 +18,14 @@ public:
 
   void BuildCryoTarget(G4LogicalVolume *);
   void BuildC16CryoTarget(G4LogicalVolume *);
-  void BuildStandardCryoTarget(G4LogicalVolume *);
   void BuildGasTarget(G4LogicalVolume *);
+  void BuildStandardCryoTarget(G4LogicalVolume *, G4double, G4double);
+  
+  //EFuchey: 2017/02/10: Added those functions to build scattering chamber separately from target,
+  //and avoid, if possible, duplicates of the code actually building the target.
+  void BuildGEpScatCham(G4LogicalVolume *);
+  void BuildStandardScatCham(G4LogicalVolume *);
+  void BuildC16ScatCham(G4LogicalVolume *);
 
   void SetTarget(Targ_t t){fTargType = t;}
   void SetTargLen(double len){ fTargLen = len;}

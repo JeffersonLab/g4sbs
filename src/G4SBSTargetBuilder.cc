@@ -631,7 +631,66 @@ void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
   // TUB3_log->SetVisAttributes( ironColor );
 }
 
-//  void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *worldlog){
+// EFuchey: 2017/02/10: Making a standard function to build the cryotarget itself.
+// The code for building C16 and GEp are indeed almost identical.
+void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog, G4double Xangle, G4double Yoffset){
+  // Now let's make a cryotarget:
+  G4double Rcell = 4.0*cm;
+  G4double uthick = 0.1*mm;
+  G4double dthick = 0.15*mm;
+  G4double sthick = 0.2*mm;
+  
+  G4Tubs *TargetMother_solid = new G4Tubs( "TargetMother_solid", 0, Rcell + sthick, (fTargLen+uthick+dthick)/2.0, 0.0, twopi );
+  G4LogicalVolume *TargetMother_log = new G4LogicalVolume( TargetMother_solid, GetMaterial("Vacuum"), "TargetMother_log" );
+  
+  G4Tubs *TargetCell = new G4Tubs( "TargetCell", 0, Rcell, fTargLen/2.0, 0, twopi );
+  
+  G4LogicalVolume *TargetCell_log;
+  
+  if( fTargType == kLH2 ){
+    TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LH2"), "TargetCell_log" );
+  } else {
+    TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
+  }
+  
+  G4Tubs *TargetWall = new G4Tubs("TargetWall", Rcell, Rcell + sthick, fTargLen/2.0, 0, twopi );
+  
+  G4LogicalVolume *TargetWall_log = new G4LogicalVolume( TargetWall, GetMaterial("Al"), "TargetWall_log" );
+  
+  G4Tubs *UpstreamWindow = new G4Tubs("UpstreamWindow", 0, Rcell + sthick, uthick/2.0, 0, twopi );
+  G4Tubs *DownstreamWindow = new G4Tubs("DownstreamWindow", 0, Rcell + sthick, dthick/2.0, 0, twopi );
+  
+  G4LogicalVolume *uwindow_log = new G4LogicalVolume( UpstreamWindow, GetMaterial("Al"), "uwindow_log" );
+  G4LogicalVolume *dwindow_log = new G4LogicalVolume( DownstreamWindow, GetMaterial("Al"), "dwindow_log" );
+  
+  // Now place everything:
+  // Need to fix this later: Union solid defining vacuum chamber 
+  // needs to be defined with the cylinder as the first solid 
+  // so that we can place the target as a daughter volume at the origin!
+  
+  G4double ztemp = -(fTargLen+uthick+dthick)/2.0;
+  // Place upstream window:
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+uthick/2.0), uwindow_log, "uwindow_phys", TargetMother_log, false, 0 );
+  // Place target and side walls:
+  ztemp += uthick;
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetCell_log, "TargetCell_phys", TargetMother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetWall_log, "TargetWall_phys", TargetMother_log, false, 0 );
+  ztemp += fTargLen;
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+dthick/2.0), dwindow_log, "dwindow_phys", TargetMother_log, false, 0 );
+  
+  G4double targ_zcenter = (uthick-dthick)/2.0; //position of target center relative to target mother volume
+   
+  G4RotationMatrix *rot_temp = new G4RotationMatrix;
+  //Compute position of target relative to scattering chamber:
+  //The target center should be at
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateX( Xangle );
+  
+  //for z of target center to be at zero, 
+  
+  new G4PVPlacement( rot_temp, G4ThreeVector(0, -(Yoffset-targ_zcenter) ,0), TargetMother_log, "TargetMother_phys", motherlog, false, 0 );
+}
+
 //   //////////////////////////////////////////////////////////////////
 
 //   double snoutclear = 0.45*m;

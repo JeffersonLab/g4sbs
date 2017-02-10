@@ -344,15 +344,11 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
    */
   G4String GC_Tank_Name("GC_Tank");
   G4String GC_Tank_Material=("C4F8O");
-  //to restore former configuration:
-  //G4cout << " WARNING ---- !!! Using OLD GRINCH geometry ---- !!! " << G4endl;// uncomment this line
-  G4cout << " Using new GRINCH geometry... " << G4endl;//and comment this one
-  //G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth, 200.0*cm, 150.229*cm);// uncomment this line
-  G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth, 247.0*cm, 114.8*cm);//and comment this one
-  //G4double GC_Tank_Thickness= 1.27*cm; // uncomment this line
-  G4double GC_Tank_Thickness= 0.635*cm;//and comment this one
-  //G4VSolid* GC_Tank_Solid=ConstructSimple(GC_Tank_Name,G4String("G4Box"),GC_Tank_Inner_FullSize);// uncomment this line
-  G4VSolid* GC_Tank_Solid=Construct_GC_Tank_Box(GC_Tank_Name+"_Box", GC_Tank_Inner_FullSize, GC_Tank_Thickness, G4ThreeVector(0,0,0), G4ThreeVector(0,0,0), TankXoffset, true);//and comment this one
+  G4cout << " Using new GRINCH geometry... " << G4endl;
+  G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth, 247.015*cm, 114.800*cm);
+  G4double GC_Tank_Thickness= 0.635*cm;
+  //G4VSolid* GC_Tank_Solid=Construct_GC_Tank_Box(GC_Tank_Name+"_Box", GC_Tank_Inner_FullSize, GC_Tank_Thickness, G4ThreeVector(0,0,0), G4ThreeVector(0,0,0), TankXoffset, true);
+  G4VSolid* GC_Tank_Solid=Construct_GC_Tank_Box(GC_Tank_Name+"_Box", GC_Tank_Inner_FullSize, GC_Tank_Thickness, G4ThreeVector(0,0,0), G4ThreeVector(0,0,0), TankXoffset, true);
   GC_Tank_log=new G4LogicalVolume(GC_Tank_Solid,GetMaterial(GC_Tank_Material),GC_Tank_Name+"_log");
 
   G4VisAttributes* GC_Tank_log_VisAtt = new G4VisAttributes();
@@ -366,8 +362,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   //GC_Tank_Entrance_Window
   G4String GC_Tank_Entrance_Window_Name("GC_Tank_Entrance_Window");
   G4String GC_Tank_Entrance_Window_Material("Aluminum");
-  //G4ThreeVector GC_Tank_Entrance_Window_FullSize(0.01*cm, 170*cm, 45*cm);
-  G4ThreeVector GC_Tank_Entrance_Window_FullSize(0.0127*cm, 170.180*cm, 45.0*cm);
+  G4ThreeVector GC_Tank_Entrance_Window_FullSize(0.0127*cm, 170.180*cm, 45.009*cm);
   G4VSolid* GC_Tank_Entrance_Window_Solid=ConstructSimple(GC_Tank_Entrance_Window_Name,G4String("G4Box"),GC_Tank_Entrance_Window_FullSize);
   G4LogicalVolume* GC_Tank_Entrance_Window_log=new G4LogicalVolume(GC_Tank_Entrance_Window_Solid,GetMaterial(GC_Tank_Entrance_Window_Material),GC_Tank_Entrance_Window_Name+"_log");
 
@@ -383,8 +378,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   //GC_Tank_Exit_Window
   G4String GC_Tank_Exit_Window_Name("GC_Tank_Exit_Window");
   G4String GC_Tank_Exit_Window_Material("Aluminum");
-  //G4ThreeVector GC_Tank_Exit_Window_FullSize(0.01*cm, 200*cm, 55*cm);
-  G4ThreeVector GC_Tank_Exit_Window_FullSize(0.0127*cm, 200*cm, 69.5*cm);
+  G4ThreeVector GC_Tank_Exit_Window_FullSize(0.0127*cm, 200.025*cm, 68.580*cm);
   G4VSolid* GC_Tank_Exit_Window_Solid=ConstructSimple(GC_Tank_Exit_Window_Name,G4String("G4Box"),GC_Tank_Exit_Window_FullSize);
   G4LogicalVolume* GC_Tank_Exit_Window_log=new G4LogicalVolume(GC_Tank_Exit_Window_Solid,GetMaterial(GC_Tank_Exit_Window_Material),GC_Tank_Exit_Window_Name+"_log");
 
@@ -396,6 +390,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 
 
   //GC_Tank_Box
+  //G4VSolid* GC_Tank_Box_Solid=Construct_GC_Tank_Box(GC_Tank_Name+"_Box", GC_Tank_Inner_FullSize, GC_Tank_Thickness, GC_Tank_Entrance_Window_FullSize, GC_Tank_Exit_Window_FullSize, TankXoffset);
   G4VSolid* GC_Tank_Box_Solid=Construct_GC_Tank_Box(GC_Tank_Name+"_Box", GC_Tank_Inner_FullSize, GC_Tank_Thickness, GC_Tank_Entrance_Window_FullSize, GC_Tank_Exit_Window_FullSize, TankXoffset);
   G4LogicalVolume* GC_Tank_Box_log=new G4LogicalVolume(GC_Tank_Box_Solid,GetMaterial("Aluminum"),GC_Tank_Name+"_Box_log");
 

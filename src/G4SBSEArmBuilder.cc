@@ -57,13 +57,22 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fBBang  = 40.0*deg;
   fBBdist = 1.5*m;
 
+  G4double frontGEM_depth = 20.*cm;
+  G4double backGEM_depth = 10.*cm;
+  
   fCerDepth = 92.0*cm;
-  fCerDist  =  7.0*cm;
+  //fCerDist  =  7.0*cm;
+  //fCerDist = 22.0*cm;
+  fCerDist = frontGEM_depth + 2.*cm;
+  
+  // fBBCaldist = 20*cm + fCerDepth;
+  // fGEMDist   = 10*cm + fCerDepth;
+  // fGEMOption = 1;
 
-  fBBCaldist = 20*cm + fCerDepth;
-  fGEMDist   = 10*cm + fCerDepth;
+  fBBCaldist = fCerDist + fCerDepth + backGEM_depth + 5.*cm;
+  fGEMDist   = fCerDist + fCerDepth + 0.5*backGEM_depth;
   fGEMOption = 1;
-
+  
   fUseLocalField = false;
 
   fnzsegments_leadglass_ECAL = 1;
@@ -344,7 +353,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   switch( fGEMOption ){
   case 1:
-    ngem = 4;
+    ngem = 6;
     gemdsep = 0.05*m;
     break;
   case 2:
@@ -366,9 +375,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   gemh.resize(ngem);
   //
   // GEM option 1
-  double gemz_opt1[] = { 0.0*cm, gemdsep, fGEMDist, fGEMDist+gemdsep};
-  double gemw_opt1[] = { 40.0*cm, 40.0*cm, 50.0*cm, 50.0*cm };
-  double gemh_opt1[] = { 150.0*cm, 150.0*cm, 200.0*cm, 200.0*cm };
+  double gemz_opt1[] = { 0.0*cm, gemdsep, 2.*gemdsep, 3.*gemdsep, fGEMDist, fGEMDist+gemdsep};
+  double gemw_opt1[] = { 40.0*cm, 40.0*cm, 40.0*cm, 40.0*cm, 60.0*cm, 60.0*cm };
+  double gemh_opt1[] = { 150.0*cm, 150.0*cm, 150.0*cm, 150.0*cm, 200.0*cm, 200.0*cm };
 
   // GEM option 2
   double gemz_opt2[] = { 0.0*cm, gemdsep, 2.0*gemdsep, 3.0*gemdsep, fGEMDist};

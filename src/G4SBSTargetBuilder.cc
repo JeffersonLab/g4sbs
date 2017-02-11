@@ -55,7 +55,8 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
       BuildC16ScatCham( worldlog );
       break;
     default:
-      BuildCryoTarget( worldlog ); 
+      //BuildGEpScatCham( worldlog );
+      BuildStandardScatCham( worldlog );
       break;
     }
   } else {
@@ -64,578 +65,6 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   
   return;
 
-}
-
-void G4SBSTargetBuilder::BuildCryoTarget(G4LogicalVolume *worldlog){
-
-  if( fFlux ){ //Make a sphere to compute particle flux:
-    G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
-				   0.*deg, 150.*deg );
-    G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
-
-    fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-    
-    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", worldlog, false, 0 );
-
-    G4String FluxSDname = "FLUX";
-    G4String Fluxcollname = "FLUXHitsCollection";
-    G4SBSCalSD *FluxSD = NULL;
-    if( !( FluxSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(FluxSDname) ) ){
-      G4cout << "Adding FLUX SD to SDman..." << G4endl;
-      FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
-      fDetCon->fSDman->AddNewDetector( FluxSD );
-      (fDetCon->SDlist).insert( FluxSDname );
-      fDetCon->SDtype[FluxSDname] = kCAL;
-
-      (FluxSD->detmap).depth = 0;
-    }
-    fsph_log->SetSensitiveDetector( FluxSD );
-  }
-  
-  //New version of buildcryotarget updated with scattering chamber for GEP:
-  //Start with vacuum snout:
-  G4double inch = 2.54*cm;
-
-  //In the following dimensions, "left" and "right" are as viewed from downstream!!!!
-  G4double SnoutBeamPlate_Width = 9.425*inch;
-  G4double SnoutEarmPlate_Width = 34.364*inch;
-  G4double SnoutHarmPlate_Width = 27.831*inch;
-
-  G4double Snout_Height = 37.75*inch;
-  G4double Snout_Thick = 1.0*inch;
-
-  //Window dimensions:
-  G4double SnoutEarmWindow_Rbend_corners = 5.750*inch;
-  G4double SnoutEarmWindow_Width = 2.0*9.625*inch;
-  G4double SnoutEarmWindow_Height = 2.0*15.875*inch;
-  //G4double SnoutEarmOffset = -0.744*inch;
-
-  G4double SnoutHarmWindow_Rbend_corners = 5.000*inch;
-  G4double SnoutHarmWindow_Width = 2.0*8.438*inch;
-  G4double SnoutHarmWindow_Height = 2.0*9.562*inch;
-  //G4double SnoutRightOffset = -1.4595*inch;
-
-  //Aluminium Dimensions - just need to be bigger than window
-  G4double EarmWindowThick = 0.032*inch;
-  G4double HarmWindowThick = 0.020*inch;
-    
-  G4double SnoutEarmWindow_xcenter = SnoutEarmPlate_Width/2.0 - 16.438*inch;
-  G4double SnoutHarmWindow_xcenter = -SnoutHarmPlate_Width/2.0 + 15.375*inch;
-  G4double SnoutEarmWindowAngle = 27.5*deg;
-  G4double SnoutHarmWindowAngle = 22.0*deg;
-
-  G4double SnoutUpstreamHoleDiameter = 4.870*inch; //All the way through:
-  G4double SnoutDownstreamHoleDiameter = 5.010*inch; //To a depth of .26 inches from the front:
-  G4double SnoutDownstreamHoleDepth = 0.260*inch;
-
-  G4double SnoutBeamPlate_xcenter = SnoutBeamPlate_Width/2.0 - 4.591*inch;
-
-  // x coord. relative to center plate! To get coordinate in hall, we want center hole to be positioned at x = 0:
-  G4double SnoutBeamPlate_xcoord = -SnoutBeamPlate_xcenter; // 4.591 - w/2 = -.1215 inch
-  G4double SnoutBeamPlate_zcoord = 48.56*inch; //distance to upstream edge of snout beam plate
-  //If we keep the target center as the origin of Hall A for detector positioning, then we will have to offset everything else in the
-  //target chamber construction
-  G4double TargetCenter_zoffset = 6.50*inch; //offset of target center wrt scattering chamber:
-  
-  //Make Boxes for Snout plates:
-  G4Box *SnoutBeamPlate_Box = new G4Box("SnoutBeamPlate_Box", SnoutBeamPlate_Width/2.0, Snout_Height/2.0, Snout_Thick/2.0 );
-  G4Box *SnoutEarmPlate_Box = new G4Box("SnoutEarmPlate_Box", SnoutEarmPlate_Width/2.0, Snout_Height/2.0, Snout_Thick/2.0 );
-  G4Box *SnoutHarmPlate_Box = new G4Box("SnoutHarmPlate_Box", SnoutHarmPlate_Width/2.0, Snout_Height/2.0, Snout_Thick/2.0 );
-
-  //Make cylinder cutouts for center plate:
-  G4Tubs *SnoutBeamPlate_ThroughHole = new G4Tubs( "SnoutBeamPlate_ThroughHole", 0.0, SnoutUpstreamHoleDiameter/2.0, Snout_Thick/2.0 + mm, 0.0, twopi );
-  G4Tubs *SnoutBeamPlate_CounterBore = new G4Tubs( "SnoutBeamPlate_CounterBore", 0.0, SnoutDownstreamHoleDiameter/2.0, SnoutDownstreamHoleDepth/2.0 + mm, 0.0, twopi );
-
-  //Make subtraction solid(s) for beam plate:
-  G4SubtractionSolid *SnoutBeamPlate_cut1 = new G4SubtractionSolid( "SnoutBeamPlate_cut1", SnoutBeamPlate_Box, SnoutBeamPlate_ThroughHole, 0, G4ThreeVector( SnoutBeamPlate_xcenter, 0, 0 ) );
-  // z - (d/2+mm) = t/2 - d --> z = t/2 - d + d/2 + mm = t/2 - d/2 + mm
-  G4double zoff_cbore = Snout_Thick/2.0 - SnoutDownstreamHoleDepth/2.0 + mm;
-    
-  G4SubtractionSolid *SnoutBeamPlate_cut2 = new G4SubtractionSolid( "SnoutBeamPlate_cut2", SnoutBeamPlate_cut1, SnoutBeamPlate_CounterBore, 0, G4ThreeVector( SnoutBeamPlate_xcenter, 0, zoff_cbore ) );
-
-  //Make Window Box cutouts for Earm and Harm plates:
-  G4Box *EarmWindowCutout_box = new G4Box("EarmWindowCutout_box", SnoutEarmWindow_Width/2.0, SnoutEarmWindow_Height/2.0, Snout_Thick/2.0+mm );
-  G4SubtractionSolid *EarmPlate_cut = new G4SubtractionSolid( "EarmPlate_cut", SnoutEarmPlate_Box, EarmWindowCutout_box, 0, G4ThreeVector( SnoutEarmWindow_xcenter, 0, 0 ) );
-							      
-  G4Box *HarmWindowCutout_box = new G4Box("HarmWindowCutout_box", SnoutHarmWindow_Width/2.0, SnoutHarmWindow_Height/2.0, Snout_Thick/2.0+mm );
-  G4SubtractionSolid *HarmPlate_cut = new G4SubtractionSolid( "HarmPlate_cut", SnoutHarmPlate_Box, HarmWindowCutout_box, 0, G4ThreeVector( SnoutHarmWindow_xcenter, 0, 0 ) );
-
-  //Make rounded corner pieces for later placement (subtraction of box and cylinder):
-  G4Box *EarmWindowCorner_box = new G4Box("EarmWindowCorner_box", SnoutEarmWindow_Rbend_corners/2.0, SnoutEarmWindow_Rbend_corners/2.0, Snout_Thick/2.0 );
-
-  G4Tubs *EarmWindowCorner_cyl = new G4Tubs("EarmWindowCorner_cyl", 0.0, SnoutEarmWindow_Rbend_corners, Snout_Thick/2.0 + mm, 0.0, twopi );
-
-  G4SubtractionSolid *EarmWindowCorner = new G4SubtractionSolid( "EarmWindowCorner", EarmWindowCorner_box, EarmWindowCorner_cyl, 0, G4ThreeVector( SnoutEarmWindow_Rbend_corners/2.0, SnoutEarmWindow_Rbend_corners/2.0, 0.0 ) );
-  G4LogicalVolume *EarmWindowCorner_log = new G4LogicalVolume( EarmWindowCorner, GetMaterial("Stainless_Steel"), "EarmWindowCorner_log" );
-  
-  G4Box *HarmWindowCorner_box = new G4Box("HarmWindowCorner_box", SnoutHarmWindow_Rbend_corners/2.0, SnoutHarmWindow_Rbend_corners/2.0, Snout_Thick/2.0 );
-
-  G4Tubs *HarmWindowCorner_cyl = new G4Tubs("HarmWindowCorner_cyl", 0.0, SnoutHarmWindow_Rbend_corners, Snout_Thick/2.0 + mm, 0.0, twopi );
-
-  G4SubtractionSolid *HarmWindowCorner = new G4SubtractionSolid( "HarmWindowCorner", HarmWindowCorner_box, HarmWindowCorner_cyl, 0, G4ThreeVector( SnoutHarmWindow_Rbend_corners/2.0, SnoutHarmWindow_Rbend_corners/2.0, 0.0 ) );
-  G4LogicalVolume *HarmWindowCorner_log = new G4LogicalVolume( HarmWindowCorner, GetMaterial("Stainless_Steel"), "HarmWindowCorner_log" );
-  
-  //Now we want to put together the three plates that make the Snout:
-  G4ThreeVector Harm_zaxis( -sin(SnoutHarmWindowAngle), 0, cos(SnoutHarmWindowAngle ) );
-  G4ThreeVector Harm_yaxis(0,1,0);
-  G4ThreeVector Harm_xaxis( cos(SnoutHarmWindowAngle), 0, sin(SnoutHarmWindowAngle) );
-
-  G4ThreeVector FrontRightCorner_pos_local( -SnoutBeamPlate_Width/2.0, 0, Snout_Thick/2.0 );
-
-  G4ThreeVector HarmPlate_pos_relative = FrontRightCorner_pos_local - Snout_Thick/2.0 * Harm_zaxis - SnoutHarmPlate_Width/2.0 * Harm_xaxis;
-
-  G4ThreeVector Earm_zaxis( sin(SnoutEarmWindowAngle), 0, cos(SnoutEarmWindowAngle) );
-  G4ThreeVector Earm_yaxis(0,1,0);
-  G4ThreeVector Earm_xaxis( cos(SnoutEarmWindowAngle), 0, -sin(SnoutEarmWindowAngle) );
-  
-  G4ThreeVector FrontLeftCorner_pos_local( SnoutBeamPlate_Width/2.0, 0, Snout_Thick/2.0 );
-  G4ThreeVector EarmPlate_pos_relative = FrontLeftCorner_pos_local - Snout_Thick/2.0 * Earm_zaxis + SnoutEarmPlate_Width/2.0 * Earm_xaxis;
-
-  G4RotationMatrix *rot_harm_window = new G4RotationMatrix;
-  rot_harm_window->rotateY( SnoutHarmWindowAngle );
-
-  G4UnionSolid *BeamHarmUnion = new G4UnionSolid( "BeamHarmUnion", SnoutBeamPlate_cut2, HarmPlate_cut, rot_harm_window, HarmPlate_pos_relative );
-  G4RotationMatrix *rot_earm_window = new G4RotationMatrix;
-  rot_earm_window->rotateY( -SnoutEarmWindowAngle );
-  G4UnionSolid *Snout_solid = new G4UnionSolid("Snout_solid", BeamHarmUnion, EarmPlate_cut, rot_earm_window, EarmPlate_pos_relative );
-  
-  G4LogicalVolume *Snout_log = new G4LogicalVolume( Snout_solid, GetMaterial("Stainless_Steel"), "Snout_log" );
-
-  G4ThreeVector Snout_position_global( SnoutBeamPlate_xcoord, 0, SnoutBeamPlate_zcoord - TargetCenter_zoffset + Snout_Thick/2.0 );
-
-  new G4PVPlacement( 0, Snout_position_global, Snout_log, "Snout_phys", worldlog, false, 0 );
-
-  //Fill the cutouts with vacuum, and then with steel corner pieces:
-  G4LogicalVolume *SnoutHarmWindowCutout_log = new G4LogicalVolume( HarmWindowCutout_box, GetMaterial("Vacuum"), "SnoutHarmWindowCutout_log" );
-  G4LogicalVolume *SnoutEarmWindowCutout_log = new G4LogicalVolume( EarmWindowCutout_box, GetMaterial("Vacuum"), "SnoutEarmWindowCutout_log" );
-
-  G4RotationMatrix *rot_temp = new G4RotationMatrix;
-
-  G4double xtemp, ytemp;
-  xtemp = SnoutHarmWindow_Width/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
-  ytemp = SnoutHarmWindow_Height/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
-  
-  new G4PVPlacement( 0, G4ThreeVector( -xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_right", SnoutHarmWindowCutout_log, false, 0 );
-
-  rot_temp->rotateZ( 90.0*deg ); //clockwise as viewed from downstream, ccw as viewed from upstream!
-  
-  new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_right", SnoutHarmWindowCutout_log, false, 1 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateZ( -90.0*deg );
-
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_left", SnoutHarmWindowCutout_log, false, 2 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateZ( 180.0*deg );
-
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_left", SnoutHarmWindowCutout_log, false, 3 );
-
-  //Finally, place the window cutout globally:
-
-  G4ThreeVector HarmCutout_pos_global = Snout_position_global + FrontRightCorner_pos_local - Snout_Thick/2.0 * Harm_zaxis - ( SnoutHarmPlate_Width/2.0 - SnoutHarmWindow_xcenter ) * Harm_xaxis;
-
-  new G4PVPlacement( rot_harm_window, HarmCutout_pos_global, SnoutHarmWindowCutout_log, "SnoutHarmWindowCutout_phys", worldlog, false, 0 );
-
-  xtemp = SnoutEarmWindow_Width/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
-  ytemp = SnoutEarmWindow_Height/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
-
-  new G4PVPlacement( 0, G4ThreeVector(-xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_right", SnoutEarmWindowCutout_log, false, 0 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateZ(90.0*deg );
-
-  new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_right", SnoutEarmWindowCutout_log, false, 1 );
-  
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateZ(-90.0*deg );
-
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_left", SnoutEarmWindowCutout_log, false, 2 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateZ(180.0*deg );
-
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_left", SnoutEarmWindowCutout_log, false, 3 );
-  
-  G4ThreeVector EarmCutout_pos_global = Snout_position_global + FrontLeftCorner_pos_local - Snout_Thick/2.0 * Earm_zaxis + (SnoutEarmPlate_Width/2.0 + SnoutEarmWindow_xcenter) * Earm_xaxis;
-
-  new G4PVPlacement( rot_earm_window, EarmCutout_pos_global, SnoutEarmWindowCutout_log, "SnoutEarmWindowCutout_phys", worldlog, false, 0 );
-
-  //What's next? Define scattering chamber vacuum volume:
-  G4double ScatChamberRadius = 23.80*inch;
-  G4double ScatChamberHeight = Snout_Height;
-
-  G4Tubs *ScatChamber_solid = new G4Tubs("ScatChamber_solid", 0, ScatChamberRadius, ScatChamberHeight/2.0, 0.0, twopi );
-  G4LogicalVolume *ScatChamber_log = new G4LogicalVolume( ScatChamber_solid, GetMaterial("Vacuum"), "ScatChamber_log" );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateX( 90.0*deg );
-
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), ScatChamber_log, "ScatChamber_phys", worldlog, false, 0 );
-  
-  
-  //Now let's make a cryotarget:
-  G4double Rcell = 4.0*cm;
-  G4double uthick = 0.1*mm;
-  G4double dthick = 0.15*mm;
-  G4double sthick = 0.2*mm;
-
-  G4Tubs *TargetMother_solid = new G4Tubs("TargetMother_solid", 0, Rcell + sthick, (fTargLen+uthick+dthick)/2.0, 0.0, twopi );
-  G4LogicalVolume *TargetMother_log = new G4LogicalVolume(TargetMother_solid, GetMaterial("Vacuum"), "TargetMother_log" );
-  
-  G4Tubs *TargetCell = new G4Tubs("TargetCell", 0, Rcell, fTargLen/2.0, 0, twopi );
-
-  G4LogicalVolume *TargetCell_log;
-
-  if( fTargType == kLH2 ){
-    TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LH2"), "TargetCell_log" );
-  } else {
-    TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
-  }
-  
-  G4Tubs *TargetWall = new G4Tubs("TargetWall", Rcell, Rcell + sthick, fTargLen/2.0, 0, twopi );
-
-  G4LogicalVolume *TargetWall_log = new G4LogicalVolume( TargetWall, GetMaterial("Al"), "TargetWall_log" );
-
-  G4Tubs *UpstreamWindow = new G4Tubs("UpstreamWindow", 0, Rcell + sthick, uthick/2.0, 0, twopi );
-  G4Tubs *DownstreamWindow = new G4Tubs("DownstreamWindow", 0, Rcell + sthick, dthick/2.0, 0, twopi );
-
-  G4LogicalVolume *uwindow_log = new G4LogicalVolume( UpstreamWindow, GetMaterial("Al"), "uwindow_log" );
-  G4LogicalVolume *dwindow_log = new G4LogicalVolume( DownstreamWindow, GetMaterial("Al"), "dwindow_log" );
-
-  // G4ThreeVector targ_pos(0,0,
-  //Now place everything:
-  //Need to fix this later: Union solid defining vacuum chamber needs to be defined with the cylinder as the first solid so that we can place the
-  //target as a daughter volume at the origin!
-  G4double ztemp = -(fTargLen+uthick+dthick)/2.0;
-  //place upstream window:
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+uthick/2.0), uwindow_log, "uwindow_phys", TargetMother_log, false, 0 );
-  //place target and side walls:
-  ztemp += uthick;
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetCell_log, "TargetCell_phys", TargetMother_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetWall_log, "TargetWall_phys", TargetMother_log, false, 0 );
-  ztemp += fTargLen;
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+dthick/2.0), dwindow_log, "dwindow_phys", TargetMother_log, false, 0 );
-
-  G4double targ_zcenter = (uthick-dthick)/2.0; //position of target center relative to target mother volume
-  
-  //Compute position of target relative to scattering chamber:
-  //The target center should be at
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateX( -90.0*deg );
-
-  //for z of target center to be at zero, 
-  
-  new G4PVPlacement( rot_temp, G4ThreeVector(0, -(TargetCenter_zoffset-targ_zcenter) ,0), TargetMother_log, "TargetMother_phys", ScatChamber_log, false, 0 );
-
-  //Next: Snout vacuum geometry (complicated!)
-
-  //Angles of snout side walls relative to (scattering chamber) origin:
-  G4double phisnout_harm = (90.0 - 54.88)*deg; //35.12 degrees
-  G4double phisnout_earm = (90.0 - 46.82)*deg; //43.18 degrees
-
-  //The global coordinates of the center of the Earm snout plate:
-  G4ThreeVector EarmPlanePos_global = Snout_position_global + EarmPlate_pos_relative - Snout_Thick/2.0 * Earm_zaxis;
-  G4ThreeVector HarmPlanePos_global = Snout_position_global + HarmPlate_pos_relative - Snout_Thick/2.0 * Harm_zaxis;
-
-  G4ThreeVector ScatChamberPos_global = G4ThreeVector( 0, 0, -TargetCenter_zoffset );
-  
-  //The Snout vacuum volume will be the INTERSECTION of a polycone and an extruded solid:
-  std::vector<G4TwoVector> snout_polygon;
-
-  xtemp = ScatChamberRadius * sin( phisnout_earm );
-  ytemp = ScatChamberRadius * cos( phisnout_earm ) - TargetCenter_zoffset;
-
-  snout_polygon.push_back( G4TwoVector( xtemp, ytemp ) );
-
-  //G4double distance_schbr_origin_to_earm_plane = (EarmPlanePos_global - ScatChamberPos_global).mag(); 
-
-  //Intersection with a line and a plane:
-  G4ThreeVector nhat_snout_earm_side( sin( phisnout_earm ), 0, cos( phisnout_earm ) );
-  G4ThreeVector nhat_snout_harm_side( -sin( phisnout_harm ), 0, cos( phisnout_harm ) );
-
-  // (r0 + nhat * s - rplane ) dot nplane = 0
-  // s = (rplane - r0) dot nplane / (nhat dot nplane )
-
-  G4double s_temp = (EarmPlanePos_global - ScatChamberPos_global).dot( Earm_zaxis )/(nhat_snout_earm_side.dot( Earm_zaxis ) );
-  
-  G4ThreeVector Snout_earm_side_intercept = ScatChamberPos_global + s_temp * nhat_snout_earm_side;
-
-  xtemp = Snout_earm_side_intercept.x();
-  ytemp = Snout_earm_side_intercept.z();
-
-  snout_polygon.push_back( G4TwoVector( xtemp, ytemp ) );
-
-  //inner corner position of snout on earm side:
-  G4ThreeVector Snout_earm_corner_pos_rel = Snout_position_global + FrontLeftCorner_pos_local - Snout_Thick*Earm_zaxis + Snout_Thick*tan( SnoutEarmWindowAngle/2.0 ) * Earm_xaxis;
- 
-  xtemp = Snout_earm_corner_pos_rel.x();
-  ytemp = Snout_earm_corner_pos_rel.z();
-
-  snout_polygon.push_back( G4TwoVector( xtemp, ytemp ) );
-  
-  G4ThreeVector Snout_harm_corner_pos_rel = Snout_position_global + FrontRightCorner_pos_local - Snout_Thick*Harm_zaxis - Snout_Thick*tan( SnoutHarmWindowAngle/2.0 ) * Harm_xaxis;
-
-  xtemp = Snout_harm_corner_pos_rel.x();
-  ytemp = Snout_harm_corner_pos_rel.z();
-
-  snout_polygon.push_back( G4TwoVector( xtemp, ytemp ) );
-  
-  s_temp = (HarmPlanePos_global - ScatChamberPos_global).dot( Harm_zaxis ) / (nhat_snout_harm_side.dot( Harm_zaxis ) );
-
-  G4ThreeVector Snout_harm_side_intercept = ScatChamberPos_global + s_temp * nhat_snout_harm_side;
-
-  xtemp = Snout_harm_side_intercept.x();
-  ytemp = Snout_harm_side_intercept.z();
-
-  snout_polygon.push_back( G4TwoVector( xtemp, ytemp ) );
-
-  //last point:
-  xtemp = -ScatChamberRadius * sin( phisnout_harm );
-  ytemp =  ScatChamberRadius * cos( phisnout_harm ) - TargetCenter_zoffset;
-
-  snout_polygon.push_back( G4TwoVector( xtemp, ytemp ) );
-
-  G4ExtrudedSolid *Snout_pgon = new G4ExtrudedSolid( "Snout_pgon", snout_polygon, Snout_Height/2.0,
-						     G4TwoVector(0,0), 1.0,
-						     G4TwoVector(0,0), 1.0 );
-
-  //This extruded solid has the x axis to beam left, the yaxis along the beam direction, and the z axis in the -y direction. This means we want to rotate it by 90 degrees ccw about x when looking in the +x direction
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateX( -90.0*deg );
-
-  // G4LogicalVolume *Snout_pgon_log = new G4LogicalVolume( Snout_pgon, GetMaterial("Vacuum"), "Snout_pgon_log" );
-
-  // //Positioning: The origin of this pgon is the same as the origin of the hall, so should be 0,0,0:
-  // new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), Snout_pgon_log, "Snout_pgon_phys", worldlog, false, 0 );
-
-  //Next: make the polycone:
-  
-  G4double SnoutTaperAngle = 38.81*deg;
-  G4double SnoutTaper_zpos = 14.88*inch;
-
-  const G4int nzplanes = 4;
-  G4double zplanes[nzplanes] = {-Snout_Height/2.0,
-				-(ScatChamberRadius-SnoutTaper_zpos)*tan(SnoutTaperAngle),
-				(ScatChamberRadius-SnoutTaper_zpos)*tan(SnoutTaperAngle),
-				Snout_Height/2.0 };
-  G4double rplanes[nzplanes] = { ScatChamberRadius + (zplanes[1]-zplanes[0])/tan(SnoutTaperAngle),
-				 ScatChamberRadius,
-				 ScatChamberRadius,
-				 ScatChamberRadius + (zplanes[3]-zplanes[2])/tan(SnoutTaperAngle) };
-
-  G4double routplanes[nzplanes] = { ScatChamberRadius + (zplanes[1]-zplanes[0])/tan(SnoutTaperAngle),
-				    ScatChamberRadius + (zplanes[1]-zplanes[0])/tan(SnoutTaperAngle),
-				    ScatChamberRadius + (zplanes[3]-zplanes[2])/tan(SnoutTaperAngle),
-				    ScatChamberRadius + (zplanes[3]-zplanes[2])/tan(SnoutTaperAngle) };
-
-  for( G4int pl=0; pl<nzplanes; ++pl ){
-    routplanes[pl] += 40.0*cm;
-  }
-  
-  //We want the z axis of the polycone to coincide with the z axis of the polygon, so to have +x to beam left and +y along beam direction, we need to have +z be vertically down. In this case, the phi start would be
-  G4double phistart = 46.82*deg;
-  G4double dphi = phisnout_earm + phisnout_harm;
-
-  G4Polycone *SnoutTaper = new G4Polycone( "SnoutTaper", phistart, dphi, nzplanes, zplanes, rplanes, routplanes );
-  
-  //The polycone has its central axis along the vertical line through the "origin", whereas the polygon has its central axis
-  // along the vertical line through the target center;
-  //Therefore, we have to offset the position of the polygon in y by +targ z center:
-  G4IntersectionSolid *SnoutTaperPgon_intersect = new G4IntersectionSolid( "SnoutTaperPgon_intersect", SnoutTaper, Snout_pgon, 0, G4ThreeVector(0, TargetCenter_zoffset, 0) );
-
-  G4LogicalVolume *SnoutVacuum_log = new G4LogicalVolume( SnoutTaperPgon_intersect, GetMaterial("Vacuum"), "SnoutVacuum_log" );
-
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), SnoutVacuum_log, "SnoutVacuum_phys", worldlog, false, 0 );
-
-  //Iron Tube inside the Snout vacuum volume:
-  G4double IronTube_Rmin = 5.0*cm;
-  G4double IronTube_Rmax = 7.0*cm;
-  G4double IronTube_Thick = 6.5*cm;
-
-  G4Tubs *IronTube = new G4Tubs("IronTube", IronTube_Rmin, IronTube_Rmax, IronTube_Thick/2.0, 0.0, twopi );
-  G4LogicalVolume *IronTube_log = new G4LogicalVolume( IronTube, GetMaterial("Iron"), "IronTube_log" );
-
-  IronTube_log->SetVisAttributes( new G4VisAttributes(G4Colour(0.3,0.3,0.3) ) );
-  
-  //relative to the origin of the snout polycone, the iron tube is at y = snout z - half thick:
-  G4ThreeVector IronTube_pos_rel( 0, SnoutBeamPlate_zcoord - IronTube_Thick/2.0, 0 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateX( 90.0*deg );
-
-  new G4PVPlacement( rot_temp, IronTube_pos_rel, IronTube_log, "IronTube_phys", SnoutVacuum_log, false, 0 );
-  
-
-  //Finally, put windows and bolt plates:
-  
-  G4double HarmFlangeWidth = 2.0*11.44*inch;
-  G4double HarmFlangeHeight = 2.0*12.56*inch;
-  G4double HarmFlangeThick = 0.980*inch;
-
-  G4Box *HarmAlWindow_box = new G4Box("HarmAlWindow_box", HarmFlangeWidth/2.0, HarmFlangeHeight/2.0, HarmWindowThick/2.0 );
-  G4LogicalVolume *HarmWindow_log = new G4LogicalVolume( HarmAlWindow_box, GetMaterial("Aluminum"), "HarmWindow_log" );
-  //Figure out the placement of the Harm window:
-  G4ThreeVector Harm_window_pos = Snout_position_global + FrontRightCorner_pos_local + (-SnoutHarmPlate_Width/2.0 + SnoutHarmWindow_xcenter) * Harm_xaxis + (HarmWindowThick/2.0) * Harm_zaxis;
-
-  new G4PVPlacement( rot_harm_window, Harm_window_pos, HarmWindow_log, "HarmWindow_phys", worldlog, false, 0 );
-  
-  G4Box *HarmFlange_box = new G4Box("HarmFlange_box", HarmFlangeWidth/2.0, HarmFlangeHeight/2.0, HarmFlangeThick/2.0 );
-
-  G4SubtractionSolid *HarmFlange_cut = new G4SubtractionSolid( "HarmFlange_cut", HarmFlange_box, HarmWindowCutout_box, 0, G4ThreeVector(0,0,0) );
-  G4LogicalVolume *HarmFlange_log = new G4LogicalVolume( HarmFlange_cut, GetMaterial("Aluminum"), "HarmFlange_log" );
-
-  G4ThreeVector HarmFlange_pos = Harm_window_pos + (HarmWindowThick + HarmFlangeThick)/2.0 * Harm_zaxis;
-
-  new G4PVPlacement( rot_harm_window, HarmFlange_pos, HarmFlange_log, "HarmFlange_phys", worldlog, false, 0 );
-
-  //Create a new logical volume of aluminum instead of steel for the rounded corners of the flange:
-  G4LogicalVolume *HarmFlangeCorner_log = new G4LogicalVolume( HarmWindowCorner, GetMaterial("Aluminum"), "HarmFlangeCorner_log" );
-  
-  G4ThreeVector pos_temp;
-  
-  xtemp = SnoutHarmWindow_Width/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
-  ytemp = SnoutHarmWindow_Height/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( SnoutHarmWindowAngle );
-  
-  pos_temp = HarmFlange_pos - xtemp * Harm_xaxis - ytemp * Harm_yaxis;
-  
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( SnoutHarmWindowAngle );
-  rot_temp->rotateZ( 90.0*deg );
-  pos_temp = HarmFlange_pos - xtemp * Harm_xaxis + ytemp * Harm_yaxis;
-
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_right", worldlog, false, 1 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( SnoutHarmWindowAngle );
-  rot_temp->rotateZ( -90.0*deg );
-  pos_temp = HarmFlange_pos + xtemp * Harm_xaxis - ytemp * Harm_yaxis;
-
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( SnoutHarmWindowAngle );
-  rot_temp->rotateZ( 180.0*deg );
-  pos_temp = HarmFlange_pos + xtemp * Harm_xaxis + ytemp * Harm_yaxis;
-
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_left", worldlog, false, 3 );
-
-  G4double EarmFlangeWidth = 2.0*12.62*inch;
-  G4double EarmFlangeHeight = Snout_Height;
-  G4double EarmFlangeThick = 0.980*inch;
-
-  G4Box *EarmAlWindow_box = new G4Box( "EarmAlWindow_box", EarmFlangeWidth/2.0, EarmFlangeHeight/2.0, EarmWindowThick/2.0 );
-
-  G4LogicalVolume *EarmWindow_log = new G4LogicalVolume( EarmAlWindow_box, GetMaterial("Aluminum"), "EarmWindow_log" );
-  G4ThreeVector Earm_window_pos = Snout_position_global + FrontLeftCorner_pos_local + (SnoutEarmPlate_Width/2.0 + SnoutEarmWindow_xcenter) * Earm_xaxis + EarmWindowThick/2.0 * Earm_zaxis;
-
-  new G4PVPlacement( rot_earm_window, Earm_window_pos, EarmWindow_log, "EarmWindow_phys", worldlog, false, 0 );
-  
-  //Next: make flange:
-
-  G4Box *EarmFlangeBox = new G4Box( "EarmFlangeBox", EarmFlangeWidth/2.0, EarmFlangeHeight/2.0, EarmFlangeThick/2.0 );
-  G4SubtractionSolid *EarmFlange_cut = new G4SubtractionSolid( "EarmFlange_cut", EarmFlangeBox, EarmWindowCutout_box, 0, G4ThreeVector(0,0,0));
-
-  G4LogicalVolume *EarmFlange_log = new G4LogicalVolume( EarmFlange_cut, GetMaterial("Aluminum"), "EarmFlange_log" );
-
-  G4ThreeVector EarmFlange_pos = Earm_window_pos + (EarmWindowThick + EarmFlangeThick)/2.0 * Earm_zaxis;
-
-  new G4PVPlacement( rot_earm_window, EarmFlange_pos, EarmFlange_log, "EarmFlange_phys", worldlog, false, 0 );
-
-  G4LogicalVolume *EarmFlangeCorner_log = new G4LogicalVolume( EarmWindowCorner, GetMaterial("Aluminum"), "EarmFlangeCorner_log" );
-
-  xtemp = SnoutEarmWindow_Width/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
-  ytemp = SnoutEarmWindow_Height/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( -SnoutEarmWindowAngle );
-  
-  pos_temp = EarmFlange_pos - xtemp * Earm_xaxis - ytemp * Earm_yaxis;
-  
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( -SnoutEarmWindowAngle );
-  rot_temp->rotateZ( 90.0*deg );
-  pos_temp = EarmFlange_pos - xtemp * Earm_xaxis + ytemp * Earm_yaxis;
-  
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_right", worldlog, false, 1 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( -SnoutEarmWindowAngle );
-  rot_temp->rotateZ( -90.0*deg );
-  pos_temp = EarmFlange_pos + xtemp * Earm_xaxis - ytemp * Earm_yaxis;
-  
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( -SnoutEarmWindowAngle );
-  rot_temp->rotateZ( 180.0*deg );
-  pos_temp = EarmFlange_pos + xtemp * Earm_xaxis + ytemp * Earm_yaxis;
-  
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_left", worldlog, false, 3 );
-  
-  
-  
-  // VISUALS
-  // Mother Volumes
-
-  // Vacuum
-
-  G4VisAttributes *Snout_VisAtt = new G4VisAttributes( G4Colour( 0.6, 0.55, 0.65 ) );
-  Snout_log->SetVisAttributes( Snout_VisAtt );
-  HarmWindowCorner_log->SetVisAttributes( Snout_VisAtt );
-  EarmWindowCorner_log->SetVisAttributes( Snout_VisAtt );
-
-  G4VisAttributes *Flange_VisAtt = new G4VisAttributes( G4Colour( 0.15, 0.8, 0.9 ) );
-  HarmFlange_log->SetVisAttributes( Flange_VisAtt );
-  HarmFlangeCorner_log->SetVisAttributes( Flange_VisAtt );
-
-  EarmFlange_log->SetVisAttributes( Flange_VisAtt );
-  EarmFlangeCorner_log->SetVisAttributes( Flange_VisAtt );
-  // PlateUnionLog->SetVisAttributes( Snout_VisAtt );
-  // LeftCornerLog->SetVisAttributes( Snout_VisAtt );
-  // RightCornerLog->SetVisAttributes( Snout_VisAtt );
-  // RightWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // LeftWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
-
-  SnoutHarmWindowCutout_log->SetVisAttributes( G4VisAttributes::Invisible );
-  SnoutEarmWindowCutout_log->SetVisAttributes( G4VisAttributes::Invisible );
-  
-  G4VisAttributes *Snout_VisAttWire = new G4VisAttributes( G4Colour( 0.6, 0.55, 0.65 ) );
-  Snout_VisAttWire->SetForceWireframe(true);
-
-  G4VisAttributes *Window_visatt = new G4VisAttributes( G4Colour( 0.9, 0.8, 0.15 ) );
-  Window_visatt->SetForceWireframe(true);
-  HarmWindow_log->SetVisAttributes( Window_visatt );
-  EarmWindow_log->SetVisAttributes( Window_visatt );
-  //Snout_ScChamb->SetVisAttributes( Snout_VisAttWire );
-
-  ScatChamber_log->SetVisAttributes( Snout_VisAttWire );
-  SnoutVacuum_log->SetVisAttributes( Snout_VisAttWire );
-  
-  G4VisAttributes *Targ_visatt = new G4VisAttributes( G4Colour( 0.1, 0.05, 0.9 ) );
-  TargetCell_log->SetVisAttributes( Targ_visatt );
-  G4VisAttributes *TargWall_visatt = new G4VisAttributes( G4Colour( 0.9, .05, 0.1 ) );
-  TargWall_visatt->SetForceWireframe( true );
-  TargetWall_log->SetVisAttributes( TargWall_visatt );
-  uwindow_log->SetVisAttributes( TargWall_visatt );
-  dwindow_log->SetVisAttributes( TargWall_visatt );
-  TargetMother_log->SetVisAttributes( G4VisAttributes::Invisible );
-  
-  G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.4,0.4,0.4));
-  //LeftAl_Log->SetVisAttributes( AlColor );
-  //RightAl_Log->SetVisAttributes( AlColor );
-
-  G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.52,0.47,0.47));
-  // TUB1_log->SetVisAttributes( ironColor );
-  // TUB2_log->SetVisAttributes( ironColor );
-  // TUB3_log->SetVisAttributes( ironColor );
 }
 
 // EFuchey: 2017/02/10: Making a standard function to build the cryotarget itself.
@@ -690,7 +119,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog, G4d
   G4RotationMatrix *rot_temp = new G4RotationMatrix;
   //Compute position of target relative to scattering chamber:
   //The target center should be at
-  rot_temp = new G4RotationMatrix;
+  //rot_temp = new G4RotationMatrix;
   rot_temp->rotateX( Xangle );
   
   //for z of target center to be at zero, 
@@ -729,6 +158,184 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog, G4d
   uwindow_log->SetVisAttributes( TargWall_visatt );
   dwindow_log->SetVisAttributes( TargWall_visatt );
   TargetMother_log->SetVisAttributes( G4VisAttributes::Invisible );
+}
+
+//This function is meant to build the "Standard" scattering chamber for GMn
+void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
+  G4double inch = 2.54*cm;
+
+  G4LogicalVolume *logicScatChamberTank =0;
+  G4LogicalVolume *logicScatChamberExitFlangePlate =0;
+  G4LogicalVolume *logicScatChamberFrontClamshell =0;
+  G4LogicalVolume *logicScatChamberBackClamshell =0;
+  G4LogicalVolume *logicScatChamber =0;
+
+  G4double ScatChamberHeight = 44.75*inch;
+  G4double ScatChamberRadius = 20.0*inch;
+  
+  G4double ScatChamberEntranceHeight = 10.16*cm;
+  G4double ScatChamberEntranceAngle = 5.408*deg;
+  G4double ScatChamberExFH_Height = 7.85*inch;
+  G4double ScatChamberExFH_AngleApert = 38.25*deg;
+  G4double ScatChamberExitFlangePlate_HLength = 22.5*sin(25.5*atan(1)/45.0)*inch;
+  G4double ScatChamberExitFlangePlate_Height = 11.0*inch;
+  G4double ScatChamberExitFlangePlate_Thick = 1.25*inch;
+  G4double ScatChamberClamHeight = 20.0*inch;
+  G4double ScatChamberClamThick = 1.25*inch;
+  G4double ScatChamberClamAngleApert = 151.0*deg;
+  G4double ScatChamberWindowHeight = ScatChamberClamHeight-2.0*inch;
+  G4double ScatChamberWindowAngleApert = ScatChamberClamAngleApert-2.0*deg;
+  G4double ScatChamberWindowAngleOffset = 11.0*deg;
+  G4double ScatChamberWindowThickness = 406.4*um;
+  G4double ScatChamberWindowMinAngle = 3.0*deg;
+  G4double ScatChamberBackWindowMaxAngle = 120*deg;
+  G4double ScatChamberBackWindowHeight = 38.1*cm;
+  G4double ScatChamberFrontWindowMaxAngle = 90*deg;
+  G4double ScatChamberFrontWindowHeight = 22.86*cm;
+  G4double ScatChamberTankThickness = 2.5*inch;
+  G4double ScatChamberTankRadius = ScatChamberRadius+ScatChamberTankThickness;
+  G4double ScatChamberTankHeight = ScatChamberHeight;
+  G4double ScatChamberOffset = 0.0*cm;//-9.525*cm;
+
+  G4double ScatChamberExitFlange_HAngleApert = atan(ScatChamberExitFlangePlate_HLength/
+						   (ScatChamberTankRadius+ScatChamberExitFlangePlate_Thick));
+  G4double ScatChamberExitFlange_MaxRad = ScatChamberExitFlangePlate_HLength/
+    sin(ScatChamberExitFlange_HAngleApert);
+
+  
+  // Scattering chamber tank volume
+  G4Tubs*
+    solidScatChamberTank_0 = new G4Tubs("ScatChamberTank_0", ScatChamberRadius, ScatChamberTankRadius, 
+					0.5*ScatChamberTankHeight, 0.0*deg, 360.0*deg);
+  
+  // exit flange;
+  G4Tubs* 
+    solidScatChamberExitFlange_tubs = new G4Tubs("ScatChamberExFlange_tubs", 
+						 ScatChamberRadius, ScatChamberExitFlange_MaxRad,
+						 0.5*ScatChamberExitFlangePlate_Height, 
+						 0.0, 2.0*ScatChamberExitFlange_HAngleApert);
+  
+  G4RotationMatrix* 
+    rot_temp = new G4RotationMatrix();
+  rot_temp->rotateZ(180.0*deg+ScatChamberExitFlange_HAngleApert);
+  
+  G4UnionSolid* solidScatChamberTank_0_exft = 
+    new G4UnionSolid("solidScatChamberTank_0_exft", solidScatChamberTank_0, solidScatChamberExitFlange_tubs,
+		     rot_temp, G4ThreeVector(0,0,ScatChamberOffset));
+  
+  G4Box* ExitFlangeHeadCut = new G4Box("ExitFlangeHeadCut", 0.5*m, 0.5*m, 0.5*m); 
+  
+  
+  G4SubtractionSolid* solidScatChamberTank_0_exf = 
+    new G4SubtractionSolid("solidScatChamberTank_0_exf", solidScatChamberTank_0_exft, ExitFlangeHeadCut,
+			   0, G4ThreeVector(-ScatChamberTankRadius-0.5*m,0,0));
+  
+  // exit flange hole;
+  G4Tubs* 
+    solidScatChamberExFH = new G4Tubs("ScatChamberExFH", ScatChamberRadius-1.0*cm, ScatChamberTankRadius+1.5*inch,
+				      0.5*ScatChamberExFH_Height, 0.0, ScatChamberExFH_AngleApert);
+  
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateZ(180.0*deg+ScatChamberExFH_AngleApert*0.5);
+  
+  G4SubtractionSolid* solidScatChamberTank_0_exfh = 
+    new G4SubtractionSolid("solidScatChamberTank_0_exfh", solidScatChamberTank_0_exf, solidScatChamberExFH,
+			   rot_temp, G4ThreeVector(0,0,ScatChamberOffset));
+  
+  // windows holes; 
+  G4Tubs* 
+    solidScatChamberWindow = new G4Tubs("ScatChamberWindow", 
+					ScatChamberRadius-1.0*cm, ScatChamberTankRadius+1.0*cm,
+					0.5*ScatChamberWindowHeight, 0.0, ScatChamberWindowAngleApert);
+  
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateZ(90.0*deg+ScatChamberWindowAngleApert*0.5-ScatChamberWindowAngleOffset);
+  
+  G4SubtractionSolid* solidScatChamberTank_0_wf = 
+    new G4SubtractionSolid("solidScatChamberTank_0_wf", solidScatChamberTank_0_exfh, solidScatChamberWindow,
+			   rot_temp, G4ThreeVector(0,0,ScatChamberOffset));
+
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateZ(-90.0*deg+ScatChamberWindowAngleApert*0.5+ScatChamberWindowAngleOffset);
+  
+  G4SubtractionSolid* solidScatChamberTank_0_wb = 
+    new G4SubtractionSolid("solidScatChamberTank_0_wb", solidScatChamberTank_0_wf, solidScatChamberWindow,
+  			   rot_temp, G4ThreeVector(0,0,ScatChamberOffset));
+  
+  //Solid Scattering chamber tank
+  G4VSolid* solidScatChamberTank = solidScatChamberTank_0_wb;
+  
+  //Logic scat chamber tank
+  logicScatChamberTank = new G4LogicalVolume(solidScatChamberTank, GetMaterial("Aluminum"), "ScatChamberTank_log");
+  
+  //Scattering chamber tank placement:
+  G4RotationMatrix* rotSC = new G4RotationMatrix();
+  rotSC->rotateX(90.0*deg);
+  
+  G4ThreeVector* ScatChamberPlacement = new G4ThreeVector(0,0,ScatChamberOffset);
+  ScatChamberPlacement->rotateX(90*deg);
+  
+  new G4PVPlacement(rotSC, *ScatChamberPlacement, logicScatChamberTank, "ScatChamberTank", worldlog, false, 0); 
+  
+  //Exit Flange Plate
+  G4Box* solidScatChamberExitFlangePlate = new G4Box("ScatChamberExitFlangePlate_sol", 
+						     ScatChamberExitFlangePlate_Thick/2.0, 
+						     ScatChamberExitFlangePlate_Height/2.0,
+						     ScatChamberExitFlangePlate_HLength); 
+  
+  logicScatChamberExitFlangePlate = new G4LogicalVolume(solidScatChamberExitFlangePlate, 
+							GetMaterial("Aluminum"), 
+							"ScatChamberExitFlangePlate_log");
+  new G4PVPlacement(0, G4ThreeVector(-ScatChamberTankRadius-ScatChamberExitFlangePlate_Thick/2.0,0,0), 
+		    logicScatChamberExitFlangePlate, "ScatChamberExitFlangePlate", worldlog, false, 0); 
+  
+  //Front and back Clamshells...
+  //Basic solid: 
+  G4Tubs* 
+    solidScatChamberClamshell = new G4Tubs("solidScatChamberClamshell", 
+					   ScatChamberTankRadius, ScatChamberTankRadius+ScatChamberClamThick, 
+					   0.5*ScatChamberClamHeight, 0.0, ScatChamberClamAngleApert);
+
+  logicScatChamberFrontClamshell = new G4LogicalVolume(solidScatChamberExitFlangePlate, 
+						       GetMaterial("Aluminum"), 
+						       "ScatChamberFrontClamshell_log");
+  logicScatChamberBackClamshell = new G4LogicalVolume(solidScatChamberExitFlangePlate, 
+						      GetMaterial("Aluminum"), 
+						      "ScatChamberBackClamshell_log");
+  
+  // Scattering chamber volume
+  //
+  G4Tubs*
+    solidScatChamber = new G4Tubs("ScatChamber", 0.0, ScatChamberRadius, 0.5* ScatChamberHeight, 
+				  0.0*deg, 360.0*deg);
+  
+  logicScatChamber = new G4LogicalVolume(solidScatChamber, GetMaterial("Vacuum"), "ScatChamber");
+  
+  new G4PVPlacement(rotSC, *ScatChamberPlacement, logicScatChamber, "ScatChamber", worldlog, false, 0);
+  
+  G4double Xangle_std = -90.0*deg;
+  G4double YOffset_std = 0.0;
+  
+  //Call BuildStandardCryoTarget(G4LogicalVolume *, G4double, G4double) HERE !
+  BuildStandardCryoTarget(logicScatChamber, Xangle_std, YOffset_std);
+  
+  G4VisAttributes* colourGrey= new G4VisAttributes(G4Colour(0.5,0.5,0.5)); 
+  colourGrey->SetVisibility(true);
+  //colourGrey->SetForceWireframe(true);
+  
+  G4VisAttributes* Invisible = new G4VisAttributes(G4Colour(0.,0.,0.)); 
+  Invisible->SetVisibility(false);
+
+  G4VisAttributes* colourCyan= new G4VisAttributes(G4Colour(0.,1.,1.)); 
+  colourCyan->SetVisibility(true);
+  colourCyan->SetForceWireframe(true);
+  
+  logicScatChamberTank->SetVisAttributes(colourGrey);
+  // logicScatChamberEntrance->SetVisAttributes(colourGrey);
+  // logicScatChamberExit->SetVisAttributes(colourGrey);
+  logicScatChamberExitFlangePlate->SetVisAttributes(colourCyan);
+  logicScatChamber->SetVisAttributes(Invisible);
+  
 }
 
 // This function will replaced BuildCryoTarget

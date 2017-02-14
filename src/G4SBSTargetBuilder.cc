@@ -166,7 +166,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
 //This function is meant to build the "Standard" scattering chamber for GMn
 void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4double inch = 2.54*cm;
-
+  
   G4LogicalVolume *logicScatChamberTank =0;
   G4LogicalVolume *logicScatChamberExitFlangePlate =0;
   G4LogicalVolume *logicScatChamberFrontClamshell =0;
@@ -175,248 +175,237 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 
   // Scattering chamber tank:
   // basic volume:
-  G4double ScatChamberHeight = 44.75*inch;
-  G4double ScatChamberRadius = 20.0*inch;
-  G4double ScatChamberTankThickness = 2.5*inch;
-  G4double ScatChamberTankRadius = ScatChamberRadius+ScatChamberTankThickness;
-  G4double ScatChamberTankHeight = ScatChamberHeight;
-  G4double ScatChamberOffset = 3.75*inch;
+  G4double SCHeight = 44.75*inch;
+  G4double SCRadius = 20.0*inch;
+  G4double SCTankThickness = 2.5*inch;
+  G4double SCTankRadius = SCRadius+SCTankThickness;
+  G4double SCTankHeight = SCHeight;
+  G4double SCOffset = 3.75*inch;
   
-  G4Tubs*
-    solidScatChamberTank_0 = new G4Tubs("ScatChamberTank_0", ScatChamberRadius, ScatChamberTankRadius, 
-					0.5*ScatChamberTankHeight, 0.0*deg, 360.0*deg);
+  G4Tubs* solidSCTank_0 = 
+    new G4Tubs("SCTank_0", SCRadius, SCTankRadius, 0.5*SCTankHeight, 0.0*deg, 360.0*deg);
+	       
   
   // exit flange:
-  G4double ScatChamberExitFlangePlateHLength = 22.5*sin(25.5*atan(1)/45.0)*inch;
-  G4double ScatChamberExitFlangePlateHeight = 11.0*inch;
-  G4double ScatChamberExitFlangePlateThick = 1.25*inch;
-  G4double ScatChamberExitFlangeHAngleApert = atan(ScatChamberExitFlangePlateHLength/(ScatChamberTankRadius+ScatChamberExitFlangePlateThick));
-  G4double ScatChamberExitFlangeMaxRad = ScatChamberExitFlangePlateHLength/sin(ScatChamberExitFlangeHAngleApert);
+  G4double SCExitFlangePlateHLength = 22.5*sin(25.5*atan(1)/45.0)*inch;
+  G4double SCExitFlangePlateHeight = 11.0*inch;
+  G4double SCExitFlangePlateThick = 1.25*inch;
+  G4double SCExitFlangeHAngleApert = atan(SCExitFlangePlateHLength/(SCTankRadius+SCExitFlangePlateThick));
+  G4double SCExitFlangeMaxRad = SCExitFlangePlateHLength/sin(SCExitFlangeHAngleApert);
   
-  G4Tubs* 
-    solidScatChamberExitFlangetubs = new G4Tubs("ScatChamberExFlange_tubs", 
-						ScatChamberRadius, ScatChamberExitFlangeMaxRad,
-						0.5*ScatChamberExitFlangePlateHeight, 
-						0.0, 2.0*ScatChamberExitFlangeHAngleApert);
+  G4Tubs* solidSCExitFlangetubs = 
+    new G4Tubs("SCExFlange_tubs", SCRadius, SCExitFlangeMaxRad, 
+	       0.5*SCExitFlangePlateHeight, 0.0, 2.0*SCExitFlangeHAngleApert);
   
-  G4RotationMatrix* 
-    rot_temp = new G4RotationMatrix();
-  rot_temp->rotateZ(180.0*deg+ScatChamberExitFlangeHAngleApert);
+  G4RotationMatrix* rot_temp = new G4RotationMatrix();
+  rot_temp->rotateZ(180.0*deg+SCExitFlangeHAngleApert);
   
-  G4UnionSolid* solidScatChamberTank_0_exft = 
-    new G4UnionSolid("solidScatChamberTank_0_exft", solidScatChamberTank_0, solidScatChamberExitFlangetubs,
-		     rot_temp, G4ThreeVector(0,0,ScatChamberOffset));
+  G4UnionSolid* solidSCTank_0_exft = 
+    new G4UnionSolid("solidSCTank_0_exft", solidSCTank_0, solidSCExitFlangetubs,
+		     rot_temp, G4ThreeVector(0,0,SCOffset));
   
   G4Box* ExitFlangeHeadCut = new G4Box("ExitFlangeHeadCut", 0.5*m, 0.5*m, 0.5*m); 
   
   
-  G4SubtractionSolid* solidScatChamberTank_0_exf = 
-    new G4SubtractionSolid("solidScatChamberTank_0_exf", solidScatChamberTank_0_exft, ExitFlangeHeadCut,
-			   0, G4ThreeVector(-ScatChamberTankRadius-0.5*m,0,0));
+  G4SubtractionSolid* solidSCTank_0_exf = 
+    new G4SubtractionSolid("solidSCTank_0_exf", solidSCTank_0_exft, ExitFlangeHeadCut,
+			   0, G4ThreeVector(-SCTankRadius-0.5*m,0,0));
   
   // exit flange hole:
-  G4double ScatChamberExitFlangeHoleHeight = 7.85*inch;
-  G4double ScatChamberExitFlangeHoleAngleApert = 38.25*deg;
+  G4double SCExitFlangeHoleHeight = 7.85*inch;
+  G4double SCExitFlangeHoleAngleApert = 38.25*deg;
   
-  G4Tubs* 
-    solidScatChamberExFH = new G4Tubs("ScatChamberExFH", ScatChamberRadius-1.0*cm, ScatChamberTankRadius+1.5*inch,
-				      0.5*ScatChamberExitFlangeHoleHeight, 0.0, ScatChamberExitFlangeHoleAngleApert);
+  G4Tubs* solidSCExFH = 
+    new G4Tubs("SCExFH", SCRadius-1.0*cm, SCTankRadius+1.5*inch,
+	       0.5*SCExitFlangeHoleHeight, 0.0, SCExitFlangeHoleAngleApert);
   
   rot_temp = new G4RotationMatrix();
-  rot_temp->rotateZ(180.0*deg+ScatChamberExitFlangeHoleAngleApert*0.5);
+  rot_temp->rotateZ(180.0*deg+SCExitFlangeHoleAngleApert*0.5);
   
-  G4SubtractionSolid* solidScatChamberTank_0_exfh = 
-    new G4SubtractionSolid("solidScatChamberTank_0_exfh", solidScatChamberTank_0_exf, solidScatChamberExFH,
-			   rot_temp, G4ThreeVector(0,0,ScatChamberOffset));
+  G4SubtractionSolid* solidSCTank_0_exfh = 
+    new G4SubtractionSolid("solidSCTank_0_exfh", solidSCTank_0_exf, solidSCExFH,
+			   rot_temp, G4ThreeVector(0,0,SCOffset));
   
   // windows holes: 
-  G4double ScatChamberWindowHeight = 18.0*inch;
-  G4double ScatChamberWindowAngleApert = 149.0*deg;
-  G4double ScatChamberWindowAngleOffset = 11.0*deg;
+  G4double SCWindowHeight = 18.0*inch;
+  G4double SCWindowAngleApert = 149.0*deg;
+  G4double SCWindowAngleOffset = 11.0*deg;
   
-  G4Tubs* 
-    solidScatChamberWindow = new G4Tubs("ScatChamberWindow", 
-					ScatChamberRadius-1.0*cm, ScatChamberTankRadius+1.0*cm,
-					0.5*ScatChamberWindowHeight, 0.0, ScatChamberWindowAngleApert);
+  G4Tubs* solidSCWindow = 
+    new G4Tubs("SCWindow", SCRadius-1.0*cm, SCTankRadius+1.0*cm, 0.5*SCWindowHeight, 0.0, SCWindowAngleApert);
   
   rot_temp = new G4RotationMatrix();
-  rot_temp->rotateZ(90.0*deg+ScatChamberWindowAngleApert*0.5-ScatChamberWindowAngleOffset);
+  rot_temp->rotateZ(90.0*deg+SCWindowAngleApert*0.5-SCWindowAngleOffset);
   
-  G4SubtractionSolid* solidScatChamberTank_0_wf = 
-    new G4SubtractionSolid("solidScatChamberTank_0_wf", solidScatChamberTank_0_exfh, solidScatChamberWindow,
-			   rot_temp, G4ThreeVector(0,0,ScatChamberOffset));
-
+  G4SubtractionSolid* solidSCTank_0_wf = 
+    new G4SubtractionSolid("solidSCTank_0_wf", solidSCTank_0_exfh, solidSCWindow,
+			   rot_temp, G4ThreeVector(0,0,SCOffset));
+  
   rot_temp = new G4RotationMatrix();
-  rot_temp->rotateZ(-90.0*deg+ScatChamberWindowAngleApert*0.5+ScatChamberWindowAngleOffset);
+  rot_temp->rotateZ(-90.0*deg+SCWindowAngleApert*0.5+SCWindowAngleOffset);
   
-  G4SubtractionSolid* solidScatChamberTank_0_wb = 
-    new G4SubtractionSolid("solidScatChamberTank_0_wb", solidScatChamberTank_0_wf, solidScatChamberWindow,
-  			   rot_temp, G4ThreeVector(0,0,ScatChamberOffset));
+  G4SubtractionSolid* solidSCTank_0_wb = 
+    new G4SubtractionSolid("solidSCTank_0_wb", solidSCTank_0_wf, solidSCWindow,
+  			   rot_temp, G4ThreeVector(0,0,SCOffset));
   
   //Solid Scattering chamber tank
-  G4VSolid* solidScatChamberTank = solidScatChamberTank_0_wb;
+  G4VSolid* solidScatChamberTank = solidSCTank_0_wb;
   
   //Logic scat chamber tank
-  logicScatChamberTank = new G4LogicalVolume(solidScatChamberTank, GetMaterial("Aluminum"), "ScatChamberTank_log");
+  logicScatChamberTank = 
+    new G4LogicalVolume(solidScatChamberTank, GetMaterial("Aluminum"), "ScatChamberTank_log");
   
   //Scattering chamber tank placement:
   G4RotationMatrix* rotSC = new G4RotationMatrix();
   rotSC->rotateX(-90.0*deg);
   
-  G4ThreeVector* ScatChamberPlacement = new G4ThreeVector(0,0,-ScatChamberOffset);
-  ScatChamberPlacement->rotateX(90*deg);
+  G4ThreeVector* SCPlacement = new G4ThreeVector(0,0,-SCOffset);
+  SCPlacement->rotateX(90*deg);
   
-  new G4PVPlacement(rotSC, *ScatChamberPlacement, logicScatChamberTank, "ScatChamberTankPhys", worldlog, false, 0);
+  new G4PVPlacement(rotSC, *SCPlacement, logicScatChamberTank, "ScatChamberTankPhys", worldlog, false, 0);
   
   //Exit Flange Plate
-  G4Box* solidScatChamberExitFlangePlate = new G4Box("ScatChamberExitFlangePlate_sol", 
-						     ScatChamberExitFlangePlateThick/2.0, 
-						     ScatChamberExitFlangePlateHeight/2.0,
-						     ScatChamberExitFlangePlateHLength); 
+  G4Box* solidSCExitFlangePlate = 
+    new G4Box("SCExitFlangePlate_sol", SCExitFlangePlateThick/2.0, 
+	      SCExitFlangePlateHeight/2.0, SCExitFlangePlateHLength); 
   
-  logicScatChamberExitFlangePlate = new G4LogicalVolume(solidScatChamberExitFlangePlate, 
-							GetMaterial("Aluminum"), 
-							"ScatChamberExitFlangePlate_log");
-  new G4PVPlacement(0, G4ThreeVector(-ScatChamberTankRadius-ScatChamberExitFlangePlateThick/2.0,0,0), 
-		    logicScatChamberExitFlangePlate, "ScatChamberExitFlangePlate", worldlog, false, 0); 
+  logicScatChamberExitFlangePlate = 
+    new G4LogicalVolume(solidSCExitFlangePlate, GetMaterial("Aluminum"), "SCExitFlangePlate_log");
+
+  new G4PVPlacement(0, G4ThreeVector(-SCTankRadius-SCExitFlangePlateThick/2.0,0,0), 
+		    logicScatChamberExitFlangePlate, "SCExitFlangePlate", worldlog, false, 0); 
   
   //Front and back Clamshells...
   //Basic solid: 
-  G4double ScatChamberClamHeight = 20.0*inch;
-  G4double ScatChamberClamThick = 1.25*inch;
-  G4double ScatChamberClamAngleApert = 151.0*deg;
+  G4double SCClamHeight = 20.0*inch;
+  G4double SCClamThick = 1.25*inch;
+  G4double SCClamAngleApert = 151.0*deg;
   
-  G4Tubs* 
-    solidScatChamberClamshell_0 = new G4Tubs("solidScatChamberClamshell_0", 
-					     ScatChamberTankRadius, ScatChamberTankRadius+ScatChamberClamThick, 
-					     0.5*ScatChamberClamHeight, 0.0, ScatChamberClamAngleApert);
+  G4Tubs* solidSCClamshell_0 = 
+    new G4Tubs("solidSCClamshell_0", SCTankRadius, SCTankRadius+SCClamThick, 
+	       0.5*SCClamHeight, 0.0, SCClamAngleApert);
   
   //Front Clamshell:
-  G4VSolid* solidScatChamberFrontClamShell = solidScatChamberClamshell_0;
+  G4VSolid* solidSCFrontClamShell = solidSCClamshell_0;
   
-  logicScatChamberFrontClamshell = new G4LogicalVolume(solidScatChamberFrontClamShell, 
-						       GetMaterial("Aluminum"), 
-						       "ScatChamberFrontClamshell_log");
+  logicScatChamberFrontClamshell = 
+    new G4LogicalVolume(solidSCFrontClamShell, GetMaterial("Aluminum"), "SCFrontClamshell_log");
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(90.0*deg);
-  rot_temp->rotateZ(90.0*deg+ScatChamberClamAngleApert*0.5-ScatChamberWindowAngleOffset);
+  rot_temp->rotateZ(90.0*deg+SCClamAngleApert*0.5-SCWindowAngleOffset);
   
   new G4PVPlacement(rot_temp, G4ThreeVector(0,0,0), logicScatChamberFrontClamshell, 
-  		    "ScatChamberFrontClamshell", worldlog, false, 0);
+  		    "SCFrontClamshell", worldlog, false, 0);
     
   //Back Clamshell:
-  G4double ScatChamberBackClamThick = 0.80*inch;
-  G4double ScatChamberBackClamHeight = 12.0*inch;
-  G4double ScatChamberBackClamAngleApert = 146.7*deg;
-  G4double ScatChamberBackClamAngleOffset = -2.5*deg;
+  G4double SCBackClamThick = 0.80*inch;
+  G4double SCBackClamHeight = 12.0*inch;
+  G4double SCBackClamAngleApert = 145.7*deg;
+  G4double SCBackClamAngleOffset = -2.5*deg;
+  G4double SCBackClamOuterRadius = SCTankRadius+SCClamThick+SCBackClamThick;
+  G4double SCBeamEntranceAngleOffset = SCBackClamAngleOffset-84*deg;
+  G4double SCBackViewPipeAngleOffset = SCBackClamAngleOffset-39.9*deg;
   
-  G4Tubs* 
-    solidScatChamberAddBackClam = new G4Tubs("solidScatChamberAddBackClam", 
-					     ScatChamberTankRadius+ScatChamberClamThick-0.5*cm, 
-					     ScatChamberTankRadius+ScatChamberClamThick+ScatChamberBackClamThick, 
-					     0.5*ScatChamberBackClamHeight, 0.0, ScatChamberBackClamAngleApert);
+  G4Tubs* solidSCAddBackClam = 
+    new G4Tubs("solidSCAddBackClam", SCTankRadius+SCClamThick-0.5*cm, SCBackClamOuterRadius, 
+	       0.5*SCBackClamHeight, 0.0, SCBackClamAngleApert);
   
   rot_temp = new G4RotationMatrix();
-  rot_temp->rotateZ(ScatChamberBackClamAngleOffset);
+  rot_temp->rotateZ(SCBackClamAngleOffset);
   
-  G4UnionSolid* solidScatChamberBackClam_0_abc = 
-    new G4UnionSolid("solidScatChamberClamshell_0_abc", solidScatChamberClamshell_0, solidScatChamberAddBackClam,
+  G4UnionSolid* solidSCBackClam_0_abc = 
+    new G4UnionSolid("solidSCClamshell_0_abc", solidSCClamshell_0, solidSCAddBackClam,
 		     rot_temp, G4ThreeVector(0,0,0));
   
-  G4Tubs* solidEntranceBeamPipe = new G4Tubs("solidEntranceBeamPipe", 
-					     0.0, 2.25*inch, 0.815*inch, 0.0, 360.0*deg);
-
+  //Entrance beam pipe
+  G4Tubs* solidEntranceBeamPipe = 
+    new G4Tubs("solidEntranceBeamPipe", 0.0, 2.25*inch, 0.815*inch, 0.0, 360.0*deg);
+  
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(90.0*deg);
-  rot_temp->rotateY(-90.0*deg+ScatChamberClamAngleApert*0.5+ScatChamberWindowAngleOffset);
+  rot_temp->rotateY(-90.0*deg-SCBeamEntranceAngleOffset);
   
-  G4UnionSolid* solidScatChamberBackClam_0_ebp =
-    new G4UnionSolid("solidScatChamberClamshell_0_ebp", solidScatChamberBackClam_0_abc, 
-		     solidEntranceBeamPipe, rot_temp, 
-		     G4ThreeVector((ScatChamberTankRadius+ScatChamberClamThick+ScatChamberBackClamThick)*
-				   sin(90.0*deg-ScatChamberClamAngleApert*0.5-ScatChamberWindowAngleOffset),
-				   (ScatChamberTankRadius+ScatChamberClamThick+ScatChamberBackClamThick)*
-				   cos(90.0*deg-ScatChamberClamAngleApert*0.5-ScatChamberWindowAngleOffset), 
+  G4UnionSolid* solidSCBackClam_0_ebp =
+    new G4UnionSolid("solidSCClamshell_0_ebp", solidSCBackClam_0_abc, solidEntranceBeamPipe, rot_temp, 
+		     G4ThreeVector(SCBackClamOuterRadius*sin(90.0*deg+SCBeamEntranceAngleOffset),
+				   SCBackClamOuterRadius*cos(90.0*deg+SCBeamEntranceAngleOffset),
 				   0.0)
 		     );
   
-  G4Tubs* solidEntranceBeamPipeHole = new G4Tubs("solidEntranceBeamPipeHole", 
-						 0.0, 1.0*inch, 4.0*inch, 0.0, 360.0*deg);
+  G4Tubs* solidEntranceBeamPipeHole = 
+    new G4Tubs("solidEntranceBeamPipeHole", 0.0, 1.0*inch, 4.0*inch, 0.0, 360.0*deg);
   
-  G4SubtractionSolid* solidScatChamberBackClam_0_ebph =
-    new G4SubtractionSolid("solidScatChamberClamshell_0_ebph", solidScatChamberBackClam_0_ebp, 
+  G4SubtractionSolid* solidSCBackClam_0_ebph =
+    new G4SubtractionSolid("solidSCClamshell_0_ebph", solidSCBackClam_0_ebp, 
 			   solidEntranceBeamPipeHole, rot_temp, 
-			   G4ThreeVector((ScatChamberTankRadius+ScatChamberClamThick+ScatChamberBackClamThick)*
-					 sin(90.0*deg-ScatChamberClamAngleApert*0.5-ScatChamberWindowAngleOffset),
-					 (ScatChamberTankRadius+ScatChamberClamThick+ScatChamberBackClamThick)*
-					 cos(90.0*deg-ScatChamberClamAngleApert*0.5-ScatChamberWindowAngleOffset), 
+			   G4ThreeVector(SCBackClamOuterRadius*
+					 sin(90.0*deg+SCBeamEntranceAngleOffset),
+					 SCBackClamOuterRadius*
+					 cos(90.0*deg+SCBeamEntranceAngleOffset),
 					 0.0)
 			   );
-  //Angles...
-  double BackViewPipeAngle = 134.1;
-    
+  
+  //Back view pipe
   G4Tubs* solidBackViewPipe = new G4Tubs("solidBackViewPipe", 
 					 0.0, 2.12*inch, 1.555*inch, 0.0, 360.0*deg);
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(90.0*deg);
-  rot_temp->rotateY(90.0*deg-BackViewPipeAngle);
+  rot_temp->rotateY(-90.0*deg-SCBackViewPipeAngleOffset);
   
-  G4UnionSolid* solidScatChamberBackClam_0_bvp =
-    new G4UnionSolid("solidScatChamberClamshell_0_bvp", solidScatChamberBackClam_0_ebph, 
+  G4UnionSolid* solidSCBackClam_0_bvp =
+    new G4UnionSolid("solidSCClamshell_0_bvp", solidSCBackClam_0_ebph, 
 		     solidBackViewPipe, rot_temp, 
-		     G4ThreeVector((ScatChamberTankRadius+ScatChamberClamThick+ScatChamberBackClamThick+1.5*inch)*
-				   sin(BackViewPipeAngle-90.0*deg),
-				   (ScatChamberTankRadius+ScatChamberClamThick+ScatChamberBackClamThick+1.5*inch)*
-				   cos(BackViewPipeAngle-90.0*deg), 
+		     G4ThreeVector((SCBackClamOuterRadius+1.501*inch)*sin(90.0*deg+SCBackViewPipeAngleOffset),
+				   (SCTankRadius+SCClamThick+SCBackClamThick+1.5*inch)*
+				   cos(90.0*deg+SCBackViewPipeAngleOffset), 
 				   0.0)
 		     );
   
   G4Tubs* solidBackViewPipeFlange = new G4Tubs("solidBackViewPipeFlange", 
 					       0.0, 3.0*inch, 0.5*inch, 0.0, 360.0*deg);
   
-  G4UnionSolid* solidScatChamberBackClam_0_bvpf =
-    new G4UnionSolid("solidScatChamberClamshell_0_bvpf", solidScatChamberBackClam_0_bvp, 
+  G4UnionSolid* solidSCBackClam_0_bvpf =
+    new G4UnionSolid("solidSCClamshell_0_bvpf", solidSCBackClam_0_bvp, 
 		     solidBackViewPipeFlange, rot_temp, 
-		     G4ThreeVector((ScatChamberTankRadius+ScatChamberClamThick+ScatChamberBackClamThick+2.556*inch)*sin(BackViewPipeAngle-90.0*deg), (ScatChamberTankRadius+ScatChamberClamThick+ScatChamberBackClamThick+2.556*inch)*cos(BackViewPipeAngle-90.0*deg), 0.0));
+		     G4ThreeVector((SCBackClamOuterRadius+2.556*inch)*sin(90.0*deg+SCBackViewPipeAngleOffset), 
+				   (SCBackClamOuterRadius+2.556*inch)*cos(90.0*deg+SCBackViewPipeAngleOffset), 
+				   0.0));
   
   G4Tubs* solidBackViewPipeHole = new G4Tubs("solidBackViewPipeHole", 
 					     0.0, 2.0*inch, 4.0*inch, 0.0, 360.0*deg);
   
-  G4SubtractionSolid* solidScatChamberBackClam_0_bvph =
-    new G4SubtractionSolid("solidScatChamberClamshell_0_bvph", solidScatChamberBackClam_0_bvpf, 
+  G4SubtractionSolid* solidSCBackClam_0_bvph =
+    new G4SubtractionSolid("solidSCClamshell_0_bvph", solidSCBackClam_0_bvpf, 
 			   solidEntranceBeamPipeHole, rot_temp, 
-			   G4ThreeVector((ScatChamberTankRadius+ScatChamberClamThick+ScatChamberBackClamThick)*
-					 sin(BackViewPipeAngle-90.0*deg),
-					 (ScatChamberTankRadius+ScatChamberClamThick+ScatChamberBackClamThick)*
-					 cos(BackViewPipeAngle-90.0*deg), 
+			   G4ThreeVector(SCBackClamOuterRadius*sin(90.0*deg+SCBackViewPipeAngleOffset),
+					 SCBackClamOuterRadius*cos(90.0*deg+SCBackViewPipeAngleOffset), 
 					 0.0)
 			   );
   
   
-  G4VSolid* solidScatChamberBackClamShell = solidScatChamberBackClam_0_bvph;
+  G4VSolid* solidSCBackClamShell = solidSCBackClam_0_bvph;
     
-  logicScatChamberBackClamshell = new G4LogicalVolume(solidScatChamberBackClamShell, 
+  logicScatChamberBackClamshell = new G4LogicalVolume(solidSCBackClamShell, 
 						      GetMaterial("Aluminum"), 
-						      "ScatChamberBackClamshell_log");
+						      "SCBackClamshell_log");
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(90.0*deg);
-  rot_temp->rotateZ(-90.0*deg+ScatChamberClamAngleApert*0.5+ScatChamberWindowAngleOffset);
+  rot_temp->rotateZ(-90.0*deg+SCClamAngleApert*0.5+SCWindowAngleOffset);
   
   new G4PVPlacement(rot_temp, G4ThreeVector(0,0,0), logicScatChamberBackClamshell, 
-  		    "ScatChamberBackClamshell", worldlog, false, 0);
+  		    "SCBackClamshell", worldlog, false, 0);
   
   // Scattering chamber volume
   //
-  G4Tubs*
-    solidScatChamber = new G4Tubs("ScatChamber", 0.0, ScatChamberRadius, 0.5* ScatChamberHeight, 
-				  0.0*deg, 360.0*deg);
+  G4Tubs* solidScatChamber = new G4Tubs("SC", 0.0, SCRadius, 0.5* SCHeight, 0.0*deg, 360.0*deg);
+			       
   
   logicScatChamber = new G4LogicalVolume(solidScatChamber, GetMaterial("Vacuum"), "ScatChamber_log");
   
-  new G4PVPlacement(rotSC, *ScatChamberPlacement, logicScatChamber, "ScatChamberPhys", worldlog, false, 0);
+  new G4PVPlacement(rotSC, *SCPlacement, logicScatChamber, "ScatChamberPhys", worldlog, false, 0);
   
   //G4double YOffset_std = 0.0;
   
@@ -424,7 +413,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   rot_temp->rotateX(90.0*deg);
   
   //Call BuildStandardCryoTarget HERE !
-  BuildStandardCryoTarget(logicScatChamber, rot_temp, G4ThreeVector(0, 0, ScatChamberOffset));
+  BuildStandardCryoTarget(logicScatChamber, rot_temp, G4ThreeVector(0, 0, SCOffset));
   
   G4VisAttributes* colourGrey= new G4VisAttributes(G4Colour(0.5,0.5,0.5)); 
   colourGrey->SetVisibility(true);

@@ -2399,6 +2399,8 @@ void G4SBSEArmBuilder::MakeSBSElectronicsBunker(G4LogicalVolume *worldlog){
     sprintf(name,"electronics_phys_%s_%d",loc[i],i);
     new G4PVPlacement(0,G4ThreeVector(xpos[i],ytemp,zpos[i]),sd_logs[i],name,mlog,false,i);
   }
+
+
   
   // Visuals:
   G4VisAttributes *HutAtt = new G4VisAttributes(G4Colour(0.8,0.0,0.0));

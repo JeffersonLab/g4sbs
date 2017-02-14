@@ -195,7 +195,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4double ScatChamberTankThickness = 2.5*inch;
   G4double ScatChamberTankRadius = ScatChamberRadius+ScatChamberTankThickness;
   G4double ScatChamberTankHeight = ScatChamberHeight;
-  G4double ScatChamberOffset = 0.0*cm;//-9.525*cm;
+  G4double ScatChamberOffset = 0.0;//9.525*cm;
 
   G4double ScatChamberExitFlange_HAngleApert = atan(ScatChamberExitFlangePlate_HLength/
 						   (ScatChamberTankRadius+ScatChamberExitFlangePlate_Thick));
@@ -295,13 +295,32 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
     solidScatChamberClamshell = new G4Tubs("solidScatChamberClamshell", 
 					   ScatChamberTankRadius, ScatChamberTankRadius+ScatChamberClamThick, 
 					   0.5*ScatChamberClamHeight, 0.0, ScatChamberClamAngleApert);
-
-  logicScatChamberFrontClamshell = new G4LogicalVolume(solidScatChamberExitFlangePlate, 
+  
+  G4VSolid* solidScatChamberFrontClamShell = solidScatChamberClamshell;
+  
+  logicScatChamberFrontClamshell = new G4LogicalVolume(solidScatChamberFrontClamShell, 
 						       GetMaterial("Aluminum"), 
 						       "ScatChamberFrontClamshell_log");
-  logicScatChamberBackClamshell = new G4LogicalVolume(solidScatChamberExitFlangePlate, 
+  
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateX(90.0*deg);
+  rot_temp->rotateZ(90.0*deg+ScatChamberWindowAngleApert*0.5-ScatChamberWindowAngleOffset);
+  
+  new G4PVPlacement(rot_temp, G4ThreeVector(0,0,0), logicScatChamberFrontClamshell, 
+  		    "ScatChamberFrontlamshell", worldlog, false, 0);
+  
+  G4VSolid* solidScatChamberBackClamShell = solidScatChamberClamshell;
+
+  logicScatChamberBackClamshell = new G4LogicalVolume(solidScatChamberBackClamShell, 
 						      GetMaterial("Aluminum"), 
 						      "ScatChamberBackClamshell_log");
+  
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateX(90.0*deg);
+  rot_temp->rotateZ(-90.0*deg+ScatChamberWindowAngleApert*0.5+ScatChamberWindowAngleOffset);
+  
+  new G4PVPlacement(rot_temp, G4ThreeVector(0,0,0), logicScatChamberBackClamshell, 
+  		    "ScatChamberBackClamshell", worldlog, false, 0);
   
   // Scattering chamber volume
   //
@@ -328,11 +347,11 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 
   G4VisAttributes* colourCyan= new G4VisAttributes(G4Colour(0.,1.,1.)); 
   colourCyan->SetVisibility(true);
-  colourCyan->SetForceWireframe(true);
+  //colourCyan->SetForceWireframe(true);
   
   logicScatChamberTank->SetVisAttributes(colourGrey);
-  // logicScatChamberEntrance->SetVisAttributes(colourGrey);
-  // logicScatChamberExit->SetVisAttributes(colourGrey);
+  logicScatChamberFrontClamshell->SetVisAttributes(colourCyan);
+  logicScatChamberBackClamshell->SetVisAttributes(colourCyan);
   logicScatChamberExitFlangePlate->SetVisAttributes(colourCyan);
   logicScatChamber->SetVisAttributes(Invisible);
   

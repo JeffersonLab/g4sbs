@@ -285,8 +285,50 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
     new G4Tubs("solidSCClamshell_0", SCTankRadius, SCTankRadius+SCClamThick, 
 	       0.5*SCClamHeight, 0.0, SCClamAngleApert);
   
-  //Front Clamshell:
-  G4VSolid* solidSCFrontClamShell = solidSCClamshell_0;
+  // Front Clamshell:
+  G4double SCFrontClamOuterRadius = SCTankRadius+SCClamThick;
+  G4double SCBeamExitAngleOffset = 64.5*deg;
+  
+  // Exit Beam Pipe
+  G4Tubs* solidExitBeamPipe = new G4Tubs("solidExitBeamPipe", 
+					 0.0, 55.0*mm, 2.100*inch, 0.0, 360.0*deg);
+  
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateX(90.0*deg);
+  rot_temp->rotateY(-90.0*deg+SCBeamExitAngleOffset);
+  
+  G4UnionSolid* solidSCFrontClam_0_ebp =
+    new G4UnionSolid("solidSCClamshell_0_ebp", solidSCClamshell_0, 
+		     solidExitBeamPipe, rot_temp, 
+		     G4ThreeVector((SCFrontClamOuterRadius+2.053*inch)*sin(90.0*deg-SCBeamExitAngleOffset),
+				   (SCFrontClamOuterRadius+2.053*inch)*cos(90.0*deg-SCBeamExitAngleOffset), 
+				   0.0)
+		     );
+  
+  G4Tubs* solidExitBeamPipeFlange = new G4Tubs("solidExitBeamPipeFlange", 
+					       0.0, 2.985*inch, 0.3925*inch, 0.0, 360.0*deg);
+  
+  G4UnionSolid* solidSCFrontClam_0_ebpf =
+    new G4UnionSolid("solidSCClamshell_0_ebpf", solidSCFrontClam_0_ebp, 
+		     solidExitBeamPipeFlange, rot_temp, 
+		     G4ThreeVector((SCFrontClamOuterRadius+3.7605*inch)*sin(90.0*deg-SCBeamExitAngleOffset), 
+				   (SCFrontClamOuterRadius+3.7605*inch)*cos(90.0*deg-SCBeamExitAngleOffset), 
+				   0.0));
+  
+  G4Tubs* solidExitBeamPipeHole = new G4Tubs("solidBackViewPipeHole", 
+					     0.0, 50.0*mm, 4.0*inch, 0.0, 360.0*deg);
+  
+  G4SubtractionSolid* solidSCFrontClam_0_ebph =
+    new G4SubtractionSolid("solidSCClamshell_0_ebph", solidSCFrontClam_0_ebpf, 
+			   solidExitBeamPipeHole, rot_temp, 
+			   G4ThreeVector(SCFrontClamOuterRadius*sin(90.0*deg-SCBeamExitAngleOffset),
+					 SCFrontClamOuterRadius*cos(90.0*deg-SCBeamExitAngleOffset), 
+					 0.0)
+			   );
+  
+  // ICI
+  
+  G4VSolid* solidSCFrontClamShell = solidSCFrontClam_0_ebph;
   
   logicScatChamberFrontClamshell = 
     new G4LogicalVolume(solidSCFrontClamShell, GetMaterial("Aluminum"), "SCFrontClamshell_log");
@@ -297,7 +339,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   
   new G4PVPlacement(rot_temp, G4ThreeVector(0,0,0), logicScatChamberFrontClamshell, 
   		    "SCFrontClamshell", worldlog, false, 0);
-    
+  
   //Back Clamshell:
   G4double SCBackClamThick = 0.80*inch;
   G4double SCBackClamHeight = 12.0*inch;
@@ -358,8 +400,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
     new G4UnionSolid("solidSCClamshell_0_bvp", solidSCBackClam_0_ebph, 
 		     solidBackViewPipe, rot_temp, 
 		     G4ThreeVector((SCBackClamOuterRadius+1.501*inch)*sin(90.0*deg+SCBackViewPipeAngleOffset),
-				   (SCTankRadius+SCClamThick+SCBackClamThick+1.5*inch)*
-				   cos(90.0*deg+SCBackViewPipeAngleOffset), 
+				   (SCBackClamOuterRadius+1.501*inch)*cos(90.0*deg+SCBackViewPipeAngleOffset), 
 				   0.0)
 		     );
   
@@ -378,7 +419,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   
   G4SubtractionSolid* solidSCBackClam_0_bvph =
     new G4SubtractionSolid("solidSCClamshell_0_bvph", solidSCBackClam_0_bvpf, 
-			   solidEntranceBeamPipeHole, rot_temp, 
+			   solidBackViewPipeHole, rot_temp, 
 			   G4ThreeVector(SCBackClamOuterRadius*sin(90.0*deg+SCBackViewPipeAngleOffset),
 					 SCBackClamOuterRadius*cos(90.0*deg+SCBackViewPipeAngleOffset), 
 					 0.0)
@@ -427,8 +468,8 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   //colourCyan->SetForceWireframe(true);
   
   logicScatChamberTank->SetVisAttributes(colourGrey);
-  logicScatChamberFrontClamshell->SetVisAttributes(colourGrey);
-  logicScatChamberBackClamshell->SetVisAttributes(colourCyan);
+  logicScatChamberFrontClamshell->SetVisAttributes(colourCyan);
+  logicScatChamberBackClamshell->SetVisAttributes(colourGrey);
   logicScatChamberExitFlangePlate->SetVisAttributes(colourCyan);
   logicScatChamber->SetVisAttributes(Invisible);
   

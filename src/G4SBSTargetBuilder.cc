@@ -69,7 +69,8 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 // EFuchey: 2017/02/10: Making a standard function to build the cryotarget itself.
 // The code for building C16 and GEp are indeed almost identical.
-void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog, G4double Xangle, G4double Yoffset){
+void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog, 
+						 G4RotationMatrix *rot_targ, G4ThreeVector targ_offset){
   // Now let's make a cryotarget:
   G4double Rcell = 4.0*cm;
   G4double uthick = 0.1*mm;
@@ -116,21 +117,23 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog, G4d
   
   G4double targ_zcenter = (uthick-dthick)/2.0; //position of target center relative to target mother volume
    
-  G4RotationMatrix *rot_temp = new G4RotationMatrix;
   //Compute position of target relative to scattering chamber:
   //The target center should be at
-  //rot_temp = new G4RotationMatrix;
-  rot_temp->rotateX( Xangle );
-  
+  //G4RotationMatrix *rot_temp = new G4RotationMatrix;
+  //rot_temp = new G4RotationMatrix();
+  //rot_temp->rotateX(90.0*deg);
+
   //for z of target center to be at zero, 
+  G4double temp = targ_offset.y();
+  targ_offset.setY(temp+targ_zcenter);
   
-  new G4PVPlacement( rot_temp, G4ThreeVector(0, -(Yoffset-targ_zcenter) ,0), TargetMother_log, "TargetMother_phys", motherlog, false, 0 );
+  new G4PVPlacement( rot_targ, targ_offset, TargetMother_log, "TargetMother_phys", motherlog, false, 0 );
   
   if( fFlux ){ //Make a sphere to compute particle flux:
     G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
 				   0.*deg, 150.*deg );
     G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
-    new G4PVPlacement( rot_temp, G4ThreeVector(0,-(Yoffset-targ_zcenter),0), fsph_log, "fsph_phys", motherlog, false, 0 );
+    new G4PVPlacement( rot_targ, targ_offset, fsph_log, "fsph_phys", motherlog, false, 0 );
     
     G4String FluxSDname = "FLUX";
     G4String Fluxcollname = "FLUXHitsCollection";
@@ -186,16 +189,10 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4double ScatChamberWindowHeight = ScatChamberClamHeight-2.0*inch;
   G4double ScatChamberWindowAngleApert = ScatChamberClamAngleApert-2.0*deg;
   G4double ScatChamberWindowAngleOffset = 11.0*deg;
-  G4double ScatChamberWindowThickness = 406.4*um;
-  G4double ScatChamberWindowMinAngle = 3.0*deg;
-  G4double ScatChamberBackWindowMaxAngle = 120*deg;
-  G4double ScatChamberBackWindowHeight = 38.1*cm;
-  G4double ScatChamberFrontWindowMaxAngle = 90*deg;
-  G4double ScatChamberFrontWindowHeight = 22.86*cm;
   G4double ScatChamberTankThickness = 2.5*inch;
   G4double ScatChamberTankRadius = ScatChamberRadius+ScatChamberTankThickness;
   G4double ScatChamberTankHeight = ScatChamberHeight;
-  G4double ScatChamberOffset = 0.0;//9.525*cm;
+  G4double ScatChamberOffset = 3.75*inch;
 
   G4double ScatChamberExitFlange_HAngleApert = atan(ScatChamberExitFlangePlate_HLength/
 						   (ScatChamberTankRadius+ScatChamberExitFlangePlate_Thick));
@@ -270,12 +267,12 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   
   //Scattering chamber tank placement:
   G4RotationMatrix* rotSC = new G4RotationMatrix();
-  rotSC->rotateX(90.0*deg);
+  rotSC->rotateX(-90.0*deg);
   
-  G4ThreeVector* ScatChamberPlacement = new G4ThreeVector(0,0,ScatChamberOffset);
+  G4ThreeVector* ScatChamberPlacement = new G4ThreeVector(0,0,-ScatChamberOffset);
   ScatChamberPlacement->rotateX(90*deg);
   
-  new G4PVPlacement(rotSC, *ScatChamberPlacement, logicScatChamberTank, "ScatChamberTank", worldlog, false, 0); 
+  new G4PVPlacement(rotSC, *ScatChamberPlacement, logicScatChamberTank, "ScatChamberTankPhys", worldlog, false, 0); 
   
   //Exit Flange Plate
   G4Box* solidScatChamberExitFlangePlate = new G4Box("ScatChamberExitFlangePlate_sol", 
@@ -328,26 +325,28 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
     solidScatChamber = new G4Tubs("ScatChamber", 0.0, ScatChamberRadius, 0.5* ScatChamberHeight, 
 				  0.0*deg, 360.0*deg);
   
-  logicScatChamber = new G4LogicalVolume(solidScatChamber, GetMaterial("Vacuum"), "ScatChamber");
+  logicScatChamber = new G4LogicalVolume(solidScatChamber, GetMaterial("Vacuum"), "ScatChamber_log");
   
-  new G4PVPlacement(rotSC, *ScatChamberPlacement, logicScatChamber, "ScatChamber", worldlog, false, 0);
+  new G4PVPlacement(rotSC, *ScatChamberPlacement, logicScatChamber, "ScatChamberPhys", worldlog, false, 0);
   
-  G4double Xangle_std = -90.0*deg;
-  G4double YOffset_std = 0.0;
+  //G4double YOffset_std = 0.0;
   
-  //Call BuildStandardCryoTarget(G4LogicalVolume *, G4double, G4double) HERE !
-  BuildStandardCryoTarget(logicScatChamber, Xangle_std, YOffset_std);
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateX(90.0*deg);
+  
+  //Call BuildStandardCryoTarget HERE !
+  BuildStandardCryoTarget(logicScatChamber, rot_temp, G4ThreeVector(0, 0, ScatChamberOffset));
   
   G4VisAttributes* colourGrey= new G4VisAttributes(G4Colour(0.5,0.5,0.5)); 
   colourGrey->SetVisibility(true);
-  //colourGrey->SetForceWireframe(true);
+  colourGrey->SetForceWireframe(true);
   
   G4VisAttributes* Invisible = new G4VisAttributes(G4Colour(0.,0.,0.)); 
   Invisible->SetVisibility(false);
 
   G4VisAttributes* colourCyan= new G4VisAttributes(G4Colour(0.,1.,1.)); 
   colourCyan->SetVisibility(true);
-  //colourCyan->SetForceWireframe(true);
+  colourCyan->SetForceWireframe(true);
   
   logicScatChamberTank->SetVisAttributes(colourGrey);
   logicScatChamberFrontClamshell->SetVisAttributes(colourCyan);
@@ -568,11 +567,11 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), ScatChamber_log, "ScatChamber_phys", worldlog, false, 0 );
   
-  G4double Xangle_GEp = -90.0*deg;
-  G4double YOffset_GEp = TargetCenter_zoffset;
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateX( -90.0*deg );
   
-  //Call BuildStandardCryoTarget(G4LogicalVolume *, G4double, G4double) HERE !
-  BuildStandardCryoTarget(ScatChamber_log, Xangle_GEp, YOffset_GEp);
+  //Call BuildStandardCryoTarget HERE !
+  BuildStandardCryoTarget(ScatChamber_log, rot_temp, G4ThreeVector(0, -TargetCenter_zoffset, 0));
   
   /*
   //HERE
@@ -1141,11 +1140,11 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   new G4PVPlacement( 0, G4ThreeVector(0,0,z0_exitpipe ), exit_pipe_log, "exit_pipe_phys", worldlog, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector(0,0,z0_exitpipe ), exit_vacuum_log, "exit_vacuum_phys", worldlog, false, 0 );
   
-  G4double Xangle_C16 = +90.0*deg;
-  G4double YOffset_C16 = 0.0*mm;
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateX(+90.0*deg);
   
-  //Call BuildStandardCryoTarget(G4LogicalVolume *, G4double, G4double) HERE !
-  BuildStandardCryoTarget(scham_vacuum_log, Xangle_C16, YOffset_C16);
+  //Call BuildStandardCryoTarget HERE !
+  BuildStandardCryoTarget(scham_vacuum_log, rot_temp, G4ThreeVector(0, +0.025*mm, 0));
   /*
   // Now let's make a cryotarget:
   G4double Rcell = 4.0*cm;

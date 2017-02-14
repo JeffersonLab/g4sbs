@@ -22,8 +22,8 @@ public:
   void BuildGasTarget(G4LogicalVolume *);
   
   // EFuchey: 2017/02/10:  This function is now meant to build the cryotarget and target cell only.
-  // This function takes as input the mother logical volume, a rotation angle, and a Y offset.
-  void BuildStandardCryoTarget(G4LogicalVolume *, G4double, G4double);
+  // This function takes as input the mother logical volume, a rotation matrix, and a 3-vector offset.
+  void BuildStandardCryoTarget(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector);
 
   // EFuchey: 2017/02/10: Added those functions to build scattering chamber separately from target,
   // and avoid, if possible, duplicates of the code actually building the target.

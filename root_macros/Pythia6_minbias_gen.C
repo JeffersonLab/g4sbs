@@ -43,7 +43,7 @@ void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ng
   TPythia6 Generator;
   Generator.SetPARP(2,1.0); //Set minimum CM energy to 1 GeV instead of the default 10 GeV:
 
-  Generator.Initialize( "FIXT", "gamma/e-", "p", 11.0 );
+  Generator.Initialize( "FIXT", "gamma/e-", "p", Ebeam );
 
   int Nparticles;
   float Q2,xbj,y,W2;

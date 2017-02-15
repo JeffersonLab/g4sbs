@@ -362,7 +362,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   
   //Entrance beam pipe
   G4Tubs* solidEntranceBeamPipe = 
-    new G4Tubs("solidEntranceBeamPipe", 0.0, 2.25*inch, 0.815*inch, 0.0, 360.0*deg);
+    new G4Tubs("solidEntranceBeamPipe", 0.0, 2.25*inch, 0.825*inch, 0.0, 360.0*deg);
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(90.0*deg);

@@ -292,8 +292,10 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   // Front Clamshell:
   G4double SCFrontClamOuterRadius = SCTankRadius+SCClamThick;
   G4double SCBeamExitAngleOffset = 64.5*deg;
-  G4double SCLeftSnoutAngleOffset = SCBeamExitAngleOffset-24.2*deg;
-  G4double SCRightSnoutAngleOffset = SCBeamExitAngleOffset+50.1*deg;
+  G4double SCLeftSnoutAngle = 24.2*deg;
+  G4double SCLeftSnoutAngleOffset = SCBeamExitAngleOffset-SCLeftSnoutAngle;
+  G4double SCRightSnoutAngle = 50.1*deg;
+  G4double SCRightSnoutAngleOffset = SCBeamExitAngleOffset+SCRightSnoutAngle;
   
   // Left snout opening:
   G4double SCLeftSnoutDepth = 4.00*inch;// x
@@ -339,6 +341,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4double SCSnoutWindowDist = 23.899*inch+SCSnoutWindowThick*0.5;
   G4double SCSnoutWindowFrameThick = 0.75*inch;
   G4double SCLeftSnoutHoleWidth = 12.673*inch;
+  G4double SCLeftSnoutHoleCurvRad = 1.05*inch;
   G4double SCSnoutWindowFrameDist = SCSnoutWindowDist+SCSnoutWindowFrameThick*0.5;
   
   G4Box* solidLeftSnoutWindow = 
@@ -348,23 +351,70 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
     new G4LogicalVolume(solidLeftSnoutWindow, GetMaterial("Aluminum"), "SCLeftSnoutWindow_log");
   
   rot_temp = new G4RotationMatrix();
-  rot_temp->rotateY(+24.2*deg);
+  rot_temp->rotateY(SCLeftSnoutAngle);
   
   new G4PVPlacement(rot_temp, 
-		    G4ThreeVector(-SCSnoutWindowDist*sin(24.2*deg),0,SCSnoutWindowDist*cos(24.2*deg)), 
+		    G4ThreeVector(-SCSnoutWindowDist*sin(SCLeftSnoutAngle),
+				  0,
+				  SCSnoutWindowDist*cos(SCLeftSnoutAngle)), 
 		    logicScatChamberLeftSnoutWindow, "SCLeftSnoutWindow", worldlog, false, 0);
   
   G4Box* solidLeftSnoutWindowFrame_0 = 
     new G4Box("LeftSnoutWindowFrame_0", SCLeftSnoutWidth*0.5, 
 	      SCLeftSnoutHeight*0.5, SCSnoutWindowFrameThick*0.5);
   
-  G4Box* solidLeftSnoutWindowFrame_cut = 
-    new G4Box("LeftSnoutWindowFrame_cut", SCLeftSnoutHoleWidth*0.5, 
+  G4Tubs* solidLeftSnoutWindowFrame_cut_0 = 
+    new G4Tubs("LeftSnoutWindowFrame_cut_0", 0.0, SCLeftSnoutHoleCurvRad, SCSnoutWindowFrameThick, 0.0, 360.0*deg);
+  
+  G4SubtractionSolid* solidLeftSnoutWindowFrame_0_htr = 
+    new G4SubtractionSolid("solidLeftSnoutWindowFrame_0_htr", solidLeftSnoutWindowFrame_0,
+			   solidLeftSnoutWindowFrame_cut_0, 0, 
+			   G4ThreeVector(SCLeftSnoutHoleWidth*0.5-SCLeftSnoutHoleCurvRad, 
+					 SCLeftSnoutHoleHeight*0.5-SCLeftSnoutHoleCurvRad,
+					 0)
+			   );
+
+  G4SubtractionSolid* solidLeftSnoutWindowFrame_0_hbr = 
+    new G4SubtractionSolid("solidLeftSnoutWindowFrame_0_hbr", solidLeftSnoutWindowFrame_0_htr,
+			   solidLeftSnoutWindowFrame_cut_0, 0, 
+			   G4ThreeVector(SCLeftSnoutHoleWidth*0.5-SCLeftSnoutHoleCurvRad, 
+					 -SCLeftSnoutHoleHeight*0.5+SCLeftSnoutHoleCurvRad,
+					 0)
+			   );
+  
+  G4SubtractionSolid* solidLeftSnoutWindowFrame_0_hbl = 
+    new G4SubtractionSolid("solidLeftSnoutWindowFrame_0_hbl", solidLeftSnoutWindowFrame_0_hbr,
+			   solidLeftSnoutWindowFrame_cut_0, 0, 
+			   G4ThreeVector(-SCLeftSnoutHoleWidth*0.5+SCLeftSnoutHoleCurvRad, 
+					 -SCLeftSnoutHoleHeight*0.5+SCLeftSnoutHoleCurvRad,
+					 0)
+			   );
+  
+  G4SubtractionSolid* solidLeftSnoutWindowFrame_0_htl = 
+    new G4SubtractionSolid("solidLeftSnoutWindowFrame_0_htl", solidLeftSnoutWindowFrame_0_hbl,
+			   solidLeftSnoutWindowFrame_cut_0, 0, 
+			   G4ThreeVector(-SCLeftSnoutHoleWidth*0.5+SCLeftSnoutHoleCurvRad, 
+					 SCLeftSnoutHoleHeight*0.5-SCLeftSnoutHoleCurvRad,
+					 0)
+			   );
+  
+  G4Box* solidLeftSnoutWindowFrame_cut_1 = 
+    new G4Box("LeftSnoutWindowFrame_cut_1", SCLeftSnoutHoleWidth*0.5-SCLeftSnoutHoleCurvRad, 
 	      SCLeftSnoutHoleHeight*0.5, SCSnoutWindowFrameThick);
   
-  G4SubtractionSolid* solidLeftSnoutWindowFrame = 
-    new G4SubtractionSolid("solidLeftSnoutWindowFrame", solidLeftSnoutWindowFrame_0,
-			   solidLeftSnoutWindowFrame_cut, 0, G4ThreeVector());
+  G4SubtractionSolid* solidLeftSnoutWindowFrame_1 = 
+    new G4SubtractionSolid("solidLeftSnoutWindowFrame", solidLeftSnoutWindowFrame_0_htl,
+  			   solidLeftSnoutWindowFrame_cut_1, 0, G4ThreeVector());
+  
+  G4Box* solidLeftSnoutWindowFrame_cut_2 = 
+    new G4Box("LeftSnoutWindowFrame_cut_2", SCLeftSnoutHoleWidth*0.5,
+	      SCLeftSnoutHoleHeight*0.5-SCLeftSnoutHoleCurvRad, SCSnoutWindowFrameThick);
+  
+  G4SubtractionSolid* solidLeftSnoutWindowFrame_2 = 
+    new G4SubtractionSolid("solidLeftSnoutWindowFrame", solidLeftSnoutWindowFrame_1,
+  			   solidLeftSnoutWindowFrame_cut_2, 0, G4ThreeVector());
+  
+  G4VSolid* solidLeftSnoutWindowFrame = solidLeftSnoutWindowFrame_2;
   
   logicScatChamberLeftSnoutWindowFrame = 
     new G4LogicalVolume(solidLeftSnoutWindowFrame, GetMaterial("Aluminum"), "SCLeftSnoutWindowFrame_log");

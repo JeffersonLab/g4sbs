@@ -171,6 +171,10 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4LogicalVolume *logicScatChamberExitFlangePlate =0;
   G4LogicalVolume *logicScatChamberFrontClamshell =0;
   G4LogicalVolume *logicScatChamberBackClamshell =0;
+  G4LogicalVolume *logicScatChamberLeftSnoutWindow =0;
+  G4LogicalVolume *logicScatChamberLeftSnoutWindowFrame =0;
+  G4LogicalVolume *logicScatChamberRightSnoutWindow =0;
+  G4LogicalVolume *logicScatChamberRightSnoutWindowFrame =0;
   G4LogicalVolume *logicScatChamber =0;
 
   // Scattering chamber tank:
@@ -288,20 +292,113 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   // Front Clamshell:
   G4double SCFrontClamOuterRadius = SCTankRadius+SCClamThick;
   G4double SCBeamExitAngleOffset = 64.5*deg;
+  G4double SCLeftSnoutAngleOffset = SCBeamExitAngleOffset-24.2*deg;
+  G4double SCRightSnoutAngleOffset = SCBeamExitAngleOffset+50.1*deg;
   
-  // Exit Beam Pipe
+  // Left snout opening:
+  G4double SCLeftSnoutDepth = 4.00*inch;// x
+  G4double SCLeftSnoutWidth = 16.338*inch;// y
+  G4double SCLeftSnoutHeight = 11.0*inch; //z
+  G4double SCLeftSnoutHoleHeight = 7.0*inch;
+  G4double SCLeftSnoutHoleAngleApert = 30.0*deg;
+  
+  G4Box* LeftSnoutBox = 
+    new G4Box("LeftSnoutBox", SCLeftSnoutDepth*0.5, SCLeftSnoutWidth*0.5, SCLeftSnoutHeight*0.5);
+
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateZ(-SCLeftSnoutAngleOffset-180.0*deg);
+  
+  G4UnionSolid* solidSCFrontClam_0_lsb = 
+    new G4UnionSolid("solidSCClamshell_0_lsb", solidSCClamshell_0, 
+		     LeftSnoutBox, rot_temp, 
+		     G4ThreeVector((SCFrontClamOuterRadius-1.851*inch)*sin(90.0*deg-SCLeftSnoutAngleOffset),
+		     		   (SCFrontClamOuterRadius-1.851*inch)*cos(90.0*deg-SCLeftSnoutAngleOffset), 
+		     		   0.0)
+		     );
+  
+  G4Tubs* SnoutsInnerCut = 
+    new G4Tubs("SnoutsInnerCut", 0.0, SCTankRadius, SCClamHeight/2.0, 0.0, 360.0*deg);
+  
+  G4SubtractionSolid* solidSCFrontClam_0_lsbc =
+    new G4SubtractionSolid("solidSCClamshell_0_lsbc", solidSCFrontClam_0_lsb, 
+			   SnoutsInnerCut, 0, G4ThreeVector());
+  
+  G4Tubs* LeftSnoutApertCut = 
+    new G4Tubs("LeftSnoutApertCut", 0.0, 30.0*inch, SCLeftSnoutHoleHeight/2.0, 
+	       0.0, SCLeftSnoutHoleAngleApert);
+  
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateZ(-SCLeftSnoutAngleOffset+SCLeftSnoutHoleAngleApert*0.5);
+ 
+  G4SubtractionSolid* solidSCFrontClam_0_ls =
+    new G4SubtractionSolid("solidSCClamshell_0_lsbc", solidSCFrontClam_0_lsbc, 
+			   LeftSnoutApertCut, rot_temp, G4ThreeVector());
+  
+  //Left snout window+frame:
+  G4double SCSnoutWindowThick = 0.02*inch;
+  G4double SCSnoutWindowDist = 23.899*inch+SCSnoutWindowThick*0.5;
+  G4double SCSnoutWindowFrameThick = 0.75*inch;
+  G4double SCLeftSnoutHoleWidth = 12.673*inch;
+  G4double SCSnoutWindowFrameDist = SCSnoutWindowDist+SCSnoutWindowFrameThick*0.5;
+  
+  G4Box* solidLeftSnoutWindow = 
+    new G4Box("LeftSnoutWindow_sol", SCLeftSnoutWidth*0.5, SCLeftSnoutHeight*0.5, SCSnoutWindowThick*0.5);
+  
+  logicScatChamberLeftSnoutWindow = 
+    new G4LogicalVolume(solidLeftSnoutWindow, GetMaterial("Aluminum"), "SCLeftSnoutWindow_log");
+  
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateY(+24.2*deg);
+  
+  new G4PVPlacement(rot_temp, 
+		    G4ThreeVector(-SCSnoutWindowDist*sin(24.2*deg),0,SCSnoutWindowDist*cos(24.2*deg)), 
+		    logicScatChamberLeftSnoutWindow, "SCLeftSnoutWindow", worldlog, false, 0);
+  
+  G4Box* solidLeftSnoutWindowFrame_0 = 
+    new G4Box("LeftSnoutWindowFrame_0", SCLeftSnoutWidth*0.5, 
+	      SCLeftSnoutHeight*0.5, SCSnoutWindowFrameThick*0.5);
+  
+  G4Box* solidLeftSnoutWindowFrame_cut = 
+    new G4Box("LeftSnoutWindowFrame_cut", SCLeftSnoutHoleWidth*0.5, 
+	      SCLeftSnoutHoleHeight*0.5, SCSnoutWindowFrameThick);
+  
+  G4SubtractionSolid* solidLeftSnoutWindowFrame = 
+    new G4SubtractionSolid("solidLeftSnoutWindowFrame", solidLeftSnoutWindowFrame_0,
+			   solidLeftSnoutWindowFrame_cut, 0, G4ThreeVector());
+  
+  logicScatChamberLeftSnoutWindowFrame = 
+    new G4LogicalVolume(solidLeftSnoutWindowFrame, GetMaterial("Aluminum"), "SCLeftSnoutWindowFrame_log");
+  
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateY(+24.2*deg);
+  
+  new G4PVPlacement(rot_temp, 
+		    G4ThreeVector(-SCSnoutWindowFrameDist*sin(24.2*deg),0,SCSnoutWindowFrameDist*cos(24.2*deg)), 
+		    logicScatChamberLeftSnoutWindowFrame, "SCLeftSnoutWindow", worldlog, false, 0);
+  
+  //G4LogicalVolume *logicScatChamberLeftSnoutWindowFrame =0; 
+  
+  // ICI
+  
+  
+  //
+  //Temporary fix... to avoid modifying below all the time...
+  G4VSolid* solidSCClamshell_1 = solidSCFrontClam_0_ls;
+
+  // Exit Beam Pipe:
+  // Should come after left snout
   G4Tubs* solidExitBeamPipe = new G4Tubs("solidExitBeamPipe", 
-					 0.0, 55.0*mm, 2.100*inch, 0.0, 360.0*deg);
+					 0.0, 55.0*mm, 2.150*inch, 0.0, 360.0*deg);
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(90.0*deg);
   rot_temp->rotateY(-90.0*deg+SCBeamExitAngleOffset);
   
   G4UnionSolid* solidSCFrontClam_0_ebp =
-    new G4UnionSolid("solidSCClamshell_0_ebp", solidSCClamshell_0, 
+    new G4UnionSolid("solidSCClamshell_0_ebp", solidSCClamshell_1, 
 		     solidExitBeamPipe, rot_temp, 
-		     G4ThreeVector((SCFrontClamOuterRadius+2.053*inch)*sin(90.0*deg-SCBeamExitAngleOffset),
-				   (SCFrontClamOuterRadius+2.053*inch)*cos(90.0*deg-SCBeamExitAngleOffset), 
+		     G4ThreeVector((SCFrontClamOuterRadius+2.003*inch)*sin(90.0*deg-SCBeamExitAngleOffset),
+				   (SCFrontClamOuterRadius+2.003*inch)*cos(90.0*deg-SCBeamExitAngleOffset), 
 				   0.0)
 		     );
   
@@ -325,8 +422,6 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 					 SCFrontClamOuterRadius*cos(90.0*deg-SCBeamExitAngleOffset), 
 					 0.0)
 			   );
-  
-  // ICI
   
   G4VSolid* solidSCFrontClamShell = solidSCFrontClam_0_ebph;
   
@@ -456,19 +551,22 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   //Call BuildStandardCryoTarget HERE !
   BuildStandardCryoTarget(logicScatChamber, rot_temp, G4ThreeVector(0, 0, SCOffset));
   
-  G4VisAttributes* colourGrey= new G4VisAttributes(G4Colour(0.5,0.5,0.5)); 
+  G4VisAttributes* Invisible  = new G4VisAttributes(G4Colour(0.,0.,0.)); 
+  Invisible->SetVisibility(false);
+  G4VisAttributes* colourGrey = new G4VisAttributes(G4Colour(0.5,0.5,0.5)); 
   colourGrey->SetVisibility(true);
   colourGrey->SetForceWireframe(true);
-  
-  G4VisAttributes* Invisible = new G4VisAttributes(G4Colour(0.,0.,0.)); 
-  Invisible->SetVisibility(false);
-
-  G4VisAttributes* colourCyan= new G4VisAttributes(G4Colour(0.,1.,1.)); 
+  G4VisAttributes* colourCyan = new G4VisAttributes(G4Colour(0.,1.,1.)); 
   colourCyan->SetVisibility(true);
   //colourCyan->SetForceWireframe(true);
+  G4VisAttributes* colourMagenta = new G4VisAttributes(G4Colour(1.,0.,1.)); 
+  colourMagenta->SetVisibility(true);
+  //colourMagenta->SetForceWireframe(true);
   
   logicScatChamberTank->SetVisAttributes(colourGrey);
   logicScatChamberFrontClamshell->SetVisAttributes(colourCyan);
+  //logicScatChamberLeftSnoutWindow->SetVisAttributes(Invisible);
+  logicScatChamberLeftSnoutWindowFrame->SetVisAttributes(colourMagenta);
   logicScatChamberBackClamshell->SetVisAttributes(colourGrey);
   logicScatChamberExitFlangePlate->SetVisAttributes(colourCyan);
   logicScatChamber->SetVisAttributes(Invisible);

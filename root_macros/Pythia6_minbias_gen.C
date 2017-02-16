@@ -16,7 +16,7 @@ using namespace std;
 const double Mp = 0.938272046;
 const double me = 0.511e-3;
 
-void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ngen=125000 ){
+void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ngen=125000, const char *beampart="gamma/e-", const char *targetnucl="p" ){
   TFile *Fout = new TFile(outputfilename,"RECREATE");
   
   //ifstream infile(configfilename);
@@ -43,7 +43,7 @@ void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ng
   TPythia6 Generator;
   Generator.SetPARP(2,1.0); //Set minimum CM energy to 1 GeV instead of the default 10 GeV:
 
-  Generator.Initialize( "FIXT", "gamma/e-", "p", 11.0 );
+  Generator.Initialize( "FIXT", beampart, targetnucl, Ebeam );
 
   int Nparticles;
   float Q2,xbj,y,W2;

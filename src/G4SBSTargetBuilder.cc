@@ -638,7 +638,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 				   0.0));
   
   G4Tubs* solidExitBeamPipeHole = new G4Tubs("solidBackViewPipeHole", 
-					     0.0, 50.0*mm, 4.0*inch, 0.0, 360.0*deg);
+					     0.0, 50.0*mm, 10.0*inch, 0.0, 360.0*deg);
   
   G4SubtractionSolid* solidSCFrontClam_0_ebph =
     new G4SubtractionSolid("solidSCClamshell_0_ebph", solidSCFrontClam_0_ebpf, 

@@ -17,6 +17,7 @@ using namespace std;
 const double Mp = 0.938272046;
 const double me = 0.511e-3;
 
+
 void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ngen=125000, const char *beampart="gamma/e-", const char *targnucl="p", double Q2min=0.0, double Wmin=2.0 ){
 
   TRandom3 num(0);
@@ -51,6 +52,7 @@ void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ng
   
   TPythia6 Generator;
   Generator.SetPARP(2,1.0); //Set minimum CM energy to 1 GeV instead of the default 10 GeV:
+
   //Generator.SetPARP(111,Mp);
   Generator.SetCKIN(1,0.0);
   Generator.SetCKIN(2,-1.);

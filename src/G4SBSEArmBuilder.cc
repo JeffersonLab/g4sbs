@@ -103,6 +103,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     {
       MakeC16( worldlog );
     }
+  if( exptype == kNeutronExp )  MakeGMnGEMShielding( worldlog );
 }
 
 void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
@@ -2778,3 +2779,163 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //   Al_log->SetVisAttributes(Al_colour);
 		    
 // } 
+
+void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
+  /////////////////////////////////////////////////////////////////
+  //
+  // Working with very little information here.. apparently it is 
+  // "similar" to the hut that dasuni built but rotated..
+
+  // Got coordinates from Alan which apparently correspond to the center of
+  // the hut, I am assuming that the hut is also rotated. Need confirmation on this
+
+  G4SDManager *sdman = fDetCon->fSDman;
+
+  G4double GboxX = 52.0*2.54*cm;
+  G4double GboxY = 26.0*2.54*cm;
+  G4double GboxZ = 52.0*2.54*cm;
+   
+  G4double SPlateX = 120.0*2.54*cm;
+  G4double SPlateY =   5.0*2.54*cm;
+  G4double SPlateZ =  43.0*2.54*cm;
+
+  // Vertical plate
+  G4double GPlateX1 = 96.0*2.54*cm;
+  G4double GPlateY1 = GboxY - 2.5*2.54*cm;
+  G4double GPlateZ1 = 7.5*2.54*cm;
+
+  // Horizontal plate to match the heights
+  G4double GPlateX2 = 96.0*2.54*cm;
+  G4double GPlateY2 = 2.5*2.54*cm;
+  G4double GPlateZ2 = GboxX;
+
+  // Make all the parts:
+  G4Box *GreenBox = new G4Box( "GreenBox",GboxX/2.0, GboxY/2.0, GboxZ/2.0);
+  G4LogicalVolume *GreenBox_log = new G4LogicalVolume( GreenBox, GetMaterial("Steel"), 
+						       "GreenBox_log" );
+
+  G4Box *SteelPlate = new G4Box( "SteelPlate", SPlateX/2.0, SPlateY/2.0, SPlateZ/2.0);
+  G4LogicalVolume *SteelPlate_log = new G4LogicalVolume( SteelPlate, GetMaterial("Steel"), 
+							 "SteelPlate_log" );
+
+  G4Box *GreenPlate1 = new G4Box( "GreenPlate1", GPlateX1/2.0, GPlateY1/2.0, GPlateZ1/2.0);
+  G4LogicalVolume *GreenPlate1_log = new G4LogicalVolume( GreenPlate1, GetMaterial("Steel"), 
+							  "GreenPlate1_log" );
+
+  G4Box *GreenPlate2 = new G4Box( "GreenPlate2", GPlateX2/2.0, GPlateY2/2.0, GPlateZ2/2.0);
+  G4LogicalVolume *GreenPlate2_log = new G4LogicalVolume( GreenPlate2, GetMaterial("Steel"), 
+							  "GreenPlate2_log" );
+
+  // Make a Mother Volume to house everything:
+  G4double ShieldMotherX = 2.0*GboxX + GPlateX1;
+  G4double ShieldMotherY = GboxY + SPlateY;
+  G4double ShieldMotherZ = GboxZ;
+
+  G4Box *ShieldBox = new G4Box( "ShieldBox", ShieldMotherX/2.0, ShieldMotherY/2.0, 
+				ShieldMotherZ/2.0 );
+  G4LogicalVolume *ShieldLog = new G4LogicalVolume( ShieldBox, GetMaterial("Air"), "ShieldLog");
+  G4VisAttributes *temp = new G4VisAttributes(G4Colour(0.0,0.6,0.0));
+  //temp->SetForceWireframe(true);
+  ShieldLog->SetVisAttributes(G4VisAttributes::Invisible);
+ 
+  // And place everything within the Mother:
+  new G4PVPlacement( 0, G4ThreeVector(-ShieldMotherX/2.0 + GboxX/2.0, -SPlateY/2.0, 0.0 ), 
+		     GreenBox_log, "LeftBox",  ShieldLog, false, 0 );
+
+  new G4PVPlacement( 0, G4ThreeVector( ShieldMotherX/2.0 - GboxX/2.0, -SPlateY/2.0, 0.0 ), 
+		     GreenBox_log, "RightBox", ShieldLog, false, 1 );
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, ShieldMotherY/2.0 - SPlateY/2.0, ShieldMotherZ/2.0 - SPlateZ/2.0 ), 
+		     SteelPlate_log, "TopPlate", ShieldLog, false, 0 );
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, -ShieldMotherY/2.0 + GPlateY1/2.0 + GPlateY2, -ShieldMotherZ/2.0 + GPlateZ1/2.0 ), 
+		     GreenPlate1_log, "VerticalPlate", ShieldLog, false, 0 );
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, -ShieldMotherY/2.0 + GPlateY2/2.0, 0.0), 
+		     GreenPlate2_log, "BottomPlate", ShieldLog, false, 0 );
+
+  // In order to calculate the dose, we need a SD of type CAL:
+  G4double ElecX = GPlateX1 - 10.0*cm;
+  G4double ElecY = GPlateY1 - 10.0*cm;
+  G4double ElecZ = GboxZ - GPlateZ1 - 10.0*cm;
+ 
+  G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
+  G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Air"), "Electronics_log" );
+  
+  G4String GEMElectronicsname = "Earm/GEMElectronics";
+  G4String  GEMElectronicscollname = "GEMElectronicsHitsCollection";
+  G4SBSCalSD *GEMElecSD = NULL;
+
+  GEMElectronicsname += "GMn";
+  GEMElectronicscollname += "GMn";
+
+  if( !( (G4SBSCalSD*) sdman->FindSensitiveDetector(GEMElectronicsname) )){
+    G4cout << "Adding GEM electronics Sensitive Detector to SDman..." << G4endl;
+    GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
+    sdman->AddNewDetector(GEMElecSD);
+    (fDetCon->SDlist).insert(GEMElectronicsname);
+    fDetCon->SDtype[GEMElectronicsname] = kCAL;
+    (GEMElecSD->detmap).depth = 1;
+  }
+  Electronics_log->SetSensitiveDetector( GEMElecSD );
+  
+  if( (fDetCon->StepLimiterList).find( GEMElectronicsname ) != (fDetCon->StepLimiterList).end() ){
+    Electronics_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+
+  // Place the electronics in our hut:
+  new G4PVPlacement( 0, G4ThreeVector(0.0, -ShieldMotherY/2.0 + GPlateY2 + ElecY/2.0, ShieldMotherZ/2.0 - GPlateZ1 - ElecZ/2.0),
+		     Electronics_log, "Electronics", ShieldLog, false, 0);
+
+  // Numbers come from email exchange with Alan Gavalya - he says the coordinate
+  // system is such that z points upstream, but did not elaborate on x/y. I made the
+  // assumption that y is "up" and x is beam-left
+
+  G4double inch = 2.54*cm;
+  double x =  190.0795 * inch;
+  double y = -105.6100 * inch; // + ShieldMotherY/2.0;
+  double z =  187.0807 * inch;
+  G4ThreeVector pos_mom(x,y,z);
+
+  G4ThreeVector pos_temp(x,0,z);
+  G4ThreeVector punit = pos_temp.unit();
+  double theta = acos(punit.z());
+
+  G4RotationMatrix *hutrm = new G4RotationMatrix;
+  hutrm->rotateY(-theta);
+  
+  // **** Estimation ****
+  // Bogdan literally told me to look at a printed engineering document 
+  // and find the r / theta / hut dimensions by using a ruler...I wasted 5 minutes
+  // of my time and this is the result (pretty close to Alan's #s though)
+ 
+  // double r = 273.7 * inch;
+  // double th = 45.8*3.141592/180.0;
+  // G4ThreeVector estimate(r*sin(th),y,r*cos(th));
+  // G4RotationMatrix *hutrm_est = new G4RotationMatrix;
+  // hutrm_est->rotateY(-th);
+
+  //new G4PVPlacement( hutrm_est, estimate, ShieldLog, "ShieldMother", motherlog, false, 0 );
+
+  new G4PVPlacement( hutrm, pos_mom, ShieldLog, "ShieldMother", motherlog, false, 0 );
+
+  // VISUALS:
+  G4VisAttributes *BlockAtt = new G4VisAttributes(G4Colour(0.6,0.6,0.6));
+
+  G4VisAttributes *RoofAtt = new G4VisAttributes(G4Colour(0.3,0.3,0.3));
+
+
+  G4VisAttributes *GreenBoxAtt = new G4VisAttributes(G4Colour(0.0,1.0,0.0));
+  GreenBox_log->SetVisAttributes(BlockAtt);
+
+  G4VisAttributes *SteelPlateAtt = new G4VisAttributes(G4Colour(0.0,0.5,1.0));
+  SteelPlate_log->SetVisAttributes(RoofAtt);
+
+  G4VisAttributes *GreenPlateAtt = new G4VisAttributes(G4Colour(0.7,0.9,0.3));
+  GreenPlate1_log->SetVisAttributes(RoofAtt);
+  GreenPlate2_log->SetVisAttributes(RoofAtt);
+
+  G4VisAttributes *ElecAtt = new G4VisAttributes(G4Colour(0.8,0.0,0.0));
+  ElecAtt->SetForceWireframe(true);
+  Electronics_log->SetVisAttributes(ElecAtt);
+}

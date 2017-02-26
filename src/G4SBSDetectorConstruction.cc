@@ -213,7 +213,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   if( fMaterialsMap.find("Aluminum") == fMaterialsMap.end() ){ 
     fMaterialsMap["Aluminum"] = new G4Material(name="Aluminum", z=13., a=26.98*g/mole, density=2.7*g/cm3);
   }
-
+  if( fMaterialsMap.find("Silicon") == fMaterialsMap.end() ){ 
+    fMaterialsMap["Silicon"] = new G4Material(name="Silicon", z=14., 28.086*g/mole, density=2.33*g/cm3);
+  }
   density = 4.51*g/cm3;
   G4Material* CsI = new G4Material(name="CsI", density, nel = 2);
   CsI->AddElement(elI, .5);

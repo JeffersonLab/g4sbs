@@ -822,7 +822,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   logicScatChamberRightSnoutWindowFrame->SetVisAttributes(colourCyan);
   logicScatChamberBackClamshell->SetVisAttributes(colourGrey);
   logicScatChamberExitFlangePlate->SetVisAttributes(colourGrey);
-  //logicScatChamber->SetVisAttributes(Invisible);
+  logicScatChamber->SetVisAttributes(Invisible);
   
 }
 

@@ -10,13 +10,23 @@
 #include "TLorentzVector.h"
 #include "TMCParticle.h"
 #include "TGraph.h"
+#include "TRandom3.h"
 
 using namespace std;
 
 const double Mp = 0.938272046;
 const double me = 0.511e-3;
 
-void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ngen=125000, const char *beampart="gamma/e-", const char *targetnucl="p" ){
+
+void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ngen=125000, const char *beampart="gamma/e-", const char *targnucl="p", double Q2min=0.0, double Wmin=2.0 ){
+
+  TRandom3 num(0);
+  
+  int seedmin=0;
+  int seedmax=900000000;
+
+  int seed = seedmin + int( num.Uniform(0,1.0)*(seedmax-seedmin) );
+  
   TFile *Fout = new TFile(outputfilename,"RECREATE");
   
   //ifstream infile(configfilename);
@@ -43,7 +53,23 @@ void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ng
   TPythia6 Generator;
   Generator.SetPARP(2,1.0); //Set minimum CM energy to 1 GeV instead of the default 10 GeV:
 
-  Generator.Initialize( "FIXT", beampart, targetnucl, Ebeam );
+  //Generator.SetPARP(111,Mp);
+  Generator.SetCKIN(1,0.0);
+  Generator.SetCKIN(2,-1.);
+  Generator.SetCKIN(31,Wmin);
+  Generator.SetCKIN(39,pow(Wmin,2));
+  Generator.SetCKIN(77,Wmin);
+  Generator.SetPARP(42,Wmin);
+  Generator.SetPARP(111,Wmin);
+  Generator.SetCKIN(65,Q2min);
+  Generator.SetMSEL(1);
+  //Generator.SetCKIN(
+  //Generator.SetCKIN(39,Mp*Mp);
+  
+  Generator.SetMRPY(1,seed);
+  Generator.SetMRPY(2,0);
+  
+  Generator.Initialize( "FIXT", beampart, targnucl, Ebeam );
 
   int Nparticles;
   float Q2,xbj,y,W2;
@@ -103,9 +129,9 @@ void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ng
     tau.clear();
     Generator.GenerateEvent();
     if( ievent%100 == 0 || ievent == ngen ){
-      cout << "Event number " << ievent << endl;
       sigma.push_back( Generator.GetPARI(1) ); //total cross section in mb
       event_num.push_back( double(ievent) );
+      cout << "Event number " << ievent << ", sigma = " << Generator.GetPARI(1) << " mb" << endl;
     }
 
     Nparticles = Particles->GetEntries();
@@ -121,6 +147,10 @@ void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ng
     y = ( (TMCParticle*) (*Particles)[3] )->GetEnergy()/( (TMCParticle*) (*Particles)[0] )->GetEnergy();
     //W2 = (P+q)^2 = Mp^2 - Q2 + 2Pdot q = Mp^2 -Q2 + 2Mp*Egamma
     W2 = pow(( (TMCParticle*) (*Particles)[1] )->GetMass(),2) - Q2 + 2.0*( (TMCParticle*) (*Particles)[1] )->GetMass()*( (TMCParticle*) (*Particles)[3] )->GetEnergy();
+
+    if( ievent%100 == 0 || ievent == ngen ){
+      cout << "ievent, Q2, xbj, y, W2 = " << ievent << ", " << Q2 << ", " << xbj << ", " << y << ", " << W2 << endl;
+    }
     
     for(int ipart=0; ipart<Nparticles; ipart++ ){
       status.push_back( ( (TMCParticle*) (*Particles)[ipart] )->GetKS() );

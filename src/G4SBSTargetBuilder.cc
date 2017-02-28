@@ -638,7 +638,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 				   0.0));
   
   G4Tubs* solidExitBeamPipeHole = new G4Tubs("solidBackViewPipeHole", 
-					     0.0, 50.0*mm, 10.0*inch, 0.0, 360.0*deg);
+					     0.0, 50.0*mm, 7.903*inch, 0.0, 360.0*deg);
   
   G4SubtractionSolid* solidSCFrontClam_0_ebph =
     new G4SubtractionSolid("solidSCClamshell_0_ebph", solidSCFrontClam_0_ebpf, 
@@ -697,7 +697,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 		     );
   
   G4Tubs* solidEntranceBeamPipeHole = 
-    new G4Tubs("solidEntranceBeamPipeHole", 0.0, 1.0*inch, 4.0*inch, 0.0, 360.0*deg);
+    new G4Tubs("solidEntranceBeamPipeHole", 0.0, 1.0*inch, 5.375*inch, 0.0, 360.0*deg);
   
   G4SubtractionSolid* solidSCBackClam_0_ebph =
     new G4SubtractionSolid("solidSCClamshell_0_ebph", solidSCBackClam_0_ebp, 
@@ -763,9 +763,39 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   
   // Scattering chamber volume
   //
-  G4Tubs* solidScatChamber = new G4Tubs("SC", 0.0, SCRadius, 0.5* SCHeight, 0.0*deg, 360.0*deg);
-			       
+  G4Tubs* solidScatChamber_0 = new G4Tubs("SC", 0.0, SCRadius, 0.5* SCHeight, 0.0*deg, 360.0*deg);
   
+  G4Tubs* solidSCWindowVacuum = 
+    new G4Tubs("SCWindowVacuumFront", SCRadius-1.0*cm, SCTankRadius, 0.5*SCWindowHeight, 0.0, SCWindowAngleApert);
+  
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateZ(90.0*deg+SCWindowAngleApert*0.5-SCWindowAngleOffset);
+  
+  G4UnionSolid* solidScatChamber_0_wbv = 
+    new G4UnionSolid("solidScatChamber_0_wbv", solidScatChamber_0, solidSCWindowVacuum,
+			   rot_temp, G4ThreeVector(0,0,SCOffset));
+  
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateZ(-90.0*deg+SCWindowAngleApert*0.5+SCWindowAngleOffset);
+  
+  G4UnionSolid* solidScatChamber_0_wfv = 
+    new G4UnionSolid("solidScatChamber_0_wfv", solidScatChamber_0_wbv, solidSCWindowVacuum,
+			   rot_temp, G4ThreeVector(0,0,SCOffset));
+  
+  rot_temp = new G4RotationMatrix();
+  rot_temp->rotateX(90.0*deg);
+  G4UnionSolid* solidScatChamber_0_entbp = 
+    new G4UnionSolid("solidScatChamber_0_entbp", solidScatChamber_0_wbv, solidEntranceBeamPipeHole, 
+		     rot_temp, G4ThreeVector(0, -SCRadius, SCOffset));
+  //solidExitBeamPipeHole
+  
+
+  G4UnionSolid* solidScatChamber_0_exbp = 
+    new G4UnionSolid("solidScatChamber_0_exbp", solidScatChamber_0_entbp, solidExitBeamPipeHole, 
+		     rot_temp, G4ThreeVector(0, +SCRadius, SCOffset));
+  
+  G4VSolid* solidScatChamber = solidScatChamber_0_exbp;
+
   logicScatChamber = new G4LogicalVolume(solidScatChamber, GetMaterial("Vacuum"), "ScatChamber_log");
   
   new G4PVPlacement(rotSC, *SCPlacement, logicScatChamber, "ScatChamberPhys", worldlog, false, 0);

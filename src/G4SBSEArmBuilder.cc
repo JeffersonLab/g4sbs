@@ -2898,9 +2898,9 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
 		     GreenPlate2_log, "BottomPlate", ShieldLog, false, 0 );
 
   // In order to calculate the dose, we need a SD of type CAL:
-  G4double ElecX = 10.0*cm;
-  G4double ElecY = 10.0*cm;
-  G4double ElecZ = 1.0*cm;
+  G4double ElecX = 150.0*cm;
+  G4double ElecY = 40.0*cm;
+  G4double ElecZ = 0.5*cm;
  
   G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
   G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
@@ -2930,7 +2930,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
   // new G4PVPlacement( 0, G4ThreeVector(0.0, -ShieldMotherY/2.0 + GPlateY2 + ElecY/2.0, ShieldMotherZ/2.0 - GPlateZ1 - ElecZ/2.0),
   // 		     Electronics_log, "Electronics", ShieldLog, false, 0);
   new G4PVPlacement( 0, G4ThreeVector(0.0, -1.25*cm, 0.0),
-		     Electronics_log, "Electronics", ShieldLog, false, 0);
+		     Electronics_log, "GMn_Electronics", ShieldLog, false, 0);
 
   // Numbers come from email exchange with Alan Gavalya - he says the coordinate
   // system is such that z points upstream, but did not elaborate on x/y. I made the

@@ -57,21 +57,28 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fBBang  = 40.0*deg;
   fBBdist = 1.5*m;
 
-  G4double frontGEM_depth = 20.*cm;
-  G4double backGEM_depth = 10.*cm;
+  // G4double frontGEM_depth = 20.*cm;
+  // G4double backGEM_depth = 10.*cm;
+  G4double frontGEM_depth = 60.*cm;
+  G4double backGEM_depth = 11.59*cm;
   
-  fCerDepth = 92.0*cm;
+  //fCerDepth = 92.0*cm;
+  //fCerDist = frontGEM_depth - 2.0*cm
+
   //fCerDist  =  7.0*cm;
   //fCerDist = 22.0*cm;
-  fCerDist = frontGEM_depth + 2.*cm;
+  fCerDepth = 86.36*cm;
+  fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;
   
   // fBBCaldist = 20*cm + fCerDepth;
   // fGEMDist   = 10*cm + fCerDepth;
   // fGEMOption = 1;
 
-  fBBCaldist = fCerDist + fCerDepth + backGEM_depth + 5.*cm;
+  //NB: fBBCalDist now designates the distance to the shielding
+  //fBBCaldist = fCerDist + fCerDepth + backGEM_depth + 5.*cm;
+  fBBCaldist = fCerDist + fCerDepth + backGEM_depth;
   fGEMDist   = fCerDist + fCerDepth + 0.5*backGEM_depth;
-  fGEMOption = 1;
+  fGEMOption = 2;
   fShieldOption = 1;
   
   fUseLocalField = false;
@@ -473,7 +480,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   bbcal_shield_ss3cm_log->SetVisAttributes( G4Colour(0.,1.0, 0.0) );
   
   //shielding on the side option > 2
-  G4Box *bbcalshield_side_ss3cm = new G4Box( "bbcalshield_side_ss3cm", 3.0*cm/2.0, detboxheight/2.0, detboxdepth/4.0 );
+  G4Box *bbcalshield_side_ss3cm = new G4Box( "bbcalshield_side_ss3cm", 3.0*cm/2.0, detboxheight/2.0, detboxdepth/3.0 );
   G4LogicalVolume *bbcal_shield_side_ss3cm_log = new G4LogicalVolume(bbcalshield_side_ss3cm, GetMaterial("Steel"), "bbcal_shield_side_ss3cm_log");
   bbcal_shield_side_ss3cm_log->SetVisAttributes( G4Colour(1.0,1.0, 0.0) );
   

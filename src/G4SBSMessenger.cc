@@ -60,6 +60,10 @@ G4SBSMessenger::G4SBSMessenger(){
   gemconfigCmd->SetGuidance("BigBite GEM layout: option 1 (default), 2 or 3");
   gemconfigCmd->SetParameterName("gemconfig", false);
 
+  shieldconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/bbshieldconfig",this);
+  shieldconfigCmd->SetGuidance("BB Ecal shielding layout: option 0 (none), 1 (default), 2 (+10cm Al + 3cm steel on side), 3 (+3cm steel + 3cm steel on side)");
+  shieldconfigCmd->SetParameterName("bbshieldconfig", false);
+
   CDetconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/CDetconfig",this);
   CDetconfigCmd->SetGuidance("CDet Geometry Options(integer 1,2,3, or 4): Option 1 (default) = Simplest option, only material budget with no SD assigned, Option 2 = Flat, 2 planes with sensitive regions, Option 3 = Top/Bottom 'modules' are angled relative to central 'module', and Option 4 = Each bar is shimmed in order to optimize normal incidence");
   CDetconfigCmd->SetParameterName("CDetconfig",false);
@@ -432,6 +436,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == gemconfigCmd ){
     G4int gemconfval = gemconfigCmd->GetNewIntValue(newValue);
     fdetcon->fEArmBuilder->SetGEMConfig(gemconfval);
+  }
+
+  if( cmd == shieldconfigCmd ){
+    G4int shieldconfval = shieldconfigCmd->GetNewIntValue(newValue);
+    fdetcon->fEArmBuilder->SetShieldConfig(shieldconfval);
   }
   
   if( cmd == CDetconfigCmd ){

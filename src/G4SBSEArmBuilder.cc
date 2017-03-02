@@ -442,26 +442,41 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // Big Bite Calorimeter shielding.
   // 
   // Default front plate: 0.25" steel + 0.5mm mu metal
-  G4double bbcal_shield_thick = 6.85*mm;// + 10.5*cm;
+  G4double bbcal_shield_thick = 6.85*mm + 10.5*cm;
   
-  G4Box *bbcalshieldbox = new G4Box( "bbcalshieldbox", bbmagwidth/2.0-1.0*cm, bbcal_box_height/2.0, bbcal_shield_thick/2.0 );
+  G4Box *bbcalshieldbox = new G4Box( "bbcalshieldbox", bbmagwidth/2.0-2.0*cm, bbcal_box_height/2.0, bbcal_shield_thick/2.0 );
   G4LogicalVolume *bbcal_shield_log = new G4LogicalVolume(bbcalshieldbox, GetMaterial("Air"), "bbcal_shield_log");
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_shield_thick/2.0 ), bbcal_shield_log, "bbcal_mother_phys", bbdetLog, false, 0 ); 
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_shield_thick/2.0 ), bbcal_shield_log, "bbcal_shield_phys", bbdetLog, false, 0 ); 
   bbcal_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
   
-  G4Box *bbcalshieldmufoil = new G4Box( "bbcalshieldmufoil", bbcal_box_width/2.0, bbcal_box_height/2.0, 0.5*mm/2.0 );
-  G4LogicalVolume *bbcal_shield_mufoil_log = new G4LogicalVolume(bbcalshieldmufoil, GetMaterial("mu-metal"), "bbcal_shield_mufoil_log");
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm/2.0 ), bbcal_shield_mufoil_log, "bbcal_mother_phys", bbcal_shield_log, false, 0 ); 
-  //bbcal_shield_mufoil_log->SetVisAttributes( G4Colour(0.,1.0, 0.0) );
+  G4Box *bbcalfrontmufoil = new G4Box( "bbcalfrontmufoil", bbcal_box_width/2.0, bbcal_box_height/2.0, 0.5*mm/2.0 );
+  G4LogicalVolume *bbcal_front_mufoil_log = new G4LogicalVolume(bbcalfrontmufoil, GetMaterial("mu-metal"), "bbcal_front_mufoil_log");
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm/2.0 ), bbcal_front_mufoil_log, "bbcal_front_mufoil_phys", bbcal_shield_log, false, 0 ); 
+  //bbcal_front_mufoil_log->SetVisAttributes( G4Colour(0.,1.0, 0.0) );
   
-  G4Box *bbcalshieldsteelplate = new G4Box( "bbcalshieldsteelplate", bbcal_box_width/2.0, bbcal_box_height/2.0, 6.35*mm/2.0 );
-  G4LogicalVolume *bbcal_shield_steelplate_log = new G4LogicalVolume(bbcalshieldsteelplate, GetMaterial("Steel"), "bbcal_shield_steelplate_log");
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm/2.0 ), bbcal_shield_steelplate_log, "bbcal_mother_phys", bbcal_shield_log, false, 0 ); 
-  //bbcal_shield_steelplate_log->SetVisAttributes( G4Colour(0.,1.0, 0.0) );
+  G4Box *bbcalfrontsteelplate = new G4Box( "bbcalfrontsteelplate", bbcal_box_width/2.0, bbcal_box_height/2.0, 6.35*mm/2.0 );
+  G4LogicalVolume *bbcal_front_steelplate_log = new G4LogicalVolume(bbcalfrontsteelplate, GetMaterial("Steel"), "bbcal_front_steelplate_log");
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm/2.0 ), bbcal_front_steelplate_log, "bbcal_front_steelplate_phys", bbcal_shield_log, false, 0 ); 
+  //bbcal_front_steelplate_log->SetVisAttributes( G4Colour(0.,1.0, 0.0) );
   
   // Additional shielding:
   // Attempt 1: 10 cm Al 
+  G4Box *bbcalshield_al10cm = new G4Box( "bbcalshield_al10cm", bbcal_box_width/2.0+5.0*cm, bbcal_box_height/2.0, 10*cm/2.0 );
+  G4LogicalVolume *bbcal_shield_al10cm_log = new G4LogicalVolume(bbcalshield_al10cm, GetMaterial("Aluminum"), "bbcal_shield_al10cm_log");
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_shield_thick/2.0+10*cm/2.0), bbcal_shield_al10cm_log, "bbcal_shield_al10cm_phys", bbcal_shield_log, false, 0 ); 
+  bbcal_shield_al10cm_log->SetVisAttributes( G4Colour(0.,1.0, 0.0) );
   
+  // Attempt 2: 2 cm steel 
+  G4Box *bbcalshield_ss3cm = new G4Box( "bbcalshield_ss3cm", bbcal_box_width/2.0+5.0*cm, bbcal_box_height/2.0, 3.0*cm/2.0 );
+  G4LogicalVolume *bbcal_shield_ss3cm_log = new G4LogicalVolume(bbcalshield_ss3cm, GetMaterial("Steel"), "bbcal_shield_ss3cm_log");
+  //new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_shield_thick/2.0+2*cm/2.0), bbcal_shield_ss3cm_log, "bbcal_shield_ss3cm_phys", bbcal_shield_log, false, 0 ); 
+  bbcal_shield_ss3cm_log->SetVisAttributes( G4Colour(0.,1.0, 0.0) );
+  
+  //shielding on the side
+  G4Box *bbcalshield_side_ss3cm = new G4Box( "bbcalshield_side_ss3cm", 3.0*cm/2.0, detboxheight/2.0, detboxdepth/4.0 );
+  G4LogicalVolume *bbcal_shield_side_ss3cm_log = new G4LogicalVolume(bbcalshield_side_ss3cm, GetMaterial("Steel"), "bbcal_shield_side_ss3cm_log");
+  new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss3cm_log, "bbcal_shield_side_ss3cm_phys", bbdetLog, false, 0 ); 
+  bbcal_shield_side_ss3cm_log->SetVisAttributes( G4Colour(1.0,1.0, 0.0) );
   
   // BB Ecal
   G4Box *bbcalbox = new G4Box( "bbcalbox", bbcal_box_width/2.0, bbcal_box_height/2.0, bbcal_box_depth/2.0+mm );
@@ -1257,6 +1272,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   //assume lead-glass is also surrounded by another mil of air:
   G4double mylar_thick = 0.001*2.54*cm;
   G4double air_thick = mylar_thick;
+  
+  G4double copper_thick = 0.25*mm;
+  G4double al_thick = 0.50*mm;
   
   //EFuchey 2017-01-11: Declaring sensitive detector for light guide 
   // shall be temporary, and not end in the repo...

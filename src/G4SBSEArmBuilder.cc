@@ -1300,12 +1300,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   G4double copper_thick = 0.25*mm;
   G4double al_thick = 0.50*mm;
   
-  G4double hcf_thick = copper_thick;
-  const char* hcf_mat_name = "Copper";
+  // G4double hcf_thick = copper_thick;
+  // const char* hcf_mat_name = "Copper";
   // G4double hcf_thick = al_thick;
-  // char* hcf_mat_name = "Aluminum";
-  // G4double hcf_thick = 0.0;
-  // char* hcf_mat_name = "Special_Air";
+  // const char* hcf_mat_name = "Aluminum";
+  G4double hcf_thick = 0.0;
+  const char* hcf_mat_name = "Special_Air";
   
   //EFuchey 2017-01-11: Declaring sensitive detector for light guide 
   // shall be temporary, and not end in the repo...
@@ -1386,31 +1386,31 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   G4SubtractionSolid *Mylar_wrap_38 = new G4SubtractionSolid( "Mylar_wrap_38", Module_38, Mylar_38, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm) );
   G4LogicalVolume *Mylar_wrap_38_log = new G4LogicalVolume( Mylar_wrap_38, GetMaterial("Mylar"), "Mylar_wrap_38_log" );
   */
-  
+
   // Solid for heat conducting foils: ouside of the wrapping, supposedly
-  G4Box *hc_42 = new G4Box( "hc_42", (width_42 - hcf_thick)/2.0, (width_42 - hcf_thick)/2.0, depth_42/2.0 );
+  G4Box *hc_42 = new G4Box( "hc_42", width_42/2.0 - hcf_thick, width_42/2.0 - hcf_thick, depth_42/2.0 );
   G4SubtractionSolid *hc_foil_42 = new G4SubtractionSolid( "hc_foil_42", Module_42, hc_42, 0, G4ThreeVector( 0, 0, 0 ) );
   G4LogicalVolume *hc_foil_42_log = new G4LogicalVolume( hc_foil_42, GetMaterial(hcf_mat_name), "hc_foil_42_log" );
   
-  G4Box *hc_40 = new G4Box( "hc_40", (width_40 - hcf_thick)/2.0, (width_40 - hcf_thick)/2.0, depth_40/2.0 );
+  G4Box *hc_40 = new G4Box( "hc_40", width_40/2.0 - hcf_thick, width_40/2.0 - hcf_thick, depth_40/2.0 );
   G4SubtractionSolid *hc_foil_40 = new G4SubtractionSolid( "hc_foil_40", Module_40, hc_40, 0, G4ThreeVector( 0, 0, 0 ) );
   G4LogicalVolume *hc_foil_40_log = new G4LogicalVolume( hc_foil_40, GetMaterial(hcf_mat_name), "hc_foil_40_log" );
   
-  G4Box *hc_38 = new G4Box( "hc_38", (width_38 - hcf_thick)/2.0, (width_38 - hcf_thick)/2.0, depth_38/2.0 );
+  G4Box *hc_38 = new G4Box( "hc_38", width_38/2.0 - hcf_thick, width_38/2.0 - hcf_thick, depth_38/2.0 );
   G4SubtractionSolid *hc_foil_38 = new G4SubtractionSolid( "hc_foil_38", Module_38, hc_38, 0, G4ThreeVector( 0, 0, 0 ) );
   G4LogicalVolume *hc_foil_38_log = new G4LogicalVolume( hc_foil_38, GetMaterial(hcf_mat_name), "hc_foil_38_log" );
   
   
   //Next, we want to make a subtraction solid for the mylar:
-  G4Box *Mylar_42 = new G4Box( "Mylar_42", (width_42 - hcf_thick - mylar_thick)/2.0, (width_42 - hcf_thick - mylar_thick)/2.0, depth_42/2.0 + 1.0*cm );
+  G4Box *Mylar_42 = new G4Box( "Mylar_42", width_42/2.0 - hcf_thick - mylar_thick, width_42/2.0 - hcf_thick - mylar_thick, depth_42/2.0 + 1.0*cm );
   G4SubtractionSolid *Mylar_wrap_42 = new G4SubtractionSolid( "Mylar_wrap_42", hc_42, Mylar_42, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
   G4LogicalVolume *Mylar_wrap_42_log = new G4LogicalVolume( Mylar_wrap_42, GetMaterial("Mylar"), "Mylar_wrap_42_log" );
   
-  G4Box *Mylar_40 = new G4Box( "Mylar_40", (width_40 - hcf_thick - mylar_thick)/2.0, (width_40 - hcf_thick - mylar_thick)/2.0, depth_40/2.0 + 1.0*cm );
+  G4Box *Mylar_40 = new G4Box( "Mylar_40", width_40/2.0 - hcf_thick - mylar_thick, width_40/2.0 - hcf_thick - mylar_thick, depth_40/2.0 + 1.0*cm );
   G4SubtractionSolid *Mylar_wrap_40 = new G4SubtractionSolid( "Mylar_wrap_40", hc_40, Mylar_40, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
   G4LogicalVolume *Mylar_wrap_40_log = new G4LogicalVolume( Mylar_wrap_40, GetMaterial("Mylar"), "Mylar_wrap_40_log" );
 
-  G4Box *Mylar_38 = new G4Box( "Mylar_38", (width_38 - hcf_thick - mylar_thick)/2.0, (width_38 - hcf_thick - mylar_thick)/2.0, depth_38/2.0 + 1.0*cm );
+  G4Box *Mylar_38 = new G4Box( "Mylar_38", width_38/2.0 - hcf_thick - mylar_thick, width_38/2.0 - hcf_thick - mylar_thick, depth_38/2.0 + 1.0*cm );
   G4SubtractionSolid *Mylar_wrap_38 = new G4SubtractionSolid( "Mylar_wrap_38", hc_38, Mylar_38, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm) );
   G4LogicalVolume *Mylar_wrap_38_log = new G4LogicalVolume( Mylar_wrap_38, GetMaterial("Mylar"), "Mylar_wrap_38_log" );
   
@@ -1434,6 +1434,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   //Make lead-glass and place in modules:
   
   if( fDetCon->GetC16Segmentation() <= 0 ){
+    
+    /* // EFuchey:2017/03/03 Was that correct anyhow ??? Don't think so...
+       // block section shall be: module_section - 2*mylar_thick - 2*airthick ( - 2*hcf_thick, but I added that)
     G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", (width_42 - mylar_thick - air_thick)/2.0, (width_42 - mylar_thick - air_thick)/2.0, (depth_42 - mylar_thick - air_thick)/2.0 );
     G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
 
@@ -1442,7 +1445,16 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 
     G4Box *LeadGlass_38 = new G4Box("LeadGlass_38", (width_38 - mylar_thick - air_thick)/2.0, (width_38 - mylar_thick - air_thick)/2.0, (depth_38 - mylar_thick - air_thick)/2.0 );
     G4LogicalVolume *LeadGlass_38_log = new G4LogicalVolume( LeadGlass_38, GetMaterial("TF1"), "LeadGlass_38_log" );
+    */
+    G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", width_42/2.0 - hcf_thick - mylar_thick - air_thick, width_42/2.0 - hcf_thick - mylar_thick - air_thick, (depth_42 - mylar_thick - air_thick)/2.0 );
+    G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
 
+    G4Box *LeadGlass_40 = new G4Box("LeadGlass_40", width_40/2.0 - hcf_thick - mylar_thick, width_40/2.0 - hcf_thick - mylar_thick - air_thick, (depth_40 - mylar_thick - air_thick)/2.0 );
+    G4LogicalVolume *LeadGlass_40_log = new G4LogicalVolume( LeadGlass_40, GetMaterial("TF1"), "LeadGlass_40_log" );
+
+    G4Box *LeadGlass_38 = new G4Box("LeadGlass_38", width_38/2.0 - hcf_thick - mylar_thick - air_thick, width_38/2.0 - hcf_thick - mylar_thick - air_thick, (depth_38 - mylar_thick - air_thick)/2.0 );
+    G4LogicalVolume *LeadGlass_38_log = new G4LogicalVolume( LeadGlass_38, GetMaterial("TF1"), "LeadGlass_38_log" );
+    
     //Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( ECalTF1SD );
     LeadGlass_40_log->SetSensitiveDetector( ECalTF1SD );
@@ -1594,9 +1606,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   
 
   //mylar:
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_42_log, "hc_foil_42_phys", Module_42_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_40_log, "hc_foil_40_phys", Module_40_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_38_log, "hc_foil_38_phys", Module_38_log, false, 0 );
+  // new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_42_log, "hc_foil_42_phys", Module_42_log, false, 0 );
+  // new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_40_log, "hc_foil_40_phys", Module_40_log, false, 0 );
+  // new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_38_log, "hc_foil_38_phys", Module_38_log, false, 0 );
   
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), Mylar_wrap_42_log, "Mylar_wrap_42_phys", Module_42_log, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), Mylar_wrap_40_log, "Mylar_wrap_40_phys", Module_40_log, false, 0 );

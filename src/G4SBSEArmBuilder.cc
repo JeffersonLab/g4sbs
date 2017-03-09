@@ -454,7 +454,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   // Default front plate: 0.25" steel + 0.5mm mu metal
   G4double bbcal_shield_thick = 6.85*mm + 9.525*cm;
+  G4double Al_thick = 10.0*cm;
+  G4double SS_thick = 3.0*cm;
   if(fShieldOption==2)bbcal_shield_thick+=1.0*cm;
+  if(fShieldOption==4){
+    Al_thick = Al_thick/2.0;
+    SS_thick = SS_thick/2.0;
+  }
   
   G4Box *bbcalshieldbox = new G4Box( "bbcalshieldbox", bbmagwidth/2.0-2.0*cm, bbcal_box_height/2.0, bbcal_shield_thick/2.0 );
   G4LogicalVolume *bbcal_shield_log = new G4LogicalVolume(bbcalshieldbox, GetMaterial("Air"), "bbcal_shield_log");
@@ -466,23 +472,23 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   G4Box *bbcalfrontsteelplate = new G4Box( "bbcalfrontsteelplate", bbcal_box_width/2.0, bbcal_box_height/2.0, 6.35*mm/2.0 );
   G4LogicalVolume *bbcal_front_steelplate_log = new G4LogicalVolume(bbcalfrontsteelplate, GetMaterial("Steel"), "bbcal_front_steelplate_log");
-  bbcal_front_steelplate_log->SetVisAttributes( G4Colour(0.,1.0, 1.0) );
+  bbcal_front_steelplate_log->SetVisAttributes( G4Colour(0.0, 1.0, 1.0) );
   
   // Additional shielding:
-  // Attempt 1: option 2: 10 cm Al 
-  G4Box *bbcalshield_al10cm = new G4Box( "bbcalshield_al10cm", bbcal_box_width/2.0+5.0*cm, bbcal_box_height/2.0, 10*cm/2.0 );
-  G4LogicalVolume *bbcal_shield_al10cm_log = new G4LogicalVolume(bbcalshield_al10cm, GetMaterial("Aluminum"), "bbcal_shield_al10cm_log");
-  bbcal_shield_al10cm_log->SetVisAttributes( G4Colour(0.,1.0, 0.0) );
+  // Attempt 1: option 2: Al 
+  G4Box *bbcalshield_al = new G4Box( "bbcalshield_al", bbcal_box_width/2.0+5.0*cm, bbcal_box_height/2.0, Al_thick/2.0 );
+  G4LogicalVolume *bbcal_shield_al_log = new G4LogicalVolume(bbcalshield_al, GetMaterial("Aluminum"), "bbcal_shield_al_log");
+  bbcal_shield_al_log->SetVisAttributes( G4Colour(0.8, 0.8, 0.8) );
   
-  // Attempt 2: option 3: 3 cm steel 
-  G4Box *bbcalshield_ss3cm = new G4Box( "bbcalshield_ss3cm", bbcal_box_width/2.0+5.0*cm, bbcal_box_height/2.0, 3.0*cm/2.0 );
-  G4LogicalVolume *bbcal_shield_ss3cm_log = new G4LogicalVolume(bbcalshield_ss3cm, GetMaterial("Steel"), "bbcal_shield_ss3cm_log");
-  bbcal_shield_ss3cm_log->SetVisAttributes( G4Colour(0.,1.0, 0.0) );
+  // Attempt 2: option 3: steel 
+  G4Box *bbcalshield_ss = new G4Box( "bbcalshield_ss", bbcal_box_width/2.0+5.0*cm, bbcal_box_height/2.0, SS_thick/2.0 );
+  G4LogicalVolume *bbcal_shield_ss_log = new G4LogicalVolume(bbcalshield_ss, GetMaterial("Steel"), "bbcal_shield_ss_log");
+  bbcal_shield_ss_log->SetVisAttributes( G4Colour(0.4, 0.4, 0.4) );
   
   //shielding on the side option > 2
-  G4Box *bbcalshield_side_ss3cm = new G4Box( "bbcalshield_side_ss3cm", 3.0*cm/2.0, detboxheight/2.0, detboxdepth/3.0 );
-  G4LogicalVolume *bbcal_shield_side_ss3cm_log = new G4LogicalVolume(bbcalshield_side_ss3cm, GetMaterial("Steel"), "bbcal_shield_side_ss3cm_log");
-  bbcal_shield_side_ss3cm_log->SetVisAttributes( G4Colour(1.0,1.0, 0.0) );
+  G4Box *bbcalshield_side_ss = new G4Box( "bbcalshield_side_ss", 3.0*cm/2.0, detboxheight/2.0, detboxdepth/3.0 );
+  G4LogicalVolume *bbcal_shield_side_ss_log = new G4LogicalVolume(bbcalshield_side_ss, GetMaterial("Steel"), "bbcal_shield_side_ss_log");
+  bbcal_shield_side_ss_log->SetVisAttributes( G4Colour(1.0, 1.0, 0.9) );
   
   if(fShieldOption){
     new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_shield_thick/2.0 ), bbcal_shield_log, "bbcal_shield_phys", bbdetLog, false, 0 );
@@ -491,12 +497,17 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     
     switch(fShieldOption){
     case(2):
-      new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_shield_thick/2.0+10*cm/2.0), bbcal_shield_al10cm_log, "bbcal_shield_al10cm_phys", bbcal_shield_log, false, 0 );
-      new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss3cm_log, "bbcal_shield_side_ss3cm_phys", bbdetLog, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_shield_thick/2.0+Al_thick/2.0), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_shield_log, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
       break;
     case(3):
-      new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-3.0*cm/2.0), bbcal_shield_ss3cm_log, "bbcal_shield_ss3cm_phys", bbcal_shield_log, false, 0 );
-      new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss3cm_log, "bbcal_shield_side_ss3cm_phys", bbdetLog, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-SS_thick/2.0), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_shield_log, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
+      break;
+    case(4):
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-SS_thick/2.0), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_shield_log, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-SS_thick-Al_thick/2.0), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_shield_log, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
     default:
       break;
     }
@@ -1299,13 +1310,17 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   
   G4double copper_thick = 0.25*mm;
   G4double al_thick = 0.50*mm;
-  
+  G4VisAttributes* hc_visAtt = new G4VisAttributes();
+
   // G4double hcf_thick = copper_thick;
   // const char* hcf_mat_name = "Copper";
-  // G4double hcf_thick = al_thick;
-  // const char* hcf_mat_name = "Aluminum";
-  G4double hcf_thick = 0.0;
-  const char* hcf_mat_name = "Special_Air";
+  // hc_visAtt->SetColour(1.0, 0.5, 0.0);
+  G4double hcf_thick = al_thick;
+  const char* hcf_mat_name = "Aluminum";
+  hc_visAtt->SetColour(0.7, 0.7, 0.7);
+  // G4double hcf_thick = 0.0;
+  // const char* hcf_mat_name = "Special_Air";
+  // hc_visAtt->SetVisibility(0);
   
   //EFuchey 2017-01-11: Declaring sensitive detector for light guide 
   // shall be temporary, and not end in the repo...
@@ -1337,7 +1352,6 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   // LightGuide_42_log->SetSensitiveDetector( ECalLGSD );
   // LightGuide_40_log->SetSensitiveDetector( ECalLGSD );
   // LightGuide_38_log->SetSensitiveDetector( ECalLGSD );
-  
   
   G4Tubs *LGWrap_42 = new G4Tubs( "LGWrap_42", 2.5*cm/2.0+air_thick, 2.5*cm/2.0 + air_thick + mylar_thick, (depth_lightguide_short+depth_38-depth_42)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LGWrap_42_log = new G4LogicalVolume( LGWrap_42, GetMaterial("Mylar"), "LGWrap_42_log" );
@@ -1374,32 +1388,37 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   
   /*
   //Next, we want to make a subtraction solid for the mylar:
-  G4Box *Mylar_42 = new G4Box( "Mylar_42", (width_42 - mylar_thick)/2.0, (width_42 - mylar_thick)/2.0, depth_42/2.0 + 1.0*cm );
+  G4Box *Mylar_42 = new G4Box( "Mylar_42", width_42/2.0 - mylar_thick, width_42/2.0 - mylar_thick, depth_42/2.0 + 1.0*cm );
   G4SubtractionSolid *Mylar_wrap_42 = new G4SubtractionSolid( "Mylar_wrap_42", Module_42, Mylar_42, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
   G4LogicalVolume *Mylar_wrap_42_log = new G4LogicalVolume( Mylar_wrap_42, GetMaterial("Mylar"), "Mylar_wrap_42_log" );
   
-  G4Box *Mylar_40 = new G4Box( "Mylar_40", (width_40 - mylar_thick)/2.0, (width_40 - mylar_thick)/2.0, depth_40/2.0 + 1.0*cm );
+  G4Box *Mylar_40 = new G4Box( "Mylar_40", width_40/2.0 - mylar_thick, width_40/2.0 - mylar_thick, depth_40/2.0 + 1.0*cm );
   G4SubtractionSolid *Mylar_wrap_40 = new G4SubtractionSolid( "Mylar_wrap_40", Module_40, Mylar_40, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
   G4LogicalVolume *Mylar_wrap_40_log = new G4LogicalVolume( Mylar_wrap_40, GetMaterial("Mylar"), "Mylar_wrap_40_log" );
 
-  G4Box *Mylar_38 = new G4Box( "Mylar_38", (width_38 - mylar_thick)/2.0, (width_38 - mylar_thick)/2.0, depth_38/2.0 + 1.0*cm );
+  G4Box *Mylar_38 = new G4Box( "Mylar_38", width_38/2.0 - mylar_thick, width_38/2.0 - mylar_thick, depth_38/2.0 + 1.0*cm );
   G4SubtractionSolid *Mylar_wrap_38 = new G4SubtractionSolid( "Mylar_wrap_38", Module_38, Mylar_38, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm) );
   G4LogicalVolume *Mylar_wrap_38_log = new G4LogicalVolume( Mylar_wrap_38, GetMaterial("Mylar"), "Mylar_wrap_38_log" );
   */
-
+  G4Box *Module_42_k = new G4Box( "Module_42_k", width_42/2.0, width_42/2.0, depth_42/2.0-0.25*mm );
+  G4Box *Module_40_k = new G4Box( "Module_42_k", width_40/2.0, width_40/2.0, depth_40/2.0-0.25*mm );
+  G4Box *Module_38_k = new G4Box( "Module_42_k", width_38/2.0, width_38/2.0, depth_38/2.0-0.25*mm );
+  
   // Solid for heat conducting foils: ouside of the wrapping, supposedly
   G4Box *hc_42 = new G4Box( "hc_42", width_42/2.0 - hcf_thick, width_42/2.0 - hcf_thick, depth_42/2.0 );
-  G4SubtractionSolid *hc_foil_42 = new G4SubtractionSolid( "hc_foil_42", Module_42, hc_42, 0, G4ThreeVector( 0, 0, 0 ) );
+  G4SubtractionSolid *hc_foil_42 = new G4SubtractionSolid( "hc_foil_42", Module_42_k, hc_42, 0, G4ThreeVector( 0, 0, 0 ) );
   G4LogicalVolume *hc_foil_42_log = new G4LogicalVolume( hc_foil_42, GetMaterial(hcf_mat_name), "hc_foil_42_log" );
-  
+  hc_foil_42_log->SetVisAttributes(hc_visAtt);
+
   G4Box *hc_40 = new G4Box( "hc_40", width_40/2.0 - hcf_thick, width_40/2.0 - hcf_thick, depth_40/2.0 );
-  G4SubtractionSolid *hc_foil_40 = new G4SubtractionSolid( "hc_foil_40", Module_40, hc_40, 0, G4ThreeVector( 0, 0, 0 ) );
+  G4SubtractionSolid *hc_foil_40 = new G4SubtractionSolid( "hc_foil_40", Module_40_k, hc_40, 0, G4ThreeVector( 0, 0, 0 ) );
   G4LogicalVolume *hc_foil_40_log = new G4LogicalVolume( hc_foil_40, GetMaterial(hcf_mat_name), "hc_foil_40_log" );
+  hc_foil_40_log->SetVisAttributes(hc_visAtt);
   
   G4Box *hc_38 = new G4Box( "hc_38", width_38/2.0 - hcf_thick, width_38/2.0 - hcf_thick, depth_38/2.0 );
-  G4SubtractionSolid *hc_foil_38 = new G4SubtractionSolid( "hc_foil_38", Module_38, hc_38, 0, G4ThreeVector( 0, 0, 0 ) );
+  G4SubtractionSolid *hc_foil_38 = new G4SubtractionSolid( "hc_foil_38", Module_38_k, hc_38, 0, G4ThreeVector( 0, 0, 0 ) );
   G4LogicalVolume *hc_foil_38_log = new G4LogicalVolume( hc_foil_38, GetMaterial(hcf_mat_name), "hc_foil_38_log" );
-  
+  hc_foil_38_log->SetVisAttributes(hc_visAtt);
   
   //Next, we want to make a subtraction solid for the mylar:
   G4Box *Mylar_42 = new G4Box( "Mylar_42", width_42/2.0 - hcf_thick - mylar_thick, width_42/2.0 - hcf_thick - mylar_thick, depth_42/2.0 + 1.0*cm );
@@ -1434,26 +1453,27 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   //Make lead-glass and place in modules:
   
   if( fDetCon->GetC16Segmentation() <= 0 ){
-    
-    /* // EFuchey:2017/03/03 Was that correct anyhow ??? Don't think so...
-       // block section shall be: module_section - 2*mylar_thick - 2*airthick ( - 2*hcf_thick, but I added that)
-    G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", (width_42 - mylar_thick - air_thick)/2.0, (width_42 - mylar_thick - air_thick)/2.0, (depth_42 - mylar_thick - air_thick)/2.0 );
+    /*
+    // EFuchey:2017/03/03 Was that correct anyhow ??? Don't think so...
+    // block section shall be: module_section - 2*mylar_thick - 2*airthick ( - 2*hcf_thick, but I added that)
+    G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", width_42/2.0 - mylar_thick - air_thick, width_42/2.0 - mylar_thick - air_thick, (depth_42 - mylar_thick - air_thick)/2.0 );
     G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
 
-    G4Box *LeadGlass_40 = new G4Box("LeadGlass_40", (width_40 - mylar_thick - air_thick)/2.0, (width_40 - mylar_thick - air_thick)/2.0, (depth_40 - mylar_thick - air_thick)/2.0 );
+    G4Box *LeadGlass_40 = new G4Box("LeadGlass_40", width_40/2.0 - mylar_thick - air_thick, width_40/2.0 - mylar_thick - air_thick, (depth_40 - mylar_thick - air_thick)/2.0 );
     G4LogicalVolume *LeadGlass_40_log = new G4LogicalVolume( LeadGlass_40, GetMaterial("TF1"), "LeadGlass_40_log" );
 
-    G4Box *LeadGlass_38 = new G4Box("LeadGlass_38", (width_38 - mylar_thick - air_thick)/2.0, (width_38 - mylar_thick - air_thick)/2.0, (depth_38 - mylar_thick - air_thick)/2.0 );
+    G4Box *LeadGlass_38 = new G4Box("LeadGlass_38", width_38/2.0 - mylar_thick - air_thick, width_38/2.0 - mylar_thick - air_thick, (depth_38 - mylar_thick - air_thick)/2.0 );
     G4LogicalVolume *LeadGlass_38_log = new G4LogicalVolume( LeadGlass_38, GetMaterial("TF1"), "LeadGlass_38_log" );
     */
     G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", width_42/2.0 - hcf_thick - mylar_thick - air_thick, width_42/2.0 - hcf_thick - mylar_thick - air_thick, (depth_42 - mylar_thick - air_thick)/2.0 );
     G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
 
-    G4Box *LeadGlass_40 = new G4Box("LeadGlass_40", width_40/2.0 - hcf_thick - mylar_thick, width_40/2.0 - hcf_thick - mylar_thick - air_thick, (depth_40 - mylar_thick - air_thick)/2.0 );
+    G4Box *LeadGlass_40 = new G4Box("LeadGlass_40", width_40/2.0 - hcf_thick - mylar_thick - air_thick, width_40/2.0 - hcf_thick - mylar_thick - air_thick, (depth_40 - mylar_thick - air_thick)/2.0 );
     G4LogicalVolume *LeadGlass_40_log = new G4LogicalVolume( LeadGlass_40, GetMaterial("TF1"), "LeadGlass_40_log" );
 
     G4Box *LeadGlass_38 = new G4Box("LeadGlass_38", width_38/2.0 - hcf_thick - mylar_thick - air_thick, width_38/2.0 - hcf_thick - mylar_thick - air_thick, (depth_38 - mylar_thick - air_thick)/2.0 );
     G4LogicalVolume *LeadGlass_38_log = new G4LogicalVolume( LeadGlass_38, GetMaterial("TF1"), "LeadGlass_38_log" );
+    
     
     //Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( ECalTF1SD );
@@ -1602,14 +1622,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   }
     
   //Place lead-glass and mylar wrap inside module:
-
   
-
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_42_log, "hc_foil_42_phys", Module_42_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_40_log, "hc_foil_40_phys", Module_40_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_38_log, "hc_foil_38_phys", Module_38_log, false, 0 );
+  
   //mylar:
-  // new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_42_log, "hc_foil_42_phys", Module_42_log, false, 0 );
-  // new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_40_log, "hc_foil_40_phys", Module_40_log, false, 0 );
-  // new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_38_log, "hc_foil_38_phys", Module_38_log, false, 0 );
-  
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), Mylar_wrap_42_log, "Mylar_wrap_42_phys", Module_42_log, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), Mylar_wrap_40_log, "Mylar_wrap_40_phys", Module_40_log, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), Mylar_wrap_38_log, "Mylar_wrap_38_phys", Module_38_log, false, 0 );

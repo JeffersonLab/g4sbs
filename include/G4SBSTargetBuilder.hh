@@ -17,10 +17,20 @@ public:
   void BuildComponent(G4LogicalVolume *);
 
   void BuildCryoTarget(G4LogicalVolume *);
-  void BuildC16CryoTarget(G4LogicalVolume *);
-  void BuildStandardCryoTarget(G4LogicalVolume *);
+  // void BuildC16CryoTarget(G4LogicalVolume *);// EFuchey: 2017/02/10: Now defunct \-> 
+  // Replaced by : BuildC16ScatCham
   void BuildGasTarget(G4LogicalVolume *);
+  
+  // EFuchey: 2017/02/10:  This function is now meant to build the cryotarget and target cell only.
+  // This function takes as input the mother logical volume, a rotation matrix, and a 3-vector offset.
+  void BuildStandardCryoTarget(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector);
 
+  // EFuchey: 2017/02/10: Added those functions to build scattering chamber separately from target,
+  // and avoid, if possible, duplicates of the code actually building the target.
+  void BuildStandardScatCham(G4LogicalVolume *);
+  void BuildGEpScatCham(G4LogicalVolume *);
+  void BuildC16ScatCham(G4LogicalVolume *);
+  
   void SetTarget(Targ_t t){fTargType = t;}
   void SetTargLen(double len){ fTargLen = len;}
   void SetTargDen(double den){ fTargDen = den;} //Currently, fTargDen has NO effect!

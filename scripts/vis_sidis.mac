@@ -46,7 +46,7 @@
 # Set specific colour for identification : ghost parallel geometry envelope ("ghost") as yellow
 #
 # Specify view angle:
-/vis/viewer/set/viewpointThetaPhi 90 89 deg
+/vis/viewer/set/viewpointThetaPhi 180 0 deg
 #
 # Specify zoom value:
 /vis/viewer/zoom 2.5

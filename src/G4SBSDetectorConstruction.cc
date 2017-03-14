@@ -338,9 +338,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["CO2"] = CO2;
 
-  // 1.5 Atmosphere C4F8O for cerkenkov
+  // 1.5 Atmosphere C4F8O for Cherenkov => changed to 1 atm : 2017/03/13
   G4double density_C4F8O = 9.64*mg/cm3; // density at 1ATM
-  G4Material* C4F8O = new G4Material("C4F8O", density_C4F8O*1.5, nel=3);
+  //G4Material* C4F8O = new G4Material("C4F8O", density_C4F8O*1.5, nel=3);
+  G4Material* C4F8O = new G4Material("C4F8O", density_C4F8O, nel=3);// 
   C4F8O->AddElement(elC, 4);
   C4F8O->AddElement(elF, 8);
   C4F8O->AddElement(elO, 1);
@@ -356,7 +357,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPC4F8O->AddProperty("RINDEX",PhotonEnergy, C4F8O_RefractiveIndex, nEntries);
   MPC4F8O->AddProperty("ABSLENGTH",PhotonEnergy, C4F8O_ABSLENGTH, nEntries);
   C4F8O->SetMaterialPropertiesTable(MPC4F8O);
-
+  
   fMaterialsMap["C4F8O"] = C4F8O;
 
   G4double density_ArCO2 = .7*density_Ar + .3*density_CO2;

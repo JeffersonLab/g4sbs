@@ -455,8 +455,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // Default front plate: 0.25" steel + 0.5mm mu metal
   G4double bbcal_shield_thick = 6.85*mm + 9.525*cm;
   G4double Al_thick = 10.0*cm;
-  G4double SS_thick = 3.0*cm;
-  if(fShieldOption==2)bbcal_shield_thick+=1.0*cm;
+  G4double SS_thick = 2.0*cm;
+  if(fShieldOption==2)bbcal_shield_thick+=Al_thick-9.0*cm;
   if(fShieldOption==4){
     Al_thick = Al_thick/2.0;
     SS_thick = SS_thick/2.0;
@@ -1315,12 +1315,12 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   // G4double hcf_thick = copper_thick;
   // const char* hcf_mat_name = "Copper";
   // hc_visAtt->SetColour(1.0, 0.5, 0.0);
-  G4double hcf_thick = al_thick;
-  const char* hcf_mat_name = "Aluminum";
-  hc_visAtt->SetColour(0.7, 0.7, 0.7);
-  // G4double hcf_thick = 0.0;
-  // const char* hcf_mat_name = "Special_Air";
-  // hc_visAtt->SetVisibility(0);
+  // G4double hcf_thick = al_thick;
+  // const char* hcf_mat_name = "Aluminum";
+  // hc_visAtt->SetColour(0.7, 0.7, 0.7);
+  G4double hcf_thick = 0.0;
+  const char* hcf_mat_name = "Special_Air";
+  hc_visAtt->SetVisibility(0);
   
   //EFuchey 2017-01-11: Declaring sensitive detector for light guide 
   // shall be temporary, and not end in the repo...

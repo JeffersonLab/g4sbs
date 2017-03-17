@@ -802,6 +802,10 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   // Set to true to enable for checking of overlapping volumes at construction
   G4bool checkOverlap = false;
 
+  // Determine how "realistic" we want to make HCal. Include the various small
+  // holes and plates?
+  const G4bool const_FrontPinHole = false; // Mounting pin hole on front plate
+
   // Modify Vahe's implementation so that the scintillators are now staggered
   // Also updated with latest measurements based on what CMU is constructing
 
@@ -958,7 +962,8 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   G4Box *sol_EndPl1 = new G4Box("sol_EndPl1",
       dim_EndPl1X/2.,dim_EndPl1Y/2.,dim_EndPl1Z/2.);
   // The front and end plates with "trimmed" region
-  G4UnionSolid *sol_FrontPl0 = new G4UnionSolid("sol_FrontPl0",
+  G4UnionSolid *sol_FrontPl0 = new G4UnionSolid(
+      (const_FrontPinHole?"sol_FrontPl0":"sol_FrontPl"),
       sol_EndPl0,sol_EndPl1,0,G4ThreeVector(0.,0.,
          (dim_EndPl0Z+dim_EndPl1Z)/2.));
   G4UnionSolid *sol_BackPl0 = new G4UnionSolid("sol_BackPl0",
@@ -977,9 +982,14 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
       sol_BackPlHole,sol_BackPlCut,0,
       G4ThreeVector(0.0,0.0, (dim_BackPlHoleZ-dim_BackPlCutZ)/2.));
   // Cut the pieces on front and back plates
-  G4SubtractionSolid *sol_FrontPl = new G4SubtractionSolid("sol_FrontPl",
-      sol_FrontPl0,sol_FrontPlHole,0,
-      G4ThreeVector(0.,0.,-(dim_EndPl0Z-dim_FrontPlHoleZ)/2.));
+  G4VSolid *sol_FrontPl = 0;
+  if(const_FrontPinHole ) {
+    sol_FrontPl = new G4SubtractionSolid("sol_FrontPl",
+        sol_FrontPl0, sol_FrontPlHole,0,
+        G4ThreeVector(0.,0., -(dim_EndPl0Z-dim_FrontPlHoleZ)/2.));
+  } else {
+    sol_FrontPl = sol_FrontPl0;
+  }
   G4SubtractionSolid *sol_BackPl = new G4SubtractionSolid("sol_BackPl",
       sol_BackPl0,sol_BackPlHoleCut,0,
       G4ThreeVector(0.,0., (dim_EndPl0Z-dim_BackPlHoleZ)/2.));

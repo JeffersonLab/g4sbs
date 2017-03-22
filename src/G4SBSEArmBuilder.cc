@@ -57,28 +57,34 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fBBang  = 40.0*deg;
   fBBdist = 1.5*m;
 
-  // G4double frontGEM_depth = 20.*cm;
-  // G4double backGEM_depth = 10.*cm;
-  G4double frontGEM_depth = 60.*cm;
-  G4double backGEM_depth = 11.59*cm;
+  /*
+  G4double frontGEM_depth = 20.*cm;
+  G4double backGEM_depth = 10.*cm;
   
-  //fCerDepth = 92.0*cm;
-  //fCerDist = frontGEM_depth - 2.0*cm
-
+  fCerDepth = 92.0*cm;
   //fCerDist  =  7.0*cm;
   //fCerDist = 22.0*cm;
-  fCerDepth = 86.36*cm;
-  fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;
+  fCerDist = frontGEM_depth + 2.*cm;
   
   // fBBCaldist = 20*cm + fCerDepth;
   // fGEMDist   = 10*cm + fCerDepth;
   // fGEMOption = 1;
 
+  fBBCaldist = fCerDist + fCerDepth + backGEM_depth + 5.*cm;
+  fGEMDist   = fCerDist + fCerDepth + 0.5*backGEM_depth;
+  fGEMOption = 1;
+  */
+  G4double frontGEM_depth = 60.*cm;
+  G4double backGEM_depth = 11.59*cm;
+  
+  fCerDepth = 86.36*cm;
+  fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;
+  
   //NB: fBBCalDist now designates the distance to the shielding
-  //fBBCaldist = fCerDist + fCerDepth + backGEM_depth + 5.*cm;
   fBBCaldist = fCerDist + fCerDepth + backGEM_depth;
   fGEMDist   = fCerDist + fCerDepth + 0.5*backGEM_depth;
   fGEMOption = 2;
+  /**/
   fShieldOption = 1;
   
   fUseLocalField = false;
@@ -390,7 +396,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // GEM option 2
   double gemz_opt2[] = { 0.0*cm, gemdsep, 2.0*gemdsep, 3.0*gemdsep, fGEMDist};
-  double gemw_opt2[] = { 40.0*cm, 40.0*cm, 40.0*cm, 40.0*cm, 50.0*cm };
+  double gemw_opt2[] = { 40.0*cm, 40.0*cm, 40.0*cm, 40.0*cm, 60.0*cm };
   double gemh_opt2[] = { 150.0*cm, 150.0*cm, 150.0*cm, 150.0*cm, 200.0*cm };
 
   // GEM option 3
@@ -445,7 +451,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // **** BIGBITE CALORIMETER MOTHER VOLUME ****:
   G4double bbcal_box_height = 27*8.5*cm;
   G4double bbcal_box_width  = 2.0*37.0*cm;
-  G4double bbcal_box_depth  = (8.5+2.5+37.0)*cm;
+  //G4double bbcal_box_depth  = (8.5+2.5+37.0)*cm;
+  G4double bbcal_box_depth  = (8.5+8.89+37.0)*cm;//8.89 cm (3.5") is the size of the gap between the PS and the SH
   
   // Big Bite Calorimeter shielding.
   // 
@@ -456,7 +463,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4double bbcal_shield_thick = 6.85*mm + 9.525*cm;
   G4double Al_thick = 10.0*cm;
   G4double SS_thick = 2.0*cm;
-  if(fShieldOption==2)bbcal_shield_thick+=Al_thick-9.0*cm;
+  if(fShieldOption==2)bbcal_shield_thick+=max(0.0, Al_thick-9.0*cm);
   if(fShieldOption==4){
     Al_thick = Al_thick/2.0;
     SS_thick = SS_thick/2.0;
@@ -497,7 +504,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     
     switch(fShieldOption){
     case(2):
-      new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_shield_thick/2.0+Al_thick/2.0), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_shield_log, false, 0 );
+      //new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_shield_thick/2.0+Al_thick/2.0), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_shield_log, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-Al_thick/2.0), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_shield_log, false, 0 );
       new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
       break;
     case(3):
@@ -560,7 +568,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *bbhodobox = new G4Box("bbhodobox", pswidth/2.0, psheight/2.0, bbhododepth/2.0 );
   G4LogicalVolume *bbhodolog = new G4LogicalVolume( bbhodobox, GetMaterial("POLYSTYRENE"), "bbhodolog" );
   //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
-  new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + 0.217*2.54 + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
+  bbhodolog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
+  //0.217" is the gap between the PS and the hodoscope
 
   // **** BIGBITE SHOWER ****
   // 7 columns, 27 rows
@@ -570,7 +580,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *bbshowerbox = new G4Box("bbshowerbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
   G4LogicalVolume *bbshowerlog = new G4LogicalVolume(bbshowerbox, GetMaterial("Air"), "bbshowerlog");
   //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+bbhododepth+caldepth/2.0), bbshowerlog, "bbshowerphys", bbdetLog, false, 0);
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth + bbhododepth + caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
+  //new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth + bbhododepth + caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_box_depth/2.0 - caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
   
 
   // Shower module:

@@ -57,7 +57,7 @@ public:
   set<G4String> SDlist;
   map<G4String, SDet_t> SDtype;
   //map<G4String, Arm_t> SDarm;
-  
+  void SetEventStatusEvery(G4int n) { fEventStatusEvery = n; };
 
 private:
   //Hit collection IDs:
@@ -78,6 +78,7 @@ private:
   double fGEMsigma[__MAXGEM];
 
   G4int fTreeFlag;
+  G4int fEventStatusEvery; //< Print event status at every N-entries
   
 public:
 };

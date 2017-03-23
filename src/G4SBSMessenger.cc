@@ -117,6 +117,10 @@ G4SBSMessenger::G4SBSMessenger(){
   tosfieldCmd->SetGuidance("Use SBS TOSCA field map from file");
   tosfieldCmd->SetParameterName("tosfield", false);
 
+  eventStatusEveryCmd = new G4UIcmdWithAnInteger("/g4sbs/eventstatusevery", this);
+  eventStatusEveryCmd->SetGuidance("Print event status at every N entries");
+  eventStatusEveryCmd->SetParameterName("eventstatusevery", false);
+
   geantinoCmd = new G4UIcmdWithABool("/g4sbs/shootgeantino", this);
   geantinoCmd->SetGuidance("Shoot a geantino instead of e-");
   geantinoCmd->SetParameterName("shootgeantino", false);
@@ -673,6 +677,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == tosfieldCmd ){
     fdetcon->AddToscaField(newValue.data());
+  }
+
+  if( cmd == eventStatusEveryCmd ){
+    fevact->SetEventStatusEvery(eventStatusEveryCmd->GetNewIntValue(newValue));
   }
 
   if( cmd == geantinoCmd ){

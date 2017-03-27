@@ -1,5 +1,5 @@
-## Configure G4SBS for gmn (Q^2 = 6 GeV^2)
-/g4sbs/filename        gmn_6GeV2.root    ## Output rootfile
+## Configure G4SBS for gmn (Q^2 = 5.7 GeV^2)
+/g4sbs/filename        gmn_5.7GeV2.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gmn
@@ -18,9 +18,9 @@
 /g4sbs/phmax           30 deg
 
 ## Configure standard detector settings
-/g4sbs/hcaldist        9.0 m
+/g4sbs/hcaldist        11.0 m
 /g4sbs/hcalvoffset     0.00 m
-/g4sbs/sbsclampopt     0                 ## Disable all field clamps
+/g4sbs/sbsclampopt     3                 ## Front field clamp only
 
 ## Configure the magnets
 /g4sbs/bbfield         1
@@ -29,7 +29,7 @@
 /g4sbs/bbdist          1.55 m
 /g4sbs/sbsang          17.5 deg
 /g4sbs/48D48dist       2.25 m
-/g4sbs/sbsmagfield     1.00 tesla
+/g4sbs/sbsmagfield     1.71 tesla
 
 ## Run 100 events
 /g4sbs/run             100

@@ -1,13 +1,12 @@
 ##  Kinematics & settings for GMn experiment
-##  These settings come from Alan Gavalya
-##  from http://hallaweb.jlab.org/12GeV/SuperBigBite/SBS-minutes/documents/SBS%20Neutron%20FF%20Kinematic%20Settings.doc
-##  (with updated values he provided via email)
+##  These are the updated "golden" settings determined from 2017-02-09
+##  (see Juan Carlos Cornejo for details)
 
 ## Configure the standard settings
 config.beamcur=44 muA
 
-config.sbsclampopt=0
-config_comment.sbsclampopt=Disable all field clamps
+config.sbsclampopt=3
+config_comment.sbsclampopt=Front field clamp only
 
 config.target=LD2
 config.kine=elastic
@@ -24,10 +23,10 @@ config_table=q2,beamE:GeV,bbang:deg,sbsang:deg,bbdist:m,48D48dist:m,hcaldist:m,b
 
 ## Specify the kinematic point settings (after configuring above)
 ##  Q^2   E_beam  theta_bb  theta_sbs   dist_bb   dist_mag  dist_hcal   Bdl    th_min  th_max
-    3.5     4.4   32.5      31.1        1.55      2.00      7.2         1.48   22.5    42.5
-    4.5     4.4   41.9      24.7        1.55      2.25      7.2         1.70   31.9    51.9
-    6       4.4   58.4      17.5        1.55      2.25      9.0         1.00   48.0    68.4
-    8.5     6.6   43.0      17.5        1.55      2.25      11.0        1.22   33.0    53.0
-    10      8.8   34.0      17.5        2.10      2.25      13.0        1.32   24.0    44.0
-    12      8.8   44.2      13.3        1.55      2.25      14.0        1.22   34.2    54.2
-    13.5   11.0   33.0      14.9        1.55      3.1       17.0        0.90   23.0    43.0
+    3.5     4.4   32.5      31.1        1.80      2.00      7.2         1.71   22.5    42.5
+    4.5     4.4   41.9      24.7        1.55      2.25      8.5         1.71   31.9    51.9
+    5.7     4.4   58.4      17.5        1.55      2.25      11.0        1.71   48.0    68.4
+    8.1     6.6   43.0      17.5        1.55      2.25      11.0        1.65   33.0    53.0
+    10.2    8.8   34.0      17.5        1.75      2.25      11.0        1.60   24.0    44.0
+    12      8.8   44.2      13.3        1.55      2.25      14.0        1.50   34.2    54.2
+    13.5   11.0   33.0      14.8        1.55      3.1       17.0        0.97   23.0    43.0

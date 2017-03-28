@@ -213,7 +213,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   if( fMaterialsMap.find("Aluminum") == fMaterialsMap.end() ){ 
     fMaterialsMap["Aluminum"] = new G4Material(name="Aluminum", z=13., a=26.98*g/mole, density=2.7*g/cm3);
   }
-
+  if( fMaterialsMap.find("Silicon") == fMaterialsMap.end() ){ 
+    fMaterialsMap["Silicon"] = new G4Material(name="Silicon", z=14., 28.086*g/mole, density=2.33*g/cm3);
+  }
   density = 4.51*g/cm3;
   G4Material* CsI = new G4Material(name="CsI", density, nel = 2);
   CsI->AddElement(elI, .5);
@@ -336,9 +338,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["CO2"] = CO2;
 
-  // 1.5 Atmosphere C4F8O for cerkenkov
+  // 1.5 Atmosphere C4F8O for Cherenkov => changed to 1 atm : 2017/03/13
   G4double density_C4F8O = 9.64*mg/cm3; // density at 1ATM
-  G4Material* C4F8O = new G4Material("C4F8O", density_C4F8O*1.5, nel=3);
+  //G4Material* C4F8O = new G4Material("C4F8O", density_C4F8O*1.5, nel=3);
+  G4Material* C4F8O = new G4Material("C4F8O", density_C4F8O, nel=3);// 
   C4F8O->AddElement(elC, 4);
   C4F8O->AddElement(elF, 8);
   C4F8O->AddElement(elO, 1);
@@ -354,7 +357,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPC4F8O->AddProperty("RINDEX",PhotonEnergy, C4F8O_RefractiveIndex, nEntries);
   MPC4F8O->AddProperty("ABSLENGTH",PhotonEnergy, C4F8O_ABSLENGTH, nEntries);
   C4F8O->SetMaterialPropertiesTable(MPC4F8O);
-
+  
   fMaterialsMap["C4F8O"] = C4F8O;
 
   G4double density_ArCO2 = .7*density_Ar + .3*density_CO2;

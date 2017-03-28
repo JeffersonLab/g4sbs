@@ -137,6 +137,57 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
       SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
     }
+  if( exptype == kA1n ) //A1n case is similar to SIDIS, except now we want to use the SBS in "electron mode"; meaning we want to remove the aerogel from the RICH, and replace the RICH gas with CO2, and we also want to have a non-zero pitch angle for the SBS tracker. We assume (for NOW) that the RICH can be supported at some non-zero "pitch" angle:
+    {
+      //      G4double SBStracker_dist = fRICHdist - 0.3*m; //distance to the front of the SBS tracker
+      G4ThreeVector SBS_midplane_pos( -(f48D48dist + 0.5*f48D48depth)*sin(f48D48ang), 0.0, (f48D48dist+0.5*f48D48depth)*cos(f48D48ang) );
+
+      G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
+
+      //Just a test:
+      //SBStracker_rot_I->rotateY( 14.0*deg );
+
+      G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
+      SBStracker_rot->rotateY( f48D48ang );
+      SBStracker_rot->rotateX( fSBS_tracker_pitch );
+
+      G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
+
+      G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
+      
+      G4double RICH_yoffset = (fRICHdist - (f48D48dist + 0.5*f48D48depth) )*sin( fSBS_tracker_pitch );
+      
+      G4ThreeVector RICH_pos( -fRICHdist*sin(f48D48ang), RICH_yoffset, fRICHdist*cos(f48D48ang) );
+
+      G4ThreeVector SBS_tracker_axis = (RICH_pos - SBS_midplane_pos).unit();
+      G4ThreeVector SBS_tracker_pos = RICH_pos - 0.3*m*SBS_tracker_axis;
+
+      new G4PVPlacement( SBStracker_rot, SBS_tracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
+
+      int ngems_SBStracker = 5;
+      vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
+
+      G4double zspacing_SBStracker = 10.0*cm;
+      G4double zoffset_SBStracker = -20.0*cm;
+
+      for(int i=0; i<ngems_SBStracker; i++ ){
+	zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
+	wplanes_SBStracker.push_back( 60.0*cm );
+	hplanes_SBStracker.push_back( 200.0*cm );
+      }
+
+      G4SBSTrackerBuilder trackerbuilder(fDetCon);
+
+      //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
+
+      trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
+				     ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
+
+      MakeRICH_new(worldlog);
+
+      SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
+      
+    }
   //---------------------------------------------------------
   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
@@ -1205,20 +1256,37 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
 
   G4RotationMatrix *rot_RICH = new G4RotationMatrix;
   rot_RICH->rotateY( f48D48ang );
+  rot_RICH->rotateX( fSBS_tracker_pitch );
   rot_RICH->rotateZ( 180.0*deg );
-  
-  G4ThreeVector RICHcoord_global( -fRICHdist*sin( f48D48ang ), 0.0, fRICHdist*cos( f48D48ang ) );
 
-  G4ThreeVector RICH_zaxis( RICHcoord_global.unit() );
-  G4ThreeVector RICH_yaxis( 0.0, 1.0, 0.0 );
-  G4ThreeVector RICH_xaxis( (RICH_yaxis.cross( RICH_zaxis ) ).unit() );
+  G4double RICH_yoffset = (fRICHdist - (f48D48dist + 0.5*f48D48depth) )*sin( fSBS_tracker_pitch );
+  G4ThreeVector RICHcoord_global( -fRICHdist*sin( f48D48ang ), RICH_yoffset, fRICHdist*cos( f48D48ang ) );
+
+  G4ThreeVector SBS_midplane_pos( -(f48D48dist + 0.5*f48D48depth)*sin(f48D48ang), 0.0, (f48D48dist+0.5*f48D48depth)*cos(f48D48ang) );
+  
+  G4ThreeVector RICH_zaxis = (RICHcoord_global - SBS_midplane_pos).unit();
+
+  G4ThreeVector RICH_xaxis( cos(f48D48ang), 0.0, sin(f48D48ang) );
+  G4ThreeVector RICH_yaxis = (RICH_zaxis.cross(RICH_xaxis)).unit();
+  
+  //  G4ThreeVector RICH_zaxis( RICHcoord_global.unit() );
+  //G4ThreeVector RICH_yaxis( 0.0, 1.0, 0.0 );
+  //G4ThreeVector RICH_xaxis( (RICH_yaxis.cross( RICH_zaxis ) ).unit() );
+
+  
   
   G4double RICHbox_w = 164.0*cm, RICHbox_h = 284.0*cm, RICHbox_thick = 126.0*cm;
 
   //RICHbox_h = 10.0*m;
   
   G4Box *RICHbox = new G4Box("RICHbox", RICHbox_w/2.0, RICHbox_h/2.0, RICHbox_thick/2.0  );
-  G4LogicalVolume *RICHbox_log = new G4LogicalVolume( RICHbox, GetMaterial("C4F10_gas"), "SBS_RICH_log" );
+
+  G4String RadiatorGas_Name = "C4F10_gas";
+  if( fDetCon->fExpType == kA1n ){
+    RadiatorGas_Name = "CO2";
+  }
+  
+  G4LogicalVolume *RICHbox_log = new G4LogicalVolume( RICHbox, GetMaterial(RadiatorGas_Name), "SBS_RICH_log" );
 
   //At the end, we will rotate it by 180 degrees about z:
   
@@ -1654,22 +1722,32 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   G4ThreeVector pos_aerogel_wall( x0_aerogel_wall, y0_aerogel_wall, z0_aerogel_wall );
   pos_aerogel_wall += origin;
 
-  new G4PVPlacement( 0, pos_aerogel_wall, Aerogel_wall_container_log, "Aerogel_wall_container_pv", RICHbox_log, false, 0 );
+  
+  
 
   //Also need 1 mm Al aerogel entry window and 3.2 mm UVT-lucite exit window:
   G4Box *aero_entry_window = new G4Box("aerogel_entry_window", Width_aerogel_wall/2.0, Height_aerogel_wall/2.0, 1.0*mm/2.0 );
   G4LogicalVolume *aero_entry_log = new G4LogicalVolume( aero_entry_window, GetMaterial("Al"), "aero_entry_log" );
   G4ThreeVector aero_entry_window_pos = pos_aerogel_wall + G4ThreeVector( 0.0, 0.0, -0.5*(Thick_aerogel_wall + 1.0*mm ) );
-
-  new G4PVPlacement( 0, aero_entry_window_pos, aero_entry_log, "SBSRICH_aero_entry_pv", RICHbox_log, false, 0 );
-
+  
+  
+  
   //3.2 mm UVT-lucite aerogel exit window:
   G4Box *aero_exit_window = new G4Box( "aerogel_exit_window", Width_aerogel_wall/2.0, Height_aerogel_wall/2.0, 3.2*mm/2.0 );
   G4LogicalVolume *aero_exit_window_log = new G4LogicalVolume( aero_exit_window, GetMaterial("UVT_Lucite"), "Aero_exitwindow" );
-
+  
   G4ThreeVector aero_exit_window_pos = pos_aerogel_wall + G4ThreeVector( 0.0, 0.0, 0.5*(Thick_aerogel_wall + 3.2*mm) );
-  new G4PVPlacement( 0, aero_exit_window_pos, aero_exit_window_log, "SBSRICH_aero_exit_pv", RICHbox_log, false, 0 );
+  
+  //For A1n ("Electron mode"), do not create/place aerogel wall components:
 
+  if( fDetCon->fExpType != kA1n ){
+  
+    new G4PVPlacement( 0, pos_aerogel_wall, Aerogel_wall_container_log, "Aerogel_wall_container_pv", RICHbox_log, false, 0 );
+    new G4PVPlacement( 0, aero_entry_window_pos, aero_entry_log, "SBSRICH_aero_entry_pv", RICHbox_log, false, 0 );
+    new G4PVPlacement( 0, aero_exit_window_pos, aero_exit_window_log, "SBSRICH_aero_exit_pv", RICHbox_log, false, 0 );
+
+  }
+    
   G4double x0_mirror_center = 136.403*cm;
   G4double z0_mirror_center = -98.032*cm;
   

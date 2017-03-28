@@ -93,6 +93,9 @@ private:
   G4UIcmdWithADoubleAndUnit *hcalvoffsetCmd;
   G4UIcmdWithADoubleAndUnit *hmagdistCmd;
   G4UIcmdWithADoubleAndUnit *hcalangCmd;
+  //Add command to set pitch angle for SBS tracker + RICH in "electron mode" 
+  G4UIcmdWithADoubleAndUnit *sbstrkrpitchCmd;
+  //G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
   
   //These commands set angle generation limits for the electron:
   G4UIcmdWithADoubleAndUnit *thminCmd;
@@ -120,7 +123,7 @@ private:
   
   // Commands needed to specify RICH positioning:
   G4UIcmdWithADoubleAndUnit *RICHdistCmd; //Set RICH distance
-
+  
   // Commands to set configurable properties of SBS:
   G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd;
 

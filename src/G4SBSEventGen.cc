@@ -512,7 +512,9 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
 }
 
 bool G4SBSEventGen::GenerateDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
-  double minE = 0.*GeV;
+  //double minE = 0.*GeV;
+  G4double minE = fEeMin;
+  G4double maxE = fEeMax;
   double Mp = proton_mass_c2;
 
   G4ThreeVector pboost = -1.0*(ni.boostVector());
@@ -542,7 +544,7 @@ bool G4SBSEventGen::GenerateDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVecto
   double th = acos( CLHEP::RandFlat::shoot(cos(fThMax), cos(fThMin)) );
   double ph = CLHEP::RandFlat::shoot(fPhMin, fPhMax );
 
-  double eprime = CLHEP::RandFlat::shoot(minE, eip.e());
+  double eprime = CLHEP::RandFlat::shoot(minE, maxE);
 
   /*
     printf("nucleon p = %f, mass = %f\n", ni.vect().mag()/GeV, ni.m()/GeV);
@@ -1400,6 +1402,8 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
 bool G4SBSEventGen::GeneratePythia(){
   fPythiaTree->GetEntry(fchainentry++);
 
+  if( fchainentry % 1000 == 0 ) G4cout << "Passed event " << fchainentry << " in PYTHIA6 tree" << G4endl;
+  
   //Populate the pythiaoutput data structure:
   fPythiaEvent.Clear();
   //fPythiaEvent.Nprimaries = fPythiaTree->Nparticles;
@@ -1454,6 +1458,7 @@ bool G4SBSEventGen::GeneratePythia(){
 	     fPythiaEvent.phi[ngood] >= fPhMin_had && fPythiaEvent.phi[ngood] <= fPhMax_had &&
 	     fPythiaEvent.E[ngood] >= fEhadMin && fPythiaEvent.E[ngood] <= fEhadMax) ) ){ 
 	fPythiaEvent.genflag.push_back( 1 );
+	//G4cout << "located good event with one or more primary particles within generation limits" << G4endl;
       } else {
 	fPythiaEvent.genflag.push_back( 0 );
       }

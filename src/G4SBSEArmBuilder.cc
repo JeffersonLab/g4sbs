@@ -461,8 +461,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   // Default front plate: 0.25" steel + 0.5mm mu metal
   G4double bbcal_shield_thick = 6.85*mm + 9.525*cm;
-  G4double Al_thick = 10.0*cm;
-  G4double SS_thick = 2.0*cm;
+  G4double Al_thick = 15.0*cm;
+  G4double SS_thick = 3.0*cm;
   if(fShieldOption==2)bbcal_shield_thick+=max(0.0, Al_thick-9.0*cm);
   if(fShieldOption==4){
     Al_thick = Al_thick/2.0;
@@ -560,6 +560,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth/2.0), bbpslog, "bbpsphys", bbdetLog, false, 0);
   new G4PVPlacement(0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth/2.0 ), bbpslog, "bbpsphys", bbcal_mother_log, false, 0 );
   
+  //placement of second mu-metal foil behind the PS
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth + 0.5*mm/2.0), bbcal_front_mufoil_log, "bbcal_back_mufoil_phys", bbcal_mother_log, false, 0 );
   // Preshower module - geometry will be assigned after Shower
 
   // **** BIGBITE HODOSCOPE **** 
@@ -568,6 +570,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *bbhodobox = new G4Box("bbhodobox", pswidth/2.0, psheight/2.0, bbhododepth/2.0 );
   G4LogicalVolume *bbhodolog = new G4LogicalVolume( bbhodobox, GetMaterial("POLYSTYRENE"), "bbhodolog" );
   //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
+  //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + 0.217*2.54 + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
   bbhodolog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
   //0.217" is the gap between the PS and the hodoscope

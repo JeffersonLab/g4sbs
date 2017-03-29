@@ -34,6 +34,27 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
   
+  /* Need to see where we are first...
+  // EFuchey 2017/03/27: organized better this with a switch instead of an endless chain of if...  else...
+  if( (targtype == kLH2 || targtype == kLD2) ){
+    switch(fDetCon->fExpType){
+    case(kGEp):
+      MakeGEpBeamline(worldlog);
+      break;
+    case(kNeutronExp):// GMn
+      MakeDefaultBeamline(worldlog);
+      //MakeGMnBeamline(worldlog);
+      break;
+    default:
+      MakeDefaultBeamline(worldlog);
+      break;
+    }
+  } else {
+    MakeDefaultBeamline(worldlog);
+    //Make3HeBeamline(worldlog);
+  }
+  */
+  
   if( fDetCon->fExpType == kGEp && (targtype == kLH2 || targtype == kLD2) ){
     MakeGEpBeamline(worldlog);
     
@@ -912,6 +933,9 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   // TTV1_log->SetVisAttributes( G4VisAttributes::Invisible );
   // TTV2_log->SetVisAttributes( G4VisAttributes::Invisible );
 }
+
+//
+
 
 //  Here is lead shield of beam line for GEp
 

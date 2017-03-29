@@ -30,190 +30,26 @@ G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSC
 G4SBSBeamlineBuilder::~G4SBSBeamlineBuilder(){;}
 
 void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
-  Targ_t targtype = fDetCon->fTargType;
-
+  
   double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
   
-  /* Need to see where we are first...
-  // EFuchey 2017/03/27: organized better this with a switch instead of an endless chain of if...  else...
-  if( (targtype == kLH2 || targtype == kLD2) ){
+  // EFuchey 2017/03/29: organized better this with a switch instead of an endless chain of if...  else...
+  if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
     switch(fDetCon->fExpType){
     case(kGEp):
       MakeGEpBeamline(worldlog);
       break;
     case(kNeutronExp):// GMn
-      MakeDefaultBeamline(worldlog);
-      //MakeGMnBeamline(worldlog);
+      MakeGMnBeamline(worldlog);
       break;
     default:
       MakeDefaultBeamline(worldlog);
       break;
     }
   } else {
-    MakeDefaultBeamline(worldlog);
-    //Make3HeBeamline(worldlog);
+    Make3HeBeamline(worldlog);
   }
-  */
   
-  if( fDetCon->fExpType == kGEp && (targtype == kLH2 || targtype == kLD2) ){
-    MakeGEpBeamline(worldlog);
-    
-  } else {
-    
-    double swallrad = 1.143*m/2;
-    double swallrad_inner = 1.041/2.0*m; 
-    //EFuchey: 2017/02/14: change parameters for Standard scat chamber:
-    double sc_entbeampipeflange_dist = 25.375*2.54*cm;// entrance pipe flange distance from hall center
-    double sc_exbeampipeflange_dist = 27.903*2.54*cm;// exit pipe flange distance from hall center
-    
-    // Stainless
-    G4double ent_len = 10*m;
-    //ent_len = ent_len+1.1*m;// for background studies;
-    G4double ent_rin = 31.75*mm;
-    G4double ent_rou = ent_rin+0.120*mm;
-    
-    G4Tubs *ent_tube = new G4Tubs("ent_tube", ent_rin, ent_rou, ent_len/2, 0.*deg, 360.*deg );
-    G4Tubs *ent_vac  = new G4Tubs("ent_vac", 0.0, ent_rin, ent_len/2, 0.*deg, 360.*deg );
-    
-    //We want to subtract this cylinder from the entry tube/pipe:
-    G4Tubs *cut_cylinder = new G4Tubs("cut_cylinder", 0.0, swallrad, 1.0*m, 0.0*deg, 360.0*deg );
-    
-    G4RotationMatrix *cut_cylinder_rot = new G4RotationMatrix;
-    cut_cylinder_rot->rotateX( -90.0*deg );
-    
-    
-    G4SubtractionSolid *ent_tube_cut = new G4SubtractionSolid( "ent_tube_cut", ent_tube, cut_cylinder, cut_cylinder_rot, 
-    							       G4ThreeVector( 0.0, 0.0, ent_len/2.0 + swallrad_inner ) );
-    G4SubtractionSolid *ent_vac_cut = new G4SubtractionSolid( "ent_vac_cut", ent_vac, cut_cylinder, cut_cylinder_rot, 
-							      G4ThreeVector( 0.0, 0.0, ent_len/2.0 + swallrad_inner ) );
-    
-    G4LogicalVolume *entLog = new G4LogicalVolume(ent_tube, GetMaterial("Stainless"), "ent_log", 0, 0, 0);
-    G4LogicalVolume *entvacLog = new G4LogicalVolume(ent_vac, GetMaterial("Vacuum"), "entvac_log", 0, 0, 0);
-    
-    G4LogicalVolume *entLog_cut = new G4LogicalVolume(ent_tube_cut, GetMaterial("Stainless"), "ent_log_cut", 0, 0, 0);
-    G4LogicalVolume *entvacLog_cut = new G4LogicalVolume(ent_vac_cut, GetMaterial("Vacuum"), "entvac_log_cut", 0, 0, 0);
-    
-    if( targtype == kH2 || targtype == k3He || targtype == kNeutTarg ){
-      //if( fDetCon->fTargetBuilder->GetSchamFlag() != 1 ){
-      // gas target -  1.5m in air
-      //new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entLog, "ent_phys", worldlog, false,0);// -- Nominal beamline --
-      //new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entvacLog, "entvac_phys", worldlog,false,0);// -- Nominal beamline --
-      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entLog, "ent_phys", worldlog, false,0);// -- Extended beamline for background studies (2016/09/07)
-      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entvacLog, "entvac_phys", worldlog,false,0);// -- Extended beamline for background studies (2016/09/07)
-      
-      // Add in Be window if no scattering chamber is to be defined:
-      if( fDetCon->fTargetBuilder->GetSchamFlag() != 1 ){
-	G4double winthick = 0.0127*cm;
-	
-	G4Tubs *ent_win = new G4Tubs("ent_win", 0.0, ent_rin, winthick/2, 0.*deg, 360.*deg );
-	G4LogicalVolume *ent_winlog = new G4LogicalVolume(ent_win, GetMaterial("Beryllium"), "entwin_log", 0, 0, 0);
-	
-	// my cancel Be window for GEp experiment 09/29/2014 
-	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);	// => uncommented on 2016/09/07 for background studies
-	/* Note from  2016/09/07: */ 
-	/* Is that normal that this was commented ? My guess would be not. */
-      	
-	ent_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.7,1.0,0.0)));
-      } else {
-	//Don't add window: we want the beam to interact with the target first. Butt up against the outer edge of the scattering chamber:
-	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entLog_cut, "ent_phys", worldlog, false,0);
-	new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entvacLog_cut, "entvac_phys", worldlog,false,0);
-      }
-    } else {
-      // Cryotarget - up against the chamber wall
-      //*****6/17
-      // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entLog_cut, "ent_phys", worldlog, false,0);
-      // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entvacLog_cut, "entvac_phys", worldlog,false,0);
-      //*****6/17
-      
-      // EFuchey: 2017/02/14
-      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-sc_entbeampipeflange_dist), entLog, "ent_phys", worldlog, false,0);
-      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-sc_entbeampipeflange_dist), entvacLog, "entvac_phys", worldlog,false,0);
-      
-    }
-    
-    
-    // Aluminum
-    /*
-      int nsec = 24;
-      //  Definition taken from HAPLOG 2722 by Juliette, but offset by 31.54 cm
-      G4double exit_z[]   = {206*cm, 234.01*cm, 234.02*cm, 253.02*cm, 253.03*cm, 268.26*cm, 268.27*cm,305.29*cm, 305.30*cm,328.71*cm, 328.72*cm, 356.33*cm,356.34*cm, 378.7*cm,378.71*cm, 473.16*cm,473.17*cm, 503.64*cm,503.65*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };
-    G4double exit_zero[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    G4double exit_rin[] = {4.128*cm, 4.128*cm, 4.445*cm, 4.445*cm,4.763*cm, 4.763*cm, 5.08*cm,5.08*cm, 6.35*cm, 6.35*cm, 7.62*cm, 7.62*cm,10.16*cm, 10.16*cm,10.478*cm, 10.478*cm,12.7*cm, 12.7*cm,15.24*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };
-    G4double exit_rou[] = {4.432*cm, 4.432*cm, 4.75*cm, 4.75*cm,5.067*cm, 5.067*cm, 5.385*cm,5.385*cm, 6.655*cm, 6.655*cm, 7.925*cm, 7.925*cm, 10.478*cm,10.478*cm,  10.795*cm, 10.795*cm, 13.018*cm, 13.018*cm,15.558*cm, 15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };
-    */
-    
-    // EFuchey: 2017/02/14: add the possibility to change the first parameters for the beam line polycone 
-    // Default set of values;
-    double z0 = sc_exbeampipeflange_dist, rin_0 = 6.20*cm, rout_0 = (6.20+0.28*2.54)*cm;
-    
-    if( fDetCon->fTargType == kH2 || fDetCon->fTargType == k3He || fDetCon->fTargType == kNeutTarg ){
-      z0 = 37.2*cm;
-      rin_0 = 5.64*cm;
-      rout_0 = (5.64+0.28*2.54)*cm;
-    }  
-      
-    int nsec = 7;
-    //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
-    //G4double exit_z[]   = { 162.2*cm, 592.2*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };// -- Nominal beamline --
-    G4double exit_z[]   = { z0, 592.2*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };// -- Extended beamline for background studies (2016/09/07)
-    //G4double exit_z_vac[] = { 162.2*cm, 592.2*cm, 610.24*cm,610.35*cm, 1161.52*cm, 1161.53*cm,2726.46*cm };
-    
-    G4double exit_zero[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    //G4double exit_rin[] = { 4.8*cm, 14.8*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };
-    //G4double exit_rou[] = { 5.0*cm, 15.0*cm,15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };
-
-    //G4double exit_rin[] = { 6.065*2.54*cm/2., 14.8*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };// -- Nominal beamline --
-    //G4double exit_rou[] = { (6.065/2.0+0.28)*2.54*cm, 15.0*cm,15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };// -- Nominal beamline --
-    G4double exit_rin[] = { rin_0, 14.8*cm, 15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };// -- Extended beamline for background studies (2016/09/07)
-    G4double exit_rou[] = { rout_0, 15.0*cm,15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };// -- Extended beamline for background studies (2016/09/07)
-    
-    
-    G4Polycone *ext_cone = new G4Polycone("ext_cone", 0.0*deg, 360.0*deg, nsec, exit_z, exit_rin, exit_rou);
-    //G4Polycone *ext_vac  = new G4Polycone("ext_vac ", 0.0*deg, 360.0*deg, nsec, exit_z_vac, exit_zero, exit_rin);
-    G4Polycone *ext_vac  = new G4Polycone("ext_vac ", 0.0*deg, 360.0*deg, nsec, exit_z, exit_zero, exit_rin);
-    
-    G4LogicalVolume *extLog = new G4LogicalVolume(ext_cone, GetMaterial("Aluminum"), "ext_log", 0, 0, 0);
-    G4LogicalVolume *extvacLog = new G4LogicalVolume(ext_vac, GetMaterial("Vacuum"), "extvac_log", 0, 0, 0);
-    
-    //*****6/17
-    new G4PVPlacement(0,G4ThreeVector(), extLog, "ext_phys", worldlog, false,0);
-    new G4PVPlacement(0,G4ThreeVector(), extvacLog, "extvac_phys", worldlog,false,0);
-    //*****6/17
-    
-    G4VisAttributes *extVisAtt= new G4VisAttributes(G4Colour(0.9,0.1,0.9));
-    extLog->SetVisAttributes(extVisAtt);
-    
-    
-    // Seal this up if we have a gas target
-    if( fDetCon->fTargType == kH2 || fDetCon->fTargType == k3He || fDetCon->fTargType == kNeutTarg ){
-      // Add in exit Al window
-      
-      double extwin_thick = 5.0e-4*cm;
-      
-      G4Tubs *extwin = new G4Tubs("ext_win", 0.0, exit_rin[0], extwin_thick/2, 0.*deg, 360.*deg );
-      G4LogicalVolume *ext_winlog = new G4LogicalVolume(extwin, GetMaterial("Aluminum"), "extwin_log", 0, 0, 0);
-      
-      
-      ///*//  cancel Al window to vacuum pipe 10/02/14
-      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, exit_z[0] - extwin_thick/2), ext_winlog, "extwin_phys", worldlog,false,0);
-      //*/  // //cancel Al window to vacuum pipe 10/02/14
-      
-
-      ext_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.5,0.2,0.6)));
-    }
-    extvacLog->SetVisAttributes(G4VisAttributes::Invisible);
-    entvacLog->SetVisAttributes(G4VisAttributes::Invisible);
-    
-    entvacLog_cut->SetVisAttributes(G4VisAttributes::Invisible);
-    
-    G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
-    
-    extLog->SetVisAttributes(pipeVisAtt);
-    entLog->SetVisAttributes(pipeVisAtt);
-    entLog_cut->SetVisAttributes(pipeVisAtt);
-  }
-
   double floorthick = 1.0*m;
   G4Tubs *floor_tube = new G4Tubs("floor_tube", 0.0, 30*m, floorthick/2, 0.*deg, 360.*deg );
 
@@ -223,8 +59,9 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   G4LogicalVolume *floorLog = new G4LogicalVolume(floor_tube, GetMaterial("Concrete"), "floor_log", 0, 0, 0);
   new G4PVPlacement(floorrm, G4ThreeVector(0.0, -floorthick/2 - beamheight, 0.0), floorLog, "floor_phys", worldlog, false, 0);
 
-  /*    G4VisAttributes *floorVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
-	floorLog->SetVisAttributes(floorVisAtt); */
+  // G4VisAttributes *floorVisAtt= new G4VisAttributes(G4Colour(0.9,0.1,0.9));
+  // 	floorLog->SetVisAttributes(floorVisAtt); 
+  
   floorLog->SetVisAttributes(G4VisAttributes::Invisible);
 
   if( fDetCon->fExpType == kGEp && fDetCon->fLeadOption == 1 ){
@@ -934,7 +771,175 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   // TTV2_log->SetVisAttributes( G4VisAttributes::Invisible );
 }
 
-//
+// This is the beam line for GMn
+void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
+  // for the time being...
+  MakeDefaultBeamline(worldlog);
+}
+
+// This is the beam line for 3He
+void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn, A1n, SIDIS
+  // for the time being...
+  MakeDefaultBeamline(worldlog);
+}
+
+// This is the "default" beam line (for C16)
+void G4SBSBeamlineBuilder::MakeDefaultBeamline(G4LogicalVolume *worldlog){// Old beam line...
+  Targ_t targtype = fDetCon->fTargType;
+
+  double swallrad = 1.143*m/2;
+  double swallrad_inner = 1.041/2.0*m; 
+  //EFuchey: 2017/02/14: change parameters for Standard scat chamber:
+  double sc_entbeampipeflange_dist = 25.375*2.54*cm;// entrance pipe flange distance from hall center
+  double sc_exbeampipeflange_dist = 27.903*2.54*cm;// exit pipe flange distance from hall center
+  
+  // Stainless
+  G4double ent_len = 10*m;
+  //ent_len = ent_len+1.1*m;// for background studies;
+  G4double ent_rin = 31.75*mm;
+  G4double ent_rou = ent_rin+0.120*mm;
+  
+  G4Tubs *ent_tube = new G4Tubs("ent_tube", ent_rin, ent_rou, ent_len/2, 0.*deg, 360.*deg );
+  G4Tubs *ent_vac  = new G4Tubs("ent_vac", 0.0, ent_rin, ent_len/2, 0.*deg, 360.*deg );
+  
+  //We want to subtract this cylinder from the entry tube/pipe:
+  G4Tubs *cut_cylinder = new G4Tubs("cut_cylinder", 0.0, swallrad, 1.0*m, 0.0*deg, 360.0*deg );
+  
+  G4RotationMatrix *cut_cylinder_rot = new G4RotationMatrix;
+  cut_cylinder_rot->rotateX( -90.0*deg );
+  
+  
+  G4SubtractionSolid *ent_tube_cut = new G4SubtractionSolid( "ent_tube_cut", ent_tube, cut_cylinder, cut_cylinder_rot, 
+							     G4ThreeVector( 0.0, 0.0, ent_len/2.0 + swallrad_inner ) );
+  G4SubtractionSolid *ent_vac_cut = new G4SubtractionSolid( "ent_vac_cut", ent_vac, cut_cylinder, cut_cylinder_rot, 
+							    G4ThreeVector( 0.0, 0.0, ent_len/2.0 + swallrad_inner ) );
+  
+  G4LogicalVolume *entLog = new G4LogicalVolume(ent_tube, GetMaterial("Stainless"), "ent_log", 0, 0, 0);
+  G4LogicalVolume *entvacLog = new G4LogicalVolume(ent_vac, GetMaterial("Vacuum"), "entvac_log", 0, 0, 0);
+  
+  G4LogicalVolume *entLog_cut = new G4LogicalVolume(ent_tube_cut, GetMaterial("Stainless"), "ent_log_cut", 0, 0, 0);
+  G4LogicalVolume *entvacLog_cut = new G4LogicalVolume(ent_vac_cut, GetMaterial("Vacuum"), "entvac_log_cut", 0, 0, 0);
+  
+  if( targtype == kH2 || targtype == k3He || targtype == kNeutTarg ){
+    //if( fDetCon->fTargetBuilder->GetSchamFlag() != 1 ){
+    // gas target -  1.5m in air
+    //new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entLog, "ent_phys", worldlog, false,0);// -- Nominal beamline --
+    //new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-1.5*m), entvacLog, "entvac_phys", worldlog,false,0);// -- Nominal beamline --
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entLog, "ent_phys", worldlog, false,0);// -- Extended beamline for background studies (2016/09/07)
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entvacLog, "entvac_phys", worldlog,false,0);// -- Extended beamline for background studies (2016/09/07)
+    
+    // Add in Be window if no scattering chamber is to be defined:
+    if( fDetCon->fTargetBuilder->GetSchamFlag() != 1 ){
+      G4double winthick = 0.0127*cm;
+      
+      G4Tubs *ent_win = new G4Tubs("ent_win", 0.0, ent_rin, winthick/2, 0.*deg, 360.*deg );
+      G4LogicalVolume *ent_winlog = new G4LogicalVolume(ent_win, GetMaterial("Beryllium"), "entwin_log", 0, 0, 0);
+      
+      // my cancel Be window for GEp experiment 09/29/2014 
+      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);	// => uncommented on 2016/09/07 for background studies
+      // Note from  2016/09/07: 
+      // Is that normal that this was commented ? My guess would be not.
+      
+      ent_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.7,1.0,0.0)));
+    } else {
+      //Don't add window: we want the beam to interact with the target first. Butt up against the outer edge of the scattering chamber:
+      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entLog_cut, "ent_phys", worldlog, false,0);
+      new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entvacLog_cut, "entvac_phys", worldlog,false,0);
+    }
+  } else {
+    // Cryotarget - up against the chamber wall
+    //*****6/17
+    // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entLog_cut, "ent_phys", worldlog, false,0);
+    // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner), entvacLog_cut, "entvac_phys", worldlog,false,0);
+    //*****6/17
+    
+    // EFuchey: 2017/02/14
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-sc_entbeampipeflange_dist), entLog, "ent_phys", worldlog, false,0);
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-sc_entbeampipeflange_dist), entvacLog, "entvac_phys", worldlog,false,0);
+    
+  }
+  
+  
+  // Aluminum
+ 
+    // int nsec = 24;
+    // //  Definition taken from HAPLOG 2722 by Juliette, but offset by 31.54 cm
+    // G4double exit_z[]   = {206*cm, 234.01*cm, 234.02*cm, 253.02*cm, 253.03*cm, 268.26*cm, 268.27*cm,305.29*cm, 305.30*cm,328.71*cm, 328.72*cm, 356.33*cm,356.34*cm, 378.7*cm,378.71*cm, 473.16*cm,473.17*cm, 503.64*cm,503.65*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };
+    // G4double exit_zero[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    // G4double exit_rin[] = {4.128*cm, 4.128*cm, 4.445*cm, 4.445*cm,4.763*cm, 4.763*cm, 5.08*cm,5.08*cm, 6.35*cm, 6.35*cm, 7.62*cm, 7.62*cm,10.16*cm, 10.16*cm,10.478*cm, 10.478*cm,12.7*cm, 12.7*cm,15.24*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };
+    // G4double exit_rou[] = {4.432*cm, 4.432*cm, 4.75*cm, 4.75*cm,5.067*cm, 5.067*cm, 5.385*cm,5.385*cm, 6.655*cm, 6.655*cm, 7.925*cm, 7.925*cm, 10.478*cm,10.478*cm,  10.795*cm, 10.795*cm, 13.018*cm, 13.018*cm,15.558*cm, 15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };
+ 
+  
+  // EFuchey: 2017/02/14: add the possibility to change the first parameters for the beam line polycone 
+  // Default set of values;
+  double z0 = sc_exbeampipeflange_dist, rin_0 = 6.20*cm, rout_0 = (6.20+0.28*2.54)*cm;
+  
+  if( fDetCon->fTargType == kH2 || fDetCon->fTargType == k3He || fDetCon->fTargType == kNeutTarg ){
+    z0 = 37.2*cm;
+    rin_0 = 5.64*cm;
+    rout_0 = (5.64+0.28*2.54)*cm;
+  }  
+  
+  int nsec = 7;
+  //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
+  //G4double exit_z[]   = { 162.2*cm, 592.2*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };// -- Nominal beamline --
+  G4double exit_z[]   = { z0, 592.2*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };// -- Extended beamline for background studies (2016/09/07)
+    //G4double exit_z_vac[] = { 162.2*cm, 592.2*cm, 610.24*cm,610.35*cm, 1161.52*cm, 1161.53*cm,2726.46*cm };
+  
+  G4double exit_zero[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  //G4double exit_rin[] = { 4.8*cm, 14.8*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };
+  //G4double exit_rou[] = { 5.0*cm, 15.0*cm,15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };
+  
+  //G4double exit_rin[] = { 6.065*2.54*cm/2., 14.8*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };// -- Nominal beamline --
+  //G4double exit_rou[] = { (6.065/2.0+0.28)*2.54*cm, 15.0*cm,15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };// -- Nominal beamline --
+  G4double exit_rin[] = { rin_0, 14.8*cm, 15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };// -- Extended beamline for background studies (2016/09/07)
+  G4double exit_rou[] = { rout_0, 15.0*cm,15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };// -- Extended beamline for background studies (2016/09/07)
+  
+  G4Polycone *ext_cone = new G4Polycone("ext_cone", 0.0*deg, 360.0*deg, nsec, exit_z, exit_rin, exit_rou);
+  //G4Polycone *ext_vac  = new G4Polycone("ext_vac ", 0.0*deg, 360.0*deg, nsec, exit_z_vac, exit_zero, exit_rin);
+  G4Polycone *ext_vac  = new G4Polycone("ext_vac ", 0.0*deg, 360.0*deg, nsec, exit_z, exit_zero, exit_rin);
+  
+  G4LogicalVolume *extLog = new G4LogicalVolume(ext_cone, GetMaterial("Aluminum"), "ext_log", 0, 0, 0);
+  G4LogicalVolume *extvacLog = new G4LogicalVolume(ext_vac, GetMaterial("Vacuum"), "extvac_log", 0, 0, 0);
+  
+  //*****6/17
+  new G4PVPlacement(0,G4ThreeVector(), extLog, "ext_phys", worldlog, false,0);
+  new G4PVPlacement(0,G4ThreeVector(), extvacLog, "extvac_phys", worldlog,false,0);
+  //*****6/17
+  
+  G4VisAttributes *extVisAtt= new G4VisAttributes(G4Colour(0.9,0.1,0.9));
+  extLog->SetVisAttributes(extVisAtt);
+    
+    
+  // Seal this up if we have a gas target
+  if( fDetCon->fTargType == kH2 || fDetCon->fTargType == k3He || fDetCon->fTargType == kNeutTarg ){
+    // Add in exit Al window
+      
+    double extwin_thick = 5.0e-4*cm;
+      
+    G4Tubs *extwin = new G4Tubs("ext_win", 0.0, exit_rin[0], extwin_thick/2, 0.*deg, 360.*deg );
+    G4LogicalVolume *ext_winlog = new G4LogicalVolume(extwin, GetMaterial("Aluminum"), "extwin_log", 0, 0, 0);
+      
+      
+    // //  cancel Al window to vacuum pipe 10/02/14
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, exit_z[0] - extwin_thick/2), ext_winlog, "extwin_phys", worldlog,false,0);
+    //   // //cancel Al window to vacuum pipe 10/02/14
+      
+
+    ext_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.5,0.2,0.6)));
+  }
+  extvacLog->SetVisAttributes(G4VisAttributes::Invisible);
+  entvacLog->SetVisAttributes(G4VisAttributes::Invisible);
+    
+  entvacLog_cut->SetVisAttributes(G4VisAttributes::Invisible);
+    
+  G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
+    
+  extLog->SetVisAttributes(pipeVisAtt);
+  entLog->SetVisAttributes(pipeVisAtt);
+  entLog_cut->SetVisAttributes(pipeVisAtt);
+  //}
+}
 
 
 //  Here is lead shield of beam line for GEp

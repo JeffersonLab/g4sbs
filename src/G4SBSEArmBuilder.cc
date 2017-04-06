@@ -132,7 +132,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   double motherdepth = 600.0*cm;
 
-  double bbmagwidth  = 1670.0*mm;
+  double bbmagwidth  = 1670.0*mm; 
   double bbmagheight = 486.0*mm;
 
   double eps = 0.1*mm;
@@ -461,8 +461,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   // Default front plate: 0.25" steel + 0.5mm mu metal
   G4double bbcal_shield_thick = 6.85*mm + 9.525*cm;
-  G4double Al_thick = 15.0*cm;
-  G4double SS_thick = 3.0*cm;
+  G4double Al_thick = 10.0*cm;
+  G4double SS_thick = 2.0*cm;
   if(fShieldOption==2)bbcal_shield_thick+=max(0.0, Al_thick-9.0*cm);
   if(fShieldOption==4){
     Al_thick = Al_thick/2.0;

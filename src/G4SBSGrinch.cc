@@ -621,7 +621,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 
     GC_PMT_Glass_log->SetSensitiveDetector( CalSD ); 
   }
-
+  
   //GC_PMT_Cone
   G4String GC_PMT_Cone_Name("GC_PMT_Cone");
   G4String GC_PMT_Cone_Shape("G4Cons");
@@ -741,6 +741,11 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	  assemblyPMT->AddPlacedVolume(GC_PMT_Glass_log, Translation,&rm);
 	  PMT_pv_index++;
 	}
+	// EFuchey: 2017/04/10: add the local coordinates of the PMT glass
+	CalSD->detmap.Row[PMT_pv_index] = row;
+	CalSD->detmap.Col[PMT_pv_index] = col;
+	CalSD->detmap.LocalCoord[PMT_pv_index] = Translation;
+	
 	if ( fabs(GC_PMT_Cone_Length)>1e-5 ) {
 	  if ( GC_PMT_Cone_Shape=="G4Polyhedra" ) {
 	    Translation.setX(xpos+GC_PMT_Cone_Length*0.5+GC_PMT_Length*0.5);
@@ -790,6 +795,11 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	  assemblyPMT->AddPlacedVolume(GC_PMT_Glass_log, Translation,&rm);
 	  PMT_pv_index++;
 	}
+	// EFuchey: 2017/04/10: add the local coordinates of the PMT glass
+	CalSD->detmap.Row[PMT_pv_index] = row;
+	CalSD->detmap.Col[PMT_pv_index] = col;
+	CalSD->detmap.LocalCoord[PMT_pv_index] = Translation;
+	
 	if ( fabs(GC_PMT_Cone_Length)>1e-5 ) {
 	  if ( GC_PMT_Cone_Shape=="G4Polyhedra" ) {
 	    Translation.setX(xpos+GC_PMT_Cone_Length*0.5+GC_PMT_Length*0.5);

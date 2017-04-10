@@ -8,6 +8,7 @@
 #include "G4SBSGrinch.hh"
 
 #include "G4SBSRICHSD.hh"
+#include "G4SBSCalSD.hh"
 #include "G4SBSDetectorConstruction.hh"
 
 #include "G4SystemOfUnits.hh"
@@ -604,7 +605,22 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
     GC_PMT_Glass_log_VisAtt->SetVisibility(true);
     GC_PMT_Glass_log->SetVisAttributes(GC_PMT_Glass_log_VisAtt);
   }
+  
+  // EFuchey: 2017/04/10: sensitize PMT glass to obtain 
+  // complete momentum distribution of electrons going through the glass
+  G4String CalSDname = "Earm/GC_PMT_Glass";
+  G4String Calcollname = "GCPMTHitsCollection";
+  G4SBSCalSD *CalSD = NULL;
+  
+  if( !( CalSD =  (G4SBSCalSD*) sdman->FindSensitiveDetector(CalSDname) ) ){
+    G4cout << "Adding GC_PMT_Glass sensitive detector to SDman..." << G4endl;
+    CalSD = new G4SBSCalSD( CalSDname, Calcollname );
+    sdman->AddNewDetector( CalSD );
+    fDetCon->SDlist.insert(CalSDname);
+    fDetCon->SDtype[CalSDname] = kCAL; 
 
+    GC_PMT_Glass_log->SetSensitiveDetector( CalSD ); 
+  }
 
   //GC_PMT_Cone
   G4String GC_PMT_Cone_Name("GC_PMT_Cone");
@@ -934,7 +950,13 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   G4MaterialPropertiesTable* PMT_SPT = new G4MaterialPropertiesTable();
   PMT_SPT->AddProperty("REFLECTIVITY", PhotonEnergy, PMT_Reflectivity, nEntries);
   PMT_SPT->AddProperty("EFFICIENCY",   PhotonEnergy, PMT_Efficiency, nEntries);
-
+  
+  // // EFUCHEY: 2017/04/10: a small attempt fix to allow photoelectron detection 
+  // // without defining a refraction index for the photocathode material
+  // G4MaterialPropertiesTable* PMT_mat_SPT = 
+  //   (GetMaterial(G4String("Photocathode_material")))->GetMaterialPropertiesTable();
+  // PMT_SPT->AddProperty("EFFICIENCY", PMT_mat_SPT->GetProperty("EFFICIENCY"));
+  
   G4OpticalSurface* OpPMTSurface = new G4OpticalSurface("OpPMTSurface");
   OpPMTSurface->SetType(dielectric_metal);
   OpPMTSurface->SetFinish(polished);

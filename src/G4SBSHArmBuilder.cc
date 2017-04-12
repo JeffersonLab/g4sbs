@@ -1807,7 +1807,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
 
   G4LogicalVolume *PMTwindow_log  = new G4LogicalVolume( PMTwindow, GetMaterial("UVglass"), "PMTwindow_log" );
   G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material"), "PMTcathode_log" );
-  G4LogicalVolume *PMTWindowAirGap_log = new G4LogicalVolume( PMTWindowAirGap_log, GetMaterial("Special_Air")
+  G4LogicalVolume *PMTWindowAirGap_log = new G4LogicalVolume( PMTWindowAirGap, GetMaterial("Special_Air"), "PMTWindowAirGap_log" );
   
   //PMTcathode_log is the sensitive detector for the RICH:
 

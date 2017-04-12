@@ -704,6 +704,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   C4F10_gas->SetMaterialPropertiesTable( MPT_temp );
   fMaterialsMap["C4F10_gas"] = C4F10_gas;
 
+  
+  
   //Quantum efficiency for PMT photocathode ("typical", from XP1911/UV data sheet):
   const G4int nentries_QE = 40;
 

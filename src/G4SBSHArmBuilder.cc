@@ -1782,21 +1782,22 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   ////////////////////////////////////////////////////////////////////////
 
   //cylinder to house PMTs:
-  G4Tubs *PMTcylinder = new G4Tubs( "PMTcylinder", 0.0*cm, (1.86/2.0)*cm, 4.5*cm, 0.0, twopi );
+  G4Tubs *PMTcylinder = new G4Tubs( "PMTcylinder", 0.0*cm, (1.86/2.0)*cm, 4.5*cm, 0.0, twopi ); //cylinder full of vacuum, mother volume for PMT
   G4LogicalVolume *PMTcylinder_log = new G4LogicalVolume( PMTcylinder, GetMaterial("BlandAir"), "PMTcylinder_log" );
 
   PMTcylinder_log->SetVisAttributes( G4VisAttributes::Invisible );
   
-  //Define the PMT windows as 1 mm-thick discs of "UVglass":
-  G4Tubs *PMTwindow = new G4Tubs( "PMTwindow", 0.0*cm, (1.66/2.0)*cm, 0.05*cm, 0.0, twopi ); 
-  //Define the PMT photocathode as a thin disc of 0.5 mm-thickness
-  G4Tubs *PMTcathode = new G4Tubs( "PMTcathode", 0.0*cm, (1.50/2.0)*cm, 0.025*cm, 0.0, twopi );
+  //Define the PMT windows as 1 mm-thick discs of "UVglass"; how thick are the windows really? 1 mm is a guess; let's go with 2 mm just to be conservative
+  G4Tubs *PMTwindow = new G4Tubs( "PMTwindow", 0.0*cm, (1.66/2.0)*cm, 0.1*cm, 0.0, twopi ); 
+  //Define the PMT photocathode as a thin disc of 10 micron thickness:
+  G4Tubs *PMTcathode = new G4Tubs( "PMTcathode", 0.0*cm, (1.50/2.0)*cm, 0.01*mm, 0.0, twopi );
   //Define PMTtube as a stainless-steel tube that should butt up against collection cone to optically isolate PMTs from each other:
   G4Tubs *PMTtube    = new G4Tubs( "PMTtube", (1.66/2.0)*cm, (1.86/2.0)*cm, 4.5*cm, 0.0, twopi );
-  G4Tubs *PMTendcap  = new G4Tubs( "PMTendcap", 0.0*cm, (1.66/2.0)*cm, 0.15*cm, 0.0, twopi ); //end cap for PMT
+  G4Tubs *PMTendcap  = new G4Tubs( "PMTendcap", 0.0*cm, (1.66/2.0)*cm, 0.15*cm, 0.0, twopi ); //"end cap" for PMT
 
-  //"Quartz window" is a different, sealed window that separates the PMT from the C4F10 environment.
-  G4Tubs *PMTQuartzWindow = new G4Tubs( "PMTQuartzWindow", 0.0*cm, (1.66/2.0)*cm, 0.15*cm, 0.0, twopi );
+  //"Quartz window" is a different, sealed window that separates the PMT from the C4F10 environment. 2 mm thick
+  G4Tubs *PMTQuartzWindow = new G4Tubs( "PMTQuartzWindow", 0.0*cm, (1.66/2.0)*cm, 0.1*cm, 0.0, twopi );
+  G4Tubs *PMTWindowAirGap = new G4Tubs( "PMTWindowAirGap", 0.0*cm, (1.66/2.0)*cm, (0.5/2.0)*mm, 0.0, twopi ); //Air gap between quartz window and PMT entry window
   //CollectionCone is a light-collecting cone that increases the effective collection efficiency:
   G4Cons *CollectionCone = new G4Cons( "CollectionCone", 0.75*cm, (2.13/2.0)*cm, (2.13/2.0)*cm, (2.13/2.0)*cm, 0.75*cm, 0.0, twopi );
 
@@ -1806,7 +1807,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
 
   G4LogicalVolume *PMTwindow_log  = new G4LogicalVolume( PMTwindow, GetMaterial("UVglass"), "PMTwindow_log" );
   G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material"), "PMTcathode_log" );
-
+  G4LogicalVolume *PMTWindowAirGap_log = new G4LogicalVolume( PMTWindowAirGap_log, GetMaterial("Special_Air")
+  
   //PMTcathode_log is the sensitive detector for the RICH:
 
   //  G4SDManager *fSDman = G4SDManager::GetSDMpointer();

@@ -105,7 +105,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   //  The neutron experiments and the SIDIS experiment use BigBite:
   //------------ BigBite: -----------------------------------------------------
-  if( exptype == kNeutronExp || exptype == kSIDISExp ) 
+  if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kA1n ) 
     {
       MakeBigBite( worldlog );
     }

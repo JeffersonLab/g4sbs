@@ -181,6 +181,10 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalangCmd->SetGuidance("SBS angle");
   hcalangCmd->SetParameterName("angle", false);
 
+  sbstrkrpitchCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbstrkrpitch",this);
+  sbstrkrpitchCmd->SetGuidance("SBS tracker pitch angle (tilt toward up-bending particles)");
+  sbstrkrpitchCmd->SetParameterName("angle", false);
+  
   hcaldistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcaldist",this);
   hcaldistCmd->SetGuidance("HCAL distance");
   hcaldistCmd->SetParameterName("dist", false);
@@ -546,7 +550,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("a1n") == 0 ){
-      fExpType = kNeutronExp;
+      fExpType = kA1n; //"A1n" experiment type for new proposal with both SBS and BigBite in electron mode to detect DIS electrons at high-x: requires some geometry modifications on SBS side, including RICH w/CO2 instead of C4F10 and no aerogel, AND with a non-zero pitch angle for the SBS tracker. Later: HCAL replaced by CLAS LAC?
       validcmd = true;
     }
     //AJP: Add SIDIS as a valid experiment type:
@@ -770,6 +774,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fIO->SetSBSTheta(v);
   }
 
+  if( cmd == sbstrkrpitchCmd ){
+    G4double v = sbstrkrpitchCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetTrackerPitch(v);
+  }
+  
   if( cmd == hcaldistCmd ){
     G4double v = hcaldistCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetHCALDist(v);

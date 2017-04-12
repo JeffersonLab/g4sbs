@@ -77,7 +77,7 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   G4double frontGEM_depth = 60.*cm;
   G4double backGEM_depth = 11.59*cm;
   
-  fCerDepth = 86.36*cm;
+  fCerDepth = 88.9*cm;
   fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;
   
   //NB: fBBCalDist now designates the distance to the shielding

@@ -347,7 +347,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   //G4String GC_Tank_Material=("C4F8O");
   G4String GC_Tank_Material=("C4F10_gas");//Replace C4F8O with C4F10 because of shortages...
   G4cout << " Using new GRINCH geometry... " << G4endl;
-  G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth, 247.015*cm, 114.800*cm);
+  G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth-2.54*cm, 247.015*cm, 114.800*cm);
   G4double GC_Tank_Thickness= 0.635*cm;
   //G4VSolid* GC_Tank_Solid=Construct_GC_Tank_Box(GC_Tank_Name+"_Box", GC_Tank_Inner_FullSize, GC_Tank_Thickness, G4ThreeVector(0,0,0), G4ThreeVector(0,0,0), TankXoffset, true);
   G4VSolid* GC_Tank_Solid=Construct_GC_Tank_Box(GC_Tank_Name+"_Box", GC_Tank_Inner_FullSize, GC_Tank_Thickness, G4ThreeVector(0,0,0), G4ThreeVector(0,0,0), TankXoffset, true);

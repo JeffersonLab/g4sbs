@@ -8,6 +8,7 @@
 #include "G4SBSGrinch.hh"
 
 #include "G4SBSRICHSD.hh"
+#include "G4SBSCalSD.hh"
 #include "G4SBSDetectorConstruction.hh"
 
 #include "G4SystemOfUnits.hh"
@@ -541,11 +542,26 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   G4double GC_PMT_Radius = 1.25*cm;
   G4double GC_PMT_Cover_Radius = 1.5*cm;
   G4double GC_PMT_Length = 13.75*cm;
+  G4double GC_PMT_PhotoCathodeThickness = 0.01*mm;// EFuchey: 2017/04/05: photocathode thickness now defined here
   G4String GC_PMT_Name("GC_PMT");
+  G4String GC_PMT_vac_Name=GC_PMT_Name+"_Vacuum";
   G4String GC_PMT_Glass_Name=GC_PMT_Name+"_Glass";
   G4double GC_PMT_Glass_Thickness=0.3*cm;
-
-  G4Tubs* GC_PMT = new G4Tubs(GC_PMT_Name.data(), 0, GC_PMT_Radius, (GC_PMT_Length-GC_PMT_Glass_Thickness)*0.5, 0, 360*deg);
+  
+  // EFuchey: 2017/04/05: change the implementation of the PMT as explained below
+  //                  2: PhCath, 0.01mm : Only the surface is sensitive so I set a very small thickness
+  //    ____________________v______ 
+  //   ()________1________()2()_3_() => 3: glass window, 3.0mm
+  //    1: vacuum, 13.449cm 
+  // EFuchey: 2017/04/06: Signal collection is unchanged with this change of geometry.
+  // Add a new vacuum volume behind the photocathode
+  G4Tubs* GC_PMT_vac = new G4Tubs(GC_PMT_vac_Name.data(), 0, GC_PMT_Radius, (GC_PMT_Length-GC_PMT_Glass_Thickness-GC_PMT_PhotoCathodeThickness)*0.5, 0, 360*deg);
+  G4LogicalVolume* GC_PMT_vac_log = new G4LogicalVolume(GC_PMT_vac, GetMaterial(G4String("Vacuum")), GC_PMT_Name+"_log", 0, 0, 0);
+  GC_PMT_vac_log->SetVisAttributes(G4VisAttributes::Invisible);
+  
+  // Change the photocathode thickness
+  //G4Tubs* GC_PMT = new G4Tubs(GC_PMT_Name.data(), 0, GC_PMT_Radius, (GC_PMT_Length-GC_PMT_Glass_Thickness)*0.5, 0, 360*deg);
+  G4Tubs* GC_PMT = new G4Tubs(GC_PMT_Name.data(), 0, GC_PMT_Radius, GC_PMT_PhotoCathodeThickness*0.5, 0, 360*deg);
   //	G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Al")), GC_PMT_Name+"_log", 0, 0, 0);
   G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Photocathode_material")), GC_PMT_Name+"_log", 0, 0, 0);
   G4VisAttributes* GC_PMT_log_VisAtt = new G4VisAttributes();
@@ -559,6 +575,8 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   G4String RICHSDname = "Earm/GRINCH";
   G4String RICHcollname = "GRINCHHitsCollection";
   G4SBSRICHSD *RICHSD = NULL;
+
+
 
   if( !( RICHSD =  (G4SBSRICHSD*) sdman->FindSensitiveDetector(RICHSDname) ) ){
     G4cout << "Adding GRINCH sensitive detector to SDman..." << G4endl;
@@ -587,8 +605,23 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
     GC_PMT_Glass_log_VisAtt->SetVisibility(true);
     GC_PMT_Glass_log->SetVisAttributes(GC_PMT_Glass_log_VisAtt);
   }
+  
+  // EFuchey: 2017/04/10: sensitize PMT glass to obtain 
+  // complete momentum distribution of electrons going through the glass
+  G4String CalSDname = "Earm/GC_PMT_Glass";
+  G4String Calcollname = "GCPMTHitsCollection";
+  G4SBSCalSD *CalSD = NULL;
+  
+  if( !( CalSD =  (G4SBSCalSD*) sdman->FindSensitiveDetector(CalSDname) ) ){
+    G4cout << "Adding GC_PMT_Glass sensitive detector to SDman..." << G4endl;
+    CalSD = new G4SBSCalSD( CalSDname, Calcollname );
+    sdman->AddNewDetector( CalSD );
+    fDetCon->SDlist.insert(CalSDname);
+    fDetCon->SDtype[CalSDname] = kCAL; 
 
-
+    GC_PMT_Glass_log->SetSensitiveDetector( CalSD ); 
+  }
+  
   //GC_PMT_Cone
   G4String GC_PMT_Cone_Name("GC_PMT_Cone");
   G4String GC_PMT_Cone_Shape("G4Cons");
@@ -679,15 +712,23 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	zpos = (col+0.5*((Num_Of_PMTs_In_Odd_Row-Num_Of_PMTs_In_Odd_Row%2)%2))*Space_Between_Cols-H_Len*0.5;
 	rm=rm.IDENTITY;
 	rm.rotateY(-90*deg);
-	Translation.set(xpos-GC_PMT_Glass_Thickness*0.5,ypos,zpos);
-	//printf("row=%d,col=%d,y=%g cm,z=%g cm\n",row+1,col+1,ypos/cm,zpos/cm);
+	// EFuchey 2017/04/05: change the photocathode position
+	//Translation.set(xpos-GC_PMT_Glass_Thickness*0.5,ypos,zpos);
+	Translation.set(xpos+(GC_PMT_Length-GC_PMT_Glass_Thickness*2-GC_PMT_PhotoCathodeThickness)*0.5,ypos,zpos);
+	//printf("row=%d,col=%d,x=%g cm,y=%g cm,z=%g cm\n",row+1,col+1, Translation.x()/cm,ypos/cm,zpos/cm);
 	assemblyPMT->AddPlacedVolume(GC_PMT_log, Translation,&rm);
 	
 	RICHSD->detmap.Row[PMT_pv_index] = row;
 	RICHSD->detmap.Col[PMT_pv_index] = col;
 	RICHSD->detmap.LocalCoord[PMT_pv_index] = Translation;
 	//G4cout << "After adding PMT_log, PMT pv index = " << PMT_pv_index << G4endl;
+	
+	PMT_pv_index++;
 
+	// EFuchey 2017/04/05: add the vacuum volume
+	Translation.set(xpos-(GC_PMT_Glass_Thickness+GC_PMT_PhotoCathodeThickness)*0.5,ypos,zpos);
+	//printf("row=%d,col=%d,x=%g cm,y=%g cm,z=%g cm\n",row+1,col+1, Translation.x()/cm,ypos/cm,zpos/cm);
+	assemblyPMT->AddPlacedVolume(GC_PMT_vac_log, Translation,&rm);
 	PMT_pv_index++;
 	
 	Translation.set(xpos,ypos,zpos);
@@ -696,9 +737,15 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	
 	if ( fabs(GC_PMT_Glass_Thickness)>1e-5 ) {
 	  Translation.set(xpos+(GC_PMT_Length-GC_PMT_Glass_Thickness)*0.5,ypos,zpos);
+	  //printf("row=%d,col=%d,x=%g cm,y=%g cm,z=%g cm\n",row+1,col+1, Translation.x()/cm,ypos/cm,zpos/cm);
 	  assemblyPMT->AddPlacedVolume(GC_PMT_Glass_log, Translation,&rm);
 	  PMT_pv_index++;
 	}
+	// EFuchey: 2017/04/10: add the local coordinates of the PMT glass
+	CalSD->detmap.Row[PMT_pv_index] = row;
+	CalSD->detmap.Col[PMT_pv_index] = col;
+	CalSD->detmap.LocalCoord[PMT_pv_index] = Translation;
+	
 	if ( fabs(GC_PMT_Cone_Length)>1e-5 ) {
 	  if ( GC_PMT_Cone_Shape=="G4Polyhedra" ) {
 	    Translation.setX(xpos+GC_PMT_Cone_Length*0.5+GC_PMT_Length*0.5);
@@ -722,13 +769,22 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	}
 	rm=rm.IDENTITY;
 	rm.rotateY(-90*deg);
-	Translation.set(xpos-GC_PMT_Glass_Thickness*0.5,ypos,zpos);
+	// EFuchey 2017/04/05: change the photocathode position
+	//Translation.set(xpos-GC_PMT_Glass_Thickness*0.5,ypos,zpos);
+	Translation.set(xpos+(GC_PMT_Length-GC_PMT_Glass_Thickness*2-GC_PMT_PhotoCathodeThickness)*0.5,ypos,zpos);
 	//printf("row=%d,col=%d,y=%g cm,z=%g cm\n",row+1,col+1,ypos/cm,zpos/cm);
 	assemblyPMT->AddPlacedVolume(GC_PMT_log, Translation,&rm);
 	RICHSD->detmap.Row[PMT_pv_index] = row;
 	RICHSD->detmap.Col[PMT_pv_index] = col;
 	RICHSD->detmap.LocalCoord[PMT_pv_index] = Translation;
 	//G4cout << "After adding PMT_log, PMT pv index = " << PMT_pv_index << G4endl;
+
+	PMT_pv_index++;
+	
+	// EFuchey 2017/04/05: add the vacuum volume
+	Translation.set(xpos-(GC_PMT_Glass_Thickness+GC_PMT_PhotoCathodeThickness)*0.5,ypos,zpos);
+	//printf("row=%d,col=%d,y=%g cm,z=%g cm\n",row+1,col+1,ypos/cm,zpos/cm);
+	assemblyPMT->AddPlacedVolume(GC_PMT_vac_log, Translation,&rm);
 	PMT_pv_index++;
 	
 	Translation.set(xpos,ypos,zpos);
@@ -739,6 +795,11 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	  assemblyPMT->AddPlacedVolume(GC_PMT_Glass_log, Translation,&rm);
 	  PMT_pv_index++;
 	}
+	// EFuchey: 2017/04/10: add the local coordinates of the PMT glass
+	CalSD->detmap.Row[PMT_pv_index] = row;
+	CalSD->detmap.Col[PMT_pv_index] = col;
+	CalSD->detmap.LocalCoord[PMT_pv_index] = Translation;
+	
 	if ( fabs(GC_PMT_Cone_Length)>1e-5 ) {
 	  if ( GC_PMT_Cone_Shape=="G4Polyhedra" ) {
 	    Translation.setX(xpos+GC_PMT_Cone_Length*0.5+GC_PMT_Length*0.5);
@@ -899,7 +960,13 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   G4MaterialPropertiesTable* PMT_SPT = new G4MaterialPropertiesTable();
   PMT_SPT->AddProperty("REFLECTIVITY", PhotonEnergy, PMT_Reflectivity, nEntries);
   PMT_SPT->AddProperty("EFFICIENCY",   PhotonEnergy, PMT_Efficiency, nEntries);
-
+  
+  // // EFUCHEY: 2017/04/10: a small attempt fix to allow photoelectron detection 
+  // // without defining a refraction index for the photocathode material
+  // G4MaterialPropertiesTable* PMT_mat_SPT = 
+  //   (GetMaterial(G4String("Photocathode_material")))->GetMaterialPropertiesTable();
+  // PMT_SPT->AddProperty("EFFICIENCY", PMT_mat_SPT->GetProperty("EFFICIENCY"));
+  
   G4OpticalSurface* OpPMTSurface = new G4OpticalSurface("OpPMTSurface");
   OpPMTSurface->SetType(dielectric_metal);
   OpPMTSurface->SetFinish(polished);

@@ -1790,7 +1790,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   //Define the PMT windows as 1 mm-thick discs of "UVglass"; how thick are the windows really? 1 mm is a guess; let's go with 2 mm just to be conservative
   G4Tubs *PMTwindow = new G4Tubs( "PMTwindow", 0.0*cm, (1.66/2.0)*cm, 0.1*cm, 0.0, twopi ); 
   //Define the PMT photocathode as a thin disc of 10 micron thickness:
-  G4Tubs *PMTcathode = new G4Tubs( "PMTcathode", 0.0*cm, (1.50/2.0)*cm, 0.01*mm, 0.0, twopi );
+  G4Tubs *PMTcathode = new G4Tubs( "PMTcathode", 0.0*cm, (1.50/2.0)*cm, 0.005*mm, 0.0, twopi );
   //Define PMTtube as a stainless-steel tube that should butt up against collection cone to optically isolate PMTs from each other:
   G4Tubs *PMTtube    = new G4Tubs( "PMTtube", (1.66/2.0)*cm, (1.86/2.0)*cm, 4.5*cm, 0.0, twopi );
   G4Tubs *PMTendcap  = new G4Tubs( "PMTendcap", 0.0*cm, (1.66/2.0)*cm, 0.15*cm, 0.0, twopi ); //"end cap" for PMT
@@ -1807,7 +1807,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
 
   G4LogicalVolume *PMTwindow_log  = new G4LogicalVolume( PMTwindow, GetMaterial("UVglass"), "PMTwindow_log" );
   G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material"), "PMTcathode_log" );
-  G4LogicalVolume *PMTWindowAirGap_log = new G4LogicalVolume( PMTWindowAirGap, GetMaterial("Special_Air"), "PMTWindowAirGap_log" );
+  G4LogicalVolume *PMTWindowAirGap_log = new G4LogicalVolume( PMTWindowAirGap, GetMaterial("RICH_air"), "PMTWindowAirGap_log" ); //RICH_air is just air with a refractive index defined in the range of wavelengths of interest.
   
   //PMTcathode_log is the sensitive detector for the RICH:
 
@@ -1838,9 +1838,11 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   //Now we position PMT components inside PMT cylinder:
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), PMTtube_log, "PMTtube_pv", PMTcylinder_log, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, (-4.5+0.15)*cm ), PMTendcap_log, "PMTendcap_pv", PMTcylinder_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, (4.5-0.4-0.025)*cm ), PMTcathode_log, "PMTcathode_pv", PMTcylinder_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, (4.5-0.3-0.05)*cm ), PMTwindow_log, "PMTwindow_pv", PMTcylinder_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, (4.5-0.15)*cm ), PMTquartzwindow_log, "PMTquartzwindow_pv", PMTcylinder_log, false, 0 );
+  //PMT photocathode is located at +4.5 cm - 2 mm - 0.5 mm - 2 mm - 0.005 mm 
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, (4.5-0.45-5e-4)*cm ), PMTcathode_log, "PMTcathode_pv", PMTcylinder_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, (4.5-0.35)*cm ), PMTwindow_log, "PMTwindow_pv", PMTcylinder_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, (4.5-0.2-0.025)*cm ), PMTWindowAirGap_log, "PMTWindowAirGap_pv", PMTcylinder_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, (4.5-0.1)*cm ), PMTquartzwindow_log, "PMTquartzwindow_pv", PMTcylinder_log, false, 0 );
   
   G4LogicalVolume *CollectionCone_log = new G4LogicalVolume( CollectionCone, GetMaterial("Steel"), "CollectionCone_log" );
   //Define a logical skin surface for the collection cone and assign it the same reflectivity as the mirror:

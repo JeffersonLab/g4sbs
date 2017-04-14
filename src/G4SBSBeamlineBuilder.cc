@@ -37,16 +37,19 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
     switch(fDetCon->fExpType){
     case(kGEp):
+      fDetCon->fBeamlineConf = 1;//Forced
       MakeGEpBeamline(worldlog);
       break;
     case(kNeutronExp):// GMn
       MakeGMnBeamline(worldlog);
       break;
     default:
+      fDetCon->fBeamlineConf = 0;//Forced
       MakeDefaultBeamline(worldlog);
       break;
     }
   } else {
+    fDetCon->fBeamlineConf = 2;//Forced
     Make3HeBeamline(worldlog);
   }
   
@@ -463,145 +466,146 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     Z = 0.5*(zstart + zstop);
     new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), ring_log, name, worldlog, false, 0 );
   }
+
+  if(fDetCon->fBeamlineConf==1){
+    G4double dz_spool_piece = z_conic_vacline_weldment - z_spool_piece;
+    
+    //Make Spool piece vacuum:
+    Rout = 3.76*inch/2.0;
+    Rin = 0.0;
+    Thick = dz_spool_piece;
+    
+    G4Tubs *SpoolPiece_vac = new G4Tubs("SpoolPiece_vac", Rin, Rout, Thick/2.0, 0.0, twopi );
+    G4LogicalVolume *SpoolPiece_vac_log = new G4LogicalVolume( SpoolPiece_vac, GetMaterial("Vacuum"), "SpoolPiece_vac_log" );
+    
+    SpoolPiece_vac_log->SetVisAttributes( Vacuum_visatt );
+    
+    Z = z_spool_piece + Thick/2.0;
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), SpoolPiece_vac_log, "SpoolPiece_vac_phys", worldlog, false, 0 );
+    
+    Rin = 3.76*inch/2.0;
+    Rout = 6.00*inch/2.0;
+    Thick = 0.84*inch;
+    
+    G4Tubs *SpoolPiece_Flange1 = new G4Tubs("SpoolPiece_Flange1", Rin, Rout, Thick/2.0, 0.0, twopi );
+    G4LogicalVolume *SpoolPiece_Flange1_log = new G4LogicalVolume( SpoolPiece_Flange1, GetMaterial("Stainless_Steel"), "SpoolPiece_Flange1_log" );
+    
+    SpoolPiece_Flange1_log->SetVisAttributes( SteelColor );
+    
+    Z = z_spool_piece + Thick/2.0;
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), SpoolPiece_Flange1_log, "SpoolPiece_Flange1_phys", worldlog, false, 0 );
+    
+    Rout = 6.75*inch/2.0;
+    Thick = 0.84*inch;
+    
+    G4Tubs *SpoolPiece_Flange2 = new G4Tubs("SpoolPiece_Flange2", Rin, Rout, Thick/2.0, 0.0, twopi );
+    G4LogicalVolume *SpoolPiece_Flange2_log = new G4LogicalVolume( SpoolPiece_Flange2, GetMaterial("Stainless_Steel"), "SpoolPiece_Flange2_log" );
+    
+    SpoolPiece_Flange2_log->SetVisAttributes( SteelColor );
+    
+    Z = z_conic_vacline_weldment - Thick/2.0;
+    
+    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), SpoolPiece_Flange2_log, "SpoolPiece_Flange2_phys", worldlog, false, 0 );
+    
+    Rout = 4.0*inch/2.0;
+    Thick = dz_spool_piece - 2.0*0.84*inch;
+    
+    G4Tubs *SpoolPiece_tube = new G4Tubs("SpoolPiece_tube", Rin, Rout, Thick/2.0, 0.0, twopi );
+    
+    G4LogicalVolume *SpoolPiece_tube_log = new G4LogicalVolume( SpoolPiece_tube, GetMaterial("Stainless_Steel"), "SpoolPiece_tube_log" );
+    
+    SpoolPiece_tube_log->SetVisAttributes( SteelColor );
   
-  G4double dz_spool_piece = z_conic_vacline_weldment - z_spool_piece;
+    Z = z_spool_piece + dz_spool_piece/2.0;
+    
+    new G4PVPlacement( 0,  G4ThreeVector( X, Y, Z ), SpoolPiece_tube_log, "SpoolPiece_tube_phys", worldlog, false, 0 );
+    
+    //Last but not least: formed bellows! defer to tomorrow...
+    
+    G4double dz_formed_bellows = 6.00*inch;
+    Rin = 0.0;
+    Rout = 3.81*inch/2.0;
+    Thick = dz_formed_bellows;
+    //define vacuum volume for formed bellows
+    G4Tubs *FormedBellows_vac = new G4Tubs("FormedBellows_vac", Rin, Rout, Thick/2.0, 0.0, twopi );
+    G4LogicalVolume *FormedBellows_vac_log = new G4LogicalVolume( FormedBellows_vac, GetMaterial("Vacuum"), "FormedBellows_vac_log" );
+    
+    FormedBellows_vac_log->SetVisAttributes( Vacuum_visatt );
+    
+    Z = z_formed_bellows + Thick/2.0;
+    
+    new G4PVPlacement(  0,  G4ThreeVector( X, Y, Z ), FormedBellows_vac_log, "FormedBellows_vac_phys", worldlog, false, 0 );
+    
+    Rin = 3.81*inch/2.0;
+    Rout = 6.00*inch/2.0;
+    Thick = 0.84*inch;
+    
+    //Flanges for formed bellows:
+    G4Tubs *FormedBellows_Flange = new G4Tubs("FormedBellows_Flange", Rin, Rout, Thick/2.0, 0.0, twopi );
+    G4LogicalVolume *FormedBellows_Flange_log = new G4LogicalVolume( FormedBellows_Flange, GetMaterial("Stainless_Steel"), "FormedBellows_Flange_log" );
 
-  //Make Spool piece vacuum:
-  Rout = 3.76*inch/2.0;
-  Rin = 0.0;
-  Thick = dz_spool_piece;
+    FormedBellows_Flange_log->SetVisAttributes( SteelColor );
+    
+    Z = z_formed_bellows + Thick/2.0;
+    
+    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_Flange_log, "FormedBellows_Flange1_phys", worldlog, false, 0 );
+    
+    Z = z_formed_bellows + dz_formed_bellows - Thick/2.0;
+    
+    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_Flange_log, "FormedBellows_Flange2_phys", worldlog, false, 1 );
+    
+    //Tube for formed bellows:
+    
+    Rout = Rin + 0.125*inch; //This is just a guess!!
+    Thick = dz_formed_bellows - 2.0*0.84*inch;
+    
+    G4Tubs *FormedBellows_tube = new G4Tubs( "FormedBellows_tube", Rin, Rout, Thick/2.0, 0.0, twopi );
+    G4LogicalVolume *FormedBellows_tube_log = new G4LogicalVolume( FormedBellows_tube, GetMaterial("Stainless_Steel"), "FormedBellows_tube_log" );
+
+    FormedBellows_tube_log->SetVisAttributes( SteelColor );
   
-  G4Tubs *SpoolPiece_vac = new G4Tubs("SpoolPiece_vac", Rin, Rout, Thick/2.0, 0.0, twopi );
-  G4LogicalVolume *SpoolPiece_vac_log = new G4LogicalVolume( SpoolPiece_vac, GetMaterial("Vacuum"), "SpoolPiece_vac_log" );
+    Z = z_formed_bellows + dz_formed_bellows/2.0;
 
-  SpoolPiece_vac_log->SetVisAttributes( Vacuum_visatt );
+    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_tube_log, "FormedBellows_tube_phys", worldlog, false, 0 );
+
+    //Two more "Iron" tubes to connect Snout to "formed bellows"
+    G4double dz_iron_tubes = z_formed_bellows - 49.56*inch + TargetCenter_zoffset;
+
+    Thick = dz_iron_tubes/2.0;
+    Rin = 5.0*cm;
+    Rout = 7.0*cm;
+
+    G4Tubs *IronTube1 = new G4Tubs("IronTube1", Rin, Rout, Thick/2.0, 0.0, twopi );
+    G4LogicalVolume *IronTube1_log = new G4LogicalVolume( IronTube1, GetMaterial("Iron"), "IronTube1_log" );
+    IronTube1_log->SetVisAttributes( ironColor );
   
-  Z = z_spool_piece + Thick/2.0;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), SpoolPiece_vac_log, "SpoolPiece_vac_phys", worldlog, false, 0 );
+    G4Tubs *IronTube1_vac = new G4Tubs("IronTube1_vac", 0.0, Rin, Thick/2.0, 0.0, twopi );
+    G4LogicalVolume *IronTube1_vac_log = new G4LogicalVolume( IronTube1_vac, GetMaterial("Vacuum"), "IronTube1_vac_log" );
 
-  Rin = 3.76*inch/2.0;
-  Rout = 6.00*inch/2.0;
-  Thick = 0.84*inch;
+    IronTube1_vac_log->SetVisAttributes( Vacuum_visatt );
+
+    Z = 49.56*inch + Thick/2.0 - TargetCenter_zoffset;
+
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube1_log, "IronTube1_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube1_vac_log, "IronTube1_vac_phys", worldlog, false, 0 );
+
+    Rin = 2.415*inch;
+    Rout = 2.5*inch;
   
-  G4Tubs *SpoolPiece_Flange1 = new G4Tubs("SpoolPiece_Flange1", Rin, Rout, Thick/2.0, 0.0, twopi );
-  G4LogicalVolume *SpoolPiece_Flange1_log = new G4LogicalVolume( SpoolPiece_Flange1, GetMaterial("Stainless_Steel"), "SpoolPiece_Flange1_log" );
+    G4Tubs *IronTube2 = new G4Tubs("IronTube2", Rin, Rout, Thick/2.0, 0.0, twopi );
+    G4Tubs *IronTube2_vac = new G4Tubs("IronTube2_vac", 0.0, Rin, Thick/2.0, 0.0, twopi );
 
-  SpoolPiece_Flange1_log->SetVisAttributes( SteelColor );
-  
-  Z = z_spool_piece + Thick/2.0;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), SpoolPiece_Flange1_log, "SpoolPiece_Flange1_phys", worldlog, false, 0 );
+    G4LogicalVolume *IronTube2_log = new G4LogicalVolume( IronTube2, GetMaterial("Iron"), "IronTube2_log" );
+    G4LogicalVolume *IronTube2_vac_log = new G4LogicalVolume( IronTube2_vac, GetMaterial("Vacuum"), "IronTube2_vac_log" );
 
-  Rout = 6.75*inch/2.0;
-  Thick = 0.84*inch;
-  
-  G4Tubs *SpoolPiece_Flange2 = new G4Tubs("SpoolPiece_Flange2", Rin, Rout, Thick/2.0, 0.0, twopi );
-  G4LogicalVolume *SpoolPiece_Flange2_log = new G4LogicalVolume( SpoolPiece_Flange2, GetMaterial("Stainless_Steel"), "SpoolPiece_Flange2_log" );
+    IronTube2_log->SetVisAttributes(ironColor);
+    IronTube2_vac_log->SetVisAttributes(Vacuum_visatt);
 
-  SpoolPiece_Flange2_log->SetVisAttributes( SteelColor );
+    Z += Thick;
 
-  Z = z_conic_vacline_weldment - Thick/2.0;
-
-  new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), SpoolPiece_Flange2_log, "SpoolPiece_Flange2_phys", worldlog, false, 0 );
-
-  Rout = 4.0*inch/2.0;
-  Thick = dz_spool_piece - 2.0*0.84*inch;
-
-  G4Tubs *SpoolPiece_tube = new G4Tubs("SpoolPiece_tube", Rin, Rout, Thick/2.0, 0.0, twopi );
-
-  G4LogicalVolume *SpoolPiece_tube_log = new G4LogicalVolume( SpoolPiece_tube, GetMaterial("Stainless_Steel"), "SpoolPiece_tube_log" );
-
-  SpoolPiece_tube_log->SetVisAttributes( SteelColor );
-  
-  Z = z_spool_piece + dz_spool_piece/2.0;
-
-  new G4PVPlacement( 0,  G4ThreeVector( X, Y, Z ), SpoolPiece_tube_log, "SpoolPiece_tube_phys", worldlog, false, 0 );
- 
-  //Last but not least: formed bellows! defer to tomorrow...
-
-  G4double dz_formed_bellows = 6.00*inch;
-  Rin = 0.0;
-  Rout = 3.81*inch/2.0;
-  Thick = dz_formed_bellows;
-  //define vacuum volume for formed bellows
-  G4Tubs *FormedBellows_vac = new G4Tubs("FormedBellows_vac", Rin, Rout, Thick/2.0, 0.0, twopi );
-  G4LogicalVolume *FormedBellows_vac_log = new G4LogicalVolume( FormedBellows_vac, GetMaterial("Vacuum"), "FormedBellows_vac_log" );
-
-  FormedBellows_vac_log->SetVisAttributes( Vacuum_visatt );
-  
-  Z = z_formed_bellows + Thick/2.0;
-
-  new G4PVPlacement(  0,  G4ThreeVector( X, Y, Z ), FormedBellows_vac_log, "FormedBellows_vac_phys", worldlog, false, 0 );
-
-  Rin = 3.81*inch/2.0;
-  Rout = 6.00*inch/2.0;
-  Thick = 0.84*inch;
-
-  //Flanges for formed bellows:
-  G4Tubs *FormedBellows_Flange = new G4Tubs("FormedBellows_Flange", Rin, Rout, Thick/2.0, 0.0, twopi );
-  G4LogicalVolume *FormedBellows_Flange_log = new G4LogicalVolume( FormedBellows_Flange, GetMaterial("Stainless_Steel"), "FormedBellows_Flange_log" );
-
-  FormedBellows_Flange_log->SetVisAttributes( SteelColor );
-  
-  Z = z_formed_bellows + Thick/2.0;
-
-  new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_Flange_log, "FormedBellows_Flange1_phys", worldlog, false, 0 );
-
-  Z = z_formed_bellows + dz_formed_bellows - Thick/2.0;
-
-  new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_Flange_log, "FormedBellows_Flange2_phys", worldlog, false, 1 );
-
-  //Tube for formed bellows:
-
-  Rout = Rin + 0.125*inch; //This is just a guess!!
-  Thick = dz_formed_bellows - 2.0*0.84*inch;
-
-  G4Tubs *FormedBellows_tube = new G4Tubs( "FormedBellows_tube", Rin, Rout, Thick/2.0, 0.0, twopi );
-  G4LogicalVolume *FormedBellows_tube_log = new G4LogicalVolume( FormedBellows_tube, GetMaterial("Stainless_Steel"), "FormedBellows_tube_log" );
-
-  FormedBellows_tube_log->SetVisAttributes( SteelColor );
-  
-  Z = z_formed_bellows + dz_formed_bellows/2.0;
-
-  new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_tube_log, "FormedBellows_tube_phys", worldlog, false, 0 );
-
-  //Two more "Iron" tubes to connect Snout to "formed bellows"
-  G4double dz_iron_tubes = z_formed_bellows - 49.56*inch + TargetCenter_zoffset;
-
-  Thick = dz_iron_tubes/2.0;
-  Rin = 5.0*cm;
-  Rout = 7.0*cm;
-
-  G4Tubs *IronTube1 = new G4Tubs("IronTube1", Rin, Rout, Thick/2.0, 0.0, twopi );
-  G4LogicalVolume *IronTube1_log = new G4LogicalVolume( IronTube1, GetMaterial("Iron"), "IronTube1_log" );
-  IronTube1_log->SetVisAttributes( ironColor );
-  
-  G4Tubs *IronTube1_vac = new G4Tubs("IronTube1_vac", 0.0, Rin, Thick/2.0, 0.0, twopi );
-  G4LogicalVolume *IronTube1_vac_log = new G4LogicalVolume( IronTube1_vac, GetMaterial("Vacuum"), "IronTube1_vac_log" );
-
-  IronTube1_vac_log->SetVisAttributes( Vacuum_visatt );
-
-  Z = 49.56*inch + Thick/2.0 - TargetCenter_zoffset;
-
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube1_log, "IronTube1_phys", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube1_vac_log, "IronTube1_vac_phys", worldlog, false, 0 );
-
-  Rin = 2.415*inch;
-  Rout = 2.5*inch;
-  
-  G4Tubs *IronTube2 = new G4Tubs("IronTube2", Rin, Rout, Thick/2.0, 0.0, twopi );
-  G4Tubs *IronTube2_vac = new G4Tubs("IronTube2_vac", 0.0, Rin, Thick/2.0, 0.0, twopi );
-
-  G4LogicalVolume *IronTube2_log = new G4LogicalVolume( IronTube2, GetMaterial("Iron"), "IronTube2_log" );
-  G4LogicalVolume *IronTube2_vac_log = new G4LogicalVolume( IronTube2_vac, GetMaterial("Vacuum"), "IronTube2_vac_log" );
-
-  IronTube2_log->SetVisAttributes(ironColor);
-  IronTube2_vac_log->SetVisAttributes(Vacuum_visatt);
-
-  Z += Thick;
-
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube2_log, "IronTube2_phys", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube2_vac_log, "IronTube2_vac_phys", worldlog, false, 0 );
-
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube2_log, "IronTube2_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube2_vac_log, "IronTube2_vac_phys", worldlog, false, 0 );
+  }
 
   //Next, corrector magnets:
   G4double UpstreamCoilThickY = 1.68*inch;
@@ -648,7 +652,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   G4Box *YokeTopPiece = new G4Box("YokeTopPiece", YokeTopPiece_Width/2.0, YokeTopPiece_Height/2.0, YokeTopPiece_Depth/2.0 );
   G4LogicalVolume *YokeTopPiece_log = new G4LogicalVolume( YokeTopPiece, GetMaterial("Iron"), "YokeTopPiece_log" );
 
-  YokeTopPiece_log->SetVisAttributes( ironColor );
+  //YokeTopPiece_log->SetVisAttributes( ironColor );
+  YokeTopPiece_log->SetVisAttributes( Vacuum_visatt );
   
   X = 0.0;
   Y = (11.81*inch + YokeTopPiece_Height)/2.0;

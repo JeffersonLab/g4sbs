@@ -40,6 +40,9 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
       printf("GEp experiment: forcing beamline configuration 1 \n");
       fDetCon->fBeamlineConf = 1;
       MakeGEpBeamline(worldlog);
+      if(fDetCon->fLeadOption == 1){
+	MakeGEpLead(worldlog);
+      }
       break;
     case(kNeutronExp):// GMn
       MakeGMnBeamline(worldlog);
@@ -49,17 +52,26 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
       break;
     }
   } else {
-    printf("GEn / SIDIS experiment: forcing beamline configuration 2 \n");
-    fDetCon->fBeamlineConf = 2;
-    Make3HeBeamline(worldlog);
-    // switch(fDetCon->fExpType){
-    // case(kNeutronExp):// GEn
-    //   break;
-    // case(kSIDISExp):// SIDIS
-    //   break;
-    // default:
-    //   break;
-    // }
+    switch(fDetCon->fExpType){
+    case(kNeutronExp):// GEn
+      printf("GEn experiment: forcing beamline configuration 2 \n");
+      fDetCon->fBeamlineConf = 2;
+      Make3HeBeamline(worldlog);
+      MakeGEnClamp(worldlog);
+      if(fDetCon->fLeadOption == 1){
+	MakeGEnLead(worldlog);
+      }
+      break;
+    case(kSIDISExp):// SIDIS
+      Make3HeBeamline(worldlog);
+      if(fDetCon->fLeadOption == 1){
+	MakeSIDISLead(worldlog);
+      }
+      break;
+    default:
+      Make3HeBeamline(worldlog);
+      break;
+    }
   }
   
   double floorthick = 1.0*m;
@@ -76,22 +88,20 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   
   floorLog->SetVisAttributes(G4VisAttributes::Invisible);
 
-  if( fDetCon->fExpType == kGEp && fDetCon->fLeadOption == 1 ){
+  /*
+    if( fDetCon->fExpType == kGEp && fDetCon->fLeadOption == 1 ){
     MakeGEpLead(worldlog);
-  }
-
-  if( fDetCon->fExpType == kNeutronExp && fDetCon->fTargType != kLD2 ){ //ought to be in Harm builder?
+    }
+    if( fDetCon->fExpType == kNeutronExp && fDetCon->fTargType != kLD2 ){ //ought to be in Harm builder?
     MakeGEnClamp(worldlog);
-  }
-
-  if( fDetCon->fExpType == kNeutronExp && fDetCon->fTargType != kLD2 && fDetCon->fLeadOption == 1){
+    }
+    if( fDetCon->fExpType == kNeutronExp && fDetCon->fTargType != kLD2 && fDetCon->fLeadOption == 1){
     MakeGEnLead(worldlog);
-  }
-
-  if( fDetCon->fExpType == kSIDISExp && fDetCon->fLeadOption == 1 ){
+    }
+    if( fDetCon->fExpType == kSIDISExp && fDetCon->fLeadOption == 1 ){
     MakeSIDISLead(worldlog);
-  }
-
+    }
+  */
   return;
 
 }
@@ -157,6 +167,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
   G4double z_spool_piece = 58.44*inch - TargetCenter_zoffset;
+  if(fDetCon->fBeamlineConf>2)z_spool_piece = 27.903*inch;
   G4double z_conic_vacline_weldment = 62.8*inch - TargetCenter_zoffset;
   G4double z_outer_magnetic = 71.782*inch - TargetCenter_zoffset;
   G4double z_inner_magnetic = 73.782*inch - TargetCenter_zoffset;
@@ -475,8 +486,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     Z = 0.5*(zstart + zstop);
     new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), ring_log, name, worldlog, false, 0 );
   }
-
-  if(fDetCon->fBeamlineConf==1){
+  
+  if(fDetCon->fBeamlineConf!=2){
     G4double dz_spool_piece = z_conic_vacline_weldment - z_spool_piece;
     
     //Make Spool piece vacuum:
@@ -524,11 +535,55 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     G4LogicalVolume *SpoolPiece_tube_log = new G4LogicalVolume( SpoolPiece_tube, GetMaterial("Stainless_Steel"), "SpoolPiece_tube_log" );
     
     SpoolPiece_tube_log->SetVisAttributes( SteelColor );
-  
+    
     Z = z_spool_piece + dz_spool_piece/2.0;
     
     new G4PVPlacement( 0,  G4ThreeVector( X, Y, Z ), SpoolPiece_tube_log, "SpoolPiece_tube_phys", worldlog, false, 0 );
     
+    if(fDetCon->fBeamlineConf>1){
+      Rin1 = 4.0*inch/2.0;
+      Rout1 = Rin1 + 0.25*inch;
+      //Thick = dz_spool_piece - 2.0*0.84*inch;
+      
+      G4Tubs *IM0 = new G4Tubs( "IM0", Rin1, Rout1, Thick/2.0, 0.0, twopi );
+      G4LogicalVolume *IM0_log = new G4LogicalVolume( IM0, GetMaterial("Iron"), "IM0_log" );
+      
+      IM0_log->SetVisAttributes( ironColor );
+      
+      //Z = z_spool_piece + dz_spool_piece/2.0;
+      new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), IM0_log, "IM0_phys", worldlog, false, 0 );
+      
+      zmin = z_spool_piece+0.84*inch+OMspace;
+      zmax = zmin + 13.0*OMthick + 12.0*OMspace;
+  
+      Rin_min = 5.0*inch/2.0;
+      for( G4int i=0; i<13; i++ ){
+	char cname[100];
+	sprintf(cname,"OM0_ring%d", i);
+	G4String name = cname;
+	
+	G4double zstart = zmin + i*(OMthick + OMspace);
+	G4double zstop = zstart + OMthick;
+	
+	G4Tubs *ring = new G4Tubs( name,Rin_min, Rin_min+0.5*inch, OMthick/2.0, 0.0, twopi );
+	
+	name += "_log";
+	G4LogicalVolume *ring_log = new G4LogicalVolume( ring, GetMaterial("Iron"), name );
+	
+	ring_log->SetVisAttributes( ironColor );
+	
+	name = cname;
+	name += "_phys";
+	
+	Z = 0.5*(zstart + zstop);
+	new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), ring_log, name, worldlog, false, 0 );
+	
+      }
+      
+    }
+  }
+    
+  if(fDetCon->fBeamlineConf==1){
     //Last but not least: formed bellows! defer to tomorrow...
     
     G4double dz_formed_bellows = 6.00*inch;
@@ -661,8 +716,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   G4Box *YokeTopPiece = new G4Box("YokeTopPiece", YokeTopPiece_Width/2.0, YokeTopPiece_Height/2.0, YokeTopPiece_Depth/2.0 );
   G4LogicalVolume *YokeTopPiece_log = new G4LogicalVolume( YokeTopPiece, GetMaterial("Iron"), "YokeTopPiece_log" );
 
-  //YokeTopPiece_log->SetVisAttributes( ironColor );
-  YokeTopPiece_log->SetVisAttributes( Vacuum_visatt );
+  YokeTopPiece_log->SetVisAttributes( ironColor );
   
   X = 0.0;
   Y = (11.81*inch + YokeTopPiece_Height)/2.0;

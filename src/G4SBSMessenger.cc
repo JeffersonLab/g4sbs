@@ -287,6 +287,10 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 0=no clamp, 1=BigBite(default), 2=GEp");
   SBSFieldClampOptionCmd->SetParameterName("sbsclampoption",false);
 
+  SBSBeamlineConfCmd = new G4UIcmdWithAnInteger("/g4sbs/beamlineconfig",this);
+  SBSBeamlineConfCmd->SetGuidance("SBS beamline configuration: 0: default; 1: GEp; 2 GEn; 3, 4; GMn");
+  SBSBeamlineConfCmd->SetParameterName("beamlineconf",false);
+  
   SBSLeadOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/uselead",this);
   SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
   SBSLeadOptionCmd->SetParameterName("uselead",false);
@@ -913,6 +917,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fHArmBuilder->SetFieldClampConfig48D48( i );
   }
 
+  if( cmd == SBSBeamlineConfCmd ){
+    G4int i = SBSBeamlineConfCmd->GetNewIntValue(newValue);
+    fdetcon->fBeamlineConf = i;
+  }
+  
   if( cmd == SBSLeadOptionCmd ){
     G4int i = SBSLeadOptionCmd->GetNewIntValue(newValue);
     fdetcon->fLeadOption = i;

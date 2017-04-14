@@ -60,6 +60,7 @@ public:
 
   void SetUniformMagneticField48D48( double B );
 
+  int  fBeamlineConf;
   int  fLeadOption;
 
   Exp_t fExpType;

@@ -133,6 +133,7 @@ private:
   G4UIcmdWithADouble *HARM_ScaleFieldCmd; 
   
   G4UIcmdWithAnInteger      *SBSFieldClampOptionCmd;
+  G4UIcmdWithAnInteger      *SBSBeamlineConfCmd;
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
 
   G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree

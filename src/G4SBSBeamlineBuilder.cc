@@ -262,7 +262,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   G4LogicalVolume *WB_Flange_log = new G4LogicalVolume( WB_Flange, GetMaterial("Stainless_Steel"), "WB_Flange_log" );
 
   WB_Flange_log->SetVisAttributes( SteelColor );
-  
+    
   Z = z_welded_bellows + Thick/2.0;
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Flange_log, "WB_Flange1_phys", worldlog, false, 0 );
 
@@ -1505,10 +1505,11 @@ void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-sc_entbeampipeflange_dist), entvacLog, "entvac_phys", worldlog,false,0);
   //}
    
-  //MakeCommonExitBeamline(worldlog);
+  MakeCommonExitBeamline(worldlog);
   
   // Add here the piece whcih complements the stuff...
   
+  /*
   // EFuchey: 2017/02/14: add the possibility to change the first parameters for the beam line polycone 
   // Default set of values;
   //double z0 = sc_exbeampipeflange_dist, rin_0 = 6.20*cm, rout_0 = (6.20+0.28*2.54)*cm;
@@ -1533,8 +1534,7 @@ void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
   extLog->SetVisAttributes(extVisAtt);
   // extvacLog->SetVisAttributes(G4VisAttributes::Invisible);
   // extLog->SetVisAttributes(pipeVisAtt);
-  /*
-   */
+  */
   
   G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
   entvacLog->SetVisAttributes(G4VisAttributes::Invisible);

@@ -92,6 +92,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fUseGlobalField = false;
 
+  fBeamlineConf = 0;
   fLeadOption = 0;
 
   SDlist.clear();

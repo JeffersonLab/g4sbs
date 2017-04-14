@@ -288,7 +288,7 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSFieldClampOptionCmd->SetParameterName("sbsclampoption",false);
 
   SBSBeamlineConfCmd = new G4UIcmdWithAnInteger("/g4sbs/beamlineconfig",this);
-  SBSBeamlineConfCmd->SetGuidance("SBS beamline configuration: 0: default; 1: GEp; 2 GEn; 3, 4; GMn");
+  SBSBeamlineConfCmd->SetGuidance("SBS beamline configuration: 1: GEp; 2: GEn; 3 (def): GMn 2-4 pass; 4; GMn 5 pass");
   SBSBeamlineConfCmd->SetParameterName("beamlineconf",false);
   
   SBSLeadOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/uselead",this);

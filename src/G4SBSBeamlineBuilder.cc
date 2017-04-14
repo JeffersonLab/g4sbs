@@ -37,20 +37,29 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
     switch(fDetCon->fExpType){
     case(kGEp):
-      fDetCon->fBeamlineConf = 1;//Forced
+      printf("GEp experiment: forcing beamline configuration 1 \n");
+      fDetCon->fBeamlineConf = 1;
       MakeGEpBeamline(worldlog);
       break;
     case(kNeutronExp):// GMn
       MakeGMnBeamline(worldlog);
       break;
     default:
-      fDetCon->fBeamlineConf = 0;//Forced
       MakeDefaultBeamline(worldlog);
       break;
     }
   } else {
-    fDetCon->fBeamlineConf = 2;//Forced
+    printf("GEn / SIDIS experiment: forcing beamline configuration 2 \n");
+    fDetCon->fBeamlineConf = 2;
     Make3HeBeamline(worldlog);
+    // switch(fDetCon->fExpType){
+    // case(kNeutronExp):// GEn
+    //   break;
+    // case(kSIDISExp):// SIDIS
+    //   break;
+    // default:
+    //   break;
+    // }
   }
   
   double floorthick = 1.0*m;

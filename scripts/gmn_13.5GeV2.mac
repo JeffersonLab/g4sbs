@@ -20,6 +20,7 @@
 ## Configure standard detector settings
 /g4sbs/hcaldist        17.0 m
 /g4sbs/hcalvoffset     0.00 m
+/g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
 /g4sbs/sbsclampopt     0                 ## Disable all field clamps
 
 ## Configure the magnets

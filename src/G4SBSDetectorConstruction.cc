@@ -704,6 +704,19 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   C4F10_gas->SetMaterialPropertiesTable( MPT_temp );
   fMaterialsMap["C4F10_gas"] = C4F10_gas;
 
+  G4double Ephoton_RICH_air[nentries_C4F10] = { 1.77*eV, 6.20*eV };
+  G4double Rindex_RICH_air[nentries_C4F10] = { 1.000277, 1.000277 };
+  G4double Abslength_RICH_air[nentries_C4F10] = {1000.0*m, 1000.0*m };
+
+  MPT_temp = new G4MaterialPropertiesTable();
+  MPT_temp->AddProperty("RINDEX", Ephoton_RICH_air, Rindex_RICH_air, nentries_C4F10 );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_RICH_air, Abslength_RICH_air, nentries_C4F10 );
+
+  G4Material *RICH_air = man->FindOrBuildMaterial("G4_AIR");
+  RICH_air->SetMaterialPropertiesTable( MPT_temp );
+
+  fMaterialsMap["RICH_air"] = RICH_air;
+  
   //Quantum efficiency for PMT photocathode ("typical", from XP1911/UV data sheet):
   const G4int nentries_QE = 40;
 
@@ -815,6 +828,14 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   }
 
 
+  MPT_temp = new G4MaterialPropertiesTable();
+  MPT_temp->AddProperty("RINDEX", Ephoton_aerogel, Rindex_aerogel, nsteps );
+  MPT_temp->AddProperty("RAYLEIGH", Ephoton_aerogel, Rayleigh_aerogel, nsteps );
+  //MPT_temp->AddConstProperty("ABSLENGTH", 10.0*m );
+
+  Aerogel->SetMaterialPropertiesTable( MPT_temp );
+  fMaterialsMap["Aerogel"] = Aerogel;
+  
   // Grinch Quartz
 
   G4Material* Quartz=new G4Material("Quartz", density= 2.200*g/cm3, 2);
@@ -835,17 +856,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   mptQuartz->AddProperty("ABSLENGTH",PhotonEnergy,absl_Quartz,nEntries);
   Quartz->SetMaterialPropertiesTable(mptQuartz);
   fMaterialsMap["Quartz"] = Quartz;
-
-
-
-  MPT_temp = new G4MaterialPropertiesTable();
-  MPT_temp->AddProperty("RINDEX", Ephoton_aerogel, Rindex_aerogel, nsteps );
-  MPT_temp->AddProperty("RAYLEIGH", Ephoton_aerogel, Rayleigh_aerogel, nsteps );
-  //MPT_temp->AddConstProperty("ABSLENGTH", 10.0*m );
-
-  Aerogel->SetMaterialPropertiesTable( MPT_temp );
-  fMaterialsMap["Aerogel"] = Aerogel;
-
 
 
   //Define the reflectivity of the mirror surface using the "Logical Skin surface":

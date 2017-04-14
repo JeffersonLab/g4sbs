@@ -541,7 +541,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     new G4PVPlacement( 0,  G4ThreeVector( X, Y, Z ), SpoolPiece_tube_log, "SpoolPiece_tube_phys", worldlog, false, 0 );
     
     if(fDetCon->fBeamlineConf>1){
-      Rin1 = 4.0*inch/2.0;
+      Rin1 = 4.00*inch/2.0+0.02*inch;
       Rout1 = Rin1 + 0.25*inch;
       //Thick = dz_spool_piece - 2.0*0.84*inch;
       
@@ -553,10 +553,10 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       //Z = z_spool_piece + dz_spool_piece/2.0;
       new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), IM0_log, "IM0_phys", worldlog, false, 0 );
       
-      zmin = z_spool_piece+0.84*inch+OMspace;
+      zmin = z_spool_piece+0.84*inch+0.44*inch;
       zmax = zmin + 13.0*OMthick + 12.0*OMspace;
   
-      Rin_min = 5.0*inch/2.0;
+      Rin_min = 5.3*inch/2.0;
       for( G4int i=0; i<13; i++ ){
 	char cname[100];
 	sprintf(cname,"OM0_ring%d", i);

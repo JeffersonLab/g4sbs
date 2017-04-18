@@ -394,55 +394,96 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   //-----------------------------------------------------
   //       magnetic tubes
     
-  //Inner Magnetic shielding: arrays of variables to be able to parameteize all this with the beamline config flag
-  G4int Ndivs = 1;
-  G4double Rin_array[6];
-  G4double z_array[6];
-  
+  // Inner and outer Magnetic shieldings: 
+  // arrays of variables to parameterize the different geometries with the beamline config flag
+  G4int Ndivs = 1;// number of segments with shielding
+  G4double Rin_array[6];// radii for inner shielding elements
+  G4double Zin_array[6];// z for inner shielding elements
+  G4int Nrings_out[3];// number of outer elements per segments
+  G4double Rout_array[6];// radii for outer shielding elements
+  G4double Zout_array[6];// z for outer shielding elements
+
+  G4double OMthick = 1.625*inch;
+  G4double OMspace = 0.375*inch;
+ 
   switch(fDetCon->fBeamlineConf){
-  case(1):
+  case(1):// reminder: beamline config 1 = GEp
     Ndivs = 2;
     Rin_array = {4.354*inch/2.0, 6.848*inch/2.0, 8.230*inch/2.0, 10.971*inch/2.0, 0.0, 0.0};
-    z_array = {z_inner_magnetic, z_inner_magnetic + 47.625*inch, z_inner_magnetic + 74.00*inch, 
-	       z_inner_magnetic + (74.00 + 52.347)*inch, 0.0, 0.0};
+    Zin_array = {z_inner_magnetic, z_inner_magnetic + 47.625*inch, z_inner_magnetic + 74.00*inch, 
+		 z_inner_magnetic + (74.00 + 52.347)*inch, 0.0, 0.0};
+    
+    Nrings_out = {26, 27, 0};
+    Zout_array = {z_outer_magnetic, z_outer_magnetic + 26.0*OMthick + 25.0*OMspace,
+		  z_outer_magnetic + 74.0*inch, z_outer_magnetic + 74.0*inch + 27.0*OMthick + 26.0*OMspace,
+		  0.0, 0.0};
+    Rout_array = {5.5*inch/2.0, 8.178*inch/2.0, 9.349*inch/2.0, 12.156*inch/2.0, 0.0, 0.0};
     break;
-  // case(2):
+  // case(2):// reminder: beamline config 2 = GEn, SIDIS
+  // Ndivs = 3;
   //   break;
-  case(3):
+  case(3):// reminder: beamline config 3 = GMn
     Ndivs = 3;
-    z_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
-  	       z_conic_vacline_weldment + (0.84 + 0.14 + 11.62 - 1.625)*inch, 
-	       z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 2.0)*inch, 
-	       z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 - 2.0)*inch, 
-	       z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38 + 2.0)*inch, 
-  	       z_conic_vacline_weldment + (0.84 + 0.14 + 138.83 - 1.12 - 1.14)*inch};
+    Zin_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
+		 z_conic_vacline_weldment + (0.84 + 0.14 + 11.62 - 1.625)*inch, 
+		 z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 2.0)*inch, 
+		 z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 - 2.0)*inch, 
+		 z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38 + 2.0)*inch, 
+		 z_conic_vacline_weldment + (0.84 + 0.14 + 138.83 - 1.12 - 1.14)*inch};
     Rin_array = {3.774*inch/2.0, 4.307*inch/2.0, 5.264*inch/2.0, 
 		 7.905*inch/2.0, 9.310*inch/2.0, 10.930*inch/2.0};
+
+    Nrings_out = {6, 27, 17};
+    Zout_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
+		  z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch, 
+		  z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38)*inch, 
+		  z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62)*inch, 
+		  z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38)*inch, 
+		  z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch};
+    Rout_array = {(3.774/2+0.38)*inch, (4.392/2+0.38)*inch, (5.158/2+0.38)*inch, 
+		  (8.012/2+0.38)*inch, (9.203/2+0.38)*inch, (10.923/2+0.38)*inch};
     break;
-  case(4):
+  case(4):// reminder: beamline config 4 = GMn
     Ndivs = 2;
-    z_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
-	       z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 - 2.0)*inch, 
-	       z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 2.0)*inch, 
-	       z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 51.62 - 2.0)*inch, 
-   	       0.0, 0.0};
+    Zin_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
+		 z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 - 2.0)*inch, 
+		 z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 2.0)*inch, 
+		 z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 51.62 - 2.0)*inch, 
+		 0.0, 0.0};
     Rin_array = {3.774*inch/2.0, 6.096*inch/2.0, 7.074*inch/2.0, 9.609*inch/2.0, 0.0, 0.0};
+    
+    Nrings_out = {23, 26, 0};
+    Zout_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
+		  z_conic_vacline_weldment + (0.84 + 0.14 + 45.63)*inch, 
+		  z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38)*inch, 
+		  z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 51.62)*inch, 
+		  0.0, 0.0};
+    Rout_array = {(3.774/2+0.38)*inch, (6.202/2+0.38)*inch, (6.968/2+0.38)*inch, (9.715/2+0.38)*inch, 
+		  0.0, 0.0};
     break;
-  default:
+  default:// default: all elements built
     Ndivs = 1;
     Rin_array = {3.774*inch/2.0, 10.923*inch/2.0, 0.0, 0.0, 0.0, 0.0};
-    z_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
-	       z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch,
-	       0.0, 0.0, 0.0, 0.0};
+    Zin_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
+		 z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch,
+		 0.0, 0.0, 0.0, 0.0};
+    
+    Nrings_out = {68, 0, 0};
+    Zout_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
+		  z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch,
+		  0.0, 0.0, 0.0, 0.0};
+    Rout_array = {(3.774/2+0.38)*inch, (10.923/2+0.38)*inch, 0.0, 0.0, 0.0, 0.0};
     break;
   }
 
+  // Building beamline shielding:
   for(G4int i = 0; i<Ndivs; i++){
+    // Building beamline shielding: inner elements
     Rin1 = Rin_array[2*i];
     Rout1 = Rin1 + 0.25*inch;
     Rin2 = Rin_array[2*i+1];
     Rout2 = Rin2 + 0.25*inch;
-    Thick = z_array[2*i+1]-z_array[2*i];
+    Thick = Zin_array[2*i+1]-Zin_array[2*i];
     
     char cname[100];
     sprintf(cname,"IM_%d", i);
@@ -452,76 +493,46 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     name += "_log";
     G4LogicalVolume *IM__log = new G4LogicalVolume( IM_, GetMaterial("Iron"), name );
     
-    IM__log->SetVisAttributes( ironColor );
+    //IM__log->SetVisAttributes( ironColor );
+    IM__log->SetVisAttributes( CopperColor );
     
-    Z = (z_array[2*i]+z_array[2*i+1])/2.0;
+    Z = (Zin_array[2*i]+Zin_array[2*i+1])/2.0;
     
     name = cname;
     name += "_phys";
     new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), IM__log, name, worldlog, false, 0 );
-  }
-
-  G4double OMthick = 1.625*inch;
-  G4double OMspace = 0.375*inch;
-
-  G4double zmin = z_outer_magnetic;
-  G4double zmax = zmin + 26.0*OMthick + 25.0*OMspace;
-  
-  G4double  Rin_min = 5.5*inch/2.0;
-  G4double  Rin_max = 8.178*inch/2.0;
-  for( G4int i=0; i<26; i++ ){
-    char cname[100];
-    sprintf(cname,"OM1_ring%d", i);
-    G4String name = cname;
     
-    G4double zstart = zmin + i*(OMthick + OMspace);
-    G4double zstop = zstart + OMthick;
-    G4double Rin_start = Rin_min + (zstart-zmin)/(zmax-zmin)*(Rin_max - Rin_min);
-    G4double Rout_start = Rin_start + 0.5*inch;
-    G4double Rin_stop = Rin_min + (zstop-zmin)/(zmax-zmin)*(Rin_max - Rin_min);
-    G4double Rout_stop = Rin_stop + 0.5*inch;
-
-    G4Cons *ring = new G4Cons( name,Rin_start, Rout_start, Rin_stop, Rout_stop, OMthick/2.0, 0.0, twopi );
-
-    name += "_log";
-    G4LogicalVolume *ring_log = new G4LogicalVolume( ring, GetMaterial("Iron"), name );
-
-    ring_log->SetVisAttributes( ironColor );
+    // Building beamline shielding: outer elements
+    G4double zmin = Zout_array[2*i];
+    G4double zmax = Zout_array[2*i+1];
     
-    name = cname;
-    name += "_phys";
-    
-    Z = 0.5*(zstart + zstop);
-    new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), ring_log, name, worldlog, false, 0 );
-    
-  }
-
-  zmin = z_outer_magnetic + 74.0*inch;
-  zmax = zmin + 27.0*OMthick + 26.0*OMspace;
-
-  Rin_min = 9.349*inch/2.0;
-  Rin_max = 12.156*inch/2.0;
-  for(G4int i=0; i<27; i++){
-    char cname[100];
-    sprintf(cname,"OM2_ring%d", i );
-    G4String name = cname;
-
-    G4double zstart = zmin + i*(OMthick+OMspace);
-    G4double zstop = zstart + OMthick;
-    G4double Rin_start = Rin_min + (zstart-zmin)/(zmax-zmin)*(Rin_max-Rin_min);
-    G4double Rout_start = Rin_start + 0.5*inch;
-    G4double Rin_stop = Rin_min + (zstop-zmin)/(zmax-zmin)*(Rin_max-Rin_min);
-    G4double Rout_stop = Rin_stop + 0.5*inch;
-
-    G4Cons *ring = new G4Cons("name", Rin_start, Rout_start, Rin_stop, Rout_stop, OMthick/2.0, 0.0, twopi );
-    name += "_log";
-    G4LogicalVolume *ring_log = new G4LogicalVolume( ring, GetMaterial("Iron"), name );
-
-    ring_log->SetVisAttributes( ironColor );
-    name = cname;
-    name += "_phys";
-    Z = 0.5*(zstart + zstop);
-    new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), ring_log, name, worldlog, false, 0 );
+    G4double Rin_min = Rout_array[2*i];
+    G4double Rin_max = Rout_array[2*i+1];
+    for( G4int j=0; j<Nrings_out[i]; j++ ){
+      char cname[100];
+      sprintf(cname,"OM_%d_ring%d", i, j);
+      G4String name = cname;
+      
+      G4double zstart = zmin + j*(OMthick + OMspace);
+      G4double zstop = zstart + OMthick;
+      G4double Rin_start = Rin_min + (zstart-zmin)/(zmax-zmin)*(Rin_max - Rin_min);
+      G4double Rout_start = Rin_start + 0.5*inch;
+      G4double Rin_stop = Rin_min + (zstop-zmin)/(zmax-zmin)*(Rin_max - Rin_min);
+      G4double Rout_stop = Rin_stop + 0.5*inch;
+      
+      G4Cons *ring = new G4Cons( name,Rin_start, Rout_start, Rin_stop, Rout_stop, OMthick/2.0, 0.0, twopi );
+      
+      name += "_log";
+      G4LogicalVolume *ring_log = new G4LogicalVolume( ring, GetMaterial("Iron"), name );
+      
+      ring_log->SetVisAttributes( ironColor );
+      
+      name = cname;
+      name += "_phys";
+      
+      Z = 0.5*(zstart + zstop);
+      new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), ring_log, name, worldlog, false, 0 );
+    }
   }
   
   if(fDetCon->fBeamlineConf!=2){
@@ -590,10 +601,10 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       //Z = z_spool_piece + dz_spool_piece/2.0;
       new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), IM0_log, "IM0_phys", worldlog, false, 0 );
       
-      zmin = z_spool_piece+0.84*inch+0.44*inch;
-      zmax = zmin + 13.0*OMthick + 12.0*OMspace;
+      G4double zmin = z_spool_piece+0.84*inch+0.44*inch;
+      G4double zmax = zmin + 13.0*OMthick + 12.0*OMspace;
   
-      Rin_min = 5.3*inch/2.0;
+      G4double Rin_min = 5.3*inch/2.0;
       for( G4int i=0; i<13; i++ ){
 	char cname[100];
 	sprintf(cname,"OM0_ring%d", i);

@@ -393,37 +393,74 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
 
   //-----------------------------------------------------
   //       magnetic tubes
-
-  //Inner Magnetic 1:
-  Rin1 = 4.354*inch/2.0;
-  Rout1 = Rin1 + 0.25*inch;
-  Rin2 = 6.848*inch/2.0;
-  Rout2 = Rin2 + 0.25*inch;
-  Thick = 47.625*inch;
-
-  G4Cons *IM1 = new G4Cons( "IM1", Rin1, Rout1, Rin2, Rout2, Thick/2.0, 0.0, twopi );
-  G4LogicalVolume *IM1_log = new G4LogicalVolume( IM1, GetMaterial("Iron"), "IM1_log" );
-
-  IM1_log->SetVisAttributes( ironColor );
+    
+  //Inner Magnetic shielding: arrays of variables to be able to parameteize all this with the beamline config flag
+  G4int Ndivs = 1;
+  G4double Rin_array[6];
+  G4double z_array[6];
   
-  Z = z_inner_magnetic + Thick/2.0;
-  new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), IM1_log, "IM1_phys", worldlog, false, 0 );
-  
-  Rin1 = 8.230*inch/2.0;
-  Rout1 = Rin1 + 0.25*inch;
-  Rin2 = 10.971*inch/2.0;
-  Rout2 = Rin2 + 0.25*inch;
-  Thick = 52.347*inch;
-  
-  G4Cons *IM2 = new G4Cons( "IM2", Rin1, Rout1, Rin2, Rout2, Thick/2.0, 0.0, twopi );
-  G4LogicalVolume *IM2_log = new G4LogicalVolume( IM2, GetMaterial("Iron"), "IM2_log" );
+  switch(fDetCon->fBeamlineConf){
+  case(1):
+    Ndivs = 2;
+    Rin_array = {4.354*inch/2.0, 6.848*inch/2.0, 8.230*inch/2.0, 10.971*inch/2.0, 0.0, 0.0};
+    z_array = {z_inner_magnetic, z_inner_magnetic + 47.625*inch, z_inner_magnetic + 74.00*inch, 
+	       z_inner_magnetic + (74.00 + 52.347)*inch, 0.0, 0.0};
+    break;
+  // case(2):
+  //   break;
+  case(3):
+    Ndivs = 3;
+    z_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
+  	       z_conic_vacline_weldment + (0.84 + 0.14 + 11.62 - 1.625)*inch, 
+	       z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 2.0)*inch, 
+	       z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 - 2.0)*inch, 
+	       z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38 + 2.0)*inch, 
+  	       z_conic_vacline_weldment + (0.84 + 0.14 + 138.83 - 1.12 - 1.14)*inch};
+    Rin_array = {3.774*inch/2.0, 4.307*inch/2.0, 5.264*inch/2.0, 
+		 7.905*inch/2.0, 9.310*inch/2.0, 10.930*inch/2.0};
+    break;
+  case(4):
+    Ndivs = 2;
+    z_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
+	       z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 - 2.0)*inch, 
+	       z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 2.0)*inch, 
+	       z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 51.62 - 2.0)*inch, 
+   	       0.0, 0.0};
+    Rin_array = {3.774*inch/2.0, 6.096*inch/2.0, 7.074*inch/2.0, 9.609*inch/2.0, 0.0, 0.0};
+    break;
+  default:
+    Ndivs = 1;
+    Rin_array = {3.774*inch/2.0, 10.923*inch/2.0, 0.0, 0.0, 0.0, 0.0};
+    z_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
+	       z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch,
+	       0.0, 0.0, 0.0, 0.0};
+    break;
+  }
 
-  IM2_log->SetVisAttributes( ironColor );
-  
-  Z = z_inner_magnetic + 74.00*inch + Thick/2.0;
+  for(G4int i = 0; i<Ndivs; i++){
+    Rin1 = Rin_array[2*i];
+    Rout1 = Rin1 + 0.25*inch;
+    Rin2 = Rin_array[2*i+1];
+    Rout2 = Rin2 + 0.25*inch;
+    Thick = z_array[2*i+1]-z_array[2*i];
+    
+    char cname[100];
+    sprintf(cname,"IM_%d", i);
+    G4String name = cname;
+     
+    G4Cons *IM_ = new G4Cons( name, Rin1, Rout1, Rin2, Rout2, Thick/2.0, 0.0, twopi );
+    name += "_log";
+    G4LogicalVolume *IM__log = new G4LogicalVolume( IM_, GetMaterial("Iron"), name );
+    
+    IM__log->SetVisAttributes( ironColor );
+    
+    Z = (z_array[2*i]+z_array[2*i+1])/2.0;
+    
+    name = cname;
+    name += "_phys";
+    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), IM__log, name, worldlog, false, 0 );
+  }
 
-  new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), IM2_log, "IM2_phys", worldlog, false, 0 );
-  
   G4double OMthick = 1.625*inch;
   G4double OMspace = 0.375*inch;
 

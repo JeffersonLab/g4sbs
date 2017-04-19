@@ -422,7 +422,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // case(2):// reminder: beamline config 2 = GEn, SIDIS
   // Ndivs = 3;
   //   break;
-  case(3):// reminder: beamline config 3 = GMn
+  case(3):// reminder: beamline config 3 = GMn, all Q^2
     Ndivs = 3;
     Zin_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
 		 z_conic_vacline_weldment + (0.84 + 0.14 + 11.62 - 1.625)*inch, 
@@ -443,7 +443,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     Rout_array = {(3.774/2+0.38)*inch, (4.392/2+0.38)*inch, (5.158/2+0.38)*inch, 
 		  (8.012/2+0.38)*inch, (9.203/2+0.38)*inch, (10.923/2+0.38)*inch};
     break;
-  case(4):// reminder: beamline config 4 = GMn
+  case(4):// reminder: beamline config 4 = GMn, Q^2 = 13.5 GeV^2 (+calibrations)
     Ndivs = 2;
     Zin_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
 		 z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 - 2.0)*inch, 
@@ -493,9 +493,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     name += "_log";
     G4LogicalVolume *IM__log = new G4LogicalVolume( IM_, GetMaterial("Iron"), name );
     
-    //IM__log->SetVisAttributes( ironColor );
-    IM__log->SetVisAttributes( CopperColor );
-    
+    IM__log->SetVisAttributes( ironColor );
+        
     Z = (Zin_array[2*i]+Zin_array[2*i+1])/2.0;
     
     name = cname;
@@ -718,15 +717,71 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube2_log, "IronTube2_phys", worldlog, false, 0 );
     new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube2_vac_log, "IronTube2_vac_phys", worldlog, false, 0 );
   }
-
+  
   //Next, corrector magnets:
+  // Define some dimensions that are going to be useful to define the distances
   G4double UpstreamCoilThickY = 1.68*inch;
   G4double UpstreamCoilThickX = 3.46*inch;
   //G4double UpstreamCoilWidth = 3.46*inch;
   G4double UpstreamCoilHeight = 8.17*inch;
   G4double UpstreamCoilDepth = 6.60*inch;
   G4double UpstreamCoilWidth = 7.56*inch;
+    
+  G4double YokeTopPiece_Width = 15.04*inch;
+  G4double YokeTopPiece_Height = 3.94*inch;
+  G4double YokeTopPiece_Depth = 6.30*inch;
+  
+  G4double YokeLeftPiece_Width = 2.76*inch;
+  G4double YokeLeftPiece_Height = 11.81*inch + 2.0*YokeTopPiece_Height;
+  G4double YokeLeftPiece_Depth = YokeTopPiece_Depth;
+  
+  G4double YokeRightNotchAngle = 18.43*deg;
+  G4double YokeRightWidthFinal = YokeLeftPiece_Width;
+  G4double YokeRightZFinal = YokeLeftPiece_Depth - 0.39*inch;
+  G4double YokeRightWidthInitial = YokeRightWidthFinal - YokeRightZFinal*tan(YokeRightNotchAngle );
+  
+  G4double DownstreamTotalWidth = 17.58*inch + 2.0*2.76*inch;
+  G4double DownstreamTotalHeight = 20.16*inch + 2.0*3.94*inch;
+  G4double DownstreamYokeDepth = 15.75*inch;
 
+  G4double DS_coil_depth = 8.91*inch;
+  G4double DS_coil_height = 12.04*inch;
+  G4double DS_coil_ThickX = 2.90*inch;
+  G4double DS_coil_ThickY = 1.68*inch;
+  
+  // Z Array to change easily z values with beamline configuration;
+  // Right now, it looks like X and Y do NOT need to change depending on the configuration; only Z does
+  G4double z_Magnets_array[4];
+  switch(fDetCon->fBeamlineConf){
+  case(1):// reminder: beamline config 1 = GEp
+    z_Magnets_array = {z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY,
+		       z_formed_bellows + 8.3*inch + YokeRightZFinal/2.0,
+		       z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0,
+		       z_formed_bellows + 76.09*inch + DS_coil_ThickY + DS_coil_depth/2.0};
+     break;
+  // case(2):// reminder: beamline config 2 = GEn, SIDIS ?
+  //   Z = z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY;
+  //   break;
+  case(3):// reminder: beamline config 3 = GMn 
+    z_Magnets_array = {z_conic_vacline_weldment + (0.84 + 0.14 + 15.94)*inch + UpstreamCoilDepth/2.0,
+		       z_conic_vacline_weldment + (0.84 + 0.14 + 15.94 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0,
+		       z_conic_vacline_weldment + (0.84 + 0.14 + 85.78)*inch + DownstreamYokeDepth/2.0,
+		       z_conic_vacline_weldment + (0.84 + 0.14 + 85.78 - 1.71)*inch + DS_coil_ThickY + DS_coil_depth/2.0};    
+    break;
+  case(4):// reminder: beamline config 3 = GMn, Q^2 = 13.5 GeV^2
+    z_Magnets_array = {z_conic_vacline_weldment + (0.84 + 0.14 + 49.47)*inch + UpstreamCoilDepth/2.0,
+		       z_conic_vacline_weldment + (0.84 + 0.14 + 49.47 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0,
+		       z_conic_vacline_weldment + (0.84 + 0.14 + 118.34)*inch + DownstreamYokeDepth/2.0,
+		       z_conic_vacline_weldment + (0.84 + 0.14 + 118.34 - 1.71)*inch + DS_coil_ThickY + DS_coil_depth/2.0};
+    break;
+  default:
+    z_Magnets_array = {z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY,
+		       z_formed_bellows + 8.3*inch + YokeRightZFinal/2.0,
+		       z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0,
+		       z_formed_bellows + 76.09*inch + DS_coil_ThickY + DS_coil_depth/2.0};
+    break;
+  }
+  
   G4Box *UpstreamCoil_outer = new G4Box("UpstreamCoil_outer", UpstreamCoilThickX/2.0, (UpstreamCoilHeight+2.0*UpstreamCoilThickY)/2.0, (UpstreamCoilDepth + 2.0*UpstreamCoilThickY)/2.0 );
   G4Box *UpstreamCoil_inner = new G4Box("UpstreamCoil_inner", UpstreamCoilThickX/2.0 + cm, UpstreamCoilHeight/2.0, UpstreamCoilDepth/2.0 );
 
@@ -735,7 +790,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
 
   UpstreamCoil_log->SetVisAttributes( CopperColor );
 
-  Z = z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY;
+  Z = z_Magnets_array[0];//z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY;
   X = (UpstreamCoilWidth+UpstreamCoilThickX)/2.0;
   Y = 0.0;
 
@@ -757,9 +812,9 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), UpstreamPole_log, "UpstreamPole_phys_left", worldlog, false, 1 );
 
   //Next, make surrounding yoke:
-  G4double YokeTopPiece_Width = 15.04*inch;
-  G4double YokeTopPiece_Height = 3.94*inch;
-  G4double YokeTopPiece_Depth = 6.30*inch;
+  // G4double YokeTopPiece_Width = 15.04*inch;
+  // G4double YokeTopPiece_Height = 3.94*inch;
+  // G4double YokeTopPiece_Depth = 6.30*inch;
 
   G4Box *YokeTopPiece = new G4Box("YokeTopPiece", YokeTopPiece_Width/2.0, YokeTopPiece_Height/2.0, YokeTopPiece_Depth/2.0 );
   G4LogicalVolume *YokeTopPiece_log = new G4LogicalVolume( YokeTopPiece, GetMaterial("Iron"), "YokeTopPiece_log" );
@@ -773,10 +828,10 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), YokeTopPiece_log, "UpstreamYokeTop_phys", worldlog, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector(X,-Y,Z), YokeTopPiece_log, "UpstreamYokeBottom_phys", worldlog, false, 1 );
 
-  G4double YokeLeftPiece_Width = 2.76*inch;
-  G4double YokeLeftPiece_Height = 11.81*inch + 2.0*YokeTopPiece_Height;
-  G4double YokeLeftPiece_Depth = YokeTopPiece_Depth;
-
+  // G4double YokeLeftPiece_Width = 2.76*inch;
+  // G4double YokeLeftPiece_Height = 11.81*inch + 2.0*YokeTopPiece_Height;
+  // G4double YokeLeftPiece_Depth = YokeTopPiece_Depth;
+  
   G4Box *YokeLeftPiece = new G4Box("YokeLeftPiece", YokeLeftPiece_Width/2.0, YokeLeftPiece_Height/2.0, YokeLeftPiece_Depth/2.0 );
   G4LogicalVolume *YokeLeftPiece_log = new G4LogicalVolume( YokeLeftPiece, GetMaterial("Iron"), "YokeLeftPiece_log" );
   YokeLeftPiece_log->SetVisAttributes(ironColor );
@@ -785,10 +840,10 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   Y = 0.0;
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), YokeLeftPiece_log, "UpstreamYokeLeftPiece_phys", worldlog, false, 0 );
 
-  G4double YokeRightNotchAngle = 18.43*deg;
-  G4double YokeRightWidthFinal = YokeLeftPiece_Width;
-  G4double YokeRightZFinal = YokeLeftPiece_Depth - 0.39*inch;
-  G4double YokeRightWidthInitial = YokeRightWidthFinal - YokeRightZFinal*tan(YokeRightNotchAngle );
+  // G4double YokeRightNotchAngle = 18.43*deg;
+  // G4double YokeRightWidthFinal = YokeLeftPiece_Width;
+  // G4double YokeRightZFinal = YokeLeftPiece_Depth - 0.39*inch;
+  // G4double YokeRightWidthInitial = YokeRightWidthFinal - YokeRightZFinal*tan(YokeRightNotchAngle );
 
   //I *think* this is correct:
   G4Trap *YokeRight_trap = new G4Trap( "YokeRight_trap", YokeRightZFinal/2.0, atan( (YokeRightWidthFinal-YokeRightWidthInitial)/2.0/YokeRightZFinal ), 180.0*deg,
@@ -803,16 +858,16 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   G4LogicalVolume *YokeRightPiece_log = new G4LogicalVolume(YokeRightPiece, GetMaterial("Iron"), "YokeRightPiece_log" );
 
   YokeRightPiece_log->SetVisAttributes(ironColor);
-  
+
   X = -7.52*inch - 0.5*(YokeRightWidthFinal/2.0 + YokeRightWidthInitial/2.0);
   Y = 0.0;
-  Z = z_formed_bellows + 8.3*inch + YokeRightZFinal/2.0;
+  Z = z_Magnets_array[1];//z_formed_bellows + 8.3*inch + YokeRightZFinal/2.0;
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), YokeRightPiece_log, "UpstreamYokeRightPiece_phys", worldlog, false, 0 );
 
   //Downstream Corrector:
-  G4double DownstreamTotalWidth = 17.58*inch + 2.0*2.76*inch;
-  G4double DownstreamTotalHeight = 20.16*inch + 2.0*3.94*inch;
-  G4double DownstreamYokeDepth = 15.75*inch;
+  // G4double DownstreamTotalWidth = 17.58*inch + 2.0*2.76*inch;
+  // G4double DownstreamTotalHeight = 20.16*inch + 2.0*3.94*inch;
+  // G4double DownstreamYokeDepth = 15.75*inch;
 
   G4double DownstreamYokeGapWidth = 17.58*inch;
   G4double DownstreamYokeGapHeight = 20.16*inch;
@@ -824,15 +879,15 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   DownstreamYoke_log->SetVisAttributes( ironColor );
 
   X = 0.0; Y = 0.0;
-  Z = z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0;
+  Z = z_Magnets_array[2];//z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0;
 
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), DownstreamYoke_log, "DownstreamYoke_phys", worldlog, false, 0 );
 
-  G4double DS_coil_depth = 8.91*inch;
-  G4double DS_coil_height = 12.04*inch;
-  G4double DS_coil_ThickX = 2.90*inch;
-  G4double DS_coil_ThickY = 1.68*inch;
-
+  // G4double DS_coil_depth = 8.91*inch;
+  // G4double DS_coil_height = 12.04*inch;
+  // G4double DS_coil_ThickX = 2.90*inch;
+  // G4double DS_coil_ThickY = 1.68*inch;
+  
   G4Box *DS_coil_outer = new G4Box( "DS_coil_outer", DS_coil_ThickX/2.0, (DS_coil_height + 2.0*DS_coil_ThickY)/2.0, (DS_coil_depth + 2.0*DS_coil_ThickY)/2.0 );
   G4Box *DS_coil_inner = new G4Box( "DS_coil_inner", DS_coil_ThickX/2.0+cm, DS_coil_height/2.0, DS_coil_depth/2.0 );
 
@@ -842,8 +897,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   
   X = 11.67*inch/2.0 + DS_coil_ThickX/2.0;
   Y = 0.0;
-  Z = z_formed_bellows + 76.09*inch + DS_coil_ThickY + DS_coil_depth/2.0;
-
+  Z = z_Magnets_array[3];//z_formed_bellows + 76.09*inch + DS_coil_ThickY + DS_coil_depth/2.0;
+  
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), DS_coil_log, "DS_coil_phys_left", worldlog, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector(-X,Y,Z), DS_coil_log, "DS_coil_phys_right", worldlog, false, 1 );
 

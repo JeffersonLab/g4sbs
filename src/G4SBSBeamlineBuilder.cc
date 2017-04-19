@@ -397,82 +397,150 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // Inner and outer Magnetic shieldings: 
   // arrays of variables to parameterize the different geometries with the beamline config flag
   G4int Ndivs = 1;// number of segments with shielding
-  G4double Rin_array[6];// radii for inner shielding elements
-  G4double Zin_array[6];// z for inner shielding elements
-  G4int Nrings_out[3];// number of outer elements per segments
-  G4double Rout_array[6];// radii for outer shielding elements
-  G4double Zout_array[6];// z for outer shielding elements
+  //G4double Rin_array[6];// radii for inner shielding elements
+  //G4double Zin_array[6];// z for inner shielding elements
+  //G4int Nrings_out[3];// number of outer elements per segments
+  //G4double Rout_array[6];// radii for outer shielding elements
+  //G4double Zout_array[6];// z for outer shielding elements
+  std::vector<G4double> Rin_array;// radii for inner shielding elements
+  std::vector<G4double> Zin_array;// z for inner shielding elements
+  std::vector<G4int> Nrings_out;// number of outer elements per segments
+  std::vector<G4double> Rout_array;// radii for inner shielding elements
+  std::vector<G4double> Zout_array;// z for inner shielding elements
 
   G4double OMthick = 1.625*inch;
   G4double OMspace = 0.375*inch;
- 
+
   switch(fDetCon->fBeamlineConf){
   case(1):// reminder: beamline config 1 = GEp
     Ndivs = 2;
-    Rin_array = {4.354*inch/2.0, 6.848*inch/2.0, 8.230*inch/2.0, 10.971*inch/2.0, 0.0, 0.0};
-    Zin_array = {z_inner_magnetic, z_inner_magnetic + 47.625*inch, z_inner_magnetic + 74.00*inch, 
-		 z_inner_magnetic + (74.00 + 52.347)*inch, 0.0, 0.0};
     
-    Nrings_out = {26, 27, 0};
-    Zout_array = {z_outer_magnetic, z_outer_magnetic + 26.0*OMthick + 25.0*OMspace,
-		  z_outer_magnetic + 74.0*inch, z_outer_magnetic + 74.0*inch + 27.0*OMthick + 26.0*OMspace,
-		  0.0, 0.0};
-    Rout_array = {5.5*inch/2.0, 8.178*inch/2.0, 9.349*inch/2.0, 12.156*inch/2.0, 0.0, 0.0};
+    Rin_array.push_back( 4.354*inch/2.0 );
+    Rin_array.push_back( 6.848*inch/2.0 );
+    Rin_array.push_back( 8.230*inch/2.0 );
+    Rin_array.push_back( 10.971*inch/2.0 );
+    
+    Zin_array.push_back( z_inner_magnetic );
+    Zin_array.push_back( z_inner_magnetic + 47.625*inch );
+    Zin_array.push_back( z_inner_magnetic + 74.00*inch );
+    Zin_array.push_back( z_inner_magnetic + (74.00 + 52.347)*inch );
+    
+    Nrings_out.push_back( 26 );
+    Nrings_out.push_back( 27 );
+    
+    Rout_array.push_back( 5.5*inch/2.0 );
+    Rout_array.push_back( 8.178*inch/2.0 );
+    Rout_array.push_back( 9.349*inch/2.0 );
+    Rout_array.push_back( 12.156*inch/2.0 );
+    
+    Zout_array.push_back( z_outer_magnetic );
+    Zout_array.push_back( z_outer_magnetic + 26.0*OMthick + 25.0*OMspace );
+    Zout_array.push_back( z_outer_magnetic + 74.0*inch );
+    Zout_array.push_back( z_outer_magnetic + 74.0*inch + 27.0*OMthick + 26.0*OMspace );
+    
+    //G4double Rin_array_tmp1[6] = {4.354*inch/2.0, 6.848*inch/2.0, 8.230*inch/2.0, 10.971*inch/2.0, 0.0, 0.0};
+    //G4double Zin_array_tmp1[6] = {z_inner_magnetic, z_inner_magnetic + 47.625*inch, z_inner_magnetic + 74.00*inch, z_inner_magnetic + (74.00 + 52.347)*inch, 0.0, 0.0};
+    //G4int Nrings_out_tmp1[3] = {26, 27, 0};
+    //G4double Rout_array_tmp1[6] = {5.5*inch/2.0, 8.178*inch/2.0, 9.349*inch/2.0, 12.156*inch/2.0, 0.0, 0.0};
+    //G4double Zout_array_tmp1[6] = {z_outer_magnetic, z_outer_magnetic + 26.0*OMthick + 25.0*OMspace, z_outer_magnetic + 74.0*inch, z_outer_magnetic + 74.0*inch + 27.0*OMthick + 26.0*OMspace, 0.0, 0.0};
     break;
   // case(2):// reminder: beamline config 2 = GEn, SIDIS
   // Ndivs = 3;
   //   break;
   case(3):// reminder: beamline config 3 = GMn, all Q^2
     Ndivs = 3;
-    Zin_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
-		 z_conic_vacline_weldment + (0.84 + 0.14 + 11.62 - 1.625)*inch, 
-		 z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 2.0)*inch, 
-		 z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 - 2.0)*inch, 
-		 z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38 + 2.0)*inch, 
-		 z_conic_vacline_weldment + (0.84 + 0.14 + 138.83 - 1.12 - 1.14)*inch};
-    Rin_array = {3.774*inch/2.0, 4.307*inch/2.0, 5.264*inch/2.0, 
-		 7.905*inch/2.0, 9.310*inch/2.0, 10.930*inch/2.0};
-
-    Nrings_out = {6, 27, 17};
-    Zout_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
-		  z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch, 
-		  z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38)*inch, 
-		  z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62)*inch, 
-		  z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38)*inch, 
-		  z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch};
-    Rout_array = {(3.774/2+0.38)*inch, (4.392/2+0.38)*inch, (5.158/2+0.38)*inch, 
-		  (8.012/2+0.38)*inch, (9.203/2+0.38)*inch, (10.923/2+0.38)*inch};
+    
+    Rin_array.push_back( 3.774*inch/2.0 );
+    Rin_array.push_back( 4.307*inch/2.0 );
+    Rin_array.push_back( 5.264*inch/2.0 );
+    Rin_array.push_back( 7.905*inch/2.0 );
+    Rin_array.push_back( 9.310*inch/2.0 );
+    Rin_array.push_back( 10.930*inch/2.0 );
+    
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch );
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 +11.62 - 1.625)*inch );
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 +11.62 + 14.38 + 2.0)*inch );
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 - 2.0)*inch );
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38 + 2.0)*inch );
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 138.83 - 1.12 - 1.14)*inch );
+    
+    Nrings_out.push_back( 6 );
+    Nrings_out.push_back( 27 );
+    Nrings_out.push_back( 17 );
+    
+    Rout_array.push_back( (3.774/2+0.38)*inch );
+    Rout_array.push_back( (4.392/2+0.38)*inch );
+    Rout_array.push_back( (5.158/2+0.38)*inch );
+    Rout_array.push_back( (8.012/2+0.38)*inch );
+    Rout_array.push_back( (9.203/2+0.38)*inch );
+    Rout_array.push_back( (10.923/2+0.38)*inch );
+    
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch );
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch );
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38)*inch );
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62)*inch );
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38)*inch );
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch );
+    
+    //G4double Rin_array_tmp3[6] = {3.774*inch/2.0, 4.307*inch/2.0, 5.264*inch/2.0, 7.905*inch/2.0, 9.310*inch/2.0, 10.930*inch/2.0};
+    //G4double Zin_array_tmp3[6] = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 11.62 - 1.625)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 2.0)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 - 2.0)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38 + 2.0)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 138.83 - 1.12 - 1.14)*inch};
+    //G4int Nrings_out_tmp3[3] = {6, 27, 17};
+    //G4double Rout_array_tmp3[6] = {(3.774/2+0.38)*inch, (4.392/2+0.38)*inch, (5.158/2+0.38)*inch, (8.012/2+0.38)*inch, (9.203/2+0.38)*inch, (10.923/2+0.38)*inch};
+    //G4double Zout_array_tmp3[6] = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38)*inch, z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch};
     break;
   case(4):// reminder: beamline config 4 = GMn, Q^2 = 13.5 GeV^2 (+calibrations)
     Ndivs = 2;
-    Zin_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
-		 z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 - 2.0)*inch, 
-		 z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 2.0)*inch, 
-		 z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 51.62 - 2.0)*inch, 
-		 0.0, 0.0};
-    Rin_array = {3.774*inch/2.0, 6.096*inch/2.0, 7.074*inch/2.0, 9.609*inch/2.0, 0.0, 0.0};
     
-    Nrings_out = {23, 26, 0};
-    Zout_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
-		  z_conic_vacline_weldment + (0.84 + 0.14 + 45.63)*inch, 
-		  z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38)*inch, 
-		  z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 51.62)*inch, 
-		  0.0, 0.0};
-    Rout_array = {(3.774/2+0.38)*inch, (6.202/2+0.38)*inch, (6.968/2+0.38)*inch, (9.715/2+0.38)*inch, 
-		  0.0, 0.0};
+    Rin_array.push_back( 3.774*inch/2.0 );
+    Rin_array.push_back( 6.096*inch/2.0 );
+    Rin_array.push_back( 7.074*inch/2.0 );
+    Rin_array.push_back( 9.609*inch/2.0 );
+    
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch );
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 - 2.0)*inch );
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 2.0)*inch );
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 51.62 - 2.0)*inch );
+    
+    Nrings_out.push_back( 23 );
+    Nrings_out.push_back( 26 );
+    
+    Rout_array.push_back( (3.774/2+0.38)*inch );
+    Rout_array.push_back( (6.202/2+0.38)*inch );
+    Rout_array.push_back( (6.968/2+0.38)*inch );
+    Rout_array.push_back( (9.715/2+0.38)*inch );
+    
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch  );
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 45.63)*inch );
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38)*inch );
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 51.62)*inch );
+    
+    //G4double Rin_array_tmp4[6] = {3.774*inch/2.0, 6.096*inch/2.0, 7.074*inch/2.0, 9.609*inch/2.0, 0.0, 0.0};
+    //G4double Zin_array_tmp4[6] = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 - 2.0)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 2.0)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 51.62 - 2.0)*inch, 0.0, 0.0};
+    //G4int Nrings_out_tmp4[3] = {23, 26, 0};
+    //G4double Rout_array_tmp4[6] = {(3.774/2+0.38)*inch, (6.202/2+0.38)*inch, (6.968/2+0.38)*inch, (9.715/2+0.38)*inch, 0.0, 0.0};
+    //G4double Zout_array_tmp4[6] = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 45.63)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38)*inch, z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + 51.62)*inch, 0.0, 0.0};    
     break;
   default:// default: all elements built
     Ndivs = 1;
-    Rin_array = {3.774*inch/2.0, 10.923*inch/2.0, 0.0, 0.0, 0.0, 0.0};
-    Zin_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
-		 z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch,
-		 0.0, 0.0, 0.0, 0.0};
+    Rin_array.push_back( 3.774*inch/2.0 );
+    Rin_array.push_back( 10.923*inch/2.0 );
+
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch );
+    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch );
+
+    Nrings_out.push_back( 68 );
     
-    Nrings_out = {68, 0, 0};
-    Zout_array = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, 
-		  z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch,
-		  0.0, 0.0, 0.0, 0.0};
-    Rout_array = {(3.774/2+0.38)*inch, (10.923/2+0.38)*inch, 0.0, 0.0, 0.0, 0.0};
+    Rout_array.push_back( (3.774/2+0.38)*inch );
+    Rout_array.push_back( (10.923/2+0.38)*inch );
+
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch );
+    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch );
+    
+    //G4double Rin_array_tmp0[6] = {3.774*inch/2.0, 10.923*inch/2.0, 0.0, 0.0, 0.0, 0.0};
+    //G4double Zin_array_tmp0[6] = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch, 0.0, 0.0, 0.0, 0.0};
+    //G4int Nrings_out_tmp0[3] = {68, 0, 0};
+    //G4double Rout_array_tmp0[6] = {(3.774/2+0.38)*inch, (10.923/2+0.38)*inch, 0.0, 0.0, 0.0, 0.0};
+    //G4double Zout_array_tmp0[6] = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch, 0.0, 0.0, 0.0, 0.0};
     break;
   }
 
@@ -751,34 +819,42 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   
   // Z Array to change easily z values with beamline configuration;
   // Right now, it looks like X and Y do NOT need to change depending on the configuration; only Z does
-  G4double z_Magnets_array[4];
+  std::vector<G4double> z_Magnets_array;
   switch(fDetCon->fBeamlineConf){
   case(1):// reminder: beamline config 1 = GEp
-    z_Magnets_array = {z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY,
-		       z_formed_bellows + 8.3*inch + YokeRightZFinal/2.0,
-		       z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0,
-		       z_formed_bellows + 76.09*inch + DS_coil_ThickY + DS_coil_depth/2.0};
+    z_Magnets_array.push_back( z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY );
+    z_Magnets_array.push_back( z_formed_bellows + 8.3*inch + YokeRightZFinal/2.0 );
+    z_Magnets_array.push_back( z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0 );
+    z_Magnets_array.push_back( z_formed_bellows + 76.09*inch + DS_coil_ThickY + DS_coil_depth/2.0 );
+    
+    //z_Magnets_array = {z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY, z_formed_bellows + 8.3*inch + YokeRightZFinal/2.0, z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0, z_formed_bellows + 76.09*inch + DS_coil_ThickY + DS_coil_depth/2.0};
      break;
   // case(2):// reminder: beamline config 2 = GEn, SIDIS ?
   //   Z = z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY;
   //   break;
   case(3):// reminder: beamline config 3 = GMn 
-    z_Magnets_array = {z_conic_vacline_weldment + (0.84 + 0.14 + 15.94)*inch + UpstreamCoilDepth/2.0,
-		       z_conic_vacline_weldment + (0.84 + 0.14 + 15.94 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0,
-		       z_conic_vacline_weldment + (0.84 + 0.14 + 85.78)*inch + DownstreamYokeDepth/2.0,
-		       z_conic_vacline_weldment + (0.84 + 0.14 + 85.78 - 1.71)*inch + DS_coil_ThickY + DS_coil_depth/2.0};    
+    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 15.94)*inch + UpstreamCoilDepth/2.0 );
+    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 15.94 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0 );
+    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 85.78)*inch + DownstreamYokeDepth/2.0 );
+    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 85.78 - 1.71)*inch + DS_coil_ThickY + DS_coil_depth/2.0 );
+    
+    //z_Magnets_array = {z_conic_vacline_weldment + (0.84 + 0.14 + 15.94)*inch + UpstreamCoilDepth/2.0, z_conic_vacline_weldment + (0.84 + 0.14 + 15.94 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0, z_conic_vacline_weldment + (0.84 + 0.14 + 85.78)*inch + DownstreamYokeDepth/2.0, z_conic_vacline_weldment + (0.84 + 0.14 + 85.78 - 1.71)*inch + DS_coil_ThickY + DS_coil_depth/2.0};    
     break;
   case(4):// reminder: beamline config 3 = GMn, Q^2 = 13.5 GeV^2
-    z_Magnets_array = {z_conic_vacline_weldment + (0.84 + 0.14 + 49.47)*inch + UpstreamCoilDepth/2.0,
-		       z_conic_vacline_weldment + (0.84 + 0.14 + 49.47 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0,
-		       z_conic_vacline_weldment + (0.84 + 0.14 + 118.34)*inch + DownstreamYokeDepth/2.0,
-		       z_conic_vacline_weldment + (0.84 + 0.14 + 118.34 - 1.71)*inch + DS_coil_ThickY + DS_coil_depth/2.0};
+    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 49.47)*inch + UpstreamCoilDepth/2.0 );
+    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 49.47 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0  );
+    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 118.34)*inch + DownstreamYokeDepth/2.0 );
+    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 118.34 - 1.71)*inch + DS_coil_ThickY + DS_coil_depth/2.0 );
+    
+    //z_Magnets_array = {z_conic_vacline_weldment + (0.84 + 0.14 + 49.47)*inch + UpstreamCoilDepth/2.0, z_conic_vacline_weldment + (0.84 + 0.14 + 49.47 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0, z_conic_vacline_weldment + (0.84 + 0.14 + 118.34)*inch + DownstreamYokeDepth/2.0, z_conic_vacline_weldment + (0.84 + 0.14 + 118.34 - 1.71)*inch + DS_coil_ThickY + DS_coil_depth/2.0};
     break;
   default:
-    z_Magnets_array = {z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY,
-		       z_formed_bellows + 8.3*inch + YokeRightZFinal/2.0,
-		       z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0,
-		       z_formed_bellows + 76.09*inch + DS_coil_ThickY + DS_coil_depth/2.0};
+    //sent back: who cares...
+    z_Magnets_array.push_back( -10.0*m + 0.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY );
+    z_Magnets_array.push_back( -10.0*m + 2.3*inch + YokeRightZFinal/2.0 );
+    z_Magnets_array.push_back( -10.0*m + 15.24*inch + 1.71*inch + DownstreamYokeDepth/2.0 );
+    z_Magnets_array.push_back( -10.0*m + 15.24*inch + DS_coil_ThickY + DS_coil_depth/2.0 );
+    //z_Magnets_array = {z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY, z_formed_bellows + 8.3*inch + YokeRightZFinal/2.0, z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0, z_formed_bellows + 76.09*inch + DS_coil_ThickY + DS_coil_depth/2.0};
     break;
   }
   

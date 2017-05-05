@@ -46,6 +46,9 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
       break;
     case(kNeutronExp):// GMn
       MakeGMnBeamline(worldlog);
+      if(fDetCon->fLeadOption == 1){
+	MakeGMnLead(worldlog);
+      }
       break;
     default:
       MakeDefaultBeamline(worldlog);
@@ -2099,6 +2102,15 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   G4cout << "Lead wall B (x,y,z) = (" << xpos_lead_wall2/cm << ", " << 0.0 << ", " << zpos_lead_wall2/cm << ")" << G4endl;
   
   lead_wall2_log->SetVisAttributes( lead_visatt );
+  
+}
+
+//lead shielding for GMn
+void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
+  // Shielding for Spool piece.
+  //
+  
+  
   
 }
 

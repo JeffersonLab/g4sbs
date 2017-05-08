@@ -2135,7 +2135,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   // Shielding for Scattering chamber:
   // 
-  G4double th_SCshield = 1.0*inch;
+  G4double th_SCshield = 1.5*inch;
   G4double h_SCshield = 18.0*inch;
   G4double w1_SCshield = z1_ringshield*tan(25.1*deg)-rout_ringshield;
   G4double w2_SCshield = z2_ringshield*tan(25.1*deg)-rout_ringshield;
@@ -2167,7 +2167,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   G4double z_spoolshield = (z2_spoolshield+z1_spoolshield)/2.0;
   G4double L_spoolshield = z2_spoolshield-z1_spoolshield;
-  G4double th_spoolshield = 1.0*inch;
+  G4double th_spoolshield = 1.5*inch;
   G4double d_spoolshield = rout_OM0+1.5*inch+th_spoolshield/2.0;
   G4double H_spoolshield = 12.0*inch;//4*rout_OM0;
   
@@ -2182,7 +2182,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   // Beamline shielding : between before 1st corrector magnets (BL4 only)
   //
-  G4double th_BLshield1 = 1.0*inch;
+  G4double th_BLshield1 = 1.5*inch;
   G4double L_BLshield1 = 34.0*inch;
   G4double h_BLshield1 = 12.0*inch;
   
@@ -2205,7 +2205,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   // Beamline shielding : between corrector magnets
   //
-  G4double th_BLshield2 = 1.0*inch;
+  G4double th_BLshield2 = 1.5*inch;
   G4double L_BLshield2 = 55.0*inch;
   G4double h_BLshield2 = 12.0*inch;
   
@@ -2228,7 +2228,31 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield2, 0, z_BLshield2 ), BLshield2_log, "BLshield2_phys", worldlog, false, 0 );
   BLshield2_log->SetVisAttributes(LeadColor);
- 
+  
+  // Beamline shielding : after 2nd corrector magnets (BL3 only)
+  //
+  G4double th_BLshield3 = 1.5*inch;
+  G4double L_BLshield3 = 32.0*inch;
+  G4double h_BLshield3 = 12.0*inch;
+  
+  G4double z_BLshield3 = z_conic_vacline_weldment + (0.84 + 0.14 + 120.5)*inch;
+  G4double x_BLshield3 = (5.43825+1.5)*inch;
+  
+  x_BLshield3+= th_BLshield3/2.0;
+  
+  G4Box *BLshield3 = new G4Box("BLshield3", th_BLshield3/2.0, h_BLshield3/2.0, L_BLshield3/2.0 );
+  
+  G4LogicalVolume *BLshield3_log = new G4LogicalVolume( BLshield3, GetMaterial("Lead"), "BLshield3_log" );
+  
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY(-1.5*deg);
+  
+  if(fDetCon->fBeamlineConf==3){
+    new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield3, 0, z_BLshield3 ), BLshield3_log, "BLshield3_phys", worldlog, false, 0 );
+    BLshield3_log->SetVisAttributes(LeadColor);
+  }
+
+  
 }
 
 void G4SBSBeamlineBuilder::MakeGEnClamp(G4LogicalVolume *worldlog){

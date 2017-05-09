@@ -2162,7 +2162,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   // Shielding for Spool piece.
   // 
-  G4double z1_spoolshield = z2_ringshield;
+  G4double z1_spoolshield = max(z1_ringshield+th_SCshield, z2_ringshield);
   G4double z2_spoolshield = z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch;
   
   G4double z_spoolshield = (z2_spoolshield+z1_spoolshield)/2.0;
@@ -2182,7 +2182,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   // Beamline shielding : between before 1st corrector magnets (BL4 only)
   //
-  G4double th_BLshield1 = 1.5*inch;
+  G4double th_BLshield1 = 2.0*inch;
   G4double L_BLshield1 = 34.0*inch;
   G4double h_BLshield1 = 12.0*inch;
   
@@ -2205,7 +2205,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   // Beamline shielding : between corrector magnets
   //
-  G4double th_BLshield2 = 1.5*inch;
+  G4double th_BLshield2 = 2.0*inch;
   G4double L_BLshield2 = 55.0*inch;
   G4double h_BLshield2 = 12.0*inch;
   
@@ -2231,7 +2231,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   // Beamline shielding : after 2nd corrector magnets (BL3 only)
   //
-  G4double th_BLshield3 = 1.5*inch;
+  G4double th_BLshield3 = 2.0*inch;
   G4double L_BLshield3 = 32.0*inch;
   G4double h_BLshield3 = 12.0*inch;
   

@@ -27,14 +27,14 @@ private:
 
   // GEn 2008 Data from Seamus' Thesis
   std::vector<int> fChamberNumber; 
-  std::vector<int> fNplanes;         // number of planes in a chamber
-  std::vector<int> fNwires;          // number of wires in a chamber
-  std::vector<double> fNwirespacing; // wire spacing of a chamber
-  std::vector<double> fNheight;      // height of a chamber
-  std::vector<double> fNwidth;       // width of a chamber
-  std::vector<double> fDist_z0;      // chamber dependent distance from z0
-  std::map<int, std::vector<double> > fSpace_Survey, fSpace_Offset; // key = chm #, value = vector of values corresponding to plane #
-  std::map<int,double> fSpace_Total_Chamber;         // key = chamber #, value = sum of plane spacers needed to look like pg 89 of thesis
+  std::vector<int> fNplanes;                   // number of planes in a chamber
+  std::vector<int> fNwires;                    // number of wires in a chamber
+  std::vector<double> fNwirespacing;           // wire spacing of a chamber
+  std::vector<double> fNheight;                // height of a chamber
+  std::vector<double> fNwidth;                 // width of a chamber
+  std::vector<double> fDist_z0;                // chamber dependent distance from z0
+  std::map<int,std::vector<double> > fOffsets; // Plane offsets within Chamber
+  double fArbitraryZ;                          // Just in case planes overlap with Seamus' #s
 
   // Key is chamber #, the vector corresponds to the
   // plane type (X,U,V)
@@ -51,7 +51,7 @@ private:
   double fCuThick;       // thickness of cu wtt cathode
 
   double fCath2WireDist;  // distance bt cathode and wire 
-  double fGasWinThick;       // thickness of gas windows
+  double fGasWinThick;    // thickness of gas windows
   double fSpacer;         // space inbetween adjacent planes within a chamber
   double fUtheta, fVtheta;// wire angles wrt to X 
   G4RotationMatrix *fWireRotX, *fWireRotU, *fWireRotV;
@@ -68,6 +68,5 @@ private:
   G4VisAttributes* chamVisAtt;
   G4VisAttributes* sigwireVisAtt;
   G4VisAttributes* fieldwireVisAtt;
-  
 };
 #endif

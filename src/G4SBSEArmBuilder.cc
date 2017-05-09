@@ -287,7 +287,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
 						  "bbfieldLog", 0, 0, 0);
 
-
   fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fBBdist), *bbrm );
 
   fbbfield->fInverted = fDetCon->fGlobalField->fInverted;
@@ -311,6 +310,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // Mother volume is at 10 degrees with BigBite
 
   double detboxang    = 10.0*deg;
+  if( fDetCon->fExpType==kOld_GEn ) detboxang = 10.05*deg;
+
   double detboxheight = 2.5*m;
   double detboxdepth  = 4.0*m;
   double detboxplace  = 0.8*m; // From midplane pivot
@@ -330,9 +331,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *bbdetLog=new G4LogicalVolume(bbdetbox, GetMaterial("Air"),
 						"bbdetLog", 0, 0, 0);
   new G4PVPlacement(bbdetrot, G4ThreeVector(0.0, 
-					    (detboxplace+detboxdepth/2.0)*sin(detboxang),
-					    (detboxplace+detboxdepth/2.0)*cos(detboxang)+midplanez),
-		    bbdetLog, "bbdetPhysical", bbmotherLog, 0,false,0);
+  					    (detboxplace+detboxdepth/2.0)*sin(detboxang),
+  					    (detboxplace+detboxdepth/2.0)*cos(detboxang)+midplanez),
+  		    bbdetLog, "bbdetPhysical", bbmotherLog, 0,false,0);
+
 
   //  Just interested in the GEMs for now:
 
@@ -428,29 +430,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // Make MWDC - GEn
   G4SBSMWDC* mwdc = new G4SBSMWDC(fDetCon);
   // Chambers mother volume is 1*m in z, so offset it by 0.5m
-  mwdc->BuildComponent(worldlog, bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset + 0.4*m + 2.5*cm), "Earm/BBMWDC");
-
-
-  // Where exactly is the first chamber of MWDC?
-  // Mother Volume, note motherr = fBBdist - 6*m + clear:
-  G4ThreeVector trackMWDC_dist = G4ThreeVector(motherr*sin(fBBang), 0.0, motherr*cos(fBBang));
-
-  // MWDC is placed inside bbmotherlog which is placed inside Mother Volume
-  G4ThreeVector BB_inside_mother(0.0, (detboxplace+detboxdepth/2.0)*sin(detboxang),
-				 (detboxplace+detboxdepth/2.0)*cos(detboxang)+midplanez);
-
-  G4ThreeVector more(0.0, 0.0, -(detoffset+0.5*m+2.5*cm)*cos(detboxang));
-
-  G4ThreeVector postemp = trackMWDC_dist + BB_inside_mother + more;
-
-  double off = 5.0*cm + 48.024*0.5*mm; // 5cm defined above, 2.5cm defined by me, 48mm is depth of chamber1
-  trackMWDC_dist += G4ThreeVector( 0.0, off*sin(detboxang), off*cos(detboxang) );
-  trackMWDC_dist += BB_inside_mother;
-
-  TVector3 MWDC(trackMWDC_dist.getX(), trackMWDC_dist.getY(), trackMWDC_dist.getZ() );
-  // cout << MWDC.X() << "  " << MWDC.Y() << "   " << MWDC.Z() << endl;
-
-
+  //mwdc->BuildComponent(worldlog, bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, detoffset + 0.4*m + 2.5*cm), "Earm/BBMWDC");
+  double MWDC_half_z = 0.4*m;
+  mwdc->BuildComponent(worldlog, bbdetLog, rot_identity, G4ThreeVector( 0.0, 0.0, -detboxdepth/2.0 + MWDC_half_z), "Earm/BBMWDC");
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
@@ -465,7 +447,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *bbcalbox = new G4Box( "bbcalbox", bbcal_box_width/2.0, bbcal_box_height/2.0, bbcal_box_depth/2.0+mm );
   G4LogicalVolume *bbcal_mother_log = new G4LogicalVolume(bbcalbox, GetMaterial("Air"), "bbcal_mother_log");
 
-  double BB_z_wrt_z0MWDCplane = detoffset - 0.4*cm + bbcal_box_depth/2.0 + 0.85*m;
+  double BB_z_wrt_z0MWDCplane = -detboxdepth/2.0 + bbcal_box_depth/2.0 + 0.85*m; // Seamus' Thesis says PS face is 85cm away from z0
 
   if(fDetCon->fExpType != kOld_GEn ) {
     new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_box_depth/2.0 ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 ); 
@@ -692,16 +674,16 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
   //--------- Visualization attributes -------------------------------
   //Mother volumes
-  G4VisAttributes *testVisAtt = new G4VisAttributes( G4Colour(G4Colour::White()) );
-  testVisAtt->SetForceWireframe(true);
+  G4VisAttributes *testVisAtt = new G4VisAttributes( G4Colour(G4Colour::Red()) );
+  //testVisAtt->SetForceWireframe(true);
 
   bbdetLog->SetVisAttributes( G4VisAttributes::Invisible );
   bbfieldLog->SetVisAttributes( G4VisAttributes::Invisible );
-  //bbmotherLog->SetVisAttributes( G4VisAttributes::Invisible );
-  bbmotherLog->SetVisAttributes( testVisAtt );
+  //bbmotherLog->SetVisAttributes( testVisAtt );
+   bbmotherLog->SetVisAttributes( G4VisAttributes::Invisible );
 
   //test---
-  bbdetLog->SetVisAttributes( testVisAtt );
+  bbdetLog->SetVisAttributes( G4VisAttributes::Invisible );
   //bbcal_mother_log->SetVisAttributes( testVisAtt );
   
   bbcal_mother_log->SetVisAttributes( G4VisAttributes::Invisible );

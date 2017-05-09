@@ -404,9 +404,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     // ESEPP related info:
     // There is a possibility that ESEPP will update the # of events
-    fevgen->LoadESEPPGenerator();
-    nevt = fevgen->GetNevt();
-
+    if( fevgen->GetKine() == kESEPP ){
+      fevgen->LoadESEPPGenerator();
+      nevt = fevgen->GetNevt();
+    }
     //Clean out and rebuild the detector geometry from scratch: 
 
     G4SolidStore::GetInstance()->Clean();

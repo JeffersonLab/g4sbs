@@ -230,7 +230,7 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   G4VisAttributes* invisVisAtt = new G4VisAttributes(G4Colour(0.0,0.0,0.0));
   invisVisAtt->SetVisibility(false);
   G4VisAttributes *ND_MotherVis = new G4VisAttributes(G4Colour::Blue());
-  ND_MotherVis ->SetForceWireframe(true);
+  //ND_MotherVis ->SetForceWireframe(true);
   G4VisAttributes *vetoVis  = new G4VisAttributes(G4Colour::Cyan());
   G4VisAttributes *ndVis = new G4VisAttributes(G4Colour(0.49,0.0,1.0));
 
@@ -271,7 +271,7 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   G4LogicalVolume *neutronarm_log = new G4LogicalVolume(neutronarm_box,
 							GetMaterial("Air"),"neutronarm_log");
   
-  neutronarm_log->SetVisAttributes( ND_MotherVis );
+  neutronarm_log->SetVisAttributes( G4VisAttributes::Invisible );
   // Place Neutron Detector Mother Volume in the World:
   double x3 = bob_targ_dist*sin(NDangle)+bob_z0_dist*sin(theta_norm);
   double y3 = 0.0;

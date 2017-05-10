@@ -56,7 +56,7 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
     TFile newfile(chEl->GetTitle());
     newfile.GetObject("run_data",rd);
     if( rd ){
-      if( files.find( chEl->GetTitle() ) != proton_files.end() ){
+      if( files.find( chEl->GetTitle() ) != files.end() ){
 	ngen += rd->fNthrown;
 	ntries += rd->fNtries;
 	ngen_file[chEl->GetTitle()] = rd->fNthrown;
@@ -179,9 +179,21 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
     //   weight_n = sigma * Lumi / double(ngen_n);  
     // }
 
+    
+    
     if ( files.find( fname ) != files.end() ){
-      weight_total = sigma * genvol * double(ngen_file[fname]) * Lumi / double( ntries );
-      if( nucl == 1 ){ //proton 
+      // sigma is the per-nucleon cross section
+      // genvol is the phase space volume divided by the number of "generated" events
+      // Needs to be corrected for the simulation efficiency.
+      // Lumi is the luminosity in e*atoms/cm^2/s  
+      //weight_total = sigma * genvol * double(ngen_file[fname]) * Lumi / double( ntries );
+      //In the SBS DIS generator, a neutron (proton) is chosen with probability 1/3 (2/3) for Helium-3.
+      //Therefore, we just need to multiply the luminosity by the number of nucleons/atom to achieve sigma_3He = 2sigma_p + sigma_n
+      if( nucl == 1 ){ //proton
+	weight_p = sigma * genvol * double(ngen_file[fname]) * 3. * Lumi / double( ntries );
+      } else if ( nucl == 0 ){ //neutron
+	weight_n = sigma * genvol * double(ngen_file[fname]) * 3. * Lumi / double( ntries );
+      }
     }
     
     //cout << "event " << nevent << ", weight_p, weight_n = " << weight_p << ", " << weight_n << endl;
@@ -191,14 +203,15 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
       for( int track=0; track<T->Harm_SBSGEM_Track_ntracks; track++ ){
 	if( (*(T->Harm_SBSGEM_Track_PID))[track] == 11 &&
 	    (*(T->Harm_SBSGEM_Track_MID))[track] == 0 &&
-	    (*(T->Harm_SBSGEM_Track_P))[track]/T->primaries_Eprime >= 0.9 &&
-	    T->primaries_Eprime >= Emin_SBS ){ //Then this is the primary electron track:
-	  double xbj = T->primaries_xbj;
-	  double Q2 = T->primaries_Q2;
-	  double y = T->primaries_y;
-	  double Eprime = T->primaries_Eprime;
-	  double W = sqrt(T->primaries_W2);
-	  double etheta = T->primaries_theta_e;
+	    T->ev_ep >= Emin_SBS && T->ev_Q2 > 1.0 &&
+	    T->ev_W2 > 4.0 ){ //Then this is the primary electron track:
+	  double xbj = T->ev_xbj;
+	  double Q2 = T->ev_Q2;
+	  //double y = T->evy;
+	  double Eprime = T->ev_ep;
+	  double W = sqrt(T->ev_W2);
+	  double etheta = T->ev_th;
+	  double y = 1.0 - Eprime/T->gen_Ebeam;
 	  
 	  double gamma2 = pow(2.*Mp*xbj,2)/Q2; // Q^2 = 2M nu x --> 2Mx = Q^2/nu --> gamma^2 = Q^2 / nu^2 
 
@@ -226,14 +239,15 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
       for( int track=0; track<T->Earm_BBGEM_Track_ntracks; track++ ){
 	if( (*(T->Earm_BBGEM_Track_PID))[track] == 11 &&
 	    (*(T->Earm_BBGEM_Track_MID))[track] == 0 &&
-	    (*(T->Earm_BBGEM_Track_P))[track]/T->primaries_Eprime >= 0.9 &&
-	    T->primaries_Eprime >= Emin_BB ){ //Then this is with a high degree of certainty the primary scattered electron track:
-	  double xbj = T->primaries_xbj;
-	  double Q2 = T->primaries_Q2;
-	  double y = T->primaries_y;
-	  double Eprime = T->primaries_Eprime;
-	  double W = sqrt(T->primaries_W2);
-	  double etheta = T->primaries_theta_e;
+	    T->ev_ep >= Emin_BB && T->ev_Q2 > 1.0 &&
+	    T->ev_W2 > 4.0 ){ //Then this is with a high degree of certainty the primary scattered electron track:
+	  double xbj = T->ev_xbj;
+	  double Q2 = T->ev_Q2;
+	  //double y = T->evy;
+	  double Eprime = T->ev_ep;
+	  double W = sqrt(T->ev_W2);
+	  double etheta = T->ev_th;
+	  double y = 1.0 - Eprime/T->gen_Ebeam;
 	  
 	  double gamma2 = pow(2.*Mp*xbj,2)/Q2; // Q^2 = 2M nu x --> 2Mx = Q^2/nu --> gamma^2 = Q^2 / nu^2 
 

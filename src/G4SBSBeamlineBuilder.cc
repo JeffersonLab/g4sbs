@@ -2107,7 +2107,8 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
 //lead shielding for GMn
 void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
-  G4VisAttributes* LeadColor = new G4VisAttributes(G4Colour(0.2,0.8,0.5));
+  bool lead =false;
+  G4VisAttributes* LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
   
   G4double inch = 2.54*cm;
   G4double TargetCenter_zoffset = 6.50*inch;
@@ -2116,7 +2117,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   // Shielding for Moller electrons: at the source :)
   // Ring of material (Pb 2 cm ? or Al 12 cm ?), to stop electrons up to 100 MeV, between 6 and 12 degrees
-  G4double th_ringshield = 1.0*inch;
+  G4double th_ringshield = 1.5*inch;
   G4double z1_ringshield = 27.12*inch;
   G4double z2_ringshield = z1_ringshield+th_ringshield;
   G4double rin_ringshield = z1_ringshield*tan(6.0*deg);
@@ -2130,12 +2131,12 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   G4RotationMatrix* rot_temp = new G4RotationMatrix;
   rot_temp->rotateZ(+135.0*deg);
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( 0, 0, z1_ringshield+th_ringshield/2.0 ), ringshield_log, "ringshield_phys", worldlog, false, 0 );
+  if(lead)new G4PVPlacement( rot_temp, G4ThreeVector( 0, 0, z1_ringshield+th_ringshield/2.0 ), ringshield_log, "ringshield_phys", worldlog, false, 0 );
   ringshield_log->SetVisAttributes(LeadColor);
   
   // Shielding for Scattering chamber:
   // 
-  G4double th_SCshield = 1.5*inch;
+  G4double th_SCshield = 2.0*inch;
   G4double h_SCshield = 18.0*inch;
   G4double w1_SCshield = z1_ringshield*tan(25.1*deg)-rout_ringshield;
   G4double w2_SCshield = z2_ringshield*tan(25.1*deg)-rout_ringshield;
@@ -2157,7 +2158,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateX(+90*deg);
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( x_SCshield, 0, z_SCshield ), SCshield_log, "SCshield_phys", worldlog, false, 0 );
+  if(lead)new G4PVPlacement( rot_temp, G4ThreeVector( x_SCshield, 0, z_SCshield ), SCshield_log, "SCshield_phys", worldlog, false, 0 );
   SCshield_log->SetVisAttributes(LeadColor);
   
   // Shielding for Spool piece.
@@ -2177,7 +2178,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
 
   rot_temp = new G4RotationMatrix;
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( d_spoolshield, 0, z_spoolshield ), spoolshield_log, "spoolshield_phys", worldlog, false, 0 );
+  if(lead)new G4PVPlacement( rot_temp, G4ThreeVector( d_spoolshield, 0, z_spoolshield ), spoolshield_log, "spoolshield_phys", worldlog, false, 0 );
   spoolshield_log->SetVisAttributes(LeadColor);
   
   // Beamline shielding : between before 1st corrector magnets (BL4 only)
@@ -2199,7 +2200,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   rot_temp->rotateY(-1.5*deg);
   
   if(fDetCon->fBeamlineConf==4){
-    new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield1, 0, z_BLshield1 ), BLshield1_log, "BLshield1_phys", worldlog, false, 0 );
+    if(lead)new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield1, 0, z_BLshield1 ), BLshield1_log, "BLshield1_phys", worldlog, false, 0 );
     BLshield1_log->SetVisAttributes(LeadColor);
   }
   
@@ -2226,7 +2227,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateY(-1.5*deg);
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield2, 0, z_BLshield2 ), BLshield2_log, "BLshield2_phys", worldlog, false, 0 );
+  if(lead)new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield2, 0, z_BLshield2 ), BLshield2_log, "BLshield2_phys", worldlog, false, 0 );
   BLshield2_log->SetVisAttributes(LeadColor);
   
   // Beamline shielding : after 2nd corrector magnets (BL3 only)
@@ -2248,11 +2249,35 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   rot_temp->rotateY(-1.5*deg);
   
   if(fDetCon->fBeamlineConf==3){
-    new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield3, 0, z_BLshield3 ), BLshield3_log, "BLshield3_phys", worldlog, false, 0 );
+    if(lead)new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield3, 0, z_BLshield3 ), BLshield3_log, "BLshield3_phys", worldlog, false, 0 );
     BLshield3_log->SetVisAttributes(LeadColor);
   }
-
   
+  //"Wood" shielding ? -> Polyethylene...
+  
+  G4double L_woodshield = 3.0*m;
+  G4double h_woodshield = 4.0*m;
+  G4double th1_woodshield = 0.5*m;//z1_ringshield*tan(25.1*deg)-rout_ringshield;
+  G4double th2_woodshield = 0.875*m;//z2_ringshield*tan(25.1*deg)-rout_ringshield;
+  // G4double rin_ringshield = z1_ringshield*sin(6.0*deg);
+  // G4double rout_ringshield = z2_ringshield*sin(12.0*deg);
+  
+  G4double z_woodshield = 4.3*m*cos(16.7*deg);
+  G4double x_woodshield = 4.3*m*sin(16.7*deg);
+  
+  G4Trap* woodshield = new G4Trap("woodshield", h_woodshield, L_woodshield, th2_woodshield, 
+				  th1_woodshield);
+
+  //G4Box* leadblanket = new G4Box("leadblanket", 1.0*inch/2.0, h_hoodshield/2.0, L_woodshield/2.0); 
+  
+  G4LogicalVolume *woodshield_log = new G4LogicalVolume( woodshield, GetMaterial("Polyethylene"), "woodshield_log" );
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY(-25.75*deg);
+  rot_temp->rotateX(+90*deg);
+  
+  new G4PVPlacement( rot_temp, G4ThreeVector( x_woodshield, 0, z_woodshield ), woodshield_log, "woodshield_phys", worldlog, false, 0 );
+  woodshield_log->SetVisAttributes(G4Colour(0.2,0.9,0.75));
+
 }
 
 void G4SBSBeamlineBuilder::MakeGEnClamp(G4LogicalVolume *worldlog){

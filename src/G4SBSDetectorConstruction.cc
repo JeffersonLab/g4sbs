@@ -1,4 +1,6 @@
 #include "G4SBSDetectorConstruction.hh"
+#include "G4CalDetectorConstruction.hh" //****************
+#include "G4RTPC.hh" //****************
 
 #include "G4PhysicalConstants.hh"
 #include "G4UserLimits.hh"
@@ -35,7 +37,7 @@
 #include "G4CashKarpRKF45.hh"
 #include "G4EqMagElectricField.hh"
 #include "G4Mag_UsualEqRhs.hh"
-
+#include "G4Isotope.hh"
 #include "G4OpticalSurface.hh"
 #include "G4LogicalSkinSurface.hh"
 
@@ -43,6 +45,8 @@
 #include "G4SBSTargetBuilder.hh"
 #include "G4SBSEArmBuilder.hh"
 #include "G4SBSHArmBuilder.hh"
+
+
 
 #include "G4Mag_SpinEqRhs.hh"
 #include "G4ClassicalRK4.hh"
@@ -85,6 +89,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fBeamlineBuilder = new G4SBSBeamlineBuilder(this);
   fEArmBuilder     = new G4SBSEArmBuilder(this);
   fHArmBuilder     = new G4SBSHArmBuilder(this);
+  fCalBuilder      = new G4CalDetectorConstruction(this);//*************
+  fG4RTPCBuilder      = new G4RTPC(this);//*************
 
   fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;
 
@@ -203,6 +209,19 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element* elMn   =  new G4Element("Manganese","Mn", 25.,54.94*g/mole);
   G4Element* elNi  = new G4Element("Nickel","Ni",28.,58.70*g/mole);
 
+                  // Materials for RTPC//*************
+        /*G4Element* elCu= new G4Element("Copper", "Cu",29.,63.55*g/mole);
+        
+     density = 1.42*g/cm3;
+	G4Material* kapton = new G4Material(name="Kapton", density, nel=4);
+	kapton->AddElement(elH, 10);
+	kapton->AddElement(elC, 22);
+	kapton->AddElement(elO, 5);
+         kapton->AddElement(elN, 2);*/
+
+// G4Material* Cu = fNistManager->FindOrBuildMaterial("G4_Cu");
+
+//*************************************************************
   G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
   //Vacuum->SetMaterialPropertiesTable(Std_MPT);
   fMaterialsMap["Vacuum"] = Vacuum;
@@ -368,6 +387,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Material *Copper= new G4Material("Copper", z=29, a=   63.55*g/mole, density = 8.96*g/cm3);
   fMaterialsMap["Copper"] = Copper;
 
+
   G4Material *Kapton = new G4Material("Kapton",   density = 1.42*g/cm3, nel=4);
   Kapton->AddElement(elH, 0.026362);
   Kapton->AddElement(elC, 0.691133);
@@ -375,6 +395,14 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Kapton->AddElement(elO, 0.209235);
 
   fMaterialsMap["Kapton"] = Kapton;
+
+
+    /*  G4Isotope* d2 = new G4Isotope("2H",1,2,2.014*g/mole);
+      G4Element* deut = new G4Element("Deut","2D",1);
+      deut->AddIsotope(d2,100*perCent);
+     G4Material* fCoD2 = new G4Material("CoD2",density = 1.25*g/cm3, nel=1);//*******dens=1.25
+      fCoD2->AddElement(deut,1);*/
+
 
   //CH2 for FPP analyzers for GEP:
   G4double density_CH2 = 0.95*g/cm3;
@@ -415,6 +443,35 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   LH2mat->AddElement(elH, 1);
 
   fMaterialsMap["LH2"] = LH2mat;
+
+  double fHeDens = 0.000097516*g/cm3;
+  G4Material *CoH2 = new G4Material("CoH2", fHeDens, 1 );
+  CoH2->AddElement(elH, 1);
+  fMaterialsMap["CoH2"] = CoH2;
+
+
+  G4Material *HeRTPC = new G4Material("HeRTPC", fHeDens, 1 );
+  HeRTPC->AddElement(el3He, 1);
+  fMaterialsMap["HeRTPC"] = HeRTPC;
+
+  double fHeTDens = 0.0003188*g/cm3;
+  G4Material *CoH2T = new G4Material("CoH2T", fHeTDens, 1 );
+  CoH2T->AddElement(elH, 1);
+  fMaterialsMap["CoH2T"] = CoH2T;
+
+  double denn= 2.014*g/mole;
+  /*G4Isotope* d2 = new G4Isotope("2H" , 1 , 2 , denn);
+  G4Material *CoD2 = new G4Material("CoD2", fHeTDens, 1 );
+  CoD2->AddIsotope(d2,100*perCent);
+  CoD2->AddElement(elH, 1);
+  fMaterialsMap["CoD2"] = CoD2;*/
+
+   G4Isotope* d2 = new G4Isotope("2H",1,2,2.014*g/mole);
+      G4Element* deut = new G4Element("Deut","2D",1);
+      deut->AddIsotope(d2,100*perCent);
+   G4Material *CoD2 = new G4Material("CoD2", fHeTDens, 1);
+      CoD2->AddElement(deut,1);
+
 
   double LD2den = 162.4*kg/m3;
   G4Material *LD2mat = new G4Material("LD2", LD2den, 1 );
@@ -479,6 +536,29 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //crossing tile boundaries will be killed.
   G4Material *Tedlar = man->FindOrBuildMaterial("G4_POLYVINYLIDENE_FLUORIDE");
   fMaterialsMap["Tedlar"] = Tedlar;
+
+
+ G4Material *tungsten = man->FindOrBuildMaterial("G4_W");//W in RTPC
+fMaterialsMap["tungsten"] = tungsten;
+
+
+ G4Material *vacRTPC = man->FindOrBuildMaterial("G4_Galactic");//W in RTPC
+fMaterialsMap["vacRTPC"] = vacRTPC;
+
+ G4Material *AlRTPC = man->FindOrBuildMaterial("G4_Al");//W in RTPC
+fMaterialsMap["AlRTPC"] = AlRTPC;
+
+ G4Material *BeRTPC = man->FindOrBuildMaterial("G4_Be");//W in RTPC
+fMaterialsMap["BeRTPC"] = BeRTPC;
+
+
+
+	//Tungsten
+	/*a = 183.84*g/mole;
+	density = 19.25*g/cm3;
+     G4Material *tungsten = new G4Material(name="Tungsten", z=74., a, density);*/
+
+
 
   G4double den_lucite = 1.19*g/cm3;
 
@@ -904,6 +984,13 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   As2O3->AddElement(elAs, 2);
   As2O3->AddElement(elO, 3);
   fMaterialsMap["TF1_As2O3"] = As2O3;
+
+// Materials necessary to build G4cal //***********************
+
+  G4Material* PbF2 = new G4Material("PbF2", density=7.77*g/cm3, 2);
+  PbF2->AddElement(elPb,1);
+  PbF2->AddElement(elF, 2);
+  fMaterialsMap["PbF2"] = PbF2;
 
   // Simulating annealing: http://hallaweb.jlab.org/12GeV/SuperBigBite/SBS-minutes/2014/Sergey_Abrahamyan_LGAnnealing_2014.pdf
   // const G4int nentries_annealing_model=50;
@@ -1901,6 +1988,9 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   fEArmBuilder->BuildComponent(WorldLog);
   fHArmBuilder->BuildComponent(WorldLog);
+
+  fCalBuilder->BuildComponent(WorldLog);//*************************
+  fG4RTPCBuilder->BuildComponent(WorldLog);//*************************
 
   G4FieldManager *fm = new G4FieldManager(fGlobalField);
 

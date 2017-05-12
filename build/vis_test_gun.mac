@@ -1,0 +1,27 @@
+/g4sbs/filename test.root
+
+/g4sbs/beamcur  60.0 muA
+/g4sbs/target   H2
+/g4sbs/targpres 10 atmosphere
+/g4sbs/targlen  55.0 cm
+
+/g4sbs/rasterx  0.0 mm
+/g4sbs/rastery  0.0 mm
+
+#/g4sbs/runtime    30.0 day
+/g4sbs/beamE       10 GeV
+/g4sbs/bbang      34.0 deg
+/g4sbs/bbdist      1.7 m
+#/g4sbs/hcalang    17.5 deg
+#/g4sbs/hcaldist   17.0 m
+/g4sbs/48D48dist   2.7 m
+/g4sbs/kine         gun
+/g4sbs/particle      e-
+/g4sbs/eemin        0.5 GeV  
+/g4sbs/eemax         3.0 GeV
+/g4sbs/thmin      19.0 deg
+/g4sbs/thmax      22.0 deg
+/g4sbs/phmin     179.9 deg
+/g4sbs/phmax     180.1 deg
+/g4sbs/treeflag 1
+/g4sbs/run 200

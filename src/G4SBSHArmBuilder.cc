@@ -282,7 +282,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   new G4PVPlacement( rot_coil, woundcoil_pos1, woundcoil_log, "woundcoil_top_phys", worldlog, false, 0 );
   G4ThreeVector woundcoil_pos2 = -(coilgapheight+bigcoilheight)/2.0 * SBS_yaxis + r48d48 * SBS_zaxis;
   new G4PVPlacement( rot_coil, woundcoil_pos2, woundcoil_log, "woundcoil_bottom_phys", worldlog, false, 1 );
-  //////////////////////		       
+  //////////////////////	 	       
   
   // woundpoly.push_back( G4TwoVector(0.0,  -f48D48depth/2.0 -coilspace )); 
   // woundpoly.push_back( G4TwoVector(0.0, -f48D48depth/2.0 -coilspace-bigcoilwidth));

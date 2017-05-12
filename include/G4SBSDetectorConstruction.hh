@@ -6,7 +6,7 @@
 //#include "G4SBSIO.hh"
 #include "sbstypes.hh"
 #include "globals.hh"
-
+//#include "G4NistManager.hh"
 #include "G4Material.hh"
 #include "G4OpticalSurface.hh"
 #include "G4SDManager.hh"
@@ -25,7 +25,25 @@ class G4SBSTargetBuilder;
 class G4SBSEArmBuilder;
 class G4SBSHArmBuilder;
 
+//*******************************
+class G4CalDetectorConstruction;//***************
 
+class G4RTPC;//***************
+//class RTPC;//***************
+//#include "G4VUserDetectorConstruction.hh"
+//#include "globals.hh"
+
+//class G4VPhysicalVolume;
+//class G4GlobalMagFieldMessenger;
+
+
+//*********************************************************
+
+
+
+
+
+//******************************************************
 class G4SBSDetectorMessenger;
 
 class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
@@ -34,6 +52,7 @@ public:
   G4SBSDetectorConstruction();
   ~G4SBSDetectorConstruction();
 
+//G4NistManager* fNistManager;//**************
 public:
   G4VPhysicalVolume* Construct();
   G4VPhysicalVolume* ConstructAll();
@@ -78,6 +97,9 @@ public:
   G4SBSTargetBuilder   *fTargetBuilder;
   G4SBSEArmBuilder     *fEArmBuilder;
   G4SBSHArmBuilder     *fHArmBuilder;
+  G4CalDetectorConstruction      *fCalBuilder;//***********
+  G4RTPC     *fG4RTPCBuilder;//***********
+
 
   void SetBBDist( double);
   void SetBBAng( double);

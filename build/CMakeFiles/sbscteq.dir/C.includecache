@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/meriem/g4sbs_detecRTPC/g4sbs/src/cteq/cteq-database.c
+string.h
+-
+cteqpdf.h
+/home/meriem/g4sbs_detecRTPC/g4sbs/src/cteq/cteqpdf.h
+
+/home/meriem/g4sbs_detecRTPC/g4sbs/src/cteq/cteqpdf-f77.c
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+cteqpdf.h
+/home/meriem/g4sbs_detecRTPC/g4sbs/src/cteq/cteqpdf.h
+
+/home/meriem/g4sbs_detecRTPC/g4sbs/src/cteq/cteqpdf.c
+math.h
+-
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+cteqpdf.h
+/home/meriem/g4sbs_detecRTPC/g4sbs/src/cteq/cteqpdf.h
+
+/home/meriem/g4sbs_detecRTPC/g4sbs/src/cteq/cteqpdf.h
+

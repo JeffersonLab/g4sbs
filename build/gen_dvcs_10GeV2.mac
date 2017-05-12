@@ -1,0 +1,42 @@
+## Configure G4SBS for gen (Q^2 = 10 GeV^2)
+/g4sbs/filename        gen_10GeV2.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gen
+
+## Configure the target
+/g4sbs/target          3He
+/g4sbs/targpres        10 atmosphere     ## Target pressure
+/g4sbs/targlen         55.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         60.0 muA
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           8.8 GeV
+/g4sbs/thmin           24.0 deg
+/g4sbs/thmax           44.0 deg
+/g4sbs/phmin           -50.0 deg
+/g4sbs/phmax           50.0 deg
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/cerdist         0.57 m
+/g4sbs/gemsep          1.34 m
+/g4sbs/bbcaldist       1.4 m
+/g4sbs/gemconfig       1                 ## (Used to be 2, but changed to 1 on the recommendation of documentation on wiki)
+/g4sbs/hcaldist        17.0 m
+/g4sbs/hcalvoffset     0.0 m
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/48d48field      1
+/g4sbs/bbang           34.0 deg
+/g4sbs/bbdist          1.5 m
+/g4sbs/sbsang          17.5 deg
+/g4sbs/48D48dist       2.8 m
+
+## Run 100 events
+/g4sbs/run             100

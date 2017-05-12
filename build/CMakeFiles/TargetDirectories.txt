@@ -1,0 +1,10 @@
+/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles/install/strip.dir
+/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles/install/local.dir
+/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles/install.dir
+/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles/list_install_components.dir
+/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles/rebuild_cache.dir
+/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles/edit_cache.dir
+/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles/g4sbsroot.dir
+/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles/g4sbs.dir
+/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles/sbscteq.dir
+/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles/_gitinfo.dir

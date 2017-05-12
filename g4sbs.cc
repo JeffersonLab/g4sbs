@@ -16,6 +16,7 @@
 // Geometries:
 //------------
 #include "G4SBSDetectorConstruction.hh"
+#//#include "B4DetectorConstruction.hh"
 
 #include "G4SBSIO.hh"
 #include "G4SBSMessenger.hh"

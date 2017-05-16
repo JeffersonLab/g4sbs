@@ -292,7 +292,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   G4Box *bottomboxcut = new G4Box("bottomboxcut",bbmagwidth+eps, 250*cm/2, motherdepth+eps);
   bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR_floor", bbmothercutBox, bottomboxcut, 0, G4ThreeVector( 0.0, -1.25*m*2-20*cm, 0.0));
-
+  
+  // EFuchey: 2017/05/15: Added this cut to leave some room for the lead shielding for GMn.
+  // I checked it was not interfering with the BB magent volume nor with the BB field volume...
+  G4Box *beamshieldcut = new G4Box("beamshieldcut", 30.0*cm/2.0 + eps, 300*cm + eps, 10.0*cm/2.0 + eps);
+  bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR_shieldcut", bbmothercutBox, beamshieldcut, 0, G4ThreeVector( -(bbmagwidth+gapsize)/4.0+coilwidth+15.0*cm, 0.0, -motherdepth/2.0+2.5*cm));
+					  
+  
 
   //   Make logical volume for mother vol and place
   G4LogicalVolume *bbmotherLog=new G4LogicalVolume(bbmothercutBox,GetMaterial("Air"),

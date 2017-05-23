@@ -5,7 +5,7 @@
 #include "G4PhysicalConstants.hh"
 #include "G4UserLimits.hh"
 //#include "G4String.hh"
-
+#include "G4UImanager.hh"
 #include "G4Material.hh"
 #include "G4MaterialTable.hh"
 #include "G4MaterialPropertiesTable.hh" 
@@ -78,11 +78,16 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fExpType = kNeutronExp;
 
+  fExpType = kSIDISExp;
+
   //flags controlling ECAL thermal annealing model:
   fSegmentC16 = 0; //default to no segmentation!
   fSegmentThickC16 = 4.0*cm; //default thickness of 4 cm for lead-glass longitudinal segmentation.
   fDoseRateC16 = 0.0; //Default radiation dose rate of ZERO (no rad. damage!)
-  
+
+   fRTPCFile="data/RTPCparm.dat";//*******************
+
+
   //ConstructMaterials(); //Now we want to construct all materials at the beginning, so that the physics tables can get built properly (do this in "Construct()", not here)!!!
 
   fTargetBuilder   = new G4SBSTargetBuilder(this);
@@ -91,6 +96,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fHArmBuilder     = new G4SBSHArmBuilder(this);
   fCalBuilder      = new G4CalDetectorConstruction(this);//*************
   fG4RTPCBuilder      = new G4RTPC(this);//*************
+
+  fG4RTPCBuilder->ReadParameters(fRTPCFile);//*************
 
   fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;
 
@@ -131,6 +138,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::Construct(){
 					     "WorldPhysical",
 					     WorldLog,
 					     0,false,0);
+
+
   return WorldPhys;
 }
 
@@ -542,17 +551,20 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 fMaterialsMap["tungsten"] = tungsten;
 
 
- G4Material *vacRTPC = man->FindOrBuildMaterial("G4_Galactic");//W in RTPC
+ G4Material *vacRTPC = man->FindOrBuildMaterial("G4_Galactic");// in RTPC
 fMaterialsMap["vacRTPC"] = vacRTPC;
 
- G4Material *AlRTPC = man->FindOrBuildMaterial("G4_Al");//W in RTPC
+ G4Material *AlRTPC = man->FindOrBuildMaterial("G4_Al");// in RTPC
 fMaterialsMap["AlRTPC"] = AlRTPC;
 
- G4Material *BeRTPC = man->FindOrBuildMaterial("G4_Be");//W in RTPC
+ G4Material *BeRTPC = man->FindOrBuildMaterial("G4_Be");// in RTPC
 fMaterialsMap["BeRTPC"] = BeRTPC;
 
+ G4Material *FeRTPC = man->FindOrBuildMaterial("G4_Fe");// in RTPC
+fMaterialsMap["FeRTPC"] = FeRTPC;
 
-
+ G4Material *Stainless = man->FindOrBuildMaterial("G4_STAINLESS-STEEL");// in RTPC
+fMaterialsMap["Stainless"] = Stainless;
 	//Tungsten
 	/*a = 183.84*g/mole;
 	density = 19.25*g/cm3;
@@ -1980,13 +1992,13 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   //All three types of experiments have a target:
   //Target builder is called first:
-  fTargetBuilder->BuildComponent(WorldLog); 
+  //fTargetBuilder->BuildComponent(WorldLog); //***********************
 
   //Beamline builder is called second.
   //All three types of experiments have a beam line:
-  fBeamlineBuilder->BuildComponent(WorldLog);
+  //fBeamlineBuilder->BuildComponent(WorldLog);//***********************
 
-  fEArmBuilder->BuildComponent(WorldLog);
+  //fEArmBuilder->BuildComponent(WorldLog);
   fHArmBuilder->BuildComponent(WorldLog);
 
   fCalBuilder->BuildComponent(WorldLog);//*************************

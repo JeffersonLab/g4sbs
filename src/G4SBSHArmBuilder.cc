@@ -52,10 +52,10 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   f48D48dist = 2.8*m;
   f48D48_fieldclamp_config = 2; //0 = No field clamps. 2 = GEp (default). 1 = BigBite experiments:
 
-  fHCALdist  = 17.0*m;
+  fHCALdist  = 9.0*m;//17.0m ********************
   fHCALvertical_offset = 0.0*cm;
 
-  fRICHdist  = 15.0*m;
+  fRICHdist  = 7.0*m;//15.0m ********************
 
   f48D48depth = 1219.2*mm;
   f48D48width = 2324.1*mm;

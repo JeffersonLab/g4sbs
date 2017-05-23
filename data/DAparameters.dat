@@ -1,0 +1,18 @@
+# ESSN geant4 simulatio of Lund Neutron Test Facility
+# J.R.M.Annand 28th May 2013
+# Detector Array dimensions
+#
+# Number of detectors
+N-Detector: 1
+# Detector coordinates...0 - 3
+#Detector-Coord: 0 900 50 0   2 90 1 0 3 0
+Detector-Coord: 0 0 0 1000  2 180 1 0 3 0
+#Detector-Coord: 2 -900 50 0  2 90 1 0 3 0
+#Detector-Coord: 3 0 50 800   1 0 2 0 3 0
+#Detector-Coord: 4 0 750 187.56    1 75 2 0 3 0
+#Detector-Coord: 5 254.78 750 0    2 90 1 110 3 0
+xSAL-Dim: 200 200 10 75
+#lCell0-Dim: 50 50 5 10
+#lCell1-Dim: 75 100 5 10
+#YAP-Dim: 12.7 12.7 1 2.5
+#HPGe-Dim: 35 12.5 1 1

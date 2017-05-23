@@ -13,6 +13,7 @@ class G4SBSEventAction;
 class G4SBSPrimaryGeneratorAction;
 class G4SBSPhysicsList;
 
+class G4UIdirectory;
 class G4UIcmdWithAnInteger;
 class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWithADouble;
@@ -44,7 +45,9 @@ private:
   
 
   Exp_t fExpType;
-  
+
+  G4UIdirectory*  fDataDir;
+
   G4UIcmdWithAnInteger *runCmd;
   G4UIcmdWithAString   *fileCmd;
   G4UIcmdWithAString   *tgtCmd;

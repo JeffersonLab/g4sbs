@@ -1098,9 +1098,81 @@ CMakeFiles/g4sbs.dir/src/G4SBSTrackerOutput.cc.o.provides: CMakeFiles/g4sbs.dir/
 CMakeFiles/g4sbs.dir/src/G4SBSTrackerOutput.cc.o.provides.build: CMakeFiles/g4sbs.dir/src/G4SBSTrackerOutput.cc.o
 
 
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: CMakeFiles/g4sbs.dir/flags.make
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: ../src/TOSCAField2D.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_45) "Building CXX object CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o -c /home/meriem/g4sbs_detecRTPC/g4sbs/src/TOSCAField2D.cc
+
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/meriem/g4sbs_detecRTPC/g4sbs/src/TOSCAField2D.cc > CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.i
+
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/meriem/g4sbs_detecRTPC/g4sbs/src/TOSCAField2D.cc -o CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.s
+
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o.requires:
+
+.PHONY : CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o.requires
+
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o.provides: CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o.requires
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o.provides.build
+.PHONY : CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o.provides
+
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o.provides.build: CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o
+
+
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: CMakeFiles/g4sbs.dir/flags.make
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: ../src/TOSCAField3D.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_46) "Building CXX object CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o -c /home/meriem/g4sbs_detecRTPC/g4sbs/src/TOSCAField3D.cc
+
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/meriem/g4sbs_detecRTPC/g4sbs/src/TOSCAField3D.cc > CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.i
+
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/meriem/g4sbs_detecRTPC/g4sbs/src/TOSCAField3D.cc -o CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.s
+
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o.requires:
+
+.PHONY : CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o.requires
+
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o.provides: CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o.requires
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o.provides.build
+.PHONY : CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o.provides
+
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o.provides.build: CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o
+
+
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: CMakeFiles/g4sbs.dir/flags.make
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: ../src/Field3D.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_47) "Building CXX object CMakeFiles/g4sbs.dir/src/Field3D.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/g4sbs.dir/src/Field3D.cc.o -c /home/meriem/g4sbs_detecRTPC/g4sbs/src/Field3D.cc
+
+CMakeFiles/g4sbs.dir/src/Field3D.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/g4sbs.dir/src/Field3D.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/meriem/g4sbs_detecRTPC/g4sbs/src/Field3D.cc > CMakeFiles/g4sbs.dir/src/Field3D.cc.i
+
+CMakeFiles/g4sbs.dir/src/Field3D.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/g4sbs.dir/src/Field3D.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/meriem/g4sbs_detecRTPC/g4sbs/src/Field3D.cc -o CMakeFiles/g4sbs.dir/src/Field3D.cc.s
+
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o.requires:
+
+.PHONY : CMakeFiles/g4sbs.dir/src/Field3D.cc.o.requires
+
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o.provides: CMakeFiles/g4sbs.dir/src/Field3D.cc.o.requires
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/Field3D.cc.o.provides.build
+.PHONY : CMakeFiles/g4sbs.dir/src/Field3D.cc.o.provides
+
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o.provides.build: CMakeFiles/g4sbs.dir/src/Field3D.cc.o
+
+
 CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.o: CMakeFiles/g4sbs.dir/flags.make
 CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.o: ../src/dss2007/DSS2007FF.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_45) "Building CXX object CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_48) "Building CXX object CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.o -c /home/meriem/g4sbs_detecRTPC/g4sbs/src/dss2007/DSS2007FF.cc
 
 CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.i: cmake_force
@@ -1124,7 +1196,7 @@ CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.o.provides.build: CMakeFiles/g4sbs
 
 CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o: CMakeFiles/g4sbs.dir/flags.make
 CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o: ../include/Pythia6_tree.C
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_46) "Building CXX object CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_49) "Building CXX object CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o -c /home/meriem/g4sbs_detecRTPC/g4sbs/include/Pythia6_tree.C
 
 CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.i: cmake_force
@@ -1148,7 +1220,7 @@ CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o.provides.build: CMakeFiles/g4sbs.d
 
 CMakeFiles/g4sbs.dir/G4SBSDict.cxx.o: CMakeFiles/g4sbs.dir/flags.make
 CMakeFiles/g4sbs.dir/G4SBSDict.cxx.o: G4SBSDict.cxx
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_47) "Building CXX object CMakeFiles/g4sbs.dir/G4SBSDict.cxx.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_50) "Building CXX object CMakeFiles/g4sbs.dir/G4SBSDict.cxx.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/g4sbs.dir/G4SBSDict.cxx.o -c /home/meriem/g4sbs_detecRTPC/g4sbs/build/G4SBSDict.cxx
 
 CMakeFiles/g4sbs.dir/G4SBSDict.cxx.i: cmake_force
@@ -1215,6 +1287,9 @@ g4sbs_OBJECTS = \
 "CMakeFiles/g4sbs.dir/src/G4SBSToscaField.cc.o" \
 "CMakeFiles/g4sbs.dir/src/G4SBSTrackerBuilder.cc.o" \
 "CMakeFiles/g4sbs.dir/src/G4SBSTrackerOutput.cc.o" \
+"CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o" \
+"CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o" \
+"CMakeFiles/g4sbs.dir/src/Field3D.cc.o" \
 "CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.o" \
 "CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o" \
 "CMakeFiles/g4sbs.dir/G4SBSDict.cxx.o"
@@ -1265,6 +1340,9 @@ g4sbs: CMakeFiles/g4sbs.dir/src/G4SBSTextFile.cc.o
 g4sbs: CMakeFiles/g4sbs.dir/src/G4SBSToscaField.cc.o
 g4sbs: CMakeFiles/g4sbs.dir/src/G4SBSTrackerBuilder.cc.o
 g4sbs: CMakeFiles/g4sbs.dir/src/G4SBSTrackerOutput.cc.o
+g4sbs: CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o
+g4sbs: CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o
+g4sbs: CMakeFiles/g4sbs.dir/src/Field3D.cc.o
 g4sbs: CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.o
 g4sbs: CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o
 g4sbs: CMakeFiles/g4sbs.dir/G4SBSDict.cxx.o
@@ -1315,7 +1393,7 @@ g4sbs: /home/meriem/geant4.10.03.p01-build/BuildProducts/lib64/libG4intercoms.so
 g4sbs: /home/meriem/geant4.10.03.p01-build/BuildProducts/lib64/libG4global.so
 g4sbs: /home/meriem/geant4.10.03.p01-build/BuildProducts/lib64/libG4clhep.so
 g4sbs: CMakeFiles/g4sbs.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_48) "Linking CXX executable g4sbs"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/meriem/g4sbs_detecRTPC/g4sbs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_51) "Linking CXX executable g4sbs"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/g4sbs.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -1366,6 +1444,9 @@ CMakeFiles/g4sbs.dir/requires: CMakeFiles/g4sbs.dir/src/G4SBSTextFile.cc.o.requi
 CMakeFiles/g4sbs.dir/requires: CMakeFiles/g4sbs.dir/src/G4SBSToscaField.cc.o.requires
 CMakeFiles/g4sbs.dir/requires: CMakeFiles/g4sbs.dir/src/G4SBSTrackerBuilder.cc.o.requires
 CMakeFiles/g4sbs.dir/requires: CMakeFiles/g4sbs.dir/src/G4SBSTrackerOutput.cc.o.requires
+CMakeFiles/g4sbs.dir/requires: CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o.requires
+CMakeFiles/g4sbs.dir/requires: CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o.requires
+CMakeFiles/g4sbs.dir/requires: CMakeFiles/g4sbs.dir/src/Field3D.cc.o.requires
 CMakeFiles/g4sbs.dir/requires: CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.o.requires
 CMakeFiles/g4sbs.dir/requires: CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o.requires
 CMakeFiles/g4sbs.dir/requires: CMakeFiles/g4sbs.dir/G4SBSDict.cxx.o.requires

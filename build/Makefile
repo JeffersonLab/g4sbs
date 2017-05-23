@@ -292,6 +292,33 @@ include/Pythia6_tree.C.s:
 	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.s
 .PHONY : include/Pythia6_tree.C.s
 
+src/Field3D.o: src/Field3D.cc.o
+
+.PHONY : src/Field3D.o
+
+# target to build an object file
+src/Field3D.cc.o:
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/Field3D.cc.o
+.PHONY : src/Field3D.cc.o
+
+src/Field3D.i: src/Field3D.cc.i
+
+.PHONY : src/Field3D.i
+
+# target to preprocess a source file
+src/Field3D.cc.i:
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/Field3D.cc.i
+.PHONY : src/Field3D.cc.i
+
+src/Field3D.s: src/Field3D.cc.s
+
+.PHONY : src/Field3D.s
+
+# target to generate assembly for a file
+src/Field3D.cc.s:
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/Field3D.cc.s
+.PHONY : src/Field3D.cc.s
+
 src/G4CalDetectorConstruction.o: src/G4CalDetectorConstruction.cc.o
 
 .PHONY : src/G4CalDetectorConstruction.o
@@ -1432,6 +1459,60 @@ src/G4SBSTrackerOutput.cc.s:
 	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/G4SBSTrackerOutput.cc.s
 .PHONY : src/G4SBSTrackerOutput.cc.s
 
+src/TOSCAField2D.o: src/TOSCAField2D.cc.o
+
+.PHONY : src/TOSCAField2D.o
+
+# target to build an object file
+src/TOSCAField2D.cc.o:
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o
+.PHONY : src/TOSCAField2D.cc.o
+
+src/TOSCAField2D.i: src/TOSCAField2D.cc.i
+
+.PHONY : src/TOSCAField2D.i
+
+# target to preprocess a source file
+src/TOSCAField2D.cc.i:
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.i
+.PHONY : src/TOSCAField2D.cc.i
+
+src/TOSCAField2D.s: src/TOSCAField2D.cc.s
+
+.PHONY : src/TOSCAField2D.s
+
+# target to generate assembly for a file
+src/TOSCAField2D.cc.s:
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.s
+.PHONY : src/TOSCAField2D.cc.s
+
+src/TOSCAField3D.o: src/TOSCAField3D.cc.o
+
+.PHONY : src/TOSCAField3D.o
+
+# target to build an object file
+src/TOSCAField3D.cc.o:
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o
+.PHONY : src/TOSCAField3D.cc.o
+
+src/TOSCAField3D.i: src/TOSCAField3D.cc.i
+
+.PHONY : src/TOSCAField3D.i
+
+# target to preprocess a source file
+src/TOSCAField3D.cc.i:
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.i
+.PHONY : src/TOSCAField3D.cc.i
+
+src/TOSCAField3D.s: src/TOSCAField3D.cc.s
+
+.PHONY : src/TOSCAField3D.s
+
+# target to generate assembly for a file
+src/TOSCAField3D.cc.s:
+	$(MAKE) -f CMakeFiles/g4sbs.dir/build.make CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.s
+.PHONY : src/TOSCAField3D.cc.s
+
 src/cteq/cteq-database.o: src/cteq/cteq-database.c.o
 
 .PHONY : src/cteq/cteq-database.o
@@ -1565,6 +1646,9 @@ help:
 	@echo "... include/Pythia6_tree.o"
 	@echo "... include/Pythia6_tree.i"
 	@echo "... include/Pythia6_tree.s"
+	@echo "... src/Field3D.o"
+	@echo "... src/Field3D.i"
+	@echo "... src/Field3D.s"
 	@echo "... src/G4CalDetectorConstruction.o"
 	@echo "... src/G4CalDetectorConstruction.i"
 	@echo "... src/G4CalDetectorConstruction.s"
@@ -1691,6 +1775,12 @@ help:
 	@echo "... src/G4SBSTrackerOutput.o"
 	@echo "... src/G4SBSTrackerOutput.i"
 	@echo "... src/G4SBSTrackerOutput.s"
+	@echo "... src/TOSCAField2D.o"
+	@echo "... src/TOSCAField2D.i"
+	@echo "... src/TOSCAField2D.s"
+	@echo "... src/TOSCAField3D.o"
+	@echo "... src/TOSCAField3D.i"
+	@echo "... src/TOSCAField3D.s"
 	@echo "... src/cteq/cteq-database.o"
 	@echo "... src/cteq/cteq-database.i"
 	@echo "... src/cteq/cteq-database.s"

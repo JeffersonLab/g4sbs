@@ -53,6 +53,8 @@ public:
   ~G4SBSDetectorConstruction();
 
 //G4NistManager* fNistManager;//**************
+private:
+  G4String fRTPCFile;   
 public:
   G4VPhysicalVolume* Construct();
   G4VPhysicalVolume* ConstructAll();
@@ -60,6 +62,9 @@ public:
   void ConstructMaterials();  //Construct materials and optical surfaces
   G4Material *GetMaterial( G4String );
   G4OpticalSurface *GetOpticalSurface( G4String );
+
+  void SetWTFile(G4String file){fRTPCFile=file;}//********************
+
 
   //Build the various subsystems (BeamLine, Target, SBS Magnet, HCAL, BigCal, RICH, GEMs, etc.):
   void ConstructBeamline(G4LogicalVolume*);

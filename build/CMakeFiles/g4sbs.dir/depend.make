@@ -559,6 +559,24 @@ CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o: /home/meriem/root/include/ThreadL
 CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o: /home/meriem/root/include/snprintf.h
 CMakeFiles/g4sbs.dir/include/Pythia6_tree.C.o: /home/meriem/root/include/strlcpy.h
 
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: ../include/Field3D.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: ../src/Field3D.cc
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/externals/clhep/include/CLHEP/Units/PhysicalConstants.h
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/externals/clhep/include/CLHEP/Units/SystemOfUnits.h
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4ElectroMagneticField.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4Field.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4MagneticField.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4ExceptionSeverity.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4PhysicalConstants.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4String.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4String.icc
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4SystemOfUnits.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4Types.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4ios.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/globals.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/templates.hh
+CMakeFiles/g4sbs.dir/src/Field3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/tls.hh
+
 CMakeFiles/g4sbs.dir/src/G4CalDetectorConstruction.cc.o: ../include/G4CalDetectorConstruction.hh
 CMakeFiles/g4sbs.dir/src/G4CalDetectorConstruction.cc.o: ../include/G4SBSCalHit.hh
 CMakeFiles/g4sbs.dir/src/G4CalDetectorConstruction.cc.o: ../include/G4SBSCalSD.hh
@@ -813,6 +831,10 @@ CMakeFiles/g4sbs.dir/src/G4CalDetectorConstruction.cc.o: /home/meriem/root/inclu
 CMakeFiles/g4sbs.dir/src/G4CalDetectorConstruction.cc.o: /home/meriem/root/include/snprintf.h
 CMakeFiles/g4sbs.dir/src/G4CalDetectorConstruction.cc.o: /home/meriem/root/include/strlcpy.h
 
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/ArrayHit.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/ArraySD.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/BonusBField.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/Field3D.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/G4RTPC.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/G4SBSCalHit.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/G4SBSCalSD.hh
@@ -827,6 +849,8 @@ CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/G4SBSMagneticField.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/G4SBSRICHHit.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/G4SBSRICHSD.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/G4SBSTrackerBuilder.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/TOSCAField2D.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/TOSCAField3D.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../include/sbstypes.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: ../src/G4RTPC.cc
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/digits_hits/detector/include/G4CollectionNameVector.hh
@@ -889,8 +913,11 @@ CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geome
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4Mag_EqRhs.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4Mag_UsualEqRhs.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4MagneticField.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4UniformMagField.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4AffineTransform.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4AffineTransform.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4BlockingList.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4BlockingList.icc
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4GeomSplitter.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4GeometryManager.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4LogicalSurface.hh
@@ -901,10 +928,17 @@ CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geome
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4PhysicalVolumeStore.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4Region.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4Region.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4SmartVoxelHeader.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4SmartVoxelHeader.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4SmartVoxelNode.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4SmartVoxelNode.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4SmartVoxelProxy.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4SmartVoxelProxy.icc
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4SmartVoxelStat.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4SolidStore.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4TouchableHandle.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4USolid.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4VPVParameterisation.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4VPhysicalVolume.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4VPhysicalVolume.icc
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4VSolid.hh
@@ -912,8 +946,27 @@ CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geome
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4VStoreNotifier.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4VTouchable.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4VTouchable.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/G4VVolumeMaterialScanner.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/management/include/geomwdefs.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4AuxiliaryNavServices.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4AuxiliaryNavServices.icc
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4GlobalMagFieldMessenger.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4NavigationLogger.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4Navigator.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4Navigator.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4NormalNavigation.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4NormalNavigation.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4ParameterisedNavigation.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4ParameterisedNavigation.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4PropagatorInField.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4PropagatorInField.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4RegularNavigation.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4ReplicaNavigation.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4ReplicaNavigation.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4VIntersectionLocator.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4VIntersectionLocator.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4VoxelNavigation.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/navigation/include/G4VoxelNavigation.icc
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/solids/Boolean/include/G4BooleanSolid.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/solids/Boolean/include/G4BooleanSolid.icc
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/solids/Boolean/include/G4DisplacedSolid.hh
@@ -946,6 +999,10 @@ CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geome
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/solids/specific/include/G4UPolycone.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/solids/specific/include/G4VCSGface.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/solids/specific/include/G4VCSGfaceted.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/volumes/include/G4GRSSolid.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/volumes/include/G4GRSSolid.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/volumes/include/G4GRSVolume.hh
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/volumes/include/G4GRSVolume.icc
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/volumes/include/G4LogicalSkinSurface.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/volumes/include/G4LogicalSkinSurface.icc
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/volumes/include/G4NavigationHistory.hh
@@ -959,6 +1016,7 @@ CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geome
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/volumes/include/G4PVReplica.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/volumes/include/G4TouchableHistory.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/volumes/include/G4TouchableHistory.icc
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/volumes/include/G4TouchableHistoryHandle.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/global/HEPGeometry/include/G4LorentzVector.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/global/HEPGeometry/include/G4Normal3D.hh
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/geant4.10.03.p01/source/global/HEPGeometry/include/G4Point3D.hh
@@ -1058,7 +1116,9 @@ CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/root/include/RVersion.h
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/root/include/Riosfwd.h
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/root/include/Rtypeinfo.h
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/root/include/Rtypes.h
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/root/include/TError.h
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/root/include/TGenericClassInfo.h
+CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/root/include/TMath.h
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/root/include/TMathBase.h
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/root/include/TSchemaHelper.h
 CMakeFiles/g4sbs.dir/src/G4RTPC.cc.o: /home/meriem/root/include/TString.h
@@ -1842,6 +1902,7 @@ CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/HEPGeometry/include/geomdefs.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4Allocator.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4AllocatorPool.hh
+CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4ApplicationState.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4AutoLock.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4DataVector.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4DataVector.icc
@@ -1868,6 +1929,7 @@ CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4Types.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4UserLimits.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4UserLimits.icc
+CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4VStateDependent.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4ios.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/globals.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/templates.hh
@@ -1881,6 +1943,8 @@ CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/graphics_reps/include/G4Visible.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/graphics_reps/include/G4Visible.icc
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/graphics_reps/include/HepPolyhedron.h
+CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/intercoms/include/G4UIcommandStatus.hh
+CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/intercoms/include/G4UImanager.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/materials/include/G4Element.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/materials/include/G4ElementTable.hh
 CMakeFiles/g4sbs.dir/src/G4SBSDetectorConstruction.cc.o: /home/meriem/geant4.10.03.p01/source/materials/include/G4ElementVector.hh
@@ -6747,6 +6811,42 @@ CMakeFiles/g4sbs.dir/src/G4SBSTrackerBuilder.cc.o: /home/meriem/root/include/str
 
 CMakeFiles/g4sbs.dir/src/G4SBSTrackerOutput.cc.o: ../include/G4SBSTrackerOutput.hh
 CMakeFiles/g4sbs.dir/src/G4SBSTrackerOutput.cc.o: ../src/G4SBSTrackerOutput.cc
+
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: ../include/TOSCAField2D.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: ../src/TOSCAField2D.cc
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/externals/clhep/include/CLHEP/Units/PhysicalConstants.h
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/externals/clhep/include/CLHEP/Units/SystemOfUnits.h
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4ElectroMagneticField.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4Field.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4MagneticField.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4ExceptionSeverity.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4PhysicalConstants.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4String.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4String.icc
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4SystemOfUnits.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4Types.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4ios.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/globals.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/templates.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField2D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/tls.hh
+
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: ../include/TOSCAField3D.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: ../src/TOSCAField3D.cc
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/externals/clhep/include/CLHEP/Units/PhysicalConstants.h
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/externals/clhep/include/CLHEP/Units/SystemOfUnits.h
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4ElectroMagneticField.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4Field.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/geometry/magneticfield/include/G4MagneticField.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4ExceptionSeverity.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4PhysicalConstants.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4String.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4String.icc
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4SystemOfUnits.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4Types.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/G4ios.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/globals.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/templates.hh
+CMakeFiles/g4sbs.dir/src/TOSCAField3D.cc.o: /home/meriem/geant4.10.03.p01/source/global/management/include/tls.hh
 
 CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.o: ../src/dss2007/DSS2007FF.cc
 CMakeFiles/g4sbs.dir/src/dss2007/DSS2007FF.cc.o: ../src/dss2007/DSS2007FF.hh

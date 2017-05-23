@@ -73,21 +73,28 @@ treeout->Branch("row_edepcal", &row_edepcal, "row_edepcal/I");
 treeout->Branch("col_edepcal", &col_edepcal, "col_edepcal/I");
 treeout->Branch("ener", &ener, "ener[208]/D");
 
+TH2D* h1_thetaVsphi_e =  new TH2D("h1_thetaVsphi_e", "", 360, -180, 180, 180, 0, 180);
+
+
   for(Long64_t nevent = 0; nevent<NEvts1; nevent++){
     if( nevent%10 == 0 ){cout << nevent << endl;}
     
     T1->GetEntry(nevent);
 
-
+ h1_thetaVsphi_e->Fill(T1->ev_ph, T1->ev_th);
 //////////////////////////////////////////////////////////////////////////////
- /*   
-    cout << "======== number of hits in BBSH: " << T1->Earm_BBSH_hit_nhits << endl;
+   
+  /*  cout << "======== number of hits in HCal: " << T1->Earm_BBSH_hit_nhits << endl;
     // loop on BBSHTF1 hits
     for(Int_t i = 0; i<T1->Earm_BBSHTF1_hit_nhits; i++){
       cout << "BBSHTF1 row: " << T1->Earm_BBSHTF1_hit_row->at(i) << ", column: " << T1->Earm_BBSHTF1_hit_col->at(i) << endl;
       cout << "energy deposited (GeV) in hit " << i << ": "<< T1->Earm_BBSHTF1_hit_sumedep->at(i) << endl;
-    }
-*/
+
+
+
+
+    }*/
+
 //00000000000000000000000000000000000000000000000000000000000000000000000000000000000
    // cout << "======= number of hits in PbF2: " << T1->BBSHPbF2_hit_nhits << endl;
 
@@ -140,8 +147,9 @@ Edep +=T1->BBSHPbF2_hit_sumedep->at(i);
             xbj=T1->ev_xbj;
             W2=T1->ev_W2;
             Q2=T1->ev_Q2;
-            th=T1->ev_th;
-            phi=T1->ev_phih;
+            th=T1->ev_th*180./TMath::Pi();
+             phi=T1->ev_ph*180./TMath::Pi();
+          //  phi=T1->ev_phih;
             vv=T1->ev_vz;
             k_primx=T1->ev_epx;
             k_primy=T1->ev_epy;
@@ -155,6 +163,13 @@ Edep +=T1->BBSHPbF2_hit_sumedep->at(i);
     treeout->Fill();////////////////
 
   }//end evts
+   TCanvas *c1 = new TCanvas("c1","c1",800,1000);
+   c1->cd();
+
+   h1_thetaVsphi_e->Draw();
+ 
+ h1_thetaVsphi_e->Write();
+
  treeout->Write();////////////////
 
 

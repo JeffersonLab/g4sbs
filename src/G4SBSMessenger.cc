@@ -42,7 +42,7 @@
 #include "G4GDMLParser.hh"
 #endif
 #include "G4VPhysicalVolume.hh"
-
+#include "G4UIdirectory.hh"//***************
 #ifdef __APPLE__
 #include <unistd.h>
 #endif
@@ -55,6 +55,9 @@ G4SBSMessenger::G4SBSMessenger(){
   runCmd = new G4UIcmdWithAnInteger("/g4sbs/run",this);
   runCmd->SetGuidance("Run simulation with x events");
   runCmd->SetParameterName("nevt", false);
+
+  fDataDir = new G4UIdirectory("/g4sbs/data/");//****
+  fDataDir->SetGuidance("detector setup parameters directory");//***
 
   gemconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/gemconfig",this);
   gemconfigCmd->SetGuidance("BigBite GEM layout: option 1 (default), 2 or 3");

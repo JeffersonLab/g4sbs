@@ -71,12 +71,12 @@ G4RTPC();
    void ConWire();
    void ConGEM();
    void ConBeamLine();
-   //void ConTarget();
-   //void ConWire();
-    //G4int ReadParameters( G4String );
-
-    G4int ReadParameters();//***************
-    void DefaultInit(){};
+   G4int ReadParameters( G4String );//***************
+   void DefaultInit(){}
+   void Beamline(G4LogicalVolume *);
+   void SetMagField();
+   // G4int ReadParameters();//***************
+   // void DefaultInit(){};
     //virtual G4VPhysicalVolume* Construct();
     //virtual void ConstructSDandField();
 

@@ -15,8 +15,8 @@
 #/g4sbs/hcalang    17.5 deg
 #/g4sbs/hcaldist   17.0 m
 /g4sbs/48D48dist   2.7 m
-/g4sbs/thmin      32.0 deg
-/g4sbs/thmax      36.0 deg
+/g4sbs/thmin      36.0 deg
+/g4sbs/thmax      42.0 deg
 /g4sbs/phmin     179.9 deg
 /g4sbs/phmax     180.1 deg
 
@@ -90,5 +90,5 @@
 #
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
-/g4sbs/run  0
+/g4sbs/run  1
 /vis/viewer/flush

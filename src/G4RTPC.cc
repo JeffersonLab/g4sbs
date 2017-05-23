@@ -37,7 +37,9 @@
 #include "G4SBSTrackerBuilder.hh"
 #include "G4SBSCalSD.hh"
 #include "G4SBSECalSD.hh"
-
+#include "G4PropagatorInField.hh"
+#include "G4FieldManager.hh"
+#include "G4UniformMagField.hh"
 #include "G4Material.hh"
 //#include "G4NistManager.hh"
 
@@ -95,6 +97,15 @@
 #include "TString.h"
 
 #include "G4SystemOfUnits.hh"
+#include "G4MagneticField.hh"
+#include "TOSCAField3D.hh"
+#include "TOSCAField2D.hh"
+#include "BonusBField.hh"
+#include "Field3D.hh"
+#include "ArraySD.hh"
+//#include "G4BeamLine.hh"
+
+
 using namespace std;
 enum {EUniField, ENonUniField, EToscaField3D, EBonusBField, EToscaField2D};
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -129,7 +140,7 @@ G4RTPC::G4RTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   fNwI = fNwO = fNbl = 0;
   fShI = fShO = fShZI = fShZO = fShTh = 0.0;
   fFieldMap = NULL;
-  //fBFieldType = EUniField;//**************
+  fBFieldType = EUniField;
   fBScaleFac = 1.0;
   fMst = 0; // 0 = kapton, 1 = Al
   fOvHe = 0.0;
@@ -145,9 +156,10 @@ G4RTPC::~G4RTPC()
 
 
 //---------------------------------------------------------------------------
-/*
+
 G4int G4RTPC::ReadParameters(G4String file)
 {
+ printf(" ccccccccccccccccccccccc");
   //
   // Initialise magnet setup
   //
@@ -186,6 +198,7 @@ G4int G4RTPC::ReadParameters(G4String file)
     case EBfieldBox:
       // 1/2 dimensions of magnetic field region
       iread = sscanf(line,"%*s%lf%lf%lf",&fTx,&fTy,&fTz);
+    G4cout << fTx << fTy << G4endl;
       if( iread != 3 ) ierr++;
       break;
     case ETargDim:
@@ -295,8 +308,9 @@ G4int G4RTPC::ReadParameters(G4String file)
   if( ierr ) printf("Error detected in procedure RTPC::ReadParameters: %s\n",
 		    line);
   return ierr;
+
 }
-*/
+
 //----------------------------------------------------------------------------
 
 
@@ -308,7 +322,8 @@ void G4RTPC::BuildComponent(G4LogicalVolume *worldlog){
 ////////////////////////////////////////////////////////////////////////////////////////
 //////////////PARAMETERS fixed///////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
-
+//fMaw = worldlog; 
+/*
 //EBfieldBox// 1/2 dimensions of magnetic field region
 fTx = 600.0*mm;
 fTy = 600.0*mm;
@@ -321,7 +336,7 @@ fTst = 0.010*mm;
 fMst =  1;
 
 //EMagField/// Z component of uniform magnetic field/ Z component of uniform magnetic field
-//fBz
+fBz = 4.0;
 
 //EGasVol// Radii of active gas region
 fRHe1 = 50.0*mm;
@@ -393,16 +408,16 @@ fTG = 3.0*mm;
 
 //EGEMPixels: // no. pixels in z,phi for GEM pads
 fZPixG = 128*mm;
-fPhiPixG = 256*mm;
+fPhiPixG = 256*mm;*/
 
 ////////////////////////////////////////////////////////////////////////////////////////
 ///////////////end PARAMETERS////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 fZHe = fZst + fOvHe;
 //Exp_t exptype = fDetCon->fExpType;
-        double X =-5.0*m;// en principe 0 (mais juste un essai pour voir leRTPC
-	double Y =0.0*m;
-	double Z =5.0*m; 
+        double X = 0.0*m;// en principe 0 (mais juste un essai pour voir leRTPC
+	double Y = 0.0*m;
+	double Z = 0.0*m; 
 
   //G4Box* Bfield = new G4Box("Bfield", fTx,fTy,fTz);
   G4Tubs* Bfield = new G4Tubs("Bfield", 0.0,fTy,fTz,0.0,360*deg);
@@ -414,13 +429,17 @@ fZHe = fZst + fOvHe;
 //fLBfield->SetVisAttributes(new G4VisAttributes(G4Colour::Red()));
  
 
-ConEndCap();
-ConShell();
-ConTarget();
-ConGas();
-ConWire();
-ConGEM();
+ ConEndCap();
+ ConShell();
+ ConTarget();
+ ConGas();
+ ConWire();
+ ConGEM();
  ConBeamLine();
+  //G4Beamline* bl = new G4Beamline();
+  //bl->BuildComponent(fMaw); 
+  Beamline( worldlog );
+ SetMagField();
 
 }
 
@@ -886,6 +905,243 @@ void G4RTPC::ConBeamLine()
   LColli2->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
 }
 //----------------------------------------------------------------------------
+
+void G4RTPC::SetMagField( )
+{
+  // 2v4 use default stepper
+  // original caused chord length error
+  G4FieldManager  *magFieldMgr;
+  G4MagneticField* magField;
+  G4double pos[3];
+  G4double b[3];
+  pos[0] = pos[1] = pos[2] = 0.0;
+  switch(fBFieldType){
+  case EUniField:
+  default:
+    magField = new G4UniformMagField( G4ThreeVector(0,0,fBz*tesla) );
+    break; 
+  case ENonUniField:
+    magField = new Field3D(fXmin, fBmin, fBmax);
+    break;
+  case EToscaField3D:
+    magField = new TOSCAField3D(fFieldMap, fTXoff, fTYoff, fTZoff, fBScaleFac);
+ /*   break;
+  case EBonusBField:
+    magField = new BonusBField(fFieldMap, fTXoff, fTYoff, fTZoff, fBScaleFac);
+    */
+    //for(G4int i=0; i<10; i++){
+     // pos[0] = 0;
+     // pos[1] = i*0.6;
+     // pos[2] = i*0.6;
+     // magField->GetFieldValue(pos,b);
+     // printf("%g %g %g %g %g\n",pos[1],pos[2],b[0],b[1],b[2]);
+      //GetFieldStrength(Double_t* pos, Double_t b)
+   // }
+    
+    break;
+  case EToscaField2D:
+    magField = new TOSCAField2D(fFieldMap, fTXoff, fTYoff, fTZoff, fBScaleFac);
+    for(G4int i=0;i<100;i++){
+      pos[0] = 0.0;
+      pos[1] = 0.0;
+      pos[2] = -1500 + i*30;
+      magField->GetFieldValue(pos,b);
+      printf("%g, %g, %g, %g\n",pos[2],b[0]/tesla,b[1]/tesla,b[2]/tesla);
+    }
+    for(G4int i=0;i<100;i++){
+      pos[0] = -500 + i*10;
+      pos[1] = 0.0;
+      pos[2] = 0.0;
+      magField->GetFieldValue(pos,b);
+      printf("%g, %g, %g, %g\n",pos[0],b[0]/tesla,b[1]/tesla,b[2]/tesla);
+    }
+    break;
+  }
+  magField->GetFieldValue(pos,b);
+  printf("Value of Magnetic Field at (0,0.01,0) is Bx:%g  By:%g Bz:%g\n",
+	 b[0],b[1],b[2]);
+  //
+  //  G4Mag_UsualEqRhs* Equation = new G4Mag_UsualEqRhs(magField);
+  //  G4MagIntegratorStepper* Stepper = new G4HelixImplicitEuler(Equation);
+  G4double minStep = 0.10*mm;
+  //  G4ChordFinder* chordF = new G4ChordFinder(magField,minStep,Stepper);
+  //
+  magFieldMgr = new G4FieldManager(magField);
+  magFieldMgr->SetDetectorField(magField);
+  magFieldMgr->CreateChordFinder(magField);
+  //  magFieldMgr->SetChordFinder(chordF);
+  magFieldMgr->GetChordFinder()->SetDeltaChord(minStep);
+
+  fLBfield->SetFieldManager(magFieldMgr,true);
+}
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void G4RTPC::Beamline(G4LogicalVolume *worldlog){
+  //  Entry iron tube to shield beam from stray field
+  //
+  G4double tRmin = 5.*cm;
+  G4double tRmax = 7.*cm;
+  G4double tDzz = 20.*cm/2;
+  G4double tSPhi = 0.*deg;
+  G4double tDphi = 360.*deg;
+  //G4RotationMatrix *rm_snout = new G4RotationMatrix();
+  
+  //rm_snout->rotateY(90*deg);
+  //G4LogicalVolume* snoutvaclog = fDetCon->GetSnoutVacLog();
+
+ G4Tubs *iron_ent_tube =
+   new G4Tubs("iron_ent_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+
+  G4LogicalVolume *iron_ent_tube_log =
+    new G4LogicalVolume(iron_ent_tube, GetMaterial("FeRTPC"), "iron_ent_tube",
+			0, 0, 0 );
+
+  //new G4PVPlacement(rm_snout,G4ThreeVector(110.936*cm+tDzz,0.0,0.0),
+  //		    iron_ent_tube_log, "iron_ent_tube_phys", snoutvaclog ,
+  //		    false,0,fOvLap);
+  //  next entrance correction magnet
+  G4Box* box_1 = new G4Box("EnMag_1",50.*cm/2., 50.*cm/2., 16.*cm/2.);
+  G4Box* box_2 = new G4Box("EnMag_2",20.*cm/2., 30.*cm/2., 17.*cm/2.); // aperture to pass beam
+  G4SubtractionSolid* EnMag = new G4SubtractionSolid("EnMag", box_1, box_2);   
+  G4LogicalVolume * EnMag_log =
+    new G4LogicalVolume(EnMag , GetMaterial("FeRTPC"), "EnMag", 0, 0, 0); 
+  //new G4PVPlacement(rm_snout,G4ThreeVector(142.935*cm, 0.0, 0.0), EnMag_log,
+  //		    "EnMag_phys", snoutvaclog, false, 0, fOvLap);
+
+  // exit correction magnet 
+
+  G4Box* box_3 = new G4Box("ExtMag_1",50.*cm/2., 54.*cm/2., 40.*cm/2.);
+  G4Box* box_4 = new G4Box("ExtMag_2",25.5*cm/2., 40.*cm/2., 41.*cm/2.); // aperture to pass beam
+  G4SubtractionSolid* ExtMag = new G4SubtractionSolid("ExtMag", box_3, box_4);   
+  G4LogicalVolume * ExtMag_log =
+    new G4LogicalVolume(ExtMag ,GetMaterial("FeRTPC"), "ExtMag", 0, 0, 0); 
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 421.435*cm+20.*cm), ExtMag_log,
+		    "ExtMag_phys", worldlog, 0, 0);
+
+  // iron conical tube on the beamline inside SBS magnet split
+
+  G4double tcRmin1 = 7.4*cm;
+  G4double tcRmax1 = 8.68*cm;
+  G4double tcRmin2 = 10.55*cm;
+  G4double tcRmax2 = 11.82*cm;
+  G4double tcDzz = 120.*cm/2;
+  G4double tcSPhi = 0.*deg;
+  G4double tcDphi = 360.*deg;
+  
+ G4Cons *iron_con_tube =
+   new G4Cons("iron_con_tube", tcRmin1, tcRmax1,tcRmin2, tcRmax2, tcDzz,
+	      tcSPhi, tcDphi);
+
+  G4LogicalVolume *iron_con_tube_log =
+    new G4LogicalVolume(iron_con_tube,GetMaterial("FeRTPC"), "iron_con_tube",
+			0, 0, 0 );
+
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, 170.944*cm + tcDzz),
+		    iron_con_tube_log, "iron_con_tube_phys", worldlog,
+		    0,0);
+
+  G4VisAttributes *McorrVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
+  iron_con_tube_log->SetVisAttributes(McorrVisAtt);
+  ExtMag_log->SetVisAttributes(McorrVisAtt);
+  EnMag_log->SetVisAttributes(McorrVisAtt);
+  iron_ent_tube_log->SetVisAttributes(McorrVisAtt);
+
+  double swallrad = 1.143*m/2;
+  double swallrad_inner = 1.041/2.0*m; 
+  double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
+
+  // Stainless
+  G4double ent_len = 10*m;
+  G4double ent_rin = 31.75*mm;
+  G4double ent_rou = ent_rin+0.120*mm;
+
+  G4Tubs *ent_tube = new G4Tubs("ent_tube", ent_rin, ent_rou, ent_len/2, 0.*deg, 360.*deg );
+  G4Tubs *ent_vac  = new G4Tubs("ent_vac", 0.0, ent_rin, ent_len/2, 0.*deg, 360.*deg );
+
+  //We want to subtract this cylinder from the entry tube/pipe:
+  G4Tubs *cut_cylinder = new G4Tubs("cut_cylinder", 0.0, swallrad, 1.0*m, 0.0*deg, 360.0*deg );
+
+  G4RotationMatrix *cut_cylinder_rot = new G4RotationMatrix;
+  cut_cylinder_rot->rotateX( -90.0*deg );
+
+  G4SubtractionSolid *ent_tube_cut = new G4SubtractionSolid( "ent_tube_cut", ent_tube, cut_cylinder, cut_cylinder_rot, 
+							     G4ThreeVector( 0.0, 0.0, ent_len/2.0 + swallrad_inner ) );
+  G4SubtractionSolid *ent_vac_cut = new G4SubtractionSolid( "ent_vac_cut", ent_vac, cut_cylinder, cut_cylinder_rot, 
+							    G4ThreeVector( 0.0, 0.0, ent_len/2.0 + swallrad_inner ) );
+
+  G4LogicalVolume *entLog =
+    new G4LogicalVolume(ent_tube, GetMaterial("Stainless"),"ent_log", 0, 0, 0);
+  G4LogicalVolume *entvacLog =
+    new G4LogicalVolume(ent_vac, GetMaterial("vacRTPC"), "entvac_log", 0, 0, 0);
+  G4LogicalVolume *entLog_cut =
+    new G4LogicalVolume(ent_tube_cut, GetMaterial("Stainless"), "ent_log_cut", 0, 0, 0);
+  G4LogicalVolume *entvacLog_cut =
+    new G4LogicalVolume(ent_vac_cut, GetMaterial("vacRTPC"), "entvac_log_cut", 0, 0, 0);
+
+    // Cryotarget - up against the chamber wall
+  /*
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner),
+		    entLog_cut, "ent_phys", worldlog, false,0,fOvLap);
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-swallrad_inner),
+		    entvacLog_cut, "entvac_phys", worldlog,false,0,fOvLap);
+  */
+
+  int nsec = 7;
+  //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
+  G4double exit_z[]   = { 162.2*cm, 592.2*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };
+  G4double exit_z_vac[] = { 162.5*cm, 592.5*cm, 610.24*cm,610.35*cm, 1161.52*cm, 1161.53*cm,2726.46*cm };
+
+  G4double exit_zero[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  G4double exit_rin[] = { 4.8*cm, 14.8*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };
+  G4double exit_rou[] = { 5.0*cm, 15.0*cm,15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };
+
+
+  G4Polycone *ext_cone = new G4Polycone("ext_cone", 0.0*deg, 360.0*deg, nsec, exit_z, exit_rin, exit_rou);
+  G4Polycone *ext_vac  = new G4Polycone("ext_vac ", 0.0*deg, 360.0*deg, nsec, exit_z_vac, exit_zero, exit_rin);
+
+  G4LogicalVolume *extLog =
+    new G4LogicalVolume(ext_cone, GetMaterial("AlRTPC"), "ext_log", 0, 0, 0);
+  G4LogicalVolume *extvacLog =
+    new G4LogicalVolume(ext_vac, GetMaterial("vacRTPC"), "extvac_log", 0, 0, 0);
+
+  new G4PVPlacement(0,G4ThreeVector(), extLog, "ext_phys", worldlog, 0,0);
+  new G4PVPlacement(0,G4ThreeVector(), extvacLog, "extvac_phys", worldlog,0,0);
+
+
+  G4VisAttributes *extVisAtt= new G4VisAttributes(G4Colour(0.9,0.1,0.9));
+  extLog->SetVisAttributes(extVisAtt);
+  /*
+  double floorthick = 1.0*m;
+  G4Tubs *floor_tube = new G4Tubs("floor_tube", 0.0, 20*m, floorthick/2, 0.*deg, 360.*deg );
+
+  G4RotationMatrix *floorrm = new G4RotationMatrix;
+  floorrm->rotateX(90*deg);
+
+  G4LogicalVolume *floorLog =
+    new G4LogicalVolume(floor_tube, fRtag->GetConcrete(), "floor_log", 0, 0, 0);
+  new G4PVPlacement(floorrm, G4ThreeVector(0.0, -floorthick/2 - beamheight, 0.0), floorLog, "floor_phys", worldlog, false, 0, fOvLap);
+  */
+
+  extvacLog->SetVisAttributes(G4VisAttributes::Invisible);
+  entvacLog->SetVisAttributes(G4VisAttributes::Invisible);
+
+  entvacLog_cut->SetVisAttributes(G4VisAttributes::Invisible);
+
+  G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.2,0.6,0.2));
+
+  extLog->SetVisAttributes(pipeVisAtt);
+  entLog->SetVisAttributes(pipeVisAtt);
+  entLog_cut->SetVisAttributes(pipeVisAtt);
+
+  /*    G4VisAttributes *floorVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
+	floorLog->SetVisAttributes(floorVisAtt); */
+  //floorLog->SetVisAttributes(G4VisAttributes::Invisible);
+  
+  //MakeGEnClamp(worldlog);
+  //MakeGEnLead(worldlog);
+  return;
+}
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 /*void G4RTPC::ConstructSDandField()

@@ -108,7 +108,7 @@ G4CalDetectorConstruction::G4CalDetectorConstruction(G4SBSDetectorConstruction *
    //fCheckOverlaps(true)
   //fCalAngle(30.*deg), fCalRotation(nullptr)
 {
-  fCalAngle=20*deg;
+  fCalAngle=-20*deg;
   fCalRotation = new G4RotationMatrix();
   fCalRotation->rotateY(fCalAngle);
  
@@ -202,8 +202,8 @@ void G4CalDetectorConstruction::MakeCalo(G4LogicalVolume *worldlog)
                  worldS,           // its solid
                  defaultMaterial,  // its material
                  "World");         // its name
-  G4double x = -2.0*m* std::sin(fCalAngle);
-  G4double z = 2.0*m* std::cos(fCalAngle); 
+  G4double x = -5.0*m* std::sin(fCalAngle);
+  G4double z = 5.0*m* std::cos(fCalAngle); 
                             
   new G4PVPlacement(
                  0,                // no rotation

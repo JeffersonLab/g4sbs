@@ -92,13 +92,13 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   
   if( exptype == kNeutron && (tgttype==kLH2 || tgttype==kLD2)){
     //plugging in CDET for GMn
-    G4Box* CDetmother = new G4Box("CDetmother", 1.5*m/2.0, 3.0*m/2, 0.3*m/2.0);
+    G4Box* CDetmother = new G4Box("CDetmother", 1.5*m/2.0, 3.0*m/2, 0.4*m/2.0);
     G4LogicalVolume *CDetmother_log = new G4LogicalVolume( CDetmother, GetMaterial("Air"), "CDetmother_log" );
     
     G4RotationMatrix *HArmRot = new G4RotationMatrix;
     HArmRot->rotateY(f48D48ang);
     
-    G4ThreeVector CDetmother_pos( ( fHCALdist-0.45*m ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.45*m ) * cos( -f48D48ang ) );
+    G4ThreeVector CDetmother_pos( ( fHCALdist-0.35*m ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.35*m ) * cos( -f48D48ang ) );
     new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
     
     CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
@@ -2111,7 +2111,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
     CDET_pmt_cathode_log->SetSensitiveDetector( cdet_sd );
   }
 
-  sdname = "Earm/CDET_Scint";
+  sdname = "Harm/CDET_Scint";
   collname = "CDET_ScintHitsCollection";
 
   G4SBSCalSD *cdet_scint_sd = NULL;
@@ -2144,7 +2144,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
   //G4double R0_CDET = 405.0*cm;
   //Nominal distance to planes:
   G4double R0_planes[2] = { R0 + Lz_scint/2.0 + 1.0*cm,
-			    R0 + 3.0*Lz_scint/2.0 + 2.0*cm }; //allow for some small (1 cm) gaps between CH2 and start of 1st plane and between 1st and second planes...
+			    R0 + 3.0*Lz_scint/2.0 + 20.0*cm }; //allow for some small (1 cm) gaps between CH2 and start of 1st plane and between 1st and second planes...
 
   G4int istrip=0;
   

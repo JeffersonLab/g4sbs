@@ -24,6 +24,7 @@ public:
   void Make48D48(G4LogicalVolume*, double);
   void MakeSBSFieldClamps(G4LogicalVolume*);
   void MakeHCAL(G4LogicalVolume*, G4double);
+  void MakeCDET(G4LogicalVolume*, G4double);
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
   void MakeRICH(G4LogicalVolume *);
   void MakeRICH_new(G4LogicalVolume *);

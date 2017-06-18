@@ -2109,6 +2109,7 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   bool lead = false;
   G4VisAttributes* LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
+  G4VisAttributes* AlColor = new G4VisAttributes(G4Colour(0.75,0.75,0.75));
   
   G4double inch = 2.54*cm;
   G4double TargetCenter_zoffset = 6.50*inch;
@@ -2208,6 +2209,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
     BLshield1_log->SetVisAttributes(LeadColor);
   }
   
+  /*
   // Beamline shielding : between corrector magnets
   //
   G4double th_BLshield2 = 2.0*inch;
@@ -2256,7 +2258,11 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
     if(lead)new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield3, 0, z_BLshield3 ), BLshield3_log, "BLshield3_phys", worldlog, false, 0 );
     BLshield3_log->SetVisAttributes(LeadColor);
   }
+  */
   
+  
+  
+  /*
   //"Wood" shielding ? -> Polyethylene...
   
   G4double L_woodshield = 3.0*m;
@@ -2288,7 +2294,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
 
   rot_temp = new G4RotationMatrix;
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( -2.5*cm, 0, 0), woodshield_log, "woodshield_phys", sideshield_log, false, 0 );
+  //new G4PVPlacement( rot_temp, G4ThreeVector( -2.5*cm, 0, 0), woodshield_log, "woodshield_phys", sideshield_log, false, 0 );
   woodshield_log->SetVisAttributes( G4Colour(0.2,0.9,0.75));
 
   G4Box* leadblanket = new G4Box("leadblanket", 1.0*cm/2.0, L_woodshield/2.0-1.0*mm, h_woodshield/2.0-1.0*mm); 
@@ -2299,7 +2305,47 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateZ(-7.05*deg);
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( +0.335*m, 0, 0 ), leadblanket_log, "leadblanket_phys", sideshield_log, false, 0 );
+  //new G4PVPlacement( rot_temp, G4ThreeVector( +0.335*m, 0, 0 ), leadblanket_log, "leadblanket_phys", sideshield_log, false, 0 );
+  */
+  
+  G4double L_sideshield = 2.0*m;
+  G4double h_sideshield = 1.3*m;
+  G4double th_sideshield = 0.50*m;
+  // To be reoptimzed
+
+  G4double z_sideshield = z_conic_vacline_weldment + (0.84 + 0.14 + 45.63 + 14.38 + (51.62+22.38)/2.0)*inch;
+  G4double x_sideshield = 40.0*cm+th_sideshield/2.0;
+  
+  G4Box* sideshield = new G4Box("sideshield", th_sideshield/2.0, h_sideshield/2.0, L_sideshield/2.0);
+  
+  G4LogicalVolume *sideshield_log = new G4LogicalVolume( sideshield, GetMaterial("Air"), "sideshield_log" );  
+
+  rot_temp = new G4RotationMatrix;
+  
+  new G4PVPlacement( rot_temp, G4ThreeVector( x_sideshield, 0, z_sideshield ), sideshield_log, "sideshield_phys", worldlog, false, 0 );
+  sideshield_log->SetVisAttributes( G4VisAttributes::Invisible );
+  
+  G4double th_Alshield = 4.0*inch;
+  G4double th_SSshield = 1.0*inch;
+    
+  G4Box* Alshield = new G4Box("Alshield", th_Alshield/2.0, h_sideshield/2.0, (L_sideshield-50.0*cm)/2.0);
+  
+  G4LogicalVolume *Alshield_log = new G4LogicalVolume( Alshield, GetMaterial("Aluminum"), "Alshield_log" );  
+
+  rot_temp = new G4RotationMatrix;
+  
+  new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield/2.0, 0, -25.0*cm), Alshield_log, "Alshield_phys", sideshield_log, false, 0 );
+  Alshield_log->SetVisAttributes(AlColor);
+
+  G4Box* leadblanket = new G4Box("leadblanket", th_SSshield/2.0, h_sideshield/2.0, (L_sideshield-50.0*cm)/2.0); 
+
+  G4LogicalVolume *leadblanket_log = new G4LogicalVolume( leadblanket, GetMaterial("Lead"), "leadblanket_log" ); 
+  leadblanket_log->SetVisAttributes(LeadColor);
+  
+  rot_temp = new G4RotationMatrix;
+  
+  new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield+th_SSshield/2.0, 0, -25.0*cm ), leadblanket_log, "leadblanket_phys", sideshield_log, false, 0 );
+  /**/
 }
 
 

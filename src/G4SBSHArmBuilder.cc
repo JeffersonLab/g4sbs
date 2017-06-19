@@ -91,12 +91,22 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
   
   if( exptype == kNeutron && (tgttype==kLH2 || tgttype==kLD2)){
-    //plugging in CDET for GMn
-    G4Box* CDetmother = new G4Box("CDetmother", 1.5*m/2.0, 3.0*m/2, 0.4*m/2.0);
-    G4LogicalVolume *CDetmother_log = new G4LogicalVolume( CDetmother, GetMaterial("Air"), "CDetmother_log" );
+    //plugging in CDET for GMn  
+    G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
+    G4double depth_CDET = 40.0*cm;
     
+    G4Box *CH2_filter = new G4Box( "CH2_filter", 150.0*cm/2.0, 340.0*cm/2.0, depth_CH2/2.0 );
+    G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
+
     G4RotationMatrix *HArmRot = new G4RotationMatrix;
     HArmRot->rotateY(f48D48ang);
+    
+    G4ThreeVector CH2_pos( ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * cos( -f48D48ang ) );
+    
+    new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
+    
+    G4Box* CDetmother = new G4Box("CDetmother", 1.5*m/2.0, 3.0*m/2, depth_CDET/2.0);
+    G4LogicalVolume *CDetmother_log = new G4LogicalVolume( CDetmother, GetMaterial("Air"), "CDetmother_log" );
     
     G4ThreeVector CDetmother_pos( ( fHCALdist-0.35*m ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.35*m ) * cos( -f48D48ang ) );
     new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
@@ -2098,7 +2108,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
   G4SBSECalSD *cdet_sd = NULL;
   G4SDManager *sdman = fDetCon->fSDman;
 
-  G4String sdname = "Earm/CDET";
+  G4String sdname = "Harm/CDET";
   G4String collname = "CDETHitsCollection";
   
   if( !( cdet_sd = (G4SBSECalSD*) sdman->FindSensitiveDetector(sdname) ) ){

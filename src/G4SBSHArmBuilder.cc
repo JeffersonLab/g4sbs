@@ -111,6 +111,10 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4ThreeVector CDetmother_pos( ( fHCALdist-0.35*m ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.35*m ) * cos( -f48D48ang ) );
     new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
     
+    G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
+    CH2_visatt->SetForceWireframe(true);
+    CH2_filter_log->SetVisAttributes(CH2_visatt);
+    
     CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
     
     G4double z0_CDET = -0.15*m;
@@ -2138,12 +2142,13 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
   
   //Now we need to define the coordinates of the "modules":
   //horizontal position within mother:
-  G4double x0_modules[3] = { 0.5*(-70.986+31.014)*cm,
-			     0.5*(-63.493+38.507)*cm,
-			     0.5*(-56.0+46.0)*cm };
+  // G4double x0_modules[3] = { 0.5*(-70.986+31.014)*cm,
+  // 			     0.5*(-63.493+38.507)*cm,
+  // 			     0.5*(-56.0+46.0)*cm };
 			     // -0.5*(-63.493+38.507)*cm,
 			     // -0.5*(-70.986+31.014)*cm };
-
+  G4double x0_modules[3] = { 0.0, 0.0, 0.0 };
+  
   //Number of rows per module:
   //G4int Nrow_module[3] = { 98, 98, 98, 98, 98, 98 };
   G4int Nrow_total = 588;

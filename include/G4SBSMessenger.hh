@@ -62,6 +62,8 @@ private:
   G4UIcmdWithAnInteger *bbfieldCmd;
   G4UIcmdWithAString *tosfieldCmd;
 
+  G4UIcmdWithAnInteger *eventStatusEveryCmd;
+
   G4UIcmdWithABool *geantinoCmd;
   G4UIcmdWithABool *invertCmd;
   G4UIcmdWithABool *totalabsCmd;

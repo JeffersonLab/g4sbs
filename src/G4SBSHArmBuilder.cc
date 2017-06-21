@@ -617,7 +617,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     frontclampLog->SetVisAttributes(clampVisAtt);
     frontextfaceLog->SetVisAttributes(clampVisAtt);
     backclampLog->SetVisAttributes(clampVisAtt);
-  } else if( f48D48_fieldclamp_config == 2 ){ //GEp
+  } else if( f48D48_fieldclamp_config == 2  || f48D48_fieldclamp_config == 3) { // 2 == GEp, 3 == GMn
    
     G4double FrontClamp_width = 62.99*2.54*cm;
     G4double FrontClamp_height = 118.11*2.54*cm;
@@ -657,7 +657,19 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     new G4PVPlacement( clamp_rot, 
 		       G4ThreeVector( -FrontClamp_r*sin( f48D48ang ) + FrontClamp_xoffset*cos(f48D48ang), 0.0, FrontClamp_r*cos(f48D48ang) + FrontClamp_xoffset*sin(f48D48ang) ), 
 		       FrontClamp_log, "FrontClamp_phys", motherlog, false, 0, false );
+
+    G4VisAttributes * clampVisAtt
+      = new G4VisAttributes(G4Colour(0.8,1.0,0.4));
+
+    FrontClamp_log->SetVisAttributes(clampVisAtt);
  
+    // (Note jc2): Sticking this if statement here so we can draw the
+    // back fieldclamp only for GEp, but not GMn. However, I'm leaving
+    // the indentation as is because I don't want git to make me the
+    // author of all these changes when all I did is indent things :/
+    // Sorry in advance to whoemever is angry at the lack of indentation,
+    // blame Linus for making git :D
+    if( f48D48_fieldclamp_config == 2 ) { // GEp uses a back clamp too
     ////REAR CLAMP:
     G4double RearClamp_width = 105.12*2.54*cm;
     G4double RearClamp_height = 114.96*2.54*cm;
@@ -698,11 +710,8 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     new G4PVPlacement( clamp_rot, RearClamp_pos, RearClamp_log, "RearClamp_phys", motherlog, false, 0, false );
 
-    G4VisAttributes * clampVisAtt
-      = new G4VisAttributes(G4Colour(0.8,1.0,0.4));
-
-    FrontClamp_log->SetVisAttributes(clampVisAtt);
     RearClamp_log->SetVisAttributes(clampVisAtt);
+    } // Rear clamp log (GEp)
 
     //Make lead shielding in clamp:
     // G4double angtrap = 10.0*deg;

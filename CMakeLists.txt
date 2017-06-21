@@ -86,9 +86,9 @@ set(G4SBS_SCRIPTS
   scripts/gen_10GeV2.mac
   scripts/gmn_3.5GeV2.mac
   scripts/gmn_4.5GeV2.mac
-  scripts/gmn_6GeV2.mac
-  scripts/gmn_8.5GeV2.mac
-  scripts/gmn_10GeV2.mac
+  scripts/gmn_5.7GeV2.mac
+  scripts/gmn_8.1GeV2.mac
+  scripts/gmn_10.2GeV2.mac
   scripts/gmn_12GeV2.mac
   scripts/gmn_13.5GeV2.mac
   scripts/gep_5GeV2.mac
@@ -109,6 +109,10 @@ set(G4SBS_SCRIPTS
   root_macros/rate_table_DST.C
   root_macros/Pythia6_minbias_gen.C
   database/ecal_map.txt
+  scripts/preinit_ckov_scint.mac
+  scripts/preinit_ckov_noscint.mac
+  scripts/preinit_nockov_scint.mac
+  scripts/preinit_nockov_noscint.mac
   )
 
 foreach(_script ${G4SBS_SCRIPTS})

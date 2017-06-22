@@ -92,16 +92,23 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   
   if( exptype == kNeutron && (tgttype==kLH2 || tgttype==kLD2)){
     //plugging in CDET for GMn  
+    G4double depth_HCal_shield = 7.62*cm; //3 inches
     G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
     G4double depth_CDET = 40.0*cm;
     
-    G4Box *CH2_filter = new G4Box( "CH2_filter", 150.0*cm/2.0, 340.0*cm/2.0, depth_CH2/2.0 );
-    G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
-
     G4RotationMatrix *HArmRot = new G4RotationMatrix;
     HArmRot->rotateY(f48D48ang);
     
-    G4ThreeVector CH2_pos( ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * cos( -f48D48ang ) );
+    G4Box *HCal_shield = new G4Box( "HCal_shield", 183.8*cm/2.0, 367.6*cm/2.0, depth_HCal_shield/2.0 );
+    G4LogicalVolume *HCal_shield_log = new G4LogicalVolume( HCal_shield, GetMaterial("Steel"), "HCal_shield_log" );
+    G4ThreeVector HCal_shield_pos( ( fHCALdist-depth_HCal_shield/2.0-1.0*cm ) * sin( -f48D48ang ), 0.0, ( fHCALdist-depth_HCal_shield/2.0-1.0*cm ) * cos( -f48D48ang ) );
+    
+    new G4PVPlacement( HArmRot, HCal_shield_pos, HCal_shield_log, "HCal_shielding_phys", worldlog, false, 0 );
+    
+    G4Box *CH2_filter = new G4Box( "CH2_filter", 150.0*cm/2.0, 340.0*cm/2.0, depth_CH2/2.0 );
+    G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
+    
+    G4ThreeVector CH2_pos( ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0-1.0*cm ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0-1.0*cm ) * cos( -f48D48ang ) );
     
     new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
     
@@ -110,6 +117,10 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     
     G4ThreeVector CDetmother_pos( ( fHCALdist-0.35*m ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.35*m ) * cos( -f48D48ang ) );
     new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
+    
+    G4VisAttributes *HCal_shield_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
+    HCal_shield_visatt->SetForceWireframe(true);
+    HCal_shield_log->SetVisAttributes(HCal_shield_visatt);
     
     G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
     CH2_visatt->SetForceWireframe(true);

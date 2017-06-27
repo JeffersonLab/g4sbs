@@ -809,7 +809,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   //****************         HCAL         ****************
   //****************************************************** 
   // Set to true to enable for checking of overlapping volumes at construction
-  G4bool checkOverlap = false;
+  G4bool checkOverlap = false+true;
 
   // Determine how "realistic" we want to make HCal. Include the various small
   // holes and plates?
@@ -828,6 +828,13 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   G4double dim_ModuleY    =  152.40*CLHEP::mm;
   G4double dim_ModuleZ    = 1555.70*CLHEP::mm;
   G4double dim_ModCanZ    = 1238.00*CLHEP::mm;//948.00*CLHEP::mm;
+
+  // Also define the "CAN" dimensions, since there is still ~1.5 mm of steel
+  // in the top and bottom  about ~3 mm of steel at the sides.
+  G4double dim_ModCanThickX = 2*1.4478*CLHEP::mm; // Twice as thick in sides
+  G4double dim_ModCanThickY =   1.4478*CLHEP::mm; // Top and bottom thickness
+  G4double dim_ModCanX0    = dim_ModuleX-dim_ModCanThickX;
+  G4double dim_ModCanY0    = dim_ModuleY-dim_ModCanThickY;
 
   // Dimensions as defined by CAD drawing HCALJ-00011
   G4double dim_ScintX     =   69.35*CLHEP::mm;
@@ -929,10 +936,22 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   // drawn properly.
   G4double dim_CutFudgeFactor  = 0.005*CLHEP::mm;
 
+  // Specify the dimensions of each "external" horizontal shim
+  G4double dim_ExternalShimX   = 2*927.1*CLHEP::mm;
+  G4double dim_ExternalShimY   = 3.51*CLHEP::mm;
+  G4double dim_ExternalShimZ   = 882.65*CLHEP::mm;
+  G4double dim_ExternalShimTabZ = 44.45*CLHEP::mm;
+
+  // Specify the thickness of the front "mounting" plate that is just in
+  // front of each HCal sub sub-assembly (a steel plate)
+  // According to Eric Day, this should be about 0.75 inches
+  // (and for simplicity, the x,y dimensions will be the whole of HCal)
+  G4double dim_HCALFrontPlateZ = 19.05*CLHEP::mm;
+
   // Specify the dimensions of the HCAL mother box/volume
   G4double dim_HCALX = (num_cols-1)*dist_ModuleCToCX + dim_ModuleX;
   G4double dim_HCALY = (num_rows-1)*dist_ModuleCToCY + dim_ModuleY;
-  G4double dim_HCALZ = dim_ModuleZ;
+  G4double dim_HCALZ = dim_ModuleZ+dim_HCALFrontPlateZ;
 
   // Specify the distance from entrance to HCAL to center of target
   G4double dist_HCalRadius = fHCALdist + dim_HCALZ/2.0;
@@ -944,9 +963,15 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   G4RotationMatrix *rot_HCAL= new G4RotationMatrix;
   rot_HCAL->rotateY(f48D48ang);
 
-  // Define the solid for the module container
+  // Define the solid for the module container and "CAN"
   G4Box *sol_Module = new G4Box("sol_Module",
       dim_ModuleX/2., dim_ModuleY/2., dim_ModuleZ/2.);
+  G4Box *sol_ModCan0 = new G4Box("sol_ModCan0",
+      dim_ModuleX/2., dim_ModuleY/2., dim_ModCanZ/2.);
+  G4Box *sol_ModCan1 = new G4Box("sol_ModCan0",
+      dim_ModCanX0/2., dim_ModCanY0/2., dim_ModCanZ/2.);
+  G4SubtractionSolid *sol_ModCan = new G4SubtractionSolid("sol_ModCan",
+      sol_ModCan0, sol_ModCan1,0, G4ThreeVector(0,0,0));
 
   // Define solids for scintillator, absorber and shim gap spacer
   G4Box *sol_Scint  = new G4Box("sol_Scint",
@@ -1030,10 +1055,20 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   G4SubtractionSolid *sol_ModuleMylar = new G4SubtractionSolid("sol_ModuleMylar",
       sol_ModuleMylar0,sol_ModuleMylar1,0,G4ThreeVector(0.,0.,0.));
 
+  // Define the external shims (horizontal direction) solid and volume
+  G4Box *sol_ExternalShim = new G4Box("sol_ExternalShim",
+      dim_ExternalShimX/2.,dim_ExternalShimY/2.,dim_ExternalShimZ/2.);
+  G4LogicalVolume *log_ExternalShim = new G4LogicalVolume( sol_ExternalShim,
+      GetMaterial("Steel"), "log_ExternalShim");
+
   // Define logical volumes for Sensitive-Modules, Scintillators, Absorbers,
   // and Front/Back plates
   G4LogicalVolume *log_Module = new G4LogicalVolume( sol_Module,
       GetMaterial("Special_Air"), "log_Module" );
+
+  // Module Can
+  G4LogicalVolume *log_ModCan = new G4LogicalVolume( sol_ModCan,
+      GetMaterial("Steel"), "log_ModCan");
   // Scintillator
   G4LogicalVolume *log_Scint = new G4LogicalVolume( sol_Scint,
       GetMaterial("EJ232"), "log_Scint");
@@ -1065,16 +1100,30 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   G4LogicalVolume *log_ModuleMylar = new G4LogicalVolume( sol_ModuleMylar,
       GetMaterial("Mylar"), "log_ModuleMylar");
 
+  // Define the solid and logical volume for the FrontPlate steel mount
+  G4Box *sol_HCALFrontPlate = new G4Box("sol_HCALFrontPlate",
+      dim_HCALX/2., dim_HCALY/2., dim_HCALFrontPlateZ/2.);
+  G4LogicalVolume *log_HCALFrontPlate = new G4LogicalVolume( sol_HCALFrontPlate,
+      GetMaterial("Steel"), "log_HCALFrontPlate" );
+
   // Define solid and logical volume for mother HCAL box/volume
+  // (make it slightly larger than needed so that setting the stepping limits
+  // works)
   G4Box *sol_HCAL = new G4Box("sol_HCAL",
-      dim_HCALX/2., dim_HCALY/2., dim_HCALZ/2.);
+      dim_HCALX/2.+0.01*mm, dim_HCALY/2.+0.01*mm, dim_HCALZ/2.+0.01*mm);
   G4LogicalVolume *log_HCAL = new G4LogicalVolume( sol_HCAL,
-      GetMaterial("Air"), "lHCalo" );
+      GetMaterial("Air"), "log_HCAL" );
 
   // Position information for each element in the module
   G4double posZ = -dim_ModuleZ/2.;
 
-  // First, position the front plate and back plate
+  // Position the CAN inside the module
+  posZ += dim_EndPl0Z + dim_ModCanZ/2.;
+  new G4PVPlacement(0,G4ThreeVector(0,0,posZ),log_ModCan,"pModCan",
+      log_Module,false,0,checkOverlap);
+  posZ -= dim_EndPl0Z + dim_ModCanZ/2.;
+
+  // Then position the front plate and back plate
   posZ += dim_EndPl0Z/2.;
   G4double pos_EndOfFrontPlZ = posZ + dim_EndPl0Z/2. + dim_EndPl1Z;
   new G4PVPlacement(0,G4ThreeVector(0,0,posZ),log_FrontPl,"pFrontPl",
@@ -1246,17 +1295,44 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   }
   log_PMTCathode->SetSensitiveDetector(HCalSD);
 
+  // Set step limit to all of HCAL?
+  if( (fDetCon->StepLimiterList).find( log_HCAL->GetName() ) != (fDetCon->StepLimiterList).end() ){
+    G4UserLimits *limits = new G4UserLimits(0.0,0.0,0.0,DBL_MAX, DBL_MAX);
+    //log_HCAL->SetUserLimits(new G4UserLimits(0.0,0.0,0.0,DBL_MAX, DBL_MAX) );
+    log_HCAL->SetUserLimits(limits);
+    //log_Scint->SetUserLimits(limits);
+    //log_HCALFrontPlate->SetUserLimits(limits);
+    G4cout << "Making " << log_HCAL->GetName() << " a total absorber" << G4endl;
+    G4String sdname = "Harm/HCALbox";
+    G4String collname = "HCAL_boxHitsCollection";
+    G4SBSCalSD *HCALboxSD = NULL;
+    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(sdname)) ){
+      G4cout << "Adding HCALbox sensitive detector to SDman..." << G4endl;
+      HCALboxSD = new G4SBSCalSD( sdname, collname );
+      sdman->AddNewDetector( HCALboxSD );
+      (fDetCon->SDlist).insert( sdname );
+      fDetCon->SDtype[sdname] = kCAL;
+      (HCALboxSD->detmap).depth = 0;
+      log_HCAL->SetSensitiveDetector( HCALboxSD );
+    }
+  }
+
+  // Place the HCALFrontPlate steel mount
+  new G4PVPlacement(0, G4ThreeVector(0,0,-(dim_HCALZ-dim_HCALFrontPlateZ)/2.),
+      log_HCALFrontPlate,"log_HCALFrontPlate",log_HCAL,false,0,checkOverlap);
 
   // Set the initial vertical position for a module as the bottom of HCAL
   G4double posModX;
   G4double posModY = -dim_HCALY/2.+ dim_ModuleY/2.;
+  G4double posModZ = dim_HCALFrontPlateZ/2.;
+  G4double posExternalShimZ = -dim_HCALZ/2. + dim_HCALFrontPlateZ + dim_ExternalShimZ/2.;
   copyNo = 0;
   // Construct physical volumes for each of the sensitive modules
   for(int row = 0; row <  num_rows; row++ ) {
     posModX = -dim_HCALX/2. + dim_ModuleX/2.;
     for(int col = 0; col <  num_cols; col++ ) {
       // Place module inside HCAL
-      new G4PVPlacement(0, G4ThreeVector(posModX,posModY,0.),
+      new G4PVPlacement(0, G4ThreeVector(posModX,posModY,posModZ),
           log_Module, "log_Module", log_HCAL, false, copyNo, checkOverlap);
 
       // Configure Sensitive Detector Map
@@ -1268,7 +1344,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
       (HCalScintSD->detmap).Row[copyNo] = row;
       (HCalScintSD->detmap).Col[copyNo] = col;
       (HCalScintSD->detmap).LocalCoord[copyNo] =
-        G4ThreeVector(posModX,posModY,0.0);
+        G4ThreeVector(posModX,posModY,posModZ);
 
       // Increment horizontal position for next module
       posModX += dist_ModuleCToCX;
@@ -1276,8 +1352,15 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
       // Increment the copyNo
       copyNo++;
     }
-    // Increment vertical position for next module
-    posModY += dist_ModuleCToCY;
+    // Increment vertical position for next module. For most instances
+    // we'll need a shim spacer before doing so
+    posModY += dist_ModuleCToCY/2.;
+    if(row < num_rows -1)
+      new G4PVPlacement(0, G4ThreeVector(0,posModY,posExternalShimZ),
+          log_ExternalShim, "log_ExternalShim", log_HCAL, false, copyNo,
+          checkOverlap);
+
+    posModY += dist_ModuleCToCY/2.;
   }
 
   // Lastly, place the HCAL volume
@@ -1330,6 +1413,11 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   //log_Module->SetVisAttributes(vis_Module);
   log_Module->SetVisAttributes(G4VisAttributes::Invisible);
 
+  // Hide the Can
+  //G4VisAttributes *vis_ModCan = new G4VisAttributes(G4Colour(0.78,0.92,0.27));
+  //log_ModCan->SetVisAttributes(vis_ModCan);
+  log_ModCan->SetVisAttributes(G4VisAttributes::Invisible);
+
   // Module Mylar (invisible)
   log_ModuleMylar->SetVisAttributes(G4VisAttributes::Invisible);
 
@@ -1366,6 +1454,11 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   G4VisAttributes *vis_ShimGapSpacer = new G4VisAttributes(
       G4Colour(1.0,1.0,0.0));
   log_ShimGapSpacer->SetVisAttributes(vis_ShimGapSpacer);
+
+  // FrontPlate (steel mounting plate)
+  G4VisAttributes *vis_HCALFrontPlate = new G4VisAttributes(
+      G4Colour(1.0,0.0,0.0));
+  log_HCALFrontPlate->SetVisAttributes(vis_HCALFrontPlate);
 
   // HCAL enclosure should be invisible
   log_HCAL->SetVisAttributes(G4VisAttributes::Invisible);

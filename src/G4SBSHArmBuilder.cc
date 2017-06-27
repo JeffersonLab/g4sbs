@@ -1321,15 +1321,16 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   new G4PVPlacement(0, G4ThreeVector(0,0,-(dim_HCALZ-dim_HCALFrontPlateZ)/2.),
       log_HCALFrontPlate,"log_HCALFrontPlate",log_HCAL,false,0,checkOverlap);
 
-  // Set the initial vertical position for a module as the bottom of HCAL
+  // Set the initial vertical position for a module as the top of HCAL
+  // Initial horizontal position would be on the left
   G4double posModX;
-  G4double posModY = -dim_HCALY/2.+ dim_ModuleY/2.;
+  G4double posModY = dim_HCALY/2. - dim_ModuleY/2.;
   G4double posModZ = dim_HCALFrontPlateZ/2.;
   G4double posExternalShimZ = -dim_HCALZ/2. + dim_HCALFrontPlateZ + dim_ExternalShimZ/2.;
   copyNo = 0;
   // Construct physical volumes for each of the sensitive modules
   for(int row = 0; row <  num_rows; row++ ) {
-    posModX = -dim_HCALX/2. + dim_ModuleX/2.;
+    posModX = dim_HCALX/2. - dim_ModuleX/2.;
     for(int col = 0; col <  num_cols; col++ ) {
       // Place module inside HCAL
       new G4PVPlacement(0, G4ThreeVector(posModX,posModY,posModZ),
@@ -1347,20 +1348,20 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
         G4ThreeVector(posModX,posModY,posModZ);
 
       // Increment horizontal position for next module
-      posModX += dist_ModuleCToCX;
+      posModX -= dist_ModuleCToCX;
 
       // Increment the copyNo
       copyNo++;
     }
     // Increment vertical position for next module. For most instances
     // we'll need a shim spacer before doing so
-    posModY += dist_ModuleCToCY/2.;
+    posModY -= dist_ModuleCToCY/2.;
     if(row < num_rows -1)
       new G4PVPlacement(0, G4ThreeVector(0,posModY,posExternalShimZ),
           log_ExternalShim, "log_ExternalShim", log_HCAL, false, copyNo,
           checkOverlap);
 
-    posModY += dist_ModuleCToCY/2.;
+    posModY -= dist_ModuleCToCY/2.;
   }
 
   // Lastly, place the HCAL volume

@@ -54,6 +54,7 @@ public:
   void Set48D48Field(int n);
 
   void SetTotalAbs(bool b){ fTotalAbs= b; }
+  void SetCheckOverlap(bool b){ fCheckOverlap = b; }
 
   void SetExpType( Exp_t et ){ fExpType = et; }
   void SetTarget( Targ_t tg ){ fTargType = tg; }
@@ -73,6 +74,7 @@ public:
   
   G4SDManager *fSDman; 
   bool fTotalAbs;
+  bool fCheckOverlap; //< Check if volumes overlap
 
   G4SBSBeamlineBuilder *fBeamlineBuilder;
   G4SBSTargetBuilder   *fTargetBuilder;

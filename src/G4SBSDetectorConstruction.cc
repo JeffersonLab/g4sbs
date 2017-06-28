@@ -74,6 +74,9 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fExpType = kNeutronExp;
 
+  // By default, don't check detectors for overlaps
+  fCheckOverlap = false;
+
   //flags controlling ECAL thermal annealing model:
   fSegmentC16 = 0; //default to no segmentation!
   fSegmentThickC16 = 4.0*cm; //default thickness of 4 cm for lead-glass longitudinal segmentation.

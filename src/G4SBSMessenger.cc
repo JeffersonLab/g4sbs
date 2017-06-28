@@ -133,6 +133,10 @@ G4SBSMessenger::G4SBSMessenger(){
   totalabsCmd->SetGuidance("Magnet materials are total absorbers (default=false)");
   totalabsCmd->SetParameterName("totalabs", false);
 
+  checkOverlapCmd = new G4UIcmdWithABool("/g4sbs/checkOverlap", this);
+  checkOverlapCmd->SetGuidance("Check if volumes overlap (default=false)");
+  checkOverlapCmd->SetParameterName("checkOverlap", false);
+
   tgtLenCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targlen",this);
   tgtLenCmd->SetGuidance("Target length along beam direction");
   tgtLenCmd->SetParameterName("targlen", false);
@@ -697,6 +701,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == totalabsCmd ){
     G4bool b = totalabsCmd->GetNewBoolValue(newValue);
     fdetcon->SetTotalAbs(b);
+  }
+
+  if( cmd == checkOverlapCmd ){
+    G4bool b = checkOverlapCmd->GetNewBoolValue(newValue);
+    fdetcon->SetCheckOverlap(b);
   }
 
   if( cmd == tgtLenCmd ){

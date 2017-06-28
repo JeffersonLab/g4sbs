@@ -808,8 +808,8 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   //******************************************************
   //****************         HCAL         ****************
   //****************************************************** 
-  // Set to true to enable for checking of overlapping volumes at construction
-  G4bool checkOverlap = false+true;
+  // Set to true to enable checking of overlapping volumes at construction
+  G4bool checkOverlap = fDetCon->fCheckOverlap;
 
   // Determine how "realistic" we want to make HCal. Include the various small
   // holes and plates?
@@ -1325,7 +1325,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   // Initial horizontal position would be on the left
   G4double posModX;
   G4double posModY = dim_HCALY/2. - dim_ModuleY/2.;
-  G4double posModZ = dim_HCALFrontPlateZ/2.;
+  G4double posModZ = dim_HCALFrontPlateZ;
   G4double posExternalShimZ = -dim_HCALZ/2. + dim_HCALFrontPlateZ + dim_ExternalShimZ/2.;
   copyNo = 0;
   // Construct physical volumes for each of the sensitive modules

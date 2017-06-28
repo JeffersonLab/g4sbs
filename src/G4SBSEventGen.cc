@@ -1058,7 +1058,7 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
       fSigma = sigpim;
       break;
     case kPi0:
-      fSigma = (sigpip +sigpim)/2.0;
+      fSigma = (sigpip +sigpim)*2.0;
       break;
     default:
       fSigma = 0;
@@ -1073,7 +1073,7 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
       fSigma = sigpip;
       break;
     case kPi0:
-      fSigma = (sigpip +sigpim)/2.0;
+      fSigma = (sigpip +sigpim)*2.0;
       break;
     default:
       fSigma = 0;

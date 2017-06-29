@@ -106,6 +106,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   // Build CDET (as needed)
   if( exptype == kNeutron && (tgttype==kLH2 || tgttype==kLD2)){
     //plugging in CDET for GMn  
+    G4double depth_HCal_shield = 7.62*cm; //3 inches
     G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
     G4double depth_CDET = 40.0*cm;
 
@@ -1370,7 +1371,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   // Initial horizontal position would be on the left
   G4double posModX;
   G4double posModY = dim_HCALY/2. - dim_ModuleY/2.;
-  G4double posModZ = dim_HCALFrontPlateZ;
+  G4double posModZ = dim_HCALFrontPlateZ/2.;
   G4double posExternalShimZ = -dim_HCALZ/2. + dim_HCALFrontPlateZ + dim_ExternalShimZ/2.;
   copyNo = 0;
   // Construct physical volumes for each of the sensitive modules

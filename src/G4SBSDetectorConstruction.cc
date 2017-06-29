@@ -1518,7 +1518,26 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   CDET_Acrylic->SetMaterialPropertiesTable(MPT_temp);
 
   fMaterialsMap["CDET_Acrylic"] = CDET_Acrylic;
-    
+
+  //  *****************************
+  //  *    BB timing hodoscope    *
+  //  *****************************
+  G4double d_PolyVinylToluene = 0.57*g/cm3;
+  G4double d_Anthracene = 1.28*g/cm3;
+  G4double d_BBHodo_Scinti = 1.023*g/cm3;
+  G4Material* PolyVinylToluene = new G4Material( "PolyVinylToluene", d_PolyVinylToluene, 2 );
+  PolyVinylToluene->AddElement(elC, fractionmass = 0.91471);
+  PolyVinylToluene->AddElement(elH, fractionmass = 0.08529);
+  
+  G4Material* Anthracene = new G4Material( "Anthracene", d_Anthracene, 2 );
+  Anthracene->AddElement(elC, fractionmass = 0.943447);
+  Anthracene->AddElement(elH, fractionmass = 0.056553);
+  
+  G4Material *BBHodo_Scinti = new G4Material( "BBHodo_Scinti", d_BBHodo_Scinti,  2 );
+  BBHodo_Scinti->AddMaterial(PolyVinylToluene, fractionmass = 0.36);
+  BBHodo_Scinti->AddMaterial(Anthracene, fractionmass = 0.64);
+  fMaterialsMap["BBHodo_Scinti"] = BBHodo_Scinti;
+  
   //  *****************************
   //  *     Preshower/Shower      * 
   //  *****************************

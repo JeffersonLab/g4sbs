@@ -15,7 +15,7 @@ void initcteqpdf(){
 }
 
 double dissigma( double ebeam, double th, double eprime, Nucl_t nucl ){
-    // Return in nb
+    // Return in nb/(GeV*sr)
 
     double Q2 = 2.0*eprime*ebeam*(1.0-cos(th));
     double nu = ebeam-eprime;

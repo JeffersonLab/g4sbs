@@ -98,6 +98,13 @@ set(G4SBS_SCRIPTS
   #scripts/make_SIDIS_scripts.C
   scripts/vis_sidis.mac
   scripts/sidis_background.mac
+  scripts/vis_gep.mac
+  scripts/vis_gmn.mac
+  scripts/preinit_ckov_scint.mac
+  scripts/preinit_ckov_noscint.mac
+  scripts/preinit_nockov_scint.mac
+  scripts/preinit_nockov_noscint.mac
+  scripts/sidis_example_script.mac
   root_macros/G4SBS_optics_fit.C 
   root_macros/RICH_analysis.C    
   root_macros/g4sbs_tree.C       

@@ -70,6 +70,7 @@ private:
   G4UIcmdWithABool *checkOverlapCmd;
   
   G4UIcmdWithAnInteger *gemconfigCmd;
+  G4UIcmdWithAnInteger *shieldconfigCmd;
   G4UIcmdWithAnInteger *CDetconfigCmd;
 
   G4UIcmdWithABool *flipGEMCmd;
@@ -96,6 +97,9 @@ private:
   G4UIcmdWithADoubleAndUnit *hcalvoffsetCmd;
   G4UIcmdWithADoubleAndUnit *hmagdistCmd;
   G4UIcmdWithADoubleAndUnit *hcalangCmd;
+  //Add command to set pitch angle for SBS tracker + RICH in "electron mode" 
+  G4UIcmdWithADoubleAndUnit *sbstrkrpitchCmd;
+  //G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
   
   //These commands set angle generation limits for the electron:
   G4UIcmdWithADoubleAndUnit *thminCmd;
@@ -123,7 +127,7 @@ private:
   
   // Commands needed to specify RICH positioning:
   G4UIcmdWithADoubleAndUnit *RICHdistCmd; //Set RICH distance
-
+  
   // Commands to set configurable properties of SBS:
   G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd;
 
@@ -132,6 +136,7 @@ private:
   G4UIcmdWithADouble *HARM_ScaleFieldCmd; 
   
   G4UIcmdWithAnInteger      *SBSFieldClampOptionCmd;
+  G4UIcmdWithAnInteger      *SBSBeamlineConfCmd;
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
 
   G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree

@@ -451,15 +451,3 @@ double sigma_n( double E, double th, double Ep ){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-

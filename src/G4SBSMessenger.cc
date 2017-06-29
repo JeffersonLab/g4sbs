@@ -60,6 +60,10 @@ G4SBSMessenger::G4SBSMessenger(){
   gemconfigCmd->SetGuidance("BigBite GEM layout: option 1 (default), 2 or 3");
   gemconfigCmd->SetParameterName("gemconfig", false);
 
+  shieldconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/bbshieldconfig",this);
+  shieldconfigCmd->SetGuidance("BB Ecal shielding layout: option 0 (none), 1 (default), 2 (+10cm Al + 3cm steel on side), 3 (+3cm steel + 3cm steel on side)");
+  shieldconfigCmd->SetParameterName("bbshieldconfig", false);
+
   CDetconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/CDetconfig",this);
   CDetconfigCmd->SetGuidance("CDet Geometry Options(integer 1,2,3, or 4): Option 1 (default) = Simplest option, only material budget with no SD assigned, Option 2 = Flat, 2 planes with sensitive regions, Option 3 = Top/Bottom 'modules' are angled relative to central 'module', and Option 4 = Each bar is shimmed in order to optimize normal incidence");
   CDetconfigCmd->SetParameterName("CDetconfig",false);
@@ -185,6 +189,10 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalangCmd->SetGuidance("SBS angle");
   hcalangCmd->SetParameterName("angle", false);
 
+  sbstrkrpitchCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbstrkrpitch",this);
+  sbstrkrpitchCmd->SetGuidance("SBS tracker pitch angle (tilt toward up-bending particles)");
+  sbstrkrpitchCmd->SetParameterName("angle", false);
+  
   hcaldistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcaldist",this);
   hcaldistCmd->SetGuidance("HCAL distance");
   hcaldistCmd->SetParameterName("dist", false);
@@ -287,6 +295,10 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 0=no clamp, 1=BigBite(default), 2=GEp");
   SBSFieldClampOptionCmd->SetParameterName("sbsclampoption",false);
 
+  SBSBeamlineConfCmd = new G4UIcmdWithAnInteger("/g4sbs/beamlineconfig",this);
+  SBSBeamlineConfCmd->SetGuidance("SBS beamline configuration: 1: GEp; 2: GEn; 3 (def): GMn 2-4 pass; 4; GMn 5 pass");
+  SBSBeamlineConfCmd->SetParameterName("beamlineconf",false);
+  
   SBSLeadOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/uselead",this);
   SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
   SBSLeadOptionCmd->SetParameterName("uselead",false);
@@ -441,6 +453,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4int gemconfval = gemconfigCmd->GetNewIntValue(newValue);
     fdetcon->fEArmBuilder->SetGEMConfig(gemconfval);
   }
+
+  if( cmd == shieldconfigCmd ){
+    G4int shieldconfval = shieldconfigCmd->GetNewIntValue(newValue);
+    fdetcon->fEArmBuilder->SetShieldConfig(shieldconfval);
+  }
   
   if( cmd == CDetconfigCmd ){
     G4int cdetconf = CDetconfigCmd->GetNewIntValue(newValue);
@@ -545,7 +562,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("a1n") == 0 ){
-      fExpType = kNeutronExp;
+      fExpType = kA1n; //"A1n" experiment type for new proposal with both SBS and BigBite in electron mode to detect DIS electrons at high-x: requires some geometry modifications on SBS side, including RICH w/CO2 instead of C4F10 and no aerogel, AND with a non-zero pitch angle for the SBS tracker. Later: HCAL replaced by CLAS LAC?
       validcmd = true;
     }
     //AJP: Add SIDIS as a valid experiment type:
@@ -778,6 +795,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fIO->SetSBSTheta(v);
   }
 
+  if( cmd == sbstrkrpitchCmd ){
+    G4double v = sbstrkrpitchCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetTrackerPitch(v);
+  }
+  
   if( cmd == hcaldistCmd ){
     G4double v = hcaldistCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetHCALDist(v);
@@ -912,6 +934,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fHArmBuilder->SetFieldClampConfig48D48( i );
   }
 
+  if( cmd == SBSBeamlineConfCmd ){
+    G4int i = SBSBeamlineConfCmd->GetNewIntValue(newValue);
+    fdetcon->fBeamlineConf = i;
+  }
+  
   if( cmd == SBSLeadOptionCmd ){
     G4int i = SBSLeadOptionCmd->GetNewIntValue(newValue);
     fdetcon->fLeadOption = i;

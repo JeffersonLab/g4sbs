@@ -135,6 +135,8 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   // Not necessarily kinematically allowed
 
+  ev_t evdata = fIO->GetEventData();
+  
   if( sbsgen->GetKine()!= kWiser ){
     particleGun->SetParticlePolarization( G4ThreeVector(0.0,0.0,0.0) );
     //G4cout << "Gun polarization for the primary electron: " << particleGun->GetParticlePolarization() << G4endl;
@@ -148,7 +150,6 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       G4ThreeVector Pol_transport = GunPolarization.y() * xaxis - GunPolarization.x() * yaxis + GunPolarization.z() * sbsaxis;  
 
-      ev_t evdata = fIO->GetEventData();
       evdata.Sx = GunPolarization.x();
       evdata.Sy = GunPolarization.y();
       evdata.Sz = GunPolarization.z();
@@ -216,6 +217,20 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	//	G4cout << "Initial polarization = " << S_hat << G4endl;
 	
 	particleGun->SetParticlePolarization( S_hat.unit() );
+
+	gen_t gendata = fIO->GetGenData();
+	G4double sbsangle = gendata.thsbs;
+
+	G4ThreeVector sbsaxis( -sin(sbsangle), 0, cos(sbsangle) );
+	G4ThreeVector yaxis(0,1,0);
+	G4ThreeVector xaxis = (yaxis.cross(sbsaxis)).unit();
+
+	evdata.Sx = -S_hat.dot( yaxis );
+	evdata.Sy = S_hat.dot( xaxis );
+	evdata.Sz = S_hat.dot( sbsaxis );
+
+	fIO->SetEventData( evdata );
+	
       }
     }
   } else if( sbsgen->GetKine() == kSIDIS || sbsgen->GetKine() == kWiser ){ //SIDIS case: generate a final hadron:
@@ -262,7 +277,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   // Only do final nucleon/hadron for generators other than
   // the generic beam generator
-  if( sbsgen->GetKine() != kBeam && sbsgen->GetKine() != kGun ){
+  if( sbsgen->GetKine() != kBeam && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kDIS ){
     //G4cout << "Gun polarization = " << particleGun->GetParticlePolarization() << G4endl;
       particleGun->GeneratePrimaryVertex(anEvent);
   }

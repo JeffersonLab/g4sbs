@@ -95,6 +95,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fUseGlobalField = false;
 
+  fBeamlineConf = 3;
   fLeadOption = 0;
 
   SDlist.clear();
@@ -341,9 +342,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["CO2"] = CO2;
 
-  // 1.5 Atmosphere C4F8O for cerkenkov
+  // 1.5 Atmosphere C4F8O for Cherenkov => changed to 1 atm : 2017/03/13
   G4double density_C4F8O = 9.64*mg/cm3; // density at 1ATM
-  G4Material* C4F8O = new G4Material("C4F8O", density_C4F8O*1.5, nel=3);
+  //G4Material* C4F8O = new G4Material("C4F8O", density_C4F8O*1.5, nel=3);
+  G4Material* C4F8O = new G4Material("C4F8O", density_C4F8O, nel=3);// 
   C4F8O->AddElement(elC, 4);
   C4F8O->AddElement(elF, 8);
   C4F8O->AddElement(elO, 1);
@@ -359,7 +361,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPC4F8O->AddProperty("RINDEX",PhotonEnergy, C4F8O_RefractiveIndex, nEntries);
   MPC4F8O->AddProperty("ABSLENGTH",PhotonEnergy, C4F8O_ABSLENGTH, nEntries);
   C4F8O->SetMaterialPropertiesTable(MPC4F8O);
-
+  
   fMaterialsMap["C4F8O"] = C4F8O;
 
   G4double density_ArCO2 = .7*density_Ar + .3*density_CO2;
@@ -706,6 +708,19 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   C4F10_gas->SetMaterialPropertiesTable( MPT_temp );
   fMaterialsMap["C4F10_gas"] = C4F10_gas;
 
+  G4double Ephoton_RICH_air[nentries_C4F10] = { 1.77*eV, 6.20*eV };
+  G4double Rindex_RICH_air[nentries_C4F10] = { 1.000277, 1.000277 };
+  G4double Abslength_RICH_air[nentries_C4F10] = {1000.0*m, 1000.0*m };
+
+  MPT_temp = new G4MaterialPropertiesTable();
+  MPT_temp->AddProperty("RINDEX", Ephoton_RICH_air, Rindex_RICH_air, nentries_C4F10 );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_RICH_air, Abslength_RICH_air, nentries_C4F10 );
+
+  G4Material *RICH_air = man->FindOrBuildMaterial("G4_AIR");
+  RICH_air->SetMaterialPropertiesTable( MPT_temp );
+
+  fMaterialsMap["RICH_air"] = RICH_air;
+  
   //Quantum efficiency for PMT photocathode ("typical", from XP1911/UV data sheet):
   const G4int nentries_QE = 40;
 
@@ -817,6 +832,14 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   }
 
 
+  MPT_temp = new G4MaterialPropertiesTable();
+  MPT_temp->AddProperty("RINDEX", Ephoton_aerogel, Rindex_aerogel, nsteps );
+  MPT_temp->AddProperty("RAYLEIGH", Ephoton_aerogel, Rayleigh_aerogel, nsteps );
+  //MPT_temp->AddConstProperty("ABSLENGTH", 10.0*m );
+
+  Aerogel->SetMaterialPropertiesTable( MPT_temp );
+  fMaterialsMap["Aerogel"] = Aerogel;
+  
   // Grinch Quartz
 
   G4Material* Quartz=new G4Material("Quartz", density= 2.200*g/cm3, 2);
@@ -837,17 +860,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   mptQuartz->AddProperty("ABSLENGTH",PhotonEnergy,absl_Quartz,nEntries);
   Quartz->SetMaterialPropertiesTable(mptQuartz);
   fMaterialsMap["Quartz"] = Quartz;
-
-
-
-  MPT_temp = new G4MaterialPropertiesTable();
-  MPT_temp->AddProperty("RINDEX", Ephoton_aerogel, Rindex_aerogel, nsteps );
-  MPT_temp->AddProperty("RAYLEIGH", Ephoton_aerogel, Rayleigh_aerogel, nsteps );
-  //MPT_temp->AddConstProperty("ABSLENGTH", 10.0*m );
-
-  Aerogel->SetMaterialPropertiesTable( MPT_temp );
-  fMaterialsMap["Aerogel"] = Aerogel;
-
 
 
   //Define the reflectivity of the mirror surface using the "Logical Skin surface":

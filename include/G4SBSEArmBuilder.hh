@@ -24,6 +24,7 @@ public:
   void SetBBCalDist(double a){ fBBCaldist= a; }
   void SetGEMConfig(int gc ){ fGEMOption = gc; }
   //void SetCDetconfig(int cdetc){ fCDetOption = cdetc; }
+  void SetShieldConfig(int sc ){ fShieldOption = sc; }
   
   void MakeBigBite(G4LogicalVolume *);
   void MakeBigCal(G4LogicalVolume *);
@@ -43,6 +44,10 @@ public:
   double fCerDepth;
   double fCerDist;
   double fGEMDist;
+  
+  // EFuchey: 2017/03/02: flag for BBECal shielding option: 
+  // 0: nothing; 1: default 1/4 in SS+0.5mm; 2: 10cm Al + 3cm SS on the side; 3: 10cm Al + 3cm SS on the side; 
+  int fShieldOption;
   
   int  fGEMOption;
   //int  fCDetOption;

@@ -135,6 +135,24 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4double z0_CDET = -0.15*m;
 
     MakeCDET( CDetmother_log, z0_CDET );
+    
+    //Add a plate on the side of HCal
+    
+    double SideShield_Width = 1574.75*mm;
+    double SideShield_Height = 3716.02*mm;
+    double SideShield_Thick = 38.1*mm;
+    double SideShield_XOffset = +1898.65*mm/2.0+SideShield_Thick/2.0;
+    
+    G4Box *HCal_sideshield = new G4Box( "HCal_sideshield", SideShield_Thick/2.0, SideShield_Height/2.0, SideShield_Width/2.0 );
+    G4LogicalVolume *HCal_sideshield_log = new G4LogicalVolume( HCal_sideshield, GetMaterial("Steel"), "HCal_sideshield_log" );
+    //HCal_sideshield_log
+    G4ThreeVector HCal_sideshield_pos( SideShield_XOffset, 0.0, fHCALdist+SideShield_Width/2.0 );
+    HCal_sideshield_pos.rotateY(-f48D48ang);
+    
+    G4bool checkOverlap = fDetCon->fCheckOverlap;
+
+    new G4PVPlacement( HArmRot, HCal_sideshield_pos, HCal_sideshield_log, "HCal_sideshield_phys", worldlog, false, 0, checkOverlap );
+    HCal_sideshield_log->SetVisAttributes( G4Colour(0.7, 0.7, 0.7) );
   }
 }
 

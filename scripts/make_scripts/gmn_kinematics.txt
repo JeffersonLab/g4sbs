@@ -14,7 +14,7 @@ config.exp=gmn
 config.targlen=10.0 cm
 config.bbfield=1
 config.48d48field=1
-config.hcalvoffset=0.00 m
+config.hcalvoffset=45.00 cm
 config.phmin=-30 deg
 config.phmax=30 deg
 

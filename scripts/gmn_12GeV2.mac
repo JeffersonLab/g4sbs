@@ -19,7 +19,7 @@
 
 ## Configure standard detector settings
 /g4sbs/hcaldist        14.0 m
-/g4sbs/hcalvoffset     0.00 m
+/g4sbs/hcalvoffset     45.00 cm
 /g4sbs/sbsclampopt     3                 ## Front field clamp only
 
 ## Configure the magnets

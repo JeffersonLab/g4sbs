@@ -29,4 +29,7 @@ config_table=q2,beamE:GeV,bbang:deg,sbsang:deg,bbdist:m,48D48dist:m,hcaldist:m,b
     8.1     6.6   43.0      17.5        1.55      2.25      11.0        1.65   33.0    53.0
     10.2    8.8   34.0      17.5        1.75      2.25      11.0        1.60   24.0    44.0
     12      8.8   44.2      13.3        1.55      2.25      14.0        1.50   34.2    54.2
+## Magnetic field exists for GMn Q2=13.5
+config_unset.48d48field
+config.tosfield=GMN13_field.table
     13.5   11.0   33.0      14.8        1.55      3.1       17.0        0.97   23.0    43.0

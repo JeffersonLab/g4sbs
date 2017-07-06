@@ -24,7 +24,7 @@
 
 ## Configure the magnets
 /g4sbs/bbfield         1
-/g4sbs/48d48field      1
+/g4sbs/tosfield        GMN13_field.table
 /g4sbs/bbang           33.0 deg
 /g4sbs/bbdist          1.55 m
 /g4sbs/sbsang          14.8 deg

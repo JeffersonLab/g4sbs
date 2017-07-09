@@ -292,7 +292,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   G4Box *bottomboxcut = new G4Box("bottomboxcut",bbmagwidth+eps, 250*cm/2, motherdepth+eps);
   bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR_floor", bbmothercutBox, bottomboxcut, 0, G4ThreeVector( 0.0, -1.25*m*2-20*cm, 0.0));
-
+  
+  // EFuchey: 2017/05/15: Added this cut to leave some room for the lead shielding for GMn.
+  // I checked it was not interfering with the BB magent volume nor with the BB field volume...
+  G4Box *beamshieldcut = new G4Box("beamshieldcut", 30.0*cm/2.0 + eps, 300*cm + eps, 10.0*cm/2.0 + eps);
+  bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR_shieldcut", bbmothercutBox, beamshieldcut, 0, G4ThreeVector( -(bbmagwidth+gapsize)/4.0+coilwidth+15.0*cm, 0.0, -motherdepth/2.0+2.5*cm));
+					  
+  
 
   //   Make logical volume for mother vol and place
   G4LogicalVolume *bbmotherLog=new G4LogicalVolume(bbmothercutBox,GetMaterial("Air"),
@@ -508,16 +514,16 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     case(2):
       //new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_shield_thick/2.0+Al_thick/2.0), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_shield_log, false, 0 );
       new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-Al_thick/2.0), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_shield_log, false, 0 );
-      new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
+      //new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
       break;
     case(3):
       new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-SS_thick/2.0), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_shield_log, false, 0 );
-      new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
+      //new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
       break;
     case(4):
       new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-SS_thick/2.0), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_shield_log, false, 0 );
       new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-SS_thick-Al_thick/2.0), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_shield_log, false, 0 );
-      new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
+      //new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
     default:
       break;
     }
@@ -568,13 +574,47 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // **** BIGBITE HODOSCOPE **** 
   // Scintillator box - same dimensions as preshower
-  double bbhododepth = 2.5*cm;
+  double bbhododepth = 8.8*cm;// logic volume...
+  double bbslat_length = 60.0*cm;
+  double bbslat_section = 2.5*cm;
   G4Box *bbhodobox = new G4Box("bbhodobox", pswidth/2.0, psheight/2.0, bbhododepth/2.0 );
-  G4LogicalVolume *bbhodolog = new G4LogicalVolume( bbhodobox, GetMaterial("POLYSTYRENE"), "bbhodolog" );
+  G4LogicalVolume *bbhodolog = new G4LogicalVolume( bbhodobox, GetMaterial("Air"), "bbhodolog" );
   //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + 0.217*2.54 + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
-  bbhodolog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
+  //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + 0.217*2.54 + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0+0.5*mm ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
+  bbhodolog->SetVisAttributes(G4VisAttributes::Invisible);
+  
+  //
+  G4Box *bbhodoslatbox = new G4Box("bbhodoslat", bbslat_length/2.0, bbslat_section/2.0, bbslat_section/2.0);
+  G4LogicalVolume *bbhodoslatlog = new G4LogicalVolume( bbhodoslatbox, GetMaterial("BBHodo_Scinti"), "bbhodoslatlog" );
+  bbhodoslatlog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
+  
+  G4SDManager *sdman = fDetCon->fSDman;
+
+  G4String BBHodoScintSDname = "Earm/BBHodoScint";
+  G4String BBHodoScintcollname = "BBHodoScintHitsCollection";
+  G4SBSCalSD *BBHodoScintSD = NULL;
+  
+  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(BBHodoScintSDname)) ) {
+    G4cout << "Adding BB Hodoscope Scint Sensitive Detector to SDman..." << G4endl;
+    BBHodoScintSD = new G4SBSCalSD( BBHodoScintSDname, BBHodoScintcollname );
+    sdman->AddNewDetector( BBHodoScintSD );
+    (fDetCon->SDlist).insert( BBHodoScintSDname );
+    fDetCon->SDtype[BBHodoScintSDname] = kCAL;
+    (BBHodoScintSD->detmap).depth = 0;
+  }
+  bbhodoslatlog->SetSensitiveDetector( BBHodoScintSD ); 
+  
+  G4int n_bbhodoslats = 90;
+  for(int i_bbhslat = 0; i_bbhslat<n_bbhodoslats; i_bbhslat++){
+    G4double y_slat = (G4double(i_bbhslat)+0.5)*bbslat_section-n_bbhodoslats*bbslat_section/2.0;
+    G4double z_slat = -bbhododepth/2.0-0.5*mm+0.217*2.54*cm+bbslat_section/2.0;
+    new G4PVPlacement( 0, G4ThreeVector(0, y_slat, z_slat), bbhodoslatlog, "bbhodoslatphys", bbhodolog, false, i_bbhslat );
+    (BBHodoScintSD->detmap).Col[i_bbhslat] = 0;
+    (BBHodoScintSD->detmap).Row[i_bbhslat] = i_bbhslat;
+    (BBHodoScintSD->detmap).LocalCoord[i_bbhslat] = G4ThreeVector( 0, y_slat,  z_slat);
+  }
   //0.217" is the gap between the PS and the hodoscope
 
   // **** BIGBITE SHOWER ****
@@ -611,7 +651,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *bbTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbTF1log" );
   
   // Shower TF1 SD of type CAL
-  G4SDManager *sdman = fDetCon->fSDman;
+  //G4SDManager *sdman = fDetCon->fSDman;
 
   G4String BBSHTF1SDname = "Earm/BBSHTF1";
   G4String BBSHTF1collname = "BBSHTF1HitsCollection";

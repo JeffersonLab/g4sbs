@@ -24,9 +24,14 @@ public:
   void Make48D48(G4LogicalVolume*, double);
   void MakeSBSFieldClamps(G4LogicalVolume*);
   void MakeHCAL(G4LogicalVolume*, G4double);
+  void MakeHCALV2(G4LogicalVolume*, G4double);
+  void MakeCDET(G4LogicalVolume*, G4double);
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
   void MakeRICH(G4LogicalVolume *);
   void MakeRICH_new(G4LogicalVolume *);
+  void MakeTracker(G4LogicalVolume *);
+  void MakeGEpFPP(G4LogicalVolume *);
+  void MakeTracker_A1n(G4LogicalVolume *);
   
 
   double f48D48ang;

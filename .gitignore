@@ -5,3 +5,5 @@ GEN-map1.table
 GEP_12map0.table
 ## Should probably ignore root files too
 *.root
+## Ignore more of VIM's temporary files
+.*.swo

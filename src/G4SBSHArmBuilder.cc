@@ -151,8 +151,8 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     
     G4bool checkOverlap = fDetCon->fCheckOverlap;
 
-    new G4PVPlacement( HArmRot, HCal_sideshield_pos, HCal_sideshield_log, "HCal_sideshield_phys", worldlog, false, 0, checkOverlap );
-    HCal_sideshield_log->SetVisAttributes( G4Colour(0.7, 0.7, 0.7) );
+    //new G4PVPlacement( HArmRot, HCal_sideshield_pos, HCal_sideshield_log, "HCal_sideshield_phys", worldlog, false, 0, checkOverlap );
+    //HCal_sideshield_log->SetVisAttributes( G4Colour(0.7, 0.7, 0.7) );
   }
 }
 

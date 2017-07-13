@@ -121,6 +121,10 @@ G4SBSMessenger::G4SBSMessenger(){
   tosfieldCmd->SetGuidance("Use SBS TOSCA field map from file");
   tosfieldCmd->SetParameterName("tosfield", false);
 
+  eventStatusEveryCmd = new G4UIcmdWithAnInteger("/g4sbs/eventstatusevery", this);
+  eventStatusEveryCmd->SetGuidance("Print event status at every N entries");
+  eventStatusEveryCmd->SetParameterName("eventstatusevery", false);
+
   geantinoCmd = new G4UIcmdWithABool("/g4sbs/shootgeantino", this);
   geantinoCmd->SetGuidance("Shoot a geantino instead of e-");
   geantinoCmd->SetParameterName("shootgeantino", false);
@@ -132,6 +136,10 @@ G4SBSMessenger::G4SBSMessenger(){
   totalabsCmd = new G4UIcmdWithABool("/g4sbs/totalabs", this);
   totalabsCmd->SetGuidance("Magnet materials are total absorbers (default=false)");
   totalabsCmd->SetParameterName("totalabs", false);
+
+  checkOverlapCmd = new G4UIcmdWithABool("/g4sbs/checkOverlap", this);
+  checkOverlapCmd->SetGuidance("Check if volumes overlap (default=false)");
+  checkOverlapCmd->SetParameterName("checkOverlap", false);
 
   tgtLenCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targlen",this);
   tgtLenCmd->SetGuidance("Target length along beam direction");
@@ -692,6 +700,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->AddToscaField(newValue.data());
   }
 
+  if( cmd == eventStatusEveryCmd ){
+    fevact->SetEventStatusEvery(eventStatusEveryCmd->GetNewIntValue(newValue));
+  }
+
   if( cmd == geantinoCmd ){
     G4bool b = geantinoCmd->GetNewBoolValue(newValue);
     fprigen->SetUseGeantino(b);
@@ -706,6 +718,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == totalabsCmd ){
     G4bool b = totalabsCmd->GetNewBoolValue(newValue);
     fdetcon->SetTotalAbs(b);
+  }
+
+  if( cmd == checkOverlapCmd ){
+    G4bool b = checkOverlapCmd->GetNewBoolValue(newValue);
+    fdetcon->SetCheckOverlap(b);
   }
 
   if( cmd == tgtLenCmd ){

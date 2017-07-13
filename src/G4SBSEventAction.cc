@@ -47,7 +47,7 @@ using namespace std;
 
 #define MAXHIT 2000
 
-G4SBSEventAction::G4SBSEventAction()
+G4SBSEventAction::G4SBSEventAction() : fEventStatusEvery(1000)
 {
   fTreeFlag = 0;
     fGEMres = 70.0*um;
@@ -95,10 +95,10 @@ void G4SBSEventAction::LoadSigmas(const char filename[] ){
 
 
 void G4SBSEventAction::BeginOfEventAction(const G4Event*ev) {
-   if( (ev->GetEventID()%1000)==0 ){
-	printf("Event %8d\r", ev->GetEventID());
-	fflush(stdout);
-    }
+   if( (ev->GetEventID()%fEventStatusEvery)==0 ){
+     printf("Event %8d\r", ev->GetEventID());
+     fflush(stdout);
+   }
 
     return;
 }

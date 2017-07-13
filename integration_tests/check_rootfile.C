@@ -122,6 +122,7 @@ int standard_ff_tests(TString fileName)
 
 int check_rootfile(TString fileName, TString exp, bool opticalPhotons = false)
 {
+  int status = true;
   if(exp.EqualTo("GEn",TString::kIgnoreCase)) {
     // Expect to see both protons and neutrons generated in GEn
     gCheckGeneratedNucleons.push_back(0);
@@ -141,7 +142,7 @@ int check_rootfile(TString fileName, TString exp, bool opticalPhotons = false)
     }
 
     // Run standard tests
-    standard_ff_tests(fileName);
+    status = standard_ff_tests(fileName);
   } else if (exp.EqualTo("GEp",TString::kIgnoreCase)) {
     // Expect to see only generated protons in GEp
     gCheckGeneratedNucleons.push_back(1);
@@ -161,7 +162,7 @@ int check_rootfile(TString fileName, TString exp, bool opticalPhotons = false)
     }
 
     // Run standard tests
-    standard_ff_tests(fileName);
+    status = standard_ff_tests(fileName);
   } else if (exp.EqualTo("GMn",TString::kIgnoreCase)) {
     // Expect to see both protons and neutrons generated in GMn
     gCheckGeneratedNucleons.push_back(0);
@@ -181,6 +182,7 @@ int check_rootfile(TString fileName, TString exp, bool opticalPhotons = false)
     }
 
     // Run standard tests
-    standard_ff_tests(fileName);
+    status = standard_ff_tests(fileName);
   }
+  return status;
 }

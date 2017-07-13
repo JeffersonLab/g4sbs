@@ -72,154 +72,102 @@ G4SBSHArmBuilder::~G4SBSHArmBuilder(){
 
 void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   Exp_t exptype = fDetCon->fExpType;
+  Targ_t tgttype = fDetCon->fTargType;
 
-
+  // Build the 48D48 magnet and HCAL
   // All three types of experiments have a 48D48 magnet:
   if( exptype != kC16 ) {
     Make48D48(worldlog, f48D48dist + f48D48depth/2. );
+    //MakeHCAL( worldlog, fHCALvertical_offset );
+    MakeHCALV2( worldlog, fHCALvertical_offset );
   }
-  //--------------- HCAL --------------------------
-  //All the experiments use HCAL:
 
-  // Note (jc2): The vertical offset of the hadron calorimeter is now specified
-  // via macros in the same way that the distance is specified. Nothing is
-  // hardcoded now.
-  //G4double HCAL_vertical_offset = 0.0*cm; //Neutron/SIDIS experiments have no vertical offset for HCAL (in Neutron case because it is detecting neutrons, which don't bend in a magnetic field, and in SIDIS case because we are detecting +/- charged hadrons simultaneously, want to have symmetric acceptance).
-  //if( exptype == kGEp ) HCAL_vertical_offset = 49.7*cm; //A number like this, which represents a positioning offset, shouldn't be hard-coded!
-
-  if( exptype != kC16 ) {
-    MakeHCAL( worldlog, fHCALvertical_offset );
+  // Now build special components for experiments
+  if( exptype == kSIDISExp ) {
+    //SIDIS experiment requires a RICH detector and a tracker for SBS: 
+    MakeTracker(worldlog);
+    //MakeRICH( worldlog );
+    MakeRICH_new( worldlog );
+  } else if ( exptype == kGEp ) {
+    //Subsystems unique to the GEp experiment include FPP and BigCal:
+    MakeGEpFPP(worldlog);
   }
-  //The SIDIS experiment uses a  RICH in SBS:
-  //--------- RICH (experimental): -------------------------
-  if( exptype == kSIDISExp ) //SIDIS experiment requires a RICH detector and a tracker for SBS: 
-    {
-      //Let's make a simple tracker: 5 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~50 cm + about 1.6 cm
-      G4double SBStracker_dist = fRICHdist - 0.3*m;
-      G4ThreeVector SBStracker_pos( -SBStracker_dist * sin( f48D48ang ), 0.0, SBStracker_dist * cos( f48D48ang ) );
 
-      G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
+  if ( exptype == kA1n) {
+    //A1n case is similar to SIDIS, except now we want to use the SBS in
+    //"electron mode"; meaning we want to remove the aerogel from the RICH,
+    //and replace the RICH gas with CO2, and we also want to have a non-zero
+    //pitch angle for the SBS tracker. We assume (for NOW) that the RICH can
+    //be supported at some non-zero "pitch" angle:
+    MakeTracker_A1n(worldlog);
+    MakeRICH_new( worldlog );
+  }
 
-      //Just a test:
-      //SBStracker_rot_I->rotateY( 14.0*deg );
+  // Build CDET (as needed)
+  if( exptype == kNeutron && (tgttype==kLH2 || tgttype==kLD2)){
+    //plugging in CDET for GMn  
+    G4double depth_HCal_shield = 7.62*cm; //3 inches
+    G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
+    G4double depth_CDET = 40.0*cm;
 
-      G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
-      SBStracker_rot->rotateY( f48D48ang );
+    G4Box *CH2_filter = new G4Box( "CH2_filter", 150.0*cm/2.0, 340.0*cm/2.0, depth_CH2/2.0 );
+    G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
 
-      G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
+    G4RotationMatrix *HArmRot = new G4RotationMatrix;
+    HArmRot->rotateY(f48D48ang);
 
-      G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
-	
-      //For consistency with BigBite, place "Tracker" volume before GEMs are placed in it:
-      new G4PVPlacement( SBStracker_rot, SBStracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
-	
-      int ngems_SBStracker = 5;
-      vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
+    G4ThreeVector CH2_pos( ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * cos( -f48D48ang ) );
 
-      G4double zspacing_SBStracker = 10.0*cm;
-      G4double zoffset_SBStracker = -20.0*cm;
+    new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
 
-      for(int i=0; i<ngems_SBStracker; i++ ){
-	zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
-	wplanes_SBStracker.push_back( 60.0*cm );
-	hplanes_SBStracker.push_back( 200.0*cm );
-      }
+    G4Box* CDetmother = new G4Box("CDetmother", 1.5*m/2.0, 3.0*m/2, depth_CDET/2.0);
+    G4LogicalVolume *CDetmother_log = new G4LogicalVolume( CDetmother, GetMaterial("Air"), "CDetmother_log" );
 
-      G4SBSTrackerBuilder trackerbuilder(fDetCon);
+    G4ThreeVector CDetmother_pos( ( fHCALdist-0.35*m ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.35*m ) * cos( -f48D48ang ) );
+    new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
 
-      //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
+    G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
+    CH2_visatt->SetForceWireframe(true);
+    CH2_filter_log->SetVisAttributes(CH2_visatt);
 
-      trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
-				     ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
+    CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
 
-      //MakeRICH( worldlog );
-      MakeRICH_new( worldlog );
+    G4double z0_CDET = -0.15*m;
 
-      SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
-    }
-  if( exptype == kA1n ) //A1n case is similar to SIDIS, except now we want to use the SBS in "electron mode"; meaning we want to remove the aerogel from the RICH, and replace the RICH gas with CO2, and we also want to have a non-zero pitch angle for the SBS tracker. We assume (for NOW) that the RICH can be supported at some non-zero "pitch" angle:
-    {
-      //      G4double SBStracker_dist = fRICHdist - 0.3*m; //distance to the front of the SBS tracker
-      G4ThreeVector SBS_midplane_pos( -(f48D48dist + 0.5*f48D48depth)*sin(f48D48ang), 0.0, (f48D48dist+0.5*f48D48depth)*cos(f48D48ang) );
+    MakeCDET( CDetmother_log, z0_CDET );
+  }
+}
 
-      G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
+void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
+{
+  //Let's make a box and then put the FPP in it:
+  //Define the rotation matrix for the FPP (pitch angle of 5 deg relative to vertical): 
+  G4double sbsboxpitch = 5.0*deg;
+  G4RotationMatrix *SBS_FPP_rm = new G4RotationMatrix;
+  SBS_FPP_rm->rotateY( f48D48ang );
+  SBS_FPP_rm->rotateX( sbsboxpitch );
 
-      //Just a test:
-      //SBStracker_rot_I->rotateY( 14.0*deg );
+  //FPP box: 
+  double sbsdepth  = 3.0*m;
+  double sbswidth  = 2.0*m;
+  double sbsheight = 2.1*m;
 
-      G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
-      SBStracker_rot->rotateY( f48D48ang );
-      SBStracker_rot->rotateX( fSBS_tracker_pitch );
+  //double sbsr = fHCALdist - 4.106*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
+  double sbsr = f48D48dist + 1.694*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
 
-      G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
+  G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
+  G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
 
-      G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
-      
-      G4double RICH_yoffset = (fRICHdist - (f48D48dist + 0.5*f48D48depth) )*sin( fSBS_tracker_pitch );
-      
-      G4ThreeVector RICH_pos( -fRICHdist*sin(f48D48ang), RICH_yoffset, fRICHdist*cos(f48D48ang) );
+  sbslog->SetVisAttributes( G4VisAttributes::Invisible );
+  //Now position and orient the FPP "box":
+  new G4PVPlacement(SBS_FPP_rm, G4ThreeVector(-sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) ), sbslog,
+      "sbsphys", worldlog, false, 0, false);
 
-      G4ThreeVector SBS_tracker_axis = (RICH_pos - SBS_midplane_pos).unit();
-      G4ThreeVector SBS_tracker_pos = RICH_pos - 0.3*m*SBS_tracker_axis;
+  G4RotationMatrix *rot_I = new G4RotationMatrix;
 
-      new G4PVPlacement( SBStracker_rot, SBS_tracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
+  double detoffset = 0.05*m - sbsdepth/2.0;
 
-      int ngems_SBStracker = 5;
-      vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
-
-      G4double zspacing_SBStracker = 10.0*cm;
-      G4double zoffset_SBStracker = -20.0*cm;
-
-      for(int i=0; i<ngems_SBStracker; i++ ){
-	zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
-	wplanes_SBStracker.push_back( 60.0*cm );
-	hplanes_SBStracker.push_back( 200.0*cm );
-      }
-
-      G4SBSTrackerBuilder trackerbuilder(fDetCon);
-
-      //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
-
-      trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
-				     ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
-
-      MakeRICH_new(worldlog);
-
-      SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
-      
-    }
-  //---------------------------------------------------------
-  if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
-    {
-      //Let's make a box and then put the FPP in it:
-      //Define the rotation matrix for the FPP (pitch angle of 5 deg relative to vertical): 
-      G4double sbsboxpitch = 5.0*deg;
-      G4RotationMatrix *SBS_FPP_rm = new G4RotationMatrix;
-      SBS_FPP_rm->rotateY( f48D48ang );
-      SBS_FPP_rm->rotateX( sbsboxpitch );
-     
-      //FPP box: 
-      double sbsdepth  = 3.0*m;
-      double sbswidth  = 2.0*m;
-      double sbsheight = 2.1*m;
-
-      //double sbsr = fHCALdist - 4.106*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
-      double sbsr = f48D48dist + 1.694*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
-      
-      G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
-      G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
-
-      sbslog->SetVisAttributes( G4VisAttributes::Invisible );
-      //Now position and orient the FPP "box":
-      new G4PVPlacement(SBS_FPP_rm, G4ThreeVector(-sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) ), sbslog,
-			"sbsphys", worldlog, false, 0, false);
-
-      G4RotationMatrix *rot_I = new G4RotationMatrix;
-
-      double detoffset = 0.05*m - sbsdepth/2.0;
-
-      MakeFPP( sbslog, rot_I, G4ThreeVector( 0.0, 0.0, detoffset) );
-    }
+  MakeFPP( sbslog, rot_I, G4ThreeVector( 0.0, 0.0, detoffset) );
 }
 
 void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
@@ -715,7 +663,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     frontclampLog->SetVisAttributes(clampVisAtt);
     frontextfaceLog->SetVisAttributes(clampVisAtt);
     backclampLog->SetVisAttributes(clampVisAtt);
-  } else if( f48D48_fieldclamp_config == 2 ){ //GEp
+  } else if( f48D48_fieldclamp_config == 2  || f48D48_fieldclamp_config == 3) { // 2 == GEp, 3 == GMn
    
     G4double FrontClamp_width = 62.99*2.54*cm;
     G4double FrontClamp_height = 118.11*2.54*cm;
@@ -755,7 +703,19 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     new G4PVPlacement( clamp_rot, 
 		       G4ThreeVector( -FrontClamp_r*sin( f48D48ang ) + FrontClamp_xoffset*cos(f48D48ang), 0.0, FrontClamp_r*cos(f48D48ang) + FrontClamp_xoffset*sin(f48D48ang) ), 
 		       FrontClamp_log, "FrontClamp_phys", motherlog, false, 0, false );
+
+    G4VisAttributes * clampVisAtt
+      = new G4VisAttributes(G4Colour(0.8,1.0,0.4));
+
+    FrontClamp_log->SetVisAttributes(clampVisAtt);
  
+    // (Note jc2): Sticking this if statement here so we can draw the
+    // back fieldclamp only for GEp, but not GMn. However, I'm leaving
+    // the indentation as is because I don't want git to make me the
+    // author of all these changes when all I did is indent things :/
+    // Sorry in advance to whoemever is angry at the lack of indentation,
+    // blame Linus for making git :D
+    if( f48D48_fieldclamp_config == 2 ) { // GEp uses a back clamp too
     ////REAR CLAMP:
     G4double RearClamp_width = 105.12*2.54*cm;
     G4double RearClamp_height = 114.96*2.54*cm;
@@ -796,11 +756,8 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     new G4PVPlacement( clamp_rot, RearClamp_pos, RearClamp_log, "RearClamp_phys", motherlog, false, 0, false );
 
-    G4VisAttributes * clampVisAtt
-      = new G4VisAttributes(G4Colour(0.8,1.0,0.4));
-
-    FrontClamp_log->SetVisAttributes(clampVisAtt);
     RearClamp_log->SetVisAttributes(clampVisAtt);
+    } // Rear clamp log (GEp)
 
     //Make lead shielding in clamp:
     // G4double angtrap = 10.0*deg;
@@ -889,6 +846,669 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     }
     
   }
+}
+
+void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
+    G4double VerticalOffset)
+{
+  //******************************************************
+  //****************         HCAL         ****************
+  //****************************************************** 
+  // Set to true to enable checking of overlapping volumes at construction
+  G4bool checkOverlap = fDetCon->fCheckOverlap;
+
+  // Determine how "realistic" we want to make HCal. Include the various small
+  // holes and plates?
+  const G4bool const_FrontPinHole = false; // Mounting pin hole on front plate
+
+  // Modify Vahe's implementation so that the scintillators are now staggered
+  // Also updated with latest measurements based on what CMU is constructing
+
+  // Dimensions as defined by CAD drawing HCALJ-0002
+  // This contains only the "sensitive" parts of the module:
+  //   Scintillators + Fe Absorbers + Wavelenght Shifter + Front/Back Plate
+  // Excludes:
+  //  - Extending cylindrical piece of light guide
+  //  - PMT and associated enclosure
+  G4double dim_ModuleX    =  152.40*CLHEP::mm;
+  G4double dim_ModuleY    =  152.40*CLHEP::mm;
+  G4double dim_ModuleZ    = 1555.70*CLHEP::mm;
+  G4double dim_ModCanZ    = 1238.00*CLHEP::mm;//948.00*CLHEP::mm;
+
+  // Also define the "CAN" dimensions, since there is still ~1.5 mm of steel
+  // in the top and bottom  about ~3 mm of steel at the sides.
+  G4double dim_ModCanThickX = 2*1.4478*CLHEP::mm; // Twice as thick in sides
+  G4double dim_ModCanThickY =   1.4478*CLHEP::mm; // Top and bottom thickness
+  G4double dim_ModCanX0    = dim_ModuleX-dim_ModCanThickX;
+  G4double dim_ModCanY0    = dim_ModuleY-dim_ModCanThickY;
+
+  // Dimensions as defined by CAD drawing HCALJ-00011
+  G4double dim_ScintX     =   69.35*CLHEP::mm;
+  G4double dim_ScintY     =  147.00*CLHEP::mm;
+  G4double dim_ScintZ     =    9.90*CLHEP::mm;
+
+  // Dimensions as defined by CAD drawing HCALJ-00010-V2
+  // (simplified, does not include the small triangular-cuts on outer corners)
+  G4double dim_ThinAbsorbX    =   69.60*CLHEP::mm;
+  G4double dim_ThinAbsorbY    =  148.80*CLHEP::mm;
+  G4double dim_ThinAbsorbZ    =    6.35*CLHEP::mm;
+
+  // Dimensions as defined by CAD drawing HCALJ-009
+  // This is the 1/2 inch thick absorbers (just twice the width of
+  // the normal absorbers defined above)
+  // For simplicity, these will also serve as the ribs
+  G4double dim_AbsorbX =   69.60*CLHEP::mm;
+  G4double dim_AbsorbY =  148.80*CLHEP::mm;
+  G4double dim_AbsorbZ =   12.70*CLHEP::mm;
+
+  // Dimensions of wavelength shifter (deduced from light guide CAD sheet)
+  G4double dim_WaveShiftX     =   5.00*CLHEP::mm;
+  G4double dim_WaveShiftY     = 135.02*CLHEP::mm;
+  G4double dim_WaveShiftZ     = 948.00*CLHEP::mm;
+  G4double dim_WaveShiftRodX  =   6.00*CLHEP::mm;
+  G4double dim_WaveShiftRodY  =   5.00*CLHEP::mm;
+  G4double dim_WaveShiftRodZ  =   dim_WaveShiftZ;
+
+  // Dimensions based on the real thickness of the plastic spacers used.
+  // (This is a spacer that goes in between the last scintillator of a 
+  // substack and the rib)
+  G4double dim_ShimGapSpacerX =  69.60*CLHEP::mm;
+  G4double dim_ShimGapSpacerY = 148.80*CLHEP::mm;
+  G4double dim_ShimGapSpacerZ =   4.00*CLHEP::mm;
+
+  // Dimensions of mylar wrapping (from Vahe's HCalo code)
+  //G4double dim_MylarThickness = 0.2*CLHEP::mm;
+  // Got these from a sample of Mylar Eric had around (it was ~2-2.4 mil)
+  G4double dim_MylarThickness = 0.0508*CLHEP::mm;
+
+  // Specify the number of rows and columns for standard HCAL configuration
+  G4double num_rows = 24;
+  G4double num_cols = 12;
+
+  // Specify center-to-center distance between modules
+  // (These numbers are from an email from Gregg)
+  G4double dist_ModuleCToCX     =  154.94*CLHEP::mm;
+  G4double dist_ModuleCToCY     =  158.75*CLHEP::mm;
+
+  // Specify a minimum distance between objects (an "air" gap)
+  G4double dim_AirGap = 0*0.05*CLHEP::mm;
+
+  // Specify number of Scint-Fe pairs per substack
+  const int numSubstacks = 3;
+  int numPairs[numSubstacks] = {13, 14, 13};
+
+  // Dimensions for Front and Back Plate as defined by CAD drawing HCALJ-00012
+  // and HCALJ-00016
+  G4double dim_EndPl0X          =  dim_ModuleX;
+  G4double dim_EndPl0Y          =  dim_ModuleY;
+  G4double dim_EndPl0Z          =    6.35*CLHEP::mm;
+  G4double dim_EndPl1X          =  149.35*CLHEP::mm;
+  G4double dim_EndPl1Y          =  149.35*CLHEP::mm;
+  G4double dim_EndPl1Z          =   12.70*CLHEP::mm;
+  G4double dim_EndPlZ           =  dim_EndPl0Z+dim_EndPl1Z;
+  G4double dim_FrontPlHoleR     =    9.525/2.*CLHEP::mm;
+  G4double dim_FrontPlHoleZ     =   15.875*CLHEP::mm;
+  G4double dim_BackPlHoleR      =   53.950/2.*CLHEP::mm;
+  G4double dim_BackPlHoleZ      =  dim_EndPlZ;
+  G4double dim_BackPlCutX       =   89.00*CLHEP::mm;
+  G4double dim_BackPlCutY       =   89.00*CLHEP::mm;
+  G4double dim_BackPlCutZ       =   11.20*CLHEP::mm;
+
+  // Dimensions for the light guide. The first part that transforms rectangle
+  // to cylindrical extension is represented as a trapezoid for simplicity.
+  // (This is similar to how Vahe defined it in his code).
+  G4double dim_LightGuide0X0    = dim_WaveShiftX;
+  G4double dim_LightGuide0Y0    = dim_WaveShiftY;
+  G4double dim_LightGuide0X1    =   20.05*CLHEP::mm;
+  G4double dim_LightGuide0Y1    =   43.20*CLHEP::mm;
+  G4double dim_LightGuide0Z     =  262.00*CLHEP::mm;
+  G4double dim_LightGuide1R     =   47.63/2*CLHEP::mm;
+  G4double dim_LightGuide1Z     =  102.22*CLHEP::mm;
+
+  // These numbers come from Vahe for the XP2262 PMT
+  G4double dim_PMTCathodeR      =   27.0*CLHEP::mm;
+  G4double dim_PMTCathodeZ      =    1.0*CLHEP::mm;
+
+  // Dimensions for the Module Mylar Wrap
+  G4double dim_ModuleMylar0X     = dim_EndPl1X;
+  G4double dim_ModuleMylar0Y     = dim_EndPl1Y;
+  G4double dim_ModuleMylar0Z     = dim_ModCanZ-2*dim_EndPl1Z;
+  G4double dim_ModuleMylar1X     = dim_ModuleMylar0X-2*dim_MylarThickness;
+  G4double dim_ModuleMylar1Y     = dim_ModuleMylar0Y-2*dim_MylarThickness;
+  G4double dim_ModuleMylar1Z     = dim_ModuleMylar0Z;
+
+  // A small imperfection to use when cutting solids. It seems that if the
+  // solid and its associated cut share the same surface, they are not
+  // drawn properly.
+  G4double dim_CutFudgeFactor  = 0.005*CLHEP::mm;
+
+  // Specify the dimensions of each "external" horizontal shim
+  G4double dim_ExternalShimX   = 2*927.1*CLHEP::mm;
+  G4double dim_ExternalShimY   = 3.51*CLHEP::mm;
+  G4double dim_ExternalShimZ   = 882.65*CLHEP::mm;
+  G4double dim_ExternalShimTabZ = 44.45*CLHEP::mm;
+
+  // Specify the thickness of the front "mounting" plate that is just in
+  // front of each HCal sub sub-assembly (a steel plate)
+  // According to Eric Day, this should be about 0.75 inches
+  // (and for simplicity, the x,y dimensions will be the whole of HCal)
+  G4double dim_HCALFrontPlateZ = 19.05*CLHEP::mm;
+
+  // Specify the dimensions of the HCAL mother box/volume
+  G4double dim_HCALX = (num_cols-1)*dist_ModuleCToCX + dim_ModuleX;
+  G4double dim_HCALY = (num_rows-1)*dist_ModuleCToCY + dim_ModuleY;
+  G4double dim_HCALZ = dim_ModuleZ+dim_HCALFrontPlateZ;
+
+  // Specify the distance from entrance to HCAL to center of target
+  G4double dist_HCalRadius = fHCALdist + dim_HCALZ/2.0;
+  G4double dist_HCALX = -dist_HCalRadius*sin(f48D48ang);
+  G4double dist_HCALY = VerticalOffset;
+  G4double dist_HCALZ = dist_HCalRadius*cos(f48D48ang);
+
+  // Specify the rotation matrix for this HCAL
+  G4RotationMatrix *rot_HCAL= new G4RotationMatrix;
+  rot_HCAL->rotateY(f48D48ang);
+
+  // Define the solid for the module container and "CAN"
+  G4Box *sol_Module = new G4Box("sol_Module",
+      dim_ModuleX/2., dim_ModuleY/2., dim_ModuleZ/2.);
+  G4Box *sol_ModCan0 = new G4Box("sol_ModCan0",
+      dim_ModuleX/2., dim_ModuleY/2., dim_ModCanZ/2.);
+  G4Box *sol_ModCan1 = new G4Box("sol_ModCan0",
+      dim_ModCanX0/2., dim_ModCanY0/2., dim_ModCanZ/2.);
+  G4SubtractionSolid *sol_ModCan = new G4SubtractionSolid("sol_ModCan",
+      sol_ModCan0, sol_ModCan1,0, G4ThreeVector(0,0,0));
+
+  // Define solids for scintillator, absorber and shim gap spacer
+  G4Box *sol_Scint  = new G4Box("sol_Scint",
+      dim_ScintX/2., dim_ScintY/2., dim_ScintZ/2.);
+  G4Box *sol_ThinAbsorb = new G4Box("sol_ThinAbsorb",
+      dim_ThinAbsorbX/2., dim_ThinAbsorbY/2., dim_ThinAbsorbZ/2.);
+  G4Box *sol_Absorb = new G4Box("sol_Absorb",
+      dim_AbsorbX/2., dim_AbsorbY/2., dim_AbsorbZ/2.);
+  G4Box *sol_ShimGapSpacer = new G4Box("sol_ShimGapSpacer",
+      dim_ShimGapSpacerX/2., dim_ShimGapSpacerY/2., dim_ShimGapSpacerZ/2.);
+
+  // Define solid for WaveShift and the rods at the edge
+  G4Box *sol_WaveShift = new G4Box("sol_WaveShift",
+      dim_WaveShiftX/2., dim_WaveShiftY/2., dim_WaveShiftZ/2.);
+  G4Box *sol_WaveShiftRod = new G4Box("sol_WaveShiftRod",
+      dim_WaveShiftRodX/2., dim_WaveShiftRodY/2., dim_WaveShiftRodZ/2.);
+
+  // The Front plate is a "union" of two plates and a hole cut out
+  // (and the back plate has an additional square cut)
+  G4Box *sol_EndPl0 = new G4Box("sol_EndPl0",
+      dim_EndPl0X/2.,dim_EndPl0Y/2.,dim_EndPl0Z/2.);
+  G4Box *sol_EndPl1 = new G4Box("sol_EndPl1",
+      dim_EndPl1X/2.,dim_EndPl1Y/2.,dim_EndPl1Z/2.);
+  // The front and end plates with "trimmed" region
+  G4UnionSolid *sol_FrontPl0 = new G4UnionSolid(
+      (const_FrontPinHole?"sol_FrontPl0":"sol_FrontPl"),
+      sol_EndPl0,sol_EndPl1,0,G4ThreeVector(0.,0.,
+         (dim_EndPl0Z+dim_EndPl1Z)/2.));
+  G4UnionSolid *sol_BackPl0 = new G4UnionSolid("sol_BackPl0",
+      sol_EndPl0,sol_EndPl1,0,G4ThreeVector(0.,0.,
+        -(dim_EndPl0Z+dim_EndPl1Z)/2.));
+  // The front hole (cuts 10um bigger to avoid vizualization errors
+  // with shared surfaces)
+  G4Tubs *sol_FrontPlHole = new G4Tubs("sol_FrontPlHole",0.0,dim_FrontPlHoleR,
+      (dim_FrontPlHoleZ+dim_CutFudgeFactor)/2.,0.0*CLHEP::deg,360.0*CLHEP::deg);
+  // The back hole and cut
+  G4Tubs *sol_BackPlHole = new G4Tubs("sol_BackPlHole",0.0,dim_BackPlHoleR,
+      (dim_BackPlHoleZ+dim_CutFudgeFactor)/2.,0.0*CLHEP::deg,360.0*CLHEP::deg);
+  G4Box *sol_BackPlCut = new G4Box("sol_BackPlCut",
+      dim_BackPlCutX/2.,dim_BackPlCutY/2.,(dim_BackPlCutZ+dim_CutFudgeFactor)/2.);
+  G4UnionSolid *sol_BackPlHoleCut  = new G4UnionSolid("sol_BackPlHoleCut",
+      sol_BackPlHole,sol_BackPlCut,0,
+      G4ThreeVector(0.0,0.0, (dim_BackPlHoleZ-dim_BackPlCutZ)/2.));
+  // Cut the pieces on front and back plates
+  G4VSolid *sol_FrontPl = 0;
+  if(const_FrontPinHole ) {
+    sol_FrontPl = new G4SubtractionSolid("sol_FrontPl",
+        sol_FrontPl0, sol_FrontPlHole,0,
+        G4ThreeVector(0.,0., -(dim_EndPl0Z-dim_FrontPlHoleZ)/2.));
+  } else {
+    sol_FrontPl = sol_FrontPl0;
+  }
+  G4SubtractionSolid *sol_BackPl = new G4SubtractionSolid("sol_BackPl",
+      sol_BackPl0,sol_BackPlHoleCut,0,
+      G4ThreeVector(0.,0., (dim_EndPl0Z-dim_BackPlHoleZ)/2.));
+
+  // Light Guide
+  G4Trd *sol_LightGuide0 = new G4Trd("sol_LightGuide0",
+      dim_LightGuide0X0/2.,dim_LightGuide0X1/2.,
+      dim_LightGuide0Y0/2.,dim_LightGuide0Y1/2.,
+      dim_LightGuide0Z/2.);
+  G4Tubs *sol_LightGuide1 = new G4Tubs("sol_LightGuide1",0.0,dim_LightGuide1R,
+      dim_LightGuide1Z/2.,0.0*CLHEP::deg,360.0*CLHEP::deg);
+  G4UnionSolid *sol_LightGuide = new G4UnionSolid("sol_LightGuide",
+      sol_LightGuide0,sol_LightGuide1,0,G4ThreeVector(0.,0.,
+        (dim_LightGuide0Z+dim_LightGuide1Z)/2.));
+
+  // PMT (cathode)
+  G4Tubs *sol_PMTCathode = new G4Tubs("sol_PMTCathode",0.0,dim_PMTCathodeR,
+      dim_PMTCathodeZ/2.,0.0*CLHEP::deg,360.0*CLHEP::deg);
+
+  // Mylar wrapping around the module. The "ribbon" style wrapping is
+  // not implemented for simplicity. Apparently implementing it really
+  // takes a toll on Geant4. Instead, the proper reflection of the various
+  // components will be set later, in liue of adding so much mylar.
+  G4Box *sol_ModuleMylar0 = new G4Box("sol_ModuleMylar0",
+      dim_ModuleMylar0X/2.,dim_ModuleMylar0Y/2.,dim_ModuleMylar0Z/2.);
+  G4Box *sol_ModuleMylar1 = new G4Box("sol_ModuleMylar1",
+      dim_ModuleMylar1X/2.,dim_ModuleMylar1Y/2.,
+      (dim_ModuleMylar1Z+dim_CutFudgeFactor)/2.);
+  G4SubtractionSolid *sol_ModuleMylar = new G4SubtractionSolid("sol_ModuleMylar",
+      sol_ModuleMylar0,sol_ModuleMylar1,0,G4ThreeVector(0.,0.,0.));
+
+  // Define the external shims (horizontal direction) solid and volume
+  G4Box *sol_ExternalShim = new G4Box("sol_ExternalShim",
+      dim_ExternalShimX/2.,dim_ExternalShimY/2.,dim_ExternalShimZ/2.);
+  G4LogicalVolume *log_ExternalShim = new G4LogicalVolume( sol_ExternalShim,
+      GetMaterial("Steel"), "log_ExternalShim");
+
+  // Define logical volumes for Sensitive-Modules, Scintillators, Absorbers,
+  // and Front/Back plates
+  G4LogicalVolume *log_Module = new G4LogicalVolume( sol_Module,
+      GetMaterial("Special_Air"), "log_Module" );
+
+  // Module Can
+  G4LogicalVolume *log_ModCan = new G4LogicalVolume( sol_ModCan,
+      GetMaterial("Steel"), "log_ModCan");
+  // Scintillator
+  G4LogicalVolume *log_Scint = new G4LogicalVolume( sol_Scint,
+      GetMaterial("EJ232"), "log_Scint");
+
+  // Absorbers and wrap
+  G4LogicalVolume *log_ThinAbsorb = new G4LogicalVolume( sol_ThinAbsorb,
+      GetMaterial("Iron"), "log_ThinAbsorb");
+  G4LogicalVolume *log_Absorb = new G4LogicalVolume( sol_Absorb,
+      GetMaterial("Iron"), "log_Absorb");
+
+  // The wrapped spacer
+  G4LogicalVolume *log_ShimGapSpacer = new G4LogicalVolume( sol_ShimGapSpacer,
+      GetMaterial("Air"), "log_ShimGapSpacer");
+
+  // The other volumes
+  G4LogicalVolume *log_WaveShift = new G4LogicalVolume( sol_WaveShift,
+      GetMaterial("BC484"), "log_WaveShift");
+  G4LogicalVolume *log_WaveShiftRod = new G4LogicalVolume( sol_WaveShiftRod,
+      GetMaterial("Steel"), "log_WaveShiftRod");
+  G4LogicalVolume *log_FrontPl = new G4LogicalVolume( sol_FrontPl,
+      GetMaterial("Steel"), "log_FrontPl");
+  G4LogicalVolume *log_BackPl = new G4LogicalVolume( sol_BackPl,
+      GetMaterial("Steel"), "log_BackPl");
+  G4LogicalVolume *log_LightGuide = new G4LogicalVolume( sol_LightGuide,
+      //GetMaterial("Acrylic"), "log_LightGuide");
+      GetMaterial("BC484"), "log_LightGuide");
+  G4LogicalVolume *log_PMTCathode = new G4LogicalVolume( sol_PMTCathode,
+      GetMaterial("Glass_HC"), "log_PMTCathode");
+  G4LogicalVolume *log_ModuleMylar = new G4LogicalVolume( sol_ModuleMylar,
+      GetMaterial("Mylar"), "log_ModuleMylar");
+
+  // Define the solid and logical volume for the FrontPlate steel mount
+  G4Box *sol_HCALFrontPlate = new G4Box("sol_HCALFrontPlate",
+      dim_HCALX/2., dim_HCALY/2., dim_HCALFrontPlateZ/2.);
+  G4LogicalVolume *log_HCALFrontPlate = new G4LogicalVolume( sol_HCALFrontPlate,
+      GetMaterial("Steel"), "log_HCALFrontPlate" );
+
+  // Define solid and logical volume for mother HCAL box/volume
+  // (make it slightly larger than needed so that setting the stepping limits
+  // works)
+  G4Box *sol_HCAL = new G4Box("sol_HCAL",
+      dim_HCALX/2.+0.01*mm, dim_HCALY/2.+0.01*mm, dim_HCALZ/2.+0.01*mm);
+  G4LogicalVolume *log_HCAL = new G4LogicalVolume( sol_HCAL,
+      GetMaterial("Air"), "log_HCAL" );
+
+  // Position information for each element in the module
+  G4double posZ = -dim_ModuleZ/2.;
+
+  // Position the CAN inside the module
+  posZ += dim_EndPl0Z + dim_ModCanZ/2.;
+  new G4PVPlacement(0,G4ThreeVector(0,0,posZ),log_ModCan,"pModCan",
+      log_Module,false,0,checkOverlap);
+  posZ -= dim_EndPl0Z + dim_ModCanZ/2.;
+
+  // Then position the front plate and back plate
+  posZ += dim_EndPl0Z/2.;
+  G4double pos_EndOfFrontPlZ = posZ + dim_EndPl0Z/2. + dim_EndPl1Z;
+  new G4PVPlacement(0,G4ThreeVector(0,0,posZ),log_FrontPl,"pFrontPl",
+    log_Module,false,0,checkOverlap);
+  posZ += dim_EndPl0Z/2.+dim_ModCanZ+dim_EndPl0Z/2.;
+  new G4PVPlacement(0,G4ThreeVector(0,0,posZ),log_BackPl,"pBackPl",
+    log_Module,false,0,checkOverlap);
+  posZ = pos_EndOfFrontPlZ;
+
+  // Position the mylar wrapping around the module
+  posZ += dim_ModuleMylar0Z/2.;
+  new G4PVPlacement(0,G4ThreeVector(0,0,posZ),
+      log_ModuleMylar,"pModuleMylar",log_Module,false,0.,checkOverlap);
+  posZ = pos_EndOfFrontPlZ;
+
+  // Position the wavelength shifter in the middle
+  posZ += dim_WaveShiftZ/2;
+  new G4PVPlacement(0, G4ThreeVector(0.,0.,posZ),
+      log_WaveShift,"pWaveShift",log_Module, false, 0, checkOverlap);
+  new G4PVPlacement(0, G4ThreeVector(0.,(dim_WaveShiftY+dim_WaveShiftRodY)/2.,
+        posZ),log_WaveShiftRod,"pWaveShiftRod1",
+      log_Module, false, 0, checkOverlap);
+  new G4PVPlacement(0, G4ThreeVector(0.,-(dim_WaveShiftY+dim_WaveShiftRodY)/2.,
+        posZ),log_WaveShiftRod,"pWaveShiftRod1",
+      log_Module, false, 0, checkOverlap);
+  posZ += dim_WaveShiftZ/2;
+
+  // Position the Light Guides at the end of the WaveShift
+  posZ += dim_LightGuide0Z/2;
+  new G4PVPlacement(0,G4ThreeVector(0.,0.,posZ), log_LightGuide,"pLightGuide",
+      log_Module,false,0, checkOverlap);
+  posZ += dim_LightGuide0Z/2 + dim_LightGuide1Z;
+
+  // Record the relative Position the Cathode at the end of the LightGuide
+  posZ += dim_PMTCathodeZ/2;
+  G4double posPMTCathodeZ = posZ;
+  new G4PVPlacement(0,G4ThreeVector(0.,0.,posPMTCathodeZ),
+      log_PMTCathode,"pPMTCathode", log_Module, false, 0, checkOverlap);
+
+  // Reset the initial Z position back to the front of the first plate
+  posZ = pos_EndOfFrontPlZ;
+
+  // A copy number for each element placed in the module
+  int copyNo = 0;
+
+  // Position information for each "side" of the stack
+  G4double posLeftZ = posZ;
+  G4double posRightZ = posZ;
+
+  G4double posScintX  = dim_ScintX/2.0  + dim_WaveShiftRodX/2. + dim_AirGap;
+  G4double posScintY  = 0.0;
+  G4double posAbsorbX = dim_AbsorbX/2.0 + dim_WaveShiftRodX/2. + dim_AirGap +
+    dim_MylarThickness;
+  G4double posAbsorbY = 0.0;
+
+  G4ThreeVector posLeft(-posAbsorbX, posAbsorbY,posLeftZ);
+  G4ThreeVector posRight(posAbsorbX, posAbsorbY,posRightZ);
+
+  // Rotation matrix for the wrapped scintillators on both sides
+  G4RotationMatrix rotLeft;
+  G4RotationMatrix rotRight;
+  rotLeft.rotateZ(180*CLHEP::deg);
+
+  // Place stack elements in the module
+  for(int sub = 0; sub < numSubstacks; sub++) {
+
+    // Place all Scintillator-Fe pairs
+    for(int pair = 0; pair < numPairs[sub]; pair++) {
+      // The first pair usually doesn't start with an absorber
+      // except for the first substack
+      if(sub==0 && pair==0) {
+        posLeftZ  += dim_ThinAbsorbZ/2.;
+        posRightZ += dim_AbsorbZ/2.;
+        posLeft.set(-posAbsorbX,posAbsorbY,posLeftZ);
+        posRight.set(posAbsorbX,posAbsorbY,posRightZ);
+        new G4PVPlacement(0, posLeft, log_ThinAbsorb, "pAbsorb",
+            log_Module, false, copyNo++, checkOverlap);
+        new G4PVPlacement(0, posRight, log_Absorb, "pAbsorb",
+            log_Module, false, copyNo++, checkOverlap);
+        posRightZ += dim_AbsorbZ/2. + dim_ThinAbsorbZ/2.;
+        posRight.set(posAbsorbX,posAbsorbY,posRightZ);
+        new G4PVPlacement(0, posRight, log_ThinAbsorb, "pAbsorb",
+            log_Module, false, copyNo++, checkOverlap);
+        posLeftZ  += dim_ThinAbsorbZ/2.;
+        posRightZ += dim_ThinAbsorbZ/2.;
+      } else if(pair>0) {
+        // Position an absorber in front of every other pair after the first
+        posLeftZ  += dim_AbsorbZ/2. + dim_AirGap;
+        posRightZ += dim_AbsorbZ/2. + dim_AirGap;
+        posLeft.set(-posAbsorbX,posAbsorbY,posLeftZ);
+        posRight.set(posAbsorbX,posAbsorbY,posRightZ);
+        new G4PVPlacement(0, posLeft, log_Absorb, "pAbsorb",
+            log_Module,false, copyNo++, checkOverlap);
+        new G4PVPlacement(0, posRight, log_Absorb, "pAbsorb",
+            log_Module,false, copyNo++, checkOverlap);
+        posLeftZ  += dim_AbsorbZ/2.;
+        posRightZ += dim_AbsorbZ/2.;
+      }
+
+      // Now set the scintillator
+      posLeftZ  += dim_ScintZ/2. + dim_MylarThickness/2. + dim_AirGap;
+      posRightZ += dim_ScintZ/2. + dim_MylarThickness/2. + dim_AirGap;
+      posLeft.set(-posScintX,posScintY,posLeftZ);
+      posRight.set(posScintX,posScintY,posRightZ);
+      new G4PVPlacement(G4Transform3D(rotLeft, posLeft), log_Scint,
+          "pScint", log_Module,false, copyNo++, checkOverlap);
+      new G4PVPlacement(G4Transform3D(rotRight, posRight), log_Scint,
+          "pScint", log_Module,false, copyNo++, checkOverlap);
+      posLeftZ  += dim_ScintZ/2.+dim_MylarThickness/2.;
+      posRightZ += dim_ScintZ/2.+dim_MylarThickness/2.;
+
+    }
+    // A spacer (or shim gap) is at the end of each substack but
+    // before the last rib.
+    posLeftZ  += dim_ShimGapSpacerZ/2. + dim_AirGap;
+    posRightZ += dim_ShimGapSpacerZ/2. + dim_AirGap;
+    posLeft.set(-posAbsorbX,posAbsorbY,posLeftZ);
+    posRight.set(posAbsorbX,posAbsorbY,posRightZ);
+    new G4PVPlacement(0, posLeft, log_ShimGapSpacer, "pShimGapSpacer",
+        log_Module, false, copyNo++, checkOverlap);
+    new G4PVPlacement(0, posRight, log_ShimGapSpacer, "pShimGapSaper",
+        log_Module, false, copyNo++, checkOverlap);
+    posLeftZ  += dim_ShimGapSpacerZ/2.;
+    posRightZ += dim_ShimGapSpacerZ/2.;
+
+    // Place a "rib" at the end of each substack
+    posLeftZ  += dim_AbsorbZ/2. + dim_AirGap;
+    posRightZ += dim_AbsorbZ/2. + dim_AirGap;
+    posLeft.set(-posAbsorbX,posAbsorbY,posLeftZ);
+    posRight.set(posAbsorbX,posAbsorbY,posRightZ);
+    new G4PVPlacement(0, posLeft, log_Absorb, "pAbsorb", log_Module,
+        false, copyNo++, checkOverlap);
+    new G4PVPlacement(0, posRight, log_Absorb, "pAbsorb", log_Module,
+        false, copyNo++, checkOverlap);
+    posLeftZ  += dim_AbsorbZ/2.;
+    posRightZ += dim_AbsorbZ/2.;
+  }
+
+  // Now register the Sensitive Detectors
+  G4SDManager *sdman = fDetCon->fSDman;
+
+  // Scintillators in HCAL
+  G4String HCalScintSDName = "Harm/HCalScint";
+  G4String HCalScintCollName = "HCalScintHitsCollection";
+  G4SBSCalSD *HCalScintSD = NULL;
+
+  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(HCalScintSDName)) ){
+    G4cout << "Adding HCal Scintillator Sensitive Detector to SDman..." << G4endl;
+    HCalScintSD = new G4SBSCalSD( HCalScintSDName, HCalScintCollName );
+    sdman->AddNewDetector(HCalScintSD);
+    (fDetCon->SDlist).insert(HCalScintSDName);
+    fDetCon->SDtype[HCalScintSDName] = kCAL;
+    (HCalScintSD->detmap).depth = 1;
+  }
+  log_Scint->SetSensitiveDetector(HCalScintSD);
+
+  // PMTs in HCAL (assigned to ECalSD which detects optical photons)
+  G4String HCalSDName = "Harm/HCal";
+  G4String HCalCollName = "HCalHitsCollection";
+  G4SBSECalSD *HCalSD = NULL;
+
+  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(HCalSDName)) ){
+    G4cout << "Adding HCal PMT Sensitive Detector to SDman..." << G4endl;
+    HCalSD = new G4SBSECalSD( HCalSDName, HCalCollName );
+    sdman->AddNewDetector(HCalSD);
+    (fDetCon->SDlist).insert(HCalSDName);
+    fDetCon->SDtype[HCalSDName] = kECAL;
+    (HCalSD->detmap).depth = 1;
+  }
+  log_PMTCathode->SetSensitiveDetector(HCalSD);
+
+  // Set step limit to all of HCAL?
+  if( (fDetCon->StepLimiterList).find( log_HCAL->GetName() ) != (fDetCon->StepLimiterList).end() ){
+    G4UserLimits *limits = new G4UserLimits(0.0,0.0,0.0,DBL_MAX, DBL_MAX);
+    //log_HCAL->SetUserLimits(new G4UserLimits(0.0,0.0,0.0,DBL_MAX, DBL_MAX) );
+    log_HCAL->SetUserLimits(limits);
+    //log_Scint->SetUserLimits(limits);
+    //log_HCALFrontPlate->SetUserLimits(limits);
+    G4cout << "Making " << log_HCAL->GetName() << " a total absorber" << G4endl;
+    G4String sdname = "Harm/HCALbox";
+    G4String collname = "HCAL_boxHitsCollection";
+    G4SBSCalSD *HCALboxSD = NULL;
+    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(sdname)) ){
+      G4cout << "Adding HCALbox sensitive detector to SDman..." << G4endl;
+      HCALboxSD = new G4SBSCalSD( sdname, collname );
+      sdman->AddNewDetector( HCALboxSD );
+      (fDetCon->SDlist).insert( sdname );
+      fDetCon->SDtype[sdname] = kCAL;
+      (HCALboxSD->detmap).depth = 0;
+      log_HCAL->SetSensitiveDetector( HCALboxSD );
+    }
+  }
+
+  // Place the HCALFrontPlate steel mount
+  new G4PVPlacement(0, G4ThreeVector(0,0,-(dim_HCALZ-dim_HCALFrontPlateZ)/2.),
+      log_HCALFrontPlate,"log_HCALFrontPlate",log_HCAL,false,0,checkOverlap);
+
+  // Set the initial vertical position for a module as the top of HCAL
+  // Initial horizontal position would be on the left
+  G4double posModX;
+  G4double posModY = dim_HCALY/2. - dim_ModuleY/2.;
+  G4double posModZ = dim_HCALFrontPlateZ/2.;
+  G4double posExternalShimZ = -dim_HCALZ/2. + dim_HCALFrontPlateZ + dim_ExternalShimZ/2.;
+  copyNo = 0;
+  // Construct physical volumes for each of the sensitive modules
+  for(int row = 0; row <  num_rows; row++ ) {
+    posModX = dim_HCALX/2. - dim_ModuleX/2.;
+    for(int col = 0; col <  num_cols; col++ ) {
+      // Place module inside HCAL
+      new G4PVPlacement(0, G4ThreeVector(posModX,posModY,posModZ),
+          log_Module, "log_Module", log_HCAL, false, copyNo, checkOverlap);
+
+      // Configure Sensitive Detector Map
+      (HCalSD->detmap).Row[copyNo] = row;
+      (HCalSD->detmap).Col[copyNo] = col;
+      (HCalSD->detmap).LocalCoord[copyNo] =
+        G4ThreeVector(posModX,posModY,posPMTCathodeZ);
+
+      (HCalScintSD->detmap).Row[copyNo] = row;
+      (HCalScintSD->detmap).Col[copyNo] = col;
+      (HCalScintSD->detmap).LocalCoord[copyNo] =
+        G4ThreeVector(posModX,posModY,posModZ);
+
+      // Increment horizontal position for next module
+      posModX -= dist_ModuleCToCX;
+
+      // Increment the copyNo
+      copyNo++;
+    }
+    // Increment vertical position for next module. For most instances
+    // we'll need a shim spacer before doing so
+    posModY -= dist_ModuleCToCY/2.;
+    if(row < num_rows -1)
+      new G4PVPlacement(0, G4ThreeVector(0,posModY,posExternalShimZ),
+          log_ExternalShim, "log_ExternalShim", log_HCAL, false, copyNo,
+          checkOverlap);
+
+    posModY -= dist_ModuleCToCY/2.;
+  }
+
+  // Lastly, place the HCAL volume
+  new G4PVPlacement(rot_HCAL, G4ThreeVector(dist_HCALX,dist_HCALY,dist_HCALZ),
+      log_HCAL, "HCal Mother", motherlog, false, 0, checkOverlap);
+
+  // Apply the step limiter, if requested
+  if( (fDetCon->StepLimiterList).find( HCalScintSDName ) != (fDetCon->StepLimiterList).end() ){
+    log_Scint->SetUserLimits(new G4UserLimits(0.0,0.0,0.0,DBL_MAX, DBL_MAX) );
+  }
+
+  // Register optical properties of materials. For this, I think it will be
+  // sufficient to specify optical surfaces between scintillators-iron and
+  // scintillator-waveshift, waveshift-lightguide, lightguide-pmtcathode
+
+  // Define optical skin of light guide
+  new G4LogicalSkinSurface("skin_LightGuide",log_LightGuide,
+      GetOpticalSurface("osWLSToAir"));
+  // Make the mylar pieces reflective
+  new G4LogicalSkinSurface("skin_ThinAbsorb",log_ThinAbsorb,
+      GetOpticalSurface("Foil") ); 
+  new G4LogicalSkinSurface("skin_Absorb",log_Absorb,
+      GetOpticalSurface("Foil") ); 
+  new G4LogicalSkinSurface("skin_ModuleMylar",log_ModuleMylar,
+      GetOpticalSurface("Foil") ); 
+  new G4LogicalSkinSurface("skin_ShimGapSpacer",log_ShimGapSpacer,
+      GetOpticalSurface("Foil") ); 
+  // Define optical surface of a reflector
+  /*
+  G4OpticalSurface *sur_Reflector = new G4OpticalSurface("sur_Reflector");
+  sur_Reflector->SetType(dielectric_metal);
+  sur_Reflector->SetFinish(polished);
+  */
+
+  // Scint-Absorber border
+  /*
+  G4LogicalBorderSurface *sur_ScintAbsorb = new G4LogicalBorderSurface(
+      "surf_ScintAbsorb",log_Scint,log_Absorb,sur_Reflector);
+  G4LogicalBorderSurface *sur_ScintThinAbsorb = new G4LogicalBorderSurface(
+      "surf_ScintThinAbsorb",log_Scint,log_ThinAbsorb,sur_Reflector);
+      */
+
+  //--------------------------------------------------------------------------
+  // Set visualization properties
+  double trans = 0.35; // Translucency of light guide + scintillators
+
+  // Module
+  //G4VisAttributes *vis_Module  = new G4VisAttributes(G4Colour::Blue());
+  //vis_Module ->SetForceWireframe(true);
+  //log_Module->SetVisAttributes(vis_Module);
+  log_Module->SetVisAttributes(G4VisAttributes::Invisible);
+
+  // Hide the Can
+  //G4VisAttributes *vis_ModCan = new G4VisAttributes(G4Colour(0.78,0.92,0.27));
+  //log_ModCan->SetVisAttributes(vis_ModCan);
+  log_ModCan->SetVisAttributes(G4VisAttributes::Invisible);
+
+  // Module Mylar (invisible)
+  log_ModuleMylar->SetVisAttributes(G4VisAttributes::Invisible);
+
+  // Absorber
+  G4VisAttributes *vis_Absorb = new G4VisAttributes(G4Colour(0.83,0.84,0.85));
+  log_Absorb->SetVisAttributes(vis_Absorb);
+  log_ThinAbsorb->SetVisAttributes(vis_Absorb);
+
+  // Scintillator and Mylar
+  G4VisAttributes *vis_Scint = new G4VisAttributes(G4Colour(0.0,1.0,1.0,trans));
+  log_Scint->SetVisAttributes(vis_Scint);
+
+  // Wavelength Shifter & Rod
+  G4VisAttributes *vis_WaveShift = new G4VisAttributes(G4Colour(0.54,0.53,0.79,trans));
+  log_WaveShift->SetVisAttributes(vis_WaveShift);
+  G4VisAttributes *vis_WaveShiftRod = new G4VisAttributes(G4Colour(0.3,0.3,0.3));
+  log_WaveShiftRod->SetVisAttributes(vis_WaveShiftRod);
+
+  // LightGuide
+  G4VisAttributes *vis_LightGuide = new G4VisAttributes(G4Colour(1.0,1.0,1.0,trans));
+  log_LightGuide->SetVisAttributes(vis_LightGuide);
+
+  // PMTCathode
+  G4VisAttributes *vis_PMTCathode = new G4VisAttributes(G4Colour(1.0,.41,71));
+  log_PMTCathode->SetVisAttributes(vis_PMTCathode);
+
+  // FrontPl & BackPl
+  G4VisAttributes *vis_FrontPl = new G4VisAttributes(G4Colour(0.3,0.3,0.3));
+  log_FrontPl->SetVisAttributes(vis_FrontPl);
+  G4VisAttributes *vis_BackPl = new G4VisAttributes(G4Colour(0.3,0.3,0.3));
+  log_BackPl->SetVisAttributes(vis_BackPl);
+
+  // Shim Gap Spacer
+  G4VisAttributes *vis_ShimGapSpacer = new G4VisAttributes(
+      G4Colour(1.0,1.0,0.0));
+  log_ShimGapSpacer->SetVisAttributes(vis_ShimGapSpacer);
+
+  // FrontPlate (steel mounting plate)
+  G4VisAttributes *vis_HCALFrontPlate = new G4VisAttributes(
+      G4Colour(1.0,0.0,0.0));
+  log_HCALFrontPlate->SetVisAttributes(vis_HCALFrontPlate);
+
+  // HCAL enclosure should be invisible
+  log_HCAL->SetVisAttributes(G4VisAttributes::Invisible);
 }
 
 
@@ -1250,6 +1870,98 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   //G4VisAttributes * caloVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
   //caloVisAtt->SetForceWireframe(true);
   logCalo->SetVisAttributes(G4VisAttributes::Invisible);
+}
+
+void G4SBSHArmBuilder::MakeTracker( G4LogicalVolume *worldlog)
+{
+  // 2016/06/23 (jc2): Moved SIDIS tracker to its own function
+  //Let's make a simple tracker: 5 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~50 cm + about 1.6 cm
+  G4double SBStracker_dist = fRICHdist - 0.3*m;
+  G4ThreeVector SBStracker_pos( -SBStracker_dist * sin( f48D48ang ), 0.0, SBStracker_dist * cos( f48D48ang ) );
+
+  G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
+
+  //Just a test:
+  //SBStracker_rot_I->rotateY( 14.0*deg );
+
+  G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
+  SBStracker_rot->rotateY( f48D48ang );
+
+  G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
+
+  G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
+
+  //For consistency with BigBite, place "Tracker" volume before GEMs are placed in it:
+  new G4PVPlacement( SBStracker_rot, SBStracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
+
+  int ngems_SBStracker = 5;
+  vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
+
+  G4double zspacing_SBStracker = 10.0*cm;
+  G4double zoffset_SBStracker = -20.0*cm;
+
+  for(int i=0; i<ngems_SBStracker; i++ ){
+    zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
+    wplanes_SBStracker.push_back( 60.0*cm );
+    hplanes_SBStracker.push_back( 200.0*cm );
+  }
+
+  G4SBSTrackerBuilder trackerbuilder(fDetCon);
+
+  //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
+
+  trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
+      ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
+
+  SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
+}
+
+void G4SBSHArmBuilder::MakeTracker_A1n(G4LogicalVolume *motherlog){
+  //      G4double SBStracker_dist = fRICHdist - 0.3*m; //distance to the front of the SBS tracker
+  G4ThreeVector SBS_midplane_pos( -(f48D48dist + 0.5*f48D48depth)*sin(f48D48ang), 0.0, (f48D48dist+0.5*f48D48depth)*cos(f48D48ang) );
+
+  G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
+
+  //Just a test:
+  //SBStracker_rot_I->rotateY( 14.0*deg );
+
+  G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
+  SBStracker_rot->rotateY( f48D48ang );
+  SBStracker_rot->rotateX( fSBS_tracker_pitch );
+
+  G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
+
+  G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
+
+  G4double RICH_yoffset = (fRICHdist - (f48D48dist + 0.5*f48D48depth) )*sin( fSBS_tracker_pitch );
+
+  G4ThreeVector RICH_pos( -fRICHdist*sin(f48D48ang), RICH_yoffset, fRICHdist*cos(f48D48ang) );
+
+  G4ThreeVector SBS_tracker_axis = (RICH_pos - SBS_midplane_pos).unit();
+  G4ThreeVector SBS_tracker_pos = RICH_pos - 0.3*m*SBS_tracker_axis;
+
+  new G4PVPlacement( SBStracker_rot, SBS_tracker_pos, SBStracker_log, "SBStracker_phys", motherlog, false, 0 );
+
+  int ngems_SBStracker = 5;
+  vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
+
+  G4double zspacing_SBStracker = 10.0*cm;
+  G4double zoffset_SBStracker = -20.0*cm;
+
+  for(int i=0; i<ngems_SBStracker; i++ ){
+    zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
+    wplanes_SBStracker.push_back( 60.0*cm );
+    hplanes_SBStracker.push_back( 200.0*cm );
+  }
+
+  G4SBSTrackerBuilder trackerbuilder(fDetCon);
+
+  //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
+
+  trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
+      ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
+
+  SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
 }
 
 void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
@@ -2014,6 +2726,214 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   PMTquartzwindow_log->SetVisAttributes( PMT_window_visatt );
   
 }
+
+
+void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
+  //z0 is the z position of the start of CDET relative to the HCal surface
+  
+  //R0 is the nominal distance from target to the start of CDET
+  G4double R0 = fHCALdist + z0;
+    
+  G4double Lx_scint = 51.0*cm;
+  G4double Ly_scint = 0.5*cm;
+  G4double Lz_scint = 4.0*cm;
+
+  G4double HoleDiameter = 0.3*cm;
+  G4double WLSdiameter      = 0.2*cm;
+  G4double WLScladding_thick = 0.03*WLSdiameter/2.0;
+
+  G4double mylar_thick = 0.25*0.001*2.54*cm; //.25 mil thickness of mylar
+  //G4double mylar_thick = 0.1*mm;
+  
+  // G4int NColumns = 2;
+  // G4int NRows    = 196;
+  
+  G4Box *Scint_strip = new G4Box("Scint_strip", (Lx_scint + mylar_thick)/2.0, Ly_scint/2.0 + mylar_thick, Lz_scint/2.0 + mylar_thick );
+  G4Box *Scint_strip_nowrap = new G4Box("Scint_strip_nowrap", Lx_scint/2.0, Ly_scint/2.0, Lz_scint/2.0 );
+  
+  //Need to make a subtraction solid to define the mylar wrapping:
+  // Need one (x) end to be open:
+  G4Box *Scint_wrap_cutout = new G4Box("Scint_wrap_cutout", (Lx_scint + mylar_thick)/2.0 + 1.0*cm, Ly_scint/2.0, Lz_scint/2.0 );
+
+  //Want to leave mylar_thick at +x end: cutout is 1 cm longer in x than module:
+  // Lx_scint/2 + mylar_thick/2 - (x0 + Lx_scint/2 + mylar_thick/2 + 1.0 cm) = mylar_thick -->
+  // x0 = mylar_thick - 1.0 cm
+  G4SubtractionSolid *scint_wrap = new G4SubtractionSolid( "scint_wrap", Scint_strip, Scint_wrap_cutout, 0, G4ThreeVector( -(mylar_thick + 1.0*cm), 0, 0 ) );
+
+  G4RotationMatrix *rot_fiber = new G4RotationMatrix;
+
+  rot_fiber->rotateY( 90.0*deg );
+  
+  //This is to be used 
+  G4Tubs *ScintHole = new G4Tubs( "ScintHole", 0.0, HoleDiameter/2.0, 1.01 * Lx_scint/2.0, 0.0, twopi );
+  G4SubtractionSolid *Scint_strip_with_hole = new G4SubtractionSolid( "Scint_strip_with_hole", Scint_strip_nowrap, ScintHole, rot_fiber, G4ThreeVector(0,0,0) );
+  
+  G4Tubs *WLSfiber = new G4Tubs( "WLSfiber",                        0.0, 0.97*WLSdiameter/2.0, Lx_scint/2.0, 0.0, twopi );
+  G4Tubs *WLScladding = new G4Tubs( "WLScladding", 0.97*WLSdiameter/2.0,      WLSdiameter/2.0, Lx_scint/2.0, 0.0, twopi );
+  
+  G4LogicalVolume *Scint_module = new G4LogicalVolume( Scint_strip, GetMaterial("Special_Air"), "Scint_module" );
+
+  G4LogicalVolume *ScintWrapLog = new G4LogicalVolume( scint_wrap, GetMaterial("Mylar"), "ScintWrapLog" );
+  //Make Mylar reflective:
+  new G4LogicalSkinSurface( "CDET_mylar_wrap_osurf", ScintWrapLog, GetOpticalSurface("Mirrsurf") ); 
+  
+  G4LogicalVolume *ScintStripLog = new G4LogicalVolume( Scint_strip_with_hole, GetMaterial("CDET_BC408"), "ScintStripLog" );
+  G4LogicalVolume *WLSFiberLog = new G4LogicalVolume( WLSfiber, GetMaterial("BCF_92"), "WLSFiberLog" );
+  G4LogicalVolume *WLSCladdingLog = new G4LogicalVolume( WLScladding, GetMaterial("CDET_Acrylic"), "WLSCladdingLog" );
+  
+  new G4PVPlacement( 0, G4ThreeVector( 0,0,0 ), ScintWrapLog, "ScintWrapPhys", Scint_module, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( -mylar_thick/2.0, 0, 0 ), ScintStripLog, "ScintStripPhys", Scint_module, false, 0 );
+  new G4PVPlacement( rot_fiber, G4ThreeVector( -mylar_thick/2.0, 0, 0 ), WLSFiberLog, "WLSFiberPhys", Scint_module, false, 0 );
+  new G4PVPlacement( rot_fiber, G4ThreeVector( -mylar_thick/2.0, 0, 0 ), WLSCladdingLog, "WLSCladdingPhys", Scint_module, false, 0 );
+  
+  G4Tubs *CDET_pmt_cathode = new G4Tubs( "CDET_pmt_cathode", 0.0, WLSdiameter/2.0, 0.1*cm, 0.0, twopi );
+  G4LogicalVolume *CDET_pmt_cathode_log = new G4LogicalVolume( CDET_pmt_cathode, GetMaterial("Photocathode_CDet"), "CDET_pmt_cathode_log" );
+
+  G4SBSECalSD *cdet_sd = NULL;
+  G4SDManager *sdman = fDetCon->fSDman;
+
+  G4String sdname = "Harm/CDET";
+  G4String collname = "CDETHitsCollection";
+  
+  if( !( cdet_sd = (G4SBSECalSD*) sdman->FindSensitiveDetector(sdname) ) ){
+    G4cout << "Adding CDET sensitive detector to sdman..." << G4endl;
+    cdet_sd = new G4SBSECalSD( sdname, collname );
+    fDetCon->fSDman->AddNewDetector( cdet_sd );
+    (fDetCon->SDlist).insert( sdname );
+    fDetCon->SDtype[sdname] = kECAL;
+    (cdet_sd->detmap).depth = 0;
+    CDET_pmt_cathode_log->SetSensitiveDetector( cdet_sd );
+  }
+
+  sdname = "Harm/CDET_Scint";
+  collname = "CDET_ScintHitsCollection";
+
+  G4SBSCalSD *cdet_scint_sd = NULL;
+  
+  if( !( cdet_scint_sd = (G4SBSCalSD*) sdman->FindSensitiveDetector( sdname ) ) ){
+    G4cout << "Adding CDET Scint sensitive detector to sdman..." << G4endl;
+    cdet_scint_sd = new G4SBSCalSD( sdname, collname );
+    fDetCon->fSDman->AddNewDetector( cdet_scint_sd );
+    (fDetCon->SDlist).insert( sdname );
+    fDetCon->SDtype[sdname] = kCAL;
+    (cdet_scint_sd->detmap).depth = 1;
+    ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
+  }
+  
+  //Now we need to define the coordinates of the "modules":
+  //horizontal position within mother:
+  // G4double x0_modules[3] = { 0.5*(-70.986+31.014)*cm,
+  // 			     0.5*(-63.493+38.507)*cm,
+  // 			     0.5*(-56.0+46.0)*cm };
+			     // -0.5*(-63.493+38.507)*cm,
+			     // -0.5*(-70.986+31.014)*cm };
+  G4double x0_modules[3] = { 0.0, 0.0, 0.0 };
+  
+  //Number of rows per module:
+  //G4int Nrow_module[3] = { 98, 98, 98, 98, 98, 98 };
+  G4int Nrow_total = 588;
+
+  //G4double y0[2][Nrow_total], pitch_angle[2][Nrow_total];
+
+  //Nominal distance to CDET used to define the projective geometry:
+  //G4double R0_CDET = 405.0*cm;
+  //Nominal distance to planes:
+  G4double R0_planes[2] = { R0 + Lz_scint/2.0 + 1.0*cm,
+			    R0 + 3.0*Lz_scint/2.0 + 20.0*cm }; //allow for some small (1 cm) gaps between CH2 and start of 1st plane and between 1st and second planes...
+
+  G4int istrip=0;
+  
+  for( int plane=0; plane<2; plane++ ){
+    //step size in vertical angle:
+    G4double dalpha = 2.0 * atan( (Ly_scint/2.0 + mylar_thick)/(R0_planes[plane] - Lz_scint/2.0 - mylar_thick) );
+    for( int col=0; col<2; col++ ){
+      //G4double ysum = Ly_scint/2.0;
+      for( int row=0; row<294; row++ ){
+      //for(int row=0; row<1; row++ ){
+	G4double alpha = (row + 0.5 ) * dalpha;
+	//for the first two strips, make them horizontal:
+	G4int imod = 2 - row/98;	
+
+	//hopefully, this expression won't lead to overlaps of strips?
+	G4ThreeVector pos_strip( x0_modules[imod] + ( col - 0.5 )*(Lx_scint+mylar_thick), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
+
+	G4RotationMatrix *rot_strip = new G4RotationMatrix;
+	rot_strip->rotateY( col*pi );
+	rot_strip->rotateX( alpha*pow(-1,col) );
+	//rot_strip->rotateX( alpha );
+	char physname[255];
+	sprintf( physname, "Scint_module_phys_plane%d_row%d_col%d", plane+1, row+295, col+1 ); //In this construction, row varies from 295-588 for the top half
+	G4String pvolname = physname;
+	new G4PVPlacement( rot_strip, pos_strip, Scint_module, pvolname, mother, false, istrip );
+
+	G4ThreeVector pos_pmt( x0_modules[imod] + pow(-1,col+1)*(Lx_scint+mylar_thick+0.1*cm), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
+	sprintf( physname, "CDET_pmt_phys_plane%d_row%d_col%d", plane+1, row+295, col+1 );
+	pvolname = physname;
+	new G4PVPlacement( rot_fiber, pos_pmt, CDET_pmt_cathode_log, pvolname, mother, false, istrip );
+
+	(cdet_sd->detmap).Row[istrip] = row+295;
+	(cdet_sd->detmap).Col[istrip] = col+1;
+	(cdet_sd->detmap).Plane[istrip] = plane+1;
+	(cdet_sd->detmap).LocalCoord[istrip] = pos_strip;
+
+	(cdet_scint_sd->detmap).Row[istrip] = row+295;
+	(cdet_scint_sd->detmap).Col[istrip] = col+1;
+	(cdet_scint_sd->detmap).Plane[istrip] = plane+1;
+	(cdet_scint_sd->detmap).LocalCoord[istrip] = pos_pmt;
+	
+	istrip++;
+
+	//Next: make bottom half:
+
+	alpha *= -1.0;
+
+	pos_strip.setY( R0_planes[plane] * tan(alpha) );
+
+	G4RotationMatrix *rot_strip2 = new G4RotationMatrix;
+	rot_strip2->rotateY( col * pi );
+	rot_strip2->rotateX( alpha*pow(-1,col) );
+
+	sprintf( physname, "Scint_module_phys_plane%d_row%d_col%d", plane+1, 294-row, col+1 ); //In this construction, row varies from 294 down to 1 for the bottom half:
+
+	pvolname = physname;
+
+	new G4PVPlacement( rot_strip2, pos_strip, Scint_module, pvolname, mother, false, istrip );
+
+	pos_pmt.setY( R0_planes[plane] * tan(alpha) );
+	sprintf( physname, "CDET_pmt_phys_plane%d_row%_col%d", plane+1, 294-row, col+1 );
+	pvolname = physname;
+	new G4PVPlacement( rot_fiber, pos_pmt, CDET_pmt_cathode_log, pvolname, mother, false, istrip );
+
+	(cdet_sd->detmap).Row[istrip] = 294-row;
+	(cdet_sd->detmap).Col[istrip] = col+1;
+	(cdet_sd->detmap).Plane[istrip] = plane+1;
+	(cdet_sd->detmap).LocalCoord[istrip] = pos_strip;
+
+	(cdet_scint_sd->detmap).Row[istrip] = 294-row;
+	(cdet_scint_sd->detmap).Col[istrip] = col+1;
+	(cdet_scint_sd->detmap).Plane[istrip] = plane+1;
+	(cdet_scint_sd->detmap).LocalCoord[istrip] = pos_pmt;
+	
+	istrip++;
+	
+      }
+    }
+  }
+
+  Scint_module->SetVisAttributes( G4VisAttributes::Invisible );
+  
+  G4VisAttributes *scintstrip_visatt = new G4VisAttributes( G4Colour( 0.8, 0, 0.8 ) );
+  ScintStripLog->SetVisAttributes( scintstrip_visatt );
+
+  G4VisAttributes *WLSfiber_visatt = new G4VisAttributes( G4Colour( 0, 0.8, 0.8 ) );
+  WLSFiberLog->SetVisAttributes( WLSfiber_visatt );
+
+  G4VisAttributes *scintwrap_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0 ) );
+  ScintWrapLog->SetVisAttributes( scintwrap_visatt );
+  
+}
+
+
 
 void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 

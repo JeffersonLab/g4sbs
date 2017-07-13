@@ -62,9 +62,12 @@ private:
   G4UIcmdWithAnInteger *bbfieldCmd;
   G4UIcmdWithAString *tosfieldCmd;
 
+  G4UIcmdWithAnInteger *eventStatusEveryCmd;
+
   G4UIcmdWithABool *geantinoCmd;
   G4UIcmdWithABool *invertCmd;
   G4UIcmdWithABool *totalabsCmd;
+  G4UIcmdWithABool *checkOverlapCmd;
   
   G4UIcmdWithAnInteger *gemconfigCmd;
   G4UIcmdWithAnInteger *shieldconfigCmd;

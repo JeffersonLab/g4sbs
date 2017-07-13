@@ -65,6 +65,8 @@ public:
   
   void SetThMin(double v){fThMin = v;}
   void SetThMax(double v){fThMax = v;}
+  // void SetQ2min(double v){fQ2min = v;}
+  // void SetQ2max(double v){fQ2max = v;}
   void SetPhMin(double v){fPhMin = v;}
   void SetPhMax(double v){fPhMax = v;}
   
@@ -118,6 +120,7 @@ private:
   Hadron_t fHadronType; //Currently available: pi+/-/0, K+/-, p/pbar
 
   double fThMin, fThMax, fPhMin, fPhMax; //Angular generation limits for electron arm
+
   double fEeMin, fEeMax; //Electron energy generation limits
   double fThMin_had, fThMax_had, fPhMin_had, fPhMax_had; //Angular generation limits for hadron arm 
   double fEhadMin, fEhadMax; //Hadron (total) energy generation limits (for SIDIS case)--Later we will want to add exclusive hadron production.

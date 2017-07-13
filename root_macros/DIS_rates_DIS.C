@@ -100,14 +100,37 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
   double N_A = 6.022e23; //avogadro's number
   double e = 1.602e-19; //electron charge
   double Mmol_3He = 3.016; //g/mol
+  double Mmol_H2 = 1.008; //g/mol
 
-  infile >> Ibeam >> Ltgt;
+  //For H2, assume pressure of 10.5 atm:
+  double targpressure = 10.5 * 101325.0; // J / m^3
+
+  // P = rho R T / M --> rho = M * P / (RT)
+  double RT = 8.314 * 300.0; // J / mol 
+  // 1 atm = 101325 N/m^2 = 101325 J/m^3
+  
+  int tgt_flag = 3; 
+  
+  infile >> Ibeam >> Ltgt >> tgt_flag;
   Ibeam *= 1.e-6; //assumed to be given in muA.
   //             (e-/s) *     (g/cm^2)   / (g/mol)  * (atoms/mol) = e- * atoms /cm^2/s 
-  double Lumi = Ibeam/e * rho_tgt * Ltgt / Mmol_3He * N_A;
+  double Lumi = Ibeam/e * rho_tgt * Ltgt / Mmol_3He * N_A; //default scenario:
 
+  switch( tgt_flag ){
+  case 1: //H2:
+    rho_tgt = targpressure/RT * Mmol_H2 * 2.0 / 1.e6; //g/cm^3: 2 atoms/molecule.
+    Lumi = Ibeam/e * rho_tgt * Ltgt / Mmol_H2 * N_A;
+    break;
+  case 3: //"Helium-3":
+  default:
+    rho_tgt = targpressure/RT * Mmol_3He / 1.e6;
+    Lumi = Ibeam/e * rho_tgt * Ltgt / Mmol_3He * N_A;
+    break;
+  }
+
+  
   cout << "For an assumed beam current of " << Ibeam*1e6 << " muA and Ltgt = " << Ltgt << " cm, electron-nucleus luminosity = " << Lumi
-       << endl << " or equivalently, " << 3.*Lumi << " electron-nucleon luminosity" << endl << endl;
+       << endl;
 
   double Pbeam = 0.85;
   double Ptgt = 0.6;
@@ -212,6 +235,9 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
 	  double W = sqrt(T->ev_W2);
 	  double etheta = T->ev_th;
 	  double y = 1.0 - Eprime/T->gen_Ebeam;
+
+	  //What if, instead of the "true" xbj, we use the "reconstructed" value?
+	  //xbj = Q2/(2.*Mp*(T->gen_Ebeam - Eprime));
 	  
 	  double gamma2 = pow(2.*Mp*xbj,2)/Q2; // Q^2 = 2M nu x --> 2Mx = Q^2/nu --> gamma^2 = Q^2 / nu^2 
 
@@ -248,6 +274,8 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
 	  double W = sqrt(T->ev_W2);
 	  double etheta = T->ev_th;
 	  double y = 1.0 - Eprime/T->gen_Ebeam;
+
+	  //xbj = Q2/(2.*Mp*(T->gen_Ebeam - Eprime));
 	  
 	  double gamma2 = pow(2.*Mp*xbj,2)/Q2; // Q^2 = 2M nu x --> 2Mx = Q^2/nu --> gamma^2 = Q^2 / nu^2 
 

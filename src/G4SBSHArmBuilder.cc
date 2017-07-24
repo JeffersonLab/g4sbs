@@ -2536,7 +2536,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   //    G4double PMT_max_radius = 1.065*cm;
 
   G4LogicalVolume *PMTwindow_log  = new G4LogicalVolume( PMTwindow, GetMaterial("UVglass"), "PMTwindow_log" );
-  G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material"), "PMTcathode_log" );
+  G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material_RICH"), "PMTcathode_log" );
   G4LogicalVolume *PMTWindowAirGap_log = new G4LogicalVolume( PMTWindowAirGap, GetMaterial("RICH_air"), "PMTWindowAirGap_log" ); //RICH_air is just air with a refractive index defined in the range of wavelengths of interest.
   
   //PMTcathode_log is the sensitive detector for the RICH:
@@ -3251,7 +3251,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
   //    G4double PMT_max_radius = 1.065*cm;
 
   G4LogicalVolume *PMTwindow_log  = new G4LogicalVolume( PMTwindow, GetMaterial("UVglass"), "PMTwindow_log" );
-  G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material"), "PMTcathode_log" );
+  G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material_RICH"), "PMTcathode_log" );
 
   //PMTcathode_log is the sensitive detector for the RICH:
 

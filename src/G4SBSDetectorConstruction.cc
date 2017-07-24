@@ -740,11 +740,13 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   //Define another material for photocathode: 
   G4double den_photocathode = 2.57*g/cm3;
-  G4Material *Photocathode_material = new G4Material( "Photocathode_material", den_photocathode, nel=3 );
+  //EFuchey 2017-07-24: declare a different photocathod material for RICH and GRINCH 
+  //(so we may set them a different quantum efficiency )
+  G4Material *Photocathode_material_RICH = new G4Material( "Photocathode_material_RICH", den_photocathode, nel=3 );
 
-  Photocathode_material->AddElement( Sb, natoms=1 );
-  Photocathode_material->AddElement( K, natoms=2 );
-  Photocathode_material->AddElement( Cs, natoms=1 );
+  Photocathode_material_RICH->AddElement( Sb, natoms=1 );
+  Photocathode_material_RICH->AddElement( K, natoms=2 );
+  Photocathode_material_RICH->AddElement( Cs, natoms=1 );
 
   //G4double Ephot_Rcathode[2] = {1.77*eV, 6.20*eV};
   //G4double Rcathode[2] = {0.0, 0.0};
@@ -755,9 +757,28 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, nentries_quartz );
   //MPT_temp->AddProperty("REFLECTIVITY", Ephot_Rcathode, Rcathode, 2 );
 
-  Photocathode_material->SetMaterialPropertiesTable( MPT_temp );
+  Photocathode_material_RICH->SetMaterialPropertiesTable( MPT_temp );
 
-  fMaterialsMap["Photocathode_material"] = Photocathode_material;
+  fMaterialsMap["Photocathode_material_RICH"] = Photocathode_material_RICH;
+
+  G4Material *Photocathode_material_GRINCH = new G4Material( "Photocathode_material_GRINCH", den_photocathode, nel=3 );
+  
+  Photocathode_material_GRINCH->AddElement( Sb, natoms=1 );
+  Photocathode_material_GRINCH->AddElement( K, natoms=2 );
+  Photocathode_material_GRINCH->AddElement( Cs, natoms=1 );
+
+  //G4double Ephot_Rcathode[2] = {1.77*eV, 6.20*eV};
+  //G4double Rcathode[2] = {0.0, 0.0};
+
+  MPT_temp = new G4MaterialPropertiesTable();
+  MPT_temp->AddProperty("EFFICIENCY", Ephoton_QE, PMT_QuantumEfficiency, nentries_QE );
+  MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, nentries_quartz );
+  //MPT_temp->AddProperty("REFLECTIVITY", Ephot_Rcathode, Rcathode, 2 );
+
+  Photocathode_material_GRINCH->SetMaterialPropertiesTable( MPT_temp );
+
+  fMaterialsMap["Photocathode_material_GRINCH"] = Photocathode_material_GRINCH;
 
   // G4cout << "Material Properties for C4F10_gas:" << G4endl;
   // MPT_temp->DumpTable();

@@ -564,7 +564,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   //G4Tubs* GC_PMT = new G4Tubs(GC_PMT_Name.data(), 0, GC_PMT_Radius, (GC_PMT_Length-GC_PMT_Glass_Thickness)*0.5, 0, 360*deg);
   G4Tubs* GC_PMT = new G4Tubs(GC_PMT_Name.data(), 0, GC_PMT_Radius, GC_PMT_PhotoCathodeThickness*0.5, 0, 360*deg);
   //	G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Al")), GC_PMT_Name+"_log", 0, 0, 0);
-  G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Photocathode_material")), GC_PMT_Name+"_log", 0, 0, 0);
+  G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Photocathode_material_GRINCH")), GC_PMT_Name+"_log", 0, 0, 0);
   G4VisAttributes* GC_PMT_log_VisAtt = new G4VisAttributes();
   GC_PMT_log_VisAtt->SetColor(GetColor(G4String("Blue")));
   GC_PMT_log_VisAtt->SetVisibility(true);
@@ -965,7 +965,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   // // EFUCHEY: 2017/04/10: a small attempt fix to allow photoelectron detection 
   // // without defining a refraction index for the photocathode material
   // G4MaterialPropertiesTable* PMT_mat_SPT = 
-  //   (GetMaterial(G4String("Photocathode_material")))->GetMaterialPropertiesTable();
+  //   (GetMaterial(G4String("Photocathode_material_GRINCH")))->GetMaterialPropertiesTable();
   // PMT_SPT->AddProperty("EFFICIENCY", PMT_mat_SPT->GetProperty("EFFICIENCY"));
   
   G4OpticalSurface* OpPMTSurface = new G4OpticalSurface("OpPMTSurface");

@@ -724,7 +724,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("RINDEX", Ephoton_CF4, Rindex_CF4, nentries_CF4 );
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_CF4, Abslength_CF4, nentries_CF4 );
 
-  C4F10_gas->SetMaterialPropertiesTable( MPT_temp );
+  CF4_gas->SetMaterialPropertiesTable( MPT_temp );
   fMaterialsMap["CF4_gas"] = CF4_gas;
   //
 

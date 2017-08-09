@@ -120,21 +120,28 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
     new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
 
-    G4Box* CDetmother = new G4Box("CDetmother", 1.5*m/2.0, 3.0*m/2, depth_CDET/2.0);
+    G4Box* CDetmother = new G4Box("CDetmother", 2.5*m/2.0, 3.0*m/2, depth_CDET/2.0);
     G4LogicalVolume *CDetmother_log = new G4LogicalVolume( CDetmother, GetMaterial("Air"), "CDetmother_log" );
 
-    G4ThreeVector CDetmother_pos( ( fHCALdist-0.35*m ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-0.35*m ) * cos( -f48D48ang ) );
+    HArmRot->rotateY(180.0*deg);
+    
+    //G4ThreeVector CDetmother_pos( ( fHCALdist-0.30*m ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-0.30*m ) * cos( -f48D48ang ) );
+    G4ThreeVector CDetmother_pos( -15.0*cm,  fHCALvertical_offset, fHCALdist-0.30*m );
+    CDetmother_pos.rotateY(-f48D48ang);
     new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
 
     G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
     CH2_visatt->SetForceWireframe(true);
     CH2_filter_log->SetVisAttributes(CH2_visatt);
-
-    CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+    
+    G4VisAttributes* VisAtt = new G4VisAttributes( G4Colour(1, 1, 1) );
+    VisAtt->SetForceWireframe(true);
+    CDetmother_log->SetVisAttributes( VisAtt );
 
     G4double z0_CDET = -0.15*m;
-
-    MakeCDET( CDetmother_log, z0_CDET );
+    G4double planes_hoffset = 0.84*m;
+    
+    MakeCDET( CDetmother_log, z0_CDET, planes_hoffset );
     
     //Add a plate on the side of HCal
     
@@ -152,7 +159,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4bool checkOverlap = fDetCon->fCheckOverlap;
 
     //new G4PVPlacement( HArmRot, HCal_sideshield_pos, HCal_sideshield_log, "HCal_sideshield_phys", worldlog, false, 0, checkOverlap );
-    //HCal_sideshield_log->SetVisAttributes( G4Colour(0.7, 0.7, 0.7) );
+    HCal_sideshield_log->SetVisAttributes( G4Colour(0.7, 0.7, 0.7) );
   }
 }
 
@@ -2746,7 +2753,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
 }
 
 
-void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
+void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double PlanesHOffset ){
   //z0 is the z position of the start of CDET relative to the HCal surface
   
   //R0 is the nominal distance from target to the start of CDET
@@ -2873,7 +2880,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
 	G4int imod = 2 - row/98;	
 
 	//hopefully, this expression won't lead to overlaps of strips?
-	G4ThreeVector pos_strip( x0_modules[imod] + ( col - 0.5 )*(Lx_scint+mylar_thick), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
+	G4ThreeVector pos_strip( x0_modules[imod] + PlanesHOffset/2.0*pow(-1, plane) + ( col - 0.5 )*(Lx_scint+mylar_thick), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
 
 	G4RotationMatrix *rot_strip = new G4RotationMatrix;
 	rot_strip->rotateY( col*pi );
@@ -2884,7 +2891,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
 	G4String pvolname = physname;
 	new G4PVPlacement( rot_strip, pos_strip, Scint_module, pvolname, mother, false, istrip );
 
-	G4ThreeVector pos_pmt( x0_modules[imod] + pow(-1,col+1)*(Lx_scint+mylar_thick+0.1*cm), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
+	G4ThreeVector pos_pmt( x0_modules[imod] + PlanesHOffset/2.0*pow(-1, plane) + pow(-1,col+1)*(Lx_scint+mylar_thick+0.1*cm), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
 	sprintf( physname, "CDET_pmt_phys_plane%d_row%d_col%d", plane+1, row+295, col+1 );
 	pvolname = physname;
 	new G4PVPlacement( rot_fiber, pos_pmt, CDET_pmt_cathode_log, pvolname, mother, false, istrip );

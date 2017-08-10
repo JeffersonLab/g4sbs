@@ -1207,8 +1207,6 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
     CDet->SetR0(R0_CDET);
     CDet->SetZ0(z0_CDET);
     CDet->SetPlanesHOffset(0.0);
-    printf(" CDet R0 = %f; CDet Z0 = %f; CDet Planes HOffset = %f.\n", 
-	   CDet->fR0, CDet->fZ0, CDet->fPlanesHOffset);
     CDet->BuildComponent( earm_mother_log );
     //MakeCDET( earm_mother_log );
     

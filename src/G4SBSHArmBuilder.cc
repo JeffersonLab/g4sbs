@@ -135,19 +135,20 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     CH2_visatt->SetForceWireframe(true);
     CH2_filter_log->SetVisAttributes(CH2_visatt);
     
-    G4VisAttributes* VisAtt = new G4VisAttributes( G4Colour(1, 1, 1) );
-    VisAtt->SetForceWireframe(true);
-    CDetmother_log->SetVisAttributes( VisAtt );
+    //G4VisAttributes* VisAtt = new G4VisAttributes( G4Colour(1, 1, 1) );
+    //VisAtt->SetForceWireframe(true);
+    //CDetmother_log->SetVisAttributes( VisAtt );
+    CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
 
     G4double z0_CDET = -0.15*m;
     G4double planes_hoffset = 0.84*m;
+    //G4double planes_interdist = 20.0*cm;
     
     G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
     CDet->SetR0(fHCALdist + z0_CDET);
     CDet->SetZ0(z0_CDET);
     CDet->SetPlanesHOffset(planes_hoffset);
-    printf(" CDet R0 = %f; CDet Z0 = %f; CDet Planes HOffset = %f.\n", 
-     	   CDet->fR0, CDet->fZ0, CDet->fPlanesHOffset);
+    //CDet->SetPlanesInterDistance(planes_interdist);
     CDet->BuildComponent( CDetmother_log );
     //MakeCDET( CDetmother_log, z0_CDET, planes_hoffset );
     

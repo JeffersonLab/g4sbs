@@ -48,6 +48,7 @@ G4SBSCDet::G4SBSCDet(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fR0 = 4050.0*cm;
   fZ0 = -426.5*cm;
   fPlanesHOffset = 0.0;
+  fPlanesInterDist = 1.0*cm;
 }
 
 G4SBSCDet::~G4SBSCDet(){;}
@@ -164,7 +165,7 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
   //G4double R0_CDET = 405.0*cm;
   //Nominal distance to planes:
   G4double R0_planes[2] = { fR0 + Lz_scint/2.0 + 1.0*cm,
-			    fR0 + 3.0*Lz_scint/2.0 + 2.0*cm }; //allow for some small (1 cm) gaps between CH2 and start of 1st plane and between 1st and second planes...
+			    fR0 + 3.0*Lz_scint/2.0 + 1.0*cm + fPlanesInterDist }; //allow for some small (1 cm) gaps between CH2 and start of 1st plane and between 1st and second planes...
 
   G4int istrip=0;
   

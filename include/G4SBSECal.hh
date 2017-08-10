@@ -11,7 +11,8 @@ public:
   G4SBSECal(G4SBSDetectorConstruction *);
   ~G4SBSECal();
 
-  //void BuildComponent(G4LogicalVolume *);
+  void BuildComponent(G4LogicalVolume *);
+  
   void SetAng(double a){ fAng = a; }
   void SetDist(double a){ fDist= a; }
 

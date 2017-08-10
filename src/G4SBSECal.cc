@@ -64,6 +64,19 @@ G4SBSECal::G4SBSECal(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   assert(fDetCon);
 }
 
+void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
+  Exp_t exptype = fDetCon->fExpType;
+
+  if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+    {
+      MakeBigCal( worldlog );
+    }
+  if( exptype == kC16 ) 
+    {
+      MakeC16( worldlog );
+    }
+}
+
 G4SBSECal::~G4SBSECal(){;}
 
 // void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
@@ -1211,6 +1224,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
   //G4double R0_CDET = fDist - depth_leadglass - depth_CDET;
   G4double R0_CDET = fDist - depth_CDET;
   
+  //G4SBSCDet* CDet = new G4SBSCDet();
   //MakeCDET( R0_CDET, z0_CDET, earm_mother_log );
 
   //Visualization:

@@ -15,13 +15,13 @@ public:
   
   void SetR0(double a){fR0 = a;}
   void SetZ0(double a){fZ0 = a;}
-  void SetPlanesHOffset(double a){fPlanesHoffset = a;}
+  void SetPlanesHOffset(double a){fPlanesHOffset = a;}
   
   void MakeCDET(G4LogicalVolume *);
   
   double fR0;
   double fZ0;
-  double fPlanesHoffset;
+  double fPlanesHOffset;
 
 private:
 };

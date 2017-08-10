@@ -18,17 +18,9 @@
 #include "G4GenericTrap.hh"
 #include "G4Polycone.hh"
 
-#include "G4SBSGrinch.hh"
-#include "G4SBSBigBiteField.hh"
-#include "G4SBSTrackerBuilder.hh"
+#include "G4SBSCDet.hh"
 #include "G4SBSCalSD.hh"
-#include "G4SBSGlobalField.hh"
 
-#include "G4FieldManager.hh"
-#include "G4Mag_UsualEqRhs.hh"
-#include "G4MagIntegratorStepper.hh"
-#include "G4ExplicitEuler.hh"
-#include "G4ChordFinder.hh"
 #include "G4OpticalSurface.hh"
 #include "G4LogicalSkinSurface.hh"
 #include "G4SBSRICHSD.hh"
@@ -50,7 +42,6 @@
 
 // To supress errors with TString, system of units should be included last
 #include "G4SystemOfUnits.hh"
-#include "G4SBSCDet.hh"
 
 using namespace std;
 
@@ -64,9 +55,11 @@ G4SBSECal::G4SBSECal(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   assert(fDetCon);
 }
 
+G4SBSECal::~G4SBSECal(){;}
+
 void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
   Exp_t exptype = fDetCon->fExpType;
-
+  
   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
       MakeBigCal( worldlog );
@@ -76,21 +69,6 @@ void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
       MakeC16( worldlog );
     }
 }
-
-G4SBSECal::~G4SBSECal(){;}
-
-// void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
-//   Exp_t exptype = fDetCon->fExpType;
-
-//   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
-//     {
-//       MakeBigCal( worldlog );
-//     }
-//   if( exptype == kC16 ) 
-//     {
-//       MakeC16( worldlog );
-//     }
-// }
 
 void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
   printf("C16 at %f deg\n", fAng/deg);
@@ -1214,30 +1192,38 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
   G4LogicalVolume *ECAL_FrontPlate_log = new G4LogicalVolume( ECAL_FrontPlate, GetMaterial("Al"), "ECAL_FrontPlate_log" );
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, zfront_ECAL - depth_ecal_frontplate/2.0 ), ECAL_FrontPlate_log, "ECAL_FrontPlate_phys", earm_mother_log, false, 0 );
 
-  //Next: CH2 filter:
-  G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );
-  G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, zfront_ECAL - depth_CDET - depth_CH2/2.0 ), CH2_filter_log, "CH2_filter_phys", earm_mother_log, false, 0 );
-
-  G4double z0_CDET = -depth_earm/2.0 + depth_CH2;
-  //G4double R0_CDET = R_Earm - depth_leadglass - depth_CDET;
-  //G4double R0_CDET = fDist - depth_leadglass - depth_CDET;
-  G4double R0_CDET = fDist - depth_CDET;
-  
-  //G4SBSCDet* CDet = new G4SBSCDet();
-  //MakeCDET( R0_CDET, z0_CDET, earm_mother_log );
-
-  //Visualization:
+  if(fDetCon->fExpType==kGEp){
+    //Next: CH2 filter:
+    G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );
+    G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, zfront_ECAL - depth_CDET - depth_CH2/2.0 ), CH2_filter_log, "CH2_filter_phys", earm_mother_log, false, 0 );
+    
+    G4double z0_CDET = -depth_earm/2.0 + depth_CH2;
+    //G4double R0_CDET = R_Earm - depth_leadglass - depth_CDET;
+    //G4double R0_CDET = fDist - depth_leadglass - depth_CDET;
+    G4double R0_CDET = fDist - depth_CDET;
+    
+    G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
+    CDet->SetR0(R0_CDET);
+    CDet->SetZ0(z0_CDET);
+    CDet->SetPlanesHOffset(0.0);
+    printf(" CDet R0 = %f; CDet Z0 = %f; CDet Planes HOffset = %f.\n", 
+	   CDet->fR0, CDet->fZ0, CDet->fPlanesHOffset);
+    CDet->BuildComponent( earm_mother_log );
+    //MakeCDET( earm_mother_log );
+    
+    G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
+    CH2_visatt->SetForceWireframe(true);
+    
+    CH2_filter_log->SetVisAttributes(CH2_visatt);
+    
+    //Visualization:
+  }
   
   G4VisAttributes *FrontPlate_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
   FrontPlate_visatt->SetForceWireframe(true);
   ECAL_FrontPlate_log->SetVisAttributes( FrontPlate_visatt );
 
-  G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
-  CH2_visatt->SetForceWireframe(true);
-
-  CH2_filter_log->SetVisAttributes(CH2_visatt);
-  
   earm_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
   Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
   Module_40_log->SetVisAttributes( G4VisAttributes::Invisible );

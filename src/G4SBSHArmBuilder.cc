@@ -22,6 +22,7 @@
 #include "G4SBSTrackerBuilder.hh"
 #include "G4Sphere.hh"
 
+#include "G4SBSCDet.hh"
 #include "G4SBSCalSD.hh"
 #include "G4SBSECalSD.hh"
 #include "G4Box.hh"
@@ -141,7 +142,14 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4double z0_CDET = -0.15*m;
     G4double planes_hoffset = 0.84*m;
     
-    MakeCDET( CDetmother_log, z0_CDET, planes_hoffset );
+    G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
+    CDet->SetR0(fHCALdist + z0_CDET);
+    CDet->SetZ0(z0_CDET);
+    CDet->SetPlanesHOffset(planes_hoffset);
+    printf(" CDet R0 = %f; CDet Z0 = %f; CDet Planes HOffset = %f.\n", 
+     	   CDet->fR0, CDet->fZ0, CDet->fPlanesHOffset);
+    CDet->BuildComponent( CDetmother_log );
+    //MakeCDET( CDetmother_log, z0_CDET, planes_hoffset );
     
     //Add a plate on the side of HCal
     
@@ -2762,7 +2770,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
   G4double Lx_scint = 51.0*cm;
   G4double Ly_scint = 0.5*cm;
   G4double Lz_scint = 4.0*cm;
-
+  
   G4double HoleDiameter = 0.3*cm;
   G4double WLSdiameter      = 0.2*cm;
   G4double WLScladding_thick = 0.03*WLSdiameter/2.0;

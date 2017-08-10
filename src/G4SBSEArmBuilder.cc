@@ -18,6 +18,7 @@
 #include "G4GenericTrap.hh"
 #include "G4Polycone.hh"
 
+#include "G4SBSECal.hh"
 #include "G4SBSGrinch.hh"
 #include "G4SBSBigBiteField.hh"
 #include "G4SBSTrackerBuilder.hh"
@@ -111,11 +112,19 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     }
   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
-      MakeBigCal( worldlog );
+      G4SBSECal* ECal = new G4SBSECal(fDetCon);
+      ECal->SetAng(fBBang);
+      ECal->SetDist(fBBdist);
+      ECal->BuildComponent(worldlog);
+      //MakeBigCal( worldlog );
     }
   if( exptype == kC16 ) 
     {
-      MakeC16( worldlog );
+      G4SBSECal* ECal = new G4SBSECal(fDetCon);
+      ECal->SetAng(fBBang);
+      ECal->SetDist(fBBdist);
+      ECal->BuildComponent(worldlog);
+      //MakeC16( worldlog );
     }
   if( exptype == kNeutronExp )  MakeGMnGEMShielding( worldlog );
 }

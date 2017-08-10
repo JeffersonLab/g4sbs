@@ -18,17 +18,8 @@
 #include "G4GenericTrap.hh"
 #include "G4Polycone.hh"
 
-#include "G4SBSGrinch.hh"
-#include "G4SBSBigBiteField.hh"
-#include "G4SBSTrackerBuilder.hh"
 #include "G4SBSCalSD.hh"
-#include "G4SBSGlobalField.hh"
 
-#include "G4FieldManager.hh"
-#include "G4Mag_UsualEqRhs.hh"
-#include "G4MagIntegratorStepper.hh"
-#include "G4ExplicitEuler.hh"
-#include "G4ChordFinder.hh"
 #include "G4OpticalSurface.hh"
 #include "G4LogicalSkinSurface.hh"
 #include "G4SBSRICHSD.hh"
@@ -54,9 +45,9 @@
 using namespace std;
 
 G4SBSCDet::G4SBSCDet(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
-  fR0 = 500.0*m;//a changer
-  fZ0 = 500.0*m;//a changer
-  fPlanesHoffset = 0.0;
+  fR0 = 4050.0*cm;
+  fZ0 = -426.5*cm;
+  fPlanesHOffset = 0.0;
 }
 
 G4SBSCDet::~G4SBSCDet(){;}
@@ -189,7 +180,7 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
 	G4int imod = 2 - row/98;	
 
 	//hopefully, this expression won't lead to overlaps of strips?
-	G4ThreeVector pos_strip( x0_modules[imod] + ( col - 0.5 )*(Lx_scint+mylar_thick), R0_planes[plane] * tan( alpha ), fZ0 + R0_planes[plane] - fR0 );
+	G4ThreeVector pos_strip( x0_modules[imod] + fPlanesHOffset/2.0*pow(-1, plane) + ( col - 0.5 )*(Lx_scint+mylar_thick), R0_planes[plane] * tan( alpha ), fZ0 + R0_planes[plane] - fR0 );
 
 	G4RotationMatrix *rot_strip = new G4RotationMatrix;
 	rot_strip->rotateY( col*pi );
@@ -200,7 +191,7 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
 	G4String pvolname = physname;
 	new G4PVPlacement( rot_strip, pos_strip, Scint_module, pvolname, mother, false, istrip );
 
-	G4ThreeVector pos_pmt( x0_modules[imod] + pow(-1,col+1)*(Lx_scint+mylar_thick+0.1*cm), R0_planes[plane] * tan( alpha ), fZ0 + R0_planes[plane] - fR0 );
+	G4ThreeVector pos_pmt( x0_modules[imod] + fPlanesHOffset/2.0*pow(-1, plane) + pow(-1,col+1)*(Lx_scint+mylar_thick+0.1*cm), R0_planes[plane] * tan( alpha ), fZ0 + R0_planes[plane] - fR0 );
 	sprintf( physname, "CDET_pmt_phys_plane%d_row%d_col%d", plane+1, row+295, col+1 );
 	pvolname = physname;
 	new G4PVPlacement( rot_fiber, pos_pmt, CDET_pmt_cathode_log, pvolname, mother, false, istrip );

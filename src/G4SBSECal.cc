@@ -63,12 +63,191 @@ void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
       MakeBigCal( worldlog );
+      //MakeECal_new( worldlog );
     }
   if( exptype == kC16 ) 
     {
       MakeC16( worldlog );
     }
 }
+
+G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength, 
+					     G4double LeadGlassWidth)
+{
+  G4double inch = 2.54*cm;
+  
+  G4double SMLength = 21.73*inch;
+  G4double SMWidth = 5.0*inch;
+  
+  //if(LeadGlassWidth==)SMWidth = ;
+  //if(LeadGlassLength==)SMLength = ;
+  
+  G4Box* SM_mother_box = 
+    new G4Box("SM_mother_box", SMWidth/2.0, SMWidth/2.0, SMLength/2.0);
+  G4LogicalVolume* SM_mother_log = 
+    new G4LogicalVolume(SM_mother_box, GetMaterial("Special_Air"), "SM_mother_log");
+  
+  //Titanium side walls
+  G4double TiWallLength = 14.76*inch;
+  G4double TiWallThick = 0.032*inch;
+  //if(LeadGlassLength==)TiWallLength = ;
+  
+  G4Box* TiSideWall_box = 
+    new G4Box("TiSideWall_box", TiWallThick/2.0, SMWidth/2.0, TiWallLength/2.0);
+  G4LogicalVolume* TiSideWall_log = 
+    new G4LogicalVolume(TiSideWall_box, GetMaterial("Titanium"), "TiSideWall_log");
+  
+  G4RotationMatrix* temp_rot = new G4RotationMatrix();
+  
+  G4ThreeVector temp_pos(0, 0, 0);
+  temp_pos.setY(0.0);
+  temp_pos.setZ( (SMLength-TiWallLength)/2.0 );
+  for(int i = 0; i<2; i++){
+    temp_pos.setX( (SMWidth-TiWallThick)/2.0*pow(-1, i) );
+    new G4PVPlacement(temp_rot, temp_pos, TiSideWall_log, "TiSideWall_Phys", SM_mother_log, false, 0 );
+  }
+  
+  //Front plate
+  G4double FrontPlateThick = 0.25*inch;
+  G4Box* FrontPlate_box = 
+    new G4Box("FrontPlate_box", (SMWidth-TiWallThick)/2.0, SMWidth/2.0, FrontPlateThick/2.0);
+  G4LogicalVolume* FrontPlate_log = 
+    new G4LogicalVolume(FrontPlate_box, GetMaterial("Aluminum"), "FrontPlate_log");
+  
+  temp_pos.setX(0.0);
+  temp_pos.setY(0.0);
+  temp_pos.setZ( (SMLength-FrontPlateThick)/2.0 );
+  new G4PVPlacement(temp_rot, temp_pos, FrontPlate_log, "FrontPlate_Phys", SM_mother_log, false, 0 );
+  
+  
+  G4VisAttributes *mother_visatt = new G4VisAttributes( G4Colour( 1, 1, 1 ) );
+  mother_visatt->SetForceWireframe(true);
+  SM_mother_log->SetVisAttributes(mother_visatt);
+  
+  G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.7, 1.0, 0.7 ) );
+  //Ti_visatt->SetForceWireframe(true);
+  FrontPlate_log->SetVisAttributes(Ti_visatt);
+  
+  G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
+  //Al_visatt->SetForceWireframe(true);
+  FrontPlate_log->SetVisAttributes(Al_visatt);
+  
+  return(SM_mother_log);
+}
+
+void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
+    // Pointer to SDmanager, used frequently in this routine
+  G4SDManager *sdman = fDetCon->fSDman;
+
+  /*
+  //number of available blocks:
+  G4int nblocks_42 = 1000;
+  G4int nblocks_40 = 700;
+  G4int nblocks_38 = 300;
+
+  //assume for now that all lead-glass blocks are 40 cm deep:
+  G4double width_40 = 4.0*cm;
+  G4double width_38 = 3.8*cm;
+
+  G4double depth_40 = 40.0*cm;
+  G4double depth_38 = 45.0*cm;
+  */
+
+  G4double width_42 = 4.2*cm;  
+  G4double depth_42 = 34.3*cm;
+  
+  G4double depth_leadglass = 45.0*cm;
+  G4double depth_ecal_pmt = 0.3*cm;
+  G4double depth_lightguide_short = 15.0*cm;
+  // G4double radius_ecal_pmt = 1.25*cm;
+  // G4double depth_ecal_frontplate = 2.54*cm;
+  G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
+  G4double depth_CDET = 45.0*cm; // CDET starts 45 cm in front of ECAL:
+  
+  //Define "Earm" box a bit wider than total ECAL area:
+  G4double width_earm = 150.0*cm;
+  G4double height_earm = 340.0*cm;
+  G4double depth_earm = depth_CH2 + depth_CDET + depth_ecal_pmt + depth_leadglass + depth_lightguide_short; // 
+  
+  // Rotations, offsets, and distances from Target:
+  G4RotationMatrix *bbrm = new G4RotationMatrix;
+  bbrm->rotateY(-fAng);
+  
+  G4Box *earm_mother_box = new G4Box( "earm_mother_box", width_earm/2.0, height_earm/2.0, (depth_earm+1.0*mm)/2.0 );
+  G4LogicalVolume *earm_mother_log = new G4LogicalVolume( earm_mother_box, GetMaterial("Air"), "earm_mother_log");
+
+  //If "earm_mother_log" is in the step limiter list, make ECAL a total-absorber with "kCAL" sensitivity:
+  if( (fDetCon->StepLimiterList).find( "earm_mother_log" ) != (fDetCon->StepLimiterList).end() ){
+    earm_mother_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+
+    G4String sdname = "Earm/ECAL_box";
+    G4String collname = "ECAL_boxHitsCollection";
+    G4SBSCalSD *earm_mother_SD = NULL;
+    if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(sdname) ) ){
+      G4cout << "Adding ECAL_box sensitive detector to SDman..." << G4endl;
+      earm_mother_SD = new G4SBSCalSD( sdname, collname );
+      fDetCon->fSDman->AddNewDetector( earm_mother_SD );
+      (fDetCon->SDlist).insert( sdname );
+      fDetCon->SDtype[sdname] = kCAL;
+      (earm_mother_SD->detmap).depth = 0;
+   
+      earm_mother_log->SetSensitiveDetector( earm_mother_SD );
+    }
+  }
+
+  //fDist should now be interpreted to mean the distance from the origin to the ****FRONT**** of the ECAL lead-glass:
+  //G4double zback_ECAL = depth_earm/2.0 - depth_ecal_pmt;
+  G4double zfront_ECAL = depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass;
+  G4double R_Earm = fDist - zfront_ECAL;
+  
+  G4ThreeVector pos_ECAL( R_Earm*sin(fAng), 0.0, R_Earm*cos(fAng) );
+  
+  new G4PVPlacement( bbrm, pos_ECAL, earm_mother_log, "earm_mother_phys", motherlog, false, 0 );
+  
+  //TEST
+  G4LogicalVolume* SM1_log = MakeSuperModule(depth_42, width_42);
+  
+  bbrm = new G4RotationMatrix();
+  bbrm->rotateY(180.0*deg);
+  G4ThreeVector pos_SM( 0, 
+			0,
+			zfront_ECAL + 21.73/2.0 );
+  
+  new G4PVPlacement( bbrm, pos_SM, SM1_log, "SM1_phys", earm_mother_log, false, 0 );
+  
+  
+  if(fDetCon->fExpType==kGEp){
+    //Next: CH2 filter:
+    G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );
+    G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, zfront_ECAL - depth_CDET - depth_CH2/2.0 ), CH2_filter_log, "CH2_filter_phys", earm_mother_log, false, 0 );
+    
+    G4double z0_CDET = -depth_earm/2.0 + depth_CH2;
+    //G4double R0_CDET = R_Earm - depth_leadglass - depth_CDET;
+    //G4double R0_CDET = fDist - depth_leadglass - depth_CDET;
+    G4double R0_CDET = fDist - depth_CDET;
+    
+    G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
+    CDet->SetR0(R0_CDET);
+    CDet->SetZ0(z0_CDET);
+    CDet->SetPlanesHOffset(0.0);
+    CDet->BuildComponent( earm_mother_log );
+    //MakeCDET( earm_mother_log );
+    
+    G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
+    CH2_visatt->SetForceWireframe(true);
+    
+    CH2_filter_log->SetVisAttributes(CH2_visatt);
+  }
+
+  //Visualization:
+  G4VisAttributes *mother_visatt = new G4VisAttributes( G4Colour( 1, 1, 1 ) );
+  mother_visatt->SetForceWireframe(true);
+  earm_mother_log->SetVisAttributes(mother_visatt);
+   
+
+}
+
 
 void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
   printf("C16 at %f deg\n", fAng/deg);
@@ -1215,9 +1394,9 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
     
     CH2_filter_log->SetVisAttributes(CH2_visatt);
     
-    //Visualization:
   }
   
+  //Visualization:
   G4VisAttributes *FrontPlate_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
   FrontPlate_visatt->SetForceWireframe(true);
   ECAL_FrontPlate_log->SetVisAttributes( FrontPlate_visatt );

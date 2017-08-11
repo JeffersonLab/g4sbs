@@ -4,7 +4,6 @@
 #include "G4SBSComponent.hh"
 
 class G4LogicalVolume;
-class G4SBSBigBiteField;
 
 class G4SBSECal: public G4SBSComponent {
 public:
@@ -16,6 +15,9 @@ public:
   void SetAng(double a){ fAng = a; }
   void SetDist(double a){ fDist= a; }
 
+  G4LogicalVolume* MakeSuperModule(G4double, G4double);
+  
+  void MakeECal_new(G4LogicalVolume *);
   void MakeBigCal(G4LogicalVolume *);
   void MakeC16(G4LogicalVolume *);
   

@@ -971,7 +971,12 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element* elAs = new G4Element( "Arsenic", "As", 33, 74.922*g/mole );
   G4Element* elPb = new G4Element( "Lead", "Pb", 82, 207.2*g/mole );
   G4Element* elBe = new G4Element( "Beryllium", "Be", 4, 9.012*g/mole );
-    
+  
+  //G4Material* Titanium = man->FindOrBuildMaterial("G4_Ti"); 
+  if( fMaterialsMap.find("Titanium") == fMaterialsMap.end() ){ 
+    fMaterialsMap["Titanium"] = new G4Material(name="Titanium", z=22., a=47.867*g/mole, density=4.54*g/cm3);
+  }
+  
   // Materials necessary to build TF1 aka lead-glass
   G4Material* PbO = new G4Material("TF1_PbO", bigden, 2);
   PbO->AddElement(elPb, 1);
@@ -987,7 +992,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   As2O3->AddElement(elAs, 2);
   As2O3->AddElement(elO, 3);
   fMaterialsMap["TF1_As2O3"] = As2O3;
-
+  
   // Simulating annealing: http://hallaweb.jlab.org/12GeV/SuperBigBite/SBS-minutes/2014/Sergey_Abrahamyan_LGAnnealing_2014.pdf
   // const G4int nentries_annealing_model=50;
 

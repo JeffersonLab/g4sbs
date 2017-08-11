@@ -80,6 +80,14 @@ G4SBSMessenger::G4SBSMessenger(){
   ESEPPfileCmd->SetGuidance("Name of ESEPP output file, must be located in esepp/");
   ESEPPfileCmd->SetParameterName("ESEPPfile",false);
 
+  ESEPP_lowCmd = new G4UIcmdWithAnInteger("/g4sbs/ESEPP_low",this);
+  ESEPP_lowCmd->SetGuidance("Min. event # within ESEPP data file. Use if range is needed for a multiprocessing work around.");
+  ESEPP_lowCmd->SetParameterName("ESEPP_low",false);
+
+  ESEPP_highCmd = new G4UIcmdWithAnInteger("/g4sbs/ESEPP_high",this);
+  ESEPP_highCmd->SetGuidance("Max. event # within ESEPP data file. Use if range is needed for a multiprocessing work around.");
+  ESEPP_highCmd->SetParameterName("ESEPP_high",false);
+
   fileCmd = new G4UIcmdWithAString("/g4sbs/filename",this);
   fileCmd->SetGuidance("Output ROOT filename");
   fileCmd->SetParameterName("filename", false);
@@ -549,6 +557,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == ESEPP_RosenCmd ){
     G4bool b = ESEPP_RosenCmd->GetNewBoolValue(newValue);
     fevgen->SetESEPP_Rosen( b );
+  }
+ 
+  if( cmd == ESEPP_lowCmd){
+    G4int b = ESEPP_lowCmd->GetNewIntValue(newValue);
+    fevgen->SetESEPP_lo( b );
+  }
+
+  if( cmd == ESEPP_highCmd){
+    G4int b = ESEPP_highCmd->GetNewIntValue(newValue);
+    fevgen->SetESEPP_hi( b );
   }
 
   if( cmd == expCmd ){

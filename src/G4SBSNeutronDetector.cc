@@ -217,7 +217,7 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 
   // VISUALS:
   G4VisAttributes* leadVisAtt = new G4VisAttributes(G4Colour(0.0,1.0,0.0));
-  leadVisAtt->SetForceWireframe(true);
+  //leadVisAtt->SetForceWireframe(true);
   G4VisAttributes* alVisAtt = new G4VisAttributes(G4Colour(0.5,0.5,0.5));
   alVisAtt->SetForceWireframe(true);
 
@@ -313,6 +313,29 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   G4LogicalVolume* veto_log = new G4LogicalVolume(veto_tub, GetMaterial("Glass_HC"), "veto_log");  //this was Aluminum
   G4LogicalVolume* others_log = new G4LogicalVolume(others_tub, GetMaterial("Glass_HC"), "others_log"); //this was Aluminum
   
+  //////////////////////////////////////////////////////////////////////
+  // Attempt to make iron / lead boxes around PMTs
+  double radii[2] = { 0.55*inch*1.3, 1.0*inch*1.3};
+  double thick = 0.25*cm;
+
+  G4LogicalVolume* shells[2];
+  const char* names[] = {"veto","others"};
+  for(int i=0; i<2; i++){
+    double x = 2.0*thick + 2.0*radii[i];
+    double y = 2.0*thick + 2.0*radii[i];
+    double z = cathlen+glasslen;
+    G4Box *temp = new G4Box( Form("temp_%s",names[i]), x/2.0, y/2.0, z/2.0 );
+    double xcut = 2.1*radii[i];
+    double ycut = 2.1*radii[i];
+    double zcut = 1.5*z;
+    G4Box *tempcut = new G4Box( Form("tempcut_%s",names[i]), xcut/2.0, ycut/2.0, zcut/2.0 );
+    G4SubtractionSolid *sub = new G4SubtractionSolid( Form("tempsub_%s",names[i]), temp, tempcut );
+    G4LogicalVolume* logtemp = new G4LogicalVolume( sub, GetMaterial("Lead"),  Form("templog_%s",names[i]) );
+    
+    logtemp->SetVisAttributes( leadVisAtt );
+    shells[i] = logtemp;
+  }
+
   // Set up Sensitive Detector:
   G4String NDSDname = "Harm/ND";
   G4String NDcollname = "NDHitsCollection";
@@ -467,7 +490,6 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     sprintf(blockName, "physpmtca_%1d",layer+1 );
     new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, glasslen/2.0), logicPMTcath, blockName, logicPMT[layer], false, 0 );
 
-
     // Make the Scintillating Bars:
     for( type = kBarCMU; type < NBARTYPES; type++ ){
 
@@ -564,6 +586,14 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 	new G4PVPlacement( lgleftrot, G4ThreeVector(0.0, lgoffset+Y[type]/2.0+lgLength[type]+lgcylLen[type]+(cathlen+glasslen)/2.0, 0.0), 
 	logicPMT[layer], blockName, logBar[type][layer], false, 0 );
 
+	// if( layer==0 || layer==1 ) {
+	//   new G4PVPlacement( lgleftrot, G4ThreeVector(0.0, lgoffset+Y[type]/2.0+lgLength[type]+lgcylLen[type]+(cathlen+glasslen)/2.0, 0.0), 
+	// 		     shells[0], Form("phys_shell_l_%s",names[0]), logBar[type][layer], false, 0, true );
+	// } else {
+	//   new G4PVPlacement( lgleftrot, G4ThreeVector(0.0, lgoffset+Y[type]/2.0+lgLength[type]+lgcylLen[type]+(cathlen+glasslen)/2.0, 0.0), 
+	// 		     shells[1], Form("phys_shell_l_%s",names[1]), logBar[type][layer], false, 0, true );
+	// }
+
 	pmt_pos = G4ThreeVector(0.0, lgoffset+Y[type]/2.0+lgLength[type]+lgcylLen[type]+(cathlen+glasslen)/2.0, 0.0 );
       }
 
@@ -572,15 +602,23 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
       if( type != kBarVetoLong ){
 	sprintf(blockName, "%sphyslg_r_%1d", barname[type], layer+1 );
 	new G4PVPlacement( lgrightrot, G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]/2.0, 0.0), 
-	lightguidelog, blockName, logBar[type][layer], false, 1 );
+			   lightguidelog, blockName, logBar[type][layer], false, 1 );
 
 	sprintf(blockName, "%sphyslgcyl_r_%1d", barname[type], layer+1 );
 	new G4PVPlacement( lgrightrot, G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]-lgcylLen[type]/2.0, 0.0), 
-	lightguidecyllog, blockName, logBar[type][layer], false, 1 );
+			   lightguidecyllog, blockName, logBar[type][layer], false, 1 );
 
 	sprintf(blockName, "%sphyspmt_r_%1d", barname[type], layer+1 );
 	new G4PVPlacement( lgrightrot, G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]-lgcylLen[type]-(cathlen+glasslen)/2.0, 0.0), 
-	logicPMT[layer], blockName, logBar[type][layer], false, 1 );
+			   logicPMT[layer], blockName, logBar[type][layer], false, 1 );
+
+	// if( layer==0 || layer==1 ) {
+	//   new G4PVPlacement( lgrightrot, G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]-lgcylLen[type]-(cathlen+glasslen)/2.0, 0.0), 
+	// 		     shells[0], Form("phys_shell_r_%s",names[0]), logBar[type][layer], false, 0, true );
+	// } else {
+	//   new G4PVPlacement( lgrightrot, G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]-lgcylLen[type]-(cathlen+glasslen)/2.0, 0.0), 
+	// 		     shells[1], Form("phys_shell_r_%s",names[1]), logBar[type][layer], false, 0, true );
+	// }
 
 	pmt_pos = G4ThreeVector(0.0, lgoffset-Y[type]/2.0-lgLength[type]-lgcylLen[type]-(cathlen+glasslen)/2.0, 0.0);
       }
@@ -949,9 +987,7 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 
   int scint_dummy = 1;
   int pmt_dummy = 1;
-
   int barNo = 1;
-
 
   for( layer = 0; layer < NLAYERS; layer++ ){
     // Build layers from cassettes
@@ -1010,7 +1046,6 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
 	(NDSD->detmap).Plane[pmt_dummy] = layer;
 	// This is not really column, but block type
 	(NDSD->detmap).Col[pmt_dummy] = casType[layer][cass];
-	
 	(NDSD->detmap).Row[pmt_dummy] = rowNo_pmt;
 
 	if( number%2==0 ) {
@@ -1044,9 +1079,11 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
     logplate   = new G4LogicalVolume(solidBlock, plateMat[plate], blockName );
     
     if( plateMat[plate]==GetMaterial("Lead") ) {
-      logplate->SetVisAttributes( leadVisAtt );
+      //logplate->SetVisAttributes( leadVisAtt );
+      logplate->SetVisAttributes( G4VisAttributes::Invisible );
     } else {
-      logplate->SetVisAttributes( ironVisAtt );
+      //logplate->SetVisAttributes( ironVisAtt );
+      logplate->SetVisAttributes( G4VisAttributes::Invisible );
     }    
 
     phys = new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, plateZ[plate] + plateThick[plate]/2.0), logplate, blockName, neutronarm_log, false,0 );

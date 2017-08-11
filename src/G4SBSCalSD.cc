@@ -96,6 +96,11 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
     hit->SetCol( detmap.Col[cellNo] );
     hit->SetPlane( detmap.Plane[cellNo] );
     hit->SetCellCoords( detmap.LocalCoord[cellNo] );
+
+    // std::cout << "\nScint #: " << cellNo << std::endl;
+    // std::cout << "ROW #: " << detmap.Row[cellNo] << std::endl;
+    // std::cout << "Col #: " << detmap.Col[cellNo]  << std::endl;
+    // std::cout << "Pln #: " << detmap.Plane[cellNo] << std::endl;
   } else {
     hit->SetCell( hist->GetVolume( detmap.depth )->GetCopyNo() );
     hit->SetRow( detmap.Row[hit->GetCell()] );

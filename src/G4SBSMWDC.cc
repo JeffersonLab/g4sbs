@@ -133,7 +133,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
   G4Box* mother = new G4Box("mother", mX/2.0, mY/2.0, mZ/2.0);
   G4LogicalVolume* mother_log = new G4LogicalVolume(mother,GetMaterial("Air"),"mother_log");
   mother_log->SetVisAttributes( G4VisAttributes::Invisible );
-  mother_log->SetVisAttributes( chamVisAtt );
+  //mother_log->SetVisAttributes( chamVisAtt );
   G4ThreeVector origin(0.0,0.0,0.0);
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -200,7 +200,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
     int num_planes = (mit->second).size();
     double chamber_thick = fPlaneThick*num_planes + 2.0*fGasWinThick + fArbitraryZ;
 
-    std::cout << "Chamber " << chamber_number << " thickness = " << chamber_thick << std::endl;
+    //std::cout << "Chamber " << chamber_number << " thickness = " << chamber_thick << std::endl;
 
     // I added an "arbitrary" 2.0*cm to the chamber height, this is a result of offsetting
     // the signal / field wires.

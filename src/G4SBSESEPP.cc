@@ -10,6 +10,7 @@ G4SBSESEPP::G4SBSESEPP() {
   fUserEvents = 0;
   fRadEvents = 0;
   fRosenEvents = 0;
+  fRange = false;
 }
 
 void G4SBSESEPP::Clear(){
@@ -32,14 +33,43 @@ unsigned int G4SBSESEPP::fEvent = 0;
 ////////////////////////////////////////////////////////////////////////////////
 // Allow G4SBSEventGen access
 //
-void G4SBSESEPP::LoadFiles(int n,TString name,bool rad,bool rose){
+void G4SBSESEPP::LoadFiles(int n,TString name,bool rad,bool rose,int min, int max){
   fUserEvents = n;
   fRadFileName = "esepp/" + name;
   fRad = rad;
   fRosenbluth = rose;
+  fMin = min;
+  fMax = max;
+
+  // If uninitialized, range is not specified and deactivated. The signal
+  // for deactivation is fMax=0, fMin=0 => fMax-fMin==0 for default behavior
+  if( fMax-fMin == 0 ){
+    fRange = false;
+  } else {
+    fRange = true;
+  }
+
+  if( fRange ){
+    // If fMax is larger than fMin, swap
+    if( fMax - fMin < 0 ) {
+      int temp = fMax;
+      fMax = fMin;
+      fMin = temp;
+    }
+    fUserEvents = fMax - fMin;
+  }
+
+  if( fRange ){
+    std::cout << "Loading " << fUserEvents 
+	      << " ESEPP events in the range (" 
+	      << fMin << ", " << fMax << ")..." << std::endl;
+  } else {
+    std::cout << "Loading " << fUserEvents << " ESEPP events..." << std::endl;
+  }
+
 
   if( fRad && fRosenbluth ) {
-    if( fUserEvents == 1 ) fUserEvents++;
+    if( fUserEvents%2 != 0 ) fUserEvents++; // increment if odd 
     fUserEvents /= 2;
   }
 
@@ -60,8 +90,8 @@ void G4SBSESEPP::LoadFiles(int n,TString name,bool rad,bool rose){
 //
 void  G4SBSESEPP::OpenFile(TString name){
   const char* filename = name;
-  int temp = 0; // line #
-
+  int temp = 0;  // line # for accepted data
+  int dummy = 0; // line # in text file
   std::ifstream input(filename);
   if( input.is_open() ){ 
     double Eprime, Pprime, Gprime; 
@@ -74,21 +104,47 @@ void  G4SBSESEPP::OpenFile(TString name){
     while(input >> Eprime >> Eth >> Ephi 
 	  >> Pprime >> Pth >> Pphi 
 	  >> Gprime >> Gth >> Gphi ){
-      
-      // Only take # of requested events
-      if( temp >= fUserEvents ) break;
 
-      fEp.push_back( Eprime );
-      fPp.push_back( Pprime );
-      fGp.push_back( Gprime );
-      fEth.push_back( Eth );
-      fEphi.push_back( Ephi );
-      fPth.push_back( Pth );
-      fPphi.push_back( Pphi );
-      fGth.push_back( Gth );
-      fGphi.push_back( Gphi );
-      
-      temp++;
+      // I am breaking it up this way so no sleight-of-hand is performed and 
+      // the logic is crystal clear.
+      // Only accept lines of an ESEPP text file within a particular range
+      // if fRange == true, otherwise, take everything until end of file or
+      // code has reached user's input 
+
+      // If a range is specified
+      if( fRange ){
+	if( dummy >= fMin && dummy < fMax ){
+	  // Only take # of requested events
+	  if( temp >= fUserEvents ) break;
+
+	  fEp.push_back( Eprime );
+	  fPp.push_back( Pprime );
+	  fGp.push_back( Gprime );
+	  fEth.push_back( Eth );
+	  fEphi.push_back( Ephi );
+	  fPth.push_back( Pth );
+	  fPphi.push_back( Pphi );
+	  fGth.push_back( Gth );
+	  fGphi.push_back( Gphi );
+	  temp++;
+	}
+      } else {
+	// Only take # of requested events
+	if( temp >= fUserEvents ) break;
+
+	fEp.push_back( Eprime );
+	fPp.push_back( Pprime );
+	fGp.push_back( Gprime );
+	fEth.push_back( Eth );
+	fEphi.push_back( Ephi );
+	fPth.push_back( Pth );
+	fPphi.push_back( Pphi );
+	fGth.push_back( Gth );
+	fGphi.push_back( Gphi );
+	temp++;
+      }
+      // Count all lines regardless for a range of events:
+      dummy++;
     }
   } else {
     std::cerr << "Error: " << name << " did not "

@@ -103,6 +103,12 @@ G4bool G4SBSECalSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
     newHit->Setcolnumber( pmt_inside_bar );
     newHit->Setplanenumber( detmap.Plane[PMTno] );
     newHit->SetCellCoords( detmap.LocalCoord[PMTno] );
+
+    // std::cout << "\nPMT #: " << PMTno << std::endl;
+    // std::cout << "ROW #: " << detmap.Row[PMTno] << std::endl;
+    // std::cout << "Col #: " << pmt_inside_bar << std::endl;
+    // std::cout << "Pln #: " << detmap.Plane[PMTno] << std::endl;
+
   } else {
     int PMTno = hist->GetVolume( detmap.depth )->GetCopyNo();
   

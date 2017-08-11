@@ -82,7 +82,8 @@ G4SBSEventGen::G4SBSEventGen(){
   fRad = true;
   fRosen = false;
   fESEPP = 0;
-
+  fESEPP_lo = 0;
+  fESEPP_hi = 0;
   fESEPPname = "";
 }
 
@@ -96,7 +97,7 @@ G4SBSEventGen::~G4SBSEventGen(){
 void G4SBSEventGen::LoadESEPPGenerator(){
   // Open up the appropriate text files
   fESEPP = new G4SBSESEPP();
-  fESEPP->LoadFiles(fNevt,fESEPPname,fRad,fRosen);
+  fESEPP->LoadFiles(fNevt,fESEPPname,fRad,fRosen,fESEPP_lo,fESEPP_hi);
   // The results of user input and/or ESEPP file can change the 
   // number of events generated..
   int evts = fESEPP->GetEventN();

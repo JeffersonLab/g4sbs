@@ -22,7 +22,9 @@ private:
   bool fRad;              // Radiative Flag
   bool fRosenbluth;       // Rosenbluth Flag
   int fUserEvents;        // Nevents defined in .mac file
-  
+  int fMin, fMax;         // User may specify a range of events within ESEPP file  
+  bool fRange;
+
   void LoadRadEvents();        // Easier to read
   void LoadRosenbluthEvents(); // " "
   void Clear();                // 
@@ -39,7 +41,7 @@ public:
   int CurrentEvent(){ return fEvent; }
 
   // Load files within EventGen:
-  void LoadFiles(int,TString,bool,bool);
+  void LoadFiles(int,TString,bool,bool,int,int);
 
   // Global index to access vectors on an event basis:
   static unsigned int fEvent;

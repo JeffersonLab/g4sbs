@@ -83,9 +83,12 @@ public:
 
   void SetHCALDist(double v){ fHCALdist = v;}
   
-  void SetESEPP_Rad(bool v){ std::cout << "SetRad " << v << std::endl; fRad = v; }
-  void SetESEPP_Rosen(bool v){  std::cout << "SetRose " << v << std::endl; fRosen = v; }
+  void SetESEPP_Rad(bool v){ fRad = v; }
+  void SetESEPP_Rosen(bool v){ fRosen = v; }
   void SetESEPP_name(TString a){ fESEPPname = a; }
+  void SetESEPP_lo(int v){ fESEPP_lo = v; }
+  void SetESEPP_hi(int v){ fESEPP_hi = v; }
+
   void LoadESEPPGenerator();
 
   double GetHcalDist(){ return fHCALdist; }
@@ -105,6 +108,7 @@ private:
   bool fRad;
   bool fRosen;
   TString fESEPPname;
+  int fESEPP_lo, fESEPP_hi;
 
   double fElectronE, fNucleonE, fHadronE, fBeamE;
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;

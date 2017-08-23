@@ -97,6 +97,8 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 }
 
 void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
+  G4SDManager *sdman = fDetCon->fSDman;
+
   //Lines of code used to build BigBite moved to their own method:
   printf("BigBite at %f deg\n", fBBang/deg);
 
@@ -492,7 +494,21 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *bbhodobox = new G4Box("bbhodobox", pswidth/2.0, psheight/2.0, bbhododepth/2.0 );
   G4LogicalVolume *bbhodolog = new G4LogicalVolume( bbhodobox, GetMaterial("POLYSTYRENE"), "bbhodolog" );
   //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
-    
+
+  G4String HodoSDname = "Earm/Hodoscope";
+  G4String Hodocollname = "HodoscopeHitsCollection";
+  G4SBSCalSD *HodoSD = NULL;
+  
+  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector( HodoSDname )) ) {
+    G4cout << "Adding BB Hodoscope Sensitive Detector of type CAL to SDman..." << G4endl;
+    HodoSD = new G4SBSCalSD( HodoSDname, Hodocollname );
+    sdman->AddNewDetector( HodoSD );
+    (fDetCon->SDlist).insert( HodoSDname );
+    fDetCon->SDtype[HodoSDname] = kCAL;
+    (HodoSD->detmap).depth = 0;
+  }
+  bbhodolog->SetSensitiveDetector( HodoSD ); 
+
   new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
 
   // **** BIGBITE SHOWER ****
@@ -527,8 +543,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *bbTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbTF1log" );
   
   // Shower TF1 SD of type CAL
-  G4SDManager *sdman = fDetCon->fSDman;
-
   G4String BBSHTF1SDname = "Earm/BBSHTF1";
   G4String BBSHTF1collname = "BBSHTF1HitsCollection";
   G4SBSCalSD *BBSHTF1SD = NULL;
@@ -601,7 +615,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *preshowermodlog = new G4LogicalVolume( preshowermodbox, GetMaterial("Special_Air"), "preshowermodlog" );
  
   // Preshower TF1 SD of type CAL
-  G4LogicalVolume *bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbpsTF1log" );
+  G4LogicalVolume *bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1_PS"), "bbpsTF1log" );
 
   G4String BBPSTF1SDname = "Earm/BBPSTF1";
   G4String BBPSTF1collname = "BBPSTF1HitsCollection";

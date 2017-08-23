@@ -1114,6 +1114,20 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   TF1->SetMaterialPropertiesTable( MPT_temp );
   fMaterialsMap["TF1"] = TF1; //Default TF1: no temperature increase, no rad. damage.
 
+  G4Material* TF1_PS = new G4Material("TF1_PS", 5.404*g/cm3, 4);
+  TF1_PS->AddMaterial(PbO, 0.512);
+  TF1_PS->AddMaterial(SiO2, 0.413);
+  TF1_PS->AddMaterial(K2O, 0.070);
+  TF1_PS->AddMaterial(As2O3, 0.005);
+
+  MPT_temp = new G4MaterialPropertiesTable();
+  MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
+  //MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_TF1, nentries_ecal_QE );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_atilde, atilde, nentries_atilde );
+  
+  TF1_PS->SetMaterialPropertiesTable( MPT_temp );
+  fMaterialsMap["TF1_PS"] = TF1_PS; 
+
   // //For C16 and/or ECAL, we need the following configurations of lead-glass:
   // //C16: Elevated temp, no rad. damage: z-dependent temperature --> z-dependent absorption
   // //C16: Elevated temp, rad. damage: z-dependent temperature and z-dependent radiation dose rate/thermal annealing rate.

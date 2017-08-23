@@ -1114,7 +1114,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   TF1->SetMaterialPropertiesTable( MPT_temp );
   fMaterialsMap["TF1"] = TF1; //Default TF1: no temperature increase, no rad. damage.
 
-  G4Material* TF1_PS = new G4Material("TF1_PS", 5.404*g/cm3, 4);
+  G4Material* TF1_PS = new G4Material("TF1_PS", 4.8*g/cm3, 4);
   TF1_PS->AddMaterial(PbO, 0.512);
   TF1_PS->AddMaterial(SiO2, 0.413);
   TF1_PS->AddMaterial(K2O, 0.070);

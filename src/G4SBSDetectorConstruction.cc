@@ -2048,7 +2048,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   // World:
   //--------------
   G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 30*m);
-  G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,GetMaterial("Vacuum"),
+  G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,GetMaterial("Air"),
 						"WorldLogical", 0, 0, 0);
   G4PVPlacement *WorldPhys=new G4PVPlacement(0,G4ThreeVector(),
 					     "WorldPhysical",

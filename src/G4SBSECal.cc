@@ -76,24 +76,28 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
 {
   G4double inch = 2.54*cm;
   
+  G4double LightGuideDiameter = 2.5*cm;
+    
+  // Mother Volume
   G4double SMLength = 21.73*inch;
-  G4double SMWidth = 5.0*inch;
+  G4double SMWidth = 5.11*inch;
+  G4double SMHeight = 5.00*inch;
   
   //if(LeadGlassWidth==)SMWidth = ;
   //if(LeadGlassLength==)SMLength = ;
   
   G4Box* SM_mother_box = 
-    new G4Box("SM_mother_box", SMWidth/2.0, SMWidth/2.0, SMLength/2.0);
+    new G4Box("SM_mother_box", SMWidth/2.0, SMHeight/2.0, SMLength/2.0);
   G4LogicalVolume* SM_mother_log = 
     new G4LogicalVolume(SM_mother_box, GetMaterial("Special_Air"), "SM_mother_log");
   
-  //Titanium side walls
+  // Titanium side walls
   G4double TiWallLength = 14.76*inch;
   G4double TiWallThick = 0.032*inch;
   //if(LeadGlassLength==)TiWallLength = ;
   
   G4Box* TiSideWall_box = 
-    new G4Box("TiSideWall_box", TiWallThick/2.0, SMWidth/2.0, TiWallLength/2.0);
+    new G4Box("TiSideWall_box", TiWallThick/2.0, SMHeight/2.0, TiWallLength/2.0);
   G4LogicalVolume* TiSideWall_log = 
     new G4LogicalVolume(TiSideWall_box, GetMaterial("Titanium"), "TiSideWall_log");
   
@@ -104,10 +108,10 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
   temp_pos.setZ( (SMLength-TiWallLength)/2.0 );
   for(int i = 0; i<2; i++){
     temp_pos.setX( (SMWidth-TiWallThick)/2.0*pow(-1, i) );
-    new G4PVPlacement(temp_rot, temp_pos, TiSideWall_log, "TiSideWall_Phys", SM_mother_log, false, 0 );
+    new G4PVPlacement(temp_rot, temp_pos, TiSideWall_log, "TiSideWall_phys", SM_mother_log, false, 0 );
   }
   
-  //Front plate
+  // Front plate
   G4double FrontPlateThick = 0.25*inch;
   G4Box* FrontPlate_box = 
     new G4Box("FrontPlate_box", (SMWidth-TiWallThick)/2.0, SMWidth/2.0, FrontPlateThick/2.0);
@@ -117,21 +121,71 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
   temp_pos.setX(0.0);
   temp_pos.setY(0.0);
   temp_pos.setZ( (SMLength-FrontPlateThick)/2.0 );
-  new G4PVPlacement(temp_rot, temp_pos, FrontPlate_log, "FrontPlate_Phys", SM_mother_log, false, 0 );
+  new G4PVPlacement(temp_rot, temp_pos, FrontPlate_log, "FrontPlate_phys", SM_mother_log, false, 0 );
   
+  // Clamping bar
+  G4double ClampingBarThick = 0.125*inch;
+  G4double ClampingBarWidth = 0.78*inch;
+  G4Box* ClampingBar_box = 
+    new G4Box("ClampingBar_box", ClampingBarWidth/2.0, ClampingBarWidth/2.0, ClampingBarThick/2.0);
+  G4LogicalVolume* ClampingBar_log = 
+    new G4LogicalVolume(ClampingBar_box, GetMaterial("Aluminum"), "ClampingBar_log");
   
+  temp_pos.setZ( (SMLength-2.0*FrontPlateThick-ClampingBarThick)/2.0 );
+  for(int i = 0; i<3; i++){
+    for(int j = 0; j<3; j++){
+      temp_pos.setX(SMWidth/3.0*(i-1));
+      temp_pos.setY(SMHeight/3.0*(j-1));
+      new G4PVPlacement(temp_rot, temp_pos, ClampingBar_log, "ClampingBar_phys", SM_mother_log, false, 0 );
+    }
+  }
+  
+  // Back flange
+  G4Tubs *BackFlange_hole = new G4Tubs("BackFlange_hole", 0.0, LightGuideDiameter/2.0, FrontPlateThick, 0.0*deg, 360.0*deg );
+  
+  G4SubtractionSolid* BackFlange_solid = new G4SubtractionSolid("BackFlange_solid", FrontPlate_box, BackFlange_hole, 0, G4ThreeVector(0.0,0.0,0.0));
+  
+  for(int i = 0; i<3; i++){
+    for(int j = 0; j<3; j++){
+      BackFlange_solid = new G4SubtractionSolid("BackFlange_solid", BackFlange_solid, BackFlange_hole, 0, G4ThreeVector(-SMWidth/3.0*(i-1),-SMHeight/3.0*(j-1),0.0));
+    }
+  }
+
+  G4LogicalVolume* BackFlange_log = 
+    new G4LogicalVolume(BackFlange_solid, 
+			GetMaterial("Aluminum"), "BackFlange_log");
+  
+  temp_pos.setX(0.0);
+  temp_pos.setY(0.0);
+  temp_pos.setZ( (SMLength-2*TiWallLength+FrontPlateThick)/2.0 );
+  new G4PVPlacement(temp_rot, temp_pos, BackFlange_log, "BackFlange_phys", SM_mother_log, false, 0 );
+    
+  // Round flange
+  G4double RoundFlangeOuterDiameter = 1.5*inch;
+  G4double RoundFlangeLength = 0.39*inch;
+  if(TiWallLength==15.76*inch)RoundFlangeLength = 1.39*inch;
+  
+  G4Tubs *RoundFlange = new G4Tubs("RoundFlange", LightGuideDiameter/2.0, RoundFlangeOuterDiameter, RoundFlangeLength/2.0, 0.0*deg, 360.0*deg );
+  
+  temp_pos.setZ( (SMLength-2*TiWallLength+FrontPlateThick)/2.0 );
+
+  
+  //Visualization:
   G4VisAttributes *mother_visatt = new G4VisAttributes( G4Colour( 1, 1, 1 ) );
   mother_visatt->SetForceWireframe(true);
   SM_mother_log->SetVisAttributes(mother_visatt);
+  //SM_mother_log->SetVisAttributes(G4VisAttributes::Invisible);
   
-  G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.7, 1.0, 0.7 ) );
+  G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.7 ) );
   //Ti_visatt->SetForceWireframe(true);
-  FrontPlate_log->SetVisAttributes(Ti_visatt);
+  TiSideWall_log->SetVisAttributes(Ti_visatt);
   
   G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
   //Al_visatt->SetForceWireframe(true);
   FrontPlate_log->SetVisAttributes(Al_visatt);
-  
+  ClampingBar_log->SetVisAttributes(Al_visatt);
+  BackFlange_log->SetVisAttributes(G4Colour( 0.7, 0.0, 0.0 ));
+    
   return(SM_mother_log);
 }
 
@@ -228,9 +282,11 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     G4double R0_CDET = fDist - depth_CDET;
     
     G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
+    CDet->SetArmName("Earm");
     CDet->SetR0(R0_CDET);
     CDet->SetZ0(z0_CDET);
     CDet->SetPlanesHOffset(0.0);
+    CDet->SetPlanesInterDistance(1.0*cm);
     CDet->BuildComponent( earm_mother_log );
     //MakeCDET( earm_mother_log );
     
@@ -710,15 +766,15 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
   G4double al_thick = 0.50*mm;
   G4VisAttributes* hc_visAtt = new G4VisAttributes();
 
-  // G4double hcf_thick = copper_thick;
-  // const char* hcf_mat_name = "Copper";
-  // hc_visAtt->SetColour(1.0, 0.5, 0.0);
+  G4double hcf_thick = copper_thick;
+  const char* hcf_mat_name = "Copper";
+  hc_visAtt->SetColour(1.0, 0.5, 0.0);
   // G4double hcf_thick = al_thick;
   // const char* hcf_mat_name = "Aluminum";
   // hc_visAtt->SetColour(0.7, 0.7, 0.7);
-  G4double hcf_thick = 0.0;
-  const char* hcf_mat_name = "Special_Air";
-  hc_visAtt->SetVisibility(0);
+  // G4double hcf_thick = 0.0;
+  // const char* hcf_mat_name = "Special_Air";
+  // hc_visAtt->SetVisibility(0);
   
   //EFuchey 2017-01-11: Declaring sensitive detector for light guide 
   // shall be temporary, and not end in the repo...

@@ -142,13 +142,14 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
     G4double z0_CDET = -0.15*m;
     G4double planes_hoffset = 0.84*m;
-    //G4double planes_interdist = 20.0*cm;
+    G4double planes_interdist = 1.0*cm;//20.0*cm;
     
     G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
+    CDet->SetArmName("Harm");
     CDet->SetR0(fHCALdist + z0_CDET);
     CDet->SetZ0(z0_CDET);
     CDet->SetPlanesHOffset(planes_hoffset);
-    //CDet->SetPlanesInterDistance(planes_interdist);
+    CDet->SetPlanesInterDistance(planes_interdist);
     CDet->BuildComponent( CDetmother_log );
     //MakeCDET( CDetmother_log, z0_CDET, planes_hoffset );
     

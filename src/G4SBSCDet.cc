@@ -49,6 +49,7 @@ G4SBSCDet::G4SBSCDet(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fZ0 = -426.5*cm;
   fPlanesHOffset = 0.0;
   fPlanesInterDist = 1.0*cm;
+  fArmName = "Earm";
 }
 
 G4SBSCDet::~G4SBSCDet(){;}
@@ -119,7 +120,7 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
   G4SBSECalSD *cdet_sd = NULL;
   G4SDManager *sdman = fDetCon->fSDman;
 
-  G4String sdname = "Earm/CDET";
+  G4String sdname = fArmName+"/CDET";
   G4String collname = "CDETHitsCollection";
   
   if( !( cdet_sd = (G4SBSECalSD*) sdman->FindSensitiveDetector(sdname) ) ){
@@ -132,7 +133,7 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
     CDET_pmt_cathode_log->SetSensitiveDetector( cdet_sd );
   }
 
-  sdname = "Earm/CDET_Scint";
+  sdname = fArmName+"/CDET_Scint";
   collname = "CDET_ScintHitsCollection";
 
   G4SBSCalSD *cdet_scint_sd = NULL;

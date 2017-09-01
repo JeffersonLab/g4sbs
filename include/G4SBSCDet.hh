@@ -13,6 +13,7 @@ public:
 
   void BuildComponent(G4LogicalVolume *);
   
+  void SetArmName(G4String str){fArmName = str;}
   void SetR0(double a){fR0 = a;}
   void SetZ0(double a){fZ0 = a;}
   void SetPlanesHOffset(double a){fPlanesHOffset = a;}
@@ -20,6 +21,7 @@ public:
   
   void MakeCDET(G4LogicalVolume *);
   
+  G4String fArmName;
   double fR0;
   double fZ0;
   double fPlanesHOffset;

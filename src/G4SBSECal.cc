@@ -71,13 +71,25 @@ void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
     }
 }
 
+G4LogicalVolume* G4SBSECal::MakeModule( G4double LeadGlassLength, 
+					G4double LeadGlassWidth,
+					G4int block_idx)
+{
+  // Make ECal elementary module
+  // First parameter: length of the block; second: width of the block; third: block index (for sensitive volume numbering)
+  G4double inch = 2.54*cm;
+  
+  
+}
+
 G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength, 
 					     G4double LeadGlassWidth)
 {
+  // Make Super Module "shell", which dimensions are parameterized with length and width of the blocks
+  // First parameter: length of the block; second: width of the block
+  
   G4double inch = 2.54*cm;
   
-  G4double LightGuideDiameter = 2.5*cm;
-    
   G4double SMLength = 21.73*inch;
   G4double SMWidth = 5.11*inch;
   G4double SMHeight = 5.00*inch;
@@ -148,6 +160,7 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
     }
   }
   
+  /*
   // Back flange
   G4Tubs *BackFlange_hole = new G4Tubs("BackFlange_hole", 0.0, LightGuideDiameter/2.0, FrontPlateThick, 0.0*deg, 360.0*deg );
   
@@ -176,23 +189,23 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
   G4Tubs *RoundFlange = new G4Tubs("RoundFlange", LightGuideDiameter/2.0, RoundFlangeOuterDiameter, RoundFlangeLength/2.0, 0.0*deg, 360.0*deg );
   
   temp_pos.setZ( (SMLength-2*TiWallLength+FrontPlateThick)/2.0 );
-
+  */
   
   //Visualization:
-  G4VisAttributes *mother_visatt = new G4VisAttributes( G4Colour( 1, 1, 1 ) );
-  //mother_visatt->SetForceWireframe(true);
-  SM_mother_log->SetVisAttributes(mother_visatt);
-  //SM_mother_log->SetVisAttributes(G4VisAttributes::Invisible);
+  // G4VisAttributes *mother_visatt = new G4VisAttributes( G4Colour( 1, 1, 1 ) );
+  // mother_visatt->SetForceWireframe(true);
+  // SM_mother_log->SetVisAttributes(mother_visatt);
+  SM_mother_log->SetVisAttributes(G4VisAttributes::Invisible);
   
-  G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.7, 0.0, 0.0 ));//G4Colour( 0.8, 0.8, 0.7 ) );
+  G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.7 ) );
   //Ti_visatt->SetForceWireframe(true);
   TiSideWall_log->SetVisAttributes(Ti_visatt);
   
-  G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.0, 0.0 ));// G4Colour( 0.7, 0.7, 0.7 ) );
+  G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
   //Al_visatt->SetForceWireframe(true);
   FrontPlate_log->SetVisAttributes(Al_visatt);
   ClampingBar_log->SetVisAttributes(Al_visatt);
-  BackFlange_log->SetVisAttributes(G4Colour( 0.7, 0.0, 0.0 ));
+  //BackFlange_log->SetVisAttributes(G4Colour( 0.7, 0.0, 0.0 ));
   
   return(SM_mother_log);
 }
@@ -201,27 +214,16 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   // Pointer to SDmanager, used frequently in this routine
   G4SDManager *sdman = fDetCon->fSDman;
 
-  /*
-  //number of available blocks:
-  G4int nblocks_42 = 1000;
-  G4int nblocks_40 = 700;
-  G4int nblocks_38 = 300;
-
-  //assume for now that all lead-glass blocks are 40 cm deep:
+  G4double width_42 = 4.2*cm;
   G4double width_40 = 4.0*cm;
-  G4double width_38 = 3.8*cm;
-
-  G4double depth_40 = 40.0*cm;
-  G4double depth_38 = 45.0*cm;
-  */
-
-  G4double width_42 = 4.2*cm;  
+  
   G4double depth_42 = 34.3*cm;
+  G4double depth_40 = 40.0*cm;
   
   G4double depth_leadglass = 45.0*cm;
   G4double depth_ecal_pmt = 0.3*cm;
-  G4double depth_lightguide_short = 15.0*cm;
-  // G4double radius_ecal_pmt = 1.25*cm;
+  G4double depth_lightguide_short = 20.0*cm;
+  G4double radius_ecal_pmt = 1.25*cm;
   // G4double depth_ecal_frontplate = 2.54*cm;
   G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
   G4double depth_CDET = 45.0*cm; // CDET starts 45 cm in front of ECAL:
@@ -252,7 +254,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       (fDetCon->SDlist).insert( sdname );
       fDetCon->SDtype[sdname] = kCAL;
       (earm_mother_SD->detmap).depth = 0;
-   
+      
       earm_mother_log->SetSensitiveDetector( earm_mother_SD );
     }
   }
@@ -275,9 +277,338 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
 			0,
 			zfront_ECAL + 21.73/2.0 );
   
-  new G4PVPlacement( bbrm, pos_SM, SM1_log, "SM1_phys", earm_mother_log, false, 0 );
+  //new G4PVPlacement( bbrm, pos_SM, SM1_log, "SM1_phys", earm_mother_log, false, 0 );
+  
+  //Blocks
+  G4double mylar_thick = 0.001*2.54*cm;
+  G4double air_thick = mylar_thick;
+  
+  G4double copper_thick = 0.25*mm;
+  G4double al_thick = 0.50*mm;
+  G4VisAttributes* hc_visAtt = new G4VisAttributes();
+  
+  G4double hcf_thick = copper_thick;
+  const char* hcf_mat_name = "Copper";
+  hc_visAtt->SetColour(1.0, 0.5, 0.0);
+  // G4double hcf_thick = al_thick;
+  // const char* hcf_mat_name = "Aluminum";
+  // hc_visAtt->SetColour(0.7, 0.7, 0.7);
+  
+  G4Tubs *LightGuide_42 = new G4Tubs("LightGuide_42", 0.0, 2.5*cm/2.0, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LightGuide_42_log = new G4LogicalVolume( LightGuide_42, GetMaterial("Pyrex_Glass"), "LightGuide_42_log" );
+  
+  G4Tubs *LightGuide_40 = new G4Tubs("LightGuide_40", 0.0, 2.5*cm/2.0, (depth_lightguide_short)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LightGuide_40_log = new G4LogicalVolume( LightGuide_40, GetMaterial("Pyrex_Glass"), "LightGuide_40_log" );
+
+  G4Tubs *LGWrap_42 = new G4Tubs( "LGWrap_42", 2.5*cm/2.0+air_thick, 2.5*cm/2.0 + air_thick + mylar_thick, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LGWrap_42_log = new G4LogicalVolume( LGWrap_42, GetMaterial("Mylar"), "LGWrap_42_log" );
+
+  G4Tubs *LGWrap_40 = new G4Tubs( "LGWrap_40", 2.5*cm/2.0+air_thick, 2.5*cm/2.0 + air_thick + mylar_thick, (depth_lightguide_short)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LGWrap_40_log = new G4LogicalVolume( LGWrap_40, GetMaterial("Mylar"), "LGWrap_40_log" );
+  
+  G4Tubs *LG42 = new G4Tubs("LG42", 0.0, 2.5*cm/2.0 + air_thick + mylar_thick+0.1*mm, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LG42_log = new G4LogicalVolume( LG42, GetMaterial("Special_Air"), "LG42_log" );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LightGuide_42_log, "LightGuide_42_phys", LG42_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LGWrap_42_log, "LGWrap_42_phys", LG42_log, false, 0 );
+
+  G4Tubs *LG40 = new G4Tubs("LG40", 0.0, 2.5*cm/2.0 + air_thick + mylar_thick+0.1*mm, (depth_lightguide_short)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LG40_log = new G4LogicalVolume( LG40, GetMaterial("Special_Air"), "LG40_log" );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LightGuide_40_log, "LightGuide_40_phys", LG40_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LGWrap_40_log, "LGWrap_40_phys", LG40_log, false, 0 );
+  
+  width_42 = width_42 + 2*( hcf_thick+mylar_thick+air_thick );
+  width_40 = width_40 + 2*( hcf_thick+mylar_thick+air_thick );
+  
+  G4Box *Module_42 = new G4Box( "Module_42", width_42/2.0, width_42/2.0, depth_42/2.0 );
+  G4LogicalVolume *Module_42_log = new G4LogicalVolume( Module_42, GetMaterial("Special_Air"), "Module_42_log" );
+
+  G4Box *Module_40 = new G4Box( "Module_40", width_40/2.0, width_40/2.0, depth_40/2.0 );
+  G4LogicalVolume *Module_40_log = new G4LogicalVolume( Module_40, GetMaterial("Special_Air"), "Module_40_log" );
+
+  G4Box *Module_42_k = new G4Box( "Module_42_k", width_42/2.0, width_42/2.0, depth_42/2.0-0.25*mm );
+  G4Box *Module_40_k = new G4Box( "Module_42_k", width_40/2.0, width_40/2.0, depth_40/2.0-0.25*mm );
+  
+  G4Box *hc_42 = new G4Box( "hc_42", width_42/2.0 - hcf_thick, width_42/2.0 - hcf_thick, depth_42/2.0 );
+  G4SubtractionSolid *hc_foil_42 = new G4SubtractionSolid( "hc_foil_42", Module_42_k, hc_42, 0, G4ThreeVector( 0, 0, 0 ) );
+  G4LogicalVolume *hc_foil_42_log = new G4LogicalVolume( hc_foil_42, GetMaterial(hcf_mat_name), "hc_foil_42_log" );
+  hc_foil_42_log->SetVisAttributes(hc_visAtt);
+
+  G4Box *hc_40 = new G4Box( "hc_40", width_40/2.0 - hcf_thick, width_40/2.0 - hcf_thick, depth_40/2.0 );
+  G4SubtractionSolid *hc_foil_40 = new G4SubtractionSolid( "hc_foil_40", Module_40_k, hc_40, 0, G4ThreeVector( 0, 0, 0 ) );
+  G4LogicalVolume *hc_foil_40_log = new G4LogicalVolume( hc_foil_40, GetMaterial(hcf_mat_name), "hc_foil_40_log" );
+  hc_foil_40_log->SetVisAttributes(hc_visAtt);
+
+  //Next, we want to make a subtraction solid for the mylar:
+  G4Box *Mylar_42 = new G4Box( "Mylar_42", width_42/2.0 - hcf_thick - mylar_thick, width_42/2.0 - hcf_thick - mylar_thick, depth_42/2.0 + 1.0*cm );
+  G4SubtractionSolid *Mylar_wrap_42 = new G4SubtractionSolid( "Mylar_wrap_42", hc_42, Mylar_42, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
+  G4LogicalVolume *Mylar_wrap_42_log = new G4LogicalVolume( Mylar_wrap_42, GetMaterial("Mylar"), "Mylar_wrap_42_log" );
+  
+  G4Box *Mylar_40 = new G4Box( "Mylar_40", width_40/2.0 - hcf_thick - mylar_thick, width_40/2.0 - hcf_thick - mylar_thick, depth_40/2.0 + 1.0*cm );
+  G4SubtractionSolid *Mylar_wrap_40 = new G4SubtractionSolid( "Mylar_wrap_40", hc_40, Mylar_40, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
+  G4LogicalVolume *Mylar_wrap_40_log = new G4LogicalVolume( Mylar_wrap_40, GetMaterial("Mylar"), "Mylar_wrap_40_log" );
+  
+  ////// Define Sensitive Detector for lead-glass:
+  G4String ECalTF1SDname = "Earm/ECalTF1";
+  G4String ECalTF1collname = "ECalTF1HitsCollection";
+  G4SBSCalSD *ECalTF1SD = NULL;
+    
+  if( !( ECalTF1SD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(ECalTF1SDname) ) ){
+    G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
+    ECalTF1SD = new G4SBSCalSD( ECalTF1SDname, ECalTF1collname );
+    fDetCon->fSDman->AddNewDetector( ECalTF1SD );
+    (fDetCon->SDlist).insert(ECalTF1SDname);
+    fDetCon->SDtype[ECalTF1SDname] = kCAL;
+    //fDetCon->SDarm[ECalTF1SDname] = kEarm;
+
+    (ECalTF1SD->detmap).depth = 1;
+  }
+
+  if( fDetCon->GetC16Segmentation() <= 0 ){
+    G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", width_42/2.0 - hcf_thick - mylar_thick - air_thick, width_42/2.0 - hcf_thick - mylar_thick - air_thick, (depth_42 - mylar_thick - air_thick)/2.0 );
+    G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
+
+    G4Box *LeadGlass_40 = new G4Box("LeadGlass_40", width_40/2.0 - hcf_thick - mylar_thick - air_thick, width_40/2.0 - hcf_thick - mylar_thick - air_thick, (depth_40 - mylar_thick - air_thick)/2.0 );
+    G4LogicalVolume *LeadGlass_40_log = new G4LogicalVolume( LeadGlass_40, GetMaterial("TF1"), "LeadGlass_40_log" );
+    
+    //Assign "kCAL" sensitivity to the lead-glass:
+    LeadGlass_42_log->SetSensitiveDetector( ECalTF1SD );
+    LeadGlass_40_log->SetSensitiveDetector( ECalTF1SD );
+
+    G4VisAttributes *TF1visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0 ) );
+    LeadGlass_42_log->SetVisAttributes( TF1visatt );
+    LeadGlass_40_log->SetVisAttributes( TF1visatt );
+    
+    //Positioning of lead-glass in module:
+    // z + Lz/2 - m/2 - a/2 = Lz/2 --> z = m/2 + a/2
+    //lead-glass:
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, (mylar_thick + air_thick)/2.0 ), LeadGlass_42_log, "LeadGlass_42_phys", Module_42_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, (mylar_thick + air_thick)/2.0 ), LeadGlass_40_log, "LeadGlass_40_phys", Module_40_log, false, 0 );
+  } else {
+    G4int nsegments = fDetCon->GetC16Segmentation();
+    G4double segthick = fDetCon->GetSegmentThickC16();
+
+    //Segment the lead-glass longitudinally so that different optical properties can be defined:
+    G4int nseg_42 = G4int( (depth_42 - mylar_thick - air_thick)/segthick );
+    if( nseg_42 > nsegments ){
+      nseg_42 = nsegments;
+    }
+    G4double remainder_42 = (depth_42 - mylar_thick - air_thick) - nseg_42 * segthick; //remainder is always non-negative!
+
+    if( nseg_42 == 0 ){
+      nseg_42 = 1;
+      segthick = (depth_42 - mylar_thick - air_thick);
+      remainder_42 = 0.0;
+    }
+
+    G4Box *segment_42 = new G4Box( "segment_42", (width_42 - 2.*(mylar_thick+air_thick) )/2.0, (width_42 - 2.*(mylar_thick+air_thick) )/2.0, segthick/2.0 );
+    G4Box *lastsegment_42 = new G4Box( "lastsegment_42", (width_42 - 2.*(mylar_thick+air_thick) )/2.0, (width_42 - 2.*(mylar_thick+air_thick) )/2.0, (segthick+remainder_42)/2.0 );
+
+    G4double ztemp = -depth_42/2.0 + mylar_thick + air_thick;
+    
+    for( int seg42=0; seg42<nseg_42; seg42++ ){
+      TString material_name, lv_name, pv_name;
+      material_name.Form( "TF1_anneal_ECAL_z%d", seg42 );
+      lv_name.Form("segment_42_log_%d", seg42 );
+      pv_name.Form("segment_42_phys_%d", seg42 );
+      G4LogicalVolume *Seg42_log;
+      if( seg42 + 1 < nseg_42 || nseg_42 == 1 ){
+	Seg42_log = new G4LogicalVolume( segment_42, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += segthick/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg42_log, pv_name.Data(), Module_42_log, false, 0 );
+	ztemp += segthick/2.0;
+      } else {
+	Seg42_log = new G4LogicalVolume( lastsegment_42, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += (segthick+remainder_42)/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg42_log, pv_name.Data(), Module_42_log, false, 0 );
+	ztemp += (segthick+remainder_42)/2.0;
+      }
+      Seg42_log->SetSensitiveDetector( ECalTF1SD );
+
+      G4VisAttributes *Segment_VisAtt = new G4VisAttributes( G4Colour( 0.8*(seg42/15.0)+0.20, 0.8*(seg42/15.0)+0.20, 0.0 ) );
+      Seg42_log->SetVisAttributes( Segment_VisAtt );
+    }
+
+
+    //Segment the lead-glass longitudinally so that different optical properties can be defined:
+    G4int nseg_40 = G4int( (depth_40 - mylar_thick - air_thick)/segthick );
+    if( nseg_40 > nsegments ){
+      nseg_40 = nsegments;
+    }
+    G4double remainder_40 = (depth_40 - mylar_thick - air_thick) - nseg_40 * segthick; //remainder is always non-negative!
+
+    if( nseg_40 == 0 ){
+      nseg_40 = 1;
+      segthick = (depth_40 - mylar_thick - air_thick);
+      remainder_40 = 0.0;
+    }
+    
+    G4Box *segment_40 = new G4Box( "segment_40", (width_40 - 2.*(mylar_thick+air_thick) )/2.0, (width_40 - 2.*(mylar_thick+air_thick) )/2.0, segthick/2.0 );
+    G4Box *lastsegment_40 = new G4Box( "lastsegment_40", (width_40 - 2.*(mylar_thick+air_thick) )/2.0, (width_40 - 2.*(mylar_thick+air_thick) )/2.0, (segthick+remainder_40)/2.0 );
+
+    ztemp = -depth_40/2.0 + mylar_thick + air_thick;
+    
+    for( int seg40=0; seg40<nseg_40; seg40++ ){
+      TString material_name, lv_name, pv_name;
+      material_name.Form( "TF1_anneal_ECAL_z%d", seg40 );
+      lv_name.Form("segment_40_log_%d", seg40 );
+      pv_name.Form("segment_40_phys_%d", seg40 );
+      G4LogicalVolume *Seg40_log;
+      if( seg40 + 1 < nseg_40 || nseg_40 == 1 ){
+	Seg40_log = new G4LogicalVolume( segment_40, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += segthick/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg40_log, pv_name.Data(), Module_40_log, false, 0 );
+	ztemp += segthick/2.0;
+      } else {
+	Seg40_log = new G4LogicalVolume( lastsegment_40, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += (segthick+remainder_40)/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg40_log, pv_name.Data(), Module_40_log, false, 0 );
+	ztemp += (segthick+remainder_40)/2.0;
+      }
+      Seg40_log->SetSensitiveDetector( ECalTF1SD );
+
+      G4VisAttributes *Segment_VisAtt = new G4VisAttributes( G4Colour( 0.8*(seg40/15.0)+0.20, 0.8*(seg40/15.0)+0.20, 0.0 ) );
+      Seg40_log->SetVisAttributes( Segment_VisAtt );
+    }
+  }
+    
+  //Place lead-glass and mylar wrap inside module:
+  
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_42_log, "hc_foil_42_phys", Module_42_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_40_log, "hc_foil_40_phys", Module_40_log, false, 0 );
+  
+  //mylar:
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), Mylar_wrap_42_log, "Mylar_wrap_42_phys", Module_42_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), Mylar_wrap_40_log, "Mylar_wrap_40_phys", Module_40_log, false, 0 );
+
+  new G4LogicalSkinSurface( "Mylar_skin_42", Mylar_wrap_42_log, GetOpticalSurface("Mirrsurf") );
+  new G4LogicalSkinSurface( "Mylar_skin_40", Mylar_wrap_40_log, GetOpticalSurface("Mirrsurf") );
+
+  new G4LogicalSkinSurface( "lgwrap_42", LGWrap_42_log, GetOpticalSurface("Mirrsurf") );
+  new G4LogicalSkinSurface( "lgwrap_40", LGWrap_40_log, GetOpticalSurface("Mirrsurf") );
+  
+  //Next: PMTs:
+  G4Tubs *ecal_PMT = new G4Tubs( "ecal_PMT", 0.0, radius_ecal_pmt, depth_ecal_pmt/2.0, 0.0, twopi );
+  G4LogicalVolume *ecal_PMT_log = new G4LogicalVolume( ecal_PMT, GetMaterial("Photocathode_material_ecal"), "ecal_PMT_log" );
+
+  G4String sdname = "Earm/ECAL";
+  G4String collname = "ECALHitsCollection";
+
+  G4SBSECalSD *ECalSD = NULL;
+
+  if( !( (G4SBSECalSD*) sdman->FindSensitiveDetector( sdname ) ) ){
+    G4cout << "Adding ECAL PMT sensitive detector to SDman..." << G4endl;
+    ECalSD = new G4SBSECalSD( sdname, collname );
+    sdman->AddNewDetector( ECalSD );
+    (fDetCon->SDlist).insert( sdname );
+    fDetCon->SDtype[sdname] = kECAL;
+    (ECalSD->detmap).depth = 0;
+  }
+
+  ecal_PMT_log->SetSensitiveDetector( ECalSD );
+  
+  // Place the blocks
+  G4int NrowsSM_40 = 10; 
+  G4int NrowsSM_42 = 15; 
+  
+  G4int NcolsSM_40[10] = {3, 5, 6, 7, 8, 8, 9, 9, 9, 9};// from bottom to top
+  G4int NcolsSM_42[15] = {9, 9, 9, 9, 9, 9, 9, 9, 8, 8, 8, 7, 6, 5, 3};// from bottom to top
+  
+  G4double yfp_start_40[10] = {-62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, 
+			       -58.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm};//start of the block edge
+  G4double yfp_start_42[15] = {-54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, 
+			       -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -58.0*cm,
+			       -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm};//start of the block edge
+  G4double xfpstart = -153.8*cm;
+  G4int copy_nb = 0;
+  G4double X_block, Y_block;
+  
+  X_block = xfpstart+width_40/2.0;
+  for(int i_ = 0; i_<NrowsSM_40*3; i_++){
+    Y_block = yfp_start_40[i_/3]+width_40/2.0;
+    for(int j_ = 0; j_<NcolsSM_40[i_/3]*3; j_++){
+      
+      printf("i_ = %d, j = %d, i_/3, copy_nb = %d, X_block = %f, Y_Block = %f \n", i_, j_, i_/3, copy_nb, X_block, Y_block);
+      //if(i_%3==1 && j_%3==1)
+      G4ThreeVector modpos( Y_block, X_block, zfront_ECAL + depth_40/2.0 );
+      // depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+      new G4PVPlacement( 0, modpos, Module_40_log, "Module_40_phys", earm_mother_log, false, copy_nb );
+      
+      (ECalTF1SD->detmap).Row[copy_nb] = i_;
+      (ECalTF1SD->detmap).Col[copy_nb] = j_;
+      (ECalTF1SD->detmap).LocalCoord[copy_nb] = modpos;
+      
+      G4ThreeVector pmtpos( modpos.x(), modpos.y(), depth_earm/2.0 - depth_ecal_pmt/2.0 );
+      new G4PVPlacement( 0, pmtpos, ecal_PMT_log, "ecal_PMT_phys", earm_mother_log, false, copy_nb );
+      
+      (ECalSD->detmap).Row[copy_nb] = i_;
+      (ECalSD->detmap).Col[copy_nb] = j_;
+      (ECalSD->detmap).LocalCoord[copy_nb] = pmtpos;
+      
+      //Add light-guide with mylar wrap:
+      G4ThreeVector LGpos( modpos.x(), modpos.y(), modpos.z() + depth_42/2.0 + LG42->GetZHalfLength() );
+      new G4PVPlacement( 0, LGpos, LG42_log, "LG42_phys", earm_mother_log, false, copy_nb );
+      // new G4PVPlacement( 0, LGpos, LightGuide_42_log, "LightGuide_42_phys", earm_mother_log, false, icell );
+      // new G4PVPlacement( 0, LGpos, LGWrap_42_log, "LGWrap_42_phys", earm_mother_log, false, icell );
+      
+      // //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
+      // // shall be temporary, and not end in the repo...
+      // (ECalLGSD->detmap).Row[icell] = global_row;
+      // (ECalLGSD->detmap).Col[icell] = col;
+      // (ECalLGSD->detmap).LocalCoord[icell] = modpos;
+      
+      Y_block+= width_40;
+      if(j_%3==2)Y_block+= 1.63*mm;// = 2*0.032 inches (SM TI walls) + a very small gap
+      copy_nb++;
+    }
+    X_block+= width_40;
+  }
+  
+  X_block+= (width_42-width_40)/2.0;
+  for(int i_ = 0; i_<NrowsSM_42*3; i_++){
+    Y_block = yfp_start_42[i_/3]+width_42/2.0;
+    for(int j_ = 0; j_<NcolsSM_42[i_/3]*3; j_++){
+      
+      printf("i_ = %d, j = %d, i_/3, copy_nb = %d, X_block = %f, Y_Block = %f \n", i_, j_, i_/3, copy_nb, X_block, Y_block);
+      //if(i_%3==1 && j_%3==1)
+      G4ThreeVector modpos( Y_block, X_block, zfront_ECAL + depth_42/2.0 );
+      // depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+      new G4PVPlacement( 0, modpos, Module_42_log, "Module_42_phys", earm_mother_log, false, copy_nb );
+      
+      (ECalTF1SD->detmap).Row[copy_nb] = i_;
+      (ECalTF1SD->detmap).Col[copy_nb] = j_;
+      (ECalTF1SD->detmap).LocalCoord[copy_nb] = modpos;
+      
+      G4ThreeVector pmtpos( modpos.x(), modpos.y(), depth_earm/2.0 - depth_ecal_pmt/2.0 );
+      new G4PVPlacement( 0, pmtpos, ecal_PMT_log, "ecal_PMT_phys", earm_mother_log, false, copy_nb );
+      
+      (ECalSD->detmap).Row[copy_nb] = i_;
+      (ECalSD->detmap).Col[copy_nb] = j_;
+      (ECalSD->detmap).LocalCoord[copy_nb] = pmtpos;
+      
+      //Add light-guide with mylar wrap:
+      G4ThreeVector LGpos( modpos.x(), modpos.y(), modpos.z() + depth_42/2.0 + LG42->GetZHalfLength() );
+      new G4PVPlacement( 0, LGpos, LG42_log, "LG42_phys", earm_mother_log, false, copy_nb );
+      // new G4PVPlacement( 0, LGpos, LightGuide_42_log, "LightGuide_42_phys", earm_mother_log, false, icell );
+      // new G4PVPlacement( 0, LGpos, LGWrap_42_log, "LGWrap_42_phys", earm_mother_log, false, icell );
+      
+      // //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
+      // // shall be temporary, and not end in the repo...
+      // (ECalLGSD->detmap).Row[icell] = global_row;
+      // (ECalLGSD->detmap).Col[icell] = col;
+      // (ECalLGSD->detmap).LocalCoord[icell] = modpos;
+      
+      Y_block+= width_42;
+      if(j_%3==2)Y_block+= 1.63*mm;// = 2*0.032 inches (SM TI walls) + a very small gap
+      copy_nb++;
+    }
+    X_block+= width_42;
+  }
   
   
+  /**/
+  
+  
+  // Build CDet:
   if(fDetCon->fExpType==kGEp){
     //Next: CH2 filter:
     G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );

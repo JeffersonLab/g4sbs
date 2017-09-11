@@ -15,6 +15,7 @@ public:
   void SetAng(double a){ fAng = a; }
   void SetDist(double a){ fDist= a; }
 
+  G4LogicalVolume* MakeModule(G4double, G4double, G4int);
   G4LogicalVolume* MakeSuperModule(G4double, G4double);
   
   void MakeECal_new(G4LogicalVolume *);

@@ -617,7 +617,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   G4int n_bbhodoslats = 90;
   for(int i_bbhslat = 0; i_bbhslat<n_bbhodoslats; i_bbhslat++){
-    G4double y_slat = (G4double(i_bbhslat)+0.5)*bbslat_section-n_bbhodoslats*bbslat_section/2.0;
+    G4double y_slat = n_bbhodoslats*bbslat_section/2.0-(G4double(i_bbhslat)+0.5)*bbslat_section;
     G4double z_slat = -bbhododepth/2.0-0.5*mm+0.217*2.54*cm+bbslat_section/2.0;
     new G4PVPlacement( 0, G4ThreeVector(0, y_slat, z_slat), bbhodoslatlog, "bbhodoslatphys", bbhodolog, false, i_bbhslat );
     (BBHodoScintSD->detmap).Col[i_bbhslat] = 0;

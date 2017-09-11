@@ -62,8 +62,8 @@ void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
   
   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
-      MakeBigCal( worldlog );
-      //MakeECal_new( worldlog );
+      //MakeBigCal( worldlog );
+      MakeECal_new( worldlog );
     }
   if( exptype == kC16 ) 
     {
@@ -78,23 +78,34 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
   
   G4double LightGuideDiameter = 2.5*cm;
     
-  // Mother Volume
   G4double SMLength = 21.73*inch;
   G4double SMWidth = 5.11*inch;
   G4double SMHeight = 5.00*inch;
   
   //if(LeadGlassWidth==)SMWidth = ;
   //if(LeadGlassLength==)SMLength = ;
+  G4double TiWallLength = 14.76*inch;
+  G4double TiWallThick = 0.032*inch;
+  //if(LeadGlassLength==)TiWallLength = ;
+
+  G4double FrontPlateThick = 0.25*inch;
   
-  G4Box* SM_mother_box = 
-    new G4Box("SM_mother_box", SMWidth/2.0, SMHeight/2.0, SMLength/2.0);
+  G4double ClampingBarThick = 0.125*inch;
+  G4double ClampingBarWidth = 0.78*inch;
+
+  // Mother Volume
+  G4Box* SM_mother_box_0 = 
+    new G4Box("SM_mother_box_0", SMWidth/2.0, SMHeight/2.0, SMLength/2.0);
+  G4Box* SM_mother_box_cut = 
+    new G4Box("SM_mother_box_cut", SMWidth/2.0-TiWallThick, SMHeight/2.0+1.0*mm, SMLength/2.0);
+  
+  G4SubtractionSolid* SM_mother_box = 
+    new G4SubtractionSolid("SM_mother_box", SM_mother_box_0, SM_mother_box_cut, 0, G4ThreeVector(0.0, 0.0, -FrontPlateThick-ClampingBarThick));
+  
   G4LogicalVolume* SM_mother_log = 
     new G4LogicalVolume(SM_mother_box, GetMaterial("Special_Air"), "SM_mother_log");
   
   // Titanium side walls
-  G4double TiWallLength = 14.76*inch;
-  G4double TiWallThick = 0.032*inch;
-  //if(LeadGlassLength==)TiWallLength = ;
   
   G4Box* TiSideWall_box = 
     new G4Box("TiSideWall_box", TiWallThick/2.0, SMHeight/2.0, TiWallLength/2.0);
@@ -112,7 +123,6 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
   }
   
   // Front plate
-  G4double FrontPlateThick = 0.25*inch;
   G4Box* FrontPlate_box = 
     new G4Box("FrontPlate_box", (SMWidth-TiWallThick)/2.0, SMWidth/2.0, FrontPlateThick/2.0);
   G4LogicalVolume* FrontPlate_log = 
@@ -124,8 +134,6 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
   new G4PVPlacement(temp_rot, temp_pos, FrontPlate_log, "FrontPlate_phys", SM_mother_log, false, 0 );
   
   // Clamping bar
-  G4double ClampingBarThick = 0.125*inch;
-  G4double ClampingBarWidth = 0.78*inch;
   G4Box* ClampingBar_box = 
     new G4Box("ClampingBar_box", ClampingBarWidth/2.0, ClampingBarWidth/2.0, ClampingBarThick/2.0);
   G4LogicalVolume* ClampingBar_log = 
@@ -158,7 +166,7 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
   temp_pos.setX(0.0);
   temp_pos.setY(0.0);
   temp_pos.setZ( (SMLength-2*TiWallLength+FrontPlateThick)/2.0 );
-  new G4PVPlacement(temp_rot, temp_pos, BackFlange_log, "BackFlange_phys", SM_mother_log, false, 0 );
+  //new G4PVPlacement(temp_rot, temp_pos, BackFlange_log, "BackFlange_phys", SM_mother_log, false, 0 );
     
   // Round flange
   G4double RoundFlangeOuterDiameter = 1.5*inch;
@@ -172,25 +180,25 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
   
   //Visualization:
   G4VisAttributes *mother_visatt = new G4VisAttributes( G4Colour( 1, 1, 1 ) );
-  mother_visatt->SetForceWireframe(true);
+  //mother_visatt->SetForceWireframe(true);
   SM_mother_log->SetVisAttributes(mother_visatt);
   //SM_mother_log->SetVisAttributes(G4VisAttributes::Invisible);
   
-  G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.7 ) );
+  G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.7, 0.0, 0.0 ));//G4Colour( 0.8, 0.8, 0.7 ) );
   //Ti_visatt->SetForceWireframe(true);
   TiSideWall_log->SetVisAttributes(Ti_visatt);
   
-  G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
+  G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.0, 0.0 ));// G4Colour( 0.7, 0.7, 0.7 ) );
   //Al_visatt->SetForceWireframe(true);
   FrontPlate_log->SetVisAttributes(Al_visatt);
   ClampingBar_log->SetVisAttributes(Al_visatt);
   BackFlange_log->SetVisAttributes(G4Colour( 0.7, 0.0, 0.0 ));
-    
+  
   return(SM_mother_log);
 }
 
 void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
-    // Pointer to SDmanager, used frequently in this routine
+  // Pointer to SDmanager, used frequently in this routine
   G4SDManager *sdman = fDetCon->fSDman;
 
   /*

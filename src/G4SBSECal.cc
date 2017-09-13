@@ -71,34 +71,22 @@ void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
     }
 }
 
-G4LogicalVolume* G4SBSECal::MakeModule( G4double LeadGlassLength, 
-					G4double LeadGlassWidth,
-					G4int block_idx)
-{
-  // Make ECal elementary module
-  // First parameter: length of the block; second: width of the block; third: block index (for sensitive volume numbering)
-  G4double inch = 2.54*cm;
-  
-  
-}
 
-G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength, 
-					     G4double LeadGlassWidth)
+G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double SMWidth, 
+					     G4double SMHeight,
+					     G4double TiWallLength)
 {
   // Make Super Module "shell", which dimensions are parameterized with length and width of the blocks
-  // First parameter: length of the block; second: width of the block
+  // First parameter: Width of the super module; second: length of the super module Ti wall
   
   G4double inch = 2.54*cm;
   
   G4double SMLength = 21.73*inch;
-  G4double SMWidth = 5.11*inch;
-  G4double SMHeight = 5.00*inch;
+  //G4double SMWidth = 5.11*inch;
+  //G4double SMHeight = 5.00*inch;
   
-  //if(LeadGlassWidth==)SMWidth = ;
-  //if(LeadGlassLength==)SMLength = ;
-  G4double TiWallLength = 14.76*inch;
+  //G4double TiWallLength = 14.76*inch;
   G4double TiWallThick = 0.032*inch;
-  //if(LeadGlassLength==)TiWallLength = ;
 
   G4double FrontPlateThick = 0.25*inch;
   
@@ -136,7 +124,7 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
   
   // Front plate
   G4Box* FrontPlate_box = 
-    new G4Box("FrontPlate_box", (SMWidth-TiWallThick)/2.0, SMWidth/2.0, FrontPlateThick/2.0);
+    new G4Box("FrontPlate_box", (SMWidth-TiWallThick)/2.0, SMHeight/2.0, FrontPlateThick/2.0);
   G4LogicalVolume* FrontPlate_log = 
     new G4LogicalVolume(FrontPlate_box, GetMaterial("Aluminum"), "FrontPlate_log");
   
@@ -160,57 +148,31 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double LeadGlassLength,
     }
   }
   
-  /*
-  // Back flange
-  G4Tubs *BackFlange_hole = new G4Tubs("BackFlange_hole", 0.0, LightGuideDiameter/2.0, FrontPlateThick, 0.0*deg, 360.0*deg );
-  
-  G4SubtractionSolid* BackFlange_solid = new G4SubtractionSolid("BackFlange_solid", FrontPlate_box, BackFlange_hole, 0, G4ThreeVector(0.0,0.0,0.0));
-  
-  for(int i = 0; i<3; i++){
-    for(int j = 0; j<3; j++){
-      BackFlange_solid = new G4SubtractionSolid("BackFlange_solid", BackFlange_solid, BackFlange_hole, 0, G4ThreeVector(-SMWidth/3.0*(i-1),-SMHeight/3.0*(j-1),0.0));
-    }
-  }
-
-  G4LogicalVolume* BackFlange_log = 
-    new G4LogicalVolume(BackFlange_solid, 
-			GetMaterial("Aluminum"), "BackFlange_log");
-  
-  temp_pos.setX(0.0);
-  temp_pos.setY(0.0);
-  temp_pos.setZ( (SMLength-2*TiWallLength+FrontPlateThick)/2.0 );
-  //new G4PVPlacement(temp_rot, temp_pos, BackFlange_log, "BackFlange_phys", SM_mother_log, false, 0 );
-    
-  // Round flange
-  G4double RoundFlangeOuterDiameter = 1.5*inch;
-  G4double RoundFlangeLength = 0.39*inch;
-  if(TiWallLength==15.76*inch)RoundFlangeLength = 1.39*inch;
-  
-  G4Tubs *RoundFlange = new G4Tubs("RoundFlange", LightGuideDiameter/2.0, RoundFlangeOuterDiameter, RoundFlangeLength/2.0, 0.0*deg, 360.0*deg );
-  
-  temp_pos.setZ( (SMLength-2*TiWallLength+FrontPlateThick)/2.0 );
-  */
-  
   //Visualization:
   // G4VisAttributes *mother_visatt = new G4VisAttributes( G4Colour( 1, 1, 1 ) );
   // mother_visatt->SetForceWireframe(true);
   // SM_mother_log->SetVisAttributes(mother_visatt);
   SM_mother_log->SetVisAttributes(G4VisAttributes::Invisible);
   
-  G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.7 ) );
-  //Ti_visatt->SetForceWireframe(true);
-  TiSideWall_log->SetVisAttributes(Ti_visatt);
+  // G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.7 ) );
+  // Ti_visatt->SetForceWireframe(true);
+  // TiSideWall_log->SetVisAttributes(Ti_visatt);
+  TiSideWall_log->SetVisAttributes(G4VisAttributes::Invisible);
   
-  G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
-  //Al_visatt->SetForceWireframe(true);
-  FrontPlate_log->SetVisAttributes(Al_visatt);
-  ClampingBar_log->SetVisAttributes(Al_visatt);
-  //BackFlange_log->SetVisAttributes(G4Colour( 0.7, 0.0, 0.0 ));
+  // G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
+  // Al_visatt->SetForceWireframe(true);
+  // FrontPlate_log->SetVisAttributes(Al_visatt);
+  // ClampingBar_log->SetVisAttributes(Al_visatt);
+  FrontPlate_log->SetVisAttributes(G4VisAttributes::Invisible);
+  ClampingBar_log->SetVisAttributes(G4VisAttributes::Invisible);
   
   return(SM_mother_log);
 }
 
 void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
+  // Define the inch
+  G4double inch = 2.54*cm;
+
   // Pointer to SDmanager, used frequently in this routine
   G4SDManager *sdman = fDetCon->fSDman;
 
@@ -223,6 +185,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4double depth_leadglass = 45.0*cm;
   G4double depth_ecal_pmt = 0.3*cm;
   G4double depth_lightguide_short = 20.0*cm;
+  G4double diam_lightguide = 2.5*cm;
   G4double radius_ecal_pmt = 1.25*cm;
   // G4double depth_ecal_frontplate = 2.54*cm;
   G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
@@ -258,7 +221,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       earm_mother_log->SetSensitiveDetector( earm_mother_SD );
     }
   }
-
+  
   //fDist should now be interpreted to mean the distance from the origin to the ****FRONT**** of the ECAL lead-glass:
   //G4double zback_ECAL = depth_earm/2.0 - depth_ecal_pmt;
   G4double zfront_ECAL = depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass;
@@ -267,17 +230,6 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4ThreeVector pos_ECAL( R_Earm*sin(fAng), 0.0, R_Earm*cos(fAng) );
   
   new G4PVPlacement( bbrm, pos_ECAL, earm_mother_log, "earm_mother_phys", motherlog, false, 0 );
-  
-  //TEST
-  G4LogicalVolume* SM1_log = MakeSuperModule(depth_42, width_42);
-  
-  bbrm = new G4RotationMatrix();
-  bbrm->rotateY(180.0*deg);
-  G4ThreeVector pos_SM( 0, 
-			0,
-			zfront_ECAL + 21.73/2.0 );
-  
-  //new G4PVPlacement( bbrm, pos_SM, SM1_log, "SM1_phys", earm_mother_log, false, 0 );
   
   //Blocks
   G4double mylar_thick = 0.001*2.54*cm;
@@ -294,24 +246,24 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   // const char* hcf_mat_name = "Aluminum";
   // hc_visAtt->SetColour(0.7, 0.7, 0.7);
   
-  G4Tubs *LightGuide_42 = new G4Tubs("LightGuide_42", 0.0, 2.5*cm/2.0, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4Tubs *LightGuide_42 = new G4Tubs("LightGuide_42", 0.0, diam_lightguide/2.0, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LightGuide_42_log = new G4LogicalVolume( LightGuide_42, GetMaterial("Pyrex_Glass"), "LightGuide_42_log" );
   
-  G4Tubs *LightGuide_40 = new G4Tubs("LightGuide_40", 0.0, 2.5*cm/2.0, (depth_lightguide_short)/2.0, 0.0*deg, 360.0*deg );
+  G4Tubs *LightGuide_40 = new G4Tubs("LightGuide_40", 0.0, diam_lightguide/2.0, (depth_lightguide_short)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LightGuide_40_log = new G4LogicalVolume( LightGuide_40, GetMaterial("Pyrex_Glass"), "LightGuide_40_log" );
 
-  G4Tubs *LGWrap_42 = new G4Tubs( "LGWrap_42", 2.5*cm/2.0+air_thick, 2.5*cm/2.0 + air_thick + mylar_thick, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4Tubs *LGWrap_42 = new G4Tubs( "LGWrap_42", diam_lightguide/2.0+air_thick, diam_lightguide/2.0 + air_thick + mylar_thick, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LGWrap_42_log = new G4LogicalVolume( LGWrap_42, GetMaterial("Mylar"), "LGWrap_42_log" );
 
-  G4Tubs *LGWrap_40 = new G4Tubs( "LGWrap_40", 2.5*cm/2.0+air_thick, 2.5*cm/2.0 + air_thick + mylar_thick, (depth_lightguide_short)/2.0, 0.0*deg, 360.0*deg );
+  G4Tubs *LGWrap_40 = new G4Tubs( "LGWrap_40", diam_lightguide/2.0+air_thick, diam_lightguide/2.0 + air_thick + mylar_thick, (depth_lightguide_short)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LGWrap_40_log = new G4LogicalVolume( LGWrap_40, GetMaterial("Mylar"), "LGWrap_40_log" );
   
-  G4Tubs *LG42 = new G4Tubs("LG42", 0.0, 2.5*cm/2.0 + air_thick + mylar_thick+0.1*mm, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4Tubs *LG42 = new G4Tubs("LG42", 0.0, diam_lightguide/2.0 + air_thick + mylar_thick+0.1*mm, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LG42_log = new G4LogicalVolume( LG42, GetMaterial("Special_Air"), "LG42_log" );
   new G4PVPlacement( 0, G4ThreeVector(0,0,0), LightGuide_42_log, "LightGuide_42_phys", LG42_log, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector(0,0,0), LGWrap_42_log, "LGWrap_42_phys", LG42_log, false, 0 );
 
-  G4Tubs *LG40 = new G4Tubs("LG40", 0.0, 2.5*cm/2.0 + air_thick + mylar_thick+0.1*mm, (depth_lightguide_short)/2.0, 0.0*deg, 360.0*deg );
+  G4Tubs *LG40 = new G4Tubs("LG40", 0.0, diam_lightguide/2.0 + air_thick + mylar_thick+0.1*mm, (depth_lightguide_short)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LG40_log = new G4LogicalVolume( LG40, GetMaterial("Special_Air"), "LG40_log" );
   new G4PVPlacement( 0, G4ThreeVector(0,0,0), LightGuide_40_log, "LightGuide_40_phys", LG40_log, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector(0,0,0), LGWrap_40_log, "LGWrap_40_phys", LG40_log, false, 0 );
@@ -522,12 +474,52 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4int copy_nb = 0;
   G4double X_block, Y_block;
   
+  bbrm = new G4RotationMatrix();
+  bbrm->rotateY(180.0*deg);
+  
+  // Make Super Module for 40 mm wide blocks // except, not yet (2017-09-11)
+  G4double SMWidth_40 = 4.8*inch;
+  G4double SMHeight_40 = 4.78*inch;
+  G4double TiWallLength_40_1 = 14.76*inch;
+  G4double TiWallLength_40_2 = 15.76*inch;
+  
+  // Back flange 
+  G4Box* BackFlange_40_box = 
+    new G4Box("BackFlange_40_box", (SMWidth_40-0.032*inch)/2.0, SMHeight_40/2.0, 0.5*inch/2.0);
+  
+  G4Tubs *BackFlange_hole = new G4Tubs("BackFlange_hole", 0.0, diam_lightguide/2.0 + air_thick + mylar_thick+0.1*mm, 0.5*inch, 0.0*deg, 360.0*deg );
+  
+  G4SubtractionSolid* BackFlange_40_solid = new G4SubtractionSolid("BackFlange_40_solid", BackFlange_40_box, BackFlange_hole, 0, G4ThreeVector(0.0,0.0,0.0));
+  
+  for(int i = 0; i<3; i++){
+    for(int j = 0; j<3; j++){
+      BackFlange_40_solid = new G4SubtractionSolid("BackFlange_40_solid", BackFlange_40_solid, BackFlange_hole, 0, G4ThreeVector(width_40*(i-1),width_40*(j-1),0.0));
+    }
+  }
+  
+  G4LogicalVolume* BackFlange_40_log = 
+    new G4LogicalVolume(BackFlange_40_solid, 
+			GetMaterial("Aluminum"), "BackFlange_40_log");
+  
+  // Round flange
+  G4Tubs *RoundFlange_40_1_solid = new G4Tubs("RoundFlange_40_1_solid", diam_lightguide + air_thick + mylar_thick+0.1*mm/2.0, 1.5*inch, 0.39*inch/2.0, 0.0*deg, 360.0*deg );
+  G4Tubs *RoundFlange_40_2_solid = new G4Tubs("RoundFlange_40_2_solid", diam_lightguide + air_thick + mylar_thick+0.1*mm/2.0, 1.5*inch, 1.39*inch/2.0, 0.0*deg, 360.0*deg );
+  
+  G4LogicalVolume* RoundFlange_40_1_log = 
+    new G4LogicalVolume(RoundFlange_40_1_solid, 
+			GetMaterial("Aluminum"), "BackFlange_40_1_log");
+  G4LogicalVolume* RoundFlange_40_2_log = 
+    new G4LogicalVolume(RoundFlange_40_2_solid, 
+			GetMaterial("Aluminum"), "BackFlange_40_2_log");
+  
+  G4LogicalVolume* SM40_1_log = MakeSuperModule(SMWidth_40, SMHeight_40, TiWallLength_40_1);
+  G4LogicalVolume* SM40_2_log = MakeSuperModule(SMWidth_40, SMHeight_40, TiWallLength_40_2);
+  
   X_block = xfpstart+width_40/2.0;
   for(int i_ = 0; i_<NrowsSM_40*3; i_++){
     Y_block = yfp_start_40[i_/3]+width_40/2.0;
     for(int j_ = 0; j_<NcolsSM_40[i_/3]*3; j_++){
-      
-      printf("i_ = %d, j = %d, i_/3, copy_nb = %d, X_block = %f, Y_Block = %f \n", i_, j_, i_/3, copy_nb, X_block, Y_block);
+      //printf("i_ = %d, j = %d, i_/3, copy_nb = %d, X_block = %f, Y_Block = %f \n", i_, j_, i_/3, copy_nb, X_block, Y_block);
       //if(i_%3==1 && j_%3==1)
       G4ThreeVector modpos( Y_block, X_block, zfront_ECAL + depth_40/2.0 );
       // depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
@@ -545,69 +537,147 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       (ECalSD->detmap).LocalCoord[copy_nb] = pmtpos;
       
       //Add light-guide with mylar wrap:
-      G4ThreeVector LGpos( modpos.x(), modpos.y(), modpos.z() + depth_42/2.0 + LG42->GetZHalfLength() );
-      new G4PVPlacement( 0, LGpos, LG42_log, "LG42_phys", earm_mother_log, false, copy_nb );
-      // new G4PVPlacement( 0, LGpos, LightGuide_42_log, "LightGuide_42_phys", earm_mother_log, false, icell );
-      // new G4PVPlacement( 0, LGpos, LGWrap_42_log, "LGWrap_42_phys", earm_mother_log, false, icell );
+      G4ThreeVector LGpos( modpos.x(), modpos.y(), modpos.z() + depth_40/2.0 + LG40->GetZHalfLength() );
+      new G4PVPlacement( 0, LGpos, LG40_log, "LG40_phys", earm_mother_log, false, copy_nb );
       
       // //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
       // // shall be temporary, and not end in the repo...
-      // (ECalLGSD->detmap).Row[icell] = global_row;
-      // (ECalLGSD->detmap).Col[icell] = col;
-      // (ECalLGSD->detmap).LocalCoord[icell] = modpos;
+      // (ECalLGSD->detmap).Row[copy_nb] = global_row;
+      // (ECalLGSD->detmap).Col[copy_nb] = col;
+      // (ECalLGSD->detmap).LocalCoord[copy_nb] = modpos;
+      
+      // Placing the supermodule
+      if(i_%3==1 && j_%3==1){
+      	G4ThreeVector pos_SM(Y_block, 
+      			     X_block, 
+      			     modpos.z() - depth_40/2.0 + 21.73*2.54*cm/2.0);
+	
+	// 	new G4PVPlacement( bbrm, pos_SM, SM40_log, "SM40_phys", earm_mother_log, false, 0 );
+      }
       
       Y_block+= width_40;
-      if(j_%3==2)Y_block+= 1.63*mm;// = 2*0.032 inches (SM TI walls) + a very small gap
+      if(j_%3==2)Y_block+= SMWidth_40-3*width_40;
       copy_nb++;
     }
     X_block+= width_40;
   }
   
+  // Make Super Module for 42 mm wide blocks
+  G4double SMWidth_42 = 5.11*inch;
+  G4double SMHeight_42 = 5.00*inch;
+  G4double TiWallLength_42_1 = 14.76*inch;
+  G4double TiWallLength_42_2 = 15.76*inch;
+
+  // Back flange 
+  G4Box* BackFlange_42_box = 
+    new G4Box("BackFlange_42_box", (SMWidth_42-0.032*inch)/2.0, SMHeight_42/2.0, 0.5*inch/2.0);
+
+  // G4Tubs *BackFlange_hole = new G4Tubs("BackFlange_hole", 0.0, diam_lightguide/2.0 + air_thick + mylar_thick+0.1*mm, 0.5*inch, 0.0*deg, 360.0*deg );
+  
+  G4SubtractionSolid* BackFlange_42_solid = new G4SubtractionSolid("BackFlange_42_solid", BackFlange_42_box, BackFlange_hole, 0, G4ThreeVector(0.0,0.0,0.0));
+  
+  for(int i = 0; i<3; i++){
+    for(int j = 0; j<3; j++){
+      BackFlange_42_solid = new G4SubtractionSolid("BackFlange_42_solid", BackFlange_42_solid, BackFlange_hole, 0, G4ThreeVector(width_42*(i-1),width_42*(j-1),0.0));
+    }
+  }
+  
+  G4LogicalVolume* BackFlange_42_log = 
+    new G4LogicalVolume(BackFlange_42_solid, 
+			GetMaterial("Aluminum"), "BackFlange_42_log");
+  
+  // Round flange
+  G4Tubs *RoundFlange_42_1_solid = new G4Tubs("RoundFlange_42_1_solid", diam_lightguide/2.0 + air_thick + mylar_thick+0.1*mm, 1.5*inch/2.0, 0.39*inch/2.0, 0.0*deg, 360.0*deg );
+  G4Tubs *RoundFlange_42_2_solid = new G4Tubs("RoundFlange_42_2_solid", diam_lightguide/2.0 + air_thick + mylar_thick+0.1*mm, 1.5*inch/2.0, 1.39*inch/2.0, 0.0*deg, 360.0*deg );
+  
+  G4LogicalVolume* RoundFlange_42_1_log = 
+    new G4LogicalVolume(RoundFlange_42_1_solid, 
+			GetMaterial("Aluminum"), "BackFlange_42_1_log");
+  G4LogicalVolume* RoundFlange_42_2_log = 
+    new G4LogicalVolume(RoundFlange_42_2_solid, 
+			GetMaterial("Aluminum"), "BackFlange_42_2_log");
+  
+  G4LogicalVolume* SM42_1_log = MakeSuperModule(SMWidth_42, SMHeight_42, TiWallLength_42_1);
+  G4LogicalVolume* SM42_2_log = MakeSuperModule(SMWidth_42, SMHeight_42, TiWallLength_42_2);
+  
+  G4int SM_num = 0;
+  
   X_block+= (width_42-width_40)/2.0;
   for(int i_ = 0; i_<NrowsSM_42*3; i_++){
     Y_block = yfp_start_42[i_/3]+width_42/2.0;
     for(int j_ = 0; j_<NcolsSM_42[i_/3]*3; j_++){
-      
-      printf("i_ = %d, j = %d, i_/3, copy_nb = %d, X_block = %f, Y_Block = %f \n", i_, j_, i_/3, copy_nb, X_block, Y_block);
-      //if(i_%3==1 && j_%3==1)
+      //printf("i_ = %d, j = %d, i_/3, copy_nb = %d, X_block = %f, Y_Block = %f \n", i_, j_, i_/3, copy_nb, X_block, Y_block);
       G4ThreeVector modpos( Y_block, X_block, zfront_ECAL + depth_42/2.0 );
       // depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
       new G4PVPlacement( 0, modpos, Module_42_log, "Module_42_phys", earm_mother_log, false, copy_nb );
-      
+
       (ECalTF1SD->detmap).Row[copy_nb] = i_;
       (ECalTF1SD->detmap).Col[copy_nb] = j_;
       (ECalTF1SD->detmap).LocalCoord[copy_nb] = modpos;
-      
+
       G4ThreeVector pmtpos( modpos.x(), modpos.y(), depth_earm/2.0 - depth_ecal_pmt/2.0 );
       new G4PVPlacement( 0, pmtpos, ecal_PMT_log, "ecal_PMT_phys", earm_mother_log, false, copy_nb );
-      
+
       (ECalSD->detmap).Row[copy_nb] = i_;
       (ECalSD->detmap).Col[copy_nb] = j_;
       (ECalSD->detmap).LocalCoord[copy_nb] = pmtpos;
-      
+
       //Add light-guide with mylar wrap:
       G4ThreeVector LGpos( modpos.x(), modpos.y(), modpos.z() + depth_42/2.0 + LG42->GetZHalfLength() );
       new G4PVPlacement( 0, LGpos, LG42_log, "LG42_phys", earm_mother_log, false, copy_nb );
-      // new G4PVPlacement( 0, LGpos, LightGuide_42_log, "LightGuide_42_phys", earm_mother_log, false, icell );
-      // new G4PVPlacement( 0, LGpos, LGWrap_42_log, "LGWrap_42_phys", earm_mother_log, false, icell );
-      
+
       // //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
       // // shall be temporary, and not end in the repo...
-      // (ECalLGSD->detmap).Row[icell] = global_row;
-      // (ECalLGSD->detmap).Col[icell] = col;
-      // (ECalLGSD->detmap).LocalCoord[icell] = modpos;
+      // (ECalLGSD->detmap).Row[copy_nb] = global_row;
+      // (ECalLGSD->detmap).Col[copy_nb] = col;
+      // (ECalLGSD->detmap).LocalCoord[copy_nb] = modpos;
+
+      // Placing the supermodule
+      if(i_%3==1 && j_%3==1){
+	//There is (seemingly) an alternance between super module 1 ("short" Ti wall) and super module 2 ("long" Ti wall)
+	G4ThreeVector pos_SM(Y_block, X_block, modpos.z() - depth_42/2.0 + 21.73*inch/2.0 - 0.375*inch);
+ 	G4ThreeVector pos_BF(Y_block, X_block, modpos.z() - depth_42/2.0  - 0.375*inch + TiWallLength_42_1 - 0.5*inch/2.0);
+	if(SM_num%2==1){
+	  pos_BF.setZ(modpos.z() - depth_42/2.0  - 0.375*inch + TiWallLength_42_2 - 0.5*inch/2.0);
+	  new G4PVPlacement( bbrm, pos_SM, SM42_2_log, "SM42_2_phys", earm_mother_log, false, 0 );
+	}else{
+	  new G4PVPlacement( bbrm, pos_SM, SM42_1_log, "SM42_1_phys", earm_mother_log, false, 0 );
+	}
+
+	new G4PVPlacement( bbrm, pos_BF, BackFlange_42_log, "BackFlange_42_phys", earm_mother_log, false, 0 );
+	
+	for(int i = 0; i<3; i++){
+	  for(int j = 0; j<3; j++){
+	    G4ThreeVector pos_RF(Y_block+width_42*(i-1), X_block+width_42*(j-1), 
+				 modpos.z() - depth_42/2.0 + TiWallLength_42_1 - 0.375*inch - 0.5*inch - 0.39*inch/2.0);
+	    
+	    if(SM_num%2==1){
+	      pos_RF.setZ(modpos.z() - depth_42/2.0 + TiWallLength_42_1 - 0.375*inch - 0.5*inch - 0.39*inch/2.0);
+	      new G4PVPlacement( bbrm, pos_RF, RoundFlange_42_2_log, "RoundFlange_42_2_phys", earm_mother_log, false, 0 );
+	    }else{
+	      new G4PVPlacement( bbrm, pos_RF, RoundFlange_42_1_log, "RoundFlange_42_1_phys", earm_mother_log, false, 0 );
+	    }
+	  }
+	}
+	SM_num++;
+	if(NcolsSM_42[i_/3]%2==0 && j_>(NcolsSM_42[i_/3]-1)*3)SM_num++;
+      }
       
       Y_block+= width_42;
-      if(j_%3==2)Y_block+= 1.63*mm;// = 2*0.032 inches (SM TI walls) + a very small gap
+      if(j_%3==2)Y_block+= SMWidth_42-3*width_42;
       copy_nb++;
     }
     X_block+= width_42;
+    if(i_==2)X_block+= 2.0*mm;// to leave space for the steel plate instered there
   }
   
+  SM42_1_log->SetVisAttributes(G4Colour(0.0, 0.0, 0.7));
+  SM42_2_log->SetVisAttributes(G4Colour(0.7, 0.0, 0.0));
+  BackFlange_42_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
+  RoundFlange_42_1_log->SetVisAttributes(G4Colour(0.7, 0.0, 0.0));
+  RoundFlange_42_2_log->SetVisAttributes(G4Colour(0.0, 0.0, 0.7));
   
-  /**/
-  
-  
+    
   // Build CDet:
   if(fDetCon->fExpType==kGEp){
     //Next: CH2 filter:

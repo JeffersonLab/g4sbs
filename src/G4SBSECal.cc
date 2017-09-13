@@ -679,10 +679,10 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
 	for(int k = 0; k<2; k++){
 	  for(int l = 0; l<2; l++){
 	    if(SM_num%2==1){
-	      G4ThreeVector pos_Std(Y_block+(width_42-0.33*inch)*(k-0.5), X_block+(SMHeight_42-0.33)*(l-0.5), modpos.z() - depth_42/2.0  - 0.375*inch + 21.73*inch - 5.7*inch/2.0);
+	      G4ThreeVector pos_Std(Y_block+(width_42-0.33*inch)*(k-0.5), X_block+(SMHeight_42-0.33*inch)*(l-0.5), modpos.z() - depth_42/2.0  - 0.375*inch + 21.73*inch - 5.7*inch/2.0);
 	      new G4PVPlacement( bbrm, pos_Std, Standoff_42_2_log, "Standoff_42_2_phys", earm_mother_log, false, 0 );
 	    }else{
-	      G4ThreeVector pos_Std(Y_block+(width_42-0.33*inch)*(k-0.5), X_block+(SMHeight_42-0.33)*(l-0.5), modpos.z() - depth_42/2.0  - 0.375*inch + 21.73*inch - 6.7*inch/2.0);
+	      G4ThreeVector pos_Std(Y_block+(width_42-0.33*inch)*(k-0.5), X_block+(SMHeight_42-0.33*inch)*(l-0.5), modpos.z() - depth_42/2.0  - 0.375*inch + 21.73*inch - 6.7*inch/2.0);
 	      new G4PVPlacement( bbrm, pos_Std, Standoff_42_1_log, "Standoff_42_1_phys", earm_mother_log, false, 0 );
 	    }
 	  }

@@ -65,11 +65,11 @@ G4bool G4SBSRICHSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
   int origin_flag = 0; //default
   if( namevol_origin.contains("Aerogel_tile_log") ){  //Aerogel
     origin_flag = 1;
-  } else if (namevol_origin.contains("SBS_RICH_log") ){ //C4F10
+  } else if (namevol_origin.contains("SBS_RICH_log") || namevol_origin.contains("GC_Tank_log") ){ //C4F10
     origin_flag = 2;
   } else if (namevol_origin.contains("Aero_exitwindow") ){ //UVT lucite
     origin_flag = 3;
-  } else if (namevol_origin.contains("PMTwindow_log") || namevol_origin.contains("PMTcathode_log") || namevol_origin.contains("PMTQuartzWindow_log") ){
+  } else if (namevol_origin.contains("PMTwindow_log") || namevol_origin.contains("PMTcathode_log") || namevol_origin.contains("PMTQuartzWindow_log") || namevol_origin.contains("GC_PMT_Glass_log")  ){
     origin_flag = 4;
   }
 

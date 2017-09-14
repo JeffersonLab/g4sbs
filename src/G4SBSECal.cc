@@ -658,7 +658,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       // (ECalLGSD->detmap).Row[copy_nb] = global_row;
       // (ECalLGSD->detmap).Col[copy_nb] = col;
       // (ECalLGSD->detmap).LocalCoord[copy_nb] = modpos;
-
+      /*
       // Placing the supermodule
       if(i_%3==1 && j_%3==1){
 	//There is (seemingly) an alternance between super module 1 ("short" Ti wall) and super module 2 ("long" Ti wall)
@@ -705,7 +705,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
 	SM_num++;
 	if(NcolsSM_42[i_/3]%2==0 && j_>(NcolsSM_42[i_/3]-1)*3)SM_num++;
       }
-      
+      */
       Y_block+= width_42;
       if(j_%3==2)Y_block+= SMWidth_42-3*width_42;
       copy_nb++;

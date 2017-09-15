@@ -591,7 +591,6 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     Y_block = yfp_start_40[i_/3]+width_40/2.0;
     for(int j_ = 0; j_<NcolsSM_40[i_/3]*3; j_++){
       //printf("i_ = %d, j = %d, i_/3, copy_nb = %d, X_block = %f, Y_Block = %f \n", i_, j_, i_/3, copy_nb, X_block, Y_block);
-      //if(i_%3==1 && j_%3==1)
       G4ThreeVector modpos( Y_block, X_block, zfront_ECAL + depth_40/2.0 );
       // depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
       new G4PVPlacement( 0, modpos, Module_40_log, "Module_40_phys", earm_mother_log, false, copy_nb );
@@ -600,7 +599,8 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       (ECalTF1SD->detmap).Col[copy_nb] = j_;
       (ECalTF1SD->detmap).LocalCoord[copy_nb] = modpos;
       
-      G4ThreeVector pmtpos( modpos.x(), modpos.y(), depth_earm/2.0 - depth_ecal_pmt/2.0 );
+      G4ThreeVector pmtpos( modpos.x(), modpos.y(), 
+			    modpos.z() + depth_42/2.0 + LG42->GetZHalfLength()*2 + depth_ecal_pmt/2.0 );
       new G4PVPlacement( 0, pmtpos, ecal_PMT_log, "ecal_PMT_phys", earm_mother_log, false, copy_nb );
       
       (ECalSD->detmap).Row[copy_nb] = i_;
@@ -642,7 +642,8 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       (ECalTF1SD->detmap).Col[copy_nb] = j_;
       (ECalTF1SD->detmap).LocalCoord[copy_nb] = modpos;
 
-      G4ThreeVector pmtpos( modpos.x(), modpos.y(), depth_earm/2.0 - depth_ecal_pmt/2.0 );
+      G4ThreeVector pmtpos( modpos.x(), modpos.y(),  
+			    modpos.z() + depth_42/2.0 + LG42->GetZHalfLength()*2 + depth_ecal_pmt/2.0 );
       new G4PVPlacement( 0, pmtpos, ecal_PMT_log, "ecal_PMT_phys", earm_mother_log, false, copy_nb );
 
       (ECalSD->detmap).Row[copy_nb] = i_;
@@ -714,25 +715,6 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     if(i_==2)X_block+= 2.0*mm;// to leave space for the steel plate instered there
   }
   
-  SM40_1_log->SetVisAttributes(G4Colour(0.0, 0.0, 0.7));
-  SM40_2_log->SetVisAttributes(G4Colour(0.7, 0.0, 0.0));
-  BackFlange_40_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
-  PMTFlange_40_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
-  Standoff_40_1_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
-  Standoff_40_2_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
-  RoundFlange_40_1_log->SetVisAttributes(G4Colour(0.7, 0.0, 0.0));
-  RoundFlange_40_2_log->SetVisAttributes(G4Colour(0.0, 0.0, 0.7));
-  
-  SM42_1_log->SetVisAttributes(G4Colour(0.0, 0.0, 0.7));
-  SM42_2_log->SetVisAttributes(G4Colour(0.7, 0.0, 0.0));
-  BackFlange_42_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
-  PMTFlange_42_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
-  Standoff_42_1_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
-  Standoff_42_2_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
-  RoundFlange_42_1_log->SetVisAttributes(G4Colour(0.7, 0.0, 0.0));
-  RoundFlange_42_2_log->SetVisAttributes(G4Colour(0.0, 0.0, 0.7));
-  
-    
   // Build CDet:
   if(fDetCon->fExpType==kGEp){
     //Next: CH2 filter:
@@ -765,7 +747,35 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   mother_visatt->SetForceWireframe(true);
   earm_mother_log->SetVisAttributes(mother_visatt);
    
-
+  //earm_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
+  Module_40_log->SetVisAttributes( G4VisAttributes::Invisible );
+  
+  G4VisAttributes *Mylarvisatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
+  Mylarvisatt->SetForceWireframe(true);
+  Mylar_wrap_42_log->SetVisAttributes( Mylarvisatt );
+  Mylar_wrap_40_log->SetVisAttributes( Mylarvisatt );
+  
+  SM40_1_log->SetVisAttributes(G4Colour(0.0, 0.0, 0.7));
+  SM40_2_log->SetVisAttributes(G4Colour(0.7, 0.0, 0.0));
+  BackFlange_40_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
+  PMTFlange_40_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
+  Standoff_40_1_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
+  Standoff_40_2_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
+  RoundFlange_40_1_log->SetVisAttributes(G4Colour(0.7, 0.0, 0.0));
+  RoundFlange_40_2_log->SetVisAttributes(G4Colour(0.0, 0.0, 0.7));
+  
+  SM42_1_log->SetVisAttributes(G4Colour(0.0, 0.0, 0.7));
+  SM42_2_log->SetVisAttributes(G4Colour(0.7, 0.0, 0.0));
+  BackFlange_42_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
+  PMTFlange_42_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
+  Standoff_42_1_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
+  Standoff_42_2_log->SetVisAttributes(G4Colour(0.0, 0.7, 0.0));
+  RoundFlange_42_1_log->SetVisAttributes(G4Colour(0.7, 0.0, 0.0));
+  RoundFlange_42_2_log->SetVisAttributes(G4Colour(0.0, 0.0, 0.7));
+  
+  G4VisAttributes *ECALpmtvisatt = new G4VisAttributes( G4Colour( 0, 0, 1 ) );
+  ecal_PMT_log->SetVisAttributes( ECALpmtvisatt );
 }
 
 

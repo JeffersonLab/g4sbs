@@ -270,6 +270,19 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   G4Box* neutronarm_box = new G4Box("neutronarm_box",ND_x,ND_y,ND_z);
   G4LogicalVolume *neutronarm_log = new G4LogicalVolume(neutronarm_box,
 							GetMaterial("Air"),"neutronarm_log");
+
+  G4double xtemp = 2.95*m;
+  G4double ytemp = 2.8*m;
+  G4double ztemp = 1.9*m;
+  G4RotationMatrix* rtemp = new G4RotationMatrix();
+  rtemp->rotateY(180.0-theta_norm);
+
+  G4Box* mother_shield = new G4Box("mother_shield", xtemp,ytemp,ztemp);
+  
+  G4Box* mother_cut = new G4Box("mother_shield", xtemp-0.1*m, ytemp-0.1*m, ztemp-0.05*m );
+  G4SubtractionSolid *cutting = new G4SubtractionSolid("cutting",mother_shield,mother_cut,0,G4ThreeVector(0.0,0.0,-0.055*m) );
+  G4LogicalVolume *mother_shield_log = new G4LogicalVolume(cutting, GetMaterial("Iron"), "mother_shield_log" );
+
   
   neutronarm_log->SetVisAttributes( G4VisAttributes::Invisible );
   // Place Neutron Detector Mother Volume in the World:
@@ -277,7 +290,8 @@ void G4SBSNeutronDetector::ConstructND( G4LogicalVolume* world) {
   double y3 = 0.0;
   double z3 = bob_targ_dist*cos(NDangle)+bob_z0_dist*cos(theta_norm);
   new G4PVPlacement(ndRot, G4ThreeVector(x3,y3,z3), neutronarm_log, "neutronarm", world, false, 0);
-
+  new G4PVPlacement(0,G4ThreeVector(0.0,20*cm,0.0), mother_shield_log, "neutronarm_shield", neutronarm_log, false, 0,true);
+ 
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // Make all the details.....                                                                     //

@@ -76,7 +76,10 @@ private:
   G4UIcmdWithABool *ESEPP_RosenCmd;
   G4UIcmdWithAnInteger *ESEPP_lowCmd;
   G4UIcmdWithAnInteger *ESEPP_highCmd;
-
+  
+  G4UIcmdWithAString *SeamusMCfileCmd;
+  G4UIcmdWithAnInteger *SeamusMC_lowCmd;
+  G4UIcmdWithAnInteger *SeamusMC_highCmd;
   //Flag to build evacuated scattering chamber for gas target:
   //G4UIcmdWithAnInteger *SchamGasTgtCmd;
 

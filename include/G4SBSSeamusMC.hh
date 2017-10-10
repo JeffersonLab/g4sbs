@@ -59,7 +59,7 @@ public:
   double GetGprime(unsigned int index);
   double GetGtheta(unsigned int index);
   double GetGphi(unsigned int index);
-  int GetFinalNucleon(unsigned int index);
+  int GetInitialNucleon(unsigned int index);
   int GetFinalPion(unsigned int index);
   int GetEventType(unsigned int index);
 };

@@ -599,7 +599,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       (BBSHTF1SD->detmap).Row[shower_copy_number] = j;
       double xtemp = (calwidth - bbmodule_x)/2.0 - l*bbmodule_x;
       double ytemp = (calheight - bbmodule_y)/2.0 - j*bbmodule_y;
-      printf("%f \t %f \t\t %d \t %d \t %d\n", xtemp, ytemp, shower_copy_number, j, l);
+      //printf("%f \t %f \t\t %d \t %d \t %d\n", xtemp, ytemp, shower_copy_number, j, l);
 
       new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,0.0), showermodlog, "showermodphys", bbshowerlog, false, shower_copy_number);
       
@@ -615,7 +615,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *preshowermodlog = new G4LogicalVolume( preshowermodbox, GetMaterial("Special_Air"), "preshowermodlog" );
  
   // Preshower TF1 SD of type CAL
-  G4LogicalVolume *bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1_PS"), "bbpsTF1log" );
+  G4LogicalVolume *bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbpsTF1log" );
 
   G4String BBPSTF1SDname = "Earm/BBPSTF1";
   G4String BBPSTF1collname = "BBPSTF1HitsCollection";
@@ -673,7 +673,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       (BBPSSD->detmap).Row[ps_copy_number] = j;
       (BBPSTF1SD->detmap).Col[ps_copy_number] = l;
       (BBPSTF1SD->detmap).Row[ps_copy_number] = j;
-      printf("%f \t %f \t\t %d \t %d \t %d\n", xtemp, ytemp, ps_copy_number, j, l);
+      //printf("%f \t %f \t\t %d \t %d \t %d\n", xtemp, ytemp, ps_copy_number, j, l);
 
       if(l==0) { 
 	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );

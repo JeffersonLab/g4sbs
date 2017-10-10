@@ -59,7 +59,7 @@ void G4SBSSeamusMC::LoadFile(int n, TString name, int min, int max){
 
   if( fRange ){
     std::cout << "Loading " << fUserEvents 
-	      << " Seamus Inelastic MC events in the range (" 
+	      << " Seamus Inelastic MC events in the range [" 
 	      << fMin << ", " << fMax << ")..." << std::endl;
   } else {
     std::cout << "Loading " << fUserEvents << " Seamus Inelastic MC events..." << std::endl;
@@ -77,6 +77,9 @@ void  G4SBSSeamusMC::OpenFile(TString name){
   int temp = 0;  // line # for accepted data
   int dummy = 0; // line # in text file
   std::ifstream input(filename);
+
+  double GeV2MeV = 1000.0;
+
   if( input.is_open() ){ 
     double Eprime, Pprime, Gprime; 
     double Eth, Ephi, Pth, Pphi, Gth, Gphi;
@@ -104,18 +107,23 @@ void  G4SBSSeamusMC::OpenFile(TString name){
 	  // Only take # of requested events
 	  if( temp >= fUserEvents ) break;
 
-	  fEp.push_back( Eprime );
-	  fPp.push_back( Pprime );
-	  fGp.push_back( Gprime );
+	  fEp.push_back( Eprime*GeV2MeV );
+	  fPp.push_back( Pprime*GeV2MeV );
+	  fGp.push_back( Gprime*GeV2MeV );
+
 	  fEth.push_back( Eth );
-	  fEphi.push_back( Ephi );
 	  fPth.push_back( Pth );
-	  fPphi.push_back( Pphi );
 	  fGth.push_back( Gth );
+
+	  fEphi.push_back( Ephi );
+	  fPphi.push_back( Pphi );	 
 	  fGphi.push_back( Gphi );
+
 	  fInitialNucleon.push_back( Nucl );
 	  fFinalPion.push_back( Pion );
 	  fEventType.push_back( Type );
+	  //printf("%d \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %d \t %d \t %d \n", 
+	  //	 fMin+temp, Eprime, Eth, Ephi, Pprime, Pth, Pphi, Gprime, Gth, Gphi, Nucl, Pion, Type);
 	  temp++;
 	}
       } else {
@@ -155,6 +163,8 @@ void  G4SBSSeamusMC::OpenFile(TString name){
   
   std::cout << "Loaded " << temp << " Seamus MC inelastic events from " 
 	    << name << "." << std::endl;
+  
+  fNevents = temp;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -242,7 +252,7 @@ double G4SBSSeamusMC::GetGphi(unsigned int index){
 }
 
 // These methods require different protocols b/c a value of 0 may be normal:
-int G4SBSSeamusMC::GetFinalNucleon(unsigned int index){
+int G4SBSSeamusMC::GetInitialNucleon(unsigned int index){
   if( index >= fInitialNucleon.size() ) {
     std::cerr << "Error accessing fInitialNucleon due to bad index!" << std::endl;
     return -100;

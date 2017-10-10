@@ -154,7 +154,6 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   //Loop over all sensitive detectors:
   for( set<G4String>::iterator d=SDlist.begin(); d!=SDlist.end(); d++ ){
     G4String colNam;
-
     SDet_t Det_type = SDtype[*d];
     //Arm_t Det_arm = SDarm[d->first];
   
@@ -278,7 +277,6 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     evdata.earmaccept = 1;
   if( has_harm_track && has_harm_cal )
     evdata.harmaccept = 1;
-
 
   fIO->SetEventData( evdata );
 

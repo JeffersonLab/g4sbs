@@ -15,6 +15,7 @@
 #include "TChain.h"
 #include "Pythia6_tree.h"
 #include "G4SBSESEPP.hh"
+#include "G4SBSSeamusMC.hh"
 
 #define MAXMOMPT 1000 // N points for targets momentum distribution interpolations
 
@@ -83,13 +84,20 @@ public:
 
   void SetHCALDist(double v){ fHCALdist = v;}
   
+  // ESEPP Routines:
   void SetESEPP_Rad(bool v){ fRad = v; }
   void SetESEPP_Rosen(bool v){ fRosen = v; }
   void SetESEPP_name(TString a){ fESEPPname = a; }
   void SetESEPP_lo(int v){ fESEPP_lo = v; }
   void SetESEPP_hi(int v){ fESEPP_hi = v; }
 
+  // Seamus' Inelastic MC routines:
+  void SetSeamusMC_name(TString a){ fSeamusMCname = a; }
+  void SetSeamusMC_lo(int v){ fSeamusMC_lo = v; }
+  void SetSeamusMC_hi(int v){ fSeamusMC_hi = v; }
+  
   void LoadESEPPGenerator();
+  void LoadSeamusMCGenerator();
 
   double GetHcalDist(){ return fHCALdist; }
   double GetToFres(){ return fToFres; }
@@ -109,6 +117,9 @@ private:
   bool fRosen;
   TString fESEPPname;
   int fESEPP_lo, fESEPP_hi;
+
+  TString fSeamusMCname;
+  int fSeamusMC_lo, fSeamusMC_hi;
 
   double fElectronE, fNucleonE, fHadronE, fBeamE;
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
@@ -155,6 +166,7 @@ private:
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
   bool GenerateESEPP();
+  bool GenerateSeamusMC();
 
   double deutpdist( double );
   double he3pdist( Nucl_t, double );
@@ -172,6 +184,7 @@ private:
   G4SBSPythiaOutput fPythiaEvent;
 
   G4SBSESEPP *fESEPP;
+  G4SBSSeamusMC *fSeamusMC;
 };
 
 #endif//G4SBSEVENTGEN_HH

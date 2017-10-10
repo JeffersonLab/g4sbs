@@ -13,6 +13,7 @@
 #include "G4KaonMinus.hh"
 #include "G4PionZero.hh"
 #include "G4Proton.hh"
+#include "G4Neutron.hh"
 #include "G4AntiProton.hh"
 
 #include "wiser_pion.h"
@@ -85,6 +86,11 @@ G4SBSEventGen::G4SBSEventGen(){
   fESEPP_lo = 0;
   fESEPP_hi = 0;
   fESEPPname = "";
+
+  fSeamusMC = 0;
+  fSeamusMC_lo = 0;
+  fSeamusMC_hi = 0;
+  fSeamusMCname = "";
 }
 
 
@@ -92,6 +98,7 @@ G4SBSEventGen::~G4SBSEventGen(){
   delete fPythiaChain;
   delete fPythiaTree;
   delete fESEPP;
+  delete fSeamusMC;
 }
 
 void G4SBSEventGen::LoadESEPPGenerator(){
@@ -104,6 +111,21 @@ void G4SBSEventGen::LoadESEPPGenerator(){
   if( evts != fNevt ){
     fNevt = evts;
     std::cout << "Notice: ESEPP is changing number of events to be generated "
+	      << "to " << fNevt << "!" << std::endl;
+  }
+}
+
+void G4SBSEventGen::LoadSeamusMCGenerator(){
+  // Open up the appropriate text files
+  fSeamusMC = new G4SBSSeamusMC();
+  fSeamusMC->LoadFile(fNevt,fSeamusMCname,fSeamusMC_lo,fSeamusMC_hi);
+
+  // The results of user input and/or SeamusMC file can change the 
+  // number of events generated..
+  int evts = fSeamusMC->GetEventN();
+  if( evts != fNevt ){
+    fNevt = evts;
+    std::cout << "Notice: SeamusMC is changing number of events to be generated "
 	      << "to " << fNevt << "!" << std::endl;
   }
 }
@@ -221,6 +243,9 @@ bool G4SBSEventGen::GenerateEvent(){
     break;
   case kESEPP:
     success = GenerateESEPP();
+    break;
+  case kSeamusMC:
+    success = GenerateSeamusMC(); // the nucleon gets defined in this method
     break;
   default:
     success = GenerateElastic( thisnucl, ei, ni );
@@ -1259,6 +1284,102 @@ bool G4SBSEventGen::GenerateESEPP(){
   return true;
 }
 
+bool G4SBSEventGen::GenerateSeamusMC(){
+  unsigned int ev = fSeamusMC->CurrentEvent();
+  // Electron
+  G4double ep = fSeamusMC->GetEprime(ev);
+  G4double etheta = fSeamusMC->GetEtheta(ev);
+  G4double ephi = fSeamusMC->GetEphi(ev);
+  fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
+  fElectronE = ep;
+
+  // The Nucleon:
+  int nucleon = fSeamusMC->GetInitialNucleon(ev); // 0=neutron, 1=proton
+  G4double pp = fSeamusMC->GetPprime(ev); // This is na track momentum
+  G4double ptheta = fSeamusMC->GetPtheta(ev);
+  G4double pphi = fSeamusMC->GetPphi(ev);
+  fNucleonP.set( pp*sin(ptheta)*cos(pphi), pp*sin(ptheta)*sin(pphi), pp*cos(ptheta) );
+  
+  // No charge exchange
+  // according to sbstypes, enum Nucl_t { kProton, kNeutron };
+  double Mn=0.0;
+  switch( nucleon ){
+  case 0:  
+    fNuclType = kNeutron;
+    fFinalNucl = kNeutron;
+    Mn = G4Neutron::NeutronDefinition()->GetPDGMass();
+    break;
+  case 1:  
+    fNuclType = kProton;
+    fFinalNucl = kProton;
+    Mn = G4Proton::ProtonDefinition()->GetPDGMass();
+    break;
+  default: 
+    fNuclType = kProton;
+    fFinalNucl = kProton;
+    Mn = G4Proton::ProtonDefinition()->GetPDGMass();
+    break;
+  }
+
+  fNucleonE = sqrt( fNucleonP.mag2() + pow(Mn,2.0) ); 
+
+  // The outgoing Pion, only gets generated if event_type = 2 or 3 (inelastic case)
+  // 0 and 1 = elastic, no pions. 2 and 3 = inelastic which includes a pion
+  int event_type = fSeamusMC->GetEventType(ev);
+  G4double pip=0.0, pitheta=0.0, piphi=0.0;
+  
+  if( event_type == 2 || event_type == 3 ){
+    pip = fSeamusMC->GetGprime(ev);
+    pitheta = fSeamusMC->GetGtheta(ev);
+    piphi = fSeamusMC->GetGphi(ev);
+  }
+
+  fHadronP.set( pip*sin(pitheta)*cos(piphi), 
+		pip*sin(pitheta)*sin(piphi),
+		pip*cos(pitheta) );
+ 
+  int pion = fSeamusMC->GetFinalPion(ev); // -1=pi-, 0=pi0, 1=pi+
+  double Mh = 0.0;
+  int icharge = 1;
+  // in sbstypes:
+  // enum Hadron_t { kPiPlus, kPiMinus, kPi0, kKPlus, kKMinus, kP, kPbar};
+  switch( pion ){
+  case -1: 
+    Mh = G4PionMinus::PionMinusDefinition()->GetPDGMass();
+    icharge = -1;
+    fHadronType = kPiMinus;
+    break;
+  case 0:
+    Mh = G4PionZero::PionZeroDefinition()->GetPDGMass();
+    icharge = 0;
+    fHadronType = kPi0;
+    break;
+  case 1:
+    Mh = G4PionPlus::PionPlusDefinition()->GetPDGMass();
+    icharge = 1;
+    fHadronType = kPiPlus;
+    break;
+  default:
+    Mh = 0.0;
+    icharge = 0;
+    break;
+  }
+  fHadronE = sqrt( fHadronP.mag2() + pow(Mh,2.0) );
+
+  // Kill it if pion is not generated
+  if( event_type == 0 || event_type == 1){
+    fHadronP.set(0.0,0.0,0.0);
+    fHadronE = 0.0;
+  }
+
+  //std::cout << ev << " " << ep << " " << etheta << " " << ephi << std::endl;
+  // printf("%d \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %d \t %d \t %d -- %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \n",
+  //	 ev, ep, etheta, ephi, pp, ptheta, pphi, pip, pitheta, piphi, nucleon, pion, event_type, fElectronE, fNucleonE, fHadronE, Mn, Mh);
+
+  fSeamusMC->SetUpNextEvent();
+  return true;
+}
+
 double G4SBSEventGen::deutpdist( double p ){
   // Fit to Bernheim data 
   double thisp = p/GeV;
@@ -1581,6 +1702,24 @@ ev_t G4SBSEventGen::GetEventData(){
   data.phperp = fPh_perp/GeV;
   data.phih   = fphi_h;
   data.MX     = fMx/pow(GeV,2);
+
+  if( fKineType == kSeamusMC ){
+    switch( fHadronType ){
+    case kPiPlus:
+      data.hadr = 1;
+      break;
+    case kPiMinus:
+      data.hadr = -1;
+      break;
+    case kPi0:
+      data.hadr = 0;
+      break;
+    default:
+      data.hadr = 1;
+      break;
+    }
+  }
+
 
   if( fKineType == kSIDIS ){ //Then replace final nucleon variables with final hadron variables:
     data.np = fHadronP.mag()/GeV;

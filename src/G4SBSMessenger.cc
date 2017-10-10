@@ -88,6 +88,18 @@ G4SBSMessenger::G4SBSMessenger(){
   ESEPP_highCmd->SetGuidance("Max. event # within ESEPP data file. Use if range is needed for a multiprocessing work around.");
   ESEPP_highCmd->SetParameterName("ESEPP_high",false);
 
+  SeamusMCfileCmd = new G4UIcmdWithAString("/g4sbs/SeamusMCfile",this);
+  SeamusMCfileCmd->SetGuidance("Name of Seamuc MC inelastic output file, must be located in seamus_mc/");
+  SeamusMCfileCmd->SetParameterName("SeamusMCfile",false);
+
+  SeamusMC_lowCmd = new G4UIcmdWithAnInteger("/g4sbs/SeamusMC_low",this);
+  SeamusMC_lowCmd->SetGuidance("Min. event # within SeamusMC data file. Use if range is needed for a multiprocessing work around.");
+  SeamusMC_lowCmd->SetParameterName("SeamusMC_low",false);
+
+  SeamusMC_highCmd = new G4UIcmdWithAnInteger("/g4sbs/SeamusMC_high",this);
+  SeamusMC_highCmd->SetGuidance("Max. event # within SeamusMC data file. Use if range is needed for a multiprocessing work around.");
+  SeamusMC_highCmd->SetParameterName("SeamusMC_high",false);
+
   fileCmd = new G4UIcmdWithAString("/g4sbs/filename",this);
   fileCmd->SetGuidance("Output ROOT filename");
   fileCmd->SetParameterName("filename", false);
@@ -101,7 +113,7 @@ G4SBSMessenger::G4SBSMessenger(){
   tgtCmd->SetParameterName("targtype", false);
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
-  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, esepp");
+  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, esepp, SeamusMC");
   kineCmd->SetParameterName("kinetype", false);
 
   PYTHIAfileCmd = new G4UIcmdWithAString("/g4sbs/pythia6file",this);
@@ -416,6 +428,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->LoadESEPPGenerator();
       nevt = fevgen->GetNevt();
     }
+    if( fevgen->GetKine() == kSeamusMC ){
+      fevgen->LoadSeamusMCGenerator();
+      nevt = fevgen->GetNevt();
+    }
     //Clean out and rebuild the detector geometry from scratch: 
 
     G4SolidStore::GetInstance()->Clean();
@@ -522,7 +538,6 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetKine( kGun );
       validcmd = true;
     }
-
     if( newValue.compareTo("pythia6") == 0 ){
       fevgen->SetKine( kPYTHIA6 );
       fIO->SetUsePythia6( true );
@@ -532,7 +547,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetKine( kESEPP );
       validcmd = true;
     }
-
+    if( newValue.compareTo("SeamusMC") == 0 ){
+      fevgen->SetKine( kSeamusMC );
+      validcmd = true;
+    }
     if( !validcmd ){
       fprintf(stderr, "%s: %s line %d - Error: kinematic type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
       exit(1);
@@ -568,6 +586,19 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4int b = ESEPP_highCmd->GetNewIntValue(newValue);
     fevgen->SetESEPP_hi( b );
   }
+
+  if( cmd == SeamusMCfileCmd ){
+    fevgen->SetSeamusMC_name( newValue );
+  }
+  if( cmd == SeamusMC_lowCmd){
+    G4int b = SeamusMC_lowCmd->GetNewIntValue(newValue);
+    fevgen->SetSeamusMC_lo( b );
+  } 
+  if( cmd == SeamusMC_highCmd){
+    G4int b = SeamusMC_highCmd->GetNewIntValue(newValue);
+    fevgen->SetSeamusMC_hi( b );
+  }
+
 
   if( cmd == expCmd ){
     bool validcmd = false;

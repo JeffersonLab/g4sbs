@@ -117,7 +117,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   particleGun->SetParticleMomentumDirection( sbsgen->GetElectronP().unit() );
 
-  if( sbsgen->GetKine() != kGun && sbsgen->GetKine() != kESEPP ){ 
+  if( sbsgen->GetKine() != kGun && sbsgen->GetKine() != kESEPP && sbsgen->GetKine() != kSeamusMC ){ 
     particleGun->SetParticleEnergy(sbsgen->GetElectronE());
   } else { //kGun!
     //SetParticleEnergy sets the ***kinetic energy*** of particles
@@ -139,7 +139,8 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   if( sbsgen->GetKine()!= kWiser ){
     particleGun->SetParticlePolarization( G4ThreeVector(0.0,0.0,0.0) );
     //G4cout << "Gun polarization for the primary electron: " << particleGun->GetParticlePolarization() << G4endl;
-    if( sbsgen->GetKine() == kGun ||  sbsgen->GetKine() == kESEPP ){ //If a gun polarization is defined, transform polarization to TRANSPORT coordinates and set particle polarization:
+    if( sbsgen->GetKine() == kGun ||  sbsgen->GetKine() == kESEPP 
+	|| sbsgen->GetKine() == kSeamusMC){ //If a gun polarization is defined, transform polarization to TRANSPORT coordinates and set particle polarization:
       gen_t gendata = fIO->GetGenData();
       G4double sbsangle = gendata.thsbs;
 
@@ -174,11 +175,6 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       break;
     } 
 
-    // Only protons for ESEPP:
-    // if( sbsgen->GetKine() == kESEPP ){
-    //particle = particleTable->FindParticle(particleName="proton");
-    //}
-
     particleGun->SetParticleDefinition(particle);
 
     // Ensure we're doing something sensible for Geant4
@@ -205,7 +201,9 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	particleGun->SetParticlePolarization( S_hat.unit() );
       }
     }
-  } else if( sbsgen->GetKine() == kSIDIS || sbsgen->GetKine() == kWiser ){ //SIDIS case: generate a final hadron:
+  } else if( sbsgen->GetKine() == kSIDIS ||
+	     sbsgen->GetKine() == kWiser ||
+	     sbsgen->GetKine() == kSeamusMC ){ //SIDIS case: generate a final hadron:
     switch( sbsgen->GetHadronType() ){
     case kPiPlus:
       particle = particleTable->FindParticle(particleName="pi+");
@@ -232,10 +230,6 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       particle = particleTable->FindParticle(particleName="pi+");
       break;
     }
-
-    // if( sbsgen->GetKine() == kESEPP ){
-    // particle = particleTable->FindParticle(particleName="gamma");
-    // }
 
     particleGun->SetParticleDefinition( particle );
     if( sbsgen->GetHadronE()-particle->GetPDGMass() > 0.0 ) {

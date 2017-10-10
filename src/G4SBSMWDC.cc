@@ -263,7 +263,7 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
       //std::cout << "chamber " << chamber_number << "  plane " << planeN << "  " << plane_z_front << "   " << z << std::endl;
  
       sprintf(temp_name, "chamber%1d_plane%1d_log", chamber_number, planeN);
-      new G4PVPlacement(0, G4ThreeVector(0.0,0.0,z), plane_log, temp_name, chamber_log, false, copyID, true);
+      new G4PVPlacement(0, G4ThreeVector(0.0,0.0,z), plane_log, temp_name, chamber_log, false, copyID);
 
       planeN++;
       copyID++;
@@ -271,10 +271,10 @@ void G4SBSMWDC::BuildComponent( G4LogicalVolume* realworld, G4LogicalVolume* wor
     // Place the Chamber inside our mother:
     sprintf(temp_name, "chamber%1d_phys",chamber_number);    
     new G4PVPlacement(0,G4ThreeVector(0.0,0.0, -mZ/2.0 + chamber_thick/2.0 + fDist_z0[chamber_number]), 
-    		      chamber_log, temp_name, mother_log, false, chamber_number, true);
+    		      chamber_log, temp_name, mother_log, false, chamber_number);
   }
   // Place the MWDC (Chambers 0-2, all planes) inside the world:
-  new G4PVPlacement(rot, pos, mother_log, "MWDC_mother_phys", world, false, 0, true);
+  new G4PVPlacement(rot, pos, mother_log, "MWDC_mother_phys", world, false, 0);
 
   // Test to see what a single plane looks like:
   //new G4PVPlacement( rot, G4ThreeVector(0.0, 2.0*m, 2.0*m), test_log, "test", realworld, false, 0 ); 

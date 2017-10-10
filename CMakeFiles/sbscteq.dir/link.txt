@@ -1,2 +1,0 @@
-/usr/bin/ar cr libsbscteq.a  CMakeFiles/sbscteq.dir/src/cteq/cteq-database.c.o CMakeFiles/sbscteq.dir/src/cteq/cteqpdf-f77.c.o CMakeFiles/sbscteq.dir/src/cteq/cteqpdf.c.o
-/usr/bin/ranlib libsbscteq.a

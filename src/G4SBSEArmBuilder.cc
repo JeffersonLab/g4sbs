@@ -18,6 +18,7 @@
 #include "G4GenericTrap.hh"
 #include "G4Polycone.hh"
 
+#include "G4SBSECal.hh"
 #include "G4SBSGrinch.hh"
 #include "G4SBSBigBiteField.hh"
 #include "G4SBSTrackerBuilder.hh"
@@ -111,11 +112,19 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     }
   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
-      MakeBigCal( worldlog );
+      G4SBSECal* ECal = new G4SBSECal(fDetCon);
+      ECal->SetAng(fBBang);
+      ECal->SetDist(fBBdist);
+      ECal->BuildComponent(worldlog);
+      //MakeBigCal( worldlog );
     }
   if( exptype == kC16 ) 
     {
-      MakeC16( worldlog );
+      G4SBSECal* ECal = new G4SBSECal(fDetCon);
+      ECal->SetAng(fBBang);
+      ECal->SetDist(fBBdist);
+      ECal->BuildComponent(worldlog);
+      //MakeC16( worldlog );
     }
   if( exptype == kNeutronExp )  MakeGMnGEMShielding( worldlog );
 }
@@ -608,7 +617,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   G4int n_bbhodoslats = 90;
   for(int i_bbhslat = 0; i_bbhslat<n_bbhodoslats; i_bbhslat++){
-    G4double y_slat = (G4double(i_bbhslat)+0.5)*bbslat_section-n_bbhodoslats*bbslat_section/2.0;
+    G4double y_slat = n_bbhodoslats*bbslat_section/2.0-(G4double(i_bbhslat)+0.5)*bbslat_section;
     G4double z_slat = -bbhododepth/2.0-0.5*mm+0.217*2.54*cm+bbslat_section/2.0;
     new G4PVPlacement( 0, G4ThreeVector(0, y_slat, z_slat), bbhodoslatlog, "bbhodoslatphys", bbhodolog, false, i_bbhslat );
     (BBHodoScintSD->detmap).Col[i_bbhslat] = 0;

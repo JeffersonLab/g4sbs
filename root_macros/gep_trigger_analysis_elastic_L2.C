@@ -325,6 +325,13 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 
   TH1D *hshouldhit_vs_Q2_ECAL_FTcut = new TH1D("hshouldhit_vs_Q2_ECAL_FTcut","",100,8.0,16.0);
   TH1D *hefficiency_vs_Q2_ECAL_FTcut = new TH1D("hefficiency_vs_Q2_ECAL_FTcut","",100,8.0,16.0);
+
+  TH1D *HCAL_hit_edep = new TH1D("HCAL_hit_edep","",200,0.0,1.0); //GeV
+  TH1D *HCAL_hit_num_phe = new TH1D("HCAL_hit_num_phe","",200,0.0,5000.0);
+
+  TH1D *HCAL_maxhit_edep = new TH1D("HCAL_maxhit_edep","",200,0.0,1.0); //GeV
+  TH1D *HCAL_maxhit_num_phe = new TH1D("HCAL_maxhit_num_phe","",200,0.0,5000.0);
+  
   
   double Ibeam = 75.0e-6; //Amps
   double Ltarget = 40.0; //cm
@@ -571,6 +578,10 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
       //int nphe = 0;
     
       if( pheflag == 0 ){
+
+	double maxedep = 0.0;
+	double maxphe = 0.0;
+	
 	for( int ihit=0; ihit<T->Harm_HCalScint_hit_nhits; ihit++ ){
 	  int rowhit = (*(T->Harm_HCalScint_hit_row))[ihit]+1;
 	  int colhit = (*(T->Harm_HCalScint_hit_col))[ihit]+1;
@@ -591,8 +602,24 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 	    node_sums_hcal[*inode] += double(nphe);
 	  
 	  }
+
+	  HCAL_hit_edep->Fill( edep );
+	  HCAL_hit_num_phe->Fill(nphe);
+	  if( edep > maxedep || ihit == 0 ){
+	    maxedep = edep;
+	  }
+	  if( nphe > maxphe || ihit == 0 ){
+	    maxphe = nphe;
+	  }
 	}
+
+	HCAL_maxhit_edep->Fill(maxedep);
+	HCAL_maxhit_num_phe->Fill(maxphe);
+	
       } else {
+	double maxedep = 0.0;
+	double maxphe = 0.0;
+	
 	for( int jhit=0; jhit<T->Harm_HCal_hit_nhits; jhit++ ){
 	  int rowhit = (*(T->Harm_HCal_hit_row))[jhit]+1;
 	  int colhit = (*(T->Harm_HCal_hit_col))[jhit]+1;
@@ -605,15 +632,29 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 	  
 	  }
 
+	  HCAL_hit_num_phe->Fill( nphe );
+
+	  if( jhit == 0 || nphe > maxphe ){
+	    maxphe = nphe;
+	  }
+	  
 	  for( int khit=0; khit<T->Harm_HCalScint_hit_nhits; khit++ ){
 	    if( (*(T->Harm_HCalScint_hit_row))[khit]+1 == rowhit &&
 		(*(T->Harm_HCalScint_hit_col))[khit]+1 == colhit &&
 		fabs( (*(T->Harm_HCal_hit_Time_avg))[jhit]-(*(T->Harm_HCalScint_hit_tavg))[khit] - 8.6 )<=15.0 ){
 	      hnphe_vs_sum_edep_HCAL->Fill( (*(T->Harm_HCalScint_hit_sumedep))[khit], nphe );
+	      HCAL_hit_edep->Fill( (*(T->Harm_HCalScint_hit_sumedep))[khit] );
+	      if( jhit == 0 || (*(T->Harm_HCalScint_hit_sumedep))[khit] > maxedep ){
+		maxedep = (*(T->Harm_HCalScint_hit_sumedep))[khit];
+	      }
 	    }
 	  }
 	
 	}
+
+	HCAL_maxhit_edep->Fill(maxedep);
+	HCAL_maxhit_num_phe->Fill(maxphe);
+	
       }
     
       vector<int> trigger_nodes_fired_hcal(hefficiency_vs_threshold_HCAL_FTcut->GetNbinsX());

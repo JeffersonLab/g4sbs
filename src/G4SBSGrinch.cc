@@ -346,6 +346,8 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   G4String GC_Tank_Name("GC_Tank");
   //G4String GC_Tank_Material=("C4F8O");
   G4String GC_Tank_Material=("C4F10_gas");//Replace C4F8O with C4F10 because of shortages...
+  //G4String GC_Tank_Material=("CO2");//2017/07/14 EFuchey: replace C4F10 with CO2 
+  //G4String GC_Tank_Material=("CF4_gas");//2017/07/28 EFuchey: replace CO2 with CF4 
   G4cout << " Using new GRINCH geometry... " << G4endl;
   G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth-2.54*cm, 247.015*cm, 114.800*cm);
   G4double GC_Tank_Thickness= 0.635*cm;
@@ -563,7 +565,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   //G4Tubs* GC_PMT = new G4Tubs(GC_PMT_Name.data(), 0, GC_PMT_Radius, (GC_PMT_Length-GC_PMT_Glass_Thickness)*0.5, 0, 360*deg);
   G4Tubs* GC_PMT = new G4Tubs(GC_PMT_Name.data(), 0, GC_PMT_Radius, GC_PMT_PhotoCathodeThickness*0.5, 0, 360*deg);
   //	G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Al")), GC_PMT_Name+"_log", 0, 0, 0);
-  G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Photocathode_material")), GC_PMT_Name+"_log", 0, 0, 0);
+  G4LogicalVolume* GC_PMT_log = new G4LogicalVolume(GC_PMT, GetMaterial(G4String("Photocathode_material_GRINCH")), GC_PMT_Name+"_log", 0, 0, 0);
   G4VisAttributes* GC_PMT_log_VisAtt = new G4VisAttributes();
   GC_PMT_log_VisAtt->SetColor(GetColor(G4String("Blue")));
   GC_PMT_log_VisAtt->SetVisibility(true);
@@ -964,7 +966,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   // // EFUCHEY: 2017/04/10: a small attempt fix to allow photoelectron detection 
   // // without defining a refraction index for the photocathode material
   // G4MaterialPropertiesTable* PMT_mat_SPT = 
-  //   (GetMaterial(G4String("Photocathode_material")))->GetMaterialPropertiesTable();
+  //   (GetMaterial(G4String("Photocathode_material_GRINCH")))->GetMaterialPropertiesTable();
   // PMT_SPT->AddProperty("EFFICIENCY", PMT_mat_SPT->GetProperty("EFFICIENCY"));
   
   G4OpticalSurface* OpPMTSurface = new G4OpticalSurface("OpPMTSurface");

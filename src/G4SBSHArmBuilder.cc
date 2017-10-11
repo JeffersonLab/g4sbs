@@ -22,6 +22,7 @@
 #include "G4SBSTrackerBuilder.hh"
 #include "G4Sphere.hh"
 
+#include "G4SBSCDet.hh"
 #include "G4SBSCalSD.hh"
 #include "G4SBSECalSD.hh"
 #include "G4Box.hh"
@@ -116,25 +117,59 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4RotationMatrix *HArmRot = new G4RotationMatrix;
     HArmRot->rotateY(f48D48ang);
 
-    G4ThreeVector CH2_pos( ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * cos( -f48D48ang ) );
+    G4ThreeVector CH2_pos( ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * cos( -f48D48ang ) );
 
     new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
 
-    G4Box* CDetmother = new G4Box("CDetmother", 1.5*m/2.0, 3.0*m/2, depth_CDET/2.0);
+    G4Box* CDetmother = new G4Box("CDetmother", 2.5*m/2.0, 3.0*m/2, depth_CDET/2.0);
     G4LogicalVolume *CDetmother_log = new G4LogicalVolume( CDetmother, GetMaterial("Air"), "CDetmother_log" );
 
-    G4ThreeVector CDetmother_pos( ( fHCALdist-0.35*m ) * sin( -f48D48ang ), 0.0, ( fHCALdist-0.35*m ) * cos( -f48D48ang ) );
+    HArmRot->rotateY(180.0*deg);
+    
+    //G4ThreeVector CDetmother_pos( ( fHCALdist-0.30*m ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-0.30*m ) * cos( -f48D48ang ) );
+    G4ThreeVector CDetmother_pos( -15.0*cm,  fHCALvertical_offset, fHCALdist-0.30*m );
+    CDetmother_pos.rotateY(-f48D48ang);
     new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
 
     G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
     CH2_visatt->SetForceWireframe(true);
     CH2_filter_log->SetVisAttributes(CH2_visatt);
-
+    
+    //G4VisAttributes* VisAtt = new G4VisAttributes( G4Colour(1, 1, 1) );
+    //VisAtt->SetForceWireframe(true);
+    //CDetmother_log->SetVisAttributes( VisAtt );
     CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
 
     G4double z0_CDET = -0.15*m;
+    G4double planes_hoffset = 0.84*m;
+    G4double planes_interdist = 1.0*cm;//20.0*cm;
+    
+    G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
+    CDet->SetArmName("Harm");
+    CDet->SetR0(fHCALdist + z0_CDET);
+    CDet->SetZ0(z0_CDET);
+    CDet->SetPlanesHOffset(planes_hoffset);
+    CDet->SetPlanesInterDistance(planes_interdist);
+    CDet->BuildComponent( CDetmother_log );
+    //MakeCDET( CDetmother_log, z0_CDET, planes_hoffset );
+    
+    //Add a plate on the side of HCal
+    
+    double SideShield_Width = 1574.75*mm;
+    double SideShield_Height = 3716.02*mm;
+    double SideShield_Thick = 38.1*mm;
+    double SideShield_XOffset = +1898.65*mm/2.0+SideShield_Thick/2.0;
+    
+    G4Box *HCal_sideshield = new G4Box( "HCal_sideshield", SideShield_Thick/2.0, SideShield_Height/2.0, SideShield_Width/2.0 );
+    G4LogicalVolume *HCal_sideshield_log = new G4LogicalVolume( HCal_sideshield, GetMaterial("Steel"), "HCal_sideshield_log" );
+    //HCal_sideshield_log
+    G4ThreeVector HCal_sideshield_pos( SideShield_XOffset,  fHCALvertical_offset, fHCALdist+SideShield_Width/2.0 );
+    HCal_sideshield_pos.rotateY(-f48D48ang);
+    
+    G4bool checkOverlap = fDetCon->fCheckOverlap;
 
-    MakeCDET( CDetmother_log, z0_CDET );
+    //new G4PVPlacement( HArmRot, HCal_sideshield_pos, HCal_sideshield_log, "HCal_sideshield_phys", worldlog, false, 0, checkOverlap );
+    HCal_sideshield_log->SetVisAttributes( G4Colour(0.7, 0.7, 0.7) );
   }
 }
 
@@ -2518,7 +2553,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   //    G4double PMT_max_radius = 1.065*cm;
 
   G4LogicalVolume *PMTwindow_log  = new G4LogicalVolume( PMTwindow, GetMaterial("UVglass"), "PMTwindow_log" );
-  G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material"), "PMTcathode_log" );
+  G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material_RICH"), "PMTcathode_log" );
   G4LogicalVolume *PMTWindowAirGap_log = new G4LogicalVolume( PMTWindowAirGap, GetMaterial("RICH_air"), "PMTWindowAirGap_log" ); //RICH_air is just air with a refractive index defined in the range of wavelengths of interest.
   
   //PMTcathode_log is the sensitive detector for the RICH:
@@ -2728,7 +2763,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
 }
 
 
-void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
+void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double PlanesHOffset ){
   //z0 is the z position of the start of CDET relative to the HCal surface
   
   //R0 is the nominal distance from target to the start of CDET
@@ -2737,7 +2772,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
   G4double Lx_scint = 51.0*cm;
   G4double Ly_scint = 0.5*cm;
   G4double Lz_scint = 4.0*cm;
-
+  
   G4double HoleDiameter = 0.3*cm;
   G4double WLSdiameter      = 0.2*cm;
   G4double WLScladding_thick = 0.03*WLSdiameter/2.0;
@@ -2822,12 +2857,12 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
   
   //Now we need to define the coordinates of the "modules":
   //horizontal position within mother:
-  // G4double x0_modules[3] = { 0.5*(-70.986+31.014)*cm,
-  // 			     0.5*(-63.493+38.507)*cm,
-  // 			     0.5*(-56.0+46.0)*cm };
+  G4double x0_modules[3] = { 0.5*(-70.986+31.014)*cm,
+			     0.5*(-63.493+38.507)*cm,
+			     0.5*(-56.0+46.0)*cm };
 			     // -0.5*(-63.493+38.507)*cm,
 			     // -0.5*(-70.986+31.014)*cm };
-  G4double x0_modules[3] = { 0.0, 0.0, 0.0 };
+  //G4double x0_modules[3] = { 0.0, 0.0, 0.0 };
   
   //Number of rows per module:
   //G4int Nrow_module[3] = { 98, 98, 98, 98, 98, 98 };
@@ -2855,7 +2890,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
 	G4int imod = 2 - row/98;	
 
 	//hopefully, this expression won't lead to overlaps of strips?
-	G4ThreeVector pos_strip( x0_modules[imod] + ( col - 0.5 )*(Lx_scint+mylar_thick), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
+	G4ThreeVector pos_strip( x0_modules[imod] + PlanesHOffset/2.0*pow(-1, plane) + ( col - 0.5 )*(Lx_scint+mylar_thick), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
 
 	G4RotationMatrix *rot_strip = new G4RotationMatrix;
 	rot_strip->rotateY( col*pi );
@@ -2866,7 +2901,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0 ){
 	G4String pvolname = physname;
 	new G4PVPlacement( rot_strip, pos_strip, Scint_module, pvolname, mother, false, istrip );
 
-	G4ThreeVector pos_pmt( x0_modules[imod] + pow(-1,col+1)*(Lx_scint+mylar_thick+0.1*cm), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
+	G4ThreeVector pos_pmt( x0_modules[imod] + PlanesHOffset/2.0*pow(-1, plane) + pow(-1,col+1)*(Lx_scint+mylar_thick+0.1*cm), R0_planes[plane] * tan( alpha ), z0 + R0_planes[plane] - R0 );
 	sprintf( physname, "CDET_pmt_phys_plane%d_row%d_col%d", plane+1, row+295, col+1 );
 	pvolname = physname;
 	new G4PVPlacement( rot_fiber, pos_pmt, CDET_pmt_cathode_log, pvolname, mother, false, istrip );
@@ -3233,7 +3268,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
   //    G4double PMT_max_radius = 1.065*cm;
 
   G4LogicalVolume *PMTwindow_log  = new G4LogicalVolume( PMTwindow, GetMaterial("UVglass"), "PMTwindow_log" );
-  G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material"), "PMTcathode_log" );
+  G4LogicalVolume *PMTcathode_log = new G4LogicalVolume( PMTcathode, GetMaterial("Photocathode_material_RICH"), "PMTcathode_log" );
 
   //PMTcathode_log is the sensitive detector for the RICH:
 

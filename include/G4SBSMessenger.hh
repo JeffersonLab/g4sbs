@@ -166,6 +166,9 @@ private:
   G4UIcmdWithAnInteger *SegmentC16Cmd;
   G4UIcmdWithADoubleAndUnit *SegmentThickC16Cmd;
   G4UIcmdWithADouble *DoseRateCmd;
+
+  // Command to add components that should not be built
+  G4UIcmdWithAString *disableComponentCmd;
 };
 
 #endif//G4SBSMessenger_HH

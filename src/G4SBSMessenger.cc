@@ -386,6 +386,10 @@ G4SBSMessenger::G4SBSMessenger(){
   DoseRateCmd->SetGuidance( "Overall scale factor for dose rate in lead-glass for ECAL/C16 (depth profile is hard-coded!)");
   //DoseRateCmd->SetGuidance( "Assumed to be given in units of krad/hour" ); //Note 1 rad = 0.01 J/kg
   DoseRateCmd->SetParameterName("rate",false);
+
+  disableComponentCmd = new G4UIcmdWithAString("/g4sbs/disableComponent",this);
+  disableComponentCmd->SetGuidance("Disables a component from being built.");
+  disableComponentCmd->SetParameterName("disableComponent",false);
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -1054,5 +1058,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == GunPolarizationCommand ){
     G4ThreeVector pol = GunPolarizationCommand->GetNew3VectorValue(newValue);
     fprigen->SetGunPolarization( pol.unit() );
+  }
+
+  if( cmd == disableComponentCmd) {
+    G4cerr << ">>>>User disabled component: " << newValue << "" << G4endl;
+    fdetcon->DisableComponent(newValue);
   }
 }

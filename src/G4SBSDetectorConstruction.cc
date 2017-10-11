@@ -2000,14 +2000,18 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   //All three types of experiments have a target:
   //Target builder is called first:
-  fTargetBuilder->BuildComponent(WorldLog); 
+  if(!UserDisabled("target"))
+    fTargetBuilder->BuildComponent(WorldLog);
 
   //Beamline builder is called second.
   //All three types of experiments have a beam line:
-  fBeamlineBuilder->BuildComponent(WorldLog);
+  if(!UserDisabled("beamline"))
+    fBeamlineBuilder->BuildComponent(WorldLog);
 
-  fEArmBuilder->BuildComponent(WorldLog);
-  fHArmBuilder->BuildComponent(WorldLog);
+  if(!UserDisabled("earm"))
+    fEArmBuilder->BuildComponent(WorldLog);
+  if(!UserDisabled("harm"))
+    fHArmBuilder->BuildComponent(WorldLog);
 
   G4FieldManager *fm = new G4FieldManager(fGlobalField);
 
@@ -2284,4 +2288,15 @@ void G4SBSDetectorConstruction::SetFieldScale_BB( G4double v ){
 
 void G4SBSDetectorConstruction::SetFlipGEM( G4bool b ){
   fGEMflip = b;
+}
+
+G4bool G4SBSDetectorConstruction::UserDisabled(G4String name){
+  for(size_t i = 0; i < fUserDisabledComponents.size(); i++) {
+    if (fUserDisabledComponents[i].compareTo(name,G4String::ignoreCase) == 0) {
+      return true;
+    }
+  }
+
+  // If not in the list, then no
+  return false;
 }

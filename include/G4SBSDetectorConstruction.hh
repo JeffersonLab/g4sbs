@@ -119,7 +119,19 @@ public:
 
   void SetFlipGEM( G4bool );
   G4bool GetFlipGEM(){ return fGEMflip; }
-  
+
+  //!
+  //! Did the user disable this component manually?
+  //!
+  G4bool UserDisabled(G4String component_name);
+
+  //!
+  //! Add component to the user disabled list
+  //!
+  void DisableComponent(G4String component_name){
+    fUserDisabledComponents.push_back(component_name);
+  }
+
 private:
 
   map<G4String, G4Material*> fMaterialsMap;
@@ -143,6 +155,8 @@ private:
 
   G4bool fGEMflip;
 
+  // List of components that are disabled by the user (via a macro command)
+  vector<G4String> fUserDisabledComponents;
 };
 
 

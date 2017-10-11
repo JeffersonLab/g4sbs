@@ -78,9 +78,11 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   // Build the 48D48 magnet and HCAL
   // All three types of experiments have a 48D48 magnet:
   if( exptype != kC16 ) {
-    Make48D48(worldlog, f48D48dist + f48D48depth/2. );
+    if(!fDetCon->UserDisabled("48d48"))
+      Make48D48(worldlog, f48D48dist + f48D48depth/2. );
     //MakeHCAL( worldlog, fHCALvertical_offset );
-    MakeHCALV2( worldlog, fHCALvertical_offset );
+    if(!fDetCon->UserDisabled("HCAL"))
+      MakeHCALV2( worldlog, fHCALvertical_offset );
   }
 
   // Now build special components for experiments
@@ -105,7 +107,8 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Build CDET (as needed)
-  if( exptype == kNeutron && (tgttype==kLH2 || tgttype==kLD2)){
+  if( exptype == kNeutron && (tgttype==kLH2 || tgttype==kLD2) &&
+      !fDetCon->UserDisabled("CDET") ){
     //plugging in CDET for GMn  
     G4double depth_HCal_shield = 7.62*cm; //3 inches
     G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:

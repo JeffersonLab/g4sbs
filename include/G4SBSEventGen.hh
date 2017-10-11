@@ -153,6 +153,9 @@ private:
   double fPmisspar, fPmissperp, fPmissparSm;
   double fHCALdist, fToFres;
 
+  int fInelasticType; // only applicable to kine == SeamusMC
+  double fPionP, fPionTh, fPionPhi;
+
   G4LorentzVector GetInitialNucl( Targ_t, Nucl_t );
   
   bool GenerateElastic( Nucl_t, G4LorentzVector, G4LorentzVector );

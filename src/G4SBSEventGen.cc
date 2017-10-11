@@ -91,6 +91,11 @@ G4SBSEventGen::G4SBSEventGen(){
   fSeamusMC_lo = 0;
   fSeamusMC_hi = 0;
   fSeamusMCname = "";
+
+  fInelasticType = -1;
+  fPionP = 0.0;
+  fPionTh = 0.0;
+  fPionPhi = 0.0;
 }
 
 
@@ -1326,6 +1331,8 @@ bool G4SBSEventGen::GenerateSeamusMC(){
   // The outgoing Pion, only gets generated if event_type = 2 or 3 (inelastic case)
   // 0 and 1 = elastic, no pions. 2 and 3 = inelastic which includes a pion
   int event_type = fSeamusMC->GetEventType(ev);
+  fInelasticType = event_type;
+
   G4double pip=0.0, pitheta=0.0, piphi=0.0;
   
   if( event_type == 2 || event_type == 3 ){
@@ -1370,7 +1377,16 @@ bool G4SBSEventGen::GenerateSeamusMC(){
   if( event_type == 0 || event_type == 1){
     fHadronP.set(0.0,0.0,0.0);
     fHadronE = 0.0;
+    // Seamus has large initial values, let's make them all zero if 
+    // they were never produced
+    pip = 0.0;
+    pitheta = 0.0;
+    piphi = 0.0;
   }
+
+  fPionP = pip;
+  fPionTh = pitheta;
+  fPionPhi = piphi;
 
   //std::cout << ev << " " << ep << " " << etheta << " " << ephi << std::endl;
   // printf("%d \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %d \t %d \t %d -- %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \n",
@@ -1704,6 +1720,10 @@ ev_t G4SBSEventGen::GetEventData(){
   data.MX     = fMx/pow(GeV,2);
 
   if( fKineType == kSeamusMC ){
+    data.inelastictype = fInelasticType;
+    data.pionp = fPionP;
+    data.pionth = fPionTh;
+    data.pionph = fPionPhi;
     switch( fHadronType ){
     case kPiPlus:
       data.hadr = 1;
@@ -1719,7 +1739,6 @@ ev_t G4SBSEventGen::GetEventData(){
       break;
     }
   }
-
 
   if( fKineType == kSIDIS ){ //Then replace final nucleon variables with final hadron variables:
     data.np = fHadronP.mag()/GeV;

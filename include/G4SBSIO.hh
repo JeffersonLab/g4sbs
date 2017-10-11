@@ -42,6 +42,8 @@ typedef struct {
   Int_t nucl, fnucl;
   Int_t hadr;
   Int_t earmaccept, harmaccept;
+  Int_t inelastictype;
+  Double_t pionp, pionth, pionph;
 } ev_t;
 
 typedef struct {

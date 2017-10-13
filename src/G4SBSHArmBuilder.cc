@@ -1060,6 +1060,12 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   // Define solids for scintillator, absorber and shim gap spacer
   G4Box *sol_Scint  = new G4Box("sol_Scint",
       dim_ScintX/2., dim_ScintY/2., dim_ScintZ/2.);
+  // To simplify geometry, just add the mylar to the edge facing away
+  // from the wavelength shifter, and make the adjacent absorbers be totally
+  // reflective.
+  G4Box *sol_ScintMylar  = new G4Box("sol_ScintMylar",
+      dim_MylarThickness/2.,dim_ScintY/2.,
+      (dim_ScintZ+2*dim_MylarThickness)/2.);
   G4Box *sol_ThinAbsorb = new G4Box("sol_ThinAbsorb",
       dim_ThinAbsorbX/2., dim_ThinAbsorbY/2., dim_ThinAbsorbZ/2.);
   G4Box *sol_Absorb = new G4Box("sol_Absorb",
@@ -1156,6 +1162,9 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   // Scintillator
   G4LogicalVolume *log_Scint = new G4LogicalVolume( sol_Scint,
       GetMaterial("EJ232"), "log_Scint");
+  // Scintillaror Mylar at the end
+  G4LogicalVolume *log_ScintMylar = new G4LogicalVolume( sol_ScintMylar,
+      GetMaterial("Mylar"), "log_ScintMylar");
 
   // Absorbers and wrap
   G4LogicalVolume *log_ThinAbsorb = new G4LogicalVolume( sol_ThinAbsorb,
@@ -1262,6 +1271,9 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   G4double posAbsorbX = dim_AbsorbX/2.0 + dim_WaveShiftRodX/2. + dim_AirGap +
     dim_MylarThickness;
   G4double posAbsorbY = 0.0;
+  G4double posScintMylarX = posScintX + dim_ScintX/2. + dim_MylarThickness/2.;
+  G4double posScintMylarY = posScintY;
+
 
   G4ThreeVector posLeft(-posAbsorbX, posAbsorbY,posLeftZ);
   G4ThreeVector posRight(posAbsorbX, posAbsorbY,posRightZ);
@@ -1308,16 +1320,23 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
       }
 
       // Now set the scintillator
-      posLeftZ  += dim_ScintZ/2. + dim_MylarThickness/2. + dim_AirGap;
-      posRightZ += dim_ScintZ/2. + dim_MylarThickness/2. + dim_AirGap;
+      posLeftZ  += dim_ScintZ/2. + dim_MylarThickness + dim_AirGap;
+      posRightZ += dim_ScintZ/2. + dim_MylarThickness + dim_AirGap;
       posLeft.set(-posScintX,posScintY,posLeftZ);
       posRight.set(posScintX,posScintY,posRightZ);
       new G4PVPlacement(G4Transform3D(rotLeft, posLeft), log_Scint,
           "pScint", log_Module,false, copyNo++, checkOverlap);
       new G4PVPlacement(G4Transform3D(rotRight, posRight), log_Scint,
           "pScint", log_Module,false, copyNo++, checkOverlap);
-      posLeftZ  += dim_ScintZ/2.+dim_MylarThickness/2.;
-      posRightZ += dim_ScintZ/2.+dim_MylarThickness/2.;
+      // And the Mylar at the end
+      posLeft.set(-posScintMylarX,posScintMylarY,posLeftZ);
+      posRight.set(posScintMylarX,posScintMylarY,posRightZ);
+      new G4PVPlacement(G4Transform3D(rotLeft, posLeft), log_ScintMylar,
+          "pScintMylar", log_Module,false, copyNo++, checkOverlap);
+      new G4PVPlacement(G4Transform3D(rotRight, posRight), log_ScintMylar,
+          "pScintMylar", log_Module,false, copyNo++, checkOverlap);
+      posLeftZ  += dim_ScintZ/2. + dim_MylarThickness;
+      posRightZ += dim_ScintZ/2. + dim_MylarThickness;
 
     }
     // A spacer (or shim gap) is at the end of each substack but

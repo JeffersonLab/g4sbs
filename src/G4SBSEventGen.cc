@@ -23,6 +23,7 @@
 using namespace CLHEP;
 
 G4SBSEventGen::G4SBSEventGen(){
+
   fThMin = 32.0*deg;
   fThMax = 46.0*deg;
   fPhMin = 225.0*deg;
@@ -192,7 +193,6 @@ bool G4SBSEventGen::GenerateEvent(){
     } else {
       thisnucl = kProton;
     }
-
     ni = GetInitialNucl( fTargType, thisnucl );
     Wfact = 2.0;
     break;
@@ -271,13 +271,17 @@ bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzV
   // Rotation that puts z down eip
   // Orthogonal vector with z
   G4ThreeVector rotax = (eip.vect().cross(G4ThreeVector(0.0, 0.0, 1.0))).unit();
-  G4RotationMatrix prot;
+  G4RotationMatrix prot,prot2;
 
   prot.rotate(-eip.vect().theta(), rotax);
 
   eip = G4LorentzVector(eip.e(), G4ThreeVector(0.0, 0.0, eip.e()));
 
+  // we are in nucleon rest frame:
   G4LorentzVector nip = G4LorentzVector( Mp );
+  G4LorentzVector nip2 = ni;
+  nip2.boost(-pboost);
+
   // Now we have our boost and way to get back, calculate elastic scattering
 
   G4ThreeVector efp3, nfp3, qfp3;
@@ -356,9 +360,12 @@ bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzV
   efp3 = prot*efp3;
   G4LorentzVector ef(efp3, efp3.mag());
   ef = ef.boost(-pboost);
-
+  
   qf = ei - ef;
   G4ThreeVector qf3 = qf.vect();
+  G4ThreeVector pi3 = ni.vect();
+ 
+  //std::cout << qf.x() << " " << qf.y() << " " << qf.z() << " " << pi3.x() << " " << pi3.y() << " " << pi3.z() << std::endl;
 
   nfp3 = prot*nfp3;
   G4LorentzVector nf(nfp3, sqrt(Mp*Mp + nfp3.mag2()) );
@@ -377,7 +384,8 @@ bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzV
 
   fPmissperp = ((qf3-nf3) - fPmisspar*qf3/qf3.mag()).mag();
 
-  fW2 = (qf+nip).mag2();
+  fW2 = (qf+nip2).mag2();
+
   fxbj = 1.0;
 
   fElectronP = ef.vect();
@@ -410,7 +418,8 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
 
   eip = G4LorentzVector(eip.e(), G4ThreeVector(0.0, 0.0, eip.e()));
 
-  G4LorentzVector nip = G4LorentzVector( Mp );
+  G4LorentzVector nip = ni; //G4LorentzVector( Mp );
+
   // Now we have our boost and way to get back, calculate elastic scattering
 
   G4ThreeVector efp3, nfp3, qfp3;
@@ -482,7 +491,7 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
   if( CLHEP::RandFlat::shoot() < 2.0/3.0 ){
     fFinalNucl = nucl;
   } else {
-    fFinalNucl = nucl==kProton?kNeutron:kProton;
+    fFinalNucl = nucl==kProton ? kNeutron : kProton;
   }
 
 
@@ -1516,7 +1525,7 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
     PMAX = 0.0;
     break;
   }
-   
+
   G4ThreeVector p;
   double theta, phi, psample;
 
@@ -1537,55 +1546,52 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
   }
 
   p.setRThetaPhi( psample, theta, phi );
-
   return G4LorentzVector( p, sqrt(p.mag2() + pow(proton_mass_c2,2.0) ) );
 }
 
+// double G4SBSEventGen::he3pdist( double p, double x0, double s ){
+//   return p*p*exp( -1.0*pow( p - x0,2.0)/(2.0*s*s));
+// }
 
-/*
-  double G4SBSEventGen::he3pdist( double p, double x0, double s ){
-  return p*p*exp( -1.0*pow( p - x0,2.0)/(2.0*s*s));
-  }
+// G4LorentzVector G4SBSEventGen::GetInitial3He( Nucl_t nucl ){
+//   double p_WIDTH = 0.0572372*GeV;
+//   double p_center = -0.014848*GeV;
 
-  G4LorentzVector G4SBSEventGen::GetInitial3He( Nucl_t nucl ){
-  double p_WIDTH = 0.0572372*GeV;
-  double p_center = -0.014848*GeV;
+//   double n_WIDTH = 0.0633468*GeV;
+//   double n_center = -0.0079127*GeV;
 
-  double n_WIDTH = 0.0633468*GeV;
-  double n_center = -0.0079127*GeV;
+//   double fNeutronMax = he3pdist( sqrt( 2.0*n_WIDTH*n_WIDTH + n_center*n_center/4.0) + n_center/2.0, n_center, n_WIDTH );
+//   double fProtonMax  = he3pdist( sqrt( 2.0*p_WIDTH*p_WIDTH + p_center*p_center/4.0) + p_center/2.0, p_center, p_WIDTH );
 
-  double fNeutronMax = he3pdist( sqrt( 2.0*n_WIDTH*n_WIDTH + n_center*n_center/4.0) + n_center/2.0, n_center, n_WIDTH );
-  double fProtonMax  = he3pdist( sqrt( 2.0*p_WIDTH*p_WIDTH + p_center*p_center/4.0) + p_center/2.0, p_center, p_WIDTH );
+//   double PMAX = 0.30*GeV;
 
-  double PMAX = 0.30*GeV;
+//   G4ThreeVector p;
+//   double theta, phi, psample;
 
-  G4ThreeVector p;
-  double theta, phi, psample;
+//   theta = acos( CLHEP::RandFlat::shoot(-1.0,1.0) );
+//   phi   = CLHEP::RandFlat::shoot(2.0*pi);
 
-  theta = acos( CLHEP::RandFlat::shoot(-1.0,1.0) );
-  phi   = CLHEP::RandFlat::shoot(2.0*pi);
+//   psample = -1e9;
+//   if( nucl == kProton ){
+//     psample = CLHEP::RandFlat::shoot(PMAX);
+//     while( CLHEP::RandFlat::shoot() > he3pdist( psample, p_center, p_WIDTH )/fProtonMax ){
+//       psample = CLHEP::RandFlat::shoot(PMAX);
+//     }
+//   }
 
-  psample = -1e9;
-  if( nucl == kProton ){
-  psample = CLHEP::RandFlat::shoot(PMAX);
-  while( CLHEP::RandFlat::shoot() > he3pdist( psample, p_center, p_WIDTH )/fProtonMax ){
-  psample = CLHEP::RandFlat::shoot(PMAX);
-  }
-  }
+//   if( nucl == kNeutron ){
+//     psample = CLHEP::RandFlat::shoot(PMAX);
+//     while( CLHEP::RandFlat::shoot() > he3pdist( psample, n_center, n_WIDTH )/fNeutronMax ){
+//       psample = CLHEP::RandFlat::shoot(PMAX);
+//     }
+//   }
 
-  if( nucl == kNeutron ){
-  psample = CLHEP::RandFlat::shoot(PMAX);
-  while( CLHEP::RandFlat::shoot() > he3pdist( psample, n_center, n_WIDTH )/fNeutronMax ){
-  psample = CLHEP::RandFlat::shoot(PMAX);
-  }
-  }
+//   p.setRThetaPhi( psample, theta, phi );
 
-  p.setRThetaPhi( psample, theta, phi );
+//   return G4LorentzVector( p, sqrt(p.mag2() + pow(proton_mass_c2,2.0) ) );
 
-  return G4LorentzVector( p, sqrt(p.mag2() + pow(proton_mass_c2,2.0) ) );
+// }
 
-  }
-*/
 bool G4SBSEventGen::GeneratePythia(){
   fPythiaTree->GetEntry(fchainentry++);
 
@@ -1808,16 +1814,3 @@ ev_t G4SBSEventGen::GetEventData(){
 
   return data;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

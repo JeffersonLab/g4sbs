@@ -173,7 +173,7 @@ private:
 
   double deutpdist( double );
   double he3pdist( Nucl_t, double );
-  
+
   DSS2007FF fFragFunc; //Class to calculate fragmentation functions using DSS2007
 
   //void LoadTargetData(); //why is this here? Not implemented...

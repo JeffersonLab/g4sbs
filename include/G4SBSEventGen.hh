@@ -27,6 +27,8 @@ public:
   G4ThreeVector GetBeamPol(){ return fBeamPol; }
   
   G4ThreeVector GetV(){ return fVert; }
+  // Add user supplied gun vertex to the rastered event
+  void AddVertexOffset(G4ThreeVector V) { fVert += V; }
   
   double GetElectronE(){ return fElectronE; }
   double GetNucleonE(){ return fNucleonE; }

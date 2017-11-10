@@ -11,6 +11,7 @@
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithABool.hh"
 #include "G4UIcmdWith3Vector.hh"
+#include "G4UIcmdWith3VectorAndUnit.hh"
 
 #include "G4SBSDetectorConstruction.hh"
 #include "G4SBSIO.hh"
@@ -371,7 +372,13 @@ G4SBSMessenger::G4SBSMessenger(){
   GunPolarizationCommand->SetGuidance( "Automatically converted to unit vector internally" );
   GunPolarizationCommand->SetGuidance( "Assumed to be given in TRANSPORT coordinates" );
   GunPolarizationCommand->SetParameterName("Sx","Sy","Sz",false);
-  
+
+  GunVertexCmd = new G4UIcmdWith3VectorAndUnit( "/g4sbs/gunvertex", this );
+  GunVertexCmd->SetGuidance( "Set particle gun vertex:" );
+  GunVertexCmd->SetGuidance( "Three-vector arguments are x,y,z and a unit" );
+  GunVertexCmd->SetParameterName("vx","vy","vz","unit",false);
+  GunVertexCmd->SetDefaultUnit("mm");
+
   SegmentC16Cmd = new G4UIcmdWithAnInteger( "/g4sbs/segmentTF1", this );
   SegmentC16Cmd->SetGuidance( "Longitudinally segment the TF1 lead glass for ECAL/C16 into N segments for thermal annealing model" );
   SegmentC16Cmd->SetGuidance( "0 = OFF (one segment, optical properties based on no rad damage, no temperature increase)" );
@@ -1059,6 +1066,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4ThreeVector pol = GunPolarizationCommand->GetNew3VectorValue(newValue);
     fprigen->SetGunPolarization( pol.unit() );
   }
+
+  if( cmd == GunVertexCmd ){
+    G4ThreeVector vertex = GunVertexCmd->GetNew3VectorValue(newValue);
+    fprigen->SetGunVertex( vertex );
+  }
+
 
   if( cmd == disableComponentCmd) {
     G4cerr << ">>>>User disabled component: " << newValue << "" << G4endl;

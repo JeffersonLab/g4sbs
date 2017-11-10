@@ -19,6 +19,7 @@ class G4UIcmdWithADouble;
 class G4UIcmdWithAString;
 class G4UIcmdWithABool;
 class G4UIcmdWith3Vector;
+class G4UIcmdWith3VectorAndUnit;
 
 class G4SBSMessenger : public G4UImessenger {
 public:
@@ -163,6 +164,7 @@ private:
   // Command to set particle polarization for spin transport calculations:
   // ONLY relevant for particle gun generator!
   G4UIcmdWith3Vector *GunPolarizationCommand;
+  G4UIcmdWith3VectorAndUnit *GunVertexCmd;
   G4UIcmdWithAnInteger *SegmentC16Cmd;
   G4UIcmdWithADoubleAndUnit *SegmentThickC16Cmd;
   G4UIcmdWithADouble *DoseRateCmd;

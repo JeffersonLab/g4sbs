@@ -35,6 +35,7 @@ public:
   void SetParticleType( G4ParticleDefinition *ptype ){ GunParticleType = ptype; }
   void SetParticleName( G4String pname ){ GunParticleName = pname; }
   void SetGunPolarization( G4ThreeVector S ){ GunPolarization = S; }
+  void SetGunVertex( G4ThreeVector V ){ GunVertex = V; }
 
 private:
   G4ParticleGun* particleGun;
@@ -45,6 +46,7 @@ private:
   G4SBSIO *fIO;
  
   G4ThreeVector GunPolarization;
+  G4ThreeVector GunVertex;
 
   bool fUseGeantino;
 };

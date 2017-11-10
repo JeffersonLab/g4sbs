@@ -42,6 +42,7 @@ G4SBSPrimaryGeneratorAction::G4SBSPrimaryGeneratorAction()
   
   GunParticleType = particle;
   GunPolarization = G4ThreeVector(0,0,0);
+  GunVertex       = G4ThreeVector(0,0,0);
   
   sbsgen = new G4SBSEventGen();
 
@@ -123,6 +124,9 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     //GenerateGun() generates the ***momentum***; therefore we need:
     // T = E - M --> (T + M)^2 = p^2 + M^2 --> T^2 + 2MT = p^2 
     particleGun->SetParticleEnergy( sqrt( pow( sbsgen->GetElectronP().mag(), 2) + pow( GunParticleType->GetPDGMass(), 2 ) ) - GunParticleType->GetPDGMass() );
+
+    // Add offset to the gun vertex
+    sbsgen->AddVertexOffset(GunVertex);
   }
 
   particleGun->SetParticlePosition(sbsgen->GetV());

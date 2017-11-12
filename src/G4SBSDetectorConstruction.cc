@@ -415,6 +415,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["refN2"] = refN2;
 
   gasden = 10.77*atmosphere*(3.016*g/Avogadro)/(300*kelvin*k_Boltzmann);
+  //std::cout << "pol density = " << gasden << std::endl;
   G4Material *pol3He = new G4Material("pol3He", gasden, 1 );
   pol3He->AddElement(el3He, 1);
   fMaterialsMap["pol3He"] = pol3He;

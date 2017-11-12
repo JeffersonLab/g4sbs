@@ -25,6 +25,8 @@ public:
   ~G4SBSRunData();
 
   unsigned long long int GetNthrown(){ return fNthrown; }
+  unsigned long long int GetNtries(){ return fNtries; }
+
   void SetNthrown(unsigned long long int n){ fNthrown = n; }
   void SetNtries(unsigned long long int n){ fNtries = n; } //Number of tries to generate Nthrown events.
 

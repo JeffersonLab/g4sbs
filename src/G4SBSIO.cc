@@ -14,6 +14,8 @@
 
 G4SBSIO::G4SBSIO(){
     fTree = NULL;
+    fNorm = NULL;
+
     //InitializeTree(); //We want experiment-dependent ROOT tree! Don't invoke until after fdetcon->ConstructAll() has been invoked!
     // Default filename
     strcpy(fFilename, "g4sbsout.root");
@@ -28,6 +30,9 @@ G4SBSIO::G4SBSIO(){
     gendata.drich = 4.6;
     gendata.dsbstrkr = 4.3;
 
+    normdata.thrown = 0;
+    normdata.tried = 0;
+
     KeepPartCALflags.clear();
     KeepHistoryflags.clear();
 
@@ -37,7 +42,10 @@ G4SBSIO::G4SBSIO(){
 G4SBSIO::~G4SBSIO(){
     if( fTree ){delete fTree;}
     fTree = NULL;
-
+    
+    if( fNorm ){delete fNorm;}
+    fNorm = NULL;
+    
     if( fFile ){delete fFile;}
     fFile = NULL;
 }
@@ -78,8 +86,11 @@ void G4SBSIO::InitializeTree(){
 
     fTree = new TTree("T", "Geant4 SBS Simulation");
     fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:Sx/D:Sy/D:Sz/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I:inelastictype/I:pionp/D:pionth/D:pionph/D");
-    //fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
     fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
+
+    if( fNorm ){ delete fNorm; }
+    fNorm = new TTree("NORM", "Normalizations");
+    fNorm->Branch("norm",&normdata, "tried/I:thrown/I"); 
 
     //Instead of having the same tree structure as before, we want to dynamically generate tree branches depending on what kinds of detectors are present: Since we already require the ROOT libraries, we might as well use TStrings:
     
@@ -251,13 +262,15 @@ void G4SBSIO::FillTree(){
 	fprintf(stderr, "Error %s: %s line %d - Trying to fill non-existant tree\n", __PRETTY_FUNCTION__, __FILE__, __LINE__ );
 	return; 
     }
-
+    
     fTree->Fill();
 }
 
 void G4SBSIO::WriteTree(){
     assert( fFile );
     assert( fTree );
+    assert( fNorm );
+
     if( !fFile->IsOpen() ){
 	G4cerr << "ERROR: " << __FILE__ << " line " << __LINE__ << ": TFile not open" << G4endl;
 	exit(1);
@@ -265,6 +278,7 @@ void G4SBSIO::WriteTree(){
 
     fFile->cd();
     fTree->Write("T", TObject::kOverwrite);
+    fNorm->Write("NORM", TObject::kOverwrite);
 
     G4SBSRun::GetRun()->GetData()->Write("run_data", TObject::kOverwrite);
 
@@ -280,11 +294,25 @@ void G4SBSIO::WriteTree(){
     delete fTree;
     fTree = NULL;
 
+    fNorm->ResetBranchAddresses();
+    delete fNorm;
+    fNorm = NULL;
+
     fFile->Close();
     delete fFile;
     fFile = NULL;
 
     return;
+}
+
+void G4SBSIO::HandleNORM(Int_t thrown, Int_t tried){
+  normdata.thrown = thrown;
+  normdata.tried  = tried;
+  if( !fNorm ){ 
+    fprintf(stderr, "Error %s: %s line %d - Trying to fill non-existant tree\n", __PRETTY_FUNCTION__, __FILE__, __LINE__ );
+    return; 
+  }
+  fNorm->Fill();
 }
 
 void G4SBSIO::BranchGEM(G4String SDname="GEM"){

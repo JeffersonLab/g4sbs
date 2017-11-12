@@ -44,6 +44,7 @@ void G4SBSRunAction::EndOfRunAction(const G4Run* aRun)
 
   G4SBSRun::GetRun()->GetData()->SetNtries( Ntries );
 
+  fIO->HandleNORM(aRun->GetNumberOfEvent(),Ntries);
   fIO->WriteTree();
 }
 

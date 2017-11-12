@@ -26,6 +26,10 @@ typedef struct {
   Double_t thbb, thsbs, dbb, dsbs, dhcal, drich, dsbstrkr, Ebeam;
 } gen_t;
 
+typedef struct {
+  Int_t thrown, tried;
+} norm_t;
+
 
 typedef struct {
   Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph;
@@ -143,15 +147,20 @@ public:
 
   void SetPythiaOutput( G4SBSPythiaOutput p ){ Primaries = p; }
   void SetUsePythia6( G4bool b ){ fUsePythia = b; }
+
+  norm_t normdata;
+  void HandleNORM(Int_t, Int_t);
   
 private:
   TFile *fFile;
   TTree *fTree;
+  TTree *fNorm;
  
   G4SBSDetectorConstruction *fdetcon;
  
   ev_t evdata;
   gen_t gendata;
+
   //tr_t trdata;
   // cal_t caldata;
   // hit_t hitdata;

@@ -19,6 +19,7 @@ void G4SBSSeamusMC::Clear(){
   fPphi.clear();
   fGth.clear();
   fGphi.clear();
+  fdsdx.clear();
   fInitialNucleon.clear();
   fFinalPion.clear();
   fEventType.clear();
@@ -83,17 +84,19 @@ void  G4SBSSeamusMC::OpenFile(TString name){
   if( input.is_open() ){ 
     double Eprime, Pprime, Gprime; 
     double Eth, Ephi, Pth, Pphi, Gth, Gphi;
+    double cross_section;
     int Nucl, Pion, Type;
 
     Eprime = Pprime = Gprime = 0.0;
     Eth = Pth = Gth = 0.0;
     Ephi = Pphi = Gphi = 0.0;
     Nucl = Pion = Type = 0;
-   
+    cross_section = 0.0;
+
     while(input >> Eprime >> Eth >> Ephi 
 	  >> Pprime >> Pth >> Pphi 
 	  >> Gprime >> Gth >> Gphi 
-	  >> Nucl >> Pion >> Type ){
+	  >> Nucl >> Pion >> Type >> cross_section ){
 
       // I am breaking it up this way so no sleight-of-hand is performed and 
       // the logic is crystal clear.
@@ -122,8 +125,10 @@ void  G4SBSSeamusMC::OpenFile(TString name){
 	  fInitialNucleon.push_back( Nucl );
 	  fFinalPion.push_back( Pion );
 	  fEventType.push_back( Type );
-	  //printf("%d \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %d \t %d \t %d \n", 
-	  //	 fMin+temp, Eprime, Eth, Ephi, Pprime, Pth, Pphi, Gprime, Gth, Gphi, Nucl, Pion, Type);
+
+	  fdsdx.push_back( cross_section );
+	  printf("%d \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %d \t %d \t %d \n", 
+	  	 fMin+temp, Eprime, Eth, Ephi, Pprime, Pth, Pphi, Gprime, Gth, Gphi, Nucl, Pion, Type);
 	  temp++;
 	}
       } else {
@@ -142,6 +147,7 @@ void  G4SBSSeamusMC::OpenFile(TString name){
 	fInitialNucleon.push_back( Nucl );
 	fFinalPion.push_back( Pion );
 	fEventType.push_back( Type );
+	fdsdx.push_back( cross_section );
 	temp++;
       }
       // Count all lines regardless for a range of events:
@@ -276,5 +282,14 @@ int G4SBSSeamusMC::GetEventType(unsigned int index){
     return -100;
   } else {
     return fEventType[index];
+  }
+}
+
+double G4SBSSeamusMC::Getdsdx(unsigned int index){
+  if( index >= fdsdx.size() ) {
+    std::cerr << "Error accessing fdsdx due to bad index!" << std::endl;
+    return 0.0;
+  } else {
+    return fdsdx[index];
   }
 }

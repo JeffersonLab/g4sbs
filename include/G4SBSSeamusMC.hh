@@ -25,6 +25,7 @@ private:
   // Final pion can be pi+, pi-, pi0;
   // EventType means elastic or inelastic (no pion generated vs. pion generated)
   std::vector<int> fInitialNucleon, fFinalPion, fEventType;
+  std::vector<double> fdsdx;
  
   TString fFileName;      // Name of File to Open
   int fUserEvents;        // Nevents defined in .mac file
@@ -59,6 +60,8 @@ public:
   double GetGprime(unsigned int index);
   double GetGtheta(unsigned int index);
   double GetGphi(unsigned int index);
+  double Getdsdx(unsigned int index);
+
   int GetInitialNucleon(unsigned int index);
   int GetFinalPion(unsigned int index);
   int GetEventType(unsigned int index);

@@ -260,69 +260,219 @@ bool G4SBSEventGen::GenerateEvent(){
   return success;
 }
 
+// bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+//   double Mp = proton_mass_c2;
+
+//   G4ThreeVector pboost = -1.0*(ni.boostVector());
+
+//   G4ThreeVector boost_Nrest = ni.boostVector();
+//   G4LorentzVector ei_Nrest = ei;
+//   G4LorentzVector ni_Nrest = ni;
+//   ei_Nrest.boost( -boost_Nrest );
+//   ni_Nrest.boost( -boost_Nrest );
+
+//   double Ebeam_Nrest = ei_Nrest.e();
+
+
+
+//   G4LorentzVector eip = ei.boost(pboost);
+//   ei.boost(-pboost);
+
+//   // Rotation that puts z down eip
+//   // Orthogonal vector with z
+//   G4ThreeVector rotax = (eip.vect().cross(G4ThreeVector(0.0, 0.0, 1.0))).unit();
+//   G4RotationMatrix prot,prot2;
+
+//   prot.rotate(-eip.vect().theta(), rotax);
+
+//   eip = G4LorentzVector(eip.e(), G4ThreeVector(0.0, 0.0, eip.e()));
+
+//   // we are in nucleon rest frame:
+//   G4LorentzVector nip = G4LorentzVector( Mp );
+//   G4LorentzVector nip2 = ni;
+//   nip2.boost(-pboost);
+
+//   // Now we have our boost and way to get back, calculate elastic scattering
+
+//   G4ThreeVector efp3, nfp3, qfp3;
+//   G4LorentzVector efp, nfp, q, qf;
+
+//   //  Now do real physics
+
+//   double th = acos( CLHEP::RandFlat::shoot(cos(fThMax), cos(fThMin)) );
+//   double ph = CLHEP::RandFlat::shoot(fPhMin, fPhMax );
+
+//   double eprime = (Mp*eip.e())/(Mp + eip.e()*(1.0-cos(th)));
+
+//   /*
+//     printf("nucleon p = %f, mass = %f\n", ni.vect().mag()/GeV, ni.m()/GeV);
+//     printf("beam e= %f, eprime = %f\n", ei.e()/GeV, eprime/GeV);
+
+//     printf("th = %f, phi = %f\n", th/deg, ph/deg);
+//   */
+
+//   efp3.setRThetaPhi(eprime, th, ph );
+//   efp = G4LorentzVector( efp3, efp3.mag() );
+
+
+//   q = eip-efp;
+
+//   nfp3 = q.vect();
+
+
+//   nfp = G4LorentzVector( nfp3, sqrt(Mp*Mp + nfp3.mag2()));
+
+//   //printf("nucleon f p = %f, ang = %f deg, phi = %f deg, mass = %f\n", nfp.vect().mag()/GeV, nfp.theta()/deg, nfp.phi()/deg,  nfp.m()/GeV);
+
+//   fQ2 = -q.mag2();
+    
+//   //  Do cross sections and asymmetries
+
+//   double GE, GM, GD;
+
+//   double tau = fQ2/(4.0*Mp*Mp);
+//   double alpha = fine_structure_const;
+
+//   GD = pow(1.0 + fQ2/(0.71*GeV*GeV), -2.0);
+
+//   switch( nucl ){
+//   case kNeutron:
+//     // Our fit
+//     GE = (1.520*tau + 2.629*tau*tau + 3.055*tau*tau*tau)*GD/(1.0+5.222*tau+0.040*tau*tau+11.438*tau*tau*tau);
+//     // Kelly
+//     GM = -1.913*(1.0+2.33*tau)/(1.0 + 14.72*tau + 24.20*tau*tau + 84.1*tau*tau*tau );
+//     break;
+//   default:
+//     // Kelly
+//     GE = (1.0-0.24*tau)/(1.0 + 10.98*tau + 12.82*tau*tau + 21.97*tau*tau*tau );
+//     // Kelly
+//     GM = 2.79*(1.0+0.12*tau)/(1.0 + 10.97*tau + 18.86*tau*tau + 6.55*tau*tau*tau );
+//     break;
+//   }
+
+//   double dsdx_Mott = pow( cos(th/2.0)*alpha/(2.0*eip.e()*sin(th/2.0)*sin(th/2.0)), 2.0)*hbarc*hbarc;
+//   fSigma    = dsdx_Mott*(efp.e()/eip.e())*( (GE*GE+tau*GM*GM)/(1.0+tau) + 2.0*tau*GM*GM*tan(th/2.0)*tan(th/2.0) ); // Dimensions of area
+
+
+//   fApar  = -(2.0*tau*sqrt(1.0+tau+pow((1.0+tau)*tan(th/2.0),2.0)  )*tan(th/2.0))/
+//     (pow(GE/GM,2.0) + (tau + 2.0*tau*(1.0+tau)*pow(tan(th/2.0),2.0)  ));
+//   fAperp = -(GE/GM)*2.0*sqrt(tau*(tau+1.0))*tan(th/2.0)/
+//     (pow(GE/GM,2.0) + (tau + 2.0*tau*(1.0+tau)*pow(tan(th/2.0),2.0)  ));
+
+//   // Calculate longitudinal / transverse polarization components 
+//   double r = GE / GM;
+//   double epsilon = pow(1.0 + 2.0*(1.0+tau)*tan(th/2.0)*tan(th/2.0), -1);
+//   fPt = ( -fhel*fBeamPol.z()*sqrt( (2.0*epsilon*(1.0-epsilon))/tau) ) * ( r / (1.0+epsilon*r*r/tau) );
+//   fPl = ( fhel*fBeamPol.z()*sqrt(1.0-epsilon*epsilon) ) / ( 1.0+epsilon*r*r/tau );
+
+//   // Boost back
+    
+//   efp3 = prot*efp3;
+//   G4LorentzVector ef(efp3, efp3.mag());
+//   ef = ef.boost(-pboost);
+  
+//   qf = ei - ef;
+//   G4ThreeVector qf3 = qf.vect();
+//   G4ThreeVector pi3 = ni.vect();
+ 
+//   //std::cout << qf.x() << " " << qf.y() << " " << qf.z() << " " << pi3.x() << " " << pi3.y() << " " << pi3.z() << std::endl;
+
+//   nfp3 = prot*nfp3;
+//   G4LorentzVector nf(nfp3, sqrt(Mp*Mp + nfp3.mag2()) );
+//   nf = nf.boost(-pboost);
+//   G4ThreeVector nf3 = nf.vect();
+
+//   fPmisspar  = (qf3-nf3)*qf3/qf3.mag();
+
+//   double beta = nf3.mag()/sqrt(nf3.mag2()+Mp*Mp);
+//   double tofsm  = beta*fHCALdist/(0.3*m/ns) + CLHEP::RandGauss::shoot(0.0, fToFres);
+//   double betasm = fHCALdist/tofsm/(0.3*m/ns);
+//   double psm    = Mp*betasm/sqrt(1.0-betasm*betasm);
+
+//   G4ThreeVector nf3sm = (psm/nf3.mag())*nf3;
+//   fPmissparSm  = (qfp3-nf3sm)*qf3/qf3.mag();
+
+//   fPmissperp = ((qf3-nf3) - fPmisspar*qf3/qf3.mag()).mag();
+
+//   fW2 = (qf+nip).mag2();
+
+//   fxbj = 1.0;
+
+//   fElectronP = ef.vect();
+//   fElectronE = ef.e();
+
+//   fNucleonP = nf.vect();
+//   fNucleonE = nf.e();
+//   //    printf("nfp_e = %f GeV\n", nfp.e()/GeV);
+
+//   fFinalNucl = nucl;
+//   return true;
+// }
+
 bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
-  double Mp = proton_mass_c2;
+  G4double Mp = proton_mass_c2;
 
-  G4ThreeVector pboost = -1.0*(ni.boostVector());
+  G4ThreeVector boost_Nrest = ni.boostVector();
 
-  G4LorentzVector eip = ei.boost(pboost);
-  ei.boost(-pboost);
+  G4LorentzVector Pisum_lab = ei + ni;
 
-  // Rotation that puts z down eip
-  // Orthogonal vector with z
-  G4ThreeVector rotax = (eip.vect().cross(G4ThreeVector(0.0, 0.0, 1.0))).unit();
-  G4RotationMatrix prot,prot2;
+  G4LorentzVector ei_Nrest = ei;
+  G4LorentzVector ni_Nrest = ni;
 
-  prot.rotate(-eip.vect().theta(), rotax);
+  ei_Nrest.boost( -boost_Nrest );
+  ni_Nrest.boost( -boost_Nrest );
 
-  eip = G4LorentzVector(eip.e(), G4ThreeVector(0.0, 0.0, eip.e()));
-
-  // we are in nucleon rest frame:
-  G4LorentzVector nip = G4LorentzVector( Mp );
-  G4LorentzVector nip2 = ni;
-  nip2.boost(-pboost);
-
-  // Now we have our boost and way to get back, calculate elastic scattering
+  G4double Ebeam_Nrest = ei_Nrest.e();
 
   G4ThreeVector efp3, nfp3, qfp3;
   G4LorentzVector efp, nfp, q, qf;
 
-  //  Now do real physics
+  G4double Ebeam_lab = ei.e();
 
-  double th = acos( CLHEP::RandFlat::shoot(cos(fThMax), cos(fThMin)) );
-  double ph = CLHEP::RandFlat::shoot(fPhMin, fPhMax );
+  //Q2 = -(k-k')^2 = 2k dot k' = -2EE'(1-cos theta)
+  
+  //Generate both theta and phi angles in the LAB frame:
+  G4double th = acos( CLHEP::RandFlat::shoot(cos(fThMax), cos(fThMin)) );
+  G4double ph = CLHEP::RandFlat::shoot(fPhMin, fPhMax); 
 
-  double eprime = (Mp*eip.e())/(Mp + eip.e()*(1.0-cos(th)));
+  //unit vector in the direction of the scattered electron in the LAB frame:
+  G4ThreeVector kfhat_lab( sin(th)*cos(ph),sin(th)*sin(ph), cos(th) );
 
-  /*
-    printf("nucleon p = %f, mass = %f\n", ni.vect().mag()/GeV, ni.m()/GeV);
-    printf("beam e= %f, eprime = %f\n", ei.e()/GeV, eprime/GeV);
+  //Outgoing energy of the scattered electron in the LAB frame accounting for the initial nucleon motion (no off-shell or binding energy corrections, just Fermi momentum)
+  G4double Eprime_lab = (ei.e()*(ni.e()-ni.pz()))/(ei.e()*(1.-cos(th))+ni.e()-ni.vect().dot(kfhat_lab));
+  G4double Pprime_lab = sqrt(pow(Eprime_lab,2)-ei.m2());
+  
+  G4ThreeVector kf_lab = Pprime_lab*kfhat_lab;
 
-    printf("th = %f, phi = %f\n", th/deg, ph/deg);
-  */
+  //Four-momentum of scattered electron in the LAB frame:
+  G4LorentzVector ef_lab( kf_lab, Eprime_lab );
 
-  efp3.setRThetaPhi(eprime, th, ph );
-  efp = G4LorentzVector( efp3, efp3.mag() );
+  //q vector in the LAB frame:
+  G4LorentzVector q_lab = ei - ef_lab;
+  G4double Q2 = -q_lab.m2();
 
+  //Calculate four-momentum of scattered electron boosted to the nucleon REST frame for cross section calculation:
+  G4LorentzVector ef_Nrest = ef_lab;
+  ef_Nrest.boost( -boost_Nrest );
 
-  q = eip-efp;
+  G4LorentzVector nf_lab_test = ni + ei - ef_lab;
+  
+  //Calculate dsigma/dOmega_e in the nucleon rest frame:
+  
 
-  nfp3 = q.vect();
-
-
-  nfp = G4LorentzVector( nfp3, sqrt(Mp*Mp + nfp3.mag2()));
-
-  //printf("nucleon f p = %f, ang = %f deg, phi = %f deg, mass = %f\n", nfp.vect().mag()/GeV, nfp.theta()/deg, nfp.phi()/deg,  nfp.m()/GeV);
-
-  fQ2 = -q.mag2();
+  //G4LorentzVector q_Nrest = ei_Nrest - ef_Nrest;
+  
+  fQ2 = Q2;
     
   //  Do cross sections and asymmetries
 
-  double GE, GM, GD;
+  G4double GE, GM, GD;
 
-  double tau = fQ2/(4.0*Mp*Mp);
-  double alpha = fine_structure_const;
+  G4double tau = fQ2/(4.0*Mp*Mp);
+  G4double alpha = fine_structure_const;
 
+  G4double th_Nrest = acos( ei_Nrest.vect().unit().dot( ef_Nrest.vect().unit()) );
+  
   GD = pow(1.0 + fQ2/(0.71*GeV*GeV), -2.0);
 
   switch( nucl ){
@@ -340,59 +490,78 @@ bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzV
     break;
   }
 
-  double dsdx_Mott = pow( cos(th/2.0)*alpha/(2.0*eip.e()*sin(th/2.0)*sin(th/2.0)), 2.0)*hbarc*hbarc;
-  fSigma    = dsdx_Mott*(efp.e()/eip.e())*( (GE*GE+tau*GM*GM)/(1.0+tau) + 2.0*tau*GM*GM*tan(th/2.0)*tan(th/2.0) ); // Dimensions of area
+  //Differential cross section dsigma/dOmega_e in the nucleon rest frame:
+  double dsdx_Mott = pow( cos(th_Nrest/2.0)*alpha/(2.0*ei_Nrest.e()*sin(th_Nrest/2.0)*sin(th_Nrest/2.0)), 2.0)*hbarc*hbarc;
+  fSigma    = dsdx_Mott*(ef_Nrest.e()/ei_Nrest.e())*( (GE*GE+tau*GM*GM)/(1.0+tau) + 2.0*tau*GM*GM*tan(th_Nrest/2.0)*tan(th_Nrest/2.0) ); // Dimensions of area
 
-
-  fApar  = -(2.0*tau*sqrt(1.0+tau+pow((1.0+tau)*tan(th/2.0),2.0)  )*tan(th/2.0))/
-    (pow(GE/GM,2.0) + (tau + 2.0*tau*(1.0+tau)*pow(tan(th/2.0),2.0)  ));
-  fAperp = -(GE/GM)*2.0*sqrt(tau*(tau+1.0))*tan(th/2.0)/
-    (pow(GE/GM,2.0) + (tau + 2.0*tau*(1.0+tau)*pow(tan(th/2.0),2.0)  ));
+  fApar  = -(2.0*tau*sqrt(1.0+tau+pow((1.0+tau)*tan(th_Nrest/2.0),2.0)  )*tan(th_Nrest/2.0))/
+    (pow(GE/GM,2.0) + (tau + 2.0*tau*(1.0+tau)*pow(tan(th_Nrest/2.0),2.0)  ));
+  fAperp = -(GE/GM)*2.0*sqrt(tau*(tau+1.0))*tan(th_Nrest/2.0)/
+    (pow(GE/GM,2.0) + (tau + 2.0*tau*(1.0+tau)*pow(tan(th_Nrest/2.0),2.0)  ));
 
   // Calculate longitudinal / transverse polarization components 
   double r = GE / GM;
-  double epsilon = pow(1.0 + 2.0*(1.0+tau)*tan(th/2.0)*tan(th/2.0), -1);
+  double epsilon = pow(1.0 + 2.0*(1.0+tau)*tan(th_Nrest/2.0)*tan(th_Nrest/2.0), -1);
   fPt = ( -fhel*fBeamPol.z()*sqrt( (2.0*epsilon*(1.0-epsilon))/tau) ) * ( r / (1.0+epsilon*r*r/tau) );
   fPl = ( fhel*fBeamPol.z()*sqrt(1.0-epsilon*epsilon) ) / ( 1.0+epsilon*r*r/tau );
 
   // Boost back
-    
-  efp3 = prot*efp3;
-  G4LorentzVector ef(efp3, efp3.mag());
-  ef = ef.boost(-pboost);
+
+  G4LorentzVector q_Nrest = ei_Nrest - ef_Nrest;
+  //G4cout << "Q2 (lab) = " << fQ2/pow(GeV,2) << " GeV^2, Q2 (Nrest) = " << -q_Nrest.m2()/pow(GeV,2) << " GeV^2" << G4endl;
   
-  qf = ei - ef;
-  G4ThreeVector qf3 = qf.vect();
-  G4ThreeVector pi3 = ni.vect();
- 
-  //std::cout << qf.x() << " " << qf.y() << " " << qf.z() << " " << pi3.x() << " " << pi3.y() << " " << pi3.z() << std::endl;
+  G4LorentzVector nf_Nrest = ni_Nrest + q_Nrest;
 
-  nfp3 = prot*nfp3;
-  G4LorentzVector nf(nfp3, sqrt(Mp*Mp + nfp3.mag2()) );
-  nf = nf.boost(-pboost);
-  G4ThreeVector nf3 = nf.vect();
+  G4LorentzVector nf_lab = nf_Nrest;
+  nf_lab.boost( boost_Nrest );
 
-  fPmisspar  = (qf3-nf3)*qf3/qf3.mag();
+  // G4cout << "Lab frame nucleon momentum boosted from rest frame = " << nf_lab << G4endl;
 
-  double beta = nf3.mag()/sqrt(nf3.mag2()+Mp*Mp);
+  // G4cout << "Lab frame nucleon momentum from lab frame two-body kinematics = " << nf_lab_test << G4endl;
+  //fPmisspar  = (qf3-nf3)*qf3/qf3.mag();
+  fPmisspar = (q_lab.vect() - nf_lab.vect()).dot( q_lab.vect().unit() );
+  
+  G4double beta = nf_lab.vect().mag()/nf_lab.e(); //beta = p/e
   double tofsm  = beta*fHCALdist/(0.3*m/ns) + CLHEP::RandGauss::shoot(0.0, fToFres);
   double betasm = fHCALdist/tofsm/(0.3*m/ns);
   double psm    = Mp*betasm/sqrt(1.0-betasm*betasm);
 
-  G4ThreeVector nf3sm = (psm/nf3.mag())*nf3;
-  fPmissparSm  = (qfp3-nf3sm)*qf3/qf3.mag();
+  G4ThreeVector nf3sm = (psm/nf_lab.vect().mag())*nf_lab.vect();
+  fPmissparSm  = (q_lab.vect()-nf3sm).dot(q_lab.vect().unit() );
 
-  fPmissperp = ((qf3-nf3) - fPmisspar*qf3/qf3.mag()).mag();
+  fPmissperp = ((q_lab.vect()-nf_lab.vect()) - fPmisspar*q_lab.vect().unit() ).mag();
 
-  fW2 = (qf+nip2).mag2();
+  double costheta_eN_lab = (ei.vect().unit() ).dot( ni.vect().unit() );
+  double betaN_lab = ni.beta();
+  double gammaN_lab = ni.gamma();
+  
+  double flux_Nrest = 4.0*ni.m()*ei_Nrest.e();
+  double flux_lab = 4.0*ei.e()*ni.e()*sqrt( 2.0*(1.0-betaN_lab*costheta_eN_lab) - pow(gammaN_lab,-2) );
 
+  // G4cout << "Initial nucleon four-momentum = " << ni << G4endl;
+  // G4cout << "Q2, GeV^2 = " << fQ2/pow(GeV,2) << G4endl;
+  // G4cout << "nucleon rest frame differential cross section = " << fSigma/nanobarn << " nb/sr" << G4endl;
+
+  // G4cout << "Flux factor, nucleon rest frame = " << flux_Nrest << G4endl;
+  // G4cout << "Flux factor, lab frame = " << flux_lab << G4endl;
+  
+  fSigma *= flux_Nrest/flux_lab;
+
+  //G4cout << "Lab frame differential cross section = " << fSigma/nanobarn << " nb/sr" << G4endl;
+  
+  //fW2 = (q_lab+ni).mag2();
+
+  fW2 = (q_lab+ni_Nrest).m2();
+
+  // G4cout << "fW2 = " << fW2/pow(GeV,2) << G4endl;
+  // G4cout << "fW2 (true, lab) = " << (q_lab+ni).m2()/pow(GeV,2) << G4endl;
   fxbj = 1.0;
 
-  fElectronP = ef.vect();
-  fElectronE = ef.e();
+  fElectronP = ef_lab.vect();
+  fElectronE = ef_lab.e();
 
-  fNucleonP = nf.vect();
-  fNucleonE = nf.e();
+  fNucleonP = nf_lab.vect();
+  fNucleonE = nf_lab.e();
   //    printf("nfp_e = %f GeV\n", nfp.e()/GeV);
 
   fFinalNucl = nucl;
@@ -1348,39 +1517,39 @@ bool G4SBSEventGen::GenerateSeamusMC(){
     pip = fSeamusMC->GetGprime(ev);
     pitheta = fSeamusMC->GetGtheta(ev);
     piphi = fSeamusMC->GetGphi(ev);
-  }
 
-  fHadronP.set( pip*sin(pitheta)*cos(piphi), 
-		pip*sin(pitheta)*sin(piphi),
-		pip*cos(pitheta) );
+    fHadronP.set( pip*sin(pitheta)*cos(piphi), 
+		  pip*sin(pitheta)*sin(piphi),
+		  pip*cos(pitheta) );
  
-  int pion = fSeamusMC->GetFinalPion(ev); // -1=pi-, 0=pi0, 1=pi+
-  double Mh = 0.0;
-  int icharge = 1;
-  // in sbstypes:
-  // enum Hadron_t { kPiPlus, kPiMinus, kPi0, kKPlus, kKMinus, kP, kPbar};
-  switch( pion ){
-  case -1: 
-    Mh = G4PionMinus::PionMinusDefinition()->GetPDGMass();
-    icharge = -1;
-    fHadronType = kPiMinus;
-    break;
-  case 0:
-    Mh = G4PionZero::PionZeroDefinition()->GetPDGMass();
-    icharge = 0;
-    fHadronType = kPi0;
-    break;
-  case 1:
-    Mh = G4PionPlus::PionPlusDefinition()->GetPDGMass();
-    icharge = 1;
-    fHadronType = kPiPlus;
-    break;
-  default:
-    Mh = 0.0;
-    icharge = 0;
-    break;
+    int pion = fSeamusMC->GetFinalPion(ev); // -1=pi-, 0=pi0, 1=pi+
+    double Mh = 0.0;
+    int icharge = 1;
+    // in sbstypes:
+    // enum Hadron_t { kPiPlus, kPiMinus, kPi0, kKPlus, kKMinus, kP, kPbar};
+    switch( pion ){
+    case -1: 
+      Mh = G4PionMinus::PionMinusDefinition()->GetPDGMass();
+      icharge = -1;
+      fHadronType = kPiMinus;
+      break;
+    case 0:
+      Mh = G4PionZero::PionZeroDefinition()->GetPDGMass();
+      icharge = 0;
+      fHadronType = kPi0;
+      break;
+    case 1:
+      Mh = G4PionPlus::PionPlusDefinition()->GetPDGMass();
+      icharge = 1;
+      fHadronType = kPiPlus;
+      break;
+    default:
+      Mh = 0.0;
+      icharge = 0;
+      break;
+    }
+    fHadronE = sqrt( fHadronP.mag2() + pow(Mh,2.0) );
   }
-  fHadronE = sqrt( fHadronP.mag2() + pow(Mh,2.0) );
 
   // Kill it if pion is not generated
   if( event_type == 0 || event_type == 1){
@@ -1400,6 +1569,8 @@ bool G4SBSEventGen::GenerateSeamusMC(){
   //std::cout << ev << " " << ep << " " << etheta << " " << ephi << std::endl;
   // printf("%d \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %d \t %d \t %d -- %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \n",
   //	 ev, ep, etheta, ephi, pp, ptheta, pphi, pip, pitheta, piphi, nucleon, pion, event_type, fElectronE, fNucleonE, fHadronE, Mn, Mh);
+
+  fSigma = fSeamusMC->Getdsdx(ev);
 
   fSeamusMC->SetUpNextEvent();
   return true;
@@ -1684,7 +1855,7 @@ ev_t G4SBSEventGen::GetEventData(){
     genvol *= (fEhadMax - fEhadMin);
 
     thisrate = fSigma*lumin*genvol/fNevt;
-      
+     
   }
 
   data.count  = thisrate*fRunTime;

@@ -83,6 +83,7 @@ private:
   G4UIcmdWithADoubleAndUnit *tgtLenCmd;
   G4UIcmdWithADoubleAndUnit *tgtDenCmd;
   G4UIcmdWithADoubleAndUnit *tgtPresCmd;
+  G4UIcmdWithADoubleAndUnit *tgtDiamCmd;
   G4UIcmdWithADoubleAndUnit *beamcurCmd;
   G4UIcmdWithADoubleAndUnit *runtimeCmd;
   G4UIcmdWithADoubleAndUnit *rasterxCmd;

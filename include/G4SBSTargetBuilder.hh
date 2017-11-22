@@ -32,22 +32,25 @@ public:
   void BuildC16ScatCham(G4LogicalVolume *);
   
   void SetTarget(Targ_t t){fTargType = t;}
-  void SetTargLen(double len){ fTargLen = len;}
-  void SetTargDen(double den){ fTargDen = den;} //Currently, fTargDen has NO effect!
+  void SetTargLen(G4double len){ fTargLen = len;}
+  void SetTargDen(G4double den){ fTargDen = den;} //Currently, fTargDen has NO effect!
+  void SetTargDiameter(G4double D){ fTargDiameter = D; }
   void SetSchamFlag(int flag){ fSchamFlag = flag; }
 
   int GetSchamFlag() const { return fSchamFlag; }
-  double GetTargLen() const { return fTargLen; }
+  G4double GetTargLen() const { return fTargLen; }
+  G4double GetTargDiameter() const { return fTargDiameter; }
   //G4LogicalVolume *BuildSnoutWindows(G4Box *, G4double, G4double, G4double, G4double, G4double);
 
   G4bool GetFlux() const { return fFlux; }
   void SetFlux(G4bool b){fFlux = b;}
   
 private:
-  double fTargLen;
-  double fTargDen;
-  G4ThreeVector fTargPos;
-  G4ThreeVector fTargDir;
+  G4double fTargLen;
+  G4double fTargDen;
+  G4double fTargDiameter; //diameter of cryotarget
+  G4ThreeVector fTargPos; //Note: fTargPos currently has no effect!
+  G4ThreeVector fTargDir; //Note: fTargDir currently has no effect!
   int fSchamFlag;
 
   G4bool fFlux;

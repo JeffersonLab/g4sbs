@@ -1972,6 +1972,7 @@ G4OpticalSurface *G4SBSDetectorConstruction::GetOpticalSurface( G4String name ){
   }
 }
 
+//G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 {
   G4cout << "\nG4SBSDetectorConstruction....\n" << G4endl;

@@ -702,6 +702,9 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
 
   if( fSigma != fSigma ) fSigma = 0.0;
 
+  //std::cout << "inelastic -> " << fSigma << std::endl;
+  //std::cout << "inelastic -> " << fSigma/nanobarn << std::endl;
+
   fApar  = 0.0;
   fAperp = 0.0;
 
@@ -847,7 +850,7 @@ bool G4SBSEventGen::GenerateDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVecto
   }
   //    printf("fSigma = %e\n", fSigma);
 
-  if( fSigma != fSigma ) fSigma = 0.0;
+  if( fSigma != fSigma ) fSigma = 0.0;   
 
   fApar  = 0.0;
   fAperp = 0.0;
@@ -1458,7 +1461,7 @@ bool G4SBSEventGen::GenerateESEPP(){
   fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
   
   // fNucleonP.set( pp*sin(ptheta)*cos(pphi), pp*sin(ptheta)*sin(pphi), pp*cos(ptheta) );
-  // fNucleonE = pp;
+  // fNucleonE = sqrt( fNucleonP.mag2() + pow(Mn,2.0) ); 
 
   // fHadronE = gp;
   // fHadronP.set( gp*sin(gtheta)*cos(gphi), gp*sin(gtheta)*sin(gphi), gp*cos(gtheta) );
@@ -1570,6 +1573,7 @@ bool G4SBSEventGen::GenerateSeamusMC(){
   // printf("%d \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %d \t %d \t %d -- %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \n",
   //	 ev, ep, etheta, ephi, pp, ptheta, pphi, pip, pitheta, piphi, nucleon, pion, event_type, fElectronE, fNucleonE, fHadronE, Mn, Mh);
 
+  // this is his weight from the simulation
   fSigma = fSeamusMC->Getdsdx(ev);
 
   fSeamusMC->SetUpNextEvent();
@@ -1834,18 +1838,18 @@ bool G4SBSEventGen::GeneratePythia(){
 ev_t G4SBSEventGen::GetEventData(){
   ev_t data;
 
-  double lumin    = fTargDen*Wfact // Nucleons/Volume
-    *fTargLen       // Nuclei/area
-    *fBeamCur/(e_SI*ampere*second);
+  double lumin = fTargDen*Wfact // Nucleons/Volume
+                * fTargLen       // Nuclei/area
+                * fBeamCur/(e_SI*ampere*second);
 
-    
+  // printf("density = %e \n", fTargDen);
   // printf("density = %e N/m3\n", fTargDen*m3);
   // printf("density = %e N/cm3\n", fTargDen*cm3);
   // printf("targlen = %f m\n", fTargLen/m);
   // printf("%e e-/s (I = %f uA)\n", fBeamCur/(e_SI*ampere), fBeamCur/(1e-6*ampere) );
-  //printf("luminosity = %e Hz/cm2\n", lumin*second*cm2);
-  // printf("e_SI = %e, ampere = %f, \n", e_SI);
-
+  // printf("luminosity = %e Hz/cm2\n", lumin*second*cm2);
+  // printf("e_SI = %e, ampere = %f, second = %f\n", e_SI, ampere, second);
+ 
   double genvol   = (fPhMax-fPhMin)*(cos(fThMin)-cos(fThMax));
   double thisrate = fSigma*lumin*genvol/fNevt;
 
@@ -1865,6 +1869,8 @@ ev_t G4SBSEventGen::GetEventData(){
     data.solang /= pow(GeV,2);
   }
   data.sigma = fSigma/cm2;
+  //std::cout << "eventdata -> " << data.sigma << "   " << cm2 << std::endl;
+  
   if( fKineType == kSIDIS ){ //The SIDIS cross section is also differential in e- energy and hadron energy and has units of area/energy^2/sr^2, so we also need to express it in the correct energy units:
     data.sigma = fSigma/cm2*pow(GeV,2);
   }

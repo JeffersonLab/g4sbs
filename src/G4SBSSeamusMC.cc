@@ -127,8 +127,8 @@ void  G4SBSSeamusMC::OpenFile(TString name){
 	  fEventType.push_back( Type );
 
 	  fdsdx.push_back( cross_section );
-	  printf("%d \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %d \t %d \t %d \n", 
-	  	 fMin+temp, Eprime, Eth, Ephi, Pprime, Pth, Pphi, Gprime, Gth, Gphi, Nucl, Pion, Type);
+	  // printf("%d \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %1.2f \t %d \t %d \t %d \n", 
+	  // 	 fMin+temp, Eprime, Eth, Ephi, Pprime, Pth, Pphi, Gprime, Gth, Gphi, Nucl, Pion, Type);
 	  temp++;
 	}
       } else {

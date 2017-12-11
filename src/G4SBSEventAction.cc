@@ -265,7 +265,10 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
   //For each unique particle track in each GEM layer, we want to tabulate sums/averages of coordinates, etc:
   map<int,map<int,int> > nsteps_track_layer; //number of steps by track/layer
   map<int,map<int,double> > x,y,z,t,t2,tmin,tmax;
-  map<int,map<int,double> > tx,ty,txp,typ;
+  map<int,map<int,double> > tx,ty;
+  map<int,map<int,double> > xin,yin,zin;
+  map<int,map<int,double> > xout,yout,zout;
+  map<int,map<int,double> > txp,typ;
   map<int,map<int,double> > xg,yg,zg;
   map<int,map<int,int> > mid,pid; //don't need one for plane, trid as these are already keys
   map<int,map<int,double> > vx,vy,vz;
@@ -300,6 +303,15 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
       //Track coordinates in TRANSPORT system:
       tx[gemID][trid] = x[gemID][trid];
       ty[gemID][trid] = y[gemID][trid];
+
+      xin[gemID][trid] = (*hits)[i]->GetPos().x();
+      yin[gemID][trid] = (*hits)[i]->GetPos().y();
+      zin[gemID][trid] = (*hits)[i]->GetPos().z();
+
+      xout[gemID][trid] = (*hits)[i]->GetOutPos().x();
+      yout[gemID][trid] = (*hits)[i]->GetOutPos().y();
+      zout[gemID][trid] = (*hits)[i]->GetOutPos().z();
+
       txp[gemID][trid] = (*hits)[i]->GetXp();
       typ[gemID][trid] = (*hits)[i]->GetYp();
       
@@ -339,6 +351,17 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
       //Track coordinates in TRANSPORT system:
       tx[gemID][trid] = x[gemID][trid];
       ty[gemID][trid] = y[gemID][trid];
+      //we now want tx and ty to be the entry point of the hit in the GEM gas layer...
+      if((*hits)[i]->GetPos().z()<zin[gemID][trid]){
+	xin[gemID][trid] = (*hits)[i]->GetPos().x();
+	yin[gemID][trid] = (*hits)[i]->GetPos().y();
+	zin[gemID][trid] = (*hits)[i]->GetPos().z();
+      }
+      if((*hits)[i]->GetOutPos().z()>zout[gemID][trid]){
+	xout[gemID][trid] = (*hits)[i]->GetOutPos().x();
+	yout[gemID][trid] = (*hits)[i]->GetOutPos().y();
+	zout[gemID][trid] = (*hits)[i]->GetOutPos().z();
+      }
       txp[gemID][trid] = txp[gemID][trid]*w +( (*hits)[i]->GetXp() )*(1.0-w);
       typ[gemID][trid] = typ[gemID][trid]*w +( (*hits)[i]->GetYp() )*(1.0-w);
       
@@ -377,9 +400,12 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
 	gemoutput.trms.push_back( sqrt(t2[gemID][trackID]/double(nsteps_track_layer[gemID][trackID]) - pow(t[gemID][trackID],2))/_T_UNIT );
 	gemoutput.tmin.push_back( tmin[gemID][trackID]/_T_UNIT );
 	gemoutput.tmax.push_back( tmax[gemID][trackID]/_T_UNIT );
-	// gemoutput.x_out.push_back( -y_out[gemID][trackID]/_L_UNIT );
-	// gemoutput.y_out.push_back( x_out[gemID][trackID]/_L_UNIT );
-	// gemoutput.z_out.push_back( z_out[gemID][trackID]/_L_UNIT );
+	gemoutput.xin.push_back( -yin[gemID][trackID]/_L_UNIT );
+	gemoutput.yin.push_back( xin[gemID][trackID]/_L_UNIT );
+	gemoutput.zin.push_back( zin[gemID][trackID]/_L_UNIT );
+	gemoutput.xout.push_back( -yout[gemID][trackID]/_L_UNIT );
+	gemoutput.yout.push_back( xout[gemID][trackID]/_L_UNIT );
+	gemoutput.zout.push_back( zout[gemID][trackID]/_L_UNIT );
 	gemoutput.tx.push_back( -ty[gemID][trackID]/_L_UNIT );
 	gemoutput.ty.push_back( tx[gemID][trackID]/_L_UNIT );
 	gemoutput.txp.push_back( -typ[gemID][trackID] );

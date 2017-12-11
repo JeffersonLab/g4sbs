@@ -272,7 +272,7 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
   map<int,map<int,double> > xg,yg,zg;
   map<int,map<int,int> > mid,pid; //don't need one for plane, trid as these are already keys
   map<int,map<int,double> > vx,vy,vz;
-  map<int,map<int,double> > p,edep,beta;
+  map<int,map<int,double> > p,edep,beta,pmin;//pmin: lowest p reached by the track. Does not make its way to output
   map<int,map<int,double> > polx,poly,polz;
   
   //G4int nhit=0;
@@ -328,6 +328,7 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
       vz[gemID][trid] = (*hits)[i]->GetVertex().z();
       
       p[gemID][trid] = (*hits)[i]->GetMom();
+      pmin[gemID][trid] = (*hits)[i]->GetMom();
       
       edep[gemID][trid] = (*hits)[i]->GetEdep();
    
@@ -357,10 +358,13 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
 	yin[gemID][trid] = (*hits)[i]->GetPos().y();
 	zin[gemID][trid] = (*hits)[i]->GetPos().z();
       }
-      if((*hits)[i]->GetOutPos().z()>zout[gemID][trid]){
+      //if((*hits)[i]->GetOutPos().z()>zout[gemID][trid]){// should I do that ???
+      if((*hits)[i]->GetMom()<pmin[gemID][trid]){// or rather that ??? 
+	// doesnt matter too much for signal, it may for background
 	xout[gemID][trid] = (*hits)[i]->GetOutPos().x();
 	yout[gemID][trid] = (*hits)[i]->GetOutPos().y();
 	zout[gemID][trid] = (*hits)[i]->GetOutPos().z();
+	pmin[gemID][trid] = (*hits)[i]->GetMom();
       }
       txp[gemID][trid] = txp[gemID][trid]*w +( (*hits)[i]->GetXp() )*(1.0-w);
       typ[gemID][trid] = typ[gemID][trid]*w +( (*hits)[i]->GetYp() )*(1.0-w);

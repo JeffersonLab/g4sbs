@@ -1443,25 +1443,29 @@ bool G4SBSEventGen::GenerateGun(){
 }
 
 bool G4SBSEventGen::GenerateESEPP(){
+  double Mn = G4Proton::ProtonDefinition()->GetPDGMass();
   unsigned int ev = fESEPP->CurrentEvent();
   // Electron
   G4double ep = fESEPP->GetEprime(ev);
   G4double etheta = fESEPP->GetEtheta(ev);
   G4double ephi = fESEPP->GetEphi(ev);
+  fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
+
   // Proton
-  // G4double pp = fESEPP->GetPprime(ev);
-  // G4double ptheta = fESEPP->GetPtheta(ev);
-  // G4double pphi = fESEPP->GetPphi(ev);
+  G4double proton_energy_full = fESEPP->GetPprime(ev); // esepp outputs full proton energy
+  G4double pp = sqrt( pow(proton_energy_full,2.0) - pow(Mn,2.0) );
+  G4double ptheta = fESEPP->GetPtheta(ev);
+  G4double pphi = fESEPP->GetPphi(ev);
+ 
+  fFinalNucl = kProton;
+  fNucleonP.set( pp*sin(ptheta)*cos(pphi), pp*sin(ptheta)*sin(pphi), pp*cos(ptheta) );
+  fNucleonE = proton_energy_full;
+  
   // // Brem Photon
   // G4double gp = fESEPP->GetGprime(ev);
   // G4double gtheta = fESEPP->GetGtheta(ev);
   // G4double gphi = fESEPP->GetGphi(ev);
   //std::cout << ev << "  " << ep << "    " << etheta << "   " << ephi << std::endl;
-
-  fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
-  
-  // fNucleonP.set( pp*sin(ptheta)*cos(pphi), pp*sin(ptheta)*sin(pphi), pp*cos(ptheta) );
-  // fNucleonE = sqrt( fNucleonP.mag2() + pow(Mn,2.0) ); 
 
   // fHadronE = gp;
   // fHadronP.set( gp*sin(gtheta)*cos(gphi), gp*sin(gtheta)*sin(gphi), gp*cos(gtheta) );

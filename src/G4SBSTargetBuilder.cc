@@ -52,7 +52,7 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   else if( (fTargType == kLH2 || fTargType == kLD2) && (fDetCon->fExpType == kC16) ) {
     BuildC16CryoTarget( worldlog );
   }
-  else if( fTargType == k3He && (fDetCon->fExpType == kOld_GEn) ){
+  else if( (fTargType == k3He || fTargType == kNeutTarg) && (fDetCon->fExpType == kOld_GEn) ){
     BuildGEnTarget( worldlog );
   }
   else {

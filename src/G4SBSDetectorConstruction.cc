@@ -937,9 +937,13 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   // Optical surfaces (for mirrors, etc.):
   // First, define a default optical surface for general use; Aluminum with 100% reflectivity:
   MPT_temp = new G4MaterialPropertiesTable();
-  MPT_temp->AddConstProperty( "REFLECTIVITY", 1.0 );
+  //MPT_temp->AddConstProperty( "REFLECTIVITY", 1.0 );
+  G4double Ephoton_mirrdefault[2] = { (1240./1000.)*eV, (1240./100.)*eV};
+  G4double Reflectivity_mirrdefault[2] = { 1.0, 1.0 };
   G4OpticalSurface *DefaultOpticalSurface = new G4OpticalSurface("MirrorDefault");
 
+  MPT_temp->AddProperty("REFLECTIVITY", Ephoton_mirrdefault, Reflectivity_mirrdefault, 2 );
+  
   DefaultOpticalSurface->SetType( dielectric_metal );
   DefaultOpticalSurface->SetFinish( polished );
   DefaultOpticalSurface->SetModel( glisur );

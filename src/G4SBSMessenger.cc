@@ -98,7 +98,7 @@ G4SBSMessenger::G4SBSMessenger(){
   PYTHIAfileCmd->SetParameterName("fname",false);
   
   expCmd = new G4UIcmdWithAString("/g4sbs/exp",this);
-  expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis, C16");
+  expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis, C16, tdis, ndvcs");
   expCmd->SetParameterName("exptype", false);
 
   GunParticleCmd = new G4UIcmdWithAString("/g4sbs/particle",this);
@@ -576,6 +576,14 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("C16") == 0 ){
       fExpType = kC16;
+      validcmd = true;
+    }
+    if( newValue.compareTo("tdis") == 0 ){
+      fExpType = kTDIS;
+      validcmd = true;
+    }
+    if( newValue.compareTo("ndvcs") == 0 ){
+      fExpType = kNDVCS;
       validcmd = true;
     }
 

@@ -153,6 +153,10 @@ G4SBSMessenger::G4SBSMessenger(){
   tgtPresCmd->SetGuidance("Gas Target pressure (applies to H2, 3He)");
   tgtPresCmd->SetParameterName("targpres", false);
 
+  tgtDiamCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targdiam",this);
+  tgtDiamCmd->SetGuidance("Cryotarget or gas target cell diameter (assumed cylindrical), applies to LH2/LD2/H2/3He");
+  tgtDiamCmd->SetParameterName("targdiam", false);
+  
   // SchamGasTgtCmd = new G4UIcmdWithAnInteger("/g4sbs/schbrflag",this);
   // SchamGasTgtCmd->SetGuidance("Build evacuated scattering chamber for gas target? (1=yes, 0=no)");
   // SchamGasTgtCmd->SetParameterName("schbrflag",false);
@@ -741,6 +745,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double den = pre/(296.0*kelvin*k_Boltzmann);
     fevgen->SetTargDen(den);
     fdetcon->fTargetBuilder->SetTargDen(den);
+  }
+
+  if( cmd == tgtDiamCmd ){
+    G4double Dcell = tgtDiamCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetTargDiameter(Dcell);
   }
 
   // if( cmd == SchamGasTgtCmd ){

@@ -35,6 +35,8 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fTargPos = G4ThreeVector( 0, 0, 0 );
   fTargDir = G4ThreeVector( 0, 0, 1 );
 
+  fTargDiameter = 8.0*cm; //default of 8 cm.
+  
   fFlux = false;
   
   fSchamFlag = 0;
@@ -72,7 +74,9 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog, 
 						 G4RotationMatrix *rot_targ, G4ThreeVector targ_offset){
   // Now let's make a cryotarget:
-  G4double Rcell = 4.0*cm;
+  //G4double Rcell = 4.0*cm;
+  G4double Rcell  = fTargDiameter/2.0;
+  //These are assumptions. Probably should be made user-adjustable as well.
   G4double uthick = 0.1*mm;
   G4double dthick = 0.15*mm;
   G4double sthick = 0.2*mm;

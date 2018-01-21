@@ -106,7 +106,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   //  The neutron experiments and the SIDIS experiment use BigBite:
   //------------ BigBite: -----------------------------------------------------
-  if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kA1n ) 
+  if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kA1n  || exptype == kTDIS ) 
     {
       MakeBigBite( worldlog );
     }
@@ -127,6 +127,10 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       //MakeC16( worldlog );
     }
   if( exptype == kNeutronExp )  MakeGMnGEMShielding( worldlog );
+  
+  if( exptype == kNDVCS ){
+    MakePbF2ECal(worldlog);
+  }
 }
 
 void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
@@ -914,6 +918,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   grinch->SetCerDepth( fCerDepth);
   grinch->BuildComponent(bbdetLog);
 
+}
+
+void G4SBSEArmBuilder::MakePbF2ECal(G4LogicalVolume *motherlog ){
 }
 
 void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){

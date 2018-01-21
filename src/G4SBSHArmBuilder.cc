@@ -84,7 +84,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Now build special components for experiments
-  if( exptype == kSIDISExp ) {
+  if( exptype == kSIDISExp) {
     //SIDIS experiment requires a RICH detector and a tracker for SBS: 
     MakeTracker(worldlog);
     //MakeRICH( worldlog );
@@ -94,14 +94,17 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeGEpFPP(worldlog);
   }
 
-  if ( exptype == kA1n) {
+  if ( exptype == kA1n  || exptype == kTDIS || exptype == kNDVCS) {
     //A1n case is similar to SIDIS, except now we want to use the SBS in
     //"electron mode"; meaning we want to remove the aerogel from the RICH,
     //and replace the RICH gas with CO2, and we also want to have a non-zero
     //pitch angle for the SBS tracker. We assume (for NOW) that the RICH can
     //be supported at some non-zero "pitch" angle:
-    MakeTracker_A1n(worldlog);
-    MakeRICH_new( worldlog );
+    
+    //TDIS and nDVCS will also use SBS in electron mode
+    MakeElectronModeSBS(worldlog);
+    //MakeTracker_A1n(worldlog);
+    //MakeRICH_new( worldlog );
   }
 
   // Build CDET (as needed)
@@ -1975,6 +1978,8 @@ void G4SBSHArmBuilder::MakeTracker_A1n(G4LogicalVolume *motherlog){
   G4ThreeVector SBS_tracker_axis = (RICH_pos - SBS_midplane_pos).unit();
   G4ThreeVector SBS_tracker_pos = RICH_pos - 0.3*m*SBS_tracker_axis;
 
+  printf("sbs_tracker_pos: %f, %f, %f", SBS_tracker_pos.x(), SBS_tracker_pos.y(), SBS_tracker_pos.z() );
+  
   new G4PVPlacement( SBStracker_rot, SBS_tracker_pos, SBStracker_log, "SBStracker_phys", motherlog, false, 0 );
 
   int ngems_SBStracker = 5;
@@ -1999,7 +2004,13 @@ void G4SBSHArmBuilder::MakeTracker_A1n(G4LogicalVolume *motherlog){
   SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
 }
 
-void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
+void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
+  MakeTracker_A1n( motherlog );
+  MakeRICH_new( motherlog, true );
+  
+}
+
+void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool electronmode ){
 
   G4RotationMatrix *rot_RICH = new G4RotationMatrix;
   rot_RICH->rotateY( f48D48ang );
@@ -2029,7 +2040,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   G4Box *RICHbox = new G4Box("RICHbox", RICHbox_w/2.0, RICHbox_h/2.0, RICHbox_thick/2.0  );
 
   G4String RadiatorGas_Name = "C4F10_gas";
-  if( fDetCon->fExpType == kA1n ){
+  if( electronmode ){
+    printf("SBS in electron mode: using CO2 radiator for RICH\n");
     RadiatorGas_Name = "CO2";
   }
   
@@ -2487,8 +2499,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   
   //For A1n ("Electron mode"), do not create/place aerogel wall components:
 
-  if( fDetCon->fExpType != kA1n ){
-  
+  if( electronmode ){
     new G4PVPlacement( 0, pos_aerogel_wall, Aerogel_wall_container_log, "Aerogel_wall_container_pv", RICHbox_log, false, 0 );
     new G4PVPlacement( 0, aero_entry_window_pos, aero_entry_log, "SBSRICH_aero_entry_pv", RICHbox_log, false, 0 );
     new G4PVPlacement( 0, aero_exit_window_pos, aero_exit_window_log, "SBSRICH_aero_exit_pv", RICHbox_log, false, 0 );

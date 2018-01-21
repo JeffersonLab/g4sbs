@@ -28,10 +28,11 @@ public:
   void MakeCDET(G4LogicalVolume*, G4double, G4double);
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
   void MakeRICH(G4LogicalVolume *);
-  void MakeRICH_new(G4LogicalVolume *);
+  void MakeRICH_new(G4LogicalVolume *, bool electronmode = false);
   void MakeTracker(G4LogicalVolume *);
   void MakeGEpFPP(G4LogicalVolume *);
   void MakeTracker_A1n(G4LogicalVolume *);
+  void MakeElectronModeSBS(G4LogicalVolume *);
   
 
   double f48D48ang;

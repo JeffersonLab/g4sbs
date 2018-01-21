@@ -29,6 +29,7 @@ public:
   void MakeBigBite(G4LogicalVolume *);
   void MakeBigCal(G4LogicalVolume *);
   void MakeC16(G4LogicalVolume *);
+  void MakePbF2ECal(G4LogicalVolume *);
   
   void MakeCDET(G4double, G4double, G4LogicalVolume *); //
   void MakeGMnGEMShielding(G4LogicalVolume *);

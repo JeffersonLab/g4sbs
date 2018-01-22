@@ -128,6 +128,16 @@ bool G4SBSEventGen::GenerateEvent(){
     ni = G4LorentzVector(Mp);
     Wfact = 1.0; // 2 Here because we do molecules/cm3 for density
     break;
+  case kD2:
+    if( CLHEP::RandFlat::shootInt(2) == 0 ){
+      thisnucl = kNeutron;
+    } else {
+      thisnucl = kProton;
+    }
+
+    ni = GetInitialNucl( fTargType, thisnucl );
+    Wfact = 2.0;
+    break;
   case kNeutTarg:
     thisnucl = kNeutron;
     ni = G4LorentzVector(Mp);

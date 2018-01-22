@@ -19,7 +19,9 @@ public:
   void BuildCryoTarget(G4LogicalVolume *);
   // void BuildC16CryoTarget(G4LogicalVolume *);// EFuchey: 2017/02/10: Now defunct \-> 
   // Replaced by : BuildC16ScatCham
+  void BuildTDISTarget(G4LogicalVolume *);
   void BuildGasTarget(G4LogicalVolume *);
+  void BuildTPC(G4LogicalVolume *, G4double);
   
   // EFuchey: 2017/02/10:  This function is now meant to build the cryotarget and target cell only.
   // This function takes as input the mother logical volume, a rotation matrix, and a 3-vector offset.

@@ -190,6 +190,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element *elH = new G4Element("Hydrogen", "H", 1, 1.007*g/mole );
   G4Element *elD = new G4Element("Deuterium", "D", 1, 2.014*g/mole );
   G4Element *el3He = new G4Element("Helium3", "3He", 2, 3.016*g/mole );
+  G4Element *el4He = new G4Element("Helium4", "4He", 2, 4.0026*g/mole );
   G4Element *elC = new G4Element("Carbon", "C", 6, 12.011*g/mole ) ;
   G4Element *elF = new G4Element("Fluorine", "F", 9, 18.998*g/mole );
   G4Element *elNa = new G4Element("Sodium", "Na", 11, 22.99*g/mole );
@@ -405,6 +406,12 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["refH2"] = refH2;
 
+  gasden = 1.0*atmosphere*(2.0141*2*g/Avogadro)/(77*kelvin*k_Boltzmann);
+  G4Material *refD2 = new G4Material("refD2", gasden, 1 );
+  refD2->AddElement(elD, 1);
+
+  fMaterialsMap["refD2"] = refD2;
+
   gasden = 10.5*atmosphere*(14.0067*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
   G4Material *refN2 = new G4Material("refN2", gasden, 1 );
   refN2->AddElement(elN, 1);
@@ -428,7 +435,15 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   LD2mat->AddElement(elD, 1);
 
   fMaterialsMap["LD2"] = LD2mat;
+  
+  //TPC/future targets? material
+  gasden = 0.1*atmosphere*(4.0026*g/Avogadro)/(300*kelvin*k_Boltzmann);
+  G4Material *ref4He = new G4Material("ref4He", gasden, 1 );
+  ref4He->AddElement(el4He, 1);
 
+  fMaterialsMap["ref4He"] = ref4He;
+ 
+  
   //Beamline materials:
   density = 2.5*g/cm3;
   G4Material *Concrete = new G4Material("Concrete",density,6);

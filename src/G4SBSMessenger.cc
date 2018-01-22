@@ -86,7 +86,7 @@ G4SBSMessenger::G4SBSMessenger(){
   sigfileCmd->SetParameterName("sigmafile", false);
 
   tgtCmd = new G4UIcmdWithAString("/g4sbs/target",this);
-  tgtCmd->SetGuidance("Target type from LH2, LD2, H2, 3He, (fictional) neutron target");
+  tgtCmd->SetGuidance("Target type from LH2, LD2, H2, D2, 3He, (fictional) neutron target");
   tgtCmd->SetParameterName("targtype", false);
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
@@ -658,6 +658,15 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fdetcon->SetTarget(kH2);
 
       G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann);
+      fevgen->SetTargDen(den);
+      fdetcon->fTargetBuilder->SetTargDen(den);
+      validcmd = true;
+    }
+    if( newValue.compareTo("D2") == 0 ){
+      fevgen->SetTarget(kD2);
+      fdetcon->SetTarget(kD2);
+
+      G4double den = 1.0*atmosphere/(77.0*kelvin*k_Boltzmann);
       fevgen->SetTargDen(den);
       fdetcon->fTargetBuilder->SetTargDen(den);
       validcmd = true;

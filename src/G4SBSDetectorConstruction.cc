@@ -1948,6 +1948,15 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   SiO2_C16->AddElement(elSi, 1);
   SiO2_C16->AddElement(elO, 2);
   fMaterialsMap["SiO2_C16"] = SiO2_C16;
+  
+  ///////////////////////////
+  // DVCS PbF2 calorimeter
+  ///////////////////////////
+  
+  G4Material* PbF2 = new G4Material("PbF2", density=7.77*g/cm3, 2);
+  PbF2->AddElement(elPb,1);
+  PbF2->AddElement(elF, 2);
+  fMaterialsMap["PbF2"] = PbF2;
 }
 
 G4Material *G4SBSDetectorConstruction::GetMaterial(G4String name){

@@ -1,0 +1,124 @@
+## Configure G4SBS for TDIS
+/g4sbs/filename        nDVCS_test.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             ndvcs
+
+## Configure the target
+/g4sbs/target          D2
+/g4sbs/targlen         40.0 cm           ## Target Length
+/g4sbs/targdiam        1.905 cm          ## Target Diameter
+/g4sbs/targpres        1.0 atmosphere
+
+## Configure generator settings
+/g4sbs/kine            dis           ## Generator
+/g4sbs/beamcur         50 muA
+/g4sbs/beamE           11.0 GeV
+/g4sbs/thmin           23.0 deg
+/g4sbs/thmax           43.0 deg
+/g4sbs/phmin           150 deg
+/g4sbs/phmax           210 deg
+
+## Configure standard detector settings
+/g4sbs/hcaldist        6.5 m
+/g4sbs/hcalvoffset     0.00 m
+/g4sbs/sbsclampopt     0                 ## Disable all field clamps
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/48d48field      1
+/g4sbs/bbang           14.85 deg
+/g4sbs/bbdist          1.10 m 
+/g4sbs/sbsang          12.0 deg
+/g4sbs/48D48dist       2.5 m
+/g4sbs/sbstrkrpitch    5.0 deg
+/g4sbs/richdist        5.0 m
+/g4sbs/sbsmagfield     0.90 tesla
+/g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
+
+## Run 100 events
+#/g4sbs/run             100
+
+#visualization stuff:
+# Use this open statement to create an OpenGL view:
+/vis/open OGLSX 1280x800-0+0
+#
+# Use this open statement to create a .prim file suitable for
+# viewing in DAWN:
+#/vis/open DAWNFILE
+#
+# Use this open statement to create a .heprep file suitable for
+# viewing in HepRApp:
+#/vis/open HepRepFile
+#
+# Use this open statement to create a .wrl file suitable for
+# viewing in a VRML viewer:
+#/vis/open VRML2FILE
+#
+# Disable auto refresh and quieten vis messages whilst scene and
+# trajectories are established:
+/vis/viewer/set/autoRefresh true
+/vis/verbose errors
+#
+# Draw geometry:
+/vis/drawVolume worlds
+#
+# Set specific colour for identification : ghost parallel geometry envelope ("ghost") as yellow
+#
+# Specify view angle:
+/vis/viewer/set/viewpointThetaPhi -90 -89.5 deg
+#/vis/viewer/set/viewpointThetaPhi -102.0 0 deg
+/vis/viewer/set/viewpointThetaPhi 14.85 0 deg
+#/vis/viewer/set/viewpointThetaPhi 180 0 deg
+/vis/viewer/set/targetPoint 0 0 -7.5 m
+#
+# Specify zoom value:
+/vis/viewer/zoom 15.5
+#
+# Specify style (surface or wireframe):
+/vis/viewer/set/style surface
+#
+# Draw coordinate axes:
+#/vis/scene/add/axes 0 0 0 1 m
+#
+# Draw smooth trajectories at end of event, showing trajectory points
+# as markers 2 pixels wide:
+/vis/scene/add/trajectories smooth
+/vis/modeling/trajectories/create/drawByCharge
+/vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
+/vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 2
+# (if too many tracks cause core dump => /tracking/storeTrajectory 0)
+#
+# Draw hits at end of event:
+/vis/scene/add/hits
+#
+# To draw only gammas:
+/vis/filtering/trajectories/create/particleFilter
+/vis/filtering/trajectories/particleFilter-0/add gamma
+/vis/filtering/trajectories/particleFilter-0/add neutron
+#
+# To invert the above, drawing all particles except gammas,
+# keep the above two lines but also add:
+/vis/filtering/trajectories/particleFilter-0/invert true
+#
+# Many other options are available with /vis/modeling and /vis/filtering.
+# For example, to select colour by particle ID:
+/vis/modeling/trajectories/create/drawByParticleID
+/vis/modeling/trajectories/drawByParticleID-0/set e- blue
+/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton white
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA pi- 1. 0.2 1.0 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon+ 0.3 1.0 0.5 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
+#
+# To superimpose all of the events from a given run:
+/vis/scene/endOfEventAction accumulate 10000
+#
+# Re-establish auto refreshing and verbosity:
+/vis/viewer/set/autoRefresh true
+/vis/verbose warnings
+#
+# For file-based drivers, use this to create an empty detector view:
+#/vis/viewer/flush
+/g4sbs/run  1
+#/vis/geometry/set/visibility RICHbox_log -1 0
+/vis/viewer/flush

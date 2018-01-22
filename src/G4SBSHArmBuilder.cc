@@ -2499,7 +2499,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool electronmo
   
   //For A1n ("Electron mode"), do not create/place aerogel wall components:
 
-  if( electronmode ){
+  if( !electronmode ){
     new G4PVPlacement( 0, pos_aerogel_wall, Aerogel_wall_container_log, "Aerogel_wall_container_pv", RICHbox_log, false, 0 );
     new G4PVPlacement( 0, aero_entry_window_pos, aero_entry_log, "SBSRICH_aero_entry_pv", RICHbox_log, false, 0 );
     new G4PVPlacement( 0, aero_exit_window_pos, aero_exit_window_log, "SBSRICH_aero_exit_pv", RICHbox_log, false, 0 );

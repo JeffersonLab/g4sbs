@@ -990,6 +990,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element* elAs = new G4Element( "Arsenic", "As", 33, 74.922*g/mole );
   G4Element* elPb = new G4Element( "Lead", "Pb", 82, 207.2*g/mole );
   G4Element* elBe = new G4Element( "Beryllium", "Be", 4, 9.012*g/mole );
+  G4Element* elW = new G4Element( "Tungsten", "W", 74, 183.84*g/mole );
   
   //G4Material* Titanium = man->FindOrBuildMaterial("G4_Ti"); 
   if( fMaterialsMap.find("Titanium") == fMaterialsMap.end() ){ 
@@ -1965,13 +1966,19 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["SiO2_C16"] = SiO2_C16;
   
   ///////////////////////////
-  // DVCS PbF2 calorimeter
+  // DVCS calorimeter 
   ///////////////////////////
   
   G4Material* PbF2 = new G4Material("PbF2", density=7.77*g/cm3, 2);
   PbF2->AddElement(elPb,1);
   PbF2->AddElement(elF, 2);
   fMaterialsMap["PbF2"] = PbF2;
+
+  G4Material* PbWO4 = new G4Material("PbWO4", density=8.28*g/cm3, 3);
+  PbWO4->AddElement(elPb,1);
+  PbWO4->AddElement(elW, 1);
+  PbWO4->AddElement(elO, 4);
+  fMaterialsMap["PbWO4"] = PbWO4;
 }
 
 G4Material *G4SBSDetectorConstruction::GetMaterial(G4String name){

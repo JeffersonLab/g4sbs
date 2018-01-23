@@ -80,7 +80,8 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   if( exptype != kC16 ) {
     Make48D48(worldlog, f48D48dist + f48D48depth/2. );
     //MakeHCAL( worldlog, fHCALvertical_offset );
-    MakeHCALV2( worldlog, fHCALvertical_offset );
+    if( exptype != kA1n  && exptype != kTDIS && exptype != kNDVCS )
+      MakeHCALV2( worldlog, fHCALvertical_offset );
   }
 
   // Now build special components for experiments
@@ -94,7 +95,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeGEpFPP(worldlog);
   }
 
-  if ( exptype == kA1n  || exptype == kTDIS || exptype == kNDVCS) {
+  if ( exptype == kA1n  || exptype == kTDIS || exptype == kNDVCS ) {
     //A1n case is similar to SIDIS, except now we want to use the SBS in
     //"electron mode"; meaning we want to remove the aerogel from the RICH,
     //and replace the RICH gas with CO2, and we also want to have a non-zero
@@ -2007,7 +2008,7 @@ void G4SBSHArmBuilder::MakeTracker_A1n(G4LogicalVolume *motherlog){
 void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   MakeTracker_A1n( motherlog );
   MakeRICH_new( motherlog, true );
-  
+  MakeHCAL( motherlog, fHCALvertical_offset );
 }
 
 void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool electronmode ){

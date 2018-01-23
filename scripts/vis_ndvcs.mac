@@ -36,9 +36,6 @@
 /g4sbs/sbsmagfield     0.90 tesla
 /g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
 
-## Run 100 events
-#/g4sbs/run             100
-
 #visualization stuff:
 # Use this open statement to create an OpenGL view:
 /vis/open OGLSX 1280x800-0+0
@@ -67,13 +64,10 @@
 #
 # Specify view angle:
 /vis/viewer/set/viewpointThetaPhi -90 -89.5 deg
-#/vis/viewer/set/viewpointThetaPhi -102.0 0 deg
-/vis/viewer/set/viewpointThetaPhi 14.85 0 deg
-#/vis/viewer/set/viewpointThetaPhi 180 0 deg
 /vis/viewer/set/targetPoint 0 0 -7.5 m
 #
 # Specify zoom value:
-/vis/viewer/zoom 15.5
+/vis/viewer/zoom 5.5
 #
 # Specify style (surface or wireframe):
 /vis/viewer/set/style surface

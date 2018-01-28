@@ -57,7 +57,9 @@ private:
   
   G4UIcmdWithAString   *GunParticleCmd;
   G4UIcmdWithAString   *HadrCmd;
+  G4UIcommand    *RejectionSamplingCmd;
 
+  
   G4UIcmdWithAnInteger *bigfieldCmd;
   G4UIcmdWithAnInteger *bbfieldCmd;
   G4UIcmdWithAString *tosfieldCmd;

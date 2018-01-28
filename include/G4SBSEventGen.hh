@@ -94,6 +94,16 @@ public:
   TChain *GetPythiaChain(){ return fPythiaChain; }
   
   void LoadPythiaChain(G4String fname);
+
+  void InitializeRejectionSampling(); 
+
+  G4bool GetRejectionSamplingFlag(){ return fRejectionSamplingFlag; }
+  G4bool GetRejectionSamplingInitialized(){ return fRejectionSamplingInitialized; }
+  
+  void SetRejectionSamplingFlag( G4bool b ){ fRejectionSamplingFlag = b; }
+  void SetMaxWeight( G4double w ){ fMaxWeight = w; }
+  void SetNeventsWeightCheck( G4int n ){ fNeventsWeightCheck = n; } //Number of "pre-events" used to initialize rejection sampling
+  void SetRejectionSamplingInitialized( G4bool b ){ fRejectionSamplingInitialized = b; }
 private:
   double fElectronE, fNucleonE, fHadronE, fBeamE;
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
@@ -140,6 +150,11 @@ private:
   bool GenerateWiser( Nucl_t, G4LorentzVector, G4LorentzVector );
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
+
+  G4bool fRejectionSamplingFlag; //Flag to turn on rejection sampling;
+  G4double fMaxWeight; //Maximum event weight within generation limits
+  G4int fNeventsWeightCheck; //Number of "pre-events" to generate in order to check weights
+  G4bool fRejectionSamplingInitialized; //Flag to indicate whether rejection sampling has been initialized.
   
   double deutpdist( double );
   double he3pdist( Nucl_t, double );

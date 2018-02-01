@@ -102,6 +102,8 @@ private:
   G4UIcmdWithADoubleAndUnit *sbstrkrpitchCmd;
   //G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
   
+  G4UIcmdWithAString   *dvcsecalmatCmd;
+
   //These commands set angle generation limits for the electron:
   G4UIcmdWithADoubleAndUnit *thminCmd;
   G4UIcmdWithADoubleAndUnit *thmaxCmd;

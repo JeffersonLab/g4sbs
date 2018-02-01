@@ -94,7 +94,9 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fnzsegments_leadglass_C16 = 1;
   
   assert(fDetCon);
-
+  
+  fDVCSECalMaterial = G4String("PbF2");
+  
   fbbfield =  NULL;
 
 }
@@ -920,138 +922,165 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
 }
 
-void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog ){
+void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
+  G4cout << "Building DVCS ECal with following material: " << fDVCSECalMaterial << endl;
+  G4bool defined_mat = false;
+  G4int Nrows, Ncols;
+  G4double dvcsblkmodule_x, dvcsblkmodule_y;
+  G4double caldepth;
+  G4double EcalHoffset, EcalVoffset;
+  if(fDVCSECalMaterial=="PbF2"){
+    Nrows = 16;
+    Ncols = 13;
+    dvcsblkmodule_x = 3.00*cm;
+    dvcsblkmodule_y = 3.00*cm;
+    caldepth = 18.6*cm+2*2.0*cm;
+    EcalHoffset = +1.5*3.0*cm;
+    EcalVoffset = 0;
+    defined_mat = true;
+  }
+  if(fDVCSECalMaterial=="PbWO4"){
+    Nrows = 31;
+    Ncols = 36;
+    dvcsblkmodule_x = 2.05*cm;
+    dvcsblkmodule_y = 2.05*cm; 
+    caldepth = 18.0*cm+2*2.0*cm;
+    EcalHoffset = 0;
+    EcalVoffset = 0;
+    defined_mat = true;
+  }
+  if(!defined_mat){
+    G4cout << "Warning: Invalid DVCS ECal material: " << fDVCSECalMaterial 
+	   << "; Use 'PbF2' or 'PbWO4' " << G4endl;
+    return;
+  }
   
   ////////////////////////////////////////////////////////                               
-  // 13 columns, 16 rows 
-  double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
-  double mylar_air_sum = mylarthickness + airthickness; 
-  double pbwo4module_x = 2.05*cm, pbwo4module_y = 2.05*cm;  
-  double pbwo4pmtz = 0.20*cm;
+  // 36 columns, 31 rows 
+  G4double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
+  G4double mylar_air_sum = mylarthickness + airthickness; 
+  G4double dvcsblkpmtz = 0.20*cm;
 
-  double calheight = 31.0*2.05*cm+2*2.0*cm;
-  double calwidth  = 36*2.05*cm+2*2.0*cm;
-  double caldepth  = 18.0*cm + 2*2.0*cm;
+  G4double calheight = Nrows*dvcsblkmodule_x+2*2.0*cm;
+  G4double calwidth  = Ncols*dvcsblkmodule_y+2*2.0*cm;
 
-  G4Box *pbwo4ecalbox = new G4Box("pbwo4ecalbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
-  G4LogicalVolume *pbwo4ecallog = new G4LogicalVolume(pbwo4ecalbox, GetMaterial("Air"), "pbwo4ecallog");
-  G4ThreeVector pbwo4ecal_pos(+1.5*3.0*cm, 0.0, fBBdist+caldepth/2.0);
-  pbwo4ecal_pos.rotateY(fBBang);
-  G4RotationMatrix* pbwo4ecal_rm = new G4RotationMatrix();
-  pbwo4ecal_rm->rotateY(-fBBang);
-  new G4PVPlacement( pbwo4ecal_rm, pbwo4ecal_pos, pbwo4ecallog, "pbwo4ecalphys", motherlog, false, 0 );
+  G4Box *dvcsblkecalbox = new G4Box("dvcsblkecalbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
+  G4LogicalVolume *dvcsblkecallog = new G4LogicalVolume(dvcsblkecalbox, GetMaterial("Air"), "dvcsblkecallog");
+  G4ThreeVector dvcsblkecal_pos(EcalHoffset, EcalVoffset, fBBdist+caldepth/2.0);
+  dvcsblkecal_pos.rotateY(fBBang);
+  G4RotationMatrix* dvcsblkecal_rm = new G4RotationMatrix();
+  dvcsblkecal_rm->rotateY(-fBBang);
+  new G4PVPlacement( dvcsblkecal_rm, dvcsblkecal_pos, dvcsblkecallog, "dvcsblkecalphys", motherlog, false, 0 );
   
   // Calo module: 
-  double PbWO4_x = pbwo4module_x - 2*mylar_air_sum;
-  double PbWO4_y = pbwo4module_y - 2*mylar_air_sum;
-  double PbWO4_z = caldepth -2*2.0*cm;
+  double DVCSblk_x = dvcsblkmodule_x - 2*mylar_air_sum;
+  double DVCSblk_y = dvcsblkmodule_y - 2*mylar_air_sum;
+  double DVCSblk_z = caldepth -2*2.0*cm;
   
-  G4Box *pbwo4modbox = new G4Box("pbwo4modbox", pbwo4module_x/2.0, pbwo4module_y/2.0, caldepth/2.0);
-  G4LogicalVolume *pbwo4modlog = new G4LogicalVolume(pbwo4modbox, GetMaterial("Special_Air"), "pbwo4modlog");
+  G4Box *dvcsblkmodbox = new G4Box("dvcsblkmodbox", dvcsblkmodule_x/2.0, dvcsblkmodule_y/2.0, caldepth/2.0);
+  G4LogicalVolume *dvcsblkmodlog = new G4LogicalVolume(dvcsblkmodbox, GetMaterial("Special_Air"), "dvcsblkmodlog");
 
-  G4Box *tempbox = new G4Box("tempbox", pbwo4module_x/2.0, pbwo4module_y/2.0, (caldepth-2*pbwo4pmtz)/2.0);
+  G4Box *tempbox = new G4Box("tempbox", dvcsblkmodule_x/2.0, dvcsblkmodule_y/2.0, (caldepth-2*dvcsblkpmtz)/2.0);
 
 
   // calorimeter box Subtraction
-    G4Box *pbwo4modbox_sub = new G4Box( "pbwo4modbox_sub", (pbwo4module_x-2*mylarthickness)/2.0, (pbwo4module_y-2*mylarthickness)/2.0, (caldepth-2*pbwo4pmtz)/2.0 );
+    G4Box *dvcsblkmodbox_sub = new G4Box( "dvcsblkmodbox_sub", (dvcsblkmodule_x-2*mylarthickness)/2.0, (dvcsblkmodule_y-2*mylarthickness)/2.0, (caldepth-2*dvcsblkpmtz)/2.0 );
 
-  G4SubtractionSolid *pbwo4mylarwrap = new G4SubtractionSolid( "pbwo4mylarwrap", tempbox, pbwo4modbox_sub, 0, G4ThreeVector(0.0, 0.0, mylarthickness) );
-  G4LogicalVolume *pbwo4mylarwraplog = new G4LogicalVolume( pbwo4mylarwrap, GetMaterial("Mylar"), "pbwo4mylarwraplog" ); 
+  G4SubtractionSolid *dvcsblkmylarwrap = new G4SubtractionSolid( "dvcsblkmylarwrap", tempbox, dvcsblkmodbox_sub, 0, G4ThreeVector(0.0, 0.0, mylarthickness) );
+  G4LogicalVolume *dvcsblkmylarwraplog = new G4LogicalVolume( dvcsblkmylarwrap, GetMaterial("Mylar"), "dvcsblkmylarwraplog" ); 
   
- // new G4LogicalSkinSurface( "PBWO4 Mylar Skin", pbwo4mylarwraplog, GetOpticalSurface("Mirrsurf") );
+ // new G4LogicalSkinSurface( "DVCSBLK Mylar Skin", dvcsblkmylarwraplog, GetOpticalSurface("Mirrsurf") );
   // Make Lead Glass 
-  G4Box *PbWO4box = new G4Box( "PbWO4box", PbWO4_x/2.0, PbWO4_y/2.0, PbWO4_z/2.0 );
-  G4LogicalVolume *PbWO4log = new G4LogicalVolume( PbWO4box, GetMaterial("PbWO4"), "PbWO4log" );
+  G4Box *DVCSblkbox = new G4Box( "DVCSblkbox", DVCSblk_x/2.0, DVCSblk_y/2.0, DVCSblk_z/2.0 );
+  G4LogicalVolume *DVCSblklog = new G4LogicalVolume( DVCSblkbox, GetMaterial(fDVCSECalMaterial.data()), "DVCSblklog" );
 
-  // Shower PbWO4 SD of type CAL
+  // Shower DVCSblk SD of type CAL
   G4SDManager *sdman = fDetCon->fSDman;
 
-  G4String PbWO4SDname = "PbWO4";
-  G4String PbWO4collname = "PbWO4HitsCollection";
-  G4SBSCalSD *PbWO4SD = NULL;
+  G4String DVCSblkSDname = "DVCSblk";
+  G4String DVCSblkcollname = "DVCSblkHitsCollection";
+  G4SBSCalSD *DVCSblkSD = NULL;
 
-  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(PbWO4SDname)) ) {
-    G4cout << "Adding PbWO4 Sensitive Detector to SDman..." << G4endl;
-    PbWO4SD = new G4SBSCalSD( PbWO4SDname, PbWO4collname );
-    sdman->AddNewDetector( PbWO4SD );
-    (fDetCon->SDlist).insert( PbWO4SDname );
-    fDetCon->SDtype[PbWO4SDname] = kCAL;
-    (PbWO4SD->detmap).depth = 1;
+  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(DVCSblkSDname)) ) {
+    G4cout << "Adding DVCSblk Sensitive Detector to SDman..." << G4endl;
+    DVCSblkSD = new G4SBSCalSD( DVCSblkSDname, DVCSblkcollname );
+    sdman->AddNewDetector( DVCSblkSD );
+    (fDetCon->SDlist).insert( DVCSblkSDname );
+    fDetCon->SDtype[DVCSblkSDname] = kCAL;
+    (DVCSblkSD->detmap).depth = 1;
   }
-  PbWO4log->SetSensitiveDetector( PbWO4SD ); 
+  DVCSblklog->SetSensitiveDetector( DVCSblkSD ); 
 
 //////////////////
 
-  if( (fDetCon->StepLimiterList).find( PbWO4SDname ) != (fDetCon->StepLimiterList).end() ){
-    PbWO4log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  if( (fDetCon->StepLimiterList).find( DVCSblkSDname ) != (fDetCon->StepLimiterList).end() ){
+    DVCSblklog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
   // Make PMT/Window
   double pmtsize = 2.0*cm;
-  G4Box *pbwo4pmt = new G4Box( "pbwo4pmt", pmtsize/2.0, pmtsize/2.0, pbwo4pmtz/2.0 );
-  G4LogicalVolume *pbwo4pmtwindowlog = new G4LogicalVolume( pbwo4pmt, GetMaterial("QuartzWindow_ECal"), "pbwo4pmtwindowlog" );
-  G4LogicalVolume *pbwo4pmtcathodecallog = new G4LogicalVolume( pbwo4pmt, GetMaterial("Photocathode_material_ecal"), "pbwo4pmtcathodecallog" );
+  G4Box *dvcsblkpmt = new G4Box( "dvcsblkpmt", pmtsize/2.0, pmtsize/2.0, dvcsblkpmtz/2.0 );
+  G4LogicalVolume *dvcsblkpmtwindowlog = new G4LogicalVolume( dvcsblkpmt, GetMaterial("QuartzWindow_ECal"), "dvcsblkpmtwindowlog" );
+  G4LogicalVolume *dvcsblkpmtcathodecallog = new G4LogicalVolume( dvcsblkpmt, GetMaterial("Photocathode_material_ecal"), "dvcsblkpmtcathodecallog" );
 
   // Shower PMT SD of type ECAL
-  G4String PbWO4ecalSDname = "PbWO4Ecal";
-  G4String PbWO4ecalcollname = "PbWO4EcalHitsCollection";
-  G4SBSECalSD *PbWO4ecalSD = NULL;
+  G4String DVCSblkecalSDname = "DVCSblkEcal";
+  G4String DVCSblkecalcollname = "DVCSblkEcalHitsCollection";
+  G4SBSECalSD *DVCSblkecalSD = NULL;
 
-  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(PbWO4ecalSDname)) ) {
-    G4cout << "Adding PbWO4Ecal Sensitive Detector to SDman..." << G4endl;
-    PbWO4ecalSD = new G4SBSECalSD( PbWO4ecalSDname, PbWO4ecalcollname );
-    sdman->AddNewDetector( PbWO4ecalSD );
-    (fDetCon->SDlist).insert(PbWO4ecalSDname);
-    fDetCon->SDtype[PbWO4ecalSDname] = kECAL;
-    (PbWO4ecalSD->detmap).depth = 1;
+  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(DVCSblkecalSDname)) ) {
+    G4cout << "Adding DVCSblkEcal Sensitive Detector to SDman..." << G4endl;
+    DVCSblkecalSD = new G4SBSECalSD( DVCSblkecalSDname, DVCSblkecalcollname );
+    sdman->AddNewDetector( DVCSblkecalSD );
+    (fDetCon->SDlist).insert(DVCSblkecalSDname);
+    fDetCon->SDtype[DVCSblkecalSDname] = kECAL;
+    (DVCSblkecalSD->detmap).depth = 1;
   }
-  pbwo4pmtcathodecallog->SetSensitiveDetector( PbWO4ecalSD );
+  dvcsblkpmtcathodecallog->SetSensitiveDetector( DVCSblkecalSD );
 
   // Put everything in a calo Module
   int mod_copy_number = 0;
 
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-pbwo4pmtz)/2.0-2.0*cm), pbwo4pmtcathodecallog,"bbcathodephys", pbwo4modlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*pbwo4pmtz)/2.0-2.0*cm), pbwo4pmtwindowlog, "bbwindowphys", pbwo4modlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*pbwo4pmtz-PbWO4_z)/2.0-2.0*cm), PbWO4log, "PbWO4phys", pbwo4modlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -pbwo4pmtz-2.0*cm), pbwo4mylarwraplog, "pbwo4mylarphys", pbwo4modlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-dvcsblkpmtz)/2.0-2.0*cm), dvcsblkpmtcathodecallog,"bbcathodephys", dvcsblkmodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*dvcsblkpmtz)/2.0-2.0*cm), dvcsblkpmtwindowlog, "bbwindowphys", dvcsblkmodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*dvcsblkpmtz-DVCSblk_z)/2.0-2.0*cm), DVCSblklog, "DVCSblkphys", dvcsblkmodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -dvcsblkpmtz-2.0*cm), dvcsblkmylarwraplog, "dvcsblkmylarphys", dvcsblkmodlog, false, 0 );
 
-  int ncols = 36;
-  int nrows = 31;
-  for( int l=0; l<ncols; l++ ) {
-    for( int j=0; j<nrows; j++ ) {
+  for( int l=0; l<Ncols; l++ ) {
+    for( int j=0; j<Nrows; j++ ) {
 
-      (PbWO4SD->detmap).Col[mod_copy_number] = l;
-      (PbWO4SD->detmap).Row[mod_copy_number] = j;
-      (PbWO4ecalSD->detmap).Col[mod_copy_number] = l;
-      (PbWO4ecalSD->detmap).Row[mod_copy_number] = j;
-      double xtemp = (calwidth - pbwo4module_x)/2.0 - 2.0*cm - l*pbwo4module_x;
-      double ytemp = (calheight - pbwo4module_y)/2.0 - 2.0*cm - j*pbwo4module_y;
+      (DVCSblkSD->detmap).Col[mod_copy_number] = l;
+      (DVCSblkSD->detmap).Row[mod_copy_number] = j;
+      (DVCSblkecalSD->detmap).Col[mod_copy_number] = l;
+      (DVCSblkecalSD->detmap).Row[mod_copy_number] = j;
+      double xtemp = (calwidth - dvcsblkmodule_x)/2.0 - 2.0*cm - l*dvcsblkmodule_x;
+      double ytemp = (calheight - dvcsblkmodule_y)/2.0 - 2.0*cm - j*dvcsblkmodule_y;
 
-      new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,0.0), pbwo4modlog, "calphys", pbwo4ecallog, false, mod_copy_number);
+      new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,0.0), dvcsblkmodlog, "calphys", dvcsblkecallog, false, mod_copy_number);
       
-      (PbWO4SD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp,ytemp,(caldepth-pbwo4pmtz)/2.0  );
-      (PbWO4ecalSD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp, ytemp, (caldepth-4*pbwo4pmtz-PbWO4_z)/2.0 );
+      (DVCSblkSD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp,ytemp,(caldepth-dvcsblkpmtz)/2.0  );
+      (DVCSblkecalSD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp, ytemp, (caldepth-4*dvcsblkpmtz-DVCSblk_z)/2.0 );
 
       mod_copy_number++;
     }
   }
 
   // Visualization attributes
-  G4VisAttributes *PbWO4ecalbox_visatt = new G4VisAttributes(G4Colour(0.7, 0.7, 0.7) );
-  PbWO4ecalbox_visatt->SetForceWireframe(true);
-  pbwo4ecallog->SetVisAttributes( PbWO4ecalbox_visatt );
+  G4VisAttributes *DVCSblkecalbox_visatt = new G4VisAttributes(G4Colour(0.7, 0.7, 0.7) );
+  DVCSblkecalbox_visatt->SetForceWireframe(true);
+  dvcsblkecallog->SetVisAttributes( DVCSblkecalbox_visatt );
     
-  //G4VisAttributes *mypbwo4modbox_visatt = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0) );
-  pbwo4modlog->SetVisAttributes( PbWO4ecalbox_visatt );// G4VisAttributes::Invisible );//
+  //G4VisAttributes *mydvcsblkmodbox_visatt = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0) );
+  dvcsblkmodlog->SetVisAttributes( DVCSblkecalbox_visatt );// G4VisAttributes::Invisible );//
   
-  pbwo4mylarwraplog->SetVisAttributes( G4VisAttributes::Invisible );
+  dvcsblkmylarwraplog->SetVisAttributes( G4VisAttributes::Invisible );
   
   //TF1
-  G4VisAttributes *PbWO4_visatt = new G4VisAttributes(G4Colour( 1.0, 1.0, 0.0 ) );
-  PbWO4log->SetVisAttributes( PbWO4_visatt);
+  G4VisAttributes *DVCSblk_visatt = new G4VisAttributes(G4Colour( 1.0, 1.0, 0.0 ) );
+  DVCSblklog->SetVisAttributes( DVCSblk_visatt);
 
   //PMTcathode
   G4VisAttributes *PMT_visatt = new G4VisAttributes(G4Colour( 0.0, 0.0, 1.0 ));
-  pbwo4pmtcathodecallog->SetVisAttributes( PMT_visatt);
+  dvcsblkpmtcathodecallog->SetVisAttributes( PMT_visatt);
 }
 
 void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){

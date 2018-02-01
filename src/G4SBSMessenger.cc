@@ -197,6 +197,10 @@ G4SBSMessenger::G4SBSMessenger(){
   sbstrkrpitchCmd->SetGuidance("SBS tracker pitch angle (tilt toward up-bending particles)");
   sbstrkrpitchCmd->SetParameterName("angle", false);
   
+  dvcsecalmatCmd = new G4UIcmdWithAString("/g4sbs/dvcsecalmat",this);
+  dvcsecalmatCmd->SetGuidance("DVCS ECal material: 'PbF2' or 'PbWO4'");
+  dvcsecalmatCmd->SetParameterName("dvcsecalmatname", false);
+  
   hcaldistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcaldist",this);
   hcaldistCmd->SetGuidance("HCAL distance");
   hcaldistCmd->SetParameterName("dist", false);
@@ -824,6 +828,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == sbstrkrpitchCmd ){
     G4double v = sbstrkrpitchCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetTrackerPitch(v);
+  }
+  
+  if( cmd == dvcsecalmatCmd ){
+    fdetcon->fEArmBuilder->SetDVCSECalMaterial(newValue);
   }
   
   if( cmd == hcaldistCmd ){

@@ -34,6 +34,8 @@ public:
   void MakeCDET(G4double, G4double, G4LogicalVolume *); //
   void MakeGMnGEMShielding(G4LogicalVolume *);
 
+  void SetDVCSECalMaterial(G4String str){ fDVCSECalMaterial = str; }
+
   double fBBang;
   double fBBdist;
   double fBBCaldist;
@@ -57,7 +59,9 @@ public:
   int fnzsegments_leadglass_C16;
   
   bool fUseLocalField;
-
+  
+  G4String fDVCSECalMaterial;
+  
 private:
 };
 

@@ -72,6 +72,10 @@ public:
   map<G4String, SDet_t> SDtype; //Mapping of sensitive detector names to sensitive detector types
   //map<G4String, Arm_t> SDarm; //Mapping of sensitive detector names to spectrometer arms
   set<G4String> StepLimiterList; //List of sensitive detectors for which G4UserLimits are defined to stop all particles entering (only allowed for calorimeters!)
+  // map<G4String, G4double> SDgatewidth; //Time window for accumulating hit signal
+  // map<G4String, G4double> SDthreshold; //threshold (energy deposition or photoelectrons) for recording a hit
+  // map<G4String, G4int>    SDntimebins; //Time bins for "pulse shape" histogram
+  
   
   G4SDManager *fSDman; 
   bool fTotalAbs;

@@ -28,6 +28,9 @@ public:
   map<G4int,G4int>  Wire;  //"Wire" information 
   map<G4int,G4int>  Row; //"Row" information (for calorimeter type detectors)
   map<G4int,G4int>  Col; //"Column" information (for calorimeters)
+  //map<G4int,G4int>  SubModule; //For division of GEMs into sub-modules;
+  //map<G4int,G4int>  StripX; //For division of GEM sub-modules into readout strips
+  //map<G4int,G4int>  StripY; 
   map<G4int,G4ThreeVector>  LocalCoord; //local coordinates of the center of the sensitive volume (relative to some "mother" logical volume that contains the 
                                         //sensitive detector
   //map<G4int,G4ThreeVector>  GlobalCoord; //Global coordinates of the center of the sensitive volume 

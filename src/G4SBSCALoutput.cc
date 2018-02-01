@@ -14,8 +14,8 @@ G4SBSCALoutput::~G4SBSCALoutput(){
 
 void G4SBSCALoutput::Clear(){
   nhits_CAL = 0;
-  timewindow = 1000.0*ns;
-  threshold = 0.0*eV;
+  //timewindow = 1000.0*ns;
+  //threshold = 0.0*eV;
 
   row.clear();
   col.clear();

@@ -223,7 +223,12 @@ bool G4SBSEventGen::GenerateEvent(){
 	   << fSigma/fMaxWeight << G4endl;
     //fMaxWeight = fSigma;
   }
-    
+
+  // How to normalize? events are thrown flat in phase space, and then accepted or rejected with probability
+  // fSigma/fMaxWeight.
+  // Overall normalization should be proportional to:
+  // xsec * luminosity * phase space volume. The appropriate cross section to use for the normalization is
+  // fMaxWeight
   
   if( fRejectionSamplingFlag && fRejectionSamplingInitialized ){
     success = success && fSigma/fMaxWeight >= CLHEP::RandFlat::shoot();

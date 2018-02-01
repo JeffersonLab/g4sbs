@@ -13,13 +13,19 @@ public:
   void Clear();
   
   double timewindow, threshold;
+  int ntimebins;
 
+  double Esum; //energy deposition sum over entire sensitive detector
+  vector<double> timebins; //divide timewindow into ntimebins bins and histogram the energy in each bin (summed over whole detector)
+  vector<double> Edep_vs_time; //time dependence of energy deposition within timewindow 
+  
   //"Hit" is defined as the sum of all energy deposition in a given cell during timewindow, provided the total energy deposition is above "threshold":
   int nhits_CAL; //Number of cells with above-threshold energy deposition:
   vector<int> row, col, plane, wire, cell; //"row" and "column" of cells
   vector<double> xcell, ycell, zcell; //"local" x and y coordinates of center of cell (assumes a rectangular, planar geometry)
   vector<double> xcellg,ycellg,zcellg; //"global" xyz coordinates of center of cell (no assumptions on geometry)
-  vector<double> xhit, yhit, zhit; //weighted "average" global position of energy deposition
+  vector<double> xhit, yhit, zhit; //weighted "average" local position of energy deposition
+  vector<double> xhitg, yhitg, zhitg; //weighted "average" global position of energy deposition
   vector<double> sumedep, tavg, trms, tmin, tmax; //Sum of energy deposition, average, rms, min and max global times of energy depositions in this cell
 
   //"Part" keeps track of all unique particles depositing energy in a "calorimeter" sensitive volume:

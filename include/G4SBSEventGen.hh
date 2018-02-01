@@ -119,7 +119,8 @@ private:
 
   double fBeamCur;
   double fRunTime;
-  int    fNevt;
+  long    fNevt;   //number of primary events to be generated
+  long    fNtries; //number of "tries" to generate an event (to keep track of efficiency of MC generation).
   double Wfact;
   
   Nucl_t fNuclType, fFinalNucl;

@@ -307,6 +307,14 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
   SBSLeadOptionCmd->SetParameterName("uselead",false);
 
+  buildSBSsieveCmd = new G4UIcmdWithABool("/g4sbs/buildSBSsieve",this);
+  buildSBSsieveCmd->SetGuidance("Use SBS sieve (true or false, false by default)");
+  buildSBSsieveCmd->SetParameterName("buildSBSsieve",false);
+
+  buildBBsieveCmd = new G4UIcmdWithABool("/g4sbs/buildBBsieve",this);
+  buildBBsieveCmd->SetGuidance("Use BB sieve (true or false, false by default)");
+  buildBBsieveCmd->SetParameterName("buildBBsieve",false);
+  
   TreeFlagCmd = new G4UIcmdWithAnInteger("/g4sbs/treeflag",this);
   TreeFlagCmd->SetGuidance("G4SBS ROOT tree filling: 0=keep all, 1=keep only evts w/hits in sensitive volumes");
   TreeFlagCmd->SetParameterName("treeflag",false);
@@ -968,6 +976,14 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == SBSLeadOptionCmd ){
     G4int i = SBSLeadOptionCmd->GetNewIntValue(newValue);
     fdetcon->fLeadOption = i;
+  }
+
+  if( cmd == buildSBSsieveCmd ){
+    fdetcon->fHArmBuilder->SetSBSSieve(newValue);
+  }
+
+  if( cmd == buildBBsieveCmd ){
+    fdetcon->fEArmBuilder->SetBBSieve(newValue);
   }
 
   if( cmd == TreeFlagCmd ){

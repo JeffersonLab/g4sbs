@@ -20,7 +20,8 @@ public:
   void SetCerDist(double a){fCerDist = a;}
 
   void SetGEMSep(double a){fGEMDist = a;}
-
+  void SetBBSieve(bool a){fBuildBBSieve = a;};
+  
   void SetBBCalDist(double a){ fBBCaldist= a; }
   void SetGEMConfig(int gc ){ fGEMOption = gc; }
   //void SetCDetconfig(int cdetc){ fCDetOption = cdetc; }
@@ -34,6 +35,7 @@ public:
   void MakeCDET(G4double, G4double, G4LogicalVolume *); //
   void MakeGMnGEMShielding(G4LogicalVolume *);
 
+  
   double fBBang;
   double fBBdist;
   double fBBCaldist;
@@ -57,6 +59,8 @@ public:
   int fnzsegments_leadglass_C16;
   
   bool fUseLocalField;
+
+  bool fBuildBBSieve;
 
 private:
 };

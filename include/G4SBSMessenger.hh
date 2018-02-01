@@ -140,6 +140,9 @@ private:
   G4UIcmdWithAnInteger      *SBSBeamlineConfCmd;
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
 
+  G4UIcmdWithABool *buildSBSsieveCmd; //Build the SBS Sieve slit
+  G4UIcmdWithABool *buildBBsieveCmd; //Build the BB Sieve slit
+  
   G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree
 
   // G4UIcmdWithABool *Earm_CAL_part_cmd;

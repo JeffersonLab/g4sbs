@@ -20,6 +20,7 @@ public:
   void SetRICHdist( double d ){ fRICHdist = d; } //Set RICH detector distance
   void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
   void SetTrackerPitch(double a){ fSBS_tracker_pitch = a; }
+  void SetSBSSieve(bool a){fBuildSBSSieve = a;};
   
   void Make48D48(G4LogicalVolume*, double);
   void MakeSBSFieldClamps(G4LogicalVolume*);
@@ -33,7 +34,6 @@ public:
   void MakeGEpFPP(G4LogicalVolume *);
   void MakeTracker_A1n(G4LogicalVolume *);
   void MakeElectronModeSBS(G4LogicalVolume *);
-  
 
   double f48D48ang;
   double f48D48dist;
@@ -51,6 +51,9 @@ public:
   bool fUseLocalField;
   
   double fFieldStrength;
+  
+  bool fBuildSBSSieve;
+
 private:
 
 };

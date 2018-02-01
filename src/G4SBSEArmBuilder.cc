@@ -92,6 +92,8 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
 
   fnzsegments_leadglass_ECAL = 1;
   fnzsegments_leadglass_C16 = 1;
+
+  fBuildBBSieve = false;
   
   assert(fDetCon);
 

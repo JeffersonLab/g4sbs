@@ -120,7 +120,7 @@ private:
   double fBeamCur;
   double fRunTime;
   long    fNevt;   //number of primary events to be generated
-  long    fNtries; //number of "tries" to generate an event (to keep track of efficiency of MC generation).
+  //long    fNtries; //number of "tries" to generate an event (to keep track of efficiency of MC generation).
   double Wfact;
   
   Nucl_t fNuclType, fFinalNucl;
@@ -139,6 +139,9 @@ private:
   double fPmisspar, fPmissperp, fPmissparSm;
   double fHCALdist, fToFres;
 
+  double fGenVol; //Phase space generation volume
+  double fLumi;   //Luminosity
+  
   G4LorentzVector GetInitialNucl( Targ_t, Nucl_t );
   
   bool GenerateElastic( Nucl_t, G4LorentzVector, G4LorentzVector );

@@ -1706,7 +1706,8 @@ ev_t G4SBSEventGen::GetEventData(){
 
   data.count  = thisrate*fRunTime;
   data.rate   = thisrate*second;
-  data.solang = genvol/fNevt; 
+  //data.solang = genvol/fNevt; 
+  data.solang = genvol; //Makes no sense to normalize by number of events here.
   if( fKineType == kSIDIS ){ //convert genvol to units of GeV^2 in SIDIS case
     data.solang /= pow(GeV,2);
   }

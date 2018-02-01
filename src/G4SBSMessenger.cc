@@ -518,7 +518,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("inelastic") == 0 ){
       fevgen->SetKine(kInelastic);
-      fevgen->SetRejectionSamplingFlag(false);
+      //fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("flat") == 0 ){

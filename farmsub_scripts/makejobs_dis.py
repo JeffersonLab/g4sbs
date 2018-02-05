@@ -50,6 +50,7 @@ for i in range(0, int(sys.argv[2])):
     if len(sys.argv) == 4:
         runfile.write("time ./g4sbs "+macro_pre+".mac "+macro+".mac > run.out\n")
     runfile.write("mv dis.root /volatile/your_/path_/to_/your_/output_/"+suffix2+"/dis_"+suffix3+".root\n")
+# NB: it is important that the name of the root file you produce (in your .mac file) is the same as the first file name in the previous line. If not, your output file will be lost.
     runfile.write("mv run.out /volatile/your_/path_/to_/your_/output_/run_"+suffix+".out\n")
     runfile.close()
 

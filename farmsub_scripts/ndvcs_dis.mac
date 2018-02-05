@@ -1,4 +1,4 @@
-## Configure G4SBS for TDIS
+## Configure G4SBS for TDIS/nDVCS
 /g4sbs/filename        dis.root   ## Output rootfile
 
 ## Configure Experiment

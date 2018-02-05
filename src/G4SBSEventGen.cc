@@ -79,6 +79,11 @@ G4SBSEventGen::G4SBSEventGen(){
   fPythiaChain = NULL;
   fPythiaTree = NULL;
   fchainentry = 0;
+
+  fRejectionSamplingInitialized = false;
+  fRejectionSamplingFlag = false;
+  fMaxWeight = 1.0;
+  fNeventsWeightCheck = 0;
 }
 
 
@@ -109,7 +114,7 @@ void G4SBSEventGen::LoadPythiaChain( G4String fname ){
 bool G4SBSEventGen::GenerateEvent(){
   // Generate initial electron
   // Insert radiative effects: Where are the radiative effects?
-
+  
   double Mp = proton_mass_c2;
 
   G4LorentzVector ei( fBeamP, fBeamE );
@@ -213,6 +218,22 @@ bool G4SBSEventGen::GenerateEvent(){
     break;
   }
 
+  if( fRejectionSamplingFlag && fRejectionSamplingInitialized && fSigma > fMaxWeight ) {
+    G4cout << "Warning: fSigma > MaxWeight, fSigma/Maxweight = "
+	   << fSigma/fMaxWeight << G4endl;
+    //fMaxWeight = fSigma;
+  }
+
+  // How to normalize? events are thrown flat in phase space, and then accepted or rejected with probability
+  // fSigma/fMaxWeight.
+  // Overall normalization should be proportional to:
+  // xsec * luminosity * phase space volume. The appropriate cross section to use for the normalization is
+  // fMaxWeight
+  
+  if( fRejectionSamplingFlag && fRejectionSamplingInitialized ){
+    success = success && fSigma/fMaxWeight >= CLHEP::RandFlat::shoot();
+  }
+  
   return success;
 }
 
@@ -508,7 +529,11 @@ bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzV
 }
 
 bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
-  double minE = 0.1*GeV;
+  //double minE = 0.1*GeV;
+
+  G4double minE = fEeMin;
+  G4double maxE = fEeMax;
+  
   double Mp = proton_mass_c2;
   double mpi = 0.140*GeV;
 
@@ -537,8 +562,9 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
   double th = acos( CLHEP::RandFlat::shoot(cos(fThMax), cos(fThMin)) );
   double ph = CLHEP::RandFlat::shoot(fPhMin, fPhMax );
 
-  double eprime = CLHEP::RandFlat::shoot(minE, eip.e()-mpi);
-
+  //double eprime = CLHEP::RandFlat::shoot(minE, eip.e()-mpi);
+  G4double eprime = CLHEP::RandFlat::shoot(minE, maxE );
+  
   /*
     printf("nucleon p = %f, mass = %f\n", ni.vect().mag()/GeV, ni.m()/GeV);
     printf("beam e= %f, eprime = %f\n", ei.e()/GeV, eprime/GeV);
@@ -631,10 +657,12 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
   fSigma = 0.0;
   if( nucl == kProton ){
     //	printf("sigma p! %f %f %f\n", eip.e()/GeV, th/deg, eprime/GeV);
-    fSigma    = sigma_p(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
+    //fSigma    = sigma_p(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
+    fSigma    = sigma_p(eip.e()/GeV, th/rad, eprime/GeV)*((maxE-minE)/GeV)*nanobarn; // Dimensions of area
   }
   if( nucl == kNeutron ){
-    fSigma    = sigma_n(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
+    //fSigma    = sigma_n(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
+    fSigma    = sigma_n(eip.e()/GeV, th/rad, eprime/GeV)*((maxE-minE-mpi)/GeV)*nanobarn; // Dimensions of area
   }
   //    printf("fSigma = %e\n", fSigma);
 
@@ -1678,7 +1706,8 @@ ev_t G4SBSEventGen::GetEventData(){
 
   data.count  = thisrate*fRunTime;
   data.rate   = thisrate*second;
-  data.solang = genvol/fNevt; 
+  //data.solang = genvol/fNevt; 
+  data.solang = genvol; //Makes no sense to normalize by number of events here.
   if( fKineType == kSIDIS ){ //convert genvol to units of GeV^2 in SIDIS case
     data.solang /= pow(GeV,2);
   }
@@ -1783,6 +1812,45 @@ ev_t G4SBSEventGen::GetEventData(){
   return data;
 }
 
+void G4SBSEventGen::InitializeRejectionSampling(){
+
+  fRejectionSamplingFlag = fRejectionSamplingFlag &&
+    (fKineType == kElastic || fKineType == kInelastic || fKineType == kDIS ||
+     fKineType == kSIDIS || fKineType == kWiser );
+  
+  if( fRejectionSamplingFlag ){
+  
+    fRejectionSamplingInitialized = true;
+  
+    G4cout << "Initializing rejection sampling..." << G4endl;
+  
+    fMaxWeight = 0.0;
+
+    if( fNeventsWeightCheck<100000 ){
+      fNeventsWeightCheck = 100000; 
+    }
+
+    fRejectionSamplingFlag = false;
+    for( G4int i=0; i<fNeventsWeightCheck; ++i ){
+      if( i % 1000 == 0 ) G4cout << "Estimating max. event weight within generation limits, pre-event = " << i
+				 << ", max weight = " << fMaxWeight 
+				 <<  G4endl;
+
+      //Generate 1 event:
+      while( !GenerateEvent() ){}
+    
+      fMaxWeight = ( fSigma > fMaxWeight ) ? fSigma : fMaxWeight; 
+    }  
+
+    if( fKineType == kSIDIS ){
+      G4cout << "Initialized Rejection sampling, max. weight = " << fMaxWeight/(nanobarn/steradian/GeV*GeV)
+	     << G4endl;
+    } else {
+      G4cout << "Initialized Rejection sampling, max. weight = " << fMaxWeight/(nanobarn/steradian) << " nb/sr" << G4endl;
+    }
+    fRejectionSamplingFlag = true;
+  }
+}
 
 
 

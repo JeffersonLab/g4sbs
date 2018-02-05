@@ -22,10 +22,10 @@ public:
   void SetIO( G4SBSIO *io ){ fIO = io; }
   
   void SetNtries( int n ){ Ntries = n; }
-  int GetNtries(){ return Ntries; }
+  G4int GetNtries(){ return Ntries; }
 
 private:
-  int Ntries; //Keep track of total number of tries to throw an event during the run (efficiency of MC generation needed for correct normalization).
+  G4int Ntries; //Keep track of total number of tries to throw an event during the run (efficiency of MC generation needed for correct normalization).
   
   G4Timer* timer;
   

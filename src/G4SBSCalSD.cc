@@ -9,6 +9,7 @@
 #include "G4ios.hh"
 
 #include "G4Box.hh"
+#include "G4SystemOfUnits.hh"
 
 G4SBSCalSD::G4SBSCalSD( G4String name, G4String colname )
   : G4VSensitiveDetector(name)
@@ -16,6 +17,10 @@ G4SBSCalSD::G4SBSCalSD( G4String name, G4String colname )
     collectionName.insert(colname);
     detmap.SDname = name;
     detmap.clear();
+
+    fHitTimeWindow = 1000.0*ns; //"safe" default value for a calorimeter;
+    fEnergyThreshold = 0.0*keV; //"safe" default value for a calorimeter;
+    fNTimeBins = 20; 
 }
 
 G4SBSCalSD::~G4SBSCalSD()

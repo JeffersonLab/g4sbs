@@ -67,6 +67,8 @@ public:
   long int fNtries;
   unsigned int  fSeed;
   double fBeamE;
+  double fNormalization; //Normalization constant to convert observed counts to a rate. This accounts for efficiency of Monte Carlo generation, phase space volume, luminosity, etc
+  
   char fExpType[__RUNSTR_LEN];
   char fGenName[__RUNSTR_LEN];
   char fGitInfo[__GITMAXINFO_SIZE];

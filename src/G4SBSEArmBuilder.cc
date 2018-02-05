@@ -616,6 +616,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(BBHodoScintSDname)) ) {
     G4cout << "Adding BB Hodoscope Scint Sensitive Detector to SDman..." << G4endl;
     BBHodoScintSD = new G4SBSCalSD( BBHodoScintSDname, BBHodoScintcollname );
+    BBHodoScintSD->SetHitTimeWindow( 30.0*ns ); //relative to hit start time
+    BBHodoScintSD->SetEnergyThreshold( 5.0*MeV ); //Based on simulations of quasi-elastic scattering
+    BBHodoScintSD->SetNTimeBins( 60 ); //0.5 ns/bin
     sdman->AddNewDetector( BBHodoScintSD );
     (fDetCon->SDlist).insert( BBHodoScintSDname );
     fDetCon->SDtype[BBHodoScintSDname] = kCAL;

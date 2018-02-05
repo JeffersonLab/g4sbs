@@ -1,0 +1,54 @@
+/g4sbs/filename elastic.root
+
+## Configure Experiment
+/g4sbs/exp             gep
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         40.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         75.0 muA
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           11.0 GeV
+/g4sbs/thmin           19 deg
+/g4sbs/thmax           39 deg
+/g4sbs/phmin          -50 deg
+/g4sbs/phmax           50 deg
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        6.8 m
+/g4sbs/hcalvoffset     45.0 cm
+/g4sbs/sbsclampopt     2
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/tosfield        GEP_12map0_newheader.table
+/g4sbs/bbang           29.0 deg
+/g4sbs/bbdist          4.5 m
+/g4sbs/sbsang          16.9 deg
+/g4sbs/48D48dist       1.6 m
+
+/tracking/storeTrajectory 0
+#/g4sbs/keephistory Harm/HCAL 1
+#/g4sbs/keephistory Harm/FT 1
+#/g4sbs/keephistory Harm/FPP1 1
+#/g4sbs/keephistory Harm/FPP2 1
+#/g4sbs/keephistory Earm/ECalTF1 1
+#/g4sbs/keepcalparticles Harm/HCAL 1
+#/g4sbs/keepcalparticles Earm/ECalTF1 1
+#/g4sbs/steplimit Harm/HCAL 1
+#/g4sbs/steplimit lHCalo 1
+#/g4sbs/steplimit earm_mother_log 1
+
+/g4sbs/treeflag 1
+/g4sbs/totalabs true
+#/g4sbs/run 250 # Ckov, Scint
+/g4sbs/run 2500 # Ckov, No Scint
+#/g4sbs/run 50000 # No Ckov, No Scint
+
+

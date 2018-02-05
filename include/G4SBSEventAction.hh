@@ -79,6 +79,8 @@ private:
 
   G4int fTreeFlag;
   G4int fEventStatusEvery; //< Print event status at every N-entries
+
+  G4int fhistogram_index;
   
 public:
 };

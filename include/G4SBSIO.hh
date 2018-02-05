@@ -4,6 +4,7 @@
 #include "TROOT.h"
 #include "TObject.h"
 #include "THashTable.h"
+#include "TClonesArray.h"
 #include "G4Run.hh"
 #include "G4SBSRICHoutput.hh"
 #include "G4SBSECaloutput.hh"
@@ -138,6 +139,11 @@ public:
 
   void SetPythiaOutput( G4SBSPythiaOutput p ){ Primaries = p; }
   void SetUsePythia6( G4bool b ){ fUsePythia = b; }
+
+  map<G4String,G4int> histogram_index; //map with key = SDname, val = histogram index in TClonesArray
+
+  TClonesArray *Esum_histograms;
+  TClonesArray *PulseShape_histograms;
   
 private:
   TFile *fFile;
@@ -156,8 +162,7 @@ private:
   map<G4String,G4SBSRICHoutput> richdata;
   map<G4String,G4SBSTrackerOutput> trackdata;
   map<G4String,G4SBSECaloutput> ecaldata;
-
-
+  
   G4bool fUsePythia;
   G4SBSPythiaOutput Primaries;
   
@@ -165,6 +170,8 @@ private:
   
   char fFilename[255];
 
+  G4int fNhistograms;
+  
   // G4bool EarmCALpart_flag;
   // G4bool HarmCALpart_flag;
   

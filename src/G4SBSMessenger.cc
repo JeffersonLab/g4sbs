@@ -109,6 +109,18 @@ G4SBSMessenger::G4SBSMessenger(){
   HadrCmd->SetGuidance("Hadron type h for SIDIS N(e,e'h)X generator: pi+/pi-/K+/K-/p/pbar possible");
   HadrCmd->SetParameterName("hadrontype", false );
 
+  RejectionSamplingCmd = new G4UIcommand("/g4sbs/rejectionsampling",this);
+  RejectionSamplingCmd->SetGuidance("Turn on rejection sampling in event generator");
+  RejectionSamplingCmd->SetGuidance("Produces events distributed according to xsec");
+  RejectionSamplingCmd->SetGuidance("Applies only to generators: elastic, inelastic, dis, sidis, wiser");
+  RejectionSamplingCmd->SetGuidance("Usage: /g4sbs/rejectionsampling flag nevent");
+  RejectionSamplingCmd->SetGuidance("flag (bool) = toggle on/off");
+  RejectionSamplingCmd->SetGuidance("nevent = Number of \"pre-events\" (not generated) to estimate maximum event weight within generation limits");
+  RejectionSamplingCmd->SetParameter( new G4UIparameter("flag",'b',false) );
+  RejectionSamplingCmd->SetParameter( new G4UIparameter("N", 'i', true) );
+  RejectionSamplingCmd->GetParameter(1)->SetDefaultValue(100000);
+				     
+  
   bigfieldCmd = new G4UIcmdWithAnInteger("/g4sbs/48d48field", this);
   bigfieldCmd->SetGuidance("0 = turn off SBS constant magnetic field, 1 = turn on SBS constant magnetic field");
   bigfieldCmd->SetParameterName("48d48field", false);
@@ -311,6 +323,14 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
   SBSLeadOptionCmd->SetParameterName("uselead",false);
 
+  buildSBSsieveCmd = new G4UIcmdWithABool("/g4sbs/buildSBSsieve",this);
+  buildSBSsieveCmd->SetGuidance("Use SBS sieve (true or false, false by default)");
+  buildSBSsieveCmd->SetParameterName("buildSBSsieve",false);
+
+  buildBBsieveCmd = new G4UIcmdWithABool("/g4sbs/buildBBsieve",this);
+  buildBBsieveCmd->SetGuidance("Use BB sieve (true or false, false by default)");
+  buildBBsieveCmd->SetParameterName("buildBBsieve",false);
+  
   TreeFlagCmd = new G4UIcmdWithAnInteger("/g4sbs/treeflag",this);
   TreeFlagCmd->SetGuidance("G4SBS ROOT tree filling: 0=keep all, 1=keep only evts w/hits in sensitive volumes");
   TreeFlagCmd->SetParameterName("treeflag",false);
@@ -415,7 +435,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     
     fevgen->SetNevents(nevt);
-	
+
+    if( fevgen->GetRejectionSamplingFlag() && !fevgen->GetRejectionSamplingInitialized() ){
+      fevgen->InitializeRejectionSampling();
+    }
+    
     //Clean out and rebuild the detector geometry from scratch: 
 
     G4SolidStore::GetInstance()->Clean();
@@ -506,10 +530,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("inelastic") == 0 ){
       fevgen->SetKine(kInelastic);
+      //fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("flat") == 0 ){
       fevgen->SetKine(kFlat);
+      fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("dis") == 0 ){
@@ -518,6 +544,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("beam") == 0 ){
       fevgen->SetKine(kBeam);
+      fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("sidis") == 0 ){
@@ -530,16 +557,19 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("gun") == 0 ){
       fevgen->SetKine( kGun );
+      fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
 
     if( newValue.compareTo("pythia6") == 0 ){
       fevgen->SetKine( kPYTHIA6 );
       fIO->SetUsePythia6( true );
+      fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if (newValue.compareTo("gmnelasticcheck") == 0 ){
       fevgen->SetKine(kGMnElasticCheck);
+      fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
 
@@ -549,6 +579,9 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     } else {
       G4SBSRun::GetRun()->GetData()->SetGenName(newValue.data());
     }
+
+    //After any change of kinematics, set this flag to false so that rejection sampling will be re-initialized:
+    fevgen->SetRejectionSamplingInitialized(false);
   }
 
   if( cmd == PYTHIAfileCmd ){
@@ -643,9 +676,26 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       exit(1);
     }
 
+    fevgen->SetRejectionSamplingInitialized(false);
 
   }
 
+  if( cmd == RejectionSamplingCmd ){ //Turn on rejection sampling for built-in event generators (has no effect for Pythia/beam/etc)
+    std::istringstream is(newValue);
+    G4bool flag;
+    G4int N;
+    if( newValue.contains("true") || newValue.contains("false") ){
+      is >> std::boolalpha >> flag >> N;
+    } else {
+      is >> flag >> N;
+    }
+    
+    fevgen->SetRejectionSamplingFlag(flag);
+    fevgen->SetNeventsWeightCheck( N );
+
+    if( flag ) fevgen->InitializeRejectionSampling();
+  }
+  
   if( cmd == tgtCmd ){
     bool validcmd = false;
     if( newValue.compareTo("LH2") == 0 ){
@@ -709,6 +759,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       exit(1);
     }
 
+    fevgen->SetRejectionSamplingInitialized(false);
+    
   }
 
   if( cmd == bigfieldCmd ){
@@ -804,6 +856,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fIO->SetBeamE(v);
 
     G4SBSRun::GetRun()->GetData()->SetBeamE(v/GeV);
+    //after any command affecting the kinematics or cross section of the built-in event generators, re-initialize rejection sampling:
+    fevgen->SetRejectionSamplingInitialized(false);
   }
 
   if( cmd == bbangCmd ){
@@ -878,52 +932,65 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == thminCmd ){
     G4double v = thminCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMin(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
   if( cmd == thmaxCmd ){
     G4double v = thmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMax(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
   if( cmd == phminCmd ){
     G4double v = phminCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMin(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
   if( cmd == phmaxCmd ){
     G4double v = phmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMax(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
   if( cmd == HthminCmd ){
     G4double v = HthminCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMin_had(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
   if( cmd == HthmaxCmd ){
     G4double v = HthmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMax_had(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
 
   if( cmd == HphminCmd ){
     G4double v = HphminCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMin_had(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
+  
   if( cmd == HphmaxCmd ){
     G4double v = HphmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMax_had(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
 
   if( cmd == EhminCmd ){
     G4double v = EhminCmd->GetNewDoubleValue(newValue);
     fevgen->SetEhadMin(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
   if( cmd == EhmaxCmd ){
     G4double v = EhmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetEhadMax(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
   if( cmd == EeminCmd ){
     G4double v = EeminCmd->GetNewDoubleValue(newValue);
     fevgen->SetEeMin(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
   if( cmd == EemaxCmd ){
     G4double v = EemaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetEeMax(v);
+    fevgen->SetRejectionSamplingInitialized(false);
   }
 
   if( cmd == gemresCmd ){
@@ -976,6 +1043,14 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == SBSLeadOptionCmd ){
     G4int i = SBSLeadOptionCmd->GetNewIntValue(newValue);
     fdetcon->fLeadOption = i;
+  }
+
+  if( cmd == buildSBSsieveCmd ){
+    fdetcon->fHArmBuilder->SetSBSSieve(newValue);
+  }
+
+  if( cmd == buildBBsieveCmd ){
+    fdetcon->fEArmBuilder->SetBBSieve(newValue);
   }
 
   if( cmd == TreeFlagCmd ){

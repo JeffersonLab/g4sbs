@@ -92,6 +92,8 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
 
   fnzsegments_leadglass_ECAL = 1;
   fnzsegments_leadglass_C16 = 1;
+
+  fBuildBBSieve = false;
   
   assert(fDetCon);
   
@@ -111,6 +113,8 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kA1n  || exptype == kTDIS ) 
     {
       MakeBigBite( worldlog );
+      if(fBuildBBSieve)
+	MakeBBSieveSlit(worldlog);
     }
   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
@@ -614,6 +618,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(BBHodoScintSDname)) ) {
     G4cout << "Adding BB Hodoscope Scint Sensitive Detector to SDman..." << G4endl;
     BBHodoScintSD = new G4SBSCalSD( BBHodoScintSDname, BBHodoScintcollname );
+    BBHodoScintSD->SetHitTimeWindow( 30.0*ns ); //relative to hit start time
+    BBHodoScintSD->SetEnergyThreshold( 5.0*MeV ); //Based on simulations of quasi-elastic scattering
+    BBHodoScintSD->SetNTimeBins( 60 ); //0.5 ns/bin
     sdman->AddNewDetector( BBHodoScintSD );
     (fDetCon->SDlist).insert( BBHodoScintSDname );
     fDetCon->SDtype[BBHodoScintSDname] = kCAL;
@@ -3306,3 +3313,10 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
   ElecAtt->SetForceWireframe(true);
   Electronics_log->SetVisAttributes(ElecAtt);
 }
+
+//Sieve slit
+void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog)
+{
+  printf("Building BB sieve slit...\n");
+}
+ 

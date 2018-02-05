@@ -81,6 +81,9 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   // All three types of experiments have a 48D48 magnet:
   if( exptype != kC16 ) {
     Make48D48(worldlog, f48D48dist + f48D48depth/2. );
+    if(fBuildSBSSieve)
+      MakeSBSSieveSlit(worldlog);
+    
     //MakeHCAL( worldlog, fHCALvertical_offset );
     if( exptype != kA1n  && exptype != kTDIS && exptype != kNDVCS )
       MakeHCALV2( worldlog, fHCALvertical_offset );
@@ -3572,3 +3575,12 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   analog->SetVisAttributes( CH2anavisatt );
   
 }
+
+//Sieve slit
+void G4SBSHArmBuilder::MakeSBSSieveSlit(G4LogicalVolume *motherlog)
+{
+  printf("Building SBS sieve slit...\n");
+  
+  
+}
+ 

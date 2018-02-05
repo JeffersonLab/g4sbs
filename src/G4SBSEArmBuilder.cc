@@ -111,6 +111,8 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kA1n  || exptype == kTDIS ) 
     {
       MakeBigBite( worldlog );
+      if(fBuildBBSieve)
+	MakeBBSieveSlit(worldlog);
     }
   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
@@ -3279,3 +3281,10 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
   ElecAtt->SetForceWireframe(true);
   Electronics_log->SetVisAttributes(ElecAtt);
 }
+
+//Sieve slit
+void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog)
+{
+  printf("Building BB sieve slit...\n");
+}
+ 

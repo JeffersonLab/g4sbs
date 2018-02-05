@@ -34,7 +34,7 @@ public:
   
   void MakeCDET(G4double, G4double, G4LogicalVolume *); //
   void MakeGMnGEMShielding(G4LogicalVolume *);
-
+  void MakeBBSieveSlit(G4LogicalVolume *);
   
   double fBBang;
   double fBBdist;

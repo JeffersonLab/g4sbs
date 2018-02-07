@@ -34,6 +34,7 @@ public:
   void MakeGEpFPP(G4LogicalVolume *);
   void MakeTracker_A1n(G4LogicalVolume *);
   void MakeElectronModeSBS(G4LogicalVolume *);
+  void MakeLACModule(G4LogicalVolume *);
   void MakeSBSSieveSlit(G4LogicalVolume *);
   
   double f48D48ang;

@@ -2013,7 +2013,7 @@ void G4SBSHArmBuilder::MakeTracker_A1n(G4LogicalVolume *motherlog){
 void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   MakeTracker_A1n( motherlog );
   MakeRICH_new( motherlog, true );
-  MakeHCAL( motherlog, fHCALvertical_offset );
+  MakeLACModule( motherlog);
 }
 
 void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool electronmode ){
@@ -3573,6 +3573,63 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   CH2anavisatt->SetForceWireframe(true);
 
   analog->SetVisAttributes( CH2anavisatt );
+  
+}
+ 
+// Large angle calorimeter module
+void G4SBSHArmBuilder::MakeLACModule(G4LogicalVolume *motherlog)
+{
+  //instantiate SD manager
+  G4SDManager *sdman = fDetCon->fSDman;
+  
+  G4double mod_dx1 = 217.0*cm, mod_dx2 = 241.0*cm;
+  G4double mod_dy1 = 400.0*cm, mod_dy2 = 446.0*cm;
+  G4double mod_depth = 55.9*cm;
+  
+  //G4double dist_LACRadius = fHCALdist + mod_depth/2.0;
+  //  G4double dist_LACX = -dist_LACRadius*sin(f48D48ang);
+  //G4double dist_LACY = fHCALvertical_offset;
+  //G4double dist_LACZ = dist_LACRadius*cos(f48D48ang);
+  
+  G4Trd* LACmod_box = 
+    new G4Trd("LACmod_box", mod_dx1/2.0, mod_dx2/2.0, mod_dy1/2.0, mod_dy2/2.0, mod_depth/2.0);
+  
+  G4LogicalVolume* LACmod_log = 
+    new G4LogicalVolume(LACmod_box, GetMaterial("Steel"), "LACmod_log");
+
+  G4RotationMatrix *rot_LAC= new G4RotationMatrix();
+  rot_LAC->rotateY(f48D48ang);
+
+  G4ThreeVector pos_LAC(0.0, fHCALvertical_offset, fHCALdist + mod_depth/2.0);
+  pos_LAC.rotateY(-f48D48ang);
+  
+  // Place the LAC module volume
+  new G4PVPlacement(rot_LAC, pos_LAC, LACmod_log, "LACmod", motherlog, false, 0, false);
+  
+  G4VisAttributes *LACmod_visatt = new G4VisAttributes( G4Colour(1.0, 1.0, 1.0) );
+  LACmod_visatt->SetForceWireframe(true);
+
+  // Set step limit to all of LAC?
+  if( (fDetCon->StepLimiterList).find( LACmod_log->GetName() ) != (fDetCon->StepLimiterList).end() ){
+    G4UserLimits *limits = new G4UserLimits(0.0,0.0,0.0,DBL_MAX, DBL_MAX);
+    LACmod_log->SetUserLimits(limits);
+    G4cout << "Making " << LACmod_log->GetName() << " a total absorber" << G4endl;
+    G4String sdname = "Harm/LAC_box";
+    LACmod_visatt->SetForceWireframe(false);
+    G4String collname = "LAC_boxHitsCollection";
+    G4SBSCalSD *LACboxSD = NULL;
+    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(sdname)) ){
+      G4cout << "Adding LAC_box sensitive detector to SDman..." << G4endl;
+      LACboxSD = new G4SBSCalSD( sdname, collname );
+      sdman->AddNewDetector( LACboxSD );
+      (fDetCon->SDlist).insert( sdname );
+      fDetCon->SDtype[sdname] = kCAL;
+      (LACboxSD->detmap).depth = 0;
+      LACmod_log->SetSensitiveDetector( LACboxSD );
+    }
+  }
+  
+  LACmod_log->SetVisAttributes(LACmod_visatt);
   
 }
 

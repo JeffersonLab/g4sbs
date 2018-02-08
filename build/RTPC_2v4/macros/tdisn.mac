@@ -1,0 +1,22 @@
+#Choose a physics list, include low energy neutron stuff
+#/RTPC/physics/Physics QGSP_BIC_HP
+/RTPC/physics/Physics QGSP_BIC
+#/RTPC/physics/Physics emstandard
+#/RTPC/physics/Physics emTest
+##
+/run/initialize
+##the initial random number seed
+#/random/setSeeds 8888116 9999116
+# Track for up to 100 ns
+/RTPC/Step/SetMaxTime 100 ns
+/gun/energy 11000 MeV
+# Generate TDIS events on the proton
+/RTPC/Gen/Mode 6
+# Track the protons
+#/RTPC/Gen/Track 3
+/RTPC/Gen/Track 2
+#/RTPC/Gen/Window 1
+/RTPC/Gen/Input xxx
+# File to store generated events
+/RTPC/event/setOutputFile /scratch/jrma/RecTagg/2Htdis_2_2500k_0.root
+/run/beamOn 2500000

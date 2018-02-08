@@ -1,0 +1,9 @@
+/gun/energy 11000 MeV
+/RTPC/Gen/NToBeTracked 1
+/RTPC/Gen/Track 1
+/RTPC/Gen/Input Ebeam
+##/RTPC/Gen/SetPDir 0.5 0.01 0.0
+#/RTPC/Gen/Input /scratch/jrma/nTest_100kN.root
+#/RTPC/Gen/Input /scratch/jrma/pTestLM-100kN.root
+#
+#/run/beamOn 1000

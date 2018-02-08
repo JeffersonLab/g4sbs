@@ -1,0 +1,26 @@
+#Choose a physics list, include low energy neutron stuff
+#/RTPC/physics/Physics QGSP_BIC_HP
+/RTPC/physics/Physics QGSP_BIC
+#/RTPC/physics/Physics emstandard
+#/RTPC/physics/Physics emTest1
+##
+/run/initialize
+##the initial random number seed
+/random/setSeeds 888807 999907
+# Track for up to 2000 ns
+/RTPC/Step/SetMaxTime 100 ns
+/gun/energy 11000 MeV
+# 2 particles to be tracked
+/RTPC/Gen/NToBeTracked 1
+# particle 2 gamma (PDG 22), energies not used
+/RTPC/Gen/SetParticle 22 4.3 4.4
+# particle 2 direction not used here
+/RTPC/Gen/SetPDir 0.5 0.01 0.0
+#
+# Generate AmBe events randomly
+/RTPC/Gen/Input Ebeam
+# File to store generated events
+#/RTPC/event/setOutputFile ./root/11GeV_D2.400.50_He0.05B_25K_4T_3Blaj_50MH17xx.root
+#/RTPC/event/setOutputFile ./root/11GeV_H2.400.50_He0.05B_NoH_4T_3Blaj_50MH7.root
+/RTPC/event/setOutputFile ./root/11GeV_H2.400.50.1atm.Al00_He0.77K_4T_3Blaj_50MHxx.root
+/run/beamOn 50000000

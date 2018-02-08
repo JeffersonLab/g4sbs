@@ -1,0 +1,100 @@
+Exit beam line study
+SigE summed energy deposit at r > 100mm
+
+## 0 SigE = 49.9
+#BL-Dim: 8.5 10.0 0 0 0
+
+## 3 SigE = 2120
+#BL-Dim: 8.5 10.0 3 0 0
+
+## 3a SigE = 4475
+#BL-Dim: 12 14 3 0 0
+
+## 3b SigE = 4863
+#BL-Dim: 20 22 3 0 0
+
+## 3c SigE = 4023
+#BL-Dim: 30 33 3 0 0
+
+## 3d SigE = 633
+#BL-Dim: 40 43 3 5.0 0
+
+## 3e SigE = 287
+#BL-Dim: 8.5 10.0 3 5.0 0
+
+## 3f SigE = 925.1
+#BL-Dim: 8.5 10.0 3 0.5 0
+
+## 3g SigE = 913.5
+#BL-Dim: 8.5 10.0 3 0.5 85
+
+## 3h SigE = 602.5
+#BL-Dim: 8.5 10.0 3 0.5 -85
+
+## 3i SigE = 118
+#BL-Dim: 8.5 10.0 3 5.0 85
+
+## 3j SigE = 316
+#BL-Dim: 8.5 10.0 3 5.0 -85
+
+## 3k SigE = 167.6
+#BL-Dim: 8.5 10.0 3 10.0 0
+
+## 3l SigE = 635.3
+#BL-Dim: 40 43 3 10.0 0
+
+## 1k SigE = 4181
+#BL-Dim: 8.5 10.0 1 10.0 0
+
+## 1l SigE = 264.5
+BL-Dim: 40 43 1 10.0 0
+
+## 1m SigE = 270.6
+#BL-Dim: 40 43 1 5.0 0
+
+## 1n SigE = 278
+BL-Dim: 60 63 1 10.0 0
+
+## 1o SigE = 246.8
+BL-Dim: 40 43 1 5.0 300
+
+## 1p SigE = 341.5
+BL-Dim: 40 43 1 5.0 -300
+
+## 1r SigE = 272.3 Extend b-field box (keV)
+BL-Dim: 40 43 1 0.0 0
+
+## 1q SigE = 272.3 Extend b-field box (keV)
+BL-Dim: 40 43 1 5.0 0
+
+##-----------------------------------------------------
+root [0] .x PlotEloss.C("8GeV_D2.400.200_He0.05B_25K_B7_3Blaa_10M.root")
+Integrated energy deposit r(mm) 0.0 99.75 200.55 200.55
+ = 3.25889e+06 1.19847 0.594555
+
+root [1] .x PlotEloss.C("8GeV_D2.400.200_He0.05B_25K_B7_3Blab_10M.root")
+ = 3.25947e+06 1.28051 0.648332
+
+root [2] .x PlotEloss.C("8GeV_D2.400.200_He0.05B_25K_B7_3Blac_10M.root")
+ = 3.25862e+06 1.43926 0.619032
+
+root [4] .x PlotEloss.C("8GeV_D2.400.200_He0.05B_25K_B7_3Blad_10M.root")
+ = 3.25951e+06 1.45797 0.886095
+
+root [5] .x PlotEloss.C("8GeV_D2.400.200_He0.05B_25K_B7_3Blae_10M.root")
+ = 3.25915e+06 0.808416 0.35943
+
+root [6] .x PlotEloss.C("8GeV_D2.400.200_He0.05B_25K_B7_3Blaf_10M.root")
+ = 3.25999e+06 1.03401 0.596813
+
+root [7] .x PlotEloss.C("8GeV_D2.400.200_He0.05B_25K_B7_3Blag_10M.root")
+ = 3.25897e+06 1.19424 0.501171
+
+root [8] .x PlotEloss.C("8GeV_D2.400.200_He0.05B_25K_B7_3Blah_10M.root")
+ = 3.2599e+06 0.69647 0.598289
+
+root [9] .x PlotEloss.C("8GeV_D2.400.200_He0.05B_25K_B7_3Blai_10M.root")
+ = 3.25891e+06 0.936858 0.348073
+
+root [10] .x PlotEloss.C("8GeV_D2.400.200_He0.05B_25K_B7_3Blaj_10M.root")
+ = 3.25909e+06 1.03888 0.496648

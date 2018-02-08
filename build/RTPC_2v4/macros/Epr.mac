@@ -1,0 +1,14 @@
+#Choose a physics list, include low energy neutron stuff
+#/RTPC/physics/Physics QGSP_BIC_HP
+/RTPC/physics/Physics QGSP_BIC
+#/RTPC/physics/Physics emstandard
+#/RTPC/physics/Physics emTest2
+##
+/run/initialize
+# Track for up to 2000 ns
+/RTPC/Step/SetMaxTime 100 ns
+## Input particle kinematics file
+/RTPC/Gen/Input /scratch/jrma/RTPC/pLow0.35_100kN.root
+##
+# File to store generated events
+/RTPC/event/setOutputFile /scratch/jrma/RTPC/pLow0.35_100kN_RTPC.root

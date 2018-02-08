@@ -1,0 +1,24 @@
+#
+#Choose a physics list, include low energy neutron stuff
+#/RTPC/physics/Physics QGSP_BIC_HP
+#/RTPC/physics/Physics QGSP_BIC
+#/RTPC/physics/Physics emstandard
+#/RTPC/physics/Physics emTest
+##
+/run/initialize
+##the initial random number seed
+#/random/setSeeds 99999
+# Track for up to xx ns
+/RTPC/Step/SetMaxTime 100 ns
+##
+## # particles to be tracked
+#/RTPC/Gen/NToBeTracked 1
+#/RTPC/Gen/Track 1
+##
+## Input particle kinematics file
+#/RTPC/Gen/Input ./root/ED_EPPPi_100kN.root
+/RTPC/Gen/Input /scratch/jrma/RTPC/pLow0.35_100kN.root
+##
+# File to store generated events
+#/RTPC/event/setOutputFile ./root/8GeV_Epr.root
+#

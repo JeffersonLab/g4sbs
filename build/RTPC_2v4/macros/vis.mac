@@ -1,0 +1,43 @@
+#
+#Choose a physics list, for a full listing type /RTPC/physics/ListPhysics
+#/RTPC/physics/Physics QGSP_BIC_HP
+#/RTPC/physics/Physics QGSP_BIC
+/RTPC/physics/Physics emstandard
+#/RTPC/physics/Physics emTest1
+/RTPC/det/CheckOverlap
+####Initialise
+/run/initialize
+#
+# Sets some default verbose
+#
+/control/verbose 2
+/run/verbose 2
+#
+/vis/open OGLSQt
+/vis/viewer/set/autoRefresh false
+/vis/verbose errors
+/vis/drawVolume
+/vis/viewer/set/viewpointThetaPhi 90. 180.
+/vis/viewer/zoom 1.4
+# Draw smooth trajectories at end of event, showing trajectory points
+# as markers 2 pixels wide:
+/vis/scene/add/trajectories smooth
+/vis/modeling/trajectories/create/drawByParticleID
+#/vis/modeling/trajectories/create/drawByCharge
+#/vis/modeling/trajectories/drawByParticleID-0/default/setDrawStepPts true
+#/vis/modeling/trajectories/drawByParticleID-0/default/setStepPtsSize 1
+/vis/modeling/trajectories/drawByParticleID-0/set gamma green
+/vis/modeling/trajectories/drawByParticleID-0/set e- blue
+/vis/modeling/trajectories/drawByParticleID-0/set e+ cyan
+/vis/modeling/trajectories/drawByParticleID-0/set pi- brown
+/vis/modeling/trajectories/drawByParticleID-0/set pi+ orange
+/vis/modeling/trajectories/drawByParticleID-0/set neutron magenta
+/vis/modeling/trajectories/drawByParticleID-0/set proton red
+#/vis/modeling/trajectories/create/drawByCharge
+#/vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
+#/vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 1
+# To superimpose all of the events from a given run:
+/vis/scene/endOfEventAction accumulate 10000
+# Re-establish auto refreshing and verbosity:
+/vis/viewer/set/autoRefresh true
+/vis/verbose warnings

@@ -209,6 +209,10 @@ G4SBSMessenger::G4SBSMessenger(){
   sbstrkrpitchCmd->SetGuidance("SBS tracker pitch angle (tilt toward up-bending particles)");
   sbstrkrpitchCmd->SetParameterName("angle", false);
   
+  dvcsecalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/dvcsecalhoffset",this);
+  dvcsecalhoffsetCmd->SetGuidance("DVCS ECal HCAL horizontal offset");
+  dvcsecalhoffsetCmd->SetParameterName("dvcsecalhoffset", false);
+  
   dvcsecalmatCmd = new G4UIcmdWithAString("/g4sbs/dvcsecalmat",this);
   dvcsecalmatCmd->SetGuidance("DVCS ECal material: 'PbF2' or 'PbWO4'");
   dvcsecalmatCmd->SetParameterName("dvcsecalmatname", false);
@@ -219,11 +223,11 @@ G4SBSMessenger::G4SBSMessenger(){
 
   hcalvoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalvoffset",this);
   hcalvoffsetCmd->SetGuidance("HCAL vertical offset");
-  hcalvoffsetCmd->SetParameterName("dist", false);
+  hcalvoffsetCmd->SetParameterName("hcalvoffset", false);
 
   hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
   hcalhoffsetCmd->SetGuidance("HCAL horizontal offset");
-  hcalhoffsetCmd->SetParameterName("dist", false);
+  hcalhoffsetCmd->SetParameterName("hcalhoffset", false);
 
   hmagdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/48D48dist",this);
   hmagdistCmd->SetGuidance("48D48 distance");
@@ -886,6 +890,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == sbstrkrpitchCmd ){
     G4double v = sbstrkrpitchCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetTrackerPitch(v);
+  }
+  
+  if( cmd == dvcsecalhoffsetCmd ){
+    G4double v = dvcsecalhoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fEArmBuilder->SetDVCSECalHOffset(v);
   }
   
   if( cmd == dvcsecalmatCmd ){

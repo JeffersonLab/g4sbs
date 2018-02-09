@@ -16,6 +16,7 @@ public:
   void Set48D48Ang(double a){ f48D48ang = a; }
   void SetHCALDist(double a){ fHCALdist= a;   }
   void SetHCALVOffset(double a){ fHCALvertical_offset = a; }
+  void SetHCALHOffset(double a){ fHCALhorizontal_offset = a; }
   void Set48D48Dist(double a){ f48D48dist = a; }
   void SetRICHdist( double d ){ fRICHdist = d; } //Set RICH detector distance
   void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
@@ -42,6 +43,7 @@ public:
   int f48D48_fieldclamp_config; //Configuration of field clamp. There could be several of these.
   double fHCALdist;
   double fHCALvertical_offset;  // Vertical offset (from center) of HCAL
+  double fHCALhorizontal_offset;  // Horizontal offset (from center) of HCAL
   double fRICHdist; //Distance from target to RICH entry window (in horizontal plane)
   double fSBS_tracker_pitch; //SBS tracker pitch angle for electron mode
 

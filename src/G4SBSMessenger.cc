@@ -221,6 +221,10 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalvoffsetCmd->SetGuidance("HCAL vertical offset");
   hcalvoffsetCmd->SetParameterName("dist", false);
 
+  hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
+  hcalhoffsetCmd->SetGuidance("HCAL horizontal offset");
+  hcalhoffsetCmd->SetParameterName("dist", false);
+
   hmagdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/48D48dist",this);
   hmagdistCmd->SetGuidance("48D48 distance");
   hmagdistCmd->SetParameterName("dist", false);
@@ -900,6 +904,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fHArmBuilder->SetHCALVOffset(v);
     fevgen->SetHCALDist(v);
     fIO->SetHcalVOffset(v);
+  }
+
+  if( cmd == hcalhoffsetCmd ){
+    G4double v = hcalhoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetHCALHOffset(v);
+    //fevgen->SetHCALDist(v);
+    //fIO->SetHcalVOffset(v);
   }
 
 

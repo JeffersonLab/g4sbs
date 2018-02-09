@@ -3600,7 +3600,7 @@ void G4SBSHArmBuilder::MakeLACModule(G4LogicalVolume *motherlog)
   G4RotationMatrix *rot_LAC= new G4RotationMatrix();
   rot_LAC->rotateY(f48D48ang);
 
-  G4ThreeVector pos_LAC(0.0, fHCALvertical_offset, fHCALdist + mod_depth/2.0);
+  G4ThreeVector pos_LAC(fHCALhorizontal_offset, fHCALvertical_offset, fHCALdist + mod_depth/2.0);
   pos_LAC.rotateY(-f48D48ang);
   
   // Place the LAC module volume

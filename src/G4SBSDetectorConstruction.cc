@@ -44,6 +44,8 @@
 #include "G4SBSEArmBuilder.hh"
 #include "G4SBSHArmBuilder.hh"
 
+#include "RTPC.hh"
+
 #include "G4Mag_SpinEqRhs.hh"
 #include "G4ClassicalRK4.hh"
 
@@ -88,7 +90,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fBeamlineBuilder = new G4SBSBeamlineBuilder(this);
   fEArmBuilder     = new G4SBSEArmBuilder(this);
   fHArmBuilder     = new G4SBSHArmBuilder(this);
-
+  fRTPC = new RTPC(this);
+  
   fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;
 
   fGlobalField = new G4SBSGlobalField();
@@ -2044,6 +2047,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   fEArmBuilder->BuildComponent(WorldLog);
   fHArmBuilder->BuildComponent(WorldLog);
+
+  fRTPC->Construct(WorldLog);
 
   G4FieldManager *fm = new G4FieldManager(fGlobalField);
 

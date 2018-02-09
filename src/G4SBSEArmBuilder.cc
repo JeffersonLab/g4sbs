@@ -935,15 +935,13 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
   G4int Nrows, Ncols;
   G4double dvcsblkmodule_x, dvcsblkmodule_y;
   G4double caldepth;
-  G4double EcalHoffset, EcalVoffset;
+  
   if(fDVCSECalMaterial=="PbF2"){
     Nrows = 16;
     Ncols = 13;
     dvcsblkmodule_x = 3.00*cm;
     dvcsblkmodule_y = 3.00*cm;
     caldepth = 18.6*cm+2*2.0*cm;
-    EcalHoffset = +1.5*3.0*cm;
-    EcalVoffset = 0;
     defined_mat = true;
   }
   if(fDVCSECalMaterial=="PbWO4"){
@@ -952,8 +950,6 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
     dvcsblkmodule_x = 2.05*cm;
     dvcsblkmodule_y = 2.05*cm; 
     caldepth = 18.0*cm+2*2.0*cm;
-    EcalHoffset = 0;
-    EcalVoffset = 0;
     defined_mat = true;
   }
   if(!defined_mat){
@@ -963,7 +959,6 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
   }
   
   ////////////////////////////////////////////////////////                               
-  // 36 columns, 31 rows 
   G4double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
   G4double mylar_air_sum = mylarthickness + airthickness; 
   G4double dvcsblkpmtz = 0.20*cm;
@@ -973,7 +968,7 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
 
   G4Box *dvcsblkecalbox = new G4Box("dvcsblkecalbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
   G4LogicalVolume *dvcsblkecallog = new G4LogicalVolume(dvcsblkecalbox, GetMaterial("Air"), "dvcsblkecallog");
-  G4ThreeVector dvcsblkecal_pos(EcalHoffset, EcalVoffset, fBBdist+caldepth/2.0);
+  G4ThreeVector dvcsblkecal_pos(fDVCSECALhorizontal_offset, 0.0, fBBdist+caldepth/2.0);
   dvcsblkecal_pos.rotateY(fBBang);
   G4RotationMatrix* dvcsblkecal_rm = new G4RotationMatrix();
   dvcsblkecal_rm->rotateY(-fBBang);

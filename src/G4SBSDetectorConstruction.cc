@@ -1925,7 +1925,19 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   osWLSToAir->SetMaterialPropertiesTable(osWLSToAir_mpt);
   fOpticalSurfacesMap["osWLSToAir"] = osWLSToAir;
 
+  //  *****************************
+  //  *  Large Angle Calorimeter  *
+  //  *****************************
+  G4double d_LAC_Scinti = 1.032*g/cm3;
+  
+  G4Material *LAC_Scinti = new G4Material( "LAC_Scinti", d_LAC_Scinti,  2 );
+  LAC_Scinti->AddMaterial(PolyVinylToluene, fractionmass = 0.40);
+  LAC_Scinti->AddMaterial(Anthracene, fractionmass = 0.60);
+  fMaterialsMap["LAC_Scinti"] = LAC_Scinti;
 
+  G4Material *Teflon = man->FindOrBuildMaterial("G4_TEFLON");
+  fMaterialsMap["Teflon"] = Teflon;
+  
   //   ************************
   //   *          C16         *
   //   ************************

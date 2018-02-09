@@ -3600,7 +3600,7 @@ void G4SBSHArmBuilder::MakeLACModule(G4LogicalVolume *motherlog)
   G4RotationMatrix *rot_LAC= new G4RotationMatrix();
   rot_LAC->rotateY(f48D48ang);
 
-  G4ThreeVector pos_LAC(0.0, fHCALvertical_offset, fHCALdist + mod_depth/2.0);
+  G4ThreeVector pos_LAC(fHCALhorizontal_offset, fHCALvertical_offset, fHCALdist + mod_depth/2.0);
   pos_LAC.rotateY(-f48D48ang);
   
   // Place the LAC module volume
@@ -3608,7 +3608,7 @@ void G4SBSHArmBuilder::MakeLACModule(G4LogicalVolume *motherlog)
   
   G4VisAttributes *LACmod_visatt = new G4VisAttributes( G4Colour(1.0, 1.0, 1.0) );
   LACmod_visatt->SetForceWireframe(true);
-
+  
   // Set step limit to all of LAC?
   if( (fDetCon->StepLimiterList).find( LACmod_log->GetName() ) != (fDetCon->StepLimiterList).end() ){
     G4UserLimits *limits = new G4UserLimits(0.0,0.0,0.0,DBL_MAX, DBL_MAX);
@@ -3631,6 +3631,24 @@ void G4SBSHArmBuilder::MakeLACModule(G4LogicalVolume *motherlog)
   
   LACmod_log->SetVisAttributes(LACmod_visatt);
   
+  //stack construction
+  G4double dxdz = (mod_dx2-mod_dx1)/mod_depth;
+  G4double dydz = (mod_dx2-mod_dx1)/mod_depth;
+  
+  G4double leadthick = 0.2*cm;
+  G4double scintithick = 1.5*cm;
+  
+  
+  //need parametered volumes... look later.
+  /*
+  G4Box* leadsheet_box = new G4Box("leadsheet", mod_dx1/2.0, mod_dy1/2.0, leadthick/2.0);
+  G4Box* teflonsheet_box = new G4Box("leadsheet", mod_dx1/2.0, mod_dy1/2.0);
+
+  G4double depth = 0.0;
+  
+  for(G4int i = 0; i<33; i++){
+  }
+  */
 }
 
 //Sieve slit

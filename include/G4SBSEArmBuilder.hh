@@ -36,13 +36,15 @@ public:
   void MakeGMnGEMShielding(G4LogicalVolume *);
 
   void SetDVCSECalMaterial(G4String str){ fDVCSECalMaterial = str; }
+  void SetDVCSECalHOffset(double a){ fDVCSECALhorizontal_offset = a; }
+  
   void MakeBBSieveSlit(G4LogicalVolume *);
   
 
   double fBBang;
   double fBBdist;
   double fBBCaldist;
-
+  
   G4SBSBigBiteField *fbbfield;
 
   double fRICHdist; //distance from target of RICH detector
@@ -64,6 +66,8 @@ public:
   bool fUseLocalField;
 
   G4String fDVCSECalMaterial;
+  double fDVCSECALhorizontal_offset;  // Horizontal offset (from center) of DVCS ECal
+  
   bool fBuildBBSieve;
 
 private:

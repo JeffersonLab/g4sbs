@@ -90,7 +90,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fBeamlineBuilder = new G4SBSBeamlineBuilder(this);
   fEArmBuilder     = new G4SBSEArmBuilder(this);
   fHArmBuilder     = new G4SBSHArmBuilder(this);
-  fRTPC = new RTPC(this);
+  fRTPC = 0;
   
   fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;
 
@@ -2059,8 +2059,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   fEArmBuilder->BuildComponent(WorldLog);
   fHArmBuilder->BuildComponent(WorldLog);
-
-  fRTPC->Construct(WorldLog);
+  DetectorConstruction * RTPCWorld;
+  //fRTPC->Construct(RTPCWorld);
 
   G4FieldManager *fm = new G4FieldManager(fGlobalField);
 

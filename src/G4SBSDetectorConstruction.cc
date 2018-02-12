@@ -44,7 +44,7 @@
 #include "G4SBSEArmBuilder.hh"
 #include "G4SBSHArmBuilder.hh"
 
-#include "RTPC.hh"
+//#include "RTPC.hh"
 
 #include "G4Mag_SpinEqRhs.hh"
 #include "G4ClassicalRK4.hh"
@@ -2059,7 +2059,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   fEArmBuilder->BuildComponent(WorldLog);
   fHArmBuilder->BuildComponent(WorldLog);
-  DetectorConstruction * RTPCWorld;
+  // I'd suggest not to build RTPC (nor mTPC) in here but in TargetBuilder anyway (E. Fuchey 2018/02/12)
+  // DetectorConstruction * RTPCWorld;
   //fRTPC->Construct(RTPCWorld);
 
   G4FieldManager *fm = new G4FieldManager(fGlobalField);

@@ -14,6 +14,7 @@
 #include "G4PionZero.hh"
 #include "G4Proton.hh"
 #include "G4AntiProton.hh"
+#include "G4SystemOfUnits.hh"
 
 
 #include "wiser_pion.h"
@@ -25,15 +26,15 @@ using namespace CLHEP;
 G4SBSEventGen::G4SBSEventGen(){
   fThMin = 32.0*deg;
   fThMax = 46.0*deg;
-  fPhMin = 225.0*deg;
-  fPhMax = 135.0*deg;
+  fPhMin = 135.0*deg;
+  fPhMax = 225.0*deg;
 
   //////////////////////////////////
 
   fKineType = kElastic;
   fTargType = kH2;
   fTargLen  = 60.0*cm;
-  fTargDen  = 10.5*atmosphere/(296.0*kelvin*k_Boltzmann);
+  fTargDen  = 10.5*atmosphere/(296.0*kelvin*k_Boltzmann); // This is actually in molecules/unit volume = number density
 
   //Default SIDIS hadron type to pi+:
   fHadronType = kPiPlus;
@@ -49,13 +50,22 @@ G4SBSEventGen::G4SBSEventGen(){
 
   fVert = G4ThreeVector();
 
-  Wfact = 0.0;
+  Wfact = 1.0;
 
   fNevt = 0.0;
 
-  fBeamCur  = 20.0e-6*ampere;
-  fRunTime  = 10.0*24.0*3600.0*s;
+  fBeamCur  = 20.0e-6*ampere;     //This is actually in electrons/second
+  fRunTime  = 10.0*24.0*3600.0*s; //Ten days 
 
+  fLumi = fTargDen*Wfact * fTargLen * fBeamCur/(e_SI*ampere*second);
+  //e_SI  = 1.6e-19
+  //ampere * second = coulomb = 1/e_SI --> e_SI * ampere * second = 1
+  //fBeamCur is already expressed in electrons/second. So we're good to go
+  //fLumi here is now expressed in nucleons * electrons per unit area per second. 
+
+  //Phase space event generation volume. Since we default to elastic, this is simply the solid angle:
+  fGenVol = (fPhMax-fPhMin)*(cos(fThMin)-cos(fThMax));
+  
   fHCALdist = 17.0*m;
 
   fToFres = 0.5*ns;
@@ -80,9 +90,13 @@ G4SBSEventGen::G4SBSEventGen(){
   fPythiaTree = NULL;
   fchainentry = 0;
 
-  fRejectionSamplingInitialized = false;
+  fInitialized = false;
+  
+  //fRejectionSamplingInitialized = false;
   fRejectionSamplingFlag = false;
-  fMaxWeight = 1.0;
+  //fMaxWeight = 1.0;
+  fMaxWeight = cm2; 
+  
   fNeventsWeightCheck = 0;
 }
 
@@ -108,12 +122,83 @@ void G4SBSEventGen::LoadPythiaChain( G4String fname ){
   TGraph *gtemp;
 
   ftemp->GetObject( "graph_sigma", gtemp );
-  fPythiaEvent.Sigma = gtemp->GetY()[gtemp->GetN()-1];
+
+  if( gtemp ){
+    fPythiaEvent.Sigma = gtemp->GetY()[gtemp->GetN()-1];
+  } else {
+    fPythiaEvent.Sigma = cm2;
+  }
+}
+
+void G4SBSEventGen::Initialize(){
+  //Initialize weight factor to convert molecules or atoms number density to number density of nucleons in luminosity calculation:
+  switch(fTargType){
+  case kH2:
+    Wfact = 2.0;
+    break;
+  case kD2:
+    Wfact = 4.0;
+    break;
+  case kNeutTarg:
+    Wfact = 1.0;
+    break;
+  case kLH2:
+    Wfact = 1.0;
+    break;
+  case kLD2:
+    Wfact = 2.0;
+    break;
+  case k3He:
+    Wfact = 3.0;
+    break;
+  default:
+    Wfact = 1.0;
+    break;
+  }
+
+  fLumi = fBeamCur / (e_SI*ampere*second) * fTargDen * Wfact * fTargLen;
+
+  //G4cout << "Luminosity = " << fLumi*cm2*s << " cm^{-2} s^{-1}" << G4endl;
+  
+  fGenVol = (fPhMax - fPhMin)*(cos(fThMin)-cos(fThMax));
+  //This expression works for elastic and inelastic, and any other generator that is differential in solid angle only.
+  //The inelastic generator returns (Emax-Emin)*dsig/(dE'dOmega_e), so it would be double-counting to multiply by (Emax-Emin)
+  //in the calculation of GenVol
+
+  fMaxWeight = cm2; //Maxweight is only relevant when using rejection sampling to produce events distributed according to the cross section.
+
+  //The following generators return cross sections differential in both solid angle AND energy:
+  if( fKineType == kDIS || fKineType == kSIDIS || fKineType == kGun ||
+      fKineType == kFlat ){
+    //All of these generators throw flat in "electron arm" solid angle and energy:
+    fGenVol *= (fEeMax - fEeMin);
+    fMaxWeight /= GeV;
+  }
+
+  if( fKineType == kWiser ){ //Wiser generates flat in "hadron" solid angle and energy; i.e., it uses
+    //the "hadron" event generation limits:
+    fGenVol = (fPhMax_had - fPhMin_had)*(cos(fThMin_had)-cos(fThMax_had))*(fEhadMax-fEhadMin);
+    fMaxWeight /= GeV;
+  }
+
+  if( fKineType == kSIDIS ){ //SIDIS generates flat in both electron and hadron solid angle and energy:
+    fGenVol *= (fPhMax_had - fPhMin_had)*(cos(fThMin_had)-cos(fThMax_had))*(fEhadMax-fEhadMin);
+    fMaxWeight /= GeV;
+    G4cout << "Generation volume = " << fGenVol/pow(GeV,2) << "sr*GeV^2" << G4endl;
+  }
+
+  if( fRejectionSamplingFlag ){
+    InitializeRejectionSampling();
+  }
+  
+  fInitialized = true;
 }
 
 bool G4SBSEventGen::GenerateEvent(){
   // Generate initial electron
   // Insert radiative effects: Where are the radiative effects?
+
+  if( !fInitialized ) Initialize();
   
   double Mp = proton_mass_c2;
 
@@ -123,15 +208,20 @@ bool G4SBSEventGen::GenerateEvent(){
   // Generate initial nucleon - target dependent
   
   Nucl_t thisnucl;
-  Wfact = 0.0;
+  //Wfact = 0.0;
 
   bool success = false; 
 
+  //AJRP: Wfact is now initialized in G4SBSEventGen::InitializeConstants(), invoked at start of run
   switch( fTargType ) {
   case kH2:
     thisnucl = kProton;
     ni = G4LorentzVector(Mp);
-    Wfact = 1.0; // 2 Here because we do molecules/cm3 for density
+    //    Wfact = 1.0;
+    // 2 Here because we do molecules/cm3 for density AJRP: is this comment really correct?
+    // It appears to be: for a gaseous H2 target, you have two atoms/molecule, so if TargDen is given in molecules/volume, then
+    // you have twice as many protons per unit volume. So let's actually change the code to reflect this.
+    //Wfact = 2.0;
     break;
   case kD2:
     if( CLHEP::RandFlat::shootInt(2) == 0 ){
@@ -141,17 +231,21 @@ bool G4SBSEventGen::GenerateEvent(){
     }
 
     ni = GetInitialNucl( fTargType, thisnucl );
-    Wfact = 2.0;
+    //   Wfact = 2.0;
+    // AJRP: Based on same considerations discussed above, this should be changed to 4:
+    //Wfact = 4.0;
     break;
   case kNeutTarg:
     thisnucl = kNeutron;
     ni = G4LorentzVector(Mp);
-    Wfact = 1.0;
+    //Wfact = 1.0;
     break;
   case kLH2:
     thisnucl = kProton;
     ni = G4LorentzVector(Mp);
-    Wfact = 1.0;
+    //Wfact = 1.0;
+    //AJRP: for liquid hydrogen, we compute the number density using the mass density, Avogadro's number, and the molar mass, so
+    //Wfact = 1 is appropriate here
     break;
   case kLD2:
     if( CLHEP::RandFlat::shootInt(2) == 0 ){
@@ -161,7 +255,9 @@ bool G4SBSEventGen::GenerateEvent(){
     }
 
     ni = GetInitialNucl( fTargType, thisnucl );
-    Wfact = 2.0;
+    //Wfact = 2.0;
+    //AJRP: for liquid deuterium, we compute the number density using the mass density, Avogadro's number, and the molar mass, so
+    //Wfact = 2 is appropriate here
     break;
   case k3He:
     if( CLHEP::RandFlat::shootInt(3) == 0 ){
@@ -170,12 +266,13 @@ bool G4SBSEventGen::GenerateEvent(){
       thisnucl = kProton;
     }
     ni = GetInitialNucl( fTargType, thisnucl );
-    Wfact = 3.0;
+    //Wfact = 3.0;
+    //AJRP: 3He gas is monatomic, so Wfact = 3 is appropriate here
     break;
   default:
     thisnucl = kProton;
     ni = G4LorentzVector(Mp);
-    Wfact = 1.0;
+    //Wfact = 1.0;
   }
 
   fVert = G4ThreeVector(CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0),
@@ -218,7 +315,7 @@ bool G4SBSEventGen::GenerateEvent(){
     break;
   }
 
-  if( fRejectionSamplingFlag && fRejectionSamplingInitialized && fSigma > fMaxWeight ) {
+  if( fRejectionSamplingFlag && fInitialized && fSigma > fMaxWeight ) {
     G4cout << "Warning: fSigma > MaxWeight, fSigma/Maxweight = "
 	   << fSigma/fMaxWeight << G4endl;
     //fMaxWeight = fSigma;
@@ -230,7 +327,7 @@ bool G4SBSEventGen::GenerateEvent(){
   // xsec * luminosity * phase space volume. The appropriate cross section to use for the normalization is
   // fMaxWeight
   
-  if( fRejectionSamplingFlag && fRejectionSamplingInitialized ){
+  if( fRejectionSamplingFlag && fInitialized ){
     success = success && fSigma/fMaxWeight >= CLHEP::RandFlat::shoot();
   }
   
@@ -528,43 +625,221 @@ bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzV
   return true;
 }
 
+// bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+//   //double minE = 0.1*GeV;
+//   //This generator needs clean-up, in particular to correct the cross section calculation for the non-collinear boost to the nucleon rest frame.
+  
+//   G4double minE = fEeMin;
+//   G4double maxE = fEeMax;
+  
+//   double Mp = proton_mass_c2;
+//   double mpi = 0.140*GeV;
+
+//   G4ThreeVector pboost = -1.0*(ni.boostVector());
+
+//   G4LorentzVector eip = ei.boost(pboost);
+//   ei.boost(-pboost);
+
+//   // Rotation that puts z down eip
+//   // Orthogonal vector with z
+//   G4ThreeVector rotax = (eip.vect().cross(G4ThreeVector(0.0, 0.0, 1.0))).unit();
+//   G4RotationMatrix prot;
+
+//   prot.rotate(-eip.vect().theta(), rotax);
+
+//   eip = G4LorentzVector(eip.e(), G4ThreeVector(0.0, 0.0, eip.e()));
+
+//   G4LorentzVector nip = G4LorentzVector( Mp );
+//   // Now we have our boost and way to get back, calculate elastic scattering
+
+//   G4ThreeVector efp3, nfp3, qfp3;
+//   G4LorentzVector efp, nfp, q, qf;
+
+//   //  Now do real physics
+
+//   double th = acos( CLHEP::RandFlat::shoot(cos(fThMax), cos(fThMin)) );
+//   double ph = CLHEP::RandFlat::shoot(fPhMin, fPhMax );
+
+//   //double eprime = CLHEP::RandFlat::shoot(minE, eip.e()-mpi);
+//   G4double eprime = CLHEP::RandFlat::shoot(minE, maxE );
+  
+//   /*
+//     printf("nucleon p = %f, mass = %f\n", ni.vect().mag()/GeV, ni.m()/GeV);
+//     printf("beam e= %f, eprime = %f\n", ei.e()/GeV, eprime/GeV);
+
+//     printf("th = %f, phi = %f\n", th/deg, ph/deg);
+//   */
+
+//   efp3.setRThetaPhi(eprime, th, ph );
+//   efp = G4LorentzVector( efp3, efp3.mag() );
+
+//   q = eip-efp;
+
+//   G4ThreeVector hrest3;
+//   G4LorentzVector hrest;
+
+//   // Invariant mass system
+//   hrest = G4LorentzVector( q.vect(), Mp+q.e() );
+
+//   // This is the invariant mass of the system
+//   // Let's assume single pion decay from that
+
+//   double W2 = hrest.mag2();
+
+//   if( W2 < pow(Mp + mpi,2.0) ){
+//     // Kinematically not so good - abort
+//     fSigma = 0.0;
+//     fApar  = 0.0;
+//     fAperp = 0.0;
+//     fFinalNucl = fNuclType;
+
+//     fPmisspar  = -1e9;
+//     fPmissparSm  = -1e9;
+
+//     fPmissperp = -1e9;
+
+//     fW2 = W2;
+//     fxbj = -1.0;
+
+//     fElectronP = G4ThreeVector();
+//     fElectronE = 0.0;
+
+//     fNucleonP = G4ThreeVector();
+//     fNucleonE = 0.0;
+
+//     return false;
+//   }
+
+//   double W  = sqrt(W2);
+
+//   double thpi = acos( CLHEP::RandFlat::shoot(-1,1) );
+//   double phpi = CLHEP::RandFlat::shoot(0.0, 2.0*3.14159);
+
+//   // Working in the hadronic system rest frame, we isotropically
+//   // decay the pion - 1/3 of the time we change charge
+//   // from charged pion decay (simple Clebsch Gordon coefficients from delta (I=3/2))
+
+//   if( CLHEP::RandFlat::shoot() < 2.0/3.0 ){
+//     fFinalNucl = nucl;
+//   } else {
+//     fFinalNucl = nucl==kProton?kNeutron:kProton;
+//   }
+
+
+//   double ppi = sqrt(pow(W2 - Mp*Mp - mpi*mpi,2.0) - 4.0*mpi*mpi*Mp*Mp)/(2.0*W);
+
+//   double Ecm = sqrt(ppi*ppi+Mp*Mp);
+
+//   G4ThreeVector ncm3;
+//   ncm3.setRThetaPhi(sqrt(Ecm*Ecm-Mp*Mp), thpi, phpi);
+//   G4LorentzVector ncm(ncm3, Ecm);
+
+//   /*
+//     printf("Ecm = %f (pcm %f)\n", Ecm/GeV, ncm3.mag()/GeV);
+//     printf("hrest boost = %f %f %f\n",hrest.boostVector().x(), hrest.boostVector().y(), hrest.boostVector().z());
+//     printf("hrest boost mag = %f\n",hrest.boostVector().mag());
+
+//     printf("ncm before = %f %f %f\n", ncm.vect().x()/GeV, ncm.vect().y()/GeV, ncm.vect().z()/GeV);
+//   */
+//   ncm.boost(hrest.boostVector());
+//   //printf("ncm after = %f %f %f\n", ncm.vect().x()/GeV, ncm.vect().y()/GeV, ncm.vect().z()/GeV);
+//   nfp  = ncm;
+//   nfp3 = ncm.vect();
+
+//   //printf("nucleon f p = %f, ang = %f deg, phi = %f deg, mass = %f\n", nfp.vect().mag()/GeV, nfp.theta()/deg, nfp.phi()/deg,  nfp.m()/GeV);
+
+//   fQ2 = -q.mag2();
+    
+//   //  Do cross sections and asymmetries
+
+//   fSigma = 0.0;
+//   if( nucl == kProton ){
+//     //	printf("sigma p! %f %f %f\n", eip.e()/GeV, th/deg, eprime/GeV);
+//     //fSigma    = sigma_p(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
+//     fSigma    = sigma_p(eip.e()/GeV, th/rad, eprime/GeV)*((maxE-minE)/GeV)*nanobarn; // Dimensions of area
+//   }
+//   if( nucl == kNeutron ){
+//     //fSigma    = sigma_n(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
+//     fSigma    = sigma_n(eip.e()/GeV, th/rad, eprime/GeV)*((maxE-minE-mpi)/GeV)*nanobarn; // Dimensions of area
+//   }
+//   //    printf("fSigma = %e\n", fSigma);
+
+//   if( fSigma != fSigma ) fSigma = 0.0;
+
+//   fApar  = 0.0;
+//   fAperp = 0.0;
+
+//   // Boost back
+    
+//   efp3 = prot*efp3;
+//   G4LorentzVector ef(efp3, efp3.mag());
+//   ef = ef.boost(-pboost);
+
+//   qf = ei - ef;
+//   G4ThreeVector qf3 = qf.vect();
+
+//   nfp3 = prot*nfp3;
+//   G4LorentzVector nf(nfp3, sqrt(Mp*Mp + nfp3.mag2()) );
+//   nf = nf.boost(-pboost);
+//   G4ThreeVector nf3 = nf.vect();
+
+//   fPmisspar  = (qf3-nf3)*qf3/qf3.mag();
+
+//   double beta = nf3.mag()/sqrt(nf3.mag2()+Mp*Mp);
+//   double tofsm  = beta*fHCALdist/(0.3*m/ns) + CLHEP::RandGauss::shoot(0.0, fToFres);
+//   double betasm = fHCALdist/tofsm/(0.3*m/ns);
+//   double psm    = Mp*betasm/sqrt(1.0-betasm*betasm);
+
+//   G4ThreeVector nf3sm = (psm/nf3.mag())*nf3;
+//   fPmissparSm  = (qf3-nf3sm)*qf3/qf3.mag();
+
+//   fPmissperp = ((qf3-nf3) - fPmisspar*qf3/qf3.mag()).mag();
+
+//   fW2 = (qf+nip).mag2();
+//   fxbj = fQ2/(2.0*Mp*qf.e());
+
+//   fElectronP = ef.vect();
+//   fElectronE = ef.e();
+
+//   fNucleonP = nf.vect();
+//   fNucleonE = nf.e();
+
+//   return true;
+// }
+
 bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
   //double minE = 0.1*GeV;
-
+  //This generator needs clean-up, in particular to correct the cross section calculation for the non-collinear boost to the nucleon rest frame.
+  
   G4double minE = fEeMin;
   G4double maxE = fEeMax;
   
   double Mp = proton_mass_c2;
   double mpi = 0.140*GeV;
 
-  G4ThreeVector pboost = -1.0*(ni.boostVector());
+  G4LorentzVector Pisum_lab = ei + ni;
 
-  G4LorentzVector eip = ei.boost(pboost);
-  ei.boost(-pboost);
+  G4ThreeVector boost_Nrest = ni.boostVector();
 
-  // Rotation that puts z down eip
-  // Orthogonal vector with z
-  G4ThreeVector rotax = (eip.vect().cross(G4ThreeVector(0.0, 0.0, 1.0))).unit();
-  G4RotationMatrix prot;
+  G4LorentzVector ei_Nrest = ei;
+  G4LorentzVector ni_Nrest = ni;
 
-  prot.rotate(-eip.vect().theta(), rotax);
+  ei_Nrest.boost( -boost_Nrest );
+  ni_Nrest.boost( -boost_Nrest );
 
-  eip = G4LorentzVector(eip.e(), G4ThreeVector(0.0, 0.0, eip.e()));
-
-  G4LorentzVector nip = G4LorentzVector( Mp );
-  // Now we have our boost and way to get back, calculate elastic scattering
-
-  G4ThreeVector efp3, nfp3, qfp3;
-  G4LorentzVector efp, nfp, q, qf;
+  G4double Ebeam_Nrest = ei_Nrest.e();
 
   //  Now do real physics
 
-  double th = acos( CLHEP::RandFlat::shoot(cos(fThMax), cos(fThMin)) );
-  double ph = CLHEP::RandFlat::shoot(fPhMin, fPhMax );
+  //Generate electron  angles and energy in the LAB frame:
+  //These will then be boosted to the nucleon rest frame to compute the differential cross section.
+  
+  G4double eth = acos( CLHEP::RandFlat::shoot(cos(fThMax), cos(fThMin)) );
+  G4double eph = CLHEP::RandFlat::shoot(fPhMin, fPhMax );
 
   //double eprime = CLHEP::RandFlat::shoot(minE, eip.e()-mpi);
-  G4double eprime = CLHEP::RandFlat::shoot(minE, maxE );
-  
+  G4double Eeprime = CLHEP::RandFlat::shoot(minE, maxE );
+  G4double Peprime = sqrt(pow(Eeprime,2) - ei.m2() );
   /*
     printf("nucleon p = %f, mass = %f\n", ni.vect().mag()/GeV, ni.m()/GeV);
     printf("beam e= %f, eprime = %f\n", ei.e()/GeV, eprime/GeV);
@@ -572,21 +847,32 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
     printf("th = %f, phi = %f\n", th/deg, ph/deg);
   */
 
-  efp3.setRThetaPhi(eprime, th, ph );
-  efp = G4LorentzVector( efp3, efp3.mag() );
+  G4LorentzVector ef_lab( Eeprime, G4ThreeVector( Peprime*sin(eth)*cos(eph),
+						  Peprime*sin(eth)*sin(eph),
+						  Peprime*cos(eth) ) );
 
-  q = eip-efp;
+  G4LorentzVector q_lab = ei - ef_lab;
 
-  G4ThreeVector hrest3;
-  G4LorentzVector hrest;
+  G4double Q2 = -q_lab.m2();
 
-  // Invariant mass system
-  hrest = G4LorentzVector( q.vect(), Mp+q.e() );
+  // Boost generated outgoing electron four-momentum to the nucleon rest frame:
+  G4LorentzVector ef_Nrest = ef_lab;
+  ef_Nrest.boost( -boost_Nrest );
 
-  // This is the invariant mass of the system
-  // Let's assume single pion decay from that
+  G4LorentzVector q_Nrest = ei_Nrest - ef_Nrest; 
 
-  double W2 = hrest.mag2();
+  //Calculate the boosted value of Bjorken x:
+  G4double x = -q_Nrest.m2()/(2.0*ni_Nrest.dot( q_Nrest ) );
+
+  //This is P + q evaluated in the nucleon rest frame:
+  //G4LorentzVector P_GammaN_Nrest = ni_Nrest + q_Nrest;
+  
+  //G4ThreeVector boost_GammaN_Nrest = P_GammaN_Nrest.boostVector();
+
+  //Actually, we can boost directly from the virtual photon-nucleon rest frame to the lab frame:
+  G4LorentzVector P_GammaN_lab = q_lab + ni; 
+  
+  G4double W2 = P_GammaN_lab.mag2();
 
   if( W2 < pow(Mp + mpi,2.0) ){
     // Kinematically not so good - abort
@@ -612,10 +898,14 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
     return false;
   }
 
-  double W  = sqrt(W2);
+  G4ThreeVector boost_GammaN_lab = P_GammaN_lab.boostVector();
+  
+  G4double W  = sqrt(W2);
 
-  double thpi = acos( CLHEP::RandFlat::shoot(-1,1) );
-  double phpi = CLHEP::RandFlat::shoot(0.0, 2.0*3.14159);
+  //Now we isotropically decay the photon-nucleon system assuming an Npi final state:
+  
+  G4double thpi = acos( CLHEP::RandFlat::shoot(-1,1) );
+  G4double phpi = CLHEP::RandFlat::shoot(0.0, CLHEP::twopi);
 
   // Working in the hadronic system rest frame, we isotropically
   // decay the pion - 1/3 of the time we change charge
@@ -627,42 +917,40 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
     fFinalNucl = nucl==kProton?kNeutron:kProton;
   }
 
+  G4double Epi_GammaNrest = (W2 - pow(mpi,2) - pow(Mp,2))/(2.0*W);
+  G4double EN_GammaNrest = W - Epi_GammaNrest;
+  G4double PN_GammaNrest = sqrt(pow(EN_GammaNrest,2)-pow(Mp,2));
 
-  double ppi = sqrt(pow(W2 - Mp*Mp - mpi*mpi,2.0) - 4.0*mpi*mpi*Mp*Mp)/(2.0*W);
+  //This is the final nucleon momentum in the virtual photon-nucleon rest frame
+  //It can be boosted directly to the lab frame: 
+  G4LorentzVector Pfnucleon_GammaNrest( EN_GammaNrest,
+					PN_GammaNrest *
+					G4ThreeVector( sin(thpi)*cos(phpi),
+						       sin(thpi)*sin(phpi),
+						       cos(thpi) ) );
 
-  double Ecm = sqrt(ppi*ppi+Mp*Mp);
-
-  G4ThreeVector ncm3;
-  ncm3.setRThetaPhi(sqrt(Ecm*Ecm-Mp*Mp), thpi, phpi);
-  G4LorentzVector ncm(ncm3, Ecm);
-
-  /*
-    printf("Ecm = %f (pcm %f)\n", Ecm/GeV, ncm3.mag()/GeV);
-    printf("hrest boost = %f %f %f\n",hrest.boostVector().x(), hrest.boostVector().y(), hrest.boostVector().z());
-    printf("hrest boost mag = %f\n",hrest.boostVector().mag());
-
-    printf("ncm before = %f %f %f\n", ncm.vect().x()/GeV, ncm.vect().y()/GeV, ncm.vect().z()/GeV);
-  */
-  ncm.boost(hrest.boostVector());
-  //printf("ncm after = %f %f %f\n", ncm.vect().x()/GeV, ncm.vect().y()/GeV, ncm.vect().z()/GeV);
-  nfp  = ncm;
-  nfp3 = ncm.vect();
-
-  //printf("nucleon f p = %f, ang = %f deg, phi = %f deg, mass = %f\n", nfp.vect().mag()/GeV, nfp.theta()/deg, nfp.phi()/deg,  nfp.m()/GeV);
-
-  fQ2 = -q.mag2();
-    
+  G4LorentzVector Pfnucleon_lab = Pfnucleon_GammaNrest; 
+  
+  Pfnucleon_lab.boost( boost_GammaN_lab );
+  
+  
+  
+  fQ2 = Q2;
+  fW2 = W2;
+  fxbj = x;
+  
   //  Do cross sections and asymmetries
 
+  //This gives the cross section in the nucleon rest frame in units of area/unit solid angle:
   fSigma = 0.0;
   if( nucl == kProton ){
     //	printf("sigma p! %f %f %f\n", eip.e()/GeV, th/deg, eprime/GeV);
     //fSigma    = sigma_p(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
-    fSigma    = sigma_p(eip.e()/GeV, th/rad, eprime/GeV)*((maxE-minE)/GeV)*nanobarn; // Dimensions of area
+    fSigma    = sigma_p(ei_Nrest.e()/GeV, eth/rad, ef_Nrest.e()/GeV)*((maxE-minE)/GeV)*nanobarn; // Dimensions of area
   }
   if( nucl == kNeutron ){
     //fSigma    = sigma_n(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
-    fSigma    = sigma_n(eip.e()/GeV, th/rad, eprime/GeV)*((maxE-minE-mpi)/GeV)*nanobarn; // Dimensions of area
+    fSigma    = sigma_n(ei_Nrest.e()/GeV, eth/rad, ef_Nrest.e()/GeV)*((maxE-minE)/GeV)*nanobarn; // Dimensions of area
   }
   //    printf("fSigma = %e\n", fSigma);
 
@@ -671,40 +959,73 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
   fApar  = 0.0;
   fAperp = 0.0;
 
-  // Boost back
-    
-  efp3 = prot*efp3;
-  G4LorentzVector ef(efp3, efp3.mag());
-  ef = ef.boost(-pboost);
+  // Boost back:
+  //Now that we have the DIS cross section in the nucleon rest frame, we have
+  //to account for the modification of the flux factor due to the fact that the collision in the lab frame is no longer collinear
+  //(this is the only part of the cross section that is not Lorentz-invariant--it transforms like a cross-sectional area!):
+  // Ratio F(lab)/F(Nrest) = 4Ee_lab*En_lab*| v_e - v_n |_lab/4M E_e_Nrest
+  // |v_e - v_n| = sqrt( v_e^2 + v_n^2 - 2v_e v_n cos( theta_en ) )
+  // v_e^2 = 1, v_n^2 = p_n^2/E_n^2, v_e v_n = p_n/E_n:
+  // |v_e - v_n| = sqrt( 1 + p_n^2/E_n^2 - 2p_n/E_n * cos( theta_en ) );
+  // p_n^2/E_n^2 = 1 - m_n^2/E_n^2
+  // |v_e - v_n| = sqrt( 2*(1 - p_n/E_n*cos(theta_en)) - m_n^2/E_n^2 ) = sqrt( 2*(1 - beta_n * cos(thetaen)) - 1/gamman^2);
+  // After boosting to the nucleon rest frame, p_n/E_n = 0 and m_n^2/E_n^2 = 1, so |v_e - v_n| is sqrt( 2(1-beta cos( theta_en )) - 1 ) = 1 (or c when working in regular units).
+  //Since dsigma ~ 1/F, we need to multiply the ratio of dsigma lab = dsigma Nrest * Frest/Flab
 
-  qf = ei - ef;
-  G4ThreeVector qf3 = qf.vect();
+  double costheta_eN_lab = (ei.vect().unit() ).dot( ni.vect().unit() );
+  double betaN_lab = ni.beta();
+  double gammaN_lab = ni.gamma();
 
-  nfp3 = prot*nfp3;
-  G4LorentzVector nf(nfp3, sqrt(Mp*Mp + nfp3.mag2()) );
-  nf = nf.boost(-pboost);
-  G4ThreeVector nf3 = nf.vect();
+  double flux_Nrest = 4.0*ni.m()*ei_Nrest.e();
+  double flux_lab = 4.0*ei.e()*ni.e()*sqrt( 2.0*(1.0-betaN_lab*costheta_eN_lab) - pow(gammaN_lab,-2) );
 
-  fPmisspar  = (qf3-nf3)*qf3/qf3.mag();
+  fSigma *= flux_Nrest/flux_lab; //The lines above already converted the cross section to GEANT4 units. Now this has dimensions of area, is expressed in the lab frame, and is differential in solid angle only!
 
-  double beta = nf3.mag()/sqrt(nf3.mag2()+Mp*Mp);
-  double tofsm  = beta*fHCALdist/(0.3*m/ns) + CLHEP::RandGauss::shoot(0.0, fToFres);
-  double betasm = fHCALdist/tofsm/(0.3*m/ns);
-  double psm    = Mp*betasm/sqrt(1.0-betasm*betasm);
+  //The last step is to compute the "true" and "smeared" missing energy and momentum quantities in the lab frame by boosting the
+  //final nucleon momentum to the lab frame:
+  
+  // efp3 = prot*efp3;
+  // G4LorentzVector ef(efp3, efp3.mag());
+  //ef = ef.boost(-pboost);
 
-  G4ThreeVector nf3sm = (psm/nf3.mag())*nf3;
-  fPmissparSm  = (qf3-nf3sm)*qf3/qf3.mag();
+  //qf = ei - ef;
+  //G4ThreeVector qf3 = qf.vect();
 
-  fPmissperp = ((qf3-nf3) - fPmisspar*qf3/qf3.mag()).mag();
+  // nfp3 = prot*nfp3;
+  // G4LorentzVector nf(nfp3, sqrt(Mp*Mp + nfp3.mag2()) );
+  // nf = nf.boost(-pboost);
+  // G4ThreeVector nf3 = nf.vect();
 
-  fW2 = (qf+nip).mag2();
-  fxbj = fQ2/(2.0*Mp*qf.e());
+  G4ThreeVector Pmiss = q_lab.vect() - Pfnucleon_lab.vect();
+  
+  fPmisspar  = ( Pmiss ).dot( q_lab.vect().unit() );
+  //fPmisspar  = (qf3-nf3)*qf3/qf3.mag();
 
-  fElectronP = ef.vect();
-  fElectronE = ef.e();
+  // double beta = nf3.mag()/sqrt(nf3.mag2()+Mp*Mp);
+  // // double tofsm  = beta*fHCALdist/(0.3*m/ns) + CLHEP::RandGauss::shoot(0.0, fToFres);
+  // double betasm = fHCALdist/tofsm/(0.3*m/ns);
+  // double psm    = Mp*betasm/sqrt(1.0-betasm*betasm);
 
-  fNucleonP = nf.vect();
-  fNucleonE = nf.e();
+  G4double beta = Pfnucleon_lab.beta();
+  G4double tofsm = fHCALdist/(beta*0.3*m/ns) + CLHEP::RandGauss::shoot( 0.0, fToFres );
+  G4double betasm = fHCALdist/tofsm/(0.3*m/ns);
+  G4double psm = Mp*betasm/sqrt(1.0-pow(betasm,2));
+  
+  //G4ThreeVector nf3sm = (psm/nf3.mag())*nf3;
+  // fPmissparSm  = (qf3-nf3sm)*qf3/qf3.mag();
+  fPmissparSm = (q_lab.vect() - psm * Pfnucleon_lab.vect().unit() ).dot( q_lab.vect().unit() );
+  
+  //fPmissperp = ((qf3-nf3) - fPmisspar*qf3/qf3.mag()).mag();
+  fPmissperp = (Pmiss - Pmiss.dot( q_lab.vect().unit() )*q_lab.vect().unit() ).mag();
+  
+  // fW2 = (qf+nip).mag2();
+  // fxbj = fQ2/(2.0*Mp*qf.e());
+
+  fElectronP = ef_lab.vect();
+  fElectronE = ef_lab.e();
+
+  fNucleonP = Pfnucleon_lab.vect();
+  fNucleonE = Pfnucleon_lab.e();
 
   return true;
 }
@@ -802,7 +1123,7 @@ bool G4SBSEventGen::GenerateDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVecto
   }
   //    printf("fSigma = %e\n", fSigma);
 
-  if( fSigma != fSigma ) fSigma = 0.0;
+  if( fSigma != fSigma ) fSigma = 0.0; //Why?
 
   //Now that we have the DIS cross section in the nucleon rest frame, we have
   //to account for the modification of the flux factor due to the fact that the collision in the lab frame is no longer collinear
@@ -822,7 +1143,10 @@ bool G4SBSEventGen::GenerateDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVecto
   double flux_Nrest = 4.0*ni.m()*ei_Nrest.e();
   double flux_lab = 4.0*ei.e()*ni.e()*sqrt( 2.0*(1.0-betaN_lab*costheta_eN_lab) - pow(gammaN_lab,-2) );
 
-  fSigma *= flux_Nrest/flux_lab * nanobarn * ( fEeMax - fEeMin ) / GeV; //Now this is expressed in nb/sr in the LAB frame, and is a per-nucleon cross section!
+  //fSigma *= flux_Nrest/flux_lab * nanobarn * ( fEeMax - fEeMin ) / GeV; //Now this is expressed in nb/sr in the LAB frame, and is a per-nucleon cross section!
+  //AJRP: energy generation limit is part of phase space generation volume; don't
+  // include it here.
+  fSigma *= flux_Nrest/flux_lab * nanobarn/GeV; //Now this is expressed in GEANT4 units (MeV/mm) in the LAB frame, and is a per-nucleon cross section!
   
   fApar  = 0.0;
   fAperp = 0.0;
@@ -1290,7 +1614,9 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
     }
   }
 
-  fSigma *= (fEhadMax-fEhadMin)*(cos( fThMax_had) - cos( fThMin_had ))*(fPhMax_had-fPhMin_had)/(cos(fThMax)-cos(fThMin) )/(fPhMax-fPhMin);
+  //AJRP: Why is this line here? To be consistent with the other generators, we keep fSigma as the differential cross section,
+  // and multiply in the phase space volume at the stage of a rate calculation/normalization; commented out:
+  //  fSigma *= (fEhadMax-fEhadMin)*(cos( fThMax_had) - cos( fThMin_had ))*(fPhMax_had-fPhMin_had)/(cos(fThMax)-cos(fThMin) )/(fPhMax-fPhMin);
 
   fApar  = 0.0;
   fAperp = 0.0;
@@ -1321,8 +1647,9 @@ bool G4SBSEventGen::GenerateFlat( Nucl_t nucl, G4LorentzVector ei, G4LorentzVect
   // Initial angles
   double th      = acos( CLHEP::RandFlat::shoot(cos(fThMax), cos(fThMin)) );
   double ph      = CLHEP::RandFlat::shoot(fPhMin, fPhMax );
-  double eprime  = CLHEP::RandFlat::shoot(0.0, ei.e());
-
+  //double eprime  = CLHEP::RandFlat::shoot(0.0, ei.e());
+  double eprime = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
+  
   G4ThreeVector efp3, nfp3, qfp3;
   efp3.setRThetaPhi(eprime, th, ph );
     
@@ -1355,7 +1682,7 @@ bool G4SBSEventGen::GenerateFlat( Nucl_t nucl, G4LorentzVector ei, G4LorentzVect
   fNucleonP = nfp.vect();
   fNucleonE = sqrt(Mp*Mp + nfp.mag2());
 
-  fSigma    = 1.0;
+  fSigma    = cm2/GeV; //1.0 cm2/GeV What else to use?
   fApar     = 0.0;
   fAperp    = 0.0;
 
@@ -1680,10 +2007,13 @@ bool G4SBSEventGen::GeneratePythia(){
 ev_t G4SBSEventGen::GetEventData(){
   ev_t data;
 
-  double lumin    = fTargDen*Wfact // Nucleons/Volume
-    *fTargLen       // Nuclei/area
-    *fBeamCur/(e_SI*ampere*second);
-
+  //Why are we calculating these constant quantities every event?
+  //Let's do it once, we can do it via the SBS messenger when we invoke
+  // /g4sbs/run command
+  // double lumin    = fTargDen*Wfact // Nucleons/Volume
+  //   *fTargLen       // Nuclei/area
+  //   *fBeamCur/(e_SI*ampere*second);
+  //AJRP: moved luminosity calculation to Initialize()
     
   // printf("density = %e N/m3\n", fTargDen*m3);
   // printf("density = %e N/cm3\n", fTargDen*cm3);
@@ -1692,28 +2022,37 @@ ev_t G4SBSEventGen::GetEventData(){
   //printf("luminosity = %e Hz/cm2\n", lumin*second*cm2);
   // printf("e_SI = %e, ampere = %f, \n", e_SI);
 
-  double genvol   = (fPhMax-fPhMin)*(cos(fThMin)-cos(fThMax));
-  double thisrate = fSigma*lumin*genvol/fNevt;
+  //double genvol   = (fPhMax-fPhMin)*(cos(fThMin)-cos(fThMax));
+  //AJRP: moved genvol calculation to Initialize()
+  double thisrate = fSigma*fLumi*fGenVol/fNevt;
 
-  if( fKineType == kSIDIS ){ //Then fSigma is dsig/dOmega_e dE'_e dOmega_h dE'_h
-    genvol *= (fPhMax_had - fPhMin_had)*( cos(fThMin_had) - cos(fThMax_had) );
-    genvol *= (fEeMax - fEeMin);
-    genvol *= (fEhadMax - fEhadMin);
+  //Again: moved genvol calculation to Initialize()
+  // if( fKineType == kSIDIS ){ //Then fSigma is dsig/dOmega_e dE'_e dOmega_h dE'_h
+  //   genvol *= (fPhMax_had - fPhMin_had)*( cos(fThMin_had) - cos(fThMax_had) );
+  //   genvol *= (fEeMax - fEeMin);
+  //   genvol *= (fEhadMax - fEhadMin);
 
-    thisrate = fSigma*lumin*genvol/fNevt;
+  //   thisrate = fSigma*lumin*genvol/fNevt;
       
-  }
+  // }
 
   data.count  = thisrate*fRunTime;
   data.rate   = thisrate*second;
   //data.solang = genvol/fNevt; 
-  data.solang = genvol; //Makes no sense to normalize by number of events here.
-  if( fKineType == kSIDIS ){ //convert genvol to units of GeV^2 in SIDIS case
-    data.solang /= pow(GeV,2);
-  }
+  data.solang = fGenVol; //Makes no sense to normalize by number of events here.
+  // if( fKineType == kSIDIS ){ //convert genvol to units of GeV^2 in SIDIS case
+  //   data.solang /= pow(GeV,2); AJRP: moved to InitializeConstants()
+  // }
   data.sigma = fSigma/cm2;
+
+  if( fKineType == kDIS || fKineType == kWiser){
+    data.sigma = fSigma/cm2*GeV;
+    data.solang = fGenVol/GeV;
+  }
+  
   if( fKineType == kSIDIS ){ //The SIDIS cross section is also differential in e- energy and hadron energy and has units of area/energy^2/sr^2, so we also need to express it in the correct energy units:
     data.sigma = fSigma/cm2*pow(GeV,2);
+    data.solang = fGenVol/pow(GeV,2); //The phase space generation volume has units of energy^2 for SIDIS
   }
   data.Aperp  = fAperp;
   data.Apar   = fApar;
@@ -1820,7 +2159,7 @@ void G4SBSEventGen::InitializeRejectionSampling(){
   
   if( fRejectionSamplingFlag ){
   
-    fRejectionSamplingInitialized = true;
+    fInitialized = true;
   
     G4cout << "Initializing rejection sampling..." << G4endl;
   
@@ -1843,7 +2182,7 @@ void G4SBSEventGen::InitializeRejectionSampling(){
     }  
 
     if( fKineType == kSIDIS ){
-      G4cout << "Initialized Rejection sampling, max. weight = " << fMaxWeight/(nanobarn/steradian/GeV*GeV)
+      G4cout << "Initialized Rejection sampling, max. weight = " << fMaxWeight/(nanobarn/steradian/(GeV*GeV))
 	     << G4endl;
     } else {
       G4cout << "Initialized Rejection sampling, max. weight = " << fMaxWeight/(nanobarn/steradian) << " nb/sr" << G4endl;

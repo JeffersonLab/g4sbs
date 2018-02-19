@@ -423,10 +423,31 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     
     fevgen->SetNevents(nevt);
+    fevgen->Initialize();
+    
+    // if( fevgen->GetRejectionSamplingFlag() && !fevgen->GetRejectionSamplingInitialized() ){
+    //   fevgen->InitializeRejectionSampling();
+    // }
 
-    if( fevgen->GetRejectionSamplingFlag() && !fevgen->GetRejectionSamplingInitialized() ){
-      fevgen->InitializeRejectionSampling();
+    Kine_t kinetype = fevgen->GetKine(); 
+    if( kinetype == kDIS || kinetype == kWiser ){ //Processes with xsec in units of area/energy/solid angle; i.e., nb/GeV/sr
+      G4SBSRun::GetRun()->GetData()->SetGenVol( fevgen->GetGenVol()/GeV );
+      //if( fevgen->GetRejectionSamplingFlag() ){
+      G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 * GeV );
+	//}
+    } else if ( kinetype == kSIDIS ){ //Processes with xsec differential in area/energy^2/solid angle^2:
+      G4SBSRun::GetRun()->GetData()->SetGenVol( fevgen->GetGenVol()/(GeV*GeV) );
+      // if( fevgen->GetRejectionSamplingFlag() ){
+      G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 * pow(GeV,2) );
+      //}
+    } else { //Processes with xsec differential in solid angle only:
+      G4SBSRun::GetRun()->GetData()->SetGenVol( fevgen->GetGenVol() );
+      //if( fevgen->GetRejectionSamplingFlag() ){
+      G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 );
+      //}
     }
+    G4SBSRun::GetRun()->GetData()->SetLuminosity( fevgen->GetLumi()*cm2*s );
+    //G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight() );
     
     //Clean out and rebuild the detector geometry from scratch: 
 
@@ -523,11 +544,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("flat") == 0 ){
       fevgen->SetKine(kFlat);
+      //fevgen->SetMaxWeight( cm2 );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("dis") == 0 ){
       fevgen->SetKine(kDIS);
+      //fevgen->SetMaxWeight( cm2/GeV );
       validcmd = true;
     }
     if( newValue.compareTo("beam") == 0 ){
@@ -537,10 +560,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("sidis") == 0 ){
       fevgen->SetKine( kSIDIS );
+      //fevgen->SetMaxWeight( cm2/pow(GeV,2) );
       validcmd = true;
     }
     if( newValue.compareTo("wiser") == 0 ){
       fevgen->SetKine( kWiser);
+      //fevgen->SetMaxWeight( cm2/GeV );
       validcmd = true;
     }
     if( newValue.compareTo("gun") == 0 ){
@@ -558,6 +583,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if (newValue.compareTo("gmnelasticcheck") == 0 ){
       fevgen->SetKine(kGMnElasticCheck);
       fevgen->SetRejectionSamplingFlag(false);
+      //fevgen->SetMaxWeight( cm2 );
       validcmd = true;
     }
 
@@ -569,7 +595,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
 
     //After any change of kinematics, set this flag to false so that rejection sampling will be re-initialized:
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == PYTHIAfileCmd ){
@@ -664,7 +690,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       exit(1);
     }
 
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
 
   }
 
@@ -680,8 +706,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
     fevgen->SetRejectionSamplingFlag(flag);
     fevgen->SetNeventsWeightCheck( N );
-
-    if( flag ) fevgen->InitializeRejectionSampling();
+    fevgen->SetInitialized( false );
+    //    if( flag ) fevgen->InitializeRejectionSampling();
   }
   
   if( cmd == tgtCmd ){
@@ -747,7 +773,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       exit(1);
     }
 
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
     
   }
 
@@ -794,18 +820,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double len = tgtLenCmd->GetNewDoubleValue(newValue);
     fevgen->SetTargLen(len);
     fdetcon->fTargetBuilder->SetTargLen(len);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == tgtDenCmd ){
     G4double den = tgtDenCmd->GetNewDoubleValue(newValue);
     fevgen->SetTargDen(den);
     fdetcon->fTargetBuilder->SetTargDen(den);
+    fevgen->SetInitialized(false);
   }
   if( cmd == tgtPresCmd ){
     G4double pre = tgtPresCmd->GetNewDoubleValue(newValue);
     G4double den = pre/(296.0*kelvin*k_Boltzmann);
     fevgen->SetTargDen(den);
     fdetcon->fTargetBuilder->SetTargDen(den);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == tgtDiamCmd ){
@@ -822,10 +851,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = beamcurCmd->GetNewDoubleValue(newValue);
     printf("Setting beam current to %f uA\n", v/microampere);
     fevgen->SetBeamCur(v);
+    fevgen->SetInitialized(false);
   }
   if( cmd == runtimeCmd ){
     G4double v = runtimeCmd->GetNewDoubleValue(newValue);
     fevgen->SetRunTime(v);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == rasterxCmd ){
@@ -845,7 +876,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     G4SBSRun::GetRun()->GetData()->SetBeamE(v/GeV);
     //after any command affecting the kinematics or cross section of the built-in event generators, re-initialize rejection sampling:
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == bbangCmd ){
@@ -870,6 +901,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == sbstrkrpitchCmd ){
     G4double v = sbstrkrpitchCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetTrackerPitch(v);
+    G4SBSRun::GetRun()->GetData()->SetSBSTrackerPitch( v );
   }
   
   if( cmd == hcaldistCmd ){
@@ -916,65 +948,65 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == thminCmd ){
     G4double v = thminCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMin(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == thmaxCmd ){
     G4double v = thmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMax(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == phminCmd ){
     G4double v = phminCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMin(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == phmaxCmd ){
     G4double v = phmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMax(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == HthminCmd ){
     G4double v = HthminCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMin_had(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == HthmaxCmd ){
     G4double v = HthmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMax_had(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == HphminCmd ){
     G4double v = HphminCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMin_had(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   
   if( cmd == HphmaxCmd ){
     G4double v = HphmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMax_had(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == EhminCmd ){
     G4double v = EhminCmd->GetNewDoubleValue(newValue);
     fevgen->SetEhadMin(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == EhmaxCmd ){
     G4double v = EhmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetEhadMax(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == EeminCmd ){
     G4double v = EeminCmd->GetNewDoubleValue(newValue);
     fevgen->SetEeMin(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == EemaxCmd ){
     G4double v = EemaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetEeMax(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == gemresCmd ){

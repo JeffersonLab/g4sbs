@@ -209,6 +209,10 @@ G4SBSMessenger::G4SBSMessenger(){
   sbstrkrpitchCmd->SetGuidance("SBS tracker pitch angle (tilt toward up-bending particles)");
   sbstrkrpitchCmd->SetParameterName("angle", false);
   
+  dvcsecalmatCmd = new G4UIcmdWithAString("/g4sbs/dvcsecalmat",this);
+  dvcsecalmatCmd->SetGuidance("DVCS ECal material: 'PbF2' or 'PbWO4'");
+  dvcsecalmatCmd->SetParameterName("dvcsecalmatname", false);
+  
   hcaldistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcaldist",this);
   hcaldistCmd->SetGuidance("HCAL distance");
   hcaldistCmd->SetParameterName("dist", false);
@@ -319,6 +323,14 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
   SBSLeadOptionCmd->SetParameterName("uselead",false);
 
+  buildSBSsieveCmd = new G4UIcmdWithABool("/g4sbs/buildSBSsieve",this);
+  buildSBSsieveCmd->SetGuidance("Use SBS sieve (true or false, false by default)");
+  buildSBSsieveCmd->SetParameterName("buildSBSsieve",false);
+
+  buildBBsieveCmd = new G4UIcmdWithABool("/g4sbs/buildBBsieve",this);
+  buildBBsieveCmd->SetGuidance("Use BB sieve (true or false, false by default)");
+  buildBBsieveCmd->SetParameterName("buildBBsieve",false);
+  
   TreeFlagCmd = new G4UIcmdWithAnInteger("/g4sbs/treeflag",this);
   TreeFlagCmd->SetGuidance("G4SBS ROOT tree filling: 0=keep all, 1=keep only evts w/hits in sensitive volumes");
   TreeFlagCmd->SetParameterName("treeflag",false);
@@ -904,6 +916,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4SBSRun::GetRun()->GetData()->SetSBSTrackerPitch( v );
   }
   
+  if( cmd == dvcsecalmatCmd ){
+    fdetcon->fEArmBuilder->SetDVCSECalMaterial(newValue);
+  }
+  
   if( cmd == hcaldistCmd ){
     G4double v = hcaldistCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetHCALDist(v);
@@ -1059,6 +1075,14 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == SBSLeadOptionCmd ){
     G4int i = SBSLeadOptionCmd->GetNewIntValue(newValue);
     fdetcon->fLeadOption = i;
+  }
+
+  if( cmd == buildSBSsieveCmd ){
+    fdetcon->fHArmBuilder->SetSBSSieve(newValue);
+  }
+
+  if( cmd == buildBBsieveCmd ){
+    fdetcon->fEArmBuilder->SetBBSieve(newValue);
   }
 
   if( cmd == TreeFlagCmd ){

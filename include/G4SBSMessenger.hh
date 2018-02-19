@@ -104,6 +104,8 @@ private:
   G4UIcmdWithADoubleAndUnit *sbstrkrpitchCmd;
   //G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
   
+  G4UIcmdWithAString   *dvcsecalmatCmd;
+
   //These commands set angle generation limits for the electron:
   G4UIcmdWithADoubleAndUnit *thminCmd;
   G4UIcmdWithADoubleAndUnit *thmaxCmd;
@@ -142,6 +144,9 @@ private:
   G4UIcmdWithAnInteger      *SBSBeamlineConfCmd;
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
 
+  G4UIcmdWithABool *buildSBSsieveCmd; //Build the SBS Sieve slit
+  G4UIcmdWithABool *buildBBsieveCmd; //Build the BB Sieve slit
+  
   G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree
 
   // G4UIcmdWithABool *Earm_CAL_part_cmd;

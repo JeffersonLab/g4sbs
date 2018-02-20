@@ -212,6 +212,14 @@ G4SBSMessenger::G4SBSMessenger(){
   dvcsecalmatCmd = new G4UIcmdWithAString("/g4sbs/dvcsecalmat",this);
   dvcsecalmatCmd->SetGuidance("DVCS ECal material: 'PbF2' or 'PbWO4'");
   dvcsecalmatCmd->SetParameterName("dvcsecalmatname", false);
+
+  GRINCH_gas_Cmd = new G4UIcmdWithAString("/g4sbs/grinchgas",this);
+  GRINCH_gas_Cmd->SetGuidance("Gas for GRINCH detector: choose from C4F10, C4F8O, CF4, CO2, SF6 (C4F8, C3F8 coming soon)");
+  GRINCH_gas_Cmd->SetParameterName("gasname", false );
+
+  RICH_gas_Cmd = new G4UIcmdWithAString("/g4sbs/richgas",this);
+  RICH_gas_Cmd->SetGuidance("Gas for RICH detector: choose from C4F10, C4F8O, CF4, CO2, SF6 (C4F8, C3F8 coming soon)");
+  RICH_gas_Cmd->SetParameterName("gasname", false );
   
   hcaldistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcaldist",this);
   hcaldistCmd->SetGuidance("HCAL distance");
@@ -299,6 +307,11 @@ G4SBSMessenger::G4SBSMessenger(){
   RICHdistCmd->SetGuidance("SBS RICH distance from target");
   RICHdistCmd->SetParameterName("dist",false);
 
+  RICHaeroCmd = new G4UIcmdWithABool("/g4sbs/userichaero",this);
+  RICHaeroCmd->SetGuidance("Toggle use of RICH aerogel (default = true)" );
+  RICHaeroCmd->SetParameterName("useaero",true);
+  RICHaeroCmd->SetDefaultValue(true);
+  
   SBSMagFieldCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbsmagfield",this);
   SBSMagFieldCmd->SetGuidance("SBS uniform magnetic field value");
   SBSMagFieldCmd->SetParameterName("sbsbfield",false);
@@ -919,6 +932,52 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == dvcsecalmatCmd ){
     fdetcon->fEArmBuilder->SetDVCSECalMaterial(newValue);
   }
+
+  if( cmd == GRINCH_gas_Cmd ){
+    G4String gasname = newValue;
+    
+    gasname.toUpper();
+
+    if( gasname.index( "C4F10" ) >= 0 ){
+      gasname = "C4F10_gas";
+    } else if( gasname.index( "C4F8O" ) >= 0 ){
+      gasname = "C4F8O";
+    } else if( gasname.index( "CF4" ) >= 0 ){
+      gasname = "CF4_gas";
+    } else if( gasname.index( "SF6" ) >= 0 ){
+      gasname = "SF6_gas";
+    } else if( gasname.index( "CO2" ) >= 0 ){
+      gasname = "CO2";
+    } else { //default to C4F10 if no valid name given:
+      gasname = "C4F10_gas";
+      G4cout << "WARNING: invalid GRINCH gas option, defaulting to C4F10" << G4endl;
+    }
+    
+    fdetcon->fEArmBuilder->SetGRINCHgas( gasname );
+  }
+
+  if( cmd == RICH_gas_Cmd ){
+    G4String gasname = newValue;
+    
+    gasname.toUpper();
+
+    if( gasname.index( "C4F10" ) >= 0 ){
+      gasname = "C4F10_gas";
+    } else if( gasname.index( "C4F8O" ) >= 0 ){
+      gasname = "C4F8O";
+    } else if( gasname.index( "CF4" ) >= 0 ){
+      gasname = "CF4_gas";
+    } else if( gasname.index( "SF6" ) >= 0 ){
+      gasname = "SF6_gas";
+    } else if( gasname.index( "CO2" ) >= 0 ){
+      gasname = "CO2";
+    } else { //default to C4F10 if no valid name given:
+      gasname = "C4F10_gas";
+      G4cout << "WARNING: invalid GRINCH gas option, defaulting to C4F10" << G4endl;
+    }
+    
+    fdetcon->fHArmBuilder->SetRICHgas( gasname );
+  }
   
   if( cmd == hcaldistCmd ){
     G4double v = hcaldistCmd->GetNewDoubleValue(newValue);
@@ -1034,6 +1093,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = RICHdistCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetRICHdist(v);
     fIO->SetRICHDist( v );
+  }
+
+  if( cmd == RICHaeroCmd ){
+    G4bool b = RICHaeroCmd->GetNewBoolValue(newValue);
+    fdetcon->fHArmBuilder->SetRICH_use_aerogel( b );
   }
 
   if( cmd == SBSMagFieldCmd ){

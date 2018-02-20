@@ -106,6 +106,9 @@ private:
   
   G4UIcmdWithAString   *dvcsecalmatCmd;
 
+  G4UIcmdWithAString   *GRINCH_gas_Cmd;
+  G4UIcmdWithAString   *RICH_gas_Cmd; 
+  
   //These commands set angle generation limits for the electron:
   G4UIcmdWithADoubleAndUnit *thminCmd;
   G4UIcmdWithADoubleAndUnit *thmaxCmd;
@@ -132,6 +135,7 @@ private:
   
   // Commands needed to specify RICH positioning:
   G4UIcmdWithADoubleAndUnit *RICHdistCmd; //Set RICH distance
+  G4UIcmdWithABool          *RICHaeroCmd; //Toggle use of RICH aerogel
   
   // Commands to set configurable properties of SBS:
   G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd;

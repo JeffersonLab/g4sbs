@@ -57,6 +57,8 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fHCALvertical_offset = 0.0*cm;
 
   fRICHdist  = 15.0*m;
+  fRICHgas   = "C4F10_gas"; //default to C4F10;
+  fRICH_use_aerogel = true;
 
   f48D48depth = 1219.2*mm;
   f48D48width = 2324.1*mm;
@@ -2012,11 +2014,11 @@ void G4SBSHArmBuilder::MakeTracker_A1n(G4LogicalVolume *motherlog){
 
 void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   MakeTracker_A1n( motherlog );
-  MakeRICH_new( motherlog, true );
+  MakeRICH_new( motherlog );
   MakeHCAL( motherlog, fHCALvertical_offset );
 }
 
-void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool electronmode ){
+void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
 
   G4RotationMatrix *rot_RICH = new G4RotationMatrix;
   rot_RICH->rotateY( f48D48ang );
@@ -2045,11 +2047,11 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool electronmo
   
   G4Box *RICHbox = new G4Box("RICHbox", RICHbox_w/2.0, RICHbox_h/2.0, RICHbox_thick/2.0  );
 
-  G4String RadiatorGas_Name = "C4F10_gas";
-  if( electronmode ){
-    printf("SBS in electron mode: using CO2 radiator for RICH\n");
-    RadiatorGas_Name = "CO2";
-  }
+  G4String RadiatorGas_Name = fRICHgas;
+  // if( electronmode ){
+  //   printf("SBS in electron mode: using CO2 radiator for RICH\n");
+  //   RadiatorGas_Name = "CO2";
+  // }
   
   G4LogicalVolume *RICHbox_log = new G4LogicalVolume( RICHbox, GetMaterial(RadiatorGas_Name), "SBS_RICH_log" );
 
@@ -2505,7 +2507,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool electronmo
   
   //For A1n ("Electron mode"), do not create/place aerogel wall components:
 
-  if( !electronmode ){
+  if( fRICH_use_aerogel ){
     new G4PVPlacement( 0, pos_aerogel_wall, Aerogel_wall_container_log, "Aerogel_wall_container_pv", RICHbox_log, false, 0 );
     new G4PVPlacement( 0, aero_entry_window_pos, aero_entry_log, "SBSRICH_aero_entry_pv", RICHbox_log, false, 0 );
     new G4PVPlacement( 0, aero_exit_window_pos, aero_exit_window_log, "SBSRICH_aero_exit_pv", RICHbox_log, false, 0 );

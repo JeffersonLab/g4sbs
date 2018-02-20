@@ -37,7 +37,8 @@ public:
 
   void SetDVCSECalMaterial(G4String str){ fDVCSECalMaterial = str; }
   void MakeBBSieveSlit(G4LogicalVolume *);
-  
+
+  void SetGRINCHgas( G4String str ){ fGRINCHgas = str; }
 
   double fBBang;
   double fBBdist;
@@ -65,6 +66,8 @@ public:
 
   G4String fDVCSECalMaterial;
   bool fBuildBBSieve;
+
+  G4String fGRINCHgas;
 
 private:
 };

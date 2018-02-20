@@ -58,28 +58,31 @@
 class G4LogicalVolume;
 
 class G4SBSGrinch : public G4SBSComponent {
-	public:
-		G4SBSGrinch( G4SBSDetectorConstruction *dc);
-		~G4SBSGrinch();
+public:
+  G4SBSGrinch( G4SBSDetectorConstruction *dc);
+  ~G4SBSGrinch();
 
-	public:
-		void  BuildComponent(G4LogicalVolume *);
+public:
+  void  BuildComponent(G4LogicalVolume *);
 
-                void SetZOffset(G4double off){ fDetOffset = off ;}
-                void SetCerDepth(G4double dep){ fCerDepth = dep ;}
+  void SetZOffset(G4double off){ fDetOffset = off ;}
+  void SetCerDepth(G4double dep){ fCerDepth = dep ;}
+  void SetGrinchGas( G4String s){ fGRINCHgas = s; }
 
-	private:
-		G4VSolid* ConstructSimple(const G4String& aName, const G4String& aShape, const G4ThreeVector& aFullSize);
-		G4LogicalVolume* Hall_log;
-		G4Colour GetColor(const G4String& aColor);
+  private:
+  G4VSolid* ConstructSimple(const G4String& aName, const G4String& aShape, const G4ThreeVector& aFullSize);
+  G4LogicalVolume* Hall_log;
+  G4Colour GetColor(const G4String& aColor);
 
-	private:
-		G4LogicalVolume* GC_Tank_log;
-		G4VPhysicalVolume* Tank_phys;
+private:
+  G4LogicalVolume* GC_Tank_log;
+  G4VPhysicalVolume* Tank_phys;
 
-                G4double fDetOffset;
-                G4double fCerDepth;
+  G4double fDetOffset;
+  G4double fCerDepth;
+
+  G4String fGRINCHgas; //Allow user to configure GRINCH gas
 }
-;
+  ;
 
 #endif /*G4SBSGrinch_hh*/

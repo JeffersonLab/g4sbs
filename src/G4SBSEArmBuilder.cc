@@ -101,6 +101,8 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   
   fbbfield =  NULL;
 
+  fGRINCHgas = "C4F10_gas"; //default to C4F10;
+  
 }
 
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}
@@ -926,6 +928,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   grinch->SetZOffset( detoffset + fCerDist );
   grinch->SetCerDepth( fCerDepth);
   grinch->BuildComponent(bbdetLog);
+  grinch->SetGrinchGas( fGRINCHgas );
 
 }
 

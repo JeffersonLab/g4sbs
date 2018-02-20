@@ -21,6 +21,8 @@ public:
   void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
   void SetTrackerPitch(double a){ fSBS_tracker_pitch = a; }
   void SetSBSSieve(bool a){fBuildSBSSieve = a;};
+  void SetRICHgas( G4String s ){ fRICHgas = s; }
+  void SetRICH_use_aerogel( G4bool b ){ fRICH_use_aerogel = b; }
   
   void Make48D48(G4LogicalVolume*, double);
   void MakeSBSFieldClamps(G4LogicalVolume*);
@@ -29,7 +31,7 @@ public:
   void MakeCDET(G4LogicalVolume*, G4double, G4double);
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
   void MakeRICH(G4LogicalVolume *);
-  void MakeRICH_new(G4LogicalVolume *, bool electronmode = false);
+  void MakeRICH_new(G4LogicalVolume *);
   void MakeTracker(G4LogicalVolume *);
   void MakeGEpFPP(G4LogicalVolume *);
   void MakeTracker_A1n(G4LogicalVolume *);
@@ -55,6 +57,9 @@ public:
   
   bool fBuildSBSSieve;
 
+  G4String fRICHgas; //String defining
+  G4bool   fRICH_use_aerogel; // Flag to use or not use aerogel
+  
 private:
 
 };

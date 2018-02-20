@@ -303,6 +303,7 @@ inline G4VSolid* Construct_Square_Opening_Cone(G4String aName, G4double aRmin1, 
 G4SBSGrinch::G4SBSGrinch(G4SBSDetectorConstruction *dc):G4SBSComponent(dc) {
   fDetOffset = 0.0*m;
   fCerDepth = 0.0*m;
+  fGRINCHgas = "C4F10_gas";
 }
 
 G4SBSGrinch::~G4SBSGrinch() {
@@ -345,7 +346,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
    */
   G4String GC_Tank_Name("GC_Tank");
   //G4String GC_Tank_Material=("C4F8O");
-  G4String GC_Tank_Material=("C4F10_gas");//Replace C4F8O with C4F10 because of shortages...
+  G4String GC_Tank_Material=fGRINCHgas;//Replace C4F8O with C4F10 because of shortages...
   //G4String GC_Tank_Material=("CO2");//2017/07/14 EFuchey: replace C4F10 with CO2 
   //G4String GC_Tank_Material=("CF4_gas");//2017/07/28 EFuchey: replace CO2 with CF4 
   G4cout << " Using new GRINCH geometry... " << G4endl;

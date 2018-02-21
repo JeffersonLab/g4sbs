@@ -2015,7 +2015,7 @@ void G4SBSHArmBuilder::MakeTracker_A1n(G4LogicalVolume *motherlog){
 void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   MakeTracker_A1n( motherlog );
   MakeRICH_new( motherlog );
-  MakeHCAL( motherlog, fHCALvertical_offset );
+  MakeHCALV2( motherlog, fHCALvertical_offset );
 }
 
 void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){

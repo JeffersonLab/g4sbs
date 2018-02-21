@@ -46,7 +46,9 @@
 # Set specific colour for identification : ghost parallel geometry envelope ("ghost") as yellow
 #
 # Specify view angle:
-/vis/viewer/set/viewpointThetaPhi 180 0 deg
+/vis/viewer/set/viewpointThetaPhi 104 180 deg
+# Help speed up visualization with linesegmentsperciricle:
+/vis/viewer/set/lineSegmentsPerCircle 24 
 #
 # Specify zoom value:
 /vis/viewer/zoom 2.5

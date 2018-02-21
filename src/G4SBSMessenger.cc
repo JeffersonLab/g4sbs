@@ -402,6 +402,14 @@ G4SBSMessenger::G4SBSMessenger(){
   UseScintCmd->SetParameterName("usescint",true);
   UseScintCmd->AvailableForStates(G4State_PreInit);
 
+  DisableOpticalPhotonProductionByMaterialCmd = new G4UIcmdWithAString( "/g4sbs/DisableOpticalPhotonByMaterial",this );
+  DisableOpticalPhotonProductionByMaterialCmd->SetGuidance( "Disable optical photon production by material name" );
+  DisableOpticalPhotonProductionByMaterialCmd->SetGuidance( "Works by preventing definition of optical properties for a given material" );
+  DisableOpticalPhotonProductionByMaterialCmd->SetGuidance( "Use with caution" );
+  DisableOpticalPhotonProductionByMaterialCmd->SetParameterName("material",false);
+  DisableOpticalPhotonProductionByMaterialCmd->AvailableForStates(G4State_PreInit);
+  
+  
   FluxCmd = new G4UIcmdWithABool("/g4sbs/fluxcalc",this);
   FluxCmd->SetGuidance( "Compute particle flux as a function of angles, energy");
   FluxCmd->SetParameterName( "fluxcalc", false);  
@@ -1254,6 +1262,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == UseScintCmd ){
     G4bool b = UseScintCmd->GetNewBoolValue(newValue);
     fphyslist->ToggleScintillation(b);
+  }
+
+  if( cmd == DisableOpticalPhotonProductionByMaterialCmd ){
+    G4String materialname = newValue;
+    fdetcon->SetOpticalPhotonDisabled( materialname );
   }
 
   if( cmd == GunPolarizationCommand ){

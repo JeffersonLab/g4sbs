@@ -163,6 +163,7 @@ private:
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
   G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov
   G4UIcmdWithABool *UseScintCmd;      //Scintillation
+  G4UIcmdWithAString *DisableOpticalPhotonProductionByMaterialCmd;
   // G4UIcmdWithABool *UseOpRayleighCmd; //Rayleigh for optical photons
   // G4UIcmdWithABool *UseOpAbsorbCmd;   //optical absorption
   // G4UIcmdWithABool *UseOpBdryCmd;     //optical boundary process (reflection/refraction/absorption)

@@ -104,6 +104,7 @@ set(G4SBS_SCRIPTS
   scripts/preinit_ckov_noscint.mac
   scripts/preinit_nockov_scint.mac
   scripts/preinit_nockov_noscint.mac
+  scripts/preinit_ckov_noscint_nocalorimeters.mac
   scripts/sidis_example_script.mac
   root_macros/G4SBS_optics_fit.C 
   root_macros/RICH_analysis.C    

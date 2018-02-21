@@ -672,7 +672,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // Make Lead Glass 
   G4Box *bbTF1box = new G4Box( "bbTF1box", bbTF1_x/2.0, bbTF1_y/2.0, bbTF1_z/2.0 );
-  G4LogicalVolume *bbTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbTF1log" );
+  G4LogicalVolume *bbTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF5"), "bbTF1log" );
   
   // Shower TF1 SD of type CAL
   //G4SDManager *sdman = fDetCon->fSDman;
@@ -748,7 +748,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *preshowermodlog = new G4LogicalVolume( preshowermodbox, GetMaterial("Special_Air"), "preshowermodlog" );
  
   // Preshower TF1 SD of type CAL
-  G4LogicalVolume *bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbpsTF1log" );
+  G4LogicalVolume *bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF5"), "bbpsTF1log" );
 
   G4String BBPSTF1SDname = "Earm/BBPSTF1";
   G4String BBPSTF1collname = "BBPSTF1HitsCollection";

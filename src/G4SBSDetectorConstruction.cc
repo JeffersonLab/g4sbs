@@ -280,7 +280,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   G4Material *Air = man->FindOrBuildMaterial("G4_AIR");
 
-  //    Air->SetMaterialPropertiesTable(Std_MPT);
+  //Air->SetMaterialPropertiesTable(Std_MPT);
 
   fMaterialsMap["Air"] = Air;
 
@@ -512,8 +512,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["Stainless"] = stainless;
 
   density = 8.02*g/cm3 ;
-  G4Material* matBe = new G4Material("Berylium", 4., 9.012*g/mole, density=1.85*g/cm3);
-
+  //G4Material* matBe = new G4Material("Berylium", 4., 9.012*g/mole, density=1.85*g/cm3);
+  G4Material *matBe = man->FindOrBuildMaterial( "G4_Be" );
   fMaterialsMap["Beryllium"] = matBe;
 
   //RICH Materials:
@@ -836,8 +836,13 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("RINDEX", Ephoton_RICH_air, Rindex_RICH_air, nentries_C4F10 );
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_RICH_air, Abslength_RICH_air, nentries_C4F10 );
 
-  G4Material *RICH_air = man->FindOrBuildMaterial("G4_AIR");
-
+  // G4Material *RICH_air = man->FindOrBuildMaterial("G4_AIR");
+  G4Material *RICH_air = new G4Material( "RICH_air", 1.20479*kg/m3, 4 );
+  RICH_air->AddElement( elC, fractionmass = 0.000124 );
+  RICH_air->AddElement( elN, fractionmass = 0.755268 );
+  RICH_air->AddElement( elO, fractionmass = 0.231781 );
+  RICH_air->AddElement( elAr, fractionmass = 0.012827 );
+  
   if( fMaterialsListOpticalPhotonDisabled.find( "RICH_air" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     RICH_air->SetMaterialPropertiesTable( MPT_temp );
   }
@@ -1304,6 +1309,15 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   TF1->AddMaterial(K2O, 0.070);
   TF1->AddMaterial(As2O3, 0.005);
 
+  //This is an approximation of the BigBite preshower lead-glass, which is more dense:
+  //chemical composition is not correct, but higher density is needed to get the
+  //preshower energy deposition right:
+  G4Material *TF5 = new G4Material("TF5", 4.78*g/cm3, 4);
+  TF5->AddMaterial(PbO, 0.512);
+  TF5->AddMaterial(SiO2, 0.413);
+  TF5->AddMaterial(K2O, 0.070);
+  TF5->AddMaterial(As2O3, 0.005);
+  
   MPT_temp = new G4MaterialPropertiesTable();
   MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
   //MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_TF1, nentries_ecal_QE );
@@ -1312,8 +1326,12 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   if( fMaterialsListOpticalPhotonDisabled.find( "TF1" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     TF1->SetMaterialPropertiesTable( MPT_temp );
   }
+  if( fMaterialsListOpticalPhotonDisabled.find( "TF5" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    TF5->SetMaterialPropertiesTable( MPT_temp );
+  }
   fMaterialsMap["TF1"] = TF1; //Default TF1: no temperature increase, no rad. damage.
-
+  fMaterialsMap["TF5"] = TF5;
+  
   //For C16 and/or ECAL, we need the following configurations of lead-glass:
   //C16: Elevated temp, no rad. damage: z-dependent temperature --> z-dependent absorption
   //C16: Elevated temp, rad. damage: z-dependent temperature and z-dependent radiation dose rate/thermal annealing rate.
@@ -1508,7 +1526,15 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["Photocathode_material_ecal"] = Photocathode_material_ecal;
 
   //Define optical properties for AIR:
-  G4Material *Special_Air = man->FindOrBuildMaterial("G4_AIR");
+  //G4Material *Special_Air = man->FindOrBuildMaterial("G4_AIR");
+  G4double airdensity = 1.20479*kg/m3;
+
+  G4Material *Special_Air = new G4Material( "Special_Air", airdensity, 4 );
+  Special_Air->AddElement( elC, fractionmass = 0.000124 );
+  Special_Air->AddElement( elN, fractionmass = 0.755268 );
+  Special_Air->AddElement( elO, fractionmass = 0.231781 );
+  Special_Air->AddElement( elAr, fractionmass = 0.012827 );
+  
   MPT_temp = new G4MaterialPropertiesTable();
 
   G4double Rindex_air[nentries_ecal_QE] = {
@@ -1795,8 +1821,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //   ************************
   // Everything has been "taken" from Vahe's HCaloMaterials.cc code 
   //Elements:
-  G4Element *Gd = new G4Element("Gadolinium", "Gd" , z=64.0 , a=157.25*g/mole);
-
+  //G4Element *Gd = new G4Element("Gadolinium", "Gd" , z=64.0 , a=157.25*g/mole);
+  G4Element *Gd = man->FindOrBuildElement( "Gd" );
+  
   //- EJ-232
   G4Material* EJ232 = new G4Material("EJ232",density=1.02*g/cm3, nel=2,kStateSolid,293.15*kelvin,1.0*atmosphere);
   EJ232->AddElement(H , natoms=11);

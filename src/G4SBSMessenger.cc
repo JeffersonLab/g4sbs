@@ -215,11 +215,11 @@ G4SBSMessenger::G4SBSMessenger(){
 
   GRINCH_gas_Cmd = new G4UIcmdWithAString("/g4sbs/grinchgas",this);
   GRINCH_gas_Cmd->SetGuidance("Gas for GRINCH detector: choose from C4F10, C4F8O, CF4, CO2, SF6 (C4F8, C3F8 coming soon)");
-  GRINCH_gas_Cmd->SetParameterName("gasname", false );
+  GRINCH_gas_Cmd->SetParameterName("grinchgasname", false );
 
   RICH_gas_Cmd = new G4UIcmdWithAString("/g4sbs/richgas",this);
   RICH_gas_Cmd->SetGuidance("Gas for RICH detector: choose from C4F10, C4F8O, CF4, CO2, SF6 (C4F8, C3F8 coming soon)");
-  RICH_gas_Cmd->SetParameterName("gasname", false );
+  RICH_gas_Cmd->SetParameterName("richgasname", false );
   
   hcaldistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcaldist",this);
   hcaldistCmd->SetGuidance("HCAL distance");
@@ -946,15 +946,15 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
     gasname.toUpper();
 
-    if( gasname.index( "C4F10" ) >= 0 ){
+    if( gasname.index( "C4F10" ) != gasname.npos ){
       gasname = "C4F10_gas";
-    } else if( gasname.index( "C4F8O" ) >= 0 ){
+    } else if( gasname.index( "C4F8O" ) != gasname.npos ){
       gasname = "C4F8O";
-    } else if( gasname.index( "CF4" ) >= 0 ){
+    } else if( gasname.index( "CF4" ) != gasname.npos ){
       gasname = "CF4_gas";
-    } else if( gasname.index( "SF6" ) >= 0 ){
+    } else if( gasname.index( "SF6" ) != gasname.npos ){
       gasname = "SF6_gas";
-    } else if( gasname.index( "CO2" ) >= 0 ){
+    } else if( gasname.index( "CO2" ) != gasname.npos ){
       gasname = "CO2";
     } else { //default to C4F10 if no valid name given:
       gasname = "C4F10_gas";
@@ -969,20 +969,26 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
     gasname.toUpper();
 
-    if( gasname.index( "C4F10" ) >= 0 ){
+    G4cout << "gasname = " << gasname << G4endl;
+
+    G4cout << gasname.index( "C4F10" ) << G4endl;
+    
+    if( gasname.index( "C4F10" ) != gasname.npos ){
       gasname = "C4F10_gas";
-    } else if( gasname.index( "C4F8O" ) >= 0 ){
+    } else if( gasname.index( "C4F8O" ) != gasname.npos ){
       gasname = "C4F8O";
-    } else if( gasname.index( "CF4" ) >= 0 ){
+    } else if( gasname.index( "CF4" ) != gasname.npos ){
       gasname = "CF4_gas";
-    } else if( gasname.index( "SF6" ) >= 0 ){
+    } else if( gasname.index( "SF6" ) != gasname.npos ){
       gasname = "SF6_gas";
-    } else if( gasname.index( "CO2" ) >= 0 ){
+    } else if( gasname.index( "CO2" ) != gasname.npos ){
       gasname = "CO2";
     } else { //default to C4F10 if no valid name given:
       gasname = "C4F10_gas";
       G4cout << "WARNING: invalid GRINCH gas option, defaulting to C4F10" << G4endl;
     }
+
+    G4cout << "/g4sbs/richgas invoked, setting RICH gas to " << gasname << G4endl;
     
     fdetcon->fHArmBuilder->SetRICHgas( gasname );
   }

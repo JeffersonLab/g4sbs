@@ -2055,6 +2055,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   
   G4LogicalVolume *RICHbox_log = new G4LogicalVolume( RICHbox, GetMaterial(RadiatorGas_Name), "SBS_RICH_log" );
 
+  G4cout << "Building RICHbox with gas " << RadiatorGas_Name << G4endl;
   //At the end, we will rotate it by 180 degrees about z:
   
   //Define the origin with the x and z coordinates at "bottom left" corner of the box (everything will be centered in y)

@@ -98,11 +98,12 @@ private:
   
   G4UIcmdWithADoubleAndUnit *hcaldistCmd;
   G4UIcmdWithADoubleAndUnit *hcalvoffsetCmd;
+  G4UIcmdWithADoubleAndUnit *hcalhoffsetCmd;
   G4UIcmdWithADoubleAndUnit *hmagdistCmd;
   G4UIcmdWithADoubleAndUnit *hcalangCmd;
   //Add command to set pitch angle for SBS tracker + RICH in "electron mode" 
   G4UIcmdWithADoubleAndUnit *sbstrkrpitchCmd;
-  //G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
+  G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
   
   G4UIcmdWithAString   *dvcsecalmatCmd;
 

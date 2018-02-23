@@ -39,7 +39,7 @@ void G4SBSRunAction::BeginOfRunAction(const G4Run* aRun)
   rmrundata->SetHCALdist( gendata.dhcal );
   rmrundata->SetHCALvoff( gendata.voffhcal );
   rmrundata->SetRICHdist( gendata.drich );
-  rmrundata->SetSBSTrackerdist( gendata.dsbstrkr );
+  rmrundata->SetSBSTrackerDist( gendata.dsbstrkr );
   
   rmrundata->Print();
 

@@ -208,6 +208,10 @@ G4SBSMessenger::G4SBSMessenger(){
   sbstrkrpitchCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbstrkrpitch",this);
   sbstrkrpitchCmd->SetGuidance("SBS tracker pitch angle (tilt toward up-bending particles)");
   sbstrkrpitchCmd->SetParameterName("angle", false);
+
+  sbstrkrdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbstrkrdist",this);
+  sbstrkrdistCmd->SetGuidance( "SBS tracker distance from target to projection of center of first tracker plane onto horizontal plane");
+  sbstrkrdistCmd->SetParameterName("sbstrkrdist",false );
   
   dvcsecalmatCmd = new G4UIcmdWithAString("/g4sbs/dvcsecalmat",this);
   dvcsecalmatCmd->SetGuidance("DVCS ECal material: 'PbF2' or 'PbWO4'");
@@ -229,6 +233,10 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalvoffsetCmd->SetGuidance("HCAL vertical offset");
   hcalvoffsetCmd->SetParameterName("dist", false);
 
+  hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
+  hcalhoffsetCmd->SetGuidance("HCAL horizontal offset relative to SBS center line (+ = TOWARD beam line)");
+  hcalhoffsetCmd->SetParameterName("dist", false);
+  
   hmagdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/48D48dist",this);
   hmagdistCmd->SetGuidance("48D48 distance");
   hmagdistCmd->SetParameterName("dist", false);
@@ -936,6 +944,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fHArmBuilder->SetTrackerPitch(v);
     G4SBSRun::GetRun()->GetData()->SetSBSTrackerPitch( v );
   }
+
+  if( cmd == sbstrkrdistCmd ){
+    G4double d = sbstrkrdistCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetTrackerDist(d);
+    G4SBSRun::GetRun()->GetData()->SetSBSTrackerDist( d );
+  }
   
   if( cmd == dvcsecalmatCmd ){
     fdetcon->fEArmBuilder->SetDVCSECalMaterial(newValue);
@@ -1007,6 +1021,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fIO->SetHcalVOffset(v);
   }
 
+  if( cmd == hcalhoffsetCmd ){
+    G4double v = hcalhoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetHCALHOffset(v);
+    fevgen->SetHCALDist(v);
+    fIO->SetHcalVOffset(v);
+  }
 
   if( cmd == hmagdistCmd ){
     G4double v = hmagdistCmd->GetNewDoubleValue(newValue);

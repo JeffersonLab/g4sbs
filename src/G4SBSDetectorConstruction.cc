@@ -866,6 +866,17 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     0.223657738, 0.215914559, 0.213826088, 0.213229177, 0.200888412, 0.17403965, 0.161019419, 0.142756599, 
     0.126474694, 0.104423377, 0.080171292, 0.057628786, 0.041016469, 0.024094955, 0.012166848, 0.004610016 };
 
+  const G4int nentries_QE_RICH_NIM = 16;
+
+  G4double Ephoton_QE_RICH_NIM[nentries_QE_RICH_NIM] = {1.8321513*eV, 1.95954488*eV, 2.066666667*eV, 2.227011494*eV, 2.464228935*eV, 2.672413793*eV,
+							2.980769231*eV, 3.304904051*eV, 3.655660377*eV, 4.057591623*eV, 4.454022989*eV, 4.98392283*eV,
+							5.516014235*eV, 6.031128405*eV, 6.623931624*eV, 7.276995305*eV };
+  
+  G4double PMT_QuantumEfficiency_RICH_NIM[nentries_QE_RICH_NIM] = {0.0057971, 0.0217391, 0.0434783, 0.0913043,
+								   0.162319, 0.214493, 0.26087, 0.288406,
+								   0.294203, 0.282609, 0.256522, 0.215942,
+								   0.169565, 0.12029, 0.0710145, 0.015942 };
+
   //Define another material for photocathode: 
   G4double den_photocathode = 2.57*g/cm3;
   //EFuchey 2017-07-24: declare a different photocathod material for RICH and GRINCH 
@@ -880,7 +891,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //G4double Rcathode[2] = {0.0, 0.0};
 
   MPT_temp = new G4MaterialPropertiesTable();
-  MPT_temp->AddProperty("EFFICIENCY", Ephoton_QE_RICH, PMT_QuantumEfficiency_RICH, nentries_QE_RICH );
+  MPT_temp->AddProperty("EFFICIENCY", Ephoton_QE_RICH_NIM, PMT_QuantumEfficiency_RICH_NIM, nentries_QE_RICH_NIM );
   MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz );
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, nentries_quartz );
   //MPT_temp->AddProperty("REFLECTIVITY", Ephot_Rcathode, Rcathode, 2 );

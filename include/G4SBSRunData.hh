@@ -52,7 +52,7 @@ public:
   void SetHCALdist( double d ){ fHCALdist = d; }
   void SetHCALvoff( double y ){ fHCALvoff = y; }
   void SetRICHdist( double d ){ fRICHdist = d; }
-  void SetSBSTrackerdist( double d ){ fSBSTrackerdist = d; }
+  void SetSBSTrackerDist( double d ){ fSBSTrackerdist = d; }
   void SetSBSTrackerPitch( double a ){ fSBSTrackerPitch = a; }
 
   void CalcNormalization();

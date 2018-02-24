@@ -1460,8 +1460,19 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     posModY -= dist_ModuleCToCY/2.;
   }
 
+  G4ThreeVector HCAL_zaxis( dist_HCALX, 0.0, dist_HCALZ );
+  G4ThreeVector HCAL_yaxis( 0.0,        1.0, 0.0        );
+
+  HCAL_zaxis = HCAL_zaxis.unit();
+  G4ThreeVector HCAL_xaxis = HCAL_yaxis.cross( HCAL_zaxis ).unit();
+
+  G4ThreeVector HCAL_pos =
+    HCAL_zaxis * dist_HCalRadius +
+    HCAL_xaxis * fHCALhorizontal_offset +
+    HCAL_yaxis * fHCALvertical_offset; 
+  
   // Lastly, place the HCAL volume
-  new G4PVPlacement(rot_HCAL, G4ThreeVector(dist_HCALX,dist_HCALY,dist_HCALZ),
+  new G4PVPlacement(rot_HCAL, HCAL_pos,
       log_HCAL, "HCal Mother", motherlog, false, 0, checkOverlap);
 
   // Apply the step limiter, if requested

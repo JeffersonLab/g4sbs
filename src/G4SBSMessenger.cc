@@ -1017,15 +1017,15 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == hcalvoffsetCmd ){
     G4double v = hcalvoffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetHCALVOffset(v);
-    fevgen->SetHCALDist(v);
+    //fevgen->SetHCALDist(v);
     fIO->SetHcalVOffset(v);
   }
 
   if( cmd == hcalhoffsetCmd ){
     G4double v = hcalhoffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetHCALHOffset(v);
-    fevgen->SetHCALDist(v);
-    fIO->SetHcalVOffset(v);
+    //fevgen->SetHCALDist(v);
+    //fIO->SetHcalVOffset(v);
   }
 
   if( cmd == hmagdistCmd ){

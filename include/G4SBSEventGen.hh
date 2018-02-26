@@ -80,6 +80,11 @@ public:
   void SetPhMin_had(double v){fPhMin_had = v; }
   void SetPhMax_had(double v){fPhMax_had = v; }
 
+  //Initialize constant quantities so we aren't doing these calculations every event:
+  //void SetConstantsInitialized( G4bool b ){ fConstantsInitialized = b; }
+  //G4bool ConstantsAreInitialized(){ return fConstantsInitialized; } 
+  void InitializeConstants();
+  
   void SetHadronType( Hadron_t h ){fHadronType = h; }
 
   void SetHCALDist(double v){ fHCALdist = v;}
@@ -95,16 +100,24 @@ public:
   
   void LoadPythiaChain(G4String fname);
 
-  void InitializeRejectionSampling(); 
+  void Initialize();
 
   G4bool GetRejectionSamplingFlag(){ return fRejectionSamplingFlag; }
-  G4bool GetRejectionSamplingInitialized(){ return fRejectionSamplingInitialized; }
-  
+  //G4bool GetRejectionSamplingInitialized(){ return fRejectionSamplingInitialized; }
+  G4bool GetInitialized(){ return fInitialized; }
+  void SetInitialized( G4bool b ){ fInitialized = b; }
   void SetRejectionSamplingFlag( G4bool b ){ fRejectionSamplingFlag = b; }
   void SetMaxWeight( G4double w ){ fMaxWeight = w; }
   void SetNeventsWeightCheck( G4int n ){ fNeventsWeightCheck = n; } //Number of "pre-events" used to initialize rejection sampling
-  void SetRejectionSamplingInitialized( G4bool b ){ fRejectionSamplingInitialized = b; }
+  //void SetRejectionSamplingInitialized( G4bool b ){ fRejectionSamplingInitialized = b; }
+
+  double GetGenVol(){ return fGenVol; }
+  double GetLumi(){ return fLumi; }
+  double GetMaxWeight(){ return fMaxWeight; }
 private:
+
+  void InitializeRejectionSampling(); //Make private so it can only be called by G4SBSEventGen::Initialize()
+
   double fElectronE, fNucleonE, fHadronE, fBeamE;
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
   G4ThreeVector fHadronP;
@@ -141,6 +154,8 @@ private:
 
   double fGenVol; //Phase space generation volume
   double fLumi;   //Luminosity
+
+  //G4bool fConstantsInitialized;
   
   G4LorentzVector GetInitialNucl( Targ_t, Nucl_t );
   
@@ -158,7 +173,9 @@ private:
   G4bool fRejectionSamplingFlag; //Flag to turn on rejection sampling;
   G4double fMaxWeight; //Maximum event weight within generation limits
   G4int fNeventsWeightCheck; //Number of "pre-events" to generate in order to check weights
-  G4bool fRejectionSamplingInitialized; //Flag to indicate whether rejection sampling has been initialized.
+  //G4bool fRejectionSamplingInitialized; //Flag to indicate whether rejection sampling has been initialized.
+
+  G4bool fInitialized; //consolidate initialization of constant event generator parameters:
   
   double deutpdist( double );
   double he3pdist( Nucl_t, double );

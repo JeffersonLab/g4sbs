@@ -172,9 +172,15 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   map<G4String,G4Material*>::iterator itest;
   //pair<G4String, G4Material>  ptest;
 
-  G4Element *elN = new G4Element("Nitrogen", "N", 7, 14.007*g/mole );
-  G4Element *elO = new G4Element("Oxygen", "O", 8, 16.000*g/mole );
+  //Let's Fix all these element definitions to use NIST standardized versions:
+  
+  // G4Element *elN = new G4Element("Nitrogen", "N", 7, 14.007*g/mole );
+  // G4Element *elO = new G4Element("Oxygen", "O", 8, 16.000*g/mole );
 
+  G4Element *elN = man->FindOrBuildElement("N");
+  G4Element *elO = man->FindOrBuildElement("O");
+
+  //"BlandAir" == vacuum
   density = 1e-9*mg/cm3;
   G4Material* BlandAir = new G4Material(name="BlandAir", density, nel=2);
   BlandAir->AddElement(elN, .7);
@@ -182,69 +188,102 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["BlandAir"] = BlandAir;
 
-  G4double a, iz, z;
-
+  G4double a, iz, z, abundance;
+  G4int Z, N, A, ncomponents;
+  
   //Seamus's element definitions:
-  a = 126.9*g/mole;
-  G4Element* elI = new G4Element(name="Iodine",   symbol="I",  iz=53., a);
-  a = 132.9*g/mole;
-  G4Element* elCs= new G4Element(name="Cesium",   symbol="Cs", iz=55., a);
+  // a = 126.9*g/mole;
+  // G4Element* elI = new G4Element(name="Iodine",   symbol="I",  iz=53., a);
+  // a = 132.9*g/mole;
+  // G4Element* elCs= new G4Element(name="Cesium",   symbol="Cs", iz=55., a);
 
-  G4Element *elH = new G4Element("Hydrogen", "H", 1, 1.007*g/mole );
-  G4Element *elD = new G4Element("Deuterium", "D", 1, 2.014*g/mole );
-  G4Element *el3He = new G4Element("Helium3", "3He", 2, 3.016*g/mole );
-  G4Element *el4He = new G4Element("Helium4", "4He", 2, 4.0026*g/mole );
-  G4Element *elC = new G4Element("Carbon", "C", 6, 12.011*g/mole ) ;
-  G4Element *elF = new G4Element("Fluorine", "F", 9, 18.998*g/mole );
-  G4Element *elNa = new G4Element("Sodium", "Na", 11, 22.99*g/mole );
-  G4Element *elAl = new G4Element("Aluminum", "Al", 13, 26.982*g/mole );
-  G4Element *elSi = new G4Element("Silicon", "Si", 14, 28.086*g/mole );
-  G4Element *elCa = new G4Element("Calcium", "Ca", 20, 40.078*g/mole );
-  G4Element *elFe = new G4Element("Iron", "Fe", 26, 55.850*g/mole );
-  G4Element *elSr = new G4Element("Strontium", "Sr", 38, 87.62*g/mole );
-  G4Element *elBa = new G4Element("Barium", "Ba", 56, 137.327*g/mole );
+  G4Element *elI = man->FindOrBuildElement("I");
+  G4Element *elCs = man->FindOrBuildElement("Cs");
+  
+  // G4Element *elH = new G4Element("Hydrogen", "H", 1, 1.007*g/mole );
+  // G4Element *elD = new G4Element("Deuterium", "D", 1, 2.014*g/mole );
+  // G4Element *el3He = new G4Element("Helium3", "3He", 2, 3.016*g/mole );
+  // G4Element *el4He = new G4Element("Helium4", "4He", 2, 4.0026*g/mole );
+  // G4Element *elC = new G4Element("Carbon", "C", 6, 12.011*g/mole ) ;
+  // G4Element *elF = new G4Element("Fluorine", "F", 9, 18.998*g/mole );
+  // G4Element *elNa = new G4Element("Sodium", "Na", 11, 22.99*g/mole );
+  // G4Element *elAl = new G4Element("Aluminum", "Al", 13, 26.982*g/mole );
+  // G4Element *elSi = new G4Element("Silicon", "Si", 14, 28.086*g/mole );
+  // G4Element *elCa = new G4Element("Calcium", "Ca", 20, 40.078*g/mole );
+  // G4Element *elFe = new G4Element("Iron", "Fe", 26, 55.850*g/mole );
+  // G4Element *elSr = new G4Element("Strontium", "Sr", 38, 87.62*g/mole );
+  // G4Element *elBa = new G4Element("Barium", "Ba", 56, 137.327*g/mole );
+  //NOTE: "N" in "G4Isotope" refers to the number of nucleons, NOT the number of neutrons, as is the usual notation in nuclear physics
+  //We don't need to supply the molar mass, because G4NistManager does it for us!
+  G4Isotope *iso_2H = new G4Isotope( "H2", Z=1, N=2 );
+  G4Isotope *iso_3H = new G4Isotope( "H3", Z=1, N=3 );
+  G4Isotope *iso_3He = new G4Isotope( "He3", Z=2, N=3 );
+  
+  G4Element *elH = man->FindOrBuildElement("H"); //Define hydrogen with natural isotopic abundances
+  G4Element *elD = new G4Element( "Deuterium", "2H", ncomponents=1 ); //Define pure deuterium:
+  elD->AddIsotope( iso_2H, abundance=100.0*perCent);
+  G4Element *el3He = new G4Element("Helium3", "3He", ncomponents=1 ); //Define isotopically pure Helium-3 
+  el3He->AddIsotope( iso_3He, abundance=100.0*perCent );
+  G4Element *el3H = new G4Element("Tritium", "3H", ncomponents=1 ); //Define isotopically pure Tritium
+  el3H->AddIsotope( iso_3H, abundance=100.0*perCent );
+  G4Element *el4He = man->FindOrBuildElement("He");
+  G4Element *elC = man->FindOrBuildElement("C");
+  G4Element *elF = man->FindOrBuildElement("F");
+  G4Element *elNa = man->FindOrBuildElement("Na");
+  G4Element *elAl = man->FindOrBuildElement("Al");
+  G4Element *elSi = man->FindOrBuildElement("Si");
+  G4Element *elCa = man->FindOrBuildElement("Ca");
+  G4Element *elFe = man->FindOrBuildElement("Fe");
+  G4Element *elSr = man->FindOrBuildElement("Sr");
+  G4Element *elBa = man->FindOrBuildElement("Ba");
+  
+  G4Element* elCl  = man->FindOrBuildElement("Cl");
+  G4Element* elAr  = man->FindOrBuildElement("Ar");
 
-  G4Element* elCl  = new G4Element("Chlorine",  "Cl", z=17, a=   35.453*g/mole);
-  G4Element* elAr  = new G4Element("Argon",     "Ar", z=18, a=    39.95*g/mole);
-
-  G4Element* elCr  = new G4Element("Chromium","Cr",24.,52.0*g/mole);
-  G4Element* elMn   =  new G4Element("Manganese","Mn", 25.,54.94*g/mole);
-  G4Element* elNi  = new G4Element("Nickel","Ni",28.,58.70*g/mole);
+  G4Element* elCr  = man->FindOrBuildElement("Cr");
+  G4Element* elMn   =  man->FindOrBuildElement("Mn");
+  G4Element* elNi  = man->FindOrBuildElement("Ni");
 
   G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
   //Vacuum->SetMaterialPropertiesTable(Std_MPT);
   fMaterialsMap["Vacuum"] = Vacuum;
 
   if( fMaterialsMap.find("Lead") == fMaterialsMap.end() ){ 
-    fMaterialsMap["Lead"] = new G4Material(name="Lead", z=82., a=208.0*g/mole, density=11.34*g/cm3);
+    fMaterialsMap["Lead"] = man->FindOrBuildMaterial( "G4_Pb" );
   }
   if( fMaterialsMap.find("Aluminum") == fMaterialsMap.end() ){ 
-    fMaterialsMap["Aluminum"] = new G4Material(name="Aluminum", z=13., a=26.98*g/mole, density=2.7*g/cm3);
+    //fMaterialsMap["Aluminum"] = new G4Material(name="Aluminum", z=13., a=26.98*g/mole, density=2.7*g/cm3);
+    fMaterialsMap["Aluminum"] = man->FindOrBuildMaterial( "G4_Al" );
   }
   if( fMaterialsMap.find("Silicon") == fMaterialsMap.end() ){ 
-    fMaterialsMap["Silicon"] = new G4Material(name="Silicon", z=14., 28.086*g/mole, density=2.33*g/cm3);
+    //fMaterialsMap["Silicon"] = new G4Material(name="Silicon", z=14., 28.086*g/mole, density=2.33*g/cm3);
+    fMaterialsMap["Silicon"] = man->FindOrBuildMaterial( "G4_Si" );
   }
   density = 4.51*g/cm3;
-  G4Material* CsI = new G4Material(name="CsI", density, nel = 2);
-  CsI->AddElement(elI, .5);
-  CsI->AddElement(elCs,.5);
+  // G4Material* CsI = new G4Material(name="CsI", density, nel = 2);
+  // CsI->AddElement(elI, .5);
+  // CsI->AddElement(elCs,.5);
+  //Use standardized versions wherever possible:
+  G4Material *CsI = man->FindOrBuildMaterial("G4_CESIUM_IODIDE");
 
   fMaterialsMap["CsI"] = CsI;
 
   a = 55.85*g/mole;
   density = 7.87*g/cm3;
-  fMaterialsMap["Fer"] = new G4Material(name="Fer", z=26., a, density);
-  fMaterialsMap["Iron"] = fMaterialsMap["Fer"];
+  //fMaterialsMap["Fer"] = new G4Material(name="Fer", z=26., a, density);
 
   fMaterialsMap["Iron"] = man->FindOrBuildMaterial("G4_Fe");
+  fMaterialsMap["Fer"] = fMaterialsMap["Iron"];
+  
+  density = 1.29e-03*g/cm3; //This air is at a temp. of 0 deg. C 
+  // G4Material* Air = new G4Material(name="Air", density, nel=2);
+  // Air->AddElement(elN, .7);
+  // Air->AddElement(elO, .3);
+  //Use standardized G4_AIR, which corresponds to 20 degrees C and atmospheric pressure
 
-  density = 1.29e-03*g/cm3;
-  G4Material* Air = new G4Material(name="Air", density, nel=2);
-  Air->AddElement(elN, .7);
-  Air->AddElement(elO, .3);
+  G4Material *Air = man->FindOrBuildMaterial("G4_AIR");
 
-
-  //    Air->SetMaterialPropertiesTable(Std_MPT);
+  //Air->SetMaterialPropertiesTable(Std_MPT);
 
   fMaterialsMap["Air"] = Air;
 
@@ -341,8 +380,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   }
   G4MaterialPropertiesTable* MPCO2 = new G4MaterialPropertiesTable();
   MPCO2->AddProperty("RINDEX",PhotonEnergy, CO2_RefractiveIndex, nEntries);
-  CO2->SetMaterialPropertiesTable(MPCO2);
 
+  if( fMaterialsListOpticalPhotonDisabled.find( "CO2" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    CO2->SetMaterialPropertiesTable(MPCO2);
+  }
 
   fMaterialsMap["CO2"] = CO2;
 
@@ -364,7 +405,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4MaterialPropertiesTable* MPC4F8O = new G4MaterialPropertiesTable();
   MPC4F8O->AddProperty("RINDEX",PhotonEnergy, C4F8O_RefractiveIndex, nEntries);
   MPC4F8O->AddProperty("ABSLENGTH",PhotonEnergy, C4F8O_ABSLENGTH, nEntries);
-  C4F8O->SetMaterialPropertiesTable(MPC4F8O);
+
+  if( fMaterialsListOpticalPhotonDisabled.find( "C4F8O" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    C4F8O->SetMaterialPropertiesTable(MPC4F8O);
+  }
   
   fMaterialsMap["C4F8O"] = C4F8O;
 
@@ -376,7 +420,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["GEMgas"] = GEMgas;
 
-  G4Material *Copper= new G4Material("Copper", z=29, a=   63.55*g/mole, density = 8.96*g/cm3);
+  //G4Material *Copper= new G4Material("Copper", z=29, a=   63.55*g/mole, density = 8.96*g/cm3);
+  G4Material *Copper = man->FindOrBuildMaterial( "G4_Cu" );
   fMaterialsMap["Copper"] = Copper;
 
   G4Material *Kapton = new G4Material("Kapton",   density = 1.42*g/cm3, nel=4);
@@ -470,8 +515,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["Stainless"] = stainless;
 
   density = 8.02*g/cm3 ;
-  G4Material* matBe = new G4Material("Berylium", 4., 9.012*g/mole, density=1.85*g/cm3);
-
+  //G4Material* matBe = new G4Material("Berylium", 4., 9.012*g/mole, density=1.85*g/cm3);
+  G4Material *matBe = man->FindOrBuildMaterial( "G4_Be" );
   fMaterialsMap["Beryllium"] = matBe;
 
   //RICH Materials:
@@ -500,6 +545,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element *Sb = man->FindOrBuildElement("Sb");
   G4Element *Cs = man->FindOrBuildElement("Cs");
 
+  G4Element *S  = man->FindOrBuildElement("S"); //sulfur
+  
   //Define tedlar for gaps between aerogel tiles. These will have no optical properties and therefore optical photons 
   //crossing tile boundaries will be killed.
   G4Material *Tedlar = man->FindOrBuildMaterial("G4_POLYVINYLIDENE_FLUORIDE");
@@ -540,7 +587,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty( "ABSLENGTH", Ephoton_lucite, Abslength_lucite, nentries_lucite );
   MPT_temp->AddProperty( "RINDEX", Ephoton_rindex_lucite, Rindex_lucite, 2 );
 
-  UVT_Lucite->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "UVT_Lucite" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    UVT_Lucite->SetMaterialPropertiesTable( MPT_temp );
+  }
   // G4cout << "Material optical properties for material UVT_Lucite" << G4endl;
   // MPT_temp->DumpTable();
 
@@ -556,7 +605,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   }
   G4MaterialPropertiesTable* MPLucite = new G4MaterialPropertiesTable();
   MPLucite->AddProperty("RINDEX",PhotonEnergy, Lucite_RefractiveIndex, nEntries);
-  Lucite->SetMaterialPropertiesTable(MPLucite);
+  if( fMaterialsListOpticalPhotonDisabled.find( "Lucite" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Lucite->SetMaterialPropertiesTable(MPLucite);
+  }
   Lucite->SetName("Lucite");
   fMaterialsMap["Lucite"] = Lucite;
 
@@ -580,7 +631,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element *Ni = man->FindOrBuildElement("Ni");
   G4Element *Mn = man->FindOrBuildElement("Mn");
   G4Element *P = man->FindOrBuildElement("P");
-  G4Element *S = man->FindOrBuildElement("S");
+  //G4Element *S = man->FindOrBuildElement("S");
   G4Element *Mo = man->FindOrBuildElement("Mo");
 
   G4Material* Carbon_Steel = new G4Material("Carbon_Steel", density=7.85*g/cm3, 7);
@@ -685,7 +736,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz);
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, Nabs_quartz);
 
-  QuartzWindow->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "QuartzWindow" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    QuartzWindow->SetMaterialPropertiesTable( MPT_temp );
+  }
   fMaterialsMap["QuartzWindow"] = QuartzWindow;
 
   //Next define borosilicate "UV glass" for the PMT window. For chemical 
@@ -701,7 +754,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   UVglass->AddElement( Al, fractionmass=0.011644 );
   UVglass->AddElement( Si, fractionmass=0.377220 );
   UVglass->AddElement( K,  fractionmass=0.003321 );
-  UVglass->SetMaterialPropertiesTable( MPT_temp );
+
+  if( fMaterialsListOpticalPhotonDisabled.find( "UVglass" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    UVglass->SetMaterialPropertiesTable( MPT_temp );
+  }
 
   fMaterialsMap["UVglass"] = UVglass;
 
@@ -714,7 +770,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   MPT_temp = new G4MaterialPropertiesTable();
   //MPT_temp->AddConstProperty( "RINDEX", 1.00137 ); //assume a constant refractive index for the gas radiator for now. 
-  //MPT_temp->AddConstProperty( "ABSLENGTH", 100.0*m );
+  //MPT_temp->AddConstProperty( "ABSLENGTH", 100.0*m ); //For some reason, defining a constant refractive index does not seem to work.
   const G4int nentries_C4F10 = 2;
   G4double Ephoton_C4F10[nentries_C4F10] = { 1.77*eV, 6.20*eV };
   G4double Rindex_C4F10[nentries_C4F10] = {1.00137, 1.00137};
@@ -723,7 +779,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("RINDEX", Ephoton_C4F10, Rindex_C4F10, nentries_C4F10 );
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_C4F10, Abslength_C4F10, nentries_C4F10 );
 
-  C4F10_gas->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "C4F10_gas" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    C4F10_gas->SetMaterialPropertiesTable( MPT_temp );
+  }
+  
   fMaterialsMap["C4F10_gas"] = C4F10_gas;
 
   //EFuchey: 2017/07/24: Add CF4, just in case we want to study it as an option for GRINCH
@@ -736,26 +795,60 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp = new G4MaterialPropertiesTable();
   const G4int nentries_CF4 = 2;
   G4double Ephoton_CF4[nentries_CF4] = { 1.95*eV, 5.00*eV };
-  G4double Rindex_CF4[nentries_CF4] = {1.00045, 1.00045};
+  G4double Rindex_CF4[nentries_CF4] = {1.00048, 1.00048};
   G4double Abslength_CF4[nentries_CF4] = {100.0*m, 100.0*m};
 
   MPT_temp->AddProperty("RINDEX", Ephoton_CF4, Rindex_CF4, nentries_CF4 );
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_CF4, Abslength_CF4, nentries_CF4 );
 
-  CF4_gas->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "CF4_gas" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    CF4_gas->SetMaterialPropertiesTable( MPT_temp );
+  }
   fMaterialsMap["CF4_gas"] = CF4_gas;
-  //
+  //SF6 = 146.05 g/mol, P = rho RT / Mmol, rho = Mmol*P/RT;
+  G4double Mmol_SF6 = 146.05*gram;
+  G4double density_SF6 = Mmol_SF6 * atmosphere / (Avogadro * k_Boltzmann * 293.0*kelvin );
 
+  G4cout << "Defining Sulfur Hexafluoride, density = " << density_SF6/g*cm3 << " g/cm^3" << G4endl;
+
+  G4Material *mat_SF6 = new G4Material( "SF6_gas", density_SF6, nel=2 );
+
+  mat_SF6->AddElement( S, natoms=1 );
+  mat_SF6->AddElement( F, natoms=6 );
+  
+  const G4int nentries_SF6 = 2;
+  G4double Ephoton_SF6[nentries_SF6] = { 1240.0/700.0*eV, 1240.0/200.0*eV };
+  G4double Rindex_SF6[nentries_SF6] = { 1.000783, 1.000783 }; //neglecting dispersion for now
+  G4double Abslength_SF6[nentries_SF6] = {10.0*m, 10.0*m };
+  
+  MPT_temp = new G4MaterialPropertiesTable();
+  MPT_temp->AddProperty("RINDEX", Ephoton_SF6, Rindex_SF6, nentries_SF6 );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_SF6, Abslength_SF6, nentries_SF6 );
+
+  if( fMaterialsListOpticalPhotonDisabled.find( "SF6_gas" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    mat_SF6->SetMaterialPropertiesTable( MPT_temp );
+  }
+  fMaterialsMap["SF6_gas"] = mat_SF6;
+ 
+  
   G4double Ephoton_RICH_air[nentries_C4F10] = { 1.77*eV, 6.20*eV };
   G4double Rindex_RICH_air[nentries_C4F10] = { 1.000277, 1.000277 };
-  G4double Abslength_RICH_air[nentries_C4F10] = {1000.0*m, 1000.0*m };
+  G4double Abslength_RICH_air[nentries_C4F10] = {100.0*m, 100.0*m };
 
   MPT_temp = new G4MaterialPropertiesTable();
   MPT_temp->AddProperty("RINDEX", Ephoton_RICH_air, Rindex_RICH_air, nentries_C4F10 );
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_RICH_air, Abslength_RICH_air, nentries_C4F10 );
 
-  G4Material *RICH_air = man->FindOrBuildMaterial("G4_AIR");
-  RICH_air->SetMaterialPropertiesTable( MPT_temp );
+  // G4Material *RICH_air = man->FindOrBuildMaterial("G4_AIR");
+  G4Material *RICH_air = new G4Material( "RICH_air", 1.20479*kg/m3, 4 );
+  RICH_air->AddElement( elC, fractionmass = 0.000124 );
+  RICH_air->AddElement( elN, fractionmass = 0.755268 );
+  RICH_air->AddElement( elO, fractionmass = 0.231781 );
+  RICH_air->AddElement( elAr, fractionmass = 0.012827 );
+  
+  if( fMaterialsListOpticalPhotonDisabled.find( "RICH_air" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    RICH_air->SetMaterialPropertiesTable( MPT_temp );
+  }
 
   fMaterialsMap["RICH_air"] = RICH_air;
   
@@ -776,6 +869,17 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     0.223657738, 0.215914559, 0.213826088, 0.213229177, 0.200888412, 0.17403965, 0.161019419, 0.142756599, 
     0.126474694, 0.104423377, 0.080171292, 0.057628786, 0.041016469, 0.024094955, 0.012166848, 0.004610016 };
 
+  const G4int nentries_QE_RICH_NIM = 16;
+
+  G4double Ephoton_QE_RICH_NIM[nentries_QE_RICH_NIM] = {1.8321513*eV, 1.95954488*eV, 2.066666667*eV, 2.227011494*eV, 2.464228935*eV, 2.672413793*eV,
+							2.980769231*eV, 3.304904051*eV, 3.655660377*eV, 4.057591623*eV, 4.454022989*eV, 4.98392283*eV,
+							5.516014235*eV, 6.031128405*eV, 6.623931624*eV, 7.276995305*eV };
+  
+  G4double PMT_QuantumEfficiency_RICH_NIM[nentries_QE_RICH_NIM] = {0.0057971, 0.0217391, 0.0434783, 0.0913043,
+								   0.162319, 0.214493, 0.26087, 0.288406,
+								   0.294203, 0.282609, 0.256522, 0.215942,
+								   0.169565, 0.12029, 0.0710145, 0.015942 };
+
   //Define another material for photocathode: 
   G4double den_photocathode = 2.57*g/cm3;
   //EFuchey 2017-07-24: declare a different photocathod material for RICH and GRINCH 
@@ -790,12 +894,14 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //G4double Rcathode[2] = {0.0, 0.0};
 
   MPT_temp = new G4MaterialPropertiesTable();
-  MPT_temp->AddProperty("EFFICIENCY", Ephoton_QE_RICH, PMT_QuantumEfficiency_RICH, nentries_QE_RICH );
+  MPT_temp->AddProperty("EFFICIENCY", Ephoton_QE_RICH_NIM, PMT_QuantumEfficiency_RICH_NIM, nentries_QE_RICH_NIM );
   MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz );
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, nentries_quartz );
   //MPT_temp->AddProperty("REFLECTIVITY", Ephot_Rcathode, Rcathode, 2 );
 
-  Photocathode_material_RICH->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "Photocathode_material_RICH" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Photocathode_material_RICH->SetMaterialPropertiesTable( MPT_temp );
+  }
 
   fMaterialsMap["Photocathode_material_RICH"] = Photocathode_material_RICH;
   
@@ -835,7 +941,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, nentries_quartz );
   //MPT_temp->AddProperty("REFLECTIVITY", Ephot_Rcathode, Rcathode, 2 );
 
-  Photocathode_material_GRINCH->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "Photocathode_material_GRINCH" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Photocathode_material_GRINCH->SetMaterialPropertiesTable( MPT_temp );
+  }
 
   fMaterialsMap["Photocathode_material_GRINCH"] = Photocathode_material_GRINCH;
 
@@ -917,7 +1025,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("RAYLEIGH", Ephoton_aerogel, Rayleigh_aerogel, nsteps );
   //MPT_temp->AddConstProperty("ABSLENGTH", 10.0*m );
 
-  Aerogel->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "Aerogel" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Aerogel->SetMaterialPropertiesTable( MPT_temp );
+  }
   fMaterialsMap["Aerogel"] = Aerogel;
   
   // Grinch Quartz
@@ -938,7 +1048,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4MaterialPropertiesTable* mptQuartz=new G4MaterialPropertiesTable();
   mptQuartz->AddProperty("RINDEX",PhotonEnergy,rindex_Quartz,nEntries);
   mptQuartz->AddProperty("ABSLENGTH",PhotonEnergy,absl_Quartz,nEntries);
-  Quartz->SetMaterialPropertiesTable(mptQuartz);
+
+  if( fMaterialsListOpticalPhotonDisabled.find( "Quartz" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Quartz->SetMaterialPropertiesTable(mptQuartz);
+  }
   fMaterialsMap["Quartz"] = Quartz;
 
 
@@ -989,16 +1102,17 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //************                 ECAL             **********************
   //********************************************************************  
   // Additional elements needed for the materials:
-  G4Element* elK = new G4Element( "Potassium", "K", 19, 39.098*g/mole );
-  G4Element* elAs = new G4Element( "Arsenic", "As", 33, 74.922*g/mole );
-  G4Element* elPb = new G4Element( "Lead", "Pb", 82, 207.2*g/mole );
-  G4Element* elBe = new G4Element( "Beryllium", "Be", 4, 9.012*g/mole );
-  G4Element* elW = new G4Element( "Tungsten", "W", 74, 183.84*g/mole );
+  G4Element* elK = man->FindOrBuildElement("K");
+  G4Element* elAs = man->FindOrBuildElement("As");
+  G4Element* elPb = man->FindOrBuildElement("Pb");
+  G4Element* elBe = man->FindOrBuildElement("Be");
+  G4Element* elW = man->FindOrBuildElement("W");
   
-  //G4Material* Titanium = man->FindOrBuildMaterial("G4_Ti"); 
-  if( fMaterialsMap.find("Titanium") == fMaterialsMap.end() ){ 
-    fMaterialsMap["Titanium"] = new G4Material(name="Titanium", z=22., a=47.867*g/mole, density=4.54*g/cm3);
-  }
+  G4Material* Titanium = man->FindOrBuildMaterial("G4_Ti");
+  fMaterialsMap["Titanium"] = Titanium;
+  // if( fMaterialsMap.find("Titanium") == fMaterialsMap.end() ){ 
+  //   fMaterialsMap["Titanium"] = new G4Material(name="Titanium", z=22., a=47.867*g/mole, density=4.54*g/cm3);
+  // }
   
   // Materials necessary to build TF1 aka lead-glass
   G4Material* PbO = new G4Material("TF1_PbO", bigden, 2);
@@ -1209,14 +1323,29 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   TF1->AddMaterial(K2O, 0.070);
   TF1->AddMaterial(As2O3, 0.005);
 
+  //This is an approximation of the BigBite preshower lead-glass, which is more dense:
+  //chemical composition is not correct, but higher density is needed to get the
+  //preshower energy deposition right:
+  G4Material *TF5 = new G4Material("TF5", 4.78*g/cm3, 4);
+  TF5->AddMaterial(PbO, 0.512);
+  TF5->AddMaterial(SiO2, 0.413);
+  TF5->AddMaterial(K2O, 0.070);
+  TF5->AddMaterial(As2O3, 0.005);
+  
   MPT_temp = new G4MaterialPropertiesTable();
   MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
   //MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_TF1, nentries_ecal_QE );
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_atilde, atilde, nentries_atilde );
-  
-  TF1->SetMaterialPropertiesTable( MPT_temp );
-  fMaterialsMap["TF1"] = TF1; //Default TF1: no temperature increase, no rad. damage.
 
+  if( fMaterialsListOpticalPhotonDisabled.find( "TF1" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    TF1->SetMaterialPropertiesTable( MPT_temp );
+  }
+  if( fMaterialsListOpticalPhotonDisabled.find( "TF5" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    TF5->SetMaterialPropertiesTable( MPT_temp );
+  }
+  fMaterialsMap["TF1"] = TF1; //Default TF1: no temperature increase, no rad. damage.
+  fMaterialsMap["TF5"] = TF5;
+  
   //For C16 and/or ECAL, we need the following configurations of lead-glass:
   //C16: Elevated temp, no rad. damage: z-dependent temperature --> z-dependent absorption
   //C16: Elevated temp, rad. damage: z-dependent temperature and z-dependent radiation dose rate/thermal annealing rate.
@@ -1306,8 +1435,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     MPT_temp = new G4MaterialPropertiesTable();
     MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
     MPT_temp->AddProperty("ABSLENGTH", Ephoton_abslength, abslength_ECAL, Ntemp+1 );
-    
-    mat_temp->SetMaterialPropertiesTable( MPT_temp );
+
+    if( fMaterialsListOpticalPhotonDisabled.find( matname.Data() ) == fMaterialsListOpticalPhotonDisabled.end() ){
+      mat_temp->SetMaterialPropertiesTable( MPT_temp );
+    }
     fMaterialsMap[matname.Data()] = mat_temp;
 
     for( int row=0; row<4; row++ ){
@@ -1330,7 +1461,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 	
 	MPT_temp->AddProperty("ABSLENGTH", Ephoton_abslength, abslength_temp, Ntemp+1 );
 
-	mat_temp->SetMaterialPropertiesTable( MPT_temp );
+	if( fMaterialsListOpticalPhotonDisabled.find( matname.Data() ) == fMaterialsListOpticalPhotonDisabled.end() ){
+	  mat_temp->SetMaterialPropertiesTable( MPT_temp );
+	}
 	fMaterialsMap[matname.Data()] = mat_temp;
       }
     } 
@@ -1375,7 +1508,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_quartz_ecal, nentries_ecal_QE);
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_TF1, nentries_ecal_QE); //Do we need this?? 
 
-  QuartzWindow_ECal->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "QuartzWindow_ECal" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    QuartzWindow_ECal->SetMaterialPropertiesTable( MPT_temp );
+  }
   fMaterialsMap["QuartzWindow_ECal"] = QuartzWindow_ECal;
 
   //Photocathode material - RIndex same as QuartzWindow_ECal, define a QE from GSTAR code
@@ -1399,11 +1534,21 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("EFFICIENCY", Ephoton_ECAL_QE, PMT_ECAL_QE, nentries_ecal_QE ); 
   MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_quartz_ecal, nentries_ecal_QE );
 
-  Photocathode_material_ecal->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "Photocathode_material_ecal" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Photocathode_material_ecal->SetMaterialPropertiesTable( MPT_temp );
+  }
   fMaterialsMap["Photocathode_material_ecal"] = Photocathode_material_ecal;
 
   //Define optical properties for AIR:
-  G4Material *Special_Air = man->FindOrBuildMaterial("G4_AIR");
+  //G4Material *Special_Air = man->FindOrBuildMaterial("G4_AIR");
+  G4double airdensity = 1.20479*kg/m3;
+
+  G4Material *Special_Air = new G4Material( "Special_Air", airdensity, 4 );
+  Special_Air->AddElement( elC, fractionmass = 0.000124 );
+  Special_Air->AddElement( elN, fractionmass = 0.755268 );
+  Special_Air->AddElement( elO, fractionmass = 0.231781 );
+  Special_Air->AddElement( elAr, fractionmass = 0.012827 );
+  
   MPT_temp = new G4MaterialPropertiesTable();
 
   G4double Rindex_air[nentries_ecal_QE] = {
@@ -1429,7 +1574,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_air, nentries_ecal_QE );
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_ECAL_QE, Abslength_air, nentries_ecal_QE );
 
-  Special_Air->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "Special_Air" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Special_Air->SetMaterialPropertiesTable( MPT_temp );
+  }
   fMaterialsMap["Special_Air"] = Special_Air;
 
   //Poly "filter"
@@ -1481,7 +1628,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("RINDEX", Ephoton_rindex_CDET, Rindex_CDET, 2 );
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_rindex_CDET, AbsLength_CDET, 2 );
 
-  PLASTIC_SC_VINYLTOLUENE->SetMaterialPropertiesTable(MPT_temp);
+  if( fMaterialsListOpticalPhotonDisabled.find( "CDET_BC408" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    PLASTIC_SC_VINYLTOLUENE->SetMaterialPropertiesTable(MPT_temp);
+  }
     
   fMaterialsMap["CDET_BC408"] = PLASTIC_SC_VINYLTOLUENE;
     
@@ -1526,7 +1675,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("EFFICIENCY", EPhoton_CDet, PMT_CDet_QE, nentries_CDet);
   MPT_temp->AddProperty("RINDEX", EPhoton_CDet, Rindex_CDet, nentries_CDet);
 
-  Photocathode_CDet->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "Photocathode_CDet" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Photocathode_CDet->SetMaterialPropertiesTable( MPT_temp );
+  }
   fMaterialsMap["Photocathode_CDet"] = Photocathode_CDet;
 
   ///////////// TO DO: Make WLSFiber with actual cladding!!! //////////////////////////////
@@ -1584,8 +1735,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     
   MPT_temp->AddProperty("WLSABSLENGTH", Ephoton_BCF92_abs, WLSabslength_BCF92, nentries_BCF92_abs );
   MPT_temp->AddProperty("WLSCOMPONENT", Ephoton_BCF92_emission, BCF92_emission_relative, nentries_BCF92_emission );
-    
-  BCF_92->SetMaterialPropertiesTable( MPT_temp );
+
+  if( fMaterialsListOpticalPhotonDisabled.find( "BCF_92" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    BCF_92->SetMaterialPropertiesTable( MPT_temp );
+  }
     
   fMaterialsMap["BCF_92"] = BCF_92;
 
@@ -1605,7 +1758,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("RINDEX", ephoton_acrylic, Rindex_acrylic, 2 );
   MPT_temp->AddProperty("ABSLENGTH", ephoton_acrylic, abslength_acrylic, 2 );
 
-  CDET_Acrylic->SetMaterialPropertiesTable(MPT_temp);
+  if( fMaterialsListOpticalPhotonDisabled.find( "CDET_Acrylic" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    CDET_Acrylic->SetMaterialPropertiesTable(MPT_temp);
+  }
 
   fMaterialsMap["CDET_Acrylic"] = CDET_Acrylic;
 
@@ -1670,7 +1825,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("EFFICIENCY", EPhoton_BB, PMT_BB_QE, nentries_BB ); 
   MPT_temp->AddProperty("RINDEX", EPhoton_BB, Rindex_BB, nentries_BB );
 
-  Photocathode_BB->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "Photocathode_BB" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Photocathode_BB->SetMaterialPropertiesTable( MPT_temp );
+  }
   fMaterialsMap["Photocathode_BB"] = Photocathode_BB;
 
   //   ************************
@@ -1678,8 +1835,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //   ************************
   // Everything has been "taken" from Vahe's HCaloMaterials.cc code 
   //Elements:
-  G4Element *Gd = new G4Element("Gadolinium", "Gd" , z=64.0 , a=157.25*g/mole);
-
+  //G4Element *Gd = new G4Element("Gadolinium", "Gd" , z=64.0 , a=157.25*g/mole);
+  G4Element *Gd = man->FindOrBuildElement( "Gd" );
+  
   //- EJ-232
   G4Material* EJ232 = new G4Material("EJ232",density=1.02*g/cm3, nel=2,kStateSolid,293.15*kelvin,1.0*atmosphere);
   EJ232->AddElement(H , natoms=11);
@@ -1737,7 +1895,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_EJ232->AddConstProperty("FASTTIMECONSTANT",1.40*ns);
   MPT_EJ232->AddConstProperty("SLOWTIMECONSTANT",1.40*ns);
   MPT_EJ232->AddConstProperty("YIELDRATIO",1.0);
-  EJ232->SetMaterialPropertiesTable(MPT_EJ232);
+  if( fMaterialsListOpticalPhotonDisabled.find( "EJ232" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    EJ232->SetMaterialPropertiesTable(MPT_EJ232);
+  }
   fMaterialsMap["EJ232"] = EJ232;
     
   //- EJ-280 Wave length shifter blue to green
@@ -1781,7 +1941,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_BC484->AddProperty("WLSABSLENGTH"        , PhotonEnergyBC484 , AbsWLSfiberBC484     , nEntriesBC484);
   MPT_BC484->AddProperty("WLSCOMPONENT"        , PhotonEnergyBC484 , EmissionFibBC484     , nEntriesBC484);
   MPT_BC484->AddConstProperty("WLSTIMECONSTANT", 3.0*ns);
-  BC484->SetMaterialPropertiesTable(MPT_BC484);
+  if( fMaterialsListOpticalPhotonDisabled.find( "BC484" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    BC484->SetMaterialPropertiesTable(MPT_BC484);
+  }
   fMaterialsMap["BC484"] = BC484;
 
   //GSO
@@ -1822,7 +1984,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4MaterialPropertiesTable *Glass_HC_mt = new G4MaterialPropertiesTable();
   Glass_HC_mt->AddProperty("ABSLENGTH", PhotonEnergyBC484 , Glass_HC_AbsLength , nEntriesEJ232 );
   Glass_HC_mt->AddProperty("RINDEX"   , PhotonEnergyBC484 , Glass_HC_RIND      , nEntriesEJ232 );
-  Glass_HC->SetMaterialPropertiesTable(Glass_HC_mt);
+
+  if( fMaterialsListOpticalPhotonDisabled.find( "Glass_HC" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Glass_HC->SetMaterialPropertiesTable(Glass_HC_mt);
+  }
   fMaterialsMap["Glass_HC"] = Glass_HC; 
 
   // -- Bialkali photocathode K2CsSb 
@@ -1855,7 +2020,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Paper_MPT->AddProperty("SPECULARSPIKECONSTANT" , PhotonEnergyBC484 , MilliPoreSS , nEntriesEJ232);
   Paper_MPT->AddProperty("BACKSCATTERCONSTANT"   , PhotonEnergyBC484 , MilliPoreBK , nEntriesEJ232);
 
-  Paper->SetMaterialPropertiesTable(Paper_MPT);
+  if( fMaterialsListOpticalPhotonDisabled.find( "Paper" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Paper->SetMaterialPropertiesTable(Paper_MPT);
+  }
   fMaterialsMap["Paper"] = Paper;
 
   G4double Foil_refl[nEntriesEJ232] = 
@@ -1971,7 +2138,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp->AddProperty("RINDEX", Ephoton_rindex_pyrex, Rindex_pyrex, nentries_rindex_pyrex );
   MPT_temp->AddProperty("ABSLENGTH", Ephoton_abslength_pyrex, abslength_pyrex, nentries_abslength_pyrex );
 
-  Pyrex_Glass->SetMaterialPropertiesTable( MPT_temp );
+  if( fMaterialsListOpticalPhotonDisabled.find( "Pyrex_Glass" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    Pyrex_Glass->SetMaterialPropertiesTable( MPT_temp );
+  }
   
   fMaterialsMap["Pyrex_Glass"] = Pyrex_Glass; 
 

@@ -72,6 +72,7 @@ public:
   map<G4String, SDet_t> SDtype; //Mapping of sensitive detector names to sensitive detector types
   //map<G4String, Arm_t> SDarm; //Mapping of sensitive detector names to spectrometer arms
   set<G4String> StepLimiterList; //List of sensitive detectors for which G4UserLimits are defined to stop all particles entering (only allowed for calorimeters!)
+  
   // map<G4String, G4double> SDgatewidth; //Time window for accumulating hit signal
   // map<G4String, G4double> SDthreshold; //threshold (energy deposition or photoelectrons) for recording a hit
   // map<G4String, G4int>    SDntimebins; //Time bins for "pulse shape" histogram
@@ -123,12 +124,16 @@ public:
 
   void SetFlipGEM( G4bool );
   G4bool GetFlipGEM(){ return fGEMflip; }
+
+  void SetOpticalPhotonDisabled(G4String material){ fMaterialsListOpticalPhotonDisabled.insert( material ); }
   
 private:
 
   map<G4String, G4Material*> fMaterialsMap;
   map<G4String, G4OpticalSurface*> fOpticalSurfacesMap;
-
+  set<G4String> fMaterialsListOpticalPhotonDisabled; //Allows us to disable definition of refractive index and
+  //scintillation parameter definition for individual materials, to prevent optical photon production and tracking
+  
   G4SBSMagneticField *fbbfield;
   G4SBSMagneticField *f48d48field;
   

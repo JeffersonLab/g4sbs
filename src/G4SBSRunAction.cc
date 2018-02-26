@@ -1,4 +1,3 @@
-
 #include "G4SBSRun.hh"
 #include "G4SBSIO.hh"
 // Make this appear first!
@@ -31,6 +30,17 @@ void G4SBSRunAction::BeginOfRunAction(const G4Run* aRun)
 //  rmrundata->SetBeamE( G4SBSBeamTarget::GetBeamTarget()->fBeamE/GeV );
   rmrundata->SetNthrown( aRun->GetNumberOfEventToBeProcessed() );
 
+  gen_t gendata = fIO->GetGenData();
+  rmrundata->SetBeamE( gendata.Ebeam );
+  rmrundata->SetBBtheta( gendata.thbb );
+  rmrundata->SetBBdist( gendata.dbb );
+  rmrundata->SetSBStheta( gendata.thsbs );
+  rmrundata->SetSBSdist( gendata.dsbs );
+  rmrundata->SetHCALdist( gendata.dhcal );
+  rmrundata->SetHCALvoff( gendata.voffhcal );
+  rmrundata->SetRICHdist( gendata.drich );
+  rmrundata->SetSBSTrackerDist( gendata.dsbstrkr );
+  
   rmrundata->Print();
 
 }
@@ -44,6 +54,10 @@ void G4SBSRunAction::EndOfRunAction(const G4Run* aRun)
 
   G4SBSRun::GetRun()->GetData()->SetNtries( Ntries );
 
+  G4SBSRunData *rmrundata = G4SBSRun::GetRun()->GetData();
+  
+  rmrundata->CalcNormalization();
+  
   fIO->WriteTree();
 }
 

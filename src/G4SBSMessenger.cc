@@ -208,6 +208,10 @@ G4SBSMessenger::G4SBSMessenger(){
   sbstrkrpitchCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbstrkrpitch",this);
   sbstrkrpitchCmd->SetGuidance("SBS tracker pitch angle (tilt toward up-bending particles)");
   sbstrkrpitchCmd->SetParameterName("angle", false);
+
+  sbstrkrdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbstrkrdist",this);
+  sbstrkrdistCmd->SetGuidance( "SBS tracker distance from target to projection of center of first tracker plane onto horizontal plane");
+  sbstrkrdistCmd->SetParameterName("sbstrkrdist",false );
   
   dvcsecalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/dvcsecalhoffset",this);
   dvcsecalhoffsetCmd->SetGuidance("DVCS ECal HCAL horizontal offset");
@@ -216,6 +220,14 @@ G4SBSMessenger::G4SBSMessenger(){
   dvcsecalmatCmd = new G4UIcmdWithAString("/g4sbs/dvcsecalmat",this);
   dvcsecalmatCmd->SetGuidance("DVCS ECal material: 'PbF2' or 'PbWO4'");
   dvcsecalmatCmd->SetParameterName("dvcsecalmatname", false);
+
+  GRINCH_gas_Cmd = new G4UIcmdWithAString("/g4sbs/grinchgas",this);
+  GRINCH_gas_Cmd->SetGuidance("Gas for GRINCH detector: choose from C4F10, C4F8O, CF4, CO2, SF6 (C4F8, C3F8 coming soon)");
+  GRINCH_gas_Cmd->SetParameterName("grinchgasname", false );
+
+  RICH_gas_Cmd = new G4UIcmdWithAString("/g4sbs/richgas",this);
+  RICH_gas_Cmd->SetGuidance("Gas for RICH detector: choose from C4F10, C4F8O, CF4, CO2, SF6 (C4F8, C3F8 coming soon)");
+  RICH_gas_Cmd->SetParameterName("richgasname", false );
   
   hcaldistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcaldist",this);
   hcaldistCmd->SetGuidance("HCAL distance");
@@ -229,6 +241,10 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalhoffsetCmd->SetGuidance("HCAL horizontal offset");
   hcalhoffsetCmd->SetParameterName("hcalhoffset", false);
 
+  hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
+  hcalhoffsetCmd->SetGuidance("HCAL horizontal offset relative to SBS center line (+ = TOWARD beam line)");
+  hcalhoffsetCmd->SetParameterName("dist", false);
+  
   hmagdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/48D48dist",this);
   hmagdistCmd->SetGuidance("48D48 distance");
   hmagdistCmd->SetParameterName("dist", false);
@@ -307,6 +323,11 @@ G4SBSMessenger::G4SBSMessenger(){
   RICHdistCmd->SetGuidance("SBS RICH distance from target");
   RICHdistCmd->SetParameterName("dist",false);
 
+  RICHaeroCmd = new G4UIcmdWithABool("/g4sbs/userichaero",this);
+  RICHaeroCmd->SetGuidance("Toggle use of RICH aerogel (default = true)" );
+  RICHaeroCmd->SetParameterName("useaero",true);
+  RICHaeroCmd->SetDefaultValue(true);
+  
   SBSMagFieldCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbsmagfield",this);
   SBSMagFieldCmd->SetGuidance("SBS uniform magnetic field value");
   SBSMagFieldCmd->SetParameterName("sbsbfield",false);
@@ -397,6 +418,14 @@ G4SBSMessenger::G4SBSMessenger(){
   UseScintCmd->SetParameterName("usescint",true);
   UseScintCmd->AvailableForStates(G4State_PreInit);
 
+  DisableOpticalPhotonProductionByMaterialCmd = new G4UIcmdWithAString( "/g4sbs/DisableOpticalPhotonByMaterial",this );
+  DisableOpticalPhotonProductionByMaterialCmd->SetGuidance( "Disable optical photon production by material name" );
+  DisableOpticalPhotonProductionByMaterialCmd->SetGuidance( "Works by preventing definition of optical properties for a given material" );
+  DisableOpticalPhotonProductionByMaterialCmd->SetGuidance( "Use with caution" );
+  DisableOpticalPhotonProductionByMaterialCmd->SetParameterName("material",false);
+  DisableOpticalPhotonProductionByMaterialCmd->AvailableForStates(G4State_PreInit);
+  
+  
   FluxCmd = new G4UIcmdWithABool("/g4sbs/fluxcalc",this);
   FluxCmd->SetGuidance( "Compute particle flux as a function of angles, energy");
   FluxCmd->SetParameterName( "fluxcalc", false);  
@@ -443,10 +472,31 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     
     fevgen->SetNevents(nevt);
+    fevgen->Initialize();
+    
+    // if( fevgen->GetRejectionSamplingFlag() && !fevgen->GetRejectionSamplingInitialized() ){
+    //   fevgen->InitializeRejectionSampling();
+    // }
 
-    if( fevgen->GetRejectionSamplingFlag() && !fevgen->GetRejectionSamplingInitialized() ){
-      fevgen->InitializeRejectionSampling();
+    Kine_t kinetype = fevgen->GetKine(); 
+    if( kinetype == kDIS || kinetype == kWiser ){ //Processes with xsec in units of area/energy/solid angle; i.e., nb/GeV/sr
+      G4SBSRun::GetRun()->GetData()->SetGenVol( fevgen->GetGenVol()/GeV );
+      //if( fevgen->GetRejectionSamplingFlag() ){
+      G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 * GeV );
+	//}
+    } else if ( kinetype == kSIDIS ){ //Processes with xsec differential in area/energy^2/solid angle^2:
+      G4SBSRun::GetRun()->GetData()->SetGenVol( fevgen->GetGenVol()/(GeV*GeV) );
+      // if( fevgen->GetRejectionSamplingFlag() ){
+      G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 * pow(GeV,2) );
+      //}
+    } else { //Processes with xsec differential in solid angle only:
+      G4SBSRun::GetRun()->GetData()->SetGenVol( fevgen->GetGenVol() );
+      //if( fevgen->GetRejectionSamplingFlag() ){
+      G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 );
+      //}
     }
+    G4SBSRun::GetRun()->GetData()->SetLuminosity( fevgen->GetLumi()*cm2*s );
+    //G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight() );
     
     //Clean out and rebuild the detector geometry from scratch: 
 
@@ -543,11 +593,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("flat") == 0 ){
       fevgen->SetKine(kFlat);
+      //fevgen->SetMaxWeight( cm2 );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("dis") == 0 ){
       fevgen->SetKine(kDIS);
+      //fevgen->SetMaxWeight( cm2/GeV );
       validcmd = true;
     }
     if( newValue.compareTo("beam") == 0 ){
@@ -557,10 +609,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("sidis") == 0 ){
       fevgen->SetKine( kSIDIS );
+      //fevgen->SetMaxWeight( cm2/pow(GeV,2) );
       validcmd = true;
     }
     if( newValue.compareTo("wiser") == 0 ){
       fevgen->SetKine( kWiser);
+      //fevgen->SetMaxWeight( cm2/GeV );
       validcmd = true;
     }
     if( newValue.compareTo("gun") == 0 ){
@@ -578,6 +632,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if (newValue.compareTo("gmnelasticcheck") == 0 ){
       fevgen->SetKine(kGMnElasticCheck);
       fevgen->SetRejectionSamplingFlag(false);
+      //fevgen->SetMaxWeight( cm2 );
       validcmd = true;
     }
 
@@ -589,7 +644,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
 
     //After any change of kinematics, set this flag to false so that rejection sampling will be re-initialized:
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == PYTHIAfileCmd ){
@@ -684,7 +739,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       exit(1);
     }
 
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
 
   }
 
@@ -700,8 +755,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
     fevgen->SetRejectionSamplingFlag(flag);
     fevgen->SetNeventsWeightCheck( N );
-
-    if( flag ) fevgen->InitializeRejectionSampling();
+    fevgen->SetInitialized( false );
+    //    if( flag ) fevgen->InitializeRejectionSampling();
   }
   
   if( cmd == tgtCmd ){
@@ -767,7 +822,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       exit(1);
     }
 
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
     
   }
 
@@ -814,18 +869,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double len = tgtLenCmd->GetNewDoubleValue(newValue);
     fevgen->SetTargLen(len);
     fdetcon->fTargetBuilder->SetTargLen(len);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == tgtDenCmd ){
     G4double den = tgtDenCmd->GetNewDoubleValue(newValue);
     fevgen->SetTargDen(den);
     fdetcon->fTargetBuilder->SetTargDen(den);
+    fevgen->SetInitialized(false);
   }
   if( cmd == tgtPresCmd ){
     G4double pre = tgtPresCmd->GetNewDoubleValue(newValue);
     G4double den = pre/(296.0*kelvin*k_Boltzmann);
     fevgen->SetTargDen(den);
     fdetcon->fTargetBuilder->SetTargDen(den);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == tgtDiamCmd ){
@@ -842,10 +900,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = beamcurCmd->GetNewDoubleValue(newValue);
     printf("Setting beam current to %f uA\n", v/microampere);
     fevgen->SetBeamCur(v);
+    fevgen->SetInitialized(false);
   }
   if( cmd == runtimeCmd ){
     G4double v = runtimeCmd->GetNewDoubleValue(newValue);
     fevgen->SetRunTime(v);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == rasterxCmd ){
@@ -865,7 +925,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     G4SBSRun::GetRun()->GetData()->SetBeamE(v/GeV);
     //after any command affecting the kinematics or cross section of the built-in event generators, re-initialize rejection sampling:
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == bbangCmd ){
@@ -890,6 +950,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == sbstrkrpitchCmd ){
     G4double v = sbstrkrpitchCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetTrackerPitch(v);
+    G4SBSRun::GetRun()->GetData()->SetSBSTrackerPitch( v );
+  }
+
+  if( cmd == sbstrkrdistCmd ){
+    G4double d = sbstrkrdistCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetTrackerDist(d);
+    G4SBSRun::GetRun()->GetData()->SetSBSTrackerDist( d );
   }
   
   if( cmd == dvcsecalhoffsetCmd ){
@@ -899,6 +966,58 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   
   if( cmd == dvcsecalmatCmd ){
     fdetcon->fEArmBuilder->SetDVCSECalMaterial(newValue);
+  }
+
+  if( cmd == GRINCH_gas_Cmd ){
+    G4String gasname = newValue;
+    
+    gasname.toUpper();
+
+    if( gasname.index( "C4F10" ) != gasname.npos ){
+      gasname = "C4F10_gas";
+    } else if( gasname.index( "C4F8O" ) != gasname.npos ){
+      gasname = "C4F8O";
+    } else if( gasname.index( "CF4" ) != gasname.npos ){
+      gasname = "CF4_gas";
+    } else if( gasname.index( "SF6" ) != gasname.npos ){
+      gasname = "SF6_gas";
+    } else if( gasname.index( "CO2" ) != gasname.npos ){
+      gasname = "CO2";
+    } else { //default to C4F10 if no valid name given:
+      gasname = "C4F10_gas";
+      G4cout << "WARNING: invalid GRINCH gas option, defaulting to C4F10" << G4endl;
+    }
+    
+    fdetcon->fEArmBuilder->SetGRINCHgas( gasname );
+  }
+
+  if( cmd == RICH_gas_Cmd ){
+    G4String gasname = newValue;
+    
+    gasname.toUpper();
+
+    G4cout << "gasname = " << gasname << G4endl;
+
+    G4cout << gasname.index( "C4F10" ) << G4endl;
+    
+    if( gasname.index( "C4F10" ) != gasname.npos ){
+      gasname = "C4F10_gas";
+    } else if( gasname.index( "C4F8O" ) != gasname.npos ){
+      gasname = "C4F8O";
+    } else if( gasname.index( "CF4" ) != gasname.npos ){
+      gasname = "CF4_gas";
+    } else if( gasname.index( "SF6" ) != gasname.npos ){
+      gasname = "SF6_gas";
+    } else if( gasname.index( "CO2" ) != gasname.npos ){
+      gasname = "CO2";
+    } else { //default to C4F10 if no valid name given:
+      gasname = "C4F10_gas";
+      G4cout << "WARNING: invalid GRINCH gas option, defaulting to C4F10" << G4endl;
+    }
+
+    G4cout << "/g4sbs/richgas invoked, setting RICH gas to " << gasname << G4endl;
+    
+    fdetcon->fHArmBuilder->SetRICHgas( gasname );
   }
   
   if( cmd == hcaldistCmd ){
@@ -911,7 +1030,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == hcalvoffsetCmd ){
     G4double v = hcalvoffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetHCALVOffset(v);
-    fevgen->SetHCALDist(v);
+    //fevgen->SetHCALDist(v);
     fIO->SetHcalVOffset(v);
   }
 
@@ -921,7 +1040,6 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     //fevgen->SetHCALDist(v);
     //fIO->SetHcalVOffset(v);
   }
-
 
   if( cmd == hmagdistCmd ){
     G4double v = hmagdistCmd->GetNewDoubleValue(newValue);
@@ -952,65 +1070,65 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == thminCmd ){
     G4double v = thminCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMin(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == thmaxCmd ){
     G4double v = thmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMax(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == phminCmd ){
     G4double v = phminCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMin(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == phmaxCmd ){
     G4double v = phmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMax(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == HthminCmd ){
     G4double v = HthminCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMin_had(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == HthmaxCmd ){
     G4double v = HthmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMax_had(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == HphminCmd ){
     G4double v = HphminCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMin_had(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   
   if( cmd == HphmaxCmd ){
     G4double v = HphmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMax_had(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == EhminCmd ){
     G4double v = EhminCmd->GetNewDoubleValue(newValue);
     fevgen->SetEhadMin(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == EhmaxCmd ){
     G4double v = EhmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetEhadMax(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == EeminCmd ){
     G4double v = EeminCmd->GetNewDoubleValue(newValue);
     fevgen->SetEeMin(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
   if( cmd == EemaxCmd ){
     G4double v = EemaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetEeMax(v);
-    fevgen->SetRejectionSamplingInitialized(false);
+    fevgen->SetInitialized(false);
   }
 
   if( cmd == gemresCmd ){
@@ -1022,6 +1140,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = RICHdistCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetRICHdist(v);
     fIO->SetRICHDist( v );
+  }
+
+  if( cmd == RICHaeroCmd ){
+    G4bool b = RICHaeroCmd->GetNewBoolValue(newValue);
+    fdetcon->fHArmBuilder->SetRICH_use_aerogel( b );
   }
 
   if( cmd == SBSMagFieldCmd ){
@@ -1178,6 +1301,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == UseScintCmd ){
     G4bool b = UseScintCmd->GetNewBoolValue(newValue);
     fphyslist->ToggleScintillation(b);
+  }
+
+  if( cmd == DisableOpticalPhotonProductionByMaterialCmd ){
+    G4String materialname = newValue;
+    fdetcon->SetOpticalPhotonDisabled( materialname );
   }
 
   if( cmd == GunPolarizationCommand ){

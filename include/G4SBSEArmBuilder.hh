@@ -39,7 +39,8 @@ public:
   void SetDVCSECalHOffset(double a){ fDVCSECALhorizontal_offset = a; }
   
   void MakeBBSieveSlit(G4LogicalVolume *);
-  
+
+  void SetGRINCHgas( G4String str ){ fGRINCHgas = str; }
 
   double fBBang;
   double fBBdist;
@@ -69,6 +70,8 @@ public:
   double fDVCSECALhorizontal_offset;  // Horizontal offset (from center) of DVCS ECal
   
   bool fBuildBBSieve;
+
+  G4String fGRINCHgas;
 
 private:
 };

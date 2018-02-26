@@ -394,7 +394,7 @@ double sigma_p( double E, double th, double Ep ){
 
     double eps = 1.0/( 1.0 + 2.0*(1.0 + nu*nu/Q2)*tan(th/2.0)*tan(th/2.0));
 
-    double Gamma = alpha*Ep*(W2-Mp*Mp)/(pow(2.0*3.14159,2.0)*Q2*Mp*E*(1.0-eps));
+    double Gamma = alpha*Ep*(W2-Mp*Mp)/(pow(2.0*3.14159,2)*Q2*Mp*E*(1.0-eps));
 
     // Everything should come out in ub, 1e-3 puts to nb/GeV/str
 

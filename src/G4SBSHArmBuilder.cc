@@ -55,8 +55,11 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
 
   fHCALdist  = 17.0*m;
   fHCALvertical_offset = 0.0*cm;
+  fHCALhorizontal_offset = 0.0*cm;
 
   fRICHdist  = 15.0*m;
+  fRICHgas   = "C4F10_gas"; //default to C4F10;
+  fRICH_use_aerogel = true;
 
   f48D48depth = 1219.2*mm;
   f48D48width = 2324.1*mm;
@@ -65,6 +68,9 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fUseLocalField = false;
   fFieldStrength = 1.4*tesla;
 
+  fSBS_tracker_dist = 14.6*m;
+  fSBS_tracker_pitch = 0.0*deg;
+  
   fBuildSBSSieve = false;
   
   assert(fDetCon);
@@ -1454,8 +1460,19 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     posModY -= dist_ModuleCToCY/2.;
   }
 
+  G4ThreeVector HCAL_zaxis( dist_HCALX, 0.0, dist_HCALZ );
+  G4ThreeVector HCAL_yaxis( 0.0,        1.0, 0.0        );
+
+  HCAL_zaxis = HCAL_zaxis.unit();
+  G4ThreeVector HCAL_xaxis = HCAL_yaxis.cross( HCAL_zaxis ).unit();
+
+  G4ThreeVector HCAL_pos =
+    HCAL_zaxis * dist_HCalRadius +
+    HCAL_xaxis * fHCALhorizontal_offset +
+    HCAL_yaxis * fHCALvertical_offset; 
+  
   // Lastly, place the HCAL volume
-  new G4PVPlacement(rot_HCAL, G4ThreeVector(dist_HCALX,dist_HCALY,dist_HCALZ),
+  new G4PVPlacement(rot_HCAL, HCAL_pos,
       log_HCAL, "HCal Mother", motherlog, false, 0, checkOverlap);
 
   // Apply the step limiter, if requested
@@ -1916,52 +1933,54 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   logCalo->SetVisAttributes(G4VisAttributes::Invisible);
 }
 
-void G4SBSHArmBuilder::MakeTracker( G4LogicalVolume *worldlog)
-{
-  // 2016/06/23 (jc2): Moved SIDIS tracker to its own function
-  //Let's make a simple tracker: 5 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~50 cm + about 1.6 cm
-  G4double SBStracker_dist = fRICHdist - 0.3*m;
-  G4ThreeVector SBStracker_pos( -SBStracker_dist * sin( f48D48ang ), 0.0, SBStracker_dist * cos( f48D48ang ) );
+// void G4SBSHArmBuilder::MakeTracker( G4LogicalVolume *worldlog)
+// {
+//   // 2016/06/23 (jc2): Moved SIDIS tracker to its own function
+//   //Let's make a simple tracker: 5 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~50 cm + about 1.6 cm
+//   //G4double SBStracker_dist = fRICHdist - 0.3*m;
+//   G4double SBStracker_dist = fSBS_tracker_dist;
+//   G4ThreeVector SBStracker_pos( -SBStracker_dist * sin( f48D48ang ), 0.0, SBStracker_dist * cos( f48D48ang ) );
 
-  G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
+//   G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
 
-  //Just a test:
-  //SBStracker_rot_I->rotateY( 14.0*deg );
+//   //Just a test:
+//   //SBStracker_rot_I->rotateY( 14.0*deg );
 
-  G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
-  SBStracker_rot->rotateY( f48D48ang );
+//   G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
+//   SBStracker_rot->rotateY( f48D48ang );
 
-  G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
+//   G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
 
-  G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
+//   G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
 
-  //For consistency with BigBite, place "Tracker" volume before GEMs are placed in it:
-  new G4PVPlacement( SBStracker_rot, SBStracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
+//   //For consistency with BigBite, place "Tracker" volume before GEMs are placed in it:
+//   new G4PVPlacement( SBStracker_rot, SBStracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
 
-  int ngems_SBStracker = 5;
-  vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
+//   int ngems_SBStracker = 5;
+//   vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
 
-  G4double zspacing_SBStracker = 10.0*cm;
-  G4double zoffset_SBStracker = -20.0*cm;
+//   G4double zspacing_SBStracker = 10.0*cm;
+//   G4double zoffset_SBStracker = -20.0*cm;
 
-  for(int i=0; i<ngems_SBStracker; i++ ){
-    zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
-    wplanes_SBStracker.push_back( 60.0*cm );
-    hplanes_SBStracker.push_back( 200.0*cm );
-  }
+//   for(int i=0; i<ngems_SBStracker; i++ ){
+//     zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
+//     wplanes_SBStracker.push_back( 60.0*cm );
+//     hplanes_SBStracker.push_back( 200.0*cm );
+//   }
 
-  G4SBSTrackerBuilder trackerbuilder(fDetCon);
+//   G4SBSTrackerBuilder trackerbuilder(fDetCon);
 
-  //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
+//   //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
 
-  trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
-      ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
+//   trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
+//       ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
 
-  SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
-}
+//   SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
+// }
 
-void G4SBSHArmBuilder::MakeTracker_A1n(G4LogicalVolume *motherlog){
+void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
   //      G4double SBStracker_dist = fRICHdist - 0.3*m; //distance to the front of the SBS tracker
+  
   G4ThreeVector SBS_midplane_pos( -(f48D48dist + 0.5*f48D48depth)*sin(f48D48ang), 0.0, (f48D48dist+0.5*f48D48depth)*cos(f48D48ang) );
 
   G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
@@ -1977,13 +1996,29 @@ void G4SBSHArmBuilder::MakeTracker_A1n(G4LogicalVolume *motherlog){
 
   G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
 
-  G4double RICH_yoffset = (fRICHdist - (f48D48dist + 0.5*f48D48depth) )*sin( fSBS_tracker_pitch );
+  //G4double RICH_yoffset = (fRICHdist - (f48D48dist + 0.5*f48D48depth) )*sin( fSBS_tracker_pitch );
+  //We want the center of the first tracker plane to be directly above the point at a distance D along the SBS center line
+  //from the target:
+  // xmidplane + L*sin
 
-  G4ThreeVector RICH_pos( -fRICHdist*sin(f48D48ang), RICH_yoffset, fRICHdist*cos(f48D48ang) );
+  
+  
+  G4double Tracker_yoffset = (fSBS_tracker_dist - (f48D48dist + 0.5*f48D48depth) )*tan(fSBS_tracker_pitch);
 
-  G4ThreeVector SBS_tracker_axis = (RICH_pos - SBS_midplane_pos).unit();
-  G4ThreeVector SBS_tracker_pos = RICH_pos - 0.3*m*SBS_tracker_axis;
+  G4ThreeVector FirstPlane_pos( -fSBS_tracker_dist*sin(f48D48ang),
+				Tracker_yoffset,
+				fSBS_tracker_dist*cos(f48D48ang) );
+  
+  G4ThreeVector SBS_tracker_axis = (FirstPlane_pos - SBS_midplane_pos).unit();
+			     
+  
+  // G4ThreeVector RICH_pos( -fRICHdist*sin(f48D48ang), RICH_yoffset, fRICHdist*cos(f48D48ang) );
 
+  // G4ThreeVector SBS_tracker_axis = (RICH_pos - SBS_midplane_pos).unit();
+  // G4ThreeVector SBS_tracker_pos = RICH_pos - 0.3*m*SBS_tracker_axis;
+
+  G4ThreeVector SBS_tracker_pos = FirstPlane_pos + 20.0*cm*SBS_tracker_axis;
+  
   printf("sbs_tracker_pos: %f, %f, %f\n", SBS_tracker_pos.x(), SBS_tracker_pos.y(), SBS_tracker_pos.z() );
   
   new G4PVPlacement( SBStracker_rot, SBS_tracker_pos, SBStracker_log, "SBStracker_phys", motherlog, false, 0 );
@@ -2016,7 +2051,7 @@ void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   MakeLACModule( motherlog);
 }
 
-void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool electronmode ){
+void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
 
   G4RotationMatrix *rot_RICH = new G4RotationMatrix;
   rot_RICH->rotateY( f48D48ang );
@@ -2045,14 +2080,15 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool electronmo
   
   G4Box *RICHbox = new G4Box("RICHbox", RICHbox_w/2.0, RICHbox_h/2.0, RICHbox_thick/2.0  );
 
-  G4String RadiatorGas_Name = "C4F10_gas";
-  if( electronmode ){
-    printf("SBS in electron mode: using CO2 radiator for RICH\n");
-    RadiatorGas_Name = "CO2";
-  }
+  G4String RadiatorGas_Name = fRICHgas;
+  // if( electronmode ){
+  //   printf("SBS in electron mode: using CO2 radiator for RICH\n");
+  //   RadiatorGas_Name = "CO2";
+  // }
   
   G4LogicalVolume *RICHbox_log = new G4LogicalVolume( RICHbox, GetMaterial(RadiatorGas_Name), "SBS_RICH_log" );
 
+  G4cout << "Building RICHbox with gas " << RadiatorGas_Name << G4endl;
   //At the end, we will rotate it by 180 degrees about z:
   
   //Define the origin with the x and z coordinates at "bottom left" corner of the box (everything will be centered in y)
@@ -2505,7 +2541,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool electronmo
   
   //For A1n ("Electron mode"), do not create/place aerogel wall components:
 
-  if( !electronmode ){
+  if( fRICH_use_aerogel ){
     new G4PVPlacement( 0, pos_aerogel_wall, Aerogel_wall_container_log, "Aerogel_wall_container_pv", RICHbox_log, false, 0 );
     new G4PVPlacement( 0, aero_entry_window_pos, aero_entry_log, "SBSRICH_aero_entry_pv", RICHbox_log, false, 0 );
     new G4PVPlacement( 0, aero_exit_window_pos, aero_exit_window_log, "SBSRICH_aero_exit_pv", RICHbox_log, false, 0 );

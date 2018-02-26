@@ -221,9 +221,11 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
       //In the SBS DIS generator, a neutron (proton) is chosen with probability 1/3 (2/3) for Helium-3.
       //Therefore, we just need to multiply the luminosity by the number of nucleons/atom to achieve sigma_3He = 2sigma_p + sigma_n
       if( nucl == 1 ){ //proton
-	weight_p = sigma * genvol * double(ngen_file[fname]) * 3. * Lumi / double( ntries );
+	//weight_p = sigma * genvol * double(ngen_file[fname]) * 3. * Lumi / double( ntries );
+	weight_p = sigma * genvol * 3. * Lumi / double( ntries );
       } else if ( nucl == 0 ){ //neutron
-	weight_n = sigma * genvol * double(ngen_file[fname]) * 3. * Lumi / double( ntries );
+	//weight_n = sigma * genvol * double(ngen_file[fname]) * 3. * Lumi / double( ntries );
+	weight_n = sigma * genvol * 3. * Lumi / double( ntries );
       }
     }
     
@@ -234,8 +236,7 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
       for( int track=0; track<T->Harm_SBSGEM_Track_ntracks; track++ ){
 	if( (*(T->Harm_SBSGEM_Track_PID))[track] == 11 &&
 	    (*(T->Harm_SBSGEM_Track_MID))[track] == 0 &&
-	    T->ev_ep >= Emin_SBS && T->ev_Q2 > 1.0 &&
-	    T->ev_W2 > 4.0 ){ //Then this is the primary electron track:
+	    T->ev_ep >= Emin_SBS && T->ev_Q2 > 1.0 ){ //Then this is the primary electron track:
 	  double xbj = T->ev_xbj;
 	  double Q2 = T->ev_Q2;
 	  //double y = T->evy;
@@ -277,8 +278,7 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
       for( int track=0; track<T->Earm_BBGEM_Track_ntracks; track++ ){
 	if( (*(T->Earm_BBGEM_Track_PID))[track] == 11 &&
 	    (*(T->Earm_BBGEM_Track_MID))[track] == 0 &&
-	    T->ev_ep >= Emin_BB && T->ev_Q2 > 1.0 &&
-	    T->ev_W2 > 4.0 ){ //Then this is with a high degree of certainty the primary scattered electron track:
+	    T->ev_ep >= Emin_BB && T->ev_Q2 > 1.0 ){ //Then this is with a high degree of certainty the primary scattered electron track:
 	  double xbj = T->ev_xbj;
 	  double Q2 = T->ev_Q2;
 	  //double y = T->evy;

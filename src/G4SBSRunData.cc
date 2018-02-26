@@ -1,4 +1,6 @@
 #include "G4SBSRunData.hh"
+#include "G4PhysicalConstants.hh"
+#include "G4SystemOfUnits.hh"
 
 #include <string.h>
 #include <sstream>
@@ -25,6 +27,19 @@ void G4SBSRunData::Init(){
     fNthrown = 0;
     fNtries = 0;
     fBeamE   = 0;
+    fNormalization = 1.0;
+    fGenVol = 4.0*pi;
+    fLuminosity = 0.0;
+    fBBtheta = 30.0*degree;
+    fBBdist = 1.5*meter;
+    fSBStheta = 15.0*degree;
+    fSBSdist  = 3.0*meter;
+    fHCALdist = 10.0*meter;
+    fHCALvoff = 0.0*centimeter;
+    fRICHdist = 5.5*meter;
+    fSBSTrackerdist = 4.5*meter;
+    fSBSTrackerPitch = 0.0*degree;
+    
     strcpy(fExpType, "default");
     strcpy(fGenName, "default");
     strcpy(fGitInfo, gGitInfoStr);
@@ -49,7 +64,22 @@ void G4SBSRunData::Print(Option_t *) const {
     printf("Beam Energy = %f GeV\n", fBeamE);
     printf("Experiment  = %s\n", fExpType);
     printf("Generator   = %s\n", fGenName);
-
+    printf("Normalization = %8.5g\n", fNormalization);
+    printf("Rejection sampling OFF: rate = dsigma * Normalization = dsigma x (phsp. vol) x luminosity/Ntries\n");
+    printf("Rejection sampling ON: rate = (max xsec * Normalization) = maxweightx(phsp.vol)xluminosity/Ntries\n");
+    printf("Generation Volume = %8.5g\n", fGenVol);
+    printf("Luminosity = %8.5g Hz/cm^2\n", fLuminosity );
+    printf("BigBite central angle = %8.5g degrees\n", fBBtheta/degree );
+    printf("BigBite magnet distance = %8.5g meters\n", fBBdist );
+    printf("SBS central angle = %8.5g degrees\n", fSBStheta/degree );
+    printf("SBS magnet distance = %8.5g meters\n", fSBSdist );
+    printf("HCAL distance = %8.5g meters\n", fHCALdist );
+    printf("HCAL vertical offset = %8.5g cm\n", fHCALvoff*m/cm );
+    printf("RICH distance = %8.5g meters\n", fRICHdist );
+    printf("SBS tracker distance = %8.5g meters\n", fSBSTrackerdist );
+    printf("SBS tracker pitch angle = %8.5g degrees\n", fSBSTrackerPitch/degree );
+    printf("Max weight for rejection sampling = %8.5g (diff. xsec units) \n", fMaxWeight );
+    
     printf("Field maps:\n");
     for( unsigned int i = 0; i < fMagData.size(); i++ ){
 	printf("\t%s\n", fMagData[i].filename);
@@ -98,6 +128,10 @@ void G4SBSRunData::FindExternalMacros(G4SBSTextFile macro){
       }
     }
   }
+}
+
+void G4SBSRunData::CalcNormalization(){
+  SetNormalization( fMaxWeight * fGenVol * fLuminosity / double(fNtries) );
 }
 
 ClassImp(G4SBSRunData)

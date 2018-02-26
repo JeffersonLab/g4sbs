@@ -103,11 +103,14 @@ private:
   G4UIcmdWithADoubleAndUnit *hcalangCmd;
   //Add command to set pitch angle for SBS tracker + RICH in "electron mode" 
   G4UIcmdWithADoubleAndUnit *sbstrkrpitchCmd;
-  //G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
+  G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
   
   G4UIcmdWithAString   *dvcsecalmatCmd;
   G4UIcmdWithADoubleAndUnit *dvcsecalhoffsetCmd;
 
+  G4UIcmdWithAString   *GRINCH_gas_Cmd;
+  G4UIcmdWithAString   *RICH_gas_Cmd; 
+  
   //These commands set angle generation limits for the electron:
   G4UIcmdWithADoubleAndUnit *thminCmd;
   G4UIcmdWithADoubleAndUnit *thmaxCmd;
@@ -134,6 +137,7 @@ private:
   
   // Commands needed to specify RICH positioning:
   G4UIcmdWithADoubleAndUnit *RICHdistCmd; //Set RICH distance
+  G4UIcmdWithABool          *RICHaeroCmd; //Toggle use of RICH aerogel
   
   // Commands to set configurable properties of SBS:
   G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd;
@@ -161,6 +165,7 @@ private:
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
   G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov
   G4UIcmdWithABool *UseScintCmd;      //Scintillation
+  G4UIcmdWithAString *DisableOpticalPhotonProductionByMaterialCmd;
   // G4UIcmdWithABool *UseOpRayleighCmd; //Rayleigh for optical photons
   // G4UIcmdWithABool *UseOpAbsorbCmd;   //optical absorption
   // G4UIcmdWithABool *UseOpBdryCmd;     //optical boundary process (reflection/refraction/absorption)

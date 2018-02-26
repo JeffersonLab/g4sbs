@@ -2046,8 +2046,8 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
 }
 
 void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
-  MakeTracker_A1n( motherlog );
-  MakeRICH_new( motherlog, true );
+  MakeTracker( motherlog );
+  MakeRICH_new( motherlog );
   MakeLACModule( motherlog);
 }
 

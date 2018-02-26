@@ -1984,7 +1984,7 @@ void G4SBSHArmBuilder::MakeTracker_A1n(G4LogicalVolume *motherlog){
   G4ThreeVector SBS_tracker_axis = (RICH_pos - SBS_midplane_pos).unit();
   G4ThreeVector SBS_tracker_pos = RICH_pos - 0.3*m*SBS_tracker_axis;
 
-  printf("sbs_tracker_pos: %f, %f, %f", SBS_tracker_pos.x(), SBS_tracker_pos.y(), SBS_tracker_pos.z() );
+  printf("sbs_tracker_pos: %f, %f, %f\n", SBS_tracker_pos.x(), SBS_tracker_pos.y(), SBS_tracker_pos.z() );
   
   new G4PVPlacement( SBStracker_rot, SBS_tracker_pos, SBStracker_log, "SBStracker_phys", motherlog, false, 0 );
 

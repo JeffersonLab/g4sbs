@@ -2148,6 +2148,21 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   PbWO4->AddElement(elW, 1);
   PbWO4->AddElement(elO, 4);
   fMaterialsMap["PbWO4"] = PbWO4;
+
+  ///////////////////////////////////////////
+  //      CLAS Large-angle calorimeter:
+  ///////////////////////////////////////////
+
+  //Start with scintillator NE-110A (EJ208)
+
+  G4Material *NE110A = new G4Material( "NE110A", density=1.032*g/cm3, 2 );
+  NE110A->AddElement( elH, fractionmass = 8.474*perCent );
+  NE110A->AddElement( elC, fractionmass = 91.526*perCent );
+
+  fMaterialsMap["NE110A"] = NE110A;
+  
+  //Anything else?
+  
 }
 
 G4Material *G4SBSDetectorConstruction::GetMaterial(G4String name){

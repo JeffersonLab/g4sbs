@@ -18,6 +18,9 @@ public:
   void SetHCALVOffset(double a){ fHCALvertical_offset = a; }
   void SetHCALHOffset(double a){ fHCALhorizontal_offset = a; }
   void Set48D48Dist(double a){ f48D48dist = a; }
+  void SetLACDist( double a ){ fLACdist = a; }
+  void SetLACVOffset( double a ){ fLACvertical_offset = a; }
+  void SetLACHOffset( double a ){ fLAChorizontal_offset = a; }
   void SetRICHdist( double d ){ fRICHdist = d; } //Set RICH detector distance
   void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
   void SetTrackerPitch(double a){ fSBS_tracker_pitch = a; }
@@ -39,6 +42,7 @@ public:
   void MakeTracker_A1n(G4LogicalVolume *);
   void MakeElectronModeSBS(G4LogicalVolume *);
   void MakeSBSSieveSlit(G4LogicalVolume *);
+  void MakeLAC(G4LogicalVolume *);
   
   double f48D48ang;
   double f48D48dist;
@@ -63,7 +67,10 @@ public:
 
   G4String fRICHgas; //String defining
   G4bool   fRICH_use_aerogel; // Flag to use or not use aerogel
-  
+
+  double fLACdist; //Distance to CLAS Large-angle calorimeter
+  double fLACvertical_offset; //vertical offset of center of LAC wr
+  double fLAChorizontal_offset; //horizontal offset of center of LAC 
 private:
 
 };

@@ -3699,7 +3699,8 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
   TString LeadSheet_boxname, LeadSheet_logname, LeadSheet_physname;
 
   G4int icopy_LACscint = 0; //Global copy number of scintillator strips
-
+  G4int istack         = 0; //What we are after here is the sum of all energy depositions in individual "stacks" (each stack is coupled to a PMT at both ends)
+  
   G4VisAttributes *LACscint_visatt = new G4VisAttributes( G4Colour(0.05, 0.9, 0.7) );
   G4VisAttributes *PbSheet_visatt = new G4VisAttributes( G4Colour( 0.3, 0.3, 0.3 ) );
   PbSheet_visatt->SetForceWireframe(true);
@@ -3742,16 +3743,20 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
 	ScintStrip_physname.Form( "LACscintphys_layer%d_strip%d", ilayer, istrip );
 	G4ThreeVector strip_pos( 0.0, -Hlayer/2.0 + (istrip+0.5)*stripH, zscint_layer );
 
-	new G4PVPlacement( 0, strip_pos, log_strip_temp, ScintStrip_physname.Data(), log_LAC, false, icopy_LACscint );
-
+	G4int stack_layer = (ilayer < Nlayers_inner) ? 0 : 1;
+	
+	istack = istrip + (NstripsX+NstripsY)*stack_layer;
+	
+	new G4PVPlacement( 0, strip_pos, log_strip_temp, ScintStrip_physname.Data(), log_LAC, false, istack );
+	
 	//Now initialize the detector map quantities:
-	(LACScintSD->detmap).Plane[icopy_LACscint] = ilayer;
-	(LACScintSD->detmap).Wire[icopy_LACscint]  = istrip;
-	(LACScintSD->detmap).Row[icopy_LACscint]   = istrip;
-	(LACScintSD->detmap).Col[icopy_LACscint]   = 0;
-	(LACScintSD->detmap).LocalCoord[icopy_LACscint] = strip_pos;
+	(LACScintSD->detmap).Plane[istack] = stack_layer;
+	(LACScintSD->detmap).Wire[istack]  = ilayer;
+	(LACScintSD->detmap).Row[istack]   = istrip;
+	(LACScintSD->detmap).Col[istack]   = -1;
+	(LACScintSD->detmap).LocalCoord[istack] = strip_pos;
 
-	icopy_LACscint++;
+	//icopy_LACscint++;
       }
     } else { //"long" (vertical) strips
       G4double stripW = Wlayer/G4double(NstripsX);
@@ -3770,16 +3775,20 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
 	ScintStrip_physname.Form( "LACscintphys_layer%d_strip%d", ilayer, istrip );
 	G4ThreeVector strip_pos( -Wlayer/2.0 + (istrip+0.5)*stripW, 0.0, zscint_layer );
 
-	new G4PVPlacement( 0, strip_pos, log_strip_temp, ScintStrip_physname.Data(), log_LAC, false, icopy_LACscint );
+	G4int stack_layer = (ilayer < Nlayers_inner) ? 0 : 1;
+	
+	istack = istrip + NstripsY + (NstripsX+NstripsY)*stack_layer;
+	
+	new G4PVPlacement( 0, strip_pos, log_strip_temp, ScintStrip_physname.Data(), log_LAC, false, istack );
 
 	//Now initialize the detector map quantities:
-	(LACScintSD->detmap).Plane[icopy_LACscint] = ilayer;
-	(LACScintSD->detmap).Wire[icopy_LACscint]  = istrip;
-	(LACScintSD->detmap).Row[icopy_LACscint]   = 0;
-	(LACScintSD->detmap).Col[icopy_LACscint]   = istrip;
-	(LACScintSD->detmap).LocalCoord[icopy_LACscint] = strip_pos;
+	(LACScintSD->detmap).Plane[istack] = stack_layer;
+	(LACScintSD->detmap).Wire[istack]  = ilayer;
+	(LACScintSD->detmap).Row[istack]   = -1;
+	(LACScintSD->detmap).Col[istack]   = istrip;
+	(LACScintSD->detmap).LocalCoord[istack] = strip_pos;
 
-	icopy_LACscint++;
+	//icopy_LACscint++;
       } 
     }
   }

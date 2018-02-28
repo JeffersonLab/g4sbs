@@ -54,10 +54,14 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   f48D48_fieldclamp_config = 2; //0 = No field clamps. 2 = GEp (default). 1 = BigBite experiments:
 
   fHCALdist  = 17.0*m;
+  fLACdist   = 14.0*m;
   fHCALvertical_offset = 0.0*cm;
   fHCALhorizontal_offset = 0.0*cm;
 
-  fRICHdist  = 15.0*m;
+  fLACvertical_offset = 0.0*cm;
+  fLAChorizontal_offset = 0.0*cm;
+
+  fRICHdist  = 5.5*m;
   fRICHgas   = "C4F10_gas"; //default to C4F10;
   fRICH_use_aerogel = true;
 
@@ -68,7 +72,7 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fUseLocalField = false;
   fFieldStrength = 1.4*tesla;
 
-  fSBS_tracker_dist = 14.6*m;
+  fSBS_tracker_dist = 5.1*m;
   fSBS_tracker_pitch = 0.0*deg;
   
   fBuildSBSSieve = false;
@@ -2048,7 +2052,14 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
 void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   MakeTracker( motherlog );
   MakeRICH_new( motherlog );
-  MakeLACModule( motherlog);
+  
+  Exp_t exptype = fDetCon->fExpType;
+  if( exptype == kA1n ){ //HCAL AND LAC:
+    MakeHCALV2( motherlog, fHCALvertical_offset );
+    MakeLAC( motherlog );
+  } else { //TDIS or NDVCS: LAC only:
+    MakeLAC( motherlog );
+  }
 }
 
 void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
@@ -3695,3 +3706,158 @@ void G4SBSHArmBuilder::MakeSBSSieveSlit(G4LogicalVolume *motherlog)
   
 }
  
+void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
+
+  //Define geometry parameters needed to build LAC:
+  G4double W_LAC = 241.0*cm; //outer width of LAC module:
+  G4double H_LAC = 446.0*cm; //outer height of LAC module
+  //G4double D_LAC = 56.1*cm; //depth of LAC module
+  G4double Winner_LAC = 217.0*cm; //inner width of LAC module
+  G4double Hinner_LAC = 400.0*cm; //outer width of LAC module
+  G4double PbStrip_thick = 0.20*cm; //thickness of lead strips
+  G4double ScintStrip_thick = 1.5*cm; //thickness of NE110A strips
+
+  G4int Nlayers_total = 33;
+  G4int Nlayers_inner = 17;
+  G4int Nlayers_outer = 16;
+
+  G4int NstripsX = 24;
+  G4int NstripsY = 40;
+  
+  G4double D_LAC = 55.9*cm; 
+  
+  G4Box *LAC_mother_box = new G4Box( "LAC_mother_box", 0.5*W_LAC+0.1*mm, 0.5*H_LAC+0.1*mm, 0.5*D_LAC+0.1*mm );
+
+  G4LogicalVolume *log_LAC = new G4LogicalVolume( LAC_mother_box, GetMaterial("Air"), "log_LAC" );
+
+  //G4VisAttributes *LAC_visatt = new G4VisAttributes( G4VisAttributes::Invisible );
+
+  log_LAC->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  
+  G4double dLACbox = fLACdist + 0.5*D_LAC;
+
+  G4ThreeVector LAC_pos( -dLACbox*sin(f48D48ang), fLACvertical_offset, dLACbox*cos(f48D48ang ) );
+
+  G4ThreeVector LAC_zaxis( -sin(f48D48ang), 0.0, cos(f48D48ang) );
+  G4ThreeVector LAC_yaxis(0,1,0);
+  G4ThreeVector LAC_xaxis = LAC_yaxis.cross(LAC_zaxis).unit();
+
+  LAC_pos = LAC_pos + fLACvertical_offset * LAC_yaxis + fLAChorizontal_offset * LAC_xaxis; 
+  
+  G4RotationMatrix *rot_LAC = new G4RotationMatrix;
+  rot_LAC->rotateY(f48D48ang);
+
+  new G4PVPlacement( rot_LAC, LAC_pos, log_LAC, "phys_LAC", motherlog, false, 0 );
+
+  
+  
+  //Define sensitivity:
+  // grab SD manager:
+  G4SDManager *sdman = fDetCon->fSDman;
+  
+  G4String LACScintSDname  = "Harm/LACScint";
+  G4String LACScintCollName = "LACScintHitsCollection";
+  G4SBSCalSD *LACScintSD = NULL;
+
+  if( !( (G4SBSCalSD*) sdman->FindSensitiveDetector(LACScintSDname)) ){
+    G4cout << "Adding LAC Scint. Sensitive Detector to SDman..." << G4endl;
+    LACScintSD = new G4SBSCalSD( LACScintSDname, LACScintCollName );
+    sdman->AddNewDetector( LACScintSD );
+    (fDetCon->SDlist).insert(LACScintSDname);
+    fDetCon->SDtype[LACScintSDname] = kCAL;
+    (LACScintSD->detmap).depth = 0;
+  }
+  
+  //Now start populating the layers. In the absence of a better "guess", I will assume that there is one more layer's worth of "short" strips than "long" strips:
+
+  TString ScintStrip_boxname,ScintStrip_logname,ScintStrip_physname;
+  TString LeadSheet_boxname, LeadSheet_logname, LeadSheet_physname;
+
+  G4int icopy_LACscint = 0; //Global copy number of scintillator strips
+
+  G4VisAttributes *LACscint_visatt = new G4VisAttributes( G4Colour(0.05, 0.9, 0.7) );
+  G4VisAttributes *PbSheet_visatt = new G4VisAttributes( G4Colour( 0.3, 0.3, 0.3 ) );
+  PbSheet_visatt->SetForceWireframe(true);
+  
+  for( G4int ilayer=0; ilayer<Nlayers_total; ilayer++ ){
+
+    G4double zscint_layer = -D_LAC/2.0 + (ilayer+0.5)*ScintStrip_thick + ilayer*PbStrip_thick; //z of center of scint. strip
+    G4double zlead_layer = zscint_layer + 0.5*(ScintStrip_thick + PbStrip_thick );
+    G4double Wlayer = Winner_LAC + (zscint_layer+D_LAC/2.0)*(W_LAC - Winner_LAC)/D_LAC; //projective geometry
+    G4double Hlayer = Hinner_LAC + (zscint_layer+D_LAC/2.0)*(H_LAC - Hinner_LAC)/D_LAC; //projective geometry
+
+    LeadSheet_boxname.Form("LACleadbox_layer%d", ilayer);
+    LeadSheet_logname.Form("LACleadlog_layer%d", ilayer);
+    LeadSheet_physname.Form("LACleadphys_layer%d", ilayer );
+    
+    G4Box *leadbox_temp = new G4Box(LeadSheet_boxname.Data(), Wlayer/2.0, Hlayer/2.0, PbStrip_thick/2.0 );
+    G4LogicalVolume *leadlog_temp = new G4LogicalVolume( leadbox_temp, GetMaterial("Lead"), LeadSheet_logname.Data() );
+
+    if( ilayer+1 < Nlayers_total ){
+      new G4PVPlacement( 0, G4ThreeVector(0,0,zlead_layer), leadlog_temp, LeadSheet_physname.Data(), log_LAC, false, 0 ); //no copy number since not sensitive
+    }
+    
+    G4double stripwidth,striplength;
+    
+    if( ilayer % 2 == 0 ){ //"short" (horizontal) strips
+      G4double stripW = Wlayer;
+      G4double stripH = Hlayer/G4double(NstripsY);
+      ScintStrip_boxname.Form( "LACscintbox_layer%d", ilayer );
+      //All strips in a given layer have the same dimensions:
+      G4Box *strip_temp = new G4Box( ScintStrip_boxname.Data(),
+				     stripW/2.0, stripH/2.0, ScintStrip_thick/2.0 );
+
+      ScintStrip_logname.Form( "LACscintlog_layer%d", ilayer );
+      G4LogicalVolume *log_strip_temp = new G4LogicalVolume( strip_temp, GetMaterial("NE110A"), ScintStrip_logname.Data() );  
+
+      log_strip_temp->SetVisAttributes( LACscint_visatt );      
+      log_strip_temp->SetSensitiveDetector( LACScintSD );
+      
+      for( G4int istrip=0; istrip<NstripsY; istrip++ ){
+	ScintStrip_physname.Form( "LACscintphys_layer%d_strip%d", ilayer, istrip );
+	G4ThreeVector strip_pos( 0.0, -Hlayer/2.0 + (istrip+0.5)*stripH, zscint_layer );
+
+	new G4PVPlacement( 0, strip_pos, log_strip_temp, ScintStrip_physname.Data(), log_LAC, false, icopy_LACscint );
+
+	//Now initialize the detector map quantities:
+	(LACScintSD->detmap).Plane[icopy_LACscint] = ilayer;
+	(LACScintSD->detmap).Wire[icopy_LACscint]  = istrip;
+	(LACScintSD->detmap).Row[icopy_LACscint]   = istrip;
+	(LACScintSD->detmap).Col[icopy_LACscint]   = 0;
+	(LACScintSD->detmap).LocalCoord[icopy_LACscint] = strip_pos;
+
+	icopy_LACscint++;
+      }
+    } else { //"long" (vertical) strips
+      G4double stripW = Wlayer/G4double(NstripsX);
+      G4double stripH = Hlayer;
+      ScintStrip_boxname.Form( "LACscintbox_layer%d", ilayer );
+      G4Box *strip_temp = new G4Box( ScintStrip_boxname.Data(),
+				     stripW/2.0, stripH/2.0, ScintStrip_thick/2.0 );
+
+      ScintStrip_logname.Form( "LACscintlog_layer%d", ilayer );
+      G4LogicalVolume *log_strip_temp = new G4LogicalVolume( strip_temp, GetMaterial("NE110A"), ScintStrip_logname.Data() );
+
+      log_strip_temp->SetVisAttributes( LACscint_visatt );
+      log_strip_temp->SetSensitiveDetector( LACScintSD );
+
+      for( G4int istrip = 0; istrip<NstripsX; istrip++ ){
+	ScintStrip_physname.Form( "LACscintphys_layer%d_strip%d", ilayer, istrip );
+	G4ThreeVector strip_pos( -Wlayer/2.0 + (istrip+0.5)*stripW, 0.0, zscint_layer );
+
+	new G4PVPlacement( 0, strip_pos, log_strip_temp, ScintStrip_physname.Data(), log_LAC, false, icopy_LACscint );
+
+	//Now initialize the detector map quantities:
+	(LACScintSD->detmap).Plane[icopy_LACscint] = ilayer;
+	(LACScintSD->detmap).Wire[icopy_LACscint]  = istrip;
+	(LACScintSD->detmap).Row[icopy_LACscint]   = 0;
+	(LACScintSD->detmap).Col[icopy_LACscint]   = istrip;
+	(LACScintSD->detmap).LocalCoord[icopy_LACscint] = strip_pos;
+
+	icopy_LACscint++;
+      } 
+    }
+  }
+				     
+
+}

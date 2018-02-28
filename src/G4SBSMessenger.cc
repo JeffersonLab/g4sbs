@@ -244,6 +244,20 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
   hcalhoffsetCmd->SetGuidance("HCAL horizontal offset relative to SBS center line (+ = TOWARD beam line)");
   hcalhoffsetCmd->SetParameterName("dist", false);
+
+
+  lacdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/lacdist",this);
+  lacdistCmd->SetGuidance("LAC distance");
+  lacdistCmd->SetParameterName("dist", false);
+
+  lacvoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/lacvoffset",this);
+  lacvoffsetCmd->SetGuidance("LAC vertical offset");
+  lacvoffsetCmd->SetParameterName("dist", false);
+
+  lachoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/lachoffset",this);
+  lachoffsetCmd->SetGuidance("LAC horizontal offset relative to SBS center line (+ = TOWARD beam line)");
+  lachoffsetCmd->SetParameterName("dist", false);
+  
   
   hmagdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/48D48dist",this);
   hmagdistCmd->SetGuidance("48D48 distance");
@@ -1039,6 +1053,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fHArmBuilder->SetHCALHOffset(v);
     //fevgen->SetHCALDist(v);
     //fIO->SetHcalVOffset(v);
+  }
+
+  if( cmd == lacdistCmd ){
+    G4double v = lacdistCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetLACDist(v);
+  }
+
+  if( cmd == lacvoffsetCmd ){
+    G4double v = lacvoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetLACVOffset(v);
+  }
+
+  if( cmd == lachoffsetCmd ){
+    G4double v = lachoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetLACHOffset(v);
   }
 
   if( cmd == hmagdistCmd ){

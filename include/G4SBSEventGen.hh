@@ -79,7 +79,8 @@ public:
   void SetThMax_had(double v){fThMax_had = v; }
   void SetPhMin_had(double v){fPhMin_had = v; }
   void SetPhMax_had(double v){fPhMax_had = v; }
-
+  void SetCosmicsPointer( G4ThreeVector point ){fCosmPointer = point;};
+  
   //Initialize constant quantities so we aren't doing these calculations every event:
   //void SetConstantsInitialized( G4bool b ){ fConstantsInitialized = b; }
   //G4bool ConstantsAreInitialized(){ return fConstantsInitialized; } 
@@ -122,6 +123,8 @@ private:
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
   G4ThreeVector fHadronP;
   G4ThreeVector fBeamPol;
+  //Define "pointer" for cosmics
+  G4ThreeVector fCosmPointer;
 
   double fWeight, fQ2, fW2, fxbj, fSigma, fAperp, fApar;
   double fPt, fPl;  // born-approx polarization componenets
@@ -129,7 +132,7 @@ private:
   
   //Define additional kinematic quantities for SIDIS:
   double fz, fPh_perp, fphi_h, fphi_S, fMx;
-
+  
   double fBeamCur;
   double fRunTime;
   long    fNevt;   //number of primary events to be generated
@@ -169,6 +172,7 @@ private:
   bool GenerateWiser( Nucl_t, G4LorentzVector, G4LorentzVector );
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
+  bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
 
   G4bool fRejectionSamplingFlag; //Flag to turn on rejection sampling;
   G4double fMaxWeight; //Maximum event weight within generation limits

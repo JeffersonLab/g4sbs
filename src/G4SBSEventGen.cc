@@ -310,6 +310,9 @@ bool G4SBSEventGen::GenerateEvent(){
   case kPYTHIA6:
     success = GeneratePythia();
     break;
+  case kCosmics:
+    success = GenerateCosmics();
+    break;
   default:
     success = GenerateElastic( thisnucl, ei, ni );
     break;
@@ -2191,7 +2194,29 @@ void G4SBSEventGen::InitializeRejectionSampling(){
   }
 }
 
-
+bool G4SBSEventGen::GenerateCosmics(){
+  //G4cout << "Cosmics generated !" << endl;
+  
+  G4double ep = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
+  
+  G4double minradiusmax = min(50.0-fabs(fCosmPointer.x()/m),50.0-fabs(fCosmPointer.z()/m))*m;
+  G4double radius = CLHEP::RandFlat::shoot( 0.0, minradiusmax);
+  G4double phi = CLHEP::RandFlat::shoot( -180.0*deg, +180*deg);
+  
+  // G4double xvtx = CLHEP::RandFlat::shoot( -50.0*m, 50.0*m );
+  // G4double zvtx = CLHEP::RandFlat::shoot( -50.0*m, 50.0*m );
+  G4double xvtx = radius*sin(phi);
+  G4double zvtx = radius*cos(phi);
+  
+  fVert.set(xvtx, +minradiusmax, zvtx);
+  //fVert.set(-4.526*m, +5.0*m, +17.008*m);//for test
+  
+  double norm = sqrt(pow(fCosmPointer.x()/m-fVert.x()/m, 2) + pow(fCosmPointer.y()/m-fVert.y()/m, 2) + pow(fCosmPointer.z()/m-fVert.z()/m, 2)); 
+  
+  fElectronP.set( ep*(fCosmPointer.x()-fVert.x())/norm, ep*(fCosmPointer.y()-fVert.y())/norm, ep*(fCosmPointer.z()-fVert.z())/norm );
+  
+  return true;
+}
 
 
 

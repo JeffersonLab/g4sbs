@@ -277,11 +277,20 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   // Only do final nucleon/hadron for generators other than
   // the generic beam generator
-  if( sbsgen->GetKine() != kBeam && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kDIS ){
+  if( sbsgen->GetKine() != kBeam && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kDIS 
+      && sbsgen->GetKine() != kCosmics ){
     //G4cout << "Gun polarization = " << particleGun->GetParticlePolarization() << G4endl;
       particleGun->GeneratePrimaryVertex(anEvent);
   }
-
+  
+  if( sbsgen->GetKine()==kCosmics ){
+    particle = particleTable->FindParticle(particleName="mu-");
+    if( fUseGeantino ){ //first primary is a geantino!
+      particle = particleTable->FindParticle(particleName="chargedgeantino");
+    }
+    particleGun->SetParticleDefinition( particle );
+    particleGun->GeneratePrimaryVertex(anEvent);
+  }
 }
 
 G4ParticleGun* G4SBSPrimaryGeneratorAction::GetParticleGun()

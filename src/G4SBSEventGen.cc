@@ -2199,22 +2199,25 @@ bool G4SBSEventGen::GenerateCosmics(){
   
   G4double ep = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
   
-  G4double minradiusmax = min(50.0-fabs(fCosmPointer.x()/m),50.0-fabs(fCosmPointer.z()/m))*m;
+  G4double minradiusmax = min(50.0*m-fabs(fCosmPointer.x()),50.0*m-fabs(fCosmPointer.z()));
   G4double radius = CLHEP::RandFlat::shoot( 0.0, minradiusmax);
   G4double phi = CLHEP::RandFlat::shoot( -180.0*deg, +180*deg);
   
   // G4double xvtx = CLHEP::RandFlat::shoot( -50.0*m, 50.0*m );
   // G4double zvtx = CLHEP::RandFlat::shoot( -50.0*m, 50.0*m );
-  G4double xvtx = radius*sin(phi);
-  G4double zvtx = radius*cos(phi);
+  G4double xvtx = fCosmPointer.x()+radius*sin(phi);
+  G4double zvtx = fCosmPointer.z()+radius*cos(phi);
   
-  fVert.set(xvtx, +minradiusmax, zvtx);
+  fVert.set(xvtx, +minradiusmax, zvtx); //Add param to configure the ceiling ?
   //fVert.set(-4.526*m, +5.0*m, +17.008*m);//for test
   
-  double norm = sqrt(pow(fCosmPointer.x()/m-fVert.x()/m, 2) + pow(fCosmPointer.y()/m-fVert.y()/m, 2) + pow(fCosmPointer.z()/m-fVert.z()/m, 2)); 
+  G4double radius2 = CLHEP::RandFlat::shoot( 0.0, 0.5*m); //Add param to configure the pointing area
+  G4double phi2 = CLHEP::RandFlat::shoot( -180.0*deg, +180*deg);
   
-  fElectronP.set( ep*(fCosmPointer.x()-fVert.x())/norm, ep*(fCosmPointer.y()-fVert.y())/norm, ep*(fCosmPointer.z()-fVert.z())/norm );
+  double norm = sqrt(pow(fCosmPointer.x()+radius2*sin(phi2)-fVert.x(), 2) + pow(fCosmPointer.y()-fVert.y(), 2) + pow(fCosmPointer.z()+radius2*cos(phi2)-fVert.z(), 2)); 
   
+  fElectronP.set( ep*(fCosmPointer.x()+radius2*sin(phi2)-fVert.x())/norm, ep*(fCosmPointer.y()-fVert.y())/norm, ep*(fCosmPointer.z()+radius2*cos(phi2)-fVert.z())/norm );
+    
   return true;
 }
 

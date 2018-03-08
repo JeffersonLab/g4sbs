@@ -80,6 +80,9 @@ public:
   void SetPhMin_had(double v){fPhMin_had = v; }
   void SetPhMax_had(double v){fPhMax_had = v; }
   void SetCosmicsPointer( G4ThreeVector point ){fCosmPointer = point;};
+  void SetCosmicsPointerRadius( G4double radius );
+  void SetCosmicsCeiling( G4double ceiling );
+  void SetCosmicsCeilingRadius( G4double radius );
   
   //Initialize constant quantities so we aren't doing these calculations every event:
   //void SetConstantsInitialized( G4bool b ){ fConstantsInitialized = b; }
@@ -123,9 +126,13 @@ private:
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
   G4ThreeVector fHadronP;
   G4ThreeVector fBeamPol;
-  //Define "pointer" for cosmics
+  
+  //Define parameters for cosmics generator
   G4ThreeVector fCosmPointer;
-
+  G4double fPointerZoneRadiusMax;
+  G4double fCosmicsCeiling;
+  G4double fCosmicsCeilingRadius;
+  
   double fWeight, fQ2, fW2, fxbj, fSigma, fAperp, fApar;
   double fPt, fPl;  // born-approx polarization componenets
   int fhel;         // electron beam helicity

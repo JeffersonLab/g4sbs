@@ -462,7 +462,19 @@ G4SBSMessenger::G4SBSMessenger(){
   CosmicsPointerCommand->SetGuidance( "Set pointer for cosmics:" );
   CosmicsPointerCommand->SetGuidance( "Three-vector arguments are x,y,z;" );
   CosmicsPointerCommand->SetGuidance( "please provide unit" );
-  CosmicsPointerCommand->SetParameterName("x_ptr","y_ptr","z_ptr",false);
+  CosmicsPointerCommand->SetParameterName("x_ptr","y_ptr","z_ptr", false);
+
+  CosmicsPointerRadiusCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicpointerradius", this );
+  CosmicsPointerRadiusCommand->SetGuidance( "Set pointer radius for cosmics (please provide unit)" );
+  CosmicsPointerRadiusCommand->SetParameterName("radius",false);
+
+  CosmicsCeilingCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicceiling", this );
+  CosmicsCeilingCommand->SetGuidance( "Set ceiling for cosmics (please provide unit);" );
+  CosmicsCeilingCommand->SetParameterName("ceiling",false);
+  
+  CosmicsCeilingRadiusCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicceilingradius", this );
+  CosmicsCeilingRadiusCommand->SetGuidance( "Set ceiling radius for cosmics;" );
+  CosmicsCeilingRadiusCommand->SetParameterName("ceiling radius",false);
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -1342,5 +1354,20 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == CosmicsPointerCommand ){
     G4ThreeVector point = CosmicsPointerCommand->GetNew3VectorValue(newValue);
     fevgen->SetCosmicsPointer( point );
+  }
+
+  if( cmd == CosmicsPointerRadiusCommand ){
+    G4double radius = CosmicsPointerRadiusCommand->GetNewDoubleValue(newValue);
+    fevgen->SetCosmicsPointerRadius( radius );
+  }
+  
+  if( cmd == CosmicsCeilingCommand ){
+    G4double ceiling = CosmicsCeilingCommand->GetNewDoubleValue(newValue);
+    fevgen->SetCosmicsCeiling( ceiling );
+  }
+
+  if( cmd == CosmicsCeilingRadiusCommand ){
+    G4double radius = CosmicsCeilingRadiusCommand->GetNewDoubleValue(newValue);
+    fevgen->SetCosmicsCeilingRadius( radius );
   }
 }

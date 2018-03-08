@@ -498,7 +498,8 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
   map<int,double> tmin_cell; 
   map<int,int> Rows; //Mapping between cells and rows
   map<int,int> Cols; //Mapping between cells and columns
-  map<int,int> Planes; 
+  map<int,int> Planes;
+  map<int,int> Wires; 
   map<int,double> XCell; //Mapping between cells and x coordinates of cell centers (local)
   map<int,double> YCell; //Mapping between cells and y coordinates of cell centers (local)
   map<int,double> ZCell; //Mapping between cells and z coordinates of cell centers (local);
@@ -534,6 +535,7 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	Rows[cell] = (*hits)[hit]->GetRow();
 	Cols[cell] = (*hits)[hit]->GetCol();
 	Planes[cell] = (*hits)[hit]->GetPlane();
+	Wires[cell] = (*hits)[hit]->GetWire();
 	XCell[cell] = (*hits)[hit]->GetCellCoords().x();
 	YCell[cell] = (*hits)[hit]->GetCellCoords().y();
 	ZCell[cell] = (*hits)[hit]->GetCellCoords().z();
@@ -706,6 +708,7 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	caloutput.row.push_back(Rows[cell]);
 	caloutput.col.push_back(Cols[cell]);
 	caloutput.plane.push_back(Planes[cell]);
+	caloutput.wire.push_back(Wires[cell]);
 	caloutput.xcell.push_back( XCell[cell]/_L_UNIT );
 	caloutput.ycell.push_back( YCell[cell]/_L_UNIT );
 	caloutput.zcell.push_back( ZCell[cell]/_L_UNIT );
@@ -740,7 +743,7 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
     if( caloutput.nhits_CAL > 0 ){
       hesumtemp->Fill( esum_total );
     
-      caloutput.Esum = esum_total;
+      caloutput.Esum = esum_total/_E_UNIT;
     } else {
       caloutput.Esum = -100.0;
     }

@@ -17,6 +17,8 @@ void G4SBSCALoutput::Clear(){
   //timewindow = 1000.0*ns;
   //threshold = 0.0*eV;
 
+  Esum = 0.0;
+  
   row.clear();
   col.clear();
   plane.clear();

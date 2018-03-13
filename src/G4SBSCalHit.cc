@@ -35,6 +35,7 @@ G4SBSCalHit::G4SBSCalHit(const G4SBSCalHit &right)
   row = right.row;
   col = right.col;
   plane = right.plane;
+  wire = right.wire;
   CellCoords = right.CellCoords;
   GlobalCellCoords = right.GlobalCellCoords;
 
@@ -59,6 +60,7 @@ const G4SBSCalHit& G4SBSCalHit::operator=(const G4SBSCalHit &right)
   row = right.row;
   col = right.col;
   plane = right.plane;
+  wire = right.wire;
   CellCoords = right.CellCoords;
   GlobalCellCoords = right.GlobalCellCoords;
 

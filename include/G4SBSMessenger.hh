@@ -5,6 +5,7 @@
 #include "sbstypes.hh"
 #include "G4UImessenger.hh"
 #include "G4UIcommand.hh"
+#include "G4UIcmdWith3VectorAndUnit.hh"
 
 class G4SBSIO;
 class G4SBSEventGen;
@@ -187,6 +188,10 @@ private:
   G4UIcmdWithAnInteger *SegmentC16Cmd;
   G4UIcmdWithADoubleAndUnit *SegmentThickC16Cmd;
   G4UIcmdWithADouble *DoseRateCmd;
+  G4UIcmdWith3VectorAndUnit *CosmicsPointerCommand;
+  G4UIcmdWithADoubleAndUnit *CosmicsPointerRadiusCommand;
+  G4UIcmdWithADoubleAndUnit *CosmicsCeilingCommand;
+  G4UIcmdWithADoubleAndUnit *CosmicsCeilingRadiusCommand;
 };
 
 #endif//G4SBSMessenger_HH

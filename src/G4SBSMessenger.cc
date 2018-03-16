@@ -96,11 +96,16 @@ G4SBSMessenger::G4SBSMessenger(){
   PYTHIAfileCmd = new G4UIcmdWithAString("/g4sbs/pythia6file",this);
   PYTHIAfileCmd->SetGuidance("Name of ROOT file containing PYTHIA6 events as a ROOT tree");
   PYTHIAfileCmd->SetParameterName("fname",false);
-  
+
+  exclPythiaformCmd = new G4UIcmdWithABool("/g4sbs/exclpythiaform",this);
+  exclPythiaformCmd->SetGuidance("Indicate that 'pythia' file is actually from an exclusive generator");
+  exclPythiaformCmd->SetGuidance("Must be called *before* /g4sbs/pythia6file to have an effect ");
+  exclPythiaformCmd->SetParameterName("exclpylike", false);
+
   expCmd = new G4UIcmdWithAString("/g4sbs/exp",this);
   expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis, C16, tdis, ndvcs");
   expCmd->SetParameterName("exptype", false);
-
+  
   GunParticleCmd = new G4UIcmdWithAString("/g4sbs/particle",this);
   GunParticleCmd->SetGuidance("Particle type for gun generator (valid GEANT4 particle names)");
   GunParticleCmd->SetParameterName("ptype", false );
@@ -685,6 +690,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == PYTHIAfileCmd ){
     fevgen->LoadPythiaChain( newValue );
+  }
+  
+  if( cmd == exclPythiaformCmd){
+    G4bool excl = exclPythiaformCmd->GetNewBoolValue(newValue);
+    fevgen->SetExclPythiaFormat(excl);
   }
 
   if( cmd == expCmd ){

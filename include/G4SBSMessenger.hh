@@ -54,6 +54,7 @@ private:
   
   G4UIcmdWithAString   *kineCmd;
   G4UIcmdWithAString   *PYTHIAfileCmd; 
+  G4UIcmdWithABool     *exclPythiaformCmd; 
   G4UIcmdWithAString   *expCmd;
   
   G4UIcmdWithAString   *GunParticleCmd;

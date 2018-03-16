@@ -103,7 +103,8 @@ public:
   TChain *GetPythiaChain(){ return fPythiaChain; }
   
   void LoadPythiaChain(G4String fname);
-
+  void SetExclPythiaFormat(G4bool excl){fExclPylike = excl;}
+    
   void Initialize();
 
   G4bool GetRejectionSamplingFlag(){ return fRejectionSamplingFlag; }
@@ -202,6 +203,8 @@ private:
   Pythia6_tree *fPythiaTree;
   
   G4SBSPythiaOutput fPythiaEvent;
+
+  G4bool fExclPylike; //Flag to consider "Exclusive" pythia events
 };
 
 #endif//G4SBSEVENTGEN_HH

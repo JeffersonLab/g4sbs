@@ -94,6 +94,8 @@ G4SBSEventGen::G4SBSEventGen(){
   fPythiaChain = NULL;
   fPythiaTree = NULL;
   fchainentry = 0;
+  
+  fExclPylike = false;
 
   fInitialized = false;
   
@@ -114,7 +116,8 @@ G4SBSEventGen::~G4SBSEventGen(){
 void G4SBSEventGen::LoadPythiaChain( G4String fname ){
   fPythiaChain = new TChain("Tout");
   fPythiaChain->Add(fname);
-  fPythiaTree = new Pythia6_tree(fPythiaChain);
+  cout << "Exclusive Pythia format ? " << fExclPylike << endl;
+  fPythiaTree = new Pythia6_tree(fPythiaChain, fExclPylike);
 
   fchainentry = 0;
  
@@ -1974,8 +1977,10 @@ bool G4SBSEventGen::GeneratePythia(){
   fPythiaEvent.W2  = fPythiaTree->W2*GeV*GeV;
 
   int ngood = 0;
-  
+  //cout << "G4SBSEventGen.cc" << endl;
   for( int i=0; i<fPythiaTree->Nparticles; i++ ){
+    //cout << i << " " << (*(fPythiaTree->status))[i] << " " << (*(fPythiaTree->pid))[i] << " " 
+    //<< (*(fPythiaTree->px))[i]*GeV << " " << (*(fPythiaTree->py))[i]*GeV << " " << (*(fPythiaTree->pz))[i]*GeV << endl;
     //Only fill the first four particles (event header info) and final-state particles (primaries to be generated):
     if( i<4 || (*(fPythiaTree->status))[i] == 1 ){
       fPythiaEvent.PID.push_back( (*(fPythiaTree->pid))[i] );
@@ -1992,7 +1997,7 @@ bool G4SBSEventGen::GeneratePythia(){
       fPythiaEvent.vz.push_back( (*(fPythiaTree->vz))[i]*mm + fVert.z() );
       fPythiaEvent.theta.push_back( (*(fPythiaTree->theta))[i]*radian );
       fPythiaEvent.phi.push_back( (*(fPythiaTree->phi))[i]*radian );
-      if( (*(fPythiaTree->status))[i] == 1 &&
+      if( (*(fPythiaTree->status))[i] == 1 && 
 	  ( (fPythiaEvent.theta[ngood] >= fThMin && fPythiaEvent.theta[ngood] <= fThMax &&
 	     fPythiaEvent.phi[ngood] >= fPhMin && fPythiaEvent.phi[ngood] <= fPhMax &&
 	     fPythiaEvent.E[ngood] >= fEeMin && fPythiaEvent.E[ngood] <= fEeMax) ||

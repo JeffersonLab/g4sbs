@@ -80,8 +80,10 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   if( sbsgen->GetKine() == kPYTHIA6 ){ //PYTHIA6 event:
     G4SBSPythiaOutput Primaries = sbsgen->GetPythiaEvent();
-
+    //cout << "G4SBSPrimaryGeneratorAction.cc" << endl;
     for( int ipart = 0; ipart<Primaries.Nprimaries; ipart++ ){
+      //cout << ipart << " " << Primaries.genflag[ipart] << " " << Primaries.PID[ipart] << " " 
+      //   << Primaries.Px[ipart] << " " << Primaries.Py[ipart] << " " << Primaries.Pz[ipart] << endl;
       if( Primaries.genflag[ipart] != 0 ){
 	particle = particleTable->FindParticle( Primaries.PID[ipart] );
 	particleGun->SetParticleDefinition(particle);

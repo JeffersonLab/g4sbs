@@ -1058,7 +1058,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       gasname = "CO2";
     } else { //default to C4F10 if no valid name given:
       gasname = "C4F10_gas";
-      G4cout << "WARNING: invalid GRINCH gas option, defaulting to C4F10" << G4endl;
+      G4cout << "WARNING: invalid RICH gas option, defaulting to C4F10" << G4endl;
     }
 
     G4cout << "/g4sbs/richgas invoked, setting RICH gas to " << gasname << G4endl;

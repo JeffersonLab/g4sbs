@@ -12,35 +12,38 @@
 
 ## Configure generator settings
 /g4sbs/kine            dis           ## Generator
-/g4sbs/beamcur         50 muA
-/g4sbs/beamE           11.0 GeV
-/g4sbs/thmin           23.0 deg
-/g4sbs/thmax           43.0 deg
-/g4sbs/phmin           150 deg
-/g4sbs/phmax           210 deg
+/g4sbs/beamcur        50.0 muA
+/g4sbs/beamE          11.0 GeV
+/g4sbs/thmin           5.0 deg
+/g4sbs/thmax          45.0 deg
+/g4sbs/phmin         135.0 deg
+/g4sbs/phmax         225.0 deg
 
 ## Configure standard detector settings
-/g4sbs/hcaldist       10.5 m
-/g4sbs/hcalvoffset     0.40 m
-/g4sbs/hcalhoffset    -0.20 m
-/g4sbs/sbsclampopt     0                 ## Disable all field clamps
+/g4sbs/lacdist       10.5 m
+/g4sbs/lacvoffset     0.40 m
+/g4sbs/lachoffset    -0.20 m
+/g4sbs/sbstrkrdist     4.4 m
+/g4sbs/sbstrkrpitch    5.0 deg
+
+/g4sbs/richdist        5.0 m
+/g4sbs/richgas         CF4
+/g4sbs/userichaero     false
+
+/g4sbs/dvcsecalhoffset 0.0 m
+/g4sbs/dvcsecalmat PbWO4
 
 ## Configure the magnets
 /g4sbs/bbfield         0
 /g4sbs/sbsmagfield    -0.90 tesla
 /g4sbs/48d48field      1
-/g4sbs/bbang          90.0 deg
+/g4sbs/bbang         90.0 deg
 /g4sbs/bbdist          2.0 m 
 /g4sbs/sbsang          12.0 deg
 /g4sbs/48D48dist       2.5 m
-/g4sbs/sbstrkrpitch    5.0 deg
-/g4sbs/richdist        5.0 m
-/g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
+/g4sbs/sbsclampopt     0                 ## Disable all field clamps
 
-/g4sbs/dvcsecalhoffset 0.0 m
-/g4sbs/dvcsecalmat PbWO4
-
-/g4sbs/steplimit LACmod_log 1
+#/g4sbs/steplimit LACmod_log 1
 
 ## Run 100 events
 #/g4sbs/run             100

@@ -72,7 +72,7 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fUseLocalField = false;
   fFieldStrength = 1.4*tesla;
 
-  fSBS_tracker_dist = 5.1*m;
+  fSBS_tracker_dist = 4.9*m;
   fSBS_tracker_pitch = 0.0*deg;
   
   fBuildSBSSieve = false;

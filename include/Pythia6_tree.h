@@ -31,10 +31,13 @@ public :
    Float_t         xbj;
    Float_t         y;
    Float_t         W2;
-   // 3 next variables only for exclusive processes 
+   // 6 next variables only for exclusive processes 
    Float_t         Delta2;
    Float_t         phi_gg;
-   Double_t        XSxPSF;
+   Double_t        XSpXpsf;
+   Double_t        XSmXpsf;
+   Double_t        BHpXpsf;
+   Double_t        BHmXpsf;
    // ----------------------
    vector<int>     *status;
    vector<int>     *pid;
@@ -63,7 +66,10 @@ public :
    // 3 next branches only for exclusive processes 
    TBranch        *b_Delta2;   //!
    TBranch        *b_phi_gg;   //!
-   TBranch        *b_XSxPSF;   //!
+   TBranch        *b_XSpXpsf;   //!
+   TBranch        *b_XSmXpsf;   //!
+   TBranch        *b_BHpXpsf;   //!
+   TBranch        *b_BHmXpsf;   //!
    // ----------------------
    TBranch        *b_status;   //!
    TBranch        *b_pid;   //!
@@ -177,9 +183,13 @@ void Pythia6_tree::Init(TTree *tree)
    fChain->SetBranchAddress("y", &y, &b_y);
    fChain->SetBranchAddress("W2", &W2, &b_W2);
    if(fExclProcess){
+     printf("Setting exclusive branches of pythia tree\n");
      fChain->SetBranchAddress("Delta2", &Delta2, &b_Delta2);
      fChain->SetBranchAddress("phi_gg", &phi_gg, &b_phi_gg);
-     fChain->SetBranchAddress("XSxPSF", &XSxPSF, &b_XSxPSF);
+     fChain->SetBranchAddress("XSpXpsf", &XSpXpsf, &b_XSpXpsf);
+     fChain->SetBranchAddress("XSmXpsf", &XSmXpsf, &b_XSmXpsf);
+     fChain->SetBranchAddress("BHpXpsf", &BHpXpsf, &b_BHpXpsf);
+     fChain->SetBranchAddress("BHmXpsf", &BHmXpsf, &b_BHmXpsf);
    }
    fChain->SetBranchAddress("status", &status, &b_status);
    fChain->SetBranchAddress("pid", &pid, &b_pid);

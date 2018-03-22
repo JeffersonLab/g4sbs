@@ -97,10 +97,11 @@ G4SBSMessenger::G4SBSMessenger(){
   PYTHIAfileCmd->SetGuidance("Name of ROOT file containing PYTHIA6 events as a ROOT tree");
   PYTHIAfileCmd->SetParameterName("fname",false);
 
-  exclPythiaformCmd = new G4UIcmdWithABool("/g4sbs/exclpythiaform",this);
-  exclPythiaformCmd->SetGuidance("Indicate that 'pythia' file is actually from an exclusive generator");
-  exclPythiaformCmd->SetGuidance("Must be called *before* /g4sbs/pythia6file to have an effect ");
-  exclPythiaformCmd->SetParameterName("exclpylike", false);
+  exclPythiaXSoptCmd = new G4UIcmdWithAnInteger("/g4sbs/exclpythiaXSoption",this);
+  exclPythiaXSoptCmd->SetGuidance("Indicate which cross section should be used by pythia");
+  exclPythiaXSoptCmd->SetGuidance("1: total unp. XS; 2: BH2; 3:DVCS2; 4:I; 5: XS(+); 6: XS(-);");
+  exclPythiaXSoptCmd->SetGuidance("Must be called *before* /g4sbs/pythia6file to have an effect ");
+  exclPythiaXSoptCmd->SetParameterName("exclpyXSopt", false);
 
   expCmd = new G4UIcmdWithAString("/g4sbs/exp",this);
   expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis, C16, tdis, ndvcs");
@@ -692,9 +693,9 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevgen->LoadPythiaChain( newValue );
   }
   
-  if( cmd == exclPythiaformCmd){
-    G4bool excl = exclPythiaformCmd->GetNewBoolValue(newValue);
-    fevgen->SetExclPythiaFormat(excl);
+  if( cmd == exclPythiaXSoptCmd){
+    G4int xsopt = exclPythiaXSoptCmd->GetNewIntValue(newValue);
+    fevgen->SetExclPythiaXSOption(xsopt);
   }
 
   if( cmd == expCmd ){

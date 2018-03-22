@@ -103,7 +103,7 @@ public:
   TChain *GetPythiaChain(){ return fPythiaChain; }
   
   void LoadPythiaChain(G4String fname);
-  void SetExclPythiaFormat(G4bool excl){fExclPylike = excl;}
+  void SetExclPythiaXSOption(G4int XSOption){fExclPyXSoption = XSOption;}
     
   void Initialize();
 
@@ -204,7 +204,7 @@ private:
   
   G4SBSPythiaOutput fPythiaEvent;
 
-  G4bool fExclPylike; //Flag to consider "Exclusive" pythia events
+  G4bool fExclPyXSoption; //Flag to choose "Exclusive pythia" event-by-event cross section events
 };
 
 #endif//G4SBSEVENTGEN_HH

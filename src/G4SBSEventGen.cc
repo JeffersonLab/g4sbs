@@ -95,7 +95,7 @@ G4SBSEventGen::G4SBSEventGen(){
   fPythiaTree = NULL;
   fchainentry = 0;
   
-  fExclPylike = false;
+  fExclPyXSoption = -1;
 
   fInitialized = false;
   
@@ -116,9 +116,13 @@ G4SBSEventGen::~G4SBSEventGen(){
 void G4SBSEventGen::LoadPythiaChain( G4String fname ){
   fPythiaChain = new TChain("Tout");
   fPythiaChain->Add(fname);
-  cout << "Exclusive Pythia format ? " << fExclPylike << endl;
-  fPythiaTree = new Pythia6_tree(fPythiaChain, fExclPylike);
-
+  cout << "'Exclusive Pythia' XS option ? " << fExclPyXSoption << endl;
+  if(fExclPyXSoption>0){
+    fPythiaTree = new Pythia6_tree(fPythiaChain, true);
+  }else{
+    fPythiaTree = new Pythia6_tree(fPythiaChain, false);
+  }
+  
   fchainentry = 0;
  
   // if( !fPythiaTree ){
@@ -131,7 +135,7 @@ void G4SBSEventGen::LoadPythiaChain( G4String fname ){
 
   ftemp->GetObject( "graph_sigma", gtemp );
 
-  if( gtemp && !fExclPylike ){
+  if( gtemp && fExclPyXSoption<0 ){
     fPythiaEvent.Sigma = gtemp->GetY()[gtemp->GetN()-1];
   } else {
     fPythiaEvent.Sigma = cm2;
@@ -1952,7 +1956,32 @@ bool G4SBSEventGen::GeneratePythia(){
   //Populate the pythiaoutput data structure:
   fPythiaEvent.Clear();
   //fPythiaEvent.Nprimaries = fPythiaTree->Nparticles;
-  if(fExclPylike)fPythiaEvent.Sigma = fPythiaTree->XSxPSF;
+  //if(fExclPyXSoption)fPythiaEvent.Sigma = fPythiaTree->XSxPSF;
+  if(fExclPyXSoption>0){
+    switch(fExclPyXSoption){
+    case(1):// Total unp. XS: (xs{+}+xs{-})/2
+      fPythiaEvent.Sigma = (fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0;
+      break;
+    case(2):// BH^2: (bh{+}-bh{-})/2
+      fPythiaEvent.Sigma = (fPythiaTree->BHpXpsf + fPythiaTree->BHmXpsf)/2.0;
+      break;
+    case(3):// DVCS^2: (xs{+}+xs{-})/2 - (bh{+}+bh{-})/2
+      fPythiaEvent.Sigma = 
+	(fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0 - (fPythiaTree->BHpXpsf - fPythiaTree->BHmXpsf)/2.0;
+    case(4):// Interf.: (xs{+}-xs{-})/2 
+      fPythiaEvent.Sigma = (fPythiaTree->XSpXpsf - fPythiaTree->XSmXpsf)/2.0;
+      break;
+    case(5):// xs{+}
+      fPythiaEvent.Sigma = fPythiaTree->XSpXpsf;
+      break;
+    case(6):// xs{+}
+      fPythiaEvent.Sigma = fPythiaTree->XSmXpsf;
+      break;
+    default:
+      fPythiaEvent.Sigma = (fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0;
+      break;
+    }
+  }
   fPythiaEvent.Ebeam = (*(fPythiaTree->E))[0]*GeV;
   fPythiaEvent.Eprime = (*(fPythiaTree->E))[2]*GeV;
   fPythiaEvent.theta_e = (*(fPythiaTree->theta))[2]*radian;
@@ -1999,7 +2028,7 @@ bool G4SBSEventGen::GeneratePythia(){
       fPythiaEvent.theta.push_back( (*(fPythiaTree->theta))[i]*radian );
       fPythiaEvent.phi.push_back( (*(fPythiaTree->phi))[i]*radian );
       if( (*(fPythiaTree->status))[i] == 1 && 
-	  ( fExclPylike || //if it is an exclusive event, we want to keep everything
+	  ( fExclPyXSoption>=0 || //if it is an exclusive event, we want to keep everything
 	    (fPythiaEvent.theta[ngood] >= fThMin && fPythiaEvent.theta[ngood] <= fThMax &&
 	     fPythiaEvent.phi[ngood] >= fPhMin && fPythiaEvent.phi[ngood] <= fPhMax &&
 	     fPythiaEvent.E[ngood] >= fEeMin && fPythiaEvent.E[ngood] <= fEeMax) ||

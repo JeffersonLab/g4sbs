@@ -189,8 +189,7 @@ private:
   G4UIcmdWithADouble *DoseRateCmd;
   G4UIcmdWith3VectorAndUnit *CosmicsPointerCommand;
   G4UIcmdWithADoubleAndUnit *CosmicsPointerRadiusCommand;
-  G4UIcmdWithADoubleAndUnit *CosmicsCeilingCommand;
-  G4UIcmdWithADoubleAndUnit *CosmicsCeilingRadiusCommand;
+  G4UIcmdWithADoubleAndUnit *CosmicsMaxAngleCommand;
 };
 
 #endif//G4SBSMessenger_HH

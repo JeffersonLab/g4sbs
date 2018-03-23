@@ -468,13 +468,9 @@ G4SBSMessenger::G4SBSMessenger(){
   CosmicsPointerRadiusCommand->SetGuidance( "Set pointer radius for cosmics (please provide unit)" );
   CosmicsPointerRadiusCommand->SetParameterName("radius",false);
 
-  CosmicsCeilingCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicceiling", this );
-  CosmicsCeilingCommand->SetGuidance( "Set ceiling for cosmics (please provide unit);" );
-  CosmicsCeilingCommand->SetParameterName("ceiling",false);
-  
-  CosmicsCeilingRadiusCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicceilingradius", this );
-  CosmicsCeilingRadiusCommand->SetGuidance( "Set ceiling radius for cosmics;" );
-  CosmicsCeilingRadiusCommand->SetParameterName("ceiling radius",false);
+  CosmicsMaxAngleCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicmaxangle", this );
+  CosmicsMaxAngleCommand->SetGuidance( "Set max zenithal angle for cosmics (please provide unit)" );
+  CosmicsMaxAngleCommand->SetParameterName("maxangle",false);
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -1354,20 +1350,18 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == CosmicsPointerCommand ){
     G4ThreeVector point = CosmicsPointerCommand->GetNew3VectorValue(newValue);
     fevgen->SetCosmicsPointer( point );
+    fevgen->UpdateCosmicsCeilingRadius();
   }
 
   if( cmd == CosmicsPointerRadiusCommand ){
     G4double radius = CosmicsPointerRadiusCommand->GetNewDoubleValue(newValue);
     fevgen->SetCosmicsPointerRadius( radius );
+    fevgen->UpdateCosmicsCeilingRadius();
   }
   
-  if( cmd == CosmicsCeilingCommand ){
-    G4double ceiling = CosmicsCeilingCommand->GetNewDoubleValue(newValue);
-    fevgen->SetCosmicsCeiling( ceiling );
+  if( cmd == CosmicsMaxAngleCommand ){
+    G4double maxangle = CosmicsMaxAngleCommand->GetNewDoubleValue(newValue);
+    fevgen->SetCosmicsMaxAngle( maxangle );
   }
-
-  if( cmd == CosmicsCeilingRadiusCommand ){
-    G4double radius = CosmicsCeilingRadiusCommand->GetNewDoubleValue(newValue);
-    fevgen->SetCosmicsCeilingRadius( radius );
-  }
+  
 }

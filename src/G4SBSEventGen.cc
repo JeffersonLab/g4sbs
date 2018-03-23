@@ -50,8 +50,8 @@ G4SBSEventGen::G4SBSEventGen(){
 
   fCosmPointer = G4ThreeVector(0.0*m, 0.0*m, 0.0*m);
   fPointerZoneRadiusMax = 1.0*m;
-  fCosmicsCeilingRadius = -1.0*m;
-  fCosmicsCeiling = -1.0*m;
+  fCosmicsCeilingRadius = 49.0*m;
+  fCosmicsMaxAngle = 90.0*deg;
   
   fVert = G4ThreeVector();
 
@@ -2247,32 +2247,9 @@ void G4SBSEventGen::SetCosmicsPointerRadius( G4double radius ){
   }
 }
 
-void G4SBSEventGen::SetCosmicsCeiling( G4double ceiling ){
-  fCosmicsCeiling = ceiling;
-  if(fCosmicsCeiling>50.0*m){
-    fCosmicsCeiling = 50.0*m;
-    G4cout << "Warning: your cosmics ceiling value is beyond 'world' boundaries. Bringing it back within those boundaries; Ceiling value set to (m) " << fCosmicsCeiling/m << G4endl;
-  }
-
-  if(fCosmicsCeiling<5.0*m){
-    fCosmicsCeiling = 5.0*m;
-    G4cout << "Warning: your cosmics ceiling value is too low. Bringing it back to default low ceiling value (m): " << fCosmicsCeiling/m << G4endl;
-  }
+void G4SBSEventGen::UpdateCosmicsCeilingRadius(){
+  fCosmicsCeilingRadius = min(50.0*m-fabs(fCosmPointer.x())-fPointerZoneRadiusMax,50.0*m-fabs(fCosmPointer.z())-fPointerZoneRadiusMax);
 }
-
-void G4SBSEventGen::SetCosmicsCeilingRadius( G4double radius ){
-  fCosmicsCeilingRadius = radius;
-  if(fCosmicsCeilingRadius>min(50.0*m-fabs(fCosmPointer.x())-fPointerZoneRadiusMax,50.0*m-fabs(fCosmPointer.z())-fPointerZoneRadiusMax)){
-    fCosmicsCeilingRadius = min(50.0*m-fabs(fCosmPointer.x())-fPointerZoneRadiusMax,50.0*m-fabs(fCosmPointer.z())-fPointerZoneRadiusMax);
-    G4cout << "Warning: you can potentially shoot a cosmics from a point out of 'world' boundaries. New cosmic ceiling radius value set to (m): " << fCosmicsCeilingRadius << G4endl;
-  }
-  if(fCosmicsCeilingRadius<0){
-    fCosmicsCeilingRadius = 0.0*m;
-    G4cout << "Warning: your cosmics ceiling radius is nonsense (<0). New cosmic ceiling radius value set to (m): " << fCosmicsCeilingRadius << G4endl;
-  }
-  
-}
-
 
 bool G4SBSEventGen::GenerateCosmics(){
   //G4cout << "Cosmics generated !" << endl;
@@ -2280,7 +2257,7 @@ bool G4SBSEventGen::GenerateCosmics(){
   G4double ep = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
   
   G4double radius2 = CLHEP::RandFlat::shoot( 0.0, fPointerZoneRadiusMax*fPointerZoneRadiusMax); //Add param to configure the pointing area
-  G4double phi2 = CLHEP::RandFlat::shoot( -180.0*deg, +180*deg);
+    G4double phi2 = CLHEP::RandFlat::shoot( -180.0*deg, +180*deg);
   
   //cout << "fCosmPointer: x y z: " << fCosmPointer.x() << " " << fCosmPointer.y() << " " << fCosmPointer.z() << endl;
   
@@ -2289,26 +2266,23 @@ bool G4SBSEventGen::GenerateCosmics(){
   
   //cout << " x,z ptr " << xptr << " " << zptr << endl;
   
-  if(fCosmicsCeilingRadius<0){
-    fCosmicsCeilingRadius = min(50.0*m-fabs(fCosmPointer.x())-fPointerZoneRadiusMax,50.0*m-fabs(fCosmPointer.z())-fPointerZoneRadiusMax);
-    G4cout << "Warning: your cosmics ceiling radius is nonsense (<0). New cosmic ceiling radius value set to (m): " << fCosmicsCeilingRadius << G4endl;
-  }
-  if(fCosmicsCeiling<0)fCosmicsCeiling = +fCosmicsCeilingRadius;
-  
-  //G4double minradiusmax = min(50.0*m-fabs(fCosmPointer.x())-fPointerZoneRadiusMax,50.0*m-fabs(fCosmPointer.z())-fPointerZoneRadiusMax);
-  //G4double minradiusmax = min(50.0*m-fabs(fCosmPointer.x()),50.0*m-fabs(fCosmPointer.z()));
-  //G4double radius = CLHEP::RandFlat::shoot( 0.0, minradiusmax*minradiusmax);
-  G4double radius = CLHEP::RandFlat::shoot( 0.0, fCosmicsCeilingRadius*fCosmicsCeilingRadius);
+  G4double costheta2 = CLHEP::RandFlat::shoot( pow(cos(fCosmicsMaxAngle), 2), 1.0); //Add param to configure the pointing area
+  //G4double radius = CLHEP::RandFlat::shoot( 0.0, fCosmicsCeilingRadius*fCosmicsCeilingRadius);
   G4double phi = CLHEP::RandFlat::shoot( -180.0*deg, +180*deg);
   
-  G4double xvtx = xptr+sin(phi)*sqrt(radius);
-    //fCosmPointer.x()+
-  G4double zvtx = zptr+cos(phi)*sqrt(radius);
-    //fCosmPointer.z()+
+  /*
+  G4double xvtx = xptr+fCosmicsCeilingRadius*sin(phi)*sqrt(radius);
+  G4double yvtx = fCosmicsCeiling;
+  G4double zvtx = zptr+fCosmicsCeilingRadius*cos(phi)*sqrt(radius);
+  */
+  
+  G4double yvtx = fCosmPointer.y()+fCosmicsCeilingRadius*sqrt(costheta2);
+  G4double xvtx = xptr+fCosmicsCeilingRadius*sin(phi)*sqrt(1-costheta2);
+  G4double zvtx = zptr+fCosmicsCeilingRadius*cos(phi)*sqrt(1-costheta2);
   
   //cout << " x,z vtx " << xvtx << " " << zvtx << endl;
   
-  fVert.set(xvtx, fCosmicsCeiling, zvtx); //Add param to configure the ceiling ?
+  fVert.set(xvtx, yvtx, zvtx); //Add param to configure the ceiling ?
   //fVert.set(-4.526*m, +5.0*m, +17.008*m);//for test
   
   //cout << " fVert x,z  " << fVert.x() << " " << fVert.z() << endl;

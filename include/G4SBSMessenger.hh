@@ -192,6 +192,15 @@ private:
   G4UIcmdWith3VectorAndUnit *CosmicsPointerCommand;
   G4UIcmdWithADoubleAndUnit *CosmicsPointerRadiusCommand;
   G4UIcmdWithADoubleAndUnit *CosmicsMaxAngleCommand;
+
+  G4UIcmdWithABool *SolUniFieldCmd;
+  //G4UIcmdWithADoubleAndUnit *SolUniFieldMagCmd;
+  G4UIcmdWithADouble *SolUniFieldMagCmd;
+  G4UIcmdWithABool *SolTosFieldCmd;
+  G4UIcmdWithADouble *SolTosFieldScaleCmd;
+  G4UIcmdWithADoubleAndUnit *SolTosFieldOffsetCmd;
+
+
 };
 
 #endif//G4SBSMessenger_HH

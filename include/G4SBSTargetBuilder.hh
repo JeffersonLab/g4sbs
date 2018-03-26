@@ -46,6 +46,14 @@ public:
 
   G4bool GetFlux() const { return fFlux; }
   void SetFlux(G4bool b){fFlux = b;}
+
+  G4bool fUseLocalTPCSolenoid;
+  void SetSolUni(G4bool soluniflag){fSolUni = soluniflag;}
+  void SetSolUniMag(G4double solunimag){fSolUniMag = solunimag;}
+  void SetSolTosca(G4bool soltosflag){fSolTosca = soltosflag;}
+  void SetSolToscaScale(G4double soltosscale){fSolToscaScale = soltosscale;}
+  void SetSolToscaOffset(G4double soltosoffset){ fSolToscaOffset= soltosoffset;}
+
   
 private:
   G4double fTargLen;
@@ -58,6 +66,14 @@ private:
   G4bool fFlux;
   
   Targ_t fTargType;
+
+  G4bool fSolUni;
+  G4double fSolUniMag;
+  G4bool fSolTosca;
+  G4double fSolToscaScale;
+  G4double fSolToscaOffset;
+
+
 };
 
 #endif//__G4SBSTargetBuilder_hh

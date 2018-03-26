@@ -2523,3 +2523,7 @@ void G4SBSDetectorConstruction::SetFieldScale_BB( G4double v ){
 void G4SBSDetectorConstruction::SetFlipGEM( G4bool b ){
   fGEMflip = b;
 }
+
+void G4SBSDetectorConstruction::SetTPCSolenoidField(){
+  if( !fUseGlobalField ) fTargetBuilder->fUseLocalTPCSolenoid = true;
+}

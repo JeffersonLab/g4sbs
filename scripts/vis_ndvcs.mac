@@ -1,5 +1,5 @@
 ## Configure G4SBS for TDIS
-/g4sbs/filename        nDVCS_test.root   ## Output rootfile
+#/g4sbs/filename        nDVCS_test.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             ndvcs
@@ -43,6 +43,21 @@
 /g4sbs/48D48dist       2.5 m
 /g4sbs/sbsclampopt     0                 ## Disable all field clamps
 
+## Configure the TPC solenoid magnet
+## either select a uni field to test different strengths
+## or select the tosca simulation map
+## currently tosca map is hard coded since we only have one file
+## the tosca map can be scaled or read using offset in z (200mm is standard)
+## the tosca file must be in same directory as g4sbs executable
+## in future aim to add variable map name and addition to global field
+#/g4sbs/solunifield	true
+#/g4sbs/solunimag	7
+/g4sbs/soltoscafield	true
+#/g4sbs/soltoscascale	1.0
+#/g4sbs/soltoscaoffset	200.0 mm
+
+
+
 #/g4sbs/steplimit LACmod_log 1
 
 ## Run 100 events
@@ -50,7 +65,8 @@
 
 #visualization stuff:
 # Use this open statement to create an OpenGL view:
-/vis/open OGLSX 1280x800-0+0
+#/vis/open OGLSX 1280x800-0+0
+/vis/open OGLSQt
 #
 # Use this open statement to create a .prim file suitable for
 # viewing in DAWN:

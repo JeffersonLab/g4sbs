@@ -126,6 +126,8 @@ public:
   G4bool GetFlipGEM(){ return fGEMflip; }
 
   void SetOpticalPhotonDisabled(G4String material){ fMaterialsListOpticalPhotonDisabled.insert( material ); }
+
+  void SetTPCSolenoidField();
   
 private:
 

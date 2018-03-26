@@ -485,6 +485,30 @@ G4SBSMessenger::G4SBSMessenger(){
   CosmicsMaxAngleCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicmaxangle", this );
   CosmicsMaxAngleCommand->SetGuidance( "Set max zenithal angle for cosmics (please provide unit)" );
   CosmicsMaxAngleCommand->SetParameterName("maxangle",false);
+
+  // Commands related to solenoid of TPC
+  SolUniFieldCmd = new G4UIcmdWithABool("/g4sbs/solunifield", this );
+  SolUniFieldCmd->SetGuidance("Switch on uniform field for solenoid" );
+  SolUniFieldCmd->SetParameterName("UniformSolField" , false);
+
+  // SolUniFieldMagCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/solunimag", this );
+  SolUniFieldMagCmd = new G4UIcmdWithADouble("/g4sbs/solunimag", this );
+  SolUniFieldMagCmd->SetGuidance("Set magnitude of uniform field for solenoid in tesla" );
+  SolUniFieldMagCmd->SetParameterName("UniformSolFieldMag" , false);
+
+  SolTosFieldCmd = new G4UIcmdWithABool("/g4sbs/soltoscafield", this );
+  SolTosFieldCmd->SetGuidance("Switch on tosca field for solenoid" );
+  SolTosFieldCmd->SetParameterName("ToscaSolField" , false);
+
+  SolTosFieldScaleCmd = new G4UIcmdWithADouble("/g4sbs/soltoscascale", this );
+  SolTosFieldScaleCmd->SetGuidance("Scale the tosca field for solenoid" );
+  SolTosFieldScaleCmd->SetParameterName("ToscaSolFieldScale" , false);
+
+  SolTosFieldOffsetCmd= new G4UIcmdWithADoubleAndUnit("/g4sbs/soltoscaoffset", this );
+  SolTosFieldOffsetCmd->SetGuidance("Set offset of tosca field for solenoid in mm" );
+  SolTosFieldOffsetCmd->SetGuidance("Requires hard coded sol_map_03.dat map" );
+  SolTosFieldOffsetCmd->SetParameterName("ToscaSolFieldOffset" , false);
+
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -1387,5 +1411,29 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double maxangle = CosmicsMaxAngleCommand->GetNewDoubleValue(newValue);
     fevgen->SetCosmicsMaxAngle( maxangle );
   }
-  
+
+  // Commands related to solenoid of TPC
+  if( cmd == SolUniFieldCmd ){
+    G4bool soluniflag = SolUniFieldCmd->GetNewBoolValue(newValue);
+    fdetcon->SetTPCSolenoidField();
+    fdetcon->fTargetBuilder->SetSolUni(soluniflag);
+  }
+  if( cmd == SolUniFieldMagCmd ){
+    G4double solunimag = SolUniFieldMagCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetSolUniMag(solunimag);
+  }
+  if( cmd == SolTosFieldCmd ){
+    G4bool soltosflag = SolTosFieldCmd->GetNewBoolValue(newValue);
+    fdetcon->SetTPCSolenoidField();
+    fdetcon->fTargetBuilder->SetSolTosca(soltosflag);
+  }
+  if( cmd == SolTosFieldScaleCmd ){
+    G4double soltosscale = SolTosFieldScaleCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetSolToscaScale(soltosscale);
+  }
+  if( cmd == SolTosFieldOffsetCmd ){
+    G4double soltosoffset = SolTosFieldOffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetSolToscaOffset(soltosoffset);
+  }
+
 }

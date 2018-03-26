@@ -23,6 +23,13 @@
 
 #include "G4SBSHArmBuilder.hh"
 
+#include "G4SBSTPCTOSCAField2D.hh"
+#include "G4MagneticField.hh"
+// #include "G4SBSGlobalField.hh"
+#include "G4UniformMagField.hh"
+#include "G4FieldManager.hh"
+#include "G4ChordFinder.hh"
+
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 
@@ -40,6 +47,13 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fFlux = false;
   
   fSchamFlag = 0;
+
+  fUseLocalTPCSolenoid = false;
+  fSolUni = false;
+  fSolUniMag = 5.0;// default 5 tesla;
+  fSolTosca = false;
+  fSolToscaScale = 1.0;
+  fSolToscaOffset = 200.0; // default 200mm;
 }
 
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
@@ -1853,6 +1867,21 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
 
 void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   // oversimplistic TPC
+
+  // Rachel 23/03/18
+  // currently solenoid is local
+  // At the moment the mother volume dimension for the solenoid field is fixed to match the tosca field map
+  // tosca field map is fixed at 50cm in radial and 150cm in z
+  // will have to have this as an option if tosca field map changes
+  double BFieldRMax = 50.0;
+  double BFieldZMax = 150.0;
+  G4Tubs* TPCBfield_solid = new G4Tubs("TPCBfield_solid", 0.0,BFieldRMax*cm/2.0,BFieldZMax*cm/2.0,0.0,360*deg);
+  G4LogicalVolume* TPCBfield_log = 
+    new G4LogicalVolume(TPCBfield_solid, GetMaterial("Air"),"TPCBfield_log");
+  // will place tpc mother volume into a b-field volume to switch between either uni or tosca
+
+
+
   G4Tubs* TPCmother_solid = 
     new G4Tubs("TPCmother_solid", 10.0*cm/2.0, 30.*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
   G4Tubs* TPCinnerwall_solid = 
@@ -1870,9 +1899,15 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
     new G4LogicalVolume(TPCouterwall_solid, GetMaterial("Kapton"),"TPCouterwall_log");
   G4LogicalVolume* TPCgas_log = 
     new G4LogicalVolume(TPCgas_solid, GetMaterial("ref4He"),"TPCouterwall_log");
-  
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCmother_log,
-		    "TPCmother_phys", motherlog, false, 0);
+
+
+  // the tpc mother is now the b field cylinder
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCBfield_log,
+  		    "TPCBfield_phys", motherlog, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCmother_log,
+  		    "TPCmother_phys", TPCBfield_log, false, 0);
+  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCmother_log,
+  // 		    "TPCmother_phys", motherlog, false, 0);
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCinnerwall_log,
 		    "TPCinnerwall_phys", TPCmother_log, false, 0);
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCouterwall_log,
@@ -1880,9 +1915,71 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCgas_log,
 		    "TPCgas_phys", TPCmother_log, false, 0);
   
+
+
+  // R. Montgomery 23/03/18
+  // At the moment the TPC solenoid can be either a uniform field for test or the tosca simulation
+  // It will only be set if there is no global field in g4sbs, ie no tosca map for sbs is called
+  // Need to add to global field option in future
+  // The filename for tosca map for solenoid is hard coded, need to add this as an option
+  // the solenoid tosca map must be in same directory as g4sbs executable
+  // The solenoid also always has negative z component, as in tosca file, need to add an inverse option too
+  if(fUseLocalTPCSolenoid){//only envoke TPC local sol if no global sbs field in place atm
+    double SolSign = -1.0;
+    double SolStrength = SolSign * fSolUniMag *tesla;//*tesla;
+    // Using uniform field along TPC z-axis
+    if(fSolUni && !fSolTosca){
+      printf("\n\n\n\n************************* TPC:: uniform solenoid field\n");
+      G4UniformMagField* SolUniMagField = new G4UniformMagField(G4ThreeVector(0.0, 0.0, SolStrength));
+      G4FieldManager *SolFieldMgr = new G4FieldManager(SolUniMagField);
+      SolFieldMgr->SetDetectorField(SolUniMagField);
+      SolFieldMgr->CreateChordFinder(SolUniMagField);
+      G4double minStep = 0.10 *mm;
+      SolFieldMgr->GetChordFinder()->SetDeltaChord(minStep);
+      TPCBfield_log->SetFieldManager(SolFieldMgr,true);
+      
+      G4double posChck[3];
+      G4double bChck[3];
+      posChck[0] = posChck[1] = posChck[2] = 0.0;
+      bChck[0] = bChck[1] = bChck[2] = 0.0;
+      SolUniMagField->GetFieldValue(posChck,bChck);
+      printf("Uniform Solenoid Field at (%lf,%lf,%lf) mm is Bx:%lf  By:%lf Bz:%lf Tesla\n\n\n\n",
+	     posChck[0]/mm,posChck[1]/mm,posChck[2]/mm,
+	     bChck[0]/tesla,bChck[1]/tesla,bChck[2]/tesla);
+    }//if useing uniform solenoid
+    
+    // Using TOSCA sim field
+    double SolOffX, SolOffY, SolOffZ;
+    SolOffX = SolOffY = 0.0;
+    SolOffZ = fSolToscaOffset;// *mm;
+    if(fSolTosca && !fSolUni){
+      printf("\n\n\n\n************************* TPC:: tosca solenoid field\n");
+      if(fSolToscaScale!=1.0) printf("Tosca field is scaled by %lf\n", fSolToscaScale);
+      G4MagneticField* SolToscaMagField;
+      SolToscaMagField = new G4SBSTPCTOSCAField2D(SolOffX, SolOffY, SolOffZ, fSolToscaScale);
+      G4FieldManager *SolFieldMgr = new G4FieldManager(SolToscaMagField);
+      G4double minStep = 0.10 *mm;
+      SolFieldMgr->GetChordFinder()->SetDeltaChord(minStep);
+      TPCBfield_log->SetFieldManager(SolFieldMgr,true);
+      G4double posChck[3];
+      G4double bChck[3];
+      posChck[0] = posChck[1] = posChck[2] = 0.0;
+      bChck[0] = bChck[1] = bChck[2] = 0.0;
+      SolToscaMagField->GetFieldValue(posChck,bChck);
+      printf("Tosca Solenoid Field at (%lf,%lf,%lf) mm is Bx:%lf  By:%lf Bz:%lf Tesla\n\n\n\n",
+	     posChck[0],posChck[1],posChck[2],
+	     bChck[0]/tesla,bChck[1]/tesla,bChck[2]/tesla);
+    }// if using tosca field
+    if(fSolUni && fSolTosca) printf("\n\n\n\n******** TPC: BEWARE no solenoid since uniform and tosca fields switched on\n\n\n\n");
+    if(fSolUni==false && fSolTosca==false) printf("\n\n\n\n******** TPC: BEWARE no solenoid since neither field type switched on\n\n\n\n");
+  }// if not using G4SBSGlobalField can use local field for TPC sol
+  else printf("\n\n\n******** TPC: BEWARE: not using a solenoid field\n\n\n");
+    
+
   // sensitize gas
   
   // Visualization attributes
+  TPCBfield_log->SetVisAttributes( G4VisAttributes::Invisible );
   TPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
   
   G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );

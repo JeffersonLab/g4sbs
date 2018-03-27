@@ -34,7 +34,7 @@ private:
   double fXoffset, fYoffset, fZoffset;
 public:
   // G4SBSTPCTOSCAField2D(const char*, double, double, double, double=1.0 );
-  G4SBSTPCTOSCAField2D(G4double xoff, G4double yoff, G4double zoff, G4double scale=1.0 );
+  G4SBSTPCTOSCAField2D(double, double, double, double=1.0 );
  ~G4SBSTPCTOSCAField2D();
   void  GetFieldValue( const  double Point[4],
 		       double *Bfield          ) const;

@@ -3,6 +3,8 @@
 // Class G4SBSTPCTOSCAField2D
 // TOSCA generated field. Phi-symmetric field
 // 13/05/14 JRMA
+#ifndef G4SBSTPCTOSCAField2D_hh
+#define G4SBSTPCTOSCAField2D_hh
 
 #include "globals.hh"
 #include "G4MagneticField.hh"
@@ -33,7 +35,9 @@ private:
 public:
   // G4SBSTPCTOSCAField2D(const char*, double, double, double, double=1.0 );
   G4SBSTPCTOSCAField2D(double, double, double, double=1.0 );
+ ~G4SBSTPCTOSCAField2D();
   void  GetFieldValue( const  double Point[4],
 		       double *Bfield          ) const;
 };
 
+#endif//G4SBSTPCTOSCAField2D_hh

@@ -108,6 +108,9 @@ G4SBSTPCTOSCAField2D::G4SBSTPCTOSCAField2D(double xoff, double yoff,
   printf("Map step values dR = %g mm    dZ = %g mm\n",dR,dZ);
 }
 
+G4SBSTPCTOSCAField2D::~G4SBSTPCTOSCAField2D() {
+}
+
 //-----------------------------------------------------------------------------
 void G4SBSTPCTOSCAField2D::GetFieldValue(const double pos[4], double* b) const
 {

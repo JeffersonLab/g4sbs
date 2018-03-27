@@ -1002,7 +1002,7 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
   // Shower DVCSblk SD of type CAL
   G4SDManager *sdman = fDetCon->fSDman;
 
-  G4String DVCSblkSDname = "DVCSblk";
+  G4String DVCSblkSDname = "Earm/DVCSECalBlock";
   G4String DVCSblkcollname = "DVCSblkHitsCollection";
   G4SBSCalSD *DVCSblkSD = NULL;
 
@@ -1028,7 +1028,7 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
   G4LogicalVolume *dvcsblkpmtcathodecallog = new G4LogicalVolume( dvcsblkpmt, GetMaterial("Photocathode_material_ecal"), "dvcsblkpmtcathodecallog" );
 
   // Shower PMT SD of type ECAL
-  G4String DVCSblkecalSDname = "DVCSblkEcal";
+  G4String DVCSblkecalSDname = "Earm/DVCSECal";
   G4String DVCSblkecalcollname = "DVCSblkEcalHitsCollection";
   G4SBSECalSD *DVCSblkecalSD = NULL;
 

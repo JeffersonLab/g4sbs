@@ -457,6 +457,20 @@ G4SBSMessenger::G4SBSMessenger(){
   DoseRateCmd->SetGuidance( "Overall scale factor for dose rate in lead-glass for ECAL/C16 (depth profile is hard-coded!)");
   //DoseRateCmd->SetGuidance( "Assumed to be given in units of krad/hour" ); //Note 1 rad = 0.01 J/kg
   DoseRateCmd->SetParameterName("rate",false);
+  
+  CosmicsPointerCommand = new G4UIcmdWith3VectorAndUnit( "/g4sbs/cosmicpointer", this );
+  CosmicsPointerCommand->SetGuidance( "Set pointer for cosmics:" );
+  CosmicsPointerCommand->SetGuidance( "Three-vector arguments are x,y,z;" );
+  CosmicsPointerCommand->SetGuidance( "please provide unit" );
+  CosmicsPointerCommand->SetParameterName("x_ptr","y_ptr","z_ptr", false);
+
+  CosmicsPointerRadiusCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicpointerradius", this );
+  CosmicsPointerRadiusCommand->SetGuidance( "Set pointer radius for cosmics (please provide unit)" );
+  CosmicsPointerRadiusCommand->SetParameterName("radius",false);
+
+  CosmicsMaxAngleCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicmaxangle", this );
+  CosmicsMaxAngleCommand->SetGuidance( "Set max zenithal angle for cosmics (please provide unit)" );
+  CosmicsMaxAngleCommand->SetParameterName("maxangle",false);
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -626,6 +640,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( newValue.compareTo("gun") == 0 ){
       fevgen->SetKine( kGun );
       fevgen->SetRejectionSamplingFlag(false);
+      validcmd = true;
+    }
+    if( newValue.compareTo("cosmics") == 0 ){
+      fevgen->SetKine( kCosmics );
       validcmd = true;
     }
 
@@ -1328,4 +1346,22 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4ThreeVector pol = GunPolarizationCommand->GetNew3VectorValue(newValue);
     fprigen->SetGunPolarization( pol.unit() );
   }
+
+  if( cmd == CosmicsPointerCommand ){
+    G4ThreeVector point = CosmicsPointerCommand->GetNew3VectorValue(newValue);
+    fevgen->SetCosmicsPointer( point );
+    fevgen->UpdateCosmicsCeilingRadius();
+  }
+
+  if( cmd == CosmicsPointerRadiusCommand ){
+    G4double radius = CosmicsPointerRadiusCommand->GetNewDoubleValue(newValue);
+    fevgen->SetCosmicsPointerRadius( radius );
+    fevgen->UpdateCosmicsCeilingRadius();
+  }
+  
+  if( cmd == CosmicsMaxAngleCommand ){
+    G4double maxangle = CosmicsMaxAngleCommand->GetNewDoubleValue(newValue);
+    fevgen->SetCosmicsMaxAngle( maxangle );
+  }
+  
 }

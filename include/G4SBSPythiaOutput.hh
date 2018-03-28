@@ -12,6 +12,7 @@ public:
   void ConvertToTreeUnits();
 
   double Sigma; //PYTHIA6 calculated total cross section
+  double SigmaDiff; //Exclusive cross section difference (+)-(-)
   double Ebeam; //Incident beam energy
   //The outgoing electron:
   double Eprime; //Outgoing electron energy
@@ -24,6 +25,9 @@ public:
   double xbj; //Usual Bjorken x variable;
   double y; //fractional electron energy loss in lab frame
   double W2; //photon-nucleon invariant mass.
+  //Exclusive variable
+  double Delta2; // quadrimomentum transfer (usually called t)
+  double phigg; // angle between virtual photon and whatever is produced (e.g. photon for DVCS)
 
   int Nprimaries; //Number of final state particles:
   vector<int> PID, genflag; //PID code and flag (1 if particle was actually generated, 0 otherwise)

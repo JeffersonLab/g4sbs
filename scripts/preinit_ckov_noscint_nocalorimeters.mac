@@ -18,5 +18,7 @@
 /g4sbs/DisableOpticalPhotonByMaterial BC484
 /g4sbs/DisableOpticalPhotonByMaterial Glass_HC
 /g4sbs/DisableOpticalPhotonByMaterial Paper
+/g4sbs/DisableOpticalPhotonByMaterial PbF2
+/g4sbs/DisableOpticalPhotonByMaterial PbWO4
 #/g4sbs/DisableOpticalPhotonByMaterial Air
 #/g4sbs/DisableOpticalPhotonByMaterial RICH_air

@@ -1958,27 +1958,25 @@ bool G4SBSEventGen::GeneratePythia(){
   //fPythiaEvent.Nprimaries = fPythiaTree->Nparticles;
   //if(fExclPyXSoption)fPythiaEvent.Sigma = fPythiaTree->XSxPSF;
   if(fExclPyXSoption>0){
+    fPythiaEvent.Delta2 = fPythiaTree->Delta2*GeV*GeV;
+    fPythiaEvent.phigg = fPythiaTree->phi_gg*radian;
     switch(fExclPyXSoption){
     case(1):// Total unp. XS: (xs{+}+xs{-})/2
       fPythiaEvent.Sigma = (fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0;
+      fPythiaEvent.SigmaDiff = (fPythiaTree->XSpXpsf - fPythiaTree->XSmXpsf)/2.0;
       break;
     case(2):// BH^2: (bh{+}-bh{-})/2
       fPythiaEvent.Sigma = (fPythiaTree->BHpXpsf + fPythiaTree->BHmXpsf)/2.0;
+      fPythiaEvent.SigmaDiff = (fPythiaTree->BHpXpsf + fPythiaTree->BHmXpsf)/2.0;
       break;
     case(3):// DVCS^2: (xs{+}+xs{-})/2 - (bh{+}+bh{-})/2
       fPythiaEvent.Sigma = 
-	(fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0 - (fPythiaTree->BHpXpsf - fPythiaTree->BHmXpsf)/2.0;
-    case(4):// Interf.: (xs{+}-xs{-})/2 
-      fPythiaEvent.Sigma = (fPythiaTree->XSpXpsf - fPythiaTree->XSmXpsf)/2.0;
-      break;
-    case(5):// xs{+}
-      fPythiaEvent.Sigma = fPythiaTree->XSpXpsf;
-      break;
-    case(6):// xs{+}
-      fPythiaEvent.Sigma = fPythiaTree->XSmXpsf;
-      break;
+	(fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0 - (fPythiaTree->BHpXpsf + fPythiaTree->BHmXpsf)/2.0;
+      fPythiaEvent.SigmaDiff = 
+	(fPythiaTree->XSpXpsf - fPythiaTree->XSmXpsf)/2.0 - (fPythiaTree->BHpXpsf - fPythiaTree->BHmXpsf)/2.0;
     default:
       fPythiaEvent.Sigma = (fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0;
+      fPythiaEvent.SigmaDiff = (fPythiaTree->XSpXpsf - fPythiaTree->XSmXpsf)/2.0;
       break;
     }
   }

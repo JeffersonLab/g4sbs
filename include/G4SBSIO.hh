@@ -142,6 +142,7 @@ public:
 
   void SetPythiaOutput( G4SBSPythiaOutput p ){ Primaries = p; }
   void SetUsePythia6( G4bool b ){ fUsePythia = b; }
+  void SetExclPythia6( G4bool b ){ fExclPythia = b; }
 
   map<G4String,G4int> histogram_index; //map with key = SDname, val = histogram index in TClonesArray
 
@@ -167,6 +168,7 @@ private:
   map<G4String,G4SBSECaloutput> ecaldata;
   
   G4bool fUsePythia;
+  G4bool fExclPythia;
   G4SBSPythiaOutput Primaries;
   
   G4SBSGlobalField *fGlobalField;

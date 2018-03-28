@@ -716,6 +716,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == exclPythiaXSoptCmd){
     G4int xsopt = exclPythiaXSoptCmd->GetNewIntValue(newValue);
     fevgen->SetExclPythiaXSOption(xsopt);
+    if(xsopt>0)fIO->SetExclPythia6( true );
   }
 
   if( cmd == expCmd ){

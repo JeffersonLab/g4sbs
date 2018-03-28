@@ -39,6 +39,7 @@ G4SBSIO::G4SBSIO(){
     PulseShape_histograms = NULL;
     
     fUsePythia = false;
+    fExclPythia = false;
 
     fNhistograms = 0;
 }
@@ -593,12 +594,17 @@ void G4SBSIO::BranchECAL(G4String SDname="ECAL"){
 void G4SBSIO::BranchPythia(){
   //Per-event variables:
   fTree->Branch("primaries.Sigma",&(Primaries.Sigma),"primaries.Sigma/D");
+  if(fExclPythia)fTree->Branch("primaries.SigmaDiff",&(Primaries.SigmaDiff),"primaries.SigmaDiff/D");
   fTree->Branch("primaries.Ebeam",&(Primaries.Ebeam),"primaries.Ebeam/D");
   fTree->Branch("primaries.Eprime",&(Primaries.Eprime),"primaries.Eprime/D");
   fTree->Branch("primaries.Q2",&(Primaries.Q2),"primaries.Q2/D");
   fTree->Branch("primaries.xbj",&(Primaries.xbj),"primaries.xbj/D");
   fTree->Branch("primaries.y",&(Primaries.y),"primaries.y/D");
   fTree->Branch("primaries.W2",&(Primaries.W2),"primaries.W2/D");
+  if(fExclPythia){
+    fTree->Branch("primaries.Delta2",&(Primaries.Delta2),"primaries.Delta2/D");
+    fTree->Branch("primaries.phigg",&(Primaries.phigg),"primaries.phigg/D");
+  }
   fTree->Branch("primaries.theta_e",&(Primaries.theta_e),"primaries.theta_e/D");
   fTree->Branch("primaries.phi_e",&(Primaries.phi_e),"primaries.phi_e/D");
   fTree->Branch("primaries.px_e",&(Primaries.px_e),"primaries.px_e/D");

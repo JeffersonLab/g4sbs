@@ -3,6 +3,7 @@
 
 G4SBSPythiaOutput::G4SBSPythiaOutput(){
   Sigma = 1.0; //default to 1.0 mb
+  SigmaDiff = 0.0; //default to 0.0
   Clear();
 }
 
@@ -34,6 +35,8 @@ void G4SBSPythiaOutput::Clear(){
   xbj = 0.0;
   y = 0.0;
   W2 = 0.0;
+  Delta2 = 0.0;
+  phigg = 0.0;
 
   Nprimaries = 0;
   PID.clear();
@@ -70,6 +73,7 @@ void G4SBSPythiaOutput::ConvertToTreeUnits(){ //This is called once per event af
   vz_gamma /= m;
   Q2 /= (GeV*GeV);
   W2 /= (GeV*GeV);
+  Delta2 /= (GeV*GeV);
 
   for( int i=0; i<Nprimaries; i++ ){
     Px[i] /= GeV;

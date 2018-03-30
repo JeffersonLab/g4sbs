@@ -146,6 +146,8 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
     fDetCon->SDtype[sdname] = kCAL;
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
+
+    fDetCon->SetTimeWindowAndThreshold( sdname, 4.0*MeV, 50.0*ns );
   }
   
   //Now we need to define the coordinates of the "modules":

@@ -314,6 +314,8 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     //fDetCon->SDarm[ECalTF1SDname] = kEarm;
 
     (ECalTF1SD->detmap).depth = 1;
+
+    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 10.0*MeV, 100.0*ns );
   }
 
   if( fDetCon->GetC16Segmentation() <= 0 ){
@@ -1106,6 +1108,8 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
       (fDetCon->SDlist).insert( C16TF1SDname );
       fDetCon->SDtype[C16TF1SDname] = kCAL;
       (C16TF1SD->detmap).depth = 1;
+
+      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, 10.0*MeV, 100.0*ns );
     }
     // Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
@@ -1202,6 +1206,8 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
       (fDetCon->SDlist).insert( C16TF1SDname );
       fDetCon->SDtype[C16TF1SDname] = kCAL;
       (C16TF1SD->detmap).depth = 0;
+
+      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, 10.0*MeV, 100.0*ns );
     }
 
     G4int cell_number = 0 ;    // cell #
@@ -1542,6 +1548,8 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
     //fDetCon->SDarm[ECalTF1SDname] = kEarm;
 
     (ECalTF1SD->detmap).depth = 1;
+
+    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 10.0*MeV, 100.0*ns );
   }
   
   //Make lead-glass and place in modules:

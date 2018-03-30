@@ -1377,6 +1377,9 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     (fDetCon->SDlist).insert(HCalScintSDName);
     fDetCon->SDtype[HCalScintSDName] = kCAL;
     (HCalScintSD->detmap).depth = 1;
+
+    //This will be overridden if the command /g4sbs/threshold has been invoked for this detector:
+    fDetCon->SetTimeWindowAndThreshold( HCalScintSDName, 10.0*MeV, 500.0*ns );
   }
   log_Scint->SetSensitiveDetector(HCalScintSD);
 
@@ -1385,7 +1388,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   G4String HCalCollName = "HCalHitsCollection";
   G4SBSECalSD *HCalSD = NULL;
 
-  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(HCalSDName)) ){
+  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(HCalSDName)) ){
     G4cout << "Adding HCal PMT Sensitive Detector to SDman..." << G4endl;
     HCalSD = new G4SBSECalSD( HCalSDName, HCalCollName );
     sdman->AddNewDetector(HCalSD);
@@ -1658,6 +1661,8 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     //fDetCon->SDarm[HCalScintSDname] = kHarm;
 
     (HCalScintSD->detmap).depth = 1;
+
+    fDetCon->SetTimeWindowAndThreshold( HCalScintSDname, 10.0*MeV, 100.0*ns );
   }
   logScinPl->SetSensitiveDetector(HCalScintSD);
 
@@ -2917,6 +2922,8 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     fDetCon->SDtype[sdname] = kCAL;
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
+
+    fDetCon->SetTimeWindowAndThreshold( sdname, 4.0*MeV, 50.0*ns );
   }
   
   //Now we need to define the coordinates of the "modules":
@@ -3691,6 +3698,8 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
     (fDetCon->SDlist).insert(LACScintSDname);
     fDetCon->SDtype[LACScintSDname] = kCAL;
     (LACScintSD->detmap).depth = 0;
+
+    fDetCon->SetTimeWindowAndThreshold( LACScintSDname, 10.0*MeV, 100.0*ns );
   }
   
   //Now start populating the layers. In the absence of a better "guess", I will assume that there is one more layer's worth of "short" strips than "long" strips:

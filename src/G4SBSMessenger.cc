@@ -408,7 +408,22 @@ G4SBSMessenger::G4SBSMessenger(){
   LimitStepCALcmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
   LimitStepCALcmd->SetParameter( new G4UIparameter("flag",'b',true) );
   LimitStepCALcmd->GetParameter(1)->SetDefaultValue(true);
-    
+
+  SD_EnergyThresholdCmd = new G4UIcommand("/g4sbs/threshold",this );
+
+  SD_EnergyThresholdCmd->SetGuidance("Set hit energy threshold by sensitive detector name (only valid for kCAL, kGEM)");
+  SD_EnergyThresholdCmd->SetGuidance("Usage: /g4sbs/threshold SDname ethresh unit");
+  SD_EnergyThresholdCmd->SetParameter( new G4UIparameter("sdname", 's', false) );
+  SD_EnergyThresholdCmd->SetParameter( new G4UIparameter("threshold", 'd', false) );
+  SD_EnergyThresholdCmd->SetParameter( new G4UIparameter("unit", 's', false) );
+
+  SD_TimeWindowCmd = new G4UIcommand("/g4sbs/timewindow",this);
+  SD_TimeWindowCmd->SetGuidance( "Set hit timing window by sensitive detector name (only valid for kCAL, kGEM, kECAL)" );
+  SD_TimeWindowCmd->SetGuidance( "Usage: /g4sbs/timewindow SDname twindow unit" );
+  SD_TimeWindowCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
+  SD_TimeWindowCmd->SetParameter( new G4UIparameter("timewindow", 'd', false ) );
+  SD_TimeWindowCmd->SetParameter( new G4UIparameter("unit", 's', false) );
+  
   // DisableOpticalPhysicsCmd = new G4UIcmdWithABool("/g4sbs/useopticalphysics", this );
   // DisableOpticalPhysicsCmd->SetGuidance("toggle optical physics on/off");
   // DisableOpticalPhysicsCmd->SetGuidance("default = true (ON)");
@@ -1303,6 +1318,35 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     } else {
       (fdetcon->StepLimiterList).erase(SDname);
     }
+  }
+
+  if( cmd == SD_EnergyThresholdCmd ){ //store the SDname and dimensioned threshold value in a map<G4String,G4double> assigned to fdetcon?
+    std::istringstream is(newValue);
+
+    G4String SDname;
+    G4double ethresh;
+    G4String unit;
+
+    is >> SDname >> ethresh >> unit;
+    
+    fdetcon->SDthreshold[SDname] = ethresh*cmd->ValueOf(unit);
+
+    G4cout << "Set Energy threshold for SD name = " << SDname << " to " << fdetcon->SDthreshold[SDname]/MeV << " MeV" << G4endl;
+    
+  }
+
+  if( cmd == SD_TimeWindowCmd ){ //store the SDname and dimensioned threshold value in a map<G4String,G4double> assigned to fdetcon?
+    std::istringstream is(newValue);
+
+    G4String SDname;
+    G4double timewindow;
+    G4String unit;
+
+    is >> SDname >> timewindow >> unit;
+    
+    fdetcon->SDgatewidth[SDname] = timewindow*cmd->ValueOf(unit);
+
+    G4cout << "Set time window for SD name = " << SDname << " to " << fdetcon->SDgatewidth[SDname]/ns << " ns" << G4endl;
   }
 
   // if( cmd == DisableOpticalPhysicsCmd ){

@@ -2131,7 +2131,9 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
   G4double caldepth;
 
   G4cout << "DVCS ECal material = " << fDVCSECalMaterial << G4endl;
+  G4cout << " => " << fDVCSNrows << " * " << fDVCSNcols << "blocks" << G4endl;
   
+
   if(fDVCSECalMaterial=="PbF2"){
     dvcsblkmodule_x = 3.00*cm;
     dvcsblkmodule_y = 3.00*cm;

@@ -1055,7 +1055,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fECal->SetDVCSECalMaterial(newValue);
     if(newValue == "PbWO4"){
      fdetcon->fECal->SetDVCSECalNRows(31);
-     fdetcon->fECal->SetDVCSECalNRows(36);
+     fdetcon->fECal->SetDVCSECalNCols(36);
     }
   }
 

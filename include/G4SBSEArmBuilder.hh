@@ -28,16 +28,9 @@ public:
   void SetShieldConfig(int sc ){ fShieldOption = sc; }
   
   void MakeBigBite(G4LogicalVolume *);
-  void MakeBigCal(G4LogicalVolume *);
-  void MakeC16(G4LogicalVolume *);
-  void MakeDVCSECal(G4LogicalVolume *);
   
-  void MakeCDET(G4double, G4double, G4LogicalVolume *); //
   void MakeGMnGEMShielding(G4LogicalVolume *);
 
-  void SetDVCSECalMaterial(G4String str){ fDVCSECalMaterial = str; }
-  void SetDVCSECalHOffset(double a){ fDVCSECALhorizontal_offset = a; }
-  
   void MakeBBSieveSlit(G4LogicalVolume *);
 
   void SetGRINCHgas( G4String str ){ fGRINCHgas = str; }
@@ -66,9 +59,6 @@ public:
   
   bool fUseLocalField;
 
-  G4String fDVCSECalMaterial;
-  double fDVCSECALhorizontal_offset;  // Horizontal offset (from center) of DVCS ECal
-  
   bool fBuildBBSieve;
 
   G4String fGRINCHgas;

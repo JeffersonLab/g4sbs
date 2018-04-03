@@ -114,6 +114,8 @@ private:
   G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
   
   G4UIcmdWithAString   *dvcsecalmatCmd;
+  G4UIcmdWithAnInteger *dvcsecalnrowsCmd;
+  G4UIcmdWithAnInteger *dvcsecalncolsCmd;
   G4UIcmdWithADoubleAndUnit *dvcsecalhoffsetCmd;
 
   G4UIcmdWithAString   *GRINCH_gas_Cmd;

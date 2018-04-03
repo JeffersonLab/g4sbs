@@ -24,6 +24,8 @@ class G4SBSBeamlineBuilder;
 class G4SBSTargetBuilder;
 class G4SBSEArmBuilder;
 class G4SBSHArmBuilder;
+class G4SBSECal;
+class G4SBSCDet;
 class RTPC;
 
 class G4SBSDetectorMessenger;
@@ -86,7 +88,10 @@ public:
   G4SBSTargetBuilder   *fTargetBuilder;
   G4SBSEArmBuilder     *fEArmBuilder;
   G4SBSHArmBuilder     *fHArmBuilder;
+  G4SBSECal            *fECal;
+  G4SBSCDet            *fCDet;
   RTPC *fRTPC;
+  
   void SetBBDist( double);
   void SetBBAng( double);
   void Set48D48Dist( double);

@@ -43,6 +43,8 @@
 #include "G4SBSTargetBuilder.hh"
 #include "G4SBSEArmBuilder.hh"
 #include "G4SBSHArmBuilder.hh"
+#include "G4SBSECal.hh"
+#include "G4SBSCDet.hh"
 
 //#include "RTPC.hh"
 
@@ -90,6 +92,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fBeamlineBuilder = new G4SBSBeamlineBuilder(this);
   fEArmBuilder     = new G4SBSEArmBuilder(this);
   fHArmBuilder     = new G4SBSHArmBuilder(this);
+  fECal            = new G4SBSECal(this);
+  fCDet            = new G4SBSCDet(this);
   fRTPC = 0;
   
   fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;

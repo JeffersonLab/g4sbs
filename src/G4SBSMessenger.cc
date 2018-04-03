@@ -31,6 +31,7 @@
 #include "G4SBSTargetBuilder.hh"
 #include "G4SBSEArmBuilder.hh"
 #include "G4SBSHArmBuilder.hh"
+#include "G4SBSECal.hh"
 
 #include "G4SolidStore.hh"
 #include "G4LogicalVolumeStore.hh"
@@ -222,6 +223,14 @@ G4SBSMessenger::G4SBSMessenger(){
   dvcsecalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/dvcsecalhoffset",this);
   dvcsecalhoffsetCmd->SetGuidance("DVCS ECal HCAL horizontal offset");
   dvcsecalhoffsetCmd->SetParameterName("dvcsecalhoffset", false);
+
+  dvcsecalnrowsCmd = new G4UIcmdWithAnInteger("/g4sbs/dvcsecalnrows",this);
+  dvcsecalnrowsCmd->SetGuidance("number of rows for (PbF2) DVCS ECal");
+  dvcsecalnrowsCmd->SetParameterName("nrows", false);
+  
+  dvcsecalncolsCmd = new G4UIcmdWithAnInteger("/g4sbs/dvcsecalncols",this);
+  dvcsecalncolsCmd->SetGuidance("number of cols for (PbF2) DVCS ECal");
+  dvcsecalncolsCmd->SetParameterName("ncols", false);
   
   dvcsecalmatCmd = new G4UIcmdWithAString("/g4sbs/dvcsecalmat",this);
   dvcsecalmatCmd->SetGuidance("DVCS ECal material: 'PbF2' or 'PbWO4'");
@@ -1029,11 +1038,25 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   
   if( cmd == dvcsecalhoffsetCmd ){
     G4double v = dvcsecalhoffsetCmd->GetNewDoubleValue(newValue);
-    fdetcon->fEArmBuilder->SetDVCSECalHOffset(v);
+    fdetcon->fECal->SetDVCSECalHOffset(v);
+  }
+  
+  if( cmd == dvcsecalnrowsCmd ){
+    G4double v = dvcsecalnrowsCmd->GetNewIntValue(newValue);
+    fdetcon->fECal->SetDVCSECalNRows(v);
+  }
+  
+  if( cmd == dvcsecalncolsCmd ){
+    G4double v = dvcsecalncolsCmd->GetNewIntValue(newValue);
+    fdetcon->fECal->SetDVCSECalNCols(v);
   }
   
   if( cmd == dvcsecalmatCmd ){
-    fdetcon->fEArmBuilder->SetDVCSECalMaterial(newValue);
+    fdetcon->fECal->SetDVCSECalMaterial(newValue);
+    if(newValue == "PbWO4"){
+     fdetcon->fECal->SetDVCSECalNRows(31);
+     fdetcon->fECal->SetDVCSECalNRows(36);
+    }
   }
 
   if( cmd == GRINCH_gas_Cmd ){

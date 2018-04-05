@@ -715,6 +715,13 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4LogicalVolume* Standoff_40_log = 
     new G4LogicalVolume(Standoff_40_solid, 
 			GetMaterial("Aluminum"), "Standoff_40_log");
+
+  ofstream mapfile("database/ecal_gep_blockmap.txt");
+
+  TString  output_line = "";
+  output_line.Form("#%16s, %16s, %16s, %16s, %16s", "Cell", "Row", "Column", "Xcenter (cm)", "Ycenter (cm)" ); 
+
+  mapfile << output_line << endl;
   
   G4int SM_num = 0;
   X_block = xfpstart+BlockFirst_40;
@@ -725,6 +732,9 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       G4ThreeVector modpos( Y_block, X_block, zfront_ECAL + depth_40/2.0 );
       // depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
       new G4PVPlacement( 0, modpos, Module_40_log, "Module_40_phys", earm_mother_log, false, copy_nb );
+
+      output_line.Form( "%16d, %16d, %16d, %16.3f, %16.3f", copy_nb, i_, j_, Y_block/cm, X_block/cm );
+      mapfile << output_line << endl;
       
       (ECalTF1SD->detmap).Row[copy_nb] = i_;
       (ECalTF1SD->detmap).Col[copy_nb] = j_;
@@ -803,6 +813,9 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       // depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
       new G4PVPlacement( 0, modpos, Module_42_log, "Module_42_phys", earm_mother_log, false, copy_nb );
 
+      output_line.Form( "%16d, %16d, %16d, %16.3f, %16.3f", copy_nb, i_ + NrowsSM_40*3, j_, Y_block/cm, X_block/cm );
+      mapfile << output_line << endl;
+      
       (ECalTF1SD->detmap).Row[copy_nb] = i_;
       (ECalTF1SD->detmap).Col[copy_nb] = j_;
       (ECalTF1SD->detmap).LocalCoord[copy_nb] = modpos;
@@ -870,6 +883,8 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     X_block+= BlockSpace_42;
     if(i_==2)X_block+= 2.0*mm;// to leave space for the steel plate instered there
   }
+
+  mapfile.close();
   
   // Build CDet:
   if(fDetCon->fExpType==kGEp){

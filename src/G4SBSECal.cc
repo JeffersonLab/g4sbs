@@ -2173,19 +2173,19 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
   double DVCSblk_y = dvcsblkmodule_y - 2*mylar_air_sum;
   double DVCSblk_z = caldepth -2*2.0*cm;
   
-  G4Box *dvcsblkmodbox = new G4Box("dvcsblkmodbox", dvcsblkmodule_x/2.0, dvcsblkmodule_y/2.0, caldepth/2.0);
+  G4Box *dvcsblkmodbox = new G4Box("dvcsblkmodbox", dvcsblkmodule_x/2.0, dvcsblkmodule_y/2.0, (caldepth-2.0*cm)/2.0);
   G4LogicalVolume *dvcsblkmodlog = new G4LogicalVolume(dvcsblkmodbox, GetMaterial("Special_Air"), "dvcsblkmodlog");
 
-  G4Box *tempbox = new G4Box("tempbox", dvcsblkmodule_x/2.0, dvcsblkmodule_y/2.0, (caldepth-2*dvcsblkpmtz)/2.0);
+  G4Box *tempbox = new G4Box("tempbox", dvcsblkmodule_x/2.0, dvcsblkmodule_y/2.0, (caldepth-2.0*cm)/2.0);
 
 
   // calorimeter box Subtraction
-    G4Box *dvcsblkmodbox_sub = new G4Box( "dvcsblkmodbox_sub", (dvcsblkmodule_x-2*mylarthickness)/2.0, (dvcsblkmodule_y-2*mylarthickness)/2.0, (caldepth-2*dvcsblkpmtz)/2.0 );
+  G4Box *dvcsblkmodbox_sub = new G4Box( "dvcsblkmodbox_sub", (dvcsblkmodule_x-2*mylarthickness)/2.0, (dvcsblkmodule_y-2*mylarthickness)/2.0, caldepth/2.0-2.0*cm );
 
   G4SubtractionSolid *dvcsblkmylarwrap = new G4SubtractionSolid( "dvcsblkmylarwrap", tempbox, dvcsblkmodbox_sub, 0, G4ThreeVector(0.0, 0.0, mylarthickness) );
   G4LogicalVolume *dvcsblkmylarwraplog = new G4LogicalVolume( dvcsblkmylarwrap, GetMaterial("Mylar"), "dvcsblkmylarwraplog" ); 
   
- // new G4LogicalSkinSurface( "DVCSBLK Mylar Skin", dvcsblkmylarwraplog, GetOpticalSurface("Mirrsurf") );
+  new G4LogicalSkinSurface( "DVCSBLK Mylar Skin", dvcsblkmylarwraplog, GetOpticalSurface("Mirrsurf") );
   // Make Lead Glass 
   G4Box *DVCSblkbox = new G4Box( "DVCSblkbox", DVCSblk_x/2.0, DVCSblk_y/2.0, DVCSblk_z/2.0 );
   G4LogicalVolume *DVCSblklog = new G4LogicalVolume( DVCSblkbox, GetMaterial(fDVCSECalMaterial.data()), "DVCSblklog" );
@@ -2236,11 +2236,28 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
   // Put everything in a calo Module
   int mod_copy_number = 0;
 
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-dvcsblkpmtz)/2.0-2.0*cm), dvcsblkpmtcathodecallog,"bbcathodephys", dvcsblkmodlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*dvcsblkpmtz)/2.0-2.0*cm), dvcsblkpmtwindowlog, "bbwindowphys", dvcsblkmodlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*dvcsblkpmtz-DVCSblk_z)/2.0-2.0*cm), DVCSblklog, "DVCSblkphys", dvcsblkmodlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -dvcsblkpmtz-2.0*cm), dvcsblkmylarwraplog, "dvcsblkmylarphys", dvcsblkmodlog, false, 0 );
-
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (-1.0*cm+mylar_air_sum+DVCSblk_z/2.0+dvcsblkpmtz*3.0/2.0)), dvcsblkpmtcathodecallog,"cathodephys", dvcsblkmodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (-1.0*cm+mylar_air_sum+DVCSblk_z/2.0+dvcsblkpmtz/2.0)), dvcsblkpmtwindowlog, "windowphys", dvcsblkmodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -1.0*cm+mylar_air_sum), DVCSblklog, "DVCSblkphys", dvcsblkmodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, 0.0), dvcsblkmylarwraplog, "dvcsblkmylarphys", dvcsblkmodlog, false, 0 );
+  
+  
+  G4cout << "DVCS module length (cm): "
+	 << (dvcsblkmodbox->GetZHalfLength()*2)/cm << G4endl 
+	 << "cathodephys z placement (cm): " 
+	 << (-1.0*cm+mylar_air_sum+DVCSblk_z/2.0+dvcsblkpmtz*3.0/2.0)/cm 
+	 << " length (cm) " << (dvcsblkpmt->GetZHalfLength()*2)/cm << G4endl
+	 << "windowphys z placement (cm): " 
+	 <<  (-1.0*cm+mylar_air_sum+DVCSblk_z/2.0+dvcsblkpmtz/2.0)/cm
+	 << " length (cm) " << (dvcsblkpmt->GetZHalfLength()*2)/cm << G4endl
+	 << "DVCSblkphys z placement (cm): " 
+	 <<  (-1.0*cm+mylar_air_sum)/cm
+	 << " length (cm) " << (DVCSblkbox->GetZHalfLength()*2)/cm << G4endl
+	 << "dvcsblkmylarphys z placement (cm): " 
+	 <<  0.0
+	 << " length (cm) " << (tempbox->GetZHalfLength()*2)/cm << G4endl;
+  
+  
   for( int l=0; l<fDVCSNcols; l++ ) {
     for( int j=0; j<fDVCSNrows; j++ ) {
 
@@ -2251,7 +2268,7 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
       double xtemp = (calwidth - dvcsblkmodule_x)/2.0 - 2.0*cm - l*dvcsblkmodule_x;
       double ytemp = (calheight - dvcsblkmodule_y)/2.0 - 2.0*cm - j*dvcsblkmodule_y;
 
-      new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,0.0), dvcsblkmodlog, "calphys", dvcsblkecallog, false, mod_copy_number);
+      new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,+1.0*cm), dvcsblkmodlog, "calphys", dvcsblkecallog, false, mod_copy_number);
       
       (DVCSblkSD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp,ytemp,(caldepth-dvcsblkpmtz)/2.0  );
       (DVCSblkecalSD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp, ytemp, (caldepth-4*dvcsblkpmtz-DVCSblk_z)/2.0 );

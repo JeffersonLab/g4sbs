@@ -2160,13 +2160,13 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
   G4double calheight = fDVCSNrows*dvcsblkmodule_x+2*2.0*cm;
   G4double calwidth  = fDVCSNcols*dvcsblkmodule_y+2*2.0*cm;
 
-  G4Box *dvcsblkecalbox = new G4Box("dvcsblkecalbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
-  G4LogicalVolume *dvcsblkecallog = new G4LogicalVolume(dvcsblkecalbox, GetMaterial("Air"), "dvcsblkecallog");
-  G4ThreeVector dvcsblkecal_pos(fDVCSECALhorizontal_offset, 0.0, fDist+caldepth/2.0);
-  dvcsblkecal_pos.rotateY(fAng);
-  G4RotationMatrix* dvcsblkecal_rm = new G4RotationMatrix();
-  dvcsblkecal_rm->rotateY(-fAng);
-  new G4PVPlacement( dvcsblkecal_rm, dvcsblkecal_pos, dvcsblkecallog, "dvcsblkecalphys", motherlog, false, 0 );
+  G4Box *dvcsecalbox = new G4Box("dvcsecalbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
+  G4LogicalVolume *dvcsecallog = new G4LogicalVolume(dvcsecalbox, GetMaterial("Air"), "dvcsecallog");
+  G4ThreeVector dvcsecal_pos(fDVCSECALhorizontal_offset, 0.0, fDist+caldepth/2.0);
+  dvcsecal_pos.rotateY(fAng);
+  G4RotationMatrix* dvcsecal_rm = new G4RotationMatrix();
+  dvcsecal_rm->rotateY(-fAng);
+  new G4PVPlacement( dvcsecal_rm, dvcsecal_pos, dvcsecallog, "dvcsecalphys", motherlog, false, 0 );
   
   // Calo module: 
   double DVCSblk_x = dvcsblkmodule_x - 2*mylar_air_sum;
@@ -2184,8 +2184,8 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
 
   G4SubtractionSolid *dvcsblkmylarwrap = new G4SubtractionSolid( "dvcsblkmylarwrap", tempbox, dvcsblkmodbox_sub, 0, G4ThreeVector(0.0, 0.0, mylarthickness) );
   G4LogicalVolume *dvcsblkmylarwraplog = new G4LogicalVolume( dvcsblkmylarwrap, GetMaterial("Mylar"), "dvcsblkmylarwraplog" ); 
-  
   new G4LogicalSkinSurface( "DVCSBLK Mylar Skin", dvcsblkmylarwraplog, GetOpticalSurface("Mirrsurf") );
+  
   // Make Lead Glass 
   G4Box *DVCSblkbox = new G4Box( "DVCSblkbox", DVCSblk_x/2.0, DVCSblk_y/2.0, DVCSblk_z/2.0 );
   G4LogicalVolume *DVCSblklog = new G4LogicalVolume( DVCSblkbox, GetMaterial(fDVCSECalMaterial.data()), "DVCSblklog" );
@@ -2193,23 +2193,23 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
   // Shower DVCSblk SD of type CAL
   G4SDManager *sdman = fDetCon->fSDman;
 
-  G4String DVCSblkSDname = "Earm/DVCSECalBlock";
-  G4String DVCSblkcollname = "DVCSblkHitsCollection";
-  G4SBSCalSD *DVCSblkSD = NULL;
+  G4String DVCSecalBlockSDname = "Earm/DVCSECalBlock";
+  G4String DVCSecalBlockcollname = "DVCSecalBlockHitsCollection";
+  G4SBSCalSD *DVCSecalBlockSD = NULL;
 
-  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(DVCSblkSDname)) ) {
-    G4cout << "Adding DVCSblk Sensitive Detector to SDman..." << G4endl;
-    DVCSblkSD = new G4SBSCalSD( DVCSblkSDname, DVCSblkcollname );
-    sdman->AddNewDetector( DVCSblkSD );
-    (fDetCon->SDlist).insert( DVCSblkSDname );
-    fDetCon->SDtype[DVCSblkSDname] = kCAL;
-    (DVCSblkSD->detmap).depth = 1;
+  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(DVCSecalBlockSDname)) ) {
+    G4cout << "Adding DVCSECalBlock Sensitive Detector to SDman..." << G4endl;
+    DVCSecalBlockSD = new G4SBSCalSD( DVCSecalBlockSDname, DVCSecalBlockcollname );
+    sdman->AddNewDetector( DVCSecalBlockSD );
+    (fDetCon->SDlist).insert( DVCSecalBlockSDname );
+    fDetCon->SDtype[DVCSecalBlockSDname] = kCAL;
+    (DVCSecalBlockSD->detmap).depth = 1;
   }
-  DVCSblklog->SetSensitiveDetector( DVCSblkSD ); 
+  DVCSblklog->SetSensitiveDetector( DVCSecalBlockSD ); 
 
 //////////////////
 
-  if( (fDetCon->StepLimiterList).find( DVCSblkSDname ) != (fDetCon->StepLimiterList).end() ){
+  if( (fDetCon->StepLimiterList).find( DVCSecalBlockSDname ) != (fDetCon->StepLimiterList).end() ){
     DVCSblklog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
   // Make PMT/Window
@@ -2219,19 +2219,19 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
   G4LogicalVolume *dvcsblkpmtcathodecallog = new G4LogicalVolume( dvcsblkpmt, GetMaterial("Photocathode_material_ecal"), "dvcsblkpmtcathodecallog" );
 
   // Shower PMT SD of type ECAL
-  G4String DVCSblkecalSDname = "Earm/DVCSECal";
-  G4String DVCSblkecalcollname = "DVCSblkEcalHitsCollection";
-  G4SBSECalSD *DVCSblkecalSD = NULL;
+  G4String DVCSecalSDname = "Earm/DVCSECal";
+  G4String DVCSecalcollname = "DVCSecalBlockEcalHitsCollection";
+  G4SBSECalSD *DVCSecalSD = NULL;
 
-  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(DVCSblkecalSDname)) ) {
-    G4cout << "Adding DVCSblkEcal Sensitive Detector to SDman..." << G4endl;
-    DVCSblkecalSD = new G4SBSECalSD( DVCSblkecalSDname, DVCSblkecalcollname );
-    sdman->AddNewDetector( DVCSblkecalSD );
-    (fDetCon->SDlist).insert(DVCSblkecalSDname);
-    fDetCon->SDtype[DVCSblkecalSDname] = kECAL;
-    (DVCSblkecalSD->detmap).depth = 1;
+  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(DVCSecalSDname)) ) {
+    G4cout << "Adding DVCSECal Sensitive Detector to SDman..." << G4endl;
+    DVCSecalSD = new G4SBSECalSD( DVCSecalSDname, DVCSecalcollname );
+    sdman->AddNewDetector( DVCSecalSD );
+    (fDetCon->SDlist).insert(DVCSecalSDname);
+    fDetCon->SDtype[DVCSecalSDname] = kECAL;
+    (DVCSecalSD->detmap).depth = 1;
   }
-  dvcsblkpmtcathodecallog->SetSensitiveDetector( DVCSblkecalSD );
+  dvcsblkpmtcathodecallog->SetSensitiveDetector( DVCSecalSD );
 
   // Put everything in a calo Module
   int mod_copy_number = 0;
@@ -2261,29 +2261,29 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
   for( int l=0; l<fDVCSNcols; l++ ) {
     for( int j=0; j<fDVCSNrows; j++ ) {
 
-      (DVCSblkSD->detmap).Col[mod_copy_number] = l;
-      (DVCSblkSD->detmap).Row[mod_copy_number] = j;
-      (DVCSblkecalSD->detmap).Col[mod_copy_number] = l;
-      (DVCSblkecalSD->detmap).Row[mod_copy_number] = j;
+      (DVCSecalBlockSD->detmap).Col[mod_copy_number] = l;
+      (DVCSecalBlockSD->detmap).Row[mod_copy_number] = j;
+      (DVCSecalSD->detmap).Col[mod_copy_number] = l;
+      (DVCSecalSD->detmap).Row[mod_copy_number] = j;
       double xtemp = (calwidth - dvcsblkmodule_x)/2.0 - 2.0*cm - l*dvcsblkmodule_x;
       double ytemp = (calheight - dvcsblkmodule_y)/2.0 - 2.0*cm - j*dvcsblkmodule_y;
 
-      new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,+1.0*cm), dvcsblkmodlog, "calphys", dvcsblkecallog, false, mod_copy_number);
+      new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,+1.0*cm), dvcsblkmodlog, "calphys", dvcsecallog, false, mod_copy_number);
       
-      (DVCSblkSD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp,ytemp,(caldepth-dvcsblkpmtz)/2.0  );
-      (DVCSblkecalSD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp, ytemp, (caldepth-4*dvcsblkpmtz-DVCSblk_z)/2.0 );
+      (DVCSecalBlockSD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp,ytemp,(caldepth-dvcsblkpmtz)/2.0  );
+      (DVCSecalSD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp, ytemp, (caldepth-4*dvcsblkpmtz-DVCSblk_z)/2.0 );
 
       mod_copy_number++;
     }
   }
 
   // Visualization attributes
-  G4VisAttributes *DVCSblkecalbox_visatt = new G4VisAttributes(G4Colour(0.7, 0.7, 0.7) );
-  DVCSblkecalbox_visatt->SetForceWireframe(true);
-  dvcsblkecallog->SetVisAttributes( DVCSblkecalbox_visatt );
+  G4VisAttributes *DVCSecalbox_visatt = new G4VisAttributes(G4Colour(0.7, 0.7, 0.7) );
+  DVCSecalbox_visatt->SetForceWireframe(true);
+  dvcsecallog->SetVisAttributes( DVCSecalbox_visatt );
     
   //G4VisAttributes *mydvcsblkmodbox_visatt = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0) );
-  dvcsblkmodlog->SetVisAttributes( DVCSblkecalbox_visatt );// G4VisAttributes::Invisible );//
+  dvcsblkmodlog->SetVisAttributes( DVCSecalbox_visatt );// G4VisAttributes::Invisible );//
   
   dvcsblkmylarwraplog->SetVisAttributes( G4VisAttributes::Invisible );
   

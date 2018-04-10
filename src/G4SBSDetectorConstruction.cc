@@ -2162,11 +2162,66 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   PbF2->AddElement(elF, 2);
   fMaterialsMap["PbF2"] = PbF2;
 
+  G4double PbF2refIndex[nentries_ecal_QE] = 
+    { 1.75943, 1.76181, 1.76502, 1.76651, 1.76843, 
+      1.77001, 1.77204, 1.77455, 1.77717, 1.77896, 
+      1.78414, 1.78812, 1.79394, 1.79728, 1.80133, 
+      1.80496, 1.80936, 1.81329, 1.81599, 1.81737, 
+      1.81877, 1.82018, 1.82162, 1.82234, 1.82381, 
+      1.82529, 1.82679, 1.82909, 1.83064, 1.83222, 
+      1.83382, 1.83544, 1.83791, 1.84303, 1.85399, 
+      1.88327, 1.90239};
+ 
+  MPT_temp = new G4MaterialPropertiesTable();
+
+  MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, PbF2refIndex, nentries_ecal_QE );
+  //MPT_temp->AddProperty("ABSLENGTH", Ephoton_abslength_pyrex, abslength_pyrex, nentries_abslength_pyrex );
+  
+  if( fMaterialsListOpticalPhotonDisabled.find( "PbF2" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    PbF2->SetMaterialPropertiesTable( MPT_temp );
+  }
+  
+  
   G4Material* PbWO4 = new G4Material("PbWO4", density=8.28*g/cm3, 3);
   PbWO4->AddElement(elPb,1);
   PbWO4->AddElement(elW, 1);
   PbWO4->AddElement(elO, 4);
   fMaterialsMap["PbWO4"] = PbWO4;
+  
+  
+  const G4int nentries_PbWO4 = 20;
+  G4double Ephoton_PbWO4_data[nentries_PbWO4] = 
+    {1.77120*eV, 1.82330*eV, 1.87855*eV, 1.93725*eV, 1.99974*eV, 
+     2.06640*eV, 2.13766*eV, 2.21400*eV, 2.29600*eV, 2.38431*eV, 
+     2.47968*eV, 2.58300*eV, 2.69531*eV, 2.81782*eV, 2.95200*eV, 
+     3.09960*eV, 3.26274*eV, 3.44401*eV, 3.64659*eV, 3.75710*eV};
+  
+  G4double PbWO4refIndex[nentries_PbWO4] = 
+    {2.18500, 2.18929, 2.19071, 2.19643, 2.19857, 
+     2.20357, 2.20786, 2.21571, 2.22143, 2.22643, 
+     2.23857, 2.24857, 2.26143, 2.27643, 2.29214, 
+     2.31643, 2.34929, 2.41071, 2.51000, 2.52786};
+
+  G4double abslength_PbWO4[nentries_PbWO4] = 
+    {29.1667*cm, 25.0000*cm, 25.0000*cm, 21.8750*cm, 21.8750*cm, 
+     19.4444*cm, 17.5000*cm, 15.9091*cm, 14.5833*cm, 13.4615*cm, 
+     12.5000*cm, 11.6667*cm, 10.2941*cm, 9.21053*cm, 7.29167*cm, 
+     5.64516*cm, 3.01724*cm, 1.45833*cm, 0.562701*cm, 0.329567*cm};
+  
+  MPT_temp = new G4MaterialPropertiesTable();
+
+  MPT_temp->AddProperty("RINDEX", Ephoton_PbWO4_data, PbWO4refIndex, nentries_PbWO4 );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_PbWO4_data, abslength_PbWO4, nentries_PbWO4 );
+  
+  //info taken at: http://scintillator.lbl.gov/
+  MPT_temp->AddConstProperty("SCINTILLATIONYIELD", 200.0/MeV);
+  MPT_temp->AddConstProperty("RESOLUTIONSCALE", 1.0);
+  MPT_temp->AddConstProperty("FASTTIMECONSTANT",6.00*ns);
+  MPT_temp->AddConstProperty("SLOWTIMECONSTANT",6.00*ns);
+  
+  if( fMaterialsListOpticalPhotonDisabled.find( "PbWO4" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    PbWO4->SetMaterialPropertiesTable( MPT_temp );
+  }
 
   ///////////////////////////////////////////
   //      CLAS Large-angle calorimeter:

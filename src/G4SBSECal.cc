@@ -2130,7 +2130,7 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
   G4double dvcsblkmodule_x, dvcsblkmodule_y;
   G4double caldepth;
   G4double PMTsize;
-
+  
   G4cout << "DVCS ECal material = " << fDVCSECalMaterial << G4endl;
   G4cout << " => " << fDVCSNrows << " * " << fDVCSNcols << "blocks" << G4endl;
   
@@ -2169,6 +2169,14 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
   G4RotationMatrix* dvcsecal_rm = new G4RotationMatrix();
   dvcsecal_rm->rotateY(-fAng);
   new G4PVPlacement( dvcsecal_rm, dvcsecal_pos, dvcsecallog, "dvcsecalphys", motherlog, false, 0 );
+  
+  G4Box* dvcsecalhollow = new G4Box("dvcsecalhollow", calwidth/2.0-2.0*cm, calheight/2.0-2.0*cm, caldepth/2.0);
+  G4SubtractionSolid *dvcsecalAlBox_solid = 
+    new G4SubtractionSolid("dvcsecalAlBox_solid", dvcsecalbox, dvcsecalhollow, 0, G4ThreeVector(0.0, 0.0, +2.0*cm));
+  G4LogicalVolume *dvcsecalAlBox_log = new G4LogicalVolume(dvcsecalAlBox_solid, GetMaterial("Aluminum"), "dvcsecalAlBox_log");
+  
+  new G4PVPlacement( 0, G4ThreeVector(0, 0, 0), dvcsecalAlBox_log, "dvcsecalAlBox_phys", dvcsecallog, false, 0 );
+  
   
   // Calo module: 
   double DVCSblk_x = dvcsblkmodule_x - 2*mylar_air_sum;
@@ -2283,13 +2291,14 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
     }
   }
 
-  // Visualization attributes
+  // Visualization attributes 
+  dvcsecallog->SetVisAttributes( G4VisAttributes::Invisible );
   G4VisAttributes *DVCSecalbox_visatt = new G4VisAttributes(G4Colour(0.7, 0.7, 0.7) );
   DVCSecalbox_visatt->SetForceWireframe(true);
-  dvcsecallog->SetVisAttributes( DVCSecalbox_visatt );
+  dvcsecalAlBox_log->SetVisAttributes( DVCSecalbox_visatt );
     
   //G4VisAttributes *mydvcsblkmodbox_visatt = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0) );
-  dvcsblkmodlog->SetVisAttributes( DVCSecalbox_visatt );// G4VisAttributes::Invisible );//
+  dvcsblkmodlog->SetVisAttributes( G4VisAttributes::Invisible );//
   
   dvcsblkmylarwraplog->SetVisAttributes( G4VisAttributes::Invisible );
   

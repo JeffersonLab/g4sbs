@@ -1945,12 +1945,15 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
     fDetCon->SDtype[mTPCSDname] = kGEM;
   }
 
+  G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.02 ) );
+    
   for(int i = 0; i<20; i++){
     TPCgas_solid = new G4Tubs("TPCgas_solid", 10.*cm/2.0+i*0.5*cm, 10.*cm/2.0+(i+1)*0.5*cm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
     TPCgas_log = new G4LogicalVolume(TPCgas_solid, GetMaterial("ref4He"),"TPCgas_log");
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCgas_log,
 		      "TPCgas_phys", TPCmother_log, false, i);
     if(i==0)TPCgas_log->SetSensitiveDetector(mTPCSD);
+    TPCgas_log->SetVisAttributes( tpcgas_visatt );
   }
   
   // Visualization attributes
@@ -1962,8 +1965,8 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   TPCinnerwall_log->SetVisAttributes( tpcwalls_visatt );
   TPCouterwall_log->SetVisAttributes( tpcwalls_visatt );
   
-  G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.5 ) );
-  TPCgas_log->SetVisAttributes( tpcgas_visatt );
+  // G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.1 ) );
+  // TPCgas_log->SetVisAttributes( tpcgas_visatt );
 }
 
 void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){

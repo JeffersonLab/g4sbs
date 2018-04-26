@@ -20,6 +20,7 @@
 #include "G4ExtrudedSolid.hh"
 
 #include "G4SBSCalSD.hh"
+#include "G4SBSGEMSD.hh"
 
 #include "G4SBSHArmBuilder.hh"
 
@@ -1725,148 +1726,8 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
 }
 
 void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
-
-  if( fFlux ){ //Make a sphere to compute particle flux:
-    G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
-				   0.*deg, 150.*deg );
-    G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
-    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", worldlog, false, 0 );
-
-    fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-    
-    G4String FluxSDname = "FLUX";
-    G4String Fluxcollname = "FLUXHitsCollection";
-    G4SBSCalSD *FluxSD = NULL;
-    if( !( FluxSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(FluxSDname) ) ){
-      G4cout << "Adding FLUX SD to SDman..." << G4endl;
-      FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
-      fDetCon->fSDman->AddNewDetector( FluxSD );
-      (fDetCon->SDlist).insert( FluxSDname );
-      fDetCon->SDtype[FluxSDname] = kCAL;
-
-      (FluxSD->detmap).depth = 0;
-    }
-    fsph_log->SetSensitiveDetector( FluxSD );
-  }
-  
-  //Desired minimum scattering angle for SBS = 5 deg (for SIDIS @10 deg):
-  double sbs_scattering_angle_min = 5.0*deg;
-  double sc_exitpipe_radius_inner = 48.0*mm;
-  double sc_exitpipe_radius_outer = 50.0*mm;
-  double sc_entrypipe_radius_inner = 31.75*mm;
-  double sc_entrypipe_radius_outer = sc_entrypipe_radius_inner+0.12*mm;
-  double sc_winthick = 0.38*mm;
-
-  double zstart_sc = -1.5*m;
-  double zend_sc   = 162.2*cm;
-
-  double zpos_sc = (zstart_sc + zend_sc)/2.0;
-  double dz_sc = (zend_sc - zstart_sc)/2.0 - sc_winthick;
-
-  //Material definition was moved to ConstructMaterials();
-  //--------- Glass target cell -------------------------------
-
-  double wallthick = 0.01*mm;
-  double capthick  = 0.01*mm;
-  
-  double sc_radius_inner = sc_exitpipe_radius_outer;
-  double sc_radius_outer = sc_radius_inner + sc_winthick;
-
-  G4Tubs *sc_wall = new G4Tubs("sc_tube", sc_radius_inner, sc_radius_outer, dz_sc, 0.*deg, 360.*deg );
-  G4Tubs *sc_vacuum = new G4Tubs("sc_vac", 0.0, sc_radius_inner, dz_sc, 0.*deg, 360.*deg );
-
-  G4Tubs *sc_cap_upstream = new G4Tubs("sc_cap_upstream", sc_entrypipe_radius_inner, sc_radius_outer, sc_winthick/2.0, 0.*deg, 360.*deg );
-  G4Tubs *sc_cap_downstream = new G4Tubs("sc_cap_downstream", sc_exitpipe_radius_inner, sc_radius_outer, sc_winthick/2.0, 0.*deg, 360.*deg );
-  
-  G4LogicalVolume *sc_wall_log = new G4LogicalVolume( sc_wall, GetMaterial("Aluminum"), "sc_wall_log" );
-  G4LogicalVolume *sc_vacuum_log = new G4LogicalVolume( sc_vacuum, GetMaterial("Vacuum"), "sc_vacuum_log" );
-  G4LogicalVolume *sc_cap_upstream_log = new G4LogicalVolume( sc_cap_upstream, GetMaterial("Aluminum"), "sc_cap_upstream_log" );
-  G4LogicalVolume *sc_cap_downstream_log = new G4LogicalVolume( sc_cap_downstream, GetMaterial("Aluminum"), "sc_cap_downstream_log" );
-  
-  G4Tubs *targ_tube = new G4Tubs("targ_tube", fTargDiameter/2.0-wallthick, fTargDiameter/2.0, fTargLen/2.0, 0.*deg, 360.*deg );
-  G4Tubs *targ_cap = new G4Tubs("targ_cap", 0.0, fTargDiameter/2.0, capthick/2.0, 0.*deg, 360.*deg );
-
-  G4LogicalVolume* targ_tube_log = new G4LogicalVolume(targ_tube, GetMaterial("Aluminum"),"targ_tube_log");
-  G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Aluminum"),"targ_cap_log");
-
-  // gas
-  G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, fTargDiameter/2.0-wallthick,fTargLen/2.0, 0.*deg, 360.*deg );
-  G4LogicalVolume* gas_tube_log = NULL;
-
-
-  if( fTargType == kH2 || fTargType == kNeutTarg ){
-    gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refH2"), "gas_tube_log");
-  }
-  if( fTargType == kD2 ){
-    gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refD2"), "gas_tube_log");
-  }
-  if( fTargType == k3He ){
-    gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("pol3He"), "gas_tube_log");
-  }
-
-  G4LogicalVolume *motherlog = worldlog;
-  double target_zpos = 0.0;
-  
-  // if( fSchamFlag == 1 ){
-  //   motherlog = sc_vacuum_log;
-  //   target_zpos = -zpos_sc;
-  // }
-  
-  //if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), targ_tube_log,
-		    "targ_tube_phys", motherlog, false, 0);
-  
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos+fTargLen/2.0+capthick/2.0), targ_cap_log,
-		    "targ_cap_phys1", motherlog, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos-fTargLen/2.0-capthick/2.0), targ_cap_log,
-		    "targ_cap_phys2", motherlog, false, 1);
-  
-  assert(gas_tube_log);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
-		    "gas_tube_phys", motherlog, false, 0);
-  
-  BuildTPC(motherlog, target_zpos+5.0*cm);//TPC will always be 10cm longer than target.
-  
-  // //Place scattering chamber:
-  // if( fSchamFlag == 1 ){
-  //   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_wall_log, "sc_wall_phys", worldlog, false, 0 );
-  //   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc-dz_sc-sc_winthick/2.0), sc_cap_upstream_log, "sc_cap_upstream_phys", worldlog, false, 0 );
-  //   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc+dz_sc+sc_winthick/2.0), sc_cap_downstream_log, "sc_cap_downstream_phys", worldlog, false, 0 );
-  //   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_vacuum_log, "sc_vacuum_phys", worldlog, false, 0 );
-  // }
-  
-  // sc_vacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
-
-  //Visualization attributes:
-  //ScatteringChamber_log->SetVisAttributes( G4VisAttributes::Invisible );
-
-  G4VisAttributes *sc_wall_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
-  sc_wall_visatt->SetForceWireframe(true);
-
-  // sc_wall_log->SetVisAttributes( sc_wall_visatt );
-  sc_cap_upstream_log->SetVisAttributes( sc_wall_visatt );
-  sc_cap_upstream_log->SetVisAttributes( sc_wall_visatt );
-
-  // G4VisAttributes *sc_exit_pipe_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
-  // sc_exit_pipe_log->SetVisAttributes( sc_exit_pipe_visatt );
-
-  // G4VisAttributes *sc_win_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.0 ) );
-  // sc_window_sbs_log->SetVisAttributes( sc_win_visatt );
-  // //sc_window_bb_log->SetVisAttributes( sc_win_visatt );
-
-  G4VisAttributes *tgt_cell_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
-  tgt_cell_visatt->SetForceWireframe(true);
-
-  targ_cap_log->SetVisAttributes( tgt_cell_visatt );
-  targ_tube_log->SetVisAttributes( tgt_cell_visatt );
-
-  G4VisAttributes *tgt_gas_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
-  gas_tube_log->SetVisAttributes( tgt_gas_visatt );
-
-}
-
-void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
-  // oversimplistic TPC
+  // E. Fuchey:
+  // Move this over to the BuildTDISTarget function to avoid overlap between this volume and the target...
 
   // Rachel 23/03/18
   // currently solenoid is local
@@ -1880,43 +1741,12 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
     new G4LogicalVolume(TPCBfield_solid, GetMaterial("Air"),"TPCBfield_log");
   // will place tpc mother volume into a b-field volume to switch between either uni or tosca
 
-
-
-  G4Tubs* TPCmother_solid = 
-    new G4Tubs("TPCmother_solid", 10.0*cm/2.0, 30.*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
-  G4Tubs* TPCinnerwall_solid = 
-    new G4Tubs("TPCinnerwall_solid", 10.0*cm/2.0, 10.*cm/2.0+0.002*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
-  G4Tubs* TPCouterwall_solid = 
-    new G4Tubs("TPCouterwall_solid", 30.0*cm/2.0-0.002*mm, 30.*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
-  G4Tubs* TPCgas_solid = 
-    new G4Tubs("TPCgas_solid", 10.*cm/2.0+0.002*mm, 30.0*cm/2.0-0.002*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
-  
-  G4LogicalVolume* TPCmother_log = 
-    new G4LogicalVolume(TPCmother_solid, GetMaterial("Air"),"TPCmother_log");
-  G4LogicalVolume* TPCinnerwall_log = 
-    new G4LogicalVolume(TPCinnerwall_solid, GetMaterial("Kapton"),"TPCinnerwall_log");
-  G4LogicalVolume* TPCouterwall_log = 
-    new G4LogicalVolume(TPCouterwall_solid, GetMaterial("Kapton"),"TPCouterwall_log");
-  G4LogicalVolume* TPCgas_log = 
-    new G4LogicalVolume(TPCgas_solid, GetMaterial("ref4He"),"TPCouterwall_log");
-
-
   // the tpc mother is now the b field cylinder
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCBfield_log,
-  		    "TPCBfield_phys", motherlog, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCmother_log,
-  		    "TPCmother_phys", TPCBfield_log, false, 0);
-  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCmother_log,
-  // 		    "TPCmother_phys", motherlog, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCinnerwall_log,
-		    "TPCinnerwall_phys", TPCmother_log, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCouterwall_log,
-		    "TPCouterwall_phys", TPCmother_log, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCgas_log,
-		    "TPCgas_phys", TPCmother_log, false, 0);
+  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCBfield_log,
+  // 		    "TPCBfield_phys", motherlog, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCBfield_log,
+   		    "TPCBfield_phys", worldlog, false, 0);
   
-
-
   // R. Montgomery 23/03/18
   // At the moment the TPC solenoid can be either a uniform field for test or the tosca simulation
   // It will only be set if there is no global field in g4sbs, ie no tosca map for sbs is called
@@ -1974,13 +1804,158 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
     if(fSolUni==false && fSolTosca==false) printf("\n\n\n\n******** TPC: BEWARE no solenoid since neither field type switched on\n\n\n\n");
   }// if not using G4SBSGlobalField can use local field for TPC sol
   else printf("\n\n\n******** TPC: BEWARE: not using a solenoid field\n\n\n");
+  
+
+  if( fFlux ){ //Make a sphere to compute particle flux:
+    G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
+				   0.*deg, 150.*deg );
+    G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
+    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", TPCBfield_log, false, 0 );
+
+    fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     
+    G4String FluxSDname = "FLUX";
+    G4String Fluxcollname = "FLUXHitsCollection";
+    G4SBSCalSD *FluxSD = NULL;
+    if( !( FluxSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(FluxSDname) ) ){
+      G4cout << "Adding FLUX SD to SDman..." << G4endl;
+      FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
+      fDetCon->fSDman->AddNewDetector( FluxSD );
+      (fDetCon->SDlist).insert( FluxSDname );
+      fDetCon->SDtype[FluxSDname] = kCAL;
+
+      (FluxSD->detmap).depth = 0;
+    }
+    fsph_log->SetSensitiveDetector( FluxSD );
+  }
+  
+  // Al target wall
+  // double wallthick = 0.01*mm;
+  // double capthick  = 0.01*mm;
+  // Kapton target wall
+  double wallthick = 0.02*mm;
+  double capthick  = 0.02*mm;
+  
+  
+  G4Tubs *targ_tube = new G4Tubs("targ_tube", fTargDiameter/2.0-wallthick, fTargDiameter/2.0, fTargLen/2.0, 0.*deg, 360.*deg );
+  G4Tubs *targ_cap = new G4Tubs("targ_cap", 0.0, fTargDiameter/2.0, capthick/2.0, 0.*deg, 360.*deg );
+  
+  // Al target wall
+  // G4LogicalVolume* targ_tube_log = new G4LogicalVolume(targ_tube, GetMaterial("Aluminum"),"targ_tube_log");
+  // G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Aluminum"),"targ_cap_log");
+  // Kapton target wall
+  G4LogicalVolume* targ_tube_log = new G4LogicalVolume(targ_tube, GetMaterial("Kapton"),"targ_tube_log");
+  G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Kapton"),"targ_cap_log");
+  
+  // gas
+  G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, fTargDiameter/2.0-wallthick,fTargLen/2.0, 0.*deg, 360.*deg );
+  G4LogicalVolume* gas_tube_log = NULL;
+
+
+  if( fTargType == kH2 || fTargType == kNeutTarg ){
+    gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refH2"), "gas_tube_log");
+  }
+  if( fTargType == kD2 ){
+    gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refD2"), "gas_tube_log");
+  }
+  if( fTargType == k3He ){
+    gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("pol3He"), "gas_tube_log");
+  }
+
+  G4LogicalVolume *motherlog = TPCBfield_log;
+  double target_zpos = 0.0;
+  
+  //if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), targ_tube_log,
+		    "targ_tube_phys", motherlog, false, 0);
+  
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos+fTargLen/2.0+capthick/2.0), targ_cap_log,
+		    "targ_cap_phys1", motherlog, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos-fTargLen/2.0-capthick/2.0), targ_cap_log,
+		    "targ_cap_phys2", motherlog, false, 1);
+  
+  assert(gas_tube_log);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
+		    "gas_tube_phys", motherlog, false, 0);
+  
+  BuildTPC(motherlog, target_zpos+5.0*cm);//TPC will always be 10cm longer than target.
+
+
+  //Visualization attributes:
+  TPCBfield_log->SetVisAttributes( G4VisAttributes::Invisible );
+
+  G4VisAttributes *tgt_cell_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
+  tgt_cell_visatt->SetForceWireframe(true);
+
+  targ_cap_log->SetVisAttributes( tgt_cell_visatt );
+  targ_tube_log->SetVisAttributes( tgt_cell_visatt );
+
+  G4VisAttributes *tgt_gas_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
+  gas_tube_log->SetVisAttributes( tgt_gas_visatt );
+
+}
+
+void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
+  // oversimplistic TPC
+  G4Tubs* TPCmother_solid = 
+    new G4Tubs("TPCmother_solid", fTargDiameter/2.0, 30.*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  G4LogicalVolume* TPCmother_log = 
+    new G4LogicalVolume(TPCmother_solid, GetMaterial("Air"),"TPCmother_log");
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCmother_log,
+  		    "TPCmother_phys", motherlog, false, 0);
+
+  G4Tubs* TPCinnergas_solid = 
+    new G4Tubs("TPCinnergas_solid", fTargDiameter/2.0, 10.*cm/2.0-0.002*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  G4Tubs* TPCinnerwall_solid = 
+    new G4Tubs("TPCinnerwall_solid", 10.0*cm/2.0-0.002*mm, 10.*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  G4Tubs* TPCgas_solid;// = 
+  // new G4Tubs("TPCgas_solid", 10.*cm/2.0, 30.0*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  G4Tubs* TPCouterwall_solid = 
+    new G4Tubs("TPCouterwall_solid", 30.0*cm/2.0, 30.*cm/2.0+0.002*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  
+  G4LogicalVolume* TPCinnergas_log = 
+    new G4LogicalVolume(TPCinnergas_solid, GetMaterial("ref4He"),"TPCinnergas_log");
+  G4LogicalVolume* TPCinnerwall_log = 
+    new G4LogicalVolume(TPCinnerwall_solid, GetMaterial("Kapton"),"TPCinnerwall_log");
+  G4LogicalVolume* TPCgas_log;// = 
+    //new G4LogicalVolume(TPCgas_solid, GetMaterial("ref4He"),"TPCgas_log");
+  G4LogicalVolume* TPCouterwall_log = 
+    new G4LogicalVolume(TPCouterwall_solid, GetMaterial("Kapton"),"TPCouterwall_log");
+
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCinnergas_log,
+		    "TPCinnergas_phys", TPCmother_log, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCinnerwall_log,
+		    "TPCinnerwall_phys", TPCmother_log, false, 0);
+  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCgas_log,
+  // 		    "TPCgas_phys", TPCmother_log, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCouterwall_log,
+		    "TPCouterwall_phys", TPCmother_log, false, 0);
 
   // sensitize gas
+  //Create sensitive detector for this tracker:
+  G4String mTPCSDname = "SBS/mTPC";
+  G4String mTPCcolname = "mTPCHitsCollection";
+  
+  G4SBSGEMSD* mTPCSD;
+
+  if( !(mTPCSD = (G4SBSGEMSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCSD = new G4SBSGEMSD( mTPCSDname, mTPCcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCSD);
+    (fDetCon->SDlist).insert(mTPCSDname);
+    fDetCon->SDtype[mTPCSDname] = kGEM;
+  }
+
+  for(int i = 0; i<20; i++){
+    TPCgas_solid = new G4Tubs("TPCgas_solid", 10.*cm/2.0+i*0.5*cm, 10.*cm/2.0+(i+1)*0.5*cm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+    TPCgas_log = new G4LogicalVolume(TPCgas_solid, GetMaterial("ref4He"),"TPCgas_log");
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCgas_log,
+		      "TPCgas_phys", TPCmother_log, false, i);
+    if(i==0)TPCgas_log->SetSensitiveDetector(mTPCSD);
+  }
   
   // Visualization attributes
-  TPCBfield_log->SetVisAttributes( G4VisAttributes::Invisible );
   TPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  TPCinnergas_log->SetVisAttributes( G4VisAttributes::Invisible );
   
   G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
   tpcwalls_visatt->SetForceWireframe(true);
@@ -1989,7 +1964,6 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   
   G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.5 ) );
   TPCgas_log->SetVisAttributes( tpcgas_visatt );
-  
 }
 
 void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){

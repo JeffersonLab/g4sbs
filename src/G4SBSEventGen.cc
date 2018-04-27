@@ -2,6 +2,10 @@
 #include "TString.h"
 #include "THashTable.h"
 #include "TGraph.h"
+#include "TChain.h"
+#include "TFile.h"
+#include "TObjArray.h"
+#include "TChainElement.h"
 
 #include "G4SBSEventGen.hh"
 #include "G4RotationMatrix.hh"
@@ -112,27 +116,29 @@ G4SBSEventGen::~G4SBSEventGen(){
 }
 
 void G4SBSEventGen::LoadPythiaChain( G4String fname ){
-  fPythiaChain = new TChain("Tout");
-  fPythiaChain->Add(fname);
-  fPythiaTree = new Pythia6_tree(fPythiaChain);
+  if( fPythiaChain != NULL ){
+    fPythiaChain->Add( fname );
+  } else { //First file:
+    fPythiaChain = new TChain("Tout");
+    fPythiaChain->Add(fname);
+    fchainentry = 0;
+  } 
 
-  fchainentry = 0;
- 
-  // if( !fPythiaTree ){
-  //   G4cerr << "Failed to initialize Pythia6 chain, from file " << fname << ", aborting..." << G4endl;
-  //   exit(-1);
+  // TFile *ftemp = new TFile( fname, "READ" );
+  // TGraph *gtemp;
+
+  // ftemp->GetObject( "graph_sigma", gtemp );
+
+  // if( gtemp ){
+  //   //fPythiaEvent.Sigma = gtemp->GetY()[gtemp->GetN()-1];
+  //   fPythiaSigma[fname] = gtemp->GetY()[gtemp->GetN()-1]*millibarn;
+  // } else {
+  //   //fPythiaEvent.Sigma = cm2;
+  //   fPythiaSigma[fname] = cm2;
   // }
 
-  TFile *ftemp = fPythiaChain->GetFile();
-  TGraph *gtemp;
-
-  ftemp->GetObject( "graph_sigma", gtemp );
-
-  if( gtemp ){
-    fPythiaEvent.Sigma = gtemp->GetY()[gtemp->GetN()-1];
-  } else {
-    fPythiaEvent.Sigma = cm2;
-  }
+  // ftemp->Close();
+  // delete ftemp;
 }
 
 void G4SBSEventGen::Initialize(){
@@ -1942,13 +1948,19 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
   }
 */
 bool G4SBSEventGen::GeneratePythia(){
+  
   fPythiaTree->GetEntry(fchainentry++);
 
+  G4String fnametemp = ( (TChain*) fPythiaTree->fChain )->GetFile()->GetName();
+
+  G4double sigmatemp = fPythiaSigma[fnametemp];
+  
   if( fchainentry % 1000 == 0 ) G4cout << "Passed event " << fchainentry << " in PYTHIA6 tree" << G4endl;
   
   //Populate the pythiaoutput data structure:
   fPythiaEvent.Clear();
   //fPythiaEvent.Nprimaries = fPythiaTree->Nparticles;
+  fPythiaEvent.Sigma = sigmatemp/cm2;
   fPythiaEvent.Ebeam = (*(fPythiaTree->E))[0]*GeV;
   fPythiaEvent.Eprime = (*(fPythiaTree->E))[2]*GeV;
   fPythiaEvent.theta_e = (*(fPythiaTree->theta))[2]*radian;
@@ -1974,6 +1986,8 @@ bool G4SBSEventGen::GeneratePythia(){
   fPythiaEvent.W2  = fPythiaTree->W2*GeV*GeV;
 
   int ngood = 0;
+
+  int ngen = 0;
   
   for( int i=0; i<fPythiaTree->Nparticles; i++ ){
     //Only fill the first four particles (event header info) and final-state particles (primaries to be generated):
@@ -2000,6 +2014,7 @@ bool G4SBSEventGen::GeneratePythia(){
 	     fPythiaEvent.phi[ngood] >= fPhMin_had && fPythiaEvent.phi[ngood] <= fPhMax_had &&
 	     fPythiaEvent.E[ngood] >= fEhadMin && fPythiaEvent.E[ngood] <= fEhadMax) ) ){ 
 	fPythiaEvent.genflag.push_back( 1 );
+	ngen++;
 	//G4cout << "located good event with one or more primary particles within generation limits" << G4endl;
       } else {
 	fPythiaEvent.genflag.push_back( 0 );
@@ -2008,6 +2023,8 @@ bool G4SBSEventGen::GeneratePythia(){
     }
   }
   fPythiaEvent.Nprimaries = fPythiaEvent.PID.size();
+
+  if( ngen == 0 ) return false;
   
   return true;
 }
@@ -2256,4 +2273,33 @@ bool G4SBSEventGen::GenerateCosmics(){
   fElectronP.set( ep*(xptr-fVert.x())/norm, ep*(fCosmPointer.y()-fVert.y())/norm, ep*(zptr-fVert.z())/norm );
     
   return true;
+}
+
+void G4SBSEventGen::InitializePythia6_Tree(){
+
+  TObjArray *FileList = fPythiaChain->GetListOfFiles();
+  TIter next(FileList);
+
+  TChainElement *chEl = 0;
+
+  TGraph *gtemp;
+  
+  while( (chEl = (TChainElement*) next()) ){
+    TFile newfile(chEl->GetTitle(),"READ");
+    newfile.GetObject("graph_sigma",gtemp);
+
+    if( gtemp ){
+      fPythiaSigma[chEl->GetTitle()] = (gtemp->GetY()[gtemp->GetN()-1])*millibarn;
+    } else {
+      fPythiaSigma[chEl->GetTitle()] = 1.0*cm2; //
+    }
+    newfile.Close();
+  }
+  
+  fPythiaTree = new Pythia6_tree( fPythiaChain );
+  
+  if( !fPythiaTree ){
+    G4cout << "Failed to initialize PYTHIA6 tree, aborting... " << G4endl;
+    exit(-1);
+  }
 }

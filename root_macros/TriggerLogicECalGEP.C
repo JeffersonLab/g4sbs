@@ -13,6 +13,7 @@
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TStyle.h"
+#include "TSystem.h"
 
 //Based on hard-coded geometry information in G4SBSECal.cc...
 void TriggerLogicECalGEP(const char *mapfilename){
@@ -64,8 +65,10 @@ void TriggerLogicECalGEP(const char *mapfilename){
 
   gStyle->SetOptStat(0);
   
-  TCanvas *c1 = new TCanvas("c1","c1",2000,1000);
+  TCanvas *c1 = new TCanvas("c1","c1",1400,700);
 
+  c1->Update();
+  
   c1->Divide(2,1,.001,.001);
 
   c1->cd(1);
@@ -171,7 +174,7 @@ void TriggerLogicECalGEP(const char *mapfilename){
 	  
 	}
 
-	//c1->Update();
+	c1->Update();
 	
 	first = false;
 
@@ -185,6 +188,7 @@ void TriggerLogicECalGEP(const char *mapfilename){
   //c1->cd(1);
   //hframe->Draw();
 
+  c1->Update();
   c1->cd(2);
   hframe->Draw();
   
@@ -239,6 +243,8 @@ void TriggerLogicECalGEP(const char *mapfilename){
 
     XavgL1[icell_L1] = xsum/double(cell_list_temp.size());
     YavgL1[icell_L1] = ysum/double(cell_list_temp.size());
+
+    c1->Update();
 
   }
 
@@ -362,9 +368,9 @@ void TriggerLogicECalGEP(const char *mapfilename){
       if( cell_list_L2sum[icell_L2].size() > 0 ){	
 	icell_L2++;
 	c1->Update();
-	cout << "Press Enter to continue";
+	// cout << "Press Enter to continue";
       
-	currentline.ReadLine(cin,kFALSE);
+	// currentline.ReadLine(cin,kFALSE);
       }
 	//}
 
@@ -494,9 +500,9 @@ void TriggerLogicECalGEP(const char *mapfilename){
 	icell_L2++;
       
 	c1->Update();
-	cout << "Press Enter to continue";
+	// cout << "Press Enter to continue";
 	
-	currentline.ReadLine(cin,kFALSE);
+	// currentline.ReadLine(cin,kFALSE);
       }
     }
   }
@@ -620,9 +626,11 @@ void TriggerLogicECalGEP(const char *mapfilename){
 	icell_L2++;
 
 	c1->Update();
-	cout << "Press Enter to continue";
+	//cout << "Press Enter to continue";
 	
-	currentline.ReadLine(cin,kFALSE);
+	//currentline.ReadLine(cin,kFALSE);
+
+	
       }
 
       

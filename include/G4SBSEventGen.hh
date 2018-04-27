@@ -118,6 +118,9 @@ public:
   double GetGenVol(){ return fGenVol; }
   double GetLumi(){ return fLumi; }
   double GetMaxWeight(){ return fMaxWeight; }
+
+  void InitializePythia6_Tree();
+  
 private:
 
   void InitializeRejectionSampling(); //Make private so it can only be called by G4SBSEventGen::Initialize()
@@ -200,6 +203,8 @@ private:
   long fchainentry;
   TChain *fPythiaChain;
   Pythia6_tree *fPythiaTree;
+
+  map<G4String, G4double> fPythiaSigma;
   
   G4SBSPythiaOutput fPythiaEvent;
 };

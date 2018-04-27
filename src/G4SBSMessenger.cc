@@ -502,8 +502,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4int nevt = runCmd->GetNewIntValue(newValue);
 
     //If the generator is PYTHIA, don't try to generate more events than we have available:
-    if( fevgen->GetKine() == kPYTHIA6 && fevgen->GetPythiaChain()->GetEntries() < nevt ){
-      nevt = fevgen->GetPythiaChain()->GetEntries();
+    if( fevgen->GetKine() == kPYTHIA6 ){
+      if( fevgen->GetPythiaChain()->GetEntries() < nevt ){
+	nevt = fevgen->GetPythiaChain()->GetEntries();
+      }
+      fevgen->InitializePythia6_Tree();
     }
     
     fevgen->SetNevents(nevt);

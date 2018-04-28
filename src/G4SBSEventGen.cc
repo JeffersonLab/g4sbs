@@ -2003,6 +2003,18 @@ bool G4SBSEventGen::GeneratePythia(){
   fPythiaEvent.xbj = fPythiaTree->xbj;
   fPythiaEvent.y   = fPythiaTree->y;
   fPythiaEvent.W2  = fPythiaTree->W2*GeV*GeV;
+  
+  // E.Fuchey, 2018/04/28: 
+  // If we generate exclusive event, we want to be able to select an event with the electron only: 
+  // if the electrons makes it, we want to keep everything; otherwise, we want to keep nothing.
+  G4bool good_excl_event = false;
+  if(fExclPyXSoption>=0 && 
+     (fThMin <= fPythiaEvent.theta_e && fPythiaEvent.theta_e <= fThMax &&
+      fPhMin <= fPythiaEvent.phi_e && fPythiaEvent.phi_e <= fPhMax &&
+      fEeMin <= fPythiaEvent.Eprime && fPythiaEvent.Eprime <= fEeMax)
+     ){
+    good_excl_event = true;
+  }
 
   int ngood = 0;
   //cout << "G4SBSEventGen.cc" << endl;
@@ -2026,7 +2038,7 @@ bool G4SBSEventGen::GeneratePythia(){
       fPythiaEvent.theta.push_back( (*(fPythiaTree->theta))[i]*radian );
       fPythiaEvent.phi.push_back( (*(fPythiaTree->phi))[i]*radian );
       if( (*(fPythiaTree->status))[i] == 1 && 
-	  ( fExclPyXSoption>=0 || //if it is an exclusive event, we want to keep everything
+	  ( good_excl_event || //if it is a good exclusive event, we want to keep everything
 	    (fPythiaEvent.theta[ngood] >= fThMin && fPythiaEvent.theta[ngood] <= fThMax &&
 	     fPythiaEvent.phi[ngood] >= fPhMin && fPythiaEvent.phi[ngood] <= fPhMax &&
 	     fPythiaEvent.E[ngood] >= fEeMin && fPythiaEvent.E[ngood] <= fEeMax) ||

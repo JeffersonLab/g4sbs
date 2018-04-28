@@ -1898,7 +1898,7 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
 void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   // oversimplistic TPC
   G4Tubs* TPCmother_solid = 
-    new G4Tubs("TPCmother_solid", fTargDiameter/2.0, 30.*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+    new G4Tubs("TPCmother_solid", fTargDiameter/2.0, 30.*cm/2.0+0.002*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
   G4LogicalVolume* TPCmother_log = 
     new G4LogicalVolume(TPCmother_solid, GetMaterial("Air"),"TPCmother_log");
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCmother_log,
@@ -1949,10 +1949,15 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
     
   for(int i = 0; i<20; i++){
     TPCgas_solid = new G4Tubs("TPCgas_solid", 10.*cm/2.0+i*0.5*cm, 10.*cm/2.0+(i+1)*0.5*cm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
-    TPCgas_log = new G4LogicalVolume(TPCgas_solid, GetMaterial("ref4He"),"TPCgas_log");
+    if(i==0){// temporary: just to make sure any proton will be detected
+      TPCgas_log = new G4LogicalVolume(TPCgas_solid, GetMaterial("GEMgas"),"TPCgas_log");
+    }else{
+      TPCgas_log = new G4LogicalVolume(TPCgas_solid, GetMaterial("ref4He"),"TPCgas_log");
+    }
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCgas_log,
 		      "TPCgas_phys", TPCmother_log, false, i);
-    if(i==0)TPCgas_log->SetSensitiveDetector(mTPCSD);
+    if(i==0)// temporary
+      TPCgas_log->SetSensitiveDetector(mTPCSD);
     TPCgas_log->SetVisAttributes( tpcgas_visatt );
   }
   

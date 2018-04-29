@@ -2008,14 +2008,15 @@ bool G4SBSEventGen::GeneratePythia(){
   // If we generate exclusive event, we want to be able to select an event with the electron only: 
   // if the electrons makes it, we want to keep everything; otherwise, we want to keep nothing.
   G4bool good_excl_event = false;
-  if(fExclPyXSoption>=0 && 
-     (fThMin <= fPythiaEvent.theta_e && fPythiaEvent.theta_e <= fThMax &&
-      fPhMin <= fPythiaEvent.phi_e && fPythiaEvent.phi_e <= fPhMax &&
-      fEeMin <= fPythiaEvent.Eprime && fPythiaEvent.Eprime <= fEeMax)
-     ){
-    good_excl_event = true;
+  if(fExclPyXSoption>=0){
+    G4double phi = fPythiaEvent.phi_e;
+    if(phi<0 && fPhMin>0)phi+= 8*atan(1);//then we consider the phi cut on 0.-360. instead of -180, 180.
+    if(fThMin <= fPythiaEvent.theta_e && fPythiaEvent.theta_e <= fThMax &&
+       fPhMin <= phi && phi <= fPhMax &&
+       fEeMin <= fPythiaEvent.Eprime && fPythiaEvent.Eprime <= fEeMax)good_excl_event = true;
+    //if(good_excl_event)cout << fPythiaEvent.theta_e << " " << phi << " " << fPythiaEvent.Eprime << endl;
   }
-
+  
   int ngood = 0;
   //cout << "G4SBSEventGen.cc" << endl;
   for( int i=0; i<fPythiaTree->Nparticles; i++ ){
@@ -2039,12 +2040,13 @@ bool G4SBSEventGen::GeneratePythia(){
       fPythiaEvent.phi.push_back( (*(fPythiaTree->phi))[i]*radian );
       if( (*(fPythiaTree->status))[i] == 1 && 
 	  ( good_excl_event || //if it is a good exclusive event, we want to keep everything
-	    (fPythiaEvent.theta[ngood] >= fThMin && fPythiaEvent.theta[ngood] <= fThMax &&
-	     fPythiaEvent.phi[ngood] >= fPhMin && fPythiaEvent.phi[ngood] <= fPhMax &&
-	     fPythiaEvent.E[ngood] >= fEeMin && fPythiaEvent.E[ngood] <= fEeMax) ||
-	    (fPythiaEvent.theta[ngood] >= fThMin_had && fPythiaEvent.theta[ngood] <= fThMax_had &&
-	     fPythiaEvent.phi[ngood] >= fPhMin_had && fPythiaEvent.phi[ngood] <= fPhMax_had &&
-	     fPythiaEvent.E[ngood] >= fEhadMin && fPythiaEvent.E[ngood] <= fEhadMax) ) ){ 
+	    ( (fExclPyXSoption<0) && 
+	      ( (fPythiaEvent.theta[ngood] >= fThMin && fPythiaEvent.theta[ngood] <= fThMax &&
+		 fPythiaEvent.phi[ngood] >= fPhMin && fPythiaEvent.phi[ngood] <= fPhMax &&
+		 fPythiaEvent.E[ngood] >= fEeMin && fPythiaEvent.E[ngood] <= fEeMax) ||
+		(fPythiaEvent.theta[ngood] >= fThMin_had && fPythiaEvent.theta[ngood] <= fThMax_had &&
+		 fPythiaEvent.phi[ngood] >= fPhMin_had && fPythiaEvent.phi[ngood] <= fPhMax_had &&
+		 fPythiaEvent.E[ngood] >= fEhadMin && fPythiaEvent.E[ngood] <= fEhadMax) ) ) ) ){ 
 	fPythiaEvent.genflag.push_back( 1 );
 	//G4cout << "located good event with one or more primary particles within generation limits" << G4endl;
       } else {

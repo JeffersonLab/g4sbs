@@ -25,7 +25,7 @@
 /g4sbs/bbang      30.0 deg
 /g4sbs/bbdist      1.55 m
 /g4sbs/sbsang    14.0 deg
-/g4sbs/hcaldist    7.0 m
+/g4sbs/hcaldist    9.0 m
 /g4sbs/48D48dist   2.5 m
 /g4sbs/sbsmagfield  1.4 tesla
 /g4sbs/48d48field   1
@@ -33,6 +33,11 @@
 /g4sbs/sbsclampopt  0
 /g4sbs/uselead 0
 /g4sbs/richdist    4.6 m
+/g4sbs/sbstrkrdist 4.3 m
+/g4sbs/sbstrkrpitch 0.0 deg
+/g4sbs/userichaero true
+/g4sbs/richgas     C4F10
+/g4sbs/grinchgas   SF6
 /g4sbs/thmin      22.0 deg
 /g4sbs/thmax      42.0 deg
 /g4sbs/phmin     -40.0 deg
@@ -50,5 +55,8 @@
 /g4sbs/totalabs   false
 
 /g4sbs/treeflag 1
+
+/g4sbs/totalabs true
+/g4sbs/rejectionsampling false
 
 /g4sbs/run 100

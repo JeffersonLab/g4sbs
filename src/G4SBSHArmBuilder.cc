@@ -54,9 +54,16 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   f48D48_fieldclamp_config = 2; //0 = No field clamps. 2 = GEp (default). 1 = BigBite experiments:
 
   fHCALdist  = 17.0*m;
+  fLACdist   = 14.0*m;
   fHCALvertical_offset = 0.0*cm;
+  fHCALhorizontal_offset = 0.0*cm;
 
-  fRICHdist  = 15.0*m;
+  fLACvertical_offset = 0.0*cm;
+  fLAChorizontal_offset = 0.0*cm;
+
+  fRICHdist  = 5.5*m;
+  fRICHgas   = "C4F10_gas"; //default to C4F10;
+  fRICH_use_aerogel = true;
 
   f48D48depth = 1219.2*mm;
   f48D48width = 2324.1*mm;
@@ -64,6 +71,11 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
 
   fUseLocalField = false;
   fFieldStrength = 1.4*tesla;
+
+  fSBS_tracker_dist = 5.1*m;
+  fSBS_tracker_pitch = 0.0*deg;
+  
+  fBuildSBSSieve = false;
   
   assert(fDetCon);
 }
@@ -80,13 +92,18 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   if( exptype != kC16 ) {
     if(!fDetCon->UserDisabled("48d48"))
       Make48D48(worldlog, f48D48dist + f48D48depth/2. );
+
+    if(fBuildSBSSieve)
+      MakeSBSSieveSlit(worldlog);
+    
     //MakeHCAL( worldlog, fHCALvertical_offset );
-    if(!fDetCon->UserDisabled("HCAL"))
+    if(!fDetCon->UserDisabled("HCAL") &&
+        exptype != kA1n  && exptype != kTDIS && exptype != kNDVCS )
       MakeHCALV2( worldlog, fHCALvertical_offset );
   }
 
   // Now build special components for experiments
-  if( exptype == kSIDISExp ) {
+  if( exptype == kSIDISExp) {
     //SIDIS experiment requires a RICH detector and a tracker for SBS: 
     MakeTracker(worldlog);
     //MakeRICH( worldlog );
@@ -96,14 +113,17 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeGEpFPP(worldlog);
   }
 
-  if ( exptype == kA1n) {
+  if ( exptype == kA1n  || exptype == kTDIS || exptype == kNDVCS ) {
     //A1n case is similar to SIDIS, except now we want to use the SBS in
     //"electron mode"; meaning we want to remove the aerogel from the RICH,
     //and replace the RICH gas with CO2, and we also want to have a non-zero
     //pitch angle for the SBS tracker. We assume (for NOW) that the RICH can
     //be supported at some non-zero "pitch" angle:
-    MakeTracker_A1n(worldlog);
-    MakeRICH_new( worldlog );
+    
+    //TDIS and nDVCS will also use SBS in electron mode
+    MakeElectronModeSBS(worldlog);
+    //MakeTracker_A1n(worldlog);
+    //MakeRICH_new( worldlog );
   }
 
   // Build CDET (as needed)
@@ -1380,6 +1400,9 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     (fDetCon->SDlist).insert(HCalScintSDName);
     fDetCon->SDtype[HCalScintSDName] = kCAL;
     (HCalScintSD->detmap).depth = 1;
+
+    //This will be overridden if the command /g4sbs/threshold has been invoked for this detector:
+    fDetCon->SetTimeWindowAndThreshold( HCalScintSDName, 10.0*MeV, 500.0*ns );
   }
   log_Scint->SetSensitiveDetector(HCalScintSD);
 
@@ -1388,7 +1411,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   G4String HCalCollName = "HCalHitsCollection";
   G4SBSECalSD *HCalSD = NULL;
 
-  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(HCalSDName)) ){
+  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(HCalSDName)) ){
     G4cout << "Adding HCal PMT Sensitive Detector to SDman..." << G4endl;
     HCalSD = new G4SBSECalSD( HCalSDName, HCalCollName );
     sdman->AddNewDetector(HCalSD);
@@ -1467,8 +1490,19 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     posModY -= dist_ModuleCToCY/2.;
   }
 
+  G4ThreeVector HCAL_zaxis( dist_HCALX, 0.0, dist_HCALZ );
+  G4ThreeVector HCAL_yaxis( 0.0,        1.0, 0.0        );
+
+  HCAL_zaxis = HCAL_zaxis.unit();
+  G4ThreeVector HCAL_xaxis = HCAL_yaxis.cross( HCAL_zaxis ).unit();
+
+  G4ThreeVector HCAL_pos =
+    HCAL_zaxis * dist_HCalRadius +
+    HCAL_xaxis * fHCALhorizontal_offset +
+    HCAL_yaxis * fHCALvertical_offset; 
+  
   // Lastly, place the HCAL volume
-  new G4PVPlacement(rot_HCAL, G4ThreeVector(dist_HCALX,dist_HCALY,dist_HCALZ),
+  new G4PVPlacement(rot_HCAL, HCAL_pos,
       log_HCAL, "HCal Mother", motherlog, false, 0, checkOverlap);
 
   // Apply the step limiter, if requested
@@ -1650,6 +1684,8 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     //fDetCon->SDarm[HCalScintSDname] = kHarm;
 
     (HCalScintSD->detmap).depth = 1;
+
+    fDetCon->SetTimeWindowAndThreshold( HCalScintSDname, 10.0*MeV, 100.0*ns );
   }
   logScinPl->SetSensitiveDetector(HCalScintSD);
 
@@ -1929,12 +1965,55 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   logCalo->SetVisAttributes(G4VisAttributes::Invisible);
 }
 
-void G4SBSHArmBuilder::MakeTracker( G4LogicalVolume *worldlog)
-{
-  // 2016/06/23 (jc2): Moved SIDIS tracker to its own function
-  //Let's make a simple tracker: 5 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~50 cm + about 1.6 cm
-  G4double SBStracker_dist = fRICHdist - 0.3*m;
-  G4ThreeVector SBStracker_pos( -SBStracker_dist * sin( f48D48ang ), 0.0, SBStracker_dist * cos( f48D48ang ) );
+// void G4SBSHArmBuilder::MakeTracker( G4LogicalVolume *worldlog)
+// {
+//   // 2016/06/23 (jc2): Moved SIDIS tracker to its own function
+//   //Let's make a simple tracker: 5 planes of GEMs, equally spaced in z, separation in z between planes of 10 cm. Then total length of tracker is ~50 cm + about 1.6 cm
+//   //G4double SBStracker_dist = fRICHdist - 0.3*m;
+//   G4double SBStracker_dist = fSBS_tracker_dist;
+//   G4ThreeVector SBStracker_pos( -SBStracker_dist * sin( f48D48ang ), 0.0, SBStracker_dist * cos( f48D48ang ) );
+
+//   G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
+
+//   //Just a test:
+//   //SBStracker_rot_I->rotateY( 14.0*deg );
+
+//   G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
+//   SBStracker_rot->rotateY( f48D48ang );
+
+//   G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
+
+//   G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
+
+//   //For consistency with BigBite, place "Tracker" volume before GEMs are placed in it:
+//   new G4PVPlacement( SBStracker_rot, SBStracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
+
+//   int ngems_SBStracker = 5;
+//   vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
+
+//   G4double zspacing_SBStracker = 10.0*cm;
+//   G4double zoffset_SBStracker = -20.0*cm;
+
+//   for(int i=0; i<ngems_SBStracker; i++ ){
+//     zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
+//     wplanes_SBStracker.push_back( 60.0*cm );
+//     hplanes_SBStracker.push_back( 200.0*cm );
+//   }
+
+//   G4SBSTrackerBuilder trackerbuilder(fDetCon);
+
+//   //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
+
+//   trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
+//       ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
+
+//   SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
+// }
+
+void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
+  //      G4double SBStracker_dist = fRICHdist - 0.3*m; //distance to the front of the SBS tracker
+  
+  G4ThreeVector SBS_midplane_pos( -(f48D48dist + 0.5*f48D48depth)*sin(f48D48ang), 0.0, (f48D48dist+0.5*f48D48depth)*cos(f48D48ang) );
 
   G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
 
@@ -1943,13 +2022,38 @@ void G4SBSHArmBuilder::MakeTracker( G4LogicalVolume *worldlog)
 
   G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
   SBStracker_rot->rotateY( f48D48ang );
+  SBStracker_rot->rotateX( fSBS_tracker_pitch );
 
   G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
 
   G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
 
-  //For consistency with BigBite, place "Tracker" volume before GEMs are placed in it:
-  new G4PVPlacement( SBStracker_rot, SBStracker_pos, SBStracker_log, "SBStracker_phys", worldlog, false, 0 );
+  //G4double RICH_yoffset = (fRICHdist - (f48D48dist + 0.5*f48D48depth) )*sin( fSBS_tracker_pitch );
+  //We want the center of the first tracker plane to be directly above the point at a distance D along the SBS center line
+  //from the target:
+  // xmidplane + L*sin
+
+  
+  
+  G4double Tracker_yoffset = (fSBS_tracker_dist - (f48D48dist + 0.5*f48D48depth) )*tan(fSBS_tracker_pitch);
+
+  G4ThreeVector FirstPlane_pos( -fSBS_tracker_dist*sin(f48D48ang),
+				Tracker_yoffset,
+				fSBS_tracker_dist*cos(f48D48ang) );
+  
+  G4ThreeVector SBS_tracker_axis = (FirstPlane_pos - SBS_midplane_pos).unit();
+			     
+  
+  // G4ThreeVector RICH_pos( -fRICHdist*sin(f48D48ang), RICH_yoffset, fRICHdist*cos(f48D48ang) );
+
+  // G4ThreeVector SBS_tracker_axis = (RICH_pos - SBS_midplane_pos).unit();
+  // G4ThreeVector SBS_tracker_pos = RICH_pos - 0.3*m*SBS_tracker_axis;
+
+  G4ThreeVector SBS_tracker_pos = FirstPlane_pos + 20.0*cm*SBS_tracker_axis;
+  
+  printf("sbs_tracker_pos: %f, %f, %f", SBS_tracker_pos.x(), SBS_tracker_pos.y(), SBS_tracker_pos.z() );
+  
+  new G4PVPlacement( SBStracker_rot, SBS_tracker_pos, SBStracker_log, "SBStracker_phys", motherlog, false, 0 );
 
   int ngems_SBStracker = 5;
   vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
@@ -1973,52 +2077,17 @@ void G4SBSHArmBuilder::MakeTracker( G4LogicalVolume *worldlog)
   SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
 }
 
-void G4SBSHArmBuilder::MakeTracker_A1n(G4LogicalVolume *motherlog){
-  //      G4double SBStracker_dist = fRICHdist - 0.3*m; //distance to the front of the SBS tracker
-  G4ThreeVector SBS_midplane_pos( -(f48D48dist + 0.5*f48D48depth)*sin(f48D48ang), 0.0, (f48D48dist+0.5*f48D48depth)*cos(f48D48ang) );
+void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
+  MakeTracker( motherlog );
+  MakeRICH_new( motherlog );
 
-  G4RotationMatrix *SBStracker_rot_I = new G4RotationMatrix(G4RotationMatrix::IDENTITY);
-
-  //Just a test:
-  //SBStracker_rot_I->rotateY( 14.0*deg );
-
-  G4RotationMatrix *SBStracker_rot = new G4RotationMatrix;
-  SBStracker_rot->rotateY( f48D48ang );
-  SBStracker_rot->rotateX( fSBS_tracker_pitch );
-
-  G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
-
-  G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
-
-  G4double RICH_yoffset = (fRICHdist - (f48D48dist + 0.5*f48D48depth) )*sin( fSBS_tracker_pitch );
-
-  G4ThreeVector RICH_pos( -fRICHdist*sin(f48D48ang), RICH_yoffset, fRICHdist*cos(f48D48ang) );
-
-  G4ThreeVector SBS_tracker_axis = (RICH_pos - SBS_midplane_pos).unit();
-  G4ThreeVector SBS_tracker_pos = RICH_pos - 0.3*m*SBS_tracker_axis;
-
-  new G4PVPlacement( SBStracker_rot, SBS_tracker_pos, SBStracker_log, "SBStracker_phys", motherlog, false, 0 );
-
-  int ngems_SBStracker = 5;
-  vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
-
-  G4double zspacing_SBStracker = 10.0*cm;
-  G4double zoffset_SBStracker = -20.0*cm;
-
-  for(int i=0; i<ngems_SBStracker; i++ ){
-    zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
-    wplanes_SBStracker.push_back( 60.0*cm );
-    hplanes_SBStracker.push_back( 200.0*cm );
+  Exp_t exptype = fDetCon->fExpType;
+  if( exptype == kA1n ){ //HCAL AND LAC:
+    MakeHCALV2( motherlog, fHCALvertical_offset );
+    MakeLAC( motherlog );
+  } else { //TDIS or NDVCS: LAC only:
+    MakeLAC( motherlog );
   }
-
-  G4SBSTrackerBuilder trackerbuilder(fDetCon);
-
-  //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //H arm is "1"
-
-  trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
-      ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
-
-  SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
 }
 
 void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
@@ -2050,13 +2119,15 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   
   G4Box *RICHbox = new G4Box("RICHbox", RICHbox_w/2.0, RICHbox_h/2.0, RICHbox_thick/2.0  );
 
-  G4String RadiatorGas_Name = "C4F10_gas";
-  if( fDetCon->fExpType == kA1n ){
-    RadiatorGas_Name = "CO2";
-  }
+  G4String RadiatorGas_Name = fRICHgas;
+  // if( electronmode ){
+  //   printf("SBS in electron mode: using CO2 radiator for RICH\n");
+  //   RadiatorGas_Name = "CO2";
+  // }
   
   G4LogicalVolume *RICHbox_log = new G4LogicalVolume( RICHbox, GetMaterial(RadiatorGas_Name), "SBS_RICH_log" );
 
+  G4cout << "Building RICHbox with gas " << RadiatorGas_Name << G4endl;
   //At the end, we will rotate it by 180 degrees about z:
   
   //Define the origin with the x and z coordinates at "bottom left" corner of the box (everything will be centered in y)
@@ -2509,8 +2580,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   
   //For A1n ("Electron mode"), do not create/place aerogel wall components:
 
-  if( fDetCon->fExpType != kA1n ){
-  
+  if( fRICH_use_aerogel ){
     new G4PVPlacement( 0, pos_aerogel_wall, Aerogel_wall_container_log, "Aerogel_wall_container_pv", RICHbox_log, false, 0 );
     new G4PVPlacement( 0, aero_entry_window_pos, aero_entry_log, "SBSRICH_aero_entry_pv", RICHbox_log, false, 0 );
     new G4PVPlacement( 0, aero_exit_window_pos, aero_exit_window_log, "SBSRICH_aero_exit_pv", RICHbox_log, false, 0 );
@@ -2875,6 +2945,8 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     fDetCon->SDtype[sdname] = kCAL;
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
+
+    fDetCon->SetTimeWindowAndThreshold( sdname, 4.0*MeV, 50.0*ns );
   }
   
   //Now we need to define the coordinates of the "modules":
@@ -3579,4 +3651,179 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 
   analog->SetVisAttributes( CH2anavisatt );
   
+}
+
+//Sieve slit
+void G4SBSHArmBuilder::MakeSBSSieveSlit(G4LogicalVolume *motherlog)
+{
+  printf("Building SBS sieve slit...\n");
+  
+  
+}
+ 
+void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
+
+  //Define geometry parameters needed to build LAC:
+  G4double W_LAC = 241.0*cm; //outer width of LAC module:
+  G4double H_LAC = 446.0*cm; //outer height of LAC module
+  //G4double D_LAC = 56.1*cm; //depth of LAC module
+  G4double Winner_LAC = 217.0*cm; //inner width of LAC module
+  G4double Hinner_LAC = 400.0*cm; //outer width of LAC module
+  G4double PbStrip_thick = 0.20*cm; //thickness of lead strips
+  G4double ScintStrip_thick = 1.5*cm; //thickness of NE110A strips
+
+  G4int Nlayers_total = 33;
+  G4int Nlayers_inner = 17;
+  G4int Nlayers_outer = 16;
+
+  G4int NstripsX = 24;
+  G4int NstripsY = 40;
+  
+  G4double D_LAC = 55.9*cm; 
+  
+  G4Box *LAC_mother_box = new G4Box( "LAC_mother_box", 0.5*W_LAC+0.1*mm, 0.5*H_LAC+0.1*mm, 0.5*D_LAC+0.1*mm );
+
+  G4LogicalVolume *log_LAC = new G4LogicalVolume( LAC_mother_box, GetMaterial("Air"), "log_LAC" );
+
+  //G4VisAttributes *LAC_visatt = new G4VisAttributes( G4VisAttributes::Invisible );
+
+  log_LAC->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  
+  G4double dLACbox = fLACdist + 0.5*D_LAC;
+
+  G4ThreeVector LAC_pos( -dLACbox*sin(f48D48ang), fLACvertical_offset, dLACbox*cos(f48D48ang ) );
+
+  G4ThreeVector LAC_zaxis( -sin(f48D48ang), 0.0, cos(f48D48ang) );
+  G4ThreeVector LAC_yaxis(0,1,0);
+  G4ThreeVector LAC_xaxis = LAC_yaxis.cross(LAC_zaxis).unit();
+
+  LAC_pos = LAC_pos + fLACvertical_offset * LAC_yaxis + fLAChorizontal_offset * LAC_xaxis; 
+  
+  G4RotationMatrix *rot_LAC = new G4RotationMatrix;
+  rot_LAC->rotateY(f48D48ang);
+
+  new G4PVPlacement( rot_LAC, LAC_pos, log_LAC, "phys_LAC", motherlog, false, 0 );
+
+  
+  
+  //Define sensitivity:
+  // grab SD manager:
+  G4SDManager *sdman = fDetCon->fSDman;
+  
+  G4String LACScintSDname  = "Harm/LACScint";
+  G4String LACScintCollName = "LACScintHitsCollection";
+  G4SBSCalSD *LACScintSD = NULL;
+
+  if( !( (G4SBSCalSD*) sdman->FindSensitiveDetector(LACScintSDname)) ){
+    G4cout << "Adding LAC Scint. Sensitive Detector to SDman..." << G4endl;
+    LACScintSD = new G4SBSCalSD( LACScintSDname, LACScintCollName );
+    sdman->AddNewDetector( LACScintSD );
+    (fDetCon->SDlist).insert(LACScintSDname);
+    fDetCon->SDtype[LACScintSDname] = kCAL;
+    (LACScintSD->detmap).depth = 0;
+
+    fDetCon->SetTimeWindowAndThreshold( LACScintSDname, 10.0*MeV, 100.0*ns );
+  }
+  
+  //Now start populating the layers. In the absence of a better "guess", I will assume that there is one more layer's worth of "short" strips than "long" strips:
+
+  TString ScintStrip_boxname,ScintStrip_logname,ScintStrip_physname;
+  TString LeadSheet_boxname, LeadSheet_logname, LeadSheet_physname;
+
+  G4int icopy_LACscint = 0; //Global copy number of scintillator strips
+  G4int istack         = 0; //What we are after here is the sum of all energy depositions in individual "stacks" (each stack is coupled to a PMT at both ends)
+  
+  G4VisAttributes *LACscint_visatt = new G4VisAttributes( G4Colour(0.05, 0.9, 0.7) );
+  G4VisAttributes *PbSheet_visatt = new G4VisAttributes( G4Colour( 0.3, 0.3, 0.3 ) );
+  PbSheet_visatt->SetForceWireframe(true);
+  
+  for( G4int ilayer=0; ilayer<Nlayers_total; ilayer++ ){
+
+    G4double zscint_layer = -D_LAC/2.0 + (ilayer+0.5)*ScintStrip_thick + ilayer*PbStrip_thick; //z of center of scint. strip
+    G4double zlead_layer = zscint_layer + 0.5*(ScintStrip_thick + PbStrip_thick );
+    G4double Wlayer = Winner_LAC + (zscint_layer+D_LAC/2.0)*(W_LAC - Winner_LAC)/D_LAC; //projective geometry
+    G4double Hlayer = Hinner_LAC + (zscint_layer+D_LAC/2.0)*(H_LAC - Hinner_LAC)/D_LAC; //projective geometry
+
+    LeadSheet_boxname.Form("LACleadbox_layer%d", ilayer);
+    LeadSheet_logname.Form("LACleadlog_layer%d", ilayer);
+    LeadSheet_physname.Form("LACleadphys_layer%d", ilayer );
+    
+    G4Box *leadbox_temp = new G4Box(LeadSheet_boxname.Data(), Wlayer/2.0, Hlayer/2.0, PbStrip_thick/2.0 );
+    G4LogicalVolume *leadlog_temp = new G4LogicalVolume( leadbox_temp, GetMaterial("Lead"), LeadSheet_logname.Data() );
+
+    if( ilayer+1 < Nlayers_total ){
+      new G4PVPlacement( 0, G4ThreeVector(0,0,zlead_layer), leadlog_temp, LeadSheet_physname.Data(), log_LAC, false, 0 ); //no copy number since not sensitive
+    }
+    
+    G4double stripwidth,striplength;
+    
+    if( ilayer % 2 == 0 ){ //"short" (horizontal) strips
+      G4double stripW = Wlayer;
+      G4double stripH = Hlayer/G4double(NstripsY);
+      ScintStrip_boxname.Form( "LACscintbox_layer%d", ilayer );
+      //All strips in a given layer have the same dimensions:
+      G4Box *strip_temp = new G4Box( ScintStrip_boxname.Data(),
+				     stripW/2.0, stripH/2.0, ScintStrip_thick/2.0 );
+
+      ScintStrip_logname.Form( "LACscintlog_layer%d", ilayer );
+      G4LogicalVolume *log_strip_temp = new G4LogicalVolume( strip_temp, GetMaterial("NE110A"), ScintStrip_logname.Data() );  
+
+      log_strip_temp->SetVisAttributes( LACscint_visatt );      
+      log_strip_temp->SetSensitiveDetector( LACScintSD );
+      
+      for( G4int istrip=0; istrip<NstripsY; istrip++ ){
+	ScintStrip_physname.Form( "LACscintphys_layer%d_strip%d", ilayer, istrip );
+	G4ThreeVector strip_pos( 0.0, -Hlayer/2.0 + (istrip+0.5)*stripH, zscint_layer );
+
+	G4int stack_layer = (ilayer < Nlayers_inner) ? 0 : 1;
+	
+	istack = istrip + (NstripsX+NstripsY)*stack_layer;
+	
+	new G4PVPlacement( 0, strip_pos, log_strip_temp, ScintStrip_physname.Data(), log_LAC, false, istack );
+	
+	//Now initialize the detector map quantities:
+	(LACScintSD->detmap).Plane[istack] = stack_layer;
+	(LACScintSD->detmap).Wire[istack]  = ilayer;
+	(LACScintSD->detmap).Row[istack]   = istrip;
+	(LACScintSD->detmap).Col[istack]   = -1;
+	(LACScintSD->detmap).LocalCoord[istack] = strip_pos;
+
+	//icopy_LACscint++;
+      }
+    } else { //"long" (vertical) strips
+      G4double stripW = Wlayer/G4double(NstripsX);
+      G4double stripH = Hlayer;
+      ScintStrip_boxname.Form( "LACscintbox_layer%d", ilayer );
+      G4Box *strip_temp = new G4Box( ScintStrip_boxname.Data(),
+				     stripW/2.0, stripH/2.0, ScintStrip_thick/2.0 );
+
+      ScintStrip_logname.Form( "LACscintlog_layer%d", ilayer );
+      G4LogicalVolume *log_strip_temp = new G4LogicalVolume( strip_temp, GetMaterial("NE110A"), ScintStrip_logname.Data() );
+
+      log_strip_temp->SetVisAttributes( LACscint_visatt );
+      log_strip_temp->SetSensitiveDetector( LACScintSD );
+
+      for( G4int istrip = 0; istrip<NstripsX; istrip++ ){
+	ScintStrip_physname.Form( "LACscintphys_layer%d_strip%d", ilayer, istrip );
+	G4ThreeVector strip_pos( -Wlayer/2.0 + (istrip+0.5)*stripW, 0.0, zscint_layer );
+
+	G4int stack_layer = (ilayer < Nlayers_inner) ? 0 : 1;
+	
+	istack = istrip + NstripsY + (NstripsX+NstripsY)*stack_layer;
+	
+	new G4PVPlacement( 0, strip_pos, log_strip_temp, ScintStrip_physname.Data(), log_LAC, false, istack );
+
+	//Now initialize the detector map quantities:
+	(LACScintSD->detmap).Plane[istack] = stack_layer;
+	(LACScintSD->detmap).Wire[istack]  = ilayer;
+	(LACScintSD->detmap).Row[istack]   = -1;
+	(LACScintSD->detmap).Col[istack]   = istrip;
+	(LACScintSD->detmap).LocalCoord[istack] = strip_pos;
+
+	//icopy_LACscint++;
+      } 
+    }
+  }
+				     
+
 }

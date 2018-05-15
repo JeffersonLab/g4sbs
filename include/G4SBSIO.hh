@@ -4,6 +4,7 @@
 #include "TROOT.h"
 #include "TObject.h"
 #include "THashTable.h"
+#include "TClonesArray.h"
 #include "G4Run.hh"
 #include "G4SBSRICHoutput.hh"
 #include "G4SBSECaloutput.hh"
@@ -20,11 +21,14 @@ class G4SBSGlobalField;
 
 #define MAXHITDATA 2000
 
+//These aren't really "event"-level quantities, as they are constants describing the setup, and should be stored in the "rundata" object.
 typedef struct {
   Double_t thbb, thsbs, dbb, dsbs, dhcal,voffhcal, drich, dsbstrkr, Ebeam;
 } gen_t;
 
 
+//"count", "rate", "sigma" are all redundant, should really only store one to the tree. 
+//Also "solang" is a "run" level quantity, shouldn't really be written to the tree every event, but whatever.
 typedef struct {
   Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph;
   Double_t Aperp, Apar;
@@ -138,6 +142,11 @@ public:
 
   void SetPythiaOutput( G4SBSPythiaOutput p ){ Primaries = p; }
   void SetUsePythia6( G4bool b ){ fUsePythia = b; }
+
+  map<G4String,G4int> histogram_index; //map with key = SDname, val = histogram index in TClonesArray
+
+  TClonesArray *Esum_histograms;
+  TClonesArray *PulseShape_histograms;
   
 private:
   TFile *fFile;
@@ -156,8 +165,7 @@ private:
   map<G4String,G4SBSRICHoutput> richdata;
   map<G4String,G4SBSTrackerOutput> trackdata;
   map<G4String,G4SBSECaloutput> ecaldata;
-
-
+  
   G4bool fUsePythia;
   G4SBSPythiaOutput Primaries;
   
@@ -165,6 +173,8 @@ private:
   
   char fFilename[255];
 
+  G4int fNhistograms;
+  
   // G4bool EarmCALpart_flag;
   // G4bool HarmCALpart_flag;
   

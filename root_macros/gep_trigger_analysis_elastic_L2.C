@@ -381,7 +381,7 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
       //    if( FTtrack )
       if( T->Harm_FPP1_Track_ntracks > 0 && FTtrack ){
 	for( int itrack=0; itrack<T->Harm_FPP1_Track_ntracks; itrack++ ){
-	  if( (*(T->Harm_FPP1_Track_MID))[itrack] == 0 ){
+	  //if( (*(T->Harm_FPP1_Track_MID))[itrack] == 0 ){
 	    nhat_FPP1.SetXYZ( (*(T->Harm_FPP1_Track_Xp))[itrack],
 			      (*(T->Harm_FPP1_Track_Yp))[itrack],
 			      1.0 );
@@ -390,13 +390,13 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 	    pFPP1 = (*(T->Harm_FPP1_Track_P))[itrack];
 	    FPP1track = thetaFPP1 < 12.0*PI/180.0 && pFPP1 >= 0.5*T->ev_np;
 	    if( FPP1track ) hthetaFPP1->Fill(thetaFPP1*180.0/PI,weight);
-	  }
+	    //}
 	}
       }
 
       if( T->Harm_FPP2_Track_ntracks > 0 && FTtrack && FPP1track){
 	for( int itrack=0; itrack<T->Harm_FPP2_Track_ntracks; itrack++ ){
-	  if( (*(T->Harm_FPP2_Track_MID))[itrack] == 0 ){
+	  //if( (*(T->Harm_FPP2_Track_MID))[itrack] == 0 ){
 	    nhat_FPP2.SetXYZ( (*(T->Harm_FPP2_Track_Xp))[itrack],
 			      (*(T->Harm_FPP2_Track_Yp))[itrack],
 			      1.0 );
@@ -406,7 +406,7 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 	    //FPP2track = thetaFPP2 < 24.0*PI/180.0 && pFPP2/T->ev_np > 0.5;
 	    FPP2track = thetaFPP2 < 12.0*PI/180.0 && pFPP2/T->ev_np > 0.5;
 	    if( FPP2track ) hthetaFPP2->Fill(thetaFPP2*180.0/PI,weight);
-	  }
+	    //}
 	}
       }
       

@@ -92,11 +92,17 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
 
   fnzsegments_leadglass_ECAL = 1;
   fnzsegments_leadglass_C16 = 1;
+
+  fBuildBBSieve = false;
   
   assert(fDetCon);
-
+  
+  fDVCSECalMaterial = G4String("PbF2");
+  
   fbbfield =  NULL;
 
+  fGRINCHgas = "C4F10_gas"; //default to C4F10;
+  
 }
 
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}
@@ -106,9 +112,11 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   //  The neutron experiments and the SIDIS experiment use BigBite:
   //------------ BigBite: -----------------------------------------------------
-  if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kA1n ) 
+  if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kA1n  || exptype == kTDIS ) 
     {
       MakeBigBite( worldlog );
+      if(fBuildBBSieve)
+	MakeBBSieveSlit(worldlog);
     }
   if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
@@ -127,6 +135,10 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       //MakeC16( worldlog );
     }
   if( exptype == kNeutronExp )  MakeGMnGEMShielding( worldlog );
+  
+  if( exptype == kNDVCS ){
+    MakeDVCSECal(worldlog);
+  }
 }
 
 void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
@@ -608,10 +620,18 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(BBHodoScintSDname)) ) {
     G4cout << "Adding BB Hodoscope Scint Sensitive Detector to SDman..." << G4endl;
     BBHodoScintSD = new G4SBSCalSD( BBHodoScintSDname, BBHodoScintcollname );
+    
+    //    BBHodoScintSD->SetEnergyThreshold( 5.0*MeV ); //Based on simulations of quasi-elastic scattering
+    //BBHodoScintSD->SetNTimeBins( 60 ); //0.5 ns/bin
     sdman->AddNewDetector( BBHodoScintSD );
     (fDetCon->SDlist).insert( BBHodoScintSDname );
     fDetCon->SDtype[BBHodoScintSDname] = kCAL;
     (BBHodoScintSD->detmap).depth = 0;
+
+    G4double ethresh_default = 5.0*MeV;
+    G4double timewindow_default = 30.0*ns;
+    
+    fDetCon->SetTimeWindowAndThreshold( BBHodoScintSDname, ethresh_default, timewindow_default );
   }
   bbhodoslatlog->SetSensitiveDetector( BBHodoScintSD ); 
   
@@ -657,7 +677,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // Make Lead Glass 
   G4Box *bbTF1box = new G4Box( "bbTF1box", bbTF1_x/2.0, bbTF1_y/2.0, bbTF1_z/2.0 );
-  G4LogicalVolume *bbTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbTF1log" );
+  G4LogicalVolume *bbTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF5"), "bbTF1log" );
   
   // Shower TF1 SD of type CAL
   //G4SDManager *sdman = fDetCon->fSDman;
@@ -669,10 +689,16 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(BBSHTF1SDname)) ) {
     G4cout << "Adding BB Shower TF1 Sensitive Detector to SDman..." << G4endl;
     BBSHTF1SD = new G4SBSCalSD( BBSHTF1SDname, BBSHTF1collname );
+      
     sdman->AddNewDetector( BBSHTF1SD );
     (fDetCon->SDlist).insert( BBSHTF1SDname );
     fDetCon->SDtype[BBSHTF1SDname] = kCAL;
     (BBSHTF1SD->detmap).depth = 1;
+
+    G4double threshold_default = 10.0*MeV; //1% of 1 GeV
+    G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape. 
+    
+    fDetCon->SetTimeWindowAndThreshold( BBSHTF1SDname, threshold_default, timewindow_default );
   }
   bbTF1log->SetSensitiveDetector( BBSHTF1SD ); 
 
@@ -733,7 +759,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *preshowermodlog = new G4LogicalVolume( preshowermodbox, GetMaterial("Special_Air"), "preshowermodlog" );
  
   // Preshower TF1 SD of type CAL
-  G4LogicalVolume *bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbpsTF1log" );
+  G4LogicalVolume *bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF5"), "bbpsTF1log" );
 
   G4String BBPSTF1SDname = "Earm/BBPSTF1";
   G4String BBPSTF1collname = "BBPSTF1HitsCollection";
@@ -742,10 +768,17 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(BBPSTF1SDname)) ) {
     G4cout << "Adding BB Preshower TF1 Sensitive Detector to SDman..." << G4endl;
     BBPSTF1SD = new G4SBSCalSD( BBPSTF1SDname, BBPSTF1collname );
+    
     sdman->AddNewDetector( BBPSTF1SD );
     (fDetCon->SDlist).insert( BBPSTF1SDname );
     fDetCon->SDtype[BBPSTF1SDname] = kCAL;
     (BBPSTF1SD->detmap).depth = 1;
+
+    //Photoelectron yield is approximately 500/GeV (or so)
+    G4double threshold_default = 10.0*MeV; //1% of 1 GeV
+    G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
+
+    fDetCon->SetTimeWindowAndThreshold( BBPSTF1SDname, threshold_default, timewindow_default );
   }
   bbpsTF1log->SetSensitiveDetector( BBPSTF1SD ); 
 
@@ -913,7 +946,175 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   grinch->SetZOffset( detoffset + fCerDist );
   grinch->SetCerDepth( fCerDepth);
   grinch->BuildComponent(bbdetLog);
+  grinch->SetGrinchGas( fGRINCHgas );
 
+}
+
+void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
+  G4cout << "Building DVCS ECal with following material: " << fDVCSECalMaterial << endl;
+  G4bool defined_mat = false;
+  G4int Nrows, Ncols;
+  G4double dvcsblkmodule_x, dvcsblkmodule_y;
+  G4double caldepth;
+  G4double EcalHoffset, EcalVoffset;
+  if(fDVCSECalMaterial=="PbF2"){
+    Nrows = 16;
+    Ncols = 13;
+    dvcsblkmodule_x = 3.00*cm;
+    dvcsblkmodule_y = 3.00*cm;
+    caldepth = 18.6*cm+2*2.0*cm;
+    EcalHoffset = +1.5*3.0*cm;
+    EcalVoffset = 0;
+    defined_mat = true;
+  }
+  if(fDVCSECalMaterial=="PbWO4"){
+    Nrows = 31;
+    Ncols = 36;
+    dvcsblkmodule_x = 2.05*cm;
+    dvcsblkmodule_y = 2.05*cm; 
+    caldepth = 18.0*cm+2*2.0*cm;
+    EcalHoffset = 0;
+    EcalVoffset = 0;
+    defined_mat = true;
+  }
+  if(!defined_mat){
+    G4cout << "Warning: Invalid DVCS ECal material: " << fDVCSECalMaterial 
+	   << "; Use 'PbF2' or 'PbWO4' " << G4endl;
+    return;
+  }
+  
+  ////////////////////////////////////////////////////////                               
+  // 36 columns, 31 rows 
+  G4double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
+  G4double mylar_air_sum = mylarthickness + airthickness; 
+  G4double dvcsblkpmtz = 0.20*cm;
+
+  G4double calheight = Nrows*dvcsblkmodule_x+2*2.0*cm;
+  G4double calwidth  = Ncols*dvcsblkmodule_y+2*2.0*cm;
+
+  G4Box *dvcsblkecalbox = new G4Box("dvcsblkecalbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
+  G4LogicalVolume *dvcsblkecallog = new G4LogicalVolume(dvcsblkecalbox, GetMaterial("Air"), "dvcsblkecallog");
+  G4ThreeVector dvcsblkecal_pos(EcalHoffset, EcalVoffset, fBBdist+caldepth/2.0);
+  dvcsblkecal_pos.rotateY(fBBang);
+  G4RotationMatrix* dvcsblkecal_rm = new G4RotationMatrix();
+  dvcsblkecal_rm->rotateY(-fBBang);
+  new G4PVPlacement( dvcsblkecal_rm, dvcsblkecal_pos, dvcsblkecallog, "dvcsblkecalphys", motherlog, false, 0 );
+  
+  // Calo module: 
+  double DVCSblk_x = dvcsblkmodule_x - 2*mylar_air_sum;
+  double DVCSblk_y = dvcsblkmodule_y - 2*mylar_air_sum;
+  double DVCSblk_z = caldepth -2*2.0*cm;
+  
+  G4Box *dvcsblkmodbox = new G4Box("dvcsblkmodbox", dvcsblkmodule_x/2.0, dvcsblkmodule_y/2.0, caldepth/2.0);
+  G4LogicalVolume *dvcsblkmodlog = new G4LogicalVolume(dvcsblkmodbox, GetMaterial("Special_Air"), "dvcsblkmodlog");
+
+  G4Box *tempbox = new G4Box("tempbox", dvcsblkmodule_x/2.0, dvcsblkmodule_y/2.0, (caldepth-2*dvcsblkpmtz)/2.0);
+
+
+  // calorimeter box Subtraction
+    G4Box *dvcsblkmodbox_sub = new G4Box( "dvcsblkmodbox_sub", (dvcsblkmodule_x-2*mylarthickness)/2.0, (dvcsblkmodule_y-2*mylarthickness)/2.0, (caldepth-2*dvcsblkpmtz)/2.0 );
+
+  G4SubtractionSolid *dvcsblkmylarwrap = new G4SubtractionSolid( "dvcsblkmylarwrap", tempbox, dvcsblkmodbox_sub, 0, G4ThreeVector(0.0, 0.0, mylarthickness) );
+  G4LogicalVolume *dvcsblkmylarwraplog = new G4LogicalVolume( dvcsblkmylarwrap, GetMaterial("Mylar"), "dvcsblkmylarwraplog" ); 
+  
+ // new G4LogicalSkinSurface( "DVCSBLK Mylar Skin", dvcsblkmylarwraplog, GetOpticalSurface("Mirrsurf") );
+  // Make Lead Glass 
+  G4Box *DVCSblkbox = new G4Box( "DVCSblkbox", DVCSblk_x/2.0, DVCSblk_y/2.0, DVCSblk_z/2.0 );
+  G4LogicalVolume *DVCSblklog = new G4LogicalVolume( DVCSblkbox, GetMaterial(fDVCSECalMaterial.data()), "DVCSblklog" );
+
+  // Shower DVCSblk SD of type CAL
+  G4SDManager *sdman = fDetCon->fSDman;
+
+  G4String DVCSblkSDname = "DVCSblk";
+  G4String DVCSblkcollname = "DVCSblkHitsCollection";
+  G4SBSCalSD *DVCSblkSD = NULL;
+
+  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(DVCSblkSDname)) ) {
+    G4cout << "Adding DVCSblk Sensitive Detector to SDman..." << G4endl;
+    DVCSblkSD = new G4SBSCalSD( DVCSblkSDname, DVCSblkcollname );
+    
+    sdman->AddNewDetector( DVCSblkSD );
+    (fDetCon->SDlist).insert( DVCSblkSDname );
+    fDetCon->SDtype[DVCSblkSDname] = kCAL;
+    (DVCSblkSD->detmap).depth = 1;
+
+    G4double threshold_default = 0.0*MeV; //1% of 1 GeV
+    G4double timewindow_default = 100.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape. 
+
+    fDetCon->SetTimeWindowAndThreshold( DVCSblkSDname, threshold_default, timewindow_default );
+  }
+  DVCSblklog->SetSensitiveDetector( DVCSblkSD ); 
+
+//////////////////
+
+  if( (fDetCon->StepLimiterList).find( DVCSblkSDname ) != (fDetCon->StepLimiterList).end() ){
+    DVCSblklog->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+  // Make PMT/Window
+  double pmtsize = 2.0*cm;
+  G4Box *dvcsblkpmt = new G4Box( "dvcsblkpmt", pmtsize/2.0, pmtsize/2.0, dvcsblkpmtz/2.0 );
+  G4LogicalVolume *dvcsblkpmtwindowlog = new G4LogicalVolume( dvcsblkpmt, GetMaterial("QuartzWindow_ECal"), "dvcsblkpmtwindowlog" );
+  G4LogicalVolume *dvcsblkpmtcathodecallog = new G4LogicalVolume( dvcsblkpmt, GetMaterial("Photocathode_material_ecal"), "dvcsblkpmtcathodecallog" );
+
+  // Shower PMT SD of type ECAL
+  G4String DVCSblkecalSDname = "DVCSblkEcal";
+  G4String DVCSblkecalcollname = "DVCSblkEcalHitsCollection";
+  G4SBSECalSD *DVCSblkecalSD = NULL;
+
+  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(DVCSblkecalSDname)) ) {
+    G4cout << "Adding DVCSblkEcal Sensitive Detector to SDman..." << G4endl;
+    DVCSblkecalSD = new G4SBSECalSD( DVCSblkecalSDname, DVCSblkecalcollname );
+    sdman->AddNewDetector( DVCSblkecalSD );
+    (fDetCon->SDlist).insert(DVCSblkecalSDname);
+    fDetCon->SDtype[DVCSblkecalSDname] = kECAL;
+    (DVCSblkecalSD->detmap).depth = 1;
+  }
+  dvcsblkpmtcathodecallog->SetSensitiveDetector( DVCSblkecalSD );
+
+  // Put everything in a calo Module
+  int mod_copy_number = 0;
+
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-dvcsblkpmtz)/2.0-2.0*cm), dvcsblkpmtcathodecallog,"bbcathodephys", dvcsblkmodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*dvcsblkpmtz)/2.0-2.0*cm), dvcsblkpmtwindowlog, "bbwindowphys", dvcsblkmodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*dvcsblkpmtz-DVCSblk_z)/2.0-2.0*cm), DVCSblklog, "DVCSblkphys", dvcsblkmodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -dvcsblkpmtz-2.0*cm), dvcsblkmylarwraplog, "dvcsblkmylarphys", dvcsblkmodlog, false, 0 );
+
+  for( int l=0; l<Ncols; l++ ) {
+    for( int j=0; j<Nrows; j++ ) {
+
+      (DVCSblkSD->detmap).Col[mod_copy_number] = l;
+      (DVCSblkSD->detmap).Row[mod_copy_number] = j;
+      (DVCSblkecalSD->detmap).Col[mod_copy_number] = l;
+      (DVCSblkecalSD->detmap).Row[mod_copy_number] = j;
+      double xtemp = (calwidth - dvcsblkmodule_x)/2.0 - 2.0*cm - l*dvcsblkmodule_x;
+      double ytemp = (calheight - dvcsblkmodule_y)/2.0 - 2.0*cm - j*dvcsblkmodule_y;
+
+      new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,0.0), dvcsblkmodlog, "calphys", dvcsblkecallog, false, mod_copy_number);
+      
+      (DVCSblkSD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp,ytemp,(caldepth-dvcsblkpmtz)/2.0  );
+      (DVCSblkecalSD->detmap).LocalCoord[mod_copy_number] = G4ThreeVector( xtemp, ytemp, (caldepth-4*dvcsblkpmtz-DVCSblk_z)/2.0 );
+
+      mod_copy_number++;
+    }
+  }
+
+  // Visualization attributes
+  G4VisAttributes *DVCSblkecalbox_visatt = new G4VisAttributes(G4Colour(0.7, 0.7, 0.7) );
+  DVCSblkecalbox_visatt->SetForceWireframe(true);
+  dvcsblkecallog->SetVisAttributes( DVCSblkecalbox_visatt );
+    
+  //G4VisAttributes *mydvcsblkmodbox_visatt = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0) );
+  dvcsblkmodlog->SetVisAttributes( DVCSblkecalbox_visatt );// G4VisAttributes::Invisible );//
+  
+  dvcsblkmylarwraplog->SetVisAttributes( G4VisAttributes::Invisible );
+  
+  //TF1
+  G4VisAttributes *DVCSblk_visatt = new G4VisAttributes(G4Colour( 1.0, 1.0, 0.0 ) );
+  DVCSblklog->SetVisAttributes( DVCSblk_visatt);
+
+  //PMTcathode
+  G4VisAttributes *PMT_visatt = new G4VisAttributes(G4Colour( 0.0, 0.0, 1.0 ));
+  dvcsblkpmtcathodecallog->SetVisAttributes( PMT_visatt);
 }
 
 void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
@@ -1073,10 +1274,16 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
     if( !( C16TF1SD = (G4SBSCalSD*) sdman->FindSensitiveDetector(C16TF1SDname) ) ){
       G4cout << "Adding C16 TF1 Sensitive Detector to SDman..." << G4endl;
       C16TF1SD = new G4SBSCalSD( C16TF1SDname, C16TF1collname );
+
       fDetCon->fSDman->AddNewDetector( C16TF1SD );
       (fDetCon->SDlist).insert( C16TF1SDname );
       fDetCon->SDtype[C16TF1SDname] = kCAL;
       (C16TF1SD->detmap).depth = 1;
+
+      G4double default_threshold = 10.0*MeV;
+      G4double default_timewindow = 100.0*ns;
+
+      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
     }
     // Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
@@ -1169,10 +1376,16 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
     if( !( C16TF1SD = (G4SBSCalSD*) sdman->FindSensitiveDetector(C16TF1SDname) ) ){
       G4cout << "Adding C16 TF1 Segmented Sensitive Detector to SDman..." << G4endl;
       C16TF1SD = new G4SBSCalSD( C16TF1SDname, C16TF1collname );
+      
       fDetCon->fSDman->AddNewDetector( C16TF1SD );
       (fDetCon->SDlist).insert( C16TF1SDname );
       fDetCon->SDtype[C16TF1SDname] = kCAL;
       (C16TF1SD->detmap).depth = 0;
+
+      G4double default_threshold = 10.0*MeV;
+      G4double default_timewindow = 100.0*ns;
+
+      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
     }
 
     G4int cell_number = 0 ;    // cell #
@@ -1507,12 +1720,18 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   if( !( ECalTF1SD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(ECalTF1SDname) ) ){
     G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
     ECalTF1SD = new G4SBSCalSD( ECalTF1SDname, ECalTF1collname );
+    
     fDetCon->fSDman->AddNewDetector( ECalTF1SD );
     (fDetCon->SDlist).insert(ECalTF1SDname);
     fDetCon->SDtype[ECalTF1SDname] = kCAL;
     //fDetCon->SDarm[ECalTF1SDname] = kEarm;
 
     (ECalTF1SD->detmap).depth = 1;
+
+    G4double default_timewindow = 100.0*ns;
+    G4double default_threshold  = 10.0*MeV;
+
+    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, default_threshold, default_timewindow );
   }
   
   //Make lead-glass and place in modules:
@@ -2160,11 +2379,17 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
   if( !( cdet_scint_sd = (G4SBSCalSD*) sdman->FindSensitiveDetector( sdname ) ) ){
     G4cout << "Adding CDET Scint sensitive detector to sdman..." << G4endl;
     cdet_scint_sd = new G4SBSCalSD( sdname, collname );
+    
     fDetCon->fSDman->AddNewDetector( cdet_scint_sd );
     (fDetCon->SDlist).insert( sdname );
     fDetCon->SDtype[sdname] = kCAL;
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
+
+    G4double default_timewindow = 50.0*ns;
+    G4double default_threshold  = 4.0*MeV;
+
+    fDetCon->SetTimeWindowAndThreshold( sdname, default_threshold, default_timewindow );
   }
   
   //Now we need to define the coordinates of the "modules":
@@ -3061,7 +3286,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
   G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
   
   G4String GEMElectronicsname = "Earm/GEMElectronics";
-  G4String  GEMElectronicscollname = "GEMElectronicsHitsCollection";
+  G4String GEMElectronicscollname = "GEMElectronicsHitsCollection";
   G4SBSCalSD *GEMElecSD = NULL;
 
   GEMElectronicsname += "GMn";
@@ -3074,6 +3299,8 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
     (fDetCon->SDlist).insert(GEMElectronicsname);
     fDetCon->SDtype[GEMElectronicsname] = kCAL;
     (GEMElecSD->detmap).depth = 1;
+
+    fDetCon->SetTimeWindowAndThreshold( GEMElectronicsname );
   }
   Electronics_log->SetSensitiveDetector( GEMElecSD );
   
@@ -3139,3 +3366,10 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
   ElecAtt->SetForceWireframe(true);
   Electronics_log->SetVisAttributes(ElecAtt);
 }
+
+//Sieve slit
+void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog)
+{
+  printf("Building BB sieve slit...\n");
+}
+ 

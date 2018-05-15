@@ -1,0 +1,23 @@
+# hit energy thresholds
+/g4sbs/threshold Earm/BBHodoScint  8.0 MeV
+/g4sbs/threshold Earm/BBSHTF1     10.0 MeV
+/g4sbs/threshold Earm/BBPSTF1     10.0 MeV
+/g4sbs/threshold Earm/C16TF1      10.0 MeV
+/g4sbs/threshold Earm/ECalTF1     10.0 MeV
+/g4sbs/threshold Earm/CDET_Scint   4.0 MeV
+/g4sbs/threshold Harm/CDET_Scint   4.0 MeV
+/g4sbs/threshold Harm/HCalScint   10.0 MeV
+/g4sbs/threshold Harm/LACScint    10.0 MeV
+
+# hit timing windows:
+/g4sbs/timewindow Earm/BBHodoScint 15.0 ns
+/g4sbs/timewindow Earm/BBSHTF1     50.0 ns
+/g4sbs/timewindow Earm/BBPSTF1     50.0 ns
+/g4sbs/timewindow Earm/C16TF1      50.0 ns
+/g4sbs/timewindow Earm/ECalTF1     50.0 ns
+/g4sbs/timewindow Earm/CDET_Scint  30.0 ns
+/g4sbs/timewindow Harm/CDET_Scint  30.0 ns
+/g4sbs/timewindow Harm/HCalScint  100.0 ns
+/g4sbs/timewindow Harm/LACScint   100.0 ns 
+
+# will add for GEMS/others later...

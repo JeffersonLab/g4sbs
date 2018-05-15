@@ -3,12 +3,15 @@
 
 #include <TFile.h>
 #include <TTree.h>
+#include <TH1F.h>
 #include <TH2F.h>
 #include <TClonesArray.h>
 
 #include "G4SBSGlobalField.hh"
 #include "G4SBSRun.hh"
 #include "G4SBSIO.hh"
+#include "G4SBSCalSD.hh"
+//#include "G4SDManager.hh"
 #include <assert.h>
 #include "sbstypes.hh"
 
@@ -32,7 +35,12 @@ G4SBSIO::G4SBSIO(){
     KeepPartCALflags.clear();
     KeepHistoryflags.clear();
 
+    Esum_histograms = NULL;
+    PulseShape_histograms = NULL;
+    
     fUsePythia = false;
+
+    fNhistograms = 0;
 }
 
 G4SBSIO::~G4SBSIO(){
@@ -41,6 +49,9 @@ G4SBSIO::~G4SBSIO(){
 
     if( fFile ){delete fFile;}
     fFile = NULL;
+
+    if( Esum_histograms ){ delete Esum_histograms; }
+    if( PulseShape_histograms ){ delete PulseShape_histograms; }
 }
 
 void G4SBSIO::SetGEMData( G4String SDname, G4SBSGEMoutput gd ){
@@ -73,10 +84,15 @@ void G4SBSIO::InitializeTree(){
 
     if( fTree ){ delete fTree; }
 
+    Esum_histograms = new TClonesArray("TH1F",10);
+    PulseShape_histograms = new TClonesArray("TH1F",10);
+
+    fNhistograms = 0;
+    
     fTree = new TTree("T", "Geant4 SBS Simulation");
     fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:Sx/D:Sy/D:Sz/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
     //fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
-    fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:voffhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
+    //fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:voffhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
 
     //Instead of having the same tree structure as before, we want to dynamically generate tree branches depending on what kinds of detectors are present: Since we already require the ROOT libraries, we might as well use TStrings:
     
@@ -256,6 +272,11 @@ void G4SBSIO::WriteTree(){
     fFile->cd();
     fTree->Write("T", TObject::kOverwrite);
 
+    Esum_histograms->Compress();
+    Esum_histograms->Write();
+    PulseShape_histograms->Compress();
+    PulseShape_histograms->Write();
+    
     G4SBSRun::GetRun()->GetData()->Write("run_data", TObject::kOverwrite);
 
     // Produce and write out field map graphics
@@ -302,6 +323,12 @@ void G4SBSIO::BranchGEM(G4String SDname="GEM"){
   // fTree->Branch( branch_name.Format( "%s.hit.dy", branch_prefix.Data() ), &(GEMdata[SDname].dy) );
   fTree->Branch( branch_name.Format( "%s.hit.tx", branch_prefix.Data() ), &(GEMdata[SDname].tx) );
   fTree->Branch( branch_name.Format( "%s.hit.ty", branch_prefix.Data() ), &(GEMdata[SDname].ty) );
+  fTree->Branch( branch_name.Format( "%s.hit.xin", branch_prefix.Data() ), &(GEMdata[SDname].xin) );
+  fTree->Branch( branch_name.Format( "%s.hit.yin", branch_prefix.Data() ), &(GEMdata[SDname].yin) );
+  fTree->Branch( branch_name.Format( "%s.hit.zin", branch_prefix.Data() ), &(GEMdata[SDname].zin) );
+  fTree->Branch( branch_name.Format( "%s.hit.xout", branch_prefix.Data() ), &(GEMdata[SDname].xout) );
+  fTree->Branch( branch_name.Format( "%s.hit.yout", branch_prefix.Data() ), &(GEMdata[SDname].yout) );
+  fTree->Branch( branch_name.Format( "%s.hit.zout", branch_prefix.Data() ), &(GEMdata[SDname].zout) );
   fTree->Branch( branch_name.Format( "%s.hit.txp", branch_prefix.Data() ), &(GEMdata[SDname].txp) );
   fTree->Branch( branch_name.Format( "%s.hit.typ", branch_prefix.Data() ), &(GEMdata[SDname].typ) );
   fTree->Branch( branch_name.Format( "%s.hit.xg", branch_prefix.Data() ), &(GEMdata[SDname].xg) );
@@ -367,13 +394,33 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
   TString branch_name;
   
   branch_prefix.ReplaceAll("/",".");
+
+  TString histname;
+
+  G4SBSCalSD *SDtemp = (G4SBSCalSD*) fdetcon->fSDman->FindSensitiveDetector( SDname );
+
+  G4double threshtemp = SDtemp->GetEnergyThreshold();
+  G4double gatewidthtemp = SDtemp->GetTimeWindow();
+  G4int ntimebinstemp = SDtemp->GetNTimeBins();
   
-  //Define "hit" branches: 
+  new( (*Esum_histograms)[fNhistograms] ) TH1F( histname.Format("%s.esum",branch_prefix.Data()), "",
+						100, 0.0, 100.0*threshtemp );
+  new( (*PulseShape_histograms)[fNhistograms] ) TH1F( histname.Format("%s.pulseshape",branch_prefix.Data()), "",
+						      ntimebinstemp, 0.0,
+						      gatewidthtemp );
+
+  histogram_index[SDname] = fNhistograms;
+  
+  fNhistograms++;
+			  
+  //Define "hit" branches:
+  fTree->Branch( branch_name.Format( "%s.det.esum", branch_prefix.Data() ), &(CALdata[SDname].Esum) );
   fTree->Branch( branch_name.Format( "%s.hit.nhits", branch_prefix.Data() ), &(CALdata[SDname].nhits_CAL) );
   fTree->Branch( branch_name.Format( "%s.hit.row", branch_prefix.Data() ), &(CALdata[SDname].row) );
   fTree->Branch( branch_name.Format( "%s.hit.col", branch_prefix.Data() ), &(CALdata[SDname].col) );
   fTree->Branch( branch_name.Format( "%s.hit.cell", branch_prefix.Data() ), &(CALdata[SDname].cell) );
   fTree->Branch( branch_name.Format( "%s.hit.plane", branch_prefix.Data() ), &(CALdata[SDname].plane) );
+  fTree->Branch( branch_name.Format( "%s.hit.wire", branch_prefix.Data() ), &(CALdata[SDname].wire) );
   fTree->Branch( branch_name.Format( "%s.hit.xcell", branch_prefix.Data() ), &(CALdata[SDname].xcell) );
   fTree->Branch( branch_name.Format( "%s.hit.ycell", branch_prefix.Data() ), &(CALdata[SDname].ycell) );
   fTree->Branch( branch_name.Format( "%s.hit.zcell", branch_prefix.Data() ), &(CALdata[SDname].zcell) );
@@ -383,6 +430,9 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
   fTree->Branch( branch_name.Format( "%s.hit.xhit", branch_prefix.Data() ), &(CALdata[SDname].xhit) );
   fTree->Branch( branch_name.Format( "%s.hit.yhit", branch_prefix.Data() ), &(CALdata[SDname].yhit) );
   fTree->Branch( branch_name.Format( "%s.hit.zhit", branch_prefix.Data() ), &(CALdata[SDname].zhit) );
+  fTree->Branch( branch_name.Format( "%s.hit.xhitg", branch_prefix.Data() ), &(CALdata[SDname].xhitg) );
+  fTree->Branch( branch_name.Format( "%s.hit.yhitg", branch_prefix.Data() ), &(CALdata[SDname].yhitg) );
+  fTree->Branch( branch_name.Format( "%s.hit.zhitg", branch_prefix.Data() ), &(CALdata[SDname].zhitg) );
   fTree->Branch( branch_name.Format( "%s.hit.sumedep", branch_prefix.Data() ), &(CALdata[SDname].sumedep) );
   fTree->Branch( branch_name.Format( "%s.hit.tavg", branch_prefix.Data() ), &(CALdata[SDname].tavg) );
   fTree->Branch( branch_name.Format( "%s.hit.trms", branch_prefix.Data() ), &(CALdata[SDname].trms) );

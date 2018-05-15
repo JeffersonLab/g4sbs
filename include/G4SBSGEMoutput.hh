@@ -19,7 +19,10 @@ public:
   vector<double> x,y,z,t,trms,tmin,tmax;
   vector<double> polx,poly,polz;
   vector<double> dx,dy;
-  vector<double> tx,ty,txp,typ;
+  vector<double> tx,ty; 
+  vector<double> xin,yin,zin;
+  vector<double> xout,yout,zout;
+  vector<double> txp,typ;
   vector<double> xg,yg,zg;
   vector<int> trid,mid,pid;
   vector<double> vx,vy,vz;

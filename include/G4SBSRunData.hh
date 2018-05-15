@@ -41,6 +41,22 @@ public:
   void SetBeamE(double E){ fBeamE = E; }
   void SetSeed(unsigned int seed){ fSeed = seed; }
 
+  void SetNormalization( double N ){ fNormalization = N; }
+  void SetGenVol( double V ){ fGenVol = V; }
+  void SetMaxWeight( double w ){ fMaxWeight = w; }
+  void SetLuminosity( double Lumi ){ fLuminosity = Lumi; }
+  void SetBBtheta( double theta ){ fBBtheta = theta; }
+  void SetBBdist( double d ){ fBBdist = d; }
+  void SetSBStheta( double theta ){ fSBStheta = theta; }
+  void SetSBSdist( double d ){ fSBSdist = d; }
+  void SetHCALdist( double d ){ fHCALdist = d; }
+  void SetHCALvoff( double y ){ fHCALvoff = y; }
+  void SetRICHdist( double d ){ fRICHdist = d; }
+  void SetSBSTrackerDist( double d ){ fSBSTrackerdist = d; }
+  void SetSBSTrackerPitch( double a ){ fSBSTrackerPitch = a; }
+
+  void CalcNormalization();
+  
   void AddMagData(filedata_t d){fMagData.push_back(d);}
 
   /**
@@ -66,7 +82,21 @@ public:
   long int  fNthrown;
   long int fNtries;
   unsigned int  fSeed;
-  double fBeamE;
+  double fBeamE; //GeV
+  double fNormalization; //Normalization constant to convert observed counts to a rate. This accounts for efficiency of Monte Carlo generation, phase space volume, luminosity, etc
+  double fGenVol; //Phase space generation volume; process-dependent;
+  double fLuminosity; //Hz/cm^2
+  double fMaxWeight; //Maximum calculated event weight (cross section), in appropriate units.
+  double fBBtheta; //rad
+  double fBBdist;  //m
+  double fSBStheta; //rad
+  double fSBSdist; //m
+  double fHCALdist; //m
+  double fHCALvoff; //m
+  double fRICHdist; //m
+  double fSBSTrackerdist; //m
+  double fSBSTrackerPitch; //rad
+  
   char fExpType[__RUNSTR_LEN];
   char fGenName[__RUNSTR_LEN];
   char fGitInfo[__GITMAXINFO_SIZE];

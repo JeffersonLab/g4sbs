@@ -81,7 +81,16 @@ public:
   void SetThMax_had(double v){fThMax_had = v; }
   void SetPhMin_had(double v){fPhMin_had = v; }
   void SetPhMax_had(double v){fPhMax_had = v; }
+  void SetCosmicsPointer( G4ThreeVector point ){fCosmPointer = point;}
+  void SetCosmicsPointerRadius( G4double radius );
+  void UpdateCosmicsCeilingRadius();
+  void SetCosmicsMaxAngle( G4double maxangle ){fCosmicsMaxAngle = maxangle;};
 
+  //Initialize constant quantities so we aren't doing these calculations every event:
+  //void SetConstantsInitialized( G4bool b ){ fConstantsInitialized = b; }
+  //G4bool ConstantsAreInitialized(){ return fConstantsInitialized; } 
+  void InitializeConstants();
+  
   void SetHadronType( Hadron_t h ){fHadronType = h; }
 
   void SetHCALDist(double v){ fHCALdist = v;}
@@ -96,22 +105,50 @@ public:
   TChain *GetPythiaChain(){ return fPythiaChain; }
   
   void LoadPythiaChain(G4String fname);
+
+  void Initialize();
+
+  G4bool GetRejectionSamplingFlag(){ return fRejectionSamplingFlag; }
+  //G4bool GetRejectionSamplingInitialized(){ return fRejectionSamplingInitialized; }
+  G4bool GetInitialized(){ return fInitialized; }
+  void SetInitialized( G4bool b ){ fInitialized = b; }
+  void SetRejectionSamplingFlag( G4bool b ){ fRejectionSamplingFlag = b; }
+  void SetMaxWeight( G4double w ){ fMaxWeight = w; }
+  void SetNeventsWeightCheck( G4int n ){ fNeventsWeightCheck = n; } //Number of "pre-events" used to initialize rejection sampling
+  //void SetRejectionSamplingInitialized( G4bool b ){ fRejectionSamplingInitialized = b; }
+
+  double GetGenVol(){ return fGenVol; }
+  double GetLumi(){ return fLumi; }
+  double GetMaxWeight(){ return fMaxWeight; }
+
+  void InitializePythia6_Tree();
+  
 private:
+
+  void InitializeRejectionSampling(); //Make private so it can only be called by G4SBSEventGen::Initialize()
+
   double fElectronE, fNucleonE, fHadronE, fBeamE;
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
   G4ThreeVector fHadronP;
   G4ThreeVector fBeamPol;
-
+  
+  //Define parameters for cosmics generator
+  G4ThreeVector fCosmPointer;
+  G4double fPointerZoneRadiusMax;
+  G4double fCosmicsMaxAngle;
+  G4double fCosmicsCeilingRadius;
+  
   double fWeight, fQ2, fW2, fxbj, fSigma, fAperp, fApar;
   double fPt, fPl;  // born-approx polarization componenets
   int fhel;         // electron beam helicity
   
   //Define additional kinematic quantities for SIDIS:
   double fz, fPh_perp, fphi_h, fphi_S, fMx;
-
+  
   double fBeamCur;
   double fRunTime;
-  int    fNevt;
+  long    fNevt;   //number of primary events to be generated
+  //long    fNtries; //number of "tries" to generate an event (to keep track of efficiency of MC generation).
   double Wfact;
   
   Nucl_t fNuclType, fFinalNucl;
@@ -130,6 +167,11 @@ private:
   double fPmisspar, fPmissperp, fPmissparSm;
   double fHCALdist, fToFres;
 
+  double fGenVol; //Phase space generation volume
+  double fLumi;   //Luminosity
+
+  //G4bool fConstantsInitialized;
+  
   G4LorentzVector GetInitialNucl( Targ_t, Nucl_t );
   
   bool GenerateElastic( Nucl_t, G4LorentzVector, G4LorentzVector );
@@ -142,6 +184,14 @@ private:
   bool GenerateWiser( Nucl_t, G4LorentzVector, G4LorentzVector );
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
+  bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
+
+  G4bool fRejectionSamplingFlag; //Flag to turn on rejection sampling;
+  G4double fMaxWeight; //Maximum event weight within generation limits
+  G4int fNeventsWeightCheck; //Number of "pre-events" to generate in order to check weights
+  //G4bool fRejectionSamplingInitialized; //Flag to indicate whether rejection sampling has been initialized.
+
+  G4bool fInitialized; //consolidate initialization of constant event generator parameters:
   
   double deutpdist( double );
   double he3pdist( Nucl_t, double );
@@ -155,6 +205,8 @@ private:
   long fchainentry;
   TChain *fPythiaChain;
   Pythia6_tree *fPythiaTree;
+
+  map<G4String, G4double> fPythiaSigma;
   
   G4SBSPythiaOutput fPythiaEvent;
 };

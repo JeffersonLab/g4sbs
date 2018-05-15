@@ -14,7 +14,12 @@
 G4Allocator<G4SBSGEMHit> G4SBSGEMHitAllocator;
 
 G4SBSGEMHit::G4SBSGEMHit()
-{pos = G4ThreeVector(); GEMID = -1; xp = -1e9; yp = -1e9;}
+{
+  pos = G4ThreeVector(); 
+  outpos = G4ThreeVector(); 
+  globalpos = G4ThreeVector(); 
+  GEMID = -1; xp = -1e9; yp = -1e9;
+}
 
 G4SBSGEMHit::~G4SBSGEMHit()
 {;}

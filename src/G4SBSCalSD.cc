@@ -9,6 +9,7 @@
 #include "G4ios.hh"
 
 #include "G4Box.hh"
+#include "G4SystemOfUnits.hh"
 
 G4SBSCalSD::G4SBSCalSD( G4String name, G4String colname )
   : G4VSensitiveDetector(name)
@@ -16,6 +17,10 @@ G4SBSCalSD::G4SBSCalSD( G4String name, G4String colname )
     collectionName.insert(colname);
     detmap.SDname = name;
     detmap.clear();
+
+    fHitTimeWindow = 1000.0*ns; //"safe" default value for a calorimeter;
+    fEnergyThreshold = 0.0*keV; //"safe" default value for a calorimeter;
+    fNTimeBins = 500; 
 }
 
 G4SBSCalSD::~G4SBSCalSD()
@@ -85,6 +90,7 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   hit->SetCol( detmap.Col[hit->GetCell()] );
   hit->SetPlane( detmap.Plane[hit->GetCell()] );
   hit->SetCellCoords( detmap.LocalCoord[hit->GetCell()] );
+  hit->SetWire( detmap.Wire[hit->GetCell()] );
 
   // G4cout << "During CAL hit processing, SDname = " << SensitiveDetectorName << " physical volume name = " << hist->GetVolume( detmap.depth )->GetName() 
   // 	 << " copy number = " << hit->GetCell() << " (row,col)=(" << hit->GetRow() << ", " << hit->GetCol() << ")" << G4endl;

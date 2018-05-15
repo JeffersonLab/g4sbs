@@ -5,6 +5,7 @@
 #include "sbstypes.hh"
 #include "G4UImessenger.hh"
 #include "G4UIcommand.hh"
+#include "G4UIcmdWith3VectorAndUnit.hh"
 
 class G4SBSIO;
 class G4SBSEventGen;
@@ -58,7 +59,9 @@ private:
   
   G4UIcmdWithAString   *GunParticleCmd;
   G4UIcmdWithAString   *HadrCmd;
+  G4UIcommand    *RejectionSamplingCmd;
 
+  
   G4UIcmdWithAnInteger *bigfieldCmd;
   G4UIcmdWithAnInteger *bbfieldCmd;
   G4UIcmdWithAString *tosfieldCmd;
@@ -84,6 +87,7 @@ private:
   G4UIcmdWithADoubleAndUnit *tgtLenCmd;
   G4UIcmdWithADoubleAndUnit *tgtDenCmd;
   G4UIcmdWithADoubleAndUnit *tgtPresCmd;
+  G4UIcmdWithADoubleAndUnit *tgtDiamCmd;
   G4UIcmdWithADoubleAndUnit *beamcurCmd;
   G4UIcmdWithADoubleAndUnit *runtimeCmd;
   G4UIcmdWithADoubleAndUnit *rasterxCmd;
@@ -96,11 +100,23 @@ private:
   
   G4UIcmdWithADoubleAndUnit *hcaldistCmd;
   G4UIcmdWithADoubleAndUnit *hcalvoffsetCmd;
+  G4UIcmdWithADoubleAndUnit *hcalhoffsetCmd;
+
+  G4UIcmdWithADoubleAndUnit *lacdistCmd;
+  G4UIcmdWithADoubleAndUnit *lacvoffsetCmd;
+  G4UIcmdWithADoubleAndUnit *lachoffsetCmd;
+  
+  
   G4UIcmdWithADoubleAndUnit *hmagdistCmd;
   G4UIcmdWithADoubleAndUnit *hcalangCmd;
   //Add command to set pitch angle for SBS tracker + RICH in "electron mode" 
   G4UIcmdWithADoubleAndUnit *sbstrkrpitchCmd;
-  //G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
+  G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
+  
+  G4UIcmdWithAString   *dvcsecalmatCmd;
+
+  G4UIcmdWithAString   *GRINCH_gas_Cmd;
+  G4UIcmdWithAString   *RICH_gas_Cmd; 
   
   //These commands set angle generation limits for the electron:
   G4UIcmdWithADoubleAndUnit *thminCmd;
@@ -128,6 +144,7 @@ private:
   
   // Commands needed to specify RICH positioning:
   G4UIcmdWithADoubleAndUnit *RICHdistCmd; //Set RICH distance
+  G4UIcmdWithABool          *RICHaeroCmd; //Toggle use of RICH aerogel
   
   // Commands to set configurable properties of SBS:
   G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd;
@@ -140,8 +157,13 @@ private:
   G4UIcmdWithAnInteger      *SBSBeamlineConfCmd;
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
 
+  G4UIcmdWithABool *buildSBSsieveCmd; //Build the SBS Sieve slit
+  G4UIcmdWithABool *buildBBsieveCmd; //Build the BB Sieve slit
+  
   G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree
 
+  
+  
   // G4UIcmdWithABool *Earm_CAL_part_cmd;
   // G4UIcmdWithABool *Harm_CAL_part_cmd;
 
@@ -149,9 +171,13 @@ private:
   G4UIcommand *KeepHistorycmd; //Command to store particle history information in the ROOT tree by sensitive detector name
   G4UIcommand *LimitStepCALcmd; //Command to turn on step limiter physics for sensitive volumes defined as calorimeters, by detector name.
 
+  G4UIcommand *SD_EnergyThresholdCmd;   //Set hit energy threshold for "Calorimeter" type sensitive detectors
+  G4UIcommand *SD_TimeWindowCmd; 
+  
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
   G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov
   G4UIcmdWithABool *UseScintCmd;      //Scintillation
+  G4UIcmdWithAString *DisableOpticalPhotonProductionByMaterialCmd;
   // G4UIcmdWithABool *UseOpRayleighCmd; //Rayleigh for optical photons
   // G4UIcmdWithABool *UseOpAbsorbCmd;   //optical absorption
   // G4UIcmdWithABool *UseOpBdryCmd;     //optical boundary process (reflection/refraction/absorption)
@@ -168,6 +194,9 @@ private:
   G4UIcmdWithAnInteger *SegmentC16Cmd;
   G4UIcmdWithADoubleAndUnit *SegmentThickC16Cmd;
   G4UIcmdWithADouble *DoseRateCmd;
+  G4UIcmdWith3VectorAndUnit *CosmicsPointerCommand;
+  G4UIcmdWithADoubleAndUnit *CosmicsPointerRadiusCommand;
+  G4UIcmdWithADoubleAndUnit *CosmicsMaxAngleCommand;
 
   // Command to add components that should not be built
   G4UIcmdWithAString *disableComponentCmd;

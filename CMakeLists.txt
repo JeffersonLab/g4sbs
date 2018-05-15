@@ -104,22 +104,13 @@ set(G4SBS_SCRIPTS
   scripts/preinit_ckov_noscint.mac
   scripts/preinit_nockov_scint.mac
   scripts/preinit_nockov_noscint.mac
+  scripts/preinit_ckov_noscint_nocalorimeters.mac
   scripts/sidis_example_script.mac
-  root_macros/G4SBS_optics_fit.C 
-  root_macros/RICH_analysis.C    
-  root_macros/g4sbs_tree.C       
-  root_macros/g4sbs_tree.h       
-  root_macros/rate_table.C
-  root_macros/SIDIS_reduced_data_file.C
-  root_macros/SIDIS_DST.C
-  root_macros/SIDIS_DST.h
-  root_macros/rate_table_DST.C
-  root_macros/Pythia6_minbias_gen.C
+  scripts/default_thresholds.mac
   database/ecal_map.txt
-  scripts/preinit_ckov_scint.mac
-  scripts/preinit_ckov_noscint.mac
-  scripts/preinit_nockov_scint.mac
-  scripts/preinit_nockov_noscint.mac
+  scripts/transversity.mac
+  scripts/a1n_bigbite30deg_disgen.mac
+  scripts/default_thresholds.mac
   )
 
 foreach(_script ${G4SBS_SCRIPTS})
@@ -128,6 +119,61 @@ foreach(_script ${G4SBS_SCRIPTS})
     ${PROJECT_BINARY_DIR}/${_script}
     COPYONLY
     )
+endforeach()
+
+set(G4SBS_ROOT_MACROS
+root_macros/C16_analysis.C
+root_macros/C16_tree.C
+root_macros/C16_tree_with_flux.C
+root_macros/DIS_rates_DIS.C
+root_macros/DIS_rates_PYTHIA.C
+root_macros/ECAL_background_dose_rate.C
+root_macros/Fit_SBS_optics_and_spin.C
+root_macros/G4SBS_optics_fit.C
+root_macros/G4SBS_spin_transport.C
+root_macros/Optics_A1n_SIDIS.C
+root_macros/Pythia6_minbias_gen.C
+root_macros/Pythia6_tree.C
+root_macros/RICH_analysis.C
+root_macros/SIDIS_DST.C
+root_macros/SIDIS_reduced_data_file.C
+root_macros/TriggerLogicECalGEP.C
+root_macros/a1n_tree.C
+root_macros/background_rates_GMN.C
+root_macros/flux.C
+root_macros/g4sbs_a1n_tree.C
+root_macros/g4sbs_tree.C
+root_macros/gep_optics_tree.C
+root_macros/gep_tree.C
+root_macros/gep_tree_July2015.C
+root_macros/gep_tree_elastic.C
+root_macros/gep_tree_with_spin.C
+root_macros/gep_trigger_analysis.C
+root_macros/gep_trigger_analysis_elastic.C
+root_macros/gep_trigger_analysis_elastic_L2.C
+root_macros/gep_trigger_analysis_pythia.C
+root_macros/gep_trigger_analysis_pythia_L2.C
+root_macros/gmn_tree.C
+root_macros/rate_table.C
+root_macros/rate_table_DST.C
+root_macros/C16_tree.h
+root_macros/C16_tree_with_flux.h
+root_macros/Pythia6_tree.h
+root_macros/SIDIS_DST.h
+root_macros/a1n_tree.h
+root_macros/g4sbs_a1n_tree.h
+root_macros/g4sbs_tree.h
+root_macros/gep_optics_tree.h
+root_macros/gep_tree.h
+root_macros/gep_tree_July2015.h
+root_macros/gep_tree_elastic.h
+root_macros/gep_tree_with_spin.h
+root_macros/gmn_tree.h
+)
+
+foreach(_macro ${G4SBS_ROOT_MACROS} )
+	       configure_file( ${PROJECT_SOURCE_DIR}/${_macro}
+	       ${PROJECT_BINARY_DIR}/${_macro} COPYONLY )
 endforeach()
 
 configure_file( ${PROJECT_SOURCE_DIR}/rootlogon.C ${PROJECT_BINARY_DIR}/rootlogon.C )

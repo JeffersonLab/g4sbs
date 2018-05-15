@@ -242,6 +242,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4double hcf_thick = copper_thick;
   const char* hcf_mat_name = "Copper";
   hc_visAtt->SetColour(1.0, 0.5, 0.0);
+  hc_visAtt->SetForceWireframe(true);
   // G4double hcf_thick = al_thick;
   // const char* hcf_mat_name = "Aluminum";
   // hc_visAtt->SetColour(0.7, 0.7, 0.7);
@@ -313,6 +314,8 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     //fDetCon->SDarm[ECalTF1SDname] = kEarm;
 
     (ECalTF1SD->detmap).depth = 1;
+
+    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 10.0*MeV, 100.0*ns );
   }
 
   if( fDetCon->GetC16Segmentation() <= 0 ){
@@ -502,9 +505,20 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4double StandoffLength_42 = 3.00*inch;
   G4double StandoffDiam = 0.375*inch;
 
-  G4double BlockSpace_40 = 1.69*inch;
-  G4double BlockFirst_40 = 0.84*inch;
+  G4double BlockSpace_40 = 1.61*inch;
+  G4double BlockFirst_40 = 0.81*inch;
   
+  G4double SMWidth_40_1 = 4.84*inch;
+  G4double SMWidth_40_2 = 4.89*inch;
+  G4double SMHeight_40 = 4.78*inch;
+
+  G4double TiWallLength_40_1 = 17.075*inch;
+  G4double TiWallLength_40_2 = 18.075*inch;
+
+  G4double SpacerLength_40_1 = 0.43*inch;
+  G4double SpacerLength_40_2 = 1.43*inch;
+  
+  G4double StandoffLength_40 = 3.00*inch;
   
   //Titanium Walls
   G4Box* TiSideWall_42_1_box = 
@@ -516,6 +530,16 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     new G4Box("TiSideWall_42_2_box", TiWallThick/2.0, SMHeight_42/2.0, TiWallLength_42_2/2.0);
   G4LogicalVolume* TiSideWall_42_2_log = 
     new G4LogicalVolume(TiSideWall_42_2_box, GetMaterial("Titanium"), "TiSideWall_42_2_log");
+  
+  G4Box* TiSideWall_40_1_box = 
+    new G4Box("TiSideWall_40_1_box", TiWallThick/2.0, SMHeight_40/2.0, TiWallLength_40_1/2.0);
+  G4LogicalVolume* TiSideWall_40_1_log = 
+    new G4LogicalVolume(TiSideWall_40_1_box, GetMaterial("Titanium"), "TiSideWall_40_1_log");
+
+  G4Box* TiSideWall_40_2_box = 
+    new G4Box("TiSideWall_40_2_box", TiWallThick/2.0, SMHeight_40/2.0, TiWallLength_40_2/2.0);
+  G4LogicalVolume* TiSideWall_40_2_log = 
+    new G4LogicalVolume(TiSideWall_40_2_box, GetMaterial("Titanium"), "TiSideWall_40_2_log");
 
   // Flanges:
   // Front
@@ -534,6 +558,19 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4UnionSolid* FrontFlange_42_2_solid = 
     new G4UnionSolid("FrontFlange_42_2_solid", FrontFlange_42_2_box, ClampingBar_box, 0, 
 		     G4ThreeVector(0.0, 0.0, (FrontFlangeThick+ClampingBarThick)/2.0));
+  
+  G4Box* FrontFlange_40_1_box = 
+    new G4Box("FrontFlange_40_1_box", SMWidth_40_1/2.0, SMHeight_40/2.0, FrontFlangeThick/2.0);
+  G4Box* FrontFlange_40_2_box = 
+    new G4Box("FrontFlange_40_2_box", SMWidth_40_2/2.0, SMHeight_40/2.0, FrontFlangeThick/2.0);
+  
+  G4UnionSolid* FrontFlange_40_1_solid = 
+    new G4UnionSolid("FrontFlange_40_1_solid", FrontFlange_40_1_box, ClampingBar_box, 0, 
+		     G4ThreeVector(0.0, 0.0, (FrontFlangeThick+ClampingBarThick)/2.0));
+  
+  G4UnionSolid* FrontFlange_40_2_solid = 
+    new G4UnionSolid("FrontFlange_40_2_solid", FrontFlange_40_2_box, ClampingBar_box, 0, 
+		     G4ThreeVector(0.0, 0.0, (FrontFlangeThick+ClampingBarThick)/2.0));
 
   // Back
   G4Box* BackFlange_42_1_box = 
@@ -551,6 +588,18 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4SubtractionSolid* BackFlange_42_2_solid = 
     new G4SubtractionSolid("BackFlange_42_2_solid", BackFlange_42_2_box, BackFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
   
+  G4Box* BackFlange_40_1_box = 
+    new G4Box("BackFlange_40_1_box", SMWidth_40_1/2.0, SMHeight_40/2.0, BackFlangeThick/2.0);
+  
+  G4Box* BackFlange_40_2_box = 
+    new G4Box("BackFlange_40_2_box", SMWidth_40_2/2.0, SMHeight_40/2.0, BackFlangeThick/2.0);
+  
+  G4SubtractionSolid* BackFlange_40_1_solid = 
+    new G4SubtractionSolid("BackFlange_40_1_solid", BackFlange_40_1_box, BackFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  
+  G4SubtractionSolid* BackFlange_40_2_solid = 
+    new G4SubtractionSolid("BackFlange_40_2_solid", BackFlange_40_2_box, BackFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  
   // PMT
   G4Tubs *PMTFlange_hole = new G4Tubs("PMTFlange_hole", 0.0, PMTFlangeHoleSize/2.0, FrontFlangeThick, 0.0*deg, 360.0*deg );
   
@@ -560,6 +609,11 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4SubtractionSolid* PMTFlange_42_2_solid = 
     new G4SubtractionSolid("PMTFlange_42_2_solid", FrontFlange_42_2_box, PMTFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
   
+  G4SubtractionSolid* PMTFlange_40_1_solid = 
+    new G4SubtractionSolid("PMTFlange_40_1_solid", FrontFlange_40_1_box, PMTFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  
+  G4SubtractionSolid* PMTFlange_40_2_solid = 
+    new G4SubtractionSolid("PMTFlange_40_2_solid", FrontFlange_40_2_box, PMTFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
   
   // Flanges boolean solids
   for(int i = 0; i<3; i++){
@@ -579,6 +633,22 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       PMTFlange_42_1_solid = new G4SubtractionSolid("PMTFlange_42_1_solid", PMTFlange_42_1_solid, PMTFlange_hole, 0, G4ThreeVector(BlockSpace_42*(i-1),BlockSpace_42*(j-1),0.0));
       
       PMTFlange_42_2_solid = new G4SubtractionSolid("PMTFlange_42_2_solid", PMTFlange_42_2_solid, PMTFlange_hole, 0, G4ThreeVector(BlockSpace_42*(i-1),BlockSpace_42*(j-1),0.0));
+
+      FrontFlange_40_1_solid = 
+	new G4UnionSolid("FrontFlange_40_1_solid", FrontFlange_40_1_solid, ClampingBar_box, 0, 
+			 G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1), (FrontFlangeThick+ClampingBarThick)/2.0));
+      FrontFlange_40_2_solid = 
+	new G4UnionSolid("FrontFlange_40_1_solid", FrontFlange_40_2_solid, ClampingBar_box, 0, 
+			 G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1), (FrontFlangeThick+ClampingBarThick)/2.0));
+      
+      
+       BackFlange_40_1_solid = new G4SubtractionSolid("BackFlange_40_1_solid", BackFlange_40_1_solid, BackFlange_hole, 0, G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1),0.0));
+      
+       BackFlange_40_2_solid = new G4SubtractionSolid("BackFlange_40_2_solid", BackFlange_40_2_solid, BackFlange_hole, 0, G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1),0.0));
+      
+      PMTFlange_40_1_solid = new G4SubtractionSolid("PMTFlange_40_1_solid", PMTFlange_40_1_solid, PMTFlange_hole, 0, G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1),0.0));
+      
+      PMTFlange_40_2_solid = new G4SubtractionSolid("PMTFlange_40_2_solid", PMTFlange_40_2_solid, PMTFlange_hole, 0, G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1),0.0));
     }
   }
   
@@ -597,6 +667,21 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4LogicalVolume* PMTFlange_42_2_log = 
     new G4LogicalVolume(PMTFlange_42_2_solid, GetMaterial("Aluminum"), "PMTFlange_42_2_log");
 
+  G4LogicalVolume* FrontFlange_40_1_log = 
+    new G4LogicalVolume(FrontFlange_40_1_solid, GetMaterial("Aluminum"), "FrontFlange_40_1_log");
+  G4LogicalVolume* FrontFlange_40_2_log = 
+    new G4LogicalVolume(FrontFlange_40_2_solid, GetMaterial("Aluminum"), "FrontFlange_40_2_log");
+  
+  G4LogicalVolume* BackFlange_40_1_log = 
+    new G4LogicalVolume(BackFlange_40_1_solid, GetMaterial("Aluminum"), "BackFlange_40_1_log");
+  G4LogicalVolume* BackFlange_40_2_log = 
+    new G4LogicalVolume(BackFlange_40_2_solid, GetMaterial("Aluminum"), "BackFlange_40_2_log");
+  
+  G4LogicalVolume* PMTFlange_40_1_log = 
+    new G4LogicalVolume(PMTFlange_40_1_solid, GetMaterial("Aluminum"), "PMTFlange_40_1_log");
+  G4LogicalVolume* PMTFlange_40_2_log = 
+    new G4LogicalVolume(PMTFlange_40_2_solid, GetMaterial("Aluminum"), "PMTFlange_40_2_log");
+
   // Spacers
   G4Tubs *Spacer_42_1_solid = new G4Tubs("Spacer_42_1_solid", BackFlangeHoleSize/2.0, SpacerOutDiam/2.0, SpacerLength_42_1/2.0, 0.0*deg, 360.0*deg );
   G4Tubs *Spacer_42_2_solid = new G4Tubs("Spacer_42_2_solid", BackFlangeHoleSize/2.0, SpacerOutDiam/2.0, SpacerLength_42_2/2.0, 0.0*deg, 360.0*deg );
@@ -608,6 +693,16 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     new G4LogicalVolume(Spacer_42_2_solid, 
 			GetMaterial("Aluminum"), "Spacer_42_2_log");
   
+  G4Tubs *Spacer_40_1_solid = new G4Tubs("Spacer_40_1_solid", BackFlangeHoleSize/2.0, SpacerOutDiam/2.0, SpacerLength_40_1/2.0, 0.0*deg, 360.0*deg );
+  G4Tubs *Spacer_40_2_solid = new G4Tubs("Spacer_40_2_solid", BackFlangeHoleSize/2.0, SpacerOutDiam/2.0, SpacerLength_40_2/2.0, 0.0*deg, 360.0*deg );
+   
+  G4LogicalVolume* Spacer_40_1_log = 
+    new G4LogicalVolume(Spacer_40_1_solid, 
+			GetMaterial("Aluminum"), "Spacer_40_1_log");
+  G4LogicalVolume* Spacer_40_2_log = 
+    new G4LogicalVolume(Spacer_40_2_solid, 
+			GetMaterial("Aluminum"), "Spacer_40_2_log");
+  
   //Standoffs
   G4Tubs *Standoff_42_solid = new G4Tubs("Standoff_42_solid", 0, StandoffDiam/2.0, StandoffLength_42/2.0, 0.0*deg, 360.0*deg );
   
@@ -615,6 +710,18 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     new G4LogicalVolume(Standoff_42_solid, 
 			GetMaterial("Aluminum"), "Standoff_42_log");
   
+  G4Tubs *Standoff_40_solid = new G4Tubs("Standoff_40_solid", 0, StandoffDiam/2.0, StandoffLength_40/2.0, 0.0*deg, 360.0*deg );
+  
+  G4LogicalVolume* Standoff_40_log = 
+    new G4LogicalVolume(Standoff_40_solid, 
+			GetMaterial("Aluminum"), "Standoff_40_log");
+
+  ofstream mapfile("database/ecal_gep_blockmap.txt");
+
+  TString  output_line = "";
+  output_line.Form("#%16s, %16s, %16s, %16s, %16s", "Cell", "Row", "Column", "Xcenter (cm)", "Ycenter (cm)" ); 
+
+  mapfile << output_line << endl;
   
   G4int SM_num = 0;
   X_block = xfpstart+BlockFirst_40;
@@ -625,6 +732,9 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       G4ThreeVector modpos( Y_block, X_block, zfront_ECAL + depth_40/2.0 );
       // depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
       new G4PVPlacement( 0, modpos, Module_40_log, "Module_40_phys", earm_mother_log, false, copy_nb );
+
+      output_line.Form( "%16d, %16d, %16d, %16.3f, %16.3f", copy_nb, i_, j_, Y_block/cm, X_block/cm );
+      mapfile << output_line << endl;
       
       (ECalTF1SD->detmap).Row[copy_nb] = i_;
       (ECalTF1SD->detmap).Col[copy_nb] = j_;
@@ -649,8 +759,42 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       // (ECalLGSD->detmap).LocalCoord[copy_nb] = modpos;
       
       // Placing the supermodule
+      // Spacers...
+      G4double z0_SM = zfront_ECAL - FrontFlangeThick - ClampingBarThick;
+      G4RotationMatrix* rm_temp = new G4RotationMatrix();
+      G4ThreeVector pos_temp(Y_block, X_block, z0_SM + TiWallLength_40_1-BackFlangeThick-SpacerLength_40_1/2.0);
+      new G4PVPlacement(rm_temp, pos_temp, Spacer_40_1_log, "Spacer_40_1_phys", earm_mother_log, false, 0 );
+      
       if(i_%3==1 && j_%3==1){
+	// Front Flange
+	pos_temp.setZ(z0_SM + FrontFlangeThick/2.0);
+	new G4PVPlacement(rm_temp, pos_temp, FrontFlange_40_1_log, "FrontFlange_40_1_phys", earm_mother_log, false, 0 );
 	
+	// Back Flange
+	pos_temp.setZ(z0_SM + TiWallLength_40_1 - BackFlangeThick/2.0);
+	new G4PVPlacement(rm_temp, pos_temp, BackFlange_40_1_log, "BackFlange_40_1_phys", earm_mother_log, false, 0 );
+	
+	// PMT Flange
+	pos_temp.setZ(z0_SM + TiWallLength_40_1 + StandoffLength_40 + FrontFlangeThick/2.0);
+	new G4PVPlacement(rm_temp, pos_temp, PMTFlange_40_1_log, "PMTFlange_40_1_phys", earm_mother_log, false, 0 );
+	
+	// Ti walls and Standoffs
+	for(int k = 0; k<2; k++){
+	  pos_temp.setZ(z0_SM + TiWallLength_40_1/2.0);
+	  pos_temp.setY(X_block);
+	  pos_temp.setX(Y_block+(k-0.5)*(SMWidth_40_1+TiWallThick/2.0));
+	  new G4PVPlacement(rm_temp, pos_temp, TiSideWall_40_1_log, "TiSideWall_40_1_phys", 
+			    earm_mother_log, false, 0 );
+	  for(int l = 0; l<2; l++){
+	    pos_temp.setX(Y_block+BlockSpace_40*(l-0.5));
+	    pos_temp.setY(X_block+(SMHeight_40-StandoffDiam)*(k-0.5));
+	    pos_temp.setZ(z0_SM + TiWallLength_40_1 + StandoffLength_40/2.0);
+	    new G4PVPlacement(rm_temp, pos_temp, Standoff_40_log, "Standoff_40_phys", 
+			      earm_mother_log, false, 0 );
+	  }
+	}
+	SM_num++;
+	//if(NcolsSM_40[i_/3]%2==0 && j_>(NcolsSM_40[i_/3]-1)*3)SM_num++;
       }
       
       Y_block+= BlockSpace_40;
@@ -669,6 +813,9 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       // depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
       new G4PVPlacement( 0, modpos, Module_42_log, "Module_42_phys", earm_mother_log, false, copy_nb );
 
+      output_line.Form( "%16d, %16d, %16d, %16.3f, %16.3f", copy_nb, i_ + NrowsSM_40*3, j_, Y_block/cm, X_block/cm );
+      mapfile << output_line << endl;
+      
       (ECalTF1SD->detmap).Row[copy_nb] = i_;
       (ECalTF1SD->detmap).Col[copy_nb] = j_;
       (ECalTF1SD->detmap).LocalCoord[copy_nb] = modpos;
@@ -696,7 +843,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       G4double z0_SM = zfront_ECAL - FrontFlangeThick - ClampingBarThick;
       G4RotationMatrix* rm_temp = new G4RotationMatrix();
       G4ThreeVector pos_temp(Y_block, X_block, z0_SM + TiWallLength_42_1-BackFlangeThick-SpacerLength_42_1/2.0);
-      new G4PVPlacement(rm_temp, pos_temp, Spacer_42_1_log, "BackFlange_42_1_phys", earm_mother_log, false, 0 );
+      new G4PVPlacement(rm_temp, pos_temp, Spacer_42_1_log, "Spacer_42_1_phys", earm_mother_log, false, 0 );
       
       if(i_%3==1 && j_%3==1){
 	// Front Flange
@@ -736,6 +883,8 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     X_block+= BlockSpace_42;
     if(i_==2)X_block+= 2.0*mm;// to leave space for the steel plate instered there
   }
+
+  mapfile.close();
   
   // Build CDet:
   if(fDetCon->fExpType==kGEp){
@@ -770,31 +919,42 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   earm_mother_log->SetVisAttributes(mother_visatt);
    
   //earm_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
-  Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
-  Module_40_log->SetVisAttributes( G4VisAttributes::Invisible );
+  Module_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  Module_40_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *Mylarvisatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
   Mylarvisatt->SetForceWireframe(true);
-  Mylar_wrap_42_log->SetVisAttributes( Mylarvisatt );
-  Mylar_wrap_40_log->SetVisAttributes( Mylarvisatt );
+  Mylar_wrap_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  Mylar_wrap_40_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.7 ) );
-  // Ti_visatt->SetForceWireframe(true);
+  Ti_visatt->SetForceWireframe(true);
   TiSideWall_42_1_log->SetVisAttributes(Ti_visatt);
   TiSideWall_42_2_log->SetVisAttributes(Ti_visatt);
-  // TiSideWall_log->SetVisAttributes(G4VisAttributes::Invisible);
+  TiSideWall_40_1_log->SetVisAttributes(Ti_visatt);
+  TiSideWall_40_2_log->SetVisAttributes(Ti_visatt);
+  // TiSideWall_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
-  // Al_visatt->SetForceWireframe(true);
+  Al_visatt->SetForceWireframe(true);
   FrontFlange_42_1_log->SetVisAttributes(Al_visatt);
   FrontFlange_42_2_log->SetVisAttributes(Al_visatt);
+  FrontFlange_40_1_log->SetVisAttributes(Al_visatt);
+  FrontFlange_40_2_log->SetVisAttributes(Al_visatt);
   BackFlange_42_1_log->SetVisAttributes(Al_visatt);
   BackFlange_42_2_log->SetVisAttributes(Al_visatt);
+  BackFlange_40_1_log->SetVisAttributes(Al_visatt);
+  BackFlange_40_2_log->SetVisAttributes(Al_visatt);
   PMTFlange_42_1_log->SetVisAttributes( G4Colour( 0.0, 0.7, 0.0 ) );
   PMTFlange_42_2_log->SetVisAttributes( G4Colour( 0.7, 0.0, 0.0 ) );
-  Spacer_42_1_log->SetVisAttributes(G4Colour( 0.0, 0.7, 0.0 ));
-  Spacer_42_2_log->SetVisAttributes(G4Colour( 0.0, 0.7, 0.0 ));
-  Standoff_42_log->SetVisAttributes(Al_visatt);
+  PMTFlange_40_1_log->SetVisAttributes( G4Colour( 0.0, 0.7, 0.0 ) );
+  PMTFlange_40_2_log->SetVisAttributes( G4Colour( 0.7, 0.0, 0.0 ) );
+  Spacer_42_1_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Spacer_42_2_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Spacer_40_1_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Spacer_40_2_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Standoff_42_log->SetVisAttributes( G4VisAttributes::Invisible ); //Al_visatt);
+  Standoff_40_log->SetVisAttributes( G4VisAttributes::Invisible ); //Al_visatt);
   
   
   G4VisAttributes *ECALpmtvisatt = new G4VisAttributes( G4Colour( 0, 0, 1 ) );
@@ -917,7 +1077,7 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
   G4VisAttributes *C16WG_visatt = new G4VisAttributes( G4Colour(0.54, 0.53, 0.79) );
   G4VisAttributes *Foam_visatt = new G4VisAttributes( G4Colour( 0.0, 0.6, 0.6) );
   // C16 Mother:
-  C16_Log->SetVisAttributes( G4VisAttributes::Invisible );
+  C16_Log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   // Al Plate & Foil:
   Alvisatt->SetForceWireframe(true);
   Al_Plate_Log->SetVisAttributes( Alvisatt );
@@ -963,6 +1123,8 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
       (fDetCon->SDlist).insert( C16TF1SDname );
       fDetCon->SDtype[C16TF1SDname] = kCAL;
       (C16TF1SD->detmap).depth = 1;
+
+      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, 10.0*MeV, 100.0*ns );
     }
     // Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
@@ -996,7 +1158,7 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
       }
     }
     // Set Visuals
-    Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
+    Module_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
     LeadGlass_42_log->SetVisAttributes( TF1visatt );
     Al_wrap_42_log->SetVisAttributes( Alvisatt );  
   } else {
@@ -1059,6 +1221,8 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
       (fDetCon->SDlist).insert( C16TF1SDname );
       fDetCon->SDtype[C16TF1SDname] = kCAL;
       (C16TF1SD->detmap).depth = 0;
+
+      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, 10.0*MeV, 100.0*ns );
     }
 
     G4int cell_number = 0 ;    // cell #
@@ -1140,7 +1304,7 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
       }
     }
     // Set Visuals
-    Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
+    Module_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
     Al_wrap_42_log->SetVisAttributes( Alvisatt );
   }
 }
@@ -1399,6 +1563,8 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
     //fDetCon->SDarm[ECalTF1SDname] = kEarm;
 
     (ECalTF1SD->detmap).depth = 1;
+
+    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 10.0*MeV, 100.0*ns );
   }
   
   //Make lead-glass and place in modules:
@@ -1634,7 +1800,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
   new G4PVPlacement( 0, G4ThreeVector( 0, (ycalo_min - height_earm/2.0)/2.0, depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 ), bottom_Al_log, "bottom_Al_phys", earm_mother_log, false, 0 ); 
 
   // bottom_Al_log->SetVisAttributes( Alvisatt );
-  bottom_Al_log->SetVisAttributes( G4VisAttributes::Invisible );
+  bottom_Al_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   for( int super_row=0; super_row<20; super_row++ ){
     for( int sub_row=0; sub_row<4; sub_row++ ){
       global_row = sub_row + 4*super_row;
@@ -1700,7 +1866,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler1_log = new G4LogicalVolume( Al_filler1, GetMaterial("Al"), logname );
 	  
 	  //Al_filler1_log->SetVisAttributes( Alvisatt );
-	  Al_filler1_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
 	  G4ThreeVector pos( (xlow_row - width_earm/2.0)/2.0,
 			     ysum - 0.5*width_42,
@@ -1721,7 +1887,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler2_log = new G4LogicalVolume( Al_filler2, GetMaterial("Al"), logname );
 	  //Al_filler2_log->SetVisAttributes( Alvisatt );
 
-	  Al_filler2_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler2_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 	  
 	  //G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0, modpos.y(), modpos.z() );
 	  G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0,
@@ -1787,7 +1953,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler1_log = new G4LogicalVolume( Al_filler1, GetMaterial("Al"), logname );
 	  //Al_filler1_log->SetVisAttributes( Alvisatt );
 
-	  Al_filler1_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 	  
 	  G4ThreeVector pos( (xlow_row - width_earm/2.0)/2.0,
 			     ysum - 0.5*width_40,
@@ -1808,7 +1974,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler2_log = new G4LogicalVolume( Al_filler2, GetMaterial("Al"), logname );
 	  //Al_filler2_log->SetVisAttributes( Alvisatt );
 
-	  Al_filler2_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler2_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 	  
 	  //G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0, modpos.y(), modpos.z() );
 	  G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0,
@@ -1874,7 +2040,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler1_log = new G4LogicalVolume( Al_filler1, GetMaterial("Al"), logname );
 	  //Al_filler1_log->SetVisAttributes( Alvisatt );
 
-	  Al_filler1_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 	  
 	  G4ThreeVector pos( (xlow_row - width_earm/2.0)/2.0,
 			     ysum - 0.5*width_38,
@@ -1895,7 +2061,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler2_log = new G4LogicalVolume( Al_filler2, GetMaterial("Al"), logname );
 	  //Al_filler2_log->SetVisAttributes( Alvisatt );
 
-	  Al_filler2_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler2_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 	  
 	  //G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0, modpos.y(), modpos.z() );
 	  G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0,
@@ -1917,7 +2083,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
   new G4PVPlacement( 0, G4ThreeVector( 0, (ysum + height_earm/2.0)/2.0, depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 ), top_Al_log, "top_Al_phys", earm_mother_log, false, 0 ); 
 
   //  top_Al_log->SetVisAttributes( Alvisatt );
-  top_Al_log->SetVisAttributes( G4VisAttributes::Invisible );
+  top_Al_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   //Next: Put front Aluminum plate in front of ECAL (make wireframe):
   G4Box *ECAL_FrontPlate = new G4Box( "ECAL_FrontPlate", width_earm/2.0, height_earm/2.0, depth_ecal_frontplate/2.0 );
@@ -1954,10 +2120,10 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
   FrontPlate_visatt->SetForceWireframe(true);
   ECAL_FrontPlate_log->SetVisAttributes( FrontPlate_visatt );
 
-  earm_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
-  Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
-  Module_40_log->SetVisAttributes( G4VisAttributes::Invisible );
-  Module_38_log->SetVisAttributes( G4VisAttributes::Invisible );
+  earm_mother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  Module_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  Module_40_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  Module_38_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   G4VisAttributes *Mylarvisatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
   Mylarvisatt->SetForceWireframe(true);

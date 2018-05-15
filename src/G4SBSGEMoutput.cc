@@ -32,6 +32,12 @@ void G4SBSGEMoutput::Clear(){
   dy.clear();
   tx.clear();
   ty.clear();
+  xin.clear();
+  yin.clear();
+  zin.clear();
+  xout.clear();
+  yout.clear();
+  zout.clear();
   txp.clear();
   typ.clear();
   //EFuchey 2017-01-30: add hit position in global frame

@@ -63,10 +63,12 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   G4AffineTransform aTrans = hist->GetHistory()->GetTransform(hist->GetHistoryDepth()-2);
 
   G4ThreeVector pos = aStep->GetPreStepPoint()->GetPosition(); //global position of prestep point
+  G4ThreeVector outpos = aStep->GetPostStepPoint()->GetPosition(); //global position of poststep point
   G4ThreeVector gpos = pos;// variable for global position
   
   pos = aTrans.TransformPoint(pos); //local position in "tracker box"
-  
+  outpos = aTrans.TransformPoint(outpos); //local position in "tracker box"
+
   // Track Polarization in the same manner as pos
   G4ThreeVector polarization = aStep->GetPreStepPoint()->GetPolarization();
   polarization = aTrans.TransformAxis(polarization);
@@ -88,9 +90,14 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   mom = aTrans.TransformAxis(mom); //Momentum direction in local coordinate system of "tracker box"
 
   pos.setZ( pos.getZ() + offset ); //Offset local z position by half of "tracker box" z width (so that z position is relative to "front" of tracker box)
+  outpos.setZ( outpos.getZ() + offset ); //Offset local z position by half of "tracker box" z width (so that z position is relative to "front" of tracker box)
 
+  // printf("pos x = %f y = %f z = %f\n", pos.x(), pos.y(), pos.z());
+  // printf("outpos x = %f y = %f z = %f\n", outpos.x(), outpos.y(), outpos.z());
+  
   hit->SetEdep(edep); //energy deposition
   hit->SetPos(pos); //position in tracker box coordinates
+  hit->SetOutPos(outpos); //position in tracker box coordinates
   hit->SetGlobalPos(gpos); //position in lab frame
   hit->SetPolarization(polarization); //polarization
   hit->SetVertex(aStep->GetTrack()->GetVertexPosition()); //vertex location in global coordinates of particle that caused hit

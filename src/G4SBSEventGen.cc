@@ -95,8 +95,8 @@ G4SBSEventGen::G4SBSEventGen(){
   fPythiaTree = NULL;
   fchainentry = 0;
   
-  fExclPyXSoption = -1;
-
+  fExclPyXSoption = -10;
+  
   fInitialized = false;
   
   //fRejectionSamplingInitialized = false;
@@ -137,9 +137,11 @@ void G4SBSEventGen::LoadPythiaChain( G4String fname ){
 
   if( gtemp && fExclPyXSoption<0 ){
     fPythiaEvent.Sigma = gtemp->GetY()[gtemp->GetN()-1];
+    cout << "Pythia cross section (mb) " << fPythiaEvent.Sigma << endl;
   } else {
     fPythiaEvent.Sigma = cm2;
   }
+
 }
 
 void G4SBSEventGen::Initialize(){

@@ -204,7 +204,7 @@ private:
   
   G4SBSPythiaOutput fPythiaEvent;
 
-  G4bool fExclPyXSoption; //Flag to choose "Exclusive pythia" event-by-event cross section events
+  G4int fExclPyXSoption; //Flag to choose "Exclusive pythia" event-by-event cross section events
 };
 
 #endif//G4SBSEVENTGEN_HH

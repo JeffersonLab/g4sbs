@@ -489,7 +489,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["LD2"] = LD2mat;
   
   //TPC/future targets? material
-  gasden = 0.1*atmosphere*(4.0026*g/Avogadro)/(300*kelvin*k_Boltzmann);
+  gasden = 0.1*atmosphere*(4.0026*g/Avogadro)/(90*kelvin*k_Boltzmann);
   G4Material *ref4He = new G4Material("ref4He", gasden, 1 );
   ref4He->AddElement(el4He, 1);
 

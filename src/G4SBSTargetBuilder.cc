@@ -55,6 +55,8 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fSolTosca = false;
   fSolToscaScale = 1.0;
   fSolToscaOffset = 200.0; // default 200mm;
+  
+  fTDIStgtWallThick = 0.02*mm; // default
 }
 
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
@@ -1833,11 +1835,11 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   // double wallthick = 0.01*mm;
   // double capthick  = 0.01*mm;
   // Kapton target wall
-  double wallthick = 0.02*mm;
-  double capthick  = 0.02*mm;
+  //double wallthick = 0.02*mm;
+  double capthick  = 0.05*mm;
   
   
-  G4Tubs *targ_tube = new G4Tubs("targ_tube", fTargDiameter/2.0-wallthick, fTargDiameter/2.0, fTargLen/2.0, 0.*deg, 360.*deg );
+  G4Tubs *targ_tube = new G4Tubs("targ_tube", fTargDiameter/2.0-fTDIStgtWallThick, fTargDiameter/2.0, fTargLen/2.0, 0.*deg, 360.*deg );
   G4Tubs *targ_cap = new G4Tubs("targ_cap", 0.0, fTargDiameter/2.0, capthick/2.0, 0.*deg, 360.*deg );
   
   // Al target wall
@@ -1848,7 +1850,7 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Kapton"),"targ_cap_log");
   
   // gas
-  G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, fTargDiameter/2.0-wallthick,fTargLen/2.0, 0.*deg, 360.*deg );
+  G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, fTargDiameter/2.0-fTDIStgtWallThick,fTargLen/2.0, 0.*deg, 360.*deg );
   G4LogicalVolume* gas_tube_log = NULL;
 
 
@@ -1878,7 +1880,7 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
 		    "gas_tube_phys", motherlog, false, 0);
   
-  BuildTPC(motherlog, target_zpos+5.0*cm);//TPC will always be 10cm longer than target.
+  BuildTPC(motherlog, target_zpos);//TPC actually centered on the target
 
 
   //Visualization attributes:

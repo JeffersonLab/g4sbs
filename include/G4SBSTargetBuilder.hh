@@ -54,6 +54,8 @@ public:
   void SetSolToscaScale(G4double soltosscale){fSolToscaScale = soltosscale;}
   void SetSolToscaOffset(G4double soltosoffset){ fSolToscaOffset= soltosoffset;}
 
+  //void SetmTPCmatAtRoomTemp(bool set){};
+  void SetTDIStgtWallThick(double th){fTDIStgtWallThick = th;};
   
 private:
   G4double fTargLen;
@@ -72,7 +74,8 @@ private:
   G4bool fSolTosca;
   G4double fSolToscaScale;
   G4double fSolToscaOffset;
-
+  
+  G4double fTDIStgtWallThick;
 
 };
 

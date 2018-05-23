@@ -518,6 +518,14 @@ G4SBSMessenger::G4SBSMessenger(){
   SolTosFieldOffsetCmd->SetGuidance("Requires hard coded sol_map_03.dat map" );
   SolTosFieldOffsetCmd->SetParameterName("ToscaSolFieldOffset" , false);
 
+  mTPCRoomTempCmd = new G4UIcmdWithABool("/g4sbs/setmtpcroomtemp", this );
+  mTPCRoomTempCmd->SetGuidance("Set mTPC materials at room temp parameters" );
+  mTPCRoomTempCmd->SetParameterName("SetmTPCroomTemp" , false);
+
+  TDIStgtWallThickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/tdistgtwallthick", this );
+  TDIStgtWallThickCmd->SetGuidance("Set TDIS wall target thickness" );
+  TDIStgtWallThickCmd->SetParameterName("TDIStgtWallThickness" , false);
+ 
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -1459,5 +1467,17 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double soltosoffset = SolTosFieldOffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fTargetBuilder->SetSolToscaOffset(soltosoffset);
   }
+ 
+  if( cmd == mTPCRoomTempCmd ){
+    G4bool setroomtemp = mTPCRoomTempCmd->GetNewBoolValue(newValue);
+    //fdetcon->fTargetBuilder->SetmTPCmatAtRoomTemp(setroomtemp);
+  }
+  
+  if( cmd == TDIStgtWallThickCmd ){
+    G4double tdistgtwallthick = TDIStgtWallThickCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetTDIStgtWallThick(tdistgtwallthick);
+  }
+  
+  
 
 }

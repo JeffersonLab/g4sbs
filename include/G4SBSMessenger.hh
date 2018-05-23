@@ -202,7 +202,8 @@ private:
   G4UIcmdWithADouble *SolTosFieldScaleCmd;
   G4UIcmdWithADoubleAndUnit *SolTosFieldOffsetCmd;
 
-
+  G4UIcmdWithABool *mTPCRoomTempCmd;
+  G4UIcmdWithADoubleAndUnit *TDIStgtWallThickCmd;
 };
 
 #endif//G4SBSMessenger_HH

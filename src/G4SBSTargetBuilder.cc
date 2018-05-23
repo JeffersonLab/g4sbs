@@ -1949,7 +1949,7 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
     
   for(int i = 0; i<20; i++){
     TPCgas_solid = new G4Tubs("TPCgas_solid", 10.*cm/2.0+i*0.5*cm, 10.*cm/2.0+(i+1)*0.5*cm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
-    TPCgas_log = new G4LogicalVolume(TPCgas_solid, GetMaterial("ref4He"),"TPCgas_log");
+    TPCgas_log = new G4LogicalVolume(TPCgas_solid, GetMaterial("TPCgas"),"TPCgas_log");
     
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCgas_log,
 		      "TPCgas_phys", TPCmother_log, false, i);

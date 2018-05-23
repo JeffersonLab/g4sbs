@@ -489,12 +489,25 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["LD2"] = LD2mat;
   
   //TPC/future targets? material
-  gasden = 0.1*atmosphere*(4.0026*g/Avogadro)/(90*kelvin*k_Boltzmann);
-  G4Material *ref4He = new G4Material("ref4He", gasden, 1 );
+  G4double density_4He = 0.1*atmosphere*(4.0026*g/Avogadro)/(90*kelvin*k_Boltzmann);
+  G4Material *ref4He = new G4Material("ref4He", density_4He, 1 );
   ref4He->AddElement(el4He, 1);
 
   fMaterialsMap["ref4He"] = ref4He;
- 
+  
+  G4double density_CH4 = 0.1*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(90*kelvin*k_Boltzmann);
+  G4Material *CH4 = new G4Material("CH4", density_CH4, nel=2 );
+  CH4->AddElement(elC, 1);
+  CH4->AddElement(elH, 4);
+
+  fMaterialsMap["CH4"] = CH4;
+
+  G4double density_TPCgas = 0.9*density_4He+0.1*density_CH4;
+  G4Material *TPCgas= new G4Material("TPCgas", density_TPCgas, nel=2);
+  TPCgas->AddMaterial(ref4He, 0.9*density_4He/density_TPCgas) ;
+  TPCgas->AddMaterial(CH4, 0.1*density_CH4/density_TPCgas) ;
+
+  fMaterialsMap["TPCgas"] = TPCgas;
   
   //Beamline materials:
   density = 2.5*g/cm3;

@@ -21,6 +21,7 @@
 
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
+#include "G4SBSCalSD.hh"
 
 
 G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
@@ -1757,6 +1758,42 @@ void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
    
   MakeCommonExitBeamline(worldlog);
   
+  // EFuchey: 2018/05/29: add a small dummy detector to study the neutron production by the shielding.
+  // 
+  G4double ElecX = 20.0*cm;
+  G4double ElecY = 20.0*cm;
+  G4double ElecZ = 20.0*cm;
+ 
+  G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
+  G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
+  
+  G4String GEMElectronicsname = "DummyNeutronDet";
+  G4String  GEMElectronicscollname = "DummyNeutronDet";
+  G4SBSCalSD *GEMElecSD = NULL;
+
+  GEMElectronicsname += "GMn";
+  GEMElectronicscollname += "GMn";
+
+  if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(GEMElectronicsname) )){
+    G4cout << "Adding GEM electronics Sensitive Detector to SDman..." << G4endl;
+    GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
+    fDetCon->fSDman->AddNewDetector(GEMElecSD);
+    (fDetCon->SDlist).insert(GEMElectronicsname);
+    fDetCon->SDtype[GEMElectronicsname] = kCAL;
+    (GEMElecSD->detmap).depth = 1;
+  }
+  Electronics_log->SetSensitiveDetector( GEMElecSD );
+  
+  if( (fDetCon->StepLimiterList).find( GEMElectronicsname ) != (fDetCon->StepLimiterList).end() ){
+    Electronics_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+
+  // Place the electronics in our hut:
+  // new G4PVPlacement( 0, G4ThreeVector(0.0, -ShieldMotherY/2.0 + GPlateY2 + ElecY/2.0, ShieldMotherZ/2.0 - GPlateZ1 - ElecZ/2.0),
+  // 		     Electronics_log, "Electronics", ShieldLog, false, 0);
+  new G4PVPlacement( 0, G4ThreeVector(0.6*m, 0.0, 2.5*m),
+		     Electronics_log, "GMn_Electronics", worldlog, false, 0);
+  
   // Add here the piece whcih complements the stuff...
   
   /*
@@ -2346,6 +2383,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield+th_SSshield/2.0, 0, -25.0*cm ), leadblanket_log, "leadblanket_phys", sideshield_log, false, 0 );
   /**/
+    
 }
 
 

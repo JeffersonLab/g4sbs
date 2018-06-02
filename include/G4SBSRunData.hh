@@ -51,10 +51,14 @@ public:
   void SetSBSdist( double d ){ fSBSdist = d; }
   void SetHCALdist( double d ){ fHCALdist = d; }
   void SetHCALvoff( double y ){ fHCALvoff = y; }
+  void SetHCALhoff( double x ){ fHCALhoff = x; }
+  void SetLACdist( double d ){ fLACdist = d; }
+  void SetLACvoff( double y ){ fLACvoff = y; }
+  void SetLAChoff( double x ){ fLAChoff = x; }
   void SetRICHdist( double d ){ fRICHdist = d; }
   void SetSBSTrackerDist( double d ){ fSBSTrackerdist = d; }
   void SetSBSTrackerPitch( double a ){ fSBSTrackerPitch = a; }
-
+  
   void CalcNormalization();
   
   void AddMagData(filedata_t d){fMagData.push_back(d);}
@@ -93,6 +97,10 @@ public:
   double fSBSdist; //m
   double fHCALdist; //m
   double fHCALvoff; //m
+  double fHCALhoff; //m
+  double fLACdist; //m
+  double fLACvoff; //m
+  double fLAChoff; //mm
   double fRICHdist; //m
   double fSBSTrackerdist; //m
   double fSBSTrackerPitch; //rad

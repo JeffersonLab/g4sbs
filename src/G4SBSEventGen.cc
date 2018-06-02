@@ -28,10 +28,11 @@
 using namespace CLHEP;
 
 G4SBSEventGen::G4SBSEventGen(){
-  fThMin = 32.0*deg;
-  fThMax = 46.0*deg;
-  fPhMin = 135.0*deg;
-  fPhMax = 225.0*deg;
+  //As default values, these don't make sense:
+  fThMin = 0.01*deg;
+  fThMax = 179.99*deg;
+  fPhMin = 0.0*deg;
+  fPhMax = 360.0*deg;
 
   //////////////////////////////////
 
@@ -85,9 +86,9 @@ G4SBSEventGen::G4SBSEventGen(){
   fFragFunc = DSS2007FF();
 
   fEeMin = 0.5*GeV;
-  fEeMax = 5.0*GeV;
-  fEhadMin = 1.0*GeV;
-  fEhadMax = 10.0*GeV;
+  fEeMax = 11.0*GeV;
+  fEhadMin = 0.5*GeV;
+  fEhadMax = 11.0*GeV;
 
   // Selecting a broad range of these so they're more inclusive
   fThMin_had = 5.0*deg;

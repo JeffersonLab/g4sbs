@@ -708,7 +708,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("a1n") == 0 ){
-      fExpType = kA1n; //"A1n" experiment type for new proposal with both SBS and BigBite in electron mode to detect DIS electrons at high-x: requires some geometry modifications on SBS side, including RICH w/CO2 instead of C4F10 and no aerogel, AND with a non-zero pitch angle for the SBS tracker. Later: HCAL replaced by CLAS LAC?
+      fExpType = kA1n; //"A1n" experiment type for new proposal with both SBS and BigBite in electron mode to detect DIS electrons at high-x: requires some geometry modifications on SBS side, including RICH w/CO2 instead of C4F10 and no aerogel, AND with a non-zero pitch angle for the SBS tracker. Also: HCAL + LAC.
       validcmd = true;
     }
     //AJP: Add SIDIS as a valid experiment type:
@@ -816,7 +816,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetTarget(kH2);
       fdetcon->SetTarget(kH2);
 
-      G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann);
+      G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann); //Should this be hard-coded? I think not. On the other hand, this provides a sensible default value, soooo....
       fevgen->SetTargDen(den);
       fdetcon->fTargetBuilder->SetTargDen(den);
       validcmd = true;
@@ -965,7 +965,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevgen->SetBeamE(v);
     fIO->SetBeamE(v);
 
-    G4SBSRun::GetRun()->GetData()->SetBeamE(v/GeV);
+    //    G4SBSRun::GetRun()->GetData()->SetBeamE(v/GeV); //redundant with fIO
     //after any command affecting the kinematics or cross section of the built-in event generators, re-initialize rejection sampling:
     fevgen->SetInitialized(false);
   }
@@ -992,13 +992,15 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == sbstrkrpitchCmd ){
     G4double v = sbstrkrpitchCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetTrackerPitch(v);
-    G4SBSRun::GetRun()->GetData()->SetSBSTrackerPitch( v );
+    fIO->SetSBStrkrPitch( v );
+    //G4SBSRun::GetRun()->GetData()->SetSBSTrackerPitch( v );
   }
 
   if( cmd == sbstrkrdistCmd ){
     G4double d = sbstrkrdistCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetTrackerDist(d);
-    G4SBSRun::GetRun()->GetData()->SetSBSTrackerDist( d );
+    fIO->SetSBStrkrDist( d );
+    //G4SBSRun::GetRun()->GetData()->SetSBSTrackerDist( d );
   }
   
   if( cmd == dvcsecalmatCmd ){
@@ -1075,22 +1077,25 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = hcalhoffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetHCALHOffset(v);
     //fevgen->SetHCALDist(v);
-    //fIO->SetHcalVOffset(v);
+    fIO->SetHcalHOffset(v);
   }
 
   if( cmd == lacdistCmd ){
     G4double v = lacdistCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetLACDist(v);
+    fIO->SetLACDist( v );
   }
 
   if( cmd == lacvoffsetCmd ){
     G4double v = lacvoffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetLACVOffset(v);
+    fIO->SetLACVOffset( v );
   }
 
   if( cmd == lachoffsetCmd ){
     G4double v = lachoffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetLACHOffset(v);
+    fIO->SetLACHOffset( v );
   }
 
   if( cmd == hmagdistCmd ){

@@ -634,6 +634,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     fDetCon->SetTimeWindowAndThreshold( BBHodoScintSDname, ethresh_default, timewindow_default );
   }
   bbhodoslatlog->SetSensitiveDetector( BBHodoScintSD ); 
+
+  ofstream mapfile("database/BBhodo_map.txt");
+
+  TString currentline;
+
+  currentline.Form("# %15s, %15s, %15s, %18s, %18s",
+		   "Cell", "Row", "Column", "Xcenter", "Ycenter" );
   
   G4int n_bbhodoslats = 90;
   for(int i_bbhslat = 0; i_bbhslat<n_bbhodoslats; i_bbhslat++){
@@ -643,7 +650,14 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     (BBHodoScintSD->detmap).Col[i_bbhslat] = 0;
     (BBHodoScintSD->detmap).Row[i_bbhslat] = i_bbhslat;
     (BBHodoScintSD->detmap).LocalCoord[i_bbhslat] = G4ThreeVector( 0, y_slat,  z_slat);
+
+    currentline.Form( "  %15d, %15d, %15d, %18.3f, %18.3f",
+		      i_bbhslat, i_bbhslat, 0, 0.0/cm, y_slat/cm );
+
+    mapfile << currentline << endl;
   }
+
+  mapfile.close();
   //0.217" is the gap between the PS and the hodoscope
 
   // **** BIGBITE SHOWER ****
@@ -734,6 +748,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbTF1log, "bbTF1phys", showermodlog, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -bbpmtz), bbmylarwraplog, "bbmylarphys", showermodlog, false, 0 );
 
+  mapfile.open("database/BBSH_blockmap.txt");
+
+  currentline.Form("# %15s, %15s, %15s, %18s, %18s",
+		   "Cell", "Row", "Column", "Xcenter", "Ycenter" );
+
+  mapfile << currentline << endl;
+  
   int bbscol = 7;
   int bbsrow = 27;
   for( int l=0; l<bbscol; l++ ) {
@@ -745,6 +766,11 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       double xtemp = (calwidth - bbmodule_x)/2.0 - l*bbmodule_x;
       double ytemp = (calheight - bbmodule_y)/2.0 - j*bbmodule_y;
 
+      currentline.Form( "  %15d, %15d, %15d, %18.3f, %18.3f",
+			shower_copy_number, j, l, xtemp/cm, ytemp/cm );
+
+      mapfile << currentline << endl;
+      
       new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,0.0), showermodlog, "showermodphys", bbshowerlog, false, shower_copy_number);
       
       (BBSHSD->detmap).LocalCoord[shower_copy_number] = G4ThreeVector( xtemp,ytemp,(caldepth-bbpmtz)/2.0  );
@@ -752,6 +778,15 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       shower_copy_number++;
     }
   }
+
+  mapfile.close();
+
+  mapfile.open("database/BBPS_blockmap.txt");
+
+  currentline.Form("# %15s, %15s, %15s, %18s, %18s",
+		   "Cell", "Row", "Column", "Xcenter", "Ycenter" );
+
+  mapfile << currentline << endl;
 
   // ****Preshower Continued****
   // Reusing modules from Shower (same variables), rotated by either +/- 90 deg depending on column #
@@ -824,6 +859,12 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       (BBPSSD->detmap).Row[ps_copy_number] = j;
       (BBPSTF1SD->detmap).Col[ps_copy_number] = l;
       (BBPSTF1SD->detmap).Row[ps_copy_number] = j;
+
+      currentline.Form( "  %15d, %15d, %15d, %18.3f, %18.3f",
+			  ps_copy_number, j, l, xtemp/cm, ytemp/cm );
+
+      mapfile << currentline << endl;
+      
       if(l==0) { 
 	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
 	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp+caldepth/2.0-bbpmtz/2.0, ytemp, 0.0);
@@ -838,6 +879,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       }
     }
   }
+
+  mapfile.close();
+  
   //--------- Visualization attributes -------------------------------
   //Mother volumes
   bbdetLog->SetVisAttributes( G4VisAttributes::Invisible );

@@ -403,10 +403,10 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 		
 		  b_xptar(ipar) += term[ipar]*xptar;
 		
-		  if( i == 0 ){
-		    b_yptar(ipar) += term[ipar]*yptar;
-		    b_ytar(ipar) += term[ipar]*ytar;
-		  }
+		  //if( i == 0 ){
+		  b_yptar(ipar) += term[ipar]*yptar;
+		  b_ytar(ipar) += term[ipar]*ytar;
+		    //}
 		  //b_ytar(ipar) += term[ipar]*T->ev_vz;
 		  //} 
 		  //b_pinv(ipar) += term[ipar]*(p/pcentral[arm]-1.0);
@@ -437,14 +437,14 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
   cout << "Setting up SVD for pinv:" << endl;
   TDecompSVD A_pinv(M);
   
-  for(int ipar=0; ipar<nparams; ipar++){
-    if( xtar_expon[ipar] > 0 ){
-      M(ipar,ipar) = 1.0;
-      for(int jpar=0; jpar<nparams; jpar++){
-  	if( jpar != ipar ) M(ipar,jpar) = 0.0;
-      }
-    }
-  }
+  // for(int ipar=0; ipar<nparams; ipar++){
+  //   if( xtar_expon[ipar] > 0 ){
+  //     M(ipar,ipar) = 1.0;
+  //     for(int jpar=0; jpar<nparams; jpar++){
+  // 	if( jpar != ipar ) M(ipar,jpar) = 0.0;
+  //     }
+  //   }
+  // }
   
   cout << "Setting up SVD for yptar:" << endl;
   TDecompSVD A_yptar(M);

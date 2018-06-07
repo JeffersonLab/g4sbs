@@ -129,8 +129,10 @@ void Pythia6_minbias_gen( const char *outputfilename, double Ebeam=11.0, long ng
     tau.clear();
     Generator.GenerateEvent();
     if( ievent%100 == 0 || ievent == ngen ){
-      sigma.push_back( Generator.GetPARI(1) ); //total cross section in mb
-      event_num.push_back( double(ievent) );
+      if( ievent%1000 == 0 || ievent == ngen ){
+	sigma.push_back( Generator.GetPARI(1) ); //total cross section in mb
+	event_num.push_back( double(ievent) );
+      }
       cout << "Event number " << ievent << ", sigma = " << Generator.GetPARI(1) << " mb" << endl;
     }
 

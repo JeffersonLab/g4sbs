@@ -39,7 +39,7 @@ public:
   void MakeBBSieveSlit(G4LogicalVolume *);
 
   void SetGRINCHgas( G4String str ){ fGRINCHgas = str; }
-
+  
   double fBBang;
   double fBBdist;
   double fBBCaldist;

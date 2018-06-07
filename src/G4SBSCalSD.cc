@@ -20,7 +20,7 @@ G4SBSCalSD::G4SBSCalSD( G4String name, G4String colname )
 
     fHitTimeWindow = 1000.0*ns; //"safe" default value for a calorimeter;
     fEnergyThreshold = 0.0*keV; //"safe" default value for a calorimeter;
-    fNTimeBins = 20; 
+    fNTimeBins = 500; 
 }
 
 G4SBSCalSD::~G4SBSCalSD()

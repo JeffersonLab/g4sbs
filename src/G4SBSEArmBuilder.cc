@@ -620,15 +620,27 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(BBHodoScintSDname)) ) {
     G4cout << "Adding BB Hodoscope Scint Sensitive Detector to SDman..." << G4endl;
     BBHodoScintSD = new G4SBSCalSD( BBHodoScintSDname, BBHodoScintcollname );
-    BBHodoScintSD->SetHitTimeWindow( 30.0*ns ); //relative to hit start time
-    BBHodoScintSD->SetEnergyThreshold( 5.0*MeV ); //Based on simulations of quasi-elastic scattering
-    BBHodoScintSD->SetNTimeBins( 60 ); //0.5 ns/bin
+    
+    //    BBHodoScintSD->SetEnergyThreshold( 5.0*MeV ); //Based on simulations of quasi-elastic scattering
+    //BBHodoScintSD->SetNTimeBins( 60 ); //0.5 ns/bin
     sdman->AddNewDetector( BBHodoScintSD );
     (fDetCon->SDlist).insert( BBHodoScintSDname );
     fDetCon->SDtype[BBHodoScintSDname] = kCAL;
     (BBHodoScintSD->detmap).depth = 0;
+
+    G4double ethresh_default = 5.0*MeV;
+    G4double timewindow_default = 30.0*ns;
+    
+    fDetCon->SetTimeWindowAndThreshold( BBHodoScintSDname, ethresh_default, timewindow_default );
   }
   bbhodoslatlog->SetSensitiveDetector( BBHodoScintSD ); 
+
+  ofstream mapfile("database/BBhodo_map.txt");
+
+  TString currentline;
+
+  currentline.Form("# %15s, %15s, %15s, %18s, %18s",
+		   "Cell", "Row", "Column", "Xcenter", "Ycenter" );
   
   G4int n_bbhodoslats = 90;
   for(int i_bbhslat = 0; i_bbhslat<n_bbhodoslats; i_bbhslat++){
@@ -638,7 +650,14 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     (BBHodoScintSD->detmap).Col[i_bbhslat] = 0;
     (BBHodoScintSD->detmap).Row[i_bbhslat] = i_bbhslat;
     (BBHodoScintSD->detmap).LocalCoord[i_bbhslat] = G4ThreeVector( 0, y_slat,  z_slat);
+
+    currentline.Form( "  %15d, %15d, %15d, %18.3f, %18.3f",
+		      i_bbhslat, i_bbhslat, 0, 0.0/cm, y_slat/cm );
+
+    mapfile << currentline << endl;
   }
+
+  mapfile.close();
   //0.217" is the gap between the PS and the hodoscope
 
   // **** BIGBITE SHOWER ****
@@ -684,10 +703,16 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(BBSHTF1SDname)) ) {
     G4cout << "Adding BB Shower TF1 Sensitive Detector to SDman..." << G4endl;
     BBSHTF1SD = new G4SBSCalSD( BBSHTF1SDname, BBSHTF1collname );
+      
     sdman->AddNewDetector( BBSHTF1SD );
     (fDetCon->SDlist).insert( BBSHTF1SDname );
     fDetCon->SDtype[BBSHTF1SDname] = kCAL;
     (BBSHTF1SD->detmap).depth = 1;
+
+    G4double threshold_default = 10.0*MeV; //1% of 1 GeV
+    G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape. 
+    
+    fDetCon->SetTimeWindowAndThreshold( BBSHTF1SDname, threshold_default, timewindow_default );
   }
   bbTF1log->SetSensitiveDetector( BBSHTF1SD ); 
 
@@ -723,6 +748,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbTF1log, "bbTF1phys", showermodlog, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -bbpmtz), bbmylarwraplog, "bbmylarphys", showermodlog, false, 0 );
 
+  mapfile.open("database/BBSH_blockmap.txt");
+
+  currentline.Form("# %15s, %15s, %15s, %18s, %18s",
+		   "Cell", "Row", "Column", "Xcenter", "Ycenter" );
+
+  mapfile << currentline << endl;
+  
   int bbscol = 7;
   int bbsrow = 27;
   for( int l=0; l<bbscol; l++ ) {
@@ -734,6 +766,11 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       double xtemp = (calwidth - bbmodule_x)/2.0 - l*bbmodule_x;
       double ytemp = (calheight - bbmodule_y)/2.0 - j*bbmodule_y;
 
+      currentline.Form( "  %15d, %15d, %15d, %18.3f, %18.3f",
+			shower_copy_number, j, l, xtemp/cm, ytemp/cm );
+
+      mapfile << currentline << endl;
+      
       new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,0.0), showermodlog, "showermodphys", bbshowerlog, false, shower_copy_number);
       
       (BBSHSD->detmap).LocalCoord[shower_copy_number] = G4ThreeVector( xtemp,ytemp,(caldepth-bbpmtz)/2.0  );
@@ -741,6 +778,15 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       shower_copy_number++;
     }
   }
+
+  mapfile.close();
+
+  mapfile.open("database/BBPS_blockmap.txt");
+
+  currentline.Form("# %15s, %15s, %15s, %18s, %18s",
+		   "Cell", "Row", "Column", "Xcenter", "Ycenter" );
+
+  mapfile << currentline << endl;
 
   // ****Preshower Continued****
   // Reusing modules from Shower (same variables), rotated by either +/- 90 deg depending on column #
@@ -757,10 +803,17 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(BBPSTF1SDname)) ) {
     G4cout << "Adding BB Preshower TF1 Sensitive Detector to SDman..." << G4endl;
     BBPSTF1SD = new G4SBSCalSD( BBPSTF1SDname, BBPSTF1collname );
+    
     sdman->AddNewDetector( BBPSTF1SD );
     (fDetCon->SDlist).insert( BBPSTF1SDname );
     fDetCon->SDtype[BBPSTF1SDname] = kCAL;
     (BBPSTF1SD->detmap).depth = 1;
+
+    //Photoelectron yield is approximately 500/GeV (or so)
+    G4double threshold_default = 10.0*MeV; //1% of 1 GeV
+    G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
+
+    fDetCon->SetTimeWindowAndThreshold( BBPSTF1SDname, threshold_default, timewindow_default );
   }
   bbpsTF1log->SetSensitiveDetector( BBPSTF1SD ); 
 
@@ -806,6 +859,12 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       (BBPSSD->detmap).Row[ps_copy_number] = j;
       (BBPSTF1SD->detmap).Col[ps_copy_number] = l;
       (BBPSTF1SD->detmap).Row[ps_copy_number] = j;
+
+      currentline.Form( "  %15d, %15d, %15d, %18.3f, %18.3f",
+			  ps_copy_number, j, l, xtemp/cm, ytemp/cm );
+
+      mapfile << currentline << endl;
+      
       if(l==0) { 
 	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
 	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp+caldepth/2.0-bbpmtz/2.0, ytemp, 0.0);
@@ -820,6 +879,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       }
     }
   }
+
+  mapfile.close();
+  
   //--------- Visualization attributes -------------------------------
   //Mother volumes
   bbdetLog->SetVisAttributes( G4VisAttributes::Invisible );
@@ -1014,10 +1076,16 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
   if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(DVCSblkSDname)) ) {
     G4cout << "Adding DVCSblk Sensitive Detector to SDman..." << G4endl;
     DVCSblkSD = new G4SBSCalSD( DVCSblkSDname, DVCSblkcollname );
+    
     sdman->AddNewDetector( DVCSblkSD );
     (fDetCon->SDlist).insert( DVCSblkSDname );
     fDetCon->SDtype[DVCSblkSDname] = kCAL;
     (DVCSblkSD->detmap).depth = 1;
+
+    G4double threshold_default = 0.0*MeV; //1% of 1 GeV
+    G4double timewindow_default = 100.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape. 
+
+    fDetCon->SetTimeWindowAndThreshold( DVCSblkSDname, threshold_default, timewindow_default );
   }
   DVCSblklog->SetSensitiveDetector( DVCSblkSD ); 
 
@@ -1250,10 +1318,16 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
     if( !( C16TF1SD = (G4SBSCalSD*) sdman->FindSensitiveDetector(C16TF1SDname) ) ){
       G4cout << "Adding C16 TF1 Sensitive Detector to SDman..." << G4endl;
       C16TF1SD = new G4SBSCalSD( C16TF1SDname, C16TF1collname );
+
       fDetCon->fSDman->AddNewDetector( C16TF1SD );
       (fDetCon->SDlist).insert( C16TF1SDname );
       fDetCon->SDtype[C16TF1SDname] = kCAL;
       (C16TF1SD->detmap).depth = 1;
+
+      G4double default_threshold = 10.0*MeV;
+      G4double default_timewindow = 100.0*ns;
+
+      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
     }
     // Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
@@ -1346,10 +1420,16 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
     if( !( C16TF1SD = (G4SBSCalSD*) sdman->FindSensitiveDetector(C16TF1SDname) ) ){
       G4cout << "Adding C16 TF1 Segmented Sensitive Detector to SDman..." << G4endl;
       C16TF1SD = new G4SBSCalSD( C16TF1SDname, C16TF1collname );
+      
       fDetCon->fSDman->AddNewDetector( C16TF1SD );
       (fDetCon->SDlist).insert( C16TF1SDname );
       fDetCon->SDtype[C16TF1SDname] = kCAL;
       (C16TF1SD->detmap).depth = 0;
+
+      G4double default_threshold = 10.0*MeV;
+      G4double default_timewindow = 100.0*ns;
+
+      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
     }
 
     G4int cell_number = 0 ;    // cell #
@@ -1684,12 +1764,18 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   if( !( ECalTF1SD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(ECalTF1SDname) ) ){
     G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
     ECalTF1SD = new G4SBSCalSD( ECalTF1SDname, ECalTF1collname );
+    
     fDetCon->fSDman->AddNewDetector( ECalTF1SD );
     (fDetCon->SDlist).insert(ECalTF1SDname);
     fDetCon->SDtype[ECalTF1SDname] = kCAL;
     //fDetCon->SDarm[ECalTF1SDname] = kEarm;
 
     (ECalTF1SD->detmap).depth = 1;
+
+    G4double default_timewindow = 100.0*ns;
+    G4double default_threshold  = 10.0*MeV;
+
+    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, default_threshold, default_timewindow );
   }
   
   //Make lead-glass and place in modules:
@@ -2337,11 +2423,17 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
   if( !( cdet_scint_sd = (G4SBSCalSD*) sdman->FindSensitiveDetector( sdname ) ) ){
     G4cout << "Adding CDET Scint sensitive detector to sdman..." << G4endl;
     cdet_scint_sd = new G4SBSCalSD( sdname, collname );
+    
     fDetCon->fSDman->AddNewDetector( cdet_scint_sd );
     (fDetCon->SDlist).insert( sdname );
     fDetCon->SDtype[sdname] = kCAL;
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
+
+    G4double default_timewindow = 50.0*ns;
+    G4double default_threshold  = 4.0*MeV;
+
+    fDetCon->SetTimeWindowAndThreshold( sdname, default_threshold, default_timewindow );
   }
   
   //Now we need to define the coordinates of the "modules":
@@ -3238,7 +3330,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
   G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
   
   G4String GEMElectronicsname = "Earm/GEMElectronics";
-  G4String  GEMElectronicscollname = "GEMElectronicsHitsCollection";
+  G4String GEMElectronicscollname = "GEMElectronicsHitsCollection";
   G4SBSCalSD *GEMElecSD = NULL;
 
   GEMElectronicsname += "GMn";
@@ -3251,6 +3343,8 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
     (fDetCon->SDlist).insert(GEMElectronicsname);
     fDetCon->SDtype[GEMElectronicsname] = kCAL;
     (GEMElecSD->detmap).depth = 1;
+
+    fDetCon->SetTimeWindowAndThreshold( GEMElectronicsname );
   }
   Electronics_log->SetSensitiveDetector( GEMElecSD );
   

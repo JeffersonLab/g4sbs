@@ -221,8 +221,12 @@ G4SBSMessenger::G4SBSMessenger(){
   sbstrkrdistCmd->SetParameterName("sbstrkrdist",false );
   
   dvcsecalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/dvcsecalhoffset",this);
-  dvcsecalhoffsetCmd->SetGuidance("DVCS ECal HCAL horizontal offset");
+  dvcsecalhoffsetCmd->SetGuidance("DVCS ECal horizontal offset");
   dvcsecalhoffsetCmd->SetParameterName("dvcsecalhoffset", false);
+
+  dvcsecalvoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/dvcsecalvoffset",this);
+  dvcsecalvoffsetCmd->SetGuidance("DVCS ECal vertical offset");
+  dvcsecalvoffsetCmd->SetParameterName("dvcsecalvoffset", false);
 
   dvcsecalnrowsCmd = new G4UIcmdWithAnInteger("/g4sbs/dvcsecalnrows",this);
   dvcsecalnrowsCmd->SetGuidance("number of rows for (PbF2) DVCS ECal");
@@ -1047,6 +1051,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == dvcsecalhoffsetCmd ){
     G4double v = dvcsecalhoffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fECal->SetDVCSECalHOffset(v);
+  }
+  
+  if( cmd == dvcsecalvoffsetCmd ){
+    G4double v = dvcsecalvoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fECal->SetDVCSECalVOffset(v);
   }
   
   if( cmd == dvcsecalnrowsCmd ){

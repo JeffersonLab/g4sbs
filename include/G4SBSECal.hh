@@ -19,6 +19,7 @@ public:
   void SetDVCSECalNRows(G4int nrows){ fDVCSNrows = nrows; }
   void SetDVCSECalNCols(G4int ncols){ fDVCSNcols = ncols; }
   void SetDVCSECalHOffset(double a){ fDVCSECALhorizontal_offset = a; }
+  void SetDVCSECalVOffset(double a){ fDVCSECALvertical_offset = a; }
   
   G4LogicalVolume* MakeSuperModule(G4double, G4double, G4double);
   
@@ -37,6 +38,7 @@ public:
   G4int fDVCSNrows;
   G4int fDVCSNcols;
   G4double fDVCSECALhorizontal_offset;  // Horizontal offset (from center) of DVCS ECal
+  G4double fDVCSECALvertical_offset;  // Horizontal offset (from center) of DVCS ECal
   
 private:
 };

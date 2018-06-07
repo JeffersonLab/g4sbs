@@ -56,6 +56,7 @@ G4SBSECal::G4SBSECal(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fDVCSNrows = 16;
   fDVCSNcols = 13;
   fDVCSECALhorizontal_offset = 0.0;  // Horizontal offset (from center) of DVCS ECal
+  fDVCSECALvertical_offset = 0.0;  // Horizontal offset (from center) of DVCS ECal
   
   assert(fDetCon);
 }
@@ -2164,7 +2165,7 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
 
   G4Box *dvcsecalbox = new G4Box("dvcsecalbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
   G4LogicalVolume *dvcsecallog = new G4LogicalVolume(dvcsecalbox, GetMaterial("Air"), "dvcsecallog");
-  G4ThreeVector dvcsecal_pos(fDVCSECALhorizontal_offset, 0.0, fDist+caldepth/2.0);
+  G4ThreeVector dvcsecal_pos(fDVCSECALhorizontal_offset, fDVCSECALvertical_offset, fDist+caldepth/2.0);
   dvcsecal_pos.rotateY(fAng);
   G4RotationMatrix* dvcsecal_rm = new G4RotationMatrix();
   dvcsecal_rm->rotateY(-fAng);

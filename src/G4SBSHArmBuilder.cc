@@ -883,7 +883,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
       // Add lead inserts IFF lead option is turned on:
       //if( fDetCon->fLeadOption == 1 ){
-      new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
+      //new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
     
       
       //Add lead bar:

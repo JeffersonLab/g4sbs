@@ -16,6 +16,7 @@
 #include "G4SBSRunData.hh"
 
 const double Mp = 0.938272;
+const double Mn = 0.939565;
 
 void DIS_rates_DIS(const char *configfilename, const char *outfilename){
   
@@ -29,7 +30,9 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
   set<TString> files;
 
   map<TString, long> ngen_file;
-  map<TString, long> ntries_file; 
+  map<TString, long> ntries_file;
+  map<TString, double> genvol_file;
+  map<TString, double> ebeam_file;
   
   while( currentline.ReadLine( infile ) && !currentline.BeginsWith("endlist") ){
     if( !currentline.BeginsWith("#") ){
@@ -61,6 +64,8 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
 	ntries += rd->fNtries;
 	ngen_file[chEl->GetTitle()] = rd->fNthrown;
 	ntries_file[chEl->GetTitle()] = rd->fNtries;
+	genvol_file[chEl->GetTitle()] = rd->fGenVol;
+	ebeam_file[chEl->GetTitle()]  = rd->fBeamE;
       }
     } else {
       bad_file_list.insert( chEl->GetTitle());
@@ -150,7 +155,7 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
   TProfile *hQ2_xbj_BB_prof = new TProfile("hQ2_xbj_BB_prof","",nbins,&(bins[0]));
   TProfile *hEprime_xbj_BB_prof = new TProfile("hEprime_xbj_BB_prof","",nbins,&(bins[0]));
   TProfile *hxmean_xbj_BB_prof = new TProfile("hxmean_xbj_BB_prof","",nbins,&(bins[0]));
-  TProfile *hW_xbj_BB_prof = new TProfile("hW_xbj_BB_prof","",nbins,&(bins[0]));
+  TProfile *hW2_xbj_BB_prof = new TProfile("hW2_xbj_BB_prof","",nbins,&(bins[0]));
   TProfile *hy_xbj_BB_prof = new TProfile("hy_xbj_BB_prof","",nbins,&(bins[0]));
   TProfile *heps_xbj_BB_prof = new TProfile("heps_xbj_BB_prof","",nbins,&(bins[0]));
   
@@ -171,7 +176,7 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
   TProfile *hQ2_xbj_SBS_prof = new TProfile("hQ2_xbj_SBS_prof","",nbins,&(bins[0]));
   TProfile *hEprime_xbj_SBS_prof = new TProfile("hEprime_xbj_SBS_prof","",nbins,&(bins[0]));
   TProfile *hxmean_xbj_SBS_prof = new TProfile("hxmean_xbj_SBS_prof","",nbins,&(bins[0]));
-  TProfile *hW_xbj_SBS_prof = new TProfile("hW_xbj_SBS_prof","",nbins,&(bins[0]));
+  TProfile *hW2_xbj_SBS_prof = new TProfile("hW2_xbj_SBS_prof","",nbins,&(bins[0]));
   TProfile *hy_xbj_SBS_prof = new TProfile("hy_xbj_SBS_prof","",nbins,&(bins[0]));
   TProfile *heps_xbj_SBS_prof = new TProfile("heps_xbj_SBS_prof","",nbins,&(bins[0]));
   TH2D *hQ2_xbj_SBS = new TH2D("hQ2_xbj_SBS","",100,0,1,100,1,12);
@@ -210,7 +215,8 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
     //   weight_n = sigma * Lumi / double(ngen_n);  
     // }
 
-    
+    double ebeam = 11.0;
+    double Mnucl = Mp;
     
     if ( files.find( fname ) != files.end() ){
       // sigma is the per-nucleon cross section
@@ -220,12 +226,16 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
       //weight_total = sigma * genvol * double(ngen_file[fname]) * Lumi / double( ntries );
       //In the SBS DIS generator, a neutron (proton) is chosen with probability 1/3 (2/3) for Helium-3.
       //Therefore, we just need to multiply the luminosity by the number of nucleons/atom to achieve sigma_3He = 2sigma_p + sigma_n
+      genvol = genvol_file[fname];
+      ebeam  = ebeam_file[fname];
+      
       if( nucl == 1 ){ //proton
 	//weight_p = sigma * genvol * double(ngen_file[fname]) * 3. * Lumi / double( ntries );
 	weight_p = sigma * genvol * 3. * Lumi / double( ntries );
       } else if ( nucl == 0 ){ //neutron
 	//weight_n = sigma * genvol * double(ngen_file[fname]) * 3. * Lumi / double( ntries );
 	weight_n = sigma * genvol * 3. * Lumi / double( ntries );
+	Mnucl = Mn;
       }
     }
     
@@ -237,20 +247,27 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
 	if( (*(T->Harm_SBSGEM_Track_PID))[track] == 11 &&
 	    (*(T->Harm_SBSGEM_Track_MID))[track] == 0 &&
 	    T->ev_ep >= Emin_SBS && T->ev_Q2 > 1.0 ){ //Then this is the primary electron track:
-	  double xbj = T->ev_xbj;
-	  double Q2 = T->ev_Q2;
+	  // double xbj = T->ev_xbj;
+	  // double Q2 = T->ev_Q2;
 	  //double y = T->evy;
+	  //double ebeam =
 	  double Eprime = T->ev_ep;
-	  double W = sqrt(T->ev_W2);
+	  //double W = sqrt(T->ev_W2);
 	  double etheta = T->ev_th;
 	  double y = 1.0 - Eprime/T->gen_Ebeam;
 
-	  //What if, instead of the "true" xbj, we use the "reconstructed" value?
-	  //xbj = Q2/(2.*Mp*(T->gen_Ebeam - Eprime));
+	  double Q2 = 2.0*ebeam*Eprime*(1.0-cos(etheta));
+	  double nu = ebeam-Eprime;
+	  double xbj = Q2/(2.0*Mnucl*nu);
 	  
-	  double gamma2 = pow(2.*Mp*xbj,2)/Q2; // Q^2 = 2M nu x --> 2Mx = Q^2/nu --> gamma^2 = Q^2 / nu^2 
+	  //What if, instead of the "true" xbj, we use the "reconstructed" value?
+	  //xbj = Q2/(2.*Mnucl*(T->gen_Ebeam - Eprime));
+	  
+	  double gamma2 = pow(2.*Mnucl*xbj,2)/Q2; // Q^2 = 2M nu x --> 2Mx = Q^2/nu --> gamma^2 = Q^2 / nu^2 
 
 	  double epsilon = 1.0/( 1. + 2*(1+1./gamma2)*pow(tan(etheta/2.),2) );
+
+	  double W2 = pow(Mnucl,2) + 2.0*Mnucl*nu - Q2;
 	  
 	  hrate_p_xbj_SBS->Fill( xbj, weight_p );
 	  hrate_n_xbj_SBS->Fill( xbj, weight_n );
@@ -266,7 +283,7 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
 	  hQ2_xbj_SBS_prof->Fill( xbj, Q2, weight_p + weight_n );
 	  hEprime_xbj_SBS_prof->Fill( xbj, Eprime, weight_p + weight_n );
 	  hxmean_xbj_SBS_prof->Fill( xbj, xbj, weight_p + weight_n );
-	  hW_xbj_SBS_prof->Fill( xbj, W, weight_p + weight_n );
+	  hW2_xbj_SBS_prof->Fill( xbj, W2, weight_p + weight_n );
 	  hy_xbj_SBS_prof->Fill( xbj, y, weight_p + weight_n );
 	  heps_xbj_SBS_prof->Fill( xbj, epsilon, weight_p + weight_n );
 	}
@@ -279,19 +296,24 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
 	if( (*(T->Earm_BBGEM_Track_PID))[track] == 11 &&
 	    (*(T->Earm_BBGEM_Track_MID))[track] == 0 &&
 	    T->ev_ep >= Emin_BB && T->ev_Q2 > 1.0 ){ //Then this is with a high degree of certainty the primary scattered electron track:
-	  double xbj = T->ev_xbj;
-	  double Q2 = T->ev_Q2;
+	  // double xbj = T->ev_xbj;
+	  // double Q2 = T->ev_Q2;
 	  //double y = T->evy;
+	  //double ebeam =
 	  double Eprime = T->ev_ep;
-	  double W = sqrt(T->ev_W2);
+	  //double W = sqrt(T->ev_W2);
 	  double etheta = T->ev_th;
-	  double y = 1.0 - Eprime/T->gen_Ebeam;
+	  double y = 1.0 - Eprime/ebeam;
 
-	  //xbj = Q2/(2.*Mp*(T->gen_Ebeam - Eprime));
+	  double Q2 = 2.0*ebeam*Eprime*(1.0-cos(etheta));
+	  double nu = ebeam-Eprime;
+	  double xbj = Q2/(2.0*Mnucl*nu);
 	  
-	  double gamma2 = pow(2.*Mp*xbj,2)/Q2; // Q^2 = 2M nu x --> 2Mx = Q^2/nu --> gamma^2 = Q^2 / nu^2 
+	  double gamma2 = pow(2.*Mnucl*xbj,2)/Q2; // Q^2 = 2M nu x --> 2Mx = Q^2/nu --> gamma^2 = Q^2 / nu^2 
 
 	  double epsilon = 1.0/( 1. + 2*(1+1./gamma2)*pow(tan(etheta/2.),2) );
+
+	  double W2 = pow(Mnucl,2) + 2.0*Mnucl*nu - Q2;
 	  
 	  hrate_p_xbj_BB->Fill( xbj, weight_p );
 	  hrate_n_xbj_BB->Fill( xbj, weight_n );
@@ -307,7 +329,7 @@ void DIS_rates_DIS(const char *configfilename, const char *outfilename){
 	  hQ2_xbj_BB_prof->Fill( xbj, Q2, weight_p + weight_n );
 	  hEprime_xbj_BB_prof->Fill( xbj, Eprime, weight_p + weight_n );
 	  hxmean_xbj_BB_prof->Fill( xbj, xbj, weight_p + weight_n );
-	  hW_xbj_BB_prof->Fill( xbj, W, weight_p + weight_n );
+	  hW2_xbj_BB_prof->Fill( xbj, W2, weight_p + weight_n );
 	  hy_xbj_BB_prof->Fill( xbj, y, weight_p + weight_n );
 	  heps_xbj_BB_prof->Fill( xbj, epsilon, weight_p + weight_n );
 	}

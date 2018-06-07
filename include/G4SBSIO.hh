@@ -23,7 +23,7 @@ class G4SBSGlobalField;
 
 //These aren't really "event"-level quantities, as they are constants describing the setup, and should be stored in the "rundata" object.
 typedef struct {
-  Double_t thbb, thsbs, dbb, dsbs, dhcal,voffhcal, drich, dsbstrkr, Ebeam;
+  Double_t thbb, thsbs, dbb, dsbs, dhcal,voffhcal, hoffhcal, drich, dsbstrkr, sbstrkrpitch, dlac, vofflac, hofflac, Ebeam;
 } gen_t;
 
 
@@ -116,9 +116,14 @@ public:
   void SetSBSTheta(double th){ gendata.thsbs = th; }
   void SetHcalDist(double d){ gendata.dhcal = d/CLHEP::m; }
   void SetHcalVOffset(double d){ gendata.voffhcal = d/CLHEP::m; }
+  void SetHcalHOffset(double d){ gendata.hoffhcal = d/CLHEP::m; }
+  void SetLACDist( double d){ gendata.dlac = d/CLHEP::m; }
+  void SetLACVOffset( double d ){ gendata.vofflac = d/CLHEP::m; }
+  void SetLACHOffset( double d ){ gendata.hofflac = d/CLHEP::m; }
   void SetSBSDist(double d){ gendata.dsbs = d/CLHEP::m; }
   void SetRICHDist(double d){ gendata.drich = d/CLHEP::m; }
   void SetSBStrkrDist(double d){ gendata.dsbstrkr = d/CLHEP::m; }
+  void SetSBStrkrPitch(double a){ gendata.sbstrkrpitch = a; } //radians
   
   void SetGlobalField(G4SBSGlobalField *gf){fGlobalField = gf; }
   

@@ -883,7 +883,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
       // Add lead inserts IFF lead option is turned on:
       //if( fDetCon->fLeadOption == 1 ){
-      new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
+      //new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
     
       
       //Add lead bar:
@@ -1286,7 +1286,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   G4RotationMatrix rotLeft;
   G4RotationMatrix rotRight;
   rotLeft.rotateZ(180*CLHEP::deg);
-
+  
   // Place stack elements in the module
   for(int sub = 0; sub < numSubstacks; sub++) {
 
@@ -1377,6 +1377,9 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     (fDetCon->SDlist).insert(HCalScintSDName);
     fDetCon->SDtype[HCalScintSDName] = kCAL;
     (HCalScintSD->detmap).depth = 1;
+
+    //This will be overridden if the command /g4sbs/threshold has been invoked for this detector:
+    fDetCon->SetTimeWindowAndThreshold( HCalScintSDName, 10.0*MeV, 500.0*ns );
   }
   log_Scint->SetSensitiveDetector(HCalScintSD);
 
@@ -1385,7 +1388,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   G4String HCalCollName = "HCalHitsCollection";
   G4SBSECalSD *HCalSD = NULL;
 
-  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(HCalSDName)) ){
+  if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(HCalSDName)) ){
     G4cout << "Adding HCal PMT Sensitive Detector to SDman..." << G4endl;
     HCalSD = new G4SBSECalSD( HCalSDName, HCalCollName );
     sdman->AddNewDetector(HCalSD);
@@ -1421,6 +1424,14 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   new G4PVPlacement(0, G4ThreeVector(0,0,-(dim_HCALZ-dim_HCALFrontPlateZ)/2.),
       log_HCALFrontPlate,"log_HCALFrontPlate",log_HCAL,false,0,checkOverlap);
 
+  ofstream mapfile("database/HCAL_map.txt");
+
+  TString currentline;
+  currentline.Form("# %15s, %15s, %15s, %18s, %18s",
+		   "Cell", "Row", "Column", "Xcenter (cm)", "Ycenter (cm)" );
+
+  mapfile << currentline << endl;
+  
   // Set the initial vertical position for a module as the top of HCAL
   // Initial horizontal position would be on the left
   G4double posModX;
@@ -1447,6 +1458,10 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
       (HCalScintSD->detmap).LocalCoord[copyNo] =
         G4ThreeVector(posModX,posModY,posModZ);
 
+      currentline.Form("  %15d, %15d, %15d, %18.3f, %18.3f",
+		       copyNo, row, col, posModX/cm, posModY/cm );
+      mapfile << currentline << endl;
+      
       // Increment horizontal position for next module
       posModX -= dist_ModuleCToCX;
 
@@ -1463,6 +1478,8 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
 
     posModY -= dist_ModuleCToCY/2.;
   }
+
+  mapfile.close();
 
   G4ThreeVector HCAL_zaxis( dist_HCALX, 0.0, dist_HCALZ );
   G4ThreeVector HCAL_yaxis( 0.0,        1.0, 0.0        );
@@ -1658,6 +1675,8 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     //fDetCon->SDarm[HCalScintSDname] = kHarm;
 
     (HCalScintSD->detmap).depth = 1;
+
+    fDetCon->SetTimeWindowAndThreshold( HCalScintSDname, 10.0*MeV, 100.0*ns );
   }
   logScinPl->SetSensitiveDetector(HCalScintSD);
 
@@ -2917,6 +2936,8 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     fDetCon->SDtype[sdname] = kCAL;
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
+
+    fDetCon->SetTimeWindowAndThreshold( sdname, 4.0*MeV, 50.0*ns );
   }
   
   //Now we need to define the coordinates of the "modules":
@@ -3766,6 +3787,8 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
     (fDetCon->SDlist).insert(LACScintSDname);
     fDetCon->SDtype[LACScintSDname] = kCAL;
     (LACScintSD->detmap).depth = 0;
+
+    fDetCon->SetTimeWindowAndThreshold( LACScintSDname, 10.0*MeV, 100.0*ns );
   }
   
   //Now start populating the layers. In the absence of a better "guess", I will assume that there is one more layer's worth of "short" strips than "long" strips:
@@ -3779,6 +3802,14 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
   G4VisAttributes *LACscint_visatt = new G4VisAttributes( G4Colour(0.05, 0.9, 0.7) );
   G4VisAttributes *PbSheet_visatt = new G4VisAttributes( G4Colour( 0.3, 0.3, 0.3 ) );
   PbSheet_visatt->SetForceWireframe(true);
+
+  ofstream mapfile("database/LAC_map.txt");
+
+  TString currentline;
+  currentline.Form( "# %10s, %10s, %10s, %10s, %18s, %18s, %18s",
+		    "Stack", "Row", "Column", "Plane", "Xcenter (cm)", "Ycenter (cm)", "Zcenter (cm)" );
+
+  mapfile << currentline << endl;
   
   for( G4int ilayer=0; ilayer<Nlayers_total; ilayer++ ){
 
@@ -3867,6 +3898,24 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
       } 
     }
   }
-				     
 
+  G4SBSDetMap dtemp = (LACScintSD->detmap);
+
+  for( map<G4int,G4int>::iterator it=(dtemp.Plane).begin(); it != (dtemp.Plane).end(); ++it ){
+    G4int istack = it->first;
+
+    G4int irow = dtemp.Row[istack];
+    G4int icol = dtemp.Col[istack];
+    G4int iplane = dtemp.Plane[istack];
+
+    G4ThreeVector Rtemp = dtemp.LocalCoord[istack];
+
+    currentline.Form( "  %10d, %10d, %10d, %10d, %18.3f, %18.3f, %18.3f",
+		      istack, irow, icol, iplane, Rtemp.x()/cm, Rtemp.y()/cm, Rtemp.z()/cm );
+    mapfile << currentline << endl;
+    
+  }
+
+  mapfile.close();
+  
 }

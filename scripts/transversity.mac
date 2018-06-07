@@ -1,0 +1,68 @@
+/g4sbs/beamcur  50.0 microampere
+/g4sbs/target   3He
+/g4sbs/targpres 10.5 atmosphere
+/g4sbs/targlen  55.0 cm
+
+/g4sbs/rasterx  2.0 mm
+/g4sbs/rastery  2.0 mm
+/g4sbs/exp      sidis
+/g4sbs/hadron   pi+
+/g4sbs/kine     pythia6
+/g4sbs/pythia6file ../PYTHIA6_MINBIAS_EVENTS/Ebeam11.0GeV/protontarget_job*.root
+/g4sbs/pythia6file ../PYTHIA6_MINBIAS_EVENTS/Ebeam11.0GeV/pythia11gev_job*.root
+#/g4sbs/kine beam
+
+/g4sbs/runtime   1.0 s
+/g4sbs/beamE      11.0 GeV
+/g4sbs/bbang      30.0 deg
+/g4sbs/bbdist      1.55 m
+/g4sbs/sbsang    14.0 deg
+/g4sbs/hcaldist    8.4 m
+/g4sbs/lacdist     7.7 m
+/g4sbs/48D48dist   2.5 m
+/g4sbs/48d48field   1
+/g4sbs/sbsmagfield  1.2 tesla
+/g4sbs/bbfield      1
+/g4sbs/sbsclampopt  0
+/g4sbs/richdist    4.6 m
+/g4sbs/sbstrkrpitch 0.0 deg
+/g4sbs/sbstrkrdist  4.1 m
+/g4sbs/hcalvoffset  0.0 cm
+/g4sbs/hcalhoffset -20.0 cm
+/g4sbs/lacvoffset  0.0 cm
+/g4sbs/lachoffset  -40.0 cm
+
+/g4sbs/userichaero true
+/g4sbs/grinchgas    SF6
+/g4sbs/richgas	    C4F10
+#"Wide-open" limits for unbiased PYTHIA6 event generation:
+/g4sbs/thmin        0.0 deg
+/g4sbs/thmax      180.0 deg
+/g4sbs/phmin     -180.0 deg
+/g4sbs/phmax      180.0 deg
+/g4sbs/eemin      0.0 GeV
+/g4sbs/eemax      11.0 GeV
+/g4sbs/ehmin      0.0 GeV
+/g4sbs/ehmax      11.0 GeV
+#/g4sbs/thmin      23.0 deg
+#/g4sbs/thmax      40.0 deg
+#/g4sbs/phmin     -32.0 deg
+#/g4sbs/phmax      32.0 deg
+#/g4sbs/hthmin     9.0 deg
+#/g4sbs/hthmax    23.0 deg
+#/g4sbs/hphmin     120.0 deg
+#/g4sbs/hphmax     240.0 deg
+
+
+/g4sbs/treeflag 1
+
+/g4sbs/totalabs true
+/g4sbs/rejectionsampling false 10000
+
+/g4sbs/eventstatusevery 100
+#/g4sbs/filename a1n_bigbite_30deg_ingen.root
+
+/control/execute scripts/default_thresholds.mac
+
+/g4sbs/filename ../output/a1n_simulations_2018/transversity_pythia6_protontarget.root
+/g4sbs/run 1000000

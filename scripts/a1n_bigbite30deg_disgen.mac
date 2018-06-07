@@ -1,0 +1,66 @@
+/g4sbs/beamcur  50.0 microampere
+/g4sbs/target   H2
+/g4sbs/targpres 10.5 atmosphere
+/g4sbs/targlen  55.0 cm
+
+/g4sbs/rasterx  2.0 mm
+/g4sbs/rastery  2.0 mm
+/g4sbs/exp      a1n
+/g4sbs/hadron   pi+
+/g4sbs/kine     inelastic
+#/g4sbs/kine beam
+
+/g4sbs/runtime   1.0 s
+/g4sbs/beamE      11.0 GeV
+/g4sbs/bbang      30.0 deg
+/g4sbs/bbdist      1.55 m
+/g4sbs/sbsang    12.0 deg
+/g4sbs/hcaldist    8.7 m
+/g4sbs/lacdist     8.0 m
+/g4sbs/48D48dist   2.8 m
+/g4sbs/48d48field   1
+/g4sbs/sbsmagfield  1.2 tesla
+/g4sbs/bbfield      1
+/g4sbs/sbsclampopt  0
+/g4sbs/richdist    4.9 m
+/g4sbs/sbstrkrpitch 0.0 deg
+/g4sbs/sbstrkrdist  4.4 m
+/g4sbs/hcalvoffset  0.0 cm
+/g4sbs/hcalhoffset -20.0 cm
+/g4sbs/lacvoffset  0.0 cm
+/g4sbs/lachoffset  -40.0 cm
+
+/g4sbs/userichaero true
+/g4sbs/grinchgas    SF6
+/g4sbs/richgas	    C4F10
+#/g4sbs/thmin      23.0 deg
+#/g4sbs/thmax      40.0 deg
+#/g4sbs/phmin     -32.0 deg
+#/g4sbs/phmax      32.0 deg
+#/g4sbs/hthmin     8.0 deg
+#/g4sbs/hthmax    20.0 deg
+#/g4sbs/hphmin     120.0 deg
+#/g4sbs/hphmax     240.0 deg
+/g4sbs/thmin  8.0 deg
+/g4sbs/thmax 20.0 deg
+/g4sbs/phmin 120.0 deg
+/g4sbs/phmax 240.0 deg
+#/g4sbs/eemin      0.8 GeV
+#/g4sbs/eemax      6.0 GeV
+#/g4sbs/ehmin      2.0 GeV
+#/g4sbs/ehmax      10.5 GeV
+/g4sbs/eemin 2.1 GeV
+/g4sbs/eemax 10.2 GeV
+
+/g4sbs/treeflag 1
+
+/g4sbs/totalabs true
+/g4sbs/rejectionsampling false 1000000
+
+/g4sbs/eventstatusevery 100
+#/g4sbs/filename a1n_bigbite_30deg_ingen.root
+
+/control/execute scripts/default_thresholds.mac
+
+#/g4sbs/filename ../output/a1n_simulations_2018/inelasticSBS_12deg_H2_job1.root
+#/g4sbs/run 100000

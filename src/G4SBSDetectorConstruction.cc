@@ -51,6 +51,9 @@
 #include "G4Mag_SpinEqRhs.hh"
 #include "G4ClassicalRK4.hh"
 
+#include "G4SBSCalSD.hh"
+#include "G4SBSGEMSD.hh"
+
 #include "TSpline.h"
 
 #include <vector>
@@ -104,7 +107,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fBeamlineConf = 3;
   fLeadOption = 0;
-
+  fBLneutronDet = false;
+    
   SDlist.clear();
   SDtype.clear();
   StepLimiterList.clear();
@@ -2628,6 +2632,36 @@ void G4SBSDetectorConstruction::SetFieldScale_BB( G4double v ){
 
 void G4SBSDetectorConstruction::SetFlipGEM( G4bool b ){
   fGEMflip = b;
+}
+
+void G4SBSDetectorConstruction::SetTimeWindowAndThreshold( G4String SDname, G4double Edefault, G4double Tdefault ){
+  G4SBSGEMSD *GEMSDptr;
+  G4SBSCalSD *CalSDptr;
+
+  G4double timewindow, threshold;
+  
+  if( SDlist.find( SDname ) != SDlist.end() ){
+    switch( SDtype[SDname] ){
+    case kGEM: //For now, do nothing:
+      
+      break;
+    case kCAL:
+      CalSDptr = (G4SBSCalSD*) fSDman->FindSensitiveDetector( SDname, false );
+
+      timewindow = SDgatewidth.find(SDname) != SDgatewidth.end() ? SDgatewidth[SDname] : Tdefault;
+      threshold  = SDthreshold.find(SDname) != SDthreshold.end() ? SDthreshold[SDname] : Edefault;
+
+      CalSDptr->SetEnergyThreshold( threshold );
+      CalSDptr->SetHitTimeWindow( timewindow );
+      
+      break;
+    default: //do nothing:
+      break;
+    }
+
+  }
+  
+  return;
 }
 
 void G4SBSDetectorConstruction::SetTPCSolenoidField(){

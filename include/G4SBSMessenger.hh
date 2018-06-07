@@ -161,11 +161,15 @@ private:
   G4UIcmdWithAnInteger      *SBSBeamlineConfCmd;
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
 
+  G4UIcmdWithABool *BLneutronDetsCmd;
+  
   G4UIcmdWithABool *buildSBSsieveCmd; //Build the SBS Sieve slit
   G4UIcmdWithABool *buildBBsieveCmd; //Build the BB Sieve slit
   
   G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree
 
+  
+  
   // G4UIcmdWithABool *Earm_CAL_part_cmd;
   // G4UIcmdWithABool *Harm_CAL_part_cmd;
 
@@ -173,6 +177,9 @@ private:
   G4UIcommand *KeepHistorycmd; //Command to store particle history information in the ROOT tree by sensitive detector name
   G4UIcommand *LimitStepCALcmd; //Command to turn on step limiter physics for sensitive volumes defined as calorimeters, by detector name.
 
+  G4UIcommand *SD_EnergyThresholdCmd;   //Set hit energy threshold for "Calorimeter" type sensitive detectors
+  G4UIcommand *SD_TimeWindowCmd; 
+  
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
   G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov
   G4UIcmdWithABool *UseScintCmd;      //Scintillation

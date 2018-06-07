@@ -10,6 +10,7 @@
 #include "G4Material.hh"
 #include "G4OpticalSurface.hh"
 #include "G4SDManager.hh"
+#include "G4SystemOfUnits.hh"
 #include <map>
 #include <set>
 
@@ -65,7 +66,8 @@ public:
 
   int  fBeamlineConf;
   int  fLeadOption;
-
+  bool fBLneutronDet;
+  
   Exp_t fExpType;
   Targ_t fTargType;
 
@@ -75,9 +77,9 @@ public:
   //map<G4String, Arm_t> SDarm; //Mapping of sensitive detector names to spectrometer arms
   set<G4String> StepLimiterList; //List of sensitive detectors for which G4UserLimits are defined to stop all particles entering (only allowed for calorimeters!)
   
-  // map<G4String, G4double> SDgatewidth; //Time window for accumulating hit signal
-  // map<G4String, G4double> SDthreshold; //threshold (energy deposition or photoelectrons) for recording a hit
-  // map<G4String, G4int>    SDntimebins; //Time bins for "pulse shape" histogram
+  map<G4String, G4double> SDgatewidth; //Time window for accumulating hit signal
+  map<G4String, G4double> SDthreshold; //threshold (energy deposition or photoelectrons) for recording a hit
+  //map<G4String, G4int>    SDntimebins; //Time bins for "pulse shape" histogram
   
   
   G4SDManager *fSDman; 
@@ -131,6 +133,8 @@ public:
   G4bool GetFlipGEM(){ return fGEMflip; }
 
   void SetOpticalPhotonDisabled(G4String material){ fMaterialsListOpticalPhotonDisabled.insert( material ); }
+
+  void SetTimeWindowAndThreshold( G4String SDname, G4double Ethresh=0.0*MeV, G4double Twindow=1000.0*ns ); //utility function to set time window and threshold by sensitive detector name
 
   void SetTPCSolenoidField();
   

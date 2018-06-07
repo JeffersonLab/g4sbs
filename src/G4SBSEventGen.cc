@@ -2,6 +2,10 @@
 #include "TString.h"
 #include "THashTable.h"
 #include "TGraph.h"
+#include "TChain.h"
+#include "TFile.h"
+#include "TObjArray.h"
+#include "TChainElement.h"
 
 #include "G4SBSEventGen.hh"
 #include "G4RotationMatrix.hh"
@@ -24,10 +28,11 @@
 using namespace CLHEP;
 
 G4SBSEventGen::G4SBSEventGen(){
-  fThMin = 32.0*deg;
-  fThMax = 46.0*deg;
-  fPhMin = 135.0*deg;
-  fPhMax = 225.0*deg;
+  //As default values, these don't make sense:
+  fThMin = 0.01*deg;
+  fThMax = 179.99*deg;
+  fPhMin = 0.0*deg;
+  fPhMax = 360.0*deg;
 
   //////////////////////////////////
 
@@ -81,9 +86,9 @@ G4SBSEventGen::G4SBSEventGen(){
   fFragFunc = DSS2007FF();
 
   fEeMin = 0.5*GeV;
-  fEeMax = 5.0*GeV;
-  fEhadMin = 1.0*GeV;
-  fEhadMax = 10.0*GeV;
+  fEeMax = 11.0*GeV;
+  fEhadMin = 0.5*GeV;
+  fEhadMax = 11.0*GeV;
 
   // Selecting a broad range of these so they're more inclusive
   fThMin_had = 5.0*deg;
@@ -141,7 +146,6 @@ void G4SBSEventGen::LoadPythiaChain( G4String fname ){
   } else {
     fPythiaEvent.Sigma = cm2;
   }
-
 }
 
 void G4SBSEventGen::Initialize(){
@@ -1951,8 +1955,13 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
   }
 */
 bool G4SBSEventGen::GeneratePythia(){
+  
   fPythiaTree->GetEntry(fchainentry++);
 
+  G4String fnametemp = ( (TChain*) fPythiaTree->fChain )->GetFile()->GetName();
+
+  G4double sigmatemp = fPythiaSigma[fnametemp];
+  
   if( fchainentry % 1000 == 0 ) G4cout << "Passed event " << fchainentry << " in PYTHIA6 tree" << G4endl;
   
   //Populate the pythiaoutput data structure:
@@ -1981,6 +1990,8 @@ bool G4SBSEventGen::GeneratePythia(){
       fPythiaEvent.SigmaDiff = (fPythiaTree->XSpXpsf - fPythiaTree->XSmXpsf)/2.0;
       break;
     }
+  }else{
+    fPythiaEvent.Sigma = sigmatemp/cm2;
   }
   fPythiaEvent.Ebeam = (*(fPythiaTree->E))[0]*GeV;
   fPythiaEvent.Eprime = (*(fPythiaTree->E))[2]*GeV;
@@ -2005,6 +2016,10 @@ bool G4SBSEventGen::GeneratePythia(){
   fPythiaEvent.xbj = fPythiaTree->xbj;
   fPythiaEvent.y   = fPythiaTree->y;
   fPythiaEvent.W2  = fPythiaTree->W2*GeV*GeV;
+  
+  int ngood = 0;
+
+  int ngen = 0;
   
   // E.Fuchey, 2018/04/28: 
   // If we generate exclusive event, we want to be able to select an event with the electron only: 
@@ -2050,6 +2065,7 @@ bool G4SBSEventGen::GeneratePythia(){
 		 fPythiaEvent.phi[ngood] >= fPhMin_had && fPythiaEvent.phi[ngood] <= fPhMax_had &&
 		 fPythiaEvent.E[ngood] >= fEhadMin && fPythiaEvent.E[ngood] <= fEhadMax) ) ) ) ){ 
 	fPythiaEvent.genflag.push_back( 1 );
+	ngen++;
 	//G4cout << "located good event with one or more primary particles within generation limits" << G4endl;
       } else {
 	fPythiaEvent.genflag.push_back( 0 );
@@ -2058,6 +2074,8 @@ bool G4SBSEventGen::GeneratePythia(){
     }
   }
   fPythiaEvent.Nprimaries = fPythiaEvent.PID.size();
+
+  if( ngen == 0 ) return false;
   
   return true;
 }
@@ -2306,4 +2324,33 @@ bool G4SBSEventGen::GenerateCosmics(){
   fElectronP.set( ep*(xptr-fVert.x())/norm, ep*(fCosmPointer.y()-fVert.y())/norm, ep*(zptr-fVert.z())/norm );
     
   return true;
+}
+
+void G4SBSEventGen::InitializePythia6_Tree(){
+
+  TObjArray *FileList = fPythiaChain->GetListOfFiles();
+  TIter next(FileList);
+
+  TChainElement *chEl = 0;
+
+  TGraph *gtemp;
+  
+  while( (chEl = (TChainElement*) next()) ){
+    TFile newfile(chEl->GetTitle(),"READ");
+    newfile.GetObject("graph_sigma",gtemp);
+
+    if( gtemp ){
+      fPythiaSigma[chEl->GetTitle()] = (gtemp->GetY()[gtemp->GetN()-1])*millibarn;
+    } else {
+      fPythiaSigma[chEl->GetTitle()] = 1.0*cm2; //
+    }
+    newfile.Close();
+  }
+  
+  fPythiaTree = new Pythia6_tree( fPythiaChain );
+  
+  if( !fPythiaTree ){
+    G4cout << "Failed to initialize PYTHIA6 tree, aborting... " << G4endl;
+    exit(-1);
+  }
 }

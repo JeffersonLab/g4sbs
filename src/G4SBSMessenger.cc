@@ -357,7 +357,11 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSLeadOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/uselead",this);
   SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
   SBSLeadOptionCmd->SetParameterName("uselead",false);
-
+  
+  BLneutronDetsCmd = new G4UIcmdWithABool("/g4sbs/BLneutronDets",this);
+  BLneutronDetsCmd->SetGuidance("Setup neutron detectors along the beamline");
+  BLneutronDetsCmd->SetParameterName("switch", false);
+  
   buildSBSsieveCmd = new G4UIcmdWithABool("/g4sbs/buildSBSsieve",this);
   buildSBSsieveCmd->SetGuidance("Use SBS sieve (true or false, false by default)");
   buildSBSsieveCmd->SetParameterName("buildSBSsieve",false);
@@ -1221,7 +1225,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4int i = SBSLeadOptionCmd->GetNewIntValue(newValue);
     fdetcon->fLeadOption = i;
   }
-
+  
+  if( cmd == BLneutronDetsCmd ){
+    G4bool v = BLneutronDetsCmd->GetNewBoolValue(newValue);
+    fdetcon->fBLneutronDet = v;
+  }
+  
   if( cmd == buildSBSsieveCmd ){
     fdetcon->fHArmBuilder->SetSBSSieve(newValue);
   }

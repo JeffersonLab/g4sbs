@@ -1002,13 +1002,13 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   if(fDetCon->fBLneutronDet){//TO-DO: set the possibility to deactivate it.
     // EFuchey: 2018/05/29: add a small dummy detector to study the neutron production by the shielding.
     // 
-    double x_blndet[7] = {0.6*m,  1.6*m, 0.0*m, -0.7*m, 1.0*m, 2.2*m, -2.2*m};
-    double y_blndet[7] = {0.0*m,  0.0*m, 0.6*m,  0.0*m, 0.0*m, 0.0*m,  0.0*m};
-    double z_blndet[7] = {2.5*m,  5.0*m, 2.5*m, +0.7*m, 0.0*m, 2.2*m,  2.2*m};
+    double x_blndet[8] = {0.3*m, 0.6*m, 1.6*m, 0.0*m, -0.7*m, 1.0*m, 2.2*m, -2.2*m};
+    double y_blndet[8] = {0.0*m, 0.0*m, 0.0*m, 0.6*m,  0.0*m, 0.0*m, 0.0*m,  0.0*m};
+    double z_blndet[8] = {1.5*m, 2.5*m, 5.0*m, 2.5*m, +0.7*m, 0.0*m, 2.2*m,  2.2*m};
     
-    G4double ElecX = 10.0*cm;
-    G4double ElecY = 10.0*cm;
-    G4double ElecZ = 10.0*cm;
+    G4double ElecX = 2.0*cm;
+    G4double ElecY = 2.0*cm;
+    G4double ElecZ = 2.0*cm;
     
     G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
     G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
@@ -2162,7 +2162,7 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
 //lead shielding for GMn
 void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
-  bool lead = false;
+  bool leadring = false;
   G4VisAttributes* LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
   G4VisAttributes* AlColor = new G4VisAttributes(G4Colour(0.75,0.75,0.75));
   
@@ -2187,14 +2187,14 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   G4RotationMatrix* rot_temp = new G4RotationMatrix;
   rot_temp->rotateZ(+135.0*deg);
   
-  if(lead)new G4PVPlacement( rot_temp, G4ThreeVector( 0, 0, z1_ringshield+th_ringshield/2.0 ), ringshield_log, "ringshield_phys", worldlog, false, 0 );
+  if(leadring)new G4PVPlacement( rot_temp, G4ThreeVector( 0, 0, z1_ringshield+th_ringshield/2.0 ), ringshield_log, "ringshield_phys", worldlog, false, 0 );
   ringshield_log->SetVisAttributes(LeadColor);
   
   // Shielding for Scattering chamber:
   // 
   G4double mindist_SCshield = 6.125*inch;
   G4double th_SCshield = 4.0*inch;
-  G4double h_SCshield = 18.0*inch;
+  G4double h_SCshield = 12.0*inch;//18.0*inch;
   G4double w1_SCshield = z1_ringshield*tan(25.1*deg)-mindist_SCshield;
   G4double w2_SCshield = (z1_ringshield+th_SCshield)*tan(25.1*deg)-mindist_SCshield;
   // G4double rin_ringshield = z1_ringshield*sin(6.0*deg);
@@ -2389,7 +2389,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
 
   rot_temp = new G4RotationMatrix;
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield/2.0, 0, -25.0*cm), Alshield_log, "Alshield_phys", sideshield_log, false, 0 );
+  if(!leadring)new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield/2.0, 0, -25.0*cm), Alshield_log, "Alshield_phys", sideshield_log, false, 0 );
   Alshield_log->SetVisAttributes(AlColor);
 
   G4Box* leadblanket = new G4Box("leadblanket", th_SSshield/2.0, h_sideshield/2.0, (L_sideshield-50.0*cm)/2.0); 
@@ -2399,7 +2399,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   rot_temp = new G4RotationMatrix;
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield+th_SSshield/2.0, 0, -25.0*cm ), leadblanket_log, "leadblanket_phys", sideshield_log, false, 0 );
+  if(!leadring)new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield+th_SSshield/2.0, 0, -25.0*cm ), leadblanket_log, "leadblanket_phys", sideshield_log, false, 0 );
   /**/
     
 }

@@ -2034,7 +2034,6 @@ bool G4SBSEventGen::GeneratePythia(){
     //if(good_excl_event)cout << fPythiaEvent.theta_e << " " << phi << " " << fPythiaEvent.Eprime << endl;
   }
   
-  int ngood = 0;
   //cout << "G4SBSEventGen.cc" << endl;
   for( int i=0; i<fPythiaTree->Nparticles; i++ ){
     //cout << i << " " << (*(fPythiaTree->status))[i] << " " << (*(fPythiaTree->pid))[i] << " " 

@@ -1006,9 +1006,9 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     double y_blndet[8] = {0.0*m, 0.0*m, 0.0*m, 0.6*m,  0.0*m, 0.0*m, 0.0*m,  0.0*m};
     double z_blndet[8] = {1.5*m, 2.5*m, 5.0*m, 2.5*m, +0.7*m, 0.0*m, 2.2*m,  2.2*m};
     
-    G4double ElecX = 10.0*cm;
-    G4double ElecY = 10.0*cm;
-    G4double ElecZ = 10.0*cm;
+    G4double ElecX = 2.0*cm;
+    G4double ElecY = 2.0*cm;
+    G4double ElecZ = 2.0*cm;
     
     G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
     G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );

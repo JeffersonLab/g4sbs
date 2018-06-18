@@ -1031,7 +1031,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       break;
     }
     
-    for(int i_blndet = 0; i_blndet<7; i_blndet++){
+    for(int i_blndet = 0; i_blndet<8; i_blndet++){
       if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(GEMElectronicsname) )){
 	G4cout << "Adding GEM electronics Sensitive Detector to SDman..." << G4endl;
 	GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
@@ -1050,7 +1050,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       // new G4PVPlacement( 0, G4ThreeVector(0.0, -ShieldMotherY/2.0 + GPlateY2 + ElecY/2.0, ShieldMotherZ/2.0 - GPlateZ1 - ElecZ/2.0),
       // 		     Electronics_log, "Electronics", ShieldLog, false, 0);
       new G4PVPlacement( 0, G4ThreeVector(x_blndet[i_blndet], y_blndet[i_blndet], z_blndet[i_blndet]),
-			 Electronics_log, "GMn_Electronics", worldlog, false, i_blndet);
+			 Electronics_log, "GMn_Electronics", worldlog, false, i_blndet, true);
     }
   }
     

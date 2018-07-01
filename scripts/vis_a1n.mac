@@ -1,19 +1,6 @@
-/control/execute scripts/a1n_template.mac
+/control/execute scripts/a1n_bigbite30deg_disgen.mac
 #/g4sbs/kine sidis
-/g4sbs/hthmin 14 deg
-/g4sbs/hthmax 14 deg
-/g4sbs/hphmin 180 deg
-/g4sbs/hphmax 180 deg
-/g4sbs/thmin 24 deg
-/g4sbs/thmax 24 deg
-/g4sbs/phmin 180 deg
-/g4sbs/phmax 180 deg
-/g4sbs/eemin 1.0 GeV
-/g4sbs/eemax 10.0 GeV
-/g4sbs/ehmin 2.0 GeV
-/g4sbs/ehmax 11.0 GeV
 
-/g4sbs/uselead 0
 #/g4sbs/target LH2
 #/g4sbs/exp gep
 #/g4sbs/hcaldist 9.0 m
@@ -95,6 +82,6 @@
 #
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
-/g4sbs/run  1
+/g4sbs/run  200
 #/vis/geometry/set/visibility RICHbox_log -1 0
 /vis/viewer/flush

@@ -494,7 +494,48 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
       }
     }
   }	   
+
+  double vx, vy, vz, px, py, pz;
+  double p, xptar, yptar, ytar, xtar;
+  double p_fit, xptar_fit, yptar_fit, ytar_fit; //Fit is reconstructed using fit coefficients, no smearing for detector resolution
+  double p_recon, xptar_recon, yptar_recon, ytar_recon; //recon is reconstructed using fit coefficients, fp quantities smeared by det. resolution
+  //double pthetabend_fit, pthetabend_recon;
+  double pinv_fit, pinv_recon;
+  double xfp, yfp, xpfp, ypfp;
+  double xfp_fit, yfp_fit, xpfp_fit, ypfp_fit;
+  double vz_fit, vz_recon;
   
+  TTree *tout = new TTree("tout","BigBite or SBS optics fit results, diagnostic ROOT tree");
+
+  tout->Branch("vxtrue",&vx);
+  tout->Branch("vytrue",&vy);
+  tout->Branch("vztrue",&vz);
+  tout->Branch("pxtrue",&px);
+  tout->Branch("pytrue",&py);
+  tout->Branch("pztrue",&pz);
+  tout->Branch("ptrue",&p);
+  tout->Branch("xptartrue",&xptar);
+  tout->Branch("yptartrue",&yptar);
+  tout->Branch("ytartrue",&ytar);
+  tout->Branch("xtartrue",&xtar);
+  tout->Branch("p_fit",&p_fit);
+  tout->Branch("xptar_fit",&xptar_fit);
+  tout->Branch("yptar_fit",&yptar_fit);
+  tout->Branch("ytar_fit",&ytar_fit);
+  tout->Branch("p_recon",&p_recon);
+  tout->Branch("xptar_recon",&xptar_recon);
+  tout->Branch("yptar_recon",&yptar_recon);
+  tout->Branch("ytar_recon",&ytar_recon);
+  tout->Branch("vz_fit",&vz_fit);
+  tout->Branch("vz_recon",&vz_recon);
+  tout->Branch("xfptrue",&xfp);
+  tout->Branch("yfptrue",&yfp);
+  tout->Branch("xpfptrue",&xpfp);
+  tout->Branch("ypfptrue",&ypfp);
+  tout->Branch("xfp_fit",&xfp_fit);
+  tout->Branch("xpfp_fit",&xpfp_fit);
+  tout->Branch("yfp_fit",&yfp_fit);
+  tout->Branch("ypfp_fit",&ypfp_fit);
   
   cout << "arm = " << arm << endl;
   
@@ -515,15 +556,6 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	theta0 = SBSang_file[fname]; //on beam right
       }
     
-      double vx, vy, vz, px, py, pz;
-      double p, xptar, yptar, ytar, xtar;
-      double p_fit, xptar_fit, yptar_fit, ytar_fit; //Fit is reconstructed using fit coefficients, no smearing for detector resolution
-      double p_recon, xptar_recon, yptar_recon, ytar_recon; //recon is reconstructed using fit coefficients, fp quantities smeared by det. resolution
-      //double pthetabend_fit, pthetabend_recon;
-      double pinv_fit, pinv_recon;
-      double xfp, yfp, xpfp, ypfp;
-      double xfp_fit, yfp_fit, xpfp_fit, ypfp_fit;
-
       pinv_fit = 0.0;
       pinv_recon = 0.0;
 
@@ -540,9 +572,9 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	    (*(T->Earm_BBGEM_Track_P))[0]/T->ev_ep >= 0.99 && (*(T->Earm_BBGEM_Track_Chi2fit))[0]/(*(T->Earm_BBGEM_Track_NDF))[0] <= chi2cut ){ //BB
 	  
 	  p = 0.5*(T->ev_ep + (*(T->Earm_BBGEM_Track_P))[0]);;
-	  //px = T->ev_epx;
-	  //py = T->ev_epy;
-	  //pz = T->ev_epz;
+	  px = T->ev_epx;
+	  py = T->ev_epy;
+	  pz = T->ev_epz;
       
 	  TVector3 pvect( p*sin(T->ev_th)*cos(T->ev_ph), p*sin(T->ev_th)*sin(T->ev_ph), p*cos(T->ev_th) );
 	  TVector3 BB_zaxis( sin(theta0), 0.0, cos(theta0) ); //BB is on beam right, global x axis points to beam left
@@ -582,9 +614,9 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	if( T->Harm_SBSGEM_Track_ntracks == 1 && (*(T->Harm_SBSGEM_Track_MID))[0] == 0 &&
 	    (*(T->Harm_SBSGEM_Track_P))[0]/T->ev_np >= 0.99 && (*(T->Harm_SBSGEM_Track_Chi2fit))[0]/(*(T->Harm_SBSGEM_Track_NDF))[0] <= chi2cut ){
 	  p = 0.5*(T->ev_np + (*(T->Harm_SBSGEM_Track_P))[0]);
-	  // px = T->ev_npx;
-	  // py = T->ev_npy;
-	  // pz = T->ev_npz;
+	  px = T->ev_npx;
+	  py = T->ev_npy;
+	  pz = T->ev_npz;
       
 	  //TVector3 pvect(px,py,pz);
 	  TVector3 pvect( p*sin(T->ev_nth)*cos(T->ev_nph), p*sin(T->ev_nth)*sin(T->ev_nph), p*cos(T->ev_nth) );
@@ -683,7 +715,7 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 
 	// double vz_fit = ytar_fit / ( sin( theta;
 	// double vz_recon = ytar_recon;
-	double vz_fit, vz_recon;
+	//double vz_fit, vz_recon;
 	
 	if( arm == 0 ){ //BB, beam right:
 	  vz_fit = -ytar_fit / (sin(theta0) + cos(theta0)*yptar_fit);
@@ -748,6 +780,8 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	hpdiff_yfp->Fill( yfp, p_fit/p - 1.0 );
 	hpdiff_xpfp->Fill( xpfp, p_fit/p - 1.0 );
 	hpdiff_ypfp->Fill( ypfp, p_fit/p - 1.0 );
+
+	tout->Fill();
       }
     }
   }

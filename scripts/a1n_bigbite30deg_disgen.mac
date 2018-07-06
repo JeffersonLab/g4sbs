@@ -7,7 +7,7 @@
 /g4sbs/rastery  2.0 mm
 /g4sbs/exp      a1n
 /g4sbs/hadron   pi+
-/g4sbs/kine     inelastic
+/g4sbs/kine     dis
 #/g4sbs/kine beam
 
 /g4sbs/runtime   1.0 s

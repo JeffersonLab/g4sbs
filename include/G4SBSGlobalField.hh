@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "G4SBSMagneticField.hh"
+#include "G4SystemOfUnits.hh"
 
 class TH2F;
 
@@ -23,7 +24,7 @@ public:
   void AddField( G4SBSMagneticField *f );
   void DropField( G4SBSMagneticField *f );
 
-  void DebugField();
+  void DebugField(G4double thEarm=33.0*deg, G4double thHarm=14.8*deg);
 
   void ScaleFields( G4double, Arm_t );
   

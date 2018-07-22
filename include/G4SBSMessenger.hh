@@ -156,6 +156,9 @@ private:
   G4UIcmdWithAnInteger      *SBSBeamlineConfCmd;
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
 
+  G4UIcmdWithADoubleAndUnit  *GEPFPP1_CH2thickCmd;
+  G4UIcmdWithADoubleAndUnit  *GEPFPP2_CH2thickCmd;
+  
   G4UIcmdWithABool *BLneutronDetsCmd;
   
   G4UIcmdWithABool *buildSBSsieveCmd; //Build the SBS Sieve slit

@@ -31,6 +31,7 @@
 #include "TObjString.h"
 #include "G4SBSRunData.hh"
 
+
 const double PI = TMath::Pi();
 
 void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, int NMAX=1000000){
@@ -84,6 +85,8 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	// ntries_file[chEl->GetTitle()] = rd->fNtries;
 	BBang_file[chEl->GetTitle()] = rd->fBBtheta;
 	SBSang_file[chEl->GetTitle()] = rd->fSBStheta;
+
+	cout << "Bigbite theta = " << BBang_file[chEl->GetTitle()] << endl;
       }
     } else {
       bad_file_list.insert( chEl->GetTitle());
@@ -136,6 +139,9 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
     inputfile >> tgtmin[i] >> tgtmax[i];
   }
 
+  int xtar_flag=1; //include and fit xtar-dependent terms in the expansion or not?
+  inputfile >> xtar_flag;
+  
   fout->cd();
   
   //Histograms of "true" versions of fp track parameters:
@@ -272,6 +278,8 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
       double p, xptar, yptar, ytar, xtar;
       double xfp, yfp, xpfp, ypfp;
 
+      double thetabend;
+      
       vx = T->ev_vx;
       vy = T->ev_vy;
       vz = T->ev_vz;
@@ -294,7 +302,17 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	  TVector3 BB_xaxis(0,-1,0); //X axis of transport coordinates is vertically down:
 	  //TVector3 BB_xaxis = (BB_yaxis.Cross(BB_zaxis)).Unit();
 	  TVector3 BB_yaxis = (BB_zaxis.Cross(BB_xaxis)).Unit();
-      
+
+	  TVector3 BBGEM_zaxis = BB_zaxis;
+	  TVector3 BBGEM_yaxis = BB_yaxis;
+	  BBGEM_zaxis.Rotate( -tracker_pitch_angle, BBGEM_yaxis );
+	  TVector3 BBGEM_xaxis = BBGEM_yaxis.Cross(BBGEM_zaxis).Unit();
+
+	  // cout << "BBGEM axes = " << endl;
+	  // BBGEM_xaxis.Print();
+	  // BBGEM_yaxis.Print();
+	  // BBGEM_zaxis.Print();
+	  
 	  //TVector3 pvect_BB = pvect.Dot(BB_xaxis)*BB_xaxis + pvect.Dot(BB_yaxis)*BB_yaxis + pvect.Dot(BB_zaxis)*BB_zaxis;
 	  TVector3 pvect_BB( pvect.Dot(BB_xaxis), pvect.Dot(BB_yaxis), pvect.Dot(BB_zaxis) );
 
@@ -320,7 +338,18 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	  hyfprecon->Fill( (*(T->Earm_BBGEM_Track_Yfit))[0] );
 	  hxpfprecon->Fill( (*(T->Earm_BBGEM_Track_Xpfit))[0] );
 	  hypfprecon->Fill( (*(T->Earm_BBGEM_Track_Ypfit))[0] );
+	
+	  TVector3 pvect_fp_BB( xpfp, ypfp, 1.0 );
+	  pvect_fp_BB = pvect_fp_BB.Unit();
 
+	  TVector3 phat_fp_global = pvect_fp_BB.X() * BBGEM_xaxis + pvect_fp_BB.Y() * BBGEM_yaxis + pvect_fp_BB.Z() * BBGEM_zaxis;
+	  TVector3 phat_targ_global = pvect.Unit();
+	  
+	  //TVector3 BendPlane_UnitNormal = phat_targ_global.Cross( phat_fp_global ).Unit();
+	  thetabend = acos( phat_fp_global.Dot( phat_targ_global ) );
+
+	  // cout << "BigBite thetabend exact = " << thetabend*57.3 << " degrees" << endl;
+	  // cout << "BigBite thetabend approx = " << 57.3*(tracker_pitch_angle + atan(xptar)-atan(xpfp)) << endl;
 	  goodtrack = true;
 	}
       } else if( arm == 1 ){
@@ -336,6 +365,11 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	  TVector3 SBS_xaxis(0,-1,0);
 	  TVector3 SBS_yaxis = (SBS_zaxis.Cross(SBS_xaxis)).Unit();
 
+	  TVector3 SBSGEM_zaxis = SBS_zaxis;
+	  TVector3 SBSGEM_yaxis = SBS_yaxis;
+	  SBSGEM_zaxis.Rotate( -tracker_pitch_angle, SBSGEM_yaxis );
+	  TVector3 SBSGEM_xaxis = SBSGEM_yaxis.Cross( SBSGEM_zaxis ).Unit();
+	  
 	  TVector3 pvect_SBS( pvect.Dot(SBS_xaxis), pvect.Dot(SBS_yaxis), pvect.Dot(SBS_zaxis) );
       
 	  xptar = pvect_SBS.X()/pvect_SBS.Z();
@@ -360,6 +394,18 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	  hxpfprecon->Fill( (*(T->Harm_SBSGEM_Track_Xpfit))[0] );
 	  hypfprecon->Fill( (*(T->Harm_SBSGEM_Track_Ypfit))[0] );
 
+	  TVector3 pvect_fp_SBS( xpfp, ypfp, 1.0 );
+	  pvect_fp_SBS = pvect_fp_SBS.Unit();
+
+	  TVector3 phat_fp_global = pvect_fp_SBS.X() * SBSGEM_xaxis + pvect_fp_SBS.Y() * SBSGEM_yaxis + pvect_fp_SBS.Z() * SBSGEM_zaxis;
+	  TVector3 phat_targ_global = pvect.Unit();
+	  
+	  //TVector3 BendPlane_UnitNormal = phat_targ_global.Cross( phat_fp_global ).Unit();
+	  thetabend = acos( phat_fp_global.Dot( phat_targ_global ) );
+
+	  cout << "SBS thetabend exact = " << thetabend*57.3 << " degrees" << endl;
+	  cout << "SBS thetabend approx = " << 57.3*(tracker_pitch_angle + atan(xptar)-atan(xpfp)) << endl;
+	  
 	  goodtrack = true;
 	}
       }    
@@ -376,20 +422,10 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	//Are the equations below correct? 
 	// chi^2 = sum_{i=1}^{N} (xtgt_i - sum_jklmn C_jklmn xfp^j yfp^k xpfp^l ypfp^m xtar^n)^2
 	// Momentum reconstruction is a special case, we want to fit a 
-	// functional form of 1/p = A * thetabend + sum C_jklmn ...
-	// in this case, chi^2 = sum_i (1/p - (A*thetabend + sum_jklmn C_jklmn * term))^2
-      
-	//In the case of the momentum, what we want to fit is the "small" corrections as a function of kinematics, to a first order analytical model in 
-	//which we treat the dipole field in the dispersive plane as a constant field with an effective boundary. In both cases, the front and back edges of the field boundary are planes, (lines in one dimension). In SBS case, both front and back edges of field boundary are vertical. In BB case, back edge of field bdry is 
-	// tilted at an angle of 20 degrees:
-	double thetabend = tracker_pitch_angle + atan(xptar) - atan(xpfp);
-
-	double p_firstorder;
-	if( arm == 0 ){
-	  p_firstorder = (0.286378 + 0.141452*(xfp-0.8*xpfp))/thetabend;
-	} else {
-	  p_firstorder = -0.5161/thetabend;
-	}
+	// functional form of 1/p = A(x,y,x',y') * thetabend 
+	// in this case, chi^2 = sum_i (1/p - (A(x,y,x',y')*thetabend))^2
+     
+	//double thetabend = tracker_pitch_angle + atan(xptar) - atan(xpfp);
 	
 	vector<double> term(nparams);
 	//      vector<double> term_y(nparams);
@@ -406,11 +442,11 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 		  //if( i == 0 ){
 		  b_yptar(ipar) += term[ipar]*yptar;
 		  b_ytar(ipar) += term[ipar]*ytar;
-		    //}
+		  //}
 		  //b_ytar(ipar) += term[ipar]*T->ev_vz;
 		  //} 
 		  //b_pinv(ipar) += term[ipar]*(p/pcentral[arm]-1.0);
-		  b_pinv(ipar) += term[ipar]/p;
+		  b_pinv(ipar) += term[ipar]*p*thetabend;
 		  ipar++;
 		}
 	      }
@@ -432,19 +468,27 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 
   cout << "order, nparams = " << nparams << endl;
 
+  if( xtar_flag == 0 ){
+    for(int ipar=0; ipar<nparams; ipar++){
+      if( xtar_expon[ipar] > 0 ){
+	M(ipar,ipar) = 1.0;
+	b_xptar(ipar) = 0.0;
+	b_yptar(ipar) = 0.0;
+	b_ytar(ipar) = 0.0;
+	b_pinv(ipar) = 0.0;
+	for(int jpar=0; jpar<nparams; jpar++){
+	  if( jpar != ipar ) M(ipar,jpar) = 0.0;
+	}
+      }
+    }
+  }
+  
   cout << "Setting up SVD for xptar:" << endl;
   TDecompSVD A_xptar(M);
   cout << "Setting up SVD for pinv:" << endl;
   TDecompSVD A_pinv(M);
+
   
-  // for(int ipar=0; ipar<nparams; ipar++){
-  //   if( xtar_expon[ipar] > 0 ){
-  //     M(ipar,ipar) = 1.0;
-  //     for(int jpar=0; jpar<nparams; jpar++){
-  // 	if( jpar != ipar ) M(ipar,jpar) = 0.0;
-  //     }
-  //   }
-  // }
   
   cout << "Setting up SVD for yptar:" << endl;
   TDecompSVD A_yptar(M);
@@ -499,11 +543,15 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
   double p, xptar, yptar, ytar, xtar;
   double p_fit, xptar_fit, yptar_fit, ytar_fit; //Fit is reconstructed using fit coefficients, no smearing for detector resolution
   double p_recon, xptar_recon, yptar_recon, ytar_recon; //recon is reconstructed using fit coefficients, fp quantities smeared by det. resolution
-  //double pthetabend_fit, pthetabend_recon;
+  double pthetabend_true;
+  double pthetabend_fit, pthetabend_recon;
   double pinv_fit, pinv_recon;
   double xfp, yfp, xpfp, ypfp;
   double xfp_fit, yfp_fit, xpfp_fit, ypfp_fit;
   double vz_fit, vz_recon;
+  double thetabend_true;
+  double thetabend_fit;
+  double thetabend_recon;
   
   TTree *tout = new TTree("tout","BigBite or SBS optics fit results, diagnostic ROOT tree");
 
@@ -518,16 +566,19 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
   tout->Branch("yptartrue",&yptar);
   tout->Branch("ytartrue",&ytar);
   tout->Branch("xtartrue",&xtar);
+  tout->Branch("thetabend_true",&thetabend_true);
   tout->Branch("p_fit",&p_fit);
   tout->Branch("xptar_fit",&xptar_fit);
   tout->Branch("yptar_fit",&yptar_fit);
   tout->Branch("ytar_fit",&ytar_fit);
+  tout->Branch("thetabend_fit",&thetabend_fit);
   tout->Branch("p_recon",&p_recon);
   tout->Branch("xptar_recon",&xptar_recon);
   tout->Branch("yptar_recon",&yptar_recon);
   tout->Branch("ytar_recon",&ytar_recon);
   tout->Branch("vz_fit",&vz_fit);
   tout->Branch("vz_recon",&vz_recon);
+  tout->Branch("thetabend_recon",&thetabend_recon);
   tout->Branch("xfptrue",&xfp);
   tout->Branch("yfptrue",&yfp);
   tout->Branch("xpfptrue",&xpfp);
@@ -566,6 +617,9 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
       TVector3 vertex(vx,vy,vz);
 
       bool goodtrack = false;
+
+      TVector3 spec_xaxis_fp,spec_yaxis_fp, spec_zaxis_fp;
+      TVector3 spec_xaxis_tgt,spec_yaxis_tgt, spec_zaxis_tgt;
       
       if( arm == 0 ){
 	if( T->Earm_BBGEM_Track_ntracks == 1 && (*(T->Earm_BBGEM_Track_MID))[0] == 0 &&
@@ -581,7 +635,16 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	  TVector3 BB_xaxis(0,-1,0); //X axis of transport coordinates is vertically down:
 	  //TVector3 BB_xaxis = (BB_yaxis.Cross(BB_zaxis)).Unit();
 	  TVector3 BB_yaxis = (BB_zaxis.Cross(BB_xaxis)).Unit();
-      
+
+	  spec_xaxis_tgt = BB_xaxis;
+	  spec_yaxis_tgt = BB_yaxis;
+	  spec_zaxis_tgt = BB_zaxis;
+	  
+	  spec_zaxis_fp = BB_zaxis;
+	  spec_yaxis_fp = BB_yaxis;
+	  spec_zaxis_fp.Rotate(-tracker_pitch_angle, spec_yaxis_fp);
+	  spec_xaxis_fp = spec_yaxis_fp.Cross(spec_zaxis_fp).Unit();
+	  
 	  //TVector3 pvect_BB = pvect.Dot(BB_xaxis)*BB_xaxis + pvect.Dot(BB_yaxis)*BB_yaxis + pvect.Dot(BB_zaxis)*BB_zaxis;
 	  TVector3 pvect_BB( pvect.Dot(BB_xaxis), pvect.Dot(BB_yaxis), pvect.Dot(BB_zaxis) );
 
@@ -607,6 +670,16 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	  hyfpdiff->Fill(yfp_fit-yfp);
 	  hxpfpdiff->Fill(xpfp_fit-xpfp);
 	  hypfpdiff->Fill(ypfp_fit-ypfp);
+
+	  //	  TVector3 phat_targ = pvect_BB.Unit();
+	  TVector3 phat_fp(xpfp,ypfp,1.0);
+	  phat_fp = phat_fp.Unit();
+
+	  TVector3 phat_fp_global = phat_fp.X() * spec_xaxis_fp + phat_fp.Y() * spec_yaxis_fp + phat_fp.Z() * spec_zaxis_fp;
+	  
+	  TVector3 phat_targ_global = pvect.Unit();
+
+	  thetabend_true = acos( phat_fp_global.Dot( phat_targ_global ) );
 	  
 	  goodtrack = true;
 	}
@@ -624,8 +697,17 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	  TVector3 SBS_xaxis(0,-1,0);
 	  TVector3 SBS_yaxis = (SBS_zaxis.Cross(SBS_xaxis)).Unit();
 
+	  spec_xaxis_tgt = SBS_xaxis;
+	  spec_yaxis_tgt = SBS_yaxis;
+	  spec_zaxis_tgt = SBS_zaxis;
+	  
 	  TVector3 pvect_SBS( pvect.Dot(SBS_xaxis), pvect.Dot(SBS_yaxis), pvect.Dot(SBS_zaxis) );
-      
+
+	  spec_zaxis_fp = SBS_zaxis;
+	  spec_yaxis_fp = SBS_yaxis;
+	  spec_zaxis_fp.Rotate(-tracker_pitch_angle, spec_yaxis_fp);
+	  spec_xaxis_fp = spec_yaxis_fp.Cross(spec_zaxis_fp).Unit();
+	  
 	  xptar = pvect_SBS.X()/pvect_SBS.Z();
 	  yptar = pvect_SBS.Y()/pvect_SBS.Z();
 
@@ -647,6 +729,16 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	  hyfpdiff->Fill(yfp_fit-yfp);
 	  hxpfpdiff->Fill(xpfp_fit-xpfp);
 	  hypfpdiff->Fill(ypfp_fit-ypfp);
+
+	  //	  TVector3 phat_targ = pvect_BB.Unit();
+	  TVector3 phat_fp(xpfp,ypfp,1.0);
+	  phat_fp = phat_fp.Unit();
+
+	  TVector3 phat_fp_global = phat_fp.X() * spec_xaxis_fp + phat_fp.Y() * spec_yaxis_fp + phat_fp.Z() * spec_zaxis_fp;
+	  
+	  TVector3 phat_targ_global = pvect.Unit();
+
+	  thetabend_true = acos( phat_fp_global.Dot( phat_targ_global ) );
 	  
 	  goodtrack = true;
 	}
@@ -658,12 +750,15 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	xptar_fit = 0.0;
 	yptar_fit = 0.0;
 	ytar_fit = 0.0;
-	//pthetabend_fit = 0.0;
-
+	pthetabend_fit = 0.0;
+	pinv_fit = 0.0;
+	
 	xptar_recon = 0.0;
 	yptar_recon = 0.0;
 	ytar_recon = 0.0;
-	//      pthetabend_recon = 0.0;
+	pthetabend_recon = 0.0;
+	pinv_recon = 0.0;
+	
       
 	ipar=0;
 	for(int i=0; i<=order; i++){
@@ -675,15 +770,15 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 		  xptar_fit += b_xptar(ipar)*term;
 		  yptar_fit += b_yptar(ipar)*term;
 		  ytar_fit += b_ytar(ipar)*term;
-		  //pthetabend_fit += b_pinv(ipar)*term;
-		  pinv_fit += b_pinv(ipar)*term;
+		  pthetabend_fit += b_pinv(ipar)*term;
+		  //pinv_fit += b_pinv(ipar)*term;
 
 		  term = pow(xfp_fit,m)*pow(yfp_fit,l)*pow(xpfp_fit,k)*pow(ypfp_fit,j)*pow(xtar,i);
 		  xptar_recon += b_xptar(ipar)*term;
 		  yptar_recon += b_yptar(ipar)*term;
 		  ytar_recon += b_ytar(ipar)*term;
-		  pinv_recon += b_pinv(ipar)*term;
-		  //pthetabend_recon += b_pinv(ipar)*term;
+		  //pinv_recon += b_pinv(ipar)*term;
+		  pthetabend_recon += b_pinv(ipar)*term;
 		  ipar++;
 		}
 	      }
@@ -691,25 +786,66 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	  }
 	}
             
-	double thetabend_true = tracker_pitch_angle + atan(xptar) - atan(xpfp);
-	double thetabend_fit = tracker_pitch_angle + atan(xptar_fit) - atan(xpfp);
-	double thetabend_recon = tracker_pitch_angle + atan(xptar_recon) - atan(xpfp_fit);
+	//double thetabend_true = tracker_pitch_angle + atan(xptar) - atan(xpfp);
 
-	double pfirstorder_true, pfirstorder_recon;
-	if(arm==0){
-	  pfirstorder_true = (0.286378 + 0.141452*(xfp-0.8*xpfp))/thetabend_true;
-	  pfirstorder_recon  = (0.286378 + 0.141452*(xfp_fit-0.8*xpfp_fit))/thetabend_recon;
-	} else {
-	  pfirstorder_true = -0.5161/thetabend_true;
-	  pfirstorder_recon = -0.5161/thetabend_recon;
-	}
+	//calculate "fit" and "recon" values of thetabend:
+	TVector3 phat_tgt_fit(xptar_fit, yptar_fit, 1.0 );
+	phat_tgt_fit = phat_tgt_fit.Unit();
+
+	TVector3 phat_tgt_fit_global = phat_tgt_fit.X() * spec_xaxis_tgt +
+	  phat_tgt_fit.Y() * spec_yaxis_tgt +
+	  phat_tgt_fit.Z() * spec_zaxis_tgt;
+
+	TVector3 phat_fp_fit(xpfp_fit, ypfp_fit, 1.0 );
+	phat_fp_fit = phat_fp_fit.Unit();
+	
+	TVector3 phat_fp_fit_global = phat_fp_fit.X() * spec_xaxis_fp +
+	  phat_fp_fit.Y() * spec_yaxis_fp +
+	  phat_fp_fit.Z() * spec_zaxis_fp;
+
+	thetabend_fit = acos( phat_fp_fit_global.Dot( phat_tgt_fit_global ) );
+
+	//cout << "Thetabend fit = " << 57.3 * thetabend_fit << endl;
+
+	//calculate "fit" and "recon" values of thetabend:
+	TVector3 phat_tgt_recon(xptar_recon, yptar_recon, 1.0 );
+	phat_tgt_recon = phat_tgt_recon.Unit();
+
+	TVector3 phat_tgt_recon_global = phat_tgt_recon.X() * spec_xaxis_tgt +
+	  phat_tgt_recon.Y() * spec_yaxis_tgt +
+	  phat_tgt_recon.Z() * spec_zaxis_tgt;
+
+	TVector3 phat_fp_recon(xpfp_fit, ypfp_fit, 1.0 );
+	phat_fp_recon = phat_fp_recon.Unit();
+	
+	TVector3 phat_fp_recon_global = phat_fp_recon.X() * spec_xaxis_fp +
+	  phat_fp_recon.Y() * spec_yaxis_fp +
+	  phat_fp_recon.Z() * spec_zaxis_fp;
+
+	thetabend_recon = acos( phat_fp_recon_global.Dot( phat_tgt_recon_global ) );
+
+	//cout << "Thetabend recon = " << 57.3 * thetabend_recon << endl;
+	
+	p_fit = pthetabend_fit/thetabend_fit;
+	p_recon = pthetabend_recon/thetabend_recon;
+	pinv_fit = 1.0/p_fit;
+	pinv_recon = 1.0/p_recon;
+	
+	// double pfirstorder_true, pfirstorder_recon;
+	// if(arm==0){
+	//   pfirstorder_true = (0.286378 + 0.141452*(xfp-0.8*xpfp))/thetabend_true;
+	//   pfirstorder_recon  = (0.286378 + 0.141452*(xfp_fit-0.8*xpfp_fit))/thetabend_recon;
+	// } else {
+	//   pfirstorder_true = -0.5161/thetabend_true;
+	//   pfirstorder_recon = -0.5161/thetabend_recon;
+	// }
 	//p_fit = pthetabend_fit/thetabend_fit;
 	//p_recon = pthetabend_recon/thetabend_recon;
 
 	//p_fit = pthetabend_fit + pfirstorder_true;
 	//p_recon = pthetabend_recon + pfirstorder_recon;
-	p_fit = 1.0/pinv_fit;
-	p_recon = 1.0/pinv_recon;
+	//p_fit = 1.0/pinv_fit;
+	//p_recon = 1.0/pinv_recon;
 	//p_fit = pcentral[arm]*(1.0 + pinv_fit);
 	//p_recon = pcentral[arm]*(1.0 + pinv_recon);
 
@@ -789,3 +925,4 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
   elist->Delete();
   fout->Write();
 }
+

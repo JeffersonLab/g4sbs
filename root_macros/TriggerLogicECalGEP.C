@@ -54,7 +54,8 @@ void TriggerLogicECalGEP(const char *mapfilename){
   map<int,double> X_cell;
   map<int,double> Y_cell;
   map<int,int> L1sum_cell; //L1 sum ID indexed by cell number
-
+  //map<int,set<int> > L2sum_cell;
+  
   map<int,set<int> > cell_list_L1sum; //list of cell numbers indexed by L1 sum index.
   map<int,double>    XavgL1;
   map<int,double>    YavgL1;
@@ -368,9 +369,9 @@ void TriggerLogicECalGEP(const char *mapfilename){
       if( cell_list_L2sum[icell_L2].size() > 0 ){	
 	icell_L2++;
 	c1->Update();
-	// cout << "Press Enter to continue";
+	cout << "Press Enter to continue";
       
-	// currentline.ReadLine(cin,kFALSE);
+	currentline.ReadLine(cin,kFALSE);
       }
 	//}
 
@@ -500,9 +501,9 @@ void TriggerLogicECalGEP(const char *mapfilename){
 	icell_L2++;
       
 	c1->Update();
-	// cout << "Press Enter to continue";
+	cout << "Press Enter to continue";
 	
-	// currentline.ReadLine(cin,kFALSE);
+	currentline.ReadLine(cin,kFALSE);
       }
     }
   }
@@ -626,9 +627,9 @@ void TriggerLogicECalGEP(const char *mapfilename){
 	icell_L2++;
 
 	c1->Update();
-	//cout << "Press Enter to continue";
+	cout << "Press Enter to continue";
 	
-	//currentline.ReadLine(cin,kFALSE);
+	currentline.ReadLine(cin,kFALSE);
 
 	
       }
@@ -670,11 +671,32 @@ void TriggerLogicECalGEP(const char *mapfilename){
 
   int ngood2 = 0; //Number of "good" level-2 sums
   int minblock = 4;
+
+  map<int,bool> keep_L2sum;
+  map<int,int> MaxSizeL2sum_cell; 
+  for( set<int>::iterator i = cell_list.begin(); i != cell_list.end(); ++i ){
+    // for( map<int,set<int> >::iterator j =
+    for( set<int>::iterator j = L2sum_cell[*i].begin(); j != L2sum_cell[*i].end(); ++j ){
+      MaxSizeL2sum_cell[*i] = ( cell_list_L2sum[*j].size() > MaxSizeL2sum_cell[*i] ) ? cell_list_L2sum[*j].size() : MaxSizeL2sum_cell[*i];
+    } 
+  }
   
   for( map<int,set<int> >::iterator i = cell_list_L2sum.begin(); i != cell_list_L2sum.end(); ++i ){
     int icell_L2 = i->first;
     set<int> cell_list_temp = i->second;
 
+    keep_L2sum[icell_L2] = true;
+    
+    //If the number of cells in this logic group is "small", we can check whether all the cells in this logic group are in at least one other group with more than the "minimum" number:
+    if( cell_list_temp.size() < 17 ){
+      bool allgood = true;
+      for( set<int>::iterator j = cell_list_temp.begin(); j != cell_list_temp.end(); ++j ){
+	if( MaxSizeL2sum_cell[*j] < 17 ) allgood = false;
+      }
+
+      if( allgood ) keep_L2sum[icell_L2] = false;
+    }
+    
     TString stemp;
     stemp.Form( " %16d  %16d  ", ngood2, cell_list_temp.size() );
     currentline = "";
@@ -685,7 +707,9 @@ void TriggerLogicECalGEP(const char *mapfilename){
       currentline += stemp;
     }
 
-    if( cell_list_temp.size() > minblock ){
+    
+    if( keep_L2sum[icell_L2] && cell_list_temp.size() >= minblock ){
+    
       L2file << currentline << endl;
       ngood2++;
     }

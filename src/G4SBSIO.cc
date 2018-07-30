@@ -281,7 +281,7 @@ void G4SBSIO::WriteTree(){
     G4SBSRun::GetRun()->GetData()->Write("run_data", TObject::kOverwrite);
 
     // Produce and write out field map graphics
-    fGlobalField->DebugField();
+    fGlobalField->DebugField( gendata.thbb, gendata.thsbs );
     for( vector<TH2F *>::iterator it = fGlobalField->fFieldPlots.begin(); it!= fGlobalField->fFieldPlots.end(); it++ ){
 	(*it)->Write((*it)->GetName(), TObject::kOverwrite );
 	delete (*it);

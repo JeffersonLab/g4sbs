@@ -32,12 +32,10 @@ TF1 *gaussplusexpo = new TF1("gaussplusexpo", "[0]*exp(-0.5*pow((x-[1])/[2],2))+
 const double Mp = 0.938272; //GeV
 const double PI = TMath::Pi();
 
-void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logicfilename_ecal, const char *thresholdfilename_ecal, const char *thresholdfilename_hcal, const char *outputfilename, double thetacaldeg=29.0, int pheflag=0, const char *assocfilename="ECAL_HCAL_L2_correlations_nophe.txt", int Q2cut=0 ){
+void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *thresholdfilename_ecal="database/ecal_trigger_thresholds_12GeV2.txt", const char *outputfilename="gep_L2_trigger_analysis_elastic_temp.root", int pheflag=0, const char *assocfilename="ECAL_HCAL_L2_correlations_nophe.txt"){
 
   double nominal_threshold_HCAL = 0.5;
-  double nominal_threshold_ECAL = 0.9;
-  
-  double thetacal = thetacaldeg*PI/180.0;
+  double nominal_threshold_ECAL = 0.85;
   
   TFile *fout = new TFile(outputfilename,"RECREATE");
   TChain *C = new TChain("T");
@@ -56,6 +54,9 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
   TChainElement *chEl = 0;
 
   set<TString> bad_file_list;
+
+  map<TString,double> ECALdist_file;
+  map<TString,double> ECALtheta_file;
   
   while( (chEl=(TChainElement*)next() )){
     TFile newfile(chEl->GetTitle());
@@ -63,6 +64,10 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
     if( rd ){
       ngen += rd->fNtries;
       nfiles++;
+
+      ECALdist_file[chEl->GetTitle()] = rd->fBBdist;
+      ECALtheta_file[chEl->GetTitle()] = rd->fBBtheta;
+
     } else {
       bad_file_list.insert( chEl->GetTitle());
     }
@@ -85,7 +90,7 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
   //keep track of min and max x by row number:
   double ycellmin,ycellmax;
   map<int,double> ycell_rows;
-  map<int,double> cellsize_rows;
+  //map<int,double> cellsize_rows;
   map<int,double> xcellmin_rows;
   map<int,double> xcellmax_rows;
   
@@ -97,81 +102,100 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
   map<int,double> elastic_peak_new_ecal;
   map<int,double> sigma_new_ecal;
   map<int,double> threshold_new_ecal;
-  
-  ifstream logicfile_ecal(logicfilename_ecal);
+
+  ifstream mapfile_ecal("database/ecal_gep_blockmap.txt");
+  ifstream logicfile_ecal("database/GEP_ECAL_L2sums.txt");
   //ifstream thresholdfile(thresholdfilename);
 
   TString currentline;
+
+  ycellmin = 1.0e9;
+  ycellmax = -1.0e9;
+
+
+  //Get cell mapping info:
+  while( currentline.ReadLine( mapfile_ecal ) ){
+    cout << currentline << endl;
+    if( !currentline.BeginsWith("#") ){
+      TObjArray *tokens = currentline.Tokenize(",");
+      int ntokens = tokens->GetEntries();
+
+      if( ntokens == 5 ){
+	TString scell = ( (TObjString*) (*tokens)[0] )->GetString();
+	TString srow  = ( (TObjString*) (*tokens)[1] )->GetString();
+	TString scol  = ( (TObjString*) (*tokens)[2] )->GetString();
+	TString sxcell = ( (TObjString*) (*tokens)[3] )->GetString();
+	TString sycell = ( (TObjString*) (*tokens)[4] )->GetString();
+
+	int cellnum = scell.Atoi();
+	int row = srow.Atoi();
+	int col = scol.Atoi();
+	double xcell = sxcell.Atoi();
+	double ycell = sycell.Atoi();
+
+	std::pair<int, int> rowcoltemp(row,col);
+
+	cell_rowcol_ecal[rowcoltemp] = cellnum;
+	rows_cells_ecal[cellnum] = row;
+	cols_cells_ecal[cellnum] = col;
+	xcells_ecal[cellnum] = xcell/100.0;
+	ycells_ecal[cellnum] = ycell/100.0;
+
+	if( ycell_rows.empty() || ycell/100.0 < ycellmin ) ycellmin = ycell/100.0;
+	if( ycell_rows.empty() || ycell/100.0 > ycellmax ) ycellmax = ycell/100.0;
+	  
+	ycell_rows[row] = ycell/100.0;
+
+	// if( row < 30 ) {
+	//   cellsize_rows[row] = 4.0; //cm
+	// } else {
+	//   cellsize_rows[row] = 4.2; //cm
+	// }
+	
+	if( xcellmin_rows.empty() || xcell/100.0 < xcellmin_rows[row] ){
+	  xcellmin_rows[row] = xcell/100.0;
+	}
+
+	if( xcellmax_rows.empty() || xcell/100.0 > xcellmax_rows[row] ){
+	  xcellmax_rows[row] = xcell/100.0;
+	}
+      }
+    }
+  }
   
   int current_node = 1;
 
   bool first_cell = true;
+
+  //Get trigger logic summing info:
   
-  while( currentline.ReadLine( logicfile_ecal ) ){
+  while( currentline.ReadLine(logicfile_ecal) ){
     if( !currentline.BeginsWith( "#" ) ){
       
       TObjArray *tokens = currentline.Tokenize(" ");
       int ntokens = tokens->GetEntries();
-      if( ntokens >= 11 ){
-	cout << currentline.Data() << ", ntokens = " << ntokens << endl;
-	
-	TString snode = ( (TObjString*) (*tokens)[0] )->GetString();
-	int nodenumber = snode.Atoi();
-	
-	TString scell = ( (TObjString*) (*tokens)[1] )->GetString();
-	int cellnumber = scell.Atoi();
-	
-	TString speakpos = ( (TObjString*) (*tokens)[8] )->GetString();
-	double mean = speakpos.Atof();
-	
-	TString ssigma = ( (TObjString*) (*tokens)[9] )->GetString();
-	double sigma = ssigma.Atof();
 
-	TString sthreshold = ( (TObjString*) (*tokens)[10] )->GetString();
-	double threshold = sthreshold.Atof();
-
-	TString srow = ( (TObjString*) (*tokens)[2] )->GetString();
-	TString scol = ( (TObjString*) (*tokens)[3] )->GetString();
-
-	std::pair<int,int> rowcoltemp( srow.Atoi(), scol.Atoi() );
-
-	cell_rowcol_ecal[rowcoltemp] = cellnumber;
-	
+      TString snode = ( (TObjString*) (*tokens)[0] )->GetString();
+      int nodenumber = snode.Atoi() + 1;
+      
+      TString sncell_node = ( (TObjString*) (*tokens)[1] )->GetString();
+      int ncell_node = sncell_node.Atoi();
+      
+      if( ntokens >= ncell_node + 2 ){
 	list_of_nodes_ecal.insert( nodenumber );
+	for( int itoken = 2; itoken < ncell_node+2; itoken++ ){
+	  TString scell = ( (TObjString*) (*tokens)[itoken] )->GetString();
+	  int cell = scell.Atoi();
 
-	cells_logic_sums_ecal[nodenumber].insert( cellnumber );
+	  cells_logic_sums_ecal[nodenumber].insert( cell );
 
-	logic_mean_ecal[nodenumber] = mean;
-	logic_sigma_ecal[nodenumber] = sigma;
-	threshold_ecal[nodenumber] = threshold;
-
-	nodes_cells_ecal[ cellnumber ].insert(nodenumber);
-
-	TString sxcell = ( (TObjString*) (*tokens)[4] )->GetString(); 
-	TString sycell = ( (TObjString*) (*tokens)[5] )->GetString(); 
-
-	cols_cells_ecal[cellnumber] = scol.Atoi(); 
-	rows_cells_ecal[cellnumber] = srow.Atoi();
-
-	xcells_ecal[cellnumber] = sxcell.Atof()/1000.0; //convert to m
-	ycells_ecal[cellnumber] = sycell.Atof()/1000.0; //convert to m
-
-	if( ycell_rows.empty() || sycell.Atof()/1000.0 < ycellmin ) ycellmin = sycell.Atof()/1000.0;
-	if( ycell_rows.empty() || sycell.Atof()/1000.0 > ycellmax ) ycellmax = sycell.Atof()/1000.0;
-	
-	ycell_rows[srow.Atoi()] = sycell.Atof()/1000.0;
-	TString ssize = ( (TObjString*) (*tokens)[6] )->GetString();
-	double size = ssize.Atof();
-
-	cellsize_rows[srow.Atoi()] = size/1000.0; 
-	
-	if( xcellmin_rows.empty() || sxcell.Atof()/1000.0 < xcellmin_rows[srow.Atoi()] ){
-	  xcellmin_rows[srow.Atoi()] = sxcell.Atof()/1000.0;
+	  //provide default values;
+	  logic_mean_ecal[nodenumber] = 3000.0;
+	  logic_sigma_ecal[nodenumber] = 0.06*3000.0;
+	  threshold_ecal[nodenumber] = 0.8;
+	  
+	  nodes_cells_ecal[ cell ].insert( nodenumber );
 	}
-	if( xcellmax_rows.empty() || sxcell.Atof()/1000.0 > xcellmax_rows[srow.Atoi()] ){
-	  xcellmax_rows[srow.Atoi()] = sxcell.Atof()/1000.0;
-	}
-	
       }
     }
   }
@@ -203,8 +227,8 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 	}
       }
 
-      logic_mean_hcal[current_node] = 1500.0;
-      logic_sigma_hcal[current_node] = 450.0;
+      logic_mean_hcal[current_node] = 1141.5;
+      logic_sigma_hcal[current_node] = 356.25;
       
       current_node++;
     }
@@ -233,17 +257,17 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
   }
 
   //read in alternate threshold:
-  ifstream thresholdfile_hcal(thresholdfilename_hcal);
-  if( thresholdfile_hcal ){
-    int node;
-    double mean,sigma;
-    while( thresholdfile_hcal >> node >> mean >> sigma ){
-      if( list_of_nodes_hcal.find( node ) != list_of_nodes_hcal.end() ){
-	logic_mean_hcal[ node ] = mean;
-	logic_sigma_hcal[ node ] = sigma;
-      }
-    }
-  }
+  // ifstream thresholdfile_hcal(thresholdfilename_hcal);
+  // if( thresholdfile_hcal ){
+  //   int node;
+  //   double mean,sigma;
+  //   while( thresholdfile_hcal >> node >> mean >> sigma ){
+  //     if( list_of_nodes_hcal.find( node ) != list_of_nodes_hcal.end() ){
+  // 	logic_mean_hcal[ node ] = mean;
+  // 	logic_sigma_hcal[ node ] = sigma;
+  //     }
+  //   }
+  // }
 
   ifstream assocfile( assocfilename );
 
@@ -322,7 +346,10 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 
   TH1D *hthetaFPP1_cointrig = new TH1D("hthetaFPP1_cointrig","",120,0.0,12.0);
   TH1D *hthetaFPP2_cointrig = new TH1D("hthetaFPP2_cointrig","",120,0.0,12.0);
-
+  
+  TH1D *hthetaFPP1_HCALtrig = new TH1D("hthetaFPP1_HCALtrig","",120,0.0,12.0);
+  TH1D *hthetaFPP2_HCALtrig = new TH1D("hthetaFPP2_HCALtrig","",120,0.0,12.0);
+  
   TH1D *hshouldhit_vs_Q2_ECAL_FTcut = new TH1D("hshouldhit_vs_Q2_ECAL_FTcut","",100,8.0,16.0);
   TH1D *hefficiency_vs_Q2_ECAL_FTcut = new TH1D("hefficiency_vs_Q2_ECAL_FTcut","",100,8.0,16.0);
 
@@ -356,7 +383,15 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
     // } else {
     weight = T->ev_rate / double(nfiles);
 
-    if( Q2cut == 0 || (T->ev_Q2 >= 10.5 && T->ev_Q2 <= 14.0) ){
+    TString fnametemp = C->GetFile()->GetName();
+
+    if( bad_file_list.find( fnametemp ) == bad_file_list.end() ){
+
+      double R = ECALdist_file[fnametemp];
+      double thetacal = ECALtheta_file[fnametemp];
+
+      // cout << "(R, thetacal)=(" << R << ", " << thetacal*57.3 << endl;
+    //if( Q2cut == 0 || (T->ev_Q2 >= 10.5 && T->ev_Q2 <= 14.0) ){
     
       bool FTtrack = false;
       int itrack_FT=-1;
@@ -380,23 +415,28 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
       bool FPP1track = false, FPP2track = false;
       //    if( FTtrack )
       if( T->Harm_FPP1_Track_ntracks > 0 && FTtrack ){
+	double thetamin;
 	for( int itrack=0; itrack<T->Harm_FPP1_Track_ntracks; itrack++ ){
-	  //if( (*(T->Harm_FPP1_Track_MID))[itrack] == 0 ){
+	  if( (*(T->Harm_FPP1_Track_MID))[itrack] == 0 ){
 	    nhat_FPP1.SetXYZ( (*(T->Harm_FPP1_Track_Xp))[itrack],
 			      (*(T->Harm_FPP1_Track_Yp))[itrack],
 			      1.0 );
 	    nhat_FPP1 = nhat_FPP1.Unit();
+
 	    thetaFPP1 = acos( nhat_FPP1.Dot( nhat_FT ) );
+	  
 	    pFPP1 = (*(T->Harm_FPP1_Track_P))[itrack];
-	    FPP1track = thetaFPP1 < 12.0*PI/180.0 && pFPP1 >= 0.5*T->ev_np;
-	    if( FPP1track ) hthetaFPP1->Fill(thetaFPP1*180.0/PI,weight);
-	    //}
+
+	  
+	    FPP1track = true;
+	  }   
 	}
+	if( FPP1track ) hthetaFPP1->Fill(thetaFPP1*180.0/PI,weight);
       }
 
       if( T->Harm_FPP2_Track_ntracks > 0 && FTtrack && FPP1track){
 	for( int itrack=0; itrack<T->Harm_FPP2_Track_ntracks; itrack++ ){
-	  //if( (*(T->Harm_FPP2_Track_MID))[itrack] == 0 ){
+	  if( (*(T->Harm_FPP2_Track_MID))[itrack] == 0 ){
 	    nhat_FPP2.SetXYZ( (*(T->Harm_FPP2_Track_Xp))[itrack],
 			      (*(T->Harm_FPP2_Track_Yp))[itrack],
 			      1.0 );
@@ -406,18 +446,17 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 	    //FPP2track = thetaFPP2 < 24.0*PI/180.0 && pFPP2/T->ev_np > 0.5;
 	    FPP2track = thetaFPP2 < 12.0*PI/180.0 && pFPP2/T->ev_np > 0.5;
 	    if( FPP2track ) hthetaFPP2->Fill(thetaFPP2*180.0/PI,weight);
-	    //}
+	  }
 	}
       }
       
       double nu = T->ev_Q2 / 2.0 / 0.938272;
       double pp_elastic = sqrt(pow(nu,2)+2.0*.938272*nu);
-    
-   
+       
       //}
 
-      double R = T->gen_dbb;
-      double thetacal = T->gen_thbb;
+      // double R = T->gen_dbb;
+      // double thetacal = T->gen_thbb;
     
       //ECAL is on beam left:
       TVector3 nhat_e( sin( T->ev_th )*cos( T->ev_ph ), sin(T->ev_th)*sin(T->ev_ph), cos(T->ev_th) );
@@ -444,24 +483,36 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 
       bool should_hit_ECAL = false;
 
-      if( ycalo >= ycellmin && ycalo <= ycellmax ){
+      //cout << "(xcalo,ycalo,should_hit_ECAL)=("
+      
+      if( ycalo >= ycellmin && ycalo <= ycellmax  ){
 	//make an initial guess at which row: (row runs from 1 to N):
-	int closest_row = int( (ycalo - ycellmin)/4.0 ) + 1;
+	int closest_row = int( (ycalo - ycellmin)/(ycellmax-ycellmin)*double(ycell_rows.size()) );
 
 	map<int,double>::iterator rowguess = ycell_rows.find( closest_row );
 
-	while( rowguess != ycell_rows.end() && ycalo > ycell_rows[rowguess->first] + 0.5*cellsize_rows[rowguess->first] ){ ++rowguess; }
-	while( rowguess != ycell_rows.end() && ycalo < ycell_rows[rowguess->first] - 0.5*cellsize_rows[rowguess->first] ){ --rowguess; }
-
 	if( rowguess != ycell_rows.end() ){
-	  closest_row = rowguess->first;
-	  if( xcalo >= xcellmin_rows[closest_row] + 0.5*cellsize_rows[closest_row] &&
-	      xcalo <= xcellmax_rows[closest_row] - 0.5*cellsize_rows[closest_row] &&
-	      ycalo >= ycellmin + 0.5*cellsize_rows[closest_row] && ycalo <= ycellmax - 0.5*cellsize_rows[closest_row] ){
+	//since map is sorted on row, we can grab rowmin and rowmax:
+	  int rowmin = (ycell_rows.begin())->first;
+	  int rowmax = (ycell_rows.rbegin())->first;
+	  
+	  while( closest_row < rowmax && fabs( ycalo - ycell_rows[closest_row+1] ) < fabs( ycalo - ycell_rows[closest_row] ) ){ closest_row++; }
+	  while( closest_row > 0 && fabs( ycalo - ycell_rows[closest_row-1] ) < fabs( ycalo - ycell_rows[closest_row] ) ){ closest_row--; }
+
+	  //cout << "(rowmin,rowmax,closest row) = (" << rowmin << ", " << rowmax << ", " << closest_row << ")" << endl;
+
+	  //cout << "xcellmin, xcellmax = " << xcellmin_rows[closest_row] << ", " << xcellmax_rows[closest_row] << ")" << endl;
+	  if( xcalo >= xcellmin_rows[closest_row]  &&
+	      xcalo <= xcellmax_rows[closest_row]  ){
+
+	    //cout << "should hit ECAL SHOULD be true here" << endl;
 	    should_hit_ECAL = true;
 	  }
 	}
       }
+
+      // cout << "(xcalo,ycalo,should_hit_ECAL) = ("
+      // 	   << xcalo << ", " << ycalo << ", " << should_hit_ECAL << ")" << endl;
 
       int nphe = 0;
     
@@ -471,8 +522,9 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 	  int colhit = ( *(T->Earm_ECalTF1_hit_col))[ihit]+1;
 	  std::pair<int,int> rowcolhit( rowhit,colhit );
 	
-	  int cellhit = cell_rowcol_ecal[rowcolhit];
-	
+	  //int cellhit = cell_rowcol_ecal[rowcolhit];
+	  int cellhit = (*(T->Earm_ECalTF1_hit_cell))[ihit];
+	  
 	  //int trigger_group = nodes_cells_ecal[cellhit];
 	
 	  double edep = (*(T->Earm_ECalTF1_hit_sumedep))[ihit];
@@ -493,8 +545,10 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 	  int colhit = ( *(T->Earm_ECAL_hit_col))[ihit]+1;
 	  std::pair<int,int> rowcolhit( rowhit,colhit );
 	
-	  int cellhit = cell_rowcol_ecal[rowcolhit];
-	
+	  //int cellhit = cell_rowcol_ecal[rowcolhit];
+
+	  int cellhit = (*(T->Earm_ECAL_hit_PMT))[ihit];
+	  
 	  //int trigger_group = nodes_cells_ecal[cellhit];
 	
 	  //	double edep = (*(T->Earm_ECalTF1_hit_sumedep))[ihit];
@@ -505,8 +559,7 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *logi
 	    node_sums[ *inode ] += double(nphe);
 	  }
 	  for( int jhit=0; jhit<T->Earm_ECalTF1_hit_nhits; jhit++ ){
-	    if( (*(T->Earm_ECalTF1_hit_row))[jhit]+1 == rowhit &&
-		(*(T->Earm_ECalTF1_hit_col))[jhit]+1 == colhit &&
+	    if( (*(T->Earm_ECalTF1_hit_cell))[jhit] == cellhit && 
 		fabs( (*(T->Earm_ECAL_hit_Time_avg))[ihit]-(*(T->Earm_ECalTF1_hit_tavg))[jhit]-2.5)<=10.0 ){
 	      hnphe_vs_sum_edep_ECAL->Fill( (*(T->Earm_ECalTF1_hit_sumedep))[jhit], nphe );
 	    }   

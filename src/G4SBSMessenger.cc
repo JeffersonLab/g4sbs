@@ -384,6 +384,17 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSLeadOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/uselead",this);
   SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
   SBSLeadOptionCmd->SetParameterName("uselead",false);
+
+  GEPFPP1_CH2thickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/FPP1CH2thick",this);
+  GEPFPP1_CH2thickCmd->SetGuidance("CH2 thickness for first analyzer (GEP only)");
+  GEPFPP1_CH2thickCmd->SetGuidance("0 < FPP1 CH2 thick < 60 cm");
+  GEPFPP1_CH2thickCmd->SetParameterName("CH2thick1",false);
+  //GEPFPP1_CH2thickCmd->SetRange("0.0 <= CH2thick1 && CH2thick1 <= 60.0*cm"
+
+  GEPFPP2_CH2thickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/FPP2CH2thick",this);
+  GEPFPP2_CH2thickCmd->SetGuidance("CH2 thickness for first analyzer (GEP only)");
+  GEPFPP2_CH2thickCmd->SetGuidance("0 < FPP2 CH2 thick < 60 cm");
+  GEPFPP2_CH2thickCmd->SetParameterName("CH2thick2",false);
   
   BLneutronDetsCmd = new G4UIcmdWithABool("/g4sbs/BLneutronDets",this);
   BLneutronDetsCmd->SetGuidance("Setup neutron detectors along the beamline");
@@ -1336,6 +1347,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == SBSLeadOptionCmd ){
     G4int i = SBSLeadOptionCmd->GetNewIntValue(newValue);
     fdetcon->fLeadOption = i;
+  }
+
+  if( cmd == GEPFPP1_CH2thickCmd ){
+    G4double ch2thick = GEPFPP1_CH2thickCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetFPP_CH2thick(1,ch2thick);
+  }
+
+  if( cmd == GEPFPP2_CH2thickCmd ){
+    G4double ch2thick = GEPFPP2_CH2thickCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetFPP_CH2thick(2,ch2thick);
   }
   
   if( cmd == BLneutronDetsCmd ){

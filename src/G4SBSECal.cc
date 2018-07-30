@@ -827,7 +827,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       output_line.Form( "%16d, %16d, %16d, %16.3f, %16.3f", copy_nb, i_ + NrowsSM_40*3, j_, Y_block/cm, X_block/cm );
       mapfile << output_line << endl;
       
-      (ECalTF1SD->detmap).Row[copy_nb] = i_;
+      (ECalTF1SD->detmap).Row[copy_nb] = i_ + 3*NrowsSM_40;
       (ECalTF1SD->detmap).Col[copy_nb] = j_;
       (ECalTF1SD->detmap).LocalCoord[copy_nb] = modpos;
 
@@ -835,7 +835,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
 			    modpos.z() + depth_42/2.0 + LG42->GetZHalfLength()*2 + depth_ecal_pmt/2.0 );
       new G4PVPlacement( 0, pmtpos, ecal_PMT_log, "ecal_PMT_phys", earm_mother_log, false, copy_nb );
 
-      (ECalSD->detmap).Row[copy_nb] = i_;
+      (ECalSD->detmap).Row[copy_nb] = i_ + 3*NrowsSM_40;
       (ECalSD->detmap).Col[copy_nb] = j_;
       (ECalSD->detmap).LocalCoord[copy_nb] = pmtpos;
 

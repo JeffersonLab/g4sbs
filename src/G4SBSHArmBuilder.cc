@@ -76,6 +76,9 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fSBS_tracker_pitch = 0.0*deg;
   
   fBuildSBSSieve = false;
+
+  fCH2thickFPP[0] = 22.0*2.54*cm;
+  fCH2thickFPP[1] = 22.0*2.54*cm;
   
   assert(fDetCon);
 }
@@ -3570,16 +3573,23 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   double anaheight = 200.0*cm;
   double anawidth  = 44.0*2.54*cm;
   double anadepth  = 22.0*2.54*cm;
+  double ana1depth = fCH2thickFPP[0];
+  double ana2depth = fCH2thickFPP[1];
+
+  //Don't assume these are the same:
   
-  G4Box *anabox = new G4Box("anabox", anawidth/2.0, anaheight/2.0, anadepth/2.0 );
-  G4LogicalVolume* analog = new G4LogicalVolume(anabox, GetMaterial("CH2"), "analog");
+  G4Box *ana1box = new G4Box("ana1box", anawidth/2.0, anaheight/2.0, ana1depth/2.0 );
+  G4LogicalVolume* ana1log = new G4LogicalVolume(ana1box, GetMaterial("CH2"), "ana1log");
+
+  G4Box *ana2box = new G4Box("ana2box", anawidth/2.0, anaheight/2.0, ana2depth/2.0 );
+  G4LogicalVolume* ana2log = new G4LogicalVolume(ana2box, GetMaterial("CH2"), "ana2log");
   
   G4ThreeVector Ana1_pos = pos + G4ThreeVector( 0.0, 0.0, 58.53*cm + anadepth/2.0 );
   G4ThreeVector Ana2_pos = pos + G4ThreeVector( 0.0, 0.0, 170.3*cm + anadepth/2.0 );
   
-  new G4PVPlacement(0, Ana1_pos, analog,
+  new G4PVPlacement(0, Ana1_pos, ana1log,
 		    "anaphys1", Mother, false, 0, false);
-  new G4PVPlacement(0, Ana2_pos, analog,
+  new G4PVPlacement(0, Ana2_pos, ana2log,
 		    "anaphys1", Mother, false, 0, false);
 
   double zavg = 0.5*(170.3*cm + 58.53*cm+anadepth); //midpoint between first and second analyzers
@@ -3640,7 +3650,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   G4VisAttributes *CH2anavisatt = new G4VisAttributes( G4Colour(0.0, 0.0, 1.0) );
   CH2anavisatt->SetForceWireframe(true);
 
-  analog->SetVisAttributes( CH2anavisatt );
+  ana1log->SetVisAttributes( CH2anavisatt );
+  ana2log->SetVisAttributes( CH2anavisatt );
   
 }
  
@@ -3917,5 +3928,15 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
   }
 
   mapfile.close();
+  
+}
+
+void G4SBSHArmBuilder::SetFPP_CH2thick( int ifpp, double CH2thick ){
+  double fthickmin = 0.0*cm;
+  double fthickmax = 100.0*cm;
+
+  ifpp = ifpp >= 1 ? ( ifpp <= 2 ? ifpp : 2 ) : 1;
+  
+  fCH2thickFPP[ifpp-1] = CH2thick > fthickmin ? ( CH2thick < fthickmax ? CH2thick : fthickmax ) : fthickmin;
   
 }

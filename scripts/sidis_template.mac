@@ -8,20 +8,23 @@
 /g4sbs/exp      sidis
 /g4sbs/hadron   pi+
 /g4sbs/kine     sidis
-/g4sbs/kine beam
+#/g4sbs/kine beam
 
 /g4sbs/runtime   1.0 s
 /g4sbs/beamE      11.0 GeV
 /g4sbs/bbang      30.0 deg
 /g4sbs/bbdist      1.55 m
 /g4sbs/sbsang    14.0 deg
-/g4sbs/hcaldist    8.2 m
+/g4sbs/hcaldist    9.0 m
+/g4sbs/hcalvoffset 0 m
+/g4sbs/hcalhoffset -20 cm
 /g4sbs/48D48dist   2.5 m
 /g4sbs/48d48field   1
 /g4sbs/sbsmagfield  1.2 tesla
 /g4sbs/bbfield      1
 /g4sbs/sbsclampopt  0
 /g4sbs/richdist    4.6 m
+/g4sbs/sbstrkrdist 4.1 m
 /g4sbs/thmin      22.0 deg
 /g4sbs/thmax      42.0 deg
 /g4sbs/phmin     -40.0 deg
@@ -32,7 +35,7 @@
 /g4sbs/hphmax    240.0 deg
 /g4sbs/eemin      0.5 GeV
 /g4sbs/eemax      6.0 GeV
-/g4sbs/ehmin      1.5 GeV
+/g4sbs/ehmin      1.9 GeV
 /g4sbs/ehmax      10.5 GeV
 
 /g4sbs/treeflag 1

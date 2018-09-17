@@ -64,7 +64,8 @@ public:
 
   int  fBeamlineConf;
   int  fLeadOption;
-
+  bool fBLneutronDet;
+  
   Exp_t fExpType;
   Targ_t fTargType;
 

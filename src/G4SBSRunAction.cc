@@ -38,8 +38,15 @@ void G4SBSRunAction::BeginOfRunAction(const G4Run* aRun)
   rmrundata->SetSBSdist( gendata.dsbs );
   rmrundata->SetHCALdist( gendata.dhcal );
   rmrundata->SetHCALvoff( gendata.voffhcal );
+  rmrundata->SetHCALhoff( gendata.hoffhcal );
+  rmrundata->SetLACdist( gendata.dlac );
+  rmrundata->SetLACvoff( gendata.vofflac );
+  rmrundata->SetLAChoff( gendata.hofflac );
   rmrundata->SetRICHdist( gendata.drich );
   rmrundata->SetSBSTrackerDist( gendata.dsbstrkr );
+  rmrundata->SetSBSTrackerPitch( gendata.sbstrkrpitch );
+
+  //some of these are redundant with the behavior of G4SBSMessenger commands;
   
   rmrundata->Print();
 

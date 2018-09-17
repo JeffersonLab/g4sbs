@@ -100,7 +100,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fBeamlineConf = 3;
   fLeadOption = 0;
-
+  fBLneutronDet = false;
+    
   SDlist.clear();
   SDtype.clear();
   StepLimiterList.clear();

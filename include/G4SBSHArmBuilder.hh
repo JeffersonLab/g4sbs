@@ -30,6 +30,7 @@ public:
   void SetSBSSieve(bool a){fBuildSBSSieve = a;};
   void SetRICHgas( G4String s ){ fRICHgas = s; }
   void SetRICH_use_aerogel( G4bool b ){ fRICH_use_aerogel = b; }
+  void SetFPP_CH2thick(int ifpp, double thick );
   
   void Make48D48(G4LogicalVolume*, double);
   void MakeSBSFieldClamps(G4LogicalVolume*);
@@ -75,7 +76,10 @@ public:
 
   double fLACdist; //Distance to CLAS Large-angle calorimeter
   double fLACvertical_offset; //vertical offset of center of LAC wr
-  double fLAChorizontal_offset; //horizontal offset of center of LAC 
+  double fLAChorizontal_offset; //horizontal offset of center of LAC
+
+  double fCH2thickFPP[2];
+  
 private:
 
 };

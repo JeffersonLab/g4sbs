@@ -7,7 +7,7 @@
 /g4sbs/rastery  2.0 mm
 /g4sbs/exp      a1n
 /g4sbs/hadron   pi+
-/g4sbs/kine     inelastic
+/g4sbs/kine     dis
 #/g4sbs/kine beam
 
 /g4sbs/runtime   1.0 s
@@ -62,5 +62,5 @@
 
 /control/execute scripts/default_thresholds.mac
 
-/g4sbs/filename ../output/a1n_simulations_2018/inelasticSBS_12deg_H2_job1.root
-/g4sbs/run 100000
+#/g4sbs/filename ../output/a1n_simulations_2018/inelasticSBS_12deg_H2_job1.root
+#/g4sbs/run 100000

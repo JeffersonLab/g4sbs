@@ -76,6 +76,9 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fSBS_tracker_pitch = 0.0*deg;
   
   fBuildSBSSieve = false;
+
+  fCH2thickFPP[0] = 22.0*2.54*cm;
+  fCH2thickFPP[1] = 22.0*2.54*cm;
   
   assert(fDetCon);
 }
@@ -886,7 +889,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
       // Add lead inserts IFF lead option is turned on:
       //if( fDetCon->fLeadOption == 1 ){
-      new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
+      //new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
     
       
       //Add lead bar:
@@ -1455,7 +1458,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
   G4RotationMatrix rotLeft;
   G4RotationMatrix rotRight;
   rotLeft.rotateZ(180*CLHEP::deg);
-
+  
   // Place stack elements in the module
   for(int sub = 0; sub < numSubstacks; sub++) {
 
@@ -1698,6 +1701,14 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
     posZ += dim_HCALFrontPlateZ/2. + dim_AirGap;
   }
 
+  ofstream mapfile("database/HCAL_map.txt");
+
+  TString currentline;
+  currentline.Form("# %15s, %15s, %15s, %18s, %18s",
+		   "Cell", "Row", "Column", "Xcenter (cm)", "Ycenter (cm)" );
+
+  mapfile << currentline << endl;
+  
   // Set the initial vertical position for a module as the top of HCAL
   // Initial horizontal position would be on the left
   G4double posModX;
@@ -1732,6 +1743,9 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
       (HCalScintSD->detmap).Col[copyNo] = col;
       (HCalScintSD->detmap).LocalCoord[copyNo] =
         G4ThreeVector(posModX,posModY,posModZ);
+      currentline.Form("  %15d, %15d, %15d, %18.3f, %18.3f",
+          copyNo, row, col, posModX/cm, posModY/cm );
+      mapfile << currentline << endl;
 
       // Place the optional trigger scintillators
       if(const_PlaceTrigScint) {
@@ -1809,6 +1823,8 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
   }
 
   // Add any offsets to HCAL center position
+  mapfile.close();
+
   G4ThreeVector HCAL_zaxis( dist_HCALX, 0.0, dist_HCALZ );
   G4ThreeVector HCAL_yaxis( 0.0,        1.0, 0.0        );
 
@@ -4143,16 +4159,23 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   double anaheight = 200.0*cm;
   double anawidth  = 44.0*2.54*cm;
   double anadepth  = 22.0*2.54*cm;
+  double ana1depth = fCH2thickFPP[0];
+  double ana2depth = fCH2thickFPP[1];
+
+  //Don't assume these are the same:
   
-  G4Box *anabox = new G4Box("anabox", anawidth/2.0, anaheight/2.0, anadepth/2.0 );
-  G4LogicalVolume* analog = new G4LogicalVolume(anabox, GetMaterial("CH2"), "analog");
+  G4Box *ana1box = new G4Box("ana1box", anawidth/2.0, anaheight/2.0, ana1depth/2.0 );
+  G4LogicalVolume* ana1log = new G4LogicalVolume(ana1box, GetMaterial("CH2"), "ana1log");
+
+  G4Box *ana2box = new G4Box("ana2box", anawidth/2.0, anaheight/2.0, ana2depth/2.0 );
+  G4LogicalVolume* ana2log = new G4LogicalVolume(ana2box, GetMaterial("CH2"), "ana2log");
   
   G4ThreeVector Ana1_pos = pos + G4ThreeVector( 0.0, 0.0, 58.53*cm + anadepth/2.0 );
   G4ThreeVector Ana2_pos = pos + G4ThreeVector( 0.0, 0.0, 170.3*cm + anadepth/2.0 );
   
-  new G4PVPlacement(0, Ana1_pos, analog,
+  new G4PVPlacement(0, Ana1_pos, ana1log,
 		    "anaphys1", Mother, false, 0, false);
-  new G4PVPlacement(0, Ana2_pos, analog,
+  new G4PVPlacement(0, Ana2_pos, ana2log,
 		    "anaphys1", Mother, false, 0, false);
 
   double zavg = 0.5*(170.3*cm + 58.53*cm+anadepth); //midpoint between first and second analyzers
@@ -4213,7 +4236,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   G4VisAttributes *CH2anavisatt = new G4VisAttributes( G4Colour(0.0, 0.0, 1.0) );
   CH2anavisatt->SetForceWireframe(true);
 
-  analog->SetVisAttributes( CH2anavisatt );
+  ana1log->SetVisAttributes( CH2anavisatt );
+  ana2log->SetVisAttributes( CH2anavisatt );
   
 }
 
@@ -4300,6 +4324,14 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
   G4VisAttributes *LACscint_visatt = new G4VisAttributes( G4Colour(0.05, 0.9, 0.7) );
   G4VisAttributes *PbSheet_visatt = new G4VisAttributes( G4Colour( 0.3, 0.3, 0.3 ) );
   PbSheet_visatt->SetForceWireframe(true);
+
+  ofstream mapfile("database/LAC_map.txt");
+
+  TString currentline;
+  currentline.Form( "# %10s, %10s, %10s, %10s, %18s, %18s, %18s",
+		    "Stack", "Row", "Column", "Plane", "Xcenter (cm)", "Ycenter (cm)", "Zcenter (cm)" );
+
+  mapfile << currentline << endl;
   
   for( G4int ilayer=0; ilayer<Nlayers_total; ilayer++ ){
 
@@ -4388,6 +4420,34 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
       } 
     }
   }
-				     
 
+  G4SBSDetMap dtemp = (LACScintSD->detmap);
+
+  for( map<G4int,G4int>::iterator it=(dtemp.Plane).begin(); it != (dtemp.Plane).end(); ++it ){
+    G4int istack = it->first;
+
+    G4int irow = dtemp.Row[istack];
+    G4int icol = dtemp.Col[istack];
+    G4int iplane = dtemp.Plane[istack];
+
+    G4ThreeVector Rtemp = dtemp.LocalCoord[istack];
+
+    currentline.Form( "  %10d, %10d, %10d, %10d, %18.3f, %18.3f, %18.3f",
+		      istack, irow, icol, iplane, Rtemp.x()/cm, Rtemp.y()/cm, Rtemp.z()/cm );
+    mapfile << currentline << endl;
+    
+  }
+
+  mapfile.close();
+  
+}
+
+void G4SBSHArmBuilder::SetFPP_CH2thick( int ifpp, double CH2thick ){
+  double fthickmin = 0.0*cm;
+  double fthickmax = 100.0*cm;
+
+  ifpp = ifpp >= 1 ? ( ifpp <= 2 ? ifpp : 2 ) : 1;
+  
+  fCH2thickFPP[ifpp-1] = CH2thick > fthickmin ? ( CH2thick < fthickmax ? CH2thick : fthickmax ) : fthickmin;
+  
 }

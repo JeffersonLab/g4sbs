@@ -50,7 +50,10 @@ using namespace std;
 
 G4SBSEventAction::G4SBSEventAction() : fEventStatusEvery(1000)
 {
-  fTreeFlag = 0;
+  // if recommended "in most cases" then fTreeFlag should be 1 *by default*, 
+  // and one should ask *explicitely* to have it deactivated.
+  // That would avoid to take 2TB (!!!!!!!!!) for a stupid beam background simulation !!!!
+  fTreeFlag = 1;
     fGEMres = 70.0*um;
 
     // Load up resolution file if it exists

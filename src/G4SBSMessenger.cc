@@ -359,6 +359,21 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
   SBSLeadOptionCmd->SetParameterName("uselead",false);
 
+  GEPFPP1_CH2thickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/FPP1CH2thick",this);
+  GEPFPP1_CH2thickCmd->SetGuidance("CH2 thickness for first analyzer (GEP only)");
+  GEPFPP1_CH2thickCmd->SetGuidance("0 < FPP1 CH2 thick < 60 cm");
+  GEPFPP1_CH2thickCmd->SetParameterName("CH2thick1",false);
+  //GEPFPP1_CH2thickCmd->SetRange("0.0 <= CH2thick1 && CH2thick1 <= 60.0*cm"
+
+  GEPFPP2_CH2thickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/FPP2CH2thick",this);
+  GEPFPP2_CH2thickCmd->SetGuidance("CH2 thickness for first analyzer (GEP only)");
+  GEPFPP2_CH2thickCmd->SetGuidance("0 < FPP2 CH2 thick < 60 cm");
+  GEPFPP2_CH2thickCmd->SetParameterName("CH2thick2",false);
+  
+  BLneutronDetsCmd = new G4UIcmdWithABool("/g4sbs/BLneutronDets",this);
+  BLneutronDetsCmd->SetGuidance("Setup neutron detectors along the beamline");
+  BLneutronDetsCmd->SetParameterName("switch", false);
+  
   buildSBSsieveCmd = new G4UIcmdWithABool("/g4sbs/buildSBSsieve",this);
   buildSBSsieveCmd->SetGuidance("Use SBS sieve (true or false, false by default)");
   buildSBSsieveCmd->SetParameterName("buildSBSsieve",false);
@@ -719,7 +734,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("a1n") == 0 ){
-      fExpType = kA1n; //"A1n" experiment type for new proposal with both SBS and BigBite in electron mode to detect DIS electrons at high-x: requires some geometry modifications on SBS side, including RICH w/CO2 instead of C4F10 and no aerogel, AND with a non-zero pitch angle for the SBS tracker. Later: HCAL replaced by CLAS LAC?
+      fExpType = kA1n; //"A1n" experiment type for new proposal with both SBS and BigBite in electron mode to detect DIS electrons at high-x: requires some geometry modifications on SBS side, including RICH w/CO2 instead of C4F10 and no aerogel, AND with a non-zero pitch angle for the SBS tracker. Also: HCAL + LAC.
       validcmd = true;
     }
     //AJP: Add SIDIS as a valid experiment type:
@@ -827,7 +842,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetTarget(kH2);
       fdetcon->SetTarget(kH2);
 
-      G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann);
+      G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann); //Should this be hard-coded? I think not. On the other hand, this provides a sensible default value, soooo....
       fevgen->SetTargDen(den);
       fdetcon->fTargetBuilder->SetTargDen(den);
       validcmd = true;
@@ -976,7 +991,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevgen->SetBeamE(v);
     fIO->SetBeamE(v);
 
-    G4SBSRun::GetRun()->GetData()->SetBeamE(v/GeV);
+    //    G4SBSRun::GetRun()->GetData()->SetBeamE(v/GeV); //redundant with fIO
     //after any command affecting the kinematics or cross section of the built-in event generators, re-initialize rejection sampling:
     fevgen->SetInitialized(false);
   }
@@ -1003,13 +1018,15 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == sbstrkrpitchCmd ){
     G4double v = sbstrkrpitchCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetTrackerPitch(v);
-    G4SBSRun::GetRun()->GetData()->SetSBSTrackerPitch( v );
+    fIO->SetSBStrkrPitch( v );
+    //G4SBSRun::GetRun()->GetData()->SetSBSTrackerPitch( v );
   }
 
   if( cmd == sbstrkrdistCmd ){
     G4double d = sbstrkrdistCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetTrackerDist(d);
-    G4SBSRun::GetRun()->GetData()->SetSBSTrackerDist( d );
+    fIO->SetSBStrkrDist( d );
+    //G4SBSRun::GetRun()->GetData()->SetSBSTrackerDist( d );
   }
   
   if( cmd == dvcsecalmatCmd ){
@@ -1086,22 +1103,25 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = hcalhoffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetHCALHOffset(v);
     //fevgen->SetHCALDist(v);
-    //fIO->SetHcalVOffset(v);
+    fIO->SetHcalHOffset(v);
   }
 
   if( cmd == lacdistCmd ){
     G4double v = lacdistCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetLACDist(v);
+    fIO->SetLACDist( v );
   }
 
   if( cmd == lacvoffsetCmd ){
     G4double v = lacvoffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetLACVOffset(v);
+    fIO->SetLACVOffset( v );
   }
 
   if( cmd == lachoffsetCmd ){
     G4double v = lachoffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetLACHOffset(v);
+    fIO->SetLACHOffset( v );
   }
 
   if( cmd == hmagdistCmd ){
@@ -1251,6 +1271,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fLeadOption = i;
   }
 
+  if( cmd == GEPFPP1_CH2thickCmd ){
+    G4double ch2thick = GEPFPP1_CH2thickCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetFPP_CH2thick(1,ch2thick);
+  }
+
+  if( cmd == GEPFPP2_CH2thickCmd ){
+    G4double ch2thick = GEPFPP2_CH2thickCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetFPP_CH2thick(2,ch2thick);
+  }
+  
+  if( cmd == BLneutronDetsCmd ){
+    G4bool v = BLneutronDetsCmd->GetNewBoolValue(newValue);
+    fdetcon->fBLneutronDet = v;
+  }
+  
   if( cmd == buildSBSsieveCmd ){
     fdetcon->fHArmBuilder->SetSBSSieve(newValue);
   }

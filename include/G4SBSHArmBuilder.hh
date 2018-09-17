@@ -6,6 +6,8 @@
 #include "G4ThreeVector.hh"
 #include "G4RotationMatrix.hh"
 
+class G4VSolid;
+
 class G4SBSHArmBuilder: public G4SBSComponent {
 public:
   G4SBSHArmBuilder(G4SBSDetectorConstruction *);
@@ -31,8 +33,8 @@ public:
   
   void Make48D48(G4LogicalVolume*, double);
   void MakeSBSFieldClamps(G4LogicalVolume*);
+  void MakeHCALOldVersion(G4LogicalVolume*, G4double); // Left behind for debugging
   void MakeHCAL(G4LogicalVolume*, G4double);
-  void MakeHCALV2(G4LogicalVolume*, G4double);
   void MakeCDET(G4LogicalVolume*, G4double, G4double);
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
   void MakeRICH(G4LogicalVolume *);
@@ -43,7 +45,10 @@ public:
   void MakeElectronModeSBS(G4LogicalVolume *);
   void MakeSBSSieveSlit(G4LogicalVolume *);
   void MakeLAC(G4LogicalVolume *);
-  
+
+  G4VSolid* MakeHCALLightGuideSolid(G4ThreeVector dim_WLS,
+      G4ThreeVector &pos_LGCenter, G4ThreeVector &pos_LGEnd);
+
   double f48D48ang;
   double f48D48dist;
   int f48D48_fieldclamp_config; //Configuration of field clamp. There could be several of these.

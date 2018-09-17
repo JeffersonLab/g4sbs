@@ -11,8 +11,8 @@
 #include "G4Box.hh"
 #include "G4SystemOfUnits.hh"
 
-G4SBSCalSD::G4SBSCalSD( G4String name, G4String colname )
-  : G4VSensitiveDetector(name)
+G4SBSCalSD::G4SBSCalSD( G4String name, G4String colname, G4int recordType)
+  : G4VSensitiveDetector(name), fRecordType(recordType)
 {
     collectionName.insert(colname);
     detmap.SDname = name;
@@ -37,9 +37,27 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   //G4cout << "Processing CAL hits SDname = " << SensitiveDetectorName << G4endl;
 
   G4int pid = aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding();
+  G4int mid = aStep->GetTrack()->GetParentID();
   double edep = aStep->GetTotalEnergyDeposit();
 
-  if( edep <= 0.0 || pid == 0 ) return false;
+  // We can record different types of "hits" (0 is the default)
+  // 0: All types that deposit non-zero energy (except special G4 particles)
+  // 1: Same as 0, but records all primaries regardless if they interacted or not
+  // 2: Only primaries
+  bool checkBadTrack = (edep <= 0.0 || pid ==0);
+  bool checkPrimary = (mid == 0);
+  if( fRecordType == 0 ) {
+    if( checkBadTrack ) return false;
+  } else if ( fRecordType == 1 ) {
+    if( checkBadTrack && !checkPrimary ) return false;
+  } else if ( fRecordType == 2 ) {
+    if( !checkPrimary ) return false;
+    edep = 1; // Neutron's don't deposit much energy, but we still care about them
+  }
+
+  // We only keep things that deposited energy and are not special Geant4
+  // particles, unless we are told to keep all "primary" particles.
+  //if( (edep <= 0.0 || pid == 0) && !(fKeepAllPrimaries && mid == 0) ) return false;
 
 //  if( edep <= 0.5*GeV ) return false;
 
@@ -76,9 +94,9 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   hit->SetEnergy(E);
   hit->SetLstep( aStep->GetStepLength() );
   hit->SetMomentum(mom);
-  hit->SetPID(aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding());
+  hit->SetPID(pid);
   hit->SetTrID(aStep->GetTrack()->GetTrackID());
-  hit->SetMID(aStep->GetTrack()->GetParentID());
+  hit->SetMID(mid);
 
   //hit->SetCell( hist->GetVolume( DepthMap[this->GetName()][hit->GetCell()] )->GetCopyNo() );
 

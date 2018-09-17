@@ -33,8 +33,14 @@ public:
   vector<double> Time_max; //arrival time of latest photon in the hit
   
   //G4SBSParticleOutput ParticleHistory;
-  
-  
+  //"Part" keeps track of all unique particles detected in the ECal
+  int npart_ECAL;   // Number of optical photons detected in this hit
+  //vector<int> ihit; // hit index associated with this particle 
+  vector<int> part_PMT; // PMT number for this particle track
+  vector<int> trid; // Track ID of this optical photon
+  vector<double> E; // Energy of particle
+  vector<double> t; // Global time of particle
+  vector<bool> detected; // Was this photon detected?
 };
 
 #endif

@@ -17,7 +17,7 @@ class G4SBSCalSD : public G4VSensitiveDetector
 {
 
 public:
-  G4SBSCalSD(G4String name, G4String colname);
+  G4SBSCalSD(G4String name, G4String colname, int recordType = 0);
   ~G4SBSCalSD();
 
   void Initialize(G4HCofThisEvent*HCE);
@@ -43,6 +43,7 @@ private:
   G4double fHitTimeWindow;   //Maximum time after the first tracking step of the hit before starting a new hit. 
   G4double fEnergyThreshold; //Threshold on the minimum summed energy deposition of a hit to record to the output.
   G4SBSCalHitsCollection *hitCollection;
+  G4int fRecordType;
 };
 
 

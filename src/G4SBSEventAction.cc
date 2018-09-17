@@ -905,6 +905,9 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
   }
   
   bool  remaining_hits = true;
+  // Used to make sure we only save the track info only once
+  // when saving all tracks to the tree
+  bool saved_track_info = false;
   
   while( remaining_hits ) {
     
@@ -914,6 +917,17 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
     for( set<int>::iterator it=TIDs_unique.begin(); it != TIDs_unique.end(); it++ ){
       int tid = *it;
+      // Save particle info for all tracks (doesn't matter if they were
+      // ultimately not detected)
+      if(!saved_track_info) {
+        ecaloutput.npart_ECAL++;
+        ecaloutput.part_PMT.push_back( Photon_PMT[tid] );
+        ecaloutput.trid.push_back( tid );
+        ecaloutput.E.push_back( Photon_energy[tid]/CLHEP::eV );
+        ecaloutput.t.push_back( Photon_hittime[tid]/CLHEP::ns );
+        ecaloutput.detected.push_back( Photon_detected[tid] );
+      }
+
       if( Photon_detected[ tid ] && !(Photon_used[ tid ] ) ){
 	std::pair<set<int>::iterator,bool> testpmt = PMTs_unique.insert( Photon_PMT[tid] );
 
@@ -953,6 +967,8 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	if( !(Photon_used[tid] ) ) remaining_hits = true;
       }
     }
+
+    saved_track_info = true;
     //Now add hits to the output following the RICH example..
     for( set<int>::iterator it=PMTs_unique.begin(); it!=PMTs_unique.end(); it++ ){
       
@@ -1102,6 +1118,7 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
       Photon_mTID[ tid ] = mid; 
       Photon_origvol[ tid ] = origin_volume;
       Photon_nsteps[ tid ] = 1;
+
       
     } else { //existing photon, additional step. Increment averages of position, direction, time, etc for all steps of a detected photon. Don't bother for 
       //undetected photons...

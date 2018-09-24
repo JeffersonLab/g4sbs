@@ -22,6 +22,8 @@ public:
   void SetLACVOffset( double a ){ fLACvertical_offset = a; }
   void SetLACHOffset( double a ){ fLAChorizontal_offset = a; }
   void SetRICHdist( double d ){ fRICHdist = d; } //Set RICH detector distance
+  void SetRICHHoffset( double d ){ fRICHhorizontal_offset = d; }
+  void SetRICHVoffset( double d ){ fRICHvertical_offset = d; }
   void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
   void SetTrackerPitch(double a){ fSBS_tracker_pitch = a; }
   void SetTrackerDist(double d){ fSBS_tracker_dist = d; }
@@ -52,6 +54,8 @@ public:
   double fHCALvertical_offset;  // Vertical offset (from center) of HCAL
   double fHCALhorizontal_offset; // Horizontal offset (from SBS center line) of HCAL (by convention, +X is toward smaller angle)
   double fRICHdist; //Distance from target to RICH entry window (in horizontal plane)
+  double fRICHvertical_offset; //Vertical offset (from center)
+  double fRICHhorizontal_offset; //Horizontal offset (from SBS center line, + = toward beamline).
   double fSBS_tracker_pitch; //SBS tracker pitch angle for electron mode
   double fSBS_tracker_dist; 
   

@@ -62,6 +62,8 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fLAChorizontal_offset = 0.0*cm;
 
   fRICHdist  = 5.5*m;
+  fRICHhorizontal_offset = 0.0*cm;
+  fRICHvertical_offset = 0.0*cm;
   fRICHgas   = "C4F10_gas"; //default to C4F10;
   fRICH_use_aerogel = true;
 
@@ -2788,7 +2790,9 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   RICH_offset += origin;
   
 
-  G4ThreeVector RICH_centercoord_global = RICHcoord_global - (-RICH_offset.x() * RICH_xaxis + RICH_offset.y() * RICH_yaxis + RICH_offset.z() * RICH_zaxis);
+  G4ThreeVector RICH_centercoord_global = RICHcoord_global - (-RICH_offset.x() * RICH_xaxis + RICH_offset.y() * RICH_yaxis + RICH_offset.z() * RICH_zaxis) + fRICHhorizontal_offset * RICH_xaxis + fRICHvertical_offset * RICH_yaxis;
+
+  
   
   //We want to position the RICH box so that the center of the entry window is aligned with the SBS axis:
   new G4PVPlacement( rot_RICH, RICH_centercoord_global, RICHbox_log, "SBS_RICH_pv", motherlog, false, 0 );

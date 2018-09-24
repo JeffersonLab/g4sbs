@@ -329,6 +329,14 @@ G4SBSMessenger::G4SBSMessenger(){
   RICHdistCmd->SetGuidance("SBS RICH distance from target");
   RICHdistCmd->SetParameterName("dist",false);
 
+  RICHhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/richhoffset",this);
+  RICHhoffsetCmd->SetGuidance("SBS RICH horizontal offset (wrt SBS axis, + = toward beamline)");
+  RICHhoffsetCmd->SetParameterName("hoffset",false);
+
+  RICHvoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/richvoffset",this);
+  RICHvoffsetCmd->SetGuidance("SBS RICH vertical offset (wrt SBS axis, + = up)");
+  RICHvoffsetCmd->SetParameterName("voffset",false);
+  
   RICHaeroCmd = new G4UIcmdWithABool("/g4sbs/userichaero",this);
   RICHaeroCmd->SetGuidance("Toggle use of RICH aerogel (default = true)" );
   RICHaeroCmd->SetParameterName("useaero",true);
@@ -1212,6 +1220,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = RICHdistCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetRICHdist(v);
     fIO->SetRICHDist( v );
+  }
+
+  if( cmd == RICHhoffsetCmd ){
+    G4double v = RICHhoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetRICHHoffset( v );
+  }
+
+  if( cmd == RICHvoffsetCmd ){
+    G4double v = RICHvoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetRICHVoffset( v );
   }
 
   if( cmd == RICHaeroCmd ){

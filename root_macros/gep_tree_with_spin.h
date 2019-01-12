@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Thu Jan  7 11:54:23 2016 by ROOT version 5.34/32
+// Thu Jan 10 16:00:53 2019 by ROOT version 6.14/06
 // from TTree T/Geant4 SBS Simulation
-// found on file: gep_spin_transport_Sx.root
+// found on file: gep_12GeV2_protongun_Px.root
 //////////////////////////////////////////////////////////
 
 #ifndef gep_tree_with_spin_h
@@ -13,14 +13,15 @@
 #include <TFile.h>
 
 // Header file for the classes stored in the TTree if any.
-#include <vector>
-#include <vector>
-// Fixed size dimensions of array or collections stored in the TTree if any.
+#include "vector"
+#include "vector"
 
 class gep_tree_with_spin {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
+
+// Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
    Double_t        ev_count;
@@ -64,14 +65,6 @@ public :
    Int_t           ev_hadr;
    Int_t           ev_earmaccept;
    Int_t           ev_harmaccept;
-   Double_t        gen_thbb;
-   Double_t        gen_thsbs;
-   Double_t        gen_dbb;
-   Double_t        gen_dsbs;
-   Double_t        gen_dhcal;
-   Double_t        gen_drich;
-   Double_t        gen_dsbstrkr;
-   Double_t        gen_Ebeam;
    Int_t           Earm_CDET_hit_nhits;
    vector<int>     *Earm_CDET_hit_PMT;
    vector<int>     *Earm_CDET_hit_row;
@@ -88,11 +81,13 @@ public :
    vector<double>  *Earm_CDET_hit_Time_rms;
    vector<double>  *Earm_CDET_hit_Time_min;
    vector<double>  *Earm_CDET_hit_Time_max;
+   Double_t        Earm_CDET_Scint_det_esum;
    Int_t           Earm_CDET_Scint_hit_nhits;
    vector<int>     *Earm_CDET_Scint_hit_row;
    vector<int>     *Earm_CDET_Scint_hit_col;
    vector<int>     *Earm_CDET_Scint_hit_cell;
    vector<int>     *Earm_CDET_Scint_hit_plane;
+   vector<int>     *Earm_CDET_Scint_hit_wire;
    vector<double>  *Earm_CDET_Scint_hit_xcell;
    vector<double>  *Earm_CDET_Scint_hit_ycell;
    vector<double>  *Earm_CDET_Scint_hit_zcell;
@@ -102,6 +97,9 @@ public :
    vector<double>  *Earm_CDET_Scint_hit_xhit;
    vector<double>  *Earm_CDET_Scint_hit_yhit;
    vector<double>  *Earm_CDET_Scint_hit_zhit;
+   vector<double>  *Earm_CDET_Scint_hit_xhitg;
+   vector<double>  *Earm_CDET_Scint_hit_yhitg;
+   vector<double>  *Earm_CDET_Scint_hit_zhitg;
    vector<double>  *Earm_CDET_Scint_hit_sumedep;
    vector<double>  *Earm_CDET_Scint_hit_tavg;
    vector<double>  *Earm_CDET_Scint_hit_trms;
@@ -123,30 +121,13 @@ public :
    vector<double>  *Earm_ECAL_hit_Time_rms;
    vector<double>  *Earm_ECAL_hit_Time_min;
    vector<double>  *Earm_ECAL_hit_Time_max;
-   Int_t           Earm_ECAL_box_hit_nhits;
-   vector<int>     *Earm_ECAL_box_hit_row;
-   vector<int>     *Earm_ECAL_box_hit_col;
-   vector<int>     *Earm_ECAL_box_hit_cell;
-   vector<int>     *Earm_ECAL_box_hit_plane;
-   vector<double>  *Earm_ECAL_box_hit_xcell;
-   vector<double>  *Earm_ECAL_box_hit_ycell;
-   vector<double>  *Earm_ECAL_box_hit_zcell;
-   vector<double>  *Earm_ECAL_box_hit_xcellg;
-   vector<double>  *Earm_ECAL_box_hit_ycellg;
-   vector<double>  *Earm_ECAL_box_hit_zcellg;
-   vector<double>  *Earm_ECAL_box_hit_xhit;
-   vector<double>  *Earm_ECAL_box_hit_yhit;
-   vector<double>  *Earm_ECAL_box_hit_zhit;
-   vector<double>  *Earm_ECAL_box_hit_sumedep;
-   vector<double>  *Earm_ECAL_box_hit_tavg;
-   vector<double>  *Earm_ECAL_box_hit_trms;
-   vector<double>  *Earm_ECAL_box_hit_tmin;
-   vector<double>  *Earm_ECAL_box_hit_tmax;
+   Double_t        Earm_ECalTF1_det_esum;
    Int_t           Earm_ECalTF1_hit_nhits;
    vector<int>     *Earm_ECalTF1_hit_row;
    vector<int>     *Earm_ECalTF1_hit_col;
    vector<int>     *Earm_ECalTF1_hit_cell;
    vector<int>     *Earm_ECalTF1_hit_plane;
+   vector<int>     *Earm_ECalTF1_hit_wire;
    vector<double>  *Earm_ECalTF1_hit_xcell;
    vector<double>  *Earm_ECalTF1_hit_ycell;
    vector<double>  *Earm_ECalTF1_hit_zcell;
@@ -156,6 +137,9 @@ public :
    vector<double>  *Earm_ECalTF1_hit_xhit;
    vector<double>  *Earm_ECalTF1_hit_yhit;
    vector<double>  *Earm_ECalTF1_hit_zhit;
+   vector<double>  *Earm_ECalTF1_hit_xhitg;
+   vector<double>  *Earm_ECalTF1_hit_yhitg;
+   vector<double>  *Earm_ECalTF1_hit_zhitg;
    vector<double>  *Earm_ECalTF1_hit_sumedep;
    vector<double>  *Earm_ECalTF1_hit_tavg;
    vector<double>  *Earm_ECalTF1_hit_trms;
@@ -176,8 +160,17 @@ public :
    vector<double>  *Harm_FPP1_hit_tmax;
    vector<double>  *Harm_FPP1_hit_tx;
    vector<double>  *Harm_FPP1_hit_ty;
+   vector<double>  *Harm_FPP1_hit_xin;
+   vector<double>  *Harm_FPP1_hit_yin;
+   vector<double>  *Harm_FPP1_hit_zin;
+   vector<double>  *Harm_FPP1_hit_xout;
+   vector<double>  *Harm_FPP1_hit_yout;
+   vector<double>  *Harm_FPP1_hit_zout;
    vector<double>  *Harm_FPP1_hit_txp;
    vector<double>  *Harm_FPP1_hit_typ;
+   vector<double>  *Harm_FPP1_hit_xg;
+   vector<double>  *Harm_FPP1_hit_yg;
+   vector<double>  *Harm_FPP1_hit_zg;
    vector<int>     *Harm_FPP1_hit_trid;
    vector<int>     *Harm_FPP1_hit_mid;
    vector<int>     *Harm_FPP1_hit_pid;
@@ -224,8 +217,17 @@ public :
    vector<double>  *Harm_FPP2_hit_tmax;
    vector<double>  *Harm_FPP2_hit_tx;
    vector<double>  *Harm_FPP2_hit_ty;
+   vector<double>  *Harm_FPP2_hit_xin;
+   vector<double>  *Harm_FPP2_hit_yin;
+   vector<double>  *Harm_FPP2_hit_zin;
+   vector<double>  *Harm_FPP2_hit_xout;
+   vector<double>  *Harm_FPP2_hit_yout;
+   vector<double>  *Harm_FPP2_hit_zout;
    vector<double>  *Harm_FPP2_hit_txp;
    vector<double>  *Harm_FPP2_hit_typ;
+   vector<double>  *Harm_FPP2_hit_xg;
+   vector<double>  *Harm_FPP2_hit_yg;
+   vector<double>  *Harm_FPP2_hit_zg;
    vector<int>     *Harm_FPP2_hit_trid;
    vector<int>     *Harm_FPP2_hit_mid;
    vector<int>     *Harm_FPP2_hit_pid;
@@ -272,8 +274,17 @@ public :
    vector<double>  *Harm_FT_hit_tmax;
    vector<double>  *Harm_FT_hit_tx;
    vector<double>  *Harm_FT_hit_ty;
+   vector<double>  *Harm_FT_hit_xin;
+   vector<double>  *Harm_FT_hit_yin;
+   vector<double>  *Harm_FT_hit_zin;
+   vector<double>  *Harm_FT_hit_xout;
+   vector<double>  *Harm_FT_hit_yout;
+   vector<double>  *Harm_FT_hit_zout;
    vector<double>  *Harm_FT_hit_txp;
    vector<double>  *Harm_FT_hit_typ;
+   vector<double>  *Harm_FT_hit_xg;
+   vector<double>  *Harm_FT_hit_yg;
+   vector<double>  *Harm_FT_hit_zg;
    vector<int>     *Harm_FT_hit_trid;
    vector<int>     *Harm_FT_hit_mid;
    vector<int>     *Harm_FT_hit_pid;
@@ -305,25 +316,6 @@ public :
    vector<double>  *Harm_FT_Track_Yfit;
    vector<double>  *Harm_FT_Track_Xpfit;
    vector<double>  *Harm_FT_Track_Ypfit;
-   Int_t           Harm_HCAL_box_hit_nhits;
-   vector<int>     *Harm_HCAL_box_hit_row;
-   vector<int>     *Harm_HCAL_box_hit_col;
-   vector<int>     *Harm_HCAL_box_hit_cell;
-   vector<int>     *Harm_HCAL_box_hit_plane;
-   vector<double>  *Harm_HCAL_box_hit_xcell;
-   vector<double>  *Harm_HCAL_box_hit_ycell;
-   vector<double>  *Harm_HCAL_box_hit_zcell;
-   vector<double>  *Harm_HCAL_box_hit_xcellg;
-   vector<double>  *Harm_HCAL_box_hit_ycellg;
-   vector<double>  *Harm_HCAL_box_hit_zcellg;
-   vector<double>  *Harm_HCAL_box_hit_xhit;
-   vector<double>  *Harm_HCAL_box_hit_yhit;
-   vector<double>  *Harm_HCAL_box_hit_zhit;
-   vector<double>  *Harm_HCAL_box_hit_sumedep;
-   vector<double>  *Harm_HCAL_box_hit_tavg;
-   vector<double>  *Harm_HCAL_box_hit_trms;
-   vector<double>  *Harm_HCAL_box_hit_tmin;
-   vector<double>  *Harm_HCAL_box_hit_tmax;
    Int_t           Harm_HCal_hit_nhits;
    vector<int>     *Harm_HCal_hit_PMT;
    vector<int>     *Harm_HCal_hit_row;
@@ -340,11 +332,13 @@ public :
    vector<double>  *Harm_HCal_hit_Time_rms;
    vector<double>  *Harm_HCal_hit_Time_min;
    vector<double>  *Harm_HCal_hit_Time_max;
+   Double_t        Harm_HCalScint_det_esum;
    Int_t           Harm_HCalScint_hit_nhits;
    vector<int>     *Harm_HCalScint_hit_row;
    vector<int>     *Harm_HCalScint_hit_col;
    vector<int>     *Harm_HCalScint_hit_cell;
    vector<int>     *Harm_HCalScint_hit_plane;
+   vector<int>     *Harm_HCalScint_hit_wire;
    vector<double>  *Harm_HCalScint_hit_xcell;
    vector<double>  *Harm_HCalScint_hit_ycell;
    vector<double>  *Harm_HCalScint_hit_zcell;
@@ -354,6 +348,9 @@ public :
    vector<double>  *Harm_HCalScint_hit_xhit;
    vector<double>  *Harm_HCalScint_hit_yhit;
    vector<double>  *Harm_HCalScint_hit_zhit;
+   vector<double>  *Harm_HCalScint_hit_xhitg;
+   vector<double>  *Harm_HCalScint_hit_yhitg;
+   vector<double>  *Harm_HCalScint_hit_zhitg;
    vector<double>  *Harm_HCalScint_hit_sumedep;
    vector<double>  *Harm_HCalScint_hit_tavg;
    vector<double>  *Harm_HCalScint_hit_trms;
@@ -362,7 +359,6 @@ public :
 
    // List of branches
    TBranch        *b_ev;   //!
-   TBranch        *b_gen;   //!
    TBranch        *b_Earm_CDET_hit_nhits;   //!
    TBranch        *b_Earm_CDET_hit_PMT;   //!
    TBranch        *b_Earm_CDET_hit_row;   //!
@@ -379,11 +375,13 @@ public :
    TBranch        *b_Earm_CDET_hit_Time_rms;   //!
    TBranch        *b_Earm_CDET_hit_Time_min;   //!
    TBranch        *b_Earm_CDET_hit_Time_max;   //!
+   TBranch        *b_Earm_CDET_Scint_det_esum;   //!
    TBranch        *b_Earm_CDET_Scint_hit_nhits;   //!
    TBranch        *b_Earm_CDET_Scint_hit_row;   //!
    TBranch        *b_Earm_CDET_Scint_hit_col;   //!
    TBranch        *b_Earm_CDET_Scint_hit_cell;   //!
    TBranch        *b_Earm_CDET_Scint_hit_plane;   //!
+   TBranch        *b_Earm_CDET_Scint_hit_wire;   //!
    TBranch        *b_Earm_CDET_Scint_hit_xcell;   //!
    TBranch        *b_Earm_CDET_Scint_hit_ycell;   //!
    TBranch        *b_Earm_CDET_Scint_hit_zcell;   //!
@@ -393,6 +391,9 @@ public :
    TBranch        *b_Earm_CDET_Scint_hit_xhit;   //!
    TBranch        *b_Earm_CDET_Scint_hit_yhit;   //!
    TBranch        *b_Earm_CDET_Scint_hit_zhit;   //!
+   TBranch        *b_Earm_CDET_Scint_hit_xhitg;   //!
+   TBranch        *b_Earm_CDET_Scint_hit_yhitg;   //!
+   TBranch        *b_Earm_CDET_Scint_hit_zhitg;   //!
    TBranch        *b_Earm_CDET_Scint_hit_sumedep;   //!
    TBranch        *b_Earm_CDET_Scint_hit_tavg;   //!
    TBranch        *b_Earm_CDET_Scint_hit_trms;   //!
@@ -414,30 +415,13 @@ public :
    TBranch        *b_Earm_ECAL_hit_Time_rms;   //!
    TBranch        *b_Earm_ECAL_hit_Time_min;   //!
    TBranch        *b_Earm_ECAL_hit_Time_max;   //!
-   TBranch        *b_Earm_ECAL_box_hit_nhits;   //!
-   TBranch        *b_Earm_ECAL_box_hit_row;   //!
-   TBranch        *b_Earm_ECAL_box_hit_col;   //!
-   TBranch        *b_Earm_ECAL_box_hit_cell;   //!
-   TBranch        *b_Earm_ECAL_box_hit_plane;   //!
-   TBranch        *b_Earm_ECAL_box_hit_xcell;   //!
-   TBranch        *b_Earm_ECAL_box_hit_ycell;   //!
-   TBranch        *b_Earm_ECAL_box_hit_zcell;   //!
-   TBranch        *b_Earm_ECAL_box_hit_xcellg;   //!
-   TBranch        *b_Earm_ECAL_box_hit_ycellg;   //!
-   TBranch        *b_Earm_ECAL_box_hit_zcellg;   //!
-   TBranch        *b_Earm_ECAL_box_hit_xhit;   //!
-   TBranch        *b_Earm_ECAL_box_hit_yhit;   //!
-   TBranch        *b_Earm_ECAL_box_hit_zhit;   //!
-   TBranch        *b_Earm_ECAL_box_hit_sumedep;   //!
-   TBranch        *b_Earm_ECAL_box_hit_tavg;   //!
-   TBranch        *b_Earm_ECAL_box_hit_trms;   //!
-   TBranch        *b_Earm_ECAL_box_hit_tmin;   //!
-   TBranch        *b_Earm_ECAL_box_hit_tmax;   //!
+   TBranch        *b_Earm_ECalTF1_det_esum;   //!
    TBranch        *b_Earm_ECalTF1_hit_nhits;   //!
    TBranch        *b_Earm_ECalTF1_hit_row;   //!
    TBranch        *b_Earm_ECalTF1_hit_col;   //!
    TBranch        *b_Earm_ECalTF1_hit_cell;   //!
    TBranch        *b_Earm_ECalTF1_hit_plane;   //!
+   TBranch        *b_Earm_ECalTF1_hit_wire;   //!
    TBranch        *b_Earm_ECalTF1_hit_xcell;   //!
    TBranch        *b_Earm_ECalTF1_hit_ycell;   //!
    TBranch        *b_Earm_ECalTF1_hit_zcell;   //!
@@ -447,6 +431,9 @@ public :
    TBranch        *b_Earm_ECalTF1_hit_xhit;   //!
    TBranch        *b_Earm_ECalTF1_hit_yhit;   //!
    TBranch        *b_Earm_ECalTF1_hit_zhit;   //!
+   TBranch        *b_Earm_ECalTF1_hit_xhitg;   //!
+   TBranch        *b_Earm_ECalTF1_hit_yhitg;   //!
+   TBranch        *b_Earm_ECalTF1_hit_zhitg;   //!
    TBranch        *b_Earm_ECalTF1_hit_sumedep;   //!
    TBranch        *b_Earm_ECalTF1_hit_tavg;   //!
    TBranch        *b_Earm_ECalTF1_hit_trms;   //!
@@ -467,8 +454,17 @@ public :
    TBranch        *b_Harm_FPP1_hit_tmax;   //!
    TBranch        *b_Harm_FPP1_hit_tx;   //!
    TBranch        *b_Harm_FPP1_hit_ty;   //!
+   TBranch        *b_Harm_FPP1_hit_xin;   //!
+   TBranch        *b_Harm_FPP1_hit_yin;   //!
+   TBranch        *b_Harm_FPP1_hit_zin;   //!
+   TBranch        *b_Harm_FPP1_hit_xout;   //!
+   TBranch        *b_Harm_FPP1_hit_yout;   //!
+   TBranch        *b_Harm_FPP1_hit_zout;   //!
    TBranch        *b_Harm_FPP1_hit_txp;   //!
    TBranch        *b_Harm_FPP1_hit_typ;   //!
+   TBranch        *b_Harm_FPP1_hit_xg;   //!
+   TBranch        *b_Harm_FPP1_hit_yg;   //!
+   TBranch        *b_Harm_FPP1_hit_zg;   //!
    TBranch        *b_Harm_FPP1_hit_trid;   //!
    TBranch        *b_Harm_FPP1_hit_mid;   //!
    TBranch        *b_Harm_FPP1_hit_pid;   //!
@@ -515,8 +511,17 @@ public :
    TBranch        *b_Harm_FPP2_hit_tmax;   //!
    TBranch        *b_Harm_FPP2_hit_tx;   //!
    TBranch        *b_Harm_FPP2_hit_ty;   //!
+   TBranch        *b_Harm_FPP2_hit_xin;   //!
+   TBranch        *b_Harm_FPP2_hit_yin;   //!
+   TBranch        *b_Harm_FPP2_hit_zin;   //!
+   TBranch        *b_Harm_FPP2_hit_xout;   //!
+   TBranch        *b_Harm_FPP2_hit_yout;   //!
+   TBranch        *b_Harm_FPP2_hit_zout;   //!
    TBranch        *b_Harm_FPP2_hit_txp;   //!
    TBranch        *b_Harm_FPP2_hit_typ;   //!
+   TBranch        *b_Harm_FPP2_hit_xg;   //!
+   TBranch        *b_Harm_FPP2_hit_yg;   //!
+   TBranch        *b_Harm_FPP2_hit_zg;   //!
    TBranch        *b_Harm_FPP2_hit_trid;   //!
    TBranch        *b_Harm_FPP2_hit_mid;   //!
    TBranch        *b_Harm_FPP2_hit_pid;   //!
@@ -563,8 +568,17 @@ public :
    TBranch        *b_Harm_FT_hit_tmax;   //!
    TBranch        *b_Harm_FT_hit_tx;   //!
    TBranch        *b_Harm_FT_hit_ty;   //!
+   TBranch        *b_Harm_FT_hit_xin;   //!
+   TBranch        *b_Harm_FT_hit_yin;   //!
+   TBranch        *b_Harm_FT_hit_zin;   //!
+   TBranch        *b_Harm_FT_hit_xout;   //!
+   TBranch        *b_Harm_FT_hit_yout;   //!
+   TBranch        *b_Harm_FT_hit_zout;   //!
    TBranch        *b_Harm_FT_hit_txp;   //!
    TBranch        *b_Harm_FT_hit_typ;   //!
+   TBranch        *b_Harm_FT_hit_xg;   //!
+   TBranch        *b_Harm_FT_hit_yg;   //!
+   TBranch        *b_Harm_FT_hit_zg;   //!
    TBranch        *b_Harm_FT_hit_trid;   //!
    TBranch        *b_Harm_FT_hit_mid;   //!
    TBranch        *b_Harm_FT_hit_pid;   //!
@@ -596,25 +610,6 @@ public :
    TBranch        *b_Harm_FT_Track_Yfit;   //!
    TBranch        *b_Harm_FT_Track_Xpfit;   //!
    TBranch        *b_Harm_FT_Track_Ypfit;   //!
-   TBranch        *b_Harm_HCAL_box_hit_nhits;   //!
-   TBranch        *b_Harm_HCAL_box_hit_row;   //!
-   TBranch        *b_Harm_HCAL_box_hit_col;   //!
-   TBranch        *b_Harm_HCAL_box_hit_cell;   //!
-   TBranch        *b_Harm_HCAL_box_hit_plane;   //!
-   TBranch        *b_Harm_HCAL_box_hit_xcell;   //!
-   TBranch        *b_Harm_HCAL_box_hit_ycell;   //!
-   TBranch        *b_Harm_HCAL_box_hit_zcell;   //!
-   TBranch        *b_Harm_HCAL_box_hit_xcellg;   //!
-   TBranch        *b_Harm_HCAL_box_hit_ycellg;   //!
-   TBranch        *b_Harm_HCAL_box_hit_zcellg;   //!
-   TBranch        *b_Harm_HCAL_box_hit_xhit;   //!
-   TBranch        *b_Harm_HCAL_box_hit_yhit;   //!
-   TBranch        *b_Harm_HCAL_box_hit_zhit;   //!
-   TBranch        *b_Harm_HCAL_box_hit_sumedep;   //!
-   TBranch        *b_Harm_HCAL_box_hit_tavg;   //!
-   TBranch        *b_Harm_HCAL_box_hit_trms;   //!
-   TBranch        *b_Harm_HCAL_box_hit_tmin;   //!
-   TBranch        *b_Harm_HCAL_box_hit_tmax;   //!
    TBranch        *b_Harm_HCal_hit_nhits;   //!
    TBranch        *b_Harm_HCal_hit_PMT;   //!
    TBranch        *b_Harm_HCal_hit_row;   //!
@@ -631,11 +626,13 @@ public :
    TBranch        *b_Harm_HCal_hit_Time_rms;   //!
    TBranch        *b_Harm_HCal_hit_Time_min;   //!
    TBranch        *b_Harm_HCal_hit_Time_max;   //!
+   TBranch        *b_Harm_HCalScint_det_esum;   //!
    TBranch        *b_Harm_HCalScint_hit_nhits;   //!
    TBranch        *b_Harm_HCalScint_hit_row;   //!
    TBranch        *b_Harm_HCalScint_hit_col;   //!
    TBranch        *b_Harm_HCalScint_hit_cell;   //!
    TBranch        *b_Harm_HCalScint_hit_plane;   //!
+   TBranch        *b_Harm_HCalScint_hit_wire;   //!
    TBranch        *b_Harm_HCalScint_hit_xcell;   //!
    TBranch        *b_Harm_HCalScint_hit_ycell;   //!
    TBranch        *b_Harm_HCalScint_hit_zcell;   //!
@@ -645,6 +642,9 @@ public :
    TBranch        *b_Harm_HCalScint_hit_xhit;   //!
    TBranch        *b_Harm_HCalScint_hit_yhit;   //!
    TBranch        *b_Harm_HCalScint_hit_zhit;   //!
+   TBranch        *b_Harm_HCalScint_hit_xhitg;   //!
+   TBranch        *b_Harm_HCalScint_hit_yhitg;   //!
+   TBranch        *b_Harm_HCalScint_hit_zhitg;   //!
    TBranch        *b_Harm_HCalScint_hit_sumedep;   //!
    TBranch        *b_Harm_HCalScint_hit_tavg;   //!
    TBranch        *b_Harm_HCalScint_hit_trms;   //!
@@ -670,9 +670,9 @@ gep_tree_with_spin::gep_tree_with_spin(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("gep_spin_transport_Sx.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("gep_12GeV2_protongun_Px.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("gep_spin_transport_Sx.root");
+         f = new TFile("gep_12GeV2_protongun_Px.root");
       }
       f->GetObject("T",tree);
 
@@ -735,6 +735,7 @@ void gep_tree_with_spin::Init(TTree *tree)
    Earm_CDET_Scint_hit_col = 0;
    Earm_CDET_Scint_hit_cell = 0;
    Earm_CDET_Scint_hit_plane = 0;
+   Earm_CDET_Scint_hit_wire = 0;
    Earm_CDET_Scint_hit_xcell = 0;
    Earm_CDET_Scint_hit_ycell = 0;
    Earm_CDET_Scint_hit_zcell = 0;
@@ -744,6 +745,9 @@ void gep_tree_with_spin::Init(TTree *tree)
    Earm_CDET_Scint_hit_xhit = 0;
    Earm_CDET_Scint_hit_yhit = 0;
    Earm_CDET_Scint_hit_zhit = 0;
+   Earm_CDET_Scint_hit_xhitg = 0;
+   Earm_CDET_Scint_hit_yhitg = 0;
+   Earm_CDET_Scint_hit_zhitg = 0;
    Earm_CDET_Scint_hit_sumedep = 0;
    Earm_CDET_Scint_hit_tavg = 0;
    Earm_CDET_Scint_hit_trms = 0;
@@ -764,28 +768,11 @@ void gep_tree_with_spin::Init(TTree *tree)
    Earm_ECAL_hit_Time_rms = 0;
    Earm_ECAL_hit_Time_min = 0;
    Earm_ECAL_hit_Time_max = 0;
-   Earm_ECAL_box_hit_row = 0;
-   Earm_ECAL_box_hit_col = 0;
-   Earm_ECAL_box_hit_cell = 0;
-   Earm_ECAL_box_hit_plane = 0;
-   Earm_ECAL_box_hit_xcell = 0;
-   Earm_ECAL_box_hit_ycell = 0;
-   Earm_ECAL_box_hit_zcell = 0;
-   Earm_ECAL_box_hit_xcellg = 0;
-   Earm_ECAL_box_hit_ycellg = 0;
-   Earm_ECAL_box_hit_zcellg = 0;
-   Earm_ECAL_box_hit_xhit = 0;
-   Earm_ECAL_box_hit_yhit = 0;
-   Earm_ECAL_box_hit_zhit = 0;
-   Earm_ECAL_box_hit_sumedep = 0;
-   Earm_ECAL_box_hit_tavg = 0;
-   Earm_ECAL_box_hit_trms = 0;
-   Earm_ECAL_box_hit_tmin = 0;
-   Earm_ECAL_box_hit_tmax = 0;
    Earm_ECalTF1_hit_row = 0;
    Earm_ECalTF1_hit_col = 0;
    Earm_ECalTF1_hit_cell = 0;
    Earm_ECalTF1_hit_plane = 0;
+   Earm_ECalTF1_hit_wire = 0;
    Earm_ECalTF1_hit_xcell = 0;
    Earm_ECalTF1_hit_ycell = 0;
    Earm_ECalTF1_hit_zcell = 0;
@@ -795,6 +782,9 @@ void gep_tree_with_spin::Init(TTree *tree)
    Earm_ECalTF1_hit_xhit = 0;
    Earm_ECalTF1_hit_yhit = 0;
    Earm_ECalTF1_hit_zhit = 0;
+   Earm_ECalTF1_hit_xhitg = 0;
+   Earm_ECalTF1_hit_yhitg = 0;
+   Earm_ECalTF1_hit_zhitg = 0;
    Earm_ECalTF1_hit_sumedep = 0;
    Earm_ECalTF1_hit_tavg = 0;
    Earm_ECalTF1_hit_trms = 0;
@@ -814,8 +804,17 @@ void gep_tree_with_spin::Init(TTree *tree)
    Harm_FPP1_hit_tmax = 0;
    Harm_FPP1_hit_tx = 0;
    Harm_FPP1_hit_ty = 0;
+   Harm_FPP1_hit_xin = 0;
+   Harm_FPP1_hit_yin = 0;
+   Harm_FPP1_hit_zin = 0;
+   Harm_FPP1_hit_xout = 0;
+   Harm_FPP1_hit_yout = 0;
+   Harm_FPP1_hit_zout = 0;
    Harm_FPP1_hit_txp = 0;
    Harm_FPP1_hit_typ = 0;
+   Harm_FPP1_hit_xg = 0;
+   Harm_FPP1_hit_yg = 0;
+   Harm_FPP1_hit_zg = 0;
    Harm_FPP1_hit_trid = 0;
    Harm_FPP1_hit_mid = 0;
    Harm_FPP1_hit_pid = 0;
@@ -860,8 +859,17 @@ void gep_tree_with_spin::Init(TTree *tree)
    Harm_FPP2_hit_tmax = 0;
    Harm_FPP2_hit_tx = 0;
    Harm_FPP2_hit_ty = 0;
+   Harm_FPP2_hit_xin = 0;
+   Harm_FPP2_hit_yin = 0;
+   Harm_FPP2_hit_zin = 0;
+   Harm_FPP2_hit_xout = 0;
+   Harm_FPP2_hit_yout = 0;
+   Harm_FPP2_hit_zout = 0;
    Harm_FPP2_hit_txp = 0;
    Harm_FPP2_hit_typ = 0;
+   Harm_FPP2_hit_xg = 0;
+   Harm_FPP2_hit_yg = 0;
+   Harm_FPP2_hit_zg = 0;
    Harm_FPP2_hit_trid = 0;
    Harm_FPP2_hit_mid = 0;
    Harm_FPP2_hit_pid = 0;
@@ -906,8 +914,17 @@ void gep_tree_with_spin::Init(TTree *tree)
    Harm_FT_hit_tmax = 0;
    Harm_FT_hit_tx = 0;
    Harm_FT_hit_ty = 0;
+   Harm_FT_hit_xin = 0;
+   Harm_FT_hit_yin = 0;
+   Harm_FT_hit_zin = 0;
+   Harm_FT_hit_xout = 0;
+   Harm_FT_hit_yout = 0;
+   Harm_FT_hit_zout = 0;
    Harm_FT_hit_txp = 0;
    Harm_FT_hit_typ = 0;
+   Harm_FT_hit_xg = 0;
+   Harm_FT_hit_yg = 0;
+   Harm_FT_hit_zg = 0;
    Harm_FT_hit_trid = 0;
    Harm_FT_hit_mid = 0;
    Harm_FT_hit_pid = 0;
@@ -938,24 +955,6 @@ void gep_tree_with_spin::Init(TTree *tree)
    Harm_FT_Track_Yfit = 0;
    Harm_FT_Track_Xpfit = 0;
    Harm_FT_Track_Ypfit = 0;
-   Harm_HCAL_box_hit_row = 0;
-   Harm_HCAL_box_hit_col = 0;
-   Harm_HCAL_box_hit_cell = 0;
-   Harm_HCAL_box_hit_plane = 0;
-   Harm_HCAL_box_hit_xcell = 0;
-   Harm_HCAL_box_hit_ycell = 0;
-   Harm_HCAL_box_hit_zcell = 0;
-   Harm_HCAL_box_hit_xcellg = 0;
-   Harm_HCAL_box_hit_ycellg = 0;
-   Harm_HCAL_box_hit_zcellg = 0;
-   Harm_HCAL_box_hit_xhit = 0;
-   Harm_HCAL_box_hit_yhit = 0;
-   Harm_HCAL_box_hit_zhit = 0;
-   Harm_HCAL_box_hit_sumedep = 0;
-   Harm_HCAL_box_hit_tavg = 0;
-   Harm_HCAL_box_hit_trms = 0;
-   Harm_HCAL_box_hit_tmin = 0;
-   Harm_HCAL_box_hit_tmax = 0;
    Harm_HCal_hit_PMT = 0;
    Harm_HCal_hit_row = 0;
    Harm_HCal_hit_col = 0;
@@ -975,6 +974,7 @@ void gep_tree_with_spin::Init(TTree *tree)
    Harm_HCalScint_hit_col = 0;
    Harm_HCalScint_hit_cell = 0;
    Harm_HCalScint_hit_plane = 0;
+   Harm_HCalScint_hit_wire = 0;
    Harm_HCalScint_hit_xcell = 0;
    Harm_HCalScint_hit_ycell = 0;
    Harm_HCalScint_hit_zcell = 0;
@@ -984,6 +984,9 @@ void gep_tree_with_spin::Init(TTree *tree)
    Harm_HCalScint_hit_xhit = 0;
    Harm_HCalScint_hit_yhit = 0;
    Harm_HCalScint_hit_zhit = 0;
+   Harm_HCalScint_hit_xhitg = 0;
+   Harm_HCalScint_hit_yhitg = 0;
+   Harm_HCalScint_hit_zhitg = 0;
    Harm_HCalScint_hit_sumedep = 0;
    Harm_HCalScint_hit_tavg = 0;
    Harm_HCalScint_hit_trms = 0;
@@ -996,7 +999,6 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetMakeClass(1);
 
    fChain->SetBranchAddress("ev", &ev_count, &b_ev);
-   fChain->SetBranchAddress("gen", &gen_thbb, &b_gen);
    fChain->SetBranchAddress("Earm.CDET.hit.nhits", &Earm_CDET_hit_nhits, &b_Earm_CDET_hit_nhits);
    fChain->SetBranchAddress("Earm.CDET.hit.PMT", &Earm_CDET_hit_PMT, &b_Earm_CDET_hit_PMT);
    fChain->SetBranchAddress("Earm.CDET.hit.row", &Earm_CDET_hit_row, &b_Earm_CDET_hit_row);
@@ -1013,11 +1015,13 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.CDET.hit.Time_rms", &Earm_CDET_hit_Time_rms, &b_Earm_CDET_hit_Time_rms);
    fChain->SetBranchAddress("Earm.CDET.hit.Time_min", &Earm_CDET_hit_Time_min, &b_Earm_CDET_hit_Time_min);
    fChain->SetBranchAddress("Earm.CDET.hit.Time_max", &Earm_CDET_hit_Time_max, &b_Earm_CDET_hit_Time_max);
+   fChain->SetBranchAddress("Earm.CDET_Scint.det.esum", &Earm_CDET_Scint_det_esum, &b_Earm_CDET_Scint_det_esum);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.nhits", &Earm_CDET_Scint_hit_nhits, &b_Earm_CDET_Scint_hit_nhits);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.row", &Earm_CDET_Scint_hit_row, &b_Earm_CDET_Scint_hit_row);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.col", &Earm_CDET_Scint_hit_col, &b_Earm_CDET_Scint_hit_col);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.cell", &Earm_CDET_Scint_hit_cell, &b_Earm_CDET_Scint_hit_cell);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.plane", &Earm_CDET_Scint_hit_plane, &b_Earm_CDET_Scint_hit_plane);
+   fChain->SetBranchAddress("Earm.CDET_Scint.hit.wire", &Earm_CDET_Scint_hit_wire, &b_Earm_CDET_Scint_hit_wire);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.xcell", &Earm_CDET_Scint_hit_xcell, &b_Earm_CDET_Scint_hit_xcell);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.ycell", &Earm_CDET_Scint_hit_ycell, &b_Earm_CDET_Scint_hit_ycell);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.zcell", &Earm_CDET_Scint_hit_zcell, &b_Earm_CDET_Scint_hit_zcell);
@@ -1027,6 +1031,9 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.xhit", &Earm_CDET_Scint_hit_xhit, &b_Earm_CDET_Scint_hit_xhit);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.yhit", &Earm_CDET_Scint_hit_yhit, &b_Earm_CDET_Scint_hit_yhit);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.zhit", &Earm_CDET_Scint_hit_zhit, &b_Earm_CDET_Scint_hit_zhit);
+   fChain->SetBranchAddress("Earm.CDET_Scint.hit.xhitg", &Earm_CDET_Scint_hit_xhitg, &b_Earm_CDET_Scint_hit_xhitg);
+   fChain->SetBranchAddress("Earm.CDET_Scint.hit.yhitg", &Earm_CDET_Scint_hit_yhitg, &b_Earm_CDET_Scint_hit_yhitg);
+   fChain->SetBranchAddress("Earm.CDET_Scint.hit.zhitg", &Earm_CDET_Scint_hit_zhitg, &b_Earm_CDET_Scint_hit_zhitg);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.sumedep", &Earm_CDET_Scint_hit_sumedep, &b_Earm_CDET_Scint_hit_sumedep);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.tavg", &Earm_CDET_Scint_hit_tavg, &b_Earm_CDET_Scint_hit_tavg);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.trms", &Earm_CDET_Scint_hit_trms, &b_Earm_CDET_Scint_hit_trms);
@@ -1048,30 +1055,13 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.ECAL.hit.Time_rms", &Earm_ECAL_hit_Time_rms, &b_Earm_ECAL_hit_Time_rms);
    fChain->SetBranchAddress("Earm.ECAL.hit.Time_min", &Earm_ECAL_hit_Time_min, &b_Earm_ECAL_hit_Time_min);
    fChain->SetBranchAddress("Earm.ECAL.hit.Time_max", &Earm_ECAL_hit_Time_max, &b_Earm_ECAL_hit_Time_max);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.nhits", &Earm_ECAL_box_hit_nhits, &b_Earm_ECAL_box_hit_nhits);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.row", &Earm_ECAL_box_hit_row, &b_Earm_ECAL_box_hit_row);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.col", &Earm_ECAL_box_hit_col, &b_Earm_ECAL_box_hit_col);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.cell", &Earm_ECAL_box_hit_cell, &b_Earm_ECAL_box_hit_cell);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.plane", &Earm_ECAL_box_hit_plane, &b_Earm_ECAL_box_hit_plane);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.xcell", &Earm_ECAL_box_hit_xcell, &b_Earm_ECAL_box_hit_xcell);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.ycell", &Earm_ECAL_box_hit_ycell, &b_Earm_ECAL_box_hit_ycell);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.zcell", &Earm_ECAL_box_hit_zcell, &b_Earm_ECAL_box_hit_zcell);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.xcellg", &Earm_ECAL_box_hit_xcellg, &b_Earm_ECAL_box_hit_xcellg);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.ycellg", &Earm_ECAL_box_hit_ycellg, &b_Earm_ECAL_box_hit_ycellg);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.zcellg", &Earm_ECAL_box_hit_zcellg, &b_Earm_ECAL_box_hit_zcellg);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.xhit", &Earm_ECAL_box_hit_xhit, &b_Earm_ECAL_box_hit_xhit);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.yhit", &Earm_ECAL_box_hit_yhit, &b_Earm_ECAL_box_hit_yhit);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.zhit", &Earm_ECAL_box_hit_zhit, &b_Earm_ECAL_box_hit_zhit);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.sumedep", &Earm_ECAL_box_hit_sumedep, &b_Earm_ECAL_box_hit_sumedep);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.tavg", &Earm_ECAL_box_hit_tavg, &b_Earm_ECAL_box_hit_tavg);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.trms", &Earm_ECAL_box_hit_trms, &b_Earm_ECAL_box_hit_trms);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.tmin", &Earm_ECAL_box_hit_tmin, &b_Earm_ECAL_box_hit_tmin);
-   fChain->SetBranchAddress("Earm.ECAL_box.hit.tmax", &Earm_ECAL_box_hit_tmax, &b_Earm_ECAL_box_hit_tmax);
+   fChain->SetBranchAddress("Earm.ECalTF1.det.esum", &Earm_ECalTF1_det_esum, &b_Earm_ECalTF1_det_esum);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.nhits", &Earm_ECalTF1_hit_nhits, &b_Earm_ECalTF1_hit_nhits);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.row", &Earm_ECalTF1_hit_row, &b_Earm_ECalTF1_hit_row);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.col", &Earm_ECalTF1_hit_col, &b_Earm_ECalTF1_hit_col);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.cell", &Earm_ECalTF1_hit_cell, &b_Earm_ECalTF1_hit_cell);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.plane", &Earm_ECalTF1_hit_plane, &b_Earm_ECalTF1_hit_plane);
+   fChain->SetBranchAddress("Earm.ECalTF1.hit.wire", &Earm_ECalTF1_hit_wire, &b_Earm_ECalTF1_hit_wire);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.xcell", &Earm_ECalTF1_hit_xcell, &b_Earm_ECalTF1_hit_xcell);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.ycell", &Earm_ECalTF1_hit_ycell, &b_Earm_ECalTF1_hit_ycell);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.zcell", &Earm_ECalTF1_hit_zcell, &b_Earm_ECalTF1_hit_zcell);
@@ -1081,6 +1071,9 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.ECalTF1.hit.xhit", &Earm_ECalTF1_hit_xhit, &b_Earm_ECalTF1_hit_xhit);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.yhit", &Earm_ECalTF1_hit_yhit, &b_Earm_ECalTF1_hit_yhit);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.zhit", &Earm_ECalTF1_hit_zhit, &b_Earm_ECalTF1_hit_zhit);
+   fChain->SetBranchAddress("Earm.ECalTF1.hit.xhitg", &Earm_ECalTF1_hit_xhitg, &b_Earm_ECalTF1_hit_xhitg);
+   fChain->SetBranchAddress("Earm.ECalTF1.hit.yhitg", &Earm_ECalTF1_hit_yhitg, &b_Earm_ECalTF1_hit_yhitg);
+   fChain->SetBranchAddress("Earm.ECalTF1.hit.zhitg", &Earm_ECalTF1_hit_zhitg, &b_Earm_ECalTF1_hit_zhitg);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.sumedep", &Earm_ECalTF1_hit_sumedep, &b_Earm_ECalTF1_hit_sumedep);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.tavg", &Earm_ECalTF1_hit_tavg, &b_Earm_ECalTF1_hit_tavg);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.trms", &Earm_ECalTF1_hit_trms, &b_Earm_ECalTF1_hit_trms);
@@ -1101,8 +1094,17 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.FPP1.hit.tmax", &Harm_FPP1_hit_tmax, &b_Harm_FPP1_hit_tmax);
    fChain->SetBranchAddress("Harm.FPP1.hit.tx", &Harm_FPP1_hit_tx, &b_Harm_FPP1_hit_tx);
    fChain->SetBranchAddress("Harm.FPP1.hit.ty", &Harm_FPP1_hit_ty, &b_Harm_FPP1_hit_ty);
+   fChain->SetBranchAddress("Harm.FPP1.hit.xin", &Harm_FPP1_hit_xin, &b_Harm_FPP1_hit_xin);
+   fChain->SetBranchAddress("Harm.FPP1.hit.yin", &Harm_FPP1_hit_yin, &b_Harm_FPP1_hit_yin);
+   fChain->SetBranchAddress("Harm.FPP1.hit.zin", &Harm_FPP1_hit_zin, &b_Harm_FPP1_hit_zin);
+   fChain->SetBranchAddress("Harm.FPP1.hit.xout", &Harm_FPP1_hit_xout, &b_Harm_FPP1_hit_xout);
+   fChain->SetBranchAddress("Harm.FPP1.hit.yout", &Harm_FPP1_hit_yout, &b_Harm_FPP1_hit_yout);
+   fChain->SetBranchAddress("Harm.FPP1.hit.zout", &Harm_FPP1_hit_zout, &b_Harm_FPP1_hit_zout);
    fChain->SetBranchAddress("Harm.FPP1.hit.txp", &Harm_FPP1_hit_txp, &b_Harm_FPP1_hit_txp);
    fChain->SetBranchAddress("Harm.FPP1.hit.typ", &Harm_FPP1_hit_typ, &b_Harm_FPP1_hit_typ);
+   fChain->SetBranchAddress("Harm.FPP1.hit.xg", &Harm_FPP1_hit_xg, &b_Harm_FPP1_hit_xg);
+   fChain->SetBranchAddress("Harm.FPP1.hit.yg", &Harm_FPP1_hit_yg, &b_Harm_FPP1_hit_yg);
+   fChain->SetBranchAddress("Harm.FPP1.hit.zg", &Harm_FPP1_hit_zg, &b_Harm_FPP1_hit_zg);
    fChain->SetBranchAddress("Harm.FPP1.hit.trid", &Harm_FPP1_hit_trid, &b_Harm_FPP1_hit_trid);
    fChain->SetBranchAddress("Harm.FPP1.hit.mid", &Harm_FPP1_hit_mid, &b_Harm_FPP1_hit_mid);
    fChain->SetBranchAddress("Harm.FPP1.hit.pid", &Harm_FPP1_hit_pid, &b_Harm_FPP1_hit_pid);
@@ -1149,8 +1151,17 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.FPP2.hit.tmax", &Harm_FPP2_hit_tmax, &b_Harm_FPP2_hit_tmax);
    fChain->SetBranchAddress("Harm.FPP2.hit.tx", &Harm_FPP2_hit_tx, &b_Harm_FPP2_hit_tx);
    fChain->SetBranchAddress("Harm.FPP2.hit.ty", &Harm_FPP2_hit_ty, &b_Harm_FPP2_hit_ty);
+   fChain->SetBranchAddress("Harm.FPP2.hit.xin", &Harm_FPP2_hit_xin, &b_Harm_FPP2_hit_xin);
+   fChain->SetBranchAddress("Harm.FPP2.hit.yin", &Harm_FPP2_hit_yin, &b_Harm_FPP2_hit_yin);
+   fChain->SetBranchAddress("Harm.FPP2.hit.zin", &Harm_FPP2_hit_zin, &b_Harm_FPP2_hit_zin);
+   fChain->SetBranchAddress("Harm.FPP2.hit.xout", &Harm_FPP2_hit_xout, &b_Harm_FPP2_hit_xout);
+   fChain->SetBranchAddress("Harm.FPP2.hit.yout", &Harm_FPP2_hit_yout, &b_Harm_FPP2_hit_yout);
+   fChain->SetBranchAddress("Harm.FPP2.hit.zout", &Harm_FPP2_hit_zout, &b_Harm_FPP2_hit_zout);
    fChain->SetBranchAddress("Harm.FPP2.hit.txp", &Harm_FPP2_hit_txp, &b_Harm_FPP2_hit_txp);
    fChain->SetBranchAddress("Harm.FPP2.hit.typ", &Harm_FPP2_hit_typ, &b_Harm_FPP2_hit_typ);
+   fChain->SetBranchAddress("Harm.FPP2.hit.xg", &Harm_FPP2_hit_xg, &b_Harm_FPP2_hit_xg);
+   fChain->SetBranchAddress("Harm.FPP2.hit.yg", &Harm_FPP2_hit_yg, &b_Harm_FPP2_hit_yg);
+   fChain->SetBranchAddress("Harm.FPP2.hit.zg", &Harm_FPP2_hit_zg, &b_Harm_FPP2_hit_zg);
    fChain->SetBranchAddress("Harm.FPP2.hit.trid", &Harm_FPP2_hit_trid, &b_Harm_FPP2_hit_trid);
    fChain->SetBranchAddress("Harm.FPP2.hit.mid", &Harm_FPP2_hit_mid, &b_Harm_FPP2_hit_mid);
    fChain->SetBranchAddress("Harm.FPP2.hit.pid", &Harm_FPP2_hit_pid, &b_Harm_FPP2_hit_pid);
@@ -1197,8 +1208,17 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.FT.hit.tmax", &Harm_FT_hit_tmax, &b_Harm_FT_hit_tmax);
    fChain->SetBranchAddress("Harm.FT.hit.tx", &Harm_FT_hit_tx, &b_Harm_FT_hit_tx);
    fChain->SetBranchAddress("Harm.FT.hit.ty", &Harm_FT_hit_ty, &b_Harm_FT_hit_ty);
+   fChain->SetBranchAddress("Harm.FT.hit.xin", &Harm_FT_hit_xin, &b_Harm_FT_hit_xin);
+   fChain->SetBranchAddress("Harm.FT.hit.yin", &Harm_FT_hit_yin, &b_Harm_FT_hit_yin);
+   fChain->SetBranchAddress("Harm.FT.hit.zin", &Harm_FT_hit_zin, &b_Harm_FT_hit_zin);
+   fChain->SetBranchAddress("Harm.FT.hit.xout", &Harm_FT_hit_xout, &b_Harm_FT_hit_xout);
+   fChain->SetBranchAddress("Harm.FT.hit.yout", &Harm_FT_hit_yout, &b_Harm_FT_hit_yout);
+   fChain->SetBranchAddress("Harm.FT.hit.zout", &Harm_FT_hit_zout, &b_Harm_FT_hit_zout);
    fChain->SetBranchAddress("Harm.FT.hit.txp", &Harm_FT_hit_txp, &b_Harm_FT_hit_txp);
    fChain->SetBranchAddress("Harm.FT.hit.typ", &Harm_FT_hit_typ, &b_Harm_FT_hit_typ);
+   fChain->SetBranchAddress("Harm.FT.hit.xg", &Harm_FT_hit_xg, &b_Harm_FT_hit_xg);
+   fChain->SetBranchAddress("Harm.FT.hit.yg", &Harm_FT_hit_yg, &b_Harm_FT_hit_yg);
+   fChain->SetBranchAddress("Harm.FT.hit.zg", &Harm_FT_hit_zg, &b_Harm_FT_hit_zg);
    fChain->SetBranchAddress("Harm.FT.hit.trid", &Harm_FT_hit_trid, &b_Harm_FT_hit_trid);
    fChain->SetBranchAddress("Harm.FT.hit.mid", &Harm_FT_hit_mid, &b_Harm_FT_hit_mid);
    fChain->SetBranchAddress("Harm.FT.hit.pid", &Harm_FT_hit_pid, &b_Harm_FT_hit_pid);
@@ -1230,25 +1250,6 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.FT.Track.Yfit", &Harm_FT_Track_Yfit, &b_Harm_FT_Track_Yfit);
    fChain->SetBranchAddress("Harm.FT.Track.Xpfit", &Harm_FT_Track_Xpfit, &b_Harm_FT_Track_Xpfit);
    fChain->SetBranchAddress("Harm.FT.Track.Ypfit", &Harm_FT_Track_Ypfit, &b_Harm_FT_Track_Ypfit);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.nhits", &Harm_HCAL_box_hit_nhits, &b_Harm_HCAL_box_hit_nhits);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.row", &Harm_HCAL_box_hit_row, &b_Harm_HCAL_box_hit_row);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.col", &Harm_HCAL_box_hit_col, &b_Harm_HCAL_box_hit_col);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.cell", &Harm_HCAL_box_hit_cell, &b_Harm_HCAL_box_hit_cell);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.plane", &Harm_HCAL_box_hit_plane, &b_Harm_HCAL_box_hit_plane);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.xcell", &Harm_HCAL_box_hit_xcell, &b_Harm_HCAL_box_hit_xcell);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.ycell", &Harm_HCAL_box_hit_ycell, &b_Harm_HCAL_box_hit_ycell);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.zcell", &Harm_HCAL_box_hit_zcell, &b_Harm_HCAL_box_hit_zcell);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.xcellg", &Harm_HCAL_box_hit_xcellg, &b_Harm_HCAL_box_hit_xcellg);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.ycellg", &Harm_HCAL_box_hit_ycellg, &b_Harm_HCAL_box_hit_ycellg);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.zcellg", &Harm_HCAL_box_hit_zcellg, &b_Harm_HCAL_box_hit_zcellg);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.xhit", &Harm_HCAL_box_hit_xhit, &b_Harm_HCAL_box_hit_xhit);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.yhit", &Harm_HCAL_box_hit_yhit, &b_Harm_HCAL_box_hit_yhit);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.zhit", &Harm_HCAL_box_hit_zhit, &b_Harm_HCAL_box_hit_zhit);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.sumedep", &Harm_HCAL_box_hit_sumedep, &b_Harm_HCAL_box_hit_sumedep);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.tavg", &Harm_HCAL_box_hit_tavg, &b_Harm_HCAL_box_hit_tavg);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.trms", &Harm_HCAL_box_hit_trms, &b_Harm_HCAL_box_hit_trms);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.tmin", &Harm_HCAL_box_hit_tmin, &b_Harm_HCAL_box_hit_tmin);
-   fChain->SetBranchAddress("Harm.HCAL_box.hit.tmax", &Harm_HCAL_box_hit_tmax, &b_Harm_HCAL_box_hit_tmax);
    fChain->SetBranchAddress("Harm.HCal.hit.nhits", &Harm_HCal_hit_nhits, &b_Harm_HCal_hit_nhits);
    fChain->SetBranchAddress("Harm.HCal.hit.PMT", &Harm_HCal_hit_PMT, &b_Harm_HCal_hit_PMT);
    fChain->SetBranchAddress("Harm.HCal.hit.row", &Harm_HCal_hit_row, &b_Harm_HCal_hit_row);
@@ -1265,11 +1266,13 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.HCal.hit.Time_rms", &Harm_HCal_hit_Time_rms, &b_Harm_HCal_hit_Time_rms);
    fChain->SetBranchAddress("Harm.HCal.hit.Time_min", &Harm_HCal_hit_Time_min, &b_Harm_HCal_hit_Time_min);
    fChain->SetBranchAddress("Harm.HCal.hit.Time_max", &Harm_HCal_hit_Time_max, &b_Harm_HCal_hit_Time_max);
+   fChain->SetBranchAddress("Harm.HCalScint.det.esum", &Harm_HCalScint_det_esum, &b_Harm_HCalScint_det_esum);
    fChain->SetBranchAddress("Harm.HCalScint.hit.nhits", &Harm_HCalScint_hit_nhits, &b_Harm_HCalScint_hit_nhits);
    fChain->SetBranchAddress("Harm.HCalScint.hit.row", &Harm_HCalScint_hit_row, &b_Harm_HCalScint_hit_row);
    fChain->SetBranchAddress("Harm.HCalScint.hit.col", &Harm_HCalScint_hit_col, &b_Harm_HCalScint_hit_col);
    fChain->SetBranchAddress("Harm.HCalScint.hit.cell", &Harm_HCalScint_hit_cell, &b_Harm_HCalScint_hit_cell);
    fChain->SetBranchAddress("Harm.HCalScint.hit.plane", &Harm_HCalScint_hit_plane, &b_Harm_HCalScint_hit_plane);
+   fChain->SetBranchAddress("Harm.HCalScint.hit.wire", &Harm_HCalScint_hit_wire, &b_Harm_HCalScint_hit_wire);
    fChain->SetBranchAddress("Harm.HCalScint.hit.xcell", &Harm_HCalScint_hit_xcell, &b_Harm_HCalScint_hit_xcell);
    fChain->SetBranchAddress("Harm.HCalScint.hit.ycell", &Harm_HCalScint_hit_ycell, &b_Harm_HCalScint_hit_ycell);
    fChain->SetBranchAddress("Harm.HCalScint.hit.zcell", &Harm_HCalScint_hit_zcell, &b_Harm_HCalScint_hit_zcell);
@@ -1279,6 +1282,9 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.HCalScint.hit.xhit", &Harm_HCalScint_hit_xhit, &b_Harm_HCalScint_hit_xhit);
    fChain->SetBranchAddress("Harm.HCalScint.hit.yhit", &Harm_HCalScint_hit_yhit, &b_Harm_HCalScint_hit_yhit);
    fChain->SetBranchAddress("Harm.HCalScint.hit.zhit", &Harm_HCalScint_hit_zhit, &b_Harm_HCalScint_hit_zhit);
+   fChain->SetBranchAddress("Harm.HCalScint.hit.xhitg", &Harm_HCalScint_hit_xhitg, &b_Harm_HCalScint_hit_xhitg);
+   fChain->SetBranchAddress("Harm.HCalScint.hit.yhitg", &Harm_HCalScint_hit_yhitg, &b_Harm_HCalScint_hit_yhitg);
+   fChain->SetBranchAddress("Harm.HCalScint.hit.zhitg", &Harm_HCalScint_hit_zhitg, &b_Harm_HCalScint_hit_zhitg);
    fChain->SetBranchAddress("Harm.HCalScint.hit.sumedep", &Harm_HCalScint_hit_sumedep, &b_Harm_HCalScint_hit_sumedep);
    fChain->SetBranchAddress("Harm.HCalScint.hit.tavg", &Harm_HCalScint_hit_tavg, &b_Harm_HCalScint_hit_tavg);
    fChain->SetBranchAddress("Harm.HCalScint.hit.trms", &Harm_HCalScint_hit_trms, &b_Harm_HCalScint_hit_trms);

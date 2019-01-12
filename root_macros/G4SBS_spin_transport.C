@@ -13,6 +13,9 @@
 #include "TRotation.h"
 #include "TString.h"
 #include "TMath.h"
+#include "TCut.h"
+#include "TEventList.h"
+#include "G4SBSRunData.hh"
 
 const double Mp = 0.938272046; //GeV/c^2
 const double mu_p = 2.792847356; //mu_N
@@ -20,14 +23,16 @@ const double kappa_p = mu_p - 1.0; //anomalous magnetic moment
 const double PI = TMath::Pi();
 const double SBS_thetabend = 5.0*PI/180.0; //central bend angle
 
+//The purpose of this macro is to create a reduced ROOT tree with a flat "ntuple" structure that contains only the information about an event required for the fitting of forward and backward optical reconstruction coefficients and spin transport matrices for SBS in the "GEP" configuration, using the g4sbs ROOT trees:
 void G4SBS_spin_transport( const char *inputfilename, const char *outputfilename ){
   ifstream infile(inputfilename);
   
   TFile *fout = new TFile(outputfilename,"RECREATE");
-  TTree *Tout = new TTree("Tout","SBS spin transport");
+  TTree *Tout = new TTree("Tout","SBS optics and spin transport for GEP");
 
   double beta, gamma; //relativistic factors for the proton.
   double xfp, yfp, xpfp, ypfp, t; //include time-of-flight!
+  double xfprecon,yfprecon,xpfprecon,ypfprecon; //includes detector resolution!
   double xtar, ytar, xptar, yptar, p;
   double chi, chiphi; //usual dipole precession angles
   //Euler angles for the trajectory bend:
@@ -46,6 +51,10 @@ void G4SBS_spin_transport( const char *inputfilename, const char *outputfilename
   Tout->Branch("yfp",&yfp);
   Tout->Branch("xpfp",&xpfp);
   Tout->Branch("ypfp",&ypfp);
+  Tout->Branch("xfprecon",&xfprecon);
+  Tout->Branch("yfprecon",&yfprecon);
+  Tout->Branch("xpfprecon",&xpfprecon);
+  Tout->Branch("ypfprecon",&ypfprecon);
   Tout->Branch("t",&t);
   Tout->Branch("xtar",&xtar);
   Tout->Branch("ytar",&ytar);
@@ -57,9 +66,9 @@ void G4SBS_spin_transport( const char *inputfilename, const char *outputfilename
   Tout->Branch("phitrack",&phitrack);
   Tout->Branch("thetatrack",&thetatrack);
   Tout->Branch("psitrack",&psitrack);
-  // Tout->Branch("phispin",&phispin);
-  // Tout->Branch("thetaspin",&thetaspin);
-  // Tout->Branch("psispin",&psispin);
+  //Tout->Branch("phispin",&phispin);
+  //Tout->Branch("thetaspin",&thetaspin);
+  //Tout->Branch("psispin",&psispin);
   Tout->Branch("Pxtg",&Pxtg);
   Tout->Branch("Pytg",&Pytg);
   Tout->Branch("Pztg",&Pztg);
@@ -92,26 +101,96 @@ void G4SBS_spin_transport( const char *inputfilename, const char *outputfilename
 
   
   TChain *C = new TChain("T");
+
+  map<TString,double> SBSang_file;
+
+  double SBStheta_default = 16.9*PI/180.0;
   
+  TFile *ftemp;
+  G4SBSRunData *rd;
+
+  cout << "Reading list of files..." << endl;
   TString currentline;
   while( currentline.ReadLine(infile) && !currentline.BeginsWith("endlist") ){
-    if( !currentline.BeginsWith("#") ) C->Add(currentline.Data());
+    if( !currentline.BeginsWith("#") ){
+
+      cout << currentline << endl;
+      
+      ftemp = new TFile(currentline.Data(), "READ");
+
+      ftemp->ls();
+      
+      if( !(ftemp->IsZombie() )){
+	
+	ftemp->GetObject("run_data",rd);
+	if( rd ){
+	  cout << "Got run_data from file " << currentline
+	       << '\n';
+	  SBSang_file[currentline] = rd->fSBStheta;
+	  C->Add(currentline.Data());
+	  SBStheta_default = rd->fSBStheta;
+	}
+      }
+      ftemp->Close();
+      delete ftemp;
+    }
+  }
+  
+  cout << "finished reading list of files" 
+       << endl;
+  
+  if( C->GetNtrees() <= 0 ){
+    cout << "Did not load any files, quitting..." << endl;
+    return;
   }
 
+  TCut global_cut = "";
+  while( currentline.ReadLine(infile) && !currentline.BeginsWith("endcut") ){
+    if( !currentline.BeginsWith("#") ){
+      global_cut += currentline.Data();
+    }
+  }
+
+  TEventList *elist = new TEventList("elist");
+  C->Draw(">>elist",global_cut);
+  
   gep_tree_with_spin *T = new gep_tree_with_spin(C);
 
   long nevent=0;
+
+  double SBStheta = SBStheta_default;
+  int treenum = 0;
+  int oldtreenum = -1;
   
-  while( T->GetEntry(nevent++) ){
+  while( T->GetEntry(elist->GetEntry(nevent++) ) ){
     if( nevent%10000 == 0 ) cout << nevent << endl;
 
+    //Check for file changeover and grab SBS angle 
+   
+    treenum = C->GetTreeNumber();
+    if( treenum != oldtreenum ){
+      oldtreenum = treenum;
+    
+      TString fname = C->GetFile()->GetName();
+
+      if( SBSang_file.find(fname) != SBSang_file.end() ){
+	SBStheta = SBSang_file[fname];
+      }
+    }
+    
+
     if( T->Harm_FT_Track_ntracks == 1 &&
-	(*(T->Harm_FT_Track_MID))[0] == 0 &&
-	(*(T->Harm_FT_Track_P))[0]/T->ev_ep >= 0.997 ){ //good track in SBS:
+	(*(T->Harm_FT_Track_MID))[0] == 0 ){ //good track in SBS is required regardless of globalcut
       xfp = (*(T->Harm_FT_Track_X))[0];
       yfp = (*(T->Harm_FT_Track_Y))[0];
       xpfp = (*(T->Harm_FT_Track_Xp))[0];
       ypfp = (*(T->Harm_FT_Track_Yp))[0];
+
+      xfprecon = (*(T->Harm_FT_Track_Xfit))[0];
+      xpfprecon = (*(T->Harm_FT_Track_Xpfit))[0];
+      yfprecon = (*(T->Harm_FT_Track_Yfit))[0];
+      ypfprecon = (*(T->Harm_FT_Track_Ypfit))[0];
+      
       t = (*(T->Harm_FT_Track_T))[0];
       //p = T->ev_ep; //use "track" momentum (because most of the eloss will occur on the way out of the target?
       p = (*(T->Harm_FT_Track_P))[0];
@@ -123,7 +202,7 @@ void G4SBS_spin_transport( const char *inputfilename, const char *outputfilename
       double py = T->ev_epy;
       double pz = T->ev_epz;
 
-      double SBStheta = T->gen_thsbs; //on beam right!
+      //double SBStheta = T->gen_thsbs; //on beam right!
 
       TVector3 phall(px,py,pz);
       TVector3 phall_unit = phall.Unit();
@@ -211,7 +290,7 @@ void G4SBS_spin_transport( const char *inputfilename, const char *outputfilename
 	SpinFp.X() * SBSxaxis_fp +
 	SpinFp.Y() * SBSyaxis_fp +
 	SpinFp.Z() * SBSzaxis_fp;
-
+      
       //Compute geometric approximation rotation matrix:
       TVector3 SpinTg_comoving( SpinTg.Dot( xaxis_comoving_tgt ),
 				SpinTg.Dot( yaxis_comoving_tgt ),
@@ -267,9 +346,9 @@ void G4SBS_spin_transport( const char *inputfilename, const char *outputfilename
       TVector3 spin_rotation_axis = (SpinTg.Cross(SpinFp)).Unit();
       double spin_rotation_angle = acos( SpinTg.Dot(SpinFp));
 
-      cout << "Spin rotation axis in TRANSPORT coordinates:" << endl;
-      spin_rotation_axis.Print();
-      cout << "Total spin rotation angle in TRANSPORT coordinates = " << spin_rotation_angle*180.0/TMath::Pi() << " deg" << endl;
+      //cout << "Spin rotation axis in TRANSPORT coordinates:" << endl;
+      //spin_rotation_axis.Print();
+      //cout << "Total spin rotation angle in TRANSPORT coordinates = " << spin_rotation_angle*180.0/TMath::Pi() << " deg" << endl;
       
       
       TRotation Rspin;

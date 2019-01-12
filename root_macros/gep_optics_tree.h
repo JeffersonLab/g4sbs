@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Tue Jan 26 22:45:04 2016 by ROOT version 5.34/32
-// from TTree Tout/SBS spin transport
-// found on file: temp.root
+// Fri Jan 11 18:31:29 2019 by ROOT version 6.14/06
+// from TTree Tout/SBS optics and spin transport for GEP
+// found on file: SBS_optics_and_spin_inputfile.root
 //////////////////////////////////////////////////////////
 
 #ifndef gep_optics_tree_h
@@ -14,12 +14,12 @@
 
 // Header file for the classes stored in the TTree if any.
 
-// Fixed size dimensions of array or collections stored in the TTree if any.
-
 class gep_optics_tree {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
+
+// Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
    Double_t        beta;
@@ -28,6 +28,10 @@ public :
    Double_t        yfp;
    Double_t        xpfp;
    Double_t        ypfp;
+   Double_t        xfprecon;
+   Double_t        yfprecon;
+   Double_t        xpfprecon;
+   Double_t        ypfprecon;
    Double_t        t;
    Double_t        xtar;
    Double_t        ytar;
@@ -59,6 +63,10 @@ public :
    TBranch        *b_yfp;   //!
    TBranch        *b_xpfp;   //!
    TBranch        *b_ypfp;   //!
+   TBranch        *b_xfprecon;   //!
+   TBranch        *b_yfprecon;   //!
+   TBranch        *b_xpfprecon;   //!
+   TBranch        *b_ypfprecon;   //!
    TBranch        *b_t;   //!
    TBranch        *b_xtar;   //!
    TBranch        *b_ytar;   //!
@@ -102,9 +110,9 @@ gep_optics_tree::gep_optics_tree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("temp.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("SBS_optics_and_spin_inputfile.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("temp.root");
+         f = new TFile("SBS_optics_and_spin_inputfile.root");
       }
       f->GetObject("Tout",tree);
 
@@ -159,6 +167,10 @@ void gep_optics_tree::Init(TTree *tree)
    fChain->SetBranchAddress("yfp", &yfp, &b_yfp);
    fChain->SetBranchAddress("xpfp", &xpfp, &b_xpfp);
    fChain->SetBranchAddress("ypfp", &ypfp, &b_ypfp);
+   fChain->SetBranchAddress("xfprecon", &xfprecon, &b_xfprecon);
+   fChain->SetBranchAddress("yfprecon", &yfprecon, &b_yfprecon);
+   fChain->SetBranchAddress("xpfprecon", &xpfprecon, &b_xpfprecon);
+   fChain->SetBranchAddress("ypfprecon", &ypfprecon, &b_ypfprecon);
    fChain->SetBranchAddress("t", &t, &b_t);
    fChain->SetBranchAddress("xtar", &xtar, &b_xtar);
    fChain->SetBranchAddress("ytar", &ytar, &b_ytar);

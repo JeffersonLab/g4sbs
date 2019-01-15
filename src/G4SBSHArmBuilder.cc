@@ -202,6 +202,9 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
   //Let's make a box and then put the FPP in it:
   //Define the rotation matrix for the FPP (pitch angle of 5 deg relative to vertical): 
   G4double sbsboxpitch = 5.0*deg;
+
+  SetTrackerPitch( sbsboxpitch );
+  
   G4RotationMatrix *SBS_FPP_rm = new G4RotationMatrix;
   SBS_FPP_rm->rotateY( f48D48ang );
   SBS_FPP_rm->rotateX( sbsboxpitch );
@@ -214,6 +217,8 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
   //double sbsr = fHCALdist - 4.106*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
   double sbsr = f48D48dist + 1.694*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
 
+  SetTrackerDist( sbsr );
+  
   G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
   G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
 

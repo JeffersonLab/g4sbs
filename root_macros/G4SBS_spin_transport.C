@@ -406,7 +406,9 @@ void G4SBS_spin_transport( const char *inputfilename, const char *outputfilename
       Tout->Fill();
     }
   }
-   
+
+  elist->Delete();
+  
   fout->Write();
   
 }

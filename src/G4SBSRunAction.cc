@@ -25,11 +25,13 @@ void G4SBSRunAction::BeginOfRunAction(const G4Run* aRun)
   Ntries = 0; //Keep track of total number of tries to throw Nevt events:
   fIO->InitializeTree();
 
+  fIO->UpdateGenDataFromDetCon();
+  
   G4SBSRunData *rmrundata = G4SBSRun::GetRun()->GetData();
 
 //  rmrundata->SetBeamE( G4SBSBeamTarget::GetBeamTarget()->fBeamE/GeV );
   rmrundata->SetNthrown( aRun->GetNumberOfEventToBeProcessed() );
-
+  
   gen_t gendata = fIO->GetGenData();
   rmrundata->SetBeamE( gendata.Ebeam );
   rmrundata->SetBBtheta( gendata.thbb );

@@ -42,8 +42,9 @@ const double Ltgt = 0.4; //meters
 const double sigy_CDET = 0.003;
 
 // Bin width for vertex z "filtering": 
-const double vz_bin_width = 3.0*0.0064;
-const double vz_scan_stepsize = 0.3;
+//const double vz_bin_width = 3.0*0.0064;
+//const double vz_scan_stepsize = 
+
 
 const double dE_E_MPV = 0.13; //Most probable electron energy loss before reaching ECAL:
 
@@ -643,7 +644,13 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
   TH1D *hpmissp_fractional = new TH1D("hpmissp_fractional","",250,-0.1,0.1);
   TH1D *hdvz = new TH1D("hdvz","",250,-50.,50.); //mm
 
-  
+  TH1D *htrackchi2ndf_fit = new TH1D("htrackchi2ndf_fit","",250,0.0,10.0);
+  TH1D *htrackchi2ndf_true = new TH1D("htrackchi2ndf_true","",250,0.0,1.0);
+  TH1D *htracknhits = new TH1D("htracknhits","",8,-0.5,7.5);
+
+  htrackchi2ndf_fit->GetXaxis()->SetTitle("Track #chi^{2}/NDF, smeared hit positions");
+  htrackchi2ndf_true->GetXaxis()->SetTitle("Track #chi^{2}/NDF, true hit positions");
+  htracknhits->GetXaxis()->SetTitle("Number of GEM layers with hits on track");
   
   hdpp->GetXaxis()->SetTitle("p_{p}(recon)/p_{p}(true)-1");
   hdptheta->GetXaxis()->SetTitle("#theta_{p}(recon)-#theta_{p}(true) (rad)");
@@ -974,6 +981,15 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
       double xpfptemp = (*(T->Harm_FT_Track_Xpfit))[0];
       double ypfptemp = (*(T->Harm_FT_Track_Ypfit))[0];
 
+      double chi2fit = (*(T->Harm_FT_Track_Chi2fit))[0];
+      double chi2true = (*(T->Harm_FT_Track_Chi2true))[0];
+
+      int NDF = (*(T->Harm_FT_Track_NDF))[0];
+
+      htrackchi2ndf_fit->Fill( chi2fit/double(NDF) );
+      htrackchi2ndf_true->Fill( chi2true/double(NDF) );
+      htracknhits->Fill( double( (*(T->Harm_FT_Track_NumPlanes))[0] ) );
+      
       double xtartemp = -T->ev_vy;
 
       double xptartemp,yptartemp,ytartemp,ptemp;
@@ -1494,6 +1510,8 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 	  double pphi_ephi_zt = ephi_ztrue + PI;
 
 	  hdpp_etheta_vtx_known->Fill( pp_etheta_zt/T->ev_np - 1.0 );
+
+	  hdpp_etheta_vtx_known->GetXaxis()->SetTitle("p_{p}(e arm)/p_{p}^{true}-1 (v_{z} = v_{z}(true))");
 	  
 	  TVector3 vertex_true_SBS( vertex_true_global.Dot( SBS_xaxis_global ),
 				    vertex_true_global.Dot( SBS_yaxis_global ),
@@ -1740,6 +1758,22 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
   hdxpfp_vtx_known->GetXaxis()->SetTitle("x'_{fp} (e arm) - x'_{fp} (true), v_{z} = v_{z}(true)");
   hdypfp_vtx_known->GetXaxis()->SetTitle("y'_{fp} (e arm) - y'_{fp} (true), v_{z} = v_{z}(true)");
   
+  hdeltax_pth->GetXaxis()->SetTitle("x_{clust} - x_{clust}(#theta_{p}) (cm), v_{z} = v_{z}^{true}");
+  hdeltay_pth->GetXaxis()->SetTitle("y_{clust} - y_{clust}(#theta_{p}) (cm), v_{z} = v_{z}^{true}");
+  hdxdy_pth->GetXaxis()->SetTitle("x_{clust} - x_{clust}(#theta_{p}) (cm), v_{z} = v_{z}^{true}");
+  hdxdy_pth->GetYaxis()->SetTitle("y_{clust} - y_{clust}(#theta_{p}) (cm), v_{z} = v_{z}^{true}");
+
+  hdeltax_pp->GetXaxis()->SetTitle("x_{clust} - x_{clust}(p_{p}) (cm), v_{z} = v_{z}^{true}");
+  hdeltay_pp->GetXaxis()->SetTitle("y_{clust} - y_{clust}(p_{p}) (cm), v_{z} = v_{z}^{true}");
+  hdxdy_pp->GetXaxis()->SetTitle("x_{clust} - x_{clust}(p_{p}) (cm), v_{z} = v_{z}^{true}");
+  hdxdy_pp->GetYaxis()->SetTitle("y_{clust} - y_{clust}(p_{p}) (cm), v_{z} = v_{z}^{true}");
+  
+  hdphip->GetXaxis()->SetTitle("#phi_{p}(recon) - #phi_{e} (recon)-#pi (rad)");
+  hdthetap->GetXaxis()->SetTitle("#theta_{p}(recon) - #theta_{p}(#theta_{e}) (rad)");
+  hpmisse->GetXaxis()->SetTitle("(p_{p}(recon) - p_{el}(#theta_{e}))/p_{p}^{true}");
+  hdpp_eth_pth->GetXaxis()->SetTitle( "(p_{p}(#theta_{p})-p_{p}(#theta_{e}))/p_{p}^{true}");
+  hdthetae_true->GetXaxis()->SetTitle( "#theta_{e}(recon) - #theta_{e}(true) (rad)");
+  hdphie_true->GetXaxis()->SetTitle("#phi_{e}(recon) - #phi_{e}(true) (rad)" );
   
   fout->Write();
 }

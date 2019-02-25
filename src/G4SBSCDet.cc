@@ -203,12 +203,12 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
 	(cdet_sd->detmap).Row[istrip] = row+295;
 	(cdet_sd->detmap).Col[istrip] = col+1;
 	(cdet_sd->detmap).Plane[istrip] = plane+1;
-	(cdet_sd->detmap).LocalCoord[istrip] = pos_strip;
+	(cdet_sd->detmap).LocalCoord[istrip] = pos_pmt;
 
 	(cdet_scint_sd->detmap).Row[istrip] = row+295;
 	(cdet_scint_sd->detmap).Col[istrip] = col+1;
 	(cdet_scint_sd->detmap).Plane[istrip] = plane+1;
-	(cdet_scint_sd->detmap).LocalCoord[istrip] = pos_pmt;
+	(cdet_scint_sd->detmap).LocalCoord[istrip] = pos_strip;
 	
 	istrip++;
 
@@ -236,12 +236,12 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
 	(cdet_sd->detmap).Row[istrip] = 294-row;
 	(cdet_sd->detmap).Col[istrip] = col+1;
 	(cdet_sd->detmap).Plane[istrip] = plane+1;
-	(cdet_sd->detmap).LocalCoord[istrip] = pos_strip;
+	(cdet_sd->detmap).LocalCoord[istrip] = pos_pmt;
 
 	(cdet_scint_sd->detmap).Row[istrip] = 294-row;
 	(cdet_scint_sd->detmap).Col[istrip] = col+1;
 	(cdet_scint_sd->detmap).Plane[istrip] = plane+1;
-	(cdet_scint_sd->detmap).LocalCoord[istrip] = pos_pmt;
+	(cdet_scint_sd->detmap).LocalCoord[istrip] = pos_strip;
 	
 	istrip++;
 	

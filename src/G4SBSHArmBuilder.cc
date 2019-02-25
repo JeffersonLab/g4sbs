@@ -62,6 +62,8 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fLAChorizontal_offset = 0.0*cm;
 
   fRICHdist  = 5.5*m;
+  fRICHhorizontal_offset = 0.0*cm;
+  fRICHvertical_offset = 0.0*cm;
   fRICHgas   = "C4F10_gas"; //default to C4F10;
   fRICH_use_aerogel = true;
 
@@ -203,6 +205,9 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
   //Let's make a box and then put the FPP in it:
   //Define the rotation matrix for the FPP (pitch angle of 5 deg relative to vertical): 
   G4double sbsboxpitch = 5.0*deg;
+
+  SetTrackerPitch( sbsboxpitch );
+  
   G4RotationMatrix *SBS_FPP_rm = new G4RotationMatrix;
   SBS_FPP_rm->rotateY( f48D48ang );
   SBS_FPP_rm->rotateX( sbsboxpitch );
@@ -215,6 +220,8 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
   //double sbsr = fHCALdist - 4.106*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
   double sbsr = f48D48dist + 1.694*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
 
+  SetTrackerDist( sbsr );
+  
   G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
   G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
 
@@ -889,7 +896,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
       // Add lead inserts IFF lead option is turned on:
       //if( fDetCon->fLeadOption == 1 ){
-      //new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
+      new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
     
       
       //Add lead bar:
@@ -3374,7 +3381,9 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   RICH_offset += origin;
   
 
-  G4ThreeVector RICH_centercoord_global = RICHcoord_global - (-RICH_offset.x() * RICH_xaxis + RICH_offset.y() * RICH_yaxis + RICH_offset.z() * RICH_zaxis);
+  G4ThreeVector RICH_centercoord_global = RICHcoord_global - (-RICH_offset.x() * RICH_xaxis + RICH_offset.y() * RICH_yaxis + RICH_offset.z() * RICH_zaxis) + fRICHhorizontal_offset * RICH_xaxis + fRICHvertical_offset * RICH_yaxis;
+
+  
   
   //We want to position the RICH box so that the center of the entry window is aligned with the SBS axis:
   new G4PVPlacement( rot_RICH, RICH_centercoord_global, RICHbox_log, "SBS_RICH_pv", motherlog, false, 0 );

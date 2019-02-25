@@ -152,6 +152,8 @@ public:
 
   TClonesArray *Esum_histograms;
   TClonesArray *PulseShape_histograms;
+
+  void UpdateGenDataFromDetCon(); //Check and correct any mismatch between constant parameters defined during geometry construction and default values
   
 private:
   TFile *fFile;

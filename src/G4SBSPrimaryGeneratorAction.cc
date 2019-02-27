@@ -15,6 +15,7 @@
 #include "sbstypes.hh"
 #include "globals.hh"
 #include "TVector3.h"
+#include "Randomize.hh"
 
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
@@ -101,6 +102,25 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
     Primaries.ConvertToTreeUnits();
     fIO->SetPythiaOutput( Primaries );
+    
+    return;
+  }
+
+  // TDIS AcquMC
+  if( sbsgen->GetKine() == kAcquMC ){ //AcquMC event:
+    G4SBSAcquMCOutput Primaries = sbsgen->GetAcquMCEvent();
+    
+    particle = particleTable->FindParticle( Primaries.pid );
+    particleGun->SetParticleDefinition(particle);
+    particleGun->SetNumberOfParticles(1);
+    particleGun->SetParticleEnergy( Primaries.E - particle->GetPDGMass() );
+    particleGun->SetParticleMomentumDirection( G4ThreeVector( Primaries.Px, Primaries.Py, Primaries.Pz ).unit() );
+    particleGun->SetParticlePosition( G4ThreeVector( Primaries.Vx, Primaries.Vy, Primaries.Vz ) );
+    particleGun->GeneratePrimaryVertex(anEvent);
+
+    
+    // Primaries.ConvertToTreeUnits();
+    fIO->SetAcquMCOutput( Primaries );
     
     return;
   }

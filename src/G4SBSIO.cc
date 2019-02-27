@@ -11,6 +11,7 @@
 #include "G4SBSRun.hh"
 #include "G4SBSIO.hh"
 #include "G4SBSCalSD.hh"
+#include "G4SBSmTPCSD.hh"
 //#include "G4SDManager.hh"
 #include <assert.h>
 #include "sbstypes.hh"
@@ -40,6 +41,9 @@ G4SBSIO::G4SBSIO(){
     
     fUsePythia = false;
     fExclPythia = false;
+
+    // TDIS
+    fUseAcquMC = false;
 
     fNhistograms = 0;
 }
@@ -75,6 +79,10 @@ void G4SBSIO::SetECalData( G4String SDname, G4SBSECaloutput ed ){
   ecaldata[SDname] = ed;
 }
 
+void G4SBSIO::SetmTPCData( G4String SDname, G4SBSmTPCoutput md ){
+  mTPCdata[SDname] = md;
+}
+
 void G4SBSIO::InitializeTree(){
     if( fFile ){
 	fFile->Close();
@@ -91,7 +99,8 @@ void G4SBSIO::InitializeTree(){
     fNhistograms = 0;
     
     fTree = new TTree("T", "Geant4 SBS Simulation");
-    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:Sx/D:Sy/D:Sz/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
+    // Added variables for TDIS
+    fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:sigmaDIS/D:sigmaTDIS/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:p1p/D:p2p/D:pip/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:p1px/D:p1py/D:p1pz/D:p2px/D:p2py/D:p2pz/D:pipx/D:pipy/D:pipz/D:nth/D:nph/D:p1th/D:p1ph/D:p2th/D:p2ph/D:pith/D:piph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:MX2/D:xpi/D:tpi/D:xa/D:pt/D:nu/D:ya/D:y/D:f2p/D:f2pi/D:ypi/D:Sx/D:Sy/D:Sz/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
     //fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
     //fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:voffhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
 
@@ -128,10 +137,18 @@ void G4SBSIO::InitializeTree(){
 	ecaldata[SDname] = G4SBSECaloutput();
 	BranchECAL(SDname);
 	break;
+      case kmTPC:
+	mTPCdata[SDname] = G4SBSmTPCoutput();
+	BranchmTPC(SDname);
+	break;
       }
     }
     if( fUsePythia ){
       BranchPythia();
+    }
+    // TDIS
+    if( fUseAcquMC ){
+      BranchAcquMC();
     }
 
     // // Tedious, but we want dynamically scaled
@@ -591,6 +608,109 @@ void G4SBSIO::BranchECAL(G4String SDname="ECAL"){
 
 }
 
+// for now cope CAL for mTPC
+void G4SBSIO::BranchmTPC( G4String SDname="mTPC" ){
+  TString branch_prefix = SDname.data();
+  TString branch_name;
+  
+  branch_prefix.ReplaceAll("/",".");
+
+  TString histname;
+
+  G4SBSmTPCSD *SDtemp = (G4SBSmTPCSD*) fdetcon->fSDman->FindSensitiveDetector( SDname );
+
+  G4double threshtemp = SDtemp->GetEnergyThreshold();
+  G4double gatewidthtemp = SDtemp->GetTimeWindow();
+  G4int ntimebinstemp = SDtemp->GetNTimeBins();
+  
+  //Define "hit" branches:
+  fTree->Branch( branch_name.Format( "%s.det.esum", branch_prefix.Data() ), &(mTPCdata[SDname].Esum) );
+  fTree->Branch( branch_name.Format( "%s.hit.nhits", branch_prefix.Data() ), &(mTPCdata[SDname].nhits_mTPC) );
+  // fTree->Branch( branch_name.Format( "%s.hit.row", branch_prefix.Data() ), &(mTPCdata[SDname].row) );
+  // fTree->Branch( branch_name.Format( "%s.hit.col", branch_prefix.Data() ), &(mTPCdata[SDname].col) );
+  fTree->Branch( branch_name.Format( "%s.hit.cell", branch_prefix.Data() ), &(mTPCdata[SDname].cell) );
+  // fTree->Branch( branch_name.Format( "%s.hit.plane", branch_prefix.Data() ), &(mTPCdata[SDname].plane) );
+  // fTree->Branch( branch_name.Format( "%s.hit.wire", branch_prefix.Data() ), &(mTPCdata[SDname].wire) );
+  fTree->Branch( branch_name.Format( "%s.hit.xcell", branch_prefix.Data() ), &(mTPCdata[SDname].xcell) );
+  fTree->Branch( branch_name.Format( "%s.hit.ycell", branch_prefix.Data() ), &(mTPCdata[SDname].ycell) );
+  fTree->Branch( branch_name.Format( "%s.hit.zcell", branch_prefix.Data() ), &(mTPCdata[SDname].zcell) );
+  fTree->Branch( branch_name.Format( "%s.hit.xcellg", branch_prefix.Data() ), &(mTPCdata[SDname].xcellg) );
+  fTree->Branch( branch_name.Format( "%s.hit.ycellg", branch_prefix.Data() ), &(mTPCdata[SDname].ycellg) );
+  fTree->Branch( branch_name.Format( "%s.hit.zcellg", branch_prefix.Data() ), &(mTPCdata[SDname].zcellg) );
+  fTree->Branch( branch_name.Format( "%s.hit.xhit", branch_prefix.Data() ), &(mTPCdata[SDname].xhit) );
+  fTree->Branch( branch_name.Format( "%s.hit.yhit", branch_prefix.Data() ), &(mTPCdata[SDname].yhit) );
+  fTree->Branch( branch_name.Format( "%s.hit.zhit", branch_prefix.Data() ), &(mTPCdata[SDname].zhit) );
+  fTree->Branch( branch_name.Format( "%s.hit.xhitg", branch_prefix.Data() ), &(mTPCdata[SDname].xhitg) );
+  fTree->Branch( branch_name.Format( "%s.hit.yhitg", branch_prefix.Data() ), &(mTPCdata[SDname].yhitg) );
+  fTree->Branch( branch_name.Format( "%s.hit.zhitg", branch_prefix.Data() ), &(mTPCdata[SDname].zhitg) );
+  fTree->Branch( branch_name.Format( "%s.hit.sumedep", branch_prefix.Data() ), &(mTPCdata[SDname].sumedep) );
+  fTree->Branch( branch_name.Format( "%s.hit.tavg", branch_prefix.Data() ), &(mTPCdata[SDname].tavg) );
+  fTree->Branch( branch_name.Format( "%s.hit.trms", branch_prefix.Data() ), &(mTPCdata[SDname].trms) );
+  fTree->Branch( branch_name.Format( "%s.hit.tmin", branch_prefix.Data() ), &(mTPCdata[SDname].tmin) );
+  fTree->Branch( branch_name.Format( "%s.hit.tmax", branch_prefix.Data() ), &(mTPCdata[SDname].tmax) );
+  // fTree->Branch( branch_name.Format( "%s.hit.Ehit", branch_prefix.Data() ), &(mTPCdata[SDname].Ehit) );
+  // fTree->Branch( branch_name.Format( "%s.hit.pxhit", branch_prefix.Data() ), &(mTPCdata[SDname].pxhit) );
+  // fTree->Branch( branch_name.Format( "%s.hit.pyhit", branch_prefix.Data() ), &(mTPCdata[SDname].pyhit) );
+  // fTree->Branch( branch_name.Format( "%s.hit.pzhit", branch_prefix.Data() ), &(mTPCdata[SDname].pzhit) );
+  // fTree->Branch( branch_name.Format( "%s.hit.ztravel", branch_prefix.Data() ), &(mTPCdata[SDname].ztravel) );
+  // fTree->Branch( branch_name.Format( "%s.hit.nstrips", branch_prefix.Data() ), &(mTPCdata[SDname].nstrips) );
+
+
+  // map<G4String,G4bool>::iterator it = KeepPartmTPCflags.find( SDname );
+  // if( it != KeepPartmTPCflags.end() && it->second ){
+
+  map<G4String,G4bool>::iterator it = KeepHistoryflags.find( SDname );
+
+  if( it != KeepHistoryflags.end() && it->second ){
+    //Define "particle" branches:
+    fTree->Branch( branch_name.Format( "%s.npart_mTPC", branch_prefix.Data() ), &(mTPCdata[SDname].npart_mTPC) );
+    fTree->Branch( branch_name.Format( "%s.ihit", branch_prefix.Data() ), &(mTPCdata[SDname].ihit) );
+    fTree->Branch( branch_name.Format( "%s.x", branch_prefix.Data() ), &(mTPCdata[SDname].x) );
+    fTree->Branch( branch_name.Format( "%s.y", branch_prefix.Data() ), &(mTPCdata[SDname].y) );
+    fTree->Branch( branch_name.Format( "%s.z", branch_prefix.Data() ), &(mTPCdata[SDname].z) );
+    fTree->Branch( branch_name.Format( "%s.t", branch_prefix.Data() ), &(mTPCdata[SDname].t) );
+    fTree->Branch( branch_name.Format( "%s.E", branch_prefix.Data() ), &(mTPCdata[SDname].E) );
+    fTree->Branch( branch_name.Format( "%s.dt", branch_prefix.Data() ), &(mTPCdata[SDname].dt) );
+    fTree->Branch( branch_name.Format( "%s.L", branch_prefix.Data() ), &(mTPCdata[SDname].L) );
+    fTree->Branch( branch_name.Format( "%s.vx", branch_prefix.Data() ), &(mTPCdata[SDname].vx) );
+    fTree->Branch( branch_name.Format( "%s.vy", branch_prefix.Data() ), &(mTPCdata[SDname].vy) );
+    fTree->Branch( branch_name.Format( "%s.vz", branch_prefix.Data() ), &(mTPCdata[SDname].vz) );
+    fTree->Branch( branch_name.Format( "%s.trid", branch_prefix.Data() ),  &(mTPCdata[SDname].trid) );
+    fTree->Branch( branch_name.Format( "%s.mid", branch_prefix.Data() ), &(mTPCdata[SDname].mid) );
+    fTree->Branch( branch_name.Format( "%s.pid", branch_prefix.Data() ), &(mTPCdata[SDname].pid) );
+    fTree->Branch( branch_name.Format( "%s.p", branch_prefix.Data() ), &(mTPCdata[SDname].p) );
+    fTree->Branch( branch_name.Format( "%s.px", branch_prefix.Data() ), &(mTPCdata[SDname].px) );
+    fTree->Branch( branch_name.Format( "%s.py", branch_prefix.Data() ), &(mTPCdata[SDname].py) );
+    fTree->Branch( branch_name.Format( "%s.pz", branch_prefix.Data() ), &(mTPCdata[SDname].pz) );
+    fTree->Branch( branch_name.Format( "%s.edep", branch_prefix.Data() ), &(mTPCdata[SDname].edep) );
+    fTree->Branch( branch_name.Format( "%s.ztravel", branch_prefix.Data() ), &(mTPCdata[SDname].ztravel) );
+    fTree->Branch( branch_name.Format( "%s.nstrips", branch_prefix.Data() ), &(mTPCdata[SDname].nstrips) );
+  }
+
+  it = KeepHistoryflags.find( SDname );
+
+  if( it != KeepHistoryflags.end() && it->second ){
+    //Branches with "Particle History" data:
+    fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.npart) );
+    fTree->Branch( branch_name.Format("%s.part.PID", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.PID) );
+    fTree->Branch( branch_name.Format("%s.part.MID", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.MID) );
+    fTree->Branch( branch_name.Format("%s.part.TID", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.TID) );
+    fTree->Branch( branch_name.Format("%s.part.nbounce", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.nbounce) );
+    fTree->Branch( branch_name.Format("%s.part.hitindex", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.hitindex) );
+    fTree->Branch( branch_name.Format("%s.part.vx", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.vx) );
+    fTree->Branch( branch_name.Format("%s.part.vy", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.vy) );
+    fTree->Branch( branch_name.Format("%s.part.vz", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.vz) );
+    fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.px) );
+    fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.py) );
+    fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.pz) );
+  }
+
+  return;
+}
+
+
+
+
 void G4SBSIO::BranchPythia(){
   //Per-event variables:
   fTree->Branch("primaries.Sigma",&(Primaries.Sigma),"primaries.Sigma/D");
@@ -638,5 +758,19 @@ void G4SBSIO::BranchPythia(){
   fTree->Branch("Primaries.t",&(Primaries.t));
   fTree->Branch("Primaries.theta",&(Primaries.theta));
   fTree->Branch("Primaries.phi",&(Primaries.phi));
+}
+
+// TDIS AcquMC
+void G4SBSIO::BranchAcquMC(){
+  //Per-event variables:
+  fTree->Branch("AcquMCPrimaries.Vx",&(AcquMCPrimaries.Vx),"AcquMCPrimaries.Vx/D");
+  fTree->Branch("AcquMCPrimaries.Vy",&(AcquMCPrimaries.Vy),"AcquMCPrimaries.Vy/D");
+  fTree->Branch("AcquMCPrimaries.Vz",&(AcquMCPrimaries.Vz),"AcquMCPrimaries.Vz/D");
+  fTree->Branch("AcquMCPrimaries.Px",&(AcquMCPrimaries.Px),"AcquMCPrimaries.Px/D");
+  fTree->Branch("AcquMCPrimaries.Py",&(AcquMCPrimaries.Py),"AcquMCPrimaries.Py/D");
+  fTree->Branch("AcquMCPrimaries.Pz",&(AcquMCPrimaries.Pz),"AcquMCPrimaries.Pz/D");
+  fTree->Branch("AcquMCPrimaries.Pt",&(AcquMCPrimaries.Pt),"AcquMCPrimaries.Pt/D");
+  fTree->Branch("AcquMCPrimaries.E",&(AcquMCPrimaries.E),"AcquMCPrimaries.E/D");
+  fTree->Branch("AcquMCPrimaries.pid",&(AcquMCPrimaries.pid),"AcquMCPrimaries.pid/I");
 }
 

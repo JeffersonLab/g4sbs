@@ -11,8 +11,10 @@
 #include "G4SBSTrackerOutput.hh"
 #include "G4SBSCALoutput.hh"
 #include "G4SBSGEMoutput.hh"
+#include "G4SBSmTPCoutput.hh"
 #include "G4SBSDetectorConstruction.hh"
 #include "G4SBSPythiaOutput.hh"
+#include "G4SBSAcquMCOutput.hh"
 
 class TFile;
 class TTree;
@@ -30,17 +32,24 @@ typedef struct {
 //"count", "rate", "sigma" are all redundant, should really only store one to the tree. 
 //Also "solang" is a "run" level quantity, shouldn't really be written to the tree every event, but whatever.
 typedef struct {
-  Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph;
+  // Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph;
+  Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph, sigmaDIS, sigmaTDIS; // TDIS
   Double_t Aperp, Apar;
   Double_t Pt, Pl;
   Double_t vx, vy, vz;
   Double_t ep, np;
+  Double_t p1p, p2p, pip; // TDIS
   Double_t epx, epy, epz;
   Double_t npx, npy, npz;
+  Double_t p1px, p1py, p1pz; // TDIS
+  Double_t p2px, p2py, p2pz; // TDIS
+  Double_t pipx, pipy, pipz; // TDIS
   Double_t nth, nph;
+  Double_t p1th, p1ph, p2th, p2ph, pith, piph; // TDIS
   Double_t pmperp, pmpar, pmparsm;
   Double_t z, phperp, phih, MX;
   Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator!
+  Double_t xpi, tpi, xa,pt, nu, ya, y, f2p, f2pi, ypi; // TDIS
   Int_t nucl, fnucl;
   Int_t hadr;
   Int_t earmaccept, harmaccept;
@@ -103,6 +112,7 @@ public:
   void SetCalData( G4String, G4SBSCALoutput );
   void SetRICHData( G4String, G4SBSRICHoutput );
   void SetECalData( G4String, G4SBSECaloutput );
+  void SetmTPCData( G4String, G4SBSmTPCoutput );
 
   //void SetECalData( G4SBSECaloutput ed ){ ecaldata = ed; }
 
@@ -136,8 +146,11 @@ public:
   void BranchRICH(G4String s);
   //void BranchTracker(G4String s);
   void BranchECAL(G4String s);
+  void BranchmTPC(G4String s);
   void BranchPythia();
-  
+  // TDIS
+  void BranchAcquMC();
+
   void SetDetCon(G4SBSDetectorConstruction *dc ){ fdetcon = dc; }
 
   // void SetEarmCALpart_flag( G4bool b ){ EarmCALpart_flag = b; }
@@ -148,6 +161,10 @@ public:
   void SetPythiaOutput( G4SBSPythiaOutput p ){ Primaries = p; }
   void SetUsePythia6( G4bool b ){ fUsePythia = b; }
   void SetExclPythia6( G4bool b ){ fExclPythia = b; }
+
+  // TDIS
+  void SetAcquMCOutput( G4SBSAcquMCOutput p ){ AcquMCPrimaries = p; }
+  void SetUseAcquMC( G4bool b ){ fUseAcquMC = b; }
 
   map<G4String,G4int> histogram_index; //map with key = SDname, val = histogram index in TClonesArray
 
@@ -171,10 +188,15 @@ private:
   map<G4String,G4SBSRICHoutput> richdata;
   map<G4String,G4SBSTrackerOutput> trackdata;
   map<G4String,G4SBSECaloutput> ecaldata;
-  
+  map<G4String,G4SBSmTPCoutput> mTPCdata;
+
   G4bool fUsePythia;
   G4bool fExclPythia;
   G4SBSPythiaOutput Primaries;
+
+  // TDIS
+  G4bool fUseAcquMC;
+  G4SBSAcquMCOutput AcquMCPrimaries;
   
   G4SBSGlobalField *fGlobalField;
   

@@ -54,6 +54,8 @@ private:
   
   G4UIcmdWithAString   *kineCmd;
   G4UIcmdWithAString   *PYTHIAfileCmd; 
+  // TDIS AcquMC
+  G4UIcmdWithAString   *AcquMCfileCmd; 
   G4UIcmdWithAnInteger *exclPythiaXSoptCmd; 
   G4UIcmdWithAString   *expCmd;
   
@@ -206,12 +208,19 @@ private:
   G4UIcmdWithADoubleAndUnit *CosmicsPointerRadiusCommand;
   G4UIcmdWithADoubleAndUnit *CosmicsMaxAngleCommand;
 
+  // commands for TDIS and mTPC
   G4UIcmdWithABool *SolUniFieldCmd;
   //G4UIcmdWithADoubleAndUnit *SolUniFieldMagCmd;
   G4UIcmdWithADouble *SolUniFieldMagCmd;
   G4UIcmdWithABool *SolTosFieldCmd;
   G4UIcmdWithADouble *SolTosFieldScaleCmd;
   G4UIcmdWithADoubleAndUnit *SolTosFieldOffsetCmd;
+
+  G4UIcmdWithADouble *mTPCHeGasRatioCmd;
+  G4UIcmdWithADouble *mTPCCH4GasRatioCmd;
+  G4UIcmdWithADouble *mTPCGasTempCmd;
+  G4UIcmdWithADouble *mTPCGasPressureCmd;
+  G4UIcmdWithADouble *mTPCTgtThickCmd;
 
   G4UIcmdWithABool *mTPCRoomTempCmd;
   G4UIcmdWithADoubleAndUnit *TDIStgtWallThickCmd;

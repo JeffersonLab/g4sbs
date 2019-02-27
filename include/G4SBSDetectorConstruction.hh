@@ -137,6 +137,11 @@ public:
   void SetTimeWindowAndThreshold( G4String SDname, G4double Ethresh=0.0*MeV, G4double Twindow=1000.0*ns ); //utility function to set time window and threshold by sensitive detector name
 
   void SetTPCSolenoidField();
+
+  void SetmTPCHeGasRatio( G4double mtpchefraction){fmTPCHeGasFraction = mtpchefraction;};
+  void SetmTPCCH4GasRatio( G4double mtpcch4fraction){fmTPCCH4GasFraction = mtpcch4fraction;};
+  void SetmTPCGasTemp( G4double mtpcgastemp){fmTPCGasTemp = mtpcgastemp;};
+  void SetmTPCGasPressure( G4double mtpcgaspressure){fmTPCGasPressure = mtpcgaspressure;};
   
 private:
 
@@ -162,6 +167,12 @@ private:
   G4double fDoseRateC16; //Dose rate at z = 0 of lead-glass.
 
   G4bool fGEMflip;
+
+  G4double fmTPCHeGasFraction;
+  G4double fmTPCCH4GasFraction;
+  G4double fmTPCGasTemp;
+  G4double fmTPCGasPressure;
+
 
 };
 

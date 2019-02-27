@@ -20,7 +20,6 @@
 #include "G4AntiProton.hh"
 #include "G4SystemOfUnits.hh"
 
-
 #include "wiser_pion.h"
 
 #include <errno.h>
@@ -99,7 +98,12 @@ G4SBSEventGen::G4SBSEventGen(){
   fPythiaChain = NULL;
   fPythiaTree = NULL;
   fchainentry = 0;
-  
+
+  //TDIS AcquMC
+  fAcquMCChain = NULL;
+  fAcquMCTree = NULL;
+  fAcquMCchainentry = 0;
+
   fExclPyXSoption = -10;
   
   fInitialized = false;
@@ -116,6 +120,9 @@ G4SBSEventGen::G4SBSEventGen(){
 G4SBSEventGen::~G4SBSEventGen(){
   delete fPythiaChain;
   delete fPythiaTree;
+  //TDIS AcquMC
+  delete fAcquMCChain;
+  delete fAcquMCTree;
 }
 
 void G4SBSEventGen::LoadPythiaChain( G4String fname ){
@@ -146,6 +153,14 @@ void G4SBSEventGen::LoadPythiaChain( G4String fname ){
   } else {
     fPythiaEvent.Sigma = cm2;
   }
+}
+
+//TDIS AcquMC
+void G4SBSEventGen::LoadAcquMCChain( G4String fname ){
+  fAcquMCChain = new TChain("h1");
+  fAcquMCChain->Add(fname);
+  fAcquMCTree = new AcquMCTree(fAcquMCChain);
+  fAcquMCchainentry = 0;
 }
 
 void G4SBSEventGen::Initialize(){
@@ -312,6 +327,10 @@ bool G4SBSEventGen::GenerateEvent(){
   case kSIDIS:
     success = GenerateSIDIS( thisnucl, ei, ni );
     break;
+    //TDIS mod  Rachel 11/12/18, include Dasuni's event generator
+  case kTDISKin:
+    success = GenerateTDIS( thisnucl, ei , ni);
+    break;
   case kFlat:
     success = GenerateFlat( thisnucl, ei, ni );
     break;
@@ -327,6 +346,10 @@ bool G4SBSEventGen::GenerateEvent(){
     break;
   case kPYTHIA6:
     success = GeneratePythia();
+    break;
+    //TDIS AcquMC
+  case kAcquMC:
+    success = GenerateAcquMC();
     break;
   case kCosmics:
     success = GenerateCosmics();
@@ -1516,9 +1539,253 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 }
 
 
+////////////////////////////////////////////////////////////////
+// TDIS process (D.Adikaram - March 09, 2015)
+////////////////////////////////////////////////////////////////
+bool G4SBSEventGen::GenerateTDIS(Nucl_t nucl, G4LorentzVector ei,  G4LorentzVector ni){
+  //The nucleon could be a proton or a neutron. It has initial 4-momentum ni:
+  //Boost to the nucleon rest frame:
+  G4ThreeVector boost_Nrest = ni.boostVector();
+
+  //Just in case, copy ei and ni to ei_Nrest and ni_Nrest before boosting:
+  G4LorentzVector ei_Nrest = ei;
+  G4LorentzVector ni_Nrest = ni;
+  ei_Nrest.boost( -boost_Nrest );
+  ni_Nrest.boost( -boost_Nrest );
+
+  //////////////
+  // Parametars
+  //////////////
+  double Md     = 1.87561282*GeV;
+  double Mp     = 0.938272*GeV;
+  double Mn     = 0.939565*GeV;
+  double EBeam  = ei.e();
+  double PI     = 3.1415;
+  double D2R    = PI/(180.0);
+
+  double EeMin  =  1.0*GeV;
+  double EeMax  = 10.0*GeV;
+
+  double Mt;
+  if (fNuclType == kNeutron)
+    Mt = Mn;
+  else
+    Mt = Mp;
+ 
+  ///////////////////////////////////////////////////////////
+  //Generate kinematics of the scattering electron and photon
+  ///////////////////////////////////////////////////////////
+  double E_e      = CLHEP::RandFlat::shoot( EeMin, EeMax);
+  double theta_e  = CLHEP::RandFlat::shoot( 5*D2R, 45*D2R);
+  double P_e      = sqrt( pow(E_e,2) - ei.m2() );
+  double phi_e    = CLHEP::RandFlat::shoot( -12*D2R , 12*D2R) ;
+  
+  G4LorentzVector ef( E_e, G4ThreeVector( P_e*sin(theta_e)*cos(phi_e), P_e*sin(theta_e)*sin(phi_e), P_e*cos(theta_e) ));
+  G4LorentzVector ef_Nrest = ef.boost( -boost_Nrest );
+  G4LorentzVector q_Nrest  = ei_Nrest - ef_Nrest; 
+  G4LorentzVector q = ei - ef;
+
+  double nu =  q.e();
+  double Q2 = -q.m2();
+  double xa =  Q2/(2*Mt*nu);
+  double ya =  nu/EBeam;
+ 
+  ///////////////////////////////////////////////////
+  //Generate a proton-neutron pair from the deuteron
+  ///////////////////////////////////////////////////
+  double Px_p1, Py_p1, Pz_p1, P_p1, E_p1, theta_p1, phi_p1;
+  double Px_n, Py_n, Pz_n, P_n, E_n, theta_n, phi_n;
+  double Px_p2, Py_p2, Pz_p2, P_p2, E_p2, theta_p2, phi_p2;
+  double Px_pi, Py_pi, Pz_pi, E_pi;
+
+  double pt, z, xbj;
+
+ // First Proton
+ //============
+ G4ThreeVector p1 = PiMake();
+
+ Px_p1  = p1.x();
+ Py_p1  = p1.y();
+ Pz_p1  = p1.z();
+    
+ P_p1     = p1.mag();
+ E_p1     = sqrt (pow(P_p1,2) + pow(Mp,2));
+ theta_p1 = acos( Pz_p1/P_p1);
+    
+ phi_p1 = 0.0;
+ if (Py_p1 > 0.0)
+   phi_p1 = acos( Px_p1/sqrt(Px_p1*Px_p1 + Py_p1*Py_p1));
+ else
+   phi_p1 = 2*PI - acos(Px_p1/sqrt(Px_p1*Px_p1 + Py_p1*Py_p1));
+
+if(fNuclType == kProton){ 
+
+  E_p1  = Mp;
+  Px_p1 = 0.0;
+  Py_p1 = 0.0;
+  Pz_p1 = 0.0;
+
+ }
+    
+  G4LorentzVector p1f( E_p1, G4ThreeVector( Px_p1, Py_p1, Pz_p1));
+
+ // Neutron
+ //========
+ Px_n = -Px_p1;
+ Py_n = -Py_p1;
+ Pz_n = -Pz_p1;
+ P_n  = sqrt( Px_n*Px_n + Py_n*Py_n +  Pz_n*Pz_n ); 
+ E_n  = Md - E_p1;
+ theta_n =  acos (Pz_n/P_n);
+    
+ phi_n = 0.0;
+ if (phi_p1 < PI)
+   phi_n = 2*PI - acos(Px_n/sqrt(Px_n*Px_n + Py_n*Py_n));
+ else
+   phi_n = acos(Px_n/sqrt(Px_n*Px_n + Py_n*Py_n));
+
+ if(fNuclType == kProton){ 
+
+  E_n  = 0.0;
+  Px_n = 0.0;
+  Py_n = 0.0;
+  Pz_n = 0.0;
+
+ }
+ 
+ G4LorentzVector nf( E_n, G4ThreeVector( Px_n, Py_n, Pz_n));
+    
+// Second proton
+//===============
+pt  = CLHEP::RandFlat::shoot(0.0, 0.5*GeV);
+z   = CLHEP::RandFlat::shoot(0.0, 1.0);
+
+double znq, Mx2, y;
+if(fNuclType == kNeutron){ 
+  xbj = Q2/(2*nf.dot(q));
+  znq = z*nf.dot(q);
+  Mx2 = (q + nf).mag2();
+  y = (nf.dot(q))/(nf.dot(ei));
+ }
+ else{
+   xbj = Q2/(2*p1f.dot(q));
+   znq = z*p1f.dot(q);
+   Mx2 = (q + p1f).mag2();
+   y = (p1f.dot(q))/(p1f.dot(ei));
+ }
+  
+ Pz_p2 = ( -1.0*znq*q.z() + sqrt( znq*q.z()*znq*q.z() + Q2*(q.e()*q.e())*(Mp*Mp + pt*pt) - Q2*znq*znq) )/Q2;
+ P_p2  = sqrt (Pz_p2*Pz_p2 + pt*pt);
+ theta_p2 = acos (Pz_p2/P_p2);
+ E_p2 = sqrt ( P_p2*P_p2 + Mp*Mp);
+ phi_p2 = CLHEP::RandFlat::shoot( 0.0, 360.0*D2R) ;
+
+ G4LorentzVector p2f( E_p2, G4ThreeVector( P_p2*sin(theta_p2)*cos(phi_p2), P_p2*sin(theta_p2)*sin(phi_p2), P_p2*cos(theta_p2) ));
+ 
+ Px_p2 = pt*cos(phi_p2);
+ Py_p2 = pt*sin(phi_p2);
+
+ G4ThreeVector p1f_vec = p1f.vect();
+ G4ThreeVector p2f_vec = p2f.vect();
+ G4ThreeVector q_vec = q.vect();
+
+ double theta1 = acos( p1f_vec.unit().dot( q_vec.unit() ) );
+ double theta2 = acos( p2f_vec.unit().dot( q_vec.unit() ) );
+ 
+// Hadron 
+//========
+if (fNuclType == kNeutron){
+  E_pi  = E_n - E_p2;
+  Px_pi = Px_n - Px_p2; 
+  Py_pi = Py_n - Py_p2;
+  Pz_pi = Pz_n - Pz_p2;
+ }
+
+ else{
+   E_pi  = Mp - E_p2;
+   Px_pi = - Px_p2; 
+   Py_pi = - Py_p2;
+   Pz_pi = - Pz_p2;
+ }
+
+ G4ThreeVector pi_vec(Px_pi, Py_pi, Pz_pi);
+ G4LorentzVector pif(E_pi, pi_vec);
+
+//======================================================
+ double tpi, ypi, fpi, xpi; 
+ xpi = xbj/(1 - z);
+ tpi = (E_pi*E_pi) - (pi_vec.mag()*pi_vec.mag());
+ ypi = pif.dot(q)/(pif.dot(ei));
+
+ double P_pi = pi_vec.mag()/GeV;
+ if (xbj > 0.055 && xbj < 0.3){
+     if ( fNuclType == kNeutron )
+       fpi = 2*f2pi(P_pi, xbj, theta2/D2R);
+     else
+       fpi = f2pi(P_pi, xbj, theta2/D2R);
+ }
+ else
+   fpi = 0.0;
+     
+// sigma
+//======
+// From the DIS event generator
+  double minE = 0.0;
+  double sigma_dis    = 0.0;
+  double sigma_tdis  = 0.0;
+
+  double f2N = 0.0;
+ 
+  if (xbj > 0 && xbj < 1.0){
+    // for the neutron/proton target
+    f2N   = F2N(xbj, Q2, nucl);  // F2N is define at G4SBSDIS.hh 
+    if ( fNuclType == kNeutron )
+      sigma_dis    = dissigma_n(ei.e()/GeV, theta_e/rad, E_e/GeV)*((ei.e()-minE)/GeV)*nanobarn; // dissigma_n is also defined in G4SBSDIS.hh
+    else
+      sigma_dis    = dissigma_p(ei.e()/GeV, theta_e/rad, E_e/GeV)*((ei.e()-minE)/GeV)*nanobarn; // dissigma_n is also defined in G4SBSDIS.hh
+    sigma_tdis   = sigma_dis * (fpi/f2N);
+    
+  }
+ 
+  /////////////////////////////
+  //Record all TDIS variables:
+  /////////////////////////////
+  fQ2   = Q2;
+  fnu   = nu;
+  fxa   = xa;
+  fya   = ya;
+  fW2   = Mx2;
+  fy    = y;
+  fxbj  = xbj;
+  fPtTDIS   = pt;
+  fz    = z;
+  fxpi  = xpi;
+  ftpi  = tpi;
+  fypi  = ypi;
+  ff2p   = f2N;
+  ff2pi   = fpi;
+  fSigmaDIS = sigma_dis;
+  fSigmaTDIS = sigma_tdis;
+ 
+  fElectronE = ef.e();
+  fElectronP = ef.vect();
+  fNeutronE = nf.e();
+  fNeutronP = nf.vect();
+  fProton1E = p1f.e();
+  fProton1P = p1f.vect();
+  fProton2E = p2f.e();
+  fProton2P = p2f.vect();
+  fHadronE  = pif.e();
+  fHadronP  = pif.vect();
+  return true;
+}
+
+////////////////////////////////////////////////////////////////
+// End of TDIS process 
+////////////////////////////////////////////////////////////////
+
 bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
 
-  
   double htheta = acos( CLHEP::RandFlat::shoot( cos( fThMax_had ), cos( fThMin_had ) ) );
   double hphi = CLHEP::RandFlat::shoot( fPhMin_had, fPhMax_had );
   double Eh = CLHEP::RandFlat::shoot( fEhadMin, fEhadMax );
@@ -2078,6 +2345,225 @@ bool G4SBSEventGen::GeneratePythia(){
   
   return true;
 }
+// TDIS AcquMC
+bool G4SBSEventGen::GenerateAcquMC(){
+  
+  fAcquMCTree->GetEntry(fAcquMCchainentry++);
+
+  // G4String fAcquMCnametemp = ( (TChain*) fAcquMCTree->fChain )->GetFile()->GetName();
+
+  if( fAcquMCchainentry % 1000 == 0 ) G4cout << "Passed event " << fAcquMCchainentry << " in AcquMC tree" << G4endl;
+  
+  fAcquMCEvent.Clear();
+  //fAcquMCEvent.Nprimaries = fAcquMCTree->Nparticles;
+
+  fAcquMCEvent.Vx =  fAcquMCTree->X_vtx*cm;
+  fAcquMCEvent.Vy =  fAcquMCTree->Y_vtx*cm;
+  fAcquMCEvent.Vz =  fAcquMCTree->Z_vtx*cm;
+  // fAcquMCEvent.Px =  fAcquMCTree->Px_bm *GeV;
+  // fAcquMCEvent.Py =  fAcquMCTree->Py_bm *GeV;
+  // fAcquMCEvent.Pz =  fAcquMCTree->Pz_bm *GeV;
+  fAcquMCEvent.Px =  fAcquMCTree->Px_l0114;//*GeV;
+  fAcquMCEvent.Py =  fAcquMCTree->Py_l0114;//*GeV;
+  fAcquMCEvent.Pz =  fAcquMCTree->Pz_l0114;//*GeV;
+  fAcquMCEvent.Pt =  fAcquMCTree->Pt_l0114*GeV;
+  fAcquMCEvent.E =  fAcquMCTree->En_l0114*GeV;
+
+  return true;
+
+}
+
+
+
+
+// TDIS
+G4ThreeVector G4SBSEventGen::PiMake(){
+
+  ifstream in;
+  in.open(Form("moment_ld2b.dat")); // NB THIS FILE HAS TO BE IN SAME DIRECTORY AS EXECUTABLE
+
+  double degr=0.01745329252;
+  double fgev=0.1973;
+
+  const int nfermi = 201;
+  double ppfermi[nfermi] = {0.0};
+  double pfdis[nfermi]= {0.0};
+  double pfdis1[nfermi] = {0.0};
+  double pfdis2[nfermi]= {0.0};
+  int i = 0;
+  
+  while(1){
+    in>>ppfermi[i]>>pfdis[i]>>pfdis1[i]>>pfdis2[i];
+    //cout << ppfermi[i] << "\t" << pfdis[i] << endl;
+    ppfermi[i] = ppfermi[i]*fgev;
+    pfdis[i] = pfdis[i]*ppfermi[i]*ppfermi[i];
+    i++;
+    if(i==nfermi) break;
+  }
+  in.close();
+ 
+
+  for (int j = 1; j < nfermi; j++){
+    pfdis[j] = pfdis[j] +  pfdis[j-1];
+    //cout << ppfermi[j] << "\t" << pfdis[j] << endl;
+  }
+
+  if (pfdis[nfermi-1] > 0.0){
+    for (int j = 0; j < nfermi; j++){
+      pfdis[j] = pfdis[j]/pfdis[nfermi-1];
+    }
+  }
+  else
+    cout << "error in reading fermi file" << endl;
+ 
+  double xran = CLHEP::RandFlat::shoot(0.0,1.0);
+  
+  double fermi = -1.0;
+  for (int i = 0; i < nfermi; i++){
+    if (pfdis[i] == xran){
+      fermi = ppfermi[i];
+    }
+    else if (xran > pfdis[i] && xran < pfdis[i+1]){
+      double numerator   = ( ppfermi[i+1] -  ppfermi[i]);
+      double denominator = (  pfdis[i+1] -   pfdis[i]);
+      double slope = numerator/denominator;
+      fermi = ppfermi[i] + (xran - pfdis[i])*slope;
+     
+    }
+    
+  }
+  //  cout << fermi << "\t" << xran << endl;
+  
+  double xran1 = CLHEP::RandFlat::shoot(0.0,1.0);
+  double fth = acos(2*xran1 - 1.0);
+
+  double xran2 = CLHEP::RandFlat::shoot(0.0,1.0);
+  double fphi = 2*180.0*xran2*degr;
+
+  double fermix = fermi*sin(fth)*cos(fphi);
+  double fermiy = fermi*sin(fth)*sin(fphi);
+  double fermiz = fermi*cos(fth);
+   
+  return G4ThreeVector(fermix, fermiy, fermiz);
+ 
+}
+//TDIS
+double G4SBSEventGen::f2p( double x ){
+  double f2 = 0.0;
+  double p0 = 0.1736;
+  double p1 = 4.537;
+  double p2 = -48.66;
+  double p3 = 236.8;
+  double p4 = -665.8;
+  double p5 = 1094;
+  double p6 = -973.9;
+  double p7 = 363.2;
+  
+//
+    if( x < 0.0 || x > 0.6 ) 
+      return 0.0;
+    
+    else{
+      f2 = p0 + p1*pow(x,1) + p2*pow(x,2) + p3*pow(x,3) + p4*pow(x,4) + p5*pow(x,5) + p6*pow(x,6) + p7*pow(x,7);
+      return f2;
+
+    }
+}
+//TDIS
+double G4SBSEventGen::f2pi(double p, double x, double th){
+
+  double p0, p1, p2, p3, p4, p5;
+  int xflag = 0;
+  double fk = 0.0;
+  double fth = 0.0;
+
+  if (p > 0.05 && p <= 0.1){
+    
+    p0 = 3.656e-5;
+    p1 = -0.000402;
+    p2 = -0.008886;
+    p3 = 0.07359;
+    p4 = 1.079;
+    p5 = -8.953;
+
+    if (x < 0.0555 || x > 0.083) xflag = 1;
+
+    
+    fk = -0.954 + 66.5*p -1632.4*p*p + 14573*p*p*p; 
+    
+  }
+
+  if (p > 0.1 && p <= 0.2){
+    
+    p0 = 0.000287;
+    p1 = 0.009397;
+    p2 = -0.2632;
+    p3 = 2.029;
+    p4 = -5.878;
+    p5 = 4.664;
+
+    if (x < 0.0555 || x > 0.16) xflag = 1;
+    fk = 0.464 -15.4*p + 126.5*p*p;
+    
+  }
+  
+  if (p > 0.2 && p <= 0.3){
+    
+    p0 = 0.0003662;
+    p1 = 0.02811;
+    p2 = -0.4566;
+    p3 = 2.428;
+    p4 = -5.107;
+    p5 = 3.222;
+
+     if (x < 0.0555 || x > 0.226) xflag =1;
+
+     fk = -1.133 + 8.5354*p;
+  }
+
+  if (p > 0.3 && p <= 0.5){
+    
+    p0 = 0.0009412;
+    p1 = 0.01366;
+    p2 = -0.1744;
+    p3 = 0.3864;
+    p4 = 0.6615;
+    p5 = -2.113;
+    
+     if (x < 0.0555 || x > 0.281) xflag = 1;
+
+     fk = -1.345 + 9.47*p -7.91*p*p;
+
+  }
+
+  if (p < 0.05 || p > 0.5){
+    
+    p0 = 0.0;
+    p1 = 0.0;
+    p2 = 0.0;
+    p3 = 0.0;
+    p4 = 0.0;
+    p5 = 0.0;
+
+  }
+
+  if (th < 1.8 || th > 74)
+    fth = 0.0;
+  else
+    fth = -0.183 + 0.0976*th -0.0024*th*th + 0.000015*th*th*th; 
+
+  if( xflag == 1 || x < 0.0555 || x > 0.3) 
+      return 0.0;
+    
+    else{
+      double f2 = p0 + p1*pow(x,1) + p2*pow(x,2) + p3*pow(x,3) + p4*pow(x,4) + p5*pow(x,5);
+      return f2*fk*fth;
+
+    }
+  
+  
+ }
+
 
 ev_t G4SBSEventGen::GetEventData(){
   ev_t data;
@@ -2111,6 +2597,11 @@ ev_t G4SBSEventGen::GetEventData(){
       
   // }
 
+  //TDIS
+  if( fKineType == kTDISKin ){ //Then fSigma is dsig/dOmega_e dE'_e dOmega_h dE'_h
+    thisrate = fSigmaDIS*fLumi*fGenVol/fNevt;
+  }
+  
   data.count  = thisrate*fRunTime;
   data.rate   = thisrate*second;
   //data.solang = genvol/fNevt; 
@@ -2131,7 +2622,7 @@ ev_t G4SBSEventGen::GetEventData(){
   }
   data.Aperp  = fAperp;
   data.Apar   = fApar;
-  data.Pt     = fPt;
+  data.Pt     = fPtTDIS;
   data.Pl     = fPl;
   data.W2     = fW2/(GeV*GeV);
   data.xbj    = fxbj;
@@ -2192,6 +2683,55 @@ ev_t G4SBSEventGen::GetEventData(){
       break;
     }
   }
+
+  // TDIS
+  if (fKineType == kTDISKin){
+    
+    data.xpi   = fxpi;
+    data.nu    = fnu/GeV;
+    data.y     = fy;
+    data.Q2    = fQ2/(GeV*GeV);
+    data.tpi   = ftpi/(GeV*GeV);
+    data.xa    = fxa;
+    data.pt    = fPtTDIS/GeV;
+    data.z     = fz;
+    data.xbj   = fxbj;
+    data.ypi   = fypi;
+    data.f2p   = ff2p;
+    data.f2pi  = ff2pi;
+    data.sigmaDIS = fSigmaDIS/cm2;
+    data.sigmaTDIS = fSigmaTDIS/cm2;
+    
+    
+    data.np  = fNeutronP.mag();
+    data.npx = fNeutronP.x();
+    data.npy = fNeutronP.y();
+    data.npz = fNeutronP.z();
+    data.nth = fNeutronP.theta()/rad;
+    data.nph = fNeutronP.phi()/rad;
+    
+    data.p1p  = fProton1P.mag();
+    data.p1px = fProton1P.x();
+    data.p1py = fProton1P.y();
+    data.p1pz = fProton1P.z();
+    data.p1th = fProton1P.theta()/rad;
+    data.p1ph = fProton1P.phi()/rad;
+    
+    data.p2p  = fProton2P.mag()/GeV;
+    data.p2px = fProton2P.x()/GeV;
+    data.p2py = fProton2P.y()/GeV;
+    data.p2pz = fProton2P.z()/GeV;
+    data.p2th = fProton2P.theta()/rad;
+    data.p2ph = fProton2P.phi()/rad;
+    
+    data.pip  = fHadronP.mag()/GeV;
+    data.pipx = fHadronP.x()/GeV;
+    data.pipy = fHadronP.y()/GeV;
+    data.pipz = fHadronP.z()/GeV;
+    data.pith = fHadronP.theta()/rad;
+    data.piph = fHadronP.phi()/rad;
+  }
+
   data.pmpar  = fPmisspar/GeV;
   data.pmparsm= fPmissparSm/GeV;
   data.pmperp = fPmissperp/GeV;
@@ -2350,6 +2890,36 @@ void G4SBSEventGen::InitializePythia6_Tree(){
   
   if( !fPythiaTree ){
     G4cout << "Failed to initialize PYTHIA6 tree, aborting... " << G4endl;
+    exit(-1);
+  }
+}
+
+//TDIS AcquMC
+void G4SBSEventGen::InitializeAcquMC_Tree(){
+
+  // TObjArray *FileList = fAcquMCChain->GetListOfFiles();
+  // TIter next(FileList);
+
+  // TChainElement *chEl = 0;
+
+  // TGraph *gtemp;
+  
+  // while( (chEl = (TChainElement*) next()) ){
+  //   TFile newfile(chEl->GetTitle(),"READ");
+  //   newfile.GetObject("graph_sigma",gtemp);
+
+  //   if( gtemp ){
+  //     fAcquMCSigma[chEl->GetTitle()] = (gtemp->GetY()[gtemp->GetN()-1])*millibarn;
+  //   } else {
+  //     fAcquMCSigma[chEl->GetTitle()] = 1.0*cm2; //
+  //   }
+  //   newfile.Close();
+  // }
+  
+  fAcquMCTree = new AcquMCTree( fAcquMCChain );
+  
+  if( !fAcquMCTree ){
+    G4cout << "Failed to initialize AcquMC tree, aborting... " << G4endl;
     exit(-1);
   }
 }

@@ -457,13 +457,20 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   //Target materials:
   double gasden = 10.5*atmosphere*(1.0079*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
-  G4Material *refH2 = new G4Material("refH2", gasden, 1 );
+  // G4Material *refH2 = new G4Material("refH2", gasden, 1 );
+  // double H2den = 1.2*atmosphere*(1.00794*2*g/Avogadro)/(90.0*kelvin*k_Boltzmann);
+  double H2den = 4.0*atmosphere*(1.00794*2*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
+  G4Material *refH2 = new G4Material("refH2", H2den, 1 );
+  
   refH2->AddElement(elH, 1);
 
   fMaterialsMap["refH2"] = refH2;
 
   gasden = 1.0*atmosphere*(2.0141*2*g/Avogadro)/(77*kelvin*k_Boltzmann);
-  G4Material *refD2 = new G4Material("refD2", gasden, 1 );
+  //G4Material *refD2 = new G4Material("refD2", gasden, 1 );
+  //double D2den = 1.2*atmosphere*(2.0141*2*g/Avogadro)/(90.0*kelvin*k_Boltzmann);
+  double D2den = 4.0*atmosphere*(2.0141*2*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
+  G4Material *refD2 = new G4Material("refD2", D2den, 1 );
   refD2->AddElement(elD, 1);
 
   fMaterialsMap["refD2"] = refD2;
@@ -489,27 +496,35 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   double LD2den = 162.4*kg/m3;
   G4Material *LD2mat = new G4Material("LD2", LD2den, 1 );
   LD2mat->AddElement(elD, 1);
-
+  
   fMaterialsMap["LD2"] = LD2mat;
   
   //TPC/future targets? material
-  G4double density_4He = 0.1*atmosphere*(4.0026*g/Avogadro)/(90*kelvin*k_Boltzmann);
+  //G4double density_4He = 0.1*atmosphere*(4.0026*g/Avogadro)/(90*kelvin*k_Boltzmann);
+  G4double density_4He = 1.0*atmosphere*(4.0026*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
   G4Material *ref4He = new G4Material("ref4He", density_4He, 1 );
   ref4He->AddElement(el4He, 1);
 
   fMaterialsMap["ref4He"] = ref4He;
   
-  G4double density_CH4 = 0.1*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(90*kelvin*k_Boltzmann);
+  //G4double density_CH4 = 0.1*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(90*kelvin*k_Boltzmann);
+  G4double density_CH4 = 1.0*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
   G4Material *CH4 = new G4Material("CH4", density_CH4, nel=2 );
   CH4->AddElement(elC, 1);
   CH4->AddElement(elH, 4);
 
+  G4cout << "H2 density (g/cm3) = " << refH2->GetDensity()/(g/cm3) 
+	 << ", D2 density (g/cm3) = " << refD2->GetDensity()/(g/cm3) 
+	 << ", 4He density (g/cm3) = " << ref4He->GetDensity()/(g/cm3) 
+	 << ", CH4 density (g/cm3) = " << CH4->GetDensity()/(g/cm3) 
+	 << G4endl;
+  
   fMaterialsMap["CH4"] = CH4;
 
-  G4double density_TPCgas = 0.9*density_4He+0.1*density_CH4;
+  G4double density_TPCgas = 0.7*density_4He+0.3*density_CH4;
   G4Material *TPCgas= new G4Material("TPCgas", density_TPCgas, nel=2);
-  TPCgas->AddMaterial(ref4He, 0.9*density_4He/density_TPCgas) ;
-  TPCgas->AddMaterial(CH4, 0.1*density_CH4/density_TPCgas) ;
+  TPCgas->AddMaterial(ref4He, 0.7*density_4He/density_TPCgas) ;
+  TPCgas->AddMaterial(CH4, 0.3*density_CH4/density_TPCgas) ;
 
   fMaterialsMap["TPCgas"] = TPCgas;
   

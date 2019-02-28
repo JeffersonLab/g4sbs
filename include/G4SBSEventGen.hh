@@ -14,6 +14,9 @@
 #include "TTree.h"
 #include "TChain.h"
 #include "Pythia6_tree.h"
+// TDIS Acqu MC
+#include "G4SBSAcquMCOutput.hh"
+#include "AcquMCTree.h"
 
 #define MAXMOMPT 1000 // N points for targets momentum distribution interpolations
 
@@ -35,6 +38,9 @@ public:
   G4ThreeVector GetElectronP(){ return fElectronP; }
   G4ThreeVector GetNucleonP(){ return fNucleonP; }
   G4ThreeVector GetHadronP(){ return fHadronP; }
+
+  // TDIS addition
+  G4ThreeVector PiMake();
  
   Nucl_t GetNucleonType(){ return fNuclType; }
   Nucl_t GetFinalNucleon(){ return fFinalNucl; }
@@ -104,7 +110,16 @@ public:
   
   void LoadPythiaChain(G4String fname);
   void SetExclPythiaXSOption(G4int XSOption){fExclPyXSoption = XSOption;}
-    
+
+  //TDIS AcquMC
+  void SetAcquMCEvent( G4SBSAcquMCOutput ev ){ fAcquMCEvent = ev; }
+  G4SBSAcquMCOutput GetAcquMCEvent(){ return fAcquMCEvent; }
+
+  AcquMCTree *GetAcquMCTree(){ return fAcquMCTree; }
+  TChain *GetAcquMCChain(){ return fAcquMCChain; }
+  
+  void LoadAcquMCChain(G4String fname);
+
   void Initialize();
 
   G4bool GetRejectionSamplingFlag(){ return fRejectionSamplingFlag; }
@@ -121,13 +136,19 @@ public:
   double GetMaxWeight(){ return fMaxWeight; }
 
   void InitializePythia6_Tree();
-  
+  //TDIS AcquMC
+  void InitializeAcquMC_Tree();
+
 private:
 
   void InitializeRejectionSampling(); //Make private so it can only be called by G4SBSEventGen::Initialize()
 
-  double fElectronE, fNucleonE, fHadronE, fBeamE;
-  G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
+  // double fElectronE, fNucleonE, fHadronE, fBeamE;
+  // TDIS addition
+  double fElectronE, fNucleonE, fHadronE, fBeamE, fNeutronE, fProton1E, fProton2E;
+  // G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
+  // TDIS addition
+  G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert, fNeutronP, fProton1P, fProton2P;
   G4ThreeVector fHadronP;
   G4ThreeVector fBeamPol;
   
@@ -143,6 +164,9 @@ private:
   
   //Define additional kinematic quantities for SIDIS:
   double fz, fPh_perp, fphi_h, fphi_S, fMx;
+
+  //Define additional kinematic quantities for TDIS
+  double fxpi, ftpi, fxd, fnu, fya, fy, ff2p, ff2pi, fxa, fPtTDIS, fypi, fSigmaDIS, fSigmaTDIS;
   
   double fBeamCur;
   double fRunTime;
@@ -165,6 +189,9 @@ private:
   double fTargLen, fRasterX, fRasterY, fTargDen;
   double fPmisspar, fPmissperp, fPmissparSm;
   double fHCALdist, fToFres;
+  //TDIS
+  double fphi;
+
 
   double fGenVol; //Phase space generation volume
   double fLumi;   //Luminosity
@@ -180,9 +207,12 @@ private:
   bool GenerateBeam( Nucl_t, G4LorentzVector, G4LorentzVector );
   
   bool GenerateSIDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateTDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
   bool GenerateWiser( Nucl_t, G4LorentzVector, G4LorentzVector );
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
+  // TDIS AcquMC
+  bool GenerateAcquMC(); //Generates primaries from a ROOT Tree containing AcquMC events.
   bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
 
   G4bool fRejectionSamplingFlag; //Flag to turn on rejection sampling;
@@ -194,7 +224,8 @@ private:
   
   double deutpdist( double );
   double he3pdist( Nucl_t, double );
-  
+  double f2p (double);
+  double f2pi (double, double, double);
   DSS2007FF fFragFunc; //Class to calculate fragmentation functions using DSS2007
 
   //void LoadTargetData(); //why is this here? Not implemented...
@@ -210,6 +241,14 @@ private:
   G4SBSPythiaOutput fPythiaEvent;
 
   G4int fExclPyXSoption; //Flag to choose "Exclusive pythia" event-by-event cross section events
+
+
+  // TDIS AcquMC
+  long fAcquMCchainentry;
+  TChain *fAcquMCChain;
+  AcquMCTree *fAcquMCTree;
+  G4SBSAcquMCOutput fAcquMCEvent;
+
 };
 
 #endif//G4SBSEVENTGEN_HH

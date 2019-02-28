@@ -91,8 +91,15 @@ G4SBSMessenger::G4SBSMessenger(){
   tgtCmd->SetParameterName("targtype", false);
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
-  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6");
+  // kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6");
+  // TDIS
+  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, tdiskin, AcquMC");
   kineCmd->SetParameterName("kinetype", false);
+
+  // TDIS
+  AcquMCfileCmd = new G4UIcmdWithAString("/g4sbs/acqumcfile",this);
+  AcquMCfileCmd->SetGuidance("Name of ROOT file containing AcquMC events as a ROOT tree");
+  AcquMCfileCmd->SetParameterName("fname",false);
 
   PYTHIAfileCmd = new G4UIcmdWithAString("/g4sbs/pythia6file",this);
   PYTHIAfileCmd->SetGuidance("Name of ROOT file containing PYTHIA6 events as a ROOT tree");
@@ -537,20 +544,40 @@ G4SBSMessenger::G4SBSMessenger(){
   // SolUniFieldMagCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/solunimag", this );
   SolUniFieldMagCmd = new G4UIcmdWithADouble("/g4sbs/solunimag", this );
   SolUniFieldMagCmd->SetGuidance("Set magnitude of uniform field for solenoid in tesla" );
-  SolUniFieldMagCmd->SetParameterName("UniformSolFieldMag" , false);
+  SolUniFieldMagCmd->SetParameterName("UniformSolFieldMag", false);
 
   SolTosFieldCmd = new G4UIcmdWithABool("/g4sbs/soltoscafield", this );
   SolTosFieldCmd->SetGuidance("Switch on tosca field for solenoid" );
-  SolTosFieldCmd->SetParameterName("ToscaSolField" , false);
+  SolTosFieldCmd->SetParameterName("ToscaSolField", false);
 
   SolTosFieldScaleCmd = new G4UIcmdWithADouble("/g4sbs/soltoscascale", this );
   SolTosFieldScaleCmd->SetGuidance("Scale the tosca field for solenoid" );
-  SolTosFieldScaleCmd->SetParameterName("ToscaSolFieldScale" , false);
+  SolTosFieldScaleCmd->SetParameterName("ToscaSolFieldScale", false);
 
   SolTosFieldOffsetCmd= new G4UIcmdWithADoubleAndUnit("/g4sbs/soltoscaoffset", this );
   SolTosFieldOffsetCmd->SetGuidance("Set offset of tosca field for solenoid in mm" );
   SolTosFieldOffsetCmd->SetGuidance("Requires hard coded sol_map_03.dat map" );
-  SolTosFieldOffsetCmd->SetParameterName("ToscaSolFieldOffset" , false);
+  SolTosFieldOffsetCmd->SetParameterName("ToscaSolFieldOffset", false);
+
+  mTPCHeGasRatioCmd = new G4UIcmdWithADouble("/g4sbs/mtpchegasratio", this );
+  mTPCHeGasRatioCmd->SetGuidance("Set the fraction of He in the mTPC gas mix. Default 0.9" );
+  mTPCHeGasRatioCmd->SetParameterName("mTPCHeGasRatio", false);
+
+  mTPCCH4GasRatioCmd = new G4UIcmdWithADouble("/g4sbs/mtpcch4gasratio", this );
+  mTPCCH4GasRatioCmd->SetGuidance("Set the fraction of CH4 in the mTPC gas mix. Default 0.1" );
+  mTPCCH4GasRatioCmd->SetParameterName("mTPCCH4GasRatio", false);
+
+  mTPCGasTempCmd = new G4UIcmdWithADouble("/g4sbs/mtpcgastemp", this );
+  mTPCGasTempCmd->SetGuidance("Set the temp of the mTPC gas mix in K. Default 296.15K" );
+  mTPCGasTempCmd->SetParameterName("mTPCGasTemp", false);
+
+  mTPCGasPressureCmd = new G4UIcmdWithADouble("/g4sbs/mtpcgaspressure", this );
+  mTPCGasPressureCmd->SetGuidance("Set the pressure of the mTPC gas mix in atm. Default 0.1atm" );
+  mTPCGasPressureCmd->SetParameterName("mTPCGasPressure", false);
+
+  mTPCTgtThickCmd = new G4UIcmdWithADouble("/g4sbs/mtpctargetthick", this );
+  mTPCTgtThickCmd->SetGuidance("Set the thickness of the mTPC gas target in mm. Default 0.1atm" );
+  mTPCTgtThickCmd->SetParameterName("mTPCTargetThickness", false);
 
   mTPCRoomTempCmd = new G4UIcmdWithABool("/g4sbs/setmtpcroomtemp", this );
   mTPCRoomTempCmd->SetGuidance("Set mTPC materials at room temp parameters" );
@@ -582,6 +609,14 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       }
       fevgen->InitializePythia6_Tree();
     }
+
+    // TDIS
+    if( fevgen->GetKine() == kAcquMC ){
+      if( fevgen->GetAcquMCChain()->GetEntries() < nevt ){
+	nevt = fevgen->GetAcquMCChain()->GetEntries();
+      }
+      fevgen->InitializeAcquMC_Tree();
+    }
     
     fevgen->SetNevents(nevt);
     fevgen->Initialize();
@@ -591,7 +626,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     // }
 
     Kine_t kinetype = fevgen->GetKine(); 
-    if( kinetype == kDIS || kinetype == kWiser ){ //Processes with xsec in units of area/energy/solid angle; i.e., nb/GeV/sr
+    if( kinetype == kDIS || kinetype == kWiser){ //Processes with xsec in units of area/energy/solid angle; i.e., nb/GeV/sr
       G4SBSRun::GetRun()->GetData()->SetGenVol( fevgen->GetGenVol()/GeV );
       //if( fevgen->GetRejectionSamplingFlag() ){
       G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 * GeV );
@@ -602,6 +637,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 * pow(GeV,2) );
       //}
     } else { //Processes with xsec differential in solid angle only:
+      // TDIS, think it is in solid angle only so in here is ok, but must check
       G4SBSRun::GetRun()->GetData()->SetGenVol( fevgen->GetGenVol() );
       //if( fevgen->GetRejectionSamplingFlag() ){
       G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 );
@@ -751,7 +787,20 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       //fevgen->SetMaxWeight( cm2 );
       validcmd = true;
     }
-
+    // TDIS addition
+    if (newValue.compareTo("tdiskin") == 0 ){
+      fevgen->SetKine(kTDISKin);
+      // fevgen->SetRejectionSamplingFlag(false);
+      //fevgen->SetMaxWeight( cm2 );
+      validcmd = true;
+    }
+    // TDIS AcquMC
+    if( newValue.compareTo("AcquMC") == 0 ){
+      fevgen->SetKine( kAcquMC );
+      fIO->SetUseAcquMC( true );
+      fevgen->SetRejectionSamplingFlag(false);
+      validcmd = true;
+    }
     if( !validcmd ){
       fprintf(stderr, "%s: %s line %d - Error: kinematic type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
       exit(1);
@@ -765,6 +814,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == PYTHIAfileCmd ){
     fevgen->LoadPythiaChain( newValue );
+  }
+  //TDIS AcquMC
+  if( cmd == AcquMCfileCmd ){
+    fevgen->LoadAcquMCChain( newValue );
   }
   
   if( cmd == exclPythiaXSoptCmd){
@@ -896,7 +949,9 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetTarget(kH2);
       fdetcon->SetTarget(kH2);
 
-      G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann); //Should this be hard-coded? I think not. On the other hand, this provides a sensible default value, soooo....
+      // G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann); //Should this be hard-coded? I think not. On the other hand, this provides a sensible default value, soooo....
+      // TDIS temp check
+      G4double den = 7.5*atmosphere/(300.0*kelvin*k_Boltzmann);
       fevgen->SetTargDen(den);
       fdetcon->fTargetBuilder->SetTargDen(den);
       validcmd = true;
@@ -905,7 +960,9 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetTarget(kD2);
       fdetcon->SetTarget(kD2);
 
-      G4double den = 1.0*atmosphere/(77.0*kelvin*k_Boltzmann);
+      // G4double den = 1.0*atmosphere/(77.0*kelvin*k_Boltzmann);
+      // TDIS temp check
+      G4double den = 7.5*atmosphere/(300.0*kelvin*k_Boltzmann);
       fevgen->SetTargDen(den);
       fdetcon->fTargetBuilder->SetTargDen(den);
       validcmd = true;
@@ -1535,7 +1592,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevgen->SetCosmicsMaxAngle( maxangle );
   }
 
-  // Commands related to solenoid of TPC
+  // Commands related to solenoid of mTPC, 
   if( cmd == SolUniFieldCmd ){
     G4bool soluniflag = SolUniFieldCmd->GetNewBoolValue(newValue);
     fdetcon->SetTPCSolenoidField();
@@ -1558,7 +1615,30 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double soltosoffset = SolTosFieldOffsetCmd->GetNewDoubleValue(newValue);
     fdetcon->fTargetBuilder->SetSolToscaOffset(soltosoffset);
   }
- 
+
+  //change mtpc sensitive gas settings
+  if( cmd == mTPCHeGasRatioCmd ){
+    G4double mTPCHeGasRatio = mTPCHeGasRatioCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetmTPCHeGasRatio(mTPCHeGasRatio);
+  }
+  if( cmd == mTPCCH4GasRatioCmd ){
+    G4double mTPCCH4GasRatio = mTPCCH4GasRatioCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetmTPCCH4GasRatio(mTPCCH4GasRatio);
+  }
+  if( cmd == mTPCGasTempCmd ){
+    G4double mTPCGasTemp = mTPCGasTempCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetmTPCGasTemp(mTPCGasTemp);
+  }
+  if( cmd == mTPCGasPressureCmd ){
+    G4double mTPCGasPressure = mTPCGasPressureCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetmTPCGasPressure(mTPCGasPressure);
+  }
+  // mtpc implementation target wall thickness
+  if( cmd == mTPCTgtThickCmd ){
+    G4double mTPCTgtThick = mTPCTgtThickCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetmTPCTgtWallThick(mTPCTgtThick);
+  }
+
   if( cmd == mTPCRoomTempCmd ){
     G4bool setroomtemp = mTPCRoomTempCmd->GetNewBoolValue(newValue);
     //fdetcon->fTargetBuilder->SetmTPCmatAtRoomTemp(setroomtemp);

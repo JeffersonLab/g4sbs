@@ -13,10 +13,11 @@
 enum Targ_t { kH2, kD2, kLH2, kLD2, k3He, kNeutTarg };
 enum Nucl_t { kProton, kNeutron };
 enum Hadron_t { kPiPlus, kPiMinus, kPi0, kKPlus, kKMinus, kP, kPbar}; //Hadron types for SIDIS event generator
-enum Kine_t { kElastic, kFlat, kInelastic, kDIS, kBeam, kSIDIS, kGun, kWiser, kPYTHIA6, kGMnElasticCheck, kCosmics};
+// enum Kine_t { kElastic, kFlat, kInelastic, kDIS, kBeam, kSIDIS, kGun, kWiser, kPYTHIA6, kGMnElasticCheck, kCosmics};
+enum Kine_t { kElastic, kFlat, kInelastic, kDIS, kBeam, kSIDIS, kGun, kWiser, kPYTHIA6, kGMnElasticCheck, kCosmics, kTDISKin, kAcquMC}; // TDIS
 enum Exp_t { kGEp, kNeutronExp, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS};
 enum Arm_t { kEarm, kHarm }; //Types for association of detector modules with spectrometer arms. Presently "E arm" and "H arm" are possible.
-enum SDet_t { kGEM, kCAL, kRICH, kECAL }; //Types of sensitive detectors (others to be added later)
+enum SDet_t { kGEM, kCAL, kRICH, kECAL, kmTPC }; //Types of sensitive detectors (others to be added later)
 
 struct filedata_t {
     char filename[__RUNSTR_LEN];

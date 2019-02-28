@@ -118,6 +118,13 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fGEMflip = false;
   //    TrackerIDnumber = 0;
   //TrackerArm.clear();
+
+  //mtpc glabal variables default values
+  fmTPCHeGasFraction = 0.9;//fraction of 1
+  fmTPCCH4GasFraction = 0.1;//fraction of 1
+  fmTPCGasTemp = 296.15;//K
+  fmTPCGasPressure = 1.0;//atm
+
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -294,6 +301,20 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //Air->SetMaterialPropertiesTable(Std_MPT);
 
   fMaterialsMap["Air"] = Air;
+
+  // Montgomery July 2018 gold for mtpc
+  G4Element* elAu  = man->FindOrBuildElement("Au");
+  G4Material *Au = man->FindOrBuildMaterial("G4_Au");
+  fMaterialsMap["Au"] = Au;
+  // bonus electronics readout board
+  double BonusPCBDen = 1.27*g/cm3;
+  G4Material* BonusPCB = new G4Material("BonusPCB", BonusPCBDen, 4 );
+  BonusPCB->AddElement(elH, 37);
+  BonusPCB->AddElement(elC, 24);
+  BonusPCB->AddElement(elO, 6);
+  BonusPCB->AddElement(elN, 2);
+  fMaterialsMap["BonusPCB"] = BonusPCB;
+
 
   G4Material *G4_polystyrene = man->FindOrBuildMaterial( "G4_POLYSTYRENE" );
   fMaterialsMap["POLYSTYRENE"] = G4_polystyrene;
@@ -475,6 +496,18 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["refD2"] = refD2;
 
+  // TDIS: ATM HARD CODE HIGHER PRESSURE BUT NEED TO MAKE THIS A MESSENGER OPTION
+  gasden = 4.0*atmosphere*(1.0079*2*g/Avogadro)/(300.0*kelvin*k_Boltzmann);
+  G4Material *mTPCH2 = new G4Material("mTPCH2", gasden, 1 );
+  mTPCH2->AddElement(elH, 1);
+  fMaterialsMap["mTPCH2"] = mTPCH2;
+
+  gasden = 4.0*atmosphere*(2.0141*2*g/Avogadro)/(300.0*kelvin*k_Boltzmann);
+  G4Material *mTPCD2 = new G4Material("mTPCD2", gasden, 1 );
+  mTPCD2->AddElement(elD, 1);
+  fMaterialsMap["mTPCD2"] = mTPCD2;
+  //
+
   gasden = 10.5*atmosphere*(14.0067*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
   G4Material *refN2 = new G4Material("refN2", gasden, 1 );
   refN2->AddElement(elN, 1);
@@ -527,7 +560,32 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   TPCgas->AddMaterial(CH4, 0.3*density_CH4/density_TPCgas) ;
 
   fMaterialsMap["TPCgas"] = TPCgas;
-  
+
+
+  // Adjustable mTPC gas
+  //mtpc glabal variables default values
+  fmTPCHeGasFraction = 0.9;//fraction of 1
+  fmTPCCH4GasFraction = 0.1;//fraction of 1
+  fmTPCGasTemp = 300.0;//296.15;//K
+  fmTPCGasPressure = 1.0;//atm
+  //He4
+  G4double density_mTPC_4He = fmTPCGasPressure*atmosphere*(4.0026*g/Avogadro)/(fmTPCGasTemp*kelvin*k_Boltzmann);
+  G4Material *refmTPC4He = new G4Material("refmTPC4He", density_mTPC_4He, 1 );
+  refmTPC4He->AddElement(el4He, 1);
+  fMaterialsMap["refmTPC4He"] = refmTPC4He;
+  //CH4
+  G4double density_mTPC_CH4 = fmTPCGasPressure*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(fmTPCGasTemp*kelvin*k_Boltzmann);
+  G4Material *mTPCCH4 = new G4Material("mTPCCH4", density_mTPC_CH4, nel=2 );
+  mTPCCH4->AddElement(elC, 1);
+  mTPCCH4->AddElement(elH, 4);
+  fMaterialsMap["mTPCCH4"] = mTPCCH4;
+  // He4 and CH4 mix
+  G4double density_mTPCgas = fmTPCHeGasFraction*density_mTPC_4He + fmTPCCH4GasFraction*density_mTPC_CH4;
+  G4Material *mTPCgas= new G4Material("mTPCgas", density_mTPCgas, nel=2);
+  mTPCgas->AddMaterial(refmTPC4He, fmTPCHeGasFraction*density_mTPC_4He/density_mTPCgas) ;
+  mTPCgas->AddMaterial(mTPCCH4, fmTPCCH4GasFraction*density_mTPC_CH4/density_mTPCgas) ;
+  fMaterialsMap["mTPCgas"] = mTPCgas;
+
   //Beamline materials:
   density = 2.5*g/cm3;
   G4Material *Concrete = new G4Material("Concrete",density,6);

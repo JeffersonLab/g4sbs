@@ -13,11 +13,13 @@
 
 #include "G4SBSEventGen.hh"
 #include "G4SBSCalHit.hh"
+#include "G4SBSmTPCHit.hh"
 #include "G4SBSGEMHit.hh"
 #include "G4SBSGEMSD.hh"
 #include "G4SBSCalSD.hh"
 #include "G4SBSRICHSD.hh"
 #include "G4SBSECalSD.hh"
+#include "G4SBSmTPCSD.hh"
 
 #include "G4Event.hh"
 #include "G4EventManager.hh"
@@ -54,17 +56,17 @@ G4SBSEventAction::G4SBSEventAction() : fEventStatusEvery(1000)
   // and one should ask *explicitely* to have it deactivated.
   // That would avoid to take 2TB (!!!!!!!!!) for a stupid beam background simulation !!!!
   fTreeFlag = 1;
-    fGEMres = 70.0*um;
-
-    // Load up resolution file if it exists
-
-    int idx;
-
-    for( idx = 0; idx < __MAXGEM; idx++ ){
-	fGEMsigma[idx] = 1.0;
-    }
-
-    SDlist.clear();
+  fGEMres = 70.0*um;
+  
+  // Load up resolution file if it exists
+  
+  int idx;
+  
+  for( idx = 0; idx < __MAXGEM; idx++ ){
+    fGEMsigma[idx] = 1.0;
+  }
+  
+  SDlist.clear();
 }
 
 G4SBSEventAction::~G4SBSEventAction()
@@ -72,55 +74,55 @@ G4SBSEventAction::~G4SBSEventAction()
 
 
 void G4SBSEventAction::LoadSigmas(const char filename[] ){
-    printf("Loading sigmas file %s\n", filename);
-    FILE *sigmafile = fopen(filename, "r");
-
-    int idx;
-    if( !sigmafile ){ 
-	printf("WARNING:  file %s not found.  Initializing to 1.0\n", filename);
-
-	for( idx = 0; idx < __MAXGEM; idx++ ){
-	    fGEMsigma[idx] = 1.0;
-	}
-	return;
+  printf("Loading sigmas file %s\n", filename);
+  FILE *sigmafile = fopen(filename, "r");
+  
+  int idx;
+  if( !sigmafile ){ 
+    printf("WARNING:  file %s not found.  Initializing to 1.0\n", filename);
+    
+    for( idx = 0; idx < __MAXGEM; idx++ ){
+      fGEMsigma[idx] = 1.0;
     }
-
-    int nread = 2;
-    int gemidx;
-
-    idx = 0;
-    while( nread == 2 ){
-	nread = fscanf(sigmafile, "%d%lf", &gemidx, &fGEMsigma[idx]);
-	if( nread==2 && idx+1 == gemidx){ idx++; }
-    }
-
     return;
+  }
+  
+  int nread = 2;
+  int gemidx;
+  
+  idx = 0;
+  while( nread == 2 ){
+    nread = fscanf(sigmafile, "%d%lf", &gemidx, &fGEMsigma[idx]);
+    if( nread==2 && idx+1 == gemidx){ idx++; }
+  }
+  
+  return;
 }
 
 
 void G4SBSEventAction::BeginOfEventAction(const G4Event*ev) {
-   if( (ev->GetEventID()%fEventStatusEvery)==0 ){
-     printf("Event %8d\r", ev->GetEventID());
-     fflush(stdout);
-   }
-
-    return;
+  if( (ev->GetEventID()%fEventStatusEvery)==0 ){
+    printf("Event %8d\r", ev->GetEventID());
+    fflush(stdout);
+  }
+  
+  return;
 }
 
 void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 {
-
+  
   G4SDManager * SDman = G4SDManager::GetSDMpointer();
-
+  
   //SDman->ListTree();
-
+  
   //Let's add some more sophisticated checks so we don't print warnings on every event for sensitive detectors that don't exist:
   // G4String GEMSDname = "G4SBS/GEM";
   // G4String BBCalSDname = "G4SBS/BBCal";
   // G4String HCalSDname = "G4SBS/HCAL";
   // G4String RICHSDname = "G4SBS/RICH";
   // G4String ECalSDname = "G4SBS/ECal";
-
+  
   // bool GEMSD_exists = false;
   // bool BBCalSD_exists = false;
   // bool HCALSD_exists = false;
@@ -128,20 +130,22 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   // bool ECalSD_exists = false;
   
   G4bool warn = false;
-
+  
   G4SBSGEMSD *GEMSDptr;
   G4SBSCalSD *CalSDptr;
   G4SBSRICHSD *RICHSDptr;
   G4SBSECalSD *ECalSDptr;
-
+  G4SBSmTPCSD *mTPCSDptr;
+  
   G4HCofThisEvent * HCE = evt->GetHCofThisEvent();
   G4SBSCalHitsCollection* calHC = 0;
   G4SBSGEMHitsCollection* gemHC = 0;
   G4SBSRICHHitsCollection *RICHHC = 0;
   G4SBSECalHitsCollection *ECalHC = 0;
-
+  G4SBSmTPCHitsCollection *mTPCHC = 0;
+  
   MapTracks(evt);
-
+  
   bool anyhits = false;
   bool has_earm_track=false;
   bool has_harm_track=false;
@@ -151,20 +155,21 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   //Loop over all sensitive detectors:
   for( set<G4String>::iterator d=SDlist.begin(); d!=SDlist.end(); d++ ){
     G4String colNam;
-
+    
     SDet_t Det_type = SDtype[*d];
     //Arm_t Det_arm = SDarm[d->first];
-
+    
     G4SBSGEMoutput gd;
     G4SBSTrackerOutput td;
     G4SBSCALoutput cd;
     G4SBSRICHoutput rd;
     G4SBSECaloutput ed;
-
+    G4SBSmTPCoutput md;
+    
     switch(Det_type){
     case kGEM:
       GEMSDptr = (G4SBSGEMSD*) SDman->FindSensitiveDetector( *d, false );
-
+      
       if( GEMSDptr != NULL ){
 	gemHC = (G4SBSGEMHitsCollection*) (HCE->GetHC(SDman->GetCollectionID(colNam=GEMSDptr->GetCollectionName(0))));
 	
@@ -242,6 +247,22 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	fIO->SetECalData( *d, ed );
 	
 	anyhits = (anyhits || ed.nhits_ECal > 0);
+      }
+      break;
+    case kmTPC:
+
+      mTPCSDptr = (G4SBSmTPCSD*) SDman->FindSensitiveDetector( *d, false );
+     
+
+      if( mTPCSDptr != NULL ){
+	mTPCHC = (G4SBSmTPCHitsCollection*) (HCE->GetHC(SDman->GetCollectionID(colNam=mTPCSDptr->GetCollectionName(0))));
+	
+	
+	FillmTPCData( evt, mTPCHC, md );
+	
+	fIO->SetmTPCData( *d, md );
+	
+	anyhits = (anyhits || md.nhits_mTPC > 0);
       }
       break;
     }
@@ -1320,6 +1341,361 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
   //   }
   // }
 }
+
+
+
+void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection *hits, G4SBSmTPCoutput &mtpcoutput ){
+  // at the moment this is COPIED FROM CAL output class
+  // Will tailor to mTPC after deciding what is actually required
+  // eg. complete step info might actually be useful, time ordering needed?
+  //The "CAL" output class provides two kinds of information: 
+  //1. Sum of energy deposition in a cell.
+  //2. List of all particles in a cell with track ids, pids, mids, coordinates, vertices, etc. (also momentum and energy deposition)
+  //3. Since the same particle can deposit energy in multiple cells, we have to consider this. 
+  //4. Multiple particles can deposit energy in the same cell. 
+  //5. We define a "hit" as the sum of all energy depositions in a cell per event, within a given time window that is the same for all physical placements of a given sensitive detector.
+  //6. Hopefully, the geometry has been defined in such a way that each cell has a unique ID number!
+
+  mtpcoutput.Clear();
+  // mtpcoutput.threshold = 0.0*eV;
+
+  //Is it reasonable to assume that all "hits" in a CalSD are chronologically ordered? Probably not, given the fact that large numbers of secondaries will be produced, and might be tracked before primary particles  
+  
+  set<int> CellList; //List of all unique cells with hits
+  map<int,vector<int> > steplist_cell; // list of all tracking steps in a cell
+  //map<int,vector<int> > steptidx_cell; // time-ordered list of tracking steps in cell
+  map<int,vector<int> > steplist_cell_timeordered; //key 1 = cell, key 2 = time ordering index, value = index in hit array
+  map<int,int> nsteps_cell;
+  map<int,vector<double> > xstep_cell, ystep_cell, zstep_cell, tstep_cell, edep_step_cell;
+  map<int,double> tmin_cell; 
+  // map<int,int> Rows; //Mapping between cells and rows
+  // map<int,int> Cols; //Mapping between cells and columns
+  // map<int,int> Planes;
+  // map<int,int> Wires; 
+  map<int,double> XCell; //Mapping between cells and x coordinates of cell centers (local)
+  map<int,double> YCell; //Mapping between cells and y coordinates of cell centers (local)
+  map<int,double> ZCell; //Mapping between cells and z coordinates of cell centers (local);
+  map<int,double> XCellG,YCellG,ZCellG; //Mapping between cells and xyz coordinates of cell centers (global).
+  map<int,int> nhits_cell; //Number of "hits" in a given cell:
+  map<int,vector<int> > nsteps_hit_cell;
+  map<int,vector<double> > xsum, ysum, zsum; //sum of local positions of tracks
+  map<int,vector<double> > xsumg, ysumg, zsumg; //sum of global positions of tracks
+  map<int,vector<double> > esum, t, t2, tmin, tmax;
+  map<int,set<int> > TrackIDs; //mapping between cells and a list of unique track IDs depositing energy in a cell
+  map<int,map<int,int> > nsteps_track; //counting number of steps on a track
+  map<int,map<int,double> > x,y,z,trt,E,trtmin,trtmax,L; //average coordinates, energy, path length for each unique track ID depositing energy in a cell:
+  map<int,map<int,double> > vx,vy,vz; //production vertex coordinates of each unique track ID depositing energy in a cell
+  map<int,map<int,int> > MID, PID; //mother ID and particle ID of unique tracks in each cell:
+  map<int,map<int,double> > p, px, py, pz, edep; //initial momentum and total energy deposition of unique tracks in each cell:
+  map<int,map<int,double> > ztravel; 
+  map<int,map<int,int> >  nstrips; 
+
+  //Loop over all hits; in this loop, we want to sort tracking steps within individual cells chronologically:
+  for( G4int hit=0; hit<hits->entries(); hit++ ){
+    std::pair<set<int>::iterator, bool> newcell = CellList.insert( (*hits)[hit]->GetCell() );
+    int cell = *(newcell.first);
+    std::pair<set<int>::iterator, bool> newtrack = TrackIDs[cell].insert( (*hits)[hit]->GetTrackID() );
+    int track = *(newtrack.first);
+    G4double Edep = (*hits)[hit]->GetEdep();
+    G4int pid = (*hits)[hit]->GetTrackPID();
+    G4double steptime = (*hits)[hit]->GetTime(); //global, since start of event:
+    
+    if( pid != 0 && Edep > 0.0 ){ //exclude optical photons and other non-physical particles
+    // if( Edep > 0.0 ){ //include optical photons and other non-physical particlesas these are above photo-ionization energies
+      //Global hit information:
+      if( newcell.second ){ //first hit in a new cell:
+	nsteps_cell[cell] = 1;
+	//nhits_cell[cell] = 1;
+	// Rows[cell] = (*hits)[hit]->GetRow();
+	// Cols[cell] = (*hits)[hit]->GetCol();
+	// Planes[cell] = (*hits)[hit]->GetPlane();
+	// Wires[cell] = (*hits)[hit]->GetWire();
+	XCell[cell] = (*hits)[hit]->GetCellCoord().x();
+	YCell[cell] = (*hits)[hit]->GetCellCoord().y();
+	ZCell[cell] = (*hits)[hit]->GetCellCoord().z();
+	XCellG[cell] = (*hits)[hit]->GetGlobalCellCoord().x();
+	YCellG[cell] = (*hits)[hit]->GetGlobalCellCoord().y();
+	ZCellG[cell] = (*hits)[hit]->GetGlobalCellCoord().z();
+
+	steplist_cell_timeordered[cell].push_back(hit);
+	
+      } else { //additional step in existing cell:
+	//double w = double(nsteps_cell[cell])/(double(nsteps_cell[cell]+1) );
+
+	//loop over list of existing steps, find the lowest index for which steptime < tstep_j
+	//G4int newstepindex = nsteps_cell[cell];
+	steplist_cell_timeordered[cell].push_back(hit);
+	G4int jidx = nsteps_cell[cell]-1;
+	G4int jhit = steplist_cell_timeordered[cell][jidx];
+	while( jidx >= 0 && steptime < (*hits)[jhit]->GetTime() ){
+	  //a hit at an earlier position in the array came later than this hit:
+	  steplist_cell_timeordered[cell][jidx] = hit;
+	  steplist_cell_timeordered[cell][jidx+1] = jhit;
+	  jidx--;
+	  if( jidx < 0 ) break;
+	  jhit =  steplist_cell_timeordered[cell][jidx];
+	}
+	tmin_cell[cell] = (*hits)[steplist_cell_timeordered[cell][0]]->GetTime();
+	nsteps_cell[cell]++;
+      }
+      //Track information:
+      if( newtrack.second ){ //new track in this cell:
+	nsteps_track[cell][track] = 1;
+	x[cell][track] = Edep * (*hits)[hit]->GetPos().x(); //local
+	y[cell][track] = Edep * (*hits)[hit]->GetPos().y(); //
+	z[cell][track] = Edep * (*hits)[hit]->GetPos().z(); 
+	trt[cell][track] = Edep * (*hits)[hit]->GetTime();
+	E[cell][track] = (*hits)[hit]->GetEnergy();
+	trtmin[cell][track] =  (*hits)[hit]->GetTime();
+	trtmax[cell][track] =  (*hits)[hit]->GetTime();
+	L[cell][track] = (*hits)[hit]->Getdx(); //path length
+	vx[cell][track] = (*hits)[hit]->GetVertex().x(); 
+	vy[cell][track] = (*hits)[hit]->GetVertex().y(); 
+	vz[cell][track] = (*hits)[hit]->GetVertex().z();
+	MID[cell][track] = (*hits)[hit]->GetMotherID();
+	PID[cell][track] = pid;
+	p[cell][track] = (*hits)[hit]->GetMom().mag();
+	px[cell][track] = (*hits)[hit]->GetMom().x();
+	py[cell][track] = (*hits)[hit]->GetMom().y();
+	pz[cell][track] = (*hits)[hit]->GetMom().z();
+	edep[cell][track] = Edep;
+	ztravel[cell][track] = (*hits)[hit]->GetZTravel();
+	nstrips[cell][track] = (*hits)[hit]->GetNStrips();
+      } else { //additional step in this cell:
+	//double w = double(nsteps_track[cell][track])/(double(nsteps_track[cell][track]+1) );
+	// x[cell][track] = w * x[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().x(); //local
+	// y[cell][track] = w * y[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().y();
+	// z[cell][track] = w * z[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().z();
+	// trt[cell][track] = w * trt[cell][track] + (1.0-w)*(*hits)[hit]->GetTime();
+	x[cell][track] += Edep * (*hits)[hit]->GetPos().x();
+	y[cell][track] += Edep * (*hits)[hit]->GetPos().y();
+	z[cell][track] += Edep * (*hits)[hit]->GetPos().z();
+	trt[cell][track] += Edep * (*hits)[hit]->GetTime();
+	if( (*hits)[hit]->GetTime() < trtmin[cell][track] ) trtmin[cell][track] = (*hits)[hit]->GetTime();
+	if( (*hits)[hit]->GetTime() > trtmax[cell][track] ) trtmax[cell][track] = (*hits)[hit]->GetTime();
+	L[cell][track] += (*hits)[hit]->Getdx();
+	edep[cell][track] += Edep;
+	ztravel[cell][track] += (*hits)[hit]->GetZTravel();
+	nstrips[cell][track] += (*hits)[hit]->GetNStrips();
+      }
+      
+    }
+  }
+  
+  set<int> TIDs_unique;
+  G4TrajectoryContainer *trajectorylist = evt->GetTrajectoryContainer(); //For particle history information:
+
+  //int hitindex=0;
+  //map<int, set<int> > tracklist_hit; 
+
+  // TClonesArray *histpstemp = fIO->PulseShape_histograms;
+  // TClonesArray *histesumtemp = fIO->Esum_histograms;
+  
+  // TH1F *hpstemp = ( (TH1F*) (*histpstemp)[fhistogram_index]);
+  // TH1F *hesumtemp = ( (TH1F*) (*histesumtemp)[fhistogram_index]);
+  
+  G4double esum_total = 0.0;
+  
+  //Now loop over all unique cells and tracks and fill Mtpcoutput data structure:
+  for( set<int>::iterator itcell=CellList.begin(); itcell != CellList.end(); itcell++ ){
+    int cell = *itcell;
+
+    vector<int> steplist = steplist_cell_timeordered[cell];
+
+    //int hitindex=-1;
+
+    nhits_cell[cell] = 0;
+
+    map<int,int> firsthit_track;
+    
+    for( int istep=0; istep<steplist.size(); istep++ ){
+      int jhit = steplist_cell_timeordered[cell][istep];
+      G4double tstep = (*hits)[jhit]->GetTime();
+      G4double estep = (*hits)[jhit]->GetEdep();
+      G4double xstep = (*hits)[jhit]->GetPos().x();
+      G4double ystep = (*hits)[jhit]->GetPos().y();
+      G4double zstep = (*hits)[jhit]->GetPos().z();
+      G4double xgstep = (*hits)[jhit]->GetLPos().x();
+      G4double ygstep = (*hits)[jhit]->GetLPos().y();
+      G4double zgstep = (*hits)[jhit]->GetLPos().z();
+      
+      G4int pid = (*hits)[jhit]->GetTrackPID();
+      G4int hitindex = nhits_cell[cell] > 0 ? nhits_cell[cell]-1 : 0;
+
+      G4int tidstep = (*hits)[jhit]->GetTrackID();
+      
+      // G4bool newhit = false;
+      
+      if( istep == 0 || (nhits_cell[cell] > 0 && tstep > tmin[cell][hitindex] + mtpcoutput.timewindow ) ){
+	//This is either the first hit or a tracking step that fell outside the timing window (i.e., "gate") defined for this SD:
+	nhits_cell[cell]++;
+	nsteps_hit_cell[cell].push_back( 1 );
+	//all quantities that are summed over the hit are energy-deposition-weighted:
+	xsumg[cell].push_back( xgstep*estep );
+	ysumg[cell].push_back( ygstep*estep );
+	zsumg[cell].push_back( zgstep*estep );
+
+	xsum[cell].push_back( xstep*estep );
+	ysum[cell].push_back( ystep*estep );
+	zsum[cell].push_back( zstep*estep );
+
+	esum[cell].push_back( estep );
+	t[cell].push_back( tstep*estep );
+	t2[cell].push_back( pow(tstep,2)*estep );
+	//tmin and tmax values are unweighted:
+	tmin[cell].push_back( tstep );
+	tmax[cell].push_back( tstep );
+      } else { //Add this step to the current hit:
+	xsumg[cell][hitindex] += estep * xgstep;
+	ysumg[cell][hitindex] += estep * ygstep;
+	zsumg[cell][hitindex] += estep * zgstep;
+
+	xsum[cell][hitindex] += estep * xstep;
+	ysum[cell][hitindex] += estep * ystep;
+	zsum[cell][hitindex] += estep * zstep;
+
+	esum[cell][hitindex] += estep;
+	t[cell][hitindex] += estep * tstep;
+	t2[cell][hitindex] += estep * pow(tstep,2);
+	tmin[cell][hitindex] = (tstep < tmin[cell][hitindex] ) ? tstep : tmin[cell][hitindex];
+	tmax[cell][hitindex] = (tstep > tmax[cell][hitindex] ) ? tstep : tmax[cell][hitindex];
+
+	nsteps_hit_cell[cell][hitindex]++;
+      }
+
+      // hpstemp->Fill( tstep - tmin[cell][hitindex], estep );
+      esum_total += estep;
+
+      firsthit_track.insert( std::pair<int,int>( tidstep, nhits_cell[cell]-1 ) );
+      
+      //tracklist_hit[nhits_cell[cell]-1].insert(tidstep);
+      
+    }
+
+    
+    //G4int ngoodhits=0;
+
+    map<int,int> goodhit_index;
+
+    // G4double esum_total = 0.0;
+    
+    for( int ihit=0; ihit<nhits_cell[cell]; ihit++ ){
+      if( esum[cell][ihit] >= mtpcoutput.threshold ){
+	//HitList[cell].insert( mtpcoutput.nhits_mTPC );
+	mtpcoutput.cell.push_back(cell);
+	// mtpcoutput.row.push_back(Rows[cell]);
+	// mtpcoutput.col.push_back(Cols[cell]);
+	// mtpcoutput.plane.push_back(Planes[cell]);
+	// mtpcoutput.wire.push_back(Wires[cell]);
+	mtpcoutput.xcell.push_back( XCell[cell]/_L_UNIT );
+	mtpcoutput.ycell.push_back( YCell[cell]/_L_UNIT );
+	mtpcoutput.zcell.push_back( ZCell[cell]/_L_UNIT );
+	mtpcoutput.xcellg.push_back( XCellG[cell]/_L_UNIT );
+	mtpcoutput.ycellg.push_back( YCellG[cell]/_L_UNIT );
+	mtpcoutput.zcellg.push_back( ZCellG[cell]/_L_UNIT );
+	mtpcoutput.sumedep.push_back( esum[cell][ihit]/_E_UNIT );
+
+	mtpcoutput.tavg.push_back( t[cell][ihit]/esum[cell][ihit]/_T_UNIT );
+	mtpcoutput.trms.push_back( sqrt( t2[cell][ihit]/esum[cell][ihit] - pow(t[cell][ihit]/esum[cell][ihit],2) )/_T_UNIT );
+	mtpcoutput.xhit.push_back( xsum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+	mtpcoutput.yhit.push_back( ysum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+	mtpcoutput.zhit.push_back( zsum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+
+	mtpcoutput.xhitg.push_back( xsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+	mtpcoutput.yhitg.push_back( ysumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+	mtpcoutput.zhitg.push_back( zsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+	
+	// mtpcoutput.tavg.push_back( t[cell]/_T_UNIT );
+	// mtpcoutput.trms.push_back( sqrt( t2[cell]/double(nsteps_cell[cell]) - pow(t[cell],2) )/_T_UNIT );
+	mtpcoutput.tmin.push_back( tmin[cell][ihit]/_T_UNIT );
+	mtpcoutput.tmax.push_back( tmax[cell][ihit]/_T_UNIT );
+
+	goodhit_index[ihit] = mtpcoutput.nhits_mTPC;
+	
+	mtpcoutput.nhits_mTPC++;
+      }
+
+      // esum_total += esum[cell][ihit];
+    }
+
+    if( mtpcoutput.nhits_mTPC > 0 ){
+      // hesumtemp->Fill( esum_total );
+    
+      mtpcoutput.Esum = esum_total/_E_UNIT;
+    } else {
+      mtpcoutput.Esum = -100.0;
+    }
+    
+    for( set<int>::iterator itrack = TrackIDs[cell].begin(); itrack != TrackIDs[cell].end(); itrack++ ){
+      int track = *itrack;
+
+      if( goodhit_index.find( firsthit_track[track] ) != goodhit_index.end() ){ //Track must be associated with at least one "GOOD" hit in this cell to be recorded:
+	
+	mtpcoutput.ihit.push_back( goodhit_index[firsthit_track[track]] );
+	mtpcoutput.x.push_back( x[cell][track]/edep[cell][track]/_L_UNIT );
+	mtpcoutput.y.push_back( y[cell][track]/edep[cell][track]/_L_UNIT );
+	mtpcoutput.z.push_back( z[cell][track]/edep[cell][track]/_L_UNIT );
+	mtpcoutput.t.push_back( trt[cell][track]/edep[cell][track]/_T_UNIT );
+	mtpcoutput.dt.push_back( (trtmax[cell][track] - trtmin[cell][track])/_T_UNIT );
+	mtpcoutput.E.push_back( E[cell][track]/_E_UNIT );
+	mtpcoutput.L.push_back( L[cell][track]/_L_UNIT );
+	mtpcoutput.vx.push_back( vx[cell][track]/_L_UNIT );
+	mtpcoutput.vy.push_back( vy[cell][track]/_L_UNIT );
+	mtpcoutput.vz.push_back( vz[cell][track]/_L_UNIT );
+	mtpcoutput.mid.push_back( MID[cell][track] );
+	mtpcoutput.pid.push_back( PID[cell][track] );
+	mtpcoutput.trid.push_back( track );
+	mtpcoutput.p.push_back( p[cell][track]/_E_UNIT );
+	mtpcoutput.px.push_back( px[cell][track]/_E_UNIT );
+	mtpcoutput.py.push_back( py[cell][track]/_E_UNIT );
+	mtpcoutput.pz.push_back( pz[cell][track]/_E_UNIT );
+	mtpcoutput.edep.push_back( edep[cell][track]/_E_UNIT );
+	mtpcoutput.ztravel.push_back( ztravel[cell][track]/_L_UNIT );
+	mtpcoutput.nstrips.push_back( nstrips[cell][track] );
+
+	mtpcoutput.npart_mTPC++;
+	
+	if( trajectorylist ){ //Fill Particle History, starting with the particle itself and working all the way back to primary particles:
+	  int MIDtemp = MID[cell][track];
+	  int TIDtemp = track;
+	  int PIDtemp = PID[cell][track];
+	  int hitidx = mtpcoutput.nhits_mTPC;
+	  int nbouncetemp = 0;
+	  do {
+	    G4Trajectory *trajectory = (G4Trajectory*) (*trajectorylist)[TrajectoryIndex[TIDtemp]];
+	    
+	    PIDtemp = trajectory->GetPDGEncoding();
+	    MIDtemp = MotherTrackIDs[TIDtemp];
+	    
+	    std::pair<set<int>::iterator, bool > newtrajectory = TIDs_unique.insert( TIDtemp );
+	    
+	    if( newtrajectory.second ){ //This trajectory does not yet exist in the particle history of this detector for this event. Add it:
+	      mtpcoutput.ParticleHistory.PID.push_back( PIDtemp );
+	      mtpcoutput.ParticleHistory.MID.push_back( MIDtemp );
+	      mtpcoutput.ParticleHistory.TID.push_back( TIDtemp );
+	      mtpcoutput.ParticleHistory.hitindex.push_back( hitidx ); //Of course, this means that if a trajectory is involved in multiple hits in this detector, this variable will point to the first hit encountered only!
+	      mtpcoutput.ParticleHistory.nbounce.push_back( nbouncetemp );
+	      mtpcoutput.ParticleHistory.vx.push_back( (trajectory->GetPoint(0)->GetPosition() ).x()/_L_UNIT );
+	      mtpcoutput.ParticleHistory.vy.push_back( (trajectory->GetPoint(0)->GetPosition() ).y()/_L_UNIT );
+	      mtpcoutput.ParticleHistory.vz.push_back( (trajectory->GetPoint(0)->GetPosition() ).z()/_L_UNIT );
+	      mtpcoutput.ParticleHistory.px.push_back( (trajectory->GetInitialMomentum() ).x()/_E_UNIT );
+	      mtpcoutput.ParticleHistory.py.push_back( (trajectory->GetInitialMomentum() ).y()/_E_UNIT );
+	      mtpcoutput.ParticleHistory.pz.push_back( (trajectory->GetInitialMomentum() ).z()/_E_UNIT );
+	      mtpcoutput.ParticleHistory.npart++;
+	    }
+	    
+	    TIDtemp = MIDtemp;
+	    
+	    nbouncetemp++;
+	    
+	  } while( MIDtemp != 0 );
+	}
+      }
+    }
+  }
+}
+
+
 
 void G4SBSEventAction::MapTracks( const G4Event *evt ){
 

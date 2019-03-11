@@ -4,6 +4,11 @@
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 project(G4SBS)
 
+#----------------------------------------------------------------------------
+# Force use of c++11 standard
+#
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions

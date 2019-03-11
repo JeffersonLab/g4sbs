@@ -1,0 +1,38 @@
+## Configure G4SBS for genrp (Q^2 = 4.5 GeV^2)
+/g4sbs/filename        genrp_4.5GeV2_conf1.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             genrp
+
+## Configure the target
+/g4sbs/target          LD2
+/g4sbs/targlen         10.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/beamcur         44 muA
+/g4sbs/beamE           4.4 GeV
+/g4sbs/thmin           31.9 deg
+/g4sbs/thmax           51.9 deg
+/g4sbs/phmin           -30 deg
+/g4sbs/phmax           30 deg
+
+## Configure standard detector settings
+/g4sbs/hcaldist        8.5 m
+/g4sbs/hcalvoffset     0.00 m
+/g4sbs/sbsclampopt     3                 ## Front field clamp only
+
+## Configure GEn-RP analyzer
+/g4sbs/genrpAnalyzer 1
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/48d48field      1
+/g4sbs/bbang           41.9 deg
+/g4sbs/bbdist          1.55 m
+/g4sbs/sbsang          24.7 deg
+/g4sbs/48D48dist       2.25 m
+/g4sbs/sbsmagfield     1.71 tesla
+
+## Run 100 events
+/g4sbs/run             50000

@@ -1,5 +1,5 @@
 ## Configure G4SBS for genrp (Q^2 = 4.5 GeV^2)
-/g4sbs/filename        genrp_4.5GeV2_conf1.root   ## Output rootfile
+/g4sbs/filename        genrp_4.5GeV2_conf3.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             genrp
@@ -23,7 +23,7 @@
 /g4sbs/sbsclampopt     3                 ## Front field clamp only
 
 ## Configure GEn-RP analyzer
-/g4sbs/genrpAnalyzer 1
+/g4sbs/genrpAnalyzer 3
 
 ## Configure the magnets
 /g4sbs/bbfield         1
@@ -35,4 +35,4 @@
 /g4sbs/sbsmagfield     1.71 tesla
 
 ## Run 100 events
-/g4sbs/run             50000
+/g4sbs/run             10000

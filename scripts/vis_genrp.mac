@@ -23,7 +23,7 @@
 /g4sbs/sbsclampopt     3                 ## Front field clamp only
 
 ## Configure GEn-RP analyzer
-/g4sbs/genrpAnalyzer 1
+/g4sbs/genrpAnalyzer 3
 
 ## Configure the magnets
 /g4sbs/bbfield         1

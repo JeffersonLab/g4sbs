@@ -96,6 +96,7 @@ set(G4SBS_SCRIPTS
   scripts/gmn_10.2GeV2.mac
   scripts/gmn_12GeV2.mac
   scripts/gmn_13.5GeV2.mac
+  scripts/genrp_4.5GeV2.mac
   scripts/gep_5GeV2.mac
   scripts/gep_8GeV2.mac
   scripts/gep_12GeV2.mac
@@ -106,6 +107,7 @@ set(G4SBS_SCRIPTS
   scripts/vis_gep.mac
   scripts/vis_gmn.mac
   scripts/vis_a1n.mac
+  scripts/vis_genrp.mac
   scripts/preinit_ckov_scint.mac
   scripts/preinit_ckov_noscint.mac
   scripts/preinit_nockov_scint.mac

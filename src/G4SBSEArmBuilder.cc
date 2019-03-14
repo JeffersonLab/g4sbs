@@ -112,7 +112,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   //  The neutron experiments and the SIDIS experiment use BigBite:
   //------------ BigBite: -----------------------------------------------------
-  if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kA1n  || exptype == kTDIS ) 
+  if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kA1n  || exptype == kTDIS || exptype == kGEnRP ) 
     {
       MakeBigBite( worldlog );
       if(fBuildBBSieve)
@@ -134,7 +134,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       ECal->BuildComponent(worldlog);
       //MakeC16( worldlog );
     }
-  if( exptype == kNeutronExp )  MakeGMnGEMShielding( worldlog );
+  if( exptype == kNeutronExp || exptype == kGEnRP )  MakeGMnGEMShielding( worldlog );
   
   if( exptype == kNDVCS ){
     MakeDVCSECal(worldlog);

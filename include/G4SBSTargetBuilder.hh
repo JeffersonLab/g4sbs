@@ -64,6 +64,7 @@ public:
 
   //mTPC functions
   void SetmTPCTgtWallThick(double thickness){ftdis_tgt_wallthick = thickness;};
+  void SetmTPCkrypto(bool iskrypto){fmTPCkrypto = iskrypto;};
 
 
   //void SetmTPCmatAtRoomTemp(bool set){};
@@ -117,6 +118,7 @@ private:
   G4double fmTPC_gap_readoutGEM;
   G4double fmTPC_gap_GEMGEM;
   //GasSettings
+  G4bool fmTPCkrypto;
 
 
 };

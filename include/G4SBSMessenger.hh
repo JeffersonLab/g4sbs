@@ -222,6 +222,8 @@ private:
   G4UIcmdWithADouble *mTPCGasPressureCmd;
   G4UIcmdWithADouble *mTPCTgtThickCmd;
 
+  G4UIcmdWithABool *mTPCkryptoCmd;
+
   G4UIcmdWithABool *mTPCRoomTempCmd;
   G4UIcmdWithADoubleAndUnit *TDIStgtWallThickCmd;
 };

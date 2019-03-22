@@ -86,6 +86,7 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fmTPC_gap_readoutGEM = 0.001*mm;
   fmTPC_gap_GEMGEM = 0.001*mm;
 
+  fmTPCkrypto = false;//by default
 }
 
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
@@ -2088,7 +2089,7 @@ void G4SBSTargetBuilder::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtp
     new G4LogicalVolume(mTPCouterwall2_solid, GetMaterial("Kapton"),"mTPCouterwall2_log");
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mtpczpos), mTPCouterwall2_log,
   		    "mTPCouterwall2_phys", motherlog, false, 0);
-
+  if(fmTPCkrypto)mTPCouterwall2_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
 
   //Visualization attributes:
   G4VisAttributes *mtpc_kaptonboudary_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0) );
@@ -2134,6 +2135,7 @@ void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double 
     mTPCReadoutDisc_log = new G4LogicalVolume(mTPCReadoutDisc_solid, GetMaterial("BonusPCB"),"mTPCReadoutDisc_log");    
     // NB IN GEMC IMPLEMENTATION THIS IS KRYPTONITE, IE TRACK IS STOPPED AND NO SECONDARIES - NEED TO SORT THIS
     // FOR MOMENT PUT AS BONUS PCB MATERIAL, TOOK FROM MATERIALS IN GEMC
+    if(fmTPCkrypto)mTPCReadoutDisc_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mTPC_zpos), mTPCReadoutDisc_log, "mTPCReadoutDisc_phys", motherlog, false, incCell);
     mTPCReadoutDisc_log->SetVisAttributes( mtpc_readout_visatt );
 
@@ -2161,7 +2163,9 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
   //NB MUST CHECK, IN GEMC THE GEMS ARE KRYPTONITE IE PARTICLES STOPPED WHEN ENTERRING AND NO SECONDARIES
   // FOR MOMENT DO CU, KAPTON, CU
   // SHOULD IMPLEMENT EQUIVALENT SO THAT TRACK STOPS AT END OF CELL
-
+  G4Tubs* mTPCGEMfoil_solid;
+  G4LogicalVolume* mTPCGEMfoil_log;
+  
   G4Tubs* mTPCGEMSurf1_solid; 
   G4LogicalVolume* mTPCGEMSurf1_log;
   G4Tubs* mTPCGEMDielec_solid; 
@@ -2178,6 +2182,42 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
 
   int counter = -1;
 
+  G4String mTPCGEMfoil_solidname = "mTPCGEMfoil_solid";
+  G4String mTPCGEMfoil_logname = "mTPCGEMfoil_log";
+  G4String mTPCGEMfoil_physname = "mTPCGEMfoil_phys";
+  mTPCGEMfoil_solid = new G4Tubs(mTPCGEMfoil_solidname, mtpcinnerR, mtpcouterR, (fmTPC_gem_surf1thick+fmTPC_gem_dielecthick+fmTPC_gem_surf2thick)/2.0, 0.*deg, 360.*deg);
+  mTPCGEMfoil_log = new G4LogicalVolume(mTPCGEMfoil_solid, GetMaterial("Air"),mTPCGEMfoil_logname);    
+  double zpossurf1 = -(fmTPC_gem_surf1thick+fmTPC_gem_dielecthick)/2.;
+  G4String mTPCGEMSurf1_solidname = "mTPCGEMSurf1_solid";
+  G4String mTPCGEMSurf1_logname = "mTPCGEMSurf1_log";
+  G4String mTPCGEMSurf1_physname = "mTPCGEMSurf1_phys";
+  mTPCGEMSurf1_solid = new G4Tubs(mTPCGEMSurf1_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf1thick/2.0, 0.*deg, 360.*deg);
+  mTPCGEMSurf1_log = new G4LogicalVolume(mTPCGEMSurf1_solid, GetMaterial("Copper"),mTPCGEMSurf1_logname);    
+  //place "surf1" into "foil"
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, mTPCGEMfoil_log, false,0);    
+  mTPCGEMSurf1_log->SetVisAttributes( mtpc_gem_visatt );
+  
+  double zposdielec = 0.0;
+  G4String mTPCGEMDielec_solidname = "mTPCGEMDielec_solid";
+  G4String mTPCGEMDielec_logname = "mTPCGEMDielec_log";
+  G4String mTPCGEMDielec_physname = "mTPCGEMDielec_phys";
+  mTPCGEMDielec_solid = new G4Tubs(mTPCGEMDielec_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_dielecthick/2.0, 0.*deg, 360.*deg);
+  mTPCGEMDielec_log = new G4LogicalVolume(mTPCGEMDielec_solid, GetMaterial("Kapton"),mTPCGEMDielec_logname);    
+  //place "dielec" into "foil"
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposdielec), mTPCGEMDielec_log, mTPCGEMDielec_physname, mTPCGEMfoil_log, false,0);
+  mTPCGEMDielec_log->SetVisAttributes( mtpc_gem_visatt );
+  
+  double zpossurf2 = +(fmTPC_gem_surf2thick+fmTPC_gem_dielecthick)/2.;
+  G4String mTPCGEMSurf2_solidname = "mTPCGEMSurf2_solid";
+  G4String mTPCGEMSurf2_logname = "mTPCGEMSurf2_log";
+  G4String mTPCGEMSurf2_physname = "mTPCGEMSurf2_phys";
+  mTPCGEMSurf2_solid = new G4Tubs(mTPCGEMSurf2_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf2thick/2.0, 0.*deg, 360.*deg);
+  mTPCGEMSurf2_log = new G4LogicalVolume(mTPCGEMSurf2_solid, GetMaterial("Copper"),mTPCGEMSurf2_logname);    
+  //place "surf2" into "foil"
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf2), mTPCGEMSurf2_log, mTPCGEMSurf2_physname, mTPCGEMfoil_log, false,0);    
+  mTPCGEMSurf2_log->SetVisAttributes( mtpc_gem_visatt );
+  if(fmTPCkrypto)mTPCGEMfoil_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+  
   // loop over each cell/chamber of mTPC
   for(int incCell=0; incCell<fmTPC_Ncells; incCell++){
 
@@ -2193,6 +2233,20 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
     // now loop over how many GEMs per cell
     for(int incGEM=0; incGEM<fmTPC_Ngems; incGEM++){
       counter++;
+      //first, place the "GEM foil" - the master volume which will contain all the others - easier to handle stuff such as 
+      double zposfoil = 0.0;
+      if(incCell % 2 == 0){
+	zposfoil = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick/2.0
+	  + incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      }
+      else{
+	zposfoil = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick - fmTPC_gem_dielecthick/2.0
+	  - incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      }
+      
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposfoil), mTPCGEMfoil_log, mTPCGEMfoil_physname, motherlog, false,counter);
+      
+      /*
       // first conducting surface of GEM
       double zpossurf1 = 0.0;
       if(incCell % 2 == 0){
@@ -2208,6 +2262,8 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
       G4String mTPCGEMSurf1_physname = "mTPCGEMSurf1_phys";
       mTPCGEMSurf1_solid = new G4Tubs(mTPCGEMSurf1_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf1thick/2.0, 0.*deg, 360.*deg);
       mTPCGEMSurf1_log = new G4LogicalVolume(mTPCGEMSurf1_solid, GetMaterial("Copper"),mTPCGEMSurf1_logname);    
+      //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, motherlog, false,counter);
+      //place "surf1" into "foil"
       new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, motherlog, false,counter);
       mTPCGEMSurf1_log->SetVisAttributes( mtpc_gem_visatt );
       
@@ -2246,7 +2302,7 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
       mTPCGEMSurf2_log = new G4LogicalVolume(mTPCGEMSurf2_solid, GetMaterial("Copper"),mTPCGEMSurf2_logname);    
       new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf2), mTPCGEMSurf2_log, mTPCGEMSurf2_physname, motherlog, false, counter);
       mTPCGEMSurf2_log->SetVisAttributes( mtpc_gem_visatt );
-      
+      */
      // gaps between gems, but not last one which is flush with end of cell
       if(incGEM != (fmTPC_Ngems-1)){
 	double zposgap = 0.0;

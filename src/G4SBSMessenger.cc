@@ -579,6 +579,10 @@ G4SBSMessenger::G4SBSMessenger(){
   mTPCTgtThickCmd->SetGuidance("Set the thickness of the mTPC gas target in mm. Default 0.1atm" );
   mTPCTgtThickCmd->SetParameterName("mTPCTargetThickness", false);
 
+  mTPCkryptoCmd = new G4UIcmdWithABool("/g4sbs/mtpckrypto", this );
+  mTPCkryptoCmd->SetGuidance("Set mTPC RO and GEMs as full absorbers" );
+  mTPCkryptoCmd->SetParameterName("mTPCkrypto", false);
+
   mTPCRoomTempCmd = new G4UIcmdWithABool("/g4sbs/setmtpcroomtemp", this );
   mTPCRoomTempCmd->SetGuidance("Set mTPC materials at room temp parameters" );
   mTPCRoomTempCmd->SetParameterName("SetmTPCroomTemp" , false);
@@ -1637,6 +1641,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == mTPCTgtThickCmd ){
     G4double mTPCTgtThick = mTPCTgtThickCmd->GetNewDoubleValue(newValue);
     fdetcon->fTargetBuilder->SetmTPCTgtWallThick(mTPCTgtThick);
+  }
+
+  if( cmd == mTPCkryptoCmd ){
+    G4bool setmtpckrypto = mTPCkryptoCmd->GetNewBoolValue(newValue);
+    fdetcon->fTargetBuilder->SetmTPCkrypto(setmtpckrypto);
   }
 
   if( cmd == mTPCRoomTempCmd ){

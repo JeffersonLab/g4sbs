@@ -1,16 +1,16 @@
 #/control/execute scripts/sidis_template.mac
 /control/execute scripts/gep_12GeV2_template.mac
-/g4sbs/kine pythia6
-/g4sbs/pythia6file pythia11gev_job1.root
+#/g4sbs/kine pythia6
+#/g4sbs/pythia6file pythia11gev_job1.root
 #/g4sbs/kine elastic
 /g4sbs/uselead 1
 # start with wide-open cuts:
-/g4sbs/thmin 0 deg
-/g4sbs/thmax 180 deg
-/g4sbs/phmin -180 deg
-/g4sbs/phmax 180 deg
-/g4sbs/eemin 0. GeV
-/g4sbs/eemax 15. GeV
+#/g4sbs/thmin 0 deg
+#/g4sbs/thmax 180 deg
+#/g4sbs/phmin -180 deg
+#/g4sbs/phmax 180 deg
+#/g4sbs/eemin 0. GeV
+#/g4sbs/eemax 15. GeV
 #/g4sbs/keephistory Harm/FT true
 #/g4sbs/keephistory Harm/FPP1 1
 #/g4sbs/keephistory Harm/FPP2 0
@@ -94,8 +94,8 @@
 /g4sbs/run  0
 
 #/vis/geometry/set/visibility RICHbox_log -1 0
-/vis/geometry/set/visibility lHCalo -1 0
-/vis/geometry/set/visibility earm_mother_log -1 0
+#/vis/geometry/set/visibility lHCalo -1 0
+#/vis/geometry/set/visibility earm_mother_log -1 0
 /vis/geometry/set/forceWireframe bigcoil_log -1 1
 /vis/geometry/set/forceWireframe woundcoil_log -1 1
 /vis/geometry/set/forceWireframe bigcoilthr_log -1 1

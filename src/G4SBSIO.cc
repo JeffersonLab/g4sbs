@@ -12,6 +12,8 @@
 #include "G4SBSIO.hh"
 #include "G4SBSCalSD.hh"
 #include "G4SBSmTPCSD.hh"
+#include "G4SBSEArmBuilder.hh"
+#include "G4SBSHArmBuilder.hh"
 //#include "G4SDManager.hh"
 #include <assert.h>
 #include "sbstypes.hh"
@@ -23,6 +25,14 @@ G4SBSIO::G4SBSIO(){
     strcpy(fFilename, "g4sbsout.root");
     fFile = NULL;
 
+    //Sometimes these default parameters don't match what was actually used in simulation if certain commands
+    //aren't invoked. Moreover, these default values don't match the default values in
+    //G4SBSDetectorConstruction, G4SBSEarmBuilder, G4SBSHArmBuilder, etc.
+    //Therefore, if commands aren't invoked, these defaults can be wrong/misleading.
+    //In principle the best way to make sure there is one consistent set of default values is to grab this
+    //information from the G4SBSDetectorConstruction whenever it changes!
+    //Easiest (but not necessarily best?) way is to store a pointer to G4SBSIO as a data member of G4SBSDetectorConstruction so they can
+    //directly talk to each other?
     gendata.Ebeam = 2.2;
     gendata.thbb = 40.0*CLHEP::deg;
     gendata.dbb = 1.5;
@@ -774,3 +784,18 @@ void G4SBSIO::BranchAcquMC(){
   fTree->Branch("AcquMCPrimaries.pid",&(AcquMCPrimaries.pid),"AcquMCPrimaries.pid/I");
 }
 
+void G4SBSIO::UpdateGenDataFromDetCon(){ //Go with whatever is in fdetcon as of run start for constant parameters of the run describing detector layout:
+  gendata.thbb = fdetcon->fEArmBuilder->fBBang;
+  gendata.dbb  = fdetcon->fEArmBuilder->fBBdist/CLHEP::m;
+  gendata.thsbs = fdetcon->fHArmBuilder->f48D48ang;
+  gendata.dsbs  = fdetcon->fHArmBuilder->f48D48dist/CLHEP::m;
+  gendata.dhcal = fdetcon->fHArmBuilder->fHCALdist/CLHEP::m;
+  gendata.voffhcal = fdetcon->fHArmBuilder->fHCALvertical_offset/CLHEP::m;
+  gendata.hoffhcal = fdetcon->fHArmBuilder->fHCALhorizontal_offset/CLHEP::m;
+  gendata.dlac = fdetcon->fHArmBuilder->fLACdist/CLHEP::m;
+  gendata.vofflac = fdetcon->fHArmBuilder->fLACvertical_offset/CLHEP::m;
+  gendata.hofflac = fdetcon->fHArmBuilder->fLAChorizontal_offset/CLHEP::m;
+  gendata.drich = fdetcon->fHArmBuilder->fRICHdist/CLHEP::m;
+  gendata.dsbstrkr = fdetcon->fHArmBuilder->fSBS_tracker_dist/CLHEP::m;
+  gendata.sbstrkrpitch = fdetcon->fHArmBuilder->fSBS_tracker_pitch; //radians
+}

@@ -112,7 +112,7 @@ G4SBSMessenger::G4SBSMessenger(){
   exclPythiaXSoptCmd->SetParameterName("exclpyXSopt", false);
 
   expCmd = new G4UIcmdWithAString("/g4sbs/exp",this);
-  expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis, C16, tdis, ndvcs");
+  expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis, C16, tdis, ndvcs, genrp");
   expCmd->SetParameterName("exptype", false);
   
   GunParticleCmd = new G4UIcmdWithAString("/g4sbs/particle",this);
@@ -363,6 +363,14 @@ G4SBSMessenger::G4SBSMessenger(){
   RICHdistCmd->SetGuidance("SBS RICH distance from target");
   RICHdistCmd->SetParameterName("dist",false);
 
+  RICHhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/richhoffset",this);
+  RICHhoffsetCmd->SetGuidance("SBS RICH horizontal offset (wrt SBS axis, + = toward beamline)");
+  RICHhoffsetCmd->SetParameterName("hoffset",false);
+
+  RICHvoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/richvoffset",this);
+  RICHvoffsetCmd->SetGuidance("SBS RICH vertical offset (wrt SBS axis, + = up)");
+  RICHvoffsetCmd->SetParameterName("voffset",false);
+  
   RICHaeroCmd = new G4UIcmdWithABool("/g4sbs/userichaero",this);
   RICHaeroCmd->SetGuidance("Toggle use of RICH aerogel (default = true)" );
   RICHaeroCmd->SetParameterName("useaero",true);
@@ -391,6 +399,10 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSLeadOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/uselead",this);
   SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
   SBSLeadOptionCmd->SetParameterName("uselead",false);
+
+  GENRPAnalyzerOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/genrpAnalyzer",this);
+  GENRPAnalyzerOptionCmd->SetGuidance("GEnRP Analyzer configuration: 0=none+no beamline PR; 1=none, 2=Cu+Gla(para), 3=Cu+Gla(perp), 4=Cu+CGEN");
+  GENRPAnalyzerOptionCmd->SetParameterName("genrpAnalyzer",false);
 
   GEPFPP1_CH2thickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/FPP1CH2thick",this);
   GEPFPP1_CH2thickCmd->SetGuidance("CH2 thickness for first analyzer (GEP only)");
@@ -842,6 +854,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("gen") == 0 ){
       fExpType = kNeutronExp;
+      validcmd = true;
+    }
+    if( newValue.compareTo("genrp") == 0 ){
+      fExpType = kGEnRP;
       validcmd = true;
     }
     if( newValue.compareTo("a1n") == 0 ){
@@ -1364,6 +1380,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fIO->SetRICHDist( v );
   }
 
+  if( cmd == RICHhoffsetCmd ){
+    G4double v = RICHhoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetRICHHoffset( v );
+  }
+
+  if( cmd == RICHvoffsetCmd ){
+    G4double v = RICHvoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetRICHVoffset( v );
+  }
+
   if( cmd == RICHaeroCmd ){
     G4bool b = RICHaeroCmd->GetNewBoolValue(newValue);
     fdetcon->fHArmBuilder->SetRICH_use_aerogel( b );
@@ -1408,6 +1434,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == SBSLeadOptionCmd ){
     G4int i = SBSLeadOptionCmd->GetNewIntValue(newValue);
     fdetcon->fLeadOption = i;
+  }
+
+  if( cmd == GENRPAnalyzerOptionCmd ){
+    G4int i = GENRPAnalyzerOptionCmd->GetNewIntValue(newValue);
+    fdetcon->fHArmBuilder->SetGENRPAnalyzerOption(i);
   }
 
   if( cmd == GEPFPP1_CH2thickCmd ){

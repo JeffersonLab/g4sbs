@@ -150,6 +150,8 @@ private:
   
   // Commands needed to specify RICH positioning:
   G4UIcmdWithADoubleAndUnit *RICHdistCmd; //Set RICH distance
+  G4UIcmdWithADoubleAndUnit *RICHhoffsetCmd; //Set RICH horizontal offset
+  G4UIcmdWithADoubleAndUnit *RICHvoffsetCmd; //Set RICH vertical offset
   G4UIcmdWithABool          *RICHaeroCmd; //Toggle use of RICH aerogel
   
   // Commands to set configurable properties of SBS:
@@ -162,6 +164,7 @@ private:
   G4UIcmdWithAnInteger      *SBSFieldClampOptionCmd;
   G4UIcmdWithAnInteger      *SBSBeamlineConfCmd;
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
+  G4UIcmdWithAnInteger      *GENRPAnalyzerOptionCmd;
 
   G4UIcmdWithADoubleAndUnit  *GEPFPP1_CH2thickCmd;
   G4UIcmdWithADoubleAndUnit  *GEPFPP2_CH2thickCmd;

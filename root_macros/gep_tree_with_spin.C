@@ -7,12 +7,12 @@
 void gep_tree_with_spin::Loop()
 {
 //   In a ROOT session, you can do:
-//      Root > .L gep_tree_with_spin.C
-//      Root > gep_tree_with_spin t
-//      Root > t.GetEntry(12); // Fill t data members with entry number 12
-//      Root > t.Show();       // Show values of entry 12
-//      Root > t.Show(16);     // Read and show values of entry 16
-//      Root > t.Loop();       // Loop on all entries
+//      root> .L gep_tree_with_spin.C
+//      root> gep_tree_with_spin t
+//      root> t.GetEntry(12); // Fill t data members with entry number 12
+//      root> t.Show();       // Show values of entry 12
+//      root> t.Show(16);     // Read and show values of entry 16
+//      root> t.Loop();       // Loop on all entries
 //
 
 //     This is the loop skeleton where:

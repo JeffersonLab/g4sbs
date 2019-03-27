@@ -1,0 +1,53 @@
+## Configure G4SBS for gep (Q^2 = 12 GeV^2)
+/g4sbs/filename        gep_12GeV2_protongun_Pz.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gep
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         40.0 cm           ## Target Length
+
+## Configure generator settings
+#/g4sbs/kine            elastic           ## Generator
+/g4sbs/kine 		gun
+/g4sbs/particle 	proton
+/g4sbs/gunpol 		0 0 1
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         75.0 muA
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           11.0 GeV
+#/g4sbs/thmin           19.0 deg
+#/g4sbs/thmax           39.0 deg
+#/g4sbs/phmin           -50.0 deg
+#/g4sbs/phmax           50.0 deg
+#Angle and energy generation limits for proton in particle gun generator:
+/g4sbs/thmin		12.0 deg
+/g4sbs/thmax		27.0 deg
+/g4sbs/phmin		120.0 deg
+/g4sbs/phmax		240.0 deg
+/g4sbs/eemin		2.0 GeV
+/g4sbs/eemax		11.0 GeV
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        6.8 m
+/g4sbs/hcalvoffset     45.0 cm
+/g4sbs/sbsclampopt     2
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/tosfield        GEP_12map0_newheader.table
+/g4sbs/bbang           29.0 deg
+/g4sbs/bbdist          4.5 m
+/g4sbs/sbsang          16.9 deg
+/g4sbs/48D48dist       1.6 m
+
+# Other settings
+/g4sbs/totalabs		true
+/g4sbs/treeflag 	1
+
+## Run 100 events
+/g4sbs/eventstatusevery 100
+/g4sbs/run             50000

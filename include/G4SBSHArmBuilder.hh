@@ -22,6 +22,8 @@ public:
   void SetLACVOffset( double a ){ fLACvertical_offset = a; }
   void SetLACHOffset( double a ){ fLAChorizontal_offset = a; }
   void SetRICHdist( double d ){ fRICHdist = d; } //Set RICH detector distance
+  void SetRICHHoffset( double d ){ fRICHhorizontal_offset = d; }
+  void SetRICHVoffset( double d ){ fRICHvertical_offset = d; }
   void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
   void SetTrackerPitch(double a){ fSBS_tracker_pitch = a; }
   void SetTrackerDist(double d){ fSBS_tracker_dist = d; }
@@ -29,7 +31,8 @@ public:
   void SetRICHgas( G4String s ){ fRICHgas = s; }
   void SetRICH_use_aerogel( G4bool b ){ fRICH_use_aerogel = b; }
   void SetFPP_CH2thick(int ifpp, double thick );
-  
+  void SetGENRPAnalyzerOption(int ia ){ fGEnRP_analyzer_option = ia; }
+
   void Make48D48(G4LogicalVolume*, double);
   void MakeSBSFieldClamps(G4LogicalVolume*);
   void MakeHCAL(G4LogicalVolume*, G4double);
@@ -44,6 +47,7 @@ public:
   void MakeLACModule(G4LogicalVolume *);
   void MakeSBSSieveSlit(G4LogicalVolume *);
   void MakeLAC(G4LogicalVolume *);
+  void MakePolarimeterGEnRP(G4LogicalVolume *);
   
   double f48D48ang;
   double f48D48dist;
@@ -52,6 +56,8 @@ public:
   double fHCALvertical_offset;  // Vertical offset (from center) of HCAL
   double fHCALhorizontal_offset; // Horizontal offset (from SBS center line) of HCAL (by convention, +X is toward smaller angle)
   double fRICHdist; //Distance from target to RICH entry window (in horizontal plane)
+  double fRICHvertical_offset; //Vertical offset (from center)
+  double fRICHhorizontal_offset; //Horizontal offset (from SBS center line, + = toward beamline).
   double fSBS_tracker_pitch; //SBS tracker pitch angle for electron mode
   double fSBS_tracker_dist; 
   
@@ -68,6 +74,8 @@ public:
 
   G4String fRICHgas; //String defining
   G4bool   fRICH_use_aerogel; // Flag to use or not use aerogel
+
+  int    fGEnRP_analyzer_option; // configuration of GEn-RP analyzer
 
   double fLACdist; //Distance to CLAS Large-angle calorimeter
   double fLACvertical_offset; //vertical offset of center of LAC wr

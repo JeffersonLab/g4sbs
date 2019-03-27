@@ -51,6 +51,12 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	MakeGMnLead(worldlog);
       }
       break;
+    case(kGEnRP):// GEnRP
+      MakeGMnBeamline(worldlog);
+      if(fDetCon->fLeadOption == 1){
+	MakeGMnLead(worldlog);
+      }
+      break;
     default:
       MakeDefaultBeamline(worldlog);
       break;
@@ -1031,6 +1037,10 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       GEMElectronicscollname += "GEp";
       break;
     case(kNeutronExp):// GMn
+      GEMElectronicsname += "GMn";
+      GEMElectronicscollname += "GMn";
+      break;
+    case(kGEnRP):// GEnRP
       GEMElectronicsname += "GMn";
       GEMElectronicscollname += "GMn";
       break;

@@ -119,7 +119,7 @@ private:
   G4double fmTPC_gap_GEMGEM;
   //GasSettings
   G4bool fmTPCkrypto;
-
+  G4bool fChkOvLaps;
 
 };
 

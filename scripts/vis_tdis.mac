@@ -45,6 +45,15 @@
 
 #/g4sbs/steplimit LACmod_log 1
 
+#configure mTPC
+#/g4sbs/mtpchegasratio 0.9
+#/g4sbs/mTPCCH4GasRatio 0.1
+#/g4sbs/mtpcgastemp 296.15
+#/g4sbs/mtpcgaspressure 1.0
+#/g4sbs/mtpctargetthick 0.02 #mm
+#/g4sbs/mtpckrypto 1
+#/g4sbs/tdistgtwallthick 0.04 #mm
+
 ## Run 100 events
 #/g4sbs/run             100
 

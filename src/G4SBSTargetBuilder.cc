@@ -87,6 +87,8 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fmTPC_gap_GEMGEM = 0.001*mm;
 
   fmTPCkrypto = false;//by default
+  fChkOvLaps = false;//true;
+  
 }
 
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
@@ -160,13 +162,13 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   
   G4double ztemp = -(fTargLen+uthick+dthick)/2.0;
   // Place upstream window:
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+uthick/2.0), uwindow_log, "uwindow_phys", TargetMother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+uthick/2.0), uwindow_log, "uwindow_phys", TargetMother_log, false, 0, fChkOvLaps );
   // Place target and side walls:
   ztemp += uthick;
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetCell_log, "TargetCell_phys", TargetMother_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetWall_log, "TargetWall_phys", TargetMother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetCell_log, "TargetCell_phys", TargetMother_log, false, 0, fChkOvLaps );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetWall_log, "TargetWall_phys", TargetMother_log, false, 0, fChkOvLaps );
   ztemp += fTargLen;
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+dthick/2.0), dwindow_log, "dwindow_phys", TargetMother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+dthick/2.0), dwindow_log, "dwindow_phys", TargetMother_log, false, 0, fChkOvLaps );
   
   G4double targ_zcenter = (uthick-dthick)/2.0; //position of target center relative to target mother volume
    
@@ -180,13 +182,13 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   G4double temp = targ_offset.y();
   targ_offset.setY(temp+targ_zcenter);
   
-  new G4PVPlacement( rot_targ, targ_offset, TargetMother_log, "TargetMother_phys", motherlog, false, 0 );
+  new G4PVPlacement( rot_targ, targ_offset, TargetMother_log, "TargetMother_phys", motherlog, false, 0, fChkOvLaps );
   
   if( fFlux ){ //Make a sphere to compute particle flux:
     G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
 				   0.*deg, 150.*deg );
     G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
-    new G4PVPlacement( rot_targ, targ_offset, fsph_log, "fsph_phys", motherlog, false, 0 );
+    new G4PVPlacement( rot_targ, targ_offset, fsph_log, "fsph_phys", motherlog, false, 0, fChkOvLaps );
     
     G4String FluxSDname = "FLUX";
     G4String Fluxcollname = "FLUXHitsCollection";
@@ -318,7 +320,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4ThreeVector* SCPlacement = new G4ThreeVector(0,0,-SCOffset);
   SCPlacement->rotateX(90*deg);
   
-  new G4PVPlacement(rotSC, *SCPlacement, logicScatChamberTank, "ScatChamberTankPhys", worldlog, false, 0);
+  new G4PVPlacement(rotSC, *SCPlacement, logicScatChamberTank, "ScatChamberTankPhys", worldlog, false, 0, fChkOvLaps);
   
   //Exit Flange Plate
   G4Box* solidSCExitFlangePlate = 
@@ -329,7 +331,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
     new G4LogicalVolume(solidSCExitFlangePlate, GetMaterial("Aluminum"), "SCExitFlangePlate_log");
 
   new G4PVPlacement(0, G4ThreeVector(-SCTankRadius-SCExitFlangePlateThick/2.0,0,0), 
-		    logicScatChamberExitFlangePlate, "SCExitFlangePlate", worldlog, false, 0); 
+		    logicScatChamberExitFlangePlate, "SCExitFlangePlate", worldlog, false, 0, fChkOvLaps); 
   
   // Front and back Clamshells...
   // Basic solid: 
@@ -434,7 +436,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   		    G4ThreeVector(SCRightSnoutWindowDist*sin(SCRightSnoutAngle),
   				  0,
   				  SCRightSnoutWindowDist*cos(SCRightSnoutAngle)), 
-  		    logicScatChamberRightSnoutWindow, "SCRightSnoutWindow", worldlog, false, 0);
+  		    logicScatChamberRightSnoutWindow, "SCRightSnoutWindow", worldlog, false, 0, fChkOvLaps);
   
   // basic window frame
   G4Box* solidRightSnoutWindowFrame_0 = 
@@ -503,7 +505,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   		    G4ThreeVector(SCRightSnoutWindowFrameDist*sin(SCRightSnoutAngle),
   				  0,
   				  SCRightSnoutWindowFrameDist*cos(SCRightSnoutAngle)), 
-  		    logicScatChamberRightSnoutWindowFrame, "SCRightSnoutWindow", worldlog, false, 0);
+  		    logicScatChamberRightSnoutWindowFrame, "SCRightSnoutWindow", worldlog, false, 0, fChkOvLaps);
   
 		    
   // Left snout opening:
@@ -576,7 +578,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 		    G4ThreeVector(SCLeftSnoutWindowDist*sin(SCLeftSnoutAngle),
 				  SCLeftSnoutYOffset,
 				  SCLeftSnoutWindowDist*cos(SCLeftSnoutAngle)), 
-		    logicScatChamberLeftSnoutWindow, "SCLeftSnoutWindow", worldlog, false, 0);
+		    logicScatChamberLeftSnoutWindow, "SCLeftSnoutWindow", worldlog, false, 0, fChkOvLaps);
   
   // window frame
   G4Box* solidLeftSnoutWindowFrame_0 = 
@@ -649,7 +651,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 		    G4ThreeVector(SCLeftSnoutWindowFrameDist*sin(SCLeftSnoutAngle),
 				  SCLeftSnoutYOffset,
 				  SCLeftSnoutWindowFrameDist*cos(SCLeftSnoutAngle)), 
-		    logicScatChamberLeftSnoutWindowFrame, "SCLeftSnoutWindow", worldlog, false, 0);
+		    logicScatChamberLeftSnoutWindowFrame, "SCLeftSnoutWindow", worldlog, false, 0, fChkOvLaps);
   
   // Exit Beam Pipe:
   // Should come after left snout
@@ -712,7 +714,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   rot_temp->rotateZ(90.0*deg+SCClamAngleApert*0.5-SCWindowAngleOffset);
   
   new G4PVPlacement(rot_temp, G4ThreeVector(0,0,0), logicScatChamberFrontClamshell, 
-  		    "SCFrontClamshell", worldlog, false, 0);
+  		    "SCFrontClamshell", worldlog, false, 0, fChkOvLaps);
   
   // Back Clamshell:
   G4double SCBackClamThick = 0.80*inch;
@@ -812,7 +814,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   rot_temp->rotateZ(-90.0*deg+SCClamAngleApert*0.5+SCWindowAngleOffset);
   
   new G4PVPlacement(rot_temp, G4ThreeVector(0,0,0), logicScatChamberBackClamshell, 
-  		    "SCBackClamshell", worldlog, false, 0);
+  		    "SCBackClamshell", worldlog, false, 0, fChkOvLaps);
   
   // Scattering chamber volume
   //
@@ -851,7 +853,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 
   logicScatChamber = new G4LogicalVolume(solidScatChamber, GetMaterial("Vacuum"), "ScatChamber_log");
   
-  new G4PVPlacement(rotSC, *SCPlacement, logicScatChamber, "ScatChamberPhys", worldlog, false, 0);
+  new G4PVPlacement(rotSC, *SCPlacement, logicScatChamber, "ScatChamberPhys", worldlog, false, 0, fChkOvLaps);
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(90.0*deg);
@@ -1020,7 +1022,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4ThreeVector Snout_position_global( SnoutBeamPlate_xcoord, 0, SnoutBeamPlate_zcoord - TargetCenter_zoffset + Snout_Thick/2.0 );
 
-  new G4PVPlacement( 0, Snout_position_global, Snout_log, "Snout_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, Snout_position_global, Snout_log, "Snout_phys", worldlog, false, 0, fChkOvLaps );
 
   //Fill the cutouts with vacuum, and then with steel corner pieces:
   G4LogicalVolume *SnoutHarmWindowCutout_log = new G4LogicalVolume( HarmWindowCutout_box, GetMaterial("Vacuum"), "SnoutHarmWindowCutout_log" );
@@ -1032,51 +1034,51 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   xtemp = SnoutHarmWindow_Width/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
   ytemp = SnoutHarmWindow_Height/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
   
-  new G4PVPlacement( 0, G4ThreeVector( -xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_right", SnoutHarmWindowCutout_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( -xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_right", SnoutHarmWindowCutout_log, false, 0, fChkOvLaps );
 
   rot_temp->rotateZ( 90.0*deg ); //clockwise as viewed from downstream, ccw as viewed from upstream!
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_right", SnoutHarmWindowCutout_log, false, 1 );
+  new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_right", SnoutHarmWindowCutout_log, false, 1, fChkOvLaps );
 
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateZ( -90.0*deg );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_left", SnoutHarmWindowCutout_log, false, 2 );
+  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_left", SnoutHarmWindowCutout_log, false, 2, fChkOvLaps );
 
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateZ( 180.0*deg );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_left", SnoutHarmWindowCutout_log, false, 3 );
+  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_left", SnoutHarmWindowCutout_log, false, 3, fChkOvLaps );
 
   //Finally, place the window cutout globally:
 
   G4ThreeVector HarmCutout_pos_global = Snout_position_global + FrontRightCorner_pos_local - Snout_Thick/2.0 * Harm_zaxis - ( SnoutHarmPlate_Width/2.0 - SnoutHarmWindow_xcenter ) * Harm_xaxis;
 
-  new G4PVPlacement( rot_harm_window, HarmCutout_pos_global, SnoutHarmWindowCutout_log, "SnoutHarmWindowCutout_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_harm_window, HarmCutout_pos_global, SnoutHarmWindowCutout_log, "SnoutHarmWindowCutout_phys", worldlog, false, 0, fChkOvLaps );
 
   xtemp = SnoutEarmWindow_Width/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
   ytemp = SnoutEarmWindow_Height/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
 
-  new G4PVPlacement( 0, G4ThreeVector(-xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_right", SnoutEarmWindowCutout_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(-xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_right", SnoutEarmWindowCutout_log, false, 0, fChkOvLaps );
 
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateZ(90.0*deg );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_right", SnoutEarmWindowCutout_log, false, 1 );
+  new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_right", SnoutEarmWindowCutout_log, false, 1, fChkOvLaps );
   
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateZ(-90.0*deg );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_left", SnoutEarmWindowCutout_log, false, 2 );
+  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_left", SnoutEarmWindowCutout_log, false, 2, fChkOvLaps );
 
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateZ(180.0*deg );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_left", SnoutEarmWindowCutout_log, false, 3 );
+  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_left", SnoutEarmWindowCutout_log, false, 3, fChkOvLaps );
   
   G4ThreeVector EarmCutout_pos_global = Snout_position_global + FrontLeftCorner_pos_local - Snout_Thick/2.0 * Earm_zaxis + (SnoutEarmPlate_Width/2.0 + SnoutEarmWindow_xcenter) * Earm_xaxis;
 
-  new G4PVPlacement( rot_earm_window, EarmCutout_pos_global, SnoutEarmWindowCutout_log, "SnoutEarmWindowCutout_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_earm_window, EarmCutout_pos_global, SnoutEarmWindowCutout_log, "SnoutEarmWindowCutout_phys", worldlog, false, 0, fChkOvLaps );
 
   //What's next? Define scattering chamber vacuum volume:
   G4double ScatChamberRadius = 23.80*inch;
@@ -1088,7 +1090,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateX( 90.0*deg );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), ScatChamber_log, "ScatChamber_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), ScatChamber_log, "ScatChamber_phys", worldlog, false, 0, fChkOvLaps );
   
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateX( -90.0*deg );
@@ -1271,7 +1273,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4LogicalVolume *SnoutVacuum_log = new G4LogicalVolume( SnoutTaperPgon_intersect, GetMaterial("Vacuum"), "SnoutVacuum_log" );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), SnoutVacuum_log, "SnoutVacuum_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), SnoutVacuum_log, "SnoutVacuum_phys", worldlog, false, 0, fChkOvLaps );
 
   //Iron Tube inside the Snout vacuum volume:
   G4double IronTube_Rmin = 5.0*cm;
@@ -1289,7 +1291,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateX( 90.0*deg );
 
-  new G4PVPlacement( rot_temp, IronTube_pos_rel, IronTube_log, "IronTube_phys", SnoutVacuum_log, false, 0 );
+  new G4PVPlacement( rot_temp, IronTube_pos_rel, IronTube_log, "IronTube_phys", SnoutVacuum_log, false, 0, fChkOvLaps );
   
 
   //Finally, put windows and bolt plates:
@@ -1303,7 +1305,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   //Figure out the placement of the Harm window:
   G4ThreeVector Harm_window_pos = Snout_position_global + FrontRightCorner_pos_local + (-SnoutHarmPlate_Width/2.0 + SnoutHarmWindow_xcenter) * Harm_xaxis + (HarmWindowThick/2.0) * Harm_zaxis;
 
-  new G4PVPlacement( rot_harm_window, Harm_window_pos, HarmWindow_log, "HarmWindow_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_harm_window, Harm_window_pos, HarmWindow_log, "HarmWindow_phys", worldlog, false, 0, fChkOvLaps );
   
   G4Box *HarmFlange_box = new G4Box("HarmFlange_box", HarmFlangeWidth/2.0, HarmFlangeHeight/2.0, HarmFlangeThick/2.0 );
 
@@ -1312,7 +1314,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4ThreeVector HarmFlange_pos = Harm_window_pos + (HarmWindowThick + HarmFlangeThick)/2.0 * Harm_zaxis;
 
-  new G4PVPlacement( rot_harm_window, HarmFlange_pos, HarmFlange_log, "HarmFlange_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_harm_window, HarmFlange_pos, HarmFlange_log, "HarmFlange_phys", worldlog, false, 0, fChkOvLaps );
 
   //Create a new logical volume of aluminum instead of steel for the rounded corners of the flange:
   G4LogicalVolume *HarmFlangeCorner_log = new G4LogicalVolume( HarmWindowCorner, GetMaterial("Aluminum"), "HarmFlangeCorner_log" );
@@ -1327,28 +1329,28 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   
   pos_temp = HarmFlange_pos - xtemp * Harm_xaxis - ytemp * Harm_yaxis;
   
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_right", worldlog, false, 0, fChkOvLaps );
 
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateY( SnoutHarmWindowAngle );
   rot_temp->rotateZ( 90.0*deg );
   pos_temp = HarmFlange_pos - xtemp * Harm_xaxis + ytemp * Harm_yaxis;
 
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_right", worldlog, false, 1 );
+  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_right", worldlog, false, 1, fChkOvLaps );
 
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateY( SnoutHarmWindowAngle );
   rot_temp->rotateZ( -90.0*deg );
   pos_temp = HarmFlange_pos + xtemp * Harm_xaxis - ytemp * Harm_yaxis;
 
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
+  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_left", worldlog, false, 2, fChkOvLaps );
 
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateY( SnoutHarmWindowAngle );
   rot_temp->rotateZ( 180.0*deg );
   pos_temp = HarmFlange_pos + xtemp * Harm_xaxis + ytemp * Harm_yaxis;
 
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_left", worldlog, false, 3 );
+  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_left", worldlog, false, 3, fChkOvLaps );
 
   G4double EarmFlangeWidth = 2.0*12.62*inch;
   G4double EarmFlangeHeight = Snout_Height;
@@ -1359,7 +1361,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   G4LogicalVolume *EarmWindow_log = new G4LogicalVolume( EarmAlWindow_box, GetMaterial("Aluminum"), "EarmWindow_log" );
   G4ThreeVector Earm_window_pos = Snout_position_global + FrontLeftCorner_pos_local + (SnoutEarmPlate_Width/2.0 + SnoutEarmWindow_xcenter) * Earm_xaxis + EarmWindowThick/2.0 * Earm_zaxis;
 
-  new G4PVPlacement( rot_earm_window, Earm_window_pos, EarmWindow_log, "EarmWindow_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_earm_window, Earm_window_pos, EarmWindow_log, "EarmWindow_phys", worldlog, false, 0, fChkOvLaps );
   
   //Next: make flange:
 
@@ -1370,7 +1372,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4ThreeVector EarmFlange_pos = Earm_window_pos + (EarmWindowThick + EarmFlangeThick)/2.0 * Earm_zaxis;
 
-  new G4PVPlacement( rot_earm_window, EarmFlange_pos, EarmFlange_log, "EarmFlange_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_earm_window, EarmFlange_pos, EarmFlange_log, "EarmFlange_phys", worldlog, false, 0, fChkOvLaps );
 
   G4LogicalVolume *EarmFlangeCorner_log = new G4LogicalVolume( EarmWindowCorner, GetMaterial("Aluminum"), "EarmFlangeCorner_log" );
 
@@ -1382,28 +1384,28 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   
   pos_temp = EarmFlange_pos - xtemp * Earm_xaxis - ytemp * Earm_yaxis;
   
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_right", worldlog, false, 0, fChkOvLaps );
 
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateY( -SnoutEarmWindowAngle );
   rot_temp->rotateZ( 90.0*deg );
   pos_temp = EarmFlange_pos - xtemp * Earm_xaxis + ytemp * Earm_yaxis;
   
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_right", worldlog, false, 1 );
+  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_right", worldlog, false, 1, fChkOvLaps );
 
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateY( -SnoutEarmWindowAngle );
   rot_temp->rotateZ( -90.0*deg );
   pos_temp = EarmFlange_pos + xtemp * Earm_xaxis - ytemp * Earm_yaxis;
   
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
+  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_left", worldlog, false, 2, fChkOvLaps );
 
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateY( -SnoutEarmWindowAngle );
   rot_temp->rotateZ( 180.0*deg );
   pos_temp = EarmFlange_pos + xtemp * Earm_xaxis + ytemp * Earm_yaxis;
   
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_left", worldlog, false, 3 );
+  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_left", worldlog, false, 3, fChkOvLaps );
   
   // VISUALS
   // Mother Volumes
@@ -1542,21 +1544,21 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
 
   G4LogicalVolume *dvcs_snout_log = new G4LogicalVolume(dvcs_snout_cut3, GetMaterial("Aluminum"), "dvcs_snout_log");
 
-  new G4PVPlacement( 0, G4ThreeVector(0,0,0), dvcs_snout_log, "dvcs_snout_phys", dvcs_snout_vacuum_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), dvcs_snout_log, "dvcs_snout_phys", dvcs_snout_vacuum_log, false, 0, fChkOvLaps );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_snout_vacuum_log, "dvcs_snout_vacuum_phys", worldlog, false, 0);
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_snout_vacuum_log, "dvcs_snout_vacuum_phys", worldlog, false, 0, fChkOvLaps);
 
   G4double dvcs_win_thick = (30.331-30.315)*inch;
 
   G4Tubs *dvcs_beamleft_window = new G4Tubs("dvcs_beamleft_window", Rout_dvcs_snout, Rout_dvcs_snout + dvcs_win_thick, 7.328*inch/2.0, (100.6-2.23)*deg, (38.8+4.46)*deg );
   G4LogicalVolume *dvcs_beamleft_window_log = new G4LogicalVolume( dvcs_beamleft_window, GetMaterial("Aluminum"), "dvcs_beamleft_window_log" );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_beamleft_window_log, "dvcs_beamleft_window_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_beamleft_window_log, "dvcs_beamleft_window_phys", worldlog, false, 0, fChkOvLaps );
 
   G4Tubs *dvcs_beamright_window = new G4Tubs("dvcs_beamright_window", Rout_dvcs_snout, Rout_dvcs_snout + dvcs_win_thick, 7.328*inch/2.0, 8.0*deg, (47.6+4.4)*deg );
   G4LogicalVolume *dvcs_beamright_window_log = new G4LogicalVolume( dvcs_beamright_window, GetMaterial("Aluminum"), "dvcs_beamright_window_log" );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_beamright_window_log, "dvcs_beamright_window_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_beamright_window_log, "dvcs_beamright_window_phys", worldlog, false, 0, fChkOvLaps );
   
   G4VisAttributes *window_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.0 ) );
   window_visatt->SetForceWireframe(true);
@@ -1567,8 +1569,8 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   G4LogicalVolume *scham_vacuum_log = new G4LogicalVolume( scham_vacuum, GetMaterial("Vacuum"), "scham_vacuum_log" );
   G4LogicalVolume *scham_wall_log = new G4LogicalVolume( swallcut2, GetMaterial("Aluminum"), "scham_wall_log" );
 
-  new G4PVPlacement( 0, G4ThreeVector(0,0,0), scham_wall_log, "scham_wall_phys", scham_vacuum_log, false, 0 );
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), scham_vacuum_log, "scham_vacuum_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), scham_wall_log, "scham_wall_phys", scham_vacuum_log, false, 0, fChkOvLaps );
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), scham_vacuum_log, "scham_vacuum_phys", worldlog, false, 0, fChkOvLaps );
   
   //swallcut = new G4SubtractionSolid("swallcut2", swallcut, swall_bbcut);
 
@@ -1637,10 +1639,10 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   // 		    "sc_hcalwin_phys", worldlog, false, 0);
 
   new G4PVPlacement(rot_temp, G4ThreeVector(0.0, sheight/2.0 + (swallrad-swallrad_in)/2, 0.0), sc_topbottom_log,
-  		    "scham_top_phys", worldlog, false, 0);
+  		    "scham_top_phys", worldlog, false, 0, fChkOvLaps);
 
   new G4PVPlacement(rot_temp, G4ThreeVector(0.0, -sheight/2.0 - (swallrad-swallrad_in)/2, 0.0), sc_topbottom_log,
-  		    "scham_bot_phys", worldlog, false, 0);
+  		    "scham_bot_phys", worldlog, false, 0, fChkOvLaps);
 
   // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", worldlog, false, 0);
   // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", worldlog, false, 0);
@@ -1660,8 +1662,8 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
 
   G4LogicalVolume *exit_pipe_log = new G4LogicalVolume( exit_pipe_cut, GetMaterial("Aluminum"), "exit_pipe_log" );
   G4LogicalVolume *exit_vacuum_log = new G4LogicalVolume( exit_vacuum_cut, GetMaterial("Vacuum"), "exit_vacuum_log" );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,z0_exitpipe ), exit_pipe_log, "exit_pipe_phys", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,z0_exitpipe ), exit_vacuum_log, "exit_vacuum_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,z0_exitpipe ), exit_pipe_log, "exit_pipe_phys", worldlog, false, 0, fChkOvLaps );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,z0_exitpipe ), exit_vacuum_log, "exit_vacuum_phys", worldlog, false, 0, fChkOvLaps );
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(+90.0*deg);
@@ -1777,7 +1779,7 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCBfield_log,
   // 		    "TPCBfield_phys", motherlog, false, 0);
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCBfield_log,
-   		    "TPCBfield_phys", worldlog, false, 0);
+   		    "TPCBfield_phys", worldlog, false, 0, fChkOvLaps);
   
   // R. Montgomery 23/03/18
   // At the moment the TPC solenoid can be either a uniform field for test or the tosca simulation
@@ -1842,7 +1844,7 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
     G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
 				   0.*deg, 150.*deg );
     G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
-    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", TPCBfield_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", TPCBfield_log, false, 0, fChkOvLaps );
 
     fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     
@@ -1894,16 +1896,16 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   // G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Kapton"),"targ_cap_log");
   G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Aluminum"),"targ_cap_log"); //aluminium
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), targ_tube_log,
-		    "targ_tube_phys", motherlog, false, 0);
+		    "targ_tube_phys", motherlog, false, 0, fChkOvLaps);
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos+ftdis_tgt_len/2.0+capthick/2.0), targ_cap_log,
-		    "targ_cap_phys1", motherlog, false, 0);
+		    "targ_cap_phys1", motherlog, false, 0, fChkOvLaps);
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos-ftdis_tgt_len/2.0-capthick/2.0), targ_cap_log,
-		    "targ_cap_phys2", motherlog, false, 1);
+		    "targ_cap_phys2", motherlog, false, 1, fChkOvLaps);
   
   // now place target gas material inside
   assert(gas_tube_log);
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
-		    "gas_tube_phys", motherlog, false, 0);
+		    "gas_tube_phys", motherlog, false, 0, fChkOvLaps);
   
   BuildTPC(motherlog, target_zpos);//TPC actually centered on the target
   // TPC is inside mother log vol which for now is solenoid map vol
@@ -1926,8 +1928,6 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
 }
 
 void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
-
-
   // Montgomery July 2018
   // implementing geometry atm as a exact copy of implementation in gemc by park/carmignotto
   // There is no end cap on mTPC beyond readout discs and also no cathode planes
@@ -1947,7 +1947,7 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   G4LogicalVolume* mTPCmother_log = 
     new G4LogicalVolume(mTPCmother_solid, GetMaterial("mTPCgas"),"mTPCmother_log");
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), mTPCmother_log,
-  		    "mTPCmother_phys", motherlog, false, 0);
+  		    "mTPCmother_phys", motherlog, false, 0, fChkOvLaps);
 
   G4VisAttributes *tgt_mTPCmother_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
   tgt_mTPCmother_visatt->SetForceWireframe(true);
@@ -2064,14 +2064,14 @@ void G4SBSTargetBuilder::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtp
   G4LogicalVolume* mTPCinnerwall1_log = 
     new G4LogicalVolume(mTPCinnerwall1_solid, GetMaterial("Kapton"),"mTPCinnerwall1_log");
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mtpczpos), mTPCinnerwall1_log,
-  		    "mTPCinnerwall1_phys", motherlog, false, 0);
+  		    "mTPCinnerwall1_phys", motherlog, false, 0, fChkOvLaps);
   // next layer before tpc gas is electrode
   G4Tubs* mTPCinnerwall2_solid = 
     new G4Tubs("mTPCinnerwall2_solid", fmTPC_inelectrode_r+fmTPC_inelectrode_kaptonthick, mtpcinnerR, mtpctotallength/2.0, 0.*deg, 360.*deg );
   G4LogicalVolume* mTPCinnerwall2_log = 
     new G4LogicalVolume(mTPCinnerwall2_solid, GetMaterial("Au"),"mTPCinnerwall2_log");
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mtpczpos), mTPCinnerwall2_log,
-  		    "mTPCinnerwall2_phys", motherlog, false, 0);
+  		    "mTPCinnerwall2_phys", motherlog, false, 0, fChkOvLaps);
 
   // outer wall, has two layers: electrode and kapton
   // layer closest to inner gas is electrode
@@ -2080,7 +2080,7 @@ void G4SBSTargetBuilder::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtp
   G4LogicalVolume* mTPCouterwall1_log = 
     new G4LogicalVolume(mTPCouterwall1_solid, GetMaterial("Au"),"mTPCouterwall1_log");
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mtpczpos), mTPCouterwall1_log,
-  		    "mTPCouterwall1_phys", motherlog, false, 0);
+  		    "mTPCouterwall1_phys", motherlog, false, 0, fChkOvLaps);
   //outer most layer is kapton
   // NB IN GEMC THIS IS KRYPTONITE, IE TRACK STOPPED AND NO SECONDARIES PRODUCED - NEED TO CHECK IF WANT THIS
   G4Tubs* mTPCouterwall2_solid = 
@@ -2088,7 +2088,7 @@ void G4SBSTargetBuilder::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtp
   G4LogicalVolume* mTPCouterwall2_log = 
     new G4LogicalVolume(mTPCouterwall2_solid, GetMaterial("Kapton"),"mTPCouterwall2_log");
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mtpczpos), mTPCouterwall2_log,
-  		    "mTPCouterwall2_phys", motherlog, false, 0);
+  		    "mTPCouterwall2_phys", motherlog, false, 0, fChkOvLaps);
   if(fmTPCkrypto)mTPCouterwall2_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
 
   //Visualization attributes:
@@ -2136,7 +2136,7 @@ void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double 
     // NB IN GEMC IMPLEMENTATION THIS IS KRYPTONITE, IE TRACK IS STOPPED AND NO SECONDARIES - NEED TO SORT THIS
     // FOR MOMENT PUT AS BONUS PCB MATERIAL, TOOK FROM MATERIALS IN GEMC
     if(fmTPCkrypto)mTPCReadoutDisc_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mTPC_zpos), mTPCReadoutDisc_log, "mTPCReadoutDisc_phys", motherlog, false, incCell);
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mTPC_zpos), mTPCReadoutDisc_log, "mTPCReadoutDisc_phys", motherlog, false, incCell, fChkOvLaps);
     mTPCReadoutDisc_log->SetVisAttributes( mtpc_readout_visatt );
 
     // now we want to make a gap between readout disc and where gem will go, material should be same as mTPC gas
@@ -2144,15 +2144,15 @@ void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double 
     double mTPC_edgecell = 0.0;
     if(incCell % 2 == 0){
       mTPC_edgecell = mTPC_CentreCell - celllength/2.0;
-      mTPC_zposgap = mTPC_edgecell + fmTPC_readout_thick/2.0 + fmTPC_gap_readoutGEM/2.0;
+      mTPC_zposgap = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM/2.0;
     }
     else{
       mTPC_edgecell = mTPC_CentreCell + celllength/2.0;
-      mTPC_zposgap = mTPC_edgecell - fmTPC_readout_thick/2.0 - fmTPC_gap_readoutGEM/2.0;
+      mTPC_zposgap = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM/2.0;
     }
     mTPCReadoutGEMGap_solid = new G4Tubs("mTPCReadoutGEMGap_solid", innerR, outerR, fmTPC_gap_readoutGEM/2.0, 0.*deg, 360.*deg);
     mTPCReadoutGEMGap_log = new G4LogicalVolume(mTPCReadoutGEMGap_solid, GetMaterial("mTPCgas"),"mTPCReadoutGEMGap_log");    
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mTPC_zposgap), mTPCReadoutGEMGap_log, "mTPCReadoutGEMGap_phys", motherlog, false, incCell);
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mTPC_zposgap), mTPCReadoutGEMGap_log, "mTPCReadoutGEMGap_phys", motherlog, false, incCell, fChkOvLaps);
     mTPCReadoutGEMGap_log->SetVisAttributes( mtpc_readoutgemgap_visatt );
   }//loop over mTPC cells/chambers
 
@@ -2194,7 +2194,7 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
   mTPCGEMSurf1_solid = new G4Tubs(mTPCGEMSurf1_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf1thick/2.0, 0.*deg, 360.*deg);
   mTPCGEMSurf1_log = new G4LogicalVolume(mTPCGEMSurf1_solid, GetMaterial("Copper"),mTPCGEMSurf1_logname);    
   //place "surf1" into "foil"
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, mTPCGEMfoil_log, false,0);    
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, mTPCGEMfoil_log, false,0, fChkOvLaps);    
   mTPCGEMSurf1_log->SetVisAttributes( mtpc_gem_visatt );
   
   double zposdielec = 0.0;
@@ -2204,7 +2204,7 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
   mTPCGEMDielec_solid = new G4Tubs(mTPCGEMDielec_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_dielecthick/2.0, 0.*deg, 360.*deg);
   mTPCGEMDielec_log = new G4LogicalVolume(mTPCGEMDielec_solid, GetMaterial("Kapton"),mTPCGEMDielec_logname);    
   //place "dielec" into "foil"
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposdielec), mTPCGEMDielec_log, mTPCGEMDielec_physname, mTPCGEMfoil_log, false,0);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposdielec), mTPCGEMDielec_log, mTPCGEMDielec_physname, mTPCGEMfoil_log, false,0, fChkOvLaps);
   mTPCGEMDielec_log->SetVisAttributes( mtpc_gem_visatt );
   
   double zpossurf2 = +(fmTPC_gem_surf2thick+fmTPC_gem_dielecthick)/2.;
@@ -2214,10 +2214,10 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
   mTPCGEMSurf2_solid = new G4Tubs(mTPCGEMSurf2_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf2thick/2.0, 0.*deg, 360.*deg);
   mTPCGEMSurf2_log = new G4LogicalVolume(mTPCGEMSurf2_solid, GetMaterial("Copper"),mTPCGEMSurf2_logname);    
   //place "surf2" into "foil"
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf2), mTPCGEMSurf2_log, mTPCGEMSurf2_physname, mTPCGEMfoil_log, false,0);    
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf2), mTPCGEMSurf2_log, mTPCGEMSurf2_physname, mTPCGEMfoil_log, false,0, fChkOvLaps);    
   mTPCGEMSurf2_log->SetVisAttributes( mtpc_gem_visatt );
   if(fmTPCkrypto)mTPCGEMfoil_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
-  
+    
   // loop over each cell/chamber of mTPC
   for(int incCell=0; incCell<fmTPC_Ncells; incCell++){
 
@@ -2233,7 +2233,7 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
     // now loop over how many GEMs per cell
     for(int incGEM=0; incGEM<fmTPC_Ngems; incGEM++){
       counter++;
-      //first, place the "GEM foil" - the master volume which will contain all the others - easier to handle stuff such as 
+      //first, place the "GEM foil" - the master volume which will contain all the others - easier to handle stuff such as steplimiter
       double zposfoil = 0.0;
       if(incCell % 2 == 0){
 	zposfoil = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick/2.0
@@ -2244,8 +2244,7 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
 	  - incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
       }
       
-      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposfoil), mTPCGEMfoil_log, mTPCGEMfoil_physname, motherlog, false,counter);
-      
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposfoil), mTPCGEMfoil_log, mTPCGEMfoil_physname, motherlog, false,counter, fChkOvLaps);
       /*
       // first conducting surface of GEM
       double zpossurf1 = 0.0;
@@ -2264,7 +2263,7 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
       mTPCGEMSurf1_log = new G4LogicalVolume(mTPCGEMSurf1_solid, GetMaterial("Copper"),mTPCGEMSurf1_logname);    
       //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, motherlog, false,counter);
       //place "surf1" into "foil"
-      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, motherlog, false,counter);
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, motherlog, false,counter, fChkOvLaps);
       mTPCGEMSurf1_log->SetVisAttributes( mtpc_gem_visatt );
       
       // central dielectric material of gem
@@ -2282,7 +2281,7 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
       G4String mTPCGEMDielec_physname = "mTPCGEMDielec_phys";
       mTPCGEMDielec_solid = new G4Tubs(mTPCGEMDielec_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_dielecthick/2.0, 0.*deg, 360.*deg);
       mTPCGEMDielec_log = new G4LogicalVolume(mTPCGEMDielec_solid, GetMaterial("Kapton"),mTPCGEMDielec_logname);    
-      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposdielec), mTPCGEMDielec_log, mTPCGEMDielec_physname, motherlog, false,counter);
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposdielec), mTPCGEMDielec_log, mTPCGEMDielec_physname, motherlog, false,counter, fChkOvLaps);
       mTPCGEMDielec_log->SetVisAttributes( mtpc_gem_visatt );
       
       // second conducting surface of GEM
@@ -2300,7 +2299,7 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
       G4String mTPCGEMSurf2_physname = "mTPCGEMSurf2_phys";
       mTPCGEMSurf2_solid = new G4Tubs(mTPCGEMSurf2_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf2thick/2.0, 0.*deg, 360.*deg);
       mTPCGEMSurf2_log = new G4LogicalVolume(mTPCGEMSurf2_solid, GetMaterial("Copper"),mTPCGEMSurf2_logname);    
-      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf2), mTPCGEMSurf2_log, mTPCGEMSurf2_physname, motherlog, false, counter);
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf2), mTPCGEMSurf2_log, mTPCGEMSurf2_physname, motherlog, false, counter, fChkOvLaps);
       mTPCGEMSurf2_log->SetVisAttributes( mtpc_gem_visatt );
       */
      // gaps between gems, but not last one which is flush with end of cell
@@ -2319,7 +2318,7 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
 	G4String mTPCGEMGap_physname = "mTPCGEMGap_phys";
 	mTPCGEMGap_solid = new G4Tubs(mTPCGEMGap_solidname, mtpcinnerR, mtpcouterR, fmTPC_gap_GEMGEM/2.0, 0.*deg, 360.*deg);
 	mTPCGEMGap_log = new G4LogicalVolume(mTPCGEMGap_solid, GetMaterial("mTPCgas"),mTPCGEMGap_logname);    
-	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposgap), mTPCGEMGap_log, mTPCGEMGap_physname, motherlog, false, counter);
+	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposgap), mTPCGEMGap_log, mTPCGEMGap_physname, motherlog, false, counter, fChkOvLaps);
 	mTPCGEMGap_log->SetVisAttributes( mtpc_gemgap_visatt );
       }//if not the last gem which has no gap
     }//loop over gems per cell
@@ -2348,7 +2347,7 @@ void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double 
     }
     mTPCGasCell_solid = new G4Tubs("mTPCGasCell_solid", mtpcinnerR, mtpcouterR, CellGasLength/2.0, 0.*deg, 360.*deg);
     mTPCGasCell_log = new G4LogicalVolume(mTPCGasCell_solid, GetMaterial("mTPCgas"),"mTPCGasCell_log");    
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposGasCell), mTPCGasCell_log, "mTPCGasCell_phys", motherlog, false, incCell);
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposGasCell), mTPCGasCell_log, "mTPCGasCell_phys", motherlog, false, incCell, fChkOvLaps);
     mTPCGasCell_log->SetVisAttributes( mtpc_gas_visatt );
     // set cell as a sensitive detector
     mTPCGasCell_log->SetSensitiveDetector(mtpcSD);
@@ -2362,7 +2361,7 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
     G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
 				   0.*deg, 150.*deg );
     G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
-    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", worldlog, false, 0, fChkOvLaps );
 
     fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     
@@ -2446,23 +2445,23 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
 
   //if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), targ_tube_log,
-		    "targ_tube_phys", motherlog, false, 0);
+		    "targ_tube_phys", motherlog, false, 0, fChkOvLaps);
   
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos+fTargLen/2.0+capthick/2.0), targ_cap_log,
-		    "targ_cap_phys1", motherlog, false, 0);
+		    "targ_cap_phys1", motherlog, false, 0, fChkOvLaps);
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos-fTargLen/2.0-capthick/2.0), targ_cap_log,
-		    "targ_cap_phys2", motherlog, false, 1);
+		    "targ_cap_phys2", motherlog, false, 1, fChkOvLaps);
   
   assert(gas_tube_log);
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
-		    "gas_tube_phys", motherlog, false, 0);
+		    "gas_tube_phys", motherlog, false, 0, fChkOvLaps);
   
   //Place scattering chamber:
   if( fSchamFlag == 1 ){
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_wall_log, "sc_wall_phys", worldlog, false, 0 );
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc-dz_sc-sc_winthick/2.0), sc_cap_upstream_log, "sc_cap_upstream_phys", worldlog, false, 0 );
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc+dz_sc+sc_winthick/2.0), sc_cap_downstream_log, "sc_cap_downstream_phys", worldlog, false, 0 );
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_vacuum_log, "sc_vacuum_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_wall_log, "sc_wall_phys", worldlog, false, 0, fChkOvLaps );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc-dz_sc-sc_winthick/2.0), sc_cap_upstream_log, "sc_cap_upstream_phys", worldlog, false, 0, fChkOvLaps );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc+dz_sc+sc_winthick/2.0), sc_cap_downstream_log, "sc_cap_downstream_phys", worldlog, false, 0, fChkOvLaps );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_vacuum_log, "sc_vacuum_phys", worldlog, false, 0, fChkOvLaps );
   }
   
   sc_vacuum_log->SetVisAttributes( G4VisAttributes::Invisible );

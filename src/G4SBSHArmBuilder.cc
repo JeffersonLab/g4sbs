@@ -83,6 +83,10 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
 
   fCH2thickFPP[0] = 22.0*2.54*cm;
   fCH2thickFPP[1] = 22.0*2.54*cm;
+
+  fFTuseabsorber = false;
+  fFTabsthick = 2.54*cm;
+  fFTabsmaterial = "Aluminum";
   
   assert(fDetCon);
 }
@@ -230,14 +234,38 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
 
   sbslog->SetVisAttributes( G4VisAttributes::Invisible );
   //Now position and orient the FPP "box":
-  new G4PVPlacement(SBS_FPP_rm, G4ThreeVector(-sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) ), sbslog,
-      "sbsphys", worldlog, false, 0, false);
+
+  G4ThreeVector sbsbox_pos( -sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) );
+  
+  new G4PVPlacement(SBS_FPP_rm, sbsbox_pos, sbslog,
+		    "sbsphys", worldlog, false, 0, false);
 
   G4RotationMatrix *rot_I = new G4RotationMatrix;
 
+  //First GEM is 5 cm downstream of edge of SBS box. 
   double detoffset = 0.05*m - sbsdepth/2.0;
 
   MakeFPP( sbslog, rot_I, G4ThreeVector( 0.0, 0.0, detoffset) );
+
+  //optional absorber in front of FT:
+  if( fFTuseabsorber ){
+    G4Box *FTabs_box = new G4Box( "FTabs_box", 20.0*cm, 75.0*cm, fFTabsthick/2.0 );
+
+    G4LogicalVolume *FTabs_log = new G4LogicalVolume( FTabs_box,  GetMaterial(fFTabsmaterial), "FTabs_log" );
+    
+    G4ThreeVector SBS_FPP_zaxis(0,0,1);
+
+    SBS_FPP_zaxis *= SBS_FPP_rm->inverse();
+
+    G4cout << "SBS FPP z axis = ("
+	   << SBS_FPP_zaxis.x() << ", "
+	   << SBS_FPP_zaxis.y() << ", "
+	   << SBS_FPP_zaxis.z() << ")" << G4endl;
+    
+    G4ThreeVector FTabs_pos = sbsbox_pos - (sbsdepth/2.0 + 1.0*mm + fFTabsthick/2.0)*SBS_FPP_zaxis;
+
+    new G4PVPlacement( SBS_FPP_rm, FTabs_pos, FTabs_log, "FTabs_phys", worldlog, false, 0, false );
+  }
 }
 
 void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
@@ -3658,9 +3686,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //1 is H arm.  
     trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, SDnames[i] );
   }
+
   //CH2 analyzers:
-  
-  
 
   G4VisAttributes *CH2anavisatt = new G4VisAttributes( G4Colour(0.0, 0.0, 1.0) );
   CH2anavisatt->SetForceWireframe(true);

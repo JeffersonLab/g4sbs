@@ -32,7 +32,10 @@ public:
   void SetRICH_use_aerogel( G4bool b ){ fRICH_use_aerogel = b; }
   void SetFPP_CH2thick(int ifpp, double thick );
   void SetGENRPAnalyzerOption(int ia ){ fGEnRP_analyzer_option = ia; }
-
+  void SetFTabsthick( G4double t ){ fFTabsthick = t; }
+  void SetFTuseabsorber( G4bool b ){ fFTuseabsorber = b; }
+  void SetFTabsmaterial( G4String s ){ fFTabsmaterial = s; }
+  
   void Make48D48(G4LogicalVolume*, double);
   void MakeSBSFieldClamps(G4LogicalVolume*);
   void MakeHCAL(G4LogicalVolume*, G4double);
@@ -82,6 +85,11 @@ public:
   double fLAChorizontal_offset; //horizontal offset of center of LAC
 
   double fCH2thickFPP[2];
+
+  //Parameters of possible FT absorber for GEP to reduce backgrounds:
+  G4double fFTabsthick;
+  G4bool   fFTuseabsorber; //flag to toggle building of an absorber
+  G4String fFTabsmaterial; //string defining FT absorber material
   
 private:
 

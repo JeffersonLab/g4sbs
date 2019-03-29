@@ -18,7 +18,6 @@
 #include "G4GenericTrap.hh"
 #include "G4Polycone.hh"
 #include "G4ExtrudedSolid.hh"
-
 #include "G4SBSCalSD.hh"
 // #include "G4SBSGEMSD.hh"
 
@@ -85,9 +84,11 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fmTPC_gem_surf2thick = 0.005*mm; //5um copper surface
   fmTPC_gap_readoutGEM = 0.001*mm;
   fmTPC_gap_GEMGEM = 0.001*mm;
-
+  // HV
+  fmTPC_HV_thick = 0.05*mm; // 50um say gold?
+  //
   fmTPCkrypto = false;//by default
-  fChkOvLaps = false;//true;
+  fChkOvLaps = true;//true;
   
 }
 
@@ -1957,9 +1958,8 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   // set up SD, for moment only make gas cells sensitive as do not want to record info in gems and readout right now
   G4String mTPCSDname = "SBS/mTPC";
   G4String mTPCcolname = "mTPCHitsCollection";
-  
+ 
   G4SBSmTPCSD* mTPCSD;
-
   if( !(mTPCSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
     mTPCSD = new G4SBSmTPCSD( mTPCSDname, mTPCcolname );
     fDetCon->fSDman->AddNewDetector(mTPCSD);
@@ -1967,14 +1967,37 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
     fDetCon->SDtype[mTPCSDname] = kmTPC;
   }
 
+  // set up temp sd for readout discs
+  G4String mTPCReadoutSDname = "SBS/mTPCReadout";
+  G4String mTPCReadoutcolname = "mTPCReadoutHitsCollection";
+
+  G4SBSmTPCSD *mTPCReadoutSD;
+  if( !(mTPCReadoutSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCReadoutSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCReadoutSD = new G4SBSmTPCSD( mTPCReadoutSDname, mTPCReadoutcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCReadoutSD);
+    (fDetCon->SDlist).insert(mTPCReadoutSDname);
+    fDetCon->SDtype[mTPCReadoutSDname] = kmTPC;
+  }
+  
+  // set up temp sd for readoutHV discs
+  G4String mTPCHVSDname = "SBS/mTPCHV";
+  G4String mTPCHVcolname = "mTPCHVHitsCollection";
+
+  G4SBSmTPCSD *mTPCHVSD;
+  if( !(mTPCHVSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCHVSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCHVSD = new G4SBSmTPCSD( mTPCHVSDname, mTPCHVcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCHVSD);
+    (fDetCon->SDlist).insert(mTPCHVSDname);
+    fDetCon->SDtype[mTPCHVSDname] = kmTPC;
+  }
   // make the field electrodes and boundary walls at the inner and outer radii
   BuildmTPCWalls(mTPCmother_log, mTPC_z_total, z_pos, mTPC_rIN, mTPC_rOUT);
   // build the readout discs and the gap between readout disc and gems (1 per cell)
-  BuildmTPCReadouts(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);
+  BuildmTPCReadouts(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT, mTPCReadoutSD);
   // build the gem detectors
   BuildmTPCGEMs(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);
   // build the sensitive gas cells
-  BuildmTPCGasCells(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT, mTPCSD);
+  BuildmTPCGasCells(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT, mTPCSD, mTPCHVSD);
 
 
   // // oversimplistic TPC
@@ -2082,7 +2105,6 @@ void G4SBSTargetBuilder::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtp
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mtpczpos), mTPCouterwall1_log,
   		    "mTPCouterwall1_phys", motherlog, false, 0, fChkOvLaps);
   //outer most layer is kapton
-  // NB IN GEMC THIS IS KRYPTONITE, IE TRACK STOPPED AND NO SECONDARIES PRODUCED - NEED TO CHECK IF WANT THIS
   G4Tubs* mTPCouterwall2_solid = 
     new G4Tubs("mTPCouterwall2_solid", mtpcouterR+fmTPC_outelectrode_authick, fmTPC_outelectrode_r, mtpctotallength/2.0, 0.*deg, 360.*deg );
   G4LogicalVolume* mTPCouterwall2_log = 
@@ -2105,9 +2127,8 @@ void G4SBSTargetBuilder::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtp
 
 
 }
-
-
-void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double innerR,  G4double outerR){
+  
+void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double innerR,  G4double outerR, G4SBSmTPCSD* mtpcreadoutSD){
   //build readout discs, one per cell, even numbered cells have it on the "LHS", odd ones on "RHS"
 
   G4Tubs* mTPCReadoutDisc_solid; 
@@ -2133,11 +2154,12 @@ void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double 
     }
     mTPCReadoutDisc_solid = new G4Tubs("mTPCReadoutDisc_solid", innerR, outerR, fmTPC_readout_thick/2.0, 0.*deg, 360.*deg);
     mTPCReadoutDisc_log = new G4LogicalVolume(mTPCReadoutDisc_solid, GetMaterial("BonusPCB"),"mTPCReadoutDisc_log");    
-    // NB IN GEMC IMPLEMENTATION THIS IS KRYPTONITE, IE TRACK IS STOPPED AND NO SECONDARIES - NEED TO SORT THIS
     // FOR MOMENT PUT AS BONUS PCB MATERIAL, TOOK FROM MATERIALS IN GEMC
     if(fmTPCkrypto)mTPCReadoutDisc_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mTPC_zpos), mTPCReadoutDisc_log, "mTPCReadoutDisc_phys", motherlog, false, incCell, fChkOvLaps);
     mTPCReadoutDisc_log->SetVisAttributes( mtpc_readout_visatt );
+    // set readout disc as sensitive
+    mTPCReadoutDisc_log->SetSensitiveDetector(mtpcreadoutSD);
 
     // now we want to make a gap between readout disc and where gem will go, material should be same as mTPC gas
     double mTPC_zposgap = 0.0;
@@ -2154,15 +2176,13 @@ void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double 
     mTPCReadoutGEMGap_log = new G4LogicalVolume(mTPCReadoutGEMGap_solid, GetMaterial("mTPCgas"),"mTPCReadoutGEMGap_log");    
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mTPC_zposgap), mTPCReadoutGEMGap_log, "mTPCReadoutGEMGap_phys", motherlog, false, incCell, fChkOvLaps);
     mTPCReadoutGEMGap_log->SetVisAttributes( mtpc_readoutgemgap_visatt );
+
   }//loop over mTPC cells/chambers
 
 }
 
 void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double mtpcinnerR, G4double mtpcouterR){
 
-  //NB MUST CHECK, IN GEMC THE GEMS ARE KRYPTONITE IE PARTICLES STOPPED WHEN ENTERRING AND NO SECONDARIES
-  // FOR MOMENT DO CU, KAPTON, CU
-  // SHOULD IMPLEMENT EQUIVALENT SO THAT TRACK STOPS AT END OF CELL
   G4Tubs* mTPCGEMfoil_solid;
   G4LogicalVolume* mTPCGEMfoil_log;
   
@@ -2325,9 +2345,22 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
   }//loop over mTPC cells/chambers
 }
 
-void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double mtpcinnerR, G4double mtpcouterR, G4SBSmTPCSD* mtpcSD){
+void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double mtpcinnerR, G4double mtpcouterR, G4SBSmTPCSD* mtpcSD, G4SBSmTPCSD* mtpchvSD){
+
+  double HVThickness = fmTPC_HV_thick;
+
+  // double CellGasLength = celllength - (fmTPC_readout_thick + fmTPC_gap_readoutGEM + (fmTPC_Ngems-1)*fmTPC_gap_GEMGEM
+  // 				       + fmTPC_Ngems*(fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick));
   double CellGasLength = celllength - (fmTPC_readout_thick + fmTPC_gap_readoutGEM + (fmTPC_Ngems-1)*fmTPC_gap_GEMGEM
-				       + fmTPC_Ngems*(fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick));
+				       + fmTPC_Ngems*(fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick)) - HVThickness/2.0;
+
+  double zposHVDisc = 0.0;
+  double mTPCHVDisc_Centre = 0.0;
+  G4Tubs* mTPCHVDisc_solid; 
+  G4LogicalVolume* mTPCHVDisc_log;
+  G4VisAttributes *mtpc_HVDisc_visatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 1.0) );
+  mtpc_HVDisc_visatt->SetForceWireframe(true);
+
   double zposGasCell = 0.0;
   double mTPC_CentreCell = 0.0;
   G4Tubs* mTPCGasCell_solid; 
@@ -2337,13 +2370,21 @@ void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double 
 
   // loop over each cell/chamber of mTPC
   for(int incCell=0; incCell<fmTPC_Ncells; incCell++){
-
     mTPC_CentreCell = centrecell1 + incCell*celllength;
     if(incCell % 2 == 0){
-      zposGasCell = mTPC_CentreCell + celllength/2.0 - CellGasLength/2.0;
+      zposGasCell = mTPC_CentreCell + celllength/2.0 - CellGasLength/2.0 - HVThickness/2.0;
+      // HV disc, only have 5
+      zposHVDisc = zposGasCell + CellGasLength/2.0 + HVThickness/2.0;
+      mTPCHVDisc_solid = new G4Tubs("mTPCHVDisc_solid", mtpcinnerR, mtpcouterR, HVThickness/2.0, 0.*deg, 360.*deg);
+      mTPCHVDisc_log = new G4LogicalVolume(mTPCHVDisc_solid, GetMaterial("Au"),"mTPCHVDisc_log"); 
+      if(fmTPCkrypto)mTPCHVDisc_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposHVDisc), mTPCHVDisc_log, "mTPCHVDisc_phys", motherlog, false, incCell, fChkOvLaps);
+      mTPCHVDisc_log->SetVisAttributes( mtpc_HVDisc_visatt );
+      // set cell as a sensitive detector
+      mTPCHVDisc_log->SetSensitiveDetector(mtpchvSD);
     }
     else{
-      zposGasCell = mTPC_CentreCell - celllength/2.0 + CellGasLength/2.0;
+      zposGasCell = mTPC_CentreCell - celllength/2.0 + CellGasLength/2.0 + HVThickness/2.0;
     }
     mTPCGasCell_solid = new G4Tubs("mTPCGasCell_solid", mtpcinnerR, mtpcouterR, CellGasLength/2.0, 0.*deg, 360.*deg);
     mTPCGasCell_log = new G4LogicalVolume(mTPCGasCell_solid, GetMaterial("mTPCgas"),"mTPCGasCell_log");    

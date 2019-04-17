@@ -871,7 +871,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     // G4double Trap_TL2 = 20.0*cm;
     // G4double Trap_alpha2 = angtrap;
 
-    if( fDetCon->fLeadOption == 1 ){
+    if( fDetCon->fLeadOption == 1 &&  fDetCon->fExpType == kGEp ){
       //Let us redefine this guy so that the sides make proper angles:
       G4double Trap_DZ = 13.6*cm;
       G4double Trap_Width1 = 15*cm;

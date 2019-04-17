@@ -88,7 +88,7 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fmTPC_HV_thick = 0.05*mm; // 50um say gold?
   //
   fmTPCkrypto = false;//by default
-  fChkOvLaps = true;//true;
+  fChkOvLaps = false;//true;//
   
 }
 
@@ -1967,6 +1967,9 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
     fDetCon->SDtype[mTPCSDname] = kmTPC;
   }
 
+  /*
+  //To be thought of better, but we do not need a specific SD for HV planes and readout planes...
+  // also, I think we can declare them locally, but may not matter...
   // set up temp sd for readout discs
   G4String mTPCReadoutSDname = "SBS/mTPCReadout";
   G4String mTPCReadoutcolname = "mTPCReadoutHitsCollection";
@@ -1990,14 +1993,16 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
     (fDetCon->SDlist).insert(mTPCHVSDname);
     fDetCon->SDtype[mTPCHVSDname] = kmTPC;
   }
+  */
+  
   // make the field electrodes and boundary walls at the inner and outer radii
   BuildmTPCWalls(mTPCmother_log, mTPC_z_total, z_pos, mTPC_rIN, mTPC_rOUT);
   // build the readout discs and the gap between readout disc and gems (1 per cell)
-  BuildmTPCReadouts(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT, mTPCReadoutSD);
+  BuildmTPCReadouts(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCReadoutSD);
   // build the gem detectors
   BuildmTPCGEMs(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);
   // build the sensitive gas cells
-  BuildmTPCGasCells(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT, mTPCSD, mTPCHVSD);
+  BuildmTPCGasCells(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT, mTPCSD);//, mTPCHVSD);
 
 
   // // oversimplistic TPC
@@ -2128,9 +2133,20 @@ void G4SBSTargetBuilder::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtp
 
 }
   
-void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double innerR,  G4double outerR, G4SBSmTPCSD* mtpcreadoutSD){
+void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double innerR,  G4double outerR){//, G4SBSmTPCSD* mtpcreadoutSD){
   //build readout discs, one per cell, even numbered cells have it on the "LHS", odd ones on "RHS"
+  G4String mTPCReadoutSDname = "SBS/mTPCReadout";
+  G4String mTPCReadoutcolname = "mTPCReadoutHitsCollection";
+  
+  G4SBSCalSD *mTPCReadoutSD;
+  if( !(mTPCReadoutSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCReadoutSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCReadoutSD = new G4SBSCalSD( mTPCReadoutSDname, mTPCReadoutcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCReadoutSD);
+    (fDetCon->SDlist).insert(mTPCReadoutSDname);
+    fDetCon->SDtype[mTPCReadoutSDname] = kCAL;
+  }
 
+  
   G4Tubs* mTPCReadoutDisc_solid; 
   G4LogicalVolume* mTPCReadoutDisc_log;
   G4Tubs* mTPCReadoutGEMGap_solid; 
@@ -2159,7 +2175,7 @@ void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double 
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mTPC_zpos), mTPCReadoutDisc_log, "mTPCReadoutDisc_phys", motherlog, false, incCell, fChkOvLaps);
     mTPCReadoutDisc_log->SetVisAttributes( mtpc_readout_visatt );
     // set readout disc as sensitive
-    mTPCReadoutDisc_log->SetSensitiveDetector(mtpcreadoutSD);
+    mTPCReadoutDisc_log->SetSensitiveDetector(mTPCReadoutSD);
 
     // now we want to make a gap between readout disc and where gem will go, material should be same as mTPC gas
     double mTPC_zposgap = 0.0;
@@ -2345,8 +2361,19 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
   }//loop over mTPC cells/chambers
 }
 
-void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double mtpcinnerR, G4double mtpcouterR, G4SBSmTPCSD* mtpcSD, G4SBSmTPCSD* mtpchvSD){
+void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double mtpcinnerR, G4double mtpcouterR, G4SBSmTPCSD* mtpcSD){//, G4SBSmTPCSD* mtpchvSD){
+  // set up temp sd for readoutHV discs
+  G4String mTPCHVSDname = "SBS/mTPCHV";
+  G4String mTPCHVcolname = "mTPCHVHitsCollection";
 
+  G4SBSCalSD *mTPCHVSD;
+  if( !(mTPCHVSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCHVSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCHVSD = new G4SBSCalSD( mTPCHVSDname, mTPCHVcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCHVSD);
+    (fDetCon->SDlist).insert(mTPCHVSDname);
+    fDetCon->SDtype[mTPCHVSDname] = kCAL;
+  }
+  
   double HVThickness = fmTPC_HV_thick;
 
   // double CellGasLength = celllength - (fmTPC_readout_thick + fmTPC_gap_readoutGEM + (fmTPC_Ngems-1)*fmTPC_gap_GEMGEM
@@ -2381,7 +2408,7 @@ void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double 
       new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposHVDisc), mTPCHVDisc_log, "mTPCHVDisc_phys", motherlog, false, incCell, fChkOvLaps);
       mTPCHVDisc_log->SetVisAttributes( mtpc_HVDisc_visatt );
       // set cell as a sensitive detector
-      mTPCHVDisc_log->SetSensitiveDetector(mtpchvSD);
+      mTPCHVDisc_log->SetSensitiveDetector(mTPCHVSD);
     }
     else{
       zposGasCell = mTPC_CentreCell - celllength/2.0 + CellGasLength/2.0 + HVThickness/2.0;

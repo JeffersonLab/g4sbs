@@ -431,6 +431,21 @@ G4SBSMessenger::G4SBSMessenger(){
   TreeFlagCmd->SetGuidance("G4SBS ROOT tree filling: 0=keep all, 1=keep only evts w/hits in sensitive volumes");
   TreeFlagCmd->SetParameterName("treeflag",false);
 
+  SBS_FT_absorberCmd = new G4UIcmdWithABool("/g4sbs/FTabsorberflag",this);
+  SBS_FT_absorberCmd->SetGuidance("Turn on sheet of absorber material in front of SBS FT (only applicable to GEP)");
+  SBS_FT_absorberCmd->SetParameterName("FTabsflag",false);
+
+  SBS_FT_absorberMaterialCmd = new G4UIcmdWithAString("/g4sbs/FTabsorbermaterial",this);
+  SBS_FT_absorberMaterialCmd->SetGuidance("Set material of FT absorber (default = aluminum)" );
+  SBS_FT_absorberMaterialCmd->SetGuidance("Valid material names defined in G4SBSDetectorConstruction::ConstructMaterials()");
+  SBS_FT_absorberMaterialCmd->SetParameterName("FTabsmat",true);
+  SBS_FT_absorberMaterialCmd->SetDefaultValue("Aluminum");
+
+  SBS_FT_absorberThickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/FTabsorberthick",this);
+  SBS_FT_absorberThickCmd->SetGuidance("Set thickness of absorber in front of FT (default = 1 inch)");
+  SBS_FT_absorberThickCmd->SetParameterName("FTabsthick",true);
+  SBS_FT_absorberThickCmd->SetDefaultValue(2.54*cm);
+  
   // Earm_CAL_part_cmd = new G4UIcmdWithABool("/g4sbs/keep_part_earm_cal",this);
   // Earm_CAL_part_cmd->SetGuidance("Keep particle info in root tree for electron arm calorimeter (default = false)");
   // Earm_CAL_part_cmd->SetParameterName("keeppart",true);
@@ -1469,6 +1484,24 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevact->SetTreeFlag( flag );
   }
 
+  if( cmd == SBS_FT_absorberCmd ){
+    G4bool flag = SBS_FT_absorberCmd->GetNewBoolValue(newValue);
+
+    fdetcon->fHArmBuilder->SetFTuseabsorber( flag );
+  }
+
+  if( cmd == SBS_FT_absorberMaterialCmd ){
+    G4String matname = newValue;
+
+    fdetcon->fHArmBuilder->SetFTabsmaterial( matname );
+  }
+
+  if( cmd == SBS_FT_absorberThickCmd ){
+    G4double absthick = SBS_FT_absorberThickCmd->GetNewDoubleValue(newValue);
+
+    fdetcon->fHArmBuilder->SetFTabsthick( absthick );
+  }
+  
   // if( cmd == Earm_CAL_part_cmd ){ 
   //   G4bool flag = Earm_CAL_part_cmd->GetNewBoolValue( newValue );
   //   fIO->SetEarmCALpart_flag( flag );

@@ -403,8 +403,8 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	  //TVector3 BendPlane_UnitNormal = phat_targ_global.Cross( phat_fp_global ).Unit();
 	  thetabend = acos( phat_fp_global.Dot( phat_targ_global ) );
 
-	  cout << "SBS thetabend exact = " << thetabend*57.3 << " degrees" << endl;
-	  cout << "SBS thetabend approx = " << 57.3*(tracker_pitch_angle + atan(xptar)-atan(xpfp)) << endl;
+	  // cout << "SBS thetabend exact = " << thetabend*57.3 << " degrees" << endl;
+	  // cout << "SBS thetabend approx = " << 57.3*(tracker_pitch_angle + atan(xptar)-atan(xpfp)) << endl;
 	  
 	  goodtrack = true;
 	}

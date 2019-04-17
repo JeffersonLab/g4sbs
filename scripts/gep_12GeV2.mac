@@ -25,6 +25,8 @@
 /g4sbs/hcaldist        6.8 m
 /g4sbs/hcalvoffset     45.0 cm
 /g4sbs/sbsclampopt     2
+/g4sbs/uselead 	       1
+/g4sbs/beamlineconfig  1
 
 ## Configure the magnets
 /g4sbs/bbfield         0

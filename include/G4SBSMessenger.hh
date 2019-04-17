@@ -176,7 +176,10 @@ private:
   
   G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree
 
-  
+  G4UIcmdWithABool *SBS_FT_absorberCmd; //Command to turn on absorber material in front of SBS FT.
+  G4UIcmdWithAString *SBS_FT_absorberMaterialCmd; //Command to set material of SBS FT absorber material (default is aluminum)
+
+  G4UIcmdWithADoubleAndUnit *SBS_FT_absorberThickCmd;
   
   // G4UIcmdWithABool *Earm_CAL_part_cmd;
   // G4UIcmdWithABool *Harm_CAL_part_cmd;

@@ -10,6 +10,7 @@
 #include "G4SBSSteppingAction.hh"
 #include "G4SBSRun.hh"
 #include "G4SBSRunData.hh"
+#include "G4UIcommandStatus.hh"
 
 
 //------------
@@ -77,11 +78,16 @@ bool parseArgument(std::string arg, std::string &name, std::string &value)
   return false;
 }
 
-void executeMacro(G4String macro, G4UImanager *UImanager)
+G4int executeMacro(G4String macro, G4UImanager *UImanager)
 {
   if(macro.length()>0) {
     G4String command = "/control/execute ";
-    UImanager->ApplyCommand(command+macro);
+
+    //G4UIcommandStatus success = fCommandSucceeded;
+    return  UImanager->ApplyCommand(command+macro);
+    //return success;
+  } else {
+    return fCommandSucceeded;
   }
 }
 
@@ -232,7 +238,11 @@ int main(int argc, char** argv)
 
   if( preinit_macro != "" ){
     rundata->SetPreInitMacroFile(preinit_macro);
-    executeMacro(preinit_macro,UImanager);
+    G4int success = executeMacro(preinit_macro,UImanager);
+    if( success != fCommandSucceeded ){
+      G4cerr << "Problem executing macro, exiting..." << G4endl;
+      exit(-1);
+    }
   }
 
   if( postinit_macro != "") {
@@ -274,8 +284,12 @@ int main(int argc, char** argv)
     UImanager->SetSession( ui->GetSession() ); 
 #endif
 
-    executeMacro(postinit_macro, UImanager);
-
+    G4int success = executeMacro(postinit_macro, UImanager);
+    if( success != fCommandSucceeded ){
+      G4cerr << "Problem executing macro, exiting..." << G4endl;
+      exit(-1);
+    }
+    
 #ifdef G4UI_USE
     ui->SessionStart();
 
@@ -283,7 +297,12 @@ int main(int argc, char** argv)
 #endif
   } else {
     // Run the postinit macro if one is specified
-    executeMacro(postinit_macro, UImanager);
+    G4int success = executeMacro(postinit_macro, UImanager);
+    if( success != fCommandSucceeded ){
+      G4cerr << "Problem executing macro, exiting..." << G4endl;
+      exit(-1);
+    }
+    
   }
 
   // Free the store: user actions, physics_list and detector_description are

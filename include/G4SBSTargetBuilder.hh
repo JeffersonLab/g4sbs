@@ -30,7 +30,7 @@ public:
   void BuildmTPCWalls(G4LogicalVolume *, G4double, G4double, G4double, G4double);
   void BuildmTPCReadouts(G4LogicalVolume *, G4double, G4double, G4double,  G4double);//, G4SBSmTPCSD *);
   void BuildmTPCGEMs(G4LogicalVolume *, G4double, G4double, G4double, G4double);
-  void BuildmTPCGasCells(G4LogicalVolume *, G4double, G4double, G4double, G4double, G4SBSmTPCSD *);//, G4SBSmTPCSD *);
+  void BuildmTPCGasCells(G4LogicalVolume *, G4double, G4double, G4double, G4double);//, G4SBSmTPCSD *);//, G4SBSmTPCSD *);
   // void BuildmTPCHVPlanes(G4LogicalVolume *, G4double, G4double, G4double,  G4double, G4SBSmTPCSD *);
 
 

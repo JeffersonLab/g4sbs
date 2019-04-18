@@ -19,7 +19,7 @@
 #include "G4Polycone.hh"
 #include "G4ExtrudedSolid.hh"
 #include "G4SBSCalSD.hh"
-// #include "G4SBSGEMSD.hh"
+#include "G4SBSGEMSD.hh"
 
 #include "G4SBSHArmBuilder.hh"
 
@@ -1955,6 +1955,7 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   // mTPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
   mTPCmother_log->SetVisAttributes( tgt_mTPCmother_visatt );
 
+  /*
   // set up SD, for moment only make gas cells sensitive as do not want to record info in gems and readout right now
   G4String mTPCSDname = "SBS/mTPC";
   G4String mTPCcolname = "mTPCHitsCollection";
@@ -1967,7 +1968,6 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
     fDetCon->SDtype[mTPCSDname] = kmTPC;
   }
 
-  /*
   //To be thought of better, but we do not need a specific SD for HV planes and readout planes...
   // also, I think we can declare them locally, but may not matter...
   // set up temp sd for readout discs
@@ -2002,7 +2002,7 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   // build the gem detectors
   BuildmTPCGEMs(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);
   // build the sensitive gas cells
-  BuildmTPCGasCells(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT, mTPCSD);//, mTPCHVSD);
+  BuildmTPCGasCells(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCSD);//, mTPCHVSD);
 
 
   // // oversimplistic TPC
@@ -2353,7 +2353,7 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
 	G4String mTPCGEMGap_logname = "mTPCGEMGap_log";
 	G4String mTPCGEMGap_physname = "mTPCGEMGap_phys";
 	mTPCGEMGap_solid = new G4Tubs(mTPCGEMGap_solidname, mtpcinnerR, mtpcouterR, fmTPC_gap_GEMGEM/2.0, 0.*deg, 360.*deg);
-	mTPCGEMGap_log = new G4LogicalVolume(mTPCGEMGap_solid, GetMaterial("mTPCgas"),mTPCGEMGap_logname);    
+	mTPCGEMGap_log = new G4LogicalVolume(mTPCGEMGap_solid, GetMaterial("mTPCgas"),mTPCGEMGap_logname);
 	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposgap), mTPCGEMGap_log, mTPCGEMGap_physname, motherlog, false, counter, fChkOvLaps);
 	mTPCGEMGap_log->SetVisAttributes( mtpc_gemgap_visatt );
       }//if not the last gem which has no gap
@@ -2361,8 +2361,30 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
   }//loop over mTPC cells/chambers
 }
 
-void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double mtpcinnerR, G4double mtpcouterR, G4SBSmTPCSD* mtpcSD){//, G4SBSmTPCSD* mtpchvSD){
+void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double mtpcinnerR, G4double mtpcouterR){//, G4SBSmTPCSD* mtpcSD){//, G4SBSmTPCSD* mtpchvSD){
   // set up temp sd for readoutHV discs
+  // set up SD, for moment only make gas cells sensitive as do not want to record info in gems and readout right now
+  G4String mTPCSDname = "SBS/mTPC";
+  G4String mTPCcolname = "mTPCHitsCollection";
+
+  /*
+  G4SBSGEMSD* mTPCSD;
+  if( !(mTPCSD = (G4SBSGEMSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCSD = new G4SBSGEMSD( mTPCSDname, mTPCcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCSD);
+    (fDetCon->SDlist).insert(mTPCSDname);
+    fDetCon->SDtype[mTPCSDname] = kGEM;
+  }
+  */
+  G4SBSmTPCSD* mTPCSD;
+  if( !(mTPCSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCSD = new G4SBSmTPCSD( mTPCSDname, mTPCcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCSD);
+    (fDetCon->SDlist).insert(mTPCSDname);
+    fDetCon->SDtype[mTPCSDname] = kmTPC;
+  }
+  
+  
   G4String mTPCHVSDname = "SBS/mTPCHV";
   G4String mTPCHVcolname = "mTPCHVHitsCollection";
 
@@ -2388,6 +2410,12 @@ void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double 
   G4VisAttributes *mtpc_HVDisc_visatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 1.0) );
   mtpc_HVDisc_visatt->SetForceWireframe(true);
 
+  G4double GasLayerThick = 5.0*mm; // pad size
+  cout << "mTPC inner " << mtpcinnerR  << " mTPC inner " << mtpcouterR << endl;
+  G4int NGasLayers = ceil( (mtpcouterR-mtpcinnerR)/GasLayerThick );
+  GasLayerThick = (mtpcouterR-mtpcinnerR)/NGasLayers;
+  cout << "NGasLayers " << NGasLayers << " GasLayerThick " << GasLayerThick << endl;
+  
   double zposGasCell = 0.0;
   double mTPC_CentreCell = 0.0;
   G4Tubs* mTPCGasCell_solid; 
@@ -2413,12 +2441,17 @@ void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double 
     else{
       zposGasCell = mTPC_CentreCell - celllength/2.0 + CellGasLength/2.0 + HVThickness/2.0;
     }
-    mTPCGasCell_solid = new G4Tubs("mTPCGasCell_solid", mtpcinnerR, mtpcouterR, CellGasLength/2.0, 0.*deg, 360.*deg);
-    mTPCGasCell_log = new G4LogicalVolume(mTPCGasCell_solid, GetMaterial("mTPCgas"),"mTPCGasCell_log");    
-    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposGasCell), mTPCGasCell_log, "mTPCGasCell_phys", motherlog, false, incCell, fChkOvLaps);
-    mTPCGasCell_log->SetVisAttributes( mtpc_gas_visatt );
-    // set cell as a sensitive detector
-    mTPCGasCell_log->SetSensitiveDetector(mtpcSD);
+    for(G4int i_gl = 0; i_gl<NGasLayers; i_gl++){
+      mTPCGasCell_solid = new G4Tubs("mTPCGasCell_solid", mtpcinnerR+i_gl*GasLayerThick, min(mtpcinnerR+(i_gl+1)*GasLayerThick, mtpcouterR), CellGasLength/2.0, 0.*deg, 360.*deg);
+      mTPCGasCell_log = new G4LogicalVolume(mTPCGasCell_solid, GetMaterial("mTPCgas"),"mTPCGasCell_log");    
+      mTPCGasCell_log->SetSensitiveDetector(mTPCSD);
+      G4int layernum = incCell*20+i_gl+1;
+      G4String layername = G4String("mTPCGasCell_phy") + layernum;
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposGasCell), mTPCGasCell_log, layername, motherlog, false, layernum, fChkOvLaps);
+      //cout << " incCell " << incCell << " i_gl " << i_gl  << " logical mTPC volume number " << layernum << endl;
+      mTPCGasCell_log->SetVisAttributes( mtpc_gas_visatt );
+      // set cell as a sensitive detector
+    }
   }//loop over mtpc numer of cells
 
 }

@@ -774,6 +774,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fExpType = kNDVCS;
       validcmd = true;
     }
+    if( newValue.compareTo("hcgem") == 0 ){
+      fExpType = kGEMHCtest;
+      validcmd = true;
+    }
 
     if( validcmd ){
       fdetcon->SetExpType( fExpType );
@@ -904,7 +908,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fdetcon->fTargetBuilder->SetTargDen(den);
       validcmd = true;
     }
+    if( newValue.compareTo("Cfoil") == 0 ){
+      fevgen->SetTarget(kCfoil);
+      fdetcon->SetTarget(kCfoil);
+      validcmd = true;
 
+    }
+    
     if( !validcmd ){
       fprintf(stderr, "%s: %s line %d - Error: target type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
       exit(1);

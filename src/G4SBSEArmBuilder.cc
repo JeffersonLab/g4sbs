@@ -139,6 +139,10 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   if( exptype == kNDVCS ){
     MakeDVCSECal(worldlog);
   }
+  
+  if( exptype ==  kGEMHCtest){
+    MakeHallCGEM(worldlog);
+  }
 }
 
 void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
@@ -3417,3 +3421,39 @@ void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog)
   printf("Building BB sieve slit...\n");
 }
  
+
+
+void G4SBSEArmBuilder::MakeHallCGEM(G4LogicalVolume *motherlog){
+  G4SBSTrackerBuilder trackerbuilder(fDetCon);
+  
+  //This routine creates and positions GEM plane in Hall
+
+  //---Hall C GEM-------//
+  G4double z0 = fBBdist;//m
+
+  G4Box* HCGEMBox =  new G4Box("HCGEMBox", 10.0*cm, 10.0*cm, 2.0*cm);
+  
+  G4LogicalVolume* HCGEMlog = new G4LogicalVolume(HCGEMBox, GetMaterial("Air"),
+						  "HCGEMLog", 0, 0, 0);
+  HCGEMlog->SetVisAttributes(G4VisAttributes::Invisible);
+  G4RotationMatrix *HCGEMrot = new G4RotationMatrix();
+  
+  HCGEMrot->rotateY(-fBBang);
+  new G4PVPlacement(HCGEMrot, G4ThreeVector(z0*sin(fBBang), 0.0, z0*cos(fBBang)),
+		    HCGEMlog, "HCGEMPhysical", motherlog, 0,false,0);
+ 
+  G4int ngem = 1;
+  vector<double> gemz, gemw, gemh;
+  gemz.resize(ngem);
+  gemw.resize(ngem);
+  gemh.resize(ngem);
+
+  gemz[0] = 0.0;;
+  gemw[0] = 15.36*cm;
+  gemh[0] = 15.36*cm;
+
+  G4RotationMatrix *rot_identity = new G4RotationMatrix;
+  
+  trackerbuilder.BuildComponent(HCGEMlog, rot_identity, G4ThreeVector( 0.0, 0.0, 0.0 ), 1, gemz, gemw, gemh, "Earm/HCGEM" );
+ 
+}

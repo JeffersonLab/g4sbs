@@ -163,6 +163,9 @@ void G4SBSEventGen::Initialize(){
   case k3He:
     Wfact = 3.0;
     break;
+  case kCfoil:
+    Wfact = 12.0;
+    break;
   default:
     Wfact = 1.0;
     break;

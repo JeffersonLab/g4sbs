@@ -666,6 +666,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["Steel"] = Steel;
   fMaterialsMap["Stainless_Steel"] = Steel;
 
+  G4Material *Carbon = man->FindOrBuildMaterial("G4_GRAPHITE");
+  fMaterialsMap["Carbon"] = Carbon;
+  
+  
   //Need to define "QuartzWindow" *before* Aerogel because 
   //the Aerogel Material properties definition refers to Quartz Window:
 

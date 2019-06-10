@@ -2539,3 +2539,11 @@ void G4SBSDetectorConstruction::SetTimeWindowAndThreshold( G4String SDname, G4do
   
   return;
 }
+
+void G4SBSDetectorConstruction::InsertSDboundaryVolume( G4String bvname, G4String sdname ){
+
+  if( SDboundaryVolumes.find( bvname ) == SDboundaryVolumes.end() ){ //first occurrence of this BV: clear sdlist before insertion:
+    SDboundaryVolumes[bvname].clear();
+  }
+  SDboundaryVolumes[bvname].insert( sdname );
+}

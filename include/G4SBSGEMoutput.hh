@@ -27,6 +27,8 @@ public:
   vector<int> trid,mid,pid;
   vector<double> vx,vy,vz;
   vector<double> p,edep,beta;
+  //Add bookkeeping indices for "original", "primary", and "SD boundary" tracks:
+  vector<int> otridx,ptridx,sdtridx;
   
   G4SBSParticleOutput ParticleHistory;
 

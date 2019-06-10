@@ -473,34 +473,90 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //----- Note: Lines of code that are common to the construction of all individual GEM planes/modules were moved to MakeTracker() -----// 
   //----- All we do here in MakeBigBite() is define the number of planes, their z positions, and their transverse dimensions ------//
 
+  //how are these used?
   double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
   double mylar_air_sum = mylarthickness + airthickness;
   double bbpmtz = 0.20*cm;
   
   // **** BIGBITE CALORIMETER MOTHER VOLUME ****:
+  //AJRP 05/19/19: re-working BBCAL geometry so user tracking action and stepping action classes
+  //behave properly. Put everything (including detectors/shielding) inside a single mother volume
   G4double bbcal_box_height = 27*8.5*cm;
   G4double bbcal_box_width  = 2.0*37.0*cm;
   //G4double bbcal_box_depth  = (8.5+2.5+37.0)*cm;
-  G4double bbcal_box_depth  = (8.5+8.89+37.0)*cm;//8.89 cm (3.5") is the size of the gap between the PS and the SH
-  
+  G4double bbcal_box_depth  = (8.5+3.5*2.54+37.0)*cm;//8.89 cm (3.5") is the size of the gap between the PS and the SH
+
   // Big Bite Calorimeter shielding.
   // 
   // EFuchey: 2017/03/02: flag for BBECal shielding option: 
   // 0: nothing; 1: default 1/4 in SS+0.5mm; 2: 10cm Al + 3cm SS on the side; 3: 10cm Al + 3cm SS on the side; 
-  
-  // Default front plate: 0.25" steel + 0.5mm mu metal
-  G4double bbcal_shield_thick = 6.85*mm + 9.525*cm;
+
+  //AJRP: cleaning up shielding: total thickness of cal mother box will be the total thickness of all BB calorimeter
+  //layers (including shielding)
+  //NOTE: "SIDE" shielding never actually gets placed as coded; thus, ignore:
+  G4double bbcal_total_thick=bbcal_box_depth;
   G4double Al_thick = 10.0*cm;
   G4double SS_thick = 2.0*cm;
-  if(fShieldOption==2)bbcal_shield_thick+=max(0.0, Al_thick-9.0*cm);
-  if(fShieldOption==4){
-    Al_thick = Al_thick/2.0;
-    SS_thick = SS_thick/2.0;
+  // Default front plate: 0.25" steel + 0.5mm mu metal
+  if( fShieldOption > 0 ){
+    bbcal_total_thick += 0.25*2.54*cm + 0.5*mm; //Steel + mu-metal
+    switch( fShieldOption ){
+    case 2: //"10 cm Al in front "
+      bbcal_total_thick += Al_thick;
+      break;
+    case 3: //"2 cm SS in front "
+      bbcal_total_thick += SS_thick;
+      break;
+    case 4: //"1 cm SS in front + 5cm Al in front "
+      Al_thick /= 2.0;
+      SS_thick /= 2.0;
+      bbcal_total_thick += Al_thick + SS_thick; 
+      break;
+    default:
+      break;
+    }
   }
   
-  G4Box *bbcalshieldbox = new G4Box( "bbcalshieldbox", bbmagwidth/2.0-2.0*cm, bbcal_box_height/2.0, bbcal_shield_thick/2.0 );
-  G4LogicalVolume *bbcal_shield_log = new G4LogicalVolume(bbcalshieldbox, GetMaterial("Air"), "bbcal_shield_log");
-  bbcal_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
+  //  G4double bbcal_shield_thick = 6.85*mm + 9.525*cm;
+  // G4double Al_thick = 10.0*cm;
+  // G4double SS_thick = 2.0*cm;
+  // if(fShieldOption==2)bbcal_shield_thick+=max(0.0, Al_thick-9.0*cm);
+  // if(fShieldOption==4){
+  //   Al_thick = Al_thick/2.0;
+  //   SS_thick = SS_thick/2.0;
+  // }
+
+  // BB Ecal
+  G4Box *bbcalbox = new G4Box( "bbcalbox", bbcal_box_width/2.0, bbcal_box_height/2.0, bbcal_total_thick/2.0+0.1*mm );
+  G4LogicalVolume *bbcal_mother_log = new G4LogicalVolume(bbcalbox, GetMaterial("Air"), "bbcal_mother_log");
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_total_thick/2.0 ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 ); 
+
+  bbcal_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  
+  //option to "turn off" BBCAL (make total absorber)
+  if( (fDetCon->StepLimiterList).find( "bbcal_mother_log" ) != (fDetCon->StepLimiterList).end() ){
+    bbcal_mother_log->SetUserLimits( new G4UserLimits(0,0,0,DBL_MAX,DBL_MAX) );
+    G4String SDname = "Earm/BBCal";
+    G4String collname = "BBCalHitsCollection";
+    G4SBSCalSD *BBCalSD = NULL;
+    if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(SDname)) ){ //add sensitivity:
+      G4cout << "Adding BBCal sensitive detector to SDman..." << G4endl;
+      BBCalSD = new G4SBSCalSD( SDname, collname );
+      fDetCon->fSDman->AddNewDetector( BBCalSD );
+      (fDetCon->SDlist).insert( SDname );
+      fDetCon->SDtype[SDname] = kCAL;
+      (BBCalSD->detmap).depth = 0;
+      bbcal_mother_log->SetSensitiveDetector( BBCalSD );
+      //(BBCalSD->detmap).Row[0] = 0;
+      //(BBCalSD->detmap).Col[0] = 0;
+      
+    }
+  }
+
+  //Get rid of dedicated shielding box, it's not needed
+  // G4Box *bbcalshieldbox = new G4Box( "bbcalshieldbox", bbmagwidth/2.0-2.0*cm, bbcal_box_height/2.0, bbcal_shield_thick/2.0 );
+  // G4LogicalVolume *bbcal_shield_log = new G4LogicalVolume(bbcalshieldbox, GetMaterial("Air"), "bbcal_shield_log");
+  // bbcal_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
   
   G4Box *bbcalfrontmufoil = new G4Box( "bbcalfrontmufoil", bbcal_box_width/2.0, bbcal_box_height/2.0, 0.5*mm/2.0 );
   G4LogicalVolume *bbcal_front_mufoil_log = new G4LogicalVolume(bbcalfrontmufoil, GetMaterial("mu-metal"), "bbcal_front_mufoil_log");
@@ -525,57 +581,46 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *bbcalshield_side_ss = new G4Box( "bbcalshield_side_ss", 3.0*cm/2.0, detboxheight/2.0, detboxdepth/3.0 );
   G4LogicalVolume *bbcal_shield_side_ss_log = new G4LogicalVolume(bbcalshield_side_ss, GetMaterial("Steel"), "bbcal_shield_side_ss_log");
   bbcal_shield_side_ss_log->SetVisAttributes( G4Colour(1.0, 1.0, 0.9) );
+
+  //start at the front of the BB cal mother volume and work our way back:
+  G4double zpos_temp = -0.5*bbcal_total_thick;
   
-  if(fShieldOption){
-    new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_shield_thick/2.0 ), bbcal_shield_log, "bbcal_shield_phys", bbdetLog, false, 0 );
-    new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm/2.0 ), bbcal_front_mufoil_log, "bbcal_front_mufoil_phys", bbcal_shield_log, false, 0 );
-    new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm/2.0 ), bbcal_front_steelplate_log, "bbcal_front_steelplate_phys", bbcal_shield_log, false, 0 );
+  if(fShieldOption > 0){
+    // new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_shield_thick/2.0 ), bbcal_shield_log, "bbcal_shield_phys", bbdetLog, false, 0 );
     
     switch(fShieldOption){
-    case(2):
-      //new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_shield_thick/2.0+Al_thick/2.0), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_shield_log, false, 0 );
-      new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-Al_thick/2.0), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_shield_log, false, 0 );
+    case 2: //aluminum shielding in front ONLY (10 cm)
+      zpos_temp += bbcalshield_al->GetZHalfLength();
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_mother_log, false, 0 );
+      zpos_temp += bbcalshield_al->GetZHalfLength();
       //new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
       break;
-    case(3):
-      new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-SS_thick/2.0), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_shield_log, false, 0 );
+    case 3: //mutually exclusive with case 2: SS shielding in front ONLY (2 cm)
+      zpos_temp += bbcalshield_ss->GetZHalfLength();
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_mother_log, false, 0 );
+      zpos_temp += bbcalshield_ss->GetZHalfLength();
       //new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
       break;
-    case(4):
-      new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-SS_thick/2.0), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_shield_log, false, 0 );
-      new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_shield_thick/2.0-0.5*mm-6.35*mm-0.525*cm-SS_thick-Al_thick/2.0), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_shield_log, false, 0 );
+    case 4: //SS + Al:
+      zpos_temp += bbcalshield_ss->GetZHalfLength();
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_mother_log, false, 0 );
+      zpos_temp += bbcalshield_ss->GetZHalfLength() + bbcalshield_al->GetZHalfLength();
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_mother_log, false, 0 );
       //new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
-    default:
+      zpos_temp += bbcalshield_al->GetZHalfLength();
+    default:  //do nothing here; no "extra" shielding:
       break;
     }
-  }
-  
-  // BB Ecal
-  G4Box *bbcalbox = new G4Box( "bbcalbox", bbcal_box_width/2.0, bbcal_box_height/2.0, bbcal_box_depth/2.0+mm );
-  G4LogicalVolume *bbcal_mother_log = new G4LogicalVolume(bbcalbox, GetMaterial("Air"), "bbcal_mother_log");
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_shield_thick + bbcal_box_depth/2.0 ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 ); 
 
-  bbcal_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
-  
-  //option to "turn off" BBCAL (make total absorber)
-  if( (fDetCon->StepLimiterList).find( "bbcal_mother_log" ) != (fDetCon->StepLimiterList).end() ){
-    bbcal_mother_log->SetUserLimits( new G4UserLimits(0,0,0,DBL_MAX,DBL_MAX) );
-    G4String SDname = "Earm/BBCal";
-    G4String collname = "BBCalHitsCollection";
-    G4SBSCalSD *BBCalSD = NULL;
-    if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(SDname)) ){ //add sensitivity:
-      G4cout << "Adding BBCal sensitive detector to SDman..." << G4endl;
-      BBCalSD = new G4SBSCalSD( SDname, collname );
-      fDetCon->fSDman->AddNewDetector( BBCalSD );
-      (fDetCon->SDlist).insert( SDname );
-      fDetCon->SDtype[SDname] = kCAL;
-      (BBCalSD->detmap).depth = 0;
-      bbcal_mother_log->SetSensitiveDetector( BBCalSD );
-      //(BBCalSD->detmap).Row[0] = 0;
-      //(BBCalSD->detmap).Col[0] = 0;
-      
-    }
+    //Place front mu-metal foil and front steel plate?
+    zpos_temp += bbcalfrontmufoil->GetZHalfLength();
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_front_mufoil_log, "bbcal_front_mufoil_phys", bbcal_mother_log, false, 0 );
+    zpos_temp += bbcalfrontmufoil->GetZHalfLength() + bbcalfrontsteelplate->GetZHalfLength();
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp ), bbcal_front_steelplate_log, "bbcal_front_steelplate_phys", bbcal_mother_log, false, 0 );
+    zpos_temp += bbcalfrontsteelplate->GetZHalfLength();
   }
+  
+  //At this stage, zpos_temp = -bbcal_total_thick/2 + total shielding thickness!
 
   // **** BIGBITE PRESHOWER **** 
   // 2 columns, 27 rows
@@ -587,10 +632,12 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *bbpsbox = new G4Box("bbpsbox", pswidth/2.0, psheight/2.0, psdepth/2.0 );
   G4LogicalVolume *bbpslog = new G4LogicalVolume(bbpsbox, GetMaterial("Air"), "bbpslog");
   //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth/2.0), bbpslog, "bbpsphys", bbdetLog, false, 0);
-  new G4PVPlacement(0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth/2.0 ), bbpslog, "bbpsphys", bbcal_mother_log, false, 0 );
+  zpos_temp += psdepth/2.0;
+  new G4PVPlacement(0, G4ThreeVector( 0, 0, zpos_temp ), bbpslog, "bbpsphys", bbcal_mother_log, false, 0 );
   
   //placement of second mu-metal foil behind the PS
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth + 0.5*mm/2.0), bbcal_front_mufoil_log, "bbcal_back_mufoil_phys", bbcal_mother_log, false, 0 );
+  zpos_temp += psdepth/2.0 + bbcalfrontmufoil->GetZHalfLength();
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_front_mufoil_log, "bbcal_back_mufoil_phys", bbcal_mother_log, false, 0 );
   // Preshower module - geometry will be assigned after Shower
 
   // **** BIGBITE HODOSCOPE **** 
@@ -603,9 +650,11 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + 0.217*2.54 + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0+0.5*mm ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
+  zpos_temp += bbcalfrontmufoil->GetZHalfLength() + bbhododepth/2.0;
+  new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
   bbhodolog->SetVisAttributes(G4VisAttributes::Invisible);
-  
+
+  zpos_temp += bbhododepth/2.0;
   //
   G4Box *bbhodoslatbox = new G4Box("bbhodoslat", bbslat_length/2.0, bbslat_section/2.0, bbslat_section/2.0);
   G4LogicalVolume *bbhodoslatlog = new G4LogicalVolume( bbhodoslatbox, GetMaterial("BBHodo_Scinti"), "bbhodoslatlog" );
@@ -635,6 +684,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
   bbhodoslatlog->SetSensitiveDetector( BBHodoScintSD ); 
 
+  //Record track info at both the calorimeter mother volume boundary AND the hodoscope mother volume boundary:
+  fDetCon->InsertSDboundaryVolume( bbcal_mother_log->GetName(), BBHodoScintSDname );
+  //fDetCon->InsertSDboundaryVolume( bbhodolog->GetName(),       BBHodoScintSDname );
   ofstream mapfile("database/BBhodo_map.txt");
 
   TString currentline;
@@ -669,7 +721,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *bbshowerlog = new G4LogicalVolume(bbshowerbox, GetMaterial("Air"), "bbshowerlog");
   //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+bbhododepth+caldepth/2.0), bbshowerlog, "bbshowerphys", bbdetLog, false, 0);
   //new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth + bbhododepth + caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_box_depth/2.0 - caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
+
+  
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_total_thick/2.0 - caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
   
 
   // Shower module:
@@ -714,8 +768,11 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     
     fDetCon->SetTimeWindowAndThreshold( BBSHTF1SDname, threshold_default, timewindow_default );
   }
-  bbTF1log->SetSensitiveDetector( BBSHTF1SD ); 
+  bbTF1log->SetSensitiveDetector( BBSHTF1SD );
 
+  //fDetCon->InsertSDboundaryVolume( bbshowerlog->GetName(), BBSHTF1SDname );
+  fDetCon->InsertSDboundaryVolume( bbcal_mother_log->GetName(), BBSHTF1SDname );
+  
   if( (fDetCon->StepLimiterList).find( BBSHTF1SDname ) != (fDetCon->StepLimiterList).end() ){
     bbTF1log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
@@ -741,6 +798,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
   bbpmtcathodelog->SetSensitiveDetector( BBSHSD );
 
+  fDetCon->InsertSDboundaryVolume( bbcal_mother_log->GetName(), BBSHSDname );
+  
   // Put everything in a BB Shower Module
   int shower_copy_number = 0;
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-bbpmtz)/2.0), bbpmtcathodelog,"bbcathodephys", showermodlog, false, 0 );
@@ -815,7 +874,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
     fDetCon->SetTimeWindowAndThreshold( BBPSTF1SDname, threshold_default, timewindow_default );
   }
-  bbpsTF1log->SetSensitiveDetector( BBPSTF1SD ); 
+  bbpsTF1log->SetSensitiveDetector( BBPSTF1SD );
+
+  fDetCon->InsertSDboundaryVolume( bbcal_mother_log->GetName(), BBPSTF1SDname );
 
   if( (fDetCon->StepLimiterList).find( BBPSTF1SDname ) != (fDetCon->StepLimiterList).end() ){
     bbpsTF1log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
@@ -838,6 +899,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
   bbpspmtcathodelog->SetSensitiveDetector( BBPSSD );
 
+  fDetCon->InsertSDboundaryVolume( bbcal_mother_log->GetName(), BBPSSDname );
+  
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-bbpmtz)/2.0), bbpspmtcathodelog,"bbpscathodephys", preshowermodlog, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*bbpmtz)/2.0), bbpmtwindowlog, "bbpswindowphys", preshowermodlog, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbpsTF1log, "bbpsTF1phys", preshowermodlog, false, 0 );
@@ -1089,6 +1152,7 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
   }
   DVCSblklog->SetSensitiveDetector( DVCSblkSD ); 
 
+  fDetCon->InsertSDboundaryVolume( dvcsblkecallog->GetName(), DVCSblkSDname );
 //////////////////
 
   if( (fDetCon->StepLimiterList).find( DVCSblkSDname ) != (fDetCon->StepLimiterList).end() ){
@@ -1114,6 +1178,8 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
     (DVCSblkecalSD->detmap).depth = 1;
   }
   dvcsblkpmtcathodecallog->SetSensitiveDetector( DVCSblkecalSD );
+
+  fDetCon->InsertSDboundaryVolume( dvcsblkecallog->GetName(), DVCSblkecalSDname );
 
   // Put everything in a calo Module
   int mod_copy_number = 0;
@@ -1219,6 +1285,8 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
 
   ecal_PMT_log->SetSensitiveDetector( C16SD );
 
+  fDetCon->InsertSDboundaryVolume( C16_Log->GetName(), C16SDname );
+  
   // Getting the Wave Guides set up, *****need to UPDATE material properties*****
   G4Tubs *C16_WG = new G4Tubs( "C16_WG", 0.0, radius_WG, depth_WG/2.0, 0.0, twopi );
   G4LogicalVolume *C16_WG_Log = new G4LogicalVolume( C16_WG, GetMaterial("Pyrex_Glass"), "C16_WG_Log" );
@@ -1332,6 +1400,8 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
     // Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
 
+    fDetCon->InsertSDboundaryVolume( C16_Log->GetName(), C16TF1SDname );
+    
     // Place lead-glass and Al wrap inside module:
     new G4PVPlacement( 0, G4ThreeVector( 0, 0, (alum_thick + air_thick)/2.0 ), LeadGlass_42_log, "LeadGlass_42_phys", Module_42_log, false, 0 );
     // Al:
@@ -1777,6 +1847,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 
     fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, default_threshold, default_timewindow );
   }
+
+  fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), ECalTF1SDname );
   
   //Make lead-glass and place in modules:
   
@@ -1994,6 +2066,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   }
 
   ecal_PMT_log->SetSensitiveDetector( ECalSD );
+
+  fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), sdname );
   
   int lastrow42 = 0;
   int nused42 = 0, nused40=0, nused38=0;
@@ -2415,6 +2489,8 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
     CDET_pmt_cathode_log->SetSensitiveDetector( cdet_sd );
   }
 
+  fDetCon->InsertSDboundaryVolume( mother->GetName(), sdname );
+  
   sdname = "Earm/CDET_Scint";
   collname = "CDET_ScintHitsCollection";
 
@@ -2435,6 +2511,8 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 
     fDetCon->SetTimeWindowAndThreshold( sdname, default_threshold, default_timewindow );
   }
+
+  fDetCon->InsertSDboundaryVolume( mother->GetName(), sdname );
   
   //Now we need to define the coordinates of the "modules":
   //horizontal position within mother:

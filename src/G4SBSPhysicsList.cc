@@ -61,8 +61,8 @@ G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
   ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetScintillationExcitationRatio(0.0);
   ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetMaxNumPhotonsPerStep(300);
   ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetMaxBetaChangePerStep(10.0);
-  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetTrackSecondariesFirst( kCerenkov, true );
-  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetTrackSecondariesFirst( kScintillation, true );
+  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetTrackSecondariesFirst( kCerenkov, false );
+  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetTrackSecondariesFirst( kScintillation, false );
 
   //G4SBSHadronicPhysics.push_back( opt_phys );
 
@@ -73,6 +73,10 @@ G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
   // cutProton    = defaultCutValue;
   
   G4Transportation::EnableUseMagneticMoment(true);
+
+  //Set optical photon production to be OFF by default:
+  ToggleCerenkov(false);
+  ToggleScintillation(false);
   
 }
 

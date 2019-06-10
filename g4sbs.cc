@@ -8,6 +8,7 @@
 #include "G4SBSPrimaryGeneratorAction.hh"
 #include "G4SBSEventAction.hh"
 #include "G4SBSSteppingAction.hh"
+#include "G4SBSTrackingAction.hh"
 #include "G4SBSRun.hh"
 #include "G4SBSRunData.hh"
 #include "G4UIcommandStatus.hh"
@@ -231,9 +232,18 @@ int main(int argc, char** argv)
   runManager->SetUserAction(event_action);
   sbsmess->SetEvAct((G4SBSEventAction *) event_action);
   //
-  G4UserSteppingAction* stepping_action = new G4SBSSteppingAction;
+  G4SBSSteppingAction* stepping_action = new G4SBSSteppingAction;
   runManager->SetUserAction(stepping_action);
 
+  G4SBSTrackingAction *tracking_action = new G4SBSTrackingAction;
+  runManager->SetUserAction(tracking_action);
+  //Store pointer to tracking action in SBS UI messenger:
+  sbsmess->SetTrackingAction(tracking_action); 
+  sbsmess->SetSteppingAction(stepping_action);
+
+  ((G4SBSRunAction *) run_action)->SetTrackingAction(tracking_action);
+  ((G4SBSRunAction *) run_action)->SetSteppingAction(stepping_action);
+  
   G4UImanager * UImanager = G4UImanager::GetUIpointer();
 
   if( preinit_macro != "" ){

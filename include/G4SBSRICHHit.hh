@@ -5,7 +5,7 @@
 #include "G4THitsCollection.hh"
 #include "G4Allocator.hh"
 #include "G4ThreeVector.hh"
-#include "G4LogicalVolume.hh"
+//#include "G4LogicalVolume.hh"
 
 class G4SBSRICHHit : public G4VHit
 {
@@ -71,7 +71,11 @@ private:
   G4ThreeVector fGlobalCellCoord; //Global coordinates of center of PMT photocathode
 
   //Need to store a pointer to logical volume in order to retrieve quantum efficiency info later:
-  G4LogicalVolume *fvolume_log;
+  //G4LogicalVolume *fvolume_log;
+
+  G4double fQuantumEfficiency;
+
+  G4int otridx, ptridx, sdtridx;
   
   //static std::map<G4String, G4AttDef> fAttDefs; //For visualization
   
@@ -147,10 +151,21 @@ public:
   inline G4ThreeVector GetCellCoord(){ return fCellCoord; }
   
   inline void SetGlobalCellCoord( G4ThreeVector x ){ fGlobalCellCoord = x; }
-  inline G4ThreeVector GetGlobalCellCoord(){ return fGlobalCellCoord; }
+  inline G4ThreeVector GetGlobalCellCoord() const { return fGlobalCellCoord; }
 
-  inline void SetLogicalVolume( G4LogicalVolume *v ){  fvolume_log = v; }
-  inline G4LogicalVolume *GetLogicalVolume() { return fvolume_log; }
+  //inline void SetLogicalVolume( G4LogicalVolume *v ){  fvolume_log = v; }
+  //inline G4LogicalVolume *GetLogicalVolume() { return fvolume_log; }
+
+  inline void SetQuantumEfficiency( G4double QE ){ fQuantumEfficiency = QE; }
+  inline G4double GetQuantumEfficiency() const { return fQuantumEfficiency; }
+
+  inline void SetOTrIdx(G4int idx){ otridx = idx; }
+  inline void SetPTrIdx(G4int idx){ ptridx = idx; }
+  inline void SetSDTrIdx(G4int idx){ sdtridx = idx; }
+
+  inline G4int GetOTrIdx() const { return otridx; }
+  inline G4int GetPTrIdx() const { return ptridx; }
+  inline G4int GetSDTrIdx() const { return sdtridx; }
 };
 
 typedef G4THitsCollection<G4SBSRICHHit> G4SBSRICHHitsCollection;

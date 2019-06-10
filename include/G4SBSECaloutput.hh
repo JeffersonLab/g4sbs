@@ -31,7 +31,9 @@ public:
   vector<double> Time_rms; //std. deviation of photon arrival times in this hit.
   vector<double> Time_min; //arrival time of earliest photon in the hit
   vector<double> Time_max; //arrival time of latest photon in the hit
-  
+
+  //Add bookkeeping indices for "original", "primary", and "SD boundary" tracks:
+  vector<int> otridx,ptridx,sdtridx;
   //G4SBSParticleOutput ParticleHistory;
   
   

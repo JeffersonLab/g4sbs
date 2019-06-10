@@ -36,6 +36,9 @@ void G4SBSECaloutput::Clear(){
   Time_min.clear();
   Time_max.clear();
 
+  otridx.clear();
+  ptridx.clear();
+  sdtridx.clear();
   //ParticleHistory.Clear();
   /* 
   mTrackNo.clear();

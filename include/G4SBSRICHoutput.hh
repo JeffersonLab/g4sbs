@@ -57,6 +57,8 @@ public:
   vector<double> xpmt,ypmt,zpmt;
   vector<double> xgpmt,ygpmt,zgpmt;
 
+  //Add bookkeeping indices for "original", "primary", and "SD boundary" tracks:
+  vector<int> otridx,ptridx,sdtridx;
   // //"Track" variables:
   // int ntracks_RICH; //number of tracks producing RICH hits.
   // vector<int> mPID; //Particle ID of tracks producing RICH hits. (according to PDG encoding scheme).

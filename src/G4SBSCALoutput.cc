@@ -39,6 +39,10 @@ void G4SBSCALoutput::Clear(){
   tmin.clear();
   tmax.clear();
 
+  otridx.clear();
+  ptridx.clear();
+  sdtridx.clear();
+  
   npart_CAL = 0;
   px.clear();
   py.clear();

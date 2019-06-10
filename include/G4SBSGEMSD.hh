@@ -7,6 +7,7 @@
 #include "G4Step.hh"
 #include "G4SBSDetMap.hh"
 #include "sbstypes.hh"
+#include "G4SBSSDTrackOutput.hh"
 
 #include <map>
 
@@ -32,6 +33,8 @@ public:
   // map<int, Arm_t>    GEMArmIDs;
 
   G4SBSDetMap detmap;
+
+  G4SBSSDTrackOutput SDtracks;
 
 private:
   G4SBSGEMHitsCollection *hitCollection;

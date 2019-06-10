@@ -36,4 +36,8 @@ void G4SBSTrackerOutput::Clear(){
   TrackYfit.clear();
   TrackXpfit.clear();
   TrackYpfit.clear();
+
+  otridx.clear();
+  ptridx.clear();
+  sdtridx.clear();
 }

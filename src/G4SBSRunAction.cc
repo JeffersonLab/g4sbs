@@ -7,6 +7,8 @@
 #include "G4Run.hh"
 #include "G4UImanager.hh"
 #include "G4ios.hh"
+#include "G4SBSTrackingAction.hh"
+#include "G4SBSSteppingAction.hh"
 
 G4SBSRunAction::G4SBSRunAction()
 {
@@ -24,8 +26,10 @@ void G4SBSRunAction::BeginOfRunAction(const G4Run* aRun)
   //  timer->Start();
   Ntries = 0; //Keep track of total number of tries to throw Nevt events:
   fIO->InitializeTree();
-
   fIO->UpdateGenDataFromDetCon();
+
+  fstepact->Initialize( fIO->GetDetCon() );
+  ftrkact->Initialize( fIO->GetDetCon() );
   
   G4SBSRunData *rmrundata = G4SBSRun::GetRun()->GetData();
 

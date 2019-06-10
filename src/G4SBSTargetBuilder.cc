@@ -95,6 +95,8 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   } else {
     TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
   }
+
+  fDetCon->InsertTargetVolume( TargetCell_log->GetName() );
   
   G4Tubs *TargetWall = new G4Tubs("TargetWall", Rcell, Rcell + sthick, fTargLen/2.0, 0, twopi );
   
@@ -105,6 +107,10 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   
   G4LogicalVolume *uwindow_log = new G4LogicalVolume( UpstreamWindow, GetMaterial("Al"), "uwindow_log" );
   G4LogicalVolume *dwindow_log = new G4LogicalVolume( DownstreamWindow, GetMaterial("Al"), "dwindow_log" );
+
+  fDetCon->InsertTargetVolume( TargetWall_log->GetName() );
+  fDetCon->InsertTargetVolume( uwindow_log->GetName() );
+  fDetCon->InsertTargetVolume( dwindow_log->GetName() );
   
   // Now place everything:
   // Need to fix this later: Union solid defining vacuum chamber 
@@ -805,6 +811,8 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   logicScatChamber = new G4LogicalVolume(solidScatChamber, GetMaterial("Vacuum"), "ScatChamber_log");
   
   new G4PVPlacement(rotSC, *SCPlacement, logicScatChamber, "ScatChamberPhys", worldlog, false, 0);
+
+  fDetCon->InsertTargetVolume( logicScatChamber->GetName() );
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(90.0*deg);
@@ -1042,6 +1050,9 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   rot_temp->rotateX( 90.0*deg );
 
   new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), ScatChamber_log, "ScatChamber_phys", worldlog, false, 0 );
+
+  //Add scattering chamber and all target materials to the list of "TARGET" volumes:
+  fDetCon->InsertTargetVolume( ScatChamber_log->GetName() );
   
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateX( -90.0*deg );
@@ -1226,6 +1237,8 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), SnoutVacuum_log, "SnoutVacuum_phys", worldlog, false, 0 );
 
+  fDetCon->InsertTargetVolume( SnoutVacuum_log->GetName() );
+  
   //Iron Tube inside the Snout vacuum volume:
   G4double IronTube_Rmin = 5.0*cm;
   G4double IronTube_Rmax = 7.0*cm;
@@ -1487,6 +1500,8 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
 
   G4LogicalVolume *dvcs_snout_vacuum_log = new G4LogicalVolume(dvcs_snout_vacuum, GetMaterial("Vacuum"), "dvcs_snout_vacuum_log" );
 
+  fDetCon->InsertTargetVolume( dvcs_snout_vacuum_log->GetName() );
+  
   G4Tubs *dvcs_snout_beamhole = new G4Tubs("dvcs_snout_beamhole", 0.0, Rin_dvcs_beampipe, 5.0*inch, 0.0, 360.0*deg );
 
   
@@ -1522,6 +1537,8 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
 
   new G4PVPlacement( 0, G4ThreeVector(0,0,0), scham_wall_log, "scham_wall_phys", scham_vacuum_log, false, 0 );
   new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), scham_vacuum_log, "scham_vacuum_phys", worldlog, false, 0 );
+
+  fDetCon->InsertTargetVolume( scham_vacuum_log->GetName() );
   
   //swallcut = new G4SubtractionSolid("swallcut2", swallcut, swall_bbcut);
 
@@ -1775,10 +1792,11 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   G4LogicalVolume* targ_tube_log = new G4LogicalVolume(targ_tube, GetMaterial("Aluminum"),"targ_tube_log");
   G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Aluminum"),"targ_cap_log");
 
+  fDetCon->InsertTargetVolume( sc_vacuum_log->GetName() );
+  
   // gas
   G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, fTargDiameter/2.0-wallthick,fTargLen/2.0, 0.*deg, 360.*deg );
   G4LogicalVolume* gas_tube_log = NULL;
-
 
   if( fTargType == kH2 || fTargType == kNeutTarg ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refH2"), "gas_tube_log");
@@ -1789,6 +1807,8 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   if( fTargType == k3He ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("pol3He"), "gas_tube_log");
   }
+
+  fDetCon->InsertTargetVolume( gas_tube_log->GetName() );
 
   G4LogicalVolume *motherlog = worldlog;
   double target_zpos = 0.0;
@@ -1975,6 +1995,10 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("pol3He"), "gas_tube_log");
   }
 
+  fDetCon->InsertTargetVolume( targ_cap_log->GetName() );
+  fDetCon->InsertTargetVolume( targ_tube_log->GetName() );
+  fDetCon->InsertTargetVolume( gas_tube_log->GetName() );
+  
   G4LogicalVolume *motherlog = worldlog;
   double target_zpos = 0.0;
   

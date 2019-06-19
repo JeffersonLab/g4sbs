@@ -78,7 +78,10 @@ public:
   map<G4String, G4double> SDgatewidth; //Time window for accumulating hit signal
   map<G4String, G4double> SDthreshold; //threshold (energy deposition or photoelectrons) for recording a hit
   //map<G4String, G4int>    SDntimebins; //Time bins for "pulse shape" histogram
+
+  void InsertSDboundaryVolume( G4String bvname, G4String sdname );
   
+  map<G4String, set<G4String> > SDboundaryVolumes; //mapping between sensitive detector names and entrance boundary volumes. Here the key is the "boundary" or mother volume name, the mapped value is the set of unique sensitive detectors associated with this "boundary volume" (In many cases we have ONE boundary volume containing multiple SDs)
   
   G4SDManager *fSDman; 
   bool fTotalAbs;
@@ -130,6 +133,12 @@ public:
   void SetOpticalPhotonDisabled(G4String material){ fMaterialsListOpticalPhotonDisabled.insert( material ); }
 
   void SetTimeWindowAndThreshold( G4String SDname, G4double Ethresh=0.0*MeV, G4double Twindow=1000.0*ns ); //utility function to set time window and threshold by sensitive detector name
+
+  inline set<G4String> GetTargetVolumes() const { return fTargetVolumes; }
+  inline set<G4String> GetAnalyzerVolumes() const { return fAnalyzerVolumes; }
+
+  inline void InsertTargetVolume( G4String vname ){ fTargetVolumes.insert(vname); }
+  inline void InsertAnalyzerVolume( G4String vname ){ fAnalyzerVolumes.insert(vname); }
   
 private:
 
@@ -137,6 +146,9 @@ private:
   map<G4String, G4OpticalSurface*> fOpticalSurfacesMap;
   set<G4String> fMaterialsListOpticalPhotonDisabled; //Allows us to disable definition of refractive index and
   //scintillation parameter definition for individual materials, to prevent optical photon production and tracking
+
+  set<G4String> fTargetVolumes; //list of logical volume names to be flagged as "TARGET"
+  set<G4String> fAnalyzerVolumes; //list of logical volume names to be flagged as "ANALYZER"
   
   G4SBSMagneticField *fbbfield;
   G4SBSMagneticField *f48d48field;

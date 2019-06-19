@@ -8,6 +8,8 @@
 class G4Timer;
 class G4Run;
 class G4SBSIO;
+class G4SBSTrackingAction;
+class G4SBSSteppingAction;
 
 class G4SBSRunAction : public G4UserRunAction
 {
@@ -20,6 +22,8 @@ public:
   void EndOfRunAction(const G4Run* aRun);
   
   void SetIO( G4SBSIO *io ){ fIO = io; }
+  void SetTrackingAction( G4SBSTrackingAction *trkact ){ ftrkact = trkact; }
+  void SetSteppingAction( G4SBSSteppingAction *stepact ){ fstepact = stepact; }
   
   void SetNtries( int n ){ Ntries = n; }
   G4int GetNtries(){ return Ntries; }
@@ -30,6 +34,8 @@ private:
   G4Timer* timer;
   
   G4SBSIO *fIO;
+  G4SBSTrackingAction *ftrkact;
+  G4SBSSteppingAction *fstepact;
 };
 
 #endif

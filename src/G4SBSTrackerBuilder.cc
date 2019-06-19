@@ -67,6 +67,8 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
     fDetCon->SDtype[GEMSDname] = kGEM;
   }
 
+  fDetCon->InsertSDboundaryVolume( Mother->GetName(), GEMSDname );
+  
   if( !( nplanes > 0 && zplanes.size() == nplanes && wplanes.size() == nplanes && hplanes.size() == nplanes ) ){
     G4cout << "MakeTracker called with invalid arguments, doing nothing..." << G4endl;
     return;

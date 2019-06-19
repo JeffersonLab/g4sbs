@@ -33,6 +33,7 @@
 #define G4SBSTrackingAction_h 1
 
 #include "G4UserTrackingAction.hh"
+#include "G4SBSDetectorConstruction.hh"
 
 class G4SBSTrackingAction : public G4UserTrackingAction 
 {
@@ -42,6 +43,19 @@ public:
    
   virtual void PreUserTrackingAction(const G4Track*);
   virtual void PostUserTrackingAction(const G4Track*);
+
+  //should only be invoked at start of run, after the geometry is built!
+  inline void SetTargetVolumes( set<G4String> tvlist ){ fTargetVolumes = tvlist; } 
+  inline void SetAnalyzerVolumes( set<G4String> avlist ){ fAnalyzerVolumes = avlist; }
+  
+  void Initialize( G4SBSDetectorConstruction *fdc );
+  
+private:
+
+  //G4SBSDetectorConstruction *fdetcon;
+  set<G4String> fTargetVolumes; //list of logical volume names to be flagged as "TARGET"
+  set<G4String> fAnalyzerVolumes; //list of logical volume names to be flagged as "ANALYZER"
+  
   
 };
 

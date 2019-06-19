@@ -86,7 +86,7 @@ void Optics_A1n_SIDIS( const char *inputfilename, const char *outputfilename, in
 	BBang_file[chEl->GetTitle()] = rd->fBBtheta;
 	SBSang_file[chEl->GetTitle()] = rd->fSBStheta;
 
-	cout << "Bigbite theta = " << BBang_file[chEl->GetTitle()] << endl;
+	cout << "Bigbite theta = " << BBang_file[chEl->GetTitle()]*57.3 << " degrees" << endl;
       }
     } else {
       bad_file_list.insert( chEl->GetTitle());

@@ -42,6 +42,9 @@ G4SBSGEMHit::G4SBSGEMHit(const G4SBSGEMHit &right)
   edep = right.edep;
   hittime = right.hittime;
   beta = right.beta;
+  otridx = right.otridx;
+  ptridx = right.ptridx;
+  sdtridx = right.sdtridx;
 }
 
 const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
@@ -61,6 +64,10 @@ const G4SBSGEMHit& G4SBSGEMHit::operator=(const G4SBSGEMHit &right)
   edep = right.edep;
   hittime = right.hittime;
   beta = right.beta;
+
+  otridx = right.otridx;
+  ptridx = right.ptridx;
+  sdtridx = right.sdtridx;
 
   return *this;
 }

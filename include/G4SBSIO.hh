@@ -11,6 +11,7 @@
 #include "G4SBSTrackerOutput.hh"
 #include "G4SBSCALoutput.hh"
 #include "G4SBSGEMoutput.hh"
+#include "G4SBSSDTrackOutput.hh"
 #include "G4SBSDetectorConstruction.hh"
 #include "G4SBSPythiaOutput.hh"
 
@@ -103,6 +104,9 @@ public:
   void SetCalData( G4String, G4SBSCALoutput );
   void SetRICHData( G4String, G4SBSRICHoutput );
   void SetECalData( G4String, G4SBSECaloutput );
+  void SetSDtrackData( G4String, G4SBSSDTrackOutput );
+
+  //inline G4SBSSDTrackOutput GetSDtrackData( G4String sdname ){ return sdtrackdata[sdname]; }
 
   //void SetECalData( G4SBSECaloutput ed ){ ecaldata = ed; }
 
@@ -137,6 +141,7 @@ public:
   //void BranchTracker(G4String s);
   void BranchECAL(G4String s);
   void BranchPythia();
+  void BranchSDTracks(G4String s);
   
   void SetDetCon(G4SBSDetectorConstruction *dc ){ fdetcon = dc; }
 
@@ -144,7 +149,9 @@ public:
   // void SetHarmCALpart_flag( G4bool b ){ HarmCALpart_flag = b; }
   map<G4String,G4bool> KeepPartCALflags;
   map<G4String,G4bool> KeepHistoryflags;
-
+  //map<G4String,G4bool> KeepSDtracks;
+  
+  
   void SetPythiaOutput( G4SBSPythiaOutput p ){ Primaries = p; }
   void SetUsePythia6( G4bool b ){ fUsePythia = b; }
 
@@ -154,13 +161,26 @@ public:
   TClonesArray *PulseShape_histograms;
 
   void UpdateGenDataFromDetCon(); //Check and correct any mismatch between constant parameters defined during geometry construction and default values
+
+  G4SBSDetectorConstruction *GetDetCon() { return fdetcon; }
+
+  //Let the user enable this by a UI command either for individual detectors or all detectors, but
+  //turn off by default:
+  void SetKeepSDtracks( G4String sdname, G4bool b=true ){ fKeepSDtracks[sdname] = b; }
+  void SetKeepAllSDtracks( G4bool b ){ fKeepAllSDtracks=b; }
+
+  void SetUsingCerenkov( G4bool b ){ fUsingCerenkov = b; }
+  void SetUsingScintillation( G4bool b ){ fUsingScintillation = b; }
   
 private:
   TFile *fFile;
   TTree *fTree;
  
   G4SBSDetectorConstruction *fdetcon;
- 
+
+  G4bool fKeepAllSDtracks;
+  map<G4String,G4bool> fKeepSDtracks;
+  
   ev_t evdata;
   gen_t gendata;
   //tr_t trdata;
@@ -172,6 +192,7 @@ private:
   map<G4String,G4SBSRICHoutput> richdata;
   map<G4String,G4SBSTrackerOutput> trackdata;
   map<G4String,G4SBSECaloutput> ecaldata;
+  map<G4String,G4SBSSDTrackOutput> sdtrackdata;
   
   G4bool fUsePythia;
   G4SBSPythiaOutput Primaries;
@@ -184,6 +205,11 @@ private:
   
   // G4bool EarmCALpart_flag;
   // G4bool HarmCALpart_flag;
+
+  //Flags indicating usage of optical photon simulation: if false, don't create tree branches for optical photon
+  //sensitive detectors since they will be empty anyway:
+  G4bool fUsingCerenkov;
+  G4bool fUsingScintillation;
   
 };
 

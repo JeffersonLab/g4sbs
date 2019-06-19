@@ -49,6 +49,8 @@ private:
   G4double hittime;
   G4double beta; //v/c, for timing:
 
+  G4int otridx, ptridx, sdtridx;
+
 public:
   inline void SetPos(G4ThreeVector v)
   { pos = v;};
@@ -107,6 +109,14 @@ public:
   inline G4double GetEdep(){ return edep; }
   inline G4double GetHittime(){ return hittime; }
   inline G4double GetBeta(){ return beta; }
+
+  inline void SetOTrIdx(G4int idx){ otridx = idx; }
+  inline void SetPTrIdx(G4int idx){ ptridx = idx; }
+  inline void SetSDTrIdx(G4int idx){ sdtridx = idx; }
+
+  inline G4int GetOTrIdx() const { return otridx; }
+  inline G4int GetPTrIdx() const { return ptridx; }
+  inline G4int GetSDTrIdx() const { return sdtridx; }
 };
 
 typedef G4THitsCollection<G4SBSGEMHit> G4SBSGEMHitsCollection;

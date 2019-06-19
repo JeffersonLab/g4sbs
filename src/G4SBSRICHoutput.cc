@@ -66,6 +66,10 @@ void G4SBSRICHoutput::Clear(){
   // mpy.clear();
   // mpz.clear();
 
+  otridx.clear();
+  ptridx.clear();
+  sdtridx.clear();
+  
   ParticleHistory.Clear();
   Nphe_part.clear();
 }

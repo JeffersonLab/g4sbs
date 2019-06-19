@@ -588,7 +588,11 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
     fDetCon->SDlist.insert(RICHSDname);
     fDetCon->SDtype[RICHSDname] = kRICH; 
 
-    GC_PMT_log->SetSensitiveDetector( RICHSD ); 
+    GC_PMT_log->SetSensitiveDetector( RICHSD );
+
+    fDetCon->InsertSDboundaryVolume( GC_Tank_log->GetName(), RICHSDname );
+    // fDetCon->InsertSDboundaryVolume( GC_Tank_Box_log->GetName(), RICHSDname );
+    // fDetCon->InsertSDboundaryVolume( GC_Tank_Entrance_Window_log->GetName(), RICHSDname );
   }
   G4Tubs* GC_PMT_Cover = new G4Tubs("GC_PMT_Cover", GC_PMT_Radius, GC_PMT_Cover_Radius, GC_PMT_Length*0.5, 0, 360*deg);
   G4LogicalVolume* GC_PMT_Cover_log = new G4LogicalVolume(GC_PMT_Cover, GetMaterial("Stainless_Steel"), "GC_PMT_Cover_log", 0, 0, 0);
@@ -622,7 +626,8 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
     fDetCon->SDlist.insert(CalSDname);
     fDetCon->SDtype[CalSDname] = kCAL; 
 
-    GC_PMT_Glass_log->SetSensitiveDetector( CalSD ); 
+    GC_PMT_Glass_log->SetSensitiveDetector( CalSD );
+    fDetCon->InsertSDboundaryVolume( GC_Tank_log->GetName(), CalSDname );
   }
   
   //GC_PMT_Cone

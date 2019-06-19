@@ -8,6 +8,8 @@
 #include "G4LogicalVolume.hh"
 #include "G4Transform3D.hh"
 #include "G4RotationMatrix.hh"
+#include "G4SBSTrackInformation.hh"
+#include "G4Track.hh"
 
 class G4SBSCalHit : public G4VHit
 {
@@ -47,7 +49,16 @@ private:
 
   G4int pid, mid, trid; //pid of particle causing hit, mother track id and track id.
 
+  //indices in the track info array of "original", "primary", and "SD boundary crossing" track info
+  G4int otridx, ptridx, sdtridx; 
+  //Now we need to add some additional info to be obtained from the G4SBSTrackInformation class:
+  //What information here is actually distinct from what is available above?
+  // The primary and original particle info, and the "SD boundary crossing" particle info.
+  //Can we store a pointer to the track information? No, because that information is not persistent
+  //to when we need it at the end of an event.
+
 public:
+  
   inline void SetPos(G4ThreeVector v)
   { pos = v;};
 
@@ -103,6 +114,10 @@ public:
   inline void SetTrID(G4int t)
   { trid = t;};
 
+  inline void SetOTrIdx(G4int idx){ otridx = idx; }
+  inline void SetPTrIdx(G4int idx){ ptridx = idx; }
+  inline void SetSDTrIdx(G4int idx){ sdtridx = idx; }
+
   
   ////////GET methods://////////
   inline G4ThreeVector GetPos()
@@ -146,7 +161,43 @@ public:
 
   inline G4int GetTrID()
   { return trid;};
-  
+
+  inline G4int GetOTrIdx() const { return otridx; }
+  inline G4int GetPTrIdx() const { return ptridx; }
+  inline G4int GetSDTrIdx() const { return sdtridx; }
+
+  // inline G4int GetOTrID(){ return otrid; }
+  // inline G4int GetOMID(){ return omid; }
+  // inline G4int GetOPID(){ return opid; }
+
+  // inline G4int GetPTrID(){ return ptrid; }
+  // //inline G4int GetPMID(){ return pmid; }
+  // inline G4int GetPPID(){ return ppid; }
+
+  // inline G4int GetSDTrID(){ return sdtrid; }
+  // inline G4int GetSDMID(){ return sdmid; }
+  // inline G4int GetSDPID(){ return sdpid; }
+
+  // inline G4ThreeVector GetOPos(){ return opos; }
+  // inline G4ThreeVector GetOMom(){ return omom; }
+  // inline G4ThreeVector GetOPol(){ return opol; }
+
+  // inline G4ThreeVector GetPPos(){ return ppos; }
+  // inline G4ThreeVector GetPMom(){ return pmom; }
+  // inline G4ThreeVector GetPPol(){ return ppol; }
+
+  // inline G4ThreeVector GetSDPos(){ return sdpos; }
+  // inline G4ThreeVector GetSDMom(){ return sdmom; }
+  // inline G4ThreeVector GetSDPol(){ return sdpol; }
+
+  // inline G4double GetOEnergy(){ return oenergy; }
+  // inline G4double GetOTime(){ return otime; }
+
+  // inline G4double GetPEnergy(){ return penergy; }
+  // inline G4double GetPTime(){ return ptime; }
+
+  // inline G4double GetSDEnergy(){ return sdenergy; }
+  // inline G4double GetSDTime(){ return sdtime; }
 };
 
 typedef G4THitsCollection<G4SBSCalHit> G4SBSCalHitsCollection;

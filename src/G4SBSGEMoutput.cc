@@ -53,6 +53,9 @@ void G4SBSGEMoutput::Clear(){
   p.clear();
   edep.clear();
   beta.clear();
+  otridx.clear();
+  ptridx.clear();
+  sdtridx.clear();
 
   ParticleHistory.Clear();
 }

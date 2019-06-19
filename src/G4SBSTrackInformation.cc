@@ -31,70 +31,119 @@
 
 #include "G4SBSTrackInformation.hh"
 #include "G4ios.hh"
-#include "G4SystemOfUnits.hh"    
+#include "G4SystemOfUnits.hh"
+
 
 G4ThreadLocal G4Allocator<G4SBSTrackInformation> *
-                                   aTrackInformationAllocator = 0;
+aTrackInformationAllocator = 0;
 
+//default constructor: set everything to zero, clear out "SD maps"
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 G4SBSTrackInformation::G4SBSTrackInformation()
   : G4VUserTrackInformation()
 {
-    fOriginalTrackID = 0;
-    fParticleDefinition = 0;
-    fOriginalPosition = G4ThreeVector(0.,0.,0.);
-    fOriginalMomentum = G4ThreeVector(0.,0.,0.);
-    fOriginalEnergy = 0.;
-    fOriginalTime = 0.;
-    fTrackingStatus = 1;
-    fSourceTrackID = -1;
-    fSourceDefinition = 0;
-    fSourcePosition = G4ThreeVector(0.,0.,0.);
-    fSourceMomentum = G4ThreeVector(0.,0.,0.);
-    fSourceEnergy = 0.;
-    fSourceTime = 0.;
-    fSuspendedStepID = -1;
+  fTrackingStatus = 0;
+  
+  fOriginalTrackID = 0;
+  fOriginalParentID = 0;
+  fOriginalDefinition = 0;
+  fOriginalPosition = G4ThreeVector(0.,0.,0.);
+  fOriginalMomentum = G4ThreeVector(0.,0.,0.);
+  fOriginalPolarization = G4ThreeVector(0.,0.,0.);
+  fOriginalEnergy = 0.;
+  fOriginalTime = 0.;
+    
+  fPrimaryTrackID = 0;
+  fPrimaryDefinition = 0;
+  fPrimaryPosition = G4ThreeVector(0.,0.,0.);
+  fPrimaryMomentum = G4ThreeVector(0.,0.,0.);
+  fPrimaryPolarization = G4ThreeVector(0.,0.,0.);
+  fPrimaryEnergy = 0.;
+  fPrimaryTime = 0.;
+
+  fSDlist.clear();
+  fSDDefinition.clear();
+  fSDTrackID.clear();
+  fSDPosition.clear();
+  fSDMomentum.clear();
+  fSDPolarization.clear();
+  fSDEnergy.clear();
+  fSDTime.clear();
 }
 
+//This G4Track based constructor will typically get invoked only when new tracks are created:
+//Should we clear the SD map info here? Maybe...
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 G4SBSTrackInformation::G4SBSTrackInformation(const G4Track* aTrack)
   : G4VUserTrackInformation()
 {
-    fOriginalTrackID = aTrack->GetTrackID();
-    fParticleDefinition = aTrack->GetDefinition();
-    fOriginalPosition = aTrack->GetPosition();
-    fOriginalMomentum = aTrack->GetMomentum();
-    fOriginalEnergy = aTrack->GetTotalEnergy();
-    fOriginalTime = aTrack->GetGlobalTime();
-    fTrackingStatus = 1;
-    fSourceTrackID = -1;
-    fSourceDefinition = 0;
-    fSourcePosition = G4ThreeVector(0.,0.,0.);
-    fSourceMomentum = G4ThreeVector(0.,0.,0.);
-    fSourceEnergy = 0.;
-    fSourceTime = 0.;
-    fSuspendedStepID = -1;
+  fTrackingStatus = 0;
+  
+  fOriginalTrackID = aTrack->GetTrackID();
+  fOriginalParentID = aTrack->GetParentID();
+  fOriginalDefinition = aTrack->GetDefinition();
+  fOriginalPosition = aTrack->GetPosition();
+  fOriginalMomentum = aTrack->GetMomentum();
+  fOriginalPolarization = aTrack->GetPolarization();
+  fOriginalEnergy = aTrack->GetTotalEnergy();
+  fOriginalTime = aTrack->GetGlobalTime();
+
+  if( aTrack->GetParentID() == 0 ){ //Primary particle:
+    fPrimaryTrackID = aTrack->GetTrackID();
+    fPrimaryDefinition = aTrack->GetDefinition();
+    fPrimaryPosition = aTrack->GetPosition();
+    fPrimaryMomentum = aTrack->GetMomentum();
+    fPrimaryPolarization = aTrack->GetPolarization();
+    fPrimaryEnergy = aTrack->GetTotalEnergy();
+    fPrimaryTime   = aTrack->GetGlobalTime();
+  }
+
+  fSDlist.clear();
+  fSDDefinition.clear();
+  fSDTrackID.clear();
+  fSDParentID.clear();
+  fSDPosition.clear();
+  fSDMomentum.clear();
+  fSDPolarization.clear();
+  fSDEnergy.clear();
+  fSDTime.clear();
+ 
 }
 
+//COPY constructor: just copy everything
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 G4SBSTrackInformation
 ::G4SBSTrackInformation(const G4SBSTrackInformation* aTrackInfo)
   : G4VUserTrackInformation()
 {
-    fOriginalTrackID = aTrackInfo->fOriginalTrackID;
-    fParticleDefinition = aTrackInfo->fParticleDefinition;
-    fOriginalPosition = aTrackInfo->fOriginalPosition;
-    fOriginalMomentum = aTrackInfo->fOriginalMomentum;
-    fOriginalEnergy = aTrackInfo->fOriginalEnergy;
-    fOriginalTime = aTrackInfo->fOriginalTime;
-    fTrackingStatus = aTrackInfo->fTrackingStatus;
-    fSourceTrackID = aTrackInfo->fSourceTrackID;
-    fSourceDefinition = aTrackInfo->fSourceDefinition;
-    fSourcePosition = aTrackInfo->fSourcePosition;
-    fSourceMomentum = aTrackInfo->fSourceMomentum;
-    fSourceEnergy = aTrackInfo->fSourceEnergy;
-    fSourceTime = aTrackInfo->fSourceTime;
-    fSuspendedStepID = -1;
+  fOriginalTrackID = aTrackInfo->fOriginalTrackID;
+  fOriginalParentID = aTrackInfo->fOriginalParentID;
+  fOriginalDefinition = aTrackInfo->fOriginalDefinition;
+  fOriginalPosition = aTrackInfo->fOriginalPosition;
+  fOriginalMomentum = aTrackInfo->fOriginalMomentum;
+  fOriginalPolarization = aTrackInfo->fOriginalPolarization;
+  fOriginalEnergy = aTrackInfo->fOriginalEnergy;
+  fOriginalTime = aTrackInfo->fOriginalTime;
+  
+  fTrackingStatus = aTrackInfo->fTrackingStatus;
+
+  fPrimaryTrackID = aTrackInfo->fPrimaryTrackID;
+  fPrimaryDefinition = aTrackInfo->fPrimaryDefinition;
+  fPrimaryPosition = aTrackInfo->fPrimaryPosition;
+  fPrimaryMomentum = aTrackInfo->fPrimaryMomentum;
+  fPrimaryPolarization = aTrackInfo->fPrimaryPolarization;
+  fPrimaryEnergy = aTrackInfo->fPrimaryEnergy;
+  fPrimaryTime = aTrackInfo->fPrimaryTime;
+
+  fSDlist     = aTrackInfo->fSDlist;
+  fSDDefinition = aTrackInfo->fSDDefinition;
+  fSDTrackID    = aTrackInfo->fSDTrackID;
+  fSDParentID   = aTrackInfo->fSDParentID;
+  fSDPosition = aTrackInfo->fSDPosition;
+  fSDMomentum = aTrackInfo->fSDMomentum;
+  fSDPolarization = aTrackInfo->fSDPolarization;
+  fSDEnergy = aTrackInfo->fSDEnergy;
+  fSDTime = aTrackInfo->fSDTime;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -102,48 +151,93 @@ G4SBSTrackInformation::~G4SBSTrackInformation()
 {;}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+// Assignment operator: Just copy everything
 G4SBSTrackInformation& G4SBSTrackInformation
 ::operator =(const G4SBSTrackInformation& aTrackInfo)
 {
-    fOriginalTrackID = aTrackInfo.fOriginalTrackID;
-    fParticleDefinition = aTrackInfo.fParticleDefinition;
-    fOriginalPosition = aTrackInfo.fOriginalPosition;
-    fOriginalMomentum = aTrackInfo.fOriginalMomentum;
-    fOriginalEnergy = aTrackInfo.fOriginalEnergy;
-    fOriginalTime = aTrackInfo.fOriginalTime;
-    fTrackingStatus = aTrackInfo.fTrackingStatus;
-    fSourceTrackID = aTrackInfo.fSourceTrackID;
-    fSourceDefinition = aTrackInfo.fSourceDefinition;
-    fSourcePosition = aTrackInfo.fSourcePosition;
-    fSourceMomentum = aTrackInfo.fSourceMomentum;
-    fSourceEnergy = aTrackInfo.fSourceEnergy;
-    fSourceTime = aTrackInfo.fSourceTime;
-    fSuspendedStepID = -1;
+  fOriginalTrackID = aTrackInfo.fOriginalTrackID;
+  fOriginalParentID = aTrackInfo.fOriginalParentID;
+  fOriginalDefinition = aTrackInfo.fOriginalDefinition;
+  fOriginalPosition = aTrackInfo.fOriginalPosition;
+  fOriginalMomentum = aTrackInfo.fOriginalMomentum;
+  fOriginalPolarization = aTrackInfo.fOriginalPolarization;
+  fOriginalEnergy = aTrackInfo.fOriginalEnergy;
+  fOriginalTime = aTrackInfo.fOriginalTime;
+  
+  fTrackingStatus = aTrackInfo.fTrackingStatus;
 
-    return *this;
+  fPrimaryTrackID = aTrackInfo.fPrimaryTrackID;
+  fPrimaryDefinition = aTrackInfo.fPrimaryDefinition;
+  fPrimaryPosition = aTrackInfo.fPrimaryPosition;
+  fPrimaryMomentum = aTrackInfo.fPrimaryMomentum;
+  fPrimaryPolarization = aTrackInfo.fPrimaryPolarization;
+  fPrimaryEnergy = aTrackInfo.fPrimaryEnergy;
+  fPrimaryTime = aTrackInfo.fPrimaryTime;
+
+  fSDlist     = aTrackInfo.fSDlist;
+  fSDDefinition = aTrackInfo.fSDDefinition;
+  fSDTrackID    = aTrackInfo.fSDTrackID;
+  fSDParentID   = aTrackInfo.fSDParentID;
+  fSDPosition = aTrackInfo.fSDPosition;
+  fSDMomentum = aTrackInfo.fSDMomentum;
+  fSDPolarization = aTrackInfo.fSDPolarization;
+  fSDEnergy = aTrackInfo.fSDEnergy;
+  fSDTime = aTrackInfo.fSDTime;
+
+  return *this;
 }
 
+//Utility methods:
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void G4SBSTrackInformation::SetSourceTrackInformation(const G4Track* aTrack)
+void G4SBSTrackInformation::SetPrimaryTrackInformation(const G4Track* aTrack)
 {
-    fSourceTrackID = aTrack->GetTrackID();
-    fSourceDefinition = aTrack->GetDefinition();
-    fSourcePosition = aTrack->GetPosition();
-    fSourceMomentum = aTrack->GetMomentum();
-    fSourceEnergy = aTrack->GetTotalEnergy();
-    fSourceTime = aTrack->GetGlobalTime();
+  fPrimaryTrackID = aTrack->GetTrackID();
+  fPrimaryDefinition = aTrack->GetDefinition();
+  fPrimaryPosition = aTrack->GetPosition();
+  fPrimaryMomentum = aTrack->GetMomentum();
+  fPrimaryPolarization = aTrack->GetPolarization();
+  fPrimaryEnergy = aTrack->GetTotalEnergy();
+  fPrimaryTime = aTrack->GetGlobalTime();
+}
+
+void G4SBSTrackInformation::SetOriginalTrackInformation(const G4Track* aTrack)
+{
+  fOriginalTrackID = aTrack->GetTrackID();
+  fOriginalParentID = aTrack->GetParentID();
+  fOriginalDefinition = aTrack->GetDefinition();
+  fOriginalPosition = aTrack->GetPosition();
+  fOriginalMomentum = aTrack->GetMomentum();
+  fOriginalPolarization = aTrack->GetPolarization();
+  fOriginalEnergy = aTrack->GetTotalEnergy();
+  fOriginalTime = aTrack->GetGlobalTime();
+}
+
+//This will typically get invoked in G4SBS stepping action, when the track enters a relevant SD volume:
+void G4SBSTrackInformation::SetTrackSDInformation(G4String SDname, const G4Track *aTrack ){
+
+  std::pair<std::set<G4String>::iterator,bool> newSD = fSDlist.insert( SDname ); 
+  if( newSD.second ){ //Only do anything if this is the first instance of this track crossing this SD boundary:
+    fSDDefinition[SDname] = aTrack->GetDefinition();
+    fSDTrackID[SDname] = aTrack->GetTrackID();
+    fSDParentID[SDname] = aTrack->GetParentID();
+    fSDPosition[SDname] = aTrack->GetPosition();
+    fSDMomentum[SDname] = aTrack->GetMomentum();
+    fSDPolarization[SDname] = aTrack->GetPolarization();
+    fSDEnergy[SDname] = aTrack->GetTotalEnergy();
+    fSDTime[SDname] = aTrack->GetGlobalTime();
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void G4SBSTrackInformation::Print() const
 {
-    G4cout 
-     << "Source track ID " << fSourceTrackID << " (" 
-     << fSourceDefinition->GetParticleName() << ","
-     << fSourceEnergy/GeV << "[GeV]) at " << fSourcePosition << G4endl;
-    G4cout
-      << "Original primary track ID " << fOriginalTrackID << " (" 
-      << fParticleDefinition->GetParticleName() << ","
-     << fOriginalEnergy/GeV << "[GeV])" << G4endl;
+  G4cout 
+    << "Primary track ID " << fPrimaryTrackID << " (" 
+    << fPrimaryDefinition->GetParticleName() << ","
+    << fPrimaryEnergy/GeV << "[GeV]) at " << fPrimaryPosition << G4endl;
+  G4cout
+    << "Original primary track ID " << fOriginalTrackID << " (" 
+    << fOriginalDefinition->GetParticleName() << ","
+    << fOriginalEnergy/GeV << "[GeV])" << G4endl;
 }
 

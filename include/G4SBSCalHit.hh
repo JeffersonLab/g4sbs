@@ -48,8 +48,9 @@ private:
   G4ThreeVector GlobalCellCoords; //"global" coordinates of center of cell in which hit occurred
 
   G4int pid, mid, trid; //pid of particle causing hit, mother track id and track id.
-
-  //indices in the track info array of "original", "primary", and "SD boundary crossing" track info
+  
+  //rewrite for more compact tree structure: store G4 Track IDs in the hit classes and then
+  //use the existing maps in the SDtrackoutput classes:
   G4int otridx, ptridx, sdtridx; 
   //Now we need to add some additional info to be obtained from the G4SBSTrackInformation class:
   //What information here is actually distinct from what is available above?

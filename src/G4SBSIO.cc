@@ -128,6 +128,9 @@ void G4SBSIO::InitializeTree(){
     
   //For all tree branches representing data in sensitive detectors, we want to grab the information from fdetcon->SDlist
   //Later, we will add other kinds of sensitive detectors:
+
+  bool keepanysdtracks = false;
+  
   for( set<G4String>::iterator d = (fdetcon->SDlist).begin(); d != (fdetcon->SDlist).end(); d++ ){
     //for( G4int idet=0; idet<fdetcon->fSDman->G
     G4String SDname = *d;
@@ -168,13 +171,21 @@ void G4SBSIO::InitializeTree(){
     if( fKeepAllSDtracks || (keepsdflag != fKeepSDtracks.end() && keepsdflag->second ) ){
       sdtrackdata[SDname] = G4SBSSDTrackOutput(SDname);
 
+      allsdtrackdata = G4SBSSDTrackOutput("all");
+
       if( SDtype == kGEM || SDtype == kCAL ||
 	  fUsingCerenkov || fUsingScintillation ){
-      
-	BranchSDTracks( SDname );
+
+	keepanysdtracks = true;
+	//BranchSDTracks( SDname );
       }
     }
   }
+
+  if( keepanysdtracks ){
+    BranchSDTracks();
+  }
+  
   if( fUsePythia ){
     BranchPythia();
   }
@@ -739,63 +750,63 @@ void G4SBSIO::UpdateGenDataFromDetCon(){ //Go with whatever is in fdetcon as of 
   gendata.sbstrkrpitch = fdetcon->fHArmBuilder->fSBS_tracker_pitch; //radians
 }
 
-void G4SBSIO::BranchSDTracks( G4String SDname ){
-  TString branch_prefix = SDname.data();
-  TString branch_name;
-  branch_prefix.ReplaceAll("/",".");
+void G4SBSIO::BranchSDTracks(){
+  //TString branch_prefix = "AllSD";
+  //TString branch_name;
+  //branch_prefix.ReplaceAll("/",".");
   
   //  map<G4String,G4bool>::iterator k = KeepSDtracks.find( SDname );
   
-  if( sdtrackdata.find( SDname ) != sdtrackdata.end() && (fKeepSDtracks.find(SDname)->second || fKeepAllSDtracks) ){
-    //"Original track" info:
-    fTree->Branch( branch_name.Format( "%s.OTrack.ntracks", branch_prefix.Data() ), &(sdtrackdata[SDname].notracks) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.TID", branch_prefix.Data() ), &(sdtrackdata[SDname].otrid) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.MID", branch_prefix.Data() ), &(sdtrackdata[SDname].omid) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.PID", branch_prefix.Data() ), &(sdtrackdata[SDname].opid) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.posx", branch_prefix.Data() ), &(sdtrackdata[SDname].oposx) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.posy", branch_prefix.Data() ), &(sdtrackdata[SDname].oposy) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.posz", branch_prefix.Data() ), &(sdtrackdata[SDname].oposz) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.momx", branch_prefix.Data() ), &(sdtrackdata[SDname].omomx) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.momy", branch_prefix.Data() ), &(sdtrackdata[SDname].omomy) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.momz", branch_prefix.Data() ), &(sdtrackdata[SDname].omomz) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.polx", branch_prefix.Data() ), &(sdtrackdata[SDname].opolx) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.poly", branch_prefix.Data() ), &(sdtrackdata[SDname].opoly) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.polz", branch_prefix.Data() ), &(sdtrackdata[SDname].opolz) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.Etot", branch_prefix.Data() ), &(sdtrackdata[SDname].oenergy) );
-    fTree->Branch( branch_name.Format( "%s.OTrack.T", branch_prefix.Data() ), &(sdtrackdata[SDname].otime) );
+  //if( sdtrackdata.find( SDname ) != sdtrackdata.end() && (fKeepSDtracks.find(SDname)->second || fKeepAllSDtracks) ){
+  //"Original track" info:
+  fTree->Branch(  "OTrack.ntracks", &(allsdtrackdata.notracks) );
+  fTree->Branch(  "OTrack.TID", &(allsdtrackdata.otrid) );
+  fTree->Branch(  "OTrack.MID", &(allsdtrackdata.omid) );
+  fTree->Branch(  "OTrack.PID", &(allsdtrackdata.opid) );
+  fTree->Branch(  "OTrack.posx", &(allsdtrackdata.oposx) );
+  fTree->Branch(  "OTrack.posy", &(allsdtrackdata.oposy) );
+  fTree->Branch(  "OTrack.posz", &(allsdtrackdata.oposz) );
+  fTree->Branch(  "OTrack.momx", &(allsdtrackdata.omomx) );
+  fTree->Branch(  "OTrack.momy", &(allsdtrackdata.omomy) );
+  fTree->Branch(  "OTrack.momz", &(allsdtrackdata.omomz) );
+  fTree->Branch(  "OTrack.polx", &(allsdtrackdata.opolx) );
+  fTree->Branch(  "OTrack.poly", &(allsdtrackdata.opoly) );
+  fTree->Branch(  "OTrack.polz", &(allsdtrackdata.opolz) );
+  fTree->Branch(  "OTrack.Etot", &(allsdtrackdata.oenergy) );
+  fTree->Branch(  "OTrack.T", &(allsdtrackdata.otime) );
 
-    //"Primary track" info:
-    fTree->Branch( branch_name.Format( "%s.PTrack.ntracks", branch_prefix.Data() ), &(sdtrackdata[SDname].nptracks) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.TID", branch_prefix.Data() ), &(sdtrackdata[SDname].ptrid) );
-    //fTree->Branch( branch_name.Format( "%s.PTrack.MID", branch_prefix.Data() ), &(sdtrackdata[SDname].pmid) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.PID", branch_prefix.Data() ), &(sdtrackdata[SDname].ppid) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.posx", branch_prefix.Data() ), &(sdtrackdata[SDname].pposx) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.posy", branch_prefix.Data() ), &(sdtrackdata[SDname].pposy) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.posz", branch_prefix.Data() ), &(sdtrackdata[SDname].pposz) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.momx", branch_prefix.Data() ), &(sdtrackdata[SDname].pmomx) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.momy", branch_prefix.Data() ), &(sdtrackdata[SDname].pmomy) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.momz", branch_prefix.Data() ), &(sdtrackdata[SDname].pmomz) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.polx", branch_prefix.Data() ), &(sdtrackdata[SDname].ppolx) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.poly", branch_prefix.Data() ), &(sdtrackdata[SDname].ppoly) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.polz", branch_prefix.Data() ), &(sdtrackdata[SDname].ppolz) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.Etot", branch_prefix.Data() ), &(sdtrackdata[SDname].penergy) );
-    fTree->Branch( branch_name.Format( "%s.PTrack.T", branch_prefix.Data() ), &(sdtrackdata[SDname].ptime) );
-    //"SD boundary crossing track" info:
-    fTree->Branch( branch_name.Format( "%s.SDTrack.ntracks", branch_prefix.Data() ), &(sdtrackdata[SDname].nsdtracks) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.TID", branch_prefix.Data() ), &(sdtrackdata[SDname].sdtrid) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.MID", branch_prefix.Data() ), &(sdtrackdata[SDname].sdmid) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.PID", branch_prefix.Data() ), &(sdtrackdata[SDname].sdpid) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.posx", branch_prefix.Data() ), &(sdtrackdata[SDname].sdposx) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.posy", branch_prefix.Data() ), &(sdtrackdata[SDname].sdposy) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.posz", branch_prefix.Data() ), &(sdtrackdata[SDname].sdposz) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.momx", branch_prefix.Data() ), &(sdtrackdata[SDname].sdmomx) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.momy", branch_prefix.Data() ), &(sdtrackdata[SDname].sdmomy) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.momz", branch_prefix.Data() ), &(sdtrackdata[SDname].sdmomz) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.polx", branch_prefix.Data() ), &(sdtrackdata[SDname].sdpolx) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.poly", branch_prefix.Data() ), &(sdtrackdata[SDname].sdpoly) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.polz", branch_prefix.Data() ), &(sdtrackdata[SDname].sdpolz) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.Etot", branch_prefix.Data() ), &(sdtrackdata[SDname].sdenergy) );
-    fTree->Branch( branch_name.Format( "%s.SDTrack.T", branch_prefix.Data() ), &(sdtrackdata[SDname].sdtime) );
-  }
+  //"Primary track" info:
+  fTree->Branch(  "PTrack.ntracks", &(allsdtrackdata.nptracks) );
+  fTree->Branch(  "PTrack.TID", &(allsdtrackdata.ptrid) );
+  //fTree->Branch(  "PTrack.MID", &(allsdtrackdata.pmid) );
+  fTree->Branch(  "PTrack.PID", &(allsdtrackdata.ppid) );
+  fTree->Branch(  "PTrack.posx", &(allsdtrackdata.pposx) );
+  fTree->Branch(  "PTrack.posy", &(allsdtrackdata.pposy) );
+  fTree->Branch(  "PTrack.posz", &(allsdtrackdata.pposz) );
+  fTree->Branch(  "PTrack.momx", &(allsdtrackdata.pmomx) );
+  fTree->Branch(  "PTrack.momy", &(allsdtrackdata.pmomy) );
+  fTree->Branch(  "PTrack.momz", &(allsdtrackdata.pmomz) );
+  fTree->Branch(  "PTrack.polx", &(allsdtrackdata.ppolx) );
+  fTree->Branch(  "PTrack.poly", &(allsdtrackdata.ppoly) );
+  fTree->Branch(  "PTrack.polz", &(allsdtrackdata.ppolz) );
+  fTree->Branch(  "PTrack.Etot", &(allsdtrackdata.penergy) );
+  fTree->Branch(  "PTrack.T", &(allsdtrackdata.ptime) );
+  //"SD boundary crossing track" info:
+  fTree->Branch(  "SDTrack.ntracks", &(allsdtrackdata.nsdtracks) );
+  fTree->Branch(  "SDTrack.TID", &(allsdtrackdata.sdtrid) );
+  fTree->Branch(  "SDTrack.MID", &(allsdtrackdata.sdmid) );
+  fTree->Branch(  "SDTrack.PID", &(allsdtrackdata.sdpid) );
+  fTree->Branch(  "SDTrack.posx", &(allsdtrackdata.sdposx) );
+  fTree->Branch(  "SDTrack.posy", &(allsdtrackdata.sdposy) );
+  fTree->Branch(  "SDTrack.posz", &(allsdtrackdata.sdposz) );
+  fTree->Branch(  "SDTrack.momx", &(allsdtrackdata.sdmomx) );
+  fTree->Branch(  "SDTrack.momy", &(allsdtrackdata.sdmomy) );
+  fTree->Branch(  "SDTrack.momz", &(allsdtrackdata.sdmomz) );
+  fTree->Branch(  "SDTrack.polx", &(allsdtrackdata.sdpolx) );
+  fTree->Branch(  "SDTrack.poly", &(allsdtrackdata.sdpoly) );
+  fTree->Branch(  "SDTrack.polz", &(allsdtrackdata.sdpolz) );
+  fTree->Branch(  "SDTrack.Etot", &(allsdtrackdata.sdenergy) );
+  fTree->Branch(  "SDTrack.T", &(allsdtrackdata.sdtime) );
+  //}
 }
 

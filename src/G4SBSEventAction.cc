@@ -148,6 +148,10 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   bool has_earm_cal=false;
   bool has_harm_cal=false;
 
+  G4SBSSDTrackOutput allsdtracks;
+
+  G4cout << "End-of-event processing for event ID " << evt->GetEventID() << G4endl;
+  
   //Loop over all sensitive detectors:
   for( set<G4String>::iterator d=SDlist.begin(); d!=SDlist.end(); d++ ){
     G4String colNam;
@@ -175,16 +179,18 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
 	  //This should only be called once, otherwise units will be wrong!
 	  sd.ConvertToTreeUnits();
+
+	  allsdtracks.Merge( sd );
 	  
 	  fIO->SetSDtrackData( *d, sd );
 	  
-	  FillGEMData(evt, gemHC, gd);
+	  FillGEMData(evt, gemHC, gd, allsdtracks);
 	  fIO->SetGEMData( *d, gd );
 	  
 	
 	  anyhits = (anyhits || gd.nhits_GEM > 0);
 	  
-	  FillTrackData( gd, td, sd );
+	  FillTrackData( gd, td );
 	  
 	  if( td.ntracks > 0 ){
 	    if( (*d).contains("Earm") ) has_earm_track = true;
@@ -213,10 +219,15 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
 	  //This should only be called once, otherwise units will be wrong!
 	  sd.ConvertToTreeUnits();
+
+	  allsdtracks.Merge( sd );
 	  
 	  fIO->SetSDtrackData( *d, sd );
+
+	  // G4cout << "SD name = " << *d << G4endl;
+	  // G4cout << "Hits collection SD name = " << calHC->GetSDname() << G4endl << G4endl;
 	  
-	  FillCalData( evt, calHC, cd, sd );
+	  FillCalData( evt, calHC, cd, allsdtracks );
 	  
 	  fIO->SetCalData( *d, cd );
 	  
@@ -240,10 +251,12 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
 	//This should only be called once, otherwise units will be wrong!
 	sd.ConvertToTreeUnits();
+
+	allsdtracks.Merge( sd );
 	
 	fIO->SetSDtrackData( *d, sd );
 	
-	FillRICHData( evt, RICHHC, rd, sd );
+	FillRICHData( evt, RICHHC, rd, allsdtracks );
 	
 	fIO->SetRICHData( *d, rd );
 	
@@ -264,10 +277,12 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
 	//This should only be called once, otherwise units will be wrong!
 	sd.ConvertToTreeUnits();
+
+	allsdtracks.Merge( sd );
 	
 	fIO->SetSDtrackData( *d, sd );
 	
-	FillECalData( ECalHC, ed, sd );
+	FillECalData( ECalHC, ed, allsdtracks );
 	
 	fIO->SetECalData( *d, ed );
 	
@@ -277,6 +292,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     }
   }
 
+  fIO->SetAllSDtrackData( allsdtracks );
+  
   ev_t evdata = fIO->GetEventData();
   evdata.earmaccept = 0;
   evdata.harmaccept = 0;
@@ -294,7 +311,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   return;
 }
 
-void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *hits, G4SBSGEMoutput &gemoutput ){
+void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *hits, G4SBSGEMoutput &gemoutput, G4SBSSDTrackOutput &sdtracks ){
   gemoutput.Clear();
   gemoutput.timewindow = 1000.0*ns;
   gemoutput.threshold = 0.0*eV;
@@ -316,7 +333,8 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
   map<int,map<int,int> > OTrackIndices;
   map<int,map<int,int> > PTrackIndices;
   map<int,map<int,int> > SDTrackIndices;
-  
+
+  //G4String sdname = hits->GetSDname();
   //G4int nhit=0;
   //Loop over all "hits" (actually individual tracking steps):
   for( G4int i=0; i < hits->entries(); i++ ){
@@ -376,10 +394,16 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
    
       beta[gemID][trid] = (*hits)[i]->GetBeta();
 
-      OTrackIndices[gemID][trid] = (*hits)[i]->GetOTrIdx();
-      PTrackIndices[gemID][trid] = (*hits)[i]->GetPTrIdx();
-      SDTrackIndices[gemID][trid] = (*hits)[i]->GetSDTrIdx();
- 
+      // OTrackIndices[gemID][trid] = (*hits)[i]->GetOTrIdx();
+      // PTrackIndices[gemID][trid] = (*hits)[i]->GetPTrIdx();
+      // SDTrackIndices[gemID][trid] = (*hits)[i]->GetSDTrIdx();
+
+      //Changed SDtrackoutput class so that the hit "track indices" are now actually G4 track IDs
+      //In principle there is no need to check for existence of the tracks in the list
+      OTrackIndices[gemID][trid] = sdtracks.otracklist[(*hits)[i]->GetOTrIdx()];
+      PTrackIndices[gemID][trid] = sdtracks.ptracklist[(*hits)[i]->GetPTrIdx()];
+      SDTrackIndices[gemID][trid] = sdtracks.sdtracklist[(*hits)[i]->GetSDTrIdx()][hits->GetSDname()];
+      
     } else { //existing track in this layer, additional step; increment sums and averages:
       int nstep = nsteps_track_layer[gemID][trid];
       double w = double(nstep)/(double(nstep+1) );
@@ -519,7 +543,7 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
   }
 }
 
-void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *hits, G4SBSCALoutput &caloutput, const G4SBSSDTrackOutput &SDtracks ){
+void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *hits, G4SBSCALoutput &caloutput, G4SBSSDTrackOutput &SDtracks ){
   //The "CAL" output class provides two kinds of information: 
   //1. Sum of energy deposition in a cell.
   //2. List of all particles in a cell with track ids, pids, mids, coordinates, vertices, etc. (also momentum and energy deposition)
@@ -636,9 +660,13 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	//This is the appropriate place to add this info, since each track in a CALSD
 	//can only have exactly one set of otrack, ptrack, and sdtrack info, regardless of how many
 	//steps
-	OTrackIndices[cell].insert( (*hits)[hit]->GetOTrIdx() );
-	PTrackIndices[cell].insert( (*hits)[hit]->GetPTrIdx() );
-	SDTrackIndices[cell].insert( (*hits)[hit]->GetSDTrIdx() );
+	OTrackIndices[cell].insert( SDtracks.otracklist[(*hits)[hit]->GetOTrIdx()] );
+	PTrackIndices[cell].insert( SDtracks.ptracklist[(*hits)[hit]->GetPTrIdx()] );
+	SDTrackIndices[cell].insert( SDtracks.sdtracklist[(*hits)[hit]->GetSDTrIdx()][hits->GetSDname()] );
+
+	// G4cout << "Inserted SD track for SD " << hits->GetSDname() << ", cell ID, TID = " << cell << ", " << (*hits)[hit]->GetTrID()
+	//        << ", SDTID = " << (*hits)[hit]->GetSDTrIdx()
+	//        << ", SDTidx = " << SDtracks.sdtracklist[(*hits)[hit]->GetSDTrIdx()][hits->GetSDname()] << G4endl;
 	
       } else { //additional step in this cell:
 	//double w = double(nsteps_track[cell][track])/(double(nsteps_track[cell][track]+1) );
@@ -818,7 +846,6 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	firsttrack = true;
 	int sdtridx_final=-1;
 	for( set<int>::iterator isdtrk=SDTrackIndices[cell].begin(); isdtrk!=SDTrackIndices[cell].end(); ++isdtrk ){
-
 	  int sdidxtemp = *isdtrk;
 
 	  if( sdidxtemp >= 0 && sdidxtemp <SDtracks.sdenergy.size() ){
@@ -917,7 +944,7 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
   }
 }
 
-void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECaloutput &ecaloutput, const G4SBSSDTrackOutput &SDtracks )
+void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECaloutput &ecaloutput, G4SBSSDTrackOutput &SDtracks )
 {
   int nG4hits = hits->entries(); //Loop over nG4hits
   ecaloutput.Clear();
@@ -972,9 +999,9 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
     G4double QEphoton = (*hits)[step]->GetQuantumEfficiency();
 
-    int otridx = (*hits)[step]->GetOTrIdx();
-    int ptridx = (*hits)[step]->GetPTrIdx();
-    int sdtridx = (*hits)[step]->GetSDTrIdx();
+    int otridx = SDtracks.otracklist[(*hits)[step]->GetOTrIdx()];
+    int ptridx = SDtracks.ptracklist[(*hits)[step]->GetPTrIdx()];
+    int sdtridx = SDtracks.sdtracklist[(*hits)[step]->GetSDTrIdx()][hits->GetSDname()];
     
     //Following the method implemented during the RICH routine
     std::pair< set<int>::iterator, bool > photontrack = TIDs_unique.insert( tid );
@@ -1145,7 +1172,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
   }//for
 }//void
 
-void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection *hits, G4SBSRICHoutput &richoutput, const G4SBSSDTrackOutput &SDtracks ){
+void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection *hits, G4SBSRICHoutput &richoutput, G4SBSSDTrackOutput &SDtracks ){
   //Here is where we traverse the hit collection of the RICH and extract useful output data. 
   
   // set<int> TIDs; //list of all unique track IDs  
@@ -1261,9 +1288,9 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
       Photon_origvol[ tid ] = origin_volume;
       Photon_nsteps[ tid ] = 1;
 
-      Photon_otridx[ tid ] = (*hits)[step]->GetOTrIdx();
-      Photon_ptridx[ tid ] = (*hits)[step]->GetPTrIdx();
-      Photon_sdtridx[ tid ] = (*hits)[step]->GetSDTrIdx();
+      Photon_otridx[ tid ] = SDtracks.otracklist[(*hits)[step]->GetOTrIdx()];
+      Photon_ptridx[ tid ] = SDtracks.ptracklist[(*hits)[step]->GetPTrIdx()];
+      Photon_sdtridx[ tid ] = SDtracks.sdtracklist[(*hits)[step]->GetSDTrIdx()][hits->GetSDname()];
       
     } else { //existing photon, additional step. Increment averages of position, direction, time, etc for all steps of a detected photon. Don't bother for 
       //undetected photons...
@@ -1564,7 +1591,7 @@ void G4SBSEventAction::MapTracks( const G4Event *evt ){
   }
 }
 
-void G4SBSEventAction::FillTrackData( G4SBSGEMoutput gemdata, G4SBSTrackerOutput &Toutput, const G4SBSSDTrackOutput &SDtracks){
+void G4SBSEventAction::FillTrackData( G4SBSGEMoutput gemdata, G4SBSTrackerOutput &Toutput ){
   //Note: gemdata have already been normalized to the correct units (meters, ns, GeV) and are already expressed in TRANSPORT coordinates:
   //Also note that gemdata.x and gemdata.y have already been smeared by coordinate resolution!
 

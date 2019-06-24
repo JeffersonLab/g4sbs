@@ -168,7 +168,8 @@ G4int G4SBSSDTrackOutput::InsertOriginalTrackInformation( G4Track *aTrack ){
     notracks++;
   }
 
-  return otracklist[tidtemp]; //this is the position/index in the (unsorted) otrack array 
+  //  return otracklist[tidtemp]; //this is the position/index in the (unsorted) otrack array 
+  return tidtemp; //Instead of returning the array index, return the G4 track ID
 }
 
 G4int G4SBSSDTrackOutput::InsertPrimaryTrackInformation( G4Track *aTrack ){
@@ -206,7 +207,9 @@ G4int G4SBSSDTrackOutput::InsertPrimaryTrackInformation( G4Track *aTrack ){
     nptracks++;
   }
 
-  return ptracklist[tidtemp]; //this is the position/index in the (unsorted) ptrack array 
+  //return ptracklist[tidtemp]; //this is the position/index in the (unsorted) ptrack array 
+  //Instead of returning the array index, return the G4 track ID:
+  return tidtemp;
 }
 
 G4int G4SBSSDTrackOutput::InsertSDTrackInformation( G4Track *aTrack ){
@@ -218,37 +221,166 @@ G4int G4SBSSDTrackOutput::InsertSDTrackInformation( G4Track *aTrack ){
     
     int tidtemp = (aTrackInfo->fSDTrackID)[sdname];
     
-    std::pair< std::map<int,int>::iterator, bool > newtrack = sdtracklist.insert( std::pair<int,int>(tidtemp,nsdtracks) );
+    //std::pair< std::map<int,int>::iterator, bool > newtrack = sdtracklist.insert( std::pair<int,int>(tidtemp,nsdtracks) );
 
-    if( newtrack.second ){ //new track found: add its info to the arrays:
-      sdtrid.push_back( tidtemp );
-      sdmid.push_back( (aTrackInfo->fSDParentID)[sdname] );
-      sdpid.push_back( (aTrackInfo->fSDDefinition)[sdname]->GetPDGEncoding() );
-      
-      G4ThreeVector postemp = (aTrackInfo->fSDPosition)[sdname];
-      G4ThreeVector momtemp = (aTrackInfo->fSDMomentum)[sdname];
-      G4ThreeVector poltemp = (aTrackInfo->fSDPolarization)[sdname];
-      
+    //std::map<int,map<G4String,int> >::iterator newtrack = sdtracklist.find( tidtemp );
 
-      sdposx.push_back( postemp.x() );
-      sdposy.push_back( postemp.y() );
-      sdposz.push_back( postemp.z() );
+    //bool newsdboundarycrossing = false;
+    if( sdtracklist.find(tidtemp) != sdtracklist.end() ){ //existing G4 track ID: check whether SDname exists:
+      if( sdtracklist[tidtemp].find( sdname ) != sdtracklist[tidtemp].end() ){ //existing track ID AND SDname: return mapped index value:
+	//return sdtracklist[tidtemp][sdname];
+	return tidtemp; //this is the G4 track ID. EndOfEventAction NOW expects this! 
+      } 
+    } 
 
-      sdmomx.push_back( momtemp.x() );
-      sdmomy.push_back( momtemp.y() );
-      sdmomz.push_back( momtemp.z() );
+    //if NOT pre-existing track ID/SD combination, assign the sd track list information
+    //mapped by SD track ID and SD name to the index in the array of sd tracks associated with this detector:
+    sdtracklist[tidtemp][sdname] = nsdtracks;
+    
+    sdtrid.push_back( tidtemp );
+    sdmid.push_back( (aTrackInfo->fSDParentID)[sdname] );
+    sdpid.push_back( (aTrackInfo->fSDDefinition)[sdname]->GetPDGEncoding() );
+    
+    G4ThreeVector postemp = (aTrackInfo->fSDPosition)[sdname];
+    G4ThreeVector momtemp = (aTrackInfo->fSDMomentum)[sdname];
+    G4ThreeVector poltemp = (aTrackInfo->fSDPolarization)[sdname];
+    
+    
+    sdposx.push_back( postemp.x() );
+    sdposy.push_back( postemp.y() );
+    sdposz.push_back( postemp.z() );
+    
+    sdmomx.push_back( momtemp.x() );
+    sdmomy.push_back( momtemp.y() );
+    sdmomz.push_back( momtemp.z() );
+    
+    sdpolx.push_back( poltemp.x() );
+    sdpoly.push_back( poltemp.y() );
+    sdpolz.push_back( poltemp.z() );
+    
+    sdenergy.push_back( (aTrackInfo->fSDEnergy)[sdname] );
+    sdtime.push_back( (aTrackInfo->fSDTime)[sdname] );
+    
+    nsdtracks++;
 
-      sdpolx.push_back( poltemp.x() );
-      sdpoly.push_back( poltemp.y() );
-      sdpolz.push_back( poltemp.z() );
-      
-      sdenergy.push_back( (aTrackInfo->fSDEnergy)[sdname] );
-      sdtime.push_back( (aTrackInfo->fSDTime)[sdname] );
-
-      nsdtracks++;
-    }
-    return sdtracklist[tidtemp]; //this is the position/index in the (unsorted) sdtrack array 
-  } else {
+    //this is the index in the SD track array
+    //return sdtracklist[tidtemp][sdname];
+    return tidtemp; //This is the G4 Track ID: EndOfEventAction NOW expects this! 
+  } else { //May alter this behavior later...
+    // G4cout << "no SD track info available for track " << aTrack->GetTrackID() << ", SD name = " << sdname
+    // 	   << G4endl;
+    sdtracklist[-1][sdname] = -1;
     return -1;
   }
 }
+
+//return a vector<int> containing a list of the new indices relative to the old ones:
+void G4SBSSDTrackOutput::Merge( G4SBSSDTrackOutput &sd ){
+
+  //Start with OTracks:
+  for( int i=0; i<sd.notracks; i++ ){
+    std::pair<std::map<int,int>::iterator,bool> newtrack = otracklist.insert( std::pair<int,int>(sd.otrid[i], notracks) );
+
+    if( newtrack.second ){ //new track: add to end of existing array:
+      otrid.push_back( sd.otrid[i] );
+      omid.push_back( sd.omid[i] );
+      opid.push_back( sd.opid[i] );
+
+      oposx.push_back( sd.oposx[i] );
+      oposy.push_back( sd.oposy[i] );
+      oposz.push_back( sd.oposz[i] );
+
+      omomx.push_back( sd.omomx[i] );
+      omomy.push_back( sd.omomy[i] );
+      omomz.push_back( sd.omomz[i] );
+
+      opolx.push_back( sd.opolx[i] );
+      opoly.push_back( sd.opoly[i] );
+      opolz.push_back( sd.opolz[i] );
+
+      oenergy.push_back( sd.oenergy[i] );
+      otime.push_back( sd.otime[i] );
+      
+      notracks++;
+    }
+  }
+
+  //Then do PTracks:
+  for( int i=0; i<sd.nptracks; i++ ){
+    std::pair<std::map<int,int>::iterator,bool> newtrack = ptracklist.insert( std::pair<int,int>(sd.ptrid[i], nptracks) );
+
+    if( newtrack.second ){ //new track: add to end of existing array:
+      ptrid.push_back( sd.ptrid[i] );
+      //pmid.push_back( sd.pmid[i] );
+      ppid.push_back( sd.ppid[i] );
+
+      pposx.push_back( sd.pposx[i] );
+      pposy.push_back( sd.pposy[i] );
+      pposz.push_back( sd.pposz[i] );
+
+      pmomx.push_back( sd.pmomx[i] );
+      pmomy.push_back( sd.pmomy[i] );
+      pmomz.push_back( sd.pmomz[i] );
+
+      ppolx.push_back( sd.ppolx[i] );
+      ppoly.push_back( sd.ppoly[i] );
+      ppolz.push_back( sd.ppolz[i] );
+
+      penergy.push_back( sd.penergy[i] );
+      ptime.push_back( sd.ptime[i] );
+      
+      nptracks++;
+    }
+  }
+
+  //loop on the sd track list to be merged into this one; compare with existing, add as needed:
+  for( map<int,map<G4String,int> >::iterator i=sd.sdtracklist.begin(); i!=sd.sdtracklist.end(); ++i ){
+    
+    int tidtemp = i->first;
+    
+    for( map<G4String,int>::iterator j=(i->second).begin(); j!= (i->second).end(); ++j ){
+      G4String sdnametemp = j->first;
+
+      int idx = j->second;
+      
+      bool addtrack = true;
+      if( sdtracklist.find(tidtemp) != sdtracklist.end() ){ //existing TID:
+	if( sdtracklist[tidtemp].find(sdnametemp) != sdtracklist[tidtemp].end() ){ //existing SDname:
+	  addtrack = false;
+	}
+      }
+
+      if( addtrack && tidtemp >= 0 && idx >= 0 ){
+
+	G4cout << "added SD track to detector " << sdnametemp << ", TID = " 
+	       << tidtemp << ", index in detector SD track list = " << idx
+	       << ", index in new SD track list = " << nsdtracks << G4endl;
+	  
+	sdtracklist[tidtemp][sdnametemp] = nsdtracks;
+	
+	sdtrid.push_back( sd.sdtrid[idx] );
+	sdmid.push_back( sd.sdmid[idx] );
+	sdpid.push_back( sd.sdpid[idx] );
+
+	sdposx.push_back( sd.sdposx[idx] );
+	sdposy.push_back( sd.sdposy[idx] );
+	sdposz.push_back( sd.sdposz[idx] );
+
+	sdmomx.push_back( sd.sdmomx[idx] );
+	sdmomy.push_back( sd.sdmomy[idx] );
+	sdmomz.push_back( sd.sdmomz[idx] );
+
+	sdpolx.push_back( sd.sdpolx[idx] );
+	sdpoly.push_back( sd.sdpoly[idx] );
+	sdpolz.push_back( sd.sdpolz[idx] );
+
+	sdenergy.push_back( sd.sdenergy[idx] );
+	sdtime.push_back( sd.sdtime[idx] );
+      
+	nsdtracks++;
+	
+      }
+    }   
+  }
+}
+

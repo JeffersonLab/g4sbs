@@ -60,7 +60,12 @@ void G4SBSTrackingAction::PreUserTrackingAction(const G4Track* aTrack)
   if( aTrack->GetParentID() == 0 ){ //Primary particle: 
     trackInfo = new G4SBSTrackInformation( aTrack );
 
-    aTrack->SetUserInformation( trackInfo );
+    //Declare a pointer to track and assign it to the function argument,
+    //as a way to get around compiler error due to the fact that the argument is "const".
+    G4Track *theTrack = (G4Track*) aTrack;
+    theTrack->SetUserInformation( trackInfo );
+    
+    //aTrack->SetUserInformation( trackInfo );
     // G4cout << "New primary track created track ID = " << aTrack->GetTrackID() << G4endl
     // 	   << " Parent ID = " << aTrack->GetParentID() << G4endl
     // 	   << " LV name = \"" << lvname << "\"" << G4endl

@@ -31,6 +31,8 @@ public:
   G4int InsertPrimaryTrackInformation( G4Track *aTrack );
   G4int InsertSDTrackInformation( G4Track *aTrack );
 
+  void Merge( G4SBSSDTrackOutput & );
+  
   void ConvertToTreeUnits();
   
   G4String sdname;
@@ -38,7 +40,14 @@ public:
   //key value is track ID; mapped value is index in relevant track array:
   map<int,int> otracklist;
   map<int,int> ptracklist;
-  map<int,int> sdtracklist;
+
+  //sdtracklist has to be done differently since the same SD track can cross multiple SD boundary volumes,
+  //But at the same time we only want to record each G4 Track ID exactly once for each SD boundary volume it crosses:
+
+  //So let's modify this structure to map<int,map<G4String,int> >,
+  //where the int key is the G4 track ID, and G4String key is an SD name, and the mapped value is the index in the
+  //sd track array:
+  map<int,map<G4String,int> > sdtracklist;
 
   // //Hit lists mapped by track index:
   // map<int,vector<int> > otrack_hits; //list of SD "hits" associated with each otrack

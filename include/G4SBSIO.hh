@@ -105,6 +105,7 @@ public:
   void SetRICHData( G4String, G4SBSRICHoutput );
   void SetECalData( G4String, G4SBSECaloutput );
   void SetSDtrackData( G4String, G4SBSSDTrackOutput );
+  inline void SetAllSDtrackData( G4SBSSDTrackOutput sd ){ allsdtrackdata = sd; } 
 
   //inline G4SBSSDTrackOutput GetSDtrackData( G4String sdname ){ return sdtrackdata[sdname]; }
 
@@ -141,7 +142,8 @@ public:
   //void BranchTracker(G4String s);
   void BranchECAL(G4String s);
   void BranchPythia();
-  void BranchSDTracks(G4String s);
+  //void BranchSDTracks(G4String s);
+  void BranchSDTracks();
   
   void SetDetCon(G4SBSDetectorConstruction *dc ){ fdetcon = dc; }
 
@@ -193,6 +195,8 @@ private:
   map<G4String,G4SBSTrackerOutput> trackdata;
   map<G4String,G4SBSECaloutput> ecaldata;
   map<G4String,G4SBSSDTrackOutput> sdtrackdata;
+
+  G4SBSSDTrackOutput allsdtrackdata;
   
   G4bool fUsePythia;
   G4SBSPythiaOutput Primaries;

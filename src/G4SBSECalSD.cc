@@ -19,7 +19,7 @@ G4SBSECalSD::~G4SBSECalSD(){;}
 
 void G4SBSECalSD::Initialize( G4HCofThisEvent *HC ){
   G4int HCID = -1;
-  hitCollection = new G4SBSECalHitsCollection( SensitiveDetectorName, collectionName[0] );
+  hitCollection = new G4SBSECalHitsCollection( fullPathName.strip(G4String::leading,'/'), collectionName[0] );
   
   if( HCID < 0 ){
     HCID = GetCollectionID(0);

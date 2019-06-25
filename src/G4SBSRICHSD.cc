@@ -20,7 +20,7 @@ G4SBSRICHSD::~G4SBSRICHSD(){;}
 
 void G4SBSRICHSD::Initialize( G4HCofThisEvent *HC ){
   G4int HCID = -1;
-  hitCollection = new G4SBSRICHHitsCollection( SensitiveDetectorName, collectionName[0] );
+  hitCollection = new G4SBSRICHHitsCollection( fullPathName.strip(G4String::leading,'/'), collectionName[0] );
   
   if( HCID < 0 ){
     HCID = GetCollectionID(0);

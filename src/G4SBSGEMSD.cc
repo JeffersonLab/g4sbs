@@ -34,7 +34,7 @@ G4SBSGEMSD::~G4SBSGEMSD()
 
 void G4SBSGEMSD::Initialize(G4HCofThisEvent*)
 {
-  hitCollection = new G4SBSGEMHitsCollection(SensitiveDetectorName,collectionName[0]);
+  hitCollection = new G4SBSGEMHitsCollection(fullPathName.strip(G4String::leading,'/'),collectionName[0]);
   SDtracks.Clear();
 }
 

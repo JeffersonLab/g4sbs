@@ -50,11 +50,11 @@ public:
 
   //Although these functions don't directly modify the "SDTrackOutput", we pass them by const reference
   //to avoid the overhead of copying:
-  void FillGEMData( const G4Event*, G4SBSGEMHitsCollection*, G4SBSGEMoutput & );
-  void FillCalData( const G4Event*, G4SBSCalHitsCollection*, G4SBSCALoutput &, const G4SBSSDTrackOutput & );
-  void FillRICHData( const G4Event*, G4SBSRICHHitsCollection*, G4SBSRICHoutput &, const G4SBSSDTrackOutput & );
-  void FillTrackData( G4SBSGEMoutput, G4SBSTrackerOutput &, const G4SBSSDTrackOutput & );
-  void FillECalData( G4SBSECalHitsCollection*, G4SBSECaloutput &, const G4SBSSDTrackOutput & );
+  void FillGEMData( const G4Event*, G4SBSGEMHitsCollection*, G4SBSGEMoutput &, G4SBSSDTrackOutput & );
+  void FillCalData( const G4Event*, G4SBSCalHitsCollection*, G4SBSCALoutput &, G4SBSSDTrackOutput & );
+  void FillRICHData( const G4Event*, G4SBSRICHHitsCollection*, G4SBSRICHoutput &, G4SBSSDTrackOutput & );
+  void FillTrackData( G4SBSGEMoutput, G4SBSTrackerOutput & );
+  void FillECalData( G4SBSECalHitsCollection*, G4SBSECaloutput &, G4SBSSDTrackOutput & );
 
   //map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run. 
   set<G4String> SDlist;

@@ -32,7 +32,7 @@ G4SBSCalSD::~G4SBSCalSD()
 
 void G4SBSCalSD::Initialize(G4HCofThisEvent*)
 {
-  hitCollection = new G4SBSCalHitsCollection(SensitiveDetectorName,collectionName[0]);
+  hitCollection = new G4SBSCalHitsCollection(fullPathName.strip(G4String::leading,'/'),collectionName[0]);
   SDtracks.Clear();
 }
 

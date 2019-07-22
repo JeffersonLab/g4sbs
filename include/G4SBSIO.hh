@@ -173,6 +173,9 @@ public:
 
   void SetUsingCerenkov( G4bool b ){ fUsingCerenkov = b; }
   void SetUsingScintillation( G4bool b ){ fUsingScintillation = b; }
+
+  G4bool GetKeepAllSDtracks() const { return fKeepAllSDtracks; }
+  map<G4String,G4bool> GetKeepSDtracks() const { return fKeepSDtracks; }
   
 private:
   TFile *fFile;

@@ -150,10 +150,12 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
   G4SBSSDTrackOutput allsdtracks;
 
-  G4cout << "End-of-event processing for event ID " << evt->GetEventID() << G4endl;
+  allsdtracks.Clear();
+
+  //G4cout << "End-of-event processing for event ID " << evt->GetEventID() << G4endl;
   
   //Loop over all sensitive detectors:
-  for( set<G4String>::iterator d=SDlist.begin(); d!=SDlist.end(); d++ ){
+  for( set<G4String>::iterator d=SDlist.begin(); d!=SDlist.end(); ++d ){
     G4String colNam;
 
     SDet_t Det_type = SDtype[*d];
@@ -165,6 +167,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     G4SBSRICHoutput rd;
     G4SBSECaloutput ed;
     G4SBSSDTrackOutput sd;
+    G4SBSSDTrackOutput *sdtemp;
     
     switch(Det_type){
     case kGEM:
@@ -180,11 +183,20 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  //This should only be called once, otherwise units will be wrong!
 	  sd.ConvertToTreeUnits();
 
-	  allsdtracks.Merge( sd );
+	  sdtemp = &sd;
+
+	  map<G4String,G4bool>::iterator keep = fIO->GetKeepSDtracks().find( *d );
+
+	  G4bool keepthis = keep != fIO->GetKeepSDtracks().end() && keep->second;
 	  
+	  if( fIO->GetKeepAllSDtracks() || keepthis ){
+	    allsdtracks.Merge( sd );
+	    sdtemp = &allsdtracks;
+	  }
+	      
 	  fIO->SetSDtrackData( *d, sd );
 	  
-	  FillGEMData(evt, gemHC, gd, allsdtracks);
+	  FillGEMData(evt, gemHC, gd, *sdtemp );
 	  fIO->SetGEMData( *d, gd );
 	  
 	
@@ -220,14 +232,25 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  //This should only be called once, otherwise units will be wrong!
 	  sd.ConvertToTreeUnits();
 
-	  allsdtracks.Merge( sd );
+	  sdtemp = &sd;
+
+	  map<G4String,G4bool>::iterator keep = fIO->GetKeepSDtracks().find( *d );
+
+	  G4bool keepthis = keep != fIO->GetKeepSDtracks().end() && keep->second;
+	  
+	  if( fIO->GetKeepAllSDtracks() || keepthis ){
+	    allsdtracks.Merge( sd );
+	    sdtemp = &allsdtracks;
+	  }
+	  
+	  //allsdtracks.Merge( sd ); //This has to be called before FillCalData or the output won't make sense
 	  
 	  fIO->SetSDtrackData( *d, sd );
 
 	  // G4cout << "SD name = " << *d << G4endl;
 	  // G4cout << "Hits collection SD name = " << calHC->GetSDname() << G4endl << G4endl;
 	  
-	  FillCalData( evt, calHC, cd, allsdtracks );
+	  FillCalData( evt, calHC, cd, *sdtemp );
 	  
 	  fIO->SetCalData( *d, cd );
 	  
@@ -252,11 +275,22 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	//This should only be called once, otherwise units will be wrong!
 	sd.ConvertToTreeUnits();
 
-	allsdtracks.Merge( sd );
+	sdtemp = &sd;
+
+	map<G4String,G4bool>::iterator keep = fIO->GetKeepSDtracks().find( *d );
+
+	G4bool keepthis = keep != fIO->GetKeepSDtracks().end() && keep->second;
+	  
+	if( fIO->GetKeepAllSDtracks() || keepthis ){
+	  allsdtracks.Merge( sd );
+	  sdtemp = &allsdtracks;
+	}
+	
+	//allsdtracks.Merge( sd );
 	
 	fIO->SetSDtrackData( *d, sd );
 	
-	FillRICHData( evt, RICHHC, rd, allsdtracks );
+	FillRICHData( evt, RICHHC, rd, *sdtemp );
 	
 	fIO->SetRICHData( *d, rd );
 	
@@ -278,11 +312,22 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	//This should only be called once, otherwise units will be wrong!
 	sd.ConvertToTreeUnits();
 
-	allsdtracks.Merge( sd );
+	sdtemp = &sd;
+
+	map<G4String,G4bool>::iterator keep = fIO->GetKeepSDtracks().find( *d );
+
+	G4bool keepthis = keep != fIO->GetKeepSDtracks().end() && keep->second;
+	
+	if( fIO->GetKeepAllSDtracks() || keepthis ){
+	  allsdtracks.Merge( sd );
+	  sdtemp = &allsdtracks;
+	}
+	
+	//allsdtracks.Merge( sd );
 	
 	fIO->SetSDtrackData( *d, sd );
 	
-	FillECalData( ECalHC, ed, allsdtracks );
+	FillECalData( ECalHC, ed, *sdtemp );
 	
 	fIO->SetECalData( *d, ed );
 	

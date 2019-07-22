@@ -6,7 +6,7 @@
 
 ## Configure the target
 /g4sbs/target          3He
-/g4sbs/targpres        10 atmosphere     ## Target pressure
+/g4sbs/targpres        10.5 atmosphere     ## Target pressure
 /g4sbs/targlen         55.0 cm           ## Target Length
 
 ## Configure generator settings

@@ -229,7 +229,7 @@ G4int G4SBSSDTrackOutput::InsertSDTrackInformation( G4Track *aTrack ){
     if( sdtracklist.find(tidtemp) != sdtracklist.end() ){ //existing G4 track ID: check whether SDname exists:
       if( sdtracklist[tidtemp].find( sdname ) != sdtracklist[tidtemp].end() ){ //existing track ID AND SDname: return mapped index value:
 	//return sdtracklist[tidtemp][sdname];
-	return tidtemp; //this is the G4 track ID. EndOfEventAction NOW expects this! 
+	return tidtemp; //this is the G4 track ID. EndOfEventAction now expects this! 
       } 
     } 
 
@@ -352,9 +352,9 @@ void G4SBSSDTrackOutput::Merge( G4SBSSDTrackOutput &sd ){
 
       if( addtrack && tidtemp >= 0 && idx >= 0 ){
 
-	G4cout << "added SD track to detector " << sdnametemp << ", TID = " 
-	       << tidtemp << ", index in detector SD track list = " << idx
-	       << ", index in new SD track list = " << nsdtracks << G4endl;
+	// G4cout << "added SD track to detector " << sdnametemp << ", TID = " 
+	//        << tidtemp << ", index in detector SD track list = " << idx
+	//        << ", index in new SD track list = " << nsdtracks << G4endl;
 	  
 	sdtracklist[tidtemp][sdnametemp] = nsdtracks;
 	

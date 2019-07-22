@@ -1,0 +1,8 @@
+# Don't override a user's rootlogon.C. See if this works instead.
+Rint.Logon        ${CMAKE_INSTALL_PREFIX}/root_macros/rootlogon.C
+
+Unix.*.Root.DynamicPath:   .:${CMAKE_INSTALL_PREFIX}/lib:$(ROOTSYS)/lib
+Unix.*.Root.MacroPath:     .:${CMAKE_INSTALL_PREFIX}/root_macros:$(ROOTSYS)/macros
+
+ACLiC.IncludePaths:       -I${CMAKE_INSTALL_PREFIX}/include
+

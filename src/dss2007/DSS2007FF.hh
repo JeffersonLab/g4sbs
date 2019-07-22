@@ -2,6 +2,7 @@
 #define DSS2007FF_hh 1
 
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -12,6 +13,8 @@ public:
   void Interpolate(int ihadron, double x, double Q2, vector<double> &Dout);
   void LoadInterpolationGrids();
   //void GetFFs( int ihadron, int icharge, int order, double x, double Q2, vector<double> &Dqh );
+
+  void SetGridPath(string fn);
   
   void GetFFs( int ihadron, int icharge, double x, double Q2, vector<double> &Dqh );
 private:
@@ -23,7 +26,8 @@ private:
   double xD[3][Nparton][Nx][NQ];
   double Parton[3][Nparton][NQ][Nx-1]; //Three FFs for pion, kaon, proton:
   double Qtable[NQ], xtable[Nx];
-  
+
+  string fgridpath;
 };
 
 #endif

@@ -1,10 +1,15 @@
 #include "G4SBSRunData.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
+//#include "G4UImanager.hh"
 
 #include <string.h>
 #include <sstream>
 #include <errno.h>
+#include <sys/stat.h>
+
+#include "TObjArray.h"
+#include "TObjString.h"
 
 #ifdef __APPLE__
 #include "unistd.h"
@@ -105,11 +110,53 @@ void G4SBSRunData::Print(Option_t *) const {
 
 }
 
+TString G4SBSRunData::FindMacro( const char *fn ){
+
+  struct stat fdata_temp;
+  
+  bool found_file = (stat( fn, &fdata_temp ) == 0 );
+
+  if( found_file ){
+    return TString(fn);
+  } else {
+    TObjArray *tokens = fMacroPath.Tokenize(":");
+    for( int n=0; n<tokens->GetEntries(); n++ ){
+      TString spathtemp = ( (TObjString*) (*tokens)[n] )->GetString();
+
+      TString fnametemp = spathtemp + "/" + fn;
+
+      found_file = (stat( fnametemp.Data(), &fdata_temp ) == 0 );
+
+      if( found_file ) {
+	return fnametemp;
+      }
+    }
+    return TString(fn);
+  }
+}
+
+void G4SBSRunData::SetMacroFile( const char *fn ){
+
+  TString fullpathname = FindMacro( fn );
+  
+  fMacro = G4SBSTextFile( fullpathname.Data() );
+  FindExternalMacros( fMacro );
+}
+
+void G4SBSRunData::SetPreInitMacroFile( const char *fn ){
+  
+  TString fullpathname = FindMacro( fn );
+
+  fPreInitMacro = G4SBSTextFile( fullpathname.Data() );
+  FindExternalMacros( fPreInitMacro );
+}
 
 void G4SBSRunData::FindExternalMacros(G4SBSTextFile macro){
   // Turn the file into an input stream for easier parsing
   std::istringstream macro_string(macro.GetBuffer());
 
+  //  G4UImanager * UImanager = G4UImanager::GetUIpointer();
+  
   // Command which calls external macros (this is what we are trying to find)
   std::string cmd("/control/execute ");
   std::string line;
@@ -120,8 +167,15 @@ void G4SBSRunData::FindExternalMacros(G4SBSTextFile macro){
     if(p != std::string::npos) { // cmd found, now see if it is commented out
       c = line.find("#");
       if(c > p ) { // A comment before the cmd was not found, so store macro
-        G4SBSTextFile ext_macro(
-            line.substr(p+cmd.length(),line.length()).c_str());
+
+	//TString macrofilename = line.substr(p+cmd.length(),line.length()).c_str();
+	
+	TString fullpathname = FindMacro( line.substr(p+cmd.length(),line.length()).c_str() );
+	
+	G4SBSTextFile ext_macro( fullpathname.Data() );
+	
+        // G4SBSTextFile ext_macro(
+        //     line.substr(p+cmd.length(),line.length()).c_str());
         fExternalMacros.push_back(ext_macro);
         // Now check if this macro calls another
         FindExternalMacros(ext_macro);

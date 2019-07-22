@@ -8,6 +8,8 @@
 #include <sbstypes.hh>
 
 #include "gitinfo.hh"
+//#include "G4String.hh"
+#include "TString.h"
 #include "G4SBSTextFile.hh"
 
 
@@ -69,15 +71,20 @@ public:
    */
   void FindExternalMacros(G4SBSTextFile macro);
 
-  void SetMacroFile(const char *fn){
-    fMacro = G4SBSTextFile(fn);
-    FindExternalMacros(fMacro);
-  }
-  void SetPreInitMacroFile(const char *fn){
-    fPreInitMacro = G4SBSTextFile(fn);
-    FindExternalMacros(fPreInitMacro);
-  }
-
+  void SetMacroFile(const char *fn);
+   //  //fn.prepend( fMacroPath 
+  //   fMacro = G4SBSTextFile( fn.data() );
+  //   FindExternalMacros(fMacro);
+  // }
+  void SetPreInitMacroFile(const char *fn);
+  //   fPreInitMacro = G4SBSTextFile(fn.data() );
+  //   FindExternalMacros(fPreInitMacro);
+  // }
+  //Utility function to check for existence of file within cwd or fMacroPath:
+  TString FindMacro( const char *fn );
+  
+  void SetMacroPath( const char *path ){ fMacroPath = TString(path); }
+  
   void Print(Option_t *) const;
   void Print() const;
 
@@ -112,6 +119,7 @@ public:
   char fHostName[__RUNSTR_LEN];
   char fRunPath[__RUNSTR_LEN];
 
+  TString fMacroPath; //Store the GEANT4 UI manager's macro search path to locate macros that aren't in current working directory
   G4SBSTextFile              fMacro;
   G4SBSTextFile   fPreInitMacro; //PreInit Commands
   std::vector<G4SBSTextFile> fExternalMacros; ///< External macros called by

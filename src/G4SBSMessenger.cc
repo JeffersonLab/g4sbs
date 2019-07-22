@@ -128,10 +128,19 @@ G4SBSMessenger::G4SBSMessenger(){
   bigfieldCmd->SetGuidance("0 = turn off SBS constant magnetic field, 1 = turn on SBS constant magnetic field");
   bigfieldCmd->SetParameterName("48d48field", false);
 
-  bbfieldCmd = new G4UIcmdWithAnInteger("/g4sbs/bbfield", this);
+  bbfieldCmd = new G4UIcommand("/g4sbs/bbfield", this);
   bbfieldCmd->SetGuidance("Turn on Bigbite field (requires field map)");
-  bbfieldCmd->SetParameterName("bbfield", false);
+  bbfieldCmd->SetGuidance("usage: /g4sbs/bbfield flag fname");
+  bbfieldCmd->SetGuidance("flag = 1/0 for on/off");
+  bbfieldCmd->SetGuidance("fname = field map file name (D = map_696A.dat)");
+  bbfieldCmd->SetParameter(new G4UIparameter("bbfield",'i', false) );
+  bbfieldCmd->SetParameter(new G4UIparameter("fname",'s', true) );
+  bbfieldCmd->GetParameter(1)->SetDefaultValue("map_696A.dat");
 
+  // bbfield_fnameCmd = new G4UIcmdWithAString("/g4sbs/bbfieldmapfname",this);
+  // bbfield_fnameCmd->SetGuidance("BigBite field map file name (if non-standard name/location)");
+  // bbfield_fnameCmd->SetParameterName("bbfieldfname",false);
+  
   tosfieldCmd = new G4UIcmdWithAString("/g4sbs/tosfield", this);
   tosfieldCmd->SetGuidance("Use SBS TOSCA field map from file");
   tosfieldCmd->SetParameterName("tosfield", false);
@@ -938,10 +947,17 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
 
   if( cmd == bbfieldCmd ){
-    G4int n = bbfieldCmd->GetNewIntValue(newValue);
-    fdetcon->SetBigBiteField(n);
-  }
+    std::istringstream is(newValue);
 
+    //G4int n = bbfieldCmd->GetNewIntValue(newValue);
+    G4int n;
+    G4String fname;
+
+    is >> n >> fname;
+    
+    fdetcon->SetBigBiteField(n, fname);
+  }
+  
   if( cmd == tosfieldCmd ){
     fdetcon->AddToscaField(newValue.data());
   }

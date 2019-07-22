@@ -246,8 +246,31 @@ int main(int argc, char** argv)
   
   G4UImanager * UImanager = G4UImanager::GetUIpointer();
 
+  //Set GEANT4 macro search path based on environment variable G4SBS, if it is set:
+  G4String macropathcmd = "/control/macroPath ";
+
+  //
+  macropathcmd += "./scripts";
+
+  char *G4SBS_env_var = std::getenv("G4SBS");
+  if( G4SBS_env_var != NULL ){
+    macropathcmd += ":";
+    macropathcmd += G4SBS_env_var;
+    macropathcmd += "/scripts";
+  }
+
+  //Let GEANT4 search ./scripts and $G4SBS/scripts for macros:
+  
+  UImanager->ApplyCommand( macropathcmd );
+  //#endif  
+
+  // This line helps G4SBSRunData locate the pre-init, post-init macro files and
+  // all external macros called (if ANY), without forcing libg4sbsroot to depend
+  // on the GEANT4 libraries
+  rundata->SetMacroPath( UImanager->GetMacroSearchPath() );
+  
   if( preinit_macro != "" ){
-    rundata->SetPreInitMacroFile(preinit_macro);
+    rundata->SetPreInitMacroFile(preinit_macro.data());
     G4int success = executeMacro(preinit_macro,UImanager);
     if( success != fCommandSucceeded ){
       G4cerr << "Problem executing macro, exiting..." << G4endl;
@@ -256,7 +279,7 @@ int main(int argc, char** argv)
   }
 
   if( postinit_macro != "") {
-    rundata->SetMacroFile(postinit_macro);
+    rundata->SetMacroFile(postinit_macro.data());
   }
 
   // Initialize Run manager

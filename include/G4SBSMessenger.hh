@@ -68,7 +68,8 @@ private:
 
   
   G4UIcmdWithAnInteger *bigfieldCmd;
-  G4UIcmdWithAnInteger *bbfieldCmd;
+  G4UIcommand *bbfieldCmd;
+  //G4UIcmdWithAString *bbfield_fnameCmd; //Set filename for BB magnetic field map
   G4UIcmdWithAString *tosfieldCmd;
 
   G4UIcmdWithAnInteger *eventStatusEveryCmd;

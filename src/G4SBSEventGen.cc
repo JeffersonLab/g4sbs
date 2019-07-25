@@ -29,8 +29,8 @@ using namespace CLHEP;
 
 G4SBSEventGen::G4SBSEventGen(){
   //As default values, these don't make sense:
-  fThMin = 0.01*deg;
-  fThMax = 179.99*deg;
+  fThMin = 0.0*deg;
+  fThMax = 180.00*deg;
   fPhMin = 0.0*deg;
   fPhMax = 360.0*deg;
 

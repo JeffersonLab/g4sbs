@@ -250,7 +250,7 @@ int main(int argc, char** argv)
   G4String macropathcmd = "/control/macroPath ";
 
   //
-  macropathcmd += "./scripts";
+  macropathcmd += ".:./scripts";
 
   char *G4SBS_env_var = std::getenv("G4SBS");
   if( G4SBS_env_var != NULL ){

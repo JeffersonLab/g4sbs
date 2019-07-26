@@ -87,14 +87,22 @@ else()
 endif()
 
 include(${Geant4_USE_FILE})
+
+# Generate the dictionary for G4SBS classes deriving from TOb ject:
+ROOT_GENERATE_DICTIONARY(
+    G__g4sbsroot                         # path to dictionary to generate
+    "include/G4SBSRunData.hh"         # list of classes to process
+    "include/G4SBSTextFile.hh"
+    LINKDEF "include/G4SBSLinkDef.h"  # ROOT linkDef file
+)
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
 add_library(sbscteq STATIC ${cteqsources} ${cteqheaders})
 SET_TARGET_PROPERTIES(sbscteq PROPERTIES COMPILE_FLAGS "-DCTEQ_TBL_PATH=\\\"${PROJECT_SOURCE_DIR}/cteq-tbls\\\"")
 
-add_executable(g4sbs g4sbs.cc ${sources} ${headers} G4SBSDict.cxx)
-add_library(g4sbsroot SHARED ${libsources} ${libheaders} G4SBSDict.cxx)
+add_executable(g4sbs g4sbs.cc ${sources} ${headers} G__g4sbsroot.cxx)
+add_library(g4sbsroot SHARED ${libsources} ${libheaders} G__g4sbsroot.cxx)
 
 target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
 target_link_libraries(g4sbsroot ${ROOT_LIBRARIES} )
@@ -248,17 +256,12 @@ file(GLOB dss_grids ${PROJECT_SOURCE_DIR}/src/dss2007/*.GRID)
 
 configure_file(${PROJECT_SOURCE_DIR}/g4sbs.rootrc ${CMAKE_CURRENT_BINARY_DIR}/.rootrc)
 
-ROOT_GENERATE_DICTIONARY(
-    G4SBSDict                         # path to dictionary to generate
-    "include/G4SBSRunData.hh"         # list of classes to process
-    "include/G4SBSTextFile.hh"
-    LINKDEF "include/G4SBSLinkDef.h"  # ROOT linkDef file
-)
+
 
 #TODO: figure out how to get the ROOT_GENERATE_DICTIONARY command to do this automatically:
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libG4SBSDict_rdict.pcm DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libG4SBSDict.rootmap DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/G4SBSDict.cxx DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot_rdict.pcm DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot.rootmap DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/G__g4sbsroot.cxx DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 # 

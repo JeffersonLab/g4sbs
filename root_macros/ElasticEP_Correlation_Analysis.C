@@ -199,7 +199,8 @@ bool load_shower_profiles( const char *filename ){
 
   //cout << "'" << substrtemp << "'" << endl;
 
-  sstream_temp = std::istringstream(substrtemp.Data());
+  //  sstream_temp = std::istringstream(substrtemp.Data());
+  sstream_temp.str(substrtemp.Data());
 
   //extract number of bins and min and max moment value for default x profile:
   sstream_temp >> profxdefault.nbins_mom >> profxdefault.xmin >> profxdefault.xmax;
@@ -214,7 +215,7 @@ bool load_shower_profiles( const char *filename ){
 
   //cout << "'" << substrtemp << "'" << endl;
   //for( int bin=0; bin<=profxdefault.nbins_mom; bin++ ){
-  sstream_temp = std::istringstream(substrtemp.Data());
+  sstream_temp.str(substrtemp.Data());
 
   profxdefault.frac.resize(profxdefault.nbins_mom+1);
 
@@ -242,7 +243,7 @@ bool load_shower_profiles( const char *filename ){
 
   //cout << "'" << substrtemp << "'" << endl;
 
-  sstream_temp = std::istringstream(substrtemp.Data());
+  sstream_temp.str(substrtemp.Data());
 
   sstream_temp >> profydefault.nbins_mom >> profydefault.xmin >> profydefault.xmax;
 
@@ -255,7 +256,7 @@ bool load_shower_profiles( const char *filename ){
 
   //cout << "'" << substrtemp << "'" << endl;
   //for( int bin=0; bin<=profxdefault.nbins_mom; bin++ ){
-  sstream_temp = std::istringstream(substrtemp.Data());
+  sstream_temp.str(substrtemp.Data());
 
   profydefault.frac.resize(profydefault.nbins_mom+1);
     
@@ -276,7 +277,7 @@ bool load_shower_profiles( const char *filename ){
 
   substrtemp.ReplaceAll(stemp,"");
 
-  sstream_temp = std::istringstream(substrtemp.Data());
+  sstream_temp.str(substrtemp.Data());
 
   sstream_temp >> profx_nbins >> profx_xmin >> profx_xmax;
 
@@ -292,7 +293,7 @@ bool load_shower_profiles( const char *filename ){
     substrtemp = TString(currentfile(istart,istop-istart));
     substrtemp.ReplaceAll(stemp,"");
 
-    sstream_temp = std::istringstream(substrtemp.Data());
+    sstream_temp.str(substrtemp.Data());
 
     sstream_temp >> profx[xbin].nbins_mom >> profx[xbin].xmin >> profx[xbin].xmax;
 
@@ -303,7 +304,7 @@ bool load_shower_profiles( const char *filename ){
     
     substrtemp = TString(currentfile(istart+1,istop-istart-1));
 
-    sstream_temp = std::istringstream(substrtemp.Data());
+    sstream_temp.str(substrtemp.Data());
 
     profx[xbin].frac.resize(profx[xbin].nbins_mom+1);
 
@@ -326,7 +327,7 @@ bool load_shower_profiles( const char *filename ){
 
   substrtemp.ReplaceAll(stemp,"");
 
-  sstream_temp = std::istringstream(substrtemp.Data());
+  sstream_temp.str(substrtemp.Data());
 
   sstream_temp >> profy_nbins >> profy_ymin >> profy_ymax;
 
@@ -342,7 +343,7 @@ bool load_shower_profiles( const char *filename ){
     substrtemp = TString(currentfile(istart,istop-istart));
     substrtemp.ReplaceAll(stemp,"");
 
-    sstream_temp = std::istringstream(substrtemp.Data());
+    sstream_temp.str(substrtemp.Data());
 
     sstream_temp >> profy[ybin].nbins_mom >> profy[ybin].xmin >> profy[ybin].xmax;
 
@@ -355,7 +356,7 @@ bool load_shower_profiles( const char *filename ){
     
     substrtemp = TString(currentfile(istart+1,istop-istart-1));
 
-    sstream_temp = std::istringstream(substrtemp.Data());
+    sstream_temp.str(substrtemp.Data());
 
     profy[ybin].frac.resize(profy[ybin].nbins_mom+1);
 

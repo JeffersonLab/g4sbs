@@ -78,6 +78,9 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	MakeSIDISLead(worldlog);
       }
       break;
+    case(kGEMHCtest):// Hall C GEM test
+      MakeGMnBeamline(worldlog);
+      break;
     default:
       Make3HeBeamline(worldlog);
       break;

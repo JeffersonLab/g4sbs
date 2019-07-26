@@ -150,7 +150,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
   G4SBSSDTrackOutput allsdtracks;
 
-  G4cout << "End-of-event processing for event ID " << evt->GetEventID() << G4endl;
+  //G4cout << "End-of-event processing for event ID " << evt->GetEventID() << G4endl;
   
   //Loop over all sensitive detectors:
   for( set<G4String>::iterator d=SDlist.begin(); d!=SDlist.end(); d++ ){

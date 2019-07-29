@@ -764,11 +764,18 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
   map<TString,double> SBStheta_file;
   map<TString,double> ECALtheta_file;
   map<TString,double> ECALdist_file;
-
+  //map<TString,long> ngen_file;
+  map<TString,double> GenVol_file;
+  map<TString,double> Luminosity_file;
+  
+  long ngen_total=0;
+  
   double SBStheta_default = 16.9*PI/180.0;
   double ECALtheta_default = 29.0*PI/180.0;
   double ECALdist_default = 4.5;
   double Ebeam_default = 11.0;
+  double GenVol_default = 1.0;
+  double Luminosity_default = 8e38;
   
   while( currentline.ReadLine(infile) && !currentline.BeginsWith("endlist") ){
     if( !currentline.BeginsWith("#") ){ //not commented out:
@@ -785,6 +792,10 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 	  ECALtheta_file[currentline] = rd->fBBtheta; //radians
 	  ECALdist_file[currentline] = rd->fBBdist; //meters = distance from origin to front surface of ECAL
 
+	  //ngen_file[currentline] = rd->fNtries;
+	  GenVol_file[currentline] = rd->fGenVol;
+	  Luminosity_file[currentline] = rd->fLuminosity;
+	  ngen_total += rd->fNtries;
 	  //TODO: add SBS tracker pitch angle and/or distance to list of things we grab from the
 	  //ROOT tree directly (after re-running simulation with correct default values in run_data).
 	  
@@ -794,6 +805,8 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 	  SBStheta_default = SBStheta_file[currentline];
 	  ECALtheta_default = ECALtheta_file[currentline];
 	  ECALdist_default = ECALdist_file[currentline];
+	  GenVol_default = GenVol_file[currentline];
+	  Luminosity_default = Luminosity_file[currentline];
 	  
 	  
 	}
@@ -947,10 +960,15 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
   double SBStheta = SBStheta_default;
   double ECALtheta = ECALtheta_default;
   double ECALdist = ECALdist_default;
+  double GenVol = GenVol_default;
+  double Luminosity = Luminosity_default;
+  
+  double weight = GenVol*Luminosity/double(ngen_total);
+  long ngen_temp = 0;
   
   while( T->GetEntry(nevent++) ){
     if( nevent % 1000 == 0 ) cout << nevent << endl;
-
+    
     treenum = C->GetTreeNumber();
     if( treenum != oldtreenum ){
 
@@ -969,11 +987,16 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 	ECAL_zaxis.SetXYZ(sin(ECALtheta),0,cos(ECALtheta));
 	ECAL_xaxis = ECAL_yaxis.Cross(ECAL_zaxis).Unit();
 	R0_ECAL = ECALdist * ECAL_zaxis;
+
+	GenVol = GenVol_file[fnametemp];
+	Luminosity = Luminosity_file[fnametemp];
       }
 
       oldtreenum = treenum;
     }
 
+    weight = T->ev_sigma * GenVol * Luminosity/double(ngen_total);
+    
     //Get primary proton track in FT GEMs (if it's there):
     if( T->Harm_FT_Track_ntracks == 1 &&
 	(*(T->Harm_FT_Track_MID))[0] == 0 ){
@@ -987,9 +1010,9 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 
       int NDF = (*(T->Harm_FT_Track_NDF))[0];
 
-      htrackchi2ndf_fit->Fill( chi2fit/double(NDF) );
-      htrackchi2ndf_true->Fill( chi2true/double(NDF) );
-      htracknhits->Fill( double( (*(T->Harm_FT_Track_NumPlanes))[0] ) );
+      htrackchi2ndf_fit->Fill( chi2fit/double(NDF), weight );
+      htrackchi2ndf_true->Fill( chi2true/double(NDF), weight );
+      htracknhits->Fill( double( (*(T->Harm_FT_Track_NumPlanes))[0] ), weight );
       
       double xtartemp = -T->ev_vy;
 
@@ -1022,15 +1045,15 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
       
       double pprecon = ptemp;
 
-      hdpp->Fill( pprecon/T->ev_np - 1.0 );
-      hdptheta->Fill( pthetarecon - T->ev_nth );
-      hdpphi->Fill( pphirecon - pphitrue );
+      hdpp->Fill( pprecon/T->ev_np - 1.0, weight );
+      hdptheta->Fill( pthetarecon - T->ev_nth, weight );
+      hdpphi->Fill( pphirecon - pphitrue, weight );
 
       double pp_ptheta_recon = 2.0*Mp*Ebeam*(Mp+Ebeam)*cos(pthetarecon)/(pow(Mp,2)+2.*Mp*Ebeam + pow(Ebeam*sin(pthetarecon),2));
 
-      hpmissp->Fill( 1000.0*(pprecon-pp_ptheta_recon) );
-      hpmissp_fractional->Fill( (pprecon-pp_ptheta_recon)/T->ev_np );
-      hdvz->Fill( 1000.0*(vzrecon - T->ev_vz) );
+      hpmissp->Fill( 1000.0*(pprecon-pp_ptheta_recon), weight );
+      hpmissp_fractional->Fill( (pprecon-pp_ptheta_recon)/T->ev_np, weight );
+      hdvz->Fill( 1000.0*(vzrecon - T->ev_vz), weight );
 
       //Next step is to do clustering of hits in ECAL, association with CDET scintillator hits,
       //and electron angle and energy reconstruction. This is the "hard" part
@@ -1045,7 +1068,7 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
       xclust_corr.resize(nclust);
       yclust_corr.resize(nclust);
       
-      hnclust->Fill( nclust );
+      hnclust->Fill( nclust, weight );
 
       TVector3 ephat_true_global(T->ev_epx, T->ev_epy, T->ev_epz);
       ephat_true_global = ephat_true_global.Unit();
@@ -1076,14 +1099,14 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 	ibest = Eclust[iclust] > Eclust_max ? iclust : ibest;
 	Eclust_max = Eclust[iclust] > Eclust_max ? Eclust[iclust] : Eclust_max;
 	
-	hxyclust->Fill(xclust[iclust],yclust[iclust]);
-	hEclust->Fill(Eclust[iclust]);
-	hEclust_vs_Etrue->Fill( T->ev_ep, Eclust[iclust] );
-	hdEclust_fractional->Fill( 1.0-Eclust[iclust]/T->ev_ep );
-	hdEclust_fractional_vs_Eclust->Fill( T->ev_ep, 1.0-Eclust[iclust]/T->ev_ep );
-	hnhitclust->Fill(nhitclust[iclust]);
-	hdxclust->Fill( (xclust[iclust] - xclust_true)*100.0 );
-	hdyclust->Fill( (yclust[iclust] - yclust_true)*100.0 );
+	hxyclust->Fill(xclust[iclust],yclust[iclust], weight );
+	hEclust->Fill(Eclust[iclust], weight );
+	hEclust_vs_Etrue->Fill( T->ev_ep, Eclust[iclust], weight );
+	hdEclust_fractional->Fill( 1.0-Eclust[iclust]/T->ev_ep, weight );
+	hdEclust_fractional_vs_Eclust->Fill( T->ev_ep, 1.0-Eclust[iclust]/T->ev_ep, weight  );
+	hnhitclust->Fill(nhitclust[iclust], weight );
+	hdxclust->Fill( (xclust[iclust] - xclust_true)*100.0, weight  );
+	hdyclust->Fill( (yclust[iclust] - yclust_true)*100.0, weight  );
 
 	double xmom = (xclust[iclust] - (*(T->Earm_ECalTF1_hit_xcell))[hitlist_clust[iclust][0]])/ECAL_max_cell_size;
 	double ymom = (yclust[iclust] - (*(T->Earm_ECalTF1_hit_ycell))[hitlist_clust[iclust][0]])/ECAL_max_cell_size;
@@ -1093,29 +1116,29 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 
 	double xf,yf;
 	
-	hxmom->Fill( xmom );
-	hymom->Fill( ymom );
+	hxmom->Fill( xmom, weight  );
+	hymom->Fill( ymom, weight  );
 
-	hdxx->Fill( 100.0*xclust_true, 100.0*(xclust[iclust]-xclust_true) );
-	hdyy->Fill( 100.0*yclust_true, 100.0*(yclust[iclust]-yclust_true) );
+	hdxx->Fill( 100.0*xclust_true, 100.0*(xclust[iclust]-xclust_true), weight  );
+	hdyy->Fill( 100.0*yclust_true, 100.0*(yclust[iclust]-yclust_true), weight  );
 
-	hxmom_x->Fill( 100.*xclust[iclust], xmom );
-	hymom_y->Fill( 100.*yclust[iclust], ymom );
+	hxmom_x->Fill( 100.*xclust[iclust], xmom, weight  );
+	hymom_y->Fill( 100.*yclust[iclust], ymom, weight  );
 
 	if( shower_initialized ){
 
 	  double xcorrected, ycorrected;
 	  calc_shower_coordinates( xmom, ymom, xmax, ymax, Eclust[iclust], ECALdist, xcorrected, ycorrected, xf, yf );
 	  //at this point everything is in meters:
-	  hxyclust_corrected->Fill( xcorrected, ycorrected );
-	  hdxclust_corrected->Fill( 100.0 * (xcorrected - xclust_true ) );
-	  hdyclust_corrected->Fill( 100.0 * (ycorrected - yclust_true ) );
+	  hxyclust_corrected->Fill( xcorrected, ycorrected, weight  );
+	  hdxclust_corrected->Fill( 100.0 * (xcorrected - xclust_true ), weight  );
+	  hdyclust_corrected->Fill( 100.0 * (ycorrected - yclust_true ), weight  );
 
-	  hdxx_corrected->Fill( 100.0*xclust_true, 100.0 * (xcorrected - xclust_true ) );
-	  hdyy_corrected->Fill( 100.0*yclust_true, 100.0 * (ycorrected - yclust_true ) );
+	  hdxx_corrected->Fill( 100.0*xclust_true, 100.0 * (xcorrected - xclust_true ), weight  );
+	  hdyy_corrected->Fill( 100.0*yclust_true, 100.0 * (ycorrected - yclust_true ), weight  );
 
-	  hxcorr_xmax->Fill( xf );
-	  hycorr_ymax->Fill( yf );
+	  hxcorr_xmax->Fill( xf, weight  );
+	  hycorr_ymax->Fill( yf, weight  );
 
 	  xclust_corr[iclust] = xcorrected;
 	  yclust_corr[iclust] = ycorrected;
@@ -1156,7 +1179,7 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 
 	double Eprime_etheta_temp = Ebeam/(1.+Ebeam/Mp*(1.-cos(etheta_temp)));
 
-	hdEclust_Eprime_eth->Fill( 1.0 - Eprime_ECAL/Eprime_etheta_temp );
+	hdEclust_Eprime_eth->Fill( 1.0 - Eprime_ECAL/Eprime_etheta_temp, weight  );
 	
 	// track slopes in ECAL local coordinate system, assuming straight line from the origin:
 	double xpECAL = ECALnhat.X()/ECALnhat.Z();
@@ -1207,22 +1230,22 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 
 	//	cout << "done looping over CDET hits... " << endl;
 	
-	hnplanes_CDET->Fill(nplanes_fired);
-	hnhits1_CDET->Fill(nhits_plane[0]);
-	hnhits2_CDET->Fill(nhits_plane[1]);
+	hnplanes_CDET->Fill(nplanes_fired, weight );
+	hnhits1_CDET->Fill(nhits_plane[0], weight );
+	hnhits2_CDET->Fill(nhits_plane[1], weight );
 	if( nplanes_fired == 2 ){
 	  for( int plane=0; plane<2; plane++ ){
 	    yavg_plane[plane] /= Etot_plane[plane];
 	    xavg_plane[plane] /= Etot_plane[plane];
 	  }
 
-	  hdy1_CDET_ECAL->Fill( yavg_plane[0] - (yECAL + (zplane[0]-ECALdist)*ypECAL) );
-	  hdy2_CDET_ECAL->Fill( yavg_plane[1] - (yECAL + (zplane[1]-ECALdist)*ypECAL) );
+	  hdy1_CDET_ECAL->Fill( yavg_plane[0] - (yECAL + (zplane[0]-ECALdist)*ypECAL), weight  );
+	  hdy2_CDET_ECAL->Fill( yavg_plane[1] - (yECAL + (zplane[1]-ECALdist)*ypECAL), weight  );
 
-	  hdy12_CDET->Fill( yavg_plane[0] - (yavg_plane[1] + (zplane[0]-zplane[1])*ypECAL));
+	  hdy12_CDET->Fill( yavg_plane[0] - (yavg_plane[1] + (zplane[0]-zplane[1])*ypECAL), weight );
 
-	  hEtot1_CDET->Fill( Etot_plane[0] );
-	  hEtot2_CDET->Fill( Etot_plane[1] );
+	  hEtot1_CDET->Fill( Etot_plane[0], weight  );
+	  hEtot2_CDET->Fill( Etot_plane[1], weight  );
 
 	  //Next step: Fit straight line to ECAL+CDET "tracks" with one point fixed at origin, use forward optics to reconstructed expected FP track position,
 	  //compare to actual. Also compute usual exclusivity cut quantities like deltax, deltay, pmisse, etc.
@@ -1406,10 +1429,10 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 
 	  //cout << "ephi_c, ephi true = " << ephi_c * 180.0/PI << ", " << T->ev_ph * 180.0/PI << endl;
 
-	  hdethc_Eclust->Fill( etheta_c - etheta_Eclust );
-	  hdethc_thtrue->Fill( etheta_c - T->ev_th );
-	  hdephc_phtrue->Fill( ephi_c - T->ev_ph );
-	  hdethc_thtrue_vs_z->Fill( T->ev_vz, etheta_c - T->ev_th );
+	  hdethc_Eclust->Fill( etheta_c - etheta_Eclust, weight  );
+	  hdethc_thtrue->Fill( etheta_c - T->ev_th, weight  );
+	  hdephc_phtrue->Fill( ephi_c - T->ev_ph, weight  );
+	  hdethc_thtrue_vs_z->Fill( T->ev_vz, etheta_c - T->ev_th, weight  );
 
 	  //Calculate proton kinematics from reconstructed electron:
 
@@ -1441,18 +1464,18 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 			      xfp_eth, yfp_eth, xpfp_eth, ypfp_eth );
 	  
 	  
-	  hdxfp->Fill( xfp_eth - xfptemp );
-	  hdyfp->Fill( yfp_eth - yfptemp );
-	  hdxpfp->Fill( xpfp_eth - xpfptemp );
-	  hdypfp->Fill( ypfp_eth - ypfptemp );
+	  hdxfp->Fill( xfp_eth - xfptemp, weight  );
+	  hdyfp->Fill( yfp_eth - yfptemp, weight  );
+	  hdxpfp->Fill( xpfp_eth - xpfptemp, weight  );
+	  hdypfp->Fill( ypfp_eth - ypfptemp, weight  );
 
-	  hdxfp_vs_ztrue->Fill( T->ev_vz, xfp_eth - xfptemp );
-	  hdyfp_vs_ztrue->Fill( T->ev_vz, yfp_eth - yfptemp );
-	  hdxpfp_vs_ztrue->Fill( T->ev_vz, xpfp_eth - xpfptemp );
-	  hdypfp_vs_ztrue->Fill( T->ev_vz, ypfp_eth - ypfptemp );
+	  hdxfp_vs_ztrue->Fill( T->ev_vz, xfp_eth - xfptemp, weight  );
+	  hdyfp_vs_ztrue->Fill( T->ev_vz, yfp_eth - yfptemp, weight  );
+	  hdxpfp_vs_ztrue->Fill( T->ev_vz, xpfp_eth - xpfptemp, weight  );
+	  hdypfp_vs_ztrue->Fill( T->ev_vz, ypfp_eth - ypfptemp, weight  );
 
-	  hdpp_etheta_c->Fill( pp_etheta_c/T->ev_np - 1. );
-	  hdpp_eclust->Fill( pp_Eclust/T->ev_np - 1. );
+	  hdpp_etheta_c->Fill( pp_etheta_c/T->ev_np - 1., weight  );
+	  hdpp_eclust->Fill( pp_Eclust/T->ev_np - 1., weight  );
 
 	  xz.push_back( vertex_true_ECAL.X() );
 	  yz.push_back( vertex_true_ECAL.Y() );
@@ -1510,7 +1533,7 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 	  
 	  double pphi_ephi_zt = ephi_ztrue + PI;
 
-	  hdpp_etheta_vtx_known->Fill( pp_etheta_zt/T->ev_np - 1.0 );
+	  hdpp_etheta_vtx_known->Fill( pp_etheta_zt/T->ev_np - 1.0, weight  );
 
 	  hdpp_etheta_vtx_known->GetXaxis()->SetTitle("p_{p}(e arm)/p_{p}^{true}-1 (v_{z} = v_{z}(true))");
 	  
@@ -1537,10 +1560,10 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 	  SBS_fp_reconstruct( xtar_eth_zt, ytar_eth_zt, xptar_eth_zt, yptar_eth_zt, pp_etheta_zt,
 			      xfp_eth_zt, yfp_eth_zt, xpfp_eth_zt, ypfp_eth_zt );
 
-	  hdxfp_vtx_known->Fill( xfp_eth_zt - xfptemp );
-	  hdyfp_vtx_known->Fill( yfp_eth_zt - yfptemp );
-	  hdxpfp_vtx_known->Fill( xpfp_eth_zt - xpfptemp );
-	  hdypfp_vtx_known->Fill( ypfp_eth_zt - ypfptemp );
+	  hdxfp_vtx_known->Fill( xfp_eth_zt - xfptemp, weight  );
+	  hdyfp_vtx_known->Fill( yfp_eth_zt - yfptemp, weight  );
+	  hdxpfp_vtx_known->Fill( xpfp_eth_zt - xpfptemp, weight  );
+	  hdypfp_vtx_known->Fill( ypfp_eth_zt - ypfptemp, weight  );
 			     
 
 	  TVector3 vertex_recon_global(T->ev_vx, T->ev_vy, vzrecon );
@@ -1591,9 +1614,9 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 	  double xclust_pp = vertex_recon_ECAL.X() + ehat_pp_pphi_ECAL.X()/ehat_pp_pphi_ECAL.Z() * ( ECALdist - vertex_recon_ECAL.Z() );
 	  double yclust_pp = vertex_recon_ECAL.Y() + ehat_pp_pphi_ECAL.Y()/ehat_pp_pphi_ECAL.Z() * (ECALdist - vertex_recon_ECAL.Z() );
 
-	  hdeltax_pp->Fill( 100.*(xECAL - xclust_pp ) );
-	  hdeltay_pp->Fill( 100.*(yECAL-yoff_ECAL - yclust_pp ) );
-	  hdxdy_pp->Fill( 100.*(xECAL - xclust_pp ), 100.*(yECAL-yoff_ECAL - yclust_pp ) );
+	  hdeltax_pp->Fill( 100.*(xECAL - xclust_pp ), weight  );
+	  hdeltay_pp->Fill( 100.*(yECAL-yoff_ECAL - yclust_pp ), weight  );
+	  hdxdy_pp->Fill( 100.*(xECAL - xclust_pp ), 100.*(yECAL-yoff_ECAL - yclust_pp ), weight  );
 
 	  //hdphip->Fill( pphirecon
 	  
@@ -1658,12 +1681,12 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
 
 	  double ptheta_etheta_recon = acos( (Ebeam-Eprime_etheta_recon*cos(etheta_recon))/pp_etheta_recon);
 	  
-	  hdphip->Fill( pphirecon - ephi_recon - PI );
-	  hdthetap->Fill( pthetarecon - ptheta_etheta_recon );
-	  hpmisse->Fill( (pprecon - pp_etheta_recon)/T->ev_np );
-	  hdpp_eth_pth->Fill( (pp_ptheta_recon - pp_etheta_recon)/T->ev_np );
-	  hdthetae_true->Fill( etheta_recon - T->ev_th );
-	  hdphie_true->Fill( ephi_recon - T->ev_ph );
+	  hdphip->Fill( pphirecon - ephi_recon - PI, weight  );
+	  hdthetap->Fill( pthetarecon - ptheta_etheta_recon, weight  );
+	  hpmisse->Fill( (pprecon - pp_etheta_recon)/T->ev_np, weight  );
+	  hdpp_eth_pth->Fill( (pp_ptheta_recon - pp_etheta_recon)/T->ev_np, weight  );
+	  hdthetae_true->Fill( etheta_recon - T->ev_th, weight  );
+	  hdphie_true->Fill( ephi_recon - T->ev_ph, weight );
 
 	  
 	  

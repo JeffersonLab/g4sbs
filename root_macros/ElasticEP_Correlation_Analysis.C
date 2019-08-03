@@ -24,6 +24,7 @@
 #include "TMath.h"
 #include "TMatrixD.h"
 #include "TVectorD.h"
+#include "TCut.h"
 
 const double Mp = 0.938272; //GeV
 const double Lx_scint_CDET = 0.51; //m
@@ -846,7 +847,19 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
     }
   }
 
+  TCut global_cut = "";
+  
+  while( currentline.ReadLine(infile) && !currentline.BeginsWith("endcut") ){
+    if( !currentline.BeginsWith("#") ){
+      global_cut += currentline;
+    }
+  }
+
   if(C->GetNtrees() <= 0 ) return;
+
+  TEventList *elist = new TEventList("elist");
+
+  C->Draw(">>elist",global_cut);
   
   TString opticsfilename="",fopticsfilename="";
 
@@ -1039,7 +1052,7 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
   double sum2_weights_all = 0.0;
   double sum2_weights_cut = 0.0;
   
-  while( T->GetEntry(nevent++) ){
+  while( T->GetEntry(elist->GetEntry(nevent++) ) ){
     if( nevent % 1000 == 0 ) cout << nevent << endl;
     
     treenum = C->GetTreeNumber();
@@ -1952,6 +1965,8 @@ void ElasticEP_Correlation_Analysis(const char *inputfilename, const char *outpu
   
   cout << "Total event rate = " << sum_weights_all << "+/-" << dsum_weights_all << " Hz" << endl;
   cout << "Total event rate passing all four exclusivity cuts = " << sum_weights_cut << "+/-" << dsum_weights_cut << " Hz" << endl;
+
+  elist->Delete();
   
   fout->Write();
 }

@@ -513,6 +513,19 @@ G4SBSMessenger::G4SBSMessenger(){
   FluxCmd = new G4UIcmdWithABool("/g4sbs/fluxcalc",this);
   FluxCmd->SetGuidance( "Compute particle flux as a function of angles, energy");
   FluxCmd->SetParameterName( "fluxcalc", false);  
+
+  TargPolDirectionCmd = new G4UIcmdWith3Vector("/g4sbs/targpoldirection", this );
+  TargPolDirectionCmd->SetGuidance("Set target polarization direction");
+  TargPolDirectionCmd->SetGuidance("Three-vector arguments are x,y,z components of polarization");
+  TargPolDirectionCmd->SetGuidance("Automatically converted to unit vector internally");
+  TargPolDirectionCmd->SetGuidance("Assumed to be given in global coordinate system");
+  TargPolDirectionCmd->SetParameterName("Px","Py","Pz",false);
+  
+  TargPolMagnitudeCmd = new G4UIcmdWithADouble("/g4sbs/targpolmag", this );
+  TargPolMagnitudeCmd->SetGuidance("Set target polarization magnitude");
+  TargPolMagnitudeCmd->SetGuidance("0 <= Ptarg <= 1");
+  TargPolMagnitudeCmd->SetParameterName("Ptgt",true);
+  TargPolMagnitudeCmd->SetDefaultValue(1.0);
   
   GunPolarizationCommand = new G4UIcmdWith3Vector( "/g4sbs/gunpol", this );
   GunPolarizationCommand->SetGuidance( "Set particle polarization for gun generator:" );
@@ -1527,6 +1540,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4bool b = FluxCmd->GetNewBoolValue(newValue);
     fdetcon->fTargetBuilder->SetFlux(b);
     fIO->KeepPartCALflags["FLUX"] = b;
+  }
+
+  if( cmd == TargPolDirectionCmd ){
+    G4ThreeVector v = TargPolDirectionCmd->GetNew3VectorValue(newValue);
+    fdetcon->fTargetBuilder->SetTargPolDir( v.unit() );
+  }
+
+  if( cmd == TargPolMagnitudeCmd ){
+    G4double pol = TargPolMagnitudeCmd->GetNewDoubleValue( newValue );
+    fdetcon->fTargetBuilder->SetTargPolMac( pol );
   }
   
   if( cmd == UseCerenkovCmd ){

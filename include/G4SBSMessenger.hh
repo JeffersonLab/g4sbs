@@ -205,6 +205,13 @@ private:
   // G4UIcmdWithABool *DisableOpticalPhysicsCmd; //disable CPU-intensive optical photon physics
 
   G4UIcmdWithABool *FluxCmd; //Make sphere around target and use to compute flux of particles
+
+  //Command to define target spin orientation
+  G4UIcmdWith3Vector *TargPolDirectionCmd;
+  G4UIcmdWithADouble *TargPolMagnitudeCmd;
+  G4UIcmdWithADouble *BeamPolMagnitudeCmd;
+  G4UIcmdWith3Vector *BeamPolDirectionCmd;
+ 
   
   // Command to set particle polarization for spin transport calculations:
   // ONLY relevant for particle gun generator!

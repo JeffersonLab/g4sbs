@@ -1029,7 +1029,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     
     G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
     G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
-    
+    Electronics_log->SetVisAttributes(G4VisAttributes::Invisible);
     G4String GEMElectronicsname = "BLneutronDet";
     G4String  GEMElectronicscollname = "BLneutronDet";
     G4SBSCalSD *GEMElecSD = NULL;

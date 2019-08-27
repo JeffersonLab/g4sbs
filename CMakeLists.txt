@@ -58,18 +58,15 @@ find_package(ROOT REQUIRED)
 include(${ROOT_USE_FILE})
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR}
-<<<<<<< HEAD
-    ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/ )
- 
-ROOT_GENERATE_DICTIONARY(
-    G4SBSDict                         # path to dictionary to generate
-    "include/G4SBSRunData.hh"         # list of classes to process
-    "include/G4SBSTextFile.hh"
-    LINKDEF "include/G4SBSLinkDef.h"  # ROOT linkDef file
-)
-=======
     ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include)
->>>>>>> 1a59d8c2913cbb68b99a3a00714155b58beb2b8d
+#    ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/ )
+# 
+#ROOT_GENERATE_DICTIONARY(
+#    G4SBSDict                         # path to dictionary to generate
+#    "include/G4SBSRunData.hh"         # list of classes to process
+#    "include/G4SBSTextFile.hh"
+#    LINKDEF "include/G4SBSLinkDef.h"  # ROOT linkDef file
+#)
 
 
 #----------------------------------------------------------------------------

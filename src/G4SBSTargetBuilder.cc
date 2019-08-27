@@ -2468,7 +2468,7 @@ void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double 
       mTPCGasCell_log = new G4LogicalVolume(mTPCGasCell_solid, GetMaterial("mTPCgas"),"mTPCGasCell_log");    
       mTPCGasCell_log->SetSensitiveDetector(mTPCSD);
       G4int layernum = incCell*20+i_gl+1;
-      G4String layername = G4String("mTPCGasCell_phy") + layernum;
+      G4String layername = G4String("mTPCGasCell_phy") + G4String(layernum);
       new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposGasCell), mTPCGasCell_log, layername, motherlog, false, layernum, fChkOvLaps);
       //cout << " incCell " << incCell << " i_gl " << i_gl  << " logical mTPC volume number " << layernum << endl;
       mTPCGasCell_log->SetVisAttributes( mtpc_gas_visatt );

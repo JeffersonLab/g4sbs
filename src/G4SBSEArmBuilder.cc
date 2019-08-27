@@ -97,8 +97,7 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   
   assert(fDetCon);
   
-  fDVCSECalMaterial = G4String("PbF2");
-  
+  // fDVCSECalMaterial = G4String("PbF2");
   //  fbbfield =  NULL;
   
   fGRINCHgas = "C4F10_gas"; //default to C4F10;
@@ -1069,7 +1068,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
 }
 
-//So be it, that''l be settled later (EF)
+/*
+//So be it, that'll be settled later (EF)
 //<<<<<<< HEAD 
 //=======
 void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
@@ -1793,20 +1793,20 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   G4Box *Module_38 = new G4Box( "Module_38", width_38/2.0, width_38/2.0, depth_38/2.0 );
   G4LogicalVolume *Module_38_log = new G4LogicalVolume( Module_38, GetMaterial("Special_Air"), "Module_38_log" );
   
-  /*
-  //Next, we want to make a subtraction solid for the mylar:
-  G4Box *Mylar_42 = new G4Box( "Mylar_42", width_42/2.0 - mylar_thick, width_42/2.0 - mylar_thick, depth_42/2.0 + 1.0*cm );
-  G4SubtractionSolid *Mylar_wrap_42 = new G4SubtractionSolid( "Mylar_wrap_42", Module_42, Mylar_42, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
-  G4LogicalVolume *Mylar_wrap_42_log = new G4LogicalVolume( Mylar_wrap_42, GetMaterial("Mylar"), "Mylar_wrap_42_log" );
-  
-  G4Box *Mylar_40 = new G4Box( "Mylar_40", width_40/2.0 - mylar_thick, width_40/2.0 - mylar_thick, depth_40/2.0 + 1.0*cm );
-  G4SubtractionSolid *Mylar_wrap_40 = new G4SubtractionSolid( "Mylar_wrap_40", Module_40, Mylar_40, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
-  G4LogicalVolume *Mylar_wrap_40_log = new G4LogicalVolume( Mylar_wrap_40, GetMaterial("Mylar"), "Mylar_wrap_40_log" );
 
-  G4Box *Mylar_38 = new G4Box( "Mylar_38", width_38/2.0 - mylar_thick, width_38/2.0 - mylar_thick, depth_38/2.0 + 1.0*cm );
-  G4SubtractionSolid *Mylar_wrap_38 = new G4SubtractionSolid( "Mylar_wrap_38", Module_38, Mylar_38, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm) );
-  G4LogicalVolume *Mylar_wrap_38_log = new G4LogicalVolume( Mylar_wrap_38, GetMaterial("Mylar"), "Mylar_wrap_38_log" );
-  */
+  // //Next, we want to make a subtraction solid for the mylar:
+  // G4Box *Mylar_42 = new G4Box( "Mylar_42", width_42/2.0 - mylar_thick, width_42/2.0 - mylar_thick, depth_42/2.0 + 1.0*cm );
+  // G4SubtractionSolid *Mylar_wrap_42 = new G4SubtractionSolid( "Mylar_wrap_42", Module_42, Mylar_42, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
+  // G4LogicalVolume *Mylar_wrap_42_log = new G4LogicalVolume( Mylar_wrap_42, GetMaterial("Mylar"), "Mylar_wrap_42_log" );
+  
+  // G4Box *Mylar_40 = new G4Box( "Mylar_40", width_40/2.0 - mylar_thick, width_40/2.0 - mylar_thick, depth_40/2.0 + 1.0*cm );
+  // G4SubtractionSolid *Mylar_wrap_40 = new G4SubtractionSolid( "Mylar_wrap_40", Module_40, Mylar_40, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
+  // G4LogicalVolume *Mylar_wrap_40_log = new G4LogicalVolume( Mylar_wrap_40, GetMaterial("Mylar"), "Mylar_wrap_40_log" );
+
+  // G4Box *Mylar_38 = new G4Box( "Mylar_38", width_38/2.0 - mylar_thick, width_38/2.0 - mylar_thick, depth_38/2.0 + 1.0*cm );
+  // G4SubtractionSolid *Mylar_wrap_38 = new G4SubtractionSolid( "Mylar_wrap_38", Module_38, Mylar_38, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm) );
+  // G4LogicalVolume *Mylar_wrap_38_log = new G4LogicalVolume( Mylar_wrap_38, GetMaterial("Mylar"), "Mylar_wrap_38_log" );
+
   G4Box *Module_42_k = new G4Box( "Module_42_k", width_42/2.0, width_42/2.0, depth_42/2.0-0.25*mm );
   G4Box *Module_40_k = new G4Box( "Module_42_k", width_40/2.0, width_40/2.0, depth_40/2.0-0.25*mm );
   G4Box *Module_38_k = new G4Box( "Module_42_k", width_38/2.0, width_38/2.0, depth_38/2.0-0.25*mm );
@@ -1868,18 +1868,18 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   //Make lead-glass and place in modules:
   
   if( fDetCon->GetC16Segmentation() <= 0 ){
-    /*
-    // EFuchey:2017/03/03 Was that correct anyhow ??? Don't think so...
-    // block section shall be: module_section - 2*mylar_thick - 2*airthick ( - 2*hcf_thick, but I added that)
-    G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", width_42/2.0 - mylar_thick - air_thick, width_42/2.0 - mylar_thick - air_thick, (depth_42 - mylar_thick - air_thick)/2.0 );
-    G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
 
-    G4Box *LeadGlass_40 = new G4Box("LeadGlass_40", width_40/2.0 - mylar_thick - air_thick, width_40/2.0 - mylar_thick - air_thick, (depth_40 - mylar_thick - air_thick)/2.0 );
-    G4LogicalVolume *LeadGlass_40_log = new G4LogicalVolume( LeadGlass_40, GetMaterial("TF1"), "LeadGlass_40_log" );
+    // // EFuchey:2017/03/03 Was that correct anyhow ??? Don't think so...
+    // // block section shall be: module_section - 2*mylar_thick - 2*airthick ( - 2*hcf_thick, but I added that)
+    // G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", width_42/2.0 - mylar_thick - air_thick, width_42/2.0 - mylar_thick - air_thick, (depth_42 - mylar_thick - air_thick)/2.0 );
+    // G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
 
-    G4Box *LeadGlass_38 = new G4Box("LeadGlass_38", width_38/2.0 - mylar_thick - air_thick, width_38/2.0 - mylar_thick - air_thick, (depth_38 - mylar_thick - air_thick)/2.0 );
-    G4LogicalVolume *LeadGlass_38_log = new G4LogicalVolume( LeadGlass_38, GetMaterial("TF1"), "LeadGlass_38_log" );
-    */
+    // G4Box *LeadGlass_40 = new G4Box("LeadGlass_40", width_40/2.0 - mylar_thick - air_thick, width_40/2.0 - mylar_thick - air_thick, (depth_40 - mylar_thick - air_thick)/2.0 );
+    // G4LogicalVolume *LeadGlass_40_log = new G4LogicalVolume( LeadGlass_40, GetMaterial("TF1"), "LeadGlass_40_log" );
+
+    // G4Box *LeadGlass_38 = new G4Box("LeadGlass_38", width_38/2.0 - mylar_thick - air_thick, width_38/2.0 - mylar_thick - air_thick, (depth_38 - mylar_thick - air_thick)/2.0 );
+    // G4LogicalVolume *LeadGlass_38_log = new G4LogicalVolume( LeadGlass_38, GetMaterial("TF1"), "LeadGlass_38_log" );
+
     G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", width_42/2.0 - hcf_thick - mylar_thick - air_thick, width_42/2.0 - hcf_thick - mylar_thick - air_thick, (depth_42 - mylar_thick - air_thick)/2.0 );
     G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
 
@@ -2671,9 +2671,9 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //                                      //from target and frequently in ECAL section
 
 
-//   /*************************************************************************************
+//   / *************************************************************************************
 //    ********************************        CDet      ***********************************
-//    *************************************************************************************/
+//    ************************************************************************************* /
 
 //   // 4 Options/Configurations available:
 //   //    /g4sbs/CDetconfig 1   -   Just boxes containing nothing but one material
@@ -3003,9 +3003,9 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //   AlVis->SetForceWireframe(true);
 //   Allog->SetVisAttributes(AlVis);
 
-//   /*************************************************************************************
+//   / *************************************************************************************
 //    ********************************        ECAL      ***********************************
-//    *************************************************************************************/
+//    ************************************************************************************* /
  
 //   //Dimensions are different than ecal_log because ECal was shrunk significantly when the crescent shape was developed
 //   //x_earm = 47.5*4.212 (the .5 comes from staggering effects)
@@ -3339,7 +3339,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //   Al_log->SetVisAttributes(Al_colour);
 		    
 // } 
-//>>>>>>> 1a59d8c2913cbb68b99a3a00714155b58beb2b8d
+*/
 
 void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
   /////////////////////////////////////////////////////////////////

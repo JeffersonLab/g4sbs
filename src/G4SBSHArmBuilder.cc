@@ -36,6 +36,9 @@
 #include "G4MagIntegratorStepper.hh"
 #include "G4ExplicitEuler.hh"
 #include "G4ChordFinder.hh"
+#include "G4Mag_SpinEqRhs.hh"
+#include "G4ClassicalRK4.hh"
+#include "G4DormandPrince745.hh"
 #include "TString.h"
 
 #include "G4SystemOfUnits.hh"
@@ -521,8 +524,16 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     = new G4UniformMagField(G4ThreeVector(sign*FieldMag*cos(f48D48ang), 0.0, sign*FieldMag*sin(f48D48ang)));
 
   G4FieldManager *bigfm = new G4FieldManager(magField);
+
+  //Use BMT equation for mag. field tracking here too, so we can do spin tracking in SBS uniform field
+  //in the event that global field is not used
+  G4Mag_SpinEqRhs* fBMTequation = new G4Mag_SpinEqRhs(magField);
+  G4MagIntegratorStepper *pStepper = new G4ClassicalRK4(fBMTequation,12);
+  //G4MagIntegratorStepper *pStepper = new G4DormandPrince745(fBMTequation,12);
+  G4ChordFinder *cftemp = new G4ChordFinder(magField, 1.0e-2*mm, pStepper);
+  
   bigfm->SetDetectorField(magField);
-  bigfm->CreateChordFinder(magField);
+  bigfm->SetChordFinder(cftemp);
 
   if( fUseLocalField ){
     bigfieldLog->SetFieldManager(bigfm,true);
@@ -608,7 +619,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
 void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
   
-  if( f48D48_fieldclamp_config == 1 ){ //BigBite:
+  if( f48D48_fieldclamp_config == 1 ){ //BigBite: Field clamp version 1 (AFAIK) is obsolete.
 
     double clampdepth = 10.*cm;
     double clampoffset = 45*cm/2;
@@ -1426,6 +1437,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     fDetCon->SetTimeWindowAndThreshold( HCalScintSDName, 10.0*MeV, 500.0*ns );
   }
   log_Scint->SetSensitiveDetector(HCalScintSD);
+  fDetCon->InsertSDboundaryVolume( log_HCAL->GetName(), HCalScintSDName );
 
   // PMTs in HCAL (assigned to ECalSD which detects optical photons)
   G4String HCalSDName = "Harm/HCal";
@@ -1442,6 +1454,8 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   }
   log_PMTCathode->SetSensitiveDetector(HCalSD);
 
+  fDetCon->InsertSDboundaryVolume( log_HCAL->GetName(), HCalSDName );
+  
   // Set step limit to all of HCAL?
   if( (fDetCon->StepLimiterList).find( log_HCAL->GetName() ) != (fDetCon->StepLimiterList).end() ){
     G4UserLimits *limits = new G4UserLimits(0.0,0.0,0.0,DBL_MAX, DBL_MAX);
@@ -1637,7 +1651,6 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   log_HCAL->SetVisAttributes(G4VisAttributes::Invisible);
 }
 
-
 void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOffset=0.0*cm ){
 
 
@@ -1647,7 +1660,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 
   //Code adopted from Vahe, specifically HCalo.cc && HCaloMaterials.cc
 
-  
+  /////////////// NOTE: THIS CODE IS NO LONGER USED/OBSOLETE AND WON'T BE MAINTAINED (SEE MAKEHCALV2) //////////////
 
   G4RotationMatrix *mRotateZ = new G4RotationMatrix;
   mRotateZ->rotateZ( 90 *degree );
@@ -1724,6 +1737,8 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   }
   logScinPl->SetSensitiveDetector(HCalScintSD);
 
+  
+  
   if( (fDetCon->StepLimiterList).find( HCalScintSDname ) != (fDetCon->StepLimiterList).end() ){
     logScinPl->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
@@ -1923,6 +1938,9 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
       logCalo->SetSensitiveDetector( HCALboxSD );
     }
   }
+
+  fDetCon->InsertSDboundaryVolume( logCalo->GetName(), HCalScintSDname );
+  fDetCon->InsertSDboundaryVolume( logCalo->GetName(), HCalSDname );
   
   G4int copyid = 0;
   for(int ii = 0; ii < NColumns; ii++) {
@@ -2703,6 +2721,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
     PMTcathode_log->SetSensitiveDetector( RICHSD ); //This assigns the sensitive detector type "RICHSD" to the logical volume PMTcathode!
     (RICHSD->detmap).depth = 1;
   }
+
+  fDetCon->InsertSDboundaryVolume( RICHbox_log->GetName(), RICHSDname );
   //We make this a hollow cylinder with length and radius approximately equal to that of the PMT housing, made of steel 
   //to approximate the material shielding the PMT.
   G4LogicalVolume *PMTtube_log    = new G4LogicalVolume( PMTtube, GetMaterial("Steel"), "PMTtube_log" ); 
@@ -2892,6 +2912,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
 }
 
 
+//////////// NOTE: THIS VERSION OF CDET CONSTRUCTION IS ACTUALLY NO LONGER USED IN ORDER TO AVOID CODE DUPLICATION/MAINTENANCE ISSUES /////////////////
 void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double PlanesHOffset ){
   //z0 is the z position of the start of CDET relative to the HCal surface
   
@@ -3100,7 +3121,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
 }
 
 
-
+/////////////////////// NOTE: THIS METHOD IS ACTUALLY NO LONGER USED //////////////////////////////
 void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 
   //*********************************************************************************************************************************//
@@ -3622,10 +3643,14 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   //Don't assume these are the same:
   
   G4Box *ana1box = new G4Box("ana1box", anawidth/2.0, anaheight/2.0, ana1depth/2.0 );
-  G4LogicalVolume* ana1log = new G4LogicalVolume(ana1box, GetMaterial("CH2"), "ana1log");
+  G4LogicalVolume* ana1log = new G4LogicalVolume(ana1box, GetMaterial("CH2"), "FPPana1log");
 
+  fDetCon->InsertAnalyzerVolume( ana1log->GetName() );
+  
   G4Box *ana2box = new G4Box("ana2box", anawidth/2.0, anaheight/2.0, ana2depth/2.0 );
-  G4LogicalVolume* ana2log = new G4LogicalVolume(ana2box, GetMaterial("CH2"), "ana2log");
+  G4LogicalVolume* ana2log = new G4LogicalVolume(ana2box, GetMaterial("CH2"), "FPPana2log");
+
+  fDetCon->InsertAnalyzerVolume( ana2log->GetName() );
   
   G4ThreeVector Ana1_pos = pos + G4ThreeVector( 0.0, 0.0, 58.53*cm + anadepth/2.0 );
   G4ThreeVector Ana2_pos = pos + G4ThreeVector( 0.0, 0.0, 170.3*cm + anadepth/2.0 );
@@ -3843,6 +3868,8 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
 
     fDetCon->SetTimeWindowAndThreshold( LACScintSDname, 10.0*MeV, 100.0*ns );
   }
+
+  fDetCon->InsertSDboundaryVolume( log_LAC->GetName(), LACScintSDname );
   
   //Now start populating the layers. In the absence of a better "guess", I will assume that there is one more layer's worth of "short" strips than "long" strips:
 
@@ -4033,13 +4060,17 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   if( fGEnRP_analyzer_option >= 2 ) {
     G4Box*           cuanabox  = new G4Box("cuanabox", cuanawidth/2.0, cuanaheight/2.0, cuanadepth/2.0 );
-    G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("CH2"), "cuanalog");
+    //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("CH2"), "cuanalog");
+    G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Copper"), "cuanalog");
+    //AJRP: Did we intend for the "Copper" analyzer to have CH2 as the material?
     
     new G4PVPlacement(0, cuana_pos, cuanalog,"cuanaphys", sbslog, false, 0, false);
     
     G4VisAttributes *cuanavisatt = new G4VisAttributes( G4Colour(0.0, 0.0, 1.0) );
     cuanavisatt->SetForceWireframe(true);
     cuanalog->SetVisAttributes( cuanavisatt );
+
+    fDetCon->InsertAnalyzerVolume( cuanalog->GetName() );
   }
   
   // ----------------------------------------------------------------------------------------------------------------------
@@ -4107,7 +4138,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   G4Box*           actanabox  = new G4Box("actanabox", actanawidth/2.0, actanaheight/2.0, actanadepth/2.0 );
   G4LogicalVolume* actanalog  = new G4LogicalVolume(actanabox, GetMaterial("Air"), "actanalog");
-
+  
   if( fGEnRP_analyzer_option == 2 ) {   // long axis parallel to neutron direction
     G4RotationMatrix* rot_ana  = new G4RotationMatrix;
     rot_ana->rotateX( 90.0 *deg );
@@ -4135,12 +4166,15 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     (ActAnScintSD->detmap).depth = 0;
     
     fDetCon->SetTimeWindowAndThreshold( ActAnScintSDname, ethresh_default, timewindow_default );
+    fDetCon->InsertSDboundaryVolume( actanalog->GetName(), ActAnScintSDname );
   }
   G4VisAttributes *actanavisatt = new G4VisAttributes( G4Colour(0.0, 1.0, 0.0));
   actanavisatt->SetForceWireframe(true);
   actanabarlog->SetVisAttributes( actanavisatt );
   actanabarlog->SetSensitiveDetector( ActAnScintSD ); 
 
+  fDetCon->InsertAnalyzerVolume( actanabarlog->GetName() );
+  
   int barindex = 0; // SD detectors indexing (left to right, bottom to top)
   for(int ix = 0; ix < nactanabarsx; ix++) {
     double xbar = (((double)(ix-nactanabarsx/2.0) * actanabarwidth) + actanabarwidth/2.0);
@@ -4246,6 +4280,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
       (PRPolScintBSSD->detmap).depth = 0;
       
       fDetCon->SetTimeWindowAndThreshold( PRPolScintBSSDname, ethresh_default, timewindow_default );
+      fDetCon->InsertSDboundaryVolume( prscintbslog->GetName(), PRPolScintBSSDname );
     }
     prbarbslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
     prbarbslog->SetSensitiveDetector( PRPolScintBSSD ); 
@@ -4286,6 +4321,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     (PRPolScintFSSD->detmap).depth = 0;
 
     fDetCon->SetTimeWindowAndThreshold( PRPolScintFSSDname, ethresh_default, timewindow_default );
+    fDetCon->InsertSDboundaryVolume( prscintfslog->GetName(), PRPolScintFSSDname );
   }
   prbarfslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
   prbarfslog->SetSensitiveDetector( PRPolScintFSSD ); 

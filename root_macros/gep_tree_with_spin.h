@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Thu Jan 10 16:00:53 2019 by ROOT version 6.14/06
+// Mon Jul 29 10:53:52 2019 by ROOT version 6.16/00
 // from TTree T/Geant4 SBS Simulation
-// found on file: gep_12GeV2_protongun_Px.root
+// found on file: ../../output/gep_12GeV2_pythia6_PAC47/gep_pythia6_11GeV_proton_job1.root
 //////////////////////////////////////////////////////////
 
 #ifndef gep_tree_with_spin_h
@@ -65,22 +65,6 @@ public :
    Int_t           ev_hadr;
    Int_t           ev_earmaccept;
    Int_t           ev_harmaccept;
-   Int_t           Earm_CDET_hit_nhits;
-   vector<int>     *Earm_CDET_hit_PMT;
-   vector<int>     *Earm_CDET_hit_row;
-   vector<int>     *Earm_CDET_hit_col;
-   vector<int>     *Earm_CDET_hit_plane;
-   vector<double>  *Earm_CDET_hit_xcell;
-   vector<double>  *Earm_CDET_hit_ycell;
-   vector<double>  *Earm_CDET_hit_zcell;
-   vector<double>  *Earm_CDET_hit_xgcell;
-   vector<double>  *Earm_CDET_hit_ygcell;
-   vector<double>  *Earm_CDET_hit_zgcell;
-   vector<int>     *Earm_CDET_hit_NumPhotoelectrons;
-   vector<double>  *Earm_CDET_hit_Time_avg;
-   vector<double>  *Earm_CDET_hit_Time_rms;
-   vector<double>  *Earm_CDET_hit_Time_min;
-   vector<double>  *Earm_CDET_hit_Time_max;
    Double_t        Earm_CDET_Scint_det_esum;
    Int_t           Earm_CDET_Scint_hit_nhits;
    vector<int>     *Earm_CDET_Scint_hit_row;
@@ -105,22 +89,6 @@ public :
    vector<double>  *Earm_CDET_Scint_hit_trms;
    vector<double>  *Earm_CDET_Scint_hit_tmin;
    vector<double>  *Earm_CDET_Scint_hit_tmax;
-   Int_t           Earm_ECAL_hit_nhits;
-   vector<int>     *Earm_ECAL_hit_PMT;
-   vector<int>     *Earm_ECAL_hit_row;
-   vector<int>     *Earm_ECAL_hit_col;
-   vector<int>     *Earm_ECAL_hit_plane;
-   vector<double>  *Earm_ECAL_hit_xcell;
-   vector<double>  *Earm_ECAL_hit_ycell;
-   vector<double>  *Earm_ECAL_hit_zcell;
-   vector<double>  *Earm_ECAL_hit_xgcell;
-   vector<double>  *Earm_ECAL_hit_ygcell;
-   vector<double>  *Earm_ECAL_hit_zgcell;
-   vector<int>     *Earm_ECAL_hit_NumPhotoelectrons;
-   vector<double>  *Earm_ECAL_hit_Time_avg;
-   vector<double>  *Earm_ECAL_hit_Time_rms;
-   vector<double>  *Earm_ECAL_hit_Time_min;
-   vector<double>  *Earm_ECAL_hit_Time_max;
    Double_t        Earm_ECalTF1_det_esum;
    Int_t           Earm_ECalTF1_hit_nhits;
    vector<int>     *Earm_ECalTF1_hit_row;
@@ -316,22 +284,6 @@ public :
    vector<double>  *Harm_FT_Track_Yfit;
    vector<double>  *Harm_FT_Track_Xpfit;
    vector<double>  *Harm_FT_Track_Ypfit;
-   Int_t           Harm_HCal_hit_nhits;
-   vector<int>     *Harm_HCal_hit_PMT;
-   vector<int>     *Harm_HCal_hit_row;
-   vector<int>     *Harm_HCal_hit_col;
-   vector<int>     *Harm_HCal_hit_plane;
-   vector<double>  *Harm_HCal_hit_xcell;
-   vector<double>  *Harm_HCal_hit_ycell;
-   vector<double>  *Harm_HCal_hit_zcell;
-   vector<double>  *Harm_HCal_hit_xgcell;
-   vector<double>  *Harm_HCal_hit_ygcell;
-   vector<double>  *Harm_HCal_hit_zgcell;
-   vector<int>     *Harm_HCal_hit_NumPhotoelectrons;
-   vector<double>  *Harm_HCal_hit_Time_avg;
-   vector<double>  *Harm_HCal_hit_Time_rms;
-   vector<double>  *Harm_HCal_hit_Time_min;
-   vector<double>  *Harm_HCal_hit_Time_max;
    Double_t        Harm_HCalScint_det_esum;
    Int_t           Harm_HCalScint_hit_nhits;
    vector<int>     *Harm_HCalScint_hit_row;
@@ -356,25 +308,48 @@ public :
    vector<double>  *Harm_HCalScint_hit_trms;
    vector<double>  *Harm_HCalScint_hit_tmin;
    vector<double>  *Harm_HCalScint_hit_tmax;
+   Double_t        primaries_Sigma;
+   Double_t        primaries_Ebeam;
+   Double_t        primaries_Eprime;
+   Double_t        primaries_Q2;
+   Double_t        primaries_xbj;
+   Double_t        primaries_y;
+   Double_t        primaries_W2;
+   Double_t        primaries_theta_e;
+   Double_t        primaries_phi_e;
+   Double_t        primaries_px_e;
+   Double_t        primaries_py_e;
+   Double_t        primaries_pz_e;
+   Double_t        primaries_vx_e;
+   Double_t        primaries_vy_e;
+   Double_t        primaries_vz_e;
+   Double_t        primaries_Egamma;
+   Double_t        primaries_theta_gamma;
+   Double_t        primaries_phi_gamma;
+   Double_t        primaries_px_gamma;
+   Double_t        primaries_py_gamma;
+   Double_t        primaries_pz_gamma;
+   Double_t        primaries_vx_gamma;
+   Double_t        primaries_vy_gamma;
+   Double_t        primaries_vz_gamma;
+   Int_t           Primaries_Nprimaries;
+   vector<int>     *Primaries_PID;
+   vector<int>     *Primaries_genflag;
+   vector<double>  *Primaries_Px;
+   vector<double>  *Primaries_Py;
+   vector<double>  *Primaries_Pz;
+   vector<double>  *Primaries_vx;
+   vector<double>  *Primaries_vy;
+   vector<double>  *Primaries_vz;
+   vector<double>  *Primaries_M;
+   vector<double>  *Primaries_E;
+   vector<double>  *Primaries_P;
+   vector<double>  *Primaries_t;
+   vector<double>  *Primaries_theta;
+   vector<double>  *Primaries_phi;
 
    // List of branches
    TBranch        *b_ev;   //!
-   TBranch        *b_Earm_CDET_hit_nhits;   //!
-   TBranch        *b_Earm_CDET_hit_PMT;   //!
-   TBranch        *b_Earm_CDET_hit_row;   //!
-   TBranch        *b_Earm_CDET_hit_col;   //!
-   TBranch        *b_Earm_CDET_hit_plane;   //!
-   TBranch        *b_Earm_CDET_hit_xcell;   //!
-   TBranch        *b_Earm_CDET_hit_ycell;   //!
-   TBranch        *b_Earm_CDET_hit_zcell;   //!
-   TBranch        *b_Earm_CDET_hit_xgcell;   //!
-   TBranch        *b_Earm_CDET_hit_ygcell;   //!
-   TBranch        *b_Earm_CDET_hit_zgcell;   //!
-   TBranch        *b_Earm_CDET_hit_NumPhotoelectrons;   //!
-   TBranch        *b_Earm_CDET_hit_Time_avg;   //!
-   TBranch        *b_Earm_CDET_hit_Time_rms;   //!
-   TBranch        *b_Earm_CDET_hit_Time_min;   //!
-   TBranch        *b_Earm_CDET_hit_Time_max;   //!
    TBranch        *b_Earm_CDET_Scint_det_esum;   //!
    TBranch        *b_Earm_CDET_Scint_hit_nhits;   //!
    TBranch        *b_Earm_CDET_Scint_hit_row;   //!
@@ -399,22 +374,6 @@ public :
    TBranch        *b_Earm_CDET_Scint_hit_trms;   //!
    TBranch        *b_Earm_CDET_Scint_hit_tmin;   //!
    TBranch        *b_Earm_CDET_Scint_hit_tmax;   //!
-   TBranch        *b_Earm_ECAL_hit_nhits;   //!
-   TBranch        *b_Earm_ECAL_hit_PMT;   //!
-   TBranch        *b_Earm_ECAL_hit_row;   //!
-   TBranch        *b_Earm_ECAL_hit_col;   //!
-   TBranch        *b_Earm_ECAL_hit_plane;   //!
-   TBranch        *b_Earm_ECAL_hit_xcell;   //!
-   TBranch        *b_Earm_ECAL_hit_ycell;   //!
-   TBranch        *b_Earm_ECAL_hit_zcell;   //!
-   TBranch        *b_Earm_ECAL_hit_xgcell;   //!
-   TBranch        *b_Earm_ECAL_hit_ygcell;   //!
-   TBranch        *b_Earm_ECAL_hit_zgcell;   //!
-   TBranch        *b_Earm_ECAL_hit_NumPhotoelectrons;   //!
-   TBranch        *b_Earm_ECAL_hit_Time_avg;   //!
-   TBranch        *b_Earm_ECAL_hit_Time_rms;   //!
-   TBranch        *b_Earm_ECAL_hit_Time_min;   //!
-   TBranch        *b_Earm_ECAL_hit_Time_max;   //!
    TBranch        *b_Earm_ECalTF1_det_esum;   //!
    TBranch        *b_Earm_ECalTF1_hit_nhits;   //!
    TBranch        *b_Earm_ECalTF1_hit_row;   //!
@@ -610,22 +569,6 @@ public :
    TBranch        *b_Harm_FT_Track_Yfit;   //!
    TBranch        *b_Harm_FT_Track_Xpfit;   //!
    TBranch        *b_Harm_FT_Track_Ypfit;   //!
-   TBranch        *b_Harm_HCal_hit_nhits;   //!
-   TBranch        *b_Harm_HCal_hit_PMT;   //!
-   TBranch        *b_Harm_HCal_hit_row;   //!
-   TBranch        *b_Harm_HCal_hit_col;   //!
-   TBranch        *b_Harm_HCal_hit_plane;   //!
-   TBranch        *b_Harm_HCal_hit_xcell;   //!
-   TBranch        *b_Harm_HCal_hit_ycell;   //!
-   TBranch        *b_Harm_HCal_hit_zcell;   //!
-   TBranch        *b_Harm_HCal_hit_xgcell;   //!
-   TBranch        *b_Harm_HCal_hit_ygcell;   //!
-   TBranch        *b_Harm_HCal_hit_zgcell;   //!
-   TBranch        *b_Harm_HCal_hit_NumPhotoelectrons;   //!
-   TBranch        *b_Harm_HCal_hit_Time_avg;   //!
-   TBranch        *b_Harm_HCal_hit_Time_rms;   //!
-   TBranch        *b_Harm_HCal_hit_Time_min;   //!
-   TBranch        *b_Harm_HCal_hit_Time_max;   //!
    TBranch        *b_Harm_HCalScint_det_esum;   //!
    TBranch        *b_Harm_HCalScint_hit_nhits;   //!
    TBranch        *b_Harm_HCalScint_hit_row;   //!
@@ -650,6 +593,45 @@ public :
    TBranch        *b_Harm_HCalScint_hit_trms;   //!
    TBranch        *b_Harm_HCalScint_hit_tmin;   //!
    TBranch        *b_Harm_HCalScint_hit_tmax;   //!
+   TBranch        *b_primaries_Sigma;   //!
+   TBranch        *b_primaries_Ebeam;   //!
+   TBranch        *b_primaries_Eprime;   //!
+   TBranch        *b_primaries_Q2;   //!
+   TBranch        *b_primaries_xbj;   //!
+   TBranch        *b_primaries_y;   //!
+   TBranch        *b_primaries_W2;   //!
+   TBranch        *b_primaries_theta_e;   //!
+   TBranch        *b_primaries_phi_e;   //!
+   TBranch        *b_primaries_px_e;   //!
+   TBranch        *b_primaries_py_e;   //!
+   TBranch        *b_primaries_pz_e;   //!
+   TBranch        *b_primaries_vx_e;   //!
+   TBranch        *b_primaries_vy_e;   //!
+   TBranch        *b_primaries_vz_e;   //!
+   TBranch        *b_primaries_Egamma;   //!
+   TBranch        *b_primaries_theta_gamma;   //!
+   TBranch        *b_primaries_phi_gamma;   //!
+   TBranch        *b_primaries_px_gamma;   //!
+   TBranch        *b_primaries_py_gamma;   //!
+   TBranch        *b_primaries_pz_gamma;   //!
+   TBranch        *b_primaries_vx_gamma;   //!
+   TBranch        *b_primaries_vy_gamma;   //!
+   TBranch        *b_primaries_vz_gamma;   //!
+   TBranch        *b_Nprimaries;   //!
+   TBranch        *b_Primaries_PID;   //!
+   TBranch        *b_Primaries_genflag;   //!
+   TBranch        *b_Primaries_Px;   //!
+   TBranch        *b_Primaries_Py;   //!
+   TBranch        *b_Primaries_Pz;   //!
+   TBranch        *b_Primaries_vx;   //!
+   TBranch        *b_Primaries_vy;   //!
+   TBranch        *b_Primaries_vz;   //!
+   TBranch        *b_Primaries_M;   //!
+   TBranch        *b_Primaries_E;   //!
+   TBranch        *b_Primaries_P;   //!
+   TBranch        *b_Primaries_t;   //!
+   TBranch        *b_Primaries_theta;   //!
+   TBranch        *b_Primaries_phi;   //!
 
    gep_tree_with_spin(TTree *tree=0);
    virtual ~gep_tree_with_spin();
@@ -670,9 +652,9 @@ gep_tree_with_spin::gep_tree_with_spin(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("gep_12GeV2_protongun_Px.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("../../output/gep_12GeV2_pythia6_PAC47/gep_pythia6_11GeV_proton_job1.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("gep_12GeV2_protongun_Px.root");
+         f = new TFile("../../output/gep_12GeV2_pythia6_PAC47/gep_pythia6_11GeV_proton_job1.root");
       }
       f->GetObject("T",tree);
 
@@ -716,21 +698,6 @@ void gep_tree_with_spin::Init(TTree *tree)
    // (once per file to be processed).
 
    // Set object pointer
-   Earm_CDET_hit_PMT = 0;
-   Earm_CDET_hit_row = 0;
-   Earm_CDET_hit_col = 0;
-   Earm_CDET_hit_plane = 0;
-   Earm_CDET_hit_xcell = 0;
-   Earm_CDET_hit_ycell = 0;
-   Earm_CDET_hit_zcell = 0;
-   Earm_CDET_hit_xgcell = 0;
-   Earm_CDET_hit_ygcell = 0;
-   Earm_CDET_hit_zgcell = 0;
-   Earm_CDET_hit_NumPhotoelectrons = 0;
-   Earm_CDET_hit_Time_avg = 0;
-   Earm_CDET_hit_Time_rms = 0;
-   Earm_CDET_hit_Time_min = 0;
-   Earm_CDET_hit_Time_max = 0;
    Earm_CDET_Scint_hit_row = 0;
    Earm_CDET_Scint_hit_col = 0;
    Earm_CDET_Scint_hit_cell = 0;
@@ -753,21 +720,6 @@ void gep_tree_with_spin::Init(TTree *tree)
    Earm_CDET_Scint_hit_trms = 0;
    Earm_CDET_Scint_hit_tmin = 0;
    Earm_CDET_Scint_hit_tmax = 0;
-   Earm_ECAL_hit_PMT = 0;
-   Earm_ECAL_hit_row = 0;
-   Earm_ECAL_hit_col = 0;
-   Earm_ECAL_hit_plane = 0;
-   Earm_ECAL_hit_xcell = 0;
-   Earm_ECAL_hit_ycell = 0;
-   Earm_ECAL_hit_zcell = 0;
-   Earm_ECAL_hit_xgcell = 0;
-   Earm_ECAL_hit_ygcell = 0;
-   Earm_ECAL_hit_zgcell = 0;
-   Earm_ECAL_hit_NumPhotoelectrons = 0;
-   Earm_ECAL_hit_Time_avg = 0;
-   Earm_ECAL_hit_Time_rms = 0;
-   Earm_ECAL_hit_Time_min = 0;
-   Earm_ECAL_hit_Time_max = 0;
    Earm_ECalTF1_hit_row = 0;
    Earm_ECalTF1_hit_col = 0;
    Earm_ECalTF1_hit_cell = 0;
@@ -955,21 +907,6 @@ void gep_tree_with_spin::Init(TTree *tree)
    Harm_FT_Track_Yfit = 0;
    Harm_FT_Track_Xpfit = 0;
    Harm_FT_Track_Ypfit = 0;
-   Harm_HCal_hit_PMT = 0;
-   Harm_HCal_hit_row = 0;
-   Harm_HCal_hit_col = 0;
-   Harm_HCal_hit_plane = 0;
-   Harm_HCal_hit_xcell = 0;
-   Harm_HCal_hit_ycell = 0;
-   Harm_HCal_hit_zcell = 0;
-   Harm_HCal_hit_xgcell = 0;
-   Harm_HCal_hit_ygcell = 0;
-   Harm_HCal_hit_zgcell = 0;
-   Harm_HCal_hit_NumPhotoelectrons = 0;
-   Harm_HCal_hit_Time_avg = 0;
-   Harm_HCal_hit_Time_rms = 0;
-   Harm_HCal_hit_Time_min = 0;
-   Harm_HCal_hit_Time_max = 0;
    Harm_HCalScint_hit_row = 0;
    Harm_HCalScint_hit_col = 0;
    Harm_HCalScint_hit_cell = 0;
@@ -992,6 +929,20 @@ void gep_tree_with_spin::Init(TTree *tree)
    Harm_HCalScint_hit_trms = 0;
    Harm_HCalScint_hit_tmin = 0;
    Harm_HCalScint_hit_tmax = 0;
+   Primaries_PID = 0;
+   Primaries_genflag = 0;
+   Primaries_Px = 0;
+   Primaries_Py = 0;
+   Primaries_Pz = 0;
+   Primaries_vx = 0;
+   Primaries_vy = 0;
+   Primaries_vz = 0;
+   Primaries_M = 0;
+   Primaries_E = 0;
+   Primaries_P = 0;
+   Primaries_t = 0;
+   Primaries_theta = 0;
+   Primaries_phi = 0;
    // Set branch addresses and branch pointers
    if (!tree) return;
    fChain = tree;
@@ -999,22 +950,6 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetMakeClass(1);
 
    fChain->SetBranchAddress("ev", &ev_count, &b_ev);
-   fChain->SetBranchAddress("Earm.CDET.hit.nhits", &Earm_CDET_hit_nhits, &b_Earm_CDET_hit_nhits);
-   fChain->SetBranchAddress("Earm.CDET.hit.PMT", &Earm_CDET_hit_PMT, &b_Earm_CDET_hit_PMT);
-   fChain->SetBranchAddress("Earm.CDET.hit.row", &Earm_CDET_hit_row, &b_Earm_CDET_hit_row);
-   fChain->SetBranchAddress("Earm.CDET.hit.col", &Earm_CDET_hit_col, &b_Earm_CDET_hit_col);
-   fChain->SetBranchAddress("Earm.CDET.hit.plane", &Earm_CDET_hit_plane, &b_Earm_CDET_hit_plane);
-   fChain->SetBranchAddress("Earm.CDET.hit.xcell", &Earm_CDET_hit_xcell, &b_Earm_CDET_hit_xcell);
-   fChain->SetBranchAddress("Earm.CDET.hit.ycell", &Earm_CDET_hit_ycell, &b_Earm_CDET_hit_ycell);
-   fChain->SetBranchAddress("Earm.CDET.hit.zcell", &Earm_CDET_hit_zcell, &b_Earm_CDET_hit_zcell);
-   fChain->SetBranchAddress("Earm.CDET.hit.xgcell", &Earm_CDET_hit_xgcell, &b_Earm_CDET_hit_xgcell);
-   fChain->SetBranchAddress("Earm.CDET.hit.ygcell", &Earm_CDET_hit_ygcell, &b_Earm_CDET_hit_ygcell);
-   fChain->SetBranchAddress("Earm.CDET.hit.zgcell", &Earm_CDET_hit_zgcell, &b_Earm_CDET_hit_zgcell);
-   fChain->SetBranchAddress("Earm.CDET.hit.NumPhotoelectrons", &Earm_CDET_hit_NumPhotoelectrons, &b_Earm_CDET_hit_NumPhotoelectrons);
-   fChain->SetBranchAddress("Earm.CDET.hit.Time_avg", &Earm_CDET_hit_Time_avg, &b_Earm_CDET_hit_Time_avg);
-   fChain->SetBranchAddress("Earm.CDET.hit.Time_rms", &Earm_CDET_hit_Time_rms, &b_Earm_CDET_hit_Time_rms);
-   fChain->SetBranchAddress("Earm.CDET.hit.Time_min", &Earm_CDET_hit_Time_min, &b_Earm_CDET_hit_Time_min);
-   fChain->SetBranchAddress("Earm.CDET.hit.Time_max", &Earm_CDET_hit_Time_max, &b_Earm_CDET_hit_Time_max);
    fChain->SetBranchAddress("Earm.CDET_Scint.det.esum", &Earm_CDET_Scint_det_esum, &b_Earm_CDET_Scint_det_esum);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.nhits", &Earm_CDET_Scint_hit_nhits, &b_Earm_CDET_Scint_hit_nhits);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.row", &Earm_CDET_Scint_hit_row, &b_Earm_CDET_Scint_hit_row);
@@ -1039,22 +974,6 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.trms", &Earm_CDET_Scint_hit_trms, &b_Earm_CDET_Scint_hit_trms);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.tmin", &Earm_CDET_Scint_hit_tmin, &b_Earm_CDET_Scint_hit_tmin);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.tmax", &Earm_CDET_Scint_hit_tmax, &b_Earm_CDET_Scint_hit_tmax);
-   fChain->SetBranchAddress("Earm.ECAL.hit.nhits", &Earm_ECAL_hit_nhits, &b_Earm_ECAL_hit_nhits);
-   fChain->SetBranchAddress("Earm.ECAL.hit.PMT", &Earm_ECAL_hit_PMT, &b_Earm_ECAL_hit_PMT);
-   fChain->SetBranchAddress("Earm.ECAL.hit.row", &Earm_ECAL_hit_row, &b_Earm_ECAL_hit_row);
-   fChain->SetBranchAddress("Earm.ECAL.hit.col", &Earm_ECAL_hit_col, &b_Earm_ECAL_hit_col);
-   fChain->SetBranchAddress("Earm.ECAL.hit.plane", &Earm_ECAL_hit_plane, &b_Earm_ECAL_hit_plane);
-   fChain->SetBranchAddress("Earm.ECAL.hit.xcell", &Earm_ECAL_hit_xcell, &b_Earm_ECAL_hit_xcell);
-   fChain->SetBranchAddress("Earm.ECAL.hit.ycell", &Earm_ECAL_hit_ycell, &b_Earm_ECAL_hit_ycell);
-   fChain->SetBranchAddress("Earm.ECAL.hit.zcell", &Earm_ECAL_hit_zcell, &b_Earm_ECAL_hit_zcell);
-   fChain->SetBranchAddress("Earm.ECAL.hit.xgcell", &Earm_ECAL_hit_xgcell, &b_Earm_ECAL_hit_xgcell);
-   fChain->SetBranchAddress("Earm.ECAL.hit.ygcell", &Earm_ECAL_hit_ygcell, &b_Earm_ECAL_hit_ygcell);
-   fChain->SetBranchAddress("Earm.ECAL.hit.zgcell", &Earm_ECAL_hit_zgcell, &b_Earm_ECAL_hit_zgcell);
-   fChain->SetBranchAddress("Earm.ECAL.hit.NumPhotoelectrons", &Earm_ECAL_hit_NumPhotoelectrons, &b_Earm_ECAL_hit_NumPhotoelectrons);
-   fChain->SetBranchAddress("Earm.ECAL.hit.Time_avg", &Earm_ECAL_hit_Time_avg, &b_Earm_ECAL_hit_Time_avg);
-   fChain->SetBranchAddress("Earm.ECAL.hit.Time_rms", &Earm_ECAL_hit_Time_rms, &b_Earm_ECAL_hit_Time_rms);
-   fChain->SetBranchAddress("Earm.ECAL.hit.Time_min", &Earm_ECAL_hit_Time_min, &b_Earm_ECAL_hit_Time_min);
-   fChain->SetBranchAddress("Earm.ECAL.hit.Time_max", &Earm_ECAL_hit_Time_max, &b_Earm_ECAL_hit_Time_max);
    fChain->SetBranchAddress("Earm.ECalTF1.det.esum", &Earm_ECalTF1_det_esum, &b_Earm_ECalTF1_det_esum);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.nhits", &Earm_ECalTF1_hit_nhits, &b_Earm_ECalTF1_hit_nhits);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.row", &Earm_ECalTF1_hit_row, &b_Earm_ECalTF1_hit_row);
@@ -1250,22 +1169,6 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.FT.Track.Yfit", &Harm_FT_Track_Yfit, &b_Harm_FT_Track_Yfit);
    fChain->SetBranchAddress("Harm.FT.Track.Xpfit", &Harm_FT_Track_Xpfit, &b_Harm_FT_Track_Xpfit);
    fChain->SetBranchAddress("Harm.FT.Track.Ypfit", &Harm_FT_Track_Ypfit, &b_Harm_FT_Track_Ypfit);
-   fChain->SetBranchAddress("Harm.HCal.hit.nhits", &Harm_HCal_hit_nhits, &b_Harm_HCal_hit_nhits);
-   fChain->SetBranchAddress("Harm.HCal.hit.PMT", &Harm_HCal_hit_PMT, &b_Harm_HCal_hit_PMT);
-   fChain->SetBranchAddress("Harm.HCal.hit.row", &Harm_HCal_hit_row, &b_Harm_HCal_hit_row);
-   fChain->SetBranchAddress("Harm.HCal.hit.col", &Harm_HCal_hit_col, &b_Harm_HCal_hit_col);
-   fChain->SetBranchAddress("Harm.HCal.hit.plane", &Harm_HCal_hit_plane, &b_Harm_HCal_hit_plane);
-   fChain->SetBranchAddress("Harm.HCal.hit.xcell", &Harm_HCal_hit_xcell, &b_Harm_HCal_hit_xcell);
-   fChain->SetBranchAddress("Harm.HCal.hit.ycell", &Harm_HCal_hit_ycell, &b_Harm_HCal_hit_ycell);
-   fChain->SetBranchAddress("Harm.HCal.hit.zcell", &Harm_HCal_hit_zcell, &b_Harm_HCal_hit_zcell);
-   fChain->SetBranchAddress("Harm.HCal.hit.xgcell", &Harm_HCal_hit_xgcell, &b_Harm_HCal_hit_xgcell);
-   fChain->SetBranchAddress("Harm.HCal.hit.ygcell", &Harm_HCal_hit_ygcell, &b_Harm_HCal_hit_ygcell);
-   fChain->SetBranchAddress("Harm.HCal.hit.zgcell", &Harm_HCal_hit_zgcell, &b_Harm_HCal_hit_zgcell);
-   fChain->SetBranchAddress("Harm.HCal.hit.NumPhotoelectrons", &Harm_HCal_hit_NumPhotoelectrons, &b_Harm_HCal_hit_NumPhotoelectrons);
-   fChain->SetBranchAddress("Harm.HCal.hit.Time_avg", &Harm_HCal_hit_Time_avg, &b_Harm_HCal_hit_Time_avg);
-   fChain->SetBranchAddress("Harm.HCal.hit.Time_rms", &Harm_HCal_hit_Time_rms, &b_Harm_HCal_hit_Time_rms);
-   fChain->SetBranchAddress("Harm.HCal.hit.Time_min", &Harm_HCal_hit_Time_min, &b_Harm_HCal_hit_Time_min);
-   fChain->SetBranchAddress("Harm.HCal.hit.Time_max", &Harm_HCal_hit_Time_max, &b_Harm_HCal_hit_Time_max);
    fChain->SetBranchAddress("Harm.HCalScint.det.esum", &Harm_HCalScint_det_esum, &b_Harm_HCalScint_det_esum);
    fChain->SetBranchAddress("Harm.HCalScint.hit.nhits", &Harm_HCalScint_hit_nhits, &b_Harm_HCalScint_hit_nhits);
    fChain->SetBranchAddress("Harm.HCalScint.hit.row", &Harm_HCalScint_hit_row, &b_Harm_HCalScint_hit_row);
@@ -1290,6 +1193,45 @@ void gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.HCalScint.hit.trms", &Harm_HCalScint_hit_trms, &b_Harm_HCalScint_hit_trms);
    fChain->SetBranchAddress("Harm.HCalScint.hit.tmin", &Harm_HCalScint_hit_tmin, &b_Harm_HCalScint_hit_tmin);
    fChain->SetBranchAddress("Harm.HCalScint.hit.tmax", &Harm_HCalScint_hit_tmax, &b_Harm_HCalScint_hit_tmax);
+   fChain->SetBranchAddress("primaries.Sigma", &primaries_Sigma, &b_primaries_Sigma);
+   fChain->SetBranchAddress("primaries.Ebeam", &primaries_Ebeam, &b_primaries_Ebeam);
+   fChain->SetBranchAddress("primaries.Eprime", &primaries_Eprime, &b_primaries_Eprime);
+   fChain->SetBranchAddress("primaries.Q2", &primaries_Q2, &b_primaries_Q2);
+   fChain->SetBranchAddress("primaries.xbj", &primaries_xbj, &b_primaries_xbj);
+   fChain->SetBranchAddress("primaries.y", &primaries_y, &b_primaries_y);
+   fChain->SetBranchAddress("primaries.W2", &primaries_W2, &b_primaries_W2);
+   fChain->SetBranchAddress("primaries.theta_e", &primaries_theta_e, &b_primaries_theta_e);
+   fChain->SetBranchAddress("primaries.phi_e", &primaries_phi_e, &b_primaries_phi_e);
+   fChain->SetBranchAddress("primaries.px_e", &primaries_px_e, &b_primaries_px_e);
+   fChain->SetBranchAddress("primaries.py_e", &primaries_py_e, &b_primaries_py_e);
+   fChain->SetBranchAddress("primaries.pz_e", &primaries_pz_e, &b_primaries_pz_e);
+   fChain->SetBranchAddress("primaries.vx_e", &primaries_vx_e, &b_primaries_vx_e);
+   fChain->SetBranchAddress("primaries.vy_e", &primaries_vy_e, &b_primaries_vy_e);
+   fChain->SetBranchAddress("primaries.vz_e", &primaries_vz_e, &b_primaries_vz_e);
+   fChain->SetBranchAddress("primaries.Egamma", &primaries_Egamma, &b_primaries_Egamma);
+   fChain->SetBranchAddress("primaries.theta_gamma", &primaries_theta_gamma, &b_primaries_theta_gamma);
+   fChain->SetBranchAddress("primaries.phi_gamma", &primaries_phi_gamma, &b_primaries_phi_gamma);
+   fChain->SetBranchAddress("primaries.px_gamma", &primaries_px_gamma, &b_primaries_px_gamma);
+   fChain->SetBranchAddress("primaries.py_gamma", &primaries_py_gamma, &b_primaries_py_gamma);
+   fChain->SetBranchAddress("primaries.pz_gamma", &primaries_pz_gamma, &b_primaries_pz_gamma);
+   fChain->SetBranchAddress("primaries.vx_gamma", &primaries_vx_gamma, &b_primaries_vx_gamma);
+   fChain->SetBranchAddress("primaries.vy_gamma", &primaries_vy_gamma, &b_primaries_vy_gamma);
+   fChain->SetBranchAddress("primaries.vz_gamma", &primaries_vz_gamma, &b_primaries_vz_gamma);
+   fChain->SetBranchAddress("Primaries.Nprimaries", &Primaries_Nprimaries, &b_Nprimaries);
+   fChain->SetBranchAddress("Primaries.PID", &Primaries_PID, &b_Primaries_PID);
+   fChain->SetBranchAddress("Primaries.genflag", &Primaries_genflag, &b_Primaries_genflag);
+   fChain->SetBranchAddress("Primaries.Px", &Primaries_Px, &b_Primaries_Px);
+   fChain->SetBranchAddress("Primaries.Py", &Primaries_Py, &b_Primaries_Py);
+   fChain->SetBranchAddress("Primaries.Pz", &Primaries_Pz, &b_Primaries_Pz);
+   fChain->SetBranchAddress("Primaries.vx", &Primaries_vx, &b_Primaries_vx);
+   fChain->SetBranchAddress("Primaries.vy", &Primaries_vy, &b_Primaries_vy);
+   fChain->SetBranchAddress("Primaries.vz", &Primaries_vz, &b_Primaries_vz);
+   fChain->SetBranchAddress("Primaries.M", &Primaries_M, &b_Primaries_M);
+   fChain->SetBranchAddress("Primaries.E", &Primaries_E, &b_Primaries_E);
+   fChain->SetBranchAddress("Primaries.P", &Primaries_P, &b_Primaries_P);
+   fChain->SetBranchAddress("Primaries.t", &Primaries_t, &b_Primaries_t);
+   fChain->SetBranchAddress("Primaries.theta", &Primaries_theta, &b_Primaries_theta);
+   fChain->SetBranchAddress("Primaries.phi", &Primaries_phi, &b_Primaries_phi);
    Notify();
 }
 

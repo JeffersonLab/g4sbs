@@ -14,7 +14,7 @@
 /g4sbs/rastery  4.0 mm
 
 #/g4sbs/48d48field 1
-/g4sbs/tosfield GEP_12map0.table
+/g4sbs/tosfield GEP_12map0_newheader.table
 /g4sbs/sbsclampopt 2
 
 /g4sbs/runtime     1.0 s

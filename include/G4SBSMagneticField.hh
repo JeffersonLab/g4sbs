@@ -38,14 +38,17 @@ protected:
 
 class G4SBSMappedField: public G4SBSMagneticField {
 public:
-  G4SBSMappedField(G4ThreeVector, G4RotationMatrix,  const char *);
+  G4SBSMappedField(G4ThreeVector, G4RotationMatrix,  G4String );
   virtual ~G4SBSMappedField();
+
+  inline G4String GetFilename() const { return fFilename; } 
 
 protected:
   virtual void ReadField() = 0;
 
-  char fFilename[255];
-
+  //char fFilename[255];
+  G4String fFilename;
+  
   G4int fN[3];
   G4int fNx, fNy, fNz; //Total points in x,y,z
   G4double fMin[3], fMax[3];

@@ -6,7 +6,7 @@
 
 ## Configure the target
 /g4sbs/target          LH2
-/g4sbs/targlen         40.0 cm           ## Target Length
+/g4sbs/targlen         30.0 cm           ## Target Length
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator

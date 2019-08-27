@@ -329,6 +329,8 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 10.0*MeV, 100.0*ns );
   }
 
+  fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), ECalTF1SDname );
+
   if( fDetCon->GetC16Segmentation() <= 0 ){
     G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", width_42/2.0 - hcf_thick - mylar_thick - air_thick, width_42/2.0 - hcf_thick - mylar_thick - air_thick, (depth_42 - mylar_thick - air_thick)/2.0 );
     G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
@@ -471,6 +473,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   }
 
   ecal_PMT_log->SetSensitiveDetector( ECalSD );
+  fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), sdname );
   
   // Place the blocks
   G4int NrowsSM_40 = 10; 
@@ -1031,6 +1034,8 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
 
   ecal_PMT_log->SetSensitiveDetector( C16SD );
 
+  fDetCon->InsertSDboundaryVolume( C16_Log->GetName(), C16SDname );
+  
   // Getting the Wave Guides set up, *****need to UPDATE material properties*****
   G4Tubs *C16_WG = new G4Tubs( "C16_WG", 0.0, radius_WG, depth_WG/2.0, 0.0, twopi );
   G4LogicalVolume *C16_WG_Log = new G4LogicalVolume( C16_WG, GetMaterial("Pyrex_Glass"), "C16_WG_Log" );
@@ -1140,6 +1145,8 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
     // Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
 
+    fDetCon->InsertSDboundaryVolume( C16_Log->GetName(), C16TF1SDname );
+    
     // Place lead-glass and Al wrap inside module:
     new G4PVPlacement( 0, G4ThreeVector( 0, 0, (alum_thick + air_thick)/2.0 ), LeadGlass_42_log, "LeadGlass_42_phys", Module_42_log, false, 0 );
     // Al:
@@ -1236,6 +1243,8 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
       fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, 10.0*MeV, 100.0*ns );
     }
 
+    fDetCon->InsertSDboundaryVolume( C16_Log->GetName(), C16TF1SDname );
+    
     G4int cell_number = 0 ;    // cell #
     G4int TF1_number = 0 ;     // TF1 identifier
     for( G4int i = 0; i < nrows; i++ ) {
@@ -1577,6 +1586,8 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
 
     fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 10.0*MeV, 100.0*ns );
   }
+
+  fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), ECalTF1SDname );
   
   //Make lead-glass and place in modules:
   
@@ -1793,6 +1804,8 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
     (ECalSD->detmap).depth = 0;
   }
 
+  fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), sdname );
+  
   ecal_PMT_log->SetSensitiveDetector( ECalSD );
   
   int lastrow42 = 0;

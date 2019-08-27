@@ -53,7 +53,7 @@ public:
   G4SBSMagneticField *Get48D48Field(){ return f48d48field; }
   G4SBSGlobalField *GetGlobalField(){ return fGlobalField; }
 
-  void SetBigBiteField(int n);
+  void SetBigBiteField(int n, G4String fname="map_696A.dat");
   void Set48D48Field(int n);
 
   void SetTotalAbs(bool b){ fTotalAbs= b; }
@@ -80,7 +80,10 @@ public:
   map<G4String, G4double> SDgatewidth; //Time window for accumulating hit signal
   map<G4String, G4double> SDthreshold; //threshold (energy deposition or photoelectrons) for recording a hit
   //map<G4String, G4int>    SDntimebins; //Time bins for "pulse shape" histogram
+
+  void InsertSDboundaryVolume( G4String bvname, G4String sdname );
   
+  map<G4String, set<G4String> > SDboundaryVolumes; //mapping between sensitive detector names and entrance boundary volumes. Here the key is the "boundary" or mother volume name, the mapped value is the set of unique sensitive detectors associated with this "boundary volume" (In many cases we have ONE boundary volume containing multiple SDs)
   
   G4SDManager *fSDman; 
   bool fTotalAbs;
@@ -143,12 +146,21 @@ public:
   void SetmTPCGasTemp( G4double mtpcgastemp){fmTPCGasTemp = mtpcgastemp;};
   void SetmTPCGasPressure( G4double mtpcgaspressure){fmTPCGasPressure = mtpcgaspressure;};
   
+  inline set<G4String> GetTargetVolumes() const { return fTargetVolumes; }
+  inline set<G4String> GetAnalyzerVolumes() const { return fAnalyzerVolumes; }
+
+  inline void InsertTargetVolume( G4String vname ){ fTargetVolumes.insert(vname); }
+  inline void InsertAnalyzerVolume( G4String vname ){ fAnalyzerVolumes.insert(vname); }
+  
 private:
 
   map<G4String, G4Material*> fMaterialsMap;
   map<G4String, G4OpticalSurface*> fOpticalSurfacesMap;
   set<G4String> fMaterialsListOpticalPhotonDisabled; //Allows us to disable definition of refractive index and
   //scintillation parameter definition for individual materials, to prevent optical photon production and tracking
+
+  set<G4String> fTargetVolumes; //list of logical volume names to be flagged as "TARGET"
+  set<G4String> fAnalyzerVolumes; //list of logical volume names to be flagged as "ANALYZER"
   
   G4SBSMagneticField *fbbfield;
   G4SBSMagneticField *f48d48field;

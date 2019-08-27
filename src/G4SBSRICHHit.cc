@@ -37,8 +37,12 @@ G4SBSRICHHit::G4SBSRICHHit(const G4SBSRICHHit &hit ) : G4VHit() //copy construct
   fvertexdirection = hit.GetVertexDirection();
   fMothervertexdirection = hit.GetMotherVertexDirection();
 
-  foriginvol = hit.GetOriginVol();
- 
+  //foriginvol = hit.GetOriginVol();
+  fQuantumEfficiency = hit.GetQuantumEfficiency();
+
+  otridx = hit.GetOTrIdx();
+  ptridx = hit.GetPTrIdx();
+  sdtridx = hit.GetSDTrIdx();
 }
 
 const G4SBSRICHHit& G4SBSRICHHit::operator=(const G4SBSRICHHit &hit) //assignment operator
@@ -64,8 +68,13 @@ const G4SBSRICHHit& G4SBSRICHHit::operator=(const G4SBSRICHHit &hit) //assignmen
   fvertexdirection = hit.GetVertexDirection();
   fMothervertexdirection = hit.GetMotherVertexDirection();
 
-  foriginvol = hit.GetOriginVol();
+  //foriginvol = hit.GetOriginVol();
+  fQuantumEfficiency = hit.GetQuantumEfficiency();
 
+  otridx = hit.GetOTrIdx();
+  ptridx = hit.GetPTrIdx();
+  sdtridx = hit.GetSDTrIdx();
+  
   return *this;
 }
 

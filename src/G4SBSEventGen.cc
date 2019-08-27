@@ -28,8 +28,8 @@ using namespace CLHEP;
 
 G4SBSEventGen::G4SBSEventGen(){
   //As default values, these don't make sense:
-  fThMin = 0.01*deg;
-  fThMax = 179.99*deg;
+  fThMin = 0.0*deg;
+  fThMax = 180.00*deg;
   fPhMin = 0.0*deg;
   fPhMax = 360.0*deg;
 
@@ -84,6 +84,14 @@ G4SBSEventGen::G4SBSEventGen(){
 
   fFragFunc = DSS2007FF();
 
+  fFragFunc.SetGridPath( "." );
+  char *G4SBS_env_var = std::getenv("G4SBS");
+  if( G4SBS_env_var != NULL ){
+    string gridpathname = G4SBS_env_var;
+    gridpathname += "/share/DSS2007_GRIDS";
+    fFragFunc.SetGridPath(gridpathname);
+  }
+  
   fEeMin = 0.5*GeV;
   fEeMax = 11.0*GeV;
   fEhadMin = 0.5*GeV;
@@ -1441,7 +1449,7 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   fFragFunc.GetFFs( ihadron, icharge, z, sqrt(Q2)/GeV, Dqh );
 
   // G4cout << "Got fragmentation functions..." << G4endl;
-
+  
   // for( int iparton=0; iparton<6; iparton++ ){
   //   G4cout << "iparton, z, Q2, Dhq = " << iparton << ", " << z << ", " << Q2/pow(GeV,2) << ", " << Dqh[iparton] << endl;
   // }

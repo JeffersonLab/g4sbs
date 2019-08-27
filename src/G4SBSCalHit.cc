@@ -19,7 +19,7 @@ G4SBSCalHit::G4SBSCalHit()
 
 G4SBSCalHit::~G4SBSCalHit()
 {;}
-
+//copy constructor:
 G4SBSCalHit::G4SBSCalHit(const G4SBSCalHit &right)
   : G4VHit()
 {
@@ -44,8 +44,18 @@ G4SBSCalHit::G4SBSCalHit(const G4SBSCalHit &right)
   mid = right.mid;
   trid = right.trid;
 
-}
+  //Original track info:
+  otridx = right.otridx;
+  
+  //Primary track info:
+  ptridx = right.ptridx;
+  
+  //SD boundary crossing track info:
 
+  sdtridx = right.sdtridx;
+  
+}
+//assignment operator:
 const G4SBSCalHit& G4SBSCalHit::operator=(const G4SBSCalHit &right)
 {
   pos = right.pos;
@@ -69,6 +79,17 @@ const G4SBSCalHit& G4SBSCalHit::operator=(const G4SBSCalHit &right)
   mid = right.mid;
   trid = right.trid;
 
+  //Original track info:
+  otridx = right.otridx;
+  
+  //Primary track info:
+  ptridx = right.ptridx;
+  
+  //SD boundary crossing track info:
+
+  sdtridx = right.sdtridx;
+ 
+  
   return *this;
 }
 
@@ -94,4 +115,52 @@ void G4SBSCalHit::Print()
 {
 }
 
+// void G4SBSCalHit::SetOriginalTrackInformation( G4Track *oTrack ){
+//   G4SBSTrackInformation *oTrackInfo = (G4SBSTrackInformation*) oTrack->GetUserInformation();
 
+//   otrid = oTrackInfo->GetOriginalTrackID();
+//   opid  = oTrackInfo->GetOriginalDefinition()->GetPDGEncoding();
+//   omid  = oTrackInfo->GetOriginalParentID();
+
+//   opos  = oTrackInfo->GetOriginalPosition();
+//   omom  = oTrackInfo->GetOriginalMomentum();
+//   opol  = oTrackInfo->GetOriginalPolarization();
+
+//   oenergy = oTrackInfo->GetOriginalEnergy();
+//   otime   = oTrackInfo->GetOriginalTime();
+
+// }
+
+// void G4SBSCalHit::SetPrimaryTrackInformation( G4Track *pTrack ){
+//   G4SBSTrackInformation *pTrackInfo = (G4SBSTrackInformation*) pTrack->GetUserInformation();
+  
+//   ptrid = oTrackInfo->GetPrimaryTrackID();
+//   ppid  = oTrackInfo->GetPrimaryDefinition()->GetPDGEncoding();
+//   //pmid  = oTrackInfo->GetPrimaryParentID();
+
+//   ppos  = oTrackInfo->GetPrimaryPosition();
+//   pmom  = oTrackInfo->GetPrimaryMomentum();
+//   ppol  = oTrackInfo->GetPrimaryPolarization();
+
+//   penergy = oTrackInfo->GetPrimaryEnergy();
+//   ptime   = oTrackInfo->GetPrimaryTime();
+
+// }
+
+// void G4SBSCalHit::SetSDTrackInformation( G4Track *sTrack, G4String SDname ){
+//   G4SBSTrackInformation *sTrackInfo = (G4SBSTrackInformation*) sTrack->GetUserInformation();
+
+//   set<G4String> SDlist = sTrackInfo->fSDlist; 
+
+//   if( SDlist.find( SDname ) != SDlist.end() ){
+//     sdtrid = (sTrackInfo->fSDTrackID)[SDname];
+//     sdmid  = (sTrackInfo->fSDParentID)[SDname];
+//     sdpid = (sTrackInfo->fSDDefinition)[SDname]->GetPDGEncoding();
+//     sdpos = (sTrackInfo->fSDPosition)[SDname];
+//     sdmom = (sTrackInfo->fSDMomentum)[SDname];
+//     sdpol = (sTrackInfo->fSDPolarization)[SDname];
+//     sdenergy = (sTrackInfo->fSDEnergy)[SDname];
+//     sdtime = (sTrackInfo->fSDTime)[SDname];
+//   }
+  
+// }

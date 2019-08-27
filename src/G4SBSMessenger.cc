@@ -33,6 +33,9 @@
 #include "G4SBSHArmBuilder.hh"
 #include "G4SBSECal.hh"
 
+#include "G4SBSSteppingAction.hh"
+#include "G4SBSTrackingAction.hh"
+
 #include "G4SolidStore.hh"
 #include "G4LogicalVolumeStore.hh"
 #include "G4PhysicalVolumeStore.hh"
@@ -139,10 +142,19 @@ G4SBSMessenger::G4SBSMessenger(){
   bigfieldCmd->SetGuidance("0 = turn off SBS constant magnetic field, 1 = turn on SBS constant magnetic field");
   bigfieldCmd->SetParameterName("48d48field", false);
 
-  bbfieldCmd = new G4UIcmdWithAnInteger("/g4sbs/bbfield", this);
+  bbfieldCmd = new G4UIcommand("/g4sbs/bbfield", this);
   bbfieldCmd->SetGuidance("Turn on Bigbite field (requires field map)");
-  bbfieldCmd->SetParameterName("bbfield", false);
+  bbfieldCmd->SetGuidance("usage: /g4sbs/bbfield flag fname");
+  bbfieldCmd->SetGuidance("flag = 1/0 for on/off");
+  bbfieldCmd->SetGuidance("fname = field map file name (D = map_696A.dat)");
+  bbfieldCmd->SetParameter(new G4UIparameter("bbfield",'i', false) );
+  bbfieldCmd->SetParameter(new G4UIparameter("fname",'s', true) );
+  bbfieldCmd->GetParameter(1)->SetDefaultValue("map_696A.dat");
 
+  // bbfield_fnameCmd = new G4UIcmdWithAString("/g4sbs/bbfieldmapfname",this);
+  // bbfield_fnameCmd->SetGuidance("BigBite field map file name (if non-standard name/location)");
+  // bbfield_fnameCmd->SetParameterName("bbfieldfname",false);
+  
   tosfieldCmd = new G4UIcmdWithAString("/g4sbs/tosfield", this);
   tosfieldCmd->SetGuidance("Use SBS TOSCA field map from file");
   tosfieldCmd->SetParameterName("tosfield", false);
@@ -499,6 +511,15 @@ G4SBSMessenger::G4SBSMessenger(){
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("timewindow", 'd', false ) );
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("unit", 's', false) );
+
+  KeepSDtrackcmd = new G4UIcommand("/g4sbs/keepsdtrackinfo",this);
+  KeepSDtrackcmd->SetGuidance("Toggle recording of SD track info in the tree by SD name");
+  KeepSDtrackcmd->SetGuidance("Usage: /g4sbs/keepsdtrackinfo SDname flag");
+  KeepSDtrackcmd->SetGuidance("SDname = sensitive detector name");
+  KeepSDtrackcmd->SetGuidance("flag = true/false or 0/1 (default = true/1)");
+  KeepSDtrackcmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
+  KeepSDtrackcmd->SetParameter( new G4UIparameter("flag", 'b', true) );
+  KeepSDtrackcmd->GetParameter(1)->SetDefaultValue(true);
   
   // DisableOpticalPhysicsCmd = new G4UIcmdWithABool("/g4sbs/useopticalphysics", this );
   // DisableOpticalPhysicsCmd->SetGuidance("toggle optical physics on/off");
@@ -692,9 +713,15 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     //fevact->SDarm = fdetcon->SDarm;
 
     fIO->SetDetCon( fdetcon );
+    //The following was moved to BeginOfRunAction.
     //fIO->InitializeTree();
-
-    G4cout << "InitializeTree() successful" << G4endl;
+    //ftrkact->SetDetCon( fdetcon );
+    //Copy list of "analyzer" and "target" volumes and mapping between SD names and "boundary volumes" to
+    //the following was moved to BeginOfRunAction
+    // ftrkact->Initialize( fdetcon );
+    // fstepact->Initialize( fdetcon );
+    
+    // G4cout << "InitializeTree() successful" << G4endl;
 
     // Clobber old gdml if it exists and write out the
     // present geometry
@@ -1046,10 +1073,17 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
 
   if( cmd == bbfieldCmd ){
-    G4int n = bbfieldCmd->GetNewIntValue(newValue);
-    fdetcon->SetBigBiteField(n);
-  }
+    std::istringstream is(newValue);
 
+    //G4int n = bbfieldCmd->GetNewIntValue(newValue);
+    G4int n;
+    G4String fname;
+
+    is >> n >> fname;
+    
+    fdetcon->SetBigBiteField(n, fname);
+  }
+  
   if( cmd == tosfieldCmd ){
     fdetcon->AddToscaField(newValue.data());
   }
@@ -1601,6 +1635,28 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4cout << "Set time window for SD name = " << SDname << " to " << fdetcon->SDgatewidth[SDname]/ns << " ns" << G4endl;
   }
 
+  if( cmd == KeepSDtrackcmd ){ //
+    //newValue.toLower();
+    
+    std::istringstream is(newValue);
+
+    G4String SDname;
+    G4bool flag;
+
+    is >> SDname;
+    
+    //Let's do (somewhat) intelligent parsing of the string here:
+    if( newValue.contains("true") || newValue.contains("false") ){ //parse with the "boolalpha" flag:
+      is >> std::boolalpha >> flag;
+    } else { //assume that the boolean parameter is given as 1 or 0:
+      is >> flag;
+    }
+    
+    //is >> SDname >> flag; 
+    fIO->SetKeepSDtracks( SDname, flag );
+    if( SDname == "all" ) fIO->SetKeepAllSDtracks(flag);
+    
+  }
   // if( cmd == DisableOpticalPhysicsCmd ){
   //   G4bool b = DisableOpticalPhysicsCmd->GetNewBoolValue(newValue);
   //   if( b ){ 
@@ -1626,11 +1682,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == UseCerenkovCmd ){
     G4bool b = UseCerenkovCmd->GetNewBoolValue(newValue);
     fphyslist->ToggleCerenkov(b);
+    fIO->SetUsingCerenkov(b);
   }
 
   if( cmd == UseScintCmd ){
     G4bool b = UseScintCmd->GetNewBoolValue(newValue);
     fphyslist->ToggleScintillation(b);
+    fIO->SetUsingScintillation(b);
   }
 
   if( cmd == DisableOpticalPhotonProductionByMaterialCmd ){

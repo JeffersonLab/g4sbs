@@ -50,6 +50,7 @@
 
 #include "G4Mag_SpinEqRhs.hh"
 #include "G4ClassicalRK4.hh"
+#include "G4DormandPrince745.hh"
 
 #include "G4SBSCalSD.hh"
 #include "G4SBSGEMSD.hh"
@@ -480,23 +481,25 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   double gasden = 10.5*atmosphere*(1.0079*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
   // G4Material *refH2 = new G4Material("refH2", gasden, 1 );
   // double H2den = 1.2*atmosphere*(1.00794*2*g/Avogadro)/(90.0*kelvin*k_Boltzmann);
-  double H2den = 4.0*atmosphere*(1.00794*2*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
-  G4Material *refH2 = new G4Material("refH2", H2den, 1 );
+  gasden = 4.0*atmosphere*(1.00794*2*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
+  G4Material *refH2 = new G4Material("refH2", gasden, 1 );
   
   refH2->AddElement(elH, 1);
 
   fMaterialsMap["refH2"] = refH2;
 
-  gasden = 1.0*atmosphere*(2.0141*2*g/Avogadro)/(77*kelvin*k_Boltzmann);
+  //gasden = 1.0*atmosphere*(2.0141*2*g/Avogadro)/(77*kelvin*k_Boltzmann);
   //G4Material *refD2 = new G4Material("refD2", gasden, 1 );
   //double D2den = 1.2*atmosphere*(2.0141*2*g/Avogadro)/(90.0*kelvin*k_Boltzmann);
-  double D2den = 4.0*atmosphere*(2.0141*2*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
-  G4Material *refD2 = new G4Material("refD2", D2den, 1 );
+  gasden = 4.0*atmosphere*(2.0141*2*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
+  G4Material *refD2 = new G4Material("refD2", gasden, 1 );
   refD2->AddElement(elD, 1);
 
   fMaterialsMap["refD2"] = refD2;
 
+  /*
   // TDIS: ATM HARD CODE HIGHER PRESSURE BUT NEED TO MAKE THIS A MESSENGER OPTION
+  // Redundant with above
   gasden = 4.0*atmosphere*(1.0079*2*g/Avogadro)/(300.0*kelvin*k_Boltzmann);
   G4Material *mTPCH2 = new G4Material("mTPCH2", gasden, 1 );
   mTPCH2->AddElement(elH, 1);
@@ -507,7 +510,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   mTPCD2->AddElement(elD, 1);
   fMaterialsMap["mTPCD2"] = mTPCD2;
   //
-
+  */
   gasden = 10.5*atmosphere*(14.0067*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
   G4Material *refN2 = new G4Material("refN2", gasden, 1 );
   refN2->AddElement(elN, 1);
@@ -2438,6 +2441,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   G4Mag_SpinEqRhs* fBMTequation = new G4Mag_SpinEqRhs(fGlobalField);
   G4MagIntegratorStepper *pStepper = new G4ClassicalRK4(fBMTequation,12);
+  //G4MagIntegratorStepper *pStepper = new G4DormandPrince745(fBMTequation,12);
   G4ChordFinder *cftemp = new G4ChordFinder(fGlobalField, 1.0e-2*mm, pStepper);
 
   fm->SetChordFinder(cftemp);
@@ -2539,14 +2543,14 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   return WorldPhys;
 }
 
-void G4SBSDetectorConstruction::SetBigBiteField(int n){
+void G4SBSDetectorConstruction::SetBigBiteField(int n, G4String fname){
   G4RotationMatrix rm;
 
   switch(n){
   case 1:
     rm.rotateY(-fEArmBuilder->fBBang); //rotation is negative about y for BB on beam left
 
-    fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fEArmBuilder->fBBdist),  rm );
+    fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fEArmBuilder->fBBdist),  rm, fname );
 
     fbbfield->fScaleFactor = fFieldScale_BB;
     fbbfield->fArm = kEarm;
@@ -2651,6 +2655,8 @@ void G4SBSDetectorConstruction::AddToscaField( const char *fn ) {
   
   fGlobalField->AddToscaField(fn); 
 
+  G4cout << "fGlobalField::AddToscaField done" << G4endl;
+  
   //When creating for the first time, initialize overall scale factor based on fFieldScale_SBS (defaults to 1, is overridden by messenger command).
   //f48d48field->fScaleFactor = fFieldScale_SBS;
   
@@ -2659,6 +2665,8 @@ void G4SBSDetectorConstruction::AddToscaField( const char *fn ) {
     fEArmBuilder->fUseLocalField = false;
     fHArmBuilder->fUseLocalField = false;
   }
+
+  G4cout << "fUseGlobalField set" << G4endl;
 
 }
 
@@ -2739,4 +2747,12 @@ void G4SBSDetectorConstruction::SetTimeWindowAndThreshold( G4String SDname, G4do
 
 void G4SBSDetectorConstruction::SetTPCSolenoidField(){
   if( !fUseGlobalField ) fTargetBuilder->fUseLocalTPCSolenoid = true;
+}
+
+void G4SBSDetectorConstruction::InsertSDboundaryVolume( G4String bvname, G4String sdname ){
+
+  if( SDboundaryVolumes.find( bvname ) == SDboundaryVolumes.end() ){ //first occurrence of this BV: clear sdlist before insertion:
+    SDboundaryVolumes[bvname].clear();
+  }
+  SDboundaryVolumes[bvname].insert( sdname );
 }

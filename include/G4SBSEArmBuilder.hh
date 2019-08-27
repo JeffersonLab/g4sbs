@@ -38,9 +38,9 @@ public:
   double fBBang;
   double fBBdist;
   double fBBCaldist;
-  
-  G4SBSBigBiteField *fbbfield;
 
+  //G4SBSBigBiteField *fbbfield; //Why do we need this in both EArmBuilder and DetectorConstruction?
+  
   double fRICHdist; //distance from target of RICH detector
 
   double fCerDepth;

@@ -5,6 +5,7 @@
 #include "G4SBSRICHHit.hh"
 #include "G4SBSDetMap.hh"
 #include "G4Step.hh"
+#include "G4SBSSDTrackOutput.hh"
 
 class G4SBSRICHSD : public G4VSensitiveDetector
 {
@@ -21,6 +22,8 @@ public:
   void PrintAll();
 
   G4SBSDetMap detmap;
+
+  G4SBSSDTrackOutput SDtracks;
 
 private:
   G4SBSRICHHitsCollection *hitCollection;

@@ -216,6 +216,12 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
     TRotation Rdipole;
     //Rdipole.RotateY( -chi_transpo;
     Rdipole.Rotate( thetaspin, bend_axis );
+
+    // cout << Rdipole.XX() << ", " << Rdipole.XY() << ", " << Rdipole.XZ() << endl
+    // 	 << Rdipole.YX() << ", " << Rdipole.YY() << ", " << Rdipole.YZ() << endl
+    // 	 << Rdipole.ZX() << ", " << Rdipole.ZY() << ", " << Rdipole.ZZ() << endl;
+    
+    Rdipole.RotateY( SBS_thetabend );
     
     // cout << Rdipole.XX() << ", " << Rdipole.XY() << ", " << Rdipole.XZ() << endl
     // 	 << Rdipole.YX() << ", " << Rdipole.YY() << ", " << Rdipole.YZ() << endl
@@ -459,6 +465,7 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
   
   double Pxtg, Pytg, Pztg;
   double Pxfp, Pyfp, Pzfp;
+  double Pxfpdipole,Pyfpdipole,Pzfpdipole;
   double Pxfprecon,Pyfprecon,Pzfprecon;
   Tout->Branch("Pxtg",&Pxtg);
   Tout->Branch("Pytg",&Pytg);
@@ -471,6 +478,10 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
   Tout->Branch("Pxfprecon",&Pxfprecon);
   Tout->Branch("Pyfprecon",&Pyfprecon);
   Tout->Branch("Pzfprecon",&Pzfprecon);
+
+  Tout->Branch("Pxfpdipole",&Pxfpdipole);
+  Tout->Branch("Pyfpdipole",&Pyfpdipole);
+  Tout->Branch("Pzfpdipole",&Pzfpdipole);
   double det;
   Tout->Branch("Determinant",&det);
 
@@ -815,6 +826,7 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 
     TRotation Rdipole;
     Rdipole.Rotate( thetaspinrecon, bend_axis_recon );
+    Rdipole.RotateY( SBS_thetabend );
     
     double Sxx_sum = Rdipole.XX(), Sxy_sum = Rdipole.XY(), Sxz_sum = Rdipole.XZ();
     double Syx_sum = Rdipole.YX(), Syy_sum = Rdipole.YY(), Syz_sum = Rdipole.YZ();
@@ -863,6 +875,20 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
     Pyfprecon = Pfp(1);
     Pzfprecon = Pfp(2);
 
+    TVector3 Pfpdipole(Pxtg,Pytg,Pztg);
+    Pfpdipole *= Rdipole;
+
+    // Pxfpdipole = Pfpdipole.Dot( xaxis_FT );
+    // Pyfpdipole = Pfpdipole.Dot( yaxis_FT );
+    // Pzfpdipole = Pfpdipole.Dot( zaxis_FT );
+
+    Pxfpdipole = Pfpdipole.X();
+    Pyfpdipole = Pfpdipole.Y();
+    Pzfpdipole = Pfpdipole.Z();
+    
+    //This is in the rotated coordinate system: Transform back to FP coordinates:
+    
+
     hPxfpdiff->Fill(Pxfprecon-Pxfp);
     hPyfpdiff->Fill(Pyfprecon-Pyfp);
     hPzfpdiff->Fill(Pzfprecon-Pzfp);
@@ -891,7 +917,75 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
     
     Tout->Fill();
   }
-  fout->Write();
+
+  hxptardiff->GetXaxis()->SetTitle("#Deltax'_{tar}");
+  hyptardiff->GetXaxis()->SetTitle("#Deltay'_{tar}");
+  hytardiff->GetXaxis()->SetTitle("#Deltay_{tar} (m)");
+  hpdiff->GetXaxis()->SetTitle("p_{recon}/p_{true}-1");
+
+  hthetabend_diff->GetXaxis()->SetTitle("#Delta#theta_{bend} (rad)");
+
+  hxfpdiff->GetXaxis()->SetTitle("#Deltax_{fp} (m)");
+  hyfpdiff->GetXaxis()->SetTitle("#Deltay_{fp} (m)");
+  hxpfpdiff->GetXaxis()->SetTitle("#Deltax'_{fp}" );
+  hypfpdiff->GetXaxis()->SetTitle("#Deltay'_{fp}" );
+
+  hxptar_recon_vs_true->GetXaxis()->SetTitle("x'_{tar} (true)");
+  hxptar_recon_vs_true->GetYaxis()->SetTitle("x'_{tar} (reconstructed)");
   
+  hyptar_recon_vs_true->GetXaxis()->SetTitle("y'_{tar} (true)");
+  hyptar_recon_vs_true->GetYaxis()->SetTitle("y'_{tar} (reconstructed)");
+
+  hytar_recon_vs_true->GetXaxis()->SetTitle("y_{tar}^{true} (m)");
+  hytar_recon_vs_true->GetYaxis()->SetTitle("y_{tar}^{recon} (m)");
+
+  hp_recon_vs_true->GetXaxis()->SetTitle("p_{true} (GeV)");
+  hp_recon_vs_true->GetYaxis()->SetTitle("p_{recon} (GeV)");
+
+  hthetabend_recon_vs_true->GetXaxis()->SetTitle("#theta_{bend}^{true} (rad)");
+  hthetabend_recon_vs_true->GetYaxis()->SetTitle("#theta_{bend}^{recon} (rad)");
+
+  hpdiff_p->GetXaxis()->SetTitle("p_{true} (GeV)");
+  hpdiff_p->GetYaxis()->SetTitle("p_{recon}/p_{true}-1 (%)");
+
+  hxfp_recon_vs_true->GetXaxis()->SetTitle("x_{fp}^{true} (m)");
+  hxfp_recon_vs_true->GetYaxis()->SetTitle("x_{fp}^{recon} (m)");
+
+  hyfp_recon_vs_true->GetXaxis()->SetTitle("y_{fp}^{true} (m)");
+  hyfp_recon_vs_true->GetYaxis()->SetTitle("y_{fp}^{recon} (m)");
+
+  hxpfp_recon_vs_true->GetXaxis()->SetTitle("(x'_{fp})_{true} (m)");
+  hxpfp_recon_vs_true->GetYaxis()->SetTitle("(x'_{fp})_{recon} (m)");
+
+  hypfp_recon_vs_true->GetXaxis()->SetTitle("(y'_{fp})_{true} (m)");
+  hypfp_recon_vs_true->GetYaxis()->SetTitle("(y'_{fp})_{recon} (m)");
+
+  hPxfpdiff->GetXaxis()->SetTitle("#DeltaP_{x}");
+  hPyfpdiff->GetXaxis()->SetTitle("#DeltaP_{y}");
+  hPzfpdiff->GetXaxis()->SetTitle("#DeltaP_{z}");
+
+  hPxfp_recon_vs_true->GetXaxis()->SetTitle("P_{x}^{true}");
+  hPyfp_recon_vs_true->GetXaxis()->SetTitle("P_{y}^{true}");
+  hPzfp_recon_vs_true->GetXaxis()->SetTitle("P_{z}^{true}");
+
+  hPxfp_recon_vs_true->GetYaxis()->SetTitle("P_{x}^{recon}");
+  hPyfp_recon_vs_true->GetYaxis()->SetTitle("P_{y}^{recon}");
+  hPzfp_recon_vs_true->GetYaxis()->SetTitle("P_{z}^{recon}");
+
+  hSxx->GetXaxis()->SetTitle("S_{xx}");
+  hSxy->GetXaxis()->SetTitle("S_{xy}");
+  hSxz->GetXaxis()->SetTitle("S_{xz}");
+
+  hSyx->GetXaxis()->SetTitle("S_{yx}");
+  hSyy->GetXaxis()->SetTitle("S_{yy}");
+  hSyz->GetXaxis()->SetTitle("S_{yz}");
+
+  hSzx->GetXaxis()->SetTitle("S_{zx}");
+  hSzy->GetXaxis()->SetTitle("S_{zy}");
+  hSzz->GetXaxis()->SetTitle("S_{zz}");
+  
+  fout->Write();
+
+  hDeterminant->GetXaxis()->SetTitle("Determinant");
   
 }

@@ -23,6 +23,9 @@ G4SBSGEMSD::G4SBSGEMSD( G4String name, G4String colname )
     detmap.depth = 1;
     detmap.SDname = name;
     detmap.clear();
+
+    SDtracks.Clear();
+    SDtracks.SetSDname(name);
 }
 
 G4SBSGEMSD::~G4SBSGEMSD()
@@ -31,7 +34,8 @@ G4SBSGEMSD::~G4SBSGEMSD()
 
 void G4SBSGEMSD::Initialize(G4HCofThisEvent*)
 {
-  hitCollection = new G4SBSGEMHitsCollection(SensitiveDetectorName,collectionName[0]); 
+  hitCollection = new G4SBSGEMHitsCollection(fullPathName.strip(G4String::leading,'/'),collectionName[0]);
+  SDtracks.Clear();
 }
 
 G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
@@ -111,6 +115,13 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   hit->SetBeta( aStep->GetPreStepPoint()->GetBeta() ); //v/c of particle prior to the step
   hit->SetHittime( aStep->GetPreStepPoint()->GetGlobalTime() );
 
+  G4Track *aTrack = aStep->GetTrack();
+
+  
+  hit->SetOTrIdx( SDtracks.InsertOriginalTrackInformation( aTrack ) );
+  hit->SetPTrIdx( SDtracks.InsertPrimaryTrackInformation( aTrack ) ); 
+  hit->SetSDTrIdx( SDtracks.InsertSDTrackInformation( aTrack ) );
+ 
   hitCollection->insert( hit );
 
   return true;

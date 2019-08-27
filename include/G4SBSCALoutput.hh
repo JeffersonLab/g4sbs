@@ -3,6 +3,8 @@
 
 #include <vector>
 #include "G4SBSParticleOutput.hh"
+#include "G4SBSSDTrackOutput.hh"
+
 using namespace std;
 
 class G4SBSCALoutput {
@@ -27,7 +29,7 @@ public:
   vector<double> xhit, yhit, zhit; //weighted "average" local position of energy deposition
   vector<double> xhitg, yhitg, zhitg; //weighted "average" global position of energy deposition
   vector<double> sumedep, tavg, trms, tmin, tmax; //Sum of energy deposition, average, rms, min and max global times of energy depositions in this cell
-
+  
   //"Part" keeps track of all unique particles depositing energy in a "calorimeter" sensitive volume:
   int npart_CAL; //Number of particles depositing energy in a given cell
   vector<int> ihit; //hit index associated with this particle 
@@ -37,6 +39,9 @@ public:
   vector<double> p, edep; //initial momentum and total energy deposition of particles.
   vector<double> px,py,pz; //initial momentum components
 
+  //Add bookkeeping indices for "original", "primary", and "SD boundary" tracks:
+  vector<int> otridx,ptridx,sdtridx;
+  
   bool keeppart;
   
   G4SBSParticleOutput ParticleHistory;

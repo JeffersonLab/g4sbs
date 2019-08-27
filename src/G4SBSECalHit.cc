@@ -35,8 +35,14 @@ G4SBSECalHit::G4SBSECalHit(const G4SBSECalHit &hit ) : G4VHit()
   //fvertexdirection = hit.GetVertexDirection();
   //fMothervertexdirection = hit.GetMotherVertexDirection();
 
-  fvolume_log = hit.GetLogicalVolume();
- 
+  //fvolume_log = hit.GetLogicalVolume();
+  //fMatName = hit.GetMatName();
+
+  otridx = hit.GetOTrIdx();
+  ptridx = hit.GetPTrIdx();
+  sdtridx = hit.GetSDTrIdx();
+  
+  fQuantumEfficiency = hit.GetQuantumEfficiency();
 }
 
 const G4SBSECalHit& G4SBSECalHit::operator=(const G4SBSECalHit &hit)
@@ -60,8 +66,15 @@ const G4SBSECalHit& G4SBSECalHit::operator=(const G4SBSECalHit &hit)
   //fvertexdirection = hit.GetVertexDirection();
   //fMothervertexdirection = hit.GetMotherVertexDirection();
 
-  fvolume_log = hit.GetLogicalVolume();
+  //fvolume_log = hit.GetLogicalVolume();
+  //fMatName = hit.GetMatName();
 
+  otridx = hit.GetOTrIdx();
+  ptridx = hit.GetPTrIdx();
+  sdtridx = hit.GetSDTrIdx();
+  
+  fQuantumEfficiency = hit.GetQuantumEfficiency();
+  
   return *this;
 }
 

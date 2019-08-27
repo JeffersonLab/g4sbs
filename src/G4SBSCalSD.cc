@@ -20,7 +20,10 @@ G4SBSCalSD::G4SBSCalSD( G4String name, G4String colname )
 
     fHitTimeWindow = 1000.0*ns; //"safe" default value for a calorimeter;
     fEnergyThreshold = 0.0*keV; //"safe" default value for a calorimeter;
-    fNTimeBins = 500; 
+    fNTimeBins = 500;
+
+    SDtracks.Clear();
+    SDtracks.SetSDname(name);
 }
 
 G4SBSCalSD::~G4SBSCalSD()
@@ -29,7 +32,8 @@ G4SBSCalSD::~G4SBSCalSD()
 
 void G4SBSCalSD::Initialize(G4HCofThisEvent*)
 {
-  hitCollection = new G4SBSCalHitsCollection(SensitiveDetectorName,collectionName[0]); 
+  hitCollection = new G4SBSCalHitsCollection(fullPathName.strip(G4String::leading,'/'),collectionName[0]);
+  SDtracks.Clear();
 }
 
 G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
@@ -84,8 +88,6 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   hit->SetCell( hist->GetVolume( detmap.depth )->GetCopyNo() );
 
-  
-
   hit->SetRow( detmap.Row[hit->GetCell()] );
   hit->SetCol( detmap.Col[hit->GetCell()] );
   hit->SetPlane( detmap.Plane[hit->GetCell()] );
@@ -94,7 +96,7 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   // G4cout << "During CAL hit processing, SDname = " << SensitiveDetectorName << " physical volume name = " << hist->GetVolume( detmap.depth )->GetName() 
   // 	 << " copy number = " << hit->GetCell() << " (row,col)=(" << hit->GetRow() << ", " << hit->GetCol() << ")" << G4endl;
-
+  
   //hit->SetGlobalCellCoords( detmap.GlobalCoord[hit->GetCell()] );
   G4AffineTransform aTrans_inverse = aTrans.Inverse();
   hit->SetGlobalCellCoords( aTrans_inverse.TransformPoint( G4ThreeVector(0,0,0) ) );
@@ -111,6 +113,14 @@ G4bool G4SBSCalSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 	  edep/GeV
 	  );
 	  */
+  G4Track *aTrack = aStep->GetTrack();
+
+  // hit->SetOriginalTrackInformation(aTrack);
+  // hit->SetPrimaryTrackInformation(aTrack);
+  // hit->SetSDTrackInformation( aTrack, fullPathName );
+  hit->SetOTrIdx( SDtracks.InsertOriginalTrackInformation( aTrack ) );
+  hit->SetPTrIdx( SDtracks.InsertPrimaryTrackInformation( aTrack ) );
+  hit->SetSDTrIdx( SDtracks.InsertSDTrackInformation( aTrack ) );
 
   hitCollection->insert( hit );
 

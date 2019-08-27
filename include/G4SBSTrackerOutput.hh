@@ -47,6 +47,7 @@ public:
   vector<double> TrackYpfit; //reconstructed
   //vector<double> TrackTfit; //reconstructed
 
+  vector<int> otridx, ptridx, sdtridx;
 };
 
 #endif

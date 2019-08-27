@@ -6,16 +6,20 @@
 #include "G4ios.hh"
 #include "G4Track.hh"
 #include "G4OpticalPhoton.hh"
+#include "G4MaterialPropertiesTable.hh"
 
 G4SBSECalSD::G4SBSECalSD( G4String name, G4String collname ) : G4VSensitiveDetector(name) {
   collectionName.insert( collname );
+
+  SDtracks.Clear();
+  SDtracks.SetSDname( name );
 }
 
 G4SBSECalSD::~G4SBSECalSD(){;}
 
 void G4SBSECalSD::Initialize( G4HCofThisEvent *HC ){
   G4int HCID = -1;
-  hitCollection = new G4SBSECalHitsCollection( SensitiveDetectorName, collectionName[0] );
+  hitCollection = new G4SBSECalHitsCollection( fullPathName.strip(G4String::leading,'/'), collectionName[0] );
   
   if( HCID < 0 ){
     HCID = GetCollectionID(0);
@@ -24,6 +28,7 @@ void G4SBSECalSD::Initialize( G4HCofThisEvent *HC ){
   //  G4cout << "Adding hit collection " << collectionName[0] << " to HCE, HCID = " << HCID << G4endl;
 
   HC->AddHitsCollection( HCID, hitCollection );
+  SDtracks.Clear();
 }
 
 G4bool G4SBSECalSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
@@ -81,7 +86,35 @@ G4bool G4SBSECalSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
   G4AffineTransform ECal_atrans_inverse = ECal_atrans.Inverse();
   newHit->SetGlobalCellCoords( ECal_atrans_inverse.TransformPoint( G4ThreeVector(0,0,0) ) ); //We'll see if this works...
 
-  newHit->SetLogicalVolume( prestep->GetPhysicalVolume()->GetLogicalVolume() );
+  //newHit->SetLogicalVolume( prestep->GetPhysicalVolume()->GetLogicalVolume() );
+  //newHit->SetMatName( prestep->GetPhysicalVolume()->GetLogicalVolume()->GetMaterial()->GetName() );
+
+  //Set quantum efficiency: default to 1 in case no material properties table has been defined:
+  newHit->SetQuantumEfficiency( 1.0 );
+
+  G4MaterialPropertiesTable *MPT = prestep->GetPhysicalVolume()->GetLogicalVolume()->GetMaterial()->GetMaterialPropertiesTable();
+
+  if( MPT != NULL ){
+    G4MaterialPropertyVector *QEvect = (G4MaterialPropertyVector*) MPT->GetProperty("EFFICIENCY");
+
+    if( QEvect != NULL ){
+    
+      G4double Ephoton = newHit->Getenergy();
+      
+      G4bool inrange = Ephoton >= QEvect->GetMinLowEdgeEnergy() && Ephoton <= QEvect->GetMaxLowEdgeEnergy();
+      
+      G4double QEtemp = QEvect->Value( Ephoton );
+
+      if( !inrange ) QEtemp = 0.0;
+
+      newHit->SetQuantumEfficiency(QEtemp);
+    }
+  }
+
+  newHit->SetOTrIdx( SDtracks.InsertOriginalTrackInformation( track ) );
+  newHit->SetPTrIdx( SDtracks.InsertPrimaryTrackInformation( track ) );
+  newHit->SetSDTrIdx( SDtracks.InsertSDTrackInformation( track ) );
+  
   hitCollection->insert( newHit );
 
   return true;

@@ -52,9 +52,13 @@ private:
   G4ThreeVector CellCoords;    //"local" coordinate of center of cell in which hit occurs.
   G4ThreeVector GlobalCellCoords; //"global" coordinate of center of cell in which hit occurs:
 
-  //Need to store a pointer to logical volume in order to retrieve quantum efficiency info later:
-  G4LogicalVolume *fvolume_log;
+  //Better than carrying around all the baggage associated with a logical volume pointer; let's just grab the
+  //detection efficiency if it has been defined for the material in which this hit occurs:
+  G4double fQuantumEfficiency;
 
+  //Indices for track info:
+  G4int otridx, ptridx, sdtridx;
+  
 public:
   //Get/set methods for sensitive detector:
   
@@ -105,8 +109,18 @@ public:
   // inline void SetOriginVol( G4int i ){ foriginvol = i; }
   // inline G4int GetOriginVol() const { return foriginvol; }
 
-  inline void SetLogicalVolume( G4LogicalVolume *v ){  fvolume_log = v; }
-  inline G4LogicalVolume *GetLogicalVolume() const { return fvolume_log; }
+  // inline void SetLogicalVolume( G4LogicalVolume *v ){  fvolume_log = v; }
+  //inline G4LogicalVolume *GetLogicalVolume() const { return fvolume_log; }
+  inline void SetQuantumEfficiency( G4double QE ){ fQuantumEfficiency = QE; }
+  inline G4double GetQuantumEfficiency() const { return fQuantumEfficiency; }
+
+  inline void SetOTrIdx(G4int idx){ otridx = idx; }
+  inline void SetPTrIdx(G4int idx){ ptridx = idx; }
+  inline void SetSDTrIdx(G4int idx){ sdtridx = idx; }
+
+  inline G4int GetOTrIdx() const { return otridx; }
+  inline G4int GetPTrIdx() const { return ptridx; }
+  inline G4int GetSDTrIdx() const { return sdtridx; }
 };
 
 typedef G4THitsCollection<G4SBSECalHit> G4SBSECalHitsCollection;

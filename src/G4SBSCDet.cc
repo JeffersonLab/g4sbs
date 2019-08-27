@@ -133,6 +133,8 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
     CDET_pmt_cathode_log->SetSensitiveDetector( cdet_sd );
   }
 
+  fDetCon->InsertSDboundaryVolume( mother->GetName(), sdname );
+  
   sdname = fArmName+"/CDET_Scint";
   collname = "CDET_ScintHitsCollection";
 
@@ -149,6 +151,8 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
 
     fDetCon->SetTimeWindowAndThreshold( sdname, 4.0*MeV, 50.0*ns );
   }
+
+  fDetCon->InsertSDboundaryVolume( mother->GetName(), sdname );
   
   //Now we need to define the coordinates of the "modules":
   //horizontal position within mother:

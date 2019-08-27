@@ -13,6 +13,8 @@ class G4SBSDetectorConstruction;
 class G4SBSEventAction;
 class G4SBSPrimaryGeneratorAction;
 class G4SBSPhysicsList;
+class G4SBSSteppingAction;
+class G4SBSTrackingAction;
 
 class G4UIcmdWithAnInteger;
 class G4UIcmdWithADoubleAndUnit;
@@ -32,7 +34,9 @@ public:
   void SetDetCon( G4SBSDetectorConstruction *dc ){ fdetcon= dc; }
   void SetEvAct( G4SBSEventAction *ev ){ fevact = ev; }
   void SetPhysList( G4SBSPhysicsList *pl ){ fphyslist = pl; }
-
+  void SetTrackingAction( G4SBSTrackingAction *tr ){ ftrkact = tr; }
+  void SetSteppingAction( G4SBSSteppingAction *st ){ fstepact = st; }
+  
   void SetNewValue(G4UIcommand* cmd, G4String newValue);
 
 private:
@@ -42,6 +46,8 @@ private:
   G4SBSEventAction *fevact;
   G4SBSPrimaryGeneratorAction *fprigen;
   G4SBSPhysicsList *fphyslist;
+  G4SBSTrackingAction *ftrkact;
+  G4SBSSteppingAction *fstepact;
   
 
   Exp_t fExpType;
@@ -65,7 +71,8 @@ private:
 
   
   G4UIcmdWithAnInteger *bigfieldCmd;
-  G4UIcmdWithAnInteger *bbfieldCmd;
+  G4UIcommand *bbfieldCmd;
+  //G4UIcmdWithAString *bbfield_fnameCmd; //Set filename for BB magnetic field map
   G4UIcmdWithAString *tosfieldCmd;
 
   G4UIcmdWithAnInteger *eventStatusEveryCmd;
@@ -190,6 +197,8 @@ private:
 
   G4UIcommand *SD_EnergyThresholdCmd;   //Set hit energy threshold for "Calorimeter" type sensitive detectors
   G4UIcommand *SD_TimeWindowCmd; 
+
+  G4UIcommand *KeepSDtrackcmd; //Flag to turn on recording of "sensitive detector" track info
   
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
   G4UIcmdWithABool *UseCerenkovCmd;   //Cerenkov

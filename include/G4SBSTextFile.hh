@@ -6,36 +6,36 @@
 #include "TObject.h"
 
 class G4SBSTextFile : public TObject {
-    public:
-	 G4SBSTextFile();
-	 G4SBSTextFile(const G4SBSTextFile &);
-	 const G4SBSTextFile& operator=(const G4SBSTextFile &);
-	 G4SBSTextFile(const char *);
-	~G4SBSTextFile();
+public:
+  G4SBSTextFile();
+  G4SBSTextFile(const G4SBSTextFile &);
+  const G4SBSTextFile& operator=(const G4SBSTextFile &);
+  G4SBSTextFile(const char *);
+  ~G4SBSTextFile();
 
-	 void copyFileIn(const char *);
+  void copyFileIn(const char *);
 
-	void Print(Option_t *) const;
-	void Print() const;
+  void Print(Option_t *) const;
+  void Print() const;
 
-	const char *GetFilename(){ return fFilename; }
-	unsigned long long int GetBufferSize(){ return fBufferSize; }
+  const char *GetFilename(){ return fFilename; }
+  unsigned long long int GetBufferSize(){ return fBufferSize; }
 	
-	void Recreate(const char *fn = NULL, bool clobber = false);
-	void RecreateInDir(const char *path, bool clobber = false);
+  void Recreate(const char *fn = NULL, bool clobber = false);
+  void RecreateInDir(const char *path, bool clobber = false);
 
-	char* GetBuffer(){ return fBuffer;}
+  char* GetBuffer(){ return fBuffer;}
 
-    private:
-	int fFilenameSize;
-	char *fFilename;
+private:
+  int fFilenameSize;
+  char *fFilename;
 
-	unsigned long long int fBufferSize;
-	char *fBuffer;
+  unsigned long long int fBufferSize;
+  char *fBuffer;
 
-	const char *GetBaseFile(const char *fp = NULL);
+  const char *GetBaseFile(const char *fp = NULL);
 
-	ClassDef(G4SBSTextFile, 1);
+  ClassDef(G4SBSTextFile, 1);
 };
 
 #endif//__G4SBSTEXTFILE_HH

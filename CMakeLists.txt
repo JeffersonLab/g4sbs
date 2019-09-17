@@ -90,9 +90,10 @@ include(${Geant4_USE_FILE})
 
 # Generate the dictionary for G4SBS classes deriving from TOb ject:
 ROOT_GENERATE_DICTIONARY(
-    G__g4sbsroot                         # path to dictionary to generate
-    "include/G4SBSRunData.hh"         # list of classes to process
-    "include/G4SBSTextFile.hh"
+    G__g4sbsroot                   
+    G4SBSRunData.hh         
+    G4SBSTextFile.hh
+    OPTIONS -I${PROJECT_SOURCE_DIR}/include
     LINKDEF "include/G4SBSLinkDef.h"  # ROOT linkDef file
 )
 #----------------------------------------------------------------------------

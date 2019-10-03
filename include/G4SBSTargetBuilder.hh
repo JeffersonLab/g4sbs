@@ -48,8 +48,8 @@ public:
   void SetFlux(G4bool b){fFlux = b;}
 
   G4ThreeVector GetTargPolDir() const { return fTargPolDir; }
-  G4ThreeVector GetTargPolMag() const { return fTargPolMag; }
-  void SetTargPolDir( G4ThreeVector pdir );
+  G4double GetTargPolMag() const { return fTargPolMag; }
+  void SetTargPolDir( G4ThreeVector pdir ){ fTargPolDir = pdir.unit(); }
   void SetTargPolMag( G4double pmag ){ fTargPolMag = pmag; }
   
 private:

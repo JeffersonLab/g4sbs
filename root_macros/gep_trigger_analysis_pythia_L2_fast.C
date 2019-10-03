@@ -33,18 +33,60 @@ TF1 *gaussplusexpo = new TF1("gaussplusexpo", "[0]*exp(-0.5*pow((x-[1])/[2],2))+
 const double Mp = 0.938272; //GeV
 const double PI = TMath::Pi();
 
-void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outputfilename="pythia_trigrates_temp.root", const char *logicfilename_ecal="database/GEP_ECAL_L2sums.txt", const char *thresholdfilename_ecal="database/ecal_trigger_thresholds_12GeV2.txt", const char *thresholdfilename_hcal="", int pheflag=0, const char *assocfilename="database/ECAL_HCAL_L2_default.txt" ){
-
+void gep_trigger_analysis_pythia_L2_fast( const char *rootfilename, const char *outputfilename="pythia_trigrates_temp.root", double ECAL_threshold=0.8, double HCAL_threshold=0.5, const char *logicfilename_ecal="database/GEP_ECAL_L2sums.txt", const char *thresholdfilename_ecal="database/ecal_trigger_thresholds_12GeV2.txt", const char *thresholdfilename_hcal="", int pheflag=0, const char *assocfilename="database/ECAL_HCAL_L2_default.txt" ){
+  
   //double thetacal = thetacaldeg*PI/180.0;
-
-  double nominal_threshold_ECAL = 0.8;
-  double nominal_threshold_HCAL = 0.5;
+  
+  //The difference between this analysis and the "slow" one is that we only look at coincidence rates (real and accidental) for one choice of threshold:
   
   TFile *fout = new TFile(outputfilename,"RECREATE");
   TChain *C = new TChain("T");
   C->Add(rootfilename);
 
+  C->SetBranchStatus("*",0);
+  C->SetBranchStatus("Harm.HCalScint.hit.nhits",1);
+  C->SetBranchStatus("Harm.HCalScint.hit.row",1);
+  C->SetBranchStatus("Harm.HCalScint.hit.col",1);
+  C->SetBranchStatus("Harm.HCalScint.hit.cell",1);
+  C->SetBranchStatus("Harm.HCalScint.hit.sumedep",1);
+
+  C->SetBranchStatus("Earm.ECalTF1.hit.nhits",1);
+  C->SetBranchStatus("Earm.ECalTF1.hit.row",1);
+  C->SetBranchStatus("Earm.ECalTF1.hit.col",1);
+  C->SetBranchStatus("Earm.ECalTF1.hit.cell",1);
+  C->SetBranchStatus("Earm.ECalTF1.hit.sumedep",1);
+  //T->SetBranchStatus("Harm.HCalScint.hit.nhits",1);
+  //T->SetBranchStatus("Harm.HCalScint.hit.nhits",1);
+
+  //  T->SetBranchStatus("*",0);
+  C->SetBranchStatus("Harm.HCal.hit.nhits",1);
+  C->SetBranchStatus("Harm.HCal.hit.row",1);
+  C->SetBranchStatus("Harm.HCal.hit.col",1);
+  C->SetBranchStatus("Harm.HCal.hit.PMT",1);
+  C->SetBranchStatus("Harm.HCal.hit.NumPhotoElectrons",1);
+
+  C->SetBranchStatus("Earm.ECAL.hit.nhits",1);
+  C->SetBranchStatus("Earm.ECAL.hit.row",1);
+  C->SetBranchStatus("Earm.ECAL.hit.col",1);
+  C->SetBranchStatus("Earm.ECAL.hit.PMT",1);
+  C->SetBranchStatus("Earm.ECAL.hit.NumPhotoElectrons",1);
+
+  C->SetBranchStatus("primaries.Sigma",1);
+  C->SetBranchStatus("primaries.Q2",1);
+  C->SetBranchStatus("primaries.W2",1);
+  C->SetBranchStatus("primaries.y",1);
+  C->SetBranchStatus("primaries.theta_e",1);
+  C->SetBranchStatus("primaries.xbj",1);
+  //C->SetBranchStatus("primaries.phi_e",1);
+  C->SetBranchStatus("Primaries.genflag",1);
+  C->SetBranchStatus("Primaries.PID",1);
+  C->SetBranchStatus("Primaries.P",1);
+  C->SetBranchStatus("Primaries.theta",1);
+  
   gep_pythia6_tree *T = new gep_pythia6_tree( C );
+
+  
+  
 
   G4SBSRunData *rd;
 
@@ -63,11 +105,16 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
   map<TString,double> LumiFile;
 
   double Lumi = 6.0e38;
+
+  double sigma_default=2.2769680e-30; //cm2, 11 GeV beam on proton target, minimum bias
   
   while( (chEl=(TChainElement*)next() )){
     TFile newfile(chEl->GetTitle());
     newfile.GetObject("run_data",rd);
-    if( rd ){
+    TTree *Ttemp;
+    newfile.GetObject("T",Ttemp);
+    double sigtemp;
+    if( rd && Ttemp ){
       ngen += rd->fNtries;
 
       Rcal_file[chEl->GetTitle()] = rd->fBBdist;
@@ -78,10 +125,31 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
       
       cout << "file " << chEl->GetTitle() << ", ngen=" << rd->fNtries << endl;
       
+      Ttemp->SetBranchAddress("primaries.Sigma",&sigtemp);
+      
+      if( Ttemp->GetEntries() > 0 ){
+  
+	Ttemp->GetEntry(0);
+
+	if ( !isnan( sigtemp ) ){
+	  sigma_default = sigtemp;
+	  cout << "first event cross section = " << sigtemp << " cm^2" << endl;
+	} else {
+	  cout << "bad cross section!!!!" << endl;
+	}
+      }
+
+      Ttemp->ResetBranchAddresses();
+
+      //      Ttemp->Delete();
+      //newfile.Close();
       nfiles++;
     } else {
       bad_file_list.insert( chEl->GetTitle());
+      //newfile.Close();
     }
+
+    newfile.Close();
   }
 
   cout << "number of generated events = " << ngen << endl;
@@ -374,6 +442,18 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
   TH2D *htrue_coincidence_rate_vs_threshold_ECAL_HCAL = new TH2D("htrue_coincidence_rate_vs_threshold_ECAL_HCAL","",30,.025,1.525,30,.025,1.525);
   TH2D *haccidental_coincidence_rate_vs_threshold_ECAL_HCAL = new TH2D("haccidental_coincidence_rate_vs_threshold_ECAL_HCAL","",30,.025,1.525,30,.025,1.525);
   //TH2D *haccidental_coincidence_rate_vs_threshold_ECAL_HCAL = new TH2D("haccidental_coincidence_rate_vs_threshold_ECAL_HCAL","",30,.025,1.525,30,.025,1.525);
+
+  TH1D *hrate_ECAL_vs_ECAL_logic_sum = new TH1D("hrate_ECAL_vs_ECAL_logic_sum","",list_of_nodes_ecal.size(),0.5,0.5+list_of_nodes_ecal.size() );
+  TH1D *hrate_HCAL_vs_ECAL_logic_sum = new TH1D("hrate_HCAL_vs_ECAL_logic_sum","",list_of_nodes_ecal.size(),0.5,0.5+list_of_nodes_ecal.size() );
+  TH1D *hrate_ECAL_vs_HCAL_logic_sum = new TH1D("hrate_ECAL_vs_HCAL_logic_sum","",list_of_nodes_hcal.size(),0.5,0.5+list_of_nodes_hcal.size() );
+  TH1D *hrate_HCAL_vs_HCAL_logic_sum = new TH1D("hrate_HCAL_vs_HCAL_logic_sum","",list_of_nodes_hcal.size(),0.5,0.5+list_of_nodes_hcal.size() );
+
+  TH1D *hrealcoin_rate_vs_HCAL_logic_sum = new TH1D("hrealcoin_rate_vs_HCAL_logic_sum","",list_of_nodes_hcal.size(),0.5,0.5+list_of_nodes_hcal.size() );
+  TH1D *haccidental_rate_vs_HCAL_logic_sum = new TH1D("haccidental_rate_vs_HCAL_logic_sum","",list_of_nodes_hcal.size(),0.5,0.5+list_of_nodes_hcal.size() );
+
+  TH1D *hNnodes_ECAL_nominal_threshold = new TH1D("hNnodes_ECAL_nominal_threshold","",list_of_nodes_ecal.size(),0.5,0.5+list_of_nodes_ecal.size() );
+  TH1D *hNnodes_HCAL_nominal_threshold = new TH1D("hNnodes_HCAL_nominal_threshold","",list_of_nodes_hcal.size(),0.5,0.5+list_of_nodes_hcal.size() ); 
+  
   
   TH1D *hQ2 = new TH1D("hQ2","",200,0.0,10.0);
   TH1D *hW = new TH1D("hW","",200,0.0,6.0);
@@ -416,27 +496,44 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
 
   int treenum=-1;
   int oldtreenum=treenum;
+
+  double real_coin_total_rate = 0.0;
+  double total_real_coin_events = 0;
+  double real_coin_sum2 = 0.0;
   
-  long nevent=0;
+  long nevent=0, ntotal = C->GetEntries();
   for( nevent=0; nevent<C->GetEntries(); ++nevent ){
     T->GetEntry(nevent);
 
     treenum = C->GetTreeNumber();
 
     TString fname = C->GetFile()->GetName();
+
+    //bool any_real_coin = false;
     
     if( bad_file_list.find(fname.Data()) == bad_file_list.end() ){ //good file
     
       if( treenum != oldtreenum ){
+	cout << "new tree event " << nevent << endl;
 	oldtreenum = treenum;
+
+	cout << "file name = " << fname << endl;
 	Lumi = LumiFile[fname];
+
+	cout << "Luminosity = " << Lumi << endl;
       }
        
       double weight;
       //cross section is given in mb: 1 mb = 1e-3 * 1e-24 = 1e-27 cm^2
       // if (pythia6flag != 0 ){
       //no longer true: cross section is now given in cm2
-      weight = Lumi * T->primaries_Sigma / double(ngen); //luminosity times cross section / number of events generated.
+
+      if( !isnan(T->primaries_Sigma) ){
+      
+	weight = Lumi * T->primaries_Sigma / double(ngen); //luminosity times cross section / number of events generated.
+      } else {
+	weight = Lumi * sigma_default / double(ngen);
+      }
       // } else {
       //weight = T->ev_rate / double(nfiles);
       //}
@@ -470,7 +567,7 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
       //    double R = T->gen_dbb;
       //double thetacal = T->gen_thbb;
     
-      if( (nevent+1) % 1000 == 0 ){ cout << "Event number " << nevent+1 << ", event weight = " << weight << endl; }
+      if( (nevent+1) % 1000 == 0 ){ cout << "Event number " << nevent+1 << " of " << ntotal << ", event weight = " << weight << endl; }
     
       map<int,double> node_sums; //initialize all node sums to zero:
       for( set<int>::iterator inode = list_of_nodes_ecal.begin(); inode != list_of_nodes_ecal.end(); ++inode ){
@@ -525,38 +622,47 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
 	//node_sums[ trigger_group ] += double(nphe);
       }
 
-      vector<int> trigger_nodes_fired_vs_E(hrate_vs_fixed_energy_threshold_ECAL->GetNbinsX());
-      vector<int> trigger_nodes_fired(hrate_vs_threshold_ECAL->GetNbinsX());
-      map<int, set<int> > list_of_nodes_fired_vs_threshold_ECAL; //map of threshold bins and list of fired ECAL nodes
-    
-      for( int ithr=0; ithr<hrate_vs_threshold_ECAL->GetNbinsX(); ithr++ ){
-	trigger_nodes_fired[ithr] = 0;
-      }
+      // vector<int> trigger_nodes_fired_vs_E(hrate_vs_fixed_energy_threshold_ECAL->GetNbinsX());
+      // vector<int> trigger_nodes_fired(hrate_vs_threshold_ECAL->GetNbinsX());
+      // map<int, set<int> > list_of_nodes_fired_vs_threshold_ECAL; //map of threshold bins and list of fired ECAL nodes
+      
+      // for( int ithr=0; ithr<hrate_vs_threshold_ECAL->GetNbinsX(); ithr++ ){
+      // 	trigger_nodes_fired[ithr] = 0;
+      // }
 
-      for( int ithr=0; ithr<trigger_nodes_fired_vs_E.size(); ithr++ ){
-	trigger_nodes_fired_vs_E[ithr] = 0;
-      }
+      // for( int ithr=0; ithr<trigger_nodes_fired_vs_E.size(); ithr++ ){
+      // 	trigger_nodes_fired_vs_E[ithr] = 0;
+      // }
 
       int maxnode_ECAL=-1;
       int maxnode_HCAL=-1;
       double maxsum_ECAL = 0.0;
       double maxsum_HCAL = 0.0;
-    
+
+      int ntrig_ECAL_nominal_threshold = 0;
+      int ntrig_HCAL_nominal_threshold = 0;
+      
       for( set<int>::iterator inode = list_of_nodes_ecal.begin(); inode != list_of_nodes_ecal.end(); ++inode ){
-	for( int bin=1; bin<=hrate_vs_threshold_ECAL->GetNbinsX(); bin++ ){
-	  if( node_sums[*inode]/logic_mean_ecal[*inode] > hrate_vs_threshold_ECAL->GetBinCenter(bin) ){
-	    //cout << "node above threshold, nphe, peak position = " << node_sums[*inode] << ", " << logic_mean_ecal[*inode] << endl;
-	    trigger_nodes_fired[bin-1]++;
-	    hrate_vs_threshold_logic_sums_ECAL->Fill( *inode, hrate_vs_threshold_ECAL->GetBinCenter(bin), weight );
-	    list_of_nodes_fired_vs_threshold_ECAL[bin].insert( *inode );
-	  }
+	// for( int bin=1; bin<=hrate_vs_threshold_ECAL->GetNbinsX(); bin++ ){
+	//   if( node_sums[*inode]/logic_mean_ecal[*inode] > hrate_vs_threshold_ECAL->GetBinCenter(bin) ){
+	//     //cout << "node above threshold, nphe, peak position = " << node_sums[*inode] << ", " << logic_mean_ecal[*inode] << endl;
+	//     trigger_nodes_fired[bin-1]++;
+	//     hrate_vs_threshold_logic_sums_ECAL->Fill( *inode, hrate_vs_threshold_ECAL->GetBinCenter(bin), weight );
+	//     list_of_nodes_fired_vs_threshold_ECAL[bin].insert( *inode );
+	//   }
+
+	  
+	// }
+
+	if( node_sums[*inode]/logic_mean_ecal[*inode] > ECAL_threshold ){
+	  ntrig_ECAL_nominal_threshold++;
 	}
 
-	for( int bin=1; bin<=hrate_vs_fixed_energy_threshold_ECAL->GetNbinsX(); bin++ ){
-	  if( node_sums[*inode]/752.2 >= hrate_vs_fixed_energy_threshold_ECAL->GetBinCenter(bin) ){
-	    trigger_nodes_fired_vs_E[bin-1]++;
-	  }
-	}
+	// for( int bin=1; bin<=hrate_vs_fixed_energy_threshold_ECAL->GetNbinsX(); bin++ ){
+	//   if( node_sums[*inode]/752.2 >= hrate_vs_fixed_energy_threshold_ECAL->GetBinCenter(bin) ){
+	//     trigger_nodes_fired_vs_E[bin-1]++;
+	//   }
+	// }
       
 	if( node_sums[*inode] > maxsum_ECAL ) {
 	  maxsum_ECAL = node_sums[*inode];
@@ -566,25 +672,25 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
 	//if( node_sums[*inode] > 0.0 ) hnphesum_vs_node_ECAL_all->Fill( *inode, node_sums[*inode], weight );
       }
 
-      for( int ithr=0; ithr<trigger_nodes_fired.size(); ithr++ ){
-	if( trigger_nodes_fired[ithr] > 0 ){
-	  double threshold = hrate_vs_threshold_ECAL->GetBinCenter( ithr + 1 );
-	  hrate_vs_threshold_ECAL->Fill( threshold, weight );
-	  hNnodes_fired_ECAL_vs_threshold->Fill( threshold, trigger_nodes_fired[ithr], weight );
-	  //for( set<int>::iterator inode = list_of_nodes_fired_vs_threshold_ECAL[ithr+1].begin(); inode != list_of_nodes_fired_vs_threshold_ECAL[ithr+1].end(); ++inode ){
-	  //  for( set<int>::iterator jnode = inode; jnode != list_of_nodes_fired_vs_threshold_ECAL[ithr+1].end(); ++jnode ){
-	  //    hrates_overlap_ECAL->Fill( *inode, *jnode, threshold, weight );
-	  //  }
-	  //}
-	}
-      }
+      // for( int ithr=0; ithr<trigger_nodes_fired.size(); ithr++ ){
+      // 	if( trigger_nodes_fired[ithr] > 0 ){
+      // 	  double threshold = hrate_vs_threshold_ECAL->GetBinCenter( ithr + 1 );
+      // 	  hrate_vs_threshold_ECAL->Fill( threshold, weight );
+      // 	  hNnodes_fired_ECAL_vs_threshold->Fill( threshold, trigger_nodes_fired[ithr], weight );
+      // 	  //for( set<int>::iterator inode = list_of_nodes_fired_vs_threshold_ECAL[ithr+1].begin(); inode != list_of_nodes_fired_vs_threshold_ECAL[ithr+1].end(); ++inode ){
+      // 	  //  for( set<int>::iterator jnode = inode; jnode != list_of_nodes_fired_vs_threshold_ECAL[ithr+1].end(); ++jnode ){
+      // 	  //    hrates_overlap_ECAL->Fill( *inode, *jnode, threshold, weight );
+      // 	  //  }
+      // 	  //}
+      // 	}
+      // }
 
-      for( int ithr=0; ithr<trigger_nodes_fired_vs_E.size(); ithr++ ){
-	if( trigger_nodes_fired_vs_E[ithr] > 0 ){
-	  double threshold = hrate_vs_fixed_energy_threshold_ECAL->GetBinCenter(ithr+1);
-	  hrate_vs_fixed_energy_threshold_ECAL->Fill( threshold, weight );
-	}
-      }
+      // for( int ithr=0; ithr<trigger_nodes_fired_vs_E.size(); ithr++ ){
+      // 	if( trigger_nodes_fired_vs_E[ithr] > 0 ){
+      // 	  double threshold = hrate_vs_fixed_energy_threshold_ECAL->GetBinCenter(ithr+1);
+      // 	  hrate_vs_fixed_energy_threshold_ECAL->Fill( threshold, weight );
+      // 	}
+      // }
     
       map<int,double> node_sums_hcal;
       for( set<int>::iterator inode = list_of_nodes_hcal.begin(); inode != list_of_nodes_hcal.end(); ++inode ){
@@ -630,99 +736,178 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
 	}
       }
     
-      vector<int> trigger_nodes_fired_hcal(hrate_vs_threshold_HCAL->GetNbinsX());
-      vector<int> trigger_nodes_fired_vs_E_hcal(hrate_vs_threshold_HCAL->GetNbinsX());
-      map<int, set<int> > list_of_nodes_fired_vs_threshold_HCAL; //mapping between threshold bins and list of fired HCAL nodes:
+      // vector<int> trigger_nodes_fired_hcal(hrate_vs_threshold_HCAL->GetNbinsX());
+      // vector<int> trigger_nodes_fired_vs_E_hcal(hrate_vs_threshold_HCAL->GetNbinsX());
+      // map<int, set<int> > list_of_nodes_fired_vs_threshold_HCAL; //mapping between threshold bins and list of fired HCAL nodes:
     
-      for( int ithr=0; ithr<hrate_vs_threshold_HCAL->GetNbinsX(); ithr++ ){
-	trigger_nodes_fired_hcal[ithr] = 0;
-	trigger_nodes_fired_vs_E_hcal[ithr] = 0;
-      }
+      // for( int ithr=0; ithr<hrate_vs_threshold_HCAL->GetNbinsX(); ithr++ ){
+      // 	trigger_nodes_fired_hcal[ithr] = 0;
+      // 	trigger_nodes_fired_vs_E_hcal[ithr] = 0;
+      // }
 
-      vector<int> coin_trigger_fired( hrate_vs_threshold_HCAL->GetNbinsX()*hrate_vs_threshold_ECAL->GetNbinsX() );
-      for( int ithr=0; ithr<coin_trigger_fired.size(); ithr++ ){
-	coin_trigger_fired[ithr] = 0;
-      }
+      // vector<int> coin_trigger_fired( hrate_vs_threshold_HCAL->GetNbinsX()*hrate_vs_threshold_ECAL->GetNbinsX() );
+      // for( int ithr=0; ithr<coin_trigger_fired.size(); ithr++ ){
+      // 	coin_trigger_fired[ithr] = 0;
+      // }
 
-      map<int,vector<int> > ECAL_nodes_fired_count; //count the number of ECAL nodes associated with each HCAL node that fire in this event, regardless of
+      //map<int,vector<int> > ECAL_nodes_fired_count; //count the number of ECAL nodes associated with each HCAL node that fire in this event, regardless of
       // whether HCAL fires, as a function of ECAL threshold
-    
+
+      map<int,int> ECAL_nodes_fired_count;
+
+      bool any_real_coin = false;
+      
       for( set<int>::iterator inode = list_of_nodes_hcal.begin(); inode != list_of_nodes_hcal.end(); ++inode ){
-	for( int bin=1; bin<=hrate_vs_threshold_HCAL->GetNbinsX(); bin++ ){
-	  if( node_sums_hcal[*inode]/logic_mean_hcal[*inode] > hrate_vs_threshold_HCAL->GetBinCenter(bin) ){
-	    trigger_nodes_fired_hcal[bin-1]++;
-	    hrate_vs_threshold_logic_sums_HCAL->Fill( *inode, hrate_vs_threshold_HCAL->GetBinCenter(bin), weight );
-	    //bool anycoin_hcal = false;
+	// for( int bin=1; bin<=hrate_vs_threshold_HCAL->GetNbinsX(); bin++ ){
+	//   if( node_sums_hcal[*inode]/logic_mean_hcal[*inode] > hrate_vs_threshold_HCAL->GetBinCenter(bin) ){
+	//     trigger_nodes_fired_hcal[bin-1]++;
+	//     hrate_vs_threshold_logic_sums_HCAL->Fill( *inode, hrate_vs_threshold_HCAL->GetBinCenter(bin), weight );
+	//     //bool anycoin_hcal = false;
 
-	    list_of_nodes_fired_vs_threshold_HCAL[bin].insert( *inode );
+	//     list_of_nodes_fired_vs_threshold_HCAL[bin].insert( *inode );
+	//   }
+
 	  
-	    for( set<int>::iterator enode = ECAL_nodes_HCAL[*inode].begin(); enode != ECAL_nodes_HCAL[*inode].end(); ++enode ){
-	      for( int ebin=1; ebin<=hrate_vs_threshold_ECAL->GetNbinsX(); ebin++ ){ //check ECAL sums:
-		if( node_sums[ *enode ]/logic_mean_ecal[*enode] > hrate_vs_threshold_ECAL->GetBinCenter(ebin) ){ //this ECAL sum fired:
-		  coin_trigger_fired[ (ebin-1) + (bin-1)*hrate_vs_threshold_ECAL->GetNbinsX() ]++;
-		  //anycoin_hcal = true;
-		}
-	      }
-	    } 
-	  }
 
-	  if( node_sums_hcal[*inode]/logic_mean_hcal[*inode]*6.4 >= hrate_vs_fixed_energy_threshold_HCAL->GetBinCenter(bin) ){
-	    trigger_nodes_fired_vs_E_hcal[bin-1]++;
-	  }
+	//   if( node_sums_hcal[*inode]/logic_mean_hcal[*inode]*6.4 >= hrate_vs_fixed_energy_threshold_HCAL->GetBinCenter(bin) ){
+	//     trigger_nodes_fired_vs_E_hcal[bin-1]++;
+	//   }
+	// }
+
+	if( node_sums_hcal[*inode]/logic_mean_hcal[*inode] > HCAL_threshold ){
+	  ntrig_HCAL_nominal_threshold++;
+	  hrate_HCAL_vs_HCAL_logic_sum->Fill( *inode, weight );
 	}
+
+	ECAL_nodes_fired_count[*inode] = 0;
+	
+	for( set<int>::iterator enode = ECAL_nodes_HCAL[*inode].begin(); enode != ECAL_nodes_HCAL[*inode].end(); ++enode ){
+	  
+	  //for( int ebin=1; ebin<=hrate_vs_threshold_ECAL->GetNbinsX(); ebin++ ){ //check ECAL sums:
+	  if( node_sums[ *enode ]/logic_mean_ecal[*enode] > ECAL_threshold ){ //this ECAL sum fired:
+	    //coin_trigger_fired[ (ebin-1) + (bin-1)*hrate_vs_threshold_ECAL->GetNbinsX() ]++;
+	    //anycoin_hcal = true;
+	    ECAL_nodes_fired_count[*inode]++;
+	  }
+	 
+	}
+
 	if( node_sums_hcal[*inode] > maxsum_HCAL ) {
 	  maxsum_HCAL = node_sums_hcal[*inode];
 	  maxnode_HCAL = *inode;
 	}
 
-	ECAL_nodes_fired_count[*inode].resize( hrate_vs_threshold_ECAL->GetNbinsX() );
-	for( int ebin=1; ebin<=hrate_vs_threshold_ECAL->GetNbinsX(); ebin++ ){
-	  ECAL_nodes_fired_count[*inode][ebin-1] = 0;
-	  for( set<int>::iterator enode = ECAL_nodes_HCAL[*inode].begin(); enode != ECAL_nodes_HCAL[*inode].end(); ++enode ){
-	    if( node_sums[*enode]/logic_mean_ecal[*enode] > hrate_vs_threshold_ECAL->GetBinCenter(ebin) ){
-	      ECAL_nodes_fired_count[*inode][ebin-1]++;
-	    }
+	//if( node_sums_hcal[*inode] > HCAL_threshol
+	
+	if( ECAL_nodes_fired_count[*inode] > 0 ){
+	  hrate_ECAL_vs_HCAL_logic_sum->Fill( *inode, weight );
+	  if( node_sums_hcal[*inode]/logic_mean_hcal[*inode] > HCAL_threshold ){
+	    hrealcoin_rate_vs_HCAL_logic_sum->Fill( *inode, weight );
+	    any_real_coin = true;
+
 	  }
-	  //regardless of whether HCAL fired, compute rate in associated ECAL sums:
-	  if( ECAL_nodes_fired_count[*inode][ebin-1] > 0 ) hrate_E_vs_threshold_logic_sums_HCAL->Fill( *inode, hrate_vs_threshold_ECAL->GetBinCenter(ebin), weight );
 	}
+	
+	
+
+	// //ECAL_nodes_fired_count[*inode].resize( hrate_vs_threshold_ECAL->GetNbinsX() );
+	// for( int ebin=1; ebin<=hrate_vs_threshold_ECAL->GetNbinsX(); ebin++ ){
+	//   ECAL_nodes_fired_count[*inode][ebin-1] = 0;
+	//   for( set<int>::iterator enode = ECAL_nodes_HCAL[*inode].begin(); enode != ECAL_nodes_HCAL[*inode].end(); ++enode ){
+	//     if( node_sums[*enode]/logic_mean_ecal[*enode] > hrate_vs_threshold_ECAL->GetBinCenter(ebin) ){
+	//       ECAL_nodes_fired_count[*inode][ebin-1]++;
+	//     }
+	//   }
+	//   //regardless of whether HCAL fired, compute rate in associated ECAL sums:
+	//   if( ECAL_nodes_fired_count[*inode][ebin-1] > 0 ) hrate_E_vs_threshold_logic_sums_HCAL->Fill( *inode, hrate_vs_threshold_ECAL->GetBinCenter(ebin), weight );
+	// }
       
       }
-    
-      for( int ithr=0; ithr<coin_trigger_fired.size(); ithr++ ){
-	int bin_e = ithr%(hrate_vs_threshold_ECAL->GetNbinsX())+1;
-	int bin_h = ithr/(hrate_vs_threshold_HCAL->GetNbinsX())+1;
-	double thr_e = htrue_coincidence_rate_vs_threshold_ECAL_HCAL->GetYaxis()->GetBinCenter(bin_e);
-	double thr_h = htrue_coincidence_rate_vs_threshold_ECAL_HCAL->GetXaxis()->GetBinCenter(bin_h);
-	if( coin_trigger_fired[ithr] > 0 ){
-	  htrue_coincidence_rate_vs_threshold_ECAL_HCAL->Fill( thr_h, thr_e, weight );
-	}
-      }
-    
-      for( int ithr=0; ithr<trigger_nodes_fired_hcal.size(); ithr++ ){
-	double threshold = hrate_vs_threshold_HCAL->GetBinCenter( ithr + 1 );
-	if( trigger_nodes_fired_hcal[ithr] > 0 ){
-	  hrate_vs_threshold_HCAL->Fill( threshold, weight );
-	  hNnodes_fired_HCAL_vs_threshold->Fill( threshold, trigger_nodes_fired_hcal[ithr], weight );
 
-	  //for( set<int>::iterator inode = list_of_nodes_fired_vs_threshold_HCAL[ithr+1].begin(); inode != list_of_nodes_fired_vs_threshold_HCAL[ithr+1].end(); ++inode ){
-	  //  for( set<int>::iterator jnode = inode; jnode != list_of_nodes_fired_vs_threshold_HCAL[ithr+1].end(); ++jnode ){
-	    
-	  //    hrates_overlap_HCAL->Fill( *inode, *jnode, threshold, weight );
-	    
-	  //  }
-	  //}
-	}
-	if( node_sums_hcal[ maxnode_HCAL ]/logic_mean_hcal[maxnode_HCAL] >= threshold ){
-	  hrate_vs_threshold_logic_sums_HCALmax->Fill( maxnode_HCAL, threshold, weight );
-	}
-	if( trigger_nodes_fired_vs_E_hcal[ithr] > 0 ){
-	  hrate_vs_fixed_energy_threshold_HCAL->Fill( hrate_vs_fixed_energy_threshold_HCAL->GetBinCenter( ithr+1 ), weight );
-	}
+      //if( maxsum_HCAL > HCAL_threshold && maxsum_ECAL > ECAL_threshold ){
+      if( any_real_coin ){
+	real_coin_total_rate += weight;
+	real_coin_sum2 += pow(weight,2);
+	total_real_coin_events += 1.0;
       }
+      
+      // for( int ithr=0; ithr<coin_trigger_fired.size(); ithr++ ){
+      // 	int bin_e = ithr%(hrate_vs_threshold_ECAL->GetNbinsX())+1;
+      // 	int bin_h = ithr/(hrate_vs_threshold_HCAL->GetNbinsX())+1;
+      // 	double thr_e = htrue_coincidence_rate_vs_threshold_ECAL_HCAL->GetYaxis()->GetBinCenter(bin_e);
+      // 	double thr_h = htrue_coincidence_rate_vs_threshold_ECAL_HCAL->GetXaxis()->GetBinCenter(bin_h);
+      // 	if( coin_trigger_fired[ithr] > 0 ){
+      // 	  htrue_coincidence_rate_vs_threshold_ECAL_HCAL->Fill( thr_h, thr_e, weight );
+      // 	}
+      // }
+
+      hNnodes_HCAL_nominal_threshold->Fill( ntrig_HCAL_nominal_threshold );
+      hNnodes_ECAL_nominal_threshold->Fill( ntrig_ECAL_nominal_threshold );
+      
+      // for( int ithr=0; ithr<trigger_nodes_fired_hcal.size(); ithr++ ){
+      // 	double threshold = hrate_vs_threshold_HCAL->GetBinCenter( ithr + 1 );
+      // 	if( trigger_nodes_fired_hcal[ithr] > 0 ){
+      // 	  hrate_vs_threshold_HCAL->Fill( threshold, weight );
+      // 	  hNnodes_fired_HCAL_vs_threshold->Fill( threshold, trigger_nodes_fired_hcal[ithr], weight );
+
+      // 	  //for( set<int>::iterator inode = list_of_nodes_fired_vs_threshold_HCAL[ithr+1].begin(); inode != list_of_nodes_fired_vs_threshold_HCAL[ithr+1].end(); ++inode ){
+      // 	  //  for( set<int>::iterator jnode = inode; jnode != list_of_nodes_fired_vs_threshold_HCAL[ithr+1].end(); ++jnode ){
+	    
+      // 	  //    hrates_overlap_HCAL->Fill( *inode, *jnode, threshold, weight );
+	    
+      // 	  //  }
+      // 	  //}
+      // 	}
+      // 	if( node_sums_hcal[ maxnode_HCAL ]/logic_mean_hcal[maxnode_HCAL] >= threshold ){
+      // 	  hrate_vs_threshold_logic_sums_HCALmax->Fill( maxnode_HCAL, threshold, weight );
+      // 	}
+      // 	if( trigger_nodes_fired_vs_E_hcal[ithr] > 0 ){
+      // 	  hrate_vs_fixed_energy_threshold_HCAL->Fill( hrate_vs_fixed_energy_threshold_HCAL->GetBinCenter( ithr+1 ), weight );
+      // 	}
+      //}
     }
   }
 
+  double sum_accidental = 0.0;
+  double sum2_dacc = 0.0;
+  
+  double HCAL_avg_mult = hNnodes_HCAL_nominal_threshold->GetMean();
+  
+  for( int ih=1; ih<=list_of_nodes_hcal.size(); ih++ ){
+    double hrate = hrate_HCAL_vs_HCAL_logic_sum->GetBinContent(ih);
+    double erate = hrate_ECAL_vs_HCAL_logic_sum->GetBinContent(ih);
+
+    double dhrate = hrate_HCAL_vs_HCAL_logic_sum->GetBinError(ih);
+    double derate = hrate_ECAL_vs_HCAL_logic_sum->GetBinError(ih);
+    
+    double dt = 30.0e-9;
+
+    double rate_accidental = hrate*erate*dt;
+
+    haccidental_rate_vs_HCAL_logic_sum->SetBinContent( ih, rate_accidental );
+    if( rate_accidental > 0 ){
+      double drate_accidental = rate_accidental * sqrt(pow(derate/erate,2)+pow(dhrate/hrate,2));
+      
+      sum_accidental += rate_accidental;
+      
+      sum2_dacc += pow(drate_accidental,2);
+    }
+  }
+
+  cout << "Total accidental coincidence rate = " << sum_accidental/HCAL_avg_mult << " +/- "
+       << sqrt(sum2_dacc)/HCAL_avg_mult << endl;
+  
+  double realcoin_avg_weight = real_coin_total_rate / total_real_coin_events;
+  double realcoin_avg_weight2 = real_coin_sum2 / total_real_coin_events;
+
+  double realcoin_sigma_weight = sqrt(realcoin_avg_weight2 - pow(realcoin_avg_weight,2));
+
+  double sigavg_realcoin = realcoin_sigma_weight/sqrt(total_real_coin_events);
+
+  cout << "Total real coincidence rate = " << real_coin_total_rate << " +/- "
+       << real_coin_total_rate / sqrt(TMath::Max(1.0,total_real_coin_events) ) << endl;
+  
+  
   //Accidental rate analysis:
   //In each threshold bin, we sum over all HCAL
   
@@ -732,45 +917,45 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
   // single HCAL logic group as the rate in that group times the rate at which any associated ECAL logic group fires.
   // Then, we sum over all HCAL logic groups, and divide by the average HCAL trigger multiplicity per event.
 
-  TString nametemp;
+  // TString nametemp;
   
-  TH1D *htemp;
-  for( int ebin=1; ebin<=hrate_vs_threshold_ECAL->GetNbinsX(); ebin++ ){
-    double ethr = hrate_vs_threshold_ECAL->GetBinCenter(ebin);
+  // TH1D *htemp;
+  // for( int ebin=1; ebin<=hrate_vs_threshold_ECAL->GetNbinsX(); ebin++ ){
+  //   double ethr = hrate_vs_threshold_ECAL->GetBinCenter(ebin);
 
-    //Get average trigger multiplicity per event for ECAL:  
-    htemp = hNnodes_fired_ECAL_vs_threshold->ProjectionY( nametemp.Format("hNnodes_fired_ECAL_vs_threshold_py_xbin%d",ebin), ebin, ebin );
+  //   //Get average trigger multiplicity per event for ECAL:  
+  //   htemp = hNnodes_fired_ECAL_vs_threshold->ProjectionY( nametemp.Format("hNnodes_fired_ECAL_vs_threshold_py_xbin%d",ebin), ebin, ebin );
 
-    double ECAL_avg_multiplicity = htemp->GetMean();
-    cout << "Bin " << ebin << ", threshold = " << ethr << ", average trigger multiplicity = " << ECAL_avg_multiplicity << endl;
+  //   double ECAL_avg_multiplicity = htemp->GetMean();
+  //   cout << "Bin " << ebin << ", threshold = " << ethr << ", average trigger multiplicity = " << ECAL_avg_multiplicity << endl;
     
-    for( int hbin=1; hbin<=hrate_vs_threshold_HCAL->GetNbinsX(); hbin++ ){
-      double hthr = hrate_vs_threshold_HCAL->GetBinCenter(hbin);
+  //   for( int hbin=1; hbin<=hrate_vs_threshold_HCAL->GetNbinsX(); hbin++ ){
+  //     double hthr = hrate_vs_threshold_HCAL->GetBinCenter(hbin);
 
-      htemp = hNnodes_fired_HCAL_vs_threshold->ProjectionY( nametemp.Format("hNnodes_fired_HCAL_vs_threshold_py_xbin%d",hbin), hbin, hbin );
+  //     htemp = hNnodes_fired_HCAL_vs_threshold->ProjectionY( nametemp.Format("hNnodes_fired_HCAL_vs_threshold_py_xbin%d",hbin), hbin, hbin );
 
-      double HCAL_avg_multiplicity = htemp->GetMean();
+  //     double HCAL_avg_multiplicity = htemp->GetMean();
 
-      cout << "Bin " << hbin << ", threshold = " << hthr << ", average trigger multiplicity = "
-	   << HCAL_avg_multiplicity << endl;
+  //     cout << "Bin " << hbin << ", threshold = " << hthr << ", average trigger multiplicity = "
+  // 	   << HCAL_avg_multiplicity << endl;
       
-      double RealCoinRate = htrue_coincidence_rate_vs_threshold_ECAL_HCAL->GetBinContent( hbin, ebin );
-      //Now for these values of ECAL threshold and HCAL threshold, we want to sum over all HCAL and divide by
-      //average ECAL and HCAL trigger multiplicities:
-      double dt = 30.0e-9; //30 ns coin-time window:
-      double SumAccidentalRate = 0.0;
-      for( set<int>::iterator inode=list_of_nodes_hcal.begin(); inode != list_of_nodes_hcal.end(); inode++ ){
-  	double rate_H = hrate_vs_threshold_logic_sums_HCAL->GetBinContent( *inode, hbin );
-  	double rate_E = hrate_E_vs_threshold_logic_sums_HCAL->GetBinContent( *inode, ebin );
+  //     double RealCoinRate = htrue_coincidence_rate_vs_threshold_ECAL_HCAL->GetBinContent( hbin, ebin );
+  //     //Now for these values of ECAL threshold and HCAL threshold, we want to sum over all HCAL and divide by
+  //     //average ECAL and HCAL trigger multiplicities:
+  //     double dt = 30.0e-9; //30 ns coin-time window:
+  //     double SumAccidentalRate = 0.0;
+  //     for( set<int>::iterator inode=list_of_nodes_hcal.begin(); inode != list_of_nodes_hcal.end(); inode++ ){
+  // 	double rate_H = hrate_vs_threshold_logic_sums_HCAL->GetBinContent( *inode, hbin );
+  // 	double rate_E = hrate_E_vs_threshold_logic_sums_HCAL->GetBinContent( *inode, ebin );
 
-	if( rate_H > 0 && rate_E > 0 && HCAL_avg_multiplicity > 0. ){
-	  SumAccidentalRate += rate_H * rate_E * dt / HCAL_avg_multiplicity;
-	}
-      }
-      //The total coincidence rate includes real coincidences
-      haccidental_coincidence_rate_vs_threshold_ECAL_HCAL->SetBinContent( hbin, ebin, TMath::Max(0.0,SumAccidentalRate ));
-    }
-  }
+  // 	if( rate_H > 0 && rate_E > 0 && HCAL_avg_multiplicity > 0. ){
+  // 	  SumAccidentalRate += rate_H * rate_E * dt / HCAL_avg_multiplicity;
+  // 	}
+  //     }
+  //     //The total coincidence rate includes real coincidences
+  //     haccidental_coincidence_rate_vs_threshold_ECAL_HCAL->SetBinContent( hbin, ebin, TMath::Max(0.0,SumAccidentalRate ));
+  //   }
+  // }
   
  
   // TCanvas *c1 = new TCanvas("c1","c1",1200,900);

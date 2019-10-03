@@ -1549,7 +1549,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == TargPolMagnitudeCmd ){
     G4double pol = TargPolMagnitudeCmd->GetNewDoubleValue( newValue );
-    fdetcon->fTargetBuilder->SetTargPolMac( pol );
+    fdetcon->fTargetBuilder->SetTargPolMag( pol );
   }
   
   if( cmd == UseCerenkovCmd ){

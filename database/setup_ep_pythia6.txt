@@ -1,0 +1,11 @@
+../../output/gep_12GeV2_pythia6_PAC47/gep_pythia6_11GeV_proton_job1.root
+../../output/gep_12GeV2_pythia6_PAC47/gep_pythia6_11GeV_proton_job2.root
+../../output/gep_12GeV2_pythia6_PAC47/gep_pythia6_11GeV_proton_job3.root
+../../output/gep_12GeV2_pythia6_PAC47/gep_pythia6_11GeV_proton_job4.root
+../../output/gep_12GeV2_pythia6_PAC47/gep_pythia6_11GeV_proton_job5.root
+endlist
+optics database/SBS_optics_fitresult_optics_coeff_gep12.txt
+forward_optics database/SBS_optics_fitresult_forward_optics_coeff_gep12.txt
+ECAL_shower_profiles database/ECAL_shower_profiles_gep12.txt
+pythia_flag 1
+endconfig

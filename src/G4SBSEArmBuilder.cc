@@ -79,11 +79,12 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   G4double backGEM_depth = 11.59*cm;
   
   fCerDepth = 88.9*cm;
-  fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;
+  fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;//this shall be about right
   
   //NB: fBBCalDist now designates the distance to the shielding
-  fBBCaldist = fCerDist + fCerDepth + backGEM_depth;
-  fGEMDist   = fCerDist + fCerDepth + 0.5*backGEM_depth;
+  //fix: add an extra 1.136 in between the back of the GRINCH and the "GEM frame"
+  fBBCaldist = fCerDist + fCerDepth + 1.136*2.54 + backGEM_depth;
+  fGEMDist   = fCerDist + fCerDepth + 1.136*2.54 + 0.5*backGEM_depth;
   fGEMOption = 2;
   /**/
   fShieldOption = 1;
@@ -429,8 +430,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // GEM option 2
   double gemz_opt2[] = { 0.0*cm, gemdsep, 2.0*gemdsep, 3.0*gemdsep, fGEMDist};
-  double gemw_opt2[] = { 40.0*cm, 40.0*cm, 40.0*cm, 40.0*cm, 60.0*cm };
-  double gemh_opt2[] = { 150.0*cm, 150.0*cm, 150.0*cm, 150.0*cm, 200.0*cm };
+  double gemw_opt2[] = { 40.96*cm, 40.96*cm, 40.96*cm, 40.96*cm, 61.44*cm };
+  double gemh_opt2[] = { 153.6*cm, 153.6*cm, 153.6*cm, 153.6*cm, 204.8*cm };
 
   // GEM option 3
   double gemz_opt3[] = { 0.0*cm, gemdsep, gemdsep*2.0};
@@ -488,7 +489,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4double bbcal_box_height = 27*8.5*cm;
   G4double bbcal_box_width  = 2.0*37.0*cm;
   //G4double bbcal_box_depth  = (8.5+2.5+37.0)*cm;
-  G4double bbcal_box_depth  = (8.5+3.5*2.54+37.0)*cm;//8.89 cm (3.5") is the size of the gap between the PS and the SH
+  // space for optional shielding + steel plate + mu-metal + PS block + space for hodoscope + Shower blocks
+  G4double shielding_space = 3.75*2.54*cm;
+  G4double bbcal_box_depth  = shielding_space+(0.25*2.54 + 0.05 + 8.5 + 3.5*2.54 +37.0)*cm;//8.89 cm (3.5") is the size of the gap between the PS and the SH
 
   // Big Bite Calorimeter shielding.
   // 
@@ -499,26 +502,33 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //layers (including shielding)
   //NOTE: "SIDE" shielding never actually gets placed as coded; thus, ignore:
   G4double bbcal_total_thick=bbcal_box_depth;
-  G4double Al_thick = 10.0*cm;
+  G4double Al_thick = 9.5*cm;
   G4double SS_thick = 2.0*cm;
   // Default front plate: 0.25" steel + 0.5mm mu metal
+  //NO: the space for the shielding is available no matter what!!!
+  /*
   if( fShieldOption > 0 ){
-    bbcal_total_thick += 0.25*2.54*cm + 0.5*mm; //Steel + mu-metal
+    //bbcal_total_thick += 0.25*2.54*cm + 0.5*mm; //Steel + mu-metal
     switch( fShieldOption ){
     case 2: //"10 cm Al in front "
-      bbcal_total_thick += Al_thick;
+      //bbcal_total_thick += Al_thick;
       break;
     case 3: //"2 cm SS in front "
-      bbcal_total_thick += SS_thick;
+      //bbcal_total_thick += SS_thick;
       break;
     case 4: //"1 cm SS in front + 5cm Al in front "
       Al_thick /= 2.0;
       SS_thick /= 2.0;
-      bbcal_total_thick += Al_thick + SS_thick; 
+      //bbcal_total_thick += Al_thick + SS_thick; 
       break;
     default:
       break;
     }
+  }
+  */
+  if( fShieldOption==4 ){
+    Al_thick /= 2.0;
+    SS_thick /= 2.0;
   }
   
   //  G4double bbcal_shield_thick = 6.85*mm + 9.525*cm;
@@ -615,7 +625,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     default:  //do nothing here; no "extra" shielding:
       break;
     }
-
+    zpos_temp = -0.5*bbcal_total_thick+shielding_space;
     //Place front mu-metal foil and front steel plate?
     zpos_temp += bbcalfrontmufoil->GetZHalfLength();
     new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_front_mufoil_log, "bbcal_front_mufoil_phys", bbcal_mother_log, false, 0 );
@@ -624,7 +634,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     zpos_temp += bbcalfrontsteelplate->GetZHalfLength();
   }
   
-  //At this stage, zpos_temp = -bbcal_total_thick/2 + total shielding thickness!
+  //At this stage, zpos_temp = -bbcal_total_thick/2 + total shielding thickness! 
+  // NO: zpos_temp = -bbcal_total_thick/2+shielding_space+ front mu-metal foil and front steel plate thickness
 
   // **** BIGBITE PRESHOWER **** 
   // 2 columns, 27 rows
@@ -701,7 +712,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4int n_bbhodoslats = 90;
   for(int i_bbhslat = 0; i_bbhslat<n_bbhodoslats; i_bbhslat++){
     G4double y_slat = n_bbhodoslats*bbslat_section/2.0-(G4double(i_bbhslat)+0.5)*bbslat_section;
-    G4double z_slat = -bbhododepth/2.0-0.5*mm+0.217*2.54*cm+bbslat_section/2.0;
+    //G4double z_slat = -bbhododepth/2.0-0.5*mm+0.217*2.54*cm+bbslat_section/2.0;
+    G4double z_slat = 0.0;// in the middle -sound about right provided it is sandwiched between 2 honeycombs - which will add in later
     new G4PVPlacement( 0, G4ThreeVector(0, y_slat, z_slat), bbhodoslatlog, "bbhodoslatphys", bbhodolog, false, i_bbhslat );
     (BBHodoScintSD->detmap).Col[i_bbhslat] = 0;
     (BBHodoScintSD->detmap).Row[i_bbhslat] = i_bbhslat;
@@ -1055,10 +1067,15 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   G4SBSGrinch *grinch = new G4SBSGrinch(fDetCon);
   grinch->SetZOffset( detoffset + fCerDist );
-  grinch->SetCerDepth( fCerDepth);
-  grinch->BuildComponent(bbdetLog);
+  grinch->SetCerDepth( fCerDepth );
+  grinch->BuildComponent( bbdetLog );
   grinch->SetGrinchGas( fGRINCHgas );
-
+  
+  //Shielding for UVA GEM
+  G4Box *Shield_backgem_box = new G4Box("Shield_backgem_box", 0.5*65*cm, 0.5*210*cm, 0.5*2.54*cm);
+  G4LogicalVolume *Shield_backgem_log = new G4LogicalVolume(Shield_backgem_box, GetMaterial("CH2"), "Shield_backgem_log");//GetMaterial("CDET_Acrylic") ???
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fCerDist+fCerDepth+0.51*2.54*cm ), Shield_backgem_log, "", bbdetLog, false, 0, true);
+  
 }
 
 void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){

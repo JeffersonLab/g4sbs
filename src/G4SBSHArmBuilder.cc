@@ -152,39 +152,107 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     G4ThreeVector CH2_pos( ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * cos( -f48D48ang ) );
 
     new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
-
-    G4Box* CDetmother = new G4Box("CDetmother", 2.5*m/2.0, 3.0*m/2, depth_CDET/2.0);
-    G4LogicalVolume *CDetmother_log = new G4LogicalVolume( CDetmother, GetMaterial("Air"), "CDetmother_log" );
-
-    HArmRot->rotateY(180.0*deg);
     
-    //G4ThreeVector CDetmother_pos( ( fHCALdist-0.30*m ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-0.30*m ) * cos( -f48D48ang ) );
-    G4ThreeVector CDetmother_pos( -15.0*cm,  fHCALvertical_offset, fHCALdist-0.30*m );
-    CDetmother_pos.rotateY(-f48D48ang);
-    new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
+    bool cdet_ready = false;// can make it a command :)
+    if(cdet_ready){
+      G4Box* CDetmother = new G4Box("CDetmother", 2.5*m/2.0, 3.0*m/2, depth_CDET/2.0);
+      G4LogicalVolume *CDetmother_log = new G4LogicalVolume( CDetmother, GetMaterial("Air"), "CDetmother_log" );
+      
+      HArmRot->rotateY(180.0*deg);
+      
+      //G4ThreeVector CDetmother_pos( ( fHCALdist-0.30*m ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-0.30*m ) * cos( -f48D48ang ) );
+      G4ThreeVector CDetmother_pos( -15.0*cm,  fHCALvertical_offset, fHCALdist-0.30*m );
+      CDetmother_pos.rotateY(-f48D48ang);
+      new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
+      
+      G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
+      CH2_visatt->SetForceWireframe(true);
+      CH2_filter_log->SetVisAttributes(CH2_visatt);
+      
+      //G4VisAttributes* VisAtt = new G4VisAttributes( G4Colour(1, 1, 1) );
+      //VisAtt->SetForceWireframe(true);
+      //CDetmother_log->SetVisAttributes( VisAtt );
+      CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+      
+      G4double z0_CDET = -0.15*m;
+      G4double planes_hoffset = 0.84*m;
+      G4double planes_interdist = 1.0*cm;//20.0*cm;
+      
+      G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
+      CDet->SetArmName("Harm");
+      CDet->SetR0(fHCALdist + z0_CDET);
+      CDet->SetZ0(z0_CDET);
+      CDet->SetPlanesHOffset(planes_hoffset);
+      CDet->SetPlanesInterDistance(planes_interdist);
+      CDet->BuildComponent( CDetmother_log );
+      //MakeCDET( CDetmother_log, z0_CDET, planes_hoffset );
+    }else{
+      //build a "simple" veto with the old BIG HAND veto elements: 
+      //dimensions x, y, z = 180*15*5 cm^3 (or is it actually 72*6*2 ci ?) 
+      // 24 needed to cover HCAL (maybe 25 for extra coverage ?)
+      G4double VetoElemWidth = 72.0*2.54*cm;
+      G4double VetoElemHeight = 6.0*2.54*cm;
+      G4double VetoElemDepth = 2.0*2.54*cm;
+      G4double planes_interdist = 5.4*cm;//20.0*cm;
+      G4int Nplanes = 2;
+      G4int Nelem = 24;
+      
+      G4Box* VetoMotherBox = new G4Box("VetoMotherBox", VetoElemWidth/2.0, Nelem*VetoElemHeight/2.0, (Nplanes*VetoElemDepth+(Nplanes-1)*planes_interdist)/2.0);
+      G4LogicalVolume* VetoMotherLog = new G4LogicalVolume(VetoMotherBox, GetMaterial("Air"), "VetoMotherLog");
 
-    G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
-    CH2_visatt->SetForceWireframe(true);
-    CH2_filter_log->SetVisAttributes(CH2_visatt);
-    
-    //G4VisAttributes* VisAtt = new G4VisAttributes( G4Colour(1, 1, 1) );
-    //VisAtt->SetForceWireframe(true);
-    //CDetmother_log->SetVisAttributes( VisAtt );
-    CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
-
-    G4double z0_CDET = -0.15*m;
-    G4double planes_hoffset = 0.84*m;
-    G4double planes_interdist = 1.0*cm;//20.0*cm;
-    
-    G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
-    CDet->SetArmName("Harm");
-    CDet->SetR0(fHCALdist + z0_CDET);
-    CDet->SetZ0(z0_CDET);
-    CDet->SetPlanesHOffset(planes_hoffset);
-    CDet->SetPlanesInterDistance(planes_interdist);
-    CDet->BuildComponent( CDetmother_log );
-    //MakeCDET( CDetmother_log, z0_CDET, planes_hoffset );
-    
+      G4ThreeVector Veto_pos( ( fHCALdist-0.35*m+VetoMotherBox->GetZHalfLength() ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-0.35*m+VetoMotherBox->GetZHalfLength() ) * cos( -f48D48ang ) );
+      
+      new G4PVPlacement(HArmRot, Veto_pos, VetoMotherLog, "VetoMother_phys", worldlog, false, 0, false);
+      
+      G4double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
+      G4double mylar_air_sum = mylarthickness + airthickness;
+      
+      G4Box* VetoElemBox = new G4Box("VetoElemBox", VetoElemWidth/2.0, VetoElemHeight/2.0, VetoElemDepth/2.0);
+      //Let's do the wrap... assuming similar to BB calo blocks
+      G4LogicalVolume* VetoElemLog = new G4LogicalVolume(VetoElemBox, GetMaterial("Air"), "VetoElemLog");
+      
+      G4Box* MylarBoxHollow = new G4Box("MylarBoxHollow", VetoElemWidth/2.0, VetoElemHeight/2.0-mylarthickness, VetoElemDepth/2.0-mylarthickness);
+      G4SubtractionSolid* MylarWrap = new G4SubtractionSolid("MylarWrap", VetoElemBox, MylarBoxHollow, 0, G4ThreeVector(0.0, 0.0, 0.0));
+      
+      G4LogicalVolume *MylarWrapLog = new G4LogicalVolume( MylarWrap, GetMaterial("Mylar"), "MylarWrapLog" );
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), MylarWrapLog, "MylarWrapPhys", VetoElemLog, false, 0, true);
+      
+      G4Box* VetoScint = new G4Box("VetoScint", VetoElemWidth/2.0, VetoElemHeight/2.0-mylar_air_sum, VetoElemDepth/2.0-mylar_air_sum);
+      G4LogicalVolume *VetoScintLog = new G4LogicalVolume( VetoScint, GetMaterial("Acrylic"), "VetoScintLog" );
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), VetoScintLog, "VetoScintPhys", VetoElemLog, false, 0, true);
+      
+      G4String sdname = "Harm/Veto_Scint";
+      G4String collname = "Veto_ScintHitsCollection";
+      
+      G4SBSCalSD *veto_scint_sd = NULL;
+      
+      if( !( veto_scint_sd = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector( sdname ) ) ){
+	G4cout << "Adding Veto Scint sensitive detector to sdman..." << G4endl;
+	veto_scint_sd = new G4SBSCalSD( sdname, collname );
+	fDetCon->fSDman->AddNewDetector( veto_scint_sd );
+	(fDetCon->SDlist).insert( sdname );
+	fDetCon->SDtype[sdname] = kCAL;
+	(veto_scint_sd->detmap).depth = 1;
+	VetoScintLog->SetSensitiveDetector( veto_scint_sd );
+	
+	fDetCon->SetTimeWindowAndThreshold( sdname, 0.0*MeV, 50.0*ns );
+      }
+      
+      fDetCon->InsertSDboundaryVolume( VetoMotherLog->GetName(), sdname );
+      
+      for(int j = 0; j<Nplanes; j++){
+	for(int i = 0; i<Nelem; i++){
+	  G4ThreeVector ElemPos(0.0, ((-G4double(Nelem)+1)/2.0+i)*VetoElemHeight, (j-0.5)*(planes_interdist+VetoElemDepth) );//only works for NPlanes = 2....
+	  new G4PVPlacement(0, ElemPos, VetoElemLog, "VetoElemPhys", VetoMotherLog, false, Nelem*j+i, true);
+	}
+      }
+      	
+      VetoMotherLog->SetVisAttributes(G4VisAttributes::Invisible);
+      VetoElemLog->SetVisAttributes(G4VisAttributes::Invisible);
+      MylarWrapLog->SetVisAttributes(G4VisAttributes::Invisible);
+      VetoScintLog->SetVisAttributes(G4Colour(0.0, 1.0, 1.0, 1.0));
+      
+    }
     //Add a plate on the side of HCal
     
     double SideShield_Width = 1574.75*mm;

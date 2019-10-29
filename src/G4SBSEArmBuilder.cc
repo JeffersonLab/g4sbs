@@ -671,7 +671,16 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   zpos_temp += bbhododepth/2.0;
   //
-  G4Box *bbhodoslatbox = new G4Box("bbhodoslat", bbslat_length/2.0, bbslat_section/2.0, bbslat_section/2.0);
+  G4Box *bbhodoslatbox = new G4Box("bbhodoslatbox", bbslat_length/2.0, bbslat_section/2.0, bbslat_section/2.0);
+  /*
+  G4Box* mylarboxhollow = new G4Box("mylarboxhollow", bbslat_length/2.0, bbslat_section/2.0-mylarthickness, bbslat_section/2.0-mylarthickness);
+  G4SubtractionSolid* mylarwrap = new G4SubtractionSolid("mylarwrap", VetoElemBox, MylarBoxHollow, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  
+  G4LogicalVolume *mylarwrap_log = new G4LogicalVolume( MylarWrap, GetMaterial("Mylar"), "mylarwrap_log" );
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), MylarWrapLog, "mylarwrap_phys", VetoElemLog, false, 0, checkOL);
+   
+  G4Box *bbhodoscintbox = new G4Box("bbhodoscint", bbslat_length/2.0, bbslat_section/2.0-mylar_air_sum, bbslat_section/2.0-mylar_air_sum);
+  */
   G4LogicalVolume *bbhodoslatlog = new G4LogicalVolume( bbhodoslatbox, GetMaterial("BBHodo_Scinti"), "bbhodoslatlog" );
   bbhodoslatlog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
   

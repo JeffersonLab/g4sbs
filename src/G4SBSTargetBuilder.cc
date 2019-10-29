@@ -199,7 +199,7 @@ void G4SBSTargetBuilder::BuildCfoil(G4LogicalVolume *motherlog, G4RotationMatrix
 
 //This function is meant to build the "Standard" scattering chamber for GMn
 void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
-  G4bool ChkOverlaps = false;
+  G4bool ChkOverlaps = true;
   G4double inch = 2.54*cm;
   
   G4LogicalVolume *logicScatChamberTank =0;
@@ -485,7 +485,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   		    G4ThreeVector(SCRightSnoutWindowFrameDist*sin(SCRightSnoutAngle),
   				  0,
   				  SCRightSnoutWindowFrameDist*cos(SCRightSnoutAngle)), 
-  		    logicScatChamberRightSnoutWindowFrame, "SCRightSnoutWindow", worldlog, false, 0, ChkOverlaps);
+  		    logicScatChamberRightSnoutWindowFrame, "SCRightSnoutWindowFrame", worldlog, false, 0, ChkOverlaps);
   
 		    
   // Left snout opening:
@@ -631,7 +631,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 		    G4ThreeVector(SCLeftSnoutWindowFrameDist*sin(SCLeftSnoutAngle),
 				  SCLeftSnoutYOffset,
 				  SCLeftSnoutWindowFrameDist*cos(SCLeftSnoutAngle)), 
-		    logicScatChamberLeftSnoutWindowFrame, "SCLeftSnoutWindow", worldlog, false, 0, ChkOverlaps);
+		    logicScatChamberLeftSnoutWindowFrame, "SCLeftSnoutWindowFrame", worldlog, false, 0, ChkOverlaps);
   
   // Exit Beam Pipe:
   // Should come after left snout
@@ -688,6 +688,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   
   logicScatChamberFrontClamshell = 
     new G4LogicalVolume(solidSCFrontClamShell, GetMaterial("Aluminum"), "SCFrontClamshell_log");
+  //new G4LogicalVolume(solidSCFrontClam_0_ebps, GetMaterial("Aluminum"), "SCFrontClamshell_log");
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(90.0*deg);

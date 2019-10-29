@@ -240,6 +240,9 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalhoffsetCmd->SetGuidance("HCAL horizontal offset relative to SBS center line (+ = TOWARD beam line)");
   hcalhoffsetCmd->SetParameterName("dist", false);
 
+  CDetReadyCmd = new G4UIcmdWithABool("/g4sbs/cdetready",this);
+  CDetReadyCmd->SetGuidance("Will CDet be ready or not for the experiment");
+  CDetReadyCmd->SetParameterName("dist", false);
 
   lacdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/lacdist",this);
   lacdistCmd->SetGuidance("LAC distance");
@@ -1158,6 +1161,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fHArmBuilder->SetHCALHOffset(v);
     //fevgen->SetHCALDist(v);
     fIO->SetHcalHOffset(v);
+  }
+
+  if( cmd == CDetReadyCmd ){
+    G4bool v = CDetReadyCmd->GetNewBoolValue(newValue);
+    fdetcon->fHArmBuilder->SetCDetReady(v);
+    //fIO->SetCDetReady(v);
   }
 
   if( cmd == lacdistCmd ){

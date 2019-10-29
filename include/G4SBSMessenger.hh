@@ -107,6 +107,8 @@ private:
   G4UIcmdWithADoubleAndUnit *hcalvoffsetCmd;
   G4UIcmdWithADoubleAndUnit *hcalhoffsetCmd;
 
+  G4UIcmdWithABool *CDetReadyCmd;   //Cerenkov
+
   G4UIcmdWithADoubleAndUnit *lacdistCmd;
   G4UIcmdWithADoubleAndUnit *lacvoffsetCmd;
   G4UIcmdWithADoubleAndUnit *lachoffsetCmd;

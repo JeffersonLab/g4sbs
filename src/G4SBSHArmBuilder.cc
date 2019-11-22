@@ -4273,7 +4273,7 @@ void G4SBSHArmBuilder::MakeNeutronVeto(G4LogicalVolume* worldlog, G4double dist_
   G4double VetoElemHeight = 6.0*2.54*cm;
   G4double VetoElemDepth = 2.0*2.54*cm;
   G4double planes_interdist = 5.4*cm;//20.0*cm;
-  G4int Nplanes = 2;
+  G4int Nplanes = 1;
   G4int Nelem = 24;
  
   G4RotationMatrix *HArmRot = new G4RotationMatrix;
@@ -4324,7 +4324,8 @@ void G4SBSHArmBuilder::MakeNeutronVeto(G4LogicalVolume* worldlog, G4double dist_
       
   for(int j = 0; j<Nplanes; j++){
     for(int i = 0; i<Nelem; i++){
-      G4ThreeVector ElemPos(0.0, ((-G4double(Nelem)+1)/2.0+i)*VetoElemHeight, (j-0.5)*(planes_interdist+VetoElemDepth) );//only works for NPlanes = 2....
+      //G4ThreeVector ElemPos(0.0, ((-G4double(Nelem)+1)/2.0+i)*VetoElemHeight, (j-0.5)*(planes_interdist+VetoElemDepth) );//only works for NPlanes = 2....
+      G4ThreeVector ElemPos(0.0, ((-G4double(Nelem)+1)/2.0+i)*VetoElemHeight, 0.0);//only works for NPlanes = 1....
       new G4PVPlacement(0, ElemPos, VetoElemLog, "VetoElemPhys", VetoMotherLog, false, Nelem*j+i, checkOL);
     }
   }

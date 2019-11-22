@@ -165,7 +165,7 @@ void G4SBSBeamlineBuilder::MakeEntranceBeamline(G4LogicalVolume *worldlog){
 */
 
 void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
-  bool ChkOverlaps = true;
+  bool ChkOverlaps = false;
   //Define visualization attributes here:
   G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.3,0.3,0.3));
   G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
@@ -1116,7 +1116,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
 
 // GEp Beamline Construction --- following Sergey's Fortran code
 void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
-  bool ChkOverlaps = true;
+  bool ChkOverlaps = false;
   //Define visualization attributes here:
   G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.3,0.3,0.3));
   G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
@@ -1804,7 +1804,7 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
 
 // This is the beam line for GMn
 void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
-  bool ChkOverlaps = true;
+  bool ChkOverlaps = false;
   double swallrad = 1.143*m/2;
   double swallrad_inner = 1.041/2.0*m; 
   //EFuchey: 2017/02/14: change parameters for Standard scat chamber:

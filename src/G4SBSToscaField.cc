@@ -7,7 +7,7 @@
 
 #define MAXBUFF 1024
 
-G4SBSToscaField::G4SBSToscaField( const char *filename) 
+G4SBSToscaField::G4SBSToscaField( G4String filename) 
   : G4SBSMappedField( G4ThreeVector(), G4RotationMatrix(),  filename ) 
 {
   ReadField();    
@@ -151,12 +151,27 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
 void G4SBSToscaField::ReadField(){
   fBfield.clear();//initialize map to empty to avoid issues.
 
-  printf("G4SBSToscaField - Reading in field from %s\n", fFilename);
-  FILE *f = fopen(fFilename, "r");
+  printf("G4SBSToscaField - Reading in field from %s\n", fFilename.data());
+  FILE *f = fopen(fFilename.data(), "r");
 
-  if( !f ){
-    fprintf(stderr, "Error: %s Line %d, %s - File %s could not be opened\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename); 
-    exit(1);
+  if( f == NULL ){ //try prepending field map path name:
+    G4cout << "TOSCA field map not found..." << G4endl;
+    
+    const char *G4SBS_ENV_VAR = std::getenv("G4SBS");
+    
+    G4String prefix = G4SBS_ENV_VAR;
+    prefix += "/share/fieldmaps/";
+    
+    fFilename.prepend( prefix );
+    
+    G4cout << "Trying " << fFilename << G4endl;
+    
+    f = fopen( fFilename.data(), "r" );
+  
+    if( !f ){
+      fprintf(stderr, "Error: %s Line %d, %s - File %s could not be opened\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename.data()); 
+      exit(1);
+    }
   }
 
   double x,y,z, ang_x, ang_y, ang_z; //define angles relative to x, y and z axis for more flexibility in orientation of field
@@ -223,7 +238,7 @@ void G4SBSToscaField::ReadField(){
 
   while( dstring[0] != '0' ){
     if( !fgets(dstring, MAXBUFF, f) ){
-      fprintf(stderr, "Error: %s Line %d, %s - File %s has line too long (> %d)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename, MAXBUFF); 
+      fprintf(stderr, "Error: %s Line %d, %s - File %s has line too long (> %d)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename.data(), MAXBUFF); 
       exit(1);
     }
   }

@@ -3,8 +3,8 @@
 
 #define MAXBUFF 1024
 
-G4SBSBigBiteField::G4SBSBigBiteField(G4ThreeVector offset, G4RotationMatrix rm) 
-  : G4SBSMappedField( offset, rm, "map_696A.dat" ) {
+G4SBSBigBiteField::G4SBSBigBiteField(G4ThreeVector offset, G4RotationMatrix rm, G4String filename) 
+  : G4SBSMappedField( offset, rm, filename ) {
   ReadField();
 }
 
@@ -129,14 +129,30 @@ void G4SBSBigBiteField::GetFieldValue(const G4double Point[3],G4double *Bfield) 
 
 void G4SBSBigBiteField::ReadField(){
   printf("G4SBSBigBiteField - Reading in field\n");
-  FILE *f = fopen(fFilename, "r");
 
-  fBfield.clear();
+  FILE *f = fopen(fFilename.data(), "r");
 
-  if( !f ){
-    fprintf(stderr, "Error: %s Line %d, %s - File %s could not be opened\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename); 
-    exit(1);
+  if( f == NULL ){ //try prepending field map path name:
+    G4cout << "BigBite field map not found..." << G4endl;
+    
+    const char *G4SBS_ENV_VAR = std::getenv("G4SBS");
+
+    G4String prefix = G4SBS_ENV_VAR;
+    prefix += "/share/fieldmaps/";
+
+    fFilename.prepend( prefix );
+
+    G4cout << "Trying " << fFilename << G4endl;
+
+    f = fopen( fFilename.data(), "r" );
+
+    if( !f ){
+      fprintf(stderr, "Error: %s Line %d, %s - File %s could not be opened\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename.data() ); 
+      exit(1);
+    }
   }
+  
+  fBfield.clear();
 
 
   // First line should have 4 values with the size of the
@@ -176,7 +192,7 @@ void G4SBSBigBiteField::ReadField(){
 
   for( idx = 0; idx < nskip; idx++ ){
     if( !fgets(dstring, MAXBUFF, f) ){
-      fprintf(stderr, "Error: %s Line %d, %s - File %s has line too long (> %d)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename, MAXBUFF); 
+      fprintf(stderr, "Error: %s Line %d, %s - File %s has line too long (> %d)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename.data(), MAXBUFF); 
       exit(1);
     }
   }

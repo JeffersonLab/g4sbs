@@ -47,6 +47,11 @@ public:
 
   G4bool GetFlux() const { return fFlux; }
   void SetFlux(G4bool b){fFlux = b;}
+
+  G4ThreeVector GetTargPolDir() const { return fTargPolDir; }
+  G4double GetTargPolMag() const { return fTargPolMag; }
+  void SetTargPolDir( G4ThreeVector pdir ){ fTargPolDir = pdir.unit(); }
+  void SetTargPolMag( G4double pmag ){ fTargPolMag = pmag; }
   
 private:
   G4double fTargLen;
@@ -54,6 +59,10 @@ private:
   G4double fTargDiameter; //diameter of cryotarget
   G4ThreeVector fTargPos; //Note: fTargPos currently has no effect!
   G4ThreeVector fTargDir; //Note: fTargDir currently has no effect!
+
+  G4ThreeVector fTargPolDir; //direction of target polarization
+  G4double      fTargPolMag; //magnitude of target polarization.
+  
   int fSchamFlag;
 
   G4bool fFlux;

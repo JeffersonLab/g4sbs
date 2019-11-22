@@ -49,7 +49,7 @@ endif()
 
 
 include(CMakeMacroParseArguments)
-find_program(ROOTCINT_EXECUTABLE rootcint PATHS $ENV{ROOTSYS}/bin)
+find_program(ROOTCLING_EXECUTABLE rootcling PATHS $ENV{ROOTSYS}/bin)
 find_program(GENREFLEX_EXECUTABLE genreflex PATHS $ENV{ROOTSYS}/bin)
 find_package(GCCXML)
 
@@ -93,9 +93,9 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
       endif()
     endif()
   endforeach()
-  #---call rootcint------------------------------------------
+  #---call rootcling------------------------------------------
   add_custom_command(OUTPUT ${dictionary}.cxx ${dictionary}.h
-                     COMMAND ${ROOTCINT_EXECUTABLE} -cint -f  ${dictionary}.cxx 
+                     COMMAND ${ROOTCLING_EXECUTABLE} -cling -f  ${dictionary}.cxx 
                                           -c ${ARG_OPTIONS} ${includedirs} ${headerfiles} ${linkdefs} 
                      DEPENDS ${headerfiles} ${linkdefs})
 endfunction()

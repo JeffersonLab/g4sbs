@@ -7,15 +7,19 @@ March 11, 2016
 
 ## Requirements:
 
-- Geant4.9.6 (for 4.10 see geant44.10 branch)
-- cmake > 2.6
-- root 5.34
+- Geant4 version 10.1 or later
+- cmake >= 3.0
+- root 5.34 (root version 6 strongly recommended; ROOT 5 no longer actively supported at JLab)
 - python
 - git (optional)
+## For detailed documentation:
+See the documentation wiki in the Hall A homepage:
+
+https://hallaweb.jlab.org/wiki/index.php/Documentation_of_g4sbs#Documentation_of_g4sbs:_Overview
 
 ## Building and running G4SBS
 Build using the standard `cmake` facilities. CTEQ tables built in automatically for DIS
-If you would like to get on a mail notification list, contact Seamus (riordan@jlab.org)
+If you would like to get on a mail notification list, contact Andrew Puckett (andrew.puckett@uconn.edu)
 
 **IF YOU ARE DOING DEVELOPMENT, PLEASE DO NOT WORK IN THE master BRANCH**
 
@@ -23,7 +27,7 @@ You need the BigBite field map for this as well, which can be found
 
 http://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/map_696A.dat
 
-To build immediately after cloning (**not in g4sbs/**):
+To build immediately after cloning (**not in g4sbs/**), create a local "build" directory parallel to the source directory. You can run g4sbs directly in the build folder. 
 
 ```shell
 mkdir build

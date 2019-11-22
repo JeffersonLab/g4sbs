@@ -51,7 +51,7 @@ public:
   G4SBSMagneticField *Get48D48Field(){ return f48d48field; }
   G4SBSGlobalField *GetGlobalField(){ return fGlobalField; }
 
-  void SetBigBiteField(int n);
+  void SetBigBiteField(int n, G4String fname="map_696A.dat");
   void Set48D48Field(int n);
 
   void SetTotalAbs(bool b){ fTotalAbs= b; }

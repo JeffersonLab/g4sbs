@@ -38,6 +38,7 @@
 #include "G4ChordFinder.hh"
 #include "G4Mag_SpinEqRhs.hh"
 #include "G4ClassicalRK4.hh"
+#include "G4DormandPrince745.hh"
 #include "TString.h"
 
 #include "G4SystemOfUnits.hh"
@@ -534,6 +535,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   //in the event that global field is not used
   G4Mag_SpinEqRhs* fBMTequation = new G4Mag_SpinEqRhs(magField);
   G4MagIntegratorStepper *pStepper = new G4ClassicalRK4(fBMTequation,12);
+  //G4MagIntegratorStepper *pStepper = new G4DormandPrince745(fBMTequation,12);
   G4ChordFinder *cftemp = new G4ChordFinder(magField, 1.0e-2*mm, pStepper);
   
   bigfm->SetDetectorField(magField);

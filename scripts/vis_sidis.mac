@@ -1,4 +1,4 @@
-/control/execute scripts/sidis_template.mac
+/control/execute sidis_template.mac
 /g4sbs/kine sidis
 
 /g4sbs/uselead 0
@@ -7,19 +7,19 @@
 #/g4sbs/hcaldist 9.0 m
 #/g4sbs/bbdist 2.0 m
 
-/g4sbs/thmin 30 deg
-/g4sbs/thmax 30 deg
-/g4sbs/phmin 0 deg
-/g4sbs/phmax 0 deg
-/g4sbs/hthmin 14 deg
-/g4sbs/hthmax 14 deg
-/g4sbs/hphmin 180 deg
-/g4sbs/hphmax 180 deg
-/g4sbs/eemin 2.0 GeV
-/g4sbs/eemax 2.0 GeV
-/g4sbs/ehmin 4.0 GeV
-/g4sbs/ehmax 4.0 GeV
-/g4sbs/targlen 1.0 mm
+#/g4sbs/thmin 30 deg
+#/g4sbs/thmax 30 deg
+#/g4sbs/phmin 0 deg
+#/g4sbs/phmax 0 deg
+#/g4sbs/hthmin 14 deg
+#/g4sbs/hthmax 14 deg
+#/g4sbs/hphmin 180 deg
+#/g4sbs/hphmax 180 deg
+#/g4sbs/eemin 2.0 GeV
+#/g4sbs/eemax 2.0 GeV
+#/g4sbs/ehmin 4.0 GeV
+#/g4sbs/ehmax 4.0 GeV
+#/g4sbs/targlen 1.0 mm
 
 # Use this open statement to create an OpenGL view:
 /vis/open OGLI 800x800-0+0

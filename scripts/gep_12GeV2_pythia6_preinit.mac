@@ -1,2 +1,49 @@
-/g4sbs/usescint false
-/g4sbs/useckov false
+## Configure G4SBS for gep (Q^2 = 12 GeV^2)
+#/g4sbs/filename        gep_12GeV2.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gep
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         40.0 cm           ## Target Length
+
+## Configure generator settings
+#/g4sbs/kine            elastic           ## Generator
+/g4sbs/kine             pythia6
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         75.0 muA
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           11.0 GeV
+#/g4sbs/thmin           19.0 deg
+#/g4sbs/thmax           39.0 deg
+#/g4sbs/phmin           -50.0 deg
+#/g4sbs/phmax           50.0 deg
+/g4sbs/eemin        0.0 GeV
+/g4sbs/eemax       12.0 GeV
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        6.8 m
+/g4sbs/hcalvoffset     45.0 cm
+/g4sbs/sbsclampopt     2
+/g4sbs/uselead 	       1
+/g4sbs/beamlineconfig  1
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/tosfield        GEP_12map0_newheader.table
+/g4sbs/bbang           29.0 deg
+/g4sbs/bbdist          4.5 m
+/g4sbs/sbsang          16.9 deg
+/g4sbs/48D48dist       1.6 m
+
+## Run 100 events
+#/g4sbs/run             100
+/g4sbs/totalabs         true
+
+#/g4sbs/pythia6file /work/halla/sbs/puckett/PYTHIA6_MINBIAS_EVENTS/Ebeam11.0GeV/protontarget_job1.root
+#/g4sbs/eventstatusevery 100
+
+#/g4sbs/run      1000

@@ -1,0 +1,20 @@
+gep_12GeV2_elastic_20kevents.root
+gep_12GeV2_elastic_20kevents_job2.root
+gep_12GeV2_elastic_20kevents_job3.root
+gep_12GeV2_elastic_20kevents_job4.root
+gep_12GeV2_elastic_20kevents_job5.root
+gep_12GeV2_elastic_job1.root
+gep_12GeV2_elastic_job2.root
+endlist
+1.>0.
+endcut
+optics database/SBS_optics_fitresult_optics_coeff_gep12.txt
+forward_optics database/SBS_optics_fitresult_forward_optics_coeff_gep12.txt
+ECAL_shower_profiles database/ECAL_shower_profiles_gep12.txt
+pythia_flag 0
+ECAL_threshold 2.4
+dycut -1.2 3.2
+dxcut -2.8 2.9
+dpcut -0.026 0.026
+dEcut -0.2 0.15
+endconfig

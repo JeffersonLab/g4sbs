@@ -46,6 +46,7 @@
 
 #include "G4Mag_SpinEqRhs.hh"
 #include "G4ClassicalRK4.hh"
+#include "G4DormandPrince745.hh"
 
 #include "G4SBSCalSD.hh"
 #include "G4SBSGEMSD.hh"
@@ -2267,6 +2268,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   G4Mag_SpinEqRhs* fBMTequation = new G4Mag_SpinEqRhs(fGlobalField);
   G4MagIntegratorStepper *pStepper = new G4ClassicalRK4(fBMTequation,12);
+  //G4MagIntegratorStepper *pStepper = new G4DormandPrince745(fBMTequation,12);
   G4ChordFinder *cftemp = new G4ChordFinder(fGlobalField, 1.0e-2*mm, pStepper);
 
   fm->SetChordFinder(cftemp);
@@ -2368,14 +2370,14 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   return WorldPhys;
 }
 
-void G4SBSDetectorConstruction::SetBigBiteField(int n){
+void G4SBSDetectorConstruction::SetBigBiteField(int n, G4String fname){
   G4RotationMatrix rm;
 
   switch(n){
   case 1:
     rm.rotateY(-fEArmBuilder->fBBang); //rotation is negative about y for BB on beam left
 
-    fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fEArmBuilder->fBBdist),  rm );
+    fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fEArmBuilder->fBBdist),  rm, fname );
 
     fbbfield->fScaleFactor = fFieldScale_BB;
     fbbfield->fArm = kEarm;
@@ -2480,6 +2482,8 @@ void G4SBSDetectorConstruction::AddToscaField( const char *fn ) {
   
   fGlobalField->AddToscaField(fn); 
 
+  G4cout << "fGlobalField::AddToscaField done" << G4endl;
+  
   //When creating for the first time, initialize overall scale factor based on fFieldScale_SBS (defaults to 1, is overridden by messenger command).
   //f48d48field->fScaleFactor = fFieldScale_SBS;
   
@@ -2488,6 +2492,8 @@ void G4SBSDetectorConstruction::AddToscaField( const char *fn ) {
     fEArmBuilder->fUseLocalField = false;
     fHArmBuilder->fUseLocalField = false;
   }
+
+  G4cout << "fUseGlobalField set" << G4endl;
 
 }
 

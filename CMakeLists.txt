@@ -1,10 +1,39 @@
 #----------------------------------------------------------------------------
 # Setup the project
 #
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project(G4SBS)
 
+# Setup GNUInstallDirs for installation:
 #----------------------------------------------------------------------------
+include(GNUInstallDirs)
+#----------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------
+# The following lines are required so that the executable can dynamically locate the library dependencies independent of 
+# use, i.e. don't skip the full RPATH for the build tree
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_LIBDIR}")
+
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+
+# the RPATH to be used when installing, but only if it's not a system directory
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_LIBDIR}" isSystemDir)
+IF("${isSystemDir}" STREQUAL "-1")
+   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_LIBDIR}")
+ENDIF("${isSystemDir}" STREQUAL "-1")
+
+#----------------------------------------------------------------------------
+
+#
 # Force use of c++11 standard
 #
 set(CMAKE_CXX_STANDARD 11)
@@ -14,23 +43,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Setup Geant4 include directories and compile definitions
 # Setup include directory for this project
 #
-# Update header file
-add_custom_target( _gitinfo ALL COMMAND ${PROJECT_SOURCE_DIR}/pullgitinfo.py ${PROJECT_SOURCE_DIR} COMMENT "Creating gitinfo.hh" )
 
 
 #ROOT path
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+# commented out the following line so that this procedure will evolve with ROOT:
+# set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+# You need to tell CMake where to find the ROOT installation. This can be done in a number of ways:
+#   - ROOT built with classic configure/make use the provided $ROOTSYS/etc/cmake/FindROOT.cmake
+#   - ROOT built with CMake. Add in CMAKE_PREFIX_PATH the installation prefix for ROOT
+list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 find_package(ROOT REQUIRED)
+
+#---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
+include(${ROOT_USE_FILE})
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include)
-
-ROOT_GENERATE_DICTIONARY(
-    G4SBSDict                         # path to dictionary to generate
-    "include/G4SBSRunData.hh"         # list of classes to process
-    "include/G4SBSTextFile.hh"
-    LINKDEF "include/G4SBSLinkDef.h"  # ROOT linkDef file
-)
 
 
 #----------------------------------------------------------------------------
@@ -59,14 +87,23 @@ else()
 endif()
 
 include(${Geant4_USE_FILE})
+
+# Generate the dictionary for G4SBS classes deriving from TOb ject:
+ROOT_GENERATE_DICTIONARY(
+    G__g4sbsroot                   
+    G4SBSRunData.hh         
+    G4SBSTextFile.hh
+    OPTIONS -I${PROJECT_SOURCE_DIR}/include
+    LINKDEF "include/G4SBSLinkDef.h"  # ROOT linkDef file
+)
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
 add_library(sbscteq STATIC ${cteqsources} ${cteqheaders})
 SET_TARGET_PROPERTIES(sbscteq PROPERTIES COMPILE_FLAGS "-DCTEQ_TBL_PATH=\\\"${PROJECT_SOURCE_DIR}/cteq-tbls\\\"")
 
-add_executable(g4sbs g4sbs.cc ${sources} ${headers} G4SBSDict.cxx)
-add_library(g4sbsroot SHARED ${libsources} ${libheaders} G4SBSDict.cxx)
+add_executable(g4sbs g4sbs.cc ${sources} ${headers} G__g4sbsroot.cxx)
+add_library(g4sbsroot SHARED ${libsources} ${libheaders} G__g4sbsroot.cxx)
 
 target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
 target_link_libraries(g4sbsroot ${ROOT_LIBRARIES} )
@@ -81,7 +118,9 @@ endif()
 # Copy all scripts to the build directory, i.e. the directory in which we
 # build g4sbs. This is so that we can run the executable directly because it
 # relies on these scripts being in the current working directory.
-#
+# need to rework this so that these scripts get installed into a directory that is pointed to by an environment variable that will be set up by a shell script to be 
+# sourced to the user's environment.
+# both this and the following section copying the ROOT macros to the build directory are now basically obsolete: 
 set(G4SBS_SCRIPTS
   vis.mac
   run_example.mac
@@ -185,7 +224,8 @@ foreach(_macro ${G4SBS_ROOT_MACROS} )
 	       ${PROJECT_BINARY_DIR}/${_macro} COPYONLY )
 endforeach()
 
-configure_file( ${PROJECT_SOURCE_DIR}/rootlogon.C ${PROJECT_BINARY_DIR}/rootlogon.C )
+configure_file( ${PROJECT_SOURCE_DIR}/rootlogon_builddir.C ${PROJECT_BINARY_DIR}/rootlogon.C )
+configure_file( ${PROJECT_SOURCE_DIR}/rootlogon_install.C ${PROJECT_BINARY_DIR}/root_macros/rootlogon.C )
 
 set(DSS2007_GRIDS HLO.GRID HNLO.GRID KALO.GRID KNLO.GRID PILO.GRID PROLO.GRID PLO.GRID PNLO.GRID)
 
@@ -199,12 +239,64 @@ endforeach()
 #
 #add_custom_target(G4SBS DEPENDS g4sbs)
 
+# Update header file
+add_custom_target( _gitinfo ALL COMMAND ${PROJECT_SOURCE_DIR}/pullgitinfo.py ${PROJECT_SOURCE_DIR} COMMENT "Creating gitinfo.hh" )
+
+#add_custom_command( TARGET g4sbsroot PRE_BUILD COMMAND ${PROJECT_SOURCE_DIR}/pullgitinfo.py ${PROJECT_SOURCE_DIR} COMMENT "Creating gitinfo.hh")
+
 add_dependencies(g4sbs _gitinfo)
 add_dependencies(g4sbsroot _gitinfo)
 
-#----------------------------------------------------------------------------
+# copy environment setup script(s) for sh and csh to 
+configure_file( ${PROJECT_SOURCE_DIR}/g4sbs.sh ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.sh )
+configure_file( ${PROJECT_SOURCE_DIR}/g4sbs.csh ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.csh @ONLY)
+
+file(GLOB dss_grids ${PROJECT_SOURCE_DIR}/src/dss2007/*.GRID)
+
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/run_g4sbs_here)
+
+configure_file(${PROJECT_SOURCE_DIR}/g4sbs.rootrc ${CMAKE_CURRENT_BINARY_DIR}/.rootrc)
+
+
+
+#TODO: figure out how to get the ROOT_GENERATE_DICTIONARY command to do this automatically:
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot_rdict.pcm DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot.rootmap DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/G__g4sbsroot.cxx DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
-#
-install(TARGETS g4sbs DESTINATION bin)
+# 
 
+install(TARGETS g4sbs RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(TARGETS sbscteq ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(TARGETS g4sbsroot LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.sh DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.csh DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/scripts DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/root_macros DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/farmsub_scripts DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/integration_tests DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/database DESTINATION ${CMAKE_INSTALL_PREFIX}/run_g4sbs_here)
+#install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/run_g4sbs_here ${CMAKE_INSTALL_PREFIX})
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(FILES ${dss_grids} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/DSS2007_GRIDS)
+install(FILES ${PROJECT_SOURCE_DIR}/vis.mac ${PROJECT_SOURCE_DIR}/run_example.mac DESTINATION ${CMAKE_INSTALL_PREFIX}/scripts)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/.rootrc DESTINATION ${CMAKE_INSTALL_PREFIX}/run_g4sbs_here)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/root_macros/rootlogon.C DESTINATION ${CMAKE_INSTALL_PREFIX}/root_macros)
 
+option(INSTALL_SBS_FIELD_MAPS "Download and/or install field maps" OFF)
+if(INSTALL_SBS_FIELD_MAPS)
+  # configure download of field maps (BigBite, SBS GEP 12 GeV^2 TOSCA, GMN 13.5 GeV^2 TOSCA):
+  message("Downloading BigBite field map...")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/map_696A.dat ${CMAKE_CURRENT_BINARY_DIR}/map_696A.dat SHOW_PROGRESS)
+  message("Downloading SBS TOSCA map for GEP, 12 GeV^2")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEP_12map0_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GEP_12map0_newheader.table SHOW_PROGRESS)
+  message("Downloading SBS+BB TOSCA map for GMN, 13.5 GeV^2")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GMN13_field_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GMN13_field_newheader.table SHOW_PROGRESS)
+
+  message("Other field maps forthcoming... Anybody know how to get CMake to download files AFTER the configure step, during the build step?")
+
+  file(GLOB sbs_field_maps ${CMAKE_CURRENT_BINARY_DIR}/*.table ${CMAKE_CURRENT_BINARY_DIR}/map_696A.dat)
+
+  install(FILES ${sbs_field_maps} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/fieldmaps)
+endif()

@@ -100,7 +100,7 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   
   fDVCSECalMaterial = G4String("PbF2");
   
-  fbbfield =  NULL;
+  //  fbbfield =  NULL;
 
   fGRINCHgas = "C4F10_gas"; //default to C4F10;
   
@@ -342,19 +342,29 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 						  "bbfieldLog", 0, 0, 0);
 
 
-  fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fBBdist), *bbrm );
+  //NOTE that the invocation of the commented out command below can potentially cause
+  // G4SBSBigBiteField::ReadField() to
+  // be invoked twice in the same run. Not a big deal, but also not desirable behavior
+  // NOW BB field is only created ONCE when G4SBSDetectorConstruction::SetBigBiteField() is invoked.
+  // fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fBBdist), *bbrm, bbfieldmap_fname );
 
-  fbbfield->fInverted = fDetCon->fGlobalField->fInverted;
-  fbbfield->fScaleFactor = fDetCon->GetFieldScale_BB();
-  
-
-  G4FieldManager *bbfm = new G4FieldManager(fbbfield);
-  //new G4ChordFinder(fbbfield);
-  bbfm->SetDetectorField(fbbfield);
-  bbfm->CreateChordFinder(fbbfield);
-  
   if( fUseLocalField ){
-    bbmotherLog->SetFieldManager(bbfm,true);
+    G4SBSBigBiteField *bbfield = (G4SBSBigBiteField*) fDetCon->GetBBField();
+
+    if( bbfield ){
+  
+      bbfield->fInverted = fDetCon->fGlobalField->fInverted;
+      bbfield->fScaleFactor = fDetCon->GetFieldScale_BB();
+  
+
+      G4FieldManager *bbfm = new G4FieldManager(bbfield);
+      //new G4ChordFinder(fbbfield);
+      bbfm->SetDetectorField(bbfield);
+      bbfm->CreateChordFinder(bbfield);
+  
+  
+      bbmotherLog->SetFieldManager(bbfm,true);
+    }
   }
 
   //does this volume serve any purpose? Apparently not

@@ -32,10 +32,23 @@ DSS2007FF::DSS2007FF(){
   LoadInterpolationGrids();
 }
 
+void DSS2007FF::SetGridPath(string fn){ //Re-load interpolation grids when this method is invoked.
+  fgridpath = fn;
+  LoadInterpolationGrids();
+}
+
 void DSS2007FF::LoadInterpolationGrids(){ //Only leading order for now:
-  ifstream pilo("PILO.GRID");
-  ifstream kalo("KALO.GRID");
-  ifstream prolo("PROLO.GRID");
+
+  string fnamepi = fgridpath;
+  fnamepi += "/PILO.GRID";
+  string fnamek = fgridpath;
+  fnamek += "/KALO.GRID";
+  string fnamepro = fgridpath;
+  fnamepro += "/PROLO.GRID";
+  
+  ifstream pilo(fnamepi.c_str());
+  ifstream kalo(fnamek.c_str());
+  ifstream prolo(fnamepro.c_str());
   
   for(int ix=0; ix<Nx-1; ix++){
     for(int iq=0; iq<NQ; iq++){

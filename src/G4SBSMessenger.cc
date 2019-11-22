@@ -128,10 +128,19 @@ G4SBSMessenger::G4SBSMessenger(){
   bigfieldCmd->SetGuidance("0 = turn off SBS constant magnetic field, 1 = turn on SBS constant magnetic field");
   bigfieldCmd->SetParameterName("48d48field", false);
 
-  bbfieldCmd = new G4UIcmdWithAnInteger("/g4sbs/bbfield", this);
+  bbfieldCmd = new G4UIcommand("/g4sbs/bbfield", this);
   bbfieldCmd->SetGuidance("Turn on Bigbite field (requires field map)");
-  bbfieldCmd->SetParameterName("bbfield", false);
+  bbfieldCmd->SetGuidance("usage: /g4sbs/bbfield flag fname");
+  bbfieldCmd->SetGuidance("flag = 1/0 for on/off");
+  bbfieldCmd->SetGuidance("fname = field map file name (D = map_696A.dat)");
+  bbfieldCmd->SetParameter(new G4UIparameter("bbfield",'i', false) );
+  bbfieldCmd->SetParameter(new G4UIparameter("fname",'s', true) );
+  bbfieldCmd->GetParameter(1)->SetDefaultValue("map_696A.dat");
 
+  // bbfield_fnameCmd = new G4UIcmdWithAString("/g4sbs/bbfieldmapfname",this);
+  // bbfield_fnameCmd->SetGuidance("BigBite field map file name (if non-standard name/location)");
+  // bbfield_fnameCmd->SetParameterName("bbfieldfname",false);
+  
   tosfieldCmd = new G4UIcmdWithAString("/g4sbs/tosfield", this);
   tosfieldCmd->SetGuidance("Use SBS TOSCA field map from file");
   tosfieldCmd->SetParameterName("tosfield", false);
@@ -507,6 +516,19 @@ G4SBSMessenger::G4SBSMessenger(){
   FluxCmd = new G4UIcmdWithABool("/g4sbs/fluxcalc",this);
   FluxCmd->SetGuidance( "Compute particle flux as a function of angles, energy");
   FluxCmd->SetParameterName( "fluxcalc", false);  
+
+  TargPolDirectionCmd = new G4UIcmdWith3Vector("/g4sbs/targpoldirection", this );
+  TargPolDirectionCmd->SetGuidance("Set target polarization direction");
+  TargPolDirectionCmd->SetGuidance("Three-vector arguments are x,y,z components of polarization");
+  TargPolDirectionCmd->SetGuidance("Automatically converted to unit vector internally");
+  TargPolDirectionCmd->SetGuidance("Assumed to be given in global coordinate system");
+  TargPolDirectionCmd->SetParameterName("Px","Py","Pz",false);
+  
+  TargPolMagnitudeCmd = new G4UIcmdWithADouble("/g4sbs/targpolmag", this );
+  TargPolMagnitudeCmd->SetGuidance("Set target polarization magnitude");
+  TargPolMagnitudeCmd->SetGuidance("0 <= Ptarg <= 1");
+  TargPolMagnitudeCmd->SetParameterName("Ptgt",true);
+  TargPolMagnitudeCmd->SetDefaultValue(1.0);
   
   GunPolarizationCommand = new G4UIcmdWith3Vector( "/g4sbs/gunpol", this );
   GunPolarizationCommand->SetGuidance( "Set particle polarization for gun generator:" );
@@ -951,10 +973,17 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
 
   if( cmd == bbfieldCmd ){
-    G4int n = bbfieldCmd->GetNewIntValue(newValue);
-    fdetcon->SetBigBiteField(n);
-  }
+    std::istringstream is(newValue);
 
+    //G4int n = bbfieldCmd->GetNewIntValue(newValue);
+    G4int n;
+    G4String fname;
+
+    is >> n >> fname;
+    
+    fdetcon->SetBigBiteField(n, fname);
+  }
+  
   if( cmd == tosfieldCmd ){
     fdetcon->AddToscaField(newValue.data());
   }
@@ -1536,6 +1565,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4bool b = FluxCmd->GetNewBoolValue(newValue);
     fdetcon->fTargetBuilder->SetFlux(b);
     fIO->KeepPartCALflags["FLUX"] = b;
+  }
+
+  if( cmd == TargPolDirectionCmd ){
+    G4ThreeVector v = TargPolDirectionCmd->GetNew3VectorValue(newValue);
+    fdetcon->fTargetBuilder->SetTargPolDir( v.unit() );
+  }
+
+  if( cmd == TargPolMagnitudeCmd ){
+    G4double pol = TargPolMagnitudeCmd->GetNewDoubleValue( newValue );
+    fdetcon->fTargetBuilder->SetTargPolMag( pol );
   }
   
   if( cmd == UseCerenkovCmd ){

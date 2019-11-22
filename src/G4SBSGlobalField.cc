@@ -70,16 +70,19 @@ void G4SBSGlobalField::AddField( G4SBSMagneticField *f ){
 void G4SBSGlobalField::AddToscaField( const char *fn ){ 
   G4SBSToscaField *f = new G4SBSToscaField(fn);
 
+  G4String fname = f->GetFilename();
+  
   f->fArm = kHarm; //for now, a TOSCA field is always associated with "HARM". we may wish to change in the future.
     
   AddField(f);
   G4TransportationManager::GetTransportationManager()->GetFieldManager()->CreateChordFinder(this);
 
   G4SBSRunData *rd = G4SBSRun::GetRun()->GetData();
-  TMD5 *md5 = TMD5::FileChecksum(fn);
+  
+  TMD5 *md5 = TMD5::FileChecksum(fname.data());
   filedata_t fdata;
 
-  strcpy(fdata.filename, fn);
+  strcpy(fdata.filename, fname.data() );
   strcpy(fdata.hashsum, md5->AsString() );
 
   G4cout << "MD5 checksum " << md5->AsString() << G4endl;
@@ -87,7 +90,7 @@ void G4SBSGlobalField::AddToscaField( const char *fn ){
   delete md5;
 
   struct stat fs;
-  stat(fn, &fs);
+  stat(fname.data(), &fs);
   fdata.timestamp = TTimeStamp( fs.st_mtime );
 
   fdata.timestamp.Print();

@@ -35,12 +35,14 @@ public:
   void SetFTabsthick( G4double t ){ fFTabsthick = t; }
   void SetFTuseabsorber( G4bool b ){ fFTuseabsorber = b; }
   void SetFTabsmaterial( G4String s ){ fFTabsmaterial = s; }
+  void SetCDetReady( G4bool b ){fCDetReady = b;}
   
   void Make48D48(G4LogicalVolume*, double);
   void MakeSBSFieldClamps(G4LogicalVolume*);
   void MakeHCAL(G4LogicalVolume*, G4double);
   void MakeHCALV2(G4LogicalVolume*, G4double);
   void MakeCDET(G4LogicalVolume*, G4double, G4double);
+  void MakeNeutronVeto(G4LogicalVolume*, G4double);
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
   void MakeRICH(G4LogicalVolume *);
   void MakeRICH_new(G4LogicalVolume *);
@@ -74,6 +76,8 @@ public:
   double fFieldStrength;
   
   bool fBuildSBSSieve;
+
+  bool fCDetReady;
 
   G4String fRICHgas; //String defining
   G4bool   fRICH_use_aerogel; // Flag to use or not use aerogel

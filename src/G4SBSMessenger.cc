@@ -249,6 +249,9 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalhoffsetCmd->SetGuidance("HCAL horizontal offset relative to SBS center line (+ = TOWARD beam line)");
   hcalhoffsetCmd->SetParameterName("dist", false);
 
+  CDetReadyCmd = new G4UIcmdWithABool("/g4sbs/cdetready",this);
+  CDetReadyCmd->SetGuidance("Will CDet be ready or not for the experiment");
+  CDetReadyCmd->SetParameterName("dist", false);
 
   lacdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/lacdist",this);
   lacdistCmd->SetGuidance("LAC distance");
@@ -814,6 +817,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fExpType = kNDVCS;
       validcmd = true;
     }
+    if( newValue.compareTo("hcgem") == 0 ){
+      fExpType = kGEMHCtest;
+      validcmd = true;
+    }
 
     if( validcmd ){
       fdetcon->SetExpType( fExpType );
@@ -944,7 +951,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fdetcon->fTargetBuilder->SetTargDen(den);
       validcmd = true;
     }
+    if( newValue.compareTo("Cfoil") == 0 ){
+      fevgen->SetTarget(kCfoil);
+      fdetcon->SetTarget(kCfoil);
+      validcmd = true;
 
+    }
+    
     if( !validcmd ){
       fprintf(stderr, "%s: %s line %d - Error: target type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
       exit(1);
@@ -1115,10 +1128,14 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       gasname = "SF6_gas";
     } else if( gasname.index( "CO2" ) != gasname.npos ){
       gasname = "CO2";
+    } else if( gasname.index( "C4F8" ) != gasname.npos ){
+      gasname = "C4F8_gas";
     } else { //default to C4F10 if no valid name given:
       gasname = "C4F10_gas";
       G4cout << "WARNING: invalid GRINCH gas option, defaulting to C4F10" << G4endl;
     }
+    
+    G4cout << "GRINCH gas name = " << gasname << G4endl;
     
     fdetcon->fEArmBuilder->SetGRINCHgas( gasname );
   }
@@ -1142,6 +1159,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       gasname = "SF6_gas";
     } else if( gasname.index( "CO2" ) != gasname.npos ){
       gasname = "CO2";
+    } else if( gasname.index( "C4F8" ) != gasname.npos ){
+      gasname = "C4F8_gas";
     } else { //default to C4F10 if no valid name given:
       gasname = "C4F10_gas";
       G4cout << "WARNING: invalid GRINCH gas option, defaulting to C4F10" << G4endl;
@@ -1171,6 +1190,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fHArmBuilder->SetHCALHOffset(v);
     //fevgen->SetHCALDist(v);
     fIO->SetHcalHOffset(v);
+  }
+
+  if( cmd == CDetReadyCmd ){
+    G4bool v = CDetReadyCmd->GetNewBoolValue(newValue);
+    fdetcon->fHArmBuilder->SetCDetReady(v);
+    //fIO->SetCDetReady(v);
   }
 
   if( cmd == lacdistCmd ){

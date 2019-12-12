@@ -667,6 +667,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["Steel"] = Steel;
   fMaterialsMap["Stainless_Steel"] = Steel;
 
+  G4Material *Carbon = man->FindOrBuildMaterial("G4_GRAPHITE");
+  fMaterialsMap["Carbon"] = Carbon;
+  
+  
   //Need to define "QuartzWindow" *before* Aerogel because 
   //the Aerogel Material properties definition refers to Quartz Window:
 
@@ -786,7 +790,29 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   }
   
   fMaterialsMap["C4F10_gas"] = C4F10_gas;
+  
+  //EFuchey: 2019/08/15: Add C4F8
+  G4double den_C4F8 = 8.82*mg/cm3; 
+  G4Material *C4F8_gas = new G4Material( "C4F8_gas", den_C4F8, nel=2 );
+  
+  C4F8_gas->AddElement( C, natoms=4 );
+  C4F8_gas->AddElement( F, natoms=8 );
 
+  MPT_temp = new G4MaterialPropertiesTable();
+  const G4int nentries_C4F8 = 2;
+  G4double Ephoton_C4F8[nentries_C4F8] = { 1.95*eV, 5.00*eV };
+  G4double Rindex_C4F8[nentries_C4F8] = {1.00132, 1.00132};
+  G4double Abslength_C4F8[nentries_C4F8] = {100.0*m, 100.0*m};
+
+  MPT_temp->AddProperty("RINDEX", Ephoton_C4F8, Rindex_C4F8, nentries_C4F8 );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_C4F8, Abslength_C4F8, nentries_C4F8 );
+
+  if( fMaterialsListOpticalPhotonDisabled.find( "C4F8_gas" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    C4F8_gas->SetMaterialPropertiesTable( MPT_temp );
+  }
+  fMaterialsMap["C4F8_gas"] = C4F8_gas;
+   
+  
   //EFuchey: 2017/07/24: Add CF4, just in case we want to study it as an option for GRINCH
   G4double den_CF4 = 3.72*mg/cm3; 
   G4Material *CF4_gas = new G4Material( "CF4_gas", den_CF4, nel=2 );

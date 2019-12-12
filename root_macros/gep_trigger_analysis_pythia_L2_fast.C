@@ -110,40 +110,46 @@ void gep_trigger_analysis_pythia_L2_fast( const char *rootfilename, const char *
   
   while( (chEl=(TChainElement*)next() )){
     TFile newfile(chEl->GetTitle());
-    newfile.GetObject("run_data",rd);
-    TTree *Ttemp;
-    newfile.GetObject("T",Ttemp);
-    double sigtemp;
-    if( rd && Ttemp ){
-      ngen += rd->fNtries;
 
-      Rcal_file[chEl->GetTitle()] = rd->fBBdist;
-      thetacal_file[chEl->GetTitle()] = rd->fBBtheta;
-      LumiFile[chEl->GetTitle()] = rd->fLuminosity;
+    if( !newfile.TestBit(TFile::kRecovered) ){
+    
+      newfile.GetObject("run_data",rd);
+      TTree *Ttemp;
+      newfile.GetObject("T",Ttemp);
+      double sigtemp;
+      if( rd && Ttemp ){
+	ngen += rd->fNtries;
 
-      Lumi = rd->fLuminosity;
+	Rcal_file[chEl->GetTitle()] = rd->fBBdist;
+	thetacal_file[chEl->GetTitle()] = rd->fBBtheta;
+	LumiFile[chEl->GetTitle()] = rd->fLuminosity;
+
+	Lumi = rd->fLuminosity;
       
-      cout << "file " << chEl->GetTitle() << ", ngen=" << rd->fNtries << endl;
+	cout << "file " << chEl->GetTitle() << ", ngen=" << rd->fNtries << endl;
       
-      Ttemp->SetBranchAddress("primaries.Sigma",&sigtemp);
+	Ttemp->SetBranchAddress("primaries.Sigma",&sigtemp);
       
-      if( Ttemp->GetEntries() > 0 ){
+	if( Ttemp->GetEntries() > 0 ){
   
-	Ttemp->GetEntry(0);
+	  Ttemp->GetEntry(0);
 
-	if ( !isnan( sigtemp ) ){
-	  sigma_default = sigtemp;
-	  cout << "first event cross section = " << sigtemp << " cm^2" << endl;
-	} else {
-	  cout << "bad cross section!!!!" << endl;
+	  if ( !isnan( sigtemp ) ){
+	    sigma_default = sigtemp;
+	    cout << "first event cross section = " << sigtemp << " cm^2" << endl;
+	  } else {
+	    cout << "bad cross section!!!!" << endl;
+	  }
 	}
+
+	Ttemp->ResetBranchAddresses();
+
+	//      Ttemp->Delete();
+	//newfile.Close();
+	nfiles++;
+      } else {
+	bad_file_list.insert( chEl->GetTitle());
       }
-
-      Ttemp->ResetBranchAddresses();
-
-      //      Ttemp->Delete();
-      //newfile.Close();
-      nfiles++;
     } else {
       bad_file_list.insert( chEl->GetTitle());
       //newfile.Close();
@@ -323,8 +329,9 @@ void gep_trigger_analysis_pythia_L2_fast( const char *rootfilename, const char *
       // logic_mean_hcal[current_node] = 1229.0;
       // logic_sigma_hcal[current_node] = 309.0;
 
-      logic_mean_hcal[current_node] = 1141.5;
-      logic_sigma_hcal[current_node] = 356.25;
+      logic_mean_hcal[current_node] = 1198.62;
+      logic_sigma_hcal[current_node] = 346.348;
+      //logic_sigma_hcal[current_node] = 346.3;
       
       current_node++;
     }

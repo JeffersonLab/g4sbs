@@ -44,6 +44,46 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
   TChain *C = new TChain("T");
   C->Add(rootfilename);
 
+  C->SetBranchStatus("*",0);
+  C->SetBranchStatus("Harm.HCalScint.hit.nhits",1);
+  C->SetBranchStatus("Harm.HCalScint.hit.row",1);
+  C->SetBranchStatus("Harm.HCalScint.hit.col",1);
+  C->SetBranchStatus("Harm.HCalScint.hit.cell",1);
+  C->SetBranchStatus("Harm.HCalScint.hit.sumedep",1);
+
+  C->SetBranchStatus("Earm.ECalTF1.hit.nhits",1);
+  C->SetBranchStatus("Earm.ECalTF1.hit.row",1);
+  C->SetBranchStatus("Earm.ECalTF1.hit.col",1);
+  C->SetBranchStatus("Earm.ECalTF1.hit.cell",1);
+  C->SetBranchStatus("Earm.ECalTF1.hit.sumedep",1);
+  //T->SetBranchStatus("Harm.HCalScint.hit.nhits",1);
+  //T->SetBranchStatus("Harm.HCalScint.hit.nhits",1);
+
+  //  T->SetBranchStatus("*",0);
+  C->SetBranchStatus("Harm.HCal.hit.nhits",1);
+  C->SetBranchStatus("Harm.HCal.hit.row",1);
+  C->SetBranchStatus("Harm.HCal.hit.col",1);
+  C->SetBranchStatus("Harm.HCal.hit.PMT",1);
+  C->SetBranchStatus("Harm.HCal.hit.NumPhotoElectrons",1);
+
+  C->SetBranchStatus("Earm.ECAL.hit.nhits",1);
+  C->SetBranchStatus("Earm.ECAL.hit.row",1);
+  C->SetBranchStatus("Earm.ECAL.hit.col",1);
+  C->SetBranchStatus("Earm.ECAL.hit.PMT",1);
+  C->SetBranchStatus("Earm.ECAL.hit.NumPhotoElectrons",1);
+
+  C->SetBranchStatus("primaries.Sigma",1);
+  C->SetBranchStatus("primaries.Q2",1);
+  C->SetBranchStatus("primaries.W2",1);
+  C->SetBranchStatus("primaries.y",1);
+  C->SetBranchStatus("primaries.theta_e",1);
+  C->SetBranchStatus("primaries.xbj",1);
+  //C->SetBranchStatus("primaries.phi_e",1);
+  C->SetBranchStatus("Primaries.genflag",1);
+  C->SetBranchStatus("Primaries.PID",1);
+  C->SetBranchStatus("Primaries.P",1);
+  C->SetBranchStatus("Primaries.theta",1);
+  
   gep_pythia6_tree *T = new gep_pythia6_tree( C );
 
   G4SBSRunData *rd;
@@ -63,22 +103,51 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
   map<TString,double> LumiFile;
 
   double Lumi = 6.0e38;
+
+  double sigma_default=2.2769680e-30; //cm2, 11 GeV beam on proton target, minimum bias
   
   while( (chEl=(TChainElement*)next() )){
     TFile newfile(chEl->GetTitle());
-    newfile.GetObject("run_data",rd);
-    if( rd ){
-      ngen += rd->fNtries;
 
-      Rcal_file[chEl->GetTitle()] = rd->fBBdist;
-      thetacal_file[chEl->GetTitle()] = rd->fBBtheta;
-      LumiFile[chEl->GetTitle()] = rd->fLuminosity;
-
-      Lumi = rd->fLuminosity;
+    if( !newfile.TestBit(TFile::kRecovered) ){
+    
+      newfile.GetObject("run_data",rd);
       
-      cout << "file " << chEl->GetTitle() << ", ngen=" << rd->fNtries << endl;
+      TTree *Ttemp;
+      newfile.GetObject("T",Ttemp);
+      double sigtemp;
       
-      nfiles++;
+      if( rd && Ttemp ){
+	ngen += rd->fNtries;
+	
+	Rcal_file[chEl->GetTitle()] = rd->fBBdist;
+	thetacal_file[chEl->GetTitle()] = rd->fBBtheta;
+	LumiFile[chEl->GetTitle()] = rd->fLuminosity;
+	
+	Lumi = rd->fLuminosity;
+	
+	cout << "file " << chEl->GetTitle() << ", ngen=" << rd->fNtries << endl;
+	
+	Ttemp->SetBranchAddress("primaries.Sigma",&sigtemp);
+	
+	if( Ttemp->GetEntries() > 0 ){
+	  
+	  Ttemp->GetEntry(0);
+	  
+	  if ( !isnan( sigtemp ) ){
+	    sigma_default = sigtemp;
+	    cout << "first event cross section = " << sigtemp << " cm^2" << endl;
+	  } else {
+	    cout << "bad cross section!!!!" << endl;
+	  }
+	}
+	
+	Ttemp->ResetBranchAddresses();
+      
+	nfiles++;
+      } else {
+	bad_file_list.insert( chEl->GetTitle() );
+      }
     } else {
       bad_file_list.insert( chEl->GetTitle());
     }
@@ -255,8 +324,8 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
       // logic_mean_hcal[current_node] = 1229.0;
       // logic_sigma_hcal[current_node] = 309.0;
 
-      logic_mean_hcal[current_node] = 1141.5;
-      logic_sigma_hcal[current_node] = 356.25;
+      logic_mean_hcal[current_node] = 1198.62;
+      logic_sigma_hcal[current_node] = 346.348;
       
       current_node++;
     }
@@ -436,7 +505,11 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
       //cross section is given in mb: 1 mb = 1e-3 * 1e-24 = 1e-27 cm^2
       // if (pythia6flag != 0 ){
       //no longer true: cross section is now given in cm2
-      weight = Lumi * T->primaries_Sigma / double(ngen); //luminosity times cross section / number of events generated.
+      if( !isnan(T->primaries_Sigma) ){
+	weight = Lumi * T->primaries_Sigma / double(ngen); //luminosity times cross section / number of events generated.
+      } else {
+	weight = Lumi * sigma_default / double(ngen);
+      }
       // } else {
       //weight = T->ev_rate / double(nfiles);
       //}

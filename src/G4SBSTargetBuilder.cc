@@ -199,7 +199,7 @@ void G4SBSTargetBuilder::BuildCfoil(G4LogicalVolume *motherlog, G4RotationMatrix
 
 //This function is meant to build the "Standard" scattering chamber for GMn
 void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
-  G4bool ChkOverlaps = true;
+  G4bool ChkOverlaps = false;
   G4double inch = 2.54*cm;
   
   G4LogicalVolume *logicScatChamberTank =0;

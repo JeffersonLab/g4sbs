@@ -78,6 +78,9 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
 	MakeSIDISLead(worldlog);
       }
       break;
+    case(kGEMHCtest):// Hall C GEM test
+      MakeGMnBeamline(worldlog);
+      break;
     default:
       Make3HeBeamline(worldlog);
       break;
@@ -162,6 +165,7 @@ void G4SBSBeamlineBuilder::MakeEntranceBeamline(G4LogicalVolume *worldlog){
 */
 
 void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
+  bool ChkOverlaps = false;
   //Define visualization attributes here:
   G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.3,0.3,0.3));
   G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
@@ -220,8 +224,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   
   // Then place the vacuum inside the Iron Tube
   Z = z_conic_vacline_weldment + Thick/2.0;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_Flange1_vac_log, "CVLW_Flange1_vac_phys", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_Flange1_log, "CVLW_Flange1_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_Flange1_vac_log, "CVLW_Flange1_vac_phys", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_Flange1_log, "CVLW_Flange1_phys", worldlog, false, 0 , ChkOverlaps );
 
   //conic vacuum line weldment:
   //Thick = 3.50*m;
@@ -249,8 +253,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // Then place the vacuum inside the Iron Cone
   //Z = (159.51 + 2.13)*cm + pDz;
   Z = z_conic_vacline_weldment + 0.84*inch + Thick/2.0;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_vac_log, "CVLW_vac_phys", worldlog, false, 0);
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_log, "CVLW_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_vac_log, "CVLW_vac_phys", worldlog, false, 0 , ChkOverlaps);
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_log, "CVLW_phys", worldlog, false, 0 , ChkOverlaps );
 
   // Flange 2:
   Rin = 10.734/2.0*inch;
@@ -281,8 +285,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
 
   // Then place the vacuum inside the Iron Tube
   Z = z_welded_bellows - Thick/2.0;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_Flange2_vac_log, "CVLW_Flange2_vac_phys", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_Flange2_log, "CVLW_Flange2_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_Flange2_vac_log, "CVLW_Flange2_vac_phys", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_Flange2_log, "CVLW_Flange2_phys", worldlog, false, 0 , ChkOverlaps );
 
   //Next: "Welded bellows"
   G4double dz_welded_bellows = 207.144*inch - z_welded_bellows - TargetCenter_zoffset; // = =5.512 inches
@@ -297,10 +301,10 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   WB_Flange_log->SetVisAttributes( SteelColor );
     
   Z = z_welded_bellows + Thick/2.0;
-  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Flange_log, "WB_Flange1_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Flange_log, "WB_Flange1_phys", worldlog, false, 0 , ChkOverlaps );
 
   Z = z_welded_bellows + dz_welded_bellows - Thick/2.0;
-  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Flange_log, "WB_Flange2_phys", worldlog, false, 1 );
+  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Flange_log, "WB_Flange2_phys", worldlog, false, 1 , ChkOverlaps );
   
   Rout = Rin + 0.125*inch;
   Thick = dz_welded_bellows - 2*1.12*inch;
@@ -311,7 +315,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   
   Z = z_welded_bellows + 1.12*inch + Thick/2.0;
   
-  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Bellows_log, "WB_Bellows_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Bellows_log, "WB_Bellows_phys", worldlog, false, 0 , ChkOverlaps );
   
   Rin = 0.0;
   Rout = 11.750/2.0*inch;
@@ -324,7 +328,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   
   Z = z_welded_bellows + dz_welded_bellows/2.0;
 
-  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Vacuum_log, "WB_Vacuum_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Vacuum_log, "WB_Vacuum_phys", worldlog, false, 0 , ChkOverlaps );
   
   // // Here a bellow and we assign wall of 0.03 cm
   // tRmin = (0.5*27.62)*cm;
@@ -369,8 +373,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // Then place the vacuum inside the Al Tube
   //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54*0.5)*cm;
   Z = 207.144*inch + tDzz - TargetCenter_zoffset;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TVL9_log, "Extended_Vac1", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL9_log, "Extended_Al1", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TVL9_log, "Extended_Vac1", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL9_log, "Extended_Al1", worldlog, false, 0 , ChkOverlaps );
 
   tRmin = 0.5*24.0*2.54*cm;
   tRmax = 25.0*2.54*0.5*cm;
@@ -389,17 +393,18 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // Then place vacuum inside of Al tube
   //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54 + 0.5*217.0*2.54)*cm;
   Z = 207.144*inch + 41.0*inch + tDzz - TargetCenter_zoffset;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TMV9_log, "Extended_Vac2", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TMV9_log, "Extended_Vac2", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 , ChkOverlaps );
 
   // For CPU speed, extend vacuum all the way to the edge of the "world" volume, so that we don't track beam electrons in air beyond interesting region.
-  G4double Zstop = 50.0*m;
+  G4double Zstop = 30.0*m;
   G4double Zstart = Z + tDzz;
+  
   G4double Zwidth = (Zstop-Zstart);
   G4Tubs *FakeVacuumExtension = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
   G4LogicalVolume *FakeVacuumExtension_log = new G4LogicalVolume( FakeVacuumExtension, GetMaterial("Vacuum"), "FakeVacuumExtension_log" );
   FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,0.5*(Zstop+Zstart)), FakeVacuumExtension_log, "FakeVacuumExtension_phys", worldlog,false,0);
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0.5*(Zstop+Zstart)), FakeVacuumExtension_log, "FakeVacuumExtension_phys", worldlog,false,0 , ChkOverlaps);
 
   //-----------------------------------------------------
   //       magnetic tubes
@@ -460,7 +465,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   case(3):// reminder: beamline config 3 = GMn, all Q^2
     Ndivs = 3;
     
-    Rin_array.push_back( 3.774*inch/2.0 );
+    Rin_array.push_back( 3.7745*inch/2.0 );
     Rin_array.push_back( 4.307*inch/2.0 );
     Rin_array.push_back( 5.264*inch/2.0 );
     Rin_array.push_back( 7.905*inch/2.0 );
@@ -478,7 +483,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     Nrings_out.push_back( 27 );
     Nrings_out.push_back( 17 );
     
-    Rout_array.push_back( (3.774/2+0.38)*inch );
+    Rout_array.push_back( (3.7745/2+0.38)*inch );
     Rout_array.push_back( (4.392/2+0.38)*inch );
     Rout_array.push_back( (5.158/2+0.38)*inch );
     Rout_array.push_back( (8.012/2+0.38)*inch );
@@ -501,7 +506,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   case(4):// reminder: beamline config 4 = GMn, Q^2 = 13.5 GeV^2 (+calibrations)
     Ndivs = 2;
     
-    Rin_array.push_back( 3.774*inch/2.0 );
+    Rin_array.push_back( 3.7745*inch/2.0 );
     Rin_array.push_back( 6.096*inch/2.0 );
     Rin_array.push_back( 7.074*inch/2.0 );
     Rin_array.push_back( 9.609*inch/2.0 );
@@ -514,7 +519,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     Nrings_out.push_back( 23 );
     Nrings_out.push_back( 26 );
     
-    Rout_array.push_back( (3.774/2+0.38)*inch );
+    Rout_array.push_back( (3.7745/2+0.38)*inch );
     Rout_array.push_back( (6.202/2+0.38)*inch );
     Rout_array.push_back( (6.968/2+0.38)*inch );
     Rout_array.push_back( (9.715/2+0.38)*inch );
@@ -532,7 +537,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     break;
   default:// default: all elements built
     Ndivs = 1;
-    Rin_array.push_back( 3.774*inch/2.0 );
+    Rin_array.push_back( 3.7745*inch/2.0 );
     Rin_array.push_back( 10.923*inch/2.0 );
 
     Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch );
@@ -540,7 +545,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
 
     Nrings_out.push_back( 68 );
     
-    Rout_array.push_back( (3.774/2+0.38)*inch );
+    Rout_array.push_back( (3.7745/2+0.38)*inch );
     Rout_array.push_back( (10.923/2+0.38)*inch );
 
     Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch );
@@ -577,7 +582,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     
     name = cname;
     name += "_phys";
-    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), IM__log, name, worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), IM__log, name, worldlog, false, 0 , ChkOverlaps );
     
     // Building beamline shielding: outer elements
     G4double zmin = Zout_array[2*i];
@@ -608,7 +613,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       name += "_phys";
       
       Z = 0.5*(zstart + zstop);
-      new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), ring_log, name, worldlog, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), ring_log, name, worldlog, false, 0  , ChkOverlaps);
     }
   }
   
@@ -626,7 +631,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     SpoolPiece_vac_log->SetVisAttributes( Vacuum_visatt );
     
     Z = z_spool_piece + Thick/2.0;
-    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), SpoolPiece_vac_log, "SpoolPiece_vac_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), SpoolPiece_vac_log, "SpoolPiece_vac_phys", worldlog, false, 0 , ChkOverlaps );
     
     Rin = 3.76*inch/2.0;
     Rout = 6.00*inch/2.0;
@@ -638,7 +643,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     SpoolPiece_Flange1_log->SetVisAttributes( SteelColor );
     
     Z = z_spool_piece + Thick/2.0;
-    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), SpoolPiece_Flange1_log, "SpoolPiece_Flange1_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), SpoolPiece_Flange1_log, "SpoolPiece_Flange1_phys", worldlog, false, 0 , ChkOverlaps );
     
     Rout = 6.75*inch/2.0;
     Thick = 0.84*inch;
@@ -650,7 +655,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     
     Z = z_conic_vacline_weldment - Thick/2.0;
     
-    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), SpoolPiece_Flange2_log, "SpoolPiece_Flange2_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), SpoolPiece_Flange2_log, "SpoolPiece_Flange2_phys", worldlog, false, 0 , ChkOverlaps );
     
     Rout = 4.0*inch/2.0;
     Thick = dz_spool_piece - 2.0*0.84*inch;
@@ -663,7 +668,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     
     Z = z_spool_piece + dz_spool_piece/2.0;
     
-    new G4PVPlacement( 0,  G4ThreeVector( X, Y, Z ), SpoolPiece_tube_log, "SpoolPiece_tube_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0,  G4ThreeVector( X, Y, Z ), SpoolPiece_tube_log, "SpoolPiece_tube_phys", worldlog, false, 0 , ChkOverlaps );
     
     if(fDetCon->fBeamlineConf>1){
       Rin1 = 4.00*inch/2.0+0.02*inch;
@@ -676,7 +681,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       IM0_log->SetVisAttributes( ironColor );
       
       //Z = z_spool_piece + dz_spool_piece/2.0;
-      new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), IM0_log, "IM0_phys", worldlog, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), IM0_log, "IM0_phys", worldlog, false, 0 , ChkOverlaps );
       
       G4double zmin = z_spool_piece+0.84*inch+0.44*inch;
       G4double zmax = zmin + 13.0*OMthick + 12.0*OMspace;
@@ -701,7 +706,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
 	name += "_phys";
 	
 	Z = 0.5*(zstart + zstop);
-	new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), ring_log, name, worldlog, false, 0 );
+	new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), ring_log, name, worldlog, false, 0 , ChkOverlaps );
 	
       }
       
@@ -723,7 +728,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     
     Z = z_formed_bellows + Thick/2.0;
     
-    new G4PVPlacement(  0,  G4ThreeVector( X, Y, Z ), FormedBellows_vac_log, "FormedBellows_vac_phys", worldlog, false, 0 );
+    new G4PVPlacement(  0,  G4ThreeVector( X, Y, Z ), FormedBellows_vac_log, "FormedBellows_vac_phys", worldlog, false, 0 , ChkOverlaps );
     
     Rin = 3.81*inch/2.0;
     Rout = 6.00*inch/2.0;
@@ -737,11 +742,11 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     
     Z = z_formed_bellows + Thick/2.0;
     
-    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_Flange_log, "FormedBellows_Flange1_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_Flange_log, "FormedBellows_Flange1_phys", worldlog, false, 0 , ChkOverlaps );
     
     Z = z_formed_bellows + dz_formed_bellows - Thick/2.0;
     
-    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_Flange_log, "FormedBellows_Flange2_phys", worldlog, false, 1 );
+    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_Flange_log, "FormedBellows_Flange2_phys", worldlog, false, 1 , ChkOverlaps );
     
     //Tube for formed bellows:
     
@@ -755,7 +760,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   
     Z = z_formed_bellows + dz_formed_bellows/2.0;
 
-    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_tube_log, "FormedBellows_tube_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector( X, Y, Z ), FormedBellows_tube_log, "FormedBellows_tube_phys", worldlog, false, 0 , ChkOverlaps );
 
     //Two more "Iron" tubes to connect Snout to "formed bellows"
     G4double dz_iron_tubes = z_formed_bellows - 49.56*inch + TargetCenter_zoffset;
@@ -775,8 +780,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
 
     Z = 49.56*inch + Thick/2.0 - TargetCenter_zoffset;
 
-    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube1_log, "IronTube1_phys", worldlog, false, 0 );
-    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube1_vac_log, "IronTube1_vac_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube1_log, "IronTube1_phys", worldlog, false, 0 , ChkOverlaps );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube1_vac_log, "IronTube1_vac_phys", worldlog, false, 0 , ChkOverlaps );
 
     Rin = 2.415*inch;
     Rout = 2.5*inch;
@@ -792,8 +797,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
 
     Z += Thick;
 
-    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube2_log, "IronTube2_phys", worldlog, false, 0 );
-    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube2_vac_log, "IronTube2_vac_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube2_log, "IronTube2_phys", worldlog, false, 0 , ChkOverlaps );
+    new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube2_vac_log, "IronTube2_vac_phys", worldlog, false, 0 , ChkOverlaps );
   }
   
   //Next, corrector magnets:
@@ -882,8 +887,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
 
   //two placements of upstream coil:
   
-  new G4PVPlacement( 0, G4ThreeVector(-X, Y, Z), UpstreamCoil_log, "UpstreamCoil_phys_right", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), UpstreamCoil_log, "UpstreamCoil_phys_left", worldlog, false, 1 );
+  new G4PVPlacement( 0, G4ThreeVector(-X, Y, Z), UpstreamCoil_log, "UpstreamCoil_phys_right", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), UpstreamCoil_log, "UpstreamCoil_phys_left", worldlog, false, 1  , ChkOverlaps);
 
   G4double UpstreamPoleDepth = 6.3*inch;
   G4double UpstreamPoleWidth = 4.02*inch;
@@ -894,8 +899,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   UpstreamPole_log->SetVisAttributes( ironColor );
   //two placements of upstream poles:
 
-  new G4PVPlacement( 0, G4ThreeVector(-X, Y, Z), UpstreamPole_log, "UpstreamPole_phys_right", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), UpstreamPole_log, "UpstreamPole_phys_left", worldlog, false, 1 );
+  new G4PVPlacement( 0, G4ThreeVector(-X, Y, Z), UpstreamPole_log, "UpstreamPole_phys_right", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), UpstreamPole_log, "UpstreamPole_phys_left", worldlog, false, 1 , ChkOverlaps );
 
   //Next, make surrounding yoke:
   // G4double YokeTopPiece_Width = 15.04*inch;
@@ -911,8 +916,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   Y = (11.81*inch + YokeTopPiece_Height)/2.0;
 
   //two placements of yoke top piece (top and bottom symmetric):
-  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), YokeTopPiece_log, "UpstreamYokeTop_phys", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(X,-Y,Z), YokeTopPiece_log, "UpstreamYokeBottom_phys", worldlog, false, 1 );
+  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), YokeTopPiece_log, "UpstreamYokeTop_phys", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector(X,-Y,Z), YokeTopPiece_log, "UpstreamYokeBottom_phys", worldlog, false, 1 , ChkOverlaps );
 
   // G4double YokeLeftPiece_Width = 2.76*inch;
   // G4double YokeLeftPiece_Height = 11.81*inch + 2.0*YokeTopPiece_Height;
@@ -924,7 +929,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   
   X = 7.52*inch + YokeLeftPiece_Width/2.0;
   Y = 0.0;
-  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), YokeLeftPiece_log, "UpstreamYokeLeftPiece_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), YokeLeftPiece_log, "UpstreamYokeLeftPiece_phys", worldlog, false, 0 , ChkOverlaps );
 
   // G4double YokeRightNotchAngle = 18.43*deg;
   // G4double YokeRightWidthFinal = YokeLeftPiece_Width;
@@ -948,7 +953,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   X = -7.52*inch - 0.5*(YokeRightWidthFinal/2.0 + YokeRightWidthInitial/2.0);
   Y = 0.0;
   Z = z_Magnets_array[1];//z_formed_bellows + 8.3*inch + YokeRightZFinal/2.0;
-  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), YokeRightPiece_log, "UpstreamYokeRightPiece_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), YokeRightPiece_log, "UpstreamYokeRightPiece_phys", worldlog, false, 0 , ChkOverlaps );
 
   //Downstream Corrector:
   // G4double DownstreamTotalWidth = 17.58*inch + 2.0*2.76*inch;
@@ -967,7 +972,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   X = 0.0; Y = 0.0;
   Z = z_Magnets_array[2];//z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0;
 
-  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), DownstreamYoke_log, "DownstreamYoke_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), DownstreamYoke_log, "DownstreamYoke_phys", worldlog, false, 0 , ChkOverlaps );
 
   // G4double DS_coil_depth = 8.91*inch;
   // G4double DS_coil_height = 12.04*inch;
@@ -985,8 +990,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   Y = 0.0;
   Z = z_Magnets_array[3];//z_formed_bellows + 76.09*inch + DS_coil_ThickY + DS_coil_depth/2.0;
   
-  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), DS_coil_log, "DS_coil_phys_left", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(-X,Y,Z), DS_coil_log, "DS_coil_phys_right", worldlog, false, 1 );
+  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), DS_coil_log, "DS_coil_phys_left", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector(-X,Y,Z), DS_coil_log, "DS_coil_phys_right", worldlog, false, 1 , ChkOverlaps );
 
   //Now just need poles:
   G4double DSpole_depth = 8.76*inch;
@@ -1001,8 +1006,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   X = (17.58+11.00)*inch/4.0;
   Y = 0.0;
   //two placements of poles:
-  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), DSpole_log, "DSpole_phys_left", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(-X,Y,Z), DSpole_log, "DSpole_phys_right", worldlog, false, 1 );
+  new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), DSpole_log, "DSpole_phys_left", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector(-X,Y,Z), DSpole_log, "DSpole_phys_right", worldlog, false, 1 , ChkOverlaps );
 
   
   if(fDetCon->fBLneutronDet){//TO-DO: set the possibility to deactivate it.
@@ -1026,7 +1031,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     
     G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
     G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
-    
+    Electronics_log->SetVisAttributes(G4VisAttributes::Invisible);
     G4String GEMElectronicsname = "BLneutronDet";
     G4String  GEMElectronicscollname = "BLneutronDet";
     G4SBSCalSD *GEMElecSD = NULL;
@@ -1070,7 +1075,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     // new G4PVPlacement( 0, G4ThreeVector(x_blndet[i_blndet], y_blndet[i_blndet], z_blndet[i_blndet]),
     // 		       Electronics_log, "GMn_Electronics", worldlog, false, i_blndet);
     new G4PVPlacement( 0, G4ThreeVector(x_blndet, y_blndet, z_blndet),
-		       Electronics_log, "GMn_Electronics", worldlog, false, 0);
+		       Electronics_log, "GMn_Electronics", worldlog, false, 0 , ChkOverlaps);
   }
   //}
     
@@ -1111,7 +1116,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
 
 // GEp Beamline Construction --- following Sergey's Fortran code
 void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
-
+  bool ChkOverlaps = false;
   //Define visualization attributes here:
   G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.3,0.3,0.3));
   G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
@@ -1153,8 +1158,8 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
 
   pos_temp.set( 0, 0, 0.5*(upstream_beampipe_zstop+upstream_beampipe_zstart) );
 
-  new G4PVPlacement( 0, pos_temp, upstream_beampipe_log, "upstream_beampipe_phys", worldlog, false, 0 );
-  new G4PVPlacement( 0, pos_temp, upstream_beampipe_vac_log, "upstream_beampipe_vac_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, pos_temp, upstream_beampipe_log, "upstream_beampipe_phys", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, pos_temp, upstream_beampipe_vac_log, "upstream_beampipe_vac_phys", worldlog, false, 0 , ChkOverlaps );
   
   MakeCommonExitBeamline(worldlog);
   /*
@@ -1799,6 +1804,7 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
 
 // This is the beam line for GMn
 void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
+  bool ChkOverlaps = false;
   double swallrad = 1.143*m/2;
   double swallrad_inner = 1.041/2.0*m; 
   //EFuchey: 2017/02/14: change parameters for Standard scat chamber:
@@ -1828,8 +1834,8 @@ void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
   // G4LogicalVolume *entvacLog_cut = new G4LogicalVolume(ent_vac_cut, GetMaterial("Vacuum"), "entvac_log_cut", 0, 0, 0);
   
   // EFuchey: 2017/02/14
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-sc_entbeampipeflange_dist), entLog, "ent_phys", worldlog, false,0);
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-sc_entbeampipeflange_dist), entvacLog, "entvac_phys", worldlog,false,0);
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-sc_entbeampipeflange_dist), entLog, "ent_phys", worldlog, false,0 , ChkOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-sc_entbeampipeflange_dist), entvacLog, "entvac_phys", worldlog,false,0 , ChkOverlaps);
   //}
    
   MakeCommonExitBeamline(worldlog);
@@ -2182,7 +2188,9 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
 //lead shielding for GMn
 void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
-  bool leadring = false;
+  bool leadring = true;
+  bool checkoverlaps = false;
+
   G4VisAttributes* LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
   G4VisAttributes* AlColor = new G4VisAttributes(G4Colour(0.75,0.75,0.75));
   
@@ -2196,8 +2204,10 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   G4double th_ringshield = 1.5*inch;
   G4double z1_ringshield = 27.12*inch;
   G4double z2_ringshield = z1_ringshield+th_ringshield;
-  G4double rin_ringshield = z1_ringshield*tan(6.0*deg);
-  G4double rout_ringshield = z2_ringshield*tan(12.0*deg);
+  G4double rin_ringshield = z2_ringshield*tan(6.0*deg);
+  G4double rout_ringshield = z2_ringshield*tan(12.*deg);
+  
+  //G4cout << "rin_ringshield (mm) " << rin_ringshield << endl;
   
   G4Tubs* ringshield = new G4Tubs("ringshield", rin_ringshield, rout_ringshield, th_ringshield/2.0, 
 				  0.0, 270.0*deg);
@@ -2207,7 +2217,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   G4RotationMatrix* rot_temp = new G4RotationMatrix;
   rot_temp->rotateZ(+135.0*deg);
   
-  if(leadring)new G4PVPlacement( rot_temp, G4ThreeVector( 0, 0, z1_ringshield+th_ringshield/2.0 ), ringshield_log, "ringshield_phys", worldlog, false, 0 );
+  if(leadring)new G4PVPlacement( rot_temp, G4ThreeVector( 0, 0, z1_ringshield+th_ringshield/2.0 ), ringshield_log, "ringshield_phys", worldlog, false, 0, checkoverlaps );
   ringshield_log->SetVisAttributes(LeadColor);
   
   // Shielding for Scattering chamber:
@@ -2236,7 +2246,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   rot_temp->rotateX(+90*deg);
   
   //if(lead)
-  new G4PVPlacement( rot_temp, G4ThreeVector( x_SCshield, 0, z_SCshield ), SCshield_log, "SCshield_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, G4ThreeVector( x_SCshield, 0, z_SCshield ), SCshield_log, "SCshield_phys", worldlog, false, 0, checkoverlaps );
   SCshield_log->SetVisAttributes(LeadColor);
   
   // Shielding for Spool piece.
@@ -2257,7 +2267,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
 
   rot_temp = new G4RotationMatrix;
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( d_spoolshield, 0, z_spoolshield ), spoolshield_log, "spoolshield_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, G4ThreeVector( d_spoolshield, 0, z_spoolshield ), spoolshield_log, "spoolshield_phys", worldlog, false, 0, checkoverlaps );
   spoolshield_log->SetVisAttributes(LeadColor);
   
   // Beamline shielding : between before 1st corrector magnets (BL4 only)
@@ -2280,7 +2290,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   if(fDetCon->fBeamlineConf==4){
     //if(lead)
-    new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield1, 0, z_BLshield1 ), BLshield1_log, "BLshield1_phys", worldlog, false, 0 );
+    new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield1, 0, z_BLshield1 ), BLshield1_log, "BLshield1_phys", worldlog, false, 0, checkoverlaps );
     BLshield1_log->SetVisAttributes(LeadColor);
   }
   
@@ -2397,7 +2407,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
 
   rot_temp = new G4RotationMatrix;
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( x_sideshield, 0, z_sideshield ), sideshield_log, "sideshield_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, G4ThreeVector( x_sideshield, 0, z_sideshield ), sideshield_log, "sideshield_phys", worldlog, false, 0, checkoverlaps );
   sideshield_log->SetVisAttributes( G4VisAttributes::Invisible );
   
   G4double th_Alshield = 4.0*inch;
@@ -2409,7 +2419,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
 
   rot_temp = new G4RotationMatrix;
   
-  if(!leadring)new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield/2.0, 0, -25.0*cm), Alshield_log, "Alshield_phys", sideshield_log, false, 0 );
+  if(!leadring)new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield/2.0, 0, -25.0*cm), Alshield_log, "Alshield_phys", sideshield_log, false, 0, checkoverlaps );
   Alshield_log->SetVisAttributes(AlColor);
 
   G4Box* leadblanket = new G4Box("leadblanket", th_SSshield/2.0, h_sideshield/2.0, (L_sideshield-50.0*cm)/2.0); 
@@ -2419,7 +2429,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   rot_temp = new G4RotationMatrix;
   
-  if(!leadring)new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield+th_SSshield/2.0, 0, -25.0*cm ), leadblanket_log, "leadblanket_phys", sideshield_log, false, 0 );
+  if(!leadring)new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield+th_SSshield/2.0, 0, -25.0*cm ), leadblanket_log, "leadblanket_phys", sideshield_log, false, 0, checkoverlaps );
   /**/
     
 }

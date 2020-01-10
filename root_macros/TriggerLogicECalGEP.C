@@ -176,6 +176,9 @@ void TriggerLogicECalGEP(const char *mapfilename){
 	}
 
 	c1->Update();
+
+	gPad->Modified();
+	gSystem->ProcessEvents();
 	
 	first = false;
 
@@ -246,6 +249,8 @@ void TriggerLogicECalGEP(const char *mapfilename){
     YavgL1[icell_L1] = ysum/double(cell_list_temp.size());
 
     c1->Update();
+    gPad->Modified();
+    gSystem->ProcessEvents();
 
   }
 
@@ -369,6 +374,9 @@ void TriggerLogicECalGEP(const char *mapfilename){
       if( cell_list_L2sum[icell_L2].size() > 0 ){	
 	icell_L2++;
 	c1->Update();
+
+	gPad->Modified();
+	gSystem->ProcessEvents();
 	cout << "Press Enter to continue";
       
 	currentline.ReadLine(cin,kFALSE);
@@ -501,6 +509,9 @@ void TriggerLogicECalGEP(const char *mapfilename){
 	icell_L2++;
       
 	c1->Update();
+
+	gPad->Modified();
+	gSystem->ProcessEvents();
 	cout << "Press Enter to continue";
 	
 	currentline.ReadLine(cin,kFALSE);
@@ -626,7 +637,11 @@ void TriggerLogicECalGEP(const char *mapfilename){
 	  
 	icell_L2++;
 
+	
 	c1->Update();
+
+	gPad->Modified();
+	gSystem->ProcessEvents();
 	cout << "Press Enter to continue";
 	
 	currentline.ReadLine(cin,kFALSE);

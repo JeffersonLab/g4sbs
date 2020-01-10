@@ -46,7 +46,6 @@ G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
 
 void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   fTargType = fDetCon->fTargType;
-  
   // EFuchey 2017/02/10: organized better this with a switch instead of an endless chain of if...  else...
   if( (fTargType == kLH2 || fTargType == kLD2) ){
     switch(fDetCon->fExpType){
@@ -57,16 +56,26 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
       BuildC16ScatCham( worldlog );
       break;
     default:
-      //BuildGEpScatCham( worldlog );
       BuildStandardScatCham( worldlog );
       break;
     }
-  } else if(fDetCon->fExpType==kTDIS || fDetCon->fExpType==kNDVCS) {
-    BuildTDISTarget( worldlog );
   } else {
-    BuildGasTarget( worldlog );
+    switch(fDetCon->fExpType){
+    case(kTDIS):
+      BuildTDISTarget( worldlog );
+      break;
+    case(kNDVCS):
+      BuildTDISTarget( worldlog );
+      break;
+    case(kGEMHCtest):
+      BuildStandardScatCham( worldlog );
+      //BuildC16ScatCham( worldlog );
+      break;
+    default:
+      BuildGasTarget( worldlog );
+      break;
+    }
   }
-  
   return;
 
 }
@@ -175,8 +184,22 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   TargetMother_log->SetVisAttributes( G4VisAttributes::Invisible );
 }
 
+void G4SBSTargetBuilder::BuildCfoil(G4LogicalVolume *motherlog, G4RotationMatrix *rot_targ, G4ThreeVector targ_offset){
+  G4double Rcell  = fTargDiameter/2.0;
+  G4Tubs *Target_solid = new G4Tubs( "Target_solid", 0, Rcell, (fTargLen)/2.0, 0.0, twopi );
+  G4LogicalVolume *Target_log = new G4LogicalVolume( Target_solid, GetMaterial("Carbon"), "Target_log" );
+  
+  G4VisAttributes* CarbonColor = new G4VisAttributes(G4Colour(0.2, 0.2, 0.2));
+  Target_log->SetVisAttributes(CarbonColor);
+  
+  new G4PVPlacement( rot_targ, targ_offset, Target_log, "Target_phys", motherlog, false, 0 );
+}
+
+
+
 //This function is meant to build the "Standard" scattering chamber for GMn
 void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
+  G4bool ChkOverlaps = false;
   G4double inch = 2.54*cm;
   
   G4LogicalVolume *logicScatChamberTank =0;
@@ -277,7 +300,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4ThreeVector* SCPlacement = new G4ThreeVector(0,0,-SCOffset);
   SCPlacement->rotateX(90*deg);
   
-  new G4PVPlacement(rotSC, *SCPlacement, logicScatChamberTank, "ScatChamberTankPhys", worldlog, false, 0);
+  new G4PVPlacement(rotSC, *SCPlacement, logicScatChamberTank, "ScatChamberTankPhys", worldlog, false, 0, ChkOverlaps);
   
   //Exit Flange Plate
   G4Box* solidSCExitFlangePlate = 
@@ -288,7 +311,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
     new G4LogicalVolume(solidSCExitFlangePlate, GetMaterial("Aluminum"), "SCExitFlangePlate_log");
 
   new G4PVPlacement(0, G4ThreeVector(-SCTankRadius-SCExitFlangePlateThick/2.0,0,0), 
-		    logicScatChamberExitFlangePlate, "SCExitFlangePlate", worldlog, false, 0); 
+		    logicScatChamberExitFlangePlate, "SCExitFlangePlate", worldlog, false, 0, ChkOverlaps); 
   
   // Front and back Clamshells...
   // Basic solid: 
@@ -393,7 +416,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   		    G4ThreeVector(SCRightSnoutWindowDist*sin(SCRightSnoutAngle),
   				  0,
   				  SCRightSnoutWindowDist*cos(SCRightSnoutAngle)), 
-  		    logicScatChamberRightSnoutWindow, "SCRightSnoutWindow", worldlog, false, 0);
+  		    logicScatChamberRightSnoutWindow, "SCRightSnoutWindow", worldlog, false, 0, ChkOverlaps);
   
   // basic window frame
   G4Box* solidRightSnoutWindowFrame_0 = 
@@ -462,7 +485,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   		    G4ThreeVector(SCRightSnoutWindowFrameDist*sin(SCRightSnoutAngle),
   				  0,
   				  SCRightSnoutWindowFrameDist*cos(SCRightSnoutAngle)), 
-  		    logicScatChamberRightSnoutWindowFrame, "SCRightSnoutWindow", worldlog, false, 0);
+  		    logicScatChamberRightSnoutWindowFrame, "SCRightSnoutWindowFrame", worldlog, false, 0, ChkOverlaps);
   
 		    
   // Left snout opening:
@@ -535,7 +558,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 		    G4ThreeVector(SCLeftSnoutWindowDist*sin(SCLeftSnoutAngle),
 				  SCLeftSnoutYOffset,
 				  SCLeftSnoutWindowDist*cos(SCLeftSnoutAngle)), 
-		    logicScatChamberLeftSnoutWindow, "SCLeftSnoutWindow", worldlog, false, 0);
+		    logicScatChamberLeftSnoutWindow, "SCLeftSnoutWindow", worldlog, false, 0, ChkOverlaps);
   
   // window frame
   G4Box* solidLeftSnoutWindowFrame_0 = 
@@ -608,7 +631,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 		    G4ThreeVector(SCLeftSnoutWindowFrameDist*sin(SCLeftSnoutAngle),
 				  SCLeftSnoutYOffset,
 				  SCLeftSnoutWindowFrameDist*cos(SCLeftSnoutAngle)), 
-		    logicScatChamberLeftSnoutWindowFrame, "SCLeftSnoutWindow", worldlog, false, 0);
+		    logicScatChamberLeftSnoutWindowFrame, "SCLeftSnoutWindowFrame", worldlog, false, 0, ChkOverlaps);
   
   // Exit Beam Pipe:
   // Should come after left snout
@@ -665,13 +688,14 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   
   logicScatChamberFrontClamshell = 
     new G4LogicalVolume(solidSCFrontClamShell, GetMaterial("Aluminum"), "SCFrontClamshell_log");
+  //new G4LogicalVolume(solidSCFrontClam_0_ebps, GetMaterial("Aluminum"), "SCFrontClamshell_log");
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(90.0*deg);
   rot_temp->rotateZ(90.0*deg+SCClamAngleApert*0.5-SCWindowAngleOffset);
   
   new G4PVPlacement(rot_temp, G4ThreeVector(0,0,0), logicScatChamberFrontClamshell, 
-  		    "SCFrontClamshell", worldlog, false, 0);
+  		    "SCFrontClamshell", worldlog, false, 0, ChkOverlaps);
   
   // Back Clamshell:
   G4double SCBackClamThick = 0.80*inch;
@@ -771,7 +795,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   rot_temp->rotateZ(-90.0*deg+SCClamAngleApert*0.5+SCWindowAngleOffset);
   
   new G4PVPlacement(rot_temp, G4ThreeVector(0,0,0), logicScatChamberBackClamshell, 
-  		    "SCBackClamshell", worldlog, false, 0);
+  		    "SCBackClamshell", worldlog, false, 0, ChkOverlaps);
   
   // Scattering chamber volume
   //
@@ -810,7 +834,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 
   logicScatChamber = new G4LogicalVolume(solidScatChamber, GetMaterial("Vacuum"), "ScatChamber_log");
   
-  new G4PVPlacement(rotSC, *SCPlacement, logicScatChamber, "ScatChamberPhys", worldlog, false, 0);
+  new G4PVPlacement(rotSC, *SCPlacement, logicScatChamber, "ScatChamberPhys", worldlog, false, 0, ChkOverlaps);
 
   fDetCon->InsertTargetVolume( logicScatChamber->GetName() );
   
@@ -818,7 +842,11 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   rot_temp->rotateX(90.0*deg);
   
   //Call BuildStandardCryoTarget HERE !
-  BuildStandardCryoTarget(logicScatChamber, rot_temp, G4ThreeVector(0, 0, SCOffset));
+  if(fTargType==kCfoil){
+    BuildCfoil(logicScatChamber, rot_temp, G4ThreeVector(0, 0, SCOffset));
+  }else{
+    BuildStandardCryoTarget(logicScatChamber, rot_temp, G4ThreeVector(0, 0, SCOffset));
+  }
   
   G4VisAttributes* Invisible  = new G4VisAttributes(G4Colour(0.,0.,0.)); 
   Invisible->SetVisibility(false);
@@ -1637,7 +1665,11 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   rot_temp->rotateX(+90.0*deg);
   
   //Call BuildStandardCryoTarget HERE !
-  BuildStandardCryoTarget(scham_vacuum_log, rot_temp, G4ThreeVector(0, +0.025*mm, 0));
+  if(fTargType==kCfoil){
+    BuildCfoil(scham_vacuum_log, rot_temp, G4ThreeVector(0, +0.025*mm, 0));
+  }else{
+    BuildStandardCryoTarget(scham_vacuum_log, rot_temp, G4ThreeVector(0, +0.025*mm, 0));
+  }
   /*
   // Now let's make a cryotarget:
   G4double Rcell = 4.0*cm;

@@ -78,7 +78,8 @@ public:
   bool fBuildSBSSieve;
 
   bool fCDetReady;
-
+  bool fUseNeutronVeto;
+  
   G4String fRICHgas; //String defining
   G4bool   fRICH_use_aerogel; // Flag to use or not use aerogel
 

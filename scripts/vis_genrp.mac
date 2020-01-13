@@ -41,7 +41,7 @@
 
 /g4sbs/keepsdtrackinfo 	all true
 /g4sbs/totalabs 	true
-
+/g4sbs/cdetready 	true
 
 ## Run 100 events
 /g4sbs/eventstatusevery		100

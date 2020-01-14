@@ -15,7 +15,7 @@
 #include "G4OpticalPhysics.hh"
 #include "G4StepLimiterPhysics.hh"
 #include "G4ProcessManager.hh"
-#include "G4DataQuestionaire.hh"
+//#include "G4DataQuestionaire.hh"
 
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"

@@ -91,7 +91,10 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fFTabsthick = 2.54*cm;
   fFTabsmaterial = "Aluminum";
   
-  fCDetReady = true;
+  //fCDetReady = true;
+  fCDetReady = false; //default to false for both of these
+  
+  fUseNeutronVeto=false;
   
   assert(fDetCon);
 }
@@ -155,9 +158,12 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
     G4ThreeVector CH2_pos( ( fHCALdist-dist_from_hcal-(depth_CDET+depth_CH2)/2.0 ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-dist_from_hcal-(depth_CDET+depth_CH2)/2.0 ) * cos( -f48D48ang ) );
 
-    new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
+    //new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
     
     if(fCDetReady){
+
+      new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
+      
       G4Box* CDetmother = new G4Box("CDetmother", 2.5*m/2.0, 3.0*m/2, depth_CDET/2.0);
       G4LogicalVolume *CDetmother_log = new G4LogicalVolume( CDetmother, GetMaterial("Air"), "CDetmother_log" );
       
@@ -167,7 +173,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       G4ThreeVector CDetmother_pos( -15.0*cm,  fHCALvertical_offset, fHCALdist-dist_from_hcal+5.0*cm );
       CDetmother_pos.rotateY(-f48D48ang);
       new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
-      
+
       G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
       CH2_visatt->SetForceWireframe(true);
       CH2_filter_log->SetVisAttributes(CH2_visatt);
@@ -189,7 +195,9 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       CDet->SetPlanesInterDistance(planes_interdist);
       CDet->BuildComponent( CDetmother_log );
       //MakeCDET( CDetmother_log, z0_CDET, planes_hoffset );
-    }else{
+    }else if( fUseNeutronVeto ){
+      new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
+      
       MakeNeutronVeto(worldlog, dist_from_hcal);
     }
     //Add a plate on the side of HCal
@@ -4009,13 +4017,21 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   // Make CE Polarimeter Trackers (2 INFN + 2 UVa before Cu analyzer, 4 UVa after)
   // ---------------------------------------------------------------------------------------------------------------------- 
   
-  int ntracker_ce      = 3; 
-  int ngem_ce[3]       = {2,2,4};
-  double cegem_spacing = 10.0 *cm;
+  // int ntracker_ce      = 3; 
+  // int ngem_ce[3]       = {2,2,4};
+  // double cegem_spacing = 10.0 *cm;
 
+  int ntracker_ce      = 2; 
+  int ngem_ce[2]       = {4,4};
+  double cegem_spacing = 10.0 *cm;
+  
   vector<G4String> SDnames_ce; 
-  SDnames_ce.push_back("Harm/CEPolFront1");
-  SDnames_ce.push_back("Harm/CEPolFront2");
+  //SDnames_ce.push_back("Harm/CEPolFront1");
+  //SDnames_ce.push_back("Harm/CEPolFront2");
+  //SDnames_ce.push_back("Harm/CEPolRear");
+
+  // SDnames_ce.push_back("Harm/CEPolFront1");
+  SDnames_ce.push_back("Harm/CEPolFront");
   SDnames_ce.push_back("Harm/CEPolRear");
   
   for( int i = 0; i<ntracker_ce; i++){ 
@@ -4025,13 +4041,19 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     for( int j = 0; j < ngem_ce[i]; j++ ){
       if( i == 0 ){
 	gemz[j] = -cuanadepth/2.0 + (double)(j-4)*cegem_spacing;
-	gemw[j] = 40.0*cm;
-	gemh[j] = 150.0*cm;
-      } else if( i == 1 ){
-	gemz[j] = -cuanadepth/2.0 + (double)(j-2)*cegem_spacing;
-	gemw[j] = 60.0*cm;
-	gemh[j] = 200.0*cm;
-      } else {
+	if( j < 2 ){
+	  gemw[j] = 40.0*cm;
+	  gemh[j] = 150.0*cm;
+	} else {
+	  gemw[j] = 60.0*cm;
+	  gemh[j] = 200.0*cm;
+	}
+      } else {// else if( i == 1 ){
+      // 	gemz[j] = -cuanadepth/2.0 + (double)(j-2)*cegem_spacing;
+      // 	gemw[j] = 60.0*cm;
+      // 	gemh[j] = 200.0*cm;
+      // }
+      //else {
   	gemz[j] = cuanadepth/2.0 + (double)(j+1)*cegem_spacing;
   	gemw[j] = 60.0*cm;
   	gemh[j] = 200.0*cm;

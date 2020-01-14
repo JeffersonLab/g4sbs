@@ -294,6 +294,8 @@ if(INSTALL_SBS_FIELD_MAPS)
   message("Downloading SBS+BB TOSCA map for GMN, 13.5 GeV^2")
   file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GMN13_field_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GMN13_field_newheader.table SHOW_PROGRESS)
 
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEN-RP-tosca_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GEN-RP-tosca_newheader.table SHOW_PROGRESS)
+
   message("Other field maps forthcoming... Anybody know how to get CMake to download files AFTER the configure step, during the build step?")
 
   file(GLOB sbs_field_maps ${CMAKE_CURRENT_BINARY_DIR}/*.table ${CMAKE_CURRENT_BINARY_DIR}/map_696A.dat)

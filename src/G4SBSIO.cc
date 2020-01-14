@@ -688,6 +688,19 @@ void G4SBSIO::BranchECAL(G4String SDname="ECAL"){
     fTree->Branch( branch_name.Format( "%s.hit.ptridx", branch_prefix.Data() ), &(ecaldata[SDname].ptridx) );
     fTree->Branch( branch_name.Format( "%s.hit.sdtridx", branch_prefix.Data() ), &(ecaldata[SDname].sdtridx) );
   }
+  
+  map<G4String,G4bool>::iterator it = KeepPartCALflags.find( SDname );
+
+  if( it != KeepPartCALflags.end() && it->second ){
+    //Define "particle" branches:
+    fTree->Branch( branch_name.Format( "%s.npart_ECAL", branch_prefix.Data() ), &(ecaldata[SDname].npart_ECAL) );
+    fTree->Branch( branch_name.Format( "%s.part_PMT", branch_prefix.Data() ), &(ecaldata[SDname].part_PMT) );
+    //fTree->Branch( branch_name.Format( "%s.ihit", branch_prefix.Data() ), &(ecaldata[SDname].ihit) );
+    fTree->Branch( branch_name.Format( "%s.E", branch_prefix.Data() ), &(ecaldata[SDname].E) );
+    fTree->Branch( branch_name.Format( "%s.t", branch_prefix.Data() ), &(ecaldata[SDname].t) );
+    fTree->Branch( branch_name.Format( "%s.trid", branch_prefix.Data() ), &(ecaldata[SDname].trid) );
+    fTree->Branch( branch_name.Format( "%s.detected", branch_prefix.Data() ), &(ecaldata[SDname].detected) );
+  }
 }
 
 void G4SBSIO::BranchPythia(){

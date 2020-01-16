@@ -172,6 +172,9 @@ private:
   G4UIcmdWithADoubleAndUnit  *GEPFPP2_CH2thickCmd;
   
   G4UIcmdWithABool *BLneutronDetsCmd;
+  G4UIcmdWithABool *GEMfrontendCmd;
+  
+  G4UIcmdWithABool *SetGrinchPMTglassHitsCmd;
   
   G4UIcmdWithABool *buildSBSsieveCmd; //Build the SBS Sieve slit
   G4UIcmdWithABool *buildBBsieveCmd; //Build the BB Sieve slit

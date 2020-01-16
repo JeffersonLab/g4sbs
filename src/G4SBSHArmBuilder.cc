@@ -67,7 +67,7 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fRICHdist  = 5.5*m;
   fRICHhorizontal_offset = 0.0*cm;
   fRICHvertical_offset = 0.0*cm;
-  fRICHgas   = "C4F10_gas"; //default to C4F10;
+  fRICHgas   = "C4F8_gas"; //default to C4F8;
   fRICH_use_aerogel = true;
 
   fGEnRP_analyzer_option = 1; //0=none+no beamline PR; 1=none(default), 2=Cu+Gla(para), 3=Cu+Gla(perp), 4=Cu+CGEN

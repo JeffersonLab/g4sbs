@@ -39,6 +39,9 @@ public:
   void MakeBBSieveSlit(G4LogicalVolume *);
 
   void SetGRINCHgas( G4String str ){ fGRINCHgas = str; }
+  void SetGrinchPMTglassHits(bool b ){ fTurnOnGrinchPMTglassHits = b; }
+  
+  void SetGEMfrontend(bool b ){ fBuildGEMfrontend = b; }
 
   void MakeHallCGEM(G4LogicalVolume *);
   
@@ -70,7 +73,10 @@ public:
   bool fBuildBBSieve;
 
   G4String fGRINCHgas;
-
+  G4bool fTurnOnGrinchPMTglassHits;
+  
+  G4bool fBuildGEMfrontend;
+  
 private:
 };
 

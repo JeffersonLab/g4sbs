@@ -68,6 +68,7 @@ public:
   void SetZOffset(G4double off){ fDetOffset = off ;}
   void SetCerDepth(G4double dep){ fCerDepth = dep ;}
   void SetGrinchGas( G4String s){ fGRINCHgas = s; }
+  void SetTurnOnPMTglassHits( G4bool b){ fTurnOnPMTglassHits = b; }
 
   private:
   G4VSolid* ConstructSimple(const G4String& aName, const G4String& aShape, const G4ThreeVector& aFullSize);
@@ -82,7 +83,7 @@ private:
   G4double fCerDepth;
 
   G4String fGRINCHgas; //Allow user to configure GRINCH gas
-}
-  ;
+  G4bool fTurnOnPMTglassHits;
+};
 
 #endif /*G4SBSGrinch_hh*/

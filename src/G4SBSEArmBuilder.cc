@@ -102,8 +102,10 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   
   //  fbbfield =  NULL;
 
-  fGRINCHgas = "C4F10_gas"; //default to C4F10;
+  fGRINCHgas = "C4F8_gas"; //default to C4F8;
+  fTurnOnGrinchPMTglassHits = false;// turn it off by default
   
+  fBuildGEMfrontend = false; // do not build it by default  
 }
 
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}
@@ -135,7 +137,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       ECal->BuildComponent(worldlog);
       //MakeC16( worldlog );
     }
-  if( exptype == kNeutronExp || exptype == kGEnRP )  MakeGMnGEMShielding( worldlog );
+  if( (exptype == kNeutronExp || exptype == kGEnRP) && fBuildGEMfrontend )  MakeGMnGEMShielding( worldlog );
   
   if( exptype == kNDVCS ){
     MakeDVCSECal(worldlog);
@@ -1087,8 +1089,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4SBSGrinch *grinch = new G4SBSGrinch(fDetCon);
   grinch->SetZOffset( detoffset + fCerDist );
   grinch->SetCerDepth( fCerDepth );
-  grinch->BuildComponent( bbdetLog );
   grinch->SetGrinchGas( fGRINCHgas );
+  grinch->SetTurnOnPMTglassHits( fTurnOnGrinchPMTglassHits );
+  grinch->BuildComponent( bbdetLog );
   
   //Shielding for UVA GEM
   G4Box *Shield_backgem_box = new G4Box("Shield_backgem_box", 0.5*65*cm, 0.5*210*cm, 0.5*2.54*cm);

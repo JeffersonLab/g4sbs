@@ -400,6 +400,14 @@ G4SBSMessenger::G4SBSMessenger(){
   BLneutronDetsCmd->SetGuidance("Setup neutron detectors along the beamline");
   BLneutronDetsCmd->SetParameterName("switch", false);
   
+  GEMfrontendCmd = new G4UIcmdWithABool("/g4sbs/buildGEMfrontend",this);
+  GEMfrontendCmd->SetGuidance("build GEM front end for GMn or GEp");
+  GEMfrontendCmd->SetParameterName("switch", false);
+
+  SetGrinchPMTglassHitsCmd = new G4UIcmdWithABool("/g4sbs/GrinchPMTglassHits",this);
+  SetGrinchPMTglassHitsCmd->SetGuidance("build GEM front end for GMn or GEp");
+  SetGrinchPMTglassHitsCmd->SetParameterName("switch", false);  
+  
   buildSBSsieveCmd = new G4UIcmdWithABool("/g4sbs/buildSBSsieve",this);
   buildSBSsieveCmd->SetGuidance("Use SBS sieve (true or false, false by default)");
   buildSBSsieveCmd->SetParameterName("buildSBSsieve",false);
@@ -1391,6 +1399,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == BLneutronDetsCmd ){
     G4bool v = BLneutronDetsCmd->GetNewBoolValue(newValue);
     fdetcon->fBLneutronDet = v;
+  }
+  
+  if( cmd == GEMfrontendCmd ){
+    G4bool v = GEMfrontendCmd->GetNewBoolValue(newValue);
+    fdetcon->fEArmBuilder->SetGEMfrontend(v);
+  }
+  
+  if( cmd == SetGrinchPMTglassHitsCmd ){
+    G4bool v = SetGrinchPMTglassHitsCmd->GetNewBoolValue(newValue);
+    fdetcon->fEArmBuilder->SetGrinchPMTglassHits(v);
   }
   
   if( cmd == buildSBSsieveCmd ){

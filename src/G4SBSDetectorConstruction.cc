@@ -100,7 +100,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fUseGlobalField = false;
 
   fBeamlineConf = 3;
-  fLeadOption = 0;
+  fLeadOption = 1;
   fBLneutronDet = false;
     
   SDlist.clear();

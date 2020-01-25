@@ -343,7 +343,7 @@ int main(int argc, char** argv)
   //                 be deleted in the main() program !
 
 #ifdef G4VIS_USE
-//  delete visManager;
+  //delete visManager;
 #endif
 //  delete runManager;
 

@@ -17,7 +17,7 @@ void rootlogon(){
   }
   
   //gSystem->AddIncludePath(" -I${PROJECT_SOURCE_DIR}/include");
-  gSystem->AddIncludePath(" -I${CMAKE_INSTALL_PREFIX}/include");
+  gSystem->AddIncludePath(" -I${CMAKE_INSTALL_PREFIX}");
   gSystem->AddIncludePath(" -I${PROJECT_BINARY_DIR}/include");
   
   FileStat_t buf;

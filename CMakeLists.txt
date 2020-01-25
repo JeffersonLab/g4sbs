@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
 # Setup the project
 #
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 project(G4SBS)
 
 # Setup GNUInstallDirs for installation:
@@ -18,7 +18,7 @@ SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 # (but later on when installing)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_LIBDIR}")
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 
 # add the automatically determined parts of the RPATH
 # which point to directories outside the build tree to the install RPATH
@@ -26,10 +26,12 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 
 # the RPATH to be used when installing, but only if it's not a system directory
-LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_LIBDIR}" isSystemDir)
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemDir)
 IF("${isSystemDir}" STREQUAL "-1")
-   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_LIBDIR}")
+   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 ENDIF("${isSystemDir}" STREQUAL "-1")
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 #----------------------------------------------------------------------------
 
@@ -82,18 +84,21 @@ file(GLOB libheaders ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SO
 option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 if(WITH_GEANT4_UIVIS)
   find_package(Geant4 REQUIRED ui_all vis_all)
+#  find_package(Geant4 REQUIRED qt vis_opengl_x11)
+  
 else()
   find_package(Geant4 REQUIRED)
 endif()
 
 include(${Geant4_USE_FILE})
 
-# Generate the dictionary for G4SBS classes deriving from TOb ject:
+# Generate the dictionary for G4SBS classes deriving from TOb ect:
 ROOT_GENERATE_DICTIONARY(
     G__g4sbsroot                   
     G4SBSRunData.hh         
     G4SBSTextFile.hh
     OPTIONS -I${PROJECT_SOURCE_DIR}/include
+    MODULE g4sbsroot
     LINKDEF "include/G4SBSLinkDef.h"  # ROOT linkDef file
 )
 #----------------------------------------------------------------------------
@@ -102,10 +107,10 @@ ROOT_GENERATE_DICTIONARY(
 add_library(sbscteq STATIC ${cteqsources} ${cteqheaders})
 SET_TARGET_PROPERTIES(sbscteq PROPERTIES COMPILE_FLAGS "-DCTEQ_TBL_PATH=\\\"${PROJECT_SOURCE_DIR}/cteq-tbls\\\"")
 
-add_executable(g4sbs g4sbs.cc ${sources} ${headers} G__g4sbsroot.cxx)
+add_executable(g4sbs g4sbs.cc ${sources} ${headers})
 add_library(g4sbsroot SHARED ${libsources} ${libheaders} G__g4sbsroot.cxx)
 
-target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
+target_link_libraries(g4sbs g4sbsroot ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
 target_link_libraries(g4sbsroot ${ROOT_LIBRARIES} )
 
 option(WITH_G4SBS_GDML "Build g4sbs with GDML output" OFF)
@@ -260,26 +265,26 @@ configure_file(${PROJECT_SOURCE_DIR}/g4sbs.rootrc ${CMAKE_CURRENT_BINARY_DIR}/.r
 
 
 #TODO: figure out how to get the ROOT_GENERATE_DICTIONARY command to do this automatically:
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot_rdict.pcm DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot.rootmap DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/G__g4sbsroot.cxx DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot_rdict.pcm DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot.rootmap DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/G__g4sbsroot.cxx DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 # 
 
-install(TARGETS g4sbs RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-install(TARGETS sbscteq ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(TARGETS g4sbsroot LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.sh DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.csh DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(TARGETS g4sbs RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS sbscteq ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS g4sbsroot LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.sh DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.csh DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/scripts DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/root_macros DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/farmsub_scripts DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/integration_tests DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/database DESTINATION ${CMAKE_INSTALL_PREFIX}/run_g4sbs_here)
 #install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/run_g4sbs_here ${CMAKE_INSTALL_PREFIX})
-install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
-install(FILES ${dss_grids} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/DSS2007_GRIDS)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES ${dss_grids} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/DSS2007_GRIDS)
 install(FILES ${PROJECT_SOURCE_DIR}/vis.mac ${PROJECT_SOURCE_DIR}/run_example.mac DESTINATION ${CMAKE_INSTALL_PREFIX}/scripts)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/.rootrc DESTINATION ${CMAKE_INSTALL_PREFIX}/run_g4sbs_here)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/root_macros/rootlogon.C DESTINATION ${CMAKE_INSTALL_PREFIX}/root_macros)
@@ -300,5 +305,5 @@ if(INSTALL_SBS_FIELD_MAPS)
 
   file(GLOB sbs_field_maps ${CMAKE_CURRENT_BINARY_DIR}/*.table ${CMAKE_CURRENT_BINARY_DIR}/map_696A.dat)
 
-  install(FILES ${sbs_field_maps} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/fieldmaps)
+  install(FILES ${sbs_field_maps} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/fieldmaps)
 endif()

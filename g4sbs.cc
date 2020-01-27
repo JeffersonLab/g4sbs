@@ -34,13 +34,13 @@
 
 #include "G4UnitsTable.hh"
 
-#ifdef G4VIS_USE
+//#ifdef G4VIS_USE
 #include "G4VisExecutive.hh"
-#endif
+//#endif
 
-#ifdef G4UI_USE
+//#ifdef G4UI_USE
 #include "G4UIExecutive.hh"
-#endif
+//#endif
 
 #ifdef __APPLE__
 #include "unistd.h"
@@ -285,17 +285,7 @@ int main(int argc, char** argv)
   // Initialize Run manager
   runManager->Initialize();
  
-  //----------------
-  // Visualization:
-  //----------------
-#ifdef G4VIS_USE
-  G4cout << "Instantiating Visualization Manager......." << G4endl;
-  G4VisManager* visManager = new G4VisExecutive;
-  visManager -> Initialize ();
-#endif
-
-  // Setup commands
-  //
+  
  
   /*
   UImanager->ApplyCommand("/Step/Verbose 0");
@@ -306,16 +296,37 @@ int main(int argc, char** argv)
   UImanager->ApplyCommand("/gun/position 0 0 0");
   UImanager->ApplyCommand("/gun/direction 0 .3 1.");
   */
-
+  
   if( use_gui ) {
     //--------------------------
     // Define (G)UI
     //--------------------------
 
-#ifdef G4UI_USE
+    //----------------
+    // Visualization:
+    //----------------
+    //#ifdef G4VIS_USE
+   
+    //#endif
+  
+    // Setup commands
+    //
+    //----------------
+    // Visualization:
+    //----------------
+    //#ifdef G4VIS_USE
+    G4cout << "Instantiating Visualization Manager......." << G4endl;
+    G4VisManager* visManager = new G4VisExecutive;
+    visManager -> Initialize ();
+    //#endif
+    
+    // Setup commands
+    //
+    
+    //#ifdef G4UI_USE
     G4UIExecutive * ui = new G4UIExecutive(argc,argv);
     UImanager->SetSession( ui->GetSession() ); 
-#endif
+    //#endif
 
     G4int success = executeMacro(postinit_macro, UImanager);
     if( success != fCommandSucceeded ){
@@ -323,11 +334,12 @@ int main(int argc, char** argv)
       exit(-1);
     }
     
-#ifdef G4UI_USE
+    //#ifdef G4UI_USE
     ui->SessionStart();
 
     delete ui;
-#endif
+    delete visManager;
+    //#endif
   } else {
     // Run the postinit macro if one is specified
     G4int success = executeMacro(postinit_macro, UImanager);
@@ -342,10 +354,10 @@ int main(int argc, char** argv)
   //                 owned and deleted by the run manager, so they should not
   //                 be deleted in the main() program !
 
-#ifdef G4VIS_USE
-  //delete visManager;
-#endif
-//  delete runManager;
+  //#ifdef G4VIS_USE
+  // delete visManager;
+  //#endif
+  delete runManager;
 
   return 0;
 }

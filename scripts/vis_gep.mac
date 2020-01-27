@@ -1,9 +1,55 @@
 #/control/execute sidis_template.mac
-/control/execute gep_12GeV2_template.mac
+#/control/execute gep_12GeV2_template.mac
 #/g4sbs/kine pythia6
 #/g4sbs/pythia6file pythia11gev_job1.root
 #/g4sbs/kine elastic
-/g4sbs/uselead 1
+#/g4sbs/uselead 1
+## Configure G4SBS for gep (Q^2 = 12 GeV^2)
+/g4sbs/filename        gep_12GeV2.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gep
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         30.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         75.0 muA
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           11.0 GeV
+/g4sbs/thmin           19.0 deg
+/g4sbs/thmax           39.0 deg
+/g4sbs/phmin           -50.0 deg
+/g4sbs/phmax           50.0 deg
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        6.8 m
+/g4sbs/hcalvoffset     45.0 cm
+/g4sbs/sbsclampopt     2
+/g4sbs/uselead 	       1
+/g4sbs/beamlineconfig  1
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/tosfield        GEP_12map0_newheader.table
+/g4sbs/bbang           29.0 deg
+/g4sbs/bbdist          4.5 m
+/g4sbs/sbsang          16.9 deg
+/g4sbs/48D48dist       1.6 m
+
+/g4sbs/totalabs true
+
+## Run 100 events
+#/g4sbs/run             100
+
+
+/g4sbs/gepfppoption 2
+#/g4sbs/FPP1CH2thick 60.0 cm
 # start with wide-open cuts:
 #/g4sbs/thmin 0 deg
 #/g4sbs/thmax 180 deg
@@ -42,7 +88,7 @@
 # Set specific colour for identification : ghost parallel geometry envelope ("ghost") as yellow
 #
 # Specify view angle:
-/vis/viewer/set/viewpointThetaPhi 90 180 deg
+/vis/viewer/set/viewpointThetaPhi 106.9 180 deg
 #
 # Specify zoom value:
 /vis/viewer/zoom 2.5
@@ -67,7 +113,7 @@
 # To draw only gammas:
 /vis/filtering/trajectories/create/particleFilter
 /vis/filtering/trajectories/particleFilter-0/add gamma
-/vis/filtering/trajectories/particleFilter-0/add neutron
+#/vis/filtering/trajectories/particleFilter-0/add neutron
 #
 # To invert the above, drawing all particles except gammas,
 # keep the above two lines but also add:

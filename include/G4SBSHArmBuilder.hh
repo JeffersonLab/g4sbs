@@ -31,6 +31,7 @@ public:
   void SetRICHgas( G4String s ){ fRICHgas = s; }
   void SetRICH_use_aerogel( G4bool b ){ fRICH_use_aerogel = b; }
   void SetFPP_CH2thick(int ifpp, double thick );
+  void SetGEPFPPoption(int option){ fGEPFPPoption = option; }
   void SetGENRPAnalyzerOption(int ia ){ fGEnRP_analyzer_option = ia; }
   void SetFTabsthick( G4double t ){ fFTabsthick = t; }
   void SetFTuseabsorber( G4bool b ){ fFTuseabsorber = b; }
@@ -95,6 +96,13 @@ public:
   G4double fFTabsthick;
   G4bool   fFTuseabsorber; //flag to toggle building of an absorber
   G4String fFTabsmaterial; //string defining FT absorber material
+
+  int fGEPFPPoption; //options for different arrangements of the GEP FPP:
+
+  //Make the width and height of the CH2 blocks user-configurable:
+  double fGEP_CH2width[2];
+  double fGEP_CH2height[2]; 
+  double fGEP_CH2zpos[2];
   
 private:
 

@@ -4,9 +4,9 @@
 export G4SBS=${CMAKE_INSTALL_PREFIX}
 
 if test "x$PATH" = "x" ; then
-    export PATH=$G4SBS/bin
+    export PATH=${CMAKE_INSTALL_FULL_BINDIR}
 else
-    export PATH=$G4SBS/bin:$PATH
+    export PATH=${CMAKE_INSTALL_FULL_BINDIR}:$PATH
 fi
 
 OS=`uname -s`
@@ -15,17 +15,17 @@ OS=`uname -s`
 if [ "$OS" == "Darwin" ]
 then # Mac OS: set DYLD_LIBRARY_PATH to library directory:
     if test "x$DYLD_LIBRARY_PATH" = "x"; then
-	export DYLD_LIBRARY_PATH=$G4SBS/lib
+	export DYLD_LIBRARY_PATH=${CMAKE_INSTALL_FULL_LIBDIR}
     else
-	export DYLD_LIBRARY_PATH=$G4SBS/lib:$DYLD_LIBRARY_PATH
+	export DYLD_LIBRARY_PATH=${CMAKE_INSTALL_FULL_LIBDIR}:$DYLD_LIBRARY_PATH
     fi
 fi
 
 # set LD_LIBRARY_PATH regardless of OS:
 if test "x$LD_LIBRARY_PATH" = "x"; then
-    export LD_LIBRARY_PATH=$G4SBS/lib
+    export LD_LIBRARY_PATH=${CMAKE_INSTALL_FULL_LIBDIR}
 else
-    export LD_LIBRARY_PATH=$G4SBS/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=${CMAKE_INSTALL_FULL_LIBDIR}:$LD_LIBRARY_PATH
 fi
 
 

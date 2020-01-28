@@ -87,6 +87,17 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fCH2thickFPP[0] = 22.0*2.54*cm;
   fCH2thickFPP[1] = 22.0*2.54*cm;
 
+  //Default GEP FPP configuration:
+  fGEPFPPoption = 2; // default configuration is two 22-inch CH2 blocks with trackers in between:
+                     //alternate configuration to be tested is one analyzer with the FPP1 GEMs re-distributed to FT and FPP2
+
+  //default to two analyzers, with same transverse dimensions as the polarimeter GEMs, each 22 inches thick:
+  fGEP_CH2width[0] = fGEP_CH2width[1] = 60.0*cm;
+  fGEP_CH2height[0] = fGEP_CH2height[1] = 200.0*cm;
+
+  fGEP_CH2zpos[0] = 58.53*cm;
+  fGEP_CH2zpos[1] = 170.3*cm;
+  
   fFTuseabsorber = false;
   fFTabsthick = 2.54*cm;
   fFTabsmaterial = "Aluminum";
@@ -3649,52 +3660,113 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   //FPP consists of GEM tracker interspersed w/CH2 analyzers:
 
   //Make analyzers first:
-  double anaheight = 200.0*cm;
-  double anawidth  = 44.0*2.54*cm;
-  double anadepth  = 22.0*2.54*cm;
-  double ana1depth = fCH2thickFPP[0];
-  double ana2depth = fCH2thickFPP[1];
+  // double anaheight = fGEP_CH2height;
+  // double anawidth  = fGEP_CH2width;
+  // //double anawidth  = 44.0*2.54*cm;
+  
+  // double anadepth  = 22.0*2.54*cm;
+  // double ana1depth = fCH2thickFPP[0];
+  // double ana2depth = fCH2thickFPP[1];
 
   //Don't assume these are the same:
-  
-  G4Box *ana1box = new G4Box("ana1box", anawidth/2.0, anaheight/2.0, ana1depth/2.0 );
-  G4LogicalVolume* ana1log = new G4LogicalVolume(ana1box, GetMaterial("CH2"), "FPPana1log");
 
-  fDetCon->InsertAnalyzerVolume( ana1log->GetName() );
+  int nana = 2;
+  const int ntrackermax = 3;
+  int ntracker = 3;
+  //int ngem[ntracker] = {6,5,5};
+  int ngem[ntrackermax] = {6,5,5};
+  double GEM_z_spacing[ntrackermax];
+  double trkr_zpos[ntrackermax];
+  vector<G4String> SDnames; 
   
-  G4Box *ana2box = new G4Box("ana2box", anawidth/2.0, anaheight/2.0, ana2depth/2.0 );
-  G4LogicalVolume* ana2log = new G4LogicalVolume(ana2box, GetMaterial("CH2"), "FPPana2log");
+  switch( fGEPFPPoption ){ //1 = 8-plane front tracker of 6x(40x150 cm^2)+2x(60x200 cm^2) and 8-plane back tracker of 6x(60x200 cm^2)
+  case 1:
+    nana = 1;
+    ntracker = 2;
+    ngem[0] = 8;
+    ngem[1] = 8;
+    GEM_z_spacing[0] = 10.0*cm;
+    GEM_z_spacing[1] = 10.0*cm;
+    trkr_zpos[0] = 0.0;
+    trkr_zpos[1] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0] + fCH2thickFPP[0] + GEM_z_spacing[1];
+    fGEP_CH2zpos[0] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0]; //upstream edge of CH2
+    SDnames.push_back( "Harm/FT" );
+    SDnames.push_back( "Harm/FPP" );
+    fGEP_CH2width[0] = 60.0*cm;
+    fGEP_CH2height[0] = 200.0*cm;
+    break;
+  case 2:
+  default: //2 = original layout: 6-plane FT of (40x150) cm^2 plus FPP1 and FPP2 trackers:
+    nana = 2;
+    ntracker = 3;
+    GEM_z_spacing[0] = 9.0*cm;
+    GEM_z_spacing[1] = 10.0*cm;
+    GEM_z_spacing[2] = 10.0*cm;
+    fGEP_CH2zpos[0] = 58.53*cm;
+    fGEP_CH2zpos[1] = 170.3*cm;
+    fGEP_CH2width[0] = 60.0*cm;
+    fGEP_CH2height[0] = 200.0*cm;
+    fGEP_CH2width[1] = 60.0*cm;
+    fGEP_CH2height[1] = 200.0*cm;
+    
+    SDnames.push_back("Harm/FT");
+    SDnames.push_back("Harm/FPP1");
+    SDnames.push_back("Harm/FPP2");
+    
+    double zavg = 0.5*(fGEP_CH2zpos[0]+fCH2thickFPP[0] + fGEP_CH2zpos[1]); // mid-point between two analyzers 
+    double zspace = fGEP_CH2zpos[1] - (fGEP_CH2zpos[0]+fCH2thickFPP[0]); //spacing between first and second analyzers:
+    trkr_zpos[0] = 0.0*cm;
+    trkr_zpos[1] = zavg - 2.0*GEM_z_spacing[1];
+    trkr_zpos[2] = fGEP_CH2zpos[1] + fCH2thickFPP[1] + GEM_z_spacing[2];
+    break;
+  }
 
-  fDetCon->InsertAnalyzerVolume( ana2log->GetName() );
+  G4VisAttributes *CH2anavisatt = new G4VisAttributes( G4Colour(0.0, 0.0, 1.0) );
+  CH2anavisatt->SetForceWireframe(true);
   
-  G4ThreeVector Ana1_pos = pos + G4ThreeVector( 0.0, 0.0, 58.53*cm + anadepth/2.0 );
-  G4ThreeVector Ana2_pos = pos + G4ThreeVector( 0.0, 0.0, 170.3*cm + anadepth/2.0 );
+  char ananame[50];
+  char analogname[50];
   
-  new G4PVPlacement(0, Ana1_pos, ana1log,
-		    "anaphys1", Mother, false, 0, false);
-  new G4PVPlacement(0, Ana2_pos, ana2log,
-		    "anaphys1", Mother, false, 0, false);
+  for( G4int ana=0; ana<nana; ana++ ){
+    sprintf( ananame, "ana%dbox", ana );
 
-  double zavg = 0.5*(170.3*cm + 58.53*cm+anadepth); //midpoint between first and second analyzers
-  double zspace = 170.3*cm - (58.53*cm+anadepth); //available space between first and second analyzers
+    G4String anaboxname(ananame);
+    G4String analogname = ananame;
+    G4String anaphysname = ananame;
+
+    analogname.append("_log");
+    anaphysname.append("_phys");
+    
+    G4Box *anabox_temp = new G4Box( anaboxname, fGEP_CH2width[ana]/2.0, fGEP_CH2height[ana]/2.0, fCH2thickFPP[ana]/2.0 );
+    G4LogicalVolume *analog_temp = new G4LogicalVolume( anabox_temp, GetMaterial("CH2"), analogname );
+    fDetCon->InsertAnalyzerVolume( analog_temp->GetName() );
+
+    analog_temp->SetVisAttributes( CH2anavisatt );
+    
+    G4ThreeVector anapos_temp = pos + G4ThreeVector( 0.0, 0.0, fGEP_CH2zpos[ana] + fCH2thickFPP[ana]/2.0 );
+    new G4PVPlacement( 0, anapos_temp, analog_temp, anaphysname, Mother, false, 0, false );
+  }
+
+  // double zavg = 0.5*(170.3*cm + 58.53*cm+anadepth); //midpoint between first and second analyzers
+  // double zspace = 170.3*cm - (58.53*cm+anadepth); //available space between first and second analyzers
   
   int i, j;
   //int ngem = 0;
   
   vector<double> gemz, gemw, gemh;
   
-  int ntracker = 3; //FT, FPP1, FPP2
-  int ngem[3] = {6,5,5};
+  // int ntracker = 3; //FT, FPP1, FPP2
+  // int ngem[3] = {6,5,5};
 
   //we want equal air gaps between gem planes in FPP1. one of the GEMs will be placed at the midpoint.
   // ngap = ngem + 1 
   
-  double GEM_z_spacing[3] = {9.0*cm, zspace/double(ngem[1]+1), zspace/double(ngem[1]+1) };
+  //double GEM_z_spacing[3] = {9.0*cm, zspace/double(ngem[1]+1), zspace/double(ngem[1]+1) };
   
-  vector<G4String> SDnames; 
-  SDnames.push_back("Harm/FT");
-  SDnames.push_back("Harm/FPP1");
-  SDnames.push_back("Harm/FPP2");
+  // vector<G4String> SDnames; 
+  // SDnames.push_back("Harm/FT");
+  // SDnames.push_back("Harm/FPP1");
+  // SDnames.push_back("Harm/FPP2");
 
   //int TrackerID = 2;
   G4SBSTrackerBuilder trackerbuilder(fDetCon);
@@ -3704,21 +3776,15 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     gemw.resize( ngem[i] );
     gemh.resize( ngem[i] );
     for( j = 0; j < ngem[i]; j++ ){
-      if( i == 0 ){
-	gemz[j] = ((double) j)*GEM_z_spacing[i];
+      gemz[j] = trkr_zpos[i] + ((double) j)*GEM_z_spacing[i];
+      if( i == 0 && j < 6 ){ //FT 40x150:
+	//	gemz[j] = ((double) j)*GEM_z_spacing[i];
 	gemw[j] = 40.0*cm;
 	gemh[j] = 150.0*cm;
-      } else if( i == 1 ){
-	
+      } else { //200x60
 	//gemz[j] = ((double) j)*10.0*cm + 1.2*m;
-	gemz[j] = zavg + double(j-2)*GEM_z_spacing[i];
+	//gemz[j] = zavg + double(j-2)*GEM_z_spacing[i];
 	//	  gemz[i] = pairspac*((i-6)/2) + (i%2)*gemdsep + 1.2*m;
-	gemw[j] = 60.0*cm;
-	gemh[j] = 200.0*cm;
-      } else {
-	//gemz[j] = ((double) j)*10.0*cm + 2.316*m;
-	gemz[j] = 170.3*cm + anadepth + zspace/2.0 + double(j-2)*GEM_z_spacing[i]; 
-	//	  gemz[i] = pairspac*((i-10)/2) + (i%2)*gemdsep + 2.316*m;
 	gemw[j] = 60.0*cm;
 	gemh[j] = 200.0*cm;
       }
@@ -3728,12 +3794,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   }
 
   //CH2 analyzers:
-
-  G4VisAttributes *CH2anavisatt = new G4VisAttributes( G4Colour(0.0, 0.0, 1.0) );
-  CH2anavisatt->SetForceWireframe(true);
-
-  ana1log->SetVisAttributes( CH2anavisatt );
-  ana2log->SetVisAttributes( CH2anavisatt );
+  // ana1log->SetVisAttributes( CH2anavisatt );
+  // ana2log->SetVisAttributes( CH2anavisatt );
   
 }
 

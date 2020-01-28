@@ -395,6 +395,13 @@ G4SBSMessenger::G4SBSMessenger(){
   GEPFPP2_CH2thickCmd->SetGuidance("CH2 thickness for first analyzer (GEP only)");
   GEPFPP2_CH2thickCmd->SetGuidance("0 < FPP2 CH2 thick < 60 cm");
   GEPFPP2_CH2thickCmd->SetParameterName("CH2thick2",false);
+
+  GEPFPPoptionCmd = new G4UIcmdWithAnInteger("/g4sbs/gepfppoption",this);
+  GEPFPPoptionCmd->SetGuidance("GEP FPP option:");
+  GEPFPPoptionCmd->SetGuidance("1 = One analyzer, 8 (FT) + 8 (FPP) GEM trackers");
+  GEPFPPoptionCmd->SetGuidance("2 = Two analyzers, 6 (FT) + 5 (FPP1) + 5 (FPP2) GEM trackers (default)");
+  GEPFPPoptionCmd->SetParameterName("gepfppoption",true);
+  GEPFPPoptionCmd->SetDefaultValue(2);
   
   BLneutronDetsCmd = new G4UIcmdWithABool("/g4sbs/BLneutronDets",this);
   BLneutronDetsCmd->SetGuidance("Setup neutron detectors along the beamline");
@@ -1394,6 +1401,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == GEPFPP2_CH2thickCmd ){
     G4double ch2thick = GEPFPP2_CH2thickCmd->GetNewDoubleValue(newValue);
     fdetcon->fHArmBuilder->SetFPP_CH2thick(2,ch2thick);
+  }
+
+  if( cmd == GEPFPPoptionCmd ){
+    G4int i = GEPFPPoptionCmd->GetNewIntValue(newValue);
+    fdetcon->fHArmBuilder->SetGEPFPPoption( i );
   }
   
   if( cmd == BLneutronDetsCmd ){

@@ -170,6 +170,8 @@ private:
 
   G4UIcmdWithADoubleAndUnit  *GEPFPP1_CH2thickCmd;
   G4UIcmdWithADoubleAndUnit  *GEPFPP2_CH2thickCmd;
+
+  G4UIcmdWithAnInteger       *GEPFPPoptionCmd;
   
   G4UIcmdWithABool *BLneutronDetsCmd;
   G4UIcmdWithABool *GEMfrontendCmd;

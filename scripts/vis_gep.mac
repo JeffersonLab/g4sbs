@@ -48,8 +48,8 @@
 #/g4sbs/run             100
 
 
-/g4sbs/gepfppoption 2
-#/g4sbs/FPP1CH2thick 60.0 cm
+/g4sbs/gepfppoption 1
+/g4sbs/FPP1CH2thick 100.0 cm
 # start with wide-open cuts:
 #/g4sbs/thmin 0 deg
 #/g4sbs/thmax 180 deg

@@ -292,6 +292,16 @@ bool G4SBSEventGen::GenerateEvent(){
     //Wfact = 3.0;
     //AJRP: 3He gas is monatomic, so Wfact = 3 is appropriate here
     break;
+  case kCfoil:
+    if( CLHEP::RandFlat::shootInt(2) == 0 ){
+      thisnucl = kNeutron;
+    } else {
+      thisnucl = kProton;
+    }
+    ni = GetInitialNucl( fTargType, thisnucl );
+    //Wfact = 3.0;
+    //AJRP: 3He gas is monatomic, so Wfact = 3 is appropriate here
+    break;
   default:
     thisnucl = kProton;
     ni = G4LorentzVector(Mp);
@@ -1874,6 +1884,28 @@ double G4SBSEventGen::he3pdist( Nucl_t nucl, double p ){
   return 0.0;
 }
 
+double G4SBSEventGen::c12pdist( double p ){
+  //C12 being symmetric, we don't need to make a distinction between p and n
+  //Add code here:
+  double thisp = p/GeV;
+  if( p < 0.0 ) return 0.0;
+
+
+  double a0 = 1.199e-6/7.8e-10;
+  double b0 = -6.0522;
+  double c0 = 7.202e2;
+
+  double a1 = 1.6e-9/7.8e-10;
+  double b1 = 17.448;
+
+  if( p < 0.048*GeV ){
+    return a0*thisp*thisp*exp(-thisp*b0-thisp*thisp*c0);
+  } else {
+    return a1*exp(-thisp*b1);
+  }
+}
+
+
 G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
 
   double PMAX;
@@ -1884,6 +1916,9 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
     break;
   case k3He:
     PMAX = 0.85*GeV;
+    break;
+  case kCfoil:
+    PMAX = 1.00*GeV;// PMAX to be adjusted for carbon 12
     break;
   default:
     PMAX = 0.0;
@@ -1905,6 +1940,11 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
   }
   if( targ == kLD2 ){
     while( CLHEP::RandFlat::shoot() > deutpdist( psample) ){
+      psample = CLHEP::RandFlat::shoot(PMAX);
+    }
+  }
+  if( targ == kCfoil ){
+    while( CLHEP::RandFlat::shoot() > c12pdist( psample) ){
       psample = CLHEP::RandFlat::shoot(PMAX);
     }
   }

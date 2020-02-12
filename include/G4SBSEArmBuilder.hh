@@ -60,6 +60,8 @@ public:
   // EFuchey: 2017/03/02: flag for BBECal shielding option: 
   // 0: nothing; 1: default 1/4 in SS+0.5mm; 2: 10cm Al + 3cm SS on the side; 3: 10cm Al + 3cm SS on the side; 
   int fShieldOption;
+  //New geometry for BB PS: 0: default (old blocks, 27 rows); 1: new blocks, 25 rows; 2: new blocks; 26 rows
+  int BBPSOption;
   
   int  fGEMOption;
   //int  fCDetOption;

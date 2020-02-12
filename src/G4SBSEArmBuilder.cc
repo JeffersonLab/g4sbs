@@ -677,7 +677,14 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   zpos_temp += psdepth/2.0 + bbcalfrontmufoil->GetZHalfLength();
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_front_mufoil_log, "bbcal_back_mufoil_phys", bbcal_mother_log, false, 0, chkoverlap );
   // Preshower module - geometry will be assigned after Shower
-
+  
+  //Aluminum foil for Al "honeycomb"
+  G4LogicalVolume *honeycombplate_log = new G4LogicalVolume(bbcalfrontmufoil, GetMaterial("Aluminum"), "honeycombplate_log");
+  zpos_temp += 2*bbcalfrontmufoil->GetZHalfLength()+1.27*cm;
+  new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), honeycombplate_log, "honeycombplatefront1_phys", bbcal_mother_log, false, 0, chkoverlap );
+  zpos_temp += 1.905*cm-2*bbcalfrontmufoil->GetZHalfLength();
+  new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), honeycombplate_log, "honeycombplatefront2_phys", bbcal_mother_log, false, 0, chkoverlap );
+  
   // **** BIGBITE HODOSCOPE **** 
   // Scintillator box - same dimensions as preshower
   G4int n_bbhodoslats = 90;
@@ -693,11 +700,16 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + 0.217*2.54 + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
-  zpos_temp += bbcalfrontmufoil->GetZHalfLength() + 3.175*cm + bbhododepth/2.0;
+  zpos_temp += bbcalfrontmufoil->GetZHalfLength()+bbhododepth/2.0;
   new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0, chkoverlap );
   bbhodolog->SetVisAttributes(G4VisAttributes::Invisible);
-
-  zpos_temp += bbhododepth/2.0+3.175*cm;
+  zpos_temp += bbhododepth/2.0+bbcalfrontmufoil->GetZHalfLength();
+  new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), honeycombplate_log, "honeycombplateback1_phys", bbcal_mother_log, false, 0, chkoverlap );
+  zpos_temp += 1.905*cm-2*bbcalfrontmufoil->GetZHalfLength();
+  new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), honeycombplate_log, "honeycombplateback2_phys", bbcal_mother_log, false, 0, chkoverlap );
+ 
+  //zpos_temp +=3.175*cm;
+  
   //
   G4Box *bbhodoslatbox = new G4Box("bbhodoslatbox", bbslat_length/2.0, bbslat_section/2.0, bbslat_section/2.0);
   /*
@@ -777,6 +789,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_total_thick/2.0 - caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0, chkoverlap );
   
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_total_thick/2.0 - caldepth - bbcalfrontsteelplate->GetZHalfLength()), bbcal_front_steelplate_log, "bbcal_back_steelplate_phys", bbcal_mother_log, false, 0, chkoverlap );
 
   // Shower module:
   double bbmodule_x = 8.5*cm, bbmodule_y = 8.5*cm;  

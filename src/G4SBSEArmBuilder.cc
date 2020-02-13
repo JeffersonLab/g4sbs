@@ -106,7 +106,7 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fTurnOnGrinchPMTglassHits = false;// turn it off by default
   
   fBuildGEMfrontend = false; // do not build it by default  
-  BBPSOption = 2;
+  fBBPSOption = 0;
 }
 
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}
@@ -497,13 +497,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   double mylar_air_sum = mylarthickness + airthickness;
   double bbpmtz = 0.20*cm;
   
-  G4cout << " BBPS option (0: old geometry; 1: new modules, 25 blocks; 2: new modules, 26 blocks)" << BBPSOption << endl;
+  G4cout << " BBPS option (0: old geometry; 1: new modules, 25 blocks; 2: new modules, 26 blocks)" << fBBPSOption << endl;
   
   // **** BIGBITE CALORIMETER MOTHER VOLUME ****:
   //AJRP 05/19/19: re-working BBCAL geometry so user tracking action and stepping action classes
   //behave properly. Put everything (including detectors/shielding) inside a single mother volume
   G4double bbcal_box_height = 27*8.5*cm;
-  if(BBPSOption==2)bbcal_box_height = 26*9.0*cm;
+  if(fBBPSOption==2)bbcal_box_height = 26*9.0*cm;
   G4double bbcal_box_width  = 2.0*37.0*cm;
   //G4double bbcal_box_depth  = (8.5+2.5+37.0)*cm;
   // space for optional shielding + steel plate + mu-metal + PS block + space for hodoscope + Shower blocks
@@ -661,10 +661,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   double pswidth  = 2.0*37.0*cm;
   double psdepth  = 8.5*cm;
 
-  if(BBPSOption>=1){
+  if(fBBPSOption>=1){
     psdepth = 9.0*cm;
     psheight = psdepth*25;
-    if(BBPSOption==2)psheight+=psdepth;
+    if(fBBPSOption==2)psheight+=psdepth;
   }
 
   G4Box *bbpsbox = new G4Box("bbpsbox", pswidth/2.0, psheight/2.0, psdepth/2.0 );
@@ -912,7 +912,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   mapfile << currentline << endl;
   
-  if(BBPSOption>0){
+  if(fBBPSOption>0){
     bbmodule_x = bbmodule_y = 9.0*cm;
   }
   // ****Preshower Continued****
@@ -981,8 +981,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   int bbpscol = 2;
   int bbpsrow = 27;
-  if(BBPSOption==1)bbpsrow = 25;
-  if(BBPSOption==2)bbpsrow = 26;
+  if(fBBPSOption==1)bbpsrow = 25;
+  if(fBBPSOption==2)bbpsrow = 26;
   int ps_copy_number = 0;
   for(int l=0; l<bbpscol; l++) {
     for(int j=0; j<bbpsrow; j++) {

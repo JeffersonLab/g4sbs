@@ -150,7 +150,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 }
 
 void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
-  bool chkoverlap = true;
+  bool chkoverlap = false;
   //Lines of code used to build BigBite moved to their own method:
   printf("BigBite at %f deg\n", fBBang/deg);
 

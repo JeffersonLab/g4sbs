@@ -106,7 +106,7 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fTurnOnGrinchPMTglassHits = false;// turn it off by default
   
   fBuildGEMfrontend = false; // do not build it by default  
-  fBBPSOption = 0;
+  fBBPSOption = 2;
 }
 
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}

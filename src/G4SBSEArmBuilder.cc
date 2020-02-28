@@ -702,7 +702,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // Preshower module - geometry will be assigned after Shower
   
   //Aluminum foil for Al "honeycomb"
-  zpos_temp += hodosupportAlplate->GetZHalfLength()/2.0+1.905*cm;
+  zpos_temp += hodosupportAlplate->GetZHalfLength()/2.0+2.54*cm;
   new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), hodosupportAlplate_log, "hodosupportAlplate_phys", bbcal_mother_log, false, 0, chkoverlap );
   zpos_temp += hodosupportAlplate->GetZHalfLength()/2.0;
   //zpos_temp += 1.905*cm-2*bbcalfrontmufoil->GetZHalfLength();

@@ -193,6 +193,7 @@ private:
   
   double deutpdist( double );
   double he3pdist( Nucl_t, double );
+  double c12pdist( double );
   
   DSS2007FF fFragFunc; //Class to calculate fragmentation functions using DSS2007
 

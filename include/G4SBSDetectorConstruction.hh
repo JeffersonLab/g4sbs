@@ -29,7 +29,7 @@ class G4SBSHArmBuilder;
 
 class G4SBSDetectorMessenger;
 
-class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
+class G4SBSDetectorConstruction : public G4VUserDetectorConstruction //The : means that G4SBSD.. inherits all methods and member variables from calss G4VUser.. **Notes 
 {
 public:
   G4SBSDetectorConstruction();

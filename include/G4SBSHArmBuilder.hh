@@ -54,6 +54,9 @@ public:
   void MakeSBSSieveSlit(G4LogicalVolume *);
   void MakeLAC(G4LogicalVolume *);
   void MakePolarimeterGEnRP(G4LogicalVolume *);
+
+  //************************
+  void MakeTest(G4LogicalVolume *);
   
   double f48D48ang;
   double f48D48dist;

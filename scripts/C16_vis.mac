@@ -25,6 +25,7 @@
 /g4sbs/phmax     270.0 deg
 
 /g4sbs/treeflag 1
+
 /g4sbs/segmentTF1 0
 
 #For C16 Simulation - lead must be off, LH2, exp = C16, /g4sbs/segmentC16 1 turns on TF1 segmentation

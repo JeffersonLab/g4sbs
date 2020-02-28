@@ -153,6 +153,11 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //MakeRICH_new( worldlog );
   }
 
+  // Build Test detector ****************************************
+  if( exptype == kC16 ) {
+    MakeTest( worldlog );
+  }
+
   // Build CDET (as needed)
   if( (exptype == kNeutron || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
     //plugging in CDET for GMn  
@@ -4423,3 +4428,63 @@ void G4SBSHArmBuilder::MakeNeutronVeto(G4LogicalVolume* worldlog, G4double dist_
   VetoScintLog->SetVisAttributes(G4Colour(0.0, 1.0, 1.0, 1.0));
 }
   
+//*****************************************
+
+void G4SBSHArmBuilder::MakeTest( G4LogicalVolume *worldlog)
+{
+  //Scintillator specs
+  G4double scin_vert = 50.0*cm;
+  G4double scin_width = 60.0*cm;
+  G4double scin_depth = 1.5*2.54*cm; 
+  G4double space_in_front = 1.0*cm; // space between motherlog boundary and scintillator 
+
+  //Test Mother Volume to house all Scintilator+GEMs+Calorimeter
+  G4double Test_vert = scin_vert + 1.0*cm;
+  G4double Test_width = scin_width + 1.0*cm;
+  G4double Test_depth = 1.0*cm + scin_depth + 78.0*cm + 50.0*cm + 1.0*cm; // 78cm for GEMs & 50cm for Calorimeter (roughly)
+
+  //Geometric info & placement of Test detector
+  G4double r_Test = fHCALdist + Test_depth/2.0;
+  G4double angle_Test = 360.0*deg - f48D48ang;
+  G4ThreeVector R_Test( r_Test*sin( angle_Test ), 0.0, r_Test*cos( angle_Test ));
+
+  G4RotationMatrix *TestRot = new G4RotationMatrix;
+  TestRot->rotateY( -angle_Test );
+
+  G4Box *Test_Box = new G4Box("Test_Box", Test_width/2.0, Test_vert/2.0, Test_depth/2.0);
+  G4LogicalVolume *Test_Log = new G4LogicalVolume(Test_Box, GetMaterial("Air"), "Test_Log");
+  new G4PVPlacement( TestRot, R_Test, Test_Log, "Test_Phys", worldlog, 0, false, 0);
+
+  //Geometric info and placement of Scintillator
+  G4Box *scin_Box = new G4Box("scin_Box", scin_width/2.0, scin_vert/2.0, scin_depth/2.0);
+  G4LogicalVolume *scin_Log = new G4LogicalVolume(scin_Box, GetMaterial("POLYSTYRENE"), "scin_Log");
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -Test_depth/2.0 + scin_depth/2.0 + space_in_front ), scin_Log, "scin_phys", Test_Log, 0, false, 0);
+
+  //Making GEMs
+  G4SBSTrackerBuilder trackerbuilder(fDetCon);
+  G4RotationMatrix *GEMRot = new G4RotationMatrix;
+  GEMRot->rotateY( 0.0*deg );
+  
+  //GEM specs
+  int ngem = 5; 		// 5 GEMs
+  G4double gemz_spacing = 13.0*cm; // spacing between GEMs is 13cm
+  G4ThreeVector gem_pos( 0.0, 0.0, -Test_depth/2.0 + scin_depth + 5.0*gemz_spacing);
+  vector<double> gemz, gemw, gemh;
+  gemz.resize( ngem );
+  gemw.resize( ngem );
+  gemh.resize( ngem );
+  for(int i=0; i<ngem; i++){
+    gemz[i] = -Test_depth/2.0 + space_in_front + scin_depth + gemz_spacing + ((double)i)*gemz_spacing;
+    gemw[i] = 60.0*cm;
+    gemh[i] = 50.0*cm;
+}  
+  trackerbuilder.BuildComponent( Test_Log, GEMRot, gem_pos, ngem, gemz, gemw, gemh, "Test/HC" );
+
+  //Visual
+  Test_Log->SetVisAttributes( G4VisAttributes::Invisible );
+  // G4VisAttributes *Testvisatt = new G4VisAttributes( G4Colour( 0.0, 0.0, 1.0 ) );
+  // Testvisatt->SetForceWireframe(true);
+  // Test_Log->SetVisAttributes( Testvisatt );
+  G4VisAttributes *Scinvisatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 0.0 ) );
+  scin_Log->SetVisAttributes( Scinvisatt );
+}

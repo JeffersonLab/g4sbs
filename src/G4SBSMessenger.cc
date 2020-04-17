@@ -67,6 +67,10 @@ G4SBSMessenger::G4SBSMessenger(){
   shieldconfigCmd->SetGuidance("BB Ecal shielding layout: option 0 (none), 1 (default), 2 (+10cm Al + 3cm steel on side), 3 (+3cm steel + 3cm steel on side)");
   shieldconfigCmd->SetParameterName("bbshieldconfig", false);
 
+  bbpsconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/bbpsconfig",this);
+  bbpsconfigCmd->SetGuidance("BB PS config: option 0 (old geometry), 1 (new modules, 25 blocks), 2 (new modules, 26 blocks)");
+  bbpsconfigCmd->SetParameterName("bbpsconfig", false);
+  
   CDetconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/CDetconfig",this);
   CDetconfigCmd->SetGuidance("CDet Geometry Options(integer 1,2,3, or 4): Option 1 (default) = Simplest option, only material budget with no SD assigned, Option 2 = Flat, 2 planes with sensitive regions, Option 3 = Top/Bottom 'modules' are angled relative to central 'module', and Option 4 = Each bar is shimmed in order to optimize normal incidence");
   CDetconfigCmd->SetParameterName("CDetconfig",false);
@@ -685,6 +689,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == shieldconfigCmd ){
     G4int shieldconfval = shieldconfigCmd->GetNewIntValue(newValue);
     fdetcon->fEArmBuilder->SetShieldConfig(shieldconfval);
+  }
+  
+  if( cmd == bbpsconfigCmd ){
+    G4int bbpsconfval = shieldconfigCmd->GetNewIntValue(newValue);
+    fdetcon->fEArmBuilder->SetBBPSOption(bbpsconfval);
   }
   
   if( cmd == CDetconfigCmd ){

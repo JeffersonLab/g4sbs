@@ -153,6 +153,11 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //MakeRICH_new( worldlog );
   }
 
+  // Build Test detector ****************************************
+  if( exptype == kC16 ) {
+    MakeTest( worldlog );
+  }
+
   // Build CDET (as needed)
   if( (exptype == kNeutron || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
     //plugging in CDET for GMn  
@@ -3674,10 +3679,13 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   const int ntrackermax = 3;
   int ntracker = 3;
   //int ngem[ntracker] = {6,5,5};
-  int ngem[ntrackermax] = {6,5,5};
+  int ngem[ntrackermax] = {6,5,5}; //defaults
   double GEM_z_spacing[ntrackermax];
   double trkr_zpos[ntrackermax];
-  vector<G4String> SDnames; 
+  vector<G4String> SDnames;
+  vector<G4String> AnalyzerMaterials;
+
+  double zavg,zspace;
   
   switch( fGEPFPPoption ){ //1 = 8-plane front tracker of 6x(40x150 cm^2)+2x(60x200 cm^2) and 8-plane back tracker of 6x(60x200 cm^2)
   case 1:
@@ -3694,6 +3702,40 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     SDnames.push_back( "Harm/FPP" );
     fGEP_CH2width[0] = 60.0*cm;
     fGEP_CH2height[0] = 200.0*cm;
+
+    AnalyzerMaterials.push_back( G4String("CH2") );
+    
+    break;
+  case 3: //6-plane FT + 22" CH2 + 5-plane FPP1 + 4-cm Cu + 5-plane FPP2:
+    nana = 2;
+    ntracker = 3;
+    GEM_z_spacing[0] = 9.0*cm;
+    GEM_z_spacing[1] = 10.0*cm;
+    GEM_z_spacing[2] = 10.0*cm;
+
+    fGEP_CH2zpos[0] = 58.53*cm;
+    fGEP_CH2zpos[1] = 170.3*cm;
+    fGEP_CH2width[0] = 60.0*cm;
+    fGEP_CH2height[0] = 200.0*cm;
+    fGEP_CH2width[1] = 60.0*cm;
+    fGEP_CH2height[1] = 200.0*cm;
+
+    fCH2thickFPP[1] = 4.0*cm; //Cu analyzer thickness
+    
+    SDnames.push_back("Harm/FT");
+    SDnames.push_back("Harm/FPP1");
+    SDnames.push_back("Harm/FPP2");
+
+    zavg = 0.5*(fGEP_CH2zpos[0]+fCH2thickFPP[0] + fGEP_CH2zpos[1]); // mid-point between two analyzers 
+    zspace = fGEP_CH2zpos[1] - (fGEP_CH2zpos[0]+fCH2thickFPP[0]); //spacing between first and second analyzers:
+
+    trkr_zpos[0] = 0.0*cm;
+    trkr_zpos[1] = zavg - 2.0*GEM_z_spacing[1];
+    trkr_zpos[2] = fGEP_CH2zpos[1] + fCH2thickFPP[1] + GEM_z_spacing[2];
+
+    AnalyzerMaterials.push_back( "CH2" );
+    AnalyzerMaterials.push_back( "Copper" );
+    
     break;
   case 2:
   default: //2 = original layout: 6-plane FT of (40x150) cm^2 plus FPP1 and FPP2 trackers:
@@ -3713,11 +3755,15 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     SDnames.push_back("Harm/FPP1");
     SDnames.push_back("Harm/FPP2");
     
-    double zavg = 0.5*(fGEP_CH2zpos[0]+fCH2thickFPP[0] + fGEP_CH2zpos[1]); // mid-point between two analyzers 
-    double zspace = fGEP_CH2zpos[1] - (fGEP_CH2zpos[0]+fCH2thickFPP[0]); //spacing between first and second analyzers:
+    zavg = 0.5*(fGEP_CH2zpos[0]+fCH2thickFPP[0] + fGEP_CH2zpos[1]); // mid-point between two analyzers 
+    zspace = fGEP_CH2zpos[1] - (fGEP_CH2zpos[0]+fCH2thickFPP[0]); //spacing between first and second analyzers:
     trkr_zpos[0] = 0.0*cm;
     trkr_zpos[1] = zavg - 2.0*GEM_z_spacing[1];
     trkr_zpos[2] = fGEP_CH2zpos[1] + fCH2thickFPP[1] + GEM_z_spacing[2];
+
+    AnalyzerMaterials.push_back( "CH2" );
+    AnalyzerMaterials.push_back( "CH2" );
+    
     break;
   }
 
@@ -3738,7 +3784,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     anaphysname.append("_phys");
     
     G4Box *anabox_temp = new G4Box( anaboxname, fGEP_CH2width[ana]/2.0, fGEP_CH2height[ana]/2.0, fCH2thickFPP[ana]/2.0 );
-    G4LogicalVolume *analog_temp = new G4LogicalVolume( anabox_temp, GetMaterial("CH2"), analogname );
+    G4LogicalVolume *analog_temp = new G4LogicalVolume( anabox_temp, GetMaterial(AnalyzerMaterials[ana]), analogname );
     fDetCon->InsertAnalyzerVolume( analog_temp->GetName() );
 
     analog_temp->SetVisAttributes( CH2anavisatt );
@@ -4004,7 +4050,7 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
 
 void G4SBSHArmBuilder::SetFPP_CH2thick( int ifpp, double CH2thick ){
   double fthickmin = 0.0*cm;
-  double fthickmax = 100.0*cm;
+  double fthickmax = 120.0*cm;
 
   ifpp = ifpp >= 1 ? ( ifpp <= 2 ? ifpp : 2 ) : 1;
   
@@ -4423,3 +4469,63 @@ void G4SBSHArmBuilder::MakeNeutronVeto(G4LogicalVolume* worldlog, G4double dist_
   VetoScintLog->SetVisAttributes(G4Colour(0.0, 1.0, 1.0, 1.0));
 }
   
+//*****************************************
+
+void G4SBSHArmBuilder::MakeTest( G4LogicalVolume *worldlog)
+{
+  //Scintillator specs
+  G4double scin_vert = 50.0*cm;
+  G4double scin_width = 60.0*cm;
+  G4double scin_depth = 1.5*2.54*cm; 
+  G4double space_in_front = 1.0*cm; // space between motherlog boundary and scintillator 
+
+  //Test Mother Volume to house all Scintilator+GEMs+Calorimeter
+  G4double Test_vert = scin_vert + 1.0*cm;
+  G4double Test_width = scin_width + 1.0*cm;
+  G4double Test_depth = 1.0*cm + scin_depth + 78.0*cm + 50.0*cm + 1.0*cm; // 78cm for GEMs & 50cm for Calorimeter (roughly)
+
+  //Geometric info & placement of Test detector
+  G4double r_Test = fHCALdist + Test_depth/2.0;
+  G4double angle_Test = 360.0*deg - f48D48ang;
+  G4ThreeVector R_Test( r_Test*sin( angle_Test ), 0.0, r_Test*cos( angle_Test ));
+
+  G4RotationMatrix *TestRot = new G4RotationMatrix;
+  TestRot->rotateY( -angle_Test );
+
+  G4Box *Test_Box = new G4Box("Test_Box", Test_width/2.0, Test_vert/2.0, Test_depth/2.0);
+  G4LogicalVolume *Test_Log = new G4LogicalVolume(Test_Box, GetMaterial("Air"), "Test_Log");
+  new G4PVPlacement( TestRot, R_Test, Test_Log, "Test_Phys", worldlog, 0, false, 0);
+
+  //Geometric info and placement of Scintillator
+  G4Box *scin_Box = new G4Box("scin_Box", scin_width/2.0, scin_vert/2.0, scin_depth/2.0);
+  G4LogicalVolume *scin_Log = new G4LogicalVolume(scin_Box, GetMaterial("POLYSTYRENE"), "scin_Log");
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -Test_depth/2.0 + scin_depth/2.0 + space_in_front ), scin_Log, "scin_phys", Test_Log, 0, false, 0);
+
+  //Making GEMs
+  G4SBSTrackerBuilder trackerbuilder(fDetCon);
+  G4RotationMatrix *GEMRot = new G4RotationMatrix;
+  GEMRot->rotateY( 0.0*deg );
+  
+  //GEM specs
+  int ngem = 5; 		// 5 GEMs
+  G4double gemz_spacing = 13.0*cm; // spacing between GEMs is 13cm
+  G4ThreeVector gem_pos( 0.0, 0.0, -Test_depth/2.0 + scin_depth + 5.0*gemz_spacing);
+  vector<double> gemz, gemw, gemh;
+  gemz.resize( ngem );
+  gemw.resize( ngem );
+  gemh.resize( ngem );
+  for(int i=0; i<ngem; i++){
+    gemz[i] = -Test_depth/2.0 + space_in_front + scin_depth + gemz_spacing + ((double)i)*gemz_spacing;
+    gemw[i] = 60.0*cm;
+    gemh[i] = 50.0*cm;
+}  
+  trackerbuilder.BuildComponent( Test_Log, GEMRot, gem_pos, ngem, gemz, gemw, gemh, "Test/HC" );
+
+  //Visual
+  Test_Log->SetVisAttributes( G4VisAttributes::Invisible );
+  // G4VisAttributes *Testvisatt = new G4VisAttributes( G4Colour( 0.0, 0.0, 1.0 ) );
+  // Testvisatt->SetForceWireframe(true);
+  // Test_Log->SetVisAttributes( Testvisatt );
+  G4VisAttributes *Scinvisatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 0.0 ) );
+  scin_Log->SetVisAttributes( Scinvisatt );
+}

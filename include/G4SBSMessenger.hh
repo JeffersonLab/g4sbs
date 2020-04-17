@@ -81,6 +81,7 @@ private:
   
   G4UIcmdWithAnInteger *gemconfigCmd;
   G4UIcmdWithAnInteger *shieldconfigCmd;
+  G4UIcmdWithAnInteger *bbpsconfigCmd;
   G4UIcmdWithAnInteger *CDetconfigCmd;
 
   G4UIcmdWithABool *flipGEMCmd;

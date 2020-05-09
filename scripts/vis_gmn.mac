@@ -7,7 +7,12 @@
 /g4sbs/exp             gmn
 
 ## Configure the target
-/g4sbs/target          LD2
+#/g4sbs/target          LD2
+/g4sbs/target		optics
+/g4sbs/Nfoil 		9
+/g4sbs/foilthick 	0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 mm
+/g4sbs/foilz		-16.0 -12.0 -8.0 -4.0 0.0 4.0 8.0 12.0 16.0 cm
+/g4sbs/targdiam		7.0 mm
 /g4sbs/targlen         10.0 cm           ## Target Length
 
 ## Configure generator settings
@@ -36,6 +41,8 @@
 #/g4sbs/sbsmagfield     0.97 tesla
 
 /g4sbs/totalabs true
+
+/g4sbs/buildBBsieve 1
 
 ## Run 100 events
 #/g4sbs/run             100

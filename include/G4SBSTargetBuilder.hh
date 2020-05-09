@@ -28,6 +28,8 @@ public:
   void BuildStandardCryoTarget(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector);
   void BuildCfoil(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector);
 
+  void BuildOpticsTarget(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector);
+  
   // EFuchey: 2017/02/10: Added those functions to build scattering chamber separately from target,
   // and avoid, if possible, duplicates of the code actually building the target.
   void BuildStandardScatCham(G4LogicalVolume *);
@@ -47,13 +49,26 @@ public:
 
   G4bool GetFlux() const { return fFlux; }
   void SetFlux(G4bool b){fFlux = b;}
-
+       
   G4ThreeVector GetTargPolDir() const { return fTargPolDir; }
   G4double GetTargPolMag() const { return fTargPolMag; }
   void SetTargPolDir( G4ThreeVector pdir ){ fTargPolDir = pdir.unit(); }
   void SetTargPolMag( G4double pmag ){ fTargPolMag = pmag; }
+
+  G4int GetNtargetFoils() const { return fNtargetFoils; }
+  void SetNtargetFoils(G4int n);
+
+  std::vector<G4double> GetFoilThick() const { return fFoilThick; }
+  std::vector<G4double> GetFoilZpos() const { return fFoilZpos; }
+  void SetFoilThick(G4int, G4double);
+  void SetFoilZpos(G4int, G4double);
   
 private:
+  //Multi-foil solid targets (only Carbon available for now):
+  G4int fNtargetFoils;
+  std::vector<G4double> fFoilThick; //foil thickness
+  std::vector<G4double> fFoilZpos; //foil Z position along beamline
+
   G4double fTargLen;
   G4double fTargDen;
   G4double fTargDiameter; //diameter of cryotarget

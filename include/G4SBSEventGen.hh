@@ -120,6 +120,13 @@ public:
   double GetMaxWeight(){ return fMaxWeight; }
 
   void InitializePythia6_Tree();
+
+  int GetNfoils() const { return fNfoils; }
+  // std::vector<double> GetZfoil() const { return fZfoil; }
+  // std::vector<double> GetThickFoil() const { return fThickFoil; }
+
+  void SetNfoils( G4int nfoil );
+  void SetFoilZandThick( const std::vector<G4double> foilz, const std::vector<G4double> foilthick );
   
 private:
 
@@ -162,6 +169,15 @@ private:
   double fThMin_had, fThMax_had, fPhMin_had, fPhMax_had; //Angular generation limits for hadron arm 
   double fEhadMin, fEhadMax; //Hadron (total) energy generation limits (for SIDIS case)--Later we will want to add exclusive hadron production.
   double fTargLen, fRasterX, fRasterY, fTargDen;
+  // G4ThreeVector fTargOffset;
+  // G4ThreeVector fBeamOffset;
+  // G4ThreeVector fBeamDirection;
+  //For multi-foil optics target event generation, I guess we need to add (redundant) target foil thickness information here:
+  G4int fNfoils;
+  std::vector<std::pair<G4double, G4double> > fFoilZandThick;
+  G4double fTotalThickFoil;
+  std::vector<G4double> fFoilZfraction;
+  
   double fPmisspar, fPmissperp, fPmissparSm;
   double fHCALdist, fToFres;
 

@@ -159,7 +159,8 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Build CDET (as needed)
-  if( (exptype == kNeutron || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
+  //if( (exptype == kGMN || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
+  if( exptype == kGMN || exptype == kGEnRP ){
     //plugging in CDET for GMn  
     G4double depth_HCal_shield = 7.62*cm; //3 inches
     G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
@@ -735,7 +736,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclampun, GetMaterial("Fer"), "frontclampLog", 0, 0, 0);
 
     G4LogicalVolume *frontextfaceLog= NULL;
-    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kNeutronExp ){
+    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGMN || fDetCon->fExpType == kGEN || fDetCon->fExpType == kGEnRP ){
       frontextfaceLog = new G4LogicalVolume(extface_whole, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
     } else {
       frontextfaceLog = new G4LogicalVolume(extface, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
@@ -849,7 +850,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     FrontClamp_log->SetVisAttributes(clampVisAtt);
  
-    // (Note jc2): Sticking this if statement here so we can draw the
+    // (Note jc2): Stickng this if statement here so we can draw the
     // back fieldclamp only for GEp, but not GMn. However, I'm leaving
     // the indentation as is because I don't want git to make me the
     // author of all these changes when all I did is indent things :/

@@ -76,7 +76,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fTotalAbs = false;
 
-  fExpType = kNeutronExp;
+  fExpType = kGMN;
 
   // By default, don't check detectors for overlaps
   fCheckOverlap = false;

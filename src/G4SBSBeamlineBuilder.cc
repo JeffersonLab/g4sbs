@@ -35,57 +35,51 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
   
   // EFuchey 2017/03/29: organized better this with a switch instead of an endless chain of if...  else...
-  if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
-    switch(fDetCon->fExpType){
-    case(kGEp):
-      printf("GEp experiment: forcing beamline configuration 1 \n");
-      fDetCon->fBeamlineConf = 1;
-      MakeGEpBeamline(worldlog);
-      if(fDetCon->fLeadOption == 1){
-	MakeGEpLead(worldlog);
-      }
-      break;
-    case(kNeutronExp):// GMn
-      MakeGMnBeamline(worldlog);
-      if(fDetCon->fLeadOption == 1){
-	MakeGMnLead(worldlog);
-      }
-      break;
-    case(kGEnRP):// GEnRP
-      MakeGMnBeamline(worldlog);
-      if(fDetCon->fLeadOption == 1){
-	MakeGMnLead(worldlog);
-      }
-      break;
-    default:
-      MakeDefaultBeamline(worldlog);
-      break;
+  //if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
+  switch(fDetCon->fExpType){
+  case(kGEp):
+    printf("GEp experiment: forcing beamline configuration 1 \n");
+    fDetCon->fBeamlineConf = 1;
+    MakeGEpBeamline(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      MakeGEpLead(worldlog);
     }
-  } else {
-    switch(fDetCon->fExpType){
-    case(kNeutronExp):// GEn
-      printf("GEn experiment: forcing beamline configuration 2 \n");
-      fDetCon->fBeamlineConf = 2;
-      Make3HeBeamline(worldlog);
-      MakeGEnClamp(worldlog);
-      if(fDetCon->fLeadOption == 1){
-	MakeGEnLead(worldlog);
-      }
-      break;
-    case(kSIDISExp):// SIDIS
-      Make3HeBeamline(worldlog);
-      if(fDetCon->fLeadOption == 1){
-	MakeSIDISLead(worldlog);
-      }
-      break;
-    case(kGEMHCtest):// Hall C GEM test
-      MakeGMnBeamline(worldlog);
-      break;
-    default:
-      Make3HeBeamline(worldlog);
-      break;
+    break;
+  case(kGMN):// GMn
+    MakeGMnBeamline(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      MakeGMnLead(worldlog);
     }
+    break;
+  case(kGEnRP):// GEnRP
+    MakeGMnBeamline(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      MakeGMnLead(worldlog);
+    }
+    break;
+  case(kGEN):// GEn
+    printf("GEn experiment: forcing beamline configuration 2 \n");
+    fDetCon->fBeamlineConf = 2;
+    Make3HeBeamline(worldlog);
+    MakeGEnClamp(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      MakeGEnLead(worldlog);
+    }
+    break;
+  case(kSIDISExp):// SIDIS
+    Make3HeBeamline(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      MakeSIDISLead(worldlog);
+    }
+    break;
+  case(kGEMHCtest):// Hall C GEM test
+    MakeGMnBeamline(worldlog);
+    break;  
+  default:
+    MakeDefaultBeamline(worldlog);
+    break;
   }
+  
   
   double floorthick = 1.0*m;
   G4Tubs *floor_tube = new G4Tubs("floor_tube", 0.0, 30*m, floorthick/2, 0.*deg, 360.*deg );
@@ -1041,7 +1035,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       GEMElectronicsname += "GEp";
       GEMElectronicscollname += "GEp";
       break;
-    case(kNeutronExp):// GMn
+    case(kGMN):// GMn
+      //case(kGEN): //
       GEMElectronicsname += "GMn";
       GEMElectronicscollname += "GMn";
       break;

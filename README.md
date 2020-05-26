@@ -8,7 +8,7 @@ March 11, 2016
 ## Requirements:
 
 - Geant4 version 10.1 or later
-- cmake >= 3.0
+- cmake >= 3.9
 - root 5.34 (root version 6 strongly recommended; ROOT 5 no longer actively supported at JLab)
 - python
 - git (optional)

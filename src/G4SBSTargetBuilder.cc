@@ -2244,6 +2244,6 @@ void G4SBSTargetBuilder::BuildToyScatCham( G4LogicalVolume *motherlog ){
   
   new G4PVPlacement( rot_sc, G4ThreeVector(0,0,0), sc_vacuum_tube_log, "scatcham_phys", motherlog, false, 0 );
 
-  G4Tubs *earm_window = 
+  //G4Tubs *earm_window = 
   
 }

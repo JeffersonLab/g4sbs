@@ -35,6 +35,8 @@ public:
   void BuildStandardScatCham(G4LogicalVolume *);
   void BuildGEpScatCham(G4LogicalVolume *);
   void BuildC16ScatCham(G4LogicalVolume *);
+  //Add "Toy" Scattering chamber for new proposal development:
+  void BuildToyScatCham(G4LogicalVolume *);
   
   void SetTarget(Targ_t t){fTargType = t;}
   void SetTargLen(G4double len){ fTargLen = len;}

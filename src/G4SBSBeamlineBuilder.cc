@@ -45,6 +45,16 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
       MakeGEpLead(worldlog);
     }
     break;
+  case(kGEPpositron):
+    printf("GEp experiment: forcing beamline configuration 1 \n");
+    fDetCon->fBeamlineConf = 34; //"Toy" beamline
+    // MakeGEpBeamline(worldlog);
+
+    MakeToyBeamline( worldlog );
+    //if(fDetCon->fLeadOption == 1){
+    //  MakeGEpLead(worldlog);
+    //}
+    break;
   case(kGMN):// GMn
     MakeGMnBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
@@ -2682,5 +2692,8 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
 
 ///////////////////////////////////////////////////////////////////////////
 
+void G4SBSBeamlineBuilder::MakeToyBeamline(G4LogicalVolume *motherlog){ //This is the "toy" beamline to go with the "toy" scattering chamber:
 
+  //Don't do anything yet, just make the code compile;
+}
 

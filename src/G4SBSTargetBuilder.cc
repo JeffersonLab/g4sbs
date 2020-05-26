@@ -69,8 +69,11 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   case(kGEN):
     BuildGasTarget( worldlog );
     break;
-  case(kSIDIS):
+  case(kSIDISExp):
     BuildGasTarget( worldlog );
+    break;
+  case(kGEPpositron):
+    BuildToyScatCham( worldlog );
     break;
   default: //GMN, GEN-RP:
     BuildStandardScatCham( worldlog );
@@ -2184,4 +2187,63 @@ void G4SBSTargetBuilder::SetFoilZpos(G4int ifoil, G4double foilz ){
   if( ifoil >= 0 && ifoil < fNtargetFoils ){
     fFoilZpos[ifoil] = foilz;
   }
+}
+
+void G4SBSTargetBuilder::BuildToyScatCham( G4LogicalVolume *motherlog ){
+  //This is going to be hard-coded for now: and we will build generic, somewhat fictitious extensions of the beamline vacuum:
+
+  G4double sc_height = 1.0*m; //for lack of better information, let's make this 1 meter tall
+  G4double sc_diam_inner = 41.0*2.54*cm; //1.04 m
+  G4double sc_diam_outer = sc_diam_inner + 2.0*2.54*cm; //assume walls are 2-inch thick, let's use Al for material (but who really cares?)
+  //assume vacuum flange cutouts start at 5 deg on either side of the beamline (we could adjust this later)
+  G4double thetamin_proton = 100.0*deg; 
+  G4double thetamax_proton = 80.0*deg; 
+  G4double thetamin_electron = -30.0*deg;
+  G4double thetamax_electron = 115.0*deg;
+
+  //somewhat arbitrarily, make the scattering chamber wall cuts 15 inches high:
+  G4double sc_wallcut_height_electron = 15.0*2.54*cm;
+  G4double sc_wallcut_height_proton = 15.0*2.54*cm;
+  
+  //scattering chamber vacuum: 
+  G4Tubs *sc_vacuum_tube = new G4Tubs( "sc_vacuum_tube", 0.0, sc_diam_outer/2.0, sc_height/2.0, 0.0, twopi );
+
+  G4LogicalVolume *sc_vacuum_tube_log = new G4LogicalVolume( sc_vacuum_tube, GetMaterial("Vacuum"), "sc_vacuum_tube_log" );
+
+  //scattering chamber walls:
+  G4Tubs *sc_wall_tube = new G4Tubs( "sc_wall_tube", sc_diam_inner/2.0, sc_diam_outer/2.0, sc_height/2.0, 0.0, twopi );
+
+  //We will need to cut holes in the walls of the toy scattering chamber for beam entry and exit ports and for thin exit windows for scattered particles:
+  G4RotationMatrix *rot_temp = new G4RotationMatrix;
+
+  rot_temp->rotateX(-90.0*deg);
+
+  G4Tubs *sc_wall_beampipe_cut = new G4Tubs( "sc_wall_beampipe_cut", 0.0, 55.0*mm, sc_diam_outer/2.0+cm, 0.0, twopi );
+
+  //Cut beam entry and exit ports out of scattering chamber wall:
+  G4SubtractionSolid *sc_wall_cutbeampipe = new G4SubtractionSolid( "sc_wall_cutbeampipe", sc_wall_tube, sc_wall_beampipe_cut, rot_temp, G4ThreeVector(0,0,0) );
+
+  G4Tubs *sc_wallcut_electron = new G4Tubs( "sc_wallcut_electron", sc_diam_inner/2.0-cm, sc_diam_outer/2.0+cm, sc_wallcut_height_electron/2.0, thetamin_electron, thetamax_electron );
+
+  G4Tubs *sc_wallcut_proton = new G4Tubs( "sc_wallcut_proton", sc_diam_inner/2.0-cm, sc_diam_outer/2.0+cm, sc_wallcut_height_proton/2.0, thetamin_proton, thetamax_proton );
+
+  G4SubtractionSolid *sc_wall_cutelectron = new G4SubtractionSolid( "sc_wall_cutelectron", sc_wall_cutbeampipe, sc_wallcut_electron, 0, G4ThreeVector(0,0,0) );
+
+  G4SubtractionSolid *sc_wall_cutproton = new G4SubtractionSolid( "sc_wall_cutproton", sc_wall_cutelectron, sc_wallcut_proton, 0, G4ThreeVector(0,0,0) );
+  
+  G4LogicalVolume *sc_wall_log = new G4LogicalVolume( sc_wall_cutproton, GetMaterial("Aluminum"), "sc_wall_log" );
+
+
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), sc_wall_log, "sc_wall_phys", sc_vacuum_tube_log, false, 0 );
+
+  
+  G4RotationMatrix *rot_sc = new G4RotationMatrix;
+  rot_sc->rotateX(-90.0*deg);
+
+  sc_vacuum_tube_log->SetVisAttributes(G4VisAttributes::Invisible);
+  
+  new G4PVPlacement( rot_sc, G4ThreeVector(0,0,0), sc_vacuum_tube_log, "scatcham_phys", motherlog, false, 0 );
+
+  G4Tubs *earm_window = 
+  
 }

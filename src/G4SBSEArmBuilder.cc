@@ -123,7 +123,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       //      if(fBuildBBSieve)
       //	MakeBBSieveSlit(worldlog);
     }
-  if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+  if( exptype == kGEp || exptype == kGEPpositron ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
       G4SBSECal* ECal = new G4SBSECal(fDetCon);
       ECal->SetAng(fBBang);

@@ -135,7 +135,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeTracker(worldlog);
     //MakeRICH( worldlog );
     MakeRICH_new( worldlog );
-  } else if ( exptype == kGEp ) {
+  } else if ( exptype == kGEp || exptype == kGEPpositron ) {
     //Subsystems unique to the GEp experiment include FPP and BigCal:
     MakeGEpFPP(worldlog);
   }
@@ -576,7 +576,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 
 
-  if( fDetCon->fExpType == kGEp ){
+  if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGEPpositron ){
     // Addtional iron inside the field region
 
     std::vector<G4TwoVector> leftverts;

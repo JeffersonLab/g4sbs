@@ -4101,16 +4101,20 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
 
   double cuanadist   = 60.0*cm; // distance between back face of rear field clamp and front face of Cu analyzer
   
-  double cuanaheight = 200.0*cm; 
-  double cuanawidth  = 44.0*cm; 
-  double cuanadepth  = 4.0*cm; 
-
+  double cuanaheight = 198.12*cm; 
+  double cuanawidth  = 60.96*cm;
+  //double cuanadepth  = 4.0*cm; 
+  double cuanadepth = 8.89*cm;
+  
   G4ThreeVector cuana_pos = pos + G4ThreeVector( 0.0, 0.0, (cuanadist + cuanadepth/2.0) ); 
   
   if( fGEnRP_analyzer_option >= 2 ) {
     G4Box*           cuanabox  = new G4Box("cuanabox", cuanawidth/2.0, cuanaheight/2.0, cuanadepth/2.0 );
     //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("CH2"), "cuanalog");
-    G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Copper"), "cuanalog");
+    //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Copper"), "cuanalog");
+
+    //Use generic stainless steel for now:
+    G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Steel"), "cuanalog");
     //AJRP: Did we intend for the "Copper" analyzer to have CH2 as the material?
     
     new G4PVPlacement(0, cuana_pos, cuanalog,"cuanaphys", sbslog, false, 0, false);

@@ -723,7 +723,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + 0.217*2.54 + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
-  zpos_temp += bbhododepth/2.0;
+  zpos_temp += bbhododepth/2.0+1.0*mm;
   new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0, chkoverlap );
   bbhodolog->SetVisAttributes(G4VisAttributes::Invisible);
   // zpos_temp += bbhododepth/2.0+honeycombAlplate->GetZHalfLength();

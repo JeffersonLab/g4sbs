@@ -245,7 +245,23 @@ endforeach()
 #add_custom_target(G4SBS DEPENDS g4sbs)
 
 # Update header file
-add_custom_target( _gitinfo ALL COMMAND ${PROJECT_SOURCE_DIR}/pullgitinfo.py ${PROJECT_SOURCE_DIR} COMMENT "Creating gitinfo.hh" )
+# First, try to find a suitable version of python
+# Either version 2 or anything >= 3.5 works
+find_package( Python2 )
+if(${Python2_FOUND})
+  set( GIT_INFO_SCRIPT ${PROJECT_SOURCE_DIR}/pullgitinfo.py)
+  set( Python_EXECUTABLE ${Python2_EXECUTABLE})
+else() ## Look for python >= 3.5
+  find_package( Python ) ## The default is to find 3 and above
+  if(${Python_FOUND} AND ${Python_VERSION_MAJOR} GREATER_EQUAL 3 AND
+      ${Python_VERSION_MINOR} GREATER_EQUAL 5)
+      set( GIT_INFO_SCRIPT ${PROJECT_SOURCE_DIR}/pullgitinfo3.py)
+  else() ## No supported version found
+    message(FATAL_ERROR "No suitable version of python found. Need either python2 or python >= 3.5, but found version ${Python_VERSION}")
+  endif()
+endif()
+
+add_custom_target( _gitinfo ALL COMMAND ${Python_EXECUTABLE} ${GIT_INFO_SCRIPT} ${PROJECT_SOURCE_DIR} COMMENT "Creating gitinfo.hh" )
 
 #add_custom_command( TARGET g4sbsroot PRE_BUILD COMMAND ${PROJECT_SOURCE_DIR}/pullgitinfo.py ${PROJECT_SOURCE_DIR} COMMENT "Creating gitinfo.hh")
 

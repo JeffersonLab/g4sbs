@@ -1,5 +1,6 @@
 import os
 import sys
+import binascii
 
 presentcwd = os.getcwd()
 os.chdir(sys.argv[1])
@@ -12,7 +13,7 @@ fullstring = "";
 
 if( f != 0):
     for line in f:
-	boringstring += line
+        boringstring += line
 else:
     boringstring = "git information unavailable"
 
@@ -22,12 +23,11 @@ boringstring += "Source dir " + os.getcwd()
 boringstring += "\nBuild  dir " + presentcwd + "\n"
 
 if  len(boringstring) > maxlen:
-     print "WARNING:  Truncating info from git";
+     print("WARNING:  Truncating info from git");
      boringstring = boringstring[0:maxlen-1]
 
 for x in boringstring:
-    fullstring += '\\x'+x.encode('hex')
-
+    fullstring += '\\x'+x.encode('utf-8').hex()
 
      
 
@@ -62,4 +62,4 @@ newheader = open( outdir + "/gitinfo.hh", "w")
 newheader.write(newheadertext)
 newheader.close()
 
-print "Repository information\n", boringstring
+print("Repository information\n", boringstring)

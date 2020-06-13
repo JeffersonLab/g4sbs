@@ -302,16 +302,53 @@ bool G4SBSEventGen::GenerateEvent(){
     //Wfact = 3.0;
     //AJRP: 3He gas is monatomic, so Wfact = 3 is appropriate here
     break;
+  case kOptics:
+    if( CLHEP::RandFlat::shootInt(2) == 0 ){
+      thisnucl = kNeutron;
+    } else {
+      thisnucl = kProton;
+    }
+    ni = GetInitialNucl( fTargType, thisnucl );
+    //Wfact = 3.0;
+    //AJRP: 3He gas is monatomic, so Wfact = 3 is appropriate here
+    break;
   default:
     thisnucl = kProton;
     ni = G4LorentzVector(Mp);
     //Wfact = 1.0;
   }
 
-  fVert = G4ThreeVector(CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0),
-			CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0),
-			CLHEP::RandFlat::shoot(-fTargLen/2.0, fTargLen/2.0));
+  if( fTargType != kOptics ){
+    fVert = G4ThreeVector(CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0),
+			  CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0),
+			  CLHEP::RandFlat::shoot(-fTargLen/2.0, fTargLen/2.0));
+  } else { //vertex generation for multi-foil optics target:
+    G4double beamx = CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0 );
+    G4double beamy = CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0 );
 
+    G4double zfrac = CLHEP::RandFlat::shoot();
+
+    G4double beamz = 0.0;
+    
+    for( int ifoil=0; ifoil<fNfoils; ifoil++ ){
+      if( fFoilZfraction[ifoil] <= zfrac && zfrac < fFoilZfraction[ifoil+1] ){
+	//linearly interpolate within this zfrac bin:
+
+	G4double zfoiltemp = fFoilZandThick[ifoil].first;
+	G4double foilthicktemp = fFoilZandThick[ifoil].second;
+
+	beamz = zfoiltemp - foilthicktemp/2.0 + foilthicktemp*(zfrac - fFoilZfraction[ifoil])/(fFoilZfraction[ifoil+1]-fFoilZfraction[ifoil]);
+	
+	break;
+      }
+    }
+
+    fVert = G4ThreeVector(beamx, beamy, beamz );
+    
+    //    std::vector<double> zfoil_un
+    
+  }
+    
   fNuclType = thisnucl;
 
   switch(fKineType){
@@ -2354,4 +2391,44 @@ void G4SBSEventGen::InitializePythia6_Tree(){
     G4cout << "Failed to initialize PYTHIA6 tree, aborting... " << G4endl;
     exit(-1);
   }
+}
+
+void G4SBSEventGen::SetNfoils( int nfoil ){
+  fNfoils = nfoil;
+  //fZfoil.clear();
+  //fThickFoil.clear();
+  //fZfoil.resize(nfoil);
+  //ThickFoil.resize(nfoil);
+  fFoilZandThick.clear();
+}
+
+void G4SBSEventGen::SetFoilZandThick( const std::vector<double> foilz, const std::vector<double> foilthick ){
+  if( foilz.size() != fNfoils || foilthick.size() != fNfoils ){
+    G4cout << "Foil Z and thickness values given don't match number of foils, exiting..." << G4endl;
+    exit(-1);
+  }
+  fFoilZandThick.clear();
+
+  fTotalThickFoil = 0.0;
+  
+  for( int ifoil=0; ifoil<fNfoils; ifoil++ ){
+    fFoilZandThick.push_back( std::make_pair(foilz[ifoil], foilthick[ifoil] ) );
+    fTotalThickFoil += foilthick[ifoil];
+  }
+
+  //Now sort by Z foil in ascending order:
+
+  std::sort( fFoilZandThick.begin(), fFoilZandThick.end() );
+
+  //Now loop over foils and compute total thickness and fraction:
+  fFoilZfraction.clear();
+  // fFoilZfraction.resize(fNfoils);
+
+  G4double thicksum = 0.0;
+  
+  for( int ifoil=0; ifoil<fNfoils; ifoil++ ){
+    fFoilZfraction.push_back( thicksum );
+    thicksum += fFoilZandThick[ifoil].second / fTotalThickFoil; 
+  }
+  fFoilZfraction.push_back( 1.0 );
 }

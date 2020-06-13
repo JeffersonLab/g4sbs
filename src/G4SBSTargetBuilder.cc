@@ -46,35 +46,38 @@ G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
 
 void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   fTargType = fDetCon->fTargType;
+  //We actually need to be a little bit smarter than this: as it stands, one can never build a C foil target with this logic:
   // EFuchey 2017/02/10: organized better this with a switch instead of an endless chain of if...  else...
-  if( (fTargType == kLH2 || fTargType == kLD2) ){
-    switch(fDetCon->fExpType){
-    case(kGEp):
-      BuildGEpScatCham( worldlog );
-      break;
-    case(kC16):
-      BuildC16ScatCham( worldlog );
-      break;
-    default:
-      BuildStandardScatCham( worldlog );
-      break;
-    }
-  } else {
-    switch(fDetCon->fExpType){
-    case(kTDIS):
-      BuildTDISTarget( worldlog );
-      break;
-    case(kNDVCS):
-      BuildTDISTarget( worldlog );
-      break;
-    case(kGEMHCtest):
-      BuildStandardScatCham( worldlog );
-      //BuildC16ScatCham( worldlog );
-      break;
-    default:
-      BuildGasTarget( worldlog );
-      break;
-    }
+  //if( (fTargType == kLH2 || fTargType == kLD2 || fTargType == kCfoil ) ){
+  switch(fDetCon->fExpType){
+  case(kGEp):
+    BuildGEpScatCham( worldlog );
+    break;
+  case(kC16):
+    BuildC16ScatCham( worldlog );
+    break;
+  case(kTDIS):
+    BuildTDISTarget( worldlog );
+    break;
+  case(kNDVCS):
+    BuildTDISTarget( worldlog );
+    break;
+  case(kGEMHCtest):
+    BuildStandardScatCham( worldlog );
+    //BuildC16ScatCham( worldlog );
+    break;
+  case(kGEN):
+    BuildGasTarget( worldlog );
+    break;
+  case(kSIDISExp):
+    BuildGasTarget( worldlog );
+    break;
+  case(kGEPpositron):
+    BuildToyScatCham( worldlog );
+    break;
+  default: //GMN, GEN-RP:
+    BuildStandardScatCham( worldlog );
+    break;
   }
   return;
 
@@ -195,6 +198,72 @@ void G4SBSTargetBuilder::BuildCfoil(G4LogicalVolume *motherlog, G4RotationMatrix
   new G4PVPlacement( rot_targ, targ_offset, Target_log, "Target_phys", motherlog, false, 0 );
 }
 
+void G4SBSTargetBuilder::BuildOpticsTarget(G4LogicalVolume *motherlog, G4RotationMatrix *rot_targ, G4ThreeVector targ_offset){
+  //Now the only question for the optics target is how wide we should make the foils:
+  //Let's use targdiameter for now:
+
+  char boxname[100];
+
+  //First figure out maximum and minimum z foil positions:
+  G4double zmax=-10.0*m;
+  G4double zmin=+10.0*m;
+  G4double maxthick = 0.0*m;
+  
+  for( G4int ifoil=0; ifoil<fNtargetFoils; ifoil++ ){
+    if( fFoilZpos[ifoil] > zmax ) zmax = fFoilZpos[ifoil];
+    if( fFoilZpos[ifoil] < zmin ) zmin = fFoilZpos[ifoil];
+    if( fFoilThick[ifoil] > maxthick ) maxthick = fFoilThick[ifoil];
+  }
+
+  //  zmax += maxthick;
+  //zmin -= maxthick;
+
+  G4double zcenter = (zmax+zmin)/2.0; //midpoint between zmin and zmax: this will have to get added as an offset to the final position
+  
+  G4Box *MultiFoil_MotherBox = new G4Box( "MultiFoil_MotherBox", fTargDiameter/2.0+mm, fTargDiameter/2.0+mm, (zmax-zmin)/2.0+maxthick+mm );
+
+  G4LogicalVolume *MultiFoil_MotherLog = new G4LogicalVolume( MultiFoil_MotherBox, motherlog->GetMaterial(), "MultiFoil_MotherLog" );
+
+  MultiFoil_MotherLog->SetVisAttributes( G4VisAttributes::Invisible );
+  
+  G4double foilwidth = fTargDiameter/2.0;
+  for( int ifoil=0; ifoil<fNtargetFoils; ifoil++ ){
+    //G4String boxname = "TargFoil_box";
+
+    sprintf(boxname, "TargFoil_box%d", ifoil );
+    
+    G4Box *TargFoil_box = new G4Box(G4String(boxname), fTargDiameter/2.0, fTargDiameter/2.0,  fFoilThick[ifoil]/2.0 );
+
+    G4String logname = boxname;
+    logname += "_log";
+    
+    G4LogicalVolume *TargFoil_log = new G4LogicalVolume( TargFoil_box, GetMaterial("Carbon"), logname );
+
+    TargFoil_log->SetVisAttributes(new G4VisAttributes(G4Colour(0.8, 0.8, 0.8)));
+    
+    //    G4ThreeVector zpos(0,0,fFoilZpos[ifoil]);
+
+    // position of foil within mother volume is z = zfoil - zcenter
+    G4ThreeVector postemp(0,0,fFoilZpos[ifoil]-zcenter);
+
+    G4String physname = boxname;
+    physname += "_phys";
+
+    new G4PVPlacement( 0, postemp, TargFoil_log, physname, MultiFoil_MotherLog, false, 0 );
+    //G4ThreeVector foilpos = targ_offset + zpos;
+
+    //Now place multi-foil target box within scattering chamber (motherlog):
+    G4ThreeVector targpos = targ_offset;
+    targpos += G4ThreeVector(0,0,zcenter);
+    new G4PVPlacement( rot_targ, targpos, MultiFoil_MotherLog, physname, motherlog, false, 0 );
+
+    fDetCon->InsertTargetVolume( logname );
+
+    // G4VisAttributes *
+    
+  }
+  
+}
 
 
 //This function is meant to build the "Standard" scattering chamber for GMn
@@ -846,7 +915,9 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   //Call BuildStandardCryoTarget HERE !
   if(fTargType==kCfoil){
     BuildCfoil(logicScatChamber, rot_temp, G4ThreeVector(0, 0, SCOffset));
-  }else{
+  } else if( fTargType == kOptics){
+    BuildOpticsTarget(logicScatChamber, rot_temp, G4ThreeVector(0, 0, SCOffset ) );
+  } else {
     BuildStandardCryoTarget(logicScatChamber, rot_temp, G4ThreeVector(0, 0, SCOffset));
   }
   
@@ -2029,6 +2100,7 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("pol3He"), "gas_tube_log");
   }
 
+  //Insert the target volumes into the list of "Target volumes" for storing track history (see G4SBSTrackInformation and G4SBSTrackingAction)
   fDetCon->InsertTargetVolume( targ_cap_log->GetName() );
   fDetCon->InsertTargetVolume( targ_tube_log->GetName() );
   fDetCon->InsertTargetVolume( gas_tube_log->GetName() );
@@ -2041,19 +2113,26 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
     target_zpos = -zpos_sc;
   }
 
-  //if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), targ_tube_log,
-		    "targ_tube_phys", motherlog, false, 0);
+  //We don't always want to place the gas target; we might want some foil or optics targets in air:
+  if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg || fTargType == kD2 ){
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), targ_tube_log,
+		      "targ_tube_phys", motherlog, false, 0);
   
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos+fTargLen/2.0+capthick/2.0), targ_cap_log,
-		    "targ_cap_phys1", motherlog, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos-fTargLen/2.0-capthick/2.0), targ_cap_log,
-		    "targ_cap_phys2", motherlog, false, 1);
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos+fTargLen/2.0+capthick/2.0), targ_cap_log,
+		      "targ_cap_phys1", motherlog, false, 0);
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos-fTargLen/2.0-capthick/2.0), targ_cap_log,
+		      "targ_cap_phys2", motherlog, false, 1);
   
-  assert(gas_tube_log);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
-		    "gas_tube_phys", motherlog, false, 0);
-  
+    assert(gas_tube_log);
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
+		      "gas_tube_phys", motherlog, false, 0);
+  } else if( fTargType == kCfoil ){ //single carbon foil
+    BuildCfoil( motherlog, 0, G4ThreeVector(0,0,target_zpos) );
+  } else if (fTargType == kOptics ){ //multi-foil (optics) target:
+    BuildOpticsTarget( motherlog, 0, G4ThreeVector(0,0,target_zpos) );
+  }
+
+  //Never mind.
   //Place scattering chamber:
   if( fSchamFlag == 1 ){
     new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_wall_log, "sc_wall_phys", worldlog, false, 0 );
@@ -2090,4 +2169,83 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
   G4VisAttributes *tgt_gas_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
   gas_tube_log->SetVisAttributes( tgt_gas_visatt );
 
+}
+
+void G4SBSTargetBuilder::SetNtargetFoils(G4int nfoil){
+  fNtargetFoils = nfoil;
+  fFoilThick.clear();
+  fFoilThick.resize(nfoil);
+  fFoilZpos.clear();
+  fFoilZpos.resize(nfoil);
+}
+
+void G4SBSTargetBuilder::SetFoilThick(G4int ifoil, G4double foilthick ){
+  if( ifoil >= 0 && ifoil < fNtargetFoils ){
+    fFoilThick[ifoil] = foilthick;
+  }
+}
+
+void G4SBSTargetBuilder::SetFoilZpos(G4int ifoil, G4double foilz ){
+  if( ifoil >= 0 && ifoil < fNtargetFoils ){
+    fFoilZpos[ifoil] = foilz;
+  }
+}
+
+void G4SBSTargetBuilder::BuildToyScatCham( G4LogicalVolume *motherlog ){
+  //This is going to be hard-coded for now: and we will build generic, somewhat fictitious extensions of the beamline vacuum:
+
+  G4double sc_height = 1.0*m; //for lack of better information, let's make this 1 meter tall
+  G4double sc_diam_inner = 41.0*2.54*cm; //1.04 m
+  G4double sc_diam_outer = sc_diam_inner + 2.0*2.54*cm; //assume walls are 2-inch thick, let's use Al for material (but who really cares?)
+  //assume vacuum flange cutouts start at 5 deg on either side of the beamline (we could adjust this later)
+  G4double thetamin_proton = 100.0*deg; 
+  G4double thetamax_proton = 80.0*deg; 
+  G4double thetamin_electron = -30.0*deg;
+  G4double thetamax_electron = 115.0*deg;
+
+  //somewhat arbitrarily, make the scattering chamber wall cuts 15 inches high:
+  G4double sc_wallcut_height_electron = 15.0*2.54*cm;
+  G4double sc_wallcut_height_proton = 15.0*2.54*cm;
+  
+  //scattering chamber vacuum: 
+  G4Tubs *sc_vacuum_tube = new G4Tubs( "sc_vacuum_tube", 0.0, sc_diam_outer/2.0, sc_height/2.0, 0.0, twopi );
+
+  G4LogicalVolume *sc_vacuum_tube_log = new G4LogicalVolume( sc_vacuum_tube, GetMaterial("Vacuum"), "sc_vacuum_tube_log" );
+
+  //scattering chamber walls:
+  G4Tubs *sc_wall_tube = new G4Tubs( "sc_wall_tube", sc_diam_inner/2.0, sc_diam_outer/2.0, sc_height/2.0, 0.0, twopi );
+
+  //We will need to cut holes in the walls of the toy scattering chamber for beam entry and exit ports and for thin exit windows for scattered particles:
+  G4RotationMatrix *rot_temp = new G4RotationMatrix;
+
+  rot_temp->rotateX(-90.0*deg);
+
+  G4Tubs *sc_wall_beampipe_cut = new G4Tubs( "sc_wall_beampipe_cut", 0.0, 55.0*mm, sc_diam_outer/2.0+cm, 0.0, twopi );
+
+  //Cut beam entry and exit ports out of scattering chamber wall:
+  G4SubtractionSolid *sc_wall_cutbeampipe = new G4SubtractionSolid( "sc_wall_cutbeampipe", sc_wall_tube, sc_wall_beampipe_cut, rot_temp, G4ThreeVector(0,0,0) );
+
+  G4Tubs *sc_wallcut_electron = new G4Tubs( "sc_wallcut_electron", sc_diam_inner/2.0-cm, sc_diam_outer/2.0+cm, sc_wallcut_height_electron/2.0, thetamin_electron, thetamax_electron );
+
+  G4Tubs *sc_wallcut_proton = new G4Tubs( "sc_wallcut_proton", sc_diam_inner/2.0-cm, sc_diam_outer/2.0+cm, sc_wallcut_height_proton/2.0, thetamin_proton, thetamax_proton );
+
+  G4SubtractionSolid *sc_wall_cutelectron = new G4SubtractionSolid( "sc_wall_cutelectron", sc_wall_cutbeampipe, sc_wallcut_electron, 0, G4ThreeVector(0,0,0) );
+
+  G4SubtractionSolid *sc_wall_cutproton = new G4SubtractionSolid( "sc_wall_cutproton", sc_wall_cutelectron, sc_wallcut_proton, 0, G4ThreeVector(0,0,0) );
+  
+  G4LogicalVolume *sc_wall_log = new G4LogicalVolume( sc_wall_cutproton, GetMaterial("Aluminum"), "sc_wall_log" );
+
+
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), sc_wall_log, "sc_wall_phys", sc_vacuum_tube_log, false, 0 );
+
+  
+  G4RotationMatrix *rot_sc = new G4RotationMatrix;
+  rot_sc->rotateX(-90.0*deg);
+
+  sc_vacuum_tube_log->SetVisAttributes(G4VisAttributes::Invisible);
+  
+  new G4PVPlacement( rot_sc, G4ThreeVector(0,0,0), sc_vacuum_tube_log, "scatcham_phys", motherlog, false, 0 );
+
+  //G4Tubs *earm_window = 
+  
 }

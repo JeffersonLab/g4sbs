@@ -135,7 +135,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeTracker(worldlog);
     //MakeRICH( worldlog );
     MakeRICH_new( worldlog );
-  } else if ( exptype == kGEp ) {
+  } else if ( exptype == kGEp || exptype == kGEPpositron ) {
     //Subsystems unique to the GEp experiment include FPP and BigCal:
     MakeGEpFPP(worldlog);
   }
@@ -159,7 +159,8 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Build CDET (as needed)
-  if( (exptype == kNeutron || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
+  //if( (exptype == kGMN || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
+  if( exptype == kGMN || exptype == kGEnRP ){
     //plugging in CDET for GMn  
     G4double depth_HCal_shield = 7.62*cm; //3 inches
     G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
@@ -575,7 +576,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 
 
-  if( fDetCon->fExpType == kGEp ){
+  if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGEPpositron ){
     // Addtional iron inside the field region
 
     std::vector<G4TwoVector> leftverts;
@@ -735,7 +736,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclampun, GetMaterial("Fer"), "frontclampLog", 0, 0, 0);
 
     G4LogicalVolume *frontextfaceLog= NULL;
-    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kNeutronExp ){
+    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGMN || fDetCon->fExpType == kGEN || fDetCon->fExpType == kGEnRP ){
       frontextfaceLog = new G4LogicalVolume(extface_whole, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
     } else {
       frontextfaceLog = new G4LogicalVolume(extface, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
@@ -849,7 +850,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     FrontClamp_log->SetVisAttributes(clampVisAtt);
  
-    // (Note jc2): Sticking this if statement here so we can draw the
+    // (Note jc2): Stickng this if statement here so we can draw the
     // back fieldclamp only for GEp, but not GMn. However, I'm leaving
     // the indentation as is because I don't want git to make me the
     // author of all these changes when all I did is indent things :/
@@ -4100,16 +4101,20 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
 
   double cuanadist   = 60.0*cm; // distance between back face of rear field clamp and front face of Cu analyzer
   
-  double cuanaheight = 200.0*cm; 
-  double cuanawidth  = 44.0*cm; 
-  double cuanadepth  = 4.0*cm; 
-
+  double cuanaheight = 198.12*cm; 
+  double cuanawidth  = 60.96*cm;
+  //double cuanadepth  = 4.0*cm; 
+  double cuanadepth = 8.89*cm;
+  
   G4ThreeVector cuana_pos = pos + G4ThreeVector( 0.0, 0.0, (cuanadist + cuanadepth/2.0) ); 
   
   if( fGEnRP_analyzer_option >= 2 ) {
     G4Box*           cuanabox  = new G4Box("cuanabox", cuanawidth/2.0, cuanaheight/2.0, cuanadepth/2.0 );
     //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("CH2"), "cuanalog");
-    G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Copper"), "cuanalog");
+    //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Copper"), "cuanalog");
+
+    //Use generic stainless steel for now:
+    G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Steel"), "cuanalog");
     //AJRP: Did we intend for the "Copper" analyzer to have CH2 as the material?
     
     new G4PVPlacement(0, cuana_pos, cuanalog,"cuanaphys", sbslog, false, 0, false);

@@ -53,7 +53,7 @@
 using namespace CLHEP;
 
 G4SBSMessenger::G4SBSMessenger(){
-  fExpType = kNeutronExp;
+  fExpType = kGMN; //default to GMN
 
   runCmd = new G4UIcmdWithAnInteger("/g4sbs/run",this);
   runCmd->SetGuidance("Run simulation with x events");
@@ -205,6 +205,27 @@ G4SBSMessenger::G4SBSMessenger(){
   rasteryCmd->SetGuidance("Raster y size");
   rasteryCmd->SetParameterName("size", false);
 
+  tgtNfoilCmd = new G4UIcmdWithAnInteger("/g4sbs/Nfoil",this);
+  tgtNfoilCmd->SetGuidance("Number of foils for optics target");
+  tgtNfoilCmd->SetGuidance("Only has any effect if target = optics");
+  tgtNfoilCmd->SetGuidance("Default = 1");
+  tgtNfoilCmd->SetParameterName("nfoil",true);
+  tgtNfoilCmd->SetDefaultValue(1);
+
+  tgtFoilThickCmd = new G4UIcommand("/g4sbs/foilthick",this);
+  tgtFoilThickCmd->SetGuidance("Foil thickness for multi-foil target");
+  tgtFoilThickCmd->SetGuidance("Usage: /g4sbs/foilthick thick1 thick2 ... thickN unit");
+  tgtFoilThickCmd->SetGuidance("Separate by whitespace, units at the end");
+  tgtFoilThickCmd->SetGuidance("number of entries must match number of foils (see /g4sbs/Nfoil)");
+  tgtFoilThickCmd->SetParameter( new G4UIparameter("foilthicklist",'s',false) );
+
+  tgtFoilZCmd = new G4UIcommand("/g4sbs/foilz",this);
+  tgtFoilZCmd->SetGuidance("Foil z positions along beamline for multi-foil target");
+  tgtFoilZCmd->SetGuidance("Usage: /g4sbs/foilz z1 z2 ... zN unit");
+  tgtFoilZCmd->SetGuidance("separate entries by whitespace, units at the end");
+  tgtFoilZCmd->SetGuidance("number of entries must match number of foils (see /g4sbs/Nfoil)");
+  tgtFoilZCmd->SetParameter( new G4UIparameter("foilthicklist",'s',false) );
+  
   beamECmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamE",this);
   beamECmd->SetGuidance("Beam Energy");
   beamECmd->SetParameterName("energy", false);
@@ -609,7 +630,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
     fevgen->SetNevents(nevt);
     fevgen->Initialize();
-    
+
+    //For optics target, copy target foil information from targetbuilder to evgen:
+    if( fdetcon->fTargType == kOptics ){
+      fevgen->SetNfoils( fdetcon->fTargetBuilder->GetNtargetFoils() );
+      fevgen->SetFoilZandThick( fdetcon->fTargetBuilder->GetFoilZpos(), fdetcon->fTargetBuilder->GetFoilThick() );
+    }
     // if( fevgen->GetRejectionSamplingFlag() && !fevgen->GetRejectionSamplingInitialized() ){
     //   fevgen->InitializeRejectionSampling();
     // }
@@ -808,12 +834,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fExpType = kGEp;
       validcmd = true;
     }
+    if( newValue.compareTo("gepeplus") == 0 ){
+      fExpType = kGEPpositron;
+      validcmd = true;
+    }
     if( newValue.compareTo("gmn") == 0 ){
-      fExpType = kNeutronExp;
+      fExpType = kGMN;
       validcmd = true;
     }
     if( newValue.compareTo("gen") == 0 ){
-      fExpType = kNeutronExp;
+      fExpType = kGEN;
       validcmd = true;
     }
     if( newValue.compareTo("genrp") == 0 ){
@@ -979,7 +1009,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetTarget(kCfoil);
       fdetcon->SetTarget(kCfoil);
       validcmd = true;
+    }
 
+    if( newValue.compareTo("optics") == 0 ){
+      fevgen->SetTarget(kOptics);
+      fdetcon->SetTarget(kOptics);
+      validcmd = true;
+      //fdetcon->fTargetBuilder->SetNtargetFoils(1); //default to one carbon foil at Z = 0;
     }
     
     if( !validcmd ){
@@ -1086,10 +1122,72 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
 
   if( cmd == rasteryCmd ){
-    G4double v = rasteryCmd->GetNewDoubleValue(newValue);
+    G4double v = rasteryCmd->GetNewDoubleValue(newValue); 
     fevgen->SetRasterY(v);
   }
 
+  if( cmd == tgtNfoilCmd ){
+    G4int n = tgtNfoilCmd->GetNewIntValue(newValue);
+    fdetcon->fTargetBuilder->SetNtargetFoils(n);
+  }
+
+  if( cmd == tgtFoilThickCmd ){
+    std::istringstream is(newValue);
+    G4int nfoil = fdetcon->fTargetBuilder->GetNtargetFoils();
+
+    std::vector<double> thicktemp(nfoil);
+
+    G4String unit;
+
+    bool success = true;
+    
+    for( G4int ifoil=0; ifoil<nfoil; ifoil++ ){
+      is >> thicktemp[ifoil];
+      if( is.eof() || is.fail() || is.bad() ) {
+	success = false;
+	break;
+      }
+    }
+    is >> unit;
+    if( is.fail() || is.bad() || !is.eof() ) {
+      success = false;
+      exit(-1);
+    }
+    
+    for( G4int ifoil=0; ifoil<nfoil; ifoil++ ){
+      fdetcon->fTargetBuilder->SetFoilThick( ifoil, thicktemp[ifoil]*cmd->ValueOf(unit) );
+    }
+  }
+
+  if( cmd == tgtFoilZCmd ){
+    std::istringstream is(newValue);
+    G4int nfoil = fdetcon->fTargetBuilder->GetNtargetFoils();
+
+    std::vector<double> Ztemp(nfoil);
+
+    G4String unit;
+
+    bool success = true;
+    
+    for( G4int ifoil=0; ifoil<nfoil; ifoil++ ){
+      is >> Ztemp[ifoil];
+      if( is.eof() || is.fail() || is.bad() ) {
+	success = false;
+	break;
+      }
+    }
+    is >> unit;
+    if( is.fail() || is.bad() || !is.eof() ) {
+      success = false;
+      exit(-1);
+    }
+    
+    for( G4int ifoil=0; ifoil<nfoil; ifoil++ ){
+      fdetcon->fTargetBuilder->SetFoilZpos( ifoil, Ztemp[ifoil]*cmd->ValueOf(unit) );
+    }
+  }
+    
+  
   if( cmd == beamECmd ){
     G4double v = beamECmd->GetNewDoubleValue(newValue);
     fevgen->SetBeamE(v);

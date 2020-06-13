@@ -99,6 +99,11 @@ private:
   G4UIcmdWithADoubleAndUnit *runtimeCmd;
   G4UIcmdWithADoubleAndUnit *rasterxCmd;
   G4UIcmdWithADoubleAndUnit *rasteryCmd;
+
+  //Optics targets: presently all assumed to be Carbon
+  G4UIcmdWithAnInteger *tgtNfoilCmd;
+  G4UIcommand *tgtFoilThickCmd; //Foil thickness
+  G4UIcommand *tgtFoilZCmd;  //Foil position along z axis:
   
   G4UIcmdWithADoubleAndUnit *beamECmd;
   

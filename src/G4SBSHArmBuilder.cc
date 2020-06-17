@@ -237,8 +237,8 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Build GEn-RP polarimeter
-  // if( exptype == kGEnRP ) 
-  //   MakePolarimeterGEnRP( worldlog );
+  if( exptype == kGEnRP ) 
+    MakePolarimeterGEnRP( worldlog );
 }
 
 void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
@@ -546,7 +546,6 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   // Dipole gap shielding for GEnRP
 
   if( fDetCon->fExpType == kGEnRP ){
-
     // Defining parametermes for rectangular portion
     G4double h_gapshield = 30.*cm;
     G4double w_gapshield = 68.5*cm;
@@ -586,17 +585,16 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     // new G4PVPlacement(bigboxrm, G4ThreeVector(-r_req*sin(a_req), 0.0, r_req*cos(a_req)),
     // 		      gapshield_log, "big48d48Physical", worldlog, 0,false,0);
 
-    G4VisAttributes * gshieldVisAtt = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
-    // gapshield_log->SetVisAttributes(gshieldVisAtt);
-    // G4VisAttributes * wedgeVisAtt = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
-    // wedge_log->SetVisAttributes(wedgeVisAtt);
+    G4VisAttributes *Leadcolor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
+    // gapshield_log->SetVisAttributes(Leadcolor);
+    // wedge_log->SetVisAttributes(Leadcolor);
 
     G4UnionSolid *dgapshld = new G4UnionSolid("dgapshld", gapshield, wedge, wedgerm,
 					    G4ThreeVector(- w_gapshield/2.0 - h_wedge/2.0 + 1.7*cm, 0.0, 0.0) );
     G4LogicalVolume *dgapshld_log = new G4LogicalVolume(dgapshld, GetMaterial("Lead"), "dgapshld_log" );
     new G4PVPlacement(bigboxrm, G4ThreeVector(-r_req*sin(a_req), 0.0, r_req*cos(a_req)),
 		      dgapshld_log, "big48d48Physical", worldlog, 0,false,0);
-    dgapshld_log->SetVisAttributes( gshieldVisAtt );
+    dgapshld_log->SetVisAttributes( Leadcolor );
   }
 
 

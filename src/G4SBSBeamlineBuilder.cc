@@ -65,6 +65,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeGMnBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeGMnLead(worldlog);
+      MakeGEnRPLead(worldlog);
     }
     break;
   case(kGEN):// GEn
@@ -2437,6 +2438,41 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   if(!leadring)new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield+th_SSshield/2.0, 0, -25.0*cm ), leadblanket_log, "leadblanket_phys", sideshield_log, false, 0, checkoverlaps );
   /**/
     
+}
+
+
+void G4SBSBeamlineBuilder::MakeGEnRPLead(G4LogicalVolume *worldlog){
+
+  bool chkovrlps = false;
+  G4VisAttributes* LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
+
+  G4double l_leadwall1 = 5.0*12.0*2.54*cm;
+  G4double h_leadwall1 = 42.0*2.54*cm;
+  G4double w_leadwall1 = 2*2.54*cm;
+
+  G4Box *leadwall1 = new G4Box("leadwall1", w_leadwall1/2.0, h_leadwall1/2.0, l_leadwall1/2.0);
+  G4LogicalVolume *leadwall1_log = new G4LogicalVolume(leadwall1, GetMaterial("Lead"), "leadwall1_log");
+
+  G4double X1 = -12.0*2.54*cm;
+  G4double Y1 = 0.0;
+  G4double Z1 = 2.55*76.325*2.54*cm + 2.54*cm; //z_Magnets_array[2];//z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0;
+
+  new G4PVPlacement( 0, G4ThreeVector(X1,Y1,Z1), leadwall1_log, "leadwall1_phys", worldlog, false, 0, chkovrlps );
+  leadwall1_log->SetVisAttributes(LeadColor);
+  
+  G4double l_leadwall2 = 5.0*12.0*2.54*cm;
+  G4double h_leadwall2 = h_leadwall1;
+  G4double w_leadwall2 = w_leadwall1;
+
+  G4Box *leadwall2 = new G4Box("leadwall2", w_leadwall2/2.0, h_leadwall2/2.0, l_leadwall2/2.0);
+  G4LogicalVolume *leadwall2_log = new G4LogicalVolume(leadwall2, GetMaterial("Lead"), "leadwall2_log");
+
+  G4double X2 = X1 - w_leadwall1/2.0 - 2.54*cm - w_leadwall2/2.0;
+  G4double Y2 = 0.0;
+  G4double Z2 = Z1 + l_leadwall1/2.0 + l_leadwall2/2.0; //z_Magnets_array[2];//z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0;
+
+  new G4PVPlacement( 0, G4ThreeVector(X2,Y2,Z2), leadwall2_log, "leadwall2_phys", worldlog, false, 0, chkovrlps );
+  leadwall2_log->SetVisAttributes(LeadColor);
 }
 
 

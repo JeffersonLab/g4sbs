@@ -547,8 +547,8 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
   if( fDetCon->fExpType == kGEnRP ){
     // Defining parametermes for rectangular portion
-    G4double h_gapshield = 30.*cm;
-    G4double w_gapshield = 68.5*cm;
+    G4double h_gapshield = 30.*cm;  // guesstimate
+    G4double w_gapshield = 68.5*cm;  // guesstimate
     G4double d_gapshield = 60.*cm;
   
     G4double d1 = r48d48 + f48D48depth/2.0 - d_gapshield/2.0;
@@ -558,42 +558,25 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     G4double r_req = d3/sin(a_req);
 
     G4Box *gapshield = new G4Box("gapshield", w_gapshield/2.0, d_gapshield/2.0, h_gapshield/2.0);
-    G4LogicalVolume *gapshield_log=new G4LogicalVolume(gapshield, GetMaterial("Lead"), "gapshield_log", 0, 0, 0);
 
     // Defining parameters for wedge shaped portion
     G4double w_wedge = h_gapshield;
     G4double d_wedge = d_gapshield;
     G4double h_wedge = d_wedge*tan(slot_angle);
 
-    G4double d2w = f48D48width/2.0 - w_gapshield - h_wedge/2.0 + 2.*cm;
-    G4double a_reqw = atan(d1/d2w)*(180./M_PI)*deg + f48D48ang - 90.*deg;
-    G4double d3w = (tan(f48D48ang)*d1 - d2w)*cos(f48D48ang);
-    G4double r_reqw = d3w/sin(a_reqw);
-
     G4Trap *wedge = new G4Trap("wedge", w_wedge, d_wedge, h_wedge, 0.001*mm);
-    G4LogicalVolume *wedge_log = new G4LogicalVolume(wedge, GetMaterial("Lead"), "wedge_log", 0, 0, 0);
 
     G4RotationMatrix *wedgerm = new G4RotationMatrix;
-    //wedgerm->rotateY(f48D48ang);
-    //wedgerm->rotateX( -90.*deg);
     wedgerm->rotateZ(180.*deg);
     wedgerm->rotateX(180.*deg);
   
-    // new G4PVPlacement(wedgerm, G4ThreeVector(-(r_reqw - 0.1*cm)*sin(a_reqw), 0.0, (r_reqw - 0.1*cm)*cos(a_reqw)),
-    // 		      wedge_log, "big48d48Physical", worldlog, 0,false,0);
-  
-    // new G4PVPlacement(bigboxrm, G4ThreeVector(-r_req*sin(a_req), 0.0, r_req*cos(a_req)),
-    // 		      gapshield_log, "big48d48Physical", worldlog, 0,false,0);
-
-    G4VisAttributes *Leadcolor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
-    // gapshield_log->SetVisAttributes(Leadcolor);
-    // wedge_log->SetVisAttributes(Leadcolor);
-
     G4UnionSolid *dgapshld = new G4UnionSolid("dgapshld", gapshield, wedge, wedgerm,
-					    G4ThreeVector(- w_gapshield/2.0 - h_wedge/2.0 + 1.7*cm, 0.0, 0.0) );
+    					    G4ThreeVector(- w_gapshield/2.0 - h_wedge/4.0, 0.0, 0.0) );
     G4LogicalVolume *dgapshld_log = new G4LogicalVolume(dgapshld, GetMaterial("Lead"), "dgapshld_log" );
     new G4PVPlacement(bigboxrm, G4ThreeVector(-r_req*sin(a_req), 0.0, r_req*cos(a_req)),
 		      dgapshld_log, "big48d48Physical", worldlog, 0,false,0);
+
+    G4VisAttributes *Leadcolor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
     dgapshld_log->SetVisAttributes( Leadcolor );
   }
 

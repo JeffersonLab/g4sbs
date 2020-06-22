@@ -100,6 +100,12 @@ private:
   G4UIcmdWithADoubleAndUnit *rasterxCmd;
   G4UIcmdWithADoubleAndUnit *rasteryCmd;
 
+  //commands controlling pion photoproduction event generation:
+  G4UIcmdWithADouble *PionPhoto_tminCmd;
+  G4UIcmdWithADouble *PionPhoto_tmaxCmd;
+  G4UIcmdWithABool *PionPhoto_useradCmd;
+  G4UIcmdWithADouble *PionPhoto_radthickCmd;
+  
   //Optics targets: presently all assumed to be Carbon
   G4UIcmdWithAnInteger *tgtNfoilCmd;
   G4UIcommand *tgtFoilThickCmd; //Foil thickness

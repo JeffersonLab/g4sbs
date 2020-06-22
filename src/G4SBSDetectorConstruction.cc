@@ -256,6 +256,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   if( fMaterialsMap.find("Aluminum") == fMaterialsMap.end() ){ 
     //fMaterialsMap["Aluminum"] = new G4Material(name="Aluminum", z=13., a=26.98*g/mole, density=2.7*g/cm3);
     fMaterialsMap["Aluminum"] = man->FindOrBuildMaterial( "G4_Al" );
+    fMaterialsMap["Aluminum"]->SetName("Aluminum");
   }
   if( fMaterialsMap.find("Silicon") == fMaterialsMap.end() ){ 
     //fMaterialsMap["Silicon"] = new G4Material(name="Silicon", z=14., 28.086*g/mole, density=2.33*g/cm3);
@@ -449,7 +450,12 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["CH"] = CH;
 
-  //Target materials:
+  //Target materials: these are hard-coded in two different places, leading to inconsistent calculations for luminosity, etc;
+  //It would be better to figure out a sensible way for the G4SBSDetectorConstruction and the G4SBSEventGen classes to talk to each other
+  //By the time /g4sbs/run is invoked, all the geometry should be frozen; therefore, the messenger should invoke the SetTargDen method of G4SBSEventGen at
+  // that time, and grabbing the density of the relevant material from the fdetcon->fTargetBuilder based on the user's target choice
+  //This would eliminate inconsistencies between the actual material density used in GEANT4 and the density assumed in calculating luminosity and
+  //normalizing to a rate:
   double gasden = 10.5*atmosphere*(1.0079*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
   G4Material *refH2 = new G4Material("refH2", gasden, 1 );
   refH2->AddElement(elH, 1);

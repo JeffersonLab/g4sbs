@@ -42,6 +42,7 @@ typedef struct {
   Double_t pmperp, pmpar, pmparsm;
   Double_t z, phperp, phih, phiS, MX;
   Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator
+  Double_t s, t, u, costhetaCM, Egamma_lab; //Extra kinematic variables we would like to store for pion photoproduction
   Int_t nucl, fnucl;
   Int_t hadr;
   Int_t earmaccept, harmaccept;

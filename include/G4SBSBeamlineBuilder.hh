@@ -17,6 +17,7 @@ private:
 
   void MakeGEpLead(G4LogicalVolume *);
   void MakeGMnLead(G4LogicalVolume *);
+  void MakeGEnRPLead(G4LogicalVolume *); // extra shielding after magnet yoke
   void MakeGEnLead(G4LogicalVolume *);
   void MakeGEnClamp(G4LogicalVolume *);
   void MakeSIDISLead( G4LogicalVolume * );
@@ -27,6 +28,7 @@ private:
   void MakeGMnBeamline(G4LogicalVolume *);
   void Make3HeBeamline(G4LogicalVolume *);// for GEn, A1n, SIDIS
   void MakeDefaultBeamline(G4LogicalVolume *);// Old beam line...
+  void MakeToyBeamline(G4LogicalVolume *); // "Toy" beam line for playing around with extreme forward angles of detectors, etc:
   
 };
 

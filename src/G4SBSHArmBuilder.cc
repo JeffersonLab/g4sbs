@@ -135,7 +135,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeTracker(worldlog);
     //MakeRICH( worldlog );
     MakeRICH_new( worldlog );
-  } else if ( exptype == kGEp ) {
+  } else if ( exptype == kGEp || exptype == kGEPpositron ) {
     //Subsystems unique to the GEp experiment include FPP and BigCal:
     MakeGEpFPP(worldlog);
   }
@@ -159,7 +159,8 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Build CDET (as needed)
-  if( (exptype == kNeutron || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
+  //if( (exptype == kGMN || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
+  if( exptype == kGMN || exptype == kGEnRP ){
     //plugging in CDET for GMn  
     G4double depth_HCal_shield = 7.62*cm; //3 inches
     G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
@@ -501,7 +502,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   G4RotationMatrix *rot_temp = new G4RotationMatrix;
   rot_temp->rotateZ( slot_angle );
   
-  
+
   // big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, bigboxaddrm, 
   // 			      G4ThreeVector(0.0, 0.0, (coilgapheight+bigcoilheight)/2.0));
   // big48d48 = new G4UnionSolid("big48d48_2", big48d48, bigcoilthr, bigboxaddrm, 
@@ -532,15 +533,53 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     big48d48Log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
 
-  
-  
 
   new G4PVPlacement(bigboxrm, 
-		    G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
-		    big48d48Log, "big48d48Physical", worldlog, 0,false,0);
+  		    G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
+  		    big48d48Log, "big48d48Physical", worldlog, 0,false,0);
 
   G4LogicalVolume *bigfieldLog=new G4LogicalVolume(biggap, GetMaterial("Air"),
 						   "bigfieldLog", 0, 0, 0);
+
+
+
+  // Dipole gap shielding for GEnRP
+
+  if( fDetCon->fExpType == kGEnRP ){
+    // Defining parametermes for rectangular portion
+    G4double h_gapshield = 30.*cm;  // guesstimate
+    G4double w_gapshield = 68.5*cm;  // guesstimate
+    G4double d_gapshield = 60.*cm;
+  
+    G4double d1 = r48d48 + f48D48depth/2.0 - d_gapshield/2.0;
+    G4double d2 = f48D48width/2.0 - w_gapshield/2.0;
+    G4double a_req = atan(d1/d2)*(180./M_PI)*deg + f48D48ang - 90.*deg;
+    G4double d3 = (tan(f48D48ang)*d1 - d2)*cos(f48D48ang);
+    G4double r_req = d3/sin(a_req);
+
+    G4Box *gapshield = new G4Box("gapshield", w_gapshield/2.0, d_gapshield/2.0, h_gapshield/2.0);
+
+    // Defining parameters for wedge shaped portion
+    G4double w_wedge = h_gapshield;
+    G4double d_wedge = d_gapshield;
+    G4double h_wedge = d_wedge*tan(slot_angle);
+
+    G4Trap *wedge = new G4Trap("wedge", w_wedge, d_wedge, h_wedge, 0.001*mm);
+
+    G4RotationMatrix *wedgerm = new G4RotationMatrix;
+    wedgerm->rotateZ(180.*deg);
+    wedgerm->rotateX(180.*deg);
+  
+    G4UnionSolid *dgapshld = new G4UnionSolid("dgapshld", gapshield, wedge, wedgerm,
+    					    G4ThreeVector(- w_gapshield/2.0 - h_wedge/4.0, 0.0, 0.0) );
+    G4LogicalVolume *dgapshld_log = new G4LogicalVolume(dgapshld, GetMaterial("Lead"), "dgapshld_log" );
+    new G4PVPlacement(bigboxrm, G4ThreeVector(-r_req*sin(a_req), 0.0, r_req*cos(a_req)),
+		      dgapshld_log, "big48d48Physical", worldlog, 0,false,0);
+
+    G4VisAttributes *Leadcolor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
+    dgapshld_log->SetVisAttributes( Leadcolor );
+  }
+
 
   // Associate magnetic field with gap
 
@@ -571,11 +610,11 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
 
   new G4PVPlacement(bigrm, 
-		    G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
-		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
+  		    G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
+  		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 
 
-  if( fDetCon->fExpType == kGEp ){
+  if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGEPpositron ){
     // Addtional iron inside the field region
 
     std::vector<G4TwoVector> leftverts;
@@ -617,11 +656,11 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     }
 
     new G4PVPlacement(bigrm, 
-		      G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
-		      leftslabLog, "leftslabPhysical", worldlog, 0,false,0);
+    		      G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
+    		      leftslabLog, "leftslabPhysical", worldlog, 0,false,0);
     new G4PVPlacement(bigrm, 
-		      G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
-		      rightslabLog, "rightslabPhysical", worldlog, 0,false,0);
+    		      G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
+    		      rightslabLog, "rightslabPhysical", worldlog, 0,false,0);
 
     G4VisAttributes * slabVisAtt
       = new G4VisAttributes(G4Colour(1.0,0.1,0.0));
@@ -735,7 +774,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclampun, GetMaterial("Fer"), "frontclampLog", 0, 0, 0);
 
     G4LogicalVolume *frontextfaceLog= NULL;
-    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kNeutronExp ){
+    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGMN || fDetCon->fExpType == kGEN || fDetCon->fExpType == kGEnRP ){
       frontextfaceLog = new G4LogicalVolume(extface_whole, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
     } else {
       frontextfaceLog = new G4LogicalVolume(extface, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
@@ -777,8 +816,8 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     double r48d48 = f48D48dist + 1219.2*mm/2.0;
 
     new G4PVPlacement(rot, 
-		      G4ThreeVector(-(r48d48+frontclampz)*sin(-f48D48ang), 0.0, (r48d48+frontclampz)*cos(-f48D48ang)),
-		      frontclampLog, "frontclampPhysical", motherlog, 0,false,0);
+    		      G4ThreeVector(-(r48d48+frontclampz)*sin(-f48D48ang), 0.0, (r48d48+frontclampz)*cos(-f48D48ang)),
+    		      frontclampLog, "frontclampPhysical", motherlog, 0,false,0);
 
     G4RotationMatrix *rotextface = new G4RotationMatrix();
     rotextface->rotateY(-f48D48ang);
@@ -849,7 +888,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     FrontClamp_log->SetVisAttributes(clampVisAtt);
  
-    // (Note jc2): Sticking this if statement here so we can draw the
+    // (Note jc2): Stickng this if statement here so we can draw the
     // back fieldclamp only for GEp, but not GMn. However, I'm leaving
     // the indentation as is because I don't want git to make me the
     // author of all these changes when all I did is indent things :/
@@ -4100,16 +4139,20 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
 
   double cuanadist   = 60.0*cm; // distance between back face of rear field clamp and front face of Cu analyzer
   
-  double cuanaheight = 200.0*cm; 
-  double cuanawidth  = 44.0*cm; 
-  double cuanadepth  = 4.0*cm; 
-
+  double cuanaheight = 198.12*cm; 
+  double cuanawidth  = 60.96*cm;
+  //double cuanadepth  = 4.0*cm; 
+  double cuanadepth = 8.89*cm;
+  
   G4ThreeVector cuana_pos = pos + G4ThreeVector( 0.0, 0.0, (cuanadist + cuanadepth/2.0) ); 
   
   if( fGEnRP_analyzer_option >= 2 ) {
     G4Box*           cuanabox  = new G4Box("cuanabox", cuanawidth/2.0, cuanaheight/2.0, cuanadepth/2.0 );
     //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("CH2"), "cuanalog");
-    G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Copper"), "cuanalog");
+    //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Copper"), "cuanalog");
+
+    //Use generic stainless steel for now:
+    G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Steel"), "cuanalog");
     //AJRP: Did we intend for the "Copper" analyzer to have CH2 as the material?
     
     new G4PVPlacement(0, cuana_pos, cuanalog,"cuanaphys", sbslog, false, 0, false);

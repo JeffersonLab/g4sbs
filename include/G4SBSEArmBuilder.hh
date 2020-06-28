@@ -2,6 +2,7 @@
 #define __G4SBSEArmBuilder_hh
 
 #include "G4SBSComponent.hh"
+#include "G4ThreeVector.hh"
 
 class G4LogicalVolume;
 class G4SBSBigBiteField;
@@ -37,7 +38,7 @@ public:
   void MakeGMnGEMShielding(G4LogicalVolume *);
 
   void SetDVCSECalMaterial(G4String str){ fDVCSECalMaterial = str; }
-  void MakeBBSieveSlit(G4LogicalVolume *);
+  void MakeBBSieveSlit(G4LogicalVolume *, G4ThreeVector);
 
   void SetGRINCHgas( G4String str ){ fGRINCHgas = str; }
   void SetGrinchPMTglassHits(bool b ){ fTurnOnGrinchPMTglassHits = b; }

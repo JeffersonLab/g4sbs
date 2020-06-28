@@ -35,57 +35,62 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
   
   // EFuchey 2017/03/29: organized better this with a switch instead of an endless chain of if...  else...
-  if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
-    switch(fDetCon->fExpType){
-    case(kGEp):
-      printf("GEp experiment: forcing beamline configuration 1 \n");
-      fDetCon->fBeamlineConf = 1;
-      MakeGEpBeamline(worldlog);
-      if(fDetCon->fLeadOption == 1){
-	MakeGEpLead(worldlog);
-      }
-      break;
-    case(kNeutronExp):// GMn
-      MakeGMnBeamline(worldlog);
-      if(fDetCon->fLeadOption == 1){
-	MakeGMnLead(worldlog);
-      }
-      break;
-    case(kGEnRP):// GEnRP
-      MakeGMnBeamline(worldlog);
-      if(fDetCon->fLeadOption == 1){
-	MakeGMnLead(worldlog);
-      }
-      break;
-    default:
-      MakeDefaultBeamline(worldlog);
-      break;
+  //if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
+  switch(fDetCon->fExpType){
+  case(kGEp):
+    printf("GEp experiment: forcing beamline configuration 1 \n");
+    fDetCon->fBeamlineConf = 1;
+    MakeGEpBeamline(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      MakeGEpLead(worldlog);
     }
-  } else {
-    switch(fDetCon->fExpType){
-    case(kNeutronExp):// GEn
-      printf("GEn experiment: forcing beamline configuration 2 \n");
-      fDetCon->fBeamlineConf = 2;
-      Make3HeBeamline(worldlog);
-      MakeGEnClamp(worldlog);
-      if(fDetCon->fLeadOption == 1){
-	MakeGEnLead(worldlog);
-      }
-      break;
-    case(kSIDISExp):// SIDIS
-      Make3HeBeamline(worldlog);
-      if(fDetCon->fLeadOption == 1){
-	MakeSIDISLead(worldlog);
-      }
-      break;
-    case(kGEMHCtest):// Hall C GEM test
-      MakeGMnBeamline(worldlog);
-      break;
-    default:
-      Make3HeBeamline(worldlog);
-      break;
+    break;
+  case(kGEPpositron):
+    printf("GEp experiment: forcing beamline configuration 1 \n");
+    fDetCon->fBeamlineConf = 34; //"Toy" beamline
+    // MakeGEpBeamline(worldlog);
+
+    MakeToyBeamline( worldlog );
+    //if(fDetCon->fLeadOption == 1){
+    //  MakeGEpLead(worldlog);
+    //}
+    break;
+  case(kGMN):// GMn
+    MakeGMnBeamline(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      MakeGMnLead(worldlog);
     }
+    break;
+  case(kGEnRP):// GEnRP
+    MakeGMnBeamline(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      MakeGMnLead(worldlog);
+      MakeGEnRPLead(worldlog);
+    }
+    break;
+  case(kGEN):// GEn
+    printf("GEn experiment: forcing beamline configuration 2 \n");
+    fDetCon->fBeamlineConf = 2;
+    Make3HeBeamline(worldlog);
+    MakeGEnClamp(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      MakeGEnLead(worldlog);
+    }
+    break;
+  case(kSIDISExp):// SIDIS
+    Make3HeBeamline(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      MakeSIDISLead(worldlog);
+    }
+    break;
+  case(kGEMHCtest):// Hall C GEM test
+    MakeGMnBeamline(worldlog);
+    break;  
+  default:
+    MakeDefaultBeamline(worldlog);
+    break;
   }
+  
   
   double floorthick = 1.0*m;
   G4Tubs *floor_tube = new G4Tubs("floor_tube", 0.0, 30*m, floorthick/2, 0.*deg, 360.*deg );
@@ -1041,7 +1046,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       GEMElectronicsname += "GEp";
       GEMElectronicscollname += "GEp";
       break;
-    case(kNeutronExp):// GMn
+    case(kGMN):// GMn
+      //case(kGEN): //
       GEMElectronicsname += "GMn";
       GEMElectronicscollname += "GMn";
       break;
@@ -2435,6 +2441,41 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
 }
 
 
+void G4SBSBeamlineBuilder::MakeGEnRPLead(G4LogicalVolume *worldlog){
+
+  bool chkovrlps = false;
+  G4VisAttributes* LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
+
+  G4double l_leadwall1 = 5.0*12.0*2.54*cm;
+  G4double h_leadwall1 = 42.0*2.54*cm;
+  G4double w_leadwall1 = 2*2.54*cm;
+
+  G4Box *leadwall1 = new G4Box("leadwall1", w_leadwall1/2.0, h_leadwall1/2.0, l_leadwall1/2.0);
+  G4LogicalVolume *leadwall1_log = new G4LogicalVolume(leadwall1, GetMaterial("Lead"), "leadwall1_log");
+
+  G4double X1 = -17.0*2.54*cm; 
+  G4double Y1 = 0.0;
+  G4double Z1 = 2.5*76.325*2.54*cm + 1.5*2.54*cm;  // guesstimate 
+  
+  new G4PVPlacement( 0, G4ThreeVector(X1,Y1,Z1), leadwall1_log, "leadwall1_phys", worldlog, false, 0, chkovrlps );
+  leadwall1_log->SetVisAttributes(LeadColor);
+  
+  G4double l_leadwall2 = 3.0*12.0*2.54*cm;
+  G4double h_leadwall2 = h_leadwall1;
+  G4double w_leadwall2 = w_leadwall1;
+
+  G4Box *leadwall2 = new G4Box("leadwall2", w_leadwall2/2.0, h_leadwall2/2.0, l_leadwall2/2.0);
+  G4LogicalVolume *leadwall2_log = new G4LogicalVolume(leadwall2, GetMaterial("Lead"), "leadwall2_log");
+
+  G4double X2 = -21.0*2.54*cm; 
+  G4double Y2 = 0.0;
+  G4double Z2 = Z1 + l_leadwall1/2.0 + l_leadwall2/2.0 - 1.*2.54*cm;  
+
+  new G4PVPlacement( 0, G4ThreeVector(X2,Y2,Z2), leadwall2_log, "leadwall2_phys", worldlog, false, 0, chkovrlps );
+  leadwall2_log->SetVisAttributes(LeadColor);
+}
+
+
 void G4SBSBeamlineBuilder::MakeGEnClamp(G4LogicalVolume *worldlog){
   int nsec = 2;
   //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
@@ -2687,5 +2728,8 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
 
 ///////////////////////////////////////////////////////////////////////////
 
+void G4SBSBeamlineBuilder::MakeToyBeamline(G4LogicalVolume *motherlog){ //This is the "toy" beamline to go with the "toy" scattering chamber:
 
+  //Don't do anything yet, just make the code compile;
+}
 

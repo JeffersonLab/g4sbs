@@ -53,7 +53,7 @@
 using namespace CLHEP;
 
 G4SBSMessenger::G4SBSMessenger(){
-  fExpType = kNeutronExp;
+  fExpType = kGMN; //default to GMN
 
   runCmd = new G4UIcmdWithAnInteger("/g4sbs/run",this);
   runCmd->SetGuidance("Run simulation with x events");
@@ -97,7 +97,7 @@ G4SBSMessenger::G4SBSMessenger(){
   tgtCmd->SetParameterName("targtype", false);
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
-  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6");
+  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
   kineCmd->SetParameterName("kinetype", false);
 
   PYTHIAfileCmd = new G4UIcmdWithAString("/g4sbs/pythia6file",this);
@@ -205,6 +205,27 @@ G4SBSMessenger::G4SBSMessenger(){
   rasteryCmd->SetGuidance("Raster y size");
   rasteryCmd->SetParameterName("size", false);
 
+  tgtNfoilCmd = new G4UIcmdWithAnInteger("/g4sbs/Nfoil",this);
+  tgtNfoilCmd->SetGuidance("Number of foils for optics target");
+  tgtNfoilCmd->SetGuidance("Only has any effect if target = optics");
+  tgtNfoilCmd->SetGuidance("Default = 1");
+  tgtNfoilCmd->SetParameterName("nfoil",true);
+  tgtNfoilCmd->SetDefaultValue(1);
+
+  tgtFoilThickCmd = new G4UIcommand("/g4sbs/foilthick",this);
+  tgtFoilThickCmd->SetGuidance("Foil thickness for multi-foil target");
+  tgtFoilThickCmd->SetGuidance("Usage: /g4sbs/foilthick thick1 thick2 ... thickN unit");
+  tgtFoilThickCmd->SetGuidance("Separate by whitespace, units at the end");
+  tgtFoilThickCmd->SetGuidance("number of entries must match number of foils (see /g4sbs/Nfoil)");
+  tgtFoilThickCmd->SetParameter( new G4UIparameter("foilthicklist",'s',false) );
+
+  tgtFoilZCmd = new G4UIcommand("/g4sbs/foilz",this);
+  tgtFoilZCmd->SetGuidance("Foil z positions along beamline for multi-foil target");
+  tgtFoilZCmd->SetGuidance("Usage: /g4sbs/foilz z1 z2 ... zN unit");
+  tgtFoilZCmd->SetGuidance("separate entries by whitespace, units at the end");
+  tgtFoilZCmd->SetGuidance("number of entries must match number of foils (see /g4sbs/Nfoil)");
+  tgtFoilZCmd->SetParameter( new G4UIparameter("foilthicklist",'s',false) );
+  
   beamECmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamE",this);
   beamECmd->SetGuidance("Beam Energy");
   beamECmd->SetParameterName("energy", false);
@@ -344,6 +365,26 @@ G4SBSMessenger::G4SBSMessenger(){
   EemaxCmd->SetGuidance("Maximum electron generation energy (SIDIS generator)");
   EemaxCmd->SetParameterName("eemax",false);
 
+  PionPhoto_tminCmd = new G4UIcmdWithADouble("/g4sbs/tmin",this);
+  PionPhoto_tminCmd->SetGuidance("Minimum -t value for pion photoproduction event generation");
+  PionPhoto_tminCmd->SetGuidance("Assumed to be positive and given in units of GeV^2");
+  PionPhoto_tminCmd->SetParameterName("tmin",false);
+
+  PionPhoto_tmaxCmd = new G4UIcmdWithADouble("/g4sbs/tmax",this);
+  PionPhoto_tmaxCmd->SetGuidance("Minimum -t value for pion photoproduction event generation");
+  PionPhoto_tmaxCmd->SetGuidance("Assumed to be given in units of GeV^2");
+  PionPhoto_tmaxCmd->SetParameterName("tmax",false);
+
+  PionPhoto_useradCmd = new G4UIcmdWithABool("/g4sbs/userad", this );
+  PionPhoto_useradCmd->SetGuidance("Use radiator for pion photoproduction event generation (Default = true)");
+  PionPhoto_useradCmd->SetParameterName("userad",true);
+  PionPhoto_useradCmd->SetDefaultValue(true);
+
+  PionPhoto_radthickCmd = new G4UIcmdWithADouble("/g4sbs/radthick", this );
+  PionPhoto_radthickCmd->SetGuidance("Radiator thickness, in units of X_0 (default = 0.06)");
+  PionPhoto_radthickCmd->SetParameterName("radthickX0",true);
+  PionPhoto_radthickCmd->SetDefaultValue(0.06);
+  
   RICHdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/richdist",this);
   RICHdistCmd->SetGuidance("SBS RICH distance from target");
   RICHdistCmd->SetParameterName("dist",false);
@@ -606,10 +647,46 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       }
       fevgen->InitializePythia6_Tree();
     }
+
+    //    G4double TargMassDensity;
+    G4double TargNumberDensity; 
+    
+    switch(fdetcon->fTargType){ //Initialize fTargDen correctly and consistently with Material definition in fdetcon->ConstructMaterials:
+    case kH2:
+      TargNumberDensity = fdetcon->GetMaterial("refH2")->GetTotNbOfAtomsPerVolume();
+      break;
+    case kD2:
+      TargNumberDensity = fdetcon->GetMaterial("refD2")->GetTotNbOfAtomsPerVolume();
+      break;
+    case kNeutTarg:
+      TargNumberDensity = fdetcon->GetMaterial("refN2")->GetTotNbOfAtomsPerVolume();
+      break;
+    case kLH2:
+      TargNumberDensity = fdetcon->GetMaterial("LH2")->GetTotNbOfAtomsPerVolume();
+      break;
+    case kLD2:
+      TargNumberDensity = fdetcon->GetMaterial("LD2")->GetTotNbOfAtomsPerVolume();
+      break;
+    case k3He:
+      TargNumberDensity = fdetcon->GetMaterial("pol3He")->GetTotNbOfAtomsPerVolume();
+      break;
+    case kCfoil:
+      TargNumberDensity = fdetcon->GetMaterial("Carbon")->GetTotNbOfAtomsPerVolume();
+      break;
+    default: //assume H2 gas:
+      TargNumberDensity = fdetcon->GetMaterial("refH2")->GetTotNbOfAtomsPerVolume();
+      break;
+    }
+    fevgen->SetTargDen(TargNumberDensity);
     
     fevgen->SetNevents(nevt);
     fevgen->Initialize();
-    
+
+    //For optics target, copy target foil information from targetbuilder to evgen:
+    if( fdetcon->fTargType == kOptics ){
+      fevgen->SetNfoils( fdetcon->fTargetBuilder->GetNtargetFoils() );
+      fevgen->SetFoilZandThick( fdetcon->fTargetBuilder->GetFoilZpos(), fdetcon->fTargetBuilder->GetFoilThick() );
+    }
     // if( fevgen->GetRejectionSamplingFlag() && !fevgen->GetRejectionSamplingInitialized() ){
     //   fevgen->InitializeRejectionSampling();
     // }
@@ -787,6 +864,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
 
+    if( newValue.compareTo("wapp") == 0 ){ //wide angle pion photoproduction
+      fevgen->SetKine(kPionPhoto);
+      validcmd = true;
+    }
+
     if( !validcmd ){
       fprintf(stderr, "%s: %s line %d - Error: kinematic type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
       exit(1);
@@ -808,12 +890,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fExpType = kGEp;
       validcmd = true;
     }
+    if( newValue.compareTo("gepeplus") == 0 ){
+      fExpType = kGEPpositron;
+      validcmd = true;
+    }
     if( newValue.compareTo("gmn") == 0 ){
-      fExpType = kNeutronExp;
+      fExpType = kGMN;
       validcmd = true;
     }
     if( newValue.compareTo("gen") == 0 ){
-      fExpType = kNeutronExp;
+      fExpType = kGEN;
       validcmd = true;
     }
     if( newValue.compareTo("genrp") == 0 ){
@@ -979,7 +1065,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetTarget(kCfoil);
       fdetcon->SetTarget(kCfoil);
       validcmd = true;
+    }
 
+    if( newValue.compareTo("optics") == 0 ){
+      fevgen->SetTarget(kOptics);
+      fdetcon->SetTarget(kOptics);
+      validcmd = true;
+      //fdetcon->fTargetBuilder->SetNtargetFoils(1); //default to one carbon foil at Z = 0;
     }
     
     if( !validcmd ){
@@ -1086,10 +1178,72 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
 
   if( cmd == rasteryCmd ){
-    G4double v = rasteryCmd->GetNewDoubleValue(newValue);
+    G4double v = rasteryCmd->GetNewDoubleValue(newValue); 
     fevgen->SetRasterY(v);
   }
 
+  if( cmd == tgtNfoilCmd ){
+    G4int n = tgtNfoilCmd->GetNewIntValue(newValue);
+    fdetcon->fTargetBuilder->SetNtargetFoils(n);
+  }
+
+  if( cmd == tgtFoilThickCmd ){
+    std::istringstream is(newValue);
+    G4int nfoil = fdetcon->fTargetBuilder->GetNtargetFoils();
+
+    std::vector<double> thicktemp(nfoil);
+
+    G4String unit;
+
+    bool success = true;
+    
+    for( G4int ifoil=0; ifoil<nfoil; ifoil++ ){
+      is >> thicktemp[ifoil];
+      if( is.eof() || is.fail() || is.bad() ) {
+	success = false;
+	break;
+      }
+    }
+    is >> unit;
+    if( is.fail() || is.bad() || !is.eof() ) {
+      success = false;
+      exit(-1);
+    }
+    
+    for( G4int ifoil=0; ifoil<nfoil; ifoil++ ){
+      fdetcon->fTargetBuilder->SetFoilThick( ifoil, thicktemp[ifoil]*cmd->ValueOf(unit) );
+    }
+  }
+
+  if( cmd == tgtFoilZCmd ){
+    std::istringstream is(newValue);
+    G4int nfoil = fdetcon->fTargetBuilder->GetNtargetFoils();
+
+    std::vector<double> Ztemp(nfoil);
+
+    G4String unit;
+
+    bool success = true;
+    
+    for( G4int ifoil=0; ifoil<nfoil; ifoil++ ){
+      is >> Ztemp[ifoil];
+      if( is.eof() || is.fail() || is.bad() ) {
+	success = false;
+	break;
+      }
+    }
+    is >> unit;
+    if( is.fail() || is.bad() || !is.eof() ) {
+      success = false;
+      exit(-1);
+    }
+    
+    for( G4int ifoil=0; ifoil<nfoil; ifoil++ ){
+      fdetcon->fTargetBuilder->SetFoilZpos( ifoil, Ztemp[ifoil]*cmd->ValueOf(unit) );
+    }
+  }
+    
+  
   if( cmd == beamECmd ){
     G4double v = beamECmd->GetNewDoubleValue(newValue);
     fevgen->SetBeamE(v);
@@ -1330,6 +1484,26 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevgen->SetInitialized(false);
   }
 
+  if( cmd == PionPhoto_tminCmd ){
+    G4double v = PionPhoto_tminCmd->GetNewDoubleValue(newValue);
+    fevgen->SetPionPhoto_tmin( v );
+  }
+
+  if( cmd == PionPhoto_tmaxCmd ){
+    G4double v = PionPhoto_tmaxCmd->GetNewDoubleValue(newValue);
+    fevgen->SetPionPhoto_tmax( v );
+  }
+
+  if( cmd == PionPhoto_useradCmd ){
+    G4bool b = PionPhoto_useradCmd->GetNewBoolValue(newValue);
+    fevgen->SetUseRadiator( b );
+  }
+
+  if( cmd == PionPhoto_radthickCmd ){
+    G4double v = PionPhoto_radthickCmd->GetNewDoubleValue(newValue);
+    fevgen->SetRadthickX0( v );
+  }
+  
   if( cmd == gemresCmd ){
     G4double v = gemresCmd->GetNewDoubleValue(newValue);
     fevact->SetGEMRes(v);

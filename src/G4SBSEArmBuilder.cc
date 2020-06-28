@@ -116,13 +116,14 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   //  The neutron experiments and the SIDIS experiment use BigBite:
   //------------ BigBite: -----------------------------------------------------
-  if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kA1n  || exptype == kTDIS || exptype == kGEnRP ) 
+  if( exptype == kGMN || exptype == kGEN || exptype == kSIDISExp || exptype == kA1n  || exptype == kTDIS || exptype == kGEnRP ) 
     {
       MakeBigBite( worldlog );
-      if(fBuildBBSieve)
-	MakeBBSieveSlit(worldlog);
+      //Move sieve slit construction to MakeBigBite subroutine:
+      //      if(fBuildBBSieve)
+      //	MakeBBSieveSlit(worldlog);
     }
-  if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+  if( exptype == kGEp || exptype == kGEPpositron ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
       G4SBSECal* ECal = new G4SBSECal(fDetCon);
       ECal->SetAng(fBBang);
@@ -138,7 +139,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       ECal->BuildComponent(worldlog);
       //MakeC16( worldlog );
     }
-  if( (exptype == kNeutronExp || exptype == kGEnRP) && fBuildGEMfrontend )  MakeGMnGEMShielding( worldlog );
+  if( (exptype == kGMN || exptype == kGEnRP) && fBuildGEMfrontend )  MakeGMnGEMShielding( worldlog );
   
   if( exptype == kNDVCS ){
     MakeDVCSECal(worldlog);
@@ -328,11 +329,11 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *beamshieldcut = new G4Box("beamshieldcut", 30.0*cm/2.0 + eps, 300*cm + eps, 10.0*cm/2.0 + eps);
   bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR_shieldcut", bbmothercutBox, beamshieldcut, 0, G4ThreeVector( -(bbmagwidth+gapsize)/4.0+coilwidth+15.0*cm, 0.0, -motherdepth/2.0+2.5*cm));
 					  
-  
 
   //   Make logical volume for mother vol and place
   G4LogicalVolume *bbmotherLog=new G4LogicalVolume(bbmothercutBox,GetMaterial("Air"),
 						   "bbmotherLog", 0, 0, 0);
+
   
   new G4PVPlacement(bbrm, G4ThreeVector(motherr*sin(fBBang), 0.0, motherr*cos(fBBang)),
 		    bbmotherLog, "bbmotherPhys", worldlog, false,0, chkoverlap);
@@ -340,12 +341,16 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   new G4PVPlacement(yokerm,G4ThreeVector(0.0, 0.0, -motherdepth/2.0+clear),
 		    bbyokewgapLog, "bbyokewgapPhysical", bbmotherLog, false,0, chkoverlap);
-
+  
+  if( fBuildBBSieve ){
+    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+37.0*cm-0.75*2.54*cm);
+    MakeBBSieveSlit( bbmotherLog, BBSievePos );
+  }
+  
   //  Bigbite field log volume
   G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
 						  "bbfieldLog", 0, 0, 0);
-
-
+  
   //NOTE that the invocation of the commented out command below can potentially cause
   // G4SBSBigBiteField::ReadField() to
   // be invoked twice in the same run. Not a big deal, but also not desirable behavior
@@ -984,8 +989,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
 
   // Preshower PMT SD of type ECAL
-  G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpspmtcathodelog" );
+  //G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpspmtcathodelog" );
 
+  G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_BB"), "bbpspmtcathodelog" );
+  
   G4String BBPSSDname = "Earm/BBPS";
   G4String BBPScollname = "BBPSHitsCollection";
   G4SBSECalSD *BBPSSD = NULL;
@@ -3599,8 +3606,170 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
 }
 
 //Sieve slit
-void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog)
+void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVector pos)
 {
+  G4double bbsievew = 14.75*2.54*cm;
+  G4double bbsieveh = 27.50*2.54*cm;
+  G4double bbsieved = 1.50*2.54*cm;
+  
+  //BigBite Sieve Slit is a box with holes:
+  G4Box *BBsieveplate_box = new G4Box("BBsieveplate_box", bbsievew/2.0, bbsieveh/2.0, bbsieved/2.0 );
+
+  //Next, need to make cuts:
+  G4double bbsieve_holediameter = 0.750*2.54*cm;
+  G4double bbsieve_holeradius = bbsieve_holediameter/2.0;
+
+  G4double bbsieve_holeangle1 = 18.0*deg;
+  
+  G4Tubs *bbsieveholecut = new G4Tubs("bbsieveholecut", 0.0, bbsieve_holeradius, bbsieved/cos(18.0*deg),0.0,360.0*deg);
+
+  const G4int bbsieve_nrows = 13;
+  const G4int bbsieve_ncols = 7;
+
+  //Now we are going to attempt to cut holes in the sieve plate. Then we will deal with the slots:
+  G4double bbsieve_holespaceY = 1.50*2.54*cm;
+  G4double bbsieve_holespaceX = 49.2*mm; 
+
+  //There are four areas where we need horizontal slots; these are in row 4, columns 2-3 and 4-5
+  //row 10, columns 3-5, and row 12, column 5-6. These can be accomplished by the union of a box with two cylinders
+ 
+  
+  //We will need five rotation matrices to make the cuts (actually four since one is the identity):
+  //G4RotationMatrix *bbsrot1 = new G4RotationMatrix;
+  //bbsrot1->rotateX( -18.0*deg );
+  //G4RotationMatrix *bbsrot2 = new G4RotationMatrix;
+  //bbsrot2->rotateX( -9.0*deg );
+
+  //G4RotationMatrix *bbsrot3 = new G4RotationMatrix;
+  //bbsrot3->rotateX( +9.0*deg );
+  //G4RotationMatrix *bbsrot4 = new G4RotationMatrix;
+  //bbsrot4->rotateX( +18.0*deg );
+
+  G4Box *Slot1Box = new G4Box("Slot1Box", bbsieve_holespaceY/2.0, bbsieve_holeradius, bbsieved/cos(18.0*deg) );
+  G4Box *Slot2Box = new G4Box("Slot2Box", bbsieve_holespaceY, bbsieve_holeradius, bbsieved/cos(18.0*deg) );
+			      
+  
+  G4double alpha1 = 9.0*deg;
+  G4double alpha2 = 18.0*deg;
+  
+  G4ThreeVector bbsieveTopFrontCornerPos( 0, bbsieveh/2.0, -bbsieved/2.0 );
+  G4ThreeVector bbsieveBottomFrontCornerPos( 0, -bbsieveh/2.0, -bbsieved/2.0 );
+
+  G4SubtractionSolid *BBSievePlateCut;
+
+  bool first=true;
+  
+  for( int irow=-6; irow<=6; irow++ ){
+
+    for( int icol=-3; icol<=3; icol++ ){
+      G4ThreeVector xhat_temp, yhat_temp, zhat_temp, r0_hole; 
+      
+      G4double stemp;
+
+      G4RotationMatrix *rot_temp = new G4RotationMatrix;
+      
+      if( irow < -4 ){ //bottom two rows:
+	xhat_temp = G4ThreeVector(0.0, cos(alpha2), sin(alpha2) );
+	yhat_temp = G4ThreeVector(1.0, 0.0, 0.0 );
+	zhat_temp = xhat_temp.cross(yhat_temp).unit();
+	
+	r0_hole = bbsieveBottomFrontCornerPos + xhat_temp*(1.942*2.54*cm + (irow+6)*1.938*2.54*cm);
+	//Now compute the intersection of this with the z=0 plane:
+	// (r0hole + s*nhat) dot uhat = 0;
+	//s nhat dot uhat = -r0hole.uhat;
+	stemp = -r0_hole.z() / zhat_temp.z();
+
+	rot_temp->rotateX( -alpha2 );
+	
+      } else if( irow < -1 ){ //next three rows: -4, -3, -2 
+	xhat_temp = G4ThreeVector(0.0, cos(alpha1), sin(alpha1) );
+	yhat_temp = G4ThreeVector(1.0, 0.0, 0.0 );
+	zhat_temp = xhat_temp.cross(yhat_temp).unit();
+
+	r0_hole = bbsieveBottomFrontCornerPos + xhat_temp*(149.3*mm + (irow+4)*1.938*2.54*cm);
+
+	stemp = -r0_hole.z() / zhat_temp.z();
+
+	rot_temp->rotateX( -alpha1 );
+      } else if( irow < 2 ){ //middle three rows: -1, 0, 1
+	xhat_temp = G4ThreeVector(0,1,0);
+	yhat_temp = G4ThreeVector(1,0,0);
+	zhat_temp = xhat_temp.cross(yhat_temp).unit();
+
+	r0_hole = xhat_temp*irow*1.938*2.54*cm;
+
+	stemp = 0.0;
+      } else if( irow < 5 ){ //next three rows:
+	xhat_temp = G4ThreeVector(0.0, -cos(alpha1), sin(alpha1) );
+	yhat_temp = G4ThreeVector(1,0,0);
+	zhat_temp = xhat_temp.cross(yhat_temp).unit();
+
+	r0_hole = bbsieveTopFrontCornerPos + xhat_temp*(149.3*mm + (4-irow)*1.938*2.54*cm);
+
+	stemp = -r0_hole.z()/zhat_temp.z();
+
+	rot_temp->rotateX( alpha1 );
+      } else { //top two rows:
+	xhat_temp = G4ThreeVector(0.0, -cos(alpha2), sin(alpha2) );
+	yhat_temp = G4ThreeVector(1,0,0);
+	zhat_temp = xhat_temp.cross(yhat_temp).unit();
+
+	r0_hole = bbsieveTopFrontCornerPos + xhat_temp*(1.942*2.54*cm + (6-irow)*1.938*2.54*cm);
+
+	rot_temp->rotateX( alpha2 );
+      }
+      
+      G4ThreeVector holepos = r0_hole + stemp * zhat_temp + icol*bbsieve_holespaceY*yhat_temp;
+    
+      G4SubtractionSolid *NextCut;
+      if( first ){
+	first = false;
+	NextCut = new G4SubtractionSolid( "NextCut", BBsieveplate_box, bbsieveholecut, rot_temp, holepos );
+      } else {
+	NextCut = new G4SubtractionSolid( "NextCut", BBSievePlateCut, bbsieveholecut, rot_temp, holepos );
+      }
+
+      //Copy "NextCut" to BBSievePlateCut and then delete NextCut
+      //BBSievePlateCut = new G4SubtractionSolid( *NextCut );
+
+      BBSievePlateCut = NextCut;
+      BBSievePlateCut->SetName("BBSievePlateCut");
+
+      if( irow == -3 && (icol == -2 || icol == 1 ) ){ //Cut two rectangular slots between columns -2--1 and columns 1-2
+	holepos += 0.5*bbsieve_holespaceY*yhat_temp;
+	NextCut = new G4SubtractionSolid( "NextCut", BBSievePlateCut, Slot1Box, rot_temp, holepos );
+
+	BBSievePlateCut = NextCut;
+	BBSievePlateCut->SetName("BBSievePlateCut");
+	// delete NextCut;      
+      }
+
+      if( irow == 3 && icol == 0 ){
+	NextCut = new G4SubtractionSolid( "NextCut", BBSievePlateCut, Slot2Box, rot_temp, holepos );
+
+	BBSievePlateCut = NextCut;
+	BBSievePlateCut->SetName("BBSievePlateCut");
+	
+      }
+
+      if( irow == 5 && icol == -2 ){
+	holepos += 0.5*bbsieve_holespaceY*yhat_temp;
+	NextCut = new G4SubtractionSolid( "NextCut", BBSievePlateCut, Slot1Box, rot_temp, holepos );
+
+	BBSievePlateCut = NextCut;
+	BBSievePlateCut->SetName("BBSievePlateCut");	
+      }
+    }
+    
+    
+    
+  }
+
+  G4LogicalVolume *BBSievePlate_log = new G4LogicalVolume( BBSievePlateCut, GetMaterial("Lead"), "BBSievePlate_log" );
+
+  //Next we have to figure out where this sits in relation to the BB magnet: Naively we want it just in front of the coils:
+  new G4PVPlacement( 0, pos, BBSievePlate_log, "BBSievePlate_phys", motherlog, 0, false, 0 );
+  
   printf("Building BB sieve slit...\n");
 }
  

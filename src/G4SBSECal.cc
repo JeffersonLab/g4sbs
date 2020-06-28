@@ -60,7 +60,7 @@ G4SBSECal::~G4SBSECal(){;}
 void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
   Exp_t exptype = fDetCon->fExpType;
   
-  if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+  if( exptype == kGEp || exptype == kGEPpositron ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
       //MakeBigCal( worldlog );
       MakeECal_new( worldlog );

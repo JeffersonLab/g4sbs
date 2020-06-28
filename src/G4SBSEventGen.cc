@@ -19,6 +19,7 @@
 #include "G4Proton.hh"
 #include "G4AntiProton.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4Material.hh"
 
 
 #include "wiser_pion.h"
@@ -40,7 +41,8 @@ G4SBSEventGen::G4SBSEventGen(){
   fTargType = kH2;
   fTargLen  = 60.0*cm;
   fTargDen  = 10.5*atmosphere/(296.0*kelvin*k_Boltzmann); // This is actually in molecules/unit volume = number density
-
+  fTargRadLen = 0.0*cm;
+  
   //Default SIDIS hadron type to pi+:
   fHadronType = kPiPlus;
 
@@ -116,6 +118,17 @@ G4SBSEventGen::G4SBSEventGen(){
   fMaxWeight = cm2; 
   
   fNeventsWeightCheck = 0;
+
+  fPionPhoto_tmin = 4.0; //GeV^2 
+  fPionPhoto_tmax = 7.0; //GeV^2
+  fUseRadiator = true;
+  fRadiatorThick_X0 = 0.06; //6\% radiator (assumed to be Cu)
+
+  fs = 0.0;
+  ft = 0.0;
+  fu = 0.0;
+  fcosthetaCM = 0.0;
+  fEgamma_lab = 0.0*GeV;
 }
 
 
@@ -152,35 +165,66 @@ void G4SBSEventGen::LoadPythiaChain( G4String fname ){
 
 void G4SBSEventGen::Initialize(){
   //Initialize weight factor to convert molecules or atoms number density to number density of nucleons in luminosity calculation:
+
+  G4double radlength = 0.0; //compute in units of X0:
+
+  //Default to very large numbers: 
+  fTargUpstreamWindowRadLen = 1000.0*m;
+  fTargRadLen = 1000.0*m;
+  
   switch(fTargType){
   case kH2:
     Wfact = 2.0;
+    fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
+    fTargRadLen = fTargLen / G4Material::GetMaterial("refH2")->GetRadlen();
+    fTargZatomic = 1.;
     break;
   case kD2:
     Wfact = 4.0;
+    fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
+    fTargRadLen = fTargLen / G4Material::GetMaterial("D2")->GetRadlen();
+    fTargZatomic = 1.;
     break;
   case kNeutTarg:
     Wfact = 1.0;
+    fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
+    fTargRadLen = 1000.0*m;
+    fTargZatomic = 0.;
     break;
   case kLH2:
     Wfact = 1.0;
+    fTargRadLen = fTargLen / G4Material::GetMaterial("LH2")->GetRadlen();
+    fTargZatomic = 1.;
+    fTargUpstreamWindowRadLen = 0.1*mm / G4Material::GetMaterial("Al")->GetRadlen();
     break;
   case kLD2:
     Wfact = 2.0;
+    fTargRadLen = fTargLen / G4Material::GetMaterial("LD2")->GetRadlen();
+    fTargUpstreamWindowRadLen = 0.1*mm / G4Material::GetMaterial("Al")->GetRadlen();
+    fTargZatomic = 1.;
     break;
   case k3He:
     Wfact = 3.0;
+    fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
+    fTargRadLen = fTargLen / G4Material::GetMaterial("pol3He")->GetRadlen();
+    fTargZatomic = 2.;
     break;
   case kCfoil:
     Wfact = 12.0;
+    fTargRadLen = fTargLen / G4Material::GetMaterial("Carbon")->GetRadlen();
+    fTargZatomic = 6.;
+    fTargUpstreamWindowRadLen = 0.0;
     break;
   default:
     Wfact = 1.0;
+    fTargRadLen = fTargLen / G4Material::GetMaterial("LH2")->GetRadlen();
+    fTargZatomic = 1.0;
+    fTargUpstreamWindowRadLen = 0.0;
     break;
   }
 
-  fLumi = fBeamCur / (e_SI*ampere*second) * fTargDen * Wfact * fTargLen;
-
+  fLumi = fBeamCur / (e_SI*ampere*second) * fTargDen * Wfact * fTargLen; //This is in electrons*nucleons/cm^2/s
+  
   //G4cout << "Luminosity = " << fLumi*cm2*s << " cm^{-2} s^{-1}" << G4endl;
   
   fGenVol = (fPhMax - fPhMin)*(cos(fThMin)-cos(fThMax));
@@ -210,6 +254,11 @@ void G4SBSEventGen::Initialize(){
     G4cout << "Generation volume = " << fGenVol/pow(GeV,2) << "sr*GeV^2" << G4endl;
   }
 
+  if( fKineType == kPionPhoto ){ //Pion photoproduction generates flat in -t, phi, and Egamma and returns dsig/dt * Delta t * photon flux
+    //returns essentially a total cross section for that event
+    fGenVol = 1.0;
+  }
+  
   if( fRejectionSamplingFlag ){
     InitializeRejectionSampling();
   }
@@ -302,16 +351,53 @@ bool G4SBSEventGen::GenerateEvent(){
     //Wfact = 3.0;
     //AJRP: 3He gas is monatomic, so Wfact = 3 is appropriate here
     break;
+  case kOptics:
+    if( CLHEP::RandFlat::shootInt(2) == 0 ){
+      thisnucl = kNeutron;
+    } else {
+      thisnucl = kProton;
+    }
+    ni = GetInitialNucl( fTargType, thisnucl );
+    //Wfact = 3.0;
+    //AJRP: 3He gas is monatomic, so Wfact = 3 is appropriate here
+    break;
   default:
     thisnucl = kProton;
     ni = G4LorentzVector(Mp);
     //Wfact = 1.0;
   }
 
-  fVert = G4ThreeVector(CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0),
-			CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0),
-			CLHEP::RandFlat::shoot(-fTargLen/2.0, fTargLen/2.0));
+  if( fTargType != kOptics ){
+    fVert = G4ThreeVector(CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0),
+			  CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0),
+			  CLHEP::RandFlat::shoot(-fTargLen/2.0, fTargLen/2.0));
+  } else { //vertex generation for multi-foil optics target:
+    G4double beamx = CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0 );
+    G4double beamy = CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0 );
 
+    G4double zfrac = CLHEP::RandFlat::shoot();
+
+    G4double beamz = 0.0;
+    
+    for( int ifoil=0; ifoil<fNfoils; ifoil++ ){
+      if( fFoilZfraction[ifoil] <= zfrac && zfrac < fFoilZfraction[ifoil+1] ){
+	//linearly interpolate within this zfrac bin:
+
+	G4double zfoiltemp = fFoilZandThick[ifoil].first;
+	G4double foilthicktemp = fFoilZandThick[ifoil].second;
+
+	beamz = zfoiltemp - foilthicktemp/2.0 + foilthicktemp*(zfrac - fFoilZfraction[ifoil])/(fFoilZfraction[ifoil+1]-fFoilZfraction[ifoil]);
+	
+	break;
+      }
+    }
+
+    fVert = G4ThreeVector(beamx, beamy, beamz );
+    
+    //    std::vector<double> zfoil_un
+    
+  }
+    
   fNuclType = thisnucl;
 
   switch(fKineType){
@@ -345,6 +431,9 @@ bool G4SBSEventGen::GenerateEvent(){
     break;
   case kCosmics:
     success = GenerateCosmics();
+    break;
+  case kPionPhoto:
+    success = GeneratePionPhotoproduction( thisnucl, ei, ni );
     break;
   default:
     success = GenerateElastic( thisnucl, ei, ni );
@@ -583,7 +672,7 @@ bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzV
   }
 
   //Differential cross section dsigma/dOmega_e in the nucleon rest frame:
-  double dsdx_Mott = pow( cos(th_Nrest/2.0)*alpha/(2.0*ei_Nrest.e()*sin(th_Nrest/2.0)*sin(th_Nrest/2.0)), 2.0)*hbarc*hbarc;
+  double dsdx_Mott = pow( cos(th_Nrest/2.0)*alpha*hbarc/(2.0*ei_Nrest.e()*sin(th_Nrest/2.0)*sin(th_Nrest/2.0)), 2.0);
   fSigma    = dsdx_Mott*(ef_Nrest.e()/ei_Nrest.e())*( (GE*GE+tau*GM*GM)/(1.0+tau) + 2.0*tau*GM*GM*tan(th_Nrest/2.0)*tan(th_Nrest/2.0) ); // Dimensions of area
 
 
@@ -1613,6 +1702,9 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
     break;
   }
 
+  if( fUseRadiator ){
+    rad_len += fRadiatorThick_X0;
+  }
 
   double sigpip = wiser_sigma(ei.e()/GeV, Phad_lab.vect().mag()/GeV, htheta, rad_len*4.0/3.0 + intrad, 0)*nanobarn/GeV;
   double sigpim = wiser_sigma(ei.e()/GeV, Phad_lab.vect().mag()/GeV, htheta, rad_len*4.0/3.0 + intrad, 1)*nanobarn/GeV;
@@ -2225,6 +2317,12 @@ ev_t G4SBSEventGen::GetEventData(){
   data.earmaccept = 0;
   data.harmaccept = 0;
 
+  data.s = fs/(GeV*GeV);
+  data.t = ft/(GeV*GeV);
+  data.u = fu/(GeV*GeV);
+  data.costhetaCM = fcosthetaCM;
+  data.Egamma_lab = fEgamma_lab/GeV;
+
   return data;
 }
 
@@ -2355,3 +2453,289 @@ void G4SBSEventGen::InitializePythia6_Tree(){
     exit(-1);
   }
 }
+
+void G4SBSEventGen::SetNfoils( int nfoil ){
+  fNfoils = nfoil;
+  //fZfoil.clear();
+  //fThickFoil.clear();
+  //fZfoil.resize(nfoil);
+  //ThickFoil.resize(nfoil);
+  fFoilZandThick.clear();
+}
+
+void G4SBSEventGen::SetFoilZandThick( const std::vector<double> foilz, const std::vector<double> foilthick ){
+  if( foilz.size() != fNfoils || foilthick.size() != fNfoils ){
+    G4cout << "Foil Z and thickness values given don't match number of foils, exiting..." << G4endl;
+    exit(-1);
+  }
+  fFoilZandThick.clear();
+
+  fTotalThickFoil = 0.0;
+  
+  for( int ifoil=0; ifoil<fNfoils; ifoil++ ){
+    fFoilZandThick.push_back( std::make_pair(foilz[ifoil], foilthick[ifoil] ) );
+    fTotalThickFoil += foilthick[ifoil];
+  }
+
+  //Now sort by Z foil in ascending order:
+
+  std::sort( fFoilZandThick.begin(), fFoilZandThick.end() );
+
+  //Now loop over foils and compute total thickness and fraction:
+  fFoilZfraction.clear();
+  // fFoilZfraction.resize(fNfoils);
+
+  G4double thicksum = 0.0;
+  
+  for( int ifoil=0; ifoil<fNfoils; ifoil++ ){
+    fFoilZfraction.push_back( thicksum );
+    thicksum += fFoilZandThick[ifoil].second / fTotalThickFoil; 
+  }
+  fFoilZfraction.push_back( 1.0 );
+}
+
+bool G4SBSEventGen::GeneratePionPhotoproduction( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+  //The main things to be generated here are: incident photon energy, -t, pion azimuthal angle; the rest we will get from exclusivity:
+  //Actually, we can reuse fEeMin, fEeMax for this purpose, since they won't otherwise be used:
+  
+  G4double Mpi, M_ni, M_nf;
+
+  if( nucl == kNeutron ){ //gamma n --> pi- p or gamma n --> pi0 n
+    if( fHadronType == kPi0 ){ //gamma n --> pi0 n
+      Mpi = G4PionZero::PionZeroDefinition()->GetPDGMass();
+      M_ni = neutron_mass_c2;
+      M_nf = M_ni;
+      fFinalNucl = kNeutron;
+    } else { //gamma n --> pi- p
+      Mpi = G4PionMinus::PionMinusDefinition()->GetPDGMass();
+      M_ni = neutron_mass_c2;
+      M_nf = proton_mass_c2;
+      fFinalNucl = kProton;
+    }
+  } else { //gamma p --> pi+ n
+    if( fHadronType == kPi0 ){ //gamma p --> pi0 p
+      Mpi = G4PionZero::PionZeroDefinition()->GetPDGMass();
+      M_ni = proton_mass_c2;
+      M_nf = M_ni;
+      fFinalNucl = kProton;
+    } else { //gamma p --> pi+ n
+      Mpi = G4PionPlus::PionPlusDefinition()->GetPDGMass();
+      M_ni = proton_mass_c2;
+      M_nf = neutron_mass_c2;
+      fFinalNucl = kNeutron;
+    }
+  }
+
+  //Here we aren't checking whether the limits defined are sensible:
+
+  G4double Egamma_lab = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
+
+  fEgamma_lab = Egamma_lab;
+  
+  G4LorentzVector Pgamma_lab( 0, 0, Egamma_lab, Egamma_lab );
+  
+  //Worry about cross section/rate calculation later; get kinematics first:
+  G4double tgen_gev2 = CLHEP::RandFlat::shoot( fPionPhoto_tmin, fPionPhoto_tmax ); //-t in GeV^2
+
+  G4double tgen = tgen_gev2*GeV*GeV; //convert to internal G4 units
+  
+  G4double phipi_lab = CLHEP::RandFlat::shoot( fPhMin, fPhMax ); 
+  
+  G4LorentzVector Pisum_lab = Pgamma_lab + ni;
+
+  G4double s_mandelstam = Pisum_lab.m2(); //useful for xsec calculation
+
+  fs = s_mandelstam;
+  
+  G4double t_mandelstam = -tgen;
+
+  ft = t_mandelstam;
+  
+  G4double u_mandelstam = pow(Mpi,2) + pow(M_ni,2) + pow(M_nf,2) - t_mandelstam - s_mandelstam;
+
+  fu = u_mandelstam;
+  
+  //compute cosine of CM angle from particle masses and Mandelstam variables:
+
+  G4double costhetaCM = (s_mandelstam * ( t_mandelstam - u_mandelstam ) - pow(M_ni,2)*(pow(Mpi,2)-pow(M_nf,2)) ) /
+    (sqrt( TriangleFunc( s_mandelstam, 0.0, pow(M_ni,2) ) ) * sqrt( TriangleFunc( s_mandelstam, pow(Mpi,2), pow(M_nf,2)) ) );
+
+  fcosthetaCM = costhetaCM;
+  
+  if( fabs( costhetaCM ) > 1.0 ) return false; //kinematically forbidden
+  
+  G4ThreeVector boost_Nrest = ni.boostVector();
+
+  G4LorentzVector Pgamma_Nrest = Pgamma_lab;
+  G4LorentzVector ni_Nrest = ni;
+
+  //Boost to nucleon rest frame: 
+  Pgamma_Nrest.boost( -boost_Nrest );
+  ni_Nrest.boost( -boost_Nrest );
+
+  G4double Egamma_Nrest = Pgamma_Nrest.e();
+
+  //In the nucleon rest frame, the outgoing nucleon energy has a simple relation to t:
+
+  // t = Mni^2 + Mnf^2 -2 Mni E'_N
+  // E'_N = (Mni^2 + Mnf^2 - t)/(2Mni)
+  G4double EprimeNucleon_Nrest = ( pow( M_ni,2) + pow( M_nf, 2 ) + tgen )/(2.0*M_ni); //~= M_N + t/2MN, what we are calling t here is actually -t
+
+  G4double EprimePion_Nrest = Egamma_Nrest + M_ni - EprimeNucleon_Nrest;
+  G4double PprimePion_Nrest = sqrt(pow(EprimePion_Nrest,2)-pow(Mpi,2));
+
+  //Now to get the scattering angle in the nucleon rest frame, we use
+  // t = (Pgamma-Ppi)^2 = Mpi^2 - 2Pgamma dot Ppi = Mpi^2 - 2Egamma * (Epi - ppi cos theta) \\
+  // --> Mpi^2 - t = 2Egamma (Epi - ppi cos theta) \\
+  // --> (Mpi^2-t)/2Egamma = Epi - ppi cos theta
+  // cos theta = Epi / ppi  + (t-Mpi^2)/2Egamma ppi
+  G4double costheta_Nrest = EprimePion_Nrest/PprimePion_Nrest - (pow(Mpi,2)+tgen)/(2.0*Egamma_Nrest*PprimePion_Nrest); //I HOPE this lies between -1 and 1
+
+  G4double thetapi_Nrest = acos(costheta_Nrest);
+
+  G4ThreeVector Ppionvect( sin(thetapi_Nrest)*cos(phipi_lab), sin(thetapi_Nrest)*sin(phipi_lab), cos(thetapi_Nrest) );
+
+  Ppionvect *= PprimePion_Nrest;
+  
+  G4LorentzVector Ppion_Nrest( Ppionvect, EprimePion_Nrest );
+
+  G4LorentzVector Pnucleon_Nrest = ni_Nrest + Pgamma_Nrest - Ppion_Nrest;
+
+  //Boost final state particles back to the lab frame:
+
+  G4LorentzVector Ppion_lab = Ppion_Nrest;
+  Ppion_lab.boost( boost_Nrest );
+
+  G4LorentzVector Pnucleon_lab = Pnucleon_Nrest;
+
+  Pnucleon_lab.boost(boost_Nrest );
+
+  
+  fElectronP = Ppion_lab.vect();
+  fElectronE = Ppion_lab.e();
+
+  fNucleonP = Pnucleon_lab.vect();
+  fNucleonE = Pnucleon_lab.e();
+  
+  //Now try to compute total radiator thickness upstream of the vertex, in radiation lengths:
+
+  G4double tgt_upstream_thick_cm = (fVert.z() + fTargLen/2.0);
+
+  G4double radlength_effective = fTargUpstreamWindowRadLen + tgt_upstream_thick_cm/fTargLen*fTargRadLen;
+  
+  if( fUseRadiator ){ //
+    radlength_effective += fRadiatorThick_X0;
+  }
+  
+  //To get the total photoproduction cross section, we need to compute the total flux per electron:
+
+  //Use the approximate formula from Tsai
+
+  G4double y = Egamma_lab/fBeamE;
+  G4double k = Egamma_lab;
+
+  G4double kmax = fEeMax;
+  G4double kmin = fEeMin;
+
+  //Also add "internal" Bremsstrahlung flux via equivalent photon approximation:
+  // dNgamma/dx = alpha/(2pix) * (1+(1-x)^2)*log(s/m_e^2)
+  
+  G4LorentzVector Ptot_lab = ei + ni;
+
+  G4double s_eN = Ptot_lab.m2();
+
+  G4double m_e = CLHEP::electron_mass_c2;
+
+  G4double logterm = log( s_eN/pow(m_e,2) );
+
+  G4double dNgamma_dy_internal = CLHEP::fine_structure_const / CLHEP::twopi * (1.0 + pow(1.0-y,2))/y * logterm * (kmax-kmin)/fBeamE;
+									       
+  //Total number of photons emitted per electron per unit rad. length:
+  G4double Ngamma_tot_per_X0 = ( 4./3.*log(kmax/kmin) - 4.*(kmax-kmin)/(3.*fBeamE) + (pow(kmax,2)-pow(kmin,2))/(2.*pow(fBeamE,2)) );
+  
+  //probability density per unit photon energy per unit rad. length for an electron to emit a photon of energy k
+  G4double dNgamma_dk = 1.0/k*(4./3.*(1.0-y) + pow(y,2)); 
+
+  G4double Ngamma = (kmax-kmin)*dNgamma_dk*radlength_effective +
+    dNgamma_dy_internal; //average number of photons of energy k emitted by an electron in this thickness   						     
+									       
+  // G4cout << "Radiation length effective = " << radlength_effective << G4endl;
+  
+  // G4cout << "Average photon flux per electron for Egamma = " << k/GeV << " GeV = " << Ngamma << G4endl;
+  // G4cout << "Internal term = " << dNgamma_dy_internal << G4endl;
+  
+  //  G4cout << "(s, t, u)=(" << s_mandelstam/(GeV*GeV) << ", " << t_mandelstam/(GeV*GeV) << ", " << u_mandelstam/(GeV*GeV) << ")" << G4endl;
+  
+  G4double dsig_dt_nbGeV2 = pow(s_mandelstam/(GeV*GeV),-7)*0.828e7*pow(1.-costhetaCM,-5)*pow(1.+costhetaCM,-4); //for pi+p
+  
+  G4double dsig_nb = dsig_dt_nbGeV2* ( fPionPhoto_tmax - fPionPhoto_tmin ); //this is the cross section in nb. Convert to internal G4 units by MULTIPLYING:
+
+
+  //correct cross section for the ratio of flux factors with the non-Collinear boost:
+  double costheta_eN_lab = (ei.vect().unit() ).dot( ni.vect().unit() );
+  double betaN_lab = ni.beta();
+  double gammaN_lab = ni.gamma();
+  
+  double flux_Nrest = 4.0*ni.m()*Egamma_Nrest;
+  double flux_lab = 4.0*Egamma_lab*ni.e()*sqrt( 2.0*(1.0-betaN_lab*costheta_eN_lab) - pow(gammaN_lab,-2) );
+
+  fSigma = dsig_nb*nanobarn*Ngamma * (fPhMax-fPhMin)/CLHEP::twopi;
+  
+  if( nucl == kNeutron ){ //pi- p
+    fSigma *= 1.7;
+  }
+
+  //  G4cout << "Flux factor ratio Nrest/Lab = " << flux_Nrest/flux_lab << G4endl;
+  
+  fSigma *= flux_Nrest/flux_lab;
+  
+  //G4cout << "fSigma = " << fSigma/nanobarn << " nb" << G4endl;
+  
+  return true;
+  
+}
+
+G4double G4SBSEventGen::TriangleFunc( G4double a, G4double b, G4double c ){ //utility function to aid in computation of CM angle from mandelstam variables
+  return pow(a,2) + pow(b,2) + pow(c,2) - 2.*a*b - 2.*a*c - 2.*b*c;
+}
+
+// void dsigmadk_Brems( G4double y, G4double Z ){
+//   //This formula comes from the PDG review on passage of particles through matter, 2020 edition, equation (34.28)
+//   G4double k = y*fBeamE;
+
+//   G4double alpha = CLHEP::fine_structure_const;
+
+//   G4double re = CLHEP::classic_electr_radius;
+
+//   G4double a = alpha*Z;
+
+//   G4double f_Z = pow(a,2)*( pow(1.+pow(a,2),-1) + 0.20206 - 0.0369*pow(a,2) + 0.0083*pow(a,4) - 0.002*pow(a,6) );
+
+//   G4double Lrad, Lprad; //Tsai's Lrad, L'rad
+  
+//   switch(Z){
+//   case 1:
+//     Lrad = 5.31;
+//     Lprad = 6.144;
+//     break;
+//   case 2:
+//     Lrad = 4.79;
+//     Lprad = 5.621;
+//     break;
+//   case 3:
+//     Lrad = 4.74;
+//     Lprad = 5.805;
+//     break;
+//   case 4:
+//     Lrad = 4.71;
+//     Lprad = 5.924;
+//     break;
+//   default:
+//     Lrad = log(184.15*pow(Z,-1./3.));
+//     Lprad = log(1194.*pow(Z,-2./3.));
+//     break;
+//   }
+
+//   return (1.0/k)*4.0*alpha*pow(re,2) * ( (4./3.*(1.0-y) + pow(y,2))*(pow(Z,2)*(Lrad-f_Z)+Z*Lprad) + 1./9.*(1.0-y)*(pow(Z,2)+Z) );
+ 
+// }

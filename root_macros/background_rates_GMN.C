@@ -306,15 +306,30 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 	  if( edep >= thresh_BBhodo ) hitrate_BBHodo[PMT] += weight;
 	}
 
+	//BB PS:
+	
 	for( int jhit=0; jhit<T->Earm_BBPSTF1_hit_nhits; jhit++ ){
 	  int PMT = (*(T->Earm_BBPSTF1_hit_cell))[jhit];
 	  double edep = (*(T->Earm_BBPSTF1_hit_sumedep))[jhit];
 
-	  if( edep >= thresh_CDET ) hitrate_CDET[PMT] += weight;
+	  if( edep >= thresh_PS ) hitrate_PS[PMT] += weight;
 
-	  hrate_vs_edep_CDETscint->Fill( PMT, edep, weight );
+	  hrate_vs_edep_PSscint->Fill( PMT, edep, weight );
 
-	  sumedep_CDET[PMT] += edep * weight;
+	  sumedep_PS[PMT] += edep * weight;
+	}
+
+	//BB SH:
+	
+	for( int jhit=0; jhit<T->Earm_BBSHTF1_hit_nhits; jhit++ ){
+	  int PMT = (*(T->Earm_BBSHTF1_hit_cell))[jhit];
+	  double edep = (*(T->Earm_BBSHTF1_hit_sumedep))[jhit];
+
+	  if( edep >= thresh_SH ) hitrate_SH[PMT] += weight;
+
+	  hrate_vs_edep_SHscint->Fill( PMT, edep, weight );
+
+	  sumedep_SH[PMT] += edep * weight;
 	}
 	
 	

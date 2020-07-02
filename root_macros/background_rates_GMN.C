@@ -16,9 +16,14 @@
 #include "TGraph.h"
 //#include "gmn_tree.h"
 #include "gmn_tree.C"
+#include "TRandom3.h"
+
+const double me = 0.511e-3;
 
 void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 
+  TRandom3 num(0);
+  
   ifstream setupfile(setupfilename);
 
   TString filename;
@@ -31,6 +36,12 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 
   int pheflag = 0;
   setupfile >> pheflag;
+
+  double mean_npeGeV=300.0;
+  double rindex_PbGl=1.68;
+
+  setupfile >> mean_npeGeV;
+  setupfile >> rindex_PbGl;
   
   G4SBSRunData *rd;
   
@@ -84,6 +95,9 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
   TH2D *hnphe_vs_edep_BBSH = new TH2D("hnphe_vs_edep_BBSH","",500,0.0,0.5,501,-0.5,500.5);
   TH2D *hrate_vs_nphe_BBSH = new TH2D("hrate_vs_nphe_BBSH","",189,-0.5,188.5,501,-0.5,500.5);
   TH2D *hrate_vs_edep_BBSHTF1 = new TH2D("hrate_vs_edep_BBSHTF1","",189,-0.5,188.5,500,0.0,0.5); //GeV
+
+  TH2D *hrate_vs_nphe_BBPS_from_edep = new TH2D("hrate_vs_nphe_BBPS_from_edep","",54,-0.5,53.5,501,-0.5,500.5);
+  TH2D *hrate_vs_nphe_BBSH_from_edep = new TH2D("hrate_vs_nphe_BBPS_from_edep","",189,-0.5,188.5,501,-0.5,500.5);
   
   double pmtnum[288];
   double sumedep_HCAL[288];
@@ -312,6 +326,14 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 	  int PMT = (*(T->Earm_BBPSTF1_hit_cell))[jhit];
 	  double edep = (*(T->Earm_BBPSTF1_hit_sumedep))[jhit];
 
+	  double beta_edep = sqrt(pow(edep,2)+2.0*me*edep)/(me+edep);
+	  double sin2thetaC_edep = 1.0-pow(TMath::Max(beta_edep,1.0/rindex_PbGl)*rindex_PbGl,-2);
+	  double sin2thetaC_max = 1.0-pow(rindex_PbGl,-2);
+
+	  int npe_edep = num.Poisson(edep*mean_npeGeV*sin2thetaC_edep/sin2thetaC_max);
+
+	  hrate_vs_nphe_BBPS_from_edep->Fill( PMT, npe_edep, weight );
+	  
 	  if( edep >= thresh_BBPS ) hitrate_PS[PMT] += weight;
 
 	  hrate_vs_edep_BBPS->Fill( PMT, edep, weight );
@@ -325,6 +347,14 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 	  int PMT = (*(T->Earm_BBSHTF1_hit_cell))[jhit];
 	  double edep = (*(T->Earm_BBSHTF1_hit_sumedep))[jhit];
 
+	  double beta_edep = sqrt(pow(edep,2)+2.0*me*edep)/(me+edep);
+	  double sin2thetaC_edep = 1.0-pow(TMath::Max(beta_edep,1.0/rindex_PbGl)*rindex_PbGl,-2);
+	  double sin2thetaC_max = 1.0-pow(rindex_PbGl,-2);
+
+	  int npe_edep = num.Poisson(edep*mean_npeGeV*sin2thetaC_edep/sin2thetaC_max);
+
+	  hrate_vs_nphe_BBSH_from_edep->Fill( PMT, npe_edep, weight );
+	  
 	  if( edep >= thresh_BBSH ) hitrate_SH[PMT] += weight;
 
 	  hrate_vs_edep_BBSH->Fill( PMT, edep, weight );

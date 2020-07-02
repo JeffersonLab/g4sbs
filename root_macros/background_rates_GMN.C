@@ -30,8 +30,10 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 
   TChain *C = new TChain("T");
   
-  while( setupfile >> filename ){
-    C->Add(filename);
+  while( setupfile >> filename && !filename.BeginsWith("endlist")){
+    if( !filename.BeginsWith("#") ){
+      C->Add(filename);
+    }
   }
 
   int pheflag = 0;

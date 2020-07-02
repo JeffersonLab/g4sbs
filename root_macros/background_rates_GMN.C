@@ -99,7 +99,7 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
   TH2D *hrate_vs_edep_BBSHTF1 = new TH2D("hrate_vs_edep_BBSHTF1","",189,-0.5,188.5,500,0.0,0.5); //GeV
 
   TH2D *hrate_vs_nphe_BBPS_from_edep = new TH2D("hrate_vs_nphe_BBPS_from_edep","",54,-0.5,53.5,501,-0.5,500.5);
-  TH2D *hrate_vs_nphe_BBSH_from_edep = new TH2D("hrate_vs_nphe_BBPS_from_edep","",189,-0.5,188.5,501,-0.5,500.5);
+  TH2D *hrate_vs_nphe_BBSH_from_edep = new TH2D("hrate_vs_nphe_BBSH_from_edep","",189,-0.5,188.5,501,-0.5,500.5);
   
   double pmtnum[288];
   double sumedep_HCAL[288];

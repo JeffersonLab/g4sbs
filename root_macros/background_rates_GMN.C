@@ -336,7 +336,7 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 	  
 	  if( edep >= thresh_BBPS ) hitrate_PS[PMT] += weight;
 
-	  hrate_vs_edep_BBPS->Fill( PMT, edep, weight );
+	  hrate_vs_edep_BBPSTF1->Fill( PMT, edep, weight );
 
 	  sumedep_PS[PMT] += edep * weight;
 	}
@@ -357,7 +357,7 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 	  
 	  if( edep >= thresh_BBSH ) hitrate_SH[PMT] += weight;
 
-	  hrate_vs_edep_BBSH->Fill( PMT, edep, weight );
+	  hrate_vs_edep_BBSHTF1->Fill( PMT, edep, weight );
 
 	  sumedep_SH[PMT] += edep * weight;
 	}

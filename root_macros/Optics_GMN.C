@@ -146,6 +146,10 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 
   int xtar_flag=1; //include and fit xtar-dependent terms in the expansion or not?
   inputfile >> xtar_flag;
+
+  int pexpansion_flag=0; //default = p*thetabend expansion, alternative = 1/p expansion
+
+  inputfile >> pexpansion_flag;
   
   fout->cd();
   
@@ -462,7 +466,13 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 		  //b_ytar(ipar) += term[ipar]*T->ev_vz;
 		  //} 
 		  //b_pinv(ipar) += term[ipar]*(p/pcentral[arm]-1.0);
-		  b_pinv(ipar) += term[ipar]*p*thetabend;
+
+		  if( pexpansion_flag == 0 ){
+		    b_pinv(ipar) += term[ipar]*p*thetabend;
+		  } else {
+		    b_pinv(ipar) += term[ipar]/p;
+		  }
+		  
 		  ipar++;
 		}
 	      }
@@ -553,7 +563,7 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 	}
       }
     }
-  }	   
+  }
 
   double vx, vy, vz, px, py, pz;
   double p, xptar, yptar, ytar, xtar;
@@ -843,9 +853,14 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 	thetabend_recon = acos( phat_fp_recon_global.Dot( phat_tgt_recon_global ) );
 
 	//cout << "Thetabend recon = " << 57.3 * thetabend_recon << endl;
-	
-	p_fit = pthetabend_fit/thetabend_fit;
-	p_recon = pthetabend_recon/thetabend_recon;
+
+	if( pexpansion_flag == 0 ){
+	  p_fit = pthetabend_fit/thetabend_fit;
+	  p_recon = pthetabend_recon/thetabend_recon;
+	} else {
+	  p_fit = 1.0/pthetabend_fit;
+	  p_recon = 1.0/pthetabend_recon;
+	}
 	pinv_fit = 1.0/p_fit;
 	pinv_recon = 1.0/p_recon;
 

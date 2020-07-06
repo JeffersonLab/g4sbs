@@ -1607,11 +1607,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
   
   if( cmd == buildSBSsieveCmd ){
-    fdetcon->fHArmBuilder->SetSBSSieve(newValue);
+    G4bool b = buildSBSsieveCmd->GetNewBoolValue(newValue);
+    fdetcon->fHArmBuilder->SetSBSSieve(b);
   }
 
   if( cmd == buildBBsieveCmd ){
-    fdetcon->fEArmBuilder->SetBBSieve(newValue);
+    G4bool b = buildBBsieveCmd->GetNewBoolValue(newValue);
+    fdetcon->fEArmBuilder->SetBBSieve(b);
   }
 
   if( cmd == TreeFlagCmd ){

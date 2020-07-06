@@ -989,8 +989,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
 
   // Preshower PMT SD of type ECAL
-  G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpspmtcathodelog" );
+  //G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpspmtcathodelog" );
 
+  G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_BB"), "bbpspmtcathodelog" );
+  
   G4String BBPSSDname = "Earm/BBPS";
   G4String BBPScollname = "BBPSHitsCollection";
   G4SBSECalSD *BBPSSD = NULL;

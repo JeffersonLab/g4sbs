@@ -105,6 +105,9 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   if( !fUseGeantino && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kPionPhoto ){ //first primary is an electron!
     particle = particleTable->FindParticle(particleName="e-");
+    if( fIO->GetDetCon()->fExpType == kGEPpositron ){ //generate e+ instead of e-
+      particle = particleTable->FindParticle(particleName="e+");
+    }
   } else if( fUseGeantino ){ //first primary is a geantino!
     particle = particleTable->FindParticle(particleName="chargedgeantino");
   } else if( sbsgen->GetKine() == kPionPhoto ){ //pion photoproduction:

@@ -38,22 +38,13 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   //if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
   switch(fDetCon->fExpType){
   case(kGEp):
+  case(kGEPpositron):
     printf("GEp experiment: forcing beamline configuration 1 \n");
     fDetCon->fBeamlineConf = 1;
     MakeGEpBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeGEpLead(worldlog);
     }
-    break;
-  case(kGEPpositron):
-    printf("GEp experiment: forcing beamline configuration 1 \n");
-    fDetCon->fBeamlineConf = 34; //"Toy" beamline
-    // MakeGEpBeamline(worldlog);
-
-    MakeToyBeamline( worldlog );
-    //if(fDetCon->fLeadOption == 1){
-    //  MakeGEpLead(worldlog);
-    //}
     break;
   case(kGMN):// GMn
     MakeGMnBeamline(worldlog);

@@ -20,6 +20,7 @@ private:
   void MakeGEnLead(G4LogicalVolume *);
   void MakeGEnClamp(G4LogicalVolume *);
   void MakeSIDISLead( G4LogicalVolume * );
+  void MakeGEnRPLead(G4LogicalVolume *);
 
   //void MakeEntranceBeamline(G4LogicalVolume *);
   void MakeCommonExitBeamline(G4LogicalVolume *);

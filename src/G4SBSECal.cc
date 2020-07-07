@@ -904,7 +904,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   mapfile.close();
   
   // Build CDet:
-  if(fDetCon->fExpType==kGEp){
+  if(fDetCon->fExpType==kGEp || fDetCon->fExpType == kGEPpositron ){
     //Next: CH2 filter:
     G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );
     G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );

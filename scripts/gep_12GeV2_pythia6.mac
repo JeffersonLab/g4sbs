@@ -1,64 +1,43 @@
-/g4sbs/filename gep_12GeV2_pythia6_no_opticalphotons_job14.root
+## Configure G4SBS for gep (Q^2 = 12 GeV^2)
+#/g4sbs/filename        gep_12GeV2_pythia6.root   ## Output rootfile
 
-#/g4sbs/ECALmap ecal_map.txt
+## Configure Experiment
+/g4sbs/exp             gep
 
-/g4sbs/beamcur  75.0 muA
-/g4sbs/target   LH2
-/g4sbs/kine     pythia6
-/g4sbs/pythia6file pythia_events_14.root
-/g4sbs/exp	gep
-/g4sbs/targlen  40.0 cm
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         30.0 cm           ## Target Length
 
-/g4sbs/gemres 0.070 mm
+## Configure generator settings
+#/g4sbs/kine            elastic           ## Generator
+/g4sbs/kine 		pythia6
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         75.0 muA
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           11.0 GeV
+/g4sbs/thmin           0.0 deg
+/g4sbs/thmax           180.0 deg
+/g4sbs/phmin           -360.0 deg
+/g4sbs/phmax           360.0 deg
+/g4sbs/eemin	       0.0 GeV
+/g4sbs/eemax	       11.0 GeV
 
-/g4sbs/rasterx  4.0 mm
-/g4sbs/rastery  4.0 mm
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        6.8 m
+/g4sbs/hcalvoffset     45.0 cm
+/g4sbs/sbsclampopt     2
+/g4sbs/uselead 	       1
+/g4sbs/beamlineconfig  1
 
-#/g4sbs/48d48field 1
-/g4sbs/tosfield GEP_12map0.table
-/g4sbs/sbsclampopt 2
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/tosfield        GEP_12map0_newheader.table
+/g4sbs/bbang           29.0 deg
+/g4sbs/bbdist          4.5 m
+/g4sbs/sbsang          16.9 deg
+/g4sbs/48D48dist       1.6 m
 
-/g4sbs/runtime     1.0 s
-/g4sbs/beamE      11.0 GeV
-/g4sbs/bbang      29.0 deg
-/g4sbs/bbdist      4.9 m
-/g4sbs/sbsang    16.9 deg
-/g4sbs/hcaldist   7.40 m
-/g4sbs/48D48dist   1.6 m
-#/g4sbs/thmin       19.0 deg
-#/g4sbs/thmax      40.0 deg
-#/g4sbs/phmin      120.0 deg
-#/g4sbs/phmax     240.0 deg
-/g4sbs/thmin 29 deg
-/g4sbs/thmax 29 deg
-/g4sbs/phmin 0 deg
-/g4sbs/phmax 0 deg
-/g4sbs/kine pythia6
-#/g4sbs/pythia6file root_macros/temp.root
-/g4sbs/uselead 1
-/g4sbs/thmin 0 deg
-/g4sbs/thmax 180 deg
-/g4sbs/phmin -180.0 deg
-/g4sbs/phmax 180.0 deg
-/g4sbs/eemin 0. GeV
-/g4sbs/eemax 12. GeV
-
-#/g4sbs/keephistory Harm/HCAL 1
-#/g4sbs/keephistory Harm/FT 1
-#/g4sbs/keephistory Harm/FPP1 1
-#/g4sbs/keephistory Harm/FPP2 1
-#/g4sbs/keephistory Earm/ECalTF1 1
-#/g4sbs/keepcalparticles Harm/HCAL 1
-#/g4sbs/keepcalparticles Earm/ECalTF1 1
-#/g4sbs/steplimit Harm/HCAL 1
-#/g4sbs/steplimit lHCalo 1
-#/g4sbs/steplimit earm_mother_log 1
-
-#/g4sbs/run 0
-
-#/g4sbs/run 40000
-
-/g4sbs/totalabs false
-/g4sbs/treeflag 1
-#/g4sbs/run 2000
-/g4sbs/run 125000
+## Run 100 events
+#/g4sbs/run             100

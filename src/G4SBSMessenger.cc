@@ -97,7 +97,7 @@ G4SBSMessenger::G4SBSMessenger(){
   tgtCmd->SetParameterName("targtype", false);
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
-  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6");
+  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
   kineCmd->SetParameterName("kinetype", false);
 
   PYTHIAfileCmd = new G4UIcmdWithAString("/g4sbs/pythia6file",this);
@@ -365,6 +365,26 @@ G4SBSMessenger::G4SBSMessenger(){
   EemaxCmd->SetGuidance("Maximum electron generation energy (SIDIS generator)");
   EemaxCmd->SetParameterName("eemax",false);
 
+  PionPhoto_tminCmd = new G4UIcmdWithADouble("/g4sbs/tmin",this);
+  PionPhoto_tminCmd->SetGuidance("Minimum -t value for pion photoproduction event generation");
+  PionPhoto_tminCmd->SetGuidance("Assumed to be positive and given in units of GeV^2");
+  PionPhoto_tminCmd->SetParameterName("tmin",false);
+
+  PionPhoto_tmaxCmd = new G4UIcmdWithADouble("/g4sbs/tmax",this);
+  PionPhoto_tmaxCmd->SetGuidance("Minimum -t value for pion photoproduction event generation");
+  PionPhoto_tmaxCmd->SetGuidance("Assumed to be given in units of GeV^2");
+  PionPhoto_tmaxCmd->SetParameterName("tmax",false);
+
+  PionPhoto_useradCmd = new G4UIcmdWithABool("/g4sbs/userad", this );
+  PionPhoto_useradCmd->SetGuidance("Use radiator for pion photoproduction event generation (Default = true)");
+  PionPhoto_useradCmd->SetParameterName("userad",true);
+  PionPhoto_useradCmd->SetDefaultValue(true);
+
+  PionPhoto_radthickCmd = new G4UIcmdWithADouble("/g4sbs/radthick", this );
+  PionPhoto_radthickCmd->SetGuidance("Radiator thickness, in units of X_0 (default = 0.06)");
+  PionPhoto_radthickCmd->SetParameterName("radthickX0",true);
+  PionPhoto_radthickCmd->SetDefaultValue(0.06);
+  
   RICHdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/richdist",this);
   RICHdistCmd->SetGuidance("SBS RICH distance from target");
   RICHdistCmd->SetParameterName("dist",false);
@@ -627,6 +647,37 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       }
       fevgen->InitializePythia6_Tree();
     }
+
+    //    G4double TargMassDensity;
+    G4double TargNumberDensity; 
+    
+    switch(fdetcon->fTargType){ //Initialize fTargDen correctly and consistently with Material definition in fdetcon->ConstructMaterials:
+    case kH2:
+      TargNumberDensity = fdetcon->GetMaterial("refH2")->GetTotNbOfAtomsPerVolume();
+      break;
+    case kD2:
+      TargNumberDensity = fdetcon->GetMaterial("refD2")->GetTotNbOfAtomsPerVolume();
+      break;
+    case kNeutTarg:
+      TargNumberDensity = fdetcon->GetMaterial("refN2")->GetTotNbOfAtomsPerVolume();
+      break;
+    case kLH2:
+      TargNumberDensity = fdetcon->GetMaterial("LH2")->GetTotNbOfAtomsPerVolume();
+      break;
+    case kLD2:
+      TargNumberDensity = fdetcon->GetMaterial("LD2")->GetTotNbOfAtomsPerVolume();
+      break;
+    case k3He:
+      TargNumberDensity = fdetcon->GetMaterial("pol3He")->GetTotNbOfAtomsPerVolume();
+      break;
+    case kCfoil:
+      TargNumberDensity = fdetcon->GetMaterial("Carbon")->GetTotNbOfAtomsPerVolume();
+      break;
+    default: //assume H2 gas:
+      TargNumberDensity = fdetcon->GetMaterial("refH2")->GetTotNbOfAtomsPerVolume();
+      break;
+    }
+    fevgen->SetTargDen(TargNumberDensity);
     
     fevgen->SetNevents(nevt);
     fevgen->Initialize();
@@ -810,6 +861,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetKine(kGMnElasticCheck);
       fevgen->SetRejectionSamplingFlag(false);
       //fevgen->SetMaxWeight( cm2 );
+      validcmd = true;
+    }
+
+    if( newValue.compareTo("wapp") == 0 ){ //wide angle pion photoproduction
+      fevgen->SetKine(kPionPhoto);
       validcmd = true;
     }
 
@@ -1428,6 +1484,26 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevgen->SetInitialized(false);
   }
 
+  if( cmd == PionPhoto_tminCmd ){
+    G4double v = PionPhoto_tminCmd->GetNewDoubleValue(newValue);
+    fevgen->SetPionPhoto_tmin( v );
+  }
+
+  if( cmd == PionPhoto_tmaxCmd ){
+    G4double v = PionPhoto_tmaxCmd->GetNewDoubleValue(newValue);
+    fevgen->SetPionPhoto_tmax( v );
+  }
+
+  if( cmd == PionPhoto_useradCmd ){
+    G4bool b = PionPhoto_useradCmd->GetNewBoolValue(newValue);
+    fevgen->SetUseRadiator( b );
+  }
+
+  if( cmd == PionPhoto_radthickCmd ){
+    G4double v = PionPhoto_radthickCmd->GetNewDoubleValue(newValue);
+    fevgen->SetRadthickX0( v );
+  }
+  
   if( cmd == gemresCmd ){
     G4double v = gemresCmd->GetNewDoubleValue(newValue);
     fevact->SetGEMRes(v);
@@ -1531,11 +1607,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
   
   if( cmd == buildSBSsieveCmd ){
-    fdetcon->fHArmBuilder->SetSBSSieve(newValue);
+    G4bool b = buildSBSsieveCmd->GetNewBoolValue(newValue);
+    fdetcon->fHArmBuilder->SetSBSSieve(b);
   }
 
   if( cmd == buildBBsieveCmd ){
-    fdetcon->fEArmBuilder->SetBBSieve(newValue);
+    G4bool b = buildBBsieveCmd->GetNewBoolValue(newValue);
+    fdetcon->fEArmBuilder->SetBBSieve(b);
   }
 
   if( cmd == TreeFlagCmd ){

@@ -150,6 +150,9 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
   int pexpansion_flag=0; //default = p*thetabend expansion, alternative = 1/p expansion
 
   inputfile >> pexpansion_flag;
+
+  double dsieve=1.18; //m
+  inputfile >> dsieve;
   
   fout->cd();
   
@@ -180,13 +183,14 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
   TH1D *hp     = new TH1D("hp", "", nbins, tgtmin[3], tgtmax[3] );
 
   //Histograms of "recon" versions of tgt track parameters:
-  //TH1D *hxtarrecon = new TH1D("hxtarrecon", "", nbins, tgtmin[4], tgtmax[4] );
+  TH1D *hxtarrecon = new TH1D("hxtarrecon", "", nbins, tgtmin[4], tgtmax[4] );
   TH1D *hytarrecon = new TH1D("hytarrecon", "", nbins, tgtmin[2], tgtmax[2] );
   TH1D *hxptarrecon = new TH1D("hxptarrecon", "", nbins, tgtmin[0], tgtmax[0] );
   TH1D *hyptarrecon = new TH1D("hyptarrecon", "", nbins, tgtmin[1], tgtmax[1] );
   TH1D *hprecon     = new TH1D("hprecon", "", nbins, tgtmin[3], tgtmax[3] );
-  
-  // TH1D *hxtardiff = new TH1D("hxtardiff", "", nbins, tgtmin[4], tgtmax[4] );
+  TH1D *hvzrecon    = new TH1D("hvzrecon","",nbins,-0.4,0.4);
+
+  TH1D *hxtardiff = new TH1D("hxtardiff", "", nbins, tgtmin[4], tgtmax[4] );
   TH1D *hytardiff = new TH1D("hytardiff", "", nbins, -0.025, 0.025 );
   TH1D *hxptardiff = new TH1D("hxptardiff", "", nbins, -0.02, 0.02 );
   TH1D *hyptardiff = new TH1D("hyptardiff", "", nbins, -0.02, 0.02 );
@@ -230,6 +234,8 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
   TH2D *hvzdiff_xptar = new TH2D("hvzdiff_xptar", "", nbins, tgtmin[0],tgtmax[0], nbins, -0.3,0.3);
   TH2D *hvzdiff_yptar = new TH2D("hvzdiff_yptar", "", nbins, tgtmin[1],tgtmax[1], nbins, -0.3,0.3);
   TH2D *hvzdiff_p = new TH2D("hvzdiff_p", "", nbins, tgtmin[3],tgtmax[3], nbins, -0.3,0.3);
+
+  TH2D *hxysieve = new TH2D("hxysieve","",250,-0.15,0.15,250,-0.35,0.35);
   
   int nparams = 0;
 
@@ -286,6 +292,8 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 	R0 = SBSdist_file[fname];
       }
 
+      //      cout << "fname, arm, theta0 = " << fname << ", " << arm << ", " << theta0 << endl;
+
       double vx, vy, vz, px, py, pz;
       double p, xptar, yptar, ytar, xtar;
       double xfp, yfp, xpfp, ypfp;
@@ -330,6 +338,8 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 
 	  xptar = pvect_BB.X()/pvect_BB.Z();
 	  yptar = pvect_BB.Y()/pvect_BB.Z();
+
+	  //cout << "true yptar = " << yptar << ", theta0 = " << theta0 << endl;
       
 	  TVector3 vertex_BB(vertex.Dot(BB_xaxis), vertex.Dot(BB_yaxis), vertex.Dot(BB_zaxis) );
 
@@ -578,6 +588,7 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
   double thetabend_true;
   double thetabend_fit;
   double thetabend_recon;
+  double xtar_recon, xtar_fit;
   
   TTree *tout = new TTree("tout","BigBite or SBS optics fit results, diagnostic ROOT tree");
 
@@ -597,11 +608,13 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
   tout->Branch("xptar_fit",&xptar_fit);
   tout->Branch("yptar_fit",&yptar_fit);
   tout->Branch("ytar_fit",&ytar_fit);
+  tout->Branch("xtar_fit",&xtar_fit);
   tout->Branch("thetabend_fit",&thetabend_fit);
   tout->Branch("p_recon",&p_recon);
   tout->Branch("xptar_recon",&xptar_recon);
   tout->Branch("yptar_recon",&yptar_recon);
   tout->Branch("ytar_recon",&ytar_recon);
+  tout->Branch("xtar_recon",&xtar_recon);
   tout->Branch("vz_fit",&vz_fit);
   tout->Branch("vz_recon",&vz_recon);
   tout->Branch("thetabend_recon",&thetabend_recon);
@@ -775,126 +788,149 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
     
       if( goodtrack ){ //do reconstruction:
 	int ipar = 0;
-	xptar_fit = 0.0;
-	yptar_fit = 0.0;
-	ytar_fit = 0.0;
-	pthetabend_fit = 0.0;
-	pinv_fit = 0.0;
-	
-	xptar_recon = 0.0;
-	yptar_recon = 0.0;
-	ytar_recon = 0.0;
-	pthetabend_recon = 0.0;
-	pinv_recon = 0.0;
-	
-      
-	ipar=0;
-	for(int i=0; i<=order; i++){
-	  for(int j=0; j<=order-i; j++){
-	    for(int k=0; k<=order-i-j; k++){
-	      for(int l=0; l<=order-i-j-k; l++){
-		for(int m=0; m<=order-i-j-k-l; m++){
-		  double term = pow(xfp,m)*pow(yfp,l)*pow(xpfp,k)*pow(ypfp,j)*pow(xtar,i);
-		  xptar_fit += b_xptar(ipar)*term;
-		  yptar_fit += b_yptar(ipar)*term;
-		  ytar_fit += b_ytar(ipar)*term;
-		  pthetabend_fit += b_pinv(ipar)*term;
-		  pinv_fit += b_pinv(ipar)*term;
 
-		  term = pow(xfp_fit,m)*pow(yfp_fit,l)*pow(xpfp_fit,k)*pow(ypfp_fit,j)*pow(xtar,i);
-		  xptar_recon += b_xptar(ipar)*term;
-		  yptar_recon += b_yptar(ipar)*term;
-		  ytar_recon += b_ytar(ipar)*term;
-		  pinv_recon += b_pinv(ipar)*term;
-		  pthetabend_recon += b_pinv(ipar)*term;
-		  ipar++;
+	int niter=1;
+	
+	xtar_recon = xtar;
+	xtar_fit = xtar;
+
+	if( xtar_flag != 0 ){ 
+	  niter = 10;
+
+	  xtar_recon = -vy;
+	  xtar_fit   = -vy;
+	} 
+
+	
+
+	for( int iter=0; iter<niter; iter++){
+	
+	  ipar=0;
+
+	  xptar_fit = 0.0;
+	  yptar_fit = 0.0;
+	  ytar_fit = 0.0;
+	  pthetabend_fit = 0.0;
+	  pinv_fit = 0.0;
+	  
+	  xptar_recon = 0.0;
+	  yptar_recon = 0.0;
+	  ytar_recon = 0.0;
+	  pthetabend_recon = 0.0;
+	  pinv_recon = 0.0;
+	  
+	  
+	  ipar=0;
+	  for(int i=0; i<=order; i++){
+	    for(int j=0; j<=order-i; j++){
+	      for(int k=0; k<=order-i-j; k++){
+		for(int l=0; l<=order-i-j-k; l++){
+		  for(int m=0; m<=order-i-j-k-l; m++){
+		    double term = pow(xfp,m)*pow(yfp,l)*pow(xpfp,k)*pow(ypfp,j)*pow(xtar_fit,i);
+		    xptar_fit += b_xptar(ipar)*term;
+		    yptar_fit += b_yptar(ipar)*term;
+		    ytar_fit += b_ytar(ipar)*term;
+		    pthetabend_fit += b_pinv(ipar)*term;
+		    pinv_fit += b_pinv(ipar)*term;
+		    
+		    term = pow(xfp_fit,m)*pow(yfp_fit,l)*pow(xpfp_fit,k)*pow(ypfp_fit,j)*pow(xtar_recon,i);
+		    xptar_recon += b_xptar(ipar)*term;
+		    yptar_recon += b_yptar(ipar)*term;
+		    ytar_recon += b_ytar(ipar)*term;
+		    pinv_recon += b_pinv(ipar)*term;
+		    pthetabend_recon += b_pinv(ipar)*term;
+		    ipar++;
+		  }
 		}
 	      }
 	    }
 	  }
-	}
             
-	//double thetabend_true = tracker_pitch_angle + atan(xptar) - atan(xpfp);
+	  //double thetabend_true = tracker_pitch_angle + atan(xptar) - atan(xpfp);
+	  
+	  //calculate "fit" and "recon" values of thetabend:
+	  TVector3 phat_tgt_fit(xptar_fit, yptar_fit, 1.0 );
+	  phat_tgt_fit = phat_tgt_fit.Unit();
+	  
+	  TVector3 phat_tgt_fit_global = phat_tgt_fit.X() * spec_xaxis_tgt +
+	    phat_tgt_fit.Y() * spec_yaxis_tgt +
+	    phat_tgt_fit.Z() * spec_zaxis_tgt;
+	  
+	  TVector3 phat_fp_fit(xpfp_fit, ypfp_fit, 1.0 );
+	  phat_fp_fit = phat_fp_fit.Unit();
+	  
+	  TVector3 phat_fp_fit_global = phat_fp_fit.X() * spec_xaxis_fp +
+	    phat_fp_fit.Y() * spec_yaxis_fp +
+	    phat_fp_fit.Z() * spec_zaxis_fp;
+	  
+	  thetabend_fit = acos( phat_fp_fit_global.Dot( phat_tgt_fit_global ) );
+	  
+	  //cout << "Thetabend fit = " << 57.3 * thetabend_fit << endl;
+	  
+	  //calculate "fit" and "recon" values of thetabend:
+	  TVector3 phat_tgt_recon(xptar_recon, yptar_recon, 1.0 );
+	  phat_tgt_recon = phat_tgt_recon.Unit();
+	  
+	  TVector3 phat_tgt_recon_global = phat_tgt_recon.X() * spec_xaxis_tgt +
+	    phat_tgt_recon.Y() * spec_yaxis_tgt +
+	    phat_tgt_recon.Z() * spec_zaxis_tgt;
+	  
+	  TVector3 phat_fp_recon(xpfp_fit, ypfp_fit, 1.0 );
+	  phat_fp_recon = phat_fp_recon.Unit();
+	  
+	  TVector3 phat_fp_recon_global = phat_fp_recon.X() * spec_xaxis_fp +
+	    phat_fp_recon.Y() * spec_yaxis_fp +
+	    phat_fp_recon.Z() * spec_zaxis_fp;
+	  
+	  thetabend_recon = acos( phat_fp_recon_global.Dot( phat_tgt_recon_global ) );
+	  
+	  //cout << "Thetabend recon = " << 57.3 * thetabend_recon << endl;
+	  
+	  if( pexpansion_flag == 0 ){
+	    p_fit = pthetabend_fit/thetabend_fit;
+	    p_recon = pthetabend_recon/thetabend_recon;
+	  } else {
+	    p_fit = 1.0/pthetabend_fit;
+	    p_recon = 1.0/pthetabend_recon;
+	  }
+	  pinv_fit = 1.0/p_fit;
+	  pinv_recon = 1.0/p_recon;
 
-	//calculate "fit" and "recon" values of thetabend:
-	TVector3 phat_tgt_fit(xptar_fit, yptar_fit, 1.0 );
-	phat_tgt_fit = phat_tgt_fit.Unit();
+	  //p_fit = 1.0/pinv_fit;
+	  //p_recon = 1.0/pinv_recon;
+	  
+	  // double pfirstorder_true, pfirstorder_recon;
+	  // if(arm==0){
+	  //   pfirstorder_true = (0.286378 + 0.141452*(xfp-0.8*xpfp))/thetabend_true;
+	  //   pfirstorder_recon  = (0.286378 + 0.141452*(xfp_fit-0.8*xpfp_fit))/thetabend_recon;
+	  // } else {
+	  //   pfirstorder_true = -0.5161/thetabend_true;
+	  //   pfirstorder_recon = -0.5161/thetabend_recon;
+	  // }
+	  //p_fit = pthetabend_fit/thetabend_fit;
+	  //p_recon = pthetabend_recon/thetabend_recon;
+	  
+	  //p_fit = pthetabend_fit + pfirstorder_true;
+	  //p_recon = pthetabend_recon + pfirstorder_recon;
+	  //p_fit = 1.0/pinv_fit;
+	  //p_recon = 1.0/pinv_recon;
+	  //p_fit = pcentral[arm]*(1.0 + pinv_fit);
+	  //p_recon = pcentral[arm]*(1.0 + pinv_recon);
 
-	TVector3 phat_tgt_fit_global = phat_tgt_fit.X() * spec_xaxis_tgt +
-	  phat_tgt_fit.Y() * spec_yaxis_tgt +
-	  phat_tgt_fit.Z() * spec_zaxis_tgt;
-
-	TVector3 phat_fp_fit(xpfp_fit, ypfp_fit, 1.0 );
-	phat_fp_fit = phat_fp_fit.Unit();
-	
-	TVector3 phat_fp_fit_global = phat_fp_fit.X() * spec_xaxis_fp +
-	  phat_fp_fit.Y() * spec_yaxis_fp +
-	  phat_fp_fit.Z() * spec_zaxis_fp;
-
-	thetabend_fit = acos( phat_fp_fit_global.Dot( phat_tgt_fit_global ) );
-
-	//cout << "Thetabend fit = " << 57.3 * thetabend_fit << endl;
-
-	//calculate "fit" and "recon" values of thetabend:
-	TVector3 phat_tgt_recon(xptar_recon, yptar_recon, 1.0 );
-	phat_tgt_recon = phat_tgt_recon.Unit();
-
-	TVector3 phat_tgt_recon_global = phat_tgt_recon.X() * spec_xaxis_tgt +
-	  phat_tgt_recon.Y() * spec_yaxis_tgt +
-	  phat_tgt_recon.Z() * spec_zaxis_tgt;
-
-	TVector3 phat_fp_recon(xpfp_fit, ypfp_fit, 1.0 );
-	phat_fp_recon = phat_fp_recon.Unit();
-	
-	TVector3 phat_fp_recon_global = phat_fp_recon.X() * spec_xaxis_fp +
-	  phat_fp_recon.Y() * spec_yaxis_fp +
-	  phat_fp_recon.Z() * spec_zaxis_fp;
-
-	thetabend_recon = acos( phat_fp_recon_global.Dot( phat_tgt_recon_global ) );
-
-	//cout << "Thetabend recon = " << 57.3 * thetabend_recon << endl;
-
-	if( pexpansion_flag == 0 ){
-	  p_fit = pthetabend_fit/thetabend_fit;
-	  p_recon = pthetabend_recon/thetabend_recon;
-	} else {
-	  p_fit = 1.0/pthetabend_fit;
-	  p_recon = 1.0/pthetabend_recon;
-	}
-	pinv_fit = 1.0/p_fit;
-	pinv_recon = 1.0/p_recon;
-
-	//p_fit = 1.0/pinv_fit;
-	//p_recon = 1.0/pinv_recon;
-	
-	// double pfirstorder_true, pfirstorder_recon;
-	// if(arm==0){
-	//   pfirstorder_true = (0.286378 + 0.141452*(xfp-0.8*xpfp))/thetabend_true;
-	//   pfirstorder_recon  = (0.286378 + 0.141452*(xfp_fit-0.8*xpfp_fit))/thetabend_recon;
-	// } else {
-	//   pfirstorder_true = -0.5161/thetabend_true;
-	//   pfirstorder_recon = -0.5161/thetabend_recon;
-	// }
-	//p_fit = pthetabend_fit/thetabend_fit;
-	//p_recon = pthetabend_recon/thetabend_recon;
-
-	//p_fit = pthetabend_fit + pfirstorder_true;
-	//p_recon = pthetabend_recon + pfirstorder_recon;
-	//p_fit = 1.0/pinv_fit;
-	//p_recon = 1.0/pinv_recon;
-	//p_fit = pcentral[arm]*(1.0 + pinv_fit);
-	//p_recon = pcentral[arm]*(1.0 + pinv_recon);
-
-	// double vz_fit = ytar_fit / ( sin( theta;
-	// double vz_recon = ytar_recon;
-	//double vz_fit, vz_recon;
-	
-	if( arm == 0 ){ //BB, beam right:
-	  vz_fit = -ytar_fit / (sin(theta0) + cos(theta0)*yptar_fit);
-	  vz_recon = -ytar_recon / (sin(theta0) + cos(theta0)*yptar_recon);
-	} else { //SBS, beam left:
-	  vz_fit = ytar_fit / (sin(theta0) - cos(theta0)*yptar_fit);
-	  vz_recon = ytar_recon / (sin(theta0) - cos(theta0)*yptar_recon);
+	  // double vz_fit = ytar_fit / ( sin( theta;
+	  // double vz_recon = ytar_recon;
+	  //double vz_fit, vz_recon;
+	  
+	  if( arm == 0 ){ //BB, beam right:
+	    vz_fit = -ytar_fit / (sin(theta0) + cos(theta0)*yptar_fit);
+	    vz_recon = -ytar_recon / (sin(theta0) + cos(theta0)*yptar_recon);
+	  } else { //SBS, beam left:
+	    vz_fit = ytar_fit / (sin(theta0) - cos(theta0)*yptar_fit);
+	    vz_recon = ytar_recon / (sin(theta0) - cos(theta0)*yptar_recon);
+	  }
+	  
+	  xtar_fit = -vy - vz_fit * cos(theta0) * xptar_fit;
+	  xtar_recon = -vy - vz_recon * cos(theta0) * xptar_recon;
 	}
 
 	hvzdiff->Fill( vz_fit - T->ev_vz );
@@ -952,6 +988,12 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 	hpdiff_yfp->Fill( yfp, p_fit/p - 1.0 );
 	hpdiff_xpfp->Fill( xpfp, p_fit/p - 1.0 );
 	hpdiff_ypfp->Fill( ypfp, p_fit/p - 1.0 );
+
+	hxtardiff->Fill( xtar_recon - xtar );
+	hxtarrecon->Fill( xtar_recon );
+	hvzrecon->Fill( vz_recon );
+
+	hxysieve->Fill( ytar_recon + dsieve * yptar_recon, xtar_recon + dsieve * xptar_recon );
 
 	tout->Fill();
       }

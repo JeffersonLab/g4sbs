@@ -1908,6 +1908,9 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entLog, "ent_phys", worldlog, false,0);// -- Extended beamline for background studies (2016/09/07)
   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entvacLog, "entvac_phys", worldlog,false,0);// -- Extended beamline for background studies (2016/09/07)
+
+  ////Changed 40.0 cm to 13.9 inch from information at Autodesk Viewer
+
   
   // Add in Be window if no scattering chamber is to be defined:
   if( fDetCon->fTargetBuilder->GetSchamFlag() != 1 ){
@@ -1981,9 +1984,10 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
 
 
-  ////BEGIN EXIT BEAMLINE UPDATE FOR SIDIS - S.SEEDS - MOST RECENT UPDATE: 6.22.20
+  ////BEGIN EXIT BEAMLINE UPDATE FOR SIDIS - S.SEEDS - MOST RECENT UPDATE: 7.11.20
   ////In progress - change visuals, and verify P1initPlacement_z
   ////Opted to leave out 80/20 rails and related fixtures as a first approximation
+  ////Corrected initial placement with help from D. Flay.
 
   //Section One
   //This section details all components of the exit beamline from the target chamber to the first cone and shielding including all simple cylinders. All labels numbered by proximity to target chamber.
@@ -1991,7 +1995,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   //General Specifications
   G4double P1tubeTh = 0.035*inch;
   G4double P1ringL = 0.125/2*inch;
-  G4double initPlacement_z = 9.*inch; //Just a guess at this point - must update with distance to target info
+  // G4double initPlacement_z = 15.14*inch-0.2*inch; //Offset from upstream beampipe with cad data and with autodesk viewer
+  G4double initPlacement_z = 26.74*inch; //Offset from upstream beampipe with cad data and with autodesk viewer
   G4VisAttributes *Aluminum = new G4VisAttributes(G4Colour(0.3,0.3,1.0));
   G4VisAttributes *Iron = new G4VisAttributes(G4Colour(0.3,0.3,0.3));
   G4VisAttributes *LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
@@ -2683,7 +2688,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   
   //Side shields
   //Specifications
-  G4double sideshieldTh = 0.25/2*inch;
+  G4double sideshieldTh = 0.25*inch;
   G4double sideshieldA = 1.06*deg;
   G4double P2sideshieldL = 37.119/2*inch;
   G4double P2sideshieldW1 = 4.762/2*inch;

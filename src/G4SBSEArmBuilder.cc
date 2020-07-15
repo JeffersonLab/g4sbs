@@ -82,7 +82,7 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;//this shall be about right
   
   //NB: fBBCalDist now designates the distance to the shielding
-  //fix: add an extra 1.136 in between the back of the GRINCH and the "GEM frame"
+  //fix: add an extra 1.136 inch between the back of the GRINCH and the "GEM frame"
   fBBCaldist = fCerDist + fCerDepth + 1.136*2.54*cm + backGEM_depth;
   fGEMDist   = fCerDist + fCerDepth + 1.136*2.54*cm + 0.5*backGEM_depth;
   fGEMOption = 2;
@@ -341,9 +341,12 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   new G4PVPlacement(yokerm,G4ThreeVector(0.0, 0.0, -motherdepth/2.0+clear),
 		    bbyokewgapLog, "bbyokewgapPhysical", bbmotherLog, false,0, chkoverlap);
+
+  //Sieve plate position is 13.37 inches ~= 34 cm upstream of front of magnet yoke:
+  //Thickness of sieve plate is 1.5 inches
   
   if( fBuildBBSieve ){
-    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+37.0*cm-0.75*2.54*cm);
+    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
     MakeBBSieveSlit( bbmotherLog, BBSievePos );
   }
   
@@ -993,8 +996,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
 
   // Preshower PMT SD of type ECAL
-  G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpspmtcathodelog" );
+  //G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpspmtcathodelog" );
 
+  G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_BB"), "bbpspmtcathodelog" );
+  
   G4String BBPSSDname = "Earm/BBPS";
   G4String BBPScollname = "BBPSHitsCollection";
   G4SBSECalSD *BBPSSD = NULL;
@@ -1171,8 +1176,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //Shielding for UVA GEM
   G4Box *Shield_backgem_box = new G4Box("Shield_backgem_box", 0.5*65*cm, 0.5*210*cm, 0.5*2.54*cm);
   G4LogicalVolume *Shield_backgem_log = new G4LogicalVolume(Shield_backgem_box, GetMaterial("CH2"), "Shield_backgem_log");//GetMaterial("CDET_Acrylic") ???
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fCerDist+fCerDepth+0.51*2.54*cm ), Shield_backgem_log, "", bbdetLog, false, 0, true);
-  
+  //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fCerDist+fCerDepth+0.51*2.54*cm ), Shield_backgem_log, "", bbdetLog, false, 0, true);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fGEMDist - 0.51*2.54*cm -1.6*cm ), Shield_backgem_log, "", bbdetLog, false, 0, true);
 }
 
 void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){

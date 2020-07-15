@@ -51,8 +51,9 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   //if( (fTargType == kLH2 || fTargType == kLD2 || fTargType == kCfoil ) ){
   switch(fDetCon->fExpType){
   case(kGEp):
+  case(kGEPpositron):
     BuildGEpScatCham( worldlog );
-    break;
+  break;
   case(kC16):
     BuildC16ScatCham( worldlog );
     break;
@@ -71,9 +72,6 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     break;
   case(kSIDISExp):
     BuildGasTarget( worldlog );
-    break;
-  case(kGEPpositron):
-    BuildToyScatCham( worldlog );
     break;
   default: //GMN, GEN-RP:
     BuildStandardScatCham( worldlog );
@@ -725,13 +723,13 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4Tubs* solidExitBeamPipeSurroundCut = new G4Tubs("solidExitBeamPipeSurroundCut", 
 						    55.0*mm, 2.803*inch, 1.684*inch, 0.0, 360.0*deg);
   
-   G4SubtractionSolid* solidSCFrontClam_0_ebps =
+  G4SubtractionSolid* solidSCFrontClam_0_ebps =
     new G4SubtractionSolid("solidSCClamshell_0_ebps", solidSCFrontClam_0_ebp, 
-		     solidExitBeamPipeSurroundCut, rot_temp, 
-		     G4ThreeVector((SCFrontClamOuterRadius+1.684*inch)*sin(90.0*deg-SCBeamExitAngleOffset),
-				   (SCFrontClamOuterRadius+1.684*inch)*cos(90.0*deg-SCBeamExitAngleOffset), 
-				   0.0)
-		     );
+			   solidExitBeamPipeSurroundCut, rot_temp, 
+			   G4ThreeVector((SCFrontClamOuterRadius+1.684*inch)*sin(90.0*deg-SCBeamExitAngleOffset),
+					 (SCFrontClamOuterRadius+1.684*inch)*cos(90.0*deg-SCBeamExitAngleOffset), 
+					 0.0)
+			   );
    
   G4Tubs* solidExitBeamPipeFlange = new G4Tubs("solidExitBeamPipeFlange", 
 					       0.0, 2.985*inch, 0.3925*inch, 0.0, 360.0*deg);
@@ -880,14 +878,14 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   
   G4UnionSolid* solidScatChamber_0_wbv = 
     new G4UnionSolid("solidScatChamber_0_wbv", solidScatChamber_0, solidSCWindowVacuum,
-			   rot_temp, G4ThreeVector(0,0,SCOffset));
+		     rot_temp, G4ThreeVector(0,0,SCOffset));
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateZ(-90.0*deg+SCWindowAngleApert*0.5+SCWindowAngleOffset);
   
   G4UnionSolid* solidScatChamber_0_wfv = 
     new G4UnionSolid("solidScatChamber_0_wfv", solidScatChamber_0_wbv, solidSCWindowVacuum,
-			   rot_temp, G4ThreeVector(0,0,SCOffset));
+		     rot_temp, G4ThreeVector(0,0,SCOffset));
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(90.0*deg);
@@ -1082,8 +1080,9 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4ThreeVector Snout_position_global( SnoutBeamPlate_xcoord, 0, SnoutBeamPlate_zcoord - TargetCenter_zoffset + Snout_Thick/2.0 );
 
-  new G4PVPlacement( 0, Snout_position_global, Snout_log, "Snout_phys", worldlog, false, 0 );
-
+  if( fDetCon->fExpType != kGEPpositron ){ //place snout:
+    new G4PVPlacement( 0, Snout_position_global, Snout_log, "Snout_phys", worldlog, false, 0 );
+  }
   //Fill the cutouts with vacuum, and then with steel corner pieces:
   G4LogicalVolume *SnoutHarmWindowCutout_log = new G4LogicalVolume( HarmWindowCutout_box, GetMaterial("Vacuum"), "SnoutHarmWindowCutout_log" );
   G4LogicalVolume *SnoutEarmWindowCutout_log = new G4LogicalVolume( EarmWindowCutout_box, GetMaterial("Vacuum"), "SnoutEarmWindowCutout_log" );
@@ -1093,53 +1092,55 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   G4double xtemp, ytemp;
   xtemp = SnoutHarmWindow_Width/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
   ytemp = SnoutHarmWindow_Height/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
+
+  if( fDetCon->fExpType != kGEPpositron ){
+    new G4PVPlacement( 0, G4ThreeVector( -xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_right", SnoutHarmWindowCutout_log, false, 0 );
+
+    rot_temp->rotateZ( 90.0*deg ); //clockwise as viewed from downstream, ccw as viewed from upstream!
   
-  new G4PVPlacement( 0, G4ThreeVector( -xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_right", SnoutHarmWindowCutout_log, false, 0 );
+    new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_right", SnoutHarmWindowCutout_log, false, 1 );
 
-  rot_temp->rotateZ( 90.0*deg ); //clockwise as viewed from downstream, ccw as viewed from upstream!
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateZ( -90.0*deg );
+
+    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_left", SnoutHarmWindowCutout_log, false, 2 );
+
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateZ( 180.0*deg );
+
+    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_left", SnoutHarmWindowCutout_log, false, 3 );
+
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_right", SnoutHarmWindowCutout_log, false, 1 );
+    //Finally, place the window cutout globally:
 
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateZ( -90.0*deg );
+    G4ThreeVector HarmCutout_pos_global = Snout_position_global + FrontRightCorner_pos_local - Snout_Thick/2.0 * Harm_zaxis - ( SnoutHarmPlate_Width/2.0 - SnoutHarmWindow_xcenter ) * Harm_xaxis;
 
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_left", SnoutHarmWindowCutout_log, false, 2 );
+    new G4PVPlacement( rot_harm_window, HarmCutout_pos_global, SnoutHarmWindowCutout_log, "SnoutHarmWindowCutout_phys", worldlog, false, 0 );
 
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateZ( 180.0*deg );
+    xtemp = SnoutEarmWindow_Width/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
+    ytemp = SnoutEarmWindow_Height/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
 
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_left", SnoutHarmWindowCutout_log, false, 3 );
+    new G4PVPlacement( 0, G4ThreeVector(-xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_right", SnoutEarmWindowCutout_log, false, 0 );
 
-  //Finally, place the window cutout globally:
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateZ(90.0*deg );
 
-  G4ThreeVector HarmCutout_pos_global = Snout_position_global + FrontRightCorner_pos_local - Snout_Thick/2.0 * Harm_zaxis - ( SnoutHarmPlate_Width/2.0 - SnoutHarmWindow_xcenter ) * Harm_xaxis;
-
-  new G4PVPlacement( rot_harm_window, HarmCutout_pos_global, SnoutHarmWindowCutout_log, "SnoutHarmWindowCutout_phys", worldlog, false, 0 );
-
-  xtemp = SnoutEarmWindow_Width/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
-  ytemp = SnoutEarmWindow_Height/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
-
-  new G4PVPlacement( 0, G4ThreeVector(-xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_right", SnoutEarmWindowCutout_log, false, 0 );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateZ(90.0*deg );
-
-  new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_right", SnoutEarmWindowCutout_log, false, 1 );
+    new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_right", SnoutEarmWindowCutout_log, false, 1 );
   
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateZ(-90.0*deg );
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateZ(-90.0*deg );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_left", SnoutEarmWindowCutout_log, false, 2 );
+    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_left", SnoutEarmWindowCutout_log, false, 2 );
 
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateZ(180.0*deg );
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateZ(180.0*deg );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_left", SnoutEarmWindowCutout_log, false, 3 );
+    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_left", SnoutEarmWindowCutout_log, false, 3 );
   
-  G4ThreeVector EarmCutout_pos_global = Snout_position_global + FrontLeftCorner_pos_local - Snout_Thick/2.0 * Earm_zaxis + (SnoutEarmPlate_Width/2.0 + SnoutEarmWindow_xcenter) * Earm_xaxis;
+    G4ThreeVector EarmCutout_pos_global = Snout_position_global + FrontLeftCorner_pos_local - Snout_Thick/2.0 * Earm_zaxis + (SnoutEarmPlate_Width/2.0 + SnoutEarmWindow_xcenter) * Earm_xaxis;
 
-  new G4PVPlacement( rot_earm_window, EarmCutout_pos_global, SnoutEarmWindowCutout_log, "SnoutEarmWindowCutout_phys", worldlog, false, 0 );
-
+    new G4PVPlacement( rot_earm_window, EarmCutout_pos_global, SnoutEarmWindowCutout_log, "SnoutEarmWindowCutout_phys", worldlog, false, 0 );
+  }
   //What's next? Define scattering chamber vacuum volume:
   G4double ScatChamberRadius = 23.80*inch;
   G4double ScatChamberHeight = Snout_Height;
@@ -1177,9 +1178,9 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   G4LogicalVolume *TargetCell_log;
 
   if( fTargType == kLH2 ){
-    TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LH2"), "TargetCell_log" );
+  TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LH2"), "TargetCell_log" );
   } else {
-    TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
+  TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
   }
   
   G4Tubs *TargetWall = new G4Tubs("TargetWall", Rcell, Rcell + sthick, fTargLen/2.0, 0, twopi );
@@ -1360,6 +1361,8 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   
 
   //Finally, put windows and bolt plates:
+
+  //if( fDetCon->fExpType != kGEPpositron ){
   
   G4double HarmFlangeWidth = 2.0*11.44*inch;
   G4double HarmFlangeHeight = 2.0*12.56*inch;
@@ -1370,7 +1373,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   //Figure out the placement of the Harm window:
   G4ThreeVector Harm_window_pos = Snout_position_global + FrontRightCorner_pos_local + (-SnoutHarmPlate_Width/2.0 + SnoutHarmWindow_xcenter) * Harm_xaxis + (HarmWindowThick/2.0) * Harm_zaxis;
 
-  new G4PVPlacement( rot_harm_window, Harm_window_pos, HarmWindow_log, "HarmWindow_phys", worldlog, false, 0 );
+  if( fDetCon->fExpType != kGEPpositron ) new G4PVPlacement( rot_harm_window, Harm_window_pos, HarmWindow_log, "HarmWindow_phys", worldlog, false, 0 );
   
   G4Box *HarmFlange_box = new G4Box("HarmFlange_box", HarmFlangeWidth/2.0, HarmFlangeHeight/2.0, HarmFlangeThick/2.0 );
 
@@ -1379,44 +1382,47 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4ThreeVector HarmFlange_pos = Harm_window_pos + (HarmWindowThick + HarmFlangeThick)/2.0 * Harm_zaxis;
 
-  new G4PVPlacement( rot_harm_window, HarmFlange_pos, HarmFlange_log, "HarmFlange_phys", worldlog, false, 0 );
+  if( fDetCon->fExpType != kGEPpositron ) new G4PVPlacement( rot_harm_window, HarmFlange_pos, HarmFlange_log, "HarmFlange_phys", worldlog, false, 0 );
 
   //Create a new logical volume of aluminum instead of steel for the rounded corners of the flange:
   G4LogicalVolume *HarmFlangeCorner_log = new G4LogicalVolume( HarmWindowCorner, GetMaterial("Aluminum"), "HarmFlangeCorner_log" );
   
   G4ThreeVector pos_temp;
+
+
+  if( fDetCon->fExpType != kGEPpositron ){
+    xtemp = SnoutHarmWindow_Width/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
+    ytemp = SnoutHarmWindow_Height/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
+
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateY( SnoutHarmWindowAngle );
   
-  xtemp = SnoutHarmWindow_Width/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
-  ytemp = SnoutHarmWindow_Height/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( SnoutHarmWindowAngle );
+    pos_temp = HarmFlange_pos - xtemp * Harm_xaxis - ytemp * Harm_yaxis;
   
-  pos_temp = HarmFlange_pos - xtemp * Harm_xaxis - ytemp * Harm_yaxis;
-  
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
+    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
 
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( SnoutHarmWindowAngle );
-  rot_temp->rotateZ( 90.0*deg );
-  pos_temp = HarmFlange_pos - xtemp * Harm_xaxis + ytemp * Harm_yaxis;
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateY( SnoutHarmWindowAngle );
+    rot_temp->rotateZ( 90.0*deg );
+    pos_temp = HarmFlange_pos - xtemp * Harm_xaxis + ytemp * Harm_yaxis;
 
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_right", worldlog, false, 1 );
+    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_right", worldlog, false, 1 );
 
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( SnoutHarmWindowAngle );
-  rot_temp->rotateZ( -90.0*deg );
-  pos_temp = HarmFlange_pos + xtemp * Harm_xaxis - ytemp * Harm_yaxis;
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateY( SnoutHarmWindowAngle );
+    rot_temp->rotateZ( -90.0*deg );
+    pos_temp = HarmFlange_pos + xtemp * Harm_xaxis - ytemp * Harm_yaxis;
 
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
+    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
 
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( SnoutHarmWindowAngle );
-  rot_temp->rotateZ( 180.0*deg );
-  pos_temp = HarmFlange_pos + xtemp * Harm_xaxis + ytemp * Harm_yaxis;
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateY( SnoutHarmWindowAngle );
+    rot_temp->rotateZ( 180.0*deg );
+    pos_temp = HarmFlange_pos + xtemp * Harm_xaxis + ytemp * Harm_yaxis;
 
-  new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_left", worldlog, false, 3 );
-
+    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_left", worldlog, false, 3 );
+  }
+    
   G4double EarmFlangeWidth = 2.0*12.62*inch;
   G4double EarmFlangeHeight = Snout_Height;
   G4double EarmFlangeThick = 0.980*inch;
@@ -1426,7 +1432,8 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   G4LogicalVolume *EarmWindow_log = new G4LogicalVolume( EarmAlWindow_box, GetMaterial("Aluminum"), "EarmWindow_log" );
   G4ThreeVector Earm_window_pos = Snout_position_global + FrontLeftCorner_pos_local + (SnoutEarmPlate_Width/2.0 + SnoutEarmWindow_xcenter) * Earm_xaxis + EarmWindowThick/2.0 * Earm_zaxis;
 
-  new G4PVPlacement( rot_earm_window, Earm_window_pos, EarmWindow_log, "EarmWindow_phys", worldlog, false, 0 );
+  
+  if( fDetCon->fExpType != kGEPpositron ) new G4PVPlacement( rot_earm_window, Earm_window_pos, EarmWindow_log, "EarmWindow_phys", worldlog, false, 0 );
   
   //Next: make flange:
 
@@ -1437,41 +1444,44 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4ThreeVector EarmFlange_pos = Earm_window_pos + (EarmWindowThick + EarmFlangeThick)/2.0 * Earm_zaxis;
 
-  new G4PVPlacement( rot_earm_window, EarmFlange_pos, EarmFlange_log, "EarmFlange_phys", worldlog, false, 0 );
+  if( fDetCon->fExpType != kGEPpositron ) new G4PVPlacement( rot_earm_window, EarmFlange_pos, EarmFlange_log, "EarmFlange_phys", worldlog, false, 0 );
 
   G4LogicalVolume *EarmFlangeCorner_log = new G4LogicalVolume( EarmWindowCorner, GetMaterial("Aluminum"), "EarmFlangeCorner_log" );
 
-  xtemp = SnoutEarmWindow_Width/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
-  ytemp = SnoutEarmWindow_Height/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
 
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( -SnoutEarmWindowAngle );
-  
-  pos_temp = EarmFlange_pos - xtemp * Earm_xaxis - ytemp * Earm_yaxis;
-  
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
+  if( fDetCon->fExpType != kGEPpositron ){
+    xtemp = SnoutEarmWindow_Width/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
+    ytemp = SnoutEarmWindow_Height/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
 
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( -SnoutEarmWindowAngle );
-  rot_temp->rotateZ( 90.0*deg );
-  pos_temp = EarmFlange_pos - xtemp * Earm_xaxis + ytemp * Earm_yaxis;
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateY( -SnoutEarmWindowAngle );
   
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_right", worldlog, false, 1 );
+    pos_temp = EarmFlange_pos - xtemp * Earm_xaxis - ytemp * Earm_yaxis;
+  
+    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
 
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( -SnoutEarmWindowAngle );
-  rot_temp->rotateZ( -90.0*deg );
-  pos_temp = EarmFlange_pos + xtemp * Earm_xaxis - ytemp * Earm_yaxis;
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateY( -SnoutEarmWindowAngle );
+    rot_temp->rotateZ( 90.0*deg );
+    pos_temp = EarmFlange_pos - xtemp * Earm_xaxis + ytemp * Earm_yaxis;
   
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
+    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_right", worldlog, false, 1 );
 
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( -SnoutEarmWindowAngle );
-  rot_temp->rotateZ( 180.0*deg );
-  pos_temp = EarmFlange_pos + xtemp * Earm_xaxis + ytemp * Earm_yaxis;
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateY( -SnoutEarmWindowAngle );
+    rot_temp->rotateZ( -90.0*deg );
+    pos_temp = EarmFlange_pos + xtemp * Earm_xaxis - ytemp * Earm_yaxis;
   
-  new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_left", worldlog, false, 3 );
+    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
+
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateY( -SnoutEarmWindowAngle );
+    rot_temp->rotateZ( 180.0*deg );
+    pos_temp = EarmFlange_pos + xtemp * Earm_xaxis + ytemp * Earm_yaxis;
   
+    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_left", worldlog, false, 3 );
+  }
+  //}
   // VISUALS
   // Mother Volumes
 
@@ -1758,9 +1768,9 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   G4LogicalVolume *TargetCell_log;
 
   if( fTargType == kLH2 ){
-    TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LH2"), "TargetCell_log" );
+  TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LH2"), "TargetCell_log" );
   } else {
-    TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
+  TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
   }
 
   G4Tubs *TargetWall = new G4Tubs("TargetWall", Rcell, Rcell + sthick, fTargLen/2.0, 0, twopi );
@@ -1791,26 +1801,26 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   new G4PVPlacement( targrot, G4ThreeVector(0.0, 0.0,0.0), TargetMother_log, "TargetMother_phys", scham_vacuum_log, false, 0 );
 
   if( fFlux ){ //Make a sphere to compute particle flux:
-    G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
-    0.*deg, 150.*deg );
-    G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
-    new G4PVPlacement( targrot, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", scham_vacuum_log, false, 0 );
+  G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
+  0.*deg, 150.*deg );
+  G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
+  new G4PVPlacement( targrot, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", scham_vacuum_log, false, 0 );
     
-    G4String FluxSDname = "FLUX";
-    G4String Fluxcollname = "FLUXHitsCollection";
-    G4SBSCalSD *FluxSD = NULL;
-    if( !( FluxSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(FluxSDname) ) ){
-    G4cout << "Adding FLUX SD to SDman..." << G4endl;
-    FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
-    fDetCon->fSDman->AddNewDetector( FluxSD );
-    (fDetCon->SDlist).insert( FluxSDname );
-    fDetCon->SDtype[FluxSDname] = kCAL;
+  G4String FluxSDname = "FLUX";
+  G4String Fluxcollname = "FLUXHitsCollection";
+  G4SBSCalSD *FluxSD = NULL;
+  if( !( FluxSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(FluxSDname) ) ){
+  G4cout << "Adding FLUX SD to SDman..." << G4endl;
+  FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
+  fDetCon->fSDman->AddNewDetector( FluxSD );
+  (fDetCon->SDlist).insert( FluxSDname );
+  fDetCon->SDtype[FluxSDname] = kCAL;
     
-    (FluxSD->detmap).depth = 0;
-    }
-    fsph_log->SetSensitiveDetector( FluxSD );
-    fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-    }
+  (FluxSD->detmap).depth = 0;
+  }
+  fsph_log->SetSensitiveDetector( FluxSD );
+  fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
   */
   
   //  VISUALS

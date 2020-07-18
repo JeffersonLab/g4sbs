@@ -384,6 +384,12 @@ G4SBSMessenger::G4SBSMessenger(){
   PionPhoto_radthickCmd->SetGuidance("Radiator thickness, in units of X_0 (default = 0.06)");
   PionPhoto_radthickCmd->SetParameterName("radthickX0",true);
   PionPhoto_radthickCmd->SetDefaultValue(0.06);
+
+  PionPhoto_radzCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/radz",this);
+  PionPhoto_radzCmd->SetGuidance("How far upstream of the target is the radiator?");
+  PionPhoto_radzCmd->SetGuidance("+Z = distance upstream (no minus sign needed)");
+  PionPhoto_radzCmd->SetParameterName("radzoff",true);
+  PionPhoto_radzCmd->SetDefaultValue( 10.0*cm );
   
   RICHdistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/richdist",this);
   RICHdistCmd->SetGuidance("SBS RICH distance from target");
@@ -1497,11 +1503,18 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == PionPhoto_useradCmd ){
     G4bool b = PionPhoto_useradCmd->GetNewBoolValue(newValue);
     fevgen->SetUseRadiator( b );
+    fdetcon->fTargetBuilder->SetUseRad( b );
   }
 
   if( cmd == PionPhoto_radthickCmd ){
     G4double v = PionPhoto_radthickCmd->GetNewDoubleValue(newValue);
     fevgen->SetRadthickX0( v );
+    fdetcon->fTargetBuilder->SetRadThick( v );
+  }
+
+  if ( cmd == PionPhoto_radzCmd ){
+    G4double v = PionPhoto_radzCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetRadZoffset( v );
   }
   
   if( cmd == gemresCmd ){

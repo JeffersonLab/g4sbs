@@ -19,6 +19,25 @@ enum Exp_t { kGEp, kGMN, kGEN, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGE
 enum Arm_t { kEarm, kHarm }; //Types for association of detector modules with spectrometer arms. Presently "E arm" and "H arm" are possible.
 enum SDet_t { kGEM, kCAL, kRICH, kECAL }; //Types of sensitive detectors (others to be added later)
 
+// switches for GEn
+// Helmholtz coils or shielding 
+// - 146  => Q2 = 1.46  (GeV/c)^2  
+// - 368  => Q2 = 3.68  (GeV/c)^2  
+// - 677  => Q2 = 6.77  (GeV/c)^2  
+// - 1018 => Q2 = 10.18 (GeV/c)^2
+// for shielding only:  
+// - full => full window cut (remove panel 1, 2, 3, and door) 
+// - new  => new design from Bert Metzger (6/2020)  
+
+enum GEnConfig_t {
+   kSBS_GEN_146  = 1,
+   kSBS_GEN_368  = 2,
+   kSBS_GEN_677  = 3,
+   kSBS_GEN_1018 = 4,
+   kSBS_GEN_full = 5,
+   kSBS_GEN_new  = 6
+};
+
 struct filedata_t {
     char filename[__RUNSTR_LEN];
     char hashsum[__RUNSTR_LEN];

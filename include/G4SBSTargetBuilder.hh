@@ -7,6 +7,8 @@
 #include "G4Box.hh"
 #include "G4SubtractionSolid.hh"
 
+#include "G4SBSPartParameters.hh"
+
 class G4DetectorConstruction;
 
 class G4SBSTargetBuilder: public G4SBSComponent {
@@ -37,6 +39,16 @@ public:
   void BuildC16ScatCham(G4LogicalVolume *);
   //Add "Toy" Scattering chamber for new proposal development:
   void BuildToyScatCham(G4LogicalVolume *);
+
+  // GEn Polarized 3He target (D Flay, July 2020) 
+  void BuildGEnTarget(int config,G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_EndWindow(const std::string type,G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_HelmholtzCoils(const int config,const std::string type,G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_Shield(const int config,G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_PickupCoils(G4LogicalVolume *motherLog); 
   
   void SetTarget(Targ_t t){fTargType = t;}
   void SetTargLen(G4double len){ fTargLen = len;}

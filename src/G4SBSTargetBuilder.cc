@@ -2286,7 +2286,35 @@ void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMat
 
 void G4SBSTargetBuilder::BuildGEnTarget(const int config,G4LogicalVolume *motherLog){
    // Polarized 3He target for GEn
-   // - geometry based on drawings from Bert Metzger  
+   // - geometry based on drawings from Bert Metzger 
+   // TODO: Do we create null pointers for logical volumes here,
+   //       and pass them in as arguments? Some functions (e.g., EndWindow, HelmholtzCoils) 
+   //       are generic, which simplifies code in the current design.  Need to be 
+   //       careful about creating logical volume pointers with unique names.
+   //       In stand-alone implementation, the pointers were private members; trying to avoid this here.     
+
+   // // G4LogicalVolume pointers 
+
+   // G4LogicalVolume *fLogicGlassCell = NULL; 
+   // G4LogicalVolume *fLogicHe3       = NULL; 
+
+   // // 2 layers for shielding, end window 
+   // G4LogicalVolume **fLogicShield    = new G4LogicalVolume*[2];
+   // G4LogicalVolume **fLogicEndWindow = new G4LogicalVolume*[2];
+
+   // // 2 Helmholtz coils for Maj, Min, RFY
+   // // aluminum core
+   // G4LogicalVolume **fLogicHelmholtzMaj = new G4LogicalVolume*[2];
+   // G4LogicalVolume **fLogicHelmholtzMin = new G4LogicalVolume*[2];
+   // G4LogicalVolume **fLogicHelmholtzRFY = new G4LogicalVolume*[2];
+   // // G10 shells
+   // G4LogicalVolume **fLogicHelmholtzSMaj = new G4LogicalVolume*[2];
+   // G4LogicalVolume **fLogicHelmholtzSMin = new G4LogicalVolume*[2];
+   // G4LogicalVolume **fLogicHelmholtzSRFY = new G4LogicalVolume*[2];
+
+   // // 4 pickup (PU) coils and their mounts 
+   // G4LogicalVolume **fLogicPUCoil      = new G4LogicalVolume*[4];
+   // G4LogicalVolume **fLogicPUCoilMount = new G4LogicalVolume*[4];
 
    // glass cell 
    BuildGEnTarget_GlassCell(motherLog);
@@ -2349,7 +2377,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
    // Helmholtz coils for B fields
    // - no magnetic fields are implemented!
    // - materials: outer shell of G10.  thickness based on type
-   //              core is solid copper  
+   //              core is solid aluminum
    // - config: kSBS_GEN_677, kSBS_GEN_1018, kSBS_GEN_368, kSBS_GEN_146
    //           different rotation angle based on index number (Q2 setting)   
    // - types: maj = large radius coil pair

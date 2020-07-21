@@ -14,6 +14,7 @@
 #include "G4Cons.hh"
 #include "G4Box.hh"
 #include "G4Sphere.hh"
+#include "G4Torus.hh"
 #include "G4TwoVector.hh"
 #include "G4GenericTrap.hh"
 #include "G4Polycone.hh"
@@ -2286,7 +2287,7 @@ void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMat
 
 void G4SBSTargetBuilder::BuildGEnTarget(const int config,G4LogicalVolume *motherLog){
    // Polarized 3He target for GEn
-   // - geometry based on drawings from Bert Metzger 
+   // - geometry based on drawings from Bert Metzger and Gordon Cates  
    // TODO: Do we create null pointers for logical volumes here,
    //       and pass them in as arguments? Some functions (e.g., EndWindow, HelmholtzCoils) 
    //       are generic, which simplifies code in the current design.  Need to be 
@@ -2323,7 +2324,7 @@ void G4SBSTargetBuilder::BuildGEnTarget(const int config,G4LogicalVolume *mother
    BuildGEnTarget_EndWindow("upstream"  ,motherLog);
    BuildGEnTarget_EndWindow("downstream",motherLog);
 
-   // cylinder of polarized 3He; logic mother is the glass cell
+   // cylinder of polarized 3He
    // FIXME: The logical mother should be the glass cell!  
    BuildGEnTarget_PolarizedHe3(motherLog);
 
@@ -2345,7 +2346,339 @@ void G4SBSTargetBuilder::BuildGEnTarget(const int config,G4LogicalVolume *mother
 
 void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // Glass cell for polarized 3He
-   // - drawing number: internal from G. Cates (May 2020)  
+   // - drawing number: internal from G. Cates (May 2020) 
+
+   // pumping chamber 
+   partParameters_t pumpCh; 
+   pumpCh.name = "pumpingChamber"; pumpCh.shape = "sphere"; 
+   pumpCh.r_tor = 0.0*mm; pumpCh.r_min = 53.8*mm; pumpCh.r_max = 54.0*mm; pumpCh.length = 0.0*mm;
+   pumpCh.x_len = 0.0*mm; pumpCh.y_len = 0.0*mm; pumpCh.z_len = 0.0*mm;
+   pumpCh.startTheta = 0.0*deg; pumpCh.dTheta = 180.0*deg;
+   pumpCh.startPhi = 0.0*deg; pumpCh.dPhi = 360.0*deg;
+   pumpCh.x = 0.0*mm; pumpCh.y = -330.2*mm; pumpCh.z = 0.0*mm;
+   pumpCh.rx = 0.0*deg; pumpCh.ry = 0.0*deg; pumpCh.rz = 0.0*deg;
+
+   G4Sphere *pumpChamberShape = new G4Sphere(pumpCh.name,
+	                                     pumpCh.r_min     ,pumpCh.r_max,
+	                                     pumpCh.startPhi  ,pumpCh.dPhi,
+	                                     pumpCh.startTheta,pumpCh.dTheta);
+
+   G4ThreeVector P_pc = G4ThreeVector(pumpCh.x,pumpCh.y,pumpCh.z);
+   G4RotationMatrix *rm_pc = new G4RotationMatrix();
+   rm_pc->rotateX(pumpCh.rx); rm_pc->rotateY(pumpCh.ry); rm_pc->rotateZ(pumpCh.rz);
+
+   // target chamber 
+   partParameters_t tgtCh;
+   tgtCh.name = "targetChamber"; tgtCh.shape = "tube"; 
+   tgtCh.r_tor = 0.0*mm; tgtCh.r_min = 10.3*mm; tgtCh.r_max = 10.5*mm; tgtCh.length = 579.0*mm;
+   tgtCh.x_len = 0.0*mm; tgtCh.y_len = 0.0*mm; tgtCh.z_len = 0.0*mm;
+   tgtCh.startTheta = 0.0*deg; tgtCh.dTheta = 0.0*deg;
+   tgtCh.startPhi = 0.0*deg; tgtCh.dPhi = 360.0*deg;
+   tgtCh.x = 0.0*mm; tgtCh.y = 0.0*mm; tgtCh.z = 0.0*mm;
+   tgtCh.rx = 0.0*deg; tgtCh.ry = 0.0*deg; tgtCh.rz = 0.0*deg;
+
+   G4Tubs *targetChamberShape = new G4Tubs(tgtCh.name,
+	                                   tgtCh.r_min    ,tgtCh.r_max,
+	                                   tgtCh.length/2.,
+	                                   tgtCh.startPhi ,tgtCh.dPhi);
+
+   G4ThreeVector P_tc = G4ThreeVector(tgtCh.x,tgtCh.y,tgtCh.z);
+   G4RotationMatrix *rm_tc = new G4RotationMatrix();
+   rm_tc->rotateX(tgtCh.rx); rm_tc->rotateY(tgtCh.ry); rm_tc->rotateZ(tgtCh.rz);
+
+   // transfer tube elbow
+   // ---- downstream 
+   partParameters_t tted;
+   tted.name = "transTubeEl_dn"; tted.shape = "torus"; 
+   tted.r_tor = 9.0*mm; tted.r_min = 4.3*mm; tted.r_max = 4.5*mm; tted.length = 0.0*mm;
+   tted.x_len = 0.0*mm; tted.y_len = 0.0*mm; tted.z_len = 0.0*mm;
+   tted.startTheta = 0.0*deg; tted.dTheta = 0.0*deg;
+   tted.startPhi = 0.0*deg; tted.dPhi = 90.0*deg;
+   tted.x = 0.0*mm; tted.y = -33.5*mm; tted.z = 250.0*mm;
+   tted.rx = 180.0*deg; tted.ry = -90.0*deg; tted.rz = 0.0*deg;
+
+   G4Torus *transTubeElDnShape = new G4Torus(tted.name,
+                                             tted.r_min   ,tted.r_max,tted.r_tor,
+                                             tted.startPhi,tted.dPhi);
+
+   G4ThreeVector P_tted = G4ThreeVector(tted.x,tted.y,tted.z);
+   G4RotationMatrix *rm_tted = new G4RotationMatrix();
+   rm_tted->rotateX(tted.rx); rm_tted->rotateY(tted.ry); rm_tted->rotateZ(tted.rz);
+
+   // ---- upstream
+   partParameters_t tteu; 
+   tteu.name = "transTubeEl_up"; tteu.shape = "torus"; 
+   tteu.r_tor = 9.0*mm; tteu.r_min = 4.3*mm; tteu.r_max = 4.5*mm; tteu.length = 0.0*mm;
+   tteu.x_len = 0.0*mm; tteu.y_len = 0.0*mm; tteu.z_len = 0.0*mm;
+   tteu.startTheta = 0.0*deg; tteu.dTheta = 0.0*deg;
+   tteu.startPhi = 0.0*deg; tteu.dPhi = 90.0*deg;
+   tteu.x = 0.0*mm; tteu.y = -33.5*mm; tteu.z = -250.0*mm;
+   tteu.rx = 180.0*deg; tteu.ry = 90.0*deg; tteu.rz = 0.0*deg;
+
+   G4Torus *transTubeElUpShape = new G4Torus(tteu.name,
+                                             tteu.r_min   ,tteu.r_max,tteu.r_tor,
+                                             tteu.startPhi,tteu.dPhi);
+
+   G4ThreeVector P_tteu = G4ThreeVector(tteu.x,tteu.y,tteu.z);
+   G4RotationMatrix *rm_tteu = new G4RotationMatrix();
+   rm_tteu->rotateX(tteu.rx); rm_tteu->rotateY(tteu.ry); rm_tteu->rotateZ(tteu.rz);
+
+   // transfer tube elbow, lower 
+   // ---- downstream
+   partParameters_t ttedl; 
+   ttedl.name = "transTubeElLo_dn"; ttedl.shape = "torus"; 
+   ttedl.r_tor = 9.0*mm; ttedl.r_min = 4.3*mm; ttedl.r_max = 4.5*mm; ttedl.length = 0.0*mm;
+   ttedl.x_len = 0.0*mm; ttedl.y_len = 0.0*mm; ttedl.z_len = 0.0*mm;
+   ttedl.startTheta = 0.0*deg; ttedl.dTheta = 0.0*deg;
+   ttedl.startPhi = 0.0*deg; ttedl.dPhi = 90.0*deg;
+   ttedl.x = 0.0*mm; ttedl.y = -51.5*mm; ttedl.z = 34.5*mm;
+   ttedl.rx = 0.0*deg; ttedl.ry = 270.0*deg; ttedl.rz = 0.0*deg;
+
+   G4Torus *transTubeElDnLoShape = new G4Torus(ttedl.name,
+                                               ttedl.r_min   ,ttedl.r_max,ttedl.r_tor,
+                                               ttedl.startPhi,ttedl.dPhi);
+
+   G4ThreeVector P_ttedl = G4ThreeVector(ttedl.x,ttedl.y,ttedl.z);
+   G4RotationMatrix *rm_ttedl = new G4RotationMatrix();
+   rm_ttedl->rotateX(ttedl.rx); rm_ttedl->rotateY(ttedl.ry); rm_ttedl->rotateZ(ttedl.rz);
+
+   // ---- upstream
+   partParameters_t tteul; 
+   tteul.name = "transTubeElLo_up"; tteul.shape = "torus"; 
+   tteul.r_tor = 9.0*mm; tteul.r_min = 4.3*mm; tteul.r_max = 4.5*mm; tteul.length = 0.0*mm;
+   tteul.x_len = 0.0*mm; tteul.y_len = 0.0*mm; tteul.z_len = 0.0*mm;
+   tteul.startTheta = 0.0*deg; tteul.dTheta = 0.0*deg;
+   tteul.startPhi = 0.0*deg; tteul.dPhi = 90.0*deg;
+   tteul.x = 0.0*mm; tteul.y = -51.5*mm; tteul.z = -34.5*mm;
+   tteul.rx = 0.0*deg; tteul.ry = 90.0*deg; tteul.rz = 0.0*deg;
+
+   G4Torus *transTubeElUpLoShape = new G4Torus(tteul.name,
+	                                       tteul.r_min   ,tteul.r_max,tteul.r_tor,
+	                                       tteul.startPhi,tteul.dPhi);
+
+   G4ThreeVector P_tteul = G4ThreeVector(tteul.x,tteul.y,tteul.z);
+   G4RotationMatrix *rm_tteul = new G4RotationMatrix();
+   rm_tteul->rotateX(tteul.rx); rm_tteul->rotateY(tteul.ry); rm_tteul->rotateZ(tteul.rz); 
+   
+   // transfer tube sphere 
+   partParameters_t tts;
+   tts.name = "transTubeSphere"; tts.shape = "sphere"; 
+   tts.r_tor = 0.0*mm; tts.r_min = 13.7*mm; tts.r_max = 13.9*mm; tts.length = 0.0*mm;
+   tts.x_len = 0.0*mm; tts.y_len = 0.0*mm; tts.z_len = 0.0*mm;
+   tts.startTheta = 0.0*deg; tts.dTheta = 180.0*deg;
+   tts.startPhi = 0.0*deg; tts.dPhi = 360.0*deg;
+   tts.x = 0.0*mm; tts.y = -83.3*mm; tts.z = 25.4*mm;
+   tts.rx = 0.0*deg; tts.ry = 0.0*deg; tts.rz = 0.0*deg;
+
+   G4Sphere *transTubeSphere = new G4Sphere(tts.name,
+	                                    tts.r_min     ,tts.r_max,
+	                                    tts.startPhi  ,tts.dPhi,
+	                                    tts.startTheta,tts.dTheta);
+
+   G4ThreeVector P_tts = G4ThreeVector(tts.x,tts.y,tts.z);
+   G4RotationMatrix *rm_tts = new G4RotationMatrix();
+   rm_tts->rotateX(tts.rx); rm_tts->rotateY(tts.ry); rm_tts->rotateZ(tts.rz);
+
+   // transfer tubes along z 
+   // ---- upstream 
+   partParameters_t ttuz; 
+   ttuz.name = "transTubeZ_up"; ttuz.shape = "tube"; 
+   ttuz.r_tor = 0.0*mm; ttuz.r_min = 4.3*mm; ttuz.r_max = 4.5*mm; ttuz.length = 216.0*mm;
+   ttuz.x_len = 0.0*mm; ttuz.y_len = 0.0*mm; ttuz.z_len = 0.0*mm;
+   ttuz.startTheta = 0.0*deg; ttuz.dTheta = 0.0*deg;
+   ttuz.startPhi = 0.0*deg; ttuz.dPhi = 360.0*deg;
+   ttuz.x = 0.0*mm; ttuz.y = -42.5*mm; ttuz.z = -142.0*mm;
+   ttuz.rx = 0.0*deg; ttuz.ry = 0.0*deg; ttuz.rz = 0.0*deg;
+   
+   G4Tubs *transTubeUpZShape = new G4Tubs(ttuz.name,
+                                          ttuz.r_min    ,ttuz.r_max,
+                                          ttuz.length/2.,
+                                          ttuz.startPhi ,ttuz.dPhi);
+
+   G4ThreeVector P_ttuz = G4ThreeVector(ttuz.x,ttuz.y,ttuz.z);
+   G4RotationMatrix *rm_ttuz = new G4RotationMatrix();
+   rm_ttuz->rotateX(ttuz.rx); rm_ttuz->rotateY(ttuz.ry); rm_ttuz->rotateZ(ttuz.rz);
+
+   // ---- downstream 
+   partParameters_t ttdz; 
+   ttdz.name = "transTubeZ_dn"; ttdz.shape = "tube"; 
+   ttdz.r_tor = 0.0*mm; ttdz.r_min = 4.3*mm; ttdz.r_max = 4.5*mm; ttdz.length = 216.0*mm;
+   ttdz.x_len = 0.0*mm; ttdz.y_len = 0.0*mm; ttdz.z_len = 0.0*mm;
+   ttdz.startTheta = 0.0*deg; ttdz.dTheta = 0.0*deg;
+   ttdz.startPhi = 0.0*deg; ttdz.dPhi = 360.0*deg;
+   ttdz.x = 0.0*mm; ttdz.y = -42.5*mm; ttdz.z = 142.0*mm;
+   ttdz.rx = 0.0*deg; ttdz.ry = 0.0*deg; ttdz.rz = 0.0*deg;
+
+   G4Tubs *transTubeDnZShape = new G4Tubs(ttdz.name,
+	                                  ttdz.r_min    ,ttdz.r_max,
+	                                  ttdz.length/2.,
+	                                  ttdz.startPhi ,ttdz.dPhi);
+
+   G4ThreeVector P_ttdz = G4ThreeVector(ttdz.x,ttdz.y,ttdz.z);
+   G4RotationMatrix *rm_ttdz = new G4RotationMatrix();
+   rm_ttdz->rotateX(ttdz.rx); rm_ttdz->rotateY(ttdz.ry); rm_ttdz->rotateZ(ttdz.rz);
+
+   // transfer tubes along y 
+   // --- upstream 
+   partParameters_t ttuy; 
+   ttuy.name = "transTubeY_up"; ttuy.shape = "tube"; 
+   ttuy.r_tor = 0.0*mm; ttuy.r_min = 4.3*mm; ttuy.r_max = 4.5*mm; ttuy.length = 233.0*mm;
+   ttuy.x_len = 0.0*mm; ttuy.y_len = 0.0*mm; ttuy.z_len = 0.0*mm;
+   ttuy.startTheta = 0.0*deg; ttuy.dTheta = 0.0*deg;
+   ttuy.startPhi = 0.0*deg; ttuy.dPhi = 360.0*deg;
+   ttuy.x = 0.0*mm; ttuy.y = -168.0*mm; ttuy.z = -25.4*mm;
+   ttuy.rx = 90.0*deg; ttuy.ry = 0.0*deg; ttuy.rz = 0.0*deg;
+
+   G4Tubs *transTubeUpYShape = new G4Tubs(ttuy.name,
+	                                  ttuy.r_min    ,ttuy.r_max,
+	                                  ttuy.length/2.,
+	                                  ttuy.startPhi ,ttuy.dPhi);
+
+   G4ThreeVector P_ttuy = G4ThreeVector(ttuy.x,ttuy.y,ttuy.z);
+   G4RotationMatrix *rm_ttuy = new G4RotationMatrix();
+   rm_ttuy->rotateX(ttuy.rx); rm_ttuy->rotateY(ttuy.ry); rm_ttuy->rotateZ(ttuy.rz);
+
+   // ---- downstream: two components; above sphere, below sphere  
+   // ------ below sphere 
+   partParameters_t ttdby;  
+   ttdby.name = "transTubeYB_dn"; ttdby.shape = "tube"; 
+   ttdby.r_tor = 0.0*mm; ttdby.r_min = 4.3*mm; ttdby.r_max = 4.5*mm; ttdby.length = 189.0*mm;
+   ttdby.x_len = 0.0*mm; ttdby.y_len = 0.0*mm; ttdby.z_len = 0.0*mm;
+   ttdby.startTheta = 0.0*deg; ttdby.dTheta = 0.0*deg;
+   ttdby.startPhi = 0.0*deg; ttdby.dPhi = 360.0*deg;
+   ttdby.x = 0.0*mm; ttdby.y = -190.0*mm; ttdby.z = 25.4*mm;
+   ttdby.rx = 90.0*deg; ttdby.ry = 0.0*deg; ttdby.rz = 0.0*deg;
+
+   G4Tubs *transTubeDnBYShape = new G4Tubs(ttdby.name,
+	                                   ttdby.r_min    ,ttdby.r_max,
+	                                   ttdby.length/2.,
+	                                   ttdby.startPhi ,ttdby.dPhi);
+
+   G4ThreeVector P_ttdby = G4ThreeVector(ttdby.x,ttdby.y,ttdby.z);
+   G4RotationMatrix *rm_ttdby = new G4RotationMatrix();
+   rm_ttdby->rotateX(ttdby.rx); rm_ttdby->rotateY(ttdby.ry); rm_ttdby->rotateZ(ttdby.rz);
+
+   // ------ above sphere 
+   partParameters_t ttday; 
+   ttday.name = "transTubeYA_dn"; ttday.shape = "tube"; 
+   ttday.r_tor = 0.0*mm; ttday.r_min = 4.3*mm; ttday.r_max = 4.5*mm; ttday.length = 20.0*mm;
+   ttday.x_len = 0.0*mm; ttday.y_len = 0.0*mm; ttday.z_len = 0.0*mm;
+   ttday.startTheta = 0.0*deg; ttday.dTheta = 0.0*deg;
+   ttday.startPhi = 0.0*deg; ttday.dPhi = 360.0*deg;
+   ttday.x = 0.0*mm; ttday.y = -61.0*mm; ttday.z = 25.4*mm;
+   ttday.rx = 90.0*deg; ttday.ry = 0.0*deg; ttday.rz = 0.0*deg;
+
+   G4Tubs *transTubeDnAYShape = new G4Tubs(ttday.name,
+	                                   ttday.r_min    ,ttday.r_max,
+	                                   ttday.length/2.,
+	                                   ttday.startPhi ,ttday.dPhi);
+
+   G4ThreeVector P_ttday = G4ThreeVector(ttday.x,ttday.y,ttday.z);
+   G4RotationMatrix *rm_ttday = new G4RotationMatrix();
+   rm_ttday->rotateX(ttday.rx); rm_ttday->rotateY(ttday.ry); rm_ttday->rotateZ(ttday.rz);
+
+   // transfer tube post along y 
+   // ---- downstream 
+   partParameters_t ttpdy; 
+   ttpdy.name = "transTubePost_dn"; ttpdy.shape = "tube"; 
+   ttpdy.r_tor = 0.0*mm; ttpdy.r_min = 4.3*mm; ttpdy.r_max = 4.5*mm; ttpdy.length = 23.0*mm;
+   ttpdy.x_len = 0.0*mm; ttpdy.y_len = 0.0*mm; ttpdy.z_len = 0.0*mm;
+   ttpdy.startTheta = 0.0*deg; ttpdy.dTheta = 0.0*deg;
+   ttpdy.startPhi = 0.0*deg; ttpdy.dPhi = 360.0*deg;
+   ttpdy.x = 0.0*mm; ttpdy.y = -22.0*mm; ttpdy.z = 259.1*mm;
+   ttpdy.rx = 90.0*deg; ttpdy.ry = 0.0*deg; ttpdy.rz = 0.0*deg;
+
+   G4Tubs *transTubePostDnShape = new G4Tubs(ttpdy.name,
+	                                     ttpdy.r_min    ,ttpdy.r_max,
+	                                     ttpdy.length/2.,
+	                                     ttpdy.startPhi ,ttpdy.dPhi);
+
+   G4ThreeVector P_ttpdy = G4ThreeVector(ttpdy.x,ttpdy.y,ttpdy.z);
+   G4RotationMatrix *rm_ttpdy = new G4RotationMatrix();
+   rm_ttpdy->rotateX(ttpdy.rx); rm_ttpdy->rotateY(ttpdy.ry); rm_ttpdy->rotateZ(ttpdy.rz);
+
+   // ---- upstream 
+   partParameters_t ttpuy; 
+   ttpuy.name = "transTubePost_up"; ttpuy.shape = "tube"; 
+   ttpuy.r_tor = 0.0*mm; ttpuy.r_min = 4.3*mm; ttpuy.r_max = 4.5*mm; ttpuy.length = 23.0*mm;
+   ttpuy.x_len = 0.0*mm; ttpuy.y_len = 0.0*mm; ttpuy.z_len = 0.0*mm;
+   ttpuy.startTheta = 0.0*deg; ttpuy.dTheta = 0.0*deg;
+   ttpuy.startPhi = 0.0*deg; ttpuy.dPhi = 360.0*deg;
+   ttpuy.x = 0.0*mm; ttpuy.y = -22.0*mm; ttpuy.z = -259.1*mm;
+   ttpuy.rx = 90.0*deg; ttpuy.ry = 0.0*deg; ttpuy.rz = 0.0*deg; 
+
+   G4Tubs *transTubePostUpShape = new G4Tubs(ttpuy.name,
+	                                     ttpuy.r_min    ,ttpuy.r_max,
+	                                     ttpuy.length/2.,
+	                                     ttpuy.startPhi ,ttpuy.dPhi);
+
+   G4ThreeVector P_ttpuy = G4ThreeVector(ttpuy.x,ttpuy.y,ttpuy.z);
+   G4RotationMatrix *rm_ttpuy = new G4RotationMatrix();
+   rm_ttpuy->rotateX(ttpuy.rx); rm_ttpuy->rotateY(ttpuy.ry); rm_ttpuy->rotateZ(ttpuy.rz);
+
+   // union solid 
+   G4UnionSolid *glassCell;
+   // target chamber + transfer tube posts
+   // upstream  
+   glassCell = new G4UnionSolid("gc_tc_ewud_pu" ,targetChamberShape,transTubePostUpShape,rm_ttpuy,P_ttpuy);
+   // downstream 
+   glassCell = new G4UnionSolid("gc_tc_ewud_pud",glassCell,transTubePostDnShape,rm_ttpdy,P_ttpdy);
+   // transfer tube elbows 
+   // upstream
+   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eu" ,glassCell,transTubeElUpShape,rm_tteu,P_tteu);
+   // downstream  
+   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud",glassCell,transTubeElDnShape,rm_tted,P_tted);
+   // transfer tubes along z 
+   // upstream
+   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzu" ,glassCell,transTubeUpZShape,rm_ttuz,P_ttuz);
+   // downstream  
+   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud",glassCell,transTubeDnZShape,rm_ttdz,P_ttdz);
+   // transfer tube elbows [lower]  
+   // upstream
+   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_elu" ,glassCell,transTubeElUpLoShape,rm_tteul,P_tteul);
+   // downstream  
+   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_elud",glassCell,transTubeElDnLoShape,rm_ttedl,P_ttedl);
+   // transfer tubes along y 
+   // upstream
+   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyu" ,glassCell,transTubeUpYShape,rm_ttuy,P_ttuy);
+   // downstream: above  
+   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyua",glassCell,transTubeDnAYShape,rm_ttday,P_ttday);
+   // downstream: sphere   
+   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyuas",glassCell,transTubeSphere,rm_tts,P_tts);
+   // downstream: below  
+   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyuasb",glassCell,transTubeDnBYShape,rm_ttdby,P_ttdby);
+   // pumping chamber.  also change the name since everything is connected now 
+   glassCell = new G4UnionSolid("glassCell",glassCell,pumpChamberShape,rm_pc,P_pc);
+
+   // logical volume
+   G4LogicalVolume *fLogicGlassCell = new G4LogicalVolume(glassCell,GetMaterial("GE180"),"logicGlassCell");
+
+   // visualization 
+   G4VisAttributes *visGC = new G4VisAttributes();
+   visGC->SetColour( G4Colour::White() );
+   visGC->SetForceWireframe(true);
+   fLogicGlassCell->SetVisAttributes(visGC);
+
+   // place the volume
+   // - note that this is relative to the *target chamber* as that is the first object in the union 
+   // - rotation puts the cell oriented such that the pumping chamber is vertically above
+   //   and the beam enters from the side where the small sphere on the transfer tube is 
+   //   closest to the upstream side 
+   G4ThreeVector P_tgt_o = G4ThreeVector(0.*cm,0.*cm,0.*cm);
+   G4RotationMatrix *rm_gc = new G4RotationMatrix();
+   rm_gc->rotateX(0.*deg); rm_gc->rotateY(180.*deg); rm_gc->rotateZ(180.*deg);
+
+   bool isBoolean     = true;
+   bool checkOverlaps = true;
+
+   new G4PVPlacement(rm_gc,             // rotation relative to logical mother    
+                     P_tgt_o,           // position relative to logical mother      
+                     fLogicGlassCell,   // logical volume        
+                     "physGlassCell",   // name of physical volume      
+                     motherLog,         // logical mother        
+                     isBoolean,         // is a boolean object?     
+                     0,                 // copy number     
+                     checkOverlaps);    // check overlaps 
 
 }
 
@@ -2401,11 +2734,380 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
    //     => 1.29 - 0.25 = 1.04" center-to-center distance 
    // - Drawing number: A09016-03-05-0000, A09016-03-05-0800
 
+   // constants from drawings  
+   G4double wall = 0.25*2.54*cm;
+   G4double sp   = 0.79*2.54*cm;  // inner-spacing: |<-s->|
+
+   // general part details 
+   partParameters_t sh; 
+   sh.name = "shield"; sh.shape = "box"; 
+   sh.r_tor = 0.0*mm; sh.r_min = 0.0*mm; sh.r_max = 0.0*mm; sh.length = 0.0*mm;
+   sh.x_len = 2252.9*mm; sh.y_len = 2560.3*mm; sh.z_len = 2252.9*mm;
+   sh.startTheta = 0.0*deg; sh.dTheta = 0.0*deg;
+   sh.startPhi = 0.0*deg; sh.dPhi = 0.0*deg;
+   sh.x = 0.0*mm; sh.y = 0.0*mm; sh.z = 0.0*mm;
+   sh.rx = 0.0*deg; sh.ry = 0.0*deg; sh.rz = 0.0*deg;
+
+   //---- window cuts
+   // FIXME: these will change!     
+   // downstream, along beam.  sizes are estimates! 
+   G4double xw = 9.48*2.54*cm;
+   G4double yw = 9.48*2.54*cm;
+   G4double zw = 9.48*2.54*cm;
+   G4Box *windowCut_dn = new G4Box("windowCut_dn",xw/2.,yw/2.,zw/2.);
+   G4ThreeVector Pw_dn = G4ThreeVector(sh.x_len/2.,0.,sh.z_len/3.);  // position of cut 
+
+   G4double door = 40.5*2.54*cm; // for OWU2A door panel (from JT model)  
+
+   // downstream, beam left 
+   // x = 4.62 + ??, y = 28.44", z = 4.62 + ?? 
+   // drawings: A09016-03-05-0851  
+
+   G4double xw_bl=0,yw_bl=0,zw_bl=0,ys=0;
+
+   if(config==kSBS_GEN_new){
+      // FIXME: This is an estimate 
+      // new cut as of 6/27/20 (new design from Bert)
+      xw_bl = 10.*cm; // arbitrary size
+      yw_bl = 0.8*sh.y_len;
+      zw_bl = door;
+      // coordinates 
+      ys    = (-1.)*(sh.y_len/2.-yw_bl/2.);          // this should center the cut properly  
+   }else{
+      // original cut as per drawing A09016-03-0851  
+      xw_bl = 15.*2.54*cm; 
+      yw_bl = 28.44*2.54*cm;
+      zw_bl = 15.*2.54*cm;
+      // coordinates 
+      ys    = 0.*cm;
+   }
+
+   // coordinates 
+   G4double xs = sh.x_len/2.;                         // distance to midpoint of door, aligns door close to edge 
+   G4double zs = -zw_bl/2.;                           // right on top of the right side wall (before rotation)  
+   G4ThreeVector Pw_bl_dn = G4ThreeVector(xs,ys,zs);  // position of cut 
+
+   G4Box *windowCut_beamLeft_dn = new G4Box("windowCut_beamLeft_dn",xw_bl/2.,yw_bl/2.,zw_bl/2.);
+
+   // downstream, beam right
+   // for now consider a single large cut 
+   // large opening; distance along x and z = panel 1 + door w/handles + panel 3
+   // panel 1, drawing A09016-03-05-0811: x = 8.62" , y = 21.41", z = 8.62" 
+   // panel 2, drawing                  : x = 6.62" , y = 21.41", z = 6.62" 
+   // door   , drawing A09016-03-05-0841: x = 16.70", y = 21.41", z = 16.70" 
+   // panel 3, drawing A09016-03-05-0831: x = 5.12" , y = 21.41", z = 5.12" 
+   G4double p1 = 8.62*2.54*cm;
+   G4double p2 = 6.62*2.54*cm;
+   G4double p3 = 5.12*2.54*cm;
+   G4double dh = 16.70*2.54*cm;
+
+   G4double dx=0,dx0=5.*cm;
+   G4double xw_br=0,yw_br=0;
+   G4double zw_br=10.*cm; // arbitrary cut depth in z; just need enough to break through 
+   if(config==kSBS_GEN_146){
+      dx    = dx0 + p1 + p2 + p3;
+      xw_br = dh;
+      yw_br = 21.41*2.54*cm;
+      // coordinates 
+      ys    = 0.*cm;
+   }else if(config==kSBS_GEN_368){
+      dx    = dx0 + p2 + p3;
+      xw_br = dh;
+      yw_br = 21.41*2.54*cm;
+      // coordinates 
+      ys    = 0.*cm;
+   }else if(config==kSBS_GEN_677){
+      dx    = dx0 + p3;
+      xw_br = dh;
+      yw_br = 21.41*2.54*cm;
+      // coordinates 
+      ys    = 0.*cm;
+   }else if(config==kSBS_GEN_1018){
+      dx    = dx0;
+      xw_br = dh;
+      yw_br = 21.41*2.54*cm;
+      // coordinates 
+      ys    = 0.*cm;
+   }else if(config==kSBS_GEN_full){
+      // full window cut 
+      dx    = dx0;
+      xw_br = p1 + p2 + p3 + dh;
+      yw_br = 21.41*2.54*cm;
+      // coordinates 
+      ys    = 0.*cm;
+   }else if(config==kSBS_GEN_new){
+      // 6/27/20: new design from Bert 
+      dx    = dx0;
+      xw_br = door;
+      yw_br = 0.8*sh.y_len;
+      // coordinates
+      ys = (-1.)*(sh.y_len/2.-yw_br/2.);   // this should center the cut properly  
+   }
+
+   xs = sh.x_len/2. - xw_br/2. - dx;    // distance to midpoint of door, aligns door close to edge 
+   zs = sh.z_len/2.;                    // right on top of the right side wall (before rotation) 
+
+   G4Box *windowCut_beamRight_dn = new G4Box("windowCut_beamRight_dn",xw_br/2.,yw_br/2.,zw_br/2.);
+   G4ThreeVector Pw_br_dn        = G4ThreeVector(xs,ys,zs);  // position of cut 
+
+   // upstream, along beam  
+   G4Box *windowCut_up = new G4Box("windowCut_up",xw/2.,yw/2.,zw/2.);
+   G4ThreeVector Pw_up = G4ThreeVector(-sh.x_len/2.,0.,-sh.z_len/3.);  // position of cut 
+
+   //---- shield: put everything together   
+
+   // outer box 
+   G4Box *outer = new G4Box("outer"   ,sh.x_len/2.,sh.y_len/2.,sh.z_len/2.);
+   // cut away inner material  
+   G4double xc = sh.x_len - wall*2.;
+   G4double yc = sh.y_len - wall*2.;
+   G4double zc = sh.z_len - wall*2.;
+   G4Box *outerCut = new G4Box("outerCut",xc/2.,yc/2.,zc/2.);
+
+   // subtract the parts 
+   G4SubtractionSolid *outerShield = new G4SubtractionSolid("outerShield_1",outer,outerCut,0,G4ThreeVector(0,0,0));
+   outerShield = new G4SubtractionSolid("outerShield_2",outerShield,windowCut_dn,          0,Pw_dn   );
+   outerShield = new G4SubtractionSolid("outerShield_3",outerShield,windowCut_beamLeft_dn ,0,Pw_bl_dn);
+   outerShield = new G4SubtractionSolid("outerShield_4",outerShield,windowCut_beamRight_dn,0,Pw_br_dn);
+   outerShield = new G4SubtractionSolid("outerShield"  ,outerShield,windowCut_up          ,0,Pw_up   );
+
+   // inner box 
+   partParameters_t sh_inner = sh;
+   sh_inner.x_len = sh.x_len - 2.*wall - 2.*sp;
+   sh_inner.y_len = sh.y_len - 2.*wall - 2.*sp;
+   sh_inner.z_len = sh.z_len - 2.*wall - 2.*sp;
+
+   G4Box *inner = new G4Box("inner",sh_inner.x_len/2.,sh_inner.y_len/2.,sh_inner.z_len/2.);
+   // cut away inner material  
+   xc = sh_inner.x_len - wall*2.;
+   yc = sh_inner.y_len - wall*2.;
+   zc = sh_inner.z_len - wall*2.;
+   G4Box *innerCut = new G4Box("innerCut",xc/2.,yc/2.,zc/2.);
+
+   // subtract the parts 
+   G4SubtractionSolid *innerShield = new G4SubtractionSolid("innerShield_1",inner,innerCut,0,G4ThreeVector(0,0,0));
+   innerShield = new G4SubtractionSolid("innerShield_2",innerShield,windowCut_dn          ,0,Pw_dn   );
+   innerShield = new G4SubtractionSolid("innerShield_3",innerShield,windowCut_beamLeft_dn ,0,Pw_bl_dn);
+   innerShield = new G4SubtractionSolid("innerShield_4",innerShield,windowCut_beamRight_dn,0,Pw_br_dn);
+   innerShield = new G4SubtractionSolid("innerShield"  ,innerShield,windowCut_up          ,0,Pw_up   );
+
+   // accumulate into logical volume pointer 
+   G4LogicalVolume **fLogicShield = new G4LogicalVolume*[2]; 
+   fLogicShield[0] = new G4LogicalVolume(innerShield,GetMaterial("Carbon_Steel_1008"),"logicShield");
+   fLogicShield[1] = new G4LogicalVolume(outerShield,GetMaterial("Carbon_Steel_1008"),"logicShield");
+
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Magenta() );
+   // vis->SetForceWireframe(true);
+
+   // rotation angle 
+   G4double RY = 55.0*deg;  // FIXME: This angle is still an estimate!  
+
+   bool isBoolean = true;
+   bool checkOverlaps = true;
+
+   // placement 
+   for(int i=0;i<2;i++){
+      // visualization 
+      fLogicShield[i]->SetVisAttributes(vis);
+      // rotation
+      G4RotationMatrix *rm = new G4RotationMatrix();
+      rm->rotateX(0.*deg); rm->rotateY(RY); rm->rotateZ(0.*deg);
+      // placement 
+      new G4PVPlacement(rm,                               // rotation relative to mother       
+	                G4ThreeVector(0.*cm,0.*cm,0.*cm), // position relative to mother         
+	                fLogicShield[i],                  // logical volume        
+	                "physShield",                     // physical volume name           
+	                motherLog,                        // logical mother     
+	                isBoolean,                        // is boolean device? (true or false)    
+	                i,                                // copy number    
+	                checkOverlaps);                   // check overlaps  
+   }
+ 
+
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_PickupCoils(G4LogicalVolume *motherLog){
    // Pickup coils that sit just below the GEn 3He target cell
    // - Drawing: All dimensions extracted from JT model from Bert Metzger (June 2020) 
+
+   // global y offset: pickup coils sit 1.1" below the target cell (measured from top of coil mount)
+   G4double y0 = -1.1*2.54*cm - 1.5*cm;  // 1.5 cm accounts for center of coil mount 
+
+   // coil mount, beam left 
+   // ---- upstream 
+   partParameters_t cbul; 
+   cbul.name = "pu_coil_base"; cbul.shape = "box";
+   cbul.r_tor = 0.0*mm; cbul.r_min = 0.0*mm; cbul.r_max = 0.0*mm; cbul.length = 0.0*mm;
+   cbul.x_len = 6.0*mm; cbul.y_len = 48.0*mm; cbul.z_len = 67.0*mm;
+   cbul.startTheta = 0.0*deg; cbul.dTheta = 0.0*deg;
+   cbul.startPhi = 0.0*deg; cbul.dPhi = 0.0*deg;
+   cbul.x = 0.0*mm; cbul.y = -24.0*mm; cbul.z = 0.0*mm;
+   cbul.rx = 0.0*deg; cbul.ry = 0.0*deg; cbul.rz = 0.0*deg;
+
+   G4Box *coilB = new G4Box("coilB",cbul.x_len/2.,cbul.y_len/2.,cbul.z_len/2.);
+
+   // U-cut: create a *subtraction* with a component for a U shape  
+   G4double xlen = 2.*cbul.x_len;  // far exceed the thickness to make sure it's a cutaway 
+   G4double ylen = 2.*1.3*cm; 
+   G4double zlen = 3.2*cm; 
+
+   G4Box *Ucut = new G4Box("Ucut",xlen/2.,ylen/2.,zlen/2.);
+
+   // do the subtraction 
+   G4ThreeVector Psub = G4ThreeVector(0,1.1*cm+ylen/2.,0.);  // centers the second volume relative to the first 
+   G4SubtractionSolid *coilBase = new G4SubtractionSolid("coilMount",coilB,Ucut,0,Psub);
+
+   // coil 
+   partParameters_t pu; 
+   pu.name = "pu_coil"; pu.shape = "box";
+   pu.r_tor = 0.0*mm; pu.r_min = 0.0*mm; pu.r_max = 0.0*mm; pu.length = 0.0*mm;
+   pu.x_len = 4.0*mm; pu.y_len = 30.0*mm; pu.z_len = 120.0*mm;
+   pu.startTheta = 0.0*deg; pu.dTheta = 0.0*deg;
+   pu.startPhi = 0.0*deg; pu.dPhi = 0.0*deg;
+   pu.x = 0.0*mm; pu.y = 15.0*mm; pu.z = 0.0*mm;
+   pu.rx = 0.0*deg; pu.ry = 0.0*deg; pu.rz = 0.0*deg;
+
+   G4Box *coilOuter = new G4Box("coilOuter",pu.x_len/2.,pu.y_len/2.,pu.z_len/2.);
+
+   // create a cutaway that actually defines the coil since the initial dimensions are the OUTER values 
+   G4double xc = 2.*pu.x_len; // cut straight through in this dimension  
+   G4double yc = pu.y_len - 2.*0.5*cm;
+   G4double zc = pu.z_len - 2.*0.5*cm;
+
+   G4Box *coilCut = new G4Box("coilCut",xc,yc/2.,zc/2.);
+
+   // subtraction; no coordinates needed since we're centered on the outer coil  
+   G4SubtractionSolid *coil = new G4SubtractionSolid("coil",coilOuter,coilCut);
+
+   // coil mount 
+   partParameters_t cmul;
+   cmul.name = "pu_coil_mnt"; cmul.shape = "box";
+   cmul.r_tor = 0.0*mm; cmul.r_min = 0.0*mm; cmul.r_max = 0.0*mm; cmul.length = 0.0*mm;
+   cmul.x_len = 8.0*mm; cmul.y_len = 30.0*mm; cmul.z_len = 120.0*mm;
+   cmul.startTheta = 0.0*deg; cmul.dTheta = 0.0*deg;
+   cmul.startPhi = 0.0*deg; cmul.dPhi = 0.0*deg;
+   cmul.x = 0.0*mm; cmul.y = 15.0*mm; cmul.z = 0.0*mm;
+   cmul.rx = 0.0*deg; cmul.ry = 0.0*deg; cmul.rz = 0.0*deg;
+
+   G4Box *coilMnt = new G4Box("cmnt",cmul.x_len/2.,cmul.y_len/2.,cmul.z_len/2.);
+
+   // use the coil to cut its shape into the coil mount
+   // need to locate the coil properly
+   xc = pu.x_len/2.;
+   yc = 0.*cm;
+   zc = 0.*cm;
+   G4ThreeVector Pc = G4ThreeVector(xc,yc,zc);
+   G4SubtractionSolid *coilMount = new G4SubtractionSolid("coilMount",coilMnt,coil,0,Pc); 
+  
+   // union of coil base and mount 
+   // now create a union of the coil base and coil mount
+   G4double xm = cbul.x_len/2. + cmul.x_len/2.;
+   G4double ym = 0.9*cm;
+   G4double zm = 0.*cm;
+   G4ThreeVector Pm = G4ThreeVector(xm,ym,zm);
+   G4UnionSolid *coilBMNT = new G4UnionSolid("coilBMNT",coilBase,coilMount,0,Pm);
+
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Magenta() );
+   // vis->SetForceWireframe(true);  
+
+   bool isBoolean     = true; 
+   bool checkOverlaps = true;  
+
+   // FIXME: constraints come from JT file; is the 2.5 cm correct?
+   G4double xbm = (2.5*cm)/2. + cbul.x_len/2. +  cmul.x_len + pu.x_len;
+   G4double ybm = -0.9*cm + y0; // placement relative to BEAM 
+   G4double zbm = 7.2*cm;
+
+   // logical volumes
+   G4LogicalVolume **fLogicPUCoilMount = new G4LogicalVolume*[4]; 
+
+   // place the mounts 
+   G4double X=0,Y=0,Z=0;
+   G4double RX=0,RY=0,RZ=0;
+   for(int i=0;i<4;i++){
+      fLogicPUCoilMount[i] = new G4LogicalVolume(coilBMNT,GetMaterial("Aluminum"),"logicCoilBMNT");
+      fLogicPUCoilMount[i]->SetVisAttributes(vis);
+      if(i==0){
+         // upstream, beam left
+         X = xbm; Y = ybm; Z = zbm;
+         RY = 180.*deg;
+      }else if(i==1){
+         // upstream, beam right
+         X = -xbm; Y = ybm; Z = zbm;
+         RY = 0.*deg;
+      }else if(i==2){
+         // downstream, beam left
+         X = xbm; Y = ybm; Z = -zbm;
+         RY = 180.*deg;
+      }else if(i==3){
+         // downstream, beam right 
+         X = -xbm; Y = ybm; Z = -zbm;
+         RY = 0.*deg;
+      }
+      G4RotationMatrix *rm = new G4RotationMatrix();
+      rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
+
+      new G4PVPlacement(rm,                   // rotation [relative to mother]             
+                        G4ThreeVector(X,Y,Z), // position [relative to mother]          
+                        fLogicPUCoilMount[i], // logical volume                            
+                        "physPUCoilMNT",      // name                                       
+                        motherLog,            // logical mother volume                   
+                        isBoolean,            // boolean operations (true, false) 
+                        i,                    // copy number                          
+                        checkOverlaps);       // check overlaps                         
+
+   }
+
+   // place the pickup coils 
+
+   // logical volumes
+   G4LogicalVolume **fLogicPUCoil = new G4LogicalVolume*[4]; 
+
+   G4VisAttributes *visCoil = new G4VisAttributes();
+   visCoil->SetColour( G4Colour(255,140,0) );  // dark orange
+
+   // place it to be flush against the mount assembly 
+   G4double xbm_c = xbm - pu.x_len/2. - cmul.x_len;
+   G4double ybm_c = y0;
+   G4double zbm_c = zbm;
+
+   // place the coils 
+   for(int i=0;i<4;i++){
+      fLogicPUCoil[i] = new G4LogicalVolume(coil,GetMaterial("Copper"),"logicCoil");
+      fLogicPUCoil[i]->SetVisAttributes(visCoil);
+      if(i==0){
+	 // upstream, beam left
+	 X = xbm_c; Y = ybm_c; Z = zbm_c;
+	 RY = 180.*deg;
+      }else if(i==1){
+	 // upstream, beam right
+	 X = -xbm_c; Y = ybm_c; Z = zbm_c;
+	 RY = 0.*deg;
+      }else if(i==2){
+	 // downstream, beam left
+	 X = xbm_c; Y = ybm_c; Z = -zbm_c;
+	 RY = 180.*deg;
+      }else if(i==3){
+	 // downstream, beam right 
+	 X = -xbm_c; Y = ybm_c; Z = -zbm_c;
+	 RY = 0.*deg;
+      }
+      G4RotationMatrix *rm = new G4RotationMatrix();
+      rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
+
+      new G4PVPlacement(rm,                   // rotation [relative to mother]             
+	                G4ThreeVector(X,Y,Z), // position [relative to mother]          
+	                fLogicPUCoil[i],      // logical volume                            
+	                "physPUCoil",         // name                                       
+	                motherLog,            // logical mother volume                   
+	                isBoolean,            // boolean operations (true, false) 
+	                i,                    // copy number                          
+	                checkOverlaps);       // check overlaps                         
+
+   }
+
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){

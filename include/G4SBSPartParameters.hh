@@ -1,7 +1,8 @@
 #ifndef G4SBS_PART_PARAMETERS_HH
 #define G4SBS_PART_PARAMETERS_HH
 
-// data struct to read in geometry dimensions, positional and rotational information
+// data struct to organize geometry parameters 
+// - dimensions, position, rotation info 
 
 #include <cstdlib>
 #include <string>

@@ -2294,35 +2294,11 @@ void G4SBSTargetBuilder::BuildGEnTarget(const int config,G4LogicalVolume *mother
    //       careful about creating logical volume pointers with unique names.
    //       In stand-alone implementation, the pointers were private members; trying to avoid this here.     
 
-   // // G4LogicalVolume pointers 
-
-   // G4LogicalVolume *fLogicGlassCell = NULL; 
-   // G4LogicalVolume *fLogicHe3       = NULL; 
-
-   // // 2 layers for shielding, end window 
-   // G4LogicalVolume **fLogicShield    = new G4LogicalVolume*[2];
-   // G4LogicalVolume **fLogicEndWindow = new G4LogicalVolume*[2];
-
-   // // 2 Helmholtz coils for Maj, Min, RFY
-   // // aluminum core
-   // G4LogicalVolume **fLogicHelmholtzMaj = new G4LogicalVolume*[2];
-   // G4LogicalVolume **fLogicHelmholtzMin = new G4LogicalVolume*[2];
-   // G4LogicalVolume **fLogicHelmholtzRFY = new G4LogicalVolume*[2];
-   // // G10 shells
-   // G4LogicalVolume **fLogicHelmholtzSMaj = new G4LogicalVolume*[2];
-   // G4LogicalVolume **fLogicHelmholtzSMin = new G4LogicalVolume*[2];
-   // G4LogicalVolume **fLogicHelmholtzSRFY = new G4LogicalVolume*[2];
-
-   // // 4 pickup (PU) coils and their mounts 
-   // G4LogicalVolume **fLogicPUCoil      = new G4LogicalVolume*[4];
-   // G4LogicalVolume **fLogicPUCoilMount = new G4LogicalVolume*[4];
-
    // glass cell 
    BuildGEnTarget_GlassCell(motherLog);
 
    // Cu end windows for the target cell 
-   BuildGEnTarget_EndWindow("upstream"  ,motherLog);
-   BuildGEnTarget_EndWindow("downstream",motherLog);
+   BuildGEnTarget_EndWindows(motherLog);
 
    // cylinder of polarized 3He
    // FIXME: The logical mother should be the glass cell!  
@@ -2682,27 +2658,145 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
 
 }
 
-void G4SBSTargetBuilder::BuildGEnTarget_EndWindow(const std::string type,G4LogicalVolume *motherLog){
+void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    // Copper end window on 3He cell
    // - drawing number: internal from G. Cates (June 2020)
 
-   int index=-1;  // index for logic array
-   std::string suffix;
-   if( type.compare("upstream")==0 ){
-      suffix = "up";
-      index = 0;
-   }else if( type.compare("downstream")==0 ){
-      suffix = "dn";
-      index = 1;
-   }else{
-      std::cout << "[He3TargetDetectorConstruction::BuildEndWindow]: ERROR! Invalid type = " << type << std::endl;
-      exit(1);
-   }
+   // main shaft 
+   partParameters_t msh; 
+   msh.name = "ew_mainShaft"; msh.shape = "tube";
+   msh.r_tor = 0.0*mm; msh.r_min = 10.5*mm; msh.r_max = 12.8*mm; msh.length = 10.0*mm;
+   msh.x_len = 0.0*mm; msh.y_len = 0.0*mm; msh.z_len = 0.0*mm;
+   msh.startTheta = 0.0*deg; msh.dTheta = 0.0*deg;
+   msh.startPhi = 0.0*deg; msh.dPhi = 360.0*deg;
+   msh.x = 0.0*mm; msh.y = 0.0*mm; msh.z = 0.0*mm;
+   msh.rx = 0.0*deg; msh.ry = 0.0*deg; msh.rz = 0.0*deg;
 
-   std::string ms_str = "ew_mainShaft_" + suffix;
-   std::string l_str  = "ew_lip_"       + suffix;
-   std::string rl_str = "ew_rlip_"      + suffix;
-   std::string c_str  = "ew_cap_"       + suffix;
+   G4Tubs *mainShaft = new G4Tubs(msh.name,
+	                          msh.r_min    ,msh.r_max,
+	                          msh.length/2.,
+	                          msh.startPhi ,msh.dPhi);
+
+   G4ThreeVector P_msh      = G4ThreeVector(msh.x,msh.y,msh.z);
+   G4RotationMatrix *rm_msh = new G4RotationMatrix();
+   rm_msh->rotateX(msh.rx); rm_msh->rotateY(msh.ry); rm_msh->rotateZ(msh.rz);
+
+   // lip 
+   partParameters_t lip; 
+   lip.name = "ew_lip"; lip.shape = "tube";
+   lip.r_tor = 0.0*mm; lip.r_min = 10.5*mm; lip.r_max = 15.5*mm; lip.length = 3.2*mm;
+   lip.x_len = 0.0*mm; lip.y_len = 0.0*mm; lip.z_len = 0.0*mm;
+   lip.startTheta = 0.0*deg; lip.dTheta = 0.0*deg;
+   lip.startPhi = 0.0*deg; lip.dPhi = 360.0*deg;
+   lip.x = 0.0*mm; lip.y = 0.0*mm; lip.z = 6.6*mm;
+   lip.rx = 0.0*deg; lip.ry = 0.0*deg; lip.rz = 0.0*deg;
+
+   G4Tubs *lipTube = new G4Tubs(lip.name,
+	                        lip.r_min    ,lip.r_max,
+	                        lip.length/2.,
+	                        lip.startPhi ,lip.dPhi);
+
+   G4ThreeVector P_lip      = G4ThreeVector(lip.x,lip.y,lip.z);
+   G4RotationMatrix *rm_lip = new G4RotationMatrix();
+   rm_lip->rotateX(lip.rx); rm_lip->rotateY(lip.ry); rm_lip->rotateZ(lip.rz);
+
+   // rounded lip
+   partParameters_t rlip;  
+   rlip.name = "ew_rlip"; rlip.shape = "sphere";
+   rlip.r_tor = 0.0*mm; rlip.r_min = 12.3*mm; rlip.r_max = 13.9*mm; rlip.length = 0.0*mm;
+   rlip.x_len = 0.0*mm; rlip.y_len = 0.0*mm; rlip.z_len = 0.0*mm;
+   rlip.startTheta = 63.1*deg; rlip.dTheta = 26.9*deg;
+   rlip.startPhi = 0.0*deg; rlip.dPhi = 360.0*deg;
+   rlip.x = 0.0*mm; rlip.y = 0.0*mm; rlip.z = 7.6*mm;
+   rlip.rx = 0.0*deg; rlip.ry = 0.0*deg; rlip.rz = 0.0*deg;
+
+   G4Sphere *roundLip = new G4Sphere(rlip.name,
+                                     rlip.r_min     ,rlip.r_max,
+                                     rlip.startPhi  ,rlip.dPhi,
+                                     rlip.startTheta,rlip.dTheta);
+
+   G4ThreeVector P_rlip = G4ThreeVector(rlip.x,rlip.y,rlip.z);
+   G4RotationMatrix *rm_rlip = new G4RotationMatrix();
+   rm_rlip->rotateX(rlip.rx); rm_rlip->rotateY(rlip.ry); rm_rlip->rotateZ(rlip.rz);  
+
+   // endcap 
+   partParameters_t ec;
+   ec.name = "ew_cap_up"; ec.shape = "sphere";
+   ec.r_tor = 0.0*mm; ec.r_min = 12.3*mm; ec.r_max = 12.5*mm; ec.length = 0.0*mm;
+   ec.x_len = 0.0*mm; ec.y_len = 0.0*mm; ec.z_len = 0.0*mm;
+   ec.startTheta = 0.0*deg; ec.dTheta = 63.1*deg;
+   ec.startPhi = 0.0*deg; ec.dPhi = 360.0*deg;
+   ec.x = 0.0*mm; ec.y = 0.0*mm; ec.z = 8.1*mm;
+   ec.rx = 0.0*deg; ec.ry = 0.0*deg; ec.rz = 0.0*deg;
+
+   G4Sphere *endcap = new G4Sphere(ec.name,
+                                   ec.r_min     ,ec.r_max,
+                                   ec.startPhi  ,ec.dPhi,
+                                   ec.startTheta,ec.dTheta);
+
+   G4ThreeVector P_ec      = G4ThreeVector(ec.x,ec.y,ec.z);
+   G4RotationMatrix *rm_ec = new G4RotationMatrix();
+   rm_ec->rotateX(ec.rx); rm_ec->rotateY(ec.ry); rm_ec->rotateZ(ec.rz);   
+
+   // labels 
+   G4String label1 = "ew_ms_l"   ;
+   G4String label2 = "ew_ms_l_rl";
+   G4String label3 = "endWindow" ;
+
+   // union solid 
+   G4UnionSolid *endWindow;
+   // main shaft + lip 
+   endWindow = new G4UnionSolid(label1,mainShaft,lipTube ,rm_lip ,P_lip);
+   // add rounded lip 
+   endWindow = new G4UnionSolid(label2,endWindow,roundLip,rm_rlip,P_rlip);
+   // endcap  
+   endWindow = new G4UnionSolid(label3,endWindow,endcap  ,rm_ec  ,P_ec); 
+
+   // logical volumes 
+   G4LogicalVolume **fLogicEndWindow = new G4LogicalVolume*[2];
+
+   // visualization
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Red() );
+   vis->SetForceWireframe(true);
+
+   // define coordinates and rotations for placement  
+   // index 0 = upstream, 1 = downstream 
+
+   G4double x_ew[2] = {0,0}; 
+   G4double y_ew[2] = {0,0}; 
+   G4double z_ew[2] = {0,0}; 
+
+   G4double z0 = 579.0*mm/2. + 0.5*msh.length;
+   z_ew[0] = (-1.)*z0; 
+   z_ew[1] = z0; 
+
+   G4double rx[2] = {0.*deg  ,0.*deg};  
+   G4double ry[2] = {180.*deg,0.*deg};  
+   G4double rz[2] = {0.*deg  ,0.*deg}; 
+
+   bool isBoolean     = true; 
+   bool checkOverlaps = true;  
+
+   for(int i=0;i<2;i++){
+      // create logical volume 
+      fLogicEndWindow[i] = new G4LogicalVolume(endWindow,GetMaterial("Copper"),"logicEndWindow");
+      fLogicEndWindow[i]->SetVisAttributes(vis);  
+      // position and rotation 
+      G4ThreeVector P_ew      = G4ThreeVector(x_ew[i],y_ew[i],z_ew[i]);
+      G4RotationMatrix *rm_ew = new G4RotationMatrix();
+      rm_ew->rotateX(rx[i]); rm_ew->rotateY(ry[i]); rm_ew->rotateZ(rz[i]); 
+      // place it 
+      new G4PVPlacement(rm_ew,               // rotation relative to logic mother
+	                P_ew,                // position relative to logic mother 
+	                fLogicEndWindow[i],  // logical volume 
+	                "physEndWindow",     // name 
+	                motherLog,           // logical mother volume is the target chamber 
+	                isBoolean,           // no boolean operations 
+	                i,                   // copy number 
+	                checkOverlaps);      // check overlaps
+ 
+   }
  
 }
 
@@ -2717,9 +2811,237 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
    //          min = small radius coil pair 
    //          rfy = RF coil pair, aligned along the vertical (y) axis  
    // - distance between coils D = 0.5(rmin+rmax), roughly the major radius of the tube   
-   //   - coil 1 (placed at -D/2) 
-   //   - coil 2 (placed at +D/2)
+   //   - coil n (placed at -D/2), upstream  
+   //   - coil p (placed at +D/2), downstream 
    // - Drawing number: A09016-03-08-0000
+
+   // coil name
+   char coilName_n[200],coilName_p[200];    
+   // shell names  
+   char shellName_n[200],shellName_p[200];
+
+   sprintf(coilName_n ,"HH_%s_n",type.c_str());
+   sprintf(coilName_p ,"HH_%s_p",type.c_str());
+
+   sprintf(shellName_n ,"shellHH_%s_n",type.c_str());
+   sprintf(shellName_p ,"shellHH_%s_p",type.c_str());
+
+   // parameters 
+   partParameters_t cn; 
+   cn.shape = "tube";
+   // cn.r_tor = 0.0*mm; cn.r_min = 722.3*mm; cn.r_max = 793.8*mm; cn.length = 80.9*mm;
+   // cn.x_len = 0.0*mm; cn.y_len = 0.0*mm; cn.z_len = 0.0*mm;
+   cn.startTheta = 0.0*deg; cn.dTheta = 0.0*deg;
+   cn.startPhi = 0.0*deg; cn.dPhi = 360.0*deg;
+   // cn.x = 0.0*mm; cn.y = 150.1*mm; cn.z = 0.0*mm;
+   // cn.rx = 0.0*deg; cn.ry = 90.0*deg; cn.rz = 0.0*deg;
+     
+   cn.name = coilName_n;
+
+   if(type.compare("maj")==0){
+     cn.r_min = 722.3*mm; cn.r_max = 793.8*mm; cn.length = 80.9*mm; 
+     cn.x     = 0.0*mm;   cn.y     = 150.1*mm; cn.z      = 0.0*mm;
+     cn.rx    = 0.0*deg;  cn.ry    = 90.0*deg; cn.rz     = 0.0*deg;
+   }else if(type.compare("rfy")==0){
+     cn.r_min = 488.9*mm; cn.r_max = 520.7*mm; cn.length = 14.1*mm; 
+     cn.x     = 0.0*mm;   cn.y     = 0.0*mm;   cn.z      = 0.0*mm;
+     cn.rx    = 90.0*deg; cn.ry    = 0.0*deg;  cn.rz     = 0.0*deg;
+   }else if(type.compare("min")==0){
+     cn.r_min = 631.8*mm; cn.r_max = 677.9*mm; cn.length = 64.8*mm; 
+     cn.x     = 0.0*mm;   cn.y     = 150.1*mm; cn.z      = 0.0*mm;
+     cn.rx    = 0.0*deg;  cn.ry    = 0.0*deg;  cn.rz     = 0.0*deg;
+   }else{
+      std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils]: Invalid type = " << type << std::endl;
+      exit(1);
+   }
+
+   // upstream coil 
+   partParameters_t cp = cn; 
+   cp.name = coilName_p;
+   
+   // coil parameters   
+   G4double D      = 0.5*(cn.r_min + cn.r_max);          // helmholtz separation D = R = 0.5(rmin + rmax) 
+   G4double shWall = 0;
+
+   if( type.compare("maj")==0 ) shWall = 5.0*mm;         // FIXME: Estimates for now! 
+   if( type.compare("min")==0 ) shWall = 5.0*mm;         // FIXME: Estimates for now! 
+   if( type.compare("rfy")==0 ) shWall = 0.030*25.4*mm;
+
+   // shell 
+   // ---- upstream  
+   partParameters_t cns;
+   cns.name     = shellName_n;
+   cns.r_min    = cn.r_min - shWall;
+   cns.r_max    = cn.r_max + shWall;
+   cns.length   = cn.length + 2.*shWall; // this is so we have the wall on both sides
+   cns.startPhi = 0.*deg;
+   cns.dPhi     = 360.*deg;
+
+   G4Tubs *cnsTube = new G4Tubs(cns.name,
+	                        cns.r_min    ,cns.r_max,
+	                        cns.length/2.,
+	                        cns.startPhi ,cns.dPhi);
+
+   // ---- downstream  
+   partParameters_t cps;
+   cps.name     = shellName_p;
+   cps.r_min    = cp.r_min - shWall;
+   cps.r_max    = cp.r_max + shWall;
+   cps.length   = cp.length + 2.*shWall; // this is so we have the wall on both sides
+   cps.startPhi = 0.*deg;
+   cps.dPhi     = 360.*deg;
+
+   G4Tubs *cpsTube = new G4Tubs(cps.name,
+	                        cps.r_min    ,cps.r_max,
+	                        cps.length/2.,
+	                        cps.startPhi ,cps.dPhi);
+
+   // need to create the core we subtract from the solid shell 
+   partParameters_t cns_core = cn;
+   cns_core.name = cn.name + "_core";
+   G4Tubs *cnsTube_core = new G4Tubs(cns_core.name,
+	                             cns_core.r_min    ,cns_core.r_max,
+	                             cns_core.length/2.,
+	                             cns_core.startPhi ,cns_core.dPhi);
+
+   partParameters_t cps_core = cp;
+   cps_core.name = cp.name + "_core";
+   G4Tubs *cpsTube_core = new G4Tubs(cps_core.name,
+	                             cps_core.r_min    ,cps_core.r_max,
+	                             cps_core.length/2.,
+	                             cps_core.startPhi ,cps_core.dPhi);
+
+   // subtract the core 
+   G4SubtractionSolid *coilShell_n = new G4SubtractionSolid("cns_sub",cnsTube,cnsTube_core,0,G4ThreeVector(0,0,0));
+   G4SubtractionSolid *coilShell_p = new G4SubtractionSolid("cps_sub",cpsTube,cpsTube_core,0,G4ThreeVector(0,0,0));
+
+   // create logical volumes 
+   G4VisAttributes *visCoilShell = new G4VisAttributes();
+   visCoilShell->SetForceWireframe();
+   if(type.compare("maj")==0) visCoilShell->SetColour( G4Colour::Red()   );
+   if(type.compare("rfy")==0) visCoilShell->SetColour( G4Colour::Green() );
+   if(type.compare("min")==0) visCoilShell->SetColour( G4Colour::Blue()  );
+
+   std::string logicShellName = "logicCoilShell_" + type; 
+   G4LogicalVolume **fLogicHelmholtzShell = new G4LogicalVolume*[2]; 
+   fLogicHelmholtzShell[0] = new G4LogicalVolume(coilShell_n,GetMaterial("NEMAG10"),logicShellName);
+   fLogicHelmholtzShell[1] = new G4LogicalVolume(coilShell_p,GetMaterial("NEMAG10"),logicShellName);
+
+   // place volumes 
+
+   // additional rotation to match engineering drawings (number A09016-03-08-0000) 
+   G4double dry=0;
+   if( type.compare("maj")==0 || type.compare("min")==0 ){
+      if(config==kSBS_GEN_146 || config==kSBS_GEN_368)  dry = 43.5*deg;
+      if(config==kSBS_GEN_677 || config==kSBS_GEN_1018) dry = 10.0*deg;
+   }
+
+   // adjust for y rotation.  
+   // WARNING: should this exactly follow rotated coordinates?
+   // rotation about y 
+   // x' =  xcos + zsin 
+   // z' = -xsin + zcos
+
+   // rotation 
+   G4double RX = cn.rx;
+   G4double RY = cn.ry + dry;
+   G4double RZ = cn.rz;
+
+   G4RotationMatrix *rms = new G4RotationMatrix();
+   rms->rotateX(RX); rms->rotateY(RY); rms->rotateZ(RZ);
+
+   // sine and cosine of total rotation angle about y axis
+   G4double COS_TOT = cos(RY);
+   G4double SIN_TOT = sin(RY);
+ 
+   G4double x0 = cn.x;
+   G4double y0 = cn.y;
+   G4double z0 = cn.z;
+
+   G4double x=0,y=0,z=0;
+
+   std::string physShellName = "physShell_" + type; 
+
+   bool isBoolean     = true;
+   bool checkOverlaps = true;
+ 
+   for(int i=0;i<2;i++){
+      // visualization 
+      fLogicHelmholtzShell[i]->SetVisAttributes(visCoilShell);
+      // determine position
+      if(type.compare("maj")==0){
+	 y = y0;
+	 if(i==0){ 
+	    x = x0 - (D/2.)*fabs(SIN_TOT);
+	    z = z0 - (D/2.)*fabs(COS_TOT);
+	 }else if(i==1){
+	    x = x0 + (D/2.)*fabs(SIN_TOT);
+	    z = z0 + (D/2.)*fabs(COS_TOT);
+	 }
+      }else if(type.compare("rfy")==0){
+         x = x0; 
+	 z = z0;
+         if(i==0) y = y0 - D/2.;  // below 
+         if(i==1) y = y0 + D/2.;  // above
+      }else if(type.compare("min")==0){
+	 y = y0;
+         if(i==0){
+            x = x0 + (D/2.)*fabs(SIN_TOT);
+            z = z0 - (D/2.)*fabs(COS_TOT);
+         }else if(i==1){
+            x = x0 - (D/2.)*fabs(SIN_TOT);
+            z = z0 + (D/2.)*fabs(COS_TOT);
+         }
+      }
+      // place the coil shell 
+      G4ThreeVector P_cs = G4ThreeVector(x,y,z);
+      new G4PVPlacement(rms,                      // rotation relative to logic mother     
+	                P_cs,                     // position relative to logic mother  
+	                fLogicHelmholtzShell[i],  // logical volume          
+	                physShellName,            // physical name     
+	                motherLog,                // logical mother volume 
+	                isBoolean,                // boolean solid?   
+	                i,                        // copy number  
+	                checkOverlaps);           // check overlaps  
+   }
+
+   // aluminum core -- goes *inside* the shell  
+   G4VisAttributes *visCoil = new G4VisAttributes();
+   visCoil->SetColour( G4Colour::Grey() );
+
+   // cylindrical geometry 
+   G4Tubs *cnTube = new G4Tubs(cn.name,
+                               cn.r_min,cn.r_max,
+                               cn.length/2.,
+                               cn.startPhi,cn.dPhi);
+
+   G4Tubs *cpTube = new G4Tubs(cp.name,
+                               cp.r_min,cp.r_max,
+                               cp.length/2.,
+                               cp.startPhi,cp.dPhi);
+
+   // logical volume of the coil cores
+   std::string logicCoilName = "logicCoil_" + type;  
+   G4LogicalVolume **fLogicHelmholtz = new G4LogicalVolume*[2]; 
+   fLogicHelmholtz[0] = new G4LogicalVolume(cnTube,GetMaterial("Aluminum"),logicCoilName);
+   fLogicHelmholtz[1] = new G4LogicalVolume(cpTube,GetMaterial("Aluminum"),logicCoilName); 
+
+   // placement.  note logic mother is the shell!  no rotation or position offsets needed  
+   std::string physCoilName = "physCoil_" + type;  
+   for(int i=0;i<2;i++){
+      // visualization
+      fLogicHelmholtz[i]->SetVisAttributes(visCoil);
+      // placement 
+      new G4PVPlacement(0,                        // rotation relative to logic mother             
+	                G4ThreeVector(0,0,0),     // position relative to logic mother             
+	                fLogicHelmholtz[i],       // logical volume                                
+	                physCoilName,             // physical name                                
+	                fLogicHelmholtzShell[i],  // logical mother volume                          
+	                isBoolean,                // boolean solid?                             
+	                i,                        // copy number                              
+	                checkOverlaps);           // check overlaps                          
+   }
+
 
 }
 

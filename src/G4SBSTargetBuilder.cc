@@ -2288,11 +2288,6 @@ void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMat
 void G4SBSTargetBuilder::BuildGEnTarget(const int config,G4LogicalVolume *motherLog){
    // Polarized 3He target for GEn
    // - geometry based on drawings from Bert Metzger and Gordon Cates  
-   // TODO: Do we create null pointers for logical volumes here,
-   //       and pass them in as arguments? Some functions (e.g., EndWindow, HelmholtzCoils) 
-   //       are generic, which simplifies code in the current design.  Need to be 
-   //       careful about creating logical volume pointers with unique names.
-   //       In stand-alone implementation, the pointers were private members; trying to avoid this here.     
 
    // glass cell 
    BuildGEnTarget_GlassCell(motherLog);

@@ -245,6 +245,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element* elCr  = man->FindOrBuildElement("Cr");
   G4Element* elMn   =  man->FindOrBuildElement("Mn");
   G4Element* elNi  = man->FindOrBuildElement("Ni");
+  G4Element *elP  = man->FindOrBuildElement("P");
+  G4Element *elS  = man->FindOrBuildElement("S");
+
 
   G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
   //Vacuum->SetMaterialPropertiesTable(Std_MPT);
@@ -498,7 +501,22 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   ref4He->AddElement(el4He, 1);
 
   fMaterialsMap["ref4He"] = ref4He;
- 
+
+  // GEn polarized 3He materials (D Flay, July 2020)  
+  // - includes materials for the full geometry
+  // - most materials already defined above; adding carbon steel, 
+  //   which is used for the magnetic shield  
+
+  // AISI 1008 carbon steel
+  // - details from http://www.iron-foundry.com/AISI-1008-SAE-UNS-G10080-Carbon-Steel-Foundry.html
+  // - NOTE: may throw a warning because this doesn't add to 100% (adds to 99.8%) 
+  G4Material *Carbon_Steel_1008 = new G4Material("Carbon_Steel_1008",7.872*g/cm3,5);
+  Carbon_Steel_1008->AddElement(elFe,0.9931);
+  Carbon_Steel_1008->AddElement(elMn,0.0030);
+  Carbon_Steel_1008->AddElement(elC ,0.0010);
+  Carbon_Steel_1008->AddElement(elS ,0.0005);
+  Carbon_Steel_1008->AddElement(elP ,0.0004);
+  fMaterialsMap["Carbon_Steel_1008"] = Carbon_Steel_1008;
   
   //Beamline materials:
   density = 2.5*g/cm3;

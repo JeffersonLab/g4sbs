@@ -2319,10 +2319,12 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // Glass cell for polarized 3He
    // - drawing number: internal from G. Cates (May 2020) 
 
+   G4double glassWall = 1.0*mm; // estimate 
+
    // pumping chamber 
    partParameters_t pumpCh; 
    pumpCh.name = "pumpingChamber"; pumpCh.shape = "sphere"; 
-   pumpCh.r_tor = 0.0*mm; pumpCh.r_min = 53.8*mm; pumpCh.r_max = 54.0*mm; pumpCh.length = 0.0*mm;
+   pumpCh.r_tor = 0.0*mm; pumpCh.r_max = 54.0*mm; pumpCh.r_min = pumpCh.r_max - glassWall; pumpCh.length = 0.0*mm;
    pumpCh.x_len = 0.0*mm; pumpCh.y_len = 0.0*mm; pumpCh.z_len = 0.0*mm;
    pumpCh.startTheta = 0.0*deg; pumpCh.dTheta = 180.0*deg;
    pumpCh.startPhi = 0.0*deg; pumpCh.dPhi = 360.0*deg;
@@ -2341,7 +2343,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // target chamber 
    partParameters_t tgtCh;
    tgtCh.name = "targetChamber"; tgtCh.shape = "tube"; 
-   tgtCh.r_tor = 0.0*mm; tgtCh.r_min = 10.3*mm; tgtCh.r_max = 10.5*mm; tgtCh.length = 579.0*mm;
+   tgtCh.r_tor = 0.0*mm; tgtCh.r_max = 10.5*mm; tgtCh.r_min = tgtCh.r_max - glassWall; tgtCh.length = 579.0*mm;
    tgtCh.x_len = 0.0*mm; tgtCh.y_len = 0.0*mm; tgtCh.z_len = 0.0*mm;
    tgtCh.startTheta = 0.0*deg; tgtCh.dTheta = 0.0*deg;
    tgtCh.startPhi = 0.0*deg; tgtCh.dPhi = 360.0*deg;
@@ -2361,7 +2363,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // ---- downstream 
    partParameters_t tted;
    tted.name = "transTubeEl_dn"; tted.shape = "torus"; 
-   tted.r_tor = 9.0*mm; tted.r_min = 4.3*mm; tted.r_max = 4.5*mm; tted.length = 0.0*mm;
+   tted.r_tor = 9.0*mm; tted.r_max = 4.5*mm; tted.r_min = tted.r_max - glassWall; tted.length = 0.0*mm;
    tted.x_len = 0.0*mm; tted.y_len = 0.0*mm; tted.z_len = 0.0*mm;
    tted.startTheta = 0.0*deg; tted.dTheta = 0.0*deg;
    tted.startPhi = 0.0*deg; tted.dPhi = 90.0*deg;
@@ -2379,7 +2381,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // ---- upstream
    partParameters_t tteu; 
    tteu.name = "transTubeEl_up"; tteu.shape = "torus"; 
-   tteu.r_tor = 9.0*mm; tteu.r_min = 4.3*mm; tteu.r_max = 4.5*mm; tteu.length = 0.0*mm;
+   tteu.r_tor = 9.0*mm; tteu.r_max = 4.5*mm; tteu.r_min = tteu.r_max - glassWall; tteu.length = 0.0*mm;
    tteu.x_len = 0.0*mm; tteu.y_len = 0.0*mm; tteu.z_len = 0.0*mm;
    tteu.startTheta = 0.0*deg; tteu.dTheta = 0.0*deg;
    tteu.startPhi = 0.0*deg; tteu.dPhi = 90.0*deg;
@@ -2398,7 +2400,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // ---- downstream
    partParameters_t ttedl; 
    ttedl.name = "transTubeElLo_dn"; ttedl.shape = "torus"; 
-   ttedl.r_tor = 9.0*mm; ttedl.r_min = 4.3*mm; ttedl.r_max = 4.5*mm; ttedl.length = 0.0*mm;
+   ttedl.r_tor = 9.0*mm; ttedl.r_max = 4.5*mm; ttedl.r_min = ttedl.r_max - glassWall; ttedl.length = 0.0*mm;
    ttedl.x_len = 0.0*mm; ttedl.y_len = 0.0*mm; ttedl.z_len = 0.0*mm;
    ttedl.startTheta = 0.0*deg; ttedl.dTheta = 0.0*deg;
    ttedl.startPhi = 0.0*deg; ttedl.dPhi = 90.0*deg;
@@ -2416,7 +2418,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // ---- upstream
    partParameters_t tteul; 
    tteul.name = "transTubeElLo_up"; tteul.shape = "torus"; 
-   tteul.r_tor = 9.0*mm; tteul.r_min = 4.3*mm; tteul.r_max = 4.5*mm; tteul.length = 0.0*mm;
+   tteul.r_tor = 9.0*mm; tteul.r_max = 4.5*mm; tteul.r_min = tteul.r_max - glassWall; tteul.length = 0.0*mm;
    tteul.x_len = 0.0*mm; tteul.y_len = 0.0*mm; tteul.z_len = 0.0*mm;
    tteul.startTheta = 0.0*deg; tteul.dTheta = 0.0*deg;
    tteul.startPhi = 0.0*deg; tteul.dPhi = 90.0*deg;
@@ -2434,7 +2436,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // transfer tube sphere 
    partParameters_t tts;
    tts.name = "transTubeSphere"; tts.shape = "sphere"; 
-   tts.r_tor = 0.0*mm; tts.r_min = 13.7*mm; tts.r_max = 13.9*mm; tts.length = 0.0*mm;
+   tts.r_tor = 0.0*mm; tts.r_max = 13.9*mm; tts.r_min = tts.r_max - glassWall; tts.length = 0.0*mm;
    tts.x_len = 0.0*mm; tts.y_len = 0.0*mm; tts.z_len = 0.0*mm;
    tts.startTheta = 0.0*deg; tts.dTheta = 180.0*deg;
    tts.startPhi = 0.0*deg; tts.dPhi = 360.0*deg;
@@ -2454,7 +2456,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // ---- upstream 
    partParameters_t ttuz; 
    ttuz.name = "transTubeZ_up"; ttuz.shape = "tube"; 
-   ttuz.r_tor = 0.0*mm; ttuz.r_min = 4.3*mm; ttuz.r_max = 4.5*mm; ttuz.length = 216.0*mm;
+   ttuz.r_tor = 0.0*mm; ttuz.r_max = 4.5*mm; ttuz.r_min = ttuz.r_max - glassWall; ttuz.length = 216.0*mm;
    ttuz.x_len = 0.0*mm; ttuz.y_len = 0.0*mm; ttuz.z_len = 0.0*mm;
    ttuz.startTheta = 0.0*deg; ttuz.dTheta = 0.0*deg;
    ttuz.startPhi = 0.0*deg; ttuz.dPhi = 360.0*deg;
@@ -2473,7 +2475,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // ---- downstream 
    partParameters_t ttdz; 
    ttdz.name = "transTubeZ_dn"; ttdz.shape = "tube"; 
-   ttdz.r_tor = 0.0*mm; ttdz.r_min = 4.3*mm; ttdz.r_max = 4.5*mm; ttdz.length = 216.0*mm;
+   ttdz.r_tor = 0.0*mm; ttdz.r_max = 4.5*mm; ttdz.r_min = ttdz.r_max - glassWall; ttdz.length = 216.0*mm;
    ttdz.x_len = 0.0*mm; ttdz.y_len = 0.0*mm; ttdz.z_len = 0.0*mm;
    ttdz.startTheta = 0.0*deg; ttdz.dTheta = 0.0*deg;
    ttdz.startPhi = 0.0*deg; ttdz.dPhi = 360.0*deg;
@@ -2493,7 +2495,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // --- upstream 
    partParameters_t ttuy; 
    ttuy.name = "transTubeY_up"; ttuy.shape = "tube"; 
-   ttuy.r_tor = 0.0*mm; ttuy.r_min = 4.3*mm; ttuy.r_max = 4.5*mm; ttuy.length = 233.0*mm;
+   ttuy.r_tor = 0.0*mm; ttuy.r_max = 4.5*mm; ttuy.r_min = ttuy.r_max - glassWall; ttuy.length = 233.0*mm;
    ttuy.x_len = 0.0*mm; ttuy.y_len = 0.0*mm; ttuy.z_len = 0.0*mm;
    ttuy.startTheta = 0.0*deg; ttuy.dTheta = 0.0*deg;
    ttuy.startPhi = 0.0*deg; ttuy.dPhi = 360.0*deg;
@@ -2513,7 +2515,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // ------ below sphere 
    partParameters_t ttdby;  
    ttdby.name = "transTubeYB_dn"; ttdby.shape = "tube"; 
-   ttdby.r_tor = 0.0*mm; ttdby.r_min = 4.3*mm; ttdby.r_max = 4.5*mm; ttdby.length = 189.0*mm;
+   ttdby.r_tor = 0.0*mm; ttdby.r_max = 4.5*mm; ttdby.r_min = ttdby.r_max - glassWall; ttdby.length = 189.0*mm;
    ttdby.x_len = 0.0*mm; ttdby.y_len = 0.0*mm; ttdby.z_len = 0.0*mm;
    ttdby.startTheta = 0.0*deg; ttdby.dTheta = 0.0*deg;
    ttdby.startPhi = 0.0*deg; ttdby.dPhi = 360.0*deg;
@@ -2532,7 +2534,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // ------ above sphere 
    partParameters_t ttday; 
    ttday.name = "transTubeYA_dn"; ttday.shape = "tube"; 
-   ttday.r_tor = 0.0*mm; ttday.r_min = 4.3*mm; ttday.r_max = 4.5*mm; ttday.length = 20.0*mm;
+   ttday.r_tor = 0.0*mm; ttday.r_max = 4.5*mm; ttday.r_min = ttday.r_max - glassWall; ttday.length = 20.0*mm;
    ttday.x_len = 0.0*mm; ttday.y_len = 0.0*mm; ttday.z_len = 0.0*mm;
    ttday.startTheta = 0.0*deg; ttday.dTheta = 0.0*deg;
    ttday.startPhi = 0.0*deg; ttday.dPhi = 360.0*deg;
@@ -2552,7 +2554,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // ---- downstream 
    partParameters_t ttpdy; 
    ttpdy.name = "transTubePost_dn"; ttpdy.shape = "tube"; 
-   ttpdy.r_tor = 0.0*mm; ttpdy.r_min = 4.3*mm; ttpdy.r_max = 4.5*mm; ttpdy.length = 23.0*mm;
+   ttpdy.r_tor = 0.0*mm; ttpdy.r_max = 4.5*mm; ttpdy.r_min = ttpdy.r_max - glassWall; ttpdy.length = 23.0*mm;
    ttpdy.x_len = 0.0*mm; ttpdy.y_len = 0.0*mm; ttpdy.z_len = 0.0*mm;
    ttpdy.startTheta = 0.0*deg; ttpdy.dTheta = 0.0*deg;
    ttpdy.startPhi = 0.0*deg; ttpdy.dPhi = 360.0*deg;
@@ -2571,7 +2573,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // ---- upstream 
    partParameters_t ttpuy; 
    ttpuy.name = "transTubePost_up"; ttpuy.shape = "tube"; 
-   ttpuy.r_tor = 0.0*mm; ttpuy.r_min = 4.3*mm; ttpuy.r_max = 4.5*mm; ttpuy.length = 23.0*mm;
+   ttpuy.r_tor = 0.0*mm; ttpuy.r_max = 4.5*mm; ttpuy.r_min = ttpuy.r_max - glassWall; ttpuy.length = 23.0*mm;
    ttpuy.x_len = 0.0*mm; ttpuy.y_len = 0.0*mm; ttpuy.z_len = 0.0*mm;
    ttpuy.startTheta = 0.0*deg; ttpuy.dTheta = 0.0*deg;
    ttpuy.startPhi = 0.0*deg; ttpuy.dPhi = 360.0*deg;

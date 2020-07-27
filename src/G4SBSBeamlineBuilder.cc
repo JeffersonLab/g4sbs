@@ -1984,10 +1984,11 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
 
 
-  ////BEGIN EXIT BEAMLINE UPDATE FOR SIDIS - S.SEEDS - MOST RECENT UPDATE: 7.11.20
+  ////BEGIN EXIT BEAMLINE UPDATE FOR SIDIS - S.SEEDS - MOST RECENT UPDATE: 7.24.20
   ////In progress - change visuals, and verify P1initPlacement_z
   ////Opted to leave out 80/20 rails and related fixtures as a first approximation
   ////Corrected initial placement with help from D. Flay.
+  ////Corrected side shields - material to be aluminum per R Wines. 7.24.20
 
   //Section One
   //This section details all components of the exit beamline from the target chamber to the first cone and shielding including all simple cylinders. All labels numbered by proximity to target chamber.
@@ -2686,7 +2687,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   */
 
   
-  //Side shields
+  //Side shields - NOT shields per material update 7.24.20
   //Specifications
   G4double sideshieldTh = 0.25*inch;
   G4double sideshieldA = 1.06*deg;
@@ -2700,8 +2701,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4Trd *P2sideshield1 = new G4Trd("P2sideshield1", P2sideshieldW1, P2sideshieldW2, sideshieldTh, sideshieldTh, P2sideshieldL);
   G4Trd *P2sideshield2 = new G4Trd("P2sideshield1", P2sideshieldW1, P2sideshieldW2, sideshieldTh, sideshieldTh, P2sideshieldL);
 
-  G4LogicalVolume *P2sideshield1_log = new G4LogicalVolume( P2sideshield1, GetMaterial("Lead"), "P2sideshield1_log" );
-  G4LogicalVolume *P2sideshield2_log = new G4LogicalVolume( P2sideshield2, GetMaterial("Lead"), "P2sideshield2_log" );
+  G4LogicalVolume *P2sideshield1_log = new G4LogicalVolume( P2sideshield1, GetMaterial("Aluminum"), "P2sideshield1_log" );
+  G4LogicalVolume *P2sideshield2_log = new G4LogicalVolume( P2sideshield2, GetMaterial("Aluminum"), "P2sideshield2_log" );
   
   G4RotationMatrix *P2rot1_temp = new G4RotationMatrix;
   P2rot1_temp->rotateZ(+90*deg);
@@ -2711,10 +2712,10 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   P2rot2_temp->rotateX(-sideshieldA);
 
   new G4PVPlacement( P2rot1_temp, G4ThreeVector(-P2sideshield_xoffset-P2sideshieldL*sin(sideshieldA), 0, P2initPlacement_z+P2sideshield_zoffset+P2sideshieldL*cos(sideshieldA)), P2sideshield1_log, "P2sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  P2sideshield1_log->SetVisAttributes(LeadColor);
+  P2sideshield1_log->SetVisAttributes(Aluminum);
  
   new G4PVPlacement( P2rot2_temp, G4ThreeVector(P2sideshield_xoffset+P2sideshieldL*sin(sideshieldA), 0, P2initPlacement_z+P2sideshield_zoffset+P2sideshieldL*cos(sideshieldA)), P2sideshield2_log, "P2sideshield2_log", worldlog, false, 0, ChkOverlaps);
-  P2sideshield2_log->SetVisAttributes(LeadColor);
+  P2sideshield2_log->SetVisAttributes(Aluminum);
 
  
   /*
@@ -2727,8 +2728,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
  
   //G4Trap *P2sideshield1 = new G4Trap("P2sideshield1", 20.*inch, 20.*inch, 5.*inch, 5.*inch, P2sideshieldL);
 
-  G4LogicalVolume *P2sideshield1_log = new G4LogicalVolume( P2sideshield1, GetMaterial("Lead"), "P2sideshield1_log" );
-  G4LogicalVolume *P2sideshield2_log = new G4LogicalVolume( P2sideshield2, GetMaterial("Lead"), "P2sideshield2_log" );
+  G4LogicalVolume *P2sideshield1_log = new G4LogicalVolume( P2sideshield1, GetMaterial("Aluminum"), "P2sideshield1_log" );
+  G4LogicalVolume *P2sideshield2_log = new G4LogicalVolume( P2sideshield2, GetMaterial("Aluminum"), "P2sideshield2_log" );
 
   //G4RotationMatrix *P2rot1_temp = new G4RotationMatrix;
   //P2rot1_temp->rotateZ(+90*deg);
@@ -2750,21 +2751,21 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   P2rot4_temp->rotateX(-91.5*deg);
 
   
-  //Assuming lead sideshields - Assembling a single trapezoidal shield from two G4Traps where three sides of the plane are at right angles and the last is defined by W1 and W2. The y offsets are guesses at this stage and will follow when the factors of 50 in W1 and W2 are understood.
+  //Assuming aluminum sideshields - Assembling a single trapezoidal shield from two G4Traps where three sides of the plane are at right angles and the last is defined by W1 and W2. The y offsets are guesses at this stage and will follow when the factors of 50 in W1 and W2 are understood.
 
   //new G4PVPlacement( P2rot2_temp, G4ThreeVector(-(P2sideshield_xoffset), 0, P2initPlacement_z+P2_offset2+P2sideshieldL/2), P2sideshield2_log, "P2sideshield2_log", worldlog, false, 0, ChkOverlaps);
-  //P2sideshield2_log->SetVisAttributes(LeadColor);
+  //P2sideshield2_log->SetVisAttributes(Aluminum);
   new G4PVPlacement( P2rot1_temp, G4ThreeVector(-P2sideshield_xoffset, -P2sideshieldW1/4, P2initPlacement_z+P2_offset2+P2sideshieldL/2), P2sideshield1_log, "P2sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  P2sideshield1_log->SetVisAttributes(LeadColor);
+  P2sideshield1_log->SetVisAttributes(Aluminum);
   new G4PVPlacement( P2rot2_temp, G4ThreeVector(-P2sideshield_xoffset, P2sideshieldW1/4, P2initPlacement_z+P2_offset2+P2sideshieldL/2), P2sideshield1_log, "P2sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  P2sideshield1_log->SetVisAttributes(LeadColor);
+  P2sideshield1_log->SetVisAttributes(Aluminum);
  
   //new G4PVPlacement( P2rot1_temp, G4ThreeVector(P2sideshield_xoffset, 0, P2initPlacement_z+P2_offset2+P2sideshieldL/2), P2sideshield1_log, "P2sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  //P2sideshield1_log->SetVisAttributes(LeadColor);
+  //P2sideshield1_log->SetVisAttributes(Aluminum);
   new G4PVPlacement( P2rot3_temp, G4ThreeVector(P2sideshield_xoffset, -P2sideshieldW1/4, P2initPlacement_z+P2_offset2+P2sideshieldL/2), P2sideshield1_log, "P2sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  P2sideshield1_log->SetVisAttributes(LeadColor);
+  P2sideshield1_log->SetVisAttributes(Aluminum);
   new G4PVPlacement( P2rot4_temp, G4ThreeVector(P2sideshield_xoffset, P2sideshieldW1/4, P2initPlacement_z+P2_offset2+P2sideshieldL/2), P2sideshield1_log, "P2sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  P2sideshield1_log->SetVisAttributes(LeadColor);
+  P2sideshield1_log->SetVisAttributes(Aluminum);
  
   */
 
@@ -3173,7 +3174,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
 
   
-  //P3 Side shields
+  //P3 Side shields - NOT shields per material update 7.24.20
   //Specifications
   G4double P3sideshieldL = 57.813/2*inch;
   G4double P3sideshieldW1 = 6.547/2*inch;
@@ -3185,8 +3186,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4Trd *P3sideshield1 = new G4Trd("P3sideshield1", P3sideshieldW1, P3sideshieldW2, sideshieldTh, sideshieldTh, P3sideshieldL);
   G4Trd *P3sideshield2 = new G4Trd("P3sideshield1", P3sideshieldW1, P3sideshieldW2, sideshieldTh, sideshieldTh, P3sideshieldL);
 
-  G4LogicalVolume *P3sideshield1_log = new G4LogicalVolume( P3sideshield1, GetMaterial("Lead"), "P3sideshield1_log" );
-  G4LogicalVolume *P3sideshield2_log = new G4LogicalVolume( P3sideshield2, GetMaterial("Lead"), "P3sideshield2_log" );
+  G4LogicalVolume *P3sideshield1_log = new G4LogicalVolume( P3sideshield1, GetMaterial("Aluminum"), "P3sideshield1_log" );
+  G4LogicalVolume *P3sideshield2_log = new G4LogicalVolume( P3sideshield2, GetMaterial("Aluminum"), "P3sideshield2_log" );
   
   G4RotationMatrix *P3rot1_temp = new G4RotationMatrix;
   P3rot1_temp->rotateZ(+90*deg);
@@ -3196,10 +3197,10 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   P3rot2_temp->rotateX(-sideshieldA);
 
   new G4PVPlacement( P3rot1_temp, G4ThreeVector(-P3sideshield_xoffset-P3sideshieldL*sin(sideshieldA), 0, P2initPlacement_z+P3sideshield_zoffset+P3sideshieldL*cos(sideshieldA)), P3sideshield1_log, "P3sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  P3sideshield1_log->SetVisAttributes(LeadColor);
+  P3sideshield1_log->SetVisAttributes(Aluminum);
  
   new G4PVPlacement( P3rot2_temp, G4ThreeVector(P3sideshield_xoffset+P3sideshieldL*sin(sideshieldA), 0, P2initPlacement_z+P3sideshield_zoffset+P3sideshieldL*cos(sideshieldA)), P3sideshield2_log, "P3sideshield2_log", worldlog, false, 0, ChkOverlaps);
-  P3sideshield2_log->SetVisAttributes(LeadColor);
+  P3sideshield2_log->SetVisAttributes(Aluminum);
 
 
   /*
@@ -3209,8 +3210,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4Trap *P3sideshield2 = new G4Trap("P3sideshield2", P3sideshieldL, P3sideshieldTh, P3sideshieldW2, P3sideshieldW1);
   G4Trap *P3sideshield1 = new G4Trap("P3sideshield1", P3sideshieldTh, P3sideshieldL, P3sideshieldW1/50*inch, P3sideshieldW2/50*inch); //Not sure why these factors of 50 are necessary yet, both values are guesses.
 
-  G4LogicalVolume *P3sideshield1_log = new G4LogicalVolume( P3sideshield1, GetMaterial("Lead"), "P3sideshield1_log" );
-  G4LogicalVolume *P3sideshield2_log = new G4LogicalVolume( P3sideshield2, GetMaterial("Lead"), "P3sideshield2_log" );
+  G4LogicalVolume *P3sideshield1_log = new G4LogicalVolume( P3sideshield1, GetMaterial("Aluminum"), "P3sideshield1_log" );
+  G4LogicalVolume *P3sideshield2_log = new G4LogicalVolume( P3sideshield2, GetMaterial("Aluminum"), "P3sideshield2_log" );
 
  G4RotationMatrix *P3rot1_temp = new G4RotationMatrix;
   P3rot1_temp->rotateZ(+90*deg);
@@ -3226,17 +3227,17 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   P3rot4_temp->rotateX(-91.5*deg);
 
   
-  //Assuming lead sideshields - Assembling a single trapezoidal shield from two G4Traps where three sides of the plane are at right angles and the last is defined by W1 and W2. The y offsets are guesses at this stage and will follow when the factors of 50 in W1 and W2 are understood.
+  //Assuming aluminum sideshields - Assembling a single trapezoidal shield from two G4Traps where three sides of the plane are at right angles and the last is defined by W1 and W2. The y offsets are guesses at this stage and will follow when the factors of 50 in W1 and W2 are understood.
 
   new G4PVPlacement( P3rot1_temp, G4ThreeVector(-P3sideshield_xoffset, -P3sideshieldW1/4, P2initPlacement_z+P3sideshield_zoffset+P3sideshieldL/2), P3sideshield1_log, "P3sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  P3sideshield1_log->SetVisAttributes(LeadColor);
+  P3sideshield1_log->SetVisAttributes(Aluminum);
   new G4PVPlacement( P3rot2_temp, G4ThreeVector(-P3sideshield_xoffset, P3sideshieldW1/4, P2initPlacement_z+P3sideshield_zoffset+P3sideshieldL/2), P3sideshield1_log, "P3sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  P3sideshield1_log->SetVisAttributes(LeadColor);
+  P3sideshield1_log->SetVisAttributes(Aluminum);
  
   new G4PVPlacement( P3rot3_temp, G4ThreeVector(P3sideshield_xoffset, -P3sideshieldW1/4, P2initPlacement_z+P3sideshield_zoffset+P3sideshieldL/2), P3sideshield1_log, "P3sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  P3sideshield1_log->SetVisAttributes(LeadColor);
+  P3sideshield1_log->SetVisAttributes(Aluminum);
   new G4PVPlacement( P3rot4_temp, G4ThreeVector(P3sideshield_xoffset, P3sideshieldW1/4, P2initPlacement_z+P3sideshield_zoffset+P3sideshieldL/2), P3sideshield1_log, "P3sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  P3sideshield1_log->SetVisAttributes(LeadColor);
+  P3sideshield1_log->SetVisAttributes(Aluminum);
  
   */
 
@@ -3367,7 +3368,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   P4ring7Log->SetVisAttributes(Iron);
 
 
-  //P4 Side shields
+  //P4 Side shields - NOT shields per material update 7.24.20
   //Specifications
   G4double P4sideshieldL = 13.498/2*inch;
   G4double P4sideshieldW1 = 9.280/2*inch;
@@ -3379,8 +3380,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4Trd *P4sideshield1 = new G4Trd("P4sideshield1", P4sideshieldW1, P4sideshieldW2, sideshieldTh, sideshieldTh, P4sideshieldL);
   G4Trd *P4sideshield2 = new G4Trd("P4sideshield1", P4sideshieldW1, P4sideshieldW2, sideshieldTh, sideshieldTh, P4sideshieldL);
 
-  G4LogicalVolume *P4sideshield1_log = new G4LogicalVolume( P4sideshield1, GetMaterial("Lead"), "P4sideshield1_log" );
-  G4LogicalVolume *P4sideshield2_log = new G4LogicalVolume( P4sideshield2, GetMaterial("Lead"), "P4sideshield2_log" );
+  G4LogicalVolume *P4sideshield1_log = new G4LogicalVolume( P4sideshield1, GetMaterial("Aluminum"), "P4sideshield1_log" );
+  G4LogicalVolume *P4sideshield2_log = new G4LogicalVolume( P4sideshield2, GetMaterial("Aluminum"), "P4sideshield2_log" );
   
   G4RotationMatrix *P4rot1_temp = new G4RotationMatrix;
   P4rot1_temp->rotateZ(+90*deg);
@@ -3390,10 +3391,10 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   P4rot2_temp->rotateX(-sideshieldA);
 
   new G4PVPlacement( P4rot1_temp, G4ThreeVector(-P4sideshield_xoffset-P4sideshieldL*sin(sideshieldA), 0, P2initPlacement_z+P4sideshield_zoffset+P4sideshieldL*cos(sideshieldA)), P4sideshield1_log, "P4sideshield1_log", worldlog, false, 0, ChkOverlaps);
-  P4sideshield1_log->SetVisAttributes(LeadColor);
+  P4sideshield1_log->SetVisAttributes(Aluminum);
  
   new G4PVPlacement( P4rot2_temp, G4ThreeVector(P4sideshield_xoffset+P4sideshieldL*sin(sideshieldA), 0, P2initPlacement_z+P4sideshield_zoffset+P4sideshieldL*cos(sideshieldA)), P4sideshield2_log, "P4sideshield2_log", worldlog, false, 0, ChkOverlaps);
-  P4sideshield2_log->SetVisAttributes(LeadColor);
+  P4sideshield2_log->SetVisAttributes(Aluminum);
 
 
   //P5 Endcap
@@ -3887,7 +3888,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
 
 /*
-//lead shielding for GEn/SIDIS
+//Lead shielding for GEn/SIDIS
 void G4SBSBeamlineBuilder::MakeSIDISLead(G4LogicalVolume *worldlog){
   bool leadring = true;
   bool checkoverlaps = false;

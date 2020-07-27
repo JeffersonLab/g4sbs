@@ -64,6 +64,12 @@ public:
   std::vector<G4double> GetFoilZpos() const { return fFoilZpos; }
   void SetFoilThick(G4int, G4double);
   void SetFoilZpos(G4int, G4double);
+
+  void SetUseRad( G4bool b ){fUseRad = b; }
+  void SetRadThick( G4double v ){ fRadThick = v; }
+  void SetRadZoffset( G4double v ){ fRadZoffset = v; }
+
+  void BuildRadiator(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector );
   
 private:
   //Multi-foil solid targets (only Carbon available for now):
@@ -83,6 +89,10 @@ private:
   int fSchamFlag;
 
   G4bool fFlux;
+
+  G4bool fUseRad; //use radiator?
+  G4double fRadThick; //Thickness in units of X0;
+  G4double fRadZoffset;  //Distance upstream of target
   
   Targ_t fTargType;
 };

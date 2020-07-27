@@ -341,9 +341,12 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   new G4PVPlacement(yokerm,G4ThreeVector(0.0, 0.0, -motherdepth/2.0+clear),
 		    bbyokewgapLog, "bbyokewgapPhysical", bbmotherLog, false,0, chkoverlap);
+
+  //Sieve plate position is 13.37 inches ~= 34 cm upstream of front of magnet yoke:
+  //Thickness of sieve plate is 1.5 inches
   
   if( fBuildBBSieve ){
-    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+37.0*cm-0.75*2.54*cm);
+    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
     MakeBBSieveSlit( bbmotherLog, BBSievePos );
   }
   

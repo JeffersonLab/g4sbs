@@ -79,7 +79,6 @@ G4SBSMessenger::G4SBSMessenger(){
   flipGEMCmd->SetGuidance("Reverse GEM orientation front-to-back (bool). Applies to ALL GEMs!");
   flipGEMCmd->SetParameterName("flipGEM", false );
   
-  
   ECALmapfileCmd = new G4UIcmdWithAString("/g4sbs/ECALmap",this);
   ECALmapfileCmd->SetGuidance("Name of text file listing active ECAL cells (assumed to be located in database/)");
   ECALmapfileCmd->SetParameterName("ECALmapfile",false);
@@ -95,6 +94,13 @@ G4SBSMessenger::G4SBSMessenger(){
   tgtCmd = new G4UIcmdWithAString("/g4sbs/target",this);
   tgtCmd->SetGuidance("Target type from LH2, LD2, H2, D2, 3He, (fictional) neutron target");
   tgtCmd->SetParameterName("targtype", false);
+
+  // D. Flay (7/28/20) 
+  // for GEn 3He target Helmholtz coil configuration 
+  GENTargetHelmholtzCmd = new G4UIcmdWithAnInteger("/g4sbs/genTargetHelmholtzConfig",this);
+  GENTargetHelmholtzCmd->SetGuidance("GEn 3He target Helmholts coil configuration based on central Q2 value"); 
+  GENTargetHelmholtzCmd->SetGuidance("1 => Q2 = 1.46 (GeV/c)^2, 2 => Q2 = 3.68 (GeV/c)^2, 3 => Q2 = 6.77 (GeV/c)^2, 4 => Q2 = 10.18 (GeV/c)^2, "); 
+  GENTargetHelmholtzCmd->SetParameterName("genTargetHelmholtzConfig",1);
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
   kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");

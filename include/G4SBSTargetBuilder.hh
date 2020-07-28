@@ -41,7 +41,7 @@ public:
   void BuildToyScatCham(G4LogicalVolume *);
 
   // GEn Polarized 3He target (D Flay, July 2020) 
-  void BuildGEnTarget(const int config,G4LogicalVolume *motherLog); 
+  void BuildGEnTarget(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog); 

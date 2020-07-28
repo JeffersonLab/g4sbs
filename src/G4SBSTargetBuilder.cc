@@ -74,7 +74,7 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     break;
   case(kGEN):
     BuildGasTarget( worldlog );
-    // BuildGEnTarget(config,worldLog); // FIXME: Need a Q2 index for helmholtz coils 
+    // BuildGEnTarget(worldLog); // FIXME: Need a Q2 index for helmholtz coils 
     break;
   case(kSIDISExp):
     BuildGasTarget( worldlog );
@@ -2285,7 +2285,7 @@ void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMat
   new G4PVPlacement( rot, pos, radlog, "radphys", motherlog, false, 0 );
 }
 
-void G4SBSTargetBuilder::BuildGEnTarget(const int config,G4LogicalVolume *motherLog){
+void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    // Polarized 3He target for GEn
    // - geometry based on drawings from Bert Metzger and Gordon Cates  
 
@@ -2300,6 +2300,8 @@ void G4SBSTargetBuilder::BuildGEnTarget(const int config,G4LogicalVolume *mother
    BuildGEnTarget_PolarizedHe3(motherLog);
 
    // helmholtz coils
+   // FIXME: set the config flag from a user input flag (G4SBSMessenger) 
+   int config = kSBS_GEN_146; 
    BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
    BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);
    BuildGEnTarget_HelmholtzCoils(config,"min",motherLog);
@@ -2624,7 +2626,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    glassCell = new G4UnionSolid("glassCell",glassCell,pumpChamberShape,rm_pc,P_pc);
 
    // logical volume
-   G4LogicalVolume *logicGlassCell = new G4LogicalVolume(glassCell,GetMaterial("GE180"),"logicGEn_GlassCell");
+   G4LogicalVolume *logicGlassCell = new G4LogicalVolume(glassCell,GetMaterial("GE180"),"logicGEnTarget_GlassCell");
 
    // visualization 
    G4VisAttributes *visGC = new G4VisAttributes();
@@ -2752,9 +2754,6 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    // endcap  
    endWindow = new G4UnionSolid(label3,endWindow,endcap  ,rm_ec  ,P_ec); 
 
-   // logical volumes 
-   G4LogicalVolume **logicEndWindow = new G4LogicalVolume*[2];
-
    // visualization
    G4VisAttributes *vis = new G4VisAttributes();
    vis->SetColour( G4Colour::Red() );
@@ -2776,31 +2775,36 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    G4double rz[2] = {0.*deg  ,0.*deg}; 
 
    bool isBoolean     = true; 
-   bool checkOverlaps = true;  
+   bool checkOverlaps = true; 
+ 
+   // logical volumes (for an array of logical volume pointers)  
+   G4LogicalVolume **logicEndWindow = new G4LogicalVolume*[2];
+
+   char logicName[200],physName[200]; 
 
    for(int i=0;i<2;i++){
-      // create logical volume 
-      logicEndWindow[i] = new G4LogicalVolume(endWindow,GetMaterial("Copper"),"logicGEn_EndWindow");
+      // create logical volume
+      sprintf(logicName,"logicGEnTarget_EndWindow_%d",i);  
+      logicEndWindow[i] = new G4LogicalVolume(endWindow,GetMaterial("Copper"),logicName);
       logicEndWindow[i]->SetVisAttributes(vis);  
       // position and rotation 
       G4ThreeVector P_ew      = G4ThreeVector(x_ew[i],y_ew[i],z_ew[i]);
       G4RotationMatrix *rm_ew = new G4RotationMatrix();
-      rm_ew->rotateX(rx[i]); rm_ew->rotateY(ry[i]); rm_ew->rotateZ(rz[i]); 
-      // place it 
+      rm_ew->rotateX(rx[i]); rm_ew->rotateY(ry[i]); rm_ew->rotateZ(rz[i]);
+      // physical name 
+      sprintf(physName,"physGEnTarget_EndWindow_%d",i);  
+      // place the volume  
       new G4PVPlacement(rm_ew,               // rotation relative to logic mother
 	                P_ew,                // position relative to logic mother 
-	                logicEndWindow[i],  // logical volume 
-	                "physEndWindow",     // name 
+	                logicEndWindow[i],   // logical volume 
+	                physName,            // name 
 	                motherLog,           // logical mother volume is the target chamber 
 	                isBoolean,           // no boolean operations 
 	                i,                   // copy number 
 	                checkOverlaps);      // check overlaps
- 
+      // register with DetectorConstruction object
+      fDetCon->InsertTargetVolume( logicEndWindow[i]->GetName() );  
    }
-
-   // register with DetectorConstruction object
-   // FIXME: Is this double-counting when we have repeated volumes?  
-   for(int i=0;i<2;i++) fDetCon->InsertTargetVolume( logicEndWindow[i]->GetName() );  
  
 }
 
@@ -2833,12 +2837,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
    // parameters 
    partParameters_t cn; 
    cn.shape = "tube";
-   // cn.r_tor = 0.0*mm; cn.r_min = 722.3*mm; cn.r_max = 793.8*mm; cn.length = 80.9*mm;
-   // cn.x_len = 0.0*mm; cn.y_len = 0.0*mm; cn.z_len = 0.0*mm;
    cn.startTheta = 0.0*deg; cn.dTheta = 0.0*deg;
-   cn.startPhi = 0.0*deg; cn.dPhi = 360.0*deg;
-   // cn.x = 0.0*mm; cn.y = 150.1*mm; cn.z = 0.0*mm;
-   // cn.rx = 0.0*deg; cn.ry = 90.0*deg; cn.rz = 0.0*deg;
+   cn.startPhi   = 0.0*deg; cn.dPhi   = 360.0*deg;
      
    cn.name = coilName_n;
 
@@ -2858,19 +2858,21 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
       std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils]: Invalid type = " << type << std::endl;
       exit(1);
    }
-
-   // upstream coil 
-   partParameters_t cp = cn; 
-   cp.name = coilName_p;
-   
+ 
    // coil parameters   
    G4double D      = 0.5*(cn.r_min + cn.r_max);          // helmholtz separation D = R = 0.5(rmin + rmax) 
    G4double shWall = 0;
 
+   G4double inch   = 2.54*cm; 
+
    if( type.compare("maj")==0 ) shWall = 5.0*mm;         // FIXME: Estimates for now! 
    if( type.compare("min")==0 ) shWall = 5.0*mm;         // FIXME: Estimates for now! 
-   if( type.compare("rfy")==0 ) shWall = 0.030*25.4*mm;
+   if( type.compare("rfy")==0 ) shWall = 0.030*inch;
 
+   // // upstream coil 
+   // partParameters_t cp = cn; 
+   // cp.name = coilName_p;
+  
    // shell 
    // ---- upstream  
    partParameters_t cns;
@@ -2886,19 +2888,6 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
 	                        cns.length/2.,
 	                        cns.startPhi ,cns.dPhi);
 
-   // ---- downstream  
-   partParameters_t cps;
-   cps.name     = shellName_p;
-   cps.r_min    = cp.r_min - shWall;
-   cps.r_max    = cp.r_max + shWall;
-   cps.length   = cp.length + 2.*shWall; // this is so we have the wall on both sides
-   cps.startPhi = 0.*deg;
-   cps.dPhi     = 360.*deg;
-
-   G4Tubs *cpsTube = new G4Tubs(cps.name,
-	                        cps.r_min    ,cps.r_max,
-	                        cps.length/2.,
-	                        cps.startPhi ,cps.dPhi);
 
    // need to create the core we subtract from the solid shell 
    partParameters_t cns_core = cn;
@@ -2908,30 +2897,36 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
 	                             cns_core.length/2.,
 	                             cns_core.startPhi ,cns_core.dPhi);
 
-   partParameters_t cps_core = cp;
-   cps_core.name = cp.name + "_core";
-   G4Tubs *cpsTube_core = new G4Tubs(cps_core.name,
-	                             cps_core.r_min    ,cps_core.r_max,
-	                             cps_core.length/2.,
-	                             cps_core.startPhi ,cps_core.dPhi);
-
    // subtract the core 
-   G4SubtractionSolid *coilShell_n = new G4SubtractionSolid("cns_sub",cnsTube,cnsTube_core,0,G4ThreeVector(0,0,0));
-   G4SubtractionSolid *coilShell_p = new G4SubtractionSolid("cps_sub",cpsTube,cpsTube_core,0,G4ThreeVector(0,0,0));
+   G4SubtractionSolid *coilShell = new G4SubtractionSolid("cns_sub",cnsTube,cnsTube_core,0,G4ThreeVector(0,0,0));
 
-   // create logical volumes 
-   G4VisAttributes *visCoilShell = new G4VisAttributes();
-   visCoilShell->SetForceWireframe();
-   if(type.compare("maj")==0) visCoilShell->SetColour( G4Colour::Red()   );
-   if(type.compare("rfy")==0) visCoilShell->SetColour( G4Colour::Green() );
-   if(type.compare("min")==0) visCoilShell->SetColour( G4Colour::Blue()  );
+// this seems repetitive (unnecessary?) 
+//    // ---- downstream  
+//    partParameters_t cps;
+//    cps.name     = shellName_p;
+//    cps.r_min    = cp.r_min - shWall;
+//    cps.r_max    = cp.r_max + shWall;
+//    cps.length   = cp.length + 2.*shWall; // this is so we have the wall on both sides
+//    cps.startPhi = 0.*deg;
+//    cps.dPhi     = 360.*deg;
+// 
+//    G4Tubs *cpsTube = new G4Tubs(cps.name,
+// 	                        cps.r_min    ,cps.r_max,
+// 	                        cps.length/2.,
+// 	                        cps.startPhi ,cps.dPhi);
+//
+//    partParameters_t cps_core = cp;
+//    cps_core.name = cp.name + "_core";
+//    G4Tubs *cpsTube_core = new G4Tubs(cps_core.name,
+// 	                             cps_core.r_min    ,cps_core.r_max,
+// 	                             cps_core.length/2.,
+// 	                             cps_core.startPhi ,cps_core.dPhi);
+//    // subtract the core 
+//    G4SubtractionSolid *coilShell_p = new G4SubtractionSolid("cps_sub",cpsTube,cpsTube_core,0,G4ThreeVector(0,0,0));
 
-   std::string logicShellName = "logicGEn_HHCoilShell_" + type; 
-   G4LogicalVolume **logicHelmholtzShell = new G4LogicalVolume*[2]; 
-   logicHelmholtzShell[0] = new G4LogicalVolume(coilShell_n,GetMaterial("NEMAG10"),logicShellName);
-   logicHelmholtzShell[1] = new G4LogicalVolume(coilShell_p,GetMaterial("NEMAG10"),logicShellName);
 
    // place volumes 
+   // determine coordinates for placement based on type 
 
    // additional rotation to match engineering drawings (number A09016-03-08-0000) 
    G4double dry=0;
@@ -2957,56 +2952,64 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
    // sine and cosine of total rotation angle about y axis
    G4double COS_TOT = cos(RY);
    G4double SIN_TOT = sin(RY);
- 
+
+
+   bool isBoolean     = true;
+   bool checkOverlaps = true;
+
    G4double x0 = cn.x;
    G4double y0 = cn.y;
    G4double z0 = cn.z;
 
-   G4double x=0,y=0,z=0;
+   G4double x[2] = {x0,x0}; 
+   G4double y[2] = {y0,y0}; 
+   G4double z[2] = {z0,z0}; 
 
-   std::string physShellName = "physShell_" + type; 
+   if(type.compare("maj")==0){
+      x[0] = x0 - (D/2.)*fabs(SIN_TOT); 
+      x[1] = x0 + (D/2.)*fabs(SIN_TOT); 
+      z[0] = z0 - (D/2.)*fabs(COS_TOT); 
+      z[1] = z0 + (D/2.)*fabs(COS_TOT); 
+   }else if(type.compare("min")==0){
+      x[0] = x0 + (D/2.)*fabs(SIN_TOT); 
+      x[1] = x0 - (D/2.)*fabs(SIN_TOT); 
+      // note sign doesn't flip for z! 
+      z[0] = z0 - (D/2.)*fabs(COS_TOT); 
+      z[1] = z0 + (D/2.)*fabs(COS_TOT); 
+   }else if(type.compare("rfy")==0){
+      y[0] = y0 - D/2.; // below
+      y[1] = y0 + D/2.; // above 
+   }
 
-   bool isBoolean     = true;
-   bool checkOverlaps = true;
+   // create logical volumes 
+   G4VisAttributes *visCS = new G4VisAttributes();
+   visCS->SetForceWireframe();
+   if(type.compare("maj")==0) visCS->SetColour( G4Colour::Red()   );
+   if(type.compare("rfy")==0) visCS->SetColour( G4Colour::Green() );
+   if(type.compare("min")==0) visCS->SetColour( G4Colour::Blue()  );
+
+   // logical volumes
+   G4LogicalVolume **logicHelmholtzShell = new G4LogicalVolume*[2]; 
+
+   char logicShellName[200],physShellName[200]; 
  
    for(int i=0;i<2;i++){
-      // visualization 
-      logicHelmholtzShell[i]->SetVisAttributes(visCoilShell);
-      // determine position
-      if(type.compare("maj")==0){
-	 y = y0;
-	 if(i==0){ 
-	    x = x0 - (D/2.)*fabs(SIN_TOT);
-	    z = z0 - (D/2.)*fabs(COS_TOT);
-	 }else if(i==1){
-	    x = x0 + (D/2.)*fabs(SIN_TOT);
-	    z = z0 + (D/2.)*fabs(COS_TOT);
-	 }
-      }else if(type.compare("rfy")==0){
-         x = x0; 
-	 z = z0;
-         if(i==0) y = y0 - D/2.;  // below 
-         if(i==1) y = y0 + D/2.;  // above
-      }else if(type.compare("min")==0){
-	 y = y0;
-         if(i==0){
-            x = x0 + (D/2.)*fabs(SIN_TOT);
-            z = z0 - (D/2.)*fabs(COS_TOT);
-         }else if(i==1){
-            x = x0 - (D/2.)*fabs(SIN_TOT);
-            z = z0 + (D/2.)*fabs(COS_TOT);
-         }
-      }
+      sprintf(logicShellName,"logicGEnTarget_HHCoilShell_%s_%d",type.c_str(),i); 
+      logicHelmholtzShell[i] = new G4LogicalVolume(coilShell,GetMaterial("NEMAG10"),logicShellName);
+      logicHelmholtzShell[i]->SetVisAttributes(visCS); 
       // place the coil shell 
-      G4ThreeVector P_cs = G4ThreeVector(x,y,z);
+      G4ThreeVector P_cs = G4ThreeVector(x[i],y[i],z[i]);
+      sprintf(physShellName,"physGEnTarget_HHCoilShell_%s_%d",type.c_str(),i); 
       new G4PVPlacement(rms,                      // rotation relative to logic mother     
 	                P_cs,                     // position relative to logic mother  
-	                logicHelmholtzShell[i],  // logical volume          
+	                logicHelmholtzShell[i],   // logical volume          
 	                physShellName,            // physical name     
 	                motherLog,                // logical mother volume 
 	                isBoolean,                // boolean solid?   
 	                i,                        // copy number  
-	                checkOverlaps);           // check overlaps  
+	                checkOverlaps);           // check overlaps 
+      // register with DetectorConstruction object
+      fDetCon->InsertTargetVolume( logicHelmholtzShell[i]->GetName() ); 
    }
 
    // aluminum core -- goes *inside* the shell  
@@ -3019,37 +3022,33 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
                                cn.length/2.,
                                cn.startPhi,cn.dPhi);
 
-   G4Tubs *cpTube = new G4Tubs(cp.name,
-                               cp.r_min,cp.r_max,
-                               cp.length/2.,
-                               cp.startPhi,cp.dPhi);
+//   G4Tubs *cpTube = new G4Tubs(cp.name,
+//                               cp.r_min,cp.r_max,
+//                               cp.length/2.,
+//                               cp.startPhi,cp.dPhi);
 
    // logical volume of the coil cores
-   std::string logicCoilName = "logicGEn_HHCoil_" + type;  
-   G4LogicalVolume **logicHelmholtz = new G4LogicalVolume*[2]; 
-   logicHelmholtz[0] = new G4LogicalVolume(cnTube,GetMaterial("Aluminum"),logicCoilName);
-   logicHelmholtz[1] = new G4LogicalVolume(cpTube,GetMaterial("Aluminum"),logicCoilName); 
+   char logicCoilName[200],physCoilName[200];
+   G4LogicalVolume **logicHelmholtz = new G4LogicalVolume*[2];
 
    // placement.  note logic mother is the shell!  no rotation or position offsets needed  
-   std::string physCoilName = "physCoil_" + type;  
+   // std::string physCoilName = "physCoil_" + type;  
    for(int i=0;i<2;i++){
-      // visualization
+      sprintf(logicCoilName,"logicGEnTarget_HHCoil_%s_%d",type.c_str(),i); 
+      logicHelmholtz[i] = new G4LogicalVolume(cnTube,GetMaterial("Aluminum"),logicCoilName);
       logicHelmholtz[i]->SetVisAttributes(visCoil);
-      // placement 
+      sprintf(physShellName,"physGEnTarget_HHCoil_%s_%d",type.c_str(),i); 
       new G4PVPlacement(0,                        // rotation relative to logic mother             
 	                G4ThreeVector(0,0,0),     // position relative to logic mother             
-	                logicHelmholtz[i],       // logical volume                                
+	                logicHelmholtz[i],        // logical volume                                
 	                physCoilName,             // physical name                                
-	                logicHelmholtzShell[i],  // logical mother volume                          
+	                logicHelmholtzShell[i],   // logical mother volume                          
 	                isBoolean,                // boolean solid?                             
 	                i,                        // copy number                              
 	                checkOverlaps);           // check overlaps                          
+      // register with DetectorConstruction object
+      fDetCon->InsertTargetVolume( logicHelmholtz[i]->GetName() ); 
    }
-
-   // register with DetectorConstruction object
-   // FIXME: Is this double-counting when we have repeated volumes?  
-   for(int i=0;i<2;i++) fDetCon->InsertTargetVolume( logicHelmholtz[i]->GetName() );  
-   for(int i=0;i<2;i++) fDetCon->InsertTargetVolume( logicHelmholtzShell[i]->GetName() );  
 
 }
 
@@ -3224,8 +3223,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
 
    // accumulate into logical volume pointer 
    G4LogicalVolume **logicShield = new G4LogicalVolume*[2]; 
-   logicShield[0] = new G4LogicalVolume(innerShield,GetMaterial("Carbon_Steel_1008"),"logicGEn_Shield");
-   logicShield[1] = new G4LogicalVolume(outerShield,GetMaterial("Carbon_Steel_1008"),"logicGEn_Shield");
+   logicShield[0] = new G4LogicalVolume(innerShield,GetMaterial("Carbon_Steel_1008"),"logicGEnTarget_InnerShield");
+   logicShield[1] = new G4LogicalVolume(outerShield,GetMaterial("Carbon_Steel_1008"),"logicGEnTarget_OuterShield");
 
    G4VisAttributes *vis = new G4VisAttributes();
    vis->SetColour( G4Colour::Magenta() );
@@ -3234,8 +3233,10 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
    // rotation angle 
    G4double RY = 55.0*deg;  // FIXME: This angle is still an estimate!  
 
-   bool isBoolean = true;
+   bool isBoolean     = true;
    bool checkOverlaps = true;
+
+   char physName[200]; 
 
    // placement 
    for(int i=0;i<2;i++){
@@ -3244,20 +3245,22 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
       // rotation
       G4RotationMatrix *rm = new G4RotationMatrix();
       rm->rotateX(0.*deg); rm->rotateY(RY); rm->rotateZ(0.*deg);
+      // physical volume name
+      if(i==0) sprintf(physName,"physGEnTarget_InnerShield"); 
+      if(i==1) sprintf(physName,"physGEnTarget_OuterShield");
+      G4ThreeVector P = G4ThreeVector(0,0,0);  
       // placement 
-      new G4PVPlacement(rm,                               // rotation relative to mother       
-	                G4ThreeVector(0.*cm,0.*cm,0.*cm), // position relative to mother         
-	                logicShield[i],                  // logical volume        
-	                "physShield",                     // physical volume name           
-	                motherLog,                        // logical mother     
-	                isBoolean,                        // is boolean device? (true or false)    
-	                i,                                // copy number    
-	                checkOverlaps);                   // check overlaps  
+      new G4PVPlacement(rm,                   // rotation relative to mother       
+	                P,                    // position relative to mother         
+	                logicShield[i],       // logical volume        
+	                physName,             // physical volume name           
+	                motherLog,            // logical mother     
+	                isBoolean,            // is boolean device? (true or false)    
+	                i,                    // copy number    
+	                checkOverlaps);       // check overlaps  
+      // register with DetectorConstruction object
+      fDetCon->InsertTargetVolume( logicShield[i]->GetName() );  
    }
-
-   // register with DetectorConstruction object
-   // FIXME: Is this double-counting when we have repeated volumes?  
-   for(int i=0;i<2;i++) fDetCon->InsertTargetVolume( logicShield[i]->GetName() );  
 
 }
 
@@ -3358,11 +3361,14 @@ void G4SBSTargetBuilder::BuildGEnTarget_PickupCoils(G4LogicalVolume *motherLog){
    // logical volumes
    G4LogicalVolume **logicPUCoilMount = new G4LogicalVolume*[4]; 
 
+   char physName[200],logicName[200]; 
+
    // place the mounts 
    G4double X=0,Y=0,Z=0;
    G4double RX=0,RY=0,RZ=0;
    for(int i=0;i<4;i++){
-      logicPUCoilMount[i] = new G4LogicalVolume(coilBMNT,GetMaterial("Aluminum"),"logicGEn_PUCoilBMNT");
+      sprintf(logicName,"logicGEnTarget_PUCoilMNT_%d",i); 
+      logicPUCoilMount[i] = new G4LogicalVolume(coilBMNT,GetMaterial("Aluminum"),logicName);
       logicPUCoilMount[i]->SetVisAttributes(vis);
       if(i==0){
          // upstream, beam left
@@ -3383,16 +3389,18 @@ void G4SBSTargetBuilder::BuildGEnTarget_PickupCoils(G4LogicalVolume *motherLog){
       }
       G4RotationMatrix *rm = new G4RotationMatrix();
       rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
-
+      // physical name 
+      sprintf(physName,"physGEnTarget_PUCoilMNT_%d",i); 
       new G4PVPlacement(rm,                   // rotation [relative to mother]             
                         G4ThreeVector(X,Y,Z), // position [relative to mother]          
-                        logicPUCoilMount[i], // logical volume                            
-                        "physPUCoilMNT",      // name                                       
+                        logicPUCoilMount[i],  // logical volume                            
+                        physName,             // name                                       
                         motherLog,            // logical mother volume                   
                         isBoolean,            // boolean operations (true, false) 
                         i,                    // copy number                          
                         checkOverlaps);       // check overlaps                         
-
+      // register with DetectorConstruction object 
+      fDetCon->InsertTargetVolume( logicPUCoilMount[i]->GetName() );  
    }
 
    // place the pickup coils 
@@ -3410,7 +3418,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_PickupCoils(G4LogicalVolume *motherLog){
 
    // place the coils 
    for(int i=0;i<4;i++){
-      logicPUCoil[i] = new G4LogicalVolume(coil,GetMaterial("Copper"),"logicGEn_PUCoil");
+      sprintf(logicName,"logicGEnTarget_PUCoil_%d",i); 
+      logicPUCoil[i] = new G4LogicalVolume(coil,GetMaterial("Copper"),logicName);
       logicPUCoil[i]->SetVisAttributes(visCoil);
       if(i==0){
 	 // upstream, beam left
@@ -3431,22 +3440,19 @@ void G4SBSTargetBuilder::BuildGEnTarget_PickupCoils(G4LogicalVolume *motherLog){
       }
       G4RotationMatrix *rm = new G4RotationMatrix();
       rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
-
+      // physical name 
+      sprintf(physName,"physGEnTarget_PUCoil_%d",i); 
       new G4PVPlacement(rm,                   // rotation [relative to mother]             
 	                G4ThreeVector(X,Y,Z), // position [relative to mother]          
-	                logicPUCoil[i],      // logical volume                            
-	                "physPUCoil",         // name                                       
+	                logicPUCoil[i],       // logical volume                            
+	                physName,             // name                                       
 	                motherLog,            // logical mother volume                   
 	                isBoolean,            // boolean operations (true, false) 
 	                i,                    // copy number                          
-	                checkOverlaps);       // check overlaps                         
-
+	                checkOverlaps);       // check overlaps                        
+      // register with DetectorConstruction object 
+      fDetCon->InsertTargetVolume( logicPUCoil[i]->GetName() );  
    }
-
-   // register with DetectorConstruction object
-   // FIXME: Is this double-counting when we have repeated volumes?  
-   for(int i=0;i<4;i++) fDetCon->InsertTargetVolume( logicPUCoilMount[i]->GetName() );  
-   for(int i=0;i<4;i++) fDetCon->InsertTargetVolume( logicPUCoil[i]->GetName() );  
 
 }
 
@@ -3608,7 +3614,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
    vis->SetColour( G4Colour::Red() );
    // vis->SetForceWireframe(true);
 
-   G4LogicalVolume *logicLadder = new G4LogicalVolume(ladder,GetMaterial("Aluminum"),"logicGEn_Ladder");
+   G4LogicalVolume *logicLadder = new G4LogicalVolume(ladder,GetMaterial("Aluminum"),"logicGEnTarget_Ladder");
    logicLadder->SetVisAttributes(vis);
 
    // placement 
@@ -3807,7 +3813,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   // visHe3->SetForceWireframe(true);  
 
   // logical volume of He3
-  G4LogicalVolume *logicHe3 = new G4LogicalVolume(he3Tube,GetMaterial("pol3He"),"logicGEn_polHe3");
+  G4LogicalVolume *logicHe3 = new G4LogicalVolume(he3Tube,GetMaterial("pol3He"),"logicGEnTarget_polHe3");
   logicHe3->SetVisAttributes(visHe3);
 
   // placement of He3 is *inside target chamber*  
@@ -3816,14 +3822,14 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   bool isBoolean = true;
   bool checkOverlaps = true;
 
-  new G4PVPlacement(0,                // rotation
-                    posHe3,           // position 
-                    logicHe3,         // logical volume 
-                    "physHe3",        // name 
-                    motherLog,        // logical mother volume  
-                    isBoolean,        // boolean operations?  
-                    0,                // copy number 
-                    checkOverlaps);   // check overlaps 
+  new G4PVPlacement(0,                      // rotation
+                    posHe3,                 // position 
+                    logicHe3,               // logical volume 
+                    "physGEnTarget_polHe3", // name 
+                    motherLog,              // logical mother volume  
+                    isBoolean,              // boolean operations?  
+                    0,                      // copy number 
+                    checkOverlaps);         // check overlaps 
 
   // register with DetectorConstruction object
   fDetCon->InsertTargetVolume( logicHe3->GetName() );  

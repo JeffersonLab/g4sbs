@@ -73,8 +73,8 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //BuildC16ScatCham( worldlog );
     break;
   case(kGEN):
-    BuildGasTarget( worldlog );
-    // BuildGEnTarget(worldLog); // FIXME: Need a Q2 index for helmholtz coils 
+    // BuildGasTarget( worldlog );
+    BuildGEnTarget(worldlog);  
     break;
   case(kSIDISExp):
     BuildGasTarget( worldlog );
@@ -2289,24 +2289,30 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    // Polarized 3He target for GEn
    // - geometry based on drawings from Bert Metzger and Gordon Cates  
 
-   // glass cell 
+   // glass cell
+   // NOTE: The polarized 3He is built inside the GlassCell function!
+   //       This is because the glass cell is used as the mother volume of the 3He  
    BuildGEnTarget_GlassCell(motherLog);
 
    // Cu end windows for the target cell 
    BuildGEnTarget_EndWindows(motherLog);
 
    // cylinder of polarized 3He
-   // FIXME: The logical mother should be the glass cell!  
    BuildGEnTarget_PolarizedHe3(motherLog);
 
    // helmholtz coils
-   // FIXME: set the config flag from a user input flag (G4SBSMessenger) 
-   int config = kSBS_GEN_146; 
+   int config = fDetCon->GetGEnTargetHelmholtzConfig(); 
+   if(config==kSBS_GEN_146)  std::cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = 1.46 (GeV/c)^2"  << std::endl; 
+   if(config==kSBS_GEN_368)  std::cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = 3.68 (GeV/c)^2"  << std::endl; 
+   if(config==kSBS_GEN_677)  std::cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = 6.77 (GeV/c)^2"  << std::endl; 
+   if(config==kSBS_GEN_1018) std::cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = 10.18 (GeV/c)^2" << std::endl; 
+
    BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
    BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);
    BuildGEnTarget_HelmholtzCoils(config,"min",motherLog);
 
-   // magnetic shield 
+   // magnetic shield
+   // config = kSBS_GEN_new; // for when the shield design is finalized  
    BuildGEnTarget_Shield(config,motherLog);
 
    // target ladder 
@@ -2656,13 +2662,17 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
                      checkOverlaps);    // check overlaps
 
    // register with DetectorConstruction object 
-   fDetCon->InsertTargetVolume( logicGlassCell->GetName() );  
+   fDetCon->InsertTargetVolume( logicGlassCell->GetName() ); 
+ 
+   // cylinder of polarized 3He
+   // BuildGEnTarget_PolarizedHe3(logicGlassCell);
 
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    // Copper end window on 3He cell
-   // - drawing number: internal from G. Cates (June 2020)
+   // - drawing number: internal from G. Cates (Assembly MK-II Drawing_july_11_2017.pdf, received June 2020)
+   //                   dimensions converted to mm 
 
    // main shaft 
    partParameters_t msh; 
@@ -2806,6 +2816,201 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
       fDetCon->InsertTargetVolume( logicEndWindow[i]->GetName() );  
    }
  
+}
+
+void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog){
+   // Polarized 3He
+   // - takes the form of the target chamber of the glass cell 
+   
+   G4double glassWall = 1.0*mm; // estimate 
+
+   // target chamber component 
+   partParameters_t tc; 
+   tc.name   = "targetChamber"; tc.shape  = "tube";
+   tc.r_tor  = 0.*mm; tc.r_min = 0.*mm; tc.r_max = 10.5*mm - glassWall; tc.length = 579.0*mm;
+   tc.startTheta = 0*deg; tc.dTheta = 0*deg;
+   tc.startPhi = 0*deg; tc.dPhi = 360*deg;
+   tc.x = 0*mm; tc.y = 0*mm; tc.z = 0*mm;
+   tc.rx = 0*deg; tc.ry = 0*deg; tc.rz = 0*deg;
+
+   G4Tubs *tcShape = new G4Tubs("He3_tc",
+	                        tc.r_min    ,tc.r_max,
+	                        tc.length/2.,
+	                        tc.startPhi ,tc.dPhi);
+
+   // end window, upstream 
+   // ---- main shaft 
+   partParameters_t mshu; 
+   mshu.name = "ew_mainShaft_up"; mshu.shape = "tube";
+   mshu.r_tor = 0.0*mm; mshu.r_min = 0.0*mm; mshu.r_max = 10.5*mm - glassWall; mshu.length = 10.0*mm;
+   mshu.startTheta = 0.0*deg; mshu.dTheta = 0.0*deg;
+   mshu.startPhi = 0.0*deg; mshu.dPhi = 360.0*deg;
+   mshu.x = 0.0*mm; mshu.y = 0.0*mm; mshu.z = -294.5*mm;
+   mshu.rx = 0.0*deg; mshu.ry = 0.0*deg; mshu.rz = 0.0*deg;
+
+   G4Tubs *mainShaft_up = new G4Tubs(mshu.name,
+	                             mshu.r_min    ,mshu.r_max,
+	                             mshu.length/2.,
+	                             mshu.startPhi ,mshu.dPhi);
+
+   G4ThreeVector P_mshu      = G4ThreeVector(mshu.x,mshu.y,mshu.z);
+   G4RotationMatrix *rm_mshu = new G4RotationMatrix();
+   rm_mshu->rotateX(mshu.rx); rm_mshu->rotateY(mshu.ry); rm_mshu->rotateZ(mshu.rz);
+
+  // ---- lip 
+  partParameters_t lipu;
+  lipu.name = "ew_lip_up"; lipu.shape = "tube";
+  lipu.r_tor = 0.0*mm; lipu.r_min = 0.0*mm; lipu.r_max = 10.5*mm - glassWall; lipu.length = 3.2*mm;
+  lipu.startTheta = 0.0*deg; lipu.dTheta = 0.0*deg;
+  lipu.startPhi = 0.0*deg; lipu.dPhi = 360.0*deg;
+  lipu.x = 0.0*mm; lipu.y = 0.0*mm; lipu.z = -301.1*mm;
+  lipu.rx = 0.0*deg; lipu.ry = 0.0*deg; lipu.rz = 0.0*deg; 
+
+  G4Tubs *lip_up = new G4Tubs(lipu.name,
+	                      lipu.r_min    ,lipu.r_max,
+	                      lipu.length/2.,
+	                      lipu.startPhi ,lipu.dPhi);
+
+  G4ThreeVector P_lipu      = G4ThreeVector(lipu.x,lipu.y,lipu.z);
+  G4RotationMatrix *rm_lipu = new G4RotationMatrix();
+  rm_lipu->rotateX(lipu.rx); rm_lipu->rotateY(lipu.ry); rm_lipu->rotateZ(lipu.rz); 
+
+  // ---- rounded lip 
+  partParameters_t rlipu; 
+  rlipu.name = "ew_rlip_up"; rlipu.shape = "sphere";
+  rlipu.r_tor = 0.0*mm; rlipu.r_min = 0.0*mm; rlipu.r_max = 12.2*mm; rlipu.length = 0.0*mm;
+  rlipu.startTheta = 63.1*deg; rlipu.dTheta = 26.9*deg; 
+  rlipu.startPhi = 0.0*deg; rlipu.dPhi = 360.0*deg;
+  rlipu.x = 0.0*mm; rlipu.y = 0.0*mm; rlipu.z = -302.1*mm; 
+  rlipu.rx = 0.0*deg; rlipu.ry = 180.0*deg; rlipu.rz = 0.0*deg;
+
+  G4Sphere *roundLip_up = new G4Sphere(rlipu.name,
+	                               rlipu.r_min     ,rlipu.r_max,
+	                               rlipu.startPhi  ,rlipu.dPhi,
+	                               rlipu.startTheta,rlipu.dTheta);
+
+  G4ThreeVector P_rlipu      = G4ThreeVector(rlipu.x,rlipu.y,rlipu.z);
+  G4RotationMatrix *rm_rlipu = new G4RotationMatrix();
+  rm_rlipu->rotateX(rlipu.rx); rm_rlipu->rotateY(rlipu.ry); rm_rlipu->rotateZ(rlipu.rz);
+
+  // ---- endcap
+  partParameters_t ecu; 
+  ecu.name = "ew_cap_up"; ecu.shape = "sphere";
+  ecu.r_tor = 0.0*mm; ecu.r_min = 0.0*mm; ecu.r_max = 12.2*mm; ecu.length = 0.0*mm;
+  ecu.startTheta = 0.0*deg; ecu.dTheta = 63.1*deg;
+  ecu.startPhi = 0.0*deg; ecu.dPhi = 360.0*deg;
+  ecu.x = 0.0*mm; ecu.y = 0.0*mm; ecu.z = -302.6*mm;
+  ecu.rx = 0.0*deg; ecu.ry = 180.0*deg; ecu.rz = 0.0*deg;
+
+  G4Sphere *endcap_up = new G4Sphere(ecu.name,
+                                     ecu.r_min     ,ecu.r_max,
+                                     ecu.startPhi  ,ecu.dPhi,
+                                     ecu.startTheta,ecu.dTheta);
+
+  G4ThreeVector P_ecu      = G4ThreeVector(ecu.x,ecu.y,ecu.z);
+  G4RotationMatrix *rm_ecu = new G4RotationMatrix();
+  rm_ecu->rotateX(ecu.rx); rm_ecu->rotateY(ecu.ry); rm_ecu->rotateZ(ecu.rz);
+
+  // end window, downstream
+  // - can exploit symmetry here  
+  // ---- main shaft 
+  partParameters_t mshd = mshu; 
+  mshd.name = "mshd_dn";
+  mshd.z *= -1.;
+
+  G4Tubs *mainShaft_dn = new G4Tubs(mshd.name,
+	                            mshd.r_min    ,mshd.r_max,
+	                            mshd.length/2.,
+	                            mshd.startPhi ,mshd.dPhi);
+
+  G4ThreeVector P_mshd      = G4ThreeVector(mshd.x,mshd.y,mshd.z);
+  G4RotationMatrix *rm_mshd = new G4RotationMatrix();
+  rm_mshd->rotateX(mshd.rx); rm_mshd->rotateY(mshd.ry); rm_mshd->rotateZ(mshd.rz);
+ 
+  // ---- lip 
+  partParameters_t lipd = lipu; 
+  lipd.name = "lipd_dn";
+  lipd.z *= -1; 
+
+  G4Tubs *lip_dn = new G4Tubs(lipd.name,
+                              lipd.r_min    ,lipd.r_max,
+                              lipd.length/2.,
+                              lipd.startPhi ,lipd.dPhi);
+
+  G4ThreeVector P_lipd      = G4ThreeVector(lipd.x,lipd.y,lipd.z);
+  G4RotationMatrix *rm_lipd = new G4RotationMatrix();
+  rm_lipd->rotateX(lipd.rx); rm_lipd->rotateY(lipd.ry); rm_lipd->rotateZ(lipd.rz);
+
+  // ---- rounded lip 
+  partParameters_t rlipd = rlipu;
+  rlipd.name = "rlipd_dn";
+  rlipd.z *= -1.;
+  rlipd.ry = 0.*deg;
+
+  G4Sphere *roundLip_dn = new G4Sphere(rlipd.name,
+                                       rlipd.r_min     ,rlipd.r_max,
+                                       rlipd.startPhi  ,rlipd.dPhi,
+                                       rlipd.startTheta,rlipd.dTheta);
+
+  G4ThreeVector P_rlipd      = G4ThreeVector(rlipd.x,rlipd.y,rlipd.z);
+  G4RotationMatrix *rm_rlipd = new G4RotationMatrix();
+  rm_rlipd->rotateX(rlipd.rx); rm_rlipd->rotateY(rlipd.ry); rm_rlipd->rotateZ(rlipd.rz);
+ 
+  // ---- endcap 
+  partParameters_t ecd = ecu;
+  ecd.name = "ecd_dn";
+  ecd.z *= -1.;
+  ecd.ry = 0.*deg;
+
+  G4Sphere *endcap_dn = new G4Sphere(ecd.name,
+                                     ecd.r_min     ,ecd.r_max,
+                                     ecd.startPhi  ,ecd.dPhi,
+                                     ecd.startTheta,ecd.dTheta);
+
+  G4ThreeVector P_ecd      = G4ThreeVector(ecd.x,ecd.y,ecd.z);
+  G4RotationMatrix *rm_ecd = new G4RotationMatrix();
+  rm_ecd->rotateX(ecd.rx); rm_ecd->rotateY(ecd.ry); rm_ecd->rotateZ(ecd.rz); 
+
+  // create the union solid 
+  G4UnionSolid *he3Tube;
+  // main shaft + upstream "window"  
+  he3Tube = new G4UnionSolid("tc_um"        ,tcShape,mainShaft_up,rm_mshu ,P_mshu );
+  he3Tube = new G4UnionSolid("tc_uml"       ,he3Tube,lip_up      ,rm_lipu ,P_lipu );
+  he3Tube = new G4UnionSolid("tc_umlr"      ,he3Tube,roundLip_up ,rm_rlipu,P_rlipu);
+  he3Tube = new G4UnionSolid("tc_umlre"     ,he3Tube,endcap_up   ,rm_ecu  ,P_ecu  );
+  // downstream end window  
+  he3Tube = new G4UnionSolid("tc_umlre_dm"  ,he3Tube,mainShaft_dn,rm_mshd ,P_mshd );
+  he3Tube = new G4UnionSolid("tc_umlre_dml" ,he3Tube,lip_dn      ,rm_lipd ,P_lipd );
+  he3Tube = new G4UnionSolid("tc_umlre_dmlr",he3Tube,roundLip_dn ,rm_rlipd,P_rlipd);
+  he3Tube = new G4UnionSolid("he3Tube"      ,he3Tube,endcap_dn   ,rm_ecd  ,P_ecd  );
+
+  // set the color of He3 
+  G4VisAttributes *visHe3 = new G4VisAttributes();
+  visHe3->SetColour( G4Colour::Yellow() );
+  // visHe3->SetForceWireframe(true);  
+
+  // logical volume of He3
+  G4LogicalVolume *logicHe3 = new G4LogicalVolume(he3Tube,GetMaterial("pol3He"),"logicGEnTarget_polHe3");
+  logicHe3->SetVisAttributes(visHe3);
+
+  // placement of He3 is *inside target chamber*  
+  G4ThreeVector posHe3 = G4ThreeVector(0.*cm,0.*cm,0.*cm);
+
+  bool isBoolean = true;
+  bool checkOverlaps = true;
+
+  new G4PVPlacement(0,                      // rotation
+                    posHe3,                 // position 
+                    logicHe3,               // logical volume 
+                    "physGEnTarget_polHe3", // name 
+                    motherLog,              // logical mother volume  
+                    isBoolean,              // boolean operations?  
+                    0,                      // copy number 
+                    checkOverlaps);         // check overlaps 
+
+  // register with DetectorConstruction object
+  fDetCon->InsertTargetVolume( logicHe3->GetName() );  
+
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const std::string type,G4LogicalVolume *motherLog){
@@ -2952,7 +3157,6 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
    // sine and cosine of total rotation angle about y axis
    G4double COS_TOT = cos(RY);
    G4double SIN_TOT = sin(RY);
-
 
    bool isBoolean     = true;
    bool checkOverlaps = true;
@@ -3172,6 +3376,9 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
       yw_br = 0.8*sh.y_len;
       // coordinates
       ys = (-1.)*(sh.y_len/2.-yw_br/2.);   // this should center the cut properly  
+   }else{
+      std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_Shield]: Invalid configuration = " << config << std::endl;
+      exit(1);
    }
 
    xs = sh.x_len/2. - xw_br/2. - dx;    // distance to midpoint of door, aligns door close to edge 
@@ -3462,9 +3669,9 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
 
    // global offsets from JT model
    G4double inch = 2.54*cm;  
-   G4double x0 = -0.438*inch; // beam right   
-   G4double y0 = -5.33*cm;    // lower than target cell  
-   G4double z0 =  1.5*inch;   // downstream
+   G4double x0   = -0.438*inch; // beam right   
+   G4double y0   = -5.33*cm;    // lower than target cell  
+   G4double z0   =  1.5*inch;   // downstream
 
    // vertical posts along the y axis 
    // ---- upstream 
@@ -3643,195 +3850,3 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
 
 }
 
-void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog){
-   // Polarized 3He
-   // - takes the form of the target chamber of the glass cell 
-
-   // target chamber component 
-   partParameters_t tc; 
-   tc.name   = "targetChamber"; tc.shape  = "tube";
-   tc.r_tor  = 0.*mm; tc.r_min = 0.*mm; tc.r_max = 10.3*mm; tc.length = 579.0*mm;
-   tc.startTheta = 0*deg; tc.dTheta = 0*deg;
-   tc.startPhi = 0*deg; tc.dPhi = 360*deg;
-   tc.x = 0*mm; tc.y = 0*mm; tc.z = 0*mm;
-   tc.rx = 0*deg; tc.ry = 0*deg; tc.rz = 0*deg;
-
-   G4Tubs *tcShape = new G4Tubs("He3_tc",
-	                        tc.r_min    ,tc.r_max,
-	                        tc.length/2.,
-	                        tc.startPhi ,tc.dPhi);
-
-   // end window, upstream 
-   // ---- main shaft 
-   partParameters_t mshu; 
-   mshu.name = "ew_mainShaft_up"; mshu.shape = "tube";
-   mshu.r_tor = 0.0*mm; mshu.r_min = 0.0*mm; mshu.r_max = 10.5*mm; mshu.length = 10.0*mm;
-   mshu.startTheta = 0.0*deg; mshu.dTheta = 0.0*deg;
-   mshu.startPhi = 0.0*deg; mshu.dPhi = 360.0*deg;
-   mshu.x = 0.0*mm; mshu.y = 0.0*mm; mshu.z = -294.5*mm;
-   mshu.rx = 0.0*deg; mshu.ry = 0.0*deg; mshu.rz = 0.0*deg;
-
-   G4Tubs *mainShaft_up = new G4Tubs(mshu.name,
-	                             mshu.r_min    ,mshu.r_max,
-	                             mshu.length/2.,
-	                             mshu.startPhi ,mshu.dPhi);
-
-   G4ThreeVector P_mshu      = G4ThreeVector(mshu.x,mshu.y,mshu.z);
-   G4RotationMatrix *rm_mshu = new G4RotationMatrix();
-   rm_mshu->rotateX(mshu.rx); rm_mshu->rotateY(mshu.ry); rm_mshu->rotateZ(mshu.rz);
-
-  // ---- lip 
-  partParameters_t lipu;
-  lipu.name = "ew_lip_up"; lipu.shape = "tube";
-  lipu.r_tor = 0.0*mm; lipu.r_min = 0.0*mm; lipu.r_max = 10.5*mm; lipu.length = 3.2*mm;
-  lipu.startTheta = 0.0*deg; lipu.dTheta = 0.0*deg;
-  lipu.startPhi = 0.0*deg; lipu.dPhi = 360.0*deg;
-  lipu.x = 0.0*mm; lipu.y = 0.0*mm; lipu.z = -301.1*mm;
-  lipu.rx = 0.0*deg; lipu.ry = 0.0*deg; lipu.rz = 0.0*deg; 
-
-  G4Tubs *lip_up = new G4Tubs(lipu.name,
-	                      lipu.r_min    ,lipu.r_max,
-	                      lipu.length/2.,
-	                      lipu.startPhi ,lipu.dPhi);
-
-  G4ThreeVector P_lipu      = G4ThreeVector(lipu.x,lipu.y,lipu.z);
-  G4RotationMatrix *rm_lipu = new G4RotationMatrix();
-  rm_lipu->rotateX(lipu.rx); rm_lipu->rotateY(lipu.ry); rm_lipu->rotateZ(lipu.rz); 
-
-  // ---- rounded lip 
-  partParameters_t rlipu; 
-  rlipu.name = "ew_rlip_up"; rlipu.shape = "sphere";
-  rlipu.r_tor = 0.0*mm; rlipu.r_min = 0.0*mm; rlipu.r_max = 12.3*mm; rlipu.length = 0.0*mm;
-  rlipu.startTheta = 63.1*deg; rlipu.dTheta = 26.9*deg; 
-  rlipu.startPhi = 0.0*deg; rlipu.dPhi = 360.0*deg;
-  rlipu.x = 0.0*mm; rlipu.y = 0.0*mm; rlipu.z = -302.1*mm; 
-  rlipu.rx = 0.0*deg; rlipu.ry = 180.0*deg; rlipu.rz = 0.0*deg;
-
-  G4Sphere *roundLip_up = new G4Sphere(rlipu.name,
-	                               rlipu.r_min     ,rlipu.r_max,
-	                               rlipu.startPhi  ,rlipu.dPhi,
-	                               rlipu.startTheta,rlipu.dTheta);
-
-  G4ThreeVector P_rlipu      = G4ThreeVector(rlipu.x,rlipu.y,rlipu.z);
-  G4RotationMatrix *rm_rlipu = new G4RotationMatrix();
-  rm_rlipu->rotateX(rlipu.rx); rm_rlipu->rotateY(rlipu.ry); rm_rlipu->rotateZ(rlipu.rz);
-
-  // ---- endcap
-  partParameters_t ecu; 
-  ecu.name = "ew_cap_up"; ecu.shape = "sphere";
-  ecu.r_tor = 0.0*mm; ecu.r_min = 0.0*mm; ecu.r_max = 12.3*mm; ecu.length = 0.0*mm;
-  ecu.startTheta = 0.0*deg; ecu.dTheta = 63.1*deg;
-  ecu.startPhi = 0.0*deg; ecu.dPhi = 360.0*deg;
-  ecu.x = 0.0*mm; ecu.y = 0.0*mm; ecu.z = -302.6*mm;
-  ecu.rx = 0.0*deg; ecu.ry = 180.0*deg; ecu.rz = 0.0*deg;
-
-  G4Sphere *endcap_up = new G4Sphere(ecu.name,
-                                     ecu.r_min     ,ecu.r_max,
-                                     ecu.startPhi  ,ecu.dPhi,
-                                     ecu.startTheta,ecu.dTheta);
-
-  G4ThreeVector P_ecu      = G4ThreeVector(ecu.x,ecu.y,ecu.z);
-  G4RotationMatrix *rm_ecu = new G4RotationMatrix();
-  rm_ecu->rotateX(ecu.rx); rm_ecu->rotateY(ecu.ry); rm_ecu->rotateZ(ecu.rz);
-
-  // end window, downstream
-  // - can exploit symmetry here  
-  // ---- main shaft 
-  partParameters_t mshd = mshu; 
-  mshd.name = "mshd_dn";
-  mshd.z *= -1.;
-
-  G4Tubs *mainShaft_dn = new G4Tubs(mshd.name,
-	                            mshd.r_min    ,mshd.r_max,
-	                            mshd.length/2.,
-	                            mshd.startPhi ,mshd.dPhi);
-
-  G4ThreeVector P_mshd      = G4ThreeVector(mshd.x,mshd.y,mshd.z);
-  G4RotationMatrix *rm_mshd = new G4RotationMatrix();
-  rm_mshd->rotateX(mshd.rx); rm_mshd->rotateY(mshd.ry); rm_mshd->rotateZ(mshd.rz);
- 
-  // ---- lip 
-  partParameters_t lipd = lipu; 
-  lipd.name = "lipd_dn";
-  lipd.z *= -1; 
-
-  G4Tubs *lip_dn = new G4Tubs(lipd.name,
-                              lipd.r_min    ,lipd.r_max,
-                              lipd.length/2.,
-                              lipd.startPhi ,lipd.dPhi);
-
-  G4ThreeVector P_lipd      = G4ThreeVector(lipd.x,lipd.y,lipd.z);
-  G4RotationMatrix *rm_lipd = new G4RotationMatrix();
-  rm_lipd->rotateX(lipd.rx); rm_lipd->rotateY(lipd.ry); rm_lipd->rotateZ(lipd.rz);
-
-  // ---- rounded lip 
-  partParameters_t rlipd = rlipu;
-  rlipd.name = "rlipd_dn";
-  rlipd.z *= -1.;
-  rlipd.ry = 0.*deg;
-
-  G4Sphere *roundLip_dn = new G4Sphere(rlipd.name,
-                                       rlipd.r_min     ,rlipd.r_max,
-                                       rlipd.startPhi  ,rlipd.dPhi,
-                                       rlipd.startTheta,rlipd.dTheta);
-
-  G4ThreeVector P_rlipd      = G4ThreeVector(rlipd.x,rlipd.y,rlipd.z);
-  G4RotationMatrix *rm_rlipd = new G4RotationMatrix();
-  rm_rlipd->rotateX(rlipd.rx); rm_rlipd->rotateY(rlipd.ry); rm_rlipd->rotateZ(rlipd.rz);
- 
-  // ---- endcap 
-  partParameters_t ecd = ecu;
-  ecd.name = "ecd_dn";
-  ecd.z *= -1.;
-  ecd.ry = 0.*deg;
-
-  G4Sphere *endcap_dn = new G4Sphere(ecd.name,
-                                     ecd.r_min     ,ecd.r_max,
-                                     ecd.startPhi  ,ecd.dPhi,
-                                     ecd.startTheta,ecd.dTheta);
-
-  G4ThreeVector P_ecd      = G4ThreeVector(ecd.x,ecd.y,ecd.z);
-  G4RotationMatrix *rm_ecd = new G4RotationMatrix();
-  rm_ecd->rotateX(ecd.rx); rm_ecd->rotateY(ecd.ry); rm_ecd->rotateZ(ecd.rz); 
-
-  // create the union solid 
-  G4UnionSolid *he3Tube;
-  // main shaft + upstream "window"  
-  he3Tube = new G4UnionSolid("tc_um"        ,tcShape,mainShaft_up,rm_mshu ,P_mshu );
-  he3Tube = new G4UnionSolid("tc_uml"       ,he3Tube,lip_up      ,rm_lipu ,P_lipu );
-  he3Tube = new G4UnionSolid("tc_umlr"      ,he3Tube,roundLip_up ,rm_rlipu,P_rlipu);
-  he3Tube = new G4UnionSolid("tc_umlre"     ,he3Tube,endcap_up   ,rm_ecu  ,P_ecu  );
-  // downstream end window  
-  he3Tube = new G4UnionSolid("tc_umlre_dm"  ,he3Tube,mainShaft_dn,rm_mshd ,P_mshd );
-  he3Tube = new G4UnionSolid("tc_umlre_dml" ,he3Tube,lip_dn      ,rm_lipd ,P_lipd );
-  he3Tube = new G4UnionSolid("tc_umlre_dmlr",he3Tube,roundLip_dn ,rm_rlipd,P_rlipd);
-  he3Tube = new G4UnionSolid("he3Tube"      ,he3Tube,endcap_dn   ,rm_ecd  ,P_ecd  );
-
-  // set the color of He3 
-  G4VisAttributes *visHe3 = new G4VisAttributes();
-  visHe3->SetColour( G4Colour::Yellow() );
-  // visHe3->SetForceWireframe(true);  
-
-  // logical volume of He3
-  G4LogicalVolume *logicHe3 = new G4LogicalVolume(he3Tube,GetMaterial("pol3He"),"logicGEnTarget_polHe3");
-  logicHe3->SetVisAttributes(visHe3);
-
-  // placement of He3 is *inside target chamber*  
-  G4ThreeVector posHe3 = G4ThreeVector(0.*cm,0.*cm,0.*cm);
-
-  bool isBoolean = true;
-  bool checkOverlaps = true;
-
-  new G4PVPlacement(0,                      // rotation
-                    posHe3,                 // position 
-                    logicHe3,               // logical volume 
-                    "physGEnTarget_polHe3", // name 
-                    motherLog,              // logical mother volume  
-                    isBoolean,              // boolean operations?  
-                    0,                      // copy number 
-                    checkOverlaps);         // check overlaps 
-
-  // register with DetectorConstruction object
-  fDetCon->InsertTargetVolume( logicHe3->GetName() );  
-
-}

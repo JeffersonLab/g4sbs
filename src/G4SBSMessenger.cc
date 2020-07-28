@@ -100,7 +100,8 @@ G4SBSMessenger::G4SBSMessenger(){
   GENTargetHelmholtzCmd = new G4UIcmdWithAnInteger("/g4sbs/genTargetHelmholtzConfig",this);
   GENTargetHelmholtzCmd->SetGuidance("GEn 3He target Helmholts coil configuration based on central Q2 value"); 
   GENTargetHelmholtzCmd->SetGuidance("1 => Q2 = 1.46 (GeV/c)^2, 2 => Q2 = 3.68 (GeV/c)^2, 3 => Q2 = 6.77 (GeV/c)^2, 4 => Q2 = 10.18 (GeV/c)^2, "); 
-  GENTargetHelmholtzCmd->SetParameterName("genTargetHelmholtzConfig",1);
+  GENTargetHelmholtzCmd->SetParameterName("genTargetHelmholtzConfig",false); // user must provide an integer value, non-argument not allowed 
+  GENTargetHelmholtzCmd->SetDefaultValue(kSBS_GEN_146);                      // probably not utilized since we require an input value 
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
   kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
@@ -1093,6 +1094,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     fevgen->SetInitialized(false);
     
+  }
+
+  // D. Flay (7/28/20) 
+  // GEn 3He target Helmholtz coil configuration 
+  if( cmd == GENTargetHelmholtzCmd ){
+     G4int genTgtHHconf = GENTargetHelmholtzCmd->GetNewIntValue(newValue);  
+     fdetcon->SetGEnTargetHelmholtzConfig(genTgtHHconf);
   }
 
   if( cmd == bigfieldCmd ){

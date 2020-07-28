@@ -189,7 +189,6 @@ private:
   // D. Flay 7/28/20
   // command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
   G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd;  
-  G4UIcmdWithAnInteger       *GENTargetShieldCmd;  
   
   G4UIcmdWithABool *BLneutronDetsCmd;
   G4UIcmdWithABool *GEMfrontendCmd;

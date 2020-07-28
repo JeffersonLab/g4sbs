@@ -54,6 +54,10 @@ public:
   void SetBigBiteField(int n, G4String fname="map_696A.dat");
   void Set48D48Field(int n);
 
+  // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration
+  void SetGEnTargetHelmholtzConfig(int n) { fGEnTgtHHConfig =n; }  
+  int GetGEnTargetHelmholtzConfig() const { return fGEnTgtHHConfig; } 
+
   void SetTotalAbs(bool b){ fTotalAbs= b; }
   void SetCheckOverlap(bool b){ fCheckOverlap = b; }
 
@@ -167,6 +171,8 @@ private:
   G4double fDoseRateC16; //Dose rate at z = 0 of lead-glass.
 
   G4bool fGEMflip;
+
+  G4int fGEnTgtHHConfig; // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration 
 
 };
 

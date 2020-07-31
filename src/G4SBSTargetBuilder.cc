@@ -2823,6 +2823,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
    // - takes the form of the target chamber of the glass cell 
    
    G4double glassWall = 1.0*mm; // estimate 
+   G4double delta     = 0.55*mm; // a fudge factor to remove geometric overlaps with Cu windows 
 
    // target chamber component 
    partParameters_t tc; 
@@ -2878,7 +2879,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   // ---- rounded lip 
   partParameters_t rlipu; 
   rlipu.name = "ew_rlip_up"; rlipu.shape = "sphere";
-  rlipu.r_tor = 0.0*mm; rlipu.r_min = 0.0*mm; rlipu.r_max = 12.2*mm; rlipu.length = 0.0*mm;
+  rlipu.r_tor = 0.0*mm; rlipu.r_min = 0.0*mm; rlipu.r_max = 12.3*mm - delta; rlipu.length = 0.0*mm;
   rlipu.startTheta = 63.1*deg; rlipu.dTheta = 26.9*deg; 
   rlipu.startPhi = 0.0*deg; rlipu.dPhi = 360.0*deg;
   rlipu.x = 0.0*mm; rlipu.y = 0.0*mm; rlipu.z = -302.1*mm; 
@@ -2896,7 +2897,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   // ---- endcap
   partParameters_t ecu; 
   ecu.name = "ew_cap_up"; ecu.shape = "sphere";
-  ecu.r_tor = 0.0*mm; ecu.r_min = 0.0*mm; ecu.r_max = 12.2*mm; ecu.length = 0.0*mm;
+  ecu.r_tor = 0.0*mm; ecu.r_min = 0.0*mm; ecu.r_max = 12.3*mm - delta; ecu.length = 0.0*mm;
   ecu.startTheta = 0.0*deg; ecu.dTheta = 63.1*deg;
   ecu.startPhi = 0.0*deg; ecu.dPhi = 360.0*deg;
   ecu.x = 0.0*mm; ecu.y = 0.0*mm; ecu.z = -302.6*mm;

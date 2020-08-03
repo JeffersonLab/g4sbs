@@ -13,7 +13,7 @@
 
 using namespace std;
 
-void plot_GENRP_GEMbackgrounds(const char *infilename, const char *outfilename, double Ibeam = 30e-6){
+void plot_GENRP_GEMbackgrounds(const char *infilename, const char *outfilename, double Ibeam = 30e-6, double thresh_PS=0.1, double thresh_SH=0.5, double thresh_HCAL=0.08){
   TH1::SetDefaultSumw2();
 
   TFile *fout = new TFile(outfilename,"RECREATE");
@@ -88,6 +88,16 @@ void plot_GENRP_GEMbackgrounds(const char *infilename, const char *outfilename, 
   TH2D *hitrate_vs_Y_PRPolBeamSideGEM = new TH2D("hitrate_vs_Y_PRPolBeamSideGEM","Hit rate (Hz/cm^{2})",4,0.5,4.5,100,-0.31+1.36,0.31+1.36);
   TH2D *hitrate_vs_Y_PRPolFarSideGEM = new TH2D("hitrate_vs_Y_PRPolFarSideGEM","Hit rate (Hz/cm^{2})",4,0.5,4.5,100,-0.31+1.36,0.31+1.36);
 
+  TH1D *hedep_HCAL = new TH1D("hedep_HCAL","",250,0.0,0.5);
+  TH1D *hedep_BBPS = new TH1D("hedep_BBPS","",250,0.0,1.0);
+  TH1D *hedep_BBSH = new TH1D("hedep_BBSH","",250,0.0,2.5);
+
+  TH1D *hedep_BBSH_cutPS = new TH1D("hedep_BBSH_cutPS","",250,0.0,2.5);
+  TH1D *hedep_BBSH_anticutPS = new TH1D("hedep_BBSH_anticutPS","",250,0.0,2.5);
+  TH1D *hedep_BBPS_cutSH = new TH1D("hedep_BBPS_cutSH","",250,0.0,2.5);
+  TH1D *hedep_BBPS_anticutSH = new TH1D("hedep_BBPS_anticutSH","",250,0.0,2.5);
+
+  
   hitrate_vs_X_BBGEM->SetXTitle("BigBite GEM layer");
   hitrate_vs_X_BBGEM->SetYTitle("Hit X (m)");
 
@@ -126,6 +136,10 @@ void plot_GENRP_GEMbackgrounds(const char *infilename, const char *outfilename, 
   //Now we're ready to loop over all the relevant detectors:
 
   long nevent=0; 
+
+  double rate_BB_pion = 0.0;
+  double rate_BB_electron = 0.0;
+  double rate_HCAL = 0.0;
   
   while( C->GetEntry( nevent ++ ) ){
 
@@ -135,6 +149,37 @@ void plot_GENRP_GEMbackgrounds(const char *infilename, const char *outfilename, 
     
     double weight = Ibeam/double(ngen_total)/1.602e-19;
 
+    hedep_HCAL->Fill( T->Harm_HCalScint_det_esum, weight );
+    hedep_BBPS->Fill( T->Earm_BBPSTF1_det_esum, weight );
+    hedep_BBSH->Fill( T->Earm_BBSHTF1_det_esum, weight );
+
+    double ESH = T->Earm_BBSHTF1_det_esum;
+    double EPS = T->Earm_BBPSTF1_det_esum;
+
+    if( EPS >= thresh_PS ){
+      hedep_BBSH_cutPS->Fill( ESH, weight );
+    } else {
+      hedep_BBSH_anticutPS->Fill( ESH, weight );
+    }
+
+    if( ESH >= thresh_SH ){
+      hedep_BBPS_cutSH->Fill( EPS, weight );
+    } else {
+      hedep_BBPS_anticutSH->Fill( EPS, weight );
+    }
+
+    if( ESH >= thresh_SH && EPS <= thresh_PS ){ //pion logic:
+      rate_BB_pion += weight;
+    }
+
+    if( ESH + EPS >= thresh_SH ){ //electron logic
+      rate_BB_electron += weight;
+    }
+
+    if( T->Harm_HCalScint_det_esum >= thresh_HCAL ){
+      rate_HCAL += weight;
+    }
+    
     for( int ihit=0; ihit<T->Earm_BBGEM_hit_nhits; ihit++ ){
       int plane = (*(T->Earm_BBGEM_hit_plane))[ihit];
       hitrate_vs_layer_BBGEM->Fill( plane, weight/BBGEM_area_cm2[plane-1] );
@@ -171,6 +216,10 @@ void plot_GENRP_GEMbackgrounds(const char *infilename, const char *outfilename, 
     }
     
   }
+
+  cout << "BigBite singles rate with pion logic = " << rate_BB_pion << endl;
+  cout << "BigBite singles rate with electron logic = " << rate_BB_electron << endl;
+  cout << "HCAL singles rate = " << rate_HCAL << endl;
   
   fout->Write();
 

@@ -170,7 +170,7 @@ void plot_GENRP_GEMbackgrounds(const char *infilename, const char *outfilename, 
       double npe_mean = 300.0*edep;
       double npe_smear = num.Gaus( npe_mean, sqrt(npe_mean) );
 
-      double esmear = edep/300.0;
+      double esmear = npe_smear/300.0;
 
       if( row < 25 ){
 	BBPS_sums[row] += esmear;
@@ -187,7 +187,7 @@ void plot_GENRP_GEMbackgrounds(const char *infilename, const char *outfilename, 
       double npe_mean = 300.0*edep;
       double npe_smear = num.Gaus( npe_mean, sqrt(npe_mean) );
 
-      double esmear = edep/300.0;
+      double esmear = npe_smear/300.0;
       
       if( row < 26 ) BBSH_sums[row] += esmear;
       if( row > 0 ) BBSH_sums[row-1] += esmear; 

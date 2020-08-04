@@ -505,7 +505,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   // GEn polarized 3He materials (D Flay, July 2020)  
   // - includes materials for the full geometry
   // - most materials already defined above; adding carbon steel, 
-  //   which is used for the magnetic shield  
+  //   which is used for the magnetic shield, and Ultem which is for the target ladder  
 
   // AISI 1008 carbon steel
   // - details from http://www.iron-foundry.com/AISI-1008-SAE-UNS-G10080-Carbon-Steel-Foundry.html
@@ -517,6 +517,15 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Carbon_Steel_1008->AddElement(elS ,0.0005);
   Carbon_Steel_1008->AddElement(elP ,0.0004);
   fMaterialsMap["Carbon_Steel_1008"] = Carbon_Steel_1008;
+
+  // Ultem (polyetherimide plastic, similar to PEEK)
+  // - details from http://www.polymerprocessing.com/polymers/PEI.html
+  G4Material *Ultem = new G4Material("Ultem",1.27*g/cm3,nel=4);
+  Ultem->AddElement(elC,37); 
+  Ultem->AddElement(elH,24);
+  Ultem->AddElement(elO,6 );
+  Ultem->AddElement(elN,2 ); 
+  fMaterialsMap["Ultem"] = Ultem; 
   
   //Beamline materials:
   density = 2.5*g/cm3;

@@ -2839,11 +2839,13 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
 	                        tc.length/2.,
 	                        tc.startPhi ,tc.dPhi);
 
-   // end window, upstream 
+   // end window, upstream
+   // NOTE: make this radius 0.5 mm smaller than the Cu window radius for the equivalent geometry components  
    // ---- main shaft 
    partParameters_t mshu; 
    mshu.name = "ew_mainShaft_up"; mshu.shape = "tube";
-   mshu.r_tor = 0.0*mm; mshu.r_min = 0.0*mm; mshu.r_max = 10.5*mm - glassWall; mshu.length = 0.500*inch;
+   // mshu.r_tor = 0.0*mm; mshu.r_min = 0.0*mm; mshu.r_max = 10.5*mm - glassWall; mshu.length = 0.500*inch;
+   mshu.r_tor = 0.0*mm; mshu.r_min = 0.0*mm; mshu.r_max = 0.451*inch; mshu.length = 0.500*inch;
    mshu.startTheta = 0.0*deg; mshu.dTheta = 0.0*deg;
    mshu.startPhi = 0.0*deg; mshu.dPhi = 360.0*deg;
    mshu.x = 0.0*mm; mshu.y = 0.0*mm; mshu.z = -11.504*inch;
@@ -2859,9 +2861,11 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
    rm_mshu->rotateX(mshu.rx); rm_mshu->rotateY(mshu.ry); rm_mshu->rotateZ(mshu.rz);
 
   // ---- lip 
+  // NOTE: make this radius 0.5 mm smaller than the Cu window radius for the equivalent geometry components  
   partParameters_t lipu;
   lipu.name = "ew_lip_up"; lipu.shape = "tube";
-  lipu.r_tor = 0.0*mm; lipu.r_min = 0.0*mm; lipu.r_max = 10.5*mm - glassWall; lipu.length = 0.125*inch;
+  // lipu.r_tor = 0.0*mm; lipu.r_min = 0.0*mm; lipu.r_max = 10.5*mm - glassWall; lipu.length = 0.125*inch;
+  lipu.r_tor = 0.0*mm; lipu.r_min = 0.0*mm; lipu.r_max = 0.451*inch; lipu.length = 0.125*inch;
   lipu.startTheta = 0.0*deg; lipu.dTheta = 0.0*deg;
   lipu.startPhi = 0.0*deg; lipu.dPhi = 360.0*deg;
   lipu.x = 0.0*mm; lipu.y = 0.0*mm; lipu.z = -11.763*inch;
@@ -3860,7 +3864,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
    vis->SetColour( G4Colour::Red() );
    // vis->SetForceWireframe(true);
 
-   G4LogicalVolume *logicLadder = new G4LogicalVolume(ladder,GetMaterial("Aluminum"),"logicGEnTarget_Ladder");
+   G4LogicalVolume *logicLadder = new G4LogicalVolume(ladder,GetMaterial("Ultem"),"logicGEnTarget_Ladder");
    logicLadder->SetVisAttributes(vis);
 
    // placement 
@@ -3872,7 +3876,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
    G4RotationMatrix *rm_l = new G4RotationMatrix();
    rm_l->rotateX(0.*deg); rm_l->rotateY(0.*deg); rm_l->rotateZ(0.*deg);
 
-   bool isBoolean = true;
+   bool isBoolean     = true;
    bool checkOverlaps = true;
 
    new G4PVPlacement(rm_l,                // rotation [relative to mother]    

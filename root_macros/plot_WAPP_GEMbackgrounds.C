@@ -7,6 +7,7 @@
 #include "WAPP_tree.C"
 #include "TObjArray.h"
 #include "TChainElement.h"
+#include "TRandom3.h"
 
 #include <iostream>
 #include <vector>
@@ -140,8 +141,10 @@ void plot_GENRP_GEMbackgrounds(const char *infilename, const char *outfilename, 
   double rate_BB_pion = 0.0;
   double rate_BB_electron = 0.0;
   double rate_HCAL = 0.0;
+
+  TRandom3 num(0);
   
-  while( C->GetEntry( nevent ++ ) ){
+  while( C->GetEntry( nevent++ ) ){
 
     //    cout << "Starting event loop, nevent = " << nevent << endl;
     
@@ -150,31 +153,128 @@ void plot_GENRP_GEMbackgrounds(const char *infilename, const char *outfilename, 
     double weight = Ibeam/double(ngen_total)/1.602e-19;
 
     hedep_HCAL->Fill( T->Harm_HCalScint_det_esum, weight );
-    hedep_BBPS->Fill( T->Earm_BBPSTF1_det_esum, weight );
-    hedep_BBSH->Fill( T->Earm_BBSHTF1_det_esum, weight );
+    // hedep_BBPS->Fill( T->Earm_BBPSTF1_det_esum, weight );
+    // hedep_BBSH->Fill( T->Earm_BBSHTF1_det_esum, weight );
 
-    double ESH = T->Earm_BBSHTF1_det_esum;
-    double EPS = T->Earm_BBPSTF1_det_esum;
-
-    if( EPS >= thresh_PS ){
-      hedep_BBSH_cutPS->Fill( ESH, weight );
-    } else {
-      hedep_BBSH_anticutPS->Fill( ESH, weight );
+    double BBSH_sums[26];
+    double BBPS_sums[25];
+    for( int i=0; i<26; i++ ){
+      BBSH_sums[i] = 0.0;
+      if( i<25 ) BBPS_sums[i] = 0.0;
     }
 
-    if( ESH >= thresh_SH ){
-      hedep_BBPS_cutSH->Fill( EPS, weight );
-    } else {
-      hedep_BBPS_anticutSH->Fill( EPS, weight );
+    for( int ihit=0; ihit<T->Earm_BBPSTF1_hit_nhits; ihit++ ){
+      int row = (*(T->Earm_BBPSTF1_hit_row))[ihit];
+      double edep = (*(T->Earm_BBPSTF1_hit_sumedep))[ihit];
+
+      double npe_mean = 300.0*edep;
+      double npe_smear = num.Gaus( npe_mean, sqrt(npe_mean) );
+
+      double esmear = edep/300.0;
+
+      if( row < 25 ){
+	BBPS_sums[row] += esmear;
+      }
+      if( row > 0 ) {
+	BBPS_sums[row-1] += esmear; 
+      }
     }
 
-    if( ESH >= thresh_SH && EPS <= thresh_PS ){ //pion logic:
+    for( int ihit=0; ihit<T->Earm_BBSHTF1_hit_nhits; ihit++ ){
+      int row = (*(T->Earm_BBSHTF1_hit_row))[ihit];
+      double edep = (*(T->Earm_BBSHTF1_hit_sumedep))[ihit];
+
+      double npe_mean = 300.0*edep;
+      double npe_smear = num.Gaus( npe_mean, sqrt(npe_mean) );
+
+      double esmear = edep/300.0;
+      
+      if( row < 26 ) BBSH_sums[row] += esmear;
+      if( row > 0 ) BBSH_sums[row-1] += esmear; 
+    }
+
+    double EmaxSH=0.0;
+    int imax_SH=-1;
+    for( int isum_SH=0; isum_SH<26; isum_SH++ ){
+      if( BBSH_sums[isum_SH] > EmaxSH ){
+	EmaxSH = BBSH_sums[isum_SH];
+	imax_SH = isum_SH;
+      }
+    }
+
+    if( imax_SH >= 0 ){
+      hedep_BBSH->Fill( EmaxSH, weight );
+    }
+    
+    bool trigger = false;
+    
+    if( imax_SH >= 0 && EmaxSH >= thresh_SH ){ //potentially trigger, require that none of the nearest-neighbor PS groups is above threshold:
+      trigger = true;
+
+      int ipsmin,ipsmax;
+      if( imax_SH < 19 ){
+	ipsmin=imax_SH-1;
+	ipsmax=imax_SH+1;
+      } else {
+	ipsmin=imax_SH-2;
+	ipsmax=imax_SH;
+      }
+
+      //crude approximation to using the PS as a veto:
+      for( int iPS=ipsmin; iPS<=ipsmax; iPS++ ){
+	if( iPS>=0&&iPS<25 && BBPS_sums[iPS] >= thresh_PS ){
+	  trigger = false;
+	}
+      }
+    }
+
+    if( trigger ) {
       rate_BB_pion += weight;
+      hedep_BBSH_anticutPS->Fill( EmaxSH, weight );
+    } else if( imax_SH >= 0 ){
+      hedep_BBSH_cutPS->Fill( EmaxSH, weight );
     }
 
-    if( ESH + EPS >= thresh_SH ){ //electron logic
-      rate_BB_electron += weight;
+    double EmaxPS=0.0;
+    int imax_PS=-1;
+    for( int isum_PS=0; isum_PS<25; isum_PS++ ){
+      if( BBPS_sums[isum_PS] > EmaxPS ) {
+	EmaxPS = BBPS_sums[isum_PS];
+	imax_PS=isum_PS;
+      }
     }
+
+    if( imax_PS>=0 ){
+      hedep_BBPS->Fill( EmaxPS, weight );
+      if( EmaxSH >= thresh_SH ){
+	hedep_BBPS_cutSH->Fill( EmaxPS, weight );
+      } else {
+	hedep_BBPS_anticutSH->Fill( EmaxPS, weight );
+      }
+    }
+    
+      
+      
+
+    // if( EPS >= thresh_PS ){
+    //   hedep_BBSH_cutPS->Fill( ESH, weight );
+    // } else {
+    //   hedep_BBSH_anticutPS->Fill( ESH, weight );
+    // }
+
+    // if( ESH >= thresh_SH ){
+    //   hedep_BBPS_cutSH->Fill( EPS, weight );
+    // } else {
+    //   hedep_BBPS_anticutSH->Fill( EPS, weight );
+    // }
+
+    // if( ESH >= thresh_SH && EPS <= thresh_PS ){ //pion logic:
+    //   rate_BB_pion += weight;
+    // }
+
+    // if( ESH + EPS >= thresh_SH ){ //electron logic
+    //   rate_BB_electron += weight;
+    // }
 
     if( T->Harm_HCalScint_det_esum >= thresh_HCAL ){
       rate_HCAL += weight;

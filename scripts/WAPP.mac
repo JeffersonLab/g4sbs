@@ -1,5 +1,5 @@
 ## Configure G4SBS for genrp (Q^2 = 4.5 GeV^2)
-/g4sbs/filename        WAPP_norad_job24.root	   ## Output rootfile
+/g4sbs/filename        WAPP_rad_job5_newxsec.root	   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             genrp
@@ -17,8 +17,8 @@
 /g4sbs/beamE           6.6 GeV
 /g4sbs/thmin           37.0 deg
 /g4sbs/thmax           49.0 deg
-/g4sbs/phmin           -30 deg
-/g4sbs/phmax           30 deg
+/g4sbs/phmin           -24 deg
+/g4sbs/phmax           24 deg
 /g4sbs/hthmin           37.0 deg
 /g4sbs/hthmax           49.0 deg
 /g4sbs/hphmin           -30 deg
@@ -31,8 +31,9 @@
 #/g4sbs/ehmax 	       4.0 GeV
 /g4sbs/tmin 	       3.5
 /g4sbs/tmax 	       9.0
-/g4sbs/userad	       0
+/g4sbs/userad	       1
 /g4sbs/radthick        0.06
+/g4sbs/radz 	       10.0 cm
 # generation limits for pythia only:
 #/g4sbs/thmin        0.0 deg
 #/g4sbs/thmax	    180.0 deg

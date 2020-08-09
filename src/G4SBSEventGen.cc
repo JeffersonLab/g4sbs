@@ -2682,7 +2682,12 @@ bool G4SBSEventGen::GeneratePionPhotoproduction( Nucl_t nucl, G4LorentzVector ei
   fSigma = dsig_nb*nanobarn*Ngamma * (fPhMax-fPhMin)/CLHEP::twopi;
   
   if( nucl == kNeutron ){ //pi- p
-    fSigma *= 1.7;
+    double Mn2 = pow(neutron_mass_c2,2);
+    double Mp2 = pow(proton_mass_c2,2);
+    
+    double pion_ratio = pow( (2./3.*(s_mandelstam-Mn2) - 1./3.*(u_mandelstam-Mn2))/(2./3.*(u_mandelstam-Mp2)-1./3.*(s_mandelstam-Mp2)), 2 );
+    
+    fSigma *= pion_ratio;
   }
 
   //  G4cout << "Flux factor ratio Nrest/Lab = " << flux_Nrest/flux_lab << G4endl;

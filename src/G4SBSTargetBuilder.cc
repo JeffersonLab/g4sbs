@@ -2277,6 +2277,8 @@ void G4SBSTargetBuilder::BuildToyScatCham( G4LogicalVolume *motherlog ){
 
 void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMatrix *rot, G4ThreeVector pos){
   G4double radthick = GetMaterial("Copper")->GetRadlen()*fRadThick;
+
+  //  G4cout << "Radiation length = " << fRadThick*100.0 << " % = " << radthick/mm << " mm" << G4endl;
   
   G4Box *radbox = new G4Box("radbox", fTargDiameter/2.0, fTargDiameter/2.0, radthick/2.0 );
 

@@ -168,6 +168,7 @@ private:
   G4UIcmdWithADoubleAndUnit *RICHhoffsetCmd; //Set RICH horizontal offset
   G4UIcmdWithADoubleAndUnit *RICHvoffsetCmd; //Set RICH vertical offset
   G4UIcmdWithABool          *RICHaeroCmd; //Toggle use of RICH aerogel
+  G4UIcmdWithADoubleAndUnit *RICHSnoutExtensionCmd; //Set RICH snout extension
   
   // Commands to set configurable properties of SBS:
   G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd;

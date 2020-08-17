@@ -24,6 +24,7 @@ public:
   void SetRICHdist( double d ){ fRICHdist = d; } //Set RICH detector distance
   void SetRICHHoffset( double d ){ fRICHhorizontal_offset = d; }
   void SetRICHVoffset( double d ){ fRICHvertical_offset = d; }
+  void SetRICHSnoutExtension( double d ){ fRichSnoutExtension = d; }
   void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
   void SetTrackerPitch(double a){ fSBS_tracker_pitch = a; }
   void SetTrackerDist(double d){ fSBS_tracker_dist = d; }
@@ -86,7 +87,8 @@ public:
   
   G4String fRICHgas; //String defining
   G4bool   fRICH_use_aerogel; // Flag to use or not use aerogel
-
+  G4double fRichSnoutExtension;
+  
   int    fGEnRP_analyzer_option; // configuration of GEn-RP analyzer
 
   double fLACdist; //Distance to CLAS Large-angle calorimeter

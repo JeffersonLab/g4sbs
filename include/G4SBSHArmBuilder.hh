@@ -46,7 +46,7 @@ public:
   void MakeNeutronVeto(G4LogicalVolume*, G4double);
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
   void MakeRICH(G4LogicalVolume *);
-  void MakeRICH_new(G4LogicalVolume *);
+  void MakeRICH_new(G4LogicalVolume *, bool extended_snout = false);
   void MakeTracker(G4LogicalVolume *);
   void MakeGEpFPP(G4LogicalVolume *);
   void MakeTracker_A1n(G4LogicalVolume *);

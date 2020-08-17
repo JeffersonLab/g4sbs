@@ -105,6 +105,7 @@ private:
   G4UIcmdWithADouble *PionPhoto_tmaxCmd;
   G4UIcmdWithABool *PionPhoto_useradCmd;
   G4UIcmdWithADouble *PionPhoto_radthickCmd;
+  G4UIcmdWithADoubleAndUnit *PionPhoto_radzCmd;
   
   //Optics targets: presently all assumed to be Carbon
   G4UIcmdWithAnInteger *tgtNfoilCmd;

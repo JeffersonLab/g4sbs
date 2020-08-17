@@ -38,6 +38,10 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fTargDiameter = 8.0*cm; //default of 8 cm.
   
   fFlux = false;
+
+  fUseRad = false;
+  fRadThick = 0.0;
+  fRadZoffset = 10.0*cm;
   
   fSchamFlag = 0;
 }
@@ -77,6 +81,9 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     BuildStandardScatCham( worldlog );
     break;
   }
+
+  //if( fUseRad ) BuildRadiator();
+  
   return;
 
 }
@@ -150,6 +157,14 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   targ_offset.setY(temp+targ_zcenter);
   
   new G4PVPlacement( rot_targ, targ_offset, TargetMother_log, "TargetMother_phys", motherlog, false, 0 );
+
+  if( fUseRad ){ //place radiator
+    G4double yrad = fTargLen/2.0 + fRadZoffset; 
+    
+    G4ThreeVector radiator_pos = targ_offset - G4ThreeVector(0,yrad,0);
+
+    BuildRadiator( motherlog, rot_targ, radiator_pos );
+  }
   
   if( fFlux ){ //Make a sphere to compute particle flux:
     G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
@@ -2258,4 +2273,16 @@ void G4SBSTargetBuilder::BuildToyScatCham( G4LogicalVolume *motherlog ){
 
   //G4Tubs *earm_window = 
   
+}
+
+void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMatrix *rot, G4ThreeVector pos){
+  G4double radthick = GetMaterial("Copper")->GetRadlen()*fRadThick;
+
+  //  G4cout << "Radiation length = " << fRadThick*100.0 << " % = " << radthick/mm << " mm" << G4endl;
+  
+  G4Box *radbox = new G4Box("radbox", fTargDiameter/2.0, fTargDiameter/2.0, radthick/2.0 );
+
+  G4LogicalVolume *radlog = new G4LogicalVolume( radbox, GetMaterial("Copper"), "radlog" );
+
+  new G4PVPlacement( rot, pos, radlog, "radphys", motherlog, false, 0 );
 }

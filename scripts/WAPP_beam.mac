@@ -1,0 +1,52 @@
+## Configure G4SBS for genrp (Q^2 = 4.5 GeV^2)
+/g4sbs/filename        wapp_beam.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             genrp
+
+## Configure the target
+/g4sbs/target          LD2
+/g4sbs/targlen         15.0 cm           ## Target Length
+ 
+## Configure generator settings
+/g4sbs/kine            beam           ## Generator
+/g4sbs/beamcur         30 muA
+/g4sbs/beamE           6.6 GeV
+/g4sbs/thmin           37.0 deg
+/g4sbs/thmax           49.0 deg
+/g4sbs/phmin           -25 deg
+/g4sbs/phmax           25 deg
+/g4sbs/rasterx	       2.0 mm
+/g4sbs/rastery 	       2.0 mm
+/g4sbs/userad 	       1
+/g4sbs/radthick	       0.06
+/g4sbs/radz	       10.0 cm
+
+## Configure standard detector settings
+/g4sbs/hcaldist        8.5 m
+/g4sbs/hcalvoffset     0.45 m
+/g4sbs/sbsclampopt     2                 ## Front and rear field clamps
+
+## Configure GEn-RP analyzer
+/g4sbs/genrpAnalyzer 3
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/sbsmagfield     1.4 tesla # for + polarity (proton upbending)
+#/g4sbs/sbsmagfield    -1.4 tesla # for - polarity (proton downbending)
+/g4sbs/48d48field      1
+/g4sbs/bbang           41.9 deg
+/g4sbs/bbdist          1.55 m
+/g4sbs/sbsang          24.7 deg
+/g4sbs/48D48dist       2.25 m
+# Unless and until I get some documentation of the coordinate system for this field map, we will NOT be using:
+#/g4sbs/tosfield 	GEN-RP-tosca_newheader.table
+
+/g4sbs/keepsdtrackinfo 	all true
+/g4sbs/totalabs 	false
+/g4sbs/cdetready 	true
+
+
+## Run 100 events
+/g4sbs/eventstatusevery		100
+/g4sbs/run             10000

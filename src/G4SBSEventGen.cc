@@ -182,7 +182,7 @@ void G4SBSEventGen::Initialize(){
   case kD2:
     Wfact = 4.0;
     fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
-    fTargRadLen = fTargLen / G4Material::GetMaterial("D2")->GetRadlen();
+    fTargRadLen = fTargLen / G4Material::GetMaterial("refD2")->GetRadlen();
     fTargZatomic = 1.;
     break;
   case kNeutTarg:

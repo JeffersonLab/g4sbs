@@ -412,7 +412,8 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4double SCBeamExitAngleOffset = 64.5*deg;
   G4double SCLeftSnoutAngle = -24.2*deg;
   G4double SCLeftSnoutAngleOffset = SCBeamExitAngleOffset+SCLeftSnoutAngle;
-  G4double SCRightSnoutAngle = 50.1*deg;
+  //G4double SCRightSnoutAngle = 50.1*deg;
+  G4double SCRightSnoutAngle = 47.5*deg;
   G4double SCRightSnoutAngleOffset = SCBeamExitAngleOffset+SCRightSnoutAngle;
   
   // Snouts: NB: similarly to the GEp scattering chamber, 
@@ -425,7 +426,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4double SCRightSnoutWidth = 26.0*inch;// y
   G4double SCRightSnoutHeight = 18.0*inch; //z
   G4double SCRightSnoutHoleHeight = 14.0*inch;
-  G4double SCRightSnoutHoleAngleApert = 50.0*deg;
+  G4double SCRightSnoutHoleAngleApert = 55.0*deg;
   G4double SCRightSnoutBoxAngleOffset = 9.40*deg;
   
   // Basic "box"
@@ -481,7 +482,8 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4double SCSnoutWindowFrameThick = 0.75*inch;
   
   G4double SCRightSnoutWindowDist = 23.74*inch+SCSnoutWindowThick*0.5;
-  G4double SCRightSnoutHoleWidth = 21.855*inch;
+  //G4double SCRightSnoutHoleWidth = 21.855*inch;
+  G4double SCRightSnoutHoleWidth = 24.47*inch;
   G4double SCRightSnoutHoleCurvRad = 2.1*inch;
   G4double SCRightSnoutWindowFrameDist = SCRightSnoutWindowDist+SCSnoutWindowThick*0.5+SCSnoutWindowFrameThick*0.5;
   

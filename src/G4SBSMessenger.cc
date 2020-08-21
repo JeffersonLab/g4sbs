@@ -414,7 +414,11 @@ G4SBSMessenger::G4SBSMessenger(){
   RICHaeroCmd->SetGuidance("Toggle use of RICH aerogel (default = true)" );
   RICHaeroCmd->SetParameterName("useaero",true);
   RICHaeroCmd->SetDefaultValue(true);
-  
+
+  RICHSnoutExtensionCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/richsnoutext",this);
+  RICHSnoutExtensionCmd->SetGuidance("extend the RICH snout for electron mode (default 0");
+  RICHSnoutExtensionCmd->SetParameterName("snoutextension",false);
+
   SBSMagFieldCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/sbsmagfield",this);
   SBSMagFieldCmd->SetGuidance("SBS uniform magnetic field value");
   SBSMagFieldCmd->SetParameterName("sbsbfield",false);
@@ -1555,6 +1559,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == RICHaeroCmd ){
     G4bool b = RICHaeroCmd->GetNewBoolValue(newValue);
     fdetcon->fHArmBuilder->SetRICH_use_aerogel( b );
+  }
+  
+  if( cmd == RICHSnoutExtensionCmd ){
+    G4double v = RICHSnoutExtensionCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetRICHSnoutExtension(v);
   }
 
   if( cmd == SBSMagFieldCmd ){

@@ -69,6 +69,8 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fRICHvertical_offset = 0.0*cm;
   fRICHgas   = "C4F8_gas"; //default to C4F8;
   fRICH_use_aerogel = true;
+  fRichSnoutExtension = 0;
+  
 
   fGEnRP_analyzer_option = 1; //0=none+no beamline PR; 1=none(default), 2=Cu+Gla(para), 3=Cu+Gla(perp), 4=Cu+CGEN
 
@@ -2202,7 +2204,7 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
 
 void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   MakeTracker( motherlog );
-  MakeRICH_new( motherlog );
+  MakeRICH_new( motherlog , true);
 
   Exp_t exptype = fDetCon->fExpType;
   if( exptype == kA1n ){ //HCAL AND LAC:
@@ -2213,7 +2215,8 @@ void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   }
 }
 
-void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
+void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool extended_snout){
+  if(!extended_snout)fRichSnoutExtension = 0;
 
   G4RotationMatrix *rot_RICH = new G4RotationMatrix;
   rot_RICH->rotateY( f48D48ang );
@@ -2237,7 +2240,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   
   
   G4double RICHbox_w = 164.0*cm, RICHbox_h = 284.0*cm, RICHbox_thick = 126.0*cm;
-
+  if(extended_snout)RICHbox_thick+=fRichSnoutExtension;
   //RICHbox_h = 10.0*m;
   
   G4Box *RICHbox = new G4Box("RICHbox", RICHbox_w/2.0, RICHbox_h/2.0, RICHbox_thick/2.0  );
@@ -2255,7 +2258,9 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   
   //Define the origin with the x and z coordinates at "bottom left" corner of the box (everything will be centered in y)
   G4ThreeVector origin( -RICHbox_w/2.0, 0.0, -RICHbox_thick/2.0 + 0.75*mm); //Add 0.75 mm to account for thickness of entry window!
-
+  if(extended_snout)origin.setZ(origin.z()+fRichSnoutExtension);
+  G4cout << "origin.z() (mm) " << origin.z()/mm << G4endl;
+  
   G4double inch = 2.54*cm;
   
   //Mounting plate for PMT array:
@@ -2474,6 +2479,33 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   backplate_rot->rotateZ( 90.0*deg );
 
   new G4PVPlacement( backplate_rot, backplate_pos, BackPlate_log, "SBSRICH_BackPlate_pv", RICHbox_log, false, 0 );
+
+  G4LogicalVolume* snout_log;
+  if(extended_snout && fRichSnoutExtension>0){
+    G4double snout_width = 198.8*cm;
+    G4double snout_height = 55.5*cm;
+    G4double snout_thick = inch/16.0;
+    
+    G4Box *snoutbox = new G4Box("snoutbox", snout_width/2.0, snout_height/2.0, fRichSnoutExtension/2.0 );
+    G4Box *snouthollow = new G4Box("snouthollow", snout_width/2.0-snout_thick, snout_height/2.0-snout_thick, fRichSnoutExtension/2.0+snout_thick );
+    
+    G4SubtractionSolid* snout_sol = new G4SubtractionSolid( "snout_sol", snoutbox, snouthollow, 0, G4ThreeVector(0,0,0) );
+    snout_log = new G4LogicalVolume(snout_sol, GetMaterial("Al"), "snout_log");
+    
+    G4double snout_x0 = 6.60*cm + snout_height/2.0-5.55*cm;
+    G4double snout_z0 = -0.75*mm - fRichSnoutExtension/2.0;
+    G4ThreeVector snout_pos = origin + G4ThreeVector( snout_x0, 0.0, snout_z0 );
+    
+    G4RotationMatrix *snout_rot = new G4RotationMatrix;
+
+    snout_rot->rotateZ( 90.0*deg );
+
+    new G4PVPlacement( snout_rot, snout_pos, snout_log, "SBSRICH_snout_extension_pv", RICHbox_log, false, 0 );
+    
+    //G4Box *snoutgas = new G4Box("snoutgas", snout_width/2.0-snout_thick, snout_height/2.0-snout_thick, fRichSnoutExtension/2.0);
+    //G4LogicalVolume* snoutgas_log = new G4LogicalVolume(snout_sol, GetMaterial("Al"), "snout_log");
+    
+  }
   
   //Next: Front Window frame:
   G4double frontframe_width = 198.8*cm;
@@ -2493,7 +2525,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   G4double frontframe_x0 = 6.60*cm + frontframe_window_height/2.0;
   G4double frontframe_z0 = -0.75*mm + frontframe_thick/2.0;
   G4ThreeVector frontframe_pos = origin + G4ThreeVector( frontframe_x0, 0.0, frontframe_z0 );
-
+  if(extended_snout)frontframe_pos.setZ(frontframe_pos.z()-fRichSnoutExtension);
+  
   G4RotationMatrix *frontframe_rot = new G4RotationMatrix;
 
   frontframe_rot->rotateZ( 90.0*deg );
@@ -2506,7 +2539,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   G4LogicalVolume *FrontWindow_log = new G4LogicalVolume( FrontWindow, GetMaterial("Al"), "FrontWindow_log" );
 
   G4ThreeVector frontwindow_pos = origin + G4ThreeVector( frontframe_x0, 0.0, frontframe_z0 + (0.75*mm + frontframe_thick)/2.0 );
-
+  if(extended_snout)frontwindow_pos.setZ(frontwindow_pos.z()-fRichSnoutExtension);
+  
   new G4PVPlacement( frontframe_rot, frontwindow_pos, FrontWindow_log, "SBSRICH_FrontWindow_pv", RICHbox_log, false, 0 );
   
   //Back window frame:
@@ -2914,14 +2948,14 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   G4double y0_RICH = 0.0;
   G4double z0_RICH = frontframe_thick;
 
+  if(extended_snout)z0_RICH = z0_RICH-fRichSnoutExtension; 
+    
   G4ThreeVector RICH_offset( x0_RICH, y0_RICH, z0_RICH ); //coordinates of center of entry window relative to origin.
-
+  
   RICH_offset += origin;
   
 
   G4ThreeVector RICH_centercoord_global = RICHcoord_global - (-RICH_offset.x() * RICH_xaxis + RICH_offset.y() * RICH_yaxis + RICH_offset.z() * RICH_zaxis) + fRICHhorizontal_offset * RICH_xaxis + fRICHvertical_offset * RICH_yaxis;
-
-  
   
   //We want to position the RICH box so that the center of the entry window is aligned with the SBS axis:
   new G4PVPlacement( rot_RICH, RICH_centercoord_global, RICHbox_log, "SBS_RICH_pv", motherlog, false, 0 );
@@ -2978,6 +3012,10 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   PMTtube_log->SetVisAttributes( PMTtube_visatt );
   PMTendcap_log->SetVisAttributes( PMTtube_visatt );
   PMTquartzwindow_log->SetVisAttributes( PMT_window_visatt );
+  
+  if(extended_snout && fRichSnoutExtension>0){
+    snout_log->SetVisAttributes( RICHbox_visatt );
+  }
   
 }
 

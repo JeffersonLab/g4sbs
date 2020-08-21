@@ -82,7 +82,7 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;//this shall be about right
   
   //NB: fBBCalDist now designates the distance to the shielding
-  //fix: add an extra 1.136 what? in between the back of the GRINCH and the "GEM frame"
+  //fix: add an extra 1.136 inch between the back of the GRINCH and the "GEM frame"
   fBBCaldist = fCerDist + fCerDepth + 1.136*2.54*cm + backGEM_depth;
   fGEMDist   = fCerDist + fCerDepth + 1.136*2.54*cm + 0.5*backGEM_depth;
   fGEMOption = 2;
@@ -470,6 +470,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     }
     if( fGEMOption == 2 ){
       for( i = 0; i < ngem; i++ ){
+	G4cout << "GEM " << i << " (mm) " <<detoffset+gemz_opt2[i]+detboxdepth/2.0 << endl;
 	gemz[i] = gemz_opt2[i];
 	gemw[i] = gemw_opt2[i];
 	gemh[i] = gemh_opt2[i];
@@ -640,7 +641,6 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   //start at the front of the BB cal mother volume and work our way back:
   G4double zpos_temp = -0.5*bbcal_total_thick;
-  
   if(fShieldOption > 0){
     // new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_shield_thick/2.0 ), bbcal_shield_log, "bbcal_shield_phys", bbdetLog, false, 0 );
     
@@ -697,6 +697,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *bbpsbox = new G4Box("bbpsbox", pswidth/2.0, psheight/2.0, psdepth/2.0 );
   G4LogicalVolume *bbpslog = new G4LogicalVolume(bbpsbox, GetMaterial("Air"), "bbpslog");
   //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth/2.0), bbpslog, "bbpsphys", bbdetLog, false, 0);
+  G4cout << "bb ps front (mm) "<< detoffset + fBBCaldist+bbcal_total_thick/2.+zpos_temp+detboxdepth/2.0 << endl;
   zpos_temp += psdepth/2.0;
   new G4PVPlacement(0, G4ThreeVector( 0, 0, zpos_temp ), bbpslog, "bbpsphys", bbcal_mother_log, false, 0, chkoverlap );
   zpos_temp += psdepth/2.0 + bbcalfrontsteelplate->GetZHalfLength();
@@ -731,7 +732,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + 0.217*2.54 + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
-  zpos_temp += bbhododepth/2.0;
+  G4cout << "BB hodo front (mm) " << detoffset + fBBCaldist+bbcal_total_thick/2.+zpos_temp+detboxdepth/2.0+1.0*mm << endl;
+  zpos_temp += bbhododepth/2.0+1.0*mm;
   new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0, chkoverlap );
   bbhodolog->SetVisAttributes(G4VisAttributes::Invisible);
   // zpos_temp += bbhododepth/2.0+honeycombAlplate->GetZHalfLength();
@@ -822,6 +824,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   zpos_temp+=1.905*cm-honeycombAlplate->GetZHalfLength();
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_total_thick/2.0 - caldepth + honeycombAlplate->GetZHalfLength()/2.0-1.905*cm), honeycombAlplate_log, "honeycombplate2_phys", bbcal_mother_log, false, 0, chkoverlap );
   zpos_temp+=honeycombAlplate->GetZHalfLength()/2.0;
+
+  G4cout << "BB SH front (m) " << detoffset + fBBCaldist+bbcal_total_thick-caldepth+detboxdepth/2.0 << endl;
   
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_total_thick/2.0 - caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0, chkoverlap );
   

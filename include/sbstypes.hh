@@ -17,7 +17,7 @@ enum Kine_t { kElastic, kFlat, kInelastic, kDIS, kBeam, kSIDIS, kGun, kWiser, kP
 //enum Exp_t { kGEp, kNeutronExp, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest};
 enum Exp_t { kGEp, kGMN, kGEN, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest, kGEPpositron, kWAPP};
 enum Arm_t { kEarm, kHarm }; //Types for association of detector modules with spectrometer arms. Presently "E arm" and "H arm" are possible.
-enum SDet_t { kGEM, kCAL, kRICH, kECAL }; //Types of sensitive detectors (others to be added later)
+enum SDet_t { kGEM, kCAL, kRICH, kECAL, kBD }; //Types of sensitive detectors (others to be added later)
 
 struct filedata_t {
     char filename[__RUNSTR_LEN];

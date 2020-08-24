@@ -23,6 +23,8 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SBSCalSD.hh"
 
+#include "G4SBSBDParameterisation.hh"
+#include "G4SBSBeamDiffuserSD.hh"
 
 G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   assert(dc);
@@ -4754,5 +4756,72 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
 void G4SBSBeamlineBuilder::MakeToyBeamline(G4LogicalVolume *motherlog){ //This is the "toy" beamline to go with the "toy" scattering chamber:
 
   // Don't do anything yet, just make the code compile;
-} 
+}
 
+void G4SBSBeamlineBuilder::MakeBeamDiffuser(G4LogicalVolume *logicMother){
+   // A beam diffuser that sits right in front of the beam dump
+   // Added by D. Flay (JLab) in Aug 2020  
+
+   // A case for diffuser
+   // - made of vacuum 
+   // - allows placement of the volume in same mother as the calorimeter
+   //   (can't have two replicas or parameterised volumes in same mother...)  
+   G4double inch        = 25.4*mm;
+   G4double diffCase_x  = 12.*inch;
+   G4double diffCase_y  = 6.*inch;   
+   G4double diffCase_z  = 15.*cm;    
+
+   G4VSolid *diffCaseS         = new G4Box("diffCase",diffCase_x/2.,diffCase_y/2.,diffCase_z/2.); 
+   G4LogicalVolume *diffCaseLV = new G4LogicalVolume(diffCaseS,GetMaterial("Vacuum"),"diffCase");
+
+   // where to place the diffuser 
+   // note: the (x,y) center of the diffuser plates is centered on this logical volume 
+   G4double xd = 0.;
+   G4double yd = 0.;
+   G4double zd = 2.*m;
+   G4ThreeVector P_case = G4ThreeVector(xd,yd,zd);
+
+   bool checkOverlaps = true;
+
+   new G4PVPlacement(0,                // no rotation
+	             P_case,           // location in mother volume 
+	             diffCaseLV,       // its logical volume                         
+	             "diffCase",       // its name
+	             logicMother,      // its mother  volume
+	             false,            // no boolean operation
+	             0,                // copy number
+	             checkOverlaps);   // checking overlaps 
+
+   G4VisAttributes *visCase = new G4VisAttributes();
+   visCase->SetForceWireframe();
+
+   // diffCaseLV->SetVisAttributes(G4VisAttributes::GetInvisible());
+   diffCaseLV->SetVisAttributes(visCase);
+
+   // parameterised build of the diffuser
+   // build first plate (same for Hall A or C)  
+   G4double r_min    = 2.*inch;
+   G4double r_max    = 5.*inch;
+   G4double thk      = 0.125*inch;
+   G4double startPhi = 255.*deg;
+   G4double dPhi     = 30.*deg;
+
+   // choose the origin of the device (where the first plate starts, relative to the mother volume)  
+   G4ThreeVector P0 = G4ThreeVector(0,0,0);
+
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Blue() );
+
+   // first plate 
+   G4VSolid *plateSolid     = new G4Tubs("plate",r_min,r_max,thk/2.,startPhi,dPhi);
+   G4LogicalVolume *plateLV = new G4LogicalVolume(plateSolid,GetMaterial("Aluminum"),"plateLV");
+   plateLV->SetVisAttributes(vis);
+   // parameterisation (Hall A) 
+   G4VPVParameterisation *plateParam = new G4SBSBDParameterisation('A',P0);
+   // placement
+   int NPlanes = 15; // for Hall A; 16 for Hall C 
+   new G4PVParameterised("Diffuser",plateLV,diffCaseLV,kZAxis,NPlanes,plateParam);
+
+   // FIXME: Apply sensitive detector status here 
+ 
+}

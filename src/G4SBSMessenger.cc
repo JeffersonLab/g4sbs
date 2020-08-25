@@ -214,13 +214,13 @@ G4SBSMessenger::G4SBSMessenger(){
   
   // D. Flay 8/25/20.  Beam pointing and beam diffuser   
   // - horizontal (x)  
-  beamOffsetXcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beampointx",this);
-  beamOffsetXcmd->SetGuidance("Set beam pointing along the horizontal (x) direction");
-  beamOffsetXcmd->SetParameterName("beampointx",false);  // must provide input 
+  beamOffsetXcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamoffsetx",this);
+  beamOffsetXcmd->SetGuidance("Set beam offset along the horizontal (x) direction");
+  beamOffsetXcmd->SetParameterName("beamoffsetx",false);  // must provide input 
   // - vertical (y)
-  beamOffsetYcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beampointy",this);
-  beamOffsetYcmd->SetGuidance("Set beam pointing along the vertical (y) direction");
-  beamOffsetYcmd->SetParameterName("beampointy",false);  // must provide input 
+  beamOffsetYcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamoffsety",this);
+  beamOffsetYcmd->SetGuidance("Set beam offset along the vertical (y) direction");
+  beamOffsetYcmd->SetParameterName("beamoffsety",false);  // must provide input 
   // beam diffuser 
   beamDiffuserCmd = new G4UIcmdWithABool("/g4sbs/beamDiffuserEnable",this);
   beamDiffuserCmd->SetGuidance("Enable the Beam Diffuser device");

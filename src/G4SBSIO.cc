@@ -53,6 +53,7 @@ G4SBSIO::G4SBSIO(){
   trackdata.clear();
   ecaldata.clear();
   sdtrackdata.clear();
+  BDdata.clear(); 
 
   //Set SD track data recording to OFF by default:
   fKeepAllSDtracks = false;
@@ -104,6 +105,10 @@ void G4SBSIO::SetSDtrackData( G4String SDname, G4SBSSDTrackOutput td ){
   sdtrackdata[SDname] = td;
 }
 
+void G4SBSIO::SetBDData(G4String SDname,G4SBSBDoutput data){
+   BDdata[SDname] = data;
+}
+
 void G4SBSIO::InitializeTree(){
   if( fFile ){
     fFile->Close();
@@ -134,12 +139,12 @@ void G4SBSIO::InitializeTree(){
   for( set<G4String>::iterator d = (fdetcon->SDlist).begin(); d != (fdetcon->SDlist).end(); d++ ){
     //for( G4int idet=0; idet<fdetcon->fSDman->G
     G4String SDname = *d;
-    SDet_t SDtype = (fdetcon->SDtype)[SDname];
+    G4SBS::SDet_t SDtype = (fdetcon->SDtype)[SDname];
 
     G4cout << "Initializing tree branches for Sensitive Detector " << SDname.data() << G4endl;
 
     switch( SDtype ){
-    case kGEM: //GEM: Add branches for the GEM AND "tracker" branches:
+    case G4SBS::kGEM: //GEM: Add branches for the GEM AND "tracker" branches:
       //Create "GEM output" and "Tracker Output" data structures and associate them with this sensitive detector name:
       GEMdata[SDname] = G4SBSGEMoutput();
       trackdata[SDname] = G4SBSTrackerOutput();
@@ -147,24 +152,24 @@ void G4SBSIO::InitializeTree(){
       BranchGEM(SDname);
 	
       break;
-    case kCAL: //"CAL": Add appropriate branches:
+    case G4SBS::kCAL: //"CAL": Add appropriate branches:
       //Initialize "CAL output" data structure and associate with this sensitive detector:
       CALdata[SDname] = G4SBSCALoutput();
       BranchCAL(SDname);
       break;
-    case kRICH: //"RICH"
+    case G4SBS::kRICH: //"RICH"
       richdata[SDname] = G4SBSRICHoutput();
       // Note: if any optical photon production mechanisms are ON, create RICH detector branches.
       // Otherwise, we don't need them.
       if( fUsingCerenkov || fUsingScintillation ) BranchRICH(SDname);
       break;
-    case kECAL: //"ECAL"
+    case G4SBS::kECAL: //"ECAL"
       // Note: if any optical photon production mechanisms are ON, create ECAL detector branches.
       // Otherwise, we don't need them.
       ecaldata[SDname] = G4SBSECaloutput();
       if( fUsingCerenkov || fUsingScintillation ) BranchECAL(SDname);
       break;
-    case kBD: 
+    case G4SBS::kBD: 
       // Beam Diffuser (BD) 
       BDdata[SDname] = G4SBSBDoutput(); 
       BranchBD(SDname); 
@@ -178,7 +183,7 @@ void G4SBSIO::InitializeTree(){
 
       allsdtrackdata = G4SBSSDTrackOutput("all");
 
-      if( SDtype == kGEM || SDtype == kCAL ||
+      if( SDtype == G4SBS::kGEM || SDtype == G4SBS::kCAL ||
 	  fUsingCerenkov || fUsingScintillation ){
 
 	keepanysdtracks = true;
@@ -829,7 +834,7 @@ void G4SBSIO::BranchSDTracks(){
 }
 
 void G4SBSIO::BranchBD(G4String SDname){
-   // create the branches for the BeamDiffuser 
+   // create the branches for the Beam Diffuser (BD) 
    TString branch_name;
    TString branch_prefix = SDname.data();
    branch_prefix.ReplaceAll("/",".");
@@ -851,7 +856,4 @@ void G4SBSIO::BranchBD(G4String SDname){
    fTree->Branch( branch_name.Format("%s.hit.beta" , branch_prefix.Data() ), &(BDdata[SDname].beta ) );
 }
 
-void G4SBSIO::SetBDData(G4String SDname,G4SBSBDoutput data){
-   BDdata[SDname] = data;
-}
 

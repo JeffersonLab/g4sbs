@@ -24,7 +24,7 @@ public:
   G4bool fInverted;
   G4double fScaleFactor; //Set overall scale factor for any magnetic field
 
-  Arm_t fArm; //kEarm or kHarm: defaults to Earm.
+  G4SBS::Arm_t fArm; //kEarm or kHarm: defaults to Earm.
   
 protected:
   

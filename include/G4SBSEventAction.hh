@@ -64,8 +64,8 @@ public:
 
   //map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run. 
   set<G4String> SDlist;
-  map<G4String, SDet_t> SDtype;
-  //map<G4String, Arm_t> SDarm;
+  map<G4String, G4SBS::SDet_t> SDtype;
+  //map<G4String, G4SBS::Arm_t> SDarm;
   void SetEventStatusEvery(G4int n) { fEventStatusEvery = n; };
 
 private:

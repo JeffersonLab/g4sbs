@@ -50,7 +50,7 @@ private:
   G4SBSSteppingAction *fstepact;
   
 
-  Exp_t fExpType;
+  G4SBS::Exp_t fExpType;
   
   G4UIcmdWithAnInteger *runCmd;
   G4UIcmdWithAString   *fileCmd;

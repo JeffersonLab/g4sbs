@@ -53,7 +53,7 @@
 using namespace CLHEP;
 
 G4SBSMessenger::G4SBSMessenger(){
-  fExpType = kGMN; //default to GMN
+  fExpType = G4SBS::kGMN; //default to GMN
 
   runCmd = new G4UIcmdWithAnInteger("/g4sbs/run",this);
   runCmd->SetGuidance("Run simulation with x events");
@@ -101,7 +101,7 @@ G4SBSMessenger::G4SBSMessenger(){
   GENTargetHelmholtzCmd->SetGuidance("GEn 3He target Helmholts coil configuration based on central Q2 value"); 
   GENTargetHelmholtzCmd->SetGuidance("1 => Q2 = 1.46 (GeV/c)^2, 2 => Q2 = 3.68 (GeV/c)^2, 3 => Q2 = 6.77 (GeV/c)^2, 4 => Q2 = 10.18 (GeV/c)^2, "); 
   GENTargetHelmholtzCmd->SetParameterName("targgenhhconfig",false); // user must provide an integer value, non-argument not allowed 
-  GENTargetHelmholtzCmd->SetDefaultValue(kSBS_GEN_146);             // probably not utilized since we require an input value 
+  GENTargetHelmholtzCmd->SetDefaultValue(G4SBS::kSBS_GEN_146);             // probably not utilized since we require an input value 
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
   kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
@@ -672,7 +672,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4int nevt = runCmd->GetNewIntValue(newValue);
 
     //If the generator is PYTHIA, don't try to generate more events than we have available:
-    if( fevgen->GetKine() == kPYTHIA6 ){
+    if( fevgen->GetKine() == G4SBS::kPYTHIA6 ){
       if( fevgen->GetPythiaChain()->GetEntries() < nevt ){
 	nevt = fevgen->GetPythiaChain()->GetEntries();
       }
@@ -683,25 +683,25 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double TargNumberDensity; 
     
     switch(fdetcon->fTargType){ //Initialize fTargDen correctly and consistently with Material definition in fdetcon->ConstructMaterials:
-    case kH2:
+    case G4SBS::kH2:
       TargNumberDensity = fdetcon->GetMaterial("refH2")->GetTotNbOfAtomsPerVolume();
       break;
-    case kD2:
+    case G4SBS::kD2:
       TargNumberDensity = fdetcon->GetMaterial("refD2")->GetTotNbOfAtomsPerVolume();
       break;
-    case kNeutTarg:
+    case G4SBS::kNeutTarg:
       TargNumberDensity = fdetcon->GetMaterial("refN2")->GetTotNbOfAtomsPerVolume();
       break;
-    case kLH2:
+    case G4SBS::kLH2:
       TargNumberDensity = fdetcon->GetMaterial("LH2")->GetTotNbOfAtomsPerVolume();
       break;
-    case kLD2:
+    case G4SBS::kLD2:
       TargNumberDensity = fdetcon->GetMaterial("LD2")->GetTotNbOfAtomsPerVolume();
       break;
-    case k3He:
+    case G4SBS::k3He:
       TargNumberDensity = fdetcon->GetMaterial("pol3He")->GetTotNbOfAtomsPerVolume();
       break;
-    case kCfoil:
+    case G4SBS::kCfoil:
       TargNumberDensity = fdetcon->GetMaterial("Carbon")->GetTotNbOfAtomsPerVolume();
       break;
     default: //assume H2 gas:
@@ -714,7 +714,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevgen->Initialize();
 
     //For optics target, copy target foil information from targetbuilder to evgen:
-    if( fdetcon->fTargType == kOptics ){
+    if( fdetcon->fTargType == G4SBS::kOptics ){
       fevgen->SetNfoils( fdetcon->fTargetBuilder->GetNtargetFoils() );
       fevgen->SetFoilZandThick( fdetcon->fTargetBuilder->GetFoilZpos(), fdetcon->fTargetBuilder->GetFoilThick() );
     }
@@ -722,13 +722,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     //   fevgen->InitializeRejectionSampling();
     // }
 
-    Kine_t kinetype = fevgen->GetKine(); 
-    if( kinetype == kDIS || kinetype == kWiser ){ //Processes with xsec in units of area/energy/solid angle; i.e., nb/GeV/sr
+    G4SBS::Kine_t kinetype = fevgen->GetKine(); 
+    if( kinetype == G4SBS::kDIS || kinetype == G4SBS::kWiser ){ //Processes with xsec in units of area/energy/solid angle; i.e., nb/GeV/sr
       G4SBSRun::GetRun()->GetData()->SetGenVol( fevgen->GetGenVol()/GeV );
       //if( fevgen->GetRejectionSamplingFlag() ){
       G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 * GeV );
 	//}
-    } else if ( kinetype == kSIDIS ){ //Processes with xsec differential in area/energy^2/solid angle^2:
+    } else if ( kinetype == G4SBS::kSIDIS ){ //Processes with xsec differential in area/energy^2/solid angle^2:
       G4SBSRun::GetRun()->GetData()->SetGenVol( fevgen->GetGenVol()/(GeV*GeV) );
       // if( fevgen->GetRejectionSamplingFlag() ){
       G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 * pow(GeV,2) );
@@ -838,65 +838,65 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == kineCmd ){
     bool validcmd = false;
     if( newValue.compareTo("elastic") == 0 ){
-      fevgen->SetKine(kElastic);
+      fevgen->SetKine(G4SBS::kElastic);
       validcmd = true;
     }
     if( newValue.compareTo("inelastic") == 0 ){
-      fevgen->SetKine(kInelastic);
+      fevgen->SetKine(G4SBS::kInelastic);
       //fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("flat") == 0 ){
-      fevgen->SetKine(kFlat);
+      fevgen->SetKine(G4SBS::kFlat);
       //fevgen->SetMaxWeight( cm2 );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("dis") == 0 ){
-      fevgen->SetKine(kDIS);
+      fevgen->SetKine(G4SBS::kDIS);
       //fevgen->SetMaxWeight( cm2/GeV );
       validcmd = true;
     }
     if( newValue.compareTo("beam") == 0 ){
-      fevgen->SetKine(kBeam);
+      fevgen->SetKine(G4SBS::kBeam);
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("sidis") == 0 ){
-      fevgen->SetKine( kSIDIS );
+      fevgen->SetKine( G4SBS::kSIDIS );
       //fevgen->SetMaxWeight( cm2/pow(GeV,2) );
       validcmd = true;
     }
     if( newValue.compareTo("wiser") == 0 ){
-      fevgen->SetKine( kWiser);
+      fevgen->SetKine( G4SBS::kWiser);
       //fevgen->SetMaxWeight( cm2/GeV );
       validcmd = true;
     }
     if( newValue.compareTo("gun") == 0 ){
-      fevgen->SetKine( kGun );
+      fevgen->SetKine( G4SBS::kGun );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("cosmics") == 0 ){
-      fevgen->SetKine( kCosmics );
+      fevgen->SetKine( G4SBS::kCosmics );
       validcmd = true;
     }
 
     if( newValue.compareTo("pythia6") == 0 ){
-      fevgen->SetKine( kPYTHIA6 );
+      fevgen->SetKine( G4SBS::kPYTHIA6 );
       fIO->SetUsePythia6( true );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if (newValue.compareTo("gmnelasticcheck") == 0 ){
-      fevgen->SetKine(kGMnElasticCheck);
+      fevgen->SetKine(G4SBS::kGMnElasticCheck);
       fevgen->SetRejectionSamplingFlag(false);
       //fevgen->SetMaxWeight( cm2 );
       validcmd = true;
     }
 
     if( newValue.compareTo("wapp") == 0 ){ //wide angle pion photoproduction
-      fevgen->SetKine(kPionPhoto);
+      fevgen->SetKine(G4SBS::kPionPhoto);
       validcmd = true;
     }
 
@@ -918,48 +918,48 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == expCmd ){
     bool validcmd = false;
     if( newValue.compareTo("gep") == 0 ){
-      fExpType = kGEp;
+      fExpType = G4SBS::kGEp;
       validcmd = true;
     }
     if( newValue.compareTo("gepeplus") == 0 ){
-      fExpType = kGEPpositron;
+      fExpType = G4SBS::kGEPpositron;
       validcmd = true;
     }
     if( newValue.compareTo("gmn") == 0 ){
-      fExpType = kGMN;
+      fExpType = G4SBS::kGMN;
       validcmd = true;
     }
     if( newValue.compareTo("gen") == 0 ){
-      fExpType = kGEN;
+      fExpType = G4SBS::kGEN;
       validcmd = true;
     }
     if( newValue.compareTo("genrp") == 0 ){
-      fExpType = kGEnRP;
+      fExpType = G4SBS::kGEnRP;
       validcmd = true;
     }
     if( newValue.compareTo("a1n") == 0 ){
-      fExpType = kA1n; //"A1n" experiment type for new proposal with both SBS and BigBite in electron mode to detect DIS electrons at high-x: requires some geometry modifications on SBS side, including RICH w/CO2 instead of C4F10 and no aerogel, AND with a non-zero pitch angle for the SBS tracker. Also: HCAL + LAC.
+      fExpType = G4SBS::kA1n; //"A1n" experiment type for new proposal with both SBS and BigBite in electron mode to detect DIS electrons at high-x: requires some geometry modifications on SBS side, including RICH w/CO2 instead of C4F10 and no aerogel, AND with a non-zero pitch angle for the SBS tracker. Also: HCAL + LAC.
       validcmd = true;
     }
     //AJP: Add SIDIS as a valid experiment type:
     if( newValue.compareTo("sidis") == 0 ){
-      fExpType = kSIDISExp;
+      fExpType = G4SBS::kSIDISExp;
       validcmd = true;
     }
     if( newValue.compareTo("C16") == 0 ){
-      fExpType = kC16;
+      fExpType = G4SBS::kC16;
       validcmd = true;
     }
     if( newValue.compareTo("tdis") == 0 ){
-      fExpType = kTDIS;
+      fExpType = G4SBS::kTDIS;
       validcmd = true;
     }
     if( newValue.compareTo("ndvcs") == 0 ){
-      fExpType = kNDVCS;
+      fExpType = G4SBS::kNDVCS;
       validcmd = true;
     }
     if( newValue.compareTo("hcgem") == 0 ){
-      fExpType = kGEMHCtest;
+      fExpType = G4SBS::kGEMHCtest;
       validcmd = true;
     }
 
@@ -982,31 +982,31 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == HadrCmd ){
     bool validcmd = false;
     if( newValue.compareTo("pi+") == 0 ){
-      fevgen->SetHadronType( kPiPlus );
+      fevgen->SetHadronType( G4SBS::kPiPlus );
       validcmd = true;
     }
     if( newValue.compareTo("pi-") == 0 ){
-      fevgen->SetHadronType( kPiMinus );
+      fevgen->SetHadronType( G4SBS::kPiMinus );
       validcmd = true;
     }
     if( newValue.compareTo("pi0") == 0 ){
-      fevgen->SetHadronType( kPi0 );
+      fevgen->SetHadronType( G4SBS::kPi0 );
       validcmd = true;
     }
     if( newValue.compareTo("K+") == 0 ){
-      fevgen->SetHadronType( kKPlus );
+      fevgen->SetHadronType( G4SBS::kKPlus );
       validcmd = true;
     }
     if( newValue.compareTo("K-") == 0 ){
-      fevgen->SetHadronType( kKMinus );
+      fevgen->SetHadronType( G4SBS::kKMinus );
       validcmd = true; 
     }
     if( newValue.compareTo("p") == 0 ){
-      fevgen->SetHadronType( kP );
+      fevgen->SetHadronType( G4SBS::kP );
       validcmd = true;
     } 
     if( newValue.compareTo("pbar") == 0 ){
-      fevgen->SetHadronType( kPbar );
+      fevgen->SetHadronType( G4SBS::kPbar );
       validcmd = true;
     }
 
@@ -1038,8 +1038,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == tgtCmd ){
     bool validcmd = false;
     if( newValue.compareTo("LH2") == 0 ){
-      fevgen->SetTarget(kLH2);
-      fdetcon->SetTarget(kLH2);
+      fevgen->SetTarget(G4SBS::kLH2);
+      fdetcon->SetTarget(G4SBS::kLH2);
 
       G4double den = (0.071*g/cm3)*Avogadro/(1.008*g/mole);
       fevgen->SetTargDen(den);
@@ -1047,8 +1047,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("H2") == 0 ){
-      fevgen->SetTarget(kH2);
-      fdetcon->SetTarget(kH2);
+      fevgen->SetTarget(G4SBS::kH2);
+      fdetcon->SetTarget(G4SBS::kH2);
 
       G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann); //Should this be hard-coded? I think not. On the other hand, this provides a sensible default value, soooo....
       fevgen->SetTargDen(den);
@@ -1056,8 +1056,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("D2") == 0 ){
-      fevgen->SetTarget(kD2);
-      fdetcon->SetTarget(kD2);
+      fevgen->SetTarget(G4SBS::kD2);
+      fdetcon->SetTarget(G4SBS::kD2);
 
       G4double den = 1.0*atmosphere/(77.0*kelvin*k_Boltzmann);
       fevgen->SetTargDen(den);
@@ -1065,8 +1065,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("LD2") == 0 ){
-      fevgen->SetTarget(kLD2);
-      fdetcon->SetTarget(kLD2);
+      fevgen->SetTarget(G4SBS::kLD2);
+      fdetcon->SetTarget(G4SBS::kLD2);
 
       G4double den = (162.4*kg/m3)*Avogadro/(2.014*g/mole);
       fevgen->SetTargDen(den);
@@ -1074,8 +1074,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("3He") == 0 ){
-      fevgen->SetTarget(k3He);
-      fdetcon->SetTarget(k3He);
+      fevgen->SetTarget(G4SBS::k3He);
+      fdetcon->SetTarget(G4SBS::k3He);
 
       G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann);
       fevgen->SetTargDen(den);
@@ -1084,8 +1084,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     }
     if( newValue.compareTo("Neutron") == 0 ){
-      fevgen->SetTarget(kNeutTarg);
-      fdetcon->SetTarget(kNeutTarg);
+      fevgen->SetTarget(G4SBS::kNeutTarg);
+      fdetcon->SetTarget(G4SBS::kNeutTarg);
 
       G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann);
       fevgen->SetTargDen(den);
@@ -1093,14 +1093,14 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("Cfoil") == 0 ){
-      fevgen->SetTarget(kCfoil);
-      fdetcon->SetTarget(kCfoil);
+      fevgen->SetTarget(G4SBS::kCfoil);
+      fdetcon->SetTarget(G4SBS::kCfoil);
       validcmd = true;
     }
 
     if( newValue.compareTo("optics") == 0 ){
-      fevgen->SetTarget(kOptics);
-      fdetcon->SetTarget(kOptics);
+      fevgen->SetTarget(G4SBS::kOptics);
+      fdetcon->SetTarget(G4SBS::kOptics);
       validcmd = true;
       //fdetcon->fTargetBuilder->SetNtargetFoils(1); //default to one carbon foil at Z = 0;
     }
@@ -1122,7 +1122,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
 
   // D. Flay (8/25/20) 
-  // beam pointing 
+  // beam offset 
   if(cmd==beamOffsetXcmd){
      G4double bpx = beamOffsetXcmd->GetNewDoubleValue(newValue);
      fevgen->SetBeamOffsetX(bpx);
@@ -1131,6 +1131,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
      G4double bpy = beamOffsetYcmd->GetNewDoubleValue(newValue);
      fevgen->SetBeamOffsetY(bpy);
   }
+  // beam diffuser
+  if(cmd==beamDiffuserCmd){
+     G4bool bdEnable = beamDiffuserCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetBeamDiffuserEnable(bdEnable); 
+  } 
 
   if( cmd == bigfieldCmd ){
     G4int n = bigfieldCmd->GetNewIntValue(newValue);

@@ -26,7 +26,7 @@ public:
 
   void DebugField(G4double thEarm=33.0*deg, G4double thHarm=14.8*deg);
 
-  void ScaleFields( G4double, Arm_t );
+  void ScaleFields( G4double, G4SBS::Arm_t );
   
   std::vector<TH2F *> fFieldPlots;
 

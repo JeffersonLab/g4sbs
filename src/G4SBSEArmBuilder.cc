@@ -112,18 +112,18 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}
 
 void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
-  Exp_t exptype = fDetCon->fExpType;
+  G4SBS::Exp_t exptype = fDetCon->fExpType;
 
   //  The neutron experiments and the SIDIS experiment use BigBite:
   //------------ BigBite: -----------------------------------------------------
-  if( exptype == kGMN || exptype == kGEN || exptype == kSIDISExp || exptype == kA1n  || exptype == kTDIS || exptype == kGEnRP ) 
+  if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEN || exptype == G4SBS::kSIDISExp || exptype == G4SBS::kA1n  || exptype == G4SBS::kTDIS || exptype == G4SBS::kGEnRP ) 
     {
       MakeBigBite( worldlog );
       //Move sieve slit construction to MakeBigBite subroutine:
       //      if(fBuildBBSieve)
       //	MakeBBSieveSlit(worldlog);
     }
-  if( exptype == kGEp || exptype == kGEPpositron ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+  if( exptype == G4SBS::kGEp || exptype == G4SBS::kGEPpositron ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
       G4SBSECal* ECal = new G4SBSECal(fDetCon);
       ECal->SetAng(fBBang);
@@ -131,7 +131,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       ECal->BuildComponent(worldlog);
       //MakeBigCal( worldlog );
     }
-  if( exptype == kC16 ) 
+  if( exptype == G4SBS::kC16 ) 
     {
       G4SBSECal* ECal = new G4SBSECal(fDetCon);
       ECal->SetAng(fBBang);
@@ -139,13 +139,13 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       ECal->BuildComponent(worldlog);
       //MakeC16( worldlog );
     }
-  if( (exptype == kGMN || exptype == kGEnRP) && fBuildGEMfrontend )  MakeGMnGEMShielding( worldlog );
+  if( (exptype == G4SBS::kGMN || exptype == G4SBS::kGEnRP) && fBuildGEMfrontend )  MakeGMnGEMShielding( worldlog );
   
-  if( exptype == kNDVCS ){
+  if( exptype == G4SBS::kNDVCS ){
     MakeDVCSECal(worldlog);
   }
   
-  if( exptype ==  kGEMHCtest){
+  if( exptype ==  G4SBS::kGEMHCtest){
     MakeHallCGEM(worldlog);
   }
 }
@@ -593,7 +593,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       BBCalSD = new G4SBSCalSD( SDname, collname );
       fDetCon->fSDman->AddNewDetector( BBCalSD );
       (fDetCon->SDlist).insert( SDname );
-      fDetCon->SDtype[SDname] = kCAL;
+      fDetCon->SDtype[SDname] = G4SBS::kCAL;
       (BBCalSD->detmap).depth = 0;
       bbcal_mother_log->SetSensitiveDetector( BBCalSD );
       //(BBCalSD->detmap).Row[0] = 0;
@@ -771,7 +771,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     //BBHodoScintSD->SetNTimeBins( 60 ); //0.5 ns/bin
     sdman->AddNewDetector( BBHodoScintSD );
     (fDetCon->SDlist).insert( BBHodoScintSDname );
-    fDetCon->SDtype[BBHodoScintSDname] = kCAL;
+    fDetCon->SDtype[BBHodoScintSDname] = G4SBS::kCAL;
     (BBHodoScintSD->detmap).depth = 0;
 
     G4double ethresh_default = 5.0*MeV;
@@ -864,7 +864,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       
     sdman->AddNewDetector( BBSHTF1SD );
     (fDetCon->SDlist).insert( BBSHTF1SDname );
-    fDetCon->SDtype[BBSHTF1SDname] = kCAL;
+    fDetCon->SDtype[BBSHTF1SDname] = G4SBS::kCAL;
     (BBSHTF1SD->detmap).depth = 1;
 
     G4double threshold_default = 10.0*MeV; //1% of 1 GeV
@@ -897,7 +897,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     BBSHSD = new G4SBSECalSD( BBSHSDname, BBSHcollname );
     sdman->AddNewDetector( BBSHSD );
     (fDetCon->SDlist).insert(BBSHSDname);
-    fDetCon->SDtype[BBSHSDname] = kECAL;
+    fDetCon->SDtype[BBSHSDname] = G4SBS::kECAL;
     (BBSHSD->detmap).depth = 1;
   }
   bbpmtcathodelog->SetSensitiveDetector( BBSHSD );
@@ -978,7 +978,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     
     sdman->AddNewDetector( BBPSTF1SD );
     (fDetCon->SDlist).insert( BBPSTF1SDname );
-    fDetCon->SDtype[BBPSTF1SDname] = kCAL;
+    fDetCon->SDtype[BBPSTF1SDname] = G4SBS::kCAL;
     (BBPSTF1SD->detmap).depth = 1;
 
     //Photoelectron yield is approximately 500/GeV (or so)
@@ -1009,7 +1009,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     BBPSSD = new G4SBSECalSD( BBPSSDname, BBPScollname );
     sdman->AddNewDetector( BBPSSD );
     (fDetCon->SDlist).insert(BBPSSDname);
-    fDetCon->SDtype[BBPSSDname] = kECAL;
+    fDetCon->SDtype[BBPSSDname] = G4SBS::kECAL;
     (BBPSSD->detmap).depth = 1;
   }
   bbpspmtcathodelog->SetSensitiveDetector( BBPSSD );
@@ -1107,8 +1107,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //   BBCalSD = new G4SBSCalSD( BBCalSDname, BBCalcolname );
   //   fDetCon->fSDman->AddNewDetector(BBCalSD);
   //   (fDetCon->SDlist).insert( BBCalSDname );
-  //   fDetCon->SDtype[BBCalSDname] = kCAL;
-  //   //fDetCon->SDarm[BBCalSDname] = kEarm;
+  //   fDetCon->SDtype[BBCalSDname] = G4SBS::kCAL;
+  //   //fDetCon->SDarm[BBCalSDname] = G4SBS::kEarm;
   // }
 
   // bbcallog->SetSensitiveDetector(BBCalSD);
@@ -1265,7 +1265,7 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
     
     sdman->AddNewDetector( DVCSblkSD );
     (fDetCon->SDlist).insert( DVCSblkSDname );
-    fDetCon->SDtype[DVCSblkSDname] = kCAL;
+    fDetCon->SDtype[DVCSblkSDname] = G4SBS::kCAL;
     (DVCSblkSD->detmap).depth = 1;
 
     G4double threshold_default = 0.0*MeV; //1% of 1 GeV
@@ -1297,7 +1297,7 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
     DVCSblkecalSD = new G4SBSECalSD( DVCSblkecalSDname, DVCSblkecalcollname );
     sdman->AddNewDetector( DVCSblkecalSD );
     (fDetCon->SDlist).insert(DVCSblkecalSDname);
-    fDetCon->SDtype[DVCSblkecalSDname] = kECAL;
+    fDetCon->SDtype[DVCSblkecalSDname] = G4SBS::kECAL;
     (DVCSblkecalSD->detmap).depth = 1;
   }
   dvcsblkpmtcathodecallog->SetSensitiveDetector( DVCSblkecalSD );
@@ -1402,7 +1402,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
     C16SD = new G4SBSECalSD( C16SDname, collname );
     sdman->AddNewDetector( C16SD );
     (fDetCon->SDlist).insert( C16SDname );
-    fDetCon->SDtype[C16SDname] = kECAL;
+    fDetCon->SDtype[C16SDname] = G4SBS::kECAL;
     (C16SD->detmap).depth = 0;
   }
 
@@ -1512,7 +1512,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
 
       fDetCon->fSDman->AddNewDetector( C16TF1SD );
       (fDetCon->SDlist).insert( C16TF1SDname );
-      fDetCon->SDtype[C16TF1SDname] = kCAL;
+      fDetCon->SDtype[C16TF1SDname] = G4SBS::kCAL;
       (C16TF1SD->detmap).depth = 1;
 
       G4double default_threshold = 10.0*MeV;
@@ -1616,7 +1616,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
       
       fDetCon->fSDman->AddNewDetector( C16TF1SD );
       (fDetCon->SDlist).insert( C16TF1SDname );
-      fDetCon->SDtype[C16TF1SDname] = kCAL;
+      fDetCon->SDtype[C16TF1SDname] = G4SBS::kCAL;
       (C16TF1SD->detmap).depth = 0;
 
       G4double default_threshold = 10.0*MeV;
@@ -1802,7 +1802,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
       earm_mother_SD = new G4SBSCalSD( sdname, collname );
       fDetCon->fSDman->AddNewDetector( earm_mother_SD );
       (fDetCon->SDlist).insert( sdname );
-      fDetCon->SDtype[sdname] = kCAL;
+      fDetCon->SDtype[sdname] = G4SBS::kCAL;
       (earm_mother_SD->detmap).depth = 0;
    
       earm_mother_log->SetSensitiveDetector( earm_mother_SD );
@@ -1960,8 +1960,8 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
     
     fDetCon->fSDman->AddNewDetector( ECalTF1SD );
     (fDetCon->SDlist).insert(ECalTF1SDname);
-    fDetCon->SDtype[ECalTF1SDname] = kCAL;
-    //fDetCon->SDarm[ECalTF1SDname] = kEarm;
+    fDetCon->SDtype[ECalTF1SDname] = G4SBS::kCAL;
+    //fDetCon->SDarm[ECalTF1SDname] = G4SBS::kEarm;
 
     (ECalTF1SD->detmap).depth = 1;
 
@@ -2184,7 +2184,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
     ECalSD = new G4SBSECalSD( sdname, collname );
     sdman->AddNewDetector( ECalSD );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kECAL;
+    fDetCon->SDtype[sdname] = G4SBS::kECAL;
     (ECalSD->detmap).depth = 0;
   }
 
@@ -2607,7 +2607,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
     cdet_sd = new G4SBSECalSD( sdname, collname );
     fDetCon->fSDman->AddNewDetector( cdet_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kECAL;
+    fDetCon->SDtype[sdname] = G4SBS::kECAL;
     (cdet_sd->detmap).depth = 0;
     CDET_pmt_cathode_log->SetSensitiveDetector( cdet_sd );
   }
@@ -2625,7 +2625,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
     
     fDetCon->fSDman->AddNewDetector( cdet_scint_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kCAL;
+    fDetCon->SDtype[sdname] = G4SBS::kCAL;
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
 
@@ -2851,8 +2851,8 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //     CDetSD = new G4SBSECalSD( CDetSDname, CDetcollname );
 //     sdman->AddNewDetector( CDetSD );
 //     (fDetCon->SDlist).insert( CDetSDname );
-//     fDetCon->SDtype[CDetSDname] = kECAL;
-//     //fDetCon->SDarm[CDetSDname] = kEarm;
+//     fDetCon->SDtype[CDetSDname] = G4SBS::kECAL;
+//     //fDetCon->SDarm[CDetSDname] = G4SBS::kEarm;
 //     //(CDetSD->detmap).depth = 1;            // needs to be updated!!!!! and changed for each option most likely
 //   }
 //   CDetPMTLog->SetSensitiveDetector( CDetSD );
@@ -3135,7 +3135,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //       earm_mother_SD = new G4SBSCalSD( sdname, collname );
 //       fDetCon->fSDman->AddNewDetector( earm_mother_SD );
 //       (fDetCon->SDlist).insert( sdname );
-//       fDetCon->SDtype[sdname] = kCAL;
+//       fDetCon->SDtype[sdname] = G4SBS::kCAL;
 //       (earm_mother_SD->detmap).depth = 0;
 //     }
 //     earm_mother_log->SetSensitiveDetector( earm_mother_SD );
@@ -3217,8 +3217,8 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //     ECalTF1SD = new G4SBSCalSD( ECalTF1SDname, ECalTF1collname );
 //     fDetCon->fSDman->AddNewDetector( ECalTF1SD );
 //     (fDetCon->SDlist).insert(ECalTF1SDname);
-//     fDetCon->SDtype[ECalTF1SDname] = kCAL;
-//     //fDetCon->SDarm[ECalTF1SDname] = kEarm;
+//     fDetCon->SDtype[ECalTF1SDname] = G4SBS::kCAL;
+//     //fDetCon->SDarm[ECalTF1SDname] = G4SBS::kEarm;
 
 //     (ECalTF1SD->detmap).depth = 1;
 //   }
@@ -3258,8 +3258,8 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //     ECalSD = new G4SBSECalSD( ECalSDname, ECalcollname );
 //     sdman->AddNewDetector( ECalSD );
 //     (fDetCon->SDlist).insert(ECalSDname);
-//     fDetCon->SDtype[ECalSDname] = kECAL;
-//     //fDetCon->SDarm[ECalSDname] = kEarm;
+//     fDetCon->SDtype[ECalSDname] = G4SBS::kECAL;
+//     //fDetCon->SDarm[ECalSDname] = G4SBS::kEarm;
 //     (ECalSD->detmap).depth = 0;
 //   }
 //   PMTcathode_ecal_log->SetSensitiveDetector( ECalSD );
@@ -3542,7 +3542,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
     GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
     sdman->AddNewDetector(GEMElecSD);
     (fDetCon->SDlist).insert(GEMElectronicsname);
-    fDetCon->SDtype[GEMElectronicsname] = kCAL;
+    fDetCon->SDtype[GEMElectronicsname] = G4SBS::kCAL;
     (GEMElecSD->detmap).depth = 1;
 
     fDetCon->SetTimeWindowAndThreshold( GEMElectronicsname );

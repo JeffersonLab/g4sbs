@@ -36,10 +36,10 @@ public:
   G4ThreeVector GetNucleonP(){ return fNucleonP; }
   G4ThreeVector GetHadronP(){ return fHadronP; }
  
-  Nucl_t GetNucleonType(){ return fNuclType; }
-  Nucl_t GetFinalNucleon(){ return fFinalNucl; }
+  G4SBS::Nucl_t GetNucleonType(){ return fNuclType; }
+  G4SBS::Nucl_t GetFinalNucleon(){ return fFinalNucl; }
 
-  Hadron_t GetHadronType(){ return fHadronType; }
+  G4SBS::Hadron_t GetHadronType(){ return fHadronType; }
 
   double GetPt(){ return fPt; }
   double GetPl(){ return fPl; }
@@ -53,10 +53,10 @@ public:
   void SetBeamE(double c){fBeamE= c; fBeamP = G4ThreeVector(0.0, 0.0, c); }
   void SetRunTime(double t){fRunTime = t;}
   
-  void SetKine(Kine_t t ){fKineType = t;}
-  Kine_t GetKine(){return fKineType;}
+  void SetKine(G4SBS::Kine_t t ){fKineType = t;}
+  G4SBS::Kine_t GetKine(){return fKineType;}
   
-  void SetTarget(Targ_t t ){fTargType = t;}
+  void SetTarget(G4SBS::Targ_t t ){fTargType = t;}
   void SetTargLen(double len){fTargLen = len;}
   void SetTargDen(double den){fTargDen = den;}
   //void SetTargRadLen
@@ -93,7 +93,7 @@ public:
   //G4bool ConstantsAreInitialized(){ return fConstantsInitialized; } 
   void InitializeConstants();
   
-  void SetHadronType( Hadron_t h ){fHadronType = h; }
+  void SetHadronType( G4SBS::Hadron_t h ){fHadronType = h; }
 
   void SetHCALDist(double v){ fHCALdist = v;}
   
@@ -171,12 +171,12 @@ private:
   //long    fNtries; //number of "tries" to generate an event (to keep track of efficiency of MC generation).
   double Wfact;
   
-  Nucl_t fNuclType, fFinalNucl;
-  Targ_t fTargType;
-  Kine_t fKineType;
+  G4SBS::Nucl_t fNuclType, fFinalNucl;
+  G4SBS::Targ_t fTargType;
+  G4SBS::Kine_t fKineType;
   
   // Which hadron species are we considering for pi/K SIDIS?
-  Hadron_t fHadronType; //Currently available: pi+/-/0, K+/-, p/pbar
+  G4SBS::Hadron_t fHadronType; //Currently available: pi+/-/0, K+/-, p/pbar
 
   double fThMin, fThMax, fPhMin, fPhMax; //Angular generation limits for electron arm
 
@@ -214,22 +214,22 @@ private:
   
   G4double fPionPhoto_tmin, fPionPhoto_tmax; //Convert polar angle generation limits to generation limits in -t for pion photoproduction
 
-  //void InitializePionPhotoLimits(Nucl_t);
+  //void InitializePionPhotoLimits(G4SBS::Nucl_t);
   
   //New parameters for Bremsstrahlung generation and photoproduction:
-  bool GeneratePionPhotoproduction( Nucl_t, G4LorentzVector, G4LorentzVector ); //exclusive pion photoproduction:
+  bool GeneratePionPhotoproduction( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector ); //exclusive pion photoproduction:
   //G4bool fConstantsInitialized;
   
-  G4LorentzVector GetInitialNucl( Targ_t, Nucl_t );
+  G4LorentzVector GetInitialNucl( G4SBS::Targ_t, G4SBS::Nucl_t );
   
-  bool GenerateElastic( Nucl_t, G4LorentzVector, G4LorentzVector );
-  bool GenerateInelastic( Nucl_t, G4LorentzVector, G4LorentzVector );
-  bool GenerateDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
-  bool GenerateFlat( Nucl_t, G4LorentzVector, G4LorentzVector );
-  bool GenerateBeam( Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateElastic( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateInelastic( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateDIS( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateFlat( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateBeam( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
   
-  bool GenerateSIDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
-  bool GenerateWiser( Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateSIDIS( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateWiser( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
   bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
@@ -242,7 +242,7 @@ private:
   G4bool fInitialized; //consolidate initialization of constant event generator parameters:
   
   double deutpdist( double );
-  double he3pdist( Nucl_t, double );
+  double he3pdist( G4SBS::Nucl_t, double );
   double c12pdist( double );
   
   DSS2007FF fFragFunc; //Class to calculate fragmentation functions using DSS2007

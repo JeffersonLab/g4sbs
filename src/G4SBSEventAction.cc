@@ -161,8 +161,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   for( set<G4String>::iterator d=SDlist.begin(); d!=SDlist.end(); ++d ){
     G4String colNam;
 
-    SDet_t Det_type = SDtype[*d];
-    //Arm_t Det_arm = SDarm[d->first];
+    G4SBS::SDet_t Det_type = SDtype[*d];
+    // G4SBS::Arm_t Det_arm = SDarm[d->first];
 
     G4SBSGEMoutput gd;
     G4SBSTrackerOutput td;
@@ -176,7 +176,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     
     switch(Det_type){
 
-    case kGEM:
+    case G4SBS::kGEM:
       GEMSDptr = (G4SBSGEMSD*) SDman->FindSensitiveDetector( *d, false );
 
       if( GEMSDptr != NULL ){
@@ -219,7 +219,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	}
       }
       break;
-    case kCAL:
+    case G4SBS::kCAL:
 
       CalSDptr = (G4SBSCalSD*) SDman->FindSensitiveDetector( *d, false );
 
@@ -269,7 +269,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	}
       }
       break;
-    case kRICH:
+    case G4SBS::kRICH:
       
       RICHSDptr = (G4SBSRICHSD*) SDman->FindSensitiveDetector( *d, false );
 
@@ -305,7 +305,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	 
 
       break;
-    case kECAL:
+    case G4SBS::kECAL:
 
       ECalSDptr = (G4SBSECalSD*) SDman->FindSensitiveDetector( *d, false );
      
@@ -340,7 +340,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	anyhits = (anyhits || ed.nhits_ECal > 0);
       }
       break;
-    case kBD:  
+    case G4SBS::kBD:  
       // beam diffuser (BD)
       BDSDptr = (G4SBSBeamDiffuserSD*) SDman->FindSensitiveDetector(*d,false);
       if(BDSDptr!=NULL){
@@ -1871,9 +1871,9 @@ void G4SBSEventAction::FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G
    // loop over all "hits" (i.e., individual tracking steps)
    int NHits = (int)hc->entries();
    for(int i=0;i<NHits;i++){
-      // get track ID and BeamDiffuser layer ID 
+      // get track ID and BeamDiffuser plane ID 
       trackID = (*hc)[i]->GetTrackID();
-      bdID = (*hc)[i]->GetPlane();
+      bdID    = (*hc)[i]->GetPlane();
       // now we examine the track
       std::pair<std::set<int>::iterator, bool> track = tracks_layers[bdID].insert(trackID);
       if( track.second ){
@@ -1946,7 +1946,6 @@ void G4SBSEventAction::FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G
          out.p.push_back( p[bdID][trackID]/_E_UNIT );
          out.beta.push_back( beta[bdID][trackID]/_E_UNIT );
          out.edep.push_back( edep[bdID][trackID]/_E_UNIT );
-         out.nhits++;
          // if( trajectorylist ){ 
          //    // fill Particle History, starting with the particle itself 
          //    // and working all the way back to primary particles:
@@ -1984,6 +1983,7 @@ void G4SBSEventAction::FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G
          //    } while( MIDtemp!=0 );
          // }
       }
+      out.nhits++;
    }
 }
 

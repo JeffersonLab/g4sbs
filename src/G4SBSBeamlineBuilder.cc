@@ -41,8 +41,8 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   // EFuchey 2017/03/29: organized better this with a switch instead of an endless chain of if...  else...
   //if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
   switch(fDetCon->fExpType){
-  case(kGEp):
-  case(kGEPpositron):
+  case(G4SBS::kGEp):
+  case(G4SBS::kGEPpositron):
     printf("GEp experiment: forcing beamline configuration 1 \n");
     fDetCon->fBeamlineConf = 1;
     MakeGEpBeamline(worldlog);
@@ -50,20 +50,20 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
       MakeGEpLead(worldlog);
     }
     break;
-  case(kGMN):// GMn
+  case(G4SBS::kGMN):// GMn
     MakeGMnBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeGMnLead(worldlog);
     }
     break;
-  case(kGEnRP):// GEnRP
+  case(G4SBS::kGEnRP):// GEnRP
     MakeGMnBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeGMnLead(worldlog);
       MakeGEnRPLead(worldlog);
     }
     break;
-  case(kGEN):// GEn
+  case(G4SBS::kGEN):// GEn
     printf("GEn experiment: forcing beamline configuration 2 \n");
     fDetCon->fBeamlineConf = 2;
     Make3HeBeamline(worldlog);
@@ -73,20 +73,19 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
       MakeGEnLead(worldlog);
     }
     break;
-  case(kSIDISExp):// SIDIS
+  case(G4SBS::kSIDISExp):// SIDIS
     Make3HeBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeSIDISLead(worldlog);
     }
     break;
-  case(kGEMHCtest):// Hall C GEM test
+  case(G4SBS::kGEMHCtest):// Hall C GEM test
     MakeGMnBeamline(worldlog);
     break;  
   default:
     MakeDefaultBeamline(worldlog);
     break;
   }
-  
   
   double floorthick = 1.0*m;
   G4Tubs *floor_tube = new G4Tubs("floor_tube", 0.0, 30*m, floorthick/2, 0.*deg, 360.*deg );
@@ -1038,16 +1037,16 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     G4SBSCalSD *GEMElecSD = NULL;
     
     switch(fDetCon->fExpType){
-    case(kGEp):
+    case(G4SBS::kGEp):
       GEMElectronicsname += "GEp";
       GEMElectronicscollname += "GEp";
       break;
-    case(kGMN):// GMn
+    case(G4SBS::kGMN):// GMn
       //case(kGEN): //
       GEMElectronicsname += "GMn";
       GEMElectronicscollname += "GMn";
       break;
-    case(kGEnRP):// GEnRP
+    case(G4SBS::kGEnRP):// GEnRP
       GEMElectronicsname += "GMn";
       GEMElectronicscollname += "GMn";
       break;
@@ -1062,7 +1061,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
       fDetCon->fSDman->AddNewDetector(GEMElecSD);
       (fDetCon->SDlist).insert(GEMElectronicsname);
-      fDetCon->SDtype[GEMElectronicsname] = kCAL;
+      fDetCon->SDtype[GEMElectronicsname] = G4SBS::kCAL;
       (GEMElecSD->detmap).depth = 0;
     }
     Electronics_log->SetSensitiveDetector( GEMElecSD );
@@ -4006,7 +4005,7 @@ void G4SBSBeamlineBuilder::MakeSIDISLead(G4LogicalVolume *worldlog){
 
 // This is the "default" beam line (for C16)
 void G4SBSBeamlineBuilder::MakeDefaultBeamline(G4LogicalVolume *worldlog){// Old beam line...
-  Targ_t targtype = fDetCon->fTargType;
+  G4SBS::Targ_t targtype = fDetCon->fTargType;
 
   double swallrad = 1.143*m/2;
   double swallrad_inner = 1.041/2.0*m; 
@@ -4845,7 +4844,7 @@ void G4SBSBeamlineBuilder::MakeBeamDiffuser(G4LogicalVolume *logicMother){
       bdSD = new G4SBSBeamDiffuserSD(bdSDname,bdColName);
       fDetCon->fSDman->AddNewDetector(bdSD);
       (fDetCon->SDlist).insert(bdSDname); 
-      fDetCon->SDtype[bdSDname] = kBD; 
+      fDetCon->SDtype[bdSDname] = G4SBS::kBD; 
       plateLV->SetSensitiveDetector(bdSD);  
    }
 

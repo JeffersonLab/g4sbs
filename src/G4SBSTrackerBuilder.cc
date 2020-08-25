@@ -64,7 +64,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
     GEMSD = new G4SBSGEMSD( GEMSDname, GEMcolname );
     fDetCon->fSDman->AddNewDetector(GEMSD);
     (fDetCon->SDlist).insert(GEMSDname);
-    fDetCon->SDtype[GEMSDname] = kGEM;
+    fDetCon->SDtype[GEMSDname] = G4SBS::kGEM;
   }
 
   fDetCon->InsertSDboundaryVolume( Mother->GetName(), GEMSDname );

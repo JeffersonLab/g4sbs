@@ -16,6 +16,8 @@
 /g4sbs/beamcur         60.0 muA
 /g4sbs/rasterx         4.0 mm
 /g4sbs/rastery         4.0 mm
+/g4sbs/beamoffsetx     0.0 mm
+/g4sbs/beamoffsety     0.0 mm
 /g4sbs/beamE           4.4 GeV
 /g4sbs/thmin           24.0 deg
 /g4sbs/thmax           44.0 deg
@@ -40,6 +42,9 @@
 /g4sbs/bbdist          1.5 m
 /g4sbs/sbsang          29.9 deg
 /g4sbs/48D48dist       2.8 m
+
+## Optional detectors 
+/g4sbs/beamDiffuserEnable false
 
 ## Run 100 events
 /g4sbs/run             100

@@ -164,6 +164,11 @@ void G4SBSIO::InitializeTree(){
       ecaldata[SDname] = G4SBSECaloutput();
       if( fUsingCerenkov || fUsingScintillation ) BranchECAL(SDname);
       break;
+    case kBD: 
+      // Beam Diffuser (BD) 
+      BDdata[SDname] = G4SBSBDoutput(); 
+      BranchBD(SDname); 
+      break; 
     }
 
     map<G4String,G4bool>::iterator keepsdflag = fKeepSDtracks.find( SDname );

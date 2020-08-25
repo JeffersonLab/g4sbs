@@ -112,6 +112,11 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fGEMflip = false;
   //    TrackerIDnumber = 0;
   //TrackerArm.clear();
+
+  // D. Flay (8/25/20) 
+  // beam diffuser switch 
+  fBeamDiffuserEnable = false; 
+
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()

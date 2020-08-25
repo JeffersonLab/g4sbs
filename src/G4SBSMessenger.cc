@@ -211,6 +211,20 @@ G4SBSMessenger::G4SBSMessenger(){
   rasteryCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/rastery",this);
   rasteryCmd->SetGuidance("Raster y size");
   rasteryCmd->SetParameterName("size", false);
+  
+  // D. Flay 8/25/20.  Beam pointing and beam diffuser   
+  // - horizontal (x)  
+  beamOffsetXcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beampointx",this);
+  beamOffsetXcmd->SetGuidance("Set beam pointing along the horizontal (x) direction");
+  beamOffsetXcmd->SetParameterName("beampointx",false);  // must provide input 
+  // - vertical (y)
+  beamOffsetYcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beampointy",this);
+  beamOffsetYcmd->SetGuidance("Set beam pointing along the vertical (y) direction");
+  beamOffsetYcmd->SetParameterName("beampointy",false);  // must provide input 
+  // beam diffuser 
+  beamDiffuserCmd = new G4UIcmdWithABool("/g4sbs/beamDiffuserEnable",this);
+  beamDiffuserCmd->SetGuidance("Enable the Beam Diffuser device");
+  beamDiffuserCmd->SetParameterName("beamDiffuserEnable", false);
 
   tgtNfoilCmd = new G4UIcmdWithAnInteger("/g4sbs/Nfoil",this);
   tgtNfoilCmd->SetGuidance("Number of foils for optics target");
@@ -1105,6 +1119,17 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == GENTargetHelmholtzCmd ){
      G4int genTgtHHconf = GENTargetHelmholtzCmd->GetNewIntValue(newValue);  
      fdetcon->SetGEnTargetHelmholtzConfig(genTgtHHconf);
+  }
+
+  // D. Flay (8/25/20) 
+  // beam pointing 
+  if(cmd==beamOffsetXcmd){
+     G4double bpx = beamOffsetXcmd->GetNewDoubleValue(newValue);
+     fevgen->SetBeamOffsetX(bpx);
+  }
+  if(cmd==beamOffsetYcmd){
+     G4double bpy = beamOffsetYcmd->GetNewDoubleValue(newValue);
+     fevgen->SetBeamOffsetY(bpy);
   }
 
   if( cmd == bigfieldCmd ){

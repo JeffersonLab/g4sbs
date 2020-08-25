@@ -35,7 +35,9 @@ G4SBSBeamlineBuilder::~G4SBSBeamlineBuilder(){;}
 void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   
   double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
-  
+ 
+  G4bool bdEnable = fDetCon->GetBeamDiffuserEnable();  // is the beam diffuser enabled? 
+ 
   // EFuchey 2017/03/29: organized better this with a switch instead of an endless chain of if...  else...
   //if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
   switch(fDetCon->fExpType){
@@ -66,7 +68,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     fDetCon->fBeamlineConf = 2;
     Make3HeBeamline(worldlog);
     MakeGEnClamp(worldlog);
-    // MakeBeamDiffuser(worldlog);  // FIXME: Put a switch on this!  
+    if(bdEnable) MakeBeamDiffuser(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeGEnLead(worldlog);
     }

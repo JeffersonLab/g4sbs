@@ -63,6 +63,9 @@ public:
   
   void SetRasterX(double v){fRasterX = v;}
   void SetRasterY(double v){fRasterY = v;}
+
+  void SetBeamOffsetX(double v) { fBeamOffsetX = v;} 
+  void SetBeamOffsetY(double v) { fBeamOffsetY = v;} 
   
   void SetThMin(double v){fThMin = v;}
   void SetThMax(double v){fThMax = v;}
@@ -186,7 +189,10 @@ private:
   double fTargUpstreamWindowRadLen;
   double fTargZatomic; //atomic number of target for purposes of any bremsstrahlung calculations:
   // set<G4String> G4TargetMaterialNames; 
-  
+ 
+  // D. Flay (8/25/20).  beam pointing 
+  double fBeamOffsetX,fBeamOffsetY; 
+ 
   // G4ThreeVector fTargOffset;
   // G4ThreeVector fBeamOffset;
   // G4ThreeVector fBeamDirection;

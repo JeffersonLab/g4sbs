@@ -2,6 +2,7 @@
 #define SBSTYPES_HH
 
 #include "TTimeStamp.h"
+// #include "TPDGCode.h"  // this can work, but would have to change function definitions to accept PDG_t types 
 
 #define MAXTARG 5
 #define NNUCL   2
@@ -9,24 +10,22 @@
 #define __RUNSTR_LEN 255
 #define __MAXFILE_LEN 1048576 // MB file size limit
 
-// #include "TPDGCode.h"  // kind of works, but you have to change function definitions to accept PDG_t types 
-
 // encapsulate in a namespace so we don't step on the ROOT and GEANT4 definitions 
 namespace G4SBS { 
    // particle type definitions (matches the GEANT4 standard) 
-   enum Nucl_t { kProton, kNeutron };
+   enum Nucl_t   { kProton, kNeutron };
    enum Hadron_t { kPiPlus, kPiMinus, kPi0, kKPlus, kKMinus, kP, kPbar}; //Hadron types for SIDIS event generator
    // target type; include fictional neutron target
-   enum Targ_t { kH2, kD2, kLH2, kLD2, k3He, kNeutTarg, kCfoil, kOptics };
+   enum Targ_t   { kH2, kD2, kLH2, kLD2, k3He, kNeutTarg, kCfoil, kOptics };
    // kinematic type 
-   enum Kine_t { kElastic, kFlat, kInelastic, kDIS, kBeam, kSIDIS, kGun, kWiser, kPYTHIA6, kGMnElasticCheck, kCosmics, kPionPhoto};
-   //enum Exp_t { kGEp, kNeutronExp, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest};
+   enum Kine_t   { kElastic, kFlat, kInelastic, kDIS, kBeam, kSIDIS, kGun, kWiser, kPYTHIA6, kGMnElasticCheck, kCosmics, kPionPhoto};
    // experiment type
-   enum Exp_t { kGEp, kGMN, kGEN, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest, kGEPpositron, kWAPP};
+   // enum Exp_t    { kGEp, kNeutronExp, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest};
+   enum Exp_t    { kGEp, kGMN, kGEN, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest, kGEPpositron, kWAPP};
    // detector arm type (for association of detector modules with spectrometer arms. Presently "E arm" and "H arm" are possible) 
-   enum Arm_t { kEarm, kHarm };
+   enum Arm_t    { kEarm, kHarm };
    // sensitive detector type  
-   enum SDet_t { kGEM, kCAL, kRICH, kECAL, kBD }; 
+   enum SDet_t   { kGEM, kCAL, kRICH, kECAL, kBD }; 
 
    struct filedata_t {
       char filename[__RUNSTR_LEN];

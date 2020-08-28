@@ -59,6 +59,10 @@ G4SBSMessenger::G4SBSMessenger(){
   runCmd->SetGuidance("Run simulation with x events");
   runCmd->SetParameterName("nevt", false);
 
+  printCmd = new G4UIcmdWithAnInteger("/g4sbs/print",this); 
+  printCmd->SetGuidance("Print the line number (arg = number)"); 
+  printCmd->SetParameterName("print",false); 
+
   gemconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/gemconfig",this);
   gemconfigCmd->SetGuidance("BigBite GEM layout: option 1 (default), 2 or 3");
   gemconfigCmd->SetParameterName("gemconfig", false);
@@ -664,6 +668,11 @@ G4SBSMessenger::~G4SBSMessenger(){
 
 void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   char cmdstr[255];
+
+  if(cmd==printCmd){
+     G4int lineNo = printCmd->GetNewIntValue(newValue); 
+     std::cout << "*************************** The line number is " << lineNo << std::endl;
+  }
 
   if( cmd == runCmd ){
 	

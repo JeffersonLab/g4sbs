@@ -171,7 +171,6 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     G4SBSECaloutput ed;
     G4SBSSDTrackOutput sd;
     G4SBSSDTrackOutput *sdtemp;
-
     G4SBSBDoutput bd; 
     
     switch(Det_type){
@@ -348,6 +347,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	 if(bdHC!=NULL){
 	    FillBDData(evt,bdHC,bd); 
 	    fIO->SetBDData(*d,bd); 
+	    anyhits = (anyhits || bd.nhits_BD>0 );
 	 }
       } 
       break;
@@ -1868,8 +1868,11 @@ void G4SBSEventAction::FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G
    std::map< int,std::map<int,double> > x,y,z,t,p,edep;
    std::map< int,std::map<int,double> > xg,yg,zg,beta;
 
+   // char msg[200]; 
+
    // loop over all "hits" (i.e., individual tracking steps)
    int NHits = (int)hc->entries();
+   if(NHits==0) std::cout << "[EventAction::FillBDData]: WARNING! Found " << NHits << " hits!" << std::endl;
    for(int i=0;i<NHits;i++){
       // get track ID and BeamDiffuser plane ID 
       trackID = (*hc)[i]->GetTrackID();
@@ -1913,6 +1916,8 @@ void G4SBSEventAction::FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G
          // increment 
          nsteps_track_layer[bdID][trackID]++;
       }
+      // sprintf(msg,"hit %04d, track %04d, plane %02d, edep = %.3lf keV",i+1,trackID,bdID,(*hc)[i]->GetEdep()/CLHEP::keV);
+      // std::cout << msg << std::endl; 
    }
 
    bdID = 0;
@@ -1983,7 +1988,7 @@ void G4SBSEventAction::FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G
          //    } while( MIDtemp!=0 );
          // }
       }
-      out.nhits++;
+      out.nhits_BD++;
    }
 }
 

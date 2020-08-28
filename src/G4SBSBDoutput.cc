@@ -9,7 +9,7 @@ G4SBSBDoutput::~G4SBSBDoutput(){
 }
 //______________________________________________________________________________
 void G4SBSBDoutput::Clear(){
-   nhits = 0;
+   nhits_BD = 0;
    plane.clear();
    trid.clear();
    t.clear();

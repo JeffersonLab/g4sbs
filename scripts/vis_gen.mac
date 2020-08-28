@@ -43,6 +43,9 @@
 /g4sbs/sbsang          17.5 deg
 /g4sbs/48D48dist       2.8 m
 
+## Optional detectors 
+/g4sbs/beamDiffuserEnable true 
+
 /g4sbs/totalabs true
 
 # /g4sbs/buildBBsieve 1

@@ -4780,8 +4780,11 @@ void G4SBSBeamlineBuilder::MakeBeamDiffuser(G4LogicalVolume *logicMother){
 
    // where to place the diffuser 
    // note: the (x,y) center of the diffuser plates is centered on this logical volume 
+   // double ft   = 12.*inch; 
+   // double beamHeight = 10.0*ft; // 10 feet off the ground
+   // double floorThick = 1.0*m;   // floor is 1 m thick 
    G4double xd = 0.;
-   G4double yd = 0.;
+   G4double yd = 0; // beamHeight + 0.5*floorThick; // do we need this?
    G4double zd = 2.*m;
    G4ThreeVector P_case = G4ThreeVector(xd,yd,zd);
 
@@ -4820,10 +4823,13 @@ void G4SBSBeamlineBuilder::MakeBeamDiffuser(G4LogicalVolume *logicMother){
    G4VSolid *plateSolid     = new G4Tubs("plate",r_min,r_max,thk/2.,startPhi,dPhi);
    G4LogicalVolume *plateLV = new G4LogicalVolume(plateSolid,GetMaterial("Aluminum"),"plateLV");
    plateLV->SetVisAttributes(vis);
-   // parameterisation (Hall A) 
-   G4VPVParameterisation *plateParam = new G4SBSBDParameterisation('A',P0);
+
+   // parameterisation (Hall A)
+   char Hall   = 'A';
+   int NPlanes = 15; 
+   if(Hall=='C') NPlanes = 16;  
+   G4VPVParameterisation *plateParam = new G4SBSBDParameterisation(Hall,P0);
    // placement
-   int NPlanes = 15; // for Hall A; 16 for Hall C 
    new G4PVParameterised("BeamDiffuser",plateLV,diffCaseLV,kZAxis,NPlanes,plateParam);
 
    // Attach sensitive detector (SD) functionality; follow the GEM example
@@ -4842,10 +4848,10 @@ void G4SBSBeamlineBuilder::MakeBeamDiffuser(G4LogicalVolume *logicMother){
    if( !(bdSD = (G4SBSBeamDiffuserSD *)fDetCon->fSDman->FindSensitiveDetector(bdSDname)) ){
       G4cout << "[G4SBSBeamlineBuilder]: Adding Beam Diffuser SD functionality..." << G4endl; 
       bdSD = new G4SBSBeamDiffuserSD(bdSDname,bdColName);
+      plateLV->SetSensitiveDetector(bdSD);  
       fDetCon->fSDman->AddNewDetector(bdSD);
       (fDetCon->SDlist).insert(bdSDname); 
       fDetCon->SDtype[bdSDname] = G4SBS::kBD; 
-      plateLV->SetSensitiveDetector(bdSD);  
    }
 
    G4cout << "[G4SBSBeamlineBuilder]: --> Done." << G4endl;

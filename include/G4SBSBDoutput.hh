@@ -1,8 +1,8 @@
-#ifndef G4SBS_BEAM_DIFFUSER_OUTPUT_HH
-#define G4SBS_BEAM_DIFFUSER_OUTPUT_HH
-
 // C++ std output formatting that gets attached 
 // to an output ROOT tree branch 
+
+#ifndef G4SBS_BEAM_DIFFUSER_OUTPUT_HH
+#define G4SBS_BEAM_DIFFUSER_OUTPUT_HH
 
 #include <cstdlib>
 #include <vector>
@@ -15,7 +15,7 @@ class G4SBSBDoutput {
 
       void Clear();
 
-      int nhits;                       // number of hits 
+      int nhits_BD;                    // number of hits 
       std::vector<int> plane;          // which plane 
       std::vector<int> trid;           // track ID  
       std::vector<int> pid;            // particle type 

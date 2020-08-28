@@ -52,6 +52,7 @@ private:
 
   G4SBS::Exp_t fExpType;
   
+  G4UIcmdWithAnInteger *printCmd;  
   G4UIcmdWithAnInteger *runCmd;
   G4UIcmdWithAString   *fileCmd;
   G4UIcmdWithAString   *tgtCmd;

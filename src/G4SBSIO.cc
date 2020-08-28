@@ -839,21 +839,21 @@ void G4SBSIO::BranchBD(G4String SDname){
    TString branch_prefix = SDname.data();
    branch_prefix.ReplaceAll("/",".");
    // define branches
-   fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(BDdata[SDname].nhits) );
-   fTree->Branch( branch_name.Format("%s.hit.plane", branch_prefix.Data() ), &(BDdata[SDname].plane) );
-   fTree->Branch( branch_name.Format("%s.hit.x"    , branch_prefix.Data() ), &(BDdata[SDname].x    ) );
-   fTree->Branch( branch_name.Format("%s.hit.y"    , branch_prefix.Data() ), &(BDdata[SDname].y    ) );
-   fTree->Branch( branch_name.Format("%s.hit.z"    , branch_prefix.Data() ), &(BDdata[SDname].z    ) );
-   fTree->Branch( branch_name.Format("%s.hit.t"    , branch_prefix.Data() ), &(BDdata[SDname].t    ) );
-   fTree->Branch( branch_name.Format("%s.hit.xg"   , branch_prefix.Data() ), &(BDdata[SDname].xg   ) );
-   fTree->Branch( branch_name.Format("%s.hit.yg"   , branch_prefix.Data() ), &(BDdata[SDname].yg   ) );
-   fTree->Branch( branch_name.Format("%s.hit.zg"   , branch_prefix.Data() ), &(BDdata[SDname].zg   ) );
-   fTree->Branch( branch_name.Format("%s.hit.trid" , branch_prefix.Data() ), &(BDdata[SDname].trid ) );
-   fTree->Branch( branch_name.Format("%s.hit.mid"  , branch_prefix.Data() ), &(BDdata[SDname].mid  ) );
-   fTree->Branch( branch_name.Format("%s.hit.pid"  , branch_prefix.Data() ), &(BDdata[SDname].pid  ) );
-   fTree->Branch( branch_name.Format("%s.hit.p"    , branch_prefix.Data() ), &(BDdata[SDname].p    ) );
-   fTree->Branch( branch_name.Format("%s.hit.edep" , branch_prefix.Data() ), &(BDdata[SDname].edep ) );
-   fTree->Branch( branch_name.Format("%s.hit.beta" , branch_prefix.Data() ), &(BDdata[SDname].beta ) );
+   fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(BDdata[SDname].nhits_BD) );
+   fTree->Branch( branch_name.Format("%s.hit.plane", branch_prefix.Data() ), &(BDdata[SDname].plane)    );
+   fTree->Branch( branch_name.Format("%s.hit.trid" , branch_prefix.Data() ), &(BDdata[SDname].trid )    );
+   fTree->Branch( branch_name.Format("%s.hit.mid"  , branch_prefix.Data() ), &(BDdata[SDname].mid  )    );
+   fTree->Branch( branch_name.Format("%s.hit.pid"  , branch_prefix.Data() ), &(BDdata[SDname].pid  )    );
+   fTree->Branch( branch_name.Format("%s.hit.x"    , branch_prefix.Data() ), &(BDdata[SDname].x    )    );
+   fTree->Branch( branch_name.Format("%s.hit.y"    , branch_prefix.Data() ), &(BDdata[SDname].y    )    );
+   fTree->Branch( branch_name.Format("%s.hit.z"    , branch_prefix.Data() ), &(BDdata[SDname].z    )    );
+   fTree->Branch( branch_name.Format("%s.hit.t"    , branch_prefix.Data() ), &(BDdata[SDname].t    )    );
+   fTree->Branch( branch_name.Format("%s.hit.xg"   , branch_prefix.Data() ), &(BDdata[SDname].xg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.yg"   , branch_prefix.Data() ), &(BDdata[SDname].yg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.zg"   , branch_prefix.Data() ), &(BDdata[SDname].zg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.p"    , branch_prefix.Data() ), &(BDdata[SDname].p    )    );
+   fTree->Branch( branch_name.Format("%s.hit.edep" , branch_prefix.Data() ), &(BDdata[SDname].edep )    );
+   fTree->Branch( branch_name.Format("%s.hit.beta" , branch_prefix.Data() ), &(BDdata[SDname].beta )    );
 }
 
 

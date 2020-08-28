@@ -3484,7 +3484,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
 
    G4VisAttributes *vis = new G4VisAttributes();
    vis->SetColour( G4Colour::Magenta() );
-   // vis->SetForceWireframe(true);
+   vis->SetForceWireframe(true);
 
    // rotation angle 
    G4double RY = 55.0*deg;  // FIXME: This angle is still an estimate!  

@@ -116,7 +116,7 @@ void G4SBSBDParameterisation::ComputeTransformation(const G4int copyNo,
    for(int i=0;i<copyNo;i++) Ls += fThickness[i];
    // put it all together 
    G4double xp = fR0.x();
-   G4double yp = fR0.y();
+   G4double yp = fR0.y() + fRadius_min + 0.5*fWidth;
    G4double z  = fR0.z();
    G4double zp = -0.5*fTotalThickness + z + Ls + (double)(copyNo-1)*fGap + 0.5*fThickness[copyNo];
    // set the 3-vector

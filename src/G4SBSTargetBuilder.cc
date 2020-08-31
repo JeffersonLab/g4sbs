@@ -2644,7 +2644,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // visualization 
    G4VisAttributes *visGC = new G4VisAttributes();
    visGC->SetColour( G4Colour::White() );
-   visGC->SetForceWireframe(true);
+   // visGC->SetForceWireframe(true);
    logicGlassCell->SetVisAttributes(visGC);
 
    // place the volume

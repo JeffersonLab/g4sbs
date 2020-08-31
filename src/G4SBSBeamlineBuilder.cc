@@ -4785,7 +4785,7 @@ void G4SBSBeamlineBuilder::MakeBeamDiffuser(G4LogicalVolume *logicMother){
    // double floorThick = 1.0*m;   // floor is 1 m thick 
    G4double xd = 0.;
    G4double yd = 0; // beamHeight + 0.5*floorThick; // do we need this?
-   G4double zd = 2.*m;
+   G4double zd = 12.5*m;  // FakeVacuumExtension ends at +15 m
    G4ThreeVector P_case = G4ThreeVector(xd,yd,zd);
 
    bool checkOverlaps = true;

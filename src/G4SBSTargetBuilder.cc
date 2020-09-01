@@ -2307,10 +2307,10 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    // helmholtz coils
    int config = fDetCon->GetGEnTargetHelmholtzConfig();
    double Q2=0; 
-   if(config==G4SBS::kSBS_GEN_146)  Q2 = 1.46; 
-   if(config==G4SBS::kSBS_GEN_368)  Q2 = 3.68; 
-   if(config==G4SBS::kSBS_GEN_677)  Q2 = 6.77; 
-   if(config==G4SBS::kSBS_GEN_1018) Q2 = 10.18;
+   if(config==G4SBS::kGEN_146)  Q2 = 1.46; 
+   if(config==G4SBS::kGEN_368)  Q2 = 3.68; 
+   if(config==G4SBS::kGEN_677)  Q2 = 6.77; 
+   if(config==G4SBS::kGEN_1018) Q2 = 10.18;
    G4cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = " << Q2 << " (GeV/c)^2" << G4endl; 
 
    BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
@@ -2318,7 +2318,7 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    BuildGEnTarget_HelmholtzCoils(config,"min",motherLog);
 
    // magnetic shield
-   // config = kSBS_GEN_new; // for when the shield design is finalized  
+   // config = kGEN_new; // for when the shield design is finalized  
    BuildGEnTarget_Shield(config,motherLog);
 
    // target ladder 
@@ -3067,7 +3067,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
    // - no magnetic fields are implemented!
    // - materials: outer shell of G10.  thickness based on type
    //              core is solid aluminum
-   // - config: kSBS_GEN_677, kSBS_GEN_1018, kSBS_GEN_368, kSBS_GEN_146
+   // - config: kGEN_677, kGEN_1018, kGEN_368, kGEN_146
    //           different rotation angle based on index number (Q2 setting)   
    // - types: maj = large radius coil pair
    //          min = small radius coil pair 
@@ -3185,8 +3185,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
    // additional rotation to match engineering drawings (number A09016-03-08-0000) 
    G4double dry=0;
    if( type.compare("maj")==0 || type.compare("min")==0 ){
-      if(config==G4SBS::kSBS_GEN_146 || config==G4SBS::kSBS_GEN_368)  dry = 43.5*deg;
-      if(config==G4SBS::kSBS_GEN_677 || config==G4SBS::kSBS_GEN_1018) dry = 10.0*deg;
+      if(config==G4SBS::kGEN_146 || config==G4SBS::kGEN_368)  dry = 43.5*deg;
+      if(config==G4SBS::kGEN_677 || config==G4SBS::kGEN_1018) dry = 10.0*deg;
    }
 
    // adjust for y rotation.  
@@ -3308,7 +3308,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
 void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume *motherLog){
    // Shield box for the target magnetic field 
    // - Material: Carbon steel 1008
-   // - config: kSBS_GEN_146, kSBS_GEN_368, kSBS_GEN_677, kSBS_GEN_1018
+   // - config: kGEN_146, kGEN_368, kGEN_677, kGEN_1018
    //           Different cutaways based on index number (Q2 setting)   
    // - The shield is actually two layers
    //   - each layer is 0.25" thick
@@ -3348,7 +3348,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
 
    G4double xw_bl=0,yw_bl=0,zw_bl=0,ys=0;
 
-   if(config==G4SBS::kSBS_GEN_new){
+   if(config==G4SBS::kGEN_new){
       // FIXME: This is an estimate 
       // new cut as of 6/27/20 (new design from Bert)
       xw_bl = 10.*cm; // arbitrary size
@@ -3387,38 +3387,38 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
    G4double dx=0,dx0=5.*cm;
    G4double xw_br=0,yw_br=0;
    G4double zw_br=10.*cm; // arbitrary cut depth in z; just need enough to break through 
-   if(config==G4SBS::kSBS_GEN_146){
+   if(config==G4SBS::kGEN_146){
       dx    = dx0 + p1 + p2 + p3;
       xw_br = dh;
       yw_br = 21.41*inch;
       // coordinates 
       ys    = 0.*cm;
-   }else if(config==G4SBS::kSBS_GEN_368){
+   }else if(config==G4SBS::kGEN_368){
       dx    = dx0 + p2 + p3;
       xw_br = dh;
       yw_br = 21.41*inch;
       // coordinates 
       ys    = 0.*cm;
-   }else if(config==G4SBS::kSBS_GEN_677){
+   }else if(config==G4SBS::kGEN_677){
       dx    = dx0 + p3;
       xw_br = dh;
       yw_br = 21.41*inch;
       // coordinates 
       ys    = 0.*cm;
-   }else if(config==G4SBS::kSBS_GEN_1018){
+   }else if(config==G4SBS::kGEN_1018){
       dx    = dx0;
       xw_br = dh;
       yw_br = 21.41*inch;
       // coordinates 
       ys    = 0.*cm;
-   }else if(config==G4SBS::kSBS_GEN_full){
+   }else if(config==G4SBS::kGEN_full){
       // full window cut 
       dx    = dx0;
       xw_br = p1 + p2 + p3 + dh;
       yw_br = 21.41*inch;
       // coordinates 
       ys    = 0.*cm;
-   }else if(config==G4SBS::kSBS_GEN_new){
+   }else if(config==G4SBS::kGEN_new){
       // 6/27/20: new design from Bert 
       dx    = dx0;
       xw_br = door;

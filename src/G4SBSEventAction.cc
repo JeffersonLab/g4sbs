@@ -1872,7 +1872,7 @@ void G4SBSEventAction::FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G
 
    // loop over all "hits" (i.e., individual tracking steps)
    int NHits = (int)hc->entries();
-   if(NHits==0) std::cout << "[EventAction::FillBDData]: WARNING! Found " << NHits << " hits!" << std::endl;
+   if(NHits!=0) std::cout << "[EventAction::FillBDData]: Found " << NHits << " hits!" << std::endl;
    for(int i=0;i<NHits;i++){
       // get track ID and BeamDiffuser plane ID 
       trackID = (*hc)[i]->GetTrackID();

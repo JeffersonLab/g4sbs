@@ -397,8 +397,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 , ChkOverlaps );
 
   // For CPU speed, extend vacuum all the way to the edge of the "world" volume, so that we don't track beam electrons in air beyond interesting region.
-  // G4double Zstop  = 30.0*m;
-  G4double Zstop  = 27.5*m; // let us put the BeamDiffuser at the end
+  G4double Zstop  = 30.0*m;
   G4double Zstart = Z + tDzz;
   
   G4double Zwidth = (Zstop-Zstart);

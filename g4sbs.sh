@@ -12,7 +12,7 @@ fi
 OS=`uname -s`
 
 
-if [ "$OS" == "Darwin" ]
+if [ "$OS" = "Darwin" ]
 then # Mac OS: set DYLD_LIBRARY_PATH to library directory:
     if test "x$DYLD_LIBRARY_PATH" = "x"; then
 	export DYLD_LIBRARY_PATH=${CMAKE_INSTALL_FULL_LIBDIR}

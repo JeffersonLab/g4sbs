@@ -399,7 +399,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // For CPU speed, extend vacuum all the way to the edge of the "world" volume, so that we don't track beam electrons in air beyond interesting region.
   G4double Zstop  = 30.0*m;
   G4double Zstart = Z + tDzz;
-  
+
   G4double Zwidth = (Zstop-Zstart);
   G4Tubs *FakeVacuumExtension = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
   G4LogicalVolume *FakeVacuumExtension_log = new G4LogicalVolume( FakeVacuumExtension, GetMaterial("Vacuum"), "FakeVacuumExtension_log" );
@@ -3651,12 +3651,18 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   // For CPU speed, extend vacuum all the way to the edge of the "world" volume, so that we don't track beam electrons in air beyond interesting region.
   G4double Zstop = 30.0*m;
   G4double Zstart = Z + tDzz;
-  
-  G4double Zwidth = (Zstop-Zstart);
+
+  std::cout << "**************** z = " << 0.5*(Zstop+Zstart)/cm << " cm" << std::endl;  
+  G4double dz_df = 15.0*cm; 
+  G4VisAttributes *Vacuum_visatt_df = new G4VisAttributes();
+  Vacuum_visatt_df->SetColour( G4Colour::White() ); 
+  Vacuum_visatt_df->SetForceWireframe(true); 
+ 
+  G4double Zwidth = (Zstop-Zstart) - dz_df;
   G4Tubs *FakeVacuumExtension = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
   G4LogicalVolume *FakeVacuumExtension_log = new G4LogicalVolume( FakeVacuumExtension, GetMaterial("Vacuum"), "FakeVacuumExtension_log" );
-  FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,0.5*(Zstop+Zstart)), FakeVacuumExtension_log, "FakeVacuumExtension_phys", worldlog,false,0 , ChkOverlaps);
+  FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt_df );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0.5*(Zstop+Zstart)+dz_df), FakeVacuumExtension_log, "FakeVacuumExtension_phys", worldlog,false,0 , ChkOverlaps);
 
 
 
@@ -4765,17 +4771,26 @@ void G4SBSBeamlineBuilder::MakeBeamDiffuser(G4LogicalVolume *logicMother){
    // Added by D. Flay (JLab) in Aug 2020  
       
    G4cout << "[G4SBSBeamlineBuilder]: Adding the Beam Diffuser to the beam line..." << G4endl; 
+   
+   G4double inch        = 25.4*mm;
 
    // A case for diffuser
    // - made of vacuum 
    // - allows placement of the volume in same mother as the calorimeter
    //   (can't have two replicas or parameterised volumes in same mother...)  
-   G4double inch        = 25.4*mm;
-   G4double diffCase_x  = 12.*inch;
-   G4double diffCase_y  = 6.*inch;   
-   G4double diffCase_z  = 15.*cm;    
+   // G4double diffCase_x  = 12.*inch;
+   // G4double diffCase_y  = 6.*inch;   
+   // G4double diffCase_z  = 15.*cm;    
+   // G4VSolid *diffCaseS  = new G4Box("diffCase",diffCase_x/2.,diffCase_y/2.,diffCase_z/2.); 
 
-   G4VSolid *diffCaseS         = new G4Box("diffCase",diffCase_x/2.,diffCase_y/2.,diffCase_z/2.); 
+   // make the case match the FakeVacuumExtension dimensions 
+   G4double dcRmin     = 0.0*cm;
+   G4double dcRmax     = 12*inch;
+   G4double dcLen      = 15.*cm;
+   G4double dcStartPhi = 0*deg;  
+   G4double dcDPhi     = 360*deg;  
+   G4VSolid *diffCaseS = new G4Tubs("diffCase",dcRmin,dcRmax,dcLen/2.,dcStartPhi,dcDPhi);
+
    G4LogicalVolume *diffCaseLV = new G4LogicalVolume(diffCaseS,GetMaterial("Vacuum"),"diffCase");
 
    // where to place the diffuser 
@@ -4785,7 +4800,7 @@ void G4SBSBeamlineBuilder::MakeBeamDiffuser(G4LogicalVolume *logicMother){
    // double floorThick = 1.0*m;   // floor is 1 m thick 
    G4double xd = 0.;
    G4double yd = 0; // beamHeight + 0.5*floorThick; // do we need this?
-   G4double zd = 12.5*m;  // FakeVacuumExtension ends at +15 m
+   G4double zd = 11.75*m;  // FakeVacuumExtension ends at xx m  
    G4ThreeVector P_case = G4ThreeVector(xd,yd,zd);
 
    bool checkOverlaps = true;

@@ -23,6 +23,8 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SBSCalSD.hh"
 
+#include "G4SBSBDParameterisation.hh"
+#include "G4SBSBeamDiffuserSD.hh"
 
 G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   assert(dc);
@@ -33,12 +35,14 @@ G4SBSBeamlineBuilder::~G4SBSBeamlineBuilder(){;}
 void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   
   double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
-  
+ 
+  G4bool bdEnable = fDetCon->GetBeamDiffuserEnable();  // is the beam diffuser enabled? 
+ 
   // EFuchey 2017/03/29: organized better this with a switch instead of an endless chain of if...  else...
   //if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
   switch(fDetCon->fExpType){
-  case(kGEp):
-  case(kGEPpositron):
+  case(G4SBS::kGEp):
+  case(G4SBS::kGEPpositron):
     printf("GEp experiment: forcing beamline configuration 1 \n");
     fDetCon->fBeamlineConf = 1;
     MakeGEpBeamline(worldlog);
@@ -46,42 +50,42 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
       MakeGEpLead(worldlog);
     }
     break;
-  case(kGMN):// GMn
+  case(G4SBS::kGMN):// GMn
     MakeGMnBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeGMnLead(worldlog);
     }
     break;
-  case(kGEnRP):// GEnRP
+  case(G4SBS::kGEnRP):// GEnRP
     MakeGMnBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeGMnLead(worldlog);
       MakeGEnRPLead(worldlog);
     }
     break;
-  case(kGEN):// GEn
+  case(G4SBS::kGEN):// GEn
     printf("GEn experiment: forcing beamline configuration 2 \n");
     fDetCon->fBeamlineConf = 2;
     Make3HeBeamline(worldlog);
     MakeGEnClamp(worldlog);
+    if(bdEnable) MakeBeamDiffuser(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeGEnLead(worldlog);
     }
     break;
-  case(kSIDISExp):// SIDIS
+  case(G4SBS::kSIDISExp):// SIDIS
     Make3HeBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeSIDISLead(worldlog);
     }
     break;
-  case(kGEMHCtest):// Hall C GEM test
+  case(G4SBS::kGEMHCtest):// Hall C GEM test
     MakeGMnBeamline(worldlog);
     break;  
   default:
     MakeDefaultBeamline(worldlog);
     break;
   }
-  
   
   double floorthick = 1.0*m;
   G4Tubs *floor_tube = new G4Tubs("floor_tube", 0.0, 30*m, floorthick/2, 0.*deg, 360.*deg );
@@ -1033,16 +1037,16 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     G4SBSCalSD *GEMElecSD = NULL;
     
     switch(fDetCon->fExpType){
-    case(kGEp):
+    case(G4SBS::kGEp):
       GEMElectronicsname += "GEp";
       GEMElectronicscollname += "GEp";
       break;
-    case(kGMN):// GMn
+    case(G4SBS::kGMN):// GMn
       //case(kGEN): //
       GEMElectronicsname += "GMn";
       GEMElectronicscollname += "GMn";
       break;
-    case(kGEnRP):// GEnRP
+    case(G4SBS::kGEnRP):// GEnRP
       GEMElectronicsname += "GMn";
       GEMElectronicscollname += "GMn";
       break;
@@ -1057,7 +1061,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
       fDetCon->fSDman->AddNewDetector(GEMElecSD);
       (fDetCon->SDlist).insert(GEMElectronicsname);
-      fDetCon->SDtype[GEMElectronicsname] = kCAL;
+      fDetCon->SDtype[GEMElectronicsname] = G4SBS::kCAL;
       (GEMElecSD->detmap).depth = 0;
     }
     Electronics_log->SetSensitiveDetector( GEMElecSD );
@@ -4001,7 +4005,7 @@ void G4SBSBeamlineBuilder::MakeSIDISLead(G4LogicalVolume *worldlog){
 
 // This is the "default" beam line (for C16)
 void G4SBSBeamlineBuilder::MakeDefaultBeamline(G4LogicalVolume *worldlog){// Old beam line...
-  Targ_t targtype = fDetCon->fTargType;
+  G4SBS::Targ_t targtype = fDetCon->fTargType;
 
   double swallrad = 1.143*m/2;
   double swallrad_inner = 1.041/2.0*m; 
@@ -4754,5 +4758,102 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
 void G4SBSBeamlineBuilder::MakeToyBeamline(G4LogicalVolume *motherlog){ //This is the "toy" beamline to go with the "toy" scattering chamber:
 
   // Don't do anything yet, just make the code compile;
-} 
+}
 
+void G4SBSBeamlineBuilder::MakeBeamDiffuser(G4LogicalVolume *logicMother){
+   // A beam diffuser that sits right in front of the beam dump
+   // Added by D. Flay (JLab) in Aug 2020  
+      
+   G4cout << "[G4SBSBeamlineBuilder]: Adding the Beam Diffuser to the beam line..." << G4endl; 
+
+   // A case for diffuser
+   // - made of vacuum 
+   // - allows placement of the volume in same mother as the calorimeter
+   //   (can't have two replicas or parameterised volumes in same mother...)  
+   G4double inch        = 25.4*mm;
+   G4double diffCase_x  = 12.*inch;
+   G4double diffCase_y  = 6.*inch;   
+   G4double diffCase_z  = 15.*cm;    
+
+   G4VSolid *diffCaseS         = new G4Box("diffCase",diffCase_x/2.,diffCase_y/2.,diffCase_z/2.); 
+   G4LogicalVolume *diffCaseLV = new G4LogicalVolume(diffCaseS,GetMaterial("Vacuum"),"diffCase");
+
+   // where to place the diffuser 
+   // note: the (x,y) center of the diffuser plates is centered on this logical volume 
+   // double ft   = 12.*inch; 
+   // double beamHeight = 10.0*ft; // 10 feet off the ground
+   // double floorThick = 1.0*m;   // floor is 1 m thick 
+   G4double xd = 0.;
+   G4double yd = 0; // beamHeight + 0.5*floorThick; // do we need this?
+   G4double zd = 12.5*m;  // FakeVacuumExtension ends at +15 m
+   G4ThreeVector P_case = G4ThreeVector(xd,yd,zd);
+
+   bool checkOverlaps = true;
+
+   new G4PVPlacement(0,                // no rotation
+	             P_case,           // location in mother volume 
+	             diffCaseLV,       // its logical volume                         
+	             "diffCase",       // its name
+	             logicMother,      // its mother  volume
+	             false,            // no boolean operation
+	             0,                // copy number
+	             checkOverlaps);   // checking overlaps 
+
+   G4VisAttributes *visCase = new G4VisAttributes();
+   visCase->SetForceWireframe();
+
+   // diffCaseLV->SetVisAttributes(G4VisAttributes::GetInvisible());
+   diffCaseLV->SetVisAttributes(visCase);
+
+   // parameterised build of the diffuser
+   // build first plate (same for Hall A or C)  
+   G4double r_min    = 2.*inch;
+   G4double r_max    = 5.*inch;
+   G4double thk      = 0.125*inch;
+   G4double startPhi = 255.*deg;
+   G4double dPhi     = 30.*deg;
+
+   // choose the origin of the device (where the first plate starts, relative to the mother volume)  
+   G4ThreeVector P0 = G4ThreeVector(0,0,0);
+
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Blue() );
+
+   // first plate 
+   G4VSolid *plateSolid     = new G4Tubs("plate",r_min,r_max,thk/2.,startPhi,dPhi);
+   G4LogicalVolume *plateLV = new G4LogicalVolume(plateSolid,GetMaterial("Aluminum"),"plateLV");
+   plateLV->SetVisAttributes(vis);
+
+   // parameterisation (Hall A)
+   char Hall   = 'A';
+   int NPlanes = 15; 
+   if(Hall=='C') NPlanes = 16;  
+   G4VPVParameterisation *plateParam = new G4SBSBDParameterisation(Hall,P0);
+   // placement
+   new G4PVParameterised("BeamDiffuser",plateLV,diffCaseLV,kZAxis,NPlanes,plateParam);
+
+   // Attach sensitive detector (SD) functionality; follow the GEM example
+
+   // name of SD and the hitCollection  
+   G4String bdSDname = "BD";  // FIXME: is this ok, or do we need directory structure like the GEMs? 
+   // We have to remove all the directory structure from the 
+   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+   G4String bdSDname_nopath = bdSDname;
+   bdSDname_nopath.remove(0,bdSDname.last('/')+1);
+   G4String bdColName = bdSDname_nopath; 
+   bdColName += "HitsCollection";
+
+   // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+   G4SBSBeamDiffuserSD *bdSD; 
+   if( !(bdSD = (G4SBSBeamDiffuserSD *)fDetCon->fSDman->FindSensitiveDetector(bdSDname)) ){
+      G4cout << "[G4SBSBeamlineBuilder]: Adding Beam Diffuser SD functionality..." << G4endl; 
+      bdSD = new G4SBSBeamDiffuserSD(bdSDname,bdColName);
+      plateLV->SetSensitiveDetector(bdSD);  
+      fDetCon->fSDman->AddNewDetector(bdSD);
+      (fDetCon->SDlist).insert(bdSDname); 
+      fDetCon->SDtype[bdSDname] = G4SBS::kBD; 
+   }
+
+   G4cout << "[G4SBSBeamlineBuilder]: --> Done." << G4endl;
+ 
+}

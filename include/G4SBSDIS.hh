@@ -14,7 +14,7 @@ void initcteqpdf(){
      assert(__dis_pdf);
 }
 
-double dissigma( double ebeam, double th, double eprime, Nucl_t nucl ){
+double dissigma( double ebeam, double th, double eprime, G4SBS::Nucl_t nucl ){
     // Return in nb/(GeV*sr)
 
     double Q2 = 2.0*eprime*ebeam*(1.0-cos(th));
@@ -46,10 +46,10 @@ double dissigma( double ebeam, double th, double eprime, Nucl_t nucl ){
     double e_u =  2.0/3.0;
     double e_d = -1.0/3.0;
 
-    if( nucl == kProton ){
+    if( nucl == G4SBS::kProton ){
 	F2 += x*( e_u*e_u*quv + e_d*e_d*qdv ); 
     }
-    if( nucl == kNeutron){
+    if( nucl == G4SBS::kNeutron){
 	F2 += x*( e_u*e_u*qdv + e_d*e_d*quv ); 
     }
     // Sea quarks
@@ -68,10 +68,10 @@ double dissigma( double ebeam, double th, double eprime, Nucl_t nucl ){
 }
 
 double dissigma_p(double eb, double th, double ep){
-    return dissigma( eb, th, ep, kProton);
+    return dissigma( eb, th, ep, G4SBS::kProton);
 }
 double dissigma_n(double eb, double th, double ep){
-    return dissigma( eb, th, ep, kNeutron );
+    return dissigma( eb, th, ep, G4SBS::kNeutron );
 }
 
 #endif//G4SBSDIS_HH

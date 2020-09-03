@@ -78,7 +78,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   //evdata = sbsgen->GetEventData();
   fIO->SetEventData(sbsgen->GetEventData());
 
-  if( sbsgen->GetKine() == kPYTHIA6 ){ //PYTHIA6 event:
+  if( sbsgen->GetKine() == G4SBS::kPYTHIA6 ){ //PYTHIA6 event:
     G4SBSPythiaOutput Primaries = sbsgen->GetPythiaEvent();
 
     for( int ipart = 0; ipart<Primaries.Nprimaries; ipart++ ){
@@ -103,18 +103,18 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     return;
   }
 
-  if( !fUseGeantino && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kPionPhoto ){ //first primary is an electron!
+  if( !fUseGeantino && sbsgen->GetKine() != G4SBS::kGun && sbsgen->GetKine() != G4SBS::kPionPhoto ){ //first primary is an electron!
     particle = particleTable->FindParticle(particleName="e-");
-    if( fIO->GetDetCon()->fExpType == kGEPpositron ){ //generate e+ instead of e-
+    if( fIO->GetDetCon()->fExpType == G4SBS::kGEPpositron ){ //generate e+ instead of e-
       particle = particleTable->FindParticle(particleName="e+");
     }
   } else if( fUseGeantino ){ //first primary is a geantino!
     particle = particleTable->FindParticle(particleName="chargedgeantino");
-  } else if( sbsgen->GetKine() == kPionPhoto ){ //pion photoproduction:
-    if( sbsgen->GetHadronType() == kPi0 ){
+  } else if( sbsgen->GetKine() == G4SBS::kPionPhoto ){ //pion photoproduction:
+    if( sbsgen->GetHadronType() == G4SBS::kPi0 ){
       particle = particleTable->FindParticle(particleName="pi0");
     } else { //Choose based on final nucleon:
-      if( sbsgen->GetFinalNucleon() == kProton ){ //gamma n --> pi- p
+      if( sbsgen->GetFinalNucleon() == G4SBS::kProton ){ //gamma n --> pi- p
 	particle = particleTable->FindParticle(particleName="pi-");
       }  else { // gamma p --> pi+ n
 	particle = particleTable->FindParticle(particleName="pi+");
@@ -126,7 +126,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     particle = GunParticleType;
   } 
 
-  if( sbsgen->GetKine()==kCosmics ){
+  if( sbsgen->GetKine()==G4SBS::kCosmics ){
     particle = particleTable->FindParticle(particleName="mu-");
     if( fUseGeantino ){ //first primary is a geantino!
       particle = particleTable->FindParticle(particleName="chargedgeantino");
@@ -136,9 +136,9 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   particleGun->SetParticleDefinition(particle);
 
   particleGun->SetParticleMomentumDirection( sbsgen->GetElectronP().unit() );
-  if( sbsgen->GetKine() != kGun && sbsgen->GetKine() != kCosmics){ 
+  if( sbsgen->GetKine() != G4SBS::kGun && sbsgen->GetKine() != G4SBS::kCosmics){ 
     particleGun->SetParticleEnergy(sbsgen->GetElectronE());
-  } else { //kGun!
+  } else { //G4SBS::kGun!
     //SetParticleEnergy sets the ***kinetic energy*** of particles
     //GenerateGun() generates the ***momentum***; therefore we need:
     // T = E - M --> (T + M)^2 = p^2 + M^2 --> T^2 + 2MT = p^2 
@@ -157,10 +157,10 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   ev_t evdata = fIO->GetEventData();
   
-  if( sbsgen->GetKine()!= kWiser ){
+  if( sbsgen->GetKine()!= G4SBS::kWiser ){
     particleGun->SetParticlePolarization( G4ThreeVector(0.0,0.0,0.0) );
     //G4cout << "Gun polarization for the primary electron: " << particleGun->GetParticlePolarization() << G4endl;
-    if( sbsgen->GetKine() == kGun ){ //If a gun polarization is defined, transform polarization to TRANSPORT coordinates and set particle polarization:
+    if( sbsgen->GetKine() == G4SBS::kGun ){ //If a gun polarization is defined, transform polarization to TRANSPORT coordinates and set particle polarization:
       gen_t gendata = fIO->GetGenData();
       G4double sbsangle = gendata.thsbs;
 
@@ -181,7 +181,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     particleGun->GeneratePrimaryVertex(anEvent);
   }
 
-  if( sbsgen->GetKine() == kGMnElasticCheck ) { // In this case we
+  if( sbsgen->GetKine() == G4SBS::kGMnElasticCheck ) { // In this case we
     // generate TWO nucleons, a proton and neutron simultaneously
     for(int i = 0; i < 2; i++ ) {
       if(i==0)
@@ -201,12 +201,12 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     }
     return; // So that we don't generate any more particles by accident
   }
-  if( sbsgen->GetKine() != kSIDIS && sbsgen->GetKine() != kWiser && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kBeam && sbsgen->GetKine() != kCosmics){ //Then we are generating a final nucleon
+  if( sbsgen->GetKine() != G4SBS::kSIDIS && sbsgen->GetKine() != G4SBS::kWiser && sbsgen->GetKine() != G4SBS::kGun && sbsgen->GetKine() != G4SBS::kBeam && sbsgen->GetKine() != G4SBS::kCosmics){ //Then we are generating a final nucleon
     switch( sbsgen->GetFinalNucleon() ){
-    case kProton:
+    case G4SBS::kProton:
       particle = particleTable->FindParticle(particleName="proton");
       break;
-    case kNeutron:
+    case G4SBS::kNeutron:
       particle = particleTable->FindParticle(particleName="neutron");
       break;
     default:
@@ -222,7 +222,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       particleGun->SetParticleEnergy(sbsgen->GetNucleonE()-particle->GetPDGMass());
       particleGun->SetParticlePosition(sbsgen->GetV());
 
-      if( sbsgen->GetKine() == kElastic ) {
+      if( sbsgen->GetKine() == G4SBS::kElastic ) {
 
 	G4double muB = 0.5*eplus*hbar_Planck/(particle->GetPDGMass()/c_squared);
 	
@@ -253,7 +253,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	
       }
 
-      if( sbsgen->GetKine() == kPionPhoto ) { //Set a longitudinal polarization for the recoil proton in WAPP kinematics (assuming large K_LL and small K_LS)
+      if( sbsgen->GetKine() == G4SBS::kPionPhoto ) { //Set a longitudinal polarization for the recoil proton in WAPP kinematics (assuming large K_LL and small K_LS)
 
 	G4ThreeVector S_hat = sbsgen->GetNucleonP().unit();
 	
@@ -274,27 +274,27 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	
       }
     }
-  } else if( sbsgen->GetKine() == kSIDIS || sbsgen->GetKine() == kWiser ){ //SIDIS case: generate a final hadron:
+  } else if( sbsgen->GetKine() == G4SBS::kSIDIS || sbsgen->GetKine() == G4SBS::kWiser ){ //SIDIS case: generate a final hadron:
     switch( sbsgen->GetHadronType() ){
-    case kPiPlus:
+    case G4SBS::kPiPlus:
       particle = particleTable->FindParticle(particleName="pi+");
       break;
-    case kPiMinus:
+    case G4SBS::kPiMinus:
       particle = particleTable->FindParticle(particleName="pi-");
       break;
-    case kPi0:
+    case G4SBS::kPi0:
       particle = particleTable->FindParticle(particleName="pi0");
       break;
-    case kKPlus:
+    case G4SBS::kKPlus:
       particle = particleTable->FindParticle(particleName="kaon+");
       break;
-    case kKMinus:
+    case G4SBS::kKMinus:
       particle = particleTable->FindParticle(particleName="kaon-");
       break;
-    case kP:
+    case G4SBS::kP:
       particle = particleTable->FindParticle(particleName="proton");
       break;
-    case kPbar:
+    case G4SBS::kPbar:
       particle = particleTable->FindParticle(particleName="anti_proton");
       break;
     default:
@@ -318,7 +318,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   // Only do final nucleon/hadron for generators other than
   // the generic beam generator
-  if( sbsgen->GetKine() != kBeam && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kDIS && sbsgen->GetKine() != kCosmics ){
+  if( sbsgen->GetKine() != G4SBS::kBeam && sbsgen->GetKine() != G4SBS::kGun && sbsgen->GetKine() != G4SBS::kDIS && sbsgen->GetKine() != G4SBS::kCosmics ){
     //G4cout << "Gun polarization = " << particleGun->GetParticlePolarization() << G4endl;
       particleGun->GeneratePrimaryVertex(anEvent);
   }

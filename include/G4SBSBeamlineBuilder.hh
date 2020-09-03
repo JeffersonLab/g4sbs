@@ -29,6 +29,7 @@ private:
   void Make3HeBeamline(G4LogicalVolume *);// for GEn, A1n, SIDIS
   void MakeDefaultBeamline(G4LogicalVolume *);// Old beam line...
   void MakeToyBeamline(G4LogicalVolume *); // "Toy" beam line for playing around with extreme forward angles of detectors, etc:
+  void MakeBeamDiffuser(G4LogicalVolume *); // for a beam diffuser that sits in front of the dump (useful for beam steering studies)  
   
 };
 

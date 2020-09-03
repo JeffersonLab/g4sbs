@@ -57,12 +57,16 @@ public:
   // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration
   void SetGEnTargetHelmholtzConfig(int n) { fGEnTgtHHConfig =n; }  
   int GetGEnTargetHelmholtzConfig() const { return fGEnTgtHHConfig; } 
+  
+  // D. Flay (8/25/20).  Beam Diffuser enable 
+  void SetBeamDiffuserEnable(bool v)   { fBeamDiffuserEnable = v;    } 
+  G4bool GetBeamDiffuserEnable() const { return fBeamDiffuserEnable; } 
 
   void SetTotalAbs(bool b){ fTotalAbs= b; }
   void SetCheckOverlap(bool b){ fCheckOverlap = b; }
 
-  void SetExpType( Exp_t et ){ fExpType = et; }
-  void SetTarget( Targ_t tg ){ fTargType = tg; }
+  void SetExpType( G4SBS::Exp_t et ){ fExpType = et; }
+  void SetTarget( G4SBS::Targ_t tg ){ fTargType = tg; }
 
   void SetUniformMagneticField48D48( double B );
 
@@ -70,13 +74,13 @@ public:
   int  fLeadOption;
   bool fBLneutronDet;
   
-  Exp_t fExpType;
-  Targ_t fTargType;
+  G4SBS::Exp_t fExpType;
+  G4SBS::Targ_t fTargType;
 
   //map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run. This is redundant with G4SDManager; just use that instead.
   set<G4String> SDlist;
-  map<G4String, SDet_t> SDtype; //Mapping of sensitive detector names to sensitive detector types
-  //map<G4String, Arm_t> SDarm; //Mapping of sensitive detector names to spectrometer arms
+  map<G4String, G4SBS::SDet_t> SDtype; //Mapping of sensitive detector names to sensitive detector types
+  //map<G4String, G4SBS::Arm_t> SDarm; //Mapping of sensitive detector names to spectrometer arms
   set<G4String> StepLimiterList; //List of sensitive detectors for which G4UserLimits are defined to stop all particles entering (only allowed for calorimeters!)
   
   map<G4String, G4double> SDgatewidth; //Time window for accumulating hit signal
@@ -111,7 +115,7 @@ public:
   G4String GetECALmapfilename(){ return fECALmapfilename; }
 
   // int TrackerIDnumber;
-  // map<int,Arm_t> TrackerArm; //Is tracker in E arm or P arm?
+  // map<int,G4SBS::Arm_t> TrackerArm; //Is tracker in E arm or P arm?
 
   void SetCDetconfig( int );
   int GetCDetConfigOption() { return fCDetOption; }
@@ -172,7 +176,11 @@ private:
 
   G4bool fGEMflip;
 
-  G4int fGEnTgtHHConfig; // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration 
+  G4int fGEnTgtHHConfig; // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration
+
+  // D. Flay (8/25/20).  Beam diffuser enable and beam pointing
+  G4bool fBeamDiffuserEnable;       // enable the beam diffuser 
+  G4double fBeamPointX,fBeamPointY; // beam pointing   
 
 };
 

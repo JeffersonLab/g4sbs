@@ -72,7 +72,7 @@ void G4SBSGlobalField::AddToscaField( const char *fn ){
 
   G4String fname = f->GetFilename();
   
-  f->fArm = kHarm; //for now, a TOSCA field is always associated with "HARM". we may wish to change in the future.
+  f->fArm = G4SBS::kHarm; //for now, a TOSCA field is always associated with "HARM". we may wish to change in the future.
     
   AddField(f);
   G4TransportationManager::GetTransportationManager()->GetFieldManager()->CreateChordFinder(this);
@@ -80,7 +80,7 @@ void G4SBSGlobalField::AddToscaField( const char *fn ){
   G4SBSRunData *rd = G4SBSRun::GetRun()->GetData();
   
   TMD5 *md5 = TMD5::FileChecksum(fname.data());
-  filedata_t fdata;
+  G4SBS::filedata_t fdata;
 
   strcpy(fdata.filename, fname.data() );
   strcpy(fdata.hashsum, md5->AsString() );
@@ -110,7 +110,7 @@ void G4SBSGlobalField::DropField( G4SBSMagneticField *f ){
   return;
 }
 
-void G4SBSGlobalField::ScaleFields( G4double scalefact, Arm_t arm ){
+void G4SBSGlobalField::ScaleFields( G4double scalefact, G4SBS::Arm_t arm ){
   for( std::vector<G4SBSMagneticField *>::iterator it = fFields.begin(); it != fFields.end(); ++it ){
     if( (*it)->fArm == arm ){
       (*it)->fScaleFactor = scalefact;

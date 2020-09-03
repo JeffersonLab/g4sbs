@@ -76,7 +76,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fTotalAbs = false;
 
-  fExpType = kGMN;
+  fExpType = G4SBS::kGMN;
 
   // By default, don't check detectors for overlaps
   fCheckOverlap = false;
@@ -112,6 +112,11 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fGEMflip = false;
   //    TrackerIDnumber = 0;
   //TrackerArm.clear();
+
+  // D. Flay (8/25/20) 
+  // beam diffuser switch 
+  fBeamDiffuserEnable = false; 
+
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -2413,7 +2418,7 @@ void G4SBSDetectorConstruction::SetBigBiteField(int n, G4String fname){
     fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fEArmBuilder->fBBdist),  rm, fname );
 
     fbbfield->fScaleFactor = fFieldScale_BB;
-    fbbfield->fArm = kEarm;
+    fbbfield->fArm = G4SBS::kEarm;
     // Dimensions of the box
     fGlobalField->AddField(fbbfield);
     if( !fUseGlobalField ) fEArmBuilder->fUseLocalField = true;
@@ -2449,7 +2454,7 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
 					 G4ThreeVector(f48D48_uniform_bfield, 0.0, 0.0)
 					  );
     f48d48field->fScaleFactor = fFieldScale_SBS;
-    f48d48field->fArm = kHarm;
+    f48d48field->fArm = G4SBS::kHarm;
     
     fGlobalField->AddField(f48d48field);
     if( !fUseGlobalField ) fHArmBuilder->fUseLocalField = true;
@@ -2557,7 +2562,7 @@ void G4SBSDetectorConstruction::SetFieldScale_SBS( G4double v ){
     f48d48field->fScaleFactor = v;
   }
 
-  fGlobalField->ScaleFields( v, kHarm );
+  fGlobalField->ScaleFields( v, G4SBS::kHarm );
   
 }
 
@@ -2568,7 +2573,7 @@ void G4SBSDetectorConstruction::SetFieldScale_BB( G4double v ){
     fbbfield->fScaleFactor = v;
   }
 
-  fGlobalField->ScaleFields( v, kEarm );
+  fGlobalField->ScaleFields( v, G4SBS::kEarm );
 }
 
 void G4SBSDetectorConstruction::SetFlipGEM( G4bool b ){
@@ -2583,10 +2588,10 @@ void G4SBSDetectorConstruction::SetTimeWindowAndThreshold( G4String SDname, G4do
   
   if( SDlist.find( SDname ) != SDlist.end() ){
     switch( SDtype[SDname] ){
-    case kGEM: //For now, do nothing:
+    case G4SBS::kGEM: //For now, do nothing:
       
       break;
-    case kCAL:
+    case G4SBS::kCAL:
       CalSDptr = (G4SBSCalSD*) fSDman->FindSensitiveDetector( SDname, false );
 
       timewindow = SDgatewidth.find(SDname) != SDgatewidth.end() ? SDgatewidth[SDname] : Tdefault;

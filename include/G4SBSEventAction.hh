@@ -19,6 +19,11 @@
 #include "G4SBSTrackerOutput.hh"
 #include "G4SBSParticleOutput.hh"
 #include "sbstypes.hh"
+
+#include "G4SBSBeamDiffuserSD.hh"
+#include "G4SBSBDHit.hh"
+#include "G4SBSBDoutput.hh"
+
 #include <set> 
 
 using namespace std;
@@ -55,16 +60,18 @@ public:
   void FillRICHData( const G4Event*, G4SBSRICHHitsCollection*, G4SBSRICHoutput &, G4SBSSDTrackOutput & );
   void FillTrackData( G4SBSGEMoutput, G4SBSTrackerOutput & );
   void FillECalData( G4SBSECalHitsCollection*, G4SBSECaloutput &, G4SBSSDTrackOutput & );
+  void FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G4SBSBDoutput &out); // for the Beam Diffuser (BD)
 
   //map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run. 
   set<G4String> SDlist;
-  map<G4String, SDet_t> SDtype;
-  //map<G4String, Arm_t> SDarm;
+  map<G4String, G4SBS::SDet_t> SDtype;
+  //map<G4String, G4SBS::Arm_t> SDarm;
   void SetEventStatusEvery(G4int n) { fEventStatusEvery = n; };
 
 private:
   //Hit collection IDs:
   G4int gemCollID, hcalCollID, bbcalCollID, RICHCollID, ECalCollID;
+  // G4int bdCollID; // for the beam diffuser (bd)  
 
   //maps associating trajectory index with track ID, parent track ID and particle ID
   //For mother track IDs, we use map, because many tracks can have the same mother. 

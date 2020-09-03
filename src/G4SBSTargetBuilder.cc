@@ -30,7 +30,7 @@
 G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   assert(fDetCon);
   fTargLen = 60.0*cm;
-  fTargType = kH2;
+  fTargType = G4SBS::kH2;
   fTargDen = 10.5*atmosphere/(300*kelvin*k_Boltzmann);
 
   fTargPos = G4ThreeVector( 0, 0, 0 );
@@ -53,30 +53,30 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   fTargType = fDetCon->fTargType;
   //We actually need to be a little bit smarter than this: as it stands, one can never build a C foil target with this logic:
   // EFuchey 2017/02/10: organized better this with a switch instead of an endless chain of if...  else...
-  //if( (fTargType == kLH2 || fTargType == kLD2 || fTargType == kCfoil ) ){
+  //if( (fTargType == G4SBS::kLH2 || fTargType == kLD2 || fTargType == G4SBS::kCfoil ) ){
   switch(fDetCon->fExpType){
-  case(kGEp):
-  case(kGEPpositron):
+  case(G4SBS::kGEp):
+  case(G4SBS::kGEPpositron):
     BuildGEpScatCham( worldlog );
   break;
-  case(kC16):
+  case(G4SBS::kC16):
     BuildC16ScatCham( worldlog );
     break;
-  case(kTDIS):
+  case(G4SBS::kTDIS):
     BuildTDISTarget( worldlog );
     break;
-  case(kNDVCS):
+  case(G4SBS::kNDVCS):
     BuildTDISTarget( worldlog );
     break;
-  case(kGEMHCtest):
+  case(G4SBS::kGEMHCtest):
     BuildStandardScatCham( worldlog );
     //BuildC16ScatCham( worldlog );
     break;
-  case(kGEN):
+  case(G4SBS::kGEN):
     // BuildGasTarget( worldlog );
     BuildGEnTarget(worldlog);  
     break;
-  case(kSIDISExp):
+  case(G4SBS::kSIDISExp):
     BuildGasTarget( worldlog );
     break;
   default: //GMN, GEN-RP:
@@ -109,7 +109,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   
   G4LogicalVolume *TargetCell_log;
   
-  if( fTargType == kLH2 ){
+  if( fTargType == G4SBS::kLH2 ){
     TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LH2"), "TargetCell_log" );
   } else {
     TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
@@ -182,7 +182,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
       FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
       fDetCon->fSDman->AddNewDetector( FluxSD );
       (fDetCon->SDlist).insert( FluxSDname );
-      fDetCon->SDtype[FluxSDname] = kCAL;
+      fDetCon->SDtype[FluxSDname] = G4SBS::kCAL;
       
       (FluxSD->detmap).depth = 0;
     }
@@ -928,9 +928,9 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   rot_temp->rotateX(90.0*deg);
   
   //Call BuildStandardCryoTarget HERE !
-  if(fTargType==kCfoil){
+  if(fTargType==G4SBS::kCfoil){
     BuildCfoil(logicScatChamber, rot_temp, G4ThreeVector(0, 0, SCOffset));
-  } else if( fTargType == kOptics){
+  } else if( fTargType == G4SBS::kOptics){
     BuildOpticsTarget(logicScatChamber, rot_temp, G4ThreeVector(0, 0, SCOffset ) );
   } else {
     BuildStandardCryoTarget(logicScatChamber, rot_temp, G4ThreeVector(0, 0, SCOffset));
@@ -980,7 +980,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   //     FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
   //     fDetCon->fSDman->AddNewDetector( FluxSD );
   //     (fDetCon->SDlist).insert( FluxSDname );
-  //     fDetCon->SDtype[FluxSDname] = kCAL;
+  //     fDetCon->SDtype[FluxSDname] = G4SBS::kCAL;
 
   //     (FluxSD->detmap).depth = 0;
   //   }
@@ -1097,7 +1097,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4ThreeVector Snout_position_global( SnoutBeamPlate_xcoord, 0, SnoutBeamPlate_zcoord - TargetCenter_zoffset + Snout_Thick/2.0 );
 
-  if( fDetCon->fExpType != kGEPpositron ){ //place snout:
+  if( fDetCon->fExpType != G4SBS::kGEPpositron ){ //place snout:
     new G4PVPlacement( 0, Snout_position_global, Snout_log, "Snout_phys", worldlog, false, 0 );
   }
   //Fill the cutouts with vacuum, and then with steel corner pieces:
@@ -1110,7 +1110,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   xtemp = SnoutHarmWindow_Width/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
   ytemp = SnoutHarmWindow_Height/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
 
-  if( fDetCon->fExpType != kGEPpositron ){
+  if( fDetCon->fExpType != G4SBS::kGEPpositron ){
     new G4PVPlacement( 0, G4ThreeVector( -xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_right", SnoutHarmWindowCutout_log, false, 0 );
 
     rot_temp->rotateZ( 90.0*deg ); //clockwise as viewed from downstream, ccw as viewed from upstream!
@@ -1194,7 +1194,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4LogicalVolume *TargetCell_log;
 
-  if( fTargType == kLH2 ){
+  if( fTargType == G4SBS::kLH2 ){
   TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LH2"), "TargetCell_log" );
   } else {
   TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
@@ -1379,7 +1379,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   //Finally, put windows and bolt plates:
 
-  //if( fDetCon->fExpType != kGEPpositron ){
+  //if( fDetCon->fExpType != G4SBS::kGEPpositron ){
   
   G4double HarmFlangeWidth = 2.0*11.44*inch;
   G4double HarmFlangeHeight = 2.0*12.56*inch;
@@ -1390,7 +1390,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   //Figure out the placement of the Harm window:
   G4ThreeVector Harm_window_pos = Snout_position_global + FrontRightCorner_pos_local + (-SnoutHarmPlate_Width/2.0 + SnoutHarmWindow_xcenter) * Harm_xaxis + (HarmWindowThick/2.0) * Harm_zaxis;
 
-  if( fDetCon->fExpType != kGEPpositron ) new G4PVPlacement( rot_harm_window, Harm_window_pos, HarmWindow_log, "HarmWindow_phys", worldlog, false, 0 );
+  if( fDetCon->fExpType != G4SBS::kGEPpositron ) new G4PVPlacement( rot_harm_window, Harm_window_pos, HarmWindow_log, "HarmWindow_phys", worldlog, false, 0 );
   
   G4Box *HarmFlange_box = new G4Box("HarmFlange_box", HarmFlangeWidth/2.0, HarmFlangeHeight/2.0, HarmFlangeThick/2.0 );
 
@@ -1399,7 +1399,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4ThreeVector HarmFlange_pos = Harm_window_pos + (HarmWindowThick + HarmFlangeThick)/2.0 * Harm_zaxis;
 
-  if( fDetCon->fExpType != kGEPpositron ) new G4PVPlacement( rot_harm_window, HarmFlange_pos, HarmFlange_log, "HarmFlange_phys", worldlog, false, 0 );
+  if( fDetCon->fExpType != G4SBS::kGEPpositron ) new G4PVPlacement( rot_harm_window, HarmFlange_pos, HarmFlange_log, "HarmFlange_phys", worldlog, false, 0 );
 
   //Create a new logical volume of aluminum instead of steel for the rounded corners of the flange:
   G4LogicalVolume *HarmFlangeCorner_log = new G4LogicalVolume( HarmWindowCorner, GetMaterial("Aluminum"), "HarmFlangeCorner_log" );
@@ -1407,7 +1407,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   G4ThreeVector pos_temp;
 
 
-  if( fDetCon->fExpType != kGEPpositron ){
+  if( fDetCon->fExpType != G4SBS::kGEPpositron ){
     xtemp = SnoutHarmWindow_Width/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
     ytemp = SnoutHarmWindow_Height/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
 
@@ -1450,7 +1450,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   G4ThreeVector Earm_window_pos = Snout_position_global + FrontLeftCorner_pos_local + (SnoutEarmPlate_Width/2.0 + SnoutEarmWindow_xcenter) * Earm_xaxis + EarmWindowThick/2.0 * Earm_zaxis;
 
   
-  if( fDetCon->fExpType != kGEPpositron ) new G4PVPlacement( rot_earm_window, Earm_window_pos, EarmWindow_log, "EarmWindow_phys", worldlog, false, 0 );
+  if( fDetCon->fExpType != G4SBS::kGEPpositron ) new G4PVPlacement( rot_earm_window, Earm_window_pos, EarmWindow_log, "EarmWindow_phys", worldlog, false, 0 );
   
   //Next: make flange:
 
@@ -1461,12 +1461,12 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4ThreeVector EarmFlange_pos = Earm_window_pos + (EarmWindowThick + EarmFlangeThick)/2.0 * Earm_zaxis;
 
-  if( fDetCon->fExpType != kGEPpositron ) new G4PVPlacement( rot_earm_window, EarmFlange_pos, EarmFlange_log, "EarmFlange_phys", worldlog, false, 0 );
+  if( fDetCon->fExpType != G4SBS::kGEPpositron ) new G4PVPlacement( rot_earm_window, EarmFlange_pos, EarmFlange_log, "EarmFlange_phys", worldlog, false, 0 );
 
   G4LogicalVolume *EarmFlangeCorner_log = new G4LogicalVolume( EarmWindowCorner, GetMaterial("Aluminum"), "EarmFlangeCorner_log" );
 
 
-  if( fDetCon->fExpType != kGEPpositron ){
+  if( fDetCon->fExpType != G4SBS::kGEPpositron ){
     xtemp = SnoutEarmWindow_Width/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
     ytemp = SnoutEarmWindow_Height/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
 
@@ -1765,7 +1765,7 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   rot_temp->rotateX(+90.0*deg);
   
   //Call BuildStandardCryoTarget HERE !
-  if(fTargType==kCfoil){
+  if(fTargType==G4SBS::kCfoil){
     BuildCfoil(scham_vacuum_log, rot_temp, G4ThreeVector(0, +0.025*mm, 0));
   }else{
     BuildStandardCryoTarget(scham_vacuum_log, rot_temp, G4ThreeVector(0, +0.025*mm, 0));
@@ -1784,7 +1784,7 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
 
   G4LogicalVolume *TargetCell_log;
 
-  if( fTargType == kLH2 ){
+  if( fTargType == G4SBS::kLH2 ){
   TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LH2"), "TargetCell_log" );
   } else {
   TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
@@ -1831,7 +1831,7 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
   fDetCon->fSDman->AddNewDetector( FluxSD );
   (fDetCon->SDlist).insert( FluxSDname );
-  fDetCon->SDtype[FluxSDname] = kCAL;
+  fDetCon->SDtype[FluxSDname] = G4SBS::kCAL;
     
   (FluxSD->detmap).depth = 0;
   }
@@ -1877,7 +1877,7 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
       FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
       fDetCon->fSDman->AddNewDetector( FluxSD );
       (fDetCon->SDlist).insert( FluxSDname );
-      fDetCon->SDtype[FluxSDname] = kCAL;
+      fDetCon->SDtype[FluxSDname] = G4SBS::kCAL;
 
       (FluxSD->detmap).depth = 0;
     }
@@ -1930,13 +1930,13 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, fTargDiameter/2.0-wallthick,fTargLen/2.0, 0.*deg, 360.*deg );
   G4LogicalVolume* gas_tube_log = NULL;
 
-  if( fTargType == kH2 || fTargType == kNeutTarg ){
+  if( fTargType == G4SBS::kH2 || fTargType == G4SBS::kNeutTarg ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refH2"), "gas_tube_log");
   }
-  if( fTargType == kD2 ){
+  if( fTargType == G4SBS::kD2 ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refD2"), "gas_tube_log");
   }
-  if( fTargType == k3He ){
+  if( fTargType == G4SBS::k3He ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("pol3He"), "gas_tube_log");
   }
 
@@ -1950,7 +1950,7 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   //   target_zpos = -zpos_sc;
   // }
   
-  //if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg ){
+  //if( fTargType == G4SBS::kH2 || fTargType == G4SBS::k3He || fTargType == G4SBS::kNeutTarg ){
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), targ_tube_log,
 		    "targ_tube_phys", motherlog, false, 0);
   
@@ -2065,7 +2065,7 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
       FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
       fDetCon->fSDman->AddNewDetector( FluxSD );
       (fDetCon->SDlist).insert( FluxSDname );
-      fDetCon->SDtype[FluxSDname] = kCAL;
+      fDetCon->SDtype[FluxSDname] = G4SBS::kCAL;
 
       (FluxSD->detmap).depth = 0;
     }
@@ -2117,13 +2117,13 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
   G4LogicalVolume* gas_tube_log = NULL;
 
 
-  if( fTargType == kH2 || fTargType == kNeutTarg ){
+  if( fTargType == G4SBS::kH2 || fTargType == G4SBS::kNeutTarg ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refH2"), "gas_tube_log");
   }
-  if( fTargType == kD2 ){
+  if( fTargType == G4SBS::kD2 ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refD2"), "gas_tube_log");
   }
-  if( fTargType == k3He ){
+  if( fTargType == G4SBS::k3He ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("pol3He"), "gas_tube_log");
   }
 
@@ -2141,7 +2141,7 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
   }
 
   //We don't always want to place the gas target; we might want some foil or optics targets in air:
-  if( fTargType == kH2 || fTargType == k3He || fTargType == kNeutTarg || fTargType == kD2 ){
+  if( fTargType == G4SBS::kH2 || fTargType == G4SBS::k3He || fTargType == G4SBS::kNeutTarg || fTargType == G4SBS::kD2 ){
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), targ_tube_log,
 		      "targ_tube_phys", motherlog, false, 0);
   
@@ -2153,9 +2153,9 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
     assert(gas_tube_log);
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
 		      "gas_tube_phys", motherlog, false, 0);
-  } else if( fTargType == kCfoil ){ //single carbon foil
+  } else if( fTargType == G4SBS::kCfoil ){ //single carbon foil
     BuildCfoil( motherlog, 0, G4ThreeVector(0,0,target_zpos) );
-  } else if (fTargType == kOptics ){ //multi-foil (optics) target:
+  } else if (fTargType == G4SBS::kOptics ){ //multi-foil (optics) target:
     BuildOpticsTarget( motherlog, 0, G4ThreeVector(0,0,target_zpos) );
   }
 
@@ -2305,18 +2305,20 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    BuildGEnTarget_PolarizedHe3(motherLog);
 
    // helmholtz coils
-   int config = fDetCon->GetGEnTargetHelmholtzConfig(); 
-   if(config==kSBS_GEN_146)  std::cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = 1.46 (GeV/c)^2"  << std::endl; 
-   if(config==kSBS_GEN_368)  std::cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = 3.68 (GeV/c)^2"  << std::endl; 
-   if(config==kSBS_GEN_677)  std::cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = 6.77 (GeV/c)^2"  << std::endl; 
-   if(config==kSBS_GEN_1018) std::cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = 10.18 (GeV/c)^2" << std::endl; 
+   int config = fDetCon->GetGEnTargetHelmholtzConfig();
+   double Q2=0; 
+   if(config==G4SBS::kGEN_146)  Q2 = 1.46; 
+   if(config==G4SBS::kGEN_368)  Q2 = 3.68; 
+   if(config==G4SBS::kGEN_677)  Q2 = 6.77; 
+   if(config==G4SBS::kGEN_1018) Q2 = 10.18;
+   G4cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = " << Q2 << " (GeV/c)^2" << G4endl; 
 
    BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
    BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);
    BuildGEnTarget_HelmholtzCoils(config,"min",motherLog);
 
    // magnetic shield
-   // config = kSBS_GEN_new; // for when the shield design is finalized  
+   // config = kGEN_new; // for when the shield design is finalized  
    BuildGEnTarget_Shield(config,motherLog);
 
    // target ladder 
@@ -2642,7 +2644,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // visualization 
    G4VisAttributes *visGC = new G4VisAttributes();
    visGC->SetColour( G4Colour::White() );
-   visGC->SetForceWireframe(true);
+   // visGC->SetForceWireframe(true);
    logicGlassCell->SetVisAttributes(visGC);
 
    // place the volume
@@ -3065,7 +3067,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
    // - no magnetic fields are implemented!
    // - materials: outer shell of G10.  thickness based on type
    //              core is solid aluminum
-   // - config: kSBS_GEN_677, kSBS_GEN_1018, kSBS_GEN_368, kSBS_GEN_146
+   // - config: kGEN_677, kGEN_1018, kGEN_368, kGEN_146
    //           different rotation angle based on index number (Q2 setting)   
    // - types: maj = large radius coil pair
    //          min = small radius coil pair 
@@ -3183,8 +3185,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
    // additional rotation to match engineering drawings (number A09016-03-08-0000) 
    G4double dry=0;
    if( type.compare("maj")==0 || type.compare("min")==0 ){
-      if(config==kSBS_GEN_146 || config==kSBS_GEN_368)  dry = 43.5*deg;
-      if(config==kSBS_GEN_677 || config==kSBS_GEN_1018) dry = 10.0*deg;
+      if(config==G4SBS::kGEN_146 || config==G4SBS::kGEN_368)  dry = 43.5*deg;
+      if(config==G4SBS::kGEN_677 || config==G4SBS::kGEN_1018) dry = 10.0*deg;
    }
 
    // adjust for y rotation.  
@@ -3306,7 +3308,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
 void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume *motherLog){
    // Shield box for the target magnetic field 
    // - Material: Carbon steel 1008
-   // - config: kSBS_GEN_146, kSBS_GEN_368, kSBS_GEN_677, kSBS_GEN_1018
+   // - config: kGEN_146, kGEN_368, kGEN_677, kGEN_1018
    //           Different cutaways based on index number (Q2 setting)   
    // - The shield is actually two layers
    //   - each layer is 0.25" thick
@@ -3346,7 +3348,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
 
    G4double xw_bl=0,yw_bl=0,zw_bl=0,ys=0;
 
-   if(config==kSBS_GEN_new){
+   if(config==G4SBS::kGEN_new){
       // FIXME: This is an estimate 
       // new cut as of 6/27/20 (new design from Bert)
       xw_bl = 10.*cm; // arbitrary size
@@ -3385,38 +3387,38 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
    G4double dx=0,dx0=5.*cm;
    G4double xw_br=0,yw_br=0;
    G4double zw_br=10.*cm; // arbitrary cut depth in z; just need enough to break through 
-   if(config==kSBS_GEN_146){
+   if(config==G4SBS::kGEN_146){
       dx    = dx0 + p1 + p2 + p3;
       xw_br = dh;
       yw_br = 21.41*inch;
       // coordinates 
       ys    = 0.*cm;
-   }else if(config==kSBS_GEN_368){
+   }else if(config==G4SBS::kGEN_368){
       dx    = dx0 + p2 + p3;
       xw_br = dh;
       yw_br = 21.41*inch;
       // coordinates 
       ys    = 0.*cm;
-   }else if(config==kSBS_GEN_677){
+   }else if(config==G4SBS::kGEN_677){
       dx    = dx0 + p3;
       xw_br = dh;
       yw_br = 21.41*inch;
       // coordinates 
       ys    = 0.*cm;
-   }else if(config==kSBS_GEN_1018){
+   }else if(config==G4SBS::kGEN_1018){
       dx    = dx0;
       xw_br = dh;
       yw_br = 21.41*inch;
       // coordinates 
       ys    = 0.*cm;
-   }else if(config==kSBS_GEN_full){
+   }else if(config==G4SBS::kGEN_full){
       // full window cut 
       dx    = dx0;
       xw_br = p1 + p2 + p3 + dh;
       yw_br = 21.41*inch;
       // coordinates 
       ys    = 0.*cm;
-   }else if(config==kSBS_GEN_new){
+   }else if(config==G4SBS::kGEN_new){
       // 6/27/20: new design from Bert 
       dx    = dx0;
       xw_br = door;
@@ -3482,7 +3484,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
 
    G4VisAttributes *vis = new G4VisAttributes();
    vis->SetColour( G4Colour::Magenta() );
-   // vis->SetForceWireframe(true);
+   vis->SetForceWireframe(true);
 
    // rotation angle 
    G4double RY = 55.0*deg;  // FIXME: This angle is still an estimate!  

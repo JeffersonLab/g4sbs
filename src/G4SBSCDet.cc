@@ -128,7 +128,7 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
     cdet_sd = new G4SBSECalSD( sdname, collname );
     fDetCon->fSDman->AddNewDetector( cdet_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kECAL;
+    fDetCon->SDtype[sdname] = G4SBS::kECAL;
     (cdet_sd->detmap).depth = 0;
     CDET_pmt_cathode_log->SetSensitiveDetector( cdet_sd );
   }
@@ -145,7 +145,7 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
     cdet_scint_sd = new G4SBSCalSD( sdname, collname );
     fDetCon->fSDman->AddNewDetector( cdet_scint_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kCAL;
+    fDetCon->SDtype[sdname] = G4SBS::kCAL;
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
 

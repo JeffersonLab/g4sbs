@@ -37,17 +37,21 @@ G4SBSEventGen::G4SBSEventGen(){
 
   //////////////////////////////////
 
-  fKineType = kElastic;
-  fTargType = kH2;
+  fKineType = G4SBS::kElastic;
+  fTargType = G4SBS::kH2;
   fTargLen  = 60.0*cm;
   fTargDen  = 10.5*atmosphere/(296.0*kelvin*k_Boltzmann); // This is actually in molecules/unit volume = number density
   fTargRadLen = 0.0*cm;
   
   //Default SIDIS hadron type to pi+:
-  fHadronType = kPiPlus;
+  fHadronType = G4SBS::kPiPlus;
 
   fRasterX  = 0.0*mm;
   fRasterY  = 0.0*mm;
+
+  // D. Flay (8/25/20).  beam pointing 
+  fBeamOffsetX = 0.*mm;
+  fBeamOffsetY = 0.*mm;
 
   fBeamE = 2.2*GeV;
   fBeamP = G4ThreeVector( 0.0, 0.0, fBeamE );
@@ -173,43 +177,43 @@ void G4SBSEventGen::Initialize(){
   fTargRadLen = 1000.0*m;
   
   switch(fTargType){
-  case kH2:
+  case G4SBS::kH2:
     Wfact = 2.0;
     fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
     fTargRadLen = fTargLen / G4Material::GetMaterial("refH2")->GetRadlen();
     fTargZatomic = 1.;
     break;
-  case kD2:
+  case G4SBS::kD2:
     Wfact = 4.0;
     fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
     fTargRadLen = fTargLen / G4Material::GetMaterial("refD2")->GetRadlen();
     fTargZatomic = 1.;
     break;
-  case kNeutTarg:
+  case G4SBS::kNeutTarg:
     Wfact = 1.0;
     fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
     fTargRadLen = 1000.0*m;
     fTargZatomic = 0.;
     break;
-  case kLH2:
+  case G4SBS::kLH2:
     Wfact = 1.0;
     fTargRadLen = fTargLen / G4Material::GetMaterial("LH2")->GetRadlen();
     fTargZatomic = 1.;
     fTargUpstreamWindowRadLen = 0.1*mm / G4Material::GetMaterial("Al")->GetRadlen();
     break;
-  case kLD2:
+  case G4SBS::kLD2:
     Wfact = 2.0;
     fTargRadLen = fTargLen / G4Material::GetMaterial("LD2")->GetRadlen();
     fTargUpstreamWindowRadLen = 0.1*mm / G4Material::GetMaterial("Al")->GetRadlen();
     fTargZatomic = 1.;
     break;
-  case k3He:
+  case G4SBS::k3He:
     Wfact = 3.0;
     fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
     fTargRadLen = fTargLen / G4Material::GetMaterial("pol3He")->GetRadlen();
     fTargZatomic = 2.;
     break;
-  case kCfoil:
+  case G4SBS::kCfoil:
     Wfact = 12.0;
     fTargRadLen = fTargLen / G4Material::GetMaterial("Carbon")->GetRadlen();
     fTargZatomic = 6.;
@@ -235,26 +239,26 @@ void G4SBSEventGen::Initialize(){
   fMaxWeight = cm2; //Maxweight is only relevant when using rejection sampling to produce events distributed according to the cross section.
 
   //The following generators return cross sections differential in both solid angle AND energy:
-  if( fKineType == kDIS || fKineType == kSIDIS || fKineType == kGun ||
-      fKineType == kFlat ){
+  if( fKineType == G4SBS::kDIS || fKineType == G4SBS::kSIDIS || fKineType == G4SBS::kGun ||
+      fKineType == G4SBS::kFlat ){
     //All of these generators throw flat in "electron arm" solid angle and energy:
     fGenVol *= (fEeMax - fEeMin);
     fMaxWeight /= GeV;
   }
 
-  if( fKineType == kWiser ){ //Wiser generates flat in "hadron" solid angle and energy; i.e., it uses
+  if( fKineType == G4SBS::kWiser ){ //Wiser generates flat in "hadron" solid angle and energy; i.e., it uses
     //the "hadron" event generation limits:
     fGenVol = (fPhMax_had - fPhMin_had)*(cos(fThMin_had)-cos(fThMax_had))*(fEhadMax-fEhadMin);
     fMaxWeight /= GeV;
   }
 
-  if( fKineType == kSIDIS ){ //SIDIS generates flat in both electron and hadron solid angle and energy:
+  if( fKineType == G4SBS::kSIDIS ){ //SIDIS generates flat in both electron and hadron solid angle and energy:
     fGenVol *= (fPhMax_had - fPhMin_had)*(cos(fThMin_had)-cos(fThMax_had))*(fEhadMax-fEhadMin);
     fMaxWeight /= GeV;
     G4cout << "Generation volume = " << fGenVol/pow(GeV,2) << "sr*GeV^2" << G4endl;
   }
 
-  if( fKineType == kPionPhoto ){ //Pion photoproduction generates flat in -t, phi, and Egamma and returns dsig/dt * Delta t * photon flux
+  if( fKineType == G4SBS::kPionPhoto ){ //Pion photoproduction generates flat in -t, phi, and Egamma and returns dsig/dt * Delta t * photon flux
     //returns essentially a total cross section for that event
     fGenVol = 1.0;
   }
@@ -279,15 +283,15 @@ bool G4SBSEventGen::GenerateEvent(){
 
   // Generate initial nucleon - target dependent
   
-  Nucl_t thisnucl;
+  G4SBS::Nucl_t thisnucl;
   //Wfact = 0.0;
 
   bool success = false; 
 
   //AJRP: Wfact is now initialized in G4SBSEventGen::InitializeConstants(), invoked at start of run
   switch( fTargType ) {
-  case kH2:
-    thisnucl = kProton;
+  case G4SBS::kH2:
+    thisnucl = G4SBS::kProton;
     ni = G4LorentzVector(Mp);
     //    Wfact = 1.0;
     // 2 Here because we do molecules/cm3 for density AJRP: is this comment really correct?
@@ -295,11 +299,11 @@ bool G4SBSEventGen::GenerateEvent(){
     // you have twice as many protons per unit volume. So let's actually change the code to reflect this.
     //Wfact = 2.0;
     break;
-  case kD2:
+  case G4SBS::kD2:
     if( CLHEP::RandFlat::shootInt(2) == 0 ){
-      thisnucl = kNeutron;
+      thisnucl = G4SBS::kNeutron;
     } else {
-      thisnucl = kProton;
+      thisnucl = G4SBS::kProton;
     }
 
     ni = GetInitialNucl( fTargType, thisnucl );
@@ -307,23 +311,23 @@ bool G4SBSEventGen::GenerateEvent(){
     // AJRP: Based on same considerations discussed above, this should be changed to 4:
     //Wfact = 4.0;
     break;
-  case kNeutTarg:
-    thisnucl = kNeutron;
+  case G4SBS::kNeutTarg:
+    thisnucl = G4SBS::kNeutron;
     ni = G4LorentzVector(Mp);
     //Wfact = 1.0;
     break;
-  case kLH2:
-    thisnucl = kProton;
+  case G4SBS::kLH2:
+    thisnucl = G4SBS::kProton;
     ni = G4LorentzVector(Mp);
     //Wfact = 1.0;
     //AJRP: for liquid hydrogen, we compute the number density using the mass density, Avogadro's number, and the molar mass, so
     //Wfact = 1 is appropriate here
     break;
-  case kLD2:
+  case G4SBS::kLD2:
     if( CLHEP::RandFlat::shootInt(2) == 0 ){
-      thisnucl = kNeutron;
+      thisnucl = G4SBS::kNeutron;
     } else {
-      thisnucl = kProton;
+      thisnucl = G4SBS::kProton;
     }
 
     ni = GetInitialNucl( fTargType, thisnucl );
@@ -331,49 +335,49 @@ bool G4SBSEventGen::GenerateEvent(){
     //AJRP: for liquid deuterium, we compute the number density using the mass density, Avogadro's number, and the molar mass, so
     //Wfact = 2 is appropriate here
     break;
-  case k3He:
+  case G4SBS::k3He:
     if( CLHEP::RandFlat::shootInt(3) == 0 ){
-      thisnucl = kNeutron;
+      thisnucl = G4SBS::kNeutron;
     } else {
-      thisnucl = kProton;
+      thisnucl = G4SBS::kProton;
     }
     ni = GetInitialNucl( fTargType, thisnucl );
     //Wfact = 3.0;
     //AJRP: 3He gas is monatomic, so Wfact = 3 is appropriate here
     break;
-  case kCfoil:
+  case G4SBS::kCfoil:
     if( CLHEP::RandFlat::shootInt(2) == 0 ){
-      thisnucl = kNeutron;
+      thisnucl = G4SBS::kNeutron;
     } else {
-      thisnucl = kProton;
+      thisnucl = G4SBS::kProton;
     }
     ni = GetInitialNucl( fTargType, thisnucl );
     //Wfact = 3.0;
     //AJRP: 3He gas is monatomic, so Wfact = 3 is appropriate here
     break;
-  case kOptics:
+  case G4SBS::kOptics:
     if( CLHEP::RandFlat::shootInt(2) == 0 ){
-      thisnucl = kNeutron;
+      thisnucl = G4SBS::kNeutron;
     } else {
-      thisnucl = kProton;
+      thisnucl = G4SBS::kProton;
     }
     ni = GetInitialNucl( fTargType, thisnucl );
     //Wfact = 3.0;
     //AJRP: 3He gas is monatomic, so Wfact = 3 is appropriate here
     break;
   default:
-    thisnucl = kProton;
+    thisnucl = G4SBS::kProton;
     ni = G4LorentzVector(Mp);
     //Wfact = 1.0;
   }
 
-  if( fTargType != kOptics ){
-    fVert = G4ThreeVector(CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0),
-			  CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0),
+  if( fTargType != G4SBS::kOptics ){
+    fVert = G4ThreeVector(fBeamOffsetX + CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0),
+			  fBeamOffsetY + CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0),
 			  CLHEP::RandFlat::shoot(-fTargLen/2.0, fTargLen/2.0));
   } else { //vertex generation for multi-foil optics target:
-    G4double beamx = CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0 );
-    G4double beamy = CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0 );
+    G4double beamx = fBeamOffsetX + CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0 );
+    G4double beamy = fBeamOffsetY + CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0 );
 
     G4double zfrac = CLHEP::RandFlat::shoot();
 
@@ -401,38 +405,38 @@ bool G4SBSEventGen::GenerateEvent(){
   fNuclType = thisnucl;
 
   switch(fKineType){
-  case kElastic:
+  case G4SBS::kElastic:
     success = GenerateElastic( thisnucl, ei, ni );
     break;
-  case kInelastic:
+  case G4SBS::kInelastic:
     success = GenerateInelastic( thisnucl, ei, ni );
     break;
-  case kDIS:
+  case G4SBS::kDIS:
     success = GenerateDIS( thisnucl, ei, ni );
     break;
-  case kSIDIS:
+  case G4SBS::kSIDIS:
     success = GenerateSIDIS( thisnucl, ei, ni );
     break;
-  case kFlat:
+  case G4SBS::kFlat:
     success = GenerateFlat( thisnucl, ei, ni );
     break;
-  case kBeam:
+  case G4SBS::kBeam:
     fVert.setZ( -5.0*m ); // Set at something upstream if just simple beam
     success = GenerateBeam( thisnucl, ei, ni );
     break;
-  case kGun:
+  case G4SBS::kGun:
     success = GenerateGun();
     break;
-  case kWiser:
+  case G4SBS::kWiser:
     success = GenerateWiser( thisnucl, ei, ni );
     break;
-  case kPYTHIA6:
+  case G4SBS::kPYTHIA6:
     success = GeneratePythia();
     break;
-  case kCosmics:
+  case G4SBS::kCosmics:
     success = GenerateCosmics();
     break;
-  case kPionPhoto:
+  case G4SBS::kPionPhoto:
     success = GeneratePionPhotoproduction( thisnucl, ei, ni );
     break;
   default:
@@ -459,7 +463,7 @@ bool G4SBSEventGen::GenerateEvent(){
   return success;
 }
 
-// bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+// bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
 //   double Mp = proton_mass_c2;
 
 //   G4ThreeVector pboost = -1.0*(ni.boostVector());
@@ -521,7 +525,7 @@ bool G4SBSEventGen::GenerateEvent(){
 //   GD = pow(1.0 + fQ2/(0.71*GeV*GeV), -2.0);
 
 //   switch( nucl ){
-//   case kNeutron:
+//   case G4SBS::kNeutron:
 //     // Our fit
 //     GE = (1.520*tau + 2.629*tau*tau + 3.055*tau*tau*tau)*GD/(1.0+5.222*tau+0.040*tau*tau+11.438*tau*tau*tau);
 //     // Kelly
@@ -590,7 +594,7 @@ bool G4SBSEventGen::GenerateEvent(){
 //   return true;
 // }
 
-bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
   G4double Mp = proton_mass_c2;
 
   G4ThreeVector boost_Nrest = ni.boostVector();
@@ -657,7 +661,7 @@ bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzV
   GD = pow(1.0 + fQ2/(0.71*GeV*GeV), -2.0);
 
   switch( nucl ){
-  case kNeutron:
+  case G4SBS::kNeutron:
     // Our fit
     GE = (1.520*tau + 2.629*tau*tau + 3.055*tau*tau*tau)*GD/(1.0+5.222*tau+0.040*tau*tau+11.438*tau*tau*tau);
     // Kelly
@@ -750,7 +754,7 @@ bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzV
   return true;
 }
 
-// bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+// bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
 //   //double minE = 0.1*GeV;
 //   //This generator needs clean-up, in particular to correct the cross section calculation for the non-collinear boost to the nucleon rest frame.
   
@@ -932,7 +936,7 @@ bool G4SBSEventGen::GenerateElastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzV
 //   return true;
 // }
 
-bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
   //double minE = 0.1*GeV;
   //This generator needs clean-up, in particular to correct the cross section calculation for the non-collinear boost to the nucleon rest frame.
   
@@ -1039,7 +1043,7 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
   if( CLHEP::RandFlat::shoot() < 2.0/3.0 ){
     fFinalNucl = nucl;
   } else {
-    fFinalNucl = nucl==kProton?kNeutron:kProton;
+    fFinalNucl = nucl==G4SBS::kProton?G4SBS::kNeutron:G4SBS::kProton;
   }
 
   G4double Epi_GammaNrest = (W2 - pow(mpi,2) - pow(Mp,2))/(2.0*W);
@@ -1068,12 +1072,12 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
 
   //This gives the cross section in the nucleon rest frame in units of area/unit solid angle:
   fSigma = 0.0;
-  if( nucl == kProton ){
+  if( nucl == G4SBS::kProton ){
     //	printf("sigma p! %f %f %f\n", eip.e()/GeV, th/deg, eprime/GeV);
     //fSigma    = sigma_p(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
     fSigma    = sigma_p(ei_Nrest.e()/GeV, eth/rad, ef_Nrest.e()/GeV)*((maxE-minE)/GeV)*nanobarn; // Dimensions of area
   }
-  if( nucl == kNeutron ){
+  if( nucl == G4SBS::kNeutron ){
     //fSigma    = sigma_n(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
     fSigma    = sigma_n(ei_Nrest.e()/GeV, eth/rad, ef_Nrest.e()/GeV)*((maxE-minE)/GeV)*nanobarn; // Dimensions of area
   }
@@ -1155,7 +1159,7 @@ bool G4SBSEventGen::GenerateInelastic( Nucl_t nucl, G4LorentzVector ei, G4Lorent
   return true;
 }
 
-bool G4SBSEventGen::GenerateDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+bool G4SBSEventGen::GenerateDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
   //double minE = 0.*GeV;
   G4double minE = fEeMin;
   G4double maxE = fEeMax;
@@ -1237,12 +1241,12 @@ bool G4SBSEventGen::GenerateDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVecto
   //  Do cross sections and asymmetries
 
   fSigma = 0.0;
-  if( nucl == kProton ){
+  if( nucl == G4SBS::kProton ){
     //	printf("sigma p! %f %f %f\n", eip.e()/GeV, th/deg, eprime/GeV);
     //fSigma    = dissigma_p(ei_Nrest.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE)/GeV)*nanobarn; // Dimensions of area
     fSigma = dissigma_p( ei_Nrest.e()/GeV, eth_Nrest/rad, eprime_Nrest/GeV ); //This is in units of nb/GeV/sr in the nucleon rest frame!
   }
-  if( nucl == kNeutron ){
+  if( nucl == G4SBS::kNeutron ){
     //fSigma    = dissigma_n(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE)/GeV)*nanobarn; // Dimensions of area
     fSigma = dissigma_n( ei_Nrest.e()/GeV, eth_Nrest/rad, eprime_Nrest/GeV ); //This is in units of nb/GeV/sr in the nucleon rest frame!
   }
@@ -1314,44 +1318,44 @@ bool G4SBSEventGen::GenerateDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVecto
   return true;
 }
 
-bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
   //Get hadron mass:
   
   double Mh;
   int icharge = 1;
   int ihadron = 0;
   switch( fHadronType ){
-  case kPiPlus:
+  case G4SBS::kPiPlus:
     Mh = G4PionPlus::PionPlusDefinition()->GetPDGMass();
     icharge = 1;
     ihadron = 0;
     break;
-  case kPiMinus:
+  case G4SBS::kPiMinus:
     Mh = G4PionMinus::PionMinusDefinition()->GetPDGMass();
     icharge = -1;
     ihadron = 0;
     break;
-  case kPi0:
+  case G4SBS::kPi0:
     Mh = G4PionZero::PionZeroDefinition()->GetPDGMass();
     icharge = 0;
     ihadron = 0;
     break;
-  case kKPlus:
+  case G4SBS::kKPlus:
     Mh = G4KaonPlus::KaonPlusDefinition()->GetPDGMass();
     icharge = 1;
     ihadron = 1;
     break;
-  case kKMinus:
+  case G4SBS::kKMinus:
     Mh = G4KaonMinus::KaonMinusDefinition()->GetPDGMass();
     icharge = -1;
     ihadron = 1;
     break;
-  case kP:
+  case G4SBS::kP:
     Mh = G4Proton::ProtonDefinition()->GetPDGMass();
     icharge = 1;
     ihadron = 2;
     break;
-  case kPbar:
+  case G4SBS::kPbar:
     Mh = G4AntiProton::AntiProtonDefinition()->GetPDGMass();
     icharge = -1;
     ihadron = 2;
@@ -1559,7 +1563,7 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 						     pow(e_d,2) * (d * Dqh[2] + dbar * Dqh[3]) + 
 						     pow(e_s,2) * (st * Dqh[4] + sbar * Dqh[5]) );
   
-  if( nucl == kNeutron ){ //Interchange u and d quarks: the d quark density in a neutron = u quark density in a proton etc.
+  if( nucl == G4SBS::kNeutron ){ //Interchange u and d quarks: the d quark density in a neutron = u quark density in a proton etc.
     H2 = x * b/twopi*exp(-b*pow(Ph_perp,2)) * ( pow(e_u,2) * (d * Dqh[0] + dbar * Dqh[1]) + 
 						pow(e_d,2) * (u * Dqh[2] + ubar * Dqh[3]) + 
 						pow(e_s,2) * (st * Dqh[4] + sbar * Dqh[5]) );
@@ -1620,7 +1624,7 @@ bool G4SBSEventGen::GenerateSIDIS( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 }
 
 
-bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
 
   
   double htheta = acos( CLHEP::RandFlat::shoot( cos( fThMax_had ), cos( fThMin_had ) ) );
@@ -1631,37 +1635,37 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   int icharge, ihadron;
 
   switch( fHadronType ){
-  case kPiPlus:
+  case G4SBS::kPiPlus:
     Mh = G4PionPlus::PionPlusDefinition()->GetPDGMass();
     icharge = 1;
     ihadron = 0;
     break;
-  case kPiMinus:
+  case G4SBS::kPiMinus:
     Mh = G4PionMinus::PionMinusDefinition()->GetPDGMass();
     icharge = -1;
     ihadron = 0;
     break;
-  case kPi0:
+  case G4SBS::kPi0:
     Mh = G4PionZero::PionZeroDefinition()->GetPDGMass();
     icharge = 0;
     ihadron = 0;
     break;
-  case kKPlus:
+  case G4SBS::kKPlus:
     Mh = G4KaonPlus::KaonPlusDefinition()->GetPDGMass();
     icharge = 1;
     ihadron = 1;
     break;
-  case kKMinus:
+  case G4SBS::kKMinus:
     Mh = G4KaonMinus::KaonMinusDefinition()->GetPDGMass();
     icharge = -1;
     ihadron = 1;
     break;
-  case kP:
+  case G4SBS::kP:
     Mh = G4Proton::ProtonDefinition()->GetPDGMass();
     icharge = 1;
     ihadron = 2;
     break;
-  case kPbar:
+  case G4SBS::kPbar:
     Mh = G4AntiProton::AntiProtonDefinition()->GetPDGMass();
     icharge = -1;
     ihadron = 2;
@@ -1686,18 +1690,18 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 
   double rad_len;
   switch( fTargType ){
-  case kH2:
+  case G4SBS::kH2:
     rad_len = glasswallradlen + targlen_passed/(52.*g/cm2)/(fTargDen*g/6.022e23);
-  case kNeutTarg:
+  case G4SBS::kNeutTarg:
     rad_len = glasswallradlen;
     break;
-  case k3He:
+  case G4SBS::k3He:
     rad_len = glasswallradlen + targlen_passed/(94.32*3.*g/cm2/4.)/(fTargDen*3*g/6.022e23);
     break;
-  case kLH2:
+  case G4SBS::kLH2:
     rad_len = targlen_passed/(63.04*cm/0.071);
     break;
-  case kLD2:
+  case G4SBS::kLD2:
     rad_len = targlen_passed/(125.97*cm/0.169);
     break;
   }
@@ -1710,15 +1714,15 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
   double sigpim = wiser_sigma(ei.e()/GeV, Phad_lab.vect().mag()/GeV, htheta, rad_len*4.0/3.0 + intrad, 1)*nanobarn/GeV;
 
 
-  if( fNuclType == kProton ){
+  if( fNuclType == G4SBS::kProton ){
     switch( fHadronType ){
-    case kPiPlus:
+    case G4SBS::kPiPlus:
       fSigma = sigpip;
       break;
-    case kPiMinus:
+    case G4SBS::kPiMinus:
       fSigma = sigpim;
       break;
-    case kPi0:
+    case G4SBS::kPi0:
       fSigma = (sigpip +sigpim)*2.0;
       break;
     default:
@@ -1727,13 +1731,13 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
     }
   } else {
     switch( fHadronType ){
-    case kPiPlus:
+    case G4SBS::kPiPlus:
       fSigma = sigpim;
       break;
-    case kPiMinus:
+    case G4SBS::kPiMinus:
       fSigma = sigpip;
       break;
-    case kPi0:
+    case G4SBS::kPi0:
       fSigma = (sigpip +sigpim)*2.0;
       break;
     default:
@@ -1768,7 +1772,7 @@ bool G4SBSEventGen::GenerateWiser( Nucl_t nucl, G4LorentzVector ei, G4LorentzVec
 }
 
 
-bool G4SBSEventGen::GenerateFlat( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni){
+bool G4SBSEventGen::GenerateFlat( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni){
   // Ignore initial nucleon
   double Mp = proton_mass_c2;
 
@@ -1820,7 +1824,7 @@ bool G4SBSEventGen::GenerateFlat( Nucl_t nucl, G4LorentzVector ei, G4LorentzVect
 }
 
 
-bool G4SBSEventGen::GenerateBeam( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ){
+bool G4SBSEventGen::GenerateBeam( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ){
 
   fQ2 = 0.0;
   fPmisspar  = 0.0;
@@ -1891,7 +1895,7 @@ double G4SBSEventGen::deutpdist( double p ){
   }
 }
 
-double G4SBSEventGen::he3pdist( Nucl_t nucl, double p ){
+double G4SBSEventGen::he3pdist( G4SBS::Nucl_t nucl, double p ){
   // Fits to AV18 supplied by Misak
 
   double thisp = p/GeV; // Work in units of GeV
@@ -1944,7 +1948,7 @@ double G4SBSEventGen::he3pdist( Nucl_t nucl, double p ){
     
   // Proton case
 
-  if( nucl == kProton ){
+  if( nucl == G4SBS::kProton ){
     if( thisp < 0.14 ){
       return ap0*thisp*thisp*exp(-thisp*bp0-thisp*thisp*cp0)/pnorm;
     } else if (thisp < 0.3 ){
@@ -1959,7 +1963,7 @@ double G4SBSEventGen::he3pdist( Nucl_t nucl, double p ){
 
   // Neutron case
     
-  if( nucl == kNeutron ){
+  if( nucl == G4SBS::kNeutron ){
     if( thisp < 0.18 ){
       return an0*thisp*thisp*exp(-thisp*bn0-thisp*thisp*cn0)/nnorm;
     } else if (thisp < 0.32 ){
@@ -1998,18 +2002,18 @@ double G4SBSEventGen::c12pdist( double p ){
 }
 
 
-G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
+G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t nucl ){
 
   double PMAX;
    
   switch( targ ){
-  case kLD2:
+  case G4SBS::kLD2:
     PMAX = 0.35*GeV;
     break;
-  case k3He:
+  case G4SBS::k3He:
     PMAX = 0.85*GeV;
     break;
-  case kCfoil:
+  case G4SBS::kCfoil:
     PMAX = 1.00*GeV;// PMAX to be adjusted for carbon 12
     break;
   default:
@@ -2025,17 +2029,17 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
 
   psample = CLHEP::RandFlat::shoot(PMAX);
 
-  if( targ == k3He ){
+  if( targ == G4SBS::k3He ){
     while( CLHEP::RandFlat::shoot() > he3pdist( nucl, psample) ){
       psample = CLHEP::RandFlat::shoot(PMAX);
     }
   }
-  if( targ == kLD2 ){
+  if( targ == G4SBS::kLD2 ){
     while( CLHEP::RandFlat::shoot() > deutpdist( psample) ){
       psample = CLHEP::RandFlat::shoot(PMAX);
     }
   }
-  if( targ == kCfoil ){
+  if( targ == G4SBS::kCfoil ){
     while( CLHEP::RandFlat::shoot() > c12pdist( psample) ){
       psample = CLHEP::RandFlat::shoot(PMAX);
     }
@@ -2052,7 +2056,7 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( Targ_t targ, Nucl_t nucl ){
   return p*p*exp( -1.0*pow( p - x0,2.0)/(2.0*s*s));
   }
 
-  G4LorentzVector G4SBSEventGen::GetInitial3He( Nucl_t nucl ){
+  G4LorentzVector G4SBSEventGen::GetInitial3He( G4SBS::Nucl_t nucl ){
   double p_WIDTH = 0.0572372*GeV;
   double p_center = -0.014848*GeV;
 
@@ -2214,12 +2218,12 @@ ev_t G4SBSEventGen::GetEventData(){
   // }
   data.sigma = fSigma/cm2;
 
-  if( fKineType == kDIS || fKineType == kWiser){
+  if( fKineType == G4SBS::kDIS || fKineType == G4SBS::kWiser){
     data.sigma = fSigma/cm2*GeV;
     data.solang = fGenVol/GeV;
   }
   
-  if( fKineType == kSIDIS ){ //The SIDIS cross section is also differential in e- energy and hadron energy and has units of area/energy^2/sr^2, so we also need to express it in the correct energy units:
+  if( fKineType == G4SBS::kSIDIS ){ //The SIDIS cross section is also differential in e- energy and hadron energy and has units of area/energy^2/sr^2, so we also need to express it in the correct energy units:
     data.sigma = fSigma/cm2*pow(GeV,2);
     data.solang = fGenVol/pow(GeV,2); //The phase space generation volume has units of energy^2 for SIDIS
   }
@@ -2251,7 +2255,7 @@ ev_t G4SBSEventGen::GetEventData(){
   data.phih   = fphi_h;
   data.MX     = fMx/pow(GeV,2);
 
-  if( fKineType == kSIDIS ){ //Then replace final nucleon variables with final hadron variables:
+  if( fKineType == G4SBS::kSIDIS ){ //Then replace final nucleon variables with final hadron variables:
     data.np = fHadronP.mag()/GeV;
     data.npx = fHadronP.x()/GeV;
     data.npy = fHadronP.y()/GeV;
@@ -2260,25 +2264,25 @@ ev_t G4SBSEventGen::GetEventData(){
     data.nph = fHadronP.phi()/rad;
       
     switch( fHadronType ){
-    case kPiPlus:
+    case G4SBS::kPiPlus:
       data.hadr = 1;
       break;
-    case kPiMinus:
+    case G4SBS::kPiMinus:
       data.hadr = -1;
       break;
-    case kPi0:
+    case G4SBS::kPi0:
       data.hadr = 0;
       break;
-    case kKPlus:
+    case G4SBS::kKPlus:
       data.hadr = 2;
       break;
-    case kKMinus:
+    case G4SBS::kKMinus:
       data.hadr = -2;
       break;
-    case kP:
+    case G4SBS::kP:
       data.hadr = 3;
       break;
-    case kPbar:
+    case G4SBS::kPbar:
       data.hadr = -3;
       break;
     default:
@@ -2291,10 +2295,10 @@ ev_t G4SBSEventGen::GetEventData(){
   data.pmperp = fPmissperp/GeV;
     
   switch( fNuclType ){
-  case( kProton ):
+  case( G4SBS::kProton ):
     data.nucl   = 1;
     break;
-  case( kNeutron):
+  case( G4SBS::kNeutron):
     data.nucl   = 0;
     break;
   default:
@@ -2303,10 +2307,10 @@ ev_t G4SBSEventGen::GetEventData(){
   }
     
   switch( fFinalNucl ){
-  case( kProton ):
+  case( G4SBS::kProton ):
     data.fnucl   = 1;
     break;
-  case( kNeutron):
+  case( G4SBS::kNeutron):
     data.fnucl   = 0;
     break;
   default:
@@ -2329,8 +2333,8 @@ ev_t G4SBSEventGen::GetEventData(){
 void G4SBSEventGen::InitializeRejectionSampling(){
 
   fRejectionSamplingFlag = fRejectionSamplingFlag &&
-    (fKineType == kElastic || fKineType == kInelastic || fKineType == kDIS ||
-     fKineType == kSIDIS || fKineType == kWiser );
+    (fKineType == G4SBS::kElastic || fKineType == G4SBS::kInelastic || fKineType == G4SBS::kDIS ||
+     fKineType == G4SBS::kSIDIS || fKineType == G4SBS::kWiser );
   
   if( fRejectionSamplingFlag ){
   
@@ -2356,7 +2360,7 @@ void G4SBSEventGen::InitializeRejectionSampling(){
       fMaxWeight = ( fSigma > fMaxWeight ) ? fSigma : fMaxWeight; 
     }  
 
-    if( fKineType == kSIDIS ){
+    if( fKineType == G4SBS::kSIDIS ){
       G4cout << "Initialized Rejection sampling, max. weight = " << fMaxWeight/(nanobarn/steradian/(GeV*GeV))
 	     << G4endl;
     } else {
@@ -2494,35 +2498,35 @@ void G4SBSEventGen::SetFoilZandThick( const std::vector<double> foilz, const std
   fFoilZfraction.push_back( 1.0 );
 }
 
-bool G4SBSEventGen::GeneratePionPhotoproduction( Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+bool G4SBSEventGen::GeneratePionPhotoproduction( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
   //The main things to be generated here are: incident photon energy, -t, pion azimuthal angle; the rest we will get from exclusivity:
   //Actually, we can reuse fEeMin, fEeMax for this purpose, since they won't otherwise be used:
   
   G4double Mpi, M_ni, M_nf;
 
-  if( nucl == kNeutron ){ //gamma n --> pi- p or gamma n --> pi0 n
-    if( fHadronType == kPi0 ){ //gamma n --> pi0 n
+  if( nucl == G4SBS::kNeutron ){ //gamma n --> pi- p or gamma n --> pi0 n
+    if( fHadronType == G4SBS::kPi0 ){ //gamma n --> pi0 n
       Mpi = G4PionZero::PionZeroDefinition()->GetPDGMass();
       M_ni = neutron_mass_c2;
       M_nf = M_ni;
-      fFinalNucl = kNeutron;
+      fFinalNucl = G4SBS::kNeutron;
     } else { //gamma n --> pi- p
       Mpi = G4PionMinus::PionMinusDefinition()->GetPDGMass();
       M_ni = neutron_mass_c2;
       M_nf = proton_mass_c2;
-      fFinalNucl = kProton;
+      fFinalNucl = G4SBS::kProton;
     }
   } else { //gamma p --> pi+ n
-    if( fHadronType == kPi0 ){ //gamma p --> pi0 p
+    if( fHadronType == G4SBS::kPi0 ){ //gamma p --> pi0 p
       Mpi = G4PionZero::PionZeroDefinition()->GetPDGMass();
       M_ni = proton_mass_c2;
       M_nf = M_ni;
-      fFinalNucl = kProton;
+      fFinalNucl = G4SBS::kProton;
     } else { //gamma p --> pi+ n
       Mpi = G4PionPlus::PionPlusDefinition()->GetPDGMass();
       M_ni = proton_mass_c2;
       M_nf = neutron_mass_c2;
-      fFinalNucl = kNeutron;
+      fFinalNucl = G4SBS::kNeutron;
     }
   }
 
@@ -2681,7 +2685,7 @@ bool G4SBSEventGen::GeneratePionPhotoproduction( Nucl_t nucl, G4LorentzVector ei
 
   fSigma = dsig_nb*nanobarn*Ngamma * (fPhMax-fPhMin)/CLHEP::twopi;
   
-  if( nucl == kNeutron ){ //pi- p
+  if( nucl == G4SBS::kNeutron ){ //pi- p
     double Mn2 = pow(neutron_mass_c2,2);
     double Mp2 = pow(proton_mass_c2,2);
     

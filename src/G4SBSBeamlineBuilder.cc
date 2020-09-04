@@ -3652,27 +3652,41 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4double Zstop = 30.0*m;
   G4double Zstart = Z + tDzz;
 
-  std::cout << "**************** z = " << 0.5*(Zstop+Zstart)/cm << " cm" << std::endl;  
-  G4double dz_df = 15.0*cm; 
+  // adjustments to accomodate the beam diffuser 
+  // note: this geometry should be updated to include the real exit beam line... 
+  G4bool bdEnable = fDetCon->GetBeamDiffuserEnable();  // is the beam diffuser enabled? 
+
+  G4double dz_df=0;
+  if(bdEnable) dz_df = 15.0*cm;
+ 
   G4VisAttributes *Vacuum_visatt_df = new G4VisAttributes();
   Vacuum_visatt_df->SetColour( G4Colour::White() ); 
   Vacuum_visatt_df->SetForceWireframe(true); 
  
   G4double Zwidth = (Zstop-Zstart) - dz_df;
-  G4Tubs *FakeVacuumExtension = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
+
+  G4Tubs *FakeVacuumExtension              = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
   G4LogicalVolume *FakeVacuumExtension_log = new G4LogicalVolume( FakeVacuumExtension, GetMaterial("Vacuum"), "FakeVacuumExtension_log" );
-  FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt_df );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,0.5*(Zstop+Zstart)+dz_df), FakeVacuumExtension_log, "FakeVacuumExtension_phys", worldlog,false,0 , ChkOverlaps);
-
-
-
-
-
+  if(bdEnable){
+     FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt_df );
+  }else{
+     FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt );
+  }
+  // placement
+  G4double x_vfe = 0.*m;  
+  G4double y_vfe = 0.*m;  
+  G4double z_vfe = 0.5*(Zstop+Zstart) + dz_df;;  
+  new G4PVPlacement(0, 
+                    // G4ThreeVector(0,0,0.5*(Zstop+Zstart)+dz_df),
+                    G4ThreeVector(x_vfe,y_vfe,z_vfe),
+                    FakeVacuumExtension_log,
+                    "FakeVacuumExtension_phys",
+                    worldlog,
+                    false,
+                    0, 
+                    ChkOverlaps);
   
   //Ripping both corrector magnets code from common exit beamline. Foregoing placement vector Z component - will define manually with measurements from cad file.
-
-
-
 
   //Next, corrector magnets:
   // Define some dimensions that are going to be useful to define the distances

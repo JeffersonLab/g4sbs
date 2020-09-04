@@ -1868,11 +1868,12 @@ void G4SBSEventAction::FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G
    std::map< int,std::map<int,double> > x,y,z,t,p,edep;
    std::map< int,std::map<int,double> > xg,yg,zg,beta;
 
-   // char msg[200]; 
+   bool debug=false;
+   char msg[200]; 
 
    // loop over all "hits" (i.e., individual tracking steps)
    int NHits = (int)hc->entries();
-   if(NHits!=0) std::cout << "[EventAction::FillBDData]: Found " << NHits << " hits!" << std::endl;
+   if(debug) if(NHits!=0) std::cout << "[EventAction::FillBDData]: Found " << NHits << " hits!" << std::endl;
    for(int i=0;i<NHits;i++){
       // get track ID and BeamDiffuser plane ID 
       trackID = (*hc)[i]->GetTrackID();
@@ -1916,8 +1917,11 @@ void G4SBSEventAction::FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G
          // increment 
          nsteps_track_layer[bdID][trackID]++;
       }
-      // sprintf(msg,"hit %04d, track %04d, plane %02d, edep = %.3lf keV",i+1,trackID,bdID,(*hc)[i]->GetEdep()/CLHEP::keV);
-      // std::cout << msg << std::endl; 
+      if(debug){
+	 std::cout << "[G4SBSEventAction::FillBDData]: Printing first five hits: " << std::endl;
+	 sprintf(msg,"hit %04d, track %04d, plane %02d, edep = %.3lf keV",i+1,trackID,bdID,(*hc)[i]->GetEdep()/CLHEP::keV);
+	 if((i+1)<5) std::cout << msg << std::endl;  // print first 5 hits 
+      }
    }
 
    bdID = 0;

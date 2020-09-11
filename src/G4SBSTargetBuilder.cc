@@ -3365,9 +3365,10 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
       ys    = 0.*cm;
    }
 
-   // coordinates 
+   // coordinates
+   G4double dzs = 22.*cm; // fudge factor to align with BigBite aperture 
    G4double xs = sh.x_len/2.;                         // distance to midpoint of door, aligns door close to edge 
-   G4double zs = -zw_bl/2.;                           // right on top of the right side wall (before rotation)  
+   G4double zs = -zw_bl/2. + dzs;                     // right on top of the right side wall (before rotation)  
    G4ThreeVector Pw_bl_dn = G4ThreeVector(xs,ys,zs);  // position of cut 
 
    G4Box *windowCut_beamLeft_dn = new G4Box("windowCut_beamLeft_dn",xw_bl/2.,yw_bl/2.,zw_bl/2.);

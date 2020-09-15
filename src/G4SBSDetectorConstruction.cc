@@ -243,6 +243,11 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element *elFe = man->FindOrBuildElement("Fe");
   G4Element *elSr = man->FindOrBuildElement("Sr");
   G4Element *elBa = man->FindOrBuildElement("Ba");
+
+  G4Element *elZn = man->FindOrBuildElement("Zn");
+  G4Element *elTi = man->FindOrBuildElement("Ti");
+  G4Element *elCu = man->FindOrBuildElement("Cu");
+  G4Element *elMg = man->FindOrBuildElement("Mg");
   
   G4Element* elCl  = man->FindOrBuildElement("Cl");
   G4Element* elAr  = man->FindOrBuildElement("Ar");
@@ -522,6 +527,35 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Carbon_Steel_1008->AddElement(elS ,0.0005);
   Carbon_Steel_1008->AddElement(elP ,0.0004);
   fMaterialsMap["Carbon_Steel_1008"] = Carbon_Steel_1008;
+
+  // Beam line exit materials
+
+  // Aluminum 5052 alloy 
+  // - details from https://unitedaluminum.com/united-aluminum-alloy-5052/ 
+  G4Material *Aluminum_5052 = new G4Material("Aluminum_5052",2.68*g/cm3,8);
+  Aluminum_5052->AddElement(elAl,0.9635);
+  Aluminum_5052->AddElement(elSi,0.0025);
+  Aluminum_5052->AddElement(elFe,0.0040);
+  Aluminum_5052->AddElement(elCu,0.0010);
+  Aluminum_5052->AddElement(elMn,0.0010);
+  Aluminum_5052->AddElement(elMg,0.0250);
+  Aluminum_5052->AddElement(elCr,0.0020);
+  Aluminum_5052->AddElement(elZn,0.0010);
+  fMaterialsMap["Aluminum_5052"] = Aluminum_5052; 
+
+  // Aluminum 6061 alloy 
+  // - details from https://unitedaluminum.com/united-aluminum-alloy-6061/
+  G4Material *Aluminum_6061 = new G4Material("Aluminum_6061",2.70*g/cm3,9);
+  Aluminum_6061->AddElement(elAl,0.9635);
+  Aluminum_6061->AddElement(elSi,0.0060);
+  Aluminum_6061->AddElement(elFe,0.0070);
+  Aluminum_6061->AddElement(elCu,0.0028);
+  Aluminum_6061->AddElement(elMn,0.0015);
+  Aluminum_6061->AddElement(elMg,0.0100);
+  Aluminum_6061->AddElement(elCr,0.0019);
+  Aluminum_6061->AddElement(elZn,0.0025);
+  Aluminum_6061->AddElement(elTi,0.0015);
+  fMaterialsMap["Aluminum_6061"] = Aluminum_6061; 
 
   // Ultem (polyetherimide plastic, similar to PEEK)
   // - details from http://www.polymerprocessing.com/polymers/PEI.html

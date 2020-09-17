@@ -3314,7 +3314,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
    //   - each layer is 0.25" thick
    //   - outer surfaces of layers separated by 1.29" 
    //     => 1.29 - 0.25 = 1.04" center-to-center distance 
-   // - Drawing number: A09016-03-05-0000, A09016-03-05-0800
+   // - Drawing number: A09016-03-05-0000_rev, A09016-03-05-0800
 
    // constants from drawings  
    G4double inch = 2.54*cm;
@@ -3342,38 +3342,57 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
 
    G4double door = 40.5*inch; // for OWU2A door panel (from JT model)  
 
-   // downstream, beam left 
+   // downstream, beam left [BigBite aperture]  
    // x = 4.62 + ??, y = 28.44", z = 4.62 + ?? 
    // drawings: A09016-03-05-0851  
+   // G4double xw_bl=0,yw_bl=0,zw_bl=0,ys=0;
 
-   G4double xw_bl=0,yw_bl=0,zw_bl=0,ys=0;
+   // from drawing JL0044092
+   // - size of cut 
+   G4double xw_bl = 16.75*inch; // arbitrary to make sure the cut goes through
+   G4double yw_bl = 28.50*inch;
+   G4double zw_bl = 16.75*inch;     
+   // - coordinates of cut 
+   G4double xs = sh.x_len/2.;   // distance to midpoint of door, aligns door close to edge 
+   G4double ys = 0;    
+   G4double zs = 0;   
 
-   if(config==G4SBS::kGEN_new){
-      // FIXME: This is an estimate 
-      // new cut as of 6/27/20 (new design from Bert)
-      xw_bl = 10.*cm; // arbitrary size
-      yw_bl = 0.8*sh.y_len;
-      zw_bl = door;
-      // coordinates 
-      ys    = (-1.)*(sh.y_len/2.-yw_bl/2.);          // this should center the cut properly  
-   }else{
-      // original cut as per drawing A09016-03-0851  
-      xw_bl = 15.*inch; 
-      yw_bl = 28.44*inch;
-      zw_bl = 15.*inch;
-      // coordinates 
-      ys    = 0.*cm;
-   }
+   // coordinates of the cut [old] 
+   // G4double xs = sh.x_len/2.;                   // distance to midpoint of door, aligns door close to edge 
+   // G4double ys = (-1.)*(sh.y_len/2.-yw_bl/2.);  // this should center the cut properly  
+   // G4double dzs = 22.*cm;                       // fudge factor to align with BigBite aperture 
+   // G4double zs = -zw_bl/2. + dzs;               // right on top of the right side wall (before rotation) 
 
-   // coordinates
-   G4double dzs = 22.*cm; // fudge factor to align with BigBite aperture 
-   G4double xs = sh.x_len/2.;                         // distance to midpoint of door, aligns door close to edge 
-   G4double zs = -zw_bl/2. + dzs;                     // right on top of the right side wall (before rotation)  
+   // if(config==G4SBS::kGEN_new){
+   //    // FIXME: This is an estimate 
+   //    // new cut as of 6/27/20 (new design from Bert)
+   //    xw_bl = 10.*cm; // arbitrary size
+   //    yw_bl = 0.8*sh.y_len;
+   //    zw_bl = door;
+   //    // coordinates 
+   //    ys    = (-1.)*(sh.y_len/2.-yw_bl/2.);          // this should center the cut properly  
+   // }else if(config==G4SBS::kGEN_final){
+   //    // from drawing JL0044092
+   //    xw_bl = 16.75*inch; // arbitrary to make sure the cut goes through
+   //    yw_bl = 28.50*inch;
+   //    zw_bl = 16.75*inch;     
+   //    // coordinates 
+   //    ys    = (-1.)*(sh.y_len/2.-yw_bl/2.);          // this should center the cut properly  
+   // }else{
+   //    // original cut as per drawing A09016-03-0851  
+   //    xw_bl = 15.*inch; 
+   //    yw_bl = 28.44*inch;
+   //    zw_bl = 15.*inch;
+   //    // coordinates 
+   //    ys    = 0.*cm;
+   // }
+
+ 
    G4ThreeVector Pw_bl_dn = G4ThreeVector(xs,ys,zs);  // position of cut 
 
    G4Box *windowCut_beamLeft_dn = new G4Box("windowCut_beamLeft_dn",xw_bl/2.,yw_bl/2.,zw_bl/2.);
 
-   // downstream, beam right
+   // downstream, beam right [SBS aperture]
    // for now consider a single large cut 
    // large opening; distance along x and z = panel 1 + door w/handles + panel 3
    // panel 1, drawing A09016-03-05-0811: x = 8.62" , y = 21.41", z = 8.62" 
@@ -3385,51 +3404,63 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
    G4double p3 = 5.12*inch;
    G4double dh = 16.70*inch;
 
-   G4double dx=0,dx0=5.*cm;
+   G4double dx=0,dx0=1.63*inch; //new number from drawing JL0042553; old dx0=5.*cm;
    G4double xw_br=0,yw_br=0;
    G4double zw_br=10.*cm; // arbitrary cut depth in z; just need enough to break through 
    if(config==G4SBS::kGEN_146){
       dx    = dx0 + p1 + p2 + p3;
       xw_br = dh;
-      yw_br = 21.41*inch;
+      yw_br = 21.34*inch;
       // coordinates 
       ys    = 0.*cm;
    }else if(config==G4SBS::kGEN_368){
       dx    = dx0 + p2 + p3;
       xw_br = dh;
-      yw_br = 21.41*inch;
+      yw_br = 21.34*inch;
       // coordinates 
       ys    = 0.*cm;
    }else if(config==G4SBS::kGEN_677){
       dx    = dx0 + p3;
       xw_br = dh;
-      yw_br = 21.41*inch;
+      yw_br = 21.34*inch;
       // coordinates 
       ys    = 0.*cm;
    }else if(config==G4SBS::kGEN_1018){
       dx    = dx0;
       xw_br = dh;
-      yw_br = 21.41*inch;
+      yw_br = 21.34*inch;
       // coordinates 
       ys    = 0.*cm;
-   }else if(config==G4SBS::kGEN_full){
-      // full window cut 
-      dx    = dx0;
-      xw_br = p1 + p2 + p3 + dh;
-      yw_br = 21.41*inch;
-      // coordinates 
-      ys    = 0.*cm;
-   }else if(config==G4SBS::kGEN_new){
-      // 6/27/20: new design from Bert 
-      dx    = dx0;
-      xw_br = door;
-      yw_br = 0.8*sh.y_len;
-      // coordinates
-      ys = (-1.)*(sh.y_len/2.-yw_br/2.);   // this should center the cut properly  
    }else{
       std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_Shield]: Invalid configuration = " << config << std::endl;
       exit(1);
-   }
+   } 
+
+   // }else if(config==G4SBS::kGEN_full){
+   //    // full window cut 
+   //    dx    = dx0;
+   //    xw_br = p1 + p2 + p3 + dh;
+   //    yw_br = 21.41*inch;
+   //    // coordinates 
+   //    ys    = 0.*cm;
+   // }else if(config==G4SBS::kGEN_new){
+   //    // 6/27/20: new design from Bert 
+   //    dx    = dx0;
+   //    xw_br = door;
+   //    yw_br = 0.8*sh.y_len;
+   //    // coordinates
+   //    ys = (-1.)*(sh.y_len/2.-yw_br/2.);   // this should center the cut properly  
+   // }else if(config==G4SBS::kGEN_final){
+   //    // from drawing JL0042553
+   //    dx    = dx0;
+   //    xw_br = 37.41*inch;
+   //    yw_br = 0.8*sh.y_len;
+   //    // coordinates
+   //    ys = (-1.)*(sh.y_len/2.-yw_br/2.);   // this should center the cut properly  
+   // }else{
+   //    std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_Shield]: Invalid configuration = " << config << std::endl;
+   //    exit(1);
+   // }
 
    xs = sh.x_len/2. - xw_br/2. - dx;    // distance to midpoint of door, aligns door close to edge 
    zs = sh.z_len/2.;                    // right on top of the right side wall (before rotation) 

@@ -528,7 +528,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Carbon_Steel_1008->AddElement(elP ,0.0004);
   fMaterialsMap["Carbon_Steel_1008"] = Carbon_Steel_1008;
 
-  // Beam line exit materials
+  // Beam line exit materials (D Flay, Sept 2020) 
 
   // Aluminum 5052 alloy 
   // - details from https://unitedaluminum.com/united-aluminum-alloy-5052/ 
@@ -2311,7 +2311,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   //--------------
   // World:
   //--------------
-  G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 30*m);
+  // G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 30*m);
+  G4Box *WorldBox= new G4Box("WorldBox",50*m, 50*m, 50*m);
   G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,GetMaterial("Air"),
 						"WorldLogical", 0, 0, 0);
   G4PVPlacement *WorldPhys=new G4PVPlacement(0,G4ThreeVector(),

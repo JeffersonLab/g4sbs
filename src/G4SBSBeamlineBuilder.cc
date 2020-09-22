@@ -4803,7 +4803,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother){
    G4double z_ds  = z_bd + 17.3943*inch;  
    MakeBeamDump_UpstreamPipe(logicMother,z_us);
    MakeBeamDump_ISOWallWeldment(logicMother,z_iso);
-   // MakeBeamDump_Diffuser(logicMother,z_bd);
+   MakeBeamDump_Diffuser(logicMother,z_bd);
    MakeBeamDump_DownstreamPipe(logicMother,z_ds);
 }
 
@@ -4857,8 +4857,9 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
    startPhi     = 270.*deg - dPhi/2.;
    G4double thk = 0.125*inch;
 
-   // choose the origin of the device (where the first plate starts, relative to the mother volume)  
-   G4ThreeVector P0 = G4ThreeVector(0,0,0);
+   // choose the origin of the device (where the first plate starts, relative to the mother volume) 
+   zz = -fBDLength/2.;  
+   G4ThreeVector P0 = G4ThreeVector(0,0,zz);
 
    G4VisAttributes *vis = new G4VisAttributes();
    vis->SetColour( G4Colour::Blue() );
@@ -4906,13 +4907,32 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
 
 void G4SBSBeamlineBuilder::MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMother,G4double z0){
    // Hall A Beam Dump: ISO Wall Weldment 
-   // Drawing: JL0015694, JL0015725 
+   // Drawings: JL0015694, JL0015725, JL0016212 
    // Added by D. Flay (JLab) in Sept 2020  
 
-   G4double inch  = 25.4*mm;
-   G4double x_len = 84.*inch;
-   G4double y_len = 117.*inch;
-   G4double z_len = 4.*inch;
+   G4double inch     = 25.4*mm;
+   G4double startPhi = 0.*deg;
+   G4double dPhi     = 360.*deg;
+
+   // vacuum tube hub [drawing JL0016212] 
+   // - outer component  
+   G4double r_min_vth   = 0.5*16.*inch; 
+   G4double r_max_vth   = 0.5*20.*inch;
+   G4double len_vth     = 2.75*inch; 
+   G4Tubs *solidVTH_cyl = new G4Tubs("solidVTH_cyl",r_min_vth,r_max_vth,len_vth/2.,startPhi,dPhi);
+   // - cut component   
+   G4double r_min_vth_cc = 0.5*16.5*inch; 
+   G4double r_max_vth_cc = 0.5*25.0*inch;
+   G4double len_vth_cc   = 2.50*inch; 
+   G4Tubs *solidVTH_cc = new G4Tubs("solidVTH_cc",r_min_vth_cc,r_max_vth_cc,len_vth_cc/2.,startPhi,dPhi);
+   // subtraction 
+   G4ThreeVector Pcc = G4ThreeVector(0,0,len_vth_cc-len_vth);
+   G4SubtractionSolid *solidVTH = new G4SubtractionSolid("solidVTH",solidVTH_cyl,solidVTH_cc,0,Pcc);
+
+   // wall [drawings JL0015694, JL0015725]  
+   G4double x_len = 77.0*inch;   // from JL0015694  
+   G4double y_len = 117.0*inch;  // from JL0015694
+   G4double z_len = 0.25*inch;   // from JL0015725
 
    auto material  = G4Material::GetMaterial("G4_Al"); // might not be aluminum... 
 
@@ -4920,32 +4940,40 @@ void G4SBSBeamlineBuilder::MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMo
    G4Box *solidBox = new G4Box("isoBox",x_len/2.,y_len/2.,z_len/2.);
 
    // cut a circular hole 
-   G4double r_min = 0.*mm;
-   G4double r_max = 16.*inch;
-   G4double len   = z_len + 5.*inch; // make sure it cuts through  
-   G4double startPhi = 0.*deg;
-   G4double dPhi = 360.*deg;
+   G4double r_min    = 0.*mm;
+   G4double r_max    = 0.5*16.*inch;
+   G4double len      = z_len + 5.*inch; // make sure it cuts through  
    G4Tubs *solidTube = new G4Tubs("isoTube",r_min,r_max,len/2.,startPhi,dPhi);
 
    // cut the hole in the box
-   G4double y_pos = 13.75*inch;
-   G4ThreeVector P = G4ThreeVector(0.*inch,13.75*inch,z_len/2.);
+   // - relative to bottom of object, vertical distance is 74.48 inches in drawing JL0015725, 
+   //   where the plate is 114.25 inches tall.  Note that this drawing is the inner portion of JL0015694.
+   //   However, the height of the whole wall is actually 117 inches (JL0015694), 
+   //   so we add 1.375 inches to get 75.86 inches from the bottom of the wall. 
+   // - this means we have a distance from the center of the wall: 
+   G4double yc     = y_len/2. - (y_len - 75.86*inch); 
+   G4ThreeVector P = G4ThreeVector(0.*inch,yc,z_len/2.);
    G4SubtractionSolid *solidWall = new G4SubtractionSolid("solidWall",solidBox,solidTube,0,P);
+
+   // now union the solidVTH and solidWall
+   G4double zw = len_vth/2. + z_len/2.;  
+   G4ThreeVector Pw = G4ThreeVector(0,-yc,zw); 
+   G4UnionSolid *solidISO = new G4UnionSolid("solidISO",solidVTH,solidWall,0,Pw);
 
    // visualization
    G4VisAttributes *vis = new G4VisAttributes();
    vis->SetColour( G4Colour::Red() );
-   vis->SetForceWireframe();
+   // vis->SetForceWireframe();
 
    // logical volume
-   G4LogicalVolume *isoWallLV = new G4LogicalVolume(solidWall,GetMaterial("Aluminum"),"beamDump_isoWall_LV");
+   // WARNING: Drawing says Aluminum 6062.  It seems like there is only 6061-T6 alloys.  We use the latter.
+   G4LogicalVolume *isoWallLV = new G4LogicalVolume(solidISO,GetMaterial("Aluminum_6061"),"beamDump_isoWall_LV");
    isoWallLV->SetVisAttributes(vis);
 
    // placement
    bool checkOverlaps = true;  
-   // G4double z = z0 - fBDLength;
-   G4double z = z0 + z_len/2.; // move center of weldment forward so front face is at z0
-   G4ThreeVector P_wall = G4ThreeVector(0,-y_pos,z);
+   G4double z = z0 + len_vth + z_len/2.; // move center of weldment forward so front face of wall is at z0
+   G4ThreeVector P_wall = G4ThreeVector(0,0,z);
    new G4PVPlacement(0,                        // no rotation
                      P_wall,                   // location in mother volume 
                      isoWallLV,                // its logical volume                         

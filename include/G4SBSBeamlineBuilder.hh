@@ -31,8 +31,8 @@ private:
   void MakeToyBeamline(G4LogicalVolume *); // "Toy" beam line for playing around with extreme forward angles of detectors, etc:
 
   // for a beam diffuser that sits in front of the dump (useful for beam steering studies)
-  G4double fBDLength;
-  void MakeBeamDump(G4LogicalVolume *logicMother);  // default location  
+  void MakeBeamDump(G4LogicalVolume *logicMother);  // main function to call  
+  void MakeBeamDump_Check(G4LogicalVolume *logicMother,G4double z0=0);  // dummy function for checking positions  
   void MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4double z0=0);
   void MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMother,G4double z0=0);
   void MakeBeamDump_UpstreamPipe(G4LogicalVolume *logicMother,G4double z0=0);

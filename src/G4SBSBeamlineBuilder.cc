@@ -4787,9 +4787,6 @@ void G4SBSBeamlineBuilder::MakeToyBeamline(G4LogicalVolume *motherlog){ //This i
 void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother){
    // build the Hall A beam dump 
    // Added by D. Flay (JLab) in Sept 2020 
- 
-   // default length of beam diffuser (arbitrary, set in the MakeBeamDump_Diffuser function)
-   fBDLength = 12.0*cm;   
 
    G4double inch = 2.54*cm; 
    // location of beam diffuser front face relative to target pivot (from Ron Lassiter Sept 2020)
@@ -4800,11 +4797,38 @@ void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother){
    G4double z_us  = 1052.4797*inch; 
    G4double z_iso = z_us + 207.1108*inch; 
    G4double z_bd  = z_iso + 24.56*inch; 
-   G4double z_ds  = z_bd + 17.3943*inch;  
+   G4double z_ds  = z_bd + 17.3943*inch; 
+   // MakeBeamDump_Check(logicMother,z_bd);  
    MakeBeamDump_UpstreamPipe(logicMother,z_us);
    MakeBeamDump_ISOWallWeldment(logicMother,z_iso);
    MakeBeamDump_Diffuser(logicMother,z_bd);
    MakeBeamDump_DownstreamPipe(logicMother,z_ds);
+}
+
+void G4SBSBeamlineBuilder::MakeBeamDump_Check(G4LogicalVolume *logicMother,G4double z0){
+   // a dummy function to check positioning
+
+   G4double inch = 2.54*cm; 
+
+   G4double xl = 20.*inch;
+   G4double yl = 120.*inch;
+   G4double zl = 1.*inch;
+   G4Box *solidBox = new G4Box("solidBox",xl/2.,yl/2.,zl/2.); 
+   
+   G4LogicalVolume *boxLV = new G4LogicalVolume(solidBox,GetMaterial("Aluminum"),"boxLV");
+
+   G4double z = z0 - zl/2.;  // back face is at z0  
+   G4ThreeVector P = G4ThreeVector(0,0,z); 
+
+   new G4PVPlacement(0,                // no rotation
+	             P,                // location in mother volume 
+	             boxLV,            // its logical volume                         
+	             "testBox_PHY",    // its name
+	             logicMother,      // its mother  volume
+	             false,            // no boolean operation
+	             0,                // copy number
+	             true);            // checking overlaps 
+
 }
 
 void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4double z0){
@@ -4813,13 +4837,15 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
   
    G4double inch = 25.4*mm;
 
+   G4double BDLength = 0.;
+
    char Hall = 'A';
-   if(Hall=='A') fBDLength = 11.44*cm;
-   if(Hall=='C') fBDLength = 11.0*cm; // FIXME 
+   if(Hall=='A') BDLength = 11.44*cm;
+   if(Hall=='C') BDLength = 11.30*cm;  
 
    G4double r_min    = 0.;
    G4double r_max    = 25.*inch;
-   G4double len      = fBDLength;
+   G4double len      = BDLength;
    G4double startPhi = 0.*deg;
    G4double dPhi     = 360.*deg;
    G4Tubs *diffCaseS = new G4Tubs("diffCase",r_min,r_max,len/2.,startPhi,dPhi);
@@ -4829,8 +4855,8 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
    // note: the (x,y) center of the diffuser plates is centered on this logical volume 
    // z0 = location of FRONT FACE of the beam diffuser
    // zz = location of CENTER of the beam diffuser CASE (coincides with the center of the BD)  
-   G4double zz = z0 + fBDLength/2.;
-   G4ThreeVector P_case = G4ThreeVector(0,0,z0); 
+   G4double zz = z0 + 0.5*BDLength;
+   G4ThreeVector P_case = G4ThreeVector(0,0,zz); 
 
    bool checkOverlaps = true;
 
@@ -4858,7 +4884,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
    G4double thk = 0.125*inch;
 
    // choose the origin of the device (where the first plate starts, relative to the mother volume) 
-   zz = -fBDLength/2.;  
+   zz = -BDLength/2.;  
    G4ThreeVector P0 = G4ThreeVector(0,0,zz);
 
    G4VisAttributes *vis = new G4VisAttributes();
@@ -4972,7 +4998,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMo
 
    // placement
    bool checkOverlaps = true;  
-   G4double z = z0 + len_vth + z_len/2.; // move center of weldment forward so front face of wall is at z0
+   G4double z = z0 - 0.5*len_vth; // move center of weldment forward so front face of wall is at z0
    G4ThreeVector P_wall = G4ThreeVector(0,0,z);
    new G4PVPlacement(0,                        // no rotation
                      P_wall,                   // location in mother volume 
@@ -5186,8 +5212,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump_UpstreamPipe(G4LogicalVolume *logicMothe
 
    // placement
    bool checkOverlaps = true;  
-   // G4double z = z0 - fBDLength/2. - 4.*inch - TOTAL_LENGTH; // 4-inch is the ISO weldment plate thickness 
-   G4double z = z0; 
+   G4double z = z0 + 0.5*len_lgf;  // upstream face is at z0 
    G4ThreeVector P = G4ThreeVector(0.,0.,z);
    G4RotationMatrix *rm = new G4RotationMatrix();
    rm->rotateY(180*deg);
@@ -5330,8 +5355,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump_DownstreamPipe(G4LogicalVolume *logicMot
    // placement
    bool checkOverlaps = true;
    G4double delta = 5.0*cm; // FIXME: arbitrary!  
-   // G4double z_pos = z0 + fBDLength + TOTAL_LENGTH + delta;
-   G4double Z = z0 + TOTAL_LENGTH;
+   G4double Z = z0 + TOTAL_LENGTH + 0.5*len_us; // upstream face is at z0
    G4ThreeVector P = G4ThreeVector(0,0,Z);
    new G4PVPlacement(0,                        // no rotation
                      P,                        // location in mother volume 
@@ -5354,7 +5378,6 @@ void G4SBSBeamlineBuilder::MakeBeamDump_DownstreamPipe(G4LogicalVolume *logicMot
    G4LogicalVolume *vacLV = new G4LogicalVolume(solidVacuumInsert,Vacuum,"vacuum_dsPipe_LV");
    vacLV->SetVisAttributes(visV);
 
-   // G4double Z = z0 + fBDLength + TOTAL_LENGTH/2. + delta;
    Z = z0 + TOTAL_LENGTH/2.;
    P = G4ThreeVector(0,0,Z);
    new G4PVPlacement(0,                        // no rotation

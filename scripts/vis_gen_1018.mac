@@ -87,6 +87,9 @@
 #
 # Specify style (surface or wireframe):
 /vis/viewer/set/style surface
+# /vis/viewer/set/style wireframe
+# /vis/viewer/set/auxiliaryEdge true
+# /vis/viewer/set/lineSegmentsPerCircle 10
 #
 # Draw coordinate axes:
 #/vis/scene/add/axes 0 0 0 1 m

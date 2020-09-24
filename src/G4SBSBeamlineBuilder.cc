@@ -67,7 +67,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     Make3HeBeamline(worldlog);
     MakeGEnClamp(worldlog);
     // if(bdEnable) MakeBeamDiffuser(worldlog);
-    MakeBeamDump(worldlog);    
+    MakeBeamExit(worldlog);    
     if(fDetCon->fLeadOption == 1){
       MakeGEnLead(worldlog);
     }
@@ -4786,7 +4786,7 @@ void G4SBSBeamlineBuilder::MakeToyBeamline(G4LogicalVolume *motherlog){ //This i
   // Don't do anything yet, just make the code compile;
 }
 
-void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother){
+void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother,G4double dz){
    // build the Hall A beam dump 
    // Added by D. Flay (JLab) in Sept 2020 
 
@@ -4796,12 +4796,11 @@ void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother){
    // upstream pipe conical flange to ISO wall weldment:                    207.1108 inches
    // upstream ISO wall weldment to upstream face of diffuser:              24.56 inches
    // upstream face of beam diffuser to upstream face of downstream flange: 17.3943 inches
-   G4double z_us  = 1052.4797*inch; 
-   G4double z_iso = z_us + 207.1108*inch; 
-   G4double z_bd  = z_iso + 24.56*inch; 
-   G4double z_ds  = z_bd + 17.3943*inch; 
+   G4double z_us  = dz + 1052.4797*inch; 
+   G4double z_iso = dz + z_us + 207.1108*inch; 
+   G4double z_bd  = dz + z_iso + 24.56*inch; 
+   G4double z_ds  = dz + z_bd + 17.3943*inch; 
    // CheckZPos(logicMother,z_bd);
-   MakeBeamExit(logicMother);  
    MakeBeamDump_UpstreamPipe(logicMother,z_us);
    MakeBeamDump_ISOWallWeldment(logicMother,z_iso);
    MakeBeamDump_Diffuser(logicMother,z_bd);
@@ -4813,6 +4812,8 @@ void G4SBSBeamlineBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
 
    G4double inch = 2.54*cm; 
 
+   std::cout << "[G4SBSBeamlineBuilder::CheckZPos]: Downstream face of part is at z = " << z0/m << " m" << std::endl; 
+
    G4double xl = 20.*inch;
    G4double yl = 120.*inch;
    G4double zl = 1.*inch;
@@ -4821,7 +4822,7 @@ void G4SBSBeamlineBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
    G4LogicalVolume *boxLV = new G4LogicalVolume(solidBox,GetMaterial("Aluminum"),"boxLV");
 
    G4double z = z0 - zl/2.;  // back face is at z0  
-   G4ThreeVector P = G4ThreeVector(0,0,z); 
+   G4ThreeVector P = G4ThreeVector(0,0,z);
 
    new G4PVPlacement(0,                // no rotation
 	             P,                // location in mother volume 
@@ -5284,7 +5285,6 @@ void G4SBSBeamlineBuilder::MakeBeamDump_UpstreamPipe(G4LogicalVolume *logicMothe
 
    // visualization
    G4VisAttributes *vis_vac = new G4VisAttributes();
-   vis_vac->SetColour( G4Colour::White() );
    vis_vac->SetForceWireframe(true);
 
    // logical volume
@@ -5395,35 +5395,36 @@ void G4SBSBeamlineBuilder::MakeBeamDump_DownstreamPipe(G4LogicalVolume *logicMot
 }
 
 void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother){
-   // build the Hall A exit beam line  
+   // Build the Hall A exit beam line  
    // Added by D. Flay (JLab) in Sept 2020
-   // distances from drawing A00000-02-08-0300, A00000-02-08-0700 
+   // Distances from drawing A00000-02-08-0300, A00000-02-08-0700 
 
    G4double inch   = 2.54*cm; 
-   G4double delta  = 15.0*inch; 
-   G4double delta2 = 7.*mm; 
-   G4double z_tmp  = 212.37*inch + delta;  
-   G4double z_mp   = 749.4997*inch; // derived, based on numbers from Ron Lassiter (see MakeBeamDump)  
+   G4double delta  = 7.00*inch;     // fudge factor to avoid overlap with P5ringD_vacLog_pv 
+   G4double z_tmp  = 207.179*inch + delta;  
+   G4double z_mpd  = 749.4997*inch; // derived, based on numbers from Ron Lassiter (see MakeBeamDump)  
    // CheckZPos(logicMother,z_bd); 
    MakeBeamExit_TargetToMidPipe(logicMother,z_tmp);  
-   MakeBeamExit_MidPipeToDump(logicMother,z_mp);  
+   MakeBeamExit_MidPipeToDump(logicMother,z_mpd); 
+   MakeBeamDump(logicMother); 
 }
 
 void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMother,G4double z0){
    // SBS exit beam pipe.  This is immediately upstream of the mid pipe
-   // Drawings: 
-   // - Full assembly: A00000-02-08-0300
-   // - target to mid pipe: ARC10540  
    // Added by D. Flay (JLab) in Sept 2020
+   // Drawings: 
+   // - Target to mid pipe: ARC10540  
 
    G4double inch     = 2.54*cm; 
    G4double startPhi = 0.*deg; 
    G4double dPhi     = 360.*deg;
+   G4double len_fl   = 0.5*inch; // FIXME: arbitrary
    G4double TOTAL_LENGTH = 0;  
   
    // visualization 
    G4VisAttributes *AlColor = new G4VisAttributes( G4Colour(0.3,0.3,1.0) );
-   G4VisAttributes *vis_vac = new G4VisAttributes( G4Colour(0.1,0.5,0.9) );
+   // G4VisAttributes *vis_vac = new G4VisAttributes( G4Colour(0.1,0.5,0.9) );
+   G4VisAttributes *vis_vac = new G4VisAttributes();
   
    // pipe [part 11] 
    G4double r_min_11          = 0.5*36.00*inch;   
@@ -5437,7 +5438,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    // flange [part 9] 
    G4double r_min_09          = 0.5*24.00*inch;  
    G4double r_max_09          = 0.5*40.00*inch; 
-   G4double len_09            = 1.0*inch;      // FIXME: What is this value??
+   G4double len_09            = len_fl;      
    G4Tubs *solidTube09        = new G4Tubs("solidTube09",r_min_09,r_max_09,len_09/2.,startPhi,dPhi); 
    TOTAL_LENGTH += len_09;
    // vacuum insert  
@@ -5446,7 +5447,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    // flange [part 10] 
    G4double r_min_10          = 0.5*36.00*inch;  
    G4double r_max_10          = 0.5*43.00*inch; 
-   G4double len_10            = 1.0*inch;      // FIXME: What is this value??
+   G4double len_10            = len_fl;      
    G4Tubs *solidTube10        = new G4Tubs("solidTube10",r_min_10,r_max_10,len_10/2.,startPhi,dPhi); 
    TOTAL_LENGTH += len_10; 
    // vacuum insert 
@@ -5464,7 +5465,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    // flange [part 6] 
    G4double r_min_06          = 0.5*12.00*inch;  
    G4double r_max_06          = 0.5*26.00*inch; 
-   G4double len_06            = 1.0*inch;      // FIXME: What is this value??
+   G4double len_06            = len_fl;  
    G4Tubs *solidTube06        = new G4Tubs("solidTube06",r_min_06,r_max_06,len_06/2.,startPhi,dPhi); 
    TOTAL_LENGTH += len_06;
    // vacuum insert  
@@ -5569,7 +5570,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    G4LogicalVolume *tgtMP_LV = new G4LogicalVolume(tgtToMidPipe,GetMaterial("Aluminum"),"tgtMP_LV"); 
    tgtMP_LV->SetVisAttributes(AlColor);
 
-   G4double z = z0 + 0.5*len_01;  // upstream face at z0 
+   G4double z = z0 + 0.5*len_01;  // upstream face at z0
    G4ThreeVector Pz = G4ThreeVector(0,0,z);
    new G4PVPlacement(0,                // no rotation
                      Pz,               // location in mother volume 
@@ -5623,7 +5624,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    tgtToMidPipe_vac = new G4UnionSolid("tgtToMidPipe",tgtToMidPipe_vac,solidTube10_vac,0,P); 
 
    G4LogicalVolume *tgtMP_vac_LV = new G4LogicalVolume(tgtToMidPipe_vac,GetMaterial("Aluminum"),"tgtMP_vac_LV"); 
-   tgtMP_vac_LV->SetVisAttributes(AlColor);
+   tgtMP_vac_LV->SetVisAttributes(vis_vac);
 
    new G4PVPlacement(0,                    // no rotation
                      Pz,                   // location in mother volume 
@@ -5650,19 +5651,21 @@ void G4SBSBeamlineBuilder::MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMoth
    // visualization 
    // G4VisAttributes *AlColor = new G4VisAttributes( G4Colour(0.3,0.3,1.0) );
    G4VisAttributes *AlColor = new G4VisAttributes( G4Colour(1.0,0.0,0.0) );
-   G4VisAttributes *vis_vac = new G4VisAttributes( G4Colour(0.1,0.5,0.9) );
+   // G4VisAttributes *vis_vac = new G4VisAttributes( G4Colour(0.1,0.5,0.9) );
+   G4VisAttributes *vis_vac = new G4VisAttributes();
   
-   // from drawing A00000-02-02-0001 [rev] 
+   // from drawing A00000-02-02-0001 [rev]
+   G4double delta  = 235.0*mm;     // FIXME: Arbitrary fudge factor to make everything connect from tgtMidPipe to dump  
    G4double r_min  = 0.5*36.00*inch; // 0.5*42.94*inch;  
    G4double r_max  = 0.5*43.00*inch; 
-   G4double len    = 302.98*inch;
+   G4double len    = 302.98*inch + delta;
    G4Tubs *solidMP = new G4Tubs("solidMP",r_min,r_max,len/2.,startPhi,dPhi); 
     
    G4LogicalVolume *midPipeLV = new G4LogicalVolume(solidMP,GetMaterial("Aluminum"),"midPipeLV");
    midPipeLV->SetVisAttributes(AlColor); 
 
    // placement 
-   G4double Z = z0 + len/2.; // place upstream face at z0 
+   G4double Z = z0 + len/2. - delta; // place upstream face at z0 
    G4ThreeVector P = G4ThreeVector(0,0,Z);
    new G4PVPlacement(0,                        // no rotation
                      P,                        // location in mother volume 

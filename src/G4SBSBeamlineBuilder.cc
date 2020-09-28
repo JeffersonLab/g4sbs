@@ -347,66 +347,68 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL8_log, "Bellow_Iron", worldlog, false, 0 );
 
   //return;
-  
-  // EXTEND VACUUM LINE by using Maduka geometry
-  // ============================================
-  G4double tRmin, tRmax, tDzz, pDz, pRmax1, pRmax2, tSPhi, tDphi, pRmin1, pRmin2;
-  tSPhi = 0.0;
-  tDphi = twopi;
-  
-  tRmin = 0.5*12.0*2.54*cm; 
-  tRmax = 13.0*2.54*0.5*cm;
-  tDzz  = 0.5*41.0*2.54*cm;
-  G4Tubs *TBL9_tube = new G4Tubs("TBL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Fill with vacuum
-  tRmin = 0.0*cm;
-  tRmax = 0.5*12.0*2.54*cm;
-  G4Tubs *TVL9_tube = new G4Tubs("TVL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Convert into logical volumes
-  G4LogicalVolume *TBL9_log = new G4LogicalVolume( TBL9_tube, GetMaterial("Aluminum"), "TBL9_log" );
-  G4LogicalVolume *TVL9_log = new G4LogicalVolume( TVL9_tube, GetMaterial("Vacuum"), "TVL9_log" );
-
-  TBL9_log->SetVisAttributes( AlColor );
-  TVL9_log->SetVisAttributes( Vacuum_visatt );
-  
-  // Then place the vacuum inside the Al Tube
-  //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54*0.5)*cm;
-  Z = 207.144*inch + tDzz - TargetCenter_zoffset;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TVL9_log, "Extended_Vac1", worldlog, false, 0 , ChkOverlaps );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL9_log, "Extended_Al1", worldlog, false, 0 , ChkOverlaps );
-
-  tRmin = 0.5*24.0*2.54*cm;
-  tRmax = 25.0*2.54*0.5*cm;
-  tDzz  = 0.5*217.0*2.54*cm;
-  G4Tubs *TML9_tube = new G4Tubs( "TML9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Fill with vacuum
-  tRmin = 0.0*cm;
-  tRmax = 0.5*24.0*2.54*cm;
-  G4Tubs *TMV9_tube = new G4Tubs("TMV9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Convert into logical volumes
-  G4LogicalVolume *TML9_log = new G4LogicalVolume( TML9_tube, GetMaterial("Aluminum"), "TML9_log" );
-  G4LogicalVolume *TMV9_log = new G4LogicalVolume( TMV9_tube, GetMaterial("Vacuum"), "TMV9_log" );
-
-  TML9_log->SetVisAttributes( AlColor );
-  TMV9_log->SetVisAttributes( Vacuum_visatt );
-  // Then place vacuum inside of Al tube
-  //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54 + 0.5*217.0*2.54)*cm;
-  Z = 207.144*inch + 41.0*inch + tDzz - TargetCenter_zoffset;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TMV9_log, "Extended_Vac2", worldlog, false, 0 , ChkOverlaps );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 , ChkOverlaps );
-   
-  // G4bool bdEnable = fDetCon->GetBeamDiffuserEnable();  // is the beam diffuser + beam dump enabled? 
-
-  // For CPU speed, extend vacuum all the way to the edge of the "world" volume, so that we don't track beam electrons in air beyond interesting region.
-  G4double Zstop  = 30.0*m;
-  // if(bdEnable) Zstop -= 5.0*m; // allow space for the beam diffuser + beam dump 
  
-  G4double Zstart = Z + tDzz;
+  // Commented out by D Flay Sept 2020 (updated geometry in MakeBeamExit) 
+ 
+  // // EXTEND VACUUM LINE by using Maduka geometry
+  // // ============================================
+  // G4double tRmin, tRmax, tDzz, pDz, pRmax1, pRmax2, tSPhi, tDphi, pRmin1, pRmin2;
+  // tSPhi = 0.0;
+  // tDphi = twopi;
+  // 
+  // tRmin = 0.5*12.0*2.54*cm; 
+  // tRmax = 13.0*2.54*0.5*cm;
+  // tDzz  = 0.5*41.0*2.54*cm;
+  // G4Tubs *TBL9_tube = new G4Tubs("TBL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+  // // Fill with vacuum
+  // tRmin = 0.0*cm;
+  // tRmax = 0.5*12.0*2.54*cm;
+  // G4Tubs *TVL9_tube = new G4Tubs("TVL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+  // // Convert into logical volumes
+  // G4LogicalVolume *TBL9_log = new G4LogicalVolume( TBL9_tube, GetMaterial("Aluminum"), "TBL9_log" );
+  // G4LogicalVolume *TVL9_log = new G4LogicalVolume( TVL9_tube, GetMaterial("Vacuum"), "TVL9_log" );
 
-  G4double Zwidth = (Zstop-Zstart);
-  G4Tubs *FakeVacuumExtension = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
-  G4LogicalVolume *FakeVacuumExtension_log = new G4LogicalVolume( FakeVacuumExtension, GetMaterial("Vacuum"), "FakeVacuumExtension_log" );
-  FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt );
+  // TBL9_log->SetVisAttributes( AlColor );
+  // TVL9_log->SetVisAttributes( Vacuum_visatt );
+  // 
+  // // Then place the vacuum inside the Al Tube
+  // //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54*0.5)*cm;
+  // Z = 207.144*inch + tDzz - TargetCenter_zoffset;
+  // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TVL9_log, "Extended_Vac1", worldlog, false, 0 , ChkOverlaps );
+  // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL9_log, "Extended_Al1", worldlog, false, 0 , ChkOverlaps );
+
+  // tRmin = 0.5*24.0*2.54*cm;
+  // tRmax = 25.0*2.54*0.5*cm;
+  // tDzz  = 0.5*217.0*2.54*cm;
+  // G4Tubs *TML9_tube = new G4Tubs( "TML9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+  // // Fill with vacuum
+  // tRmin = 0.0*cm;
+  // tRmax = 0.5*24.0*2.54*cm;
+  // G4Tubs *TMV9_tube = new G4Tubs("TMV9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+  // // Convert into logical volumes
+  // G4LogicalVolume *TML9_log = new G4LogicalVolume( TML9_tube, GetMaterial("Aluminum"), "TML9_log" );
+  // G4LogicalVolume *TMV9_log = new G4LogicalVolume( TMV9_tube, GetMaterial("Vacuum"), "TMV9_log" );
+
+  // TML9_log->SetVisAttributes( AlColor );
+  // TMV9_log->SetVisAttributes( Vacuum_visatt );
+  // // Then place vacuum inside of Al tube
+  // //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54 + 0.5*217.0*2.54)*cm;
+  // Z = 207.144*inch + 41.0*inch + tDzz - TargetCenter_zoffset;
+  // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TMV9_log, "Extended_Vac2", worldlog, false, 0 , ChkOverlaps );
+  // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 , ChkOverlaps );
+  //  
+  // // G4bool bdEnable = fDetCon->GetBeamDiffuserEnable();  // is the beam diffuser + beam dump enabled? 
+
+  // // For CPU speed, extend vacuum all the way to the edge of the "world" volume, so that we don't track beam electrons in air beyond interesting region.
+  // G4double Zstop  = 30.0*m;
+  // // if(bdEnable) Zstop -= 5.0*m; // allow space for the beam diffuser + beam dump 
+ 
+  // G4double Zstart = Z + tDzz;
+
+  // G4double Zwidth = (Zstop-Zstart);
+  // G4Tubs *FakeVacuumExtension = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
+  // G4LogicalVolume *FakeVacuumExtension_log = new G4LogicalVolume( FakeVacuumExtension, GetMaterial("Vacuum"), "FakeVacuumExtension_log" );
+  // FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt );
  //  new G4PVPlacement( 0, G4ThreeVector(0,0,0.5*(Zstop+Zstart)), FakeVacuumExtension_log, "FakeVacuumExtension_phys", worldlog,false,0 , ChkOverlaps);
 
   //-----------------------------------------------------
@@ -1166,7 +1168,7 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   new G4PVPlacement( 0, pos_temp, upstream_beampipe_vac_log, "upstream_beampipe_vac_phys", worldlog, false, 0 , ChkOverlaps );
   
   MakeCommonExitBeamline(worldlog);
-  // MakeBeamExit(worldlog); // Added by D Flay (Sept 2020) 
+  MakeBeamExit(worldlog); // Added by D Flay (Sept 2020) 
  
   /*
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
@@ -1845,7 +1847,7 @@ void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
   //}
    
   MakeCommonExitBeamline(worldlog);
-  // MakeBeamExit(worldlog); // Added by D Flay (Sept 2020)  
+  MakeBeamExit(worldlog); // Added by D Flay (Sept 2020)  
   
   /*
   // EFuchey: 2017/02/14: add the possibility to change the first parameters for the beam line polycone 

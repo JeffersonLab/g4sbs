@@ -43,12 +43,12 @@ namespace G4SBS {
    // - full => full window cut (remove panel 1, 2, 3, and door) 
    // - new  => new design from Bert Metzger (6/2020)  
    enum GEnConfig_t {
-      kGEN_146  = 146,
-      kGEN_368  = 368,
-      kGEN_677  = 677,
-      kGEN_1018 = 1018,
-      kGEN_full = 5,
-      kGEN_new  = 6
+      kGEN_146   = 146,
+      kGEN_368   = 368,
+      kGEN_677   = 677,
+      kGEN_1018  = 1018,
+      kGEN_full  = 5,
+      kGEN_new   = 6
    };
 
 } 

@@ -66,8 +66,6 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     fDetCon->fBeamlineConf = 2;
     Make3HeBeamline(worldlog);
     MakeGEnClamp(worldlog);
-    // if(bdEnable) MakeBeamDiffuser(worldlog);
-    // MakeBeamExit(worldlog);    
     if(fDetCon->fLeadOption == 1){
       MakeGEnLead(worldlog);
     }
@@ -176,7 +174,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   
   G4double inch = 2.54*cm;
   
-  G4double TargetCenter_zoffset = 6.50*inch;
+  G4double TargetCenter_zoffset = 6.50*inch;  // D Flay: This might have to change for a given experiment...  
   
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
   G4double z_spool_piece = 58.44*inch - TargetCenter_zoffset;
@@ -328,7 +326,12 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   Z = z_welded_bellows + dz_welded_bellows/2.0;
 
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Vacuum_log, "WB_Vacuum_phys", worldlog, false, 0 , ChkOverlaps );
-  
+
+  // D Flay test 
+  // G4double tDzz  = 0.5*41.0*2.54*cm;
+  // std::cout << "=========> END OF WELDED BELLOWS Z = " << (Z+dz_welded_bellows/2.)/inch << std::endl;
+  // std::cout << "=========> START OF FAKE EXIT BEAMLINE Z = " << (207.144*inch + tDzz - TargetCenter_zoffset - tDzz)/inch << std::endl;;
+ 
   // // Here a bellow and we assign wall of 0.03 cm
   // tRmin = (0.5*27.62)*cm;
   // tRmax = (0.5*27.62 + 0.03)*cm;
@@ -397,11 +400,9 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TMV9_log, "Extended_Vac2", worldlog, false, 0 , ChkOverlaps );
   // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 , ChkOverlaps );
   //  
-  // // G4bool bdEnable = fDetCon->GetBeamDiffuserEnable();  // is the beam diffuser + beam dump enabled? 
 
   // // For CPU speed, extend vacuum all the way to the edge of the "world" volume, so that we don't track beam electrons in air beyond interesting region.
   // G4double Zstop  = 30.0*m;
-  // // if(bdEnable) Zstop -= 5.0*m; // allow space for the beam diffuser + beam dump 
  
   // G4double Zstart = Z + tDzz;
 
@@ -3604,7 +3605,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Vacuum_log, "WB_Vacuum_phys", worldlog, false, 0 , ChkOverlaps );
 
-  // Exit beam line piping: use this instead of the commented out section below.  Added by D Flay (Sept 2020)
+  // Exit beam line piping: use this instead of the commented out section below
+  // Added by D Flay (Sept 2020)
   MakeBeamExit(worldlog);  
 
   //************************* START OF PIPING TO DUMP *************************// 
@@ -3659,11 +3661,9 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 //  // For CPU speed, extend vacuum all the way to the edge of the "world" volume, 
 //  // so that we don't track beam electrons in air beyond interesting region.
 //  G4double Zstop = 30.0*m;
-//  // if(bdEnable) Zstop -= 5.0*m; 
 //  G4double Zstart = Z + tDzz;
 //
 //  // G4double dz_df=0;
-//  // if(bdEnable) dz_df = 15.0*cm;
 // 
 //  G4VisAttributes *Vacuum_visatt_df = new G4VisAttributes();
 //  Vacuum_visatt_df->SetColour( G4Colour::White() ); 
@@ -5361,14 +5361,14 @@ void G4SBSBeamlineBuilder::MakeBeamDump_DownstreamPipe(G4LogicalVolume *logicMot
 
    Z = z0 + TOTAL_LENGTH/2.;
    P = G4ThreeVector(0,0,Z);
-   new G4PVPlacement(0,                        // no rotation
-                     P,                        // location in mother volume 
-                     vacLV,                    // its logical volume                         
-                     "vacuum_dsPipe_PHY",      // its name
-                     logicMother,              // its mother  volume
-                     false,                    // boolean operation? 
-                     0,                        // copy number
-                     checkOverlaps);          // checking overlaps   
+   new G4PVPlacement(0,                    // no rotation
+                     P,                    // location in mother volume 
+                     vacLV,                // its logical volume                         
+                     "vacuum_dsPipe_PHY",  // its name
+                     logicMother,          // its mother  volume
+                     false,                // boolean operation? 
+                     0,                    // copy number
+                     checkOverlaps);       // checking overlaps   
 
 }
 

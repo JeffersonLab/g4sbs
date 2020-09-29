@@ -38,7 +38,7 @@ private:
   void MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMother,G4double z0=0); 
   void MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMother,G4double z0=0); 
   // beam dump; includes the beam diffuser (useful for beam steering studies)
-  void MakeBeamDump(G4LogicalVolume *logicMother,G4double dz=0);  // main function to call  
+  void MakeBeamDump(G4LogicalVolume *logicMother,G4double dz=0);  // main function to call; dz = global offset for dump components  
   void MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4double z0=0);
   void MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMother,G4double z0=0);
   void MakeBeamDump_UpstreamPipe(G4LogicalVolume *logicMother,G4double z0=0);

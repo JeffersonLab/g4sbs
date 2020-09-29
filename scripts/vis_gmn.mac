@@ -1,5 +1,3 @@
-#/control/execute gmn_13.5GeV2.mac
-
 ## Configure G4SBS for gmn (Q^2 = 13.5 GeV^2)
 /g4sbs/filename        gmn_13.5GeV2.root   ## Output rootfile
 
@@ -7,26 +5,23 @@
 /g4sbs/exp             gmn
 
 ## Configure the target
-#/g4sbs/target          LD2
-/g4sbs/target		optics
-/g4sbs/Nfoil 		9
-/g4sbs/foilthick 	0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 mm
-/g4sbs/foilz		-16.0 -12.0 -8.0 -4.0 0.0 4.0 8.0 12.0 16.0 cm
-/g4sbs/targdiam		7.0 mm
-/g4sbs/targlen         10.0 cm           ## Target Length
+/g4sbs/target          LD2
+/g4sbs/targlen         15.0 cm           ## Target Length
+/g4sbs/rasterx 	       2.0 mm  #raster size in X
+/g4sbs/rastery	       2.0 mm  #raster size in Y
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator
-/g4sbs/beamcur         44 muA
+/g4sbs/beamcur         30.0 muA
 /g4sbs/beamE           11.0 GeV
-/g4sbs/thmin           23.0 deg
-/g4sbs/thmax           43.0 deg
-/g4sbs/phmin           -30 deg
-/g4sbs/phmax           30 deg
+/g4sbs/thmin           27.0 deg
+/g4sbs/thmax           41.0 deg
+/g4sbs/phmin           -26 deg
+/g4sbs/phmax           26 deg
 
 ## Configure standard detector settings
 /g4sbs/hcaldist        17.0 m
-/g4sbs/hcalvoffset     0.00 m
+/g4sbs/hcalvoffset     0.45 m
 /g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
 /g4sbs/sbsclampopt     3                 ## Front field clamp only
 
@@ -40,13 +35,22 @@
 /g4sbs/48D48dist       3.1 m
 #/g4sbs/sbsmagfield     0.97 tesla
 
+/g4sbs/keepsdtrackinfo 	all true
 /g4sbs/totalabs true
 
-/g4sbs/buildBBsieve 1
+#Uncomment the following lines to simulate sieve slit/multi-foil target:
+#/g4sbs/target		optics
+#Optics ladder position 1:
+#/g4sbs/Nfoil 		5
+#/g4sbs/foilthick 	0.125 0.125 0.125 0.125 0.125 mm
+#/g4sbs/foilz		-10.0 -5.0 0.0 5.0 10.0 cm
+#Optics ladder position 2:
+#/g4sbs/Nfoil  		4
+#/g4sbs/foilthick 	0.125 0.125 0.125 0.125 mm
+#/g4sbs/foilz		-7.5 -2.5 2.5 7.5 cm
+#/g4sbs/targdiam		7.0 mm
 
-## Run 100 events
-#/g4sbs/run             100
-
+#/g4sbs/buildBBsieve 1
 
 #visualization stuff:
 # Use this open statement to create an OpenGL view:

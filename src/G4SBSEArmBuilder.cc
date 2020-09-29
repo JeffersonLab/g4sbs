@@ -95,7 +95,7 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fnzsegments_leadglass_C16 = 1;
 
   fBuildBBSieve = false;
-  
+
   assert(fDetCon);
   
   fDVCSECalMaterial = G4String("PbF2");
@@ -349,7 +349,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
     MakeBBSieveSlit( bbmotherLog, BBSievePos );
   }
-  
+
   //  Bigbite field log volume
   G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
 						  "bbfieldLog", 0, 0, 0);

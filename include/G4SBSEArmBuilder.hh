@@ -21,8 +21,8 @@ public:
   void SetCerDist(double a){fCerDist = a;}
 
   void SetGEMSep(double a){fGEMDist = a;}
-  void SetBBSieve(bool a){fBuildBBSieve = a;};
-  
+  void SetBBSieve(bool a){fBuildBBSieve = a;}
+
   void SetBBCalDist(double a){ fBBCaldist= a; }
   void SetGEMConfig(int gc ){ fGEMOption = gc; }
   //void SetCDetconfig(int cdetc){ fCDetOption = cdetc; }

@@ -3864,8 +3864,6 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   new G4PVPlacement( 0, G4ThreeVector(-X,Y,Z-DSCoil_offset_z), DSpole_log, "DSpole_phys_right", worldlog, false, 1 , ChkOverlaps );
 
 
- 
-
 }
 
 

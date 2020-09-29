@@ -544,6 +544,682 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 						   "bigfieldLog", 0, 0, 0);
 
 
+  
+  ////SIEVE PLATE OPTION - SSEEDS. LAST UPDATE - 9.5.20
+
+  ////Dims per C. Soova JLab Drawing "HALL A - TEMPLATE - A00000 MAGNET - 48D48 DIPOLE SBS SIEVE PLATE ASSY SBS SIEVE PLATE"
+  ////Strategy is to make a union solid of a thick and a thin plate to make base plate without holes. With this base plate, punch holes by creating a series of 77 subtraction solids where each has the previous subtraction solid as it's input. 
+  ////Untested code complete 9.1.20 - waiting to test with visualization
+  ////Determined placement by centering on bigbite arm (30.0 deg). Needs confirmation. 9.4.20
+  ////9.5.20 - Debugging - y-direction holes appear to be rotated with incorrect reversal of rotation. Attempts to correct with sign flip over array of sub_yAng does not appear to change the output in visualization.
+  ////9.5.20 - Debugging complete. Reversed order of x angles as fed by row in subtraction solids and rotated plate to -30.0 deg
+
+  //Plate
+  //Plate dims - Will union thick and thin plates to create final solid
+  G4double inch = 2.54*cm;
+  G4double ThinPlate_z = 1.0*inch;  //per print 0.995 - 0.985 inch 
+  G4double ThinPlate_y = 30.0*inch; 
+  G4double ThinPlate_x = 10.375*inch; 
+  G4double ThickPlate_z = 2.0*inch; 
+  G4double ThickPlate_y = 29.0*inch; 
+  G4double ThickPlate_x = 9.375*inch; 
+
+  //Plate positioning and orientation dims
+  //G4double offset_z = 50.825*inch; //distance to center of thick plate face from center of target: 51.825", thickness of plate: 2.0"; offset_z = 51.825 - 2.0/2
+  //G4double PlateAngDisp_theta = 30.0*deg;
+  G4double PlateAngDisp_theta = -f48D48ang;
+  //G4double PlateAngDisp_phi = 180.0*deg;
+  G4RotationMatrix *SievePlateRot = new G4RotationMatrix; //rotates plate across each of its own axes
+  SievePlateRot->rotateZ(0*deg);
+  SievePlateRot->rotateX(0*deg);
+  SievePlateRot->rotateY(f48D48ang);
+
+  //Hole dims - x by y: 7 holes by 11 holes. Center hole: row 6, column 4. 
+  G4double holeSpace_y = 2.716*inch;
+  G4double holeSpace_x = 1.176*inch;
+  G4double offset_z = r48d48-30*cm-f48D48depth/2;
+  //G4double Ang_y = 3.0*deg; //Displacement angle in y direction - 3.0 per print
+  //G4double Ang_x = 1.3*deg; //Displacement angle in x direction - 1.3 per print
+  G4double Ang_y = atan(holeSpace_y/offset_z);
+  G4double Ang_x = atan(holeSpace_x/offset_z);
+
+  G4double HoleCenter_r = 0.125*inch;
+  G4double Hole_r = 0.25*inch;
+  G4double Hole_z = 3.0*inch; //Large enough to leave no solid volume at extreme displacements from center
+  
+  //Plate solids
+  G4Box *ThinPlate = new G4Box("ThinPlate", ThinPlate_x/2.0, ThinPlate_y/2.0, ThinPlate_z/2.0);  
+  G4Box *ThickPlate = new G4Box("ThickPlate", ThickPlate_x/2.0, ThickPlate_y/2.0, ThickPlate_z/2.0);
+
+  //Union of plates
+  G4VSolid *FullPlate = new G4UnionSolid("FullPlate", ThinPlate, ThickPlate);
+
+  //Hole solids
+  G4Tubs *Hole = new G4Tubs("Hole", 0, Hole_r, Hole_z, 0.0*deg, 360.0*deg);
+  G4Tubs *HoleCenter = new G4Tubs("HoleCenter", 0, HoleCenter_r, Hole_z, 0.0*deg, 360.0*deg);
+
+  //Subtraction of holes from FullPlate - ex: Hole<row><column> -> sub11
+  //Angle arrays for placement of holes in plate
+  G4double sub_xAng [] = {-3.0*Ang_x, -2.0*Ang_x, -1.0*Ang_x, 0.0*Ang_x, 1.0*Ang_x, 2.0*Ang_x, 3.0*Ang_x};
+  G4double sub_yAng [] = {5.0*Ang_y, 4.0*Ang_y, 3.0*Ang_y, 2.0*Ang_y, 1.0*Ang_y, 0.0*Ang_y, -1.0*Ang_y, -2.0*Ang_y, -3.0*Ang_y, -4.0*Ang_y, -5.0*Ang_y};
+  //G4double sub_yAng [] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+  //ROW 1
+  /*
+  //sub11 placement dims  
+  G4double sub11_xAng = -3.0*Ang_x;
+  G4double sub11_yAng = 5.0*Ang_y;
+  G4RotationMatrix *sub11_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub11_rot->rotateY(sub11_xAng); //Rotation over y axiz corresponding to displacement in x direction
+  sub11_rot->rotateX(sub11_yAng); //Rotation over x axis corresponding to displacement in y direction
+  G4double sub11_xDisp = offset_z*tan(sub11_xAng);
+  G4double sub11_yDisp = offset_z*tan(sub11_yAng);
+
+  G4VSolid *FP_sub11 = new G4SubtractionSolid("FP_sub11", FullPlate, Hole, sub11_rot, G4ThreeVector(sub11_xDisp, sub11_yDisp, 0)); //FP: FullPlate
+  */
+
+  //9.5.20 - Reversed sub_xAng[] by row to get the orientation of the holes right.
+
+  //sub11
+  G4RotationMatrix *sub11_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub11_rot->rotateY(sub_xAng[6]); //Rotation over y axiz corresponding to displacement in x direction
+  sub11_rot->rotateX(sub_yAng[0]); //Rotation over x axis corresponding to displacement in y direction
+
+  G4VSolid *FP_sub11 = new G4SubtractionSolid("FP_sub11", FullPlate, Hole, sub11_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[0]), 0)); //FP: FullPlate
+
+  //sub12
+  G4RotationMatrix *sub12_rot = new G4RotationMatrix;
+  sub12_rot->rotateY(sub_xAng[5]);
+  sub12_rot->rotateX(sub_yAng[0]); 
+
+  G4VSolid *FP_sub12 = new G4SubtractionSolid("FP_sub12", FP_sub11, Hole, sub12_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[0]), 0));
+
+  //sub13
+  G4RotationMatrix *sub13_rot = new G4RotationMatrix;
+  sub13_rot->rotateY(sub_xAng[4]);
+  sub13_rot->rotateX(sub_yAng[0]); 
+
+  G4VSolid *FP_sub13 = new G4SubtractionSolid("FP_sub13", FP_sub12, Hole, sub13_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[0]), 0));
+
+  //sub14
+  G4RotationMatrix *sub14_rot = new G4RotationMatrix;
+  sub14_rot->rotateY(sub_xAng[3]);
+  sub14_rot->rotateX(sub_yAng[0]); 
+
+  G4VSolid *FP_sub14 = new G4SubtractionSolid("FP_sub14", FP_sub13, Hole, sub14_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[0]), 0));
+
+  //sub15
+  G4RotationMatrix *sub15_rot = new G4RotationMatrix;
+  sub15_rot->rotateY(sub_xAng[2]);
+  sub15_rot->rotateX(sub_yAng[0]); 
+
+  G4VSolid *FP_sub15 = new G4SubtractionSolid("FP_sub15", FP_sub14, Hole, sub15_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[0]), 0));
+
+  //sub16
+  G4RotationMatrix *sub16_rot = new G4RotationMatrix;
+  sub16_rot->rotateY(sub_xAng[1]);
+  sub16_rot->rotateX(sub_yAng[0]); 
+
+  G4VSolid *FP_sub16 = new G4SubtractionSolid("FP_sub16", FP_sub15, Hole, sub16_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[0]), 0));
+
+  //sub17
+  G4RotationMatrix *sub17_rot = new G4RotationMatrix;
+  sub17_rot->rotateY(sub_xAng[0]);
+  sub17_rot->rotateX(sub_yAng[0]); 
+
+  G4VSolid *FP_sub17 = new G4SubtractionSolid("FP_sub17", FP_sub16, Hole, sub17_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[0]), 0));
+
+  //ROW 2
+
+  //sub21
+  G4RotationMatrix *sub21_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub21_rot->rotateY(sub_xAng[6]); //Rotation over y axiz corresponding to displacement in x direction
+  sub21_rot->rotateX(sub_yAng[1]); //Rotation over x axis corresponding to displacement in y direction
+
+  G4VSolid *FP_sub21 = new G4SubtractionSolid("FP_sub21", FP_sub17, Hole, sub21_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[1]), 0)); //FP: FullPlate
+
+  //sub22
+  G4RotationMatrix *sub22_rot = new G4RotationMatrix;
+  sub22_rot->rotateY(sub_xAng[5]);
+  sub22_rot->rotateX(sub_yAng[1]); 
+
+  G4VSolid *FP_sub22 = new G4SubtractionSolid("FP_sub22", FP_sub21, Hole, sub22_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[1]), 0));
+
+  //sub23
+  G4RotationMatrix *sub23_rot = new G4RotationMatrix;
+  sub23_rot->rotateY(sub_xAng[4]);
+  sub23_rot->rotateX(sub_yAng[1]); 
+
+  G4VSolid *FP_sub23 = new G4SubtractionSolid("FP_sub23", FP_sub22, Hole, sub23_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[1]), 0));
+
+  //sub24
+  G4RotationMatrix *sub24_rot = new G4RotationMatrix;
+  sub24_rot->rotateY(sub_xAng[3]);
+  sub24_rot->rotateX(sub_yAng[1]); 
+
+  G4VSolid *FP_sub24 = new G4SubtractionSolid("FP_sub24", FP_sub23, Hole, sub24_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[1]), 0));
+
+  //sub25
+  G4RotationMatrix *sub25_rot = new G4RotationMatrix;
+  sub25_rot->rotateY(sub_xAng[2]);
+  sub25_rot->rotateX(sub_yAng[1]); 
+
+  G4VSolid *FP_sub25 = new G4SubtractionSolid("FP_sub25", FP_sub24, Hole, sub25_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[1]), 0));
+
+  //sub26
+  G4RotationMatrix *sub26_rot = new G4RotationMatrix;
+  sub26_rot->rotateY(sub_xAng[1]);
+  sub26_rot->rotateX(sub_yAng[1]); 
+
+  G4VSolid *FP_sub26 = new G4SubtractionSolid("FP_sub26", FP_sub25, Hole, sub26_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[1]), 0));
+
+  //sub27
+  G4RotationMatrix *sub27_rot = new G4RotationMatrix;
+  sub27_rot->rotateY(sub_xAng[0]);
+  sub27_rot->rotateX(sub_yAng[1]); 
+
+  G4VSolid *FP_sub27 = new G4SubtractionSolid("FP_sub27", FP_sub26, Hole, sub27_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[1]), 0));
+
+  //ROW 3
+
+  //sub31
+  G4RotationMatrix *sub31_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub31_rot->rotateY(sub_xAng[6]); //Rotation over y axiz corresponding to displacement in x direction
+  sub31_rot->rotateX(sub_yAng[2]); //Rotation over x axis corresponding to displacement in y direction
+
+  G4VSolid *FP_sub31 = new G4SubtractionSolid("FP_sub31", FP_sub27, Hole, sub31_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[2]), 0)); //FP: FullPlate
+
+  //sub32
+  G4RotationMatrix *sub32_rot = new G4RotationMatrix;
+  sub32_rot->rotateY(sub_xAng[5]);
+  sub32_rot->rotateX(sub_yAng[2]); 
+
+  G4VSolid *FP_sub32 = new G4SubtractionSolid("FP_sub32", FP_sub31, Hole, sub32_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[2]), 0));
+
+  //sub33
+  G4RotationMatrix *sub33_rot = new G4RotationMatrix;
+  sub33_rot->rotateY(sub_xAng[4]);
+  sub33_rot->rotateX(sub_yAng[2]); 
+
+  G4VSolid *FP_sub33 = new G4SubtractionSolid("FP_sub33", FP_sub32, Hole, sub33_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[2]), 0));
+
+  //sub34
+  G4RotationMatrix *sub34_rot = new G4RotationMatrix;
+  sub34_rot->rotateY(sub_xAng[3]);
+  sub34_rot->rotateX(sub_yAng[2]); 
+
+  G4VSolid *FP_sub34 = new G4SubtractionSolid("FP_sub34", FP_sub33, Hole, sub34_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[2]), 0));
+
+  //sub35
+  G4RotationMatrix *sub35_rot = new G4RotationMatrix;
+  sub35_rot->rotateY(sub_xAng[2]);
+  sub35_rot->rotateX(sub_yAng[2]); 
+
+  G4VSolid *FP_sub35 = new G4SubtractionSolid("FP_sub35", FP_sub34, Hole, sub35_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[2]), 0));
+
+  //sub36
+  G4RotationMatrix *sub36_rot = new G4RotationMatrix;
+  sub36_rot->rotateY(sub_xAng[1]);
+  sub36_rot->rotateX(sub_yAng[2]); 
+
+  G4VSolid *FP_sub36 = new G4SubtractionSolid("FP_sub36", FP_sub35, Hole, sub36_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[2]), 0));
+
+  //sub37
+  G4RotationMatrix *sub37_rot = new G4RotationMatrix;
+  sub37_rot->rotateY(sub_xAng[0]);
+  sub37_rot->rotateX(sub_yAng[2]); 
+
+  G4VSolid *FP_sub37 = new G4SubtractionSolid("FP_sub37", FP_sub36, Hole, sub37_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[2]), 0));
+
+  //ROW 4
+
+  //sub41
+  G4RotationMatrix *sub41_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub41_rot->rotateY(sub_xAng[6]); //Rotation over y axiz corresponding to displacement in x direction
+  sub41_rot->rotateX(sub_yAng[3]); //Rotation over x axis corresponding to displacement in y direction
+
+  G4VSolid *FP_sub41 = new G4SubtractionSolid("FP_sub41", FP_sub37, Hole, sub41_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[3]), 0)); //FP: FullPlate
+
+  //sub42
+  G4RotationMatrix *sub42_rot = new G4RotationMatrix;
+  sub42_rot->rotateY(sub_xAng[5]);
+  sub42_rot->rotateX(sub_yAng[3]); 
+
+  G4VSolid *FP_sub42 = new G4SubtractionSolid("FP_sub42", FP_sub41, Hole, sub42_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[3]), 0));
+
+  //sub43
+  G4RotationMatrix *sub43_rot = new G4RotationMatrix;
+  sub43_rot->rotateY(sub_xAng[4]);
+  sub43_rot->rotateX(sub_yAng[3]); 
+
+  G4VSolid *FP_sub43 = new G4SubtractionSolid("FP_sub43", FP_sub42, Hole, sub43_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[3]), 0));
+
+  //sub44
+  G4RotationMatrix *sub44_rot = new G4RotationMatrix;
+  sub44_rot->rotateY(sub_xAng[3]);
+  sub44_rot->rotateX(sub_yAng[3]); 
+
+  G4VSolid *FP_sub44 = new G4SubtractionSolid("FP_sub44", FP_sub43, Hole, sub44_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[3]), 0));
+
+  //sub45
+  G4RotationMatrix *sub45_rot = new G4RotationMatrix;
+  sub45_rot->rotateY(sub_xAng[2]);
+  sub45_rot->rotateX(sub_yAng[3]); 
+
+  G4VSolid *FP_sub45 = new G4SubtractionSolid("FP_sub45", FP_sub44, Hole, sub45_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[3]), 0));
+
+  //sub46
+  G4RotationMatrix *sub46_rot = new G4RotationMatrix;
+  sub46_rot->rotateY(sub_xAng[1]);
+  sub46_rot->rotateX(sub_yAng[3]); 
+
+  G4VSolid *FP_sub46 = new G4SubtractionSolid("FP_sub46", FP_sub45, Hole, sub46_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[3]), 0));
+
+  //sub47
+  G4RotationMatrix *sub47_rot = new G4RotationMatrix;
+  sub47_rot->rotateY(sub_xAng[0]);
+  sub47_rot->rotateX(sub_yAng[3]); 
+
+  G4VSolid *FP_sub47 = new G4SubtractionSolid("FP_sub47", FP_sub46, Hole, sub47_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[3]), 0));
+
+  //ROW 5
+
+  //sub51
+  G4RotationMatrix *sub51_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub51_rot->rotateY(sub_xAng[6]); //Rotation over y axiz corresponding to displacement in x direction
+  sub51_rot->rotateX(sub_yAng[4]); //Rotation over x axis corresponding to displacement in y direction
+
+  G4VSolid *FP_sub51 = new G4SubtractionSolid("FP_sub51", FP_sub47, Hole, sub51_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[4]), 0)); //FP: FullPlate
+
+  //sub52
+  G4RotationMatrix *sub52_rot = new G4RotationMatrix;
+  sub52_rot->rotateY(sub_xAng[5]);
+  sub52_rot->rotateX(sub_yAng[4]); 
+
+  G4VSolid *FP_sub52 = new G4SubtractionSolid("FP_sub52", FP_sub51, Hole, sub52_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[4]), 0));
+
+  //sub53
+  G4RotationMatrix *sub53_rot = new G4RotationMatrix;
+  sub53_rot->rotateY(sub_xAng[4]);
+  sub53_rot->rotateX(sub_yAng[4]); 
+
+  G4VSolid *FP_sub53 = new G4SubtractionSolid("FP_sub53", FP_sub52, Hole, sub53_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[4]), 0));
+
+  //sub54
+  G4RotationMatrix *sub54_rot = new G4RotationMatrix;
+  sub54_rot->rotateY(sub_xAng[3]);
+  sub54_rot->rotateX(sub_yAng[4]); 
+
+  G4VSolid *FP_sub54 = new G4SubtractionSolid("FP_sub54", FP_sub53, Hole, sub54_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[4]), 0));
+
+  //sub55
+  G4RotationMatrix *sub55_rot = new G4RotationMatrix;
+  sub55_rot->rotateY(sub_xAng[2]);
+  sub55_rot->rotateX(sub_yAng[4]); 
+
+  G4VSolid *FP_sub55 = new G4SubtractionSolid("FP_sub55", FP_sub54, Hole, sub55_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[4]), 0));
+
+  //sub56
+  G4RotationMatrix *sub56_rot = new G4RotationMatrix;
+  sub56_rot->rotateY(sub_xAng[1]);
+  sub56_rot->rotateX(sub_yAng[4]); 
+
+  G4VSolid *FP_sub56 = new G4SubtractionSolid("FP_sub56", FP_sub55, Hole, sub56_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[4]), 0));
+
+  //sub57
+  G4RotationMatrix *sub57_rot = new G4RotationMatrix;
+  sub57_rot->rotateY(sub_xAng[0]);
+  sub57_rot->rotateX(sub_yAng[4]); 
+
+  G4VSolid *FP_sub57 = new G4SubtractionSolid("FP_sub57", FP_sub56, Hole, sub57_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[4]), 0));
+
+  //ROW 6
+
+  //sub61
+  G4RotationMatrix *sub61_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub61_rot->rotateY(sub_xAng[6]); //Rotation over y axiz corresponding to displacement in x direction
+  sub61_rot->rotateX(sub_yAng[5]); //Rotation over x axis corresponding to displacement in y direction
+
+  G4VSolid *FP_sub61 = new G4SubtractionSolid("FP_sub61", FP_sub57, Hole, sub61_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[5]), 0)); //FP: FullPlate
+
+  //sub62
+  G4RotationMatrix *sub62_rot = new G4RotationMatrix;
+  sub62_rot->rotateY(sub_xAng[5]);
+  sub62_rot->rotateX(sub_yAng[5]); 
+
+  G4VSolid *FP_sub62 = new G4SubtractionSolid("FP_sub62", FP_sub61, Hole, sub62_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[5]), 0));
+
+  //sub63
+  G4RotationMatrix *sub63_rot = new G4RotationMatrix;
+  sub63_rot->rotateY(sub_xAng[4]);
+  sub63_rot->rotateX(sub_yAng[5]); 
+
+  G4VSolid *FP_sub63 = new G4SubtractionSolid("FP_sub63", FP_sub62, Hole, sub63_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[5]), 0));
+
+  //sub64 - CENTER HOLE: using half size cylinder subtraction solid
+  G4RotationMatrix *sub64_rot = new G4RotationMatrix;
+  sub64_rot->rotateY(sub_xAng[3]);
+  sub64_rot->rotateX(sub_yAng[5]); 
+
+  G4VSolid *FP_sub64 = new G4SubtractionSolid("FP_sub64", FP_sub63, HoleCenter, sub64_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[5]), 0));
+
+  //sub65
+  G4RotationMatrix *sub65_rot = new G4RotationMatrix;
+  sub65_rot->rotateY(sub_xAng[2]);
+  sub65_rot->rotateX(sub_yAng[5]); 
+
+  G4VSolid *FP_sub65 = new G4SubtractionSolid("FP_sub65", FP_sub64, Hole, sub65_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[5]), 0));
+
+  //sub66
+  G4RotationMatrix *sub66_rot = new G4RotationMatrix;
+  sub66_rot->rotateY(sub_xAng[1]);
+  sub66_rot->rotateX(sub_yAng[5]); 
+
+  G4VSolid *FP_sub66 = new G4SubtractionSolid("FP_sub66", FP_sub65, Hole, sub66_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[5]), 0));
+
+  //sub67
+  G4RotationMatrix *sub67_rot = new G4RotationMatrix;
+  sub67_rot->rotateY(sub_xAng[0]);
+  sub67_rot->rotateX(sub_yAng[5]); 
+
+  G4VSolid *FP_sub67 = new G4SubtractionSolid("FP_sub67", FP_sub66, Hole, sub67_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[5]), 0));
+
+
+  //ROW 7
+
+  //sub71
+  G4RotationMatrix *sub71_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub71_rot->rotateY(sub_xAng[6]); //Rotation over y axiz corresponding to displacement in x direction
+  sub71_rot->rotateX(sub_yAng[6]); //Rotation over x axis corresponding to displacement in y direction
+
+  G4VSolid *FP_sub71 = new G4SubtractionSolid("FP_sub71", FP_sub67, Hole, sub71_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[6]), 0)); //FP: FullPlate
+
+  //sub72
+  G4RotationMatrix *sub72_rot = new G4RotationMatrix;
+  sub72_rot->rotateY(sub_xAng[5]);
+  sub72_rot->rotateX(sub_yAng[6]); 
+
+  G4VSolid *FP_sub72 = new G4SubtractionSolid("FP_sub72", FP_sub71, Hole, sub72_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[6]), 0));
+
+  //sub73
+  G4RotationMatrix *sub73_rot = new G4RotationMatrix;
+  sub73_rot->rotateY(sub_xAng[4]);
+  sub73_rot->rotateX(sub_yAng[6]); 
+
+  G4VSolid *FP_sub73 = new G4SubtractionSolid("FP_sub73", FP_sub72, Hole, sub73_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[6]), 0));
+
+  //sub74
+  G4RotationMatrix *sub74_rot = new G4RotationMatrix;
+  sub74_rot->rotateY(sub_xAng[3]);
+  sub74_rot->rotateX(sub_yAng[6]); 
+
+  G4VSolid *FP_sub74 = new G4SubtractionSolid("FP_sub74", FP_sub73, Hole, sub74_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[6]), 0));
+
+  //sub75
+  G4RotationMatrix *sub75_rot = new G4RotationMatrix;
+  sub75_rot->rotateY(sub_xAng[2]);
+  sub75_rot->rotateX(sub_yAng[6]); 
+
+  G4VSolid *FP_sub75 = new G4SubtractionSolid("FP_sub75", FP_sub74, Hole, sub75_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[6]), 0));
+
+  //sub76
+  G4RotationMatrix *sub76_rot = new G4RotationMatrix;
+  sub76_rot->rotateY(sub_xAng[1]);
+  sub76_rot->rotateX(sub_yAng[6]); 
+
+  G4VSolid *FP_sub76 = new G4SubtractionSolid("FP_sub76", FP_sub75, Hole, sub76_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[6]), 0));
+
+  //sub77
+  G4RotationMatrix *sub77_rot = new G4RotationMatrix;
+  sub77_rot->rotateY(sub_xAng[0]);
+  sub77_rot->rotateX(sub_yAng[6]); 
+
+  G4VSolid *FP_sub77 = new G4SubtractionSolid("FP_sub77", FP_sub76, Hole, sub77_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[6]), 0));
+
+  //ROW 8
+
+  //sub81
+  G4RotationMatrix *sub81_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub81_rot->rotateY(sub_xAng[6]); //Rotation over y axiz corresponding to displacement in x direction
+  sub81_rot->rotateX(sub_yAng[7]); //Rotation over x axis corresponding to displacement in y direction
+
+  G4VSolid *FP_sub81 = new G4SubtractionSolid("FP_sub81", FP_sub77, Hole, sub81_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[7]), 0)); //FP: FullPlate
+
+  //sub82
+  G4RotationMatrix *sub82_rot = new G4RotationMatrix;
+  sub82_rot->rotateY(sub_xAng[5]);
+  sub82_rot->rotateX(sub_yAng[7]); 
+
+  G4VSolid *FP_sub82 = new G4SubtractionSolid("FP_sub82", FP_sub81, Hole, sub82_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[7]), 0));
+
+  //sub83
+  G4RotationMatrix *sub83_rot = new G4RotationMatrix;
+  sub83_rot->rotateY(sub_xAng[4]);
+  sub83_rot->rotateX(sub_yAng[7]); 
+
+  G4VSolid *FP_sub83 = new G4SubtractionSolid("FP_sub83", FP_sub82, Hole, sub83_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[7]), 0));
+
+  //sub84
+  G4RotationMatrix *sub84_rot = new G4RotationMatrix;
+  sub84_rot->rotateY(sub_xAng[3]);
+  sub84_rot->rotateX(sub_yAng[7]); 
+
+  G4VSolid *FP_sub84 = new G4SubtractionSolid("FP_sub84", FP_sub83, Hole, sub84_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[7]), 0));
+
+  //sub85
+  G4RotationMatrix *sub85_rot = new G4RotationMatrix;
+  sub85_rot->rotateY(sub_xAng[2]);
+  sub85_rot->rotateX(sub_yAng[7]); 
+
+  G4VSolid *FP_sub85 = new G4SubtractionSolid("FP_sub85", FP_sub84, Hole, sub85_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[7]), 0));
+
+  //sub86
+  G4RotationMatrix *sub86_rot = new G4RotationMatrix;
+  sub86_rot->rotateY(sub_xAng[1]);
+  sub86_rot->rotateX(sub_yAng[7]); 
+
+  G4VSolid *FP_sub86 = new G4SubtractionSolid("FP_sub86", FP_sub85, Hole, sub86_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[7]), 0));
+
+  //sub87
+  G4RotationMatrix *sub87_rot = new G4RotationMatrix;
+  sub87_rot->rotateY(sub_xAng[0]);
+  sub87_rot->rotateX(sub_yAng[7]); 
+
+  G4VSolid *FP_sub87 = new G4SubtractionSolid("FP_sub87", FP_sub86, Hole, sub87_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[7]), 0));
+
+  //ROW 9
+
+  //sub91
+  G4RotationMatrix *sub91_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub91_rot->rotateY(sub_xAng[6]); //Rotation over y axiz corresponding to displacement in x direction
+  sub91_rot->rotateX(sub_yAng[8]); //Rotation over x axis corresponding to displacement in y direction
+
+  G4VSolid *FP_sub91 = new G4SubtractionSolid("FP_sub91", FP_sub87, Hole, sub91_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[8]), 0)); //FP: FullPlate
+
+  //sub92
+  G4RotationMatrix *sub92_rot = new G4RotationMatrix;
+  sub92_rot->rotateY(sub_xAng[5]);
+  sub92_rot->rotateX(sub_yAng[8]); 
+
+  G4VSolid *FP_sub92 = new G4SubtractionSolid("FP_sub92", FP_sub91, Hole, sub92_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[8]), 0));
+
+  //sub93
+  G4RotationMatrix *sub93_rot = new G4RotationMatrix;
+  sub93_rot->rotateY(sub_xAng[4]);
+  sub93_rot->rotateX(sub_yAng[8]); 
+
+  G4VSolid *FP_sub93 = new G4SubtractionSolid("FP_sub93", FP_sub92, Hole, sub93_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[8]), 0));
+
+  //sub94
+  G4RotationMatrix *sub94_rot = new G4RotationMatrix;
+  sub94_rot->rotateY(sub_xAng[3]);
+  sub94_rot->rotateX(sub_yAng[8]); 
+
+  G4VSolid *FP_sub94 = new G4SubtractionSolid("FP_sub94", FP_sub93, Hole, sub94_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[8]), 0));
+
+  //sub95
+  G4RotationMatrix *sub95_rot = new G4RotationMatrix;
+  sub95_rot->rotateY(sub_xAng[2]);
+  sub95_rot->rotateX(sub_yAng[8]); 
+
+  G4VSolid *FP_sub95 = new G4SubtractionSolid("FP_sub95", FP_sub94, Hole, sub95_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[8]), 0));
+
+  //sub96
+  G4RotationMatrix *sub96_rot = new G4RotationMatrix;
+  sub96_rot->rotateY(sub_xAng[1]);
+  sub96_rot->rotateX(sub_yAng[8]); 
+
+  G4VSolid *FP_sub96 = new G4SubtractionSolid("FP_sub96", FP_sub95, Hole, sub96_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[8]), 0));
+
+  //sub97
+  G4RotationMatrix *sub97_rot = new G4RotationMatrix;
+  sub97_rot->rotateY(sub_xAng[0]);
+  sub97_rot->rotateX(sub_yAng[8]); 
+
+  G4VSolid *FP_sub97 = new G4SubtractionSolid("FP_sub97", FP_sub96, Hole, sub97_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[8]), 0));
+
+  //ROW 10
+
+  //sub101
+  G4RotationMatrix *sub101_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub101_rot->rotateY(sub_xAng[6]); //Rotation over y axiz corresponding to displacement in x direction
+  sub101_rot->rotateX(sub_yAng[9]); //Rotation over x axis corresponding to displacement in y direction
+
+  G4VSolid *FP_sub101 = new G4SubtractionSolid("FP_sub101", FP_sub97, Hole, sub101_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[9]), 0)); //FP: FullPlate
+
+  //sub102
+  G4RotationMatrix *sub102_rot = new G4RotationMatrix;
+  sub102_rot->rotateY(sub_xAng[5]);
+  sub102_rot->rotateX(sub_yAng[9]); 
+
+  G4VSolid *FP_sub102 = new G4SubtractionSolid("FP_sub102", FP_sub101, Hole, sub102_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[9]), 0));
+
+  //sub103
+  G4RotationMatrix *sub103_rot = new G4RotationMatrix;
+  sub103_rot->rotateY(sub_xAng[4]);
+  sub103_rot->rotateX(sub_yAng[9]); 
+
+  G4VSolid *FP_sub103 = new G4SubtractionSolid("FP_sub103", FP_sub102, Hole, sub103_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[9]), 0));
+
+  //sub104
+  G4RotationMatrix *sub104_rot = new G4RotationMatrix;
+  sub104_rot->rotateY(sub_xAng[3]);
+  sub104_rot->rotateX(sub_yAng[9]); 
+
+  G4VSolid *FP_sub104 = new G4SubtractionSolid("FP_sub104", FP_sub103, Hole, sub104_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[9]), 0));
+
+  //sub105
+  G4RotationMatrix *sub105_rot = new G4RotationMatrix;
+  sub105_rot->rotateY(sub_xAng[2]);
+  sub105_rot->rotateX(sub_yAng[9]); 
+
+  G4VSolid *FP_sub105 = new G4SubtractionSolid("FP_sub105", FP_sub104, Hole, sub105_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[9]), 0));
+
+  //sub106
+  G4RotationMatrix *sub106_rot = new G4RotationMatrix;
+  sub106_rot->rotateY(sub_xAng[1]);
+  sub106_rot->rotateX(sub_yAng[9]); 
+
+  G4VSolid *FP_sub106 = new G4SubtractionSolid("FP_sub106", FP_sub105, Hole, sub106_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[9]), 0));
+
+  //sub107
+  G4RotationMatrix *sub107_rot = new G4RotationMatrix;
+  sub107_rot->rotateY(sub_xAng[0]);
+  sub107_rot->rotateX(sub_yAng[9]); 
+
+  G4VSolid *FP_sub107 = new G4SubtractionSolid("FP_sub107", FP_sub106, Hole, sub107_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[9]), 0));
+
+  //ROW 11
+
+  //sub111
+  G4RotationMatrix *sub111_rot = new G4RotationMatrix; //Rotation dims for the subtraction cylinder
+  sub111_rot->rotateY(sub_xAng[6]); //Rotation over y axiz corresponding to displacement in x direction
+  sub111_rot->rotateX(sub_yAng[10]); //Rotation over x axis corresponding to displacement in y direction
+
+  G4VSolid *FP_sub111 = new G4SubtractionSolid("FP_sub111", FP_sub107, Hole, sub111_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[10]), 0)); //FP: FullPlate
+
+  //sub112
+  G4RotationMatrix *sub112_rot = new G4RotationMatrix;
+  sub112_rot->rotateY(sub_xAng[5]);
+  sub112_rot->rotateX(sub_yAng[10]); 
+
+  G4VSolid *FP_sub112 = new G4SubtractionSolid("FP_sub112", FP_sub111, Hole, sub112_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[10]), 0));
+
+  //sub113
+  G4RotationMatrix *sub113_rot = new G4RotationMatrix;
+  sub113_rot->rotateY(sub_xAng[4]);
+  sub113_rot->rotateX(sub_yAng[10]); 
+
+  G4VSolid *FP_sub113 = new G4SubtractionSolid("FP_sub113", FP_sub112, Hole, sub113_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[10]), 0));
+
+  //sub114
+  G4RotationMatrix *sub114_rot = new G4RotationMatrix;
+  sub114_rot->rotateY(sub_xAng[3]);
+  sub114_rot->rotateX(sub_yAng[10]); 
+
+  G4VSolid *FP_sub114 = new G4SubtractionSolid("FP_sub114", FP_sub113, Hole, sub114_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[10]), 0));
+
+  //sub115
+  G4RotationMatrix *sub115_rot = new G4RotationMatrix;
+  sub115_rot->rotateY(sub_xAng[2]);
+  sub115_rot->rotateX(sub_yAng[10]); 
+
+  G4VSolid *FP_sub115 = new G4SubtractionSolid("FP_sub115", FP_sub114, Hole, sub115_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[10]), 0));
+
+  //sub116
+  G4RotationMatrix *sub116_rot = new G4RotationMatrix;
+  sub116_rot->rotateY(sub_xAng[1]);
+  sub116_rot->rotateX(sub_yAng[10]); 
+
+  G4VSolid *FP_sub116 = new G4SubtractionSolid("FP_sub116", FP_sub115, Hole, sub116_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[10]), 0));
+
+  //sub117
+  G4RotationMatrix *sub117_rot = new G4RotationMatrix;
+  sub117_rot->rotateY(sub_xAng[0]);
+  sub117_rot->rotateX(sub_yAng[10]); 
+
+  G4VSolid *SievePlate = new G4SubtractionSolid("SievePlate", FP_sub116, Hole, sub117_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[10]), 0));
+
+  G4LogicalVolume *SievePlateLog = new G4LogicalVolume(SievePlate, GetMaterial("Lead"), "SievePlate_log");
+
+  //Place completed plate
+  //new G4PVPlacement(SievePlateRot, G4ThreeVector(offset_z*sin(PlateAngDisp_theta), 0, offset_z*cos(PlateAngDisp_theta)), SievePlateLog, "SievePlateLog", worldlog, false, 0, 0);
+
+  new G4PVPlacement(SievePlateRot, G4ThreeVector(-(r48d48-30*cm-f48D48depth/2)*sin(f48D48ang), 0.0, (r48d48-30*cm-f48D48depth/2)*cos(f48D48ang)), SievePlateLog, "SievePlateLog", worldlog, 0, false, 0);
+
+
+  //SievePlateLog->SetVisAttributes( WireFrameVisAtt );
+
+  /*
+  //Place row and column of subtraction cylinders for debugging
+  G4LogicalVolume *HoleLog = new G4LogicalVolume(Hole, GetMaterial("Lead"), "Hole_log");
+
+  //Row 6
+  new G4PVPlacement(sub67_rot, G4ThreeVector(offset_z*tan(sub_xAng[0]), offset_z*tan(sub_yAng[5]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub66_rot, G4ThreeVector(offset_z*tan(sub_xAng[1]), offset_z*tan(sub_yAng[5]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub65_rot, G4ThreeVector(offset_z*tan(sub_xAng[2]), offset_z*tan(sub_yAng[5]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub64_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[5]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub63_rot, G4ThreeVector(offset_z*tan(sub_xAng[4]), offset_z*tan(sub_yAng[5]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub62_rot, G4ThreeVector(offset_z*tan(sub_xAng[5]), offset_z*tan(sub_yAng[5]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub61_rot, G4ThreeVector(offset_z*tan(sub_xAng[6]), offset_z*tan(sub_yAng[5]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+
+  //Column 4
+  new G4PVPlacement(sub14_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[0]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub24_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[1]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub34_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[2]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub44_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[3]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub54_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[4]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  //new G4PVPlacement(sub64_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[5]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub74_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[6]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub84_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[7]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub94_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[8]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub104_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[9]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+  new G4PVPlacement(sub114_rot, G4ThreeVector(offset_z*tan(sub_xAng[3]), offset_z*tan(sub_yAng[10]), 25), HoleLog, "HoleLog", worldlog, false, 0, ChkOverlaps);
+
+  */
+
+
+
 
   // Dipole gap shielding for GEnRP
 

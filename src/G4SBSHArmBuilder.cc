@@ -116,33 +116,33 @@ G4SBSHArmBuilder::~G4SBSHArmBuilder(){
 }
 
 void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
-  Exp_t exptype = fDetCon->fExpType;
-  Targ_t tgttype = fDetCon->fTargType;
+  G4SBS::Exp_t exptype = fDetCon->fExpType;
+  G4SBS::Targ_t tgttype = fDetCon->fTargType;
 
   // Build the 48D48 magnet and HCAL
   // All three types of experiments have a 48D48 magnet:
-  if( exptype != kC16 && exptype != kGEMHCtest ) {
+  if( exptype != G4SBS::kC16 && exptype != G4SBS::kGEMHCtest ) {
     Make48D48(worldlog, f48D48dist + f48D48depth/2. );
     if(fBuildSBSSieve)
       MakeSBSSieveSlit(worldlog);
     
     //MakeHCAL( worldlog, fHCALvertical_offset );
-    if( exptype != kA1n  && exptype != kTDIS && exptype != kNDVCS )
+    if( exptype != G4SBS::kA1n  && exptype != G4SBS::kTDIS && exptype != G4SBS::kNDVCS )
       MakeHCALV2( worldlog, fHCALvertical_offset );
   }
 
   // Now build special components for experiments
-  if( exptype == kSIDISExp) {
+  if( exptype == G4SBS::kSIDISExp) {
     //SIDIS experiment requires a RICH detector and a tracker for SBS: 
     MakeTracker(worldlog);
     //MakeRICH( worldlog );
     MakeRICH_new( worldlog );
-  } else if ( exptype == kGEp || exptype == kGEPpositron ) {
+  } else if ( exptype == G4SBS::kGEp || exptype == G4SBS::kGEPpositron ) {
     //Subsystems unique to the GEp experiment include FPP and BigCal:
     MakeGEpFPP(worldlog);
   }
 
-  if ( exptype == kA1n  || exptype == kTDIS || exptype == kNDVCS ) {
+  if ( exptype == G4SBS::kA1n  || exptype == G4SBS::kTDIS || exptype == G4SBS::kNDVCS ) {
     //A1n case is similar to SIDIS, except now we want to use the SBS in
     //"electron mode"; meaning we want to remove the aerogel from the RICH,
     //and replace the RICH gas with CO2, and we also want to have a non-zero
@@ -156,13 +156,13 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Build Test detector ****************************************
-  if( exptype == kC16 ) {
+  if( exptype == G4SBS::kC16 ) {
     MakeTest( worldlog );
   }
 
   // Build CDET (as needed)
-  //if( (exptype == kGMN || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
-  if( exptype == kGMN || exptype == kGEnRP ){
+  //if( (exptype == G4SBS::kGMN || exptype == G4SBS::kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
+  if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEnRP ){
     //plugging in CDET for GMn  
     G4double depth_HCal_shield = 7.62*cm; //3 inches
     G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
@@ -239,7 +239,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Build GEn-RP polarimeter
-  if( exptype == kGEnRP ) 
+  if( exptype == G4SBS::kGEnRP ) 
     MakePolarimeterGEnRP( worldlog );
 }
 
@@ -1223,7 +1223,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
   // Dipole gap shielding for GEnRP
 
-  if( fDetCon->fExpType == kGEnRP ){
+  if( fDetCon->fExpType == G4SBS::kGEnRP ){
     // Defining parametermes for rectangular portion
     G4double h_gapshield = 30.*cm;  // guesstimate
     G4double w_gapshield = 68.5*cm;  // guesstimate
@@ -1292,7 +1292,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 
 
-  if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGEPpositron ){
+  if( fDetCon->fExpType == G4SBS::kGEp || fDetCon->fExpType == G4SBS::kGEPpositron ){
     // Addtional iron inside the field region
 
     std::vector<G4TwoVector> leftverts;
@@ -1430,7 +1430,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     G4Tubs *facehole;
    
-    if( fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2 ){
+    if( fDetCon->fTargType == G4SBS::kLH2 || fDetCon->fTargType == G4SBS::kLD2 ){
       facehole = new G4Tubs("facehole", 0.0, 5.5*cm, 40.*cm, 0, 360*deg);
     } else {
       facehole = new G4Tubs("facehole", 0.0, 8*cm, 40.*cm, 0, 360*deg);
@@ -1452,7 +1452,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclampun, GetMaterial("Fer"), "frontclampLog", 0, 0, 0);
 
     G4LogicalVolume *frontextfaceLog= NULL;
-    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGMN || fDetCon->fExpType == kGEN || fDetCon->fExpType == kGEnRP ){
+    if( fDetCon->fExpType == G4SBS::kGEp || fDetCon->fExpType == G4SBS::kGMN || fDetCon->fExpType == G4SBS::kGEN || fDetCon->fExpType == G4SBS::kGEnRP ){
       frontextfaceLog = new G4LogicalVolume(extface_whole, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
     } else {
       frontextfaceLog = new G4LogicalVolume(extface, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
@@ -1507,7 +1507,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 		      frontextfaceLog, "extfacePhysical", motherlog, 0,false,0);
 
     // Back clamp is GEp only?
-    if( fDetCon->fExpType == kGEp ){
+    if( fDetCon->fExpType == G4SBS::kGEp ){
       new G4PVPlacement(rot, 
 			G4ThreeVector(-(r48d48+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 			backclampLog, "backclampPhysical", motherlog, 0,false,0);
@@ -1630,7 +1630,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     // G4double Trap_TL2 = 20.0*cm;
     // G4double Trap_alpha2 = angtrap;
 
-    if( fDetCon->fLeadOption == 1 &&  fDetCon->fExpType == kGEp ){
+    if( fDetCon->fLeadOption == 1 &&  fDetCon->fExpType == G4SBS::kGEp ){
       //Let us redefine this guy so that the sides make proper angles:
       G4double Trap_DZ = 13.6*cm;
       G4double Trap_Width1 = 15*cm;
@@ -2178,7 +2178,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     HCalScintSD = new G4SBSCalSD( HCalScintSDName, HCalScintCollName );
     sdman->AddNewDetector(HCalScintSD);
     (fDetCon->SDlist).insert(HCalScintSDName);
-    fDetCon->SDtype[HCalScintSDName] = kCAL;
+    fDetCon->SDtype[HCalScintSDName] = G4SBS::kCAL;
     (HCalScintSD->detmap).depth = 1;
 
     //This will be overridden if the command /g4sbs/threshold has been invoked for this detector:
@@ -2197,7 +2197,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     HCalSD = new G4SBSECalSD( HCalSDName, HCalCollName );
     sdman->AddNewDetector(HCalSD);
     (fDetCon->SDlist).insert(HCalSDName);
-    fDetCon->SDtype[HCalSDName] = kECAL;
+    fDetCon->SDtype[HCalSDName] = G4SBS::kECAL;
     (HCalSD->detmap).depth = 1;
   }
   log_PMTCathode->SetSensitiveDetector(HCalSD);
@@ -2220,7 +2220,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
       HCALboxSD = new G4SBSCalSD( sdname, collname );
       sdman->AddNewDetector( HCALboxSD );
       (fDetCon->SDlist).insert( sdname );
-      fDetCon->SDtype[sdname] = kCAL;
+      fDetCon->SDtype[sdname] = G4SBS::kCAL;
       (HCALboxSD->detmap).depth = 0;
       log_HCAL->SetSensitiveDetector( HCALboxSD );
     }
@@ -2476,7 +2476,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     HCalScintSD = new G4SBSCalSD( HCalScintSDname, HCalScintcollname );
     sdman->AddNewDetector(HCalScintSD);
     (fDetCon->SDlist).insert(HCalScintSDname);
-    fDetCon->SDtype[HCalScintSDname] = kCAL;
+    fDetCon->SDtype[HCalScintSDname] = G4SBS::kCAL;
     //fDetCon->SDarm[HCalScintSDname] = kHarm;
 
     (HCalScintSD->detmap).depth = 1;
@@ -2627,8 +2627,8 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     HCalSD = new G4SBSECalSD( HCalSDname, HCalcollname );
     sdman->AddNewDetector(HCalSD);
     (fDetCon->SDlist).insert(HCalSDname);
-    fDetCon->SDtype[HCalSDname] = kECAL;
-    //fDetCon->SDarm[HCalSDname] = kHarm;
+    fDetCon->SDtype[HCalSDname] = G4SBS::kECAL;
+    //fDetCon->SDarm[HCalSDname] = G4SBS::kHarm;
     (HCalSD->detmap).depth = 0;
   }
   logCathod->SetSensitiveDetector(HCalSD);
@@ -2681,7 +2681,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
       HCALboxSD = new G4SBSCalSD( sdname, collname );
       sdman->AddNewDetector( HCALboxSD );
       (fDetCon->SDlist).insert( sdname );
-      fDetCon->SDtype[sdname] = kCAL;
+      fDetCon->SDtype[sdname] = G4SBS::kCAL;
       (HCALboxSD->detmap).depth = 0;
       logCalo->SetSensitiveDetector( HCALboxSD );
     }
@@ -2882,8 +2882,8 @@ void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   MakeTracker( motherlog );
   MakeRICH_new( motherlog , true);
 
-  Exp_t exptype = fDetCon->fExpType;
-  if( exptype == kA1n ){ //HCAL AND LAC:
+  G4SBS::Exp_t exptype = fDetCon->fExpType;
+  if( exptype == G4SBS::kA1n ){ //HCAL AND LAC:
     MakeHCALV2( motherlog, fHCALvertical_offset );
     MakeLAC( motherlog );
   } else { //TDIS or NDVCS: LAC only:
@@ -3495,8 +3495,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool extended_s
     RICHSD = new G4SBSRICHSD( RICHSDname, RICHcollname );
     sdman->AddNewDetector( RICHSD );
     (fDetCon->SDlist).insert(RICHSDname);
-    fDetCon->SDtype[RICHSDname] = kRICH;
-    //fDetCon->SDarm[RICHSDname] = kHarm;
+    fDetCon->SDtype[RICHSDname] = G4SBS::kRICH;
+    //fDetCon->SDarm[RICHSDname] = G4SBS::kHarm;
 
     PMTcathode_log->SetSensitiveDetector( RICHSD ); //This assigns the sensitive detector type "RICHSD" to the logical volume PMTcathode!
     (RICHSD->detmap).depth = 1;
@@ -3769,7 +3769,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     cdet_sd = new G4SBSECalSD( sdname, collname );
     fDetCon->fSDman->AddNewDetector( cdet_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kECAL;
+    fDetCon->SDtype[sdname] = G4SBS::kECAL;
     (cdet_sd->detmap).depth = 0;
     CDET_pmt_cathode_log->SetSensitiveDetector( cdet_sd );
   }
@@ -3784,7 +3784,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     cdet_scint_sd = new G4SBSCalSD( sdname, collname );
     fDetCon->fSDman->AddNewDetector( cdet_scint_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kCAL;
+    fDetCon->SDtype[sdname] = G4SBS::kCAL;
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
 
@@ -4220,8 +4220,8 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     RICHSD = new G4SBSRICHSD( RICHSDname, RICHcollname );
     sdman->AddNewDetector( RICHSD );
     (fDetCon->SDlist).insert(RICHSDname);
-    fDetCon->SDtype[RICHSDname] = kRICH;
-    //fDetCon->SDarm[RICHSDname] = kHarm;
+    fDetCon->SDtype[RICHSDname] = G4SBS::kRICH;
+    //fDetCon->SDarm[RICHSDname] = G4SBS::kHarm;
 
     PMTcathode_log->SetSensitiveDetector( RICHSD ); //This assigns the sensitive detector type "RICHSD" to the logical volume PMTcathode!
     (RICHSD->detmap).depth = 1;
@@ -4664,7 +4664,7 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
     LACScintSD = new G4SBSCalSD( LACScintSDname, LACScintCollName );
     sdman->AddNewDetector( LACScintSD );
     (fDetCon->SDlist).insert(LACScintSDname);
-    fDetCon->SDtype[LACScintSDname] = kCAL;
+    fDetCon->SDtype[LACScintSDname] = G4SBS::kCAL;
     (LACScintSD->detmap).depth = 0;
 
     fDetCon->SetTimeWindowAndThreshold( LACScintSDname, 10.0*MeV, 100.0*ns );
@@ -4981,7 +4981,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     
     sdman->AddNewDetector( ActAnScintSD );
     (fDetCon->SDlist).insert( ActAnScintSDname );
-    fDetCon->SDtype[ActAnScintSDname] = kCAL;
+    fDetCon->SDtype[ActAnScintSDname] = G4SBS::kCAL;
     (ActAnScintSD->detmap).depth = 0;
     
     fDetCon->SetTimeWindowAndThreshold( ActAnScintSDname, ethresh_default, timewindow_default );
@@ -5095,7 +5095,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
       
       sdman->AddNewDetector( PRPolScintBSSD );
       (fDetCon->SDlist).insert( PRPolScintBSSDname );
-      fDetCon->SDtype[PRPolScintBSSDname] = kCAL;
+      fDetCon->SDtype[PRPolScintBSSDname] = G4SBS::kCAL;
       (PRPolScintBSSD->detmap).depth = 0;
       
       fDetCon->SetTimeWindowAndThreshold( PRPolScintBSSDname, ethresh_default, timewindow_default );
@@ -5136,7 +5136,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     
     sdman->AddNewDetector( PRPolScintFSSD );
     (fDetCon->SDlist).insert( PRPolScintFSSDname );
-    fDetCon->SDtype[PRPolScintFSSDname] = kCAL;
+    fDetCon->SDtype[PRPolScintFSSDname] = G4SBS::kCAL;
     (PRPolScintFSSD->detmap).depth = 0;
 
     fDetCon->SetTimeWindowAndThreshold( PRPolScintFSSDname, ethresh_default, timewindow_default );
@@ -5203,7 +5203,7 @@ void G4SBSHArmBuilder::MakeNeutronVeto(G4LogicalVolume* worldlog, G4double dist_
     veto_scint_sd = new G4SBSCalSD( sdname, collname );
     fDetCon->fSDman->AddNewDetector( veto_scint_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kCAL;
+    fDetCon->SDtype[sdname] = G4SBS::kCAL;
     (veto_scint_sd->detmap).depth = 1;
     VetoScintLog->SetSensitiveDetector( veto_scint_sd );
 	

@@ -50,7 +50,7 @@ public:
   void BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_PickupCoils(G4LogicalVolume *motherLog); 
   
-  void SetTarget(Targ_t t){fTargType = t;}
+  void SetTarget(G4SBS::Targ_t t){fTargType = t;}
   void SetTargLen(G4double len){ fTargLen = len;}
   void SetTargDen(G4double den){ fTargDen = den;} //Currently, fTargDen has NO effect!
   void SetTargDiameter(G4double D){ fTargDiameter = D; }
@@ -106,7 +106,7 @@ private:
   G4double fRadThick; //Thickness in units of X0;
   G4double fRadZoffset;  //Distance upstream of target
   
-  Targ_t fTargType;
+  G4SBS::Targ_t fTargType;
 };
 
 #endif//__G4SBSTargetBuilder_hh

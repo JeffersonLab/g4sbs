@@ -50,8 +50,9 @@ private:
   G4SBSSteppingAction *fstepact;
   
 
-  Exp_t fExpType;
+  G4SBS::Exp_t fExpType;
   
+  G4UIcmdWithAnInteger *printCmd;  
   G4UIcmdWithAnInteger *runCmd;
   G4UIcmdWithAString   *fileCmd;
   G4UIcmdWithAString   *tgtCmd;
@@ -190,7 +191,14 @@ private:
   // D. Flay 7/28/20
   // command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
   G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd;  
-  
+ 
+  // D. Flay 8/25/20 
+  // command to set the beam offset 
+  G4UIcmdWithADoubleAndUnit *beamOffsetXcmd; 
+  G4UIcmdWithADoubleAndUnit *beamOffsetYcmd;
+  // command to enable the beam diffuser 
+  G4UIcmdWithABool *beamDiffuserCmd;  
+ 
   G4UIcmdWithABool *BLneutronDetsCmd;
   G4UIcmdWithABool *GEMfrontendCmd;
   

@@ -1,5 +1,7 @@
-## Configure G4SBS for gen (Q^2 = 10 GeV^2)
-/g4sbs/filename        gen_10GeV2.root   ## Output rootfile
+#/control/execute gen_10GeV2.mac
+
+## Configure G4SBS for gen (Q^2 = 1.46 GeV^2)
+/g4sbs/filename        gen_1.5GeV2.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gen
@@ -8,7 +10,7 @@
 /g4sbs/target          3He
 /g4sbs/targpres        10 atmosphere     ## Target pressure
 /g4sbs/targlen         55.0 cm           ## Target Length
-/g4sbs/targgenhhconfig 1018              ## Q2 = 10.18 GeV^2 
+/g4sbs/targgenhhconfig 146               ## Q2 = 1.46 GeV^2 
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator
@@ -16,11 +18,11 @@
 /g4sbs/beamcur         60.0 muA
 /g4sbs/rasterx         4.0 mm
 /g4sbs/rastery         4.0 mm
-/g4sbs/beamoffsetx     0.0 mm 
+/g4sbs/beamoffsetx     0.0 mm
 /g4sbs/beamoffsety     0.0 mm
-/g4sbs/beamE           8.8 GeV
-/g4sbs/thmin           24.0 deg
-/g4sbs/thmax           44.0 deg
+/g4sbs/beamE           2.2 GeV
+/g4sbs/thmin           30.0 deg
+/g4sbs/thmax           50.0 deg
 /g4sbs/phmin           -50.0 deg
 /g4sbs/phmax           50.0 deg
 
@@ -37,23 +39,14 @@
 
 ## Configure the magnets
 /g4sbs/bbfield         1
-/g4sbs/sbsmagfield 1.4 tesla
 /g4sbs/48d48field      1
-/g4sbs/bbang           34.0 deg
-/g4sbs/bbdist          1.55 m
-/g4sbs/sbsang          17.5 deg
-/g4sbs/48D48dist       2.8 m 
-/g4sbs/uselead	       0
+/g4sbs/bbang           40.0 deg
+/g4sbs/bbdist          1.5 m
+/g4sbs/sbsang          39.4 deg
+/g4sbs/48D48dist       2.8 m
 
 ## Optional detectors 
-/g4sbs/beamDiffuserEnable false
-
-## Run 100 events
-#/g4sbs/run             100
-
-
-## Optional detectors 
-/g4sbs/beamDiffuserEnable true 
+/g4sbs/beamDiffuserEnable false 
 
 /g4sbs/totalabs true
 
@@ -95,7 +88,10 @@
 # /vis/viewer/zoom 2.5
 #
 # Specify style (surface or wireframe):
-/vis/viewer/set/style surface
+# /vis/viewer/set/style surface
+/vis/viewer/set/style wireframe
+/vis/viewer/set/auxiliaryEdge true
+/vis/viewer/set/lineSegmentsPerCircle 10
 #
 # Draw coordinate axes:
 #/vis/scene/add/axes 0 0 0 1 m

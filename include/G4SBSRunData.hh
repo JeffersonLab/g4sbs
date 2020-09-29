@@ -63,7 +63,7 @@ public:
   
   void CalcNormalization();
   
-  void AddMagData(filedata_t d){fMagData.push_back(d);}
+  void AddMagData(G4SBS::filedata_t d){fMagData.push_back(d);}
 
   /**
    * \fn FindExternalMacros
@@ -125,7 +125,7 @@ public:
   std::vector<G4SBSTextFile> fExternalMacros; ///< External macros called by
                                               ///< the pre-init or post macro
 
-  std::vector<filedata_t> fMagData;
+  std::vector<G4SBS::filedata_t> fMagData;
 
   ClassDef(G4SBSRunData, 1);
 };

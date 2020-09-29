@@ -585,7 +585,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
     RICHSD = new G4SBSRICHSD( RICHSDname, RICHcollname );
     sdman->AddNewDetector( RICHSD );
     fDetCon->SDlist.insert(RICHSDname);
-    fDetCon->SDtype[RICHSDname] = kRICH; 
+    fDetCon->SDtype[RICHSDname] = G4SBS::kRICH; 
 
     GC_PMT_log->SetSensitiveDetector( RICHSD );
 
@@ -624,7 +624,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
       CalSD = new G4SBSCalSD( CalSDname, Calcollname );
       sdman->AddNewDetector( CalSD );
       fDetCon->SDlist.insert(CalSDname);
-      fDetCon->SDtype[CalSDname] = kCAL; 
+      fDetCon->SDtype[CalSDname] = G4SBS::kCAL; 
       
       GC_PMT_Glass_log->SetSensitiveDetector( CalSD );
       fDetCon->InsertSDboundaryVolume( GC_Tank_log->GetName(), CalSDname );

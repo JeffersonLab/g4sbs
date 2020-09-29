@@ -23,6 +23,8 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SBSCalSD.hh"
 
+#include "G4SBSBDParameterisation.hh"
+#include "G4SBSBeamDiffuserSD.hh"
 
 G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   assert(dc);
@@ -33,12 +35,12 @@ G4SBSBeamlineBuilder::~G4SBSBeamlineBuilder(){;}
 void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   
   double beamheight = 10.0*12*2.54*cm; // 10 feet off the ground
-  
+ 
   // EFuchey 2017/03/29: organized better this with a switch instead of an endless chain of if...  else...
   //if( (fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2) ){
   switch(fDetCon->fExpType){
-  case(kGEp):
-  case(kGEPpositron):
+  case(G4SBS::kGEp):
+  case(G4SBS::kGEPpositron):
     printf("GEp experiment: forcing beamline configuration 1 \n");
     fDetCon->fBeamlineConf = 1;
     MakeGEpBeamline(worldlog);
@@ -46,42 +48,43 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
       MakeGEpLead(worldlog);
     }
     break;
-  case(kGMN):// GMn
+  case(G4SBS::kGMN):// GMn
     MakeGMnBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeGMnLead(worldlog);
     }
     break;
-  case(kGEnRP):// GEnRP
+  case(G4SBS::kGEnRP):// GEnRP
     MakeGMnBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeGMnLead(worldlog);
       MakeGEnRPLead(worldlog);
     }
     break;
-  case(kGEN):// GEn
+  case(G4SBS::kGEN):// GEn
     printf("GEn experiment: forcing beamline configuration 2 \n");
     fDetCon->fBeamlineConf = 2;
     Make3HeBeamline(worldlog);
     MakeGEnClamp(worldlog);
+    // if(bdEnable) MakeBeamDiffuser(worldlog);
+    // MakeBeamExit(worldlog);    
     if(fDetCon->fLeadOption == 1){
       MakeGEnLead(worldlog);
     }
     break;
-  case(kSIDISExp):// SIDIS
+  case(G4SBS::kSIDISExp):// SIDIS
     Make3HeBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       MakeSIDISLead(worldlog);
     }
     break;
-  case(kGEMHCtest):// Hall C GEM test
+  case(G4SBS::kGEMHCtest):// Hall C GEM test
     MakeGMnBeamline(worldlog);
     break;  
   default:
     MakeDefaultBeamline(worldlog);
     break;
   }
-  
   
   double floorthick = 1.0*m;
   G4Tubs *floor_tube = new G4Tubs("floor_tube", 0.0, 30*m, floorthick/2, 0.*deg, 360.*deg );
@@ -391,16 +394,20 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   Z = 207.144*inch + 41.0*inch + tDzz - TargetCenter_zoffset;
   new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TMV9_log, "Extended_Vac2", worldlog, false, 0 , ChkOverlaps );
   new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 , ChkOverlaps );
+   
+  // G4bool bdEnable = fDetCon->GetBeamDiffuserEnable();  // is the beam diffuser + beam dump enabled? 
 
   // For CPU speed, extend vacuum all the way to the edge of the "world" volume, so that we don't track beam electrons in air beyond interesting region.
-  G4double Zstop = 30.0*m;
+  G4double Zstop  = 30.0*m;
+  // if(bdEnable) Zstop -= 5.0*m; // allow space for the beam diffuser + beam dump 
+ 
   G4double Zstart = Z + tDzz;
-  
+
   G4double Zwidth = (Zstop-Zstart);
   G4Tubs *FakeVacuumExtension = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
   G4LogicalVolume *FakeVacuumExtension_log = new G4LogicalVolume( FakeVacuumExtension, GetMaterial("Vacuum"), "FakeVacuumExtension_log" );
   FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,0.5*(Zstop+Zstart)), FakeVacuumExtension_log, "FakeVacuumExtension_phys", worldlog,false,0 , ChkOverlaps);
+ //  new G4PVPlacement( 0, G4ThreeVector(0,0,0.5*(Zstop+Zstart)), FakeVacuumExtension_log, "FakeVacuumExtension_phys", worldlog,false,0 , ChkOverlaps);
 
   //-----------------------------------------------------
   //       magnetic tubes
@@ -1033,16 +1040,16 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     G4SBSCalSD *GEMElecSD = NULL;
     
     switch(fDetCon->fExpType){
-    case(kGEp):
+    case(G4SBS::kGEp):
       GEMElectronicsname += "GEp";
       GEMElectronicscollname += "GEp";
       break;
-    case(kGMN):// GMn
+    case(G4SBS::kGMN):// GMn
       //case(kGEN): //
       GEMElectronicsname += "GMn";
       GEMElectronicscollname += "GMn";
       break;
-    case(kGEnRP):// GEnRP
+    case(G4SBS::kGEnRP):// GEnRP
       GEMElectronicsname += "GMn";
       GEMElectronicscollname += "GMn";
       break;
@@ -1057,7 +1064,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
       fDetCon->fSDman->AddNewDetector(GEMElecSD);
       (fDetCon->SDlist).insert(GEMElectronicsname);
-      fDetCon->SDtype[GEMElectronicsname] = kCAL;
+      fDetCon->SDtype[GEMElectronicsname] = G4SBS::kCAL;
       (GEMElecSD->detmap).depth = 0;
     }
     Electronics_log->SetSensitiveDetector( GEMElecSD );
@@ -1159,6 +1166,8 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   new G4PVPlacement( 0, pos_temp, upstream_beampipe_vac_log, "upstream_beampipe_vac_phys", worldlog, false, 0 , ChkOverlaps );
   
   MakeCommonExitBeamline(worldlog);
+  // MakeBeamExit(worldlog); // Added by D Flay (Sept 2020) 
+ 
   /*
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
   G4double z_spool_piece = 58.44*inch - TargetCenter_zoffset;
@@ -1836,6 +1845,7 @@ void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
   //}
    
   MakeCommonExitBeamline(worldlog);
+  // MakeBeamExit(worldlog); // Added by D Flay (Sept 2020)  
   
   /*
   // EFuchey: 2017/02/14: add the possibility to change the first parameters for the beam line polycone 
@@ -1975,15 +1985,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   entLog_cut->SetVisAttributes(pipeVisAtt);
   */
 
-  //MakeCommonExitBeamline(worldlog);
-  
+  // MakeCommonExitBeamline(worldlog);
  
-
-
-
-
-
-
   ////BEGIN EXIT BEAMLINE UPDATE FOR SIDIS - S.SEEDS - MOST RECENT UPDATE: 7.24.20
   ////In progress - change visuals, and verify P1initPlacement_z
   ////Opted to leave out 80/20 rails and related fixtures as a first approximation
@@ -3533,10 +3536,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+2*P5ringA_L+2*P5ringB_L+2*P5ringC_L+2*P5ringD_L+2*P5ringE_L+P5ringF_L), P5ringF_vacLog, "P5ringF_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
   P5ringF_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
-
-
-  //Welded bellows and extended beamline out to dump from commonexitbeamline placed in location as described there. Will need to check position relative to target and mating with modified beamline geometry described from P1 - P4 at P4 end. 
-
+  
   //Visuals
   G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.3,0.3,0.3));
   //G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
@@ -3544,9 +3544,9 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   Vacuum_visatt->SetVisibility(false);
   G4VisAttributes *SteelColor = new G4VisAttributes( G4Colour( 0.75, 0.75, 0.75 ) );
   G4VisAttributes *CopperColor = new G4VisAttributes( G4Colour( 0.7, 0.3, 0.3 ) );
-  
+
   G4double TargetCenter_zoffset = 6.50*inch;
-  
+
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
   G4double z_spool_piece = 58.44*inch - TargetCenter_zoffset;
   if(fDetCon->fBeamlineConf>2)z_spool_piece = 27.903*inch;
@@ -3557,35 +3557,38 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   G4double X=0.0, Y=0.0, Z=0.0;
   G4ThreeVector zero(0.0, 0.0, 0.0);
-  
+
   G4double dz_welded_bellows = 207.144*inch - z_welded_bellows - TargetCenter_zoffset; // = =5.512 inches
-  
+
   G4double Rin = 11.750/2.0*inch;
   G4double Rout = 14.0/2.0*inch;
   G4double Thick = 1.12*inch;
+
+  // Welded bellows and extended beamline out to dump from commonexitbeamline placed in location as described there.
+  // Will need to check position relative to target and mating with modified beamline geometry described from P1 - P4 at P4 end. 
   
   G4Tubs *WB_Flange = new G4Tubs( "WB_Flange", Rin, Rout, Thick/2.0, 0.0, twopi );
   G4LogicalVolume *WB_Flange_log = new G4LogicalVolume( WB_Flange, GetMaterial("Stainless_Steel"), "WB_Flange_log" );
 
   WB_Flange_log->SetVisAttributes( SteelColor );
-    
+
   Z = z_welded_bellows + Thick/2.0;
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Flange_log, "WB_Flange1_phys", worldlog, false, 0 , ChkOverlaps );
 
   Z = z_welded_bellows + dz_welded_bellows - Thick/2.0;
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Flange_log, "WB_Flange2_phys", worldlog, false, 1 , ChkOverlaps );
-  
+
   Rout = Rin + 0.125*inch;
   Thick = dz_welded_bellows - 2*1.12*inch;
   G4Tubs *WB_Bellows = new G4Tubs( "WB_Bellows", Rin, Rout, Thick/2.0, 0.0, twopi );
   G4LogicalVolume *WB_Bellows_log = new G4LogicalVolume(WB_Bellows, GetMaterial("Stainless_Steel"), "WB_Bellows_log" );
 
   WB_Bellows_log->SetVisAttributes( SteelColor );
-  
+
   Z = z_welded_bellows + 1.12*inch + Thick/2.0;
-  
+
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Bellows_log, "WB_Bellows_phys", worldlog, false, 0 , ChkOverlaps );
-  
+
   Rin = 0.0;
   Rout = 11.750/2.0*inch;
   Thick = dz_welded_bellows;
@@ -3594,75 +3597,100 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4LogicalVolume *WB_Vacuum_log = new G4LogicalVolume(WB_Vacuum, GetMaterial("Vacuum"), "WB_Vacuum_log" );
 
   WB_Vacuum_log->SetVisAttributes( Vacuum_visatt );
-  
+
   Z = z_welded_bellows + dz_welded_bellows/2.0;
 
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Vacuum_log, "WB_Vacuum_phys", worldlog, false, 0 , ChkOverlaps );
+
+  // Exit beam line piping: use this instead of the commented out section below.  Added by D Flay (Sept 2020)
+  MakeBeamExit(worldlog);  
+
+  //************************* START OF PIPING TO DUMP *************************// 
+
+//  
+//  G4double tRmin, tRmax, tDzz, pDz, pRmax1, pRmax2, tSPhi, tDphi, pRmin1, pRmin2;
+//  tSPhi = 0.0;
+//  tDphi = twopi;
+//  
+//  tRmin = 0.5*12.0*2.54*cm; 
+//  tRmax = 13.0*2.54*0.5*cm;
+//  tDzz  = 0.5*41.0*2.54*cm;
+//  G4Tubs *TBL9_tube = new G4Tubs("TBL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+//  // Fill with vacuum
+//  tRmin = 0.0*cm;
+//  tRmax = 0.5*12.0*2.54*cm;
+//  G4Tubs *TVL9_tube = new G4Tubs("TVL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+//  // Convert into logical volumes
+//  G4LogicalVolume *TBL9_log = new G4LogicalVolume( TBL9_tube, GetMaterial("Aluminum"), "TBL9_log" );
+//  G4LogicalVolume *TVL9_log = new G4LogicalVolume( TVL9_tube, GetMaterial("Vacuum"), "TVL9_log" );
+//
+//  TBL9_log->SetVisAttributes( Aluminum );
+//  TVL9_log->SetVisAttributes( Vacuum_visatt );
+//  
+//  // Then place the vacuum inside the Al Tube
+//  //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54*0.5)*cm;
+//  Z = 207.144*inch + tDzz - TargetCenter_zoffset;
+//  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TVL9_log, "Extended_Vac1", worldlog, false, 0 , ChkOverlaps );
+//  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL9_log, "Extended_Al1", worldlog, false, 0 , ChkOverlaps );
+//
+//  tRmin = 0.5*24.0*2.54*cm;
+//  tRmax = 25.0*2.54*0.5*cm;
+//  tDzz  = 0.5*217.0*2.54*cm;
+//  G4Tubs *TML9_tube = new G4Tubs( "TML9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+//  // Fill with vacuum
+//  tRmin = 0.0*cm;
+//  tRmax = 0.5*24.0*2.54*cm;
+//  G4Tubs *TMV9_tube = new G4Tubs("TMV9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+//  // Convert into logical volumes
+//  G4LogicalVolume *TML9_log = new G4LogicalVolume( TML9_tube, GetMaterial("Aluminum"), "TML9_log" );
+//  G4LogicalVolume *TMV9_log = new G4LogicalVolume( TMV9_tube, GetMaterial("Vacuum"), "TMV9_log" );
+//
+//  TML9_log->SetVisAttributes( Aluminum );
+//  TMV9_log->SetVisAttributes( Vacuum_visatt );
+//  // Then place vacuum inside of Al tube
+//  //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54 + 0.5*217.0*2.54)*cm;
+//  Z = 207.144*inch + 41.0*inch + tDzz - TargetCenter_zoffset;
+//  // commented out by D Flay 9/23/20 
+//  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TMV9_log, "Extended_Vac2", worldlog, false, 0 , ChkOverlaps );
+//  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 , ChkOverlaps );
+//
+//  // For CPU speed, extend vacuum all the way to the edge of the "world" volume, 
+//  // so that we don't track beam electrons in air beyond interesting region.
+//  G4double Zstop = 30.0*m;
+//  // if(bdEnable) Zstop -= 5.0*m; 
+//  G4double Zstart = Z + tDzz;
+//
+//  // G4double dz_df=0;
+//  // if(bdEnable) dz_df = 15.0*cm;
+// 
+//  G4VisAttributes *Vacuum_visatt_df = new G4VisAttributes();
+//  Vacuum_visatt_df->SetColour( G4Colour::White() ); 
+//  Vacuum_visatt_df->SetForceWireframe(true); 
+// 
+//  G4double Zwidth = (Zstop-Zstart);
+//  // G4double Zwidth = (Zstop-Zstart) - dz_df;
+//
+//  G4Tubs *FakeVacuumExtension              = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
+//  G4LogicalVolume *FakeVacuumExtension_log = new G4LogicalVolume( FakeVacuumExtension, GetMaterial("Vacuum"), "FakeVacuumExtension_log" );
+//  FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt );
+//  // placement
+//  G4double x_vfe = 0.*m;  
+//  G4double y_vfe = 0.*m;  
+//  G4double z_vfe = 0.5*(Zstop+Zstart);  
+//  new G4PVPlacement(0, 
+//                    // G4ThreeVector(0,0,0.5*(Zstop+Zstart)+dz_df),
+//                    G4ThreeVector(x_vfe,y_vfe,z_vfe),
+//                    FakeVacuumExtension_log,
+//                    "FakeVacuumExtension_phys",
+//                    worldlog,
+//                    false,
+//                    0, 
+//                    ChkOverlaps);
+
+  //************************* END OF PIPING TO DUMP *************************// 
   
-  G4double tRmin, tRmax, tDzz, pDz, pRmax1, pRmax2, tSPhi, tDphi, pRmin1, pRmin2;
-  tSPhi = 0.0;
-  tDphi = twopi;
-  
-  tRmin = 0.5*12.0*2.54*cm; 
-  tRmax = 13.0*2.54*0.5*cm;
-  tDzz  = 0.5*41.0*2.54*cm;
-  G4Tubs *TBL9_tube = new G4Tubs("TBL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Fill with vacuum
-  tRmin = 0.0*cm;
-  tRmax = 0.5*12.0*2.54*cm;
-  G4Tubs *TVL9_tube = new G4Tubs("TVL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Convert into logical volumes
-  G4LogicalVolume *TBL9_log = new G4LogicalVolume( TBL9_tube, GetMaterial("Aluminum"), "TBL9_log" );
-  G4LogicalVolume *TVL9_log = new G4LogicalVolume( TVL9_tube, GetMaterial("Vacuum"), "TVL9_log" );
-
-  TBL9_log->SetVisAttributes( Aluminum );
-  TVL9_log->SetVisAttributes( Vacuum_visatt );
-  
-  // Then place the vacuum inside the Al Tube
-  //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54*0.5)*cm;
-  Z = 207.144*inch + tDzz - TargetCenter_zoffset;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TVL9_log, "Extended_Vac1", worldlog, false, 0 , ChkOverlaps );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL9_log, "Extended_Al1", worldlog, false, 0 , ChkOverlaps );
-
-  tRmin = 0.5*24.0*2.54*cm;
-  tRmax = 25.0*2.54*0.5*cm;
-  tDzz  = 0.5*217.0*2.54*cm;
-  G4Tubs *TML9_tube = new G4Tubs( "TML9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Fill with vacuum
-  tRmin = 0.0*cm;
-  tRmax = 0.5*24.0*2.54*cm;
-  G4Tubs *TMV9_tube = new G4Tubs("TMV9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Convert into logical volumes
-  G4LogicalVolume *TML9_log = new G4LogicalVolume( TML9_tube, GetMaterial("Aluminum"), "TML9_log" );
-  G4LogicalVolume *TMV9_log = new G4LogicalVolume( TMV9_tube, GetMaterial("Vacuum"), "TMV9_log" );
-
-  TML9_log->SetVisAttributes( Aluminum );
-  TMV9_log->SetVisAttributes( Vacuum_visatt );
-  // Then place vacuum inside of Al tube
-  //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54 + 0.5*217.0*2.54)*cm;
-  Z = 207.144*inch + 41.0*inch + tDzz - TargetCenter_zoffset;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TMV9_log, "Extended_Vac2", worldlog, false, 0 , ChkOverlaps );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 , ChkOverlaps );
-
-  // For CPU speed, extend vacuum all the way to the edge of the "world" volume, so that we don't track beam electrons in air beyond interesting region.
-  G4double Zstop = 30.0*m;
-  G4double Zstart = Z + tDzz;
-  
-  G4double Zwidth = (Zstop-Zstart);
-  G4Tubs *FakeVacuumExtension = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
-  G4LogicalVolume *FakeVacuumExtension_log = new G4LogicalVolume( FakeVacuumExtension, GetMaterial("Vacuum"), "FakeVacuumExtension_log" );
-  FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,0.5*(Zstop+Zstart)), FakeVacuumExtension_log, "FakeVacuumExtension_phys", worldlog,false,0 , ChkOverlaps);
-
-
-
-
-
-  
-  //Ripping both corrector magnets code from common exit beamline. Foregoing placement vector Z component - will define manually with measurements from cad file.
-
-
-
+  //Ripping both corrector magnets code from common exit beamline. 
+  // Foregoing placement vector Z component - will define manually with measurements from cad file.
 
   //Next, corrector magnets:
   // Define some dimensions that are going to be useful to define the distances
@@ -3863,27 +3891,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z-DSCoil_offset_z), DSpole_log, "DSpole_phys_left", worldlog, false, 0 , ChkOverlaps );
   new G4PVPlacement( 0, G4ThreeVector(-X,Y,Z-DSCoil_offset_z), DSpole_log, "DSpole_phys_right", worldlog, false, 1 , ChkOverlaps );
 
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*
 //Lead shielding for GEn/SIDIS
@@ -3999,7 +4007,7 @@ void G4SBSBeamlineBuilder::MakeSIDISLead(G4LogicalVolume *worldlog){
 
 // This is the "default" beam line (for C16)
 void G4SBSBeamlineBuilder::MakeDefaultBeamline(G4LogicalVolume *worldlog){// Old beam line...
-  Targ_t targtype = fDetCon->fTargType;
+  G4SBS::Targ_t targtype = fDetCon->fTargType;
 
   double swallrad = 1.143*m/2;
   double swallrad_inner = 1.041/2.0*m; 
@@ -4752,5 +4760,910 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
 void G4SBSBeamlineBuilder::MakeToyBeamline(G4LogicalVolume *motherlog){ //This is the "toy" beamline to go with the "toy" scattering chamber:
 
   // Don't do anything yet, just make the code compile;
+}
+
+void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother,G4double dz){
+   // build the Hall A beam dump 
+   // Added by D. Flay (JLab) in Sept 2020 
+
+   G4double inch = 2.54*cm; 
+   // location of beam diffuser front face relative to target pivot (from Ron Lassiter Sept 2020)
+   // target pivot to upstream pipe conical flange:                         1052.4797 inches 
+   // upstream pipe conical flange to ISO wall weldment:                    207.1108 inches
+   // upstream ISO wall weldment to upstream face of diffuser:              24.56 inches
+   // upstream face of beam diffuser to upstream face of downstream flange: 17.3943 inches
+   G4double z_us  = dz + 1052.4797*inch; 
+   G4double z_iso = dz + z_us + 207.1108*inch; 
+   G4double z_bd  = dz + z_iso + 24.56*inch; 
+   G4double z_ds  = dz + z_bd + 17.3943*inch; 
+   // CheckZPos(logicMother,z_bd);
+   MakeBeamDump_UpstreamPipe(logicMother,z_us);
+   MakeBeamDump_ISOWallWeldment(logicMother,z_iso);
+   MakeBeamDump_Diffuser(logicMother,z_bd);
+   MakeBeamDump_DownstreamPipe(logicMother,z_ds);
+}
+
+void G4SBSBeamlineBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
+   // a dummy function to check positioning
+
+   G4double inch = 2.54*cm; 
+
+   std::cout << "[G4SBSBeamlineBuilder::CheckZPos]: Downstream face of part is at z = " << z0/m << " m" << std::endl; 
+
+   G4double xl = 20.*inch;
+   G4double yl = 120.*inch;
+   G4double zl = 1.*inch;
+   G4Box *solidBox = new G4Box("solidBox",xl/2.,yl/2.,zl/2.); 
+   
+   G4LogicalVolume *boxLV = new G4LogicalVolume(solidBox,GetMaterial("Aluminum"),"boxLV");
+
+   G4double z = z0 - zl/2.;  // back face is at z0  
+   G4ThreeVector P = G4ThreeVector(0,0,z);
+
+   new G4PVPlacement(0,                // no rotation
+	             P,                // location in mother volume 
+	             boxLV,            // its logical volume                         
+	             "testBox_PHY",    // its name
+	             logicMother,      // its mother  volume
+	             false,            // no boolean operation
+	             0,                // copy number
+	             true);            // checking overlaps 
+
+}
+
+void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4double z0){
+   // A beam diffuser that sits right in front of the beam dump
+   // Added by D. Flay (JLab) in Aug 2020  
+  
+   G4double inch = 25.4*mm;
+
+   G4double BDLength = 0.;
+
+   char Hall = 'A';
+   if(Hall=='A') BDLength = 11.44*cm;
+   if(Hall=='C') BDLength = 11.30*cm;  
+
+   G4double r_min    = 0.;
+   G4double r_max    = 25.*inch;
+   G4double len      = BDLength;
+   G4double startPhi = 0.*deg;
+   G4double dPhi     = 360.*deg;
+   G4Tubs *diffCaseS = new G4Tubs("diffCase",r_min,r_max,len/2.,startPhi,dPhi);
+   G4LogicalVolume *diffCaseLV = new G4LogicalVolume(diffCaseS,GetMaterial("Vacuum"),"diffCase"); // its name
+
+   // place the diffuser 
+   // note: the (x,y) center of the diffuser plates is centered on this logical volume 
+   // z0 = location of FRONT FACE of the beam diffuser
+   // zz = location of CENTER of the beam diffuser CASE (coincides with the center of the BD)  
+   G4double zz = z0 + 0.5*BDLength;
+   G4ThreeVector P_case = G4ThreeVector(0,0,zz); 
+
+   bool checkOverlaps = true;
+
+   new G4PVPlacement(0,                // no rotation
+	             P_case,           // location in mother volume 
+	             diffCaseLV,       // its logical volume                         
+	             "diffCase",       // its name
+	             logicMother,      // its mother  volume
+	             false,            // no boolean operation
+	             0,                // copy number
+	             checkOverlaps);   // checking overlaps 
+
+   G4VisAttributes *visCase = new G4VisAttributes();
+   visCase->SetForceWireframe();
+
+   // diffCaseLV->SetVisAttributes(G4VisAttributes::GetInvisible());
+   diffCaseLV->SetVisAttributes(visCase);
+
+   // parameterised build of the diffuser
+   // build first plate (same for Hall A or C)  
+   r_min        = 17.67*inch;
+   r_max        = 24.*inch;
+   dPhi         = 38.*deg;
+   startPhi     = 270.*deg - dPhi/2.;
+   G4double thk = 0.125*inch;
+
+   // choose the origin of the device (where the first plate starts, relative to the mother volume) 
+   zz = -BDLength/2.;  
+   G4ThreeVector P0 = G4ThreeVector(0,0,zz);
+
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Blue() );
+
+   // first plate 
+   G4VSolid *plateSolid     = new G4Tubs("plate",r_min,r_max,thk/2.,startPhi,dPhi);
+   G4LogicalVolume *plateLV = new G4LogicalVolume(plateSolid,GetMaterial("Aluminum"),"plateLV");
+   plateLV->SetVisAttributes(vis);
+
+   // parameterisation
+   int NPlanes=0;
+   if(Hall=='A') NPlanes = 15;   
+   if(Hall=='C') NPlanes = 16;  
+   G4VPVParameterisation *plateParam = new G4SBSBDParameterisation(Hall,P0);
+   // placement
+   new G4PVParameterised("BeamDiffuser",plateLV,diffCaseLV,kZAxis,NPlanes,plateParam);
+
+   // Attach sensitive detector (SD) functionality; follow the GEM example
+   G4bool bdEnable = fDetCon->GetBeamDiffuserEnable();  // is the beam diffuser enabled? 
+
+   // name of SD and the hitCollection  
+   G4String bdSDname = "BD";  // FIXME: is this ok, or do we need directory structure like the GEMs? 
+   // We have to remove all the directory structure from the 
+   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+   G4String bdSDname_nopath = bdSDname;
+   bdSDname_nopath.remove(0,bdSDname.last('/')+1);
+   G4String bdColName = bdSDname_nopath; 
+   bdColName += "HitsCollection";
+
+   G4SBSBeamDiffuserSD *bdSD = nullptr; 
+   if(bdEnable){
+      if( !(bdSD = (G4SBSBeamDiffuserSD *)fDetCon->fSDman->FindSensitiveDetector(bdSDname)) ){
+         // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+         G4cout << "[G4SBSBeamlineBuilder]: Adding Beam Diffuser SD functionality..." << G4endl; 
+         bdSD = new G4SBSBeamDiffuserSD(bdSDname,bdColName);
+         plateLV->SetSensitiveDetector(bdSD);  
+         fDetCon->fSDman->AddNewDetector(bdSD);
+         (fDetCon->SDlist).insert(bdSDname); 
+         fDetCon->SDtype[bdSDname] = G4SBS::kBD; 
+         G4cout << "[G4SBSBeamlineBuilder]: --> Done." << G4endl;
+      }
+   }
+ 
+}
+
+void G4SBSBeamlineBuilder::MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMother,G4double z0){
+   // Hall A Beam Dump: ISO Wall Weldment 
+   // Drawings: JL0015694, JL0015725, JL0016212 
+   // Added by D. Flay (JLab) in Sept 2020  
+
+   G4double inch     = 25.4*mm;
+   G4double startPhi = 0.*deg;
+   G4double dPhi     = 360.*deg;
+
+   // vacuum tube hub [drawing JL0016212] 
+   // - outer component  
+   G4double r_min_vth   = 0.5*16.*inch; 
+   G4double r_max_vth   = 0.5*20.*inch;
+   G4double len_vth     = 2.75*inch; 
+   G4Tubs *solidVTH_cyl = new G4Tubs("solidVTH_cyl",r_min_vth,r_max_vth,len_vth/2.,startPhi,dPhi);
+   // - cut component   
+   G4double r_min_vth_cc = 0.5*16.5*inch; 
+   G4double r_max_vth_cc = 0.5*25.0*inch;
+   G4double len_vth_cc   = 2.50*inch; 
+   G4Tubs *solidVTH_cc = new G4Tubs("solidVTH_cc",r_min_vth_cc,r_max_vth_cc,len_vth_cc/2.,startPhi,dPhi);
+   // subtraction 
+   G4ThreeVector Pcc = G4ThreeVector(0,0,len_vth_cc-len_vth);
+   G4SubtractionSolid *solidVTH = new G4SubtractionSolid("solidVTH",solidVTH_cyl,solidVTH_cc,0,Pcc);
+
+   // wall [drawings JL0015694, JL0015725]  
+   G4double x_len = 77.0*inch;   // from JL0015694  
+   G4double y_len = 117.0*inch;  // from JL0015694
+   G4double z_len = 0.25*inch;   // from JL0015725
+
+   auto material  = G4Material::GetMaterial("G4_Al"); // might not be aluminum... 
+
+   // solid box 
+   G4Box *solidBox = new G4Box("isoBox",x_len/2.,y_len/2.,z_len/2.);
+
+   // cut a circular hole 
+   G4double r_min    = 0.*mm;
+   G4double r_max    = 0.5*16.*inch;
+   G4double len      = z_len + 5.*inch; // make sure it cuts through  
+   G4Tubs *solidTube = new G4Tubs("isoTube",r_min,r_max,len/2.,startPhi,dPhi);
+
+   // cut the hole in the box
+   // - relative to bottom of object, vertical distance is 74.48 inches in drawing JL0015725, 
+   //   where the plate is 114.25 inches tall.  Note that this drawing is the inner portion of JL0015694.
+   //   However, the height of the whole wall is actually 117 inches (JL0015694), 
+   //   so we add 1.375 inches to get 75.86 inches from the bottom of the wall. 
+   // - this means we have a distance from the center of the wall: 
+   G4double yc     = y_len/2. - (y_len - 75.86*inch); 
+   G4ThreeVector P = G4ThreeVector(0.*inch,yc,z_len/2.);
+   G4SubtractionSolid *solidWall = new G4SubtractionSolid("solidWall",solidBox,solidTube,0,P);
+
+   // now union the solidVTH and solidWall
+   G4double zw = len_vth/2. + z_len/2.;  
+   G4ThreeVector Pw = G4ThreeVector(0,-yc,zw); 
+   G4UnionSolid *solidISO = new G4UnionSolid("solidISO",solidVTH,solidWall,0,Pw);
+
+   // visualization
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Red() );
+   // vis->SetForceWireframe();
+
+   // logical volume
+   // WARNING: Drawing says Aluminum 6062.  It seems like there is only 6061-T6 alloys.  We use the latter.
+   G4LogicalVolume *isoWallLV = new G4LogicalVolume(solidISO,GetMaterial("Aluminum_6061"),"beamDump_isoWall_LV");
+   isoWallLV->SetVisAttributes(vis);
+
+   // placement
+   bool checkOverlaps = true;  
+   G4double z = z0 - 0.5*len_vth; // move center of weldment forward so front face of wall is at z0
+   G4ThreeVector P_wall = G4ThreeVector(0,0,z);
+   new G4PVPlacement(0,                        // no rotation
+                     P_wall,                   // location in mother volume 
+                     isoWallLV,                // its logical volume                         
+                     "beamDump_isoWall_PHY",   // its name
+                     logicMother,              // its mother  volume
+                     true,                     // boolean operation? 
+                     0,                        // copy number
+                     checkOverlaps);          // checking overlaps    
+
+}
+
+void G4SBSBeamlineBuilder::MakeBeamDump_UpstreamPipe(G4LogicalVolume *logicMother,G4double z0){
+   // Hall A Beam Dump: Pipe upstream of ISO Weldment
+   // z0 = position of front face of the Beam Diffuser.  All components are spaced relative to this point 
+   // Drawing: JL0009934-C-VAC SPOOL REGION UPPER LEVEL
+   // Added by D. Flay (JLab) in Sept 2020  
+
+   G4double inch         = 25.4*mm;
+   G4double TOTAL_LENGTH = 196.91*inch;
+   G4double startPhi     = 0.*deg;
+   G4double dPhi         = 360.*deg;
+
+   // large conical tube [item 1]
+   G4double delta      = 0.005*inch;  // FIXME: arbitrary!   
+   G4double r_min1_lgc = 0.5*23.54*inch;
+   G4double r_max1_lgc = r_min1_lgc + delta;
+   G4double r_min2_lgc = 0.5*37.54*inch;
+   G4double r_max2_lgc = r_min2_lgc + delta;
+   G4double len_lgc    =  9.95*inch;
+   G4Cons *solidConeLG = new G4Cons("solidConeLG",r_min1_lgc,r_max1_lgc,r_min2_lgc,r_max2_lgc,len_lgc/2.,startPhi,dPhi);
+
+   // large conical tube [item 1, vacuum] 
+   G4Cons *solidConeLG_vac = new G4Cons("solidConeLG_vac",0,r_min1_lgc,0,r_min2_lgc,len_lgc/2.,startPhi,dPhi);
+
+   // small conical tube [item 3] 
+   G4double r_min1_smc = 0.5*11.99*inch;
+   G4double r_max1_smc = r_min1_smc + delta;
+   G4double r_min2_smc = 0.5*23.49*inch;
+   G4double r_max2_smc = r_min2_smc + delta;
+   G4double len_smc    =  6.13*inch;
+   G4Cons *solidConeSM = new G4Cons("solidConeSM",r_min1_smc,r_max1_smc,r_min2_smc,r_max2_smc,len_smc/2.,startPhi,dPhi);
+
+   // small conical tube [item 3, vacuum] 
+   G4Cons *solidConeSM_vac = new G4Cons("solidConeSM_vac",0,r_min1_smc,0,r_min2_smc,len_smc/2.,startPhi,dPhi);
+
+   // vacuum window tube [item 4] 
+   G4double r_min_vwt = 0.5*12.12*inch;
+   G4double r_max_vwt = 0.5*12.50*inch;
+   G4double len_vwt   = 1.88*inch;
+   G4Tubs *solidVWTube = new G4Tubs("solidVWTube",r_min_vwt,r_max_vwt,len_vwt/2.,startPhi,dPhi);
+
+   // vacuum window tube [item 4, vacuum] 
+   G4Tubs *solidVWTube_vac = new G4Tubs("solidVWTube_vac",0,r_min_vwt,len_vwt/2.,startPhi,dPhi);
+
+   // main tube [item 6] 
+   G4double delta2   = 0.4775*inch;          // fudge factor to get the length to match TOTAL_LENGTH 
+   G4double delta3   = 0.005*inch;           // FIXME: This is arbitrary!  
+   G4double r_max_m6 = 0.5*24.00*inch;          
+   G4double r_min_m6 = r_max_m6 - delta3;      
+   G4double len_m6   = 39.85*inch - delta2;  // ESTIMATE: total length of item 6 is 85.36*inch; split into two parts 
+   G4Tubs *solidTubeM6 = new G4Tubs("solidTubeM6",r_min_m6,r_max_m6,len_m6/2.,startPhi,dPhi);
+
+   // main tube [item 6, vacuum] 
+   G4Tubs *solidTubeM6_vac = new G4Tubs("solidTubeM6_vac",0,r_min_m6,len_m6/2.,startPhi,dPhi);
+
+   // main tube [item 6b, ESTIMATE]  
+   G4double r_max_m6b = 0.5*24.00*inch;            
+   G4double r_min_m6b = r_max_m6b - delta3;      
+   G4double len_m6b   = 45.51*inch - delta2;   // derived number.   
+   G4Tubs *solidTubeM6b = new G4Tubs("solidTubeM6b",r_min_m6b,r_max_m6b,len_m6b/2.,startPhi,dPhi);
+
+   // main tube [item 6b, vacuum] 
+   G4Tubs *solidTubeM6b_vac = new G4Tubs("solidTubeM6b_vac",0,r_min_m6b,len_m6b/2.,startPhi,dPhi);
+
+   // main tube [item 2]  
+   G4double r_max_m2 = 0.5*24.00*inch;      
+   G4double r_min_m2 = r_max_m2 - delta3;  
+   G4double len_m2   = 52.69*inch - delta2;    // ESTIMATE: total length of item 2 is 91.38*inch; split into two parts 
+   G4Tubs *solidTubeM2 = new G4Tubs("solidTubeM2",r_min_m2,r_max_m2,len_m2/2.,startPhi,dPhi);
+
+   // main tube [item 2, vacuum] 
+   G4Tubs *solidTubeM2_vac = new G4Tubs("solidTubeM2_vac",0,r_min_m2,len_m2/2.,startPhi,dPhi);
+
+   // main tube [item 2b, ESTIMATE]  
+   G4double r_max_m2b = 0.5*24.00*inch;      
+   G4double r_min_m2b = r_max_m2b - delta3;  
+   G4double len_m2b   = 38.69*inch - delta2;   // derived number.   
+   G4Tubs *solidTubeM2b = new G4Tubs("solidTubeM2b",r_min_m2b,r_max_m2b,len_m2b/2.,startPhi,dPhi);
+
+   // main tube [item 2b, vacuum] 
+   G4Tubs *solidTubeM2b_vac = new G4Tubs("solidTubeM2b_vac",0,r_min_m2b,len_m2b/2.,startPhi,dPhi);
+
+   // large flange [item 13, drawing JL0012786] 
+   G4double r_min_lgf  = 0.5*37.50*inch;
+   G4double r_max_lgf  = 0.5*46.00*inch;
+   G4double len_lgf    = 0.500*inch;
+   G4Tubs *solidLGF = new G4Tubs("solidLGF",r_min_lgf,r_max_lgf,len_lgf/2.,startPhi,dPhi);
+
+   // large flange [item 13, vacuum]  
+   G4Tubs *solidLGF_vac = new G4Tubs("solidLGF_vac",0,r_min_lgf,len_lgf/2.,startPhi,dPhi);
+
+   // flange with o-ring [item 9, drawing JL0029536] 
+   G4double r_min_for = 0.5*23.25*inch;
+   G4double r_max_for = 0.5*29.53*inch;
+   G4double len_for   = 1.00*inch;
+   G4Tubs *solidFORing = new G4Tubs("solidFORing",r_min_for,r_max_for,len_for/2.,startPhi,dPhi);
+
+   // flange with o-ring [item 9, vacuum] 
+   G4Tubs *solidFORing_vac = new G4Tubs("solidFORing_vac",0,r_min_for,len_for/2.,startPhi,dPhi);
+
+   // aperture plate flange [item 14, drawing JL0058855]
+   // simplified approach: single material of aluminum 
+   G4double r_min_apf = 0.5*3.50*inch;
+   G4double r_max_apf = 0.5*30.43*inch;
+   G4double len_apf   = 1.50*inch;
+   G4Tubs *solidAPF = new G4Tubs("solidAPF",r_min_apf,r_max_apf,len_apf/2.,startPhi,dPhi);
+
+   // vacuum insert into aperture plate flange 
+   G4Tubs *solidAPF_vac = new G4Tubs("solidAPF_vac",0,r_min_apf,len_apf/2.,startPhi,dPhi);
+
+   // vacuum tube support ring [item 12] 
+   G4double r_min_vtsr = 0.5*24.01*inch;
+   G4double r_max_vtsr = 0.5*27.01*inch;
+   G4double len_vtsr   = 0.25*inch;
+   G4Tubs *solidVTSRing = new G4Tubs("solidVTSRing",r_min_vtsr,r_max_vtsr,len_vtsr/2.,startPhi,dPhi);
+
+   // vacuum tube support ring [item 12, vacuum] 
+   G4Tubs *solidVTSRing_vac = new G4Tubs("solidVTSRing_vac",0,r_min_vtsr,len_vtsr/2.,startPhi,dPhi);
+
+   // vacuum step-down flange [item 5, drawing JL0009940] 
+   G4double r_min_vsdf = 0.5*12.25*inch;
+   G4double r_max_vsdf = 0.5*16.00*inch;
+   G4double len_vsdf   = 0.620*inch;
+   G4Tubs *solidVSDF = new G4Tubs("solidVSDF",r_min_vsdf,r_max_vsdf,len_vsdf/2.,startPhi,dPhi);
+
+   // vacuum step-down flange [item 5, vacuum] 
+   G4Tubs *solidVSDF_vac = new G4Tubs("solidVSDF_vac",0,r_min_vsdf,len_vsdf/2.,startPhi,dPhi);
+
+      // union solid
+   // - start with large flange + cone [origin is center of LGF]  
+   G4double zz = 0.5*len_lgf + 0.5*len_lgc;
+   G4ThreeVector P_0 = G4ThreeVector(0,0,-zz);
+   G4UnionSolid *upstrPipe = new G4UnionSolid("lgf_lgc",solidLGF,solidConeLG,0,P_0);
+   // - attach m2b 
+   zz  = 0.5*len_lgf + len_lgc + 0.5*len_m2b;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe = new G4UnionSolid("lgf_lgc_m2b",upstrPipe,solidTubeM2b,0,P_0);
+   // - vacuum tube support ring [item 12]  
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + 0.5*len_vtsr;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe = new G4UnionSolid("lgf_lgc_m2b_vtsr",upstrPipe,solidVTSRing,0,P_0);
+   // - attach m2 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + 0.5*len_m2;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2",upstrPipe,solidTubeM2,0,P_0);
+   // - attach aperture plate flange [item 14] 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + 0.5*len_apf;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf",upstrPipe,solidAPF,0,P_0);
+   // - attach flange with o-ring [item 9] 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + 0.5*len_for;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for",upstrPipe,solidFORing,0,P_0);
+   // - attach m6b 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + 0.5*len_m6b;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for_m6b",upstrPipe,solidTubeM6b,0,P_0);
+   // - vacuum tube support ring [item 12]  
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + len_m6b + 0.5*len_vtsr;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for_m6b_vtsr",upstrPipe,solidVTSRing,0,P_0);
+   // - attach m6 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + len_m6b + len_vtsr + 0.5*len_m6;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for_m6b_vtsr_m6",upstrPipe,solidTubeM6,0,P_0);
+   // - attach small cone 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + len_m6b + len_vtsr + len_m6
+       + 0.5*len_smc;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for_m6b_vtsr_m6_smc",upstrPipe,solidConeSM,0,P_0);
+   // - attach vacuum window tube  
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + len_m6b + len_vtsr + len_m6
+       + len_smc + 0.5*len_vwt;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for_m6b_vtsr_m6_smc_vwt",upstrPipe,solidVWTube,0,P_0);
+   // - attach vacuum window stepdown flange  
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + len_m6b + len_vtsr + len_m6
+       + len_smc + len_vwt + 0.5*len_vsdf;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe = new G4UnionSolid("upstreamPipe",upstrPipe,solidVSDF,0,P_0);
+
+   // this is a check  
+   G4double TOT_LEN_SUM = len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + len_m6b
+                        + len_vtsr + len_m6 + len_smc + len_vwt + len_vsdf;
+
+   if(TOT_LEN_SUM!=TOTAL_LENGTH){
+      std::cout << "[G4SBSBeamlineBuilder::MakeBeamDump_UpstreamPipe]: TOTAL_LENGTH = " << TOTAL_LENGTH/inch
+                << " inches, sum of parts = " << TOT_LEN_SUM/inch << " inches" << std::endl;
+      exit(1);
+   }
+
+   // visualization
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Green() );
+   // vis->SetForceWireframe(true); 
+
+   // logical volume
+   G4LogicalVolume *tubeLV = new G4LogicalVolume(upstrPipe,GetMaterial("Aluminum_5052"),"beamDump_usPipe_LV");
+   tubeLV->SetVisAttributes(vis);
+
+   // placement
+   bool checkOverlaps = true;  
+   G4double z = z0 + 0.5*len_lgf;  // upstream face is at z0 
+   G4ThreeVector P = G4ThreeVector(0.,0.,z);
+   G4RotationMatrix *rm = new G4RotationMatrix();
+   rm->rotateY(180*deg);
+   new G4PVPlacement(rm,                       // rotation
+                     P,                        // location in mother volume 
+                     tubeLV,                   // its logical volume                         
+                     "beamDump_usPipe_PHY",    // its name
+                     logicMother,              // its mother  volume
+                     false,                    // boolean operation? 
+                     0,                        // copy number
+                     checkOverlaps);          // checking overlaps  
+
+
+   // union solid [vacuum] 
+   // - start with large flange + cone [origin is center of LGF]  
+   zz = 0.5*len_lgf + 0.5*len_lgc;
+   P_0 = G4ThreeVector(0,0,-zz);
+   G4UnionSolid *upstrPipe_vac = new G4UnionSolid("lgf_lgc",solidLGF_vac,solidConeLG_vac,0,P_0);
+   // - attach m2b 
+   zz  = 0.5*len_lgf + len_lgc + 0.5*len_m2b;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe_vac = new G4UnionSolid("lgf_lgc_m2b",upstrPipe_vac,solidTubeM2b_vac,0,P_0);
+   // - vacuum tube support ring [item 12]  
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + 0.5*len_vtsr;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe_vac = new G4UnionSolid("lgf_lgc_m2b_vtsr",upstrPipe_vac,solidVTSRing_vac,0,P_0);
+   // - attach m2 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + 0.5*len_m2;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe_vac = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2",upstrPipe_vac,solidTubeM2_vac,0,P_0);
+   // - attach aperture plate flange [item 14] 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + 0.5*len_apf;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe_vac = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf",upstrPipe_vac,solidAPF_vac,0,P_0);
+   // - attach flange with o-ring [item 9] 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + 0.5*len_for;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe_vac = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for",upstrPipe_vac,solidFORing_vac,0,P_0);
+   // - attach m6b 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + 0.5*len_m6b;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe_vac = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for_m6b",upstrPipe_vac,solidTubeM6b_vac,0,P_0);
+   // - vacuum tube support ring [item 12]  
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + len_m6b + 0.5*len_vtsr;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe_vac = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for_m6b_vtsr",upstrPipe_vac,solidVTSRing_vac,0,P_0);
+   // - attach m6 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + len_m6b + len_vtsr + 0.5*len_m6;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe_vac = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for_m6b_vtsr_m6",upstrPipe_vac,solidTubeM6_vac,0,P_0);
+   // - attach small cone 
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + len_m6b + len_vtsr + len_m6
+       + 0.5*len_smc;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe_vac = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for_m6b_vtsr_m6_smc",upstrPipe_vac,solidConeSM_vac,0,P_0);
+   // - attach vacuum window tube  
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + len_m6b + len_vtsr + len_m6
+       + len_smc + 0.5*len_vwt;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe_vac = new G4UnionSolid("lgf_lgc_m2b_vtsr_m2_apf_for_m6b_vtsr_m6_smc_vwt",upstrPipe_vac,solidVWTube_vac,0,P_0);
+   // - attach vacuum window stepdown flange  
+   zz  = 0.5*len_lgf + len_lgc + len_m2b + len_vtsr + len_m2 + len_apf + len_for + len_m6b + len_vtsr + len_m6
+       + len_smc + len_vwt + 0.5*len_vsdf;
+   P_0 = G4ThreeVector(0,0,-zz);
+   upstrPipe_vac = new G4UnionSolid("upstreamPipe_vac",upstrPipe_vac,solidVSDF_vac,0,P_0);
+
+   // visualization
+   G4VisAttributes *vis_vac = new G4VisAttributes();
+   vis_vac->SetForceWireframe(true);
+
+   // logical volume
+   std::string name;
+   G4double a=0,density=0;
+   G4LogicalVolume *tubeLV_vac = new G4LogicalVolume(upstrPipe_vac,GetMaterial("Vacuum"),"beamDump_usPipe_LV");
+   tubeLV_vac->SetVisAttributes(vis_vac);
+
+   new G4PVPlacement(rm,                       // no rotation
+                     P,                        // location in mother volume 
+                     tubeLV_vac,               // its logical volume                         
+                     "beamDump_usPipeVac_PHY", // its name
+                     logicMother,              // its mother  volume
+                     false,                    // boolean operation? 
+                     0,                        // copy number
+                     checkOverlaps);          // checking overlaps 
+
+}
+
+void G4SBSBeamlineBuilder::MakeBeamDump_DownstreamPipe(G4LogicalVolume *logicMother,G4double z0){
+   // Hall A Beam Dump: Pipe downstream of ISO Weldment
+   // z0 = position of front face of the Beam Diffuser.  All components are spaced relative to this point 
+   // Drawing: JL0011756_27020E0145 [modified]
+   // Added by D. Flay (JLab) in Sept 2020  
+
+   G4double inch     = 25.4*mm;
+   G4double startPhi = 0.*deg;
+   G4double dPhi     = 360.*deg;
+   G4double TOTAL_LENGTH = 328.04*inch;
+
+   // main tube
+   G4double r_min_m  = 0.5*12.11*inch;   // FIXME: This is arbitrary! 
+   G4double r_max_m  = 0.5*12.12*inch;
+   G4double len_m    = 327.66*inch;
+   G4Tubs *solidTubeM = new G4Tubs("solidTube",r_min_m,r_max_m,len_m/2.,startPhi,dPhi);
+
+   // vacuum insert 
+   G4Tubs *solidVacuumInsert = new G4Tubs("solidVacuumInsert",0.,r_min_m,TOTAL_LENGTH/2.,startPhi,dPhi);
+
+   // bookend flange [upstream]  
+   G4double r_min_us = 0.5*12.11*inch;
+   G4double r_max_us = 0.5*14.00*inch;   // FIXME: This is arbitrary!
+   G4double len_us   = 0.188*inch;
+   G4Tubs *solidTubeUS = new G4Tubs("solidTubeUS",r_min_us,r_max_us,len_us/2.,startPhi,dPhi);
+
+   // bookend flange [downstream]  
+   G4double r_min_ds = 0.5*12.11*inch;
+   G4double r_max_ds = 0.5*14.00*inch;   // FIXME: This is arbitrary!
+   G4double len_ds   = 0.188*inch;
+   G4Tubs *solidTubeDS = new G4Tubs("solidTubeDS",r_min_ds,r_max_ds,len_ds/2.,startPhi,dPhi);
+
+   // union solid 
+   // - start with upstream flange and main tube 
+   G4double zz = 0.5*len_us + 0.5*len_m;
+   G4ThreeVector P_0 = G4ThreeVector(0,0,-zz);
+   G4UnionSolid *dwnstrPipe = new G4UnionSolid("us_m",solidTubeUS,solidTubeM,0,P_0);
+   // - downstream flange 
+   zz = 0.5*len_us + len_m + 0.5*len_ds;
+   P_0 = G4ThreeVector(0,0,-zz);
+   dwnstrPipe = new G4UnionSolid("dwnstrPipe",dwnstrPipe,solidTubeDS,0,P_0);
+
+   // visualization
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Yellow() );
+   // vis->SetForceWireframe(); 
+
+   // logical volume
+   G4LogicalVolume *tubeLV = new G4LogicalVolume(dwnstrPipe,GetMaterial("Aluminum"),"beamDump_dsPipe_LV");
+   tubeLV->SetVisAttributes(vis);
+
+   // placement
+   bool checkOverlaps = true;
+   G4double delta = 5.0*cm; // FIXME: arbitrary!  
+   G4double Z = z0 + TOTAL_LENGTH + 0.5*len_us; // upstream face is at z0
+   G4ThreeVector P = G4ThreeVector(0,0,Z);
+   new G4PVPlacement(0,                        // no rotation
+                     P,                        // location in mother volume 
+                     tubeLV,                   // its logical volume                         
+                     "beamDump_dsPipe_PHY",    // its name
+                     logicMother,              // its mother  volume
+                     false,                    // boolean operation? 
+                     0,                        // copy number
+                     checkOverlaps);          // checking overlaps  
+   
+   // vacuum insert 
+   G4VisAttributes *visV = new G4VisAttributes();
+   visV->SetForceWireframe();
+
+   std::string name;
+   G4double z=0,a=0,density=0;
+
+   // logical volume
+   G4Material *Vacuum     = new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
+   G4LogicalVolume *vacLV = new G4LogicalVolume(solidVacuumInsert,Vacuum,"vacuum_dsPipe_LV");
+   vacLV->SetVisAttributes(visV);
+
+   Z = z0 + TOTAL_LENGTH/2.;
+   P = G4ThreeVector(0,0,Z);
+   new G4PVPlacement(0,                        // no rotation
+                     P,                        // location in mother volume 
+                     vacLV,                    // its logical volume                         
+                     "vacuum_dsPipe_PHY",      // its name
+                     logicMother,              // its mother  volume
+                     false,                    // boolean operation? 
+                     0,                        // copy number
+                     checkOverlaps);          // checking overlaps   
+
+}
+
+void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother){
+   // Build the Hall A exit beam line  
+   // Added by D. Flay (JLab) in Sept 2020
+   // Distances from drawing A00000-02-08-0300, A00000-02-08-0700 
+
+   G4double inch   = 2.54*cm; 
+   G4double delta  = 7.00*inch;     // fudge factor to avoid overlap with P5ringD_vacLog_pv 
+   G4double z_tmp  = 207.179*inch + delta;  
+   G4double z_mpd  = 749.4997*inch; // derived, based on numbers from Ron Lassiter (see MakeBeamDump)  
+   // CheckZPos(logicMother,z_bd); 
+   MakeBeamExit_TargetToMidPipe(logicMother,z_tmp);  
+   MakeBeamExit_MidPipeToDump(logicMother,z_mpd); 
+   MakeBeamDump(logicMother); 
+}
+
+void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMother,G4double z0){
+   // SBS exit beam pipe.  This is immediately upstream of the mid pipe
+   // Added by D. Flay (JLab) in Sept 2020
+   // Drawings: 
+   // - Target to mid pipe: ARC10540  
+
+   G4double inch     = 2.54*cm; 
+   G4double startPhi = 0.*deg; 
+   G4double dPhi     = 360.*deg;
+   G4double len_fl   = 0.5*inch; // FIXME: arbitrary
+   G4double TOTAL_LENGTH = 0;  
+  
+   // visualization 
+   G4VisAttributes *AlColor = new G4VisAttributes( G4Colour(0.3,0.3,1.0) );
+   // G4VisAttributes *vis_vac = new G4VisAttributes( G4Colour(0.1,0.5,0.9) );
+   G4VisAttributes *vis_vac = new G4VisAttributes();
+  
+   // pipe [part 11] 
+   G4double r_min_11          = 0.5*36.00*inch;   
+   G4double r_max_11          = 0.5*42.00*inch;  // based on 0.060 x 3 corrugation 
+   G4double len_11            = 216.375*inch; 
+   G4Tubs *solidTube11        = new G4Tubs("solidTube11",r_min_11,r_max_11,len_11/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_11;
+   // vacuum insert  
+   G4Tubs *solidTube11_vac    = new G4Tubs("solidTube11_vac",0,r_min_11,len_11/2.,startPhi,dPhi); 
+
+   // flange [part 9] 
+   G4double r_min_09          = 0.5*24.00*inch;  
+   G4double r_max_09          = 0.5*40.00*inch; 
+   G4double len_09            = len_fl;      
+   G4Tubs *solidTube09        = new G4Tubs("solidTube09",r_min_09,r_max_09,len_09/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_09;
+   // vacuum insert  
+   G4Tubs *solidTube09_vac    = new G4Tubs("solidTube09_vac",0,r_min_09,len_09/2.,startPhi,dPhi); 
+
+   // flange [part 10] 
+   G4double r_min_10          = 0.5*36.00*inch;  
+   G4double r_max_10          = 0.5*43.00*inch; 
+   G4double len_10            = len_fl;      
+   G4Tubs *solidTube10        = new G4Tubs("solidTube10",r_min_10,r_max_10,len_10/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_10; 
+   // vacuum insert 
+   G4Tubs *solidTube10_vac    = new G4Tubs("solidTube10_vac",0,r_min_10,len_10/2.,startPhi,dPhi); 
+
+   // pipe [part 8] 
+   G4double r_min_08          = 0.5*24.00*inch;   
+   G4double r_max_08          = 0.5*29.334*inch;  // based on 0.5 x 2-2/3 corrugation  
+   G4double len_08            = 217.00*inch; 
+   G4Tubs *solidTube08        = new G4Tubs("solidTube08",r_min_08,r_max_08,len_08/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_08;
+   // vacuum insert 
+   G4Tubs *solidTube08_vac    = new G4Tubs("solidTube08_vac",0,r_min_08,len_08/2.,startPhi,dPhi); 
+
+   // flange [part 6] 
+   G4double r_min_06          = 0.5*12.00*inch;  
+   G4double r_max_06          = 0.5*26.00*inch; 
+   G4double len_06            = len_fl;  
+   G4Tubs *solidTube06        = new G4Tubs("solidTube06",r_min_06,r_max_06,len_06/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_06;
+   // vacuum insert  
+   G4Tubs *solidTube06_vac    = new G4Tubs("solidTube06_vac",0,r_min_06,len_06/2.,startPhi,dPhi); 
+
+   // pipe [part 5] 
+   G4double r_min_05          = 0.5*12.00*inch;   
+   G4double r_max_05          = 0.5*17.334*inch; // based on 0.5 x 2-2/3 corrugation  
+   G4double len_05            = 41.8125*inch; 
+   G4Tubs *solidTube05        = new G4Tubs("solidTube05",r_min_05,r_max_05,len_05/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_05;
+   // vacuum insert
+   G4Tubs *solidTube05_vac    = new G4Tubs("solidTube05_vac",0,r_min_05,len_05/2.,startPhi,dPhi); 
+
+   // flange [part 7] 
+   G4double r_min_07          = 0.5*10.00*inch;  
+   G4double r_max_07          = 0.5*13.00*inch; 
+   G4double len_07            = 0.125*inch;      
+   G4Tubs *solidTube07        = new G4Tubs("solidTube07",r_min_07,r_max_07,len_07/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_07;
+   // vacuum insert  
+   G4Tubs *solidTube07_vac    = new G4Tubs("solidTube07_vac",0,r_min_07,len_07/2.,startPhi,dPhi); 
+  
+   // pipe [part 3]  
+   G4double r_min_03          = 0.5*10.00*inch;   
+   G4double r_max_03          = 0.5*10.25*inch;   
+   G4double len_03            = 12.00*inch; 
+   G4Tubs *solidTube03        = new G4Tubs("solidTube03",r_min_03,r_max_03,len_03/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_03;
+   // vacuum insert
+   G4Tubs *solidTube03_vac    = new G4Tubs("solidTube03_vac",0,r_min_03,len_03/2.,startPhi,dPhi); 
+
+   // flange [part 4] 
+   G4double r_min_04          = 0.5*8.25*inch;  
+   G4double r_max_04          = 0.5*10.00*inch; 
+   G4double len_04            = 0.125*inch;      
+   G4Tubs *solidTube04        = new G4Tubs("solidTube04",r_min_04,r_max_04,len_04/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_04;
+   // vacuum insert  
+   G4Tubs *solidTube04_vac    = new G4Tubs("solidTube04_vac",0,r_min_04,len_04/2.,startPhi,dPhi); 
+
+   // pipe [part 2]  
+   G4double r_min_02          = 0.5*8.00*inch;   
+   G4double r_max_02          = 0.5*8.25*inch;   
+   G4double len_02            = 36.875*inch; 
+   G4Tubs *solidTube02        = new G4Tubs("solidTube02",r_min_02,r_max_02,len_02/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_02;
+   // vacuum insert
+   G4Tubs *solidTube02_vac    = new G4Tubs("solidTube02_vac",0,r_min_02,len_02/2.,startPhi,dPhi); 
+
+   // flange [part 1] 
+   G4double r_min_01          = 0.5*8.25*inch;  
+   G4double r_max_01          = 0.5*10.00*inch; 
+   G4double len_01            = 0.125*inch;      
+   G4Tubs *solidTube01        = new G4Tubs("solidTube01",r_min_01,r_max_01,len_01/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_01;
+   // vacuum insert  
+   G4Tubs *solidTube01_vac    = new G4Tubs("solidTube01_vac",0,r_min_01,len_01/2.,startPhi,dPhi); 
+
+   // union: put it all together
+   // - start with 01 and 02  
+   G4double zp = 0.5*len_01 + 0.5*len_02;
+   G4ThreeVector P = G4ThreeVector(0,0,zp); 
+   G4UnionSolid *tgtToMidPipe = new G4UnionSolid("t01",solidTube01,solidTube02,0,P);
+   // - add 04 
+   zp = 0.5*len_01 + len_02 + 0.5*len_04;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe = new G4UnionSolid("t04",tgtToMidPipe,solidTube04,0,P);  
+   // - add 03 
+   zp = 0.5*len_01 + len_02 + len_04 + 0.5*len_03;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe = new G4UnionSolid("t03",tgtToMidPipe,solidTube03,0,P);  
+   // - add 07 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + 0.5*len_07;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe = new G4UnionSolid("t07",tgtToMidPipe,solidTube07,0,P);  
+   // - add 05 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + 0.5*len_05;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe = new G4UnionSolid("t05",tgtToMidPipe,solidTube05,0,P);  
+   // - add 06 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + 0.5*len_06;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe = new G4UnionSolid("t06",tgtToMidPipe,solidTube06,0,P);  
+   // - add 08 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + 0.5*len_08;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe = new G4UnionSolid("t08",tgtToMidPipe,solidTube08,0,P);  
+   // - add 09 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + 0.5*len_09;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe = new G4UnionSolid("t09",tgtToMidPipe,solidTube09,0,P);  
+   // - add 11 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + 0.5*len_11;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe = new G4UnionSolid("t11",tgtToMidPipe,solidTube11,0,P);  
+   // - add 10 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + len_11 + 0.5*len_10;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe = new G4UnionSolid("tgtToMidPipe",tgtToMidPipe,solidTube10,0,P); 
+
+   G4LogicalVolume *tgtMP_LV = new G4LogicalVolume(tgtToMidPipe,GetMaterial("Aluminum"),"tgtMP_LV"); 
+   tgtMP_LV->SetVisAttributes(AlColor);
+
+   G4double z = z0 + 0.5*len_01;  // upstream face at z0
+   G4ThreeVector Pz = G4ThreeVector(0,0,z);
+   new G4PVPlacement(0,                // no rotation
+                     Pz,               // location in mother volume 
+                     tgtMP_LV,         // its logical volume                         
+                     "tgtMidPipe_PHY", // its name
+                     logicMother,      // its mother  volume
+                     true,             // boolean operation? 
+                     0,                // copy number
+                     true);            // checking overlaps   
+
+   // union: put it all together [vacuum] 
+   // - start with 01 and 02  
+   zp = 0.5*len_01 + 0.5*len_02;
+   P = G4ThreeVector(0,0,zp); 
+   G4UnionSolid *tgtToMidPipe_vac = new G4UnionSolid("t01v",solidTube01_vac,solidTube02_vac,0,P);
+   // - add 04 
+   zp = 0.5*len_01 + len_02 + 0.5*len_04;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe_vac = new G4UnionSolid("t04v",tgtToMidPipe_vac,solidTube04_vac,0,P);  
+   // - add 03 
+   zp = 0.5*len_01 + len_02 + len_04 + 0.5*len_03;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe_vac = new G4UnionSolid("t03v",tgtToMidPipe_vac,solidTube03_vac,0,P);  
+   // - add 07 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + 0.5*len_07;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe_vac = new G4UnionSolid("t07v",tgtToMidPipe_vac,solidTube07_vac,0,P);  
+   // - add 05 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + 0.5*len_05;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe_vac = new G4UnionSolid("t05v",tgtToMidPipe_vac,solidTube05_vac,0,P);  
+   // - add 06 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + 0.5*len_06;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe_vac = new G4UnionSolid("t06v",tgtToMidPipe_vac,solidTube06_vac,0,P);  
+   // - add 08 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + 0.5*len_08;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe_vac = new G4UnionSolid("t08v",tgtToMidPipe_vac,solidTube08_vac,0,P);  
+   // - add 09 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + 0.5*len_09;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe_vac = new G4UnionSolid("t09v",tgtToMidPipe_vac,solidTube09_vac,0,P);  
+   // - add 11 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + 0.5*len_11;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe_vac = new G4UnionSolid("t11v",tgtToMidPipe_vac,solidTube11_vac,0,P);  
+   // - add 10 
+   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + len_11 + 0.5*len_10;
+   P  = G4ThreeVector(0,0,zp); 
+   tgtToMidPipe_vac = new G4UnionSolid("tgtToMidPipe",tgtToMidPipe_vac,solidTube10_vac,0,P); 
+
+   G4LogicalVolume *tgtMP_vac_LV = new G4LogicalVolume(tgtToMidPipe_vac,GetMaterial("Aluminum"),"tgtMP_vac_LV"); 
+   tgtMP_vac_LV->SetVisAttributes(vis_vac);
+
+   new G4PVPlacement(0,                    // no rotation
+                     Pz,                   // location in mother volume 
+                     tgtMP_vac_LV,         // its logical volume                         
+                     "tgtMidPipe_vac_PHY", // its name
+                     logicMother,          // its mother  volume
+                     true,                 // boolean operation? 
+                     0,                    // copy number
+                     true);                // checking overlaps   
+
 } 
 
+void G4SBSBeamlineBuilder::MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMother,G4double z0){
+   // SBS exit beam pipe.  This is immediately upstream of the beam dump
+   // Drawings: 
+   // - Full assembly: A00000-02-08-0300
+   // - Mid pipe to dump: A00000-02-08-700, A00000-02-02-0001 [rev] 
+   // Added by D. Flay (JLab) in Sept 2020 
+
+   G4double inch     = 2.54*cm;
+   G4double startPhi = 0.*deg; 
+   G4double dPhi     = 360.*deg;   
+
+   // visualization 
+   // G4VisAttributes *AlColor = new G4VisAttributes( G4Colour(0.3,0.3,1.0) );
+   G4VisAttributes *AlColor = new G4VisAttributes( G4Colour(1.0,0.0,0.0) );
+   // G4VisAttributes *vis_vac = new G4VisAttributes( G4Colour(0.1,0.5,0.9) );
+   G4VisAttributes *vis_vac = new G4VisAttributes();
+  
+   // from drawing A00000-02-02-0001 [rev]
+   G4double delta  = 235.0*mm;     // FIXME: Arbitrary fudge factor to make everything connect from tgtMidPipe to dump  
+   G4double r_min  = 0.5*36.00*inch; // 0.5*42.94*inch;  
+   G4double r_max  = 0.5*43.00*inch; 
+   G4double len    = 302.98*inch + delta;
+   G4Tubs *solidMP = new G4Tubs("solidMP",r_min,r_max,len/2.,startPhi,dPhi); 
+    
+   G4LogicalVolume *midPipeLV = new G4LogicalVolume(solidMP,GetMaterial("Aluminum"),"midPipeLV");
+   midPipeLV->SetVisAttributes(AlColor); 
+
+   // placement 
+   G4double Z = z0 + len/2. - delta; // place upstream face at z0 
+   G4ThreeVector P = G4ThreeVector(0,0,Z);
+   new G4PVPlacement(0,                        // no rotation
+                     P,                        // location in mother volume 
+                     midPipeLV,                // its logical volume                         
+                     "midPipe_toDump_PHY",     // its name
+                     logicMother,              // its mother  volume
+                     false,                    // boolean operation? 
+                     0,                        // copy number
+                     true);                    // checking overlaps  
+
+   // fill with vacuum 
+   G4Tubs *solidMP_vac            = new G4Tubs("solidMP_vac",0,r_min,len/2.,startPhi,dPhi);
+   G4LogicalVolume *midPipeLV_vac = new G4LogicalVolume(solidMP_vac,GetMaterial("Vacuum"),"midPipeLV_vac"); 
+   midPipeLV_vac->SetVisAttributes(vis_vac);  
+    
+   new G4PVPlacement(0,                        // no rotation
+                     P,                        // location in mother volume 
+                     midPipeLV_vac,            // its logical volume                         
+                     "midPipe_toDump_vac_PHY", // its name
+                     logicMother,              // its mother  volume
+                     false,                    // boolean operation? 
+                     0,                        // copy number
+                     true);                    // checking overlaps     
+
+}

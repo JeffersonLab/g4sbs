@@ -15,6 +15,8 @@
 #include "G4SBSDetectorConstruction.hh"
 #include "G4SBSPythiaOutput.hh"
 
+#include "G4SBSBDoutput.hh"
+
 class TFile;
 class TTree;
 class G4SBSGlobalField;
@@ -100,6 +102,7 @@ public:
   //void SetGEMData( G4SBSGEMoutput gd ){ GEMdata = gd; }
   //void 
 
+  void SetBDData(G4String SDname,G4SBSBDoutput data);   // for Beam Diffuser (BD)  
   void SetGEMData( G4String, G4SBSGEMoutput );
   void SetTrackData( G4String, G4SBSTrackerOutput );
   void SetCalData( G4String, G4SBSCALoutput );
@@ -145,7 +148,8 @@ public:
   void BranchPythia();
   //void BranchSDTracks(G4String s);
   void BranchSDTracks();
-  
+  void BranchBD(G4String SDname);  // for Beam Diffuser (BD) 
+ 
   void SetDetCon(G4SBSDetectorConstruction *dc ){ fdetcon = dc; }
 
   // void SetEarmCALpart_flag( G4bool b ){ EarmCALpart_flag = b; }
@@ -199,6 +203,7 @@ private:
   map<G4String,G4SBSTrackerOutput> trackdata;
   map<G4String,G4SBSECaloutput> ecaldata;
   map<G4String,G4SBSSDTrackOutput> sdtrackdata;
+  map<G4String,G4SBSBDoutput> BDdata;
 
   G4SBSSDTrackOutput allsdtrackdata;
   

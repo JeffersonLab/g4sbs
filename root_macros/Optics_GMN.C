@@ -933,12 +933,12 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 	  xtar_recon = -vy - vz_recon * cos(theta0) * xptar_recon;
 	}
 
-	hvzdiff->Fill( vz_fit - T->ev_vz );
-	hvzdiff_xtar->Fill(xtar, vz_fit - T->ev_vz );
-	hvzdiff_ytar->Fill(ytar, vz_fit - T->ev_vz );
-	hvzdiff_xptar->Fill(xptar, vz_fit - T->ev_vz );
-	hvzdiff_yptar->Fill(yptar, vz_fit - T->ev_vz );
-	hvzdiff_p->Fill(p, vz_fit - T->ev_vz );
+	hvzdiff->Fill( vz_recon - T->ev_vz );
+	hvzdiff_xtar->Fill(xtar, vz_recon - T->ev_vz );
+	hvzdiff_ytar->Fill(ytar, vz_recon - T->ev_vz );
+	hvzdiff_xptar->Fill(xptar, vz_recon - T->ev_vz );
+	hvzdiff_yptar->Fill(yptar, vz_recon - T->ev_vz );
+	hvzdiff_p->Fill(p, vz_recon - T->ev_vz );
 
 	// if( arm == 0 ){ //bigbite, beam right:
 	// 	ytar_fit = vz_fit * (sin(theta0) - cos(theta0)*yptar_fit);
@@ -948,46 +948,46 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 	// 	ytar_recon = -vz_recon * (sin(theta0) + cos(theta0)*yptar_recon);
 	// }
 
-	hpinvdiff->Fill( pinv_fit - 1.0/p );
+	hpinvdiff->Fill( pinv_recon - 1.0/p );
 
-	hytarrecon->Fill( ytar_fit );
-	hyptarrecon->Fill( yptar_fit );
-	hxptarrecon->Fill( xptar_fit );
-	hprecon->Fill(p_fit );
+	hytarrecon->Fill( ytar_recon );
+	hyptarrecon->Fill( yptar_recon );
+	hxptarrecon->Fill( xptar_recon );
+	hprecon->Fill(p_recon );
 
-	hytardiff->Fill( ytar_fit - ytar );
-	hxptardiff->Fill( xptar_fit - xptar );
-	hyptardiff->Fill( yptar_fit - yptar );
-	hpdiff->Fill( (p_fit/p - 1.0) );
+	hytardiff->Fill( ytar_recon - ytar );
+	hxptardiff->Fill( xptar_recon - xptar );
+	hyptardiff->Fill( yptar_recon - yptar );
+	hpdiff->Fill( (p_recon/p - 1.0) );
       
-	hxptardiff_xtar->Fill( xtar, xptar_fit - xptar );
-	hxptardiff_xptar->Fill( xptar, xptar_fit - xptar );
-	hxptardiff_yptar->Fill( yptar, xptar_fit - xptar );
-	hxptardiff_ytar->Fill( ytar, xptar_fit - xptar );
-	hxptardiff_p->Fill( p, xptar_fit - xptar );
+	hxptardiff_xtar->Fill( xtar, xptar_recon - xptar );
+	hxptardiff_xptar->Fill( xptar, xptar_recon - xptar );
+	hxptardiff_yptar->Fill( yptar, xptar_recon - xptar );
+	hxptardiff_ytar->Fill( ytar, xptar_recon - xptar );
+	hxptardiff_p->Fill( p, xptar_recon - xptar );
 
-	hyptardiff_xtar->Fill(xtar, yptar_fit - yptar );
-	hyptardiff_xptar->Fill( xptar, yptar_fit - yptar );
-	hyptardiff_yptar->Fill( yptar, yptar_fit - yptar );
-	hyptardiff_ytar->Fill( ytar, yptar_fit - yptar );
-	hyptardiff_p->Fill( p, yptar_fit - yptar );
+	hyptardiff_xtar->Fill(xtar, yptar_recon - yptar );
+	hyptardiff_xptar->Fill( xptar, yptar_recon - yptar );
+	hyptardiff_yptar->Fill( yptar, yptar_recon - yptar );
+	hyptardiff_ytar->Fill( ytar, yptar_recon - yptar );
+	hyptardiff_p->Fill( p, yptar_recon - yptar );
       
-	hytardiff_xtar->Fill( xtar, ytar_fit - ytar );
-	hytardiff_xptar->Fill( xptar, ytar_fit - ytar );
-	hytardiff_yptar->Fill( yptar, ytar_fit - ytar );
-	hytardiff_ytar->Fill( ytar, ytar_fit - ytar );
-	hytardiff_p->Fill( p, ytar_fit - ytar );
+	hytardiff_xtar->Fill( xtar, ytar_recon - ytar );
+	hytardiff_xptar->Fill( xptar, ytar_recon - ytar );
+	hytardiff_yptar->Fill( yptar, ytar_recon - ytar );
+	hytardiff_ytar->Fill( ytar, ytar_recon - ytar );
+	hytardiff_p->Fill( p, ytar_recon - ytar );
       
-	hpdiff_xtar->Fill( xtar, p_fit/p - 1.0 );
-	hpdiff_xptar->Fill( xptar, p_fit/p - 1.0 );
-	hpdiff_yptar->Fill( yptar, p_fit/p - 1.0 );
-	hpdiff_ytar->Fill( ytar, p_fit/p - 1.0 );
-	hpdiff_p->Fill( p, p_fit/p - 1.0 );
+	hpdiff_xtar->Fill( xtar, p_recon/p - 1.0 );
+	hpdiff_xptar->Fill( xptar, p_recon/p - 1.0 );
+	hpdiff_yptar->Fill( yptar, p_recon/p - 1.0 );
+	hpdiff_ytar->Fill( ytar, p_recon/p - 1.0 );
+	hpdiff_p->Fill( p, p_recon/p - 1.0 );
 
-	hpdiff_xfp->Fill( xfp, p_fit/p - 1.0 );
-	hpdiff_yfp->Fill( yfp, p_fit/p - 1.0 );
-	hpdiff_xpfp->Fill( xpfp, p_fit/p - 1.0 );
-	hpdiff_ypfp->Fill( ypfp, p_fit/p - 1.0 );
+	hpdiff_xfp->Fill( xfp, p_recon/p - 1.0 );
+	hpdiff_yfp->Fill( yfp, p_recon/p - 1.0 );
+	hpdiff_xpfp->Fill( xpfp, p_recon/p - 1.0 );
+	hpdiff_ypfp->Fill( ypfp, p_recon/p - 1.0 );
 
 	hxtardiff->Fill( xtar_recon - xtar );
 	hxtarrecon->Fill( xtar_recon );

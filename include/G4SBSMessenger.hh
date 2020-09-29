@@ -188,9 +188,13 @@ private:
 
   G4UIcmdWithAnInteger       *GEPFPPoptionCmd;
 
-  // D. Flay 7/28/20
-  // command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
-  G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd;  
+  // D. Flay 7/28/20: command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
+  G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd; 
+
+  // D. Flay 9/29/20: commands to set the angular misalignment of the GEn 3He target 
+  G4UIcmdWithADoubleAndUnit *GENTargetRXCmd; 
+  G4UIcmdWithADoubleAndUnit *GENTargetRYCmd; 
+  G4UIcmdWithADoubleAndUnit *GENTargetRZCmd; 
  
   // D. Flay 8/25/20 
   // command to set the beam offset 

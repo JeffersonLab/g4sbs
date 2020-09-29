@@ -115,7 +115,13 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   // D. Flay (8/25/20) 
   // beam diffuser switch 
-  fBeamDiffuserEnable = false; 
+  fBeamDiffuserEnable = false;
+
+  // D. Flay (9/29/20) 
+  // GEn 3He target angular misalignment
+  fGEnTgtDRX = 0.;  
+  fGEnTgtDRY = 0.;  
+  fGEnTgtDRZ = 0.;  
 
 }
 

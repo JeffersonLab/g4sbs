@@ -109,15 +109,15 @@ G4SBSMessenger::G4SBSMessenger(){
 
   // D. Flay (9/29/20) 
   // for GEn 3He target rotational misalignment 
-  // GENTargetPointingXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRX",this); 
-  // GENTargetPointingXCmd->SetGuidance("GEn 3He target rotational misalignment relative to x axis"); 
-  // GENTargetPointingXCmd->SetParameterName("targgenDRX",false); 
-  // GENTargetPointingYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRY",this); 
-  // GENTargetPointingYCmd->SetGuidance("GEn 3He target rotational misalignment relative to y axis"); 
-  // GENTargetPointingYCmd->SetParameterName("targgenDRY",false); 
-  // GENTargetPointingZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRZ",this); 
-  // GENTargetPointingZCmd->SetGuidance("GEn 3He target rotational misalignment relative to z axis"); 
-  // GENTargetPointingZCmd->SetParameterName("targgenDRZ",false); 
+  GENTargetRXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRX",this); 
+  GENTargetRXCmd->SetGuidance("GEn 3He target rotational misalignment relative to x axis"); 
+  GENTargetRXCmd->SetParameterName("targgenDRX",false); 
+  GENTargetRYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRY",this); 
+  GENTargetRYCmd->SetGuidance("GEn 3He target rotational misalignment relative to y axis"); 
+  GENTargetRYCmd->SetParameterName("targgenDRY",false); 
+  GENTargetRZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRZ",this); 
+  GENTargetRZCmd->SetGuidance("GEn 3He target rotational misalignment relative to z axis"); 
+  GENTargetRZCmd->SetParameterName("targgenDRZ",false); 
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
   kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
@@ -1140,6 +1140,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == GENTargetHelmholtzCmd ){
      G4int genTgtHHconf = GENTargetHelmholtzCmd->GetNewIntValue(newValue);  
      fdetcon->SetGEnTargetHelmholtzConfig(genTgtHHconf);
+  }
+
+  // D. Flay (9/29/20) 
+  // GEn 3He target angular misalignment 
+  if( cmd == GENTargetRXCmd ){
+     G4double genTgtDRX = GENTargetRXCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetGEnTargetDRX(genTgtDRX); 
+  }
+  if( cmd == GENTargetRYCmd ){
+     G4double genTgtDRY = GENTargetRYCmd->GetNewDoubleValue(newValue); 
+     fdetcon->SetGEnTargetDRY(genTgtDRY); 
+  }
+  if( cmd == GENTargetRZCmd ){
+     G4double genTgtDRZ = GENTargetRZCmd->GetNewDoubleValue(newValue); 
+     fdetcon->SetGEnTargetDRZ(genTgtDRZ); 
   }
 
   // D. Flay (8/25/20) 

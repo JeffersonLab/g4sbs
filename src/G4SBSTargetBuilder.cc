@@ -2294,8 +2294,6 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    // - geometry based on drawings from Bert Metzger and Gordon Cates  
 
    // glass cell
-   // NOTE: The polarized 3He is built inside the GlassCell function!
-   //       This is because the glass cell is used as the mother volume of the 3He  
    BuildGEnTarget_GlassCell(motherLog);
 
    // Cu end windows for the target cell 
@@ -2651,10 +2649,28 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // - note that this is relative to the *target chamber* as that is the first object in the union 
    // - rotation puts the cell oriented such that the pumping chamber is vertically above
    //   and the beam enters from the side where the small sphere on the transfer tube is 
-   //   closest to the upstream side 
+   //   closest to the upstream side
+
+   // angular misalignment 
+   G4double drx = fDetCon->GetGEnTargetDRX(); 
+   G4double dry = fDetCon->GetGEnTargetDRY(); 
+   G4double drz = fDetCon->GetGEnTargetDRZ();
+  
+   if(drx!=0||dry!=0||drz!=0){ 
+      std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_GlassCell]: Using GEn 3He target angular misalignments: " << std::endl;
+      std::cout << "RX = " << drx/deg << " deg" << std::endl;
+      std::cout << "RY = " << dry/deg << " deg" << std::endl;
+      std::cout << "RZ = " << drz/deg << " deg" << std::endl;
+   }
+
+   // total angles 
+   G4double RX = drx; 
+   G4double RY = 180.*deg + dry;  
+   G4double RZ = 180.*deg + drz;  
+ 
    G4ThreeVector P_tgt_o = G4ThreeVector(0.*cm,0.*cm,0.*cm);
    G4RotationMatrix *rm_gc = new G4RotationMatrix();
-   rm_gc->rotateX(0.*deg); rm_gc->rotateY(180.*deg); rm_gc->rotateZ(180.*deg);
+   rm_gc->rotateX(RX); rm_gc->rotateY(RY); rm_gc->rotateZ(RZ);
 
    bool isBoolean     = true;
    bool checkOverlaps = true;
@@ -2781,7 +2797,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    G4double y_ew[2] = {0,0}; 
    G4double z_ew[2] = {0,0}; 
 
-   G4double z0 = 571.7*mm/2. + 0.5*msh.length;
+   // z0 = half length of target glass + half length of first component in the union for this part 
+   G4double z0 = 571.7*mm/2. + 0.5*msh.length;   
    z_ew[0] = (-1.)*z0; 
    z_ew[1] = z0; 
 
@@ -2797,15 +2814,38 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
 
    char logicName[200],physName[200]; 
 
+   // FIXME: not exactly aligned with the glass cell!  Needs additional motion in (x,y,z) 
+   // angular misalignment 
+   G4double drx = fDetCon->GetGEnTargetDRX(); 
+   G4double dry = fDetCon->GetGEnTargetDRY(); // opposite direction needed relative to target cell?   
+   G4double drz = fDetCon->GetGEnTargetDRZ();
+   G4double RX=0,RY=0,RZ=0;
+
+   G4double COS_G = cos(drx); G4double COS_B = cos(dry); G4double COS_A = cos(drz); 
+   G4double SIN_G = sin(drx); G4double SIN_B = sin(dry); G4double SIN_A = sin(drz); 
+   G4double xp=0,yp=0,zp=0;
+ 
+   char msg[200]; 
+ 
    for(int i=0;i<2;i++){
       // create logical volume
       sprintf(logicName,"logicGEnTarget_EndWindow_%d",i);  
       logicEndWindow[i] = new G4LogicalVolume(endWindow,GetMaterial("Copper"),logicName);
       logicEndWindow[i]->SetVisAttributes(vis);  
-      // position and rotation 
-      G4ThreeVector P_ew      = G4ThreeVector(x_ew[i],y_ew[i],z_ew[i]);
+      // position and rotation
+      // account for misalignment angles (x,y,z) => (gamma,beta,alpha)
+      xp = COS_A*COS_B*x_ew[i] + (COS_A*COS_B*SIN_G - SIN_A*COS_G)*y_ew[i] + (COS_A*SIN_B*COS_G + SIN_A*SIN_G)*z_ew[i]; 
+      yp = SIN_A*COS_B*x_ew[i] + (SIN_A*SIN_B*SIN_G + COS_A*COS_G)*y_ew[i] + (SIN_A*SIN_B*COS_G - COS_A*SIN_G)*z_ew[i]; 
+      zp = -SIN_B*x_ew[i]      +                       COS_B*SIN_G*y_ew[i] +                       COS_B*COS_G*z_ew[i];  
+      // sprintf(msg,"=======> endWindow %d: x = %.3lf mm => %.3lf mm, y = %.3lf mm => %.3lf mm, z = %.3lf mm => %.3lf mm",
+      //         i+1,x_ew[i]/mm,xp/mm,y_ew[i]/mm,yp/mm,z_ew[i]/mm,zp/mm);
+      // std::cout << msg << std::endl; 
+      // WARNING: Need to flip the sign on the x coordinate... 
+      xp *= -1.; 
+      G4ThreeVector P_ew      = G4ThreeVector(xp,yp,zp);
       G4RotationMatrix *rm_ew = new G4RotationMatrix();
-      rm_ew->rotateX(rx[i]); rm_ew->rotateY(ry[i]); rm_ew->rotateZ(rz[i]);
+      RX = rx[i] + drx; RY = ry[i] + dry; RZ = rz[i] + drz;
+      rm_ew->rotateX(RX); rm_ew->rotateY(RY); rm_ew->rotateZ(RZ);
       // physical name 
       sprintf(physName,"physGEnTarget_EndWindow_%d",i);  
       // place the volume  
@@ -2818,7 +2858,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
 	                i,                   // copy number 
 	                checkOverlaps);      // check overlaps
       // register with DetectorConstruction object
-      fDetCon->InsertTargetVolume( logicEndWindow[i]->GetName() );  
+      fDetCon->InsertTargetVolume( logicEndWindow[i]->GetName() ); 
    }
  
 }
@@ -3048,7 +3088,15 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   bool isBoolean = true;
   bool checkOverlaps = true;
 
-  new G4PVPlacement(0,                      // rotation
+  // angular misalignment 
+  G4double drx = fDetCon->GetGEnTargetDRX(); 
+  G4double dry = fDetCon->GetGEnTargetDRY(); 
+  G4double drz = fDetCon->GetGEnTargetDRZ();
+
+  G4RotationMatrix *rm = new G4RotationMatrix();
+  rm->rotateX(drx); rm->rotateY(dry); rm->rotateZ(drz); 
+
+  new G4PVPlacement(rm,                     // rotation
                     posHe3,                 // position 
                     logicHe3,               // logical volume 
                     "physGEnTarget_polHe3", // name 

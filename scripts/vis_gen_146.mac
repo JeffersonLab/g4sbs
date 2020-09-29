@@ -11,6 +11,9 @@
 /g4sbs/targpres        10 atmosphere     ## Target pressure
 /g4sbs/targlen         55.0 cm           ## Target Length
 /g4sbs/targgenhhconfig 146               ## Q2 = 1.46 GeV^2 
+/g4sbs/targgenDRX      0 deg             ## target angular misalignment about x axis  
+/g4sbs/targgenDRY      0 deg             ## target angular misalignment about y axis
+/g4sbs/targgenDRZ      0 deg             ## target angular misalignment about z axis
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator

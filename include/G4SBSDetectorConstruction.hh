@@ -57,7 +57,15 @@ public:
   // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration
   void SetGEnTargetHelmholtzConfig(int n) { fGEnTgtHHConfig =n; }  
   int GetGEnTargetHelmholtzConfig() const { return fGEnTgtHHConfig; } 
-  
+ 
+  // D. Flay (9/29/20).  GEn 3He target angular misalignment
+  void SetGEnTargetDRX(double rx) { fGEnTgtDRX = rx; } 
+  void SetGEnTargetDRY(double ry) { fGEnTgtDRY = ry; } 
+  void SetGEnTargetDRZ(double rz) { fGEnTgtDRZ = rz; }
+  G4double GetGEnTargetDRX() const { return fGEnTgtDRX; } 
+  G4double GetGEnTargetDRY() const { return fGEnTgtDRY; } 
+  G4double GetGEnTargetDRZ() const { return fGEnTgtDRZ; }
+ 
   // D. Flay (8/25/20).  Beam Diffuser enable 
   void SetBeamDiffuserEnable(bool v)   { fBeamDiffuserEnable = v;    } 
   G4bool GetBeamDiffuserEnable() const { return fBeamDiffuserEnable; } 
@@ -177,6 +185,8 @@ private:
   G4bool fGEMflip;
 
   G4int fGEnTgtHHConfig; // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration
+  
+  G4double fGEnTgtDRX,fGEnTgtDRY,fGEnTgtDRZ; // D. Flay (9/29/20).  GEn 3He target angular misalignment  
 
   // D. Flay (8/25/20).  Beam diffuser enable and beam pointing
   G4bool fBeamDiffuserEnable;       // enable the beam diffuser 

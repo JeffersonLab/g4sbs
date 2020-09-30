@@ -4776,9 +4776,9 @@ void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother,G4double dz
    // upstream ISO wall weldment to upstream face of diffuser:              24.56 inches
    // upstream face of beam diffuser to upstream face of downstream flange: 17.3943 inches
    G4double z_us  = dz + 1052.4797*inch; 
-   G4double z_iso = dz + z_us + 207.1108*inch; 
-   G4double z_bd  = dz + z_iso + 24.56*inch; 
-   G4double z_ds  = dz + z_bd + 17.3943*inch; 
+   G4double z_iso = z_us + 207.1108*inch; 
+   G4double z_bd  = z_iso + 24.56*inch; 
+   G4double z_ds  = z_bd + 17.3943*inch; 
    // CheckZPos(logicMother,z_bd);
    MakeBeamDump_UpstreamPipe(logicMother,z_us);
    MakeBeamDump_ISOWallWeldment(logicMother,z_iso);
@@ -5604,7 +5604,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe_vac = new G4UnionSolid("tgtToMidPipe",tgtToMidPipe_vac,solidTube10_vac,0,P); 
 
-   G4LogicalVolume *tgtMP_vac_LV = new G4LogicalVolume(tgtToMidPipe_vac,GetMaterial("Aluminum"),"tgtMP_vac_LV"); 
+   G4LogicalVolume *tgtMP_vac_LV = new G4LogicalVolume(tgtToMidPipe_vac,GetMaterial("Vacuum"),"tgtMP_vac_LV"); 
    tgtMP_vac_LV->SetVisAttributes(vis_vac);
 
    new G4PVPlacement(0,                    // no rotation

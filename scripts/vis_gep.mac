@@ -44,6 +44,8 @@
 
 /g4sbs/totalabs true
 
+/g4sbs/buildSBSsieve 1
+
 ## Run 100 events
 #/g4sbs/run             100
 

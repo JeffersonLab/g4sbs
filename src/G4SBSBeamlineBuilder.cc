@@ -4901,13 +4901,14 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
    if(bdEnable){
       if( !(bdSD = (G4SBSBeamDiffuserSD *)fDetCon->fSDman->FindSensitiveDetector(bdSDname)) ){
          // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
-         G4cout << "[G4SBSBeamlineBuilder]: Adding Beam Diffuser SD functionality..." << G4endl; 
+         // G4cout << "[G4SBSBeamlineBuilder]: Adding Beam Diffuser SD functionality..." << G4endl;
+	 G4cout << "Adding Beam Diffuser sensitive detector to SDman..." << G4endl;
          bdSD = new G4SBSBeamDiffuserSD(bdSDname,bdColName);
          plateLV->SetSensitiveDetector(bdSD);  
          fDetCon->fSDman->AddNewDetector(bdSD);
          (fDetCon->SDlist).insert(bdSDname); 
          fDetCon->SDtype[bdSDname] = G4SBS::kBD; 
-         G4cout << "[G4SBSBeamlineBuilder]: --> Done." << G4endl;
+         // G4cout << "[G4SBSBeamlineBuilder]: --> Done." << G4endl;
       }
    }
  
@@ -4941,8 +4942,6 @@ void G4SBSBeamlineBuilder::MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMo
    G4double x_len = 77.0*inch;   // from JL0015694  
    G4double y_len = 117.0*inch;  // from JL0015694
    G4double z_len = 0.25*inch;   // from JL0015725
-
-   auto material  = G4Material::GetMaterial("G4_Al"); // might not be aluminum... 
 
    // solid box 
    G4Box *solidBox = new G4Box("isoBox",x_len/2.,y_len/2.,z_len/2.);

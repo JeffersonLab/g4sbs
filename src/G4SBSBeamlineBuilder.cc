@@ -4765,7 +4765,8 @@ void G4SBSBeamlineBuilder::MakeToyBeamline(G4LogicalVolume *motherlog){ //This i
 }
 
 void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother,G4double dz){
-   // build the Hall A beam dump 
+   // build the Hall A beam dump
+   // dz = global offset to be applied to all downstream components  
    // Added by D. Flay (JLab) in Sept 2020 
 
    G4double inch = 2.54*cm; 
@@ -4787,6 +4788,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother,G4double dz
 
 void G4SBSBeamlineBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
    // a dummy function to check positioning
+   // z0 = position of DOWNSTREAM face of this part.  All components are spaced relative to this point 
 
    G4double inch = 2.54*cm; 
 
@@ -4815,6 +4817,7 @@ void G4SBSBeamlineBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
 
 void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4double z0){
    // A beam diffuser that sits right in front of the beam dump
+   // z0 = position of upstream face of this part.  All components are spaced relative to this point 
    // Added by D. Flay (JLab) in Aug 2020  
   
    G4double inch = 25.4*mm;
@@ -4916,6 +4919,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
 
 void G4SBSBeamlineBuilder::MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMother,G4double z0){
    // Hall A Beam Dump: ISO Wall Weldment 
+   // z0 = position of upstream face of this part.  All components are spaced relative to this point 
    // Drawings: JL0015694, JL0015725, JL0016212 
    // Added by D. Flay (JLab) in Sept 2020  
 
@@ -4994,7 +4998,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMo
 
 void G4SBSBeamlineBuilder::MakeBeamDump_UpstreamPipe(G4LogicalVolume *logicMother,G4double z0){
    // Hall A Beam Dump: Pipe upstream of ISO Weldment
-   // z0 = position of front face of the Beam Diffuser.  All components are spaced relative to this point 
+   // z0 = position of upstream face of this part.  All components are spaced relative to this point 
    // Drawing: JL0009934-C-VAC SPOOL REGION UPPER LEVEL
    // Added by D. Flay (JLab) in Sept 2020  
 
@@ -5283,7 +5287,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump_UpstreamPipe(G4LogicalVolume *logicMothe
 
 void G4SBSBeamlineBuilder::MakeBeamDump_DownstreamPipe(G4LogicalVolume *logicMother,G4double z0){
    // Hall A Beam Dump: Pipe downstream of ISO Weldment
-   // z0 = position of front face of the Beam Diffuser.  All components are spaced relative to this point 
+   // z0 = position of upstream face of this part.  All components are spaced relative to this point 
    // Drawing: JL0011756_27020E0145 [modified]
    // Added by D. Flay (JLab) in Sept 2020  
 
@@ -5354,8 +5358,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump_DownstreamPipe(G4LogicalVolume *logicMot
    G4double z=0,a=0,density=0;
 
    // logical volume
-   G4Material *Vacuum     = new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
-   G4LogicalVolume *vacLV = new G4LogicalVolume(solidVacuumInsert,Vacuum,"vacuum_dsPipe_LV");
+   G4LogicalVolume *vacLV = new G4LogicalVolume(solidVacuumInsert,GetMaterial("Vacuum"),"vacuum_dsPipe_LV");
    vacLV->SetVisAttributes(visV);
 
    Z = z0 + TOTAL_LENGTH/2.;
@@ -5388,6 +5391,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother){
 
 void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMother,G4double z0){
    // SBS exit beam pipe.  This is immediately upstream of the mid pipe
+   // z0 = position of upstream face of this part
    // Added by D. Flay (JLab) in Sept 2020
    // Drawings: 
    // - Target to mid pipe: ARC10540  
@@ -5616,6 +5620,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
 
 void G4SBSBeamlineBuilder::MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMother,G4double z0){
    // SBS exit beam pipe.  This is immediately upstream of the beam dump
+   // z0 = position of upstream face of this part
    // Drawings: 
    // - Full assembly: A00000-02-08-0300
    // - Mid pipe to dump: A00000-02-08-700, A00000-02-02-0001 [rev] 

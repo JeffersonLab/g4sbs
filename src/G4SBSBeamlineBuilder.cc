@@ -1916,8 +1916,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4LogicalVolume *entLog_cut = new G4LogicalVolume(ent_tube_cut, GetMaterial("Stainless"), "ent_log_cut", 0, 0, 0);
   G4LogicalVolume *entvacLog_cut = new G4LogicalVolume(ent_vac_cut, GetMaterial("Vacuum"), "entvac_log_cut", 0, 0, 0);
 
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entLog, "ent_phys", worldlog, false,0);// -- Extended beamline for background studies (2016/09/07)
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entvacLog, "entvac_phys", worldlog,false,0);// -- Extended beamline for background studies (2016/09/07)
+  //new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entLog, "ent_phys", worldlog, false,0);// -- Extended beamline for background studies (2016/09/07) //Moved to after section zero for shift
+  //new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entvacLog, "entvac_phys", worldlog,false,0);// -- Extended beamline for background studies (2016/09/07) //Moved to after section zero for shift
 
   ////Changed 40.0 cm to 13.9 inch from information at Autodesk Viewer
 
@@ -1993,6 +1993,139 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   ////Corrected initial placement with help from D. Flay.
   ////Corrected side shields - material to be aluminum per R Wines. 7.24.20
 
+
+  //Section Zero
+  //This section details all components of the enterance beamline from the target chamber upstream.
+
+  G4VisAttributes *Aluminum = new G4VisAttributes(G4Colour(0.3,0.3,1.0));
+  G4VisAttributes *Iron = new G4VisAttributes(G4Colour(0.3,0.3,0.3));
+  G4VisAttributes *LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
+  G4VisAttributes *DebugRed = new G4VisAttributes(G4Colour(1.0,0.,0.));
+  G4VisAttributes *Beryllium = new G4VisAttributes(G4Colour(1.0,0.,0.));
+
+  G4double P0initPlacement_z = -13.9*inch; //JT file dimension
+  
+  //Ring 0A - Most proximal ring to target chamber upstream
+  G4double P0ringA_L = 0.5/2.0*inch;
+  G4double P0ringA_rin = 1.375/2.0*inch;
+  G4double P0ringA_rou = 3.1/2.0*inch;
+
+  G4Tubs *P0ringA = new G4Tubs("P0ringA", P0ringA_rin, P0ringA_rou, P0ringA_L, 0.0*deg, 360.0*deg);
+
+  //Cut out disk for Be window to sit in
+  
+  G4double P0disk_cut_L = 0.1/2.0*inch;
+  G4double P0disk_cut_rou = 2.105/2.0*inch;
+  
+  G4Tubs *P0disk_cut = new G4Tubs("P0disk_cut", 0.0, P0disk_cut_rou, P0disk_cut_L, 0.0*deg, 360.0*deg );
+  
+  G4RotationMatrix *P0disk_cut_rot = new G4RotationMatrix;
+  cut_cylinder_rot->rotateX( -90.0*deg );
+
+  G4SubtractionSolid *P0ringA_cut = new G4SubtractionSolid( "P0ringA_cut", P0ringA, P0disk_cut, cut_cylinder_rot, G4ThreeVector( 0.0, 0.0, P0ringA_L - P0disk_cut_L));
+
+  G4LogicalVolume *P0ringA_cutLog = new G4LogicalVolume(P0ringA_cut, GetMaterial("Aluminum"), "P0ringA_cut_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-P0ringA_L), P0ringA_cutLog, "P0ringA_cutLog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  //Beryllium window at end of entrance beamline. Placement, dims, and material assumed at this point.
+  //MUST CHECK - 9.29.20
+
+  G4double P0disk_L = 0.015/2.0*inch;
+  G4double P0disk_rou = 2.105/2.0*inch;
+  
+  G4Tubs *P0disk = new G4Tubs("P0disk", 0.0, P0disk_rou, P0disk_L, 0.*deg, 360.*deg);
+ 
+  G4LogicalVolume *P0diskLog = new G4LogicalVolume(P0disk, GetMaterial("Beryllium"), "P0disk_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z - P0disk_L), P0diskLog, "P0diskLog_pv", worldlog, false, 0 , ChkOverlaps );
+  
+  //Tube 0A
+  G4double P0tubeA_L = 1.0/2.0*inch;
+  G4double P0tubeA_rou = 1.66/2.0*inch;
+
+  G4Tubs *P0tubeA = new G4Tubs("P0tubeA", P0ringA_rin, P0tubeA_rou, P0tubeA_L, 0.0*deg, 360.0*deg);
+
+  G4LogicalVolume *P0tubeALog = new G4LogicalVolume(P0tubeA, GetMaterial("Aluminum"), "P0tubeA_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-P0tubeA_L), P0tubeALog, "P0tubeALog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  //Vacuum 0A
+  G4Tubs *P0tubeA_vac = new G4Tubs("P0tubeA_vac", 0.0, P0ringA_rin, P0ringA_L+P0tubeA_L-P0disk_L, 0.*deg, 360.*deg);
+
+  G4LogicalVolume *P0tubeA_vacLog = new G4LogicalVolume(P0tubeA_vac, GetMaterial("Vacuum"), "P0tubeA_vac_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0disk_L-(P0ringA_L+P0tubeA_L-P0disk_L)), P0tubeA_vacLog, "P0tubeA_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  
+  //Vacuum 0A Ring
+  G4Tubs *P0ringA_vac = new G4Tubs("P0ringA_vac", P0ringA_rin, P0disk_cut_rou, P0disk_cut_L-P0disk_L, 0.*deg, 360.*deg);
+
+  G4LogicalVolume *P0ringA_vacLog = new G4LogicalVolume(P0ringA_vac, GetMaterial("Vacuum"), "P0ringA_vac_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-P0disk_cut_L-P0disk_L), P0ringA_vacLog, "P0ringA_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  
+  //Tube 0B
+  G4double P0tubeB_L = 13.428/2.0*inch;
+  G4double P0tubeB_rin = 1.380/2.0*inch;
+  G4double P0tubeB_rou = 1.66/2.0*inch;
+
+  G4Tubs *P0tubeB = new G4Tubs("P0tubeB", P0tubeB_rin, P0tubeB_rou, P0tubeB_L, 0.0*deg, 360.0*deg);
+
+  G4LogicalVolume *P0tubeBLog = new G4LogicalVolume(P0tubeB, GetMaterial("Aluminum"), "P0tubeB_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0tubeB_L), P0tubeBLog, "P0tubeBLog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  //Vacuum 0B
+  G4Tubs *P0tubeB_vac = new G4Tubs("P0tubeB_vac", 0.0, P0tubeB_rin, P0tubeB_L, 0.*deg, 360.*deg);
+
+  G4LogicalVolume *P0tubeB_vacLog = new G4LogicalVolume(P0tubeB_vac, GetMaterial("Vacuum"), "P0tubeB_vac_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0tubeB_L), P0tubeB_vacLog, "P0tubeB_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  
+  //Tube 0C
+  G4double P0tubeC_L = 3.427/2.0*inch;
+  G4double P0tubeC_rin = 1.457/2.0*inch;
+  G4double P0tubeC_rou = 1.693/2.0*inch;
+
+  G4Tubs *P0tubeC = new G4Tubs("P0tubeC", P0tubeC_rin, P0tubeC_rou, P0tubeC_L, 0.0*deg, 360.0*deg);
+
+  G4LogicalVolume *P0tubeCLog = new G4LogicalVolume(P0tubeC, GetMaterial("Aluminum"), "P0tubeC_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-P0tubeC_L), P0tubeCLog, "P0tubeCLog_pv", worldlog, false, 0 , ChkOverlaps );
+  
+  //Ring 0B
+  G4double P0ringB_L = 0.51/2.0*inch;
+  G4double P0ringB_rou = 2.74/2.0*inch;
+
+  G4Tubs *P0ringB = new G4Tubs("P0ringB", P0tubeC_rin, P0ringB_rou, P0ringB_L, 0.0*deg, 360.0*deg);
+
+  G4LogicalVolume *P0ringBLog = new G4LogicalVolume(P0ringB, GetMaterial("Aluminum"), "P0ringB_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*P0tubeC_L-P0ringB_L), P0ringBLog, "P0ringBLog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  //Vacuum 0C
+  G4Tubs *P0tubeC_vac = new G4Tubs("P0tubeC_vac", 0.0, P0tubeC_rin, P0tubeC_L+P0ringB_L, 0.*deg, 360.*deg);
+
+  G4LogicalVolume *P0tubeC_vacLog = new G4LogicalVolume(P0tubeC_vac, GetMaterial("Vacuum"), "P0tubeC_vac_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-(P0tubeC_L+P0ringB_L)), P0tubeC_vacLog, "P0tubeC_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  //Section zero visual attributes
+  P0ringA_cutLog->SetVisAttributes( Aluminum);
+  P0diskLog->SetVisAttributes( Beryllium);
+  P0tubeALog->SetVisAttributes( Aluminum);
+  P0tubeBLog->SetVisAttributes( Aluminum);
+  P0tubeCLog->SetVisAttributes( Aluminum);
+  P0ringBLog->SetVisAttributes( Aluminum);
+
+  //Relocated placement of steel upstream beampipi to accomodate details of target-proximal entrance beampipe - sseeds 10.1.20
+  
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2+P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*P0tubeC_L-P0ringB_L), entLog, "ent_phys", worldlog, false,0);// -- Extended beamline for background studies (2016/09/07)
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2+P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*P0tubeC_L-P0ringB_L), entvacLog, "entvac_phys", worldlog,false,0);// -- Extended beamline for background studies (2016/09/07)
+
+  
+
+  
   //Section One
   //This section details all components of the exit beamline from the target chamber to the first cone and shielding including all simple cylinders. All labels numbered by proximity to target chamber.
 
@@ -2001,10 +2134,10 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4double P1ringL = 0.125/2*inch;
   // G4double initPlacement_z = 15.14*inch-0.2*inch; //Offset from upstream beampipe with cad data and with autodesk viewer
   G4double initPlacement_z = 26.74*inch; //Offset from upstream beampipe with cad data and with autodesk viewer
-  G4VisAttributes *Aluminum = new G4VisAttributes(G4Colour(0.3,0.3,1.0));
-  G4VisAttributes *Iron = new G4VisAttributes(G4Colour(0.3,0.3,0.3));
-  G4VisAttributes *LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
-  G4VisAttributes *DebugRed = new G4VisAttributes(G4Colour(1.0,0.,0.));
+  //G4VisAttributes *Aluminum = new G4VisAttributes(G4Colour(0.3,0.3,1.0));
+  //G4VisAttributes *Iron = new G4VisAttributes(G4Colour(0.3,0.3,0.3));
+  //G4VisAttributes *LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
+  //G4VisAttributes *DebugRed = new G4VisAttributes(G4Colour(1.0,0.,0.));
 
   //G4Tubs *P1ringA = new G4Tubs("P1ringA", P1ringA_rin, P1ringA_rin+P1tubeTh, P1ringA_L, 0.*deg, 360.*deg);
 

@@ -502,6 +502,10 @@ G4SBSMessenger::G4SBSMessenger(){
   buildBBsieveCmd = new G4UIcmdWithABool("/g4sbs/buildBBsieve",this);
   buildBBsieveCmd->SetGuidance("Use BB sieve (true or false, false by default)");
   buildBBsieveCmd->SetParameterName("buildBBsieve",false);
+
+  buildNewBBsieveCmd = new G4UIcmdWithABool("/g4sbs/buildNewBBsieve",this);
+  buildNewBBsieveCmd->SetGuidance("Use new BB sieve (true or false, false by default)");
+  buildNewBBsieveCmd->SetParameterName("buildNewBBsieve",false);
   
   TreeFlagCmd = new G4UIcmdWithAnInteger("/g4sbs/treeflag",this);
   TreeFlagCmd->SetGuidance("G4SBS ROOT tree filling: 0=keep all, 1=keep only evts w/hits in sensitive volumes");
@@ -1689,6 +1693,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == buildBBsieveCmd ){
     G4bool b = buildBBsieveCmd->GetNewBoolValue(newValue);
     fdetcon->fEArmBuilder->SetBBSieve(b);
+  }
+
+  if( cmd == buildNewBBsieveCmd ){
+    G4bool b = buildNewBBsieveCmd->GetNewBoolValue(newValue);
+    fdetcon->fEArmBuilder->SetNewBBSieve(b);
   }
 
   if( cmd == TreeFlagCmd ){

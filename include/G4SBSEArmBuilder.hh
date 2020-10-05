@@ -21,8 +21,9 @@ public:
   void SetCerDist(double a){fCerDist = a;}
 
   void SetGEMSep(double a){fGEMDist = a;}
-  void SetBBSieve(bool a){fBuildBBSieve = a;}
-  void SetNewBBSieve(bool a){fBuildNewBBSieve =a;}
+
+  //SSeeds converted to integer for sieve plate option 10.4.20
+  void SetBBSieve(int bbs){ fBuildBBSieve = bbs; }
   
   void SetBBCalDist(double a){ fBBCaldist= a; }
   void SetGEMConfig(int gc ){ fGEMOption = gc; }
@@ -76,8 +77,11 @@ public:
   bool fUseLocalField;
 
   G4String fDVCSECalMaterial;
-  bool fBuildBBSieve;
-  bool fBuildNewBBSieve;
+
+  //Enable options for sieve slit. 0: nothing; 1:Old design - straight holes and slots; 2:New design by Holly S. - angled holes with three smaller holes and blanks.
+  //int fBuildBBSieve;
+
+  int fBuildBBSieve;
 
   G4String fGRINCHgas;
   G4bool fTurnOnGrinchPMTglassHits;

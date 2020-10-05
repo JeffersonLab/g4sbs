@@ -94,8 +94,7 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fnzsegments_leadglass_ECAL = 1;
   fnzsegments_leadglass_C16 = 1;
 
-  fBuildBBSieve = false;
-  fBuildNewBBSieve = false;
+  fBuildBBSieve = 0;
 
   assert(fDetCon);
   
@@ -343,19 +342,24 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   new G4PVPlacement(yokerm,G4ThreeVector(0.0, 0.0, -motherdepth/2.0+clear),
 		    bbyokewgapLog, "bbyokewgapPhysical", bbmotherLog, false,0, chkoverlap);
 
+
+  
   //Sieve plate position is 13.37 inches ~= 34 cm upstream of front of magnet yoke:
   //Thickness of sieve plate is 1.5 inches
+  //SSeeds - added second sieve option to accomodate new plate 10.4.20
   
-  if( fBuildBBSieve ){
+ if( fBuildBBSieve == 1 ){ 
     G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
     MakeBBSieveSlit( bbmotherLog, BBSievePos );
-  }
-
-  if( fBuildNewBBSieve ){
-    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
+ }
+ else if( fBuildBBSieve == 2 ){  
+    G4ThreeVector BBSievePos(0,200*cm,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
     MakeNewBBSieveSlit( bbmotherLog, BBSievePos );
-  }
-
+ }
+ else {
+   cout << "Invalid sieve entry. Please enter 1 (old - straight holes and slots) or 2 (new - holes with angles in dispersive direction). No sieve constructed.\n";
+ }
+  
   //  Bigbite field log volume
   G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
 						  "bbfieldLog", 0, 0, 0);
@@ -3787,7 +3791,7 @@ void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVector
 }
  
 
-//Sieve slit
+//Sieve slit designed by Holly S. for optics studies 10.4.20
 void G4SBSEArmBuilder::MakeNewBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVector pos)
 {
   printf("Building New BB sieve slit...\n");

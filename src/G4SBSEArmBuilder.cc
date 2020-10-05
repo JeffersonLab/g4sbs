@@ -353,7 +353,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     MakeBBSieveSlit( bbmotherLog, BBSievePos );
  }
  else if( fBuildBBSieve == 2 ){  
-    G4ThreeVector BBSievePos(0,200*cm,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
+    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
     MakeNewBBSieveSlit( bbmotherLog, BBSievePos );
  }
  else {
@@ -3791,7 +3791,7 @@ void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVector
 }
  
 
-//Sieve slit designed by Holly S. for optics studies 10.4.20
+//Sieve slit designed by Holly S. for optics studies 10.5.20
 void G4SBSEArmBuilder::MakeNewBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVector pos)
 {
   printf("Building New BB sieve slit...\n");
@@ -3800,7 +3800,7 @@ void G4SBSEArmBuilder::MakeNewBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVec
   //Plate dims - Assuming dimensions of box from extremes of holes and previous depth.
   G4double inch = 2.54*cm;
 
-  G4double bbsievew = 14.75*inch;
+  G4double bbsievew = 15.75*inch; //Added an inch from the old sieve design based on visual appearance of Holly's model. Will need to be updated with real figures.
   G4double bbsieveh = 27.50*inch;
   G4double bbsieved = 1.50*inch;
   

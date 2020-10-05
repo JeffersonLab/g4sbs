@@ -57,7 +57,8 @@
 
 /g4sbs/totalabs true
 
-# /g4sbs/buildBBsieve 1
+## Enable new BB sieve for optics studies 10.5.20
+/g4sbs/buildBBsieve 2
 
 ## Run 100 events
 #/g4sbs/run             100

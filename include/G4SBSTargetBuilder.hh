@@ -44,6 +44,7 @@ public:
   void BuildGEnTarget(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_HelmholtzCoils(const int config,const std::string type,G4LogicalVolume *motherLog); 
   void BuildGEnTarget_Shield(const int config,G4LogicalVolume *motherLog); 

@@ -2296,7 +2296,7 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    // glass cell
    BuildGEnTarget_GlassCell(motherLog);
 
-   // Cu end windows for the target cell 
+   // Al/Cu end windows for the target cell 
    BuildGEnTarget_EndWindows(motherLog);
 
    // cylinder of polarized 3He
@@ -2690,6 +2690,230 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
+   // Aluminum/Copper end window on 3He cell
+   // - drawing number: internal from G. Cates (Assembly MK-II Drawing_july_11_2017.pdf, received June 2020)
+
+   G4double inch = 25.4*mm; 
+
+   // main shaft [copper]  
+   partParameters_t msh; 
+   msh.name = "ew_mainShaft"; msh.shape = "tube";
+   msh.r_tor = 0.000*inch; msh.r_min = 0.471*inch; msh.r_max = 0.505*inch; msh.length = 0.500*inch;
+   msh.x_len = 0.000*inch; msh.y_len = 0.000*inch; msh.z_len = 0.000*inch;
+   msh.startTheta = 0.000*deg; msh.dTheta = 0.000*deg;
+   msh.startPhi = 0.000*deg; msh.dPhi = 360.000*deg;
+   msh.x = 0.000*inch; msh.y = 0.000*inch; msh.z = 0.000*inch;
+   msh.rx = 0.000*deg; msh.ry = 0.000*deg; msh.rz = 0.000*deg;
+
+   G4Tubs *mainShaft = new G4Tubs(msh.name,
+	                          msh.r_min    ,msh.r_max,
+	                          msh.length/2.,
+	                          msh.startPhi ,msh.dPhi);
+
+   G4ThreeVector P_msh      = G4ThreeVector(msh.x,msh.y,msh.z);
+   G4RotationMatrix *rm_msh = new G4RotationMatrix();
+   rm_msh->rotateX(msh.rx); rm_msh->rotateY(msh.ry); rm_msh->rotateZ(msh.rz);
+
+   // these parts below are aluminum
+   // lip 
+   partParameters_t lip; 
+   lip.name = "ew_lip"; lip.shape = "tube";
+   lip.r_tor = 0.000*inch; lip.r_min = 0.471*inch; lip.r_max = 0.611*inch; lip.length = 0.125*inch;
+   lip.x_len = 0.000*inch; lip.y_len = 0.000*inch; lip.z_len = 0.000*inch;
+   lip.startTheta = 0.000*deg; lip.dTheta = 0.000*deg;
+   lip.startPhi = 0.000*deg; lip.dPhi = 360.000*deg;
+   lip.x = 0.000*inch; lip.y = 0.000*inch; lip.z = 0.259*inch;
+   lip.rx = 0.000*deg; lip.ry = 0.000*deg; lip.rz = 0.000*deg;
+
+   G4Tubs *lipTube = new G4Tubs(lip.name,
+	                        lip.r_min    ,lip.r_max,
+	                        lip.length/2.,
+	                        lip.startPhi ,lip.dPhi);
+
+   G4ThreeVector P_lip      = G4ThreeVector(lip.x,lip.y,lip.z);
+   G4RotationMatrix *rm_lip = new G4RotationMatrix();
+   rm_lip->rotateX(lip.rx); rm_lip->rotateY(lip.ry); rm_lip->rotateZ(lip.rz);
+
+   // rounded lip. note: length is computed from drawing for reference 
+   partParameters_t rlip;  
+   rlip.name = "ew_rlip"; rlip.shape = "sphere";
+   rlip.r_tor = 0.000*inch; rlip.r_min = 0.4855*inch; rlip.r_max = 0.5455*inch; rlip.length = 0.2468*inch;
+   rlip.x_len = 0.000*inch; rlip.y_len = 0.000*inch; rlip.z_len = 0.000*inch;
+   rlip.startTheta = 63.100*deg; rlip.dTheta = 26.900*deg;
+   rlip.startPhi = 0.000*deg; rlip.dPhi = 360.000*deg;
+   rlip.x = 0.000*inch; rlip.y = 0.000*inch; rlip.z = 0.5*lip.length; 
+   rlip.rx = 0.000*deg; rlip.ry = 0.000*deg; rlip.rz = 0.000*deg;
+   
+   std::cout << "RLIP Z = " << rlip.z/inch << " inches" << std::endl;
+
+   G4Sphere *roundLip = new G4Sphere(rlip.name,
+                                     rlip.r_min     ,rlip.r_max,
+                                     rlip.startPhi  ,rlip.dPhi,
+                                     rlip.startTheta,rlip.dTheta);
+
+   G4ThreeVector P_rlip = G4ThreeVector(rlip.x,rlip.y,rlip.z);
+   G4RotationMatrix *rm_rlip = new G4RotationMatrix();
+   rm_rlip->rotateX(rlip.rx); rm_rlip->rotateY(rlip.ry); rm_rlip->rotateZ(rlip.rz);  
+
+   // endcap.  note: length is computed from the drawing for reference  
+   partParameters_t ec;
+   ec.name = "ew_cap_up"; ec.shape = "sphere";
+   ec.r_tor = 0.000*inch; ec.r_min = 0.4855*inch; ec.r_max = 0.4915*inch; ec.length = 0.2447*inch;
+   ec.x_len = 0.000*inch; ec.y_len = 0.000*inch; ec.z_len = 0.000*inch;
+   ec.startTheta = 0.000*deg; ec.dTheta = 63.100*deg;
+   ec.startPhi = 0.000*deg; ec.dPhi = 360.000*deg;
+   ec.x = 0.000*inch; ec.y = 0.000*inch; ec.z = 0.5*lip.length; 
+   ec.rx = 0.000*deg; ec.ry = 0.000*deg; ec.rz = 0.000*deg;
+
+   std::cout << "ENDCAP Z = " << ec.z/inch << " inches" << std::endl;
+
+   G4Sphere *endcap = new G4Sphere(ec.name,
+                                   ec.r_min     ,ec.r_max,
+                                   ec.startPhi  ,ec.dPhi,
+                                   ec.startTheta,ec.dTheta);
+
+   G4ThreeVector P_ec      = G4ThreeVector(ec.x,ec.y,ec.z);
+   G4RotationMatrix *rm_ec = new G4RotationMatrix();
+   rm_ec->rotateX(ec.rx); rm_ec->rotateY(ec.ry); rm_ec->rotateZ(ec.rz);   
+
+   // labels 
+   G4String label1 = "ew_ms_l"   ;
+   G4String label2 = "ew_ms_l_rl";
+   G4String label3 = "endWindow" ;
+
+   // union solid 
+   G4UnionSolid *endCap_al;
+   // lip and rounded lip  
+   endCap_al = new G4UnionSolid(label2,lipTube  ,roundLip,rm_rlip ,P_rlip);
+   // add endcap  
+   endCap_al = new G4UnionSolid(label3,endCap_al,endcap  ,rm_ec   ,P_ec  ); 
+
+   // visualization
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Red() );
+   vis->SetForceWireframe(true);
+
+   G4VisAttributes *vis_al = new G4VisAttributes();
+   vis_al->SetColour( G4Colour::Blue() );
+   vis_al->SetForceWireframe(true);
+
+   // define coordinates and rotations for placement  
+   // index 0 = upstream, 1 = downstream 
+
+   G4double x_ms[2] = {0,0}; 
+   G4double y_ms[2] = {0,0}; 
+   G4double z_ms[2] = {0,0};
+ 
+   G4double x_cp[2] = {0,0}; 
+   G4double y_cp[2] = {0,0}; 
+   G4double z_cp[2] = {0,0}; 
+
+   // z0 = half length of target glass + half length of main shaft 
+   G4double z0 = 571.7*mm/2. + 0.5*msh.length;   
+   z_ms[0] = (-1.)*z0; 
+   z_ms[1] = z0; 
+
+   // z0 = half length of target glass + half length of first component in the union for this part 
+   z0 = 571.7*mm/2. + msh.length + 0.5*lip.length;   
+   z_cp[0] = (-1.)*z0; 
+   z_cp[1] = z0; 
+
+   G4double rx[2] = {0.*deg  ,0.*deg};  
+   G4double ry[2] = {180.*deg,0.*deg};  
+   G4double rz[2] = {0.*deg  ,0.*deg}; 
+
+   bool isBoolean     = true; 
+   bool checkOverlaps = true; 
+ 
+   // logical volumes (for an array of logical volume pointers)  
+   G4LogicalVolume **logicMainShaft = new G4LogicalVolume*[2];
+   G4LogicalVolume **logicEndCap    = new G4LogicalVolume*[2];
+
+   char logicName[200],physName[200]; 
+
+   // FIXME: not exactly aligned with the glass cell!  Needs additional motion in (x,y,z) 
+   // angular misalignment 
+   G4double drx = fDetCon->GetGEnTargetDRX(); 
+   G4double dry = fDetCon->GetGEnTargetDRY(); // opposite direction needed relative to target cell?   
+   G4double drz = fDetCon->GetGEnTargetDRZ();
+   G4double RX=0,RY=0,RZ=0;
+
+   G4double COS_G = cos(drx); G4double COS_B = cos(dry); G4double COS_A = cos(drz); 
+   G4double SIN_G = sin(drx); G4double SIN_B = sin(dry); G4double SIN_A = sin(drz); 
+   G4double xp=0,yp=0,zp=0;
+ 
+   char msg[200]; 
+ 
+   for(int i=0;i<2;i++){
+      // main shaft [copper]  
+      // create logical volume
+      sprintf(logicName,"logicGEnTarget_EndWindow_ms_%d",i);  
+      logicMainShaft[i] = new G4LogicalVolume(mainShaft,GetMaterial("Copper"),logicName);
+      logicMainShaft[i]->SetVisAttributes(vis);  
+      // position and rotation
+      // account for misalignment angles (x,y,z) => (gamma,beta,alpha)
+      xp = COS_A*COS_B*x_ms[i] + (COS_A*COS_B*SIN_G - SIN_A*COS_G)*y_ms[i] + (COS_A*SIN_B*COS_G + SIN_A*SIN_G)*z_ms[i]; 
+      yp = SIN_A*COS_B*x_ms[i] + (SIN_A*SIN_B*SIN_G + COS_A*COS_G)*y_ms[i] + (SIN_A*SIN_B*COS_G - COS_A*SIN_G)*z_ms[i]; 
+      zp = -SIN_B*x_ms[i]      +                       COS_B*SIN_G*y_ms[i] +                       COS_B*COS_G*z_ms[i];  
+      // sprintf(msg,"=======> endWindow %d: x = %.3lf mm => %.3lf mm, y = %.3lf mm => %.3lf mm, z = %.3lf mm => %.3lf mm",
+      //         i+1,x_ms[i]/mm,xp/mm,y_ew[i]/mm,yp/mm,z_ew[i]/mm,zp/mm);
+      // std::cout << msg << std::endl; 
+      // WARNING: Need to flip the sign on the x coordinate... 
+      xp *= -1.; 
+      G4ThreeVector P_ms      = G4ThreeVector(xp,yp,zp);
+      G4RotationMatrix *rm_ms = new G4RotationMatrix();
+      RX = rx[i] + drx; RY = ry[i] + dry; RZ = rz[i] + drz;
+      rm_ms->rotateX(RX); rm_ms->rotateY(RY); rm_ms->rotateZ(RZ);
+      // physical name 
+      sprintf(physName,"physGEnTarget_EndWindow_ms_%d",i);  
+      // place the volume  
+      new G4PVPlacement(rm_ms,               // rotation relative to logic mother
+	                P_ms,                // position relative to logic mother 
+	                logicMainShaft[i],   // logical volume 
+	                physName,            // name 
+	                motherLog,           // logical mother volume is the target chamber 
+	                false,               // no boolean operations 
+	                i,                   // copy number 
+	                checkOverlaps);      // check overlaps
+      // register with DetectorConstruction object
+      fDetCon->InsertTargetVolume( logicMainShaft[i]->GetName() );
+      // hemisphere cap [aluminum]  
+      // create logical volume
+      sprintf(logicName,"logicGEnTarget_EndWindow_cap_%d",i);  
+      logicEndCap[i] = new G4LogicalVolume(endCap_al,GetMaterial("Aluminum"),logicName);
+      logicEndCap[i]->SetVisAttributes(vis_al);  
+      // position and rotation
+      // account for misalignment angles (x,y,z) => (gamma,beta,alpha)
+      xp = COS_A*COS_B*x_cp[i] + (COS_A*COS_B*SIN_G - SIN_A*COS_G)*y_cp[i] + (COS_A*SIN_B*COS_G + SIN_A*SIN_G)*z_cp[i]; 
+      yp = SIN_A*COS_B*x_cp[i] + (SIN_A*SIN_B*SIN_G + COS_A*COS_G)*y_cp[i] + (SIN_A*SIN_B*COS_G - COS_A*SIN_G)*z_cp[i]; 
+      zp = -SIN_B*x_cp[i]      +                       COS_B*SIN_G*y_cp[i] +                       COS_B*COS_G*z_cp[i];  
+      // sprintf(msg,"=======> endWindow %d: x = %.3lf mm => %.3lf mm, y = %.3lf mm => %.3lf mm, z = %.3lf mm => %.3lf mm",
+      //         i+1,x_cp[i]/mm,xp/mm,y_cp[i]/mm,yp/mm,z_cp[i]/mm,zp/mm);
+      // std::cout << msg << std::endl; 
+      // WARNING: Need to flip the sign on the x coordinate... 
+      xp *= -1.; 
+      G4ThreeVector P_cp      = G4ThreeVector(xp,yp,zp);
+      G4RotationMatrix *rm_cp = new G4RotationMatrix();
+      RX = rx[i] + drx; RY = ry[i] + dry; RZ = rz[i] + drz;
+      rm_cp->rotateX(RX); rm_cp->rotateY(RY); rm_cp->rotateZ(RZ);
+      // physical name 
+      sprintf(physName,"physGEnTarget_EndWindow_cap_%d",i);  
+      // place the volume  
+      new G4PVPlacement(rm_cp,               // rotation relative to logic mother
+	                P_cp,                // position relative to logic mother 
+	                logicEndCap[i],      // logical volume 
+	                physName,            // name 
+	                motherLog,           // logical mother volume is the target chamber 
+	                isBoolean,           // no boolean operations 
+	                i,                   // copy number 
+	                checkOverlaps);      // check overlaps
+      // register with DetectorConstruction object
+      fDetCon->InsertTargetVolume( logicEndCap[i]->GetName() );
+   }
+ 
+}
+
+void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *motherLog){
    // Copper end window on 3He cell
    // - drawing number: internal from G. Cates (Assembly MK-II Drawing_july_11_2017.pdf, received June 2020)
 

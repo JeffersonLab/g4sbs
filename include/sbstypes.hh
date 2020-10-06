@@ -27,12 +27,6 @@ namespace G4SBS {
    // sensitive detector type  
    enum SDet_t   { kGEM, kCAL, kRICH, kECAL, kBD }; 
 
-   struct filedata_t {
-      char filename[__RUNSTR_LEN];
-      char hashsum[__RUNSTR_LEN];
-      TTimeStamp timestamp;
-   };
-
    // switches for GEn
    // Helmholtz coils or shielding 
    // - 146  => Q2 = 1.46  (GeV/c)^2  
@@ -51,6 +45,12 @@ namespace G4SBS {
       kGEN_new   = 6
    };
 
-} 
+}
+
+struct filedata_t {
+  char filename[__RUNSTR_LEN];
+  char hashsum[__RUNSTR_LEN];
+  TTimeStamp timestamp;
+};
 
 #endif//SBSTYPES_HH

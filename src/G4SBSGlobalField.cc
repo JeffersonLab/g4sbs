@@ -80,7 +80,7 @@ void G4SBSGlobalField::AddToscaField( const char *fn ){
   G4SBSRunData *rd = G4SBSRun::GetRun()->GetData();
   
   TMD5 *md5 = TMD5::FileChecksum(fname.data());
-  G4SBS::filedata_t fdata;
+  filedata_t fdata;
 
   strcpy(fdata.filename, fname.data() );
   strcpy(fdata.hashsum, md5->AsString() );

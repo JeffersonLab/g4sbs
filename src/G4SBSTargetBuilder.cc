@@ -11,6 +11,7 @@
 #include "G4SDManager.hh"
 #include "G4Tubs.hh"
 #include "G4Trd.hh"
+#include "G4Trap.hh"
 #include "G4Cons.hh"
 #include "G4Box.hh"
 #include "G4Sphere.hh"
@@ -2325,6 +2326,9 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    // pickup coils 
    BuildGEnTarget_PickupCoils(motherLog);
 
+   // monolithic collimators FIXME: Not quite ready yet!  
+   // BuildGEnTarget_Collimators(motherLog); 
+
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
@@ -4234,6 +4238,173 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
 
    // register with DetectorConstruction object
    fDetCon->InsertTargetVolume( logicLadder->GetName() );  
+
+}
+//______________________________________________________________________________
+void G4SBSTargetBuilder::BuildGEnTarget_Collimators(G4LogicalVolume *motherLog,G4double z0){
+   // Collimators near target (beam left) 
+   // Based on drawings from Sebastian Seeds (UConn), derived from Bert Metzger's JT file 
+   BuildGEnTarget_CollimatorA(motherLog,z0);
+   BuildGEnTarget_CollimatorB(motherLog,z0);
+   BuildGEnTarget_CollimatorC(motherLog,z0);
+}
+//______________________________________________________________________________
+void G4SBSTargetBuilder::BuildGEnTarget_CollimatorA(G4LogicalVolume *motherLog,G4double z0){
+   // From drawings made by Sebastian Seeds (UConn) based on JT file
+   // - Collimator A1: CollimatorA_1_drawing.JPG
+   // - Collimator A2: CollimatorA_2_drawing.JPG
+   // - Offsets and rotations: CollimatorA_xzoffset.JPG
+   // Note: Collimators are on the LEFT side of the beam, next to the target  
+
+   double inch   = 2.54*cm;
+
+   // visualization
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Red() );
+
+   // collimator A1: right-angle trapezoid  
+   double zl_a1     = 2.247*inch;  // length along z
+   double yl_a1     = 6.000*inch;  // length along y 
+   double xs_a1     = 1.614*inch;  // length along x (short side)
+   double xl_a1     = 3.391*inch;  // length along x (long side) 
+   G4Trap *colSolid_A1 = new G4Trap("colSolid_A1",zl_a1,yl_a1,xl_a1,xs_a1);
+
+   // collimator A2: regular trapezoid
+   double z_a2      = 6.000*inch;
+   double x1_a2     = 2.247*inch;  // upstream x size 
+   double x2_a2     = 3.189*inch;  // downstream x size 
+   double y_a2      = 2.500*inch;  // thickness  
+   G4Trd *colSolid_A2 = new G4Trd("colSolid_A2",x1_a2/2.,x2_a2/2.,y_a2/2.,y_a2/2.,z_a2/2.);
+
+   // union of these objects.  use A2 as the reference point since it's easier
+   // - all positions and rotations are relative to A2 center  
+   G4ThreeVector P21     = G4ThreeVector(0,y_a2,0);
+   G4RotationMatrix *r21 = new G4RotationMatrix();
+   r21->rotateX(90*deg); r21->rotateY(90*deg); r21->rotateZ(0);
+   G4UnionSolid *col_A   = new G4UnionSolid("col_A",colSolid_A2,colSolid_A1,r21,P21);
+
+   // define materials and logical volume 
+   G4LogicalVolume *col_A_LV = new G4LogicalVolume(col_A,GetMaterial("Aluminum"),"logicGEnTarget_col_A");
+   col_A_LV->SetVisAttributes(vis);
+
+   // FIXME: Get placement right!
+   // placement of the union object in the Hall coordinate system 
+   // position 
+   double X = 3.803*inch; double Y = -2.493*inch; double Z = z0 - 7.495*inch;
+   G4ThreeVector P = G4ThreeVector(X,Y,Z);
+   // rotation 
+   double RX = 0.; double RY = -34.62*deg; double RZ = 0.;
+   G4RotationMatrix *rm = new G4RotationMatrix();
+   rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
+   
+   bool checkOverlaps = true; 
+
+   new G4PVPlacement(rm,                         // rotation
+                     P,                          // position 
+                     col_A_LV,                   // logical volume   
+                     "physGEnTarget_col_A",      // physical name 
+                     motherLog,                  // logical mother
+                     true,                       // boolean? 
+                     0,                          // copy no 
+                     checkOverlaps);             // check overlaps
+
+}
+//______________________________________________________________________________
+void G4SBSTargetBuilder::BuildGEnTarget_CollimatorB(G4LogicalVolume *motherLog,G4double z0){
+   // From drawings made by Sebastian Seeds (UConn) based on JT file
+   // - Collimator B: CollimatorB_drawing.JPG
+   // - Offsets and rotations: CollimatorB_xzoffset.JPG
+   // Note: Collimators are on the LEFT side of the beam, next to the target  
+
+   double inch   = 2.54*cm;
+
+   // visualization
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Red() );
+
+   // collimator B: right-angle trapezoid  
+   double zl_a1     = 0.815*inch;  // length along z
+   double yl_a1     = 3.397*inch;  // length along y 
+   double xs_a1     = 3.620*inch;  // length along x (short side)
+   double xl_a1     = 5.456*inch;  // length along x (long side) 
+   G4Trap *colSolid_B = new G4Trap("colSolid_B",zl_a1,yl_a1,xl_a1,xs_a1);
+
+   // define materials and logical volume 
+   G4LogicalVolume *col_B_LV = new G4LogicalVolume(colSolid_B,GetMaterial("Aluminum"),"logicGEnTarget_col_B");
+   col_B_LV->SetVisAttributes(vis);
+
+   // FIXME: Get placement right!
+   // placement in the Hall coordinate system 
+   // position
+   std::vector<G4double> POS;
+   // POS.push_back( 2.720*inch); POS.push_back(-2.479*inch); POS.push_back(z0 + 14.2*inch); 
+   POS.push_back( 2.720*inch); POS.push_back(0*inch); POS.push_back(z0 + 14.2*inch);
+   G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]);
+   // rotation 
+   std::vector<G4double> RA;
+   RA.push_back(0.*deg); RA.push_back(47.24*deg); RA.push_back(-90.*deg);
+   G4RotationMatrix *rm = new G4RotationMatrix();
+   rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
+   
+   bool checkOverlaps = true; 
+
+   new G4PVPlacement(rm,                         // rotation
+                     P,                          // position 
+                     col_B_LV,                   // logical volume   
+                     "physGEnTarget_col_B",      // physical name 
+                     motherLog,                  // logical mother
+                     false,                      // boolean? 
+                     0,                          // copy no 
+                     checkOverlaps);             // check overlaps
+
+}
+//______________________________________________________________________________
+void G4SBSTargetBuilder::BuildGEnTarget_CollimatorC(G4LogicalVolume *motherLog,G4double z0){
+   // From drawings made by Sebastian Seeds (UConn) based on JT file
+   // - Collimator C: CollimatorC_drawing.JPG
+   // - Offsets and rotations: CollimatorC_xzoffset.JPG
+   // Note: Collimators are on the LEFT side of the beam, next to the target  
+
+   double inch   = 2.54*cm;
+
+   // visualization
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Red() );
+
+   // collimator C: right-angle trapezoid  
+   double zl_a1     = 1.498*inch;  // length along z
+   double yl_a1     = 2.756*inch;  // length along y 
+   double xs_a1     = 3.800*inch;  // length along x (short side)
+   double xl_a1     = 4.858*inch;  // length along x (long side) 
+   G4Trap *colSolid_C = new G4Trap("colSolid_C",zl_a1,yl_a1,xl_a1,xs_a1);
+
+   // define materials and logical volume 
+   G4LogicalVolume *col_C_LV = new G4LogicalVolume(colSolid_C,GetMaterial("Aluminum"),"logicGEnTarget_col_C");
+   col_C_LV->SetVisAttributes(vis);
+
+   // FIXME: Get placement right!
+   // placement in the Hall coordinate system 
+   // position
+   std::vector<G4double> POS;
+   // POS.push_back( 4.070*inch); POS.push_back(-1.979*inch); POS.push_back(z0 + 20.870*inch); 
+   POS.push_back( 4.070*inch); POS.push_back(0*inch); POS.push_back(z0 + 20.870*inch);
+   G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]);
+   // rotation 
+   std::vector<G4double> RA;
+   RA.push_back(0.*deg); RA.push_back(50.41*deg); RA.push_back(-90.*deg);
+   G4RotationMatrix *rm = new G4RotationMatrix();
+   rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
+
+   bool checkOverlaps = true; 
+
+   new G4PVPlacement(rm,                         // rotation
+                     P,                          // position 
+                     col_C_LV,                   // logical volume   
+                     "physGEnTarget_col_C",      // physical name 
+                     motherLog,                  // logical mother
+                     false,                      // boolean? 
+                     0,                          // copy no 
+                     checkOverlaps);             // check overlaps
 
 }
 

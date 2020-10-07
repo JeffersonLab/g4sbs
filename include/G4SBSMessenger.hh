@@ -203,9 +203,11 @@ private:
   G4UIcmdWithABool *GEMfrontendCmd;
   
   G4UIcmdWithABool *SetGrinchPMTglassHitsCmd;
-  
+
   G4UIcmdWithABool *buildSBSsieveCmd; //Build the SBS Sieve slit
-  G4UIcmdWithABool *buildBBsieveCmd; //Build the BB Sieve slit
+  //SSeeds 10.4.20
+  //Command to set sieve plate in BigBite 0: nothing; 1: old plate; 2: new plate
+  G4UIcmdWithAnInteger *buildBBsieveCmd;
   
   G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree
 

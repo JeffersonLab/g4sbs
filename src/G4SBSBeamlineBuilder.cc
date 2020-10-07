@@ -1169,7 +1169,7 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   new G4PVPlacement( 0, pos_temp, upstream_beampipe_vac_log, "upstream_beampipe_vac_phys", worldlog, false, 0 , ChkOverlaps );
   
   MakeCommonExitBeamline(worldlog);
-  MakeBeamExit(worldlog); // Added by D Flay (Sept 2020) 
+  MakeBeamExit(worldlog,TargetCenter_zoffset); // Added by D Flay (Sept 2020) 
  
   /*
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
@@ -1848,7 +1848,9 @@ void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
   //}
    
   MakeCommonExitBeamline(worldlog);
-  MakeBeamExit(worldlog); // Added by D Flay (Sept 2020)  
+  // Added by D Flay (Sept 2020) 
+  G4double inch = 2.54*cm; 
+  MakeBeamExit(worldlog,6.5*inch); // account for offset of 6.5" in MakeCommonExitBeamline   
   
   /*
   // EFuchey: 2017/02/14: add the possibility to change the first parameters for the beam line polycone 
@@ -3548,7 +3550,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4VisAttributes *SteelColor = new G4VisAttributes( G4Colour( 0.75, 0.75, 0.75 ) );
   G4VisAttributes *CopperColor = new G4VisAttributes( G4Colour( 0.7, 0.3, 0.3 ) );
 
-  G4double TargetCenter_zoffset = 6.50*inch;
+  // G4double TargetCenter_zoffset = 6.50*inch;   // D. Flay: This is only relevant for GEp... 
+  G4double TargetCenter_zoffset = 0.0*inch;
 
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
   G4double z_spool_piece = 58.44*inch - TargetCenter_zoffset;
@@ -3607,7 +3610,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   // Exit beam line piping: use this instead of the commented out section below
   // Added by D Flay (Sept 2020)
-  MakeBeamExit(worldlog);  
+  MakeBeamExit(worldlog,TargetCenter_zoffset);  
 
   //************************* START OF PIPING TO DUMP *************************// 
 
@@ -5374,14 +5377,14 @@ void G4SBSBeamlineBuilder::MakeBeamDump_DownstreamPipe(G4LogicalVolume *logicMot
 
 }
 
-void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother){
+void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother,G4double dz){
    // Build the Hall A exit beam line  
    // Added by D. Flay (JLab) in Sept 2020
-   // Distances from drawing A00000-02-08-0300, A00000-02-08-0700 
+   // Distances from drawing A00000-02-08-0300, A00000-02-08-0700
+   // previously: dz set to 7 inches to avoid overlaps with P5ringD_vacLog_pv 
 
    G4double inch   = 2.54*cm; 
-   G4double delta  = 7.00*inch;     // fudge factor to avoid overlap with P5ringD_vacLog_pv 
-   G4double z_tmp  = 207.179*inch + delta;  
+   G4double z_tmp  = 207.179*inch + dz;  
    G4double z_mpd  = 749.4997*inch; // derived, based on numbers from Ron Lassiter (see MakeBeamDump)  
    // CheckZPos(logicMother,z_bd); 
    MakeBeamExit_TargetToMidPipe(logicMother,z_tmp);  

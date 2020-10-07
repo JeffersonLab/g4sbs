@@ -34,7 +34,7 @@ private:
   // dummy function for checking positions 
   void CheckZPos(G4LogicalVolume *logicMother,G4double z0=0);    
   // beam exit; also calls the beam dump  
-  void MakeBeamExit(G4LogicalVolume *logicMother); // main function to call  
+  void MakeBeamExit(G4LogicalVolume *logicMother,G4double dz=0); // main function to call  
   void MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMother,G4double z0=0); 
   void MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMother,G4double z0=0); 
   // beam dump; includes the beam diffuser (useful for beam steering studies)

@@ -2714,11 +2714,36 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    G4RotationMatrix *rm_msh = new G4RotationMatrix();
    rm_msh->rotateX(msh.rx); rm_msh->rotateY(msh.ry); rm_msh->rotateZ(msh.rz);
 
+   // main shaft inner lip 
+   partParameters_t msh_il; 
+   msh_il.name = "ew_mainShaft_il"; msh.shape = "tube";
+   msh_il.r_tor = 0.000*inch; msh_il.r_min = 0.4710*inch; msh_il.r_max = 0.4725*inch; msh_il.length = 0.125*inch;
+   msh_il.x_len = 0.000*inch; msh_il.y_len = 0.000*inch;  msh_il.z_len = 0.000*inch;
+   msh_il.startTheta = 0.000*deg; msh_il.dTheta = 0.000*deg;
+   msh_il.startPhi = 0.000*deg; msh_il.dPhi = 360.000*deg;
+   msh_il.x = 0.000*inch; msh_il.y = 0.000*inch; msh_il.z = 0.5*msh.length + 0.5*msh_il.length;
+   msh_il.rx = 0.000*deg; msh_il.ry = 0.000*deg; msh_il.rz = 0.000*deg;
+
+   G4Tubs *mainShaft_il = new G4Tubs(msh_il.name,
+	                             msh_il.r_min    ,msh_il.r_max,
+	                             msh_il.length/2.,
+	                             msh_il.startPhi ,msh_il.dPhi);
+
+   G4ThreeVector P_mshil      = G4ThreeVector(msh_il.x,msh_il.y,msh_il.z);
+   G4RotationMatrix *rm_mshil = new G4RotationMatrix();
+   rm_mshil->rotateX(msh_il.rx); rm_mshil->rotateY(msh_il.ry); rm_msh->rotateZ(msh_il.rz);
+
+   G4String label1 = "ew_ms_l";
+   // union solid 
+   G4UnionSolid *endCap_cu;
+   // main shaft plus inner lip   
+   endCap_cu = new G4UnionSolid(label1,mainShaft,mainShaft_il,rm_mshil ,P_mshil);
+
    // these parts below are aluminum
    // lip 
    partParameters_t lip; 
    lip.name = "ew_lip"; lip.shape = "tube";
-   lip.r_tor = 0.000*inch; lip.r_min = 0.471*inch; lip.r_max = 0.611*inch; lip.length = 0.125*inch;
+   lip.r_tor = 0.000*inch; lip.r_min = 0.4725*inch; lip.r_max = 0.6105*inch; lip.length = 0.125*inch;
    lip.x_len = 0.000*inch; lip.y_len = 0.000*inch; lip.z_len = 0.000*inch;
    lip.startTheta = 0.000*deg; lip.dTheta = 0.000*deg;
    lip.startPhi = 0.000*deg; lip.dPhi = 360.000*deg;
@@ -2743,8 +2768,6 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    rlip.startPhi = 0.000*deg; rlip.dPhi = 360.000*deg;
    rlip.x = 0.000*inch; rlip.y = 0.000*inch; rlip.z = 0.5*lip.length; 
    rlip.rx = 0.000*deg; rlip.ry = 0.000*deg; rlip.rz = 0.000*deg;
-   
-   std::cout << "RLIP Z = " << rlip.z/inch << " inches" << std::endl;
 
    G4Sphere *roundLip = new G4Sphere(rlip.name,
                                      rlip.r_min     ,rlip.r_max,
@@ -2765,8 +2788,6 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    ec.x = 0.000*inch; ec.y = 0.000*inch; ec.z = 0.5*lip.length; 
    ec.rx = 0.000*deg; ec.ry = 0.000*deg; ec.rz = 0.000*deg;
 
-   std::cout << "ENDCAP Z = " << ec.z/inch << " inches" << std::endl;
-
    G4Sphere *endcap = new G4Sphere(ec.name,
                                    ec.r_min     ,ec.r_max,
                                    ec.startPhi  ,ec.dPhi,
@@ -2777,7 +2798,6 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    rm_ec->rotateX(ec.rx); rm_ec->rotateY(ec.ry); rm_ec->rotateZ(ec.rz);   
 
    // labels 
-   G4String label1 = "ew_ms_l"   ;
    G4String label2 = "ew_ms_l_rl";
    G4String label3 = "endWindow" ;
 
@@ -2831,11 +2851,18 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
 
    char logicName[200],physName[200]; 
 
-   // FIXME: not exactly aligned with the glass cell!  Needs additional motion in (x,y,z) 
    // angular misalignment 
    G4double drx = fDetCon->GetGEnTargetDRX(); 
    G4double dry = fDetCon->GetGEnTargetDRY(); // opposite direction needed relative to target cell?   
    G4double drz = fDetCon->GetGEnTargetDRZ();
+
+   if(drx!=0||dry!=0||drz!=0){ 
+      std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_EndWindows]: Using GEn 3He target angular misalignments: " << std::endl;
+      std::cout << "RX = " << drx/deg << " deg" << std::endl;
+      std::cout << "RY = " << dry/deg << " deg" << std::endl;
+      std::cout << "RZ = " << drz/deg << " deg" << std::endl;
+   }
+
    G4double RX=0,RY=0,RZ=0;
 
    G4double COS_G = cos(drx); G4double COS_B = cos(dry); G4double COS_A = cos(drz); 
@@ -2847,14 +2874,14 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    for(int i=0;i<2;i++){
       // main shaft [copper]  
       // create logical volume
-      sprintf(logicName,"logicGEnTarget_EndWindow_ms_%d",i);  
-      logicMainShaft[i] = new G4LogicalVolume(mainShaft,GetMaterial("Copper"),logicName);
+      sprintf(logicName,"logicGEnTarget_EndWindow_cu_%d",i);  
+      logicMainShaft[i] = new G4LogicalVolume(endCap_cu,GetMaterial("Copper"),logicName);
       logicMainShaft[i]->SetVisAttributes(vis);  
       // position and rotation
       // account for misalignment angles (x,y,z) => (gamma,beta,alpha)
       xp = COS_A*COS_B*x_ms[i] + (COS_A*COS_B*SIN_G - SIN_A*COS_G)*y_ms[i] + (COS_A*SIN_B*COS_G + SIN_A*SIN_G)*z_ms[i]; 
       yp = SIN_A*COS_B*x_ms[i] + (SIN_A*SIN_B*SIN_G + COS_A*COS_G)*y_ms[i] + (SIN_A*SIN_B*COS_G - COS_A*SIN_G)*z_ms[i]; 
-      zp = -SIN_B*x_ms[i]      +                       COS_B*SIN_G*y_ms[i] +                       COS_B*COS_G*z_ms[i];  
+      zp =      -SIN_B*x_ms[i] +                       COS_B*SIN_G*y_ms[i] +                       COS_B*COS_G*z_ms[i];  
       // sprintf(msg,"=======> endWindow %d: x = %.3lf mm => %.3lf mm, y = %.3lf mm => %.3lf mm, z = %.3lf mm => %.3lf mm",
       //         i+1,x_ms[i]/mm,xp/mm,y_ew[i]/mm,yp/mm,z_ew[i]/mm,zp/mm);
       // std::cout << msg << std::endl; 
@@ -2865,7 +2892,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
       RX = rx[i] + drx; RY = ry[i] + dry; RZ = rz[i] + drz;
       rm_ms->rotateX(RX); rm_ms->rotateY(RY); rm_ms->rotateZ(RZ);
       // physical name 
-      sprintf(physName,"physGEnTarget_EndWindow_ms_%d",i);  
+      sprintf(physName,"physGEnTarget_EndWindow_cu_%d",i);  
       // place the volume  
       new G4PVPlacement(rm_ms,               // rotation relative to logic mother
 	                P_ms,                // position relative to logic mother 
@@ -2879,14 +2906,14 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
       fDetCon->InsertTargetVolume( logicMainShaft[i]->GetName() );
       // hemisphere cap [aluminum]  
       // create logical volume
-      sprintf(logicName,"logicGEnTarget_EndWindow_cap_%d",i);  
+      sprintf(logicName,"logicGEnTarget_EndWindow_al_%d",i);  
       logicEndCap[i] = new G4LogicalVolume(endCap_al,GetMaterial("Aluminum"),logicName);
       logicEndCap[i]->SetVisAttributes(vis_al);  
       // position and rotation
       // account for misalignment angles (x,y,z) => (gamma,beta,alpha)
       xp = COS_A*COS_B*x_cp[i] + (COS_A*COS_B*SIN_G - SIN_A*COS_G)*y_cp[i] + (COS_A*SIN_B*COS_G + SIN_A*SIN_G)*z_cp[i]; 
       yp = SIN_A*COS_B*x_cp[i] + (SIN_A*SIN_B*SIN_G + COS_A*COS_G)*y_cp[i] + (SIN_A*SIN_B*COS_G - COS_A*SIN_G)*z_cp[i]; 
-      zp = -SIN_B*x_cp[i]      +                       COS_B*SIN_G*y_cp[i] +                       COS_B*COS_G*z_cp[i];  
+      zp =      -SIN_B*x_cp[i]      +                  COS_B*SIN_G*y_cp[i] +                       COS_B*COS_G*z_cp[i];  
       // sprintf(msg,"=======> endWindow %d: x = %.3lf mm => %.3lf mm, y = %.3lf mm => %.3lf mm, z = %.3lf mm => %.3lf mm",
       //         i+1,x_cp[i]/mm,xp/mm,y_cp[i]/mm,yp/mm,z_cp[i]/mm,zp/mm);
       // std::cout << msg << std::endl; 
@@ -2897,7 +2924,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
       RX = rx[i] + drx; RY = ry[i] + dry; RZ = rz[i] + drz;
       rm_cp->rotateX(RX); rm_cp->rotateY(RY); rm_cp->rotateZ(RZ);
       // physical name 
-      sprintf(physName,"physGEnTarget_EndWindow_cap_%d",i);  
+      sprintf(physName,"physGEnTarget_EndWindow_al_%d",i);  
       // place the volume  
       new G4PVPlacement(rm_cp,               // rotation relative to logic mother
 	                P_cp,                // position relative to logic mother 
@@ -3038,11 +3065,18 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *moth
 
    char logicName[200],physName[200]; 
 
-   // FIXME: not exactly aligned with the glass cell!  Needs additional motion in (x,y,z) 
    // angular misalignment 
    G4double drx = fDetCon->GetGEnTargetDRX(); 
    G4double dry = fDetCon->GetGEnTargetDRY(); // opposite direction needed relative to target cell?   
    G4double drz = fDetCon->GetGEnTargetDRZ();
+
+   if(drx!=0||dry!=0||drz!=0){ 
+      std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu]: Using GEn 3He target angular misalignments: " << std::endl;
+      std::cout << "RX = " << drx/deg << " deg" << std::endl;
+      std::cout << "RY = " << dry/deg << " deg" << std::endl;
+      std::cout << "RZ = " << drz/deg << " deg" << std::endl;
+   }
+
    G4double RX=0,RY=0,RZ=0;
 
    G4double COS_G = cos(drx); G4double COS_B = cos(dry); G4double COS_A = cos(drz); 

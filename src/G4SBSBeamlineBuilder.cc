@@ -1986,10 +1986,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-P0ringA_L), P0ringA_cutLog, "P0ringA_cutLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  //Beryllium window at end of entrance beamline. Placement, dims, and material assumed at this point.
-
   /*
-  //Window is a dome - updating the Be disk code as approximation. Will leave as backup for now. sseeds 10.7.20
+  //Window is a dome - updating this Be disk code as approximation. Will leave as backup for now. sseeds 10.7.20
 
   G4double P0disk_L = 0.010/2.0*inch;
   G4double P0disk_rou = 2.105/2.0*inch;
@@ -3607,7 +3605,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+P5ringA_L), P5ringA_vacLog, "P5ringA_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringA_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringA_vacLog->SetVisAttributes( Beryllium);
 
   //Ring B
   G4double P5ringB_rin = 11.750/2*inch; 
@@ -3629,7 +3627,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+2*P5ringB_L+P5ringB_L), P5ringB_vacLog, "P5ringB_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringB_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringB_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
 
   //Ring C
   G4double P5ringC_rin = 11.750/2*inch; 
@@ -3651,7 +3649,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+2*P5ringA_L+2*P5ringB_L+P5ringC_L), P5ringC_vacLog, "P5ringC_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringC_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringC_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
 
   //Ring D
   G4double P5ringD_rin = 12.710/2*inch; 
@@ -3673,7 +3671,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+2*P5ringA_L+2*P5ringB_L+2*P5ringC_L+P5ringD_L), P5ringD_vacLog, "P5ringD_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringD_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  P5ringD_vacLog->SetVisAttributes( Beryllium);
 
   //Ring E
   G4double P5ringE_rin = 11.750/2*inch; 
@@ -3695,7 +3693,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+2*P5ringA_L+2*P5ringB_L+2*P5ringC_L+2*P5ringD_L+P5ringE_L), P5ringE_vacLog, "P5ringE_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringE_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringE_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
 
   //Ring F
   G4double P5ringF_rin = 11.750/2*inch; 
@@ -3717,16 +3715,19 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+2*P5ringA_L+2*P5ringB_L+2*P5ringC_L+2*P5ringD_L+2*P5ringE_L+P5ringF_L), P5ringF_vacLog, "P5ringF_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringF_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringF_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
   
   //Visuals
   G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.3,0.3,0.3));
   //G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
-  G4VisAttributes *Vacuum_visatt = new G4VisAttributes(G4Colour(0.1, 0.5, 0.9 ) );
-  Vacuum_visatt->SetVisibility(false);
+  //G4VisAttributes *Vacuum_visatt = new G4VisAttributes(G4Colour(0.1, 0.5, 0.9 ) );
+  G4VisAttributes *Vacuum_visatt = new G4VisAttributes(G4Colour(0.0, 1.0, 0.0 ) );
+  //Vacuum_visatt->SetVisibility(false);  //To determine overlaps, expect green color for vacuum, sseeds
   G4VisAttributes *CopperColor = new G4VisAttributes( G4Colour( 0.7, 0.3, 0.3 ) );
 
-  G4double TargetCenter_zoffset = 6.50*inch;
+  //G4double TargetCenter_zoffset = 6.50*inch; DFlay caught this - shouldn't exist. Need to evaluate exit beamline geometry against results in visuals. sseeds 10.8.20
+  G4double TargetCenter_zoffset = 0.0*inch;
+
 
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
   G4double z_spool_piece = 58.44*inch - TargetCenter_zoffset;
@@ -3747,7 +3748,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   // Welded bellows and extended beamline out to dump from commonexitbeamline placed in location as described there.
   // Will need to check position relative to target and mating with modified beamline geometry described from P1 - P4 at P4 end. 
-  
+  /*  //Commented as it pertains to GEp beamline, not GEn/SIDIS - sseeds
   G4Tubs *WB_Flange = new G4Tubs( "WB_Flange", Rin, Rout, Thick/2.0, 0.0, twopi );
   G4LogicalVolume *WB_Flange_log = new G4LogicalVolume( WB_Flange, GetMaterial("Stainless_Steel"), "WB_Flange_log" );
 
@@ -3764,7 +3765,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4Tubs *WB_Bellows = new G4Tubs( "WB_Bellows", Rin, Rout, Thick/2.0, 0.0, twopi );
   G4LogicalVolume *WB_Bellows_log = new G4LogicalVolume(WB_Bellows, GetMaterial("Stainless_Steel"), "WB_Bellows_log" );
 
-  WB_Bellows_log->SetVisAttributes( SteelColor );
+  WB_Bellows_log->SetVisAttributes( Beryllium );
 
   Z = z_welded_bellows + 1.12*inch + Thick/2.0;
 
@@ -3777,11 +3778,13 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   G4LogicalVolume *WB_Vacuum_log = new G4LogicalVolume(WB_Vacuum, GetMaterial("Vacuum"), "WB_Vacuum_log" );
 
-  WB_Vacuum_log->SetVisAttributes( Vacuum_visatt );
+  //WB_Vacuum_log->SetVisAttributes( Vacuum_visatt );
 
   Z = z_welded_bellows + dz_welded_bellows/2.0;
 
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Vacuum_log, "WB_Vacuum_phys", worldlog, false, 0 , ChkOverlaps );
+
+  */
 
   // Exit beam line piping: use this instead of the commented out section below.  Added by D Flay (Sept 2020)
   MakeBeamExit(worldlog);  

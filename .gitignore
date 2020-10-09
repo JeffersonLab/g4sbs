@@ -9,3 +9,4 @@ GEP_12map0.table
 .*.swo
 ## Ignore emacs temporary files
 *#
+.#*

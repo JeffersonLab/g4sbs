@@ -100,7 +100,9 @@ private:
   G4UIcmdWithADoubleAndUnit *runtimeCmd;
   G4UIcmdWithADoubleAndUnit *rasterxCmd;
   G4UIcmdWithADoubleAndUnit *rasteryCmd;
-
+  G4UIcmdWithADoubleAndUnit *rasterrCmd;
+  G4UIcmdWithADoubleAndUnit *beamspotsizeCmd;
+  
   //commands controlling pion photoproduction event generation:
   G4UIcmdWithADouble *PionPhoto_tminCmd;
   G4UIcmdWithADouble *PionPhoto_tmaxCmd;

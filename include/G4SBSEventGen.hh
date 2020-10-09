@@ -63,6 +63,9 @@ public:
   
   void SetRasterX(double v){fRasterX = v;}
   void SetRasterY(double v){fRasterY = v;}
+  
+  void SetRasterRadius(double v){fCircularRasterRadius = v;}
+  void SetBeamSpotSize(double v){fBeamSpotSize = v;}
 
   void SetBeamOffsetX(double v) { fBeamOffsetX = v;} 
   void SetBeamOffsetY(double v) { fBeamOffsetY = v;} 
@@ -184,6 +187,8 @@ private:
   double fThMin_had, fThMax_had, fPhMin_had, fPhMax_had; //Angular generation limits for hadron arm 
   double fEhadMin, fEhadMax; //Hadron (total) energy generation limits (for SIDIS case)--Later we will want to add exclusive hadron production.
   double fTargLen, fRasterX, fRasterY, fTargDen; //Targ density is given in atoms or molecules/unit volume
+  double fBeamSpotSize;
+  double fCircularRasterRadius;
   //double fTargRadLen; //Radiation length of target material, regardless of thickness
   double fTargRadLen; //Radiation length of target material
   double fTargUpstreamWindowRadLen;

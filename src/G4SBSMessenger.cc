@@ -228,6 +228,14 @@ G4SBSMessenger::G4SBSMessenger(){
   rasteryCmd->SetGuidance("Raster y size");
   rasteryCmd->SetParameterName("size", false);
   
+  rasterrCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/rasterR",this);
+  rasterrCmd->SetGuidance("Raster radius size");
+  rasterrCmd->SetParameterName("size", false);
+  
+  beamspotsizeCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamspotsize",this);
+  beamspotsizeCmd->SetGuidance("beam spot size");
+  beamspotsizeCmd->SetParameterName("size", false);
+  
   // D. Flay 8/25/20.  Beam pointing and beam diffuser   
   // - horizontal (x)  
   beamOffsetXcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamoffsetx",this);
@@ -1272,6 +1280,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevgen->SetRasterY(v);
   }
 
+  if( cmd == rasterrCmd ){
+    G4double v = rasterrCmd->GetNewDoubleValue(newValue);
+    fevgen->SetRasterRadius(v);
+  }
+  
+  if( cmd == beamspotsizeCmd ){
+    G4double v = beamspotsizeCmd->GetNewDoubleValue(newValue);
+    fevgen->SetBeamSpotSize(v);
+  }
+  
   if( cmd == tgtNfoilCmd ){
     G4int n = tgtNfoilCmd->GetNewIntValue(newValue);
     fdetcon->fTargetBuilder->SetNtargetFoils(n);

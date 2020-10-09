@@ -19,8 +19,10 @@
 /g4sbs/kine            elastic           ## Generator
 /g4sbs/runtime         1.0 s
 /g4sbs/beamcur         60.0 muA
-/g4sbs/rasterx         4.0 mm
-/g4sbs/rastery         4.0 mm
+#/g4sbs/rasterx         4.0 mm
+#/g4sbs/rastery         4.0 mm
+/g4sbs/rasterR         3.0 mm
+/g4sbs/beamspotsize    0.5 mm
 /g4sbs/beamE           8.8 GeV
 /g4sbs/thmin           24.0 deg
 /g4sbs/thmax           44.0 deg

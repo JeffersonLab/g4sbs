@@ -194,7 +194,13 @@ private:
   // D. Flay 9/29/20: commands to set the angular misalignment of the GEn 3He target 
   G4UIcmdWithADoubleAndUnit *GENTargetRXCmd; 
   G4UIcmdWithADoubleAndUnit *GENTargetRYCmd; 
-  G4UIcmdWithADoubleAndUnit *GENTargetRZCmd; 
+  G4UIcmdWithADoubleAndUnit *GENTargetRZCmd;
+
+  // D. Flay 10/9/20: commands to enable/disable the GEn 3He target collimators 
+  G4UIcmdWithABool *GENTargetColCmd;
+  G4UIcmdWithABool *GENTargetColACmd;
+  G4UIcmdWithABool *GENTargetColBCmd;
+  G4UIcmdWithABool *GENTargetColCCmd;
  
   // D. Flay 8/25/20 
   // command to set the beam offset 

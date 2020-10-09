@@ -115,7 +115,12 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   // D. Flay (8/25/20) 
   // beam diffuser switch 
-  fBeamDiffuserEnable = false;
+  fBeamDiffuserEnable        = false;
+  // taret collimators 
+  fGEnTgtCollimatorEnable    = true;  
+  fGEnTgtCollimatorAEnable   = true;  
+  fGEnTgtCollimatorBEnable   = true;  
+  fGEnTgtCollimatorCEnable   = true;  
 
   // D. Flay (9/29/20) 
   // GEn 3He target angular misalignment

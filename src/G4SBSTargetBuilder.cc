@@ -2327,7 +2327,8 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    BuildGEnTarget_PickupCoils(motherLog);
 
    // monolithic collimators  
-   BuildGEnTarget_Collimators(motherLog);
+   bool enableCol = fDetCon->GetGEnTargetCollimatorEnable();
+   if(enableCol) BuildGEnTarget_Collimators(motherLog);
 
 }
 
@@ -4298,17 +4299,23 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_A(G4LogicalVolume *logicMothe
    rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
  
    bool checkOverlaps = true; 
+   
+   bool enableA = fDetCon->GetGEnTargetCollimatorAEnable();
 
-   new G4PVPlacement(rm,                         // rotation
-	             P,                          // position 
-                     col_A_LV,                   // logical volume   
-                     "physGEnTarget_col_A",      // physical name 
-                     logicMother,                // logical mother
-                     true,                       // boolean? 
-                     0,                          // copy no 
-                     checkOverlaps);             // check overlaps
+   if(enableA){
+      new G4PVPlacement(rm,                         // rotation
+	                P,                          // position 
+	                col_A_LV,                   // logical volume   
+	                "physGEnTarget_col_A",      // physical name 
+	                logicMother,                // logical mother
+	                true,                       // boolean? 
+	                0,                          // copy no 
+	                checkOverlaps);             // check overlaps
+      // register with DetectorConstruction object 
+      fDetCon->InsertTargetVolume( col_A_LV->GetName() ); 
+   }
 
-   // now build the collimator base 
+   // now build the collimator base -- always build! 
    G4double xb_len = 5.114*inch; 
    G4double yb_len = 0.750*inch; 
    G4double zb_len = 6.250*inch;
@@ -4383,6 +4390,9 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_A(G4LogicalVolume *logicMothe
                      0,                          // copy no 
                      checkOverlaps);             // check overlaps
 
+   // register with DetectorConstruction object 
+   fDetCon->InsertTargetVolume( colBase_A_LV->GetName() ); 
+
 }
 //______________________________________________________________________________
 void G4SBSTargetBuilder::BuildGEnTarget_Collimator_B(G4LogicalVolume *logicMother,G4double z0){
@@ -4420,17 +4430,23 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_B(G4LogicalVolume *logicMothe
    rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
 
    bool checkOverlaps = true; 
+   
+   bool enableB = fDetCon->GetGEnTargetCollimatorBEnable();
 
-   new G4PVPlacement(rm,                         // rotation
-	             P,                          // position 
-                     col_B_LV,                   // logical volume   
-                     "col_B_PHY",                // physical name 
-                     logicMother,                // logical mother
-                     false,                      // boolean? 
-                     0,                          // copy no 
-                     checkOverlaps);             // check overlaps
+   if(enableB){
+      new G4PVPlacement(rm,                         // rotation
+	                P,                          // position 
+                        col_B_LV,                   // logical volume   
+                        "col_B_PHY",                // physical name 
+                        logicMother,                // logical mother
+                        false,                      // boolean? 
+                        0,                          // copy no 
+                        checkOverlaps);             // check overlaps
+      // register with DetectorConstruction object 
+      fDetCon->InsertTargetVolume( col_B_LV->GetName() ); 
+   }
 
-   // now build the collimator base 
+   // now build the collimator base -- always build! 
    G4double xb_len = 3.750*inch; 
    G4double yb_len = 0.765*inch; 
    G4double zb_len = 3.997*inch;
@@ -4493,6 +4509,9 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_B(G4LogicalVolume *logicMothe
                      0,                          // copy no 
                      checkOverlaps);             // check overlaps
 
+   // register with DetectorConstruction object 
+   fDetCon->InsertTargetVolume( colBase_B_LV->GetName() ); 
+
 }
 //______________________________________________________________________________
 void G4SBSTargetBuilder::BuildGEnTarget_Collimator_C(G4LogicalVolume *logicMother,G4double z0){
@@ -4530,15 +4549,21 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_C(G4LogicalVolume *logicMothe
    rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
 
    bool checkOverlaps = true; 
+   
+   bool enableC = fDetCon->GetGEnTargetCollimatorCEnable();
 
-   new G4PVPlacement(rm,                         // rotation
-	             P,                          // position 
-                     col_C_LV,                   // logical volume   
-                     "physGEnTarget_col_C",      // physical name 
-                     logicMother,                // logical mother
-                     false,                      // boolean? 
-                     0,                          // copy no 
-                     checkOverlaps);             // check overlaps
+   if(enableC){
+      new G4PVPlacement(rm,                         // rotation
+	                P,                          // position 
+	                col_C_LV,                   // logical volume   
+	                "physGEnTarget_col_C",      // physical name 
+	                logicMother,                // logical mother
+	                false,                      // boolean? 
+	                0,                          // copy no 
+	                checkOverlaps);             // check overlaps
+      // register with DetectorConstruction object 
+      fDetCon->InsertTargetVolume( col_C_LV->GetName() ); 
+   }
 
    // now build the collimator base 
    G4double xb_len = 3.625*inch; 
@@ -4599,6 +4624,9 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_C(G4LogicalVolume *logicMothe
                      true,                       // boolean? 
                      0,                          // copy no 
                      checkOverlaps);             // check overlaps
+
+   // register with DetectorConstruction object 
+   fDetCon->InsertTargetVolume( colBase_C_LV->GetName() ); 
 
 }
 //______________________________________________________________________________
@@ -4702,7 +4730,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_Table(G4LogicalVolume *mother
    // C6--C9 
    // base
    G4double xb_len = 1.250*inch;  
-   G4double yb_len = 7.946*inch - 3*inch; // to avoid overlaps   
+   G4double yb_len = 7.946*inch - 4*inch; // to avoid overlaps   
    G4double zb_len = 0.500*inch;  
    G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
    // small blocks 
@@ -4764,5 +4792,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_Table(G4LogicalVolume *mother
                      true,                       // boolean? 
                      0,                          // copy no 
                      checkOverlaps);             // check overlaps
+
+   // register with DetectorConstruction object 
+   fDetCon->InsertTargetVolume( table_LV->GetName() ); 
 
 }

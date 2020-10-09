@@ -1848,6 +1848,7 @@ void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
   //}
    
   MakeCommonExitBeamline(worldlog);
+
   // Added by D Flay (Sept 2020) 
   G4double inch = 2.54*cm; 
   MakeBeamExit(worldlog,6.5*inch); // account for offset of 6.5" in MakeCommonExitBeamline   
@@ -3550,8 +3551,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4VisAttributes *SteelColor = new G4VisAttributes( G4Colour( 0.75, 0.75, 0.75 ) );
   G4VisAttributes *CopperColor = new G4VisAttributes( G4Colour( 0.7, 0.3, 0.3 ) );
 
-  // G4double TargetCenter_zoffset = 6.50*inch;   // D. Flay: This is only relevant for GEp... 
-  G4double TargetCenter_zoffset = 0.0*inch;
+  G4double TargetCenter_zoffset = 6.50*inch;   // D. Flay: This is only relevant for GEp... 
+  // G4double TargetCenter_zoffset = 0.0*inch;
 
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
   G4double z_spool_piece = 58.44*inch - TargetCenter_zoffset;
@@ -3610,8 +3611,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   // Exit beam line piping: use this instead of the commented out section below
   // Added by D Flay (Sept 2020)
-  // MakeBeamExit(worldlog,TargetCenter_zoffset);  
-  MakeBeamExit(worldlog,7.0*inch);  
+  MakeBeamExit(worldlog,TargetCenter_zoffset);  
 
   //************************* START OF PIPING TO DUMP *************************// 
 
@@ -5385,7 +5385,8 @@ void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother,G4double dz
    // previously: dz set to 7 inches to avoid overlaps with P5ringD_vacLog_pv 
 
    G4double inch   = 2.54*cm; 
-   G4double z_tmp  = 207.179*inch + dz;  
+   G4double dz2    = 1.5*cm;         // FIXME: still an overlap despite 6.5" from dz??  adjusting here for simplicity...   
+   G4double z_tmp  = 207.179*inch + dz + dz2;  
    G4double z_mpd  = 749.4997*inch; // derived, based on numbers from Ron Lassiter (see MakeBeamDump)  
    // CheckZPos(logicMother,z_bd); 
    MakeBeamExit_TargetToMidPipe(logicMother,z_tmp);  

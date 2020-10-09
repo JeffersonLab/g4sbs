@@ -117,7 +117,26 @@ G4SBSMessenger::G4SBSMessenger(){
   GENTargetRYCmd->SetParameterName("targgenDRY",false); 
   GENTargetRZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRZ",this); 
   GENTargetRZCmd->SetGuidance("GEn 3He target rotational misalignment relative to z axis"); 
-  GENTargetRZCmd->SetParameterName("targgenDRZ",false); 
+  GENTargetRZCmd->SetParameterName("targgenDRZ",false);
+
+  // D. Flay (10/9/20) 
+  // for GEn 3He target collimators
+  // all: if enabled, *allows* the collimators to be built.  can toggle on/off individual ones, see below  
+  GENTargetColCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnable",this); 
+  GENTargetColCmd->SetGuidance("GEn 3He target collimator enable.  If enabled, allows collimators to be built"); 
+  GENTargetColCmd->SetParameterName("targgenColEnable",false);
+  // A (upstream) 
+  GENTargetColACmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableA",this); 
+  GENTargetColACmd->SetGuidance("GEn 3He target collimator A enable"); 
+  GENTargetColACmd->SetParameterName("targgenColEnableA",false); 
+  // B (downstream, 1st) 
+  GENTargetColBCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableB",this); 
+  GENTargetColBCmd->SetGuidance("GEn 3He target collimator B enable"); 
+  GENTargetColBCmd->SetParameterName("targgenColEnableB",false); 
+  // C (downstream, 2nd, furthest from target) 
+  GENTargetColCCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableC",this); 
+  GENTargetColCCmd->SetGuidance("GEn 3He target collimator C enable"); 
+  GENTargetColCCmd->SetParameterName("targgenColEnableC",false); 
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
   kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
@@ -1155,6 +1174,25 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == GENTargetRZCmd ){
      G4double genTgtDRZ = GENTargetRZCmd->GetNewDoubleValue(newValue); 
      fdetcon->SetGEnTargetDRZ(genTgtDRZ); 
+  }
+
+  // D. Flay (10/9/20) 
+  // GEn 3He collimators 
+  if( cmd == GENTargetColCmd ){
+     G4bool tcEnable = GENTargetColCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetCollimatorEnable(tcEnable);
+  }
+  if( cmd == GENTargetColACmd ){
+     G4bool tcaEnable = GENTargetColACmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetCollimatorAEnable(tcaEnable);
+  }
+  if( cmd == GENTargetColBCmd ){
+     G4bool tcbEnable = GENTargetColBCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetCollimatorBEnable(tcbEnable);
+  }
+  if( cmd == GENTargetColCCmd ){
+     G4bool tccEnable = GENTargetColCCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetCollimatorCEnable(tccEnable);
   }
 
   // D. Flay (8/25/20) 

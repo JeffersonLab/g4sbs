@@ -2326,8 +2326,8 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    // pickup coils 
    BuildGEnTarget_PickupCoils(motherLog);
 
-   // monolithic collimators FIXME: Not quite ready yet!  
-   // BuildGEnTarget_Collimators(motherLog); 
+   // monolithic collimators  
+   BuildGEnTarget_Collimators(motherLog);
 
 }
 
@@ -4241,15 +4241,16 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
 
 }
 //______________________________________________________________________________
-void G4SBSTargetBuilder::BuildGEnTarget_Collimators(G4LogicalVolume *motherLog,G4double z0){
+void G4SBSTargetBuilder::BuildGEnTarget_Collimators(G4LogicalVolume *logicMother,G4double z0){
    // Collimators near target (beam left) 
    // Based on drawings from Sebastian Seeds (UConn), derived from Bert Metzger's JT file 
-   BuildGEnTarget_CollimatorA(motherLog,z0);
-   BuildGEnTarget_CollimatorB(motherLog,z0);
-   BuildGEnTarget_CollimatorC(motherLog,z0);
+   BuildGEnTarget_Collimator_A(logicMother,z0); 
+   BuildGEnTarget_Collimator_B(logicMother,z0); 
+   BuildGEnTarget_Collimator_C(logicMother,z0);
+   BuildGEnTarget_Collimator_Table(logicMother,z0);  
 }
 //______________________________________________________________________________
-void G4SBSTargetBuilder::BuildGEnTarget_CollimatorA(G4LogicalVolume *motherLog,G4double z0){
+void G4SBSTargetBuilder::BuildGEnTarget_Collimator_A(G4LogicalVolume *logicMother,G4double z0){
    // From drawings made by Sebastian Seeds (UConn) based on JT file
    // - Collimator A1: CollimatorA_1_drawing.JPG
    // - Collimator A2: CollimatorA_2_drawing.JPG
@@ -4257,10 +4258,10 @@ void G4SBSTargetBuilder::BuildGEnTarget_CollimatorA(G4LogicalVolume *motherLog,G
    // Note: Collimators are on the LEFT side of the beam, next to the target  
 
    double inch   = 2.54*cm;
-
+ 
    // visualization
-   G4VisAttributes *vis = new G4VisAttributes();
-   vis->SetColour( G4Colour::Red() );
+   G4VisAttributes *vis = new G4VisAttributes(); 
+   vis->SetColour( G4Colour::Red() ); 
 
    // collimator A1: right-angle trapezoid  
    double zl_a1     = 2.247*inch;  // length along z
@@ -4274,53 +4275,127 @@ void G4SBSTargetBuilder::BuildGEnTarget_CollimatorA(G4LogicalVolume *motherLog,G
    double x1_a2     = 2.247*inch;  // upstream x size 
    double x2_a2     = 3.189*inch;  // downstream x size 
    double y_a2      = 2.500*inch;  // thickness  
-   G4Trd *colSolid_A2 = new G4Trd("colSolid_A2",x1_a2/2.,x2_a2/2.,y_a2/2.,y_a2/2.,z_a2/2.);
+   G4Trd *colSolid_A2 = new G4Trd("colSolid_A2",x1_a2/2.,x2_a2/2.,y_a2/2.,y_a2/2.,z_a2/2.);  
 
    // union of these objects.  use A2 as the reference point since it's easier
    // - all positions and rotations are relative to A2 center  
-   G4ThreeVector P21     = G4ThreeVector(0,y_a2,0);
+   G4ThreeVector P21     = G4ThreeVector(0,y_a2,0); 
    G4RotationMatrix *r21 = new G4RotationMatrix();
-   r21->rotateX(90*deg); r21->rotateY(90*deg); r21->rotateZ(0);
-   G4UnionSolid *col_A   = new G4UnionSolid("col_A",colSolid_A2,colSolid_A1,r21,P21);
+   r21->rotateX(90*deg); r21->rotateY(90*deg); r21->rotateZ(0);  
+   G4UnionSolid *col_A   = new G4UnionSolid("col_A",colSolid_A2,colSolid_A1,r21,P21); 
 
    // define materials and logical volume 
-   G4LogicalVolume *col_A_LV = new G4LogicalVolume(col_A,GetMaterial("Aluminum"),"logicGEnTarget_col_A");
-   col_A_LV->SetVisAttributes(vis);
+   G4LogicalVolume *col_A_LV = new G4LogicalVolume(col_A,GetMaterial("Aluminum"),"logicGEnTarget_col_A"); 
+   col_A_LV->SetVisAttributes(vis); 
 
-   // FIXME: Get placement right!
    // placement of the union object in the Hall coordinate system 
    // position 
-   double X = 3.803*inch; double Y = -2.493*inch; double Z = z0 - 7.495*inch;
-   G4ThreeVector P = G4ThreeVector(X,Y,Z);
+   double X = 3.75*inch; double Y = -1.243*inch; double Z = z0 - 7.495*inch; 
+   G4ThreeVector P = G4ThreeVector(X,Y,Z); 
    // rotation 
    double RX = 0.; double RY = -34.62*deg; double RZ = 0.;
    G4RotationMatrix *rm = new G4RotationMatrix();
    rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
-   
+ 
    bool checkOverlaps = true; 
 
    new G4PVPlacement(rm,                         // rotation
-                     P,                          // position 
+	             P,                          // position 
                      col_A_LV,                   // logical volume   
                      "physGEnTarget_col_A",      // physical name 
-                     motherLog,                  // logical mother
+                     logicMother,                // logical mother
+                     true,                       // boolean? 
+                     0,                          // copy no 
+                     checkOverlaps);             // check overlaps
+
+   // now build the collimator base 
+   G4double xb_len = 5.114*inch; 
+   G4double yb_len = 0.750*inch; 
+   G4double zb_len = 6.250*inch;
+   G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
+
+   // base cut 1
+   G4double xcc_len = 3.*inch;  
+   G4double ycc_len = 2.*inch;  
+   G4double zcc_len = 4.749*inch; 
+   G4Box *solidBase_cut1 = new G4Box("solidBase_cut1",xcc_len/2.,ycc_len/2.,zcc_len/2.); 
+
+   G4RotationMatrix *rmc1 = new G4RotationMatrix();
+   rmc1->rotateY(39.11*deg); 
+
+   G4double XX1 = 2.207*inch; // xb_len/2. - 0.35*inch; 
+   G4double YY1 = 0; 
+   G4double ZZ1 = 2.25*inch; 
+   G4ThreeVector P_bc1 = G4ThreeVector(XX1,YY1,ZZ1);
+
+   // base cut2 
+   G4double xcc2_len = 3.*inch;  
+   G4double ycc2_len = 2.*inch;  
+   G4double zcc2_len = 4.968*inch; 
+   G4Box *solidBase_cut2 = new G4Box("solidBase_cut2",xcc2_len/2.,ycc2_len/2.,zcc2_len/2.); 
+
+   G4RotationMatrix *rmc2 = new G4RotationMatrix();
+   rmc2->rotateY(25.53*deg); 
+
+   G4double XX2 = -2.85*inch; // xb_len/2. - 0.35*inch; 
+   G4double YY2 = 0; 
+   G4double ZZ2 = -1.5*inch; 
+   // std::cout << XX/inch << " " << YY/inch << " " << ZZ/inch << std::endl;
+   G4ThreeVector P_bc2 = G4ThreeVector(XX2,YY2,ZZ2);
+
+   // base cut3 
+   G4double xcc3_len = 1.600*inch;  
+   G4double ycc3_len = 0.188*inch;  
+   G4double zcc3_len = 7.000*inch; 
+   G4Box *solidBase_cut3 = new G4Box("solidBase_cut3",xcc3_len/2.,ycc3_len/2.,zcc3_len/2.); 
+
+   G4double XX3 = 1.817*inch;  
+   G4double YY3 = yb_len/2. - ycc3_len/2.; 
+   G4double ZZ3 = 0.*inch; 
+   G4ThreeVector P_bc3 = G4ThreeVector(XX3,YY3,ZZ3);
+
+   // subtraction solid 
+   // base - cut 1
+   G4SubtractionSolid *colBase   = new G4SubtractionSolid("colBase_1",solidBase,solidBase_cut1,rmc1,P_bc1);  
+   // cut 2 
+   colBase   = new G4SubtractionSolid("colBase_12",colBase,solidBase_cut2,rmc2,P_bc2); 
+   // cut 3 
+   colBase   = new G4SubtractionSolid("colBase"   ,colBase,solidBase_cut3,0,P_bc3); 
+
+   G4VisAttributes *visBase = new G4VisAttributes(); 
+   visBase->SetColour( G4Colour::Blue() ); 
+ 
+   G4LogicalVolume *colBase_A_LV = new G4LogicalVolume(colBase,GetMaterial("Aluminum"),"logicGEnTarget_colBase_A");
+   colBase_A_LV->SetVisAttributes(visBase); 
+
+   // placement 
+   G4RotationMatrix *rmb = new G4RotationMatrix(); 
+   rmb->rotateX(180.*deg);
+
+   G4ThreeVector Pb = G4ThreeVector(3.693*inch,-2.889*inch,-7.125*inch); 
+
+   new G4PVPlacement(rmb,                        // rotation
+                     Pb,                         // position 
+                     colBase_A_LV,               // logical volume   
+                     "physGEnTarget_colBase_A",  // physical name 
+                     logicMother,                // logical mother
                      true,                       // boolean? 
                      0,                          // copy no 
                      checkOverlaps);             // check overlaps
 
 }
 //______________________________________________________________________________
-void G4SBSTargetBuilder::BuildGEnTarget_CollimatorB(G4LogicalVolume *motherLog,G4double z0){
+void G4SBSTargetBuilder::BuildGEnTarget_Collimator_B(G4LogicalVolume *logicMother,G4double z0){
    // From drawings made by Sebastian Seeds (UConn) based on JT file
    // - Collimator B: CollimatorB_drawing.JPG
    // - Offsets and rotations: CollimatorB_xzoffset.JPG
    // Note: Collimators are on the LEFT side of the beam, next to the target  
 
    double inch   = 2.54*cm;
-
+ 
    // visualization
-   G4VisAttributes *vis = new G4VisAttributes();
-   vis->SetColour( G4Colour::Red() );
+   G4VisAttributes *vis = new G4VisAttributes(); 
+   vis->SetColour( G4Colour::Red() ); 
 
    // collimator B: right-angle trapezoid  
    double zl_a1     = 0.815*inch;  // length along z
@@ -4330,46 +4405,107 @@ void G4SBSTargetBuilder::BuildGEnTarget_CollimatorB(G4LogicalVolume *motherLog,G
    G4Trap *colSolid_B = new G4Trap("colSolid_B",zl_a1,yl_a1,xl_a1,xs_a1);
 
    // define materials and logical volume 
-   G4LogicalVolume *col_B_LV = new G4LogicalVolume(colSolid_B,GetMaterial("Aluminum"),"logicGEnTarget_col_B");
-   col_B_LV->SetVisAttributes(vis);
+   G4LogicalVolume *col_B_LV = new G4LogicalVolume(colSolid_B,GetMaterial("Aluminum"),"col_B_LV"); 
+   col_B_LV->SetVisAttributes(vis); 
 
-   // FIXME: Get placement right!
    // placement in the Hall coordinate system 
    // position
    std::vector<G4double> POS;
-   // POS.push_back( 2.720*inch); POS.push_back(-2.479*inch); POS.push_back(z0 + 14.2*inch); 
-   POS.push_back( 2.720*inch); POS.push_back(0*inch); POS.push_back(z0 + 14.2*inch);
-   G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]);
+   POS.push_back( 2.520*inch); POS.push_back(-0.160*inch); POS.push_back(z0 + 14.2*inch); 
+   G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]); 
    // rotation 
-   std::vector<G4double> RA;
+   std::vector<G4double> RA; 
    RA.push_back(0.*deg); RA.push_back(47.24*deg); RA.push_back(-90.*deg);
    G4RotationMatrix *rm = new G4RotationMatrix();
    rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
-   
+
    bool checkOverlaps = true; 
 
    new G4PVPlacement(rm,                         // rotation
-                     P,                          // position 
+	             P,                          // position 
                      col_B_LV,                   // logical volume   
-                     "physGEnTarget_col_B",      // physical name 
-                     motherLog,                  // logical mother
+                     "col_B_PHY",                // physical name 
+                     logicMother,                // logical mother
                      false,                      // boolean? 
+                     0,                          // copy no 
+                     checkOverlaps);             // check overlaps
+
+   // now build the collimator base 
+   G4double xb_len = 3.750*inch; 
+   G4double yb_len = 0.765*inch; 
+   G4double zb_len = 3.997*inch;
+   G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
+
+   // base cut 1
+   G4double xcc_len = 2.0*inch;  
+   G4double ycc_len = 2.*inch;  
+   G4double zcc_len = 3.700*inch; 
+   G4Box *solidBase_cut1 = new G4Box("solidBase_cut1",xcc_len/2.,ycc_len/2.,zcc_len/2.); 
+
+   G4RotationMatrix *rmc1 = new G4RotationMatrix();
+   rmc1->rotateY(-36.04*deg); 
+
+   G4double XX1 = 1.6*inch;  
+   G4double YY1 = 0; 
+   G4double ZZ1 = -1.05*inch;  // diagram says 1.008, but this looks nicer
+   G4ThreeVector P_bc1 = G4ThreeVector(XX1,YY1,ZZ1);
+
+   // base cut2  
+   double zcc2     = 1.000*inch;  // length along z
+   double ycc2     = 0.987*inch;  // length along y 
+   double xcc2_s   = 2.439*inch;  // length along x (short side)
+   double xcc2_l   = 3.352*inch;  // length along x (long side) 
+   G4Trap *solidBase_cut2 = new G4Trap("solidBase_cut2",zcc2,ycc2,xcc2_l,xcc2_s);
+
+   G4RotationMatrix *rmc2 = new G4RotationMatrix();
+   rmc2->rotateY(-90*deg); 
+   rmc2->rotateX(-30*deg); 
+
+   G4double XX2 = -2.075*inch;  
+   G4double YY2 =  0.495*inch; 
+   G4double ZZ2 =  0.580*inch;
+   G4ThreeVector P_bc2 = G4ThreeVector(XX2,YY2,ZZ2);
+
+   // subtraction solid 
+   // base - cut 1
+   G4SubtractionSolid *colBase = new G4SubtractionSolid("colBase_1",solidBase,solidBase_cut1,rmc1,P_bc1);  
+   // cut 2 
+   colBase = new G4SubtractionSolid("colBase_12",colBase,solidBase_cut2,rmc2,P_bc2); 
+
+   G4VisAttributes *visBase = new G4VisAttributes(); 
+   visBase->SetColour( G4Colour::Blue() ); 
+ 
+   G4LogicalVolume *colBase_B_LV = new G4LogicalVolume(colBase,GetMaterial("Aluminum"),"logicGEnTarget_colBase_B");
+   colBase_B_LV->SetVisAttributes(visBase); 
+
+   // placement 
+   G4RotationMatrix *rmb = new G4RotationMatrix(); 
+   rmb->rotateY(180.*deg);
+
+   G4ThreeVector Pb = G4ThreeVector(2.875*inch,-2.815*inch,14.626*inch); 
+
+   new G4PVPlacement(rmb,                        // rotation
+                     Pb,                         // position 
+                     colBase_B_LV,               // logical volume   
+                     "physGEnTarget_colBase_B",  // physical name 
+                     logicMother,                // logical mother
+                     true,                       // boolean? 
                      0,                          // copy no 
                      checkOverlaps);             // check overlaps
 
 }
 //______________________________________________________________________________
-void G4SBSTargetBuilder::BuildGEnTarget_CollimatorC(G4LogicalVolume *motherLog,G4double z0){
+void G4SBSTargetBuilder::BuildGEnTarget_Collimator_C(G4LogicalVolume *logicMother,G4double z0){
    // From drawings made by Sebastian Seeds (UConn) based on JT file
    // - Collimator C: CollimatorC_drawing.JPG
    // - Offsets and rotations: CollimatorC_xzoffset.JPG
    // Note: Collimators are on the LEFT side of the beam, next to the target  
 
    double inch   = 2.54*cm;
-
+ 
    // visualization
-   G4VisAttributes *vis = new G4VisAttributes();
-   vis->SetColour( G4Colour::Red() );
+   G4VisAttributes *vis = new G4VisAttributes(); 
+   vis->SetColour( G4Colour::Red() ); 
 
    // collimator C: right-angle trapezoid  
    double zl_a1     = 1.498*inch;  // length along z
@@ -4379,18 +4515,16 @@ void G4SBSTargetBuilder::BuildGEnTarget_CollimatorC(G4LogicalVolume *motherLog,G
    G4Trap *colSolid_C = new G4Trap("colSolid_C",zl_a1,yl_a1,xl_a1,xs_a1);
 
    // define materials and logical volume 
-   G4LogicalVolume *col_C_LV = new G4LogicalVolume(colSolid_C,GetMaterial("Aluminum"),"logicGEnTarget_col_C");
-   col_C_LV->SetVisAttributes(vis);
+   G4LogicalVolume *col_C_LV = new G4LogicalVolume(colSolid_C,GetMaterial("Aluminum"),"logicGEnTarget_col_C"); 
+   col_C_LV->SetVisAttributes(vis); 
 
-   // FIXME: Get placement right!
    // placement in the Hall coordinate system 
    // position
    std::vector<G4double> POS;
-   // POS.push_back( 4.070*inch); POS.push_back(-1.979*inch); POS.push_back(z0 + 20.870*inch); 
-   POS.push_back( 4.070*inch); POS.push_back(0*inch); POS.push_back(z0 + 20.870*inch);
-   G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]);
+   POS.push_back(4.070*inch); POS.push_back(-0.285*inch + 0.20*inch); POS.push_back(z0 + 20.870*inch + 0.4*inch); 
+   G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]); 
    // rotation 
-   std::vector<G4double> RA;
+   std::vector<G4double> RA; 
    RA.push_back(0.*deg); RA.push_back(50.41*deg); RA.push_back(-90.*deg);
    G4RotationMatrix *rm = new G4RotationMatrix();
    rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
@@ -4398,13 +4532,237 @@ void G4SBSTargetBuilder::BuildGEnTarget_CollimatorC(G4LogicalVolume *motherLog,G
    bool checkOverlaps = true; 
 
    new G4PVPlacement(rm,                         // rotation
-                     P,                          // position 
+	             P,                          // position 
                      col_C_LV,                   // logical volume   
                      "physGEnTarget_col_C",      // physical name 
-                     motherLog,                  // logical mother
+                     logicMother,                // logical mother
                      false,                      // boolean? 
                      0,                          // copy no 
                      checkOverlaps);             // check overlaps
 
-}
+   // now build the collimator base 
+   G4double xb_len = 3.625*inch; 
+   G4double yb_len = 1.000*inch; 
+   G4double zb_len = 3.250*inch;
+   G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
 
+   // base cut 1
+   G4double xcc_len = 2.420*inch;  
+   G4double ycc_len = 4.0*inch;  
+   G4double zcc_len = 2.420*inch; 
+   G4Box *solidBase_cut1 = new G4Box("solidBase_cut1",xcc_len/2.,ycc_len/2.,zcc_len/2.); 
+
+   G4RotationMatrix *rmc1 = new G4RotationMatrix();
+   rmc1->rotateY(-35.62*deg); 
+
+   G4double XX1 = 1.5*inch;  
+   G4double YY1 = 0; 
+   G4double ZZ1 = 0.2*inch + 1.5*inch + 0.216*inch;  
+   G4ThreeVector P_bc1 = G4ThreeVector(XX1,YY1,ZZ1);
+
+   // base cut2 
+   G4double xcc2_len = 4.000*inch;  
+   G4double ycc2_len = 0.500*inch;  
+   G4double zcc2_len = 0.875*inch; 
+   G4Box *solidBase_cut2 = new G4Box("solidBase_cut2",xcc2_len/2.,ycc2_len/2.,zcc2_len/2.); 
+
+   G4RotationMatrix *rmc2 = new G4RotationMatrix();
+
+   G4double XX2 = 0.*inch;  
+   G4double YY2 = -yb_len/2. - 0.05*inch; 
+   G4double ZZ2 = -zb_len/2. + zcc2_len/2.;
+   G4ThreeVector P_bc2 = G4ThreeVector(XX2,YY2,ZZ2);
+
+   // subtraction solid 
+   // base - cut 1
+   G4SubtractionSolid *colBase = new G4SubtractionSolid("colBase_1",solidBase,solidBase_cut1,rmc1,P_bc1);  
+   // cut 2 
+   colBase = new G4SubtractionSolid("colBase_12",colBase,solidBase_cut2,rmc2,P_bc2); 
+
+   G4VisAttributes *visBase = new G4VisAttributes(); 
+   visBase->SetColour( G4Colour::Blue() ); 
+ 
+   G4LogicalVolume *colBase_C_LV = new G4LogicalVolume(colBase,GetMaterial("Aluminum"),"logicGEnTarget_colBase_C");
+   colBase_C_LV->SetVisAttributes(visBase); 
+
+   // placement 
+   G4RotationMatrix *rmb = new G4RotationMatrix(); 
+   rmb->rotateY(90.*deg);
+
+   G4ThreeVector Pb = G4ThreeVector(3.812*inch,-2.764*inch,21.50*inch); 
+
+   new G4PVPlacement(rmb,                        // rotation
+                     Pb,                         // position 
+                     colBase_C_LV,               // logical volume   
+                     "physGEnTarget_colBase_C",  // physical name 
+                     logicMother,                // logical mother
+                     true,                       // boolean? 
+                     0,                          // copy no 
+                     checkOverlaps);             // check overlaps
+
+}
+//______________________________________________________________________________
+void G4SBSTargetBuilder::BuildGEnTarget_Collimator_Table(G4LogicalVolume *motherLog,G4double z0){
+   // Collimator table on which the collimators sit
+   // Drawings: C4.JPG--C9.JPG
+
+   G4double inch = 2.54*cm;
+
+   // C4: table platform 
+   G4double x_len =  3.875*inch;
+   G4double y_len =  0.500*inch;
+   G4double z_len = 35.625*inch;
+   G4Box *solidC4 = new G4Box("solidC4",x_len/2.,y_len/2.,z_len/2.);
+
+   // C4 cutaway (angled cut 1) 
+   G4double xca1_len = 2.000*inch;
+   G4double yca1_len = 2.000*inch;
+   G4double zca1_len = 3.143*inch;
+   G4Box *solidC4_cut_a1 = new G4Box("solidC4_cut_a1",xca1_len/2.,yca1_len/2.,zca1_len/2.);
+
+   G4RotationMatrix *rmca1 = new G4RotationMatrix();
+   std::vector<G4double> RA;
+   RA.push_back(0*deg); RA.push_back(-25*deg); RA.push_back(0);  
+   rmca1->rotateX(RA[0]); rmca1->rotateY(RA[1]); rmca1->rotateZ(RA[2]);
+
+   // position of cut (derived from drawing C4.JPG) 
+   G4ThreeVector P_c4c_a1 = G4ThreeVector(-2.165*inch,0*inch,-12.509*inch);
+
+   // C4 cutaway [long stretch] 
+   G4double cutLen_x = 1.375*inch;
+   G4double xc_len =  2.000*inch;
+   G4double yc_len =  2.000*inch;
+   G4double zc_len = 11.028*inch;
+   G4Box *solidC4_cut = new G4Box("solidC4_cut",xc_len/2.,yc_len/2.,zc_len/2.);
+   // position of cut (derived from drawing C4.JPG) 
+   G4double xcp = (-1.)*(x_len/2. + xc_len/2. - cutLen_x);
+   G4double ycp = 0.;
+   G4double zcp = -6.0245*inch;
+   G4ThreeVector P_c4c = G4ThreeVector(xcp,ycp,zcp);
+
+   // C4 cutaway (angled cut 2) 
+   G4double xca2_len = 2.000*inch;
+   G4double yca2_len = 2.000*inch;
+   G4double zca2_len = 3.143*inch;
+   G4Box *solidC4_cut_a2 = new G4Box("solidC4_cut_a2",xca2_len/2.,yca2_len/2.,zca2_len/2.);
+
+   std::vector<G4double> RA2;
+   RA2.push_back(0*deg); RA2.push_back(25*deg); RA2.push_back(0);  
+   G4RotationMatrix *rmca2 = new G4RotationMatrix();
+   rmca2->rotateX(RA2[0]); rmca2->rotateY(RA2[1]); rmca2->rotateZ(RA2[2]);
+
+   // position of cut (derived from drawing C4.JPG) 
+   G4ThreeVector P_c4c_a2 = G4ThreeVector(-2.15*inch,0*inch,0.914*inch-0.42*inch);
+
+   // C4 cutaway (angled cut 3) 
+   G4double xca3_len = 2.000*inch;
+   G4double yca3_len = 2.000*inch;
+   G4double zca3_len = 1.150*inch;
+   G4Box *solidC4_cut_a3 = new G4Box("solidC4_cut_a3",xca3_len/2.,yca3_len/2.,zca3_len/2.);
+
+   std::vector<G4double> RA3;
+   RA3.push_back(0*deg); RA3.push_back(-35*deg); RA3.push_back(0);  
+   G4RotationMatrix *rmca3 = new G4RotationMatrix();
+   rmca3->rotateX(RA3[0]); rmca3->rotateY(RA3[1]); rmca3->rotateZ(RA3[2]);
+
+   // position of cut (derived from drawing C4.JPG) 
+   G4ThreeVector P_c4c_a3 = G4ThreeVector(-2.40*inch,0*inch,9.0*inch);
+
+   // C4 cutaway [second long stretch] 
+   G4double cutLen_x2 = 0.750*inch;
+   G4double xc2_len = 2.000*inch;
+   G4double yc2_len = 2.000*inch;
+   G4double zc2_len = 7.789*inch + 1.25*inch;
+   G4Box *solidC4_cut2 = new G4Box("solidC4_cut2",xc2_len/2.,yc2_len/2.,zc2_len/2.);
+   // position of cut (derived from drawing C4.JPG) 
+   G4double xcp2 = (-1.)*(x_len/2. + xc2_len/2. - cutLen_x2);
+   G4double ycp2 = 0.;
+   G4double zcp2 = 13.668*inch - 0.25*inch;
+   G4ThreeVector P_c4c_2 = G4ThreeVector(xcp2,ycp2,zcp2);
+
+   // subtraction solid
+   // base plate - angled cut 
+   G4SubtractionSolid *C4c = new G4SubtractionSolid("C4c",solidC4,solidC4_cut_a1,rmca1,P_c4c_a1);
+   // subtract first long stretch 
+   C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut,0,P_c4c);
+   // subtract second angled cut  
+   C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut_a2,rmca2,P_c4c_a2);
+   // subtract third angled cut  
+   C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut_a3,rmca3,P_c4c_a3);
+   // subtract third long stretch 
+   C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut2,0,P_c4c_2);
+
+   // C5 
+   G4double x5_len = 0.250*inch; 
+   G4double y5_len = 1.250*inch; 
+   G4double z5_len = 35.625*inch;
+   G4Box *solidC5 = new G4Box("solidC5",x5_len/2.,y5_len/2.,z5_len/2.); 
+   G4ThreeVector P5 = G4ThreeVector(x_len/2.+x5_len/2.,-0.188*inch,0.);
+
+   // C6--C9 
+   // base
+   G4double xb_len = 1.250*inch;  
+   G4double yb_len = 7.946*inch - 3*inch; // to avoid overlaps   
+   G4double zb_len = 0.500*inch;  
+   G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
+   // small blocks 
+   G4double xbk_len = 2.250*inch;  
+   G4double ybk_len = 0.500*inch;  
+   G4double zbk_len = 0.500*inch;  
+   G4Box *solidBK = new G4Box("solidBK",xbk_len/2.,ybk_len/2.,zbk_len/2.);
+   G4ThreeVector P_bk = G4ThreeVector(0,yb_len/2.+ybk_len/2.,0);
+
+   // union solid to build the leg 
+   G4UnionSolid *leg = new G4UnionSolid("leg_bbk",solidBase,solidBK,0,P_bk);
+   // other block 
+   P_bk = G4ThreeVector(0,-yb_len/2.-ybk_len/2.,0);
+   leg = new G4UnionSolid("solidLeg",leg,solidBK,0,P_bk);
+
+   // union solid for all components 
+   G4UnionSolid *solidTable = new G4UnionSolid("solidTable_noLegs",C4c,solidC5,0,P5);
+   // add C6 leg 
+   G4double z0_l = -5.3125*inch;   // same as offset at the very end 
+   G4double x6 = 0;
+   G4double y6 = (-1.)*(y_len/2. + ybk_len + yb_len/2.);  
+   G4double z6 = z0_l + -9.244*inch + ybk_len/2.; 
+   G4ThreeVector P6 = G4ThreeVector(x6,y6,z6);
+   solidTable = new G4UnionSolid("solidTable_c6",solidTable,leg,0,P6); 
+   // add C7 leg  
+   G4double x7 = 0;
+   G4double y7 = y6;  
+   G4double z7 = z0_l + 0*inch; 
+   G4ThreeVector P7 = G4ThreeVector(x7,y7,z7);
+   solidTable = new G4UnionSolid("solidTable_c7",solidTable,leg,0,P7); 
+   // add C8 leg  
+   G4double x8 = 0;
+   G4double y8 = y6;  
+   G4double z8 = z0_l + 13.381*inch + ybk_len/2.; 
+   G4ThreeVector P8 = G4ThreeVector(x8,y8,z8);
+   solidTable = new G4UnionSolid("solidTable_c8",solidTable,leg,0,P8); 
+   // add C9 leg  
+   G4double x9 = 0;
+   G4double y9 = y6;  
+   G4double z9 = z0_l + 20.256*inch + ybk_len/2.; 
+   G4ThreeVector P9 = G4ThreeVector(x9,y9,z9);
+   solidTable = new G4UnionSolid("solidTable_c9",solidTable,leg,0,P9); 
+
+   G4LogicalVolume *table_LV = new G4LogicalVolume(solidTable,GetMaterial("Aluminum"),"logicGEnTarget_colTable");
+
+   // placement 
+   G4double x_offset =  2.812*inch; 
+   G4double y_offset = -3.514*inch - 5*mm;  // avoiding overlaps  
+   G4double z_offset =  5.3125*inch; // taking y_len/2 - 12.5*inch
+   G4ThreeVector P = G4ThreeVector(x_offset,y_offset,z0+z_offset);
+
+   bool checkOverlaps = true;
+
+   new G4PVPlacement(0,                          // rotation
+                     P,                          // position 
+                     table_LV,                   // logical volume   
+                     "physGEnTarget_colTable",   // physical name 
+                     motherLog,                  // logical mother
+                     true,                       // boolean? 
+                     0,                          // copy no 
+                     checkOverlaps);             // check overlaps
+
+}

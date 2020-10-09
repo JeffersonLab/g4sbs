@@ -3610,7 +3610,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   // Exit beam line piping: use this instead of the commented out section below
   // Added by D Flay (Sept 2020)
-  MakeBeamExit(worldlog,TargetCenter_zoffset);  
+  // MakeBeamExit(worldlog,TargetCenter_zoffset);  
+  MakeBeamExit(worldlog,7.0*inch);  
 
   //************************* START OF PIPING TO DUMP *************************// 
 

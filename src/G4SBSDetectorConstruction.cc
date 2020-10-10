@@ -2283,7 +2283,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   TargetCollimator_Material->AddElement( elN, fractionmass = 0.008936*massfrac_epoxy );
   TargetCollimator_Material->AddElement( elO, fractionmass = 0.231531*massfrac_epoxy );
   TargetCollimator_Material->AddElement( elW, fractionmass = 1.0-massfrac_epoxy );
-  
+
+  fMaterialsMap["TargetCollimator_Material"] = TargetCollimator_Material;
   
 }
 

@@ -7,3 +7,6 @@ GEP_12map0.table
 *.root
 ## Ignore more of VIM's temporary files
 .*.swo
+## Ignore emacs temporary files
+*#
+.#*

@@ -14,6 +14,7 @@
 #include "G4Tubs.hh"
 #include "G4Cons.hh"
 #include "G4Box.hh"
+#include "G4Sphere.hh"
 #include "G4Polycone.hh"
 #include "G4Trd.hh"
 #include "G4Trap.hh"
@@ -1890,52 +1891,6 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4double inch = 2.54*cm;
   bool ChkOverlaps = false;
   
-  // Stainless
-  G4double ent_len = 10*m;
-  //ent_len = ent_len+1.1*m;// for background studies;
-  G4double ent_rin = 31.75*mm;
-  G4double ent_rou = ent_rin+0.120*mm;
-  
-  G4Tubs *ent_tube = new G4Tubs("ent_tube", ent_rin, ent_rou, ent_len/2, 0.*deg, 360.*deg );
-  G4Tubs *ent_vac  = new G4Tubs("ent_vac", 0.0, ent_rin, ent_len/2, 0.*deg, 360.*deg );
-  
-  //We want to subtract this cylinder from the entry tube/pipe:
-  G4Tubs *cut_cylinder = new G4Tubs("cut_cylinder", 0.0, swallrad, 1.0*m, 0.0*deg, 360.0*deg );
-  
-  G4RotationMatrix *cut_cylinder_rot = new G4RotationMatrix;
-  cut_cylinder_rot->rotateX( -90.0*deg );
-  
-  G4SubtractionSolid *ent_tube_cut = new G4SubtractionSolid( "ent_tube_cut", ent_tube, cut_cylinder, cut_cylinder_rot, 
-							     G4ThreeVector( 0.0, 0.0, ent_len/2.0 + swallrad_inner ) );
-  G4SubtractionSolid *ent_vac_cut = new G4SubtractionSolid( "ent_vac_cut", ent_vac, cut_cylinder, cut_cylinder_rot, 
-							    G4ThreeVector( 0.0, 0.0, ent_len/2.0 + swallrad_inner ) );
-  
-  G4LogicalVolume *entLog = new G4LogicalVolume(ent_tube, GetMaterial("Stainless"), "ent_log", 0, 0, 0);
-  G4LogicalVolume *entvacLog = new G4LogicalVolume(ent_vac, GetMaterial("Vacuum"), "entvac_log", 0, 0, 0);
-  
-  G4LogicalVolume *entLog_cut = new G4LogicalVolume(ent_tube_cut, GetMaterial("Stainless"), "ent_log_cut", 0, 0, 0);
-  G4LogicalVolume *entvacLog_cut = new G4LogicalVolume(ent_vac_cut, GetMaterial("Vacuum"), "entvac_log_cut", 0, 0, 0);
-
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entLog, "ent_phys", worldlog, false,0);// -- Extended beamline for background studies (2016/09/07)
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2-40.0*cm), entvacLog, "entvac_phys", worldlog,false,0);// -- Extended beamline for background studies (2016/09/07)
-
-  ////Changed 40.0 cm to 13.9 inch from information at Autodesk Viewer
-
-  
-  // Add in Be window if no scattering chamber is to be defined:
-  if( fDetCon->fTargetBuilder->GetSchamFlag() != 1 ){
-    G4double winthick = 0.0127*cm;    
-    G4Tubs *ent_win = new G4Tubs("ent_win", 0.0, ent_rin, winthick/2, 0.*deg, 360.*deg );
-    G4LogicalVolume *ent_winlog = new G4LogicalVolume(ent_win, GetMaterial("Beryllium"), "entwin_log", 0, 0, 0);
-    
-    // my cancel Be window for GEp experiment 09/29/2014 
-    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);	// => uncommented on 2016/09/07 for background studies
-    // Note from  2016/09/07: 
-    // Is that normal that this was commented ? My guess would be not.
-    
-    ent_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.7,1.0,0.0)));
-  }
-  
   // EFuchey: 2017/02/14: add the possibility to change the first parameters for the beam line polycone 
   // // Default set of values;
   // double z0 = 37.2*cm;
@@ -1987,12 +1942,216 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   // MakeCommonExitBeamline(worldlog);
  
-  ////BEGIN EXIT BEAMLINE UPDATE FOR SIDIS - S.SEEDS - MOST RECENT UPDATE: 7.24.20
+  ////BEGIN EXIT BEAMLINE UPDATE FOR 3He TARGET - S.SEEDS - MOST RECENT UPDATE: 10.7.20
   ////In progress - change visuals, and verify P1initPlacement_z
   ////Opted to leave out 80/20 rails and related fixtures as a first approximation
   ////Corrected initial placement with help from D. Flay.
   ////Corrected side shields - material to be aluminum per R Wines. 7.24.20
 
+
+  //Section Zero
+  //This section details all components of the enterance beamline from the target chamber upstream.
+
+  G4VisAttributes *Aluminum = new G4VisAttributes(G4Colour(0.3,0.3,1.0));
+  G4VisAttributes *Iron = new G4VisAttributes(G4Colour(0.3,0.3,0.3));
+  G4VisAttributes *LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
+  G4VisAttributes *DebugRed = new G4VisAttributes(G4Colour(1.0,0.,0.));
+  G4VisAttributes *Beryllium = new G4VisAttributes(G4Colour(1.0,0.,0.));
+  G4VisAttributes *SteelColor = new G4VisAttributes(G4Colour(0.75,0.75,0.75));
+
+  G4double P0initPlacement_z = -13.9*inch; //JT file dimension
+  
+  //Ring 0A - Most proximal ring to target chamber upstream
+  G4double P0ringA_L = 0.5/2.0*inch;
+  //G4double P0ringA_rin = 1.375/2.0*inch; //This is the inner radius of the proximal upstream pipe per JT file
+  G4double P0ringA_rin = 1.46/2.0*inch; //This is the inner radius of the proximal upstream pipe per dwg no 67507-0023. Going with this one given the dims of the Be window. Will double check. sseeds 10.7.20
+  G4double P0ringA_rou = 3.1/2.0*inch;
+
+  G4Tubs *P0ringA = new G4Tubs("P0ringA", P0ringA_rin, P0ringA_rou, P0ringA_L, 0.0*deg, 360.0*deg);
+
+  //Cut out disk - discrepancy here between cutout in print and cutout in JT file. Going with print for face, but the whole flange could attach to the front of the JT file geometry. In this case, will need length of cylinder to add. Will follow up.
+
+  //G4double P0disk_cut_L = 0.1/2.0*inch; //First cutaway per JT file
+  G4double P0disk_cut_L = 0.020/2.0*inch; //0.030" (Nominal cut)  - 0.010" (Thickness of window). Ignoring any Be beyond the inner radius of the ring and setting it flush with the face.
+  G4double P0disk_cut_rou = 2.105/2.0*inch;
+  
+  G4Tubs *P0disk_cut = new G4Tubs("P0disk_cut", 0.0, P0disk_cut_rou, P0disk_cut_L, 0.0*deg, 360.0*deg );
+  
+  G4RotationMatrix *P0disk_cut_rot = new G4RotationMatrix;
+  //P0disk_cut_rot->rotateX( -90.0*deg );
+
+  G4SubtractionSolid *P0ringA_cut = new G4SubtractionSolid( "P0ringA_cut", P0ringA, P0disk_cut, P0disk_cut_rot, G4ThreeVector( 0.0, 0.0, P0ringA_L - P0disk_cut_L));
+
+  G4LogicalVolume *P0ringA_cutLog = new G4LogicalVolume(P0ringA_cut, GetMaterial("Aluminum"), "P0ringA_cut_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-P0ringA_L), P0ringA_cutLog, "P0ringA_cutLog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  /*
+  //Window is a dome - updating this Be disk code as approximation. Will leave as backup for now. sseeds 10.7.20
+
+  G4double P0disk_L = 0.010/2.0*inch;
+  G4double P0disk_rou = 2.105/2.0*inch;
+  G4double P0domeApprox = 0.096*inch;  //Shifting the disk back to the location of the vertex of the dome as an approximation.
+  
+  G4Tubs *P0disk = new G4Tubs("P0disk", 0.0, P0disk_rou, P0disk_L, 0.*deg, 360.*deg);
+ 
+  G4LogicalVolume *P0diskLog = new G4LogicalVolume(P0disk, GetMaterial("Beryllium"), "P0disk_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z - P0disk_L - P0domeApprox), P0diskLog, "P0diskLog_pv", worldlog, false, 0 , ChkOverlaps );
+  */
+
+  //New information from Robin W., Bert M, and Chris S. - implementing Be "Dome" window upstream from dwg. no. 67507-0023
+  G4double P0shell_w = 0.010*inch;
+  G4double P0shell_r = 2.85*inch;
+  G4double P0dome_r = 1.46/2.0*inch;
+  G4double P0dome_vd = 0.096*inch; //max depth into beampipe of dome
+  G4double P0dome_th = atan(P0dome_r/(P0shell_r-P0dome_vd));
+  
+  G4RotationMatrix *P0dome_rot = new G4RotationMatrix;
+  P0dome_rot->rotateX(-180.0*deg);
+  
+  //Construct sphere with theta constraint to produce dome window
+  G4Sphere *P0domeA = new G4Sphere("P0domeA", P0shell_r, P0shell_r+P0shell_w, 0.0*deg, 360.0*deg, 0.0*deg, P0dome_th);
+
+  G4LogicalVolume *P0domeALog = new G4LogicalVolume(P0domeA, GetMaterial("Beryllium"), "P0dome_log", 0, 0, 0);
+
+  new G4PVPlacement( P0dome_rot, G4ThreeVector( 0.0, 0.0, P0initPlacement_z+P0shell_r+P0shell_w-2.0*P0disk_cut_L-P0dome_vd), P0domeALog, "P0domeALog_pv", worldlog, false, 0, ChkOverlaps );
+  
+  //Tube 0A
+  G4double P0tubeA_L = 1.0/2.0*inch;
+  G4double P0tubeA_rou = 1.66/2.0*inch;
+
+  G4Tubs *P0tubeA = new G4Tubs("P0tubeA", P0ringA_rin, P0tubeA_rou, P0tubeA_L, 0.0*deg, 360.0*deg);
+
+  G4LogicalVolume *P0tubeALog = new G4LogicalVolume(P0tubeA, GetMaterial("Aluminum"), "P0tubeA_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-P0tubeA_L), P0tubeALog, "P0tubeALog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  //Vacuum 0A
+  G4Tubs *P0tubeA_vac = new G4Tubs("P0tubeA_vac", 0.0, P0ringA_rin, P0ringA_L+P0tubeA_L-P0disk_cut_L, 0.*deg, 360.*deg);
+
+  //need to subtract the volume walled off by the Be dome
+
+  G4Sphere *P0sphere_cut = new G4Sphere("P0sphere_cut", 0.0, P0shell_r+P0shell_w, 0.0*deg, 360.0*deg, 0.0*deg, 360.0*deg);
+
+  G4SubtractionSolid *P0tubeA_winvac = new G4SubtractionSolid("P0tubeA_winvac", P0tubeA_vac, P0sphere_cut, 0, G4ThreeVector(0.0, 0.0, (P0ringA_L+P0tubeA_L-P0disk_cut_L)+(P0shell_r+P0shell_w)-P0dome_vd));
+
+  G4LogicalVolume *P0tubeA_winvacLog = new G4LogicalVolume(P0tubeA_winvac, GetMaterial("Vacuum"), "P0tubeA_winvac_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0disk_cut_L-(P0ringA_L+P0tubeA_L-P0disk_cut_L)), P0tubeA_winvacLog, "P0tubeA_winvacLog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  //Vacuum 0A Ring - Probably don't need given the aperture size per print. This ring is most likely full of air near the target. sseeds
+  //G4Tubs *P0ringA_vac = new G4Tubs("P0ringA_vac", P0ringA_rin, P0disk_cut_rou, P0disk_cut_L-P0disk_L, 0.*deg, 360.*deg);
+
+  //G4LogicalVolume *P0ringA_vacLog = new G4LogicalVolume(P0ringA_vac, GetMaterial("Vacuum"), "P0ringA_vac_log", 0, 0, 0);
+
+  //new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-P0disk_cut_L-P0disk_L), P0ringA_vacLog, "P0ringA_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  
+  //Tube 0B
+  G4double P0tubeB_L = 13.428/2.0*inch;
+  G4double P0tubeB_rin = 1.380/2.0*inch;
+  G4double P0tubeB_rou = 1.66/2.0*inch;
+
+  G4Tubs *P0tubeB = new G4Tubs("P0tubeB", P0tubeB_rin, P0tubeB_rou, P0tubeB_L, 0.0*deg, 360.0*deg);
+
+  G4LogicalVolume *P0tubeBLog = new G4LogicalVolume(P0tubeB, GetMaterial("Aluminum"), "P0tubeB_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0tubeB_L), P0tubeBLog, "P0tubeBLog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  //Vacuum 0B
+  G4Tubs *P0tubeB_vac = new G4Tubs("P0tubeB_vac", 0.0, P0tubeB_rin, P0tubeB_L, 0.*deg, 360.*deg);
+
+  G4LogicalVolume *P0tubeB_vacLog = new G4LogicalVolume(P0tubeB_vac, GetMaterial("Vacuum"), "P0tubeB_vac_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0tubeB_L), P0tubeB_vacLog, "P0tubeB_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  
+  //Tube 0C
+  G4double P0tubeC_L = 3.427/2.0*inch;
+  G4double P0tubeC_rin = 1.457/2.0*inch;
+  G4double P0tubeC_rou = 1.693/2.0*inch;
+
+  G4Tubs *P0tubeC = new G4Tubs("P0tubeC", P0tubeC_rin, P0tubeC_rou, P0tubeC_L, 0.0*deg, 360.0*deg);
+
+  G4LogicalVolume *P0tubeCLog = new G4LogicalVolume(P0tubeC, GetMaterial("Aluminum"), "P0tubeC_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-P0tubeC_L), P0tubeCLog, "P0tubeCLog_pv", worldlog, false, 0 , ChkOverlaps );
+  
+  //Ring 0B
+  G4double P0ringB_L = 0.51/2.0*inch;
+  G4double P0ringB_rou = 2.74/2.0*inch;
+
+  G4Tubs *P0ringB = new G4Tubs("P0ringB", P0tubeC_rin, P0ringB_rou, P0ringB_L, 0.0*deg, 360.0*deg);
+
+  G4LogicalVolume *P0ringBLog = new G4LogicalVolume(P0ringB, GetMaterial("Aluminum"), "P0ringB_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*P0tubeC_L-P0ringB_L), P0ringBLog, "P0ringBLog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  //Vacuum 0C
+  G4Tubs *P0tubeC_vac = new G4Tubs("P0tubeC_vac", 0.0, P0tubeC_rin, P0tubeC_L+P0ringB_L, 0.*deg, 360.*deg);
+
+  G4LogicalVolume *P0tubeC_vacLog = new G4LogicalVolume(P0tubeC_vac, GetMaterial("Vacuum"), "P0tubeC_vac_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-(P0tubeC_L+P0ringB_L)), P0tubeC_vacLog, "P0tubeC_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  //Previous code moved here to serve as upstream beampipe beyond JT file data
+  // Stainless
+  G4double ent_len = 10*m-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*P0tubeC_L-2.0*P0ringB_L;
+  //ent_len = ent_len+1.1*m;// for background studies;
+  G4double ent_rin = 31.75*mm;
+  G4double ent_rou = ent_rin+0.120*mm;
+  
+  G4Tubs *ent_tube = new G4Tubs("ent_tube", ent_rin, ent_rou, ent_len/2, 0.*deg, 360.*deg );
+  G4Tubs *ent_vac  = new G4Tubs("ent_vac", 0.0, ent_rin, ent_len/2, 0.*deg, 360.*deg );
+  
+  //We want to subtract this cylinder from the entry tube/pipe:
+  G4Tubs *cut_cylinder = new G4Tubs("cut_cylinder", 0.0, swallrad, 1.0*m, 0.0*deg, 360.0*deg );
+  
+  G4RotationMatrix *cut_cylinder_rot = new G4RotationMatrix;
+  cut_cylinder_rot->rotateX( -90.0*deg );
+  
+  G4SubtractionSolid *ent_tube_cut = new G4SubtractionSolid( "ent_tube_cut", ent_tube, cut_cylinder, cut_cylinder_rot, 
+							     G4ThreeVector( 0.0, 0.0, ent_len/2.0 + swallrad_inner ) );
+  G4SubtractionSolid *ent_vac_cut = new G4SubtractionSolid( "ent_vac_cut", ent_vac, cut_cylinder, cut_cylinder_rot, 
+							    G4ThreeVector( 0.0, 0.0, ent_len/2.0 + swallrad_inner ) );
+  
+  G4LogicalVolume *entLog = new G4LogicalVolume(ent_tube, GetMaterial("Stainless"), "ent_log", 0, 0, 0);
+  G4LogicalVolume *entvacLog = new G4LogicalVolume(ent_vac, GetMaterial("Vacuum"), "entvac_log", 0, 0, 0);
+  
+  G4LogicalVolume *entLog_cut = new G4LogicalVolume(ent_tube_cut, GetMaterial("Stainless"), "ent_log_cut", 0, 0, 0);
+  G4LogicalVolume *entvacLog_cut = new G4LogicalVolume(ent_vac_cut, GetMaterial("Vacuum"), "entvac_log_cut", 0, 0, 0);
+  
+  //Relocated placement of steel upstream beampipe to accomodate details of target-proximal entrance beampipe - sseeds 10.1.20
+  
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2+P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*P0tubeC_L-2.0*P0ringB_L), entLog, "ent_phys", worldlog, false,0);// -- Extended beamline for background studies (2016/09/07)
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -ent_len/2+P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*P0tubeC_L-2.0*P0ringB_L), entvacLog, "entvac_phys", worldlog,false,0);// -- Extended beamline for background studies (2016/09/07)
+
+  
+  //Section zero visual attributes
+  P0ringA_cutLog->SetVisAttributes( Aluminum);
+  //P0diskLog->SetVisAttributes( Beryllium);
+  P0tubeALog->SetVisAttributes( Aluminum);
+  P0tubeBLog->SetVisAttributes( Aluminum);
+  P0tubeCLog->SetVisAttributes( Aluminum);
+  P0ringBLog->SetVisAttributes( Aluminum);
+  P0domeALog->SetVisAttributes( Beryllium);
+  entLog->SetVisAttributes( SteelColor);
+
+  /* //Removed this option after fixing upstream/downstream Be windows per dwg no's 131176 and 67507-0023. sseeds - 10.7.20
+  // Add in Be window if no scattering chamber is to be defined:
+  if( fDetCon->fTargetBuilder->GetSchamFlag() != 1 ){
+    G4double winthick = 0.0127*cm;    
+    G4Tubs *ent_win = new G4Tubs("ent_win", 0.0, ent_rin, winthick/2, 0.*deg, 360.*deg );
+    G4LogicalVolume *ent_winlog = new G4LogicalVolume(ent_win, GetMaterial("Beryllium"), "entwin_log", 0, 0, 0);
+    
+    // my cancel Be window for GEp experiment 09/29/2014 
+    new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, ent_len/2-winthick/2), ent_winlog, "entwin_phys", entvacLog,false,0);	// => uncommented on 2016/09/07 for background studies
+    // Note from  2016/09/07: 
+    // Is that normal that this was commented ? My guess would be not.
+    
+    ent_winlog->SetVisAttributes(new G4VisAttributes(G4Colour(0.7,1.0,0.0)));
+  }
+  */
+  
   //Section One
   //This section details all components of the exit beamline from the target chamber to the first cone and shielding including all simple cylinders. All labels numbered by proximity to target chamber.
 
@@ -2001,10 +2160,6 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4double P1ringL = 0.125/2*inch;
   // G4double initPlacement_z = 15.14*inch-0.2*inch; //Offset from upstream beampipe with cad data and with autodesk viewer
   G4double initPlacement_z = 26.74*inch; //Offset from upstream beampipe with cad data and with autodesk viewer
-  G4VisAttributes *Aluminum = new G4VisAttributes(G4Colour(0.3,0.3,1.0));
-  G4VisAttributes *Iron = new G4VisAttributes(G4Colour(0.3,0.3,0.3));
-  G4VisAttributes *LeadColor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
-  G4VisAttributes *DebugRed = new G4VisAttributes(G4Colour(1.0,0.,0.));
 
   //G4Tubs *P1ringA = new G4Tubs("P1ringA", P1ringA_rin, P1ringA_rin+P1tubeTh, P1ringA_L, 0.*deg, 360.*deg);
 
@@ -2018,14 +2173,32 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, initPlacement_z+P1ringA_L), P1ringALog, "P1ringALog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  //Disk - Empty space in cad file ostensibly left open to house Be window containing vacuum through exit beamline. Will have to check this.
+  //Disk - Empty space in cad file ostensibly left open to house Be window containing vacuum through exit beamline. 10.7.20 - sseeds, Compared to dwg no 131176. Adding new window.
   G4double P1disk_L = 0.015/2*inch;
 
-  G4Tubs *P1disk = new G4Tubs("P1disk", 0.0, P1ringA_rin+P1tubeTh, P1disk_L, 0.*deg, 360.*deg);
+  G4Tubs *P1disk = new G4Tubs("P1disk", P1ringA_rin, P1ringA_rin+P1tubeTh, P1disk_L, 0.*deg, 360.*deg); //By comparison, Be dome is flush with P1tubeA. Modifying this disk to be a continuation of the P1ringA (inner radius changed)
  
-  G4LogicalVolume *P1diskLog = new G4LogicalVolume(P1disk, GetMaterial("Beryllium"), "P1disk_log", 0, 0, 0);
+  G4LogicalVolume *P1diskLog = new G4LogicalVolume(P1disk, GetMaterial("Aluminum"), "P1disk_log", 0, 0, 0); //Material changed
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, initPlacement_z+2*P1ringA_L+P1disk_L), P1diskLog, "P1diskLog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  //Via Robin W., Bert M, and Chris S. - implementing Be "Dome" window upstream from dwg no 67507-0023. sseeds 10.7.20
+  G4double P1shell_w = 0.020*inch;
+  G4double P1shell_r = 7.136*inch; //Determined from print
+  G4double P1dome_r = 2.930/2.0*inch;
+  G4double P1dome_vd = 0.152*inch; //max depth into beampipe of dome
+  G4double P1dome_th = atan(P1dome_r/(P1shell_r-P1dome_vd));
+  
+  G4RotationMatrix *P1dome_rot = new G4RotationMatrix;
+  //P1dome_rot->rotateX(-180.0*deg);
+  
+  //Construct sphere with theta constraint to produce dome window
+  G4Sphere *P1domeA = new G4Sphere("P1domeA", P1shell_r, P1shell_r+P1shell_w, 0.0*deg, 360.0*deg, 0.0*deg, P1dome_th);
+
+  G4LogicalVolume *P1domeALog = new G4LogicalVolume(P1domeA, GetMaterial("Beryllium"), "P1dome_log", 0, 0, 0);
+
+  new G4PVPlacement( P1dome_rot, G4ThreeVector( 0.0, 0.0, initPlacement_z+2.0*P1ringA_L+2.0*P1disk_L-(P1shell_r+P1shell_w)+P1dome_vd), P1domeALog, "P1domeALog_pv", worldlog, false, 0, ChkOverlaps );
+  
 
   //Tube A - First of three ascending radius tubes. Mates on distant end with ring.
   G4double P1tubeA_L = 1.171/2*inch;
@@ -2206,23 +2379,29 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   //Tube A Vacuum
   G4Tubs *P1tubeA_vac = new G4Tubs("P1tubeA_vac", 0.0, P1ringA_rin, P1tubeA_L+2*P1ringL, 0.*deg, 360.*deg);
 
-  G4LogicalVolume *P1tubeA_vacLog = new G4LogicalVolume(P1tubeA_vac, GetMaterial("Vacuum"), "P1tubeA_vac_log", 0, 0, 0);
+  //need to subract the colume walled off by the Be dome
 
-  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, initPlacement_z+P1tubeA_L+2*P1ringL), P1tubeA_vacLog, "P1tubeA_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  G4Sphere *P1sphere_cut = new G4Sphere("P0sphere_cut", 0.0, P1shell_r+P1shell_w, 0.0*deg, 360.0*deg, 0.0*deg, 360.0*deg);
+
+  G4SubtractionSolid *P1tubeA_winvac = new G4SubtractionSolid("P1tubeA_winvac", P1tubeA_vac, P1sphere_cut, 0, G4ThreeVector(0.0, 0.0, -(P1tubeA_L+2*P1ringL)-(P1shell_r+P1shell_w)+P1dome_vd));
+
+  G4LogicalVolume *P1tubeA_winvacLog = new G4LogicalVolume(P1tubeA_winvac, GetMaterial("Vacuum"), "P1tubeA_winvac_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, initPlacement_z+P1tubeA_L+2*P1ringL+2*P1ringA_L+2*P1disk_L+P1shell_w), P1tubeA_winvacLog, "P1tubeA_winvacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
   //Tube B Vacuum
   G4Tubs *P1tubeB_vac = new G4Tubs("P1tubeB_vac", 0.0, P1tubeB_rin, P1tubeB_L+2*P1ringL, 0.*deg, 360.*deg);
 
   G4LogicalVolume *P1tubeB_vacLog = new G4LogicalVolume(P1tubeB_vac, GetMaterial("Vacuum"), "P1tubeB_vac_log", 0, 0, 0);
 
-  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, initPlacement_z+2*P1tubeA_L+4*P1ringL+P1tubeB_L+2*P1ringL), P1tubeB_vacLog, "P1tubeB_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, initPlacement_z+2*P1tubeA_L+4*P1ringL+P1tubeB_L+2*P1ringL+2*P1ringA_L+2*P1disk_L), P1tubeB_vacLog, "P1tubeB_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
   //Tube C Vacuum
   G4Tubs *P1tubeC_vac = new G4Tubs("P1tubeC_vac", 0.0, P1tubeC_rin, P1tubeC_L+4*P1ringL, 0.*deg, 360.*deg);
 
   G4LogicalVolume *P1tubeC_vacLog = new G4LogicalVolume(P1tubeC_vac, GetMaterial("Vacuum"), "P1tubeC_vac_log", 0, 0, 0);
 
-  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, initPlacement_z+2*P1tubeA_L+8*P1ringL+2*P1tubeB_L+P1tubeC_L+4*P1ringL), P1tubeC_vacLog, "P1tubeC_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, initPlacement_z+2*P1tubeA_L+8*P1ringL+2*P1tubeB_L+P1tubeC_L+4*P1ringL+2*P1ringA_L+2*P1disk_L), P1tubeC_vacLog, "P1tubeC_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
   //Tube D Vacuum
   G4Tubs *P1tubeD_vac = new G4Tubs("P1tubeD_vac", 0.0, P1tubeD_rin, P1tubeD_L+P1ringE_L, 0.*deg, 360.*deg);
@@ -2348,6 +2527,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   P1ringALog->SetVisAttributes( Aluminum);
   P1diskLog->SetVisAttributes( Aluminum);
+  P1domeALog->SetVisAttributes( Beryllium);
   P1tubeALog->SetVisAttributes( Aluminum);
   P1ringBinLog->SetVisAttributes( Aluminum);
   P1ringBouLog->SetVisAttributes( Aluminum);
@@ -2366,14 +2546,14 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   P1ringHLog->SetVisAttributes( Aluminum);
   P1ringILog->SetVisAttributes( Aluminum);
   P1ringJLog->SetVisAttributes( Aluminum);
-  P1tubeA_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
-  P1tubeB_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
-  P1tubeC_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
-  P1tubeD_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
-  P1tubeE_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
-  P1tubeF_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
-  P1ringI_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
-  P1ringJ_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P1tubeA_winvacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P1tubeB_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P1tubeC_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P1tubeD_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P1tubeE_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P1tubeF_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P1ringI_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P1ringJ_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
   
   //Will need to confirm materials throughout section one
 
@@ -3425,7 +3605,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+P5ringA_L), P5ringA_vacLog, "P5ringA_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringA_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringA_vacLog->SetVisAttributes( Beryllium);
 
   //Ring B
   G4double P5ringB_rin = 11.750/2*inch; 
@@ -3447,7 +3627,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+2*P5ringB_L+P5ringB_L), P5ringB_vacLog, "P5ringB_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringB_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringB_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
 
   //Ring C
   G4double P5ringC_rin = 11.750/2*inch; 
@@ -3469,7 +3649,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+2*P5ringA_L+2*P5ringB_L+P5ringC_L), P5ringC_vacLog, "P5ringC_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringC_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringC_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
 
   //Ring D
   G4double P5ringD_rin = 12.710/2*inch; 
@@ -3491,7 +3671,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+2*P5ringA_L+2*P5ringB_L+2*P5ringC_L+P5ringD_L), P5ringD_vacLog, "P5ringD_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringD_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  P5ringD_vacLog->SetVisAttributes( Beryllium);
 
   //Ring E
   G4double P5ringE_rin = 11.750/2*inch; 
@@ -3513,7 +3693,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+2*P5ringA_L+2*P5ringB_L+2*P5ringC_L+2*P5ringD_L+P5ringE_L), P5ringE_vacLog, "P5ringE_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringE_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringE_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
 
   //Ring F
   G4double P5ringF_rin = 11.750/2*inch; 
@@ -3535,17 +3715,19 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5initPlacement_z+2*P5ringA_L+2*P5ringB_L+2*P5ringC_L+2*P5ringD_L+2*P5ringE_L+P5ringF_L), P5ringF_vacLog, "P5ringF_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
-  P5ringF_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringF_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
   
   //Visuals
   G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.3,0.3,0.3));
   //G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
-  G4VisAttributes *Vacuum_visatt = new G4VisAttributes(G4Colour(0.1, 0.5, 0.9 ) );
-  Vacuum_visatt->SetVisibility(false);
-  G4VisAttributes *SteelColor = new G4VisAttributes( G4Colour( 0.75, 0.75, 0.75 ) );
+  //G4VisAttributes *Vacuum_visatt = new G4VisAttributes(G4Colour(0.1, 0.5, 0.9 ) );
+  G4VisAttributes *Vacuum_visatt = new G4VisAttributes(G4Colour(0.0, 1.0, 0.0 ) );
+  //Vacuum_visatt->SetVisibility(false);  //To determine overlaps, expect green color for vacuum, sseeds
   G4VisAttributes *CopperColor = new G4VisAttributes( G4Colour( 0.7, 0.3, 0.3 ) );
 
-  G4double TargetCenter_zoffset = 6.50*inch;
+  //G4double TargetCenter_zoffset = 6.50*inch; DFlay caught this - shouldn't exist. Need to evaluate exit beamline geometry against results in visuals. sseeds 10.8.20
+  G4double TargetCenter_zoffset = 0.0*inch;
+
 
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
   G4double z_spool_piece = 58.44*inch - TargetCenter_zoffset;
@@ -3566,7 +3748,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   // Welded bellows and extended beamline out to dump from commonexitbeamline placed in location as described there.
   // Will need to check position relative to target and mating with modified beamline geometry described from P1 - P4 at P4 end. 
-  
+  /*  //Commented as it pertains to GEp beamline, not GEn/SIDIS - sseeds
   G4Tubs *WB_Flange = new G4Tubs( "WB_Flange", Rin, Rout, Thick/2.0, 0.0, twopi );
   G4LogicalVolume *WB_Flange_log = new G4LogicalVolume( WB_Flange, GetMaterial("Stainless_Steel"), "WB_Flange_log" );
 
@@ -3583,7 +3765,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4Tubs *WB_Bellows = new G4Tubs( "WB_Bellows", Rin, Rout, Thick/2.0, 0.0, twopi );
   G4LogicalVolume *WB_Bellows_log = new G4LogicalVolume(WB_Bellows, GetMaterial("Stainless_Steel"), "WB_Bellows_log" );
 
-  WB_Bellows_log->SetVisAttributes( SteelColor );
+  WB_Bellows_log->SetVisAttributes( Beryllium );
 
   Z = z_welded_bellows + 1.12*inch + Thick/2.0;
 
@@ -3596,11 +3778,13 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   G4LogicalVolume *WB_Vacuum_log = new G4LogicalVolume(WB_Vacuum, GetMaterial("Vacuum"), "WB_Vacuum_log" );
 
-  WB_Vacuum_log->SetVisAttributes( Vacuum_visatt );
+  //WB_Vacuum_log->SetVisAttributes( Vacuum_visatt );
 
   Z = z_welded_bellows + dz_welded_bellows/2.0;
 
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Vacuum_log, "WB_Vacuum_phys", worldlog, false, 0 , ChkOverlaps );
+
+  */
 
   // Exit beam line piping: use this instead of the commented out section below.  Added by D Flay (Sept 2020)
   MakeBeamExit(worldlog);  

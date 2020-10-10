@@ -388,7 +388,7 @@ bool G4SBSEventGen::GenerateEvent(){
   }
   
   if(fBeamSpotSize){
-    G4double r2_spot = CLHEP::RandGauss::shoot(0.0, fBeamSpotSize);
+    G4double r2_spot = fabs(CLHEP::RandGauss::shoot(0.0, fBeamSpotSize));
     G4double phi_spot = CLHEP::RandFlat::shoot(-pi, pi);
     beamx+= sqrt(r2_spot)*cos(phi_spot);
     beamy+= sqrt(r2_spot)*sin(phi_spot);

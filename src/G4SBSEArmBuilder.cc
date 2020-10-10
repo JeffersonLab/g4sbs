@@ -353,7 +353,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     MakeBBSieveSlit( bbmotherLog, BBSievePos );
  }
  else if( fBuildBBSieve == 2 ){  
-    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
+   G4ThreeVector BBSievePos(0,200*cm,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
     MakeNewBBSieveSlit( bbmotherLog, BBSievePos );
  }
  else {
@@ -3800,7 +3800,7 @@ void G4SBSEArmBuilder::MakeNewBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVec
   //Plate dims - Assuming dimensions of box from extremes of holes and previous depth.
   G4double inch = 2.54*cm;
 
-  G4double bbsievew = 15.75*inch; //Added an inch from the old sieve design based on visual appearance of Holly's model. Will need to be updated with real figures.
+  G4double bbsievew = 14.75*inch; //Added an inch from the old sieve design based on visual appearance of Holly's model. Will need to be updated with real figures.
   G4double bbsieveh = 27.50*inch;
   G4double bbsieved = 1.50*inch;
   
@@ -3851,7 +3851,9 @@ void G4SBSEArmBuilder::MakeNewBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVec
 	holerot->rotate( -rotationangle, rotationaxis );
       }
       
-      G4double platecenter_z = 68.8976*inch + bbsieved/2.0; //Not sure if this BB distance is relative to front face of plate or center plane (showing) -- will check.
+      //G4double platecenter_z = 68.8976*inch + bbsieved/2.0; //Assuming old placement
+      G4double platecenter_z = 54.0157*inch + bbsieved/2.0; //Accounting for BB shift to 1.75m
+
       
       G4ThreeVector origin(0,0,-platecenter_z );
       G4double holedist = platecenter_z * sqrt(1.0 + pow(tan(xangle),2)+pow(tan(yangle),2) ); 

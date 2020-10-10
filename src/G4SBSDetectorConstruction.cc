@@ -257,6 +257,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element* elNi  = man->FindOrBuildElement("Ni");
   G4Element *elP  = man->FindOrBuildElement("P");
   G4Element *elS  = man->FindOrBuildElement("S");
+  //G4Element *elW = man->FindOrBuildElement("W");
 
 
   G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
@@ -2265,6 +2266,25 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["NE110A"] = NE110A;
   
   //Anything else?
+
+  //Target collimators for helium-3 target: Tungsten powder epoxy mixture. 
+  //For Epoxy let's use Epotek-301-1 properties from the particle data group:
+  G4double epoxy_den = 1.190*g/cm3;
+  G4double tungsten_den = 19.3*g/cm3;
+  G4double collimator_den = 10.0*g/cm3;
+
+  // f*rho_epoxy + (1-f)*rho_W = rho_coll
+  // f*(rho_epoxy - rho_W) = rho_coll - rho_W
+  G4double massfrac_epoxy = (1.0 - collimator_den/tungsten_den)/(1.0 - epoxy_den/tungsten_den);
+  
+  G4Material *TargetCollimator_Material = new G4Material("TargetCollimator_Material", collimator_den, 5 );
+  TargetCollimator_Material->AddElement( elH, fractionmass = 0.069894*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elC, fractionmass = 0.689640*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elN, fractionmass = 0.008936*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elO, fractionmass = 0.231531*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elW, fractionmass = 1.0-massfrac_epoxy );
+
+  fMaterialsMap["TargetCollimator_Material"] = TargetCollimator_Material;
   
 }
 

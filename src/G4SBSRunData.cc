@@ -23,6 +23,7 @@ G4SBSRunData::G4SBSRunData(){
     fGenName[0]  = '\0';
     fGitInfo[0]  = '\0';
     fHostName[0] = '\0';
+    fMagData.clear();
 }
 
 G4SBSRunData::~G4SBSRunData(){

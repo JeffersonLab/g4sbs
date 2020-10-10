@@ -538,9 +538,10 @@ G4SBSMessenger::G4SBSMessenger(){
   buildSBSsieveCmd->SetGuidance("Use SBS sieve (true or false, false by default)");
   buildSBSsieveCmd->SetParameterName("buildSBSsieve",false);
 
-  buildBBsieveCmd = new G4UIcmdWithABool("/g4sbs/buildBBsieve",this);
-  buildBBsieveCmd->SetGuidance("Use BB sieve (true or false, false by default)");
-  buildBBsieveCmd->SetParameterName("buildBBsieve",false);
+  //SSeeds - converted to integer input for multiple sieve plate option 10.4.20
+  buildBBsieveCmd = new G4UIcmdWithAnInteger("/g4sbs/buildBBsieve",this);
+  buildBBsieveCmd->SetGuidance("BB Ecal shielding layout: option 0 (none), 1 (straight holes and slots), 2 (Holes at dispersive angle in x and y)");
+  buildBBsieveCmd->SetParameterName("buildBBsieve", false);
   
   TreeFlagCmd = new G4UIcmdWithAnInteger("/g4sbs/treeflag",this);
   TreeFlagCmd->SetGuidance("G4SBS ROOT tree filling: 0=keep all, 1=keep only evts w/hits in sensitive volumes");
@@ -1768,12 +1769,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4bool b = buildSBSsieveCmd->GetNewBoolValue(newValue);
     fdetcon->fHArmBuilder->SetSBSSieve(b);
   }
-
+  //SSeeds - Multiple sieve plate option 10.4.20
   if( cmd == buildBBsieveCmd ){
-    G4bool b = buildBBsieveCmd->GetNewBoolValue(newValue);
-    fdetcon->fEArmBuilder->SetBBSieve(b);
+    G4int bbsieveconfval = buildBBsieveCmd->GetNewIntValue(newValue);
+    fdetcon->fEArmBuilder->SetBBSieve(bbsieveconfval);
   }
-
+  
   if( cmd == TreeFlagCmd ){
     G4int flag = TreeFlagCmd->GetNewIntValue(newValue);
     fevact->SetTreeFlag( flag );

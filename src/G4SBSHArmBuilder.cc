@@ -543,6 +543,8 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   G4LogicalVolume *bigfieldLog=new G4LogicalVolume(biggap, GetMaterial("Air"),
 						   "bigfieldLog", 0, 0, 0);
 
+  //AJRP 9/29/2020: moved SBS sieve plate definition to its own method:
+
 
 
   // Dipole gap shielding for GEnRP
@@ -3927,6 +3929,145 @@ void G4SBSHArmBuilder::MakeSBSSieveSlit(G4LogicalVolume *motherlog)
 {
   printf("Building SBS sieve slit...\n");
   
+  ////SIEVE PLATE OPTION - SSEEDS. LAST UPDATE - 9.5.20
+
+  ////Dims per C. Soova JLab Drawing "HALL A - TEMPLATE - A00000 MAGNET - 48D48 DIPOLE SBS SIEVE PLATE ASSY SBS SIEVE PLATE"
+  ////Strategy is to make a union solid of a thick and a thin plate to make base plate without holes. With this base plate, punch holes by creating a series of 77 subtraction solids where each has the previous subtraction solid as it's input. 
+  ////Untested code complete 9.1.20 - waiting to test with visualization
+  ////Determined placement by centering on bigbite arm (30.0 deg). Needs confirmation. 9.4.20
+  ////9.5.20 - Debugging - y-direction holes appear to be rotated with incorrect reversal of rotation. Attempts to correct with sign flip over array of sub_yAng does not appear to change the output in visualization.
+  ////9.5.20 - Debugging complete. Reversed order of x angles as fed by row in subtraction solids and rotated plate to -30.0 deg
+
+  //Plate
+  //Plate dims - Will union thick and thin plates to create final solid
+  G4double inch = 2.54*cm;
+  G4double ThinPlate_z = 1.0*inch;  //per print 0.995 - 0.985 inch 
+  G4double ThinPlate_y = 30.0*inch; 
+  G4double ThinPlate_x = 10.375*inch; 
+  G4double ThickPlate_z = 2.0*inch; 
+  G4double ThickPlate_y = 29.0*inch; 
+  G4double ThickPlate_x = 9.375*inch;   
+  
+  //Plate positioning and orientation dims
+  //G4double offset_z = 50.825*inch; //distance to center of thick plate face from center of target: 51.825", thickness of plate: 2.0"; offset_z = 51.825 - 2.0/2
+  //G4double PlateAngDisp_theta = 30.0*deg;
+  // G4double PlateAngDisp_theta = -f48D48ang;
+  //G4double PlateAngDisp_phi = 180.0*deg;
+  // G4RotationMatrix *SievePlateRot = new G4RotationMatrix; //rotates plate across each of its own axes
+  // SievePlateRot->rotateZ(0*deg);
+  // SievePlateRot->rotateX(0*deg);
+  // SievePlateRot->rotateY(f48D48ang);
+
+  // //Hole dims - x by y: 7 holes by 11 holes. Center hole: row 6, column 4. 
+  // G4double holeSpace_y = 2.716*inch;
+  // G4double holeSpace_x = 1.176*inch;
+  //G4double offset_z = r48d48-30*cm-f48D48depth/2;
+  G4double offset_z = f48D48dist - 1.6*m + 51.825*inch; //distance to BACK of plate.
+  //G4double Ang_y = 3.0*deg; //Displacement angle in y direction - 3.0 per print
+  //G4double Ang_x = 1.3*deg; //Displacement angle in x direction - 1.3 per print
+  // G4double Ang_y = atan(holeSpace_y/offset_z);
+  // G4double Ang_x = atan(holeSpace_x/offset_z);
+
+  G4double HoleCenter_r = 0.125*inch;
+  G4double Hole_r = 0.25*inch;
+  G4double Hole_z = 3.0*inch; //Large enough to leave no solid volume at extreme displacements from center
+  
+  //Plate solids
+  G4Box *ThinPlate = new G4Box("ThinPlate", ThinPlate_x/2.0, ThinPlate_y/2.0, ThinPlate_z/2.0);  
+  G4Box *ThickPlate = new G4Box("ThickPlate", ThickPlate_x/2.0, ThickPlate_y/2.0, ThickPlate_z/2.0);
+
+  //Union of plates
+  G4VSolid *FullPlate = new G4UnionSolid("FullPlate", ThinPlate, ThickPlate);
+
+  //Hole solids
+  G4Tubs *Hole = new G4Tubs("Hole", 0, Hole_r, Hole_z, 0.0*deg, 360.0*deg);
+  G4Tubs *HoleCenter = new G4Tubs("HoleCenter", 0, HoleCenter_r, Hole_z, 0.0*deg, 360.0*deg);
+
+  //angular spacing of holes at the nominal distance of 51.825 inches
+  G4double angspace_y = 3.0*deg;
+  G4double angspace_x = 1.3*deg; 
+
+  //G4SubtractionSolid *NextCut;
+  G4SubtractionSolid *SievePlateCut;
+  
+  G4bool first = true;
+
+  //Cut holes in the plate:
+
+  cout << "cutting holes" << endl;
+  
+  
+  for(G4int iy=-5; iy<=5; iy++ ){
+    for(G4int ix=-3; ix<=3; ix++ ){
+      G4double xangle = ix*angspace_x;
+      G4double yangle = iy*angspace_y;
+
+      //G4SubtractionSolid 
+      
+	//if( ix != 0 || iy != 0 ){ //compute rotation matrix for all holes but center hole:
+      G4ThreeVector holeaxis( tan(xangle), tan(yangle), 1.0 );
+      holeaxis = holeaxis.unit();
+      
+      G4ThreeVector zaxis(0.,0.,1.0);
+      
+      G4ThreeVector rotationaxis = (zaxis.cross(holeaxis)).unit();
+      G4double rotationangle = acos( zaxis.dot(holeaxis) );
+
+      G4RotationMatrix *holerot = new G4RotationMatrix;
+      if( !(ix == 0 && iy == 0 ) ) {
+	holerot->rotate( -rotationangle, rotationaxis );
+      }
+      
+      G4double platecenter_z = 51.825*inch - ThickPlate_z/2.0;
+      
+      G4ThreeVector origin(0,0,-platecenter_z );
+      G4double holedist = platecenter_z * sqrt(1.0 + pow(tan(xangle),2)+pow(tan(yangle),2) ); 
+      
+      G4ThreeVector holecenterpos = origin + holedist * holeaxis;
+
+      cout << "(row,col,holeposx,holeposy,holeposz,rotationangle)=("
+	   << iy << ", " << ix << ", " << holecenterpos.x()/inch << ", "
+	   << holecenterpos.y()/inch << ", "
+	   << holecenterpos.z()/inch << ", "
+	   << rotationangle/deg << ")" << endl;
+
+      cout << "rotation matrix = " << endl;
+      holerot->print(cout);
+      
+      G4SubtractionSolid *NextCut;
+      if( first ){
+	first = false;
+	if( !(ix==0&&iy==0) ){
+	  NextCut = new G4SubtractionSolid( "NextCut", FullPlate, Hole, holerot, holecenterpos );
+	} else { //it should be impossible to end up here:
+	  NextCut = new G4SubtractionSolid( "NextCut", FullPlate, HoleCenter, holerot, holecenterpos );
+	}
+      } else {
+	if( !(ix==0&&iy==0) ){
+	  NextCut = new G4SubtractionSolid( "NextCut", SievePlateCut, Hole, holerot, holecenterpos );
+	} else { //it should be impossible to end up here:
+	  NextCut = new G4SubtractionSolid( "NextCut", SievePlateCut, HoleCenter, holerot, holecenterpos );
+	}
+      }
+
+      SievePlateCut = NextCut;
+      SievePlateCut->SetName("SBSSievePlateCut");
+    }
+  }
+
+  G4cout << "finished holes..." << endl;
+  
+  G4LogicalVolume *SBSSievePlate_log = new G4LogicalVolume(SievePlateCut, GetMaterial("Lead"), "SBS_SievePlate_log");
+
+  G4double SBSsieve_dist = offset_z - ThickPlate_z/2.0;
+  //Placement:
+  G4ThreeVector sievepos = SBSsieve_dist * G4ThreeVector( -sin(f48D48ang), 0, cos(f48D48ang) );
+  G4RotationMatrix *sieverot = new G4RotationMatrix;
+  sieverot->rotateY(f48D48ang);
+
+  new G4PVPlacement(sieverot, sievepos, SBSSievePlate_log, "SBSSievePlate_phys", motherlog, false, 0);
+  
+  G4cout << "Sieve plate finished" << G4endl;
   
 }
  

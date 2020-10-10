@@ -4311,7 +4311,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_A(G4LogicalVolume *logicMothe
    G4UnionSolid *col_A   = new G4UnionSolid("col_A",colSolid_A2,colSolid_A1,r21,P21); 
 
    // define materials and logical volume 
-   G4LogicalVolume *col_A_LV = new G4LogicalVolume(col_A,GetMaterial("Carbon_Steel_1008"),"logicGEnTarget_col_A"); 
+   G4LogicalVolume *col_A_LV = new G4LogicalVolume(col_A,GetMaterial("TargetCollimator_Material"),"logicGEnTarget_col_A"); 
    col_A_LV->SetVisAttributes(vis); 
 
    // placement of the union object in the Hall coordinate system 
@@ -4454,7 +4454,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_B(G4LogicalVolume *logicMothe
    G4SubtractionSolid *colSolid_B = new G4SubtractionSolid("colSolid_B",trapB,bCut,0,P_bCut);
 
    // define materials and logical volume 
-   G4LogicalVolume *col_B_LV = new G4LogicalVolume(colSolid_B,GetMaterial("Carbon_Steel_1008"),"col_B_LV"); 
+   G4LogicalVolume *col_B_LV = new G4LogicalVolume(colSolid_B,GetMaterial("TargetCollimator_Material"),"col_B_LV"); 
    col_B_LV->SetVisAttributes(vis); 
 
    // placement in the Hall coordinate system 
@@ -4586,7 +4586,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_C(G4LogicalVolume *logicMothe
    G4SubtractionSolid *colSolid_C = new G4SubtractionSolid("colSolid_C",trapC,cCut,0,P_cCut);
 
    // define materials and logical volume 
-   G4LogicalVolume *col_C_LV = new G4LogicalVolume(colSolid_C,GetMaterial("Carbon_Steel_1008"),"logicGEnTarget_col_C"); 
+   G4LogicalVolume *col_C_LV = new G4LogicalVolume(colSolid_C,GetMaterial("TargetCollimator_Material"),"logicGEnTarget_col_C"); 
    col_C_LV->SetVisAttributes(vis); 
 
    // placement in the Hall coordinate system 

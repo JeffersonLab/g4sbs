@@ -3731,8 +3731,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   //Vacuum_visatt->SetVisibility(false);  //To determine overlaps, expect green color for vacuum, sseeds
   G4VisAttributes *CopperColor = new G4VisAttributes( G4Colour( 0.7, 0.3, 0.3 ) );
 
-   // DFlay caught this - shouldn't exist. Need to evaluate exit beamline geometry against results in visuals. sseeds 10.8.20
-   // holding onto it for now...
+  // DFlay caught this - shouldn't exist. Need to evaluate exit beamline geometry against results in visuals. sseeds 10.8.20
+  // holding onto it for now...
   G4double TargetCenter_zoffset = 6.50*inch;   // D. Flay: This is only relevant for GEp... 
   // G4double TargetCenter_zoffset = 0.0*inch;
 
@@ -3791,16 +3791,10 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Vacuum_log, "WB_Vacuum_phys", worldlog, false, 0 , ChkOverlaps );
 
-<<<<<<< HEAD
-  // Exit beam line piping: use this instead of the commented out section below
-  // Added by D Flay (Sept 2020)
-  MakeBeamExit(worldlog,TargetCenter_zoffset);  
-=======
   */
 
   // Exit beam line piping: use this instead of the commented out section below.  Added by D Flay (Sept 2020)
-  MakeBeamExit(worldlog);  
->>>>>>> uconn_dev
+  MakeBeamExit(worldlog,TargetCenter_zoffset);  
 
   //************************* START OF PIPING TO DUMP *************************// 
 

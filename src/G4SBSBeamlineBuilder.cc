@@ -67,8 +67,6 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     fDetCon->fBeamlineConf = 2;
     Make3HeBeamline(worldlog);
     MakeGEnClamp(worldlog);
-    // if(bdEnable) MakeBeamDiffuser(worldlog);
-    // MakeBeamExit(worldlog);    
     if(fDetCon->fLeadOption == 1){
       MakeGEnLead(worldlog);
     }
@@ -177,7 +175,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   
   G4double inch = 2.54*cm;
   
-  G4double TargetCenter_zoffset = 6.50*inch;
+  G4double TargetCenter_zoffset = 6.50*inch;  // D Flay: This might have to change for a given experiment...  
   
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
   G4double z_spool_piece = 58.44*inch - TargetCenter_zoffset;
@@ -329,7 +327,12 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   Z = z_welded_bellows + dz_welded_bellows/2.0;
 
   new G4PVPlacement( 0, G4ThreeVector(X,Y,Z), WB_Vacuum_log, "WB_Vacuum_phys", worldlog, false, 0 , ChkOverlaps );
-  
+
+  // D Flay test 
+  // G4double tDzz  = 0.5*41.0*2.54*cm;
+  // std::cout << "=========> END OF WELDED BELLOWS Z = " << (Z+dz_welded_bellows/2.)/inch << std::endl;
+  // std::cout << "=========> START OF FAKE EXIT BEAMLINE Z = " << (207.144*inch + tDzz - TargetCenter_zoffset - tDzz)/inch << std::endl;;
+ 
   // // Here a bellow and we assign wall of 0.03 cm
   // tRmin = (0.5*27.62)*cm;
   // tRmax = (0.5*27.62 + 0.03)*cm;
@@ -348,66 +351,66 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL8_log, "Bellow_Iron", worldlog, false, 0 );
 
   //return;
-  
-  // EXTEND VACUUM LINE by using Maduka geometry
-  // ============================================
-  G4double tRmin, tRmax, tDzz, pDz, pRmax1, pRmax2, tSPhi, tDphi, pRmin1, pRmin2;
-  tSPhi = 0.0;
-  tDphi = twopi;
-  
-  tRmin = 0.5*12.0*2.54*cm; 
-  tRmax = 13.0*2.54*0.5*cm;
-  tDzz  = 0.5*41.0*2.54*cm;
-  G4Tubs *TBL9_tube = new G4Tubs("TBL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Fill with vacuum
-  tRmin = 0.0*cm;
-  tRmax = 0.5*12.0*2.54*cm;
-  G4Tubs *TVL9_tube = new G4Tubs("TVL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Convert into logical volumes
-  G4LogicalVolume *TBL9_log = new G4LogicalVolume( TBL9_tube, GetMaterial("Aluminum"), "TBL9_log" );
-  G4LogicalVolume *TVL9_log = new G4LogicalVolume( TVL9_tube, GetMaterial("Vacuum"), "TVL9_log" );
-
-  TBL9_log->SetVisAttributes( AlColor );
-  TVL9_log->SetVisAttributes( Vacuum_visatt );
-  
-  // Then place the vacuum inside the Al Tube
-  //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54*0.5)*cm;
-  Z = 207.144*inch + tDzz - TargetCenter_zoffset;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TVL9_log, "Extended_Vac1", worldlog, false, 0 , ChkOverlaps );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL9_log, "Extended_Al1", worldlog, false, 0 , ChkOverlaps );
-
-  tRmin = 0.5*24.0*2.54*cm;
-  tRmax = 25.0*2.54*0.5*cm;
-  tDzz  = 0.5*217.0*2.54*cm;
-  G4Tubs *TML9_tube = new G4Tubs( "TML9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Fill with vacuum
-  tRmin = 0.0*cm;
-  tRmax = 0.5*24.0*2.54*cm;
-  G4Tubs *TMV9_tube = new G4Tubs("TMV9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
-  // Convert into logical volumes
-  G4LogicalVolume *TML9_log = new G4LogicalVolume( TML9_tube, GetMaterial("Aluminum"), "TML9_log" );
-  G4LogicalVolume *TMV9_log = new G4LogicalVolume( TMV9_tube, GetMaterial("Vacuum"), "TMV9_log" );
-
-  TML9_log->SetVisAttributes( AlColor );
-  TMV9_log->SetVisAttributes( Vacuum_visatt );
-  // Then place vacuum inside of Al tube
-  //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54 + 0.5*217.0*2.54)*cm;
-  Z = 207.144*inch + 41.0*inch + tDzz - TargetCenter_zoffset;
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TMV9_log, "Extended_Vac2", worldlog, false, 0 , ChkOverlaps );
-  new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 , ChkOverlaps );
-   
-  // G4bool bdEnable = fDetCon->GetBeamDiffuserEnable();  // is the beam diffuser + beam dump enabled? 
-
-  // For CPU speed, extend vacuum all the way to the edge of the "world" volume, so that we don't track beam electrons in air beyond interesting region.
-  G4double Zstop  = 30.0*m;
-  // if(bdEnable) Zstop -= 5.0*m; // allow space for the beam diffuser + beam dump 
  
-  G4double Zstart = Z + tDzz;
+  // Commented out by D Flay Sept 2020 (updated geometry in MakeBeamExit) 
+ 
+  // // EXTEND VACUUM LINE by using Maduka geometry
+  // // ============================================
+  // G4double tRmin, tRmax, tDzz, pDz, pRmax1, pRmax2, tSPhi, tDphi, pRmin1, pRmin2;
+  // tSPhi = 0.0;
+  // tDphi = twopi;
+  // 
+  // tRmin = 0.5*12.0*2.54*cm; 
+  // tRmax = 13.0*2.54*0.5*cm;
+  // tDzz  = 0.5*41.0*2.54*cm;
+  // G4Tubs *TBL9_tube = new G4Tubs("TBL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+  // // Fill with vacuum
+  // tRmin = 0.0*cm;
+  // tRmax = 0.5*12.0*2.54*cm;
+  // G4Tubs *TVL9_tube = new G4Tubs("TVL9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+  // // Convert into logical volumes
+  // G4LogicalVolume *TBL9_log = new G4LogicalVolume( TBL9_tube, GetMaterial("Aluminum"), "TBL9_log" );
+  // G4LogicalVolume *TVL9_log = new G4LogicalVolume( TVL9_tube, GetMaterial("Vacuum"), "TVL9_log" );
 
-  G4double Zwidth = (Zstop-Zstart);
-  G4Tubs *FakeVacuumExtension = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
-  G4LogicalVolume *FakeVacuumExtension_log = new G4LogicalVolume( FakeVacuumExtension, GetMaterial("Vacuum"), "FakeVacuumExtension_log" );
-  FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt );
+  // TBL9_log->SetVisAttributes( AlColor );
+  // TVL9_log->SetVisAttributes( Vacuum_visatt );
+  // 
+  // // Then place the vacuum inside the Al Tube
+  // //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54*0.5)*cm;
+  // Z = 207.144*inch + tDzz - TargetCenter_zoffset;
+  // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TVL9_log, "Extended_Vac1", worldlog, false, 0 , ChkOverlaps );
+  // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TBL9_log, "Extended_Al1", worldlog, false, 0 , ChkOverlaps );
+
+  // tRmin = 0.5*24.0*2.54*cm;
+  // tRmax = 25.0*2.54*0.5*cm;
+  // tDzz  = 0.5*217.0*2.54*cm;
+  // G4Tubs *TML9_tube = new G4Tubs( "TML9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+  // // Fill with vacuum
+  // tRmin = 0.0*cm;
+  // tRmax = 0.5*24.0*2.54*cm;
+  // G4Tubs *TMV9_tube = new G4Tubs("TMV9_tube", tRmin, tRmax, tDzz, tSPhi, tDphi);
+  // // Convert into logical volumes
+  // G4LogicalVolume *TML9_log = new G4LogicalVolume( TML9_tube, GetMaterial("Aluminum"), "TML9_log" );
+  // G4LogicalVolume *TMV9_log = new G4LogicalVolume( TMV9_tube, GetMaterial("Vacuum"), "TMV9_log" );
+
+  // TML9_log->SetVisAttributes( AlColor );
+  // TMV9_log->SetVisAttributes( Vacuum_visatt );
+  // // Then place vacuum inside of Al tube
+  // //Z = (159.51 + 352.636 - 2.84*0.5 + 4.237*2.54 + 41.0*2.54 + 0.5*217.0*2.54)*cm;
+  // Z = 207.144*inch + 41.0*inch + tDzz - TargetCenter_zoffset;
+  // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TMV9_log, "Extended_Vac2", worldlog, false, 0 , ChkOverlaps );
+  // new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), TML9_log, "Extended_Al2", worldlog, false, 0 , ChkOverlaps );
+  //  
+
+  // // For CPU speed, extend vacuum all the way to the edge of the "world" volume, so that we don't track beam electrons in air beyond interesting region.
+  // G4double Zstop  = 30.0*m;
+ 
+  // G4double Zstart = Z + tDzz;
+
+  // G4double Zwidth = (Zstop-Zstart);
+  // G4Tubs *FakeVacuumExtension = new G4Tubs( "FakeVacuumExtension", tRmin, tRmax, Zwidth/2.0, tSPhi, tDphi );
+  // G4LogicalVolume *FakeVacuumExtension_log = new G4LogicalVolume( FakeVacuumExtension, GetMaterial("Vacuum"), "FakeVacuumExtension_log" );
+  // FakeVacuumExtension_log->SetVisAttributes( Vacuum_visatt );
  //  new G4PVPlacement( 0, G4ThreeVector(0,0,0.5*(Zstop+Zstart)), FakeVacuumExtension_log, "FakeVacuumExtension_phys", worldlog,false,0 , ChkOverlaps);
 
   //-----------------------------------------------------
@@ -1167,7 +1170,7 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   new G4PVPlacement( 0, pos_temp, upstream_beampipe_vac_log, "upstream_beampipe_vac_phys", worldlog, false, 0 , ChkOverlaps );
   
   MakeCommonExitBeamline(worldlog);
-  // MakeBeamExit(worldlog); // Added by D Flay (Sept 2020) 
+  MakeBeamExit(worldlog,TargetCenter_zoffset); // Added by D Flay (Sept 2020) 
  
   /*
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
@@ -1846,7 +1849,10 @@ void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
   //}
    
   MakeCommonExitBeamline(worldlog);
-  // MakeBeamExit(worldlog); // Added by D Flay (Sept 2020)  
+
+  // Added by D Flay (Sept 2020) 
+  G4double inch = 2.54*cm; 
+  MakeBeamExit(worldlog,6.5*inch); // account for offset of 6.5" in MakeCommonExitBeamline   
   
   /*
   // EFuchey: 2017/02/14: add the possibility to change the first parameters for the beam line polycone 
@@ -3725,9 +3731,10 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   //Vacuum_visatt->SetVisibility(false);  //To determine overlaps, expect green color for vacuum, sseeds
   G4VisAttributes *CopperColor = new G4VisAttributes( G4Colour( 0.7, 0.3, 0.3 ) );
 
-  //G4double TargetCenter_zoffset = 6.50*inch; DFlay caught this - shouldn't exist. Need to evaluate exit beamline geometry against results in visuals. sseeds 10.8.20
-  G4double TargetCenter_zoffset = 0.0*inch;
-
+  // DFlay caught this - shouldn't exist. Need to evaluate exit beamline geometry against results in visuals. sseeds 10.8.20
+  // holding onto it for now...
+  G4double TargetCenter_zoffset = 6.50*inch;   // D. Flay: This is only relevant for GEp... 
+  // G4double TargetCenter_zoffset = 0.0*inch;
 
   G4double z_formed_bellows = 52.440*inch - TargetCenter_zoffset; //relative to "target center"? or "origin"?
   G4double z_spool_piece = 58.44*inch - TargetCenter_zoffset;
@@ -3787,7 +3794,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   */
 
   // Exit beam line piping: use this instead of the commented out section below.  Added by D Flay (Sept 2020)
-  MakeBeamExit(worldlog);  
+  MakeBeamExit(worldlog,TargetCenter_zoffset);  
 
   //************************* START OF PIPING TO DUMP *************************// 
 
@@ -3841,11 +3848,9 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 //  // For CPU speed, extend vacuum all the way to the edge of the "world" volume, 
 //  // so that we don't track beam electrons in air beyond interesting region.
 //  G4double Zstop = 30.0*m;
-//  // if(bdEnable) Zstop -= 5.0*m; 
 //  G4double Zstart = Z + tDzz;
 //
 //  // G4double dz_df=0;
-//  // if(bdEnable) dz_df = 15.0*cm;
 // 
 //  G4VisAttributes *Vacuum_visatt_df = new G4VisAttributes();
 //  Vacuum_visatt_df->SetColour( G4Colour::White() ); 
@@ -4947,7 +4952,8 @@ void G4SBSBeamlineBuilder::MakeToyBeamline(G4LogicalVolume *motherlog){ //This i
 }
 
 void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother,G4double dz){
-   // build the Hall A beam dump 
+   // build the Hall A beam dump
+   // dz = global offset to be applied to all downstream components  
    // Added by D. Flay (JLab) in Sept 2020 
 
    G4double inch = 2.54*cm; 
@@ -4957,9 +4963,9 @@ void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother,G4double dz
    // upstream ISO wall weldment to upstream face of diffuser:              24.56 inches
    // upstream face of beam diffuser to upstream face of downstream flange: 17.3943 inches
    G4double z_us  = dz + 1052.4797*inch; 
-   G4double z_iso = dz + z_us + 207.1108*inch; 
-   G4double z_bd  = dz + z_iso + 24.56*inch; 
-   G4double z_ds  = dz + z_bd + 17.3943*inch; 
+   G4double z_iso = z_us + 207.1108*inch; 
+   G4double z_bd  = z_iso + 24.56*inch; 
+   G4double z_ds  = z_bd + 17.3943*inch; 
    // CheckZPos(logicMother,z_bd);
    MakeBeamDump_UpstreamPipe(logicMother,z_us);
    MakeBeamDump_ISOWallWeldment(logicMother,z_iso);
@@ -4969,6 +4975,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother,G4double dz
 
 void G4SBSBeamlineBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
    // a dummy function to check positioning
+   // z0 = position of DOWNSTREAM face of this part.  All components are spaced relative to this point 
 
    G4double inch = 2.54*cm; 
 
@@ -4997,6 +5004,7 @@ void G4SBSBeamlineBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
 
 void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4double z0){
    // A beam diffuser that sits right in front of the beam dump
+   // z0 = position of upstream face of this part.  All components are spaced relative to this point 
    // Added by D. Flay (JLab) in Aug 2020  
   
    G4double inch = 25.4*mm;
@@ -5083,13 +5091,14 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
    if(bdEnable){
       if( !(bdSD = (G4SBSBeamDiffuserSD *)fDetCon->fSDman->FindSensitiveDetector(bdSDname)) ){
          // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
-         G4cout << "[G4SBSBeamlineBuilder]: Adding Beam Diffuser SD functionality..." << G4endl; 
+         // G4cout << "[G4SBSBeamlineBuilder]: Adding Beam Diffuser SD functionality..." << G4endl;
+	 G4cout << "Adding Beam Diffuser sensitive detector to SDman..." << G4endl;
          bdSD = new G4SBSBeamDiffuserSD(bdSDname,bdColName);
          plateLV->SetSensitiveDetector(bdSD);  
          fDetCon->fSDman->AddNewDetector(bdSD);
          (fDetCon->SDlist).insert(bdSDname); 
          fDetCon->SDtype[bdSDname] = G4SBS::kBD; 
-         G4cout << "[G4SBSBeamlineBuilder]: --> Done." << G4endl;
+         // G4cout << "[G4SBSBeamlineBuilder]: --> Done." << G4endl;
       }
    }
  
@@ -5097,6 +5106,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
 
 void G4SBSBeamlineBuilder::MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMother,G4double z0){
    // Hall A Beam Dump: ISO Wall Weldment 
+   // z0 = position of upstream face of this part.  All components are spaced relative to this point 
    // Drawings: JL0015694, JL0015725, JL0016212 
    // Added by D. Flay (JLab) in Sept 2020  
 
@@ -5123,8 +5133,6 @@ void G4SBSBeamlineBuilder::MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMo
    G4double x_len = 77.0*inch;   // from JL0015694  
    G4double y_len = 117.0*inch;  // from JL0015694
    G4double z_len = 0.25*inch;   // from JL0015725
-
-   auto material  = G4Material::GetMaterial("G4_Al"); // might not be aluminum... 
 
    // solid box 
    G4Box *solidBox = new G4Box("isoBox",x_len/2.,y_len/2.,z_len/2.);
@@ -5177,7 +5185,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMo
 
 void G4SBSBeamlineBuilder::MakeBeamDump_UpstreamPipe(G4LogicalVolume *logicMother,G4double z0){
    // Hall A Beam Dump: Pipe upstream of ISO Weldment
-   // z0 = position of front face of the Beam Diffuser.  All components are spaced relative to this point 
+   // z0 = position of upstream face of this part.  All components are spaced relative to this point 
    // Drawing: JL0009934-C-VAC SPOOL REGION UPPER LEVEL
    // Added by D. Flay (JLab) in Sept 2020  
 
@@ -5466,7 +5474,7 @@ void G4SBSBeamlineBuilder::MakeBeamDump_UpstreamPipe(G4LogicalVolume *logicMothe
 
 void G4SBSBeamlineBuilder::MakeBeamDump_DownstreamPipe(G4LogicalVolume *logicMother,G4double z0){
    // Hall A Beam Dump: Pipe downstream of ISO Weldment
-   // z0 = position of front face of the Beam Diffuser.  All components are spaced relative to this point 
+   // z0 = position of upstream face of this part.  All components are spaced relative to this point 
    // Drawing: JL0011756_27020E0145 [modified]
    // Added by D. Flay (JLab) in Sept 2020  
 
@@ -5537,31 +5545,31 @@ void G4SBSBeamlineBuilder::MakeBeamDump_DownstreamPipe(G4LogicalVolume *logicMot
    G4double z=0,a=0,density=0;
 
    // logical volume
-   G4Material *Vacuum     = new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
-   G4LogicalVolume *vacLV = new G4LogicalVolume(solidVacuumInsert,Vacuum,"vacuum_dsPipe_LV");
+   G4LogicalVolume *vacLV = new G4LogicalVolume(solidVacuumInsert,GetMaterial("Vacuum"),"vacuum_dsPipe_LV");
    vacLV->SetVisAttributes(visV);
 
    Z = z0 + TOTAL_LENGTH/2.;
    P = G4ThreeVector(0,0,Z);
-   new G4PVPlacement(0,                        // no rotation
-                     P,                        // location in mother volume 
-                     vacLV,                    // its logical volume                         
-                     "vacuum_dsPipe_PHY",      // its name
-                     logicMother,              // its mother  volume
-                     false,                    // boolean operation? 
-                     0,                        // copy number
-                     checkOverlaps);          // checking overlaps   
+   new G4PVPlacement(0,                    // no rotation
+                     P,                    // location in mother volume 
+                     vacLV,                // its logical volume                         
+                     "vacuum_dsPipe_PHY",  // its name
+                     logicMother,          // its mother  volume
+                     false,                // boolean operation? 
+                     0,                    // copy number
+                     checkOverlaps);       // checking overlaps   
 
 }
 
-void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother){
+void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother,G4double dz){
    // Build the Hall A exit beam line  
    // Added by D. Flay (JLab) in Sept 2020
-   // Distances from drawing A00000-02-08-0300, A00000-02-08-0700 
+   // Distances from drawing A00000-02-08-0300, A00000-02-08-0700
+   // previously: dz set to 7 inches to avoid overlaps with P5ringD_vacLog_pv 
 
    G4double inch   = 2.54*cm; 
-   G4double delta  = 7.00*inch;     // fudge factor to avoid overlap with P5ringD_vacLog_pv 
-   G4double z_tmp  = 207.179*inch + delta;  
+   G4double dz2    = 1.5*cm;         // FIXME: still an overlap despite 6.5" from dz??  adjusting here for simplicity...   
+   G4double z_tmp  = 207.179*inch + dz + dz2;  
    G4double z_mpd  = 749.4997*inch; // derived, based on numbers from Ron Lassiter (see MakeBeamDump)  
    // CheckZPos(logicMother,z_bd); 
    MakeBeamExit_TargetToMidPipe(logicMother,z_tmp);  
@@ -5571,6 +5579,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother){
 
 void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMother,G4double z0){
    // SBS exit beam pipe.  This is immediately upstream of the mid pipe
+   // z0 = position of upstream face of this part
    // Added by D. Flay (JLab) in Sept 2020
    // Drawings: 
    // - Target to mid pipe: ARC10540  
@@ -5783,7 +5792,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe_vac = new G4UnionSolid("tgtToMidPipe",tgtToMidPipe_vac,solidTube10_vac,0,P); 
 
-   G4LogicalVolume *tgtMP_vac_LV = new G4LogicalVolume(tgtToMidPipe_vac,GetMaterial("Aluminum"),"tgtMP_vac_LV"); 
+   G4LogicalVolume *tgtMP_vac_LV = new G4LogicalVolume(tgtToMidPipe_vac,GetMaterial("Vacuum"),"tgtMP_vac_LV"); 
    tgtMP_vac_LV->SetVisAttributes(vis_vac);
 
    new G4PVPlacement(0,                    // no rotation
@@ -5799,6 +5808,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
 
 void G4SBSBeamlineBuilder::MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMother,G4double z0){
    // SBS exit beam pipe.  This is immediately upstream of the beam dump
+   // z0 = position of upstream face of this part
    // Drawings: 
    // - Full assembly: A00000-02-08-0300
    // - Mid pipe to dump: A00000-02-08-700, A00000-02-02-0001 [rev] 

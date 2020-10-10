@@ -107,6 +107,37 @@ G4SBSMessenger::G4SBSMessenger(){
   GENTargetHelmholtzCmd->SetParameterName("targgenhhconfig",false); // user must provide an integer value, non-argument not allowed 
   GENTargetHelmholtzCmd->SetDefaultValue(G4SBS::kGEN_146);          // probably not utilized since we require an input value 
 
+  // D. Flay (9/29/20) 
+  // for GEn 3He target rotational misalignment 
+  GENTargetRXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRX",this); 
+  GENTargetRXCmd->SetGuidance("GEn 3He target rotational misalignment relative to x axis"); 
+  GENTargetRXCmd->SetParameterName("targgenDRX",false); 
+  GENTargetRYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRY",this); 
+  GENTargetRYCmd->SetGuidance("GEn 3He target rotational misalignment relative to y axis"); 
+  GENTargetRYCmd->SetParameterName("targgenDRY",false); 
+  GENTargetRZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRZ",this); 
+  GENTargetRZCmd->SetGuidance("GEn 3He target rotational misalignment relative to z axis"); 
+  GENTargetRZCmd->SetParameterName("targgenDRZ",false);
+
+  // D. Flay (10/9/20) 
+  // for GEn 3He target collimators
+  // all: if enabled, *allows* the collimators to be built.  can toggle on/off individual ones, see below  
+  GENTargetColCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnable",this); 
+  GENTargetColCmd->SetGuidance("GEn 3He target collimator enable.  If enabled, allows collimators to be built"); 
+  GENTargetColCmd->SetParameterName("targgenColEnable",false);
+  // A (upstream) 
+  GENTargetColACmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableA",this); 
+  GENTargetColACmd->SetGuidance("GEn 3He target collimator A enable"); 
+  GENTargetColACmd->SetParameterName("targgenColEnableA",false); 
+  // B (downstream, 1st) 
+  GENTargetColBCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableB",this); 
+  GENTargetColBCmd->SetGuidance("GEn 3He target collimator B enable"); 
+  GENTargetColBCmd->SetParameterName("targgenColEnableB",false); 
+  // C (downstream, 2nd, furthest from target) 
+  GENTargetColCCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableC",this); 
+  GENTargetColCCmd->SetGuidance("GEn 3He target collimator C enable"); 
+  GENTargetColCCmd->SetParameterName("targgenColEnableC",false); 
+
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
   kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
   kineCmd->SetParameterName("kinetype", false);
@@ -215,6 +246,14 @@ G4SBSMessenger::G4SBSMessenger(){
   rasteryCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/rastery",this);
   rasteryCmd->SetGuidance("Raster y size");
   rasteryCmd->SetParameterName("size", false);
+  
+  rasterrCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/rasterR",this);
+  rasterrCmd->SetGuidance("Raster radius size");
+  rasterrCmd->SetParameterName("size", false);
+  
+  beamspotsizeCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamspotsize",this);
+  beamspotsizeCmd->SetGuidance("beam spot size");
+  beamspotsizeCmd->SetParameterName("size", false);
   
   // D. Flay 8/25/20.  Beam pointing and beam diffuser   
   // - horizontal (x)  
@@ -1131,6 +1170,40 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
      fdetcon->SetGEnTargetHelmholtzConfig(genTgtHHconf);
   }
 
+  // D. Flay (9/29/20) 
+  // GEn 3He target angular misalignment 
+  if( cmd == GENTargetRXCmd ){
+     G4double genTgtDRX = GENTargetRXCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetGEnTargetDRX(genTgtDRX); 
+  }
+  if( cmd == GENTargetRYCmd ){
+     G4double genTgtDRY = GENTargetRYCmd->GetNewDoubleValue(newValue); 
+     fdetcon->SetGEnTargetDRY(genTgtDRY); 
+  }
+  if( cmd == GENTargetRZCmd ){
+     G4double genTgtDRZ = GENTargetRZCmd->GetNewDoubleValue(newValue); 
+     fdetcon->SetGEnTargetDRZ(genTgtDRZ); 
+  }
+
+  // D. Flay (10/9/20) 
+  // GEn 3He collimators 
+  if( cmd == GENTargetColCmd ){
+     G4bool tcEnable = GENTargetColCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetCollimatorEnable(tcEnable);
+  }
+  if( cmd == GENTargetColACmd ){
+     G4bool tcaEnable = GENTargetColACmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetCollimatorAEnable(tcaEnable);
+  }
+  if( cmd == GENTargetColBCmd ){
+     G4bool tcbEnable = GENTargetColBCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetCollimatorBEnable(tcbEnable);
+  }
+  if( cmd == GENTargetColCCmd ){
+     G4bool tccEnable = GENTargetColCCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetCollimatorCEnable(tccEnable);
+  }
+
   // D. Flay (8/25/20) 
   // beam offset 
   if(cmd==beamOffsetXcmd){
@@ -1246,6 +1319,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevgen->SetRasterY(v);
   }
 
+  if( cmd == rasterrCmd ){
+    G4double v = rasterrCmd->GetNewDoubleValue(newValue);
+    fevgen->SetRasterRadius(v);
+  }
+  
+  if( cmd == beamspotsizeCmd ){
+    G4double v = beamspotsizeCmd->GetNewDoubleValue(newValue);
+    fevgen->SetBeamSpotSize(v);
+  }
+  
   if( cmd == tgtNfoilCmd ){
     G4int n = tgtNfoilCmd->GetNewIntValue(newValue);
     fdetcon->fTargetBuilder->SetNtargetFoils(n);

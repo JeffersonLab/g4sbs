@@ -100,7 +100,9 @@ private:
   G4UIcmdWithADoubleAndUnit *runtimeCmd;
   G4UIcmdWithADoubleAndUnit *rasterxCmd;
   G4UIcmdWithADoubleAndUnit *rasteryCmd;
-
+  G4UIcmdWithADoubleAndUnit *rasterrCmd;
+  G4UIcmdWithADoubleAndUnit *beamspotsizeCmd;
+  
   //commands controlling pion photoproduction event generation:
   G4UIcmdWithADouble *PionPhoto_tminCmd;
   G4UIcmdWithADouble *PionPhoto_tmaxCmd;
@@ -188,9 +190,19 @@ private:
 
   G4UIcmdWithAnInteger       *GEPFPPoptionCmd;
 
-  // D. Flay 7/28/20
-  // command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
-  G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd;  
+  // D. Flay 7/28/20: command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
+  G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd; 
+
+  // D. Flay 9/29/20: commands to set the angular misalignment of the GEn 3He target 
+  G4UIcmdWithADoubleAndUnit *GENTargetRXCmd; 
+  G4UIcmdWithADoubleAndUnit *GENTargetRYCmd; 
+  G4UIcmdWithADoubleAndUnit *GENTargetRZCmd;
+
+  // D. Flay 10/9/20: commands to enable/disable the GEn 3He target collimators 
+  G4UIcmdWithABool *GENTargetColCmd;
+  G4UIcmdWithABool *GENTargetColACmd;
+  G4UIcmdWithABool *GENTargetColBCmd;
+  G4UIcmdWithABool *GENTargetColCCmd;
  
   // D. Flay 8/25/20 
   // command to set the beam offset 
@@ -260,26 +272,4 @@ private:
 };
 
 #endif//G4SBSMessenger_HH
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

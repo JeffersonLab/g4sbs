@@ -269,7 +269,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element *elP  = man->FindOrBuildElement("P");
   G4Element *elS  = man->FindOrBuildElement("S");
 
-
   G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
   //Vacuum->SetMaterialPropertiesTable(Std_MPT);
   fMaterialsMap["Vacuum"] = Vacuum;
@@ -567,6 +566,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Aluminum_6061->AddElement(elZn,0.0025);
   Aluminum_6061->AddElement(elTi,0.0015);
   fMaterialsMap["Aluminum_6061"] = Aluminum_6061; 
+
+  // Molybdenum.  Possibly use for GEn 3He target collimators?
+  // density = 10.22 g/cm^3  
+  fMaterialsMap["Molybdenum"] = man->FindOrBuildMaterial("G4_Mo"); 
 
   // Ultem (polyetherimide plastic, similar to PEEK)
   // - details from http://www.polymerprocessing.com/polymers/PEI.html

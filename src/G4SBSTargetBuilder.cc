@@ -4264,34 +4264,60 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_A(G4LogicalVolume *logicMothe
    G4VisAttributes *vis = new G4VisAttributes(); 
    vis->SetColour( G4Colour::Red() ); 
 
-   // collimator A1: right-angle trapezoid  
-   double zl_a1     = 2.247*inch;  // length along z
-   double yl_a1     = 6.000*inch;  // length along y 
-   double xs_a1     = 1.614*inch;  // length along x (short side)
-   double xl_a1     = 3.391*inch;  // length along x (long side) 
-   G4Trap *colSolid_A1 = new G4Trap("colSolid_A1",zl_a1,yl_a1,xl_a1,xs_a1);
 
-   // collimator A2: regular trapezoid
-   double z_a2      = 6.000*inch;
-   double x1_a2     = 2.247*inch;  // upstream x size 
-   double x2_a2     = 3.189*inch;  // downstream x size 
-   double y_a2      = 2.500*inch;  // thickness  
-   G4Trd *colSolid_A2 = new G4Trd("colSolid_A2",x1_a2/2.,x2_a2/2.,y_a2/2.,y_a2/2.,z_a2/2.);  
+   // collimator A1: right-angle trapezoid 
+   G4double z       = 6.000*inch;  // z length
+   G4double y_mz    = 1.614*inch;  // y length at -z
+   G4double y_pz    = 3.391*inch + (3.391*inch-y_mz);  // y length at +z should be 5.456 inch 
+   G4double x_my_mz = 2.247*inch;  // x length at -y, -z  
+   G4double x_py_mz = 2.247*inch;  // x length at +y, -z
+   G4double x_my_pz = 3.189*inch;  // x length at -y, +z  
+   G4double x_py_pz = 3.189*inch;  // x length at +y, +z
+   G4double theta   = 0.*deg;
+   G4double phi     = 0.*deg;
+   G4double alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
+   G4double alpha2  = alpha1;
+   G4Trap *trapA1   = new G4Trap("trapA1",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
+
+   // cut the bottom off 
+   G4Box *a1Cut = new G4Box("a1Cut",2.*inch,2.*inch,7.*inch);
+   G4ThreeVector P_a1Cut = G4ThreeVector(0,-y_mz-1.2*inch,0);
+
+   G4SubtractionSolid *raSolid_A1 = new G4SubtractionSolid("raSolid_A1",trapA1,a1Cut,0,P_a1Cut);
+
+   // cut in A1 
+   G4Box *cutA1 = new G4Box("cutA1",0.250*inch/2.,0.250*inch/2.,4.000*inch/2.);
+   G4ThreeVector Pca1 = G4ThreeVector(0,-0.682*inch,-2.*inch);
+   G4SubtractionSolid *colSolid_A1 = new G4SubtractionSolid("colSolid_A1",raSolid_A1,cutA1,0,Pca1);
+
+   // collimator A2: right-angle trapezoid
+   z       = 6.000*inch;  // z length
+   y_mz    = 2.500*inch;  // y length at -z
+   y_pz    = 2.500*inch;  // y length at +z should be 5.456 inch 
+   x_my_mz = 2.247*inch;  // x length at -y, -z  
+   x_py_mz = 2.247*inch;  // x length at +y, -z
+   x_my_pz = 3.189*inch;  // x length at -y, +z  
+   x_py_pz = 3.189*inch;  // x length at +y, +z
+   theta   = 0.*deg;
+   phi     = 0.*deg;
+   alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
+   alpha2  = alpha1;
+   G4Trap *colSolid_A2 = new G4Trap("colSolid_A2",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
 
    // union of these objects.  use A2 as the reference point since it's easier
    // - all positions and rotations are relative to A2 center  
-   G4ThreeVector P21     = G4ThreeVector(0,y_a2,0); 
+   G4ThreeVector P21     = G4ThreeVector(0,y_mz-0.45*inch,0);
    G4RotationMatrix *r21 = new G4RotationMatrix();
-   r21->rotateX(90*deg); r21->rotateY(90*deg); r21->rotateZ(0);  
    G4UnionSolid *col_A   = new G4UnionSolid("col_A",colSolid_A2,colSolid_A1,r21,P21); 
 
    // define materials and logical volume 
-   G4LogicalVolume *col_A_LV = new G4LogicalVolume(col_A,GetMaterial("Aluminum"),"logicGEnTarget_col_A"); 
+   G4LogicalVolume *col_A_LV = new G4LogicalVolume(col_A,GetMaterial("Carbon_Steel_1008"),"logicGEnTarget_col_A"); 
    col_A_LV->SetVisAttributes(vis); 
 
    // placement of the union object in the Hall coordinate system 
    // position 
    double X = 3.75*inch; double Y = -1.243*inch; double Z = z0 - 7.495*inch; 
+   // double X = 3.75*inch; double Y = 1.257*inch; double Z = z0 - 7.495*inch; 
    G4ThreeVector P = G4ThreeVector(X,Y,Z); 
    // rotation 
    double RX = 0.; double RY = -34.62*deg; double RZ = 0.;
@@ -4408,24 +4434,37 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_B(G4LogicalVolume *logicMothe
    vis->SetColour( G4Colour::Red() ); 
 
    // collimator B: right-angle trapezoid  
-   double zl_a1     = 0.815*inch;  // length along z
-   double yl_a1     = 3.397*inch;  // length along y 
-   double xs_a1     = 3.620*inch;  // length along x (short side)
-   double xl_a1     = 5.456*inch;  // length along x (long side) 
-   G4Trap *colSolid_B = new G4Trap("colSolid_B",zl_a1,yl_a1,xl_a1,xs_a1);
+   G4double z       = 3.397*inch;  // z length
+   G4double y_mz    = 3.620*inch;  // y length at -z
+   G4double y_pz    = 5.456*inch + (5.456*inch-y_mz);  // y length at +z should be 5.456 inch 
+   G4double x_my_mz = 0.815*inch;  // x length at -y, -z  
+   G4double x_py_mz = 0.815*inch;  // x length at +y, -z
+   G4double x_my_pz = 1.531*inch;  // x length at -y, +z  
+   G4double x_py_pz = 1.531*inch;  // x length at +y, +z
+   G4double theta   = 0.*deg;
+   G4double phi     = 0.*deg;
+   G4double alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
+   G4double alpha2  = alpha1;
+   G4Trap *trapB    = new G4Trap("trapB",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
+
+   // cut the bottom off 
+   G4Box *bCut = new G4Box("bCut",2.*inch,2.*inch,2.*inch);
+   G4ThreeVector P_bCut = G4ThreeVector(0,-y_mz-0.5*cm,0);
+
+   G4SubtractionSolid *colSolid_B = new G4SubtractionSolid("colSolid_B",trapB,bCut,0,P_bCut);
 
    // define materials and logical volume 
-   G4LogicalVolume *col_B_LV = new G4LogicalVolume(colSolid_B,GetMaterial("Aluminum"),"col_B_LV"); 
+   G4LogicalVolume *col_B_LV = new G4LogicalVolume(colSolid_B,GetMaterial("Carbon_Steel_1008"),"col_B_LV"); 
    col_B_LV->SetVisAttributes(vis); 
 
    // placement in the Hall coordinate system 
    // position
    std::vector<G4double> POS;
-   POS.push_back( 2.520*inch); POS.push_back(-0.160*inch); POS.push_back(z0 + 14.2*inch); 
+   POS.push_back( 2.520*inch); POS.push_back(-0.55*inch); POS.push_back(z0 + 14.2*inch); 
    G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]); 
    // rotation 
    std::vector<G4double> RA; 
-   RA.push_back(0.*deg); RA.push_back(47.24*deg); RA.push_back(-90.*deg);
+   RA.push_back(0.*deg); RA.push_back(-47.24*deg); RA.push_back(0.*deg);
    G4RotationMatrix *rm = new G4RotationMatrix();
    rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
 
@@ -4527,24 +4566,37 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_C(G4LogicalVolume *logicMothe
    vis->SetColour( G4Colour::Red() ); 
 
    // collimator C: right-angle trapezoid  
-   double zl_a1     = 1.498*inch;  // length along z
-   double yl_a1     = 2.756*inch;  // length along y 
-   double xs_a1     = 3.800*inch;  // length along x (short side)
-   double xl_a1     = 4.858*inch;  // length along x (long side) 
-   G4Trap *colSolid_C = new G4Trap("colSolid_C",zl_a1,yl_a1,xl_a1,xs_a1);
+   G4double z       = 2.756*inch;  // z length
+   G4double y_mz    = 3.800*inch;  // y length at -z
+   G4double y_pz    = 4.858*inch + (4.858*inch-y_mz);  // y length at +z should be 5.456 inch 
+   G4double x_my_mz = 1.498*inch;  // x length at -y, -z  
+   G4double x_py_mz = 1.498*inch;  // x length at +y, -z
+   G4double x_my_pz = 2.252*inch;  // x length at -y, +z  
+   G4double x_py_pz = 2.252*inch;  // x length at +y, +z
+   G4double theta   = 0.*deg;
+   G4double phi     = 0.*deg;
+   G4double alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
+   G4double alpha2  = alpha1;
+   G4Trap *trapC    = new G4Trap("trapC",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
+
+   // cut the bottom off 
+   G4Box *cCut = new G4Box("cCut",2.*inch,2.*inch,2.*inch);
+   G4ThreeVector P_cCut = G4ThreeVector(0,-y_mz-2*mm,0);
+
+   G4SubtractionSolid *colSolid_C = new G4SubtractionSolid("colSolid_C",trapC,cCut,0,P_cCut);
 
    // define materials and logical volume 
-   G4LogicalVolume *col_C_LV = new G4LogicalVolume(colSolid_C,GetMaterial("Aluminum"),"logicGEnTarget_col_C"); 
+   G4LogicalVolume *col_C_LV = new G4LogicalVolume(colSolid_C,GetMaterial("Carbon_Steel_1008"),"logicGEnTarget_col_C"); 
    col_C_LV->SetVisAttributes(vis); 
 
    // placement in the Hall coordinate system 
    // position
    std::vector<G4double> POS;
-   POS.push_back(4.070*inch); POS.push_back(-0.285*inch + 0.20*inch); POS.push_back(z0 + 20.870*inch + 0.4*inch); 
+   POS.push_back(4.070*inch); POS.push_back(-0.35*inch); POS.push_back(z0 + 20.870*inch + 0.4*inch); 
    G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]); 
    // rotation 
    std::vector<G4double> RA; 
-   RA.push_back(0.*deg); RA.push_back(50.41*deg); RA.push_back(-90.*deg);
+   RA.push_back(0.*deg); RA.push_back(-50.41*deg); RA.push_back(0.*deg);
    G4RotationMatrix *rm = new G4RotationMatrix();
    rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
 

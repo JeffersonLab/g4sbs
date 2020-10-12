@@ -5574,7 +5574,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother,G4double dz
    // CheckZPos(logicMother,z_bd); 
    MakeBeamExit_TargetToMidPipe(logicMother,z_tmp);  
    MakeBeamExit_MidPipeToDump(logicMother,z_mpd); 
-   MakeBeamDump(logicMother); 
+   if(fDetCon->GetBeamDumpEnable())MakeBeamDump(logicMother); 
 }
 
 void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMother,G4double z0){

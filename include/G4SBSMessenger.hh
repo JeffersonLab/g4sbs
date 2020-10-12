@@ -209,6 +209,7 @@ private:
   G4UIcmdWithADoubleAndUnit *beamOffsetXcmd; 
   G4UIcmdWithADoubleAndUnit *beamOffsetYcmd;
   // command to enable the beam diffuser 
+  G4UIcmdWithABool *beamDumpCmd;  
   G4UIcmdWithABool *beamDiffuserCmd;  
  
   G4UIcmdWithABool *BLneutronDetsCmd;

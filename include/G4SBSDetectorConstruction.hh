@@ -77,6 +77,8 @@ public:
   G4bool GetGEnTargetCollimatorBEnable() const { return fGEnTgtCollimatorBEnable; }  
   G4bool GetGEnTargetCollimatorCEnable() const { return fGEnTgtCollimatorCEnable; }  
  
+  void SetBeamDumpEnable(bool v)   { fBeamDumpEnable = v;    } 
+  G4bool GetBeamDumpEnable() const { return fBeamDumpEnable; } 
   // D. Flay (8/25/20).  Beam Diffuser enable 
   void SetBeamDiffuserEnable(bool v)   { fBeamDiffuserEnable = v;    } 
   G4bool GetBeamDiffuserEnable() const { return fBeamDiffuserEnable; } 
@@ -204,6 +206,7 @@ private:
   G4bool fGEnTgtCollimatorAEnable,fGEnTgtCollimatorBEnable,fGEnTgtCollimatorCEnable; 
 
   // D. Flay (8/25/20).  Beam diffuser enable and beam pointing
+  G4bool fBeamDumpEnable;       // enable the beam diffuser 
   G4bool fBeamDiffuserEnable;       // enable the beam diffuser 
   G4double fBeamPointX,fBeamPointY; // beam pointing   
 

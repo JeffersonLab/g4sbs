@@ -4969,7 +4969,8 @@ void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother,G4double dz
    // CheckZPos(logicMother,z_bd);
    MakeBeamDump_UpstreamPipe(logicMother,z_us);
    MakeBeamDump_ISOWallWeldment(logicMother,z_iso);
-   MakeBeamDump_Diffuser(logicMother,z_bd);
+
+   if( fDetCon->GetBeamDiffuserEnable() ) MakeBeamDump_Diffuser(logicMother,z_bd);
    MakeBeamDump_DownstreamPipe(logicMother,z_ds);
 }
 
@@ -5072,11 +5073,11 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
    if(Hall=='A') NPlanes = 15;   
    if(Hall=='C') NPlanes = 16;  
    G4VPVParameterisation *plateParam = new G4SBSBDParameterisation(Hall,P0);
-   // placement
+   // // placement
    new G4PVParameterised("BeamDiffuser",plateLV,diffCaseLV,kZAxis,NPlanes,plateParam);
 
    // Attach sensitive detector (SD) functionality; follow the GEM example
-   G4bool bdEnable = fDetCon->GetBeamDiffuserEnable();  // is the beam diffuser enabled? 
+   //G4bool bdEnable = fDetCon->GetBeamDiffuserEnable();  // is the beam diffuser enabled? 
 
    // name of SD and the hitCollection  
    G4String bdSDname = "BD";  // FIXME: is this ok, or do we need directory structure like the GEMs? 
@@ -5088,19 +5089,19 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
    bdColName += "HitsCollection";
 
    G4SBSBeamDiffuserSD *bdSD = nullptr; 
-   if(bdEnable){
-      if( !(bdSD = (G4SBSBeamDiffuserSD *)fDetCon->fSDman->FindSensitiveDetector(bdSDname)) ){
-         // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
-         // G4cout << "[G4SBSBeamlineBuilder]: Adding Beam Diffuser SD functionality..." << G4endl;
-	 G4cout << "Adding Beam Diffuser sensitive detector to SDman..." << G4endl;
-         bdSD = new G4SBSBeamDiffuserSD(bdSDname,bdColName);
-         plateLV->SetSensitiveDetector(bdSD);  
-         fDetCon->fSDman->AddNewDetector(bdSD);
-         (fDetCon->SDlist).insert(bdSDname); 
-         fDetCon->SDtype[bdSDname] = G4SBS::kBD; 
-         // G4cout << "[G4SBSBeamlineBuilder]: --> Done." << G4endl;
-      }
+   //if(bdEnable){
+   if( !(bdSD = (G4SBSBeamDiffuserSD *)fDetCon->fSDman->FindSensitiveDetector(bdSDname)) ){
+     // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+     // G4cout << "[G4SBSBeamlineBuilder]: Adding Beam Diffuser SD functionality..." << G4endl;
+     G4cout << "Adding Beam Diffuser sensitive detector to SDman..." << G4endl;
+     bdSD = new G4SBSBeamDiffuserSD(bdSDname,bdColName);
+     plateLV->SetSensitiveDetector(bdSD);  
+     fDetCon->fSDman->AddNewDetector(bdSD);
+     (fDetCon->SDlist).insert(bdSDname); 
+     fDetCon->SDtype[bdSDname] = G4SBS::kBD; 
+     // G4cout << "[G4SBSBeamlineBuilder]: --> Done." << G4endl;
    }
+      // }
  
 }
 

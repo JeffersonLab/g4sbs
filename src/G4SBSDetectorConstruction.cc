@@ -1541,6 +1541,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       // 	     << abslength_ECAL[iE]/cm << ", " << abslength_C16[iE]/cm << ", " << spline_atilde->Eval( Ephoton_abslength[iE] )/cm << G4endl;
     }
 
+    spline_atilde->Delete();
+    spline_btilde->Delete();
+    spline_DoseRate_ECAL->Delete();
+    
     //Next: define new materials!
     TString matname;
     matname.Form( "TF1_anneal_ECAL_z%d", segment );
@@ -1583,6 +1587,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       }
     } 
   }
+
+  //spline
   
   //****  TF1 implementing annealing model  ****
   // G4Material* TF1_anneal = new G4Material("TF1_anneal", 3.86*g/cm3, 4);

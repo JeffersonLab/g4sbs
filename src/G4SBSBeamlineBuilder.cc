@@ -5783,7 +5783,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe_vac = new G4UnionSolid("tgtToMidPipe",tgtToMidPipe_vac,solidTube10_vac,0,P); 
 
-   G4LogicalVolume *tgtMP_vac_LV = new G4LogicalVolume(tgtToMidPipe_vac,GetMaterial("Aluminum"),"tgtMP_vac_LV"); 
+   G4LogicalVolume *tgtMP_vac_LV = new G4LogicalVolume(tgtToMidPipe_vac,GetMaterial("Vacuum"),"tgtMP_vac_LV"); 
    tgtMP_vac_LV->SetVisAttributes(vis_vac);
 
    new G4PVPlacement(0,                    // no rotation

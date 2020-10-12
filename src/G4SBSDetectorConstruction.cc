@@ -115,7 +115,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   // D. Flay (8/25/20) 
   // beam diffuser switch 
-  fBeamDumpEnable        = false;
+  fBeamDumpEnable        = true;
   fBeamDiffuserEnable        = false;
   // taret collimators 
   fGEnTgtCollimatorEnable    = true;  

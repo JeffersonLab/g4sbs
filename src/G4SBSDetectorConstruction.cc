@@ -115,7 +115,18 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   // D. Flay (8/25/20) 
   // beam diffuser switch 
-  fBeamDiffuserEnable = false; 
+  fBeamDiffuserEnable        = false;
+  // taret collimators 
+  fGEnTgtCollimatorEnable    = true;  
+  fGEnTgtCollimatorAEnable   = true;  
+  fGEnTgtCollimatorBEnable   = true;  
+  fGEnTgtCollimatorCEnable   = true;  
+
+  // D. Flay (9/29/20) 
+  // GEn 3He target angular misalignment
+  fGEnTgtDRX = 0.;  
+  fGEnTgtDRY = 0.;  
+  fGEnTgtDRZ = 0.;  
 
 }
 
@@ -258,7 +269,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element *elP  = man->FindOrBuildElement("P");
   G4Element *elS  = man->FindOrBuildElement("S");
   //G4Element *elW = man->FindOrBuildElement("W");
-
 
   G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
   //Vacuum->SetMaterialPropertiesTable(Std_MPT);
@@ -557,6 +567,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Aluminum_6061->AddElement(elZn,0.0025);
   Aluminum_6061->AddElement(elTi,0.0015);
   fMaterialsMap["Aluminum_6061"] = Aluminum_6061; 
+
+  // Molybdenum.  Possibly use for GEn 3He target collimators?
+  // density = 10.22 g/cm^3  
+  fMaterialsMap["Molybdenum"] = man->FindOrBuildMaterial("G4_Mo"); 
 
   // Ultem (polyetherimide plastic, similar to PEEK)
   // - details from http://www.polymerprocessing.com/polymers/PEI.html

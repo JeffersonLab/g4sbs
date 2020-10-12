@@ -49,6 +49,9 @@ G4SBSEventGen::G4SBSEventGen(){
   fRasterX  = 0.0*mm;
   fRasterY  = 0.0*mm;
 
+  fCircularRasterRadius  = 0.0*mm;
+  fBeamSpotSize = 0.0*mm;
+   
   // D. Flay (8/25/20).  beam pointing 
   fBeamOffsetX = 0.*mm;
   fBeamOffsetY = 0.*mm;
@@ -370,14 +373,39 @@ bool G4SBSEventGen::GenerateEvent(){
     ni = G4LorentzVector(Mp);
     //Wfact = 1.0;
   }
-
+  
+  G4double beamx = fBeamOffsetX;
+  G4double beamy = fBeamOffsetY;
+  
+  if(fCircularRasterRadius){
+    G4double r2_raster = CLHEP::RandFlat::shoot(0.0, fCircularRasterRadius);
+    G4double phi_raster = CLHEP::RandFlat::shoot(-pi, pi);
+    beamx+= sqrt(r2_raster)*cos(phi_raster);
+    beamy+= sqrt(r2_raster)*sin(phi_raster);
+  }else{
+    beamx+= CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0 );
+    beamy+= CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0 );
+  }
+  
+  if(fBeamSpotSize){
+    G4double r2_spot = fabs(CLHEP::RandGauss::shoot(0.0, fBeamSpotSize));
+    G4double phi_spot = CLHEP::RandFlat::shoot(-pi, pi);
+    beamx+= sqrt(r2_spot)*cos(phi_spot);
+    beamy+= sqrt(r2_spot)*sin(phi_spot);
+  }
+  
   if( fTargType != G4SBS::kOptics ){
+    /*
     fVert = G4ThreeVector(fBeamOffsetX + CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0),
 			  fBeamOffsetY + CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0),
 			  CLHEP::RandFlat::shoot(-fTargLen/2.0, fTargLen/2.0));
+    */
+    fVert = G4ThreeVector(beamx, beamy, 
+			  CLHEP::RandFlat::shoot(-fTargLen/2.0, fTargLen/2.0));
   } else { //vertex generation for multi-foil optics target:
-    G4double beamx = fBeamOffsetX + CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0 );
-    G4double beamy = fBeamOffsetY + CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0 );
+    
+    //G4double beamx = fBeamOffsetX + CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0 );
+    //G4double beamy = fBeamOffsetY + CLHEP::RandFlat::shoot(-fRasterY/2.0, fRasterY/2.0 );
 
     G4double zfrac = CLHEP::RandFlat::shoot();
 

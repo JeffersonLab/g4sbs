@@ -264,6 +264,10 @@ G4SBSMessenger::G4SBSMessenger(){
   beamOffsetYcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamoffsety",this);
   beamOffsetYcmd->SetGuidance("Set beam offset along the vertical (y) direction");
   beamOffsetYcmd->SetParameterName("beamoffsety",false);  // must provide input 
+  // beam dump 
+  beamDumpCmd = new G4UIcmdWithABool("/g4sbs/beamDumpEnable",this);
+  beamDumpCmd->SetGuidance("Enable the Beam Dump");
+  beamDumpCmd->SetParameterName("beamDumpEnable", false);
   // beam diffuser 
   beamDiffuserCmd = new G4UIcmdWithABool("/g4sbs/beamDiffuserEnable",this);
   beamDiffuserCmd->SetGuidance("Enable the Beam Diffuser device");
@@ -1214,6 +1218,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
      G4double bpy = beamOffsetYcmd->GetNewDoubleValue(newValue);
      fevgen->SetBeamOffsetY(bpy);
   }
+  // beam dump
+  if(cmd==beamDumpCmd){
+     G4bool bdEnable = beamDumpCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetBeamDumpEnable(bdEnable); 
+  } 
   // beam diffuser
   if(cmd==beamDiffuserCmd){
      G4bool bdEnable = beamDiffuserCmd->GetNewBoolValue(newValue); 

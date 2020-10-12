@@ -115,6 +115,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   // D. Flay (8/25/20) 
   // beam diffuser switch 
+  fBeamDumpEnable        = false;
   fBeamDiffuserEnable        = false;
   // taret collimators 
   fGEnTgtCollimatorEnable    = true;  
@@ -144,6 +145,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::Construct(){
   G4Material *Mtemp = GetMaterial("BlandAir");
 
   G4Box *WorldBox= new G4Box("WorldBox",50*m, 50*m, 50*m);
+  //G4Box *WorldBox= new G4Box("WorldBox",28*m, 28*m, 28*m);
   G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,Mtemp,
 						"WorldLogical", 0, 0, 0);
   G4PVPlacement *WorldPhys=new G4PVPlacement(0,G4ThreeVector(),
@@ -532,8 +534,11 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   // - details from http://www.iron-foundry.com/AISI-1008-SAE-UNS-G10080-Carbon-Steel-Foundry.html
   // - NOTE: may throw a warning because this doesn't add to 100% (adds to 99.8%) 
   G4Material *Carbon_Steel_1008 = new G4Material("Carbon_Steel_1008",7.872*g/cm3,5);
-  Carbon_Steel_1008->AddElement(elFe,0.9931);
-  Carbon_Steel_1008->AddElement(elMn,0.0030);
+  //Carbon_Steel_1008->AddElement(elFe,0.9931);
+  //Carbon_Steel_1008->AddElement(elMn,0.0030);
+  //shouldn't be a big difference, but it will stop throwing warnings...
+  Carbon_Steel_1008->AddElement(elFe,0.9941);
+  Carbon_Steel_1008->AddElement(elMn,0.0040);
   Carbon_Steel_1008->AddElement(elC ,0.0010);
   Carbon_Steel_1008->AddElement(elS ,0.0005);
   Carbon_Steel_1008->AddElement(elP ,0.0004);
@@ -557,7 +562,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   // Aluminum 6061 alloy 
   // - details from https://unitedaluminum.com/united-aluminum-alloy-6061/
   G4Material *Aluminum_6061 = new G4Material("Aluminum_6061",2.70*g/cm3,9);
-  Aluminum_6061->AddElement(elAl,0.9635);
+  //Aluminum_6061->AddElement(elAl,0.9635);
+  //shouldn't be a big difference, but it will stop throwing warnings...
+  Aluminum_6061->AddElement(elAl,0.9668);
   Aluminum_6061->AddElement(elSi,0.0060);
   Aluminum_6061->AddElement(elFe,0.0070);
   Aluminum_6061->AddElement(elCu,0.0028);
@@ -2351,7 +2358,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   //--------------
   // World:
   //--------------
-  // G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 30*m);
+  //G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 28*m);
   G4Box *WorldBox= new G4Box("WorldBox",50*m, 50*m, 50*m);
   G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,GetMaterial("Air"),
 						"WorldLogical", 0, 0, 0);

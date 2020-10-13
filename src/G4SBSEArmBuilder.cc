@@ -353,7 +353,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     MakeBBSieveSlit( bbmotherLog, BBSievePos );
  }
  else if( fBuildBBSieve == 2 ){  
-   G4ThreeVector BBSievePos(0,200*cm,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
+   G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
     MakeNewBBSieveSlit( bbmotherLog, BBSievePos );
  }
  else {

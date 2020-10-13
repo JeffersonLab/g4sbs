@@ -378,7 +378,7 @@ bool G4SBSEventGen::GenerateEvent(){
   G4double beamy = fBeamOffsetY;
   
   if(fCircularRasterRadius){
-    G4double r2_raster = CLHEP::RandFlat::shoot(0.0, fCircularRasterRadius);
+    G4double r2_raster = CLHEP::RandFlat::shoot(0.0, pow(fCircularRasterRadius,2));
     G4double phi_raster = CLHEP::RandFlat::shoot(-pi, pi);
     beamx+= sqrt(r2_raster)*cos(phi_raster);
     beamy+= sqrt(r2_raster)*sin(phi_raster);
@@ -388,7 +388,7 @@ bool G4SBSEventGen::GenerateEvent(){
   }
   
   if(fBeamSpotSize){
-    G4double r2_spot = fabs(CLHEP::RandGauss::shoot(0.0, fBeamSpotSize));
+    G4double r2_spot = fabs(CLHEP::RandGauss::shoot(0.0, pow(fBeamSpotSize,2)));
     G4double phi_spot = CLHEP::RandFlat::shoot(-pi, pi);
     beamx+= sqrt(r2_spot)*cos(phi_spot);
     beamy+= sqrt(r2_spot)*sin(phi_spot);

@@ -22,6 +22,8 @@
 #include "G4VisAttributes.hh"
 #include "G4Colour.hh"
 
+#define MAX_BD_SIZE 16 
+
 namespace diffuser {
    enum colorIndex {
       kWhite   = 0,
@@ -78,18 +80,18 @@ class G4SBSBDParameterisation: public G4VPVParameterisation {
       G4double GetRadiusMax()   const { return fRadius_max; }
 
    private:
-      G4ThreeVector fR0;      // origin of device relative to mother volume 
-      double fTotalThickness; // total thickness of assembly 
-      double fGap;            // separation of the plates
-      double fWidth;          // width of a plate 
-      double fRadius_min;     // inner radius of a plate 
-      double fRadius_max;     // outer radius of a plate (derived from width and inner radius)  
-      double *fThickness;     // plate thicknesses
-      double *fStartPhi;      // start angles 
-      double *fDeltaPhi;      // step angles
-      int    *fColor;         // plate colors  
-      int    fNPlanes;        // number of planes 
-      char   fHall;           // A or C 
+      G4ThreeVector fR0;              // origin of device relative to mother volume 
+      double fTotalThickness;         // total thickness of assembly 
+      double fGap;                    // separation of the plates
+      double fWidth;                  // width of a plate 
+      double fRadius_min;             // inner radius of a plate 
+      double fRadius_max;             // outer radius of a plate (derived from width and inner radius)  
+      double fThickness[MAX_BD_SIZE]; // plate thicknesses
+      double fStartPhi[MAX_BD_SIZE];  // start angles 
+      double fDeltaPhi[MAX_BD_SIZE];  // step angles
+      int    fColor[MAX_BD_SIZE];     // plate colors  
+      int    fNPlanes;                // number of planes 
+      char   fHall;                   // A or C 
 
 };
 

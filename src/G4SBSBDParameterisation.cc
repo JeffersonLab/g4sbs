@@ -7,10 +7,10 @@ G4SBSBDParameterisation::G4SBSBDParameterisation(char Hall,G4ThreeVector r0){
 }
 //______________________________________________________________________________
 G4SBSBDParameterisation::~G4SBSBDParameterisation(){
-   delete[] fThickness;
-   delete[] fStartPhi;
-   delete[] fDeltaPhi;
-   delete[] fColor;
+   // delete[] fThickness;
+   // delete[] fStartPhi;
+   // delete[] fDeltaPhi;
+   // delete[] fColor;
 }
 //______________________________________________________________________________
 void G4SBSBDParameterisation::InitParameters(){
@@ -49,11 +49,11 @@ void G4SBSBDParameterisation::InitParameters(){
    fRadius_max = fRadius_min + fWidth;
 
    // make arrays large enough for all the layers we may need 
-   const int NP_MAX = 16;
-   fThickness = new double[NP_MAX];
-   fStartPhi  = new double[NP_MAX];
-   fDeltaPhi  = new double[NP_MAX];
-   fColor     = new int[NP_MAX];
+   const int NP_MAX = MAX_BD_SIZE;
+   // fThickness = new double[NP_MAX];
+   // fStartPhi  = new double[NP_MAX];
+   // fDeltaPhi  = new double[NP_MAX];
+   // fColor     = new int[NP_MAX];
    for(int i=0;i<NP_MAX;i++){
       fThickness[i] = 0;
       fStartPhi[i]  = 0;

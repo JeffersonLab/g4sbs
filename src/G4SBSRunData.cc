@@ -132,6 +132,9 @@ TString G4SBSRunData::FindMacro( const char *fn ){
 	return fnametemp;
       }
     }
+
+    tokens->Delete();
+    
     return TString(fn);
   }
 }

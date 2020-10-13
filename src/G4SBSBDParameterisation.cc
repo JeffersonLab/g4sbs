@@ -143,12 +143,14 @@ void G4SBSBDParameterisation::ComputeDimensions(G4Tubs &plate,
    plate.SetStartPhiAngle(fStartPhi[copyNo]);
    plate.SetDeltaPhiAngle(fDeltaPhi[copyNo]);
    // determine color by copy number 
-   G4VisAttributes *vis = new G4VisAttributes();
-   if(fColor[copyNo]==diffuser::kRed    ) vis->SetColour( G4Colour::Red()     );
-   if(fColor[copyNo]==diffuser::kYellow ) vis->SetColour( G4Colour::Yellow()  );
-   if(fColor[copyNo]==diffuser::kGreen  ) vis->SetColour( G4Colour::Green()   );
-   if(fColor[copyNo]==diffuser::kBlue   ) vis->SetColour( G4Colour::Blue()    );
-   if(fColor[copyNo]==diffuser::kMagenta) vis->SetColour( G4Colour::Magenta() );
-   // set properties 
-   physVol->GetLogicalVolume()->SetVisAttributes(vis);
+   // G4VisAttributes *vis = new G4VisAttributes();
+   // if(fColor[copyNo]==diffuser::kRed    ) vis->SetColour( G4Colour::Red()     );
+   // if(fColor[copyNo]==diffuser::kYellow ) vis->SetColour( G4Colour::Yellow()  );
+   // if(fColor[copyNo]==diffuser::kGreen  ) vis->SetColour( G4Colour::Green()   );
+   // if(fColor[copyNo]==diffuser::kBlue   ) vis->SetColour( G4Colour::Blue()    );
+   // if(fColor[copyNo]==diffuser::kMagenta) vis->SetColour( G4Colour::Magenta() );
+   // // set properties 
+   // physVol->GetLogicalVolume()->SetVisAttributes(vis);
+
+   // delete vis;
 }

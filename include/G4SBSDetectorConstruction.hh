@@ -57,7 +57,28 @@ public:
   // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration
   void SetGEnTargetHelmholtzConfig(int n) { fGEnTgtHHConfig =n; }  
   int GetGEnTargetHelmholtzConfig() const { return fGEnTgtHHConfig; } 
-  
+ 
+  // D. Flay (9/29/20).  GEn 3He target angular misalignment
+  void SetGEnTargetDRX(double rx) { fGEnTgtDRX = rx; } 
+  void SetGEnTargetDRY(double ry) { fGEnTgtDRY = ry; } 
+  void SetGEnTargetDRZ(double rz) { fGEnTgtDRZ = rz; }
+  G4double GetGEnTargetDRX() const { return fGEnTgtDRX; } 
+  G4double GetGEnTargetDRY() const { return fGEnTgtDRY; } 
+  G4double GetGEnTargetDRZ() const { return fGEnTgtDRZ; }
+
+  // D. Flay (10/9/20).  GEn 3He target collimators 
+  void SetGEnTargetCollimatorEnable(bool v)    { fGEnTgtCollimatorEnable  = v; }  
+  void SetGEnTargetCollimatorAEnable(bool v)   { fGEnTgtCollimatorAEnable = v; }  
+  void SetGEnTargetCollimatorBEnable(bool v)   { fGEnTgtCollimatorBEnable = v; }  
+  void SetGEnTargetCollimatorCEnable(bool v)   { fGEnTgtCollimatorCEnable = v; }  
+
+  G4bool GetGEnTargetCollimatorEnable()  const { return fGEnTgtCollimatorEnable;  }  
+  G4bool GetGEnTargetCollimatorAEnable() const { return fGEnTgtCollimatorAEnable; }  
+  G4bool GetGEnTargetCollimatorBEnable() const { return fGEnTgtCollimatorBEnable; }  
+  G4bool GetGEnTargetCollimatorCEnable() const { return fGEnTgtCollimatorCEnable; }  
+ 
+  void SetBeamDumpEnable(bool v)   { fBeamDumpEnable = v;    } 
+  G4bool GetBeamDumpEnable() const { return fBeamDumpEnable; } 
   // D. Flay (8/25/20).  Beam Diffuser enable 
   void SetBeamDiffuserEnable(bool v)   { fBeamDiffuserEnable = v;    } 
   G4bool GetBeamDiffuserEnable() const { return fBeamDiffuserEnable; } 
@@ -177,8 +198,15 @@ private:
   G4bool fGEMflip;
 
   G4int fGEnTgtHHConfig; // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration
+  
+  G4double fGEnTgtDRX,fGEnTgtDRY,fGEnTgtDRZ; // D. Flay (9/29/20).  GEn 3He target angular misalignment 
+
+  // for GEn 3He target collimators 
+  G4bool fGEnTgtCollimatorEnable; 
+  G4bool fGEnTgtCollimatorAEnable,fGEnTgtCollimatorBEnable,fGEnTgtCollimatorCEnable; 
 
   // D. Flay (8/25/20).  Beam diffuser enable and beam pointing
+  G4bool fBeamDumpEnable;       // enable the beam diffuser 
   G4bool fBeamDiffuserEnable;       // enable the beam diffuser 
   G4double fBeamPointX,fBeamPointY; // beam pointing   
 

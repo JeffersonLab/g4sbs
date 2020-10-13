@@ -1,0 +1,58 @@
+## Configure G4SBS for gen (Q^2 = 6.77 GeV^2)
+/g4sbs/filename        gen677_pip_wiser.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gen
+
+## Configure the target
+/g4sbs/target          3He
+/g4sbs/targpres        10 atmosphere     ## Target pressure
+/g4sbs/targlen         60.0 cm           ## Target Length
+/g4sbs/targgenColEnable false 
+/g4sbs/targgenhhconfig 677               ## Q2 = 6.77 GeV^2
+/g4sbs/targgenDRX      0 deg             ## target angular misalignment about x axis  
+/g4sbs/targgenDRY      0 deg             ## target angular misalignment about y axis
+/g4sbs/targgenDRZ      0 deg             ## target angular misalignment about z axis 
+
+## Configure generator settings
+/g4sbs/kine            wiser           ## Generator
+/g4sbs/hadron          pi+
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         60.0 muA
+/g4sbs/rasterR         3.0 mm
+/g4sbs/beamspotsize    0.5 mm
+/g4sbs/beamoffsetx     0.0 mm
+/g4sbs/beamoffsety     0.0 mm
+/g4sbs/beamE           6.6 GeV
+/g4sbs/hthmin           25.0 deg
+/g4sbs/hthmax           45.0 deg
+/g4sbs/hphmin          -30.0 deg
+/g4sbs/hphmax           30.0 deg
+/g4sbs/ehmin           0.5 GeV
+/g4sbs/ehmax           6.5 GeV
+
+## Configure standard detector settings
+/g4sbs/hcaldist        17.0 m
+/g4sbs/hcalvoffset     0.0 m
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/48d48field      1
+/g4sbs/sbsmagfield     1.4 T
+/g4sbs/bbang           34.0 deg
+/g4sbs/bbdist          1.5 m
+/g4sbs/sbsang          22.2 deg
+/g4sbs/48D48dist       2.8 m
+
+## Optional detectors 
+/g4sbs/beamDumpEnable true
+/g4sbs/beamDiffuserEnable false
+/g4sbs/uselead 0
+
+/g4sbs/keepsdtrackinfo all true
+/g4sbs/totalabs false
+
+#/g4sbs/buildBBsieve 1
+
+## Run 100 events
+/g4sbs/run             50000

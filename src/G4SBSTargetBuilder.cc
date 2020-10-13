@@ -2294,6 +2294,12 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    // Polarized 3He target for GEn
    // - geometry based on drawings from Bert Metzger and Gordon Cates  
 
+   // check target length 
+   // CheckZPos(motherLog,-30.*cm);
+   // CheckZPos(motherLog, 30.*cm);
+   
+   fGEn_GLASS_TUBE_LENGTH = 54.33*cm; // 571.7*mm;  
+
    // glass cell
    BuildGEnTarget_GlassCell(motherLog);
 
@@ -2337,7 +2343,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
    // - drawing number: internal from G. Cates (May 2020) 
 
    G4double glassWall = 1.0*mm; // estimate 
-   G4double tubeLength = 571.7*mm; // 579.0*mm;  
+   G4double tubeLength = fGEn_GLASS_TUBE_LENGTH; // 571.7*mm; // 579.0*mm;  
 
    // pumping chamber 
    partParameters_t pumpCh; 
@@ -2834,12 +2840,12 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    G4double z_cp[2] = {0,0}; 
 
    // z0 = half length of target glass + half length of main shaft 
-   G4double z0 = 571.7*mm/2. + 0.5*msh.length;   
+   G4double z0 = fGEn_GLASS_TUBE_LENGTH/2. + 0.5*msh.length;   
    z_ms[0] = (-1.)*z0; 
    z_ms[1] = z0; 
 
    // z0 = half length of target glass + half length of first component in the union for this part 
-   z0 = 571.7*mm/2. + msh.length + 0.5*lip.length;   
+   z0 = fGEn_GLASS_TUBE_LENGTH/2. + msh.length + 0.5*lip.length;   
    z_cp[0] = (-1.)*z0; 
    z_cp[1] = z0; 
 
@@ -2950,6 +2956,13 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *moth
    // - drawing number: internal from G. Cates (Assembly MK-II Drawing_july_11_2017.pdf, received June 2020)
 
    G4double inch = 25.4*mm; 
+   // total length along z = main shaft + lip + rlip + endcap
+   // glass length = 57.17 cm
+   // total length of target (end-to-end) needs to be 60 cm 
+   // this leaves us 1.42 cm = 0.559 inches for a given end cap
+   // - fixed lengths: lip = 0.125 inches, rlip = 0.2468 inches, endcap = 0.2447 inches = 0.616 inches 
+   // - CHOOSE main shaft length = 0.5 inches
+   // - Total length = 1.116 inches = 2.835 cm  
 
    // main shaft 
    partParameters_t msh; 
@@ -2990,6 +3003,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *moth
    rm_lip->rotateX(lip.rx); rm_lip->rotateY(lip.ry); rm_lip->rotateZ(lip.rz);
 
    // rounded lip
+   // effective length along z = 0.5455*sin(26.9) = 0.2468 inches
    partParameters_t rlip;  
    rlip.name = "ew_rlip"; rlip.shape = "sphere";
    rlip.r_tor = 0.000*inch; rlip.r_min = 0.4855*inch; rlip.r_max = 0.5455*inch; rlip.length = 0.000*inch;
@@ -3009,6 +3023,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *moth
    rm_rlip->rotateX(rlip.rx); rm_rlip->rotateY(rlip.ry); rm_rlip->rotateZ(rlip.rz);  
 
    // endcap 
+   // effective length along z = 0.4915 - 0.5455*sin(26.9)= 0.2447 inches
    partParameters_t ec;
    ec.name = "ew_cap_up"; ec.shape = "sphere";
    ec.r_tor = 0.000*inch; ec.r_min = 0.4855*inch; ec.r_max = 0.4915*inch; ec.length = 0.000*inch;
@@ -3054,7 +3069,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *moth
    G4double z_ew[2] = {0,0}; 
 
    // z0 = half length of target glass + half length of first component in the union for this part 
-   G4double z0 = 571.7*mm/2. + 0.5*msh.length;   
+   G4double z0 = fGEn_GLASS_TUBE_LENGTH/2. + 0.5*msh.length;   
    z_ew[0] = (-1.)*z0; 
    z_ew[1] = z0; 
 
@@ -3132,7 +3147,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
    
    G4double inch       = 25.4*mm; 
    G4double glassWall  = 1.0*mm;   // estimate 
-   G4double tubeLength = 571.7*mm; // 579.0*mm;  
+   G4double tubeLength = fGEn_GLASS_TUBE_LENGTH; // 571.7*mm; // 579.0*mm;  
 
    // target chamber component 
    partParameters_t tc; 
@@ -3157,7 +3172,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
    mshu.r_tor = 0.0*mm; mshu.r_min = 0.0*mm; mshu.r_max = 0.451*inch; mshu.length = 0.500*inch;
    mshu.startTheta = 0.0*deg; mshu.dTheta = 0.0*deg;
    mshu.startPhi = 0.0*deg; mshu.dPhi = 360.0*deg;
-   mshu.x = 0.0*mm; mshu.y = 0.0*mm; mshu.z = -11.504*inch;
+   // mshu.x = 0.0*mm; mshu.y = 0.0*mm; mshu.z = -11.504*inch;
+   mshu.x = 0.0*mm; mshu.y = 0.0*mm; mshu.z = (-1.)*(tubeLength/2. + 0.5*mshu.length);
    mshu.rx = 0.0*deg; mshu.ry = 0.0*deg; mshu.rz = 0.0*deg;
 
    G4Tubs *mainShaft_up = new G4Tubs(mshu.name,
@@ -3177,7 +3193,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   lipu.r_tor = 0.0*mm; lipu.r_min = 0.0*mm; lipu.r_max = 0.451*inch; lipu.length = 0.125*inch;
   lipu.startTheta = 0.0*deg; lipu.dTheta = 0.0*deg;
   lipu.startPhi = 0.0*deg; lipu.dPhi = 360.0*deg;
-  lipu.x = 0.0*mm; lipu.y = 0.0*mm; lipu.z = -11.763*inch;
+  // lipu.x = 0.0*mm; lipu.y = 0.0*mm; lipu.z = -11.763*inch;
+  lipu.x = 0.0*mm; lipu.y = 0.0*mm; lipu.z = (-1.)*(tubeLength/2. + mshu.length + 0.5*lipu.length);
   lipu.rx = 0.0*deg; lipu.ry = 0.0*deg; lipu.rz = 0.0*deg; 
 
   G4Tubs *lip_up = new G4Tubs(lipu.name,
@@ -3234,7 +3251,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   segu.x_len = 0.000*inch; segu.y_len = 0.000*inch; segu.z_len = 0.000*inch;
   segu.startTheta = 0.000*deg; segu.dTheta = 90.000*deg;
   segu.startPhi = 0.000*deg; segu.dPhi = 360.000*deg;
-  segu.x = 0.000*inch; segu.y = 0.000*inch; segu.z = -11.804*inch;
+  // segu.x = 0.000*inch; segu.y = 0.000*inch; segu.z = -11.804*inch;
+  segu.x = 0.000*inch; segu.y = 0.000*inch; segu.z = (-1.)*(tubeLength/2. + mshu.length + lipu.length);
   segu.rx = 0.000*deg; segu.ry = 180.000*deg; segu.rz = 0.000*deg;
 
   G4Sphere *seg_up = new G4Sphere(segu.name,
@@ -4847,5 +4865,34 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_Table(G4LogicalVolume *mother
 
    // register with DetectorConstruction object 
    fDetCon->InsertTargetVolume( table_LV->GetName() ); 
+
+}
+
+void G4SBSTargetBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
+   // a dummy function to check positioning
+   // z0 = position of DOWNSTREAM face of this part.  All components are spaced relative to this point 
+
+   G4double inch = 2.54*cm;
+
+   std::cout << "[G4SBSBeamlineBuilder::CheckZPos]: Downstream face of part is at z = " << z0/m << " m" << std::endl;
+
+   G4double xl = 20.*inch;
+   G4double yl = 120.*inch;
+   G4double zl = 10.*mm;
+   G4Box *solidBox = new G4Box("solidBox",xl/2.,yl/2.,zl/2.);
+
+   G4LogicalVolume *boxLV = new G4LogicalVolume(solidBox,GetMaterial("Aluminum"),"boxLV");
+
+   G4double z = z0 - zl/2.;  // back face is at z0  
+   G4ThreeVector P = G4ThreeVector(0,0,z);
+
+   new G4PVPlacement(0,                // no rotation
+                     P,                // location in mother volume 
+                     boxLV,            // its logical volume                         
+                     "testBox_PHY",    // its name
+                     logicMother,      // its mother  volume
+                     false,            // no boolean operation
+                     0,                // copy number
+                     true);            // checking overlaps 
 
 }

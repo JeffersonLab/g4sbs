@@ -54,7 +54,9 @@ public:
   void BuildGEnTarget_Collimator_A(G4LogicalVolume *motherLog,G4double z0=0);  
   void BuildGEnTarget_Collimator_B(G4LogicalVolume *motherLog,G4double z0=0);  
   void BuildGEnTarget_Collimator_C(G4LogicalVolume *motherLog,G4double z0=0); 
-  void BuildGEnTarget_Collimator_Table(G4LogicalVolume *motherLog,G4double z0=0); 
+  void BuildGEnTarget_Collimator_Table(G4LogicalVolume *motherLog,G4double z0=0);
+
+  void CheckZPos(G4LogicalVolume *logicMother,G4double z0); // dummy function to check z positoning  
   
   void SetTarget(G4SBS::Targ_t t){fTargType = t;}
   void SetTargLen(G4double len){ fTargLen = len;}
@@ -111,6 +113,8 @@ private:
   G4bool fUseRad; //use radiator?
   G4double fRadThick; //Thickness in units of X0;
   G4double fRadZoffset;  //Distance upstream of target
+
+  G4double fGEn_GLASS_TUBE_LENGTH; // length of GEn 3He glass tube (target cell)  
   
   G4SBS::Targ_t fTargType;
 };

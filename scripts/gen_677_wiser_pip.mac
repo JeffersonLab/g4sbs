@@ -8,7 +8,6 @@
 /g4sbs/target          3He
 /g4sbs/targpres        10 atmosphere     ## Target pressure
 /g4sbs/targlen         60.0 cm           ## Target Length
-/g4sbs/targgenColEnable false 
 /g4sbs/targgenhhconfig 677               ## Q2 = 6.77 GeV^2
 /g4sbs/targgenDRX      0 deg             ## target angular misalignment about x axis  
 /g4sbs/targgenDRY      0 deg             ## target angular misalignment about y axis

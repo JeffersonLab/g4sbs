@@ -9,6 +9,8 @@
 
 #include "G4SBSPartParameters.hh"
 
+#include "G4SBSIonChamberSD.hh"
+
 class G4DetectorConstruction;
 
 class G4SBSTargetBuilder: public G4SBSComponent {
@@ -55,6 +57,7 @@ public:
   void BuildGEnTarget_Collimator_B(G4LogicalVolume *motherLog,G4double z0=0);  
   void BuildGEnTarget_Collimator_C(G4LogicalVolume *motherLog,G4double z0=0); 
   void BuildGEnTarget_Collimator_Table(G4LogicalVolume *motherLog,G4double z0=0);
+  void BuildGEnTarget_IonChamber(G4LogicalVolume *motherLog); 
 
   void CheckZPos(G4LogicalVolume *logicMother,G4double z0); // dummy function to check z positoning  
   

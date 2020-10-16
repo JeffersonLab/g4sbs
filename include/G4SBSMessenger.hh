@@ -210,7 +210,21 @@ private:
   G4UIcmdWithADoubleAndUnit *beamOffsetYcmd;
   // command to enable the beam diffuser 
   G4UIcmdWithABool *beamDumpCmd;  
-  G4UIcmdWithABool *beamDiffuserCmd;  
+  G4UIcmdWithABool *beamDiffuserCmd;
+
+  // D. Flay 10/15/20 
+  // beam angular alignment 
+  G4UIcmdWithADoubleAndUnit *beamAngleXcmd;
+  G4UIcmdWithADoubleAndUnit *beamAngleYcmd;
+  G4UIcmdWithADoubleAndUnit *beamAngleZcmd; 
+  // command to enable the ion chamber  
+  G4UIcmdWithABool *ionChamberEnableCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberXCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberYCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberZCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRXCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRYCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRZCmd; 
  
   G4UIcmdWithABool *BLneutronDetsCmd;
   G4UIcmdWithABool *GEMfrontendCmd;

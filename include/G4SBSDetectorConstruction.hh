@@ -76,12 +76,32 @@ public:
   G4bool GetGEnTargetCollimatorAEnable() const { return fGEnTgtCollimatorAEnable; }  
   G4bool GetGEnTargetCollimatorBEnable() const { return fGEnTgtCollimatorBEnable; }  
   G4bool GetGEnTargetCollimatorCEnable() const { return fGEnTgtCollimatorCEnable; }  
- 
+
+  // Beam dump enable 
   void SetBeamDumpEnable(bool v)   { fBeamDumpEnable = v;    } 
-  G4bool GetBeamDumpEnable() const { return fBeamDumpEnable; } 
+  G4bool GetBeamDumpEnable() const { return fBeamDumpEnable; }
+ 
   // D. Flay (8/25/20).  Beam Diffuser enable 
   void SetBeamDiffuserEnable(bool v)   { fBeamDiffuserEnable = v;    } 
   G4bool GetBeamDiffuserEnable() const { return fBeamDiffuserEnable; } 
+
+  // D. Flay (10/15/20). Ion Chamber  
+  void SetIonChamberEnable(bool v)       { fIonChamberEnable = v; } 
+  G4bool GetIonChamberEnable()     const { return fIonChamberEnable; } 
+  // positions 
+  void SetIonChamberX(double v)          { fIonChamberX = v;    } 
+  G4double GetIonChamberX()        const { return fIonChamberX; } 
+  void SetIonChamberY(double v)          { fIonChamberY = v;    } 
+  G4double GetIonChamberY()        const { return fIonChamberY; } 
+  void SetIonChamberZ(double v)          { fIonChamberZ = v;    } 
+  G4double GetIonChamberZ()        const { return fIonChamberZ; } 
+  // angles 
+  void SetIonChamberRX(double v)         { fIonChamberRX = v;    } 
+  G4double GetIonChamberRX()       const { return fIonChamberRX; } 
+  void SetIonChamberRY(double v)         { fIonChamberRY = v;    } 
+  G4double GetIonChamberRY()       const { return fIonChamberRY; } 
+  void SetIonChamberRZ(double v)         { fIonChamberRZ = v;    } 
+  G4double GetIonChamberRZ()       const { return fIonChamberRZ; } 
 
   void SetTotalAbs(bool b){ fTotalAbs= b; }
   void SetCheckOverlap(bool b){ fCheckOverlap = b; }
@@ -206,9 +226,14 @@ private:
   G4bool fGEnTgtCollimatorAEnable,fGEnTgtCollimatorBEnable,fGEnTgtCollimatorCEnable; 
 
   // D. Flay (8/25/20).  Beam diffuser enable and beam pointing
-  G4bool fBeamDumpEnable;       // enable the beam diffuser 
+  G4bool fBeamDumpEnable;           // enable the beam dump  
   G4bool fBeamDiffuserEnable;       // enable the beam diffuser 
   G4double fBeamPointX,fBeamPointY; // beam pointing   
+  
+  // D. Flay (10/15/20).  Ion Chamber enable 
+  G4bool fIonChamberEnable; 
+  G4double fIonChamberX ,fIonChamberY ,fIonChamberZ;  
+  G4double fIonChamberRX,fIonChamberRY,fIonChamberRZ;  
 
 };
 

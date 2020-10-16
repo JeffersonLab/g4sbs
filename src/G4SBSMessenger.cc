@@ -136,7 +136,54 @@ G4SBSMessenger::G4SBSMessenger(){
   // C (downstream, 2nd, furthest from target) 
   GENTargetColCCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableC",this); 
   GENTargetColCCmd->SetGuidance("GEn 3He target collimator C enable"); 
-  GENTargetColCCmd->SetParameterName("targgenColEnableC",false); 
+  GENTargetColCCmd->SetParameterName("targgenColEnableC",false);
+
+  // D. Flay (10/15/20) 
+  // beam angular misalignment 
+  // - horizontal (x)  
+  beamAngleXcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamAngleX",this);
+  beamAngleXcmd->SetGuidance("Rotate beam momentum about the x axis");
+  beamAngleXcmd->SetParameterName("beamAngleX",false);  // must provide input 
+  // - vertical (y)
+  beamAngleYcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamAngleY",this);
+  beamAngleYcmd->SetGuidance("Rotate beam momentum about the y axis");
+  beamAngleYcmd->SetParameterName("beamAngleY",false);  // must provide input 
+  // - axial (z)
+  beamAngleZcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamAngleZ",this);
+  beamAngleZcmd->SetGuidance("Rotate beam momentum about the z axis");
+  beamAngleZcmd->SetParameterName("beamAngleZ",false);  // must provide input
+
+  // D. Flay (10/15/20) 
+  // ruidmentary ion chamber 
+  ionChamberEnableCmd = new G4UIcmdWithABool("/g4sbs/ionChamberEnable",this);
+  ionChamberEnableCmd->SetGuidance("Enable an ion chamber, including sensitive detector capability");
+  ionChamberEnableCmd->SetParameterName("ionChamberEnable",false); // must provide input 
+  // coordinates
+  // -x 
+  ionChamberXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberX",this);
+  ionChamberXCmd->SetGuidance("Ion chamber x coordinate");
+  ionChamberXCmd->SetParameterName("ionChamberX",false); // must provide input 
+  // - y 
+  ionChamberYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberY",this);
+  ionChamberYCmd->SetGuidance("Ion chamber y coordinate");
+  ionChamberYCmd->SetParameterName("ionChamberY",false); // must provide input  
+  // - z 
+  ionChamberZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberZ",this);
+  ionChamberZCmd->SetGuidance("Ion chamber z coordinate");
+  ionChamberZCmd->SetParameterName("ionChamberZ",false); // must provide input  
+  // rotation 
+  // -x 
+  ionChamberRXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberRX",this);
+  ionChamberRXCmd->SetGuidance("Ion chamber angle about x");
+  ionChamberRXCmd->SetParameterName("ionChamberRX",false); // must provide input 
+  // - y 
+  ionChamberRYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberRY",this);
+  ionChamberRYCmd->SetGuidance("Ion chamber angle about y");
+  ionChamberRYCmd->SetParameterName("ionChamberRY",false); // must provide input  
+  // - z 
+  ionChamberRZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberRZ",this);
+  ionChamberRZCmd->SetGuidance("Ion chamber angle about z");
+  ionChamberRZCmd->SetParameterName("ionChamberRZ",false); // must provide input  
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
   kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
@@ -1232,6 +1279,52 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == bigfieldCmd ){
     G4int n = bigfieldCmd->GetNewIntValue(newValue);
     fdetcon->Set48D48Field(n);
+  }
+
+  // D. Flay (10/15/20) 
+  // beam angular alignment  
+  if(cmd==beamAngleXcmd){
+     G4double bax = beamAngleXcmd->GetNewDoubleValue(newValue);
+     fevgen->SetBeamAngleX(bax);
+  }
+  if(cmd==beamAngleYcmd){
+     G4double bay = beamAngleYcmd->GetNewDoubleValue(newValue);
+     fevgen->SetBeamAngleY(bay);
+  }
+  if(cmd==beamAngleZcmd){
+     G4double baz = beamAngleZcmd->GetNewDoubleValue(newValue);
+     fevgen->SetBeamAngleZ(baz);
+  }
+
+  // D. Flay (10/15/20) 
+  // ion chamber enable  
+  if( cmd == ionChamberEnableCmd ){ 
+     G4bool icEnable = ionChamberEnableCmd->GetNewBoolValue(newValue);
+     fdetcon->SetIonChamberEnable(icEnable);  
+  }
+  if( cmd == ionChamberXCmd ){ 
+     G4double icx = ionChamberXCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberX(icx);  
+  }
+  if( cmd == ionChamberYCmd ){ 
+     G4double icy = ionChamberYCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberY(icy);  
+  }
+  if( cmd == ionChamberZCmd ){ 
+     G4double icz = ionChamberZCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberZ(icz);  
+  }
+  if( cmd == ionChamberRXCmd ){ 
+     G4double icrx = ionChamberRXCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberRX(icrx);  
+  }
+  if( cmd == ionChamberRYCmd ){ 
+     G4double icry = ionChamberRYCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberRY(icry);  
+  }
+  if( cmd == ionChamberRZCmd ){ 
+     G4double icrz = ionChamberRZCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberRZ(icrz);  
   }
 
   if( cmd == bbfieldCmd ){

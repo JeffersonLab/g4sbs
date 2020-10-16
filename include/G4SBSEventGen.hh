@@ -10,6 +10,7 @@
 #include "G4SBSIO.hh"
 #include "DSS2007FF.hh"
 #include "G4SBSPythiaOutput.hh"
+#include "G4SBSUtil.hh"
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
@@ -67,8 +68,14 @@ public:
   void SetRasterRadius(double v){fCircularRasterRadius = v;}
   void SetBeamSpotSize(double v){fBeamSpotSize = v;}
 
+  // D Flay (Aug 2020) 
   void SetBeamOffsetX(double v) { fBeamOffsetX = v;} 
-  void SetBeamOffsetY(double v) { fBeamOffsetY = v;} 
+  void SetBeamOffsetY(double v) { fBeamOffsetY = v;}
+
+  // D Flay (Oct 2020) 
+  void SetBeamAngleX(double v)  { fBeamAngleX = v; }
+  void SetBeamAngleY(double v)  { fBeamAngleY = v; }
+  void SetBeamAngleZ(double v)  { fBeamAngleZ = v; }
   
   void SetThMin(double v){fThMin = v;}
   void SetThMax(double v){fThMax = v;}
@@ -196,7 +203,10 @@ private:
   // set<G4String> G4TargetMaterialNames; 
  
   // D. Flay (8/25/20).  beam pointing 
-  double fBeamOffsetX,fBeamOffsetY; 
+  double fBeamOffsetX,fBeamOffsetY;
+
+  // D. Flay (10/15/20). beam angle 
+  double fBeamAngleX,fBeamAngleY,fBeamAngleZ;  
  
   // G4ThreeVector fTargOffset;
   // G4ThreeVector fBeamOffset;
@@ -238,6 +248,8 @@ private:
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
   bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
+  
+  void CalculateBeamAngles(); // D Flay (10/15/20).  Generate random beam angle based on non-zero file input.  works for beam generator only 
 
   G4bool fRejectionSamplingFlag; //Flag to turn on rejection sampling;
   G4double fMaxWeight; //Maximum event weight within generation limits

@@ -2336,6 +2336,10 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    bool enableCol = fDetCon->GetGEnTargetCollimatorEnable();
    if(enableCol) BuildGEnTarget_Collimators(motherLog);
 
+   // ion chamber (for test purposes) 
+   bool enableIC = fDetCon->GetIonChamberEnable(); 
+   if(enableIC) BuildGEnTarget_IonChamber(motherLog); 
+
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
@@ -4868,13 +4872,72 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_Table(G4LogicalVolume *mother
 
 }
 
+void G4SBSTargetBuilder::BuildGEnTarget_IonChamber(G4LogicalVolume *motherLog){
+
+   // solid (arbitrary size)  
+   G4double vol      = 0.11E-3*m3;    // 0.11 litres 
+   G4double length   = 10.*cm;
+   G4double r_max    = sqrt( vol/(pi*length) );
+   G4double r_min    = 0;
+   G4double startPhi = 0.*deg;
+   G4double dPhi     = 360.*deg;
+   G4Tubs *solidIC = new G4Tubs("solidIC",r_min,r_max,length/2.,startPhi,dPhi);
+
+   // logical volume
+   G4LogicalVolume *ic_LV = new G4LogicalVolume(solidIC,GetMaterial("GEnTarget_ionChamber_N2"),"logicGEnTarget_ionChamber");
+
+   // placement (from macro file) 
+   G4double x = fDetCon->GetIonChamberX(); 
+   G4double y = fDetCon->GetIonChamberY(); 
+   G4double z = fDetCon->GetIonChamberZ(); 
+   G4ThreeVector P = G4ThreeVector(x,y,z);
+
+   G4double rx = fDetCon->GetIonChamberRX(); 
+   G4double ry = fDetCon->GetIonChamberRY(); 
+   G4double rz = fDetCon->GetIonChamberRZ(); 
+   G4RotationMatrix *rm = new G4RotationMatrix();
+   rm->rotateX(rx); rm->rotateY(ry); rm->rotateZ(rz);
+
+   bool checkOverlaps = true;
+
+   new G4PVPlacement(rm,                          // rotation
+                     P,                           // position      
+                     ic_LV,                       // logical volume     
+                     "physGEnTarget_ionChamber",  // name      
+                     motherLog,                   // mother logical volume      
+                     false,                       // is it a boolean solid?    
+                     0,                           // copy number    
+                     checkOverlaps);              // check for overlaps 
+
+   // name of SD and the hitCollection  
+   G4String icSDname = "IC";   
+   // We have to remove all the directory structure from the 
+   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+   G4String icSDname_nopath = icSDname;
+   icSDname_nopath.remove(0,icSDname.last('/')+1);
+   G4String icColName = icSDname_nopath;
+   icColName += "HitsCollection";
+
+   G4SBSIonChamberSD *icSD = nullptr;
+   if( !(icSD = (G4SBSIonChamberSD *)fDetCon->fSDman->FindSensitiveDetector(icSDname)) ){
+     // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+     G4cout << "Adding Ion Chamber sensitive detector to SDman..." << G4endl;
+     icSD = new G4SBSIonChamberSD(icSDname,icColName);
+     ic_LV->SetSensitiveDetector(icSD);
+     fDetCon->fSDman->AddNewDetector(icSD);
+     (fDetCon->SDlist).insert(icSDname);
+     fDetCon->SDtype[icSDname] = G4SBS::kIC;
+   }
+
+}
+
 void G4SBSTargetBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
    // a dummy function to check positioning
    // z0 = position of DOWNSTREAM face of this part.  All components are spaced relative to this point 
 
    G4double inch = 2.54*cm;
 
-   std::cout << "[G4SBSBeamlineBuilder::CheckZPos]: Downstream face of part is at z = " << z0/m << " m" << std::endl;
+   std::cout << "[G4SBSTargetBuilder::CheckZPos]: Downstream face of part is at z = " << z0/m << " m" << std::endl;
 
    G4double xl = 20.*inch;
    G4double yl = 120.*inch;

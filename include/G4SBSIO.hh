@@ -16,6 +16,7 @@
 #include "G4SBSPythiaOutput.hh"
 
 #include "G4SBSBDoutput.hh"
+#include "G4SBSICoutput.hh"
 
 class TFile;
 class TTree;
@@ -103,6 +104,7 @@ public:
   //void 
 
   void SetBDData(G4String SDname,G4SBSBDoutput data);   // for Beam Diffuser (BD)  
+  void SetICData(G4String SDname,G4SBSICoutput data);   // for Ion Chamber (IC)   
   void SetGEMData( G4String, G4SBSGEMoutput );
   void SetTrackData( G4String, G4SBSTrackerOutput );
   void SetCalData( G4String, G4SBSCALoutput );
@@ -149,6 +151,7 @@ public:
   //void BranchSDTracks(G4String s);
   void BranchSDTracks();
   void BranchBD(G4String SDname);  // for Beam Diffuser (BD) 
+  void BranchIC(G4String SDname);  // for Ion Chamber (IC)  
  
   void SetDetCon(G4SBSDetectorConstruction *dc ){ fdetcon = dc; }
 
@@ -204,6 +207,7 @@ private:
   map<G4String,G4SBSECaloutput> ecaldata;
   map<G4String,G4SBSSDTrackOutput> sdtrackdata;
   map<G4String,G4SBSBDoutput> BDdata;
+  map<G4String,G4SBSICoutput> ICdata;
 
   G4SBSSDTrackOutput allsdtrackdata;
   

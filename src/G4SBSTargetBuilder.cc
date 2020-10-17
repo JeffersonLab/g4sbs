@@ -4085,7 +4085,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
    G4double inch = 25.4*mm;  
    G4double x0   = -0.438*inch; // beam right   
    G4double y0   = -5.33*cm;    // lower than target cell  
-   G4double z0   =  1.0;        // TODO: should be 1.5*inch, but I see overlaps in stand-alone build
+   G4double z0   =  1.5*inch;   // TODO: should be 1.5*inch, but I see overlaps in stand-alone build
 
    // vertical posts along the y axis 
    // ---- upstream 

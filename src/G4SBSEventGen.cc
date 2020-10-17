@@ -296,9 +296,9 @@ bool G4SBSEventGen::GenerateEvent(){
   bool success = false;
 
   // D. Flay (10/15/20) 
-  // generate random beam angles (if set from input file)
+  // generate random beam angles (based on central values from input file)
   // NOTE: only applied to beam generator  
-  CalculateBeamAngles();  
+  // CalculateBeamAngles();  
 
   //AJRP: Wfact is now initialized in G4SBSEventGen::InitializeConstants(), invoked at start of run
   switch( fTargType ) {
@@ -1906,20 +1906,28 @@ bool G4SBSEventGen::GenerateBeam( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lore
   fNucleonP = G4ThreeVector();
   fNucleonE = proton_mass_c2;
 
-  // D. Flay (10/15/20) 
-  // apply rotation angles 
-  std::vector<G4double> R; 
-  R.push_back(fBeamAngleX); R.push_back(fBeamAngleY); R.push_back(fBeamAngleZ);
-  G4ThreeVector p0,pRot; 
-  // convert to unit vector first
-  p0 = fElectronP.unit();
-  G4SBS::Util::RotateVector(R,p0,pRot);
-  // now scale pRot so it has the right units 
-  G4double P_eMag = fElectronP.mag();  
-  pRot.setX( P_eMag*pRot.x() ); 
-  pRot.setY( P_eMag*pRot.y() ); 
-  pRot.setZ( P_eMag*pRot.z() );
-  fElectronP = pRot;  
+  // // D. Flay (10/15/20) 
+  // // apply rotation angles 
+  // std::vector<G4double> R; 
+  // R.push_back(fBeamAngleX); R.push_back(fBeamAngleY); R.push_back(fBeamAngleZ);
+  // G4ThreeVector p0,pRot; 
+  // // convert to unit vector first
+  // p0 = fElectronP.unit();
+  // G4SBS::Util::RotateVector(R,p0,pRot);
+  // // now scale pRot so it has the right units 
+  // G4double P_eMag = fElectronP.mag();  
+  // pRot.setX( P_eMag*pRot.x() ); 
+  // pRot.setY( P_eMag*pRot.y() ); 
+  // pRot.setZ( P_eMag*pRot.z() );
+
+  // // std::cout << "[G4SBSEventGen::GenerateBeam]: Vector rotation! " << std::endl;
+  // // std::cout << "angles = " << fBeamAngleX/mrad << ", " << fBeamAngleY/mrad << ", " << fBeamAngleZ/mrad << std::endl;
+  // // std::cout << "x = " << fElectronP.x() << " x' = " << pRot.x() << std::endl;
+  // // std::cout << "y = " << fElectronP.y() << " y' = " << pRot.y() << std::endl;
+  // // std::cout << "z = " << fElectronP.z() << " z' = " << pRot.z() << std::endl;
+  // // std::cout << "mag = " << fElectronP.mag() << " mag' = " << pRot.mag() << std::endl;
+
+  // fElectronP = pRot;  
 
   fSigma    = 1.0;
   fApar     = 0.0;

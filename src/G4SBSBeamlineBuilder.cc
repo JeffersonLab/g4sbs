@@ -2020,7 +2020,9 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4Sphere *P0domeA = new G4Sphere("P0domeA", P0shell_r, P0shell_r+P0shell_w, 0.0*deg, 360.0*deg, 0.0*deg, P0dome_th);
 
   G4LogicalVolume *P0domeALog = new G4LogicalVolume(P0domeA, GetMaterial("Beryllium"), "P0dome_log", 0, 0, 0);
-
+  
+  fDetCon->InsertTargetVolume(P0domeALog->GetName());
+  
   new G4PVPlacement( P0dome_rot, G4ThreeVector( 0.0, 0.0, P0initPlacement_z+P0shell_r+P0shell_w-2.0*P0disk_cut_L-P0dome_vd), P0domeALog, "P0domeALog_pv", worldlog, false, 0, ChkOverlaps );
   
   //Tube 0A
@@ -2202,6 +2204,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4Sphere *P1domeA = new G4Sphere("P1domeA", P1shell_r, P1shell_r+P1shell_w, 0.0*deg, 360.0*deg, 0.0*deg, P1dome_th);
 
   G4LogicalVolume *P1domeALog = new G4LogicalVolume(P1domeA, GetMaterial("Beryllium"), "P1dome_log", 0, 0, 0);
+  fDetCon->InsertTargetVolume(P1domeALog->GetName());
 
   new G4PVPlacement( P1dome_rot, G4ThreeVector( 0.0, 0.0, initPlacement_z+2.0*P1ringA_L+2.0*P1disk_L-(P1shell_r+P1shell_w)+P1dome_vd), P1domeALog, "P1domeALog_pv", worldlog, false, 0, ChkOverlaps );
   

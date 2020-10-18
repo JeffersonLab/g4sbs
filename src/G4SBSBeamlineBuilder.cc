@@ -66,15 +66,17 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     printf("GEn experiment: forcing beamline configuration 2 \n");
     fDetCon->fBeamlineConf = 2;
     Make3HeBeamline(worldlog);
-    MakeGEnClamp(worldlog);
+    //MakeGEnClamp(worldlog); //this might also be obsolete
     if(fDetCon->fLeadOption == 1){
-      MakeGEnLead(worldlog);
+      //commented out for now because this geometry is obsolete
+      //MakeGEnLead(worldlog);
     }
     break;
   case(G4SBS::kSIDISExp):// SIDIS
     Make3HeBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
-      MakeSIDISLead(worldlog);
+      //commented out for now because it's obsolete
+      //MakeSIDISLead(worldlog);
     }
     break;
   case(G4SBS::kGEMHCtest):// Hall C GEM test

@@ -9,7 +9,7 @@
 ## Configure the target
 /g4sbs/target            3He
 /g4sbs/targpres          10.77 atmosphere  ## Target pressure
-/g4sbs/targlen           55.0 cm           ## Target Length (depricated) 
+/g4sbs/targlen           60.0 cm           ## Target Length (depricated) 
 /g4sbs/targgenhhconfig   1018              ## Q2 = 10.18 GeV^2
 /g4sbs/targgenColEnable  true              ## set to false if you want to turn off the collimators  
 /g4sbs/targgenColEnableA true              ## upstream collimator 
@@ -30,8 +30,8 @@
 /g4sbs/beamE           8.8 GeV
 /g4sbs/thmin           24.0 deg
 /g4sbs/thmax           44.0 deg
-/g4sbs/phmin           -50.0 deg
-/g4sbs/phmax           50.0 deg
+/g4sbs/phmin           -30.0 deg
+/g4sbs/phmax           30.0 deg
 
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
@@ -46,6 +46,7 @@
 
 ## Configure the magnets
 /g4sbs/bbfield         1
+/g4sbs/sbsmagfield     1.4 tesla
 /g4sbs/48d48field      1
 /g4sbs/bbang           34.0 deg
 /g4sbs/bbdist          1.5 m
@@ -96,7 +97,7 @@
 #
 # Specify style (surface or wireframe):
 /vis/viewer/set/style surface
-/vis/viewer/set/style wireframe
+#/vis/viewer/set/style wireframe
 /vis/viewer/set/auxiliaryEdge true
 /vis/viewer/set/lineSegmentsPerCircle 20
 #
@@ -112,7 +113,7 @@
 # (if too many tracks cause core dump => /tracking/storeTrajectory 0)
 #
 # Draw hits at end of event:
-# /vis/scene/add/hits
+/vis/scene/add/hits
 #
 # To draw only gammas:
 /vis/filtering/trajectories/create/particleFilter
@@ -133,7 +134,7 @@
 /vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
 #
 # To superimpose all of the events from a given run:
-/vis/scene/endOfEventAction accumulate 1 
+/vis/scene/endOfEventAction accumulate -1 
 #
 # Re-establish auto refreshing and verbosity:
 /vis/viewer/set/autoRefresh true

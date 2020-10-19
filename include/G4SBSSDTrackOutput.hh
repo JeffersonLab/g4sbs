@@ -74,6 +74,7 @@ public:
   //vector<TVector3> sdpos, sdmom, sdpol;
   vector<double> sdposx,sdposy,sdposz,sdmomx,sdmomy,sdmomz,sdpolx,sdpoly,sdpolz;
   vector<double> sdenergy, sdtime;
+  vector<double> sdvx,sdvy,sdvz,sdvnx,sdvny,sdvnz,sdEkin;
 
 };
 

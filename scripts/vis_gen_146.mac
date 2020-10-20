@@ -29,6 +29,8 @@
 /g4sbs/beamspotsize    0.5 mm
 /g4sbs/beamoffsetx     0.0 mm
 /g4sbs/beamoffsety     0.0 mm
+/g4sbs/beamAngleX      0.00 mrad 
+/g4sbs/beamAngleY      0.00 mrad 
 /g4sbs/beamE           2.2 GeV
 /g4sbs/thmin           30.0 deg
 /g4sbs/thmax           50.0 deg
@@ -55,7 +57,16 @@
 /g4sbs/48D48dist       2.8 m
 
 ## Optional detectors 
-/g4sbs/beamDiffuserEnable false 
+/g4sbs/beamDiffuserEnable false
+
+/g4sbs/ionChamberEnable true
+# position 1
+/g4sbs/ionChamberX -20  cm 
+/g4sbs/ionChamberY  0   cm 
+/g4sbs/ionChamberZ  100 cm 
+/g4sbs/ionChamberRX 0   deg
+/g4sbs/ionChamberRY 10  deg
+/g4sbs/ionChamberRZ 0   deg 
 
 /g4sbs/totalabs true
 

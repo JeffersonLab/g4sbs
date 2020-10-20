@@ -248,8 +248,9 @@ private:
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
   bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
-  
-  void CalculateBeamAngles(); // D Flay (10/15/20).  Generate random beam angle based on non-zero file input.  works for beam generator only 
+
+  // D Flay (10/15/20).  Generate random beam angle based on non-zero file input.  works for beam generator only
+  void CalculateBeamAngles(G4double bd_L);  
 
   G4bool fRejectionSamplingFlag; //Flag to turn on rejection sampling;
   G4double fMaxWeight; //Maximum event weight within generation limits

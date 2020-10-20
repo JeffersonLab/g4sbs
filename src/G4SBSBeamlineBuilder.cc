@@ -66,10 +66,10 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     printf("GEn experiment: forcing beamline configuration 2 \n");
     fDetCon->fBeamlineConf = 2;
     Make3HeBeamline(worldlog);
-    MakeGEnClamp(worldlog);
-    if(fDetCon->fLeadOption == 1){
-      MakeGEnLead(worldlog);
-    }
+    // MakeGEnClamp(worldlog);
+    // if(fDetCon->fLeadOption == 1){
+    //   MakeGEnLead(worldlog);
+    // }
     break;
   case(G4SBS::kSIDISExp):// SIDIS
     Make3HeBeamline(worldlog);
@@ -4962,7 +4962,8 @@ void G4SBSBeamlineBuilder::MakeBeamDump(G4LogicalVolume *logicMother,G4double dz
    // upstream pipe conical flange to ISO wall weldment:                    207.1108 inches
    // upstream ISO wall weldment to upstream face of diffuser:              24.56 inches
    // upstream face of beam diffuser to upstream face of downstream flange: 17.3943 inches
-   G4double z_us  = dz + 1052.4797*inch; 
+   G4double dz3   = -1.5*cm;                   // FIXME: fudge factor to be flush against mid pipe to dump part (see MakeBeamExit, dz3 term)  
+   G4double z_us  = dz + dz3 + 1052.4797*inch; 
    G4double z_iso = z_us + 207.1108*inch; 
    G4double z_bd  = z_iso + 24.56*inch; 
    G4double z_ds  = z_bd + 17.3943*inch; 
@@ -5569,9 +5570,12 @@ void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother,G4double dz
    // previously: dz set to 7 inches to avoid overlaps with P5ringD_vacLog_pv 
 
    G4double inch   = 2.54*cm; 
-   G4double dz2    = 1.5*cm;         // FIXME: still an overlap despite 6.5" from dz??  adjusting here for simplicity...   
-   G4double z_tmp  = 207.179*inch + dz + dz2;  
-   G4double z_mpd  = 749.4997*inch; // derived, based on numbers from Ron Lassiter (see MakeBeamDump)  
+   G4double dz2    = 1.0*mm; // 1.5*cm; // FIXME: still an overlap despite 6.5" from dz??  adjusting here for simplicity...   
+   G4double z_tmp  = 207.179*inch + dz + dz2;
+   G4double dz3    = -1.5*cm;  
+   G4double z_mpd  = 749.4997*inch + dz3; // derived, based on numbers from Ron Lassiter (see MakeBeamDump).  
+                                          // offset to sit flush against target to mid pipe 
+
    // CheckZPos(logicMother,z_bd); 
    MakeBeamExit_TargetToMidPipe(logicMother,z_tmp);  
    MakeBeamExit_MidPipeToDump(logicMother,z_mpd); 
@@ -5583,7 +5587,8 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    // z0 = position of upstream face of this part
    // Added by D. Flay (JLab) in Sept 2020
    // Drawings: 
-   // - Target to mid pipe: ARC10540  
+   // - Target to mid pipe: ARC10540 
+   // Total length as built here: 525.937*inch  
 
    G4double inch     = 2.54*cm; 
    G4double startPhi = 0.*deg; 
@@ -5693,7 +5698,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    G4Tubs *solidTube01        = new G4Tubs("solidTube01",r_min_01,r_max_01,len_01/2.,startPhi,dPhi); 
    TOTAL_LENGTH += len_01;
    // vacuum insert  
-   G4Tubs *solidTube01_vac    = new G4Tubs("solidTube01_vac",0,r_min_01,len_01/2.,startPhi,dPhi); 
+   G4Tubs *solidTube01_vac    = new G4Tubs("solidTube01_vac",0,r_min_01,len_01/2.,startPhi,dPhi);
 
    // union: put it all together
    // - start with 01 and 02  

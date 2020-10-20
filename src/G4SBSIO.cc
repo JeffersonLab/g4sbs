@@ -830,6 +830,14 @@ void G4SBSIO::BranchSDTracks(){
   fTree->Branch(  "SDTrack.polz", &(allsdtrackdata.sdpolz) );
   fTree->Branch(  "SDTrack.Etot", &(allsdtrackdata.sdenergy) );
   fTree->Branch(  "SDTrack.T", &(allsdtrackdata.sdtime) );
+  //Add new vertex info:
+  fTree->Branch(  "SDTrack.vx", &(allsdtrackdata.sdvx) );
+  fTree->Branch(  "SDTrack.vy", &(allsdtrackdata.sdvy) );
+  fTree->Branch(  "SDTrack.vz", &(allsdtrackdata.sdvz) );
+  fTree->Branch(  "SDTrack.vnx", &(allsdtrackdata.sdvnx) );
+  fTree->Branch(  "SDTrack.vny", &(allsdtrackdata.sdvny) );
+  fTree->Branch(  "SDTrack.vnz", &(allsdtrackdata.sdvnz) );
+  fTree->Branch(  "SDTrack.vEkin", &(allsdtrackdata.sdEkin) );
   //}
 }
 

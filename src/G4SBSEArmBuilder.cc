@@ -357,7 +357,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     MakeNewBBSieveSlit( bbmotherLog, BBSievePos );
  }
  else {
-   cout << "Invalid sieve entry. Please enter 1 (old - straight holes and slots) or 2 (new - holes with angles in dispersive direction). No sieve constructed.\n";
+   //cout << "Invalid sieve entry. Please enter 1 (old - straight holes and slots) or 2 (new - holes with angles in dispersive direction). No sieve constructed.\n";
  }
   
   //  Bigbite field log volume

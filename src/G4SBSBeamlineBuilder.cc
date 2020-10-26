@@ -5587,13 +5587,16 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    // z0 = position of upstream face of this part
    // Added by D. Flay (JLab) in Sept 2020
    // Drawings: 
-   // - Target to mid pipe: ARC10540 
-   // Total length as built here: 525.937*inch  
+   // - A00000-02-08-0900
+   // - A00000-02-08-0901
+   // - 04-65620-E-38500-07_rev 
+   // Total length as built here: 438.57*inch (matches first drawing listed)  
 
    G4double inch     = 2.54*cm; 
    G4double startPhi = 0.*deg; 
    G4double dPhi     = 360.*deg;
-   G4double len_fl   = 0.5*inch; // FIXME: arbitrary
+   G4double len_fl   = 0.188*inch; // flange thickness  
+   G4double wall     = 0.060*inch; // from drawings.  The "wave" part of the corrugation tends to be 0.5"; this seems to be too thick to use  
    G4double TOTAL_LENGTH = 0;  
   
    // visualization 
@@ -5602,9 +5605,9 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    G4VisAttributes *vis_vac = new G4VisAttributes();
   
    // pipe [part 11] 
-   G4double r_min_11          = 0.5*36.00*inch;   
-   G4double r_max_11          = 0.5*42.00*inch;  // based on 0.060 x 3 corrugation 
-   G4double len_11            = 216.375*inch; 
+   G4double r_min_11          = 0.5*39.88*inch;   
+   G4double r_max_11          = 0.5*(39.88*inch + 2.*wall); // use wall thickness // 0.5*42.00*inch;  // based on 0.060 x 3 corrugation 
+   G4double len_11            = 216.191*inch;    // derived from drawing 
    G4Tubs *solidTube11        = new G4Tubs("solidTube11",r_min_11,r_max_11,len_11/2.,startPhi,dPhi); 
    TOTAL_LENGTH += len_11;
    // vacuum insert  
@@ -5629,16 +5632,16 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    G4Tubs *solidTube10_vac    = new G4Tubs("solidTube10_vac",0,r_min_10,len_10/2.,startPhi,dPhi); 
 
    // pipe [part 8] 
-   G4double r_min_08          = 0.5*24.00*inch;   
-   G4double r_max_08          = 0.5*29.334*inch;  // based on 0.5 x 2-2/3 corrugation  
-   G4double len_08            = 217.00*inch; 
+   G4double r_min_08          = 0.5*25.88*inch; // estimate to make r_max = 26*inch // 0.5*24.00*inch;   
+   G4double r_max_08          = 0.5*(25.88*inch + 2.*wall); // use wall thickness // 0.5*29.334*inch;  // based on 0.5 x 2-2/3 corrugation  
+   G4double len_08            = 216.624*inch;     // derived from drawing 
    G4Tubs *solidTube08        = new G4Tubs("solidTube08",r_min_08,r_max_08,len_08/2.,startPhi,dPhi); 
    TOTAL_LENGTH += len_08;
    // vacuum insert 
    G4Tubs *solidTube08_vac    = new G4Tubs("solidTube08_vac",0,r_min_08,len_08/2.,startPhi,dPhi); 
 
    // flange [part 6] 
-   G4double r_min_06          = 0.5*12.00*inch;  
+   G4double r_min_06          = 0.5*11.75*inch;  
    G4double r_max_06          = 0.5*26.00*inch; 
    G4double len_06            = len_fl;  
    G4Tubs *solidTube06        = new G4Tubs("solidTube06",r_min_06,r_max_06,len_06/2.,startPhi,dPhi); 
@@ -5646,106 +5649,137 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    // vacuum insert  
    G4Tubs *solidTube06_vac    = new G4Tubs("solidTube06_vac",0,r_min_06,len_06/2.,startPhi,dPhi); 
 
-   // pipe [part 5] 
-   G4double r_min_05          = 0.5*12.00*inch;   
-   G4double r_max_05          = 0.5*17.334*inch; // based on 0.5 x 2-2/3 corrugation  
-   G4double len_05            = 41.8125*inch; 
-   G4Tubs *solidTube05        = new G4Tubs("solidTube05",r_min_05,r_max_05,len_05/2.,startPhi,dPhi); 
-   TOTAL_LENGTH += len_05;
-   // vacuum insert
-   G4Tubs *solidTube05_vac    = new G4Tubs("solidTube05_vac",0,r_min_05,len_05/2.,startPhi,dPhi); 
-
-   // flange [part 7] 
-   G4double r_min_07          = 0.5*10.00*inch;  
-   G4double r_max_07          = 0.5*13.00*inch; 
-   G4double len_07            = 0.125*inch;      
-   G4Tubs *solidTube07        = new G4Tubs("solidTube07",r_min_07,r_max_07,len_07/2.,startPhi,dPhi); 
-   TOTAL_LENGTH += len_07;
+   // these two parts related to part 06 are named by D. Flay since there is no "official" 
+   // name, but should be included here 
+   // 12-in flange [part 6a] 
+   // - Drawing A00000-02-08-0900
+   G4double r_min_06a         = 0.5*11.28*inch;  
+   G4double r_max_06a         = 0.5*16.50*inch; 
+   G4double len_06a           = 0.5*inch;             // FIXME: arbitrary  
+   G4Tubs *solidTube06a       = new G4Tubs("solidTube06a",r_min_06a,r_max_06a,len_06a/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_06a;
    // vacuum insert  
-   G4Tubs *solidTube07_vac    = new G4Tubs("solidTube07_vac",0,r_min_07,len_07/2.,startPhi,dPhi); 
+   G4Tubs *solidTube06a_vac   = new G4Tubs("solidTube06a_vac",0,r_min_06a,len_06a/2.,startPhi,dPhi); 
+
+   // transfer tube [part 6b] 
+   // - Drawing A00000-02-08-0900
+   G4double r_min_06b         = 0.5*11.75*inch;  
+   G4double r_max_06b         = r_min_06b + 0.5*inch; // FIXME: arbitrary  
+   G4double len_06b           = 5.191*inch - len_06a;        
+   G4Tubs *solidTube06b       = new G4Tubs("solidTube06b",r_min_06b,r_max_06b,len_06b/2.,startPhi,dPhi); 
+   TOTAL_LENGTH += len_06b;
+   // vacuum insert  
+   G4Tubs *solidTube06b_vac   = new G4Tubs("solidTube06b_vac",0,r_min_06b,len_06b/2.,startPhi,dPhi); 
+
+   // NOTE: these are NOT part of the setup! 
+   // // pipe [part 5] 
+   // G4double r_min_05          = 0.5*12.00*inch;   
+   // G4double r_max_05          = 0.5*17.334*inch; // based on 0.5 x 2-2/3 corrugation  
+   // G4double len_05            = 41.8125*inch; 
+   // G4Tubs *solidTube05        = new G4Tubs("solidTube05",r_min_05,r_max_05,len_05/2.,startPhi,dPhi); 
+   // TOTAL_LENGTH += len_05;
+   // // vacuum insert
+   // G4Tubs *solidTube05_vac    = new G4Tubs("solidTube05_vac",0,r_min_05,len_05/2.,startPhi,dPhi); 
+
+   // // flange [part 7] 
+   // G4double r_min_07          = 0.5*10.00*inch;  
+   // G4double r_max_07          = 0.5*13.00*inch; 
+   // G4double len_07            = 0.125*inch;      
+   // G4Tubs *solidTube07        = new G4Tubs("solidTube07",r_min_07,r_max_07,len_07/2.,startPhi,dPhi); 
+   // TOTAL_LENGTH += len_07;
+   // // vacuum insert  
+   // G4Tubs *solidTube07_vac    = new G4Tubs("solidTube07_vac",0,r_min_07,len_07/2.,startPhi,dPhi); 
   
-   // pipe [part 3]  
-   G4double r_min_03          = 0.5*10.00*inch;   
-   G4double r_max_03          = 0.5*10.25*inch;   
-   G4double len_03            = 12.00*inch; 
-   G4Tubs *solidTube03        = new G4Tubs("solidTube03",r_min_03,r_max_03,len_03/2.,startPhi,dPhi); 
-   TOTAL_LENGTH += len_03;
-   // vacuum insert
-   G4Tubs *solidTube03_vac    = new G4Tubs("solidTube03_vac",0,r_min_03,len_03/2.,startPhi,dPhi); 
+   // // pipe [part 3]  
+   // G4double r_min_03          = 0.5*10.00*inch;   
+   // G4double r_max_03          = 0.5*10.25*inch;   
+   // G4double len_03            = 12.00*inch; 
+   // G4Tubs *solidTube03        = new G4Tubs("solidTube03",r_min_03,r_max_03,len_03/2.,startPhi,dPhi); 
+   // TOTAL_LENGTH += len_03;
+   // // vacuum insert
+   // G4Tubs *solidTube03_vac    = new G4Tubs("solidTube03_vac",0,r_min_03,len_03/2.,startPhi,dPhi); 
 
-   // flange [part 4] 
-   G4double r_min_04          = 0.5*8.25*inch;  
-   G4double r_max_04          = 0.5*10.00*inch; 
-   G4double len_04            = 0.125*inch;      
-   G4Tubs *solidTube04        = new G4Tubs("solidTube04",r_min_04,r_max_04,len_04/2.,startPhi,dPhi); 
-   TOTAL_LENGTH += len_04;
-   // vacuum insert  
-   G4Tubs *solidTube04_vac    = new G4Tubs("solidTube04_vac",0,r_min_04,len_04/2.,startPhi,dPhi); 
+   // // flange [part 4] 
+   // G4double r_min_04          = 0.5*8.25*inch;  
+   // G4double r_max_04          = 0.5*10.00*inch; 
+   // G4double len_04            = 0.125*inch;      
+   // G4Tubs *solidTube04        = new G4Tubs("solidTube04",r_min_04,r_max_04,len_04/2.,startPhi,dPhi); 
+   // TOTAL_LENGTH += len_04;
+   // // vacuum insert  
+   // G4Tubs *solidTube04_vac    = new G4Tubs("solidTube04_vac",0,r_min_04,len_04/2.,startPhi,dPhi); 
 
-   // pipe [part 2]  
-   G4double r_min_02          = 0.5*8.00*inch;   
-   G4double r_max_02          = 0.5*8.25*inch;   
-   G4double len_02            = 36.875*inch; 
-   G4Tubs *solidTube02        = new G4Tubs("solidTube02",r_min_02,r_max_02,len_02/2.,startPhi,dPhi); 
-   TOTAL_LENGTH += len_02;
-   // vacuum insert
-   G4Tubs *solidTube02_vac    = new G4Tubs("solidTube02_vac",0,r_min_02,len_02/2.,startPhi,dPhi); 
+   // // pipe [part 2]  
+   // G4double r_min_02          = 0.5*8.00*inch;   
+   // G4double r_max_02          = 0.5*8.25*inch;   
+   // G4double len_02            = 36.875*inch; 
+   // G4Tubs *solidTube02        = new G4Tubs("solidTube02",r_min_02,r_max_02,len_02/2.,startPhi,dPhi); 
+   // TOTAL_LENGTH += len_02;
+   // // vacuum insert
+   // G4Tubs *solidTube02_vac    = new G4Tubs("solidTube02_vac",0,r_min_02,len_02/2.,startPhi,dPhi); 
 
-   // flange [part 1] 
-   G4double r_min_01          = 0.5*8.25*inch;  
-   G4double r_max_01          = 0.5*10.00*inch; 
-   G4double len_01            = 0.125*inch;      
-   G4Tubs *solidTube01        = new G4Tubs("solidTube01",r_min_01,r_max_01,len_01/2.,startPhi,dPhi); 
-   TOTAL_LENGTH += len_01;
-   // vacuum insert  
-   G4Tubs *solidTube01_vac    = new G4Tubs("solidTube01_vac",0,r_min_01,len_01/2.,startPhi,dPhi);
+   // // flange [part 1] 
+   // G4double r_min_01          = 0.5*8.25*inch;  
+   // G4double r_max_01          = 0.5*10.00*inch; 
+   // G4double len_01            = 0.125*inch;      
+   // G4Tubs *solidTube01        = new G4Tubs("solidTube01",r_min_01,r_max_01,len_01/2.,startPhi,dPhi); 
+   // TOTAL_LENGTH += len_01;
+   // // vacuum insert  
+   // G4Tubs *solidTube01_vac    = new G4Tubs("solidTube01_vac",0,r_min_01,len_01/2.,startPhi,dPhi);
 
    // union: put it all together
-   // - start with 01 and 02  
-   G4double zp = 0.5*len_01 + 0.5*len_02;
-   G4ThreeVector P = G4ThreeVector(0,0,zp); 
-   G4UnionSolid *tgtToMidPipe = new G4UnionSolid("t01",solidTube01,solidTube02,0,P);
-   // - add 04 
-   zp = 0.5*len_01 + len_02 + 0.5*len_04;
-   P  = G4ThreeVector(0,0,zp); 
-   tgtToMidPipe = new G4UnionSolid("t04",tgtToMidPipe,solidTube04,0,P);  
-   // - add 03 
-   zp = 0.5*len_01 + len_02 + len_04 + 0.5*len_03;
-   P  = G4ThreeVector(0,0,zp); 
-   tgtToMidPipe = new G4UnionSolid("t03",tgtToMidPipe,solidTube03,0,P);  
-   // - add 07 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + 0.5*len_07;
-   P  = G4ThreeVector(0,0,zp); 
-   tgtToMidPipe = new G4UnionSolid("t07",tgtToMidPipe,solidTube07,0,P);  
-   // - add 05 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + 0.5*len_05;
-   P  = G4ThreeVector(0,0,zp); 
-   tgtToMidPipe = new G4UnionSolid("t05",tgtToMidPipe,solidTube05,0,P);  
+   // // - start with 01 and 02  
+   // G4double zp = 0.5*len_01 + 0.5*len_02;
+   // G4ThreeVector P = G4ThreeVector(0,0,zp); 
+   // G4UnionSolid *tgtToMidPipe = new G4UnionSolid("t01",solidTube01,solidTube02,0,P);
+   // // - add 04 
+   // zp = 0.5*len_01 + len_02 + 0.5*len_04;
+   // P  = G4ThreeVector(0,0,zp); 
+   // tgtToMidPipe = new G4UnionSolid("t04",tgtToMidPipe,solidTube04,0,P);  
+   // // - add 03 
+   // zp = 0.5*len_01 + len_02 + len_04 + 0.5*len_03;
+   // P  = G4ThreeVector(0,0,zp); 
+   // tgtToMidPipe = new G4UnionSolid("t03",tgtToMidPipe,solidTube03,0,P);  
+   // // - add 07 
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + 0.5*len_07;
+   // P  = G4ThreeVector(0,0,zp); 
+   // tgtToMidPipe = new G4UnionSolid("t07",tgtToMidPipe,solidTube07,0,P);  
+   // // - add 05 
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + 0.5*len_05;
+   // P  = G4ThreeVector(0,0,zp); 
+   // tgtToMidPipe = new G4UnionSolid("t05",tgtToMidPipe,solidTube05,0,P); 
+   // start with 06a and 06b 
+   G4double zp = 0.5*len_06a + 0.5*len_06b;
+   G4ThreeVector P  = G4ThreeVector(0,0,zp); 
+   G4UnionSolid *tgtToMidPipe = new G4UnionSolid("t06ab",solidTube06a,solidTube06b,0,P);  
    // - add 06 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + 0.5*len_06;
+   zp = 0.5*len_06a + len_06b + 0.5*len_06;
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe = new G4UnionSolid("t06",tgtToMidPipe,solidTube06,0,P);  
    // - add 08 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + 0.5*len_08;
+   zp = 0.5*len_06a + len_06b + len_06 + 0.5*len_08;
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + 0.5*len_08;
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe = new G4UnionSolid("t08",tgtToMidPipe,solidTube08,0,P);  
    // - add 09 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + 0.5*len_09;
+   zp = 0.5*len_06a + len_06b + len_06 + len_08 + 0.5*len_09;
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + 0.5*len_09;
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe = new G4UnionSolid("t09",tgtToMidPipe,solidTube09,0,P);  
    // - add 11 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + 0.5*len_11;
+   zp = 0.5*len_06a + len_06b + len_06 + len_08 + len_09 + 0.5*len_11;
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + 0.5*len_11;
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe = new G4UnionSolid("t11",tgtToMidPipe,solidTube11,0,P);  
    // - add 10 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + len_11 + 0.5*len_10;
+   zp = 0.5*len_06a + len_06b + len_06 + len_08 + len_09 + len_11 + 0.5*len_10;
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + len_11 + 0.5*len_10;
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe = new G4UnionSolid("tgtToMidPipe",tgtToMidPipe,solidTube10,0,P); 
 
    G4LogicalVolume *tgtMP_LV = new G4LogicalVolume(tgtToMidPipe,GetMaterial("Aluminum"),"tgtMP_LV"); 
    tgtMP_LV->SetVisAttributes(AlColor);
 
-   G4double z = z0 + 0.5*len_01;  // upstream face at z0
+   G4double z = z0 + 0.5*len_06a;  // upstream face at z0
    G4ThreeVector Pz = G4ThreeVector(0,0,z);
    new G4PVPlacement(0,                // no rotation
                      Pz,               // location in mother volume 
@@ -5757,44 +5791,52 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
                      true);            // checking overlaps   
 
    // union: put it all together [vacuum] 
-   // - start with 01 and 02  
-   zp = 0.5*len_01 + 0.5*len_02;
-   P = G4ThreeVector(0,0,zp); 
-   G4UnionSolid *tgtToMidPipe_vac = new G4UnionSolid("t01v",solidTube01_vac,solidTube02_vac,0,P);
-   // - add 04 
-   zp = 0.5*len_01 + len_02 + 0.5*len_04;
+   // // - start with 01 and 02  
+   // zp = 0.5*len_01 + 0.5*len_02;
+   // P = G4ThreeVector(0,0,zp); 
+   // G4UnionSolid *tgtToMidPipe_vac = new G4UnionSolid("t01v",solidTube01_vac,solidTube02_vac,0,P);
+   // // - add 04 
+   // zp = 0.5*len_01 + len_02 + 0.5*len_04;
+   // P  = G4ThreeVector(0,0,zp); 
+   // tgtToMidPipe_vac = new G4UnionSolid("t04v",tgtToMidPipe_vac,solidTube04_vac,0,P);  
+   // // - add 03 
+   // zp = 0.5*len_01 + len_02 + len_04 + 0.5*len_03;
+   // P  = G4ThreeVector(0,0,zp); 
+   // tgtToMidPipe_vac = new G4UnionSolid("t03v",tgtToMidPipe_vac,solidTube03_vac,0,P);  
+   // // - add 07 
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + 0.5*len_07;
+   // P  = G4ThreeVector(0,0,zp); 
+   // tgtToMidPipe_vac = new G4UnionSolid("t07v",tgtToMidPipe_vac,solidTube07_vac,0,P);  
+   // // - add 05 
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + 0.5*len_05;
+   // P  = G4ThreeVector(0,0,zp); 
+   // tgtToMidPipe_vac = new G4UnionSolid("t05v",tgtToMidPipe_vac,solidTube05_vac,0,P); 
+   // start with 06a and 06b 
+   zp = 0.5*len_06a + 0.5*len_06b;  
    P  = G4ThreeVector(0,0,zp); 
-   tgtToMidPipe_vac = new G4UnionSolid("t04v",tgtToMidPipe_vac,solidTube04_vac,0,P);  
-   // - add 03 
-   zp = 0.5*len_01 + len_02 + len_04 + 0.5*len_03;
-   P  = G4ThreeVector(0,0,zp); 
-   tgtToMidPipe_vac = new G4UnionSolid("t03v",tgtToMidPipe_vac,solidTube03_vac,0,P);  
-   // - add 07 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + 0.5*len_07;
-   P  = G4ThreeVector(0,0,zp); 
-   tgtToMidPipe_vac = new G4UnionSolid("t07v",tgtToMidPipe_vac,solidTube07_vac,0,P);  
-   // - add 05 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + 0.5*len_05;
-   P  = G4ThreeVector(0,0,zp); 
-   tgtToMidPipe_vac = new G4UnionSolid("t05v",tgtToMidPipe_vac,solidTube05_vac,0,P);  
+   G4UnionSolid *tgtToMidPipe_vac = new G4UnionSolid("t06abv",solidTube06a_vac,solidTube06b_vac,0,P);  
    // - add 06 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + 0.5*len_06;
+   zp = 0.5*len_06a + len_06b + 0.5*len_06;
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe_vac = new G4UnionSolid("t06v",tgtToMidPipe_vac,solidTube06_vac,0,P);  
    // - add 08 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + 0.5*len_08;
+   zp = 0.5*len_06a + len_06b + len_06 + 0.5*len_08;
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + 0.5*len_08;
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe_vac = new G4UnionSolid("t08v",tgtToMidPipe_vac,solidTube08_vac,0,P);  
    // - add 09 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + 0.5*len_09;
+   zp = 0.5*len_06a + len_06b + len_06 + len_08 + 0.5*len_09;
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + 0.5*len_09;
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe_vac = new G4UnionSolid("t09v",tgtToMidPipe_vac,solidTube09_vac,0,P);  
    // - add 11 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + 0.5*len_11;
+   zp = 0.5*len_06a + len_06b + len_06 + len_08 + len_09 + 0.5*len_11;
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + 0.5*len_11;
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe_vac = new G4UnionSolid("t11v",tgtToMidPipe_vac,solidTube11_vac,0,P);  
    // - add 10 
-   zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + len_11 + 0.5*len_10;
+   zp = 0.5*len_06a + len_06b + len_06 + len_08 + len_09 + len_11 + 0.5*len_10;
+   // zp = 0.5*len_01 + len_02 + len_04 + len_03 + + len_07 + len_05 + len_06 + len_08 + len_09 + len_11 + 0.5*len_10;
    P  = G4ThreeVector(0,0,zp); 
    tgtToMidPipe_vac = new G4UnionSolid("tgtToMidPipe",tgtToMidPipe_vac,solidTube10_vac,0,P); 
 
@@ -5822,7 +5864,8 @@ void G4SBSBeamlineBuilder::MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMoth
 
    G4double inch     = 2.54*cm;
    G4double startPhi = 0.*deg; 
-   G4double dPhi     = 360.*deg;   
+   G4double dPhi     = 360.*deg;  
+   G4double wall     = 0.060*inch;  
 
    // visualization 
    // G4VisAttributes *AlColor = new G4VisAttributes( G4Colour(0.3,0.3,1.0) );
@@ -5831,9 +5874,9 @@ void G4SBSBeamlineBuilder::MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMoth
    G4VisAttributes *vis_vac = new G4VisAttributes();
   
    // from drawing A00000-02-02-0001 [rev]
-   G4double delta  = 235.0*mm;     // FIXME: Arbitrary fudge factor to make everything connect from tgtMidPipe to dump  
-   G4double r_min  = 0.5*36.00*inch; // 0.5*42.94*inch;  
-   G4double r_max  = 0.5*43.00*inch; 
+   G4double delta  = 96.62*inch; // 235.0*mm;     // FIXME: Arbitrary fudge factor to make everything connect from tgtMidPipe to dump  
+   G4double r_min  = 0.5*42.88*inch; // 0.5*36.00*inch; // 0.5*42.94*inch;  
+   G4double r_max  = 0.5*(42.88*inch + 2.*wall); // 43.00*inch; 
    G4double len    = 302.98*inch + delta;
    G4Tubs *solidMP = new G4Tubs("solidMP",r_min,r_max,len/2.,startPhi,dPhi); 
     

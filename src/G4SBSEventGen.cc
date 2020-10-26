@@ -504,13 +504,7 @@ bool G4SBSEventGen::GenerateEvent(){
 void G4SBSEventGen::CalculateBeamAngles(G4double bd_L){
    // D. Flay (10/15/20) 
    // Based on input file, generate a random beam angle
-   // NOTE: Only applied to beam generator for now 
  
-   // we project from the beam origin to the center of the target 
-   // OLD:  
-   // - 32 m from target to dump; 10 m is the distance from the last quad to the target pivot
-   // G4double bd_L = 32.*CLHEP::m + 10.*CLHEP::m;  
-   // - find the central x and y coordinates 
    // - recall, the angle is some amount ABOUT an axis.  So we flip the angles here 
    G4double bd_x = bd_L*tan(fBeamAngleY);
    G4double bd_y = bd_L*tan(fBeamAngleX);
@@ -1909,24 +1903,27 @@ bool G4SBSEventGen::GenerateBeam( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lore
   fNucleonP = G4ThreeVector();
   fNucleonE = proton_mass_c2;
 
-  // D. Flay (10/15/20) 
-  // generate random beam angles (based on central values from input file)
-  // NOTE: only applied to beam generator 
-  G4double ba_L = fabs( fVert.z() ); // distance from beam origin to target center   
-  CalculateBeamAngles(ba_L);  
+  // // D. Flay (10/15/20) 
+  // // generate random beam angles (based on central values from input file)
+  // G4double ba_L = fabs( fVert.z() ); // distance from beam origin to target center   
+  // CalculateBeamAngles(ba_L);  
 
-  // apply rotation angles 
-  std::vector<G4double> R; 
-  R.push_back(fBeamAngleX); R.push_back(fBeamAngleY); R.push_back(fBeamAngleZ);
-  G4ThreeVector p0,pRot; 
-  // convert to unit vector first
-  p0 = fElectronP.unit();
-  G4SBS::Util::RotateVector(R,p0,pRot);
-  // now scale pRot so it has the right units 
-  G4double P_eMag = fElectronP.mag();  
-  pRot.setX( P_eMag*pRot.x() ); 
-  pRot.setY( P_eMag*pRot.y() ); 
-  pRot.setZ( P_eMag*pRot.z() );
+  // // apply rotation angles  
+  // std::vector<G4double> R; 
+  // R.push_back(fBeamAngleX); R.push_back(fBeamAngleY); R.push_back(fBeamAngleZ);
+  // G4ThreeVector p0 = fElectronP;
+  // G4ThreeVector pRot; 
+  // G4SBS::Util::RotateVector(R,p0,pRot);
+
+  // G4ThreeVector p0,pRot; 
+  // // convert to unit vector first
+  // p0 = fElectronP.unit();
+  // G4SBS::Util::RotateVector(R,p0,pRot);
+  // // now scale pRot so it has the right units 
+  // G4double P_eMag = fElectronP.mag();  
+  // pRot.setX( P_eMag*pRot.x() ); 
+  // pRot.setY( P_eMag*pRot.y() ); 
+  // pRot.setZ( P_eMag*pRot.z() );
 
   // std::cout << "[G4SBSEventGen::GenerateBeam]: Vector rotation! " << std::endl;
   // std::cout << "angles = " << fBeamAngleX/mrad << ", " << fBeamAngleY/mrad << ", " << fBeamAngleZ/mrad << std::endl;
@@ -1935,7 +1932,7 @@ bool G4SBSEventGen::GenerateBeam( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lore
   // std::cout << "z = " << fElectronP.z() << " z' = " << pRot.z() << std::endl;
   // std::cout << "mag = " << fElectronP.mag() << " mag' = " << pRot.mag() << std::endl;
 
-  fElectronP = pRot;  
+  // fElectronP = pRot;  
 
   fSigma    = 1.0;
   fApar     = 0.0;

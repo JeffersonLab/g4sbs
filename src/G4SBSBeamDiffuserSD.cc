@@ -94,8 +94,8 @@ void G4SBSBeamDiffuserSD::EndOfEvent(G4HCofThisEvent*)
       auto nofHits = fHitsCollection->entries();
       G4cout
 	 << G4endl
-	 << "-------->Hits Collection: in this event they are " << nofHits
-	 << " hits in the tracker chambers: " << G4endl;
+	 << "-------->Beam Diffuser Hit Collection: in this event there are " << nofHits
+	 << " hits: " << G4endl;
       for ( std::size_t i=0; i<nofHits; ++i ) (*fHitsCollection)[i]->Print();
    }
 }  

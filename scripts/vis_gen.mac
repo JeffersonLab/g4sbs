@@ -54,6 +54,7 @@
 
 ## Optional detectors 
 /g4sbs/beamDiffuserEnable true 
+/g4sbs/uselead 0
 
 /g4sbs/totalabs true
 

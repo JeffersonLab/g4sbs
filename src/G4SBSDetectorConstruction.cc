@@ -115,7 +115,19 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   // D. Flay (8/25/20) 
   // beam diffuser switch 
-  fBeamDiffuserEnable = false; 
+  fBeamDumpEnable            = true;
+  fBeamDiffuserEnable        = false;
+  // taret collimators 
+  fGEnTgtCollimatorEnable    = true;  
+  fGEnTgtCollimatorAEnable   = true;  
+  fGEnTgtCollimatorBEnable   = true;  
+  fGEnTgtCollimatorCEnable   = true;  
+
+  // D. Flay (9/29/20) 
+  // GEn 3He target angular misalignment
+  fGEnTgtDRX = 0.;  
+  fGEnTgtDRY = 0.;  
+  fGEnTgtDRZ = 0.;  
 
 }
 
@@ -133,6 +145,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::Construct(){
   G4Material *Mtemp = GetMaterial("BlandAir");
 
   G4Box *WorldBox= new G4Box("WorldBox",50*m, 50*m, 50*m);
+  //G4Box *WorldBox= new G4Box("WorldBox",28*m, 28*m, 28*m);
   G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,Mtemp,
 						"WorldLogical", 0, 0, 0);
   G4PVPlacement *WorldPhys=new G4PVPlacement(0,G4ThreeVector(),
@@ -257,7 +270,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element* elNi  = man->FindOrBuildElement("Ni");
   G4Element *elP  = man->FindOrBuildElement("P");
   G4Element *elS  = man->FindOrBuildElement("S");
-
+  //G4Element *elW = man->FindOrBuildElement("W");
 
   G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
   //Vacuum->SetMaterialPropertiesTable(Std_MPT);
@@ -521,8 +534,11 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   // - details from http://www.iron-foundry.com/AISI-1008-SAE-UNS-G10080-Carbon-Steel-Foundry.html
   // - NOTE: may throw a warning because this doesn't add to 100% (adds to 99.8%) 
   G4Material *Carbon_Steel_1008 = new G4Material("Carbon_Steel_1008",7.872*g/cm3,5);
-  Carbon_Steel_1008->AddElement(elFe,0.9931);
-  Carbon_Steel_1008->AddElement(elMn,0.0030);
+  //Carbon_Steel_1008->AddElement(elFe,0.9931);
+  //Carbon_Steel_1008->AddElement(elMn,0.0030);
+  //shouldn't be a big difference, but it will stop throwing warnings...
+  Carbon_Steel_1008->AddElement(elFe,0.9941);
+  Carbon_Steel_1008->AddElement(elMn,0.0040);
   Carbon_Steel_1008->AddElement(elC ,0.0010);
   Carbon_Steel_1008->AddElement(elS ,0.0005);
   Carbon_Steel_1008->AddElement(elP ,0.0004);
@@ -546,7 +562,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   // Aluminum 6061 alloy 
   // - details from https://unitedaluminum.com/united-aluminum-alloy-6061/
   G4Material *Aluminum_6061 = new G4Material("Aluminum_6061",2.70*g/cm3,9);
-  Aluminum_6061->AddElement(elAl,0.9635);
+  //Aluminum_6061->AddElement(elAl,0.9635);
+  //shouldn't be a big difference, but it will stop throwing warnings...
+  Aluminum_6061->AddElement(elAl,0.9668);
   Aluminum_6061->AddElement(elSi,0.0060);
   Aluminum_6061->AddElement(elFe,0.0070);
   Aluminum_6061->AddElement(elCu,0.0028);
@@ -556,6 +574,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Aluminum_6061->AddElement(elZn,0.0025);
   Aluminum_6061->AddElement(elTi,0.0015);
   fMaterialsMap["Aluminum_6061"] = Aluminum_6061; 
+
+  // Molybdenum.  Possibly use for GEn 3He target collimators?
+  // density = 10.22 g/cm^3  
+  fMaterialsMap["Molybdenum"] = man->FindOrBuildMaterial("G4_Mo"); 
 
   // Ultem (polyetherimide plastic, similar to PEEK)
   // - details from http://www.polymerprocessing.com/polymers/PEI.html
@@ -1526,6 +1548,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       // 	     << abslength_ECAL[iE]/cm << ", " << abslength_C16[iE]/cm << ", " << spline_atilde->Eval( Ephoton_abslength[iE] )/cm << G4endl;
     }
 
+    spline_atilde->Delete();
+    spline_btilde->Delete();
+    spline_DoseRate_ECAL->Delete();
+    
     //Next: define new materials!
     TString matname;
     matname.Form( "TF1_anneal_ECAL_z%d", segment );
@@ -1568,6 +1594,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       }
     } 
   }
+
+  //spline
   
   //****  TF1 implementing annealing model  ****
   // G4Material* TF1_anneal = new G4Material("TF1_anneal", 3.86*g/cm3, 4);
@@ -2265,6 +2293,25 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["NE110A"] = NE110A;
   
   //Anything else?
+
+  //Target collimators for helium-3 target: Tungsten powder epoxy mixture. 
+  //For Epoxy let's use Epotek-301-1 properties from the particle data group:
+  G4double epoxy_den = 1.190*g/cm3;
+  G4double tungsten_den = 19.3*g/cm3;
+  G4double collimator_den = 10.0*g/cm3;
+
+  // f*rho_epoxy + (1-f)*rho_W = rho_coll
+  // f*(rho_epoxy - rho_W) = rho_coll - rho_W
+  G4double massfrac_epoxy = (1.0 - collimator_den/tungsten_den)/(1.0 - epoxy_den/tungsten_den);
+  
+  G4Material *TargetCollimator_Material = new G4Material("TargetCollimator_Material", collimator_den, 5 );
+  TargetCollimator_Material->AddElement( elH, fractionmass = 0.069894*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elC, fractionmass = 0.689640*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elN, fractionmass = 0.008936*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elO, fractionmass = 0.231531*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elW, fractionmass = 1.0-massfrac_epoxy );
+
+  fMaterialsMap["TargetCollimator_Material"] = TargetCollimator_Material;
   
 }
 
@@ -2311,7 +2358,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   //--------------
   // World:
   //--------------
-  // G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 30*m);
+  //G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 28*m);
   G4Box *WorldBox= new G4Box("WorldBox",50*m, 50*m, 50*m);
   G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,GetMaterial("Air"),
 						"WorldLogical", 0, 0, 0);

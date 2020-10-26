@@ -69,6 +69,9 @@ G4SBSTrackInformation::G4SBSTrackInformation()
   fSDPolarization.clear();
   fSDEnergy.clear();
   fSDTime.clear();
+  fSDVertexPosition.clear();
+  fSDVertexDirection.clear();
+  fSDVertexKineticEnergy.clear();
 }
 
 //This G4Track based constructor will typically get invoked only when new tracks are created:
@@ -107,6 +110,9 @@ G4SBSTrackInformation::G4SBSTrackInformation(const G4Track* aTrack)
   fSDPolarization.clear();
   fSDEnergy.clear();
   fSDTime.clear();
+  fSDVertexPosition.clear();
+  fSDVertexDirection.clear();
+  fSDVertexKineticEnergy.clear();
  
 }
 
@@ -144,6 +150,9 @@ G4SBSTrackInformation
   fSDPolarization = aTrackInfo->fSDPolarization;
   fSDEnergy = aTrackInfo->fSDEnergy;
   fSDTime = aTrackInfo->fSDTime;
+  fSDVertexPosition = aTrackInfo->fSDVertexPosition;
+  fSDVertexDirection = aTrackInfo->fSDVertexDirection;
+  fSDVertexKineticEnergy = aTrackInfo->fSDVertexKineticEnergy;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -183,7 +192,9 @@ G4SBSTrackInformation& G4SBSTrackInformation
   fSDPolarization = aTrackInfo.fSDPolarization;
   fSDEnergy = aTrackInfo.fSDEnergy;
   fSDTime = aTrackInfo.fSDTime;
-
+  fSDVertexPosition = aTrackInfo.fSDVertexPosition;
+  fSDVertexDirection = aTrackInfo.fSDVertexDirection;
+  fSDVertexKineticEnergy = aTrackInfo.fSDVertexKineticEnergy;
   return *this;
 }
 
@@ -225,6 +236,9 @@ void G4SBSTrackInformation::SetTrackSDInformation(G4String SDname, const G4Track
     fSDPolarization[SDname] = aTrack->GetPolarization();
     fSDEnergy[SDname] = aTrack->GetTotalEnergy();
     fSDTime[SDname] = aTrack->GetGlobalTime();
+    fSDVertexPosition[SDname] = aTrack->GetVertexPosition();
+    fSDVertexDirection[SDname] = aTrack->GetVertexMomentumDirection();
+    fSDVertexKineticEnergy[SDname] = aTrack->GetVertexKineticEnergy();
   }
 }
 

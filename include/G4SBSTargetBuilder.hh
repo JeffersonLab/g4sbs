@@ -44,11 +44,19 @@ public:
   void BuildGEnTarget(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_HelmholtzCoils(const int config,const std::string type,G4LogicalVolume *motherLog); 
   void BuildGEnTarget_Shield(const int config,G4LogicalVolume *motherLog); 
   void BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog); 
-  void BuildGEnTarget_PickupCoils(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_PickupCoils(G4LogicalVolume *motherLog);
+  void BuildGEnTarget_Collimators(G4LogicalVolume *motherLog,G4double z0=0);  
+  void BuildGEnTarget_Collimator_A(G4LogicalVolume *motherLog,G4double z0=0);  
+  void BuildGEnTarget_Collimator_B(G4LogicalVolume *motherLog,G4double z0=0);  
+  void BuildGEnTarget_Collimator_C(G4LogicalVolume *motherLog,G4double z0=0); 
+  void BuildGEnTarget_Collimator_Table(G4LogicalVolume *motherLog,G4double z0=0);
+
+  void CheckZPos(G4LogicalVolume *logicMother,G4double z0); // dummy function to check z positoning  
   
   void SetTarget(G4SBS::Targ_t t){fTargType = t;}
   void SetTargLen(G4double len){ fTargLen = len;}
@@ -105,6 +113,8 @@ private:
   G4bool fUseRad; //use radiator?
   G4double fRadThick; //Thickness in units of X0;
   G4double fRadZoffset;  //Distance upstream of target
+
+  G4double fGEn_GLASS_TUBE_LENGTH; // length of GEn 3He glass tube (target cell)  
   
   G4SBS::Targ_t fTargType;
 };

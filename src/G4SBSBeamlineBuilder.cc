@@ -1959,7 +1959,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4VisAttributes *Beryllium = new G4VisAttributes(G4Colour(1.0,0.,0.));
   G4VisAttributes *SteelColor = new G4VisAttributes(G4Colour(0.75,0.75,0.75));
 
-  G4double P0initPlacement_z = -13.9*inch; //JT file dimension
+  //G4double P0initPlacement_z = -13.9*inch; //JT file dimension
+  G4double P0initPlacement_z = -(23.62/2*inch) - 2.74*inch;  //From updated JT file. -(half target length) - offset to beampipe
   
   //Ring 0A - Most proximal ring to target chamber upstream
   G4double P0ringA_L = 0.5/2.0*inch;
@@ -1969,9 +1970,9 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   G4Tubs *P0ringA = new G4Tubs("P0ringA", P0ringA_rin, P0ringA_rou, P0ringA_L, 0.0*deg, 360.0*deg);
 
-  //Cut out disk - discrepancy here between cutout in print and cutout in JT file. Going with print for face, but the whole flange could attach to the front of the JT file geometry. In this case, will need length of cylinder to add. Will follow up.
+  //Cut out disk - discrepancy here between cutout in print and cutout in step file. Going with print for face, but the whole flange could attach to the front of the JT file geometry. In this case, will need length of cylinder to add. Will follow up. 10.26.20 - Confirmed. This Be housing ring attaches to the upstream beampipe flange directly.
 
-  //G4double P0disk_cut_L = 0.1/2.0*inch; //First cutaway per JT file
+  //G4double P0disk_cut_L = 0.1/2.0*inch; //First cutaway per step file
   G4double P0disk_cut_L = 0.020/2.0*inch; //0.030" (Nominal cut)  - 0.010" (Thickness of window). Ignoring any Be beyond the inner radius of the ring and setting it flush with the face.
   G4double P0disk_cut_rou = 2.105/2.0*inch;
   
@@ -1984,23 +1985,9 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   G4LogicalVolume *P0ringA_cutLog = new G4LogicalVolume(P0ringA_cut, GetMaterial("Aluminum"), "P0ringA_cut_log", 0, 0, 0);
 
-  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-P0ringA_L), P0ringA_cutLog, "P0ringA_cutLog_pv", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-P0ringA_L+2*P0ringA_L), P0ringA_cutLog, "P0ringA_cutLog_pv", worldlog, false, 0 , ChkOverlaps ); //Moving forward by one length to attach to proximal beampipe flange
 
-  /*
-  //Window is a dome - updating this Be disk code as approximation. Will leave as backup for now. sseeds 10.7.20
-
-  G4double P0disk_L = 0.010/2.0*inch;
-  G4double P0disk_rou = 2.105/2.0*inch;
-  G4double P0domeApprox = 0.096*inch;  //Shifting the disk back to the location of the vertex of the dome as an approximation.
-  
-  G4Tubs *P0disk = new G4Tubs("P0disk", 0.0, P0disk_rou, P0disk_L, 0.*deg, 360.*deg);
- 
-  G4LogicalVolume *P0diskLog = new G4LogicalVolume(P0disk, GetMaterial("Beryllium"), "P0disk_log", 0, 0, 0);
-
-  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z - P0disk_L - P0domeApprox), P0diskLog, "P0diskLog_pv", worldlog, false, 0 , ChkOverlaps );
-  */
-
-  //New information from Robin W., Bert M, and Chris S. - implementing Be "Dome" window upstream from dwg. no. 67507-0023
+  //Implementing Be "Dome" window upstream from dwg. no. 67507-0023
   G4double P0shell_w = 0.010*inch;
   G4double P0shell_r = 2.85*inch;
   G4double P0dome_r = 1.46/2.0*inch;
@@ -2015,7 +2002,19 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   G4LogicalVolume *P0domeALog = new G4LogicalVolume(P0domeA, GetMaterial("Beryllium"), "P0dome_log", 0, 0, 0);
 
-  new G4PVPlacement( P0dome_rot, G4ThreeVector( 0.0, 0.0, P0initPlacement_z+P0shell_r+P0shell_w-2.0*P0disk_cut_L-P0dome_vd), P0domeALog, "P0domeALog_pv", worldlog, false, 0, ChkOverlaps );
+  new G4PVPlacement( P0dome_rot, G4ThreeVector( 0.0, 0.0, P0initPlacement_z+P0shell_r+P0shell_w-2.0*P0disk_cut_L-P0dome_vd+2.0*P0ringA_L), P0domeALog, "P0domeALog_pv", worldlog, false, 0, ChkOverlaps ); //Moving forward by one length to attach to proximal beampipe flange
+
+  //Must add back the old P0 flange as the actual beampipe flange - flange length same as Be housing flange
+  G4double P0flange_rin = 1.46/2.0*inch; //New JT file confirms larger inner radius for pipe.
+  G4double P0flange_rou = 3.1/2.0*inch;
+
+  G4Tubs *P0flange = new G4Tubs("P0flange", P0flange_rin, P0flange_rou, P0ringA_L, 0.0*deg, 360*deg);
+
+  G4LogicalVolume *P0flangeLog = new G4LogicalVolume(P0flange, GetMaterial("Aluminum"), "P0flange_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-P0ringA_L), P0flangeLog, "P0flange_log_pv", worldlog, false, 0 , ChkOverlaps );
+  
+  
   
   //Tube 0A
   G4double P0tubeA_L = 1.0/2.0*inch;

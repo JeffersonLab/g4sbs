@@ -2002,7 +2002,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   G4LogicalVolume *P0domeALog = new G4LogicalVolume(P0domeA, GetMaterial("Beryllium"), "P0dome_log", 0, 0, 0);
 
-  new G4PVPlacement( P0dome_rot, G4ThreeVector( 0.0, 0.0, P0initPlacement_z+P0shell_r+P0shell_w-2.0*P0disk_cut_L-P0dome_vd+2.0*P0ringA_L), P0domeALog, "P0domeALog_pv", worldlog, false, 0, ChkOverlaps ); //Moving forward by one length to attach to proximal beampipe flange
+  new G4PVPlacement( P0dome_rot, G4ThreeVector( 0.0, 0.0, P0initPlacement_z+P0shell_r-2.0*P0disk_cut_L-P0dome_vd+2.0*P0ringA_L), P0domeALog, "P0domeALog_pv", worldlog, false, 0, ChkOverlaps ); //Moving forward by one length to attach to proximal beampipe flange  +P0shell_w
 
   //Must add back the old P0 flange as the actual beampipe flange - flange length same as Be housing flange
   G4double P0flange_rin = 1.46/2.0*inch; //New JT file confirms larger inner radius for pipe.
@@ -2013,9 +2013,14 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   G4LogicalVolume *P0flangeLog = new G4LogicalVolume(P0flange, GetMaterial("Aluminum"), "P0flange_log", 0, 0, 0);
 
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-P0ringA_L), P0flangeLog, "P0flange_log_pv", worldlog, false, 0 , ChkOverlaps );
-  
-  
-  
+  /*
+  //P0 Flange Vacuum
+  G4Tubs *P0flange_vac = new G4Tubs("P0flange_vac", 0.0, P0flange_rin, P0flange_L, 0.*deg, 360.*deg);
+
+  G4LogicalVolume *P0flange_vacLog = new G4LogicalVolume(P0flange_vac, GetMaterial("Vacuum"), "P0flange_vac_log", 0, 0, 0);
+
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0flange_L), P0flange_vacLog, "P0flange_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  */
   //Tube 0A
   G4double P0tubeA_L = 1.0/2.0*inch;
   G4double P0tubeA_rou = 1.66/2.0*inch;
@@ -2027,7 +2032,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-P0tubeA_L), P0tubeALog, "P0tubeALog_pv", worldlog, false, 0 , ChkOverlaps );
 
   //Vacuum 0A
-  G4Tubs *P0tubeA_vac = new G4Tubs("P0tubeA_vac", 0.0, P0ringA_rin, P0ringA_L+P0tubeA_L-P0disk_cut_L, 0.*deg, 360.*deg);
+  G4Tubs *P0tubeA_vac = new G4Tubs("P0tubeA_vac", 0.0, P0ringA_rin, 3.0*P0ringA_L+P0tubeA_L-P0disk_cut_L-P0shell_w, 0.*deg, 360.*deg);
 
   //need to subtract the volume walled off by the Be dome
 
@@ -2037,7 +2042,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   G4LogicalVolume *P0tubeA_winvacLog = new G4LogicalVolume(P0tubeA_winvac, GetMaterial("Vacuum"), "P0tubeA_winvac_log", 0, 0, 0);
 
-  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0disk_cut_L-(P0ringA_L+P0tubeA_L-P0disk_cut_L)), P0tubeA_winvacLog, "P0tubeA_winvacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0disk_cut_L-P0shell_w-(P0ringA_L+P0tubeA_L-P0disk_cut_L)+2.0*P0ringA_L), P0tubeA_winvacLog, "P0tubeA_winvacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
   //Vacuum 0A Ring - Probably don't need given the aperture size per print. This ring is most likely full of air near the target. sseeds
   //G4Tubs *P0ringA_vac = new G4Tubs("P0ringA_vac", P0ringA_rin, P0disk_cut_rou, P0disk_cut_L-P0disk_L, 0.*deg, 360.*deg);
@@ -2126,13 +2131,14 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){// for GEn
 
   
   //Section zero visual attributes
+  
   P0ringA_cutLog->SetVisAttributes( Aluminum);
-  //P0diskLog->SetVisAttributes( Beryllium);
   P0tubeALog->SetVisAttributes( Aluminum);
   P0tubeBLog->SetVisAttributes( Aluminum);
   P0tubeCLog->SetVisAttributes( Aluminum);
   P0ringBLog->SetVisAttributes( Aluminum);
   P0domeALog->SetVisAttributes( Beryllium);
+  P0flangeLog->GetVisAttributes( Aluminum);
   entLog->SetVisAttributes( SteelColor);
 
   /* //Removed this option after fixing upstream/downstream Be windows per dwg no's 131176 and 67507-0023. sseeds - 10.7.20

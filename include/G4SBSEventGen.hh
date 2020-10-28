@@ -250,7 +250,7 @@ private:
   bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
 
   // D Flay (10/15/20).  Generate random beam angle based on non-zero file input.  works for beam generator only
-  void CalculateBeamAngles(G4double bd_L);  
+  void CalculateBeamAnglesAndPositions(G4double bd_L,std::vector<G4double> &R,std::vector<G4double> &P);  
 
   G4bool fRejectionSamplingFlag; //Flag to turn on rejection sampling;
   G4double fMaxWeight; //Maximum event weight within generation limits

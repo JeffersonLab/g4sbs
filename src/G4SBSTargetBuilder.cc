@@ -4422,7 +4422,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_A(G4LogicalVolume *logicMothe
    G4VisAttributes *visBase = new G4VisAttributes(); 
    visBase->SetColour( G4Colour::Blue() ); 
  
-   G4LogicalVolume *colBase_A_LV = new G4LogicalVolume(colBase,GetMaterial("Aluminum"),"logicGEnTarget_colBase_A");
+   G4LogicalVolume *colBase_A_LV = new G4LogicalVolume(colBase,GetMaterial("NEMAG10"),"logicGEnTarget_colBase_A");
    colBase_A_LV->SetVisAttributes(visBase); 
 
    // placement 
@@ -4554,7 +4554,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_B(G4LogicalVolume *logicMothe
    G4VisAttributes *visBase = new G4VisAttributes(); 
    visBase->SetColour( G4Colour::Blue() ); 
  
-   G4LogicalVolume *colBase_B_LV = new G4LogicalVolume(colBase,GetMaterial("Aluminum"),"logicGEnTarget_colBase_B");
+   G4LogicalVolume *colBase_B_LV = new G4LogicalVolume(colBase,GetMaterial("NEMAG10"),"logicGEnTarget_colBase_B");
    colBase_B_LV->SetVisAttributes(visBase); 
 
    // placement 
@@ -4683,7 +4683,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_Collimator_C(G4LogicalVolume *logicMothe
    G4VisAttributes *visBase = new G4VisAttributes(); 
    visBase->SetColour( G4Colour::Blue() ); 
  
-   G4LogicalVolume *colBase_C_LV = new G4LogicalVolume(colBase,GetMaterial("Aluminum"),"logicGEnTarget_colBase_C");
+   G4LogicalVolume *colBase_C_LV = new G4LogicalVolume(colBase,GetMaterial("NEMAG10"),"logicGEnTarget_colBase_C");
    colBase_C_LV->SetVisAttributes(visBase); 
 
    // placement 

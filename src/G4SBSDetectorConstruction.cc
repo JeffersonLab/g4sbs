@@ -2316,7 +2316,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //For Epoxy let's use Epotek-301-1 properties from the particle data group:
   G4double epoxy_den = 1.190*g/cm3;
   G4double tungsten_den = 19.3*g/cm3;
-  G4double collimator_den = 10.0*g/cm3;
+  G4double collimator_den = 9.53*g/cm3; // from Bert Metzger's drawings (A09016-03-06-0211) // 10.0*g/cm3;
 
   // f*rho_epoxy + (1-f)*rho_W = rho_coll
   // f*(rho_epoxy - rho_W) = rho_coll - rho_W

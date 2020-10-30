@@ -692,7 +692,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
 void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
   
-  if( f48D48_fieldclamp_config == 1 ){ //BigBite: Field clamp version 1 (AFAIK) is obsolete.
+  if( false ){ //BigBite: Field clamp version 1 (AFAIK) is obsolete. Never build this...
 
     double clampdepth = 10.*cm;
     double clampoffset = 45*cm/2;
@@ -845,8 +845,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     frontclampLog->SetVisAttributes(clampVisAtt);
     frontextfaceLog->SetVisAttributes(clampVisAtt);
     backclampLog->SetVisAttributes(clampVisAtt);
-  } else if( f48D48_fieldclamp_config == 2  || f48D48_fieldclamp_config == 3) { // 2 == GEp, 3 == GMn
-   
+  } else if( f48D48_fieldclamp_config != 0 ) { // 2 == GEp, 3 == GMn
+
+    //Any non-zero value causes front clamp to be built: "2" causes both front and rear clamps to be built:
     G4double FrontClamp_width = 62.99*2.54*cm;
     G4double FrontClamp_height = 118.11*2.54*cm;
     G4double FrontClamp_depth = 3.94*2.54*cm;
@@ -899,47 +900,47 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     // Sorry in advance to whoemever is angry at the lack of indentation,
     // blame Linus for making git :D
     if( f48D48_fieldclamp_config == 2 ) { // GEp uses a back clamp too
-    ////REAR CLAMP:
-    G4double RearClamp_width = 105.12*2.54*cm;
-    G4double RearClamp_height = 114.96*2.54*cm;
-    G4double RearClamp_depth = 5.91*2.54*cm;
+      ////REAR CLAMP:
+      G4double RearClamp_width = 105.12*2.54*cm;
+      G4double RearClamp_height = 114.96*2.54*cm;
+      G4double RearClamp_depth = 5.91*2.54*cm;
 
-    G4Box *RearClamp_Box = new G4Box("RearClamp_Box", RearClamp_width/2.0, RearClamp_height/2.0, RearClamp_depth/2.0 );
+      G4Box *RearClamp_Box = new G4Box("RearClamp_Box", RearClamp_width/2.0, RearClamp_height/2.0, RearClamp_depth/2.0 );
     
-    G4double RearClamp_GapWidth = 18.11*2.54*cm;
-    G4double RearClamp_GapHeight = 51.18*2.54*cm;
-    G4double RearClamp_NotchWidth = 37.84*2.54*cm;
-    G4double RearClamp_NotchHeight = 39.37*2.54*cm;
+      G4double RearClamp_GapWidth = 18.11*2.54*cm;
+      G4double RearClamp_GapHeight = 51.18*2.54*cm;
+      G4double RearClamp_NotchWidth = 37.84*2.54*cm;
+      G4double RearClamp_NotchHeight = 39.37*2.54*cm;
 
-    G4double RearClamp_GapX = 36.61*2.54*cm; //This is the distance from the left edge of the rear clamp to the left edge of the opening.
+      G4double RearClamp_GapX = 36.61*2.54*cm; //This is the distance from the left edge of the rear clamp to the left edge of the opening.
 
-    G4Box *RearClamp_Gap = new G4Box("RearClamp_Gap", RearClamp_GapWidth/2.0, RearClamp_GapHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
+      G4Box *RearClamp_Gap = new G4Box("RearClamp_Gap", RearClamp_GapWidth/2.0, RearClamp_GapHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
 
-    G4SubtractionSolid *RearClamp_GapCutout = new G4SubtractionSolid( "RearClamp_GapCutout", RearClamp_Box, RearClamp_Gap, 0, 
-								      G4ThreeVector( -RearClamp_width/2.0 + RearClamp_GapX + RearClamp_GapWidth/2.0, 0.0, 0.0 ) );
+      G4SubtractionSolid *RearClamp_GapCutout = new G4SubtractionSolid( "RearClamp_GapCutout", RearClamp_Box, RearClamp_Gap, 0, 
+									G4ThreeVector( -RearClamp_width/2.0 + RearClamp_GapX + RearClamp_GapWidth/2.0, 0.0, 0.0 ) );
     
-    G4Box *RearClamp_Notch = new G4Box("RearClamp_Notch", RearClamp_NotchWidth/2.0+1.0*cm, RearClamp_NotchHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
+      G4Box *RearClamp_Notch = new G4Box("RearClamp_Notch", RearClamp_NotchWidth/2.0+1.0*cm, RearClamp_NotchHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
     
-    xnotch = -RearClamp_NotchWidth/2.0 + 1.0*cm + RearClamp_width/2.0;
+      xnotch = -RearClamp_NotchWidth/2.0 + 1.0*cm + RearClamp_width/2.0;
 
-    G4SubtractionSolid *RearClamp = new G4SubtractionSolid( "RearClamp", RearClamp_GapCutout, RearClamp_Notch, 0, 
-							    G4ThreeVector( xnotch, 0.0, 0.0 ) );
+      G4SubtractionSolid *RearClamp = new G4SubtractionSolid( "RearClamp", RearClamp_GapCutout, RearClamp_Notch, 0, 
+							      G4ThreeVector( xnotch, 0.0, 0.0 ) );
 
-    G4LogicalVolume *RearClamp_log = new G4LogicalVolume( RearClamp, GetMaterial("Fer"), "RearClamp_log" );
+      G4LogicalVolume *RearClamp_log = new G4LogicalVolume( RearClamp, GetMaterial("Fer"), "RearClamp_log" );
     
-    if(fDetCon->fTotalAbs) {
-      RearClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-    }
+      if(fDetCon->fTotalAbs) {
+	RearClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+      }
 
-    G4double RearClamp_zoffset = 11.43*2.54*cm + RearClamp_depth/2.0; 
-    G4double RearClamp_xoffset = -f48D48width/2.0 + RearClamp_width/2.0; 
-    G4double RearClamp_r = f48D48dist + f48D48depth + RearClamp_zoffset;
+      G4double RearClamp_zoffset = 11.43*2.54*cm + RearClamp_depth/2.0; 
+      G4double RearClamp_xoffset = -f48D48width/2.0 + RearClamp_width/2.0; 
+      G4double RearClamp_r = f48D48dist + f48D48depth + RearClamp_zoffset;
 
-    G4ThreeVector RearClamp_pos( -RearClamp_r*sin(f48D48ang) + RearClamp_xoffset*cos(f48D48ang), 0.0, RearClamp_r*cos(f48D48ang) + RearClamp_xoffset * sin(f48D48ang) );
+      G4ThreeVector RearClamp_pos( -RearClamp_r*sin(f48D48ang) + RearClamp_xoffset*cos(f48D48ang), 0.0, RearClamp_r*cos(f48D48ang) + RearClamp_xoffset * sin(f48D48ang) );
 
-    new G4PVPlacement( clamp_rot, RearClamp_pos, RearClamp_log, "RearClamp_phys", motherlog, false, 0, false );
+      new G4PVPlacement( clamp_rot, RearClamp_pos, RearClamp_log, "RearClamp_phys", motherlog, false, 0, false );
 
-    RearClamp_log->SetVisAttributes(clampVisAtt);
+      RearClamp_log->SetVisAttributes(clampVisAtt);
     } // Rear clamp log (GEp)
 
     //Make lead shielding in clamp:
@@ -1508,7 +1509,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     (HCalScintSD->detmap).depth = 1;
 
     //This will be overridden if the command /g4sbs/threshold has been invoked for this detector:
-    fDetCon->SetTimeWindowAndThreshold( HCalScintSDName, 10.0*MeV, 500.0*ns );
+    fDetCon->SetTimeWindowAndThreshold( HCalScintSDName, 0.0*MeV, 500.0*ns );
   }
   log_Scint->SetSensitiveDetector(HCalScintSD);
   fDetCon->InsertSDboundaryVolume( log_HCAL->GetName(), HCalScintSDName );
@@ -1807,7 +1808,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 
     (HCalScintSD->detmap).depth = 1;
 
-    fDetCon->SetTimeWindowAndThreshold( HCalScintSDname, 10.0*MeV, 100.0*ns );
+    fDetCon->SetTimeWindowAndThreshold( HCalScintSDname, 0.0*MeV, 100.0*ns );
   }
   logScinPl->SetSensitiveDetector(HCalScintSD);
 
@@ -3114,7 +3115,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
 
-    fDetCon->SetTimeWindowAndThreshold( sdname, 4.0*MeV, 50.0*ns );
+    fDetCon->SetTimeWindowAndThreshold( sdname, 0.0*MeV, 50.0*ns );
   }
   
   //Now we need to define the coordinates of the "modules":
@@ -4132,7 +4133,7 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
     fDetCon->SDtype[LACScintSDname] = G4SBS::kCAL;
     (LACScintSD->detmap).depth = 0;
 
-    fDetCon->SetTimeWindowAndThreshold( LACScintSDname, 10.0*MeV, 100.0*ns );
+    fDetCon->SetTimeWindowAndThreshold( LACScintSDname, 0.0*MeV, 100.0*ns );
   }
 
   fDetCon->InsertSDboundaryVolume( log_LAC->GetName(), LACScintSDname );

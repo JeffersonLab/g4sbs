@@ -78,7 +78,8 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     BuildGEnTarget(worldlog);  
     break;
   case(G4SBS::kSIDISExp):
-    BuildGasTarget( worldlog );
+    //BuildGasTarget( worldlog );
+    BuildGEnTarget(worldlog);
     break;
   default: //GMN, GEN-RP:
     BuildStandardScatCham( worldlog );
@@ -2318,24 +2319,27 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    if(config==G4SBS::kGEN_1018) Q2 = 10.18;
    G4cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = " << Q2 << " (GeV/c)^2" << G4endl; 
 
-   BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
-   BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);
-   BuildGEnTarget_HelmholtzCoils(config,"min",motherLog);
+   //For now, omit TBD details of everything other than target for SIDIS:
+   if( fDetCon->fExpType == G4SBS::kGEN ){
+   
+     BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
+     BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);
+     BuildGEnTarget_HelmholtzCoils(config,"min",motherLog);
 
-   // magnetic shield
-   // config = kGEN_new; // for when the shield design is finalized  
-   BuildGEnTarget_Shield(config,motherLog);
+     // magnetic shield
+     // config = kGEN_new; // for when the shield design is finalized  
+     BuildGEnTarget_Shield(config,motherLog);
 
-   // target ladder 
-   BuildGEnTarget_LadderPlate(motherLog);
+     // target ladder 
+     BuildGEnTarget_LadderPlate(motherLog);
 
-   // pickup coils 
-   BuildGEnTarget_PickupCoils(motherLog);
+     // pickup coils 
+     BuildGEnTarget_PickupCoils(motherLog);
 
-   // monolithic collimators  
-   bool enableCol = fDetCon->GetGEnTargetCollimatorEnable();
-   if(enableCol) BuildGEnTarget_Collimators(motherLog);
-
+     // monolithic collimators  
+     bool enableCol = fDetCon->GetGEnTargetCollimatorEnable();
+     if(enableCol) BuildGEnTarget_Collimators(motherLog);
+   }
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){

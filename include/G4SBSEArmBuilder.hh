@@ -42,6 +42,7 @@ public:
   void SetDVCSECalMaterial(G4String str){ fDVCSECalMaterial = str; }
   void MakeBBSieveSlit(G4LogicalVolume *, G4ThreeVector);
   void MakeNewBBSieveSlit(G4LogicalVolume *, G4ThreeVector);
+  void MakeThirdBBSieveSlit(G4LogicalVolume *, G4ThreeVector);
 
   void SetGRINCHgas( G4String str ){ fGRINCHgas = str; }
   void SetGrinchPMTglassHits(bool b ){ fTurnOnGrinchPMTglassHits = b; }

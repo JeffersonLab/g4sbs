@@ -77,6 +77,15 @@ void G4SBSSDTrackOutput::Clear(){
   sdenergy.clear();
   sdtime.clear();
 
+  //New vertex info:
+  sdvx.clear();
+  sdvy.clear();
+  sdvz.clear();
+  sdvnx.clear();
+  sdvny.clear();
+  sdvnz.clear();
+  sdEkin.clear();
+  
   //maps:
   otracklist.clear();
   ptracklist.clear();
@@ -130,6 +139,12 @@ void G4SBSSDTrackOutput::ConvertToTreeUnits(){
 
     sdenergy[i] /= CLHEP::GeV;
     sdtime[i] /= CLHEP::ns;
+
+    sdvx[i] /= CLHEP::m;
+    sdvy[i] /= CLHEP::m;
+    sdvz[i] /= CLHEP::m;
+
+    sdEkin[i] /= CLHEP::GeV;
   }
 }
 
@@ -260,6 +275,19 @@ G4int G4SBSSDTrackOutput::InsertSDTrackInformation( G4Track *aTrack ){
     
     sdenergy.push_back( (aTrackInfo->fSDEnergy)[sdname] );
     sdtime.push_back( (aTrackInfo->fSDTime)[sdname] );
+
+    postemp = (aTrackInfo->fSDVertexPosition)[sdname];
+    momtemp = (aTrackInfo->fSDVertexDirection)[sdname];
+
+    sdvx.push_back( postemp.x() );
+    sdvy.push_back( postemp.y() );
+    sdvz.push_back( postemp.z() );
+
+    sdvnx.push_back( momtemp.x() );
+    sdvny.push_back( momtemp.y() );
+    sdvnz.push_back( momtemp.z() );
+
+    sdEkin.push_back( (aTrackInfo->fSDVertexKineticEnergy)[sdname] );
     
     nsdtracks++;
 
@@ -376,6 +404,18 @@ void G4SBSSDTrackOutput::Merge( G4SBSSDTrackOutput &sd ){
 
 	sdenergy.push_back( sd.sdenergy[idx] );
 	sdtime.push_back( sd.sdtime[idx] );
+
+	//new vertex info:
+	sdvx.push_back( sd.sdvx[idx] );
+	sdvy.push_back( sd.sdvy[idx] );
+	sdvz.push_back( sd.sdvz[idx] );
+
+	sdvnx.push_back( sd.sdvnx[idx] );
+	sdvny.push_back( sd.sdvny[idx] );
+	sdvnz.push_back( sd.sdvnz[idx] );
+
+	sdEkin.push_back( sd.sdEkin[idx] );
+	
       
 	nsdtracks++;
 	

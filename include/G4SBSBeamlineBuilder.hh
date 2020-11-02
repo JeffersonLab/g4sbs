@@ -30,6 +30,9 @@ private:
   void MakeDefaultBeamline(G4LogicalVolume *);// Old beam line...
   void MakeToyBeamline(G4LogicalVolume *); // "Toy" beam line for playing around with extreme forward angles of detectors, etc:
 
+  // Functions added by sseeds (Oct 2020)
+  void MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4double z0=0, G4double dz=0); //z0 = global offset first magnet; dz = offset between first and second magnets
+
   // Functions added by D Flay (Sept 2020)
   // dummy function for checking positions 
   void CheckZPos(G4LogicalVolume *logicMother,G4double z0=0);    

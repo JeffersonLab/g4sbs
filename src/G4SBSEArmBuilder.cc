@@ -789,7 +789,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     fDetCon->SDtype[BBHodoScintSDname] = G4SBS::kCAL;
     (BBHodoScintSD->detmap).depth = 0;
 
-    G4double ethresh_default = 5.0*MeV;
+    G4double ethresh_default = 0.0*MeV;
     G4double timewindow_default = 30.0*ns;
     
     fDetCon->SetTimeWindowAndThreshold( BBHodoScintSDname, ethresh_default, timewindow_default );
@@ -882,7 +882,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     fDetCon->SDtype[BBSHTF1SDname] = G4SBS::kCAL;
     (BBSHTF1SD->detmap).depth = 1;
 
-    G4double threshold_default = 10.0*MeV; //1% of 1 GeV
+    G4double threshold_default = 0.0*MeV; //1% of 1 GeV
     G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape. 
     
     fDetCon->SetTimeWindowAndThreshold( BBSHTF1SDname, threshold_default, timewindow_default );
@@ -997,7 +997,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     (BBPSTF1SD->detmap).depth = 1;
 
     //Photoelectron yield is approximately 500/GeV (or so)
-    G4double threshold_default = 10.0*MeV; //1% of 1 GeV
+    G4double threshold_default = 0.0*MeV; //1% of 1 GeV
     G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
 
     fDetCon->SetTimeWindowAndThreshold( BBPSTF1SDname, threshold_default, timewindow_default );
@@ -1530,7 +1530,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
       fDetCon->SDtype[C16TF1SDname] = G4SBS::kCAL;
       (C16TF1SD->detmap).depth = 1;
 
-      G4double default_threshold = 10.0*MeV;
+      G4double default_threshold = 0.0*MeV;
       G4double default_timewindow = 100.0*ns;
 
       fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
@@ -1634,7 +1634,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
       fDetCon->SDtype[C16TF1SDname] = G4SBS::kCAL;
       (C16TF1SD->detmap).depth = 0;
 
-      G4double default_threshold = 10.0*MeV;
+      G4double default_threshold = 0.0*MeV;
       G4double default_timewindow = 100.0*ns;
 
       fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
@@ -1981,7 +1981,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
     (ECalTF1SD->detmap).depth = 1;
 
     G4double default_timewindow = 100.0*ns;
-    G4double default_threshold  = 10.0*MeV;
+    G4double default_threshold  = 0.0*MeV;
 
     fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, default_threshold, default_timewindow );
   }

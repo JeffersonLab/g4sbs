@@ -533,7 +533,19 @@ G4SBSMessenger::G4SBSMessenger(){
   GEMfrontendCmd = new G4UIcmdWithABool("/g4sbs/buildGEMfrontend",this);
   GEMfrontendCmd->SetGuidance("build GEM front end for GMn or GEp");
   GEMfrontendCmd->SetParameterName("switch", false);
-
+  
+  GEMfrontendDistCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/GEMfrontendDist",this);
+  GEMfrontendDistCmd->SetGuidance("GEM front end distance");
+  GEMfrontendDistCmd->SetParameterName("GEMfrontendDist", false);
+  
+  GEMfrontendPosAngleCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/GEMfrontendPosang",this);
+  GEMfrontendPosAngleCmd->SetGuidance("GEM front end position angle");
+  GEMfrontendPosAngleCmd->SetParameterName("GEMfrontendPosAngle", false);
+  
+  GEMfrontendRotAngleCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/GEMfrontendRotang",this);
+  GEMfrontendRotAngleCmd->SetGuidance("GEM front end position angle");
+  GEMfrontendRotAngleCmd->SetParameterName("GEMfrontendRotAngle", false);
+  
   SetGrinchPMTglassHitsCmd = new G4UIcmdWithABool("/g4sbs/GrinchPMTglassHits",this);
   SetGrinchPMTglassHitsCmd->SetGuidance("build GEM front end for GMn or GEp");
   SetGrinchPMTglassHitsCmd->SetParameterName("switch", false);  
@@ -1767,6 +1779,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == GEMfrontendCmd ){
     G4bool v = GEMfrontendCmd->GetNewBoolValue(newValue);
     fdetcon->fEArmBuilder->SetGEMfrontend(v);
+  }
+  
+  if( cmd == GEMfrontendDistCmd ){
+    G4double v = GEMfrontendDistCmd->GetNewDoubleValue(newValue);
+    fdetcon->fEArmBuilder->fGEMfrontendDist = v;
+  }
+  
+  if( cmd == GEMfrontendPosAngleCmd ){
+    G4double v = GEMfrontendPosAngleCmd->GetNewDoubleValue(newValue);
+    fdetcon->fEArmBuilder->fGEMfrontendPosAngle = v;
+  }
+  
+ if( cmd == GEMfrontendRotAngleCmd ){
+    G4double v = GEMfrontendRotAngleCmd->GetNewDoubleValue(newValue);
+    fdetcon->fEArmBuilder->fGEMfrontendRotAngle = v;
   }
   
   if( cmd == SetGrinchPMTglassHitsCmd ){

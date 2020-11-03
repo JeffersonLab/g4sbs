@@ -106,6 +106,11 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fTurnOnGrinchPMTglassHits = false;// turn it off by default
   
   fBuildGEMfrontend = false; // do not build it by default  
+  fGEMfrontendDist = 677.420*cm;
+  G4cout << " GEM hut position Distance? " << fGEMfrontendDist/cm << G4endl;
+  
+  fGEMfrontendPosAngle = 45.4555*deg;
+  fGEMfrontendRotAngle = -fGEMfrontendPosAngle;
   fBBPSOption = 2;
 }
 
@@ -139,7 +144,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       ECal->BuildComponent(worldlog);
       //MakeC16( worldlog );
     }
-  if( (exptype == G4SBS::kGMN || exptype == G4SBS::kGEnRP) && fBuildGEMfrontend )  MakeGMnGEMShielding( worldlog );
+  if( (exptype == G4SBS::kGMN || exptype == G4SBS::kGEN || exptype == G4SBS::kGEnRP) && fBuildGEMfrontend )  MakeGMnGEMShielding( worldlog );
   
   if( exptype == G4SBS::kNDVCS ){
     MakeDVCSECal(worldlog);
@@ -3574,17 +3579,18 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
   // assumption that y is "up" and x is beam-left
 
   G4double inch = 2.54*cm;
-  double x =  190.0795 * inch;
+  double x =  fGEMfrontendDist*sin(fGEMfrontendPosAngle);//190.0795 * inch;
   double y = -105.6100 * inch; // + ShieldMotherY/2.0;
-  double z =  187.0807 * inch;
+  double z =  fGEMfrontendDist*cos(fGEMfrontendPosAngle);//187.0807 * inch;
+  G4cout << " GEM hut position in cm (x, y, z) " << x/cm << " " << y/cm << " " << z/cm << ", Distance? " << fGEMfrontendDist/cm << G4endl;
   G4ThreeVector pos_mom(x,y,z);
 
   G4ThreeVector pos_temp(x,0,z);
-  G4ThreeVector punit = pos_temp.unit();
-  double theta = acos(punit.z());
+  //G4ThreeVector punit = pos_temp.unit();
+  //double theta = acos(punit.z());
 
   G4RotationMatrix *hutrm = new G4RotationMatrix;
-  hutrm->rotateY(-theta);
+  hutrm->rotateY(fGEMfrontendRotAngle);
   
   // **** Estimation ****
   // Bogdan literally told me to look at a printed engineering document 

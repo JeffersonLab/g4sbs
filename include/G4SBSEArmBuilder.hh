@@ -87,6 +87,9 @@ public:
   G4bool fTurnOnGrinchPMTglassHits;
   
   G4bool fBuildGEMfrontend;
+  G4double fGEMfrontendDist;
+  G4double fGEMfrontendPosAngle;
+  G4double fGEMfrontendRotAngle;
   
 private:
 };

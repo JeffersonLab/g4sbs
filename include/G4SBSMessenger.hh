@@ -214,7 +214,11 @@ private:
  
   G4UIcmdWithABool *BLneutronDetsCmd;
   G4UIcmdWithABool *GEMfrontendCmd;
-  
+
+  G4UIcmdWithADoubleAndUnit *GEMfrontendDistCmd;
+  G4UIcmdWithADoubleAndUnit *GEMfrontendPosAngleCmd;
+  G4UIcmdWithADoubleAndUnit *GEMfrontendRotAngleCmd;
+    
   G4UIcmdWithABool *SetGrinchPMTglassHitsCmd;
 
   G4UIcmdWithABool *buildSBSsieveCmd; //Build the SBS Sieve slit

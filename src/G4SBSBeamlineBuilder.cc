@@ -2859,7 +2859,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   G4double P5ringD_rou = 8.25*inch; //CJT
   //G4double P5ringD_L = 2.487*inch;
   //G4double P5ringD_L = 2.260/2*inch; //CJT
-  G4double P5ringD_L = 1.130/2*inch; //CJT - ignoring the adjacent flange as it is included in target to midpipe geometry within exit beamline 
+  G4double P5ringD_L = 1.120/2*inch; //CJT - ignoring the adjacent flange as it is included in target to midpipe geometry within exit beamline 
   P5placement += 2.0*P5ringC_L;
 
   G4Tubs *P5ringD = new G4Tubs("P5ringD", P5ringD_rin, P5ringD_rou, P5ringD_L, 0.*deg, 360.*deg);

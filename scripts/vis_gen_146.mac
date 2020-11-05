@@ -66,7 +66,13 @@
 /g4sbs/ionChamberZ  100 cm 
 /g4sbs/ionChamberRX 0   deg
 /g4sbs/ionChamberRY 10  deg
-/g4sbs/ionChamberRZ 0   deg 
+/g4sbs/ionChamberRZ 0   deg
+
+/g4sbs/beamCollimatorEnable true
+# position 1
+/g4sbs/beamCollimatorX   0  cm
+/g4sbs/beamCollimatorY   0  cm
+/g4sbs/beamCollimatorZ  -40 cm 
 
 /g4sbs/totalabs true
 

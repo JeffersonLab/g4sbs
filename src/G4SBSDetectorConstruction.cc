@@ -139,6 +139,13 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fIonChamberRY     = 0;  
   fIonChamberRZ     = 0;  
 
+  // D. Flay (11/5/20) 
+  // beam collimator (testing) 
+  fBeamCollimatorEnable = false; 
+  fBeamCollimatorX      = 0;  
+  fBeamCollimatorY      = 0;  
+  fBeamCollimatorZ      = 0;  
+
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -2330,6 +2337,11 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   TargetCollimator_Material->AddElement( elW, fractionmass = 1.0-massfrac_epoxy );
 
   fMaterialsMap["TargetCollimator_Material"] = TargetCollimator_Material;
+
+  // [for a test object] pure tungsten for a target collimator  
+  G4Material *TargetBeamCollimator = new G4Material("TargetBeamCollimator_Material",tungsten_den,1); 
+  TargetBeamCollimator->AddElement(elW,1); 
+  fMaterialsMap["TargetBeamCollimator_Material"] = TargetBeamCollimator; 
   
 }
 

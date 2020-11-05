@@ -2340,6 +2340,10 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    bool enableIC = fDetCon->GetIonChamberEnable(); 
    if(enableIC) BuildGEnTarget_IonChamber(motherLog); 
 
+   // beam collimator (for test purposes) 
+   bool enableBC = fDetCon->GetBeamCollimatorEnable(); 
+   if(enableBC) BuildGEnTarget_BeamCollimator(motherLog); 
+
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
@@ -4930,6 +4934,45 @@ void G4SBSTargetBuilder::BuildGEnTarget_IonChamber(G4LogicalVolume *motherLog){
      (fDetCon->SDlist).insert(icSDname);
      fDetCon->SDtype[icSDname] = G4SBS::kIC;
    }
+
+}
+
+void G4SBSTargetBuilder::BuildGEnTarget_BeamCollimator(G4LogicalVolume *motherLog){
+   // a test device to test out collimator ideas
+   // to prevent target scraping  
+
+   // solid (arbitrary size)  
+   G4double length   = 1.*cm;
+   G4double r_max    = 0.5*(30*mm);
+   G4double r_min    = 0.5*(15*mm);
+   G4double startPhi = 0.*deg;
+   G4double dPhi     = 360.*deg;
+   G4Tubs *solidBC   = new G4Tubs("solidBC",r_min,r_max,length/2.,startPhi,dPhi);
+
+   // visualization 
+   G4VisAttributes *vis = new G4VisAttributes();
+   vis->SetColour( G4Colour::Red() ); 
+
+   // logical volume
+   G4LogicalVolume *bc_LV = new G4LogicalVolume(solidBC,GetMaterial("TargetBeamCollimator_Material"),"logicGEnTarget_beamCollimator");
+   bc_LV->SetVisAttributes(vis); 
+
+   // placement (from macro file) 
+   G4double x = fDetCon->GetBeamCollimatorX(); 
+   G4double y = fDetCon->GetBeamCollimatorY(); 
+   G4double z = fDetCon->GetBeamCollimatorZ(); 
+   G4ThreeVector P = G4ThreeVector(x,y,z);
+
+   bool checkOverlaps = true;
+
+   new G4PVPlacement(0,                              // rotation
+                     P,                              // position      
+                     bc_LV,                          // logical volume     
+                     "physGEnTarget_beamCollimator", // name      
+                     motherLog,                      // mother logical volume      
+                     false,                          // is it a boolean solid?    
+                     0,                              // copy number    
+                     checkOverlaps);                 // check for overlaps 
 
 }
 

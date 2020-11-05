@@ -103,6 +103,17 @@ public:
   void SetIonChamberRZ(double v)         { fIonChamberRZ = v;    } 
   G4double GetIonChamberRZ()       const { return fIonChamberRZ; } 
 
+  // D. Flay (11/5/20). Beam collimator (for GEn)   
+  void SetBeamCollimatorEnable(bool v)       { fBeamCollimatorEnable = v; } 
+  G4bool GetBeamCollimatorEnable()     const { return fBeamCollimatorEnable; } 
+  // positions 
+  void SetBeamCollimatorX(double v)          { fBeamCollimatorX = v;    } 
+  G4double GetBeamCollimatorX()        const { return fBeamCollimatorX; } 
+  void SetBeamCollimatorY(double v)          { fBeamCollimatorY = v;    } 
+  G4double GetBeamCollimatorY()        const { return fBeamCollimatorY; } 
+  void SetBeamCollimatorZ(double v)          { fBeamCollimatorZ = v;    } 
+  G4double GetBeamCollimatorZ()        const { return fBeamCollimatorZ; } 
+
   void SetTotalAbs(bool b){ fTotalAbs= b; }
   void SetCheckOverlap(bool b){ fCheckOverlap = b; }
 
@@ -234,6 +245,10 @@ private:
   G4bool fIonChamberEnable; 
   G4double fIonChamberX ,fIonChamberY ,fIonChamberZ;  
   G4double fIonChamberRX,fIonChamberRY,fIonChamberRZ;  
+
+  // D. Flay (11/5/20).  GEn beam collimator  
+  G4bool fBeamCollimatorEnable; 
+  G4double fBeamCollimatorX,fBeamCollimatorY,fBeamCollimatorZ;  
 
 };
 

@@ -225,6 +225,13 @@ private:
   G4UIcmdWithADoubleAndUnit *ionChamberRXCmd; 
   G4UIcmdWithADoubleAndUnit *ionChamberRYCmd; 
   G4UIcmdWithADoubleAndUnit *ionChamberRZCmd; 
+
+  // D. Flay 11/5/20 
+  // beam collimator (for GEn) 
+  G4UIcmdWithABool *beamCollimatorEnableCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorXCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorYCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorZCmd; 
  
   G4UIcmdWithABool *BLneutronDetsCmd;
   G4UIcmdWithABool *GEMfrontendCmd;

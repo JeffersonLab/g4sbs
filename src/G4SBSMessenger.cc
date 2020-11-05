@@ -185,6 +185,25 @@ G4SBSMessenger::G4SBSMessenger(){
   ionChamberRZCmd->SetGuidance("Ion chamber angle about z");
   ionChamberRZCmd->SetParameterName("ionChamberRZ",false); // must provide input  
 
+  // D. Flay (11/5/20) 
+  // ruidmentary beam collimator for the GEn target  
+  beamCollimatorEnableCmd = new G4UIcmdWithABool("/g4sbs/beamCollimatorEnable",this);
+  beamCollimatorEnableCmd->SetGuidance("Enable a beam collimator for the GEn target");
+  beamCollimatorEnableCmd->SetParameterName("beamCollimatorEnable",false); // must provide input 
+  // coordinates
+  // -x 
+  beamCollimatorXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorX",this);
+  beamCollimatorXCmd->SetGuidance("Beam collimator coordinate");
+  beamCollimatorXCmd->SetParameterName("beamCollimatorX",false); // must provide input 
+  // - y 
+  beamCollimatorYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorY",this);
+  beamCollimatorYCmd->SetGuidance("Beam collimator y coordinate");
+  beamCollimatorYCmd->SetParameterName("beamCollimatorY",false); // must provide input  
+  // - z 
+  beamCollimatorZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorZ",this);
+  beamCollimatorZCmd->SetGuidance("Beam collimator z coordinate");
+  beamCollimatorZCmd->SetParameterName("beamCollimatorZ",false); // must provide input  
+
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
   kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
   kineCmd->SetParameterName("kinetype", false);
@@ -1325,6 +1344,25 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == ionChamberRZCmd ){ 
      G4double icrz = ionChamberRZCmd->GetNewDoubleValue(newValue);
      fdetcon->SetIonChamberRZ(icrz);  
+  }
+
+  // D. Flay (11/5/20) 
+  // [GEn target] beam collimator enable  
+  if( cmd == beamCollimatorEnableCmd ){ 
+     G4bool bcEnable = beamCollimatorEnableCmd->GetNewBoolValue(newValue);
+     fdetcon->SetBeamCollimatorEnable(bcEnable);  
+  }
+  if( cmd == beamCollimatorXCmd ){ 
+     G4double bcx = beamCollimatorXCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorX(bcx);  
+  }
+  if( cmd == beamCollimatorYCmd ){ 
+     G4double bcy = beamCollimatorYCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorY(bcy);  
+  }
+  if( cmd == beamCollimatorZCmd ){ 
+     G4double bcz = beamCollimatorZCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorZ(bcz);  
   }
 
   if( cmd == bbfieldCmd ){

@@ -4677,14 +4677,14 @@ void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother,G4double dz
    // previously: dz set to 7 inches to avoid overlaps with P5ringD_vacLog_pv 
 
    G4double inch   = 2.54*cm; 
-   //G4double dz2    = 1.5*cm;         // FIXME: still an overlap despite 6.5" from dz??  adjusting here for simplicity...
-   G4double dz2    = 0.0*cm;         // FIXME: still an overlap despite 6.5" from dz??  adjusting here for simplicity...   
+   //G4double dz2    = 1.5*cm; // FIXME: still an overlap despite 6.5" from dz??  adjusting here for simplicity...
+   G4double dz2    = 0*mm;            
    G4double z_tmp  = 207.179*inch + dz + dz2;  
-   G4double z_mpd  = 749.4997*inch; // derived, based on numbers from Ron Lassiter (see MakeBeamDump)  
+   G4double z_mpd  = 749.4997*inch + dz2; // derived, based on numbers from Ron Lassiter (see MakeBeamDump)  
    // CheckZPos(logicMother,z_bd); 
    MakeBeamExit_TargetToMidPipe(logicMother,z_tmp);  
    MakeBeamExit_MidPipeToDump(logicMother,z_mpd); 
-   if(fDetCon->GetBeamDumpEnable()) MakeBeamDump(logicMother); 
+   if(fDetCon->GetBeamDumpEnable()) MakeBeamDump(logicMother,dz2); 
 }
 
 void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMother,G4double z0){
@@ -4705,7 +4705,8 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    G4double TOTAL_LENGTH = 0;  
 
    // visualization 
-   G4VisAttributes *AlColor = new G4VisAttributes( G4Colour(0.3,0.3,1.0) );
+   // G4VisAttributes *AlColor = new G4VisAttributes( G4Colour(0.3,0.3,1.0) );
+   G4VisAttributes *AlColor = new G4VisAttributes( G4Colour::Green() );
    // G4VisAttributes *vis_vac = new G4VisAttributes( G4Colour(0.1,0.5,0.9) );
    G4VisAttributes *vis_vac = new G4VisAttributes();
   
@@ -4760,7 +4761,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
    // - Drawing A00000-02-08-0900
    G4double r_min_06a         = 0.5*11.28*inch;  
    G4double r_max_06a         = 0.5*16.50*inch; 
-   G4double len_06a           = 0.5*inch;             // FIXME: arbitrary  
+   G4double len_06a           = 1.12*inch;   
    G4Tubs *solidTube06a       = new G4Tubs("solidTube06a",r_min_06a,r_max_06a,len_06a/2.,startPhi,dPhi); 
    TOTAL_LENGTH += len_06a;
    // vacuum insert  
@@ -4980,7 +4981,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMoth
    G4VisAttributes *vis_vac = new G4VisAttributes();
   
    // from drawing A00000-02-02-0001 [rev]
-   G4double delta  = 96.62*inch; // 235.0*mm;     // FIXME: Arbitrary fudge factor to make everything connect from tgtMidPipe to dump  
+   G4double delta  = 103.75*inch; // 96.62*inch; // 235.0*mm;     // FIXME: Arbitrary fudge factor to make everything connect from tgtMidPipe to dump  
    G4double r_min  = 0.5*42.88*inch; // 0.5*36.00*inch; // 0.5*42.94*inch;  
    G4double r_max  = 0.5*(42.88*inch + 2.*wall); // 0.5*43.00*inch; 
    G4double len    = 302.98*inch + delta;

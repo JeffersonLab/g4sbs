@@ -1917,11 +1917,14 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   G4VisAttributes *DebugRed = new G4VisAttributes(G4Colour(1.0,0.,0.));
   G4VisAttributes *Beryllium = new G4VisAttributes(G4Colour(1.0,0.,0.));
   G4VisAttributes *SteelColor = new G4VisAttributes(G4Colour(0.75,0.75,0.75));
- 
+  
   //Section Zero
   //This section details all components of the enterance beamline from the target chamber upstream.
-
-  G4double P0initPlacement_z = -(23.62/2*inch) - 2.66*inch;  //From updated CJT file. -(half target length) - offset to beampipe flange
+  
+  //CJT taking distance measurements from the target cylinder, not the end. The radius of the hemisphere in CJT is 0.41". Must subtract this from the total target length for calculation of offsets.
+  G4double targetEndOffset_z = 22.8/2.0*inch; //(23.62"-2*0.41")/2
+  //G4double P0initPlacement_z = -(23.62/2*inch) - 2.66*inch;  //From updated CJT file. -(half target length) - offset to beampipe flange
+  G4double P0initPlacement_z = -(targetEndOffset_z) - 2.66*inch;
   
   //Ring 0A - Be window housing flange. Most proximal piece to target. Bolted to beampipe flange.
   G4double P0ringA_L = 0.510/2.0*inch;
@@ -2100,7 +2103,9 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   //Section One
   //This section details all components of the exit beamline from the target chamber to the first cone and shielding including all simple cylinders. All labels numbered by proximity to target chamber.
 
-  G4double initPlacement_z = (23.62/2.0*inch)+6.267*inch; //CJT -> half target length + target to tube 1A
+  //G4double targetEndOffset_z = 22.8/2.0*inch;
+  //G4double initPlacement_z = (23.62/2.0*inch)+6.267*inch; //CJT -> half target length + target to tube 1A
+  G4double initPlacement_z = (targetEndOffset_z)+6.267*inch; //CJT -> half target length + target to tube 1A
   
   //General Specifications
   G4double P1tubeTh = 0.035*inch;
@@ -2468,7 +2473,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   //===== DOWNSTREAM - PIPE - US MIDDLE CONE =====//
   
   //General
-  G4double P2initPlacement_z = (23.62/2.0*inch)+51.934*inch; //CJT -> Half target length + target to tube 1A + length of first weldment and flanges 
+  //G4double targetEndOffset_z = 22.8/2.0*inch;
+  G4double P2initPlacement_z = (targetEndOffset_z)+51.934*inch; //CJT -> Half target length + target to tube 1A + length of first weldment and flanges 
   G4double P2_offset = 0.451*inch; //CJT -> Gap between start of inner cone and outer-cone/mag-shielding
   G4VisAttributes *DebugGreen = new G4VisAttributes(G4Colour(0.0,1.0,0.0)); //Debug option left in
   
@@ -2583,7 +2589,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   //===== DOWNSTREAM - PIPE - MIDDLE MIDDLE CONE =====//
   
   //General specifications - ordered first from inside to out then from target-proximal to distant
-  G4double P3initPlacement_z = (23.62/2.0*inch)+102.385*inch; //Direct CJT measure
+  //G4double targetEndOffset_z = 22.8/2.0*inch;
+  G4double P3initPlacement_z = (targetEndOffset_z)+102.385*inch; //Direct CJT measure
 
   //Inner cone included in section one code
 
@@ -2682,7 +2689,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   //G4double P2P4displacement = 122.141*inch;
   G4double P2P4displacement = 122.451*inch;  //CJT
-  G4double P4initPlacement_z = (23.62/2.0*inch)+174.385*inch; //Direct CJT measure
+  //G4double targetEndOffset_z = 22.8/2.0*inch;
+  G4double P4initPlacement_z = (targetEndOffset_z)+174.385*inch; //Direct CJT measure
   
   //Inner cone included in section one code
 
@@ -2770,9 +2778,10 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   //===== MOUNTING PLATES - DS SECTION - END =====//
   
   //P5 Endcap
-
+  
   //General Specifications
-  G4double P5initPlacement_z = (23.62/2.0*inch)+189.735*inch; //Direct CJT measure
+  //G4double targetEndOffset_z = 22.8/2.0*inch;
+  G4double P5initPlacement_z = (targetEndOffset_z)+189.735*inch; //Direct CJT measure
   G4double P5placement = P5initPlacement_z;
   
   //Ring A
@@ -2842,14 +2851,15 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   //Place ring C vacuum
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5placement+P5ringC_L), P5ringC_vacLog, "P5ringC_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
-
+  
   //Ring D - Combining two flanges, simplifying rin (slightly smaller 5.875" CJT actual for second half)
   //G4double P5ringD_rin = 12.710/2*inch; 
   G4double P5ringD_rin = 5.88*inch; //CJT
   //G4double P5ringD_rou = 12.750/2*inch;
   G4double P5ringD_rou = 8.25*inch; //CJT
   //G4double P5ringD_L = 2.487*inch;
-  G4double P5ringD_L = 2.260/2*inch; //CJT
+  //G4double P5ringD_L = 2.260/2*inch; //CJT
+  G4double P5ringD_L = 1.130/2*inch; //CJT - ignoring the adjacent flange as it is included in target to midpipe geometry within exit beamline 
   P5placement += 2.0*P5ringC_L;
 
   G4Tubs *P5ringD = new G4Tubs("P5ringD", P5ringD_rin, P5ringD_rou, P5ringD_L, 0.*deg, 360.*deg);
@@ -2858,7 +2868,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, P5placement+P5ringD_L), P5ringDLog, "P5ringDLog_pv", worldlog, false, 0, ChkOverlaps);
   P5ringDLog->SetVisAttributes(Aluminum);
-
+  //P5ringDLog->SetVisAttributes(G4Colour::Green());
+  
   //Ring D Vacuum
   G4Tubs *P5ringD_vac = new G4Tubs("P5ringD_vac", 0.0, P5ringD_rin, P5ringD_L, 0.*deg, 360.*deg);
 
@@ -2869,6 +2880,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   //P5ringD_vacLog->SetVisAttributes( Beryllium);
 
+  /*
+  
   //Ring E  - simplifying the small articulation in this weldment
   //G4double P5ringE_rin = 11.750/2*inch; 
   G4double P5ringE_rin = 5.88*inch; //CJT
@@ -2885,7 +2898,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   //Place ring E
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, P5placement+P5ringE_L), P5ringELog, "P5ringELog_pv", worldlog, false, 0, ChkOverlaps);
 
-  P5ringELog->SetVisAttributes(Aluminum);
+  //P5ringELog->SetVisAttributes(Aluminum);
+  P5ringELog->SetVisAttributes(Beryllium);
 
   //Ring E Vacuum
   G4Tubs *P5ringE_vac = new G4Tubs("P5ringE_vac", 0.0, P5ringE_rin, P5ringE_L, 0.*deg, 360.*deg);
@@ -2895,13 +2909,16 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   //Place ring E vacuum
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P5placement+P5ringE_L), P5ringE_vacLog, "P5ringE_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
+  */
+  /*
   //TEST RING - should exist in exit beamline. Must delete after check.
   //CJT - total distance from DS end of target to wide flange which begins the exit beamline -> 200.973 inches
-  
+
+  //G4double targetEndOffset_z = 22.8/2.0*inch;
   G4double P5testRing_rin = 5.88*inch; 
   G4double P5testRing_rou = 15.0*inch; //CJT 13.0 - making larger for debug
   G4double P5testRing_L = 0.187/2*inch;
-  P5placement = (23.62/2.0*inch)+200.973*inch; //Direct measurment from CJT plus half length of target
+  P5placement = (targetEndOffset_z)+200.973*inch; //Direct measurment from CJT plus half length of target
 
   G4Tubs *P5testRing = new G4Tubs("P5testRing", P5testRing_rin, P5testRing_rou, P5testRing_L, 0.*deg, 360.*deg);
 
@@ -2909,8 +2926,26 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, P5placement), P5testRingLog, "P5testRingLog_pv", worldlog, false, 0, ChkOverlaps);
 
-  P5testRingLog->SetVisAttributes(Beryllium); //Debug
+  P5testRingLog->SetVisAttributes(G4Colour::Green()); //Debug
+
+  */
+  /*
+  //TEST RING - should exist in exit beamline. Must delete after check.
+  //CJT - total distance from DS end of target to wide flange which begins the exit beamline -> 200.973 inches
   
+  G4double P5testRing2_rin = 5.88*inch; 
+  G4double P5testRing2_rou = 15.0*inch; //CJT 13.0 - making larger for debug
+  G4double P5testRing2_L = 0.187/2*inch;
+  P5placement = 212.37*inch; //Direct measurment from CJT plus half length of target
+
+  G4Tubs *P5testRing2 = new G4Tubs("P5testRing2", P5testRing2_rin, P5testRing2_rou, P5testRing2_L, 0.*deg, 360.*deg);
+
+  G4LogicalVolume *P5testRing2Log = new G4LogicalVolume(P5testRing2, GetMaterial("Air"), "P5testRing2_log", 0, 0, 0);
+
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, P5placement), P5testRing2Log, "P5testRing2Log_pv", worldlog, false, 0, ChkOverlaps);
+
+  P5testRing2Log->SetVisAttributes( G4Colour::Green()); //Debug
+  */
   //P5ringE_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
   /*
   //Ring F
@@ -2947,7 +2982,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   //===== START PASSING FUNCTIONS - EXIT-BEAMLINE/CORRECTOR-MAGNETS =====//  11.1.20
   
   // Exit beam line piping: use this instead of the commented out section below.  Added by D Flay (Sept 2020)
-  G4double TargetCenter_zoffset = 6.50*inch;
+  //G4double TargetCenter_zoffset = 6.50*inch;
+  G4double TargetCenter_zoffset = 0.0*inch;
   
   MakeBeamExit(worldlog,TargetCenter_zoffset);  
 
@@ -4641,7 +4677,8 @@ void G4SBSBeamlineBuilder::MakeBeamExit(G4LogicalVolume *logicMother,G4double dz
    // previously: dz set to 7 inches to avoid overlaps with P5ringD_vacLog_pv 
 
    G4double inch   = 2.54*cm; 
-   G4double dz2    = 1.5*cm;         // FIXME: still an overlap despite 6.5" from dz??  adjusting here for simplicity...   
+   //G4double dz2    = 1.5*cm;         // FIXME: still an overlap despite 6.5" from dz??  adjusting here for simplicity...
+   G4double dz2    = 0.0*cm;         // FIXME: still an overlap despite 6.5" from dz??  adjusting here for simplicity...   
    G4double z_tmp  = 207.179*inch + dz + dz2;  
    G4double z_mpd  = 749.4997*inch; // derived, based on numbers from Ron Lassiter (see MakeBeamDump)  
    // CheckZPos(logicMother,z_bd); 
@@ -4849,6 +4886,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
 
    G4double z = z0 + 0.5*len_06a;  // upstream face at z0
    G4ThreeVector Pz = G4ThreeVector(0,0,z);
+   
    new G4PVPlacement(0,                // no rotation
                      Pz,               // location in mother volume 
                      tgtMP_LV,         // its logical volume                         
@@ -4857,7 +4895,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
                      true,             // boolean operation? 
                      0,                // copy number
                      true);            // checking overlaps   
-
+   
    // union: put it all together [vacuum] 
    // // - start with 01 and 02  
    // zp = 0.5*len_01 + 0.5*len_02;
@@ -4910,7 +4948,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
 
    G4LogicalVolume *tgtMP_vac_LV = new G4LogicalVolume(tgtToMidPipe_vac,GetMaterial("Vacuum"),"tgtMP_vac_LV"); 
    tgtMP_vac_LV->SetVisAttributes(vis_vac);
-
+   
    new G4PVPlacement(0,                    // no rotation
                      Pz,                   // location in mother volume 
                      tgtMP_vac_LV,         // its logical volume                         
@@ -4919,7 +4957,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_TargetToMidPipe(G4LogicalVolume *logicMo
                      true,                 // boolean operation? 
                      0,                    // copy number
                      true);                // checking overlaps   
-
+   
 } 
 
 void G4SBSBeamlineBuilder::MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMother,G4double z0){

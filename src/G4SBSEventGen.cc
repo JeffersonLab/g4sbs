@@ -1922,11 +1922,13 @@ bool G4SBSEventGen::GenerateBeam( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lore
   G4SBS::Util::RotateVector(R,p0,pRot);
   fElectronP = pRot;
  
-  // adjust vertex 
-  fVert.setX(fVert.x()-pos[0]);  
-  fVert.setY(fVert.y()-pos[1]);  
+  // adjust vertex
+  G4double dx = fabs(pos[0]); 
+  G4double dy = fabs(pos[1]); 
+  fVert.setX(fVert.x()-dx);  
+  fVert.setY(fVert.y()-dy);  
 
-  G4bool isDebug = false;
+  G4bool isDebug = true;
   if(isDebug){
      std::cout << "[G4SBSEventGen::GenerateBeam]: Vector rotation! " << std::endl;
      std::cout << "angles = " << R[0]/mrad << ", " << R[1]/mrad << ", " << R[2]/mrad << std::endl;
@@ -1934,6 +1936,10 @@ bool G4SBSEventGen::GenerateBeam( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lore
      std::cout << "py = " << p0.y() << " py' = " << pRot.y() << std::endl;
      std::cout << "pz = " << p0.z() << " pz' = " << pRot.z() << std::endl;
      std::cout << "mag = " << p0.mag() << " mag' = " << pRot.mag() << std::endl;
+     std::cout << "Vertex:" << std::endl;
+     std::cout << "x = " << fVert.x() << std::endl; 
+     std::cout << "y = " << fVert.y() << std::endl; 
+     std::cout << "z = " << fVert.z() << std::endl; 
   }
 
   fSigma    = 1.0;

@@ -505,7 +505,7 @@ void G4SBSEventGen::CalculateBeamAnglesAndPositions(G4double bd_L,std::vector<G4
    // D. Flay (10/15/20) 
    // Based on input file, generate a random beam angle
 
-   // alternate approach: don't even bother with the distance L: 
+   // randomize the angles by a small amount  
    G4double pct  = 0.1*CLHEP::perCent;
    G4double rx = CLHEP::RandGauss::shoot(fBeamAngleX,fBeamAngleX*pct); 
    G4double ry = CLHEP::RandGauss::shoot(fBeamAngleY,fBeamAngleY*pct); 
@@ -514,8 +514,8 @@ void G4SBSEventGen::CalculateBeamAnglesAndPositions(G4double bd_L,std::vector<G4
    R.push_back(ry); 
    R.push_back(rz); 
  
-   // note: have to modify the particle vertex to account for this projection, 
-   //       which technically modifies the x and y positions at z = 0.  store these in output vector  
+   // Store the particle vertex in case we have to account for this rotation, which technically 
+   // modifies the x and y positions at z = 0  
    // - recall, the angle is some amount ABOUT an axis.  So we flip the angles here 
    // - compute the new beam origin x and y 
    G4double bd_x = bd_L*tan(ry);
@@ -1922,10 +1922,10 @@ bool G4SBSEventGen::GenerateBeam( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lore
   fElectronP = pRot;
  
   // adjust vertex? 
-  G4double dx = pos[0]; 
-  G4double dy = pos[1]; 
-  fVert.setX(fVert.x()-dx);  
-  fVert.setY(fVert.y()-dy);  
+  // G4double dx = fabs(pos[0]); 
+  // G4double dy = fabs(pos[1]); 
+  // fVert.setX(fVert.x()-dx);  
+  // fVert.setY(fVert.y()-dy);  
 
   G4bool isDebug = true;
   if(isDebug){

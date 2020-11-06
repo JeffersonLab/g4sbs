@@ -4063,10 +4063,10 @@ void G4SBSEArmBuilder::MakeFourthBBSieveSlit(G4LogicalVolume *motherlog, G4Three
   G4Tubs *Hole = new G4Tubs("Hole", 0, Hole_r, Hole_z, 0.0*deg, 360.0*deg);
   G4Tubs *HoleCenter = new G4Tubs("HoleCenter", 0, HoleCenter_r, Hole_z, 0.0*deg, 360.0*deg);
 
-  //angular spacing of holes at the nominal distance of 51.825 inches
-  //G4double angspace_y = 1.65776*deg;
-  G4double angspace_y = 0.0*deg;
-  G4double angspace_x = 1.06114*deg; 
+  G4double y_space = 1.25*inch;
+  G4double x_space = 7.0/8.0*inch;
+
+  G4double xangle = 0.0*deg;
 
   //G4SubtractionSolid *NextCut;
   G4SubtractionSolid *SievePlateCut;
@@ -4078,44 +4078,24 @@ void G4SBSEArmBuilder::MakeFourthBBSieveSlit(G4LogicalVolume *motherlog, G4Three
   cout << "cutting holes" << endl;
   
   
-  for(G4int iy=-8; iy<=8; iy++ ){
-    for(G4int ix=-5; ix<=5; ix++ ){
-      G4double xangle = ix*angspace_x;
-      G4double yangle = iy*angspace_y;
+  for(G4int iy=-9; iy<=9; iy++ ){
+    for(G4int ix=-6; ix<=6; ix++ ){
+
+      G4double yangle = atan((iy*y_space)/(1.172*m)); //Computed from sieve distance at 1.55m
 
       //G4SubtractionSolid 
+      G4RotationMatrix *holerot = new G4RotationMatrix;   
+      holerot->rotateX(yangle); //May safely simplify since xangle is zero
+      holerot->rotateY(xangle); 
       
-      //if( ix != 0 || iy != 0 ){ //compute rotation matrix for all holes but center hole:
-      G4ThreeVector holeaxis( tan(xangle), tan(yangle), 1.0 );
-      holeaxis = holeaxis.unit();
+      G4ThreeVector holecenterpos(ix*x_space, iy*y_space, 0);
       
-      G4ThreeVector zaxis(0.,0.,1.0);
-      
-      G4ThreeVector rotationaxis = (zaxis.cross(holeaxis)).unit();
-      G4double rotationangle = acos( zaxis.dot(holeaxis) );
-
-      G4RotationMatrix *holerot = new G4RotationMatrix;  
-      //if( !(ix == 0 && iy == 0 ) ) {  //removing the rotation of the holes in the plate. 10.29.20
-      //holerot->rotate( -rotationangle, rotationaxis );
-      //}
-      
-      //G4double platecenter_z = 68.8976*inch + bbsieved/2.0; //Assuming old placement
-      //G4double platecenter_z = 54.0157*inch + bbsieved/2.0; //Accounting for BB shift to 1.75m
-      G4double platecenter_z = 50.0*inch + bbsieved/2.0; //Arbitrary reduction to improve statistics. Will need updated.
-      
-      G4ThreeVector origin(0,0,-platecenter_z );
-      G4double holedist = platecenter_z * sqrt(1.0 + pow(tan(xangle),2)+pow(tan(yangle),2) ); 
-      
-      G4ThreeVector holecenterpos = origin + holedist * holeaxis;
-      
-      cout << "(row,col,holeposx,holeposy,holeposz,rotationangle)=("
+      cout << "(row,col,holeposx,holeposy,holeposz,rotationx,rotationy)=("
 	   << iy << ", " << ix << ", " << holecenterpos.x()/inch << ", "
 	   << holecenterpos.y()/inch << ", "
 	   << holecenterpos.z()/inch << ", "
-	   << rotationangle/deg << ")" << endl;
-
-      cout << "rotation matrix = " << endl;
-      holerot->print(cout);
+	   << xangle/deg << ", "
+	   << yangle/deg << ")" << endl;
       
       G4SubtractionSolid *NextCut;
       if( first ){
@@ -4142,19 +4122,14 @@ void G4SBSEArmBuilder::MakeFourthBBSieveSlit(G4LogicalVolume *motherlog, G4Three
     }
   }
 
+  cout << "finished holes..." <<endl;
   G4cout << "finished holes..." << endl;
   
   G4LogicalVolume *NewBBSievePlate_log = new G4LogicalVolume(SievePlateCut, GetMaterial("Lead"), "New_BB_SievePlate_log");
 
-  //For BB, plate is oriented along z axis and offset is passed into function.
-  //G4double SBSsieve_dist = offset_z - ThickPlate_z/2.0;
-  //Placement:
-  //G4ThreeVector sievepos = SBSsieve_dist * G4ThreeVector( -sin(f48D48ang), 0, cos(f48D48ang) );
-  //G4RotationMatrix *sieverot = new G4RotationMatrix;
-  //sieverot->rotateY(f48D48ang);
-
   new G4PVPlacement(0, pos, NewBBSievePlate_log, "NewBBSievePlate_phys", motherlog, false, 0);
   
+  cout << "Sieve plate finished" << G4endl;
   G4cout << "Sieve plate finished" << G4endl;
 }
 

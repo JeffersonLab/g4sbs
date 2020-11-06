@@ -4090,7 +4090,7 @@ void G4SBSEArmBuilder::MakeFourthBBSieveSlit(G4LogicalVolume *motherlog, G4Three
       
       G4ThreeVector holecenterpos(ix*x_space, iy*y_space, 0);
       
-      cout << "(row,col,holeposx,holeposy,holeposz,rotationx,rotationy)=("
+      cout << "(row,col,holeposy,holeposx,holeposz,rotationy,rotationx)=("
 	   << iy << ", " << ix << ", " << holecenterpos.x()/inch << ", "
 	   << holecenterpos.y()/inch << ", "
 	   << holecenterpos.z()/inch << ", "

@@ -488,7 +488,16 @@ void GEN_ERR_plots(const char *configfilename, const char *outputfilename="GEN_E
       for( int ihit=0; ihit<T->Harm_HCalScint_hit_nhits; ihit++ ){
 	double edep = (*(T->Harm_HCalScint_hit_sumedep))[ihit];
 	int MID = (*(T->SDTrack_MID))[(*(T->Harm_HCalScint_hit_sdtridx))[ihit]];
-	if( edep >= thresh_hcal && MID == 0 ){
+
+	int PrTID = (*(T->PTrack_TID))[(*(T->Harm_HCalScint_hit_ptridx))[ihit]];
+
+	int PID = (*(T->SDTrack_PID))[(*(T->Harm_HCalScint_hit_sdtridx))[ihit]];
+
+	int PrPID = (*(T->PTrack_PID))[(*(T->Harm_HCalScint_hit_ptridx))[ihit]];
+
+	
+	//if( edep >= thresh_hcal && MID == PrTID && PID == 22 && PrPID == 111 ){
+	if( edep >= thresh_hcal ){
 	  hitlist_hcal.push_back( ihit );
 	  xhit_hcal.push_back( (*(T->Harm_HCalScint_hit_xcell))[ihit] );
 	  yhit_hcal.push_back( (*(T->Harm_HCalScint_hit_ycell))[ihit] );

@@ -1074,9 +1074,40 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
     fFinalNucl = nucl==G4SBS::kProton?G4SBS::kNeutron:G4SBS::kProton;
   }
 
-  G4double Epi_GammaNrest = (W2 - pow(mpi,2) - pow(Mp,2))/(2.0*W);
+  fHadronE = 0.0;
+  fHadronP = G4ThreeVector();
+
+  G4double Mpi, M_ni, M_nf;
+
+  // Let's choose final state pion following charge conservation
+  if( nucl == G4SBS::kNeutron && fFinalNucl == G4SBS::kNeutron ){ //gamma n --> pi0 n         
+    Mpi = G4PionZero::PionZeroDefinition()->GetPDGMass();
+    M_ni = neutron_mass_c2;
+    M_nf = M_ni;
+    fHadronType = G4SBS::kPi0;
+  }
+  else if ( nucl == G4SBS::kProton && fFinalNucl == G4SBS::kProton ) { //gamma p --> pi0 p              
+    Mpi = G4PionZero::PionZeroDefinition()->GetPDGMass();
+    M_ni = proton_mass_c2;
+    M_nf = M_ni;
+    fHadronType = G4SBS::kPi0;
+  }
+  else if ( nucl == G4SBS::kProton && fFinalNucl == G4SBS::kNeutron ) { //gamma p --> pi+ n  
+    Mpi = G4PionPlus::PionPlusDefinition()->GetPDGMass();
+    M_ni = proton_mass_c2;
+    M_nf = neutron_mass_c2;
+    fHadronType = G4SBS::kPiPlus;
+ }
+  else if ( nucl == G4SBS::kNeutron && fFinalNucl == G4SBS::kProton ) { //gamma n --> pi- p  
+    Mpi = G4PionMinus::PionMinusDefinition()->GetPDGMass();
+    M_ni = neutron_mass_c2;
+    M_nf = proton_mass_c2;
+    fHadronType = G4SBS::kPiMinus;
+ }
+ 
+  G4double Epi_GammaNrest = (W2 + pow(Mpi,2) - pow(M_nf,2))/(2.0*W);
   G4double EN_GammaNrest = W - Epi_GammaNrest;
-  G4double PN_GammaNrest = sqrt(pow(EN_GammaNrest,2)-pow(Mp,2));
+  G4double PN_GammaNrest = sqrt(pow(EN_GammaNrest,2)-pow(M_nf,2));
 
   //This is the final nucleon momentum in the virtual photon-nucleon rest frame
   //It can be boosted directly to the lab frame: 
@@ -1086,11 +1117,19 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
 						       sin(thpi)*sin(phpi),
 						       cos(thpi) ) );
 
-  G4LorentzVector Pfnucleon_lab = Pfnucleon_GammaNrest; 
-  
+  G4LorentzVector Pfnucleon_lab = Pfnucleon_GammaNrest;  
   Pfnucleon_lab.boost( boost_GammaN_lab );
   
-  
+   // thpi -> pi + thpi, since N & pi will have equal & opposite momentum in the GammaN rest frame.
+  G4double Ppi_GammaNrest = PN_GammaNrest;
+  G4LorentzVector Pfpion_GammaNrest( Epi_GammaNrest,
+  					Ppi_GammaNrest *
+  					G4ThreeVector( sin(pi + thpi)*cos(phpi),
+  						       sin(pi + thpi)*sin(phpi),
+  						       cos(pi + thpi) ) );
+
+  G4LorentzVector Pfpion_lab = Pfpion_GammaNrest;   
+  Pfpion_lab.boost( boost_GammaN_lab );
   
   fQ2 = Q2;
   fW2 = W2;
@@ -1183,6 +1222,9 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
 
   fNucleonP = Pfnucleon_lab.vect();
   fNucleonE = Pfnucleon_lab.e();
+
+  fHadronP = Pfpion_lab.vect();
+  fHadronE = Pfpion_lab.e();
 
   return true;
 }

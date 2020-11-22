@@ -1927,7 +1927,7 @@ bool G4SBSEventGen::GenerateBeam( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lore
   // fVert.setX(fVert.x()-dx);  
   // fVert.setY(fVert.y()-dy);  
 
-  G4bool isDebug = true;
+  G4bool isDebug = false;
   if(isDebug){
      std::cout << "[G4SBSEventGen::GenerateBeam]: Vector rotation! " << std::endl;
      std::cout << "angles = " << R[0]/mrad << ", " << R[1]/mrad << ", " << R[2]/mrad << std::endl;

@@ -106,6 +106,13 @@ public:
   // D. Flay (11/5/20). Beam collimator (for GEn)   
   void SetBeamCollimatorEnable(bool v)       { fBeamCollimatorEnable = v; } 
   G4bool GetBeamCollimatorEnable()     const { return fBeamCollimatorEnable; } 
+  // dimensions 
+  void SetBeamCollimatorL(double v)          { fBeamCollimatorX = v;    } 
+  G4double GetBeamCollimatorL()        const { return fBeamCollimatorL; } 
+  void SetBeamCollimatorDmin(double v)          { fBeamCollimatorDmin = v; } 
+  G4double GetBeamCollimatorDmin()     const { return fBeamCollimatorDmin; } 
+  void SetBeamCollimatorDmax(double v)       { fBeamCollimatorDmax = v;    } 
+  G4double GetBeamCollimatorDmax()     const { return fBeamCollimatorDmax; } 
   // positions 
   void SetBeamCollimatorX(double v)          { fBeamCollimatorX = v;    } 
   G4double GetBeamCollimatorX()        const { return fBeamCollimatorX; } 
@@ -248,7 +255,8 @@ private:
 
   // D. Flay (11/5/20).  GEn beam collimator  
   G4bool fBeamCollimatorEnable; 
-  G4double fBeamCollimatorX,fBeamCollimatorY,fBeamCollimatorZ;  
+  G4double fBeamCollimatorX,fBeamCollimatorY,fBeamCollimatorZ; 
+  G4double fBeamCollimatorL,fBeamCollimatorDmin,fBeamCollimatorDmax;  
 
 };
 

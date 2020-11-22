@@ -4942,9 +4942,9 @@ void G4SBSTargetBuilder::BuildGEnTarget_BeamCollimator(G4LogicalVolume *motherLo
    // to prevent target scraping  
 
    // solid (arbitrary size)  
-   G4double length   = 1.*cm;
-   G4double r_max    = 0.5*(30*mm);
-   G4double r_min    = 0.5*(15*mm);
+   G4double length   = fDetCon->GetBeamCollimatorL();        
+   G4double r_min    = 0.5*fDetCon->GetBeamCollimatorDmin(); 
+   G4double r_max    = 0.5*fDetCon->GetBeamCollimatorDmax(); 
    G4double startPhi = 0.*deg;
    G4double dPhi     = 360.*deg;
    G4Tubs *solidBC   = new G4Tubs("solidBC",r_min,r_max,length/2.,startPhi,dPhi);

@@ -1,6 +1,9 @@
 #ifndef __G4SBSBeamlineBuilder_hh
 #define __G4SBSBeamlineBuilder_hh
 
+#include <cstdlib>
+#include <iostream> 
+
 #include "G4SBSComponent.hh"
 
 class G4LogicalVolume;

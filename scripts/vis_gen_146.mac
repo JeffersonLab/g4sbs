@@ -9,7 +9,7 @@
 ## Configure the target
 /g4sbs/target            3He
 /g4sbs/targpres          10.77 atmosphere  ## Target pressure
-/g4sbs/targlen           55.0 cm           ## Target Length (depricated) 
+/g4sbs/targlen           60.0 cm           ## Target Length
 /g4sbs/targgenhhconfig   146               ## Q2 = 1.46 GeV^2
 /g4sbs/targgenColEnable  true              ## set to false if you want to turn off the collimators  
 /g4sbs/targgenColEnableA true              ## upstream collimator 
@@ -67,12 +67,30 @@
 /g4sbs/ionChamberRX 0   deg
 /g4sbs/ionChamberRY 10  deg
 /g4sbs/ionChamberRZ 0   deg
+# # position 2 
+# /g4sbs/ionChamberX -20  cm 
+# /g4sbs/ionChamberY  0   cm 
+# /g4sbs/ionChamberZ  0   cm 
+# /g4sbs/ionChamberRX 0   deg
+# /g4sbs/ionChamberRY 90  deg
+# /g4sbs/ionChamberRZ 0   deg
+# # position 3 
+# /g4sbs/ionChamberX -20  cm 
+# /g4sbs/ionChamberY  0   cm 
+# /g4sbs/ionChamberZ  -30 cm 
+# /g4sbs/ionChamberRX 0   deg
+# /g4sbs/ionChamberRY 90  deg
+# /g4sbs/ionChamberRZ 0   deg
 
 /g4sbs/beamCollimatorEnable true
+# size   
+/g4sbs/beamCollimatorL     3  cm 
+/g4sbs/beamCollimatorDmin  15 mm 
+/g4sbs/beamCollimatorDmax  30 mm 
 # position 1
-/g4sbs/beamCollimatorX   0  cm
-/g4sbs/beamCollimatorY   0  cm
-/g4sbs/beamCollimatorZ  -40 cm 
+/g4sbs/beamCollimatorX     0  cm
+/g4sbs/beamCollimatorY     0  cm
+/g4sbs/beamCollimatorZ    -32.5 cm 
 
 /g4sbs/totalabs true
 
@@ -108,7 +126,8 @@
 # Set specific colour for identification : ghost parallel geometry envelope ("ghost") as yellow
 #
 # Specify view angle:
-/vis/viewer/set/viewpointThetaPhi 90 180 deg
+# /vis/viewer/set/viewpointThetaPhi 90 180 deg
+/vis/viewer/set/viewpointThetaPhi 90 90.1 deg
 #
 # Specify zoom value:
 # /vis/viewer/zoom 2.5
@@ -152,7 +171,7 @@
 /vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
 #
 # To superimpose all of the events from a given run:
-/vis/scene/endOfEventAction accumulate 1 
+/vis/scene/endOfEventAction accumulate 100 
 #
 # Re-establish auto refreshing and verbosity:
 /vis/viewer/set/autoRefresh true

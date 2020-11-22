@@ -190,6 +190,19 @@ G4SBSMessenger::G4SBSMessenger(){
   beamCollimatorEnableCmd = new G4UIcmdWithABool("/g4sbs/beamCollimatorEnable",this);
   beamCollimatorEnableCmd->SetGuidance("Enable a beam collimator for the GEn target");
   beamCollimatorEnableCmd->SetParameterName("beamCollimatorEnable",false); // must provide input 
+  // geometry  
+  // -length 
+  beamCollimatorLCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorL",this);
+  beamCollimatorLCmd->SetGuidance("Beam collimator length");
+  beamCollimatorLCmd->SetParameterName("beamCollimatorL",false); // must provide input 
+  // - y 
+  beamCollimatorDminCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorDmin",this);
+  beamCollimatorDminCmd->SetGuidance("Beam collimator diameter (inner)");
+  beamCollimatorDminCmd->SetParameterName("beamCollimatorDmin",false); // must provide input  
+  // - z 
+  beamCollimatorDmaxCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorDmax",this);
+  beamCollimatorDmaxCmd->SetGuidance("Beam collimator diameter (outer)");
+  beamCollimatorDmaxCmd->SetParameterName("beamCollimatorDmax",false); // must provide input  
   // coordinates
   // -x 
   beamCollimatorXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorX",this);
@@ -1351,6 +1364,18 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == beamCollimatorEnableCmd ){ 
      G4bool bcEnable = beamCollimatorEnableCmd->GetNewBoolValue(newValue);
      fdetcon->SetBeamCollimatorEnable(bcEnable);  
+  }
+  if( cmd == beamCollimatorLCmd ){ 
+     G4double bcl = beamCollimatorLCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorL(bcl);  
+  }
+  if( cmd == beamCollimatorDminCmd ){ 
+     G4double bcdmin = beamCollimatorDminCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorDmin(bcdmin);  
+  }
+  if( cmd == beamCollimatorDmaxCmd ){ 
+     G4double bcdmax = beamCollimatorDmaxCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorDmax(bcdmax);  
   }
   if( cmd == beamCollimatorXCmd ){ 
      G4double bcx = beamCollimatorXCmd->GetNewDoubleValue(newValue);

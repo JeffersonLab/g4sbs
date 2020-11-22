@@ -229,6 +229,9 @@ private:
   // D. Flay 11/5/20 
   // beam collimator (for GEn) 
   G4UIcmdWithABool *beamCollimatorEnableCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorLCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDminCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDmaxCmd; 
   G4UIcmdWithADoubleAndUnit *beamCollimatorXCmd; 
   G4UIcmdWithADoubleAndUnit *beamCollimatorYCmd; 
   G4UIcmdWithADoubleAndUnit *beamCollimatorZCmd; 

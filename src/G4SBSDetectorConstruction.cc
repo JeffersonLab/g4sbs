@@ -145,6 +145,9 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fBeamCollimatorX      = 0;  
   fBeamCollimatorY      = 0;  
   fBeamCollimatorZ      = 0;  
+  fBeamCollimatorL      = 4.0*cm;  
+  fBeamCollimatorDmin   = 15*mm;  
+  fBeamCollimatorDmax   = 30*mm;  
 
 }
 

@@ -1907,7 +1907,11 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   ////Update to clean up code and separate mag shielding, conic section, US weldment/flanges, and DS weldment/flanges complete within this function complete. 11.1.20
 
   //===== UPSTREAM - PIPE =====//
-  
+ 
+  // beam collimator to protect the target (D. Flay study) 
+  bool enableBC     = fDetCon->GetBeamCollimatorEnable();
+  G4double lengthBC = fDetCon->GetBeamCollimatorL();
+ 
   //General Parameters
   G4double inch = 2.54*cm;
   bool ChkOverlaps = false;
@@ -2084,7 +2088,45 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   //Place vacuum 0D
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*(P0tubeC_L+P0ringB_L)-(P0tubeD_L+P0ringC_L)), P0tubeD_vacLog, "P0tubeD_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
-  
+
+  // placement of P0 vacuum elements 
+  G4double P0_vac_a_z   = P0initPlacement_z-2.0*P0disk_cut_L-P0shell_w-(P0ringA_L+P0tubeA_L-P0disk_cut_L)+2.0*P0ringA_L; 
+  G4double P0_vac_b_z   = P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0tubeB_L;  
+  G4double P0_vac_c_z   = P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-(P0tubeC_L+P0ringB_L); 
+  G4double P0_vac_d_z   = P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*(P0tubeC_L+P0ringB_L)-(P0tubeD_L+P0ringC_L);
+  // length of P0 vacuum elements (NOTE: Sebastian uses half-lengths! 
+  G4double P0_vac_a_len = 2.*P0tubeA_L; 
+  G4double P0_vac_b_len = 2.*P0tubeB_L; 
+  G4double P0_vac_c_len = 2.*P0tubeC_L;  
+  G4double P0_vac_d_len = 2.*P0tubeD_L;
+
+  std::vector<G4double> P0_vac_z;
+  P0_vac_z.push_back(P0_vac_a_z);   
+  P0_vac_z.push_back(P0_vac_b_z);   
+  P0_vac_z.push_back(P0_vac_c_z);   
+  P0_vac_z.push_back(P0_vac_d_z);   
+  std::vector<G4double> P0_vac_len;
+  P0_vac_len.push_back(P0_vac_a_len);   
+  P0_vac_len.push_back(P0_vac_b_len);   
+  P0_vac_len.push_back(P0_vac_c_len);   
+  P0_vac_len.push_back(P0_vac_d_len); 
+  std::vector<char> P0_label;
+  P0_label.push_back('A');  
+  P0_label.push_back('B');  
+  P0_label.push_back('C');  
+  P0_label.push_back('D');  
+  const int NP0 = P0_vac_z.size();
+ 
+  char msg[200];  
+  // printing info to screen for diagnostics
+  if(enableBC){ 
+     std::cout << "P0 Part Details: " << std::endl;
+     for(int i=0;i<NP0;i++){
+        sprintf(msg,"tube %c: z = %.5lf mm, len = %.5lf mm",P0_label[i],P0_vac_z[i],P0_vac_len[i]); 
+        std::cout << msg << std::endl;
+     }
+  }      
+   
   //Section zero visual attributes
   P0ringA_cutLog->SetVisAttributes( Aluminum);
   P0tubeALog->SetVisAttributes( Aluminum);

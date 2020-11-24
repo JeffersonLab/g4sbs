@@ -4972,7 +4972,27 @@ void G4SBSTargetBuilder::BuildGEnTarget_BeamCollimator(G4LogicalVolume *motherLo
                      motherLog,                      // mother logical volume      
                      false,                          // is it a boolean solid?    
                      0,                              // copy number    
-                     checkOverlaps);                 // check for overlaps 
+                     checkOverlaps);                 // check for overlaps
+
+   // make a vacuum insert (since we will focus on in-vacuum placement, in upstream beam line)
+   G4Tubs *solidBC_vac = new G4Tubs("solidBC_vac",0,r_min,length/2.,startPhi,dPhi); 
+
+   // visualization 
+   G4VisAttributes *vis_vac = new G4VisAttributes();
+   vis_vac->SetForceWireframe(true); 
+
+   // logical volume
+   G4LogicalVolume *bc_vac_LV = new G4LogicalVolume(solidBC_vac,GetMaterial("Vacuum"),"logicGEnTarget_beamCollimator_vac");
+   bc_vac_LV->SetVisAttributes(vis_vac); 
+
+   new G4PVPlacement(0,                                  // rotation
+                     P,                                  // position      
+                     bc_vac_LV,                          // logical volume     
+                     "physGEnTarget_beamCollimator_vac", // name      
+                     motherLog,                          // mother logical volume      
+                     false,                              // is it a boolean solid?    
+                     0,                                  // copy number    
+                     checkOverlaps);                     // check for overlaps
 
 }
 

@@ -83,7 +83,7 @@
 # size   
 /g4sbs/beamCollimatorL     3  cm
 /g4sbs/beamCollimatorDmin  15 mm
-/g4sbs/beamCollimatorDmax  30 mm
+/g4sbs/beamCollimatorDmax  37 mm
 # # position 1
 # /g4sbs/beamCollimatorX     0  cm
 # /g4sbs/beamCollimatorY     0  cm

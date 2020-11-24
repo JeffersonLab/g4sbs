@@ -4981,17 +4981,19 @@ void G4SBSBeamlineBuilder::MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMoth
    G4VisAttributes *vis_vac = new G4VisAttributes();
   
    // from drawing A00000-02-02-0001 [rev]
-   G4double delta  = 103.75*inch; // 96.62*inch; // 235.0*mm;     // FIXME: Arbitrary fudge factor to make everything connect from tgtMidPipe to dump  
+   // FIXME: Arbitrary fudge factors delta to make everything connect from tgtMidPipe to dump
+   G4double delta2 = 1.5*cm;
+   G4double delta  = 103.75*inch - delta2; // 96.62*inch; // 235.0*mm;      
    G4double r_min  = 0.5*42.88*inch; // 0.5*36.00*inch; // 0.5*42.94*inch;  
-   G4double r_max  = 0.5*(42.88*inch + 2.*wall); // 0.5*43.00*inch; 
+   G4double r_max  = 0.5*(42.88*inch + 2.*wall); // 43.00*inch; 
    G4double len    = 302.98*inch + delta;
-   G4Tubs *solidMP = new G4Tubs("solidMP",r_min,r_max,len/2.,startPhi,dPhi); 
-    
+   G4Tubs *solidMP = new G4Tubs("solidMP",r_min,r_max,len/2.,startPhi,dPhi);
+
    G4LogicalVolume *midPipeLV = new G4LogicalVolume(solidMP,GetMaterial("Aluminum"),"midPipeLV");
-   midPipeLV->SetVisAttributes(AlColor); 
+   midPipeLV->SetVisAttributes(AlColor);
 
    // placement 
-   G4double Z = z0 + len/2. - delta; // place upstream face at z0 
+   G4double Z = z0 + len/2. - delta - delta2; // place upstream face at z0 
    G4ThreeVector P = G4ThreeVector(0,0,Z);
    new G4PVPlacement(0,                        // no rotation
                      P,                        // location in mother volume 

@@ -2004,8 +2004,18 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   G4LogicalVolume *P0tubeA_winvacLog = new G4LogicalVolume(P0tubeA_winvac, GetMaterial("Vacuum"), "P0tubeA_winvac_log", 0, 0, 0);
 
+  // edit by D Flay to make it easier to read 
+  G4double P0_vac_a_z   = P0initPlacement_z-2.0*P0disk_cut_L-P0shell_w-(P0ringA_L+P0tubeA_L-P0disk_cut_L)+2.0*P0ringA_L; 
   //Place vacuum 0A
-  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0disk_cut_L-P0shell_w-(P0ringA_L+P0tubeA_L-P0disk_cut_L)+2.0*P0ringA_L), P0tubeA_winvacLog, "P0tubeA_winvacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  new G4PVPlacement(0, 
+	// G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0disk_cut_L-P0shell_w-(P0ringA_L+P0tubeA_L-P0disk_cut_L)+2.0*P0ringA_L), 
+	G4ThreeVector(0.0,0.0,P0_vac_a_z), 
+	P0tubeA_winvacLog,
+	"P0tubeA_winvacLog_pv",
+	worldlog,
+	false,
+	0,
+	ChkOverlaps );
 
   //Tube 0B
   G4double P0tubeB_L = 15.303/2.0*inch; //CJT
@@ -2016,16 +2026,80 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   G4LogicalVolume *P0tubeBLog = new G4LogicalVolume(P0tubeB, GetMaterial("Aluminum"), "P0tubeB_log", 0, 0, 0);
 
+  // edit by D Flay to make it easier to read 
+  G4double P0_b_z     = P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0tubeB_L;  
+  G4double P0_vac_b_z = P0_b_z; // for diagnostics   
   //Place tube 0B
-  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0tubeB_L), P0tubeBLog, "P0tubeBLog_pv", worldlog, false, 0 , ChkOverlaps );
-
-  //Vacuum 0B
-  G4Tubs *P0tubeB_vac = new G4Tubs("P0tubeB_vac", 0.0, P0tubeB_rin, P0tubeB_L, 0.*deg, 360.*deg);
-
+  new G4PVPlacement(0,
+                    // G4ThreeVector(0.0,0.0,P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0tubeB_L),
+                    G4ThreeVector(0.0,0.0,P0_b_z),
+		    P0tubeBLog,
+		    "P0tubeBLog_pv",
+		    worldlog,
+		    false,
+		    0,
+		    ChkOverlaps);
+ 
+  //Place vacuum 0B
+  G4Tubs *P0tubeB_vac             = new G4Tubs("P0tubeB_vac", 0.0, P0tubeB_rin, P0tubeB_L, 0.*deg, 360.*deg);
   G4LogicalVolume *P0tubeB_vacLog = new G4LogicalVolume(P0tubeB_vac, GetMaterial("Vacuum"), "P0tubeB_vac_log", 0, 0, 0);
 
-  //Place vacuum 0B
-  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0tubeB_L), P0tubeB_vacLog, "P0tubeB_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+  // in the event we need to divide up the vacuum 
+  G4double z0_bc = P0_vac_b_z;                      // center of original vacuum insert 
+  G4double z1_bc = fDetCon->GetBeamCollimatorZ();   // center of beam collimator
+  G4double L0_bc = 2.*P0tubeB_L; 
+  G4double L1_bc = lengthBC; 
+  // lengths of upstream and downstream elements
+  G4double Lu_bc = 0.5*(L0_bc-L1_bc) + ( fabs(z0_bc)-fabs(z1_bc) ); // upsream
+  G4double Ld_bc = 0.5*(L0_bc-L1_bc) - ( fabs(z0_bc)-fabs(z1_bc) ); // downstream
+  // z coordinates of upstream and downstream elements 
+  G4double zu_bc = z1_bc - 0.5*L1_bc - 0.5*Lu_bc;     // upstream
+  G4double zd_bc = z1_bc + 0.5*L1_bc + 0.5*Ld_bc;     // downstream
+
+  G4VisAttributes *vis_vac_wire = new G4VisAttributes();
+  vis_vac_wire->SetForceWireframe(true); 
+  // vis_vac_wire->SetColour( G4Colour::White() ); 
+ 
+  G4Tubs *P0tubeB_upstr_vac             = new G4Tubs("P0tubeB_upstr_vac",0,P0tubeB_rin,Lu_bc/2.,0*deg,360.*deg); 
+  G4LogicalVolume *P0tubeB_upstr_vacLog = new G4LogicalVolume(P0tubeB_upstr_vac,GetMaterial("Vacuum"),"P0tubeB_upstr_vac_log",0,0,0);
+  P0tubeB_upstr_vacLog->SetVisAttributes(vis_vac_wire); 
+ 
+  G4Tubs *P0tubeB_dnstr_vac             = new G4Tubs("P0tubeB_upstr_vac",0,P0tubeB_rin,Ld_bc/2.,0*deg,360.*deg); 
+  G4LogicalVolume *P0tubeB_dnstr_vacLog = new G4LogicalVolume(P0tubeB_dnstr_vac,GetMaterial("Vacuum"),"P0tubeB_upstr_vac_log",0,0,0);
+  P0tubeB_dnstr_vacLog->SetVisAttributes(vis_vac_wire); 
+
+  if(!enableBC){
+     //Vacuum 0B
+     new G4PVPlacement(0,
+	   // G4ThreeVector(0.0,0.0,P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0tubeB_L), 
+	   G4ThreeVector(0.0,0.0,P0_vac_b_z), 
+	   P0tubeB_vacLog,
+	   "P0tubeB_vacLog_pv",
+	   worldlog,
+	   false,
+	   0,
+	   ChkOverlaps);
+  }else{
+     // need to modify things for the placement of the beam collimator
+     std::cout << "******** upstream vac: z = " << zu_bc/cm << " cm, len = " << Lu_bc/cm << " cm" << std::endl;
+     new G4PVPlacement(0,
+                       G4ThreeVector(0.0,0.0,zu_bc), 
+                       P0tubeB_upstr_vacLog,
+                       "P0tubeB_upstr_vacLog_pv",
+                       worldlog,
+                       false,
+                       0,
+                       ChkOverlaps);
+     std::cout << "******** downstream vac: z = " << zd_bc/cm << " cm, len = " << Ld_bc/cm << " cm" << std::endl;
+     new G4PVPlacement(0,
+                       G4ThreeVector(0.0,0.0,zd_bc), 
+                       P0tubeB_dnstr_vacLog,
+                       "P0tubeB_dnstr_vacLog_pv",
+                       worldlog,
+                       false,
+                       0,
+                       ChkOverlaps);
+  }
   
   //Tube 0C
   G4double P0tubeC_L = 3.427/2.0*inch; //CJT
@@ -2090,8 +2164,6 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*(P0tubeC_L+P0ringB_L)-(P0tubeD_L+P0ringC_L)), P0tubeD_vacLog, "P0tubeD_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
   // placement of P0 vacuum elements 
-  G4double P0_vac_a_z   = P0initPlacement_z-2.0*P0disk_cut_L-P0shell_w-(P0ringA_L+P0tubeA_L-P0disk_cut_L)+2.0*P0ringA_L; 
-  G4double P0_vac_b_z   = P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-P0tubeB_L;  
   G4double P0_vac_c_z   = P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-(P0tubeC_L+P0ringB_L); 
   G4double P0_vac_d_z   = P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*(P0tubeC_L+P0ringB_L)-(P0tubeD_L+P0ringC_L);
   // length of P0 vacuum elements (NOTE: Sebastian uses half-lengths! 
@@ -2122,7 +2194,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   if(enableBC){ 
      std::cout << "P0 Part Details: " << std::endl;
      for(int i=0;i<NP0;i++){
-        sprintf(msg,"tube %c: z = %.5lf mm, len = %.5lf mm",P0_label[i],P0_vac_z[i],P0_vac_len[i]); 
+        sprintf(msg,"tube %c: z = %.3lf cm, len = %.3lf cm",P0_label[i],P0_vac_z[i]/cm,P0_vac_len[i]/cm); 
         std::cout << msg << std::endl;
      }
   }      
@@ -5024,7 +5096,9 @@ void G4SBSBeamlineBuilder::MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMoth
    G4VisAttributes *vis_vac = new G4VisAttributes();
   
    // from drawing A00000-02-02-0001 [rev]
-   G4double delta  = 103.75*inch; // 96.62*inch; // 235.0*mm;     // FIXME: Arbitrary fudge factor to make everything connect from tgtMidPipe to dump  
+   // FIXME: Arbitrary fudge factors delta to make everything connect from tgtMidPipe to dump
+   G4double delta2 = 1.5*cm;  
+   G4double delta  = 103.75*inch - delta2; // 96.62*inch; // 235.0*mm;      
    G4double r_min  = 0.5*42.88*inch; // 0.5*36.00*inch; // 0.5*42.94*inch;  
    G4double r_max  = 0.5*(42.88*inch + 2.*wall); // 43.00*inch; 
    G4double len    = 302.98*inch + delta;
@@ -5034,7 +5108,7 @@ void G4SBSBeamlineBuilder::MakeBeamExit_MidPipeToDump(G4LogicalVolume *logicMoth
    midPipeLV->SetVisAttributes(AlColor); 
 
    // placement 
-   G4double Z = z0 + len/2. - delta; // place upstream face at z0 
+   G4double Z = z0 + len/2. - delta - delta2; // place upstream face at z0 
    G4ThreeVector P = G4ThreeVector(0,0,Z);
    new G4PVPlacement(0,                        // no rotation
                      P,                        // location in mother volume 

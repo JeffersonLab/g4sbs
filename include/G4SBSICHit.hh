@@ -43,6 +43,7 @@ class G4SBSICHit : public G4VHit
     void SetBeta(G4double beta);
     void SetHitTime(G4double time);
     void SetTrackLength(G4double len);
+    void SetMomentumMag(G4double pmag); 
 
     void SetTrackID(G4int trackID);
     void SetPID(G4int pid);
@@ -59,6 +60,7 @@ class G4SBSICHit : public G4VHit
     G4double GetMom()         const;
     G4double GetHitTime()     const;
     G4double GetBeta()        const;
+    G4double GetMomentumMag() const;
 
     G4int GetTrackID() const;
     G4int GetPID()     const;
@@ -73,7 +75,8 @@ class G4SBSICHit : public G4VHit
     G4double fTrackLength; // Track length in the sensitive volume
     G4double fEtot;        // Total energy (at pre-step)
     G4double fBeta;        // Particle speed 
-    G4double fHitTime;     // Time of hit  
+    G4double fHitTime;     // Time of hit 
+    G4double fPmag;        // momentum magnitude  
 
     G4int fTrackID;        // Track number 
     G4int fPID;            // Particle type 
@@ -139,6 +142,10 @@ inline void G4SBSICHit::SetHitTime(G4double time){
    fHitTime = time;
 }
 //______________________________________________________________________________
+inline void G4SBSICHit::SetMomentumMag(G4double pmag){
+   fPmag = pmag; 
+}
+//______________________________________________________________________________
 inline void G4SBSICHit::SetPos(G4ThreeVector v){
    fPos = v;
 }
@@ -197,6 +204,10 @@ inline G4double G4SBSICHit::GetMom() const{
    double z      = fMom.z();
    double sum_sq = x*x + y*y + z*z;
    return sqrt(sum_sq);
+}
+//______________________________________________________________________________
+inline G4double G4SBSICHit::GetMomentumMag() const{
+   return fPmag;
 }
 //______________________________________________________________________________
 inline G4int G4SBSICHit::GetPID() const{

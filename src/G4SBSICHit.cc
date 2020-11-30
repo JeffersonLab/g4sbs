@@ -9,6 +9,7 @@ G4SBSICHit::G4SBSICHit()
    fEtot(0.),
    fBeta(0.),
    fHitTime(0.),
+   fPmag(0.),
    fTrackID(-1),
    fPID(-1),
    fMID(-1)
@@ -38,6 +39,7 @@ G4SBSICHit::G4SBSICHit(const G4SBSICHit& right)
   fPos         = right.fPos;
   fLabPos      = right.fLabPos;
   fMom         = right.fMom;
+  fPmag        = right.fPmag; 
   fPrintToCSV  = right.fPrintToCSV;
   fCntr        = right.fCntr; 
 }
@@ -54,6 +56,7 @@ const G4SBSICHit& G4SBSICHit::operator=(const G4SBSICHit& right)
   fPos         = right.fPos;
   fLabPos      = right.fLabPos;
   fMom         = right.fMom;
+  fPmag        = right.fPmag; 
   fPrintToCSV  = right.fPrintToCSV;
   fCntr        = right.fCntr; 
   return *this;

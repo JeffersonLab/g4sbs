@@ -87,6 +87,7 @@ G4bool G4SBSIonChamberSD::ProcessHits(G4Step* step,G4TouchableHistory*)
   G4ThreeVector pos = step->GetPreStepPoint()->GetPosition();     // in the lab coordinates
   G4ThreeVector mom = step->GetPreStepPoint()->GetMomentum();
   G4double E        = step->GetPreStepPoint()->GetTotalEnergy();
+  G4double pMag     = step->GetPreStepPoint()->GetMomentum().mag(); // Momentum of particle that caused hit prior to the step
 
   G4int trackID     = step->GetTrack()->GetTrackID();
   G4int pid         = step->GetTrack()->GetParticleDefinition()->GetPDGEncoding();
@@ -95,6 +96,8 @@ G4bool G4SBSIonChamberSD::ProcessHits(G4Step* step,G4TouchableHistory*)
   G4double beta     = step->GetPreStepPoint()->GetBeta();       // v/c of particle *prior* to step 
   G4double hitTime  = step->GetPreStepPoint()->GetGlobalTime(); // time right before the current step   
 
+  // hit position 
+  hit->SetPos(pos);
   // transform position into local coordinates of detector 
   G4AffineTransform aTrans = hist->GetHistory()->GetTopTransform();
   pos = aTrans.TransformPoint(pos);
@@ -103,15 +106,16 @@ G4bool G4SBSIonChamberSD::ProcessHits(G4Step* step,G4TouchableHistory*)
   hit->SetPID(pid);
   hit->SetMID(mid);
   hit->SetTrackID(trackID);
-  // hit->SetLayer(layerNo);      
-  hit->SetPos(pos);
   hit->SetLabPos(pos);
-  // hit->Add(edep, stepLength);  
+  hit->SetMomentum(mom); 
+  hit->SetMomentumMag(pMag); 
   hit->SetEdep(edep);
   hit->SetTrackLength(stepLength);
   hit->SetTotalEnergy(E);
   hit->SetBeta(beta);
   hit->SetHitTime(hitTime);
+  // hit->SetLayer(layerNo);      
+  // hit->Add(edep, stepLength);  
 
   // hitTotal->SetPos(pos);     
   // hitTotal->SetLabPos(pos);  

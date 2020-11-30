@@ -2064,7 +2064,7 @@ void G4SBSEventAction::FillICData(const G4Event *evt,G4SBSICHitsCollection *hc,G
          zg[trackID]   = (*hc)[i]->GetLabPos().z();
          // energy and momentum 
          edep[trackID] = (*hc)[i]->GetEdep();
-         p[trackID]    = (*hc)[i]->GetMom();  // momentum (magnitude) 
+         p[trackID]    = (*hc)[i]->GetMomentumMag();  // momentum (magnitude) at pre-step 
          beta[trackID] = (*hc)[i]->GetBeta();
          // Particle and material info  
          pid[trackID]  = (*hc)[i]->GetPID();

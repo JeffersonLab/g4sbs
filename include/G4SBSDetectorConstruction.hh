@@ -111,7 +111,7 @@ public:
   void SetBeamCollimatorEnable(bool v)       { fBeamCollimatorEnable = v; } 
   G4bool GetBeamCollimatorEnable()     const { return fBeamCollimatorEnable; } 
   // dimensions 
-  void SetBeamCollimatorL(double v)          { fBeamCollimatorX = v;    } 
+  void SetBeamCollimatorL(double v)          { fBeamCollimatorL = v;    } 
   G4double GetBeamCollimatorL()        const { return fBeamCollimatorL; } 
   void SetBeamCollimatorDmin(double v)          { fBeamCollimatorDmin = v; } 
   G4double GetBeamCollimatorDmin()     const { return fBeamCollimatorDmin; } 

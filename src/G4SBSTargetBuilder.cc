@@ -5052,6 +5052,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_BeamCollimator(G4LogicalVolume *motherLo
    G4double dPhi     = 360.*deg;
    G4Tubs *solidBC   = new G4Tubs("solidBC",r_min,r_max,length/2.,startPhi,dPhi);
 
+   std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_BeamCollimator]: Length = " << length/cm << " cm" << std::endl;
+
    // visualization 
    G4VisAttributes *vis = new G4VisAttributes();
    vis->SetColour( G4Colour::Red() ); 

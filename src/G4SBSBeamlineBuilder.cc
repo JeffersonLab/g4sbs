@@ -2084,6 +2084,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
      std::cout << "******** BEAM LINE COLLIMATOR INSERTED FOR GEn TARGET PROTECTION [for study only] ********" << std::endl;
      std::cout << "******** Sub-dividing the beam pipe vacuum so the collimator does not overlap: " << std::endl;
      std::cout << "******** upstream vac: z = " << zu_bc/cm << " cm, len = " << Lu_bc/cm << " cm" << std::endl;
+     std::cout << "******** Beam collimator length: " << lengthBC/cm << " cm" << std::endl; 
      new G4PVPlacement(0,
                        G4ThreeVector(0.0,0.0,zu_bc), 
                        P0tubeB_upstr_vacLog,

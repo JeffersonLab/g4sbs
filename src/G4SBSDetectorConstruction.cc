@@ -127,7 +127,11 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   // GEn 3He target angular misalignment
   fGEnTgtDRX = 0.;  
   fGEnTgtDRY = 0.;  
-  fGEnTgtDRZ = 0.; 
+  fGEnTgtDRZ = 0.;
+
+  // D. Flay (12/9/20) 
+  // GEn 3He target as a sensitive detector 
+  fGEnTgtSDEnable = false;  
 
   // D. Flay (10/15/20) 
   // Ion chamber (testing) 

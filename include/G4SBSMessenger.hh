@@ -203,6 +203,9 @@ private:
   G4UIcmdWithABool *GENTargetColACmd;
   G4UIcmdWithABool *GENTargetColBCmd;
   G4UIcmdWithABool *GENTargetColCCmd;
+  
+  // D. Flay 12/9/20: command to enable the GEn target as an SD 
+  G4UIcmdWithABool *GENTargetSDEnableCmd; 
  
   // D. Flay 8/25/20 
   // command to set the beam offset 

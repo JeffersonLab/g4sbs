@@ -1,5 +1,7 @@
-#ifndef ION_CHAMBER_HIT_HH
-#define ION_CHAMBER_HIT_HH
+#ifndef G4SBS_TARGET_HIT_HH
+#define G4SBS_TARGET_HIT_HH
+
+// a class for keeping track of hits in a target system 
 
 #include "G4VHit.hh"
 #include "G4THitsCollection.hh"
@@ -15,16 +17,16 @@
 #include <iomanip>
 #include <fstream> 
 
-class G4SBSICHit : public G4VHit
+class G4SBSTargetHit : public G4VHit
 {
   public:
-    G4SBSICHit();
-    G4SBSICHit(const G4SBSICHit&);
-    virtual ~G4SBSICHit();
+    G4SBSTargetHit();
+    G4SBSTargetHit(const G4SBSTargetHit&);
+    virtual ~G4SBSTargetHit();
 
     // operators
-    const G4SBSICHit& operator=(const G4SBSICHit&);
-    G4bool operator==(const G4SBSICHit&) const;
+    const G4SBSTargetHit& operator=(const G4SBSTargetHit&);
+    G4bool operator==(const G4SBSTargetHit&) const;
 
     inline void* operator new(size_t);
     inline void  operator delete(void*);
@@ -57,10 +59,9 @@ class G4SBSICHit : public G4VHit
     G4double GetEdep()        const;
     G4double GetTrackLength() const;
     G4double GetTotalEnergy() const;
-    G4double GetMom()         const;
+    G4double GetMomentumMag() const;
     G4double GetHitTime()     const;
     G4double GetBeta()        const;
-    G4double GetMomentumMag() const;
 
     G4int GetTrackID() const;
     G4int GetPID()     const;
@@ -91,134 +92,126 @@ class G4SBSICHit : public G4VHit
 
 };
 
-using G4SBSICHitsCollection = G4THitsCollection<G4SBSICHit>;
-extern G4ThreadLocal G4Allocator<G4SBSICHit>* G4SBSICHitAllocator;
+using G4SBSTargetHitsCollection = G4THitsCollection<G4SBSTargetHit>;
+extern G4ThreadLocal G4Allocator<G4SBSTargetHit>* G4SBSTargetHitAllocator;
 
 //______________________________________________________________________________
-inline void* G4SBSICHit::operator new(size_t)
+inline void* G4SBSTargetHit::operator new(size_t)
 {
-  if (!G4SBSICHitAllocator) {
-    G4SBSICHitAllocator = new G4Allocator<G4SBSICHit>;
+  if (!G4SBSTargetHitAllocator) {
+    G4SBSTargetHitAllocator = new G4Allocator<G4SBSTargetHit>;
   }
   void *hit;
-  hit = (void *) G4SBSICHitAllocator->MallocSingle();
+  hit = (void *) G4SBSTargetHitAllocator->MallocSingle();
   return hit;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::operator delete(void *hit)
+inline void G4SBSTargetHit::operator delete(void *hit)
 {
-  if (!G4SBSICHitAllocator) {
-    G4SBSICHitAllocator = new G4Allocator<G4SBSICHit>;
+  if (!G4SBSTargetHitAllocator) {
+    G4SBSTargetHitAllocator = new G4Allocator<G4SBSTargetHit>;
   }
-  G4SBSICHitAllocator->FreeSingle((G4SBSICHit*) hit);
+  G4SBSTargetHitAllocator->FreeSingle((G4SBSTargetHit*) hit);
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetTrackID(G4int trackID){
+inline void G4SBSTargetHit::SetTrackID(G4int trackID){
    fTrackID = trackID;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::Add(G4double de, G4double dl) {
+inline void G4SBSTargetHit::Add(G4double de, G4double dl) {
   fEdep        += de;
   fTrackLength += dl;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetTrackLength(G4double len){
+inline void G4SBSTargetHit::SetTrackLength(G4double len){
    fTrackLength = len;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetEdep(G4double edep){
+inline void G4SBSTargetHit::SetEdep(G4double edep){
    fEdep = edep;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetTotalEnergy(G4double E){
+inline void G4SBSTargetHit::SetTotalEnergy(G4double E){
    fEtot = E;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetBeta(G4double beta){
+inline void G4SBSTargetHit::SetBeta(G4double beta){
    fBeta = beta;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetHitTime(G4double time){
+inline void G4SBSTargetHit::SetHitTime(G4double time){
    fHitTime = time;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetMomentumMag(G4double pmag){
+inline void G4SBSTargetHit::SetMomentumMag(G4double pmag){
    fPmag = pmag; 
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetPos(G4ThreeVector v){
+inline void G4SBSTargetHit::SetPos(G4ThreeVector v){
    fPos = v;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetLabPos(G4ThreeVector v){
+inline void G4SBSTargetHit::SetLabPos(G4ThreeVector v){
    fLabPos = v;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetMomentum(G4ThreeVector m){
+inline void G4SBSTargetHit::SetMomentum(G4ThreeVector m){
    fMom = m;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetPID(G4int pid){
+inline void G4SBSTargetHit::SetPID(G4int pid){
    fPID = pid;
 }
 //______________________________________________________________________________
-inline void G4SBSICHit::SetMID(G4int mid){
+inline void G4SBSTargetHit::SetMID(G4int mid){
    fMID = mid;
 }
 //______________________________________________________________________________
-inline G4double G4SBSICHit::GetEdep() const {
+inline G4double G4SBSTargetHit::GetEdep() const {
   return fEdep;
 }
 //______________________________________________________________________________
-inline G4double G4SBSICHit::GetTrackLength() const {
+inline G4double G4SBSTargetHit::GetTrackLength() const {
   return fTrackLength;
 }
 //______________________________________________________________________________
-inline G4double G4SBSICHit::GetTotalEnergy() const{
+inline G4double G4SBSTargetHit::GetTotalEnergy() const{
    return fEtot;
 }
 //______________________________________________________________________________
-inline G4double G4SBSICHit::GetBeta() const{
+inline G4double G4SBSTargetHit::GetBeta() const{
    return fBeta;
 }
 //______________________________________________________________________________
-inline G4double G4SBSICHit::GetHitTime() const{
+inline G4double G4SBSTargetHit::GetHitTime() const{
    return fHitTime;
 }
 //______________________________________________________________________________
-inline G4ThreeVector G4SBSICHit::GetPos() const{
+inline G4ThreeVector G4SBSTargetHit::GetPos() const{
    return fPos;
 }
 //______________________________________________________________________________
-inline G4ThreeVector G4SBSICHit::GetLabPos() const{
+inline G4ThreeVector G4SBSTargetHit::GetLabPos() const{
    return fLabPos;
 }
 //______________________________________________________________________________
-inline G4ThreeVector G4SBSICHit::GetMomentum() const{
+inline G4ThreeVector G4SBSTargetHit::GetMomentum() const{
    return fMom;
 }
 //______________________________________________________________________________
-inline G4double G4SBSICHit::GetMom() const{
-   double x      = fMom.x();
-   double y      = fMom.y();
-   double z      = fMom.z();
-   double sum_sq = x*x + y*y + z*z;
-   return sqrt(sum_sq);
-}
-//______________________________________________________________________________
-inline G4double G4SBSICHit::GetMomentumMag() const{
+inline G4double G4SBSTargetHit::GetMomentumMag() const{
    return fPmag;
 }
 //______________________________________________________________________________
-inline G4int G4SBSICHit::GetPID() const{
+inline G4int G4SBSTargetHit::GetPID() const{
    return fPID;
 }
 //______________________________________________________________________________
-inline G4int G4SBSICHit::GetMID() const{
+inline G4int G4SBSTargetHit::GetMID() const{
    return fMID;
 }
 //______________________________________________________________________________
-inline G4int G4SBSICHit::GetTrackID() const{
+inline G4int G4SBSTargetHit::GetTrackID() const{
    return fTrackID;
 }
 

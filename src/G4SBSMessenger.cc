@@ -138,6 +138,12 @@ G4SBSMessenger::G4SBSMessenger(){
   GENTargetColCCmd->SetGuidance("GEn 3He target collimator C enable"); 
   GENTargetColCCmd->SetParameterName("targgenColEnableC",false);
 
+  // D. Flay (12/9/20) 
+  // for enabling the GEn target as a sensitive detector  
+  GENTargetSDEnableCmd = new G4UIcmdWithABool("/g4sbs/targgenSDEnable",this); 
+  GENTargetSDEnableCmd->SetGuidance("GEn 3He target SD enable"); 
+  GENTargetSDEnableCmd->SetParameterName("targgenSDEnable",false);
+
   // D. Flay (10/15/20) 
   // beam angular misalignment 
   // - horizontal (x)  
@@ -1285,6 +1291,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == GENTargetColCCmd ){
      G4bool tccEnable = GENTargetColCCmd->GetNewBoolValue(newValue); 
      fdetcon->SetGEnTargetCollimatorCEnable(tccEnable);
+  }
+
+  if( cmd == GENTargetSDEnableCmd ){
+     G4bool genSDEnable = GENTargetSDEnableCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetSDEnable(genSDEnable);  
   }
 
   // D. Flay (8/25/20) 

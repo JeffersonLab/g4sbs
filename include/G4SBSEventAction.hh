@@ -28,6 +28,10 @@
 #include "G4SBSICHit.hh"
 #include "G4SBSICoutput.hh"
 
+#include "G4SBSTargetSD.hh"
+#include "G4SBSTargetHit.hh"
+#include "G4SBSTargetoutput.hh"
+
 #include <set> 
 
 using namespace std;
@@ -64,8 +68,11 @@ public:
   void FillRICHData( const G4Event*, G4SBSRICHHitsCollection*, G4SBSRICHoutput &, G4SBSSDTrackOutput & );
   void FillTrackData( G4SBSGEMoutput, G4SBSTrackerOutput & );
   void FillECalData( G4SBSECalHitsCollection*, G4SBSECaloutput &, G4SBSSDTrackOutput & );
+  // for D Flay studies 
   void FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G4SBSBDoutput &out); // for the Beam Diffuser (BD)
   void FillICData(const G4Event *evt,G4SBSICHitsCollection *hc,G4SBSICoutput &out); // for the Ion Chamber (IC)  
+  // void FillGEnGlassCellData(const G4Event *evt,G4SBSTargetHitsCollection *hc,G4SBSTargetoutput &out); // for the GEn target   
+  void FillGEnTargetData(const G4Event *evt,G4SBSTargetHitsCollection *hc,G4SBSTargetoutput &out); // for the GEn target   
 
   //map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run. 
   set<G4String> SDlist;

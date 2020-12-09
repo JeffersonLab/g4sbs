@@ -75,7 +75,11 @@ public:
   G4bool GetGEnTargetCollimatorEnable()  const { return fGEnTgtCollimatorEnable;  }  
   G4bool GetGEnTargetCollimatorAEnable() const { return fGEnTgtCollimatorAEnable; }  
   G4bool GetGEnTargetCollimatorBEnable() const { return fGEnTgtCollimatorBEnable; }  
-  G4bool GetGEnTargetCollimatorCEnable() const { return fGEnTgtCollimatorCEnable; }  
+  G4bool GetGEnTargetCollimatorCEnable() const { return fGEnTgtCollimatorCEnable; } 
+
+  // D. Flay (12/9/20).  GEn 3He target as a sensitive detector
+  void SetGEnTargetSDEnable(bool v)            { fGEnTgtSDEnable = v;          } 
+  G4bool GetGEnTargetSDEnable()          const { return fGEnTgtSDEnable;       }  
 
   // Beam dump enable 
   void SetBeamDumpEnable(bool v)   { fBeamDumpEnable = v;    } 
@@ -238,6 +242,8 @@ private:
   G4int fGEnTgtHHConfig; // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration
   
   G4double fGEnTgtDRX,fGEnTgtDRY,fGEnTgtDRZ; // D. Flay (9/29/20).  GEn 3He target angular misalignment 
+  
+  G4bool fGEnTgtSDEnable; // D. Flay (12/9/20). GEn 3He target sensitive detector enable  
 
   // for GEn 3He target collimators 
   G4bool fGEnTgtCollimatorEnable; 

@@ -10,6 +10,7 @@
 #include "G4SBSPartParameters.hh"
 
 #include "G4SBSIonChamberSD.hh"
+#include "G4SBSTargetSD.hh"
 
 class G4DetectorConstruction;
 

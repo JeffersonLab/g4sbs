@@ -2704,7 +2704,32 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
                      checkOverlaps);    // check overlaps
 
    // register with DetectorConstruction object 
-   fDetCon->InsertTargetVolume( logicGlassCell->GetName() ); 
+   fDetCon->InsertTargetVolume( logicGlassCell->GetName() );
+
+   // now turn this into a sensitive detector if enabled
+   bool enableSD = fDetCon->GetGEnTargetSDEnable();  
+
+   // name of SD and the hitCollection  
+   G4String gcSDname = "Target/Glass";   
+   // We have to remove all the directory structure from the 
+   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+   G4String gcSDname_nopath = gcSDname;
+   gcSDname_nopath.remove(0,gcSDname.last('/')+1);
+   G4String gcColName = gcSDname_nopath;
+   gcColName += "HitsCollection";
+
+   G4SBSTargetSD *gcSD = nullptr;
+   if(enableSD){
+      if( !(gcSD = (G4SBSTargetSD *)fDetCon->fSDman->FindSensitiveDetector(gcSDname)) ){
+	 // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+	 G4cout << "Adding GEn Glass Cell sensitive detector to SDman..." << G4endl;
+	 gcSD = new G4SBSTargetSD(gcSDname,gcColName);
+	 logicGlassCell->SetSensitiveDetector(gcSD);
+	 fDetCon->fSDman->AddNewDetector(gcSD);
+	 (fDetCon->SDlist).insert(gcSDname);
+	 fDetCon->SDtype[gcSDname] = G4SBS::kTarget_GEn_Glass;
+      }
+   }
 
 }
 
@@ -2887,7 +2912,61 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
    G4double COS_G = cos(drx); G4double COS_B = cos(dry); G4double COS_A = cos(drz); 
    G4double SIN_G = sin(drx); G4double SIN_B = sin(dry); G4double SIN_A = sin(drz); 
    G4double xp=0,yp=0,zp=0;
+
+   // now turn this into a sensitive detector if enabled
+   bool enableSD = fDetCon->GetGEnTargetSDEnable(); 
+   G4SBSTargetSD *capSD_Al = nullptr;
+   G4SBSTargetSD *capSD_Cu = nullptr;
  
+   // name of SD and the hitCollection  
+   G4String alSDname_us = "Target/AlUpstr";  
+   G4String alSDname_ds = "Target/AlDnstr"; 
+   // G4String alHCname_us = alSDname_us + "HitsCollection";
+   // G4String alHCname_ds = alSDname_ds + "HitsCollection";
+
+   // We have to remove all the directory structure from the 
+   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+   // upstream 
+   G4String alSDname_us_nopath = alSDname_us;
+   alSDname_us_nopath.remove(0,alSDname_us.last('/')+1);
+   G4String alHCname_us = alSDname_us_nopath;
+   alHCname_us += "HitsCollection";
+   // downstream
+   G4String alSDname_ds_nopath = alSDname_ds;
+   alSDname_ds_nopath.remove(0,alSDname_ds.last('/')+1);
+   G4String alHCname_ds = alSDname_ds_nopath;
+   alHCname_ds += "HitsCollection";
+
+   std::vector<G4String> alSDname;
+   alSDname.push_back(alSDname_us);  
+   alSDname.push_back(alSDname_ds);  
+   std::vector<G4String> alHCname;
+   alHCname.push_back(alHCname_us);  
+   alHCname.push_back(alHCname_ds);  
+
+   G4String cuSDname_us = "Target/CuUpstr";  
+   G4String cuSDname_ds = "Target/CuDnstr"; 
+   // G4String cuHCname_us = cuSDname_us + "HitsCollection";
+   // G4String cuHCname_ds = cuSDname_ds + "HitsCollection";
+
+   // upstream 
+   G4String cuSDname_us_nopath = cuSDname_us;
+   cuSDname_us_nopath.remove(0,cuSDname_us.last('/')+1);
+   G4String cuHCname_us = cuSDname_us_nopath;
+   alHCname_us += "HitsCollection";
+   // downstream
+   G4String cuSDname_ds_nopath = cuSDname_ds;
+   cuSDname_ds_nopath.remove(0,cuSDname_ds.last('/')+1);
+   G4String cuHCname_ds = cuSDname_ds_nopath;
+   cuHCname_ds += "HitsCollection";
+
+   std::vector<G4String> cuSDname;
+   cuSDname.push_back(cuSDname_us);  
+   cuSDname.push_back(cuSDname_ds);  
+   std::vector<G4String> cuHCname;
+   cuHCname.push_back(cuHCname_us);  
+   cuHCname.push_back(cuHCname_ds);  
+
    char msg[200]; 
  
    for(int i=0;i<2;i++){
@@ -2923,6 +3002,18 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
 	                checkOverlaps);      // check overlaps
       // register with DetectorConstruction object
       fDetCon->InsertTargetVolume( logicMainShaft[i]->GetName() );
+      // set to be sensitive detector 
+      if(enableSD){
+	 if( !(capSD_Cu = (G4SBSTargetSD *)fDetCon->fSDman->FindSensitiveDetector(cuSDname[i])) ){
+	    // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+	    G4cout << "Adding GEn target Cu cap " << i << " sensitive detector to SDman..." << G4endl;
+	    capSD_Cu = new G4SBSTargetSD(cuSDname[i],cuHCname[i]);
+	    logicMainShaft[i]->SetSensitiveDetector(capSD_Cu);
+	    fDetCon->fSDman->AddNewDetector(capSD_Cu);
+	    (fDetCon->SDlist).insert(cuSDname[i]);
+	    fDetCon->SDtype[cuSDname[i]] = G4SBS::kTarget_GEn_Cu;
+	 }
+      }
       // hemisphere cap [aluminum]  
       // create logical volume
       sprintf(logicName,"logicGEnTarget_EndWindow_al_%d",i);  
@@ -2955,6 +3046,18 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
 	                checkOverlaps);      // check overlaps
       // register with DetectorConstruction object
       fDetCon->InsertTargetVolume( logicEndCap[i]->GetName() );
+      // set to be sensitive detector 
+      if(enableSD){
+	 if( !(capSD_Al = (G4SBSTargetSD *)fDetCon->fSDman->FindSensitiveDetector(alSDname[i])) ){
+	    // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+	    G4cout << "Adding GEn target Al cap " << i << " sensitive detector to SDman..." << G4endl;
+	    capSD_Al = new G4SBSTargetSD(alSDname[i],alHCname[i]);
+	    logicEndCap[i]->SetSensitiveDetector(capSD_Al);
+	    fDetCon->fSDman->AddNewDetector(capSD_Al);
+	    (fDetCon->SDlist).insert(alSDname[i]);
+	    fDetCon->SDtype[alSDname[i]] = G4SBS::kTarget_GEn_Al;
+	 }
+      }
    }
  
 }

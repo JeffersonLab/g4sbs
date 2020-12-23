@@ -79,19 +79,25 @@
 # /g4sbs/ionChamberRY 90  deg
 # /g4sbs/ionChamberRZ 0   deg
 
-/g4sbs/beamCollimatorEnable true
+/g4sbs/beamCollimatorEnable_dnstr true
 # size   
-/g4sbs/beamCollimatorL     3  cm
-/g4sbs/beamCollimatorDmin  15 mm
-/g4sbs/beamCollimatorDmax  37 mm
-# # position 1
-# /g4sbs/beamCollimatorX     0  cm
-# /g4sbs/beamCollimatorY     0  cm
-# /g4sbs/beamCollimatorZ    -32.5 cm
-# position 2 
-/g4sbs/beamCollimatorX     0  cm
-/g4sbs/beamCollimatorY     0  cm
-/g4sbs/beamCollimatorZ    -50 cm 
+/g4sbs/beamCollimatorL_dnstr     5  cm
+/g4sbs/beamCollimatorDmin_dnstr  9  mm
+/g4sbs/beamCollimatorDmax_dnstr  37 mm
+# position  
+/g4sbs/beamCollimatorX_dnstr     0  cm
+/g4sbs/beamCollimatorY_dnstr     0  cm
+/g4sbs/beamCollimatorZ_dnstr    -60 cm
+
+/g4sbs/beamCollimatorEnable_upstr false 
+# size   
+/g4sbs/beamCollimatorL_upstr     10  cm
+/g4sbs/beamCollimatorDmin_upstr  9   mm
+/g4sbs/beamCollimatorDmax_upstr  37  mm
+# position  
+/g4sbs/beamCollimatorX_upstr     0   cm
+/g4sbs/beamCollimatorY_upstr     0   cm
+/g4sbs/beamCollimatorZ_upstr    -145 cm
 
 /g4sbs/totalabs true
 

@@ -145,13 +145,21 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   // D. Flay (11/5/20) 
   // beam collimator (testing) 
-  fBeamCollimatorEnable = false; 
-  fBeamCollimatorX      = 0;  
-  fBeamCollimatorY      = 0;  
-  fBeamCollimatorZ      = 0;  
-  fBeamCollimatorL      = 4.0*cm;  
-  fBeamCollimatorDmin   = 15*mm;  
-  fBeamCollimatorDmax   = 30*mm;  
+  fBeamCollimatorEnable_upstr = false; 
+  fBeamCollimatorX_upstr      = 0;  
+  fBeamCollimatorY_upstr      = 0;  
+  fBeamCollimatorZ_upstr      = 0;  
+  fBeamCollimatorL_upstr      = 4.0*cm;  
+  fBeamCollimatorDmin_upstr   = 15*mm;  
+  fBeamCollimatorDmax_upstr   = 30*mm;  
+
+  fBeamCollimatorEnable_dnstr = false; 
+  fBeamCollimatorX_dnstr      = 0;  
+  fBeamCollimatorY_dnstr      = 0;  
+  fBeamCollimatorZ_dnstr      = 0;  
+  fBeamCollimatorL_dnstr      = 4.0*cm;  
+  fBeamCollimatorDmin_dnstr   = 15*mm;  
+  fBeamCollimatorDmax_dnstr   = 30*mm;  
 
 }
 

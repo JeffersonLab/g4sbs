@@ -60,7 +60,7 @@ public:
   void BuildGEnTarget_Collimator_Table(G4LogicalVolume *motherLog,G4double z0=0);
   // test items 
   void BuildGEnTarget_IonChamber(G4LogicalVolume *motherLog);
-  void BuildGEnTarget_BeamCollimator(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_BeamCollimator(G4LogicalVolume *motherLog,int type=0); // default is downstream  
 
   void CheckZPos(G4LogicalVolume *logicMother,G4double z0); // dummy function to check z positoning  
   

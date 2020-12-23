@@ -108,22 +108,40 @@ public:
   G4double GetIonChamberRZ()       const { return fIonChamberRZ; } 
 
   // D. Flay (11/5/20). Beam collimator (for GEn)   
-  void SetBeamCollimatorEnable(bool v)       { fBeamCollimatorEnable = v; } 
-  G4bool GetBeamCollimatorEnable()     const { return fBeamCollimatorEnable; } 
+  void SetBeamCollimatorEnable_dnstr(bool v)       { fBeamCollimatorEnable_dnstr = v; } 
+  G4bool GetBeamCollimatorEnable_dnstr()     const { return fBeamCollimatorEnable_dnstr; } 
+  void SetBeamCollimatorEnable_upstr(bool v)       { fBeamCollimatorEnable_upstr = v; } 
+  G4bool GetBeamCollimatorEnable_upstr()     const { return fBeamCollimatorEnable_upstr; } 
   // dimensions 
-  void SetBeamCollimatorL(double v)          { fBeamCollimatorL = v;    } 
-  G4double GetBeamCollimatorL()        const { return fBeamCollimatorL; } 
-  void SetBeamCollimatorDmin(double v)          { fBeamCollimatorDmin = v; } 
-  G4double GetBeamCollimatorDmin()     const { return fBeamCollimatorDmin; } 
-  void SetBeamCollimatorDmax(double v)       { fBeamCollimatorDmax = v;    } 
-  G4double GetBeamCollimatorDmax()     const { return fBeamCollimatorDmax; } 
+  // - downstream
+  void SetBeamCollimatorL_dnstr(double v)          { fBeamCollimatorL_dnstr = v;    } 
+  G4double GetBeamCollimatorL_dnstr()        const { return fBeamCollimatorL_dnstr; } 
+  void SetBeamCollimatorDmin_dnstr(double v)          { fBeamCollimatorDmin_dnstr = v; } 
+  G4double GetBeamCollimatorDmin_dnstr()     const { return fBeamCollimatorDmin_dnstr; } 
+  void SetBeamCollimatorDmax_dnstr(double v)       { fBeamCollimatorDmax_dnstr = v;    } 
+  G4double GetBeamCollimatorDmax_dnstr()     const { return fBeamCollimatorDmax_dnstr; } 
+  // - upstream
+  void SetBeamCollimatorL_upstr(double v)          { fBeamCollimatorL_upstr = v;    } 
+  G4double GetBeamCollimatorL_upstr()        const { return fBeamCollimatorL_upstr; } 
+  void SetBeamCollimatorDmin_upstr(double v)          { fBeamCollimatorDmin_upstr = v; } 
+  G4double GetBeamCollimatorDmin_upstr()     const { return fBeamCollimatorDmin_upstr; } 
+  void SetBeamCollimatorDmax_upstr(double v)       { fBeamCollimatorDmax_upstr = v;    } 
+  G4double GetBeamCollimatorDmax_upstr()     const { return fBeamCollimatorDmax_upstr; } 
   // positions 
-  void SetBeamCollimatorX(double v)          { fBeamCollimatorX = v;    } 
-  G4double GetBeamCollimatorX()        const { return fBeamCollimatorX; } 
-  void SetBeamCollimatorY(double v)          { fBeamCollimatorY = v;    } 
-  G4double GetBeamCollimatorY()        const { return fBeamCollimatorY; } 
-  void SetBeamCollimatorZ(double v)          { fBeamCollimatorZ = v;    } 
-  G4double GetBeamCollimatorZ()        const { return fBeamCollimatorZ; } 
+  // - downstream
+  void SetBeamCollimatorX_dnstr(double v)          { fBeamCollimatorX_dnstr = v;    } 
+  G4double GetBeamCollimatorX_dnstr()        const { return fBeamCollimatorX_dnstr; } 
+  void SetBeamCollimatorY_dnstr(double v)          { fBeamCollimatorY_dnstr = v;    } 
+  G4double GetBeamCollimatorY_dnstr()        const { return fBeamCollimatorY_dnstr; } 
+  void SetBeamCollimatorZ_dnstr(double v)          { fBeamCollimatorZ_dnstr = v;    } 
+  G4double GetBeamCollimatorZ_dnstr()        const { return fBeamCollimatorZ_dnstr; } 
+  // - upstream
+  void SetBeamCollimatorX_upstr(double v)          { fBeamCollimatorX_upstr = v;    } 
+  G4double GetBeamCollimatorX_upstr()        const { return fBeamCollimatorX_upstr; } 
+  void SetBeamCollimatorY_upstr(double v)          { fBeamCollimatorY_upstr = v;    } 
+  G4double GetBeamCollimatorY_upstr()        const { return fBeamCollimatorY_upstr; } 
+  void SetBeamCollimatorZ_upstr(double v)          { fBeamCollimatorZ_upstr = v;    } 
+  G4double GetBeamCollimatorZ_upstr()        const { return fBeamCollimatorZ_upstr; } 
 
   void SetTotalAbs(bool b){ fTotalAbs= b; }
   void SetCheckOverlap(bool b){ fCheckOverlap = b; }
@@ -260,9 +278,13 @@ private:
   G4double fIonChamberRX,fIonChamberRY,fIonChamberRZ;  
 
   // D. Flay (11/5/20).  GEn beam collimator  
-  G4bool fBeamCollimatorEnable; 
-  G4double fBeamCollimatorX,fBeamCollimatorY,fBeamCollimatorZ; 
-  G4double fBeamCollimatorL,fBeamCollimatorDmin,fBeamCollimatorDmax;  
+  G4bool fBeamCollimatorEnable_dnstr,fBeamCollimatorEnable_upstr;
+  // - downstream 
+  G4double fBeamCollimatorX_dnstr,fBeamCollimatorY_dnstr,fBeamCollimatorZ_dnstr; 
+  G4double fBeamCollimatorL_dnstr,fBeamCollimatorDmin_dnstr,fBeamCollimatorDmax_dnstr;  
+  // - upstream 
+  G4double fBeamCollimatorX_upstr,fBeamCollimatorY_upstr,fBeamCollimatorZ_upstr; 
+  G4double fBeamCollimatorL_upstr,fBeamCollimatorDmin_upstr,fBeamCollimatorDmax_upstr;  
 
 };
 

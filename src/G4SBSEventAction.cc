@@ -155,6 +155,9 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   G4SBSTargetSD *genALSDptr; 
   G4SBSTargetHitsCollection *alHC = 0; 
 
+  G4SBSTargetSD *gen3HESDptr; 
+  G4SBSTargetHitsCollection *he3HC = 0; 
+
   MapTracks(evt);
 
   bool anyhits = false;
@@ -188,6 +191,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     G4SBSTargetoutput gc; 
     G4SBSTargetoutput cu; 
     G4SBSTargetoutput al; 
+    G4SBSTargetoutput he3; 
     
     switch(Det_type){
 
@@ -412,6 +416,18 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	    FillGEnTargetData(evt,alHC,al); 
 	    fIO->SetGEnTargetData_Al(*d,al); 
 	    anyhits = (anyhits || al.nhits_Target>0 );
+	 }
+      } 
+      break;
+    case G4SBS::kTarget_GEn_3He:  
+      // GEn target3He 
+      gen3HESDptr = (G4SBSTargetSD*) SDman->FindSensitiveDetector(*d,false);
+      if(gen3HESDptr!=NULL){
+	 he3HC = (G4SBSTargetHitsCollection*) (HCE->GetHC(SDman->GetCollectionID(colNam=gen3HESDptr->GetCollectionName(0))));
+	 if(he3HC!=NULL){
+	    FillGEnTargetData(evt,he3HC,he3); 
+	    fIO->SetGEnTargetData_3He(*d,he3); 
+	    anyhits = (anyhits || he3.nhits_Target>0 );
 	 }
       } 
       break;
@@ -2222,7 +2238,7 @@ void G4SBSEventAction::FillGEnTargetData(const G4Event *evt,G4SBSTargetHitsColle
    std::map<int,int> nsteps_track;        // number of steps by track/layer  
    std::map<int,int> pid;                 // particle type
    std::map<int,int> mid;                 // material/medium type (?)   
-   std::map<int,double> beta,edep,p,t;
+   std::map<int,double> beta,edep,p,t,trackLen;
    // std::map<int,double> x,y,z,xg,yg,zg;
 
    bool debug=false;
@@ -2259,6 +2275,7 @@ void G4SBSEventAction::FillGEnTargetData(const G4Event *evt,G4SBSTargetHitsColle
          edep[trackID] = (*hc)[i]->GetEdep();
          p[trackID]    = (*hc)[i]->GetMomentumMag();  // momentum (magnitude) at pre-step 
          beta[trackID] = (*hc)[i]->GetBeta();
+         trackLen[trackID] = (*hc)[i]->GetTrackLength(); 
          // Particle and material info  
          pid[trackID]  = (*hc)[i]->GetPID();
          mid[trackID]  = (*hc)[i]->GetMID();
@@ -2274,6 +2291,7 @@ void G4SBSEventAction::FillGEnTargetData(const G4Event *evt,G4SBSTargetHitsColle
          // xg[trackID] = xg[trackID]*w +( (*hc)[i]->GetLabPos().x() )*(1.0-w);
          // yg[trackID] = yg[trackID]*w +( (*hc)[i]->GetLabPos().y() )*(1.0-w);
          // zg[trackID] = zg[trackID]*w +( (*hc)[i]->GetLabPos().z() )*(1.0-w);
+         trackLen[trackID] += (*hc)[i]->GetTrackLength(); 
          // for edep, we do the sum:
          edep[trackID] += (*hc)[i]->GetEdep();
          // increment 
@@ -2314,6 +2332,7 @@ void G4SBSEventAction::FillGEnTargetData(const G4Event *evt,G4SBSTargetHitsColle
          out.p.push_back( p[trackID]/_E_UNIT );
          out.beta.push_back( beta[trackID]/_E_UNIT );
          out.edep.push_back( edep[trackID]/_E_UNIT );
+         out.trackLength.push_back( trackLen[trackID]/_L_UNIT ); 
          if( trajectorylist ){ 
             // fill Particle History, starting with the particle itself 
             // and working all the way back to primary particles:

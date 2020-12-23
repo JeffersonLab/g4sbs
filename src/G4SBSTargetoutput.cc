@@ -23,5 +23,6 @@ void G4SBSTargetoutput::Clear(){
    mid.clear();
    beta.clear();
    edep.clear();
+   trackLength.clear();
    ParticleHistory.Clear();
 }

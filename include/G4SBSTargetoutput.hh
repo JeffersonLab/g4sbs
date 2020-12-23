@@ -22,7 +22,8 @@ class G4SBSTargetoutput {
       std::vector<int> mid;            // material type 
       std::vector<double> t,x,y,z;     // time, local coordinates (x,y,z) 
       std::vector<double> xg,yg,zg;    // lab coordinates  
-      std::vector<double> p,edep,beta; // momentum, deposited energy, beta = v/c  
+      std::vector<double> p,edep,beta; // momentum, deposited energy, beta = v/c 
+      std::vector<double> trackLength; // track length  
 
       G4SBSParticleOutput ParticleHistory;
 

@@ -2341,8 +2341,10 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
    if(enableIC) BuildGEnTarget_IonChamber(motherLog); 
 
    // beam collimator (for test purposes) 
-   bool enableBC = fDetCon->GetBeamCollimatorEnable(); 
-   if(enableBC) BuildGEnTarget_BeamCollimator(motherLog); 
+   bool enableBC_dnstr = fDetCon->GetBeamCollimatorEnable_dnstr(); 
+   bool enableBC_upstr = fDetCon->GetBeamCollimatorEnable_upstr(); 
+   if(enableBC_dnstr) BuildGEnTarget_BeamCollimator(motherLog,0); 
+   if(enableBC_upstr) BuildGEnTarget_BeamCollimator(motherLog,1); 
 
 }
 
@@ -3498,7 +3500,32 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
                     checkOverlaps);         // check overlaps 
 
   // register with DetectorConstruction object
-  fDetCon->InsertTargetVolume( logicHe3->GetName() );  
+  fDetCon->InsertTargetVolume( logicHe3->GetName() ); 
+
+   // now turn this into a sensitive detector if enabled
+   bool enableSD = fDetCon->GetGEnTargetSDEnable();  
+
+   // name of SD and the hitCollection  
+   G4String heSDname = "Target/He3";   
+   // We have to remove all the directory structure from the 
+   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+   G4String heSDname_nopath = heSDname;
+   heSDname_nopath.remove(0,heSDname.last('/')+1);
+   G4String heColName = heSDname_nopath;
+   heColName += "HitsCollection";
+
+   G4SBSTargetSD *heSD = nullptr;
+   if(enableSD){
+      if( !(heSD = (G4SBSTargetSD *)fDetCon->fSDman->FindSensitiveDetector(heSDname)) ){
+	 // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+	 G4cout << "Adding GEn 3He sensitive detector to SDman..." << G4endl;
+	 heSD = new G4SBSTargetSD(heSDname,heColName);
+	 logicHe3->SetSensitiveDetector(heSD);
+	 fDetCon->fSDman->AddNewDetector(heSD);
+	 (fDetCon->SDlist).insert(heSDname);
+	 fDetCon->SDtype[heSDname] = G4SBS::kTarget_GEn_3He;
+      }
+   }
 
 }
 
@@ -5040,64 +5067,92 @@ void G4SBSTargetBuilder::BuildGEnTarget_IonChamber(G4LogicalVolume *motherLog){
 
 }
 
-void G4SBSTargetBuilder::BuildGEnTarget_BeamCollimator(G4LogicalVolume *motherLog){
+void G4SBSTargetBuilder::BuildGEnTarget_BeamCollimator(G4LogicalVolume *motherLog,int type){
    // a test device to test out collimator ideas
    // to prevent target scraping  
+   // type = 0 => downstream, 1 => upstream 
 
-   // solid (arbitrary size)  
-   G4double length   = fDetCon->GetBeamCollimatorL();        
-   G4double r_min    = 0.5*fDetCon->GetBeamCollimatorDmin(); 
-   G4double r_max    = 0.5*fDetCon->GetBeamCollimatorDmax(); 
    G4double startPhi = 0.*deg;
    G4double dPhi     = 360.*deg;
-   G4Tubs *solidBC   = new G4Tubs("solidBC",r_min,r_max,length/2.,startPhi,dPhi);
 
-   std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_BeamCollimator]: Length = " << length/cm << " cm" << std::endl;
+   std::string tag; 
+   G4double length=0,r_min=0,r_max=0,x=0,y=0,z=0;
+   if(type==0){
+      tag    = "dnstr"; 
+      length = fDetCon->GetBeamCollimatorL_dnstr();        
+      r_min  = 0.5*fDetCon->GetBeamCollimatorDmin_dnstr(); 
+      r_max  = 0.5*fDetCon->GetBeamCollimatorDmax_dnstr(); 
+      x      = fDetCon->GetBeamCollimatorX_dnstr(); 
+      y      = fDetCon->GetBeamCollimatorY_dnstr(); 
+      z      = fDetCon->GetBeamCollimatorZ_dnstr();
+   }else if(type==1){
+      tag    = "upstr"; 
+      length = fDetCon->GetBeamCollimatorL_upstr();        
+      r_min  = 0.5*fDetCon->GetBeamCollimatorDmin_upstr(); 
+      r_max  = 0.5*fDetCon->GetBeamCollimatorDmax_upstr(); 
+      x      = fDetCon->GetBeamCollimatorX_upstr(); 
+      y      = fDetCon->GetBeamCollimatorY_upstr(); 
+      z      = fDetCon->GetBeamCollimatorZ_upstr();
+   } 
+
+   std::cout << "------------------------------------------------------------------------" << std::endl;
+   std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_BeamCollimator]: Building " << tag << " collimator: " << std::endl;
+   std::cout << " Length = " << length/cm   << " cm" << std::endl;
+   std::cout << " ID     = " << 2.*r_min/mm << " mm" << std::endl;
+   std::cout << " z      = " << z/cm        << " cm" << std::endl;
+   std::cout << "------------------------------------------------------------------------" << std::endl;
+
+   char lvName[200],phName[200],lvVacName[200],phVacName[200],sName[200],sVacName[200];
+   sprintf(lvName   ,"logicGEnTarget_beamCol_%s"   ,tag.c_str()); 
+   sprintf(phName   ,"physGEnTarget_beamCol_%s"    ,tag.c_str()); 
+   sprintf(lvVacName,"physGEnTarget_beamCol_%s_vac",tag.c_str()); 
+   sprintf(phVacName,"physGEnTarget_beamCol_%s_vac",tag.c_str()); 
+   sprintf(sName    ,"solidBC_%s"                  ,tag.c_str()); 
+   sprintf(sVacName ,"solidBC_%s_vac"              ,tag.c_str()); 
+   
+   // solid object 
+   G4Tubs *solidBC = new G4Tubs(sName,r_min,r_max,length/2.,startPhi,dPhi);
 
    // visualization 
    G4VisAttributes *vis = new G4VisAttributes();
    vis->SetColour( G4Colour::Red() ); 
 
    // logical volume
-   G4LogicalVolume *bc_LV = new G4LogicalVolume(solidBC,GetMaterial("TargetBeamCollimator_Material"),"logicGEnTarget_beamCollimator");
+   G4LogicalVolume *bc_LV = new G4LogicalVolume(solidBC,GetMaterial("TargetBeamCollimator_Material"),lvName);
    bc_LV->SetVisAttributes(vis); 
 
-   // placement (from macro file) 
-   G4double x = fDetCon->GetBeamCollimatorX(); 
-   G4double y = fDetCon->GetBeamCollimatorY(); 
-   G4double z = fDetCon->GetBeamCollimatorZ(); 
    G4ThreeVector P = G4ThreeVector(x,y,z);
 
    bool checkOverlaps = true;
 
-   new G4PVPlacement(0,                              // rotation
-                     P,                              // position      
-                     bc_LV,                          // logical volume     
-                     "physGEnTarget_beamCollimator", // name      
-                     motherLog,                      // mother logical volume      
-                     false,                          // is it a boolean solid?    
-                     0,                              // copy number    
-                     checkOverlaps);                 // check for overlaps
+   new G4PVPlacement(0,               // rotation
+                     P,               // position      
+                     bc_LV,           // logical volume     
+                     phName,          // name      
+                     motherLog,       // mother logical volume      
+                     false,           // is it a boolean solid?    
+                     0,               // copy number    
+                     checkOverlaps);  // check for overlaps
 
    // make a vacuum insert (since we will focus on in-vacuum placement, in upstream beam line)
-   G4Tubs *solidBC_vac = new G4Tubs("solidBC_vac",0,r_min,length/2.,startPhi,dPhi); 
+   G4Tubs *solidBC_vac = new G4Tubs(sVacName,0,r_min,length/2.,startPhi,dPhi); 
 
    // visualization 
    G4VisAttributes *vis_vac = new G4VisAttributes();
    vis_vac->SetForceWireframe(true); 
 
    // logical volume
-   G4LogicalVolume *bc_vac_LV = new G4LogicalVolume(solidBC_vac,GetMaterial("Vacuum"),"logicGEnTarget_beamCollimator_vac");
+   G4LogicalVolume *bc_vac_LV = new G4LogicalVolume(solidBC_vac,GetMaterial("Vacuum"),lvVacName);
    bc_vac_LV->SetVisAttributes(vis_vac); 
 
-   new G4PVPlacement(0,                                  // rotation
-                     P,                                  // position      
-                     bc_vac_LV,                          // logical volume     
-                     "physGEnTarget_beamCollimator_vac", // name      
-                     motherLog,                          // mother logical volume      
-                     false,                              // is it a boolean solid?    
-                     0,                                  // copy number    
-                     checkOverlaps);                     // check for overlaps
+   new G4PVPlacement(0,               // rotation
+                     P,               // position      
+                     bc_vac_LV,       // logical volume     
+                     phVacName,       // name      
+                     motherLog,       // mother logical volume      
+                     false,           // is it a boolean solid?    
+                     0,               // copy number    
+                     checkOverlaps);  // check for overlaps
 
 }
 

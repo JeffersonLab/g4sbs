@@ -112,12 +112,12 @@ public:
   void SetECalData( G4String, G4SBSECaloutput );
   void SetSDtrackData( G4String, G4SBSSDTrackOutput );
   // for D Flay studies
-  void SetBDData(G4String SDname,G4SBSBDoutput data);                 // for Beam Diffuser (BD)  
-  void SetICData(G4String SDname,G4SBSICoutput data);                 // for Ion Chamber (IC)   
-  // void SetGEnGlassCellData(G4String SDname,G4SBSTargetoutput data);   // for GEn glass cell  
-  void SetGEnTargetData_Glass(G4String SDname,G4SBSTargetoutput data);   // for GEn target glass 
-  void SetGEnTargetData_Cu(G4String SDname,G4SBSTargetoutput data);      // for GEn target Cu  
-  void SetGEnTargetData_Al(G4String SDname,G4SBSTargetoutput data);      // for GEn target Al  
+  void SetBDData(G4String SDname,G4SBSBDoutput data);                   // for Beam Diffuser (BD)  
+  void SetICData(G4String SDname,G4SBSICoutput data);                   // for Ion Chamber (IC)   
+  void SetGEnTargetData_Glass(G4String SDname,G4SBSTargetoutput data);  // for GEn target glass 
+  void SetGEnTargetData_Cu(G4String SDname,G4SBSTargetoutput data);     // for GEn target Cu  
+  void SetGEnTargetData_Al(G4String SDname,G4SBSTargetoutput data);     // for GEn target Al  
+  void SetGEnTargetData_3He(G4String SDname,G4SBSTargetoutput data);    // for GEn target 3He  
 
   inline void SetAllSDtrackData( G4SBSSDTrackOutput sd ){ allsdtrackdata = sd; } 
 
@@ -161,10 +161,10 @@ public:
   // for D Flay studies
   void BranchBD(G4String SDname);           // for Beam Diffuser (BD) 
   void BranchIC(G4String SDname);           // for Ion Chamber (IC) 
-  // void BranchGEnGlassCell(G4String SDname); // for GEn target glass cell
   void BranchGEnTarget_Glass(G4String SDname); // for GEn target glass
-  void BranchGEnTarget_Cu(G4String SDname); // for GEn target
-  void BranchGEnTarget_Al(G4String SDname); // for GEn target
+  void BranchGEnTarget_Cu(G4String SDname);    // for GEn target
+  void BranchGEnTarget_Al(G4String SDname);    // for GEn target
+  void BranchGEnTarget_3He(G4String SDname);   // for GEn target
  
   void SetDetCon(G4SBSDetectorConstruction *dc ){ fdetcon = dc; }
 
@@ -222,7 +222,7 @@ private:
   // for D Flay studies  
   map<G4String,G4SBSBDoutput> BDdata;
   map<G4String,G4SBSICoutput> ICdata;
-  map<G4String,G4SBSTargetoutput> genTgtGCdata,genTgtCUdata,genTgtALdata;
+  map<G4String,G4SBSTargetoutput> genTgtGCdata,genTgtCUdata,genTgtALdata,genTgt3HEdata;
 
   G4SBSSDTrackOutput allsdtrackdata;
   

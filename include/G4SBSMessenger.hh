@@ -230,14 +230,23 @@ private:
   G4UIcmdWithADoubleAndUnit *ionChamberRZCmd; 
 
   // D. Flay 11/5/20 
-  // beam collimator (for GEn) 
-  G4UIcmdWithABool *beamCollimatorEnableCmd; 
-  G4UIcmdWithADoubleAndUnit *beamCollimatorLCmd; 
-  G4UIcmdWithADoubleAndUnit *beamCollimatorDminCmd; 
-  G4UIcmdWithADoubleAndUnit *beamCollimatorDmaxCmd; 
-  G4UIcmdWithADoubleAndUnit *beamCollimatorXCmd; 
-  G4UIcmdWithADoubleAndUnit *beamCollimatorYCmd; 
-  G4UIcmdWithADoubleAndUnit *beamCollimatorZCmd; 
+  // beam collimator (for GEn)
+  // downstream 
+  G4UIcmdWithABool *beamCollimatorEnableDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorLDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDminDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDmaxDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorXDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorYDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorZDnCmd; 
+  // upstream
+  G4UIcmdWithABool *beamCollimatorEnableUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorLUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDminUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDmaxUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorXUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorYUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorZUpCmd; 
  
   G4UIcmdWithABool *BLneutronDetsCmd;
   G4UIcmdWithABool *GEMfrontendCmd;

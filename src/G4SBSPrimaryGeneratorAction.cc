@@ -201,6 +201,29 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     }
     return; // So that we don't generate any more particles by accident
   }
+
+  // Let's generate final state pions for inelastic generator
+  if( sbsgen->GetKine() == G4SBS::kInelastic ){
+    switch( sbsgen->GetHadronType() ){
+    case G4SBS::kPiMinus:
+      particle = particleTable->FindParticle(particleName="pi-");
+      break;
+    case G4SBS::kPiPlus:
+      particle = particleTable->FindParticle(particleName="pi+");
+      break;
+    case G4SBS::kPi0:
+      particle = particleTable->FindParticle(particleName="pi0");
+      break;
+    }
+    particleGun->SetParticleDefinition( particle );
+    if( sbsgen->GetHadronE()-particle->GetPDGMass() > 0.0 ) {
+      particleGun->SetParticleMomentumDirection( sbsgen->GetHadronP().unit() );
+      particleGun->SetParticleEnergy( sbsgen->GetHadronE()-particle->GetPDGMass() );
+      particleGun->SetParticlePosition( sbsgen->GetV() );
+      particleGun->GeneratePrimaryVertex(anEvent);
+    }
+  }
+  
   if( sbsgen->GetKine() != G4SBS::kSIDIS && sbsgen->GetKine() != G4SBS::kWiser && sbsgen->GetKine() != G4SBS::kGun && sbsgen->GetKine() != G4SBS::kBeam && sbsgen->GetKine() != G4SBS::kCosmics){ //Then we are generating a final nucleon
     switch( sbsgen->GetFinalNucleon() ){
     case G4SBS::kProton:

@@ -56,6 +56,10 @@ G4SBSEventGen::G4SBSEventGen(){
   fBeamOffsetX = 0.*mm;
   fBeamOffsetY = 0.*mm;
 
+  fBeamAngleX = 0.*rad; 
+  fBeamAngleY = 0.*rad; 
+  fBeamAngleZ = 0.*rad; 
+
   fBeamE = 2.2*GeV;
   fBeamP = G4ThreeVector( 0.0, 0.0, fBeamE );
 
@@ -289,7 +293,8 @@ bool G4SBSEventGen::GenerateEvent(){
   G4SBS::Nucl_t thisnucl;
   //Wfact = 0.0;
 
-  bool success = false; 
+  bool success = false;
+
 
   //AJRP: Wfact is now initialized in G4SBSEventGen::InitializeConstants(), invoked at start of run
   switch( fTargType ) {
@@ -449,7 +454,9 @@ bool G4SBSEventGen::GenerateEvent(){
     success = GenerateFlat( thisnucl, ei, ni );
     break;
   case G4SBS::kBeam:
-    fVert.setZ( -5.0*m ); // Set at something upstream if just simple beam
+    // fVert.setZ( -5.0*m ); // Set at something upstream if just simple beam
+    // More accurate: See JLab-TN-19-035, which shows that the last quad is about 9 m upstream of the target pivot.
+    fVert.setZ( -9.0*m );   
     success = GenerateBeam( thisnucl, ei, ni );
     break;
   case G4SBS::kGun:
@@ -478,6 +485,11 @@ bool G4SBSEventGen::GenerateEvent(){
     //fMaxWeight = fSigma;
   }
 
+  // how to apply to fElectronP, fNucleonP, others?
+  // convert to unit vector, perform rotation, then turn back into absolute? 
+  // shouldn't this happen within each generator above? 
+  // safest first order approach is to put this in the beam generator only...   
+
   // How to normalize? events are thrown flat in phase space, and then accepted or rejected with probability
   // fSigma/fMaxWeight.
   // Overall normalization should be proportional to:
@@ -489,6 +501,35 @@ bool G4SBSEventGen::GenerateEvent(){
   }
   
   return success;
+}
+
+void G4SBSEventGen::CalculateBeamAnglesAndPositions(G4double bd_L,std::vector<G4double> &R,std::vector<G4double> &P){
+   // D. Flay (10/15/20) 
+   // Based on input file, generate a random beam angle
+
+   // randomize the angles by a small amount  
+   G4double pct  = 0.1*CLHEP::perCent;
+   G4double rx = CLHEP::RandGauss::shoot(fBeamAngleX,fBeamAngleX*pct); 
+   G4double ry = CLHEP::RandGauss::shoot(fBeamAngleY,fBeamAngleY*pct); 
+   G4double rz = 0;  
+   R.push_back(rx); 
+   R.push_back(ry); 
+   R.push_back(rz); 
+ 
+   // Store the particle vertex in case we have to account for this rotation, which technically 
+   // modifies the x and y positions at z = 0  
+   // - recall, the angle is some amount ABOUT an axis.  So we flip the angles here 
+   // - compute the new beam origin x and y 
+   G4double bd_x = bd_L*tan(ry);
+   G4double bd_y = bd_L*tan(rx);
+   P.push_back(bd_x); 
+   P.push_back(bd_y); 
+
+   // char msg[200]; 
+   // std::cout << "[G4SBSEventGen::CalculateBeamAngles]: Generated angles from z = " << bd_L/m << " m upstream: " << std::endl;
+   // sprintf(msg,"x = %.3lf mm, y = %.3lf mm, rx = %.3lf mrad, ry = %.3lf mrad",bd_x,bd_y,rx/mrad,ry/mrad);
+   // std::cout << msg << std::endl;
+
 }
 
 // bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
@@ -1911,6 +1952,38 @@ bool G4SBSEventGen::GenerateBeam( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lore
 
   fNucleonP = G4ThreeVector();
   fNucleonE = proton_mass_c2;
+
+  // D. Flay (10/15/20) 
+  // generate random beam angles (based on central values from input file)
+  G4double ba_L = fabs( fVert.z() ); // distance from beam origin to target center   
+  std::vector<G4double> R,pos; 
+  CalculateBeamAnglesAndPositions(ba_L,R,pos);  
+
+  // apply rotation angles  
+  G4ThreeVector pRot;
+  G4ThreeVector p0 = fElectronP; // for comparison  
+  G4SBS::Util::RotateVector(R,p0,pRot);
+  fElectronP = pRot;
+ 
+  // adjust vertex? 
+  // G4double dx = fabs(pos[0]); 
+  // G4double dy = fabs(pos[1]); 
+  // fVert.setX(fVert.x()-dx);  
+  // fVert.setY(fVert.y()-dy);  
+
+  G4bool isDebug = false;
+  if(isDebug){
+     std::cout << "[G4SBSEventGen::GenerateBeam]: Vector rotation! " << std::endl;
+     std::cout << "angles = " << R[0]/mrad << ", " << R[1]/mrad << ", " << R[2]/mrad << std::endl;
+     std::cout << "px = " << p0.x() << " px' = " << pRot.x() << std::endl;
+     std::cout << "py = " << p0.y() << " py' = " << pRot.y() << std::endl;
+     std::cout << "pz = " << p0.z() << " pz' = " << pRot.z() << std::endl;
+     std::cout << "mag = " << p0.mag() << " mag' = " << pRot.mag() << std::endl;
+     std::cout << "Vertex:" << std::endl;
+     std::cout << "x = " << fVert.x() << std::endl; 
+     std::cout << "y = " << fVert.y() << std::endl; 
+     std::cout << "z = " << fVert.z() << std::endl; 
+  }
 
   fSigma    = 1.0;
   fApar     = 0.0;

@@ -25,7 +25,7 @@ namespace G4SBS {
    // detector arm type (for association of detector modules with spectrometer arms. Presently "E arm" and "H arm" are possible) 
    enum Arm_t    { kEarm, kHarm };
    // sensitive detector type  
-   enum SDet_t   { kGEM, kCAL, kRICH, kECAL, kBD }; 
+   enum SDet_t   { kGEM, kCAL, kRICH, kECAL, kBD, kIC, kTarget_GEn_Glass, kTarget_GEn_Al, kTarget_GEn_Cu, kTarget_GEn_3He }; 
 
    // switches for GEn
    // Helmholtz coils or shielding 

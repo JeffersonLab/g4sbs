@@ -203,6 +203,9 @@ private:
   G4UIcmdWithABool *GENTargetColACmd;
   G4UIcmdWithABool *GENTargetColBCmd;
   G4UIcmdWithABool *GENTargetColCCmd;
+  
+  // D. Flay 12/9/20: command to enable the GEn target as an SD 
+  G4UIcmdWithABool *GENTargetSDEnableCmd; 
  
   // D. Flay 8/25/20 
   // command to set the beam offset 
@@ -210,7 +213,40 @@ private:
   G4UIcmdWithADoubleAndUnit *beamOffsetYcmd;
   // command to enable the beam diffuser 
   G4UIcmdWithABool *beamDumpCmd;  
-  G4UIcmdWithABool *beamDiffuserCmd;  
+  G4UIcmdWithABool *beamDiffuserCmd;
+
+  // D. Flay 10/15/20 
+  // beam angular alignment 
+  G4UIcmdWithADoubleAndUnit *beamAngleXcmd;
+  G4UIcmdWithADoubleAndUnit *beamAngleYcmd;
+  G4UIcmdWithADoubleAndUnit *beamAngleZcmd; 
+  // command to enable the ion chamber  
+  G4UIcmdWithABool *ionChamberEnableCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberXCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberYCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberZCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRXCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRYCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRZCmd; 
+
+  // D. Flay 11/5/20 
+  // beam collimator (for GEn)
+  // downstream 
+  G4UIcmdWithABool *beamCollimatorEnableDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorLDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDminDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDmaxDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorXDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorYDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorZDnCmd; 
+  // upstream
+  G4UIcmdWithABool *beamCollimatorEnableUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorLUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDminUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDmaxUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorXUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorYUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorZUpCmd; 
  
   G4UIcmdWithABool *BLneutronDetsCmd;
   G4UIcmdWithABool *GEMfrontendCmd;

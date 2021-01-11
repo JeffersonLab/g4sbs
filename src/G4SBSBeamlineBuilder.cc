@@ -544,8 +544,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     G4double SSY = (SS_xoffset+SMPL*sin(MPA))*sin(45*deg)-SSTh/4.0*sin(45*deg);
     
     new G4PVPlacement(S2rot1_temp,G4ThreeVector(-SSX,SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS1_phys%d",i),worldlog,false,0,ChkOverlaps);
-    //new G4PVPlacement(S2rot3_temp,G4ThreeVector(-SSX,-SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS2_phys%d",i),worldlog,false,0,ChkOverlaps);
-    //new G4PVPlacement(S2rot4_temp,G4ThreeVector(SSX,-SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS3_phys%d",i),worldlog,false,0,ChkOverlaps);
+    new G4PVPlacement(S2rot3_temp,G4ThreeVector(-SSX,-SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS2_phys%d",i),worldlog,false,0,ChkOverlaps);
+    new G4PVPlacement(S2rot4_temp,G4ThreeVector(SSX,-SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS3_phys%d",i),worldlog,false,0,ChkOverlaps);
     new G4PVPlacement(S2rot2_temp,G4ThreeVector(SSX,SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS4_phys%d",i),worldlog,false,0,ChkOverlaps);
 
     // Building beamline shielding: inner elements

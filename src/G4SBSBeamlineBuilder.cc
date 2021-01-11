@@ -269,6 +269,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   std::vector<G4double> W2_array;// last width of side shields
   std::vector<G4double> MPl_array;// Mounting plate lengths
   std::vector<G4double> MPxdisp_array;// x displacement for each shield and mounting plate section
+  std::vector<G4double> SSxdisp_array;
   std::vector<G4double> MPzmin_array;
 
   G4double OMthick = 1.625*inch;
@@ -373,11 +374,17 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     MPl_array.push_back(58.75*inch);
     MPl_array.push_back(33.631*inch);
 
-    //Starting x disp of each plate section
+    //Starting x disp of each mounting plate section
     //MPxdisp_array.push_back(6.521*inch/2.0+MPTh/2.0);
     MPxdisp_array.push_back(9.420*inch/2.0+MPTh/2.0);
     MPxdisp_array.push_back(10.332*inch/2.0+MPTh/2.0);
     MPxdisp_array.push_back(13.198*inch/2.0+MPTh/2.0);
+
+    //Starting x disp of each shield support section
+    SSxdisp_array.push_back(6.521*inch/2.0+MPTh/2.0);
+    SSxdisp_array.push_back(7.812*inch/2.0+MPTh/2.0);
+    SSxdisp_array.push_back(11.864*inch/2.0+MPTh/2.0);
+
 
     MPzmin_array.push_back( z_conic_vacline_weldment + 0.451*inch );
     MPzmin_array.push_back(88.375*inch);
@@ -491,10 +498,11 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     G4double SMPW1 = W1_array[i]/2.0;
     G4double SMPW2 = W2_array[i]/2.0;
     G4double SMP_xoffset = MPxdisp_array[i];
+    G4double SS_xoffset = SSxdisp_array[i];
     
     //Symmetric mounting plates - construct using trapezoid class 
-    G4Trd *SMP1 = new G4Trd(Form("SMP1_%d",i), SMPW1, SMPW2, MPTh, MPTh, SMPL);
-    G4Trd *SMP2 = new G4Trd(Form("SMP2_%d",i), SMPW1, SMPW2, MPTh, MPTh, SMPL);
+    G4Trd *SMP1 = new G4Trd(Form("SMP1_%d",i), SMPW1, SMPW2, MPTh/2.0, MPTh/2.0, SMPL);
+    G4Trd *SMP2 = new G4Trd(Form("SMP2_%d",i), SMPW1, SMPW2, MPTh/2.0, MPTh/2.0, SMPL);
     G4Box *SSS = new G4Box(Form("SSS_%d",i),SSTh/2.0,MPTh/2.0,SMPL);
     
     G4LogicalVolume *SMP1_log = new G4LogicalVolume( SMP1, GetMaterial("Aluminum"), Form("SMP1_%d_log",i) );
@@ -512,17 +520,17 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     Srot2_temp->rotateZ(-90*deg);
     Srot2_temp->rotateX(-MPA);
     G4RotationMatrix *S2rot1_temp = new G4RotationMatrix;
-    S2rot1_temp->rotateX(1.5*deg);
-    S2rot1_temp->rotateZ(-45*deg);
+    S2rot1_temp->rotateZ(+135*deg);
+    S2rot1_temp->rotateX(-MPA);
     G4RotationMatrix *S2rot2_temp = new G4RotationMatrix;
-    S2rot2_temp->rotateX(1.5*deg);
-    S2rot2_temp->rotateZ(45*deg);
+    S2rot2_temp->rotateZ(-135*deg);
+    S2rot2_temp->rotateX(-MPA);
     G4RotationMatrix *S2rot3_temp = new G4RotationMatrix;
-    S2rot3_temp->rotateX(1.5*deg);
-    S2rot3_temp->rotateZ(-135*deg);
+    S2rot3_temp->rotateZ(+45*deg);
+    S2rot3_temp->rotateX(-MPA);
     G4RotationMatrix *S2rot4_temp = new G4RotationMatrix;
-    S2rot4_temp->rotateX(1.5*deg);
-    S2rot4_temp->rotateZ(135*deg);
+    S2rot4_temp->rotateZ(-45*deg);
+    S2rot4_temp->rotateX(-MPA);
 
     
     //Place both mounting plates
@@ -532,12 +540,12 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     SMP2_log->SetVisAttributes(AlColor);
 
     //Place shield supports
-    G4double SSX = (SMP_xoffset-SMPL*sin(MPA))*sin(45*deg);
-    G4double SSY = (SMP_xoffset-SMPL*sin(MPA))*sin(45*deg);
+    G4double SSX = (SS_xoffset+SMPL*sin(MPA))*sin(45*deg)+SSTh/4.0*sin(45*deg);
+    G4double SSY = (SS_xoffset+SMPL*sin(MPA))*sin(45*deg)-SSTh/4.0*sin(45*deg);
     
     new G4PVPlacement(S2rot1_temp,G4ThreeVector(-SSX,SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS1_phys%d",i),worldlog,false,0,ChkOverlaps);
-    new G4PVPlacement(S2rot3_temp,G4ThreeVector(-SSX,-SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS2_phys%d",i),worldlog,false,0,ChkOverlaps);
-    new G4PVPlacement(S2rot4_temp,G4ThreeVector(SSX,-SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS3_phys%d",i),worldlog,false,0,ChkOverlaps);
+    //new G4PVPlacement(S2rot3_temp,G4ThreeVector(-SSX,-SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS2_phys%d",i),worldlog,false,0,ChkOverlaps);
+    //new G4PVPlacement(S2rot4_temp,G4ThreeVector(SSX,-SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS3_phys%d",i),worldlog,false,0,ChkOverlaps);
     new G4PVPlacement(S2rot2_temp,G4ThreeVector(SSX,SSY,MPzmin_array[i]+SMPL*cos(MPA)),SSS_log,Form("SSS4_phys%d",i),worldlog,false,0,ChkOverlaps);
 
     // Building beamline shielding: inner elements

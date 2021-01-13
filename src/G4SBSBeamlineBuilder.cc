@@ -2229,10 +2229,6 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   G4double targetEndOffset_z = 22.8/2.0*inch; //(23.62"-2*0.41")/2
   //G4double P0initPlacement_z = -(23.62/2*inch) - 2.66*inch;  //From updated CJT file. -(half target length) - offset to beampipe flange
   G4double P0initPlacement_z = -(targetEndOffset_z) - 2.66*inch;
-  //G4double P0initPlacement_z = -100*inch;
-
-  
-
   
   //Ring 0A - Be window housing flange. Most proximal piece to target. Bolted to beampipe flange.
   G4double P0ringA_L = 0.510/2.0*inch;
@@ -2441,8 +2437,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-(P0tubeC_L+P0ringB_L)), P0tubeC_vacLog, "P0tubeC_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
   //Tube 0D
-  //G4double P0tubeD_L = 37.623/2.0*inch; //CJT
-  G4double P0tubeD_L = 37.623/2.0*inch+100.0*inch; //Artificially adding length for beam studies - sseeds 1/11/21
+  G4double P0tubeD_L = 37.623/2.0*inch; //CJT
   G4double P0tubeD_rin = 0.685*inch; //CJT
   G4double P0tubeD_rou = 0.75*inch; //CJT
 
@@ -2572,10 +2567,11 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   P0ringBLog->SetVisAttributes( Aluminum);
   P0domeALog->SetVisAttributes( Beryllium);
   P0flangeLog->SetVisAttributes( Aluminum);
-  P0tubeDLog->SetVisAttributes( G4Colour::Green());
+  P0tubeDLog->SetVisAttributes( Aluminum);
   P0ringCLog->SetVisAttributes( Aluminum);
 
   //===== UPSTREAM - PIPE - END =====// UPDATED 10.27.20
+
 
   //===== DOWNSTREAM - PIPE - UPSTREAM FLANGES AND WELDMENT =====//
   

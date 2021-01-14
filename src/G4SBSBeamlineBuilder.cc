@@ -3992,6 +3992,9 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
 //lead shielding for GMn
 void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
+
+  //SSeeds 1.14.21 - Commenting as obsolete. Will leave here for potential beam studies.
+  /*
   bool leadring = true;
   bool checkoverlaps = false;
 
@@ -4098,7 +4101,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
     BLshield1_log->SetVisAttributes(LeadColor);
   }
   
- 
+ */
 
 
 
@@ -4200,7 +4203,9 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   //new G4PVPlacement( rot_temp, G4ThreeVector( +0.335*m, 0, 0 ), leadblanket_log, "leadblanket_phys", sideshield_log, false, 0 );
   */
-  
+
+  //SSeeds 1.14.21 - Commenting as obsolete
+  /*
   G4double L_sideshield = 2.0*m;
   G4double h_sideshield = 1.3*m;
   G4double th_sideshield = 0.50*m;
@@ -4238,7 +4243,10 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   rot_temp = new G4RotationMatrix;
   
   if(!leadring)new G4PVPlacement( rot_temp, G4ThreeVector( -th_sideshield/2.0+th_Alshield+th_SSshield/2.0, 0, -25.0*cm ), leadblanket_log, "leadblanket_phys", sideshield_log, false, 0, checkoverlaps );
-  /**/
+  
+
+  */
+  
 }
 
 

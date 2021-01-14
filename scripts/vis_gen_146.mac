@@ -59,39 +59,6 @@
 ## Optional detectors 
 /g4sbs/beamDiffuserEnable false
 
-/g4sbs/ionChamberEnable true
-# position 1
-/g4sbs/ionChamberX -20  cm 
-/g4sbs/ionChamberY  0   cm 
-/g4sbs/ionChamberZ  100 cm 
-/g4sbs/ionChamberRX 0   deg
-/g4sbs/ionChamberRY 10  deg
-/g4sbs/ionChamberRZ 0   deg
-# # position 2 
-# /g4sbs/ionChamberX -20  cm 
-# /g4sbs/ionChamberY  0   cm 
-# /g4sbs/ionChamberZ  0   cm 
-# /g4sbs/ionChamberRX 0   deg
-# /g4sbs/ionChamberRY 90  deg
-# /g4sbs/ionChamberRZ 0   deg
-# # position 3 
-# /g4sbs/ionChamberX -20  cm 
-# /g4sbs/ionChamberY  0   cm 
-# /g4sbs/ionChamberZ  -30 cm 
-# /g4sbs/ionChamberRX 0   deg
-# /g4sbs/ionChamberRY 90  deg
-# /g4sbs/ionChamberRZ 0   deg
-
-/g4sbs/beamCollimatorEnable true
-# size   
-/g4sbs/beamCollimatorL     3  cm 
-/g4sbs/beamCollimatorDmin  15 mm 
-/g4sbs/beamCollimatorDmax  30 mm 
-# position 1
-/g4sbs/beamCollimatorX     0  cm
-/g4sbs/beamCollimatorY     0  cm
-/g4sbs/beamCollimatorZ    -32.5 cm 
-
 /g4sbs/totalabs true
 
 # /g4sbs/buildBBsieve 1

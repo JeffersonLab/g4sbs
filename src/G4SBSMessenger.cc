@@ -111,32 +111,150 @@ G4SBSMessenger::G4SBSMessenger(){
   // for GEn 3He target rotational misalignment 
   GENTargetRXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRX",this); 
   GENTargetRXCmd->SetGuidance("GEn 3He target rotational misalignment relative to x axis"); 
-  GENTargetRXCmd->SetParameterName("targgenDRX",false); 
+  GENTargetRXCmd->SetParameterName("targgenDRX",true); // second argument = omittable?  
   GENTargetRYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRY",this); 
   GENTargetRYCmd->SetGuidance("GEn 3He target rotational misalignment relative to y axis"); 
-  GENTargetRYCmd->SetParameterName("targgenDRY",false); 
+  GENTargetRYCmd->SetParameterName("targgenDRY",true); 
   GENTargetRZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRZ",this); 
   GENTargetRZCmd->SetGuidance("GEn 3He target rotational misalignment relative to z axis"); 
-  GENTargetRZCmd->SetParameterName("targgenDRZ",false);
+  GENTargetRZCmd->SetParameterName("targgenDRZ",true);
 
   // D. Flay (10/9/20) 
   // for GEn 3He target collimators
   // all: if enabled, *allows* the collimators to be built.  can toggle on/off individual ones, see below  
   GENTargetColCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnable",this); 
   GENTargetColCmd->SetGuidance("GEn 3He target collimator enable.  If enabled, allows collimators to be built"); 
-  GENTargetColCmd->SetParameterName("targgenColEnable",false);
+  GENTargetColCmd->SetParameterName("targgenColEnable",true);
   // A (upstream) 
   GENTargetColACmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableA",this); 
   GENTargetColACmd->SetGuidance("GEn 3He target collimator A enable"); 
-  GENTargetColACmd->SetParameterName("targgenColEnableA",false); 
+  GENTargetColACmd->SetParameterName("targgenColEnableA",true); 
   // B (downstream, 1st) 
   GENTargetColBCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableB",this); 
   GENTargetColBCmd->SetGuidance("GEn 3He target collimator B enable"); 
-  GENTargetColBCmd->SetParameterName("targgenColEnableB",false); 
+  GENTargetColBCmd->SetParameterName("targgenColEnableB",true); 
   // C (downstream, 2nd, furthest from target) 
   GENTargetColCCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableC",this); 
   GENTargetColCCmd->SetGuidance("GEn 3He target collimator C enable"); 
-  GENTargetColCCmd->SetParameterName("targgenColEnableC",false); 
+  GENTargetColCCmd->SetParameterName("targgenColEnableC",true);
+
+  // D. Flay (12/9/20) 
+  // for enabling the GEn target as a sensitive detector  
+  GENTargetSDEnableCmd = new G4UIcmdWithABool("/g4sbs/targgenSDEnable",this); 
+  GENTargetSDEnableCmd->SetGuidance("GEn 3He target SD enable"); 
+  GENTargetSDEnableCmd->SetParameterName("targgenSDEnable",true);
+
+  // D. Flay (10/15/20) 
+  // beam angular misalignment 
+  // - horizontal (x)  
+  beamAngleXcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamAngleX",this);
+  beamAngleXcmd->SetGuidance("Rotate beam momentum about the x axis");
+  beamAngleXcmd->SetParameterName("beamAngleX",true);  // this is omittable 
+  // - vertical (y)
+  beamAngleYcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamAngleY",this);
+  beamAngleYcmd->SetGuidance("Rotate beam momentum about the y axis");
+  beamAngleYcmd->SetParameterName("beamAngleY",true);   
+  // - axial (z)
+  beamAngleZcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamAngleZ",this);
+  beamAngleZcmd->SetGuidance("Rotate beam momentum about the z axis");
+  beamAngleZcmd->SetParameterName("beamAngleZ",true);  // must provide input
+
+  // D. Flay (10/15/20) 
+  // ruidmentary ion chamber 
+  ionChamberEnableCmd = new G4UIcmdWithABool("/g4sbs/ionChamberEnable",this);
+  ionChamberEnableCmd->SetGuidance("Enable an ion chamber, including sensitive detector capability");
+  ionChamberEnableCmd->SetParameterName("ionChamberEnable",true); // this is omittable 
+  // coordinates
+  // -x 
+  ionChamberXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberX",this);
+  ionChamberXCmd->SetGuidance("Ion chamber x coordinate");
+  ionChamberXCmd->SetParameterName("ionChamberX",true);  
+  // - y 
+  ionChamberYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberY",this);
+  ionChamberYCmd->SetGuidance("Ion chamber y coordinate");
+  ionChamberYCmd->SetParameterName("ionChamberY",true);   
+  // - z 
+  ionChamberZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberZ",this);
+  ionChamberZCmd->SetGuidance("Ion chamber z coordinate");
+  ionChamberZCmd->SetParameterName("ionChamberZ",true); 
+  // rotation 
+  // -x 
+  ionChamberRXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberRX",this);
+  ionChamberRXCmd->SetGuidance("Ion chamber angle about x");
+  ionChamberRXCmd->SetParameterName("ionChamberRX",true);  
+  // - y 
+  ionChamberRYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberRY",this);
+  ionChamberRYCmd->SetGuidance("Ion chamber angle about y");
+  ionChamberRYCmd->SetParameterName("ionChamberRY",true);   
+  // - z 
+  ionChamberRZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberRZ",this);
+  ionChamberRZCmd->SetGuidance("Ion chamber angle about z");
+  ionChamberRZCmd->SetParameterName("ionChamberRZ",true);   
+
+  // D. Flay (11/5/20) 
+  // ruidmentary beam collimator for the GEn target 
+  // downstream
+  // enable  
+  beamCollimatorEnableDnCmd = new G4UIcmdWithABool("/g4sbs/beamCollimatorEnable_dnstr",this);
+  beamCollimatorEnableDnCmd->SetGuidance("Enable a beam collimator for the GEn target");
+  beamCollimatorEnableDnCmd->SetParameterName("beamCollimatorEnable_dnstr",true); // must provide input 
+  // geometry  
+  // -length 
+  beamCollimatorLDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorL_dnstr",this);
+  beamCollimatorLDnCmd->SetGuidance("Beam collimator length");
+  beamCollimatorLDnCmd->SetParameterName("beamCollimatorL_dnstr",true);  
+  // - y 
+  beamCollimatorDminDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorDmin_dnstr",this);
+  beamCollimatorDminDnCmd->SetGuidance("Beam collimator diameter (inner)");
+  beamCollimatorDminDnCmd->SetParameterName("beamCollimatorDmin_dnstr",true);   
+  // - z 
+  beamCollimatorDmaxDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorDmax_dnstr",this);
+  beamCollimatorDmaxDnCmd->SetGuidance("Beam collimator diameter (outer)");
+  beamCollimatorDmaxDnCmd->SetParameterName("beamCollimatorDmax_dnstr",true);   
+  // coordinates
+  // -x 
+  beamCollimatorXDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorX_dnstr",this);
+  beamCollimatorXDnCmd->SetGuidance("Beam collimator coordinate");
+  beamCollimatorXDnCmd->SetParameterName("beamCollimatorX_dnstr",true);  
+  // - y 
+  beamCollimatorYDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorY_dnstr",this);
+  beamCollimatorYDnCmd->SetGuidance("Beam collimator y coordinate");
+  beamCollimatorYDnCmd->SetParameterName("beamCollimatorY_dnstr",true);   
+  // - z 
+  beamCollimatorZDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorZ_dnstr",this);
+  beamCollimatorZDnCmd->SetGuidance("Beam collimator z coordinate");
+  beamCollimatorZDnCmd->SetParameterName("beamCollimatorZ_dnstr",true);   
+  // upstream
+  // enable  
+  beamCollimatorEnableUpCmd = new G4UIcmdWithABool("/g4sbs/beamCollimatorEnable_upstr",this);
+  beamCollimatorEnableUpCmd->SetGuidance("Enable a beam collimator for the GEn target");
+  beamCollimatorEnableUpCmd->SetParameterName("beamCollimatorEnable_upstr",true); 
+  // geometry  
+  // -length 
+  beamCollimatorLUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorL_upstr",this);
+  beamCollimatorLUpCmd->SetGuidance("Beam collimator length");
+  beamCollimatorLUpCmd->SetParameterName("beamCollimatorL_upstr",true);  
+  // - y 
+  beamCollimatorDminUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorDmin_upstr",this);
+  beamCollimatorDminUpCmd->SetGuidance("Beam collimator diameter (inner)");
+  beamCollimatorDminUpCmd->SetParameterName("beamCollimatorDmin_upstr",true);   
+  // - z 
+  beamCollimatorDmaxUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorDmax_upstr",this);
+  beamCollimatorDmaxUpCmd->SetGuidance("Beam collimator diameter (outer)");
+  beamCollimatorDmaxUpCmd->SetParameterName("beamCollimatorDmax_upstr",true);   
+  // coordinates
+  // -x 
+  beamCollimatorXUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorX_upstr",this);
+  beamCollimatorXUpCmd->SetGuidance("Beam collimator coordinate");
+  beamCollimatorXUpCmd->SetParameterName("beamCollimatorX_upstr",true);  
+  // - y 
+  beamCollimatorYUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorY_upstr",this);
+  beamCollimatorYUpCmd->SetGuidance("Beam collimator y coordinate");
+  beamCollimatorYUpCmd->SetParameterName("beamCollimatorY_upstr",true);   
+  // - z 
+  beamCollimatorZUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorZ_upstr",this);
+  beamCollimatorZUpCmd->SetGuidance("Beam collimator z coordinate");
+  beamCollimatorZUpCmd->SetParameterName("beamCollimatorZ_upstr",true);   
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
   kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
@@ -241,15 +359,15 @@ G4SBSMessenger::G4SBSMessenger(){
 
   rasterxCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/rasterx",this);
   rasterxCmd->SetGuidance("Raster x size");
-  rasterxCmd->SetParameterName("size", false);
+  rasterxCmd->SetParameterName("rasterx",true); // is omittable
 
   rasteryCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/rastery",this);
   rasteryCmd->SetGuidance("Raster y size");
-  rasteryCmd->SetParameterName("size", false);
+  rasteryCmd->SetParameterName("rastery",true);
   
   rasterrCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/rasterR",this);
   rasterrCmd->SetGuidance("Raster radius size");
-  rasterrCmd->SetParameterName("size", false);
+  rasterrCmd->SetParameterName("size",false);
   
   beamspotsizeCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamspotsize",this);
   beamspotsizeCmd->SetGuidance("beam spot size");
@@ -259,19 +377,19 @@ G4SBSMessenger::G4SBSMessenger(){
   // - horizontal (x)  
   beamOffsetXcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamoffsetx",this);
   beamOffsetXcmd->SetGuidance("Set beam offset along the horizontal (x) direction");
-  beamOffsetXcmd->SetParameterName("beamoffsetx",false);  // must provide input 
+  beamOffsetXcmd->SetParameterName("beamoffsetx",true);  // is omittable 
   // - vertical (y)
   beamOffsetYcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamoffsety",this);
   beamOffsetYcmd->SetGuidance("Set beam offset along the vertical (y) direction");
-  beamOffsetYcmd->SetParameterName("beamoffsety",false);  // must provide input 
+  beamOffsetYcmd->SetParameterName("beamoffsety",true);   
   // beam dump 
   beamDumpCmd = new G4UIcmdWithABool("/g4sbs/beamDumpEnable",this);
   beamDumpCmd->SetGuidance("Enable the Beam Dump");
-  beamDumpCmd->SetParameterName("beamDumpEnable", false);
+  beamDumpCmd->SetParameterName("beamDumpEnable",true);
   // beam diffuser 
   beamDiffuserCmd = new G4UIcmdWithABool("/g4sbs/beamDiffuserEnable",this);
   beamDiffuserCmd->SetGuidance("Enable the Beam Diffuser device");
-  beamDiffuserCmd->SetParameterName("beamDiffuserEnable", false);
+  beamDiffuserCmd->SetParameterName("beamDiffuserEnable",true);
 
   tgtNfoilCmd = new G4UIcmdWithAnInteger("/g4sbs/Nfoil",this);
   tgtNfoilCmd->SetGuidance("Number of foils for optics target");
@@ -1220,6 +1338,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
      fdetcon->SetGEnTargetCollimatorCEnable(tccEnable);
   }
 
+  if( cmd == GENTargetSDEnableCmd ){
+     G4bool genSDEnable = GENTargetSDEnableCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetSDEnable(genSDEnable);  
+  }
+
   // D. Flay (8/25/20) 
   // beam offset 
   if(cmd==beamOffsetXcmd){
@@ -1244,6 +1367,112 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == bigfieldCmd ){
     G4int n = bigfieldCmd->GetNewIntValue(newValue);
     fdetcon->Set48D48Field(n);
+  }
+
+  // D. Flay (10/15/20) 
+  // beam angular alignment  
+  if(cmd==beamAngleXcmd){
+     G4double bax = beamAngleXcmd->GetNewDoubleValue(newValue);
+     fevgen->SetBeamAngleX(bax);
+  }
+  if(cmd==beamAngleYcmd){
+     G4double bay = beamAngleYcmd->GetNewDoubleValue(newValue);
+     fevgen->SetBeamAngleY(bay);
+  }
+  if(cmd==beamAngleZcmd){
+     G4double baz = beamAngleZcmd->GetNewDoubleValue(newValue);
+     fevgen->SetBeamAngleZ(baz);
+  }
+
+  // D. Flay (10/15/20) 
+  // ion chamber enable  
+  if( cmd == ionChamberEnableCmd ){ 
+     G4bool icEnable = ionChamberEnableCmd->GetNewBoolValue(newValue);
+     fdetcon->SetIonChamberEnable(icEnable);  
+  }
+  if( cmd == ionChamberXCmd ){ 
+     G4double icx = ionChamberXCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberX(icx);  
+  }
+  if( cmd == ionChamberYCmd ){ 
+     G4double icy = ionChamberYCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberY(icy);  
+  }
+  if( cmd == ionChamberZCmd ){ 
+     G4double icz = ionChamberZCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberZ(icz);  
+  }
+  if( cmd == ionChamberRXCmd ){ 
+     G4double icrx = ionChamberRXCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberRX(icrx);  
+  }
+  if( cmd == ionChamberRYCmd ){ 
+     G4double icry = ionChamberRYCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberRY(icry);  
+  }
+  if( cmd == ionChamberRZCmd ){ 
+     G4double icrz = ionChamberRZCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberRZ(icrz);  
+  }
+
+  // D. Flay (11/5/20) 
+  // [GEn target] beam collimator enable  
+  if( cmd == beamCollimatorEnableDnCmd ){ 
+     G4bool bcEnable_dn = beamCollimatorEnableDnCmd->GetNewBoolValue(newValue);
+     fdetcon->SetBeamCollimatorEnable_dnstr(bcEnable_dn);  
+  }
+  if( cmd == beamCollimatorLDnCmd ){ 
+     G4double bcl_dn = beamCollimatorLDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorL_dnstr(bcl_dn);  
+  }
+  if( cmd == beamCollimatorDminDnCmd ){ 
+     G4double bcdmin_dn = beamCollimatorDminDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorDmin_dnstr(bcdmin_dn);  
+  }
+  if( cmd == beamCollimatorDmaxDnCmd ){ 
+     G4double bcdmax_dn = beamCollimatorDmaxDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorDmax_dnstr(bcdmax_dn);  
+  }
+  if( cmd == beamCollimatorXDnCmd ){ 
+     G4double bcx_dn = beamCollimatorXDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorX_dnstr(bcx_dn);  
+  }
+  if( cmd == beamCollimatorYDnCmd ){ 
+     G4double bcy_dn = beamCollimatorYDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorY_dnstr(bcy_dn);  
+  }
+  if( cmd == beamCollimatorZDnCmd ){ 
+     G4double bcz_dn = beamCollimatorZDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorZ_dnstr(bcz_dn);  
+  }
+  // upstream
+  if( cmd == beamCollimatorEnableUpCmd ){ 
+     G4bool bcEnable_up = beamCollimatorEnableUpCmd->GetNewBoolValue(newValue);
+     fdetcon->SetBeamCollimatorEnable_upstr(bcEnable_up);  
+  }
+  if( cmd == beamCollimatorLUpCmd ){ 
+     G4double bcl_up = beamCollimatorLUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorL_upstr(bcl_up);  
+  }
+  if( cmd == beamCollimatorDminUpCmd ){ 
+     G4double bcdmin_up = beamCollimatorDminUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorDmin_upstr(bcdmin_up);  
+  }
+  if( cmd == beamCollimatorDmaxUpCmd ){ 
+     G4double bcdmax_up = beamCollimatorDmaxUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorDmax_upstr(bcdmax_up);  
+  }
+  if( cmd == beamCollimatorXUpCmd ){ 
+     G4double bcx_up = beamCollimatorXUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorX_upstr(bcx_up);  
+  }
+  if( cmd == beamCollimatorYDnCmd ){ 
+     G4double bcy_up = beamCollimatorYUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorY_upstr(bcy_up);  
+  }
+  if( cmd == beamCollimatorZUpCmd ){ 
+     G4double bcz_up = beamCollimatorZUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorZ_upstr(bcz_up);  
   }
 
   if( cmd == bbfieldCmd ){

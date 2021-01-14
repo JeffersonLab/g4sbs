@@ -54,7 +54,50 @@
 /g4sbs/48D48dist       2.8 m
 
 ## Optional detectors 
-/g4sbs/beamDiffuserEnable false 
+/g4sbs/beamDiffuserEnable false
+
+/g4sbs/ionChamberEnable true
+# position 1
+/g4sbs/ionChamberX -20  cm
+/g4sbs/ionChamberY  0   cm
+/g4sbs/ionChamberZ  100 cm
+/g4sbs/ionChamberRX 0   deg
+/g4sbs/ionChamberRY 10  deg
+/g4sbs/ionChamberRZ 0   deg
+# # position 2 
+# /g4sbs/ionChamberX -20  cm 
+# /g4sbs/ionChamberY  0   cm 
+# /g4sbs/ionChamberZ  0   cm 
+# /g4sbs/ionChamberRX 0   deg
+# /g4sbs/ionChamberRY 90  deg
+# /g4sbs/ionChamberRZ 0   deg
+# # position 3 
+# /g4sbs/ionChamberX -20  cm 
+# /g4sbs/ionChamberY  0   cm 
+# /g4sbs/ionChamberZ  -30 cm 
+# /g4sbs/ionChamberRX 0   deg
+# /g4sbs/ionChamberRY 90  deg
+# /g4sbs/ionChamberRZ 0   deg
+
+/g4sbs/beamCollimatorEnable_dnstr true
+# size   
+/g4sbs/beamCollimatorL_dnstr     5  cm
+/g4sbs/beamCollimatorDmin_dnstr  9  mm
+/g4sbs/beamCollimatorDmax_dnstr  37 mm
+# position  
+/g4sbs/beamCollimatorX_dnstr     0  cm
+/g4sbs/beamCollimatorY_dnstr     0  cm
+/g4sbs/beamCollimatorZ_dnstr    -60 cm
+
+/g4sbs/beamCollimatorEnable_upstr false 
+# size   
+/g4sbs/beamCollimatorL_upstr     10  cm
+/g4sbs/beamCollimatorDmin_upstr  9   mm
+/g4sbs/beamCollimatorDmax_upstr  37  mm
+# position  
+/g4sbs/beamCollimatorX_upstr     0   cm
+/g4sbs/beamCollimatorY_upstr     0   cm
+/g4sbs/beamCollimatorZ_upstr    -145 cm
 
 /g4sbs/totalabs true
 
@@ -90,14 +133,14 @@
 # Set specific colour for identification : ghost parallel geometry envelope ("ghost") as yellow
 #
 # Specify view angle:
-/vis/viewer/set/viewpointThetaPhi 90 180 deg
+/vis/viewer/set/viewpointThetaPhi 90 90.1 deg
 #
 # Specify zoom value:
 # /vis/viewer/zoom 2.5
 #
 # Specify style (surface or wireframe):
 /vis/viewer/set/style surface
-#/vis/viewer/set/style wireframe
+/vis/viewer/set/style wireframe
 /vis/viewer/set/auxiliaryEdge true
 /vis/viewer/set/lineSegmentsPerCircle 20
 #

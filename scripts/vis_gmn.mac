@@ -51,6 +51,7 @@
 #/g4sbs/targdiam		7.0 mm
 
 #/g4sbs/buildBBsieve 1
+/g4sbs/uselead 	     0
 
 #visualization stuff:
 # Use this open statement to create an OpenGL view:

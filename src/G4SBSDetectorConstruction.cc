@@ -127,7 +127,39 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   // GEn 3He target angular misalignment
   fGEnTgtDRX = 0.;  
   fGEnTgtDRY = 0.;  
-  fGEnTgtDRZ = 0.;  
+  fGEnTgtDRZ = 0.;
+
+  // D. Flay (12/9/20) 
+  // GEn 3He target as a sensitive detector 
+  fGEnTgtSDEnable = false;  
+
+  // D. Flay (10/15/20) 
+  // Ion chamber (testing) 
+  fIonChamberEnable = false; 
+  fIonChamberX      = 0;  
+  fIonChamberY      = 0;  
+  fIonChamberZ      = 0;  
+  fIonChamberRX     = 0;  
+  fIonChamberRY     = 0;  
+  fIonChamberRZ     = 0;  
+
+  // D. Flay (11/5/20) 
+  // beam collimator (testing) 
+  fBeamCollimatorEnable_upstr = false; 
+  fBeamCollimatorX_upstr      = 0;  
+  fBeamCollimatorY_upstr      = 0;  
+  fBeamCollimatorZ_upstr      = -145.0*cm;  
+  fBeamCollimatorL_upstr      = 4.0*cm;  
+  fBeamCollimatorDmin_upstr   = 15*mm;  
+  fBeamCollimatorDmax_upstr   = 30*mm;  
+
+  fBeamCollimatorEnable_dnstr = false; 
+  fBeamCollimatorX_dnstr      = 0;  
+  fBeamCollimatorY_dnstr      = 0;  
+  fBeamCollimatorZ_dnstr      = -60.0*cm;  
+  fBeamCollimatorL_dnstr      = 4.0*cm;  
+  fBeamCollimatorDmin_dnstr   = 15*mm;  
+  fBeamCollimatorDmax_dnstr   = 30*mm;  
 
 }
 
@@ -578,6 +610,14 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   // Molybdenum.  Possibly use for GEn 3He target collimators?
   // density = 10.22 g/cm^3  
   fMaterialsMap["Molybdenum"] = man->FindOrBuildMaterial("G4_Mo"); 
+
+  // D Flay's mock ion chamber material 
+  // Nitrogen.  Take this from DF notes on ion chambers. 
+  // This density is from a typical LHC device 
+  G4double gasden_icN2 = 1.08*atmosphere*(14.0067*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
+  G4Material *icN2 = new G4Material("icN2",gasden_icN2,1);
+  icN2->AddElement(elN,1);
+  fMaterialsMap["GEnTarget_ionChamber_N2"] = icN2; 
 
   // Ultem (polyetherimide plastic, similar to PEEK)
   // - details from http://www.polymerprocessing.com/polymers/PEI.html
@@ -2298,7 +2338,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //For Epoxy let's use Epotek-301-1 properties from the particle data group:
   G4double epoxy_den = 1.190*g/cm3;
   G4double tungsten_den = 19.3*g/cm3;
-  G4double collimator_den = 10.0*g/cm3;
+  G4double collimator_den = 9.53*g/cm3; // from Bert Metzger's drawings (A09016-03-06-0211) // 10.0*g/cm3;
 
   // f*rho_epoxy + (1-f)*rho_W = rho_coll
   // f*(rho_epoxy - rho_W) = rho_coll - rho_W
@@ -2312,6 +2352,11 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   TargetCollimator_Material->AddElement( elW, fractionmass = 1.0-massfrac_epoxy );
 
   fMaterialsMap["TargetCollimator_Material"] = TargetCollimator_Material;
+
+  // [for a test object] pure tungsten for a target collimator  
+  G4Material *TargetBeamCollimator = new G4Material("TargetBeamCollimator_Material",tungsten_den,1); 
+  TargetBeamCollimator->AddElement(elW,1); 
+  fMaterialsMap["TargetBeamCollimator_Material"] = TargetBeamCollimator; 
   
 }
 

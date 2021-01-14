@@ -75,13 +75,73 @@ public:
   G4bool GetGEnTargetCollimatorEnable()  const { return fGEnTgtCollimatorEnable;  }  
   G4bool GetGEnTargetCollimatorAEnable() const { return fGEnTgtCollimatorAEnable; }  
   G4bool GetGEnTargetCollimatorBEnable() const { return fGEnTgtCollimatorBEnable; }  
-  G4bool GetGEnTargetCollimatorCEnable() const { return fGEnTgtCollimatorCEnable; }  
- 
+  G4bool GetGEnTargetCollimatorCEnable() const { return fGEnTgtCollimatorCEnable; } 
+
+  // D. Flay (12/9/20).  GEn 3He target as a sensitive detector
+  void SetGEnTargetSDEnable(bool v)            { fGEnTgtSDEnable = v;          } 
+  G4bool GetGEnTargetSDEnable()          const { return fGEnTgtSDEnable;       }  
+
+  // Beam dump enable 
   void SetBeamDumpEnable(bool v)   { fBeamDumpEnable = v;    } 
-  G4bool GetBeamDumpEnable() const { return fBeamDumpEnable; } 
+  G4bool GetBeamDumpEnable() const { return fBeamDumpEnable; }
+ 
   // D. Flay (8/25/20).  Beam Diffuser enable 
   void SetBeamDiffuserEnable(bool v)   { fBeamDiffuserEnable = v;    } 
   G4bool GetBeamDiffuserEnable() const { return fBeamDiffuserEnable; } 
+
+  // D. Flay (10/15/20). Ion Chamber  
+  void SetIonChamberEnable(bool v)       { fIonChamberEnable = v; } 
+  G4bool GetIonChamberEnable()     const { return fIonChamberEnable; } 
+  // positions 
+  void SetIonChamberX(double v)          { fIonChamberX = v;    } 
+  G4double GetIonChamberX()        const { return fIonChamberX; } 
+  void SetIonChamberY(double v)          { fIonChamberY = v;    } 
+  G4double GetIonChamberY()        const { return fIonChamberY; } 
+  void SetIonChamberZ(double v)          { fIonChamberZ = v;    } 
+  G4double GetIonChamberZ()        const { return fIonChamberZ; } 
+  // angles 
+  void SetIonChamberRX(double v)         { fIonChamberRX = v;    } 
+  G4double GetIonChamberRX()       const { return fIonChamberRX; } 
+  void SetIonChamberRY(double v)         { fIonChamberRY = v;    } 
+  G4double GetIonChamberRY()       const { return fIonChamberRY; } 
+  void SetIonChamberRZ(double v)         { fIonChamberRZ = v;    } 
+  G4double GetIonChamberRZ()       const { return fIonChamberRZ; } 
+
+  // D. Flay (11/5/20). Beam collimator (for GEn)   
+  void SetBeamCollimatorEnable_dnstr(bool v)       { fBeamCollimatorEnable_dnstr = v; } 
+  G4bool GetBeamCollimatorEnable_dnstr()     const { return fBeamCollimatorEnable_dnstr; } 
+  void SetBeamCollimatorEnable_upstr(bool v)       { fBeamCollimatorEnable_upstr = v; } 
+  G4bool GetBeamCollimatorEnable_upstr()     const { return fBeamCollimatorEnable_upstr; } 
+  // dimensions 
+  // - downstream
+  void SetBeamCollimatorL_dnstr(double v)          { fBeamCollimatorL_dnstr = v;    } 
+  G4double GetBeamCollimatorL_dnstr()        const { return fBeamCollimatorL_dnstr; } 
+  void SetBeamCollimatorDmin_dnstr(double v)          { fBeamCollimatorDmin_dnstr = v; } 
+  G4double GetBeamCollimatorDmin_dnstr()     const { return fBeamCollimatorDmin_dnstr; } 
+  void SetBeamCollimatorDmax_dnstr(double v)       { fBeamCollimatorDmax_dnstr = v;    } 
+  G4double GetBeamCollimatorDmax_dnstr()     const { return fBeamCollimatorDmax_dnstr; } 
+  // - upstream
+  void SetBeamCollimatorL_upstr(double v)          { fBeamCollimatorL_upstr = v;    } 
+  G4double GetBeamCollimatorL_upstr()        const { return fBeamCollimatorL_upstr; } 
+  void SetBeamCollimatorDmin_upstr(double v)          { fBeamCollimatorDmin_upstr = v; } 
+  G4double GetBeamCollimatorDmin_upstr()     const { return fBeamCollimatorDmin_upstr; } 
+  void SetBeamCollimatorDmax_upstr(double v)       { fBeamCollimatorDmax_upstr = v;    } 
+  G4double GetBeamCollimatorDmax_upstr()     const { return fBeamCollimatorDmax_upstr; } 
+  // positions 
+  // - downstream
+  void SetBeamCollimatorX_dnstr(double v)          { fBeamCollimatorX_dnstr = v;    } 
+  G4double GetBeamCollimatorX_dnstr()        const { return fBeamCollimatorX_dnstr; } 
+  void SetBeamCollimatorY_dnstr(double v)          { fBeamCollimatorY_dnstr = v;    } 
+  G4double GetBeamCollimatorY_dnstr()        const { return fBeamCollimatorY_dnstr; } 
+  void SetBeamCollimatorZ_dnstr(double v)          { fBeamCollimatorZ_dnstr = v;    } 
+  G4double GetBeamCollimatorZ_dnstr()        const { return fBeamCollimatorZ_dnstr; } 
+  // - upstream
+  void SetBeamCollimatorX_upstr(double v)          { fBeamCollimatorX_upstr = v;    } 
+  G4double GetBeamCollimatorX_upstr()        const { return fBeamCollimatorX_upstr; } 
+  void SetBeamCollimatorY_upstr(double v)          { fBeamCollimatorY_upstr = v;    } 
+  G4double GetBeamCollimatorY_upstr()        const { return fBeamCollimatorY_upstr; } 
+  void SetBeamCollimatorZ_upstr(double v)          { fBeamCollimatorZ_upstr = v;    } 
+  G4double GetBeamCollimatorZ_upstr()        const { return fBeamCollimatorZ_upstr; } 
 
   void SetTotalAbs(bool b){ fTotalAbs= b; }
   void SetCheckOverlap(bool b){ fCheckOverlap = b; }
@@ -200,15 +260,31 @@ private:
   G4int fGEnTgtHHConfig; // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration
   
   G4double fGEnTgtDRX,fGEnTgtDRY,fGEnTgtDRZ; // D. Flay (9/29/20).  GEn 3He target angular misalignment 
+  
+  G4bool fGEnTgtSDEnable; // D. Flay (12/9/20). GEn 3He target sensitive detector enable  
 
   // for GEn 3He target collimators 
   G4bool fGEnTgtCollimatorEnable; 
   G4bool fGEnTgtCollimatorAEnable,fGEnTgtCollimatorBEnable,fGEnTgtCollimatorCEnable; 
 
   // D. Flay (8/25/20).  Beam diffuser enable and beam pointing
-  G4bool fBeamDumpEnable;       // enable the beam diffuser 
+  G4bool fBeamDumpEnable;           // enable the beam dump  
   G4bool fBeamDiffuserEnable;       // enable the beam diffuser 
   G4double fBeamPointX,fBeamPointY; // beam pointing   
+  
+  // D. Flay (10/15/20).  Ion Chamber enable 
+  G4bool fIonChamberEnable; 
+  G4double fIonChamberX ,fIonChamberY ,fIonChamberZ;  
+  G4double fIonChamberRX,fIonChamberRY,fIonChamberRZ;  
+
+  // D. Flay (11/5/20).  GEn beam collimator  
+  G4bool fBeamCollimatorEnable_dnstr,fBeamCollimatorEnable_upstr;
+  // - downstream 
+  G4double fBeamCollimatorX_dnstr,fBeamCollimatorY_dnstr,fBeamCollimatorZ_dnstr; 
+  G4double fBeamCollimatorL_dnstr,fBeamCollimatorDmin_dnstr,fBeamCollimatorDmax_dnstr;  
+  // - upstream 
+  G4double fBeamCollimatorX_upstr,fBeamCollimatorY_upstr,fBeamCollimatorZ_upstr; 
+  G4double fBeamCollimatorL_upstr,fBeamCollimatorDmin_upstr,fBeamCollimatorDmax_upstr;  
 
 };
 

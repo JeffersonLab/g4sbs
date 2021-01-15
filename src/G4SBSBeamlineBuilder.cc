@@ -2318,6 +2318,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 	ChkOverlaps );
 
   //Tube 0B
+  //G4double P0tubeB_L = 15.303/2.0*inch; //CJT
   G4double P0tubeB_L = 15.303/2.0*inch; //CJT
   G4double P0tubeB_rin = 1.46/2.0*inch; //CJT
   G4double P0tubeB_rou = 0.846*inch; //CJT
@@ -2437,7 +2438,10 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-(P0tubeC_L+P0ringB_L)), P0tubeC_vacLog, "P0tubeC_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
 
   //Tube 0D
-  G4double P0tubeD_L = 37.623/2.0*inch; //CJT
+  //G4double P0tubeD_L = 37.623/2.0*inch; //CJT
+  G4double P0tubeD_L = 117.623/2.0*inch; //Extended beamline for beam studies
+  
+
   G4double P0tubeD_rin = 0.685*inch; //CJT
   G4double P0tubeD_rou = 0.75*inch; //CJT
 

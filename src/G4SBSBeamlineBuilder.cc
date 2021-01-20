@@ -1372,6 +1372,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // TTV1_log->SetVisAttributes( G4VisAttributes::Invisible );
   // TTV2_log->SetVisAttributes( G4VisAttributes::Invisible );
 
+  /*
   //SSeeds 12.17.20 - test to see where common exit beamline connects with target to midpipe section. Test ring marks beginning of target to midpipe section according to JT file - Dec 2020
   G4double P1testRing2_rin = 14.75*inch; 
   G4double P1testRing2_rou = 15.0*inch; //CJT 13.0 - making larger for debug
@@ -1418,8 +1419,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   P1testRing2Log->SetVisAttributes( G4Colour::Red()); //Debug
 
   P1testRing3Log->SetVisAttributes( G4Colour::Green()); //Debug
-
-
+  */
   
 }
 
@@ -2439,8 +2439,8 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   //Tube 0D
   //G4double P0tubeD_L = 37.623/2.0*inch; //CJT
-  G4double P0tubeD_L = 117.623/2.0*inch; //Extended beamline for beam studies
-  
+  //G4double P0tubeD_L = 117.623/2.0*inch; //Extended beamline for beam studies (4 m extension)
+  G4double P0tubeD_L = 433.633/2.0*inch; //Extended beamline for beam studies (10 m extension)
 
   G4double P0tubeD_rin = 0.685*inch; //CJT
   G4double P0tubeD_rou = 0.75*inch; //CJT
@@ -2470,6 +2470,18 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   //Place vacuum 0D
   // new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-2.0*(P0tubeC_L+P0ringB_L)-(P0tubeD_L+P0ringC_L)), P0tubeD_vacLog, "P0tubeD_vacLog_pv", worldlog, false, 0 , ChkOverlaps );
+
+  /*
+  //SSeeds - Verification that upstream beampipe terminus at -12.0 m from target center
+  G4double testRing2_rin = 14.75*inch; 
+  G4double testRing2_rou = 15.0*inch; //CJT 13.0 - making larger for debug
+  G4double testRing2_L = 0.187/10*inch;
+  G4double testPlacement = -472.4*inch; //Beginning S.2
+  G4Tubs *testRing2 = new G4Tubs("testRing2", testRing2_rin, testRing2_rou, testRing2_L, 0.*deg, 360.*deg);
+  G4LogicalVolume *testRing2Log = new G4LogicalVolume(testRing2, GetMaterial("Air"), "testRing2_log", 0, 0, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, testPlacement), testRing2Log, "testRing2Log_pv", worldlog, false, 0, ChkOverlaps);
+  testRing2Log->SetVisAttributes( G4Colour::Red()); //Debug
+  */
 
   // placement of P0 vacuum elements 
   G4double P0_vac_c_z   = P0initPlacement_z-2.0*P0ringA_L-2.0*P0tubeA_L-2.0*P0tubeB_L-(P0tubeC_L+P0ringB_L); 

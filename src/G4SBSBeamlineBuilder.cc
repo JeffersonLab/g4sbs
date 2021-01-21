@@ -280,7 +280,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   G4double OMspace = 0.375*inch;
 
   //SSeeds will likely need to eliminate these options from the commonexitbeamline function and keep only option 3. After GEp and SIDIS layouts are known, will evaluate. Jan 2021
-  
+  /*
   switch(fDetCon->fBeamlineConf){
   case(1):// reminder: beamline config 1 = GEp
     Ndivs = 2;
@@ -319,23 +319,23 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   //   break;
   case(3):// reminder: beamline config 3 = GMn, all Q^2
     Ndivs = 3;
-    /*
-    Rin_array.push_back( 3.7745*inch/2.0 );
-    Rin_array.push_back( 4.307*inch/2.0 );
-    Rin_array.push_back( 5.264*inch/2.0 );
-    Rin_array.push_back( 7.905*inch/2.0 );
-    Rin_array.push_back( 9.310*inch/2.0 );
-    Rin_array.push_back( 10.930*inch/2.0 );
-    */
+    
+    //Rin_array.push_back( 3.7745*inch/2.0 );
+    //Rin_array.push_back( 4.307*inch/2.0 );
+    //Rin_array.push_back( 5.264*inch/2.0 );
+    //Rin_array.push_back( 7.905*inch/2.0 );
+    //Rin_array.push_back( 9.310*inch/2.0 );
+    //Rin_array.push_back( 10.930*inch/2.0 );
+    
 
-    /*
-    Rin_array.push_back( 2.527*inch );
-    Rin_array.push_back( 2.58*inch );
-    Rin_array.push_back( 2.632*inch );
-    Rin_array.push_back( 2.685*inch );
-    Rin_array.push_back( 2.685*inch );
-    Rin_array.push_back( 2.737*inch );
-    */
+    
+    //Rin_array.push_back( 2.527*inch );
+    //Rin_array.push_back( 2.58*inch );
+    //Rin_array.push_back( 2.632*inch );
+    //Rin_array.push_back( 2.685*inch );
+    //Rin_array.push_back( 2.685*inch );
+    //Rin_array.push_back( 2.737*inch );
+    
     
     //SSeeds - updating with direct measurements to accomodate shift in z. Would be better to loop over calculation for ring radii. Will update.
     Rin_array.push_back( 1.895*inch );
@@ -346,14 +346,14 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     Rin_array.push_back( 5.446*inch );
     
     
-    /*
-    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch );
-    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 +11.62 - 1.625)*inch );
-    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 +11.62 + 14.38 + 2.0)*inch );
-    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 - 2.0)*inch );
-    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38 + 2.0)*inch );
-    Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 138.83 - 1.12 - 1.14)*inch );
-    */
+    
+    //Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch );
+    //Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 +11.62 - 1.625)*inch );
+    //Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 +11.62 + 14.38 + 2.0)*inch );
+    //Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 - 2.0)*inch );
+    //Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38 + 2.0)*inch );
+    //Zin_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 138.83 - 1.12 - 1.14)*inch );
+    
     
     Zin_array.push_back( z_conic_vacline_weldment + 0.451*inch );
     Zin_array.push_back( z_conic_vacline_weldment + (0.451 + 11.62 - 1.625)*inch );
@@ -398,14 +398,14 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     Nrings_out.push_back( 27 );
     Nrings_out.push_back( 17 );
     
-    /*
-    Rout_array.push_back( (3.7745/2+0.38)*inch );
-    Rout_array.push_back( (4.392/2+0.38)*inch );
-    Rout_array.push_back( (5.158/2+0.38)*inch );
-    Rout_array.push_back( (8.012/2+0.38)*inch );
-    Rout_array.push_back( (9.203/2+0.38)*inch );
-    Rout_array.push_back( (10.923/2+0.38)*inch );
-    */
+    
+    //Rout_array.push_back( (3.7745/2+0.38)*inch );
+    //Rout_array.push_back( (4.392/2+0.38)*inch );
+    //Rout_array.push_back( (5.158/2+0.38)*inch );
+    //Rout_array.push_back( (8.012/2+0.38)*inch );
+    //Rout_array.push_back( (9.203/2+0.38)*inch );
+    //Rout_array.push_back( (10.923/2+0.38)*inch );
+    
 
     //SSeeds - updating with direct measurements to accomodate shift in z. Would be better to loop over calculation for ring radii. Will update.
     Rout_array.push_back( 2.527*inch );
@@ -415,14 +415,14 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     Rout_array.push_back( 5.198*inch );
     Rout_array.push_back( 6.079*inch );
     
-    /*
-    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch );
-    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch );
-    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38)*inch );
-    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62)*inch );
-    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38)*inch );
-    Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch );
-    */
+    
+    //Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14)*inch );
+    //Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch );
+    //Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38)*inch );
+    //Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62)*inch );
+    //Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 11.62  + 14.38 + 53.62 + 22.38)*inch );
+    //Zout_array.push_back( z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch );
+    
     
     Zout_array.push_back( z_conic_vacline_weldment + 0.451*inch);
     Zout_array.push_back( z_conic_vacline_weldment + (0.451 + 11.62)*inch );
@@ -492,7 +492,76 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     //G4double Zout_array_tmp0[6] = {z_conic_vacline_weldment + (0.84 + 0.14)*inch, z_conic_vacline_weldment + (0.84 + 138.83 - 1.12 - 1.14)*inch, 0.0, 0.0, 0.0, 0.0};
     break;
   }
+*/
 
+  //SSeeds - updating with direct measurements to accomodate shift in z. Would be better to loop over calculation for ring radii. Will update.
+  Ndivs = 3;  
+
+  Rin_array.push_back( 1.895*inch );
+  Rin_array.push_back( 2.157*inch );
+  Rin_array.push_back( 2.628*inch );
+  Rin_array.push_back( 3.928*inch );
+  Rin_array.push_back( 4.619*inch );
+  Rin_array.push_back( 5.446*inch );
+    
+  Zin_array.push_back( z_conic_vacline_weldment + 0.451*inch );
+  Zin_array.push_back( z_conic_vacline_weldment + (0.451 + 11.62 - 1.625)*inch );
+  Zin_array.push_back( z_conic_vacline_weldment + (0.451 + 11.62 + 14.38 + 2.0)*inch );
+  Zin_array.push_back( z_conic_vacline_weldment + (0.451 + 11.62  + 14.38 + 53.62 - 2.0)*inch );
+  Zin_array.push_back( z_conic_vacline_weldment + (0.451 + 11.62  + 14.38 + 53.62 + 22.38 + 2.0)*inch );
+  //Zin_array.push_back( z_conic_vacline_weldment + (0.451 + 138.83 - 1.12 - 1.14)*inch );
+  Zin_array.push_back((167.782+31.591)*inch ); //SSeeds JT direct measure
+
+  //Trapezoidal mounting plate shorter end length
+  W1_array.push_back(5.646*inch);
+  W1_array.push_back(6.575*inch);
+  W1_array.push_back(9.435*inch);
+    
+  //Trapezoidal mounting plate longer end length
+  W2_array.push_back(6.16*inch);
+  W2_array.push_back(8.75*inch);
+  W2_array.push_back(10.68*inch);
+
+  //Overall length of mounting plates and shield supports
+  MPl_array.push_back(13.875*inch);
+  MPl_array.push_back(58.75*inch);
+  MPl_array.push_back(33.631*inch);
+
+  //Starting x disp of each mounting plate section
+  //MPxdisp_array.push_back(6.521*inch/2.0+MPTh/2.0);
+  MPxdisp_array.push_back(9.420*inch/2.0+MPTh/2.0);
+  MPxdisp_array.push_back(10.332*inch/2.0+MPTh/2.0);
+  MPxdisp_array.push_back(13.198*inch/2.0+MPTh/2.0);
+
+  //Starting x disp of each shield support section
+  SSxdisp_array.push_back(6.521*inch/2.0+MPTh/2.0);
+  SSxdisp_array.push_back(7.812*inch/2.0+MPTh/2.0);
+  SSxdisp_array.push_back(11.864*inch/2.0+MPTh/2.0);
+
+
+  MPzmin_array.push_back( z_conic_vacline_weldment + 0.451*inch );
+  MPzmin_array.push_back(88.375*inch);
+  MPzmin_array.push_back(z_conic_vacline_weldment + (0.451 + 11.62  + 14.38 + 53.62 + 22.38)*inch );
+    
+  Nrings_out.push_back( 6 );
+  Nrings_out.push_back( 27 );
+  Nrings_out.push_back( 17 );
+
+  //SSeeds - updating with direct measurements to accomodate shift in z. Would be better to loop over calculation for ring radii. Will update.
+  Rout_array.push_back( 2.527*inch );
+  Rout_array.push_back( 2.832*inch );
+  Rout_array.push_back( 3.208*inch );
+  Rout_array.push_back( 4.613*inch );
+  Rout_array.push_back( 5.198*inch );
+  Rout_array.push_back( 6.079*inch );
+    
+  Zout_array.push_back( z_conic_vacline_weldment + 0.451*inch);
+  Zout_array.push_back( z_conic_vacline_weldment + (0.451 + 11.62)*inch );
+  Zout_array.push_back( z_conic_vacline_weldment + (0.451 + 11.62  + 14.38)*inch );
+  Zout_array.push_back( z_conic_vacline_weldment + (0.451 + 11.62  + 14.38 + 53.62)*inch );
+  Zout_array.push_back( z_conic_vacline_weldment + (0.451 + 11.62  + 14.38 + 53.62 + 22.38)*inch );
+  Zout_array.push_back( z_conic_vacline_weldment + (0.451 + 138.83 - 1.12 - 1.0)*inch );
+  
   // Building beamline mounting plates:
   for(G4int i = 0; i<Ndivs; i++){
     
@@ -1084,6 +1153,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // Z Array to change easily z values with beamline configuration;
   // Right now, it looks like X and Y do NOT need to change depending on the configuration; only Z does
   std::vector<G4double> z_Magnets_array;
+
+  /*
   switch(fDetCon->fBeamlineConf){
   case(1):// reminder: beamline config 1 = GEp
     z_Magnets_array.push_back( z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY );
@@ -1098,12 +1169,12 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   //   Z = z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY;
   //   break;
   case(3):// reminder: beamline config 3 = GMn
-    /*
-    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 15.94)*inch + UpstreamCoilDepth/2.0 );
-    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 15.94 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0 );
-    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 85.78)*inch + DownstreamYokeDepth/2.0 );
-    z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 85.78 - 1.71)*inch + DS_coil_ThickY + DS_coil_depth/2.0 );
-    */
+    
+    //z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 15.94)*inch + UpstreamCoilDepth/2.0 );
+    //z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 15.94 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0 );
+    //z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 85.78)*inch + DownstreamYokeDepth/2.0 );
+    //z_Magnets_array.push_back( z_conic_vacline_weldment + (0.84 + 0.14 + 85.78 - 1.71)*inch + DS_coil_ThickY + DS_coil_depth/2.0 );
+    
     //SSeeds 2020 update
     z_Magnets_array.push_back( (79.724)*inch + UpstreamCoilDepth/2.0 );
     z_Magnets_array.push_back( (79.724 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0 );
@@ -1129,7 +1200,13 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     //z_Magnets_array = {z_formed_bellows + 6.47*inch + UpstreamCoilDepth/2.0 + UpstreamCoilThickY, z_formed_bellows + 8.3*inch + YokeRightZFinal/2.0, z_formed_bellows + 76.09*inch + 1.71*inch + DownstreamYokeDepth/2.0, z_formed_bellows + 76.09*inch + DS_coil_ThickY + DS_coil_depth/2.0};
     break;
   }
-  
+*/
+  //SSeeds 2020 update
+  z_Magnets_array.push_back( (79.724)*inch + UpstreamCoilDepth/2.0 );
+  z_Magnets_array.push_back( (79.724 + 8.3 - 6.47)*inch - UpstreamCoilThickY + YokeRightZFinal/2.0 );
+  z_Magnets_array.push_back( (149.559)*inch + DownstreamYokeDepth/2.0 );
+  z_Magnets_array.push_back( (149.559 - 1.71)*inch + DS_coil_ThickY + DS_coil_depth/2.0 );
+    
   G4Box *UpstreamCoil_outer = new G4Box("UpstreamCoil_outer", UpstreamCoilThickX/2.0, (UpstreamCoilHeight+2.0*UpstreamCoilThickY)/2.0, (UpstreamCoilDepth + 2.0*UpstreamCoilThickY)/2.0 );
   G4Box *UpstreamCoil_inner = new G4Box("UpstreamCoil_inner", UpstreamCoilThickX/2.0 + cm, UpstreamCoilHeight/2.0, UpstreamCoilDepth/2.0 );
 
@@ -1292,7 +1369,11 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     G4String GEMElectronicsname = "BLneutronDet";
     G4String  GEMElectronicscollname = "BLneutronDet";
     G4SBSCalSD *GEMElecSD = NULL;
+
+    GEMElectronicsname += "GMn";
+    GEMElectronicscollname += "GMn";
     
+    /*
     switch(fDetCon->fExpType){
     case(G4SBS::kGEp):
       GEMElectronicsname += "GEp";
@@ -1311,6 +1392,8 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
       
       break;
     }
+    */
+
     
     //for(int i_blndet = 0; i_blndet<8; i_blndet++){
     if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(GEMElectronicsname) )){
@@ -1438,7 +1521,7 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   
   G4double inch = 2.54*cm;
   
-  G4double TargetCenter_zoffset = 6.50*inch;
+  G4double TargetCenter_zoffset = 0.0*inch;
   G4double ScatChamberRadius = 23.8*inch;
 
   //Need to make an upstream beamline: 

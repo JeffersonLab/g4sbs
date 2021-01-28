@@ -1521,7 +1521,7 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   
   G4double inch = 2.54*cm;
   
-  G4double TargetCenter_zoffset = 0.0*inch;
+  G4double TargetCenter_zoffset = 6.5*inch;
   G4double ScatChamberRadius = 23.8*inch;
 
   //Need to make an upstream beamline: 
@@ -1663,7 +1663,8 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), CVLW_Flange2_log, "CVLW_Flange2_phys", worldlog, false, 0 , ChkOverlaps );
 
   //Next: "Welded bellows"
-  G4double dz_welded_bellows = 207.144*inch - z_welded_bellows - TargetCenter_zoffset; // = =5.512 inches
+  //G4double dz_welded_bellows = 207.144*inch - z_welded_bellows - TargetCenter_zoffset; // = =5.512 inches
+  G4double dz_welded_bellows = 212.37*inch - TargetCenter_zoffset;
   
   Rin = 11.750/2.0*inch;
   Rout = 14.0/2.0*inch;
@@ -1693,13 +1694,13 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   
   Rin = 0.0;
   Rout = 11.750/2.0*inch;
-  //Thick = dz_welded_bellows;
-  Thick = 212.37*inch - Z; //SSeeds 2021, Temporary extension of vacuum  
+  Thick = dz_welded_bellows;
+  //Thick = 212.37*inch - Z + 6.5*inch; //SSeeds 2021, Temporary extension of vacuum  
   G4Tubs *WB_Vacuum = new G4Tubs( "WB_Vacuum", Rin, Rout, Thick/2.0, 0.0, twopi );
 
   G4LogicalVolume *WB_Vacuum_log = new G4LogicalVolume(WB_Vacuum, GetMaterial("Vacuum"), "WB_Vacuum_log" );
 
-  WB_Vacuum_log->SetVisAttributes( Vacuum_visatt );
+  //WB_Vacuum_log->SetVisAttributes( Vacuum_visatt );
   
   Z = z_welded_bellows + dz_welded_bellows/2.0;
 
@@ -1910,7 +1911,7 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
   //Two more "Iron" tubes to connect Snout to "formed bellows"
   G4double dz_iron_tubes = z_formed_bellows - 49.56*inch + TargetCenter_zoffset;
 
-  Thick = dz_iron_tubes/2.0+6.50*inch/2.0;
+  Thick = dz_iron_tubes/2.0; //Sseeds 2021 - extensions of proximal tubing
   Rin = 5.0*cm;
   Rout = 7.0*cm;
 
@@ -1923,7 +1924,7 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
 
   IronTube1_vac_log->SetVisAttributes( Vacuum_visatt );
 
-  Z = 49.56*inch + Thick/2.0 - TargetCenter_zoffset - 6.50*inch;
+  Z = 49.56*inch + Thick/2.0 - TargetCenter_zoffset;
 
   new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube1_log, "IronTube1_phys", worldlog, false, 0 , ChkOverlaps );
   new G4PVPlacement( 0, G4ThreeVector(X, Y, Z), IronTube1_vac_log, "IronTube1_vac_phys", worldlog, false, 0 , ChkOverlaps );
@@ -3882,14 +3883,14 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   G4VisAttributes *lead_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
   
   G4double inch = 2.54*cm;
-  //G4double TargetCenter_zoffset = 6.50*inch; //Remove offset - GEp self contained. SSeeds 2021
-  G4double TargetCenter_zoffset = 0.0*inch;
+  G4double TargetCenter_zoffset = 6.50*inch; //Remove offset - GEp self contained. SSeeds 2021
+  //G4double TargetCenter_zoffset = 0.0*inch;
 
-  //G4double z_outer_magnetic = 182.33*cm - TargetCenter_zoffset;
-  G4double z_outer_magnetic = 182.33*cm - 6.50*inch;
+  G4double z_outer_magnetic = 182.33*cm - TargetCenter_zoffset;
+  //G4double z_outer_magnetic = 182.33*cm - 6.50*inch;
   
-  //G4double zstart_lead1 = 170.0*cm; //Remove offset - GEp self contained. SSeeds 2021
-  G4double zstart_lead1 = 170.0*cm+6.50*inch;
+  G4double zstart_lead1 = 170.0*cm; //Remove offset - GEp self contained. SSeeds 2021
+  //G4double zstart_lead1 = 170.0*cm+6.50*inch;
   G4double z_formed_bellows = 133.2*cm - TargetCenter_zoffset;
   G4double zstop_lead1 = z_formed_bellows + 75.0*inch;
 
@@ -3961,10 +3962,13 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   
   G4ThreeVector frontcorner_pos = 1.6*m*zaxis_temp;
 
-  G4double zstart_lead_wall1 = z_outer_magnetic + 15*cm;
-  G4double zstop_lead_wall1 = zstart_lead_wall1 + 1.25*m;
+  G4double temp_shift = 4.5*inch; //Temporary extension of lead wall closest to target 
 
-  G4Box *lead_wall1 = new G4Box("lead_wall1", 5.0*cm/2.0, 31.0*cm/2.0, 1.25*m/2.0 );
+  G4double zstart_lead_wall1 = z_outer_magnetic + 15*cm - temp_shift; //SSeeds 2021 - Temporary shift pending JT
+  G4double zstop_lead_wall1 = zstart_lead_wall1 + 1.25*m + temp_shift; //SSeeds 2021 - Temporary extension pending JT
+
+  //G4Box *lead_wall1 = new G4Box("lead_wall1", 5.0*cm/2.0, 31.0*cm/2.0, 1.25*m/2.0);
+  G4Box *lead_wall1 = new G4Box("lead_wall1", 5.0*cm/2.0, 31.0*cm/2.0, 1.25*m/2.0  + temp_shift/2.0);  //SSeeds 2021 - Temporary extension pending JT
   G4LogicalVolume *lead_wall1_log = new G4LogicalVolume( lead_wall1, GetMaterial("Lead"), "lead_wall1_log" );
 
   G4double xtemp = -( 5.5*inch/2.0 + 1.5*inch + (1.25/2.0+0.15)*m*tan(1.5*deg) + 2.5*cm/cos(1.5*deg) );
@@ -3981,7 +3985,7 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
   G4double zstart_lead_wall2 = z_formed_bellows + 76.09*inch + 1.71*inch + 15.75*inch + 1.0*inch;
   //G4double zstop_lead_wall2 = 207.144*inch - TargetCenter_zoffset + 40.0*inch;
-  G4double zstop_lead_wall2 = 207.144*inch - TargetCenter_zoffset; //SSeeds 2021 - Temporary short to prevent crash with target to midpipe section until JT dimensions forthcoming
+  G4double zstop_lead_wall2 = 207.144*inch - TargetCenter_zoffset + 12.5*inch; //SSeeds 2021 - Temporary extension pending JT
 
   G4cout << "Lead wall B zstart - zstop = " << (zstop_lead_wall2 - zstart_lead_wall2)/cm << G4endl;
   

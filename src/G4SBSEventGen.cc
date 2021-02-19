@@ -2397,7 +2397,9 @@ ev_t G4SBSEventGen::GetEventData(){
   data.phperp = fPh_perp/GeV;
   data.phih   = fphi_h;
   data.MX     = fMx/pow(GeV,2);
-
+  data.phiS = fphi_S;
+  data.thetaS = fTheta_S;
+  
   if( fKineType == G4SBS::kSIDIS ){ //Then replace final nucleon variables with final hadron variables:
     data.np = fHadronP.mag()/GeV;
     data.npx = fHadronP.x()/GeV;

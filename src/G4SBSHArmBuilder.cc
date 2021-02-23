@@ -3786,7 +3786,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     AnalyzerMaterials.push_back( G4String("CH2") );
     
     break;
-  case 3: //6-plane FT + 22" CH2 + 5-plane FPP1 + 4-cm Cu + 5-plane FPP2:
+  case 3: //6-plane FT + 22" CH2 + 5-plane FPP1 + let's use 3.5" steel + 5-plane FPP2:
     nana = 2;
     ntracker = 3;
     GEM_z_spacing[0] = 9.0*cm;
@@ -3800,7 +3800,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     fGEP_CH2width[1] = 60.0*cm;
     fGEP_CH2height[1] = 200.0*cm;
 
-    fCH2thickFPP[1] = 4.0*cm; //Cu analyzer thickness
+    //fCH2thickFPP[1] = 3.5*2.54*cm; //GEN-RP steel analyzer thickness: let's not actually
+    //hard-code this8.
     
     SDnames.push_back("Harm/FT");
     SDnames.push_back("Harm/FPP1");
@@ -3814,7 +3815,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     trkr_zpos[2] = fGEP_CH2zpos[1] + fCH2thickFPP[1] + GEM_z_spacing[2];
 
     AnalyzerMaterials.push_back( "CH2" );
-    AnalyzerMaterials.push_back( "Copper" );
+    AnalyzerMaterials.push_back( "Steel" );
     
     break;
   case 2:
@@ -4269,7 +4270,7 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
 
 void G4SBSHArmBuilder::SetFPP_CH2thick( int ifpp, double CH2thick ){
   double fthickmin = 0.0*cm;
-  double fthickmax = 120.0*cm;
+  double fthickmax = 150.0*cm;
 
   ifpp = ifpp >= 1 ? ( ifpp <= 2 ? ifpp : 2 ) : 1;
   

@@ -628,19 +628,20 @@ G4SBSMessenger::G4SBSMessenger(){
 
   GEPFPP1_CH2thickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/FPP1CH2thick",this);
   GEPFPP1_CH2thickCmd->SetGuidance("CH2 thickness for first analyzer (GEP only)");
-  GEPFPP1_CH2thickCmd->SetGuidance("0 < FPP1 CH2 thick < 60 cm");
+  GEPFPP1_CH2thickCmd->SetGuidance("0 < FPP1 CH2 thick < 150 cm");
   GEPFPP1_CH2thickCmd->SetParameterName("CH2thick1",false);
   //GEPFPP1_CH2thickCmd->SetRange("0.0 <= CH2thick1 && CH2thick1 <= 60.0*cm"
 
   GEPFPP2_CH2thickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/FPP2CH2thick",this);
   GEPFPP2_CH2thickCmd->SetGuidance("CH2 thickness for first analyzer (GEP only)");
-  GEPFPP2_CH2thickCmd->SetGuidance("0 < FPP2 CH2 thick < 60 cm");
+  GEPFPP2_CH2thickCmd->SetGuidance("0 < FPP2 CH2 thick < 150 cm");
   GEPFPP2_CH2thickCmd->SetParameterName("CH2thick2",false);
 
   GEPFPPoptionCmd = new G4UIcmdWithAnInteger("/g4sbs/gepfppoption",this);
   GEPFPPoptionCmd->SetGuidance("GEP FPP option:");
   GEPFPPoptionCmd->SetGuidance("1 = One analyzer, 8 (FT) + 8 (FPP) GEM trackers");
   GEPFPPoptionCmd->SetGuidance("2 = Two analyzers, 6 (FT) + 5 (FPP1) + 5 (FPP2) GEM trackers (default)");
+  GEPFPPoptionCmd->SetGuidance("3 = Same as 2, but with second analyzer replaced by 3.5\" steel from GEN-RP");
   GEPFPPoptionCmd->SetParameterName("gepfppoption",true);
   GEPFPPoptionCmd->SetDefaultValue(2);
   

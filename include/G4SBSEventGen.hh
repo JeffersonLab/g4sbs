@@ -157,6 +157,7 @@ private:
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
   G4ThreeVector fHadronP;
   G4ThreeVector fBeamPol;
+  G4ThreeVector fTargPol;
   
   //Define parameters for cosmics generator
   G4ThreeVector fCosmPointer;
@@ -173,7 +174,7 @@ private:
   double fs, ft, fu, fcosthetaCM, fEgamma_lab;
   
   //Define additional kinematic quantities for SIDIS:
-  double fz, fPh_perp, fphi_h, fphi_S, fMx;
+  double fz, fPh_perp, fphi_h, fphi_S, fTheta_S, fMx;
   
   double fBeamCur;
   double fRunTime;

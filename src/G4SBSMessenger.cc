@@ -738,6 +738,14 @@ G4SBSMessenger::G4SBSMessenger(){
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("timewindow", 'd', false ) );
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("unit", 's', false) );
 
+  // **********
+  SD_NTimeBinsCmd = new G4UIcommand("/g4sbs/ntimebins",this);
+  SD_NTimeBinsCmd->SetGuidance( "Set number of time bins by sensitive detector name (only valid for kCAL, kGEM, kECAL)" );
+  SD_NTimeBinsCmd->SetGuidance( "Usage: /g4sbs/ntimebins" );
+  SD_NTimeBinsCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
+  SD_NTimeBinsCmd->SetParameter( new G4UIparameter("ntimebins", 'i', false ) );
+  // **********
+
   KeepSDtrackcmd = new G4UIcommand("/g4sbs/keepsdtrackinfo",this);
   KeepSDtrackcmd->SetGuidance("Toggle recording of SD track info in the tree by SD name");
   KeepSDtrackcmd->SetGuidance("Usage: /g4sbs/keepsdtrackinfo SDname flag");
@@ -2134,6 +2142,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     G4cout << "Set time window for SD name = " << SDname << " to " << fdetcon->SDgatewidth[SDname]/ns << " ns" << G4endl;
   }
+
+  // ******
+  if( cmd == SD_NTimeBinsCmd ){ //store the SDname and dimensioned threshold value in a map<G4String,G4double> assigned to fdetcon?
+    std::istringstream is(newValue);
+
+    G4String SDname;
+    G4int ntimebins;
+ 
+    is >> SDname >> ntimebins;
+    
+    fdetcon->SDntimebins[SDname] = ntimebins;
+
+    G4cout << "Set number of time bins for SD name = " << SDname << " to " << fdetcon->SDntimebins[SDname] << G4endl;
+  }
+  // ******
 
   if( cmd == KeepSDtrackcmd ){ //
     //newValue.toLower();

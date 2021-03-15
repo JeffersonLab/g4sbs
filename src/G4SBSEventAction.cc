@@ -1105,6 +1105,9 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
   }
   
   bool  remaining_hits = true;
+  // Used to make sure we only save the track info only once
+  // when saving all tracks to the tree
+  bool saved_track_info = false;
   
   while( remaining_hits ) {
     
@@ -1114,6 +1117,17 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
     for( set<int>::iterator it=TIDs_unique.begin(); it != TIDs_unique.end(); it++ ){
       int tid = *it;
+      // Save particle info for all tracks (doesn't matter if they were
+      // ultimately not detected)
+      if(!saved_track_info) {
+        ecaloutput.npart_ECAL++;
+        ecaloutput.part_PMT.push_back( Photon_PMT[tid] );
+        ecaloutput.trid.push_back( tid );
+        ecaloutput.E.push_back( Photon_energy[tid]/CLHEP::eV );
+        ecaloutput.t.push_back( Photon_hittime[tid]/CLHEP::ns );
+        ecaloutput.detected.push_back( Photon_detected[tid] );
+      }
+
       if( Photon_detected[ tid ] && !(Photon_used[ tid ] ) ){
 	std::pair<set<int>::iterator,bool> testpmt = PMTs_unique.insert( Photon_PMT[tid] );
 

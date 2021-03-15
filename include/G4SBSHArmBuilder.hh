@@ -24,6 +24,7 @@ public:
   void SetRICHdist( double d ){ fRICHdist = d; } //Set RICH detector distance
   void SetRICHHoffset( double d ){ fRICHhorizontal_offset = d; }
   void SetRICHVoffset( double d ){ fRICHvertical_offset = d; }
+  void SetRICHSnoutExtension( double d ){ fRichSnoutExtension = d; }
   void SetFieldClampConfig48D48( int option ){ f48D48_fieldclamp_config = option; }
   void SetTrackerPitch(double a){ fSBS_tracker_pitch = a; }
   void SetTrackerDist(double d){ fSBS_tracker_dist = d; }
@@ -31,19 +32,22 @@ public:
   void SetRICHgas( G4String s ){ fRICHgas = s; }
   void SetRICH_use_aerogel( G4bool b ){ fRICH_use_aerogel = b; }
   void SetFPP_CH2thick(int ifpp, double thick );
+  void SetGEPFPPoption(int option){ fGEPFPPoption = option; }
   void SetGENRPAnalyzerOption(int ia ){ fGEnRP_analyzer_option = ia; }
   void SetFTabsthick( G4double t ){ fFTabsthick = t; }
   void SetFTuseabsorber( G4bool b ){ fFTuseabsorber = b; }
   void SetFTabsmaterial( G4String s ){ fFTabsmaterial = s; }
+  void SetCDetReady( G4bool b ){fCDetReady = b;}
   
   void Make48D48(G4LogicalVolume*, double);
   void MakeSBSFieldClamps(G4LogicalVolume*);
   void MakeHCAL(G4LogicalVolume*, G4double);
   void MakeHCALV2(G4LogicalVolume*, G4double);
   void MakeCDET(G4LogicalVolume*, G4double, G4double);
+  void MakeNeutronVeto(G4LogicalVolume*, G4double);
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
   void MakeRICH(G4LogicalVolume *);
-  void MakeRICH_new(G4LogicalVolume *);
+  void MakeRICH_new(G4LogicalVolume *, bool extended_snout = false);
   void MakeTracker(G4LogicalVolume *);
   void MakeGEpFPP(G4LogicalVolume *);
   void MakeElectronModeSBS(G4LogicalVolume *);
@@ -51,6 +55,9 @@ public:
   void MakeSBSSieveSlit(G4LogicalVolume *);
   void MakeLAC(G4LogicalVolume *);
   void MakePolarimeterGEnRP(G4LogicalVolume *);
+
+  //************************
+  void MakeTest(G4LogicalVolume *);
   
   double f48D48ang;
   double f48D48dist;
@@ -75,9 +82,13 @@ public:
   
   bool fBuildSBSSieve;
 
+  bool fCDetReady;
+  bool fUseNeutronVeto;
+  
   G4String fRICHgas; //String defining
   G4bool   fRICH_use_aerogel; // Flag to use or not use aerogel
-
+  G4double fRichSnoutExtension;
+  
   int    fGEnRP_analyzer_option; // configuration of GEn-RP analyzer
 
   double fLACdist; //Distance to CLAS Large-angle calorimeter
@@ -90,6 +101,13 @@ public:
   G4double fFTabsthick;
   G4bool   fFTuseabsorber; //flag to toggle building of an absorber
   G4String fFTabsmaterial; //string defining FT absorber material
+
+  int fGEPFPPoption; //options for different arrangements of the GEP FPP:
+
+  //Make the width and height of the CH2 blocks user-configurable:
+  double fGEP_CH2width[2];
+  double fGEP_CH2height[2]; 
+  double fGEP_CH2zpos[2];
   
 private:
 

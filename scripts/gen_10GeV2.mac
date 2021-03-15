@@ -8,6 +8,7 @@
 /g4sbs/target          3He
 /g4sbs/targpres        10 atmosphere     ## Target pressure
 /g4sbs/targlen         55.0 cm           ## Target Length
+/g4sbs/targgenhhconfig 4                 # Q2 = 10.18 GeV^2 
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator

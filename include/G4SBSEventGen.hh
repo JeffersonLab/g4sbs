@@ -65,6 +65,7 @@ public:
   void SetTarget(Targ_t t ){fTargType = t;}
   void SetTargLen(double len){fTargLen = len;}
   void SetTargDen(double den){fTargDen = den;}
+  //void SetTargRadLen
   
   void SetRasterX(double v){fRasterX = v;}
   void SetRasterY(double v){fRasterY = v;}
@@ -136,9 +137,25 @@ public:
   double GetMaxWeight(){ return fMaxWeight; }
 
   void InitializePythia6_Tree();
+
   //TDIS AcquMC
   void InitializeAcquMC_Tree();
 
+  int GetNfoils() const { return fNfoils; }
+  // std::vector<double> GetZfoil() const { return fZfoil; }
+  // std::vector<double> GetThickFoil() const { return fThickFoil; }
+
+  void SetNfoils( G4int nfoil );
+  void SetFoilZandThick( const std::vector<G4double> foilz, const std::vector<G4double> foilthick );
+
+  G4double GetPionPhoto_tmin() const { return fPionPhoto_tmin; }
+  G4double GetPionPhoto_tmax() const { return fPionPhoto_tmax; }
+  
+  void SetPionPhoto_tmin( G4double tmin ){ fPionPhoto_tmin = tmin; }
+  void SetPionPhoto_tmax( G4double tmax ){ fPionPhoto_tmax = tmax; }
+  void SetUseRadiator( G4bool b ){fUseRadiator = b; }
+  void SetRadthickX0( G4double thick ){ fRadiatorThick_X0 = thick; }
+  
 private:
 
   void InitializeRejectionSampling(); //Make private so it can only be called by G4SBSEventGen::Initialize()
@@ -161,6 +178,10 @@ private:
   double fWeight, fQ2, fW2, fxbj, fSigma, fAperp, fApar;
   double fPt, fPl;  // born-approx polarization componenets
   int fhel;         // electron beam helicity
+
+  //Adding these for pion photoproduction, but they can also be defined and calculated for the
+  //elastic generators in principle:
+  double fs, ft, fu, fcosthetaCM, fEgamma_lab;
   
   //Define additional kinematic quantities for SIDIS:
   double fz, fPh_perp, fphi_h, fphi_S, fMx;
@@ -186,7 +207,22 @@ private:
   double fEeMin, fEeMax; //Electron energy generation limits
   double fThMin_had, fThMax_had, fPhMin_had, fPhMax_had; //Angular generation limits for hadron arm 
   double fEhadMin, fEhadMax; //Hadron (total) energy generation limits (for SIDIS case)--Later we will want to add exclusive hadron production.
-  double fTargLen, fRasterX, fRasterY, fTargDen;
+  double fTargLen, fRasterX, fRasterY, fTargDen; //Targ density is given in atoms or molecules/unit volume
+  //double fTargRadLen; //Radiation length of target material, regardless of thickness
+  double fTargRadLen; //Radiation length of target material
+  double fTargUpstreamWindowRadLen;
+  double fTargZatomic; //atomic number of target for purposes of any bremsstrahlung calculations:
+  // set<G4String> G4TargetMaterialNames; 
+  
+  // G4ThreeVector fTargOffset;
+  // G4ThreeVector fBeamOffset;
+  // G4ThreeVector fBeamDirection;
+  //For multi-foil optics target event generation, I guess we need to add (redundant) target foil thickness information here:
+  G4int fNfoils;
+  std::vector<std::pair<G4double, G4double> > fFoilZandThick;
+  G4double fTotalThickFoil;
+  std::vector<G4double> fFoilZfraction;
+  
   double fPmisspar, fPmissperp, fPmissparSm;
   double fHCALdist, fToFres;
   //TDIS
@@ -196,6 +232,16 @@ private:
   double fGenVol; //Phase space generation volume
   double fLumi;   //Luminosity
 
+  // Use radiator for photoproduction? 
+  G4bool fUseRadiator;
+  G4double fRadiatorThick_X0;
+  
+  G4double fPionPhoto_tmin, fPionPhoto_tmax; //Convert polar angle generation limits to generation limits in -t for pion photoproduction
+
+  //void InitializePionPhotoLimits(Nucl_t);
+  
+  //New parameters for Bremsstrahlung generation and photoproduction:
+  bool GeneratePionPhotoproduction( Nucl_t, G4LorentzVector, G4LorentzVector ); //exclusive pion photoproduction:
   //G4bool fConstantsInitialized;
   
   G4LorentzVector GetInitialNucl( Targ_t, Nucl_t );
@@ -224,8 +270,11 @@ private:
   
   double deutpdist( double );
   double he3pdist( Nucl_t, double );
+
   double f2p (double);
   double f2pi (double, double, double);
+  double c12pdist( double );
+  
   DSS2007FF fFragFunc; //Class to calculate fragmentation functions using DSS2007
 
   //void LoadTargetData(); //why is this here? Not implemented...
@@ -242,13 +291,13 @@ private:
 
   G4int fExclPyXSoption; //Flag to choose "Exclusive pythia" event-by-event cross section events
 
-
   // TDIS AcquMC
   long fAcquMCchainentry;
   TChain *fAcquMCChain;
   AcquMCTree *fAcquMCTree;
   G4SBSAcquMCOutput fAcquMCEvent;
 
+  G4double TriangleFunc(G4double a, G4double b, G4double c );
 };
 
 #endif//G4SBSEVENTGEN_HH

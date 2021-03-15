@@ -32,10 +32,10 @@ TF1 *gaussplusexpo = new TF1("gaussplusexpo", "[0]*exp(-0.5*pow((x-[1])/[2],2))+
 const double Mp = 0.938272; //GeV
 const double PI = TMath::Pi();
 
-void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *thresholdfilename_ecal="database/ecal_trigger_thresholds_12GeV2.txt", const char *outputfilename="gep_L2_trigger_analysis_elastic_temp.root", int pheflag=0, const char *assocfilename="ECAL_HCAL_L2_correlations_nophe.txt"){
+void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outputfilename="gep_L2_trigger_analysis_elastic_temp.root", const char *thresholdfilename_ecal="database/ecal_trigger_thresholds_12GeV2.txt", int pheflag=0, const char *assocfilename="database/ECAL_HCAL_L2_default.txt"){
 
   double nominal_threshold_HCAL = 0.5;
-  double nominal_threshold_ECAL = 0.85;
+  double nominal_threshold_ECAL = 0.8;
   
   TFile *fout = new TFile(outputfilename,"RECREATE");
   TChain *C = new TChain("T");
@@ -227,8 +227,8 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *thre
 	}
       }
 
-      logic_mean_hcal[current_node] = 1141.5;
-      logic_sigma_hcal[current_node] = 356.25;
+      logic_mean_hcal[current_node] = 1199.0;
+      logic_sigma_hcal[current_node] = 346.3;
       
       current_node++;
     }
@@ -243,6 +243,8 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *thre
   double phe_per_GeV_ECAL = 1000.0/1.33; //~ 750 pe/GeV
   double phe_per_GeV_HCAL = 1000.0/0.30; //~ 3,333 pe/GeV (but sampling fraction is small)
 
+  
+  
   //read in alternate threshold:
   ifstream thresholdfile_ecal(thresholdfilename_ecal);
   if( thresholdfile_ecal ){

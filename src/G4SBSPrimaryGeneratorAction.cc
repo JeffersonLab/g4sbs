@@ -125,15 +125,28 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     return;
   }
 
-  if( !fUseGeantino && sbsgen->GetKine() != kGun ){ //first primary is an electron!
+  if( !fUseGeantino && sbsgen->GetKine() != kGun && sbsgen->GetKine() != kPionPhoto ){ //first primary is an electron!
     particle = particleTable->FindParticle(particleName="e-");
+    if( fIO->GetDetCon()->fExpType == kGEPpositron ){ //generate e+ instead of e-
+      particle = particleTable->FindParticle(particleName="e+");
+    }
   } else if( fUseGeantino ){ //first primary is a geantino!
     particle = particleTable->FindParticle(particleName="chargedgeantino");
+  } else if( sbsgen->GetKine() == kPionPhoto ){ //pion photoproduction:
+    if( sbsgen->GetHadronType() == kPi0 ){
+      particle = particleTable->FindParticle(particleName="pi0");
+    } else { //Choose based on final nucleon:
+      if( sbsgen->GetFinalNucleon() == kProton ){ //gamma n --> pi- p
+	particle = particleTable->FindParticle(particleName="pi-");
+      }  else { // gamma p --> pi+ n
+	particle = particleTable->FindParticle(particleName="pi+");
+      }
+    }
   } else { //first primary according to particle gun generator:
     particle = particleTable->FindParticle( GunParticleName );
     if( particle != 0 ) SetParticleType( particle );
     particle = GunParticleType;
-  }
+  } 
 
   if( sbsgen->GetKine()==kCosmics ){
     particle = particleTable->FindParticle(particleName="mu-");
@@ -246,6 +259,27 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	//	G4cout << "Initial polarization = " << S_hat << G4endl;
 	
 	particleGun->SetParticlePolarization( S_hat.unit() );
+
+	gen_t gendata = fIO->GetGenData();
+	G4double sbsangle = gendata.thsbs;
+
+	G4ThreeVector sbsaxis( -sin(sbsangle), 0, cos(sbsangle) );
+	G4ThreeVector yaxis(0,1,0);
+	G4ThreeVector xaxis = (yaxis.cross(sbsaxis)).unit();
+
+	evdata.Sx = -S_hat.dot( yaxis );
+	evdata.Sy = S_hat.dot( xaxis );
+	evdata.Sz = S_hat.dot( sbsaxis );
+
+	fIO->SetEventData( evdata );
+	
+      }
+
+      if( sbsgen->GetKine() == kPionPhoto ) { //Set a longitudinal polarization for the recoil proton in WAPP kinematics (assuming large K_LL and small K_LS)
+
+	G4ThreeVector S_hat = sbsgen->GetNucleonP().unit();
+	
+	particleGun->SetParticlePolarization( S_hat );
 
 	gen_t gendata = fIO->GetGenData();
 	G4double sbsangle = gendata.thsbs;

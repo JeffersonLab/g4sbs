@@ -235,7 +235,7 @@ void G4SBSToscaField::ReadField(){
   // }
 
   dstring[0] = 'x';
-
+  
   while( dstring[0] != '0' ){
     if( !fgets(dstring, MAXBUFF, f) ){
       fprintf(stderr, "Error: %s Line %d, %s - File %s has line too long (> %d)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, fFilename.data(), MAXBUFF); 

@@ -31,7 +31,7 @@ class RTPC;
 
 class G4SBSDetectorMessenger;
 
-class G4SBSDetectorConstruction : public G4VUserDetectorConstruction
+class G4SBSDetectorConstruction : public G4VUserDetectorConstruction //The : means that G4SBSD.. inherits all methods and member variables from calss G4VUser.. **Notes 
 {
 public:
   G4SBSDetectorConstruction();
@@ -55,6 +55,10 @@ public:
 
   void SetBigBiteField(int n, G4String fname="map_696A.dat");
   void Set48D48Field(int n);
+
+  // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration
+  void SetGEnTargetHelmholtzConfig(int n) { fGEnTgtHHConfig =n; }  
+  int GetGEnTargetHelmholtzConfig() const { return fGEnTgtHHConfig; } 
 
   void SetTotalAbs(bool b){ fTotalAbs= b; }
   void SetCheckOverlap(bool b){ fCheckOverlap = b; }
@@ -185,7 +189,8 @@ private:
   G4double fmTPCGasTemp;
   G4double fmTPCGasPressure;
 
-
+  G4int fGEnTgtHHConfig; // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration 
+  
 };
 
 

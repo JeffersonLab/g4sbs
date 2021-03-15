@@ -16,18 +16,34 @@
 #include "TGraph.h"
 //#include "gmn_tree.h"
 #include "gmn_tree.C"
+#include "TRandom3.h"
+
+const double me = 0.511e-3;
 
 void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 
+  TRandom3 num(0);
+  
   ifstream setupfile(setupfilename);
 
   TString filename;
 
   TChain *C = new TChain("T");
   
-  while( setupfile >> filename ){
-    C->Add(filename);
+  while( setupfile >> filename && !filename.BeginsWith("endlist")){
+    if( !filename.BeginsWith("#") ){
+      C->Add(filename);
+    }
   }
+
+  int pheflag = 0;
+  setupfile >> pheflag;
+
+  double mean_npeGeV=300.0;
+  double rindex_PbGl=1.68;
+
+  setupfile >> mean_npeGeV;
+  setupfile >> rindex_PbGl;
   
   G4SBSRunData *rd;
   
@@ -81,6 +97,9 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
   TH2D *hnphe_vs_edep_BBSH = new TH2D("hnphe_vs_edep_BBSH","",500,0.0,0.5,501,-0.5,500.5);
   TH2D *hrate_vs_nphe_BBSH = new TH2D("hrate_vs_nphe_BBSH","",189,-0.5,188.5,501,-0.5,500.5);
   TH2D *hrate_vs_edep_BBSHTF1 = new TH2D("hrate_vs_edep_BBSHTF1","",189,-0.5,188.5,500,0.0,0.5); //GeV
+
+  TH2D *hrate_vs_nphe_BBPS_from_edep = new TH2D("hrate_vs_nphe_BBPS_from_edep","",54,-0.5,53.5,501,-0.5,500.5);
+  TH2D *hrate_vs_nphe_BBSH_from_edep = new TH2D("hrate_vs_nphe_BBSH_from_edep","",189,-0.5,188.5,501,-0.5,500.5);
   
   double pmtnum[288];
   double sumedep_HCAL[288];
@@ -163,106 +182,190 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
     TFile *f = ( (TChain*) (T->fChain) )->GetFile();
 
     if( bad_file_list.find( f->GetName() ) == bad_file_list.end() ){
-      for( int ihit=0; ihit<T->Harm_HCal_hit_nhits; ihit++ ){
-	int PMT = (*(T->Harm_HCal_hit_PMT))[ihit];
-	int nphe = (*(T->Harm_HCal_hit_NumPhotoelectrons))[ihit];
 
-	double edep = 0.0;
+      if( pheflag != 0 ){ //optical photons ON: only consider hits with optical photons detected in PMTs
+	for( int ihit=0; ihit<T->Harm_HCal_hit_nhits; ihit++ ){
+	  int PMT = (*(T->Harm_HCal_hit_PMT))[ihit];
+	  int nphe = (*(T->Harm_HCal_hit_NumPhotoelectrons))[ihit];
+
+	  double edep = 0.0;
 	
-	for( int jhit=0; jhit<T->Harm_HCalScint_hit_nhits; jhit++ ){
-	  if( (*(T->Harm_HCalScint_hit_cell))[jhit] == PMT ){
-	    edep = (*(T->Harm_HCalScint_hit_sumedep))[jhit];
+	  for( int jhit=0; jhit<T->Harm_HCalScint_hit_nhits; jhit++ ){
+	    if( (*(T->Harm_HCalScint_hit_cell))[jhit] == PMT ){
+	      edep = (*(T->Harm_HCalScint_hit_sumedep))[jhit];
+	    }
 	  }
-	}
-	hrate_vs_nphe_HCAL->Fill( PMT, nphe, weight );
-	hrate_vs_edep_HCALscint->Fill( PMT, edep, weight );
+	  hrate_vs_nphe_HCAL->Fill( PMT, nphe, weight );
+	  hrate_vs_edep_HCALscint->Fill( PMT, edep, weight );
 
-	hnphe_vs_edep_HCAL->Fill( edep, nphe, weight );
+	  hnphe_vs_edep_HCAL->Fill( edep, nphe, weight );
 	
-	sumedep_HCAL[PMT] += edep * weight;
-	sumnphe_HCAL[PMT] += nphe * weight;
+	  sumedep_HCAL[PMT] += edep * weight;
+	  sumnphe_HCAL[PMT] += nphe * weight;
 
-	if( edep >= thresh_HCAL ) hitrate_HCAL[PMT] += weight;
-      }
-
-      for( int ihit=0; ihit<T->Harm_CDET_hit_nhits; ihit++ ){
-	int PMT = (*(T->Harm_CDET_hit_PMT))[ihit];
-	int nphe = (*(T->Harm_CDET_hit_NumPhotoelectrons))[ihit];
-
-	double edep = 0.0;
-	
-	for( int jhit=0; jhit<T->Harm_CDET_Scint_hit_nhits; jhit++ ){
-	  if( (*(T->Harm_CDET_Scint_hit_cell))[jhit] == PMT ){
-	    edep = (*(T->Harm_CDET_Scint_hit_sumedep))[jhit];
-	  }
-	}
-	hrate_vs_nphe_CDET->Fill( PMT, nphe, weight );
-	hrate_vs_edep_CDETscint->Fill( PMT, edep, weight );
-
-	hnphe_vs_edep_CDET->Fill( edep, nphe, weight );
-	
-	sumedep_CDET[PMT] += edep * weight;
-	sumnphe_CDET[PMT] += nphe * weight;
-
-	if( edep >= thresh_CDET ) hitrate_CDET[PMT] += weight;
-      }
-
-      for( int ihit=0; ihit<T->Earm_BBHodoScint_hit_nhits; ihit++ ){
-	double edep = (*(T->Earm_BBHodoScint_hit_sumedep))[ihit];
-	int PMT = (*(T->Earm_BBHodoScint_hit_cell))[ihit];
-	hrate_vs_edep_BBHodoScint->Fill( PMT, edep, weight );
-
-	sumedep_BBHodo[PMT] += edep * weight;
-
-	if( edep >= thresh_BBhodo ) hitrate_BBHodo[PMT] += weight;
-      }
-
-      //BB PS:
-      for( int ihit=0; ihit<T->Earm_BBPS_hit_nhits; ihit++ ){
-	int PMT = (*(T->Earm_BBPS_hit_PMT))[ihit];
-	int nphe = (*(T->Earm_BBPS_hit_NumPhotoelectrons))[ihit];
-	double edep = 0.0;
-	for( int jhit=0; jhit<T->Earm_BBPSTF1_hit_nhits; jhit++ ){
-	  int cell = (*(T->Earm_BBPSTF1_hit_cell))[jhit];
-	  if( cell == PMT ){
-	    edep = (*(T->Earm_BBPSTF1_hit_sumedep))[jhit];
-	  }
+	  if( edep >= thresh_HCAL ) hitrate_HCAL[PMT] += weight;
 	}
 
-	hrate_vs_nphe_BBPS->Fill( PMT, nphe, weight );
-	hrate_vs_edep_BBPSTF1->Fill( PMT, edep, weight );
+	for( int ihit=0; ihit<T->Harm_CDET_hit_nhits; ihit++ ){
+	  int PMT = (*(T->Harm_CDET_hit_PMT))[ihit];
+	  int nphe = (*(T->Harm_CDET_hit_NumPhotoelectrons))[ihit];
 
-	hnphe_vs_edep_BBPS->Fill( edep, nphe, weight );
-
-	sumnphe_PS[PMT] += nphe * weight;
-	sumedep_PS[PMT] += edep * weight;
-
-	if( edep >= thresh_BBPS ) hitrate_PS[PMT] += weight;
-      }
-
-      //BB SH:
-      for( int ihit=0; ihit<T->Earm_BBSH_hit_nhits; ihit++ ){
-	int PMT = (*(T->Earm_BBSH_hit_PMT))[ihit];
-	int nphe = (*(T->Earm_BBSH_hit_NumPhotoelectrons))[ihit];
-	double edep = 0.0;
-	for( int jhit=0; jhit<T->Earm_BBSHTF1_hit_nhits; jhit++ ){
-	  int cell = (*(T->Earm_BBSHTF1_hit_cell))[jhit];
-	  if( cell == PMT ){
-	    edep = (*(T->Earm_BBSHTF1_hit_sumedep))[jhit];
+	  double edep = 0.0;
+	
+	  for( int jhit=0; jhit<T->Harm_CDET_Scint_hit_nhits; jhit++ ){
+	    if( (*(T->Harm_CDET_Scint_hit_cell))[jhit] == PMT ){
+	      edep = (*(T->Harm_CDET_Scint_hit_sumedep))[jhit];
+	    }
 	  }
+	  hrate_vs_nphe_CDET->Fill( PMT, nphe, weight );
+	  hrate_vs_edep_CDETscint->Fill( PMT, edep, weight );
+
+	  hnphe_vs_edep_CDET->Fill( edep, nphe, weight );
+	
+	  sumedep_CDET[PMT] += edep * weight;
+	  sumnphe_CDET[PMT] += nphe * weight;
+
+	  if( edep >= thresh_CDET ) hitrate_CDET[PMT] += weight;
 	}
 
-	hrate_vs_nphe_BBSH->Fill( PMT, nphe, weight );
-	hrate_vs_edep_BBSHTF1->Fill( PMT, edep, weight );
+	for( int ihit=0; ihit<T->Earm_BBHodoScint_hit_nhits; ihit++ ){
+	  double edep = (*(T->Earm_BBHodoScint_hit_sumedep))[ihit];
+	  int PMT = (*(T->Earm_BBHodoScint_hit_cell))[ihit];
+	  hrate_vs_edep_BBHodoScint->Fill( PMT, edep, weight );
 
-	hnphe_vs_edep_BBSH->Fill( edep, nphe, weight );
+	  sumedep_BBHodo[PMT] += edep * weight;
+
+	  if( edep >= thresh_BBhodo ) hitrate_BBHodo[PMT] += weight;
+	}
+
+	//BB PS:
+	for( int ihit=0; ihit<T->Earm_BBPS_hit_nhits; ihit++ ){
+	  int PMT = (*(T->Earm_BBPS_hit_PMT))[ihit];
+	  int nphe = (*(T->Earm_BBPS_hit_NumPhotoelectrons))[ihit];
+	  double edep = 0.0;
+	  for( int jhit=0; jhit<T->Earm_BBPSTF1_hit_nhits; jhit++ ){
+	    int cell = (*(T->Earm_BBPSTF1_hit_cell))[jhit];
+	    if( cell == PMT ){
+	      edep = (*(T->Earm_BBPSTF1_hit_sumedep))[jhit];
+	    }
+	  }
+
+	  hrate_vs_nphe_BBPS->Fill( PMT, nphe, weight );
+	  hrate_vs_edep_BBPSTF1->Fill( PMT, edep, weight );
+
+	  hnphe_vs_edep_BBPS->Fill( edep, nphe, weight );
+
+	  sumnphe_PS[PMT] += nphe * weight;
+	  sumedep_PS[PMT] += edep * weight;
+
+	  if( edep >= thresh_BBPS ) hitrate_PS[PMT] += weight;
+	}
+
+	//BB SH:
+	for( int ihit=0; ihit<T->Earm_BBSH_hit_nhits; ihit++ ){
+	  int PMT = (*(T->Earm_BBSH_hit_PMT))[ihit];
+	  int nphe = (*(T->Earm_BBSH_hit_NumPhotoelectrons))[ihit];
+	  double edep = 0.0;
+	  for( int jhit=0; jhit<T->Earm_BBSHTF1_hit_nhits; jhit++ ){
+	    int cell = (*(T->Earm_BBSHTF1_hit_cell))[jhit];
+	    if( cell == PMT ){
+	      edep = (*(T->Earm_BBSHTF1_hit_sumedep))[jhit];
+	    }
+	  }
+
+	  hrate_vs_nphe_BBSH->Fill( PMT, nphe, weight );
+	  hrate_vs_edep_BBSHTF1->Fill( PMT, edep, weight );
+
+	  hnphe_vs_edep_BBSH->Fill( edep, nphe, weight );
 	
-	sumnphe_SH[PMT] += nphe * weight;
-	sumedep_SH[PMT] += edep * weight;
+	  sumnphe_SH[PMT] += nphe * weight;
+	  sumedep_SH[PMT] += edep * weight;
 
-	if( edep >= thresh_BBSH ) hitrate_SH[PMT] += weight;
-      }
+	  if( edep >= thresh_BBSH ) hitrate_SH[PMT] += weight;
+	}
       
+      } else { // no optical photons:
+	//HCAL:
+	for( int jhit=0; jhit<T->Harm_HCalScint_hit_nhits; jhit++ ){
+
+	  int PMT = (*(T->Harm_HCalScint_hit_cell))[jhit];
+	  double edep = (*(T->Harm_HCalScint_hit_sumedep))[jhit];
+
+	  if( edep >= thresh_HCAL ) hitrate_HCAL[PMT] += weight;
+
+	  hrate_vs_edep_HCALscint->Fill( PMT, edep, weight );
+
+	  sumedep_HCAL[PMT] += edep * weight;
+	  
+	}
+
+	//CDET:
+	for( int jhit=0; jhit<T->Harm_CDET_Scint_hit_nhits; jhit++ ){
+	  int PMT = (*(T->Harm_CDET_Scint_hit_cell))[jhit];
+	  double edep = (*(T->Harm_CDET_Scint_hit_sumedep))[jhit];
+
+	  if( edep >= thresh_CDET ) hitrate_CDET[PMT] += weight;
+
+	  hrate_vs_edep_CDETscint->Fill( PMT, edep, weight );
+
+	  sumedep_CDET[PMT] += edep * weight;
+	}
+
+	//BB timing hodo:
+	for( int ihit=0; ihit<T->Earm_BBHodoScint_hit_nhits; ihit++ ){
+	  double edep = (*(T->Earm_BBHodoScint_hit_sumedep))[ihit];
+	  int PMT = (*(T->Earm_BBHodoScint_hit_cell))[ihit];
+	  hrate_vs_edep_BBHodoScint->Fill( PMT, edep, weight );
+
+	  sumedep_BBHodo[PMT] += edep * weight;
+
+	  if( edep >= thresh_BBhodo ) hitrate_BBHodo[PMT] += weight;
+	}
+
+	//BB PS:
+	
+	for( int jhit=0; jhit<T->Earm_BBPSTF1_hit_nhits; jhit++ ){
+	  int PMT = (*(T->Earm_BBPSTF1_hit_cell))[jhit];
+	  double edep = (*(T->Earm_BBPSTF1_hit_sumedep))[jhit];
+
+	  double beta_edep = sqrt(pow(edep,2)+2.0*me*edep)/(me+edep);
+	  double sin2thetaC_edep = 1.0-pow(TMath::Max(beta_edep,1.0/rindex_PbGl)*rindex_PbGl,-2);
+	  double sin2thetaC_max = 1.0-pow(rindex_PbGl,-2);
+
+	  int npe_edep = num.Poisson(edep*mean_npeGeV*sin2thetaC_edep/sin2thetaC_max);
+
+	  hrate_vs_nphe_BBPS_from_edep->Fill( PMT, npe_edep, weight );
+	  
+	  if( edep >= thresh_BBPS ) hitrate_PS[PMT] += weight;
+
+	  hrate_vs_edep_BBPSTF1->Fill( PMT, edep, weight );
+
+	  sumedep_PS[PMT] += edep * weight;
+	}
+
+	//BB SH:
+	
+	for( int jhit=0; jhit<T->Earm_BBSHTF1_hit_nhits; jhit++ ){
+	  int PMT = (*(T->Earm_BBSHTF1_hit_cell))[jhit];
+	  double edep = (*(T->Earm_BBSHTF1_hit_sumedep))[jhit];
+
+	  double beta_edep = sqrt(pow(edep,2)+2.0*me*edep)/(me+edep);
+	  double sin2thetaC_edep = 1.0-pow(TMath::Max(beta_edep,1.0/rindex_PbGl)*rindex_PbGl,-2);
+	  double sin2thetaC_max = 1.0-pow(rindex_PbGl,-2);
+
+	  int npe_edep = num.Poisson(edep*mean_npeGeV*sin2thetaC_edep/sin2thetaC_max);
+
+	  hrate_vs_nphe_BBSH_from_edep->Fill( PMT, npe_edep, weight );
+	  
+	  if( edep >= thresh_BBSH ) hitrate_SH[PMT] += weight;
+
+	  hrate_vs_edep_BBSHTF1->Fill( PMT, edep, weight );
+
+	  sumedep_SH[PMT] += edep * weight;
+	}
+	
+	
+      }
     }
   }
 

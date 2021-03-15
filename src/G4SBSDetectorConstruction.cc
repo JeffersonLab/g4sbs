@@ -80,7 +80,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fTotalAbs = false;
 
-  fExpType = kNeutronExp;
+  fExpType = kGMN;
 
   // By default, don't check detectors for overlaps
   fCheckOverlap = false;
@@ -107,7 +107,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fUseGlobalField = false;
 
   fBeamlineConf = 3;
-  fLeadOption = 0;
+  fLeadOption = 1;
   fBLneutronDet = false;
     
   SDlist.clear();
@@ -259,6 +259,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element* elCr  = man->FindOrBuildElement("Cr");
   G4Element* elMn   =  man->FindOrBuildElement("Mn");
   G4Element* elNi  = man->FindOrBuildElement("Ni");
+  G4Element *elP  = man->FindOrBuildElement("P");
+  G4Element *elS  = man->FindOrBuildElement("S");
+
 
   G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
   //Vacuum->SetMaterialPropertiesTable(Std_MPT);
@@ -270,6 +273,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   if( fMaterialsMap.find("Aluminum") == fMaterialsMap.end() ){ 
     //fMaterialsMap["Aluminum"] = new G4Material(name="Aluminum", z=13., a=26.98*g/mole, density=2.7*g/cm3);
     fMaterialsMap["Aluminum"] = man->FindOrBuildMaterial( "G4_Al" );
+    fMaterialsMap["Aluminum"]->SetName("Aluminum");
   }
   if( fMaterialsMap.find("Silicon") == fMaterialsMap.end() ){ 
     //fMaterialsMap["Silicon"] = new G4Material(name="Silicon", z=14., 28.086*g/mole, density=2.33*g/cm3);
@@ -477,7 +481,12 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["CH"] = CH;
 
-  //Target materials:
+  //Target materials: these are hard-coded in two different places, leading to inconsistent calculations for luminosity, etc;
+  //It would be better to figure out a sensible way for the G4SBSDetectorConstruction and the G4SBSEventGen classes to talk to each other
+  //By the time /g4sbs/run is invoked, all the geometry should be frozen; therefore, the messenger should invoke the SetTargDen method of G4SBSEventGen at
+  // that time, and grabbing the density of the relevant material from the fdetcon->fTargetBuilder based on the user's target choice
+  //This would eliminate inconsistencies between the actual material density used in GEANT4 and the density assumed in calculating luminosity and
+  //normalizing to a rate:
   double gasden = 10.5*atmosphere*(1.0079*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
   // G4Material *refH2 = new G4Material("refH2", gasden, 1 );
   // double H2den = 1.2*atmosphere*(1.00794*2*g/Avogadro)/(90.0*kelvin*k_Boltzmann);
@@ -542,6 +551,31 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   ref4He->AddElement(el4He, 1);
 
   fMaterialsMap["ref4He"] = ref4He;
+  
+  // GEn polarized 3He materials (D Flay, July 2020)  
+  // - includes materials for the full geometry
+  // - most materials already defined above; adding carbon steel, 
+  //   which is used for the magnetic shield, and Ultem which is for the target ladder  
+
+  // AISI 1008 carbon steel
+  // - details from http://www.iron-foundry.com/AISI-1008-SAE-UNS-G10080-Carbon-Steel-Foundry.html
+  // - NOTE: may throw a warning because this doesn't add to 100% (adds to 99.8%) 
+  G4Material *Carbon_Steel_1008 = new G4Material("Carbon_Steel_1008",7.872*g/cm3,5);
+  Carbon_Steel_1008->AddElement(elFe,0.9931);
+  Carbon_Steel_1008->AddElement(elMn,0.0030);
+  Carbon_Steel_1008->AddElement(elC ,0.0010);
+  Carbon_Steel_1008->AddElement(elS ,0.0005);
+  Carbon_Steel_1008->AddElement(elP ,0.0004);
+  fMaterialsMap["Carbon_Steel_1008"] = Carbon_Steel_1008;
+
+  // Ultem (polyetherimide plastic, similar to PEEK)
+  // - details from http://www.polymerprocessing.com/polymers/PEI.html
+  G4Material *Ultem = new G4Material("Ultem",1.27*g/cm3,nel=4);
+  Ultem->AddElement(elC,37); 
+  Ultem->AddElement(elH,24);
+  Ultem->AddElement(elO,6 );
+  Ultem->AddElement(elN,2 ); 
+  fMaterialsMap["Ultem"] = Ultem; 
   
   //G4double density_CH4 = 0.1*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(90*kelvin*k_Boltzmann);
   G4double density_CH4 = 1.0*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
@@ -762,6 +796,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["Steel"] = Steel;
   fMaterialsMap["Stainless_Steel"] = Steel;
 
+  G4Material *Carbon = man->FindOrBuildMaterial("G4_GRAPHITE");
+  fMaterialsMap["Carbon"] = Carbon;
+  
+  
   //Need to define "QuartzWindow" *before* Aerogel because 
   //the Aerogel Material properties definition refers to Quartz Window:
 
@@ -881,7 +919,29 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   }
   
   fMaterialsMap["C4F10_gas"] = C4F10_gas;
+  
+  //EFuchey: 2019/08/15: Add C4F8
+  G4double den_C4F8 = 8.82*mg/cm3; 
+  G4Material *C4F8_gas = new G4Material( "C4F8_gas", den_C4F8, nel=2 );
+  
+  C4F8_gas->AddElement( C, natoms=4 );
+  C4F8_gas->AddElement( F, natoms=8 );
 
+  MPT_temp = new G4MaterialPropertiesTable();
+  const G4int nentries_C4F8 = 2;
+  G4double Ephoton_C4F8[nentries_C4F8] = { 1.95*eV, 5.00*eV };
+  G4double Rindex_C4F8[nentries_C4F8] = {1.00132, 1.00132};
+  G4double Abslength_C4F8[nentries_C4F8] = {100.0*m, 100.0*m};
+
+  MPT_temp->AddProperty("RINDEX", Ephoton_C4F8, Rindex_C4F8, nentries_C4F8 );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_C4F8, Abslength_C4F8, nentries_C4F8 );
+
+  if( fMaterialsListOpticalPhotonDisabled.find( "C4F8_gas" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    C4F8_gas->SetMaterialPropertiesTable( MPT_temp );
+  }
+  fMaterialsMap["C4F8_gas"] = C4F8_gas;
+   
+  
   //EFuchey: 2017/07/24: Add CF4, just in case we want to study it as an option for GRINCH
   G4double den_CF4 = 3.72*mg/cm3; 
   G4Material *CF4_gas = new G4Material( "CF4_gas", den_CF4, nel=2 );

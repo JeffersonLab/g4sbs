@@ -34,9 +34,9 @@ void rootlogon(){
   
   //gSystem->AddIncludePath(" -I${PROJECT_SOURCE_DIR}/include");
   //gSystem->AddIncludePath(" -I${CMAKE_INSTALL_PREFIX}/include");
-  gSystem->AddIncludePath(" -I${CMAKE_INSTALL_PREFIX}/include");
+  gSystem->AddIncludePath(" -I${CMAKE_INSTALL_FULL_INCLUDEDIR}");
 
-  TString libname = "${CMAKE_INSTALL_PREFIX}/lib/libg4sbsroot.so";
+  TString libname = "${CMAKE_INSTALL_FULL_LIBDIR}/libg4sbsroot.so";
 
   SysInfo_t sysinfo;
   gSystem->GetSysInfo( &sysinfo );

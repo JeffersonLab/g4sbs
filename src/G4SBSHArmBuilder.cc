@@ -67,8 +67,10 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fRICHdist  = 5.5*m;
   fRICHhorizontal_offset = 0.0*cm;
   fRICHvertical_offset = 0.0*cm;
-  fRICHgas   = "C4F10_gas"; //default to C4F10;
+  fRICHgas   = "C4F8_gas"; //default to C4F8;
   fRICH_use_aerogel = true;
+  fRichSnoutExtension = 0;
+  
 
   fGEnRP_analyzer_option = 1; //0=none+no beamline PR; 1=none(default), 2=Cu+Gla(para), 3=Cu+Gla(perp), 4=Cu+CGEN
 
@@ -87,9 +89,25 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fCH2thickFPP[0] = 22.0*2.54*cm;
   fCH2thickFPP[1] = 22.0*2.54*cm;
 
+  //Default GEP FPP configuration:
+  fGEPFPPoption = 2; // default configuration is two 22-inch CH2 blocks with trackers in between:
+                     //alternate configuration to be tested is one analyzer with the FPP1 GEMs re-distributed to FT and FPP2
+
+  //default to two analyzers, with same transverse dimensions as the polarimeter GEMs, each 22 inches thick:
+  fGEP_CH2width[0] = fGEP_CH2width[1] = 60.0*cm;
+  fGEP_CH2height[0] = fGEP_CH2height[1] = 200.0*cm;
+
+  fGEP_CH2zpos[0] = 58.53*cm;
+  fGEP_CH2zpos[1] = 170.3*cm;
+  
   fFTuseabsorber = false;
   fFTabsthick = 2.54*cm;
   fFTabsmaterial = "Aluminum";
+  
+  //fCDetReady = true;
+  fCDetReady = false; //default to false for both of these
+  
+  fUseNeutronVeto=false;
   
   assert(fDetCon);
 }
@@ -103,7 +121,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   // Build the 48D48 magnet and HCAL
   // All three types of experiments have a 48D48 magnet:
-  if( exptype != kC16 ) {
+  if( exptype != kC16 && exptype != kGEMHCtest ) {
     Make48D48(worldlog, f48D48dist + f48D48depth/2. );
     if(fBuildSBSSieve)
       MakeSBSSieveSlit(worldlog);
@@ -119,7 +137,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeTracker(worldlog);
     //MakeRICH( worldlog );
     MakeRICH_new( worldlog );
-  } else if ( exptype == kGEp ) {
+  } else if ( exptype == kGEp || exptype == kGEPpositron ) {
     //Subsystems unique to the GEp experiment include FPP and BigCal:
     MakeGEpFPP(worldlog);
   }
@@ -137,55 +155,70 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //MakeRICH_new( worldlog );
   }
 
+  // Build Test detector ****************************************
+  if( exptype == kC16 ) {
+    MakeTest( worldlog );
+  }
+
   // Build CDET (as needed)
-  if( (exptype == kNeutron || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
+  //if( (exptype == kGMN || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
+  if( exptype == kGMN || exptype == kGEnRP ){
     //plugging in CDET for GMn  
     G4double depth_HCal_shield = 7.62*cm; //3 inches
     G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
     G4double depth_CDET = 40.0*cm;
-
+    G4double dist_from_hcal = 35.0*cm;
+    
     G4Box *CH2_filter = new G4Box( "CH2_filter", 150.0*cm/2.0, 340.0*cm/2.0, depth_CH2/2.0 );
     G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
 
     G4RotationMatrix *HArmRot = new G4RotationMatrix;
     HArmRot->rotateY(f48D48ang);
 
-    G4ThreeVector CH2_pos( ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-0.35*m-(depth_CDET+depth_CH2)/2.0 ) * cos( -f48D48ang ) );
+    G4ThreeVector CH2_pos( ( fHCALdist-dist_from_hcal-(depth_CDET+depth_CH2)/2.0 ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-dist_from_hcal-(depth_CDET+depth_CH2)/2.0 ) * cos( -f48D48ang ) );
 
-    new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
-
-    G4Box* CDetmother = new G4Box("CDetmother", 2.5*m/2.0, 3.0*m/2, depth_CDET/2.0);
-    G4LogicalVolume *CDetmother_log = new G4LogicalVolume( CDetmother, GetMaterial("Air"), "CDetmother_log" );
-
-    HArmRot->rotateY(180.0*deg);
+    //new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
     
-    //G4ThreeVector CDetmother_pos( ( fHCALdist-0.30*m ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-0.30*m ) * cos( -f48D48ang ) );
-    G4ThreeVector CDetmother_pos( -15.0*cm,  fHCALvertical_offset, fHCALdist-0.30*m );
-    CDetmother_pos.rotateY(-f48D48ang);
-    new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
+    if(fCDetReady){
 
-    G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
-    CH2_visatt->SetForceWireframe(true);
-    CH2_filter_log->SetVisAttributes(CH2_visatt);
-    
-    //G4VisAttributes* VisAtt = new G4VisAttributes( G4Colour(1, 1, 1) );
-    //VisAtt->SetForceWireframe(true);
-    //CDetmother_log->SetVisAttributes( VisAtt );
-    CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+      new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
+      
+      G4Box* CDetmother = new G4Box("CDetmother", 2.5*m/2.0, 3.0*m/2, depth_CDET/2.0);
+      G4LogicalVolume *CDetmother_log = new G4LogicalVolume( CDetmother, GetMaterial("Air"), "CDetmother_log" );
+      
+      HArmRot->rotateY(180.0*deg);
+      
+      //G4ThreeVector CDetmother_pos( ( fHCALdist-0.30*m ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-0.30*m ) * cos( -f48D48ang ) );
+      G4ThreeVector CDetmother_pos( -15.0*cm,  fHCALvertical_offset, fHCALdist-dist_from_hcal+5.0*cm );
+      CDetmother_pos.rotateY(-f48D48ang);
+      new G4PVPlacement(HArmRot, CDetmother_pos, CDetmother_log, "CDetmother_phys", worldlog, false, 0);
 
-    G4double z0_CDET = -0.15*m;
-    G4double planes_hoffset = 0.84*m;
-    G4double planes_interdist = 1.0*cm;//20.0*cm;
-    
-    G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
-    CDet->SetArmName("Harm");
-    CDet->SetR0(fHCALdist + z0_CDET);
-    CDet->SetZ0(z0_CDET);
-    CDet->SetPlanesHOffset(planes_hoffset);
-    CDet->SetPlanesInterDistance(planes_interdist);
-    CDet->BuildComponent( CDetmother_log );
-    //MakeCDET( CDetmother_log, z0_CDET, planes_hoffset );
-    
+      G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
+      CH2_visatt->SetForceWireframe(true);
+      CH2_filter_log->SetVisAttributes(CH2_visatt);
+      
+      //G4VisAttributes* VisAtt = new G4VisAttributes( G4Colour(1, 1, 1) );
+      //VisAtt->SetForceWireframe(true);
+      //CDetmother_log->SetVisAttributes( VisAtt );
+      CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+      
+      G4double z0_CDET = -0.15*m;
+      G4double planes_hoffset = 0.84*m;
+      G4double planes_interdist = 1.0*cm;//20.0*cm;
+      
+      G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
+      CDet->SetArmName("Harm");
+      CDet->SetR0(fHCALdist + z0_CDET);
+      CDet->SetZ0(z0_CDET);
+      CDet->SetPlanesHOffset(planes_hoffset);
+      CDet->SetPlanesInterDistance(planes_interdist);
+      CDet->BuildComponent( CDetmother_log );
+      //MakeCDET( CDetmother_log, z0_CDET, planes_hoffset );
+    }else if( fUseNeutronVeto ){
+      new G4PVPlacement( HArmRot, CH2_pos, CH2_filter_log, "CH2_filter_phys", worldlog, false, 0 );
+      
+      MakeNeutronVeto(worldlog, dist_from_hcal);
+    }
     //Add a plate on the side of HCal
     
     double SideShield_Width = 1574.75*mm;
@@ -471,7 +504,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   G4RotationMatrix *rot_temp = new G4RotationMatrix;
   rot_temp->rotateZ( slot_angle );
   
-  
+
   // big48d48 = new G4UnionSolid("big48d48_1", bigbase, bigcoilthr, bigboxaddrm, 
   // 			      G4ThreeVector(0.0, 0.0, (coilgapheight+bigcoilheight)/2.0));
   // big48d48 = new G4UnionSolid("big48d48_2", big48d48, bigcoilthr, bigboxaddrm, 
@@ -502,15 +535,53 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     big48d48Log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
 
-  
-  
 
   new G4PVPlacement(bigboxrm, 
-		    G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
-		    big48d48Log, "big48d48Physical", worldlog, 0,false,0);
+  		    G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
+  		    big48d48Log, "big48d48Physical", worldlog, 0,false,0);
 
   G4LogicalVolume *bigfieldLog=new G4LogicalVolume(biggap, GetMaterial("Air"),
 						   "bigfieldLog", 0, 0, 0);
+
+
+
+  // Dipole gap shielding for GEnRP
+
+  if( fDetCon->fExpType == kGEnRP ){
+    // Defining parametermes for rectangular portion
+    G4double h_gapshield = 30.*cm;  // guesstimate
+    G4double w_gapshield = 68.5*cm;  // guesstimate
+    G4double d_gapshield = 60.*cm;
+  
+    G4double d1 = r48d48 + f48D48depth/2.0 - d_gapshield/2.0;
+    G4double d2 = f48D48width/2.0 - w_gapshield/2.0;
+    G4double a_req = atan(d1/d2)*(180./M_PI)*deg + f48D48ang - 90.*deg;
+    G4double d3 = (tan(f48D48ang)*d1 - d2)*cos(f48D48ang);
+    G4double r_req = d3/sin(a_req);
+
+    G4Box *gapshield = new G4Box("gapshield", w_gapshield/2.0, d_gapshield/2.0, h_gapshield/2.0);
+
+    // Defining parameters for wedge shaped portion
+    G4double w_wedge = h_gapshield;
+    G4double d_wedge = d_gapshield;
+    G4double h_wedge = d_wedge*tan(slot_angle);
+
+    G4Trap *wedge = new G4Trap("wedge", w_wedge, d_wedge, h_wedge, 0.001*mm);
+
+    G4RotationMatrix *wedgerm = new G4RotationMatrix;
+    wedgerm->rotateZ(180.*deg);
+    wedgerm->rotateX(180.*deg);
+  
+    G4UnionSolid *dgapshld = new G4UnionSolid("dgapshld", gapshield, wedge, wedgerm,
+    					    G4ThreeVector(- w_gapshield/2.0 - h_wedge/4.0, 0.0, 0.0) );
+    G4LogicalVolume *dgapshld_log = new G4LogicalVolume(dgapshld, GetMaterial("Lead"), "dgapshld_log" );
+    new G4PVPlacement(bigboxrm, G4ThreeVector(-r_req*sin(a_req), 0.0, r_req*cos(a_req)),
+		      dgapshld_log, "big48d48Physical", worldlog, 0,false,0);
+
+    G4VisAttributes *Leadcolor = new G4VisAttributes(G4Colour(0.4,0.4,0.4));
+    dgapshld_log->SetVisAttributes( Leadcolor );
+  }
+
 
   // Associate magnetic field with gap
 
@@ -541,11 +612,11 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
 
   new G4PVPlacement(bigrm, 
-		    G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
-		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
+  		    G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
+  		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 
 
-  if( fDetCon->fExpType == kGEp ){
+  if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGEPpositron ){
     // Addtional iron inside the field region
 
     std::vector<G4TwoVector> leftverts;
@@ -587,11 +658,11 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
     }
 
     new G4PVPlacement(bigrm, 
-		      G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
-		      leftslabLog, "leftslabPhysical", worldlog, 0,false,0);
+    		      G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
+    		      leftslabLog, "leftslabPhysical", worldlog, 0,false,0);
     new G4PVPlacement(bigrm, 
-		      G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
-		      rightslabLog, "rightslabPhysical", worldlog, 0,false,0);
+    		      G4ThreeVector(-r48d48*sin(f48D48ang), 0.0, r48d48*cos(f48D48ang)),
+    		      rightslabLog, "rightslabPhysical", worldlog, 0,false,0);
 
     G4VisAttributes * slabVisAtt
       = new G4VisAttributes(G4Colour(1.0,0.1,0.0));
@@ -705,7 +776,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclampun, GetMaterial("Fer"), "frontclampLog", 0, 0, 0);
 
     G4LogicalVolume *frontextfaceLog= NULL;
-    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kNeutronExp ){
+    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGMN || fDetCon->fExpType == kGEN || fDetCon->fExpType == kGEnRP ){
       frontextfaceLog = new G4LogicalVolume(extface_whole, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
     } else {
       frontextfaceLog = new G4LogicalVolume(extface, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
@@ -747,8 +818,8 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     double r48d48 = f48D48dist + 1219.2*mm/2.0;
 
     new G4PVPlacement(rot, 
-		      G4ThreeVector(-(r48d48+frontclampz)*sin(-f48D48ang), 0.0, (r48d48+frontclampz)*cos(-f48D48ang)),
-		      frontclampLog, "frontclampPhysical", motherlog, 0,false,0);
+    		      G4ThreeVector(-(r48d48+frontclampz)*sin(-f48D48ang), 0.0, (r48d48+frontclampz)*cos(-f48D48ang)),
+    		      frontclampLog, "frontclampPhysical", motherlog, 0,false,0);
 
     G4RotationMatrix *rotextface = new G4RotationMatrix();
     rotextface->rotateY(-f48D48ang);
@@ -793,6 +864,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4SubtractionSolid *FrontClamp = new G4SubtractionSolid( "FrontClamp", FrontClamp_Box, FrontClamp_Notch, 0, G4ThreeVector( xnotch, 0.0, 0.0 ) );
 
     G4LogicalVolume *FrontClamp_log = new G4LogicalVolume( FrontClamp, GetMaterial("Fer"), "FrontClamp_log" );
+    //fDetCon->InsertAnalyzerVolume( FrontClamp_log-> GetName() );
     if(fDetCon->fTotalAbs) {
       FrontClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     }
@@ -818,7 +890,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     FrontClamp_log->SetVisAttributes(clampVisAtt);
  
-    // (Note jc2): Sticking this if statement here so we can draw the
+    // (Note jc2): Stickng this if statement here so we can draw the
     // back fieldclamp only for GEp, but not GMn. However, I'm leaving
     // the indentation as is because I don't want git to make me the
     // author of all these changes when all I did is indent things :/
@@ -882,7 +954,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     // G4double Trap_TL2 = 20.0*cm;
     // G4double Trap_alpha2 = angtrap;
 
-    if( fDetCon->fLeadOption == 1 ){
+    if( fDetCon->fLeadOption == 1 &&  fDetCon->fExpType == kGEp ){
       //Let us redefine this guy so that the sides make proper angles:
       G4double Trap_DZ = 13.6*cm;
       G4double Trap_Width1 = 15*cm;
@@ -2132,8 +2204,8 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
 
 void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   MakeTracker( motherlog );
-  MakeRICH_new( motherlog );
-  
+  MakeRICH_new( motherlog , true);
+
   Exp_t exptype = fDetCon->fExpType;
   if( exptype == kA1n ){ //HCAL AND LAC:
     MakeHCALV2( motherlog, fHCALvertical_offset );
@@ -2143,7 +2215,8 @@ void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   }
 }
 
-void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
+void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool extended_snout){
+  if(!extended_snout)fRichSnoutExtension = 0;
 
   G4RotationMatrix *rot_RICH = new G4RotationMatrix;
   rot_RICH->rotateY( f48D48ang );
@@ -2167,7 +2240,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   
   
   G4double RICHbox_w = 164.0*cm, RICHbox_h = 284.0*cm, RICHbox_thick = 126.0*cm;
-
+  if(extended_snout)RICHbox_thick+=fRichSnoutExtension;
   //RICHbox_h = 10.0*m;
   
   G4Box *RICHbox = new G4Box("RICHbox", RICHbox_w/2.0, RICHbox_h/2.0, RICHbox_thick/2.0  );
@@ -2185,7 +2258,9 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   
   //Define the origin with the x and z coordinates at "bottom left" corner of the box (everything will be centered in y)
   G4ThreeVector origin( -RICHbox_w/2.0, 0.0, -RICHbox_thick/2.0 + 0.75*mm); //Add 0.75 mm to account for thickness of entry window!
-
+  if(extended_snout)origin.setZ(origin.z()+fRichSnoutExtension);
+  G4cout << "origin.z() (mm) " << origin.z()/mm << G4endl;
+  
   G4double inch = 2.54*cm;
   
   //Mounting plate for PMT array:
@@ -2404,6 +2479,33 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   backplate_rot->rotateZ( 90.0*deg );
 
   new G4PVPlacement( backplate_rot, backplate_pos, BackPlate_log, "SBSRICH_BackPlate_pv", RICHbox_log, false, 0 );
+
+  G4LogicalVolume* snout_log;
+  if(extended_snout && fRichSnoutExtension>0){
+    G4double snout_width = 198.8*cm;
+    G4double snout_height = 55.5*cm;
+    G4double snout_thick = inch/16.0;
+    
+    G4Box *snoutbox = new G4Box("snoutbox", snout_width/2.0, snout_height/2.0, fRichSnoutExtension/2.0 );
+    G4Box *snouthollow = new G4Box("snouthollow", snout_width/2.0-snout_thick, snout_height/2.0-snout_thick, fRichSnoutExtension/2.0+snout_thick );
+    
+    G4SubtractionSolid* snout_sol = new G4SubtractionSolid( "snout_sol", snoutbox, snouthollow, 0, G4ThreeVector(0,0,0) );
+    snout_log = new G4LogicalVolume(snout_sol, GetMaterial("Al"), "snout_log");
+    
+    G4double snout_x0 = 6.60*cm + snout_height/2.0-5.55*cm;
+    G4double snout_z0 = -0.75*mm - fRichSnoutExtension/2.0;
+    G4ThreeVector snout_pos = origin + G4ThreeVector( snout_x0, 0.0, snout_z0 );
+    
+    G4RotationMatrix *snout_rot = new G4RotationMatrix;
+
+    snout_rot->rotateZ( 90.0*deg );
+
+    new G4PVPlacement( snout_rot, snout_pos, snout_log, "SBSRICH_snout_extension_pv", RICHbox_log, false, 0 );
+    
+    //G4Box *snoutgas = new G4Box("snoutgas", snout_width/2.0-snout_thick, snout_height/2.0-snout_thick, fRichSnoutExtension/2.0);
+    //G4LogicalVolume* snoutgas_log = new G4LogicalVolume(snout_sol, GetMaterial("Al"), "snout_log");
+    
+  }
   
   //Next: Front Window frame:
   G4double frontframe_width = 198.8*cm;
@@ -2423,7 +2525,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   G4double frontframe_x0 = 6.60*cm + frontframe_window_height/2.0;
   G4double frontframe_z0 = -0.75*mm + frontframe_thick/2.0;
   G4ThreeVector frontframe_pos = origin + G4ThreeVector( frontframe_x0, 0.0, frontframe_z0 );
-
+  if(extended_snout)frontframe_pos.setZ(frontframe_pos.z()-fRichSnoutExtension);
+  
   G4RotationMatrix *frontframe_rot = new G4RotationMatrix;
 
   frontframe_rot->rotateZ( 90.0*deg );
@@ -2436,7 +2539,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   G4LogicalVolume *FrontWindow_log = new G4LogicalVolume( FrontWindow, GetMaterial("Al"), "FrontWindow_log" );
 
   G4ThreeVector frontwindow_pos = origin + G4ThreeVector( frontframe_x0, 0.0, frontframe_z0 + (0.75*mm + frontframe_thick)/2.0 );
-
+  if(extended_snout)frontwindow_pos.setZ(frontwindow_pos.z()-fRichSnoutExtension);
+  
   new G4PVPlacement( frontframe_rot, frontwindow_pos, FrontWindow_log, "SBSRICH_FrontWindow_pv", RICHbox_log, false, 0 );
   
   //Back window frame:
@@ -2844,14 +2948,14 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   G4double y0_RICH = 0.0;
   G4double z0_RICH = frontframe_thick;
 
+  if(extended_snout)z0_RICH = z0_RICH-fRichSnoutExtension; 
+    
   G4ThreeVector RICH_offset( x0_RICH, y0_RICH, z0_RICH ); //coordinates of center of entry window relative to origin.
-
+  
   RICH_offset += origin;
   
 
   G4ThreeVector RICH_centercoord_global = RICHcoord_global - (-RICH_offset.x() * RICH_xaxis + RICH_offset.y() * RICH_yaxis + RICH_offset.z() * RICH_zaxis) + fRICHhorizontal_offset * RICH_xaxis + fRICHvertical_offset * RICH_yaxis;
-
-  
   
   //We want to position the RICH box so that the center of the entry window is aligned with the SBS axis:
   new G4PVPlacement( rot_RICH, RICH_centercoord_global, RICHbox_log, "SBS_RICH_pv", motherlog, false, 0 );
@@ -2908,6 +3012,10 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog ){
   PMTtube_log->SetVisAttributes( PMTtube_visatt );
   PMTendcap_log->SetVisAttributes( PMTtube_visatt );
   PMTquartzwindow_log->SetVisAttributes( PMT_window_visatt );
+  
+  if(extended_snout && fRichSnoutExtension>0){
+    snout_log->SetVisAttributes( RICHbox_visatt );
+  }
   
 }
 
@@ -3634,52 +3742,154 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   //FPP consists of GEM tracker interspersed w/CH2 analyzers:
 
   //Make analyzers first:
-  double anaheight = 200.0*cm;
-  double anawidth  = 44.0*2.54*cm;
-  double anadepth  = 22.0*2.54*cm;
-  double ana1depth = fCH2thickFPP[0];
-  double ana2depth = fCH2thickFPP[1];
+  // double anaheight = fGEP_CH2height;
+  // double anawidth  = fGEP_CH2width;
+  // //double anawidth  = 44.0*2.54*cm;
+  
+  // double anadepth  = 22.0*2.54*cm;
+  // double ana1depth = fCH2thickFPP[0];
+  // double ana2depth = fCH2thickFPP[1];
 
   //Don't assume these are the same:
-  
-  G4Box *ana1box = new G4Box("ana1box", anawidth/2.0, anaheight/2.0, ana1depth/2.0 );
-  G4LogicalVolume* ana1log = new G4LogicalVolume(ana1box, GetMaterial("CH2"), "FPPana1log");
 
-  fDetCon->InsertAnalyzerVolume( ana1log->GetName() );
-  
-  G4Box *ana2box = new G4Box("ana2box", anawidth/2.0, anaheight/2.0, ana2depth/2.0 );
-  G4LogicalVolume* ana2log = new G4LogicalVolume(ana2box, GetMaterial("CH2"), "FPPana2log");
+  int nana = 2;
+  const int ntrackermax = 3;
+  int ntracker = 3;
+  //int ngem[ntracker] = {6,5,5};
+  int ngem[ntrackermax] = {6,5,5}; //defaults
+  double GEM_z_spacing[ntrackermax];
+  double trkr_zpos[ntrackermax];
+  vector<G4String> SDnames;
+  vector<G4String> AnalyzerMaterials;
 
-  fDetCon->InsertAnalyzerVolume( ana2log->GetName() );
+  double zavg,zspace;
   
-  G4ThreeVector Ana1_pos = pos + G4ThreeVector( 0.0, 0.0, 58.53*cm + anadepth/2.0 );
-  G4ThreeVector Ana2_pos = pos + G4ThreeVector( 0.0, 0.0, 170.3*cm + anadepth/2.0 );
-  
-  new G4PVPlacement(0, Ana1_pos, ana1log,
-		    "anaphys1", Mother, false, 0, false);
-  new G4PVPlacement(0, Ana2_pos, ana2log,
-		    "anaphys1", Mother, false, 0, false);
+  switch( fGEPFPPoption ){ //1 = 8-plane front tracker of 6x(40x150 cm^2)+2x(60x200 cm^2) and 8-plane back tracker of 6x(60x200 cm^2)
+  case 1:
+    nana = 1;
+    ntracker = 2;
+    ngem[0] = 8;
+    ngem[1] = 8;
+    GEM_z_spacing[0] = 10.0*cm;
+    GEM_z_spacing[1] = 10.0*cm;
+    trkr_zpos[0] = 0.0;
+    trkr_zpos[1] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0] + fCH2thickFPP[0] + GEM_z_spacing[1];
+    fGEP_CH2zpos[0] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0]; //upstream edge of CH2
+    SDnames.push_back( "Harm/FT" );
+    SDnames.push_back( "Harm/FPP" );
+    fGEP_CH2width[0] = 60.0*cm;
+    fGEP_CH2height[0] = 200.0*cm;
 
-  double zavg = 0.5*(170.3*cm + 58.53*cm+anadepth); //midpoint between first and second analyzers
-  double zspace = 170.3*cm - (58.53*cm+anadepth); //available space between first and second analyzers
+    AnalyzerMaterials.push_back( G4String("CH2") );
+    
+    break;
+  case 3: //6-plane FT + 22" CH2 + 5-plane FPP1 + 4-cm Cu + 5-plane FPP2:
+    nana = 2;
+    ntracker = 3;
+    GEM_z_spacing[0] = 9.0*cm;
+    GEM_z_spacing[1] = 10.0*cm;
+    GEM_z_spacing[2] = 10.0*cm;
+
+    fGEP_CH2zpos[0] = 58.53*cm;
+    fGEP_CH2zpos[1] = 170.3*cm;
+    fGEP_CH2width[0] = 60.0*cm;
+    fGEP_CH2height[0] = 200.0*cm;
+    fGEP_CH2width[1] = 60.0*cm;
+    fGEP_CH2height[1] = 200.0*cm;
+
+    fCH2thickFPP[1] = 4.0*cm; //Cu analyzer thickness
+    
+    SDnames.push_back("Harm/FT");
+    SDnames.push_back("Harm/FPP1");
+    SDnames.push_back("Harm/FPP2");
+
+    zavg = 0.5*(fGEP_CH2zpos[0]+fCH2thickFPP[0] + fGEP_CH2zpos[1]); // mid-point between two analyzers 
+    zspace = fGEP_CH2zpos[1] - (fGEP_CH2zpos[0]+fCH2thickFPP[0]); //spacing between first and second analyzers:
+
+    trkr_zpos[0] = 0.0*cm;
+    trkr_zpos[1] = zavg - 2.0*GEM_z_spacing[1];
+    trkr_zpos[2] = fGEP_CH2zpos[1] + fCH2thickFPP[1] + GEM_z_spacing[2];
+
+    AnalyzerMaterials.push_back( "CH2" );
+    AnalyzerMaterials.push_back( "Copper" );
+    
+    break;
+  case 2:
+  default: //2 = original layout: 6-plane FT of (40x150) cm^2 plus FPP1 and FPP2 trackers:
+    nana = 2;
+    ntracker = 3;
+    GEM_z_spacing[0] = 9.0*cm;
+    GEM_z_spacing[1] = 10.0*cm;
+    GEM_z_spacing[2] = 10.0*cm;
+    fGEP_CH2zpos[0] = 58.53*cm;
+    fGEP_CH2zpos[1] = 170.3*cm;
+    fGEP_CH2width[0] = 60.0*cm;
+    fGEP_CH2height[0] = 200.0*cm;
+    fGEP_CH2width[1] = 60.0*cm;
+    fGEP_CH2height[1] = 200.0*cm;
+    
+    SDnames.push_back("Harm/FT");
+    SDnames.push_back("Harm/FPP1");
+    SDnames.push_back("Harm/FPP2");
+    
+    zavg = 0.5*(fGEP_CH2zpos[0]+fCH2thickFPP[0] + fGEP_CH2zpos[1]); // mid-point between two analyzers 
+    zspace = fGEP_CH2zpos[1] - (fGEP_CH2zpos[0]+fCH2thickFPP[0]); //spacing between first and second analyzers:
+    trkr_zpos[0] = 0.0*cm;
+    trkr_zpos[1] = zavg - 2.0*GEM_z_spacing[1];
+    trkr_zpos[2] = fGEP_CH2zpos[1] + fCH2thickFPP[1] + GEM_z_spacing[2];
+
+    AnalyzerMaterials.push_back( "CH2" );
+    AnalyzerMaterials.push_back( "CH2" );
+    
+    break;
+  }
+
+  G4VisAttributes *CH2anavisatt = new G4VisAttributes( G4Colour(0.0, 0.0, 1.0) );
+  CH2anavisatt->SetForceWireframe(true);
+  
+  char ananame[50];
+  char analogname[50];
+  
+  for( G4int ana=0; ana<nana; ana++ ){
+    sprintf( ananame, "ana%dbox", ana );
+
+    G4String anaboxname(ananame);
+    G4String analogname = ananame;
+    G4String anaphysname = ananame;
+
+    analogname.append("_log");
+    anaphysname.append("_phys");
+    
+    G4Box *anabox_temp = new G4Box( anaboxname, fGEP_CH2width[ana]/2.0, fGEP_CH2height[ana]/2.0, fCH2thickFPP[ana]/2.0 );
+    G4LogicalVolume *analog_temp = new G4LogicalVolume( anabox_temp, GetMaterial(AnalyzerMaterials[ana]), analogname );
+    fDetCon->InsertAnalyzerVolume( analog_temp->GetName() );
+
+    analog_temp->SetVisAttributes( CH2anavisatt );
+    
+    G4ThreeVector anapos_temp = pos + G4ThreeVector( 0.0, 0.0, fGEP_CH2zpos[ana] + fCH2thickFPP[ana]/2.0 );
+    new G4PVPlacement( 0, anapos_temp, analog_temp, anaphysname, Mother, false, 0, false );
+  }
+
+  // double zavg = 0.5*(170.3*cm + 58.53*cm+anadepth); //midpoint between first and second analyzers
+  // double zspace = 170.3*cm - (58.53*cm+anadepth); //available space between first and second analyzers
   
   int i, j;
   //int ngem = 0;
   
   vector<double> gemz, gemw, gemh;
   
-  int ntracker = 3; //FT, FPP1, FPP2
-  int ngem[3] = {6,5,5};
+  // int ntracker = 3; //FT, FPP1, FPP2
+  // int ngem[3] = {6,5,5};
 
   //we want equal air gaps between gem planes in FPP1. one of the GEMs will be placed at the midpoint.
   // ngap = ngem + 1 
   
-  double GEM_z_spacing[3] = {9.0*cm, zspace/double(ngem[1]+1), zspace/double(ngem[1]+1) };
+  //double GEM_z_spacing[3] = {9.0*cm, zspace/double(ngem[1]+1), zspace/double(ngem[1]+1) };
   
-  vector<G4String> SDnames; 
-  SDnames.push_back("Harm/FT");
-  SDnames.push_back("Harm/FPP1");
-  SDnames.push_back("Harm/FPP2");
+  // vector<G4String> SDnames; 
+  // SDnames.push_back("Harm/FT");
+  // SDnames.push_back("Harm/FPP1");
+  // SDnames.push_back("Harm/FPP2");
 
   //int TrackerID = 2;
   G4SBSTrackerBuilder trackerbuilder(fDetCon);
@@ -3689,21 +3899,15 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     gemw.resize( ngem[i] );
     gemh.resize( ngem[i] );
     for( j = 0; j < ngem[i]; j++ ){
-      if( i == 0 ){
-	gemz[j] = ((double) j)*GEM_z_spacing[i];
+      gemz[j] = trkr_zpos[i] + ((double) j)*GEM_z_spacing[i];
+      if( i == 0 && j < 6 ){ //FT 40x150:
+	//	gemz[j] = ((double) j)*GEM_z_spacing[i];
 	gemw[j] = 40.0*cm;
 	gemh[j] = 150.0*cm;
-      } else if( i == 1 ){
-	
+      } else { //200x60
 	//gemz[j] = ((double) j)*10.0*cm + 1.2*m;
-	gemz[j] = zavg + double(j-2)*GEM_z_spacing[i];
+	//gemz[j] = zavg + double(j-2)*GEM_z_spacing[i];
 	//	  gemz[i] = pairspac*((i-6)/2) + (i%2)*gemdsep + 1.2*m;
-	gemw[j] = 60.0*cm;
-	gemh[j] = 200.0*cm;
-      } else {
-	//gemz[j] = ((double) j)*10.0*cm + 2.316*m;
-	gemz[j] = 170.3*cm + anadepth + zspace/2.0 + double(j-2)*GEM_z_spacing[i]; 
-	//	  gemz[i] = pairspac*((i-10)/2) + (i%2)*gemdsep + 2.316*m;
 	gemw[j] = 60.0*cm;
 	gemh[j] = 200.0*cm;
       }
@@ -3713,12 +3917,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   }
 
   //CH2 analyzers:
-
-  G4VisAttributes *CH2anavisatt = new G4VisAttributes( G4Colour(0.0, 0.0, 1.0) );
-  CH2anavisatt->SetForceWireframe(true);
-
-  ana1log->SetVisAttributes( CH2anavisatt );
-  ana2log->SetVisAttributes( CH2anavisatt );
+  // ana1log->SetVisAttributes( CH2anavisatt );
+  // ana2log->SetVisAttributes( CH2anavisatt );
   
 }
  
@@ -4002,7 +4202,7 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
 
 void G4SBSHArmBuilder::SetFPP_CH2thick( int ifpp, double CH2thick ){
   double fthickmin = 0.0*cm;
-  double fthickmax = 100.0*cm;
+  double fthickmax = 120.0*cm;
 
   ifpp = ifpp >= 1 ? ( ifpp <= 2 ? ifpp : 2 ) : 1;
   
@@ -4052,16 +4252,20 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
 
   double cuanadist   = 60.0*cm; // distance between back face of rear field clamp and front face of Cu analyzer
   
-  double cuanaheight = 200.0*cm; 
-  double cuanawidth  = 44.0*cm; 
-  double cuanadepth  = 4.0*cm; 
-
+  double cuanaheight = 198.12*cm; 
+  double cuanawidth  = 60.96*cm;
+  //double cuanadepth  = 4.0*cm; 
+  double cuanadepth = 8.89*cm;
+  
   G4ThreeVector cuana_pos = pos + G4ThreeVector( 0.0, 0.0, (cuanadist + cuanadepth/2.0) ); 
   
   if( fGEnRP_analyzer_option >= 2 ) {
     G4Box*           cuanabox  = new G4Box("cuanabox", cuanawidth/2.0, cuanaheight/2.0, cuanadepth/2.0 );
     //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("CH2"), "cuanalog");
-    G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Copper"), "cuanalog");
+    //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Copper"), "cuanalog");
+
+    //Use generic stainless steel for now:
+    G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Steel"), "cuanalog");
     //AJRP: Did we intend for the "Copper" analyzer to have CH2 as the material?
     
     new G4PVPlacement(0, cuana_pos, cuanalog,"cuanaphys", sbslog, false, 0, false);
@@ -4077,13 +4281,21 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   // Make CE Polarimeter Trackers (2 INFN + 2 UVa before Cu analyzer, 4 UVa after)
   // ---------------------------------------------------------------------------------------------------------------------- 
   
-  int ntracker_ce      = 3; 
-  int ngem_ce[3]       = {2,2,4};
-  double cegem_spacing = 10.0 *cm;
+  // int ntracker_ce      = 3; 
+  // int ngem_ce[3]       = {2,2,4};
+  // double cegem_spacing = 10.0 *cm;
 
+  int ntracker_ce      = 2; 
+  int ngem_ce[2]       = {4,4};
+  double cegem_spacing = 10.0 *cm;
+  
   vector<G4String> SDnames_ce; 
-  SDnames_ce.push_back("Harm/CEPolFront1");
-  SDnames_ce.push_back("Harm/CEPolFront2");
+  //SDnames_ce.push_back("Harm/CEPolFront1");
+  //SDnames_ce.push_back("Harm/CEPolFront2");
+  //SDnames_ce.push_back("Harm/CEPolRear");
+
+  // SDnames_ce.push_back("Harm/CEPolFront1");
+  SDnames_ce.push_back("Harm/CEPolFront");
   SDnames_ce.push_back("Harm/CEPolRear");
   
   for( int i = 0; i<ntracker_ce; i++){ 
@@ -4093,13 +4305,19 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     for( int j = 0; j < ngem_ce[i]; j++ ){
       if( i == 0 ){
 	gemz[j] = -cuanadepth/2.0 + (double)(j-4)*cegem_spacing;
-	gemw[j] = 40.0*cm;
-	gemh[j] = 150.0*cm;
-      } else if( i == 1 ){
-	gemz[j] = -cuanadepth/2.0 + (double)(j-2)*cegem_spacing;
-	gemw[j] = 60.0*cm;
-	gemh[j] = 200.0*cm;
-      } else {
+	if( j < 2 ){
+	  gemw[j] = 40.0*cm;
+	  gemh[j] = 150.0*cm;
+	} else {
+	  gemw[j] = 60.0*cm;
+	  gemh[j] = 200.0*cm;
+	}
+      } else {// else if( i == 1 ){
+      // 	gemz[j] = -cuanadepth/2.0 + (double)(j-2)*cegem_spacing;
+      // 	gemw[j] = 60.0*cm;
+      // 	gemh[j] = 200.0*cm;
+      // }
+      //else {
   	gemz[j] = cuanadepth/2.0 + (double)(j+1)*cegem_spacing;
   	gemw[j] = 60.0*cm;
   	gemh[j] = 200.0*cm;
@@ -4332,4 +4550,138 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarfslog, "prbarfsphys", prscintfslog, false, i );
   }
 
+}
+
+void G4SBSHArmBuilder::MakeNeutronVeto(G4LogicalVolume* worldlog, G4double dist_from_hcal)
+{
+  bool checkOL = false;
+  //build a "simple" veto with the old BIG HAND veto elements: 
+  //dimensions x, y, z = 180*15*5 cm^3 (or is it actually 72*6*2 ci ?) 
+  // 24 needed to cover HCAL (maybe 25 for extra coverage ?)
+  G4double VetoElemWidth = 72.0*2.54*cm;
+  G4double VetoElemHeight = 6.0*2.54*cm;
+  G4double VetoElemDepth = 2.0*2.54*cm;
+  G4double planes_interdist = 5.4*cm;//20.0*cm;
+  G4int Nplanes = 1;
+  G4int Nelem = 24;
+ 
+  G4RotationMatrix *HArmRot = new G4RotationMatrix;
+  HArmRot->rotateY(f48D48ang);
+  
+  G4Box* VetoMotherBox = new G4Box("VetoMotherBox", VetoElemWidth/2.0, Nelem*VetoElemHeight/2.0, (Nplanes*VetoElemDepth+(Nplanes-1)*planes_interdist)/2.0);
+  G4LogicalVolume* VetoMotherLog = new G4LogicalVolume(VetoMotherBox, GetMaterial("Air"), "VetoMotherLog");
+
+  G4ThreeVector Veto_pos( ( fHCALdist-dist_from_hcal+VetoMotherBox->GetZHalfLength() ) * sin( -f48D48ang ),  fHCALvertical_offset, ( fHCALdist-dist_from_hcal+VetoMotherBox->GetZHalfLength() ) * cos( -f48D48ang ) );
+      
+  new G4PVPlacement(HArmRot, Veto_pos, VetoMotherLog, "VetoMother_phys", worldlog, false, 0, checkOL);
+      
+  G4double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
+  G4double mylar_air_sum = mylarthickness + airthickness;
+      
+  G4Box* VetoElemBox = new G4Box("VetoElemBox", VetoElemWidth/2.0, VetoElemHeight/2.0, VetoElemDepth/2.0);
+  //Let's do the wrap... assuming similar to BB calo blocks
+  G4LogicalVolume* VetoElemLog = new G4LogicalVolume(VetoElemBox, GetMaterial("Air"), "VetoElemLog");
+      
+  G4Box* MylarBoxHollow = new G4Box("MylarBoxHollow", VetoElemWidth/2.0, VetoElemHeight/2.0-mylarthickness, VetoElemDepth/2.0-mylarthickness);
+  G4SubtractionSolid* MylarWrap = new G4SubtractionSolid("MylarWrap", VetoElemBox, MylarBoxHollow, 0, G4ThreeVector(0.0, 0.0, 0.0));
+      
+  G4LogicalVolume *MylarWrapLog = new G4LogicalVolume( MylarWrap, GetMaterial("Mylar"), "MylarWrapLog" );
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), MylarWrapLog, "MylarWrapPhys", VetoElemLog, false, 0, checkOL);
+      
+  G4Box* VetoScint = new G4Box("VetoScint", VetoElemWidth/2.0, VetoElemHeight/2.0-mylar_air_sum, VetoElemDepth/2.0-mylar_air_sum);
+  G4LogicalVolume *VetoScintLog = new G4LogicalVolume( VetoScint, GetMaterial("Acrylic"), "VetoScintLog" );
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), VetoScintLog, "VetoScintPhys", VetoElemLog, false, 0, checkOL);
+      
+  G4String sdname = "Harm/Veto_Scint";
+  G4String collname = "Veto_ScintHitsCollection";
+      
+  G4SBSCalSD *veto_scint_sd = NULL;
+      
+  if( !( veto_scint_sd = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector( sdname ) ) ){
+    G4cout << "Adding Veto Scint sensitive detector to sdman..." << G4endl;
+    veto_scint_sd = new G4SBSCalSD( sdname, collname );
+    fDetCon->fSDman->AddNewDetector( veto_scint_sd );
+    (fDetCon->SDlist).insert( sdname );
+    fDetCon->SDtype[sdname] = kCAL;
+    (veto_scint_sd->detmap).depth = 1;
+    VetoScintLog->SetSensitiveDetector( veto_scint_sd );
+	
+    fDetCon->SetTimeWindowAndThreshold( sdname, 0.0*MeV, 50.0*ns );
+  }
+      
+  fDetCon->InsertSDboundaryVolume( VetoMotherLog->GetName(), sdname );
+      
+  for(int j = 0; j<Nplanes; j++){
+    for(int i = 0; i<Nelem; i++){
+      //G4ThreeVector ElemPos(0.0, ((-G4double(Nelem)+1)/2.0+i)*VetoElemHeight, (j-0.5)*(planes_interdist+VetoElemDepth) );//only works for NPlanes = 2....
+      G4ThreeVector ElemPos(0.0, ((-G4double(Nelem)+1)/2.0+i)*VetoElemHeight, 0.0);//only works for NPlanes = 1....
+      new G4PVPlacement(0, ElemPos, VetoElemLog, "VetoElemPhys", VetoMotherLog, false, Nelem*j+i, checkOL);
+    }
+  }
+      	
+  VetoMotherLog->SetVisAttributes(G4VisAttributes::Invisible);
+  VetoElemLog->SetVisAttributes(G4VisAttributes::Invisible);
+  MylarWrapLog->SetVisAttributes(G4VisAttributes::Invisible);
+  VetoScintLog->SetVisAttributes(G4Colour(0.0, 1.0, 1.0, 1.0));
+}
+  
+//*****************************************
+
+void G4SBSHArmBuilder::MakeTest( G4LogicalVolume *worldlog)
+{
+  //Scintillator specs
+  G4double scin_vert = 50.0*cm;
+  G4double scin_width = 60.0*cm;
+  G4double scin_depth = 1.5*2.54*cm; 
+  G4double space_in_front = 1.0*cm; // space between motherlog boundary and scintillator 
+
+  //Test Mother Volume to house all Scintilator+GEMs+Calorimeter
+  G4double Test_vert = scin_vert + 1.0*cm;
+  G4double Test_width = scin_width + 1.0*cm;
+  G4double Test_depth = 1.0*cm + scin_depth + 78.0*cm + 50.0*cm + 1.0*cm; // 78cm for GEMs & 50cm for Calorimeter (roughly)
+
+  //Geometric info & placement of Test detector
+  G4double r_Test = fHCALdist + Test_depth/2.0;
+  G4double angle_Test = 360.0*deg - f48D48ang;
+  G4ThreeVector R_Test( r_Test*sin( angle_Test ), 0.0, r_Test*cos( angle_Test ));
+
+  G4RotationMatrix *TestRot = new G4RotationMatrix;
+  TestRot->rotateY( -angle_Test );
+
+  G4Box *Test_Box = new G4Box("Test_Box", Test_width/2.0, Test_vert/2.0, Test_depth/2.0);
+  G4LogicalVolume *Test_Log = new G4LogicalVolume(Test_Box, GetMaterial("Air"), "Test_Log");
+  new G4PVPlacement( TestRot, R_Test, Test_Log, "Test_Phys", worldlog, 0, false, 0);
+
+  //Geometric info and placement of Scintillator
+  G4Box *scin_Box = new G4Box("scin_Box", scin_width/2.0, scin_vert/2.0, scin_depth/2.0);
+  G4LogicalVolume *scin_Log = new G4LogicalVolume(scin_Box, GetMaterial("POLYSTYRENE"), "scin_Log");
+  new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, -Test_depth/2.0 + scin_depth/2.0 + space_in_front ), scin_Log, "scin_phys", Test_Log, 0, false, 0);
+
+  //Making GEMs
+  G4SBSTrackerBuilder trackerbuilder(fDetCon);
+  G4RotationMatrix *GEMRot = new G4RotationMatrix;
+  GEMRot->rotateY( 0.0*deg );
+  
+  //GEM specs
+  int ngem = 5; 		// 5 GEMs
+  G4double gemz_spacing = 13.0*cm; // spacing between GEMs is 13cm
+  G4ThreeVector gem_pos( 0.0, 0.0, -Test_depth/2.0 + scin_depth + 5.0*gemz_spacing);
+  vector<double> gemz, gemw, gemh;
+  gemz.resize( ngem );
+  gemw.resize( ngem );
+  gemh.resize( ngem );
+  for(int i=0; i<ngem; i++){
+    gemz[i] = -Test_depth/2.0 + space_in_front + scin_depth + gemz_spacing + ((double)i)*gemz_spacing;
+    gemw[i] = 60.0*cm;
+    gemh[i] = 50.0*cm;
+}  
+  trackerbuilder.BuildComponent( Test_Log, GEMRot, gem_pos, ngem, gemz, gemw, gemh, "Test/HC" );
+
+  //Visual
+  Test_Log->SetVisAttributes( G4VisAttributes::Invisible );
+  // G4VisAttributes *Testvisatt = new G4VisAttributes( G4Colour( 0.0, 0.0, 1.0 ) );
+  // Testvisatt->SetForceWireframe(true);
+  // Test_Log->SetVisAttributes( Testvisatt );
+  G4VisAttributes *Scinvisatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 0.0 ) );
+  scin_Log->SetVisAttributes( Scinvisatt );
 }

@@ -23,7 +23,6 @@ G4SBSSteppingAction::G4SBSSteppingAction()
  // new G4SBSSteppingActionMessenger(this);
 }
 /*
-//<<<<<<< HEAD
 // void G4SBSSteppingAction::UserSteppingAction(const G4Step*)
 
 //Montgomery Nov 2018, added stepping action functionality for option to kill any tracks enterring GEM and readout pcb of mtpc, if want to preserve kryptonite functionality from GEMC - I do not think this is the best way to do this. Temporary - must check!
@@ -72,7 +71,6 @@ void G4SBSSteppingAction::UserSteppingAction(const G4Step* theStep)
     // mat = poststep->GetMaterial();
     // G4cout << "After step, material = " << mat->GetName() << G4endl;
   // G4MaterialPropertiesTable *mpt = mat->GetMaterialPropertiesTable();
-  =======
 */
 
 void G4SBSSteppingAction::Initialize( G4SBSDetectorConstruction *fdc ){

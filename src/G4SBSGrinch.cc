@@ -303,7 +303,8 @@ inline G4VSolid* Construct_Square_Opening_Cone(G4String aName, G4double aRmin1, 
 G4SBSGrinch::G4SBSGrinch(G4SBSDetectorConstruction *dc):G4SBSComponent(dc) {
   fDetOffset = 0.0*m;
   fCerDepth = 0.0*m;
-  fGRINCHgas = "C4F10_gas";
+  fGRINCHgas = "C4F8_gas";
+  fTurnOnPMTglassHits = false;//by default
 }
 
 G4SBSGrinch::~G4SBSGrinch() {
@@ -345,10 +346,8 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
    * see the comment at the beginning of function Construct_GC_Tank_Box(...)
    */
   G4String GC_Tank_Name("GC_Tank");
-  //G4String GC_Tank_Material=("C4F8O");
-  G4String GC_Tank_Material=fGRINCHgas;//Replace C4F8O with C4F10 because of shortages...
-  //G4String GC_Tank_Material=("CO2");//2017/07/14 EFuchey: replace C4F10 with CO2 
-  //G4String GC_Tank_Material=("CF4_gas");//2017/07/28 EFuchey: replace CO2 with CF4 
+  G4String GC_Tank_Material=fGRINCHgas;
+
   G4cout << " Using new GRINCH geometry... " << G4endl;
   G4ThreeVector GC_Tank_Inner_FullSize(fCerDepth-2.54*cm, 247.015*cm, 114.800*cm);
   G4double GC_Tank_Thickness= 0.635*cm;
@@ -615,19 +614,21 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   
   // EFuchey: 2017/04/10: sensitize PMT glass to obtain 
   // complete momentum distribution of electrons going through the glass
-  G4String CalSDname = "Earm/GC_PMT_Glass";
-  G4String Calcollname = "GCPMTHitsCollection";
-  G4SBSCalSD *CalSD = NULL;
-  
-  if( !( CalSD =  (G4SBSCalSD*) sdman->FindSensitiveDetector(CalSDname) ) ){
-    G4cout << "Adding GC_PMT_Glass sensitive detector to SDman..." << G4endl;
-    CalSD = new G4SBSCalSD( CalSDname, Calcollname );
-    sdman->AddNewDetector( CalSD );
-    fDetCon->SDlist.insert(CalSDname);
-    fDetCon->SDtype[CalSDname] = kCAL; 
-
-    GC_PMT_Glass_log->SetSensitiveDetector( CalSD );
-    fDetCon->InsertSDboundaryVolume( GC_Tank_log->GetName(), CalSDname );
+  G4SBSCalSD *CalSD = NULL;//Get this one out so it compiles
+  if(fTurnOnPMTglassHits){//we don't want this to be switched on at all times do we ?
+    G4String CalSDname = "Earm/GC_PMT_Glass";
+    G4String Calcollname = "GCPMTHitsCollection";
+    
+    if( !( CalSD =  (G4SBSCalSD*) sdman->FindSensitiveDetector(CalSDname) ) ){
+      G4cout << "Adding GC_PMT_Glass sensitive detector to SDman..." << G4endl;
+      CalSD = new G4SBSCalSD( CalSDname, Calcollname );
+      sdman->AddNewDetector( CalSD );
+      fDetCon->SDlist.insert(CalSDname);
+      fDetCon->SDtype[CalSDname] = kCAL; 
+      
+      GC_PMT_Glass_log->SetSensitiveDetector( CalSD );
+      fDetCon->InsertSDboundaryVolume( GC_Tank_log->GetName(), CalSDname );
+    }
   }
   
   //GC_PMT_Cone
@@ -749,10 +750,12 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	  assemblyPMT->AddPlacedVolume(GC_PMT_Glass_log, Translation,&rm);
 	  PMT_pv_index++;
 	}
-	// EFuchey: 2017/04/10: add the local coordinates of the PMT glass
-	CalSD->detmap.Row[PMT_pv_index] = row;
-	CalSD->detmap.Col[PMT_pv_index] = col;
-	CalSD->detmap.LocalCoord[PMT_pv_index] = Translation;
+	if(fTurnOnPMTglassHits){
+	  // EFuchey: 2017/04/10: add the local coordinates of the PMT glass
+	  CalSD->detmap.Row[PMT_pv_index] = row;
+	  CalSD->detmap.Col[PMT_pv_index] = col;
+	  CalSD->detmap.LocalCoord[PMT_pv_index] = Translation;
+	}
 	
 	if ( fabs(GC_PMT_Cone_Length)>1e-5 ) {
 	  if ( GC_PMT_Cone_Shape=="G4Polyhedra" ) {
@@ -803,11 +806,12 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
 	  assemblyPMT->AddPlacedVolume(GC_PMT_Glass_log, Translation,&rm);
 	  PMT_pv_index++;
 	}
-	// EFuchey: 2017/04/10: add the local coordinates of the PMT glass
-	CalSD->detmap.Row[PMT_pv_index] = row;
-	CalSD->detmap.Col[PMT_pv_index] = col;
-	CalSD->detmap.LocalCoord[PMT_pv_index] = Translation;
-	
+	if(fTurnOnPMTglassHits){
+	  // EFuchey: 2017/04/10: add the local coordinates of the PMT glass
+	  CalSD->detmap.Row[PMT_pv_index] = row;
+	  CalSD->detmap.Col[PMT_pv_index] = col;
+	  CalSD->detmap.LocalCoord[PMT_pv_index] = Translation;
+	}
 	if ( fabs(GC_PMT_Cone_Length)>1e-5 ) {
 	  if ( GC_PMT_Cone_Shape=="G4Polyhedra" ) {
 	    Translation.setX(xpos+GC_PMT_Cone_Length*0.5+GC_PMT_Length*0.5);

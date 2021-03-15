@@ -34,7 +34,8 @@ typedef struct {
 //Also "solang" is a "run" level quantity, shouldn't really be written to the tree every event, but whatever.
 typedef struct {
   // Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph;
-  Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph, sigmaDIS, sigmaTDIS; // TDIS
+  Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph; 
+  Double_t sigmaDIS, sigmaTDIS; // TDIS
   Double_t Aperp, Apar;
   Double_t Pt, Pl;
   Double_t vx, vy, vz;
@@ -48,9 +49,10 @@ typedef struct {
   Double_t nth, nph;
   Double_t p1th, p1ph, p2th, p2ph, pith, piph; // TDIS
   Double_t pmperp, pmpar, pmparsm;
-  Double_t z, phperp, phih, MX;
-  Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator!
   Double_t xpi, tpi, xa,pt, nu, ya, y, f2p, f2pi, ypi; // TDIS
+  Double_t z, phperp, phih, phiS, MX;
+  Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator
+  Double_t s, t, u, costhetaCM, Egamma_lab; //Extra kinematic variables we would like to store for pion photoproduction
   Int_t nucl, fnucl;
   Int_t hadr;
   Int_t earmaccept, harmaccept;

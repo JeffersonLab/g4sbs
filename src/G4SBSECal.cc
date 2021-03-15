@@ -66,7 +66,7 @@ G4SBSECal::~G4SBSECal(){;}
 void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
   Exp_t exptype = fDetCon->fExpType;
   
-  if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+  if( exptype == kGEp || exptype == kGEPpositron ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
       //MakeBigCal( worldlog );
       MakeECal_new( worldlog );
@@ -478,15 +478,29 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   // Place the blocks
   G4int NrowsSM_40 = 10; 
   G4int NrowsSM_42 = 15; 
-  
+  /*
+  G4int NrowsSM_40 = 0; 
+  G4int NrowsSM_42 = 24; 
+  */
   G4int NcolsSM_40[10] = {3, 5, 6, 7, 8, 8, 9, 9, 9, 9};// from bottom to top
   G4int NcolsSM_42[15] = {9, 9, 9, 9, 9, 9, 9, 9, 8, 8, 8, 7, 6, 5, 3};// from bottom to top
-  
+  /*
+  G4int NcolsSM_42[24] = {4, 6, 7, 7, 8, 8, 
+			  9, 9, 9, 9, 9, 9, 
+			  9, 9, 9, 9, 9, 9, 
+			  8, 8, 7, 7, 6, 4};// from bottom to top
+  */
   G4double yfp_start_40[10] = {-62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, 
 			       -58.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm};//start of the block edge
+
   G4double yfp_start_42[15] = {-54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, 
 			       -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -58.0*cm,
 			       -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm};//start of the block edge
+  /*  
+  G4double yfp_start_42[24] = {-54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, 
+			       -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -58.0*cm,
+			       -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm};//start of the block edge
+  */
   G4double xfpstart = -153.8*cm;
   G4int copy_nb = 0;
   G4double X_block, Y_block;
@@ -901,7 +915,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   mapfile.close();
   
   // Build CDet:
-  if(fDetCon->fExpType==kGEp){
+  if(fDetCon->fExpType==kGEp || fDetCon->fExpType == kGEPpositron ){
     //Next: CH2 filter:
     G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );
     G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
@@ -947,7 +961,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   TiSideWall_42_2_log->SetVisAttributes(Ti_visatt);
   TiSideWall_40_1_log->SetVisAttributes(Ti_visatt);
   TiSideWall_40_2_log->SetVisAttributes(Ti_visatt);
-  // TiSideWall_log->SetVisAttributes(G4VisAttributes::GetInvisible());
+  // TiSideWall_log->SetVisAttributes(G4VisAttributes::GetInvisible());//
   
   G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
   Al_visatt->SetForceWireframe(true);

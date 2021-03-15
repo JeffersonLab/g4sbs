@@ -39,6 +39,14 @@ void G4SBSECaloutput::Clear(){
   otridx.clear();
   ptridx.clear();
   sdtridx.clear();
+
+  // Clear individual particle list
+  npart_ECAL = 0;
+  part_PMT.clear();
+  E.clear();
+  t.clear();
+  trid.clear();
+  detected.clear();
   //ParticleHistory.Clear();
   /* 
   mTrackNo.clear();

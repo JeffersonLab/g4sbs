@@ -355,7 +355,7 @@ void G4SBSSDTrackOutput::Merge( G4SBSSDTrackOutput &sd ){
 	// G4cout << "added SD track to detector " << sdnametemp << ", TID = " 
 	//        << tidtemp << ", index in detector SD track list = " << idx
 	//        << ", index in new SD track list = " << nsdtracks << G4endl;
-	  
+	
 	sdtracklist[tidtemp][sdnametemp] = nsdtracks;
 	
 	sdtrid.push_back( sd.sdtrid[idx] );

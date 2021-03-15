@@ -84,6 +84,7 @@ private:
   
   G4UIcmdWithAnInteger *gemconfigCmd;
   G4UIcmdWithAnInteger *shieldconfigCmd;
+  G4UIcmdWithAnInteger *bbpsconfigCmd;
   G4UIcmdWithAnInteger *CDetconfigCmd;
 
   G4UIcmdWithABool *flipGEMCmd;
@@ -101,6 +102,18 @@ private:
   G4UIcmdWithADoubleAndUnit *runtimeCmd;
   G4UIcmdWithADoubleAndUnit *rasterxCmd;
   G4UIcmdWithADoubleAndUnit *rasteryCmd;
+
+  //commands controlling pion photoproduction event generation:
+  G4UIcmdWithADouble *PionPhoto_tminCmd;
+  G4UIcmdWithADouble *PionPhoto_tmaxCmd;
+  G4UIcmdWithABool *PionPhoto_useradCmd;
+  G4UIcmdWithADouble *PionPhoto_radthickCmd;
+  G4UIcmdWithADoubleAndUnit *PionPhoto_radzCmd;
+  
+  //Optics targets: presently all assumed to be Carbon
+  G4UIcmdWithAnInteger *tgtNfoilCmd;
+  G4UIcommand *tgtFoilThickCmd; //Foil thickness
+  G4UIcommand *tgtFoilZCmd;  //Foil position along z axis:
   
   G4UIcmdWithADoubleAndUnit *beamECmd;
   
@@ -110,6 +123,8 @@ private:
   G4UIcmdWithADoubleAndUnit *hcaldistCmd;
   G4UIcmdWithADoubleAndUnit *hcalvoffsetCmd;
   G4UIcmdWithADoubleAndUnit *hcalhoffsetCmd;
+
+  G4UIcmdWithABool *CDetReadyCmd;   //Cerenkov
 
   G4UIcmdWithADoubleAndUnit *lacdistCmd;
   G4UIcmdWithADoubleAndUnit *lacvoffsetCmd;
@@ -160,6 +175,7 @@ private:
   G4UIcmdWithADoubleAndUnit *RICHhoffsetCmd; //Set RICH horizontal offset
   G4UIcmdWithADoubleAndUnit *RICHvoffsetCmd; //Set RICH vertical offset
   G4UIcmdWithABool          *RICHaeroCmd; //Toggle use of RICH aerogel
+  G4UIcmdWithADoubleAndUnit *RICHSnoutExtensionCmd; //Set RICH snout extension
   
   // Commands to set configurable properties of SBS:
   G4UIcmdWithADoubleAndUnit *SBSMagFieldCmd;
@@ -175,8 +191,17 @@ private:
 
   G4UIcmdWithADoubleAndUnit  *GEPFPP1_CH2thickCmd;
   G4UIcmdWithADoubleAndUnit  *GEPFPP2_CH2thickCmd;
+
+  G4UIcmdWithAnInteger       *GEPFPPoptionCmd;
+
+  // D. Flay 7/28/20
+  // command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
+  G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd;  
   
   G4UIcmdWithABool *BLneutronDetsCmd;
+  G4UIcmdWithABool *GEMfrontendCmd;
+  
+  G4UIcmdWithABool *SetGrinchPMTglassHitsCmd;
   
   G4UIcmdWithABool *buildSBSsieveCmd; //Build the SBS Sieve slit
   G4UIcmdWithABool *buildBBsieveCmd; //Build the BB Sieve slit
@@ -212,6 +237,13 @@ private:
   // G4UIcmdWithABool *DisableOpticalPhysicsCmd; //disable CPU-intensive optical photon physics
 
   G4UIcmdWithABool *FluxCmd; //Make sphere around target and use to compute flux of particles
+
+  //Command to define target spin orientation
+  G4UIcmdWith3Vector *TargPolDirectionCmd;
+  G4UIcmdWithADouble *TargPolMagnitudeCmd;
+  G4UIcmdWithADouble *BeamPolMagnitudeCmd;
+  G4UIcmdWith3Vector *BeamPolDirectionCmd;
+ 
   
   // Command to set particle polarization for spin transport calculations:
   // ONLY relevant for particle gun generator!

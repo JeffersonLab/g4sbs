@@ -7,7 +7,12 @@
 /g4sbs/exp             gmn
 
 ## Configure the target
-/g4sbs/target          LD2
+#/g4sbs/target          LD2
+/g4sbs/target		optics
+/g4sbs/Nfoil 		9
+/g4sbs/foilthick 	0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 mm
+/g4sbs/foilz		-16.0 -12.0 -8.0 -4.0 0.0 4.0 8.0 12.0 16.0 cm
+/g4sbs/targdiam		7.0 mm
 /g4sbs/targlen         10.0 cm           ## Target Length
 
 ## Configure generator settings
@@ -34,6 +39,10 @@
 /g4sbs/sbsang          14.8 deg
 /g4sbs/48D48dist       3.1 m
 #/g4sbs/sbsmagfield     0.97 tesla
+
+/g4sbs/totalabs true
+
+/g4sbs/buildBBsieve 1
 
 ## Run 100 events
 #/g4sbs/run             100
@@ -91,7 +100,7 @@
 # To draw only gammas:
 /vis/filtering/trajectories/create/particleFilter
 /vis/filtering/trajectories/particleFilter-0/add gamma
-/vis/filtering/trajectories/particleFilter-0/add neutron
+#/vis/filtering/trajectories/particleFilter-0/add neutron
 #
 # To invert the above, drawing all particles except gammas,
 # keep the above two lines but also add:
@@ -112,9 +121,16 @@
 # Re-establish auto refreshing and verbosity:
 /vis/viewer/set/autoRefresh true
 /vis/verbose warnings
+
+
+
 #
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
 /g4sbs/run  1
 #/vis/geometry/set/visibility RICHbox_log -1 0
+
+/vis/geometry/set/forceWireframe b48d48Log -1 1
+/vis/geometry/set/forceWireframe FrontClamp_log -1 1
+
 /vis/viewer/flush

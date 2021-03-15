@@ -79,11 +79,12 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   G4double backGEM_depth = 11.59*cm;
   
   fCerDepth = 88.9*cm;
-  fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;
+  fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;//this shall be about right
   
   //NB: fBBCalDist now designates the distance to the shielding
-  fBBCaldist = fCerDist + fCerDepth + backGEM_depth;
-  fGEMDist   = fCerDist + fCerDepth + 0.5*backGEM_depth;
+  //fix: add an extra 1.136 inch between the back of the GRINCH and the "GEM frame"
+  fBBCaldist = fCerDist + fCerDepth + 1.136*2.54*cm + backGEM_depth;
+  fGEMDist   = fCerDist + fCerDepth + 1.136*2.54*cm + 0.5*backGEM_depth;
   fGEMOption = 2;
   /**/
   fShieldOption = 1;
@@ -99,9 +100,11 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   
   // fDVCSECalMaterial = G4String("PbF2");
   //  fbbfield =  NULL;
+  fGRINCHgas = "C4F8_gas"; //default to C4F8;
+  fTurnOnGrinchPMTglassHits = false;// turn it off by default
   
-  fGRINCHgas = "C4F10_gas"; //default to C4F10;
-  
+  fBuildGEMfrontend = false; // do not build it by default  
+  fBBPSOption = 2;
 }
 
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}
@@ -112,14 +115,14 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   
   //  The neutron experiments and the SIDIS experiment use BigBite:
   //------------ BigBite: -----------------------------------------------------
-  if( exptype == kNeutronExp || exptype == kSIDISExp || exptype == kA1n || exptype == kGEnRP ) 
+  if( exptype == kGMN || exptype == kGEN || exptype == kSIDISExp || exptype == kA1n || exptype == kGEnRP ) 
     {
       MakeBigBite( worldlog );
-      if(fBuildBBSieve)
-	MakeBBSieveSlit(worldlog);
-      ECal->~G4SBSECal();
+      //Move sieve slit construction to MakeBigBite subroutine:
+      //      if(fBuildBBSieve)
+      //	MakeBBSieveSlit(worldlog);
     }
-  if( exptype == kGEp ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+  if( exptype == kGEp || exptype == kGEPpositron ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
       ECal->SetAng(fBBang);
       ECal->SetDist(fBBdist);
@@ -133,16 +136,21 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       ECal->BuildComponent(worldlog);
       //MakeC16( worldlog );
     }
-  if( exptype == kNeutronExp || exptype == kGEnRP )  MakeGMnGEMShielding( worldlog );
+  if( (exptype == kGMN || exptype == kGEnRP) && fBuildGEMfrontend )  MakeGMnGEMShielding( worldlog );
   
   if( exptype == kNDVCS ){
     ECal->SetAng(fBBang);
     ECal->SetDist(fBBdist);
     ECal->BuildComponent(worldlog);
   }
+  
+  if( exptype ==  kGEMHCtest){
+    MakeHallCGEM(worldlog);
+  }
 }
 
 void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
+  bool chkoverlap = false;
   //Lines of code used to build BigBite moved to their own method:
   printf("BigBite at %f deg\n", fBBang/deg);
 
@@ -305,7 +313,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // Cut mother box
   G4SubtractionSolid* bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxL", bbmotherBox, bbleftcutTrap, leftcutrot2, G4ThreeVector(-10*eps, 0.0, -motherdepth/2.0+clear));
   //bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR", bbmothercutBox, bbrightcutTrap, rightcutrot2, G4ThreeVector(10*eps, 0.0, -motherdepth/2.0+clear));
-  //EFuchey: 2017/04/17: commented this line to avoid to have some of the GRINCH PMTs outside of the mother volume.
+  //EPAF: 2017/04/17: commented this line to avoid to have some of the GRINCH PMTs outside of the mother volume.
   //Besides, it is not necessary, as it removes some volume from the mother box which would not interfere with anything anyhow
   
   G4Box *frontboxcut = new G4Box("frontboxcut",(bbmagwidth-gapsize)/4.0-coilwidth, 250*cm + eps, clear/2);
@@ -315,29 +323,36 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *bottomboxcut = new G4Box("bottomboxcut",bbmagwidth+eps, 250*cm/2, motherdepth+eps);
   bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR_floor", bbmothercutBox, bottomboxcut, 0, G4ThreeVector( 0.0, -1.25*m*2-20*cm, 0.0));
   
-  // EFuchey: 2017/05/15: Added this cut to leave some room for the lead shielding for GMn.
+  // EPAF: 2017/05/15: Added this cut to leave some room for the lead shielding for GMn.
   // I checked it was not interfering with the BB magent volume nor with the BB field volume...
   G4Box *beamshieldcut = new G4Box("beamshieldcut", 30.0*cm/2.0 + eps, 300*cm + eps, 10.0*cm/2.0 + eps);
   bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR_fLR_shieldcut", bbmothercutBox, beamshieldcut, 0, G4ThreeVector( -(bbmagwidth+gapsize)/4.0+coilwidth+15.0*cm, 0.0, -motherdepth/2.0+2.5*cm));
 					  
-  
 
   //   Make logical volume for mother vol and place
   G4LogicalVolume *bbmotherLog=new G4LogicalVolume(bbmothercutBox,GetMaterial("Air"),
 						   "bbmotherLog", 0, 0, 0);
+
   
   new G4PVPlacement(bbrm, G4ThreeVector(motherr*sin(fBBang), 0.0, motherr*cos(fBBang)),
-		    bbmotherLog, "bbmotherPhys", worldlog, 0,false,0);
+		    bbmotherLog, "bbmotherPhys", worldlog, false,0, chkoverlap);
 
 
   new G4PVPlacement(yokerm,G4ThreeVector(0.0, 0.0, -motherdepth/2.0+clear),
-		    bbyokewgapLog, "bbyokewgapPhysical", bbmotherLog, 0,false,0);
+		    bbyokewgapLog, "bbyokewgapPhysical", bbmotherLog, false,0, chkoverlap);
 
+  //Sieve plate position is 13.37 inches ~= 34 cm upstream of front of magnet yoke:
+  //Thickness of sieve plate is 1.5 inches
+  
+  if( fBuildBBSieve ){
+    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
+    MakeBBSieveSlit( bbmotherLog, BBSievePos );
+  }
+  
   //  Bigbite field log volume
   G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
 						  "bbfieldLog", 0, 0, 0);
-
-
+  
   //NOTE that the invocation of the commented out command below can potentially cause
   // G4SBSBigBiteField::ReadField() to
   // be invoked twice in the same run. Not a big deal, but also not desirable behavior
@@ -364,7 +379,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
 
   //does this volume serve any purpose? Apparently not
-  new G4PVPlacement(0, G4ThreeVector(), bbfieldLog, "bbfieldPhysical", bbyokewgapLog, 0,false,0);
+  new G4PVPlacement(0, G4ThreeVector(), bbfieldLog, "bbfieldPhysical", bbyokewgapLog, false,0, chkoverlap);
 
   //--------- BigBite Detector Volumes ------------
   //
@@ -392,7 +407,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   new G4PVPlacement(bbdetrot, G4ThreeVector(0.0, 
 					    (detboxplace+detboxdepth/2.0)*sin(detboxang),
 					    (detboxplace+detboxdepth/2.0)*cos(detboxang)+midplanez),
-		    bbdetLog, "bbdetPhysical", bbmotherLog, 0,false,0);
+		    bbdetLog, "bbdetPhysical", bbmotherLog, false,0, chkoverlap);
 
   //  Just interested in the GEMs for now:
 
@@ -436,8 +451,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // GEM option 2
   double gemz_opt2[] = { 0.0*cm, gemdsep, 2.0*gemdsep, 3.0*gemdsep, fGEMDist};
-  double gemw_opt2[] = { 40.0*cm, 40.0*cm, 40.0*cm, 40.0*cm, 60.0*cm };
-  double gemh_opt2[] = { 150.0*cm, 150.0*cm, 150.0*cm, 150.0*cm, 200.0*cm };
+  double gemw_opt2[] = { 40.96*cm, 40.96*cm, 40.96*cm, 40.96*cm, 61.44*cm };
+  double gemh_opt2[] = { 153.6*cm, 153.6*cm, 153.6*cm, 153.6*cm, 204.8*cm };
 
   // GEM option 3
   double gemz_opt3[] = { 0.0*cm, gemdsep, gemdsep*2.0};
@@ -454,6 +469,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     }
     if( fGEMOption == 2 ){
       for( i = 0; i < ngem; i++ ){
+	G4cout << "GEM " << i << " (mm) " <<detoffset+gemz_opt2[i]+detboxdepth/2.0 << endl;
 	gemz[i] = gemz_opt2[i];
 	gemw[i] = gemw_opt2[i];
 	gemh[i] = gemh_opt2[i];
@@ -489,43 +505,64 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   double mylar_air_sum = mylarthickness + airthickness;
   double bbpmtz = 0.20*cm;
   
+  G4cout << " BBPS option (0: old geometry; 1: new modules, 25 blocks; 2: new modules, 26 blocks)" << fBBPSOption << endl;
+  
   // **** BIGBITE CALORIMETER MOTHER VOLUME ****:
+  // EPAF: 2020/02/28: updateing the detector package geometry to account for the last developments:
+  // - 1/4" steel plate;
+  // - PS;
+  // - 1/4" steel plate;
+  // - 2mm Al plate;
+  // - hodoscope;
+  // - honeycomb;
+  // - shower;
+  
   //AJRP 05/19/19: re-working BBCAL geometry so user tracking action and stepping action classes
   //behave properly. Put everything (including detectors/shielding) inside a single mother volume
   G4double bbcal_box_height = 27*8.5*cm;
+  if(fBBPSOption==2)bbcal_box_height = 26*9.0*cm;
   G4double bbcal_box_width  = 2.0*37.0*cm;
   //G4double bbcal_box_depth  = (8.5+2.5+37.0)*cm;
-  G4double bbcal_box_depth  = (8.5+3.5*2.54+37.0)*cm;//8.89 cm (3.5") is the size of the gap between the PS and the SH
+  // space for optional shielding + steel plate + mu-metal + PS block + space for hodoscope + Shower blocks
+  G4double shielding_space = 3.75*2.54*cm;
+  G4double bbcal_box_depth  = shielding_space+(0.25*2.54 + 0.05 + 8.5 + 3.5*2.54 +37.0)*cm;//8.89 cm (3.5") is the size of the gap between the PS and the SH
 
   // Big Bite Calorimeter shielding.
   // 
-  // EFuchey: 2017/03/02: flag for BBECal shielding option: 
+  // EPAF: 2017/03/02: flag for BBECal shielding option: 
   // 0: nothing; 1: default 1/4 in SS+0.5mm; 2: 10cm Al + 3cm SS on the side; 3: 10cm Al + 3cm SS on the side; 
-
+  
   //AJRP: cleaning up shielding: total thickness of cal mother box will be the total thickness of all BB calorimeter
   //layers (including shielding)
   //NOTE: "SIDE" shielding never actually gets placed as coded; thus, ignore:
   G4double bbcal_total_thick=bbcal_box_depth;
-  G4double Al_thick = 10.0*cm;
+  G4double Al_thick = 9.5*cm;
   G4double SS_thick = 2.0*cm;
   // Default front plate: 0.25" steel + 0.5mm mu metal
+  //NO: the space for the shielding is available no matter what!!!
+  /*
   if( fShieldOption > 0 ){
-    bbcal_total_thick += 0.25*2.54*cm + 0.5*mm; //Steel + mu-metal
+    //bbcal_total_thick += 0.25*2.54*cm + 0.5*mm; //Steel + mu-metal
     switch( fShieldOption ){
     case 2: //"10 cm Al in front "
-      bbcal_total_thick += Al_thick;
+      //bbcal_total_thick += Al_thick;
       break;
     case 3: //"2 cm SS in front "
-      bbcal_total_thick += SS_thick;
+      //bbcal_total_thick += SS_thick;
       break;
     case 4: //"1 cm SS in front + 5cm Al in front "
       Al_thick /= 2.0;
       SS_thick /= 2.0;
-      bbcal_total_thick += Al_thick + SS_thick; 
+      //bbcal_total_thick += Al_thick + SS_thick; 
       break;
     default:
       break;
     }
+  }
+  */
+  if( fShieldOption==4 ){
+    Al_thick /= 2.0;
+    SS_thick /= 2.0;
   }
   
   //  G4double bbcal_shield_thick = 6.85*mm + 9.525*cm;
@@ -540,7 +577,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // BB Ecal
   G4Box *bbcalbox = new G4Box( "bbcalbox", bbcal_box_width/2.0, bbcal_box_height/2.0, bbcal_total_thick/2.0+0.1*mm );
   G4LogicalVolume *bbcal_mother_log = new G4LogicalVolume(bbcalbox, GetMaterial("Air"), "bbcal_mother_log");
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_total_thick/2.0 ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 ); 
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_total_thick/2.0 ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 , chkoverlap); 
 
   bbcal_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
   
@@ -569,13 +606,21 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // G4LogicalVolume *bbcal_shield_log = new G4LogicalVolume(bbcalshieldbox, GetMaterial("Air"), "bbcal_shield_log");
   // bbcal_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
   
-  G4Box *bbcalfrontmufoil = new G4Box( "bbcalfrontmufoil", bbcal_box_width/2.0, bbcal_box_height/2.0, 0.5*mm/2.0 );
-  G4LogicalVolume *bbcal_front_mufoil_log = new G4LogicalVolume(bbcalfrontmufoil, GetMaterial("mu-metal"), "bbcal_front_mufoil_log");
-  //bbcal_front_mufoil_log->SetVisAttributes( G4Colour(0.,1.0, 0.0) );
+  // G4Box *bbcalfrontmufoil = new G4Box( "bbcalfrontmufoil", bbcal_box_width/2.0, bbcal_box_height/2.0, 0.5*mm/2.0 );
+  // G4LogicalVolume *bbcal_front_mufoil_log = new G4LogicalVolume(bbcalfrontmufoil, GetMaterial("mu-metal"), "bbcal_front_mufoil_log");
+  // //bbcal_front_mufoil_log->SetVisAttributes( G4Colour(0.,1.0, 0.0) );
+  
+  G4Box *hodosupportAlplate = new G4Box( "hodosupportAlplate", bbcal_box_width/2.0, bbcal_box_height/2.0, 2.0*mm/2.0 );
+  G4LogicalVolume *hodosupportAlplate_log = new G4LogicalVolume(hodosupportAlplate, GetMaterial("Aluminum"), "hodosupportAlplate_log");
+  hodosupportAlplate_log->SetVisAttributes( G4Colour(0.8,0.8, 0.8) );
+
+  G4Box *honeycombAlplate = new G4Box( "honeycombAlplate", bbcal_box_width/2.0, bbcal_box_height/2.0, 0.5*mm/2.0 );
+  G4LogicalVolume *honeycombAlplate_log = new G4LogicalVolume(honeycombAlplate, GetMaterial("Aluminum"), "honeycombAlplate_log");
+  honeycombAlplate_log->SetVisAttributes( G4Colour(0.8,0.8, 0.8) );
   
   G4Box *bbcalfrontsteelplate = new G4Box( "bbcalfrontsteelplate", bbcal_box_width/2.0, bbcal_box_height/2.0, 6.35*mm/2.0 );
   G4LogicalVolume *bbcal_front_steelplate_log = new G4LogicalVolume(bbcalfrontsteelplate, GetMaterial("Steel"), "bbcal_front_steelplate_log");
-  bbcal_front_steelplate_log->SetVisAttributes( G4Colour(0.0, 1.0, 1.0) );
+  bbcal_front_steelplate_log->SetVisAttributes( G4Colour(0.0, 0.0, 1.0) );
   
   // Additional shielding:
   // Attempt 1: option 2: Al 
@@ -595,43 +640,45 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   //start at the front of the BB cal mother volume and work our way back:
   G4double zpos_temp = -0.5*bbcal_total_thick;
-  
   if(fShieldOption > 0){
     // new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_shield_thick/2.0 ), bbcal_shield_log, "bbcal_shield_phys", bbdetLog, false, 0 );
     
     switch(fShieldOption){
     case 2: //aluminum shielding in front ONLY (10 cm)
       zpos_temp += bbcalshield_al->GetZHalfLength();
-      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_mother_log, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_mother_log, false, 0, chkoverlap );
       zpos_temp += bbcalshield_al->GetZHalfLength();
       //new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
       break;
     case 3: //mutually exclusive with case 2: SS shielding in front ONLY (2 cm)
       zpos_temp += bbcalshield_ss->GetZHalfLength();
-      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_mother_log, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_mother_log, false, 0, chkoverlap );
       zpos_temp += bbcalshield_ss->GetZHalfLength();
-      //new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
+      //new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );2.-
       break;
     case 4: //SS + Al:
       zpos_temp += bbcalshield_ss->GetZHalfLength();
-      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_mother_log, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_ss_log, "bbcal_shield_ss_phys", bbcal_mother_log, false, 0, chkoverlap );
       zpos_temp += bbcalshield_ss->GetZHalfLength() + bbcalshield_al->GetZHalfLength();
-      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_mother_log, false, 0 );
+      new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_shield_al_log, "bbcal_shield_al_phys", bbcal_mother_log, false, 0, chkoverlap );
       //new G4PVPlacement( 0, G4ThreeVector( (-bbmagwidth+3.0*cm)/2.0, 0, -detboxdepth/4.0), bbcal_shield_side_ss_log, "bbcal_shield_side_ss_phys", bbdetLog, false, 0 );
       zpos_temp += bbcalshield_al->GetZHalfLength();
     default:  //do nothing here; no "extra" shielding:
       break;
     }
-
+    zpos_temp = -0.5*bbcal_total_thick+shielding_space;
     //Place front mu-metal foil and front steel plate?
-    zpos_temp += bbcalfrontmufoil->GetZHalfLength();
-    new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_front_mufoil_log, "bbcal_front_mufoil_phys", bbcal_mother_log, false, 0 );
-    zpos_temp += bbcalfrontmufoil->GetZHalfLength() + bbcalfrontsteelplate->GetZHalfLength();
-    new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp ), bbcal_front_steelplate_log, "bbcal_front_steelplate_phys", bbcal_mother_log, false, 0 );
+    //EPAF:2020/02/28: remove all mu metal foils
+    //zpos_temp += bbcalfrontmufoil->GetZHalfLength();
+    //new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_front_mufoil_log, "bbcal_front_mufoil_phys", bbcal_mother_log, false, 0, chkoverlap );
+    zpos_temp += //bbcalfrontmufoil->GetZHalfLength() + 
+      bbcalfrontsteelplate->GetZHalfLength();
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp ), bbcal_front_steelplate_log, "bbcal_front_steelplate_phys", bbcal_mother_log, false, 0, chkoverlap );
     zpos_temp += bbcalfrontsteelplate->GetZHalfLength();
   }
   
-  //At this stage, zpos_temp = -bbcal_total_thick/2 + total shielding thickness!
+  //At this stage, zpos_temp = -bbcal_total_thick/2 + total shielding thickness! 
+  // NO: zpos_temp = -bbcal_total_thick/2+shielding_space+ front mu-metal foil and front steel plate thickness
 
   // **** BIGBITE PRESHOWER **** 
   // 2 columns, 27 rows
@@ -640,34 +687,72 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   double pswidth  = 2.0*37.0*cm;
   double psdepth  = 8.5*cm;
 
+  if(fBBPSOption>=1){
+    psdepth = 9.0*cm;
+    psheight = psdepth*25;
+    if(fBBPSOption==2)psheight+=psdepth;
+  }
+
   G4Box *bbpsbox = new G4Box("bbpsbox", pswidth/2.0, psheight/2.0, psdepth/2.0 );
   G4LogicalVolume *bbpslog = new G4LogicalVolume(bbpsbox, GetMaterial("Air"), "bbpslog");
   //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth/2.0), bbpslog, "bbpsphys", bbdetLog, false, 0);
+  G4cout << "bb ps front (mm) "<< detoffset + fBBCaldist+bbcal_total_thick/2.+zpos_temp+detboxdepth/2.0 << endl;
   zpos_temp += psdepth/2.0;
-  new G4PVPlacement(0, G4ThreeVector( 0, 0, zpos_temp ), bbpslog, "bbpsphys", bbcal_mother_log, false, 0 );
+  new G4PVPlacement(0, G4ThreeVector( 0, 0, zpos_temp ), bbpslog, "bbpsphys", bbcal_mother_log, false, 0, chkoverlap );
+  zpos_temp += psdepth/2.0 + bbcalfrontsteelplate->GetZHalfLength();
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp ), bbcal_front_steelplate_log, "bbcal_front_steelplate_phys", bbcal_mother_log, false, 0, chkoverlap );
+  zpos_temp += bbcalfrontsteelplate->GetZHalfLength();
+  
   
   //placement of second mu-metal foil behind the PS
-  zpos_temp += psdepth/2.0 + bbcalfrontmufoil->GetZHalfLength();
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_front_mufoil_log, "bbcal_back_mufoil_phys", bbcal_mother_log, false, 0 );
+  //zpos_temp += psdepth/2.0 + bbcalfrontmufoil->GetZHalfLength();
+  //new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), bbcal_front_mufoil_log, "bbcal_back_mufoil_phys", bbcal_mother_log, false, 0, chkoverlap );
   // Preshower module - geometry will be assigned after Shower
-
+  
+  //Aluminum foil for Al "honeycomb"
+  zpos_temp += hodosupportAlplate->GetZHalfLength()/2.0+2.54*cm;
+  new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), hodosupportAlplate_log, "hodosupportAlplate_phys", bbcal_mother_log, false, 0, chkoverlap );
+  zpos_temp += hodosupportAlplate->GetZHalfLength()/2.0;
+  //zpos_temp += 1.905*cm-2*bbcalfrontmufoil->GetZHalfLength();
+  //new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), honeycombAlplate_log, "honeycombplatefront2_phys", bbcal_mother_log, false, 0, chkoverlap );
+  
   // **** BIGBITE HODOSCOPE **** 
   // Scintillator box - same dimensions as preshower
-  double bbhododepth = 8.8*cm;// logic volume...
+  G4int n_bbhodoslats = 90;
   double bbslat_length = 60.0*cm;
   double bbslat_section = 2.5*cm;
+  // logic volume dimensions...
+  double bbhododepth = bbslat_section;
+  double bbhodoheight= bbslat_section*n_bbhodoslats;
+  double bbhodowidth = bbslat_length;
+  
   G4Box *bbhodobox = new G4Box("bbhodobox", pswidth/2.0, psheight/2.0, bbhododepth/2.0 );
   G4LogicalVolume *bbhodolog = new G4LogicalVolume( bbhodobox, GetMaterial("Air"), "bbhodolog" );
   //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + 0.217*2.54 + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
-  zpos_temp += bbcalfrontmufoil->GetZHalfLength() + bbhododepth/2.0;
-  new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
+  G4cout << "BB hodo front (mm) " << detoffset + fBBCaldist+bbcal_total_thick/2.+zpos_temp+detboxdepth/2.0+1.0*mm << endl;
+  zpos_temp += bbhododepth/2.0+1.0*mm;
+  new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0, chkoverlap );
   bbhodolog->SetVisAttributes(G4VisAttributes::Invisible);
-
-  zpos_temp += bbhododepth/2.0;
+  // zpos_temp += bbhododepth/2.0+honeycombAlplate->GetZHalfLength();
+  // new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), honeycombAlplate_log, "honeycombplateback1_phys", bbcal_mother_log, false, 0, chkoverlap );
+  // zpos_temp += 1.905*cm-2*bbcalfrontmufoil->GetZHalfLength();
+  // new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), honeycombAlplate_log, "honeycombplateback2_phys", bbcal_mother_log, false, 0, chkoverlap );
+ 
+  //zpos_temp +=3.175*cm;
+  
   //
-  G4Box *bbhodoslatbox = new G4Box("bbhodoslat", bbslat_length/2.0, bbslat_section/2.0, bbslat_section/2.0);
+  G4Box *bbhodoslatbox = new G4Box("bbhodoslatbox", bbslat_length/2.0, bbslat_section/2.0, bbslat_section/2.0);
+  /*
+  G4Box* mylarboxhollow = new G4Box("mylarboxhollow", bbslat_length/2.0, bbslat_section/2.0-mylarthickness, bbslat_section/2.0-mylarthickness);
+  G4SubtractionSolid* mylarwrap = new G4SubtractionSolid("mylarwrap", VetoElemBox, MylarBoxHollow, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  
+  G4LogicalVolume *mylarwrap_log = new G4LogicalVolume( MylarWrap, GetMaterial("Mylar"), "mylarwrap_log" );
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), MylarWrapLog, "mylarwrap_phys", VetoElemLog, false, 0, checkOL);
+   
+  G4Box *bbhodoscintbox = new G4Box("bbhodoscint", bbslat_length/2.0, bbslat_section/2.0-mylar_air_sum, bbslat_section/2.0-mylar_air_sum);
+  */
   G4LogicalVolume *bbhodoslatlog = new G4LogicalVolume( bbhodoslatbox, GetMaterial("BBHodo_Scinti"), "bbhodoslatlog" );
   bbhodoslatlog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
   
@@ -705,11 +790,11 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   currentline.Form("# %15s, %15s, %15s, %18s, %18s",
 		   "Cell", "Row", "Column", "Xcenter", "Ycenter" );
   
-  G4int n_bbhodoslats = 90;
   for(int i_bbhslat = 0; i_bbhslat<n_bbhodoslats; i_bbhslat++){
     G4double y_slat = n_bbhodoslats*bbslat_section/2.0-(G4double(i_bbhslat)+0.5)*bbslat_section;
-    G4double z_slat = -bbhododepth/2.0-0.5*mm+0.217*2.54*cm+bbslat_section/2.0;
-    new G4PVPlacement( 0, G4ThreeVector(0, y_slat, z_slat), bbhodoslatlog, "bbhodoslatphys", bbhodolog, false, i_bbhslat );
+    //G4double z_slat = -bbhododepth/2.0-0.5*mm+0.217*2.54*cm+bbslat_section/2.0;
+    G4double z_slat = 0.0;// in the middle -sound about right provided it is sandwiched between 2 honeycombs - which will add in later
+    new G4PVPlacement( 0, G4ThreeVector(0, y_slat, z_slat), bbhodoslatlog, "bbhodoslatphys", bbhodolog, false, i_bbhslat, chkoverlap );
     (BBHodoScintSD->detmap).Col[i_bbhslat] = 0;
     (BBHodoScintSD->detmap).Row[i_bbhslat] = i_bbhslat;
     (BBHodoScintSD->detmap).LocalCoord[i_bbhslat] = G4ThreeVector( 0, y_slat,  z_slat);
@@ -732,9 +817,16 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *bbshowerlog = new G4LogicalVolume(bbshowerbox, GetMaterial("Air"), "bbshowerlog");
   //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+bbhododepth+caldepth/2.0), bbshowerlog, "bbshowerphys", bbdetLog, false, 0);
   //new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth + bbhododepth + caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
-
   
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_total_thick/2.0 - caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
+  zpos_temp = bbcal_total_thick/2.0 - caldepth - 1.905*cm+honeycombAlplate->GetZHalfLength()/2.0;
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), honeycombAlplate_log, "honeycombplate1_phys", bbcal_mother_log, false, 0, chkoverlap );
+  zpos_temp+=1.905*cm-honeycombAlplate->GetZHalfLength();
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_total_thick/2.0 - caldepth + honeycombAlplate->GetZHalfLength()/2.0-1.905*cm), honeycombAlplate_log, "honeycombplate2_phys", bbcal_mother_log, false, 0, chkoverlap );
+  zpos_temp+=honeycombAlplate->GetZHalfLength()/2.0;
+
+  G4cout << "BB SH front (m) " << detoffset + fBBCaldist+bbcal_total_thick-caldepth+detboxdepth/2.0 << endl;
+  
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_total_thick/2.0 - caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0, chkoverlap );
   
 
   // Shower module:
@@ -813,10 +905,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   // Put everything in a BB Shower Module
   int shower_copy_number = 0;
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-bbpmtz)/2.0), bbpmtcathodelog,"bbcathodephys", showermodlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*bbpmtz)/2.0), bbpmtwindowlog, "bbwindowphys", showermodlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbTF1log, "bbTF1phys", showermodlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -bbpmtz), bbmylarwraplog, "bbmylarphys", showermodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-bbpmtz)/2.0), bbpmtcathodelog,"bbcathodephys", showermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*bbpmtz)/2.0), bbpmtwindowlog, "bbwindowphys", showermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbTF1log, "bbTF1phys", showermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -bbpmtz), bbmylarwraplog, "bbmylarphys", showermodlog, false, 0, chkoverlap );
 
   mapfile.open("database/BBSH_blockmap.txt");
 
@@ -841,7 +933,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
       mapfile << currentline << endl;
       
-      new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,0.0), showermodlog, "showermodphys", bbshowerlog, false, shower_copy_number);
+      new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,0.0), showermodlog, "showermodphys", bbshowerlog, false, shower_copy_number, chkoverlap);
       
       (BBSHSD->detmap).LocalCoord[shower_copy_number] = G4ThreeVector( xtemp,ytemp,(caldepth-bbpmtz)/2.0  );
       (BBSHTF1SD->detmap).LocalCoord[shower_copy_number] = G4ThreeVector( xtemp, ytemp, (caldepth-4*bbpmtz-bbTF1_z)/2.0 );
@@ -857,14 +949,23 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 		   "Cell", "Row", "Column", "Xcenter", "Ycenter" );
 
   mapfile << currentline << endl;
-
+  
+  if(fBBPSOption>0){
+    bbmodule_x = bbmodule_y = 9.0*cm;
+  }
   // ****Preshower Continued****
   // Reusing modules from Shower (same variables), rotated by either +/- 90 deg depending on column #
   G4Box *preshowermodbox = new G4Box( "preshowermodbox", bbmodule_x/2.0, bbmodule_y/2.0, caldepth/2.0 );
   G4LogicalVolume *preshowermodlog = new G4LogicalVolume( preshowermodbox, GetMaterial("Special_Air"), "preshowermodlog" );
  
   // Preshower TF1 SD of type CAL
-  G4LogicalVolume *bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF5"), "bbpsTF1log" );
+  G4LogicalVolume *bbpsTF1log;
+  if(fBBPSOption==0){
+    bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF5"), "bbpsTF1log" );
+  }else{
+    bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbpsTF1log" );
+  }
+  G4cout << "BBPS blocks material is " << bbpsTF1log->GetMaterial()->GetName() << G4endl;
 
   G4String BBPSTF1SDname = "Earm/BBPSTF1";
   G4String BBPSTF1collname = "BBPSTF1HitsCollection";
@@ -894,8 +995,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   }
 
   // Preshower PMT SD of type ECAL
-  G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpspmtcathodelog" );
+  //G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpspmtcathodelog" );
 
+  G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_BB"), "bbpspmtcathodelog" );
+  
   G4String BBPSSDname = "Earm/BBPS";
   G4String BBPScollname = "BBPSHitsCollection";
   G4SBSECalSD *BBPSSD = NULL;
@@ -912,10 +1015,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   fDetCon->InsertSDboundaryVolume( bbcal_mother_log->GetName(), BBPSSDname );
   
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-bbpmtz)/2.0), bbpspmtcathodelog,"bbpscathodephys", preshowermodlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*bbpmtz)/2.0), bbpmtwindowlog, "bbpswindowphys", preshowermodlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbpsTF1log, "bbpsTF1phys", preshowermodlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -bbpmtz), bbmylarwraplog, "bbpsmylarphys", preshowermodlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-bbpmtz)/2.0), bbpspmtcathodelog,"bbpscathodephys", preshowermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*bbpmtz)/2.0), bbpmtwindowlog, "bbpswindowphys", preshowermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbpsTF1log, "bbpsTF1phys", preshowermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -bbpmtz), bbmylarwraplog, "bbpsmylarphys", preshowermodlog, false, 0, chkoverlap );
   
   G4RotationMatrix *bbpsrm_col1 = new G4RotationMatrix;
   bbpsrm_col1->rotateY(-90.0*deg);
@@ -924,6 +1027,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   int bbpscol = 2;
   int bbpsrow = 27;
+  if(fBBPSOption==1)bbpsrow = 25;
+  if(fBBPSOption==2)bbpsrow = 26;
   int ps_copy_number = 0;
   for(int l=0; l<bbpscol; l++) {
     for(int j=0; j<bbpsrow; j++) {
@@ -940,13 +1045,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       mapfile << currentline << endl;
       
       if(l==0) { 
-	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
+	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number, chkoverlap );
 	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp+caldepth/2.0-bbpmtz/2.0, ytemp, 0.0);
 	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
 	ps_copy_number++;
       }
       if(l==1) {
-	new G4PVPlacement( bbpsrm_col2, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number );
+	new G4PVPlacement( bbpsrm_col2, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number, chkoverlap );
 	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-caldepth/2.0+bbpmtz/2.0, ytemp, 0.0);
 	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
 	ps_copy_number++;
@@ -1062,16 +1167,20 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   G4SBSGrinch *grinch = new G4SBSGrinch(fDetCon);
   grinch->SetZOffset( detoffset + fCerDist );
-  grinch->SetCerDepth( fCerDepth);
-  grinch->BuildComponent(bbdetLog);
+  grinch->SetCerDepth( fCerDepth );
   grinch->SetGrinchGas( fGRINCHgas );
-
+  grinch->SetTurnOnPMTglassHits( fTurnOnGrinchPMTglassHits );
+  grinch->BuildComponent( bbdetLog );
+  
+  //Shielding for UVA GEM
+  G4Box *Shield_backgem_box = new G4Box("Shield_backgem_box", 0.5*65*cm, 0.5*210*cm, 0.5*2.54*cm);
+  G4LogicalVolume *Shield_backgem_log = new G4LogicalVolume(Shield_backgem_box, GetMaterial("CH2"), "Shield_backgem_log");//GetMaterial("CDET_Acrylic") ???
+  //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fCerDist+fCerDepth+0.51*2.54*cm ), Shield_backgem_log, "", bbdetLog, false, 0, true);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fGEMDist - 0.51*2.54*cm -1.6*cm ), Shield_backgem_log, "", bbdetLog, false, 0, true);
 }
 
 /*
 //So be it, that'll be settled later (EF)
-//<<<<<<< HEAD 
-//=======
 void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
   G4cout << "Building DVCS ECal with following material: " << fDVCSECalMaterial << endl;
   G4bool defined_mat = false;
@@ -1729,7 +1838,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   const char* hcf_mat_name = "Special_Air";
   hc_visAtt->SetVisibility(0);
   
-  //EFuchey 2017-01-11: Declaring sensitive detector for light guide 
+  //EPAF 2017-01-11: Declaring sensitive detector for light guide 
   // shall be temporary, and not end in the repo...
   // G4String ECalLGSDname = "Earm/ECalLG";
   // G4String ECalLGcollname = "ECalLGHitsCollection";
@@ -1754,7 +1863,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   G4Tubs *LightGuide_38 = new G4Tubs("LightGuide_38", 0.0, 2.5*cm/2.0, (depth_lightguide_short+depth_38-depth_38)/2.0, 0.0*deg, 360.0*deg );
   G4LogicalVolume *LightGuide_38_log = new G4LogicalVolume( LightGuide_38, GetMaterial("Pyrex_Glass"), "LightGuide_38_log" );
 
-  //EFuchey 2017-01-11: Need to make sensitive the three volumes above, to measure their dose.
+  //EPAF 2017-01-11: Need to make sensitive the three volumes above, to measure their dose.
   // shall be temporary, and not end in the repo...
   // LightGuide_42_log->SetSensitiveDetector( ECalLGSD );
   // LightGuide_40_log->SetSensitiveDetector( ECalLGSD );
@@ -1868,6 +1977,11 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   //Make lead-glass and place in modules:
   
   if( fDetCon->GetC16Segmentation() <= 0 ){
+    /*
+    // EPAF:2017/03/03 Was that correct anyhow ??? Don't think so...
+    // block section shall be: module_section - 2*mylar_thick - 2*airthick ( - 2*hcf_thick, but I added that)
+    G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", width_42/2.0 - mylar_thick - air_thick, width_42/2.0 - mylar_thick - air_thick, (depth_42 - mylar_thick - air_thick)/2.0 );
+    G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
 
     // // EFuchey:2017/03/03 Was that correct anyhow ??? Don't think so...
     // // block section shall be: module_section - 2*mylar_thick - 2*airthick ( - 2*hcf_thick, but I added that)
@@ -2135,7 +2249,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  // new G4PVPlacement( 0, LGpos, LightGuide_42_log, "LightGuide_42_phys", earm_mother_log, false, icell );
 	  // new G4PVPlacement( 0, LGpos, LGWrap_42_log, "LGWrap_42_phys", earm_mother_log, false, icell );
 
-	  // //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
+	  // //EPAF 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
 	  // // shall be temporary, and not end in the repo...
 	  // (ECalLGSD->detmap).Row[icell] = global_row;
 	  // (ECalLGSD->detmap).Col[icell] = col;
@@ -2225,7 +2339,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  // new G4PVPlacement( 0, LGpos, LightGuide_40_log, "LightGuide_40_phys", earm_mother_log, false, icell );
 	  // new G4PVPlacement( 0, LGpos, LGWrap_40_log, "LGWrap_40_phys", earm_mother_log, false, icell );
 	  
-	  //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
+	  //EPAF 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
 	  // shall be temporary, and not end in the repo...
 	  // (ECalLGSD->detmap).Row[icell] = global_row;
 	  // (ECalLGSD->detmap).Col[icell] = col;
@@ -2312,7 +2426,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  // new G4PVPlacement( 0, LGpos, LightGuide_38_log, "LightGuide_38_phys", earm_mother_log, false, icell );
 	  // new G4PVPlacement( 0, LGpos, LGWrap_38_log, "LGWrap_38_phys", earm_mother_log, false, icell );
 
-	  //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
+	  //EPAF 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
 	  // shall be temporary, and not end in the repo...
 	  // (ECalLGSD->detmap).Row[icell] = global_row;
 	  // (ECalLGSD->detmap).Col[icell] = col;
@@ -3506,8 +3620,206 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
 }
 
 //Sieve slit
-void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog)
+void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVector pos)
 {
+  G4double bbsievew = 14.75*2.54*cm;
+  G4double bbsieveh = 27.50*2.54*cm;
+  G4double bbsieved = 1.50*2.54*cm;
+  
+  //BigBite Sieve Slit is a box with holes:
+  G4Box *BBsieveplate_box = new G4Box("BBsieveplate_box", bbsievew/2.0, bbsieveh/2.0, bbsieved/2.0 );
+
+  //Next, need to make cuts:
+  G4double bbsieve_holediameter = 0.750*2.54*cm;
+  G4double bbsieve_holeradius = bbsieve_holediameter/2.0;
+
+  G4double bbsieve_holeangle1 = 18.0*deg;
+  
+  G4Tubs *bbsieveholecut = new G4Tubs("bbsieveholecut", 0.0, bbsieve_holeradius, bbsieved/cos(18.0*deg),0.0,360.0*deg);
+
+  const G4int bbsieve_nrows = 13;
+  const G4int bbsieve_ncols = 7;
+
+  //Now we are going to attempt to cut holes in the sieve plate. Then we will deal with the slots:
+  G4double bbsieve_holespaceY = 1.50*2.54*cm;
+  G4double bbsieve_holespaceX = 49.2*mm; 
+
+  //There are four areas where we need horizontal slots; these are in row 4, columns 2-3 and 4-5
+  //row 10, columns 3-5, and row 12, column 5-6. These can be accomplished by the union of a box with two cylinders
+ 
+  
+  //We will need five rotation matrices to make the cuts (actually four since one is the identity):
+  //G4RotationMatrix *bbsrot1 = new G4RotationMatrix;
+  //bbsrot1->rotateX( -18.0*deg );
+  //G4RotationMatrix *bbsrot2 = new G4RotationMatrix;
+  //bbsrot2->rotateX( -9.0*deg );
+
+  //G4RotationMatrix *bbsrot3 = new G4RotationMatrix;
+  //bbsrot3->rotateX( +9.0*deg );
+  //G4RotationMatrix *bbsrot4 = new G4RotationMatrix;
+  //bbsrot4->rotateX( +18.0*deg );
+
+  G4Box *Slot1Box = new G4Box("Slot1Box", bbsieve_holespaceY/2.0, bbsieve_holeradius, bbsieved/cos(18.0*deg) );
+  G4Box *Slot2Box = new G4Box("Slot2Box", bbsieve_holespaceY, bbsieve_holeradius, bbsieved/cos(18.0*deg) );
+			      
+  
+  G4double alpha1 = 9.0*deg;
+  G4double alpha2 = 18.0*deg;
+  
+  G4ThreeVector bbsieveTopFrontCornerPos( 0, bbsieveh/2.0, -bbsieved/2.0 );
+  G4ThreeVector bbsieveBottomFrontCornerPos( 0, -bbsieveh/2.0, -bbsieved/2.0 );
+
+  G4SubtractionSolid *BBSievePlateCut;
+
+  bool first=true;
+  
+  for( int irow=-6; irow<=6; irow++ ){
+
+    for( int icol=-3; icol<=3; icol++ ){
+      G4ThreeVector xhat_temp, yhat_temp, zhat_temp, r0_hole; 
+      
+      G4double stemp;
+
+      G4RotationMatrix *rot_temp = new G4RotationMatrix;
+      
+      if( irow < -4 ){ //bottom two rows:
+	xhat_temp = G4ThreeVector(0.0, cos(alpha2), sin(alpha2) );
+	yhat_temp = G4ThreeVector(1.0, 0.0, 0.0 );
+	zhat_temp = xhat_temp.cross(yhat_temp).unit();
+	
+	r0_hole = bbsieveBottomFrontCornerPos + xhat_temp*(1.942*2.54*cm + (irow+6)*1.938*2.54*cm);
+	//Now compute the intersection of this with the z=0 plane:
+	// (r0hole + s*nhat) dot uhat = 0;
+	//s nhat dot uhat = -r0hole.uhat;
+	stemp = -r0_hole.z() / zhat_temp.z();
+
+	rot_temp->rotateX( -alpha2 );
+	
+      } else if( irow < -1 ){ //next three rows: -4, -3, -2 
+	xhat_temp = G4ThreeVector(0.0, cos(alpha1), sin(alpha1) );
+	yhat_temp = G4ThreeVector(1.0, 0.0, 0.0 );
+	zhat_temp = xhat_temp.cross(yhat_temp).unit();
+
+	r0_hole = bbsieveBottomFrontCornerPos + xhat_temp*(149.3*mm + (irow+4)*1.938*2.54*cm);
+
+	stemp = -r0_hole.z() / zhat_temp.z();
+
+	rot_temp->rotateX( -alpha1 );
+      } else if( irow < 2 ){ //middle three rows: -1, 0, 1
+	xhat_temp = G4ThreeVector(0,1,0);
+	yhat_temp = G4ThreeVector(1,0,0);
+	zhat_temp = xhat_temp.cross(yhat_temp).unit();
+
+	r0_hole = xhat_temp*irow*1.938*2.54*cm;
+
+	stemp = 0.0;
+      } else if( irow < 5 ){ //next three rows:
+	xhat_temp = G4ThreeVector(0.0, -cos(alpha1), sin(alpha1) );
+	yhat_temp = G4ThreeVector(1,0,0);
+	zhat_temp = xhat_temp.cross(yhat_temp).unit();
+
+	r0_hole = bbsieveTopFrontCornerPos + xhat_temp*(149.3*mm + (4-irow)*1.938*2.54*cm);
+
+	stemp = -r0_hole.z()/zhat_temp.z();
+
+	rot_temp->rotateX( alpha1 );
+      } else { //top two rows:
+	xhat_temp = G4ThreeVector(0.0, -cos(alpha2), sin(alpha2) );
+	yhat_temp = G4ThreeVector(1,0,0);
+	zhat_temp = xhat_temp.cross(yhat_temp).unit();
+
+	r0_hole = bbsieveTopFrontCornerPos + xhat_temp*(1.942*2.54*cm + (6-irow)*1.938*2.54*cm);
+
+	rot_temp->rotateX( alpha2 );
+      }
+      
+      G4ThreeVector holepos = r0_hole + stemp * zhat_temp + icol*bbsieve_holespaceY*yhat_temp;
+    
+      G4SubtractionSolid *NextCut;
+      if( first ){
+	first = false;
+	NextCut = new G4SubtractionSolid( "NextCut", BBsieveplate_box, bbsieveholecut, rot_temp, holepos );
+      } else {
+	NextCut = new G4SubtractionSolid( "NextCut", BBSievePlateCut, bbsieveholecut, rot_temp, holepos );
+      }
+
+      //Copy "NextCut" to BBSievePlateCut and then delete NextCut
+      //BBSievePlateCut = new G4SubtractionSolid( *NextCut );
+
+      BBSievePlateCut = NextCut;
+      BBSievePlateCut->SetName("BBSievePlateCut");
+
+      if( irow == -3 && (icol == -2 || icol == 1 ) ){ //Cut two rectangular slots between columns -2--1 and columns 1-2
+	holepos += 0.5*bbsieve_holespaceY*yhat_temp;
+	NextCut = new G4SubtractionSolid( "NextCut", BBSievePlateCut, Slot1Box, rot_temp, holepos );
+
+	BBSievePlateCut = NextCut;
+	BBSievePlateCut->SetName("BBSievePlateCut");
+	// delete NextCut;      
+      }
+
+      if( irow == 3 && icol == 0 ){
+	NextCut = new G4SubtractionSolid( "NextCut", BBSievePlateCut, Slot2Box, rot_temp, holepos );
+
+	BBSievePlateCut = NextCut;
+	BBSievePlateCut->SetName("BBSievePlateCut");
+	
+      }
+
+      if( irow == 5 && icol == -2 ){
+	holepos += 0.5*bbsieve_holespaceY*yhat_temp;
+	NextCut = new G4SubtractionSolid( "NextCut", BBSievePlateCut, Slot1Box, rot_temp, holepos );
+
+	BBSievePlateCut = NextCut;
+	BBSievePlateCut->SetName("BBSievePlateCut");	
+      }
+    }
+    
+    
+    
+  }
+
+  G4LogicalVolume *BBSievePlate_log = new G4LogicalVolume( BBSievePlateCut, GetMaterial("Lead"), "BBSievePlate_log" );
+
+  //Next we have to figure out where this sits in relation to the BB magnet: Naively we want it just in front of the coils:
+  new G4PVPlacement( 0, pos, BBSievePlate_log, "BBSievePlate_phys", motherlog, 0, false, 0 );
+  
   printf("Building BB sieve slit...\n");
 }
  
+
+
+void G4SBSEArmBuilder::MakeHallCGEM(G4LogicalVolume *motherlog){
+  G4SBSTrackerBuilder trackerbuilder(fDetCon);
+  
+  //This routine creates and positions GEM plane in Hall
+
+  //---Hall C GEM-------//
+  G4double z0 = fBBdist;//m
+
+  G4Box* HCGEMBox =  new G4Box("HCGEMBox", 10.0*cm, 10.0*cm, 2.0*cm);
+  
+  G4LogicalVolume* HCGEMlog = new G4LogicalVolume(HCGEMBox, GetMaterial("Air"),
+						  "HCGEMLog", 0, 0, 0);
+  HCGEMlog->SetVisAttributes(G4VisAttributes::Invisible);
+  G4RotationMatrix *HCGEMrot = new G4RotationMatrix();
+  
+  HCGEMrot->rotateY(-fBBang);
+  new G4PVPlacement(HCGEMrot, G4ThreeVector(z0*sin(fBBang), 0.0, z0*cos(fBBang)),
+		    HCGEMlog, "HCGEMPhysical", motherlog, 0,false,0);
+ 
+  G4int ngem = 1;
+  vector<double> gemz, gemw, gemh;
+  gemz.resize(ngem);
+  gemw.resize(ngem);
+  gemh.resize(ngem);
+
+  gemz[0] = 0.0;;
+  gemw[0] = 15.36*cm;
+  gemh[0] = 15.36*cm;
+
+  G4RotationMatrix *rot_identity = new G4RotationMatrix;
+  
+  trackerbuilder.BuildComponent(HCGEMlog, rot_identity, G4ThreeVector( 0.0, 0.0, 0.0 ), 1, gemz, gemw, gemh, "Earm/HCGEM" );
+ 
+}

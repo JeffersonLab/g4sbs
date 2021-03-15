@@ -67,7 +67,7 @@ void get_trigger_thresholds_gep( const char *rootfilename, const char *outfilena
     double max = htemp->GetMaximum();
     int binlo = maxbin, binhi = maxbin;
 
-    while( htemp->GetBinContent(binlo--) >= 0.4*max && binlo >= binmin ){};
+    while( htemp->GetBinContent(binlo--) >= 0.6*max && binlo >= binmin ){};
     while( htemp->GetBinContent(binhi++) >= 0.05*max && binhi <= binmax ){};
 
     double xlo = htemp->GetBinCenter( binlo );
@@ -84,6 +84,10 @@ void get_trigger_thresholds_gep( const char *rootfilename, const char *outfilena
       htemp->DrawCopy();
       ctemp->Update();
 
+      gPad->Modified();
+
+      gSystem->ProcessEvents();
+      
       // cout << "fit okay (y/n)?" << endl;
       // TString reply;
       // reply.ReadLine(cin,kFALSE);

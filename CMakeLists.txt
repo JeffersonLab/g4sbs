@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
 # Setup the project
 #
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 project(G4SBS)
 
 # Setup GNUInstallDirs for installation:
@@ -18,7 +18,7 @@ SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 # (but later on when installing)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_LIBDIR}")
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 
 # add the automatically determined parts of the RPATH
 # which point to directories outside the build tree to the install RPATH
@@ -26,10 +26,12 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 
 # the RPATH to be used when installing, but only if it's not a system directory
-LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_LIBDIR}" isSystemDir)
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemDir)
 IF("${isSystemDir}" STREQUAL "-1")
-   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_LIBDIR}")
+   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 ENDIF("${isSystemDir}" STREQUAL "-1")
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 #----------------------------------------------------------------------------
 
@@ -94,17 +96,21 @@ file(GLOB libheaders ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SO
 option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 if(WITH_GEANT4_UIVIS)
   find_package(Geant4 REQUIRED ui_all vis_all)
+#  find_package(Geant4 REQUIRED qt vis_opengl_x11)
+  
 else()
   find_package(Geant4 REQUIRED)
 endif()
 
 include(${Geant4_USE_FILE})
 
-# Generate the dictionary for G4SBS classes deriving from TOb ject:
+# Generate the dictionary for G4SBS classes deriving from TOb ect:
 ROOT_GENERATE_DICTIONARY(
-    G__g4sbsroot                         # path to dictionary to generate
-    "include/G4SBSRunData.hh"         # list of classes to process
-    "include/G4SBSTextFile.hh"
+    G__g4sbsroot                   
+    G4SBSRunData.hh         
+    G4SBSTextFile.hh
+    OPTIONS -I${PROJECT_SOURCE_DIR}/include
+    MODULE g4sbsroot
     LINKDEF "include/G4SBSLinkDef.h"  # ROOT linkDef file
 )
 #----------------------------------------------------------------------------
@@ -113,10 +119,10 @@ ROOT_GENERATE_DICTIONARY(
 add_library(sbscteq STATIC ${cteqsources} ${cteqheaders})
 SET_TARGET_PROPERTIES(sbscteq PROPERTIES COMPILE_FLAGS "-DCTEQ_TBL_PATH=\\\"${PROJECT_SOURCE_DIR}/cteq-tbls\\\"")
 
-add_executable(g4sbs g4sbs.cc ${sources} ${headers} G__g4sbsroot.cxx)
+add_executable(g4sbs g4sbs.cc ${sources} ${headers})
 add_library(g4sbsroot SHARED ${libsources} ${libheaders} G__g4sbsroot.cxx)
 
-target_link_libraries(g4sbs ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
+target_link_libraries(g4sbs g4sbsroot ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
 target_link_libraries(g4sbsroot ${ROOT_LIBRARIES} )
 
 option(WITH_G4SBS_GDML "Build g4sbs with GDML output" OFF)
@@ -251,7 +257,23 @@ endforeach()
 #add_custom_target(G4SBS DEPENDS g4sbs)
 
 # Update header file
-add_custom_target( _gitinfo ALL COMMAND ${PROJECT_SOURCE_DIR}/pullgitinfo.py ${PROJECT_SOURCE_DIR} COMMENT "Creating gitinfo.hh" )
+# First, try to find a suitable version of python
+# Either version 2 or anything >= 3.5 works
+find_package( Python2 )
+if(${Python2_FOUND})
+  set( GIT_INFO_SCRIPT ${PROJECT_SOURCE_DIR}/pullgitinfo.py)
+  set( Python_EXECUTABLE ${Python2_EXECUTABLE})
+else() ## Look for python >= 3.5
+  find_package( Python ) ## The default is to find 3 and above
+  if(${Python_FOUND} AND ${Python_VERSION_MAJOR} GREATER_EQUAL 3 AND
+      ${Python_VERSION_MINOR} GREATER_EQUAL 5)
+      set( GIT_INFO_SCRIPT ${PROJECT_SOURCE_DIR}/pullgitinfo3.py)
+  else() ## No supported version found
+    message(FATAL_ERROR "No suitable version of python found. Need either python2 or python >= 3.5, but found version ${Python_VERSION}")
+  endif()
+endif()
+
+add_custom_target( _gitinfo ALL COMMAND ${Python_EXECUTABLE} ${GIT_INFO_SCRIPT} ${PROJECT_SOURCE_DIR} COMMENT "Creating gitinfo.hh" )
 
 #add_custom_command( TARGET g4sbsroot PRE_BUILD COMMAND ${PROJECT_SOURCE_DIR}/pullgitinfo.py ${PROJECT_SOURCE_DIR} COMMENT "Creating gitinfo.hh")
 
@@ -271,26 +293,26 @@ configure_file(${PROJECT_SOURCE_DIR}/g4sbs.rootrc ${CMAKE_CURRENT_BINARY_DIR}/.r
 
 
 #TODO: figure out how to get the ROOT_GENERATE_DICTIONARY command to do this automatically:
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot_rdict.pcm DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot.rootmap DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/G__g4sbsroot.cxx DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot_rdict.pcm DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libg4sbsroot.rootmap DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/G__g4sbsroot.cxx DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 # 
 
-install(TARGETS g4sbs RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-install(TARGETS sbscteq ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(TARGETS g4sbsroot LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.sh DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.csh DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(TARGETS g4sbs RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS sbscteq ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS g4sbsroot LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.sh DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/g4sbs.csh DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/scripts DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/root_macros DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/farmsub_scripts DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/integration_tests DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/database DESTINATION ${CMAKE_INSTALL_PREFIX}/run_g4sbs_here)
 #install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/run_g4sbs_here ${CMAKE_INSTALL_PREFIX})
-install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
-install(FILES ${dss_grids} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/DSS2007_GRIDS)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES ${dss_grids} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/DSS2007_GRIDS)
 install(FILES ${PROJECT_SOURCE_DIR}/vis.mac ${PROJECT_SOURCE_DIR}/run_example.mac DESTINATION ${CMAKE_INSTALL_PREFIX}/scripts)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/.rootrc DESTINATION ${CMAKE_INSTALL_PREFIX}/run_g4sbs_here)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/root_macros/rootlogon.C DESTINATION ${CMAKE_INSTALL_PREFIX}/root_macros)
@@ -305,9 +327,12 @@ if(INSTALL_SBS_FIELD_MAPS)
   message("Downloading SBS+BB TOSCA map for GMN, 13.5 GeV^2")
   file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GMN13_field_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GMN13_field_newheader.table SHOW_PROGRESS)
 
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEN-RP-tosca_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GEN-RP-tosca_newheader.table SHOW_PROGRESS)
+  file(DOWNLOAD https://userweb.jlab.org/~efuchey/sol_map_03.dat ${CMAKE_CURRENT_BINARY_DIR}/GEN-RP-tosca_newheader.table SHOW_PROGRESS)
+
   message("Other field maps forthcoming... Anybody know how to get CMake to download files AFTER the configure step, during the build step?")
 
   file(GLOB sbs_field_maps ${CMAKE_CURRENT_BINARY_DIR}/*.table ${CMAKE_CURRENT_BINARY_DIR}/map_696A.dat)
 
-  install(FILES ${sbs_field_maps} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/fieldmaps)
+  install(FILES ${sbs_field_maps} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/fieldmaps)
 endif()

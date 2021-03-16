@@ -46,22 +46,7 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
 {
   assert(fDetCon);
   G4cout << "<G4SBSmTPC::G4SBSmTPC>: creating mTPC" << G4endl;
- 
-  fZpos = 0.0*mm;
-  fUseLocalTPCSolenoid = false;
-  fSolUni = false;
-  fSolUniMag = 5.0;// default 5 tesla;
-  fSolTosca = false;
-  fSolToscaScale = 1.0;
-  fSolToscaOffset = 200.0*mm; // default 200mm;
   
-  fTDIStgtWallThick = 0.02*mm; // default
-  
-  // Montgomery July 2018, TDIS mTPC
-  // variables for target
-  ftdis_tgt_diam = 10.0*mm;
-  ftdis_tgt_wallthick = 0.030*mm;
-  ftdis_tgt_len = 400.0*mm; //40cm long
   // variables for mtpc construction
   // taken from M. carmignotto gemc mtpc implementation
   // inner electrode at r=5cm
@@ -89,9 +74,6 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   //
   fmTPCkrypto = false;//by default
   fChkOvLaps = false;//true;//
-
- 
-
 }
 
 void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
@@ -113,7 +95,7 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
   // make a mother shell for mtpc filled with the drift gas
   G4Tubs* mTPCmother_solid = 
     new G4Tubs("mTPCmother_solid", 
-	       ftdis_tgt_diam/2.0, 
+	       fDetCon->fTargetBuilder->GetTargDiameter(),
 	       fmTPC_outelectrode_r, 
 	       mTPC_z_total/2.0, 
 	       0.*deg, 
@@ -174,7 +156,7 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
 }
 
 //G4SBSmTPC *mTPC = NULL;
-
+/*
 void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
 {
   G4cout<<"G4SBSmTPC::BuildTDISTarget: Enter"<<G4endl;
@@ -504,7 +486,7 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
   return;
 
 }
- 
+*/
 //void G4SBSmTPC::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos)
 //{
 //}

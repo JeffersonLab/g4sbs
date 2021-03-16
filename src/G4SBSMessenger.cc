@@ -895,9 +895,9 @@ G4SBSMessenger::G4SBSMessenger(){
   mTPCGasPressureCmd->SetGuidance("Set the pressure of the mTPC gas mix in atm. Default 0.1atm" );
   mTPCGasPressureCmd->SetParameterName("mTPCGasPressure", false);
 
-  mTPCTgtThickCmd = new G4UIcmdWithADouble("/g4sbs/mtpctargetthick", this );
-  mTPCTgtThickCmd->SetGuidance("Set the thickness of the mTPC gas target in mm. Default 0.1atm" );
-  mTPCTgtThickCmd->SetParameterName("mTPCTargetThickness", false);
+  //mTPCTgtThickCmd = new G4UIcmdWithADouble("/g4sbs/mtpctargetthick", this );
+  //mTPCTgtThickCmd->SetGuidance("Set the thickness of the mTPC gas target in mm. Default 0.1atm" );
+  //mTPCTgtThickCmd->SetParameterName("mTPCTargetThickness", false);
 
   mTPCkryptoCmd = new G4UIcmdWithABool("/g4sbs/mtpckrypto", this );
   mTPCkryptoCmd->SetGuidance("Set mTPC RO and GEMs as full absorbers" );
@@ -2418,11 +2418,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double mTPCGasPressure = mTPCGasPressureCmd->GetNewDoubleValue(newValue);
     fdetcon->SetmTPCGasPressure(mTPCGasPressure);
   }
-  // mtpc implementation target wall thickness
-  if( cmd == mTPCTgtThickCmd ){
-    G4double mTPCTgtThick = mTPCTgtThickCmd->GetNewDoubleValue(newValue);
-    fdetcon->fmTPC->SetmTPCTgtWallThick(mTPCTgtThick);
-  }
+  // // mtpc implementation target wall thickness
+  // if( cmd == mTPCTgtThickCmd ){
+  //   G4double mTPCTgtThick = mTPCTgtThickCmd->GetNewDoubleValue(newValue);
+  //   fdetcon->fmTPC->SetmTPCTgtWallThick(mTPCTgtThick);
+  // }
 
   if( cmd == mTPCkryptoCmd ){
     G4bool setmtpckrypto = mTPCkryptoCmd->GetNewBoolValue(newValue);

@@ -67,37 +67,9 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   
   // // Montgomery July 2018, TDIS mTPC
   // // variables for target
-  ftdis_tgt_diam = 10.0*mm;
+  // ftdis_tgt_diam = 10.0*mm;
   ftdis_tgt_wallthick = 0.030*mm;
   ftdis_tgt_len = 400.0*mm; //40cm long
-  
-  // // variables for mtpc construction
-  // // taken from M. carmignotto gemc mtpc implementation
-  // // inner electrode at r=5cm
-  // fmTPC_inelectrode_r = 50.0*mm; //5cm of inner electrode
-  // fmTPC_inelectrode_kaptonthick = 0.002*mm; //2um kapton
-  // fmTPC_inelectrode_authick = 0.0001*mm; //0.1um Au
-  // // outer electrode at r=15cm
-  // fmTPC_outelectrode_r = 150.0*mm; //5cm of inner electrode
-  // fmTPC_outelectrode_kaptonthick = 0.002*mm; //2um kapton
-  // fmTPC_outelectrode_authick = 0.0001*mm; //0.1um Au
-  // // mtpc chambers
-  // fmTPC_cell_len = 50.0*mm; //5cm length cells
-  // fmTPC_Ncells = 10; //10 cells
-  // // readout discs
-  // fmTPC_readout_thick = 0.130*mm; //130um thick "kryptonite" for readout disc
-  // // GEMs
-  // fmTPC_Ngems = 2;
-  // fmTPC_gem_surf1thick = 0.005*mm; // 5um copper surface
-  // fmTPC_gem_dielecthick = 0.05*mm; // 50um dielectric
-  // fmTPC_gem_surf2thick = 0.005*mm; //5um copper surface
-  // fmTPC_gap_readoutGEM = 0.001*mm;
-  // fmTPC_gap_GEMGEM = 0.001*mm;
-  // // HV
-  // fmTPC_HV_thick = 0.05*mm; // 50um say gold?
-  // //
-  // fmTPCkrypto = false;//by default
-  // fChkOvLaps = false;//true;//
   
 }
 
@@ -1917,7 +1889,8 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
 void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   // E. Fuchey:
   // Move this over to the BuildTDISTarget function to avoid overlap between this volume and the target...
-
+  // Force target diameter?
+  fTargDiameter = 10.0*mm;
   // Rachel 23/03/18
   // currently solenoid is local
   // At the moment the mother volume dimension for the solenoid field is fixed to match the tosca field map
@@ -2025,13 +1998,13 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   double capthick  = 0.015;//15um thick Al //0.05*mm;
 
   // volumes for target wall material and cap
-  G4Tubs *targ_tube = new G4Tubs("targ_tube", ftdis_tgt_diam/2.0-ftdis_tgt_wallthick, ftdis_tgt_diam/2.0, ftdis_tgt_len/2.0, 0.*deg, 360.*deg );
-  G4Tubs *targ_cap = new G4Tubs("targ_cap", 0.0, ftdis_tgt_diam/2.0, capthick/2.0, 0.*deg, 360.*deg );
+  G4Tubs *targ_tube = new G4Tubs("targ_tube", fTargDiameter/2.0-ftdis_tgt_wallthick, fTargDiameter/2.0, ftdis_tgt_len/2.0, 0.*deg, 360.*deg );
+  G4Tubs *targ_cap = new G4Tubs("targ_cap", 0.0, fTargDiameter/2.0, capthick/2.0, 0.*deg, 360.*deg );
 
   //fDetCon->InsertTargetVolume( sc_vacuum_log->GetName() );
   
   // target gas material volume and material
-  G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, ftdis_tgt_diam/2.0-ftdis_tgt_wallthick, ftdis_tgt_len/2.0, 0.*deg, 360.*deg );
+  G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, fTargDiameter/2.0-ftdis_tgt_wallthick, ftdis_tgt_len/2.0, 0.*deg, 360.*deg );
   G4LogicalVolume* gas_tube_log = NULL;
   
   if( fTargType == G4SBS::kH2 || fTargType == G4SBS::kNeutTarg ){
@@ -2111,7 +2084,7 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
 
   // make a mother shell for mtpc
   G4Tubs* mTPCmother_solid = 
-    new G4Tubs("mTPCmother_solid", ftdis_tgt_diam/2.0, fmTPC_outelectrode_r, mTPC_z_total/2.0, 0.*deg, 360.*deg );
+    new G4Tubs("mTPCmother_solid", fTargDiameter/2.0, fmTPC_outelectrode_r, mTPC_z_total/2.0, 0.*deg, 360.*deg );
   G4LogicalVolume* mTPCmother_log = 
     new G4LogicalVolume(mTPCmother_solid, GetMaterial("mTPCgas"),"mTPCmother_log");
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), mTPCmother_log,

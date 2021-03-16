@@ -326,7 +326,7 @@ private:
   G4UIcmdWithADouble *mTPCCH4GasRatioCmd;
   G4UIcmdWithADouble *mTPCGasTempCmd;
   G4UIcmdWithADouble *mTPCGasPressureCmd;
-  G4UIcmdWithADouble *mTPCTgtThickCmd;
+  //G4UIcmdWithADouble *mTPCTgtThickCmd;
 
   G4UIcmdWithABool *mTPCkryptoCmd;
 

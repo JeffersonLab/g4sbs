@@ -29,10 +29,7 @@ public:
   void BuildmTPCReadouts(G4LogicalVolume *, G4double, G4double, G4double,  G4double);//, G4SBSmTPCSD *);
   void BuildmTPCGEMs(G4LogicalVolume *, G4double, G4double, G4double, G4double);
   void BuildmTPCGasCells(G4LogicalVolume *, G4double, G4double, G4double, G4double);//, G4SBSmTPCSD *);//, G4SBSmTPCSD *);
-  // void BuildmTPCHVPlanes(G4LogicalVolume *, G4double, G4double, G4double,  G4double, G4SBSmTPCSD *);
-  
-  void SetTarget(G4SBS::Targ_t t){fTargType = t;}
-  
+    
   // EFuchey: 2017/02/10:  This function is now meant to build the cryotarget and target cell only.
   // This function takes as input the mother logical volume, a rotation matrix, and a 3-vector offset.
   void BuildStandardCryoTarget(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector);
@@ -57,20 +54,20 @@ public:
   G4bool GetFlux() const { return fFlux; }
   void SetFlux(G4bool b){fFlux = b;}
   
-  G4bool fUseLocalTPCSolenoid;
-  void SetSolUni(G4bool soluniflag){fSolUni = soluniflag;}
-  void SetSolUniMag(G4double solunimag){fSolUniMag = solunimag;}
-  void SetSolTosca(G4bool soltosflag){fSolTosca = soltosflag;}
-  void SetSolToscaScale(G4double soltosscale){fSolToscaScale = soltosscale;}
-  void SetSolToscaOffset(G4double soltosoffset){ fSolToscaOffset= soltosoffset;}
+  // G4bool fUseLocalTPCSolenoid;
+  // void SetSolUni(G4bool soluniflag){fSolUni = soluniflag;}
+  // void SetSolUniMag(G4double solunimag){fSolUniMag = solunimag;}
+  // void SetSolTosca(G4bool soltosflag){fSolTosca = soltosflag;}
+  // void SetSolToscaScale(G4double soltosscale){fSolToscaScale = soltosscale;}
+  // void SetSolToscaOffset(G4double soltosoffset){ fSolToscaOffset= soltosoffset;}
   
   //mTPC functions
-  void SetmTPCTgtWallThick(double thickness){ftdis_tgt_wallthick = thickness;};
+  //void SetmTPCTgtWallThick(double thickness){ftdis_tgt_wallthick = thickness;};
   void SetmTPCkrypto(bool iskrypto){fmTPCkrypto = iskrypto;};
   
   
   //void SetmTPCmatAtRoomTemp(bool set){};
-  void SetTDIStgtWallThick(double th){fTDIStgtWallThick = th;};
+  //void SetTDIStgtWallThick(double th){fTDIStgtWallThick = th;};
   
 private:
   G4double fTargLen;
@@ -83,22 +80,6 @@ private:
   G4double fZpos;
   G4bool fFlux;
 
-  G4SBS::Targ_t fTargType;
- 
-  // Montgomery 2018, tdis solenoid implement
-  G4bool   fSolUni;
-  G4double fSolUniMag;
-  G4bool   fSolTosca;
-  G4double fSolToscaScale;
-  G4double fSolToscaOffset;
-  
-  G4double fTDIStgtWallThick;
-
-  // Montgomery July 2018, mtpc implement
-  G4double ftdis_tgt_diam;
-  G4double ftdis_tgt_wallthick;
-  G4double ftdis_tgt_len;
-  // variables for mtpc construction
   // taken from M. carmignotto gemc mtpc implementation
   // inner electrode at r=5cm
   G4double fmTPC_inelectrode_r;

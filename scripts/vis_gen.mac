@@ -1,6 +1,4 @@
-#/control/execute gen_10GeV2.mac
-
-## Configure G4SBS for gen (Q^2 = 10.18 GeV^2)
+## Configure G4SBS for gen (Q^2 = 10 GeV^2)
 /g4sbs/filename        gen_10GeV2.root   ## Output rootfile
 
 ## Configure Experiment
@@ -10,7 +8,7 @@
 /g4sbs/target          3He
 /g4sbs/targpres        10 atmosphere     ## Target pressure
 /g4sbs/targlen         55.0 cm           ## Target Length
-/g4sbs/targgenhhconfig 4                 ## Q2 = 10.18 GeV^2 
+/g4sbs/targgenhhconfig 1018              ## Q2 = 10.18 GeV^2 
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator
@@ -18,6 +16,8 @@
 /g4sbs/beamcur         60.0 muA
 /g4sbs/rasterx         4.0 mm
 /g4sbs/rastery         4.0 mm
+/g4sbs/beamoffsetx     0.0 mm 
+/g4sbs/beamoffsety     0.0 mm
 /g4sbs/beamE           8.8 GeV
 /g4sbs/thmin           24.0 deg
 /g4sbs/thmax           44.0 deg
@@ -37,15 +37,29 @@
 
 ## Configure the magnets
 /g4sbs/bbfield         1
+/g4sbs/sbsmagfield 1.4 tesla
 /g4sbs/48d48field      1
 /g4sbs/bbang           34.0 deg
-/g4sbs/bbdist          1.5 m
+/g4sbs/bbdist          1.55 m
 /g4sbs/sbsang          17.5 deg
-/g4sbs/48D48dist       2.8 m
+/g4sbs/48D48dist       2.8 m 
+/g4sbs/uselead	       0
+
+## Optional detectors 
+/g4sbs/beamDiffuserEnable false
+
+## Run 100 events
+#/g4sbs/run             100
+
+
+## Optional detectors 
+/g4sbs/beamDiffuserEnable true 
+/g4sbs/uselead 0
 
 /g4sbs/totalabs true
 
-# /g4sbs/buildBBsieve 1
+## Enable new BB sieve for optics studies 10.5.20
+/g4sbs/buildBBsieve 2
 
 ## Run 100 events
 #/g4sbs/run             100

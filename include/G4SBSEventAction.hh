@@ -21,6 +21,19 @@
 #include "G4SBSTrackerOutput.hh"
 #include "G4SBSParticleOutput.hh"
 #include "sbstypes.hh"
+
+#include "G4SBSBeamDiffuserSD.hh"
+#include "G4SBSBDHit.hh"
+#include "G4SBSBDoutput.hh"
+
+#include "G4SBSIonChamberSD.hh"
+#include "G4SBSICHit.hh"
+#include "G4SBSICoutput.hh"
+
+#include "G4SBSTargetSD.hh"
+#include "G4SBSTargetHit.hh"
+#include "G4SBSTargetoutput.hh"
+
 #include <set> 
 
 using namespace std;
@@ -57,18 +70,25 @@ public:
   void FillRICHData( const G4Event*, G4SBSRICHHitsCollection*, G4SBSRICHoutput &, G4SBSSDTrackOutput & );
   void FillTrackData( G4SBSGEMoutput, G4SBSTrackerOutput & );
   void FillECalData( G4SBSECalHitsCollection*, G4SBSECaloutput &, G4SBSSDTrackOutput & );
-  void FillmTPCData( const G4Event*, G4SBSmTPCHitsCollection*, G4SBSmTPCoutput & );
 
+  // for D Flay studies 
+  void FillBDData(const G4Event *evt,G4SBSBDHitsCollection *hc,G4SBSBDoutput &out); // for the Beam Diffuser (BD)
+  void FillICData(const G4Event *evt,G4SBSICHitsCollection *hc,G4SBSICoutput &out); // for the Ion Chamber (IC)  
+  // void FillGEnGlassCellData(const G4Event *evt,G4SBSTargetHitsCollection *hc,G4SBSTargetoutput &out); // for the GEn target   
+  void FillGEnTargetData(const G4Event *evt,G4SBSTargetHitsCollection *hc,G4SBSTargetoutput &out); // for the GEn target   
+  
+  void FillmTPCData( const G4Event*, G4SBSmTPCHitsCollection*, G4SBSmTPCoutput & );
+  
   //map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run. 
   set<G4String> SDlist;
-  map<G4String, SDet_t> SDtype;
-  //map<G4String, Arm_t> SDarm;
+  map<G4String, G4SBS::SDet_t> SDtype;
+  //map<G4String, G4SBS::Arm_t> SDarm;
   void SetEventStatusEvery(G4int n) { fEventStatusEvery = n; };
 
 private:
   //Hit collection IDs:
   G4int gemCollID, hcalCollID, bbcalCollID, RICHCollID, ECalCollID, mTPCCollID;
-
+  
   //maps associating trajectory index with track ID, parent track ID and particle ID
   //For mother track IDs, we use map, because many tracks can have the same mother. 
   //This map will be an associative mapping between ***TRACK*** ID and mother ID, as opposed to 

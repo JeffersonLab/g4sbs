@@ -64,18 +64,18 @@ G4SBSECal::G4SBSECal(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
 G4SBSECal::~G4SBSECal(){;}
 
 void G4SBSECal::BuildComponent(G4LogicalVolume *worldlog){
-  Exp_t exptype = fDetCon->fExpType;
+  G4SBS::Exp_t exptype = fDetCon->fExpType;
   
-  if( exptype == kGEp || exptype == kGEPpositron ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+  if( exptype == G4SBS::kGEp || exptype == G4SBS::kGEPpositron ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
       //MakeBigCal( worldlog );
       MakeECal_new( worldlog );
     }
-  if( exptype == kC16 ) 
+  if( exptype == G4SBS::kC16 ) 
     {
       MakeC16( worldlog );
     }
-  if( exptype == kNDVCS ) 
+  if( exptype == G4SBS::kNDVCS ) 
     {
       MakeDVCSECal( worldlog );
     }
@@ -226,7 +226,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       earm_mother_SD = new G4SBSCalSD( sdname, collname );
       fDetCon->fSDman->AddNewDetector( earm_mother_SD );
       (fDetCon->SDlist).insert( sdname );
-      fDetCon->SDtype[sdname] = kCAL;
+      fDetCon->SDtype[sdname] = G4SBS::kCAL;
       (earm_mother_SD->detmap).depth = 0;
       
       earm_mother_log->SetSensitiveDetector( earm_mother_SD );
@@ -321,12 +321,12 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     ECalTF1SD = new G4SBSCalSD( ECalTF1SDname, ECalTF1collname );
     fDetCon->fSDman->AddNewDetector( ECalTF1SD );
     (fDetCon->SDlist).insert(ECalTF1SDname);
-    fDetCon->SDtype[ECalTF1SDname] = kCAL;
-    //fDetCon->SDarm[ECalTF1SDname] = kEarm;
+    fDetCon->SDtype[ECalTF1SDname] = G4SBS::kCAL;
+    //fDetCon->SDarm[ECalTF1SDname] = G4SBS::kEarm;
 
     (ECalTF1SD->detmap).depth = 1;
 
-    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 10.0*MeV, 100.0*ns );
+    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 0.0*MeV, 100.0*ns );
   }
 
   fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), ECalTF1SDname );
@@ -468,7 +468,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     ECalSD = new G4SBSECalSD( sdname, collname );
     sdman->AddNewDetector( ECalSD );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kECAL;
+    fDetCon->SDtype[sdname] = G4SBS::kECAL;
     (ECalSD->detmap).depth = 0;
   }
 
@@ -915,7 +915,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   mapfile.close();
   
   // Build CDet:
-  if(fDetCon->fExpType==kGEp || fDetCon->fExpType == kGEPpositron ){
+  if(fDetCon->fExpType==G4SBS::kGEp || fDetCon->fExpType == G4SBS::kGEPpositron ){
     //Next: CH2 filter:
     G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );
     G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
@@ -1042,7 +1042,7 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
     C16SD = new G4SBSECalSD( C16SDname, collname );
     sdman->AddNewDetector( C16SD );
     (fDetCon->SDlist).insert( C16SDname );
-    fDetCon->SDtype[C16SDname] = kECAL;
+    fDetCon->SDtype[C16SDname] = G4SBS::kECAL;
     (C16SD->detmap).depth = 0;
   }
 
@@ -1151,10 +1151,10 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
       C16TF1SD = new G4SBSCalSD( C16TF1SDname, C16TF1collname );
       fDetCon->fSDman->AddNewDetector( C16TF1SD );
       (fDetCon->SDlist).insert( C16TF1SDname );
-      fDetCon->SDtype[C16TF1SDname] = kCAL;
+      fDetCon->SDtype[C16TF1SDname] = G4SBS::kCAL;
       (C16TF1SD->detmap).depth = 1;
 
-      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, 10.0*MeV, 100.0*ns );
+      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, 0.0*MeV, 100.0*ns );
     }
     // Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
@@ -1251,10 +1251,10 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
       C16TF1SD = new G4SBSCalSD( C16TF1SDname, C16TF1collname );
       fDetCon->fSDman->AddNewDetector( C16TF1SD );
       (fDetCon->SDlist).insert( C16TF1SDname );
-      fDetCon->SDtype[C16TF1SDname] = kCAL;
+      fDetCon->SDtype[C16TF1SDname] = G4SBS::kCAL;
       (C16TF1SD->detmap).depth = 0;
 
-      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, 10.0*MeV, 100.0*ns );
+      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, 0.0*MeV, 100.0*ns );
     }
 
     fDetCon->InsertSDboundaryVolume( C16_Log->GetName(), C16TF1SDname );
@@ -1436,7 +1436,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
       earm_mother_SD = new G4SBSCalSD( sdname, collname );
       fDetCon->fSDman->AddNewDetector( earm_mother_SD );
       (fDetCon->SDlist).insert( sdname );
-      fDetCon->SDtype[sdname] = kCAL;
+      fDetCon->SDtype[sdname] = G4SBS::kCAL;
       (earm_mother_SD->detmap).depth = 0;
    
       earm_mother_log->SetSensitiveDetector( earm_mother_SD );
@@ -1593,12 +1593,12 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
     ECalTF1SD = new G4SBSCalSD( ECalTF1SDname, ECalTF1collname );
     fDetCon->fSDman->AddNewDetector( ECalTF1SD );
     (fDetCon->SDlist).insert(ECalTF1SDname);
-    fDetCon->SDtype[ECalTF1SDname] = kCAL;
-    //fDetCon->SDarm[ECalTF1SDname] = kEarm;
+    fDetCon->SDtype[ECalTF1SDname] = G4SBS::kCAL;
+    //fDetCon->SDarm[ECalTF1SDname] = G4SBS::kEarm;
 
     (ECalTF1SD->detmap).depth = 1;
 
-    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 10.0*MeV, 100.0*ns );
+    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 0.0*MeV, 100.0*ns );
   }
 
   fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), ECalTF1SDname );
@@ -1814,7 +1814,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
     ECalSD = new G4SBSECalSD( sdname, collname );
     sdman->AddNewDetector( ECalSD );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kECAL;
+    fDetCon->SDtype[sdname] = G4SBS::kECAL;
     (ECalSD->detmap).depth = 0;
   }
 
@@ -2128,7 +2128,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
   G4LogicalVolume *ECAL_FrontPlate_log = new G4LogicalVolume( ECAL_FrontPlate, GetMaterial("Al"), "ECAL_FrontPlate_log" );
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, zfront_ECAL - depth_ecal_frontplate/2.0 ), ECAL_FrontPlate_log, "ECAL_FrontPlate_phys", earm_mother_log, false, 0 );
 
-  if(fDetCon->fExpType==kGEp){
+  if(fDetCon->fExpType==G4SBS::kGEp){
     //Next: CH2 filter:
     G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );
     G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
@@ -2263,7 +2263,7 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
     DVCSecalBlockSD = new G4SBSCalSD( DVCSecalBlockSDname, DVCSecalBlockcollname );
     sdman->AddNewDetector( DVCSecalBlockSD );
     (fDetCon->SDlist).insert( DVCSecalBlockSDname );
-    fDetCon->SDtype[DVCSecalBlockSDname] = kCAL;
+    fDetCon->SDtype[DVCSecalBlockSDname] = G4SBS::kCAL;
     (DVCSecalBlockSD->detmap).depth = 1;
   }
   DVCSblklog->SetSensitiveDetector( DVCSecalBlockSD ); 
@@ -2292,7 +2292,7 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
     DVCSecalSD = new G4SBSECalSD( DVCSecalSDname, DVCSecalcollname );
     sdman->AddNewDetector( DVCSecalSD );
     (fDetCon->SDlist).insert(DVCSecalSDname);
-    fDetCon->SDtype[DVCSecalSDname] = kECAL;
+    fDetCon->SDtype[DVCSecalSDname] = G4SBS::kECAL;
     (DVCSecalSD->detmap).depth = 1;
   }
   //dvcsblkpmtcathodecallog->SetSensitiveDetector( DVCSecalSD );

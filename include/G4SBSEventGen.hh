@@ -10,6 +10,7 @@
 #include "G4SBSIO.hh"
 #include "DSS2007FF.hh"
 #include "G4SBSPythiaOutput.hh"
+#include "G4SBSUtil.hh"
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
@@ -42,10 +43,10 @@ public:
   // TDIS addition
   G4ThreeVector PiMake();
  
-  Nucl_t GetNucleonType(){ return fNuclType; }
-  Nucl_t GetFinalNucleon(){ return fFinalNucl; }
+  G4SBS::Nucl_t GetNucleonType(){ return fNuclType; }
+  G4SBS::Nucl_t GetFinalNucleon(){ return fFinalNucl; }
 
-  Hadron_t GetHadronType(){ return fHadronType; }
+  G4SBS::Hadron_t GetHadronType(){ return fHadronType; }
 
   double GetPt(){ return fPt; }
   double GetPl(){ return fPl; }
@@ -59,16 +60,28 @@ public:
   void SetBeamE(double c){fBeamE= c; fBeamP = G4ThreeVector(0.0, 0.0, c); }
   void SetRunTime(double t){fRunTime = t;}
   
-  void SetKine(Kine_t t ){fKineType = t;}
-  Kine_t GetKine(){return fKineType;}
+  void SetKine(G4SBS::Kine_t t ){fKineType = t;}
+  G4SBS::Kine_t GetKine(){return fKineType;}
   
-  void SetTarget(Targ_t t ){fTargType = t;}
+  void SetTarget(G4SBS::Targ_t t ){fTargType = t;}
   void SetTargLen(double len){fTargLen = len;}
   void SetTargDen(double den){fTargDen = den;}
   //void SetTargRadLen
   
   void SetRasterX(double v){fRasterX = v;}
   void SetRasterY(double v){fRasterY = v;}
+  
+  void SetRasterRadius(double v){fCircularRasterRadius = v;}
+  void SetBeamSpotSize(double v){fBeamSpotSize = v;}
+
+  // D Flay (Aug 2020) 
+  void SetBeamOffsetX(double v) { fBeamOffsetX = v;} 
+  void SetBeamOffsetY(double v) { fBeamOffsetY = v;}
+
+  // D Flay (Oct 2020) 
+  void SetBeamAngleX(double v)  { fBeamAngleX = v; }
+  void SetBeamAngleY(double v)  { fBeamAngleY = v; }
+  void SetBeamAngleZ(double v)  { fBeamAngleZ = v; }
   
   void SetThMin(double v){fThMin = v;}
   void SetThMax(double v){fThMax = v;}
@@ -96,7 +109,7 @@ public:
   //G4bool ConstantsAreInitialized(){ return fConstantsInitialized; } 
   void InitializeConstants();
   
-  void SetHadronType( Hadron_t h ){fHadronType = h; }
+  void SetHadronType( G4SBS::Hadron_t h ){fHadronType = h; }
 
   void SetHCALDist(double v){ fHCALdist = v;}
   
@@ -168,6 +181,7 @@ private:
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert, fNeutronP, fProton1P, fProton2P;
   G4ThreeVector fHadronP;
   G4ThreeVector fBeamPol;
+  G4ThreeVector fTargPol;
   
   //Define parameters for cosmics generator
   G4ThreeVector fCosmPointer;
@@ -184,7 +198,7 @@ private:
   double fs, ft, fu, fcosthetaCM, fEgamma_lab;
   
   //Define additional kinematic quantities for SIDIS:
-  double fz, fPh_perp, fphi_h, fphi_S, fMx;
+  double fz, fPh_perp, fphi_h, fphi_S, fTheta_S, fMx;
 
   //Define additional kinematic quantities for TDIS
   double fxpi, ftpi, fxd, fnu, fya, fy, ff2p, ff2pi, fxa, fPtTDIS, fypi, fSigmaDIS, fSigmaTDIS;
@@ -195,12 +209,12 @@ private:
   //long    fNtries; //number of "tries" to generate an event (to keep track of efficiency of MC generation).
   double Wfact;
   
-  Nucl_t fNuclType, fFinalNucl;
-  Targ_t fTargType;
-  Kine_t fKineType;
+  G4SBS::Nucl_t fNuclType, fFinalNucl;
+  G4SBS::Targ_t fTargType;
+  G4SBS::Kine_t fKineType;
   
   // Which hadron species are we considering for pi/K SIDIS?
-  Hadron_t fHadronType; //Currently available: pi+/-/0, K+/-, p/pbar
+  G4SBS::Hadron_t fHadronType; //Currently available: pi+/-/0, K+/-, p/pbar
 
   double fThMin, fThMax, fPhMin, fPhMax; //Angular generation limits for electron arm
 
@@ -208,12 +222,20 @@ private:
   double fThMin_had, fThMax_had, fPhMin_had, fPhMax_had; //Angular generation limits for hadron arm 
   double fEhadMin, fEhadMax; //Hadron (total) energy generation limits (for SIDIS case)--Later we will want to add exclusive hadron production.
   double fTargLen, fRasterX, fRasterY, fTargDen; //Targ density is given in atoms or molecules/unit volume
+  double fBeamSpotSize;
+  double fCircularRasterRadius;
   //double fTargRadLen; //Radiation length of target material, regardless of thickness
   double fTargRadLen; //Radiation length of target material
   double fTargUpstreamWindowRadLen;
   double fTargZatomic; //atomic number of target for purposes of any bremsstrahlung calculations:
   // set<G4String> G4TargetMaterialNames; 
-  
+ 
+  // D. Flay (8/25/20).  beam pointing 
+  double fBeamOffsetX,fBeamOffsetY;
+
+  // D. Flay (10/15/20). beam angle 
+  double fBeamAngleX,fBeamAngleY,fBeamAngleZ;  
+ 
   // G4ThreeVector fTargOffset;
   // G4ThreeVector fBeamOffset;
   // G4ThreeVector fBeamDirection;
@@ -238,28 +260,32 @@ private:
   
   G4double fPionPhoto_tmin, fPionPhoto_tmax; //Convert polar angle generation limits to generation limits in -t for pion photoproduction
 
-  //void InitializePionPhotoLimits(Nucl_t);
+  //void InitializePionPhotoLimits(G4SBS::Nucl_t);
   
   //New parameters for Bremsstrahlung generation and photoproduction:
-  bool GeneratePionPhotoproduction( Nucl_t, G4LorentzVector, G4LorentzVector ); //exclusive pion photoproduction:
+  bool GeneratePionPhotoproduction( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector ); //exclusive pion photoproduction:
   //G4bool fConstantsInitialized;
   
-  G4LorentzVector GetInitialNucl( Targ_t, Nucl_t );
+  G4LorentzVector GetInitialNucl( G4SBS::Targ_t, G4SBS::Nucl_t );
   
-  bool GenerateElastic( Nucl_t, G4LorentzVector, G4LorentzVector );
-  bool GenerateInelastic( Nucl_t, G4LorentzVector, G4LorentzVector );
-  bool GenerateDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
-  bool GenerateFlat( Nucl_t, G4LorentzVector, G4LorentzVector );
-  bool GenerateBeam( Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateElastic( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateInelastic( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateDIS( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateFlat( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateBeam( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
   
-  bool GenerateSIDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
-  bool GenerateTDIS( Nucl_t, G4LorentzVector, G4LorentzVector );
-  bool GenerateWiser( Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateSIDIS( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateTDIS( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateWiser( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
   // TDIS AcquMC
   bool GenerateAcquMC(); //Generates primaries from a ROOT Tree containing AcquMC events.
   bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
+
+  // D Flay (10/15/20).  Generate random beam angle based on non-zero file input.  works for beam generator only
+  void CalculateBeamAnglesAndPositions(G4double bd_L,std::vector<G4double> &R,std::vector<G4double> &P);  
 
   G4bool fRejectionSamplingFlag; //Flag to turn on rejection sampling;
   G4double fMaxWeight; //Maximum event weight within generation limits
@@ -269,7 +295,7 @@ private:
   G4bool fInitialized; //consolidate initialization of constant event generator parameters:
   
   double deutpdist( double );
-  double he3pdist( Nucl_t, double );
+  double he3pdist( G4SBS::Nucl_t, double );
 
   double f2p (double);
   double f2pi (double, double, double);

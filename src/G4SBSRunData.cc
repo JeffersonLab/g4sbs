@@ -23,6 +23,7 @@ G4SBSRunData::G4SBSRunData(){
     fGenName[0]  = '\0';
     fGitInfo[0]  = '\0';
     fHostName[0] = '\0';
+    fMagData.clear();
 }
 
 G4SBSRunData::~G4SBSRunData(){
@@ -58,7 +59,62 @@ void G4SBSRunData::Init(){
     }
 }
 
-void G4SBSRunData::Print() const { Print(NULL); }
+// void G4SBSRunData::Print() const { Print(NULL); }
+void G4SBSRunData::Print() const { 
+   // print data to file 
+   std::vector<std::string> line; 
+   char msg[200]; 
+   sprintf(msg,"Run_path,%s",fRunPath);
+   line.push_back(msg);
+   sprintf(msg,"N_generated,%ld",fNthrown);
+   line.push_back(msg);
+   sprintf(msg,"N_tries,%ld",fNtries);
+   line.push_back(msg);
+   sprintf(msg,"Beam_Energy_GeV,%f",fBeamE);
+   line.push_back(msg);
+   sprintf(msg,"Experiment,%s",fExpType);
+   line.push_back(msg);
+   sprintf(msg,"Generator,%s",fGenName);
+   line.push_back(msg);
+   sprintf(msg,"Normalization,%.5g",fNormalization);
+   line.push_back(msg);
+   sprintf(msg,"Generation_Volume,%.5g",fGenVol);
+   line.push_back(msg);
+   sprintf(msg,"Luminosity_s-1_cm-2,%.5g",fLuminosity);
+   line.push_back(msg);
+   sprintf(msg,"BB_central_angle_deg,%.5g",fBBtheta/degree);
+   line.push_back(msg);
+   sprintf(msg,"BB_magnet_distance_m,%.5g",fBBdist);
+   line.push_back(msg);
+   sprintf(msg,"SBS_central_angle_deg,%.5g",fSBStheta/degree);
+   line.push_back(msg);
+   sprintf(msg,"SBS_magnet_distance_m,%.5g",fSBSdist);
+   line.push_back(msg);
+   sprintf(msg,"HCAL_distance_m,%.5g",fHCALdist);
+   line.push_back(msg);
+   sprintf(msg,"HCAL_vertical_offset_cm,%.5g",fHCALvoff*m/cm);
+   line.push_back(msg);
+   sprintf(msg,"RICH_distance_m,%.5g",fRICHdist);
+   line.push_back(msg);
+   sprintf(msg,"SBS_tracker_distance_m,%.5g",fSBSTrackerdist);
+   line.push_back(msg);
+   sprintf(msg,"SBS_tracker_pitch_angle_deg,%.5g",fSBSTrackerPitch/degree);
+   line.push_back(msg);
+   sprintf(msg,"Max_weight_for_rej_sampling,%.5g",fMaxWeight);
+   line.push_back(msg);
+
+   const int NL = line.size(); 
+
+   std::ofstream outfile;
+   outfile.open("run-data.csv"); 
+   if( outfile.fail() ){
+      std::cout << "[G4SBSRunData::Print]: Cannot open the file: run-data.csv" << std::endl;
+   }else{
+      for(int i=0;i<NL;i++) outfile << line[i] << std::endl;
+      outfile.close();
+   }
+
+}
 
 void G4SBSRunData::Print(Option_t *) const {
     printf("git repository info\n-------------------------------------------------\n%s-------------------------------------------------\n\n", fGitInfo);
@@ -131,6 +187,9 @@ TString G4SBSRunData::FindMacro( const char *fn ){
 	return fnametemp;
       }
     }
+
+    tokens->Delete();
+    
     return TString(fn);
   }
 }

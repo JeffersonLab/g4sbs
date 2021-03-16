@@ -94,8 +94,8 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fnzsegments_leadglass_ECAL = 1;
   fnzsegments_leadglass_C16 = 1;
 
-  fBuildBBSieve = false;
-  
+  fBuildBBSieve = 0;
+
   assert(fDetCon);
   
   // fDVCSECalMaterial = G4String("PbF2");
@@ -110,41 +110,44 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
 G4SBSEArmBuilder::~G4SBSEArmBuilder(){;}
 
 void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
-  Exp_t exptype = fDetCon->fExpType;
-  G4SBSECal* ECal = fDetCon->fECal;
   
+  G4SBS::Exp_t exptype = fDetCon->fExpType;
+
   //  The neutron experiments and the SIDIS experiment use BigBite:
   //------------ BigBite: -----------------------------------------------------
-  if( exptype == kGMN || exptype == kGEN || exptype == kSIDISExp || exptype == kA1n || exptype == kGEnRP ) 
+  if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEN || exptype == G4SBS::kSIDISExp || exptype == G4SBS::kA1n  || exptype == G4SBS::kGEnRP ) 
     {
       MakeBigBite( worldlog );
       //Move sieve slit construction to MakeBigBite subroutine:
       //      if(fBuildBBSieve)
       //	MakeBBSieveSlit(worldlog);
     }
-  if( exptype == kGEp || exptype == kGEPpositron ) //Subsystems unique to the GEp experiment include FPP and BigCal:
+  if( exptype == G4SBS::kGEp || exptype == G4SBS::kGEPpositron ) //Subsystems unique to the GEp experiment include FPP and BigCal:
     {
+      G4SBSECal* ECal = fDetCon->fECal;
       ECal->SetAng(fBBang);
       ECal->SetDist(fBBdist);
       ECal->BuildComponent(worldlog);
       //MakeBigCal( worldlog );
     }
-  if( exptype == kC16 ) 
+  if( exptype == G4SBS::kC16 ) 
     {
+      G4SBSECal* ECal = fDetCon->fECal;
       ECal->SetAng(fBBang);
       ECal->SetDist(fBBdist);
       ECal->BuildComponent(worldlog);
       //MakeC16( worldlog );
     }
-  if( (exptype == kGMN || exptype == kGEnRP) && fBuildGEMfrontend )  MakeGMnGEMShielding( worldlog );
+  if( (exptype == G4SBS::kGMN || exptype == G4SBS::kGEnRP) && fBuildGEMfrontend )  MakeGMnGEMShielding( worldlog );
   
-  if( exptype == kNDVCS ){
+  if( exptype == G4SBS::kNDVCS ){
+    G4SBSECal* ECal = fDetCon->fECal;
     ECal->SetAng(fBBang);
     ECal->SetDist(fBBdist);
     ECal->BuildComponent(worldlog);
   }
   
-  if( exptype ==  kGEMHCtest){
+  if( exptype ==  G4SBS::kGEMHCtest){
     MakeHallCGEM(worldlog);
   }
 }
@@ -311,7 +314,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   yokerm->rotateX(180.0*deg);
 
   // Cut mother box
-  G4SubtractionSolid* bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxL", bbmotherBox, bbleftcutTrap, leftcutrot2, G4ThreeVector(-10*eps, 0.0, -motherdepth/2.0+clear));
+  G4SubtractionSolid* bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxL", bbmotherBox, bbleftcutTrap, leftcutrot2, G4ThreeVector(-10*eps, 0.0, -motherdepth/2.0-1.0*m+clear));
   //bbmothercutBox = new G4SubtractionSolid("bbmothercutBoxLR", bbmothercutBox, bbrightcutTrap, rightcutrot2, G4ThreeVector(10*eps, 0.0, -motherdepth/2.0+clear));
   //EPAF: 2017/04/17: commented this line to avoid to have some of the GRINCH PMTs outside of the mother volume.
   //Besides, it is not necessary, as it removes some volume from the mother box which would not interfere with anything anyhow
@@ -341,13 +344,32 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   new G4PVPlacement(yokerm,G4ThreeVector(0.0, 0.0, -motherdepth/2.0+clear),
 		    bbyokewgapLog, "bbyokewgapPhysical", bbmotherLog, false,0, chkoverlap);
 
+
+  
   //Sieve plate position is 13.37 inches ~= 34 cm upstream of front of magnet yoke:
   //Thickness of sieve plate is 1.5 inches
+  //SSeeds - added second sieve option to accomodate new plate 10.4.20
+  //sseeds - added third and fourth for optics studies 11.5.20. Will need to find more efficient way to implement
   
-  if( fBuildBBSieve ){
+ if( fBuildBBSieve == 1 ){ 
     G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
     MakeBBSieveSlit( bbmotherLog, BBSievePos );
-  }
+ }
+ else if( fBuildBBSieve == 2 ){  
+   G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
+    MakeNewBBSieveSlit( bbmotherLog, BBSievePos );
+ }
+ else if( fBuildBBSieve == 3 ){  
+   G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
+   MakeThirdBBSieveSlit( bbmotherLog, BBSievePos );
+ }
+ else if( fBuildBBSieve == 4 ){  
+   G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
+   MakeFourthBBSieveSlit( bbmotherLog, BBSievePos );
+ }
+ else {
+   //cout << "Invalid sieve entry. Please enter 1 (old - straight holes and slots) or 2 (new - holes with angles in dispersive direction) or 3 (new - holes without angles). No sieve constructed.\n";
+ }
   
   //  Bigbite field log volume
   G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
@@ -592,7 +614,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       BBCalSD = new G4SBSCalSD( SDname, collname );
       fDetCon->fSDman->AddNewDetector( BBCalSD );
       (fDetCon->SDlist).insert( SDname );
-      fDetCon->SDtype[SDname] = kCAL;
+      fDetCon->SDtype[SDname] = G4SBS::kCAL;
       (BBCalSD->detmap).depth = 0;
       bbcal_mother_log->SetSensitiveDetector( BBCalSD );
       //(BBCalSD->detmap).Row[0] = 0;
@@ -770,10 +792,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     //BBHodoScintSD->SetNTimeBins( 60 ); //0.5 ns/bin
     sdman->AddNewDetector( BBHodoScintSD );
     (fDetCon->SDlist).insert( BBHodoScintSDname );
-    fDetCon->SDtype[BBHodoScintSDname] = kCAL;
+    fDetCon->SDtype[BBHodoScintSDname] = G4SBS::kCAL;
     (BBHodoScintSD->detmap).depth = 0;
 
-    G4double ethresh_default = 5.0*MeV;
+    G4double ethresh_default = 0.0*MeV;
     G4double timewindow_default = 30.0*ns;
     
     fDetCon->SetTimeWindowAndThreshold( BBHodoScintSDname, ethresh_default, timewindow_default );
@@ -863,10 +885,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       
     sdman->AddNewDetector( BBSHTF1SD );
     (fDetCon->SDlist).insert( BBSHTF1SDname );
-    fDetCon->SDtype[BBSHTF1SDname] = kCAL;
+    fDetCon->SDtype[BBSHTF1SDname] = G4SBS::kCAL;
     (BBSHTF1SD->detmap).depth = 1;
 
-    G4double threshold_default = 10.0*MeV; //1% of 1 GeV
+    G4double threshold_default = 0.0*MeV; //1% of 1 GeV
     G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape. 
     
     fDetCon->SetTimeWindowAndThreshold( BBSHTF1SDname, threshold_default, timewindow_default );
@@ -896,7 +918,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     BBSHSD = new G4SBSECalSD( BBSHSDname, BBSHcollname );
     sdman->AddNewDetector( BBSHSD );
     (fDetCon->SDlist).insert(BBSHSDname);
-    fDetCon->SDtype[BBSHSDname] = kECAL;
+    fDetCon->SDtype[BBSHSDname] = G4SBS::kECAL;
     (BBSHSD->detmap).depth = 1;
   }
   bbpmtcathodelog->SetSensitiveDetector( BBSHSD );
@@ -977,11 +999,11 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     
     sdman->AddNewDetector( BBPSTF1SD );
     (fDetCon->SDlist).insert( BBPSTF1SDname );
-    fDetCon->SDtype[BBPSTF1SDname] = kCAL;
+    fDetCon->SDtype[BBPSTF1SDname] = G4SBS::kCAL;
     (BBPSTF1SD->detmap).depth = 1;
 
     //Photoelectron yield is approximately 500/GeV (or so)
-    G4double threshold_default = 10.0*MeV; //1% of 1 GeV
+    G4double threshold_default = 0.0*MeV; //1% of 1 GeV
     G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
 
     fDetCon->SetTimeWindowAndThreshold( BBPSTF1SDname, threshold_default, timewindow_default );
@@ -1008,7 +1030,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     BBPSSD = new G4SBSECalSD( BBPSSDname, BBPScollname );
     sdman->AddNewDetector( BBPSSD );
     (fDetCon->SDlist).insert(BBPSSDname);
-    fDetCon->SDtype[BBPSSDname] = kECAL;
+    fDetCon->SDtype[BBPSSDname] = G4SBS::kECAL;
     (BBPSSD->detmap).depth = 1;
   }
   bbpspmtcathodelog->SetSensitiveDetector( BBPSSD );
@@ -1106,8 +1128,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //   BBCalSD = new G4SBSCalSD( BBCalSDname, BBCalcolname );
   //   fDetCon->fSDman->AddNewDetector(BBCalSD);
   //   (fDetCon->SDlist).insert( BBCalSDname );
-  //   fDetCon->SDtype[BBCalSDname] = kCAL;
-  //   //fDetCon->SDarm[BBCalSDname] = kEarm;
+  //   fDetCon->SDtype[BBCalSDname] = G4SBS::kCAL;
+  //   //fDetCon->SDarm[BBCalSDname] = G4SBS::kEarm;
   // }
 
   // bbcallog->SetSensitiveDetector(BBCalSD);
@@ -1266,7 +1288,7 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
     
     sdman->AddNewDetector( DVCSblkSD );
     (fDetCon->SDlist).insert( DVCSblkSDname );
-    fDetCon->SDtype[DVCSblkSDname] = kCAL;
+    fDetCon->SDtype[DVCSblkSDname] = G4SBS::kCAL;
     (DVCSblkSD->detmap).depth = 1;
 
     G4double threshold_default = 0.0*MeV; //1% of 1 GeV
@@ -1298,7 +1320,7 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
     DVCSblkecalSD = new G4SBSECalSD( DVCSblkecalSDname, DVCSblkecalcollname );
     sdman->AddNewDetector( DVCSblkecalSD );
     (fDetCon->SDlist).insert(DVCSblkecalSDname);
-    fDetCon->SDtype[DVCSblkecalSDname] = kECAL;
+    fDetCon->SDtype[DVCSblkecalSDname] = G4SBS::kECAL;
     (DVCSblkecalSD->detmap).depth = 1;
   }
   dvcsblkpmtcathodecallog->SetSensitiveDetector( DVCSblkecalSD );
@@ -1403,7 +1425,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
     C16SD = new G4SBSECalSD( C16SDname, collname );
     sdman->AddNewDetector( C16SD );
     (fDetCon->SDlist).insert( C16SDname );
-    fDetCon->SDtype[C16SDname] = kECAL;
+    fDetCon->SDtype[C16SDname] = G4SBS::kECAL;
     (C16SD->detmap).depth = 0;
   }
 
@@ -1513,10 +1535,10 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
 
       fDetCon->fSDman->AddNewDetector( C16TF1SD );
       (fDetCon->SDlist).insert( C16TF1SDname );
-      fDetCon->SDtype[C16TF1SDname] = kCAL;
+      fDetCon->SDtype[C16TF1SDname] = G4SBS::kCAL;
       (C16TF1SD->detmap).depth = 1;
 
-      G4double default_threshold = 10.0*MeV;
+      G4double default_threshold = 0.0*MeV;
       G4double default_timewindow = 100.0*ns;
 
       fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
@@ -1617,10 +1639,10 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
       
       fDetCon->fSDman->AddNewDetector( C16TF1SD );
       (fDetCon->SDlist).insert( C16TF1SDname );
-      fDetCon->SDtype[C16TF1SDname] = kCAL;
+      fDetCon->SDtype[C16TF1SDname] = G4SBS::kCAL;
       (C16TF1SD->detmap).depth = 0;
 
-      G4double default_threshold = 10.0*MeV;
+      G4double default_threshold = 0.0*MeV;
       G4double default_timewindow = 100.0*ns;
 
       fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
@@ -1803,7 +1825,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
       earm_mother_SD = new G4SBSCalSD( sdname, collname );
       fDetCon->fSDman->AddNewDetector( earm_mother_SD );
       (fDetCon->SDlist).insert( sdname );
-      fDetCon->SDtype[sdname] = kCAL;
+      fDetCon->SDtype[sdname] = G4SBS::kCAL;
       (earm_mother_SD->detmap).depth = 0;
    
       earm_mother_log->SetSensitiveDetector( earm_mother_SD );
@@ -1961,13 +1983,13 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
     
     fDetCon->fSDman->AddNewDetector( ECalTF1SD );
     (fDetCon->SDlist).insert(ECalTF1SDname);
-    fDetCon->SDtype[ECalTF1SDname] = kCAL;
-    //fDetCon->SDarm[ECalTF1SDname] = kEarm;
+    fDetCon->SDtype[ECalTF1SDname] = G4SBS::kCAL;
+    //fDetCon->SDarm[ECalTF1SDname] = G4SBS::kEarm;
 
     (ECalTF1SD->detmap).depth = 1;
 
     G4double default_timewindow = 100.0*ns;
-    G4double default_threshold  = 10.0*MeV;
+    G4double default_threshold  = 0.0*MeV;
 
     fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, default_threshold, default_timewindow );
   }
@@ -2190,7 +2212,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
     ECalSD = new G4SBSECalSD( sdname, collname );
     sdman->AddNewDetector( ECalSD );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kECAL;
+    fDetCon->SDtype[sdname] = G4SBS::kECAL;
     (ECalSD->detmap).depth = 0;
   }
 
@@ -2613,7 +2635,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
     cdet_sd = new G4SBSECalSD( sdname, collname );
     fDetCon->fSDman->AddNewDetector( cdet_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kECAL;
+    fDetCon->SDtype[sdname] = G4SBS::kECAL;
     (cdet_sd->detmap).depth = 0;
     CDET_pmt_cathode_log->SetSensitiveDetector( cdet_sd );
   }
@@ -2631,7 +2653,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
     
     fDetCon->fSDman->AddNewDetector( cdet_scint_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kCAL;
+    fDetCon->SDtype[sdname] = G4SBS::kCAL;
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
 
@@ -2857,8 +2879,8 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //     CDetSD = new G4SBSECalSD( CDetSDname, CDetcollname );
 //     sdman->AddNewDetector( CDetSD );
 //     (fDetCon->SDlist).insert( CDetSDname );
-//     fDetCon->SDtype[CDetSDname] = kECAL;
-//     //fDetCon->SDarm[CDetSDname] = kEarm;
+//     fDetCon->SDtype[CDetSDname] = G4SBS::kECAL;
+//     //fDetCon->SDarm[CDetSDname] = G4SBS::kEarm;
 //     //(CDetSD->detmap).depth = 1;            // needs to be updated!!!!! and changed for each option most likely
 //   }
 //   CDetPMTLog->SetSensitiveDetector( CDetSD );
@@ -3141,7 +3163,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //       earm_mother_SD = new G4SBSCalSD( sdname, collname );
 //       fDetCon->fSDman->AddNewDetector( earm_mother_SD );
 //       (fDetCon->SDlist).insert( sdname );
-//       fDetCon->SDtype[sdname] = kCAL;
+//       fDetCon->SDtype[sdname] = G4SBS::kCAL;
 //       (earm_mother_SD->detmap).depth = 0;
 //     }
 //     earm_mother_log->SetSensitiveDetector( earm_mother_SD );
@@ -3223,8 +3245,8 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //     ECalTF1SD = new G4SBSCalSD( ECalTF1SDname, ECalTF1collname );
 //     fDetCon->fSDman->AddNewDetector( ECalTF1SD );
 //     (fDetCon->SDlist).insert(ECalTF1SDname);
-//     fDetCon->SDtype[ECalTF1SDname] = kCAL;
-//     //fDetCon->SDarm[ECalTF1SDname] = kEarm;
+//     fDetCon->SDtype[ECalTF1SDname] = G4SBS::kCAL;
+//     //fDetCon->SDarm[ECalTF1SDname] = G4SBS::kEarm;
 
 //     (ECalTF1SD->detmap).depth = 1;
 //   }
@@ -3264,8 +3286,8 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //     ECalSD = new G4SBSECalSD( ECalSDname, ECalcollname );
 //     sdman->AddNewDetector( ECalSD );
 //     (fDetCon->SDlist).insert(ECalSDname);
-//     fDetCon->SDtype[ECalSDname] = kECAL;
-//     //fDetCon->SDarm[ECalSDname] = kEarm;
+//     fDetCon->SDtype[ECalSDname] = G4SBS::kECAL;
+//     //fDetCon->SDarm[ECalSDname] = G4SBS::kEarm;
 //     (ECalSD->detmap).depth = 0;
 //   }
 //   PMTcathode_ecal_log->SetSensitiveDetector( ECalSD );
@@ -3549,7 +3571,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
     GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
     sdman->AddNewDetector(GEMElecSD);
     (fDetCon->SDlist).insert(GEMElectronicsname);
-    fDetCon->SDtype[GEMElectronicsname] = kCAL;
+    fDetCon->SDtype[GEMElectronicsname] = G4SBS::kCAL;
     (GEMElecSD->detmap).depth = 1;
 
     fDetCon->SetTimeWindowAndThreshold( GEMElectronicsname );
@@ -3788,15 +3810,347 @@ void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVector
 }
  
 
+//Sieve slit designed by Holly S. for optics studies 10.5.20
+void G4SBSEArmBuilder::MakeNewBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVector pos)
+{
+  printf("Building New BB sieve slit...\n");
+  
+  //Plate
+  //Plate dims - Assuming dimensions of box from extremes of holes and previous depth.
+  G4double inch = 2.54*cm;
+
+  G4double bbsievew = 14.75*inch;
+  G4double bbsieveh = 27.50*inch;
+  G4double bbsieved = 1.50*inch;
+  
+  //BigBite Sieve Slit is a box with holes:
+  G4Box *Fullplate = new G4Box("Fullplate", bbsievew/2.0, bbsieveh/2.0, bbsieved/2.0 );
+
+  //Hole Dimensions
+  G4double HoleCenter_r = 0.125*inch;
+  G4double Hole_r = 0.25*inch;
+  G4double Hole_z = 3.0*inch; //Large enough to leave no solid volume at extreme displacements from center
+  
+  //Hole solids
+  G4Tubs *Hole = new G4Tubs("Hole", 0, Hole_r, Hole_z, 0.0*deg, 360.0*deg);
+  G4Tubs *HoleCenter = new G4Tubs("HoleCenter", 0, HoleCenter_r, Hole_z, 0.0*deg, 360.0*deg);
+
+  //angular spacing of holes at the nominal distance of 51.825 inches
+  G4double angspace_y = 1.65776*deg;
+  G4double angspace_x = 1.06114*deg; 
+
+  //G4SubtractionSolid *NextCut;
+  G4SubtractionSolid *SievePlateCut;
+  
+  G4bool first = true;
+
+  //Cut holes in the plate:
+
+  cout << "cutting holes" << endl;
+  
+  
+  for(G4int iy=-8; iy<=8; iy++ ){
+    for(G4int ix=-5; ix<=5; ix++ ){
+      G4double xangle = ix*angspace_x;
+      G4double yangle = iy*angspace_y;
+
+      //G4SubtractionSolid 
+      
+      //if( ix != 0 || iy != 0 ){ //compute rotation matrix for all holes but center hole:
+      G4ThreeVector holeaxis( tan(xangle), tan(yangle), 1.0 );
+      holeaxis = holeaxis.unit();
+      
+      G4ThreeVector zaxis(0.,0.,1.0);
+      
+      G4ThreeVector rotationaxis = (zaxis.cross(holeaxis)).unit();
+      G4double rotationangle = acos( zaxis.dot(holeaxis) );
+
+      G4RotationMatrix *holerot = new G4RotationMatrix;
+      if( !(ix == 0 && iy == 0 ) ) {
+	holerot->rotate( -rotationangle, rotationaxis );
+      }
+      
+      //G4double platecenter_z = 68.8976*inch + bbsieved/2.0; //Assuming old placement
+      G4double platecenter_z = 54.0157*inch + bbsieved/2.0; //Accounting for BB shift to 1.75m
+
+      
+      G4ThreeVector origin(0,0,-platecenter_z );
+      G4double holedist = platecenter_z * sqrt(1.0 + pow(tan(xangle),2)+pow(tan(yangle),2) ); 
+      
+      G4ThreeVector holecenterpos = origin + holedist * holeaxis;
+      
+      cout << "(row,col,holeposx,holeposy,holeposz,rotationangle)=("
+	   << iy << ", " << ix << ", " << holecenterpos.x()/inch << ", "
+	   << holecenterpos.y()/inch << ", "
+	   << holecenterpos.z()/inch << ", "
+	   << rotationangle/deg << ")" << endl;
+
+      cout << "rotation matrix = " << endl;
+      holerot->print(cout);
+      
+      G4SubtractionSolid *NextCut;
+      if( first ){
+	first = false;
+	if( !(ix==0&&iy==0) ){
+	  NextCut = new G4SubtractionSolid( "NextCut", Fullplate, Hole, holerot, holecenterpos );
+	} else { //it should be impossible to end up here:
+	  NextCut = new G4SubtractionSolid( "NextCut", Fullplate, HoleCenter, holerot, holecenterpos );
+	}
+      } else {
+	if( (iy==-3&&ix==-3)||(iy==0&&ix==0)||(iy==2&&ix==2) ){ //Cutting smaller holes
+	  NextCut = new G4SubtractionSolid( "NextCut", SievePlateCut, HoleCenter, holerot, holecenterpos );
+	}else{
+	  if( iy==-3&&ix==1){
+	    cout << "Skipping hole at y = -3 and x = 1" << endl; //Leaving one hole out
+	  }else{
+	    NextCut = new G4SubtractionSolid( "NextCut", SievePlateCut, Hole, holerot, holecenterpos );
+	  }
+	}
+      }
+
+      SievePlateCut = NextCut;
+      SievePlateCut->SetName("NewBBSievePlateCut");
+    }
+  }
+
+  G4cout << "finished holes..." << endl;
+  
+  G4LogicalVolume *NewBBSievePlate_log = new G4LogicalVolume(SievePlateCut, GetMaterial("Lead"), "New_BB_SievePlate_log");
+
+  //For BB, plate is oriented along z axis and offset is passed into function.
+  //G4double SBSsieve_dist = offset_z - ThickPlate_z/2.0;
+  //Placement:
+  //G4ThreeVector sievepos = SBSsieve_dist * G4ThreeVector( -sin(f48D48ang), 0, cos(f48D48ang) );
+  //G4RotationMatrix *sieverot = new G4RotationMatrix;
+  //sieverot->rotateY(f48D48ang);
+
+  new G4PVPlacement(0, pos, NewBBSievePlate_log, "NewBBSievePlate_phys", motherlog, false, 0);
+  
+  G4cout << "Sieve plate finished" << G4endl;
+  
+}
+ //Sieve slit designed by Holly S. - remove angled holes. For optics studies 10.29.20
+void G4SBSEArmBuilder::MakeThirdBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVector pos)
+{
+  printf("Building new BB sieve slit without angled holes...\n");
+  
+  //Plate
+  //Plate dims - Assuming dimensions of box from extremes of holes and previous depth.
+  G4double inch = 2.54*cm;
+
+  G4double bbsievew = 14.75*inch;
+  G4double bbsieveh = 27.50*inch;
+  G4double bbsieved = 1.50*inch;
+  
+  //BigBite Sieve Slit is a box with holes:
+  G4Box *Fullplate = new G4Box("Fullplate", bbsievew/2.0, bbsieveh/2.0, bbsieved/2.0 );
+
+  //Hole Dimensions
+  G4double HoleCenter_r = 0.125*inch;
+  G4double Hole_r = 0.25*inch;
+  G4double Hole_z = 3.0*inch; //Large enough to leave no solid volume at extreme displacements from center
+  
+  //Hole solids
+  G4Tubs *Hole = new G4Tubs("Hole", 0, Hole_r, Hole_z, 0.0*deg, 360.0*deg);
+  G4Tubs *HoleCenter = new G4Tubs("HoleCenter", 0, HoleCenter_r, Hole_z, 0.0*deg, 360.0*deg);
+
+  //angular spacing of holes at the nominal distance of 51.825 inches
+  G4double angspace_y = 1.65776*deg;
+  G4double angspace_x = 1.06114*deg; 
+
+  //G4SubtractionSolid *NextCut;
+  G4SubtractionSolid *SievePlateCut;
+  
+  G4bool first = true;
+
+  //Cut holes in the plate:
+
+  cout << "cutting holes" << endl;
+  
+  
+  for(G4int iy=-8; iy<=8; iy++ ){
+    for(G4int ix=-5; ix<=5; ix++ ){
+      G4double xangle = ix*angspace_x;
+      G4double yangle = iy*angspace_y;
+
+      //G4SubtractionSolid 
+      
+      //if( ix != 0 || iy != 0 ){ //compute rotation matrix for all holes but center hole:
+      G4ThreeVector holeaxis( tan(xangle), tan(yangle), 1.0 );
+      holeaxis = holeaxis.unit();
+      
+      G4ThreeVector zaxis(0.,0.,1.0);
+      
+      G4ThreeVector rotationaxis = (zaxis.cross(holeaxis)).unit();
+      G4double rotationangle = acos( zaxis.dot(holeaxis) );
+
+      G4RotationMatrix *holerot = new G4RotationMatrix;  
+      //if( !(ix == 0 && iy == 0 ) ) {  //removing the rotation of the holes in the plate. 10.29.20
+      //holerot->rotate( -rotationangle, rotationaxis );
+      //}
+      
+      //G4double platecenter_z = 68.8976*inch + bbsieved/2.0; //Assuming old placement
+      G4double platecenter_z = 54.0157*inch + bbsieved/2.0; //Accounting for BB shift to 1.75m
+
+      
+      G4ThreeVector origin(0,0,-platecenter_z );
+      G4double holedist = platecenter_z * sqrt(1.0 + pow(tan(xangle),2)+pow(tan(yangle),2) ); 
+      
+      G4ThreeVector holecenterpos = origin + holedist * holeaxis;
+      
+      cout << "(row,col,holeposx,holeposy,holeposz,rotationangle)=("
+	   << iy << ", " << ix << ", " << holecenterpos.x()/inch << ", "
+	   << holecenterpos.y()/inch << ", "
+	   << holecenterpos.z()/inch << ", "
+	   << rotationangle/deg << ")" << endl;
+
+      cout << "rotation matrix = " << endl;
+      holerot->print(cout);
+      
+      G4SubtractionSolid *NextCut;
+      if( first ){
+	first = false;
+	if( !(ix==0&&iy==0) ){
+	  NextCut = new G4SubtractionSolid( "NextCut", Fullplate, Hole, holerot, holecenterpos );
+	} else { //it should be impossible to end up here:
+	  NextCut = new G4SubtractionSolid( "NextCut", Fullplate, HoleCenter, holerot, holecenterpos );
+	}
+      } else {
+	if( (iy==-3&&ix==-3)||(iy==0&&ix==0)||(iy==2&&ix==2) ){ //Cutting smaller holes
+	  NextCut = new G4SubtractionSolid( "NextCut", SievePlateCut, HoleCenter, holerot, holecenterpos );
+	}else{
+	  if( iy==-3&&ix==1){
+	    cout << "Skipping hole at y = -3 and x = 1" << endl; //Leaving one hole out
+	  }else{
+	    NextCut = new G4SubtractionSolid( "NextCut", SievePlateCut, Hole, holerot, holecenterpos );
+	  }
+	}
+      }
+
+      SievePlateCut = NextCut;
+      SievePlateCut->SetName("NewBBSievePlateCut");
+    }
+  }
+
+  G4cout << "finished holes..." << endl;
+  
+  G4LogicalVolume *NewBBSievePlate_log = new G4LogicalVolume(SievePlateCut, GetMaterial("Lead"), "New_BB_SievePlate_log");
+
+  //For BB, plate is oriented along z axis and offset is passed into function.
+  //G4double SBSsieve_dist = offset_z - ThickPlate_z/2.0;
+  //Placement:
+  //G4ThreeVector sievepos = SBSsieve_dist * G4ThreeVector( -sin(f48D48ang), 0, cos(f48D48ang) );
+  //G4RotationMatrix *sieverot = new G4RotationMatrix;
+  //sieverot->rotateY(f48D48ang);
+
+  new G4PVPlacement(0, pos, NewBBSievePlate_log, "NewBBSievePlate_phys", motherlog, false, 0);
+  
+  G4cout << "Sieve plate finished" << G4endl;
+}
+
+ //Sieve slit designed by Holly S. - angled holes y, modified spacing. For optics studies 11.5.20
+void G4SBSEArmBuilder::MakeFourthBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVector pos)
+{
+  printf("Building new BB sieve slit without angled holes...\n");
+  
+  //Plate
+  //Plate dims - Assuming dimensions of box from extremes of holes and previous depth.
+  G4double inch = 2.54*cm;
+
+  G4double bbsievew = 14.75*inch;
+  G4double bbsieveh = 27.50*inch;
+  G4double bbsieved = 1.50*inch;
+  
+  //BigBite Sieve Slit is a box with holes:
+  G4Box *Fullplate = new G4Box("Fullplate", bbsievew/2.0, bbsieveh/2.0, bbsieved/2.0 );
+
+  //Hole Dimensions
+  G4double HoleCenter_r = 0.125*inch;
+  G4double Hole_r = 0.25*inch;
+  G4double Hole_z = 3.0*inch; //Large enough to leave no solid volume at extreme displacements from center
+  
+  //Hole solids
+  G4Tubs *Hole = new G4Tubs("Hole", 0, Hole_r, Hole_z, 0.0*deg, 360.0*deg);
+  G4Tubs *HoleCenter = new G4Tubs("HoleCenter", 0, HoleCenter_r, Hole_z, 0.0*deg, 360.0*deg);
+
+  G4double y_space = 1.25*inch;
+  G4double x_space = 7.0/8.0*inch;
+
+  G4double xangle = 0.0*deg;
+
+  //G4SubtractionSolid *NextCut;
+  G4SubtractionSolid *SievePlateCut;
+  
+  G4bool first = true;
+
+  //Cut holes in the plate:
+
+  cout << "cutting holes" << endl;
+  
+  
+  for(G4int iy=-9; iy<=9; iy++ ){
+    for(G4int ix=-6; ix<=6; ix++ ){
+
+      G4double yangle = atan((iy*y_space)/(1.172*m)); //Computed from sieve distance at 1.55m
+
+      //G4SubtractionSolid 
+      G4RotationMatrix *holerot = new G4RotationMatrix;   
+      holerot->rotateX(yangle); //May safely simplify since xangle is zero
+      holerot->rotateY(xangle); 
+      
+      G4ThreeVector holecenterpos(ix*x_space, iy*y_space, 0);
+      
+      cout << "(row,col,holeposy,holeposx,holeposz,rotationy,rotationx)=("
+	   << iy << ", " << ix << ", " << holecenterpos.x()/inch << ", "
+	   << holecenterpos.y()/inch << ", "
+	   << holecenterpos.z()/inch << ", "
+	   << xangle/deg << ", "
+	   << yangle/deg << ")" << endl;
+      
+      G4SubtractionSolid *NextCut;
+      if( first ){
+	first = false;
+	if( !(ix==0&&iy==0) ){
+	  NextCut = new G4SubtractionSolid( "NextCut", Fullplate, Hole, holerot, holecenterpos );
+	} else { //it should be impossible to end up here:
+	  NextCut = new G4SubtractionSolid( "NextCut", Fullplate, HoleCenter, holerot, holecenterpos );
+	}
+      } else {
+	if( (iy==-3&&ix==-3)||(iy==0&&ix==0)||(iy==2&&ix==2) ){ //Cutting smaller holes
+	  NextCut = new G4SubtractionSolid( "NextCut", SievePlateCut, HoleCenter, holerot, holecenterpos );
+	}else{
+	  if( iy==-3&&ix==1){
+	    cout << "Skipping hole at y = -3 and x = 1" << endl; //Leaving one hole out
+	  }else{
+	    NextCut = new G4SubtractionSolid( "NextCut", SievePlateCut, Hole, holerot, holecenterpos );
+	  }
+	}
+      }
+
+      SievePlateCut = NextCut;
+      SievePlateCut->SetName("NewBBSievePlateCut");
+    }
+  }
+
+  cout << "finished holes..." <<endl;
+  G4cout << "finished holes..." << endl;
+  
+  G4LogicalVolume *NewBBSievePlate_log = new G4LogicalVolume(SievePlateCut, GetMaterial("Lead"), "New_BB_SievePlate_log");
+
+  new G4PVPlacement(0, pos, NewBBSievePlate_log, "NewBBSievePlate_phys", motherlog, false, 0);
+  
+  cout << "Sieve plate finished" << G4endl;
+  G4cout << "Sieve plate finished" << G4endl;
+}
 
 void G4SBSEArmBuilder::MakeHallCGEM(G4LogicalVolume *motherlog){
   G4SBSTrackerBuilder trackerbuilder(fDetCon);
   
   //This routine creates and positions GEM plane in Hall
-
+  
   //---Hall C GEM-------//
   G4double z0 = fBBdist;//m
-
+  
   G4Box* HCGEMBox =  new G4Box("HCGEMBox", 10.0*cm, 10.0*cm, 2.0*cm);
   
   G4LogicalVolume* HCGEMlog = new G4LogicalVolume(HCGEMBox, GetMaterial("Air"),
@@ -3807,19 +4161,20 @@ void G4SBSEArmBuilder::MakeHallCGEM(G4LogicalVolume *motherlog){
   HCGEMrot->rotateY(-fBBang);
   new G4PVPlacement(HCGEMrot, G4ThreeVector(z0*sin(fBBang), 0.0, z0*cos(fBBang)),
 		    HCGEMlog, "HCGEMPhysical", motherlog, 0,false,0);
- 
+  
   G4int ngem = 1;
   vector<double> gemz, gemw, gemh;
   gemz.resize(ngem);
   gemw.resize(ngem);
   gemh.resize(ngem);
-
+  
   gemz[0] = 0.0;;
   gemw[0] = 15.36*cm;
   gemh[0] = 15.36*cm;
-
+  
   G4RotationMatrix *rot_identity = new G4RotationMatrix;
   
   trackerbuilder.BuildComponent(HCGEMlog, rot_identity, G4ThreeVector( 0.0, 0.0, 0.0 ), 1, gemz, gemw, gemh, "Earm/HCGEM" );
- 
+  
 }
+ 

@@ -152,6 +152,9 @@ public:
   map<G4String,G4ThreeVector>         fSDPosition; //Global position of track when entering SD.
   map<G4String,G4ThreeVector>         fSDMomentum; //Global three-momentum of track when entering SD.
   map<G4String,G4ThreeVector>         fSDPolarization; //Global Polarization of track when entering SD
+  map<G4String,G4ThreeVector>         fSDVertexPosition; //Vertex position of track that enters SD boundary volume
+  map<G4String,G4ThreeVector>         fSDVertexDirection; //Momentum direction at vertex of track that enters SD boundary volume
+  map<G4String,G4double>              fSDVertexKineticEnergy; //Kinetic energy at vertex of track entering SD volume
   map<G4String,G4double>              fSDEnergy; //Total energy of track when entering SD
   map<G4String,G4double>              fSDTime;   //Global time of track when entering SD
 

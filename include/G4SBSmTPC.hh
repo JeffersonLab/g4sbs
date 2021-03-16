@@ -31,7 +31,7 @@ public:
   void BuildmTPCGasCells(G4LogicalVolume *, G4double, G4double, G4double, G4double);//, G4SBSmTPCSD *);//, G4SBSmTPCSD *);
   // void BuildmTPCHVPlanes(G4LogicalVolume *, G4double, G4double, G4double,  G4double, G4SBSmTPCSD *);
   
-  void SetTarget(Targ_t t){fTargType = t;}
+  void SetTarget(G4SBS::Targ_t t){fTargType = t;}
   
   // EFuchey: 2017/02/10:  This function is now meant to build the cryotarget and target cell only.
   // This function takes as input the mother logical volume, a rotation matrix, and a 3-vector offset.
@@ -83,7 +83,7 @@ private:
   G4double fZpos;
   G4bool fFlux;
 
-  Targ_t fTargType;
+  G4SBS::Targ_t fTargType;
  
   // Montgomery 2018, tdis solenoid implement
   G4bool   fSolUni;

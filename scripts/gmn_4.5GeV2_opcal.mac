@@ -1,0 +1,47 @@
+## Configure G4SBS for gmn (Q^2 = 4.5 GeV^2)
+/g4sbs/filename        gmn_4.5GeV2_opcal.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gmn
+
+## Configure the target
+/g4sbs/target		optics
+/g4sbs/Nfoil 		9
+/g4sbs/foilthick 	0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 mm
+/g4sbs/foilz		-16.0 -12.0 -8.0 -4.0 0.0 4.0 8.0 12.0 16.0 cm
+/g4sbs/targdiam		7.0 mm
+/g4sbs/targlen         10.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            inelastic           ## Generator
+/g4sbs/beamcur         30 muA
+/g4sbs/beamE           4.4 GeV
+/g4sbs/thmin           36.9 deg
+/g4sbs/thmax           47.9 deg
+/g4sbs/phmin           -26 deg
+/g4sbs/phmax           26 deg
+/g4sbs/eemin 	       0.5 GeV
+/g4sbs/eemax 	       3.0 GeV
+
+## Configure standard detector settings
+/g4sbs/hcaldist        8.5 m
+/g4sbs/hcalvoffset     0.45 m
+/g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
+/g4sbs/sbsclampopt     3                 ## Front field clamp only
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/48d48field      1
+/g4sbs/bbang           41.9 deg
+/g4sbs/bbdist          1.55 m
+/g4sbs/sbsang          24.7 deg
+/g4sbs/48D48dist       2.25 m
+/g4sbs/sbsmagfield     1.40 tesla
+
+/g4sbs/keepsdtrackinfo 	all true
+/g4sbs/totalabs true
+/g4sbs/buildBBsieve 1
+
+## Run 100 events
+/g4sbs/eventstatusevery 10
+/g4sbs/run             500000

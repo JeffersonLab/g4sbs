@@ -54,6 +54,12 @@ G4SBSIO::G4SBSIO(){
   trackdata.clear();
   ecaldata.clear();
   sdtrackdata.clear();
+  BDdata.clear(); 
+  ICdata.clear(); 
+  genTgtGCdata.clear(); 
+  genTgtCUdata.clear(); 
+  genTgtALdata.clear(); 
+  genTgt3HEdata.clear(); 
 
   //Set SD track data recording to OFF by default:
   fKeepAllSDtracks = false;
@@ -113,6 +119,30 @@ void G4SBSIO::SetSDtrackData( G4String SDname, G4SBSSDTrackOutput td ){
   sdtrackdata[SDname] = td;
 }
 
+void G4SBSIO::SetBDData(G4String SDname,G4SBSBDoutput data){
+   BDdata[SDname] = data;
+}
+
+void G4SBSIO::SetICData(G4String SDname,G4SBSICoutput data){
+   ICdata[SDname] = data;
+}
+
+void G4SBSIO::SetGEnTargetData_Glass(G4String SDname,G4SBSTargetoutput data){
+   genTgtGCdata[SDname] = data;
+}
+
+void G4SBSIO::SetGEnTargetData_Cu(G4String SDname,G4SBSTargetoutput data){
+   genTgtCUdata[SDname] = data;
+}
+
+void G4SBSIO::SetGEnTargetData_Al(G4String SDname,G4SBSTargetoutput data){
+   genTgtALdata[SDname] = data;
+}
+
+void G4SBSIO::SetGEnTargetData_3He(G4String SDname,G4SBSTargetoutput data){
+   genTgt3HEdata[SDname] = data;
+}
+
 void G4SBSIO::InitializeTree(){
   if( fFile ){
     fFile->Close();
@@ -130,7 +160,8 @@ void G4SBSIO::InitializeTree(){
     
   fTree = new TTree("T", "Geant4 SBS Simulation");
   // Added variables for TDIS
-  fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:sigmaDIS/D:sigmaTDIS/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:p1p/D:p2p/D:pip/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:p1px/D:p1py/D:p1pz/D:p2px/D:p2py/D:p2pz/D:pipx/D:pipy/D:pipz/D:nth/D:nph/D:p1th/D:p1ph/D:p2th/D:p2ph/D:pith/D:piph/D:pmperp/D:pmpar/D:pmparsm/D:xpi/D:tpi/D:xa/D:pt/D:nu/D:ya/D:y/D:f2p/D:f2pi/D:ypi/D:z/D:phperp/D:phih/D:phiS/D:MX2/D:Sx/D:Sy/D:Sz/D:s/D:t/D:u/D:costhetaCM/D:Egamma/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
+  fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:sigmaDIS/D:sigmaTDIS/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:p1p/D:p2p/D:pip/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:p1px/D:p1py/D:p1pz/D:p2px/D:p2py/D:p2pz/D:pipx/D:pipy/D:pipz/D:nth/D:nph/D:p1th/D:p1ph/D:p2th/D:p2ph/D:pith/D:piph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:phiS/D:thetaS/D:MX2/D:Sx/D:Sy/D:Sz/D:xpi/D:tpi/D:xa/D:pt/D:nu/D:ya/D:y/D:f2p/D:f2pi/D:ypi/D:s/D:t/D:u/D:costhetaCM/D:Egamma/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
+
   //fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
   //fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:voffhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
   
@@ -144,38 +175,67 @@ void G4SBSIO::InitializeTree(){
   for( set<G4String>::iterator d = (fdetcon->SDlist).begin(); d != (fdetcon->SDlist).end(); d++ ){
     //for( G4int idet=0; idet<fdetcon->fSDman->G
     G4String SDname = *d;
-    SDet_t SDtype = (fdetcon->SDtype)[SDname];
+    G4SBS::SDet_t SDtype = (fdetcon->SDtype)[SDname];
 
     G4cout << "Initializing tree branches for Sensitive Detector " << SDname.data() << G4endl;
 
     switch( SDtype ){
-    case kGEM: //GEM: Add branches for the GEM AND "tracker" branches:
+    case G4SBS::kGEM: //GEM: Add branches for the GEM AND "tracker" branches:
       //Create "GEM output" and "Tracker Output" data structures and associate them with this sensitive detector name:
       GEMdata[SDname] = G4SBSGEMoutput();
       trackdata[SDname] = G4SBSTrackerOutput();
 	
       BranchGEM(SDname);
       break;
-    case kCAL: //"CAL": Add appropriate branches:
+    case G4SBS::kCAL: //"CAL": Add appropriate branches:
       //Initialize "CAL output" data structure and associate with this sensitive detector:
       CALdata[SDname] = G4SBSCALoutput();
       BranchCAL(SDname);
       break;
-    case kRICH: //"RICH"
+    case G4SBS::kRICH: //"RICH"
       richdata[SDname] = G4SBSRICHoutput();
       // Note: if any optical photon production mechanisms are ON, create RICH detector branches.
       // Otherwise, we don't need them.
       if( fUsingCerenkov || fUsingScintillation ) BranchRICH(SDname);
       break;
-    case kECAL: //"ECAL"
+    case G4SBS::kECAL: //"ECAL"
       // Note: if any optical photon production mechanisms are ON, create ECAL detector branches.
       // Otherwise, we don't need them.
       ecaldata[SDname] = G4SBSECaloutput();
       if( fUsingCerenkov || fUsingScintillation ) BranchECAL(SDname);
       break;
-    case kmTPC:
+    case G4SBS::kmTPC:
       mTPCdata[SDname] = G4SBSmTPCoutput();
       BranchmTPC(SDname);
+    case G4SBS::kBD: 
+      // Beam Diffuser (BD) 
+      BDdata[SDname] = G4SBSBDoutput(); 
+      BranchBD(SDname); 
+      break; 
+    case G4SBS::kIC: 
+      // Ion chamber (IC) 
+      ICdata[SDname] = G4SBSICoutput(); 
+      BranchIC(SDname); 
+      break; 
+    case G4SBS::kTarget_GEn_Glass: 
+      // GEn target glass cell 
+      genTgtGCdata[SDname] = G4SBSTargetoutput(); 
+      BranchGEnTarget_Glass(SDname); 
+      break; 
+    case G4SBS::kTarget_GEn_Cu: 
+      // GEn target Cu  
+      genTgtCUdata[SDname] = G4SBSTargetoutput(); 
+      BranchGEnTarget_Cu(SDname); 
+      break; 
+    case G4SBS::kTarget_GEn_Al: 
+      // GEn target Al  
+      genTgtALdata[SDname] = G4SBSTargetoutput(); 
+      BranchGEnTarget_Al(SDname); 
+      break;
+    case G4SBS::kTarget_GEn_3He: 
+      // GEn target 3He  
+      genTgt3HEdata[SDname] = G4SBSTargetoutput(); 
+      BranchGEnTarget_3He(SDname); 
       break;
     }
     
@@ -186,7 +246,7 @@ void G4SBSIO::InitializeTree(){
 
       allsdtrackdata = G4SBSSDTrackOutput("all");
 
-      if( SDtype == kGEM || SDtype == kCAL ||
+      if( SDtype == G4SBS::kGEM || SDtype == G4SBS::kCAL ||
 	  fUsingCerenkov || fUsingScintillation ){
 
 	keepanysdtracks = true;
@@ -960,6 +1020,229 @@ void G4SBSIO::BranchSDTracks(){
   fTree->Branch(  "SDTrack.polz", &(allsdtrackdata.sdpolz) );
   fTree->Branch(  "SDTrack.Etot", &(allsdtrackdata.sdenergy) );
   fTree->Branch(  "SDTrack.T", &(allsdtrackdata.sdtime) );
+  //Add new vertex info:
+  fTree->Branch(  "SDTrack.vx", &(allsdtrackdata.sdvx) );
+  fTree->Branch(  "SDTrack.vy", &(allsdtrackdata.sdvy) );
+  fTree->Branch(  "SDTrack.vz", &(allsdtrackdata.sdvz) );
+  fTree->Branch(  "SDTrack.vnx", &(allsdtrackdata.sdvnx) );
+  fTree->Branch(  "SDTrack.vny", &(allsdtrackdata.sdvny) );
+  fTree->Branch(  "SDTrack.vnz", &(allsdtrackdata.sdvnz) );
+  fTree->Branch(  "SDTrack.vEkin", &(allsdtrackdata.sdEkin) );
   //}
+}
+
+void G4SBSIO::BranchBD(G4String SDname){
+   // create the branches for the Beam Diffuser (BD) 
+   TString branch_name;
+   TString branch_prefix = SDname.data();
+   branch_prefix.ReplaceAll("/",".");
+   // define branches
+   fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(BDdata[SDname].nhits_BD) );
+   fTree->Branch( branch_name.Format("%s.hit.plane", branch_prefix.Data() ), &(BDdata[SDname].plane)    );
+   fTree->Branch( branch_name.Format("%s.hit.trid" , branch_prefix.Data() ), &(BDdata[SDname].trid )    );
+   fTree->Branch( branch_name.Format("%s.hit.mid"  , branch_prefix.Data() ), &(BDdata[SDname].mid  )    );
+   fTree->Branch( branch_name.Format("%s.hit.pid"  , branch_prefix.Data() ), &(BDdata[SDname].pid  )    );
+   fTree->Branch( branch_name.Format("%s.hit.x"    , branch_prefix.Data() ), &(BDdata[SDname].x    )    );
+   fTree->Branch( branch_name.Format("%s.hit.y"    , branch_prefix.Data() ), &(BDdata[SDname].y    )    );
+   fTree->Branch( branch_name.Format("%s.hit.z"    , branch_prefix.Data() ), &(BDdata[SDname].z    )    );
+   fTree->Branch( branch_name.Format("%s.hit.t"    , branch_prefix.Data() ), &(BDdata[SDname].t    )    );
+   fTree->Branch( branch_name.Format("%s.hit.xg"   , branch_prefix.Data() ), &(BDdata[SDname].xg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.yg"   , branch_prefix.Data() ), &(BDdata[SDname].yg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.zg"   , branch_prefix.Data() ), &(BDdata[SDname].zg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.p"    , branch_prefix.Data() ), &(BDdata[SDname].p    )    );
+   fTree->Branch( branch_name.Format("%s.hit.edep" , branch_prefix.Data() ), &(BDdata[SDname].edep )    );
+   fTree->Branch( branch_name.Format("%s.hit.beta" , branch_prefix.Data() ), &(BDdata[SDname].beta )    );
+}
+
+void G4SBSIO::BranchIC(G4String SDname){
+   // create the branches for the Ion Chamber (IC)  
+   TString branch_name;
+   TString branch_prefix = SDname.data();
+   branch_prefix.ReplaceAll("/",".");
+   // define branches
+   fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(ICdata[SDname].nhits_IC) );
+   fTree->Branch( branch_name.Format("%s.hit.trid" , branch_prefix.Data() ), &(ICdata[SDname].trid )    );
+   fTree->Branch( branch_name.Format("%s.hit.mid"  , branch_prefix.Data() ), &(ICdata[SDname].mid  )    );
+   fTree->Branch( branch_name.Format("%s.hit.pid"  , branch_prefix.Data() ), &(ICdata[SDname].pid  )    );
+   fTree->Branch( branch_name.Format("%s.hit.x"    , branch_prefix.Data() ), &(ICdata[SDname].x    )    );
+   fTree->Branch( branch_name.Format("%s.hit.y"    , branch_prefix.Data() ), &(ICdata[SDname].y    )    );
+   fTree->Branch( branch_name.Format("%s.hit.z"    , branch_prefix.Data() ), &(ICdata[SDname].z    )    );
+   fTree->Branch( branch_name.Format("%s.hit.t"    , branch_prefix.Data() ), &(ICdata[SDname].t    )    );
+   fTree->Branch( branch_name.Format("%s.hit.xg"   , branch_prefix.Data() ), &(ICdata[SDname].xg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.yg"   , branch_prefix.Data() ), &(ICdata[SDname].yg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.zg"   , branch_prefix.Data() ), &(ICdata[SDname].zg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.p"    , branch_prefix.Data() ), &(ICdata[SDname].p    )    );
+   fTree->Branch( branch_name.Format("%s.hit.edep" , branch_prefix.Data() ), &(ICdata[SDname].edep )    );
+   fTree->Branch( branch_name.Format("%s.hit.beta" , branch_prefix.Data() ), &(ICdata[SDname].beta )    );
+
+   map<G4String,G4bool>::iterator it = KeepHistoryflags.find( SDname );
+   if( it != KeepHistoryflags.end() && it->second ){
+      //Branches with "Particle History" data:
+      fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.npart) );
+      fTree->Branch( branch_name.Format("%s.part.PID"  , branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.PID) );
+      fTree->Branch( branch_name.Format("%s.part.MID"  , branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.MID) );
+      fTree->Branch( branch_name.Format("%s.part.TID"  , branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.TID) );
+      fTree->Branch( branch_name.Format("%s.part.vx"   , branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.vx) );
+      fTree->Branch( branch_name.Format("%s.part.vy"   , branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.vy) );
+      fTree->Branch( branch_name.Format("%s.part.vz"   , branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.vz) );
+      fTree->Branch( branch_name.Format("%s.part.px"   , branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.px) );
+      fTree->Branch( branch_name.Format("%s.part.py"   , branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.py) );
+      fTree->Branch( branch_name.Format("%s.part.pz"   , branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.pz) );
+      // fTree->Branch( branch_name.Format("%s.part.nbounce", branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.nbounce) );
+      // fTree->Branch( branch_name.Format("%s.part.hitindex", branch_prefix.Data() ), &(ICdata[SDname].ParticleHistory.hitindex) );
+      // fTree->Branch( branch_name.Format("%s.part.Nphe_part", branch_prefix.Data() ), &(ICdata[SDname].Nphe_part) );
+   }
+}
+
+void G4SBSIO::BranchGEnTarget_Glass(G4String SDname){
+   // create the branches for the GEn target glass cell 
+   TString branch_name;
+   TString branch_prefix = SDname.data();
+   branch_prefix.ReplaceAll("/",".");
+   // define branches
+   fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(genTgtGCdata[SDname].nhits_Target) );
+   fTree->Branch( branch_name.Format("%s.hit.trid" , branch_prefix.Data() ), &(genTgtGCdata[SDname].trid )    );
+   fTree->Branch( branch_name.Format("%s.hit.mid"  , branch_prefix.Data() ), &(genTgtGCdata[SDname].mid  )    );
+   fTree->Branch( branch_name.Format("%s.hit.pid"  , branch_prefix.Data() ), &(genTgtGCdata[SDname].pid  )    );
+   // fTree->Branch( branch_name.Format("%s.hit.x"    , branch_prefix.Data() ), &(genTgtGCdata[SDname].x    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.y"    , branch_prefix.Data() ), &(genTgtGCdata[SDname].y    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.z"    , branch_prefix.Data() ), &(genTgtGCdata[SDname].z    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.t"    , branch_prefix.Data() ), &(genTgtGCdata[SDname].t    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.xg"   , branch_prefix.Data() ), &(genTgtGCdata[SDname].xg   )    );
+   // fTree->Branch( branch_name.Format("%s.hit.yg"   , branch_prefix.Data() ), &(genTgtGCdata[SDname].yg   )    );
+   // fTree->Branch( branch_name.Format("%s.hit.zg"   , branch_prefix.Data() ), &(genTgtGCdata[SDname].zg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.p"    , branch_prefix.Data() ), &(genTgtGCdata[SDname].p    )    );
+   fTree->Branch( branch_name.Format("%s.hit.edep" , branch_prefix.Data() ), &(genTgtGCdata[SDname].edep )    );
+   fTree->Branch( branch_name.Format("%s.hit.beta" , branch_prefix.Data() ), &(genTgtGCdata[SDname].beta )    );
+   fTree->Branch( branch_name.Format("%s.hit.trackLength" , branch_prefix.Data() ), &(genTgtGCdata[SDname].beta )    );
+
+   map<G4String,G4bool>::iterator it = KeepHistoryflags.find( SDname );
+   if( it != KeepHistoryflags.end() && it->second ){
+      //Branches with "Particle History" data:
+      fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(genTgtGCdata[SDname].ParticleHistory.npart) );
+      fTree->Branch( branch_name.Format("%s.part.PID"  , branch_prefix.Data() ), &(genTgtGCdata[SDname].ParticleHistory.PID) );
+      fTree->Branch( branch_name.Format("%s.part.MID"  , branch_prefix.Data() ), &(genTgtGCdata[SDname].ParticleHistory.MID) );
+      fTree->Branch( branch_name.Format("%s.part.TID"  , branch_prefix.Data() ), &(genTgtGCdata[SDname].ParticleHistory.TID) );
+      // fTree->Branch( branch_name.Format("%s.part.vx"   , branch_prefix.Data() ), &(genTgtGCdata[SDname].ParticleHistory.vx) );
+      // fTree->Branch( branch_name.Format("%s.part.vy"   , branch_prefix.Data() ), &(genTgtGCdata[SDname].ParticleHistory.vy) );
+      // fTree->Branch( branch_name.Format("%s.part.vz"   , branch_prefix.Data() ), &(genTgtGCdata[SDname].ParticleHistory.vz) );
+      fTree->Branch( branch_name.Format("%s.part.px"   , branch_prefix.Data() ), &(genTgtGCdata[SDname].ParticleHistory.px) );
+      fTree->Branch( branch_name.Format("%s.part.py"   , branch_prefix.Data() ), &(genTgtGCdata[SDname].ParticleHistory.py) );
+      fTree->Branch( branch_name.Format("%s.part.pz"   , branch_prefix.Data() ), &(genTgtGCdata[SDname].ParticleHistory.pz) );
+   }
+}
+
+void G4SBSIO::BranchGEnTarget_Al(G4String SDname){
+   // create the branches for the GEn target glass cell, endcap (Al or Cu) 
+   TString branch_name;
+   TString branch_prefix = SDname.data();
+   branch_prefix.ReplaceAll("/",".");
+   // define branches
+   fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(genTgtALdata[SDname].nhits_Target) );
+   fTree->Branch( branch_name.Format("%s.hit.trid" , branch_prefix.Data() ), &(genTgtALdata[SDname].trid )    );
+   fTree->Branch( branch_name.Format("%s.hit.mid"  , branch_prefix.Data() ), &(genTgtALdata[SDname].mid  )    );
+   fTree->Branch( branch_name.Format("%s.hit.pid"  , branch_prefix.Data() ), &(genTgtALdata[SDname].pid  )    );
+   // fTree->Branch( branch_name.Format("%s.hit.x"    , branch_prefix.Data() ), &(genTgtALdata[SDname].x    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.y"    , branch_prefix.Data() ), &(genTgtALdata[SDname].y    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.z"    , branch_prefix.Data() ), &(genTgtALdata[SDname].z    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.t"    , branch_prefix.Data() ), &(genTgtALdata[SDname].t    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.xg"   , branch_prefix.Data() ), &(genTgtALdata[SDname].xg   )    );
+   // fTree->Branch( branch_name.Format("%s.hit.yg"   , branch_prefix.Data() ), &(genTgtALdata[SDname].yg   )    );
+   // fTree->Branch( branch_name.Format("%s.hit.zg"   , branch_prefix.Data() ), &(genTgtALdata[SDname].zg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.p"    , branch_prefix.Data() ), &(genTgtALdata[SDname].p    )    );
+   fTree->Branch( branch_name.Format("%s.hit.edep" , branch_prefix.Data() ), &(genTgtALdata[SDname].edep )    );
+   fTree->Branch( branch_name.Format("%s.hit.beta" , branch_prefix.Data() ), &(genTgtALdata[SDname].beta )    );
+   fTree->Branch( branch_name.Format("%s.hit.trackLength" , branch_prefix.Data() ), &(genTgtALdata[SDname].trackLength )    );
+
+   map<G4String,G4bool>::iterator it = KeepHistoryflags.find( SDname );
+   if( it != KeepHistoryflags.end() && it->second ){
+      //Branches with "Particle History" data:
+      fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(genTgtALdata[SDname].ParticleHistory.npart) );
+      fTree->Branch( branch_name.Format("%s.part.PID"  , branch_prefix.Data() ), &(genTgtALdata[SDname].ParticleHistory.PID) );
+      fTree->Branch( branch_name.Format("%s.part.MID"  , branch_prefix.Data() ), &(genTgtALdata[SDname].ParticleHistory.MID) );
+      fTree->Branch( branch_name.Format("%s.part.TID"  , branch_prefix.Data() ), &(genTgtALdata[SDname].ParticleHistory.TID) );
+      // fTree->Branch( branch_name.Format("%s.part.vx"   , branch_prefix.Data() ), &(genTgtALdata[SDname].ParticleHistory.vx) );
+      // fTree->Branch( branch_name.Format("%s.part.vy"   , branch_prefix.Data() ), &(genTgtALdata[SDname].ParticleHistory.vy) );
+      // fTree->Branch( branch_name.Format("%s.part.vz"   , branch_prefix.Data() ), &(genTgtALdata[SDname].ParticleHistory.vz) );
+      fTree->Branch( branch_name.Format("%s.part.px"   , branch_prefix.Data() ), &(genTgtALdata[SDname].ParticleHistory.px) );
+      fTree->Branch( branch_name.Format("%s.part.py"   , branch_prefix.Data() ), &(genTgtALdata[SDname].ParticleHistory.py) );
+      fTree->Branch( branch_name.Format("%s.part.pz"   , branch_prefix.Data() ), &(genTgtALdata[SDname].ParticleHistory.pz) );
+   }
+}
+
+void G4SBSIO::BranchGEnTarget_Cu(G4String SDname){
+   // create the branches for the GEn target glass cell, endcap (Al or Cu) 
+   TString branch_name;
+   TString branch_prefix = SDname.data();
+   branch_prefix.ReplaceAll("/",".");
+   // define branches
+   fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(genTgtCUdata[SDname].nhits_Target) );
+   fTree->Branch( branch_name.Format("%s.hit.trid" , branch_prefix.Data() ), &(genTgtCUdata[SDname].trid )    );
+   fTree->Branch( branch_name.Format("%s.hit.mid"  , branch_prefix.Data() ), &(genTgtCUdata[SDname].mid  )    );
+   fTree->Branch( branch_name.Format("%s.hit.pid"  , branch_prefix.Data() ), &(genTgtCUdata[SDname].pid  )    );
+   // fTree->Branch( branch_name.Format("%s.hit.x"    , branch_prefix.Data() ), &(genTgtCUdata[SDname].x    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.y"    , branch_prefix.Data() ), &(genTgtCUdata[SDname].y    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.z"    , branch_prefix.Data() ), &(genTgtCUdata[SDname].z    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.t"    , branch_prefix.Data() ), &(genTgtCUdata[SDname].t    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.xg"   , branch_prefix.Data() ), &(genTgtCUdata[SDname].xg   )    );
+   // fTree->Branch( branch_name.Format("%s.hit.yg"   , branch_prefix.Data() ), &(genTgtCUdata[SDname].yg   )    );
+   // fTree->Branch( branch_name.Format("%s.hit.zg"   , branch_prefix.Data() ), &(genTgtCUdata[SDname].zg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.p"    , branch_prefix.Data() ), &(genTgtCUdata[SDname].p    )    );
+   fTree->Branch( branch_name.Format("%s.hit.edep" , branch_prefix.Data() ), &(genTgtCUdata[SDname].edep )    );
+   fTree->Branch( branch_name.Format("%s.hit.beta" , branch_prefix.Data() ), &(genTgtCUdata[SDname].beta )    );
+   fTree->Branch( branch_name.Format("%s.hit.trackLength" , branch_prefix.Data() ), &(genTgtCUdata[SDname].trackLength )    );
+
+   map<G4String,G4bool>::iterator it = KeepHistoryflags.find( SDname );
+   if( it != KeepHistoryflags.end() && it->second ){
+      //Branches with "Particle History" data:
+      fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(genTgtCUdata[SDname].ParticleHistory.npart) );
+      fTree->Branch( branch_name.Format("%s.part.PID"  , branch_prefix.Data() ), &(genTgtCUdata[SDname].ParticleHistory.PID) );
+      fTree->Branch( branch_name.Format("%s.part.MID"  , branch_prefix.Data() ), &(genTgtCUdata[SDname].ParticleHistory.MID) );
+      fTree->Branch( branch_name.Format("%s.part.TID"  , branch_prefix.Data() ), &(genTgtCUdata[SDname].ParticleHistory.TID) );
+      // fTree->Branch( branch_name.Format("%s.part.vx"   , branch_prefix.Data() ), &(genTgtCUdata[SDname].ParticleHistory.vx) );
+      // fTree->Branch( branch_name.Format("%s.part.vy"   , branch_prefix.Data() ), &(genTgtCUdata[SDname].ParticleHistory.vy) );
+      // fTree->Branch( branch_name.Format("%s.part.vz"   , branch_prefix.Data() ), &(genTgtCUdata[SDname].ParticleHistory.vz) );
+      fTree->Branch( branch_name.Format("%s.part.px"   , branch_prefix.Data() ), &(genTgtCUdata[SDname].ParticleHistory.px) );
+      fTree->Branch( branch_name.Format("%s.part.py"   , branch_prefix.Data() ), &(genTgtCUdata[SDname].ParticleHistory.py) );
+      fTree->Branch( branch_name.Format("%s.part.pz"   , branch_prefix.Data() ), &(genTgtCUdata[SDname].ParticleHistory.pz) );
+   }
+}
+
+void G4SBSIO::BranchGEnTarget_3He(G4String SDname){
+   // create the branches for the GEn target glass cell, endcap (Al or Cu) 
+   TString branch_name;
+   TString branch_prefix = SDname.data();
+   branch_prefix.ReplaceAll("/",".");
+   // define branches
+   fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(genTgt3HEdata[SDname].nhits_Target) );
+   fTree->Branch( branch_name.Format("%s.hit.trid" , branch_prefix.Data() ), &(genTgt3HEdata[SDname].trid )    );
+   fTree->Branch( branch_name.Format("%s.hit.mid"  , branch_prefix.Data() ), &(genTgt3HEdata[SDname].mid  )    );
+   fTree->Branch( branch_name.Format("%s.hit.pid"  , branch_prefix.Data() ), &(genTgt3HEdata[SDname].pid  )    );
+   // fTree->Branch( branch_name.Format("%s.hit.x"    , branch_prefix.Data() ), &(genTgt3HEdata[SDname].x    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.y"    , branch_prefix.Data() ), &(genTgt3HEdata[SDname].y    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.z"    , branch_prefix.Data() ), &(genTgt3HEdata[SDname].z    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.t"    , branch_prefix.Data() ), &(genTgt3HEdata[SDname].t    )    );
+   // fTree->Branch( branch_name.Format("%s.hit.xg"   , branch_prefix.Data() ), &(genTgt3HEdata[SDname].xg   )    );
+   // fTree->Branch( branch_name.Format("%s.hit.yg"   , branch_prefix.Data() ), &(genTgt3HEdata[SDname].yg   )    );
+   // fTree->Branch( branch_name.Format("%s.hit.zg"   , branch_prefix.Data() ), &(genTgt3HEdata[SDname].zg   )    );
+   fTree->Branch( branch_name.Format("%s.hit.p"    , branch_prefix.Data() ), &(genTgt3HEdata[SDname].p    )    );
+   fTree->Branch( branch_name.Format("%s.hit.edep" , branch_prefix.Data() ), &(genTgt3HEdata[SDname].edep )    );
+   fTree->Branch( branch_name.Format("%s.hit.beta" , branch_prefix.Data() ), &(genTgt3HEdata[SDname].beta )    );
+   fTree->Branch( branch_name.Format("%s.hit.trackLength" , branch_prefix.Data() ), &(genTgt3HEdata[SDname].trackLength )    );
+
+   map<G4String,G4bool>::iterator it = KeepHistoryflags.find( SDname );
+   if( it != KeepHistoryflags.end() && it->second ){
+      //Branches with "Particle History" data:
+      fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(genTgt3HEdata[SDname].ParticleHistory.npart) );
+      fTree->Branch( branch_name.Format("%s.part.PID"  , branch_prefix.Data() ), &(genTgt3HEdata[SDname].ParticleHistory.PID) );
+      fTree->Branch( branch_name.Format("%s.part.MID"  , branch_prefix.Data() ), &(genTgt3HEdata[SDname].ParticleHistory.MID) );
+      fTree->Branch( branch_name.Format("%s.part.TID"  , branch_prefix.Data() ), &(genTgt3HEdata[SDname].ParticleHistory.TID) );
+      // fTree->Branch( branch_name.Format("%s.part.vx"   , branch_prefix.Data() ), &(genTgt3HEdata[SDname].ParticleHistory.vx) );
+      // fTree->Branch( branch_name.Format("%s.part.vy"   , branch_prefix.Data() ), &(genTgt3HEdata[SDname].ParticleHistory.vy) );
+      // fTree->Branch( branch_name.Format("%s.part.vz"   , branch_prefix.Data() ), &(genTgt3HEdata[SDname].ParticleHistory.vz) );
+      fTree->Branch( branch_name.Format("%s.part.px"   , branch_prefix.Data() ), &(genTgt3HEdata[SDname].ParticleHistory.px) );
+      fTree->Branch( branch_name.Format("%s.part.py"   , branch_prefix.Data() ), &(genTgt3HEdata[SDname].ParticleHistory.py) );
+      fTree->Branch( branch_name.Format("%s.part.pz"   , branch_prefix.Data() ), &(genTgt3HEdata[SDname].ParticleHistory.pz) );
+   }
 }
 

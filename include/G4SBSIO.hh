@@ -17,6 +17,11 @@
 #include "G4SBSPythiaOutput.hh"
 #include "G4SBSAcquMCOutput.hh"
 
+// for D Flay studies
+#include "G4SBSBDoutput.hh"
+#include "G4SBSICoutput.hh"
+#include "G4SBSTargetoutput.hh"
+
 class TFile;
 class TTree;
 class G4SBSGlobalField;
@@ -49,9 +54,9 @@ typedef struct {
   Double_t nth, nph;
   Double_t p1th, p1ph, p2th, p2ph, pith, piph; // TDIS
   Double_t pmperp, pmpar, pmparsm;
-  Double_t xpi, tpi, xa,pt, nu, ya, y, f2p, f2pi, ypi; // TDIS
-  Double_t z, phperp, phih, phiS, MX;
+  Double_t z, phperp, phih, phiS, thetaS, MX;
   Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator
+  Double_t xpi, tpi, xa,pt, nu, ya, y, f2p, f2pi, ypi; // TDIS
   Double_t s, t, u, costhetaCM, Egamma_lab; //Extra kinematic variables we would like to store for pion photoproduction
   Int_t nucl, fnucl;
   Int_t hadr;
@@ -109,7 +114,7 @@ public:
   //void SetTrackData( G4SBSTrackerOutput td ){ trackdata = td; }
   //void SetGEMData( G4SBSGEMoutput gd ){ GEMdata = gd; }
   //void 
-
+ 
   void SetGEMData( G4String, G4SBSGEMoutput );
   void SetTrackData( G4String, G4SBSTrackerOutput );
   void SetCalData( G4String, G4SBSCALoutput );
@@ -117,6 +122,14 @@ public:
   void SetECalData( G4String, G4SBSECaloutput );
   void SetmTPCData( G4String, G4SBSmTPCoutput );
   void SetSDtrackData( G4String, G4SBSSDTrackOutput );
+  // for D Flay studies
+  void SetBDData(G4String SDname,G4SBSBDoutput data);                   // for Beam Diffuser (BD)  
+  void SetICData(G4String SDname,G4SBSICoutput data);                   // for Ion Chamber (IC)   
+  void SetGEnTargetData_Glass(G4String SDname,G4SBSTargetoutput data);  // for GEn target glass 
+  void SetGEnTargetData_Cu(G4String SDname,G4SBSTargetoutput data);     // for GEn target Cu  
+  void SetGEnTargetData_Al(G4String SDname,G4SBSTargetoutput data);     // for GEn target Al  
+  void SetGEnTargetData_3He(G4String SDname,G4SBSTargetoutput data);    // for GEn target 3He  
+
   inline void SetAllSDtrackData( G4SBSSDTrackOutput sd ){ allsdtrackdata = sd; } 
 
   //inline G4SBSSDTrackOutput GetSDtrackData( G4String sdname ){ return sdtrackdata[sdname]; }
@@ -159,7 +172,14 @@ public:
   void BranchAcquMC();
   //void BranchSDTracks(G4String s);
   void BranchSDTracks();
-  
+  // for D Flay studies
+  void BranchBD(G4String SDname);           // for Beam Diffuser (BD) 
+  void BranchIC(G4String SDname);           // for Ion Chamber (IC) 
+  void BranchGEnTarget_Glass(G4String SDname); // for GEn target glass
+  void BranchGEnTarget_Cu(G4String SDname);    // for GEn target
+  void BranchGEnTarget_Al(G4String SDname);    // for GEn target
+  void BranchGEnTarget_3He(G4String SDname);   // for GEn target
+ 
   void SetDetCon(G4SBSDetectorConstruction *dc ){ fdetcon = dc; }
 
   // void SetEarmCALpart_flag( G4bool b ){ EarmCALpart_flag = b; }
@@ -219,6 +239,10 @@ private:
   map<G4String,G4SBSECaloutput> ecaldata;
   map<G4String,G4SBSmTPCoutput> mTPCdata;
   map<G4String,G4SBSSDTrackOutput> sdtrackdata;
+  // for D Flay studies  
+  map<G4String,G4SBSBDoutput> BDdata;
+  map<G4String,G4SBSICoutput> ICdata;
+  map<G4String,G4SBSTargetoutput> genTgtGCdata,genTgtCUdata,genTgtALdata,genTgt3HEdata;
 
   G4SBSSDTrackOutput allsdtrackdata;
   

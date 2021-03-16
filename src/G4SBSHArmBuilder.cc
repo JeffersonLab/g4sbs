@@ -116,33 +116,33 @@ G4SBSHArmBuilder::~G4SBSHArmBuilder(){
 }
 
 void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
-  Exp_t exptype = fDetCon->fExpType;
-  Targ_t tgttype = fDetCon->fTargType;
+  G4SBS::Exp_t exptype = fDetCon->fExpType;
+  G4SBS::Targ_t tgttype = fDetCon->fTargType;
 
   // Build the 48D48 magnet and HCAL
   // All three types of experiments have a 48D48 magnet:
-  if( exptype != kC16 && exptype != kGEMHCtest ) {
+  if( exptype != G4SBS::kC16 && exptype != G4SBS::kGEMHCtest ) {
     Make48D48(worldlog, f48D48dist + f48D48depth/2. );
     if(fBuildSBSSieve)
       MakeSBSSieveSlit(worldlog);
     
     //MakeHCAL( worldlog, fHCALvertical_offset );
-    if( exptype != kA1n  && exptype != kTDIS && exptype != kNDVCS )
+    if( exptype != G4SBS::kA1n  && exptype != G4SBS::kTDIS && exptype != G4SBS::kNDVCS )
       MakeHCALV2( worldlog, fHCALvertical_offset );
   }
 
   // Now build special components for experiments
-  if( exptype == kSIDISExp) {
+  if( exptype == G4SBS::kSIDISExp) {
     //SIDIS experiment requires a RICH detector and a tracker for SBS: 
     MakeTracker(worldlog);
     //MakeRICH( worldlog );
     MakeRICH_new( worldlog );
-  } else if ( exptype == kGEp || exptype == kGEPpositron ) {
+  } else if ( exptype == G4SBS::kGEp || exptype == G4SBS::kGEPpositron ) {
     //Subsystems unique to the GEp experiment include FPP and BigCal:
     MakeGEpFPP(worldlog);
   }
 
-  if ( exptype == kA1n  || exptype == kTDIS || exptype == kNDVCS ) {
+  if ( exptype == G4SBS::kA1n  || exptype == G4SBS::kTDIS || exptype == G4SBS::kNDVCS ) {
     //A1n case is similar to SIDIS, except now we want to use the SBS in
     //"electron mode"; meaning we want to remove the aerogel from the RICH,
     //and replace the RICH gas with CO2, and we also want to have a non-zero
@@ -156,13 +156,13 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Build Test detector ****************************************
-  if( exptype == kC16 ) {
+  if( exptype == G4SBS::kC16 ) {
     MakeTest( worldlog );
   }
 
   // Build CDET (as needed)
-  //if( (exptype == kGMN || exptype == kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
-  if( exptype == kGMN || exptype == kGEnRP ){
+  //if( (exptype == G4SBS::kGMN || exptype == G4SBS::kGEnRP ) && (tgttype==kLH2 || tgttype==kLD2)){
+  if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEnRP ){
     //plugging in CDET for GMn  
     G4double depth_HCal_shield = 7.62*cm; //3 inches
     G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
@@ -239,7 +239,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Build GEn-RP polarimeter
-  if( exptype == kGEnRP ) 
+  if( exptype == G4SBS::kGEnRP ) 
     MakePolarimeterGEnRP( worldlog );
 }
 
@@ -543,11 +543,13 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   G4LogicalVolume *bigfieldLog=new G4LogicalVolume(biggap, GetMaterial("Air"),
 						   "bigfieldLog", 0, 0, 0);
 
+  //AJRP 9/29/2020: moved SBS sieve plate definition to its own method:
+
 
 
   // Dipole gap shielding for GEnRP
 
-  if( fDetCon->fExpType == kGEnRP ){
+  if( fDetCon->fExpType == G4SBS::kGEnRP ){
     // Defining parametermes for rectangular portion
     G4double h_gapshield = 30.*cm;  // guesstimate
     G4double w_gapshield = 68.5*cm;  // guesstimate
@@ -616,7 +618,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
   		    bigfieldLog, "bigfieldPhysical", worldlog, 0,false,0);
 
 
-  if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGEPpositron ){
+  if( fDetCon->fExpType == G4SBS::kGEp || fDetCon->fExpType == G4SBS::kGEPpositron ){
     // Addtional iron inside the field region
 
     std::vector<G4TwoVector> leftverts;
@@ -690,7 +692,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
 void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
   
-  if( f48D48_fieldclamp_config == 1 ){ //BigBite: Field clamp version 1 (AFAIK) is obsolete.
+  if( false ){ //BigBite: Field clamp version 1 (AFAIK) is obsolete. Never build this...
 
     double clampdepth = 10.*cm;
     double clampoffset = 45*cm/2;
@@ -754,7 +756,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
     G4Tubs *facehole;
    
-    if( fDetCon->fTargType == kLH2 || fDetCon->fTargType == kLD2 ){
+    if( fDetCon->fTargType == G4SBS::kLH2 || fDetCon->fTargType == G4SBS::kLD2 ){
       facehole = new G4Tubs("facehole", 0.0, 5.5*cm, 40.*cm, 0, 360*deg);
     } else {
       facehole = new G4Tubs("facehole", 0.0, 8*cm, 40.*cm, 0, 360*deg);
@@ -776,7 +778,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4LogicalVolume *frontclampLog=new G4LogicalVolume(frontclampun, GetMaterial("Fer"), "frontclampLog", 0, 0, 0);
 
     G4LogicalVolume *frontextfaceLog= NULL;
-    if( fDetCon->fExpType == kGEp || fDetCon->fExpType == kGMN || fDetCon->fExpType == kGEN || fDetCon->fExpType == kGEnRP ){
+    if( fDetCon->fExpType == G4SBS::kGEp || fDetCon->fExpType == G4SBS::kGMN || fDetCon->fExpType == G4SBS::kGEN || fDetCon->fExpType == G4SBS::kGEnRP ){
       frontextfaceLog = new G4LogicalVolume(extface_whole, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
     } else {
       frontextfaceLog = new G4LogicalVolume(extface, GetMaterial("Fer"), "frontextfaceLog", 0, 0, 0);
@@ -831,7 +833,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 		      frontextfaceLog, "extfacePhysical", motherlog, 0,false,0);
 
     // Back clamp is GEp only?
-    if( fDetCon->fExpType == kGEp ){
+    if( fDetCon->fExpType == G4SBS::kGEp ){
       new G4PVPlacement(rot, 
 			G4ThreeVector(-(r48d48+backclampz)*sin(-f48D48ang)-cos(-f48D48ang)*clampoffset, 0.0, (r48d48+backclampz)*cos(-f48D48ang)-sin(-f48D48ang)*clampoffset),
 			backclampLog, "backclampPhysical", motherlog, 0,false,0);
@@ -843,8 +845,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     frontclampLog->SetVisAttributes(clampVisAtt);
     frontextfaceLog->SetVisAttributes(clampVisAtt);
     backclampLog->SetVisAttributes(clampVisAtt);
-  } else if( f48D48_fieldclamp_config == 2  || f48D48_fieldclamp_config == 3) { // 2 == GEp, 3 == GMn
-   
+  } else if( f48D48_fieldclamp_config != 0 ) { // 2 == GEp, 3 == GMn
+
+    //Any non-zero value causes front clamp to be built: "2" causes both front and rear clamps to be built:
     G4double FrontClamp_width = 62.99*2.54*cm;
     G4double FrontClamp_height = 118.11*2.54*cm;
     G4double FrontClamp_depth = 3.94*2.54*cm;
@@ -897,47 +900,47 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     // Sorry in advance to whoemever is angry at the lack of indentation,
     // blame Linus for making git :D
     if( f48D48_fieldclamp_config == 2 ) { // GEp uses a back clamp too
-    ////REAR CLAMP:
-    G4double RearClamp_width = 105.12*2.54*cm;
-    G4double RearClamp_height = 114.96*2.54*cm;
-    G4double RearClamp_depth = 5.91*2.54*cm;
+      ////REAR CLAMP:
+      G4double RearClamp_width = 105.12*2.54*cm;
+      G4double RearClamp_height = 114.96*2.54*cm;
+      G4double RearClamp_depth = 5.91*2.54*cm;
 
-    G4Box *RearClamp_Box = new G4Box("RearClamp_Box", RearClamp_width/2.0, RearClamp_height/2.0, RearClamp_depth/2.0 );
+      G4Box *RearClamp_Box = new G4Box("RearClamp_Box", RearClamp_width/2.0, RearClamp_height/2.0, RearClamp_depth/2.0 );
     
-    G4double RearClamp_GapWidth = 18.11*2.54*cm;
-    G4double RearClamp_GapHeight = 51.18*2.54*cm;
-    G4double RearClamp_NotchWidth = 37.84*2.54*cm;
-    G4double RearClamp_NotchHeight = 39.37*2.54*cm;
+      G4double RearClamp_GapWidth = 18.11*2.54*cm;
+      G4double RearClamp_GapHeight = 51.18*2.54*cm;
+      G4double RearClamp_NotchWidth = 37.84*2.54*cm;
+      G4double RearClamp_NotchHeight = 39.37*2.54*cm;
 
-    G4double RearClamp_GapX = 36.61*2.54*cm; //This is the distance from the left edge of the rear clamp to the left edge of the opening.
+      G4double RearClamp_GapX = 36.61*2.54*cm; //This is the distance from the left edge of the rear clamp to the left edge of the opening.
 
-    G4Box *RearClamp_Gap = new G4Box("RearClamp_Gap", RearClamp_GapWidth/2.0, RearClamp_GapHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
+      G4Box *RearClamp_Gap = new G4Box("RearClamp_Gap", RearClamp_GapWidth/2.0, RearClamp_GapHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
 
-    G4SubtractionSolid *RearClamp_GapCutout = new G4SubtractionSolid( "RearClamp_GapCutout", RearClamp_Box, RearClamp_Gap, 0, 
-								      G4ThreeVector( -RearClamp_width/2.0 + RearClamp_GapX + RearClamp_GapWidth/2.0, 0.0, 0.0 ) );
+      G4SubtractionSolid *RearClamp_GapCutout = new G4SubtractionSolid( "RearClamp_GapCutout", RearClamp_Box, RearClamp_Gap, 0, 
+									G4ThreeVector( -RearClamp_width/2.0 + RearClamp_GapX + RearClamp_GapWidth/2.0, 0.0, 0.0 ) );
     
-    G4Box *RearClamp_Notch = new G4Box("RearClamp_Notch", RearClamp_NotchWidth/2.0+1.0*cm, RearClamp_NotchHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
+      G4Box *RearClamp_Notch = new G4Box("RearClamp_Notch", RearClamp_NotchWidth/2.0+1.0*cm, RearClamp_NotchHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
     
-    xnotch = -RearClamp_NotchWidth/2.0 + 1.0*cm + RearClamp_width/2.0;
+      xnotch = -RearClamp_NotchWidth/2.0 + 1.0*cm + RearClamp_width/2.0;
 
-    G4SubtractionSolid *RearClamp = new G4SubtractionSolid( "RearClamp", RearClamp_GapCutout, RearClamp_Notch, 0, 
-							    G4ThreeVector( xnotch, 0.0, 0.0 ) );
+      G4SubtractionSolid *RearClamp = new G4SubtractionSolid( "RearClamp", RearClamp_GapCutout, RearClamp_Notch, 0, 
+							      G4ThreeVector( xnotch, 0.0, 0.0 ) );
 
-    G4LogicalVolume *RearClamp_log = new G4LogicalVolume( RearClamp, GetMaterial("Fer"), "RearClamp_log" );
+      G4LogicalVolume *RearClamp_log = new G4LogicalVolume( RearClamp, GetMaterial("Fer"), "RearClamp_log" );
     
-    if(fDetCon->fTotalAbs) {
-      RearClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-    }
+      if(fDetCon->fTotalAbs) {
+	RearClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+      }
 
-    G4double RearClamp_zoffset = 11.43*2.54*cm + RearClamp_depth/2.0; 
-    G4double RearClamp_xoffset = -f48D48width/2.0 + RearClamp_width/2.0; 
-    G4double RearClamp_r = f48D48dist + f48D48depth + RearClamp_zoffset;
+      G4double RearClamp_zoffset = 11.43*2.54*cm + RearClamp_depth/2.0; 
+      G4double RearClamp_xoffset = -f48D48width/2.0 + RearClamp_width/2.0; 
+      G4double RearClamp_r = f48D48dist + f48D48depth + RearClamp_zoffset;
 
-    G4ThreeVector RearClamp_pos( -RearClamp_r*sin(f48D48ang) + RearClamp_xoffset*cos(f48D48ang), 0.0, RearClamp_r*cos(f48D48ang) + RearClamp_xoffset * sin(f48D48ang) );
+      G4ThreeVector RearClamp_pos( -RearClamp_r*sin(f48D48ang) + RearClamp_xoffset*cos(f48D48ang), 0.0, RearClamp_r*cos(f48D48ang) + RearClamp_xoffset * sin(f48D48ang) );
 
-    new G4PVPlacement( clamp_rot, RearClamp_pos, RearClamp_log, "RearClamp_phys", motherlog, false, 0, false );
+      new G4PVPlacement( clamp_rot, RearClamp_pos, RearClamp_log, "RearClamp_phys", motherlog, false, 0, false );
 
-    RearClamp_log->SetVisAttributes(clampVisAtt);
+      RearClamp_log->SetVisAttributes(clampVisAtt);
     } // Rear clamp log (GEp)
 
     //Make lead shielding in clamp:
@@ -954,7 +957,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     // G4double Trap_TL2 = 20.0*cm;
     // G4double Trap_alpha2 = angtrap;
 
-    if( fDetCon->fLeadOption == 1 &&  fDetCon->fExpType == kGEp ){
+    if( fDetCon->fLeadOption == 1 &&  fDetCon->fExpType == G4SBS::kGEp ){
       //Let us redefine this guy so that the sides make proper angles:
       G4double Trap_DZ = 13.6*cm;
       G4double Trap_Width1 = 15*cm;
@@ -1502,11 +1505,11 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     HCalScintSD = new G4SBSCalSD( HCalScintSDName, HCalScintCollName );
     sdman->AddNewDetector(HCalScintSD);
     (fDetCon->SDlist).insert(HCalScintSDName);
-    fDetCon->SDtype[HCalScintSDName] = kCAL;
+    fDetCon->SDtype[HCalScintSDName] = G4SBS::kCAL;
     (HCalScintSD->detmap).depth = 1;
 
     //This will be overridden if the command /g4sbs/threshold has been invoked for this detector:
-    fDetCon->SetTimeWindowAndThreshold( HCalScintSDName, 10.0*MeV, 500.0*ns );
+    fDetCon->SetTimeWindowAndThreshold( HCalScintSDName, 0.0*MeV, 500.0*ns );
   }
   log_Scint->SetSensitiveDetector(HCalScintSD);
   fDetCon->InsertSDboundaryVolume( log_HCAL->GetName(), HCalScintSDName );
@@ -1521,7 +1524,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     HCalSD = new G4SBSECalSD( HCalSDName, HCalCollName );
     sdman->AddNewDetector(HCalSD);
     (fDetCon->SDlist).insert(HCalSDName);
-    fDetCon->SDtype[HCalSDName] = kECAL;
+    fDetCon->SDtype[HCalSDName] = G4SBS::kECAL;
     (HCalSD->detmap).depth = 1;
   }
   log_PMTCathode->SetSensitiveDetector(HCalSD);
@@ -1544,7 +1547,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
       HCALboxSD = new G4SBSCalSD( sdname, collname );
       sdman->AddNewDetector( HCALboxSD );
       (fDetCon->SDlist).insert( sdname );
-      fDetCon->SDtype[sdname] = kCAL;
+      fDetCon->SDtype[sdname] = G4SBS::kCAL;
       (HCALboxSD->detmap).depth = 0;
       log_HCAL->SetSensitiveDetector( HCALboxSD );
     }
@@ -1800,12 +1803,12 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     HCalScintSD = new G4SBSCalSD( HCalScintSDname, HCalScintcollname );
     sdman->AddNewDetector(HCalScintSD);
     (fDetCon->SDlist).insert(HCalScintSDname);
-    fDetCon->SDtype[HCalScintSDname] = kCAL;
+    fDetCon->SDtype[HCalScintSDname] = G4SBS::kCAL;
     //fDetCon->SDarm[HCalScintSDname] = kHarm;
 
     (HCalScintSD->detmap).depth = 1;
 
-    fDetCon->SetTimeWindowAndThreshold( HCalScintSDname, 10.0*MeV, 100.0*ns );
+    fDetCon->SetTimeWindowAndThreshold( HCalScintSDname, 0.0*MeV, 100.0*ns );
   }
   logScinPl->SetSensitiveDetector(HCalScintSD);
 
@@ -1951,8 +1954,8 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
     HCalSD = new G4SBSECalSD( HCalSDname, HCalcollname );
     sdman->AddNewDetector(HCalSD);
     (fDetCon->SDlist).insert(HCalSDname);
-    fDetCon->SDtype[HCalSDname] = kECAL;
-    //fDetCon->SDarm[HCalSDname] = kHarm;
+    fDetCon->SDtype[HCalSDname] = G4SBS::kECAL;
+    //fDetCon->SDarm[HCalSDname] = G4SBS::kHarm;
     (HCalSD->detmap).depth = 0;
   }
   logCathod->SetSensitiveDetector(HCalSD);
@@ -2005,7 +2008,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
       HCALboxSD = new G4SBSCalSD( sdname, collname );
       sdman->AddNewDetector( HCALboxSD );
       (fDetCon->SDlist).insert( sdname );
-      fDetCon->SDtype[sdname] = kCAL;
+      fDetCon->SDtype[sdname] = G4SBS::kCAL;
       (HCALboxSD->detmap).depth = 0;
       logCalo->SetSensitiveDetector( HCALboxSD );
     }
@@ -2206,8 +2209,8 @@ void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
   MakeTracker( motherlog );
   MakeRICH_new( motherlog , true);
 
-  Exp_t exptype = fDetCon->fExpType;
-  if( exptype == kA1n ){ //HCAL AND LAC:
+  G4SBS::Exp_t exptype = fDetCon->fExpType;
+  if( exptype == G4SBS::kA1n ){ //HCAL AND LAC:
     MakeHCALV2( motherlog, fHCALvertical_offset );
     MakeLAC( motherlog );
   } else { //TDIS or NDVCS: LAC only:
@@ -2819,8 +2822,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool extended_s
     RICHSD = new G4SBSRICHSD( RICHSDname, RICHcollname );
     sdman->AddNewDetector( RICHSD );
     (fDetCon->SDlist).insert(RICHSDname);
-    fDetCon->SDtype[RICHSDname] = kRICH;
-    //fDetCon->SDarm[RICHSDname] = kHarm;
+    fDetCon->SDtype[RICHSDname] = G4SBS::kRICH;
+    //fDetCon->SDarm[RICHSDname] = G4SBS::kHarm;
 
     PMTcathode_log->SetSensitiveDetector( RICHSD ); //This assigns the sensitive detector type "RICHSD" to the logical volume PMTcathode!
     (RICHSD->detmap).depth = 1;
@@ -3093,7 +3096,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     cdet_sd = new G4SBSECalSD( sdname, collname );
     fDetCon->fSDman->AddNewDetector( cdet_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kECAL;
+    fDetCon->SDtype[sdname] = G4SBS::kECAL;
     (cdet_sd->detmap).depth = 0;
     CDET_pmt_cathode_log->SetSensitiveDetector( cdet_sd );
   }
@@ -3108,11 +3111,11 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     cdet_scint_sd = new G4SBSCalSD( sdname, collname );
     fDetCon->fSDman->AddNewDetector( cdet_scint_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kCAL;
+    fDetCon->SDtype[sdname] = G4SBS::kCAL;
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
 
-    fDetCon->SetTimeWindowAndThreshold( sdname, 4.0*MeV, 50.0*ns );
+    fDetCon->SetTimeWindowAndThreshold( sdname, 0.0*MeV, 50.0*ns );
   }
   
   //Now we need to define the coordinates of the "modules":
@@ -3544,8 +3547,8 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
     RICHSD = new G4SBSRICHSD( RICHSDname, RICHcollname );
     sdman->AddNewDetector( RICHSD );
     (fDetCon->SDlist).insert(RICHSDname);
-    fDetCon->SDtype[RICHSDname] = kRICH;
-    //fDetCon->SDarm[RICHSDname] = kHarm;
+    fDetCon->SDtype[RICHSDname] = G4SBS::kRICH;
+    //fDetCon->SDarm[RICHSDname] = G4SBS::kHarm;
 
     PMTcathode_log->SetSensitiveDetector( RICHSD ); //This assigns the sensitive detector type "RICHSD" to the logical volume PMTcathode!
     (RICHSD->detmap).depth = 1;
@@ -3783,7 +3786,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     AnalyzerMaterials.push_back( G4String("CH2") );
     
     break;
-  case 3: //6-plane FT + 22" CH2 + 5-plane FPP1 + 4-cm Cu + 5-plane FPP2:
+  case 3: //6-plane FT + 22" CH2 + 5-plane FPP1 + let's use 3.5" steel + 5-plane FPP2:
     nana = 2;
     ntracker = 3;
     GEM_z_spacing[0] = 9.0*cm;
@@ -3797,7 +3800,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     fGEP_CH2width[1] = 60.0*cm;
     fGEP_CH2height[1] = 200.0*cm;
 
-    fCH2thickFPP[1] = 4.0*cm; //Cu analyzer thickness
+    //fCH2thickFPP[1] = 3.5*2.54*cm; //GEN-RP steel analyzer thickness: let's not actually
+    //hard-code this8.
     
     SDnames.push_back("Harm/FT");
     SDnames.push_back("Harm/FPP1");
@@ -3811,7 +3815,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     trkr_zpos[2] = fGEP_CH2zpos[1] + fCH2thickFPP[1] + GEM_z_spacing[2];
 
     AnalyzerMaterials.push_back( "CH2" );
-    AnalyzerMaterials.push_back( "Copper" );
+    AnalyzerMaterials.push_back( "Steel" );
     
     break;
   case 2:
@@ -3969,7 +3973,7 @@ void G4SBSHArmBuilder::MakeLACModule(G4LogicalVolume *motherlog)
       LACboxSD = new G4SBSCalSD( sdname, collname );
       sdman->AddNewDetector( LACboxSD );
       (fDetCon->SDlist).insert( sdname );
-      fDetCon->SDtype[sdname] = kCAL;
+      fDetCon->SDtype[sdname] = G4SBS::kCAL;
       (LACboxSD->detmap).depth = 0;
       LACmod_log->SetSensitiveDetector( LACboxSD );
     }
@@ -4002,6 +4006,145 @@ void G4SBSHArmBuilder::MakeSBSSieveSlit(G4LogicalVolume *motherlog)
 {
   printf("Building SBS sieve slit...\n");
   
+  ////SIEVE PLATE OPTION - SSEEDS. LAST UPDATE - 9.5.20
+
+  ////Dims per C. Soova JLab Drawing "HALL A - TEMPLATE - A00000 MAGNET - 48D48 DIPOLE SBS SIEVE PLATE ASSY SBS SIEVE PLATE"
+  ////Strategy is to make a union solid of a thick and a thin plate to make base plate without holes. With this base plate, punch holes by creating a series of 77 subtraction solids where each has the previous subtraction solid as it's input. 
+  ////Untested code complete 9.1.20 - waiting to test with visualization
+  ////Determined placement by centering on bigbite arm (30.0 deg). Needs confirmation. 9.4.20
+  ////9.5.20 - Debugging - y-direction holes appear to be rotated with incorrect reversal of rotation. Attempts to correct with sign flip over array of sub_yAng does not appear to change the output in visualization.
+  ////9.5.20 - Debugging complete. Reversed order of x angles as fed by row in subtraction solids and rotated plate to -30.0 deg
+
+  //Plate
+  //Plate dims - Will union thick and thin plates to create final solid
+  G4double inch = 2.54*cm;
+  G4double ThinPlate_z = 1.0*inch;  //per print 0.995 - 0.985 inch 
+  G4double ThinPlate_y = 30.0*inch; 
+  G4double ThinPlate_x = 10.375*inch; 
+  G4double ThickPlate_z = 2.0*inch; 
+  G4double ThickPlate_y = 29.0*inch; 
+  G4double ThickPlate_x = 9.375*inch;   
+  
+  //Plate positioning and orientation dims
+  //G4double offset_z = 50.825*inch; //distance to center of thick plate face from center of target: 51.825", thickness of plate: 2.0"; offset_z = 51.825 - 2.0/2
+  //G4double PlateAngDisp_theta = 30.0*deg;
+  // G4double PlateAngDisp_theta = -f48D48ang;
+  //G4double PlateAngDisp_phi = 180.0*deg;
+  // G4RotationMatrix *SievePlateRot = new G4RotationMatrix; //rotates plate across each of its own axes
+  // SievePlateRot->rotateZ(0*deg);
+  // SievePlateRot->rotateX(0*deg);
+  // SievePlateRot->rotateY(f48D48ang);
+
+  // //Hole dims - x by y: 7 holes by 11 holes. Center hole: row 6, column 4. 
+  // G4double holeSpace_y = 2.716*inch;
+  // G4double holeSpace_x = 1.176*inch;
+  //G4double offset_z = r48d48-30*cm-f48D48depth/2;
+  G4double offset_z = f48D48dist - 1.6*m + 51.825*inch; //distance to BACK of plate.
+  //G4double Ang_y = 3.0*deg; //Displacement angle in y direction - 3.0 per print
+  //G4double Ang_x = 1.3*deg; //Displacement angle in x direction - 1.3 per print
+  // G4double Ang_y = atan(holeSpace_y/offset_z);
+  // G4double Ang_x = atan(holeSpace_x/offset_z);
+
+  G4double HoleCenter_r = 0.125*inch;
+  G4double Hole_r = 0.25*inch;
+  G4double Hole_z = 3.0*inch; //Large enough to leave no solid volume at extreme displacements from center
+  
+  //Plate solids
+  G4Box *ThinPlate = new G4Box("ThinPlate", ThinPlate_x/2.0, ThinPlate_y/2.0, ThinPlate_z/2.0);  
+  G4Box *ThickPlate = new G4Box("ThickPlate", ThickPlate_x/2.0, ThickPlate_y/2.0, ThickPlate_z/2.0);
+
+  //Union of plates
+  G4VSolid *FullPlate = new G4UnionSolid("FullPlate", ThinPlate, ThickPlate);
+
+  //Hole solids
+  G4Tubs *Hole = new G4Tubs("Hole", 0, Hole_r, Hole_z, 0.0*deg, 360.0*deg);
+  G4Tubs *HoleCenter = new G4Tubs("HoleCenter", 0, HoleCenter_r, Hole_z, 0.0*deg, 360.0*deg);
+
+  //angular spacing of holes at the nominal distance of 51.825 inches
+  G4double angspace_y = 3.0*deg;
+  G4double angspace_x = 1.3*deg; 
+
+  //G4SubtractionSolid *NextCut;
+  G4SubtractionSolid *SievePlateCut;
+  
+  G4bool first = true;
+
+  //Cut holes in the plate:
+
+  cout << "cutting holes" << endl;
+  
+  
+  for(G4int iy=-5; iy<=5; iy++ ){
+    for(G4int ix=-3; ix<=3; ix++ ){
+      G4double xangle = ix*angspace_x;
+      G4double yangle = iy*angspace_y;
+
+      //G4SubtractionSolid 
+      
+	//if( ix != 0 || iy != 0 ){ //compute rotation matrix for all holes but center hole:
+      G4ThreeVector holeaxis( tan(xangle), tan(yangle), 1.0 );
+      holeaxis = holeaxis.unit();
+      
+      G4ThreeVector zaxis(0.,0.,1.0);
+      
+      G4ThreeVector rotationaxis = (zaxis.cross(holeaxis)).unit();
+      G4double rotationangle = acos( zaxis.dot(holeaxis) );
+
+      G4RotationMatrix *holerot = new G4RotationMatrix;
+      if( !(ix == 0 && iy == 0 ) ) {
+	holerot->rotate( -rotationangle, rotationaxis );
+      }
+      
+      G4double platecenter_z = 51.825*inch - ThickPlate_z/2.0;
+      
+      G4ThreeVector origin(0,0,-platecenter_z );
+      G4double holedist = platecenter_z * sqrt(1.0 + pow(tan(xangle),2)+pow(tan(yangle),2) ); 
+      
+      G4ThreeVector holecenterpos = origin + holedist * holeaxis;
+
+      cout << "(row,col,holeposx,holeposy,holeposz,rotationangle)=("
+	   << iy << ", " << ix << ", " << holecenterpos.x()/inch << ", "
+	   << holecenterpos.y()/inch << ", "
+	   << holecenterpos.z()/inch << ", "
+	   << rotationangle/deg << ")" << endl;
+
+      cout << "rotation matrix = " << endl;
+      holerot->print(cout);
+      
+      G4SubtractionSolid *NextCut;
+      if( first ){
+	first = false;
+	if( !(ix==0&&iy==0) ){
+	  NextCut = new G4SubtractionSolid( "NextCut", FullPlate, Hole, holerot, holecenterpos );
+	} else { //it should be impossible to end up here:
+	  NextCut = new G4SubtractionSolid( "NextCut", FullPlate, HoleCenter, holerot, holecenterpos );
+	}
+      } else {
+	if( !(ix==0&&iy==0) ){
+	  NextCut = new G4SubtractionSolid( "NextCut", SievePlateCut, Hole, holerot, holecenterpos );
+	} else { //it should be impossible to end up here:
+	  NextCut = new G4SubtractionSolid( "NextCut", SievePlateCut, HoleCenter, holerot, holecenterpos );
+	}
+      }
+
+      SievePlateCut = NextCut;
+      SievePlateCut->SetName("SBSSievePlateCut");
+    }
+  }
+
+  G4cout << "finished holes..." << endl;
+  
+  G4LogicalVolume *SBSSievePlate_log = new G4LogicalVolume(SievePlateCut, GetMaterial("Lead"), "SBS_SievePlate_log");
+
+  G4double SBSsieve_dist = offset_z - ThickPlate_z/2.0;
+  //Placement:
+  G4ThreeVector sievepos = SBSsieve_dist * G4ThreeVector( -sin(f48D48ang), 0, cos(f48D48ang) );
+  G4RotationMatrix *sieverot = new G4RotationMatrix;
+  sieverot->rotateY(f48D48ang);
+
+  new G4PVPlacement(sieverot, sievepos, SBSSievePlate_log, "SBSSievePlate_phys", motherlog, false, 0);
+  
+  G4cout << "Sieve plate finished" << G4endl;
   
 }
  
@@ -4063,10 +4206,10 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
     LACScintSD = new G4SBSCalSD( LACScintSDname, LACScintCollName );
     sdman->AddNewDetector( LACScintSD );
     (fDetCon->SDlist).insert(LACScintSDname);
-    fDetCon->SDtype[LACScintSDname] = kCAL;
+    fDetCon->SDtype[LACScintSDname] = G4SBS::kCAL;
     (LACScintSD->detmap).depth = 0;
 
-    fDetCon->SetTimeWindowAndThreshold( LACScintSDname, 10.0*MeV, 100.0*ns );
+    fDetCon->SetTimeWindowAndThreshold( LACScintSDname, 0.0*MeV, 100.0*ns );
   }
 
   fDetCon->InsertSDboundaryVolume( log_LAC->GetName(), LACScintSDname );
@@ -4202,7 +4345,7 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
 
 void G4SBSHArmBuilder::SetFPP_CH2thick( int ifpp, double CH2thick ){
   double fthickmin = 0.0*cm;
-  double fthickmax = 120.0*cm;
+  double fthickmax = 150.0*cm;
 
   ifpp = ifpp >= 1 ? ( ifpp <= 2 ? ifpp : 2 ) : 1;
   
@@ -4380,7 +4523,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     
     sdman->AddNewDetector( ActAnScintSD );
     (fDetCon->SDlist).insert( ActAnScintSDname );
-    fDetCon->SDtype[ActAnScintSDname] = kCAL;
+    fDetCon->SDtype[ActAnScintSDname] = G4SBS::kCAL;
     (ActAnScintSD->detmap).depth = 0;
     
     fDetCon->SetTimeWindowAndThreshold( ActAnScintSDname, ethresh_default, timewindow_default );
@@ -4494,7 +4637,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
       
       sdman->AddNewDetector( PRPolScintBSSD );
       (fDetCon->SDlist).insert( PRPolScintBSSDname );
-      fDetCon->SDtype[PRPolScintBSSDname] = kCAL;
+      fDetCon->SDtype[PRPolScintBSSDname] = G4SBS::kCAL;
       (PRPolScintBSSD->detmap).depth = 0;
       
       fDetCon->SetTimeWindowAndThreshold( PRPolScintBSSDname, ethresh_default, timewindow_default );
@@ -4535,7 +4678,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     
     sdman->AddNewDetector( PRPolScintFSSD );
     (fDetCon->SDlist).insert( PRPolScintFSSDname );
-    fDetCon->SDtype[PRPolScintFSSDname] = kCAL;
+    fDetCon->SDtype[PRPolScintFSSDname] = G4SBS::kCAL;
     (PRPolScintFSSD->detmap).depth = 0;
 
     fDetCon->SetTimeWindowAndThreshold( PRPolScintFSSDname, ethresh_default, timewindow_default );
@@ -4602,7 +4745,7 @@ void G4SBSHArmBuilder::MakeNeutronVeto(G4LogicalVolume* worldlog, G4double dist_
     veto_scint_sd = new G4SBSCalSD( sdname, collname );
     fDetCon->fSDman->AddNewDetector( veto_scint_sd );
     (fDetCon->SDlist).insert( sdname );
-    fDetCon->SDtype[sdname] = kCAL;
+    fDetCon->SDtype[sdname] = G4SBS::kCAL;
     (veto_scint_sd->detmap).depth = 1;
     VetoScintLog->SetSensitiveDetector( veto_scint_sd );
 	

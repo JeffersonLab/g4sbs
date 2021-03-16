@@ -387,21 +387,21 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
 
   G4LogicalVolume* gas_tube_log = NULL;
 
-  if( fTargType == kH2 ){
+  if( fTargType == G4SBS::kH2 ){
     gas_tube_log = new G4LogicalVolume(gas_tube, 
 				       //GetMaterial("mTPCH2"), 
 				       GetMaterial("refH2"), 
 				       "gas_tube_log");
   }
  
-  if( fTargType == kD2 || fTargType == kNeutTarg  ){ //moved neut target from kH2
+  if( fTargType == G4SBS::kD2 || fTargType == G4SBS::kNeutTarg  ){ //moved neut target from kH2
     gas_tube_log = new G4LogicalVolume(gas_tube, 
 				       //GetMaterial("mTPCD2"), 
 				       GetMaterial("refD2"), 
 				       "gas_tube_log");
   }
  
-  if( fTargType == k3He ){
+  if( fTargType == G4SBS::k3He ){
     gas_tube_log = new G4LogicalVolume(gas_tube, 
 				        GetMaterial("pol3He"), 
 				       "gas_tube_log");

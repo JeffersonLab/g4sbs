@@ -50,8 +50,9 @@ private:
   G4SBSSteppingAction *fstepact;
   
 
-  Exp_t fExpType;
+  G4SBS::Exp_t fExpType;
   
+  G4UIcmdWithAnInteger *printCmd;  
   G4UIcmdWithAnInteger *runCmd;
   G4UIcmdWithAString   *fileCmd;
   G4UIcmdWithAString   *tgtCmd;
@@ -102,7 +103,9 @@ private:
   G4UIcmdWithADoubleAndUnit *runtimeCmd;
   G4UIcmdWithADoubleAndUnit *rasterxCmd;
   G4UIcmdWithADoubleAndUnit *rasteryCmd;
-
+  G4UIcmdWithADoubleAndUnit *rasterrCmd;
+  G4UIcmdWithADoubleAndUnit *beamspotsizeCmd;
+  
   //commands controlling pion photoproduction event generation:
   G4UIcmdWithADouble *PionPhoto_tminCmd;
   G4UIcmdWithADouble *PionPhoto_tmaxCmd;
@@ -194,17 +197,73 @@ private:
 
   G4UIcmdWithAnInteger       *GEPFPPoptionCmd;
 
-  // D. Flay 7/28/20
-  // command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
-  G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd;  
+  // D. Flay 7/28/20: command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
+  G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd; 
+
+  // D. Flay 9/29/20: commands to set the angular misalignment of the GEn 3He target 
+  G4UIcmdWithADoubleAndUnit *GENTargetRXCmd; 
+  G4UIcmdWithADoubleAndUnit *GENTargetRYCmd; 
+  G4UIcmdWithADoubleAndUnit *GENTargetRZCmd;
+
+  // D. Flay 10/9/20: commands to enable/disable the GEn 3He target collimators 
+  G4UIcmdWithABool *GENTargetColCmd;
+  G4UIcmdWithABool *GENTargetColACmd;
+  G4UIcmdWithABool *GENTargetColBCmd;
+  G4UIcmdWithABool *GENTargetColCCmd;
   
+  // D. Flay 12/9/20: command to enable the GEn target as an SD 
+  G4UIcmdWithABool *GENTargetSDEnableCmd; 
+ 
+  // D. Flay 8/25/20 
+  // command to set the beam offset 
+  G4UIcmdWithADoubleAndUnit *beamOffsetXcmd; 
+  G4UIcmdWithADoubleAndUnit *beamOffsetYcmd;
+  // command to enable the beam diffuser 
+  G4UIcmdWithABool *beamDumpCmd;  
+  G4UIcmdWithABool *beamDiffuserCmd;
+
+  // D. Flay 10/15/20 
+  // beam angular alignment 
+  G4UIcmdWithADoubleAndUnit *beamAngleXcmd;
+  G4UIcmdWithADoubleAndUnit *beamAngleYcmd;
+  G4UIcmdWithADoubleAndUnit *beamAngleZcmd; 
+  // command to enable the ion chamber  
+  G4UIcmdWithABool *ionChamberEnableCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberXCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberYCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberZCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRXCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRYCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRZCmd; 
+
+  // D. Flay 11/5/20 
+  // beam collimator (for GEn)
+  // downstream 
+  G4UIcmdWithABool *beamCollimatorEnableDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorLDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDminDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDmaxDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorXDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorYDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorZDnCmd; 
+  // upstream
+  G4UIcmdWithABool *beamCollimatorEnableUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorLUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDminUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDmaxUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorXUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorYUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorZUpCmd; 
+ 
   G4UIcmdWithABool *BLneutronDetsCmd;
   G4UIcmdWithABool *GEMfrontendCmd;
   
   G4UIcmdWithABool *SetGrinchPMTglassHitsCmd;
-  
+
   G4UIcmdWithABool *buildSBSsieveCmd; //Build the SBS Sieve slit
-  G4UIcmdWithABool *buildBBsieveCmd; //Build the BB Sieve slit
+  //SSeeds 10.4.20
+  //Command to set sieve plate in BigBite 0: nothing; 1: old plate; 2: new plate
+  G4UIcmdWithAnInteger *buildBBsieveCmd;
   
   G4UIcmdWithAnInteger      *TreeFlagCmd; //Set criteria for filling output root tree
 
@@ -276,26 +335,4 @@ private:
 };
 
 #endif//G4SBSMessenger_HH
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -80,7 +80,7 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
 
   fTotalAbs = false;
 
-  fExpType = kGMN;
+  fExpType = G4SBS::kGMN;
 
   // By default, don't check detectors for overlaps
   fCheckOverlap = false;
@@ -127,6 +127,53 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fmTPCGasTemp = 296.15;//K
   fmTPCGasPressure = 1.0;//atm
 
+  // D. Flay (8/25/20) 
+  // beam diffuser switch 
+  fBeamDumpEnable            = true;
+  fBeamDiffuserEnable        = false;
+  // taret collimators 
+  fGEnTgtCollimatorEnable    = true;  
+  fGEnTgtCollimatorAEnable   = true;  
+  fGEnTgtCollimatorBEnable   = true;  
+  fGEnTgtCollimatorCEnable   = true;  
+  
+  // D. Flay (9/29/20) 
+  // GEn 3He target angular misalignment
+  fGEnTgtDRX = 0.;  
+  fGEnTgtDRY = 0.;  
+  fGEnTgtDRZ = 0.;
+
+  // D. Flay (12/9/20) 
+  // GEn 3He target as a sensitive detector 
+  fGEnTgtSDEnable = false;  
+
+  // D. Flay (10/15/20) 
+  // Ion chamber (testing) 
+  fIonChamberEnable = false; 
+  fIonChamberX      = 0;  
+  fIonChamberY      = 0;  
+  fIonChamberZ      = 0;  
+  fIonChamberRX     = 0;  
+  fIonChamberRY     = 0;  
+  fIonChamberRZ     = 0;  
+
+  // D. Flay (11/5/20) 
+  // beam collimator (testing) 
+  fBeamCollimatorEnable_upstr = false; 
+  fBeamCollimatorX_upstr      = 0;  
+  fBeamCollimatorY_upstr      = 0;  
+  fBeamCollimatorZ_upstr      = -145.0*cm;  
+  fBeamCollimatorL_upstr      = 4.0*cm;  
+  fBeamCollimatorDmin_upstr   = 15*mm;  
+  fBeamCollimatorDmax_upstr   = 30*mm;  
+
+  fBeamCollimatorEnable_dnstr = false; 
+  fBeamCollimatorX_dnstr      = 0;  
+  fBeamCollimatorY_dnstr      = 0;  
+  fBeamCollimatorZ_dnstr      = -60.0*cm;  
+  fBeamCollimatorL_dnstr      = 4.0*cm;  
+  fBeamCollimatorDmin_dnstr   = 15*mm;  
+  fBeamCollimatorDmax_dnstr   = 30*mm;  
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -143,6 +190,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::Construct(){
   G4Material *Mtemp = GetMaterial("BlandAir");
 
   G4Box *WorldBox= new G4Box("WorldBox",50*m, 50*m, 50*m);
+  //G4Box *WorldBox= new G4Box("WorldBox",28*m, 28*m, 28*m);
   G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,Mtemp,
 						"WorldLogical", 0, 0, 0);
   G4PVPlacement *WorldPhys=new G4PVPlacement(0,G4ThreeVector(),
@@ -253,6 +301,11 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element *elFe = man->FindOrBuildElement("Fe");
   G4Element *elSr = man->FindOrBuildElement("Sr");
   G4Element *elBa = man->FindOrBuildElement("Ba");
+
+  G4Element *elZn = man->FindOrBuildElement("Zn");
+  G4Element *elTi = man->FindOrBuildElement("Ti");
+  G4Element *elCu = man->FindOrBuildElement("Cu");
+  G4Element *elMg = man->FindOrBuildElement("Mg");
   
   G4Element* elCl  = man->FindOrBuildElement("Cl");
   G4Element* elAr  = man->FindOrBuildElement("Ar");
@@ -262,7 +315,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element* elNi  = man->FindOrBuildElement("Ni");
   G4Element *elP  = man->FindOrBuildElement("P");
   G4Element *elS  = man->FindOrBuildElement("S");
-
+  //G4Element *elW = man->FindOrBuildElement("W");
 
   G4Material *Vacuum =new G4Material(name="Vacuum", z=1., a=1.0*g/mole, density=1e-9*g/cm3);
   //Vacuum->SetMaterialPropertiesTable(Std_MPT);
@@ -562,12 +615,58 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   // - details from http://www.iron-foundry.com/AISI-1008-SAE-UNS-G10080-Carbon-Steel-Foundry.html
   // - NOTE: may throw a warning because this doesn't add to 100% (adds to 99.8%) 
   G4Material *Carbon_Steel_1008 = new G4Material("Carbon_Steel_1008",7.872*g/cm3,5);
-  Carbon_Steel_1008->AddElement(elFe,0.9931);
-  Carbon_Steel_1008->AddElement(elMn,0.0030);
+  //Carbon_Steel_1008->AddElement(elFe,0.9931);
+  //Carbon_Steel_1008->AddElement(elMn,0.0030);
+  //shouldn't be a big difference, but it will stop throwing warnings...
+  Carbon_Steel_1008->AddElement(elFe,0.9941);
+  Carbon_Steel_1008->AddElement(elMn,0.0040);
   Carbon_Steel_1008->AddElement(elC ,0.0010);
   Carbon_Steel_1008->AddElement(elS ,0.0005);
   Carbon_Steel_1008->AddElement(elP ,0.0004);
   fMaterialsMap["Carbon_Steel_1008"] = Carbon_Steel_1008;
+
+  // Beam line exit materials (D Flay, Sept 2020) 
+
+  // Aluminum 5052 alloy 
+  // - details from https://unitedaluminum.com/united-aluminum-alloy-5052/ 
+  G4Material *Aluminum_5052 = new G4Material("Aluminum_5052",2.68*g/cm3,8);
+  Aluminum_5052->AddElement(elAl,0.9635);
+  Aluminum_5052->AddElement(elSi,0.0025);
+  Aluminum_5052->AddElement(elFe,0.0040);
+  Aluminum_5052->AddElement(elCu,0.0010);
+  Aluminum_5052->AddElement(elMn,0.0010);
+  Aluminum_5052->AddElement(elMg,0.0250);
+  Aluminum_5052->AddElement(elCr,0.0020);
+  Aluminum_5052->AddElement(elZn,0.0010);
+  fMaterialsMap["Aluminum_5052"] = Aluminum_5052; 
+
+  // Aluminum 6061 alloy 
+  // - details from https://unitedaluminum.com/united-aluminum-alloy-6061/
+  G4Material *Aluminum_6061 = new G4Material("Aluminum_6061",2.70*g/cm3,9);
+  //Aluminum_6061->AddElement(elAl,0.9635);
+  //shouldn't be a big difference, but it will stop throwing warnings...
+  Aluminum_6061->AddElement(elAl,0.9668);
+  Aluminum_6061->AddElement(elSi,0.0060);
+  Aluminum_6061->AddElement(elFe,0.0070);
+  Aluminum_6061->AddElement(elCu,0.0028);
+  Aluminum_6061->AddElement(elMn,0.0015);
+  Aluminum_6061->AddElement(elMg,0.0100);
+  Aluminum_6061->AddElement(elCr,0.0019);
+  Aluminum_6061->AddElement(elZn,0.0025);
+  Aluminum_6061->AddElement(elTi,0.0015);
+  fMaterialsMap["Aluminum_6061"] = Aluminum_6061; 
+
+  // Molybdenum.  Possibly use for GEn 3He target collimators?
+  // density = 10.22 g/cm^3  
+  fMaterialsMap["Molybdenum"] = man->FindOrBuildMaterial("G4_Mo"); 
+
+  // D Flay's mock ion chamber material 
+  // Nitrogen.  Take this from DF notes on ion chambers. 
+  // This density is from a typical LHC device 
+  G4double gasden_icN2 = 1.08*atmosphere*(14.0067*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
+  G4Material *icN2 = new G4Material("icN2",gasden_icN2,1);
+  icN2->AddElement(elN,1);
+  fMaterialsMap["GEnTarget_ionChamber_N2"] = icN2; 
 
   // Ultem (polyetherimide plastic, similar to PEEK)
   // - details from http://www.polymerprocessing.com/polymers/PEI.html
@@ -1584,6 +1683,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       // 	     << abslength_ECAL[iE]/cm << ", " << abslength_C16[iE]/cm << ", " << spline_atilde->Eval( Ephoton_abslength[iE] )/cm << G4endl;
     }
 
+    spline_atilde->Delete();
+    spline_btilde->Delete();
+    spline_DoseRate_ECAL->Delete();
+    
     //Next: define new materials!
     TString matname;
     matname.Form( "TF1_anneal_ECAL_z%d", segment );
@@ -1626,6 +1729,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       }
     } 
   }
+
+  //spline
   
   //****  TF1 implementing annealing model  ****
   // G4Material* TF1_anneal = new G4Material("TF1_anneal", 3.86*g/cm3, 4);
@@ -2424,6 +2529,30 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   fMaterialsMap["NE110A"] = NE110A;
   
   //Anything else?
+
+  //Target collimators for helium-3 target: Tungsten powder epoxy mixture. 
+  //For Epoxy let's use Epotek-301-1 properties from the particle data group:
+  G4double epoxy_den = 1.190*g/cm3;
+  G4double tungsten_den = 19.3*g/cm3;
+  G4double collimator_den = 9.53*g/cm3; // from Bert Metzger's drawings (A09016-03-06-0211) // 10.0*g/cm3;
+
+  // f*rho_epoxy + (1-f)*rho_W = rho_coll
+  // f*(rho_epoxy - rho_W) = rho_coll - rho_W
+  G4double massfrac_epoxy = (1.0 - collimator_den/tungsten_den)/(1.0 - epoxy_den/tungsten_den);
+  
+  G4Material *TargetCollimator_Material = new G4Material("TargetCollimator_Material", collimator_den, 5 );
+  TargetCollimator_Material->AddElement( elH, fractionmass = 0.069894*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elC, fractionmass = 0.689640*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elN, fractionmass = 0.008936*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elO, fractionmass = 0.231531*massfrac_epoxy );
+  TargetCollimator_Material->AddElement( elW, fractionmass = 1.0-massfrac_epoxy );
+
+  fMaterialsMap["TargetCollimator_Material"] = TargetCollimator_Material;
+
+  // [for a test object] pure tungsten for a target collimator  
+  G4Material *TargetBeamCollimator = new G4Material("TargetBeamCollimator_Material",tungsten_den,1); 
+  TargetBeamCollimator->AddElement(elW,1); 
+  fMaterialsMap["TargetBeamCollimator_Material"] = TargetBeamCollimator; 
   
 }
 
@@ -2470,7 +2599,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   //--------------
   // World:
   //--------------
-  G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 30*m);
+  //G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 28*m);
+  G4Box *WorldBox= new G4Box("WorldBox",50*m, 50*m, 50*m);
   G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,GetMaterial("Air"),
 						"WorldLogical", 0, 0, 0);
   G4PVPlacement *WorldPhys=new G4PVPlacement(0,G4ThreeVector(),
@@ -2614,7 +2744,7 @@ void G4SBSDetectorConstruction::SetBigBiteField(int n, G4String fname){
     fbbfield = new G4SBSBigBiteField( G4ThreeVector(0.0, 0.0, fEArmBuilder->fBBdist),  rm, fname );
 
     fbbfield->fScaleFactor = fFieldScale_BB;
-    fbbfield->fArm = kEarm;
+    fbbfield->fArm = G4SBS::kEarm;
     // Dimensions of the box
     fGlobalField->AddField(fbbfield);
     if( !fUseGlobalField ) fEArmBuilder->fUseLocalField = true;
@@ -2650,7 +2780,7 @@ void G4SBSDetectorConstruction::Set48D48Field(int n){
 					 G4ThreeVector(f48D48_uniform_bfield, 0.0, 0.0)
 					  );
     f48d48field->fScaleFactor = fFieldScale_SBS;
-    f48d48field->fArm = kHarm;
+    f48d48field->fArm = G4SBS::kHarm;
     
     fGlobalField->AddField(f48d48field);
     if( !fUseGlobalField ) fHArmBuilder->fUseLocalField = true;
@@ -2758,7 +2888,7 @@ void G4SBSDetectorConstruction::SetFieldScale_SBS( G4double v ){
     f48d48field->fScaleFactor = v;
   }
 
-  fGlobalField->ScaleFields( v, kHarm );
+  fGlobalField->ScaleFields( v, G4SBS::kHarm );
   
 }
 
@@ -2769,7 +2899,7 @@ void G4SBSDetectorConstruction::SetFieldScale_BB( G4double v ){
     fbbfield->fScaleFactor = v;
   }
 
-  fGlobalField->ScaleFields( v, kEarm );
+  fGlobalField->ScaleFields( v, G4SBS::kEarm );
 }
 
 void G4SBSDetectorConstruction::SetFlipGEM( G4bool b ){
@@ -2784,10 +2914,10 @@ void G4SBSDetectorConstruction::SetTimeWindowAndThreshold( G4String SDname, G4do
   
   if( SDlist.find( SDname ) != SDlist.end() ){
     switch( SDtype[SDname] ){
-    case kGEM: //For now, do nothing:
+    case G4SBS::kGEM: //For now, do nothing:
       
       break;
-    case kCAL:
+    case G4SBS::kCAL:
       CalSDptr = (G4SBSCalSD*) fSDman->FindSensitiveDetector( SDname, false );
 
       timewindow = SDgatewidth.find(SDname) != SDgatewidth.end() ? SDgatewidth[SDname] : Tdefault;

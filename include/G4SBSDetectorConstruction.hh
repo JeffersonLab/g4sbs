@@ -27,7 +27,8 @@ class G4SBSEArmBuilder;
 class G4SBSHArmBuilder;
 class G4SBSECal;
 class G4SBSCDet;
-class RTPC;
+//class RTPC;
+class G4SBSmTPC;
 
 class G4SBSDetectorMessenger;
 
@@ -99,7 +100,8 @@ public:
   G4SBSHArmBuilder     *fHArmBuilder;
   G4SBSECal            *fECal;
   G4SBSCDet            *fCDet;
-  RTPC *fRTPC;
+  G4SBSmTPC            *fmTPC;
+  //RTPC *fRTPC;
   
   void SetBBDist( double);
   void SetBBAng( double);

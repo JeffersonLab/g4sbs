@@ -22,6 +22,8 @@
 #include "G4SBSCalSD.hh"
 #include "G4SBSGEMSD.hh"
 
+#include "G4SBSmTPC.hh" //CA
+
 #include "G4SBSHArmBuilder.hh"
 
 #include "G4SBSTPCTOSCAField2D.hh"
@@ -39,20 +41,20 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fTargLen = 60.0*cm;
   fTargType = kH2;
   fTargDen = 10.5*atmosphere/(300*kelvin*k_Boltzmann);
-
+  
   fTargPos = G4ThreeVector( 0, 0, 0 );
   fTargDir = G4ThreeVector( 0, 0, 1 );
-
+  
   fTargDiameter = 8.0*cm; //default of 8 cm.
   
   fFlux = false;
-
+  
   fUseRad = false;
   fRadThick = 0.0;
   fRadZoffset = 10.0*cm;
   
   fSchamFlag = 0;
-
+  
   fUseLocalTPCSolenoid = false;
   fSolUni = false;
   fSolUniMag = 5.0;// default 5 tesla;
@@ -61,39 +63,40 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fSolToscaOffset = 200.0; // default 200mm;
   
   fTDIStgtWallThick = 0.02*mm; // default
-
-  // Montgomery July 2018, TDIS mTPC
-  // variables for target
+  
+  // // Montgomery July 2018, TDIS mTPC
+  // // variables for target
   ftdis_tgt_diam = 10.0*mm;
   ftdis_tgt_wallthick = 0.030*mm;
   ftdis_tgt_len = 400.0*mm; //40cm long
-  // variables for mtpc construction
-  // taken from M. carmignotto gemc mtpc implementation
-  // inner electrode at r=5cm
-  fmTPC_inelectrode_r = 50.0*mm; //5cm of inner electrode
-  fmTPC_inelectrode_kaptonthick = 0.002*mm; //2um kapton
-  fmTPC_inelectrode_authick = 0.0001*mm; //0.1um Au
-  // outer electrode at r=15cm
-  fmTPC_outelectrode_r = 150.0*mm; //5cm of inner electrode
-  fmTPC_outelectrode_kaptonthick = 0.002*mm; //2um kapton
-  fmTPC_outelectrode_authick = 0.0001*mm; //0.1um Au
-  // mtpc chambers
-  fmTPC_cell_len = 50.0*mm; //5cm length cells
-  fmTPC_Ncells = 10; //10 cells
-  // readout discs
-  fmTPC_readout_thick = 0.130*mm; //130um thick "kryptonite" for readout disc
-  // GEMs
-  fmTPC_Ngems = 2;
-  fmTPC_gem_surf1thick = 0.005*mm; // 5um copper surface
-  fmTPC_gem_dielecthick = 0.05*mm; // 50um dielectric
-  fmTPC_gem_surf2thick = 0.005*mm; //5um copper surface
-  fmTPC_gap_readoutGEM = 0.001*mm;
-  fmTPC_gap_GEMGEM = 0.001*mm;
-  // HV
-  fmTPC_HV_thick = 0.05*mm; // 50um say gold?
-  //
-  fmTPCkrypto = false;//by default
-  fChkOvLaps = false;//true;//
+  
+  // // variables for mtpc construction
+  // // taken from M. carmignotto gemc mtpc implementation
+  // // inner electrode at r=5cm
+  // fmTPC_inelectrode_r = 50.0*mm; //5cm of inner electrode
+  // fmTPC_inelectrode_kaptonthick = 0.002*mm; //2um kapton
+  // fmTPC_inelectrode_authick = 0.0001*mm; //0.1um Au
+  // // outer electrode at r=15cm
+  // fmTPC_outelectrode_r = 150.0*mm; //5cm of inner electrode
+  // fmTPC_outelectrode_kaptonthick = 0.002*mm; //2um kapton
+  // fmTPC_outelectrode_authick = 0.0001*mm; //0.1um Au
+  // // mtpc chambers
+  // fmTPC_cell_len = 50.0*mm; //5cm length cells
+  // fmTPC_Ncells = 10; //10 cells
+  // // readout discs
+  // fmTPC_readout_thick = 0.130*mm; //130um thick "kryptonite" for readout disc
+  // // GEMs
+  // fmTPC_Ngems = 2;
+  // fmTPC_gem_surf1thick = 0.005*mm; // 5um copper surface
+  // fmTPC_gem_dielecthick = 0.05*mm; // 50um dielectric
+  // fmTPC_gem_surf2thick = 0.005*mm; //5um copper surface
+  // fmTPC_gap_readoutGEM = 0.001*mm;
+  // fmTPC_gap_GEMGEM = 0.001*mm;
+  // // HV
+  // fmTPC_HV_thick = 0.05*mm; // 50um say gold?
+  // //
+  // fmTPCkrypto = false;//by default
+  // fChkOvLaps = false;//true;//
   
 }
 
@@ -101,6 +104,7 @@ G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
 
 void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   fTargType = fDetCon->fTargType;
+  
   //We actually need to be a little bit smarter than this: as it stands, one can never build a C foil target with this logic:
   // EFuchey 2017/02/10: organized better this with a switch instead of an endless chain of if...  else...
   //if( (fTargType == kLH2 || fTargType == kLD2 || fTargType == kCfoil ) ){
@@ -113,9 +117,9 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     BuildC16ScatCham( worldlog );
     break;
   case(kTDIS):
-    BuildTDISTarget( worldlog );
-    break;
   case(kNDVCS):
+    //assert(fDetCon->fmTPC);//mTPC = new G4SBSmTPC(fDetCon);
+    //fDetCon->fmTPC->BuildTDISTarget( worldlog );
     BuildTDISTarget( worldlog );
     break;
   case(kGEMHCtest):
@@ -134,8 +138,6 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     break;
   }
 
-  //if( fUseRad ) BuildRadiator();
-  
   return;
 
 }
@@ -164,7 +166,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   } else {
     TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
   }
-
+  
   fDetCon->InsertTargetVolume( TargetCell_log->GetName() );
   
   G4Tubs *TargetWall = new G4Tubs("TargetWall", Rcell, Rcell + sthick, fTargLen/2.0, 0, twopi );
@@ -1941,7 +1943,7 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   // The solenoid also always has negative z component, as in tosca file, need to add an inverse option too
   if(fUseLocalTPCSolenoid){//only envoke TPC local sol if no global sbs field in place atm
     double SolSign = -1.0;
-    double SolStrength = SolSign * fSolUniMag *tesla;//*tesla;
+    double SolStrength = SolSign * fSolUniMag *tesla;// *tesla;
     // Using uniform field along TPC z-axis
     if(fSolUni && !fSolTosca){
       printf("\n\n\n\n************************* TPC:: uniform solenoid field\n");
@@ -2063,7 +2065,8 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
 		    "gas_tube_phys", motherlog, false, 0, fChkOvLaps);
   
-  BuildTPC(motherlog, target_zpos);//TPC actually centered on the target
+  fDetCon->fmTPC->BuildComponent(motherlog);
+  //BuildTPC(motherlog, target_zpos);//TPC actually centered on the target
   // TPC is inside mother log vol which for now is solenoid map vol
   // solenoid map vol is tube centred on 0,0,0 with r=25cm, length 150cm 
 
@@ -2083,6 +2086,11 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
 
 }
 
+//********************************************************
+// BEGIN OF mTPC code
+//********************************************************
+
+/*
 void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   // Montgomery July 2018
   // implementing geometry atm as a exact copy of implementation in gemc by park/carmignotto
@@ -2123,32 +2131,32 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
     fDetCon->SDtype[mTPCSDname] = kmTPC;
   }
 
-  //To be thought of better, but we do not need a specific SD for HV planes and readout planes...
-  // also, I think we can declare them locally, but may not matter...
-  // set up temp sd for readout discs
-  G4String mTPCReadoutSDname = "SBS/mTPCReadout";
-  G4String mTPCReadoutcolname = "mTPCReadoutHitsCollection";
+  // //To be thought of better, but we do not need a specific SD for HV planes and readout planes...
+  // // also, I think we can declare them locally, but may not matter...
+  // // set up temp sd for readout discs
+  // G4String mTPCReadoutSDname = "SBS/mTPCReadout";
+  // G4String mTPCReadoutcolname = "mTPCReadoutHitsCollection";
 
-  G4SBSmTPCSD *mTPCReadoutSD;
-  if( !(mTPCReadoutSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCReadoutSDname)) ){ //Make sure SD with this name doesn't already exist
-    mTPCReadoutSD = new G4SBSmTPCSD( mTPCReadoutSDname, mTPCReadoutcolname );
-    fDetCon->fSDman->AddNewDetector(mTPCReadoutSD);
-    (fDetCon->SDlist).insert(mTPCReadoutSDname);
-    fDetCon->SDtype[mTPCReadoutSDname] = kmTPC;
-  }
+  // G4SBSmTPCSD *mTPCReadoutSD;
+  // if( !(mTPCReadoutSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCReadoutSDname)) ){ //Make sure SD with this name doesn't already exist
+  //   mTPCReadoutSD = new G4SBSmTPCSD( mTPCReadoutSDname, mTPCReadoutcolname );
+  //   fDetCon->fSDman->AddNewDetector(mTPCReadoutSD);
+  //   (fDetCon->SDlist).insert(mTPCReadoutSDname);
+  //   fDetCon->SDtype[mTPCReadoutSDname] = kmTPC;
+  // }
   
-  // set up temp sd for readoutHV discs
-  G4String mTPCHVSDname = "SBS/mTPCHV";
-  G4String mTPCHVcolname = "mTPCHVHitsCollection";
+  // // set up temp sd for readoutHV discs
+  // G4String mTPCHVSDname = "SBS/mTPCHV";
+  // G4String mTPCHVcolname = "mTPCHVHitsCollection";
 
-  G4SBSmTPCSD *mTPCHVSD;
-  if( !(mTPCHVSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCHVSDname)) ){ //Make sure SD with this name doesn't already exist
-    mTPCHVSD = new G4SBSmTPCSD( mTPCHVSDname, mTPCHVcolname );
-    fDetCon->fSDman->AddNewDetector(mTPCHVSD);
-    (fDetCon->SDlist).insert(mTPCHVSDname);
-    fDetCon->SDtype[mTPCHVSDname] = kmTPC;
-  }
-  */
+  // G4SBSmTPCSD *mTPCHVSD;
+  // if( !(mTPCHVSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCHVSDname)) ){ //Make sure SD with this name doesn't already exist
+  //   mTPCHVSD = new G4SBSmTPCSD( mTPCHVSDname, mTPCHVcolname );
+  //   fDetCon->fSDman->AddNewDetector(mTPCHVSD);
+  //   (fDetCon->SDlist).insert(mTPCHVSDname);
+  //   fDetCon->SDtype[mTPCHVSDname] = kmTPC;
+  // }
+  
   
   // make the field electrodes and boundary walls at the inner and outer radii
   BuildmTPCWalls(mTPCmother_log, mTPC_z_total, z_pos, mTPC_rIN, mTPC_rOUT);
@@ -2436,63 +2444,63 @@ void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double cent
       }
       
       new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposfoil), mTPCGEMfoil_log, mTPCGEMfoil_physname, motherlog, false,counter, fChkOvLaps);
-      /*
-      // first conducting surface of GEM
-      double zpossurf1 = 0.0;
-      if(incCell % 2 == 0){
-	zpossurf1 = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick/2.0 +
-	  incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
-      }
-      else{
-	zpossurf1 = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick/2.0 -
-	  incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
-      }
-      G4String mTPCGEMSurf1_solidname = "mTPCGEMSurf1_solid";
-      G4String mTPCGEMSurf1_logname = "mTPCGEMSurf1_log";
-      G4String mTPCGEMSurf1_physname = "mTPCGEMSurf1_phys";
-      mTPCGEMSurf1_solid = new G4Tubs(mTPCGEMSurf1_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf1thick/2.0, 0.*deg, 360.*deg);
-      mTPCGEMSurf1_log = new G4LogicalVolume(mTPCGEMSurf1_solid, GetMaterial("Copper"),mTPCGEMSurf1_logname);    
-      //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, motherlog, false,counter);
-      //place "surf1" into "foil"
-      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, motherlog, false,counter, fChkOvLaps);
-      mTPCGEMSurf1_log->SetVisAttributes( mtpc_gem_visatt );
+
+      // // first conducting surface of GEM
+      // double zpossurf1 = 0.0;
+      // if(incCell % 2 == 0){
+      // 	zpossurf1 = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick/2.0 +
+      // 	  incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // else{
+      // 	zpossurf1 = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick/2.0 -
+      // 	  incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // G4String mTPCGEMSurf1_solidname = "mTPCGEMSurf1_solid";
+      // G4String mTPCGEMSurf1_logname = "mTPCGEMSurf1_log";
+      // G4String mTPCGEMSurf1_physname = "mTPCGEMSurf1_phys";
+      // mTPCGEMSurf1_solid = new G4Tubs(mTPCGEMSurf1_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf1thick/2.0, 0.*deg, 360.*deg);
+      // mTPCGEMSurf1_log = new G4LogicalVolume(mTPCGEMSurf1_solid, GetMaterial("Copper"),mTPCGEMSurf1_logname);    
+      // //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, motherlog, false,counter);
+      // //place "surf1" into "foil"
+      // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, motherlog, false,counter, fChkOvLaps);
+      // mTPCGEMSurf1_log->SetVisAttributes( mtpc_gem_visatt );
       
-      // central dielectric material of gem
-      double zposdielec = 0.0;
-      if(incCell % 2 == 0){
-	zposdielec = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick/2.0
-	  + incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
-      }
-      else{
-	zposdielec = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick - fmTPC_gem_dielecthick/2.0
-	  - incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
-      }
-      G4String mTPCGEMDielec_solidname = "mTPCGEMDielec_solid";
-      G4String mTPCGEMDielec_logname = "mTPCGEMDielec_log";
-      G4String mTPCGEMDielec_physname = "mTPCGEMDielec_phys";
-      mTPCGEMDielec_solid = new G4Tubs(mTPCGEMDielec_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_dielecthick/2.0, 0.*deg, 360.*deg);
-      mTPCGEMDielec_log = new G4LogicalVolume(mTPCGEMDielec_solid, GetMaterial("Kapton"),mTPCGEMDielec_logname);    
-      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposdielec), mTPCGEMDielec_log, mTPCGEMDielec_physname, motherlog, false,counter, fChkOvLaps);
-      mTPCGEMDielec_log->SetVisAttributes( mtpc_gem_visatt );
+      // // central dielectric material of gem
+      // double zposdielec = 0.0;
+      // if(incCell % 2 == 0){
+      // 	zposdielec = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick/2.0
+      // 	  + incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // else{
+      // 	zposdielec = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick - fmTPC_gem_dielecthick/2.0
+      // 	  - incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // G4String mTPCGEMDielec_solidname = "mTPCGEMDielec_solid";
+      // G4String mTPCGEMDielec_logname = "mTPCGEMDielec_log";
+      // G4String mTPCGEMDielec_physname = "mTPCGEMDielec_phys";
+      // mTPCGEMDielec_solid = new G4Tubs(mTPCGEMDielec_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_dielecthick/2.0, 0.*deg, 360.*deg);
+      // mTPCGEMDielec_log = new G4LogicalVolume(mTPCGEMDielec_solid, GetMaterial("Kapton"),mTPCGEMDielec_logname);    
+      // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposdielec), mTPCGEMDielec_log, mTPCGEMDielec_physname, motherlog, false,counter, fChkOvLaps);
+      // mTPCGEMDielec_log->SetVisAttributes( mtpc_gem_visatt );
       
-      // second conducting surface of GEM
-      double zpossurf2 = 0.0;
-      if(incCell % 2 == 0){
-	zpossurf2 = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick/2.0
-	  + incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
-      }
-      else{
-	zpossurf2 = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick - fmTPC_gem_dielecthick - fmTPC_gem_surf2thick/2.0
-	  - incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
-      }
-      G4String mTPCGEMSurf2_solidname = "mTPCGEMSurf2_solid";
-      G4String mTPCGEMSurf2_logname = "mTPCGEMSurf2_log";
-      G4String mTPCGEMSurf2_physname = "mTPCGEMSurf2_phys";
-      mTPCGEMSurf2_solid = new G4Tubs(mTPCGEMSurf2_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf2thick/2.0, 0.*deg, 360.*deg);
-      mTPCGEMSurf2_log = new G4LogicalVolume(mTPCGEMSurf2_solid, GetMaterial("Copper"),mTPCGEMSurf2_logname);    
-      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf2), mTPCGEMSurf2_log, mTPCGEMSurf2_physname, motherlog, false, counter, fChkOvLaps);
-      mTPCGEMSurf2_log->SetVisAttributes( mtpc_gem_visatt );
-      */
+      // // second conducting surface of GEM
+      // double zpossurf2 = 0.0;
+      // if(incCell % 2 == 0){
+      // 	zpossurf2 = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick/2.0
+      // 	  + incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // else{
+      // 	zpossurf2 = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick - fmTPC_gem_dielecthick - fmTPC_gem_surf2thick/2.0
+      // 	  - incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // G4String mTPCGEMSurf2_solidname = "mTPCGEMSurf2_solid";
+      // G4String mTPCGEMSurf2_logname = "mTPCGEMSurf2_log";
+      // G4String mTPCGEMSurf2_physname = "mTPCGEMSurf2_phys";
+      // mTPCGEMSurf2_solid = new G4Tubs(mTPCGEMSurf2_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf2thick/2.0, 0.*deg, 360.*deg);
+      // mTPCGEMSurf2_log = new G4LogicalVolume(mTPCGEMSurf2_solid, GetMaterial("Copper"),mTPCGEMSurf2_logname);    
+      // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf2), mTPCGEMSurf2_log, mTPCGEMSurf2_physname, motherlog, false, counter, fChkOvLaps);
+      // mTPCGEMSurf2_log->SetVisAttributes( mtpc_gem_visatt );
+
      // gaps between gems, but not last one which is flush with end of cell
       if(incGEM != (fmTPC_Ngems-1)){
 	double zposgap = 0.0;
@@ -2522,15 +2530,14 @@ void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double 
   G4String mTPCSDname = "SBS/mTPC";
   G4String mTPCcolname = "mTPCHitsCollection";
 
-  /*
-  G4SBSGEMSD* mTPCSD;
-  if( !(mTPCSD = (G4SBSGEMSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
-    mTPCSD = new G4SBSGEMSD( mTPCSDname, mTPCcolname );
-    fDetCon->fSDman->AddNewDetector(mTPCSD);
-    (fDetCon->SDlist).insert(mTPCSDname);
-    fDetCon->SDtype[mTPCSDname] = kGEM;
-  }
-  */
+  // G4SBSGEMSD* mTPCSD;
+  // if( !(mTPCSD = (G4SBSGEMSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
+  //   mTPCSD = new G4SBSGEMSD( mTPCSDname, mTPCcolname );
+  //   fDetCon->fSDman->AddNewDetector(mTPCSD);
+  //   (fDetCon->SDlist).insert(mTPCSDname);
+  //   fDetCon->SDtype[mTPCSDname] = kGEM;
+  // }
+  
   G4SBSmTPCSD* mTPCSD;
   if( !(mTPCSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
     mTPCSD = new G4SBSmTPCSD( mTPCSDname, mTPCcolname );
@@ -2610,6 +2617,10 @@ void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double 
   }//loop over mtpc numer of cells
 
 }
+*/
+//********************************************************
+// END OF mTPC CODE
+//********************************************************
 
 void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
 

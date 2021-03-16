@@ -40,19 +40,20 @@
 // *dc is the detector constructor method which carries the information
 // of all detectors (check (CA) )
 
-//G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
-
+G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
 //G4SBSmTPC::G4SBSmTPC(G4LogicalVolume *physiParent)
-G4SBSmTPC::G4SBSmTPC()
+//G4SBSmTPC::G4SBSmTPC()
 {
+  assert(fDetCon);
   G4cout << "<G4SBSmTPC::G4SBSmTPC>: creating mTPC" << G4endl;
  
+  fZpos = 0.0*mm;
   fUseLocalTPCSolenoid = false;
   fSolUni = false;
   fSolUniMag = 5.0;// default 5 tesla;
   fSolTosca = false;
   fSolToscaScale = 1.0;
-  fSolToscaOffset = 200.0; // default 200mm;
+  fSolToscaOffset = 200.0*mm; // default 200mm;
   
   fTDIStgtWallThick = 0.02*mm; // default
   
@@ -93,7 +94,86 @@ G4SBSmTPC::G4SBSmTPC()
 
 }
 
-G4SBSmTPC *mTPC = NULL;
+void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
+  // Montgomery July 2018
+  // implementing geometry atm as a exact copy of implementation in gemc by park/carmignotto
+  // There is no end cap on mTPC beyond readout discs and also no cathode planes
+  // variables for building detector
+  // total length
+  double mTPC_z_total =  fmTPC_cell_len * fmTPC_Ncells;
+  // centre of 1st cell
+  double mTPC_centre_cell1 = -1.0 * fmTPC_cell_len * (fmTPC_Ncells-1) / 2.0;
+  // radii of disks
+  // inner is inner radius plus the inner electrode material and equivalent for outer
+  double mTPC_rIN = fmTPC_inelectrode_r + fmTPC_inelectrode_kaptonthick + fmTPC_inelectrode_authick;
+  double mTPC_rOUT = fmTPC_outelectrode_r - fmTPC_outelectrode_kaptonthick - fmTPC_outelectrode_authick;
+   
+
+   
+  // make a mother shell for mtpc filled with the drift gas
+  G4Tubs* mTPCmother_solid = 
+    new G4Tubs("mTPCmother_solid", 
+	       ftdis_tgt_diam/2.0, 
+	       fmTPC_outelectrode_r, 
+	       mTPC_z_total/2.0, 
+	       0.*deg, 
+	       360.*deg );
+  
+  G4LogicalVolume* mTPCmother_log = 
+    new G4LogicalVolume(mTPCmother_solid, 
+			 GetMaterial("mTPCgas"),
+			"mTPCmother_log");
+  
+  new G4PVPlacement(0, 
+		    G4ThreeVector(0.0, 0.0, fZpos), 
+		    mTPCmother_log,
+		    "mTPCmother_phys", 
+		    motherlog, 
+		    false, 
+		    0, 
+		    fChkOvLaps);
+   
+  
+   
+  //Call for the construction of the different mTPC parts
+
+  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCWalls " << G4endl;  
+  // make the field electrodes and boundary walls at the inner and outer radii
+  BuildmTPCWalls(mTPCmother_log, mTPC_z_total, fZpos, mTPC_rIN, mTPC_rOUT);
+
+  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCReadouts" << G4endl;
+  // build the readout discs and the gap between readout disc and gems (1 per cell)
+  BuildmTPCReadouts(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCReadoutSD);
+
+  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCGEMs" << G4endl;
+  // build the gem detectors
+  BuildmTPCGEMs(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);
+
+  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCGasCells" << G4endl;
+  // build the sensitive gas cells
+  BuildmTPCGasCells(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCSD);//, mTPCHVSD);
+   
+ 
+ 
+  // Visualization attributes
+  G4VisAttributes *tgt_mTPCmother_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
+  tgt_mTPCmother_visatt->SetForceWireframe(true);
+  //mTPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  mTPCmother_log->SetVisAttributes( tgt_mTPCmother_visatt );  
+  
+  // TPCinnergas_log->SetVisAttributes( G4VisAttributes::Invisible );
+   
+  // G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
+  // tpcwalls_visatt->SetForceWireframe(true);
+  // TPCinnerwall_log->SetVisAttributes( tpcwalls_visatt );
+  // TPCouterwall_log->SetVisAttributes( tpcwalls_visatt );
+   
+  // // G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.1 ) );
+  // // TPCgas_log->SetVisAttributes( tpcgas_visatt );
+
+}
+
+//G4SBSmTPC *mTPC = NULL;
 
 void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
 {
@@ -117,6 +197,7 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
 	       0.0,
 	       360*deg);
  
+  G4cout << " ouh ?" << G4endl;
   G4LogicalVolume* TPCBfield_log = 
     new G4LogicalVolume(TPCBfield_solid, 
 			 GetMaterial("Air"),
@@ -125,7 +206,7 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
   // will place tpc mother volume into a b-field volume to switch between either uni or tosca
   
   // the tpc mother is now the b field cylinder
-  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCBfield_log,
+  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fZpos), TPCBfield_log,
   // 		    "TPCBfield_phys", motherlog, false, 0);
 
   new G4PVPlacement(0,                             //no rotation
@@ -136,7 +217,7 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
 		    false,                         //no boolean operat
 		    0);                            //copy number
 
-	      
+  G4cout << " ouh " << G4endl;
   // R. Montgomery 23/03/18
   // At the moment the TPC solenoid can be either a uniform field for test or the tosca simulation
   // It will only be set if there is no global field in g4sbs, ie no tosca map for sbs is called
@@ -217,6 +298,7 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
   else printf("\n\n\n******** TPC: BEWARE: not using a solenoid field\n\n\n");
  
  
+  G4cout << " ouh oouh " << G4endl;
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   //Make a sphere to compute particle flux:
 
@@ -266,6 +348,7 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
   
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
+  G4cout << " ouh oouh ouh " << G4endl;
 
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*  
@@ -306,13 +389,15 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
 
   if( fTargType == kH2 ){
     gas_tube_log = new G4LogicalVolume(gas_tube, 
-				        GetMaterial("mTPCH2"), 
+				       //GetMaterial("mTPCH2"), 
+				       GetMaterial("refH2"), 
 				       "gas_tube_log");
   }
  
   if( fTargType == kD2 || fTargType == kNeutTarg  ){ //moved neut target from kH2
     gas_tube_log = new G4LogicalVolume(gas_tube, 
-				        GetMaterial("mTPCD2"), 
+				       //GetMaterial("mTPCD2"), 
+				       GetMaterial("refD2"), 
 				       "gas_tube_log");
   }
  
@@ -381,7 +466,7 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*  
   printf("G4SBSmTPC::G4SBSmTPC: to BuildTPC \n");
 
-  BuildTPC(motherlog, target_zpos);//TPC actually centered on the target
+  //BuildTPC(motherlog, target_zpos);//TPC actually centered on the target
   // TPC is inside mother log vol which for now is solenoid map vol
   // solenoid map vol is tube centred on 0,0,0 with r=25cm, length 150cm 
 
@@ -420,86 +505,9 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
 
 }
  
-void G4SBSmTPC::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos)
-{
-  // Montgomery July 2018
-  // implementing geometry atm as a exact copy of implementation in gemc by park/carmignotto
-  // There is no end cap on mTPC beyond readout discs and also no cathode planes
-  // variables for building detector
-  // total length
-  double mTPC_z_total =  fmTPC_cell_len * fmTPC_Ncells;
-  // centre of 1st cell
-  double mTPC_centre_cell1 = -1.0 * fmTPC_cell_len * (fmTPC_Ncells-1) / 2.0;
-  // radii of disks
-  // inner is inner radius plus the inner electrode material and equivalent for outer
-  double mTPC_rIN = fmTPC_inelectrode_r + fmTPC_inelectrode_kaptonthick + fmTPC_inelectrode_authick;
-  double mTPC_rOUT = fmTPC_outelectrode_r - fmTPC_outelectrode_kaptonthick - fmTPC_outelectrode_authick;
-   
-
-   
-  // make a mother shell for mtpc filled with the drift gas
-  G4Tubs* mTPCmother_solid = 
-    new G4Tubs("mTPCmother_solid", 
-	       ftdis_tgt_diam/2.0, 
-	       fmTPC_outelectrode_r, 
-	       mTPC_z_total/2.0, 
-	       0.*deg, 
-	       360.*deg );
-  
-  G4LogicalVolume* mTPCmother_log = 
-    new G4LogicalVolume(mTPCmother_solid, 
-			 GetMaterial("mTPCgas"),
-			"mTPCmother_log");
-  
-  new G4PVPlacement(0, 
-		    G4ThreeVector(0.0, 0.0, z_pos), 
-		    mTPCmother_log,
-		    "mTPCmother_phys", 
-		    motherlog, 
-		    false, 
-		    0, 
-		    fChkOvLaps);
-   
-  
-   
-  //Call for the construction of the different mTPC parts
-
-  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCWalls " << G4endl;  
-  // make the field electrodes and boundary walls at the inner and outer radii
-  BuildmTPCWalls(mTPCmother_log, mTPC_z_total, z_pos, mTPC_rIN, mTPC_rOUT);
-
-  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCReadouts" << G4endl;
-  // build the readout discs and the gap between readout disc and gems (1 per cell)
-  BuildmTPCReadouts(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCReadoutSD);
-
-  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCGEMs" << G4endl;
-  // build the gem detectors
-  BuildmTPCGEMs(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);
-
-  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCGasCells" << G4endl;
-  // build the sensitive gas cells
-  BuildmTPCGasCells(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCSD);//, mTPCHVSD);
-   
- 
- 
-  // Visualization attributes
-  G4VisAttributes *tgt_mTPCmother_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
-  tgt_mTPCmother_visatt->SetForceWireframe(true);
-  //mTPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
-  mTPCmother_log->SetVisAttributes( tgt_mTPCmother_visatt );  
-  
-  // TPCinnergas_log->SetVisAttributes( G4VisAttributes::Invisible );
-   
-  // G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
-  // tpcwalls_visatt->SetForceWireframe(true);
-  // TPCinnerwall_log->SetVisAttributes( tpcwalls_visatt );
-  // TPCouterwall_log->SetVisAttributes( tpcwalls_visatt );
-   
-  // // G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.1 ) );
-  // // TPCgas_log->SetVisAttributes( tpcgas_visatt );
-
-
-}
+//void G4SBSmTPC::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos)
+//{
+//}
  
  
 void G4SBSmTPC::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtpctotallength, G4double mtpczpos, G4double mtpcinnerR, G4double mtpcouterR){
@@ -1083,7 +1091,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 
 	  //      mTPCGasCell_log->SetSensitiveDetector(mTPCSD);
 	  G4int layernum = incCell*20+i_gl+1;
-	  G4String layername = G4String("mTPCGasCell_phy") + layernum;
+	  G4String layername = G4String("mTPCGasCell_phy") + G4String(layernum);
 
 	  new G4PVPlacement(0, 
 			    G4ThreeVector(0.0, 0.0, zposGasCell), 

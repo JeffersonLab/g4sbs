@@ -98,7 +98,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fHArmBuilder     = new G4SBSHArmBuilder(this);
   fECal            = new G4SBSECal(this);
   fCDet            = new G4SBSCDet(this);
-  fRTPC = 0;
+  //fRTPC = 0;
+  fmTPC = new G4SBSmTPC(this);
   
   fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;
 

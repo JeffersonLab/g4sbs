@@ -2059,12 +2059,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   // mtpc implementation target wall thickness
   if( cmd == mTPCTgtThickCmd ){
     G4double mTPCTgtThick = mTPCTgtThickCmd->GetNewDoubleValue(newValue);
-    fdetcon->fTargetBuilder->SetmTPCTgtWallThick(mTPCTgtThick);
+    fdetcon->fmTPC->SetmTPCTgtWallThick(mTPCTgtThick);
   }
 
   if( cmd == mTPCkryptoCmd ){
     G4bool setmtpckrypto = mTPCkryptoCmd->GetNewBoolValue(newValue);
-    fdetcon->fTargetBuilder->SetmTPCkrypto(setmtpckrypto);
+    fdetcon->fmTPC->SetmTPCkrypto(setmtpckrypto);
   }
 
   if( cmd == mTPCRoomTempCmd ){

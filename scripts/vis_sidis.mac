@@ -1,25 +1,59 @@
-/control/execute sidis_template.mac
-/g4sbs/kine sidis
+#/control/execute sidis_template.mac
+#/g4sbs/kine sidis
 
+/g4sbs/filename sidis_example.root
+/g4sbs/beamcur  50.0 muA
+/g4sbs/target   3He
+/g4sbs/targpres 10.0 atmosphere
+/g4sbs/targlen  55.0 cm
+
+/g4sbs/rasterx  2.0 mm
+/g4sbs/rastery  2.0 mm
+/g4sbs/exp      sidis
+/g4sbs/hadron   pi+
+/g4sbs/kine     sidis
+#/g4sbs/kine beam
+
+/g4sbs/runtime     1.0 s
+/g4sbs/beamE      11.0 GeV
+/g4sbs/bbang      31.5 deg
+/g4sbs/bbdist      1.55 m
+/g4sbs/sbsang    18.0 deg
+/g4sbs/hcaldist    8.5 m
+/g4sbs/hcalhoffset -30.0 cm
+/g4sbs/48D48dist   2.8 m
+/g4sbs/sbsmagfield  1.4 tesla
+/g4sbs/48d48field   1
+/g4sbs/bbfield      1
+/g4sbs/sbsclampopt  0
 /g4sbs/uselead 0
-#/g4sbs/target LH2
-#/g4sbs/exp gep
-#/g4sbs/hcaldist 9.0 m
-#/g4sbs/bbdist 2.0 m
+/g4sbs/richdist    5.1 m
+/g4sbs/sbstrkrdist 4.6 m
+/g4sbs/sbstrkrpitch 0.0 deg
+/g4sbs/userichaero true
+/g4sbs/richgas     C4F10
+/g4sbs/grinchgas   C4F10
+/g4sbs/thmin      22.0 deg
+/g4sbs/thmax      45.0 deg
+/g4sbs/phmin     -45.0 deg
+/g4sbs/phmax      45.0 deg
+#/g4sbs/phmin     150.0 deg
+#/g4sbs/phmax     220.0 deg
+/g4sbs/hthmin     8.0 deg
+/g4sbs/hthmax    30.0 deg
+/g4sbs/hphmin    120.0 deg
+/g4sbs/hphmax    240.0 deg
+/g4sbs/eemin      0.5 GeV
+/g4sbs/eemax      6.0 GeV
+/g4sbs/ehmin      1.0 GeV
+/g4sbs/ehmax      10.5 GeV
+/g4sbs/totalabs   true
 
-#/g4sbs/thmin 30 deg
-#/g4sbs/thmax 30 deg
-#/g4sbs/phmin 0 deg
-#/g4sbs/phmax 0 deg
-#/g4sbs/hthmin 14 deg
-#/g4sbs/hthmax 14 deg
-#/g4sbs/hphmin 180 deg
-#/g4sbs/hphmax 180 deg
-#/g4sbs/eemin 2.0 GeV
-#/g4sbs/eemax 2.0 GeV
-#/g4sbs/ehmin 4.0 GeV
-#/g4sbs/ehmax 4.0 GeV
-#/g4sbs/targlen 1.0 mm
+/g4sbs/treeflag 1
+
+/g4sbs/totalabs true
+/g4sbs/rejectionsampling false
+/g4sbs/keepsdtrackinfo all true
 
 # Use this open statement to create an OpenGL view:
 /vis/open OGLI 800x800-0+0

@@ -2,6 +2,7 @@
 #include "TCanvas.h"
 #include "TH2F.h"
 #include "TStyle.h"
+#include "TString.h"
 #include "G4SBSGlobalField.hh"
 #include "G4SBSMagneticField.hh"
 #include "G4FieldManager.hh"
@@ -15,6 +16,7 @@
 #include "G4SBSToscaField.hh"
 #include "G4SBSRun.hh"
 #include <sys/stat.h>
+#include <fstream>
 
 #include <vector>
 
@@ -296,7 +298,105 @@ void G4SBSGlobalField::DebugField(G4double thEarm, G4double thHarm ){
   fFieldPlots.push_back( hBtot_yzproj_Harm );
 }
 
+//Write out a section of the global field map to file fname, in a rectangular region of
+//starting at zmin and ending at zmax along the line at angle theta from the origin to beam left or beam right depending on arm
+//with height Height along y and width Width along X, and nx,ny,nz grid points along each axis
+void G4SBSGlobalField::WriteFieldMapSection( const char *fname, G4SBS::Arm_t arm, G4double theta,
+					     G4double zmin, G4double zmax, G4double Height, G4double Width,
+					     G4int nx, G4int ny, G4int nz ){
+  
+  //theta is assumed to be given in radians
+  
+  //We want to write it in the same format as the SBS Tosca Map: 
+  
+  ofstream outfile(fname);
 
+  G4ThreeVector map_origin(0.0*CLHEP::cm, 0.0*CLHEP::cm, 0.0*CLHEP::cm);
+
+  TString currentline;
+
+  currentline.Form( "%12.4f %12.4f %12.4f", map_origin.x()/CLHEP::cm, map_origin.y()/CLHEP::cm, map_origin.z()/CLHEP::cm );
+
+  outfile << currentline << endl;
+  
+  G4double ax = 0.0, ay, az = 0.0;
+
+  switch( arm ){
+  case G4SBS::kEarm:
+    ay = -theta/CLHEP::degree; //convert to degrees
+    break;
+  case G4SBS::kHarm:
+  default:
+    ay = theta/CLHEP::degree; 
+    break;
+  }
+
+  currentline.Form( "%15.5g %15.5g %15.5g", ax, ay, az );
+  outfile << currentline << endl;
+
+  int dummy = 2;
+  // Next: write
+  currentline.Form( "%d %d %d %d", nx+1, ny+1, nz+1, dummy );
+  outfile << currentline << endl;
+
+  outfile << "1 x [CM]" << endl
+	  << "2 y [CM]" << endl
+	  << "3 z [CM]" << endl
+	  << "4 bx [GAUSS]" << endl
+	  << "5 by [GAUSS]" << endl
+	  << "6 bz [GAUSS]" << endl;
+  dummy = 0;
+  outfile << dummy << endl;
+
+  //Next we start the grid:
+
+  G4ThreeVector zaxis,xaxis,yaxis;
+  switch( arm ){
+  case G4SBS::kEarm: //x axis to beam left: 
+    zaxis.set( sin(theta), 0.0, cos(theta) );
+    break;
+  case G4SBS::kHarm:
+  default:
+    zaxis.set( -sin(theta), 0.0, cos(theta) );
+    break;
+  }
+
+  yaxis.set( 0, 1, 0 ); // in GEANT4 coordinates:
+  xaxis =  yaxis.cross(zaxis).unit(); 
+
+  Width /= CLHEP::cm;
+  Height /= CLHEP::cm;
+  zmin /= CLHEP::cm;
+  zmax /= CLHEP::cm;
+  
+  G4double gridspace[3] = {Width/double(nx), Height/double(ny), (zmax-zmin)/double(nz) };
+  
+  //Now make the grid: let innermost index be z, 
+  for( int ix=0; ix<=nx; ix++ ){
+    for( int iy=0; iy<=ny; iy++ ){
+      for( int iz=0; iz<=nz; iz++ ){
+
+	G4ThreeVector localpoint( -Width/2.+ix*gridspace[0], -Height/2.+iy*gridspace[1], zmin + iz*gridspace[2] );
+	G4ThreeVector globalpoint = localpoint.x() * xaxis + localpoint.y() * yaxis + localpoint.z() * zaxis;
+	
+	double Point[3] = { globalpoint.x(), globalpoint.y(), globalpoint.z() };
+
+	
+	
+	double Field[3];
+
+	GetFieldValue( Point, Field );
+	currentline.Form( "%20.12g  %20.12g  %20.12g  %20.12g  %20.12g  %20.12g",
+			  localpoint.x(), localpoint.y(), localpoint.z(),
+			  Field[0]/CLHEP::gauss, Field[1]/CLHEP::gauss, Field[2]/CLHEP::gauss );
+
+	outfile << currentline << endl;
+	
+      }
+    }
+  }
+  
+}
 
 
 

@@ -38,8 +38,12 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
   int idx, jdx;
   int i, j, k;
   double sx, sy, sz;
-
-  double point[3];
+  int bin[3];
+  //double binwidth[3];
+  double lowedge[3];
+  
+  //double point[3];
+  double binfrac[3];
 
   //First of all: Is this the correct way to initialize the "local" coordinates of the point?
   //pt is a global point in the global coordinate system
@@ -68,10 +72,14 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
 
   // Calculate index values for position
 
+  //There is a smarter and more intuitive (and human-readable/understandable) way to accomplish this (but equally fast?)
+  
+  //scale[idx] = 3D position within the grid of this point, as a fraction of the grid extent along each dimension:
   for( idx = 0; idx < 3; idx++ ){
     scale[idx] = (pt[idx] - fMin[idx])/(fMax[idx] - fMin[idx]);
 
-
+    //binwidth[idx] = (fMax[idx]-fMin[idx])/double( fN[idx]-1 );
+    // Point is outside the volume of the grid: 
     if( scale[idx] < 0.0 || scale[idx] >= 1.0 ){
       // Out of range, return 0 field
       //	    printf("Out of range\n");
@@ -80,38 +88,62 @@ void G4SBSToscaField::GetFieldValue(const double Point[3],double *Bfield) const 
       }
       return;
     }
+    
+    bin[idx] = int( floor( (pt[idx]-fMin[idx])/fBinWidth[idx] ) );
+    lowedge[idx] = fMin[idx] + bin[idx]*fBinWidth[idx]; //this calculation is probably unnecessary
+    binfrac[idx] = (pt[idx]-lowedge[idx])/fBinWidth[idx];
   }
 
-  i = (int) floor( (fN[0]-1)*scale[0] );
-  j = (int) floor( (fN[1]-1)*scale[1] );
-  k = (int) floor( (fN[2]-1)*scale[2] );
+  sx = binfrac[0];
+  sy = binfrac[1];
+  sz = binfrac[2];
 
-  sx = (fN[0]-1)*scale[0] - (double) i;
-  sy = (fN[1]-1)*scale[1] - (double) j;
-  sz = (fN[2]-1)*scale[2] - (double) k;
+  i = bin[0];
+  j = bin[1];
+  k = bin[2];
+  
+  // i, j, k = largest integer value less than or equal to (number of grid points - 1) * fraction of full extent:
+  // This is the bin of the grid into which this point falls
+  // i = (int) floor( (fN[0]-1)*scale[0] );
+  // j = (int) floor( (fN[1]-1)*scale[1] );
+  // k = (int) floor( (fN[2]-1)*scale[2] );
+ 
+  // lowedge[0] = floor( (pt[0] - fMin[0])/binwidth[0] );
+  // j = floor( (pt[1] - fMin[1])/binwidth[1] );
+  // k = floot( (pt[2] - fMin[2])/binwidth[2] );
+
+  //
+  // sx = (pt[0]/binwidth[0] - i);
+  // sy = (pt[1]/binwidth[1] - j);
+  // sz = (pt[2]/binwidth[2] - k);
+  
+  // // sx, sy, sz = fraction of bin extent within 3D bin where this point lies:
+  // sx = (fN[0]-1)*scale[0] - (double) i;
+  // sy = (fN[1]-1)*scale[1] - (double) j;
+  // sz = (fN[2]-1)*scale[2] - (double) k;
 
 
   // Perform interpolation
   double interp[3];
   double c00, c10, c01, c11, c0, c1;
 
-  for( idx = 0; idx < 3; idx++ ){
+  for( idx = 0; idx < 3; idx++ ){ //Do trilinear interpolation within this 3D bin of each field component:
     
 
-    c00 = fBfield[GetIndex(i,j,k)][idx]*(1.0-sx) + fBfield[GetIndex(i+1,j,k)][idx]*sx;
-    c10 = fBfield[GetIndex(i,j+1,k)][idx]*(1.0-sx) + fBfield[GetIndex(i+1,j+1,k)][idx]*sx;
-    c01 = fBfield[GetIndex(i,j,k+1)][idx]*(1.0-sx) + fBfield[GetIndex(i+1,j,k+1)][idx]*sx;
-    c11 = fBfield[GetIndex(i,j+1,k+1)][idx]*(1.0-sx) + fBfield[GetIndex(i+1,j+1,k+1)][idx]*sx;
+    c00 = fBfield[GetIndex(i,j,k)][idx]*(1.0-sx) + fBfield[GetIndex(i+1,j,k)][idx]*sx; //interpolate along X at low y, z, edges of bin
+    c10 = fBfield[GetIndex(i,j+1,k)][idx]*(1.0-sx) + fBfield[GetIndex(i+1,j+1,k)][idx]*sx; //interpolate along X at high y, low z
+    c01 = fBfield[GetIndex(i,j,k+1)][idx]*(1.0-sx) + fBfield[GetIndex(i+1,j,k+1)][idx]*sx; //interpolate along X at low y, high z
+    c11 = fBfield[GetIndex(i,j+1,k+1)][idx]*(1.0-sx) + fBfield[GetIndex(i+1,j+1,k+1)][idx]*sx; //interpolate along x at high y, high z
 
     // c00 = fFieldVal[i][j][k][idx]*(1.0-sx) + fFieldVal[i+1][j][k][idx]*sx;
     // c10 = fFieldVal[i][j+1][k][idx]*(1.0-sx) + fFieldVal[i+1][j+1][k][idx]*sx;
     // c01 = fFieldVal[i][j][k+1][idx]*(1.0-sx) + fFieldVal[i+1][j][k+1][idx]*sx;
     // c11 = fFieldVal[i][j+1][k+1][idx]*(1.0-sx) + fFieldVal[i+1][j+1][k+1][idx]*sx;
 
-    c0 = c00*(1.0-sy) + c10*sy;
-    c1 = c01*(1.0-sy) + c11*sy;
+    c0 = c00*(1.0-sy) + c10*sy; //Interpolate in Y low Z
+    c1 = c01*(1.0-sy) + c11*sy; //Interpolate in Y at high Z
 
-    interp[idx] = c0*(1.0-sz) + c1*sz;
+    interp[idx] = c0*(1.0-sz) + c1*sz; //Interpolate in Z
   }
 
   ///////////////////////////////////////////////
@@ -287,6 +319,10 @@ void G4SBSToscaField::ReadField(){
     }
   }
 
+  for( idx=0; idx<3; idx++ ){
+    fBinWidth[idx] = (fMax[idx]-fMin[idx])/double( fN[idx]-1 );
+  }
+  
   printf("G4SBSToscaField - Field complete\n");
 
   return;

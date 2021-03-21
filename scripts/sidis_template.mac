@@ -22,10 +22,10 @@
 /g4sbs/sbsmagfield  1.4 tesla
 /g4sbs/48d48field   1
 /g4sbs/bbfield      1
-/g4sbs/sbsclampopt  0
+/g4sbs/sbsclampopt  2
 /g4sbs/uselead 0
-/g4sbs/richdist    4.9 m
-/g4sbs/sbstrkrdist 4.4 m
+/g4sbs/richdist    5.1 m
+/g4sbs/sbstrkrdist 4.6 m
 /g4sbs/sbstrkrpitch 0.0 deg
 /g4sbs/userichaero true
 /g4sbs/richgas     C4F10

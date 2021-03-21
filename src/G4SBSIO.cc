@@ -398,6 +398,38 @@ void G4SBSIO::WriteTree(){
 
   // Produce and write out field map graphics
   fGlobalField->DebugField( gendata.thbb, gendata.thsbs );
+
+  //Before we delete all our field maps, let's write out some reusable "local ones" from the global:
+  if( fdetcon->fUseGlobalField ){ //TOSCA map is defined:
+    bool writeSBS = false;
+    bool writeBB = false;
+    G4SBS::Exp_t exp = fdetcon->fExpType;
+
+    //If this is an experiment with SBS, write a reusable "local" sbs field map:
+    writeSBS = exp != G4SBS::kC16 && exp != G4SBS::kGEMHCtest; //SBS magnet is used in all expts. except C16 and GEM test
+    writeBB  = exp != G4SBS::kGEp && exp != G4SBS::kC16 && exp != G4SBS::kTDIS && exp != G4SBS::kNDVCS
+      && exp != G4SBS::kGEMHCtest && exp != G4SBS::kGEPpositron; //BigBite is used in all experiments except C16, gem test, TDIS, NDVCS, and GEP positron
+
+    //Let's look at BigBite first: a 1 x 3 x 3 m grid with 2.5-cm spacing would 
+    if( writeBB ){
+      G4cout << "Writing portable BigBite field map... " << G4endl;
+      fGlobalField->WriteFieldMapSection( "database/BBfield_temp.table", G4SBS::kEarm, fdetcon->fEArmBuilder->fBBang,
+					  fdetcon->fEArmBuilder->fBBdist - 0.75*CLHEP::m, fdetcon->fEArmBuilder->fBBdist + 2.25*CLHEP::m,
+					  3.0*CLHEP::m, 1.0*CLHEP::m, 40, 120, 120 );
+      G4cout << "done" << G4endl;
+    }
+    
+    
+    if( writeSBS ){
+      G4cout << "Writing portable SBS field map..." << G4endl;
+      
+      fGlobalField->WriteFieldMapSection( "database/SBSfield_temp.table", G4SBS::kHarm, fdetcon->fHArmBuilder->f48D48ang,
+					  fdetcon->fHArmBuilder->f48D48dist-2.0*CLHEP::m, fdetcon->fHArmBuilder->f48D48dist + 3.0*CLHEP::m,
+					  4.0*CLHEP::m, 2.0*CLHEP::m, 80, 160, 200 );
+      G4cout << "done" << G4endl;
+    }
+  }
+  
   for( vector<TH2F *>::iterator it = fGlobalField->fFieldPlots.begin(); it!= fGlobalField->fFieldPlots.end(); it++ ){
     (*it)->Write((*it)->GetName(), TObject::kOverwrite );
     delete (*it);

@@ -611,7 +611,7 @@ G4SBSMessenger::G4SBSMessenger(){
   HARM_ScaleFieldCmd->SetParameterName("sbsfieldscale",false);
   
   SBSFieldClampOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/sbsclampopt",this);
-  SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 0=no clamp, 1=BigBite(default), 2=GEp");
+  SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 0=no clamp, 3=Front clamp only (GMN, GEN)), 2=Front and rear clamps (GEP, SIDIS)");
   SBSFieldClampOptionCmd->SetParameterName("sbsclampoption",false);
 
   SBSBeamlineConfCmd = new G4UIcmdWithAnInteger("/g4sbs/beamlineconfig",this);

@@ -48,10 +48,12 @@ protected:
 
   //char fFilename[255];
   G4String fFilename;
-  
+
+  //There is an implicit assumption that the grid is uniform:
   G4int fN[3];
   G4int fNx, fNy, fNz; //Total points in x,y,z
   G4double fMin[3], fMax[3];
+  G4double fBinWidth[3];
   //G4double fxmin,fxmax,fymin,fymax,fzmin,fzmax; //minimum, maximum x,y,z values
   //assumed to be a uniform, rectangular grid!
   //double ****fFieldVal;

@@ -73,6 +73,8 @@ G4SBSIO::G4SBSIO(){
 
   fUsingScintillation = false;
   fUsingCerenkov = false;
+
+  fWritePortableFieldMaps = false;
 }
 
 G4SBSIO::~G4SBSIO(){
@@ -400,7 +402,7 @@ void G4SBSIO::WriteTree(){
   fGlobalField->DebugField( gendata.thbb, gendata.thsbs );
 
   //Before we delete all our field maps, let's write out some reusable "local ones" from the global:
-  if( fdetcon->fUseGlobalField ){ //TOSCA map is defined:
+  if( fdetcon->fUseGlobalField && fWritePortableFieldMaps ){ //We are using a global field definition with "TOSCA" maps, and the user wants to write portable ones based on a subset of the global field volume:
     bool writeSBS = false;
     bool writeBB = false;
     G4SBS::Exp_t exp = fdetcon->fExpType;
@@ -410,22 +412,37 @@ void G4SBSIO::WriteTree(){
     writeBB  = exp != G4SBS::kGEp && exp != G4SBS::kC16 && exp != G4SBS::kTDIS && exp != G4SBS::kNDVCS
       && exp != G4SBS::kGEMHCtest && exp != G4SBS::kGEPpositron; //BigBite is used in all experiments except C16, gem test, TDIS, NDVCS, and GEP positron
 
-    //Let's look at BigBite first: a 1 x 3 x 3 m grid with 2.5-cm spacing would 
+    //Let's look at BigBite first: a 0.6 x 3 x 3 m grid with 2.5-cm spacing:
+    //Should we make the grid volume and spacing user-configurable? I think not, in the name of idiot-proofing. We should provide a command to toggle the writing of these maps on and off
+    //though.
     if( writeBB ){
       G4cout << "Writing portable BigBite field map... " << G4endl;
+      // fGlobalField->WriteFieldMapSection( "database/BBfield_temp.table", G4SBS::kEarm, fdetcon->fEArmBuilder->fBBang,
+      // 					  fdetcon->fEArmBuilder->fBBdist - 0.75*CLHEP::m, fdetcon->fEArmBuilder->fBBdist + 2.25*CLHEP::m,
+      // 					  3.0*CLHEP::m, 0.6*CLHEP::m, 24, 120, 120 );
+
       fGlobalField->WriteFieldMapSection( "database/BBfield_temp.table", G4SBS::kEarm, fdetcon->fEArmBuilder->fBBang,
-					  fdetcon->fEArmBuilder->fBBdist - 0.75*CLHEP::m, fdetcon->fEArmBuilder->fBBdist + 2.25*CLHEP::m,
-					  3.0*CLHEP::m, 1.0*CLHEP::m, 40, 120, 120 );
+					  fdetcon->fEArmBuilder->fBBdist, -0.75*CLHEP::m, 2.25*CLHEP::m,
+					  3.0*CLHEP::m, 0.6*CLHEP::m, 24, 120, 120 );
+      
       G4cout << "done" << G4endl;
     }
     
+    //Now SBS: here we use a 1 x 3 x 3.5 m grid with 2.5-cm spacing:
+    //As in the case of BB, we make the grid NOT user-configurable. We may revisit this later.
+    //We should still allow the user to turn off the writing of these maps, though:
     
     if( writeSBS ){
       G4cout << "Writing portable SBS field map..." << G4endl;
       
+      // fGlobalField->WriteFieldMapSection( "database/SBSfield_temp.table", G4SBS::kHarm, fdetcon->fHArmBuilder->f48D48ang,
+      // 					  fdetcon->fHArmBuilder->f48D48dist-1.0*CLHEP::m, fdetcon->fHArmBuilder->f48D48dist + 2.5*CLHEP::m,
+      // 					  3.0*CLHEP::m, 1.0*CLHEP::m, 40, 120, 140 );
+
       fGlobalField->WriteFieldMapSection( "database/SBSfield_temp.table", G4SBS::kHarm, fdetcon->fHArmBuilder->f48D48ang,
-					  fdetcon->fHArmBuilder->f48D48dist-2.0*CLHEP::m, fdetcon->fHArmBuilder->f48D48dist + 3.0*CLHEP::m,
-					  4.0*CLHEP::m, 2.0*CLHEP::m, 80, 160, 200 );
+					  fdetcon->fHArmBuilder->f48D48dist, -1.0*CLHEP::m, 2.5*CLHEP::m,
+					  3.0*CLHEP::m, 1.0*CLHEP::m, 40, 120, 140 );
+      
       G4cout << "done" << G4endl;
     }
   }

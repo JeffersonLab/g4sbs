@@ -213,7 +213,7 @@ void G4SBSToscaField::ReadField(){
   fOffset = G4ThreeVector(x*cm,y*cm,z*cm);
     
   // Second line is the rotation:
-  // Start with rotation about y, then rotate about z', then rotate about x'
+  // rotate around x, then y', then z'
     
   fscanf(f, "%lf%lf%lf", &ang_x, &ang_y, &ang_z );
   frm = G4RotationMatrix();

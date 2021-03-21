@@ -41,7 +41,7 @@ public:
   // number of grid points along x, y, z (this will define grid spacing)
   // Grid spacing
   // number of 
-  void WriteFieldMapSection( const char *fname, G4SBS::Arm_t arm, G4double theta, G4double zmin, G4double zmax, G4double h, G4double w, G4int nx, G4int ny, G4int nz );
+  void WriteFieldMapSection( const char *fname, G4SBS::Arm_t arm, G4double theta, G4double magdist, G4double zmin, G4double zmax, G4double h, G4double w, G4int nx, G4int ny, G4int nz );
   
   private:
   std::vector<G4SBSMagneticField *> fFields;

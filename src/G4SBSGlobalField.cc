@@ -301,7 +301,7 @@ void G4SBSGlobalField::DebugField(G4double thEarm, G4double thHarm ){
 //Write out a section of the global field map to file fname, in a rectangular region of
 //starting at zmin and ending at zmax along the line at angle theta from the origin to beam left or beam right depending on arm
 //with height Height along y and width Width along X, and nx,ny,nz grid points along each axis
-void G4SBSGlobalField::WriteFieldMapSection( const char *fname, G4SBS::Arm_t arm, G4double theta,
+void G4SBSGlobalField::WriteFieldMapSection( const char *fname, G4SBS::Arm_t arm, G4double theta, G4double magdist, 
 					     G4double zmin, G4double zmax, G4double Height, G4double Width,
 					     G4int nx, G4int ny, G4int nz ){
   
@@ -311,8 +311,9 @@ void G4SBSGlobalField::WriteFieldMapSection( const char *fname, G4SBS::Arm_t arm
   
   ofstream outfile(fname);
 
-  G4ThreeVector map_origin(0.0*CLHEP::cm, 0.0*CLHEP::cm, 0.0*CLHEP::cm);
-
+  //G4ThreeVector map_origin(0.0*CLHEP::cm, 0.0*CLHEP::cm, mag*CLHEP::cm);
+  G4ThreeVector map_origin(0.0, 0.0, magdist ); //in GEANT4 units, in "magnet-local" coordinates
+  
   TString currentline;
 
   currentline.Form( "%12.4f %12.4f %12.4f", map_origin.x()/CLHEP::cm, map_origin.y()/CLHEP::cm, map_origin.z()/CLHEP::cm );
@@ -335,10 +336,15 @@ void G4SBSGlobalField::WriteFieldMapSection( const char *fname, G4SBS::Arm_t arm
   outfile << currentline << endl;
 
   int dummy = 2;
-  // Next: write
-  currentline.Form( "%d %d %d %d", nx+1, ny+1, nz+1, dummy );
+  // Next: write grid size along x, y, z. For some reason the grid size
+  // is read in in the opposite order z, y, x:
+  currentline.Form( "%d %d %d %d", nz+1, ny+1, nx+1, dummy );
   outfile << currentline << endl;
 
+  //"readorder" line:
+  currentline.Form( "%d %d %d", 1, 1, 1 );
+  outfile << currentline << endl;
+  
   outfile << "1 x [CM]" << endl
 	  << "2 y [CM]" << endl
 	  << "3 z [CM]" << endl
@@ -376,19 +382,54 @@ void G4SBSGlobalField::WriteFieldMapSection( const char *fname, G4SBS::Arm_t arm
     for( int iy=0; iy<=ny; iy++ ){
       for( int iz=0; iz<=nz; iz++ ){
 
+	//This is in field map coordinates:
 	G4ThreeVector localpoint( -Width/2.+ix*gridspace[0], -Height/2.+iy*gridspace[1], zmin + iz*gridspace[2] );
-	G4ThreeVector globalpoint = localpoint.x() * xaxis + localpoint.y() * yaxis + localpoint.z() * zaxis;
-	
-	double Point[3] = { globalpoint.x(), globalpoint.y(), globalpoint.z() };
+	//To calculate global coordinates, we also have to offset the local coordinates by the map origin:
+	//Essentially, by magnet distance from target center along spectrometer axis:
+	G4ThreeVector globalpoint =
+	  (localpoint.x() + map_origin.x()/CLHEP::cm) * xaxis +
+	  (localpoint.y() + map_origin.y()/CLHEP::cm) * yaxis +
+	  (localpoint.z() + map_origin.z()/CLHEP::cm) * zaxis;
 
 	
 	
+	//Actually, here, we need to put the coordinates in GEANT4 units. Right now
+	//they are in cm: 
+	double Point[3] = { globalpoint.x()*cm, globalpoint.y()*cm, globalpoint.z()*cm };
+
+      	
 	double Field[3];
 
 	GetFieldValue( Point, Field );
+
+	// G4cout << "(ix, iy, iz, xlocal, ylocal, zlocal, xglobal, yglobal, zglobal)=("
+	//        << ix << ", " << iy << ", " << iz << ",    "
+	//        << localpoint.x() << ", " << localpoint.y() << ", " << localpoint.z() << ",    "
+	//        << globalpoint.x() << ", " << globalpoint.y() << ", " << globalpoint.z() << ")"
+	//        << G4endl;
+	
+	G4ThreeVector Bglobal( Field[0], Field[1], Field[2] );
+
+	//Bglobal is in GEANT4 units, expressed in the global coordinate system (I think)
+	
+	G4ThreeVector Blocal( Bglobal.dot( xaxis ), Bglobal.dot( yaxis ), Bglobal.dot( zaxis ) );
+
+	//The "local" field map coordinates ought to be given by the
+	//components of Bglobal along the spectrometer axes
+	
+	// G4cout << "(ix, iy, iz, Bxglobal, Byglobal, Bzglobal, Bxlocal, Bylocal, Bzlocal)=("
+	//        << ix << ", " << iy << ", " << iz << ",    "
+	//        << Field[0]/CLHEP::gauss << ", " << Field[1]/CLHEP::gauss << ", " << Field[2]/CLHEP::gauss << ",    "
+	//        << Blocal.x()/CLHEP::gauss << ", " << Blocal.y()/CLHEP::gauss << ", " << Blocal.z()/CLHEP::gauss << ")" << G4endl;
+	
+	//Now Field is expressed here in the global coordinate system, but we want it
+	//in the local coordinate system:
+
+	//local point is already in cm, so no conversion needed here:
+	
 	currentline.Form( "%20.12g  %20.12g  %20.12g  %20.12g  %20.12g  %20.12g",
 			  localpoint.x(), localpoint.y(), localpoint.z(),
-			  Field[0]/CLHEP::gauss, Field[1]/CLHEP::gauss, Field[2]/CLHEP::gauss );
+			  Blocal.x()/CLHEP::gauss, Blocal.y()/CLHEP::gauss, Blocal.z()/CLHEP::gauss );
 
 	outfile << currentline << endl;
 	

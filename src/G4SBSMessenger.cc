@@ -823,6 +823,10 @@ G4SBSMessenger::G4SBSMessenger(){
   CosmicsMaxAngleCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicmaxangle", this );
   CosmicsMaxAngleCommand->SetGuidance( "Set max zenithal angle for cosmics (please provide unit)" );
   CosmicsMaxAngleCommand->SetParameterName("maxangle",false);
+
+  WriteFieldMapCmd = new G4UIcmdWithABool( "/g4sbs/writefieldmaps", this );
+  WriteFieldMapCmd->SetGuidance( "Toggle writing of \"portable\" field maps for BB+SBS" );
+  WriteFieldMapCmd->SetParameterName("writemapsflag", false );
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -2227,6 +2231,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == CosmicsMaxAngleCommand ){
     G4double maxangle = CosmicsMaxAngleCommand->GetNewDoubleValue(newValue);
     fevgen->SetCosmicsMaxAngle( maxangle );
+  }
+
+  if( cmd == WriteFieldMapCmd ){
+    G4bool flag = WriteFieldMapCmd->GetNewBoolValue(newValue);
+    fIO->SetWriteFieldMaps(flag);
   }
   
 }

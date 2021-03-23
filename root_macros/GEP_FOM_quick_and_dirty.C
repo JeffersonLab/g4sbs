@@ -211,6 +211,14 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
 
   TFile *fout = new TFile(outfilename,"RECREATE");
   
+  TH1D *hECAL_sum = new TH1D("hECAL_sum","",200,0.0,7.0);
+  TH1D *hHCAL_sum_all = new TH1D("hHCAL_sum_all","",200,0.0,1.0);
+  TH1D *hHCAL_sum_goodFPP1 = new TH1D("hHCAL_sum_goodFPP1","",200,0.0,1.0);
+  TH1D *hHCAL_sum_goodFPP2 = new TH1D("hHCAL_sum_goodFPP2","",200,0.0,1.0);
+
+  TH2D *hPvstheta_FPP1 = new TH2D("hPvstheta_FPP1","",200,0.0,15.0,200,0.0,1.0);
+  TH2D *hPvstheta_FPP2 = new TH2D("hPvstheta_FPP2","",200,0.0,15.0,200,0.0,1.0);
+
   TH1D *hQ2 = new TH1D("hQ2","",150,0.0,15.0);
   TH1D *hepsilon = new TH1D("hepsilon","",250,0.0,1.0);
   TH1D *hetheta = new TH1D("hethetadeg","",250,0.0,90.0);
@@ -380,6 +388,9 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
       hptheta->Fill( ptheta * 180.0/TMath::Pi(), weight );
       hpp->Fill( pp, weight );
 
+      hECAL_sum->Fill( T->Earm_ECalTF1_det_esum, weight );
+      hHCAL_sum_all->Fill( T->Harm_HCalScint_det_esum, weight );
+
       bool goodFPP1 = false;
       
       if( idx_FPP1_track >= 0 ){ 
@@ -409,11 +420,16 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
 
 	hsclose_FPP1->Fill( scloseFPP1*1000.0, weight );
 	htheta_FPP1->Fill( thetaFPP1*180./PI, weight );
-	hphi_FPP1->Fill( phiFPP1*180.0/PI, weight );
-	hzclose_FPP1->Fill( zcloseFPP1, weight );
-	hzclose_theta_FPP1->Fill( zcloseFPP1, thetaFPP1*180./PI, weight );
 	
+	hPvstheta_FPP1->Fill( thetaFPP1*180.0/PI, (*(T->Harm_FPP1_Track_P))[idx_FPP1_track]/pp_FT, weight );
+
 	
+	//Only fill zclose histograms if sclose < smax:
+	if( scloseFPP1 <= smax_FPP1 ){
+	  hzclose_FPP1->Fill( zcloseFPP1, weight );
+	  hzclose_theta_FPP1->Fill( zcloseFPP1, thetaFPP1*180./PI, weight );
+	}
+
 	
 	if( pT1 >= pTmin && pT1 <= pTmax && scloseFPP1 <= smax_FPP1 && zcloseFPP1 >= zmin_FPP1
 	    && zcloseFPP1 <= zmax_FPP1 ){
@@ -427,6 +443,10 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
 	  epsilon_sum += epsilon * weight * pow( beampol * Ay1, 2 );
 	  kinfact_sum += mu_p * sqrt(tau*(1.+epsilon)/(2.*epsilon)) * weight * pow( beampol * Ay1, 2 );
 	  FFratio_sum += R * weight * pow( beampol * Ay1, 2 );
+
+	  hphi_FPP1->Fill( phiFPP1*180.0/PI, weight );
+
+	  hHCAL_sum_goodFPP1->Fill( T->Harm_HCalScint_det_esum, weight );
 
 	  Ngoodevent_sum1 += weight;
 	}
@@ -463,11 +483,14 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
 	
 	hsclose_FPP2->Fill( scloseFPP2*1000.0, weight );
 	htheta_FPP2->Fill( thetaFPP2*180./PI, weight );
-	hphi_FPP2->Fill( phiFPP2*180.0/PI, weight );
-	hzclose_FPP2->Fill( zcloseFPP2, weight );
-	hzclose_theta_FPP2->Fill( zcloseFPP2, thetaFPP2*180./PI, weight );
+
+	hPvstheta_FPP2->Fill( thetaFPP2*180.0/PI, (*(T->Harm_FPP2_Track_P))[idx_FPP2_track]/pp_FT, weight );
+
 	
-	
+	if( scloseFPP2 <= smax_FPP2 ){
+	  hzclose_FPP2->Fill( zcloseFPP2, weight );
+	  hzclose_theta_FPP2->Fill( zcloseFPP2, thetaFPP2*180./PI, weight );
+	}
 	  
 	if( pT2 >= pTmin && pT2 <= pTmax && scloseFPP2 <= smax_FPP2 &&
 	    zcloseFPP2 >= zmin_FPP2 && zcloseFPP2 <= zmax_FPP2 && !goodFPP1 ){
@@ -480,6 +503,9 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
 	  epsilon_sum += epsilon * weight * pow( beampol * Ay2, 2 );
 	  kinfact_sum += mu_p * sqrt(tau*(1.+epsilon)/(2.*epsilon)) * weight * pow( beampol * Ay2, 2 );
 	  FFratio_sum += R * weight * pow( beampol * Ay2, 2 );
+
+	  hHCAL_sum_goodFPP2->Fill( T->Harm_HCalScint_det_esum, weight );
+	  hphi_FPP2->Fill( phiFPP2*180.0/PI, weight );
 
 	  Ngoodevent_sum2 += weight;
 	}

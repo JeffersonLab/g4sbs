@@ -2,7 +2,8 @@
 #include "TTree.h"
 #include "TFile.h"
 #include "G4SBSRunData.hh"
-#include "gep_tree.C"
+#include "gep_tree_new.C"
+//#include "gep_tree_singleFPP.C"
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TCut.h"
@@ -164,11 +165,22 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
     }
   }
 
+  
+  //gep_tree *T = new gep_tree(C);
+  //don't initialize the "gep_tree" yet. We need some kind of flag to select the single-FPP or double-FPP options
+
+  int NFPP = 2; 
+  configfile >> NFPP;
+
+  NFPP = std::max(1,std::min(NFPP,2));
+
   TEventList *elist_temp = new TEventList("elist_temp");
 
   C->Draw(">>elist_temp",globalcut);
 
-  gep_tree *T = new gep_tree(C);
+  auto T =  new gep_tree_new( C, NFPP );
+
+  //if( treeflag == 1 ) T = T1; 
 
   long nevent = 0;
 
@@ -192,6 +204,10 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
   configfile >> Ndays;
   configfile >> beampol;
   configfile >> effrecon;
+
+  configfile >> smax_FPP1 >> smax_FPP2;
+  configfile >> zmin_FPP1 >> zmax_FPP1;
+  configfile >> zmin_FPP2 >> zmax_FPP2;
 
   TFile *fout = new TFile(outfilename,"RECREATE");
   
@@ -306,7 +322,8 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
     // 	break;
     //   }
     // }
-    if( T->Harm_FPP2_Track_ntracks == 1 ) idx_FPP2_track = 0;
+
+    if( T->Harm_FPP2_Track_ntracks == 1 && NFPP ==2 ) idx_FPP2_track = 0;
 
     if( idx_FT_track >= 0 ){
       TVector3 FT_track( (*(T->Harm_FT_Track_Xpfit))[idx_FT_track],

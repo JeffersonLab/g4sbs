@@ -611,7 +611,7 @@ G4SBSMessenger::G4SBSMessenger(){
   HARM_ScaleFieldCmd->SetParameterName("sbsfieldscale",false);
   
   SBSFieldClampOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/sbsclampopt",this);
-  SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 0=no clamp, 1=BigBite(default), 2=GEp");
+  SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 0=no clamp, 3=Front clamp only (GMN, GEN)), 2=Front and rear clamps (GEP, SIDIS)");
   SBSFieldClampOptionCmd->SetParameterName("sbsclampoption",false);
 
   SBSBeamlineConfCmd = new G4UIcmdWithAnInteger("/g4sbs/beamlineconfig",this);
@@ -835,6 +835,10 @@ G4SBSMessenger::G4SBSMessenger(){
   CosmicsMaxAngleCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicmaxangle", this );
   CosmicsMaxAngleCommand->SetGuidance( "Set max zenithal angle for cosmics (please provide unit)" );
   CosmicsMaxAngleCommand->SetParameterName("maxangle",false);
+
+  WriteFieldMapCmd = new G4UIcmdWithABool( "/g4sbs/writefieldmaps", this );
+  WriteFieldMapCmd->SetGuidance( "Toggle writing of \"portable\" field maps for BB+SBS" );
+  WriteFieldMapCmd->SetParameterName("writemapsflag", false );
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -2254,6 +2258,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == CosmicsMaxAngleCommand ){
     G4double maxangle = CosmicsMaxAngleCommand->GetNewDoubleValue(newValue);
     fevgen->SetCosmicsMaxAngle( maxangle );
+  }
+
+  if( cmd == WriteFieldMapCmd ){
+    G4bool flag = WriteFieldMapCmd->GetNewBoolValue(newValue);
+    fIO->SetWriteFieldMaps(flag);
   }
   
 }

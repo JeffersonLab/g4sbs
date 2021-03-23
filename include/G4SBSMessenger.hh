@@ -310,6 +310,8 @@ private:
   G4UIcmdWith3VectorAndUnit *CosmicsPointerCommand;
   G4UIcmdWithADoubleAndUnit *CosmicsPointerRadiusCommand;
   G4UIcmdWithADoubleAndUnit *CosmicsMaxAngleCommand;
+
+  G4UIcmdWithABool *WriteFieldMapCmd;
 };
 
 #endif//G4SBSMessenger_HH

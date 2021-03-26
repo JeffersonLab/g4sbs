@@ -19,7 +19,7 @@ public:
 
   void SetInvertField( G4bool b );
 
-  void AddToscaField(const char *); //return a pointer to the added field so that we can store it in G4SBSDetectorConstruction
+  void AddToscaField(const char *, int flag=0); //return a pointer to the added field so that we can store it in G4SBSDetectorConstruction
 
   void AddField( G4SBSMagneticField *f );
   void DropField( G4SBSMagneticField *f );
@@ -32,6 +32,12 @@ public:
 
   bool fInverted;
 
+  G4bool GetOverride_Earm() const { return fOverride_Earm; }
+  G4bool GetOverride_Harm() const { return fOverride_Harm; }
+
+  void SetOverride_Earm(G4bool b){ fOverride_Earm = b; }
+  void SetOverride_Harm(G4bool b){ fOverride_Harm = b; }
+  
   //Utility method to write out a "local" field map for SBS, BigBite, or both, that can be rotated, translated and/or scaled with the magnet(s)
   //We will still have to use a global field definition with these maps, and we should write them out in the TOSCA format:
   //Parameters needed:
@@ -42,10 +48,14 @@ public:
   // Grid spacing
   // number of 
   void WriteFieldMapSection( const char *fname, G4SBS::Arm_t arm, G4double theta, G4double magdist, G4double zmin, G4double zmax, G4double h, G4double w, G4int nx, G4int ny, G4int nz );
+
+  void SetAngleAndDistance( G4double, G4double, G4SBS::Arm_t );
   
   private:
   std::vector<G4SBSMagneticField *> fFields;
   //std::vector<G4double> fScaleFactor;
+  G4bool fOverride_Earm;
+  G4bool fOverride_Harm;
 };
 
 #endif//G4SBSGlobalField_hh

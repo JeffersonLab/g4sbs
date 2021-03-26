@@ -317,6 +317,12 @@ if(INSTALL_SBS_FIELD_MAPS)
 
   file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEN-RP-tosca_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GEN-RP-tosca_newheader.table SHOW_PROGRESS)
 
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/BigBitePortableFieldMap.table ${CMAKE_CURRENT_BINARY_DIR}/BigBitePortableFieldMap.table SHOW_PROGRESS)
+
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table ${CMAKE_CURRENT_BINARY_DIR}/SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table SHOW_PROGRESS)
+
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/SBSPortableFieldMap_TwoClamps_PoleShims.table ${CMAKE_CURRENT_BINARY_DIR}/SBSPortableFieldMap_TwoClamps_PoleShims.table SHOW_PROGRESS)
+
   message("Other field maps forthcoming... Anybody know how to get CMake to download files AFTER the configure step, during the build step?")
 
   file(GLOB sbs_field_maps ${CMAKE_CURRENT_BINARY_DIR}/*.table ${CMAKE_CURRENT_BINARY_DIR}/map_696A.dat)

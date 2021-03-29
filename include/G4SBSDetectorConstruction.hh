@@ -186,7 +186,7 @@ public:
   void Set48D48Dist( double);
   void Set48D48Ang( double);
 
-  void AddToscaField(const char *);
+  void AddToscaField(const char *, int);
 
   bool fUseGlobalField;
 

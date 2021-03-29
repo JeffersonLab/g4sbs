@@ -24,6 +24,8 @@
 
 G4SBSGlobalField::G4SBSGlobalField() {
   fInverted = false;
+  fOverride_Earm = false;
+  fOverride_Harm = false;
 }
 
 
@@ -69,13 +71,21 @@ void G4SBSGlobalField::AddField( G4SBSMagneticField *f ){
 }
 
 
-void G4SBSGlobalField::AddToscaField( const char *fn ){ 
+void G4SBSGlobalField::AddToscaField( const char *fn, int flag ){
+
+  //Probably need to modify the constructor for G4SBSToscaField, since ReadField() gets called in the constructor, and the coordinate transformation gets defined there.
+  //Actually, we DON'T need to do that, because we can redefine the offset and rotation matrix based on flag. But this needs to be done from the detector construction
+  //routine, so we have actual access to the angles and distances (see G4SBSDetectorConstruction::AddToscaField).
+  //But the problem with the detector construction routine is that it doesn't have access to the fFields vector of the global field.
+  //We probably need to add a utility method to global field to 
   G4SBSToscaField *f = new G4SBSToscaField(fn);
 
+  f->fArm = G4SBS::kHarm; //by default, a TOSCA field is associated with "HARM". If and only if flag == 1, then it is associated with "Earm"
+
+  if( flag == 1 ) f->fArm = G4SBS::kEarm; //this isn't completely idiot-proof, but probably best we can do for now without adding layers of complexity
+  
   G4String fname = f->GetFilename();
   
-  f->fArm = G4SBS::kHarm; //for now, a TOSCA field is always associated with "HARM". we may wish to change in the future.
-    
   AddField(f);
   G4TransportationManager::GetTransportationManager()->GetFieldManager()->CreateChordFinder(this);
 
@@ -116,6 +126,34 @@ void G4SBSGlobalField::ScaleFields( G4double scalefact, G4SBS::Arm_t arm ){
   for( std::vector<G4SBSMagneticField *>::iterator it = fFields.begin(); it != fFields.end(); ++it ){
     if( (*it)->fArm == arm ){
       (*it)->fScaleFactor = scalefact;
+    }
+  }
+}
+
+void G4SBSGlobalField::SetAngleAndDistance( G4double magtheta, G4double magdist, G4SBS::Arm_t arm ){
+  for( std::vector<G4SBSMagneticField *>::iterator it = fFields.begin(); it != fFields.end(); ++it ){
+    if( (*it)->fArm == arm ){ //override offset and rotation matrix for this field map:
+      if( arm == G4SBS::kEarm ){ //This is BigBite (beam left):
+	//G4ThreeVector pos(sin(magtheta)*magdist, 0.0, cos(magtheta)*magdist);
+
+	G4ThreeVector pos( 0.0, 0.0, magdist );
+	(*it)->SetOffset( pos );
+	
+	G4RotationMatrix rottemp = G4RotationMatrix();
+	rottemp.rotateY(-magtheta);
+
+	(*it)->SetRM( rottemp );
+	
+      } else if ( arm == G4SBS::kHarm ){ //this is SBS (beam left):
+	//	G4ThreeVector pos(-sin(magtheta)*magdist, 0.0, cos(magtheta)*magdist);
+	G4ThreeVector pos( 0.0, 0.0, magdist );
+	(*it)->SetOffset( pos );
+
+	G4RotationMatrix rottemp = G4RotationMatrix();
+	rottemp.rotateY(magtheta);
+
+	(*it)->SetRM( rottemp );
+      }
     }
   }
 }

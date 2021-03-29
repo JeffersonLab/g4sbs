@@ -51,9 +51,9 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   case(G4SBS::kGMN):// GMn
     fDetCon->fBeamlineConf = 3;
     MakeGMnBeamline(worldlog);
-    if(fDetCon->fLeadOption == 1){
-      MakeGMnLead(worldlog);
-    }
+    //if(fDetCon->fLeadOption == 1){
+    MakeGMnLead(worldlog);
+    //}
     break;
   case(G4SBS::kGEnRP):// GEnRP
     fDetCon->fBeamlineConf = 3;
@@ -4012,7 +4012,7 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
 
   //SSeeds 1.14.21 - Commenting as obsolete. Will leave here for potential beam studies.
-  /*
+  /**/
   bool leadring = true;
   bool checkoverlaps = false;
 
@@ -4098,7 +4098,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   // Beamline shielding : between before 1st corrector magnets (BL4 only)
   //
   G4double th_BLshield1 = 2.0*inch;
-  G4double L_BLshield1 = 34.0*inch;
+  G4double L_BLshield1 = 28.0*inch;//34.0*inch;
   G4double h_BLshield1 = h_SCshield;
   
   G4double z_BLshield1 = z_conic_vacline_weldment + (0.84 + 0.14 + 45.62 + 14.38*0.65 - 34.0/2.0)*inch;
@@ -4111,15 +4111,15 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   G4LogicalVolume *BLshield1_log = new G4LogicalVolume( BLshield1, GetMaterial("Lead"), "BLshield1_log" );
   
   rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY(-1.5*deg);
+  //rot_temp->rotateY(-1.5*deg);
   
-  if(fDetCon->fBeamlineConf==4){
+  if(fDetCon->fLeadOption){
     //if(lead)
     new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield1, 0, z_BLshield1 ), BLshield1_log, "BLshield1_phys", worldlog, false, 0, checkoverlaps );
     BLshield1_log->SetVisAttributes(LeadColor);
   }
   
- */
+  /**/
 
 
 

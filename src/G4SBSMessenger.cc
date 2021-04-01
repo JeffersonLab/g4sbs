@@ -317,9 +317,17 @@ G4SBSMessenger::G4SBSMessenger(){
   // bbfield_fnameCmd->SetGuidance("BigBite field map file name (if non-standard name/location)");
   // bbfield_fnameCmd->SetParameterName("bbfieldfname",false);
   
-  tosfieldCmd = new G4UIcmdWithAString("/g4sbs/tosfield", this);
-  tosfieldCmd->SetGuidance("Use SBS TOSCA field map from file");
-  tosfieldCmd->SetParameterName("tosfield", false);
+  //tosfieldCmd = new G4UIcmdWithAString("/g4sbs/tosfield", this);
+  tosfieldCmd = new G4UIcommand("/g4sbs/tosfield", this );
+  tosfieldCmd->SetGuidance("Add TOSCA field map to global field definition");
+  tosfieldCmd->SetGuidance("Usage: /g4sbs/tosfield fname flag");
+  tosfieldCmd->SetGuidance("fname = field map file name");
+  tosfieldCmd->SetGuidance("flag = 0 (default): transformation according to header information in map file");
+  tosfieldCmd->SetGuidance("flag = 1 (BigBite): transformation according to BigBite angle/magnet distance" );
+  tosfieldCmd->SetGuidance("flag = 2 (SBS): transformation according to SBS angle/magnet distance" );
+  tosfieldCmd->SetParameter(new G4UIparameter("tosfield", 's', false) ); //map file name
+  tosfieldCmd->SetParameter(new G4UIparameter("fieldflag", 'i', true) );
+  tosfieldCmd->GetParameter(1)->SetDefaultValue(0);
 
   eventStatusEveryCmd = new G4UIcmdWithAnInteger("/g4sbs/eventstatusevery", this);
   eventStatusEveryCmd->SetGuidance("Print event status at every N entries");
@@ -911,6 +919,9 @@ G4SBSMessenger::G4SBSMessenger(){
   TDIStgtWallThickCmd->SetGuidance("Set TDIS wall target thickness" );
   TDIStgtWallThickCmd->SetParameterName("TDIStgtWallThickness" , false);
  
+  WriteFieldMapCmd = new G4UIcmdWithABool( "/g4sbs/writefieldmaps", this );
+  WriteFieldMapCmd->SetGuidance( "Toggle writing of \"portable\" field maps for BB+SBS" );
+  WriteFieldMapCmd->SetParameterName("writemapsflag", false );
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -1601,7 +1612,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
   
   if( cmd == tosfieldCmd ){
-    fdetcon->AddToscaField(newValue.data());
+    std::istringstream is(newValue);
+
+    G4String fname;
+    G4int flag;
+    is >> fname >> flag;
+    fdetcon->AddToscaField( fname.data(), flag );
+    //    fdetcon->AddToscaField(newValue.data());
   }
 
   if( cmd == eventStatusEveryCmd ){
@@ -1769,18 +1786,33 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     printf("Setting BB ang to %f deg\n", v/deg);
     fdetcon->SetBBAng(v);
     fIO->SetBigBiteTheta(v);
+
+    //If TOSCA map override flag is set, update the angle and distance for the field map:
+    if( fdetcon->fGlobalField->GetOverride_Earm() ){
+      fdetcon->fGlobalField->SetAngleAndDistance( fdetcon->fEArmBuilder->fBBang, fdetcon->fEArmBuilder->fBBdist, G4SBS::kEarm );
+    }
   }
 
   if( cmd == bbdistCmd ){
     G4double v = bbdistCmd->GetNewDoubleValue(newValue);
     fdetcon->SetBBDist(v);
     fIO->SetBigBiteDist(v);
+
+    if( fdetcon->fGlobalField->GetOverride_Earm() ){
+      fdetcon->fGlobalField->SetAngleAndDistance( fdetcon->fEArmBuilder->fBBang, fdetcon->fEArmBuilder->fBBdist, G4SBS::kEarm );
+    }
+    
   }
 
   if( cmd == hcalangCmd ){
     G4double v = hcalangCmd->GetNewDoubleValue(newValue);
     fdetcon->Set48D48Ang(v);
     fIO->SetSBSTheta(v);
+
+    if( fdetcon->fGlobalField->GetOverride_Harm() ){
+      fdetcon->fGlobalField->SetAngleAndDistance( fdetcon->fHArmBuilder->f48D48ang, fdetcon->fHArmBuilder->f48D48dist, G4SBS::kHarm );
+    }
+    
   }
 
   if( cmd == sbstrkrpitchCmd ){
@@ -1932,6 +1964,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = hmagdistCmd->GetNewDoubleValue(newValue);
     fdetcon->Set48D48Dist(v);
     fIO->SetSBSDist( v );
+
+    if( fdetcon->fGlobalField->GetOverride_Harm() ){
+      fdetcon->fGlobalField->SetAngleAndDistance( fdetcon->fHArmBuilder->f48D48ang, fdetcon->fHArmBuilder->f48D48dist, G4SBS::kHarm );
+    }
   } 
 
   if( cmd == cerDepCmd ){
@@ -2439,6 +2475,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fTargetBuilder->SetTDIStgtWallThick(tdistgtwallthick);
   }
   
+  if( cmd == WriteFieldMapCmd ){
+    G4bool flag = WriteFieldMapCmd->GetNewBoolValue(newValue);
+    fIO->SetWriteFieldMaps(flag);
+  }
   
 
 }

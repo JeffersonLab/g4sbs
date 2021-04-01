@@ -327,8 +327,21 @@ if(INSTALL_SBS_FIELD_MAPS)
   message("Downloading SBS+BB TOSCA map for GMN, 13.5 GeV^2")
   file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GMN13_field_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GMN13_field_newheader.table SHOW_PROGRESS)
 
+<<<<<<< HEAD
   file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEN-RP-tosca_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GEN-RP-tosca_newheader.table SHOW_PROGRESS)
   file(DOWNLOAD https://userweb.jlab.org/~efuchey/sol_map_03.dat ${CMAKE_CURRENT_BINARY_DIR}/GEN-RP-tosca_newheader.table SHOW_PROGRESS)
+=======
+#  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEN-RP-tosca_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GEN-RP-tosca_newheader.table SHOW_PROGRESS)
+
+   message("Downloading Portable BigBite field map generated from GMN global map")		     
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/BigBitePortableFieldMap.table ${CMAKE_CURRENT_BINARY_DIR}/BigBitePortableFieldMap.table SHOW_PROGRESS)
+
+  message("Downloading portable SBS field map generated from GMN global map, with front clamp only, no pole shims")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table ${CMAKE_CURRENT_BINARY_DIR}/SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table SHOW_PROGRESS)
+
+  message("Downloading portable SBS field map generated from GEP global map, with front and rear clamps and pole shims")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/SBSPortableFieldMap_TwoClamps_PoleShims.table ${CMAKE_CURRENT_BINARY_DIR}/SBSPortableFieldMap_TwoClamps_PoleShims.table SHOW_PROGRESS)
+>>>>>>> 867bc56abeb61eb1ee62ba84040364ae359a7395
 
   message("Other field maps forthcoming... Anybody know how to get CMake to download files AFTER the configure step, during the build step?")
 

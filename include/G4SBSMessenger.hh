@@ -74,8 +74,9 @@ private:
   G4UIcmdWithAnInteger *bigfieldCmd;
   G4UIcommand *bbfieldCmd;
   //G4UIcmdWithAString *bbfield_fnameCmd; //Set filename for BB magnetic field map
-  G4UIcmdWithAString *tosfieldCmd;
-
+  //  G4UIcmdWithAString *tosfieldCmd;
+  G4UIcommand *tosfieldCmd;
+  
   G4UIcmdWithAnInteger *eventStatusEveryCmd;
 
   G4UIcmdWithABool *geantinoCmd;
@@ -332,6 +333,8 @@ private:
 
   G4UIcmdWithABool *mTPCRoomTempCmd;
   G4UIcmdWithADoubleAndUnit *TDIStgtWallThickCmd;
+  
+  G4UIcmdWithABool *WriteFieldMapCmd;
 };
 
 #endif//G4SBSMessenger_HH

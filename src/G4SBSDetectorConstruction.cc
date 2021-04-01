@@ -2836,16 +2836,46 @@ void G4SBSDetectorConstruction::SetUniformMagneticField48D48( double B ) {
   fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;
 }
 
-void G4SBSDetectorConstruction::AddToscaField( const char *fn ) { 
+void G4SBSDetectorConstruction::AddToscaField( const char *fn, int flag ) { 
 
-  if( f48d48field ){
+  if( f48d48field && flag != 1 ){ //this is either a global field definition or a "local" SBS field definition: delete local SBS uniform field if it exists
     fGlobalField->DropField( f48d48field );
     delete f48d48field;
     f48d48field = NULL;
   }
-  
-  fGlobalField->AddToscaField(fn); 
 
+  //Check existence of local BB field. If it exists and flag == 1, then we definitely want to delete it.
+  //Otherwise the situation is ambiguous, so we leave it alone. This isn't COMPLETELY idiot-proof, but
+  //probably the best we can do without additional layers of complexity:
+  if( fbbfield && flag == 1 ){
+    fGlobalField->DropField( fbbfield );
+    delete fbbfield;
+    fbbfield = NULL;
+  }
+   
+  fGlobalField->AddToscaField(fn, flag);
+
+  //Depending on flag, optionally override the map header info for map coordinate transformation:
+  if( flag == 1 ){
+    G4cout << "Warning: overriding map header coordinate transformation info using BigBite angle and distance for TOSCA map " << fn << G4endl;
+
+    fGlobalField->SetAngleAndDistance( fEArmBuilder->fBBang, fEArmBuilder->fBBdist, G4SBS::kEarm );
+
+    //This will make sure that if the angle and distance get changed AFTER this command is invoked, the field map rotation matrix
+    //and offset will also be changed:
+    fGlobalField->SetOverride_Earm( true );
+  }
+
+  if( flag == 2 ){
+    G4cout << "Warning: overriding map header coordinate transformation using SBS/48D48 angle and distance for TOSCA map " << fn << G4endl
+	   << "This will have unintended consequences if SBS/48D48 angle and distance are not already properly set   " << G4endl;
+    fGlobalField->SetAngleAndDistance( fHArmBuilder->f48D48ang, fHArmBuilder->f48D48dist, G4SBS::kHarm );
+
+    //This will make sure that if the angle and distance get changed AFTER this command is invoked, the field map rotation matrix
+    //and offset will also be changed:
+    fGlobalField->SetOverride_Harm( true );
+  }
+    
   G4cout << "fGlobalField::AddToscaField done" << G4endl;
   
   //When creating for the first time, initialize overall scale factor based on fFieldScale_SBS (defaults to 1, is overridden by messenger command).

@@ -216,6 +216,8 @@ public:
 
   G4bool GetKeepAllSDtracks() const { return fKeepAllSDtracks; }
   map<G4String,G4bool> GetKeepSDtracks() const { return fKeepSDtracks; }
+
+  void SetWriteFieldMaps( G4bool b ){ fWritePortableFieldMaps = b; }
   
 private:
   TFile *fFile;
@@ -267,6 +269,9 @@ private:
   //sensitive detectors since they will be empty anyway:
   G4bool fUsingCerenkov;
   G4bool fUsingScintillation;
+
+  // Option to create "portable" field maps for SBS and/or BB from global TOSCA map:
+  G4bool fWritePortableFieldMaps;
   
 };
 

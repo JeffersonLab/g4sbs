@@ -36,6 +36,7 @@
 #include "G4NistManager.hh"
 #include "G4MaterialTable.hh"
 #include "G4MaterialPropertiesTable.hh" 
+#include "sbstypes.hh"
 
 // *dc is the detector constructor method which carries the information
 // of all detectors (check (CA) )
@@ -955,28 +956,25 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
   G4String mTPCSDname = "SBS/mTPC";
   G4String mTPCcolname = "mTPCHitsCollection";
    
-
-  // G4SBSmTPCSD* mTPCSD;
-  // if( !(mTPCSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) )
-  //{ //Make sure SD with this name doesn't already exist
-  //   mTPCSD = new G4SBSmTPCSD( mTPCSDname, mTPCcolname );
-  //   fDetCon->fSDman->AddNewDetector(mTPCSD);
-  //   (fDetCon->SDlist).insert(mTPCSDname);
-  //   fDetCon->SDtype[mTPCSDname] = kmTPC;
-  // }
+  G4SBSmTPCSD* mTPCSD;
+  if( !(mTPCSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCSD = new G4SBSmTPCSD( mTPCSDname, mTPCcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCSD);
+    (fDetCon->SDlist).insert(mTPCSDname);
+    fDetCon->SDtype[mTPCSDname] = G4SBS::kmTPC;
+  }
    
    
   G4String mTPCHVSDname = "SBS/mTPCHV";
   G4String mTPCHVcolname = "mTPCHVHitsCollection";
 
-  // G4SBSCalSD *mTPCHVSD;
-  // if( !(mTPCHVSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCHVSDname)) )
-  // { Make sure SD with this name doesn't already exist
-  //   mTPCHVSD = new G4SBSCalSD( mTPCHVSDname, mTPCHVcolname );
-  //   fDetCon->fSDman->AddNewDetector(mTPCHVSD);
-  //   (fDetCon->SDlist).insert(mTPCHVSDname);
-  //   fDetCon->SDtype[mTPCHVSDname] = kCAL;
-  // }
+  G4SBSCalSD *mTPCHVSD;
+  if( !(mTPCHVSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCHVSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCHVSD = new G4SBSCalSD( mTPCHVSDname, mTPCHVcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCHVSD);
+    (fDetCon->SDlist).insert(mTPCHVSDname);
+    fDetCon->SDtype[mTPCHVSDname] = G4SBS::kCAL;
+  }
    
   double HVThickness = fmTPC_HV_thick;
    
@@ -1050,7 +1048,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 			    fChkOvLaps);
 	  mTPCHVDisc_log->SetVisAttributes( mtpc_HVDisc_visatt );
 	  // set cell as a sensitive detector
-	  //    mTPCHVDisc_log->SetSensitiveDetector(mTPCHVSD);
+	  mTPCHVDisc_log->SetSensitiveDetector(mTPCHVSD);
 	}
       else
 	{
@@ -1071,7 +1069,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 				 GetMaterial("mTPCgas"),
 				"mTPCGasCell_log");    
 
-	  //      mTPCGasCell_log->SetSensitiveDetector(mTPCSD);
+	  mTPCGasCell_log->SetSensitiveDetector(mTPCSD);
 	  G4int layernum = incCell*20+i_gl+1;
 	  G4String layername = G4String("mTPCGasCell_phy") + G4String(layernum);
 

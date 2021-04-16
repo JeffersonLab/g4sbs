@@ -63,6 +63,10 @@ G4SBSIO::G4SBSIO(){
   //Set SD track data recording to OFF by default:
   fKeepAllSDtracks = false;
   fKeepSDtracks.clear();
+
+  //Set SD track data recording to OFF by default:
+  fKeepAllPulseShape = false;
+  fKeepPulseShape.clear();
   
   Esum_histograms = NULL;
   PulseShape_histograms = NULL;
@@ -537,10 +541,12 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
   G4double threshtemp = SDtemp->GetEnergyThreshold();
   G4double gatewidthtemp = SDtemp->GetTimeWindow();
   G4int ntimebinstemp = SDtemp->GetNTimeBins();
-  
-  new( (*Esum_histograms)[fNhistograms] ) TH1F( histname.Format("%s.esum",branch_prefix.Data()), "",
+
+  TString hname_prefix = branch_prefix;
+  hname_prefix.ReplaceAll(".","_");
+  new( (*Esum_histograms)[fNhistograms] ) TH1F( histname.Format("%s_esum",hname_prefix.Data()), "",
 						100, 0.0, 100.0*threshtemp );
-  new( (*PulseShape_histograms)[fNhistograms] ) TH1F( histname.Format("%s.pulseshape",branch_prefix.Data()), "",
+  new( (*PulseShape_histograms)[fNhistograms] ) TH1F( histname.Format("%s_pulseshape",hname_prefix.Data()), "",
 						      ntimebinstemp, 0.0,
 						      gatewidthtemp );
 
@@ -573,8 +579,13 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
   fTree->Branch( branch_name.Format( "%s.hit.trms", branch_prefix.Data() ), &(CALdata[SDname].trms) );
   fTree->Branch( branch_name.Format( "%s.hit.tmin", branch_prefix.Data() ), &(CALdata[SDname].tmin) );
   fTree->Branch( branch_name.Format( "%s.hit.tmax", branch_prefix.Data() ), &(CALdata[SDname].tmax) );
-  
-  fTree->Branch( branch_name.Format( "%s.hit.edep_vs_time", branch_prefix.Data() ), &(CALdata[SDname].edep_vs_time) );
+
+  // Fill in ROOT tree branch to hold Pulse Shape info 
+  map<G4String,G4bool>::iterator keeppsflag = fKeepPulseShape.find( SDname );    
+  if( fKeepAllPulseShape || (keeppsflag != fKeepPulseShape.end() && keeppsflag->second ) ){
+    fTree->Branch( branch_name.Format( "%s.gatewidth", branch_prefix.Data() ), &(CALdata[SDname].gatewidth) );
+    fTree->Branch( branch_name.Format( "%s.hit.edep_vs_time", branch_prefix.Data() ), &(CALdata[SDname].edep_vs_time) );
+  }
 
   map<G4String,G4bool>::iterator keepsdflag = fKeepSDtracks.find( SDname );
     

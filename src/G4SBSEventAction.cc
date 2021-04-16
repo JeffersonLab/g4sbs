@@ -251,6 +251,7 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  cd.timewindow = CalSDptr->GetTimeWindow();
 	  cd.threshold =  CalSDptr->GetEnergyThreshold();
 	  cd.ntimebins =  CalSDptr->GetNTimeBins();
+	  cd.hold_tbins = CalSDptr->hold_tbins;
 
 	  sd = CalSDptr->SDtracks;
 
@@ -331,6 +332,12 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 
       if( ECalSDptr != NULL ){
 	ECalHC = (G4SBSECalHitsCollection*) (HCE->GetHC(SDman->GetCollectionID(colNam=ECalSDptr->GetCollectionName(0))));
+
+	// *****
+	ed.timewindow = ECalSDptr->GetTimeWindow();
+	ed.threshold =  ECalSDptr->GetPEThreshold();
+	ed.ntimebins =  ECalSDptr->GetNTimeBins();
+	// *****
 	
 	sd = ECalSDptr->SDtracks;
 
@@ -718,6 +725,15 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
   map<int,vector<int> > nsteps_hit_cell;
   map<int,vector<double> > xsum, ysum, zsum; //sum of local positions of tracks
   map<int,vector<double> > xsumg, ysumg, zsumg; //sum of global positions of tracks
+  
+  // ****
+
+  caloutput.gatewidth = caloutput.timewindow;
+  map<int,vector<vector<double> > > esum_tbin;
+
+  // ****
+
+  
   map<int,vector<double> > esum, t, t2, tmin, tmax;
   map<int,set<int> > OTrackIndices; //key = cell, value = list of all "OTracks" contributing to this hit in this cell
   map<int,set<int> > PTrackIndices; //key = cell, value = list of all "PTracks" contributing to this hit in this cell
@@ -729,10 +745,6 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
   map<int,map<int,double> > vx,vy,vz; //production vertex coordinates of each unique track ID depositing energy in a cell
   map<int,map<int,int> > MID, PID; //mother ID and particle ID of unique tracks in each cell:
   map<int,map<int,double> > p, px, py, pz, edep; //initial momentum and total energy deposition of unique tracks in each cell:
-
-  // map<int,vector< vector<double> > > tbin_edep;
-
-  //cout << " ******** ntimebins ******* " << ntimebins << endl;
   
   //Loop over all hits; in this loop, we want to sort tracking steps within individual cells chronologically:
   for( G4int hit=0; hit<hits->entries(); hit++ ){
@@ -899,14 +911,13 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	tmin[cell].push_back( tstep );
 	tmax[cell].push_back( tstep );
 
-	// if ( (tstep - tmin[cell]) >= 0 && (tstep - tmin[cell]) < 4e-9 ){
-	//   tbin = 1.0;
-	//   tbin_edep[cell][hitindex][tbin].push_back( estep );
-	// }
-	// if ( (tstep - tmin[cell]) >= 4e-9 && (tstep - tmin[cell]) < 8e-9 ){
-	//   tbin = 2.0;
-	//   tbin_edep[cell][hitindex][tbin].push_back( estep );
-	// }
+	// ******
+	vector<double> esum_temp( caloutput.ntimebins );
+	esum_tbin[cell].push_back( esum_temp );
+
+	esum_tbin[cell][nhits_cell[cell] - 1][0] += estep ;
+
+	// ******
 	
       } else { //Add this step to the current hit:
 	xsumg[cell][hitindex] += estep * xgstep;
@@ -923,14 +934,11 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	tmin[cell][hitindex] = (tstep < tmin[cell][hitindex] ) ? tstep : tmin[cell][hitindex];
 	tmax[cell][hitindex] = (tstep > tmax[cell][hitindex] ) ? tstep : tmax[cell][hitindex];
 
-	// if ( (tstep - tmin[cell][hitindex] ) >= 0 && (tstep - tmin[cell]) <= 4e-9 ){
-	//   tbin = 1.0;
-	//   tbin_edep[cell][hitindex][tbin] += estep;
-	// }
-	// if ( (tstep - tmin[cell][hitindex] ) >= 4e-9 && (tstep - tmin[cell]) < 8e-9 ){
-	//   tbin = 2.0;
-	//   tbin_edep[cell][hitindex][tbin] += estep;
-	// }
+	// ******
+	double wtbin = ( caloutput.timewindow - 0.0 )/double(caloutput.ntimebins);
+      	int bin_tstep = int( (tstep - tmin[cell][hitindex])/wtbin );
+	if ( bin_tstep >= 0 && bin_tstep < caloutput.ntimebins ) esum_tbin[cell][hitindex][bin_tstep] += estep;
+	// ******
 
 	nsteps_hit_cell[cell][hitindex]++;
       }
@@ -950,6 +958,8 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
     map<int,int> goodhit_index;
 
     // G4double esum_total = 0.0;
+
+    //G4cout << " Hello World " << endl;
     
     for( int ihit=0; ihit<nhits_cell[cell]; ihit++ ){
       if( esum[cell][ihit] >= caloutput.threshold ){
@@ -983,7 +993,11 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	caloutput.tmax.push_back( tmax[cell][ihit]/_T_UNIT );
 
 	// ************* ++++++ ************
-	// caloutput.edep_vs_time.push_back( tbin_edep[cell][ihit]/_E_UNIT ); 
+	for ( int itbin=0; itbin<caloutput.ntimebins; itbin++ ){
+	  esum_tbin[cell][ihit][itbin] /= _E_UNIT;
+	}
+	caloutput.edep_vs_time.push_back( esum_tbin[cell][ihit] );
+	// *****
 	
 	//If there are multiple Otracks contributing to this hit, choose the one with the highest total energy:
 	G4double maxE = 0.0;
@@ -1151,6 +1165,14 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
   map<int,set<int> > OTrackIndices;
   map<int,set<int> > PTrackIndices;
   map<int,set<int> > SDTrackIndices;
+
+  
+  // *****
+  map<int,vector<vector<int> > > npe_tbin;
+    
+  // G4cout << " ******** timewindow ********* " << ecaloutput.timewindow << endl;
+  // G4cout << " ******** threshold ********* " << ecaloutput.threshold << endl;
+  // G4cout << " ******** ntimebins ********* " << ecaloutput.ntimebins << endl;
   
   //G4MaterialPropertiesTable *MPT; 
 
@@ -1258,13 +1280,19 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	  SDTrackIndices[ pmt ].insert( Photon_sdtridx[ tid ] );
 				       
 	  
-	} else if( fabs( Photon_hittime[tid] - PMT_hittime[pmt] ) <= ecaloutput.timewindow ){ //Existing pmt with multiple photon detections:
+	} else if( fabs( Photon_hittime[tid] - PMT_tmin[pmt] ) <= ecaloutput.timewindow ){ //Existing pmt with multiple photon detections:
 	  G4double average_hittime = (PMT_Numphotoelectrons[pmt] * PMT_hittime[pmt] + Photon_hittime[tid])/double(PMT_Numphotoelectrons[pmt] + 1 );
 	  PMT_hittime[pmt] = average_hittime;
 	  G4double average_hittime2 = (PMT_Numphotoelectrons[pmt] * PMT_hittime2[pmt] + pow(Photon_hittime[tid],2))/double(PMT_Numphotoelectrons[pmt] + 1 );
 	  PMT_hittime2[pmt] = average_hittime2;
 
 	  PMT_Numphotoelectrons[pmt] += 1;
+
+	  // ******
+	  // double wtbin = ( ecaloutput.timewindow - 0.0 )/double(ecaloutput.ntimebins);
+	  // int bin_tstep = int( (Photon_hittime[tid] - PMT_tmin[pmt])/wtbin );
+	  // if ( bin_tstep >= 0 && bin_tstep < ecaloutput.ntimebins ) npe_tbin[pmt][tid][bin_tstep] += 1;
+	  // ******
 
 	  if( Photon_hittime[tid] > PMT_tmax[pmt] ) PMT_tmax[pmt] = Photon_hittime[tid];
 	  if( Photon_hittime[tid] < PMT_tmin[pmt] ) PMT_tmin[pmt] = Photon_hittime[tid];
@@ -1303,6 +1331,10 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	ecaloutput.Time_rms.push_back( sqrt(fabs(PMT_hittime2[pmt] - pow(PMT_hittime[pmt],2) ) )/_T_UNIT );	
 	ecaloutput.Time_min.push_back( PMT_tmin[pmt]/_T_UNIT );
 	ecaloutput.Time_max.push_back( PMT_tmax[pmt]/_T_UNIT );
+
+	// ******
+	//ecaloutput.NPE_vs_time.push_back( npe_tbin[pmt] );
+	// ******
 
 	//If there are multiple Otracks contributing to this hit, choose the one with the highest total energy:
 	G4double maxE = 0.0;

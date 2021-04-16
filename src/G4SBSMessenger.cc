@@ -723,6 +723,7 @@ G4SBSMessenger::G4SBSMessenger(){
   LimitStepCALcmd->SetParameter( new G4UIparameter("flag",'b',true) );
   LimitStepCALcmd->GetParameter(1)->SetDefaultValue(true);
 
+  // **********
   SD_EnergyThresholdCmd = new G4UIcommand("/g4sbs/threshold",this );
 
   SD_EnergyThresholdCmd->SetGuidance("Set hit energy threshold by sensitive detector name (only valid for kCAL, kGEM)");
@@ -738,12 +739,20 @@ G4SBSMessenger::G4SBSMessenger(){
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("timewindow", 'd', false ) );
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("unit", 's', false) );
 
-  // **********
   SD_NTimeBinsCmd = new G4UIcommand("/g4sbs/ntimebins",this);
   SD_NTimeBinsCmd->SetGuidance( "Set number of time bins by sensitive detector name (only valid for kCAL, kGEM, kECAL)" );
   SD_NTimeBinsCmd->SetGuidance( "Usage: /g4sbs/ntimebins" );
   SD_NTimeBinsCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
   SD_NTimeBinsCmd->SetParameter( new G4UIparameter("ntimebins", 'i', false ) );
+
+  KeepPulseShapeCmd = new G4UIcommand("/g4sbs/keeppulseshapeinfo",this);
+  KeepPulseShapeCmd->SetGuidance("Toggle recording of Pulse Shape info in the tree by SD name");
+  KeepPulseShapeCmd->SetGuidance("Usage: /g4sbs/keeppulseshapeinfo SDname flag");
+  KeepPulseShapeCmd->SetGuidance("SDname = sensitive detector name");
+  KeepPulseShapeCmd->SetGuidance("flag = true/false or 0/1 (default = false/0)");
+  KeepPulseShapeCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
+  KeepPulseShapeCmd->SetParameter( new G4UIparameter("flag", 'b', false) );
+  KeepPulseShapeCmd->GetParameter(1)->SetDefaultValue(false); 
   // **********
 
   KeepSDtrackcmd = new G4UIcommand("/g4sbs/keepsdtrackinfo",this);
@@ -2114,6 +2123,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
   }
 
+  // ******
   if( cmd == SD_EnergyThresholdCmd ){ //store the SDname and dimensioned threshold value in a map<G4String,G4double> assigned to fdetcon?
     std::istringstream is(newValue);
 
@@ -2129,7 +2139,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
   }
 
-  if( cmd == SD_TimeWindowCmd ){ //store the SDname and dimensioned threshold value in a map<G4String,G4double> assigned to fdetcon?
+  if( cmd == SD_TimeWindowCmd ){ 
     std::istringstream is(newValue);
 
     G4String SDname;
@@ -2143,8 +2153,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4cout << "Set time window for SD name = " << SDname << " to " << fdetcon->SDgatewidth[SDname]/ns << " ns" << G4endl;
   }
 
-  // ******
-  if( cmd == SD_NTimeBinsCmd ){ //store the SDname and dimensioned threshold value in a map<G4String,G4double> assigned to fdetcon?
+  if( cmd == SD_NTimeBinsCmd ){ 
     std::istringstream is(newValue);
 
     G4String SDname;
@@ -2155,6 +2164,28 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->SDntimebins[SDname] = ntimebins;
 
     G4cout << "Set number of time bins for SD name = " << SDname << " to " << fdetcon->SDntimebins[SDname] << G4endl;
+  }
+
+  if( cmd == KeepPulseShapeCmd ){ //
+    
+    std::istringstream is(newValue);
+
+    G4String SDname;
+    G4bool flag;
+
+    is >> SDname;
+    
+    //Let's do (somewhat) intelligent parsing of the string here:
+    if( newValue.contains("true") || newValue.contains("false") ){ //parse with the "boolalpha" flag:
+      is >> std::boolalpha >> flag;
+    } else { //assume that the boolean parameter is given as 1 or 0:
+      is >> flag;
+    }
+    
+    //is >> SDname >> flag; 
+    fIO->SetKeepPulseShape( SDname, flag );
+    if( SDname == "all" ) fIO->SetKeepAllPulseShape(flag);
+    
   }
   // ******
 

@@ -797,8 +797,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     G4double timewindow_default = 30.0*ns;
     G4int default_ntbins = 25;
     
-    fDetCon->SetTimeWindowAndThreshold( BBHodoScintSDname, ethresh_default, timewindow_default );
-    fDetCon->SetNTimeBins( BBHodoScintSDname, default_ntbins );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( BBHodoScintSDname, ethresh_default, timewindow_default, default_ntbins );
   }
   bbhodoslatlog->SetSensitiveDetector( BBHodoScintSD ); 
 
@@ -892,8 +891,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
     G4int default_ntbins = 25;
     
-    fDetCon->SetTimeWindowAndThreshold( BBSHTF1SDname, threshold_default, timewindow_default );
-    fDetCon->SetNTimeBins( BBSHTF1SDname, default_ntbins );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( BBSHTF1SDname, threshold_default, timewindow_default, default_ntbins );
   }
   bbTF1log->SetSensitiveDetector( BBSHTF1SD );
 
@@ -922,6 +920,12 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     (fDetCon->SDlist).insert(BBSHSDname);
     fDetCon->SDtype[BBSHSDname] = G4SBS::kECAL;
     (BBSHSD->detmap).depth = 1;
+
+    // ****
+    G4cout << " ****** reached L925 ****** " << endl;
+    //fDetCon->SetThresholdTimeWindowAndNTimeBins( BBSHSDname, 0.5*MeV, 250*ns, 25 );
+    G4cout << " ****** reached L927 ****** " << endl;
+    // ****
   }
   bbpmtcathodelog->SetSensitiveDetector( BBSHSD );
 
@@ -1009,8 +1013,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
     G4int default_ntbins = 25;
 
-    fDetCon->SetTimeWindowAndThreshold( BBPSTF1SDname, threshold_default, timewindow_default );
-    fDetCon->SetNTimeBins( BBPSTF1SDname, default_ntbins );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( BBPSTF1SDname, threshold_default, timewindow_default, default_ntbins );
   }
   bbpsTF1log->SetSensitiveDetector( BBPSTF1SD );
 
@@ -1036,6 +1039,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     (fDetCon->SDlist).insert(BBPSSDname);
     fDetCon->SDtype[BBPSSDname] = G4SBS::kECAL;
     (BBPSSD->detmap).depth = 1;
+
+    // *****
+    //fDetCon->SetThresholdTimeWindowAndNTimeBins( BBPSSDname, 0.5*MeV, 250*ns, 25 );
+    // *****
   }
   bbpspmtcathodelog->SetSensitiveDetector( BBPSSD );
 
@@ -1297,8 +1304,7 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
     G4double timewindow_default = 100.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
     G4int default_ntbins = 25;
 
-    fDetCon->SetTimeWindowAndThreshold( DVCSblkSDname, threshold_default, timewindow_default );
-    fDetCon->SetNTimeBins( DVCSblkSDname, default_ntbins );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( DVCSblkSDname, threshold_default, timewindow_default, default_ntbins );
   }
   DVCSblklog->SetSensitiveDetector( DVCSblkSD ); 
 
@@ -1546,8 +1552,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
       G4double default_timewindow = 100.0*ns;
       G4double default_ntbins = 25;
 
-      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
-      fDetCon->SetNTimeBins( C16TF1SDname, default_ntbins );
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( C16TF1SDname, default_threshold, default_timewindow,default_ntbins );
     }
     // Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
@@ -1652,8 +1657,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
       G4double default_timewindow = 100.0*ns;
       G4int default_ntbins = 25;
 
-      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
-      fDetCon->SetNTimeBins( C16TF1SDname, default_ntbins );
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( C16TF1SDname, default_threshold, default_timewindow, default_ntbins );
     }
 
     G4int cell_number = 0 ;    // cell #
@@ -2000,8 +2004,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
     G4double default_threshold  = 0.0*MeV;
     G4int default_ntbins = 25;
 
-    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, default_threshold, default_timewindow );
-    fDetCon->SetNTimeBins( ECalTF1SDname, default_ntbins );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( ECalTF1SDname, default_threshold, default_timewindow, default_ntbins );
   }
 
   fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), ECalTF1SDname );
@@ -2666,8 +2669,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
     G4double default_threshold  = 4.0*MeV;
     G4int default_ntbins = 25;
 
-    fDetCon->SetTimeWindowAndThreshold( sdname, default_threshold, default_timewindow );
-    fDetCon->SetNTimeBins( sdname, default_ntbins );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( sdname, default_threshold, default_timewindow, default_ntbins );
   }
 
   fDetCon->InsertSDboundaryVolume( mother->GetName(), sdname );
@@ -3580,7 +3582,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
     fDetCon->SDtype[GEMElectronicsname] = G4SBS::kCAL;
     (GEMElecSD->detmap).depth = 1;
 
-    fDetCon->SetTimeWindowAndThreshold( GEMElectronicsname );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( GEMElectronicsname );
   }
   Electronics_log->SetSensitiveDetector( GEMElecSD );
   

@@ -17,6 +17,9 @@ public:
   //output of the ECal detector simulation consists of hits in individual PMTs. "Hits" in GEANT4 are really individual tracking steps. 
   //In our end of event routine, we will collect all tracking steps (GEANT4 "hits") occuring within a certain time window on the same PMT into "logical hits"
   double timewindow, threshold; //Number of photo-electrons within timewindow must exceed threshold
+  int ntimebins;
+
+  vector< vector<int> > NPE_vs_time;
 
   //"Hit" variables:
   int nhits_ECal; //number of "logical hits" in the ECal detector.

@@ -149,7 +149,7 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
 
-    fDetCon->SetTimeWindowAndThreshold( sdname, 4.0*MeV, 50.0*ns );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( sdname, 4.0*MeV, 50.0*ns, 25 );
   }
 
   fDetCon->InsertSDboundaryVolume( mother->GetName(), sdname );

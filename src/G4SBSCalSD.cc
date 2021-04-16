@@ -18,14 +18,9 @@ G4SBSCalSD::G4SBSCalSD( G4String name, G4String colname )
     detmap.SDname = name;
     detmap.clear();
 
-    //fHitTimeWindow = 1000.0*ns; //"safe" default value for a calorimeter;
+    fHitTimeWindow = 1000.0*ns; //"safe" default value for a calorimeter;
     fEnergyThreshold = 0.0*keV; //"safe" default value for a calorimeter;
-    //fNTimeBins = 500;
-
-    fNTimeBins = 25; //4ns wide FADC waveform : HCAL
-    fHitTimeWindow = 100.0*ns;
-
-    vector<double> timebins;
+    fNTimeBins = 500;
 
     SDtracks.Clear();
     SDtracks.SetSDname(name);

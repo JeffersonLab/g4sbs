@@ -11,6 +11,12 @@
 G4SBSECalSD::G4SBSECalSD( G4String name, G4String collname ) : G4VSensitiveDetector(name) {
   collectionName.insert( collname );
 
+  // *****
+  fHitTimeWindow = 250.0*CLHEP::ns; 
+  fPEThreshold = 0.0; //single photo-electron threshold!
+  fNTimeBins = 25;
+  // *****
+
   SDtracks.Clear();
   SDtracks.SetSDname( name );
 }

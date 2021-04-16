@@ -1511,8 +1511,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     G4int default_ntbins = 25;
 
     //This will be overridden if the command /g4sbs/threshold has been invoked for this detector:
-    fDetCon->SetTimeWindowAndThreshold( HCalScintSDName, 0.0*MeV, 500.0*ns );
-    fDetCon->SetNTimeBins( HCalScintSDName, default_ntbins );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( HCalScintSDName, 0.0*MeV, 500.0*ns, 25 );
   }
   log_Scint->SetSensitiveDetector(HCalScintSD);
   fDetCon->InsertSDboundaryVolume( log_HCAL->GetName(), HCalScintSDName );
@@ -1529,6 +1528,10 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     (fDetCon->SDlist).insert(HCalSDName);
     fDetCon->SDtype[HCalSDName] = G4SBS::kECAL;
     (HCalSD->detmap).depth = 1;
+
+    // *****
+    //fDetCon->SetThresholdTimeWindowAndNTimeBins( HCalSDName, 0.5*MeV, 250.0*ns, 25 );
+    // *****
   }
   log_PMTCathode->SetSensitiveDetector(HCalSD);
 
@@ -1813,8 +1816,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 
     G4int default_ntbins = 25;
     
-    fDetCon->SetTimeWindowAndThreshold( HCalScintSDname, 0.0*MeV, 100.0*ns );
-    fDetCon->SetNTimeBins( HCalScintSDname, default_ntbins );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( HCalScintSDname, 0.0*MeV, 100.0*ns, 25 );
   }
   logScinPl->SetSensitiveDetector(HCalScintSD);
 
@@ -3121,8 +3123,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
 
-    fDetCon->SetTimeWindowAndThreshold( sdname, 0.0*MeV, 50.0*ns );
-    fDetCon->SetNTimeBins( sdname, 25 );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( sdname, 0.0*MeV, 50.0*ns, 25 );
   }
   
   //Now we need to define the coordinates of the "modules":
@@ -4140,10 +4141,8 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
     fDetCon->SDtype[LACScintSDname] = G4SBS::kCAL;
     (LACScintSD->detmap).depth = 0;
 
-    fDetCon->SetTimeWindowAndThreshold( LACScintSDname, 0.0*MeV, 100.0*ns );
-    fDetCon->SetNTimeBins( LACScintSDname, 25 );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( LACScintSDname, 0.0*MeV, 100.0*ns, 25 );
   }
-
   fDetCon->InsertSDboundaryVolume( log_LAC->GetName(), LACScintSDname );
   
   //Now start populating the layers. In the absence of a better "guess", I will assume that there is one more layer's worth of "short" strips than "long" strips:
@@ -4458,8 +4457,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     fDetCon->SDtype[ActAnScintSDname] = G4SBS::kCAL;
     (ActAnScintSD->detmap).depth = 0;
     
-    fDetCon->SetTimeWindowAndThreshold( ActAnScintSDname, ethresh_default, timewindow_default );
-    fDetCon->SetNTimeBins( ActAnScintSDname, 25 );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( ActAnScintSDname, ethresh_default, timewindow_default, 25 );
     fDetCon->InsertSDboundaryVolume( actanalog->GetName(), ActAnScintSDname );
   }
   G4VisAttributes *actanavisatt = new G4VisAttributes( G4Colour(0.0, 1.0, 0.0));
@@ -4573,8 +4571,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
       fDetCon->SDtype[PRPolScintBSSDname] = G4SBS::kCAL;
       (PRPolScintBSSD->detmap).depth = 0;
       
-      fDetCon->SetTimeWindowAndThreshold( PRPolScintBSSDname, ethresh_default, timewindow_default );
-      fDetCon->SetNTimeBins( PRPolScintBSSDname, 25 );
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintBSSDname, ethresh_default, timewindow_default, 25 );
       fDetCon->InsertSDboundaryVolume( prscintbslog->GetName(), PRPolScintBSSDname );
     }
     prbarbslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
@@ -4615,8 +4612,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     fDetCon->SDtype[PRPolScintFSSDname] = G4SBS::kCAL;
     (PRPolScintFSSD->detmap).depth = 0;
 
-    fDetCon->SetTimeWindowAndThreshold( PRPolScintFSSDname, ethresh_default, timewindow_default );
-    fDetCon->SetNTimeBins( PRPolScintFSSDname, 25 );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintFSSDname, ethresh_default, timewindow_default, 25 );
     fDetCon->InsertSDboundaryVolume( prscintfslog->GetName(), PRPolScintFSSDname );
   }
   prbarfslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
@@ -4684,8 +4680,7 @@ void G4SBSHArmBuilder::MakeNeutronVeto(G4LogicalVolume* worldlog, G4double dist_
     (veto_scint_sd->detmap).depth = 1;
     VetoScintLog->SetSensitiveDetector( veto_scint_sd );
 	
-    fDetCon->SetTimeWindowAndThreshold( sdname, 0.0*MeV, 50.0*ns );
-    fDetCon->SetNTimeBins( sdname, 25 );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( sdname, 0.0*MeV, 50.0*ns, 25 );
   }
       
   fDetCon->InsertSDboundaryVolume( VetoMotherLog->GetName(), sdname );

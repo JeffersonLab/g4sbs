@@ -315,8 +315,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
 
     (ECalTF1SD->detmap).depth = 1;
 
-    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 0.0*MeV, 100.0*ns );
-    fDetCon->SetNTimeBins( ECalTF1SDname, 25 );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( ECalTF1SDname, 0.0*MeV, 100.0*ns, 25 );
   }
 
   fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), ECalTF1SDname );
@@ -1144,8 +1143,7 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
       fDetCon->SDtype[C16TF1SDname] = G4SBS::kCAL;
       (C16TF1SD->detmap).depth = 1;
 
-      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, 0.0*MeV, 100.0*ns );
-      fDetCon->SetNTimeBins( C16TF1SDname, 25 );
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( C16TF1SDname, 0.0*MeV, 100.0*ns, 25 );
     }
     // Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
@@ -1245,8 +1243,7 @@ void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
       fDetCon->SDtype[C16TF1SDname] = G4SBS::kCAL;
       (C16TF1SD->detmap).depth = 0;
 
-      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, 0.0*MeV, 100.0*ns );
-      fDetCon->SetNTimeBins( C16TF1SDname, 25 );
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( C16TF1SDname, 0.0*MeV, 100.0*ns, 25 );
     }
 
     fDetCon->InsertSDboundaryVolume( C16_Log->GetName(), C16TF1SDname );
@@ -1590,8 +1587,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
 
     (ECalTF1SD->detmap).depth = 1;
 
-    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, 0.0*MeV, 100.0*ns );
-    fDetCon->SetNTimeBins( ECalTF1SDname, 25 );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( ECalTF1SDname, 0.0*MeV, 100.0*ns, 25 );
   }
 
   fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), ECalTF1SDname );

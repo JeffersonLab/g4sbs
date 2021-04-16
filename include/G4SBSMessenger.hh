@@ -276,6 +276,7 @@ private:
   G4UIcommand *SD_TimeWindowCmd;
   G4UIcommand *SD_NTimeBinsCmd;
 
+  G4UIcommand *KeepPulseShapeCmd; //Flag to turn on recording of Pulse Shape info  
   G4UIcommand *KeepSDtrackcmd; //Flag to turn on recording of "sensitive detector" track info
   
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)

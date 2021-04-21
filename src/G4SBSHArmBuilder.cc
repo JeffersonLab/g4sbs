@@ -1530,7 +1530,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     (HCalSD->detmap).depth = 1;
 
     // *****
-    //fDetCon->SetThresholdTimeWindowAndNTimeBins( HCalSDName, 0.5*MeV, 250.0*ns, 25 );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( HCalSDName, 0.0*MeV, 250.0*ns, 25 );
     // *****
   }
   log_PMTCathode->SetSensitiveDetector(HCalSD);

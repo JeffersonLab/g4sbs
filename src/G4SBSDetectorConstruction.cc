@@ -50,9 +50,7 @@
 
 #include "G4SBSCalSD.hh"
 #include "G4SBSGEMSD.hh"
-// ****
 #include "G4SBSECalSD.hh"
-// ****
 
 #include "TSpline.h"
 
@@ -2713,9 +2711,7 @@ void G4SBSDetectorConstruction::SetFlipGEM( G4bool b ){
 void G4SBSDetectorConstruction::SetThresholdTimeWindowAndNTimeBins( G4String SDname, G4double Edefault, G4double Tdefault, G4int Ntbinsdefault ){
   G4SBSGEMSD *GEMSDptr;
   G4SBSCalSD *CalSDptr;
-  // *****
   G4SBSECalSD *ECalSDptr;
-  // *****
 
   G4double timewindow, threshold;
   G4int ntimebins;
@@ -2723,7 +2719,7 @@ void G4SBSDetectorConstruction::SetThresholdTimeWindowAndNTimeBins( G4String SDn
   if( SDlist.find( SDname ) != SDlist.end() ){
     switch( SDtype[SDname] ){
     case G4SBS::kGEM: //For now, do nothing:
-      
+     
       break;
     case G4SBS::kCAL:
       CalSDptr = (G4SBSCalSD*) fSDman->FindSensitiveDetector( SDname, false );
@@ -2735,13 +2731,13 @@ void G4SBSDetectorConstruction::SetThresholdTimeWindowAndNTimeBins( G4String SDn
       CalSDptr->SetEnergyThreshold( threshold );
       CalSDptr->SetHitTimeWindow( timewindow );
       CalSDptr->SetNTimeBins( ntimebins );
-      
+     
       break;
       // *****
     case G4SBS::kECAL:
       ECalSDptr = (G4SBSECalSD*) fSDman->FindSensitiveDetector( SDname, false );
 
-      timewindow = SDgatewidth.find(SDname) != SDgatewidth.end() ? SDgatewidth[SDname] : Tdefault;
+      timewindow = SDgatewidth.find(SDname) != SDgatewidth.end() ? SDgatewidth[SDname] : Tdefault;      
       threshold  = SDthreshold.find(SDname) != SDthreshold.end() ? SDthreshold[SDname] : Edefault;
       ntimebins = SDntimebins.find(SDname) != SDntimebins.end() ? SDntimebins[SDname] : Ntbinsdefault;
 
@@ -2750,18 +2746,19 @@ void G4SBSDetectorConstruction::SetThresholdTimeWindowAndNTimeBins( G4String SDn
       ECalSDptr->SetNTimeBins( ntimebins );
       
       break;
-      // *****
-    default: //do nothing:
-      break;
+   default: //do nothing:
+
+     break;
     }
 
   }
 
-  G4double wbin = timewindow/double(ntimebins);
-  for( int ibin=0; ibin<ntimebins; ibin++ ){
-    // CalSDptr->hold_tbins.push_back( ibin*wbin + 0.5*wbin );
-    CalSDptr->hold_tbins.push_back( 0.0 );
-  }
+  // This part is the criminal
+  // G4double wbin = timewindow/double(ntimebins);
+  // for( int ibin=0; ibin<ntimebins; ibin++ ){
+  //   // CalSDptr->hold_tbins.push_back( ibin*wbin + 0.5*wbin );
+  //   CalSDptr->hold_tbins.push_back( 0.0 );
+  // }
   
   return;
 }

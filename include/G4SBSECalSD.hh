@@ -27,7 +27,7 @@ public:
   G4int GetNTimeBins(){ return fNTimeBins; }
   G4double GetTimeWindow(){ return fHitTimeWindow; }
   G4double GetPEThreshold(){ return fPEThreshold; }
-  
+
   void SetNTimeBins( G4int N ){ fNTimeBins = N; }
   void SetHitTimeWindow( G4double T ){ fHitTimeWindow = T; } 
   void SetPEThreshold( G4double Emin){ fPEThreshold = Emin; }

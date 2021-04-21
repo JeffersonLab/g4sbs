@@ -19,7 +19,8 @@ public:
   double timewindow, threshold; //Number of photo-electrons within timewindow must exceed threshold
   int ntimebins;
 
-  vector< vector<int> > NPE_vs_time;
+  vector< vector<double> > NPE_vs_time;
+  double gatewidth;
 
   //"Hit" variables:
   int nhits_ECal; //number of "logical hits" in the ECal detector.

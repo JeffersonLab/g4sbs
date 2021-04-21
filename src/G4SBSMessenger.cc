@@ -752,7 +752,7 @@ G4SBSMessenger::G4SBSMessenger(){
   KeepPulseShapeCmd->SetGuidance("flag = true/false or 0/1 (default = false/0)");
   KeepPulseShapeCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
   KeepPulseShapeCmd->SetParameter( new G4UIparameter("flag", 'b', false) );
-  KeepPulseShapeCmd->GetParameter(1)->SetDefaultValue(false); 
+  KeepPulseShapeCmd->GetParameter(1)->SetDefaultValue(false);    
   // **********
 
   KeepSDtrackcmd = new G4UIcommand("/g4sbs/keepsdtrackinfo",this);
@@ -2167,7 +2167,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
 
   if( cmd == KeepPulseShapeCmd ){ //
-    
+
     std::istringstream is(newValue);
 
     G4String SDname;
@@ -2185,7 +2185,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     //is >> SDname >> flag; 
     fIO->SetKeepPulseShape( SDname, flag );
     if( SDname == "all" ) fIO->SetKeepAllPulseShape(flag);
-    
+   
   }
   // ******
 

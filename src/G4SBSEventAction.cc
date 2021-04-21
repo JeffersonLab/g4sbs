@@ -704,8 +704,8 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
   caloutput.Clear();
   // caloutput.threshold = 0.0*eV;
 
-  //Is it reasonable to assume that all "hits" in a CalSD are chronologically ordered? Probably not, given the fact that large numbers of secondaries will be produced, and might be tracked before primary particles  
-  
+  //Is it reasonable to assume that all "hits" in a CalSD are chronologically ordered? Probably not, given the fact that large numbers of secondaries will be produced, and might be tracked before primary particles
+
   set<int> CellList; //List of all unique cells with hits
   map<int,vector<int> > steplist_cell; // list of all tracking steps in a cell
   //map<int,vector<int> > steptidx_cell; // time-ordered list of tracking steps in cell
@@ -773,6 +773,10 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	ZCellG[cell] = (*hits)[hit]->GetGlobalCellCoords().z();
 	
 	steplist_cell_timeordered[cell].push_back(hit);
+
+      // *****
+	// G4cout << " **** hit **** " << hit << " ***** cell ***** " << cell << " ***** tid ***** " << track << " **** steptime **** " << steptime << endl;
+      // *****
 	
       } else { //additional step in existing cell:
 	//double w = double(nsteps_cell[cell])/(double(nsteps_cell[cell]+1) );
@@ -792,6 +796,12 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	}
 	tmin_cell[cell] = (*hits)[steplist_cell_timeordered[cell][0]]->GetTime();
 	nsteps_cell[cell]++;
+
+      // *****
+	// G4cout << " **** hit **** " << hit << " ***** cell ***** " << cell << " ***** tid ***** " << track << " **** steptime **** " << steptime  tmin_cell[cell] << endl;
+      // *****
+
+
       }
       //Track information:
       if( newtrack.second ){ //new track in this cell:
@@ -1130,6 +1140,7 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 
 void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECaloutput &ecaloutput, G4SBSSDTrackOutput &SDtracks )
 {
+  
   int nG4hits = hits->entries(); //Loop over nG4hits
   ecaloutput.Clear();
 
@@ -1168,11 +1179,19 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
   
   // *****
-  map<int,vector<vector<int> > > npe_tbin;
+  map<int,vector<int> > steplist_pmt_timeordered; //key 1 = pmt, key 2 = time ordering index, value = index in hit array
+  set<int> PmtList;
+  map<int,int> nsteps_pmt;
+  map<int,int> nhits_pmt;
+  map<int,vector<double> > tmin_pmt, tmin;
+  map<int,vector<vector<double> > > npe_tbin;
+
+  ecaloutput.gatewidth = ecaloutput.timewindow;
     
-  // G4cout << " ******** timewindow ********* " << ecaloutput.timewindow << endl;
-  // G4cout << " ******** threshold ********* " << ecaloutput.threshold << endl;
-  // G4cout << " ******** ntimebins ********* " << ecaloutput.ntimebins << endl;
+  G4cout << " ******** timewindow ********* " << ecaloutput.timewindow << endl;
+  G4cout << " ******** threshold ********* " << ecaloutput.threshold << endl;
+  G4cout << " ******** ntimebins ********* " << ecaloutput.ntimebins << endl;
+  // *****
   
   //G4MaterialPropertiesTable *MPT; 
 
@@ -1194,13 +1213,59 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
     int otridx = SDtracks.otracklist[(*hits)[step]->GetOTrIdx()];
     int ptridx = SDtracks.ptracklist[(*hits)[step]->GetPTrIdx()];
     int sdtridx = SDtracks.sdtracklist[(*hits)[step]->GetSDTrIdx()][hits->GetSDname()];
+
+    // *****
+
+    // To get the time ordered list of tracks in a given PMT
+    std::pair<set<int>::iterator, bool> newpmt = PmtList.insert( pmt );
+    int pmt_un = *(newpmt.first);
+    bool photon_det = G4UniformRand() <= QEphoton;
+      
+    
+    if( newpmt.second ){ //first hit in a new pmt:
+
+
+      if( photon_det ){ // I assume we only care about detected photons in this case
+	nsteps_pmt[pmt_un] = 1;
+	// PmtList.insert( pmt );
+	steplist_pmt_timeordered[pmt_un].push_back(step);
+
+      }
+
+    }else { // additional hits in existing PMT
+
+      if( photon_det ){
+
+	steplist_pmt_timeordered[pmt_un].push_back(step);
+	// it seems unnecessary to do the time ordering
+	G4int jidx = nsteps_pmt[pmt_un]-1;
+	G4int jhit = steplist_pmt_timeordered[pmt_un][jidx];
+	while( jidx >= 0 && Hittime < (*hits)[jhit]->GetTime() ){
+	  //a hit at an earlier position in the array came later than this hit:
+	  steplist_pmt_timeordered[pmt_un][jidx] = step;
+	  steplist_pmt_timeordered[pmt_un][jidx+1] = jhit;
+	  jidx--;
+	  if( jidx < 0 ) break;
+	  jhit =  steplist_pmt_timeordered[pmt_un][jidx];
+	}
+	// tmin_pmt[pmt] = (*hits)[steplist_pmt_timeordered[pmt][0]]->GetTime();
+	nsteps_pmt[pmt_un]++;
+      }     
+     
+    }
+
+    // *****
+
+
+
     
     //Following the method implemented during the RICH routine
     std::pair< set<int>::iterator, bool > photontrack = TIDs_unique.insert( tid );
+   
     if( photontrack.second ){
      
       bool photon_detected = G4UniformRand() <= QEphoton;
-      
+
       Photon_used[ tid ] = !photon_detected; //If the photon is not detected, then we mark it as used. Otherwise, we mark it as unused, and it will be added to a PMT later.
       Photon_detected[ tid ] = photon_detected;
       Photon_energy[ tid ] = Ephoton;
@@ -1218,7 +1283,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
       Photon_otridx[ tid ] = otridx;
       Photon_ptridx[ tid ] = ptridx;
-      Photon_sdtridx[ tid ] = sdtridx;
+      Photon_sdtridx[ tid ] = sdtridx;      
 
     } else { //existing photon, additional step. Increment averages of position, direction, time, etc for all steps of a detected photon. Don't bother for 
       //undetected photons...
@@ -1226,9 +1291,10 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	G4double average_time = (Photon_nsteps[ tid ] * Photon_hittime[ tid ] + Hittime )/double( Photon_nsteps[tid] + 1 );
 	Photon_hittime[tid] = average_time; 
 	Photon_nsteps[tid] += 1;
+
       }
     }
-  }
+  }   
   
   bool  remaining_hits = true;
   // Used to make sure we only save the track info only once
@@ -1243,6 +1309,8 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
     for( set<int>::iterator it=TIDs_unique.begin(); it != TIDs_unique.end(); it++ ){
       int tid = *it;
+
+      
       // Save particle info for all tracks (doesn't matter if they were
       // ultimately not detected)
       if(!saved_track_info) {
@@ -1255,6 +1323,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
       }
 
       if( Photon_detected[ tid ] && !(Photon_used[ tid ] ) ){
+	
 	std::pair<set<int>::iterator,bool> testpmt = PMTs_unique.insert( Photon_PMT[tid] );
 
 	int pmt = Photon_PMT[tid];
@@ -1288,12 +1357,6 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
 	  PMT_Numphotoelectrons[pmt] += 1;
 
-	  // ******
-	  // double wtbin = ( ecaloutput.timewindow - 0.0 )/double(ecaloutput.ntimebins);
-	  // int bin_tstep = int( (Photon_hittime[tid] - PMT_tmin[pmt])/wtbin );
-	  // if ( bin_tstep >= 0 && bin_tstep < ecaloutput.ntimebins ) npe_tbin[pmt][tid][bin_tstep] += 1;
-	  // ******
-
 	  if( Photon_hittime[tid] > PMT_tmax[pmt] ) PMT_tmax[pmt] = Photon_hittime[tid];
 	  if( Photon_hittime[tid] < PMT_tmin[pmt] ) PMT_tmin[pmt] = Photon_hittime[tid];
 	  
@@ -1303,14 +1366,53 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	  PTrackIndices[ pmt ].insert( Photon_ptridx[ tid ] );
 	  SDTrackIndices[ pmt ].insert( Photon_sdtridx[ tid ] );
 	}
+
+	
 	//If any photon is detected but not used, then remaining hits = true!
 	if( !(Photon_used[tid] ) ) remaining_hits = true;
       }
     }
+
+
     //Now add hits to the output following the RICH example..
     for( set<int>::iterator it=PMTs_unique.begin(); it!=PMTs_unique.end(); it++ ){
-      
+           
       int pmt = *it;
+
+
+      // *****
+      // Storing pulse shape information
+      vector<int> steplist = steplist_pmt_timeordered[pmt];	
+      nhits_pmt[pmt] = 0;		
+	
+      for( int istep=0; istep<steplist.size(); istep++ ){
+        int jhit = steplist_pmt_timeordered[pmt][istep];
+        G4double tstep = (*hits)[jhit]->GetTime();
+        G4int hitindex = nhits_pmt[pmt] > 0 ? nhits_pmt[pmt]-1 : 0;
+
+        if( istep == 0 || (nhits_pmt[pmt] > 0 && tstep > tmin[pmt][hitindex] + ecaloutput.timewindow ) ){
+          nhits_pmt[pmt]++;
+
+
+          tmin[pmt].push_back( tstep );
+
+          vector<double> npe_temp( ecaloutput.ntimebins );
+          npe_tbin[pmt].push_back( npe_temp );
+
+          npe_tbin[pmt][nhits_pmt[pmt] - 1][0] += 1. ;
+
+        } else {
+
+          double wtbin = ( ecaloutput.timewindow - 0.0 )/double(ecaloutput.ntimebins);
+          int bin_tstep = int( (tstep - tmin[pmt][hitindex])/wtbin );
+          if ( bin_tstep >= 0 && bin_tstep < ecaloutput.ntimebins ) npe_tbin[pmt][hitindex][bin_tstep] += 1.;
+	  
+        }
+      } 
+	  
+
+      // *****
+
       
       if( PMT_Numphotoelectrons[pmt] >= ecaloutput.threshold ){
 	
@@ -1332,9 +1434,11 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	ecaloutput.Time_min.push_back( PMT_tmin[pmt]/_T_UNIT );
 	ecaloutput.Time_max.push_back( PMT_tmax[pmt]/_T_UNIT );
 
-	// ******
-	//ecaloutput.NPE_vs_time.push_back( npe_tbin[pmt] );
-	// ******
+	// *****
+	for( int ihit=0; ihit<nhits_pmt[pmt]; ihit++ ){
+	    ecaloutput.NPE_vs_time.push_back( npe_tbin[pmt][ihit] );
+	}
+	// *****
 
 	//If there are multiple Otracks contributing to this hit, choose the one with the highest total energy:
 	G4double maxE = 0.0;
@@ -1384,8 +1488,8 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	ecaloutput.sdtridx.push_back( sdtridx_final );
 	
       }
-    } //while
-  }//for
+    } //for    
+  }//while
 }//void
 
 void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection *hits, G4SBSRICHoutput &richoutput, G4SBSSDTrackOutput &SDtracks ){

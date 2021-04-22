@@ -144,6 +144,12 @@ G4SBSMessenger::G4SBSMessenger(){
   GENTargetSDEnableCmd->SetGuidance("GEn 3He target SD enable"); 
   GENTargetSDEnableCmd->SetParameterName("targgenSDEnable",true);
 
+  // D. Flay (4/22/21) 
+  // for enabling GEn target metal end windows 
+  GENTargetMetalWindowEnableCmd = new G4UIcmdWithABool("/g4sbs/targgenMetalWindowEnable",this); 
+  GENTargetMetalWindowEnableCmd->SetGuidance("GEn 3He target metal window enable"); 
+  GENTargetMetalWindowEnableCmd->SetParameterName("targgenMetalWindowEnable",true);
+
   // D. Flay (10/15/20) 
   // beam angular misalignment 
   // - horizontal (x)  
@@ -1342,6 +1348,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == GENTargetSDEnableCmd ){
      G4bool genSDEnable = GENTargetSDEnableCmd->GetNewBoolValue(newValue); 
      fdetcon->SetGEnTargetSDEnable(genSDEnable);  
+  }
+
+  // D. Flay (4/22/21)
+  // GEn metal windows 
+  if( cmd == GENTargetMetalWindowEnableCmd ){
+     G4bool genMetalWindowEnable = GENTargetMetalWindowEnableCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetMetalWindowEnable(genMetalWindowEnable);  
   }
 
   // D. Flay (8/25/20) 

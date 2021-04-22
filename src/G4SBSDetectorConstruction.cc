@@ -121,7 +121,10 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fGEnTgtCollimatorEnable    = true;  
   fGEnTgtCollimatorAEnable   = true;  
   fGEnTgtCollimatorBEnable   = true;  
-  fGEnTgtCollimatorCEnable   = true;  
+  fGEnTgtCollimatorCEnable   = true; 
+
+  // D. Flay (4/22/21) 
+  fGEnTgtMetalWindowEnable   = false;  
 
   // D. Flay (9/29/20) 
   // GEn 3He target angular misalignment

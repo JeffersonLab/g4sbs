@@ -46,9 +46,11 @@ public:
   // GEn Polarized 3He target (D Flay, July 2020) 
   void BuildGEnTarget(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog); 
-  void BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog); 
-  void BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_EndWindows_Metal(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *motherLog);
+  void BuildGEnTarget_EndWindows_GE180(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_PolarizedHe3_simple(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_HelmholtzCoils(const int config,const std::string type,G4LogicalVolume *motherLog); 
   void BuildGEnTarget_Shield(const int config,G4LogicalVolume *motherLog); 
   void BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog); 
@@ -120,7 +122,11 @@ private:
   G4double fRadThick; //Thickness in units of X0;
   G4double fRadZoffset;  //Distance upstream of target
 
-  G4double fGEn_GLASS_TUBE_LENGTH; // length of GEn 3He glass tube (target cell)  
+  // GEn 3He target constants (see BuildGEnTarget for values)  
+  G4double fGEn_GLASS_TOTAL_LENGTH; // total length 
+  G4double fGEn_GLASS_TUBE_LENGTH;  // main tube length (not including end caps/windows) 
+  G4double fGEn_GLASS_TUBE_OD;      // OD 
+  G4double fGEn_GLASS_TUBE_WALL;    // wall thickness
   
   G4SBS::Targ_t fTargType;
 };

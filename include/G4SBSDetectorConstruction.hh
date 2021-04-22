@@ -78,8 +78,12 @@ public:
   G4bool GetGEnTargetCollimatorCEnable() const { return fGEnTgtCollimatorCEnable; } 
 
   // D. Flay (12/9/20).  GEn 3He target as a sensitive detector
-  void SetGEnTargetSDEnable(bool v)            { fGEnTgtSDEnable = v;          } 
-  G4bool GetGEnTargetSDEnable()          const { return fGEnTgtSDEnable;       }  
+  void SetGEnTargetSDEnable(bool v)            { fGEnTgtSDEnable = v;    } 
+  G4bool GetGEnTargetSDEnable()          const { return fGEnTgtSDEnable; } 
+
+  // D. Flay (4/22/21). GEn 3He metal end windows (default is now glass) 
+  void SetGEnTargetMetalWindowEnable(bool v)   { fGEnTgtMetalWindowEnable = v;    } 
+  G4bool GetGEnTargetMetalWindowEnable() const { return fGEnTgtMetalWindowEnable; }  
 
   // Beam dump enable 
   void SetBeamDumpEnable(bool v)   { fBeamDumpEnable = v;    } 
@@ -265,7 +269,10 @@ private:
 
   // for GEn 3He target collimators 
   G4bool fGEnTgtCollimatorEnable; 
-  G4bool fGEnTgtCollimatorAEnable,fGEnTgtCollimatorBEnable,fGEnTgtCollimatorCEnable; 
+  G4bool fGEnTgtCollimatorAEnable,fGEnTgtCollimatorBEnable,fGEnTgtCollimatorCEnable;
+
+  // D. Flay (4/22/21). Switch for GEn metal end windows 
+  G4bool fGEnTgtMetalWindowEnable;  
 
   // D. Flay (8/25/20).  Beam diffuser enable and beam pointing
   G4bool fBeamDumpEnable;           // enable the beam dump  

@@ -3086,7 +3086,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_GE180(G4LogicalVolume *mother
 
    G4double totalLength = fGEn_GLASS_TOTAL_LENGTH;   
    G4double tubeLength  = fGEn_GLASS_TUBE_LENGTH; // length of glass tube
-   G4double shaftLength = 0.5*(totalLength-tubeLength) - fGEn_GLASS_TUBE_OD/2.; 
+   G4double shaftLength = 0.5*(totalLength-tubeLength) - fGEn_GLASS_TUBE_OD/2.;
+   G4double windowWall  = 0.5*mm; // fGEn_GLASS_TUBE_WALL;  
 
    // main shaft 
    partParameters_t msh; 
@@ -3109,9 +3110,10 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_GE180(G4LogicalVolume *mother
    rm_msh->rotateX(msh.rx); rm_msh->rotateY(msh.ry); rm_msh->rotateZ(msh.rz);
 
    // hemisphere 
+   // NOTE we use windowWall and NOT fGEn_GLASS_TUBE_WALL here, since the hemisphere can be a different thickness!  
    partParameters_t hsp; 
    hsp.name  = "ew_ge180_hSphere"; hsp.shape = "hemisphere"; 
-   hsp.r_min = fGEn_GLASS_TUBE_OD/2. - fGEn_GLASS_TUBE_WALL; hsp.r_max = fGEn_GLASS_TUBE_OD/2.;  
+   hsp.r_min = fGEn_GLASS_TUBE_OD/2. - windowWall; hsp.r_max = fGEn_GLASS_TUBE_OD/2.;  
    hsp.startPhi   = 0*deg;  hsp.dPhi   = 90.*deg; 
    hsp.startTheta = 0.*deg; hsp.dTheta = 360.*deg;  
    hsp.x  = 0.*mm;  hsp.y  = 0.*mm;   hsp.z  = 0.5*shaftLength;  
@@ -3415,10 +3417,10 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3_simple(G4LogicalVolume *mot
   // - takes the form of the target chamber of the glass cell 
    
   G4double inch        = 25.4*mm; 
-  G4double delta       = 0.*mm; // fudge factor to remove overlaps
-  G4double glassWall   = fGEn_GLASS_TUBE_WALL - delta;   
+  G4double windowWall  = 0.5*mm; // fGEn_GLASS_TUBE_WALL;  
+  G4double glassWall   = fGEn_GLASS_TUBE_WALL;   
   G4double shaftLength = 0.5*(fGEn_GLASS_TOTAL_LENGTH - fGEn_GLASS_TUBE_LENGTH) - fGEn_GLASS_TUBE_OD/2.;  
-  G4double tubeLength  = fGEn_GLASS_TUBE_LENGTH + 2.*shaftLength;  
+  G4double tubeLength  = fGEn_GLASS_TUBE_LENGTH + 2.*shaftLength; 
 
   // target chamber component 
   partParameters_t tc; 
@@ -3434,10 +3436,11 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3_simple(G4LogicalVolume *mot
 			       tc.length/2.,
 			       tc.startPhi ,tc.dPhi);
 
-   // hemisphere, upstream  
+   // hemisphere, upstream 
+   // NOTE we use the windowWall and NOT fGEn_GLASS_TUBE_WALL since the hemisphere can be a different thickness!  
    partParameters_t hsp_us; 
    hsp_us.name  = "he3_hSphere_us"; hsp_us.shape = "hemisphere"; 
-   hsp_us.r_min = 0; hsp_us.r_max = fGEn_GLASS_TUBE_OD/2. - glassWall;  
+   hsp_us.r_min = 0; hsp_us.r_max = fGEn_GLASS_TUBE_OD/2. - windowWall;  
    hsp_us.startPhi   = 0*deg;  hsp_us.dPhi   = 360.*deg; 
    hsp_us.startTheta = 0.*deg; hsp_us.dTheta = 90.*deg;  
    hsp_us.x  = 0.*mm;  hsp_us.y  = 0.*mm;  hsp_us.z  = -0.5*tubeLength;  

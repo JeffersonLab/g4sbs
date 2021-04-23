@@ -14,10 +14,10 @@
 /g4sbs/kine            elastic           ## Generator
 /g4sbs/beamcur         30.0 muA
 /g4sbs/beamE           9.91 GeV
-/g4sbs/thmin           31.0 deg
-/g4sbs/thmax           55.0 deg
-/g4sbs/phmin           -45 deg
-/g4sbs/phmax           45 deg
+/g4sbs/thmin           36.0 deg
+/g4sbs/thmax           48.0 deg
+/g4sbs/phmin           -20 deg
+/g4sbs/phmax           20 deg
 
 ## Configure standard detector settings
 /g4sbs/hcaldist        17.0 m
@@ -42,4 +42,5 @@
 /g4sbs/totalabs true
 
 ## Run 100 events
+/g4sbs/eventstatusevery 100
 /g4sbs/run             10000

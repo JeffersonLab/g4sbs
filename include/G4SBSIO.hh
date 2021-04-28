@@ -192,6 +192,12 @@ public:
   void SetKeepSDtracks( G4String sdname, G4bool b=true ){ fKeepSDtracks[sdname] = b; }
   void SetKeepAllSDtracks( G4bool b ){ fKeepAllSDtracks=b; }
 
+  //Let keep the Pulse Shape info depending on the need
+  void SetKeepPulseShape( G4String sdname, G4bool b=true ){ fKeepPulseShape[sdname] = b; }
+  void SetKeepAllPulseShape( G4bool b ){ fKeepAllPulseShape=b; }
+  G4bool GetKeepAllPulseShape() const { return fKeepAllPulseShape; }
+  map<G4String,G4bool> GetKeepPulseShape() const { return fKeepPulseShape; }
+
   void SetUsingCerenkov( G4bool b ){ fUsingCerenkov = b; }
   void SetUsingScintillation( G4bool b ){ fUsingScintillation = b; }
 
@@ -208,6 +214,9 @@ private:
 
   G4bool fKeepAllSDtracks;
   map<G4String,G4bool> fKeepSDtracks;
+
+  G4bool fKeepAllPulseShape;
+  map<G4String,G4bool> fKeepPulseShape;
   
   ev_t evdata;
   gen_t gendata;

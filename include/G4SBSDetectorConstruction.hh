@@ -166,7 +166,7 @@ public:
   
   map<G4String, G4double> SDgatewidth; //Time window for accumulating hit signal
   map<G4String, G4double> SDthreshold; //threshold (energy deposition or photoelectrons) for recording a hit
-  //map<G4String, G4int>    SDntimebins; //Time bins for "pulse shape" histogram
+  map<G4String, G4int> SDntimebins; //Time bins for "pulse shape" histogram
 
   void InsertSDboundaryVolume( G4String bvname, G4String sdname );
   
@@ -221,7 +221,7 @@ public:
 
   void SetOpticalPhotonDisabled(G4String material){ fMaterialsListOpticalPhotonDisabled.insert( material ); }
 
-  void SetTimeWindowAndThreshold( G4String SDname, G4double Ethresh=0.0*MeV, G4double Twindow=1000.0*ns ); //utility function to set time window and threshold by sensitive detector name
+  void SetThresholdTimeWindowAndNTimeBins( G4String SDname, G4double Ethresh=0.0*MeV, G4double Twindow=1000.0*ns, G4int NTBins=25 ); //utility function to set time window, # of time bins and threshold by sensitive detector name
 
   inline set<G4String> GetTargetVolumes() const { return fTargetVolumes; }
   inline set<G4String> GetAnalyzerVolumes() const { return fAnalyzerVolumes; }

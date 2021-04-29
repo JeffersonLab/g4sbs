@@ -1146,11 +1146,12 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
   set<int> TIDs_unique;
   set<int> PMTs_unique;
-
+  
   map<int,bool> Photon_used;
   map<int,bool> Photon_detected;
   map<int,double> Photon_energy;
   map<int,double> Photon_hittime;
+  map<int,double> Photon_tmin;
   map<int,int> Photon_PMT;
   map<int,int> Photon_row;
   map<int,int> Photon_col;
@@ -1162,6 +1163,8 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
   map<int,int> Photon_ptridx;
   map<int,int> Photon_sdtridx;
 
+  map<int,vector<int> > PMT_tids_timeordered;
+  
   map<int,int> PMT_Numphotoelectrons;
   map<int,int> PMT_row;
   map<int,int> PMT_col;
@@ -1179,12 +1182,8 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
   
   // *****
-  map<int,vector<int> > steplist_pmt_timeordered; //key 1 = pmt, key 2 = time ordering index, value = index in hit array
-  set<int> PmtList;
-  map<int,int> nsteps_pmt;
-  map<int,int> nhits_pmt;
-  map<int,vector<double> > tmin_pmt, tmin;
-  map<int,vector<vector<double> > > npe_tbin;
+  map<int,vector<double> > PMT_tphoton; //key 1 = pmt, key 2 = time ordering index, value = index in hit array
+  map<int,vector<double> > PMT_npe_tbin;
 
   ecaloutput.gatewidth = ecaloutput.timewindow;
     
@@ -1217,52 +1216,51 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
     // *****
 
     // To get the time ordered list of tracks in a given PMT
-    std::pair<set<int>::iterator, bool> newpmt = PmtList.insert( pmt );
-    int pmt_un = *(newpmt.first);
-    bool photon_det = G4UniformRand() <= QEphoton;
+    // std::pair<set<int>::iterator, bool> newpmt = PmtList.insert( pmt );
+    // int pmt_un = *(newpmt.first);
+    // bool photon_det = G4UniformRand() <= QEphoton;
       
     
-    if( newpmt.second ){ //first hit in a new pmt:
+    // if( newpmt.second ){ //first hit in a new pmt:
 
 
-      if( photon_det ){ // I assume we only care about detected photons in this case
-	nsteps_pmt[pmt_un] = 1;
-	// PmtList.insert( pmt );
-	steplist_pmt_timeordered[pmt_un].push_back(step);
+    //   if( photon_det ){ // I assume we only care about detected photons in this case
+    // 	nsteps_pmt[pmt_un] = 1;
+    // 	// PmtList.insert( pmt );
+    // 	steplist_pmt_timeordered[pmt_un].push_back(step);
 
-      }
+    //   }
 
-    }else { // additional hits in existing PMT
+    // }else { // additional hits in existing PMT
 
-      if( photon_det ){
+    //   if( photon_det ){
 
-	steplist_pmt_timeordered[pmt_un].push_back(step);
-	// it seems unnecessary to do the time ordering
-	G4int jidx = nsteps_pmt[pmt_un]-1;
-	G4int jhit = steplist_pmt_timeordered[pmt_un][jidx];
-	while( jidx >= 0 && Hittime < (*hits)[jhit]->GetTime() ){
-	  //a hit at an earlier position in the array came later than this hit:
-	  steplist_pmt_timeordered[pmt_un][jidx] = step;
-	  steplist_pmt_timeordered[pmt_un][jidx+1] = jhit;
-	  jidx--;
-	  if( jidx < 0 ) break;
-	  jhit =  steplist_pmt_timeordered[pmt_un][jidx];
-	}
-	// tmin_pmt[pmt] = (*hits)[steplist_pmt_timeordered[pmt][0]]->GetTime();
-	nsteps_pmt[pmt_un]++;
-      }     
+    // 	steplist_pmt_timeordered[pmt_un].push_back(step);
+    // 	G4int jidx = nsteps_pmt[pmt_un]-1;
+    // 	G4int jhit = steplist_pmt_timeordered[pmt_un][jidx];
+    // 	while( jidx >= 0 && Hittime < (*hits)[jhit]->GetTime() ){
+    // 	  //a hit at an earlier position in the array came later than this hit:
+    // 	  steplist_pmt_timeordered[pmt_un][jidx] = step;
+    // 	  steplist_pmt_timeordered[pmt_un][jidx+1] = jhit;
+    // 	  jidx--;
+    // 	  if( jidx < 0 ) break;
+    // 	  jhit =  steplist_pmt_timeordered[pmt_un][jidx];
+    // 	}
+    // 	// tmin_pmt[pmt] = (*hits)[steplist_pmt_timeordered[pmt][0]]->GetTime();
+    // 	nsteps_pmt[pmt_un]++;
+    //   }     
      
-    }
+    // }
 
     // *****
 
-
+    
 
     
     //Following the method implemented during the RICH routine
     std::pair< set<int>::iterator, bool > photontrack = TIDs_unique.insert( tid );
    
-    if( photontrack.second ){
+    if( photontrack.second ){ //new photon
      
       bool photon_detected = G4UniformRand() <= QEphoton;
 
@@ -1270,7 +1268,9 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
       Photon_detected[ tid ] = photon_detected;
       Photon_energy[ tid ] = Ephoton;
       Photon_hittime[ tid ] = Hittime;
-     
+      
+      Photon_tmin[ tid ] = Hittime;
+      
       Photon_PMT[ tid ] = pmt;
       Photon_row[ tid ] = row;
       Photon_col[ tid ] = col;
@@ -1283,139 +1283,224 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
       Photon_otridx[ tid ] = otridx;
       Photon_ptridx[ tid ] = ptridx;
-      Photon_sdtridx[ tid ] = sdtridx;      
-
-    } else { //existing photon, additional step. Increment averages of position, direction, time, etc for all steps of a detected photon. Don't bother for 
-      //undetected photons...
+      Photon_sdtridx[ tid ] = sdtridx;
+      
+    } else { //existing photon, additional step: check if PMT changed:
       if( Photon_detected[ tid ] ){
-	G4double average_time = (Photon_nsteps[ tid ] * Photon_hittime[ tid ] + Hittime )/double( Photon_nsteps[tid] + 1 );
-	Photon_hittime[tid] = average_time; 
-	Photon_nsteps[tid] += 1;
+	//	G4double average_time = (Photon_nsteps[ tid ] * Photon_hittime[ tid ] + Hittime )/double( Photon_nsteps[tid] + 1 );
 
+	//Photon_tmin[tid] = Hittime < Photon_tmin[tid] ? Hittime : Photon_tmin[tid];
+	
+	if( pmt != Photon_PMT[ tid ] && Hittime < Photon_tmin[tid] ){ //same photon detected by additional PMT at an earlier time: reset everything:
+	  //Photon_PMT[ tid ] = pmt;
+	  Photon_energy[ tid ] = Ephoton;
+	  Photon_hittime[ tid ] = Hittime;
+	  Photon_tmin[ tid ] = Hittime;
+	  
+	  Photon_PMT[ tid ] = pmt;
+	  Photon_row[ tid ] = row;
+	  Photon_col[ tid ] = col;
+	  Photon_plane[ tid ] = plane;
+
+	  Photon_xpmt[tid] = xpmt;
+	  Photon_xgpmt[tid] = xgpmt;
+
+	  Photon_nsteps[ tid ] = 1;
+
+	  Photon_otridx[ tid ] = otridx;
+	  Photon_ptridx[ tid ] = ptridx;
+	  Photon_sdtridx[ tid ] = sdtridx;
+	  
+	} else if( Hittime < Photon_tmin[tid] ){ //same PMT, additional step. Check if earlier:
+	  Photon_tmin[tid] = Hittime;
+	  Photon_hittime[tid] = Hittime;
+	  Photon_nsteps[tid] += 1;
+	}    
       }
     }
-  }   
-  
-  bool  remaining_hits = true;
-  // Used to make sure we only save the track info only once
-  // when saving all tracks to the tree
-  bool saved_track_info = false;
-  
-  while( remaining_hits ) {
-    
-    remaining_hits = false;
-    
-    PMTs_unique.clear();
+  }
 
-    for( set<int>::iterator it=TIDs_unique.begin(); it != TIDs_unique.end(); it++ ){
-      int tid = *it;
+  for( set<int>::iterator it = TIDs_unique.begin(); it != TIDs_unique.end(); ++it ){
+    //std::pair<std::map<int,vector<int> >::iterator, bool > newPMT = PMT_tids_timeordered[
+    int tid = *it;
 
+    if( Photon_detected[ tid ] ){
+
+      int pmt = Photon_PMT[tid];
       
-      // Save particle info for all tracks (doesn't matter if they were
-      // ultimately not detected)
-      if(!saved_track_info) {
-        ecaloutput.npart_ECAL++;
-        ecaloutput.part_PMT.push_back( Photon_PMT[tid] );
-        ecaloutput.trid.push_back( tid );
-        ecaloutput.E.push_back( Photon_energy[tid]/CLHEP::eV );
-        ecaloutput.t.push_back( Photon_hittime[tid]/CLHEP::ns );
-        ecaloutput.detected.push_back( Photon_detected[tid] );
-      }
+      auto newPMT = PMTs_unique.insert( Photon_PMT[tid] );
+      if( newPMT.second ){ //first unique TID detected by this PMT
+	//if( PMT_tids_timeordered.find( Photon_pmt[tid] ) == PMT_tids_timeordered.end() ){ //new PMT:
+	PMT_tids_timeordered[pmt].clear();
+	PMT_tids_timeordered[pmt].push_back( tid );
 
-      if( Photon_detected[ tid ] && !(Photon_used[ tid ] ) ){
+	PMT_row[ pmt ] = Photon_row[tid];
+	PMT_col[ pmt ] = Photon_col[tid];
+	PMT_plane[ pmt ] = Photon_plane[tid];
+	PMT_x[ pmt ] = Photon_xpmt[tid];
+	PMT_xg[ pmt ] = Photon_xgpmt[tid];
 	
-	std::pair<set<int>::iterator,bool> testpmt = PMTs_unique.insert( Photon_PMT[tid] );
-
-	int pmt = Photon_PMT[tid];
-
-	if( testpmt.second ){ // new PMT;
-	  
-	  //Mark this photon track as used:
-	  Photon_used[ tid ] = true;
-	  
-	  PMT_Numphotoelectrons[ pmt ] = 1;
-	  PMT_row[ pmt ] = Photon_row[tid];
-	  PMT_col[ pmt ] = Photon_col[tid];
-	  PMT_plane[ pmt ] = Photon_plane[tid];
-	  PMT_hittime[ pmt ] = Photon_hittime[tid];
-	  PMT_hittime2[ pmt ] = pow(Photon_hittime[tid],2);
-	  PMT_tmin[ pmt ] = Photon_hittime[tid];
-	  PMT_tmax[ pmt ] = Photon_hittime[tid];
-	  PMT_x[ pmt ] = Photon_xpmt[tid];
-	  PMT_xg[ pmt ] = Photon_xgpmt[tid];
-
-	  OTrackIndices[ pmt ].insert( Photon_otridx[ tid ] );
-	  PTrackIndices[ pmt ].insert( Photon_ptridx[ tid ] );
-	  SDTrackIndices[ pmt ].insert( Photon_sdtridx[ tid ] );
-				       
-	  
-	} else if( fabs( Photon_hittime[tid] - PMT_tmin[pmt] ) <= ecaloutput.timewindow ){ //Existing pmt with multiple photon detections:
-	  G4double average_hittime = (PMT_Numphotoelectrons[pmt] * PMT_hittime[pmt] + Photon_hittime[tid])/double(PMT_Numphotoelectrons[pmt] + 1 );
-	  PMT_hittime[pmt] = average_hittime;
-	  G4double average_hittime2 = (PMT_Numphotoelectrons[pmt] * PMT_hittime2[pmt] + pow(Photon_hittime[tid],2))/double(PMT_Numphotoelectrons[pmt] + 1 );
-	  PMT_hittime2[pmt] = average_hittime2;
-
-	  PMT_Numphotoelectrons[pmt] += 1;
-
-	  if( Photon_hittime[tid] > PMT_tmax[pmt] ) PMT_tmax[pmt] = Photon_hittime[tid];
-	  if( Photon_hittime[tid] < PMT_tmin[pmt] ) PMT_tmin[pmt] = Photon_hittime[tid];
-	  
-	  Photon_used[tid] = true;
-
-	  OTrackIndices[ pmt ].insert( Photon_otridx[ tid ] );
-	  PTrackIndices[ pmt ].insert( Photon_ptridx[ tid ] );
-	  SDTrackIndices[ pmt ].insert( Photon_sdtridx[ tid ] );
+      } else { //existing PMT, additional photon:
+	PMT_tids_timeordered[pmt].push_back( tid );
+	
+	int idx = PMT_tids_timeordered[pmt].size()-1;
+	
+	while( idx > 0 && Photon_tmin[ tid ] < Photon_tmin[ PMT_tids_timeordered[pmt][idx-1] ] ){
+	  int tidcopy = PMT_tids_timeordered[pmt][idx-1];
+	  PMT_tids_timeordered[pmt][idx-1] = tid;
+	  PMT_tids_timeordered[pmt][idx] = tidcopy;
+	  idx--;
 	}
-
-	
-	//If any photon is detected but not used, then remaining hits = true!
-	if( !(Photon_used[tid] ) ) remaining_hits = true;
       }
     }
+  }
 
+  //create the hits:
+  for( auto it=PMT_tids_timeordered.begin(); it != PMT_tids_timeordered.end(); ++it ){
+    int pmt = it->first;
+    
+    vector<int> tidlist = it->second; //time-ordered
 
-    //Now add hits to the output following the RICH example..
-    for( set<int>::iterator it=PMTs_unique.begin(); it!=PMTs_unique.end(); it++ ){
-           
-      int pmt = *it;
+    //int npetot_pmt = tidlist.size(); 
+    //start a new hit:
+    //    int nhits_PMT = 1;
 
-
-      // *****
-      // Storing pulse shape information
-      vector<int> steplist = steplist_pmt_timeordered[pmt];	
-      nhits_pmt[pmt] = 0;		
-	
-      for( int istep=0; istep<steplist.size(); istep++ ){
-        int jhit = steplist_pmt_timeordered[pmt][istep];
-        G4double tstep = (*hits)[jhit]->GetTime();
-        G4int hitindex = nhits_pmt[pmt] > 0 ? nhits_pmt[pmt]-1 : 0;
-
-        if( istep == 0 || (nhits_pmt[pmt] > 0 && tstep > tmin[pmt][hitindex] + ecaloutput.timewindow ) ){
-          nhits_pmt[pmt]++;
-
-
-          tmin[pmt].push_back( tstep );
-
-          vector<double> npe_temp( ecaloutput.ntimebins );
-          npe_tbin[pmt].push_back( npe_temp );
-
-          npe_tbin[pmt][nhits_pmt[pmt] - 1][0] += 1. ;
-
-        } else {
-
-          double wtbin = ( ecaloutput.timewindow - 0.0 )/double(ecaloutput.ntimebins);
-          int bin_tstep = int( (tstep - tmin[pmt][hitindex])/wtbin );
-          if ( bin_tstep >= 0 && bin_tstep < ecaloutput.ntimebins ) npe_tbin[pmt][hitindex][bin_tstep] += 1.;
-	  
-        }
-      } 
-	  
-
-      // *****
-
+    if( !(tidlist.empty() ) ){
+      //loop over all the TIDs and create the hits:
       
-      if( PMT_Numphotoelectrons[pmt] >= ecaloutput.threshold ){
-	
+      double tmin_hit=0.0, tmax_hit=0.0, tavg_hit=0.0, tsum_hit=0.0, tsum2_hit=0.0, trms_hit=0.0;
+      int npe_hit=0;
+      set<int> otracks_hit, ptracks_hit, sdtracks_hit;
+
+      vector<double> npe_vs_time_hit(ecaloutput.ntimebins);
+      for( int itbin=0; itbin<ecaloutput.ntimebins; itbin++ ){
+	npe_vs_time_hit[itbin] = 0.0;
+      }
+
+      double tbinwidth = ecaloutput.timewindow/double(ecaloutput.ntimebins);
+      
+      for( int itid=0; itid<tidlist.size(); itid++ ){
+	int tid = tidlist[itid];
+	double thit = Photon_hittime[tid];
+
+	if( itid == 0 || thit <= tmin_hit + ecaloutput.timewindow ){ //add to current hit:
+
+	  if( itid == 0 ) tmin_hit = thit;
+
+	  npe_hit++;	  
+	  tsum_hit += thit;
+	  tsum2_hit += pow(thit,2);
+	  tmax_hit = thit;
+	  tavg_hit = tsum_hit/double(npe_hit);
+	  trms_hit = sqrt( tsum2_hit/double(npe_hit) - pow(tavg_hit,2));
+
+	  int itbin = int( (thit - tmin_hit )/tbinwidth );
+	  if( itbin >= 0 && itbin < ecaloutput.ntimebins ) npe_vs_time_hit[itbin] += 1;
+
+	  otracks_hit.insert( Photon_otridx[tid] );
+	  ptracks_hit.insert( Photon_ptridx[tid] );
+	  sdtracks_hit.insert( Photon_sdtridx[tid] );
+	  
+	} else { //add hit to output data structure and reset hit quantities and start a new hit:
+
+	  if( npe_hit >= ecaloutput.threshold ){
+
+	    (ecaloutput.nhits_ECal)++;
+
+	    ecaloutput.PMTnumber.push_back( pmt );
+	    ecaloutput.row.push_back( PMT_row[pmt] );
+	    ecaloutput.col.push_back( PMT_col[pmt] );
+	    ecaloutput.plane.push_back( PMT_plane[pmt] );
+	    ecaloutput.xcell.push_back( PMT_x[pmt].x()/_L_UNIT );
+	    ecaloutput.ycell.push_back( PMT_x[pmt].y()/_L_UNIT );
+	    ecaloutput.zcell.push_back( PMT_x[pmt].z()/_L_UNIT );
+	    ecaloutput.xgcell.push_back( PMT_xg[pmt].x()/_L_UNIT );
+	    ecaloutput.ygcell.push_back( PMT_xg[pmt].y()/_L_UNIT );
+	    ecaloutput.zgcell.push_back( PMT_xg[pmt].z()/_L_UNIT );
+	    ecaloutput.NumPhotoelectrons.push_back( npe_hit );
+	    ecaloutput.Time_avg.push_back( tavg_hit/_T_UNIT );
+	    ecaloutput.Time_rms.push_back( trms_hit/_T_UNIT );
+	    ecaloutput.Time_min.push_back( tmin_hit/_T_UNIT );
+	    ecaloutput.Time_max.push_back( tmax_hit/_T_UNIT );
+
+	    ecaloutput.NPE_vs_time.push_back( npe_vs_time_hit );
+
+	    G4double maxE = 0.0;
+	    G4bool firsttrack=true;
+	    int otridx_final=-1;
+	    for( set<int>::iterator iotrk=otracks_hit.begin(); iotrk!=otracks_hit.end(); ++iotrk ){
+	      G4double Eotrack = SDtracks.oenergy[*iotrk];
+	      if( firsttrack || Eotrack > maxE ){
+		otridx_final = *iotrk;
+		maxE = Eotrack;
+		firsttrack = false;
+	      }
+	    }
+
+	    //Primary tracks:
+	    maxE = 0.0;
+	    firsttrack = true;
+	    int ptridx_final=-1;
+	    for( set<int>::iterator iptrk=ptracks_hit.begin(); iptrk!=ptracks_hit.end(); ++iptrk ){
+	      G4double Eptrack = SDtracks.penergy[*iptrk];
+	      if( firsttrack || Eptrack > maxE ){
+		ptridx_final = *iptrk;
+		maxE = Eptrack;
+		firsttrack = false;
+	      }
+	    }
+
+	    //SD boundary crossing tracks:
+	    maxE = 0.0;
+	    firsttrack = true;
+	    int sdtridx_final=-1;
+	    for( set<int>::iterator isdtrk=sdtracks_hit.begin(); isdtrk!=sdtracks_hit.end(); ++isdtrk ){
+	      int sdidxtemp = *isdtrk;
+
+	      if( sdidxtemp >= 0 && sdidxtemp <SDtracks.sdenergy.size() ){
+		G4double Esdtrack = SDtracks.sdenergy[sdidxtemp];
+		if( firsttrack || Esdtrack > maxE ){
+		  sdtridx_final = *isdtrk;
+		  maxE = Esdtrack;
+		  firsttrack = false;
+		}
+	      }
+	    }
+
+	    ecaloutput.otridx.push_back( otridx_final );
+	    ecaloutput.ptridx.push_back( ptridx_final );
+	    ecaloutput.sdtridx.push_back( sdtridx_final );
+	    
+	    otracks_hit.clear();
+	    ptracks_hit.clear();
+	    sdtracks_hit.clear();
+	    
+	  }
+
+	  for( int itbin=0; itbin<ecaloutput.ntimebins; itbin++ ){
+	    npe_vs_time_hit[itbin] = 0.0;
+	  }
+	  
+	  //reset hit quantities:
+	  tmin_hit = thit;
+	  npe_hit = 1;
+	  tsum_hit = thit;
+	  tsum2_hit = pow(thit,2);
+	  tmax_hit = thit;
+	  tavg_hit = tsum_hit/double(npe_hit);
+	  trms_hit = sqrt( tsum2_hit/double(npe_hit) - pow(tavg_hit,2));
+
+	  int itbin = int( (thit - tmin_hit )/tbinwidth );
+	  if( itbin >= 0 && itbin < ecaloutput.ntimebins ) npe_vs_time_hit[itbin] += 1;
+	  
+	  otracks_hit.insert( Photon_otridx[tid] );
+	  ptracks_hit.insert( Photon_ptridx[tid] );
+	  sdtracks_hit.insert( Photon_sdtridx[tid] );
+	}
+      }
+
+      if( npe_hit >= ecaloutput.threshold ){
+
 	(ecaloutput.nhits_ECal)++;
 	
 	ecaloutput.PMTnumber.push_back( pmt );
@@ -1428,23 +1513,23 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	ecaloutput.xgcell.push_back( PMT_xg[pmt].x()/_L_UNIT );
 	ecaloutput.ygcell.push_back( PMT_xg[pmt].y()/_L_UNIT );
 	ecaloutput.zgcell.push_back( PMT_xg[pmt].z()/_L_UNIT );
-	ecaloutput.NumPhotoelectrons.push_back( PMT_Numphotoelectrons[pmt] ); //NumPhotoelectrons is vector<int> defined in ECaloutput.hh
-	ecaloutput.Time_avg.push_back( PMT_hittime[pmt]/_T_UNIT );
-	ecaloutput.Time_rms.push_back( sqrt(fabs(PMT_hittime2[pmt] - pow(PMT_hittime[pmt],2) ) )/_T_UNIT );	
-	ecaloutput.Time_min.push_back( PMT_tmin[pmt]/_T_UNIT );
-	ecaloutput.Time_max.push_back( PMT_tmax[pmt]/_T_UNIT );
+	ecaloutput.NumPhotoelectrons.push_back( npe_hit );
+	ecaloutput.Time_avg.push_back( tavg_hit/_T_UNIT );
+	ecaloutput.Time_rms.push_back( trms_hit/_T_UNIT );
+	ecaloutput.Time_min.push_back( tmin_hit/_T_UNIT );
+	ecaloutput.Time_max.push_back( tmax_hit/_T_UNIT );
+	ecaloutput.NumPhotoelectrons.push_back( npe_hit );
+	ecaloutput.Time_avg.push_back( tavg_hit/_T_UNIT );
+	ecaloutput.Time_rms.push_back( trms_hit/_T_UNIT );
+	ecaloutput.Time_min.push_back( tmin_hit/_T_UNIT );
+	ecaloutput.Time_max.push_back( tmax_hit/_T_UNIT );
+	
+	ecaloutput.NPE_vs_time.push_back( npe_vs_time_hit );
 
-	// *****
-	for( int ihit=0; ihit<nhits_pmt[pmt]; ihit++ ){
-	    ecaloutput.NPE_vs_time.push_back( npe_tbin[pmt][ihit] );
-	}
-	// *****
-
-	//If there are multiple Otracks contributing to this hit, choose the one with the highest total energy:
 	G4double maxE = 0.0;
 	G4bool firsttrack=true;
 	int otridx_final=-1;
-	for( set<int>::iterator iotrk=OTrackIndices[pmt].begin(); iotrk!=OTrackIndices[pmt].end(); ++iotrk ){
+	for( set<int>::iterator iotrk=otracks_hit.begin(); iotrk!=otracks_hit.end(); ++iotrk ){
 	  G4double Eotrack = SDtracks.oenergy[*iotrk];
 	  if( firsttrack || Eotrack > maxE ){
 	    otridx_final = *iotrk;
@@ -1457,7 +1542,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	maxE = 0.0;
 	firsttrack = true;
 	int ptridx_final=-1;
-	for( set<int>::iterator iptrk=PTrackIndices[pmt].begin(); iptrk!=PTrackIndices[pmt].end(); ++iptrk ){
+	for( set<int>::iterator iptrk=ptracks_hit.begin(); iptrk!=ptracks_hit.end(); ++iptrk ){
 	  G4double Eptrack = SDtracks.penergy[*iptrk];
 	  if( firsttrack || Eptrack > maxE ){
 	    ptridx_final = *iptrk;
@@ -1470,7 +1555,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	maxE = 0.0;
 	firsttrack = true;
 	int sdtridx_final=-1;
-	for( set<int>::iterator isdtrk=SDTrackIndices[pmt].begin(); isdtrk!=SDTrackIndices[pmt].end(); ++isdtrk ){
+	for( set<int>::iterator isdtrk=sdtracks_hit.begin(); isdtrk!=sdtracks_hit.end(); ++isdtrk ){
 	  int sdidxtemp = *isdtrk;
 
 	  if( sdidxtemp >= 0 && sdidxtemp <SDtracks.sdenergy.size() ){
@@ -1486,10 +1571,209 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	ecaloutput.otridx.push_back( otridx_final );
 	ecaloutput.ptridx.push_back( ptridx_final );
 	ecaloutput.sdtridx.push_back( sdtridx_final );
+	    
+	otracks_hit.clear();
+	ptracks_hit.clear();
+	sdtracks_hit.clear();
 	
       }
-    } //for    
-  }//while
+    }
+  }
+  
+  
+  // bool  remaining_hits = true;
+  // // Used to make sure we only save the track info only once
+  // // when saving all tracks to the tree
+  // bool saved_track_info = false;
+  
+  // while( remaining_hits ) {
+    
+  //   remaining_hits = false;
+    
+  //   //PMTs_unique.clear();
+
+  //   //for( set<int>::iterator it=TIDs_unique.begin(); it != TIDs_unique.end(); it++ ){
+
+    
+  //     int tid = *it;
+
+  //     Photon_hittime[tid] = Photon_tmin[tid];
+  //     // Save particle info for all tracks (doesn't matter if they were
+  //     // ultimately not detected)
+  //     if(!saved_track_info) {
+  //       ecaloutput.npart_ECAL++;
+  //       ecaloutput.part_PMT.push_back( Photon_PMT[tid] );
+  //       ecaloutput.trid.push_back( tid );
+  //       ecaloutput.E.push_back( Photon_energy[tid]/CLHEP::eV );
+  //       ecaloutput.t.push_back( Photon_hittime[tid]/CLHEP::ns );
+  //       ecaloutput.detected.push_back( Photon_detected[tid] );
+  //     }
+
+  //     if( Photon_detected[ tid ] && !(Photon_used[ tid ] ) ){
+	
+  // 	std::pair<set<int>::iterator,bool> testpmt = PMTs_unique.insert( Photon_PMT[tid] );
+
+  // 	int pmt = Photon_PMT[tid];
+
+	
+	
+  // 	if( testpmt.second ){ // new PMT;
+	  
+  // 	  //Mark this photon track as used:
+  // 	  Photon_used[ tid ] = true;
+	  
+  // 	  PMT_Numphotoelectrons[ pmt ] = 1;
+  // 	  PMT_row[ pmt ] = Photon_row[tid];
+  // 	  PMT_col[ pmt ] = Photon_col[tid];
+  // 	  PMT_plane[ pmt ] = Photon_plane[tid];
+  // 	  PMT_hittime[ pmt ] = Photon_hittime[tid];
+  // 	  PMT_hittime2[ pmt ] = pow(Photon_hittime[tid],2);
+  // 	  PMT_tmin[ pmt ] = Photon_hittime[tid];
+  // 	  PMT_tmax[ pmt ] = Photon_hittime[tid];
+  // 	  PMT_x[ pmt ] = Photon_xpmt[tid];
+  // 	  PMT_xg[ pmt ] = Photon_xgpmt[tid];
+
+  // 	  OTrackIndices[ pmt ].insert( Photon_otridx[ tid ] );
+  // 	  PTrackIndices[ pmt ].insert( Photon_ptridx[ tid ] );
+  // 	  SDTrackIndices[ pmt ].insert( Photon_sdtridx[ tid ] );
+
+  // 	  PMT_npe_tbin[ pmt ].clear();
+	  
+  // 	  PMT_tphoton[ pmt ].clear();
+  // 	  PMT_tphoton[ pmt ].push_back( Photon_hittime[tid] );
+	  
+  // 	} else if( fabs( Photon_hittime[tid] - PMT_tmin[pmt] ) <= ecaloutput.timewindow ){ //Existing pmt with multiple photon detections:
+  // 	  G4double average_hittime = (PMT_Numphotoelectrons[pmt] * PMT_hittime[pmt] + Photon_hittime[tid])/double(PMT_Numphotoelectrons[pmt] + 1 );
+  // 	  PMT_hittime[pmt] = average_hittime;
+  // 	  G4double average_hittime2 = (PMT_Numphotoelectrons[pmt] * PMT_hittime2[pmt] + pow(Photon_hittime[tid],2))/double(PMT_Numphotoelectrons[pmt] + 1 );
+  // 	  PMT_hittime2[pmt] = average_hittime2;
+
+  // 	  PMT_Numphotoelectrons[pmt] += 1;
+
+  // 	  if( Photon_hittime[tid] > PMT_tmax[pmt] ) PMT_tmax[pmt] = Photon_hittime[tid];
+  // 	  if( Photon_hittime[tid] < PMT_tmin[pmt] ) PMT_tmin[pmt] = Photon_hittime[tid];
+
+  // 	  PMT_tphoton[ pmt ].push_back( Photon_hittime[tid] );
+	  
+  // 	  Photon_used[tid] = true;
+
+  // 	  OTrackIndices[ pmt ].insert( Photon_otridx[ tid ] );
+  // 	  PTrackIndices[ pmt ].insert( Photon_ptridx[ tid ] );
+  // 	  SDTrackIndices[ pmt ].insert( Photon_sdtridx[ tid ] );
+
+  // 	}
+
+	
+  // 	//If any photon is detected but not used, then remaining hits = true!
+  // 	if( !(Photon_used[tid] ) ) remaining_hits = true;
+  //     }
+  //   }
+
+
+  //   //Now add hits to the output following the RICH example..
+  //   for( set<int>::iterator it=PMTs_unique.begin(); it!=PMTs_unique.end(); it++ ){
+           
+  //     int pmt = *it;
+
+
+  //     // // *****
+  //     // // Storing pulse shape information
+  //     // vector<int> steplist = steplist_pmt_timeordered[pmt];	
+  //     // nhits_pmt[pmt] = 0;		
+
+  //     PMT_npe_tbin[ pmt ].resize( ecaloutput.ntimebins );
+      
+  //     for( int istep=0; istep<PMT_tphoton[pmt].size(); istep++ ){
+
+  // 	double tstep = PMT_tphoton[pmt][istep];
+	
+  // 	double wtbin = ( ecaloutput.timewindow - 0.0 )/double(ecaloutput.ntimebins);
+  // 	int bin_tstep = int( (tstep - PMT_tmin[pmt])/wtbin );
+  // 	if ( bin_tstep >= 0 && bin_tstep < ecaloutput.ntimebins ) PMT_npe_tbin[pmt][bin_tstep] += 1.;
+	  
+  //     }
+       
+	  
+
+  //     // *****
+
+      
+  //     if( PMT_Numphotoelectrons[pmt] >= ecaloutput.threshold ){
+	
+  // 	(ecaloutput.nhits_ECal)++;
+	
+  // 	ecaloutput.PMTnumber.push_back( pmt );
+  // 	ecaloutput.row.push_back( PMT_row[pmt] );
+  // 	ecaloutput.col.push_back( PMT_col[pmt] );
+  // 	ecaloutput.plane.push_back( PMT_plane[pmt] );
+  // 	ecaloutput.xcell.push_back( PMT_x[pmt].x()/_L_UNIT );
+  // 	ecaloutput.ycell.push_back( PMT_x[pmt].y()/_L_UNIT );
+  // 	ecaloutput.zcell.push_back( PMT_x[pmt].z()/_L_UNIT );
+  // 	ecaloutput.xgcell.push_back( PMT_xg[pmt].x()/_L_UNIT );
+  // 	ecaloutput.ygcell.push_back( PMT_xg[pmt].y()/_L_UNIT );
+  // 	ecaloutput.zgcell.push_back( PMT_xg[pmt].z()/_L_UNIT );
+  // 	ecaloutput.NumPhotoelectrons.push_back( PMT_Numphotoelectrons[pmt] ); //NumPhotoelectrons is vector<int> defined in ECaloutput.hh
+  // 	ecaloutput.Time_avg.push_back( PMT_hittime[pmt]/_T_UNIT );
+  // 	ecaloutput.Time_rms.push_back( sqrt(fabs(PMT_hittime2[pmt] - pow(PMT_hittime[pmt],2) ) )/_T_UNIT );	
+  // 	ecaloutput.Time_min.push_back( PMT_tmin[pmt]/_T_UNIT );
+  // 	ecaloutput.Time_max.push_back( PMT_tmax[pmt]/_T_UNIT );
+
+  // 	// *****
+  // 	//for( int ihit=0; ihit<nhits_pmt[pmt]; ihit++ ){
+  // 	ecaloutput.NPE_vs_time.push_back( PMT_npe_tbin[pmt] );
+  // 	    //}
+  // 	// *****
+
+  // 	//If there are multiple Otracks contributing to this hit, choose the one with the highest total energy:
+  // 	G4double maxE = 0.0;
+  // 	G4bool firsttrack=true;
+  // 	int otridx_final=-1;
+  // 	for( set<int>::iterator iotrk=OTrackIndices[pmt].begin(); iotrk!=OTrackIndices[pmt].end(); ++iotrk ){
+  // 	  G4double Eotrack = SDtracks.oenergy[*iotrk];
+  // 	  if( firsttrack || Eotrack > maxE ){
+  // 	    otridx_final = *iotrk;
+  // 	    maxE = Eotrack;
+  // 	    firsttrack = false;
+  // 	  }
+  // 	}
+
+  // 	//Primary tracks:
+  // 	maxE = 0.0;
+  // 	firsttrack = true;
+  // 	int ptridx_final=-1;
+  // 	for( set<int>::iterator iptrk=PTrackIndices[pmt].begin(); iptrk!=PTrackIndices[pmt].end(); ++iptrk ){
+  // 	  G4double Eptrack = SDtracks.penergy[*iptrk];
+  // 	  if( firsttrack || Eptrack > maxE ){
+  // 	    ptridx_final = *iptrk;
+  // 	    maxE = Eptrack;
+  // 	    firsttrack = false;
+  // 	  }
+  // 	}
+
+  // 	//SD boundary crossing tracks:
+  // 	maxE = 0.0;
+  // 	firsttrack = true;
+  // 	int sdtridx_final=-1;
+  // 	for( set<int>::iterator isdtrk=SDTrackIndices[pmt].begin(); isdtrk!=SDTrackIndices[pmt].end(); ++isdtrk ){
+  // 	  int sdidxtemp = *isdtrk;
+
+  // 	  if( sdidxtemp >= 0 && sdidxtemp <SDtracks.sdenergy.size() ){
+  // 	    G4double Esdtrack = SDtracks.sdenergy[sdidxtemp];
+  // 	    if( firsttrack || Esdtrack > maxE ){
+  // 	      sdtridx_final = *isdtrk;
+  // 	      maxE = Esdtrack;
+  // 	      firsttrack = false;
+  // 	    }
+  // 	  }
+  // 	}
+
+  // 	ecaloutput.otridx.push_back( otridx_final );
+  // 	ecaloutput.ptridx.push_back( ptridx_final );
+  // 	ecaloutput.sdtridx.push_back( sdtridx_final );
+	
+  //     }
+  //   } //for    
+  // }//while
 }//void
 
 void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection *hits, G4SBSRICHoutput &richoutput, G4SBSSDTrackOutput &SDtracks ){

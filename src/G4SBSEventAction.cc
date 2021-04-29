@@ -1188,9 +1188,9 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
   ecaloutput.gatewidth = ecaloutput.timewindow;
     
-  // G4cout << " ******** timewindow ********* " << ecaloutput.timewindow << endl;
-  // G4cout << " ******** threshold ********* " << ecaloutput.threshold << endl;
-  // G4cout << " ******** ntimebins ********* " << ecaloutput.ntimebins << endl;
+  G4cout << " ******** timewindow ********* " << ecaloutput.timewindow << endl;
+  G4cout << " ******** threshold ********* " << ecaloutput.threshold << endl;
+  G4cout << " ******** ntimebins ********* " << ecaloutput.ntimebins << endl;
   // *****
   
   //G4MaterialPropertiesTable *MPT; 

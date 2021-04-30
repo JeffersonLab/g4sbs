@@ -49,8 +49,8 @@ public:
   void BuildGEnTarget_EndWindows_Metal(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *motherLog);
   void BuildGEnTarget_EndWindows_GE180(G4LogicalVolume *motherLog); 
-  void BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog); 
-  void BuildGEnTarget_PolarizedHe3_simple(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_PolarizedHe3_forMetal(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_PolarizedHe3_forGE180(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_HelmholtzCoils(const int config,const std::string type,G4LogicalVolume *motherLog); 
   void BuildGEnTarget_Shield(const int config,G4LogicalVolume *motherLog); 
   void BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog); 

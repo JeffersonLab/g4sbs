@@ -2312,13 +2312,13 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
   if(enableMetalEndWindows){
      // Al/Cu end windows for the target cell 
      BuildGEnTarget_EndWindows_Metal(motherLog);
-     // cylinder of polarized 3He (portion inside endcaps matches the contours of the metal) 
-     BuildGEnTarget_PolarizedHe3(motherLog); 
+     // cylinder of polarized 3He for metal window  
+     BuildGEnTarget_PolarizedHe3_forMetal(motherLog); 
   }else{
-     // Glass (GE-180) end windows (default) 
+     // Glass (GE-180) end windows 
      BuildGEnTarget_EndWindows_GE180(motherLog);
-     // cylinder of polarized 3He (simple tube) 
-     BuildGEnTarget_PolarizedHe3_simple(motherLog);
+     // cylinder of polarized 3He for GE180 window 
+     BuildGEnTarget_PolarizedHe3_forGE180(motherLog);
   }
 
   // helmholtz coils
@@ -3088,7 +3088,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_GE180(G4LogicalVolume *mother
    G4double tubeLength  = fGEn_GLASS_TUBE_LENGTH; // length of glass tube
    G4double shaftLength = 0.5*(totalLength-tubeLength) - fGEn_GLASS_TUBE_OD/2.;
    G4double windowWall  = 0.5*mm; // fGEn_GLASS_TUBE_WALL;  
-
+ 
    // main shaft 
    partParameters_t msh; 
    msh.name = "ew_ge180_shaft"; msh.shape = "tube";
@@ -3109,34 +3109,71 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_GE180(G4LogicalVolume *mother
    G4RotationMatrix *rm_msh = new G4RotationMatrix();
    rm_msh->rotateX(msh.rx); rm_msh->rotateY(msh.ry); rm_msh->rotateZ(msh.rz);
 
-   // hemisphere 
-   // NOTE we use windowWall and NOT fGEn_GLASS_TUBE_WALL here, since the hemisphere can be a different thickness!  
-   partParameters_t hsp; 
-   hsp.name  = "ew_ge180_hSphere"; hsp.shape = "hemisphere"; 
-   hsp.r_min = fGEn_GLASS_TUBE_OD/2. - windowWall; hsp.r_max = fGEn_GLASS_TUBE_OD/2.;  
-   hsp.startPhi   = 0*deg;  hsp.dPhi   = 90.*deg; 
-   hsp.startTheta = 0.*deg; hsp.dTheta = 360.*deg;  
-   hsp.x  = 0.*mm;  hsp.y  = 0.*mm;   hsp.z  = 0.5*shaftLength;  
-   hsp.rx = 0.*deg; hsp.ry = 90.*deg; hsp.rz = 0.*deg;  
+   // // hemisphere 
+   // // NOTE we use windowWall and NOT fGEn_GLASS_TUBE_WALL here, since the hemisphere can be a different thickness!  
+   // partParameters_t hsp; 
+   // hsp.name  = "ew_ge180_hSphere"; hsp.shape = "hemisphere"; 
+   // hsp.r_min = fGEn_GLASS_TUBE_OD/2. - windowWall; hsp.r_max = fGEn_GLASS_TUBE_OD/2.;  
+   // hsp.startPhi   = 0*deg;  hsp.dPhi   = 90.*deg; 
+   // hsp.startTheta = 0.*deg; hsp.dTheta = 360.*deg;  
+   // hsp.x  = 0.*mm;  hsp.y  = 0.*mm;   hsp.z  = 0.5*shaftLength;  
+   // hsp.rx = 0.*deg; hsp.ry = 90.*deg; hsp.rz = 0.*deg;  
 
-   G4Sphere *hSphere = new G4Sphere(hsp.name,
-	                            hsp.r_min     ,hsp.r_max,
-	                            hsp.startPhi  ,hsp.dPhi,
-	                            hsp.startTheta,hsp.dTheta);
+   // G4Sphere *hSphere = new G4Sphere(hsp.name,
+   //                                  hsp.r_min     ,hsp.r_max,
+   //                                  hsp.startPhi  ,hsp.dPhi,
+   //                                  hsp.startTheta,hsp.dTheta);
 
-   G4ThreeVector P_hsp      = G4ThreeVector(hsp.x,hsp.y,hsp.z);
-   G4RotationMatrix *rm_hsp = new G4RotationMatrix();
-   rm_hsp->rotateX(hsp.rx); rm_hsp->rotateY(hsp.ry); rm_hsp->rotateZ(hsp.rz);
+   // G4ThreeVector P_hsp      = G4ThreeVector(hsp.x,hsp.y,hsp.z);
+   // G4RotationMatrix *rm_hsp = new G4RotationMatrix();
+   // rm_hsp->rotateX(hsp.rx); rm_hsp->rotateY(hsp.ry); rm_hsp->rotateZ(hsp.rz);
+
+   // sphere segment with 0.12 mm wall 
+   G4double t_beam_012     = 0.12*mm;
+   G4double d_012          = 8.*mm;
+   G4double r_min_012      = 0.5*fGEn_GLASS_TUBE_OD - t_beam_012;
+   G4double r_max_012      = 0.5*fGEn_GLASS_TUBE_OD;
+   G4double startPhi_012   = 0;
+   G4double dPhi_012       = 360.*deg;
+   G4double startTheta_012 = 0;
+   G4double dTheta_012     = 90.*deg - acos( (d_012/2.)/r_max_012 );
+   G4Sphere *thinSphere    = new G4Sphere("thinSphere",r_min_012,r_max_012,startPhi_012,dPhi_012,startTheta_012,dTheta_012);
+
+   // std::cout << "***** startTheta_012 = " << startTheta_012/deg << " deg" << std::endl;
+   // std::cout << "***** dTheta_012     = " << dTheta_012/deg     << " deg" << std::endl;
+
+   G4ThreeVector P_thn = G4ThreeVector(0,0,0.5*shaftLength+0.002*mm);
+   G4RotationMatrix *rm_thn = new G4RotationMatrix();
+   rm_thn->rotateY(0.*deg);
+
+   // sphere segment with 0.5 mm wall 
+   G4double t_beam_050     = 0.5*mm;
+   G4double r_min_050      = 0.5*fGEn_GLASS_TUBE_OD - t_beam_050;
+   G4double r_max_050      = 0.5*fGEn_GLASS_TUBE_OD;
+   G4double startPhi_050   = 0;
+   G4double dPhi_050       = 360.*deg;
+   G4double startTheta_050 = dTheta_012;
+   G4double dTheta_050     = 90.*deg - dTheta_012;
+   G4Sphere *thickSphere   = new G4Sphere("thickSphere",r_min_050,r_max_050,startPhi_050,dPhi_050,startTheta_050,dTheta_050);
+
+   // std::cout << "***** startTheta_050 = " << startTheta_050/deg << " deg" << std::endl;
+   // std::cout << "***** dTheta_050     = " << dTheta_050/deg     << " deg" << std::endl;
+
+   G4ThreeVector P_thk = G4ThreeVector(0,0,0.5*shaftLength);
+   G4RotationMatrix *rm_thk = new G4RotationMatrix();
+   rm_thk->rotateY(0.*deg);
 
    // labels 
-   G4String label1 = "ew_ge180_sh"    ;
-   G4String label2 = "ew_ge180_sh_hsp";
-   G4String label3 = "endWindow_ge180";
+   G4String label1 = "ew_ge180_thn"    ;
+   G4String label2 = "ew_ge180_thn_thk";
+   // G4String label3 = "endWindow_ge180";
 
    // union solid 
    G4UnionSolid *endWindow;
    // main shaft + lip 
-   endWindow = new G4UnionSolid(label1,mainShaft,hSphere,rm_hsp ,P_hsp);
+   // endWindow = new G4UnionSolid(label1,mainShaft,hSphere,rm_hsp ,P_hsp);
+   endWindow = new G4UnionSolid(label1,mainShaft,thickSphere,rm_thk,P_thk);
+   endWindow = new G4UnionSolid(label2,endWindow,thinSphere ,rm_thn,P_thn);
 
    // visualization
    G4VisAttributes *vis = new G4VisAttributes();
@@ -3412,7 +3449,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *moth
  
 }
 
-void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3_simple(G4LogicalVolume *motherLog){
+void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3_forGE180(G4LogicalVolume *motherLog){
   // Polarized 3He
   // - takes the form of the target chamber of the glass cell 
    
@@ -3436,45 +3473,104 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3_simple(G4LogicalVolume *mot
 			       tc.length/2.,
 			       tc.startPhi ,tc.dPhi);
 
-   // hemisphere, upstream 
-   // NOTE we use the windowWall and NOT fGEn_GLASS_TUBE_WALL since the hemisphere can be a different thickness!  
-   partParameters_t hsp_us; 
-   hsp_us.name  = "he3_hSphere_us"; hsp_us.shape = "hemisphere"; 
-   hsp_us.r_min = 0; hsp_us.r_max = fGEn_GLASS_TUBE_OD/2. - windowWall;  
-   hsp_us.startPhi   = 0*deg;  hsp_us.dPhi   = 360.*deg; 
-   hsp_us.startTheta = 0.*deg; hsp_us.dTheta = 90.*deg;  
-   hsp_us.x  = 0.*mm;  hsp_us.y  = 0.*mm;  hsp_us.z  = -0.5*tubeLength;  
-   hsp_us.rx = 0.*deg; hsp_us.ry = 0.*deg; hsp_us.rz = 0.*deg;  
+   // // hemisphere, upstream 
+   // // NOTE we use the windowWall and NOT fGEn_GLASS_TUBE_WALL since the hemisphere can be a different thickness!  
+   // partParameters_t hsp_us; 
+   // hsp_us.name  = "he3_hSphere_us"; hsp_us.shape = "hemisphere"; 
+   // hsp_us.r_min = 0; hsp_us.r_max = fGEn_GLASS_TUBE_OD/2. - windowWall;  
+   // hsp_us.startPhi   = 0*deg;  hsp_us.dPhi   = 360.*deg; 
+   // hsp_us.startTheta = 0.*deg; hsp_us.dTheta = 90.*deg;  
+   // hsp_us.x  = 0.*mm;  hsp_us.y  = 0.*mm;  hsp_us.z  = -0.5*tubeLength;  
+   // hsp_us.rx = 0.*deg; hsp_us.ry = 0.*deg; hsp_us.rz = 0.*deg;  
 
-   G4Sphere *hSphere_us = new G4Sphere(hsp_us.name,
-	                               hsp_us.r_min     ,hsp_us.r_max,
-	                               hsp_us.startPhi  ,hsp_us.dPhi,
-	                               hsp_us.startTheta,hsp_us.dTheta);
+   // G4Sphere *hSphere_us = new G4Sphere(hsp_us.name,
+   //                                     hsp_us.r_min     ,hsp_us.r_max,
+   //                                     hsp_us.startPhi  ,hsp_us.dPhi,
+   //                                     hsp_us.startTheta,hsp_us.dTheta);
 
-   G4ThreeVector P_hsp_us      = G4ThreeVector(hsp_us.x,hsp_us.y,hsp_us.z);
-   G4RotationMatrix *rm_hsp_us = new G4RotationMatrix();
-   rm_hsp_us->rotateX(hsp_us.rx); rm_hsp_us->rotateY(hsp_us.ry); rm_hsp_us->rotateZ(hsp_us.rz);
+   // G4ThreeVector P_hsp_us      = G4ThreeVector(hsp_us.x,hsp_us.y,hsp_us.z);
+   // G4RotationMatrix *rm_hsp_us = new G4RotationMatrix();
+   // rm_hsp_us->rotateX(hsp_us.rx); rm_hsp_us->rotateY(hsp_us.ry); rm_hsp_us->rotateZ(hsp_us.rz);
 
-   // hemisphere, downstream  
-   partParameters_t hsp_ds = hsp_us; 
-   hsp_ds.name = "he3_hSphere_ds"; 
-   hsp_ds.z  *= -1.; 
-   hsp_ds.ry += 180.*deg;  
+   // // hemisphere, downstream  
+   // partParameters_t hsp_ds = hsp_us; 
+   // hsp_ds.name = "he3_hSphere_ds"; 
+   // hsp_ds.z  *= -1.; 
+   // hsp_ds.ry += 180.*deg;  
 
-   G4Sphere *hSphere_ds = new G4Sphere(hsp_ds.name,
-	                               hsp_ds.r_min     ,hsp_ds.r_max,
-	                               hsp_ds.startPhi  ,hsp_ds.dPhi,
-	                               hsp_ds.startTheta,hsp_ds.dTheta);
+   // G4Sphere *hSphere_ds = new G4Sphere(hsp_ds.name,
+   //                                     hsp_ds.r_min     ,hsp_ds.r_max,
+   //                                     hsp_ds.startPhi  ,hsp_ds.dPhi,
+   //                                     hsp_ds.startTheta,hsp_ds.dTheta);
 
-   G4ThreeVector P_hsp_ds      = G4ThreeVector(hsp_ds.x,hsp_ds.y,hsp_ds.z);
-   G4RotationMatrix *rm_hsp_ds = new G4RotationMatrix();
-   rm_hsp_ds->rotateX(hsp_ds.rx); rm_hsp_us->rotateY(hsp_ds.ry); rm_hsp_ds->rotateZ(hsp_ds.rz);
+   // G4ThreeVector P_hsp_ds      = G4ThreeVector(hsp_ds.x,hsp_ds.y,hsp_ds.z);
+   // G4RotationMatrix *rm_hsp_ds = new G4RotationMatrix();
+   // rm_hsp_ds->rotateX(hsp_ds.rx); rm_hsp_us->rotateY(hsp_ds.ry); rm_hsp_ds->rotateZ(hsp_ds.rz);
+
+   // // create the union solid 
+   // G4UnionSolid *he3Tube;
+   // // main shaft + hemispheres  
+   // he3Tube = new G4UnionSolid("tc_hspu",tcShape,hSphere_us,rm_hsp_us,P_hsp_us );
+   // he3Tube = new G4UnionSolid("he3Tube",he3Tube,hSphere_ds,rm_hsp_ds,P_hsp_ds );
+
+   // [upstream] sphere segment with 0.12 mm wall 
+   G4double t_beam_012     = 0.12*mm;
+   G4double d_012          = 8.*mm;
+   G4double r_min_012      = 0;
+   G4double r_max_012      = 0.5*fGEn_GLASS_TUBE_OD - t_beam_012;
+   G4double startPhi_012   = 0;
+   G4double dPhi_012       = 360.*deg;
+   G4double startTheta_012 = 0;
+   G4double dTheta_012     = 90.*deg - acos( (d_012/2.)/r_max_012 );
+   G4Sphere *thinSphere_us = new G4Sphere("thinSphere_He3_us",
+                                          r_min_012,r_max_012,
+                                          startPhi_012,dPhi_012,
+                                          startTheta_012,dTheta_012);
+   G4double z_thn = 0.5*tubeLength + 0.0001*mm;    // fudge factor of 100 nm to remove geometry build errors  
+   G4ThreeVector P_thn_us = G4ThreeVector(0,0,-z_thn);
+   G4RotationMatrix *rm_thn_us = new G4RotationMatrix();
+   rm_thn_us->rotateY(180.*deg);
+
+   // [downstream] sphere segment with 0.12 mm wall
+   G4Sphere *thinSphere_ds     = new G4Sphere("thinSphere_He3_ds",
+                                              r_min_012,r_max_012,
+                                              startPhi_012,dPhi_012,
+                                              startTheta_012,dTheta_012);
+   G4ThreeVector P_thn_ds      = G4ThreeVector(0,0,z_thn);
+   G4RotationMatrix *rm_thn_ds = new G4RotationMatrix();
+   rm_thn_ds->rotateY(0.*deg);
+
+   // [upstream] sphere segment with 0.5 mm wall 
+   G4double t_beam_050     = 0.5*mm;
+   G4double r_min_050      = 0.;
+   G4double r_max_050      = 0.5*fGEn_GLASS_TUBE_OD - t_beam_050;
+   G4double startPhi_050   = 0;
+   G4double dPhi_050       = 360.*deg;
+   G4double startTheta_050 = dTheta_012;
+   G4double dTheta_050     = 90.*deg - dTheta_012;
+   G4Sphere *thickSphere_us   = new G4Sphere("thickSphere_He3",
+                                             r_min_050,r_max_050,
+                                             startPhi_050,dPhi_050,
+                                             startTheta_050,dTheta_050);
+
+   G4double z_thk = 0.5*tubeLength; 
+   G4ThreeVector P_thk_us      = G4ThreeVector(0,0,-z_thk);
+   G4RotationMatrix *rm_thk_us = new G4RotationMatrix();
+   rm_thk_us->rotateY(180.*deg);
+
+   // [downstream] sphere segment with 0.5 mm wall 
+   G4Sphere *thickSphere_ds    = new G4Sphere("thickSphere_He3_ds",r_min_050,r_max_050,startPhi_050,dPhi_050,startTheta_050,dTheta_050);
+   G4ThreeVector P_thk_ds      = G4ThreeVector(0,0,z_thk);
+   G4RotationMatrix *rm_thk_ds = new G4RotationMatrix();
+   rm_thk_ds->rotateY(0.*deg);
 
    // create the union solid 
    G4UnionSolid *he3Tube;
    // main shaft + hemispheres  
-   he3Tube = new G4UnionSolid("tc_hspu",tcShape,hSphere_us,rm_hsp_us,P_hsp_us );
-   he3Tube = new G4UnionSolid("he3Tube",he3Tube,hSphere_ds,rm_hsp_ds,P_hsp_ds );
+   he3Tube = new G4UnionSolid("tc_thkus"            ,tcShape,thickSphere_us,rm_thk_us,P_thk_us );
+   he3Tube = new G4UnionSolid("tc_thkus_thnus"      ,he3Tube,thinSphere_us ,rm_thn_us,P_thn_us );
+   he3Tube = new G4UnionSolid("tc_thkus_thnus_thkds",he3Tube,thickSphere_ds,rm_thk_ds,P_thk_ds );
+   he3Tube = new G4UnionSolid("he3Tube"             ,he3Tube,thinSphere_ds ,rm_thn_ds,P_thn_ds );
 
    // set the color of He3 
    G4VisAttributes *visHe3 = new G4VisAttributes();
@@ -3539,7 +3635,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3_simple(G4LogicalVolume *mot
 
 }
 
-void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog){
+void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3_forMetal(G4LogicalVolume *motherLog){
   // Polarized 3He
   // - takes the form of the target chamber of the glass cell 
    

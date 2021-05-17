@@ -115,6 +115,23 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
     gempzsum += gempz[gpidx];
   }
 
+  //implement aluminum shielding: 
+  G4bool useAlshield = fDetCon->GetGEMuseAlshield();
+
+  // G4Box *alshield_box;
+  // G4LogicalVolume *alshield_log;
+  
+  G4double Al_thick=0.0, Airgap_thick=0.0;
+  if( useAlshield ){
+    //G4cout << "building aluminum shielding for GEMs..."; 
+    
+    Al_thick = fDetCon->GetGEMAlShieldThick();
+    Airgap_thick = fDetCon->GetGEMAirGapThick();
+    
+
+    //G4cout << " complete" << G4endl;
+  }
+
   // char gpname[20][50][3][255];
   // char gemname[10][255], gemboxname[10][255], gemlogname[10][255];
   char cgidx[255];
@@ -150,7 +167,35 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
       ztemp = gempzsum;
       sign = -1.0;
     }
+
+    if( useAlshield ){ //put Aluminum shielding upstream of GEM:
+      G4String shieldboxname = TrackerPrefix + G4String("alshield_gem") + cgidx + G4String("box");
+      G4String shieldlogname = TrackerPrefix + G4String("alshield_gem") + cgidx + G4String("log");
       
+      G4String frontshieldphysname = TrackerPrefix + G4String("alshieldfront_gem") + cgidx + G4String("phys");
+      G4String backshieldphysname = TrackerPrefix + G4String("alshieldback_gem") + cgidx + G4String("phys");
+
+      G4cout << "Building and placing GEM aluminum shielding, plane = " << gidx << G4endl;
+
+      G4Box *alshield_box = new G4Box( shieldboxname, wplanes[gidx]/2.0, hplanes[gidx]/2.0, Al_thick/2.0 );
+      G4LogicalVolume *alshield_log = new G4LogicalVolume( alshield_box, GetMaterial("Aluminum"), shieldlogname, 0, 0, 0 );
+
+      G4VisAttributes *alshield_visatt = new G4VisAttributes( G4Colour( 0.6, 0.6, 0.6 ) );
+      //alshield_visatt->SetForceWireframe( true );
+      
+      alshield_log->SetVisAttributes( alshield_visatt );
+      
+      //position the front shielding upstream of the GEM with possible air gap:
+      G4ThreeVector frontshieldpos = pos + (zplanes[gidx] - gempzsum/2.0 - Airgap_thick - Al_thick/2.0) * zaxis;
+      
+      new G4PVPlacement( 0, frontshieldpos, alshield_log, frontshieldphysname, Mother, true, gidx+1, false );
+
+      //position the back shielding immediately downstream of the GEM with no air gap:
+      G4ThreeVector backshieldpos = frontshieldpos + (gempzsum + Al_thick + Airgap_thick ) * zaxis;
+
+      new G4PVPlacement( 0, backshieldpos, alshield_log, backshieldphysname, Mother, true, gidx+1, false );
+    }
+    
     for( gpidx = 0; gpidx < nlayers; gpidx++ ){
       sprintf( cgpidx, "_%02d_%03d_", gidx, gpidx );
       

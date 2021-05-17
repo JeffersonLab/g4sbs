@@ -162,6 +162,11 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fBeamCollimatorDmin_dnstr   = 15*mm;  
   fBeamCollimatorDmax_dnstr   = 30*mm;  
 
+  //Default Aluminum shielding around GEMs to false:
+  fGEMuseAlshield = false;
+  fGEMAlShieldThick = 50.0*um;
+  fGEMAirGapThick = 0.0*um;
+  
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()

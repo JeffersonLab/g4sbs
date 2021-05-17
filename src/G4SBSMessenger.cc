@@ -852,6 +852,21 @@ G4SBSMessenger::G4SBSMessenger(){
   WriteFieldMapCmd = new G4UIcmdWithABool( "/g4sbs/writefieldmaps", this );
   WriteFieldMapCmd->SetGuidance( "Toggle writing of \"portable\" field maps for BB+SBS" );
   WriteFieldMapCmd->SetParameterName("writemapsflag", false );
+
+  UseGEMshieldCmd = new G4UIcmdWithABool( "/g4sbs/usegemshielding", this );
+  UseGEMshieldCmd->SetGuidance( "Include thin aluminum GEM shielding (for noise reduction)" );
+  UseGEMshieldCmd->SetParameterName("GEMshieldflag", false );
+
+  GEMshieldThickCmd = new G4UIcmdWithADoubleAndUnit( "/g4sbs/gemshieldthick", this );
+  GEMshieldThickCmd->SetGuidance( "Thickness of GEM aluminum shielding (give value and unit, default = 50 um)");
+  GEMshieldThickCmd->SetParameterName( "gemshieldthick", true );
+  GEMshieldThickCmd->SetDefaultValue( 50.0*CLHEP::um );
+
+  GEMshieldAirGapThickCmd = new G4UIcmdWithADoubleAndUnit( "/g4sbs/gemshieldairgapthick", this );
+  GEMshieldAirGapThickCmd->SetGuidance( "Thickness of air gap between aluminum shielding (in front) and GEM (give value and unit, default = 0)" );
+  GEMshieldAirGapThickCmd->SetParameterName( "gemshieldairgapthick", true );
+  GEMshieldAirGapThickCmd->SetDefaultValue( 0.0*CLHEP::um );
+  
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -2323,6 +2338,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == WriteFieldMapCmd ){
     G4bool flag = WriteFieldMapCmd->GetNewBoolValue(newValue);
     fIO->SetWriteFieldMaps(flag);
+  }
+
+  if( cmd == UseGEMshieldCmd ){
+    G4bool flag = UseGEMshieldCmd->GetNewBoolValue(newValue);
+    fdetcon->SetGEMuseAlshield(flag);
+  }
+
+  if( cmd == GEMshieldThickCmd ){
+    G4double shieldthick = GEMshieldThickCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetGEMAlShieldThick( shieldthick );
+  }
+
+  if( cmd == GEMshieldAirGapThickCmd ){
+    G4double airgapthick = GEMshieldAirGapThickCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetGEMAirGapThick( airgapthick );
   }
   
 }

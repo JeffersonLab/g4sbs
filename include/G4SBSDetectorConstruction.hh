@@ -286,6 +286,10 @@ private:
   G4double fBeamCollimatorX_upstr,fBeamCollimatorY_upstr,fBeamCollimatorZ_upstr; 
   G4double fBeamCollimatorL_upstr,fBeamCollimatorDmin_upstr,fBeamCollimatorDmax_upstr;  
 
+  //Optional aluminum shielding of GEMs:
+  
+  
+  
 };
 
 

@@ -23,15 +23,15 @@ class G4OpticalSurface;
 class G4SBSDetectorConstruction;
 
 class G4SBSComponent {
-    public:
-	G4SBSComponent(G4SBSDetectorConstruction * );
-	virtual ~G4SBSComponent();
-	virtual void BuildComponent(G4LogicalVolume *) = 0;
+public:
+  G4SBSComponent(G4SBSDetectorConstruction * );
+  virtual ~G4SBSComponent();
+  virtual void BuildComponent(G4LogicalVolume *) = 0;
 
-    protected:
-	G4SBSDetectorConstruction *fDetCon;
-	G4Material *GetMaterial(G4String);
-	G4OpticalSurface*GetOpticalSurface(G4String);
+protected:
+  G4SBSDetectorConstruction *fDetCon;
+  G4Material *GetMaterial(G4String);
+  G4OpticalSurface *GetOpticalSurface(G4String);
 };
 
 

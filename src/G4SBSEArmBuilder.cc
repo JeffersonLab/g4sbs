@@ -921,12 +921,11 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     fDetCon->SDtype[BBSHSDname] = G4SBS::kECAL;
     (BBSHSD->detmap).depth = 1;
 
-    // ****
+    // Let's make threshold, timewindow and ntimebins user configurable
     G4double threshold_default = 0.0*MeV; 
     G4double timewindow_default = 250.0*ns;
     G4int default_ntbins = 25;
     fDetCon->SetThresholdTimeWindowAndNTimeBins( BBSHSDname, threshold_default, timewindow_default, default_ntbins );
-    // ****
   }
   bbpmtcathodelog->SetSensitiveDetector( BBSHSD );
 
@@ -1041,9 +1040,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     fDetCon->SDtype[BBPSSDname] = G4SBS::kECAL;
     (BBPSSD->detmap).depth = 1;
 
-    // *****
+    // Let's make threshold, timewindow and ntimebins user configurable
     fDetCon->SetThresholdTimeWindowAndNTimeBins( BBPSSDname, 0.0*MeV, 250*ns, 25 );
-    // *****
   }
   bbpspmtcathodelog->SetSensitiveDetector( BBPSSD );
 

@@ -2733,7 +2733,7 @@ void G4SBSDetectorConstruction::SetThresholdTimeWindowAndNTimeBins( G4String SDn
       CalSDptr->SetNTimeBins( ntimebins );
      
       break;
-      // *****
+
     case G4SBS::kECAL:
       ECalSDptr = (G4SBSECalSD*) fSDman->FindSensitiveDetector( SDname, false );
 
@@ -2752,13 +2752,6 @@ void G4SBSDetectorConstruction::SetThresholdTimeWindowAndNTimeBins( G4String SDn
     }
 
   }
-
-  // This part is the criminal
-  // G4double wbin = timewindow/double(ntimebins);
-  // for( int ibin=0; ibin<ntimebins; ibin++ ){
-  //   // CalSDptr->hold_tbins.push_back( ibin*wbin + 0.5*wbin );
-  //   CalSDptr->hold_tbins.push_back( 0.0 );
-  // }
   
   return;
 }

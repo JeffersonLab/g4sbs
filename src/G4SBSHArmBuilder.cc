@@ -1507,9 +1507,6 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     (fDetCon->SDlist).insert(HCalScintSDName);
     fDetCon->SDtype[HCalScintSDName] = G4SBS::kCAL;
     (HCalScintSD->detmap).depth = 1;
-
-    G4int default_ntbins = 25;
-
     //This will be overridden if the command /g4sbs/threshold has been invoked for this detector:
     fDetCon->SetThresholdTimeWindowAndNTimeBins( HCalScintSDName, 0.0*MeV, 500.0*ns, 25 );
   }
@@ -1529,9 +1526,8 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     fDetCon->SDtype[HCalSDName] = G4SBS::kECAL;
     (HCalSD->detmap).depth = 1;
 
-    // *****
+    // Let's make threshold, timewindow and ntimebins user configurable
     fDetCon->SetThresholdTimeWindowAndNTimeBins( HCalSDName, 0.0*MeV, 250.0*ns, 25 );
-    // *****
   }
   log_PMTCathode->SetSensitiveDetector(HCalSD);
 
@@ -1814,8 +1810,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 
     (HCalScintSD->detmap).depth = 1;
 
-    G4int default_ntbins = 25;
-    
+    // Let's make threshold, timewindow & ntimebins user configurable
     fDetCon->SetThresholdTimeWindowAndNTimeBins( HCalScintSDname, 0.0*MeV, 100.0*ns, 25 );
   }
   logScinPl->SetSensitiveDetector(HCalScintSD);

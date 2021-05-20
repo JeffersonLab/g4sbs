@@ -17,7 +17,6 @@ public:
   double timewindow, threshold;
   int ntimebins;
 
-  vector<double> hold_tbins; //******
   vector< vector<double> > edep_vs_time;  //time dependence of energy deposition within timewindow
   double gatewidth;
 

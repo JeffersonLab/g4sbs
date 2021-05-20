@@ -251,7 +251,6 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	  cd.timewindow = CalSDptr->GetTimeWindow();
 	  cd.threshold =  CalSDptr->GetEnergyThreshold();
 	  cd.ntimebins =  CalSDptr->GetNTimeBins();
-	  cd.hold_tbins = CalSDptr->hold_tbins;
 
 	  sd = CalSDptr->SDtracks;
 
@@ -725,16 +724,11 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
   map<int,vector<int> > nsteps_hit_cell;
   map<int,vector<double> > xsum, ysum, zsum; //sum of local positions of tracks
   map<int,vector<double> > xsumg, ysumg, zsumg; //sum of global positions of tracks
-  
-  // ****
+  map<int,vector<double> > esum, t, t2, tmin, tmax;
+  map<int,vector<vector<double> > > esum_tbin; //To hold pulse shape information
 
   caloutput.gatewidth = caloutput.timewindow;
-  map<int,vector<vector<double> > > esum_tbin;
-
-  // ****
-
   
-  map<int,vector<double> > esum, t, t2, tmin, tmax;
   map<int,set<int> > OTrackIndices; //key = cell, value = list of all "OTracks" contributing to this hit in this cell
   map<int,set<int> > PTrackIndices; //key = cell, value = list of all "PTracks" contributing to this hit in this cell
   map<int,set<int> > SDTrackIndices; //key = cell, value = list of all "SDTracks" contributing to this hit in this cell
@@ -774,10 +768,6 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	
 	steplist_cell_timeordered[cell].push_back(hit);
 
-      // *****
-	// G4cout << " **** hit **** " << hit << " ***** cell ***** " << cell << " ***** tid ***** " << track << " **** steptime **** " << steptime << endl;
-      // *****
-	
       } else { //additional step in existing cell:
 	//double w = double(nsteps_cell[cell])/(double(nsteps_cell[cell]+1) );
 
@@ -796,11 +786,6 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	}
 	tmin_cell[cell] = (*hits)[steplist_cell_timeordered[cell][0]]->GetTime();
 	nsteps_cell[cell]++;
-
-      // *****
-	// G4cout << " **** hit **** " << hit << " ***** cell ***** " << cell << " ***** tid ***** " << track << " **** steptime **** " << steptime  tmin_cell[cell] << endl;
-      // *****
-
 
       }
       //Track information:
@@ -921,13 +906,10 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	tmin[cell].push_back( tstep );
 	tmax[cell].push_back( tstep );
 
-	// ******
+	// Adding pulse shape information
 	vector<double> esum_temp( caloutput.ntimebins );
 	esum_tbin[cell].push_back( esum_temp );
-
 	esum_tbin[cell][nhits_cell[cell] - 1][0] += estep ;
-
-	// ******
 	
       } else { //Add this step to the current hit:
 	xsumg[cell][hitindex] += estep * xgstep;
@@ -944,11 +926,10 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	tmin[cell][hitindex] = (tstep < tmin[cell][hitindex] ) ? tstep : tmin[cell][hitindex];
 	tmax[cell][hitindex] = (tstep > tmax[cell][hitindex] ) ? tstep : tmax[cell][hitindex];
 
-	// ******
+	// Adding pulse shape information
 	double wtbin = ( caloutput.timewindow - 0.0 )/double(caloutput.ntimebins);
       	int bin_tstep = int( (tstep - tmin[cell][hitindex])/wtbin );
 	if ( bin_tstep >= 0 && bin_tstep < caloutput.ntimebins ) esum_tbin[cell][hitindex][bin_tstep] += estep;
-	// ******
 
 	nsteps_hit_cell[cell][hitindex]++;
       }
@@ -1002,12 +983,11 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
 	caloutput.tmin.push_back( tmin[cell][ihit]/_T_UNIT );
 	caloutput.tmax.push_back( tmax[cell][ihit]/_T_UNIT );
 
-	// ************* ++++++ ************
+	// Saving pulse shape information
 	for ( int itbin=0; itbin<caloutput.ntimebins; itbin++ ){
 	  esum_tbin[cell][ihit][itbin] /= _E_UNIT;
 	}
 	caloutput.edep_vs_time.push_back( esum_tbin[cell][ihit] );
-	// *****
 	
 	//If there are multiple Otracks contributing to this hit, choose the one with the highest total energy:
 	G4double maxE = 0.0;
@@ -1180,18 +1160,11 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
   map<int,set<int> > PTrackIndices;
   map<int,set<int> > SDTrackIndices;
 
-  
-  // *****
-  map<int,vector<double> > PMT_tphoton; //key 1 = pmt, key 2 = time ordering index, value = index in hit array
-  map<int,vector<double> > PMT_npe_tbin;
+  // map<int,vector<double> > PMT_tphoton; //key 1 = pmt, key 2 = time ordering index, value = index in hit array
+  // map<int,vector<double> > PMT_npe_tbin; // To hold pulse shape information
 
   ecaloutput.gatewidth = ecaloutput.timewindow;
-    
-  // G4cout << " ******** timewindow ********* " << ecaloutput.timewindow << endl;
-  // G4cout << " ******** threshold ********* " << ecaloutput.threshold << endl;
-  // G4cout << " ******** ntimebins ********* " << ecaloutput.ntimebins << endl;
-  // *****
-  
+ 
   //G4MaterialPropertiesTable *MPT; 
 
   for( int step = 0; step < nG4hits; step++ ){
@@ -1523,7 +1496,8 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	ecaloutput.Time_rms.push_back( trms_hit/_T_UNIT );
 	ecaloutput.Time_min.push_back( tmin_hit/_T_UNIT );
 	ecaloutput.Time_max.push_back( tmax_hit/_T_UNIT );
-	
+
+	// Saving pulse shape information
 	ecaloutput.NPE_vs_time.push_back( npe_vs_time_hit );
 
 	G4double maxE = 0.0;

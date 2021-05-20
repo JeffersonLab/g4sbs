@@ -202,7 +202,21 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     }
     particleGun->GeneratePrimaryVertex(anEvent);
   }
-
+  
+  //generate the spectator proton if we have it:
+  if(sbsgen->GetTarget()==G4SBS::kLD2){
+    particle = particleTable->FindParticle(particleName="proton");
+    particleGun->SetParticleDefinition(particle);
+    
+    if(sbsgen->GetProtonSpecE()>0){
+      particleGun->SetParticleMomentumDirection(sbsgen->GetProtonSpecP().unit());
+      // This is KINETIC energy
+      particleGun->SetParticleEnergy(sbsgen->GetProtonSpecE()-particle->GetPDGMass());
+      particleGun->SetParticlePosition(sbsgen->GetV());
+      particleGun->GeneratePrimaryVertex(anEvent);
+    }
+  }
+  
   if( sbsgen->GetKine() == G4SBS::kGMnElasticCheck ) { // In this case we
     // generate TWO nucleons, a proton and neutron simultaneously
     for(int i = 0; i < 2; i++ ) {

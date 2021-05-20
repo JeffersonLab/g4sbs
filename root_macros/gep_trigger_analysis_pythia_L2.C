@@ -134,7 +134,7 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
 	  
 	  Ttemp->GetEntry(0);
 	  
-	  if ( !isnan( sigtemp ) ){
+	  if ( !std::isnan( sigtemp ) ){
 	    sigma_default = sigtemp;
 	    cout << "first event cross section = " << sigtemp << " cm^2" << endl;
 	  } else {
@@ -505,7 +505,7 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
       //cross section is given in mb: 1 mb = 1e-3 * 1e-24 = 1e-27 cm^2
       // if (pythia6flag != 0 ){
       //no longer true: cross section is now given in cm2
-      if( !isnan(T->primaries_Sigma) ){
+      if( !std::isnan(T->primaries_Sigma) ){
 	weight = Lumi * T->primaries_Sigma / double(ngen); //luminosity times cross section / number of events generated.
       } else {
 	weight = Lumi * sigma_default / double(ngen);
@@ -830,7 +830,7 @@ void gep_trigger_analysis_pythia_L2( const char *rootfilename, const char *outpu
       double RealCoinRate = htrue_coincidence_rate_vs_threshold_ECAL_HCAL->GetBinContent( hbin, ebin );
       //Now for these values of ECAL threshold and HCAL threshold, we want to sum over all HCAL and divide by
       //average ECAL and HCAL trigger multiplicities:
-      double dt = 30.0e-9; //30 ns coin-time window:
+      double dt = 50.0e-9; //30 ns coin-time window:
       double SumAccidentalRate = 0.0;
       for( set<int>::iterator inode=list_of_nodes_hcal.begin(); inode != list_of_nodes_hcal.end(); inode++ ){
   	double rate_H = hrate_vs_threshold_logic_sums_HCAL->GetBinContent( *inode, hbin );

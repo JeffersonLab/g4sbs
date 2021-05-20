@@ -17,9 +17,12 @@ public:
   double timewindow, threshold;
   int ntimebins;
 
+  vector<double> hold_tbins; //******
+  vector< vector<double> > edep_vs_time;  //time dependence of energy deposition within timewindow
+  double gatewidth;
+
   double Esum; //energy deposition sum over entire sensitive detector
   vector<double> timebins; //divide timewindow into ntimebins bins and histogram the energy in each bin (summed over whole detector)
-  vector<double> Edep_vs_time; //time dependence of energy deposition within timewindow 
   
   //"Hit" is defined as the sum of all energy deposition in a given cell during timewindow, provided the total energy deposition is above "threshold":
   int nhits_CAL; //Number of cells with above-threshold energy deposition:

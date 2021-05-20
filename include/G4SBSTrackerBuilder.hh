@@ -12,15 +12,28 @@
 using namespace std;
 
 class G4SBSTrackerBuilder: public G4SBSComponent {
-    public:
-	G4SBSTrackerBuilder(G4SBSDetectorConstruction *);
-	~G4SBSTrackerBuilder();
+public:
+  G4SBSTrackerBuilder(G4SBSDetectorConstruction *);
+  ~G4SBSTrackerBuilder();
 
-	void BuildComponent(G4LogicalVolume *);
+  void BuildComponent(G4LogicalVolume *);
   void BuildComponent(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector, unsigned int, vector<double>, vector<double>, vector<double>, G4String );
 	
 
-    private:
+  bool GetUseAlShield() const { return useAlshield; }
+  double GetAlShieldThick() const { return AlShieldThick; }
+  double GetAirGapThick() const { return AirGapThick; }
+
+  void SetUseAlShield(bool useshield){ useAlshield = useshield; }
+  void SetAlShieldThick( double thick ){ AlShieldThick = thick; }
+  void SetAirGapThick( double thick ){ AirGapThick = thick; }
+  
+private:
+  bool useAlshield;
+
+  double AlShieldThick;
+  double AirGapThick; //Air gap is in the FRONT only
+  
 };
 
 #endif//__G4SBSTrackerBuilder_hh

@@ -11,6 +11,7 @@
 #include "G4SBSRun.hh"
 #include "G4SBSIO.hh"
 #include "G4SBSCalSD.hh"
+#include "G4SBSECalSD.hh"
 #include "G4SBSmTPCSD.hh"
 #include "G4SBSEArmBuilder.hh"
 #include "G4SBSHArmBuilder.hh"
@@ -64,6 +65,10 @@ G4SBSIO::G4SBSIO(){
   //Set SD track data recording to OFF by default:
   fKeepAllSDtracks = false;
   fKeepSDtracks.clear();
+
+  //Set SD track data recording to OFF by default:
+  fKeepAllPulseShape = false;
+  fKeepPulseShape.clear();
   
   Esum_histograms = NULL;
   PulseShape_histograms = NULL;
@@ -604,10 +609,12 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
   G4double threshtemp = SDtemp->GetEnergyThreshold();
   G4double gatewidthtemp = SDtemp->GetTimeWindow();
   G4int ntimebinstemp = SDtemp->GetNTimeBins();
-  
-  new( (*Esum_histograms)[fNhistograms] ) TH1F( histname.Format("%s.esum",branch_prefix.Data()), "",
+
+  TString hname_prefix = branch_prefix;
+  hname_prefix.ReplaceAll(".","_");
+  new( (*Esum_histograms)[fNhistograms] ) TH1F( histname.Format("%s_esum",hname_prefix.Data()), "",
 						100, 0.0, 100.0*threshtemp );
-  new( (*PulseShape_histograms)[fNhistograms] ) TH1F( histname.Format("%s.pulseshape",branch_prefix.Data()), "",
+  new( (*PulseShape_histograms)[fNhistograms] ) TH1F( histname.Format("%s_pulseshape",hname_prefix.Data()), "",
 						      ntimebinstemp, 0.0,
 						      gatewidthtemp );
 
@@ -640,6 +647,13 @@ void G4SBSIO::BranchCAL( G4String SDname="CAL" ){
   fTree->Branch( branch_name.Format( "%s.hit.trms", branch_prefix.Data() ), &(CALdata[SDname].trms) );
   fTree->Branch( branch_name.Format( "%s.hit.tmin", branch_prefix.Data() ), &(CALdata[SDname].tmin) );
   fTree->Branch( branch_name.Format( "%s.hit.tmax", branch_prefix.Data() ), &(CALdata[SDname].tmax) );
+
+  // Fill in ROOT tree branch to hold Pulse Shape info 
+  map<G4String,G4bool>::iterator keeppsflag = fKeepPulseShape.find( SDname );    
+  if( fKeepAllPulseShape || (keeppsflag != fKeepPulseShape.end() && keeppsflag->second ) ){
+    fTree->Branch( branch_name.Format( "%s.gatewidth", branch_prefix.Data() ), &(CALdata[SDname].gatewidth) );
+    fTree->Branch( branch_name.Format( "%s.hit.edep_vs_time", branch_prefix.Data() ), &(CALdata[SDname].edep_vs_time) );
+  }
 
   map<G4String,G4bool>::iterator keepsdflag = fKeepSDtracks.find( SDname );
     
@@ -789,6 +803,14 @@ void G4SBSIO::BranchECAL(G4String SDname="ECAL"){
   TString branch_prefix = SDname.data();
   TString branch_name;
   branch_prefix.ReplaceAll("/",".");
+
+  // *****
+  G4SBSECalSD *SDtemp = (G4SBSECalSD*) fdetcon->fSDman->FindSensitiveDetector( SDname );
+
+  G4double threshtemp = SDtemp->GetPEThreshold();
+  G4double gatewidthtemp = SDtemp->GetTimeWindow();
+  G4int ntimebinstemp = SDtemp->GetNTimeBins();
+  // *****
   
   fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(ecaldata[SDname].nhits_ECal) );
   fTree->Branch( branch_name.Format("%s.hit.PMT", branch_prefix.Data() ), &(ecaldata[SDname].PMTnumber) );
@@ -807,6 +829,15 @@ void G4SBSIO::BranchECAL(G4String SDname="ECAL"){
   fTree->Branch( branch_name.Format("%s.hit.Time_min", branch_prefix.Data() ), &(ecaldata[SDname].Time_min) );
   fTree->Branch( branch_name.Format("%s.hit.Time_max", branch_prefix.Data() ), &(ecaldata[SDname].Time_max) );
 
+  // *****
+  // Fill in ROOT tree branch to hold Pulse Shape info 
+  map<G4String,G4bool>::iterator keeppsflag = fKeepPulseShape.find( SDname );    
+  if( fKeepAllPulseShape || (keeppsflag != fKeepPulseShape.end() && keeppsflag->second ) ){
+    fTree->Branch( branch_name.Format( "%s.gatewidth", branch_prefix.Data() ), &(ecaldata[SDname].gatewidth) );
+    fTree->Branch( branch_name.Format( "%s.hit.NPE_vs_time", branch_prefix.Data() ), &(ecaldata[SDname].NPE_vs_time) );
+  }
+  // *****
+  
   map<G4String,G4bool>::iterator keepsdflag = fKeepSDtracks.find( SDname );
     
   if( fKeepAllSDtracks || (keepsdflag != fKeepSDtracks.end() && keepsdflag->second ) ){

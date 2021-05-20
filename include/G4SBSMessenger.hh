@@ -281,8 +281,10 @@ private:
   G4UIcommand *LimitStepCALcmd; //Command to turn on step limiter physics for sensitive volumes defined as calorimeters, by detector name.
 
   G4UIcommand *SD_EnergyThresholdCmd;   //Set hit energy threshold for "Calorimeter" type sensitive detectors
-  G4UIcommand *SD_TimeWindowCmd; 
+  G4UIcommand *SD_TimeWindowCmd;
+  G4UIcommand *SD_NTimeBinsCmd;
 
+  G4UIcommand *KeepPulseShapeCmd; //Flag to turn on recording of Pulse Shape info  
   G4UIcommand *KeepSDtrackcmd; //Flag to turn on recording of "sensitive detector" track info
   
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)

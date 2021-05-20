@@ -35,10 +35,12 @@ public:
   double GetElectronE(){ return fElectronE; }
   double GetNucleonE(){ return fNucleonE; }
   double GetHadronE(){ return fHadronE; }
+  double GetProtonSpecE(){ return fProtonSpecE; }
  
   G4ThreeVector GetElectronP(){ return fElectronP; }
   G4ThreeVector GetNucleonP(){ return fNucleonP; }
   G4ThreeVector GetHadronP(){ return fHadronP; }
+  G4ThreeVector GetProtonSpecP(){ return fProtonSpecP; }
 
   // TDIS addition
   G4ThreeVector PiMake();
@@ -62,6 +64,8 @@ public:
   
   void SetKine(G4SBS::Kine_t t ){fKineType = t;}
   G4SBS::Kine_t GetKine(){return fKineType;}
+  
+  G4SBS::Targ_t GetTarget(){return fTargType;}
   
   void SetTarget(G4SBS::Targ_t t ){fTargType = t;}
   void SetTargLen(double len){fTargLen = len;}
@@ -175,10 +179,10 @@ private:
 
   // double fElectronE, fNucleonE, fHadronE, fBeamE;
   // TDIS addition
-  double fElectronE, fNucleonE, fHadronE, fBeamE, fNeutronE, fProton1E, fProton2E;
+  double fElectronE, fNucleonE, fHadronE, fBeamE, fProtonSpecE, fNeutronE, fProton1E, fProton2E;
   // G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
   // TDIS addition
-  G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert, fNeutronP, fProton1P, fProton2P;
+  G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert, fProtonSpecP, fNeutronP, fProton1P, fProton2P;
   G4ThreeVector fHadronP;
   G4ThreeVector fBeamPol;
   G4ThreeVector fTargPol;

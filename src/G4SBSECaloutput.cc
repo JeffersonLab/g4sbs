@@ -6,7 +6,8 @@ G4SBSECaloutput::G4SBSECaloutput(){
 
   timewindow = 250.0*ns; //Also declared in G4SBSEventAction.cc -> G4SBSECaloutput section
   threshold  = 0.5; //single photo-electron threshold!
-  
+
+  ntimebins = 25;
 
   Clear();
 }
@@ -18,6 +19,8 @@ G4SBSECaloutput::~G4SBSECaloutput(){
 void G4SBSECaloutput::Clear(){
   nhits_ECal = 0;
   //ntracks_ECal = 0;
+
+  NPE_vs_time.clear();
   
   PMTnumber.clear();
   row.clear();

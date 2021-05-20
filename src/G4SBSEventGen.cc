@@ -308,7 +308,7 @@ bool G4SBSEventGen::GenerateEvent(){
 
   G4LorentzVector ei( fBeamP, fBeamE );
   G4LorentzVector ni; 
-
+  
   // Generate initial nucleon - target dependent
   
   G4SBS::Nucl_t thisnucl;
@@ -697,6 +697,8 @@ bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4L
 
   G4ThreeVector boost_Nrest = ni.boostVector();
 
+  G4LorentzVector nspec = G4LorentzVector(-ni.vect(), ni.e());
+  
   G4LorentzVector Pisum_lab = ei + ni;
 
   G4LorentzVector ei_Nrest = ei;
@@ -847,6 +849,14 @@ bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4L
   fNucleonP = nf_lab.vect();
   fNucleonE = nf_lab.e();
   //    printf("nfp_e = %f GeV\n", nfp.e()/GeV);
+  
+  if(nucl==G4SBS::kNeutron && fTargType==G4SBS::kD2){
+    fProtonSpecE = nspec.e();
+    fProtonSpecP = nspec.vect();
+  }else{
+    fProtonSpecE = -1.e9;
+    fProtonSpecP = G4ThreeVector();
+  }
 
   fFinalNucl = nucl;
   return true;
@@ -1044,6 +1054,8 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
   double Mp = proton_mass_c2;
   double mpi = 0.140*GeV;
 
+  G4LorentzVector nspec = G4LorentzVector(-ni.vect(), ni.e());
+  
   G4LorentzVector Pisum_lab = ei + ni;
 
   G4ThreeVector boost_Nrest = ni.boostVector();
@@ -1295,7 +1307,15 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
 
   fHadronP = Pfpion_lab.vect();
   fHadronE = Pfpion_lab.e();
-
+  
+  if(nucl==G4SBS::kNeutron && fTargType==G4SBS::kD2){
+    fProtonSpecE = nspec.e();
+    fProtonSpecP = nspec.vect();
+  }else{
+    fProtonSpecE = -1.e9;
+    fProtonSpecP = G4ThreeVector();
+  }
+    
   return true;
 }
 
@@ -1309,6 +1329,8 @@ bool G4SBSEventGen::GenerateDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Loren
   // Here we are basically assuming DIS collisions on an on-shell nucleon with simplistic Fermi smearing by sampling the nucleon
   // momentum distribution in 3He or 2H!
   // G4LorentzVector eip = ei.boost(pboost); //eip is incident electron 4-mom boosted to nucleon rest frame
+  
+  G4LorentzVector nspec = G4LorentzVector(-ni.vect(), ni.e());
 
   G4LorentzVector Pisum_lab = ei + ni;
 
@@ -1454,7 +1476,15 @@ bool G4SBSEventGen::GenerateDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Loren
 
   fNucleonP = G4ThreeVector();
   fNucleonE = -1e9;  // This ensures we won't generate a nucleon event
-
+  
+  if(nucl==G4SBS::kNeutron && fTargType==G4SBS::kD2){
+    fProtonSpecE = nspec.e();
+    fProtonSpecP = nspec.vect();
+  }else{
+    fProtonSpecE = -1.e9;
+    fProtonSpecP = G4ThreeVector();
+  }
+  
   return true;
 }
 
@@ -2976,6 +3006,16 @@ ev_t G4SBSEventGen::GetEventData(){
     }
   }
 
+  if ( (fKineType == G4SBS::kDIS || fKineType == G4SBS::kInelastic || fKineType == G4SBS::kElastic) &&
+       fTargType == G4SBS::kD2 ){
+    data.p1p  = fProtonSpecP.mag();
+    data.p1px = fProtonSpecP.x();
+    data.p1py = fProtonSpecP.y();
+    data.p1pz = fProtonSpecP.z();
+    data.p1th = fProtonSpecP.theta()/rad;
+    data.p1ph = fProtonSpecP.phi()/rad;
+  }
+  
   // TDIS
   if (fKineType == G4SBS::kTDISKin){
     

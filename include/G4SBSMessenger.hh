@@ -337,6 +337,10 @@ private:
   G4UIcmdWithADoubleAndUnit *TDIStgtWallThickCmd;
   
   G4UIcmdWithABool *WriteFieldMapCmd;
+
+  G4UIcmdWithABool *UseGEMshieldCmd;
+  G4UIcmdWithADoubleAndUnit *GEMshieldThickCmd;
+  G4UIcmdWithADoubleAndUnit *GEMshieldAirGapThickCmd; 
 };
 
 #endif//G4SBSMessenger_HH

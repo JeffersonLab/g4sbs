@@ -242,6 +242,15 @@ public:
 
   inline void InsertTargetVolume( G4String vname ){ fTargetVolumes.insert(vname); }
   inline void InsertAnalyzerVolume( G4String vname ){ fAnalyzerVolumes.insert(vname); }
+
+  //getters and setters for GEM Al shielding parameters:
+  void SetGEMuseAlshield( G4bool useshield ){ fGEMuseAlshield = useshield; }
+  void SetGEMAlShieldThick( G4double thick ){ fGEMAlShieldThick = thick; }
+  void SetGEMAirGapThick( G4double thick ){ fGEMAirGapThick = thick; }
+
+  inline G4bool GetGEMuseAlshield() const { return fGEMuseAlshield; }
+  inline G4double GetGEMAlShieldThick() const { return fGEMAlShieldThick; }
+  inline G4double GetGEMAirGapThick() const { return fGEMAirGapThick; }
   
 private:
 
@@ -306,6 +315,12 @@ private:
   G4int fGEnTgtHHConfig; // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration 
 
   //Optional aluminum shielding of GEMs:
+  G4bool fGEMuseAlshield;
+
+  G4double fGEMAlShieldThick;
+  G4double fGEMAirGapThick; //Air gap is in the FRONT only
+  
+  
 };
 
 

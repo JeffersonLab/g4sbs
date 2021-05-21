@@ -351,27 +351,27 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //SSeeds - added second sieve option to accomodate new plate 10.4.20
   //sseeds - added third and fourth for optics studies 11.5.20. Will need to find more efficient way to implement
   
- if( fBuildBBSieve == 1 ){ 
+  if( fBuildBBSieve == 1 ){ 
     G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
     MakeBBSieveSlit( bbmotherLog, BBSievePos );
- }
- else if( fBuildBBSieve == 2 ){  
-   G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
+  }
+  else if( fBuildBBSieve == 2 ){  
+    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
     MakeNewBBSieveSlit( bbmotherLog, BBSievePos );
- }
- else if( fBuildBBSieve == 3 ){  
-   G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
-   MakeThirdBBSieveSlit( bbmotherLog, BBSievePos );
- }
- else if( fBuildBBSieve == 4 ){  
-   G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
-   MakeFourthBBSieveSlit( bbmotherLog, BBSievePos );
- }
- else {
-   //cout << "Invalid sieve entry. Please enter 1 (old - straight holes and slots) or 2 (new - holes with angles in dispersive direction) or 3 (new - holes without angles). No sieve constructed.\n";
- }
+  }
+  else if( fBuildBBSieve == 3 ){  
+    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
+    MakeThirdBBSieveSlit( bbmotherLog, BBSievePos );
+  }
+  else if( fBuildBBSieve == 4 ){  
+    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
+    MakeFourthBBSieveSlit( bbmotherLog, BBSievePos );
+  }
+  else {
+    //cout << "Invalid sieve entry. Please enter 1 (old - straight holes and slots) or 2 (new - holes with angles in dispersive direction) or 3 (new - holes without angles). No sieve constructed.\n";
+  }
   
-  //  Bigbite field log volume
+  //  Bigbite field log volume: does not appear to serve any purpose. But maybe it is important for the geometry? And maybe it can be used for a hyper-local field definition?
   G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
 						  "bbfieldLog", 0, 0, 0);
   
@@ -400,7 +400,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     }
   }
 
-  //does this volume serve any purpose? Apparently not
+  //does this volume serve any purpose? Not as far as I can tell
   new G4PVPlacement(0, G4ThreeVector(), bbfieldLog, "bbfieldPhysical", bbyokewgapLog, false,0, chkoverlap);
 
   //--------- BigBite Detector Volumes ------------
@@ -1212,7 +1212,16 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *Shield_backgem_box = new G4Box("Shield_backgem_box", 0.5*65*cm, 0.5*210*cm, 0.5*2.54*cm);
   G4LogicalVolume *Shield_backgem_log = new G4LogicalVolume(Shield_backgem_box, GetMaterial("CH2"), "Shield_backgem_log");//GetMaterial("CDET_Acrylic") ???
   //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fCerDist+fCerDepth+0.51*2.54*cm ), Shield_backgem_log, "", bbdetLog, false, 0, true);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fGEMDist - 0.51*2.54*cm -1.6*cm ), Shield_backgem_log, "", bbdetLog, false, 0, true);
+
+  G4double z_Shield_backgem = detoffset+fGEMDist - 0.51*2.54*cm -1.6*cm;
+
+  if( fDetCon->GetGEMuseAlshield() ){
+    z_Shield_backgem -= fDetCon->GetGEMAirGapThick(); 
+  }
+  
+  G4ThreeVector pos_Shield_backgem(0,0,z_Shield_backgem);
+  
+  new G4PVPlacement(0, pos_Shield_backgem, Shield_backgem_log, "", bbdetLog, false, 0, true);
 }
 
 /*

@@ -38,7 +38,8 @@ public:
   vector<double> vx, vy, vz; //global vertex coordinates of particles in this hit
   vector<int> trid, mid, pid; //track ID, mother track ID and particle ID info
   vector<double> p, edep; //initial momentum and total energy deposition of particles.
-  vector<double> px,py,pz; //initial momentum components
+  vector<double> px,py,pz; //momentum components at this hit
+  vector<double> px_v,py_v,pz_v; //momentum components at vertex
   vector<double> ztravel; //z travel in hit for drift time calc
   vector<int> nstrips; //estimated number of readout pads hit
 

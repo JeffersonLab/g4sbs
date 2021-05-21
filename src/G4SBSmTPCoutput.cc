@@ -47,6 +47,9 @@ void G4SBSmTPCoutput::Clear(){
   px.clear();
   py.clear();
   pz.clear();
+  px_v.clear();
+  py_v.clear();
+  pz_v.clear();
   x.clear();
   y.clear();
   z.clear();

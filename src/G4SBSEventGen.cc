@@ -697,7 +697,9 @@ bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4L
 
   G4ThreeVector boost_Nrest = ni.boostVector();
 
-  G4LorentzVector nspec = G4LorentzVector(-ni.vect(), ni.e());
+  //G4cout << "ni " << ni.e()/GeV << " " << ni.vect().x()/GeV << " " << ni.vect().y()/GeV << " " << ni.vect().z()/GeV << " " << ni.vect().phi()/rad << " " << ni.vect().theta()/rad << G4endl;
+  
+  G4LorentzVector nspec = G4LorentzVector(ni.e(), -ni.vect());
   
   G4LorentzVector Pisum_lab = ei + ni;
 
@@ -857,7 +859,8 @@ bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4L
     fProtonSpecE = -1.e9;
     fProtonSpecP = G4ThreeVector();
   }
-
+  //G4cout << "nspec " << nspec.e()/GeV << " " << nspec.vect().x()/GeV << " " << nspec.vect().y()/GeV << " " << nspec.vect().z()/GeV << " " << nspec.vect().phi()/rad << " " << nspec.vect().theta()/rad << G4endl;
+  
   fFinalNucl = nucl;
   return true;
 }
@@ -1054,7 +1057,7 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
   double Mp = proton_mass_c2;
   double mpi = 0.140*GeV;
 
-  G4LorentzVector nspec = G4LorentzVector(-ni.vect(), ni.e());
+  G4LorentzVector nspec = G4LorentzVector(ni.e(), -ni.vect());
   
   G4LorentzVector Pisum_lab = ei + ni;
 
@@ -1330,7 +1333,7 @@ bool G4SBSEventGen::GenerateDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Loren
   // momentum distribution in 3He or 2H!
   // G4LorentzVector eip = ei.boost(pboost); //eip is incident electron 4-mom boosted to nucleon rest frame
   
-  G4LorentzVector nspec = G4LorentzVector(-ni.vect(), ni.e());
+  G4LorentzVector nspec = G4LorentzVector(ni.e(), -ni.vect());
 
   G4LorentzVector Pisum_lab = ei + ni;
 
@@ -2454,6 +2457,7 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
    
   switch( targ ){
   case G4SBS::kLD2:
+  case G4SBS::kD2:
     PMAX = 0.35*GeV;
     break;
   case G4SBS::k3He:
@@ -2480,7 +2484,7 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
       psample = CLHEP::RandFlat::shoot(PMAX);
     }
   }
-  if( targ == G4SBS::kLD2 ){
+  if( targ == G4SBS::kLD2 || targ == G4SBS::kLD2 ){
     while( CLHEP::RandFlat::shoot() > deutpdist( psample) ){
       psample = CLHEP::RandFlat::shoot(PMAX);
     }
@@ -3008,12 +3012,16 @@ ev_t G4SBSEventGen::GetEventData(){
 
   if ( (fKineType == G4SBS::kDIS || fKineType == G4SBS::kInelastic || fKineType == G4SBS::kElastic) &&
        fTargType == G4SBS::kD2 ){
-    data.p1p  = fProtonSpecP.mag();
-    data.p1px = fProtonSpecP.x();
-    data.p1py = fProtonSpecP.y();
-    data.p1pz = fProtonSpecP.z();
+    //G4cout << "fprotonspec " << fProtonSpecP.mag()/GeV << " " << fProtonSpecP.x()/GeV << " " << fProtonSpecP.y()/GeV << " " << fProtonSpecP.z()/GeV << " " << fProtonSpecP.theta()/rad << " " << fProtonSpecP.phi()/rad << G4endl; 
+ 
+    data.p1p  = fProtonSpecP.mag()/GeV;
+    data.p1px = fProtonSpecP.x()/GeV;
+    data.p1py = fProtonSpecP.y()/GeV;
+    data.p1pz = fProtonSpecP.z()/GeV;
     data.p1th = fProtonSpecP.theta()/rad;
     data.p1ph = fProtonSpecP.phi()/rad;
+    
+    //G4cout << "data.p1 " << data.p1p << " " << data.p1px << " " << data.p1py << " " << data.p1pz << " " << data.p1th << " " << data.p1ph << G4endl; 
   }
   
   // TDIS

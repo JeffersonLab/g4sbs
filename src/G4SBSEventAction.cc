@@ -1946,7 +1946,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
   map<int,map<int,double> > x,y,z,trt,E,trtmin,trtmax,L; //average coordinates, energy, path length for each unique track ID depositing energy in a cell:
   map<int,map<int,double> > vx,vy,vz; //production vertex coordinates of each unique track ID depositing energy in a cell
   map<int,map<int,int> > MID, PID; //mother ID and particle ID of unique tracks in each cell:
-  map<int,map<int,double> > p, px, py, pz, edep; //initial momentum and total energy deposition of unique tracks in each cell:
+  map<int,map<int,double> > p, px, py, pz, px_v, py_v, pz_v, edep; //initial momentum and total energy deposition of unique tracks in each cell:
   map<int,map<int,double> > ztravel; 
   map<int,map<int,int> >  nstrips; 
 
@@ -2015,9 +2015,12 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	MID[cell][track] = (*hits)[hit]->GetMotherID();
 	PID[cell][track] = pid;
 	p[cell][track] = (*hits)[hit]->GetMom().mag();
-	px[cell][track] = (*hits)[hit]->GetMom().x();
-	py[cell][track] = (*hits)[hit]->GetMom().y();
-	pz[cell][track] = (*hits)[hit]->GetMom().z();
+	px[cell][track] = (*hits)[hit]->GetLMom().x();
+	py[cell][track] = (*hits)[hit]->GetLMom().y();
+	pz[cell][track] = (*hits)[hit]->GetLMom().z();
+	px_v[cell][track] = (*hits)[hit]->GetMom().x();
+	py_v[cell][track] = (*hits)[hit]->GetMom().y();
+	pz_v[cell][track] = (*hits)[hit]->GetMom().z();
 	edep[cell][track] = Edep;
 	ztravel[cell][track] = (*hits)[hit]->GetZTravel();
 	nstrips[cell][track] = (*hits)[hit]->GetNStrips();
@@ -2164,6 +2167,14 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	mtpcoutput.xhitg.push_back( xsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
 	mtpcoutput.yhitg.push_back( ysumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
 	mtpcoutput.zhitg.push_back( zsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+	
+	mtpcoutput.px.push_back( px[cell][ihit]/_E_UNIT );
+	mtpcoutput.py.push_back( py[cell][ihit]/_E_UNIT );
+	mtpcoutput.pz.push_back( pz[cell][ihit]/_E_UNIT );
+	
+	mtpcoutput.px_v.push_back( px_v[cell][ihit]/_E_UNIT );
+	mtpcoutput.py_v.push_back( py_v[cell][ihit]/_E_UNIT );
+	mtpcoutput.pz_v.push_back( pz_v[cell][ihit]/_E_UNIT );
 	
 	// mtpcoutput.tavg.push_back( t[cell]/_T_UNIT );
 	// mtpcoutput.trms.push_back( sqrt( t2[cell]/double(nsteps_cell[cell]) - pow(t[cell],2) )/_T_UNIT );

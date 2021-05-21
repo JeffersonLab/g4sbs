@@ -213,7 +213,10 @@ void G4SBSIO::InitializeTree(){
       break;
     case G4SBS::kmTPC:
       mTPCdata[SDname] = G4SBSmTPCoutput();
+      //trackdata[SDname] = G4SBSTrackerOutput();
+      
       BranchmTPC(SDname);
+      break;
     case G4SBS::kBD: 
       // Beam Diffuser (BD) 
       BDdata[SDname] = G4SBSBDoutput(); 
@@ -902,9 +905,12 @@ void G4SBSIO::BranchmTPC( G4String SDname="mTPC" ){
   fTree->Branch( branch_name.Format( "%s.hit.tmin", branch_prefix.Data() ), &(mTPCdata[SDname].tmin) );
   fTree->Branch( branch_name.Format( "%s.hit.tmax", branch_prefix.Data() ), &(mTPCdata[SDname].tmax) );
   // fTree->Branch( branch_name.Format( "%s.hit.Ehit", branch_prefix.Data() ), &(mTPCdata[SDname].Ehit) );
-  // fTree->Branch( branch_name.Format( "%s.hit.pxhit", branch_prefix.Data() ), &(mTPCdata[SDname].pxhit) );
-  // fTree->Branch( branch_name.Format( "%s.hit.pyhit", branch_prefix.Data() ), &(mTPCdata[SDname].pyhit) );
-  // fTree->Branch( branch_name.Format( "%s.hit.pzhit", branch_prefix.Data() ), &(mTPCdata[SDname].pzhit) );
+  fTree->Branch( branch_name.Format( "%s.hit.px", branch_prefix.Data() ), &(mTPCdata[SDname].px) );
+  fTree->Branch( branch_name.Format( "%s.hit.py", branch_prefix.Data() ), &(mTPCdata[SDname].py) );
+  fTree->Branch( branch_name.Format( "%s.hit.pz", branch_prefix.Data() ), &(mTPCdata[SDname].pz) );
+  fTree->Branch( branch_name.Format( "%s.hit.px_v", branch_prefix.Data() ), &(mTPCdata[SDname].px_v) );
+  fTree->Branch( branch_name.Format( "%s.hit.py_v", branch_prefix.Data() ), &(mTPCdata[SDname].py_v) );
+  fTree->Branch( branch_name.Format( "%s.hit.pz_v", branch_prefix.Data() ), &(mTPCdata[SDname].pz_v) );
   // fTree->Branch( branch_name.Format( "%s.hit.ztravel", branch_prefix.Data() ), &(mTPCdata[SDname].ztravel) );
   // fTree->Branch( branch_name.Format( "%s.hit.nstrips", branch_prefix.Data() ), &(mTPCdata[SDname].nstrips) );
 

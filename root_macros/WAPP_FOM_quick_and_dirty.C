@@ -195,6 +195,7 @@ void WAPP_FOM_quick_and_dirty(const char *configfilename, const char *outfilenam
   TH1D *hEmiss = new TH1D( "hEmiss", "E_{#gamma} + M_{n} - (E_{p} + E_{#pi})",150,-1.0,1.0);
   TH1D *hPmiss_perp = new TH1D("hPmiss_perp", "", 150,0.0,0.3);
   TH1D *hPmiss_par = new TH1D("hPmiss_par", "", 150,-0.5,0.5);
+  TH1D *hPmiss = new TH1D("hPmiss","",150,0.0,0.5);
   TH1D *hMX2 = new TH1D("hMX2", "Missing mass squared", 150.0, 0.0, 0.4);
   TH1D *hpT2 = new TH1D("hpT2", "Squared transverse momentum of #pi^{-} + p", 150.0,0.0,0.1);
 
@@ -465,6 +466,8 @@ void WAPP_FOM_quick_and_dirty(const char *configfilename, const char *outfilenam
       hPmiss_par->Fill( Pmiss_par, weight );
       hPmiss_perp->Fill( Pmiss_perp, weight );
 
+      hPmiss->Fill( Pmiss.Vect().Mag(), weight );
+      
       hMX2->Fill( -Pmiss.M2(), weight );
 
       hpT2->Fill( Psum.Perp2(), weight );

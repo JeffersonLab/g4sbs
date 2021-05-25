@@ -1163,12 +1163,16 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
   
    // thpi -> pi + thpi, since N & pi will have equal & opposite momentum in the GammaN rest frame.
   G4double Ppi_GammaNrest = PN_GammaNrest;
-  G4LorentzVector Pfpion_GammaNrest( Epi_GammaNrest,
-  					Ppi_GammaNrest *
-  					G4ThreeVector( sin(pi + thpi)*cos(phpi),
-  						       sin(pi + thpi)*sin(phpi),
-  						       cos(pi + thpi) ) );
+  // G4LorentzVector Pfpion_GammaNrest( Epi_GammaNrest,
+  // 					Ppi_GammaNrest *
+  // 					G4ThreeVector( sin(pi + thpi)*cos(phpi),
+  // 						       sin(pi + thpi)*sin(phpi),
+  // 						       cos(pi + thpi) ) );
 
+  //should give same results as formula above, but safer:
+  G4LorentzVector Pfpion_GammaNrest( Epi_GammaNrest, -Pfnucleon_GammaNrest.vect() );
+				     
+  
   G4LorentzVector Pfpion_lab = Pfpion_GammaNrest;   
   Pfpion_lab.boost( boost_GammaN_lab );
   
@@ -2687,6 +2691,7 @@ bool G4SBSEventGen::GeneratePionPhotoproduction( G4SBS::Nucl_t nucl, G4LorentzVe
   G4double tgen_gev2 = CLHEP::RandFlat::shoot( fPionPhoto_tmin, fPionPhoto_tmax ); //-t in GeV^2
 
   G4double tgen = tgen_gev2*GeV*GeV; //convert to internal G4 units
+
   
   G4double phipi_lab = CLHEP::RandFlat::shoot( fPhMin, fPhMax ); 
   
@@ -2726,6 +2731,7 @@ bool G4SBSEventGen::GeneratePionPhotoproduction( G4SBS::Nucl_t nucl, G4LorentzVe
 
   //In the nucleon rest frame, the outgoing nucleon energy has a simple relation to t:
 
+  // t = (Pgamma - Ppi)^2, Pgamma + PNi = Ppi + PNf, t = (PNf - PNi)^2 = Mnf^2 + Mni^2 - 2Mni E'_N
   // t = Mni^2 + Mnf^2 -2 Mni E'_N
   // E'_N = (Mni^2 + Mnf^2 - t)/(2Mni)
   G4double EprimeNucleon_Nrest = ( pow( M_ni,2) + pow( M_nf, 2 ) + tgen )/(2.0*M_ni); //~= M_N + t/2MN, what we are calling t here is actually -t
@@ -2733,18 +2739,36 @@ bool G4SBSEventGen::GeneratePionPhotoproduction( G4SBS::Nucl_t nucl, G4LorentzVe
   G4double EprimePion_Nrest = Egamma_Nrest + M_ni - EprimeNucleon_Nrest;
   G4double PprimePion_Nrest = sqrt(pow(EprimePion_Nrest,2)-pow(Mpi,2));
 
-  //Now to get the scattering angle in the nucleon rest frame, we use
-  // t = (Pgamma-Ppi)^2 = Mpi^2 - 2Pgamma dot Ppi = Mpi^2 - 2Egamma * (Epi - ppi cos theta) \\
+  //Now to get the polar scattering angle in the nucleon rest frame, we use
+  // t = (Pgamma-Ppi)^2 = Mpi^2 - 2Pgamma dot Ppi = Mpi^2 - 2Egamma * (Epi - ppi cos theta)
   // --> Mpi^2 - t = 2Egamma (Epi - ppi cos theta) \\
   // --> (Mpi^2-t)/2Egamma = Epi - ppi cos theta
   // cos theta = Epi / ppi  + (t-Mpi^2)/2Egamma ppi
+
+  // t = Mpi^2  - 2Egamma Epi + 2pgamma dot ppi = Mpi^2 - 2Egamma Epi + 2 Egamma ppi cos(theta_pigamma)
   G4double costheta_Nrest = EprimePion_Nrest/PprimePion_Nrest - (pow(Mpi,2)+tgen)/(2.0*Egamma_Nrest*PprimePion_Nrest); //I HOPE this lies between -1 and 1
 
+  //NOTE: the following polar angle is relative to the incident PHOTON direction in the nucleon rest frame, which does NOT coincide with the z axis of the lab frame per se:
   G4double thetapi_Nrest = acos(costheta_Nrest);
 
-  G4ThreeVector Ppionvect( sin(thetapi_Nrest)*cos(phipi_lab), sin(thetapi_Nrest)*sin(phipi_lab), cos(thetapi_Nrest) );
+  //G4ThreeVector Ppionvect( sin(thetapi_Nrest)*cos(phipi_lab), sin(thetapi_Nrest)*sin(phipi_lab), cos(thetapi_Nrest) );
 
-  Ppionvect *= PprimePion_Nrest;
+  //Compute unit vector along beam direction in nucleon rest frame: This should ALMOST coincide with the z axis
+  G4ThreeVector BeamDirection_nrest = Pgamma_Nrest.vect().unit();
+
+  //Now we want to compute the unit vector along the direction PERPENDICULAR to the incident photon direction in the nucleon rest frame but (as closely as possible) parallel
+  //to the desired azimuthal angle of the reaction plane in the LAB frame:
+
+  G4ThreeVector uperp( cos(phipi_lab), sin(phipi_lab), 0 );
+
+  G4ThreeVector unitnormal = BeamDirection_nrest.cross( uperp ).unit();
+
+  G4ThreeVector uperp_nrest = unitnormal.cross( BeamDirection_nrest ).unit();
+
+  G4ThreeVector Ppionvect = PprimePion_Nrest * ( BeamDirection_nrest * costheta_Nrest + uperp_nrest * sin(thetapi_Nrest) );
+  //Ppionvect *= PprimePion_Nrest;
+
+  //In the nucleon rest frame, the outgoing pion 
   
   G4LorentzVector Ppion_Nrest( Ppionvect, EprimePion_Nrest );
 

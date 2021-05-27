@@ -46,7 +46,7 @@ typedef struct {
   Double_t nth, nph;
   Double_t pmperp, pmpar, pmparsm;
   Double_t z, phperp, phih, phiS, thetaS, MX;
-  Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator
+  Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator (for the SIDIS generator, we now use these variables to hold the "true" target spin direction)
   Double_t s, t, u, costhetaCM, Egamma_lab; //Extra kinematic variables we would like to store for pion photoproduction
   Int_t nucl, fnucl;
   Int_t hadr;
@@ -205,6 +205,10 @@ public:
   map<G4String,G4bool> GetKeepSDtracks() const { return fKeepSDtracks; }
 
   void SetWriteFieldMaps( G4bool b ){ fWritePortableFieldMaps = b; }
+
+  //Set Kinematics: this determines what generator-specific tree branches we create:
+  void SetKine( G4SBS::Kine_t kine ){ fKineType = kine; }
+
   
 private:
   TFile *fFile;
@@ -220,6 +224,28 @@ private:
   
   ev_t evdata;
   gen_t gendata;
+
+  // AJRP May 27, 2021:
+  //collecting additional event-level tree variables that aren't already accommodated by the ev_t data structure here:
+  //We are going to stop modifying the ev_t data structure, because every time we change it, we make older versions of the ROOT tree de facto unreadable.
+  //Instead, any future global event-level variables we want to store in the tree, we will declare them here and give them their own tree branches:
+  //Variables to store beam and target polarization and direction:
+
+  //Since these event-level variables will depend on the generator kinematics, let's store a copy of the Kine_t
+  G4SBS::Kine_t fKineType;
+
+  //Variables specific to generators that might make use of beam and target polarization and spin direction info:
+  G4double fTargPol;
+  G4double fTargThetaSpin, fTargPhiSpin;
+  G4double fBeamPol;
+  G4double fBeamThetaSpin, fBeamPhiSpin;
+
+  //Variables specific to SIDIS generator:
+  G4double fAUT_Collins;
+  G4double fAUT_Sivers;
+
+  //Add more event-level variables here....
+  
   //tr_t trdata;
   // cal_t caldata;
   // hit_t hitdata;

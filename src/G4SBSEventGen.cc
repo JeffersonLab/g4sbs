@@ -63,7 +63,9 @@ G4SBSEventGen::G4SBSEventGen(){
   fBeamE = 2.2*GeV;
   fBeamP = G4ThreeVector( 0.0, 0.0, fBeamE );
 
-  fBeamPol = G4ThreeVector( 0.0, 0.0, 1.0 );
+  //Default beam polarization to be along the z axis with 100% degree of polarization:
+  SetBeamPol( G4ThreeVector(0,0,1) );
+  //fBeamPol = G4ThreeVector( 0.0, 0.0, 1.0 );
   fhel = 1;
 
   fCosmPointer = G4ThreeVector(0.0*m, 0.0*m, 0.0*m);
@@ -757,8 +759,8 @@ bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4L
   // Calculate longitudinal / transverse polarization components 
   double r = GE / GM;
   double epsilon = pow(1.0 + 2.0*(1.0+tau)*tan(th_Nrest/2.0)*tan(th_Nrest/2.0), -1);
-  fPt = ( -fhel*fBeamPol.z()*sqrt( (2.0*epsilon*(1.0-epsilon))/tau) ) * ( r / (1.0+epsilon*r*r/tau) );
-  fPl = ( fhel*fBeamPol.z()*sqrt(1.0-epsilon*epsilon) ) / ( 1.0+epsilon*r*r/tau );
+  fPt = ( -fhel*(GetBeamPol()).z()*sqrt( (2.0*epsilon*(1.0-epsilon))/tau) ) * ( r / (1.0+epsilon*r*r/tau) );
+  fPl = ( fhel*(GetBeamPol()).z()*sqrt(1.0-epsilon*epsilon) ) / ( 1.0+epsilon*r*r/tau );
 
   // Boost back
 
@@ -2877,6 +2879,46 @@ G4double G4SBSEventGen::TriangleFunc( G4double a, G4double b, G4double c ){ //ut
   return pow(a,2) + pow(b,2) + pow(c,2) - 2.*a*b - 2.*a*c - 2.*b*c;
 }
 
+G4double G4SBSEventGen::GetTargetThetaSpin(G4int ispin){
+  if( ispin >= 0 && ispin < fNumTargetSpinDirections ){
+    return fTargetThetaSpin[ispin];
+  } else {
+    return 0.0;
+  }
+}
+
+G4double G4SBSEventGen::GetTargetPhiSpin(G4int ispin){
+  if( ispin >= 0 && ispin < fNumTargetSpinDirections ){
+    return fTargetPhiSpin[ispin];
+  } else {
+    return 0.0;
+  }
+}
+
+void G4SBSEventGen::SetTargetThetaSpin( G4int ispin, G4double theta ){
+  if( ispin >= 0 && ispin < fNumTargetSpinDirections ){
+    fTargetThetaSpin[ispin] = theta;
+  }
+}
+
+void G4SBSEventGen::SetTargetPhiSpin( G4int ispin, G4double phi ){
+  if( ispin >= 0 && ispin < fNumTargetSpinDirections ){
+    fTargetPhiSpin[ispin] = phi;
+  }
+}
+
+void G4SBSEventGen::SetNumTargetSpinDirections( G4int nspin ){
+  fNumTargetSpinDirections = nspin;
+  if( nspin <= 0){
+    fNumTargetSpinDirections = 0;
+    fRandomizeTargetSpin = false;
+    fTargetThetaSpin.clear();
+    fTargetPhiSpin.clear();
+  } else {
+    fTargetThetaSpin.resize(nspin);
+    fTargetPhiSpin.resize(nspin);
+  }
+}
 // void dsigmadk_Brems( G4double y, G4double Z ){
 //   //This formula comes from the PDG review on passage of particles through matter, 2020 edition, equation (34.28)
 //   G4double k = y*fBeamE;

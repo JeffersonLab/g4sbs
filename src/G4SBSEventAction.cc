@@ -442,7 +442,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   }
 
   fIO->SetAllSDtrackData( allsdtracks );
-  
+
+  //This copy operation may be inefficient:
   ev_t evdata = fIO->GetEventData();
   evdata.earmaccept = 0;
   evdata.harmaccept = 0;

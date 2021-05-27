@@ -812,6 +812,42 @@ G4SBSMessenger::G4SBSMessenger(){
   TargPolMagnitudeCmd->SetGuidance("0 <= Ptarg <= 1");
   TargPolMagnitudeCmd->SetParameterName("Ptgt",true);
   TargPolMagnitudeCmd->SetDefaultValue(1.0);
+
+  BeamPolDirectionCmd = new G4UIcmdWith3Vector("/g4sbs/beampoldirection", this );
+  BeamPolDirectionCmd->SetGuidance("Set beam polarization direction");
+  BeamPolDirectionCmd->SetGuidance("Three-vector arguments are x,y,z components of polarization");
+  BeamPolDirectionCmd->SetGuidance("Automatically converted to unit vector internally");
+  BeamPolDirectionCmd->SetGuidance("Assumed to be given in global coordinate system");
+  BeamPolDirectionCmd->SetParameterName("Px","Py","Pz",false);
+  
+  BeamPolMagnitudeCmd = new G4UIcmdWithADouble("/g4sbs/beampolmag", this );
+  BeamPolMagnitudeCmd->SetGuidance("Set beam polarization magnitude");
+  BeamPolMagnitudeCmd->SetGuidance("Not yet used by anything, but anticipated for use in polarized cross section calculation");
+  BeamPolMagnitudeCmd->SetGuidance("0 <= Pbeam <= 1");
+  BeamPolMagnitudeCmd->SetParameterName("Pbeam",true);
+  BeamPolMagnitudeCmd->SetDefaultValue(1.0);
+
+  RandomizeTargetSpinCmd = new G4UIcmdWithABool("/g4sbs/randomizetargetspin",this);
+  RandomizeTargetSpinCmd->SetGuidance("Turn on randomization of target spin direction in event generator");
+  RandomizeTargetSpinCmd->SetParameterName("randomizespin", true );
+  RandomizeTargetSpinCmd->SetDefaultValue(true);
+
+  NumSpinStatesTargCmd = new G4UIcmdWithAnInteger("/g4sbs/numtargspinstates",this);
+  NumSpinStatesTargCmd->SetGuidance("Specify number of target spin directions to randomly generate");
+  //NumSpinStatesTargCmd->SetGuidance("");
+  NumSpinStatesTargCmd->SetParameterName("Ntargspin", false);
+
+  TargThetaSpinCmd = new G4UIcommand("/g4sbs/targthetaspin",this);
+  TargThetaSpinCmd->SetGuidance("Specify polar angle(s) of target spin for randomized target spin direction in event generator");
+  TargThetaSpinCmd->SetGuidance("Number of angles must match number of target spin states (see /g4sbs/numtargspinstates)");
+  TargThetaSpinCmd->SetGuidance("Entries separated by whitespace, units at the end of the string (degrees or radians)"); 
+  TargThetaSpinCmd->SetParameter( new G4UIparameter("thetaspinlist",'s',false) ); //parameter is of string type
+
+  TargPhiSpinCmd = new G4UIcommand("/g4sbs/targphispin",this);
+  TargPhiSpinCmd->SetGuidance("Specify azimuthal angle(s) of target spin for randomized target spin direction in event generator");
+  TargPhiSpinCmd->SetGuidance("Number of angles must match number of target spin states (see /g4sbs/numtargspinstates)");
+  TargPhiSpinCmd->SetGuidance("Entries separated by whitespace, units at the end of the string (degrees or radians)"); 
+  TargPhiSpinCmd->SetParameter( new G4UIparameter("phispinlist",'s',false) ); //parameter is of string type
   
   GunPolarizationCommand = new G4UIcmdWith3Vector( "/g4sbs/gunpol", this );
   GunPolarizationCommand->SetGuidance( "Set particle polarization for gun generator:" );
@@ -1053,17 +1089,24 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == kineCmd ){
     bool validcmd = false;
+
+    G4SBS::Kine_t kinetemp = G4SBS::kElastic;
+    
     if( newValue.compareTo("elastic") == 0 ){
-      fevgen->SetKine(G4SBS::kElastic);
+      kinetemp = G4SBS::kElastic;
+      // fevgen->SetKine(G4SBS::kElastic);
+      // fIO->SetKine(G4SBS::kElastic);
       validcmd = true;
     }
     if( newValue.compareTo("inelastic") == 0 ){
-      fevgen->SetKine(G4SBS::kInelastic);
+      kinetemp = G4SBS::kInelastic;
+      // fevgen->SetKine(G4SBS::kInelastic);
       //fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("flat") == 0 ){
-      fevgen->SetKine(G4SBS::kFlat);
+      kinetemp = G4SBS::kFlat;
+      //fevgen->SetKine(G4SBS::kFlat);
       //fevgen->SetMaxWeight( cm2 );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
@@ -1074,52 +1117,62 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("beam") == 0 ){
-      fevgen->SetKine(G4SBS::kBeam);
+      kinetemp = G4SBS::kBeam;
+      //fevgen->SetKine(G4SBS::kBeam);
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("sidis") == 0 ){
-      fevgen->SetKine( G4SBS::kSIDIS );
+      kinetemp = G4SBS::kSIDIS;
+      //fevgen->SetKine( G4SBS::kSIDIS );
       //fevgen->SetMaxWeight( cm2/pow(GeV,2) );
       validcmd = true;
     }
     if( newValue.compareTo("wiser") == 0 ){
-      fevgen->SetKine( G4SBS::kWiser);
+      kinetemp = G4SBS::kWiser;
+      //      fevgen->SetKine( G4SBS::kWiser);
       //fevgen->SetMaxWeight( cm2/GeV );
       validcmd = true;
     }
     if( newValue.compareTo("gun") == 0 ){
-      fevgen->SetKine( G4SBS::kGun );
+      kinetemp = G4SBS::kGun;
+      //   fevgen->SetKine( G4SBS::kGun );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("cosmics") == 0 ){
-      fevgen->SetKine( G4SBS::kCosmics );
+      kinetemp = G4SBS::kCosmics;
+      //     fevgen->SetKine( G4SBS::kCosmics );
       validcmd = true;
     }
 
     if( newValue.compareTo("pythia6") == 0 ){
-      fevgen->SetKine( G4SBS::kPYTHIA6 );
+      kinetemp = G4SBS::kPYTHIA6;
+      //fevgen->SetKine( G4SBS::kPYTHIA6 );
       fIO->SetUsePythia6( true );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if (newValue.compareTo("gmnelasticcheck") == 0 ){
-      fevgen->SetKine(G4SBS::kGMnElasticCheck);
+      kinetemp = G4SBS::kGMnElasticCheck;
+      //fevgen->SetKine(G4SBS::kGMnElasticCheck);
       fevgen->SetRejectionSamplingFlag(false);
       //fevgen->SetMaxWeight( cm2 );
       validcmd = true;
     }
 
     if( newValue.compareTo("wapp") == 0 ){ //wide angle pion photoproduction
-      fevgen->SetKine(G4SBS::kPionPhoto);
+      kinetemp = G4SBS::kPionPhoto;
+      //fevgen->SetKine(G4SBS::kPionPhoto);
       validcmd = true;
     }
 
     if( !validcmd ){
       fprintf(stderr, "%s: %s line %d - Error: kinematic type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
       exit(1);
-    } else {
+    } else { //valid kinematics given: 
+      fevgen->SetKine(kinetemp);
+      fIO->SetKine(kinetemp); //This is necessary because G4SBSIO and G4SBSEventGen cannot directly talk to each other
       G4SBSRun::GetRun()->GetData()->SetGenName(newValue.data());
     }
 
@@ -2289,11 +2342,93 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == TargPolDirectionCmd ){
     G4ThreeVector v = TargPolDirectionCmd->GetNew3VectorValue(newValue);
     fdetcon->fTargetBuilder->SetTargPolDir( v.unit() );
+    fevgen->SetTargPolDir( v.unit() );
   }
 
   if( cmd == TargPolMagnitudeCmd ){
     G4double pol = TargPolMagnitudeCmd->GetNewDoubleValue( newValue );
     fdetcon->fTargetBuilder->SetTargPolMag( pol );
+    fevgen->SetTargPolMag( pol );
+  }
+
+  if( cmd == BeamPolDirectionCmd ){
+    G4ThreeVector v = BeamPolDirectionCmd->GetNew3VectorValue(newValue);
+    //fdetcon->fTargetBuilder->SetTargPolDir( v.unit() );
+    fevgen->SetBeamPolDir( v.unit() );
+  }
+
+  if( cmd == BeamPolMagnitudeCmd ){
+    G4double pol = BeamPolMagnitudeCmd->GetNewDoubleValue( newValue );
+    //fdetcon->fTargetBuilder->SetTargPolMag( pol );
+    fevgen->SetBeamPolMag( pol );
+  }
+
+  if( cmd == RandomizeTargetSpinCmd ){
+    G4bool flag = RandomizeTargetSpinCmd->GetNewBoolValue( newValue );
+    fevgen->SetRandomizeTargetSpin( flag );
+  }
+
+  if( cmd == NumSpinStatesTargCmd ){
+    G4int nspin = NumSpinStatesTargCmd->GetNewIntValue( newValue );
+    fevgen->SetNumTargetSpinDirections( nspin );
+  }
+
+  if( cmd == TargThetaSpinCmd ){ //there must be at least nspin entries or this will fail:
+    std::istringstream is(newValue);
+    G4int nspin = fevgen->GetNumTargetSpinDirections();
+
+    std::vector<G4double> thspintemp(nspin);
+
+    G4String unit;
+
+    bool success = true;
+    for( G4int ispin=0; ispin<nspin; ispin++ ){
+      is >> thspintemp[ispin];
+      if( is.eof() || is.fail() || is.bad() ){
+	success = false;
+	exit(-1);
+      }
+    }
+
+    
+    is >> unit; 
+    if( is.fail() || is.bad() || !is.eof() ) {
+      success = false;
+      exit(-1);
+    }
+
+    for( G4int ispin=0; ispin<nspin; ispin++ ){
+      fevgen->SetTargetThetaSpin( ispin, thspintemp[ispin]*cmd->ValueOf(unit) );
+    }
+  }
+
+  if( cmd == TargPhiSpinCmd ){ //there must be at least nspin entries or this will fail:
+    std::istringstream is(newValue);
+    G4int nspin = fevgen->GetNumTargetSpinDirections();
+
+    std::vector<G4double> phspintemp(nspin);
+
+    G4String unit;
+
+    bool success = true;
+    for( G4int ispin=0; ispin<nspin; ispin++ ){
+      is >> phspintemp[ispin];
+      if( is.eof() || is.fail() || is.bad() ){
+	success = false;
+	exit(-1);
+      }
+    }
+
+    
+    is >> unit; 
+    if( is.fail() || is.bad() || !is.eof() ) {
+      success = false;
+      exit(-1);
+    }
+
+    for( G4int ispin=0; ispin<nspin; ispin++ ){
+      fevgen->SetTargetPhiSpin( ispin, phspintemp[ispin]*cmd->ValueOf(unit) );
+    }
   }
   
   if( cmd == UseCerenkovCmd ){

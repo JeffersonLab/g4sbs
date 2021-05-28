@@ -436,7 +436,33 @@ bool G4SBSEventGen::GenerateEvent(){
     //    std::vector<double> zfoil_un
     
   }
-    
+
+  // If the randomize target spin flag is set, generate target spin randomly, from
+  // either a discrete set of orientations, or within the plane perpendicular to the beamline,
+  // or in three dimensions:
+  if( fRandomizeTargetSpin ){
+    double thspin, phspin;
+    if( fNumTargetSpinDirections < 0 ){ //random in 3D:
+      thspin = acos( CLHEP::RandFlat::shoot( -1.0, 1.0 ) );
+      phspin = CLHEP::RandFlat::shoot( -CLHEP::pi, CLHEP::pi );
+    } else if( fNumTargetSpinDirections == 0 ){ //random in the plane perp. to beamline
+      thspin = CLHEP::pi/2.0; //polar angle 90 deg.
+      phspin = CLHEP::RandFlat::shoot(-CLHEP::pi, CLHEP::pi );
+    } else { //choose randomly among each of N discrete settings:
+      int ispin = CLHEP::RandFlat::shootInt( fNumTargetSpinDirections );
+      if( ispin >= 0 && ispin < fNumTargetSpinDirections ){
+	thspin = fTargetThetaSpin[ispin];
+	phspin = fTargetPhiSpin[ispin];
+      } else {
+	thspin = 0.0;
+	phspin = 0.0;
+      }
+    }
+
+    fTargPolDirection.set( sin(thspin)*cos(phspin), sin(thspin)*sin(phspin), cos(thspin) );
+
+  }
+  
   fNuclType = thisnucl;
 
   switch(fKineType){
@@ -1521,6 +1547,8 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
    
   G4LorentzVector ef_lab( Eeprime, G4ThreeVector( Peprime*sin(etheta)*cos(ephi), Peprime*sin(etheta)*sin(ephi), Peprime*cos(etheta) ) );
 
+  G4LorentzVector q_lab = ei - ef_lab;
+  
   double htheta = acos( CLHEP::RandFlat::shoot( cos( fThMax_had ), cos( fThMin_had ) ) );
   double hphi = CLHEP::RandFlat::shoot( fPhMin_had, fPhMax_had );
 
@@ -1656,7 +1684,7 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
 
   G4ThreeVector Phad_perp = phad_Nrest_vect - ( phad_Nrest_vect.dot(q_Nrest_vect)/q_Nrest_vect.mag2() ) * q_Nrest_vect ;
 
-  double Ph_perp = sqrt( Phad_perp.mag2() );
+  double Ph_perp = Phad_perp.mag();
 
   double b = 1.0/( pow(z,2)*kperp2_avg + pperp2_avg );
 
@@ -1670,7 +1698,7 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
 
   //This is phi hadron, the azimuthal angle between the hadron production plane and the lepton scattering plane:
   double phi_hadron = atan2( phad_Nrest_vect.dot( yaxis ), phad_Nrest_vect.dot( xaxis ) );
-  fphi_h = phi_hadron;
+  fphi_h = phi_hadron; //perhaps replace this with lab frame calculation later:
 
   fW2 = (ni_Nrest + q_Nrest).mag2();
   fMx = (ni_Nrest + q_Nrest - Phad_Nrest ).mag2();
@@ -1692,6 +1720,18 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
   //Compute the e- scattering angle in the nucleon rest frame:
   G4ThreeVector ki_Nrest = ei_Nrest.vect();
   G4ThreeVector kf_Nrest = ef_Nrest.vect();
+
+  //Compute phi_S, theta_S in the LAB frame:
+  //
+  G4ThreeVector zaxis_lab = q_lab.vect().unit();
+  G4ThreeVector yaxis_lab = zaxis_lab.cross(ei.vect().unit()).unit();
+  G4ThreeVector xaxis_lab = yaxis_lab.cross(zaxis_lab).unit();
+
+  fTheta_S = acos( fTargPolDirection.dot( zaxis_lab ) );
+  fphi_S = atan2( fTargPolDirection.dot( yaxis_lab ), fTargPolDirection.dot( xaxis_lab ) );
+
+  //for now, replace phi_h with the angle as computed in the lab frame:
+  fphi_h = atan2( Phad_lab.vect().dot( yaxis_lab ), Phad_lab.vect().dot( xaxis_lab ) );
   
   double etheta_Nrest = acos( ki_Nrest.unit().dot( kf_Nrest.unit() ) );
 

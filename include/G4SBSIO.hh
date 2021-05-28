@@ -209,6 +209,17 @@ public:
   //Set Kinematics: this determines what generator-specific tree branches we create:
   void SetKine( G4SBS::Kine_t kine ){ fKineType = kine; }
 
+  //Setters for beam and target polarization info;
+  void SetTargPol( G4double pol ){ fTargPol = pol; }
+  void SetTargThetaSpin( G4double theta ){ fTargThetaSpin = theta; }
+  void SetTargPhiSpin( G4double phi ){ fTargPhiSpin = phi; }
+
+  void SetBeamPol( G4double pol ){ fBeamPol = pol; }
+  void SetBeamThetaSpin( G4double theta ){ fBeamThetaSpin = theta; }
+  void SetBeamPhiSpin( G4double phi ){ fBeamPhiSpin = phi; }
+
+  void SetAUT_Collins( G4double Acoll ){ fAUT_Collins = Acoll; }
+  void SetAUT_Sivers( G4double Asiv ){ fAUT_Sivers = Asiv; }
   
 private:
   TFile *fFile;

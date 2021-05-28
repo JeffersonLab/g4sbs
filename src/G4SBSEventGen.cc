@@ -63,8 +63,10 @@ G4SBSEventGen::G4SBSEventGen(){
   fBeamE = 2.2*GeV;
   fBeamP = G4ThreeVector( 0.0, 0.0, fBeamE );
 
-  //Default beam polarization to be along the z axis with 100% degree of polarization:
+  //Default beam and target polarization to be along the z axis with 100% degree of polarization:
   SetBeamPol( G4ThreeVector(0,0,1) );
+  SetTargPol( G4ThreeVector(0,0,1) );
+  
   //fBeamPol = G4ThreeVector( 0.0, 0.0, 1.0 );
   fhel = 1;
 

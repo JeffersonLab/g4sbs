@@ -345,6 +345,24 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     //G4cout << "Gun polarization = " << particleGun->GetParticlePolarization() << G4endl;
       particleGun->GeneratePrimaryVertex(anEvent);
   }
+
+  //Set some of the event-level variables that will end up in the root tree here:
+  //Since the primary generator action is the only class other than the messenger that can talk directly to both the G4SBSIO and the G4SBSEventGen classes,
+  //This is the place to set these values:
+  fIO->SetTargPol( sbsgen->GetTargPolMagnitude() );
+  fIO->SetBeamPol( sbsgen->GetBeamPolMagnitude() );
+  
+  G4ThreeVector targpoldir = sbsgen->GetTargPolDirection();
+  G4ThreeVector beampoldir = sbsgen->GetBeamPolDirection();
+  
+  fIO->SetTargThetaSpin( targpoldir.theta() );
+  fIO->SetTargPhiSpin( targpoldir.phi() );
+  //In almost all cases, the beam polarization will be along Z:
+  fIO->SetBeamThetaSpin( beampoldir.theta() );
+  fIO->SetBeamPhiSpin( beampoldir.phi() );
+
+  fIO->SetAUT_Collins( sbsgen->GetAUT_Collins() );
+  fIO->SetAUT_Sivers( sbsgen->GetAUT_Sivers() );
   
 }
 

@@ -55,6 +55,9 @@ public:
 
   G4SBS::Hadron_t GetHadronType(){ return fHadronType; }
 
+  G4double GetAUT_Collins(){ return fAUT_Collins; }
+  G4double GetAUT_Sivers(){ return fAUT_Sivers; }
+  
   double GetPt(){ return fPt; }
   double GetPl(){ return fPl; }
   
@@ -214,6 +217,11 @@ public:
   void SetTargetThetaSpin( G4int ispin, G4double theta );
   void SetTargetPhiSpin( G4int ispin, G4double phi );
   //void SetTargetThetaSpin( G4int ispin, G4double value )
+
+  void SetAUT_Collins_Sivers( G4double Acoll, G4double Asiv ){
+    fAUT_Collins = Acoll;
+    fAUT_Sivers = Asiv;
+  }
   
 private:
 
@@ -250,7 +258,7 @@ private:
   double fs, ft, fu, fcosthetaCM, fEgamma_lab;
 
   //Define quantities to hold "true" values of Collins/Sivers asymmetries for target SSA simulations:
-  double fAUT_Collins, fAUT_Sivers;
+  double fAUT_Collins, fAUT_Sivers; //Now, since we know on an event-by-event basis which nucleon was the struck nucleon, 
   
   //Define additional kinematic quantities for SIDIS:
   double fz, fPh_perp, fphi_h, fphi_S, fTheta_S, fMx;

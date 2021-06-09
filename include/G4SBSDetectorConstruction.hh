@@ -25,7 +25,10 @@ class G4SBSBeamlineBuilder;
 class G4SBSTargetBuilder;
 class G4SBSEArmBuilder;
 class G4SBSHArmBuilder;
-
+class G4SBSECal;
+class G4SBSCDet;
+//class RTPC;
+class G4SBSmTPC;
 
 class G4SBSDetectorMessenger;
 
@@ -75,13 +78,73 @@ public:
   G4bool GetGEnTargetCollimatorEnable()  const { return fGEnTgtCollimatorEnable;  }  
   G4bool GetGEnTargetCollimatorAEnable() const { return fGEnTgtCollimatorAEnable; }  
   G4bool GetGEnTargetCollimatorBEnable() const { return fGEnTgtCollimatorBEnable; }  
-  G4bool GetGEnTargetCollimatorCEnable() const { return fGEnTgtCollimatorCEnable; }  
- 
+  G4bool GetGEnTargetCollimatorCEnable() const { return fGEnTgtCollimatorCEnable; } 
+
+  // D. Flay (12/9/20).  GEn 3He target as a sensitive detector
+  void SetGEnTargetSDEnable(bool v)            { fGEnTgtSDEnable = v;          } 
+  G4bool GetGEnTargetSDEnable()          const { return fGEnTgtSDEnable;       }  
+
+  // Beam dump enable 
   void SetBeamDumpEnable(bool v)   { fBeamDumpEnable = v;    } 
-  G4bool GetBeamDumpEnable() const { return fBeamDumpEnable; } 
+  G4bool GetBeamDumpEnable() const { return fBeamDumpEnable; }
+ 
   // D. Flay (8/25/20).  Beam Diffuser enable 
   void SetBeamDiffuserEnable(bool v)   { fBeamDiffuserEnable = v;    } 
   G4bool GetBeamDiffuserEnable() const { return fBeamDiffuserEnable; } 
+
+  // D. Flay (10/15/20). Ion Chamber  
+  void SetIonChamberEnable(bool v)       { fIonChamberEnable = v; } 
+  G4bool GetIonChamberEnable()     const { return fIonChamberEnable; } 
+  // positions 
+  void SetIonChamberX(double v)          { fIonChamberX = v;    } 
+  G4double GetIonChamberX()        const { return fIonChamberX; } 
+  void SetIonChamberY(double v)          { fIonChamberY = v;    } 
+  G4double GetIonChamberY()        const { return fIonChamberY; } 
+  void SetIonChamberZ(double v)          { fIonChamberZ = v;    } 
+  G4double GetIonChamberZ()        const { return fIonChamberZ; } 
+  // angles 
+  void SetIonChamberRX(double v)         { fIonChamberRX = v;    } 
+  G4double GetIonChamberRX()       const { return fIonChamberRX; } 
+  void SetIonChamberRY(double v)         { fIonChamberRY = v;    } 
+  G4double GetIonChamberRY()       const { return fIonChamberRY; } 
+  void SetIonChamberRZ(double v)         { fIonChamberRZ = v;    } 
+  G4double GetIonChamberRZ()       const { return fIonChamberRZ; } 
+
+  // D. Flay (11/5/20). Beam collimator (for GEn)   
+  void SetBeamCollimatorEnable_dnstr(bool v)       { fBeamCollimatorEnable_dnstr = v; } 
+  G4bool GetBeamCollimatorEnable_dnstr()     const { return fBeamCollimatorEnable_dnstr; } 
+  void SetBeamCollimatorEnable_upstr(bool v)       { fBeamCollimatorEnable_upstr = v; } 
+  G4bool GetBeamCollimatorEnable_upstr()     const { return fBeamCollimatorEnable_upstr; } 
+  // dimensions 
+  // - downstream
+  void SetBeamCollimatorL_dnstr(double v)          { fBeamCollimatorL_dnstr = v;    } 
+  G4double GetBeamCollimatorL_dnstr()        const { return fBeamCollimatorL_dnstr; } 
+  void SetBeamCollimatorDmin_dnstr(double v)          { fBeamCollimatorDmin_dnstr = v; } 
+  G4double GetBeamCollimatorDmin_dnstr()     const { return fBeamCollimatorDmin_dnstr; } 
+  void SetBeamCollimatorDmax_dnstr(double v)       { fBeamCollimatorDmax_dnstr = v;    } 
+  G4double GetBeamCollimatorDmax_dnstr()     const { return fBeamCollimatorDmax_dnstr; } 
+  // - upstream
+  void SetBeamCollimatorL_upstr(double v)          { fBeamCollimatorL_upstr = v;    } 
+  G4double GetBeamCollimatorL_upstr()        const { return fBeamCollimatorL_upstr; } 
+  void SetBeamCollimatorDmin_upstr(double v)          { fBeamCollimatorDmin_upstr = v; } 
+  G4double GetBeamCollimatorDmin_upstr()     const { return fBeamCollimatorDmin_upstr; } 
+  void SetBeamCollimatorDmax_upstr(double v)       { fBeamCollimatorDmax_upstr = v;    } 
+  G4double GetBeamCollimatorDmax_upstr()     const { return fBeamCollimatorDmax_upstr; } 
+  // positions 
+  // - downstream
+  void SetBeamCollimatorX_dnstr(double v)          { fBeamCollimatorX_dnstr = v;    } 
+  G4double GetBeamCollimatorX_dnstr()        const { return fBeamCollimatorX_dnstr; } 
+  void SetBeamCollimatorY_dnstr(double v)          { fBeamCollimatorY_dnstr = v;    } 
+  G4double GetBeamCollimatorY_dnstr()        const { return fBeamCollimatorY_dnstr; } 
+  void SetBeamCollimatorZ_dnstr(double v)          { fBeamCollimatorZ_dnstr = v;    } 
+  G4double GetBeamCollimatorZ_dnstr()        const { return fBeamCollimatorZ_dnstr; } 
+  // - upstream
+  void SetBeamCollimatorX_upstr(double v)          { fBeamCollimatorX_upstr = v;    } 
+  G4double GetBeamCollimatorX_upstr()        const { return fBeamCollimatorX_upstr; } 
+  void SetBeamCollimatorY_upstr(double v)          { fBeamCollimatorY_upstr = v;    } 
+  G4double GetBeamCollimatorY_upstr()        const { return fBeamCollimatorY_upstr; } 
+  void SetBeamCollimatorZ_upstr(double v)          { fBeamCollimatorZ_upstr = v;    } 
+  G4double GetBeamCollimatorZ_upstr()        const { return fBeamCollimatorZ_upstr; } 
 
   void SetTotalAbs(bool b){ fTotalAbs= b; }
   void SetCheckOverlap(bool b){ fCheckOverlap = b; }
@@ -106,7 +169,7 @@ public:
   
   map<G4String, G4double> SDgatewidth; //Time window for accumulating hit signal
   map<G4String, G4double> SDthreshold; //threshold (energy deposition or photoelectrons) for recording a hit
-  //map<G4String, G4int>    SDntimebins; //Time bins for "pulse shape" histogram
+  map<G4String, G4int> SDntimebins; //Time bins for "pulse shape" histogram
 
   void InsertSDboundaryVolume( G4String bvname, G4String sdname );
   
@@ -120,13 +183,17 @@ public:
   G4SBSTargetBuilder   *fTargetBuilder;
   G4SBSEArmBuilder     *fEArmBuilder;
   G4SBSHArmBuilder     *fHArmBuilder;
-
+  G4SBSECal            *fECal;
+  G4SBSCDet            *fCDet;
+  G4SBSmTPC            *fmTPC;
+  //RTPC *fRTPC;
+  
   void SetBBDist( double);
   void SetBBAng( double);
   void Set48D48Dist( double);
   void Set48D48Ang( double);
 
-  void AddToscaField(const char *);
+  void AddToscaField(const char *, int);
 
   bool fUseGlobalField;
 
@@ -161,13 +228,29 @@ public:
 
   void SetOpticalPhotonDisabled(G4String material){ fMaterialsListOpticalPhotonDisabled.insert( material ); }
 
-  void SetTimeWindowAndThreshold( G4String SDname, G4double Ethresh=0.0*MeV, G4double Twindow=1000.0*ns ); //utility function to set time window and threshold by sensitive detector name
+  void SetThresholdTimeWindowAndNTimeBins( G4String SDname, G4double Ethresh=0.0*MeV, G4double Twindow=1000.0*ns, G4int NTBins=25 ); //utility function to set time window, # of time bins and threshold by sensitive detector name
 
+  void SetTPCSolenoidField();
+
+  void SetmTPCHeGasRatio( G4double mtpchefraction){fmTPCHeGasFraction = mtpchefraction;};
+  void SetmTPCCH4GasRatio( G4double mtpcch4fraction){fmTPCCH4GasFraction = mtpcch4fraction;};
+  void SetmTPCGasTemp( G4double mtpcgastemp){fmTPCGasTemp = mtpcgastemp;};
+  void SetmTPCGasPressure( G4double mtpcgaspressure){fmTPCGasPressure = mtpcgaspressure;};
+  
   inline set<G4String> GetTargetVolumes() const { return fTargetVolumes; }
   inline set<G4String> GetAnalyzerVolumes() const { return fAnalyzerVolumes; }
 
   inline void InsertTargetVolume( G4String vname ){ fTargetVolumes.insert(vname); }
   inline void InsertAnalyzerVolume( G4String vname ){ fAnalyzerVolumes.insert(vname); }
+
+  //getters and setters for GEM Al shielding parameters:
+  void SetGEMuseAlshield( G4bool useshield ){ fGEMuseAlshield = useshield; }
+  void SetGEMAlShieldThick( G4double thick ){ fGEMAlShieldThick = thick; }
+  void SetGEMAirGapThick( G4double thick ){ fGEMAirGapThick = thick; }
+
+  inline G4bool GetGEMuseAlshield() const { return fGEMuseAlshield; }
+  inline G4double GetGEMAlShieldThick() const { return fGEMAlShieldThick; }
+  inline G4double GetGEMAirGapThick() const { return fGEMAirGapThick; }
   
 private:
 
@@ -197,19 +280,47 @@ private:
 
   G4bool fGEMflip;
 
-  G4int fGEnTgtHHConfig; // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration
+  G4double fmTPCHeGasFraction;
+  G4double fmTPCCH4GasFraction;
+  G4double fmTPCGasTemp;
+  G4double fmTPCGasPressure;
   
   G4double fGEnTgtDRX,fGEnTgtDRY,fGEnTgtDRZ; // D. Flay (9/29/20).  GEn 3He target angular misalignment 
+  
+  G4bool fGEnTgtSDEnable; // D. Flay (12/9/20). GEn 3He target sensitive detector enable  
 
   // for GEn 3He target collimators 
   G4bool fGEnTgtCollimatorEnable; 
   G4bool fGEnTgtCollimatorAEnable,fGEnTgtCollimatorBEnable,fGEnTgtCollimatorCEnable; 
 
   // D. Flay (8/25/20).  Beam diffuser enable and beam pointing
-  G4bool fBeamDumpEnable;       // enable the beam diffuser 
+  G4bool fBeamDumpEnable;           // enable the beam dump  
   G4bool fBeamDiffuserEnable;       // enable the beam diffuser 
   G4double fBeamPointX,fBeamPointY; // beam pointing   
+  
+  // D. Flay (10/15/20).  Ion Chamber enable 
+  G4bool fIonChamberEnable; 
+  G4double fIonChamberX ,fIonChamberY ,fIonChamberZ;  
+  G4double fIonChamberRX,fIonChamberRY,fIonChamberRZ;  
 
+  // D. Flay (11/5/20).  GEn beam collimator  
+  G4bool fBeamCollimatorEnable_dnstr,fBeamCollimatorEnable_upstr;
+  // - downstream 
+  G4double fBeamCollimatorX_dnstr,fBeamCollimatorY_dnstr,fBeamCollimatorZ_dnstr; 
+  G4double fBeamCollimatorL_dnstr,fBeamCollimatorDmin_dnstr,fBeamCollimatorDmax_dnstr;  
+  // - upstream 
+  G4double fBeamCollimatorX_upstr,fBeamCollimatorY_upstr,fBeamCollimatorZ_upstr; 
+  G4double fBeamCollimatorL_upstr,fBeamCollimatorDmin_upstr,fBeamCollimatorDmax_upstr;  
+  
+  G4int fGEnTgtHHConfig; // D. Flay (7/28/20).  GEn 3He target Helmholtz coil configuration 
+
+  //Optional aluminum shielding of GEMs:
+  G4bool fGEMuseAlshield;
+
+  G4double fGEMAlShieldThick;
+  G4double fGEMAirGapThick; //Air gap is in the FRONT only
+  
+  
 };
 
 

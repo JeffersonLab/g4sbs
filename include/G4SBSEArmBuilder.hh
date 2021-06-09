@@ -32,16 +32,15 @@ public:
   void SetBBPSOption(int psopt ){ fBBPSOption = psopt; }
   
   void MakeBigBite(G4LogicalVolume *);
-  void MakeBigCal(G4LogicalVolume *);
-  void MakeC16(G4LogicalVolume *);
-  void MakeDVCSECal(G4LogicalVolume *);
   
-  void MakeCDET(G4double, G4double, G4LogicalVolume *); //
   void MakeGMnGEMShielding(G4LogicalVolume *);
 
   void SetDVCSECalMaterial(G4String str){ fDVCSECalMaterial = str; }
   void MakeBBSieveSlit(G4LogicalVolume *, G4ThreeVector);
+  
   void MakeNewBBSieveSlit(G4LogicalVolume *, G4ThreeVector);
+  void MakeThirdBBSieveSlit(G4LogicalVolume *, G4ThreeVector);
+  void MakeFourthBBSieveSlit(G4LogicalVolume *, G4ThreeVector);
 
   void SetGRINCHgas( G4String str ){ fGRINCHgas = str; }
   void SetGrinchPMTglassHits(bool b ){ fTurnOnGrinchPMTglassHits = b; }
@@ -55,7 +54,7 @@ public:
   double fBBCaldist;
 
   //G4SBSBigBiteField *fbbfield; //Why do we need this in both EArmBuilder and DetectorConstruction?
-
+  
   double fRICHdist; //distance from target of RICH detector
 
   double fCerDepth;
@@ -75,18 +74,17 @@ public:
   int fnzsegments_leadglass_C16;
   
   bool fUseLocalField;
-
-  G4String fDVCSECalMaterial;
-
+  
   //Enable options for sieve slit. 0: nothing; 1:Old design - straight holes and slots; 2:New design by Holly S. - angled holes with three smaller holes and blanks.
   //int fBuildBBSieve;
-
+  
   int fBuildBBSieve;
-
+  
   G4String fGRINCHgas;
   G4bool fTurnOnGrinchPMTglassHits;
-  
   G4bool fBuildGEMfrontend;
+  
+  G4String fDVCSECalMaterial;
   
 private:
 };

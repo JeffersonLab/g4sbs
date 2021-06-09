@@ -18,6 +18,8 @@ void G4SBSCALoutput::Clear(){
   //threshold = 0.0*eV;
 
   Esum = 0.0;
+
+  edep_vs_time.clear();
   
   row.clear();
   col.clear();

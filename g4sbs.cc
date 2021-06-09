@@ -13,6 +13,7 @@
 #include "G4SBSRunData.hh"
 #include "G4UIcommandStatus.hh"
 
+#include "G4SBSTDISGen.hh" //(CA)
 
 //------------
 // Geometries:
@@ -184,7 +185,7 @@ int main(int argc, char** argv)
 
   G4SBSIO *io = new G4SBSIO();
 
-
+ tdishandler = new  G4SBSTDISGen(); //(CA)
 
   //-------------------------------
   // Initialization of Run manager
@@ -324,7 +325,8 @@ int main(int argc, char** argv)
     //
     
     //#ifdef G4UI_USE
-    G4UIExecutive * ui = new G4UIExecutive(argc,argv);
+    G4UIExecutive * ui = new G4UIExecutive(argc, argv,"tcsh"); // uncomment this line for term only
+    //G4UIExecutive * ui = new G4UIExecutive(argc,argv);
     UImanager->SetSession( ui->GetSession() ); 
     //#endif
 
@@ -358,6 +360,8 @@ int main(int argc, char** argv)
   // delete visManager;
   //#endif
   delete runManager;
-
+  
+  delete tdishandler;//(CA)
+  
   return 0;
 }

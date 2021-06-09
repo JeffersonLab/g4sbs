@@ -6,6 +6,8 @@
 #include "globals.hh"
 #include "G4ThreeVector.hh"
 
+#include "sbstypes.hh"//CA
+
 class G4ParticleGun;
 class G4ParticleDefinition;
 class G4Event;
@@ -35,8 +37,13 @@ public:
   void SetParticleType( G4ParticleDefinition *ptype ){ GunParticleType = ptype; }
   void SetParticleName( G4String pname ){ GunParticleName = pname; }
   void SetGunPolarization( G4ThreeVector S ){ GunPolarization = S; }
-
+  
+ // I don't like this solution. I would like that the information came from the TDIS generator
+  void tSetHadronType(G4SBS::Hadron_t h ){tHadronType = h; }//CA
 private:
+
+  G4SBS::Hadron_t tHadronType; //CA
+  
   G4ParticleGun* particleGun;
   G4String GunParticleName;
   G4ParticleDefinition *GunParticleType; //Which particle type will the gun use?

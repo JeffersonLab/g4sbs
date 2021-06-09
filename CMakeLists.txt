@@ -10,6 +10,12 @@ include(GNUInstallDirs)
 #----------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------
+# test to link fortran function (check)
+
+enable_language(Fortran)
+
+
+#----------------------------------------------------------------------------
 # The following lines are required so that the executable can dynamically locate the library dependencies independent of 
 # use, i.e. don't skip the full RPATH for the build tree
 SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
@@ -61,20 +67,32 @@ include(${ROOT_USE_FILE})
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include)
+#    ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/ )
+# 
+#ROOT_GENERATE_DICTIONARY(
+#    G4SBSDict                         # path to dictionary to generate
+#    "include/G4SBSRunData.hh"         # list of classes to process
+#    "include/G4SBSTextFile.hh"
+#    LINKDEF "include/G4SBSLinkDef.h"  # ROOT linkDef file
+#)
 
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc ${PROJECT_SOURCE_DIR}/src/dss2007/*.cc ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.C)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc ${PROJECT_SOURCE_DIR}/src/dss2007/*.cc ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.C ${PROJECT_SOURCE_DIR}/include/AcquMCTree.C ${PROJECT_SOURCE_DIR}/src/epc_func.f ${PROJECT_SOURCE_DIR}/src/f2pi_sub.f90)
+#${PROJECT_SOURCE_DIR}/RTPC_2v4/src/RTPC.cc ${PROJECT_SOURCE_DIR}/RTPC_2v4/src/Array*.cc ${PROJECT_SOURCE_DIR}/RTPC_2v4/src/RootIO.cc ${PROJECT_SOURCE_DIR}/RTPC_2v4/src/*Field*.cc ${PROJECT_SOURCE_DIR}/RTPC_2v4/src/BeamLine.cc)
 file(GLOB headers ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/wiser_pion.h ${PROJECT_SOURCE_DIR}/src/cteq/*.h ${PROJECT_SOURCE_DIR}/src/dss2007/*.hh ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.h)
+#${PROJECT_SOURCE_DIR}/RTPC_2v4/include/RTPC.hh ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/Array*.cc ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/RootIO.hh ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/*Field*.hh)
 
 file(GLOB cteqsources ${PROJECT_SOURCE_DIR}/src/cteq/*.c  )
 file(GLOB cteqheaders ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
 
-file(GLOB libsources ${PROJECT_SOURCE_DIR}/src/G4SBSRunData.cc ${PROJECT_SOURCE_DIR}/src/G4SBSTextFile.cc)
+file(GLOB libsources ${PROJECT_SOURCE_DIR}/src/G4SBSRunData.cc ${PROJECT_SOURCE_DIR}/src/G4SBSTextFile.cc) 
 file(GLOB libheaders ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh )
+
+#add_subdirectory(RTPC_2v4)
 
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
@@ -144,6 +162,8 @@ set(G4SBS_SCRIPTS
   scripts/gep_5GeV2.mac
   scripts/gep_8GeV2.mac
   scripts/gep_12GeV2.mac
+  # TDIS EXAMPLE SCRIPT
+  scripts/tdis_mTPC.mac
   #scripts/sidis_template.mac
   #scripts/make_SIDIS_scripts.C
   scripts/vis_sidis.mac
@@ -315,7 +335,16 @@ if(INSTALL_SBS_FIELD_MAPS)
   message("Downloading SBS+BB TOSCA map for GMN, 13.5 GeV^2")
   file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GMN13_field_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GMN13_field_newheader.table SHOW_PROGRESS)
 
-  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEN-RP-tosca_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GEN-RP-tosca_newheader.table SHOW_PROGRESS)
+#  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEN-RP-tosca_newheader.table ${CMAKE_CURRENT_BINARY_DIR}/GEN-RP-tosca_newheader.table SHOW_PROGRESS)
+
+  message("Downloading Portable BigBite field map generated from GMN global map")		     
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/BigBitePortableFieldMap.table ${CMAKE_CURRENT_BINARY_DIR}/BigBitePortableFieldMap.table SHOW_PROGRESS)
+
+  message("Downloading portable SBS field map generated from GMN global map, with front clamp only, no pole shims")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table ${CMAKE_CURRENT_BINARY_DIR}/SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table SHOW_PROGRESS)
+
+  message("Downloading portable SBS field map generated from GEP global map, with front and rear clamps and pole shims")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/SBSPortableFieldMap_TwoClamps_PoleShims.table ${CMAKE_CURRENT_BINARY_DIR}/SBSPortableFieldMap_TwoClamps_PoleShims.table SHOW_PROGRESS)
 
   message("Other field maps forthcoming... Anybody know how to get CMake to download files AFTER the configure step, during the build step?")
 

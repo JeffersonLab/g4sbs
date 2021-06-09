@@ -23,13 +23,22 @@ class Pythia6_tree {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
-
+   Bool_t          fExclProcess;   
+   
    // Declaration of leaf types
    Int_t           Nparticles;
    Float_t         Q2;
    Float_t         xbj;
    Float_t         y;
    Float_t         W2;
+   // 6 next variables only for exclusive processes 
+   Float_t         Delta2;
+   Float_t         phi_gg;
+   Double_t        XSpXpsf;
+   Double_t        XSmXpsf;
+   Double_t        BHpXpsf;
+   Double_t        BHmXpsf;
+   // ----------------------
    vector<int>     *status;
    vector<int>     *pid;
    vector<int>     *parent;
@@ -47,13 +56,21 @@ public :
    vector<double>  *phi;
    vector<double>  *t;
    vector<double>  *tau;
-
+   
    // List of branches
    TBranch        *b_Nparticles;   //!
    TBranch        *b_Q2;   //!
    TBranch        *b_xbj;   //!
    TBranch        *b_y;   //!
    TBranch        *b_W2;   //!
+   // 3 next branches only for exclusive processes 
+   TBranch        *b_Delta2;   //!
+   TBranch        *b_phi_gg;   //!
+   TBranch        *b_XSpXpsf;   //!
+   TBranch        *b_XSmXpsf;   //!
+   TBranch        *b_BHpXpsf;   //!
+   TBranch        *b_BHmXpsf;   //!
+   // ----------------------
    TBranch        *b_status;   //!
    TBranch        *b_pid;   //!
    TBranch        *b_parent;   //!
@@ -71,8 +88,8 @@ public :
    TBranch        *b_phi;   //!
    TBranch        *b_t;   //!
    TBranch        *b_tau;   //!
-
-   Pythia6_tree(TTree *tree=0);
+   
+   Pythia6_tree(TTree *tree=0, Bool_t excl = false);
    virtual ~Pythia6_tree();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -86,7 +103,7 @@ public :
 #endif
 
 #ifdef Pythia6_tree_cxx
-Pythia6_tree::Pythia6_tree(TTree *tree) : fChain(0) 
+Pythia6_tree::Pythia6_tree(TTree *tree, Bool_t excl) : fChain(0), fExclProcess(excl)
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -165,6 +182,15 @@ void Pythia6_tree::Init(TTree *tree)
    fChain->SetBranchAddress("xbj", &xbj, &b_xbj);
    fChain->SetBranchAddress("y", &y, &b_y);
    fChain->SetBranchAddress("W2", &W2, &b_W2);
+   if(fExclProcess){
+     printf("Setting exclusive branches of pythia tree\n");
+     fChain->SetBranchAddress("Delta2", &Delta2, &b_Delta2);
+     fChain->SetBranchAddress("phi_gg", &phi_gg, &b_phi_gg);
+     fChain->SetBranchAddress("XSpXpsf", &XSpXpsf, &b_XSpXpsf);
+     fChain->SetBranchAddress("XSmXpsf", &XSmXpsf, &b_XSmXpsf);
+     fChain->SetBranchAddress("BHpXpsf", &BHpXpsf, &b_BHpXpsf);
+     fChain->SetBranchAddress("BHmXpsf", &BHmXpsf, &b_BHmXpsf);
+   }
    fChain->SetBranchAddress("status", &status, &b_status);
    fChain->SetBranchAddress("pid", &pid, &b_pid);
    fChain->SetBranchAddress("parent", &parent, &b_parent);

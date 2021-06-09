@@ -31,6 +31,7 @@
 #include "G4SBSTargetBuilder.hh"
 #include "G4SBSEArmBuilder.hh"
 #include "G4SBSHArmBuilder.hh"
+#include "G4SBSECal.hh"
 
 #include "G4SBSSteppingAction.hh"
 #include "G4SBSTrackingAction.hh"
@@ -111,45 +112,174 @@ G4SBSMessenger::G4SBSMessenger(){
   // for GEn 3He target rotational misalignment 
   GENTargetRXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRX",this); 
   GENTargetRXCmd->SetGuidance("GEn 3He target rotational misalignment relative to x axis"); 
-  GENTargetRXCmd->SetParameterName("targgenDRX",false); 
+  GENTargetRXCmd->SetParameterName("targgenDRX",true); // second argument = omittable?  
   GENTargetRYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRY",this); 
   GENTargetRYCmd->SetGuidance("GEn 3He target rotational misalignment relative to y axis"); 
-  GENTargetRYCmd->SetParameterName("targgenDRY",false); 
+  GENTargetRYCmd->SetParameterName("targgenDRY",true); 
   GENTargetRZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targgenDRZ",this); 
   GENTargetRZCmd->SetGuidance("GEn 3He target rotational misalignment relative to z axis"); 
-  GENTargetRZCmd->SetParameterName("targgenDRZ",false);
+  GENTargetRZCmd->SetParameterName("targgenDRZ",true);
 
   // D. Flay (10/9/20) 
   // for GEn 3He target collimators
   // all: if enabled, *allows* the collimators to be built.  can toggle on/off individual ones, see below  
   GENTargetColCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnable",this); 
   GENTargetColCmd->SetGuidance("GEn 3He target collimator enable.  If enabled, allows collimators to be built"); 
-  GENTargetColCmd->SetParameterName("targgenColEnable",false);
+  GENTargetColCmd->SetParameterName("targgenColEnable",true);
   // A (upstream) 
   GENTargetColACmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableA",this); 
   GENTargetColACmd->SetGuidance("GEn 3He target collimator A enable"); 
-  GENTargetColACmd->SetParameterName("targgenColEnableA",false); 
+  GENTargetColACmd->SetParameterName("targgenColEnableA",true); 
   // B (downstream, 1st) 
   GENTargetColBCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableB",this); 
   GENTargetColBCmd->SetGuidance("GEn 3He target collimator B enable"); 
-  GENTargetColBCmd->SetParameterName("targgenColEnableB",false); 
+  GENTargetColBCmd->SetParameterName("targgenColEnableB",true); 
   // C (downstream, 2nd, furthest from target) 
   GENTargetColCCmd = new G4UIcmdWithABool("/g4sbs/targgenColEnableC",this); 
   GENTargetColCCmd->SetGuidance("GEn 3He target collimator C enable"); 
-  GENTargetColCCmd->SetParameterName("targgenColEnableC",false); 
+  GENTargetColCCmd->SetParameterName("targgenColEnableC",true);
+
+  // D. Flay (12/9/20) 
+  // for enabling the GEn target as a sensitive detector  
+  GENTargetSDEnableCmd = new G4UIcmdWithABool("/g4sbs/targgenSDEnable",this); 
+  GENTargetSDEnableCmd->SetGuidance("GEn 3He target SD enable"); 
+  GENTargetSDEnableCmd->SetParameterName("targgenSDEnable",true);
+
+  // D. Flay (10/15/20) 
+  // beam angular misalignment 
+  // - horizontal (x)  
+  beamAngleXcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamAngleX",this);
+  beamAngleXcmd->SetGuidance("Rotate beam momentum about the x axis");
+  beamAngleXcmd->SetParameterName("beamAngleX",true);  // this is omittable 
+  // - vertical (y)
+  beamAngleYcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamAngleY",this);
+  beamAngleYcmd->SetGuidance("Rotate beam momentum about the y axis");
+  beamAngleYcmd->SetParameterName("beamAngleY",true);   
+  // - axial (z)
+  beamAngleZcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamAngleZ",this);
+  beamAngleZcmd->SetGuidance("Rotate beam momentum about the z axis");
+  beamAngleZcmd->SetParameterName("beamAngleZ",true);  // must provide input
+
+  // D. Flay (10/15/20) 
+  // ruidmentary ion chamber 
+  ionChamberEnableCmd = new G4UIcmdWithABool("/g4sbs/ionChamberEnable",this);
+  ionChamberEnableCmd->SetGuidance("Enable an ion chamber, including sensitive detector capability");
+  ionChamberEnableCmd->SetParameterName("ionChamberEnable",true); // this is omittable 
+  // coordinates
+  // -x 
+  ionChamberXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberX",this);
+  ionChamberXCmd->SetGuidance("Ion chamber x coordinate");
+  ionChamberXCmd->SetParameterName("ionChamberX",true);  
+  // - y 
+  ionChamberYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberY",this);
+  ionChamberYCmd->SetGuidance("Ion chamber y coordinate");
+  ionChamberYCmd->SetParameterName("ionChamberY",true);   
+  // - z 
+  ionChamberZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberZ",this);
+  ionChamberZCmd->SetGuidance("Ion chamber z coordinate");
+  ionChamberZCmd->SetParameterName("ionChamberZ",true); 
+  // rotation 
+  // -x 
+  ionChamberRXCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberRX",this);
+  ionChamberRXCmd->SetGuidance("Ion chamber angle about x");
+  ionChamberRXCmd->SetParameterName("ionChamberRX",true);  
+  // - y 
+  ionChamberRYCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberRY",this);
+  ionChamberRYCmd->SetGuidance("Ion chamber angle about y");
+  ionChamberRYCmd->SetParameterName("ionChamberRY",true);   
+  // - z 
+  ionChamberRZCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ionChamberRZ",this);
+  ionChamberRZCmd->SetGuidance("Ion chamber angle about z");
+  ionChamberRZCmd->SetParameterName("ionChamberRZ",true);   
+
+  // D. Flay (11/5/20) 
+  // ruidmentary beam collimator for the GEn target 
+  // downstream
+  // enable  
+  beamCollimatorEnableDnCmd = new G4UIcmdWithABool("/g4sbs/beamCollimatorEnable_dnstr",this);
+  beamCollimatorEnableDnCmd->SetGuidance("Enable a beam collimator for the GEn target");
+  beamCollimatorEnableDnCmd->SetParameterName("beamCollimatorEnable_dnstr",true); // must provide input 
+  // geometry  
+  // -length 
+  beamCollimatorLDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorL_dnstr",this);
+  beamCollimatorLDnCmd->SetGuidance("Beam collimator length");
+  beamCollimatorLDnCmd->SetParameterName("beamCollimatorL_dnstr",true);  
+  // - y 
+  beamCollimatorDminDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorDmin_dnstr",this);
+  beamCollimatorDminDnCmd->SetGuidance("Beam collimator diameter (inner)");
+  beamCollimatorDminDnCmd->SetParameterName("beamCollimatorDmin_dnstr",true);   
+  // - z 
+  beamCollimatorDmaxDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorDmax_dnstr",this);
+  beamCollimatorDmaxDnCmd->SetGuidance("Beam collimator diameter (outer)");
+  beamCollimatorDmaxDnCmd->SetParameterName("beamCollimatorDmax_dnstr",true);   
+  // coordinates
+  // -x 
+  beamCollimatorXDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorX_dnstr",this);
+  beamCollimatorXDnCmd->SetGuidance("Beam collimator coordinate");
+  beamCollimatorXDnCmd->SetParameterName("beamCollimatorX_dnstr",true);  
+  // - y 
+  beamCollimatorYDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorY_dnstr",this);
+  beamCollimatorYDnCmd->SetGuidance("Beam collimator y coordinate");
+  beamCollimatorYDnCmd->SetParameterName("beamCollimatorY_dnstr",true);   
+  // - z 
+  beamCollimatorZDnCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorZ_dnstr",this);
+  beamCollimatorZDnCmd->SetGuidance("Beam collimator z coordinate");
+  beamCollimatorZDnCmd->SetParameterName("beamCollimatorZ_dnstr",true);   
+  // upstream
+  // enable  
+  beamCollimatorEnableUpCmd = new G4UIcmdWithABool("/g4sbs/beamCollimatorEnable_upstr",this);
+  beamCollimatorEnableUpCmd->SetGuidance("Enable a beam collimator for the GEn target");
+  beamCollimatorEnableUpCmd->SetParameterName("beamCollimatorEnable_upstr",true); 
+  // geometry  
+  // -length 
+  beamCollimatorLUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorL_upstr",this);
+  beamCollimatorLUpCmd->SetGuidance("Beam collimator length");
+  beamCollimatorLUpCmd->SetParameterName("beamCollimatorL_upstr",true);  
+  // - y 
+  beamCollimatorDminUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorDmin_upstr",this);
+  beamCollimatorDminUpCmd->SetGuidance("Beam collimator diameter (inner)");
+  beamCollimatorDminUpCmd->SetParameterName("beamCollimatorDmin_upstr",true);   
+  // - z 
+  beamCollimatorDmaxUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorDmax_upstr",this);
+  beamCollimatorDmaxUpCmd->SetGuidance("Beam collimator diameter (outer)");
+  beamCollimatorDmaxUpCmd->SetParameterName("beamCollimatorDmax_upstr",true);   
+  // coordinates
+  // -x 
+  beamCollimatorXUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorX_upstr",this);
+  beamCollimatorXUpCmd->SetGuidance("Beam collimator coordinate");
+  beamCollimatorXUpCmd->SetParameterName("beamCollimatorX_upstr",true);  
+  // - y 
+  beamCollimatorYUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorY_upstr",this);
+  beamCollimatorYUpCmd->SetGuidance("Beam collimator y coordinate");
+  beamCollimatorYUpCmd->SetParameterName("beamCollimatorY_upstr",true);   
+  // - z 
+  beamCollimatorZUpCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamCollimatorZ_upstr",this);
+  beamCollimatorZUpCmd->SetGuidance("Beam collimator z coordinate");
+  beamCollimatorZUpCmd->SetParameterName("beamCollimatorZ_upstr",true);   
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
-  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
+  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp, tdiskin, AcquMC");
   kineCmd->SetParameterName("kinetype", false);
+
+  // TDIS
+  AcquMCfileCmd = new G4UIcmdWithAString("/g4sbs/acqumcfile",this);
+  AcquMCfileCmd->SetGuidance("Name of ROOT file containing AcquMC events as a ROOT tree");
+  AcquMCfileCmd->SetParameterName("fname",false);
 
   PYTHIAfileCmd = new G4UIcmdWithAString("/g4sbs/pythia6file",this);
   PYTHIAfileCmd->SetGuidance("Name of ROOT file containing PYTHIA6 events as a ROOT tree");
   PYTHIAfileCmd->SetParameterName("fname",false);
-  
+
+  exclPythiaXSoptCmd = new G4UIcmdWithAnInteger("/g4sbs/exclpythiaXSoption",this);
+  exclPythiaXSoptCmd->SetGuidance("Indicate which cross section should be used by pythia");
+  exclPythiaXSoptCmd->SetGuidance("1: total unp. XS; 2: BH2; 3:DVCS2; 4:I; 5: XS(+); 6: XS(-);");
+  exclPythiaXSoptCmd->SetGuidance("Must be called *before* /g4sbs/pythia6file to have an effect ");
+  exclPythiaXSoptCmd->SetParameterName("exclpyXSopt", false);
+
   expCmd = new G4UIcmdWithAString("/g4sbs/exp",this);
   expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis, C16, tdis, ndvcs, genrp");
   expCmd->SetParameterName("exptype", false);
-
+  
   GunParticleCmd = new G4UIcmdWithAString("/g4sbs/particle",this);
   GunParticleCmd->SetGuidance("Particle type for gun generator (valid GEANT4 particle names)");
   GunParticleCmd->SetParameterName("ptype", false );
@@ -187,9 +317,17 @@ G4SBSMessenger::G4SBSMessenger(){
   // bbfield_fnameCmd->SetGuidance("BigBite field map file name (if non-standard name/location)");
   // bbfield_fnameCmd->SetParameterName("bbfieldfname",false);
   
-  tosfieldCmd = new G4UIcmdWithAString("/g4sbs/tosfield", this);
-  tosfieldCmd->SetGuidance("Use SBS TOSCA field map from file");
-  tosfieldCmd->SetParameterName("tosfield", false);
+  //tosfieldCmd = new G4UIcmdWithAString("/g4sbs/tosfield", this);
+  tosfieldCmd = new G4UIcommand("/g4sbs/tosfield", this );
+  tosfieldCmd->SetGuidance("Add TOSCA field map to global field definition");
+  tosfieldCmd->SetGuidance("Usage: /g4sbs/tosfield fname flag");
+  tosfieldCmd->SetGuidance("fname = field map file name");
+  tosfieldCmd->SetGuidance("flag = 0 (default): transformation according to header information in map file");
+  tosfieldCmd->SetGuidance("flag = 1 (BigBite): transformation according to BigBite angle/magnet distance" );
+  tosfieldCmd->SetGuidance("flag = 2 (SBS): transformation according to SBS angle/magnet distance" );
+  tosfieldCmd->SetParameter(new G4UIparameter("tosfield", 's', false) ); //map file name
+  tosfieldCmd->SetParameter(new G4UIparameter("fieldflag", 'i', true) );
+  tosfieldCmd->GetParameter(1)->SetDefaultValue(0);
 
   eventStatusEveryCmd = new G4UIcmdWithAnInteger("/g4sbs/eventstatusevery", this);
   eventStatusEveryCmd->SetGuidance("Print event status at every N entries");
@@ -241,15 +379,15 @@ G4SBSMessenger::G4SBSMessenger(){
 
   rasterxCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/rasterx",this);
   rasterxCmd->SetGuidance("Raster x size");
-  rasterxCmd->SetParameterName("size", false);
+  rasterxCmd->SetParameterName("rasterx",true); // is omittable
 
   rasteryCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/rastery",this);
   rasteryCmd->SetGuidance("Raster y size");
-  rasteryCmd->SetParameterName("size", false);
+  rasteryCmd->SetParameterName("rastery",true);
   
   rasterrCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/rasterR",this);
   rasterrCmd->SetGuidance("Raster radius size");
-  rasterrCmd->SetParameterName("size", false);
+  rasterrCmd->SetParameterName("size",false);
   
   beamspotsizeCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamspotsize",this);
   beamspotsizeCmd->SetGuidance("beam spot size");
@@ -259,19 +397,19 @@ G4SBSMessenger::G4SBSMessenger(){
   // - horizontal (x)  
   beamOffsetXcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamoffsetx",this);
   beamOffsetXcmd->SetGuidance("Set beam offset along the horizontal (x) direction");
-  beamOffsetXcmd->SetParameterName("beamoffsetx",false);  // must provide input 
+  beamOffsetXcmd->SetParameterName("beamoffsetx",true);  // is omittable 
   // - vertical (y)
   beamOffsetYcmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/beamoffsety",this);
   beamOffsetYcmd->SetGuidance("Set beam offset along the vertical (y) direction");
-  beamOffsetYcmd->SetParameterName("beamoffsety",false);  // must provide input 
+  beamOffsetYcmd->SetParameterName("beamoffsety",true);   
   // beam dump 
   beamDumpCmd = new G4UIcmdWithABool("/g4sbs/beamDumpEnable",this);
   beamDumpCmd->SetGuidance("Enable the Beam Dump");
-  beamDumpCmd->SetParameterName("beamDumpEnable", false);
+  beamDumpCmd->SetParameterName("beamDumpEnable",true);
   // beam diffuser 
   beamDiffuserCmd = new G4UIcmdWithABool("/g4sbs/beamDiffuserEnable",this);
   beamDiffuserCmd->SetGuidance("Enable the Beam Diffuser device");
-  beamDiffuserCmd->SetParameterName("beamDiffuserEnable", false);
+  beamDiffuserCmd->SetParameterName("beamDiffuserEnable",true);
 
   tgtNfoilCmd = new G4UIcmdWithAnInteger("/g4sbs/Nfoil",this);
   tgtNfoilCmd->SetGuidance("Number of foils for optics target");
@@ -318,6 +456,22 @@ G4SBSMessenger::G4SBSMessenger(){
   sbstrkrdistCmd->SetGuidance( "SBS tracker distance from target to projection of center of first tracker plane onto horizontal plane");
   sbstrkrdistCmd->SetParameterName("sbstrkrdist",false );
   
+  dvcsecalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/dvcsecalhoffset",this);
+  dvcsecalhoffsetCmd->SetGuidance("DVCS ECal horizontal offset");
+  dvcsecalhoffsetCmd->SetParameterName("dvcsecalhoffset", false);
+
+  dvcsecalvoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/dvcsecalvoffset",this);
+  dvcsecalvoffsetCmd->SetGuidance("DVCS ECal vertical offset");
+  dvcsecalvoffsetCmd->SetParameterName("dvcsecalvoffset", false);
+
+  dvcsecalnrowsCmd = new G4UIcmdWithAnInteger("/g4sbs/dvcsecalnrows",this);
+  dvcsecalnrowsCmd->SetGuidance("number of rows for (PbF2) DVCS ECal");
+  dvcsecalnrowsCmd->SetParameterName("nrows", false);
+  
+  dvcsecalncolsCmd = new G4UIcmdWithAnInteger("/g4sbs/dvcsecalncols",this);
+  dvcsecalncolsCmd->SetGuidance("number of cols for (PbF2) DVCS ECal");
+  dvcsecalncolsCmd->SetParameterName("ncols", false);
+  
   dvcsecalmatCmd = new G4UIcmdWithAString("/g4sbs/dvcsecalmat",this);
   dvcsecalmatCmd->SetGuidance("DVCS ECal material: 'PbF2' or 'PbWO4'");
   dvcsecalmatCmd->SetParameterName("dvcsecalmatname", false);
@@ -336,7 +490,11 @@ G4SBSMessenger::G4SBSMessenger(){
 
   hcalvoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalvoffset",this);
   hcalvoffsetCmd->SetGuidance("HCAL vertical offset");
-  hcalvoffsetCmd->SetParameterName("dist", false);
+  hcalvoffsetCmd->SetParameterName("hcalvoffset", false);
+
+  hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
+  hcalhoffsetCmd->SetGuidance("HCAL horizontal offset");
+  hcalhoffsetCmd->SetParameterName("hcalhoffset", false);
 
   hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
   hcalhoffsetCmd->SetGuidance("HCAL horizontal offset relative to SBS center line (+ = TOWARD beam line)");
@@ -493,7 +651,7 @@ G4SBSMessenger::G4SBSMessenger(){
   HARM_ScaleFieldCmd->SetParameterName("sbsfieldscale",false);
   
   SBSFieldClampOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/sbsclampopt",this);
-  SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 0=no clamp, 1=BigBite(default), 2=GEp");
+  SBSFieldClampOptionCmd->SetGuidance("SBS field clamp configuration: 0=no clamp, 3=Front clamp only (GMN, GEN)), 2=Front and rear clamps (GEP, SIDIS)");
   SBSFieldClampOptionCmd->SetParameterName("sbsclampoption",false);
 
   SBSBeamlineConfCmd = new G4UIcmdWithAnInteger("/g4sbs/beamlineconfig",this);
@@ -510,19 +668,20 @@ G4SBSMessenger::G4SBSMessenger(){
 
   GEPFPP1_CH2thickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/FPP1CH2thick",this);
   GEPFPP1_CH2thickCmd->SetGuidance("CH2 thickness for first analyzer (GEP only)");
-  GEPFPP1_CH2thickCmd->SetGuidance("0 < FPP1 CH2 thick < 60 cm");
+  GEPFPP1_CH2thickCmd->SetGuidance("0 < FPP1 CH2 thick < 150 cm");
   GEPFPP1_CH2thickCmd->SetParameterName("CH2thick1",false);
   //GEPFPP1_CH2thickCmd->SetRange("0.0 <= CH2thick1 && CH2thick1 <= 60.0*cm"
 
   GEPFPP2_CH2thickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/FPP2CH2thick",this);
   GEPFPP2_CH2thickCmd->SetGuidance("CH2 thickness for first analyzer (GEP only)");
-  GEPFPP2_CH2thickCmd->SetGuidance("0 < FPP2 CH2 thick < 60 cm");
+  GEPFPP2_CH2thickCmd->SetGuidance("0 < FPP2 CH2 thick < 150 cm");
   GEPFPP2_CH2thickCmd->SetParameterName("CH2thick2",false);
 
   GEPFPPoptionCmd = new G4UIcmdWithAnInteger("/g4sbs/gepfppoption",this);
   GEPFPPoptionCmd->SetGuidance("GEP FPP option:");
   GEPFPPoptionCmd->SetGuidance("1 = One analyzer, 8 (FT) + 8 (FPP) GEM trackers");
   GEPFPPoptionCmd->SetGuidance("2 = Two analyzers, 6 (FT) + 5 (FPP1) + 5 (FPP2) GEM trackers (default)");
+  GEPFPPoptionCmd->SetGuidance("3 = Same as 2, but with second analyzer replaced by 3.5\" steel from GEN-RP");
   GEPFPPoptionCmd->SetParameterName("gepfppoption",true);
   GEPFPPoptionCmd->SetDefaultValue(2);
   
@@ -605,6 +764,7 @@ G4SBSMessenger::G4SBSMessenger(){
   LimitStepCALcmd->SetParameter( new G4UIparameter("flag",'b',true) );
   LimitStepCALcmd->GetParameter(1)->SetDefaultValue(true);
 
+  // **********
   SD_EnergyThresholdCmd = new G4UIcommand("/g4sbs/threshold",this );
 
   SD_EnergyThresholdCmd->SetGuidance("Set hit energy threshold by sensitive detector name (only valid for kCAL, kGEM)");
@@ -619,6 +779,22 @@ G4SBSMessenger::G4SBSMessenger(){
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("timewindow", 'd', false ) );
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("unit", 's', false) );
+
+  SD_NTimeBinsCmd = new G4UIcommand("/g4sbs/ntimebins",this);
+  SD_NTimeBinsCmd->SetGuidance( "Set number of time bins by sensitive detector name (only valid for kCAL, kGEM, kECAL)" );
+  SD_NTimeBinsCmd->SetGuidance( "Usage: /g4sbs/ntimebins" );
+  SD_NTimeBinsCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
+  SD_NTimeBinsCmd->SetParameter( new G4UIparameter("ntimebins", 'i', false ) );
+
+  KeepPulseShapeCmd = new G4UIcommand("/g4sbs/keeppulseshapeinfo",this);
+  KeepPulseShapeCmd->SetGuidance("Toggle recording of Pulse Shape info in the tree by SD name");
+  KeepPulseShapeCmd->SetGuidance("Usage: /g4sbs/keeppulseshapeinfo SDname flag");
+  KeepPulseShapeCmd->SetGuidance("SDname = sensitive detector name");
+  KeepPulseShapeCmd->SetGuidance("flag = true/false or 0/1 (default = false/0)");
+  KeepPulseShapeCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
+  KeepPulseShapeCmd->SetParameter( new G4UIparameter("flag", 'b', false) );
+  KeepPulseShapeCmd->GetParameter(1)->SetDefaultValue(false);    
+  // **********
 
   KeepSDtrackcmd = new G4UIcommand("/g4sbs/keepsdtrackinfo",this);
   KeepSDtrackcmd->SetGuidance("Toggle recording of SD track info in the tree by SD name");
@@ -704,6 +880,80 @@ G4SBSMessenger::G4SBSMessenger(){
   CosmicsMaxAngleCommand = new G4UIcmdWithADoubleAndUnit( "/g4sbs/cosmicmaxangle", this );
   CosmicsMaxAngleCommand->SetGuidance( "Set max zenithal angle for cosmics (please provide unit)" );
   CosmicsMaxAngleCommand->SetParameterName("maxangle",false);
+
+  // Commands related to solenoid of TPC
+  SolUniFieldCmd = new G4UIcmdWithABool("/g4sbs/solunifield", this );
+  SolUniFieldCmd->SetGuidance("Switch on uniform field for solenoid" );
+  SolUniFieldCmd->SetParameterName("UniformSolField" , false);
+
+  // SolUniFieldMagCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/solunimag", this );
+  SolUniFieldMagCmd = new G4UIcmdWithADouble("/g4sbs/solunimag", this );
+  SolUniFieldMagCmd->SetGuidance("Set magnitude of uniform field for solenoid in tesla" );
+  SolUniFieldMagCmd->SetParameterName("UniformSolFieldMag", false);
+
+  SolTosFieldCmd = new G4UIcmdWithABool("/g4sbs/soltoscafield", this );
+  SolTosFieldCmd->SetGuidance("Switch on tosca field for solenoid" );
+  SolTosFieldCmd->SetParameterName("ToscaSolField", false);
+
+  SolTosFieldScaleCmd = new G4UIcmdWithADouble("/g4sbs/soltoscascale", this );
+  SolTosFieldScaleCmd->SetGuidance("Scale the tosca field for solenoid" );
+  SolTosFieldScaleCmd->SetParameterName("ToscaSolFieldScale", false);
+
+  SolTosFieldOffsetCmd= new G4UIcmdWithADoubleAndUnit("/g4sbs/soltoscaoffset", this );
+  SolTosFieldOffsetCmd->SetGuidance("Set offset of tosca field for solenoid in mm" );
+  SolTosFieldOffsetCmd->SetGuidance("Requires hard coded sol_map_03.dat map" );
+  SolTosFieldOffsetCmd->SetParameterName("ToscaSolFieldOffset", false);
+
+  mTPCHeGasRatioCmd = new G4UIcmdWithADouble("/g4sbs/mtpchegasratio", this );
+  mTPCHeGasRatioCmd->SetGuidance("Set the fraction of He in the mTPC gas mix. Default 0.9" );
+  mTPCHeGasRatioCmd->SetParameterName("mTPCHeGasRatio", false);
+
+  mTPCCH4GasRatioCmd = new G4UIcmdWithADouble("/g4sbs/mtpcch4gasratio", this );
+  mTPCCH4GasRatioCmd->SetGuidance("Set the fraction of CH4 in the mTPC gas mix. Default 0.1" );
+  mTPCCH4GasRatioCmd->SetParameterName("mTPCCH4GasRatio", false);
+
+  mTPCGasTempCmd = new G4UIcmdWithADouble("/g4sbs/mtpcgastemp", this );
+  mTPCGasTempCmd->SetGuidance("Set the temp of the mTPC gas mix in K. Default 296.15K" );
+  mTPCGasTempCmd->SetParameterName("mTPCGasTemp", false);
+
+  mTPCGasPressureCmd = new G4UIcmdWithADouble("/g4sbs/mtpcgaspressure", this );
+  mTPCGasPressureCmd->SetGuidance("Set the pressure of the mTPC gas mix in atm. Default 0.1atm" );
+  mTPCGasPressureCmd->SetParameterName("mTPCGasPressure", false);
+
+  //mTPCTgtThickCmd = new G4UIcmdWithADouble("/g4sbs/mtpctargetthick", this );
+  //mTPCTgtThickCmd->SetGuidance("Set the thickness of the mTPC gas target in mm. Default 0.1atm" );
+  //mTPCTgtThickCmd->SetParameterName("mTPCTargetThickness", false);
+
+  mTPCkryptoCmd = new G4UIcmdWithABool("/g4sbs/mtpckrypto", this );
+  mTPCkryptoCmd->SetGuidance("Set mTPC RO and GEMs as full absorbers" );
+  mTPCkryptoCmd->SetParameterName("mTPCkrypto", false);
+
+  mTPCRoomTempCmd = new G4UIcmdWithABool("/g4sbs/setmtpcroomtemp", this );
+  mTPCRoomTempCmd->SetGuidance("Set mTPC materials at room temp parameters" );
+  mTPCRoomTempCmd->SetParameterName("SetmTPCroomTemp" , false);
+
+  TDIStgtWallThickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/tdistgtwallthick", this );
+  TDIStgtWallThickCmd->SetGuidance("Set TDIS wall target thickness" );
+  TDIStgtWallThickCmd->SetParameterName("TDIStgtWallThickness" , false);
+ 
+  WriteFieldMapCmd = new G4UIcmdWithABool( "/g4sbs/writefieldmaps", this );
+  WriteFieldMapCmd->SetGuidance( "Toggle writing of \"portable\" field maps for BB+SBS" );
+  WriteFieldMapCmd->SetParameterName("writemapsflag", false );
+
+  UseGEMshieldCmd = new G4UIcmdWithABool( "/g4sbs/usegemshielding", this );
+  UseGEMshieldCmd->SetGuidance( "Include thin aluminum GEM shielding (for noise reduction)" );
+  UseGEMshieldCmd->SetParameterName("GEMshieldflag", false );
+
+  GEMshieldThickCmd = new G4UIcmdWithADoubleAndUnit( "/g4sbs/gemshieldthick", this );
+  GEMshieldThickCmd->SetGuidance( "Thickness of GEM aluminum shielding (give value and unit, default = 50 um)");
+  GEMshieldThickCmd->SetParameterName( "gemshieldthick", true );
+  GEMshieldThickCmd->SetDefaultValue( 50.0*CLHEP::um );
+
+  GEMshieldAirGapThickCmd = new G4UIcmdWithADoubleAndUnit( "/g4sbs/gemshieldairgapthick", this );
+  GEMshieldAirGapThickCmd->SetGuidance( "Thickness of air gap between aluminum shielding (in front) and GEM (give value and unit, default = 0)" );
+  GEMshieldAirGapThickCmd->SetParameterName( "gemshieldairgapthick", true );
+  GEMshieldAirGapThickCmd->SetDefaultValue( 0.0*CLHEP::um );
+  
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -732,6 +982,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->InitializePythia6_Tree();
     }
 
+    // TDIS
+    if( fevgen->GetKine() == G4SBS::kAcquMC ){
+      if( fevgen->GetAcquMCChain()->GetEntries() < nevt ){
+	nevt = fevgen->GetAcquMCChain()->GetEntries();
+      }
+      fevgen->InitializeAcquMC_Tree();
+    }
     //    G4double TargMassDensity;
     G4double TargNumberDensity; 
     
@@ -787,6 +1044,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 * pow(GeV,2) );
       //}
     } else { //Processes with xsec differential in solid angle only:
+      // TDIS, think it is in solid angle only so in here is ok, but must check
       G4SBSRun::GetRun()->GetData()->SetGenVol( fevgen->GetGenVol() );
       //if( fevgen->GetRejectionSamplingFlag() ){
       G4SBSRun::GetRun()->GetData()->SetMaxWeight( fevgen->GetMaxWeight()/cm2 );
@@ -948,6 +1206,56 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
 
+     // TDIS Generators (CA) (begin)
+    // // TDIS addition
+    // if (newValue.compareTo("tdiskin") == 0 ){
+    //   fevgen->SetKine(G4SBS::kTDISKin);
+    //   // fevgen->SetRejectionSamplingFlag(false);
+    //   //fevgen->SetMaxWeight( cm2 );
+    //   validcmd = true;
+    // }
+
+    // TDIS addition
+    if (newValue.compareTo("tdisgen") == 0 ){ //the original generator 
+      fevgen->SetKine(kTDISKin);
+      validcmd = true;
+    }
+    if (newValue.compareTo("tdisela") == 0 ){ //elastic
+      fevgen->SetKine(tElastic);
+      validcmd = true;
+    }
+    if (newValue.compareTo("tdisqua") == 0 ){ //quaislestic
+      fevgen->SetKine(tQuasiElastic);
+      validcmd = true;
+    }
+    if (newValue.compareTo("tsidis") == 0 ){ //SIDIS for TDIS
+      fevgen->SetKine(tSIDIS);
+      validcmd = true;
+    }
+    if (newValue.compareTo("tdisine") == 0 ){
+      fevgen->SetKine(tInelastic);
+      validcmd = true;
+    }
+    if (newValue.compareTo("tdiskinH") == 0 ){ //the TDIS case with H (CA)
+      fevgen->SetKine(tTDISKinH);
+      validcmd = true;
+    }
+    if (newValue.compareTo("tdiskinD") == 0 ){ //the TDIS case with D (CA)
+      fevgen->SetKine(tTDISKinD);
+      validcmd = true;
+    }
+    //TDIS Generators (CA) (end)
+
+
+    
+    // TDIS AcquMC
+    if( newValue.compareTo("AcquMC") == 0 ){
+      fevgen->SetKine( G4SBS::kAcquMC );
+      fIO->SetUseAcquMC( true );
+      fevgen->SetRejectionSamplingFlag(false);
+      validcmd = true;
+    }
+
     if( newValue.compareTo("wapp") == 0 ){ //wide angle pion photoproduction
       fevgen->SetKine(G4SBS::kPionPhoto);
       validcmd = true;
@@ -966,6 +1274,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == PYTHIAfileCmd ){
     fevgen->LoadPythiaChain( newValue );
+  }
+  //TDIS AcquMC
+  if( cmd == AcquMCfileCmd ){
+    fevgen->LoadAcquMCChain( newValue );
+  }
+  
+  if( cmd == exclPythiaXSoptCmd){
+    G4int xsopt = exclPythiaXSoptCmd->GetNewIntValue(newValue);
+    fevgen->SetExclPythiaXSOption(xsopt);
+    if(xsopt>0)fIO->SetExclPythia6( true );
   }
 
   if( cmd == expCmd ){
@@ -1036,6 +1354,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     bool validcmd = false;
     if( newValue.compareTo("pi+") == 0 ){
       fevgen->SetHadronType( G4SBS::kPiPlus );
+      tdishandler -> tSetHadronType( kPiPlus );// (CA) (why?)
       validcmd = true;
     }
     if( newValue.compareTo("pi-") == 0 ){
@@ -1056,6 +1375,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("p") == 0 ){
       fevgen->SetHadronType( G4SBS::kP );
+      tdishandler -> tSetHadronType( kP ); //(CA) (why? need to check the reason)
       validcmd = true;
     } 
     if( newValue.compareTo("pbar") == 0 ){
@@ -1103,7 +1423,9 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetTarget(G4SBS::kH2);
       fdetcon->SetTarget(G4SBS::kH2);
 
-      G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann); //Should this be hard-coded? I think not. On the other hand, this provides a sensible default value, soooo....
+      // G4double den = 10.0*atmosphere/(296.0*kelvin*k_Boltzmann); //Should this be hard-coded? I think not. On the other hand, this provides a sensible default value, soooo....
+      // TDIS temp check
+      G4double den = 7.5*atmosphere/(300.0*kelvin*k_Boltzmann);
       fevgen->SetTargDen(den);
       fdetcon->fTargetBuilder->SetTargDen(den);
       validcmd = true;
@@ -1112,7 +1434,9 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetTarget(G4SBS::kD2);
       fdetcon->SetTarget(G4SBS::kD2);
 
-      G4double den = 1.0*atmosphere/(77.0*kelvin*k_Boltzmann);
+      // G4double den = 1.0*atmosphere/(77.0*kelvin*k_Boltzmann);
+      // TDIS temp check
+      G4double den = 7.5*atmosphere/(300.0*kelvin*k_Boltzmann);
       fevgen->SetTargDen(den);
       fdetcon->fTargetBuilder->SetTargDen(den);
       validcmd = true;
@@ -1208,6 +1532,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
      fdetcon->SetGEnTargetCollimatorCEnable(tccEnable);
   }
 
+  if( cmd == GENTargetSDEnableCmd ){
+     G4bool genSDEnable = GENTargetSDEnableCmd->GetNewBoolValue(newValue); 
+     fdetcon->SetGEnTargetSDEnable(genSDEnable);  
+  }
+
   // D. Flay (8/25/20) 
   // beam offset 
   if(cmd==beamOffsetXcmd){
@@ -1234,6 +1563,112 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->Set48D48Field(n);
   }
 
+  // D. Flay (10/15/20) 
+  // beam angular alignment  
+  if(cmd==beamAngleXcmd){
+     G4double bax = beamAngleXcmd->GetNewDoubleValue(newValue);
+     fevgen->SetBeamAngleX(bax);
+  }
+  if(cmd==beamAngleYcmd){
+     G4double bay = beamAngleYcmd->GetNewDoubleValue(newValue);
+     fevgen->SetBeamAngleY(bay);
+  }
+  if(cmd==beamAngleZcmd){
+     G4double baz = beamAngleZcmd->GetNewDoubleValue(newValue);
+     fevgen->SetBeamAngleZ(baz);
+  }
+
+  // D. Flay (10/15/20) 
+  // ion chamber enable  
+  if( cmd == ionChamberEnableCmd ){ 
+     G4bool icEnable = ionChamberEnableCmd->GetNewBoolValue(newValue);
+     fdetcon->SetIonChamberEnable(icEnable);  
+  }
+  if( cmd == ionChamberXCmd ){ 
+     G4double icx = ionChamberXCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberX(icx);  
+  }
+  if( cmd == ionChamberYCmd ){ 
+     G4double icy = ionChamberYCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberY(icy);  
+  }
+  if( cmd == ionChamberZCmd ){ 
+     G4double icz = ionChamberZCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberZ(icz);  
+  }
+  if( cmd == ionChamberRXCmd ){ 
+     G4double icrx = ionChamberRXCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberRX(icrx);  
+  }
+  if( cmd == ionChamberRYCmd ){ 
+     G4double icry = ionChamberRYCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberRY(icry);  
+  }
+  if( cmd == ionChamberRZCmd ){ 
+     G4double icrz = ionChamberRZCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetIonChamberRZ(icrz);  
+  }
+
+  // D. Flay (11/5/20) 
+  // [GEn target] beam collimator enable  
+  if( cmd == beamCollimatorEnableDnCmd ){ 
+     G4bool bcEnable_dn = beamCollimatorEnableDnCmd->GetNewBoolValue(newValue);
+     fdetcon->SetBeamCollimatorEnable_dnstr(bcEnable_dn);  
+  }
+  if( cmd == beamCollimatorLDnCmd ){ 
+     G4double bcl_dn = beamCollimatorLDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorL_dnstr(bcl_dn);  
+  }
+  if( cmd == beamCollimatorDminDnCmd ){ 
+     G4double bcdmin_dn = beamCollimatorDminDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorDmin_dnstr(bcdmin_dn);  
+  }
+  if( cmd == beamCollimatorDmaxDnCmd ){ 
+     G4double bcdmax_dn = beamCollimatorDmaxDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorDmax_dnstr(bcdmax_dn);  
+  }
+  if( cmd == beamCollimatorXDnCmd ){ 
+     G4double bcx_dn = beamCollimatorXDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorX_dnstr(bcx_dn);  
+  }
+  if( cmd == beamCollimatorYDnCmd ){ 
+     G4double bcy_dn = beamCollimatorYDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorY_dnstr(bcy_dn);  
+  }
+  if( cmd == beamCollimatorZDnCmd ){ 
+     G4double bcz_dn = beamCollimatorZDnCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorZ_dnstr(bcz_dn);  
+  }
+  // upstream
+  if( cmd == beamCollimatorEnableUpCmd ){ 
+     G4bool bcEnable_up = beamCollimatorEnableUpCmd->GetNewBoolValue(newValue);
+     fdetcon->SetBeamCollimatorEnable_upstr(bcEnable_up);  
+  }
+  if( cmd == beamCollimatorLUpCmd ){ 
+     G4double bcl_up = beamCollimatorLUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorL_upstr(bcl_up);  
+  }
+  if( cmd == beamCollimatorDminUpCmd ){ 
+     G4double bcdmin_up = beamCollimatorDminUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorDmin_upstr(bcdmin_up);  
+  }
+  if( cmd == beamCollimatorDmaxUpCmd ){ 
+     G4double bcdmax_up = beamCollimatorDmaxUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorDmax_upstr(bcdmax_up);  
+  }
+  if( cmd == beamCollimatorXUpCmd ){ 
+     G4double bcx_up = beamCollimatorXUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorX_upstr(bcx_up);  
+  }
+  if( cmd == beamCollimatorYDnCmd ){ 
+     G4double bcy_up = beamCollimatorYUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorY_upstr(bcy_up);  
+  }
+  if( cmd == beamCollimatorZUpCmd ){ 
+     G4double bcz_up = beamCollimatorZUpCmd->GetNewDoubleValue(newValue);
+     fdetcon->SetBeamCollimatorZ_upstr(bcz_up);  
+  }
+
   if( cmd == bbfieldCmd ){
     std::istringstream is(newValue);
 
@@ -1247,7 +1682,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
   
   if( cmd == tosfieldCmd ){
-    fdetcon->AddToscaField(newValue.data());
+    std::istringstream is(newValue);
+
+    G4String fname;
+    G4int flag;
+    is >> fname >> flag;
+    fdetcon->AddToscaField( fname.data(), flag );
+    //    fdetcon->AddToscaField(newValue.data());
   }
 
   if( cmd == eventStatusEveryCmd ){
@@ -1415,18 +1856,33 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     printf("Setting BB ang to %f deg\n", v/deg);
     fdetcon->SetBBAng(v);
     fIO->SetBigBiteTheta(v);
+
+    //If TOSCA map override flag is set, update the angle and distance for the field map:
+    if( fdetcon->fGlobalField->GetOverride_Earm() ){
+      fdetcon->fGlobalField->SetAngleAndDistance( fdetcon->fEArmBuilder->fBBang, fdetcon->fEArmBuilder->fBBdist, G4SBS::kEarm );
+    }
   }
 
   if( cmd == bbdistCmd ){
     G4double v = bbdistCmd->GetNewDoubleValue(newValue);
     fdetcon->SetBBDist(v);
     fIO->SetBigBiteDist(v);
+
+    if( fdetcon->fGlobalField->GetOverride_Earm() ){
+      fdetcon->fGlobalField->SetAngleAndDistance( fdetcon->fEArmBuilder->fBBang, fdetcon->fEArmBuilder->fBBdist, G4SBS::kEarm );
+    }
+    
   }
 
   if( cmd == hcalangCmd ){
     G4double v = hcalangCmd->GetNewDoubleValue(newValue);
     fdetcon->Set48D48Ang(v);
     fIO->SetSBSTheta(v);
+
+    if( fdetcon->fGlobalField->GetOverride_Harm() ){
+      fdetcon->fGlobalField->SetAngleAndDistance( fdetcon->fHArmBuilder->f48D48ang, fdetcon->fHArmBuilder->f48D48dist, G4SBS::kHarm );
+    }
+    
   }
 
   if( cmd == sbstrkrpitchCmd ){
@@ -1443,8 +1899,32 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     //G4SBSRun::GetRun()->GetData()->SetSBSTrackerDist( d );
   }
   
+  if( cmd == dvcsecalhoffsetCmd ){
+    G4double v = dvcsecalhoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fECal->SetDVCSECalHOffset(v);
+  }
+  
+  if( cmd == dvcsecalvoffsetCmd ){
+    G4double v = dvcsecalvoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fECal->SetDVCSECalVOffset(v);
+  }
+  
+  if( cmd == dvcsecalnrowsCmd ){
+    G4double v = dvcsecalnrowsCmd->GetNewIntValue(newValue);
+    fdetcon->fECal->SetDVCSECalNRows(v);
+  }
+  
+  if( cmd == dvcsecalncolsCmd ){
+    G4double v = dvcsecalncolsCmd->GetNewIntValue(newValue);
+    fdetcon->fECal->SetDVCSECalNCols(v);
+  }
+  
   if( cmd == dvcsecalmatCmd ){
-    fdetcon->fEArmBuilder->SetDVCSECalMaterial(newValue);
+    fdetcon->fECal->SetDVCSECalMaterial(newValue);
+    if(newValue == "PbWO4"){
+     fdetcon->fECal->SetDVCSECalNRows(31);
+     fdetcon->fECal->SetDVCSECalNCols(36);
+    }
   }
 
   if( cmd == GRINCH_gas_Cmd ){
@@ -1497,7 +1977,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       gasname = "C4F8_gas";
     } else { //default to C4F10 if no valid name given:
       gasname = "C4F10_gas";
-      G4cout << "WARNING: invalid GRINCH gas option, defaulting to C4F10" << G4endl;
+      G4cout << "WARNING: invalid RICH gas option, defaulting to C4F10" << G4endl;
     }
 
     G4cout << "/g4sbs/richgas invoked, setting RICH gas to " << gasname << G4endl;
@@ -1554,6 +2034,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = hmagdistCmd->GetNewDoubleValue(newValue);
     fdetcon->Set48D48Dist(v);
     fIO->SetSBSDist( v );
+
+    if( fdetcon->fGlobalField->GetOverride_Harm() ){
+      fdetcon->fGlobalField->SetAngleAndDistance( fdetcon->fHArmBuilder->f48D48ang, fdetcon->fHArmBuilder->f48D48dist, G4SBS::kHarm );
+    }
   } 
 
   if( cmd == cerDepCmd ){
@@ -1575,63 +2059,74 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = bbCalDistCmd->GetNewDoubleValue(newValue);
     fdetcon->fEArmBuilder->SetBBCalDist(v);
   }
-
+ //TDIS commands
   if( cmd == thminCmd ){
     G4double v = thminCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMin(v);
+    tdishandler -> tSetThMin(v);//(CA)
     fevgen->SetInitialized(false);
   }
   if( cmd == thmaxCmd ){
     G4double v = thmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMax(v);
+    tdishandler -> tSetThMax(v);//(CA)
     fevgen->SetInitialized(false);
   }
   if( cmd == phminCmd ){
     G4double v = phminCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMin(v);
+    tdishandler -> tSetPhMin(v);//(CA)
     fevgen->SetInitialized(false);
   }
   if( cmd == phmaxCmd ){
     G4double v = phmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMax(v);
+    tdishandler -> tSetPhMax(v);//(CA)
     fevgen->SetInitialized(false);
   }
   if( cmd == HthminCmd ){
     G4double v = HthminCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMin_had(v);
+    tdishandler -> tSetThMin_had(v);//(CA)
     fevgen->SetInitialized(false);
   }
   if( cmd == HthmaxCmd ){
     G4double v = HthmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetThMax_had(v);
+    tdishandler -> tSetThMax_had(v); //(CA)
     fevgen->SetInitialized(false);
   }
 
   if( cmd == HphminCmd ){
     G4double v = HphminCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMin_had(v);
+    tdishandler -> tSetPhMin_had(v); //(CA)
     fevgen->SetInitialized(false);
   }
   
   if( cmd == HphmaxCmd ){
     G4double v = HphmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetPhMax_had(v);
+    tdishandler -> tSetPhMax_had(v); //(CA)
     fevgen->SetInitialized(false);
   }
 
   if( cmd == EhminCmd ){
     G4double v = EhminCmd->GetNewDoubleValue(newValue);
     fevgen->SetEhadMin(v);
+    tdishandler -> tSetEMin_had(v); //(CA)
     fevgen->SetInitialized(false);
   }
   if( cmd == EhmaxCmd ){
     G4double v = EhmaxCmd->GetNewDoubleValue(newValue);
     fevgen->SetEhadMax(v);
+    tdishandler -> tSetEeMin(v);//(CA)
     fevgen->SetInitialized(false);
   }
   if( cmd == EeminCmd ){
     G4double v = EeminCmd->GetNewDoubleValue(newValue);
     fevgen->SetEeMin(v);
+    tdishandler -> tSetEeMax(v);//(CA)
     fevgen->SetInitialized(false);
   }
   if( cmd == EemaxCmd ){
@@ -1877,6 +2372,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
   }
 
+  // ******
   if( cmd == SD_EnergyThresholdCmd ){ //store the SDname and dimensioned threshold value in a map<G4String,G4double> assigned to fdetcon?
     std::istringstream is(newValue);
 
@@ -1892,7 +2388,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
   }
 
-  if( cmd == SD_TimeWindowCmd ){ //store the SDname and dimensioned threshold value in a map<G4String,G4double> assigned to fdetcon?
+  if( cmd == SD_TimeWindowCmd ){ 
     std::istringstream is(newValue);
 
     G4String SDname;
@@ -1905,6 +2401,42 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     G4cout << "Set time window for SD name = " << SDname << " to " << fdetcon->SDgatewidth[SDname]/ns << " ns" << G4endl;
   }
+
+  if( cmd == SD_NTimeBinsCmd ){ 
+    std::istringstream is(newValue);
+
+    G4String SDname;
+    G4int ntimebins;
+ 
+    is >> SDname >> ntimebins;
+    
+    fdetcon->SDntimebins[SDname] = ntimebins;
+
+    G4cout << "Set number of time bins for SD name = " << SDname << " to " << fdetcon->SDntimebins[SDname] << G4endl;
+  }
+
+  if( cmd == KeepPulseShapeCmd ){ //
+
+    std::istringstream is(newValue);
+
+    G4String SDname;
+    G4bool flag;
+
+    is >> SDname;
+    
+    //Let's do (somewhat) intelligent parsing of the string here:
+    if( newValue.contains("true") || newValue.contains("false") ){ //parse with the "boolalpha" flag:
+      is >> std::boolalpha >> flag;
+    } else { //assume that the boolean parameter is given as 1 or 0:
+      is >> flag;
+    }
+    
+    //is >> SDname >> flag; 
+    fIO->SetKeepPulseShape( SDname, flag );
+    if( SDname == "all" ) fIO->SetKeepAllPulseShape(flag);
+   
+  }
+  // ******
 
   if( cmd == KeepSDtrackcmd ){ //
     //newValue.toLower();
@@ -1998,5 +2530,88 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double maxangle = CosmicsMaxAngleCommand->GetNewDoubleValue(newValue);
     fevgen->SetCosmicsMaxAngle( maxangle );
   }
+
+  // Commands related to solenoid of mTPC, 
+  if( cmd == SolUniFieldCmd ){
+    G4bool soluniflag = SolUniFieldCmd->GetNewBoolValue(newValue);
+    fdetcon->SetTPCSolenoidField();
+    fdetcon->fTargetBuilder->SetSolUni(soluniflag);
+  }
+  if( cmd == SolUniFieldMagCmd ){
+    G4double solunimag = SolUniFieldMagCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetSolUniMag(solunimag);
+  }
+  if( cmd == SolTosFieldCmd ){
+    G4bool soltosflag = SolTosFieldCmd->GetNewBoolValue(newValue);
+    fdetcon->SetTPCSolenoidField();
+    fdetcon->fTargetBuilder->SetSolTosca(soltosflag);
+  }
+  if( cmd == SolTosFieldScaleCmd ){
+    G4double soltosscale = SolTosFieldScaleCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetSolToscaScale(soltosscale);
+  }
+  if( cmd == SolTosFieldOffsetCmd ){
+    G4double soltosoffset = SolTosFieldOffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetSolToscaOffset(soltosoffset);
+  }
+
+  //change mtpc sensitive gas settings
+  if( cmd == mTPCHeGasRatioCmd ){
+    G4double mTPCHeGasRatio = mTPCHeGasRatioCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetmTPCHeGasRatio(mTPCHeGasRatio);
+  }
+  if( cmd == mTPCCH4GasRatioCmd ){
+    G4double mTPCCH4GasRatio = mTPCCH4GasRatioCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetmTPCCH4GasRatio(mTPCCH4GasRatio);
+  }
+  if( cmd == mTPCGasTempCmd ){
+    G4double mTPCGasTemp = mTPCGasTempCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetmTPCGasTemp(mTPCGasTemp);
+  }
+  if( cmd == mTPCGasPressureCmd ){
+    G4double mTPCGasPressure = mTPCGasPressureCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetmTPCGasPressure(mTPCGasPressure);
+  }
+  // // mtpc implementation target wall thickness
+  // if( cmd == mTPCTgtThickCmd ){
+  //   G4double mTPCTgtThick = mTPCTgtThickCmd->GetNewDoubleValue(newValue);
+  //   fdetcon->fmTPC->SetmTPCTgtWallThick(mTPCTgtThick);
+  // }
+
+  if( cmd == mTPCkryptoCmd ){
+    G4bool setmtpckrypto = mTPCkryptoCmd->GetNewBoolValue(newValue);
+    fdetcon->fmTPC->SetmTPCkrypto(setmtpckrypto);
+  }
+
+  if( cmd == mTPCRoomTempCmd ){
+    G4bool setroomtemp = mTPCRoomTempCmd->GetNewBoolValue(newValue);
+    //fdetcon->fTargetBuilder->SetmTPCmatAtRoomTemp(setroomtemp);
+  }
   
+  if( cmd == TDIStgtWallThickCmd ){
+    G4double tdistgtwallthick = TDIStgtWallThickCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetTDIStgtWallThick(tdistgtwallthick);
+  }
+  
+  if( cmd == WriteFieldMapCmd ){
+    G4bool flag = WriteFieldMapCmd->GetNewBoolValue(newValue);
+    fIO->SetWriteFieldMaps(flag);
+  }
+
+  if( cmd == UseGEMshieldCmd ){
+    G4bool flag = UseGEMshieldCmd->GetNewBoolValue(newValue);
+    fdetcon->SetGEMuseAlshield(flag);
+  }
+
+  if( cmd == GEMshieldThickCmd ){
+    G4double shieldthick = GEMshieldThickCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetGEMAlShieldThick( shieldthick );
+  }
+
+  if( cmd == GEMshieldAirGapThickCmd ){
+    G4double airgapthick = GEMshieldAirGapThickCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetGEMAirGapThick( airgapthick );
+  }
+  
+
 }

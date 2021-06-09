@@ -20,10 +20,19 @@
 #include "G4GenericTrap.hh"
 #include "G4Polycone.hh"
 #include "G4ExtrudedSolid.hh"
-
 #include "G4SBSCalSD.hh"
+#include "G4SBSGEMSD.hh"
+
+#include "G4SBSmTPC.hh" //CA
 
 #include "G4SBSHArmBuilder.hh"
+
+#include "G4SBSTPCTOSCAField2D.hh"
+#include "G4MagneticField.hh"
+// #include "G4SBSGlobalField.hh"
+#include "G4UniformMagField.hh"
+#include "G4FieldManager.hh"
+#include "G4ChordFinder.hh"
 
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
@@ -33,25 +42,42 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fTargLen = 60.0*cm;
   fTargType = G4SBS::kH2;
   fTargDen = 10.5*atmosphere/(300*kelvin*k_Boltzmann);
-
+  
   fTargPos = G4ThreeVector( 0, 0, 0 );
   fTargDir = G4ThreeVector( 0, 0, 1 );
-
+  
   fTargDiameter = 8.0*cm; //default of 8 cm.
   
   fFlux = false;
-
+  
   fUseRad = false;
   fRadThick = 0.0;
   fRadZoffset = 10.0*cm;
   
   fSchamFlag = 0;
+  
+  fUseLocalTPCSolenoid = false;
+  fSolUni = false;
+  fSolUniMag = 5.0;// default 5 tesla;
+  fSolTosca = false;
+  fSolToscaScale = 1.0;
+  fSolToscaOffset = 200.0; // default 200mm;
+  
+  fTDIStgtWallThick = 0.02*mm; // default
+  
+  // // Montgomery July 2018, TDIS mTPC
+  // // variables for target
+  // ftdis_tgt_diam = 10.0*mm;
+  ftdis_tgt_wallthick = 0.030*mm;
+  ftdis_tgt_len = 400.0*mm; //40cm long
+  
 }
 
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
 
 void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   fTargType = fDetCon->fTargType;
+  
   //We actually need to be a little bit smarter than this: as it stands, one can never build a C foil target with this logic:
   // EFuchey 2017/02/10: organized better this with a switch instead of an endless chain of if...  else...
   //if( (fTargType == G4SBS::kLH2 || fTargType == kLD2 || fTargType == G4SBS::kCfoil ) ){
@@ -78,15 +104,14 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     BuildGEnTarget(worldlog);  
     break;
   case(G4SBS::kSIDISExp):
-    BuildGasTarget( worldlog );
+    //BuildGasTarget( worldlog );
+    BuildGEnTarget(worldlog);
     break;
   default: //GMN, GEN-RP:
     BuildStandardScatCham( worldlog );
     break;
   }
 
-  //if( fUseRad ) BuildRadiator();
-  
   return;
 
 }
@@ -115,7 +140,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   } else {
     TargetCell_log = new G4LogicalVolume( TargetCell, GetMaterial("LD2"), "TargetCell_log" );
   }
-
+  
   fDetCon->InsertTargetVolume( TargetCell_log->GetName() );
   
   G4Tubs *TargetWall = new G4Tubs("TargetWall", Rcell, Rcell + sthick, fTargLen/2.0, 0, twopi );
@@ -139,13 +164,13 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   
   G4double ztemp = -(fTargLen+uthick+dthick)/2.0;
   // Place upstream window:
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+uthick/2.0), uwindow_log, "uwindow_phys", TargetMother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+uthick/2.0), uwindow_log, "uwindow_phys", TargetMother_log, false, 0, fChkOvLaps );
   // Place target and side walls:
   ztemp += uthick;
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetCell_log, "TargetCell_phys", TargetMother_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetWall_log, "TargetWall_phys", TargetMother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetCell_log, "TargetCell_phys", TargetMother_log, false, 0, fChkOvLaps );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetWall_log, "TargetWall_phys", TargetMother_log, false, 0, fChkOvLaps );
   ztemp += fTargLen;
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+dthick/2.0), dwindow_log, "dwindow_phys", TargetMother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+dthick/2.0), dwindow_log, "dwindow_phys", TargetMother_log, false, 0, fChkOvLaps );
   
   G4double targ_zcenter = (uthick-dthick)/2.0; //position of target center relative to target mother volume
    
@@ -159,7 +184,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   G4double temp = targ_offset.y();
   targ_offset.setY(temp+targ_zcenter);
   
-  new G4PVPlacement( rot_targ, targ_offset, TargetMother_log, "TargetMother_phys", motherlog, false, 0 );
+  new G4PVPlacement( rot_targ, targ_offset, TargetMother_log, "TargetMother_phys", motherlog, false, 0, fChkOvLaps );
 
   if( fUseRad ){ //place radiator
     G4double yrad = fTargLen/2.0 + fRadZoffset; 
@@ -173,7 +198,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
     G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
 				   0.*deg, 150.*deg );
     G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
-    new G4PVPlacement( rot_targ, targ_offset, fsph_log, "fsph_phys", motherlog, false, 0 );
+    new G4PVPlacement( rot_targ, targ_offset, fsph_log, "fsph_phys", motherlog, false, 0, fChkOvLaps );
     
     G4String FluxSDname = "FLUX";
     G4String Fluxcollname = "FLUXHitsCollection";
@@ -1101,6 +1126,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   if( fDetCon->fExpType != G4SBS::kGEPpositron ){ //place snout:
     new G4PVPlacement( 0, Snout_position_global, Snout_log, "Snout_phys", worldlog, false, 0 );
   }
+  
   //Fill the cutouts with vacuum, and then with steel corner pieces:
   G4LogicalVolume *SnoutHarmWindowCutout_log = new G4LogicalVolume( HarmWindowCutout_box, GetMaterial("Vacuum"), "SnoutHarmWindowCutout_log" );
   G4LogicalVolume *SnoutEarmWindowCutout_log = new G4LogicalVolume( EarmWindowCutout_box, GetMaterial("Vacuum"), "SnoutEarmWindowCutout_log" );
@@ -1110,54 +1136,55 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   G4double xtemp, ytemp;
   xtemp = SnoutHarmWindow_Width/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
   ytemp = SnoutHarmWindow_Height/2.0 - SnoutHarmWindow_Rbend_corners/2.0;
+  
+  new G4PVPlacement( 0, G4ThreeVector( -xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_right", SnoutHarmWindowCutout_log, false, 0, fChkOvLaps );
 
   if( fDetCon->fExpType != G4SBS::kGEPpositron ){
     new G4PVPlacement( 0, G4ThreeVector( -xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_right", SnoutHarmWindowCutout_log, false, 0 );
 
     rot_temp->rotateZ( 90.0*deg ); //clockwise as viewed from downstream, ccw as viewed from upstream!
   
-    new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_right", SnoutHarmWindowCutout_log, false, 1 );
-
+    new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_right", SnoutHarmWindowCutout_log, false, 1, fChkOvLaps );
+    
     rot_temp = new G4RotationMatrix;
     rot_temp->rotateZ( -90.0*deg );
-
-    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_left", SnoutHarmWindowCutout_log, false, 2 );
-
+    
+    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, -ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_bottom_left", SnoutHarmWindowCutout_log, false, 2, fChkOvLaps );
+    
     rot_temp = new G4RotationMatrix;
     rot_temp->rotateZ( 180.0*deg );
 
-    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_left", SnoutHarmWindowCutout_log, false, 3 );
-
-  
+    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, ytemp, 0 ), HarmWindowCorner_log, "HarmWindowCorner_phys_top_left", SnoutHarmWindowCutout_log, false, 3, fChkOvLaps );
+    
     //Finally, place the window cutout globally:
 
     G4ThreeVector HarmCutout_pos_global = Snout_position_global + FrontRightCorner_pos_local - Snout_Thick/2.0 * Harm_zaxis - ( SnoutHarmPlate_Width/2.0 - SnoutHarmWindow_xcenter ) * Harm_xaxis;
-
-    new G4PVPlacement( rot_harm_window, HarmCutout_pos_global, SnoutHarmWindowCutout_log, "SnoutHarmWindowCutout_phys", worldlog, false, 0 );
-
+    
+    new G4PVPlacement( rot_harm_window, HarmCutout_pos_global, SnoutHarmWindowCutout_log, "SnoutHarmWindowCutout_phys", worldlog, false, 0, fChkOvLaps );
+    
     xtemp = SnoutEarmWindow_Width/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
     ytemp = SnoutEarmWindow_Height/2.0 - SnoutEarmWindow_Rbend_corners/2.0;
 
-    new G4PVPlacement( 0, G4ThreeVector(-xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_right", SnoutEarmWindowCutout_log, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(-xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_right", SnoutEarmWindowCutout_log, false, 0, fChkOvLaps );
 
     rot_temp = new G4RotationMatrix;
     rot_temp->rotateZ(90.0*deg );
 
-    new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_right", SnoutEarmWindowCutout_log, false, 1 );
+    new G4PVPlacement( rot_temp, G4ThreeVector( -xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_right", SnoutEarmWindowCutout_log, false, 1, fChkOvLaps );
   
     rot_temp = new G4RotationMatrix;
     rot_temp->rotateZ(-90.0*deg );
 
-    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_left", SnoutEarmWindowCutout_log, false, 2 );
-
+    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,-ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_bottom_left", SnoutEarmWindowCutout_log, false, 2, fChkOvLaps );
+    
     rot_temp = new G4RotationMatrix;
     rot_temp->rotateZ(180.0*deg );
 
-    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_left", SnoutEarmWindowCutout_log, false, 3 );
+    new G4PVPlacement( rot_temp, G4ThreeVector( xtemp,ytemp,0), EarmWindowCorner_log, "EarmWindowCorner_phys_top_left", SnoutEarmWindowCutout_log, false, 3, fChkOvLaps );
   
     G4ThreeVector EarmCutout_pos_global = Snout_position_global + FrontLeftCorner_pos_local - Snout_Thick/2.0 * Earm_zaxis + (SnoutEarmPlate_Width/2.0 + SnoutEarmWindow_xcenter) * Earm_xaxis;
 
-    new G4PVPlacement( rot_earm_window, EarmCutout_pos_global, SnoutEarmWindowCutout_log, "SnoutEarmWindowCutout_phys", worldlog, false, 0 );
+    new G4PVPlacement( rot_earm_window, EarmCutout_pos_global, SnoutEarmWindowCutout_log, "SnoutEarmWindowCutout_phys", worldlog, false, 0, fChkOvLaps );
   }
   //What's next? Define scattering chamber vacuum volume:
   G4double ScatChamberRadius = 23.80*inch;
@@ -1169,7 +1196,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateX( 90.0*deg );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), ScatChamber_log, "ScatChamber_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), ScatChamber_log, "ScatChamber_phys", worldlog, false, 0, fChkOvLaps );
 
   //Add scattering chamber and all target materials to the list of "TARGET" volumes:
   fDetCon->InsertTargetVolume( ScatChamber_log->GetName() );
@@ -1355,7 +1382,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   G4LogicalVolume *SnoutVacuum_log = new G4LogicalVolume( SnoutTaperPgon_intersect, GetMaterial("Vacuum"), "SnoutVacuum_log" );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), SnoutVacuum_log, "SnoutVacuum_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), SnoutVacuum_log, "SnoutVacuum_phys", worldlog, false, 0, fChkOvLaps );
 
   fDetCon->InsertTargetVolume( SnoutVacuum_log->GetName() );
   
@@ -1375,7 +1402,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateX( 90.0*deg );
 
-  new G4PVPlacement( rot_temp, IronTube_pos_rel, IronTube_log, "IronTube_phys", SnoutVacuum_log, false, 0 );
+  new G4PVPlacement( rot_temp, IronTube_pos_rel, IronTube_log, "IronTube_phys", SnoutVacuum_log, false, 0, fChkOvLaps );
   
 
   //Finally, put windows and bolt plates:
@@ -1401,7 +1428,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   G4ThreeVector HarmFlange_pos = Harm_window_pos + (HarmWindowThick + HarmFlangeThick)/2.0 * Harm_zaxis;
 
   if( fDetCon->fExpType != G4SBS::kGEPpositron ) new G4PVPlacement( rot_harm_window, HarmFlange_pos, HarmFlange_log, "HarmFlange_phys", worldlog, false, 0 );
-
+  
   //Create a new logical volume of aluminum instead of steel for the rounded corners of the flange:
   G4LogicalVolume *HarmFlangeCorner_log = new G4LogicalVolume( HarmWindowCorner, GetMaterial("Aluminum"), "HarmFlangeCorner_log" );
   
@@ -1417,28 +1444,28 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   
     pos_temp = HarmFlange_pos - xtemp * Harm_xaxis - ytemp * Harm_yaxis;
   
-    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
+    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_right", worldlog, false, 0, fChkOvLaps );
 
     rot_temp = new G4RotationMatrix;
     rot_temp->rotateY( SnoutHarmWindowAngle );
     rot_temp->rotateZ( 90.0*deg );
     pos_temp = HarmFlange_pos - xtemp * Harm_xaxis + ytemp * Harm_yaxis;
 
-    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_right", worldlog, false, 1 );
+    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_right", worldlog, false, 1, fChkOvLaps );
 
     rot_temp = new G4RotationMatrix;
     rot_temp->rotateY( SnoutHarmWindowAngle );
     rot_temp->rotateZ( -90.0*deg );
     pos_temp = HarmFlange_pos + xtemp * Harm_xaxis - ytemp * Harm_yaxis;
 
-    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
+    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_bottom_left", worldlog, false, 2, fChkOvLaps );
 
     rot_temp = new G4RotationMatrix;
     rot_temp->rotateY( SnoutHarmWindowAngle );
     rot_temp->rotateZ( 180.0*deg );
     pos_temp = HarmFlange_pos + xtemp * Harm_xaxis + ytemp * Harm_yaxis;
-
-    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_left", worldlog, false, 3 );
+    
+    new G4PVPlacement( rot_temp, pos_temp, HarmFlangeCorner_log, "HarmFlangeCorner_phys_top_left", worldlog, false, 3, fChkOvLaps );
   }
     
   G4double EarmFlangeWidth = 2.0*12.62*inch;
@@ -1450,7 +1477,6 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   G4LogicalVolume *EarmWindow_log = new G4LogicalVolume( EarmAlWindow_box, GetMaterial("Aluminum"), "EarmWindow_log" );
   G4ThreeVector Earm_window_pos = Snout_position_global + FrontLeftCorner_pos_local + (SnoutEarmPlate_Width/2.0 + SnoutEarmWindow_xcenter) * Earm_xaxis + EarmWindowThick/2.0 * Earm_zaxis;
 
-  
   if( fDetCon->fExpType != G4SBS::kGEPpositron ) new G4PVPlacement( rot_earm_window, Earm_window_pos, EarmWindow_log, "EarmWindow_phys", worldlog, false, 0 );
   
   //Next: make flange:
@@ -1475,29 +1501,29 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
     rot_temp->rotateY( -SnoutEarmWindowAngle );
   
     pos_temp = EarmFlange_pos - xtemp * Earm_xaxis - ytemp * Earm_yaxis;
-  
-    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_right", worldlog, false, 0 );
+    
+    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_right", worldlog, false, 0, fChkOvLaps );
 
     rot_temp = new G4RotationMatrix;
     rot_temp->rotateY( -SnoutEarmWindowAngle );
     rot_temp->rotateZ( 90.0*deg );
     pos_temp = EarmFlange_pos - xtemp * Earm_xaxis + ytemp * Earm_yaxis;
   
-    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_right", worldlog, false, 1 );
-
+    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_right", worldlog, false, 1, fChkOvLaps );
+    
     rot_temp = new G4RotationMatrix;
     rot_temp->rotateY( -SnoutEarmWindowAngle );
     rot_temp->rotateZ( -90.0*deg );
     pos_temp = EarmFlange_pos + xtemp * Earm_xaxis - ytemp * Earm_yaxis;
   
-    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_left", worldlog, false, 2 );
+    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_bottom_left", worldlog, false, 2, fChkOvLaps );
 
     rot_temp = new G4RotationMatrix;
     rot_temp->rotateY( -SnoutEarmWindowAngle );
     rot_temp->rotateZ( 180.0*deg );
     pos_temp = EarmFlange_pos + xtemp * Earm_xaxis + ytemp * Earm_yaxis;
   
-    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_left", worldlog, false, 3 );
+    new G4PVPlacement( rot_temp, pos_temp, EarmFlangeCorner_log, "EarmFlangeCorner_phys_top_left", worldlog, false, 3, fChkOvLaps );
   }
   //}
   // VISUALS
@@ -1639,21 +1665,21 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
 
   G4LogicalVolume *dvcs_snout_log = new G4LogicalVolume(dvcs_snout_cut3, GetMaterial("Aluminum"), "dvcs_snout_log");
 
-  new G4PVPlacement( 0, G4ThreeVector(0,0,0), dvcs_snout_log, "dvcs_snout_phys", dvcs_snout_vacuum_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), dvcs_snout_log, "dvcs_snout_phys", dvcs_snout_vacuum_log, false, 0, fChkOvLaps );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_snout_vacuum_log, "dvcs_snout_vacuum_phys", worldlog, false, 0);
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_snout_vacuum_log, "dvcs_snout_vacuum_phys", worldlog, false, 0, fChkOvLaps);
 
   G4double dvcs_win_thick = (30.331-30.315)*inch;
 
   G4Tubs *dvcs_beamleft_window = new G4Tubs("dvcs_beamleft_window", Rout_dvcs_snout, Rout_dvcs_snout + dvcs_win_thick, 7.328*inch/2.0, (100.6-2.23)*deg, (38.8+4.46)*deg );
   G4LogicalVolume *dvcs_beamleft_window_log = new G4LogicalVolume( dvcs_beamleft_window, GetMaterial("Aluminum"), "dvcs_beamleft_window_log" );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_beamleft_window_log, "dvcs_beamleft_window_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_beamleft_window_log, "dvcs_beamleft_window_phys", worldlog, false, 0, fChkOvLaps );
 
   G4Tubs *dvcs_beamright_window = new G4Tubs("dvcs_beamright_window", Rout_dvcs_snout, Rout_dvcs_snout + dvcs_win_thick, 7.328*inch/2.0, 8.0*deg, (47.6+4.4)*deg );
   G4LogicalVolume *dvcs_beamright_window_log = new G4LogicalVolume( dvcs_beamright_window, GetMaterial("Aluminum"), "dvcs_beamright_window_log" );
 
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_beamright_window_log, "dvcs_beamright_window_phys", worldlog, false, 0 );
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), dvcs_beamright_window_log, "dvcs_beamright_window_phys", worldlog, false, 0, fChkOvLaps );
   
   G4VisAttributes *window_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.0 ) );
   window_visatt->SetForceWireframe(true);
@@ -1664,8 +1690,8 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   G4LogicalVolume *scham_vacuum_log = new G4LogicalVolume( scham_vacuum, GetMaterial("Vacuum"), "scham_vacuum_log" );
   G4LogicalVolume *scham_wall_log = new G4LogicalVolume( swallcut2, GetMaterial("Aluminum"), "scham_wall_log" );
 
-  new G4PVPlacement( 0, G4ThreeVector(0,0,0), scham_wall_log, "scham_wall_phys", scham_vacuum_log, false, 0 );
-  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), scham_vacuum_log, "scham_vacuum_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), scham_wall_log, "scham_wall_phys", scham_vacuum_log, false, 0, fChkOvLaps );
+  new G4PVPlacement( rot_temp, G4ThreeVector(0,0,0), scham_vacuum_log, "scham_vacuum_phys", worldlog, false, 0, fChkOvLaps );
 
   fDetCon->InsertTargetVolume( scham_vacuum_log->GetName() );
   
@@ -1736,10 +1762,10 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   // 		    "sc_hcalwin_phys", worldlog, false, 0);
 
   new G4PVPlacement(rot_temp, G4ThreeVector(0.0, sheight/2.0 + (swallrad-swallrad_in)/2, 0.0), sc_topbottom_log,
-  		    "scham_top_phys", worldlog, false, 0);
+  		    "scham_top_phys", worldlog, false, 0, fChkOvLaps);
 
   new G4PVPlacement(rot_temp, G4ThreeVector(0.0, -sheight/2.0 - (swallrad-swallrad_in)/2, 0.0), sc_topbottom_log,
-  		    "scham_bot_phys", worldlog, false, 0);
+  		    "scham_bot_phys", worldlog, false, 0, fChkOvLaps);
 
   // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extpipe_log, "extpipe_phys", worldlog, false, 0);
   // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, extpipestart-extpipe_len/2), extvac_log, "extvacpipe_phys", worldlog, false, 0);
@@ -1759,8 +1785,8 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
 
   G4LogicalVolume *exit_pipe_log = new G4LogicalVolume( exit_pipe_cut, GetMaterial("Aluminum"), "exit_pipe_log" );
   G4LogicalVolume *exit_vacuum_log = new G4LogicalVolume( exit_vacuum_cut, GetMaterial("Vacuum"), "exit_vacuum_log" );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,z0_exitpipe ), exit_pipe_log, "exit_pipe_phys", worldlog, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,z0_exitpipe ), exit_vacuum_log, "exit_vacuum_phys", worldlog, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,z0_exitpipe ), exit_pipe_log, "exit_pipe_phys", worldlog, false, 0, fChkOvLaps );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,z0_exitpipe ), exit_vacuum_log, "exit_vacuum_phys", worldlog, false, 0, fChkOvLaps );
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateX(+90.0*deg);
@@ -1861,12 +1887,92 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
 }
 
 void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
+  // E. Fuchey:
+  // Move this over to the BuildTDISTarget function to avoid overlap between this volume and the target...
+  // Force target diameter?
+  fTargDiameter = 10.0*mm;
+  // Rachel 23/03/18
+  // currently solenoid is local
+  // At the moment the mother volume dimension for the solenoid field is fixed to match the tosca field map
+  // tosca field map is fixed at 50cm in radial and 150cm in z
+  // will have to have this as an option if tosca field map changes
+  double BFieldRMax = 50.0;
+  double BFieldZMax = 150.0;
+  G4Tubs* TPCBfield_solid = new G4Tubs("TPCBfield_solid", 0.0,BFieldRMax*cm/2.0,BFieldZMax*cm/2.0,0.0,360*deg);
+  G4LogicalVolume* TPCBfield_log = 
+    new G4LogicalVolume(TPCBfield_solid, GetMaterial("Air"),"TPCBfield_log");
+  // will place tpc mother volume into a b-field volume to switch between either uni or tosca
+
+  // the tpc mother is now the b field cylinder
+  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCBfield_log,
+  // 		    "TPCBfield_phys", motherlog, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCBfield_log,
+   		    "TPCBfield_phys", worldlog, false, 0, fChkOvLaps);
+  
+  // R. Montgomery 23/03/18
+  // At the moment the TPC solenoid can be either a uniform field for test or the tosca simulation
+  // It will only be set if there is no global field in g4sbs, ie no tosca map for sbs is called
+  // Need to add to global field option in future
+  // The filename for tosca map for solenoid is hard coded, need to add this as an option
+  // the solenoid tosca map must be in same directory as g4sbs executable
+  // The solenoid also always has negative z component, as in tosca file, need to add an inverse option too
+  if(fUseLocalTPCSolenoid){//only envoke TPC local sol if no global sbs field in place atm
+    double SolSign = -1.0;
+    double SolStrength = SolSign * fSolUniMag *tesla;// *tesla;
+    // Using uniform field along TPC z-axis
+    if(fSolUni && !fSolTosca){
+      printf("\n\n\n\n************************* TPC:: uniform solenoid field\n");
+      G4UniformMagField* SolUniMagField = new G4UniformMagField(G4ThreeVector(0.0, 0.0, SolStrength));
+      G4FieldManager *SolFieldMgr = new G4FieldManager(SolUniMagField);
+      SolFieldMgr->SetDetectorField(SolUniMagField);
+      SolFieldMgr->CreateChordFinder(SolUniMagField);
+      G4double minStep = 0.10 *mm;
+      SolFieldMgr->GetChordFinder()->SetDeltaChord(minStep);
+      TPCBfield_log->SetFieldManager(SolFieldMgr,true);
+      
+      G4double posChck[3];
+      G4double bChck[3];
+      posChck[0] = posChck[1] = posChck[2] = 0.0;
+      bChck[0] = bChck[1] = bChck[2] = 0.0;
+      SolUniMagField->GetFieldValue(posChck,bChck);
+      printf("Uniform Solenoid Field at (%lf,%lf,%lf) mm is Bx:%lf  By:%lf Bz:%lf Tesla\n\n\n\n",
+	     posChck[0]/mm,posChck[1]/mm,posChck[2]/mm,
+	     bChck[0]/tesla,bChck[1]/tesla,bChck[2]/tesla);
+    }//if useing uniform solenoid
+    
+    // Using TOSCA sim field
+    double SolOffX, SolOffY, SolOffZ;
+    SolOffX = SolOffY = 0.0;
+    SolOffZ = fSolToscaOffset;// *mm;
+    if(fSolTosca && !fSolUni){
+      printf("\n\n\n\n************************* TPC:: tosca solenoid field\n");
+      if(fSolToscaScale!=1.0) printf("Tosca field is scaled by %lf\n", fSolToscaScale);
+      G4MagneticField* SolToscaMagField;
+      SolToscaMagField = new G4SBSTPCTOSCAField2D(SolOffX, SolOffY, SolOffZ, fSolToscaScale);
+      G4FieldManager *SolFieldMgr = new G4FieldManager(SolToscaMagField);
+      G4double minStep = 0.10 *mm;
+      SolFieldMgr->GetChordFinder()->SetDeltaChord(minStep);
+      TPCBfield_log->SetFieldManager(SolFieldMgr,true);
+      G4double posChck[3];
+      G4double bChck[3];
+      posChck[0] = posChck[1] = posChck[2] = 0.0;
+      bChck[0] = bChck[1] = bChck[2] = 0.0;
+      SolToscaMagField->GetFieldValue(posChck,bChck);
+      printf("Tosca Solenoid Field at (%lf,%lf,%lf) mm is Bx:%lf  By:%lf Bz:%lf Tesla\n\n\n\n",
+	     posChck[0],posChck[1],posChck[2],
+	     bChck[0]/tesla,bChck[1]/tesla,bChck[2]/tesla);
+    }// if using tosca field
+    if(fSolUni && fSolTosca) printf("\n\n\n\n******** TPC: BEWARE no solenoid since uniform and tosca fields switched on\n\n\n\n");
+    if(fSolUni==false && fSolTosca==false) printf("\n\n\n\n******** TPC: BEWARE no solenoid since neither field type switched on\n\n\n\n");
+  }// if not using G4SBSGlobalField can use local field for TPC sol
+  else printf("\n\n\n******** TPC: BEWARE: not using a solenoid field\n\n\n");
+  
 
   if( fFlux ){ //Make a sphere to compute particle flux:
     G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
 				   0.*deg, 150.*deg );
     G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
-    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", TPCBfield_log, false, 0, fChkOvLaps );
 
     fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     
@@ -1885,118 +1991,71 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
     fsph_log->SetSensitiveDetector( FluxSD );
   }
   
-  //Desired minimum scattering angle for SBS = 5 deg (for SIDIS @10 deg):
-  double sbs_scattering_angle_min = 5.0*deg;
-  double sc_exitpipe_radius_inner = 48.0*mm;
-  double sc_exitpipe_radius_outer = 50.0*mm;
-  double sc_entrypipe_radius_inner = 31.75*mm;
-  double sc_entrypipe_radius_outer = sc_entrypipe_radius_inner+0.12*mm;
-  double sc_winthick = 0.38*mm;
 
-  double zstart_sc = -1.5*m;
-  double zend_sc   = 162.2*cm;
+  // R. Montgomery July 2018 mTPC
+  // TDIS target
+  // this cap needs checked and updated!!
+  double capthick  = 0.015;//15um thick Al //0.05*mm;
 
-  double zpos_sc = (zstart_sc + zend_sc)/2.0;
-  double dz_sc = (zend_sc - zstart_sc)/2.0 - sc_winthick;
-
-  //Material definition was moved to ConstructMaterials();
-  //--------- Glass target cell -------------------------------
-
-  double wallthick = 0.01*mm;
-  double capthick  = 0.01*mm;
-  
-  double sc_radius_inner = sc_exitpipe_radius_outer;
-  double sc_radius_outer = sc_radius_inner + sc_winthick;
-
-  G4Tubs *sc_wall = new G4Tubs("sc_tube", sc_radius_inner, sc_radius_outer, dz_sc, 0.*deg, 360.*deg );
-  G4Tubs *sc_vacuum = new G4Tubs("sc_vac", 0.0, sc_radius_inner, dz_sc, 0.*deg, 360.*deg );
-
-  G4Tubs *sc_cap_upstream = new G4Tubs("sc_cap_upstream", sc_entrypipe_radius_inner, sc_radius_outer, sc_winthick/2.0, 0.*deg, 360.*deg );
-  G4Tubs *sc_cap_downstream = new G4Tubs("sc_cap_downstream", sc_exitpipe_radius_inner, sc_radius_outer, sc_winthick/2.0, 0.*deg, 360.*deg );
-  
-  G4LogicalVolume *sc_wall_log = new G4LogicalVolume( sc_wall, GetMaterial("Aluminum"), "sc_wall_log" );
-  G4LogicalVolume *sc_vacuum_log = new G4LogicalVolume( sc_vacuum, GetMaterial("Vacuum"), "sc_vacuum_log" );
-  G4LogicalVolume *sc_cap_upstream_log = new G4LogicalVolume( sc_cap_upstream, GetMaterial("Aluminum"), "sc_cap_upstream_log" );
-  G4LogicalVolume *sc_cap_downstream_log = new G4LogicalVolume( sc_cap_downstream, GetMaterial("Aluminum"), "sc_cap_downstream_log" );
-  
-  G4Tubs *targ_tube = new G4Tubs("targ_tube", fTargDiameter/2.0-wallthick, fTargDiameter/2.0, fTargLen/2.0, 0.*deg, 360.*deg );
+  // volumes for target wall material and cap
+  G4Tubs *targ_tube = new G4Tubs("targ_tube", fTargDiameter/2.0-ftdis_tgt_wallthick, fTargDiameter/2.0, ftdis_tgt_len/2.0, 0.*deg, 360.*deg );
   G4Tubs *targ_cap = new G4Tubs("targ_cap", 0.0, fTargDiameter/2.0, capthick/2.0, 0.*deg, 360.*deg );
 
-  G4LogicalVolume* targ_tube_log = new G4LogicalVolume(targ_tube, GetMaterial("Aluminum"),"targ_tube_log");
-  G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Aluminum"),"targ_cap_log");
-
-  fDetCon->InsertTargetVolume( sc_vacuum_log->GetName() );
+  //fDetCon->InsertTargetVolume( sc_vacuum_log->GetName() );
   
-  // gas
-  G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, fTargDiameter/2.0-wallthick,fTargLen/2.0, 0.*deg, 360.*deg );
+  // target gas material volume and material
+  G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, fTargDiameter/2.0-ftdis_tgt_wallthick, ftdis_tgt_len/2.0, 0.*deg, 360.*deg );
   G4LogicalVolume* gas_tube_log = NULL;
-
+  
   if( fTargType == G4SBS::kH2 || fTargType == G4SBS::kNeutTarg ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refH2"), "gas_tube_log");
+    //gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("mTPCH2"), "gas_tube_log");
   }
   if( fTargType == G4SBS::kD2 ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refD2"), "gas_tube_log");
+    //gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("mTPCD2"), "gas_tube_log");
   }
   if( fTargType == G4SBS::k3He ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("pol3He"), "gas_tube_log");
   }
 
+  // put target construction material within solenoid bounding box as mother vol
+  G4LogicalVolume *motherlog = TPCBfield_log;
+  double target_zpos = 0.0; // no z-offset
+
+  G4LogicalVolume* targ_tube_log = new G4LogicalVolume(targ_tube, GetMaterial("Kapton"),"targ_tube_log");
+  // G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Kapton"),"targ_cap_log");
+  G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Aluminum"),"targ_cap_log"); //aluminium
+  
   fDetCon->InsertTargetVolume( gas_tube_log->GetName() );
 
-  G4LogicalVolume *motherlog = worldlog;
-  double target_zpos = 0.0;
-  
-  // if( fSchamFlag == 1 ){
-  //   motherlog = sc_vacuum_log;
-  //   target_zpos = -zpos_sc;
-  // }
-  
   //if( fTargType == G4SBS::kH2 || fTargType == G4SBS::k3He || fTargType == G4SBS::kNeutTarg ){
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), targ_tube_log,
-		    "targ_tube_phys", motherlog, false, 0);
+		    "targ_tube_phys", motherlog, false, 0, fChkOvLaps);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos+ftdis_tgt_len/2.0+capthick/2.0), targ_cap_log,
+		    "targ_cap_phys1", motherlog, false, 0, fChkOvLaps);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos-ftdis_tgt_len/2.0-capthick/2.0), targ_cap_log,
+		    "targ_cap_phys2", motherlog, false, 1, fChkOvLaps);
   
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos+fTargLen/2.0+capthick/2.0), targ_cap_log,
-		    "targ_cap_phys1", motherlog, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos-fTargLen/2.0-capthick/2.0), targ_cap_log,
-		    "targ_cap_phys2", motherlog, false, 1);
-  
+  // now place target gas material inside
   assert(gas_tube_log);
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
-		    "gas_tube_phys", motherlog, false, 0);
+		    "gas_tube_phys", motherlog, false, 0, fChkOvLaps);
   
-  BuildTPC(motherlog, target_zpos+5.0*cm);//TPC will always be 10cm longer than target.
-  
-  // //Place scattering chamber:
-  // if( fSchamFlag == 1 ){
-  //   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_wall_log, "sc_wall_phys", worldlog, false, 0 );
-  //   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc-dz_sc-sc_winthick/2.0), sc_cap_upstream_log, "sc_cap_upstream_phys", worldlog, false, 0 );
-  //   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc+dz_sc+sc_winthick/2.0), sc_cap_downstream_log, "sc_cap_downstream_phys", worldlog, false, 0 );
-  //   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_vacuum_log, "sc_vacuum_phys", worldlog, false, 0 );
-  // }
-  
-  // sc_vacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
+  fDetCon->fmTPC->BuildComponent(motherlog);
+  //BuildTPC(motherlog, target_zpos);//TPC actually centered on the target
+  // TPC is inside mother log vol which for now is solenoid map vol
+  // solenoid map vol is tube centred on 0,0,0 with r=25cm, length 150cm 
 
   //Visualization attributes:
-  //ScatteringChamber_log->SetVisAttributes( G4VisAttributes::Invisible );
-
-  G4VisAttributes *sc_wall_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
-  sc_wall_visatt->SetForceWireframe(true);
-
-  // sc_wall_log->SetVisAttributes( sc_wall_visatt );
-  sc_cap_upstream_log->SetVisAttributes( sc_wall_visatt );
-  sc_cap_upstream_log->SetVisAttributes( sc_wall_visatt );
-
-  // G4VisAttributes *sc_exit_pipe_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
-  // sc_exit_pipe_log->SetVisAttributes( sc_exit_pipe_visatt );
-
-  // G4VisAttributes *sc_win_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.0 ) );
-  // sc_window_sbs_log->SetVisAttributes( sc_win_visatt );
-  // //sc_window_bb_log->SetVisAttributes( sc_win_visatt );
+  TPCBfield_log->SetVisAttributes( G4VisAttributes::Invisible );
 
   G4VisAttributes *tgt_cell_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
+  G4VisAttributes *tgt_cap_visatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 1.0 ) );
   tgt_cell_visatt->SetForceWireframe(true);
+  // tgt_cap_visatt->SetForceWireframe(true);
 
-  targ_cap_log->SetVisAttributes( tgt_cell_visatt );
+  targ_cap_log->SetVisAttributes( tgt_cap_visatt );
   targ_tube_log->SetVisAttributes( tgt_cell_visatt );
 
   G4VisAttributes *tgt_gas_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
@@ -2004,49 +2063,541 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
 
 }
 
+//********************************************************
+// BEGIN OF mTPC code
+//********************************************************
+
+/*
 void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
-  // oversimplistic TPC
-  G4Tubs* TPCmother_solid = 
-    new G4Tubs("TPCmother_solid", 10.0*cm/2.0, 30.*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
-  G4Tubs* TPCinnerwall_solid = 
-    new G4Tubs("TPCinnerwall_solid", 10.0*cm/2.0, 10.*cm/2.0+0.002*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
-  G4Tubs* TPCouterwall_solid = 
-    new G4Tubs("TPCouterwall_solid", 30.0*cm/2.0-0.002*mm, 30.*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
-  G4Tubs* TPCgas_solid = 
-    new G4Tubs("TPCgas_solid", 10.*cm/2.0+0.002*mm, 30.0*cm/2.0-0.002*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  // Montgomery July 2018
+  // implementing geometry atm as a exact copy of implementation in gemc by park/carmignotto
+  // There is no end cap on mTPC beyond readout discs and also no cathode planes
+  // variables for building detector
+  // total length
+  double mTPC_z_total =  fmTPC_cell_len * fmTPC_Ncells;
+  // centre of 1st cell
+  double mTPC_centre_cell1 = -1.0 * fmTPC_cell_len * (fmTPC_Ncells-1) / 2.0;
+  // radii of disks
+  // inner is inner radius plus the inner electrode material and equivalent for outer
+  double mTPC_rIN = fmTPC_inelectrode_r + fmTPC_inelectrode_kaptonthick + fmTPC_inelectrode_authick;
+  double mTPC_rOUT = fmTPC_outelectrode_r - fmTPC_outelectrode_kaptonthick - fmTPC_outelectrode_authick;
+
+  // make a mother shell for mtpc
+  G4Tubs* mTPCmother_solid = 
+    new G4Tubs("mTPCmother_solid", fTargDiameter/2.0, fmTPC_outelectrode_r, mTPC_z_total/2.0, 0.*deg, 360.*deg );
+  G4LogicalVolume* mTPCmother_log = 
+    new G4LogicalVolume(mTPCmother_solid, GetMaterial("mTPCgas"),"mTPCmother_log");
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), mTPCmother_log,
+  		    "mTPCmother_phys", motherlog, false, 0, fChkOvLaps);
+
+  G4VisAttributes *tgt_mTPCmother_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
+  tgt_mTPCmother_visatt->SetForceWireframe(true);
+  // mTPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  mTPCmother_log->SetVisAttributes( tgt_mTPCmother_visatt );
+
+  /*
+  // set up SD, for moment only make gas cells sensitive as do not want to record info in gems and readout right now
+  G4String mTPCSDname = "SBS/mTPC";
+  G4String mTPCcolname = "mTPCHitsCollection";
+ 
+  G4SBSmTPCSD* mTPCSD;
+  if( !(mTPCSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCSD = new G4SBSmTPCSD( mTPCSDname, mTPCcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCSD);
+    (fDetCon->SDlist).insert(mTPCSDname);
+    fDetCon->SDtype[mTPCSDname] = kmTPC;
+  }
+
+  // //To be thought of better, but we do not need a specific SD for HV planes and readout planes...
+  // // also, I think we can declare them locally, but may not matter...
+  // // set up temp sd for readout discs
+  // G4String mTPCReadoutSDname = "SBS/mTPCReadout";
+  // G4String mTPCReadoutcolname = "mTPCReadoutHitsCollection";
+
+  // G4SBSmTPCSD *mTPCReadoutSD;
+  // if( !(mTPCReadoutSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCReadoutSDname)) ){ //Make sure SD with this name doesn't already exist
+  //   mTPCReadoutSD = new G4SBSmTPCSD( mTPCReadoutSDname, mTPCReadoutcolname );
+  //   fDetCon->fSDman->AddNewDetector(mTPCReadoutSD);
+  //   (fDetCon->SDlist).insert(mTPCReadoutSDname);
+  //   fDetCon->SDtype[mTPCReadoutSDname] = kmTPC;
+  // }
   
-  G4LogicalVolume* TPCmother_log = 
-    new G4LogicalVolume(TPCmother_solid, GetMaterial("Air"),"TPCmother_log");
-  G4LogicalVolume* TPCinnerwall_log = 
-    new G4LogicalVolume(TPCinnerwall_solid, GetMaterial("Kapton"),"TPCinnerwall_log");
-  G4LogicalVolume* TPCouterwall_log = 
-    new G4LogicalVolume(TPCouterwall_solid, GetMaterial("Kapton"),"TPCouterwall_log");
-  G4LogicalVolume* TPCgas_log = 
-    new G4LogicalVolume(TPCgas_solid, GetMaterial("ref4He"),"TPCouterwall_log");
+  // // set up temp sd for readoutHV discs
+  // G4String mTPCHVSDname = "SBS/mTPCHV";
+  // G4String mTPCHVcolname = "mTPCHVHitsCollection";
+
+  // G4SBSmTPCSD *mTPCHVSD;
+  // if( !(mTPCHVSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCHVSDname)) ){ //Make sure SD with this name doesn't already exist
+  //   mTPCHVSD = new G4SBSmTPCSD( mTPCHVSDname, mTPCHVcolname );
+  //   fDetCon->fSDman->AddNewDetector(mTPCHVSD);
+  //   (fDetCon->SDlist).insert(mTPCHVSDname);
+  //   fDetCon->SDtype[mTPCHVSDname] = kmTPC;
+  // }
   
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCmother_log,
-		    "TPCmother_phys", motherlog, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCinnerwall_log,
-		    "TPCinnerwall_phys", TPCmother_log, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCouterwall_log,
-		    "TPCouterwall_phys", TPCmother_log, false, 0);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCgas_log,
-		    "TPCgas_phys", TPCmother_log, false, 0);
   
-  // sensitize gas
+  // make the field electrodes and boundary walls at the inner and outer radii
+  BuildmTPCWalls(mTPCmother_log, mTPC_z_total, z_pos, mTPC_rIN, mTPC_rOUT);
+  // build the readout discs and the gap between readout disc and gems (1 per cell)
+  BuildmTPCReadouts(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCReadoutSD);
+  // build the gem detectors
+  BuildmTPCGEMs(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);
+  // build the sensitive gas cells
+  BuildmTPCGasCells(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCSD);//, mTPCHVSD);
+
+
+  // // oversimplistic TPC
+  // G4Tubs* TPCmother_solid = 
+  //   new G4Tubs("TPCmother_solid", fTargDiameter/2.0, 30.*cm/2.0+0.012*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  // G4LogicalVolume* TPCmother_log = 
+  //   new G4LogicalVolume(TPCmother_solid, GetMaterial("Air"),"TPCmother_log");
+  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCmother_log,
+  // 		    "TPCmother_phys", motherlog, false, 0);
+
+  // G4Tubs* TPCinnergas_solid = 
+  //   new G4Tubs("TPCinnergas_solid", fTargDiameter/2.0, 10.*cm/2.0-0.012*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  // G4Tubs* TPCinnerwall_solid = 
+  //   new G4Tubs("TPCinnerwall_solid", 10.0*cm/2.0-0.012*mm, 10.*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  // G4Tubs* TPCgas_solid;// = 
+  // // new G4Tubs("TPCgas_solid", 10.*cm/2.0, 30.0*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  // G4Tubs* TPCouterwall_solid = 
+  //   new G4Tubs("TPCouterwall_solid", 30.0*cm/2.0, 30.*cm/2.0+0.012*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
   
-  // Visualization attributes
-  TPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // G4LogicalVolume* TPCinnergas_log = 
+  //   new G4LogicalVolume(TPCinnergas_solid, GetMaterial("ref4He"),"TPCinnergas_log");
+  // G4LogicalVolume* TPCinnerwall_log = 
+  //   new G4LogicalVolume(TPCinnerwall_solid, GetMaterial("Kapton"),"TPCinnerwall_log");
+  // G4LogicalVolume* TPCgas_log;// = 
+  //   //new G4LogicalVolume(TPCgas_solid, GetMaterial("ref4He"),"TPCgas_log");
+  // G4LogicalVolume* TPCouterwall_log = 
+  //   new G4LogicalVolume(TPCouterwall_solid, GetMaterial("Kapton"),"TPCouterwall_log");
+
+  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCinnergas_log,
+  // 		    "TPCinnergas_phys", TPCmother_log, false, 0);
+  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCinnerwall_log,
+  // 		    "TPCinnerwall_phys", TPCmother_log, false, 0);
+  // // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCgas_log,
+  // // 		    "TPCgas_phys", TPCmother_log, false, 0);
+  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCouterwall_log,
+  // 		    "TPCouterwall_phys", TPCmother_log, false, 0);
+
+  // // sensitize gas
+  // //Create sensitive detector for this tracker:
+  // G4String mTPCSDname = "SBS/mTPC";
+  // G4String mTPCcolname = "mTPCHitsCollection";
   
-  G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
-  tpcwalls_visatt->SetForceWireframe(true);
-  TPCinnerwall_log->SetVisAttributes( tpcwalls_visatt );
-  TPCouterwall_log->SetVisAttributes( tpcwalls_visatt );
+  // G4SBSGEMSD* mTPCSD;
+
+  // if( !(mTPCSD = (G4SBSGEMSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
+  //   mTPCSD = new G4SBSGEMSD( mTPCSDname, mTPCcolname );
+  //   fDetCon->fSDman->AddNewDetector(mTPCSD);
+  //   (fDetCon->SDlist).insert(mTPCSDname);
+  //   fDetCon->SDtype[mTPCSDname] = kGEM;
+  // }
+
+  // G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.02 ) );
+    
+  // for(int i = 0; i<20; i++){
+  //   TPCgas_solid = new G4Tubs("TPCgas_solid", 10.*cm/2.0+i*0.5*cm, 10.*cm/2.0+(i+1)*0.5*cm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  //   TPCgas_log = new G4LogicalVolume(TPCgas_solid, GetMaterial("TPCgas"),"TPCgas_log");
+    
+  //   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCgas_log,
+  // 		      "TPCgas_phys", TPCmother_log, false, i);
+  //   if(i==0)// temporary
+  //     TPCgas_log->SetSensitiveDetector(mTPCSD);
+  //   TPCgas_log->SetVisAttributes( tpcgas_visatt );
+  // }
   
-  G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.5 ) );
-  TPCgas_log->SetVisAttributes( tpcgas_visatt );
+  // // Visualization attributes
+  // TPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // TPCinnergas_log->SetVisAttributes( G4VisAttributes::Invisible );
   
+  // G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
+  // tpcwalls_visatt->SetForceWireframe(true);
+  // TPCinnerwall_log->SetVisAttributes( tpcwalls_visatt );
+  // TPCouterwall_log->SetVisAttributes( tpcwalls_visatt );
+  
+  // // G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.1 ) );
+  // // TPCgas_log->SetVisAttributes( tpcgas_visatt );
 }
+
+
+void G4SBSTargetBuilder::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtpctotallength, G4double mtpczpos, G4double mtpcinnerR, G4double mtpcouterR){
+  // make inner and outer boundary layers
+  // these comprise outer kapton walls and electrodes on inner and outer raddii to set up field
+
+  // inner wall, has two layers: kapton and electrode
+  // layer closest to 40cm target, is kapton
+  G4Tubs* mTPCinnerwall1_solid = 
+    new G4Tubs("mTPCinnerwall1_solid", fmTPC_inelectrode_r, fmTPC_inelectrode_r+fmTPC_inelectrode_kaptonthick, mtpctotallength/2.0, 0.*deg, 360.*deg );
+  G4LogicalVolume* mTPCinnerwall1_log = 
+    new G4LogicalVolume(mTPCinnerwall1_solid, GetMaterial("Kapton"),"mTPCinnerwall1_log");
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mtpczpos), mTPCinnerwall1_log,
+  		    "mTPCinnerwall1_phys", motherlog, false, 0, fChkOvLaps);
+  // next layer before tpc gas is electrode
+  G4Tubs* mTPCinnerwall2_solid = 
+    new G4Tubs("mTPCinnerwall2_solid", fmTPC_inelectrode_r+fmTPC_inelectrode_kaptonthick, mtpcinnerR, mtpctotallength/2.0, 0.*deg, 360.*deg );
+  G4LogicalVolume* mTPCinnerwall2_log = 
+    new G4LogicalVolume(mTPCinnerwall2_solid, GetMaterial("Au"),"mTPCinnerwall2_log");
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mtpczpos), mTPCinnerwall2_log,
+  		    "mTPCinnerwall2_phys", motherlog, false, 0, fChkOvLaps);
+
+  // outer wall, has two layers: electrode and kapton
+  // layer closest to inner gas is electrode
+  G4Tubs* mTPCouterwall1_solid = 
+    new G4Tubs("mTPCouterwall1_solid", mtpcouterR, mtpcouterR+fmTPC_outelectrode_authick, mtpctotallength/2.0, 0.*deg, 360.*deg );
+  G4LogicalVolume* mTPCouterwall1_log = 
+    new G4LogicalVolume(mTPCouterwall1_solid, GetMaterial("Au"),"mTPCouterwall1_log");
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mtpczpos), mTPCouterwall1_log,
+  		    "mTPCouterwall1_phys", motherlog, false, 0, fChkOvLaps);
+  //outer most layer is kapton
+  G4Tubs* mTPCouterwall2_solid = 
+    new G4Tubs("mTPCouterwall2_solid", mtpcouterR+fmTPC_outelectrode_authick, fmTPC_outelectrode_r, mtpctotallength/2.0, 0.*deg, 360.*deg );
+  G4LogicalVolume* mTPCouterwall2_log = 
+    new G4LogicalVolume(mTPCouterwall2_solid, GetMaterial("Kapton"),"mTPCouterwall2_log");
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mtpczpos), mTPCouterwall2_log,
+  		    "mTPCouterwall2_phys", motherlog, false, 0, fChkOvLaps);
+  if(fmTPCkrypto)mTPCouterwall2_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+
+  //Visualization attributes:
+  G4VisAttributes *mtpc_kaptonboudary_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0) );
+  mtpc_kaptonboudary_visatt->SetForceWireframe(true);
+  mTPCinnerwall1_log->SetVisAttributes( mtpc_kaptonboudary_visatt );
+  mTPCouterwall2_log->SetVisAttributes( mtpc_kaptonboudary_visatt );
+
+
+  G4VisAttributes *mtpc_electrodeboudary_visatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 0.0) );
+  mtpc_kaptonboudary_visatt->SetForceWireframe(true);
+  mTPCinnerwall2_log->SetVisAttributes( mtpc_electrodeboudary_visatt );
+  mTPCouterwall1_log->SetVisAttributes( mtpc_electrodeboudary_visatt );
+
+
+}
+  
+void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double innerR,  G4double outerR){//, G4SBSmTPCSD* mtpcreadoutSD){
+  //build readout discs, one per cell, even numbered cells have it on the "LHS", odd ones on "RHS"
+  G4String mTPCReadoutSDname = "SBS/mTPCReadout";
+  G4String mTPCReadoutcolname = "mTPCReadoutHitsCollection";
+  
+  G4SBSCalSD *mTPCReadoutSD;
+  if( !(mTPCReadoutSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCReadoutSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCReadoutSD = new G4SBSCalSD( mTPCReadoutSDname, mTPCReadoutcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCReadoutSD);
+    (fDetCon->SDlist).insert(mTPCReadoutSDname);
+    fDetCon->SDtype[mTPCReadoutSDname] = kCAL;
+  }
+
+  
+  G4Tubs* mTPCReadoutDisc_solid; 
+  G4LogicalVolume* mTPCReadoutDisc_log;
+  G4Tubs* mTPCReadoutGEMGap_solid; 
+  G4LogicalVolume* mTPCReadoutGEMGap_log;
+
+  G4VisAttributes *mtpc_readout_visatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 1.0) );
+  G4VisAttributes *mtpc_readoutgemgap_visatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 1.0) );
+  mtpc_readoutgemgap_visatt->SetForceWireframe(true);
+  mtpc_readout_visatt->SetForceWireframe(true);
+
+  // loop over each cell/chamber of mTPC
+  for(int incCell=0; incCell<fmTPC_Ncells; incCell++){
+    double mTPC_CentreCell = centrecell1 + incCell*celllength;
+    // make the readout discs
+    double mTPC_zpos = 0.0;
+    if(incCell % 2 == 0){
+      mTPC_zpos = mTPC_CentreCell - (celllength/2.0) + (fmTPC_readout_thick/2.0);
+    }
+    else{
+      mTPC_zpos = mTPC_CentreCell + (celllength/2.0) - (fmTPC_readout_thick/2.0);
+    }
+    mTPCReadoutDisc_solid = new G4Tubs("mTPCReadoutDisc_solid", innerR, outerR, fmTPC_readout_thick/2.0, 0.*deg, 360.*deg);
+    mTPCReadoutDisc_log = new G4LogicalVolume(mTPCReadoutDisc_solid, GetMaterial("BonusPCB"),"mTPCReadoutDisc_log");    
+    // FOR MOMENT PUT AS BONUS PCB MATERIAL, TOOK FROM MATERIALS IN GEMC
+    if(fmTPCkrypto)mTPCReadoutDisc_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mTPC_zpos), mTPCReadoutDisc_log, "mTPCReadoutDisc_phys", motherlog, false, incCell, fChkOvLaps);
+    mTPCReadoutDisc_log->SetVisAttributes( mtpc_readout_visatt );
+    // set readout disc as sensitive
+    mTPCReadoutDisc_log->SetSensitiveDetector(mTPCReadoutSD);
+
+    // now we want to make a gap between readout disc and where gem will go, material should be same as mTPC gas
+    double mTPC_zposgap = 0.0;
+    double mTPC_edgecell = 0.0;
+    if(incCell % 2 == 0){
+      mTPC_edgecell = mTPC_CentreCell - celllength/2.0;
+      mTPC_zposgap = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM/2.0;
+    }
+    else{
+      mTPC_edgecell = mTPC_CentreCell + celllength/2.0;
+      mTPC_zposgap = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM/2.0;
+    }
+    mTPCReadoutGEMGap_solid = new G4Tubs("mTPCReadoutGEMGap_solid", innerR, outerR, fmTPC_gap_readoutGEM/2.0, 0.*deg, 360.*deg);
+    mTPCReadoutGEMGap_log = new G4LogicalVolume(mTPCReadoutGEMGap_solid, GetMaterial("mTPCgas"),"mTPCReadoutGEMGap_log");    
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, mTPC_zposgap), mTPCReadoutGEMGap_log, "mTPCReadoutGEMGap_phys", motherlog, false, incCell, fChkOvLaps);
+    mTPCReadoutGEMGap_log->SetVisAttributes( mtpc_readoutgemgap_visatt );
+
+  }//loop over mTPC cells/chambers
+
+}
+
+void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double mtpcinnerR, G4double mtpcouterR){
+
+  G4Tubs* mTPCGEMfoil_solid;
+  G4LogicalVolume* mTPCGEMfoil_log;
+  
+  G4Tubs* mTPCGEMSurf1_solid; 
+  G4LogicalVolume* mTPCGEMSurf1_log;
+  G4Tubs* mTPCGEMDielec_solid; 
+  G4LogicalVolume* mTPCGEMDielec_log;
+  G4Tubs* mTPCGEMSurf2_solid; 
+  G4LogicalVolume* mTPCGEMSurf2_log;
+  G4Tubs* mTPCGEMGap_solid; 
+  G4LogicalVolume* mTPCGEMGap_log;
+
+  G4VisAttributes *mtpc_gem_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 0.0) );
+  mtpc_gem_visatt->SetForceWireframe(true);
+  G4VisAttributes *mtpc_gemgap_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0) );
+  mtpc_gemgap_visatt->SetForceWireframe(true);
+
+  int counter = -1;
+
+  G4String mTPCGEMfoil_solidname = "mTPCGEMfoil_solid";
+  G4String mTPCGEMfoil_logname = "mTPCGEMfoil_log";
+  G4String mTPCGEMfoil_physname = "mTPCGEMfoil_phys";
+  mTPCGEMfoil_solid = new G4Tubs(mTPCGEMfoil_solidname, mtpcinnerR, mtpcouterR, (fmTPC_gem_surf1thick+fmTPC_gem_dielecthick+fmTPC_gem_surf2thick)/2.0, 0.*deg, 360.*deg);
+  mTPCGEMfoil_log = new G4LogicalVolume(mTPCGEMfoil_solid, GetMaterial("Air"),mTPCGEMfoil_logname);    
+  double zpossurf1 = -(fmTPC_gem_surf1thick+fmTPC_gem_dielecthick)/2.;
+  G4String mTPCGEMSurf1_solidname = "mTPCGEMSurf1_solid";
+  G4String mTPCGEMSurf1_logname = "mTPCGEMSurf1_log";
+  G4String mTPCGEMSurf1_physname = "mTPCGEMSurf1_phys";
+  mTPCGEMSurf1_solid = new G4Tubs(mTPCGEMSurf1_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf1thick/2.0, 0.*deg, 360.*deg);
+  mTPCGEMSurf1_log = new G4LogicalVolume(mTPCGEMSurf1_solid, GetMaterial("Copper"),mTPCGEMSurf1_logname);    
+  //place "surf1" into "foil"
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, mTPCGEMfoil_log, false,0, fChkOvLaps);    
+  mTPCGEMSurf1_log->SetVisAttributes( mtpc_gem_visatt );
+  
+  double zposdielec = 0.0;
+  G4String mTPCGEMDielec_solidname = "mTPCGEMDielec_solid";
+  G4String mTPCGEMDielec_logname = "mTPCGEMDielec_log";
+  G4String mTPCGEMDielec_physname = "mTPCGEMDielec_phys";
+  mTPCGEMDielec_solid = new G4Tubs(mTPCGEMDielec_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_dielecthick/2.0, 0.*deg, 360.*deg);
+  mTPCGEMDielec_log = new G4LogicalVolume(mTPCGEMDielec_solid, GetMaterial("Kapton"),mTPCGEMDielec_logname);    
+  //place "dielec" into "foil"
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposdielec), mTPCGEMDielec_log, mTPCGEMDielec_physname, mTPCGEMfoil_log, false,0, fChkOvLaps);
+  mTPCGEMDielec_log->SetVisAttributes( mtpc_gem_visatt );
+  
+  double zpossurf2 = +(fmTPC_gem_surf2thick+fmTPC_gem_dielecthick)/2.;
+  G4String mTPCGEMSurf2_solidname = "mTPCGEMSurf2_solid";
+  G4String mTPCGEMSurf2_logname = "mTPCGEMSurf2_log";
+  G4String mTPCGEMSurf2_physname = "mTPCGEMSurf2_phys";
+  mTPCGEMSurf2_solid = new G4Tubs(mTPCGEMSurf2_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf2thick/2.0, 0.*deg, 360.*deg);
+  mTPCGEMSurf2_log = new G4LogicalVolume(mTPCGEMSurf2_solid, GetMaterial("Copper"),mTPCGEMSurf2_logname);    
+  //place "surf2" into "foil"
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf2), mTPCGEMSurf2_log, mTPCGEMSurf2_physname, mTPCGEMfoil_log, false,0, fChkOvLaps);    
+  mTPCGEMSurf2_log->SetVisAttributes( mtpc_gem_visatt );
+  if(fmTPCkrypto)mTPCGEMfoil_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+    
+  // loop over each cell/chamber of mTPC
+  for(int incCell=0; incCell<fmTPC_Ncells; incCell++){
+
+    double mTPC_CentreCell = centrecell1 + incCell*celllength;
+    double mTPC_edgecell = 0.0;
+    if(incCell % 2 == 0){
+      mTPC_edgecell = mTPC_CentreCell - celllength/2.0;
+    }
+    else{
+      mTPC_edgecell = mTPC_CentreCell + celllength/2.0;
+    }
+
+    // now loop over how many GEMs per cell
+    for(int incGEM=0; incGEM<fmTPC_Ngems; incGEM++){
+      counter++;
+      //first, place the "GEM foil" - the master volume which will contain all the others - easier to handle stuff such as steplimiter
+      double zposfoil = 0.0;
+      if(incCell % 2 == 0){
+	zposfoil = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick/2.0
+	  + incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      }
+      else{
+	zposfoil = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick - fmTPC_gem_dielecthick/2.0
+	  - incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      }
+      
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposfoil), mTPCGEMfoil_log, mTPCGEMfoil_physname, motherlog, false,counter, fChkOvLaps);
+
+      // // first conducting surface of GEM
+      // double zpossurf1 = 0.0;
+      // if(incCell % 2 == 0){
+      // 	zpossurf1 = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick/2.0 +
+      // 	  incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // else{
+      // 	zpossurf1 = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick/2.0 -
+      // 	  incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // G4String mTPCGEMSurf1_solidname = "mTPCGEMSurf1_solid";
+      // G4String mTPCGEMSurf1_logname = "mTPCGEMSurf1_log";
+      // G4String mTPCGEMSurf1_physname = "mTPCGEMSurf1_phys";
+      // mTPCGEMSurf1_solid = new G4Tubs(mTPCGEMSurf1_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf1thick/2.0, 0.*deg, 360.*deg);
+      // mTPCGEMSurf1_log = new G4LogicalVolume(mTPCGEMSurf1_solid, GetMaterial("Copper"),mTPCGEMSurf1_logname);    
+      // //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, motherlog, false,counter);
+      // //place "surf1" into "foil"
+      // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf1), mTPCGEMSurf1_log, mTPCGEMSurf1_physname, motherlog, false,counter, fChkOvLaps);
+      // mTPCGEMSurf1_log->SetVisAttributes( mtpc_gem_visatt );
+      
+      // // central dielectric material of gem
+      // double zposdielec = 0.0;
+      // if(incCell % 2 == 0){
+      // 	zposdielec = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick/2.0
+      // 	  + incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // else{
+      // 	zposdielec = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick - fmTPC_gem_dielecthick/2.0
+      // 	  - incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // G4String mTPCGEMDielec_solidname = "mTPCGEMDielec_solid";
+      // G4String mTPCGEMDielec_logname = "mTPCGEMDielec_log";
+      // G4String mTPCGEMDielec_physname = "mTPCGEMDielec_phys";
+      // mTPCGEMDielec_solid = new G4Tubs(mTPCGEMDielec_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_dielecthick/2.0, 0.*deg, 360.*deg);
+      // mTPCGEMDielec_log = new G4LogicalVolume(mTPCGEMDielec_solid, GetMaterial("Kapton"),mTPCGEMDielec_logname);    
+      // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposdielec), mTPCGEMDielec_log, mTPCGEMDielec_physname, motherlog, false,counter, fChkOvLaps);
+      // mTPCGEMDielec_log->SetVisAttributes( mtpc_gem_visatt );
+      
+      // // second conducting surface of GEM
+      // double zpossurf2 = 0.0;
+      // if(incCell % 2 == 0){
+      // 	zpossurf2 = mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick/2.0
+      // 	  + incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // else{
+      // 	zpossurf2 = mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick - fmTPC_gem_dielecthick - fmTPC_gem_surf2thick/2.0
+      // 	  - incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+      // }
+      // G4String mTPCGEMSurf2_solidname = "mTPCGEMSurf2_solid";
+      // G4String mTPCGEMSurf2_logname = "mTPCGEMSurf2_log";
+      // G4String mTPCGEMSurf2_physname = "mTPCGEMSurf2_phys";
+      // mTPCGEMSurf2_solid = new G4Tubs(mTPCGEMSurf2_solidname, mtpcinnerR, mtpcouterR, fmTPC_gem_surf2thick/2.0, 0.*deg, 360.*deg);
+      // mTPCGEMSurf2_log = new G4LogicalVolume(mTPCGEMSurf2_solid, GetMaterial("Copper"),mTPCGEMSurf2_logname);    
+      // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpossurf2), mTPCGEMSurf2_log, mTPCGEMSurf2_physname, motherlog, false, counter, fChkOvLaps);
+      // mTPCGEMSurf2_log->SetVisAttributes( mtpc_gem_visatt );
+
+     // gaps between gems, but not last one which is flush with end of cell
+      if(incGEM != (fmTPC_Ngems-1)){
+	double zposgap = 0.0;
+	if(incCell % 2 == 0){
+	  zposgap =  mTPC_edgecell + fmTPC_readout_thick + fmTPC_gap_readoutGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick + fmTPC_gap_GEMGEM/2.0
+	    + incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+	}
+	else{
+	  zposgap =  mTPC_edgecell - fmTPC_readout_thick - fmTPC_gap_readoutGEM - fmTPC_gem_surf1thick - fmTPC_gem_dielecthick - fmTPC_gem_surf2thick - fmTPC_gap_GEMGEM/2.0
+	   - incGEM*(fmTPC_gap_GEMGEM + fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick);
+	}
+	G4String mTPCGEMGap_solidname = "mTPCGEMGap_solid";
+	G4String mTPCGEMGap_logname = "mTPCGEMGap_log";
+	G4String mTPCGEMGap_physname = "mTPCGEMGap_phys";
+	mTPCGEMGap_solid = new G4Tubs(mTPCGEMGap_solidname, mtpcinnerR, mtpcouterR, fmTPC_gap_GEMGEM/2.0, 0.*deg, 360.*deg);
+	mTPCGEMGap_log = new G4LogicalVolume(mTPCGEMGap_solid, GetMaterial("mTPCgas"),mTPCGEMGap_logname);
+	new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposgap), mTPCGEMGap_log, mTPCGEMGap_physname, motherlog, false, counter, fChkOvLaps);
+	mTPCGEMGap_log->SetVisAttributes( mtpc_gemgap_visatt );
+      }//if not the last gem which has no gap
+    }//loop over gems per cell
+  }//loop over mTPC cells/chambers
+}
+
+void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double mtpcinnerR, G4double mtpcouterR){//, G4SBSmTPCSD* mtpcSD){//, G4SBSmTPCSD* mtpchvSD){
+  // set up temp sd for readoutHV discs
+  // set up SD, for moment only make gas cells sensitive as do not want to record info in gems and readout right now
+  G4String mTPCSDname = "SBS/mTPC";
+  G4String mTPCcolname = "mTPCHitsCollection";
+
+  // G4SBSGEMSD* mTPCSD;
+  // if( !(mTPCSD = (G4SBSGEMSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
+  //   mTPCSD = new G4SBSGEMSD( mTPCSDname, mTPCcolname );
+  //   fDetCon->fSDman->AddNewDetector(mTPCSD);
+  //   (fDetCon->SDlist).insert(mTPCSDname);
+  //   fDetCon->SDtype[mTPCSDname] = kGEM;
+  // }
+  
+  G4SBSmTPCSD* mTPCSD;
+  if( !(mTPCSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCSD = new G4SBSmTPCSD( mTPCSDname, mTPCcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCSD);
+    (fDetCon->SDlist).insert(mTPCSDname);
+    fDetCon->SDtype[mTPCSDname] = kmTPC;
+  }
+  
+  
+  G4String mTPCHVSDname = "SBS/mTPCHV";
+  G4String mTPCHVcolname = "mTPCHVHitsCollection";
+
+  G4SBSCalSD *mTPCHVSD;
+  if( !(mTPCHVSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCHVSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCHVSD = new G4SBSCalSD( mTPCHVSDname, mTPCHVcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCHVSD);
+    (fDetCon->SDlist).insert(mTPCHVSDname);
+    fDetCon->SDtype[mTPCHVSDname] = kCAL;
+  }
+  
+  double HVThickness = fmTPC_HV_thick;
+
+  // double CellGasLength = celllength - (fmTPC_readout_thick + fmTPC_gap_readoutGEM + (fmTPC_Ngems-1)*fmTPC_gap_GEMGEM
+  // 				       + fmTPC_Ngems*(fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick));
+  double CellGasLength = celllength - (fmTPC_readout_thick + fmTPC_gap_readoutGEM + (fmTPC_Ngems-1)*fmTPC_gap_GEMGEM
+				       + fmTPC_Ngems*(fmTPC_gem_surf1thick + fmTPC_gem_dielecthick + fmTPC_gem_surf2thick)) - HVThickness/2.0;
+
+  double zposHVDisc = 0.0;
+  double mTPCHVDisc_Centre = 0.0;
+  G4Tubs* mTPCHVDisc_solid; 
+  G4LogicalVolume* mTPCHVDisc_log;
+  G4VisAttributes *mtpc_HVDisc_visatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 1.0) );
+  mtpc_HVDisc_visatt->SetForceWireframe(true);
+
+  G4double GasLayerThick = 5.0*mm; // pad size
+  cout << "mTPC inner " << mtpcinnerR  << " mTPC inner " << mtpcouterR << endl;
+  G4int NGasLayers = ceil( (mtpcouterR-mtpcinnerR)/GasLayerThick );
+  GasLayerThick = (mtpcouterR-mtpcinnerR)/NGasLayers;
+  cout << "NGasLayers " << NGasLayers << " GasLayerThick " << GasLayerThick << endl;
+  
+  double zposGasCell = 0.0;
+  double mTPC_CentreCell = 0.0;
+  G4Tubs* mTPCGasCell_solid; 
+  G4LogicalVolume* mTPCGasCell_log;
+  G4VisAttributes *mtpc_gas_visatt = new G4VisAttributes( G4Colour( 0.0, 0.0, 1.0) );
+  mtpc_gas_visatt->SetForceWireframe(true);
+
+  // loop over each cell/chamber of mTPC
+  for(int incCell=0; incCell<fmTPC_Ncells; incCell++){
+    mTPC_CentreCell = centrecell1 + incCell*celllength;
+    if(incCell % 2 == 0){
+      zposGasCell = mTPC_CentreCell + celllength/2.0 - CellGasLength/2.0 - HVThickness/2.0;
+      // HV disc, only have 5
+      zposHVDisc = zposGasCell + CellGasLength/2.0 + HVThickness/2.0;
+      mTPCHVDisc_solid = new G4Tubs("mTPCHVDisc_solid", mtpcinnerR, mtpcouterR, HVThickness/2.0, 0.*deg, 360.*deg);
+      mTPCHVDisc_log = new G4LogicalVolume(mTPCHVDisc_solid, GetMaterial("Au"),"mTPCHVDisc_log"); 
+      if(fmTPCkrypto)mTPCHVDisc_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposHVDisc), mTPCHVDisc_log, "mTPCHVDisc_phys", motherlog, false, incCell, fChkOvLaps);
+      mTPCHVDisc_log->SetVisAttributes( mtpc_HVDisc_visatt );
+      // set cell as a sensitive detector
+      mTPCHVDisc_log->SetSensitiveDetector(mTPCHVSD);
+    }
+    else{
+      zposGasCell = mTPC_CentreCell - celllength/2.0 + CellGasLength/2.0 + HVThickness/2.0;
+    }
+    for(G4int i_gl = 0; i_gl<NGasLayers; i_gl++){
+      mTPCGasCell_solid = new G4Tubs("mTPCGasCell_solid", mtpcinnerR+i_gl*GasLayerThick, min(mtpcinnerR+(i_gl+1)*GasLayerThick, mtpcouterR), CellGasLength/2.0, 0.*deg, 360.*deg);
+      mTPCGasCell_log = new G4LogicalVolume(mTPCGasCell_solid, GetMaterial("mTPCgas"),"mTPCGasCell_log");    
+      mTPCGasCell_log->SetSensitiveDetector(mTPCSD);
+      G4int layernum = incCell*20+i_gl+1;
+      G4String layername = G4String("mTPCGasCell_phy") + G4String(layernum);
+      new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposGasCell), mTPCGasCell_log, layername, motherlog, false, layernum, fChkOvLaps);
+      //cout << " incCell " << incCell << " i_gl " << i_gl  << " logical mTPC volume number " << layernum << endl;
+      mTPCGasCell_log->SetVisAttributes( mtpc_gas_visatt );
+      // set cell as a sensitive detector
+    }
+  }//loop over mtpc numer of cells
+
+}
+*/
+//********************************************************
+// END OF mTPC CODE
+//********************************************************
 
 void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
 
@@ -2054,7 +2605,7 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
     G4Sphere *fsph = new G4Sphere( "fsph", 1.5*fTargLen/2.0, 1.5*fTargLen/2.0+cm, 0.0*deg, 360.*deg,
 				   0.*deg, 150.*deg );
     G4LogicalVolume *fsph_log = new G4LogicalVolume( fsph, GetMaterial("Air"), "fsph_log" );
-    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(0,0,0), fsph_log, "fsph_phys", worldlog, false, 0, fChkOvLaps );
 
     fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     
@@ -2144,12 +2695,12 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
   //We don't always want to place the gas target; we might want some foil or optics targets in air:
   if( fTargType == G4SBS::kH2 || fTargType == G4SBS::k3He || fTargType == G4SBS::kNeutTarg || fTargType == G4SBS::kD2 ){
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), targ_tube_log,
-		      "targ_tube_phys", motherlog, false, 0);
+		      "targ_tube_phys", motherlog, false, 0, fChkOvLaps);
   
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos+fTargLen/2.0+capthick/2.0), targ_cap_log,
-		      "targ_cap_phys1", motherlog, false, 0);
+		      "targ_cap_phys1", motherlog, false, 0, fChkOvLaps);
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos-fTargLen/2.0-capthick/2.0), targ_cap_log,
-		      "targ_cap_phys2", motherlog, false, 1);
+		      "targ_cap_phys2", motherlog, false, 1, fChkOvLaps);
   
     assert(gas_tube_log);
     new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
@@ -2161,12 +2712,13 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
   }
 
   //Never mind.
+
   //Place scattering chamber:
   if( fSchamFlag == 1 ){
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_wall_log, "sc_wall_phys", worldlog, false, 0 );
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc-dz_sc-sc_winthick/2.0), sc_cap_upstream_log, "sc_cap_upstream_phys", worldlog, false, 0 );
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc+dz_sc+sc_winthick/2.0), sc_cap_downstream_log, "sc_cap_downstream_phys", worldlog, false, 0 );
-    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_vacuum_log, "sc_vacuum_phys", worldlog, false, 0 );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_wall_log, "sc_wall_phys", worldlog, false, 0, fChkOvLaps );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc-dz_sc-sc_winthick/2.0), sc_cap_upstream_log, "sc_cap_upstream_phys", worldlog, false, 0, fChkOvLaps );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc+dz_sc+sc_winthick/2.0), sc_cap_downstream_log, "sc_cap_downstream_phys", worldlog, false, 0, fChkOvLaps );
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_vacuum_log, "sc_vacuum_phys", worldlog, false, 0, fChkOvLaps );
   }
   
   sc_vacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
@@ -2291,883 +2843,1013 @@ void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMat
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
-   // Polarized 3He target for GEn
-   // - geometry based on drawings from Bert Metzger and Gordon Cates  
+  // Polarized 3He target for GEn
+  // - geometry based on drawings from Bert Metzger and Gordon Cates  
 
-   // glass cell
-   BuildGEnTarget_GlassCell(motherLog);
+  // check target length 
+  // CheckZPos(motherLog,-30.*cm);
+  // CheckZPos(motherLog, 30.*cm);
+   
+  fGEn_GLASS_TUBE_LENGTH = 54.33*cm; // 571.7*mm;  
 
-   // Al/Cu end windows for the target cell 
-   BuildGEnTarget_EndWindows(motherLog);
+  // glass cell
+  BuildGEnTarget_GlassCell(motherLog);
 
-   // cylinder of polarized 3He
-   BuildGEnTarget_PolarizedHe3(motherLog);
+  // Al/Cu end windows for the target cell 
+  BuildGEnTarget_EndWindows(motherLog);
 
-   // helmholtz coils
-   int config = fDetCon->GetGEnTargetHelmholtzConfig();
-   double Q2=0; 
-   if(config==G4SBS::kGEN_146)  Q2 = 1.46; 
-   if(config==G4SBS::kGEN_368)  Q2 = 3.68; 
-   if(config==G4SBS::kGEN_677)  Q2 = 6.77; 
-   if(config==G4SBS::kGEN_1018) Q2 = 10.18;
-   G4cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = " << Q2 << " (GeV/c)^2" << G4endl; 
+  // cylinder of polarized 3He
+  BuildGEnTarget_PolarizedHe3(motherLog);
 
-   BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
-   BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);
-   BuildGEnTarget_HelmholtzCoils(config,"min",motherLog);
+  // helmholtz coils
+  int config = fDetCon->GetGEnTargetHelmholtzConfig();
+  double Q2=0; 
+  if(config==G4SBS::kGEN_146)  Q2 = 1.46; 
+  if(config==G4SBS::kGEN_368)  Q2 = 3.68; 
+  if(config==G4SBS::kGEN_677)  Q2 = 6.77; 
+  if(config==G4SBS::kGEN_1018) Q2 = 10.18;
+  G4cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = " << Q2 << " (GeV/c)^2" << G4endl; 
 
-   // magnetic shield
-   // config = kGEN_new; // for when the shield design is finalized  
-   BuildGEnTarget_Shield(config,motherLog);
+  //For now, omit TBD details of everything other than target for SIDIS:
+  if( fDetCon->fExpType == G4SBS::kGEN ){
+   
+    BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
+    BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);
+    BuildGEnTarget_HelmholtzCoils(config,"min",motherLog);
 
-   // target ladder 
-   BuildGEnTarget_LadderPlate(motherLog);
+    // magnetic shield
+    // config = kGEN_new; // for when the shield design is finalized  
+    BuildGEnTarget_Shield(config,motherLog);
 
-   // pickup coils 
-   BuildGEnTarget_PickupCoils(motherLog);
+    // target ladder 
+    BuildGEnTarget_LadderPlate(motherLog);
 
-   // monolithic collimators  
-   bool enableCol = fDetCon->GetGEnTargetCollimatorEnable();
-   if(enableCol) BuildGEnTarget_Collimators(motherLog);
+    // pickup coils 
+    BuildGEnTarget_PickupCoils(motherLog);
 
+
+    // ion chamber (for test purposes) 
+    bool enableIC = fDetCon->GetIonChamberEnable(); 
+    if(enableIC) BuildGEnTarget_IonChamber(motherLog); 
+
+    // beam collimator (for test purposes) 
+    bool enableBC_dnstr = fDetCon->GetBeamCollimatorEnable_dnstr(); 
+    bool enableBC_upstr = fDetCon->GetBeamCollimatorEnable_upstr(); 
+    if(enableBC_dnstr) BuildGEnTarget_BeamCollimator(motherLog,0); 
+    if(enableBC_upstr) BuildGEnTarget_BeamCollimator(motherLog,1); 
+
+  }
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
-   // Glass cell for polarized 3He
-   // - drawing number: internal from G. Cates (May 2020) 
+  // Glass cell for polarized 3He
+  // - drawing number: internal from G. Cates (May 2020) 
 
-   G4double glassWall = 1.0*mm; // estimate 
-   G4double tubeLength = 571.7*mm; // 579.0*mm;  
+  G4double glassWall = 1.0*mm; // estimate 
+  G4double tubeLength = fGEn_GLASS_TUBE_LENGTH; // 571.7*mm; // 579.0*mm;  
 
-   // pumping chamber 
-   partParameters_t pumpCh; 
-   pumpCh.name = "pumpingChamber"; pumpCh.shape = "sphere"; 
-   pumpCh.r_tor = 0.0*mm; pumpCh.r_max = 54.0*mm; pumpCh.r_min = pumpCh.r_max - glassWall; pumpCh.length = 0.0*mm;
-   pumpCh.x_len = 0.0*mm; pumpCh.y_len = 0.0*mm; pumpCh.z_len = 0.0*mm;
-   pumpCh.startTheta = 0.0*deg; pumpCh.dTheta = 180.0*deg;
-   pumpCh.startPhi = 0.0*deg; pumpCh.dPhi = 360.0*deg;
-   pumpCh.x = 0.0*mm; pumpCh.y = -330.2*mm; pumpCh.z = 0.0*mm;
-   pumpCh.rx = 0.0*deg; pumpCh.ry = 0.0*deg; pumpCh.rz = 0.0*deg;
+  // pumping chamber 
+  partParameters_t pumpCh; 
+  pumpCh.name = "pumpingChamber"; pumpCh.shape = "sphere"; 
+  pumpCh.r_tor = 0.0*mm; pumpCh.r_max = 54.0*mm; pumpCh.r_min = pumpCh.r_max - glassWall; pumpCh.length = 0.0*mm;
+  pumpCh.x_len = 0.0*mm; pumpCh.y_len = 0.0*mm; pumpCh.z_len = 0.0*mm;
+  pumpCh.startTheta = 0.0*deg; pumpCh.dTheta = 180.0*deg;
+  pumpCh.startPhi = 0.0*deg; pumpCh.dPhi = 360.0*deg;
+  pumpCh.x = 0.0*mm; pumpCh.y = -330.2*mm; pumpCh.z = 0.0*mm;
+  pumpCh.rx = 0.0*deg; pumpCh.ry = 0.0*deg; pumpCh.rz = 0.0*deg;
 
-   G4Sphere *pumpChamberShape = new G4Sphere(pumpCh.name,
-	                                     pumpCh.r_min     ,pumpCh.r_max,
-	                                     pumpCh.startPhi  ,pumpCh.dPhi,
-	                                     pumpCh.startTheta,pumpCh.dTheta);
+  G4Sphere *pumpChamberShape = new G4Sphere(pumpCh.name,
+					    pumpCh.r_min     ,pumpCh.r_max,
+					    pumpCh.startPhi  ,pumpCh.dPhi,
+					    pumpCh.startTheta,pumpCh.dTheta);
 
-   G4ThreeVector P_pc = G4ThreeVector(pumpCh.x,pumpCh.y,pumpCh.z);
-   G4RotationMatrix *rm_pc = new G4RotationMatrix();
-   rm_pc->rotateX(pumpCh.rx); rm_pc->rotateY(pumpCh.ry); rm_pc->rotateZ(pumpCh.rz);
+  G4ThreeVector P_pc = G4ThreeVector(pumpCh.x,pumpCh.y,pumpCh.z);
+  G4RotationMatrix *rm_pc = new G4RotationMatrix();
+  rm_pc->rotateX(pumpCh.rx); rm_pc->rotateY(pumpCh.ry); rm_pc->rotateZ(pumpCh.rz);
 
-   // target chamber 
-   partParameters_t tgtCh;
-   tgtCh.name = "targetChamber"; tgtCh.shape = "tube"; 
-   tgtCh.r_tor = 0.0*mm; tgtCh.r_max = 10.5*mm; tgtCh.r_min = tgtCh.r_max - glassWall; tgtCh.length = tubeLength;
-   tgtCh.x_len = 0.0*mm; tgtCh.y_len = 0.0*mm; tgtCh.z_len = 0.0*mm;
-   tgtCh.startTheta = 0.0*deg; tgtCh.dTheta = 0.0*deg;
-   tgtCh.startPhi = 0.0*deg; tgtCh.dPhi = 360.0*deg;
-   tgtCh.x = 0.0*mm; tgtCh.y = 0.0*mm; tgtCh.z = 0.0*mm;
-   tgtCh.rx = 0.0*deg; tgtCh.ry = 0.0*deg; tgtCh.rz = 0.0*deg;
+  // target chamber 
+  partParameters_t tgtCh;
+  tgtCh.name = "targetChamber"; tgtCh.shape = "tube"; 
+  tgtCh.r_tor = 0.0*mm; tgtCh.r_max = 10.5*mm; tgtCh.r_min = tgtCh.r_max - glassWall; tgtCh.length = tubeLength;
+  tgtCh.x_len = 0.0*mm; tgtCh.y_len = 0.0*mm; tgtCh.z_len = 0.0*mm;
+  tgtCh.startTheta = 0.0*deg; tgtCh.dTheta = 0.0*deg;
+  tgtCh.startPhi = 0.0*deg; tgtCh.dPhi = 360.0*deg;
+  tgtCh.x = 0.0*mm; tgtCh.y = 0.0*mm; tgtCh.z = 0.0*mm;
+  tgtCh.rx = 0.0*deg; tgtCh.ry = 0.0*deg; tgtCh.rz = 0.0*deg;
 
-   G4Tubs *targetChamberShape = new G4Tubs(tgtCh.name,
-	                                   tgtCh.r_min    ,tgtCh.r_max,
-	                                   tgtCh.length/2.,
-	                                   tgtCh.startPhi ,tgtCh.dPhi);
+  G4Tubs *targetChamberShape = new G4Tubs(tgtCh.name,
+					  tgtCh.r_min    ,tgtCh.r_max,
+					  tgtCh.length/2.,
+					  tgtCh.startPhi ,tgtCh.dPhi);
 
-   G4ThreeVector P_tc = G4ThreeVector(tgtCh.x,tgtCh.y,tgtCh.z);
-   G4RotationMatrix *rm_tc = new G4RotationMatrix();
-   rm_tc->rotateX(tgtCh.rx); rm_tc->rotateY(tgtCh.ry); rm_tc->rotateZ(tgtCh.rz);
+  G4ThreeVector P_tc = G4ThreeVector(tgtCh.x,tgtCh.y,tgtCh.z);
+  G4RotationMatrix *rm_tc = new G4RotationMatrix();
+  rm_tc->rotateX(tgtCh.rx); rm_tc->rotateY(tgtCh.ry); rm_tc->rotateZ(tgtCh.rz);
 
-   // transfer tube elbow
-   // ---- downstream 
-   partParameters_t tted;
-   tted.name = "transTubeEl_dn"; tted.shape = "torus"; 
-   tted.r_tor = 9.0*mm; tted.r_max = 4.5*mm; tted.r_min = tted.r_max - glassWall; tted.length = 0.0*mm;
-   tted.x_len = 0.0*mm; tted.y_len = 0.0*mm; tted.z_len = 0.0*mm;
-   tted.startTheta = 0.0*deg; tted.dTheta = 0.0*deg;
-   tted.startPhi = 0.0*deg; tted.dPhi = 90.0*deg;
-   tted.x = 0.0*mm; tted.y = -33.5*mm; tted.z = 250.0*mm;
-   tted.rx = 180.0*deg; tted.ry = -90.0*deg; tted.rz = 0.0*deg;
+  // transfer tube elbow
+  // ---- downstream 
+  partParameters_t tted;
+  tted.name = "transTubeEl_dn"; tted.shape = "torus"; 
+  tted.r_tor = 9.0*mm; tted.r_max = 4.5*mm; tted.r_min = tted.r_max - glassWall; tted.length = 0.0*mm;
+  tted.x_len = 0.0*mm; tted.y_len = 0.0*mm; tted.z_len = 0.0*mm;
+  tted.startTheta = 0.0*deg; tted.dTheta = 0.0*deg;
+  tted.startPhi = 0.0*deg; tted.dPhi = 90.0*deg;
+  tted.x = 0.0*mm; tted.y = -33.5*mm; tted.z = 250.0*mm;
+  tted.rx = 180.0*deg; tted.ry = -90.0*deg; tted.rz = 0.0*deg;
 
-   G4Torus *transTubeElDnShape = new G4Torus(tted.name,
-                                             tted.r_min   ,tted.r_max,tted.r_tor,
-                                             tted.startPhi,tted.dPhi);
+  G4Torus *transTubeElDnShape = new G4Torus(tted.name,
+					    tted.r_min   ,tted.r_max,tted.r_tor,
+					    tted.startPhi,tted.dPhi);
 
-   G4ThreeVector P_tted = G4ThreeVector(tted.x,tted.y,tted.z);
-   G4RotationMatrix *rm_tted = new G4RotationMatrix();
-   rm_tted->rotateX(tted.rx); rm_tted->rotateY(tted.ry); rm_tted->rotateZ(tted.rz);
+  G4ThreeVector P_tted = G4ThreeVector(tted.x,tted.y,tted.z);
+  G4RotationMatrix *rm_tted = new G4RotationMatrix();
+  rm_tted->rotateX(tted.rx); rm_tted->rotateY(tted.ry); rm_tted->rotateZ(tted.rz);
 
-   // ---- upstream
-   partParameters_t tteu; 
-   tteu.name = "transTubeEl_up"; tteu.shape = "torus"; 
-   tteu.r_tor = 9.0*mm; tteu.r_max = 4.5*mm; tteu.r_min = tteu.r_max - glassWall; tteu.length = 0.0*mm;
-   tteu.x_len = 0.0*mm; tteu.y_len = 0.0*mm; tteu.z_len = 0.0*mm;
-   tteu.startTheta = 0.0*deg; tteu.dTheta = 0.0*deg;
-   tteu.startPhi = 0.0*deg; tteu.dPhi = 90.0*deg;
-   tteu.x = 0.0*mm; tteu.y = -33.5*mm; tteu.z = -250.0*mm;
-   tteu.rx = 180.0*deg; tteu.ry = 90.0*deg; tteu.rz = 0.0*deg;
+  // ---- upstream
+  partParameters_t tteu; 
+  tteu.name = "transTubeEl_up"; tteu.shape = "torus"; 
+  tteu.r_tor = 9.0*mm; tteu.r_max = 4.5*mm; tteu.r_min = tteu.r_max - glassWall; tteu.length = 0.0*mm;
+  tteu.x_len = 0.0*mm; tteu.y_len = 0.0*mm; tteu.z_len = 0.0*mm;
+  tteu.startTheta = 0.0*deg; tteu.dTheta = 0.0*deg;
+  tteu.startPhi = 0.0*deg; tteu.dPhi = 90.0*deg;
+  tteu.x = 0.0*mm; tteu.y = -33.5*mm; tteu.z = -250.0*mm;
+  tteu.rx = 180.0*deg; tteu.ry = 90.0*deg; tteu.rz = 0.0*deg;
 
-   G4Torus *transTubeElUpShape = new G4Torus(tteu.name,
-                                             tteu.r_min   ,tteu.r_max,tteu.r_tor,
-                                             tteu.startPhi,tteu.dPhi);
+  G4Torus *transTubeElUpShape = new G4Torus(tteu.name,
+					    tteu.r_min   ,tteu.r_max,tteu.r_tor,
+					    tteu.startPhi,tteu.dPhi);
 
-   G4ThreeVector P_tteu = G4ThreeVector(tteu.x,tteu.y,tteu.z);
-   G4RotationMatrix *rm_tteu = new G4RotationMatrix();
-   rm_tteu->rotateX(tteu.rx); rm_tteu->rotateY(tteu.ry); rm_tteu->rotateZ(tteu.rz);
+  G4ThreeVector P_tteu = G4ThreeVector(tteu.x,tteu.y,tteu.z);
+  G4RotationMatrix *rm_tteu = new G4RotationMatrix();
+  rm_tteu->rotateX(tteu.rx); rm_tteu->rotateY(tteu.ry); rm_tteu->rotateZ(tteu.rz);
 
-   // transfer tube elbow, lower 
-   // ---- downstream
-   partParameters_t ttedl; 
-   ttedl.name = "transTubeElLo_dn"; ttedl.shape = "torus"; 
-   ttedl.r_tor = 9.0*mm; ttedl.r_max = 4.5*mm; ttedl.r_min = ttedl.r_max - glassWall; ttedl.length = 0.0*mm;
-   ttedl.x_len = 0.0*mm; ttedl.y_len = 0.0*mm; ttedl.z_len = 0.0*mm;
-   ttedl.startTheta = 0.0*deg; ttedl.dTheta = 0.0*deg;
-   ttedl.startPhi = 0.0*deg; ttedl.dPhi = 90.0*deg;
-   ttedl.x = 0.0*mm; ttedl.y = -51.5*mm; ttedl.z = 34.5*mm;
-   ttedl.rx = 0.0*deg; ttedl.ry = 270.0*deg; ttedl.rz = 0.0*deg;
+  // transfer tube elbow, lower 
+  // ---- downstream
+  partParameters_t ttedl; 
+  ttedl.name = "transTubeElLo_dn"; ttedl.shape = "torus"; 
+  ttedl.r_tor = 9.0*mm; ttedl.r_max = 4.5*mm; ttedl.r_min = ttedl.r_max - glassWall; ttedl.length = 0.0*mm;
+  ttedl.x_len = 0.0*mm; ttedl.y_len = 0.0*mm; ttedl.z_len = 0.0*mm;
+  ttedl.startTheta = 0.0*deg; ttedl.dTheta = 0.0*deg;
+  ttedl.startPhi = 0.0*deg; ttedl.dPhi = 90.0*deg;
+  ttedl.x = 0.0*mm; ttedl.y = -51.5*mm; ttedl.z = 34.5*mm;
+  ttedl.rx = 0.0*deg; ttedl.ry = 270.0*deg; ttedl.rz = 0.0*deg;
 
-   G4Torus *transTubeElDnLoShape = new G4Torus(ttedl.name,
-                                               ttedl.r_min   ,ttedl.r_max,ttedl.r_tor,
-                                               ttedl.startPhi,ttedl.dPhi);
+  G4Torus *transTubeElDnLoShape = new G4Torus(ttedl.name,
+					      ttedl.r_min   ,ttedl.r_max,ttedl.r_tor,
+					      ttedl.startPhi,ttedl.dPhi);
 
-   G4ThreeVector P_ttedl = G4ThreeVector(ttedl.x,ttedl.y,ttedl.z);
-   G4RotationMatrix *rm_ttedl = new G4RotationMatrix();
-   rm_ttedl->rotateX(ttedl.rx); rm_ttedl->rotateY(ttedl.ry); rm_ttedl->rotateZ(ttedl.rz);
+  G4ThreeVector P_ttedl = G4ThreeVector(ttedl.x,ttedl.y,ttedl.z);
+  G4RotationMatrix *rm_ttedl = new G4RotationMatrix();
+  rm_ttedl->rotateX(ttedl.rx); rm_ttedl->rotateY(ttedl.ry); rm_ttedl->rotateZ(ttedl.rz);
 
-   // ---- upstream
-   partParameters_t tteul; 
-   tteul.name = "transTubeElLo_up"; tteul.shape = "torus"; 
-   tteul.r_tor = 9.0*mm; tteul.r_max = 4.5*mm; tteul.r_min = tteul.r_max - glassWall; tteul.length = 0.0*mm;
-   tteul.x_len = 0.0*mm; tteul.y_len = 0.0*mm; tteul.z_len = 0.0*mm;
-   tteul.startTheta = 0.0*deg; tteul.dTheta = 0.0*deg;
-   tteul.startPhi = 0.0*deg; tteul.dPhi = 90.0*deg;
-   tteul.x = 0.0*mm; tteul.y = -51.5*mm; tteul.z = -34.5*mm;
-   tteul.rx = 0.0*deg; tteul.ry = 90.0*deg; tteul.rz = 0.0*deg;
+  // ---- upstream
+  partParameters_t tteul; 
+  tteul.name = "transTubeElLo_up"; tteul.shape = "torus"; 
+  tteul.r_tor = 9.0*mm; tteul.r_max = 4.5*mm; tteul.r_min = tteul.r_max - glassWall; tteul.length = 0.0*mm;
+  tteul.x_len = 0.0*mm; tteul.y_len = 0.0*mm; tteul.z_len = 0.0*mm;
+  tteul.startTheta = 0.0*deg; tteul.dTheta = 0.0*deg;
+  tteul.startPhi = 0.0*deg; tteul.dPhi = 90.0*deg;
+  tteul.x = 0.0*mm; tteul.y = -51.5*mm; tteul.z = -34.5*mm;
+  tteul.rx = 0.0*deg; tteul.ry = 90.0*deg; tteul.rz = 0.0*deg;
 
-   G4Torus *transTubeElUpLoShape = new G4Torus(tteul.name,
-	                                       tteul.r_min   ,tteul.r_max,tteul.r_tor,
-	                                       tteul.startPhi,tteul.dPhi);
+  G4Torus *transTubeElUpLoShape = new G4Torus(tteul.name,
+					      tteul.r_min   ,tteul.r_max,tteul.r_tor,
+					      tteul.startPhi,tteul.dPhi);
 
-   G4ThreeVector P_tteul = G4ThreeVector(tteul.x,tteul.y,tteul.z);
-   G4RotationMatrix *rm_tteul = new G4RotationMatrix();
-   rm_tteul->rotateX(tteul.rx); rm_tteul->rotateY(tteul.ry); rm_tteul->rotateZ(tteul.rz); 
+  G4ThreeVector P_tteul = G4ThreeVector(tteul.x,tteul.y,tteul.z);
+  G4RotationMatrix *rm_tteul = new G4RotationMatrix();
+  rm_tteul->rotateX(tteul.rx); rm_tteul->rotateY(tteul.ry); rm_tteul->rotateZ(tteul.rz); 
    
-   // transfer tube sphere 
-   partParameters_t tts;
-   tts.name = "transTubeSphere"; tts.shape = "sphere"; 
-   tts.r_tor = 0.0*mm; tts.r_max = 13.9*mm; tts.r_min = tts.r_max - glassWall; tts.length = 0.0*mm;
-   tts.x_len = 0.0*mm; tts.y_len = 0.0*mm; tts.z_len = 0.0*mm;
-   tts.startTheta = 0.0*deg; tts.dTheta = 180.0*deg;
-   tts.startPhi = 0.0*deg; tts.dPhi = 360.0*deg;
-   tts.x = 0.0*mm; tts.y = -83.3*mm; tts.z = 25.4*mm;
-   tts.rx = 0.0*deg; tts.ry = 0.0*deg; tts.rz = 0.0*deg;
+  // transfer tube sphere 
+  partParameters_t tts;
+  tts.name = "transTubeSphere"; tts.shape = "sphere"; 
+  tts.r_tor = 0.0*mm; tts.r_max = 13.9*mm; tts.r_min = tts.r_max - glassWall; tts.length = 0.0*mm;
+  tts.x_len = 0.0*mm; tts.y_len = 0.0*mm; tts.z_len = 0.0*mm;
+  tts.startTheta = 0.0*deg; tts.dTheta = 180.0*deg;
+  tts.startPhi = 0.0*deg; tts.dPhi = 360.0*deg;
+  tts.x = 0.0*mm; tts.y = -83.3*mm; tts.z = 25.4*mm;
+  tts.rx = 0.0*deg; tts.ry = 0.0*deg; tts.rz = 0.0*deg;
 
-   G4Sphere *transTubeSphere = new G4Sphere(tts.name,
-	                                    tts.r_min     ,tts.r_max,
-	                                    tts.startPhi  ,tts.dPhi,
-	                                    tts.startTheta,tts.dTheta);
+  G4Sphere *transTubeSphere = new G4Sphere(tts.name,
+					   tts.r_min     ,tts.r_max,
+					   tts.startPhi  ,tts.dPhi,
+					   tts.startTheta,tts.dTheta);
 
-   G4ThreeVector P_tts = G4ThreeVector(tts.x,tts.y,tts.z);
-   G4RotationMatrix *rm_tts = new G4RotationMatrix();
-   rm_tts->rotateX(tts.rx); rm_tts->rotateY(tts.ry); rm_tts->rotateZ(tts.rz);
+  G4ThreeVector P_tts = G4ThreeVector(tts.x,tts.y,tts.z);
+  G4RotationMatrix *rm_tts = new G4RotationMatrix();
+  rm_tts->rotateX(tts.rx); rm_tts->rotateY(tts.ry); rm_tts->rotateZ(tts.rz);
 
-   // transfer tubes along z 
-   // ---- upstream 
-   partParameters_t ttuz; 
-   ttuz.name = "transTubeZ_up"; ttuz.shape = "tube"; 
-   ttuz.r_tor = 0.0*mm; ttuz.r_max = 4.5*mm; ttuz.r_min = ttuz.r_max - glassWall; ttuz.length = 216.0*mm;
-   ttuz.x_len = 0.0*mm; ttuz.y_len = 0.0*mm; ttuz.z_len = 0.0*mm;
-   ttuz.startTheta = 0.0*deg; ttuz.dTheta = 0.0*deg;
-   ttuz.startPhi = 0.0*deg; ttuz.dPhi = 360.0*deg;
-   ttuz.x = 0.0*mm; ttuz.y = -42.5*mm; ttuz.z = -142.0*mm;
-   ttuz.rx = 0.0*deg; ttuz.ry = 0.0*deg; ttuz.rz = 0.0*deg;
+  // transfer tubes along z 
+  // ---- upstream 
+  partParameters_t ttuz; 
+  ttuz.name = "transTubeZ_up"; ttuz.shape = "tube"; 
+  ttuz.r_tor = 0.0*mm; ttuz.r_max = 4.5*mm; ttuz.r_min = ttuz.r_max - glassWall; ttuz.length = 216.0*mm;
+  ttuz.x_len = 0.0*mm; ttuz.y_len = 0.0*mm; ttuz.z_len = 0.0*mm;
+  ttuz.startTheta = 0.0*deg; ttuz.dTheta = 0.0*deg;
+  ttuz.startPhi = 0.0*deg; ttuz.dPhi = 360.0*deg;
+  ttuz.x = 0.0*mm; ttuz.y = -42.5*mm; ttuz.z = -142.0*mm;
+  ttuz.rx = 0.0*deg; ttuz.ry = 0.0*deg; ttuz.rz = 0.0*deg;
    
-   G4Tubs *transTubeUpZShape = new G4Tubs(ttuz.name,
-                                          ttuz.r_min    ,ttuz.r_max,
-                                          ttuz.length/2.,
-                                          ttuz.startPhi ,ttuz.dPhi);
+  G4Tubs *transTubeUpZShape = new G4Tubs(ttuz.name,
+					 ttuz.r_min    ,ttuz.r_max,
+					 ttuz.length/2.,
+					 ttuz.startPhi ,ttuz.dPhi);
 
-   G4ThreeVector P_ttuz = G4ThreeVector(ttuz.x,ttuz.y,ttuz.z);
-   G4RotationMatrix *rm_ttuz = new G4RotationMatrix();
-   rm_ttuz->rotateX(ttuz.rx); rm_ttuz->rotateY(ttuz.ry); rm_ttuz->rotateZ(ttuz.rz);
+  G4ThreeVector P_ttuz = G4ThreeVector(ttuz.x,ttuz.y,ttuz.z);
+  G4RotationMatrix *rm_ttuz = new G4RotationMatrix();
+  rm_ttuz->rotateX(ttuz.rx); rm_ttuz->rotateY(ttuz.ry); rm_ttuz->rotateZ(ttuz.rz);
 
-   // ---- downstream 
-   partParameters_t ttdz; 
-   ttdz.name = "transTubeZ_dn"; ttdz.shape = "tube"; 
-   ttdz.r_tor = 0.0*mm; ttdz.r_max = 4.5*mm; ttdz.r_min = ttdz.r_max - glassWall; ttdz.length = 216.0*mm;
-   ttdz.x_len = 0.0*mm; ttdz.y_len = 0.0*mm; ttdz.z_len = 0.0*mm;
-   ttdz.startTheta = 0.0*deg; ttdz.dTheta = 0.0*deg;
-   ttdz.startPhi = 0.0*deg; ttdz.dPhi = 360.0*deg;
-   ttdz.x = 0.0*mm; ttdz.y = -42.5*mm; ttdz.z = 142.0*mm;
-   ttdz.rx = 0.0*deg; ttdz.ry = 0.0*deg; ttdz.rz = 0.0*deg;
+  // ---- downstream 
+  partParameters_t ttdz; 
+  ttdz.name = "transTubeZ_dn"; ttdz.shape = "tube"; 
+  ttdz.r_tor = 0.0*mm; ttdz.r_max = 4.5*mm; ttdz.r_min = ttdz.r_max - glassWall; ttdz.length = 216.0*mm;
+  ttdz.x_len = 0.0*mm; ttdz.y_len = 0.0*mm; ttdz.z_len = 0.0*mm;
+  ttdz.startTheta = 0.0*deg; ttdz.dTheta = 0.0*deg;
+  ttdz.startPhi = 0.0*deg; ttdz.dPhi = 360.0*deg;
+  ttdz.x = 0.0*mm; ttdz.y = -42.5*mm; ttdz.z = 142.0*mm;
+  ttdz.rx = 0.0*deg; ttdz.ry = 0.0*deg; ttdz.rz = 0.0*deg;
 
-   G4Tubs *transTubeDnZShape = new G4Tubs(ttdz.name,
-	                                  ttdz.r_min    ,ttdz.r_max,
-	                                  ttdz.length/2.,
-	                                  ttdz.startPhi ,ttdz.dPhi);
+  G4Tubs *transTubeDnZShape = new G4Tubs(ttdz.name,
+					 ttdz.r_min    ,ttdz.r_max,
+					 ttdz.length/2.,
+					 ttdz.startPhi ,ttdz.dPhi);
 
-   G4ThreeVector P_ttdz = G4ThreeVector(ttdz.x,ttdz.y,ttdz.z);
-   G4RotationMatrix *rm_ttdz = new G4RotationMatrix();
-   rm_ttdz->rotateX(ttdz.rx); rm_ttdz->rotateY(ttdz.ry); rm_ttdz->rotateZ(ttdz.rz);
+  G4ThreeVector P_ttdz = G4ThreeVector(ttdz.x,ttdz.y,ttdz.z);
+  G4RotationMatrix *rm_ttdz = new G4RotationMatrix();
+  rm_ttdz->rotateX(ttdz.rx); rm_ttdz->rotateY(ttdz.ry); rm_ttdz->rotateZ(ttdz.rz);
 
-   // transfer tubes along y 
-   // --- upstream 
-   partParameters_t ttuy; 
-   ttuy.name = "transTubeY_up"; ttuy.shape = "tube"; 
-   ttuy.r_tor = 0.0*mm; ttuy.r_max = 4.5*mm; ttuy.r_min = ttuy.r_max - glassWall; ttuy.length = 233.0*mm;
-   ttuy.x_len = 0.0*mm; ttuy.y_len = 0.0*mm; ttuy.z_len = 0.0*mm;
-   ttuy.startTheta = 0.0*deg; ttuy.dTheta = 0.0*deg;
-   ttuy.startPhi = 0.0*deg; ttuy.dPhi = 360.0*deg;
-   ttuy.x = 0.0*mm; ttuy.y = -168.0*mm; ttuy.z = -25.4*mm;
-   ttuy.rx = 90.0*deg; ttuy.ry = 0.0*deg; ttuy.rz = 0.0*deg;
+  // transfer tubes along y 
+  // --- upstream 
+  partParameters_t ttuy; 
+  ttuy.name = "transTubeY_up"; ttuy.shape = "tube"; 
+  ttuy.r_tor = 0.0*mm; ttuy.r_max = 4.5*mm; ttuy.r_min = ttuy.r_max - glassWall; ttuy.length = 233.0*mm;
+  ttuy.x_len = 0.0*mm; ttuy.y_len = 0.0*mm; ttuy.z_len = 0.0*mm;
+  ttuy.startTheta = 0.0*deg; ttuy.dTheta = 0.0*deg;
+  ttuy.startPhi = 0.0*deg; ttuy.dPhi = 360.0*deg;
+  ttuy.x = 0.0*mm; ttuy.y = -168.0*mm; ttuy.z = -25.4*mm;
+  ttuy.rx = 90.0*deg; ttuy.ry = 0.0*deg; ttuy.rz = 0.0*deg;
 
-   G4Tubs *transTubeUpYShape = new G4Tubs(ttuy.name,
-	                                  ttuy.r_min    ,ttuy.r_max,
-	                                  ttuy.length/2.,
-	                                  ttuy.startPhi ,ttuy.dPhi);
+  G4Tubs *transTubeUpYShape = new G4Tubs(ttuy.name,
+					 ttuy.r_min    ,ttuy.r_max,
+					 ttuy.length/2.,
+					 ttuy.startPhi ,ttuy.dPhi);
 
-   G4ThreeVector P_ttuy = G4ThreeVector(ttuy.x,ttuy.y,ttuy.z);
-   G4RotationMatrix *rm_ttuy = new G4RotationMatrix();
-   rm_ttuy->rotateX(ttuy.rx); rm_ttuy->rotateY(ttuy.ry); rm_ttuy->rotateZ(ttuy.rz);
+  G4ThreeVector P_ttuy = G4ThreeVector(ttuy.x,ttuy.y,ttuy.z);
+  G4RotationMatrix *rm_ttuy = new G4RotationMatrix();
+  rm_ttuy->rotateX(ttuy.rx); rm_ttuy->rotateY(ttuy.ry); rm_ttuy->rotateZ(ttuy.rz);
 
-   // ---- downstream: two components; above sphere, below sphere  
-   // ------ below sphere 
-   partParameters_t ttdby;  
-   ttdby.name = "transTubeYB_dn"; ttdby.shape = "tube"; 
-   ttdby.r_tor = 0.0*mm; ttdby.r_max = 4.5*mm; ttdby.r_min = ttdby.r_max - glassWall; ttdby.length = 189.0*mm;
-   ttdby.x_len = 0.0*mm; ttdby.y_len = 0.0*mm; ttdby.z_len = 0.0*mm;
-   ttdby.startTheta = 0.0*deg; ttdby.dTheta = 0.0*deg;
-   ttdby.startPhi = 0.0*deg; ttdby.dPhi = 360.0*deg;
-   ttdby.x = 0.0*mm; ttdby.y = -190.0*mm; ttdby.z = 25.4*mm;
-   ttdby.rx = 90.0*deg; ttdby.ry = 0.0*deg; ttdby.rz = 0.0*deg;
+  // ---- downstream: two components; above sphere, below sphere  
+  // ------ below sphere 
+  partParameters_t ttdby;  
+  ttdby.name = "transTubeYB_dn"; ttdby.shape = "tube"; 
+  ttdby.r_tor = 0.0*mm; ttdby.r_max = 4.5*mm; ttdby.r_min = ttdby.r_max - glassWall; ttdby.length = 189.0*mm;
+  ttdby.x_len = 0.0*mm; ttdby.y_len = 0.0*mm; ttdby.z_len = 0.0*mm;
+  ttdby.startTheta = 0.0*deg; ttdby.dTheta = 0.0*deg;
+  ttdby.startPhi = 0.0*deg; ttdby.dPhi = 360.0*deg;
+  ttdby.x = 0.0*mm; ttdby.y = -190.0*mm; ttdby.z = 25.4*mm;
+  ttdby.rx = 90.0*deg; ttdby.ry = 0.0*deg; ttdby.rz = 0.0*deg;
 
-   G4Tubs *transTubeDnBYShape = new G4Tubs(ttdby.name,
-	                                   ttdby.r_min    ,ttdby.r_max,
-	                                   ttdby.length/2.,
-	                                   ttdby.startPhi ,ttdby.dPhi);
+  G4Tubs *transTubeDnBYShape = new G4Tubs(ttdby.name,
+					  ttdby.r_min    ,ttdby.r_max,
+					  ttdby.length/2.,
+					  ttdby.startPhi ,ttdby.dPhi);
 
-   G4ThreeVector P_ttdby = G4ThreeVector(ttdby.x,ttdby.y,ttdby.z);
-   G4RotationMatrix *rm_ttdby = new G4RotationMatrix();
-   rm_ttdby->rotateX(ttdby.rx); rm_ttdby->rotateY(ttdby.ry); rm_ttdby->rotateZ(ttdby.rz);
+  G4ThreeVector P_ttdby = G4ThreeVector(ttdby.x,ttdby.y,ttdby.z);
+  G4RotationMatrix *rm_ttdby = new G4RotationMatrix();
+  rm_ttdby->rotateX(ttdby.rx); rm_ttdby->rotateY(ttdby.ry); rm_ttdby->rotateZ(ttdby.rz);
 
-   // ------ above sphere 
-   partParameters_t ttday; 
-   ttday.name = "transTubeYA_dn"; ttday.shape = "tube"; 
-   ttday.r_tor = 0.0*mm; ttday.r_max = 4.5*mm; ttday.r_min = ttday.r_max - glassWall; ttday.length = 20.0*mm;
-   ttday.x_len = 0.0*mm; ttday.y_len = 0.0*mm; ttday.z_len = 0.0*mm;
-   ttday.startTheta = 0.0*deg; ttday.dTheta = 0.0*deg;
-   ttday.startPhi = 0.0*deg; ttday.dPhi = 360.0*deg;
-   ttday.x = 0.0*mm; ttday.y = -61.0*mm; ttday.z = 25.4*mm;
-   ttday.rx = 90.0*deg; ttday.ry = 0.0*deg; ttday.rz = 0.0*deg;
+  // ------ above sphere 
+  partParameters_t ttday; 
+  ttday.name = "transTubeYA_dn"; ttday.shape = "tube"; 
+  ttday.r_tor = 0.0*mm; ttday.r_max = 4.5*mm; ttday.r_min = ttday.r_max - glassWall; ttday.length = 20.0*mm;
+  ttday.x_len = 0.0*mm; ttday.y_len = 0.0*mm; ttday.z_len = 0.0*mm;
+  ttday.startTheta = 0.0*deg; ttday.dTheta = 0.0*deg;
+  ttday.startPhi = 0.0*deg; ttday.dPhi = 360.0*deg;
+  ttday.x = 0.0*mm; ttday.y = -61.0*mm; ttday.z = 25.4*mm;
+  ttday.rx = 90.0*deg; ttday.ry = 0.0*deg; ttday.rz = 0.0*deg;
 
-   G4Tubs *transTubeDnAYShape = new G4Tubs(ttday.name,
-	                                   ttday.r_min    ,ttday.r_max,
-	                                   ttday.length/2.,
-	                                   ttday.startPhi ,ttday.dPhi);
+  G4Tubs *transTubeDnAYShape = new G4Tubs(ttday.name,
+					  ttday.r_min    ,ttday.r_max,
+					  ttday.length/2.,
+					  ttday.startPhi ,ttday.dPhi);
 
-   G4ThreeVector P_ttday = G4ThreeVector(ttday.x,ttday.y,ttday.z);
-   G4RotationMatrix *rm_ttday = new G4RotationMatrix();
-   rm_ttday->rotateX(ttday.rx); rm_ttday->rotateY(ttday.ry); rm_ttday->rotateZ(ttday.rz);
+  G4ThreeVector P_ttday = G4ThreeVector(ttday.x,ttday.y,ttday.z);
+  G4RotationMatrix *rm_ttday = new G4RotationMatrix();
+  rm_ttday->rotateX(ttday.rx); rm_ttday->rotateY(ttday.ry); rm_ttday->rotateZ(ttday.rz);
 
-   // transfer tube post along y 
-   // ---- downstream 
-   partParameters_t ttpdy; 
-   ttpdy.name = "transTubePost_dn"; ttpdy.shape = "tube"; 
-   ttpdy.r_tor = 0.0*mm; ttpdy.r_max = 4.5*mm; ttpdy.r_min = ttpdy.r_max - glassWall; ttpdy.length = 23.0*mm;
-   ttpdy.x_len = 0.0*mm; ttpdy.y_len = 0.0*mm; ttpdy.z_len = 0.0*mm;
-   ttpdy.startTheta = 0.0*deg; ttpdy.dTheta = 0.0*deg;
-   ttpdy.startPhi = 0.0*deg; ttpdy.dPhi = 360.0*deg;
-   ttpdy.x = 0.0*mm; ttpdy.y = -22.0*mm; ttpdy.z = 259.1*mm;
-   ttpdy.rx = 90.0*deg; ttpdy.ry = 0.0*deg; ttpdy.rz = 0.0*deg;
+  // transfer tube post along y 
+  // ---- downstream 
+  partParameters_t ttpdy; 
+  ttpdy.name = "transTubePost_dn"; ttpdy.shape = "tube"; 
+  ttpdy.r_tor = 0.0*mm; ttpdy.r_max = 4.5*mm; ttpdy.r_min = ttpdy.r_max - glassWall; ttpdy.length = 23.0*mm;
+  ttpdy.x_len = 0.0*mm; ttpdy.y_len = 0.0*mm; ttpdy.z_len = 0.0*mm;
+  ttpdy.startTheta = 0.0*deg; ttpdy.dTheta = 0.0*deg;
+  ttpdy.startPhi = 0.0*deg; ttpdy.dPhi = 360.0*deg;
+  ttpdy.x = 0.0*mm; ttpdy.y = -22.0*mm; ttpdy.z = 259.1*mm;
+  ttpdy.rx = 90.0*deg; ttpdy.ry = 0.0*deg; ttpdy.rz = 0.0*deg;
 
-   G4Tubs *transTubePostDnShape = new G4Tubs(ttpdy.name,
-	                                     ttpdy.r_min    ,ttpdy.r_max,
-	                                     ttpdy.length/2.,
-	                                     ttpdy.startPhi ,ttpdy.dPhi);
+  G4Tubs *transTubePostDnShape = new G4Tubs(ttpdy.name,
+					    ttpdy.r_min    ,ttpdy.r_max,
+					    ttpdy.length/2.,
+					    ttpdy.startPhi ,ttpdy.dPhi);
 
-   G4ThreeVector P_ttpdy = G4ThreeVector(ttpdy.x,ttpdy.y,ttpdy.z);
-   G4RotationMatrix *rm_ttpdy = new G4RotationMatrix();
-   rm_ttpdy->rotateX(ttpdy.rx); rm_ttpdy->rotateY(ttpdy.ry); rm_ttpdy->rotateZ(ttpdy.rz);
+  G4ThreeVector P_ttpdy = G4ThreeVector(ttpdy.x,ttpdy.y,ttpdy.z);
+  G4RotationMatrix *rm_ttpdy = new G4RotationMatrix();
+  rm_ttpdy->rotateX(ttpdy.rx); rm_ttpdy->rotateY(ttpdy.ry); rm_ttpdy->rotateZ(ttpdy.rz);
 
-   // ---- upstream 
-   partParameters_t ttpuy; 
-   ttpuy.name = "transTubePost_up"; ttpuy.shape = "tube"; 
-   ttpuy.r_tor = 0.0*mm; ttpuy.r_max = 4.5*mm; ttpuy.r_min = ttpuy.r_max - glassWall; ttpuy.length = 23.0*mm;
-   ttpuy.x_len = 0.0*mm; ttpuy.y_len = 0.0*mm; ttpuy.z_len = 0.0*mm;
-   ttpuy.startTheta = 0.0*deg; ttpuy.dTheta = 0.0*deg;
-   ttpuy.startPhi = 0.0*deg; ttpuy.dPhi = 360.0*deg;
-   ttpuy.x = 0.0*mm; ttpuy.y = -22.0*mm; ttpuy.z = -259.1*mm;
-   ttpuy.rx = 90.0*deg; ttpuy.ry = 0.0*deg; ttpuy.rz = 0.0*deg; 
+  // ---- upstream 
+  partParameters_t ttpuy; 
+  ttpuy.name = "transTubePost_up"; ttpuy.shape = "tube"; 
+  ttpuy.r_tor = 0.0*mm; ttpuy.r_max = 4.5*mm; ttpuy.r_min = ttpuy.r_max - glassWall; ttpuy.length = 23.0*mm;
+  ttpuy.x_len = 0.0*mm; ttpuy.y_len = 0.0*mm; ttpuy.z_len = 0.0*mm;
+  ttpuy.startTheta = 0.0*deg; ttpuy.dTheta = 0.0*deg;
+  ttpuy.startPhi = 0.0*deg; ttpuy.dPhi = 360.0*deg;
+  ttpuy.x = 0.0*mm; ttpuy.y = -22.0*mm; ttpuy.z = -259.1*mm;
+  ttpuy.rx = 90.0*deg; ttpuy.ry = 0.0*deg; ttpuy.rz = 0.0*deg; 
 
-   G4Tubs *transTubePostUpShape = new G4Tubs(ttpuy.name,
-	                                     ttpuy.r_min    ,ttpuy.r_max,
-	                                     ttpuy.length/2.,
-	                                     ttpuy.startPhi ,ttpuy.dPhi);
+  G4Tubs *transTubePostUpShape = new G4Tubs(ttpuy.name,
+					    ttpuy.r_min    ,ttpuy.r_max,
+					    ttpuy.length/2.,
+					    ttpuy.startPhi ,ttpuy.dPhi);
 
-   G4ThreeVector P_ttpuy = G4ThreeVector(ttpuy.x,ttpuy.y,ttpuy.z);
-   G4RotationMatrix *rm_ttpuy = new G4RotationMatrix();
-   rm_ttpuy->rotateX(ttpuy.rx); rm_ttpuy->rotateY(ttpuy.ry); rm_ttpuy->rotateZ(ttpuy.rz);
+  G4ThreeVector P_ttpuy = G4ThreeVector(ttpuy.x,ttpuy.y,ttpuy.z);
+  G4RotationMatrix *rm_ttpuy = new G4RotationMatrix();
+  rm_ttpuy->rotateX(ttpuy.rx); rm_ttpuy->rotateY(ttpuy.ry); rm_ttpuy->rotateZ(ttpuy.rz);
 
-   // union solid 
-   G4UnionSolid *glassCell;
-   // target chamber + transfer tube posts
-   // upstream  
-   glassCell = new G4UnionSolid("gc_tc_ewud_pu" ,targetChamberShape,transTubePostUpShape,rm_ttpuy,P_ttpuy);
-   // downstream 
-   glassCell = new G4UnionSolid("gc_tc_ewud_pud",glassCell,transTubePostDnShape,rm_ttpdy,P_ttpdy);
-   // transfer tube elbows 
-   // upstream
-   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eu" ,glassCell,transTubeElUpShape,rm_tteu,P_tteu);
-   // downstream  
-   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud",glassCell,transTubeElDnShape,rm_tted,P_tted);
-   // transfer tubes along z 
-   // upstream
-   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzu" ,glassCell,transTubeUpZShape,rm_ttuz,P_ttuz);
-   // downstream  
-   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud",glassCell,transTubeDnZShape,rm_ttdz,P_ttdz);
-   // transfer tube elbows [lower]  
-   // upstream
-   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_elu" ,glassCell,transTubeElUpLoShape,rm_tteul,P_tteul);
-   // downstream  
-   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_elud",glassCell,transTubeElDnLoShape,rm_ttedl,P_ttedl);
-   // transfer tubes along y 
-   // upstream
-   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyu" ,glassCell,transTubeUpYShape,rm_ttuy,P_ttuy);
-   // downstream: above  
-   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyua",glassCell,transTubeDnAYShape,rm_ttday,P_ttday);
-   // downstream: sphere   
-   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyuas",glassCell,transTubeSphere,rm_tts,P_tts);
-   // downstream: below  
-   glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyuasb",glassCell,transTubeDnBYShape,rm_ttdby,P_ttdby);
-   // pumping chamber.  also change the name since everything is connected now 
-   glassCell = new G4UnionSolid("glassCell",glassCell,pumpChamberShape,rm_pc,P_pc);
+  // union solid 
+  G4UnionSolid *glassCell;
+  // target chamber + transfer tube posts
+  // upstream  
+  glassCell = new G4UnionSolid("gc_tc_ewud_pu" ,targetChamberShape,transTubePostUpShape,rm_ttpuy,P_ttpuy);
+  // downstream 
+  glassCell = new G4UnionSolid("gc_tc_ewud_pud",glassCell,transTubePostDnShape,rm_ttpdy,P_ttpdy);
+  // transfer tube elbows 
+  // upstream
+  glassCell = new G4UnionSolid("gc_tc_ewud_pud_eu" ,glassCell,transTubeElUpShape,rm_tteu,P_tteu);
+  // downstream  
+  glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud",glassCell,transTubeElDnShape,rm_tted,P_tted);
+  // transfer tubes along z 
+  // upstream
+  glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzu" ,glassCell,transTubeUpZShape,rm_ttuz,P_ttuz);
+  // downstream  
+  glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud",glassCell,transTubeDnZShape,rm_ttdz,P_ttdz);
+  // transfer tube elbows [lower]  
+  // upstream
+  glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_elu" ,glassCell,transTubeElUpLoShape,rm_tteul,P_tteul);
+  // downstream  
+  glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_elud",glassCell,transTubeElDnLoShape,rm_ttedl,P_ttedl);
+  // transfer tubes along y 
+  // upstream
+  glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyu" ,glassCell,transTubeUpYShape,rm_ttuy,P_ttuy);
+  // downstream: above  
+  glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyua",glassCell,transTubeDnAYShape,rm_ttday,P_ttday);
+  // downstream: sphere   
+  glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyuas",glassCell,transTubeSphere,rm_tts,P_tts);
+  // downstream: below  
+  glassCell = new G4UnionSolid("gc_tc_ewud_pud_eud_tzud_tyuasb",glassCell,transTubeDnBYShape,rm_ttdby,P_ttdby);
+  // pumping chamber.  also change the name since everything is connected now 
+  glassCell = new G4UnionSolid("glassCell",glassCell,pumpChamberShape,rm_pc,P_pc);
 
-   // logical volume
-   G4LogicalVolume *logicGlassCell = new G4LogicalVolume(glassCell,GetMaterial("GE180"),"logicGEnTarget_GlassCell");
+  // logical volume
+  G4LogicalVolume *logicGlassCell = new G4LogicalVolume(glassCell,GetMaterial("GE180"),"logicGEnTarget_GlassCell");
 
-   // visualization 
-   G4VisAttributes *visGC = new G4VisAttributes();
-   visGC->SetColour( G4Colour::White() );
-   // visGC->SetForceWireframe(true);
-   logicGlassCell->SetVisAttributes(visGC);
+  // visualization 
+  G4VisAttributes *visGC = new G4VisAttributes();
+  visGC->SetColour( G4Colour::White() );
+  // visGC->SetForceWireframe(true);
+  logicGlassCell->SetVisAttributes(visGC);
 
-   // place the volume
-   // - note that this is relative to the *target chamber* as that is the first object in the union 
-   // - rotation puts the cell oriented such that the pumping chamber is vertically above
-   //   and the beam enters from the side where the small sphere on the transfer tube is 
-   //   closest to the upstream side
+  // place the volume
+  // - note that this is relative to the *target chamber* as that is the first object in the union 
+  // - rotation puts the cell oriented such that the pumping chamber is vertically above
+  //   and the beam enters from the side where the small sphere on the transfer tube is 
+  //   closest to the upstream side
 
-   // angular misalignment 
-   G4double drx = fDetCon->GetGEnTargetDRX(); 
-   G4double dry = fDetCon->GetGEnTargetDRY(); 
-   G4double drz = fDetCon->GetGEnTargetDRZ();
+  // angular misalignment 
+  G4double drx = fDetCon->GetGEnTargetDRX(); 
+  G4double dry = fDetCon->GetGEnTargetDRY(); 
+  G4double drz = fDetCon->GetGEnTargetDRZ();
   
-   if(drx!=0||dry!=0||drz!=0){ 
-      std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_GlassCell]: Using GEn 3He target angular misalignments: " << std::endl;
-      std::cout << "RX = " << drx/deg << " deg" << std::endl;
-      std::cout << "RY = " << dry/deg << " deg" << std::endl;
-      std::cout << "RZ = " << drz/deg << " deg" << std::endl;
-   }
+  if(drx!=0||dry!=0||drz!=0){ 
+    std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_GlassCell]: Using GEn 3He target angular misalignments: " << std::endl;
+    std::cout << "RX = " << drx/deg << " deg" << std::endl;
+    std::cout << "RY = " << dry/deg << " deg" << std::endl;
+    std::cout << "RZ = " << drz/deg << " deg" << std::endl;
+  }
 
-   // total angles 
-   G4double RX = drx; 
-   G4double RY = 180.*deg + dry;  
-   G4double RZ = 180.*deg + drz;  
+  // total angles 
+  G4double RX = drx; 
+  G4double RY = 180.*deg + dry;  
+  G4double RZ = 180.*deg + drz;  
  
-   G4ThreeVector P_tgt_o = G4ThreeVector(0.*cm,0.*cm,0.*cm);
-   G4RotationMatrix *rm_gc = new G4RotationMatrix();
-   rm_gc->rotateX(RX); rm_gc->rotateY(RY); rm_gc->rotateZ(RZ);
+  G4ThreeVector P_tgt_o = G4ThreeVector(0.*cm,0.*cm,0.*cm);
+  G4RotationMatrix *rm_gc = new G4RotationMatrix();
+  rm_gc->rotateX(RX); rm_gc->rotateY(RY); rm_gc->rotateZ(RZ);
 
-   bool isBoolean     = true;
-   bool checkOverlaps = true;
+  bool isBoolean     = true;
+  bool checkOverlaps = true;
 
-   new G4PVPlacement(rm_gc,             // rotation relative to logical mother    
-                     P_tgt_o,           // position relative to logical mother      
-                     logicGlassCell,   // logical volume        
-                     "physGlassCell",   // name of physical volume      
-                     motherLog,         // logical mother        
-                     isBoolean,         // is a boolean object?     
-                     0,                 // copy number     
-                     checkOverlaps);    // check overlaps
+  new G4PVPlacement(rm_gc,             // rotation relative to logical mother    
+		    P_tgt_o,           // position relative to logical mother      
+		    logicGlassCell,   // logical volume        
+		    "physGlassCell",   // name of physical volume      
+		    motherLog,         // logical mother        
+		    isBoolean,         // is a boolean object?     
+		    0,                 // copy number     
+		    checkOverlaps);    // check overlaps
 
-   // register with DetectorConstruction object 
-   fDetCon->InsertTargetVolume( logicGlassCell->GetName() ); 
+  // register with DetectorConstruction object 
+  fDetCon->InsertTargetVolume( logicGlassCell->GetName() );
+
+  // now turn this into a sensitive detector if enabled
+  bool enableSD = fDetCon->GetGEnTargetSDEnable();  
+
+  // name of SD and the hitCollection  
+  G4String gcSDname = "Target/Glass";   
+  // We have to remove all the directory structure from the 
+  // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+  G4String gcSDname_nopath = gcSDname;
+  gcSDname_nopath.remove(0,gcSDname.last('/')+1);
+  G4String gcColName = gcSDname_nopath;
+  gcColName += "HitsCollection";
+
+  G4SBSTargetSD *gcSD = nullptr;
+  if(enableSD){
+    if( !(gcSD = (G4SBSTargetSD *)fDetCon->fSDman->FindSensitiveDetector(gcSDname)) ){
+      // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+      G4cout << "Adding GEn Glass Cell sensitive detector to SDman..." << G4endl;
+      gcSD = new G4SBSTargetSD(gcSDname,gcColName);
+      logicGlassCell->SetSensitiveDetector(gcSD);
+      fDetCon->fSDman->AddNewDetector(gcSD);
+      (fDetCon->SDlist).insert(gcSDname);
+      fDetCon->SDtype[gcSDname] = G4SBS::kTarget_GEn_Glass;
+    }
+  }
 
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
-   // Aluminum/Copper end window on 3He cell
-   // - drawing number: internal from G. Cates (Assembly MK-II Drawing_july_11_2017.pdf, received June 2020)
+  // Aluminum/Copper end window on 3He cell
+  // - drawing number: internal from G. Cates (Assembly MK-II Drawing_july_11_2017.pdf, received June 2020)
 
-   G4double inch = 25.4*mm; 
+  G4double inch = 25.4*mm; 
 
-   // main shaft [copper]  
-   partParameters_t msh; 
-   msh.name = "ew_mainShaft"; msh.shape = "tube";
-   msh.r_tor = 0.000*inch; msh.r_min = 0.471*inch; msh.r_max = 0.505*inch; msh.length = 0.500*inch;
-   msh.x_len = 0.000*inch; msh.y_len = 0.000*inch; msh.z_len = 0.000*inch;
-   msh.startTheta = 0.000*deg; msh.dTheta = 0.000*deg;
-   msh.startPhi = 0.000*deg; msh.dPhi = 360.000*deg;
-   msh.x = 0.000*inch; msh.y = 0.000*inch; msh.z = 0.000*inch;
-   msh.rx = 0.000*deg; msh.ry = 0.000*deg; msh.rz = 0.000*deg;
+  // main shaft [copper]  
+  partParameters_t msh; 
+  msh.name = "ew_mainShaft"; msh.shape = "tube";
+  msh.r_tor = 0.000*inch; msh.r_min = 0.471*inch; msh.r_max = 0.505*inch; msh.length = 0.500*inch;
+  msh.x_len = 0.000*inch; msh.y_len = 0.000*inch; msh.z_len = 0.000*inch;
+  msh.startTheta = 0.000*deg; msh.dTheta = 0.000*deg;
+  msh.startPhi = 0.000*deg; msh.dPhi = 360.000*deg;
+  msh.x = 0.000*inch; msh.y = 0.000*inch; msh.z = 0.000*inch;
+  msh.rx = 0.000*deg; msh.ry = 0.000*deg; msh.rz = 0.000*deg;
 
-   G4Tubs *mainShaft = new G4Tubs(msh.name,
-	                          msh.r_min    ,msh.r_max,
-	                          msh.length/2.,
-	                          msh.startPhi ,msh.dPhi);
+  G4Tubs *mainShaft = new G4Tubs(msh.name,
+				 msh.r_min    ,msh.r_max,
+				 msh.length/2.,
+				 msh.startPhi ,msh.dPhi);
 
-   G4ThreeVector P_msh      = G4ThreeVector(msh.x,msh.y,msh.z);
-   G4RotationMatrix *rm_msh = new G4RotationMatrix();
-   rm_msh->rotateX(msh.rx); rm_msh->rotateY(msh.ry); rm_msh->rotateZ(msh.rz);
+  G4ThreeVector P_msh      = G4ThreeVector(msh.x,msh.y,msh.z);
+  G4RotationMatrix *rm_msh = new G4RotationMatrix();
+  rm_msh->rotateX(msh.rx); rm_msh->rotateY(msh.ry); rm_msh->rotateZ(msh.rz);
 
-   // main shaft inner lip 
-   partParameters_t msh_il; 
-   msh_il.name = "ew_mainShaft_il"; msh.shape = "tube";
-   msh_il.r_tor = 0.000*inch; msh_il.r_min = 0.4710*inch; msh_il.r_max = 0.4725*inch; msh_il.length = 0.125*inch;
-   msh_il.x_len = 0.000*inch; msh_il.y_len = 0.000*inch;  msh_il.z_len = 0.000*inch;
-   msh_il.startTheta = 0.000*deg; msh_il.dTheta = 0.000*deg;
-   msh_il.startPhi = 0.000*deg; msh_il.dPhi = 360.000*deg;
-   msh_il.x = 0.000*inch; msh_il.y = 0.000*inch; msh_il.z = 0.5*msh.length + 0.5*msh_il.length;
-   msh_il.rx = 0.000*deg; msh_il.ry = 0.000*deg; msh_il.rz = 0.000*deg;
+  // main shaft inner lip 
+  partParameters_t msh_il; 
+  msh_il.name = "ew_mainShaft_il"; msh.shape = "tube";
+  msh_il.r_tor = 0.000*inch; msh_il.r_min = 0.4710*inch; msh_il.r_max = 0.4725*inch; msh_il.length = 0.125*inch;
+  msh_il.x_len = 0.000*inch; msh_il.y_len = 0.000*inch;  msh_il.z_len = 0.000*inch;
+  msh_il.startTheta = 0.000*deg; msh_il.dTheta = 0.000*deg;
+  msh_il.startPhi = 0.000*deg; msh_il.dPhi = 360.000*deg;
+  msh_il.x = 0.000*inch; msh_il.y = 0.000*inch; msh_il.z = 0.5*msh.length + 0.5*msh_il.length;
+  msh_il.rx = 0.000*deg; msh_il.ry = 0.000*deg; msh_il.rz = 0.000*deg;
 
-   G4Tubs *mainShaft_il = new G4Tubs(msh_il.name,
-	                             msh_il.r_min    ,msh_il.r_max,
-	                             msh_il.length/2.,
-	                             msh_il.startPhi ,msh_il.dPhi);
+  G4Tubs *mainShaft_il = new G4Tubs(msh_il.name,
+				    msh_il.r_min    ,msh_il.r_max,
+				    msh_il.length/2.,
+				    msh_il.startPhi ,msh_il.dPhi);
 
-   G4ThreeVector P_mshil      = G4ThreeVector(msh_il.x,msh_il.y,msh_il.z);
-   G4RotationMatrix *rm_mshil = new G4RotationMatrix();
-   rm_mshil->rotateX(msh_il.rx); rm_mshil->rotateY(msh_il.ry); rm_msh->rotateZ(msh_il.rz);
+  G4ThreeVector P_mshil      = G4ThreeVector(msh_il.x,msh_il.y,msh_il.z);
+  G4RotationMatrix *rm_mshil = new G4RotationMatrix();
+  rm_mshil->rotateX(msh_il.rx); rm_mshil->rotateY(msh_il.ry); rm_msh->rotateZ(msh_il.rz);
 
-   G4String label1 = "ew_ms_l";
-   // union solid 
-   G4UnionSolid *endCap_cu;
-   // main shaft plus inner lip   
-   endCap_cu = new G4UnionSolid(label1,mainShaft,mainShaft_il,rm_mshil ,P_mshil);
+  G4String label1 = "ew_ms_l";
+  // union solid 
+  G4UnionSolid *endCap_cu;
+  // main shaft plus inner lip   
+  endCap_cu = new G4UnionSolid(label1,mainShaft,mainShaft_il,rm_mshil ,P_mshil);
 
-   // these parts below are aluminum
-   // lip 
-   partParameters_t lip; 
-   lip.name = "ew_lip"; lip.shape = "tube";
-   lip.r_tor = 0.000*inch; lip.r_min = 0.4725*inch; lip.r_max = 0.6105*inch; lip.length = 0.125*inch;
-   lip.x_len = 0.000*inch; lip.y_len = 0.000*inch; lip.z_len = 0.000*inch;
-   lip.startTheta = 0.000*deg; lip.dTheta = 0.000*deg;
-   lip.startPhi = 0.000*deg; lip.dPhi = 360.000*deg;
-   lip.x = 0.000*inch; lip.y = 0.000*inch; lip.z = 0.259*inch;
-   lip.rx = 0.000*deg; lip.ry = 0.000*deg; lip.rz = 0.000*deg;
+  // these parts below are aluminum
+  // lip 
+  partParameters_t lip; 
+  lip.name = "ew_lip"; lip.shape = "tube";
+  lip.r_tor = 0.000*inch; lip.r_min = 0.4725*inch; lip.r_max = 0.6105*inch; lip.length = 0.125*inch;
+  lip.x_len = 0.000*inch; lip.y_len = 0.000*inch; lip.z_len = 0.000*inch;
+  lip.startTheta = 0.000*deg; lip.dTheta = 0.000*deg;
+  lip.startPhi = 0.000*deg; lip.dPhi = 360.000*deg;
+  lip.x = 0.000*inch; lip.y = 0.000*inch; lip.z = 0.259*inch;
+  lip.rx = 0.000*deg; lip.ry = 0.000*deg; lip.rz = 0.000*deg;
 
-   G4Tubs *lipTube = new G4Tubs(lip.name,
-	                        lip.r_min    ,lip.r_max,
-	                        lip.length/2.,
-	                        lip.startPhi ,lip.dPhi);
+  G4Tubs *lipTube = new G4Tubs(lip.name,
+			       lip.r_min    ,lip.r_max,
+			       lip.length/2.,
+			       lip.startPhi ,lip.dPhi);
 
-   G4ThreeVector P_lip      = G4ThreeVector(lip.x,lip.y,lip.z);
-   G4RotationMatrix *rm_lip = new G4RotationMatrix();
-   rm_lip->rotateX(lip.rx); rm_lip->rotateY(lip.ry); rm_lip->rotateZ(lip.rz);
+  G4ThreeVector P_lip      = G4ThreeVector(lip.x,lip.y,lip.z);
+  G4RotationMatrix *rm_lip = new G4RotationMatrix();
+  rm_lip->rotateX(lip.rx); rm_lip->rotateY(lip.ry); rm_lip->rotateZ(lip.rz);
 
-   // rounded lip. note: length is computed from drawing for reference 
-   partParameters_t rlip;  
-   rlip.name = "ew_rlip"; rlip.shape = "sphere";
-   rlip.r_tor = 0.000*inch; rlip.r_min = 0.4855*inch; rlip.r_max = 0.5455*inch; rlip.length = 0.2468*inch;
-   rlip.x_len = 0.000*inch; rlip.y_len = 0.000*inch; rlip.z_len = 0.000*inch;
-   rlip.startTheta = 63.100*deg; rlip.dTheta = 26.900*deg;
-   rlip.startPhi = 0.000*deg; rlip.dPhi = 360.000*deg;
-   rlip.x = 0.000*inch; rlip.y = 0.000*inch; rlip.z = 0.5*lip.length; 
-   rlip.rx = 0.000*deg; rlip.ry = 0.000*deg; rlip.rz = 0.000*deg;
+  // rounded lip. note: length is computed from drawing for reference 
+  partParameters_t rlip;  
+  rlip.name = "ew_rlip"; rlip.shape = "sphere";
+  rlip.r_tor = 0.000*inch; rlip.r_min = 0.4855*inch; rlip.r_max = 0.5455*inch; rlip.length = 0.2468*inch;
+  rlip.x_len = 0.000*inch; rlip.y_len = 0.000*inch; rlip.z_len = 0.000*inch;
+  rlip.startTheta = 63.100*deg; rlip.dTheta = 26.900*deg;
+  rlip.startPhi = 0.000*deg; rlip.dPhi = 360.000*deg;
+  rlip.x = 0.000*inch; rlip.y = 0.000*inch; rlip.z = 0.5*lip.length; 
+  rlip.rx = 0.000*deg; rlip.ry = 0.000*deg; rlip.rz = 0.000*deg;
 
-   G4Sphere *roundLip = new G4Sphere(rlip.name,
-                                     rlip.r_min     ,rlip.r_max,
-                                     rlip.startPhi  ,rlip.dPhi,
-                                     rlip.startTheta,rlip.dTheta);
+  G4Sphere *roundLip = new G4Sphere(rlip.name,
+				    rlip.r_min     ,rlip.r_max,
+				    rlip.startPhi  ,rlip.dPhi,
+				    rlip.startTheta,rlip.dTheta);
 
-   G4ThreeVector P_rlip = G4ThreeVector(rlip.x,rlip.y,rlip.z);
-   G4RotationMatrix *rm_rlip = new G4RotationMatrix();
-   rm_rlip->rotateX(rlip.rx); rm_rlip->rotateY(rlip.ry); rm_rlip->rotateZ(rlip.rz);  
+  G4ThreeVector P_rlip = G4ThreeVector(rlip.x,rlip.y,rlip.z);
+  G4RotationMatrix *rm_rlip = new G4RotationMatrix();
+  rm_rlip->rotateX(rlip.rx); rm_rlip->rotateY(rlip.ry); rm_rlip->rotateZ(rlip.rz);  
 
-   // endcap.  note: length is computed from the drawing for reference  
-   partParameters_t ec;
-   ec.name = "ew_cap_up"; ec.shape = "sphere";
-   ec.r_tor = 0.000*inch; ec.r_min = 0.4855*inch; ec.r_max = 0.4915*inch; ec.length = 0.2447*inch;
-   ec.x_len = 0.000*inch; ec.y_len = 0.000*inch; ec.z_len = 0.000*inch;
-   ec.startTheta = 0.000*deg; ec.dTheta = 63.100*deg;
-   ec.startPhi = 0.000*deg; ec.dPhi = 360.000*deg;
-   ec.x = 0.000*inch; ec.y = 0.000*inch; ec.z = 0.5*lip.length; 
-   ec.rx = 0.000*deg; ec.ry = 0.000*deg; ec.rz = 0.000*deg;
+  // endcap.  note: length is computed from the drawing for reference  
+  partParameters_t ec;
+  ec.name = "ew_cap_up"; ec.shape = "sphere";
+  ec.r_tor = 0.000*inch; ec.r_min = 0.4855*inch; ec.r_max = 0.4915*inch; ec.length = 0.2447*inch;
+  ec.x_len = 0.000*inch; ec.y_len = 0.000*inch; ec.z_len = 0.000*inch;
+  ec.startTheta = 0.000*deg; ec.dTheta = 63.100*deg;
+  ec.startPhi = 0.000*deg; ec.dPhi = 360.000*deg;
+  ec.x = 0.000*inch; ec.y = 0.000*inch; ec.z = 0.5*lip.length; 
+  ec.rx = 0.000*deg; ec.ry = 0.000*deg; ec.rz = 0.000*deg;
 
-   G4Sphere *endcap = new G4Sphere(ec.name,
-                                   ec.r_min     ,ec.r_max,
-                                   ec.startPhi  ,ec.dPhi,
-                                   ec.startTheta,ec.dTheta);
+  G4Sphere *endcap = new G4Sphere(ec.name,
+				  ec.r_min     ,ec.r_max,
+				  ec.startPhi  ,ec.dPhi,
+				  ec.startTheta,ec.dTheta);
 
-   G4ThreeVector P_ec      = G4ThreeVector(ec.x,ec.y,ec.z);
-   G4RotationMatrix *rm_ec = new G4RotationMatrix();
-   rm_ec->rotateX(ec.rx); rm_ec->rotateY(ec.ry); rm_ec->rotateZ(ec.rz);   
+  G4ThreeVector P_ec      = G4ThreeVector(ec.x,ec.y,ec.z);
+  G4RotationMatrix *rm_ec = new G4RotationMatrix();
+  rm_ec->rotateX(ec.rx); rm_ec->rotateY(ec.ry); rm_ec->rotateZ(ec.rz);   
 
-   // labels 
-   G4String label2 = "ew_ms_l_rl";
-   G4String label3 = "endWindow" ;
+  // labels 
+  G4String label2 = "ew_ms_l_rl";
+  G4String label3 = "endWindow" ;
 
-   // union solid 
-   G4UnionSolid *endCap_al;
-   // lip and rounded lip  
-   endCap_al = new G4UnionSolid(label2,lipTube  ,roundLip,rm_rlip ,P_rlip);
-   // add endcap  
-   endCap_al = new G4UnionSolid(label3,endCap_al,endcap  ,rm_ec   ,P_ec  ); 
+  // union solid 
+  G4UnionSolid *endCap_al;
+  // lip and rounded lip  
+  endCap_al = new G4UnionSolid(label2,lipTube  ,roundLip,rm_rlip ,P_rlip);
+  // add endcap  
+  endCap_al = new G4UnionSolid(label3,endCap_al,endcap  ,rm_ec   ,P_ec  ); 
 
-   // visualization
-   G4VisAttributes *vis = new G4VisAttributes();
-   vis->SetColour( G4Colour::Red() );
-   vis->SetForceWireframe(true);
+  // visualization
+  G4VisAttributes *vis = new G4VisAttributes();
+  vis->SetColour( G4Colour::Red() );
+  vis->SetForceWireframe(true);
 
-   G4VisAttributes *vis_al = new G4VisAttributes();
-   vis_al->SetColour( G4Colour::Blue() );
-   vis_al->SetForceWireframe(true);
+  G4VisAttributes *vis_al = new G4VisAttributes();
+  vis_al->SetColour( G4Colour::Blue() );
+  vis_al->SetForceWireframe(true);
 
-   // define coordinates and rotations for placement  
-   // index 0 = upstream, 1 = downstream 
+  // define coordinates and rotations for placement  
+  // index 0 = upstream, 1 = downstream 
 
-   G4double x_ms[2] = {0,0}; 
-   G4double y_ms[2] = {0,0}; 
-   G4double z_ms[2] = {0,0};
+  G4double x_ms[2] = {0,0}; 
+  G4double y_ms[2] = {0,0}; 
+  G4double z_ms[2] = {0,0};
  
-   G4double x_cp[2] = {0,0}; 
-   G4double y_cp[2] = {0,0}; 
-   G4double z_cp[2] = {0,0}; 
+  G4double x_cp[2] = {0,0}; 
+  G4double y_cp[2] = {0,0}; 
+  G4double z_cp[2] = {0,0}; 
 
-   // z0 = half length of target glass + half length of main shaft 
-   G4double z0 = 571.7*mm/2. + 0.5*msh.length;   
-   z_ms[0] = (-1.)*z0; 
-   z_ms[1] = z0; 
+  // z0 = half length of target glass + half length of main shaft 
+  G4double z0 = fGEn_GLASS_TUBE_LENGTH/2. + 0.5*msh.length;   
+  z_ms[0] = (-1.)*z0; 
+  z_ms[1] = z0; 
 
-   // z0 = half length of target glass + half length of first component in the union for this part 
-   z0 = 571.7*mm/2. + msh.length + 0.5*lip.length;   
-   z_cp[0] = (-1.)*z0; 
-   z_cp[1] = z0; 
+  // z0 = half length of target glass + half length of first component in the union for this part 
+  z0 = fGEn_GLASS_TUBE_LENGTH/2. + msh.length + 0.5*lip.length;   
+  z_cp[0] = (-1.)*z0; 
+  z_cp[1] = z0; 
 
-   G4double rx[2] = {0.*deg  ,0.*deg};  
-   G4double ry[2] = {180.*deg,0.*deg};  
-   G4double rz[2] = {0.*deg  ,0.*deg}; 
+  G4double rx[2] = {0.*deg  ,0.*deg};  
+  G4double ry[2] = {180.*deg,0.*deg};  
+  G4double rz[2] = {0.*deg  ,0.*deg}; 
 
-   bool isBoolean     = true; 
-   bool checkOverlaps = true; 
+  bool isBoolean     = true; 
+  bool checkOverlaps = true; 
  
-   // logical volumes (for an array of logical volume pointers)  
-   G4LogicalVolume **logicMainShaft = new G4LogicalVolume*[2];
-   G4LogicalVolume **logicEndCap    = new G4LogicalVolume*[2];
+  // logical volumes (for an array of logical volume pointers)  
+  G4LogicalVolume **logicMainShaft = new G4LogicalVolume*[2];
+  G4LogicalVolume **logicEndCap    = new G4LogicalVolume*[2];
 
-   char logicName[200],physName[200]; 
+  char logicName[200],physName[200]; 
 
-   // angular misalignment 
-   G4double drx = fDetCon->GetGEnTargetDRX(); 
-   G4double dry = fDetCon->GetGEnTargetDRY(); // opposite direction needed relative to target cell?   
-   G4double drz = fDetCon->GetGEnTargetDRZ();
+  // angular misalignment 
+  G4double drx = fDetCon->GetGEnTargetDRX(); 
+  G4double dry = fDetCon->GetGEnTargetDRY(); // opposite direction needed relative to target cell?   
+  G4double drz = fDetCon->GetGEnTargetDRZ();
 
-   if(drx!=0||dry!=0||drz!=0){ 
-      std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_EndWindows]: Using GEn 3He target angular misalignments: " << std::endl;
-      std::cout << "RX = " << drx/deg << " deg" << std::endl;
-      std::cout << "RY = " << dry/deg << " deg" << std::endl;
-      std::cout << "RZ = " << drz/deg << " deg" << std::endl;
-   }
+  if(drx!=0||dry!=0||drz!=0){ 
+    std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_EndWindows]: Using GEn 3He target angular misalignments: " << std::endl;
+    std::cout << "RX = " << drx/deg << " deg" << std::endl;
+    std::cout << "RY = " << dry/deg << " deg" << std::endl;
+    std::cout << "RZ = " << drz/deg << " deg" << std::endl;
+  }
 
-   G4double RX=0,RY=0,RZ=0;
+  G4double RX=0,RY=0,RZ=0;
 
-   G4double COS_G = cos(drx); G4double COS_B = cos(dry); G4double COS_A = cos(drz); 
-   G4double SIN_G = sin(drx); G4double SIN_B = sin(dry); G4double SIN_A = sin(drz); 
-   G4double xp=0,yp=0,zp=0;
+  G4double COS_G = cos(drx); G4double COS_B = cos(dry); G4double COS_A = cos(drz); 
+  G4double SIN_G = sin(drx); G4double SIN_B = sin(dry); G4double SIN_A = sin(drz); 
+  G4double xp=0,yp=0,zp=0;
+
+  // now turn this into a sensitive detector if enabled
+  bool enableSD = fDetCon->GetGEnTargetSDEnable(); 
+  G4SBSTargetSD *capSD_Al = nullptr;
+  G4SBSTargetSD *capSD_Cu = nullptr;
  
-   char msg[200]; 
+  // name of SD and the hitCollection  
+  G4String alSDname_us = "Target/AlUpstr";  
+  G4String alSDname_ds = "Target/AlDnstr"; 
+  // G4String alHCname_us = alSDname_us + "HitsCollection";
+  // G4String alHCname_ds = alSDname_ds + "HitsCollection";
+
+  // We have to remove all the directory structure from the 
+  // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+  // upstream 
+  G4String alSDname_us_nopath = alSDname_us;
+  alSDname_us_nopath.remove(0,alSDname_us.last('/')+1);
+  G4String alHCname_us = alSDname_us_nopath;
+  alHCname_us += "HitsCollection";
+  // downstream
+  G4String alSDname_ds_nopath = alSDname_ds;
+  alSDname_ds_nopath.remove(0,alSDname_ds.last('/')+1);
+  G4String alHCname_ds = alSDname_ds_nopath;
+  alHCname_ds += "HitsCollection";
+
+  std::vector<G4String> alSDname;
+  alSDname.push_back(alSDname_us);  
+  alSDname.push_back(alSDname_ds);  
+  std::vector<G4String> alHCname;
+  alHCname.push_back(alHCname_us);  
+  alHCname.push_back(alHCname_ds);  
+
+  G4String cuSDname_us = "Target/CuUpstr";  
+  G4String cuSDname_ds = "Target/CuDnstr"; 
+  // G4String cuHCname_us = cuSDname_us + "HitsCollection";
+  // G4String cuHCname_ds = cuSDname_ds + "HitsCollection";
+
+  // upstream 
+  G4String cuSDname_us_nopath = cuSDname_us;
+  cuSDname_us_nopath.remove(0,cuSDname_us.last('/')+1);
+  G4String cuHCname_us = cuSDname_us_nopath;
+  alHCname_us += "HitsCollection";
+  // downstream
+  G4String cuSDname_ds_nopath = cuSDname_ds;
+  cuSDname_ds_nopath.remove(0,cuSDname_ds.last('/')+1);
+  G4String cuHCname_ds = cuSDname_ds_nopath;
+  cuHCname_ds += "HitsCollection";
+
+  std::vector<G4String> cuSDname;
+  cuSDname.push_back(cuSDname_us);  
+  cuSDname.push_back(cuSDname_ds);  
+  std::vector<G4String> cuHCname;
+  cuHCname.push_back(cuHCname_us);  
+  cuHCname.push_back(cuHCname_ds);  
+
+  char msg[200]; 
  
-   for(int i=0;i<2;i++){
-      // main shaft [copper]  
-      // create logical volume
-      sprintf(logicName,"logicGEnTarget_EndWindow_cu_%d",i);  
-      logicMainShaft[i] = new G4LogicalVolume(endCap_cu,GetMaterial("Copper"),logicName);
-      logicMainShaft[i]->SetVisAttributes(vis);  
-      // position and rotation
-      // account for misalignment angles (x,y,z) => (gamma,beta,alpha)
-      xp = COS_A*COS_B*x_ms[i] + (COS_A*COS_B*SIN_G - SIN_A*COS_G)*y_ms[i] + (COS_A*SIN_B*COS_G + SIN_A*SIN_G)*z_ms[i]; 
-      yp = SIN_A*COS_B*x_ms[i] + (SIN_A*SIN_B*SIN_G + COS_A*COS_G)*y_ms[i] + (SIN_A*SIN_B*COS_G - COS_A*SIN_G)*z_ms[i]; 
-      zp =      -SIN_B*x_ms[i] +                       COS_B*SIN_G*y_ms[i] +                       COS_B*COS_G*z_ms[i];  
-      // sprintf(msg,"=======> endWindow %d: x = %.3lf mm => %.3lf mm, y = %.3lf mm => %.3lf mm, z = %.3lf mm => %.3lf mm",
-      //         i+1,x_ms[i]/mm,xp/mm,y_ew[i]/mm,yp/mm,z_ew[i]/mm,zp/mm);
-      // std::cout << msg << std::endl; 
-      // WARNING: Need to flip the sign on the x coordinate... 
-      xp *= -1.; 
-      G4ThreeVector P_ms      = G4ThreeVector(xp,yp,zp);
-      G4RotationMatrix *rm_ms = new G4RotationMatrix();
-      RX = rx[i] + drx; RY = ry[i] + dry; RZ = rz[i] + drz;
-      rm_ms->rotateX(RX); rm_ms->rotateY(RY); rm_ms->rotateZ(RZ);
-      // physical name 
-      sprintf(physName,"physGEnTarget_EndWindow_cu_%d",i);  
-      // place the volume  
-      new G4PVPlacement(rm_ms,               // rotation relative to logic mother
-	                P_ms,                // position relative to logic mother 
-	                logicMainShaft[i],   // logical volume 
-	                physName,            // name 
-	                motherLog,           // logical mother volume is the target chamber 
-	                false,               // no boolean operations 
-	                i,                   // copy number 
-	                checkOverlaps);      // check overlaps
-      // register with DetectorConstruction object
-      fDetCon->InsertTargetVolume( logicMainShaft[i]->GetName() );
-      // hemisphere cap [aluminum]  
-      // create logical volume
-      sprintf(logicName,"logicGEnTarget_EndWindow_al_%d",i);  
-      logicEndCap[i] = new G4LogicalVolume(endCap_al,GetMaterial("Aluminum"),logicName);
-      logicEndCap[i]->SetVisAttributes(vis_al);  
-      // position and rotation
-      // account for misalignment angles (x,y,z) => (gamma,beta,alpha)
-      xp = COS_A*COS_B*x_cp[i] + (COS_A*COS_B*SIN_G - SIN_A*COS_G)*y_cp[i] + (COS_A*SIN_B*COS_G + SIN_A*SIN_G)*z_cp[i]; 
-      yp = SIN_A*COS_B*x_cp[i] + (SIN_A*SIN_B*SIN_G + COS_A*COS_G)*y_cp[i] + (SIN_A*SIN_B*COS_G - COS_A*SIN_G)*z_cp[i]; 
-      zp =      -SIN_B*x_cp[i]      +                  COS_B*SIN_G*y_cp[i] +                       COS_B*COS_G*z_cp[i];  
-      // sprintf(msg,"=======> endWindow %d: x = %.3lf mm => %.3lf mm, y = %.3lf mm => %.3lf mm, z = %.3lf mm => %.3lf mm",
-      //         i+1,x_cp[i]/mm,xp/mm,y_cp[i]/mm,yp/mm,z_cp[i]/mm,zp/mm);
-      // std::cout << msg << std::endl; 
-      // WARNING: Need to flip the sign on the x coordinate... 
-      xp *= -1.; 
-      G4ThreeVector P_cp      = G4ThreeVector(xp,yp,zp);
-      G4RotationMatrix *rm_cp = new G4RotationMatrix();
-      RX = rx[i] + drx; RY = ry[i] + dry; RZ = rz[i] + drz;
-      rm_cp->rotateX(RX); rm_cp->rotateY(RY); rm_cp->rotateZ(RZ);
-      // physical name 
-      sprintf(physName,"physGEnTarget_EndWindow_al_%d",i);  
-      // place the volume  
-      new G4PVPlacement(rm_cp,               // rotation relative to logic mother
-	                P_cp,                // position relative to logic mother 
-	                logicEndCap[i],      // logical volume 
-	                physName,            // name 
-	                motherLog,           // logical mother volume is the target chamber 
-	                isBoolean,           // no boolean operations 
-	                i,                   // copy number 
-	                checkOverlaps);      // check overlaps
-      // register with DetectorConstruction object
-      fDetCon->InsertTargetVolume( logicEndCap[i]->GetName() );
-   }
+  for(int i=0;i<2;i++){
+    // main shaft [copper]  
+    // create logical volume
+    sprintf(logicName,"logicGEnTarget_EndWindow_cu_%d",i);  
+    logicMainShaft[i] = new G4LogicalVolume(endCap_cu,GetMaterial("Copper"),logicName);
+    logicMainShaft[i]->SetVisAttributes(vis);  
+    // position and rotation
+    // account for misalignment angles (x,y,z) => (gamma,beta,alpha)
+    xp = COS_A*COS_B*x_ms[i] + (COS_A*COS_B*SIN_G - SIN_A*COS_G)*y_ms[i] + (COS_A*SIN_B*COS_G + SIN_A*SIN_G)*z_ms[i]; 
+    yp = SIN_A*COS_B*x_ms[i] + (SIN_A*SIN_B*SIN_G + COS_A*COS_G)*y_ms[i] + (SIN_A*SIN_B*COS_G - COS_A*SIN_G)*z_ms[i]; 
+    zp =      -SIN_B*x_ms[i] +                       COS_B*SIN_G*y_ms[i] +                       COS_B*COS_G*z_ms[i];  
+    // sprintf(msg,"=======> endWindow %d: x = %.3lf mm => %.3lf mm, y = %.3lf mm => %.3lf mm, z = %.3lf mm => %.3lf mm",
+    //         i+1,x_ms[i]/mm,xp/mm,y_ew[i]/mm,yp/mm,z_ew[i]/mm,zp/mm);
+    // std::cout << msg << std::endl; 
+    // WARNING: Need to flip the sign on the x coordinate... 
+    xp *= -1.; 
+    G4ThreeVector P_ms      = G4ThreeVector(xp,yp,zp);
+    G4RotationMatrix *rm_ms = new G4RotationMatrix();
+    RX = rx[i] + drx; RY = ry[i] + dry; RZ = rz[i] + drz;
+    rm_ms->rotateX(RX); rm_ms->rotateY(RY); rm_ms->rotateZ(RZ);
+    // physical name 
+    sprintf(physName,"physGEnTarget_EndWindow_cu_%d",i);  
+    // place the volume  
+    new G4PVPlacement(rm_ms,               // rotation relative to logic mother
+		      P_ms,                // position relative to logic mother 
+		      logicMainShaft[i],   // logical volume 
+		      physName,            // name 
+		      motherLog,           // logical mother volume is the target chamber 
+		      false,               // no boolean operations 
+		      i,                   // copy number 
+		      checkOverlaps);      // check overlaps
+    // register with DetectorConstruction object
+    fDetCon->InsertTargetVolume( logicMainShaft[i]->GetName() );
+    // set to be sensitive detector 
+    if(enableSD){
+      if( !(capSD_Cu = (G4SBSTargetSD *)fDetCon->fSDman->FindSensitiveDetector(cuSDname[i])) ){
+	// check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+	G4cout << "Adding GEn target Cu cap " << i << " sensitive detector to SDman..." << G4endl;
+	capSD_Cu = new G4SBSTargetSD(cuSDname[i],cuHCname[i]);
+	logicMainShaft[i]->SetSensitiveDetector(capSD_Cu);
+	fDetCon->fSDman->AddNewDetector(capSD_Cu);
+	(fDetCon->SDlist).insert(cuSDname[i]);
+	fDetCon->SDtype[cuSDname[i]] = G4SBS::kTarget_GEn_Cu;
+      }
+    }
+    // hemisphere cap [aluminum]  
+    // create logical volume
+    sprintf(logicName,"logicGEnTarget_EndWindow_al_%d",i);  
+    logicEndCap[i] = new G4LogicalVolume(endCap_al,GetMaterial("Aluminum"),logicName);
+    logicEndCap[i]->SetVisAttributes(vis_al);  
+    // position and rotation
+    // account for misalignment angles (x,y,z) => (gamma,beta,alpha)
+    xp = COS_A*COS_B*x_cp[i] + (COS_A*COS_B*SIN_G - SIN_A*COS_G)*y_cp[i] + (COS_A*SIN_B*COS_G + SIN_A*SIN_G)*z_cp[i]; 
+    yp = SIN_A*COS_B*x_cp[i] + (SIN_A*SIN_B*SIN_G + COS_A*COS_G)*y_cp[i] + (SIN_A*SIN_B*COS_G - COS_A*SIN_G)*z_cp[i]; 
+    zp =      -SIN_B*x_cp[i]      +                  COS_B*SIN_G*y_cp[i] +                       COS_B*COS_G*z_cp[i];  
+    // sprintf(msg,"=======> endWindow %d: x = %.3lf mm => %.3lf mm, y = %.3lf mm => %.3lf mm, z = %.3lf mm => %.3lf mm",
+    //         i+1,x_cp[i]/mm,xp/mm,y_cp[i]/mm,yp/mm,z_cp[i]/mm,zp/mm);
+    // std::cout << msg << std::endl; 
+    // WARNING: Need to flip the sign on the x coordinate... 
+    xp *= -1.; 
+    G4ThreeVector P_cp      = G4ThreeVector(xp,yp,zp);
+    G4RotationMatrix *rm_cp = new G4RotationMatrix();
+    RX = rx[i] + drx; RY = ry[i] + dry; RZ = rz[i] + drz;
+    rm_cp->rotateX(RX); rm_cp->rotateY(RY); rm_cp->rotateZ(RZ);
+    // physical name 
+    sprintf(physName,"physGEnTarget_EndWindow_al_%d",i);  
+    // place the volume  
+    new G4PVPlacement(rm_cp,               // rotation relative to logic mother
+		      P_cp,                // position relative to logic mother 
+		      logicEndCap[i],      // logical volume 
+		      physName,            // name 
+		      motherLog,           // logical mother volume is the target chamber 
+		      isBoolean,           // no boolean operations 
+		      i,                   // copy number 
+		      checkOverlaps);      // check overlaps
+    // register with DetectorConstruction object
+    fDetCon->InsertTargetVolume( logicEndCap[i]->GetName() );
+    // set to be sensitive detector 
+    if(enableSD){
+      if( !(capSD_Al = (G4SBSTargetSD *)fDetCon->fSDman->FindSensitiveDetector(alSDname[i])) ){
+	// check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+	G4cout << "Adding GEn target Al cap " << i << " sensitive detector to SDman..." << G4endl;
+	capSD_Al = new G4SBSTargetSD(alSDname[i],alHCname[i]);
+	logicEndCap[i]->SetSensitiveDetector(capSD_Al);
+	fDetCon->fSDman->AddNewDetector(capSD_Al);
+	(fDetCon->SDlist).insert(alSDname[i]);
+	fDetCon->SDtype[alSDname[i]] = G4SBS::kTarget_GEn_Al;
+      }
+    }
+  }
  
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *motherLog){
-   // Copper end window on 3He cell
-   // - drawing number: internal from G. Cates (Assembly MK-II Drawing_july_11_2017.pdf, received June 2020)
+  // Copper end window on 3He cell
+  // - drawing number: internal from G. Cates (Assembly MK-II Drawing_july_11_2017.pdf, received June 2020)
 
-   G4double inch = 25.4*mm; 
+  G4double inch = 25.4*mm; 
+  // total length along z = main shaft + lip + rlip + endcap
+  // glass length = 57.17 cm
+  // total length of target (end-to-end) needs to be 60 cm 
+  // this leaves us 1.42 cm = 0.559 inches for a given end cap
+  // - fixed lengths: lip = 0.125 inches, rlip = 0.2468 inches, endcap = 0.2447 inches = 0.616 inches 
+  // - CHOOSE main shaft length = 0.5 inches
+  // - Total length = 1.116 inches = 2.835 cm  
 
-   // main shaft 
-   partParameters_t msh; 
-   msh.name = "ew_mainShaft"; msh.shape = "tube";
-   msh.r_tor = 0.000*inch; msh.r_min = 0.471*inch; msh.r_max = 0.505*inch; msh.length = 0.500*inch;
-   msh.x_len = 0.000*inch; msh.y_len = 0.000*inch; msh.z_len = 0.000*inch;
-   msh.startTheta = 0.000*deg; msh.dTheta = 0.000*deg;
-   msh.startPhi = 0.000*deg; msh.dPhi = 360.000*deg;
-   msh.x = 0.000*inch; msh.y = 0.000*inch; msh.z = 0.000*inch;
-   msh.rx = 0.000*deg; msh.ry = 0.000*deg; msh.rz = 0.000*deg;
+  // main shaft 
+  partParameters_t msh; 
+  msh.name = "ew_mainShaft"; msh.shape = "tube";
+  msh.r_tor = 0.000*inch; msh.r_min = 0.471*inch; msh.r_max = 0.505*inch; msh.length = 0.500*inch;
+  msh.x_len = 0.000*inch; msh.y_len = 0.000*inch; msh.z_len = 0.000*inch;
+  msh.startTheta = 0.000*deg; msh.dTheta = 0.000*deg;
+  msh.startPhi = 0.000*deg; msh.dPhi = 360.000*deg;
+  msh.x = 0.000*inch; msh.y = 0.000*inch; msh.z = 0.000*inch;
+  msh.rx = 0.000*deg; msh.ry = 0.000*deg; msh.rz = 0.000*deg;
 
-   G4Tubs *mainShaft = new G4Tubs(msh.name,
-	                          msh.r_min    ,msh.r_max,
-	                          msh.length/2.,
-	                          msh.startPhi ,msh.dPhi);
+  G4Tubs *mainShaft = new G4Tubs(msh.name,
+				 msh.r_min    ,msh.r_max,
+				 msh.length/2.,
+				 msh.startPhi ,msh.dPhi);
 
-   G4ThreeVector P_msh      = G4ThreeVector(msh.x,msh.y,msh.z);
-   G4RotationMatrix *rm_msh = new G4RotationMatrix();
-   rm_msh->rotateX(msh.rx); rm_msh->rotateY(msh.ry); rm_msh->rotateZ(msh.rz);
+  G4ThreeVector P_msh      = G4ThreeVector(msh.x,msh.y,msh.z);
+  G4RotationMatrix *rm_msh = new G4RotationMatrix();
+  rm_msh->rotateX(msh.rx); rm_msh->rotateY(msh.ry); rm_msh->rotateZ(msh.rz);
 
-   // lip 
-   partParameters_t lip; 
-   lip.name = "ew_lip"; lip.shape = "tube";
-   lip.r_tor = 0.000*inch; lip.r_min = 0.471*inch; lip.r_max = 0.611*inch; lip.length = 0.125*inch;
-   lip.x_len = 0.000*inch; lip.y_len = 0.000*inch; lip.z_len = 0.000*inch;
-   lip.startTheta = 0.000*deg; lip.dTheta = 0.000*deg;
-   lip.startPhi = 0.000*deg; lip.dPhi = 360.000*deg;
-   lip.x = 0.000*inch; lip.y = 0.000*inch; lip.z = 0.259*inch;
-   lip.rx = 0.000*deg; lip.ry = 0.000*deg; lip.rz = 0.000*deg;
+  // lip 
+  partParameters_t lip; 
+  lip.name = "ew_lip"; lip.shape = "tube";
+  lip.r_tor = 0.000*inch; lip.r_min = 0.471*inch; lip.r_max = 0.611*inch; lip.length = 0.125*inch;
+  lip.x_len = 0.000*inch; lip.y_len = 0.000*inch; lip.z_len = 0.000*inch;
+  lip.startTheta = 0.000*deg; lip.dTheta = 0.000*deg;
+  lip.startPhi = 0.000*deg; lip.dPhi = 360.000*deg;
+  lip.x = 0.000*inch; lip.y = 0.000*inch; lip.z = 0.259*inch;
+  lip.rx = 0.000*deg; lip.ry = 0.000*deg; lip.rz = 0.000*deg;
 
-   G4Tubs *lipTube = new G4Tubs(lip.name,
-	                        lip.r_min    ,lip.r_max,
-	                        lip.length/2.,
-	                        lip.startPhi ,lip.dPhi);
+  G4Tubs *lipTube = new G4Tubs(lip.name,
+			       lip.r_min    ,lip.r_max,
+			       lip.length/2.,
+			       lip.startPhi ,lip.dPhi);
 
-   G4ThreeVector P_lip      = G4ThreeVector(lip.x,lip.y,lip.z);
-   G4RotationMatrix *rm_lip = new G4RotationMatrix();
-   rm_lip->rotateX(lip.rx); rm_lip->rotateY(lip.ry); rm_lip->rotateZ(lip.rz);
+  G4ThreeVector P_lip      = G4ThreeVector(lip.x,lip.y,lip.z);
+  G4RotationMatrix *rm_lip = new G4RotationMatrix();
+  rm_lip->rotateX(lip.rx); rm_lip->rotateY(lip.ry); rm_lip->rotateZ(lip.rz);
 
-   // rounded lip
-   partParameters_t rlip;  
-   rlip.name = "ew_rlip"; rlip.shape = "sphere";
-   rlip.r_tor = 0.000*inch; rlip.r_min = 0.4855*inch; rlip.r_max = 0.5455*inch; rlip.length = 0.000*inch;
-   rlip.x_len = 0.000*inch; rlip.y_len = 0.000*inch; rlip.z_len = 0.000*inch;
-   rlip.startTheta = 63.100*deg; rlip.dTheta = 26.900*deg;
-   rlip.startPhi = 0.000*deg; rlip.dPhi = 360.000*deg;
-   rlip.x = 0.000*inch; rlip.y = 0.000*inch; rlip.z = 0.300*inch;
-   rlip.rx = 0.000*deg; rlip.ry = 0.000*deg; rlip.rz = 0.000*deg;
+  // rounded lip
+  // effective length along z = 0.5455*sin(26.9) = 0.2468 inches
+  partParameters_t rlip;  
+  rlip.name = "ew_rlip"; rlip.shape = "sphere";
+  rlip.r_tor = 0.000*inch; rlip.r_min = 0.4855*inch; rlip.r_max = 0.5455*inch; rlip.length = 0.000*inch;
+  rlip.x_len = 0.000*inch; rlip.y_len = 0.000*inch; rlip.z_len = 0.000*inch;
+  rlip.startTheta = 63.100*deg; rlip.dTheta = 26.900*deg;
+  rlip.startPhi = 0.000*deg; rlip.dPhi = 360.000*deg;
+  rlip.x = 0.000*inch; rlip.y = 0.000*inch; rlip.z = 0.300*inch;
+  rlip.rx = 0.000*deg; rlip.ry = 0.000*deg; rlip.rz = 0.000*deg;
 
-   G4Sphere *roundLip = new G4Sphere(rlip.name,
-                                     rlip.r_min     ,rlip.r_max,
-                                     rlip.startPhi  ,rlip.dPhi,
-                                     rlip.startTheta,rlip.dTheta);
+  G4Sphere *roundLip = new G4Sphere(rlip.name,
+				    rlip.r_min     ,rlip.r_max,
+				    rlip.startPhi  ,rlip.dPhi,
+				    rlip.startTheta,rlip.dTheta);
 
-   G4ThreeVector P_rlip = G4ThreeVector(rlip.x,rlip.y,rlip.z);
-   G4RotationMatrix *rm_rlip = new G4RotationMatrix();
-   rm_rlip->rotateX(rlip.rx); rm_rlip->rotateY(rlip.ry); rm_rlip->rotateZ(rlip.rz);  
+  G4ThreeVector P_rlip = G4ThreeVector(rlip.x,rlip.y,rlip.z);
+  G4RotationMatrix *rm_rlip = new G4RotationMatrix();
+  rm_rlip->rotateX(rlip.rx); rm_rlip->rotateY(rlip.ry); rm_rlip->rotateZ(rlip.rz);  
 
-   // endcap 
-   partParameters_t ec;
-   ec.name = "ew_cap_up"; ec.shape = "sphere";
-   ec.r_tor = 0.000*inch; ec.r_min = 0.4855*inch; ec.r_max = 0.4915*inch; ec.length = 0.000*inch;
-   ec.x_len = 0.000*inch; ec.y_len = 0.000*inch; ec.z_len = 0.000*inch;
-   ec.startTheta = 0.000*deg; ec.dTheta = 63.100*deg;
-   ec.startPhi = 0.000*deg; ec.dPhi = 360.000*deg;
-   ec.x = 0.000*inch; ec.y = 0.000*inch; ec.z = 0.320*inch;
-   ec.rx = 0.000*deg; ec.ry = 0.000*deg; ec.rz = 0.000*deg;
+  // endcap 
+  // effective length along z = 0.4915 - 0.5455*sin(26.9)= 0.2447 inches
+  partParameters_t ec;
+  ec.name = "ew_cap_up"; ec.shape = "sphere";
+  ec.r_tor = 0.000*inch; ec.r_min = 0.4855*inch; ec.r_max = 0.4915*inch; ec.length = 0.000*inch;
+  ec.x_len = 0.000*inch; ec.y_len = 0.000*inch; ec.z_len = 0.000*inch;
+  ec.startTheta = 0.000*deg; ec.dTheta = 63.100*deg;
+  ec.startPhi = 0.000*deg; ec.dPhi = 360.000*deg;
+  ec.x = 0.000*inch; ec.y = 0.000*inch; ec.z = 0.320*inch;
+  ec.rx = 0.000*deg; ec.ry = 0.000*deg; ec.rz = 0.000*deg;
 
-   G4Sphere *endcap = new G4Sphere(ec.name,
-                                   ec.r_min     ,ec.r_max,
-                                   ec.startPhi  ,ec.dPhi,
-                                   ec.startTheta,ec.dTheta);
+  G4Sphere *endcap = new G4Sphere(ec.name,
+				  ec.r_min     ,ec.r_max,
+				  ec.startPhi  ,ec.dPhi,
+				  ec.startTheta,ec.dTheta);
 
-   G4ThreeVector P_ec      = G4ThreeVector(ec.x,ec.y,ec.z);
-   G4RotationMatrix *rm_ec = new G4RotationMatrix();
-   rm_ec->rotateX(ec.rx); rm_ec->rotateY(ec.ry); rm_ec->rotateZ(ec.rz);   
+  G4ThreeVector P_ec      = G4ThreeVector(ec.x,ec.y,ec.z);
+  G4RotationMatrix *rm_ec = new G4RotationMatrix();
+  rm_ec->rotateX(ec.rx); rm_ec->rotateY(ec.ry); rm_ec->rotateZ(ec.rz);   
 
-   // labels 
-   G4String label1 = "ew_ms_l"   ;
-   G4String label2 = "ew_ms_l_rl";
-   G4String label3 = "endWindow" ;
+  // labels 
+  G4String label1 = "ew_ms_l"   ;
+  G4String label2 = "ew_ms_l_rl";
+  G4String label3 = "endWindow" ;
 
-   // union solid 
-   G4UnionSolid *endWindow;
-   // main shaft + lip 
-   endWindow = new G4UnionSolid(label1,mainShaft,lipTube ,rm_lip ,P_lip);
-   // add rounded lip 
-   endWindow = new G4UnionSolid(label2,endWindow,roundLip,rm_rlip,P_rlip);
-   // endcap  
-   endWindow = new G4UnionSolid(label3,endWindow,endcap  ,rm_ec  ,P_ec); 
+  // union solid 
+  G4UnionSolid *endWindow;
+  // main shaft + lip 
+  endWindow = new G4UnionSolid(label1,mainShaft,lipTube ,rm_lip ,P_lip);
+  // add rounded lip 
+  endWindow = new G4UnionSolid(label2,endWindow,roundLip,rm_rlip,P_rlip);
+  // endcap  
+  endWindow = new G4UnionSolid(label3,endWindow,endcap  ,rm_ec  ,P_ec); 
 
-   // visualization
-   G4VisAttributes *vis = new G4VisAttributes();
-   vis->SetColour( G4Colour::Red() );
-   vis->SetForceWireframe(true);
+  // visualization
+  G4VisAttributes *vis = new G4VisAttributes();
+  vis->SetColour( G4Colour::Red() );
+  vis->SetForceWireframe(true);
 
-   // define coordinates and rotations for placement  
-   // index 0 = upstream, 1 = downstream 
+  // define coordinates and rotations for placement  
+  // index 0 = upstream, 1 = downstream 
 
-   G4double x_ew[2] = {0,0}; 
-   G4double y_ew[2] = {0,0}; 
-   G4double z_ew[2] = {0,0}; 
+  G4double x_ew[2] = {0,0}; 
+  G4double y_ew[2] = {0,0}; 
+  G4double z_ew[2] = {0,0}; 
 
-   // z0 = half length of target glass + half length of first component in the union for this part 
-   G4double z0 = 571.7*mm/2. + 0.5*msh.length;   
-   z_ew[0] = (-1.)*z0; 
-   z_ew[1] = z0; 
+  // z0 = half length of target glass + half length of first component in the union for this part 
+  G4double z0 = fGEn_GLASS_TUBE_LENGTH/2. + 0.5*msh.length;   
+  z_ew[0] = (-1.)*z0; 
+  z_ew[1] = z0; 
 
-   G4double rx[2] = {0.*deg  ,0.*deg};  
-   G4double ry[2] = {180.*deg,0.*deg};  
-   G4double rz[2] = {0.*deg  ,0.*deg}; 
+  G4double rx[2] = {0.*deg  ,0.*deg};  
+  G4double ry[2] = {180.*deg,0.*deg};  
+  G4double rz[2] = {0.*deg  ,0.*deg}; 
 
-   bool isBoolean     = true; 
-   bool checkOverlaps = true; 
+  bool isBoolean     = true; 
+  bool checkOverlaps = true; 
  
-   // logical volumes (for an array of logical volume pointers)  
-   G4LogicalVolume **logicEndWindow = new G4LogicalVolume*[2];
+  // logical volumes (for an array of logical volume pointers)  
+  G4LogicalVolume **logicEndWindow = new G4LogicalVolume*[2];
 
-   char logicName[200],physName[200]; 
+  char logicName[200],physName[200]; 
 
-   // angular misalignment 
-   G4double drx = fDetCon->GetGEnTargetDRX(); 
-   G4double dry = fDetCon->GetGEnTargetDRY(); // opposite direction needed relative to target cell?   
-   G4double drz = fDetCon->GetGEnTargetDRZ();
+  // angular misalignment 
+  G4double drx = fDetCon->GetGEnTargetDRX(); 
+  G4double dry = fDetCon->GetGEnTargetDRY(); // opposite direction needed relative to target cell?   
+  G4double drz = fDetCon->GetGEnTargetDRZ();
 
-   if(drx!=0||dry!=0||drz!=0){ 
-      std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu]: Using GEn 3He target angular misalignments: " << std::endl;
-      std::cout << "RX = " << drx/deg << " deg" << std::endl;
-      std::cout << "RY = " << dry/deg << " deg" << std::endl;
-      std::cout << "RZ = " << drz/deg << " deg" << std::endl;
-   }
+  if(drx!=0||dry!=0||drz!=0){ 
+    std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu]: Using GEn 3He target angular misalignments: " << std::endl;
+    std::cout << "RX = " << drx/deg << " deg" << std::endl;
+    std::cout << "RY = " << dry/deg << " deg" << std::endl;
+    std::cout << "RZ = " << drz/deg << " deg" << std::endl;
+  }
 
-   G4double RX=0,RY=0,RZ=0;
+  G4double RX=0,RY=0,RZ=0;
 
-   G4double COS_G = cos(drx); G4double COS_B = cos(dry); G4double COS_A = cos(drz); 
-   G4double SIN_G = sin(drx); G4double SIN_B = sin(dry); G4double SIN_A = sin(drz); 
-   G4double xp=0,yp=0,zp=0;
+  G4double COS_G = cos(drx); G4double COS_B = cos(dry); G4double COS_A = cos(drz); 
+  G4double SIN_G = sin(drx); G4double SIN_B = sin(dry); G4double SIN_A = sin(drz); 
+  G4double xp=0,yp=0,zp=0;
  
-   char msg[200]; 
+  char msg[200]; 
  
-   for(int i=0;i<2;i++){
-      // create logical volume
-      sprintf(logicName,"logicGEnTarget_EndWindow_%d",i);  
-      logicEndWindow[i] = new G4LogicalVolume(endWindow,GetMaterial("Copper"),logicName);
-      logicEndWindow[i]->SetVisAttributes(vis);  
-      // position and rotation
-      // account for misalignment angles (x,y,z) => (gamma,beta,alpha)
-      xp = COS_A*COS_B*x_ew[i] + (COS_A*COS_B*SIN_G - SIN_A*COS_G)*y_ew[i] + (COS_A*SIN_B*COS_G + SIN_A*SIN_G)*z_ew[i]; 
-      yp = SIN_A*COS_B*x_ew[i] + (SIN_A*SIN_B*SIN_G + COS_A*COS_G)*y_ew[i] + (SIN_A*SIN_B*COS_G - COS_A*SIN_G)*z_ew[i]; 
-      zp = -SIN_B*x_ew[i]      +                       COS_B*SIN_G*y_ew[i] +                       COS_B*COS_G*z_ew[i];  
-      // sprintf(msg,"=======> endWindow %d: x = %.3lf mm => %.3lf mm, y = %.3lf mm => %.3lf mm, z = %.3lf mm => %.3lf mm",
-      //         i+1,x_ew[i]/mm,xp/mm,y_ew[i]/mm,yp/mm,z_ew[i]/mm,zp/mm);
-      // std::cout << msg << std::endl; 
-      // WARNING: Need to flip the sign on the x coordinate... 
-      xp *= -1.; 
-      G4ThreeVector P_ew      = G4ThreeVector(xp,yp,zp);
-      G4RotationMatrix *rm_ew = new G4RotationMatrix();
-      RX = rx[i] + drx; RY = ry[i] + dry; RZ = rz[i] + drz;
-      rm_ew->rotateX(RX); rm_ew->rotateY(RY); rm_ew->rotateZ(RZ);
-      // physical name 
-      sprintf(physName,"physGEnTarget_EndWindow_%d",i);  
-      // place the volume  
-      new G4PVPlacement(rm_ew,               // rotation relative to logic mother
-	                P_ew,                // position relative to logic mother 
-	                logicEndWindow[i],   // logical volume 
-	                physName,            // name 
-	                motherLog,           // logical mother volume is the target chamber 
-	                isBoolean,           // no boolean operations 
-	                i,                   // copy number 
-	                checkOverlaps);      // check overlaps
-      // register with DetectorConstruction object
-      fDetCon->InsertTargetVolume( logicEndWindow[i]->GetName() ); 
-   }
+  for(int i=0;i<2;i++){
+    // create logical volume
+    sprintf(logicName,"logicGEnTarget_EndWindow_%d",i);  
+    logicEndWindow[i] = new G4LogicalVolume(endWindow,GetMaterial("Copper"),logicName);
+    logicEndWindow[i]->SetVisAttributes(vis);  
+    // position and rotation
+    // account for misalignment angles (x,y,z) => (gamma,beta,alpha)
+    xp = COS_A*COS_B*x_ew[i] + (COS_A*COS_B*SIN_G - SIN_A*COS_G)*y_ew[i] + (COS_A*SIN_B*COS_G + SIN_A*SIN_G)*z_ew[i]; 
+    yp = SIN_A*COS_B*x_ew[i] + (SIN_A*SIN_B*SIN_G + COS_A*COS_G)*y_ew[i] + (SIN_A*SIN_B*COS_G - COS_A*SIN_G)*z_ew[i]; 
+    zp = -SIN_B*x_ew[i]      +                       COS_B*SIN_G*y_ew[i] +                       COS_B*COS_G*z_ew[i];  
+    // sprintf(msg,"=======> endWindow %d: x = %.3lf mm => %.3lf mm, y = %.3lf mm => %.3lf mm, z = %.3lf mm => %.3lf mm",
+    //         i+1,x_ew[i]/mm,xp/mm,y_ew[i]/mm,yp/mm,z_ew[i]/mm,zp/mm);
+    // std::cout << msg << std::endl; 
+    // WARNING: Need to flip the sign on the x coordinate... 
+    xp *= -1.; 
+    G4ThreeVector P_ew      = G4ThreeVector(xp,yp,zp);
+    G4RotationMatrix *rm_ew = new G4RotationMatrix();
+    RX = rx[i] + drx; RY = ry[i] + dry; RZ = rz[i] + drz;
+    rm_ew->rotateX(RX); rm_ew->rotateY(RY); rm_ew->rotateZ(RZ);
+    // physical name 
+    sprintf(physName,"physGEnTarget_EndWindow_%d",i);  
+    // place the volume  
+    new G4PVPlacement(rm_ew,               // rotation relative to logic mother
+		      P_ew,                // position relative to logic mother 
+		      logicEndWindow[i],   // logical volume 
+		      physName,            // name 
+		      motherLog,           // logical mother volume is the target chamber 
+		      isBoolean,           // no boolean operations 
+		      i,                   // copy number 
+		      checkOverlaps);      // check overlaps
+    // register with DetectorConstruction object
+    fDetCon->InsertTargetVolume( logicEndWindow[i]->GetName() ); 
+  }
  
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog){
-   // Polarized 3He
-   // - takes the form of the target chamber of the glass cell 
+  // Polarized 3He
+  // - takes the form of the target chamber of the glass cell 
    
-   G4double inch       = 25.4*mm; 
-   G4double glassWall  = 1.0*mm;   // estimate 
-   G4double tubeLength = 571.7*mm; // 579.0*mm;  
+  G4double inch       = 25.4*mm; 
+  G4double glassWall  = 1.0*mm;   // estimate 
+  G4double tubeLength = fGEn_GLASS_TUBE_LENGTH; // 571.7*mm; // 579.0*mm;  
 
-   // target chamber component 
-   partParameters_t tc; 
-   tc.name   = "targetChamber"; tc.shape  = "tube";
-   tc.r_tor  = 0.*mm; tc.r_min = 0.*mm; tc.r_max = 10.5*mm - glassWall; tc.length = tubeLength; 
-   tc.startTheta = 0*deg; tc.dTheta = 0*deg;
-   tc.startPhi = 0*deg; tc.dPhi = 360*deg;
-   tc.x = 0*mm; tc.y = 0*mm; tc.z = 0*mm;
-   tc.rx = 0*deg; tc.ry = 0*deg; tc.rz = 0*deg;
+  // target chamber component 
+  partParameters_t tc; 
+  tc.name   = "targetChamber"; tc.shape  = "tube";
+  tc.r_tor  = 0.*mm; tc.r_min = 0.*mm; tc.r_max = 10.5*mm - glassWall; tc.length = tubeLength; 
+  tc.startTheta = 0*deg; tc.dTheta = 0*deg;
+  tc.startPhi = 0*deg; tc.dPhi = 360*deg;
+  tc.x = 0*mm; tc.y = 0*mm; tc.z = 0*mm;
+  tc.rx = 0*deg; tc.ry = 0*deg; tc.rz = 0*deg;
 
-   G4Tubs *tcShape = new G4Tubs("He3_tc",
-	                        tc.r_min    ,tc.r_max,
-	                        tc.length/2.,
-	                        tc.startPhi ,tc.dPhi);
+  G4Tubs *tcShape = new G4Tubs("He3_tc",
+			       tc.r_min    ,tc.r_max,
+			       tc.length/2.,
+			       tc.startPhi ,tc.dPhi);
 
-   // end window, upstream
-   // NOTE: make this radius 0.5 mm smaller than the Cu window radius for the equivalent geometry components  
-   // ---- main shaft 
-   partParameters_t mshu; 
-   mshu.name = "ew_mainShaft_up"; mshu.shape = "tube";
-   // mshu.r_tor = 0.0*mm; mshu.r_min = 0.0*mm; mshu.r_max = 10.5*mm - glassWall; mshu.length = 0.500*inch;
-   mshu.r_tor = 0.0*mm; mshu.r_min = 0.0*mm; mshu.r_max = 0.451*inch; mshu.length = 0.500*inch;
-   mshu.startTheta = 0.0*deg; mshu.dTheta = 0.0*deg;
-   mshu.startPhi = 0.0*deg; mshu.dPhi = 360.0*deg;
-   mshu.x = 0.0*mm; mshu.y = 0.0*mm; mshu.z = -11.504*inch;
-   mshu.rx = 0.0*deg; mshu.ry = 0.0*deg; mshu.rz = 0.0*deg;
+  // end window, upstream
+  // NOTE: make this radius 0.5 mm smaller than the Cu window radius for the equivalent geometry components  
+  // ---- main shaft 
+  partParameters_t mshu; 
+  mshu.name = "ew_mainShaft_up"; mshu.shape = "tube";
+  // mshu.r_tor = 0.0*mm; mshu.r_min = 0.0*mm; mshu.r_max = 10.5*mm - glassWall; mshu.length = 0.500*inch;
+  mshu.r_tor = 0.0*mm; mshu.r_min = 0.0*mm; mshu.r_max = 0.451*inch; mshu.length = 0.500*inch;
+  mshu.startTheta = 0.0*deg; mshu.dTheta = 0.0*deg;
+  mshu.startPhi = 0.0*deg; mshu.dPhi = 360.0*deg;
+  // mshu.x = 0.0*mm; mshu.y = 0.0*mm; mshu.z = -11.504*inch;
+  mshu.x = 0.0*mm; mshu.y = 0.0*mm; mshu.z = (-1.)*(tubeLength/2. + 0.5*mshu.length);
+  mshu.rx = 0.0*deg; mshu.ry = 0.0*deg; mshu.rz = 0.0*deg;
 
-   G4Tubs *mainShaft_up = new G4Tubs(mshu.name,
-	                             mshu.r_min    ,mshu.r_max,
-	                             mshu.length/2.,
-	                             mshu.startPhi ,mshu.dPhi);
+  G4Tubs *mainShaft_up = new G4Tubs(mshu.name,
+				    mshu.r_min    ,mshu.r_max,
+				    mshu.length/2.,
+				    mshu.startPhi ,mshu.dPhi);
 
-   G4ThreeVector P_mshu      = G4ThreeVector(mshu.x,mshu.y,mshu.z);
-   G4RotationMatrix *rm_mshu = new G4RotationMatrix();
-   rm_mshu->rotateX(mshu.rx); rm_mshu->rotateY(mshu.ry); rm_mshu->rotateZ(mshu.rz);
+  G4ThreeVector P_mshu      = G4ThreeVector(mshu.x,mshu.y,mshu.z);
+  G4RotationMatrix *rm_mshu = new G4RotationMatrix();
+  rm_mshu->rotateX(mshu.rx); rm_mshu->rotateY(mshu.ry); rm_mshu->rotateZ(mshu.rz);
 
   // ---- lip 
   // NOTE: make this radius 0.5 mm smaller than the Cu window radius for the equivalent geometry components  
@@ -3177,13 +3859,14 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   lipu.r_tor = 0.0*mm; lipu.r_min = 0.0*mm; lipu.r_max = 0.451*inch; lipu.length = 0.125*inch;
   lipu.startTheta = 0.0*deg; lipu.dTheta = 0.0*deg;
   lipu.startPhi = 0.0*deg; lipu.dPhi = 360.0*deg;
-  lipu.x = 0.0*mm; lipu.y = 0.0*mm; lipu.z = -11.763*inch;
+  // lipu.x = 0.0*mm; lipu.y = 0.0*mm; lipu.z = -11.763*inch;
+  lipu.x = 0.0*mm; lipu.y = 0.0*mm; lipu.z = (-1.)*(tubeLength/2. + mshu.length + 0.5*lipu.length);
   lipu.rx = 0.0*deg; lipu.ry = 0.0*deg; lipu.rz = 0.0*deg; 
 
   G4Tubs *lip_up = new G4Tubs(lipu.name,
-	                      lipu.r_min    ,lipu.r_max,
-	                      lipu.length/2.,
-	                      lipu.startPhi ,lipu.dPhi);
+			      lipu.r_min    ,lipu.r_max,
+			      lipu.length/2.,
+			      lipu.startPhi ,lipu.dPhi);
 
   G4ThreeVector P_lipu      = G4ThreeVector(lipu.x,lipu.y,lipu.z);
   G4RotationMatrix *rm_lipu = new G4RotationMatrix();
@@ -3234,13 +3917,14 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   segu.x_len = 0.000*inch; segu.y_len = 0.000*inch; segu.z_len = 0.000*inch;
   segu.startTheta = 0.000*deg; segu.dTheta = 90.000*deg;
   segu.startPhi = 0.000*deg; segu.dPhi = 360.000*deg;
-  segu.x = 0.000*inch; segu.y = 0.000*inch; segu.z = -11.804*inch;
+  // segu.x = 0.000*inch; segu.y = 0.000*inch; segu.z = -11.804*inch;
+  segu.x = 0.000*inch; segu.y = 0.000*inch; segu.z = (-1.)*(tubeLength/2. + mshu.length + lipu.length);
   segu.rx = 0.000*deg; segu.ry = 180.000*deg; segu.rz = 0.000*deg;
 
   G4Sphere *seg_up = new G4Sphere(segu.name,
-                                  segu.r_min     ,segu.r_max,
-                                  segu.startPhi  ,segu.dPhi,
-                                  segu.startTheta,segu.dTheta);
+				  segu.r_min     ,segu.r_max,
+				  segu.startPhi  ,segu.dPhi,
+				  segu.startTheta,segu.dTheta);
 
   G4ThreeVector P_segu = G4ThreeVector(segu.x,segu.y,segu.z);
   G4RotationMatrix *rm_segu = new G4RotationMatrix();
@@ -3254,9 +3938,9 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   mshd.z *= -1.;
 
   G4Tubs *mainShaft_dn = new G4Tubs(mshd.name,
-	                            mshd.r_min    ,mshd.r_max,
-	                            mshd.length/2.,
-	                            mshd.startPhi ,mshd.dPhi);
+				    mshd.r_min    ,mshd.r_max,
+				    mshd.length/2.,
+				    mshd.startPhi ,mshd.dPhi);
 
   G4ThreeVector P_mshd      = G4ThreeVector(mshd.x,mshd.y,mshd.z);
   G4RotationMatrix *rm_mshd = new G4RotationMatrix();
@@ -3268,9 +3952,9 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   lipd.z *= -1; 
 
   G4Tubs *lip_dn = new G4Tubs(lipd.name,
-                              lipd.r_min    ,lipd.r_max,
-                              lipd.length/2.,
-                              lipd.startPhi ,lipd.dPhi);
+			      lipd.r_min    ,lipd.r_max,
+			      lipd.length/2.,
+			      lipd.startPhi ,lipd.dPhi);
 
   G4ThreeVector P_lipd      = G4ThreeVector(lipd.x,lipd.y,lipd.z);
   G4RotationMatrix *rm_lipd = new G4RotationMatrix();
@@ -3313,9 +3997,9 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   segd.ry = 0.*deg;  
 
   G4Sphere *seg_dn = new G4Sphere(segd.name,
-                                  segd.r_min     ,segd.r_max,
-                                  segd.startPhi  ,segd.dPhi,
-                                  segd.startTheta,segd.dTheta);
+				  segd.r_min     ,segd.r_max,
+				  segd.startPhi  ,segd.dPhi,
+				  segd.startTheta,segd.dTheta);
 
   G4ThreeVector P_segd = G4ThreeVector(segd.x,segd.y,segd.z);
   G4RotationMatrix *rm_segd = new G4RotationMatrix();
@@ -3360,1492 +4044,1696 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   rm->rotateX(drx); rm->rotateY(dry); rm->rotateZ(drz); 
 
   new G4PVPlacement(rm,                     // rotation
-                    posHe3,                 // position 
-                    logicHe3,               // logical volume 
-                    "physGEnTarget_polHe3", // name 
-                    motherLog,              // logical mother volume  
-                    isBoolean,              // boolean operations?  
-                    0,                      // copy number 
-                    checkOverlaps);         // check overlaps 
+		    posHe3,                 // position 
+		    logicHe3,               // logical volume 
+		    "physGEnTarget_polHe3", // name 
+		    motherLog,              // logical mother volume  
+		    isBoolean,              // boolean operations?  
+		    0,                      // copy number 
+		    checkOverlaps);         // check overlaps 
 
   // register with DetectorConstruction object
-  fDetCon->InsertTargetVolume( logicHe3->GetName() );  
+  fDetCon->InsertTargetVolume( logicHe3->GetName() ); 
+
+  // now turn this into a sensitive detector if enabled
+  bool enableSD = fDetCon->GetGEnTargetSDEnable();  
+
+  // name of SD and the hitCollection  
+  G4String heSDname = "Target/He3";   
+  // We have to remove all the directory structure from the 
+  // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+  G4String heSDname_nopath = heSDname;
+  heSDname_nopath.remove(0,heSDname.last('/')+1);
+  G4String heColName = heSDname_nopath;
+  heColName += "HitsCollection";
+
+  G4SBSTargetSD *heSD = nullptr;
+  if(enableSD){
+    if( !(heSD = (G4SBSTargetSD *)fDetCon->fSDman->FindSensitiveDetector(heSDname)) ){
+      // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+      G4cout << "Adding GEn 3He sensitive detector to SDman..." << G4endl;
+      heSD = new G4SBSTargetSD(heSDname,heColName);
+      logicHe3->SetSensitiveDetector(heSD);
+      fDetCon->fSDman->AddNewDetector(heSD);
+      (fDetCon->SDlist).insert(heSDname);
+      fDetCon->SDtype[heSDname] = G4SBS::kTarget_GEn_3He;
+    }
+  }
 
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const std::string type,G4LogicalVolume *motherLog){
-   // Helmholtz coils for B fields
-   // - no magnetic fields are implemented!
-   // - materials: outer shell of G10.  thickness based on type
-   //              core is solid aluminum
-   // - config: kGEN_677, kGEN_1018, kGEN_368, kGEN_146
-   //           different rotation angle based on index number (Q2 setting)   
-   // - types: maj = large radius coil pair
-   //          min = small radius coil pair 
-   //          rfy = RF coil pair, aligned along the vertical (y) axis  
-   // - distance between coils D = 0.5(rmin+rmax), roughly the major radius of the tube   
-   //   - coil n (placed at -D/2), upstream  
-   //   - coil p (placed at +D/2), downstream 
-   // - Drawing number: A09016-03-08-0000
+  // Helmholtz coils for B fields
+  // - no magnetic fields are implemented!
+  // - materials: outer shell of G10.  thickness based on type
+  //              core is solid aluminum
+  // - config: kGEN_677, kGEN_1018, kGEN_368, kGEN_146
+  //           different rotation angle based on index number (Q2 setting)   
+  // - types: maj = large radius coil pair
+  //          min = small radius coil pair 
+  //          rfy = RF coil pair, aligned along the vertical (y) axis  
+  // - distance between coils D = 0.5(rmin+rmax), roughly the major radius of the tube   
+  //   - coil n (placed at -D/2), upstream  
+  //   - coil p (placed at +D/2), downstream 
+  // - Drawing number: A09016-03-08-0000
 
-   // coil name
-   char coilName_n[200],coilName_p[200];    
-   // shell names  
-   char shellName_n[200],shellName_p[200];
+  // coil name
+  char coilName_n[200],coilName_p[200];    
+  // shell names  
+  char shellName_n[200],shellName_p[200];
 
-   sprintf(coilName_n ,"HH_%s_n",type.c_str());
-   sprintf(coilName_p ,"HH_%s_p",type.c_str());
+  sprintf(coilName_n ,"HH_%s_n",type.c_str());
+  sprintf(coilName_p ,"HH_%s_p",type.c_str());
 
-   sprintf(shellName_n ,"shellHH_%s_n",type.c_str());
-   sprintf(shellName_p ,"shellHH_%s_p",type.c_str());
+  sprintf(shellName_n ,"shellHH_%s_n",type.c_str());
+  sprintf(shellName_p ,"shellHH_%s_p",type.c_str());
 
-   // parameters 
-   partParameters_t cn; 
-   cn.shape = "tube";
-   cn.startTheta = 0.0*deg; cn.dTheta = 0.0*deg;
-   cn.startPhi   = 0.0*deg; cn.dPhi   = 360.0*deg;
+  // parameters 
+  partParameters_t cn; 
+  cn.shape = "tube";
+  cn.startTheta = 0.0*deg; cn.dTheta = 0.0*deg;
+  cn.startPhi   = 0.0*deg; cn.dPhi   = 360.0*deg;
      
-   cn.name = coilName_n;
+  cn.name = coilName_n;
 
-   if(type.compare("maj")==0){
-     cn.r_min = 722.3*mm; cn.r_max = 793.8*mm; cn.length = 80.9*mm; 
-     cn.x     = 0.0*mm;   cn.y     = 150.1*mm; cn.z      = 0.0*mm;
-     cn.rx    = 0.0*deg;  cn.ry    = 90.0*deg; cn.rz     = 0.0*deg;
-   }else if(type.compare("rfy")==0){
-     cn.r_min = 488.9*mm; cn.r_max = 520.7*mm; cn.length = 14.1*mm; 
-     cn.x     = 0.0*mm;   cn.y     = 0.0*mm;   cn.z      = 0.0*mm;
-     cn.rx    = 90.0*deg; cn.ry    = 0.0*deg;  cn.rz     = 0.0*deg;
-   }else if(type.compare("min")==0){
-     cn.r_min = 631.8*mm; cn.r_max = 677.9*mm; cn.length = 64.8*mm; 
-     cn.x     = 0.0*mm;   cn.y     = 150.1*mm; cn.z      = 0.0*mm;
-     cn.rx    = 0.0*deg;  cn.ry    = 0.0*deg;  cn.rz     = 0.0*deg;
-   }else{
-      std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils]: Invalid type = " << type << std::endl;
-      exit(1);
-   }
+  if(type.compare("maj")==0){
+    cn.r_min = 722.3*mm; cn.r_max = 793.8*mm; cn.length = 80.9*mm; 
+    cn.x     = 0.0*mm;   cn.y     = 150.1*mm; cn.z      = 0.0*mm;
+    cn.rx    = 0.0*deg;  cn.ry    = 90.0*deg; cn.rz     = 0.0*deg;
+  }else if(type.compare("rfy")==0){
+    cn.r_min = 488.9*mm; cn.r_max = 520.7*mm; cn.length = 14.1*mm; 
+    cn.x     = 0.0*mm;   cn.y     = 0.0*mm;   cn.z      = 0.0*mm;
+    cn.rx    = 90.0*deg; cn.ry    = 0.0*deg;  cn.rz     = 0.0*deg;
+  }else if(type.compare("min")==0){
+    cn.r_min = 631.8*mm; cn.r_max = 677.9*mm; cn.length = 64.8*mm; 
+    cn.x     = 0.0*mm;   cn.y     = 150.1*mm; cn.z      = 0.0*mm;
+    cn.rx    = 0.0*deg;  cn.ry    = 0.0*deg;  cn.rz     = 0.0*deg;
+  }else{
+    std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils]: Invalid type = " << type << std::endl;
+    exit(1);
+  }
  
-   // coil parameters   
-   G4double D      = 0.5*(cn.r_min + cn.r_max);          // helmholtz separation D = R = 0.5(rmin + rmax) 
-   G4double shWall = 0;
+  // coil parameters   
+  G4double D      = 0.5*(cn.r_min + cn.r_max);          // helmholtz separation D = R = 0.5(rmin + rmax) 
+  G4double shWall = 0;
 
-   G4double inch   = 2.54*cm; 
+  G4double inch   = 2.54*cm; 
 
-   if( type.compare("maj")==0 ) shWall = 5.0*mm;         // FIXME: Estimates for now! 
-   if( type.compare("min")==0 ) shWall = 5.0*mm;         // FIXME: Estimates for now! 
-   if( type.compare("rfy")==0 ) shWall = 0.030*inch;
+  if( type.compare("maj")==0 ) shWall = 5.0*mm;         // FIXME: Estimates for now! 
+  if( type.compare("min")==0 ) shWall = 5.0*mm;         // FIXME: Estimates for now! 
+  if( type.compare("rfy")==0 ) shWall = 0.030*inch;
 
-   // // upstream coil 
-   // partParameters_t cp = cn; 
-   // cp.name = coilName_p;
+  // // upstream coil 
+  // partParameters_t cp = cn; 
+  // cp.name = coilName_p;
   
-   // shell 
-   // ---- upstream  
-   partParameters_t cns;
-   cns.name     = shellName_n;
-   cns.r_min    = cn.r_min - shWall;
-   cns.r_max    = cn.r_max + shWall;
-   cns.length   = cn.length + 2.*shWall; // this is so we have the wall on both sides
-   cns.startPhi = 0.*deg;
-   cns.dPhi     = 360.*deg;
+  // shell 
+  // ---- upstream  
+  partParameters_t cns;
+  cns.name     = shellName_n;
+  cns.r_min    = cn.r_min - shWall;
+  cns.r_max    = cn.r_max + shWall;
+  cns.length   = cn.length + 2.*shWall; // this is so we have the wall on both sides
+  cns.startPhi = 0.*deg;
+  cns.dPhi     = 360.*deg;
 
-   G4Tubs *cnsTube = new G4Tubs(cns.name,
-	                        cns.r_min    ,cns.r_max,
-	                        cns.length/2.,
-	                        cns.startPhi ,cns.dPhi);
-
-
-   // need to create the core we subtract from the solid shell 
-   partParameters_t cns_core = cn;
-   cns_core.name = cn.name + "_core";
-   G4Tubs *cnsTube_core = new G4Tubs(cns_core.name,
-	                             cns_core.r_min    ,cns_core.r_max,
-	                             cns_core.length/2.,
-	                             cns_core.startPhi ,cns_core.dPhi);
-
-   // subtract the core 
-   G4SubtractionSolid *coilShell = new G4SubtractionSolid("cns_sub",cnsTube,cnsTube_core,0,G4ThreeVector(0,0,0));
-
-// this seems repetitive (unnecessary?) 
-//    // ---- downstream  
-//    partParameters_t cps;
-//    cps.name     = shellName_p;
-//    cps.r_min    = cp.r_min - shWall;
-//    cps.r_max    = cp.r_max + shWall;
-//    cps.length   = cp.length + 2.*shWall; // this is so we have the wall on both sides
-//    cps.startPhi = 0.*deg;
-//    cps.dPhi     = 360.*deg;
-// 
-//    G4Tubs *cpsTube = new G4Tubs(cps.name,
-// 	                        cps.r_min    ,cps.r_max,
-// 	                        cps.length/2.,
-// 	                        cps.startPhi ,cps.dPhi);
-//
-//    partParameters_t cps_core = cp;
-//    cps_core.name = cp.name + "_core";
-//    G4Tubs *cpsTube_core = new G4Tubs(cps_core.name,
-// 	                             cps_core.r_min    ,cps_core.r_max,
-// 	                             cps_core.length/2.,
-// 	                             cps_core.startPhi ,cps_core.dPhi);
-//    // subtract the core 
-//    G4SubtractionSolid *coilShell_p = new G4SubtractionSolid("cps_sub",cpsTube,cpsTube_core,0,G4ThreeVector(0,0,0));
+  G4Tubs *cnsTube = new G4Tubs(cns.name,
+			       cns.r_min    ,cns.r_max,
+			       cns.length/2.,
+			       cns.startPhi ,cns.dPhi);
 
 
-   // place volumes 
-   // determine coordinates for placement based on type 
+  // need to create the core we subtract from the solid shell 
+  partParameters_t cns_core = cn;
+  cns_core.name = cn.name + "_core";
+  G4Tubs *cnsTube_core = new G4Tubs(cns_core.name,
+				    cns_core.r_min    ,cns_core.r_max,
+				    cns_core.length/2.,
+				    cns_core.startPhi ,cns_core.dPhi);
 
-   // additional rotation to match engineering drawings (number A09016-03-08-0000) 
-   G4double dry=0;
-   if( type.compare("maj")==0 || type.compare("min")==0 ){
-      if(config==G4SBS::kGEN_146 || config==G4SBS::kGEN_368)  dry = 43.5*deg;
-      if(config==G4SBS::kGEN_677 || config==G4SBS::kGEN_1018) dry = 10.0*deg;
-   }
+  // subtract the core 
+  G4SubtractionSolid *coilShell = new G4SubtractionSolid("cns_sub",cnsTube,cnsTube_core,0,G4ThreeVector(0,0,0));
 
-   // adjust for y rotation.  
-   // WARNING: should this exactly follow rotated coordinates?
-   // rotation about y 
-   // x' =  xcos + zsin 
-   // z' = -xsin + zcos
+  // this seems repetitive (unnecessary?) 
+  //    // ---- downstream  
+  //    partParameters_t cps;
+  //    cps.name     = shellName_p;
+  //    cps.r_min    = cp.r_min - shWall;
+  //    cps.r_max    = cp.r_max + shWall;
+  //    cps.length   = cp.length + 2.*shWall; // this is so we have the wall on both sides
+  //    cps.startPhi = 0.*deg;
+  //    cps.dPhi     = 360.*deg;
+  // 
+  //    G4Tubs *cpsTube = new G4Tubs(cps.name,
+  // 	                        cps.r_min    ,cps.r_max,
+  // 	                        cps.length/2.,
+  // 	                        cps.startPhi ,cps.dPhi);
+  //
+  //    partParameters_t cps_core = cp;
+  //    cps_core.name = cp.name + "_core";
+  //    G4Tubs *cpsTube_core = new G4Tubs(cps_core.name,
+  // 	                             cps_core.r_min    ,cps_core.r_max,
+  // 	                             cps_core.length/2.,
+  // 	                             cps_core.startPhi ,cps_core.dPhi);
+  //    // subtract the core 
+  //    G4SubtractionSolid *coilShell_p = new G4SubtractionSolid("cps_sub",cpsTube,cpsTube_core,0,G4ThreeVector(0,0,0));
 
-   // rotation 
-   G4double RX = cn.rx;
-   G4double RY = cn.ry + dry;
-   G4double RZ = cn.rz;
 
-   G4RotationMatrix *rms = new G4RotationMatrix();
-   rms->rotateX(RX); rms->rotateY(RY); rms->rotateZ(RZ);
+  // place volumes 
+  // determine coordinates for placement based on type 
 
-   // sine and cosine of total rotation angle about y axis
-   G4double COS_TOT = cos(RY);
-   G4double SIN_TOT = sin(RY);
+  // additional rotation to match engineering drawings (number A09016-03-08-0000) 
+  G4double dry=0;
+  if( type.compare("maj")==0 || type.compare("min")==0 ){
+    if(config==G4SBS::kGEN_146 || config==G4SBS::kGEN_368)  dry = 43.5*deg;
+    if(config==G4SBS::kGEN_677 || config==G4SBS::kGEN_1018) dry = 10.0*deg;
+  }
 
-   bool isBoolean     = true;
-   bool checkOverlaps = true;
+  // adjust for y rotation.  
+  // WARNING: should this exactly follow rotated coordinates?
+  // rotation about y 
+  // x' =  xcos + zsin 
+  // z' = -xsin + zcos
 
-   G4double x0 = cn.x;
-   G4double y0 = cn.y;
-   G4double z0 = cn.z;
+  // rotation 
+  G4double RX = cn.rx;
+  G4double RY = cn.ry + dry;
+  G4double RZ = cn.rz;
 
-   G4double x[2] = {x0,x0}; 
-   G4double y[2] = {y0,y0}; 
-   G4double z[2] = {z0,z0}; 
+  G4RotationMatrix *rms = new G4RotationMatrix();
+  rms->rotateX(RX); rms->rotateY(RY); rms->rotateZ(RZ);
 
-   if(type.compare("maj")==0){
-      x[0] = x0 - (D/2.)*fabs(SIN_TOT); 
-      x[1] = x0 + (D/2.)*fabs(SIN_TOT); 
-      z[0] = z0 - (D/2.)*fabs(COS_TOT); 
-      z[1] = z0 + (D/2.)*fabs(COS_TOT); 
-   }else if(type.compare("min")==0){
-      x[0] = x0 + (D/2.)*fabs(SIN_TOT); 
-      x[1] = x0 - (D/2.)*fabs(SIN_TOT); 
-      // note sign doesn't flip for z! 
-      z[0] = z0 - (D/2.)*fabs(COS_TOT); 
-      z[1] = z0 + (D/2.)*fabs(COS_TOT); 
-   }else if(type.compare("rfy")==0){
-      y[0] = y0 - D/2.; // below
-      y[1] = y0 + D/2.; // above 
-   }
+  // sine and cosine of total rotation angle about y axis
+  G4double COS_TOT = cos(RY);
+  G4double SIN_TOT = sin(RY);
 
-   // create logical volumes 
-   G4VisAttributes *visCS = new G4VisAttributes();
-   visCS->SetForceWireframe();
-   if(type.compare("maj")==0) visCS->SetColour( G4Colour::Red()   );
-   if(type.compare("rfy")==0) visCS->SetColour( G4Colour::Green() );
-   if(type.compare("min")==0) visCS->SetColour( G4Colour::Blue()  );
+  bool isBoolean     = true;
+  bool checkOverlaps = true;
 
-   // logical volumes
-   G4LogicalVolume **logicHelmholtzShell = new G4LogicalVolume*[2]; 
+  G4double x0 = cn.x;
+  G4double y0 = cn.y;
+  G4double z0 = cn.z;
 
-   char logicShellName[200],physShellName[200]; 
+  G4double x[2] = {x0,x0}; 
+  G4double y[2] = {y0,y0}; 
+  G4double z[2] = {z0,z0}; 
+
+  if(type.compare("maj")==0){
+    x[0] = x0 - (D/2.)*fabs(SIN_TOT); 
+    x[1] = x0 + (D/2.)*fabs(SIN_TOT); 
+    z[0] = z0 - (D/2.)*fabs(COS_TOT); 
+    z[1] = z0 + (D/2.)*fabs(COS_TOT); 
+  }else if(type.compare("min")==0){
+    x[0] = x0 + (D/2.)*fabs(SIN_TOT); 
+    x[1] = x0 - (D/2.)*fabs(SIN_TOT); 
+    // note sign doesn't flip for z! 
+    z[0] = z0 - (D/2.)*fabs(COS_TOT); 
+    z[1] = z0 + (D/2.)*fabs(COS_TOT); 
+  }else if(type.compare("rfy")==0){
+    y[0] = y0 - D/2.; // below
+    y[1] = y0 + D/2.; // above 
+  }
+
+  // create logical volumes 
+  G4VisAttributes *visCS = new G4VisAttributes();
+  visCS->SetForceWireframe();
+  if(type.compare("maj")==0) visCS->SetColour( G4Colour::Red()   );
+  if(type.compare("rfy")==0) visCS->SetColour( G4Colour::Green() );
+  if(type.compare("min")==0) visCS->SetColour( G4Colour::Blue()  );
+
+  // logical volumes
+  G4LogicalVolume **logicHelmholtzShell = new G4LogicalVolume*[2]; 
+
+  char logicShellName[200],physShellName[200]; 
  
-   for(int i=0;i<2;i++){
-      sprintf(logicShellName,"logicGEnTarget_HHCoilShell_%s_%d",type.c_str(),i); 
-      logicHelmholtzShell[i] = new G4LogicalVolume(coilShell,GetMaterial("NEMAG10"),logicShellName);
-      logicHelmholtzShell[i]->SetVisAttributes(visCS); 
-      // place the coil shell 
-      G4ThreeVector P_cs = G4ThreeVector(x[i],y[i],z[i]);
-      sprintf(physShellName,"physGEnTarget_HHCoilShell_%s_%d",type.c_str(),i); 
-      new G4PVPlacement(rms,                      // rotation relative to logic mother     
-	                P_cs,                     // position relative to logic mother  
-	                logicHelmholtzShell[i],   // logical volume          
-	                physShellName,            // physical name     
-	                motherLog,                // logical mother volume 
-	                isBoolean,                // boolean solid?   
-	                i,                        // copy number  
-	                checkOverlaps);           // check overlaps 
-      // register with DetectorConstruction object
-      fDetCon->InsertTargetVolume( logicHelmholtzShell[i]->GetName() ); 
-   }
+  for(int i=0;i<2;i++){
+    sprintf(logicShellName,"logicGEnTarget_HHCoilShell_%s_%d",type.c_str(),i); 
+    logicHelmholtzShell[i] = new G4LogicalVolume(coilShell,GetMaterial("NEMAG10"),logicShellName);
+    logicHelmholtzShell[i]->SetVisAttributes(visCS); 
+    // place the coil shell 
+    G4ThreeVector P_cs = G4ThreeVector(x[i],y[i],z[i]);
+    sprintf(physShellName,"physGEnTarget_HHCoilShell_%s_%d",type.c_str(),i); 
+    new G4PVPlacement(rms,                      // rotation relative to logic mother     
+		      P_cs,                     // position relative to logic mother  
+		      logicHelmholtzShell[i],   // logical volume          
+		      physShellName,            // physical name     
+		      motherLog,                // logical mother volume 
+		      isBoolean,                // boolean solid?   
+		      i,                        // copy number  
+		      checkOverlaps);           // check overlaps 
+    // register with DetectorConstruction object
+    fDetCon->InsertTargetVolume( logicHelmholtzShell[i]->GetName() ); 
+  }
 
-   // aluminum core -- goes *inside* the shell  
-   G4VisAttributes *visCoil = new G4VisAttributes();
-   visCoil->SetColour( G4Colour::Grey() );
+  // aluminum core -- goes *inside* the shell  
+  G4VisAttributes *visCoil = new G4VisAttributes();
+  visCoil->SetColour( G4Colour::Grey() );
 
-   // cylindrical geometry 
-   G4Tubs *cnTube = new G4Tubs(cn.name,
-                               cn.r_min,cn.r_max,
-                               cn.length/2.,
-                               cn.startPhi,cn.dPhi);
+  // cylindrical geometry 
+  G4Tubs *cnTube = new G4Tubs(cn.name,
+			      cn.r_min,cn.r_max,
+			      cn.length/2.,
+			      cn.startPhi,cn.dPhi);
 
-//   G4Tubs *cpTube = new G4Tubs(cp.name,
-//                               cp.r_min,cp.r_max,
-//                               cp.length/2.,
-//                               cp.startPhi,cp.dPhi);
+  //   G4Tubs *cpTube = new G4Tubs(cp.name,
+  //                               cp.r_min,cp.r_max,
+  //                               cp.length/2.,
+  //                               cp.startPhi,cp.dPhi);
 
-   // logical volume of the coil cores
-   char logicCoilName[200],physCoilName[200];
-   G4LogicalVolume **logicHelmholtz = new G4LogicalVolume*[2];
+  // logical volume of the coil cores
+  char logicCoilName[200],physCoilName[200];
+  G4LogicalVolume **logicHelmholtz = new G4LogicalVolume*[2];
 
-   // placement.  note logic mother is the shell!  no rotation or position offsets needed  
-   // std::string physCoilName = "physCoil_" + type;  
-   for(int i=0;i<2;i++){
-      sprintf(logicCoilName,"logicGEnTarget_HHCoil_%s_%d",type.c_str(),i); 
-      logicHelmholtz[i] = new G4LogicalVolume(cnTube,GetMaterial("Aluminum"),logicCoilName);
-      logicHelmholtz[i]->SetVisAttributes(visCoil);
-      sprintf(physShellName,"physGEnTarget_HHCoil_%s_%d",type.c_str(),i); 
-      new G4PVPlacement(0,                        // rotation relative to logic mother             
-	                G4ThreeVector(0,0,0),     // position relative to logic mother             
-	                logicHelmholtz[i],        // logical volume                                
-	                physCoilName,             // physical name                                
-	                logicHelmholtzShell[i],   // logical mother volume                          
-	                isBoolean,                // boolean solid?                             
-	                i,                        // copy number                              
-	                checkOverlaps);           // check overlaps                          
-      // register with DetectorConstruction object
-      fDetCon->InsertTargetVolume( logicHelmholtz[i]->GetName() ); 
-   }
+  // placement.  note logic mother is the shell!  no rotation or position offsets needed  
+  // std::string physCoilName = "physCoil_" + type;  
+  for(int i=0;i<2;i++){
+    sprintf(logicCoilName,"logicGEnTarget_HHCoil_%s_%d",type.c_str(),i); 
+    logicHelmholtz[i] = new G4LogicalVolume(cnTube,GetMaterial("Aluminum"),logicCoilName);
+    logicHelmholtz[i]->SetVisAttributes(visCoil);
+    sprintf(physShellName,"physGEnTarget_HHCoil_%s_%d",type.c_str(),i); 
+    new G4PVPlacement(0,                        // rotation relative to logic mother             
+		      G4ThreeVector(0,0,0),     // position relative to logic mother             
+		      logicHelmholtz[i],        // logical volume                                
+		      physCoilName,             // physical name                                
+		      logicHelmholtzShell[i],   // logical mother volume                          
+		      isBoolean,                // boolean solid?                             
+		      i,                        // copy number                              
+		      checkOverlaps);           // check overlaps                          
+    // register with DetectorConstruction object
+    fDetCon->InsertTargetVolume( logicHelmholtz[i]->GetName() ); 
+  }
 
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume *motherLog){
-   // Shield box for the target magnetic field 
-   // - Material: Carbon steel 1008
-   // - config: kGEN_146, kGEN_368, kGEN_677, kGEN_1018
-   //           Different cutaways based on index number (Q2 setting)   
-   // - The shield is actually two layers
-   //   - each layer is 0.25" thick
-   //   - outer surfaces of layers separated by 1.29" 
-   //     => 1.29 - 0.25 = 1.04" center-to-center distance 
-   // - Drawing number: A09016-03-05-0000_rev, A09016-03-05-0800
+  // Shield box for the target magnetic field 
+  // - Material: Carbon steel 1008
+  // - config: kGEN_146, kGEN_368, kGEN_677, kGEN_1018
+  //           Different cutaways based on index number (Q2 setting)   
+  // - The shield is actually two layers
+  //   - each layer is 0.25" thick
+  //   - outer surfaces of layers separated by 1.29" 
+  //     => 1.29 - 0.25 = 1.04" center-to-center distance 
+  // - Drawing number: A09016-03-05-0000_rev, A09016-03-05-0800
 
-   // constants from drawings  
-   G4double inch = 2.54*cm;
-   G4double wall = 0.25*inch;
-   G4double sp   = 0.79*inch;  // inner-spacing: |<-s->|
+  // constants from drawings  
+  G4double inch = 2.54*cm;
+  G4double wall = 0.25*inch;
+  G4double sp   = 0.79*inch;  // inner-spacing: |<-s->|
 
-   // general part details 
-   partParameters_t sh; 
-   sh.name = "shield"; sh.shape = "box"; 
-   sh.r_tor = 0.0*mm; sh.r_min = 0.0*mm; sh.r_max = 0.0*mm; sh.length = 0.0*mm;
-   sh.x_len = 2252.9*mm; sh.y_len = 2560.3*mm; sh.z_len = 2252.9*mm;
-   sh.startTheta = 0.0*deg; sh.dTheta = 0.0*deg;
-   sh.startPhi = 0.0*deg; sh.dPhi = 0.0*deg;
-   sh.x = 0.0*mm; sh.y = 0.0*mm; sh.z = 0.0*mm;
-   sh.rx = 0.0*deg; sh.ry = 0.0*deg; sh.rz = 0.0*deg;
+  // general part details 
+  partParameters_t sh; 
+  sh.name = "shield"; sh.shape = "box"; 
+  sh.r_tor = 0.0*mm; sh.r_min = 0.0*mm; sh.r_max = 0.0*mm; sh.length = 0.0*mm;
+  sh.x_len = 2252.9*mm; sh.y_len = 2560.3*mm; sh.z_len = 2252.9*mm;
+  sh.startTheta = 0.0*deg; sh.dTheta = 0.0*deg;
+  sh.startPhi = 0.0*deg; sh.dPhi = 0.0*deg;
+  sh.x = 0.0*mm; sh.y = 0.0*mm; sh.z = 0.0*mm;
+  sh.rx = 0.0*deg; sh.ry = 0.0*deg; sh.rz = 0.0*deg;
 
-   //---- window cuts
-   // FIXME: these will change!     
-   // downstream, along beam.  sizes are estimates! 
-   G4double xw = 9.48*inch;
-   G4double yw = 9.48*inch;
-   G4double zw = 9.48*inch;
-   G4Box *windowCut_dn = new G4Box("windowCut_dn",xw/2.,yw/2.,zw/2.);
-   G4ThreeVector Pw_dn = G4ThreeVector(sh.x_len/2.,0.,sh.z_len/3.);  // position of cut 
+  //---- window cuts
+  // FIXME: these will change!     
+  // downstream, along beam.  sizes are estimates! 
+  G4double xw = 9.48*inch;
+  G4double yw = 9.48*inch;
+  G4double zw = 9.48*inch;
+  G4Box *windowCut_dn = new G4Box("windowCut_dn",xw/2.,yw/2.,zw/2.);
+  G4ThreeVector Pw_dn = G4ThreeVector(sh.x_len/2.,0.,sh.z_len/3.);  // position of cut 
 
-   G4double door = 40.5*inch; // for OWU2A door panel (from JT model)  
+  G4double door = 40.5*inch; // for OWU2A door panel (from JT model)  
 
-   // downstream, beam left [BigBite aperture]  
-   // x = 4.62 + ??, y = 28.44", z = 4.62 + ?? 
-   // drawings: A09016-03-05-0851  
-   // G4double xw_bl=0,yw_bl=0,zw_bl=0,ys=0;
+  // downstream, beam left [BigBite aperture]  
+  // x = 4.62 + ??, y = 28.44", z = 4.62 + ?? 
+  // drawings: A09016-03-05-0851  
+  // G4double xw_bl=0,yw_bl=0,zw_bl=0,ys=0;
 
-   // from drawing JL0044092
-   // - size of cut 
-   G4double xw_bl = 16.75*inch; // arbitrary to make sure the cut goes through
-   G4double yw_bl = 28.50*inch;
-   G4double zw_bl = 16.75*inch;     
-   // - coordinates of cut 
-   G4double xs = sh.x_len/2.;   // distance to midpoint of door, aligns door close to edge 
-   G4double ys = 0;    
-   G4double zs = 0;   
+  // from drawing JL0044092
+  // - size of cut 
+  G4double xw_bl = 16.75*inch; // arbitrary to make sure the cut goes through
+  G4double yw_bl = 28.50*inch;
+  G4double zw_bl = 16.75*inch;     
+  // - coordinates of cut 
+  G4double xs = sh.x_len/2.;   // distance to midpoint of door, aligns door close to edge 
+  G4double ys = 0;    
+  G4double zs = 0;   
 
-   // coordinates of the cut [old] 
-   // G4double xs = sh.x_len/2.;                   // distance to midpoint of door, aligns door close to edge 
-   // G4double ys = (-1.)*(sh.y_len/2.-yw_bl/2.);  // this should center the cut properly  
-   // G4double dzs = 22.*cm;                       // fudge factor to align with BigBite aperture 
-   // G4double zs = -zw_bl/2. + dzs;               // right on top of the right side wall (before rotation) 
+  // coordinates of the cut [old] 
+  // G4double xs = sh.x_len/2.;                   // distance to midpoint of door, aligns door close to edge 
+  // G4double ys = (-1.)*(sh.y_len/2.-yw_bl/2.);  // this should center the cut properly  
+  // G4double dzs = 22.*cm;                       // fudge factor to align with BigBite aperture 
+  // G4double zs = -zw_bl/2. + dzs;               // right on top of the right side wall (before rotation) 
 
-   // if(config==G4SBS::kGEN_new){
-   //    // FIXME: This is an estimate 
-   //    // new cut as of 6/27/20 (new design from Bert)
-   //    xw_bl = 10.*cm; // arbitrary size
-   //    yw_bl = 0.8*sh.y_len;
-   //    zw_bl = door;
-   //    // coordinates 
-   //    ys    = (-1.)*(sh.y_len/2.-yw_bl/2.);          // this should center the cut properly  
-   // }else if(config==G4SBS::kGEN_final){
-   //    // from drawing JL0044092
-   //    xw_bl = 16.75*inch; // arbitrary to make sure the cut goes through
-   //    yw_bl = 28.50*inch;
-   //    zw_bl = 16.75*inch;     
-   //    // coordinates 
-   //    ys    = (-1.)*(sh.y_len/2.-yw_bl/2.);          // this should center the cut properly  
-   // }else{
-   //    // original cut as per drawing A09016-03-0851  
-   //    xw_bl = 15.*inch; 
-   //    yw_bl = 28.44*inch;
-   //    zw_bl = 15.*inch;
-   //    // coordinates 
-   //    ys    = 0.*cm;
-   // }
+  // if(config==G4SBS::kGEN_new){
+  //    // FIXME: This is an estimate 
+  //    // new cut as of 6/27/20 (new design from Bert)
+  //    xw_bl = 10.*cm; // arbitrary size
+  //    yw_bl = 0.8*sh.y_len;
+  //    zw_bl = door;
+  //    // coordinates 
+  //    ys    = (-1.)*(sh.y_len/2.-yw_bl/2.);          // this should center the cut properly  
+  // }else if(config==G4SBS::kGEN_final){
+  //    // from drawing JL0044092
+  //    xw_bl = 16.75*inch; // arbitrary to make sure the cut goes through
+  //    yw_bl = 28.50*inch;
+  //    zw_bl = 16.75*inch;     
+  //    // coordinates 
+  //    ys    = (-1.)*(sh.y_len/2.-yw_bl/2.);          // this should center the cut properly  
+  // }else{
+  //    // original cut as per drawing A09016-03-0851  
+  //    xw_bl = 15.*inch; 
+  //    yw_bl = 28.44*inch;
+  //    zw_bl = 15.*inch;
+  //    // coordinates 
+  //    ys    = 0.*cm;
+  // }
 
  
-   G4ThreeVector Pw_bl_dn = G4ThreeVector(xs,ys,zs);  // position of cut 
+  G4ThreeVector Pw_bl_dn = G4ThreeVector(xs,ys,zs);  // position of cut 
 
-   G4Box *windowCut_beamLeft_dn = new G4Box("windowCut_beamLeft_dn",xw_bl/2.,yw_bl/2.,zw_bl/2.);
+  G4Box *windowCut_beamLeft_dn = new G4Box("windowCut_beamLeft_dn",xw_bl/2.,yw_bl/2.,zw_bl/2.);
 
-   // downstream, beam right [SBS aperture]
-   // for now consider a single large cut 
-   // large opening; distance along x and z = panel 1 + door w/handles + panel 3
-   // panel 1, drawing A09016-03-05-0811: x = 8.62" , y = 21.41", z = 8.62" 
-   // panel 2, drawing                  : x = 6.62" , y = 21.41", z = 6.62" 
-   // door   , drawing A09016-03-05-0841: x = 16.70", y = 21.41", z = 16.70" 
-   // panel 3, drawing A09016-03-05-0831: x = 5.12" , y = 21.41", z = 5.12" 
-   G4double p1 = 8.62*inch;
-   G4double p2 = 6.62*inch;
-   G4double p3 = 5.12*inch;
-   G4double dh = 16.70*inch;
+  // downstream, beam right [SBS aperture]
+  // for now consider a single large cut 
+  // large opening; distance along x and z = panel 1 + door w/handles + panel 3
+  // panel 1, drawing A09016-03-05-0811: x = 8.62" , y = 21.41", z = 8.62" 
+  // panel 2, drawing                  : x = 6.62" , y = 21.41", z = 6.62" 
+  // door   , drawing A09016-03-05-0841: x = 16.70", y = 21.41", z = 16.70" 
+  // panel 3, drawing A09016-03-05-0831: x = 5.12" , y = 21.41", z = 5.12" 
+  G4double p1 = 8.62*inch;
+  G4double p2 = 6.62*inch;
+  G4double p3 = 5.12*inch;
+  G4double dh = 16.70*inch;
 
-   G4double dx=0,dx0=1.63*inch; //new number from drawing JL0042553; old dx0=5.*cm;
-   G4double xw_br=0,yw_br=0;
-   G4double zw_br=10.*cm; // arbitrary cut depth in z; just need enough to break through 
-   if(config==G4SBS::kGEN_146){
-      dx    = dx0 + p1 + p2 + p3;
-      xw_br = dh;
-      yw_br = 21.34*inch;
-      // coordinates 
-      ys    = 0.*cm;
-   }else if(config==G4SBS::kGEN_368){
-      dx    = dx0 + p2 + p3;
-      xw_br = dh;
-      yw_br = 21.34*inch;
-      // coordinates 
-      ys    = 0.*cm;
-   }else if(config==G4SBS::kGEN_677){
-      dx    = dx0 + p3;
-      xw_br = dh;
-      yw_br = 21.34*inch;
-      // coordinates 
-      ys    = 0.*cm;
-   }else if(config==G4SBS::kGEN_1018){
-      dx    = dx0;
-      xw_br = dh;
-      yw_br = 21.34*inch;
-      // coordinates 
-      ys    = 0.*cm;
-   }else{
-      std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_Shield]: Invalid configuration = " << config << std::endl;
-      exit(1);
-   } 
+  G4double dx=0,dx0=1.63*inch; //new number from drawing JL0042553; old dx0=5.*cm;
+  G4double xw_br=0,yw_br=0;
+  G4double zw_br=10.*cm; // arbitrary cut depth in z; just need enough to break through 
+  if(config==G4SBS::kGEN_146){
+    dx    = dx0 + p1 + p2 + p3;
+    xw_br = dh;
+    yw_br = 21.34*inch;
+    // coordinates 
+    ys    = 0.*cm;
+  }else if(config==G4SBS::kGEN_368){
+    dx    = dx0 + p2 + p3;
+    xw_br = dh;
+    yw_br = 21.34*inch;
+    // coordinates 
+    ys    = 0.*cm;
+  }else if(config==G4SBS::kGEN_677){
+    dx    = dx0 + p3;
+    xw_br = dh;
+    yw_br = 21.34*inch;
+    // coordinates 
+    ys    = 0.*cm;
+  }else if(config==G4SBS::kGEN_1018){
+    dx    = dx0;
+    xw_br = dh;
+    yw_br = 21.34*inch;
+    // coordinates 
+    ys    = 0.*cm;
+  }else{
+    std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_Shield]: Invalid configuration = " << config << std::endl;
+    exit(1);
+  } 
 
-   // }else if(config==G4SBS::kGEN_full){
-   //    // full window cut 
-   //    dx    = dx0;
-   //    xw_br = p1 + p2 + p3 + dh;
-   //    yw_br = 21.41*inch;
-   //    // coordinates 
-   //    ys    = 0.*cm;
-   // }else if(config==G4SBS::kGEN_new){
-   //    // 6/27/20: new design from Bert 
-   //    dx    = dx0;
-   //    xw_br = door;
-   //    yw_br = 0.8*sh.y_len;
-   //    // coordinates
-   //    ys = (-1.)*(sh.y_len/2.-yw_br/2.);   // this should center the cut properly  
-   // }else if(config==G4SBS::kGEN_final){
-   //    // from drawing JL0042553
-   //    dx    = dx0;
-   //    xw_br = 37.41*inch;
-   //    yw_br = 0.8*sh.y_len;
-   //    // coordinates
-   //    ys = (-1.)*(sh.y_len/2.-yw_br/2.);   // this should center the cut properly  
-   // }else{
-   //    std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_Shield]: Invalid configuration = " << config << std::endl;
-   //    exit(1);
-   // }
+  // }else if(config==G4SBS::kGEN_full){
+  //    // full window cut 
+  //    dx    = dx0;
+  //    xw_br = p1 + p2 + p3 + dh;
+  //    yw_br = 21.41*inch;
+  //    // coordinates 
+  //    ys    = 0.*cm;
+  // }else if(config==G4SBS::kGEN_new){
+  //    // 6/27/20: new design from Bert 
+  //    dx    = dx0;
+  //    xw_br = door;
+  //    yw_br = 0.8*sh.y_len;
+  //    // coordinates
+  //    ys = (-1.)*(sh.y_len/2.-yw_br/2.);   // this should center the cut properly  
+  // }else if(config==G4SBS::kGEN_final){
+  //    // from drawing JL0042553
+  //    dx    = dx0;
+  //    xw_br = 37.41*inch;
+  //    yw_br = 0.8*sh.y_len;
+  //    // coordinates
+  //    ys = (-1.)*(sh.y_len/2.-yw_br/2.);   // this should center the cut properly  
+  // }else{
+  //    std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_Shield]: Invalid configuration = " << config << std::endl;
+  //    exit(1);
+  // }
 
-   xs = sh.x_len/2. - xw_br/2. - dx;    // distance to midpoint of door, aligns door close to edge 
-   zs = sh.z_len/2.;                    // right on top of the right side wall (before rotation) 
+  xs = sh.x_len/2. - xw_br/2. - dx;    // distance to midpoint of door, aligns door close to edge 
+  zs = sh.z_len/2.;                    // right on top of the right side wall (before rotation) 
 
-   G4Box *windowCut_beamRight_dn = new G4Box("windowCut_beamRight_dn",xw_br/2.,yw_br/2.,zw_br/2.);
-   G4ThreeVector Pw_br_dn        = G4ThreeVector(xs,ys,zs);  // position of cut 
+  G4Box *windowCut_beamRight_dn = new G4Box("windowCut_beamRight_dn",xw_br/2.,yw_br/2.,zw_br/2.);
+  G4ThreeVector Pw_br_dn        = G4ThreeVector(xs,ys,zs);  // position of cut 
 
-   // upstream, along beam  
-   G4Box *windowCut_up = new G4Box("windowCut_up",xw/2.,yw/2.,zw/2.);
-   G4ThreeVector Pw_up = G4ThreeVector(-sh.x_len/2.,0.,-sh.z_len/3.);  // position of cut 
+  // upstream, along beam  
+  G4Box *windowCut_up = new G4Box("windowCut_up",xw/2.,yw/2.,zw/2.);
+  G4ThreeVector Pw_up = G4ThreeVector(-sh.x_len/2.,0.,-sh.z_len/3.);  // position of cut 
 
-   //---- shield: put everything together   
+  //---- shield: put everything together   
 
-   // outer box 
-   G4Box *outer = new G4Box("outer"   ,sh.x_len/2.,sh.y_len/2.,sh.z_len/2.);
-   // cut away inner material  
-   G4double xc = sh.x_len - wall*2.;
-   G4double yc = sh.y_len - wall*2.;
-   G4double zc = sh.z_len - wall*2.;
-   G4Box *outerCut = new G4Box("outerCut",xc/2.,yc/2.,zc/2.);
+  // outer box 
+  G4Box *outer = new G4Box("outer"   ,sh.x_len/2.,sh.y_len/2.,sh.z_len/2.);
+  // cut away inner material  
+  G4double xc = sh.x_len - wall*2.;
+  G4double yc = sh.y_len - wall*2.;
+  G4double zc = sh.z_len - wall*2.;
+  G4Box *outerCut = new G4Box("outerCut",xc/2.,yc/2.,zc/2.);
 
-   // subtract the parts 
-   G4SubtractionSolid *outerShield = new G4SubtractionSolid("outerShield_1",outer,outerCut,0,G4ThreeVector(0,0,0));
-   outerShield = new G4SubtractionSolid("outerShield_2",outerShield,windowCut_dn,          0,Pw_dn   );
-   outerShield = new G4SubtractionSolid("outerShield_3",outerShield,windowCut_beamLeft_dn ,0,Pw_bl_dn);
-   outerShield = new G4SubtractionSolid("outerShield_4",outerShield,windowCut_beamRight_dn,0,Pw_br_dn);
-   outerShield = new G4SubtractionSolid("outerShield"  ,outerShield,windowCut_up          ,0,Pw_up   );
+  // subtract the parts 
+  G4SubtractionSolid *outerShield = new G4SubtractionSolid("outerShield_1",outer,outerCut,0,G4ThreeVector(0,0,0));
+  outerShield = new G4SubtractionSolid("outerShield_2",outerShield,windowCut_dn,          0,Pw_dn   );
+  outerShield = new G4SubtractionSolid("outerShield_3",outerShield,windowCut_beamLeft_dn ,0,Pw_bl_dn);
+  outerShield = new G4SubtractionSolid("outerShield_4",outerShield,windowCut_beamRight_dn,0,Pw_br_dn);
+  outerShield = new G4SubtractionSolid("outerShield"  ,outerShield,windowCut_up          ,0,Pw_up   );
 
-   // inner box 
-   partParameters_t sh_inner = sh;
-   sh_inner.x_len = sh.x_len - 2.*wall - 2.*sp;
-   sh_inner.y_len = sh.y_len - 2.*wall - 2.*sp;
-   sh_inner.z_len = sh.z_len - 2.*wall - 2.*sp;
+  // inner box 
+  partParameters_t sh_inner = sh;
+  sh_inner.x_len = sh.x_len - 2.*wall - 2.*sp;
+  sh_inner.y_len = sh.y_len - 2.*wall - 2.*sp;
+  sh_inner.z_len = sh.z_len - 2.*wall - 2.*sp;
 
-   G4Box *inner = new G4Box("inner",sh_inner.x_len/2.,sh_inner.y_len/2.,sh_inner.z_len/2.);
-   // cut away inner material  
-   xc = sh_inner.x_len - wall*2.;
-   yc = sh_inner.y_len - wall*2.;
-   zc = sh_inner.z_len - wall*2.;
-   G4Box *innerCut = new G4Box("innerCut",xc/2.,yc/2.,zc/2.);
+  G4Box *inner = new G4Box("inner",sh_inner.x_len/2.,sh_inner.y_len/2.,sh_inner.z_len/2.);
+  // cut away inner material  
+  xc = sh_inner.x_len - wall*2.;
+  yc = sh_inner.y_len - wall*2.;
+  zc = sh_inner.z_len - wall*2.;
+  G4Box *innerCut = new G4Box("innerCut",xc/2.,yc/2.,zc/2.);
 
-   // subtract the parts 
-   G4SubtractionSolid *innerShield = new G4SubtractionSolid("innerShield_1",inner,innerCut,0,G4ThreeVector(0,0,0));
-   innerShield = new G4SubtractionSolid("innerShield_2",innerShield,windowCut_dn          ,0,Pw_dn   );
-   innerShield = new G4SubtractionSolid("innerShield_3",innerShield,windowCut_beamLeft_dn ,0,Pw_bl_dn);
-   innerShield = new G4SubtractionSolid("innerShield_4",innerShield,windowCut_beamRight_dn,0,Pw_br_dn);
-   innerShield = new G4SubtractionSolid("innerShield"  ,innerShield,windowCut_up          ,0,Pw_up   );
+  // subtract the parts 
+  G4SubtractionSolid *innerShield = new G4SubtractionSolid("innerShield_1",inner,innerCut,0,G4ThreeVector(0,0,0));
+  innerShield = new G4SubtractionSolid("innerShield_2",innerShield,windowCut_dn          ,0,Pw_dn   );
+  innerShield = new G4SubtractionSolid("innerShield_3",innerShield,windowCut_beamLeft_dn ,0,Pw_bl_dn);
+  innerShield = new G4SubtractionSolid("innerShield_4",innerShield,windowCut_beamRight_dn,0,Pw_br_dn);
+  innerShield = new G4SubtractionSolid("innerShield"  ,innerShield,windowCut_up          ,0,Pw_up   );
 
-   // accumulate into logical volume pointer 
-   G4LogicalVolume **logicShield = new G4LogicalVolume*[2]; 
-   logicShield[0] = new G4LogicalVolume(innerShield,GetMaterial("Carbon_Steel_1008"),"logicGEnTarget_InnerShield");
-   logicShield[1] = new G4LogicalVolume(outerShield,GetMaterial("Carbon_Steel_1008"),"logicGEnTarget_OuterShield");
+  // accumulate into logical volume pointer 
+  G4LogicalVolume **logicShield = new G4LogicalVolume*[2]; 
+  logicShield[0] = new G4LogicalVolume(innerShield,GetMaterial("Carbon_Steel_1008"),"logicGEnTarget_InnerShield");
+  logicShield[1] = new G4LogicalVolume(outerShield,GetMaterial("Carbon_Steel_1008"),"logicGEnTarget_OuterShield");
 
-   G4VisAttributes *vis = new G4VisAttributes();
-   vis->SetColour( G4Colour::Magenta() );
-   vis->SetForceWireframe(true);
+  G4VisAttributes *vis = new G4VisAttributes();
+  vis->SetColour( G4Colour::Magenta() );
+  vis->SetForceWireframe(true);
 
-   // rotation angle 
-   G4double RY = 55.0*deg;  // FIXME: This angle is still an estimate!  
+  // rotation angle 
+  G4double RY = 55.0*deg;  // FIXME: This angle is still an estimate!  
 
-   bool isBoolean     = true;
-   bool checkOverlaps = true;
+  bool isBoolean     = true;
+  bool checkOverlaps = true;
 
-   char physName[200]; 
+  char physName[200]; 
 
-   // placement 
-   for(int i=0;i<2;i++){
-      // visualization 
-      logicShield[i]->SetVisAttributes(vis);
-      // rotation
-      G4RotationMatrix *rm = new G4RotationMatrix();
-      rm->rotateX(0.*deg); rm->rotateY(RY); rm->rotateZ(0.*deg);
-      // physical volume name
-      if(i==0) sprintf(physName,"physGEnTarget_InnerShield"); 
-      if(i==1) sprintf(physName,"physGEnTarget_OuterShield");
-      G4ThreeVector P = G4ThreeVector(0,0,0);  
-      // placement 
-      new G4PVPlacement(rm,                   // rotation relative to mother       
-	                P,                    // position relative to mother         
-	                logicShield[i],       // logical volume        
-	                physName,             // physical volume name           
-	                motherLog,            // logical mother     
-	                isBoolean,            // is boolean device? (true or false)    
-	                i,                    // copy number    
-	                checkOverlaps);       // check overlaps  
-      // register with DetectorConstruction object
-      fDetCon->InsertTargetVolume( logicShield[i]->GetName() );  
-   }
+  // placement 
+  for(int i=0;i<2;i++){
+    // visualization 
+    logicShield[i]->SetVisAttributes(vis);
+    // rotation
+    G4RotationMatrix *rm = new G4RotationMatrix();
+    rm->rotateX(0.*deg); rm->rotateY(RY); rm->rotateZ(0.*deg);
+    // physical volume name
+    if(i==0) sprintf(physName,"physGEnTarget_InnerShield"); 
+    if(i==1) sprintf(physName,"physGEnTarget_OuterShield");
+    G4ThreeVector P = G4ThreeVector(0,0,0);  
+    // placement 
+    new G4PVPlacement(rm,                   // rotation relative to mother       
+		      P,                    // position relative to mother         
+		      logicShield[i],       // logical volume        
+		      physName,             // physical volume name           
+		      motherLog,            // logical mother     
+		      isBoolean,            // is boolean device? (true or false)    
+		      i,                    // copy number    
+		      checkOverlaps);       // check overlaps  
+    // register with DetectorConstruction object
+    fDetCon->InsertTargetVolume( logicShield[i]->GetName() );  
+  }
 
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_PickupCoils(G4LogicalVolume *motherLog){
-   // Pickup coils that sit just below the GEn 3He target cell
-   // - Drawing: All dimensions extracted from JT model from Bert Metzger (June 2020) 
+  // Pickup coils that sit just below the GEn 3He target cell
+  // - Drawing: All dimensions extracted from JT model from Bert Metzger (June 2020) 
 
-   // global y offset: pickup coils sit 1.1" below the target cell (measured from top of coil mount)
-   G4double inch = 2.54*cm; 
-   G4double y0 = -1.1*inch - 1.5*cm;  // 1.5 cm accounts for center of coil mount 
+  // global y offset: pickup coils sit 1.1" below the target cell (measured from top of coil mount)
+  G4double inch = 2.54*cm; 
+  G4double y0 = -1.1*inch - 1.5*cm;  // 1.5 cm accounts for center of coil mount 
 
-   // coil mount, beam left 
-   // ---- upstream 
-   partParameters_t cbul; 
-   cbul.name = "pu_coil_base"; cbul.shape = "box";
-   cbul.r_tor = 0.0*mm; cbul.r_min = 0.0*mm; cbul.r_max = 0.0*mm; cbul.length = 0.0*mm;
-   cbul.x_len = 6.0*mm; cbul.y_len = 48.0*mm; cbul.z_len = 67.0*mm;
-   cbul.startTheta = 0.0*deg; cbul.dTheta = 0.0*deg;
-   cbul.startPhi = 0.0*deg; cbul.dPhi = 0.0*deg;
-   cbul.x = 0.0*mm; cbul.y = -24.0*mm; cbul.z = 0.0*mm;
-   cbul.rx = 0.0*deg; cbul.ry = 0.0*deg; cbul.rz = 0.0*deg;
+  // coil mount, beam left 
+  // ---- upstream 
+  partParameters_t cbul; 
+  cbul.name = "pu_coil_base"; cbul.shape = "box";
+  cbul.r_tor = 0.0*mm; cbul.r_min = 0.0*mm; cbul.r_max = 0.0*mm; cbul.length = 0.0*mm;
+  cbul.x_len = 6.0*mm; cbul.y_len = 48.0*mm; cbul.z_len = 67.0*mm;
+  cbul.startTheta = 0.0*deg; cbul.dTheta = 0.0*deg;
+  cbul.startPhi = 0.0*deg; cbul.dPhi = 0.0*deg;
+  cbul.x = 0.0*mm; cbul.y = -24.0*mm; cbul.z = 0.0*mm;
+  cbul.rx = 0.0*deg; cbul.ry = 0.0*deg; cbul.rz = 0.0*deg;
 
-   G4Box *coilB = new G4Box("coilB",cbul.x_len/2.,cbul.y_len/2.,cbul.z_len/2.);
+  G4Box *coilB = new G4Box("coilB",cbul.x_len/2.,cbul.y_len/2.,cbul.z_len/2.);
 
-   // U-cut: create a *subtraction* with a component for a U shape  
-   G4double xlen = 2.*cbul.x_len;  // far exceed the thickness to make sure it's a cutaway 
-   G4double ylen = 2.*1.3*cm; 
-   G4double zlen = 3.2*cm; 
+  // U-cut: create a *subtraction* with a component for a U shape  
+  G4double xlen = 2.*cbul.x_len;  // far exceed the thickness to make sure it's a cutaway 
+  G4double ylen = 2.*1.3*cm; 
+  G4double zlen = 3.2*cm; 
 
-   G4Box *Ucut = new G4Box("Ucut",xlen/2.,ylen/2.,zlen/2.);
+  G4Box *Ucut = new G4Box("Ucut",xlen/2.,ylen/2.,zlen/2.);
 
-   // do the subtraction 
-   G4ThreeVector Psub = G4ThreeVector(0,1.1*cm+ylen/2.,0.);  // centers the second volume relative to the first 
-   G4SubtractionSolid *coilBase = new G4SubtractionSolid("coilMount",coilB,Ucut,0,Psub);
+  // do the subtraction 
+  G4ThreeVector Psub = G4ThreeVector(0,1.1*cm+ylen/2.,0.);  // centers the second volume relative to the first 
+  G4SubtractionSolid *coilBase = new G4SubtractionSolid("coilMount",coilB,Ucut,0,Psub);
 
-   // coil 
-   partParameters_t pu; 
-   pu.name = "pu_coil"; pu.shape = "box";
-   pu.r_tor = 0.0*mm; pu.r_min = 0.0*mm; pu.r_max = 0.0*mm; pu.length = 0.0*mm;
-   pu.x_len = 4.0*mm; pu.y_len = 30.0*mm; pu.z_len = 120.0*mm;
-   pu.startTheta = 0.0*deg; pu.dTheta = 0.0*deg;
-   pu.startPhi = 0.0*deg; pu.dPhi = 0.0*deg;
-   pu.x = 0.0*mm; pu.y = 15.0*mm; pu.z = 0.0*mm;
-   pu.rx = 0.0*deg; pu.ry = 0.0*deg; pu.rz = 0.0*deg;
+  // coil 
+  partParameters_t pu; 
+  pu.name = "pu_coil"; pu.shape = "box";
+  pu.r_tor = 0.0*mm; pu.r_min = 0.0*mm; pu.r_max = 0.0*mm; pu.length = 0.0*mm;
+  pu.x_len = 4.0*mm; pu.y_len = 30.0*mm; pu.z_len = 120.0*mm;
+  pu.startTheta = 0.0*deg; pu.dTheta = 0.0*deg;
+  pu.startPhi = 0.0*deg; pu.dPhi = 0.0*deg;
+  pu.x = 0.0*mm; pu.y = 15.0*mm; pu.z = 0.0*mm;
+  pu.rx = 0.0*deg; pu.ry = 0.0*deg; pu.rz = 0.0*deg;
 
-   G4Box *coilOuter = new G4Box("coilOuter",pu.x_len/2.,pu.y_len/2.,pu.z_len/2.);
+  G4Box *coilOuter = new G4Box("coilOuter",pu.x_len/2.,pu.y_len/2.,pu.z_len/2.);
 
-   // create a cutaway that actually defines the coil since the initial dimensions are the OUTER values 
-   G4double xc = 2.*pu.x_len; // cut straight through in this dimension  
-   G4double yc = pu.y_len - 2.*0.5*cm;
-   G4double zc = pu.z_len - 2.*0.5*cm;
+  // create a cutaway that actually defines the coil since the initial dimensions are the OUTER values 
+  G4double xc = 2.*pu.x_len; // cut straight through in this dimension  
+  G4double yc = pu.y_len - 2.*0.5*cm;
+  G4double zc = pu.z_len - 2.*0.5*cm;
 
-   G4Box *coilCut = new G4Box("coilCut",xc,yc/2.,zc/2.);
+  G4Box *coilCut = new G4Box("coilCut",xc,yc/2.,zc/2.);
 
-   // subtraction; no coordinates needed since we're centered on the outer coil  
-   G4SubtractionSolid *coil = new G4SubtractionSolid("coil",coilOuter,coilCut);
+  // subtraction; no coordinates needed since we're centered on the outer coil  
+  G4SubtractionSolid *coil = new G4SubtractionSolid("coil",coilOuter,coilCut);
 
-   // coil mount 
-   partParameters_t cmul;
-   cmul.name = "pu_coil_mnt"; cmul.shape = "box";
-   cmul.r_tor = 0.0*mm; cmul.r_min = 0.0*mm; cmul.r_max = 0.0*mm; cmul.length = 0.0*mm;
-   cmul.x_len = 8.0*mm; cmul.y_len = 30.0*mm; cmul.z_len = 120.0*mm;
-   cmul.startTheta = 0.0*deg; cmul.dTheta = 0.0*deg;
-   cmul.startPhi = 0.0*deg; cmul.dPhi = 0.0*deg;
-   cmul.x = 0.0*mm; cmul.y = 15.0*mm; cmul.z = 0.0*mm;
-   cmul.rx = 0.0*deg; cmul.ry = 0.0*deg; cmul.rz = 0.0*deg;
+  // coil mount 
+  partParameters_t cmul;
+  cmul.name = "pu_coil_mnt"; cmul.shape = "box";
+  cmul.r_tor = 0.0*mm; cmul.r_min = 0.0*mm; cmul.r_max = 0.0*mm; cmul.length = 0.0*mm;
+  cmul.x_len = 8.0*mm; cmul.y_len = 30.0*mm; cmul.z_len = 120.0*mm;
+  cmul.startTheta = 0.0*deg; cmul.dTheta = 0.0*deg;
+  cmul.startPhi = 0.0*deg; cmul.dPhi = 0.0*deg;
+  cmul.x = 0.0*mm; cmul.y = 15.0*mm; cmul.z = 0.0*mm;
+  cmul.rx = 0.0*deg; cmul.ry = 0.0*deg; cmul.rz = 0.0*deg;
 
-   G4Box *coilMnt = new G4Box("cmnt",cmul.x_len/2.,cmul.y_len/2.,cmul.z_len/2.);
+  G4Box *coilMnt = new G4Box("cmnt",cmul.x_len/2.,cmul.y_len/2.,cmul.z_len/2.);
 
-   // use the coil to cut its shape into the coil mount
-   // need to locate the coil properly
-   xc = pu.x_len/2.;
-   yc = 0.*cm;
-   zc = 0.*cm;
-   G4ThreeVector Pc = G4ThreeVector(xc,yc,zc);
-   G4SubtractionSolid *coilMount = new G4SubtractionSolid("coilMount",coilMnt,coil,0,Pc); 
+  // use the coil to cut its shape into the coil mount
+  // need to locate the coil properly
+  xc = pu.x_len/2.;
+  yc = 0.*cm;
+  zc = 0.*cm;
+  G4ThreeVector Pc = G4ThreeVector(xc,yc,zc);
+  G4SubtractionSolid *coilMount = new G4SubtractionSolid("coilMount",coilMnt,coil,0,Pc); 
   
-   // union of coil base and mount 
-   // now create a union of the coil base and coil mount
-   G4double xm = cbul.x_len/2. + cmul.x_len/2.;
-   G4double ym = 0.9*cm;
-   G4double zm = 0.*cm;
-   G4ThreeVector Pm = G4ThreeVector(xm,ym,zm);
-   G4UnionSolid *coilBMNT = new G4UnionSolid("coilBMNT",coilBase,coilMount,0,Pm);
+  // union of coil base and mount 
+  // now create a union of the coil base and coil mount
+  G4double xm = cbul.x_len/2. + cmul.x_len/2.;
+  G4double ym = 0.9*cm;
+  G4double zm = 0.*cm;
+  G4ThreeVector Pm = G4ThreeVector(xm,ym,zm);
+  G4UnionSolid *coilBMNT = new G4UnionSolid("coilBMNT",coilBase,coilMount,0,Pm);
 
-   G4VisAttributes *vis = new G4VisAttributes();
-   vis->SetColour( G4Colour::Magenta() );
-   // vis->SetForceWireframe(true);  
+  G4VisAttributes *vis = new G4VisAttributes();
+  vis->SetColour( G4Colour::Magenta() );
+  // vis->SetForceWireframe(true);  
 
-   bool isBoolean     = true; 
-   bool checkOverlaps = true;  
+  bool isBoolean     = true; 
+  bool checkOverlaps = true;  
 
-   // FIXME: constraints come from JT file; is the 2.5 cm correct?
-   G4double xbm = (2.5*cm)/2. + cbul.x_len/2. +  cmul.x_len + pu.x_len;
-   G4double ybm = -0.9*cm + y0; // placement relative to BEAM 
-   G4double zbm = 7.2*cm;
+  // FIXME: constraints come from JT file; is the 2.5 cm correct?
+  G4double xbm = (2.5*cm)/2. + cbul.x_len/2. +  cmul.x_len + pu.x_len;
+  G4double ybm = -0.9*cm + y0; // placement relative to BEAM 
+  G4double zbm = 7.2*cm;
 
-   // logical volumes
-   G4LogicalVolume **logicPUCoilMount = new G4LogicalVolume*[4]; 
+  // logical volumes
+  G4LogicalVolume **logicPUCoilMount = new G4LogicalVolume*[4]; 
 
-   char physName[200],logicName[200]; 
+  char physName[200],logicName[200]; 
 
-   // place the mounts 
-   G4double X=0,Y=0,Z=0;
-   G4double RX=0,RY=0,RZ=0;
-   for(int i=0;i<4;i++){
-      sprintf(logicName,"logicGEnTarget_PUCoilMNT_%d",i); 
-      logicPUCoilMount[i] = new G4LogicalVolume(coilBMNT,GetMaterial("Aluminum"),logicName);
-      logicPUCoilMount[i]->SetVisAttributes(vis);
-      if(i==0){
-         // upstream, beam left
-         X = xbm; Y = ybm; Z = zbm;
-         RY = 180.*deg;
-      }else if(i==1){
-         // upstream, beam right
-         X = -xbm; Y = ybm; Z = zbm;
-         RY = 0.*deg;
-      }else if(i==2){
-         // downstream, beam left
-         X = xbm; Y = ybm; Z = -zbm;
-         RY = 180.*deg;
-      }else if(i==3){
-         // downstream, beam right 
-         X = -xbm; Y = ybm; Z = -zbm;
-         RY = 0.*deg;
-      }
-      G4RotationMatrix *rm = new G4RotationMatrix();
-      rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
-      // physical name 
-      sprintf(physName,"physGEnTarget_PUCoilMNT_%d",i); 
-      new G4PVPlacement(rm,                   // rotation [relative to mother]             
-                        G4ThreeVector(X,Y,Z), // position [relative to mother]          
-                        logicPUCoilMount[i],  // logical volume                            
-                        physName,             // name                                       
-                        motherLog,            // logical mother volume                   
-                        isBoolean,            // boolean operations (true, false) 
-                        i,                    // copy number                          
-                        checkOverlaps);       // check overlaps                         
-      // register with DetectorConstruction object 
-      fDetCon->InsertTargetVolume( logicPUCoilMount[i]->GetName() );  
-   }
+  // place the mounts 
+  G4double X=0,Y=0,Z=0;
+  G4double RX=0,RY=0,RZ=0;
+  for(int i=0;i<4;i++){
+    sprintf(logicName,"logicGEnTarget_PUCoilMNT_%d",i); 
+    logicPUCoilMount[i] = new G4LogicalVolume(coilBMNT,GetMaterial("Aluminum"),logicName);
+    logicPUCoilMount[i]->SetVisAttributes(vis);
+    if(i==0){
+      // upstream, beam left
+      X = xbm; Y = ybm; Z = zbm;
+      RY = 180.*deg;
+    }else if(i==1){
+      // upstream, beam right
+      X = -xbm; Y = ybm; Z = zbm;
+      RY = 0.*deg;
+    }else if(i==2){
+      // downstream, beam left
+      X = xbm; Y = ybm; Z = -zbm;
+      RY = 180.*deg;
+    }else if(i==3){
+      // downstream, beam right 
+      X = -xbm; Y = ybm; Z = -zbm;
+      RY = 0.*deg;
+    }
+    G4RotationMatrix *rm = new G4RotationMatrix();
+    rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
+    // physical name 
+    sprintf(physName,"physGEnTarget_PUCoilMNT_%d",i); 
+    new G4PVPlacement(rm,                   // rotation [relative to mother]             
+		      G4ThreeVector(X,Y,Z), // position [relative to mother]          
+		      logicPUCoilMount[i],  // logical volume                            
+		      physName,             // name                                       
+		      motherLog,            // logical mother volume                   
+		      isBoolean,            // boolean operations (true, false) 
+		      i,                    // copy number                          
+		      checkOverlaps);       // check overlaps                         
+    // register with DetectorConstruction object 
+    fDetCon->InsertTargetVolume( logicPUCoilMount[i]->GetName() );  
+  }
 
-   // place the pickup coils 
+  // place the pickup coils 
 
-   // logical volumes
-   G4LogicalVolume **logicPUCoil = new G4LogicalVolume*[4]; 
+  // logical volumes
+  G4LogicalVolume **logicPUCoil = new G4LogicalVolume*[4]; 
 
-   G4VisAttributes *visCoil = new G4VisAttributes();
-   visCoil->SetColour( G4Colour(255,140,0) );  // dark orange
+  G4VisAttributes *visCoil = new G4VisAttributes();
+  visCoil->SetColour( G4Colour(255,140,0) );  // dark orange
 
-   // place it to be flush against the mount assembly 
-   G4double xbm_c = xbm - pu.x_len/2. - cmul.x_len;
-   G4double ybm_c = y0;
-   G4double zbm_c = zbm;
+  // place it to be flush against the mount assembly 
+  G4double xbm_c = xbm - pu.x_len/2. - cmul.x_len;
+  G4double ybm_c = y0;
+  G4double zbm_c = zbm;
 
-   // place the coils 
-   for(int i=0;i<4;i++){
-      sprintf(logicName,"logicGEnTarget_PUCoil_%d",i); 
-      logicPUCoil[i] = new G4LogicalVolume(coil,GetMaterial("Copper"),logicName);
-      logicPUCoil[i]->SetVisAttributes(visCoil);
-      if(i==0){
-	 // upstream, beam left
-	 X = xbm_c; Y = ybm_c; Z = zbm_c;
-	 RY = 180.*deg;
-      }else if(i==1){
-	 // upstream, beam right
-	 X = -xbm_c; Y = ybm_c; Z = zbm_c;
-	 RY = 0.*deg;
-      }else if(i==2){
-	 // downstream, beam left
-	 X = xbm_c; Y = ybm_c; Z = -zbm_c;
-	 RY = 180.*deg;
-      }else if(i==3){
-	 // downstream, beam right 
-	 X = -xbm_c; Y = ybm_c; Z = -zbm_c;
-	 RY = 0.*deg;
-      }
-      G4RotationMatrix *rm = new G4RotationMatrix();
-      rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
-      // physical name 
-      sprintf(physName,"physGEnTarget_PUCoil_%d",i); 
-      new G4PVPlacement(rm,                   // rotation [relative to mother]             
-	                G4ThreeVector(X,Y,Z), // position [relative to mother]          
-	                logicPUCoil[i],       // logical volume                            
-	                physName,             // name                                       
-	                motherLog,            // logical mother volume                   
-	                isBoolean,            // boolean operations (true, false) 
-	                i,                    // copy number                          
-	                checkOverlaps);       // check overlaps                        
-      // register with DetectorConstruction object 
-      fDetCon->InsertTargetVolume( logicPUCoil[i]->GetName() );  
-   }
+  // place the coils 
+  for(int i=0;i<4;i++){
+    sprintf(logicName,"logicGEnTarget_PUCoil_%d",i); 
+    logicPUCoil[i] = new G4LogicalVolume(coil,GetMaterial("Copper"),logicName);
+    logicPUCoil[i]->SetVisAttributes(visCoil);
+    if(i==0){
+      // upstream, beam left
+      X = xbm_c; Y = ybm_c; Z = zbm_c;
+      RY = 180.*deg;
+    }else if(i==1){
+      // upstream, beam right
+      X = -xbm_c; Y = ybm_c; Z = zbm_c;
+      RY = 0.*deg;
+    }else if(i==2){
+      // downstream, beam left
+      X = xbm_c; Y = ybm_c; Z = -zbm_c;
+      RY = 180.*deg;
+    }else if(i==3){
+      // downstream, beam right 
+      X = -xbm_c; Y = ybm_c; Z = -zbm_c;
+      RY = 0.*deg;
+    }
+    G4RotationMatrix *rm = new G4RotationMatrix();
+    rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
+    // physical name 
+    sprintf(physName,"physGEnTarget_PUCoil_%d",i); 
+    new G4PVPlacement(rm,                   // rotation [relative to mother]             
+		      G4ThreeVector(X,Y,Z), // position [relative to mother]          
+		      logicPUCoil[i],       // logical volume                            
+		      physName,             // name                                       
+		      motherLog,            // logical mother volume                   
+		      isBoolean,            // boolean operations (true, false) 
+		      i,                    // copy number                          
+		      checkOverlaps);       // check overlaps                        
+    // register with DetectorConstruction object 
+    fDetCon->InsertTargetVolume( logicPUCoil[i]->GetName() );  
+  }
 
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
-   // Ladder plate for GEn 3He target
-   // - Drawing number: A09016-03-04-0601
+  // Ladder plate for GEn 3He target
+  // - Drawing number: A09016-03-04-0601
 
-   // global offsets from JT model
-   G4double inch = 25.4*mm;  
-   G4double x0   = -0.438*inch; // beam right   
-   G4double y0   = -5.33*cm;    // lower than target cell  
-   G4double z0   =  1.0;        // TODO: should be 1.5*inch, but I see overlaps in stand-alone build
+  // global offsets from JT model
+  G4double inch = 25.4*mm;  
+  G4double x0   = -0.438*inch; // beam right   
+  G4double y0   = -5.33*cm;    // lower than target cell  
+  G4double z0   =  1.5*inch + 2.*mm;   // TODO: should be 1.5*inch, but I see overlaps in stand-alone build.  
+  // z0 issue SOLVED 10/16/20 (target was previously too long by about 2.4 inches)
+  // Now, there *might* be an overlap with the upstream beam pipe, so we add 2 mm so we have daylight between them 
 
-   // vertical posts along the y axis 
-   // ---- upstream 
-   partParameters_t lvu; 
-   lvu.name = "ladder_vert_up"; lvu.shape = "box";
-   lvu.r_tor = 0.0*mm; lvu.r_min = 0.0*mm; lvu.r_max = 0.0*mm; lvu.length = 0.0*mm;
-   lvu.x_len = 12.7*mm; lvu.y_len = 203.2*mm; lvu.z_len = 38.1*mm;
-   lvu.startTheta = 0.0*deg; lvu.dTheta = 0.0*deg;
-   lvu.startPhi = 0.0*deg; lvu.dPhi = 0.0*deg;
-   lvu.x = -11.1*mm; lvu.y = 0.0*mm; lvu.z = -363.0*mm;
-   lvu.rx = 0.0*deg; lvu.ry = 0.0*deg; lvu.rz = 0.0*deg;
+  // vertical posts along the y axis 
+  // ---- upstream 
+  partParameters_t lvu; 
+  lvu.name = "ladder_vert_up"; lvu.shape = "box";
+  lvu.r_tor = 0.0*mm; lvu.r_min = 0.0*mm; lvu.r_max = 0.0*mm; lvu.length = 0.0*mm;
+  lvu.x_len = 12.7*mm; lvu.y_len = 203.2*mm; lvu.z_len = 38.1*mm;
+  lvu.startTheta = 0.0*deg; lvu.dTheta = 0.0*deg;
+  lvu.startPhi = 0.0*deg; lvu.dPhi = 0.0*deg;
+  lvu.x = -11.1*mm; lvu.y = 0.0*mm; lvu.z = -363.0*mm;
+  lvu.rx = 0.0*deg; lvu.ry = 0.0*deg; lvu.rz = 0.0*deg;
 
-   G4Box *ladder_vert_up    = new G4Box("lvu",lvu.x_len/2.,lvu.y_len/2.,lvu.z_len/2.);
-   G4ThreeVector P_lvu      = G4ThreeVector(lvu.x,lvu.y,lvu.z);
-   G4RotationMatrix *rm_lvu = new G4RotationMatrix();
-   rm_lvu->rotateX(lvu.rx); rm_lvu->rotateY(lvu.ry); rm_lvu->rotateZ(lvu.rz);
+  G4Box *ladder_vert_up    = new G4Box("lvu",lvu.x_len/2.,lvu.y_len/2.,lvu.z_len/2.);
+  G4ThreeVector P_lvu      = G4ThreeVector(lvu.x,lvu.y,lvu.z);
+  G4RotationMatrix *rm_lvu = new G4RotationMatrix();
+  rm_lvu->rotateX(lvu.rx); rm_lvu->rotateY(lvu.ry); rm_lvu->rotateZ(lvu.rz);
 
-   // ---- downstream
-   partParameters_t lvd; 
-   lvd.name = "ladder_vert_dn"; lvd.shape = "box";
-   lvd.r_tor = 0.0*mm; lvd.r_min = 0.0*mm; lvd.r_max = 0.0*mm; lvd.length = 0.0*mm;
-   lvd.x_len = 12.7*mm; lvd.y_len = 203.2*mm; lvd.z_len = 38.1*mm;
-   lvd.startTheta = 0.0*deg; lvd.dTheta = 0.0*deg;
-   lvd.startPhi = 0.0*deg; lvd.dPhi = 0.0*deg;
-   lvd.x = 0.0*mm; lvd.y = 0.0*mm; lvd.z = 363.0*mm;
-   lvd.rx = 0.0*deg; lvd.ry = 0.0*deg; lvd.rz = 0.0*deg;
+  // ---- downstream
+  partParameters_t lvd; 
+  lvd.name = "ladder_vert_dn"; lvd.shape = "box";
+  lvd.r_tor = 0.0*mm; lvd.r_min = 0.0*mm; lvd.r_max = 0.0*mm; lvd.length = 0.0*mm;
+  lvd.x_len = 12.7*mm; lvd.y_len = 203.2*mm; lvd.z_len = 38.1*mm;
+  lvd.startTheta = 0.0*deg; lvd.dTheta = 0.0*deg;
+  lvd.startPhi = 0.0*deg; lvd.dPhi = 0.0*deg;
+  lvd.x = 0.0*mm; lvd.y = 0.0*mm; lvd.z = 363.0*mm;
+  lvd.rx = 0.0*deg; lvd.ry = 0.0*deg; lvd.rz = 0.0*deg;
 
-   G4Box *ladder_vert_dn    = new G4Box("lvd",lvd.x_len/2.,lvd.y_len/2.,lvd.z_len/2.);
-   G4ThreeVector P_lvd      = G4ThreeVector(lvd.x,lvd.y,lvd.z);
-   G4RotationMatrix *rm_lvd = new G4RotationMatrix();
-   rm_lvd->rotateX(lvd.rx); rm_lvd->rotateY(lvd.ry); rm_lvd->rotateZ(lvd.rz);
+  G4Box *ladder_vert_dn    = new G4Box("lvd",lvd.x_len/2.,lvd.y_len/2.,lvd.z_len/2.);
+  G4ThreeVector P_lvd      = G4ThreeVector(lvd.x,lvd.y,lvd.z);
+  G4RotationMatrix *rm_lvd = new G4RotationMatrix();
+  rm_lvd->rotateX(lvd.rx); rm_lvd->rotateY(lvd.ry); rm_lvd->rotateZ(lvd.rz);
 
-   // horizontal posts along the z axis 
-   // ---- above
-   partParameters_t la;  
-   la.name = "ladder_above"; la.shape = "box";
-   la.r_tor = 0.0*mm; la.r_min = 0.0*mm; la.r_max = 0.0*mm; la.length = 0.0*mm;
-   la.x_len = 12.7*mm; la.y_len = 38.1*mm; la.z_len = 370.0*mm;
-   la.startTheta = 0.0*deg; la.dTheta = 0.0*deg;
-   la.startPhi = 0.0*deg; la.dPhi = 0.0*deg;
-   la.x = 0.0*mm; la.y = 226.4*mm; la.z = 314.2*mm;
-   la.rx = 0.0*deg; la.ry = 0.0*deg; la.rz = 0.0*deg;
+  // horizontal posts along the z axis 
+  // ---- above
+  partParameters_t la;  
+  la.name = "ladder_above"; la.shape = "box";
+  la.r_tor = 0.0*mm; la.r_min = 0.0*mm; la.r_max = 0.0*mm; la.length = 0.0*mm;
+  la.x_len = 12.7*mm; la.y_len = 38.1*mm; la.z_len = 370.0*mm;
+  la.startTheta = 0.0*deg; la.dTheta = 0.0*deg;
+  la.startPhi = 0.0*deg; la.dPhi = 0.0*deg;
+  la.x = 0.0*mm; la.y = 226.4*mm; la.z = 314.2*mm;
+  la.rx = 0.0*deg; la.ry = 0.0*deg; la.rz = 0.0*deg;
 
-   G4Box *ladder_above     = new G4Box("la",la.x_len/2.,la.y_len/2.,la.z_len/2.);
-   G4ThreeVector P_la      = G4ThreeVector(la.x,la.y,la.z);
-   G4RotationMatrix *rm_la = new G4RotationMatrix();
-   rm_la->rotateX(la.rx); rm_la->rotateY(la.ry); rm_la->rotateZ(la.rz);
+  G4Box *ladder_above     = new G4Box("la",la.x_len/2.,la.y_len/2.,la.z_len/2.);
+  G4ThreeVector P_la      = G4ThreeVector(la.x,la.y,la.z);
+  G4RotationMatrix *rm_la = new G4RotationMatrix();
+  rm_la->rotateX(la.rx); rm_la->rotateY(la.ry); rm_la->rotateZ(la.rz);
 
-   // ---- below 
-   partParameters_t lb; 
-   lb.name = "ladder_below"; lb.shape = "box";
-   lb.r_tor = 0.0*mm; lb.r_min = 0.0*mm; lb.r_max = 0.0*mm; lb.length = 0.0*mm;
-   lb.x_len = 12.7*mm; lb.y_len = 38.1*mm; lb.z_len = 114.3*mm;
-   lb.startTheta = 0.0*deg; lb.dTheta = 0.0*deg; 
-   lb.startPhi = 0.0*deg; lb.dPhi = 0.0*deg;
-   lb.x = 0.0*mm; lb.y = -158.3*mm; lb.z = 314.2*mm;
-   lb.rx = 0.0*deg; lb.ry = 0.0*deg; lb.rz = 0.0*deg;
+  // ---- below 
+  partParameters_t lb; 
+  lb.name = "ladder_below"; lb.shape = "box";
+  lb.r_tor = 0.0*mm; lb.r_min = 0.0*mm; lb.r_max = 0.0*mm; lb.length = 0.0*mm;
+  lb.x_len = 12.7*mm; lb.y_len = 38.1*mm; lb.z_len = 114.3*mm;
+  lb.startTheta = 0.0*deg; lb.dTheta = 0.0*deg; 
+  lb.startPhi = 0.0*deg; lb.dPhi = 0.0*deg;
+  lb.x = 0.0*mm; lb.y = -158.3*mm; lb.z = 314.2*mm;
+  lb.rx = 0.0*deg; lb.ry = 0.0*deg; lb.rz = 0.0*deg;
 
-   G4Box *ladder_below     = new G4Box("lb",lb.x_len/2.,lb.y_len/2.,lb.z_len/2.);
-   G4ThreeVector P_lb      = G4ThreeVector(lb.x,lb.y,lb.z);
-   G4RotationMatrix *rm_lb = new G4RotationMatrix();
-   rm_lb->rotateX(lb.rx); rm_lvd->rotateY(lb.ry); rm_lb->rotateZ(lb.rz);
+  G4Box *ladder_below     = new G4Box("lb",lb.x_len/2.,lb.y_len/2.,lb.z_len/2.);
+  G4ThreeVector P_lb      = G4ThreeVector(lb.x,lb.y,lb.z);
+  G4RotationMatrix *rm_lb = new G4RotationMatrix();
+  rm_lb->rotateX(lb.rx); rm_lvd->rotateY(lb.ry); rm_lb->rotateZ(lb.rz);
 
-   // angular part above, along z axis
-   // ---- upstream
-   partParameters_t aau;  
-   aau.name = "ladder_ang_above_up"; aau.shape = "box";
-   aau.r_tor = 0.0*mm; aau.r_min = 0.0*mm; aau.r_max = 0.0*mm; aau.length = 0.0*mm;
-   aau.x_len = 12.7*mm; aau.y_len = 38.1*mm; aau.z_len = 240.0*mm;
-   aau.startTheta = 0.0*deg; aau.dTheta = 0.0*deg; 
-   aau.startPhi = 0.0*deg; aau.dPhi = 0.0*deg;
-   aau.x = 0.0*mm; aau.y = 150.0*mm; aau.z = 70.4*mm;
-   aau.rx = 45.0*deg; aau.ry = 0.0*deg; aau.rz = 0.0*deg;
+  // angular part above, along z axis
+  // ---- upstream
+  partParameters_t aau;  
+  aau.name = "ladder_ang_above_up"; aau.shape = "box";
+  aau.r_tor = 0.0*mm; aau.r_min = 0.0*mm; aau.r_max = 0.0*mm; aau.length = 0.0*mm;
+  aau.x_len = 12.7*mm; aau.y_len = 38.1*mm; aau.z_len = 240.0*mm;
+  aau.startTheta = 0.0*deg; aau.dTheta = 0.0*deg; 
+  aau.startPhi = 0.0*deg; aau.dPhi = 0.0*deg;
+  aau.x = 0.0*mm; aau.y = 150.0*mm; aau.z = 70.4*mm;
+  aau.rx = 45.0*deg; aau.ry = 0.0*deg; aau.rz = 0.0*deg;
 
-   G4Box *ladder_aau        = new G4Box("aau",aau.x_len/2.,aau.y_len/2.,aau.z_len/2.);
-   G4ThreeVector P_aau      = G4ThreeVector(aau.x,aau.y,aau.z);
-   G4RotationMatrix *rm_aau = new G4RotationMatrix();
-   rm_aau->rotateX(aau.rx); rm_aau->rotateY(aau.ry); rm_aau->rotateZ(aau.rz); 
+  G4Box *ladder_aau        = new G4Box("aau",aau.x_len/2.,aau.y_len/2.,aau.z_len/2.);
+  G4ThreeVector P_aau      = G4ThreeVector(aau.x,aau.y,aau.z);
+  G4RotationMatrix *rm_aau = new G4RotationMatrix();
+  rm_aau->rotateX(aau.rx); rm_aau->rotateY(aau.ry); rm_aau->rotateZ(aau.rz); 
    
-   // ---- downstream
-   partParameters_t aad;
-   aad.name = "ladder_ang_above_dn"; aad.shape = "box";
-   aad.r_tor = 0.0*mm; aad.r_min = 0.0*mm; aad.r_max = 0.0*mm; aad.length = 0.0*mm;
-   aad.x_len = 12.7*mm; aad.y_len = 38.1*mm; aad.z_len = 280.0*mm;
-   aad.startTheta = 0.0*deg; aad.dTheta = 0.0*deg; 
-   aad.startPhi = 0.0*deg; aad.dPhi = 0.0*deg;
-   aad.x = 0.0*mm; aad.y = 150.0*mm; aad.z = 600.0*mm;
-   aad.rx = -36.0*deg; aad.ry = 0.0*deg; aad.rz = 0.0*deg;
+  // ---- downstream
+  partParameters_t aad;
+  aad.name = "ladder_ang_above_dn"; aad.shape = "box";
+  aad.r_tor = 0.0*mm; aad.r_min = 0.0*mm; aad.r_max = 0.0*mm; aad.length = 0.0*mm;
+  aad.x_len = 12.7*mm; aad.y_len = 38.1*mm; aad.z_len = 280.0*mm;
+  aad.startTheta = 0.0*deg; aad.dTheta = 0.0*deg; 
+  aad.startPhi = 0.0*deg; aad.dPhi = 0.0*deg;
+  aad.x = 0.0*mm; aad.y = 150.0*mm; aad.z = 600.0*mm;
+  aad.rx = -36.0*deg; aad.ry = 0.0*deg; aad.rz = 0.0*deg;
 
-   G4Box *ladder_aad        = new G4Box("aad",aad.x_len/2.,aad.y_len/2.,aad.z_len/2.);
-   G4ThreeVector P_aad      = G4ThreeVector(aad.x,aad.y,aad.z);
-   G4RotationMatrix *rm_aad = new G4RotationMatrix();
-   rm_aad->rotateX(aad.rx); rm_aad->rotateY(aad.ry); rm_aad->rotateZ(aad.rz);
+  G4Box *ladder_aad        = new G4Box("aad",aad.x_len/2.,aad.y_len/2.,aad.z_len/2.);
+  G4ThreeVector P_aad      = G4ThreeVector(aad.x,aad.y,aad.z);
+  G4RotationMatrix *rm_aad = new G4RotationMatrix();
+  rm_aad->rotateX(aad.rx); rm_aad->rotateY(aad.ry); rm_aad->rotateZ(aad.rz);
 
-   // angular part below, along z axis 
-   // ---- upstream 
-   partParameters_t abu;
-   abu.name = "ladder_ang_below_up"; abu.shape = "box";
-   abu.r_tor = 0.0*mm; abu.r_min = 0.0*mm; abu.r_max = 0.0*mm; abu.length = 0.0*mm;
-   abu.x_len = 12.7*mm; abu.y_len = 38.1*mm; abu.z_len = 282.0*mm;
-   abu.startTheta = 0.0*deg; abu.dTheta = 0.0*deg;
-   abu.startPhi = 0.0*deg; abu.dPhi = 0.0*deg;
-   abu.x = 0.0*mm; abu.y = -125.0*mm; abu.z = 131.0*mm;
-   abu.rx = -14.4*deg; abu.ry = 0.0*deg; abu.rz = 0.0*deg;
+  // angular part below, along z axis 
+  // ---- upstream 
+  partParameters_t abu;
+  abu.name = "ladder_ang_below_up"; abu.shape = "box";
+  abu.r_tor = 0.0*mm; abu.r_min = 0.0*mm; abu.r_max = 0.0*mm; abu.length = 0.0*mm;
+  abu.x_len = 12.7*mm; abu.y_len = 38.1*mm; abu.z_len = 282.0*mm;
+  abu.startTheta = 0.0*deg; abu.dTheta = 0.0*deg;
+  abu.startPhi = 0.0*deg; abu.dPhi = 0.0*deg;
+  abu.x = 0.0*mm; abu.y = -125.0*mm; abu.z = 131.0*mm;
+  abu.rx = -14.4*deg; abu.ry = 0.0*deg; abu.rz = 0.0*deg;
 
-   G4Box *ladder_abu        = new G4Box("abu",abu.x_len/2.,abu.y_len/2.,abu.z_len/2.);
-   G4ThreeVector P_abu      = G4ThreeVector(abu.x,abu.y,abu.z);
-   G4RotationMatrix *rm_abu = new G4RotationMatrix();
-   rm_abu->rotateX(abu.rx); rm_abu->rotateY(abu.ry); rm_abu->rotateZ(abu.rz);
+  G4Box *ladder_abu        = new G4Box("abu",abu.x_len/2.,abu.y_len/2.,abu.z_len/2.);
+  G4ThreeVector P_abu      = G4ThreeVector(abu.x,abu.y,abu.z);
+  G4RotationMatrix *rm_abu = new G4RotationMatrix();
+  rm_abu->rotateX(abu.rx); rm_abu->rotateY(abu.ry); rm_abu->rotateZ(abu.rz);
 
-   // ---- downstream
-   partParameters_t abd; 
-   abd.name = "ladder_ang_below_dn"; abd.shape = "box";
-   abd.r_tor = 0.0*mm; abd.r_min = 0.0*mm; abd.r_max = 0.0*mm; abd.length = 0.0*mm;
-   abd.x_len = 12.7*mm; abd.y_len = 38.1*mm; abd.z_len = 350.0*mm;
-   abd.startTheta = 0.0*deg; abd.dTheta = 0.0*deg;
-   abd.startPhi = 0.0*deg; abd.dPhi = 0.0*deg;
-   abd.x = 0.0*mm; abd.y = -125.0*mm; abd.z = 540.0*mm;
-   abd.rx = 11.3*deg; abd.ry = 0.0*deg; abd.rz = 0.0*deg;
+  // ---- downstream
+  partParameters_t abd; 
+  abd.name = "ladder_ang_below_dn"; abd.shape = "box";
+  abd.r_tor = 0.0*mm; abd.r_min = 0.0*mm; abd.r_max = 0.0*mm; abd.length = 0.0*mm;
+  abd.x_len = 12.7*mm; abd.y_len = 38.1*mm; abd.z_len = 350.0*mm;
+  abd.startTheta = 0.0*deg; abd.dTheta = 0.0*deg;
+  abd.startPhi = 0.0*deg; abd.dPhi = 0.0*deg;
+  abd.x = 0.0*mm; abd.y = -125.0*mm; abd.z = 540.0*mm;
+  abd.rx = 11.3*deg; abd.ry = 0.0*deg; abd.rz = 0.0*deg;
 
-   G4Box *ladder_abd        = new G4Box("abd",abd.x_len/2.,abd.y_len/2.,abd.z_len/2.);
-   G4ThreeVector P_abd      = G4ThreeVector(abd.x,abd.y,abd.z);
-   G4RotationMatrix *rm_abd = new G4RotationMatrix();
-   rm_abd->rotateX(abd.rx); rm_abd->rotateY(abd.ry); rm_abd->rotateZ(abd.rz); 
+  G4Box *ladder_abd        = new G4Box("abd",abd.x_len/2.,abd.y_len/2.,abd.z_len/2.);
+  G4ThreeVector P_abd      = G4ThreeVector(abd.x,abd.y,abd.z);
+  G4RotationMatrix *rm_abd = new G4RotationMatrix();
+  rm_abd->rotateX(abd.rx); rm_abd->rotateY(abd.ry); rm_abd->rotateZ(abd.rz); 
 
-   // union solid 
-   G4UnionSolid *ladder;
-   // [downstream] pane inner and outer  
-   G4ThreeVector P     = G4ThreeVector(0.,0.,lvd.z*2.);
-   ladder = new G4UnionSolid("lud",ladder_vert_up,ladder_vert_dn,0,P);
-   // [above] horizontal 
-   G4ThreeVector P_a   = G4ThreeVector(0.,la.y,la.z);
-   ladder = new G4UnionSolid("lud_a" ,ladder,ladder_above,0,P_a);
-   // [below] horizontal 
-   G4ThreeVector P_b   = G4ThreeVector(0.,lb.y,lb.z);
-   ladder = new G4UnionSolid("lud_ab",ladder,ladder_below,0,P_b);
-   // [above] angled above, upstream  
-   ladder = new G4UnionSolid("lud_ab_aau",ladder,ladder_aau,rm_aau,P_aau);
-   // [above] angled below, downstream  
-   ladder = new G4UnionSolid("lud_ab_aaud",ladder,ladder_aad,rm_aad,P_aad);
-   // [below] angled below, upstream  
-   ladder = new G4UnionSolid("lud_ab_aaud_abu",ladder,ladder_abu,rm_abu,P_abu);
-   // [below] angled, downstream  
-   ladder = new G4UnionSolid("ladder",ladder,ladder_abd,rm_abd,P_abd);
+  // union solid 
+  G4UnionSolid *ladder;
+  // [downstream] pane inner and outer  
+  G4ThreeVector P     = G4ThreeVector(0.,0.,lvd.z*2.);
+  ladder = new G4UnionSolid("lud",ladder_vert_up,ladder_vert_dn,0,P);
+  // [above] horizontal 
+  G4ThreeVector P_a   = G4ThreeVector(0.,la.y,la.z);
+  ladder = new G4UnionSolid("lud_a" ,ladder,ladder_above,0,P_a);
+  // [below] horizontal 
+  G4ThreeVector P_b   = G4ThreeVector(0.,lb.y,lb.z);
+  ladder = new G4UnionSolid("lud_ab",ladder,ladder_below,0,P_b);
+  // [above] angled above, upstream  
+  ladder = new G4UnionSolid("lud_ab_aau",ladder,ladder_aau,rm_aau,P_aau);
+  // [above] angled below, downstream  
+  ladder = new G4UnionSolid("lud_ab_aaud",ladder,ladder_aad,rm_aad,P_aad);
+  // [below] angled below, upstream  
+  ladder = new G4UnionSolid("lud_ab_aaud_abu",ladder,ladder_abu,rm_abu,P_abu);
+  // [below] angled, downstream  
+  ladder = new G4UnionSolid("ladder",ladder,ladder_abd,rm_abd,P_abd);
 
-   G4VisAttributes *vis = new G4VisAttributes();
-   vis->SetColour( G4Colour::Red() );
-   // vis->SetForceWireframe(true);
+  G4VisAttributes *vis = new G4VisAttributes();
+  vis->SetColour( G4Colour::Red() );
+  // vis->SetForceWireframe(true);
 
-   G4LogicalVolume *logicLadder = new G4LogicalVolume(ladder,GetMaterial("Ultem"),"logicGEnTarget_Ladder");
-   logicLadder->SetVisAttributes(vis);
+  G4LogicalVolume *logicLadder = new G4LogicalVolume(ladder,GetMaterial("Ultem"),"logicGEnTarget_Ladder");
+  logicLadder->SetVisAttributes(vis);
 
-   // placement 
-   G4double lx = x0;
-   G4double ly = y0;
-   G4double lz = lvu.z + z0;
+  // placement 
+  G4double lx = x0;
+  G4double ly = y0;
+  G4double lz = lvu.z + z0;
 
-   G4ThreeVector P_l      = G4ThreeVector(lx,ly,lz);
-   G4RotationMatrix *rm_l = new G4RotationMatrix();
-   rm_l->rotateX(0.*deg); rm_l->rotateY(0.*deg); rm_l->rotateZ(0.*deg);
+  G4ThreeVector P_l      = G4ThreeVector(lx,ly,lz);
+  G4RotationMatrix *rm_l = new G4RotationMatrix();
+  rm_l->rotateX(0.*deg); rm_l->rotateY(0.*deg); rm_l->rotateZ(0.*deg);
 
-   bool isBoolean     = true;
-   bool checkOverlaps = true;
+  bool isBoolean     = true;
+  bool checkOverlaps = true;
 
-   new G4PVPlacement(rm_l,                // rotation [relative to mother]    
-                     P_l,                 // position [relative to mother] 
-                     logicLadder,         // logical volume    
-                     "physLadder",        // name                          
-                     motherLog,         // logical mother volume            
-                     isBoolean,           // boolean operations          
-                     0,                   // copy number                   
-                     checkOverlaps);     // check overlaps  
+  new G4PVPlacement(rm_l,                // rotation [relative to mother]    
+		    P_l,                 // position [relative to mother] 
+		    logicLadder,         // logical volume    
+		    "physLadder",        // name                          
+		    motherLog,         // logical mother volume            
+		    isBoolean,           // boolean operations          
+		    0,                   // copy number                   
+		    checkOverlaps);     // check overlaps  
 
-   // register with DetectorConstruction object
-   fDetCon->InsertTargetVolume( logicLadder->GetName() );  
+  // register with DetectorConstruction object
+  fDetCon->InsertTargetVolume( logicLadder->GetName() );  
 
 }
 //______________________________________________________________________________
 void G4SBSTargetBuilder::BuildGEnTarget_Collimators(G4LogicalVolume *logicMother,G4double z0){
-   // Collimators near target (beam left) 
-   // Based on drawings from Sebastian Seeds (UConn), derived from Bert Metzger's JT file 
-   BuildGEnTarget_Collimator_A(logicMother,z0); 
-   BuildGEnTarget_Collimator_B(logicMother,z0); 
-   BuildGEnTarget_Collimator_C(logicMother,z0);
-   BuildGEnTarget_Collimator_Table(logicMother,z0);  
+  // Collimators near target (beam left) 
+  // Based on drawings from Sebastian Seeds (UConn), derived from Bert Metzger's JT file 
+  BuildGEnTarget_Collimator_A(logicMother,z0); 
+  BuildGEnTarget_Collimator_B(logicMother,z0); 
+  BuildGEnTarget_Collimator_C(logicMother,z0);
+  BuildGEnTarget_Collimator_Table(logicMother,z0);  
 }
 //______________________________________________________________________________
 void G4SBSTargetBuilder::BuildGEnTarget_Collimator_A(G4LogicalVolume *logicMother,G4double z0){
-   // From drawings made by Sebastian Seeds (UConn) based on JT file
-   // - Collimator A1: CollimatorA_1_drawing.JPG
-   // - Collimator A2: CollimatorA_2_drawing.JPG
-   // - Offsets and rotations: CollimatorA_xzoffset.JPG
-   // Note: Collimators are on the LEFT side of the beam, next to the target  
+  // From drawings made by Sebastian Seeds (UConn) based on JT file
+  // - Collimator A1: CollimatorA_1_drawing.JPG
+  // - Collimator A2: CollimatorA_2_drawing.JPG
+  // - Offsets and rotations: CollimatorA_xzoffset.JPG
+  // Note: Collimators are on the LEFT side of the beam, next to the target  
 
-   double inch   = 2.54*cm;
+  double inch   = 2.54*cm;
  
-   // visualization
-   G4VisAttributes *vis = new G4VisAttributes(); 
-   vis->SetColour( G4Colour::Red() ); 
+  // visualization
+  G4VisAttributes *vis = new G4VisAttributes(); 
+  vis->SetColour( G4Colour::Red() ); 
 
 
-   // collimator A1: right-angle trapezoid 
-   G4double z       = 6.000*inch;  // z length
-   G4double y_mz    = 1.614*inch;  // y length at -z
-   G4double y_pz    = 3.391*inch + (3.391*inch-y_mz);  // y length at +z should be 5.456 inch 
-   G4double x_my_mz = 2.247*inch;  // x length at -y, -z  
-   G4double x_py_mz = 2.247*inch;  // x length at +y, -z
-   G4double x_my_pz = 3.189*inch;  // x length at -y, +z  
-   G4double x_py_pz = 3.189*inch;  // x length at +y, +z
-   G4double theta   = 0.*deg;
-   G4double phi     = 0.*deg;
-   G4double alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
-   G4double alpha2  = alpha1;
-   G4Trap *trapA1   = new G4Trap("trapA1",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
+  // collimator A1: right-angle trapezoid 
+  G4double z       = 6.000*inch;  // z length
+  G4double y_mz    = 1.614*inch;  // y length at -z
+  G4double y_pz    = 3.391*inch + (3.391*inch-y_mz);  // y length at +z should be 5.456 inch 
+  G4double x_my_mz = 2.247*inch;  // x length at -y, -z  
+  G4double x_py_mz = 2.247*inch;  // x length at +y, -z
+  G4double x_my_pz = 3.189*inch;  // x length at -y, +z  
+  G4double x_py_pz = 3.189*inch;  // x length at +y, +z
+  G4double theta   = 0.*deg;
+  G4double phi     = 0.*deg;
+  G4double alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
+  G4double alpha2  = alpha1;
+  G4Trap *trapA1   = new G4Trap("trapA1",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
 
-   // cut the bottom off 
-   G4Box *a1Cut = new G4Box("a1Cut",2.*inch,2.*inch,7.*inch);
-   G4ThreeVector P_a1Cut = G4ThreeVector(0,-y_mz-1.2*inch,0);
+  // cut the bottom off 
+  G4Box *a1Cut = new G4Box("a1Cut",2.*inch,2.*inch,7.*inch);
+  G4ThreeVector P_a1Cut = G4ThreeVector(0,-y_mz-1.2*inch,0);
 
-   G4SubtractionSolid *raSolid_A1 = new G4SubtractionSolid("raSolid_A1",trapA1,a1Cut,0,P_a1Cut);
+  G4SubtractionSolid *raSolid_A1 = new G4SubtractionSolid("raSolid_A1",trapA1,a1Cut,0,P_a1Cut);
 
-   // cut in A1 
-   G4Box *cutA1 = new G4Box("cutA1",0.250*inch/2.,0.250*inch/2.,4.000*inch/2.);
-   G4ThreeVector Pca1 = G4ThreeVector(0,-0.682*inch,-2.*inch);
-   G4SubtractionSolid *colSolid_A1 = new G4SubtractionSolid("colSolid_A1",raSolid_A1,cutA1,0,Pca1);
+  // cut in A1 
+  G4Box *cutA1 = new G4Box("cutA1",0.250*inch/2.,0.250*inch/2.,4.000*inch/2.);
+  G4ThreeVector Pca1 = G4ThreeVector(0,-0.682*inch,-2.*inch);
+  G4SubtractionSolid *colSolid_A1 = new G4SubtractionSolid("colSolid_A1",raSolid_A1,cutA1,0,Pca1);
 
-   // collimator A2: right-angle trapezoid
-   z       = 6.000*inch;  // z length
-   y_mz    = 2.500*inch;  // y length at -z
-   y_pz    = 2.500*inch;  // y length at +z should be 5.456 inch 
-   x_my_mz = 2.247*inch;  // x length at -y, -z  
-   x_py_mz = 2.247*inch;  // x length at +y, -z
-   x_my_pz = 3.189*inch;  // x length at -y, +z  
-   x_py_pz = 3.189*inch;  // x length at +y, +z
-   theta   = 0.*deg;
-   phi     = 0.*deg;
-   alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
-   alpha2  = alpha1;
-   G4Trap *colSolid_A2 = new G4Trap("colSolid_A2",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
+  // collimator A2: right-angle trapezoid
+  z       = 6.000*inch;  // z length
+  y_mz    = 2.500*inch;  // y length at -z
+  y_pz    = 2.500*inch;  // y length at +z should be 5.456 inch 
+  x_my_mz = 2.247*inch;  // x length at -y, -z  
+  x_py_mz = 2.247*inch;  // x length at +y, -z
+  x_my_pz = 3.189*inch;  // x length at -y, +z  
+  x_py_pz = 3.189*inch;  // x length at +y, +z
+  theta   = 0.*deg;
+  phi     = 0.*deg;
+  alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
+  alpha2  = alpha1;
+  G4Trap *colSolid_A2 = new G4Trap("colSolid_A2",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
 
-   // union of these objects.  use A2 as the reference point since it's easier
-   // - all positions and rotations are relative to A2 center  
-   G4ThreeVector P21     = G4ThreeVector(0,y_mz-0.45*inch,0);
-   G4RotationMatrix *r21 = new G4RotationMatrix();
-   G4UnionSolid *col_A   = new G4UnionSolid("col_A",colSolid_A2,colSolid_A1,r21,P21); 
+  // union of these objects.  use A2 as the reference point since it's easier
+  // - all positions and rotations are relative to A2 center  
+  G4ThreeVector P21     = G4ThreeVector(0,y_mz-0.45*inch,0);
+  G4RotationMatrix *r21 = new G4RotationMatrix();
+  G4UnionSolid *col_A   = new G4UnionSolid("col_A",colSolid_A2,colSolid_A1,r21,P21); 
 
-   // define materials and logical volume 
-   G4LogicalVolume *col_A_LV = new G4LogicalVolume(col_A,GetMaterial("TargetCollimator_Material"),"logicGEnTarget_col_A"); 
-   col_A_LV->SetVisAttributes(vis); 
+  // define materials and logical volume 
+  G4LogicalVolume *col_A_LV = new G4LogicalVolume(col_A,GetMaterial("TargetCollimator_Material"),"logicGEnTarget_col_A"); 
+  col_A_LV->SetVisAttributes(vis); 
 
-   // placement of the union object in the Hall coordinate system 
-   // position 
-   double X = 3.75*inch; double Y = -1.243*inch; double Z = z0 - 7.495*inch; 
-   // double X = 3.75*inch; double Y = 1.257*inch; double Z = z0 - 7.495*inch; 
-   G4ThreeVector P = G4ThreeVector(X,Y,Z); 
-   // rotation 
-   double RX = 0.; double RY = -34.62*deg; double RZ = 0.;
-   G4RotationMatrix *rm = new G4RotationMatrix();
-   rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
+  // placement of the union object in the Hall coordinate system 
+  // position 
+  double X = 3.75*inch; double Y = -1.243*inch; double Z = z0 - 7.495*inch; 
+  // double X = 3.75*inch; double Y = 1.257*inch; double Z = z0 - 7.495*inch; 
+  G4ThreeVector P = G4ThreeVector(X,Y,Z); 
+  // rotation 
+  double RX = 0.; double RY = -34.62*deg; double RZ = 0.;
+  G4RotationMatrix *rm = new G4RotationMatrix();
+  rm->rotateX(RX); rm->rotateY(RY); rm->rotateZ(RZ);
  
-   bool checkOverlaps = true; 
+  bool checkOverlaps = true; 
    
-   bool enableA = fDetCon->GetGEnTargetCollimatorAEnable();
+  bool enableA = fDetCon->GetGEnTargetCollimatorAEnable();
 
-   if(enableA){
-      new G4PVPlacement(rm,                         // rotation
-	                P,                          // position 
-	                col_A_LV,                   // logical volume   
-	                "physGEnTarget_col_A",      // physical name 
-	                logicMother,                // logical mother
-	                true,                       // boolean? 
-	                0,                          // copy no 
-	                checkOverlaps);             // check overlaps
-      // register with DetectorConstruction object 
-      fDetCon->InsertTargetVolume( col_A_LV->GetName() ); 
-   }
+  if(enableA){
+    new G4PVPlacement(rm,                         // rotation
+		      P,                          // position 
+		      col_A_LV,                   // logical volume   
+		      "physGEnTarget_col_A",      // physical name 
+		      logicMother,                // logical mother
+		      true,                       // boolean? 
+		      0,                          // copy no 
+		      checkOverlaps);             // check overlaps
+    // register with DetectorConstruction object 
+    fDetCon->InsertTargetVolume( col_A_LV->GetName() ); 
+  }
 
-   // now build the collimator base -- always build! 
-   G4double xb_len = 5.114*inch; 
-   G4double yb_len = 0.750*inch; 
-   G4double zb_len = 6.250*inch;
-   G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
+  // now build the collimator base -- always build! 
+  G4double xb_len = 5.114*inch; 
+  G4double yb_len = 0.750*inch; 
+  G4double zb_len = 6.250*inch;
+  G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
 
-   // base cut 1
-   G4double xcc_len = 3.*inch;  
-   G4double ycc_len = 2.*inch;  
-   G4double zcc_len = 4.749*inch; 
-   G4Box *solidBase_cut1 = new G4Box("solidBase_cut1",xcc_len/2.,ycc_len/2.,zcc_len/2.); 
+  // base cut 1
+  G4double xcc_len = 3.*inch;  
+  G4double ycc_len = 2.*inch;  
+  G4double zcc_len = 4.749*inch; 
+  G4Box *solidBase_cut1 = new G4Box("solidBase_cut1",xcc_len/2.,ycc_len/2.,zcc_len/2.); 
 
-   G4RotationMatrix *rmc1 = new G4RotationMatrix();
-   rmc1->rotateY(39.11*deg); 
+  G4RotationMatrix *rmc1 = new G4RotationMatrix();
+  rmc1->rotateY(39.11*deg); 
 
-   G4double XX1 = 2.207*inch; // xb_len/2. - 0.35*inch; 
-   G4double YY1 = 0; 
-   G4double ZZ1 = 2.25*inch; 
-   G4ThreeVector P_bc1 = G4ThreeVector(XX1,YY1,ZZ1);
+  G4double XX1 = 2.207*inch; // xb_len/2. - 0.35*inch; 
+  G4double YY1 = 0; 
+  G4double ZZ1 = 2.25*inch; 
+  G4ThreeVector P_bc1 = G4ThreeVector(XX1,YY1,ZZ1);
 
-   // base cut2 
-   G4double xcc2_len = 3.*inch;  
-   G4double ycc2_len = 2.*inch;  
-   G4double zcc2_len = 4.968*inch; 
-   G4Box *solidBase_cut2 = new G4Box("solidBase_cut2",xcc2_len/2.,ycc2_len/2.,zcc2_len/2.); 
+  // base cut2 
+  G4double xcc2_len = 3.*inch;  
+  G4double ycc2_len = 2.*inch;  
+  G4double zcc2_len = 4.968*inch; 
+  G4Box *solidBase_cut2 = new G4Box("solidBase_cut2",xcc2_len/2.,ycc2_len/2.,zcc2_len/2.); 
 
-   G4RotationMatrix *rmc2 = new G4RotationMatrix();
-   rmc2->rotateY(25.53*deg); 
+  G4RotationMatrix *rmc2 = new G4RotationMatrix();
+  rmc2->rotateY(25.53*deg); 
 
-   G4double XX2 = -2.85*inch; // xb_len/2. - 0.35*inch; 
-   G4double YY2 = 0; 
-   G4double ZZ2 = -1.5*inch; 
-   // std::cout << XX/inch << " " << YY/inch << " " << ZZ/inch << std::endl;
-   G4ThreeVector P_bc2 = G4ThreeVector(XX2,YY2,ZZ2);
+  G4double XX2 = -2.85*inch; // xb_len/2. - 0.35*inch; 
+  G4double YY2 = 0; 
+  G4double ZZ2 = -1.5*inch; 
+  // std::cout << XX/inch << " " << YY/inch << " " << ZZ/inch << std::endl;
+  G4ThreeVector P_bc2 = G4ThreeVector(XX2,YY2,ZZ2);
 
-   // base cut3 
-   G4double xcc3_len = 1.600*inch;  
-   G4double ycc3_len = 0.188*inch;  
-   G4double zcc3_len = 7.000*inch; 
-   G4Box *solidBase_cut3 = new G4Box("solidBase_cut3",xcc3_len/2.,ycc3_len/2.,zcc3_len/2.); 
+  // base cut3 
+  G4double xcc3_len = 1.600*inch;  
+  G4double ycc3_len = 0.188*inch;  
+  G4double zcc3_len = 7.000*inch; 
+  G4Box *solidBase_cut3 = new G4Box("solidBase_cut3",xcc3_len/2.,ycc3_len/2.,zcc3_len/2.); 
 
-   G4double XX3 = 1.817*inch;  
-   G4double YY3 = yb_len/2. - ycc3_len/2.; 
-   G4double ZZ3 = 0.*inch; 
-   G4ThreeVector P_bc3 = G4ThreeVector(XX3,YY3,ZZ3);
+  G4double XX3 = 1.817*inch;  
+  G4double YY3 = yb_len/2. - ycc3_len/2.; 
+  G4double ZZ3 = 0.*inch; 
+  G4ThreeVector P_bc3 = G4ThreeVector(XX3,YY3,ZZ3);
 
-   // subtraction solid 
-   // base - cut 1
-   G4SubtractionSolid *colBase   = new G4SubtractionSolid("colBase_1",solidBase,solidBase_cut1,rmc1,P_bc1);  
-   // cut 2 
-   colBase   = new G4SubtractionSolid("colBase_12",colBase,solidBase_cut2,rmc2,P_bc2); 
-   // cut 3 
-   colBase   = new G4SubtractionSolid("colBase"   ,colBase,solidBase_cut3,0,P_bc3); 
+  // subtraction solid 
+  // base - cut 1
+  G4SubtractionSolid *colBase   = new G4SubtractionSolid("colBase_1",solidBase,solidBase_cut1,rmc1,P_bc1);  
+  // cut 2 
+  colBase   = new G4SubtractionSolid("colBase_12",colBase,solidBase_cut2,rmc2,P_bc2); 
+  // cut 3 
+  colBase   = new G4SubtractionSolid("colBase"   ,colBase,solidBase_cut3,0,P_bc3); 
 
-   G4VisAttributes *visBase = new G4VisAttributes(); 
-   visBase->SetColour( G4Colour::Blue() ); 
+  G4VisAttributes *visBase = new G4VisAttributes(); 
+  visBase->SetColour( G4Colour::Blue() ); 
  
-   G4LogicalVolume *colBase_A_LV = new G4LogicalVolume(colBase,GetMaterial("Aluminum"),"logicGEnTarget_colBase_A");
-   colBase_A_LV->SetVisAttributes(visBase); 
+  G4LogicalVolume *colBase_A_LV = new G4LogicalVolume(colBase,GetMaterial("NEMAG10"),"logicGEnTarget_colBase_A");
+  colBase_A_LV->SetVisAttributes(visBase); 
 
-   // placement 
-   G4RotationMatrix *rmb = new G4RotationMatrix(); 
-   rmb->rotateX(180.*deg);
+  // placement 
+  G4RotationMatrix *rmb = new G4RotationMatrix(); 
+  rmb->rotateX(180.*deg);
 
-   G4ThreeVector Pb = G4ThreeVector(3.693*inch,-2.889*inch,-7.125*inch); 
+  G4ThreeVector Pb = G4ThreeVector(3.693*inch,-2.889*inch,-7.125*inch); 
 
-   new G4PVPlacement(rmb,                        // rotation
-                     Pb,                         // position 
-                     colBase_A_LV,               // logical volume   
-                     "physGEnTarget_colBase_A",  // physical name 
-                     logicMother,                // logical mother
-                     true,                       // boolean? 
-                     0,                          // copy no 
-                     checkOverlaps);             // check overlaps
+  new G4PVPlacement(rmb,                        // rotation
+		    Pb,                         // position 
+		    colBase_A_LV,               // logical volume   
+		    "physGEnTarget_colBase_A",  // physical name 
+		    logicMother,                // logical mother
+		    true,                       // boolean? 
+		    0,                          // copy no 
+		    checkOverlaps);             // check overlaps
 
-   // register with DetectorConstruction object 
-   fDetCon->InsertTargetVolume( colBase_A_LV->GetName() ); 
+  // register with DetectorConstruction object 
+  fDetCon->InsertTargetVolume( colBase_A_LV->GetName() ); 
 
 }
 //______________________________________________________________________________
 void G4SBSTargetBuilder::BuildGEnTarget_Collimator_B(G4LogicalVolume *logicMother,G4double z0){
-   // From drawings made by Sebastian Seeds (UConn) based on JT file
-   // - Collimator B: CollimatorB_drawing.JPG
-   // - Offsets and rotations: CollimatorB_xzoffset.JPG
-   // Note: Collimators are on the LEFT side of the beam, next to the target  
+  // From drawings made by Sebastian Seeds (UConn) based on JT file
+  // - Collimator B: CollimatorB_drawing.JPG
+  // - Offsets and rotations: CollimatorB_xzoffset.JPG
+  // Note: Collimators are on the LEFT side of the beam, next to the target  
 
-   double inch   = 2.54*cm;
+  double inch   = 2.54*cm;
  
-   // visualization
-   G4VisAttributes *vis = new G4VisAttributes(); 
-   vis->SetColour( G4Colour::Red() ); 
+  // visualization
+  G4VisAttributes *vis = new G4VisAttributes(); 
+  vis->SetColour( G4Colour::Red() ); 
 
-   // collimator B: right-angle trapezoid  
-   G4double z       = 3.397*inch;  // z length
-   G4double y_mz    = 3.620*inch;  // y length at -z
-   G4double y_pz    = 5.456*inch + (5.456*inch-y_mz);  // y length at +z should be 5.456 inch 
-   G4double x_my_mz = 0.815*inch;  // x length at -y, -z  
-   G4double x_py_mz = 0.815*inch;  // x length at +y, -z
-   G4double x_my_pz = 1.531*inch;  // x length at -y, +z  
-   G4double x_py_pz = 1.531*inch;  // x length at +y, +z
-   G4double theta   = 0.*deg;
-   G4double phi     = 0.*deg;
-   G4double alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
-   G4double alpha2  = alpha1;
-   G4Trap *trapB    = new G4Trap("trapB",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
+  // collimator B: right-angle trapezoid  
+  G4double z       = 3.397*inch;  // z length
+  G4double y_mz    = 3.620*inch;  // y length at -z
+  G4double y_pz    = 5.456*inch + (5.456*inch-y_mz);  // y length at +z should be 5.456 inch 
+  G4double x_my_mz = 0.815*inch;  // x length at -y, -z  
+  G4double x_py_mz = 0.815*inch;  // x length at +y, -z
+  G4double x_my_pz = 1.531*inch;  // x length at -y, +z  
+  G4double x_py_pz = 1.531*inch;  // x length at +y, +z
+  G4double theta   = 0.*deg;
+  G4double phi     = 0.*deg;
+  G4double alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
+  G4double alpha2  = alpha1;
+  G4Trap *trapB    = new G4Trap("trapB",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
 
-   // cut the bottom off 
-   G4Box *bCut = new G4Box("bCut",2.*inch,2.*inch,2.*inch);
-   G4ThreeVector P_bCut = G4ThreeVector(0,-y_mz-0.5*cm,0);
+  // cut the bottom off 
+  G4Box *bCut = new G4Box("bCut",2.*inch,2.*inch,2.*inch);
+  G4ThreeVector P_bCut = G4ThreeVector(0,-y_mz-0.5*cm,0);
 
-   G4SubtractionSolid *colSolid_B = new G4SubtractionSolid("colSolid_B",trapB,bCut,0,P_bCut);
+  G4SubtractionSolid *colSolid_B = new G4SubtractionSolid("colSolid_B",trapB,bCut,0,P_bCut);
 
-   // define materials and logical volume 
-   G4LogicalVolume *col_B_LV = new G4LogicalVolume(colSolid_B,GetMaterial("TargetCollimator_Material"),"col_B_LV"); 
-   col_B_LV->SetVisAttributes(vis); 
+  // define materials and logical volume 
+  G4LogicalVolume *col_B_LV = new G4LogicalVolume(colSolid_B,GetMaterial("TargetCollimator_Material"),"col_B_LV"); 
+  col_B_LV->SetVisAttributes(vis); 
 
-   // placement in the Hall coordinate system 
-   // position
-   std::vector<G4double> POS;
-   POS.push_back( 2.520*inch); POS.push_back(-0.55*inch); POS.push_back(z0 + 14.2*inch); 
-   G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]); 
-   // rotation 
-   std::vector<G4double> RA; 
-   RA.push_back(0.*deg); RA.push_back(-47.24*deg); RA.push_back(0.*deg);
-   G4RotationMatrix *rm = new G4RotationMatrix();
-   rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
+  // placement in the Hall coordinate system 
+  // position
+  std::vector<G4double> POS;
+  POS.push_back( 2.520*inch); POS.push_back(-0.55*inch); POS.push_back(z0 + 14.2*inch); 
+  G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]); 
+  // rotation 
+  std::vector<G4double> RA; 
+  RA.push_back(0.*deg); RA.push_back(-47.24*deg); RA.push_back(0.*deg);
+  G4RotationMatrix *rm = new G4RotationMatrix();
+  rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
 
-   bool checkOverlaps = true; 
+  bool checkOverlaps = true; 
    
-   bool enableB = fDetCon->GetGEnTargetCollimatorBEnable();
+  bool enableB = fDetCon->GetGEnTargetCollimatorBEnable();
 
-   if(enableB){
-      new G4PVPlacement(rm,                         // rotation
-	                P,                          // position 
-                        col_B_LV,                   // logical volume   
-                        "col_B_PHY",                // physical name 
-                        logicMother,                // logical mother
-                        false,                      // boolean? 
-                        0,                          // copy no 
-                        checkOverlaps);             // check overlaps
-      // register with DetectorConstruction object 
-      fDetCon->InsertTargetVolume( col_B_LV->GetName() ); 
-   }
+  if(enableB){
+    new G4PVPlacement(rm,                         // rotation
+		      P,                          // position 
+		      col_B_LV,                   // logical volume   
+		      "col_B_PHY",                // physical name 
+		      logicMother,                // logical mother
+		      false,                      // boolean? 
+		      0,                          // copy no 
+		      checkOverlaps);             // check overlaps
+    // register with DetectorConstruction object 
+    fDetCon->InsertTargetVolume( col_B_LV->GetName() ); 
+  }
 
-   // now build the collimator base -- always build! 
-   G4double xb_len = 3.750*inch; 
-   G4double yb_len = 0.765*inch; 
-   G4double zb_len = 3.997*inch;
-   G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
+  // now build the collimator base -- always build! 
+  G4double xb_len = 3.750*inch; 
+  G4double yb_len = 0.765*inch; 
+  G4double zb_len = 3.997*inch;
+  G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
 
-   // base cut 1
-   G4double xcc_len = 2.0*inch;  
-   G4double ycc_len = 2.*inch;  
-   G4double zcc_len = 3.700*inch; 
-   G4Box *solidBase_cut1 = new G4Box("solidBase_cut1",xcc_len/2.,ycc_len/2.,zcc_len/2.); 
+  // base cut 1
+  G4double xcc_len = 2.0*inch;  
+  G4double ycc_len = 2.*inch;  
+  G4double zcc_len = 3.700*inch; 
+  G4Box *solidBase_cut1 = new G4Box("solidBase_cut1",xcc_len/2.,ycc_len/2.,zcc_len/2.); 
 
-   G4RotationMatrix *rmc1 = new G4RotationMatrix();
-   rmc1->rotateY(-36.04*deg); 
+  G4RotationMatrix *rmc1 = new G4RotationMatrix();
+  rmc1->rotateY(-36.04*deg); 
 
-   G4double XX1 = 1.6*inch;  
-   G4double YY1 = 0; 
-   G4double ZZ1 = -1.05*inch;  // diagram says 1.008, but this looks nicer
-   G4ThreeVector P_bc1 = G4ThreeVector(XX1,YY1,ZZ1);
+  G4double XX1 = 1.6*inch;  
+  G4double YY1 = 0; 
+  G4double ZZ1 = -1.05*inch;  // diagram says 1.008, but this looks nicer
+  G4ThreeVector P_bc1 = G4ThreeVector(XX1,YY1,ZZ1);
 
-   // base cut2  
-   double zcc2     = 1.000*inch;  // length along z
-   double ycc2     = 0.987*inch;  // length along y 
-   double xcc2_s   = 2.439*inch;  // length along x (short side)
-   double xcc2_l   = 3.352*inch;  // length along x (long side) 
-   G4Trap *solidBase_cut2 = new G4Trap("solidBase_cut2",zcc2,ycc2,xcc2_l,xcc2_s);
+  // base cut2  
+  double zcc2     = 1.000*inch;  // length along z
+  double ycc2     = 0.987*inch;  // length along y 
+  double xcc2_s   = 2.439*inch;  // length along x (short side)
+  double xcc2_l   = 3.352*inch;  // length along x (long side) 
+  G4Trap *solidBase_cut2 = new G4Trap("solidBase_cut2",zcc2,ycc2,xcc2_l,xcc2_s);
 
-   G4RotationMatrix *rmc2 = new G4RotationMatrix();
-   rmc2->rotateY(-90*deg); 
-   rmc2->rotateX(-30*deg); 
+  G4RotationMatrix *rmc2 = new G4RotationMatrix();
+  rmc2->rotateY(-90*deg); 
+  rmc2->rotateX(-30*deg); 
 
-   G4double XX2 = -2.075*inch;  
-   G4double YY2 =  0.495*inch; 
-   G4double ZZ2 =  0.580*inch;
-   G4ThreeVector P_bc2 = G4ThreeVector(XX2,YY2,ZZ2);
+  G4double XX2 = -2.075*inch;  
+  G4double YY2 =  0.495*inch; 
+  G4double ZZ2 =  0.580*inch;
+  G4ThreeVector P_bc2 = G4ThreeVector(XX2,YY2,ZZ2);
 
-   // subtraction solid 
-   // base - cut 1
-   G4SubtractionSolid *colBase = new G4SubtractionSolid("colBase_1",solidBase,solidBase_cut1,rmc1,P_bc1);  
-   // cut 2 
-   colBase = new G4SubtractionSolid("colBase_12",colBase,solidBase_cut2,rmc2,P_bc2); 
+  // subtraction solid 
+  // base - cut 1
+  G4SubtractionSolid *colBase = new G4SubtractionSolid("colBase_1",solidBase,solidBase_cut1,rmc1,P_bc1);  
+  // cut 2 
+  colBase = new G4SubtractionSolid("colBase_12",colBase,solidBase_cut2,rmc2,P_bc2); 
 
-   G4VisAttributes *visBase = new G4VisAttributes(); 
-   visBase->SetColour( G4Colour::Blue() ); 
+  G4VisAttributes *visBase = new G4VisAttributes(); 
+  visBase->SetColour( G4Colour::Blue() ); 
  
-   G4LogicalVolume *colBase_B_LV = new G4LogicalVolume(colBase,GetMaterial("Aluminum"),"logicGEnTarget_colBase_B");
-   colBase_B_LV->SetVisAttributes(visBase); 
+  G4LogicalVolume *colBase_B_LV = new G4LogicalVolume(colBase,GetMaterial("NEMAG10"),"logicGEnTarget_colBase_B");
+  colBase_B_LV->SetVisAttributes(visBase); 
 
-   // placement 
-   G4RotationMatrix *rmb = new G4RotationMatrix(); 
-   rmb->rotateY(180.*deg);
+  // placement 
+  G4RotationMatrix *rmb = new G4RotationMatrix(); 
+  rmb->rotateY(180.*deg);
 
-   G4ThreeVector Pb = G4ThreeVector(2.875*inch,-2.815*inch,14.626*inch); 
+  G4ThreeVector Pb = G4ThreeVector(2.875*inch,-2.815*inch,14.626*inch); 
 
-   new G4PVPlacement(rmb,                        // rotation
-                     Pb,                         // position 
-                     colBase_B_LV,               // logical volume   
-                     "physGEnTarget_colBase_B",  // physical name 
-                     logicMother,                // logical mother
-                     true,                       // boolean? 
-                     0,                          // copy no 
-                     checkOverlaps);             // check overlaps
+  new G4PVPlacement(rmb,                        // rotation
+		    Pb,                         // position 
+		    colBase_B_LV,               // logical volume   
+		    "physGEnTarget_colBase_B",  // physical name 
+		    logicMother,                // logical mother
+		    true,                       // boolean? 
+		    0,                          // copy no 
+		    checkOverlaps);             // check overlaps
 
-   // register with DetectorConstruction object 
-   fDetCon->InsertTargetVolume( colBase_B_LV->GetName() ); 
+  // register with DetectorConstruction object 
+  fDetCon->InsertTargetVolume( colBase_B_LV->GetName() ); 
 
 }
 //______________________________________________________________________________
 void G4SBSTargetBuilder::BuildGEnTarget_Collimator_C(G4LogicalVolume *logicMother,G4double z0){
-   // From drawings made by Sebastian Seeds (UConn) based on JT file
-   // - Collimator C: CollimatorC_drawing.JPG
-   // - Offsets and rotations: CollimatorC_xzoffset.JPG
-   // Note: Collimators are on the LEFT side of the beam, next to the target  
+  // From drawings made by Sebastian Seeds (UConn) based on JT file
+  // - Collimator C: CollimatorC_drawing.JPG
+  // - Offsets and rotations: CollimatorC_xzoffset.JPG
+  // Note: Collimators are on the LEFT side of the beam, next to the target  
 
-   double inch   = 2.54*cm;
+  double inch   = 2.54*cm;
  
-   // visualization
-   G4VisAttributes *vis = new G4VisAttributes(); 
-   vis->SetColour( G4Colour::Red() ); 
+  // visualization
+  G4VisAttributes *vis = new G4VisAttributes(); 
+  vis->SetColour( G4Colour::Red() ); 
 
-   // collimator C: right-angle trapezoid  
-   G4double z       = 2.756*inch;  // z length
-   G4double y_mz    = 3.800*inch;  // y length at -z
-   G4double y_pz    = 4.858*inch + (4.858*inch-y_mz);  // y length at +z should be 5.456 inch 
-   G4double x_my_mz = 1.498*inch;  // x length at -y, -z  
-   G4double x_py_mz = 1.498*inch;  // x length at +y, -z
-   G4double x_my_pz = 2.252*inch;  // x length at -y, +z  
-   G4double x_py_pz = 2.252*inch;  // x length at +y, +z
-   G4double theta   = 0.*deg;
-   G4double phi     = 0.*deg;
-   G4double alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
-   G4double alpha2  = alpha1;
-   G4Trap *trapC    = new G4Trap("trapC",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
+  // collimator C: right-angle trapezoid  
+  G4double z       = 2.756*inch;  // z length
+  G4double y_mz    = 3.800*inch;  // y length at -z
+  G4double y_pz    = 4.858*inch + (4.858*inch-y_mz);  // y length at +z should be 5.456 inch 
+  G4double x_my_mz = 1.498*inch;  // x length at -y, -z  
+  G4double x_py_mz = 1.498*inch;  // x length at +y, -z
+  G4double x_my_pz = 2.252*inch;  // x length at -y, +z  
+  G4double x_py_pz = 2.252*inch;  // x length at +y, +z
+  G4double theta   = 0.*deg;
+  G4double phi     = 0.*deg;
+  G4double alpha1  = 0.5*(x_py_mz-x_my_mz)/y_pz;
+  G4double alpha2  = alpha1;
+  G4Trap *trapC    = new G4Trap("trapC",z/2.,theta,phi,y_mz/2.,x_my_mz/2.,x_py_mz/2.,alpha1,y_pz/2.,x_my_pz/2.,x_py_pz/2.,alpha2);
 
-   // cut the bottom off 
-   G4Box *cCut = new G4Box("cCut",2.*inch,2.*inch,2.*inch);
-   G4ThreeVector P_cCut = G4ThreeVector(0,-y_mz-2*mm,0);
+  // cut the bottom off 
+  G4Box *cCut = new G4Box("cCut",2.*inch,2.*inch,2.*inch);
+  G4ThreeVector P_cCut = G4ThreeVector(0,-y_mz-2*mm,0);
 
-   G4SubtractionSolid *colSolid_C = new G4SubtractionSolid("colSolid_C",trapC,cCut,0,P_cCut);
+  G4SubtractionSolid *colSolid_C = new G4SubtractionSolid("colSolid_C",trapC,cCut,0,P_cCut);
 
-   // define materials and logical volume 
-   G4LogicalVolume *col_C_LV = new G4LogicalVolume(colSolid_C,GetMaterial("TargetCollimator_Material"),"logicGEnTarget_col_C"); 
-   col_C_LV->SetVisAttributes(vis); 
+  // define materials and logical volume 
+  G4LogicalVolume *col_C_LV = new G4LogicalVolume(colSolid_C,GetMaterial("TargetCollimator_Material"),"logicGEnTarget_col_C"); 
+  col_C_LV->SetVisAttributes(vis); 
 
-   // placement in the Hall coordinate system 
-   // position
-   std::vector<G4double> POS;
-   POS.push_back(4.070*inch); POS.push_back(-0.35*inch); POS.push_back(z0 + 20.870*inch + 0.4*inch); 
-   G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]); 
-   // rotation 
-   std::vector<G4double> RA; 
-   RA.push_back(0.*deg); RA.push_back(-50.41*deg); RA.push_back(0.*deg);
-   G4RotationMatrix *rm = new G4RotationMatrix();
-   rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
+  // placement in the Hall coordinate system 
+  // position
+  std::vector<G4double> POS;
+  POS.push_back(4.070*inch); POS.push_back(-0.35*inch); POS.push_back(z0 + 20.870*inch + 0.4*inch); 
+  G4ThreeVector P = G4ThreeVector(POS[0],POS[1],POS[2]); 
+  // rotation 
+  std::vector<G4double> RA; 
+  RA.push_back(0.*deg); RA.push_back(-50.41*deg); RA.push_back(0.*deg);
+  G4RotationMatrix *rm = new G4RotationMatrix();
+  rm->rotateX(RA[0]); rm->rotateY(RA[1]); rm->rotateZ(RA[2]);
 
-   bool checkOverlaps = true; 
+  bool checkOverlaps = true; 
    
-   bool enableC = fDetCon->GetGEnTargetCollimatorCEnable();
+  bool enableC = fDetCon->GetGEnTargetCollimatorCEnable();
 
-   if(enableC){
-      new G4PVPlacement(rm,                         // rotation
-	                P,                          // position 
-	                col_C_LV,                   // logical volume   
-	                "physGEnTarget_col_C",      // physical name 
-	                logicMother,                // logical mother
-	                false,                      // boolean? 
-	                0,                          // copy no 
-	                checkOverlaps);             // check overlaps
-      // register with DetectorConstruction object 
-      fDetCon->InsertTargetVolume( col_C_LV->GetName() ); 
-   }
+  if(enableC){
+    new G4PVPlacement(rm,                         // rotation
+		      P,                          // position 
+		      col_C_LV,                   // logical volume   
+		      "physGEnTarget_col_C",      // physical name 
+		      logicMother,                // logical mother
+		      false,                      // boolean? 
+		      0,                          // copy no 
+		      checkOverlaps);             // check overlaps
+    // register with DetectorConstruction object 
+    fDetCon->InsertTargetVolume( col_C_LV->GetName() ); 
+  }
 
-   // now build the collimator base 
-   G4double xb_len = 3.625*inch; 
-   G4double yb_len = 1.000*inch; 
-   G4double zb_len = 3.250*inch;
-   G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
+  // now build the collimator base 
+  G4double xb_len = 3.625*inch; 
+  G4double yb_len = 1.000*inch; 
+  G4double zb_len = 3.250*inch;
+  G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
 
-   // base cut 1
-   G4double xcc_len = 2.420*inch;  
-   G4double ycc_len = 4.0*inch;  
-   G4double zcc_len = 2.420*inch; 
-   G4Box *solidBase_cut1 = new G4Box("solidBase_cut1",xcc_len/2.,ycc_len/2.,zcc_len/2.); 
+  // base cut 1
+  G4double xcc_len = 2.420*inch;  
+  G4double ycc_len = 4.0*inch;  
+  G4double zcc_len = 2.420*inch; 
+  G4Box *solidBase_cut1 = new G4Box("solidBase_cut1",xcc_len/2.,ycc_len/2.,zcc_len/2.); 
 
-   G4RotationMatrix *rmc1 = new G4RotationMatrix();
-   rmc1->rotateY(-35.62*deg); 
+  G4RotationMatrix *rmc1 = new G4RotationMatrix();
+  rmc1->rotateY(-35.62*deg); 
 
-   G4double XX1 = 1.5*inch;  
-   G4double YY1 = 0; 
-   G4double ZZ1 = 0.2*inch + 1.5*inch + 0.216*inch;  
-   G4ThreeVector P_bc1 = G4ThreeVector(XX1,YY1,ZZ1);
+  G4double XX1 = 1.5*inch;  
+  G4double YY1 = 0; 
+  G4double ZZ1 = 0.2*inch + 1.5*inch + 0.216*inch;  
+  G4ThreeVector P_bc1 = G4ThreeVector(XX1,YY1,ZZ1);
 
-   // base cut2 
-   G4double xcc2_len = 4.000*inch;  
-   G4double ycc2_len = 0.500*inch;  
-   G4double zcc2_len = 0.875*inch; 
-   G4Box *solidBase_cut2 = new G4Box("solidBase_cut2",xcc2_len/2.,ycc2_len/2.,zcc2_len/2.); 
+  // base cut2 
+  G4double xcc2_len = 4.000*inch;  
+  G4double ycc2_len = 0.500*inch;  
+  G4double zcc2_len = 0.875*inch; 
+  G4Box *solidBase_cut2 = new G4Box("solidBase_cut2",xcc2_len/2.,ycc2_len/2.,zcc2_len/2.); 
 
-   G4RotationMatrix *rmc2 = new G4RotationMatrix();
+  G4RotationMatrix *rmc2 = new G4RotationMatrix();
 
-   G4double XX2 = 0.*inch;  
-   G4double YY2 = -yb_len/2. - 0.05*inch; 
-   G4double ZZ2 = -zb_len/2. + zcc2_len/2.;
-   G4ThreeVector P_bc2 = G4ThreeVector(XX2,YY2,ZZ2);
+  G4double XX2 = 0.*inch;  
+  G4double YY2 = -yb_len/2. - 0.05*inch; 
+  G4double ZZ2 = -zb_len/2. + zcc2_len/2.;
+  G4ThreeVector P_bc2 = G4ThreeVector(XX2,YY2,ZZ2);
 
-   // subtraction solid 
-   // base - cut 1
-   G4SubtractionSolid *colBase = new G4SubtractionSolid("colBase_1",solidBase,solidBase_cut1,rmc1,P_bc1);  
-   // cut 2 
-   colBase = new G4SubtractionSolid("colBase_12",colBase,solidBase_cut2,rmc2,P_bc2); 
+  // subtraction solid 
+  // base - cut 1
+  G4SubtractionSolid *colBase = new G4SubtractionSolid("colBase_1",solidBase,solidBase_cut1,rmc1,P_bc1);  
+  // cut 2 
+  colBase = new G4SubtractionSolid("colBase_12",colBase,solidBase_cut2,rmc2,P_bc2); 
 
-   G4VisAttributes *visBase = new G4VisAttributes(); 
-   visBase->SetColour( G4Colour::Blue() ); 
+  G4VisAttributes *visBase = new G4VisAttributes(); 
+  visBase->SetColour( G4Colour::Blue() ); 
  
-   G4LogicalVolume *colBase_C_LV = new G4LogicalVolume(colBase,GetMaterial("Aluminum"),"logicGEnTarget_colBase_C");
-   colBase_C_LV->SetVisAttributes(visBase); 
+  G4LogicalVolume *colBase_C_LV = new G4LogicalVolume(colBase,GetMaterial("NEMAG10"),"logicGEnTarget_colBase_C");
+  colBase_C_LV->SetVisAttributes(visBase); 
 
-   // placement 
-   G4RotationMatrix *rmb = new G4RotationMatrix(); 
-   rmb->rotateY(90.*deg);
+  // placement 
+  G4RotationMatrix *rmb = new G4RotationMatrix(); 
+  rmb->rotateY(90.*deg);
 
-   G4ThreeVector Pb = G4ThreeVector(3.812*inch,-2.764*inch,21.50*inch); 
+  G4ThreeVector Pb = G4ThreeVector(3.812*inch,-2.764*inch,21.50*inch); 
 
-   new G4PVPlacement(rmb,                        // rotation
-                     Pb,                         // position 
-                     colBase_C_LV,               // logical volume   
-                     "physGEnTarget_colBase_C",  // physical name 
-                     logicMother,                // logical mother
-                     true,                       // boolean? 
-                     0,                          // copy no 
-                     checkOverlaps);             // check overlaps
+  new G4PVPlacement(rmb,                        // rotation
+		    Pb,                         // position 
+		    colBase_C_LV,               // logical volume   
+		    "physGEnTarget_colBase_C",  // physical name 
+		    logicMother,                // logical mother
+		    true,                       // boolean? 
+		    0,                          // copy no 
+		    checkOverlaps);             // check overlaps
 
-   // register with DetectorConstruction object 
-   fDetCon->InsertTargetVolume( colBase_C_LV->GetName() ); 
+  // register with DetectorConstruction object 
+  fDetCon->InsertTargetVolume( colBase_C_LV->GetName() ); 
 
 }
 //______________________________________________________________________________
 void G4SBSTargetBuilder::BuildGEnTarget_Collimator_Table(G4LogicalVolume *motherLog,G4double z0){
-   // Collimator table on which the collimators sit
-   // Drawings: C4.JPG--C9.JPG
+  // Collimator table on which the collimators sit
+  // Drawings: C4.JPG--C9.JPG
 
-   G4double inch = 2.54*cm;
+  G4double inch = 2.54*cm;
 
-   // C4: table platform 
-   G4double x_len =  3.875*inch;
-   G4double y_len =  0.500*inch;
-   G4double z_len = 35.625*inch;
-   G4Box *solidC4 = new G4Box("solidC4",x_len/2.,y_len/2.,z_len/2.);
+  // C4: table platform 
+  G4double x_len =  3.875*inch;
+  G4double y_len =  0.500*inch;
+  G4double z_len = 35.625*inch;
+  G4Box *solidC4 = new G4Box("solidC4",x_len/2.,y_len/2.,z_len/2.);
 
-   // C4 cutaway (angled cut 1) 
-   G4double xca1_len = 2.000*inch;
-   G4double yca1_len = 2.000*inch;
-   G4double zca1_len = 3.143*inch;
-   G4Box *solidC4_cut_a1 = new G4Box("solidC4_cut_a1",xca1_len/2.,yca1_len/2.,zca1_len/2.);
+  // C4 cutaway (angled cut 1) 
+  G4double xca1_len = 2.000*inch;
+  G4double yca1_len = 2.000*inch;
+  G4double zca1_len = 3.143*inch;
+  G4Box *solidC4_cut_a1 = new G4Box("solidC4_cut_a1",xca1_len/2.,yca1_len/2.,zca1_len/2.);
 
-   G4RotationMatrix *rmca1 = new G4RotationMatrix();
-   std::vector<G4double> RA;
-   RA.push_back(0*deg); RA.push_back(-25*deg); RA.push_back(0);  
-   rmca1->rotateX(RA[0]); rmca1->rotateY(RA[1]); rmca1->rotateZ(RA[2]);
+  G4RotationMatrix *rmca1 = new G4RotationMatrix();
+  std::vector<G4double> RA;
+  RA.push_back(0*deg); RA.push_back(-25*deg); RA.push_back(0);  
+  rmca1->rotateX(RA[0]); rmca1->rotateY(RA[1]); rmca1->rotateZ(RA[2]);
 
-   // position of cut (derived from drawing C4.JPG) 
-   G4ThreeVector P_c4c_a1 = G4ThreeVector(-2.165*inch,0*inch,-12.509*inch);
+  // position of cut (derived from drawing C4.JPG) 
+  G4ThreeVector P_c4c_a1 = G4ThreeVector(-2.165*inch,0*inch,-12.509*inch);
 
-   // C4 cutaway [long stretch] 
-   G4double cutLen_x = 1.375*inch;
-   G4double xc_len =  2.000*inch;
-   G4double yc_len =  2.000*inch;
-   G4double zc_len = 11.028*inch;
-   G4Box *solidC4_cut = new G4Box("solidC4_cut",xc_len/2.,yc_len/2.,zc_len/2.);
-   // position of cut (derived from drawing C4.JPG) 
-   G4double xcp = (-1.)*(x_len/2. + xc_len/2. - cutLen_x);
-   G4double ycp = 0.;
-   G4double zcp = -6.0245*inch;
-   G4ThreeVector P_c4c = G4ThreeVector(xcp,ycp,zcp);
+  // C4 cutaway [long stretch] 
+  G4double cutLen_x = 1.375*inch;
+  G4double xc_len =  2.000*inch;
+  G4double yc_len =  2.000*inch;
+  G4double zc_len = 11.028*inch;
+  G4Box *solidC4_cut = new G4Box("solidC4_cut",xc_len/2.,yc_len/2.,zc_len/2.);
+  // position of cut (derived from drawing C4.JPG) 
+  G4double xcp = (-1.)*(x_len/2. + xc_len/2. - cutLen_x);
+  G4double ycp = 0.;
+  G4double zcp = -6.0245*inch;
+  G4ThreeVector P_c4c = G4ThreeVector(xcp,ycp,zcp);
 
-   // C4 cutaway (angled cut 2) 
-   G4double xca2_len = 2.000*inch;
-   G4double yca2_len = 2.000*inch;
-   G4double zca2_len = 3.143*inch;
-   G4Box *solidC4_cut_a2 = new G4Box("solidC4_cut_a2",xca2_len/2.,yca2_len/2.,zca2_len/2.);
+  // C4 cutaway (angled cut 2) 
+  G4double xca2_len = 2.000*inch;
+  G4double yca2_len = 2.000*inch;
+  G4double zca2_len = 3.143*inch;
+  G4Box *solidC4_cut_a2 = new G4Box("solidC4_cut_a2",xca2_len/2.,yca2_len/2.,zca2_len/2.);
 
-   std::vector<G4double> RA2;
-   RA2.push_back(0*deg); RA2.push_back(25*deg); RA2.push_back(0);  
-   G4RotationMatrix *rmca2 = new G4RotationMatrix();
-   rmca2->rotateX(RA2[0]); rmca2->rotateY(RA2[1]); rmca2->rotateZ(RA2[2]);
+  std::vector<G4double> RA2;
+  RA2.push_back(0*deg); RA2.push_back(25*deg); RA2.push_back(0);  
+  G4RotationMatrix *rmca2 = new G4RotationMatrix();
+  rmca2->rotateX(RA2[0]); rmca2->rotateY(RA2[1]); rmca2->rotateZ(RA2[2]);
 
-   // position of cut (derived from drawing C4.JPG) 
-   G4ThreeVector P_c4c_a2 = G4ThreeVector(-2.15*inch,0*inch,0.914*inch-0.42*inch);
+  // position of cut (derived from drawing C4.JPG) 
+  G4ThreeVector P_c4c_a2 = G4ThreeVector(-2.15*inch,0*inch,0.914*inch-0.42*inch);
 
-   // C4 cutaway (angled cut 3) 
-   G4double xca3_len = 2.000*inch;
-   G4double yca3_len = 2.000*inch;
-   G4double zca3_len = 1.150*inch;
-   G4Box *solidC4_cut_a3 = new G4Box("solidC4_cut_a3",xca3_len/2.,yca3_len/2.,zca3_len/2.);
+  // C4 cutaway (angled cut 3) 
+  G4double xca3_len = 2.000*inch;
+  G4double yca3_len = 2.000*inch;
+  G4double zca3_len = 1.150*inch;
+  G4Box *solidC4_cut_a3 = new G4Box("solidC4_cut_a3",xca3_len/2.,yca3_len/2.,zca3_len/2.);
 
-   std::vector<G4double> RA3;
-   RA3.push_back(0*deg); RA3.push_back(-35*deg); RA3.push_back(0);  
-   G4RotationMatrix *rmca3 = new G4RotationMatrix();
-   rmca3->rotateX(RA3[0]); rmca3->rotateY(RA3[1]); rmca3->rotateZ(RA3[2]);
+  std::vector<G4double> RA3;
+  RA3.push_back(0*deg); RA3.push_back(-35*deg); RA3.push_back(0);  
+  G4RotationMatrix *rmca3 = new G4RotationMatrix();
+  rmca3->rotateX(RA3[0]); rmca3->rotateY(RA3[1]); rmca3->rotateZ(RA3[2]);
 
-   // position of cut (derived from drawing C4.JPG) 
-   G4ThreeVector P_c4c_a3 = G4ThreeVector(-2.40*inch,0*inch,9.0*inch);
+  // position of cut (derived from drawing C4.JPG) 
+  G4ThreeVector P_c4c_a3 = G4ThreeVector(-2.40*inch,0*inch,9.0*inch);
 
-   // C4 cutaway [second long stretch] 
-   G4double cutLen_x2 = 0.750*inch;
-   G4double xc2_len = 2.000*inch;
-   G4double yc2_len = 2.000*inch;
-   G4double zc2_len = 7.789*inch + 1.25*inch;
-   G4Box *solidC4_cut2 = new G4Box("solidC4_cut2",xc2_len/2.,yc2_len/2.,zc2_len/2.);
-   // position of cut (derived from drawing C4.JPG) 
-   G4double xcp2 = (-1.)*(x_len/2. + xc2_len/2. - cutLen_x2);
-   G4double ycp2 = 0.;
-   G4double zcp2 = 13.668*inch - 0.25*inch;
-   G4ThreeVector P_c4c_2 = G4ThreeVector(xcp2,ycp2,zcp2);
+  // C4 cutaway [second long stretch] 
+  G4double cutLen_x2 = 0.750*inch;
+  G4double xc2_len = 2.000*inch;
+  G4double yc2_len = 2.000*inch;
+  G4double zc2_len = 7.789*inch + 1.25*inch;
+  G4Box *solidC4_cut2 = new G4Box("solidC4_cut2",xc2_len/2.,yc2_len/2.,zc2_len/2.);
+  // position of cut (derived from drawing C4.JPG) 
+  G4double xcp2 = (-1.)*(x_len/2. + xc2_len/2. - cutLen_x2);
+  G4double ycp2 = 0.;
+  G4double zcp2 = 13.668*inch - 0.25*inch;
+  G4ThreeVector P_c4c_2 = G4ThreeVector(xcp2,ycp2,zcp2);
 
-   // subtraction solid
-   // base plate - angled cut 
-   G4SubtractionSolid *C4c = new G4SubtractionSolid("C4c",solidC4,solidC4_cut_a1,rmca1,P_c4c_a1);
-   // subtract first long stretch 
-   C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut,0,P_c4c);
-   // subtract second angled cut  
-   C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut_a2,rmca2,P_c4c_a2);
-   // subtract third angled cut  
-   C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut_a3,rmca3,P_c4c_a3);
-   // subtract third long stretch 
-   C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut2,0,P_c4c_2);
+  // subtraction solid
+  // base plate - angled cut 
+  G4SubtractionSolid *C4c = new G4SubtractionSolid("C4c",solidC4,solidC4_cut_a1,rmca1,P_c4c_a1);
+  // subtract first long stretch 
+  C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut,0,P_c4c);
+  // subtract second angled cut  
+  C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut_a2,rmca2,P_c4c_a2);
+  // subtract third angled cut  
+  C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut_a3,rmca3,P_c4c_a3);
+  // subtract third long stretch 
+  C4c = new G4SubtractionSolid("C4c",C4c,solidC4_cut2,0,P_c4c_2);
 
-   // C5 
-   G4double x5_len = 0.250*inch; 
-   G4double y5_len = 1.250*inch; 
-   G4double z5_len = 35.625*inch;
-   G4Box *solidC5 = new G4Box("solidC5",x5_len/2.,y5_len/2.,z5_len/2.); 
-   G4ThreeVector P5 = G4ThreeVector(x_len/2.+x5_len/2.,-0.188*inch,0.);
+  // C5 
+  G4double x5_len = 0.250*inch; 
+  G4double y5_len = 1.250*inch; 
+  G4double z5_len = 35.625*inch;
+  G4Box *solidC5 = new G4Box("solidC5",x5_len/2.,y5_len/2.,z5_len/2.); 
+  G4ThreeVector P5 = G4ThreeVector(x_len/2.+x5_len/2.,-0.188*inch,0.);
 
-   // C6--C9 
-   // base
-   G4double xb_len = 1.250*inch;  
-   G4double yb_len = 7.946*inch - 4*inch; // to avoid overlaps   
-   G4double zb_len = 0.500*inch;  
-   G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
-   // small blocks 
-   G4double xbk_len = 2.250*inch;  
-   G4double ybk_len = 0.500*inch;  
-   G4double zbk_len = 0.500*inch;  
-   G4Box *solidBK = new G4Box("solidBK",xbk_len/2.,ybk_len/2.,zbk_len/2.);
-   G4ThreeVector P_bk = G4ThreeVector(0,yb_len/2.+ybk_len/2.,0);
+  // C6--C9 
+  // base
+  G4double xb_len = 1.250*inch;  
+  G4double yb_len = 7.946*inch - 4*inch; // to avoid overlaps   
+  G4double zb_len = 0.500*inch;  
+  G4Box *solidBase = new G4Box("solidBase",xb_len/2.,yb_len/2.,zb_len/2.);
+  // small blocks 
+  G4double xbk_len = 2.250*inch;  
+  G4double ybk_len = 0.500*inch;  
+  G4double zbk_len = 0.500*inch;  
+  G4Box *solidBK = new G4Box("solidBK",xbk_len/2.,ybk_len/2.,zbk_len/2.);
+  G4ThreeVector P_bk = G4ThreeVector(0,yb_len/2.+ybk_len/2.,0);
 
-   // union solid to build the leg 
-   G4UnionSolid *leg = new G4UnionSolid("leg_bbk",solidBase,solidBK,0,P_bk);
-   // other block 
-   P_bk = G4ThreeVector(0,-yb_len/2.-ybk_len/2.,0);
-   leg = new G4UnionSolid("solidLeg",leg,solidBK,0,P_bk);
+  // union solid to build the leg 
+  G4UnionSolid *leg = new G4UnionSolid("leg_bbk",solidBase,solidBK,0,P_bk);
+  // other block 
+  P_bk = G4ThreeVector(0,-yb_len/2.-ybk_len/2.,0);
+  leg = new G4UnionSolid("solidLeg",leg,solidBK,0,P_bk);
 
-   // union solid for all components 
-   G4UnionSolid *solidTable = new G4UnionSolid("solidTable_noLegs",C4c,solidC5,0,P5);
-   // add C6 leg 
-   G4double z0_l = -5.3125*inch;   // same as offset at the very end 
-   G4double x6 = 0;
-   G4double y6 = (-1.)*(y_len/2. + ybk_len + yb_len/2.);  
-   G4double z6 = z0_l + -9.244*inch + ybk_len/2.; 
-   G4ThreeVector P6 = G4ThreeVector(x6,y6,z6);
-   solidTable = new G4UnionSolid("solidTable_c6",solidTable,leg,0,P6); 
-   // add C7 leg  
-   G4double x7 = 0;
-   G4double y7 = y6;  
-   G4double z7 = z0_l + 0*inch; 
-   G4ThreeVector P7 = G4ThreeVector(x7,y7,z7);
-   solidTable = new G4UnionSolid("solidTable_c7",solidTable,leg,0,P7); 
-   // add C8 leg  
-   G4double x8 = 0;
-   G4double y8 = y6;  
-   G4double z8 = z0_l + 13.381*inch + ybk_len/2.; 
-   G4ThreeVector P8 = G4ThreeVector(x8,y8,z8);
-   solidTable = new G4UnionSolid("solidTable_c8",solidTable,leg,0,P8); 
-   // add C9 leg  
-   G4double x9 = 0;
-   G4double y9 = y6;  
-   G4double z9 = z0_l + 20.256*inch + ybk_len/2.; 
-   G4ThreeVector P9 = G4ThreeVector(x9,y9,z9);
-   solidTable = new G4UnionSolid("solidTable_c9",solidTable,leg,0,P9); 
+  // union solid for all components 
+  G4UnionSolid *solidTable = new G4UnionSolid("solidTable_noLegs",C4c,solidC5,0,P5);
+  // add C6 leg 
+  G4double z0_l = -5.3125*inch;   // same as offset at the very end 
+  G4double x6 = 0;
+  G4double y6 = (-1.)*(y_len/2. + ybk_len + yb_len/2.);  
+  G4double z6 = z0_l + -9.244*inch + ybk_len/2.; 
+  G4ThreeVector P6 = G4ThreeVector(x6,y6,z6);
+  solidTable = new G4UnionSolid("solidTable_c6",solidTable,leg,0,P6); 
+  // add C7 leg  
+  G4double x7 = 0;
+  G4double y7 = y6;  
+  G4double z7 = z0_l + 0*inch; 
+  G4ThreeVector P7 = G4ThreeVector(x7,y7,z7);
+  solidTable = new G4UnionSolid("solidTable_c7",solidTable,leg,0,P7); 
+  // add C8 leg  
+  G4double x8 = 0;
+  G4double y8 = y6;  
+  G4double z8 = z0_l + 13.381*inch + ybk_len/2.; 
+  G4ThreeVector P8 = G4ThreeVector(x8,y8,z8);
+  solidTable = new G4UnionSolid("solidTable_c8",solidTable,leg,0,P8); 
+  // add C9 leg  
+  G4double x9 = 0;
+  G4double y9 = y6;  
+  G4double z9 = z0_l + 20.256*inch + ybk_len/2.; 
+  G4ThreeVector P9 = G4ThreeVector(x9,y9,z9);
+  solidTable = new G4UnionSolid("solidTable_c9",solidTable,leg,0,P9); 
 
-   G4LogicalVolume *table_LV = new G4LogicalVolume(solidTable,GetMaterial("Aluminum"),"logicGEnTarget_colTable");
+  G4LogicalVolume *table_LV = new G4LogicalVolume(solidTable,GetMaterial("Aluminum"),"logicGEnTarget_colTable");
 
-   // placement 
-   G4double x_offset =  2.812*inch; 
-   G4double y_offset = -3.514*inch - 5*mm;  // avoiding overlaps  
-   G4double z_offset =  5.3125*inch; // taking y_len/2 - 12.5*inch
-   G4ThreeVector P = G4ThreeVector(x_offset,y_offset,z0+z_offset);
+  // placement 
+  G4double x_offset =  2.812*inch; 
+  G4double y_offset = -3.514*inch - 5*mm;  // avoiding overlaps  
+  G4double z_offset =  5.3125*inch; // taking y_len/2 - 12.5*inch
+  G4ThreeVector P = G4ThreeVector(x_offset,y_offset,z0+z_offset);
 
-   bool checkOverlaps = true;
+  bool checkOverlaps = true;
 
-   new G4PVPlacement(0,                          // rotation
-                     P,                          // position 
-                     table_LV,                   // logical volume   
-                     "physGEnTarget_colTable",   // physical name 
-                     motherLog,                  // logical mother
-                     true,                       // boolean? 
-                     0,                          // copy no 
-                     checkOverlaps);             // check overlaps
+  new G4PVPlacement(0,                          // rotation
+		    P,                          // position 
+		    table_LV,                   // logical volume   
+		    "physGEnTarget_colTable",   // physical name 
+		    motherLog,                  // logical mother
+		    true,                       // boolean? 
+		    0,                          // copy no 
+		    checkOverlaps);             // check overlaps
 
-   // register with DetectorConstruction object 
-   fDetCon->InsertTargetVolume( table_LV->GetName() ); 
+  // register with DetectorConstruction object 
+  fDetCon->InsertTargetVolume( table_LV->GetName() ); 
+
+}
+
+void G4SBSTargetBuilder::BuildGEnTarget_IonChamber(G4LogicalVolume *motherLog){
+
+  // solid (arbitrary size)  
+  G4double vol      = 0.11E-3*m3;    // 0.11 litres 
+  G4double length   = 10.*cm;
+  G4double r_max    = sqrt( vol/(pi*length) );
+  G4double r_min    = 0;
+  G4double startPhi = 0.*deg;
+  G4double dPhi     = 360.*deg;
+  G4Tubs *solidIC = new G4Tubs("solidIC",r_min,r_max,length/2.,startPhi,dPhi);
+
+  // logical volume
+  G4LogicalVolume *ic_LV = new G4LogicalVolume(solidIC,GetMaterial("GEnTarget_ionChamber_N2"),"logicGEnTarget_ionChamber");
+
+  // placement (from macro file) 
+  G4double x = fDetCon->GetIonChamberX(); 
+  G4double y = fDetCon->GetIonChamberY(); 
+  G4double z = fDetCon->GetIonChamberZ(); 
+  G4ThreeVector P = G4ThreeVector(x,y,z);
+
+  G4double rx = fDetCon->GetIonChamberRX(); 
+  G4double ry = fDetCon->GetIonChamberRY(); 
+  G4double rz = fDetCon->GetIonChamberRZ(); 
+  G4RotationMatrix *rm = new G4RotationMatrix();
+  rm->rotateX(rx); rm->rotateY(ry); rm->rotateZ(rz);
+
+  bool checkOverlaps = true;
+
+  new G4PVPlacement(rm,                          // rotation
+		    P,                           // position      
+		    ic_LV,                       // logical volume     
+		    "physGEnTarget_ionChamber",  // name      
+		    motherLog,                   // mother logical volume      
+		    false,                       // is it a boolean solid?    
+		    0,                           // copy number    
+		    checkOverlaps);              // check for overlaps 
+
+  // name of SD and the hitCollection  
+  G4String icSDname = "IC";   
+  // We have to remove all the directory structure from the 
+  // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+  G4String icSDname_nopath = icSDname;
+  icSDname_nopath.remove(0,icSDname.last('/')+1);
+  G4String icColName = icSDname_nopath;
+  icColName += "HitsCollection";
+
+  G4SBSIonChamberSD *icSD = nullptr;
+  if( !(icSD = (G4SBSIonChamberSD *)fDetCon->fSDman->FindSensitiveDetector(icSDname)) ){
+    // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+    G4cout << "Adding Ion Chamber sensitive detector to SDman..." << G4endl;
+    icSD = new G4SBSIonChamberSD(icSDname,icColName);
+    ic_LV->SetSensitiveDetector(icSD);
+    fDetCon->fSDman->AddNewDetector(icSD);
+    (fDetCon->SDlist).insert(icSDname);
+    fDetCon->SDtype[icSDname] = G4SBS::kIC;
+  }
+
+}
+
+void G4SBSTargetBuilder::BuildGEnTarget_BeamCollimator(G4LogicalVolume *motherLog,int type){
+  // a test device to test out collimator ideas
+  // to prevent target scraping  
+  // type = 0 => downstream, 1 => upstream 
+
+  G4double startPhi = 0.*deg;
+  G4double dPhi     = 360.*deg;
+
+  std::string tag; 
+  G4double length=0,r_min=0,r_max=0,x=0,y=0,z=0;
+  if(type==0){
+    tag    = "dnstr"; 
+    length = fDetCon->GetBeamCollimatorL_dnstr();        
+    r_min  = 0.5*fDetCon->GetBeamCollimatorDmin_dnstr(); 
+    r_max  = 0.5*fDetCon->GetBeamCollimatorDmax_dnstr(); 
+    x      = fDetCon->GetBeamCollimatorX_dnstr(); 
+    y      = fDetCon->GetBeamCollimatorY_dnstr(); 
+    z      = fDetCon->GetBeamCollimatorZ_dnstr();
+  }else if(type==1){
+    tag    = "upstr"; 
+    length = fDetCon->GetBeamCollimatorL_upstr();        
+    r_min  = 0.5*fDetCon->GetBeamCollimatorDmin_upstr(); 
+    r_max  = 0.5*fDetCon->GetBeamCollimatorDmax_upstr(); 
+    x      = fDetCon->GetBeamCollimatorX_upstr(); 
+    y      = fDetCon->GetBeamCollimatorY_upstr(); 
+    z      = fDetCon->GetBeamCollimatorZ_upstr();
+  } 
+
+  std::cout << "------------------------------------------------------------------------" << std::endl;
+  std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_BeamCollimator]: Building " << tag << " collimator: " << std::endl;
+  std::cout << " Length = " << length/cm   << " cm" << std::endl;
+  std::cout << " ID     = " << 2.*r_min/mm << " mm" << std::endl;
+  std::cout << " z      = " << z/cm        << " cm" << std::endl;
+  std::cout << "------------------------------------------------------------------------" << std::endl;
+
+  char lvName[200],phName[200],lvVacName[200],phVacName[200],sName[200],sVacName[200];
+  sprintf(lvName   ,"logicGEnTarget_beamCol_%s"   ,tag.c_str()); 
+  sprintf(phName   ,"physGEnTarget_beamCol_%s"    ,tag.c_str()); 
+  sprintf(lvVacName,"physGEnTarget_beamCol_%s_vac",tag.c_str()); 
+  sprintf(phVacName,"physGEnTarget_beamCol_%s_vac",tag.c_str()); 
+  sprintf(sName    ,"solidBC_%s"                  ,tag.c_str()); 
+  sprintf(sVacName ,"solidBC_%s_vac"              ,tag.c_str()); 
+   
+  // solid object 
+  G4Tubs *solidBC = new G4Tubs(sName,r_min,r_max,length/2.,startPhi,dPhi);
+
+  // visualization 
+  G4VisAttributes *vis = new G4VisAttributes();
+  vis->SetColour( G4Colour::Red() ); 
+
+  // logical volume
+  G4LogicalVolume *bc_LV = new G4LogicalVolume(solidBC,GetMaterial("TargetBeamCollimator_Material"),lvName);
+  bc_LV->SetVisAttributes(vis); 
+
+  G4ThreeVector P = G4ThreeVector(x,y,z);
+
+  bool checkOverlaps = true;
+
+  new G4PVPlacement(0,               // rotation
+		    P,               // position      
+		    bc_LV,           // logical volume     
+		    phName,          // name      
+		    motherLog,       // mother logical volume      
+		    false,           // is it a boolean solid?    
+		    0,               // copy number    
+		    checkOverlaps);  // check for overlaps
+
+  // make a vacuum insert (since we will focus on in-vacuum placement, in upstream beam line)
+  G4Tubs *solidBC_vac = new G4Tubs(sVacName,0,r_min,length/2.,startPhi,dPhi); 
+
+  // visualization 
+  G4VisAttributes *vis_vac = new G4VisAttributes();
+  vis_vac->SetForceWireframe(true); 
+
+  // logical volume
+  G4LogicalVolume *bc_vac_LV = new G4LogicalVolume(solidBC_vac,GetMaterial("Vacuum"),lvVacName);
+  bc_vac_LV->SetVisAttributes(vis_vac); 
+
+  new G4PVPlacement(0,               // rotation
+		    P,               // position      
+		    bc_vac_LV,       // logical volume     
+		    phVacName,       // name      
+		    motherLog,       // mother logical volume      
+		    false,           // is it a boolean solid?    
+		    0,               // copy number    
+		    checkOverlaps);  // check for overlaps
+
+}
+
+void G4SBSTargetBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
+  // a dummy function to check positioning
+  // z0 = position of DOWNSTREAM face of this part.  All components are spaced relative to this point 
+
+  G4double inch = 2.54*cm;
+
+  std::cout << "[G4SBSTargetBuilder::CheckZPos]: Downstream face of part is at z = " << z0/m << " m" << std::endl;
+
+  G4double xl = 20.*inch;
+  G4double yl = 120.*inch;
+  G4double zl = 10.*mm;
+  G4Box *solidBox = new G4Box("solidBox",xl/2.,yl/2.,zl/2.);
+
+  G4LogicalVolume *boxLV = new G4LogicalVolume(solidBox,GetMaterial("Aluminum"),"boxLV");
+
+  G4double z = z0 - zl/2.;  // back face is at z0  
+  G4ThreeVector P = G4ThreeVector(0,0,z);
+
+  new G4PVPlacement(0,                // no rotation
+		    P,                // location in mother volume 
+		    boxLV,            // its logical volume                         
+		    "testBox_PHY",    // its name
+		    logicMother,      // its mother  volume
+		    false,            // no boolean operation
+		    0,                // copy number
+		    true);            // checking overlaps 
 
 }

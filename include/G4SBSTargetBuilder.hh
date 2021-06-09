@@ -6,8 +6,18 @@
 #include "G4ThreeVector.hh"
 #include "G4Box.hh"
 #include "G4SubtractionSolid.hh"
+// #include "G4SBSGEMSD.hh"
+// #include "G4SBSmTPCSD.hh"
+// #include "G4SBSCalSD.hh"
+
+#include "G4SBSmTPC.hh" //CA
+class G4SBSmTPC;//CA
+
 
 #include "G4SBSPartParameters.hh"
+
+#include "G4SBSIonChamberSD.hh"
+#include "G4SBSTargetSD.hh"
 
 class G4DetectorConstruction;
 
@@ -23,7 +33,6 @@ public:
   // Replaced by : BuildC16ScatCham
   void BuildTDISTarget(G4LogicalVolume *);
   void BuildGasTarget(G4LogicalVolume *);
-  void BuildTPC(G4LogicalVolume *, G4double);
   
   // EFuchey: 2017/02/10:  This function is now meant to build the cryotarget and target cell only.
   // This function takes as input the mother logical volume, a rotation matrix, and a 3-vector offset.
@@ -54,7 +63,12 @@ public:
   void BuildGEnTarget_Collimator_A(G4LogicalVolume *motherLog,G4double z0=0);  
   void BuildGEnTarget_Collimator_B(G4LogicalVolume *motherLog,G4double z0=0);  
   void BuildGEnTarget_Collimator_C(G4LogicalVolume *motherLog,G4double z0=0); 
-  void BuildGEnTarget_Collimator_Table(G4LogicalVolume *motherLog,G4double z0=0); 
+  void BuildGEnTarget_Collimator_Table(G4LogicalVolume *motherLog,G4double z0=0);
+  // test items 
+  void BuildGEnTarget_IonChamber(G4LogicalVolume *motherLog);
+  void BuildGEnTarget_BeamCollimator(G4LogicalVolume *motherLog,int type=0); // default is downstream  
+
+  void CheckZPos(G4LogicalVolume *logicMother,G4double z0); // dummy function to check z positoning  
   
   void SetTarget(G4SBS::Targ_t t){fTargType = t;}
   void SetTargLen(G4double len){ fTargLen = len;}
@@ -69,7 +83,16 @@ public:
 
   G4bool GetFlux() const { return fFlux; }
   void SetFlux(G4bool b){fFlux = b;}
-       
+
+  G4bool fUseLocalTPCSolenoid;
+  void SetSolUni(G4bool soluniflag){fSolUni = soluniflag;}
+  void SetSolUniMag(G4double solunimag){fSolUniMag = solunimag;}
+  void SetSolTosca(G4bool soltosflag){fSolTosca = soltosflag;}
+  void SetSolToscaScale(G4double soltosscale){fSolToscaScale = soltosscale;}
+  void SetSolToscaOffset(G4double soltosoffset){ fSolToscaOffset= soltosoffset;}
+
+  void SetTDIStgtWallThick(double th){fTDIStgtWallThick = th;};
+  
   G4ThreeVector GetTargPolDir() const { return fTargPolDir; }
   G4double GetTargPolMag() const { return fTargPolMag; }
   void SetTargPolDir( G4ThreeVector pdir ){ fTargPolDir = pdir.unit(); }
@@ -111,6 +134,23 @@ private:
   G4bool fUseRad; //use radiator?
   G4double fRadThick; //Thickness in units of X0;
   G4double fRadZoffset;  //Distance upstream of target
+
+  G4double fGEn_GLASS_TUBE_LENGTH; // length of GEn 3He glass tube (target cell)  
+  
+  // Montgomery 2018, tdis solenoid implement
+  G4bool fSolUni;
+  G4double fSolUniMag;
+  G4bool fSolTosca;
+  G4double fSolToscaScale;
+  G4double fSolToscaOffset;
+  
+  G4double fTDIStgtWallThick;
+
+  // // Montgomery July 2018, mtpc implement
+  //G4double ftdis_tgt_diam;
+  G4double ftdis_tgt_wallthick;
+  G4double ftdis_tgt_len;
+  G4bool fChkOvLaps;
   
   G4SBS::Targ_t fTargType;
 };

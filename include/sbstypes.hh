@@ -10,6 +10,7 @@
 #define __RUNSTR_LEN 255
 #define __MAXFILE_LEN 1048576 // MB file size limit
 
+
 // encapsulate in a namespace so we don't step on the ROOT and GEANT4 definitions 
 namespace G4SBS { 
    // particle type definitions (matches the GEANT4 standard) 
@@ -18,14 +19,36 @@ namespace G4SBS {
    // target type; include fictional neutron target
    enum Targ_t   { kH2, kD2, kLH2, kLD2, k3He, kNeutTarg, kCfoil, kOptics };
    // kinematic type 
-   enum Kine_t   { kElastic, kFlat, kInelastic, kDIS, kBeam, kSIDIS, kGun, kWiser, kPYTHIA6, kGMnElasticCheck, kCosmics, kPionPhoto};
+   enum Kine_t { kElastic, // 0
+		kFlat, 
+		kInelastic,
+		kDIS, 
+		kBeam, 
+		kSIDIS, //5
+		kGun, 
+		kWiser, 
+		kPYTHIA6, 
+		kGMnElasticCheck, 
+		kCosmics, //10
+		kPionPhoto,
+		kTDISKin, 
+		kAcquMC, 
+		kTDISGen, 
+		tElastic,  //15 
+		tQuasiElastic,
+		tInelastic, 
+		tTDISKinH,
+		tTDISKinD,
+		tSIDIS }; // TDIS, added kTDISGen, tElastic, tQuasiElastic, tInelastic, tTDISKin, TSIDIS used in my class (CA)
+  //note the 't' before to indicate is the TDIS case (CA)
+  
    // experiment type
    // enum Exp_t    { kGEp, kNeutronExp, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest};
    enum Exp_t    { kGEp, kGMN, kGEN, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest, kGEPpositron, kWAPP};
    // detector arm type (for association of detector modules with spectrometer arms. Presently "E arm" and "H arm" are possible) 
    enum Arm_t    { kEarm, kHarm };
    // sensitive detector type  
-   enum SDet_t   { kGEM, kCAL, kRICH, kECAL, kBD }; 
+  enum SDet_t   { kGEM, kCAL, kRICH, kECAL, kBD, kIC, kTarget_GEn_Glass, kTarget_GEn_Al, kTarget_GEn_Cu, kTarget_GEn_3He, kmTPC }; 
 
    // switches for GEn
    // Helmholtz coils or shielding 

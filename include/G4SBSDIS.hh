@@ -14,9 +14,37 @@ void initcteqpdf(){
      assert(__dis_pdf);
 }
 
+double F2N(double x, double Q2,  G4SBS::Nucl_t nucl){
+  
+    double qu = cteq_pdf_evolvepdf(__dis_pdf, 1, x, sqrt(Q2) );
+    double qd = cteq_pdf_evolvepdf(__dis_pdf, 2, x, sqrt(Q2) );
+    double qubar = cteq_pdf_evolvepdf(__dis_pdf, -1, x, sqrt(Q2) );
+    double qdbar = cteq_pdf_evolvepdf(__dis_pdf, -2, x, sqrt(Q2) );
+
+    double quv = qu-qubar;
+    double qdv = qd-qdbar;
+
+    double qs = cteq_pdf_evolvepdf(__dis_pdf, 3, x, sqrt(Q2) );
+
+    double F2 = 0.0; 
+    double e_u =  2.0/3.0;
+    double e_d = -1.0/3.0;
+
+    if( nucl == G4SBS::kProton ){
+    	F2 += x*( e_u*e_u*quv + e_d*e_d*qdv ); 
+    }
+    if( nucl == G4SBS::kNeutron){
+	F2 += x*( e_u*e_u*qdv + e_d*e_d*quv ); 
+    }
+    // Sea quarks
+    F2  += x*(2.0*e_u*e_u*qubar + 2.0*e_d*e_d*(qdbar + qs));
+
+    return F2;
+
+}
+
 double dissigma( double ebeam, double th, double eprime, G4SBS::Nucl_t nucl ){
     // Return in nb/(GeV*sr)
-
     double Q2 = 2.0*eprime*ebeam*(1.0-cos(th));
     double nu = ebeam-eprime;
     double Mp = 0.938;

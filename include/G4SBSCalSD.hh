@@ -31,6 +31,8 @@ public:
 
   G4SBSDetMap detmap;
 
+  vector<double> hold_tbins;
+
   G4int GetNTimeBins(){ return fNTimeBins; }
   G4double GetTimeWindow(){ return fHitTimeWindow; }
   G4double GetEnergyThreshold(){ return fEnergyThreshold; }

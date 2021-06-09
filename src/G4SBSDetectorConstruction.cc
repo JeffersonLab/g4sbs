@@ -43,6 +43,10 @@
 #include "G4SBSTargetBuilder.hh"
 #include "G4SBSEArmBuilder.hh"
 #include "G4SBSHArmBuilder.hh"
+#include "G4SBSECal.hh"
+#include "G4SBSCDet.hh"
+
+//#include "RTPC.hh"
 
 #include "G4Mag_SpinEqRhs.hh"
 #include "G4ClassicalRK4.hh"
@@ -50,6 +54,7 @@
 
 #include "G4SBSCalSD.hh"
 #include "G4SBSGEMSD.hh"
+#include "G4SBSECalSD.hh"
 
 #include "TSpline.h"
 
@@ -92,7 +97,11 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fBeamlineBuilder = new G4SBSBeamlineBuilder(this);
   fEArmBuilder     = new G4SBSEArmBuilder(this);
   fHArmBuilder     = new G4SBSHArmBuilder(this);
-
+  fECal            = new G4SBSECal(this);
+  fCDet            = new G4SBSCDet(this);
+  //fRTPC = 0;
+  fmTPC = new G4SBSmTPC(this);
+  
   fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;
 
   fGlobalField = new G4SBSGlobalField();
@@ -113,22 +122,65 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   //    TrackerIDnumber = 0;
   //TrackerArm.clear();
 
+  //mtpc glabal variables default values
+  fmTPCHeGasFraction = 0.9;//fraction of 1
+  fmTPCCH4GasFraction = 0.1;//fraction of 1
+  fmTPCGasTemp = 296.15;//K
+  fmTPCGasPressure = 1.0;//atm
+
   // D. Flay (8/25/20) 
   // beam diffuser switch 
-  fBeamDumpEnable        = true;
+  fBeamDumpEnable            = true;
   fBeamDiffuserEnable        = false;
   // taret collimators 
   fGEnTgtCollimatorEnable    = true;  
   fGEnTgtCollimatorAEnable   = true;  
   fGEnTgtCollimatorBEnable   = true;  
   fGEnTgtCollimatorCEnable   = true;  
-
+  
   // D. Flay (9/29/20) 
   // GEn 3He target angular misalignment
   fGEnTgtDRX = 0.;  
   fGEnTgtDRY = 0.;  
-  fGEnTgtDRZ = 0.;  
+  fGEnTgtDRZ = 0.;
 
+  // D. Flay (12/9/20) 
+  // GEn 3He target as a sensitive detector 
+  fGEnTgtSDEnable = false;  
+
+  // D. Flay (10/15/20) 
+  // Ion chamber (testing) 
+  fIonChamberEnable = false; 
+  fIonChamberX      = 0;  
+  fIonChamberY      = 0;  
+  fIonChamberZ      = 0;  
+  fIonChamberRX     = 0;  
+  fIonChamberRY     = 0;  
+  fIonChamberRZ     = 0;  
+
+  // D. Flay (11/5/20) 
+  // beam collimator (testing) 
+  fBeamCollimatorEnable_upstr = false; 
+  fBeamCollimatorX_upstr      = 0;  
+  fBeamCollimatorY_upstr      = 0;  
+  fBeamCollimatorZ_upstr      = -145.0*cm;  
+  fBeamCollimatorL_upstr      = 4.0*cm;  
+  fBeamCollimatorDmin_upstr   = 15*mm;  
+  fBeamCollimatorDmax_upstr   = 30*mm;  
+
+  fBeamCollimatorEnable_dnstr = false; 
+  fBeamCollimatorX_dnstr      = 0;  
+  fBeamCollimatorY_dnstr      = 0;  
+  fBeamCollimatorZ_dnstr      = -60.0*cm;  
+  fBeamCollimatorL_dnstr      = 4.0*cm;  
+  fBeamCollimatorDmin_dnstr   = 15*mm;  
+  fBeamCollimatorDmax_dnstr   = 30*mm;  
+
+  //Default Aluminum shielding around GEMs to false:
+  fGEMuseAlshield = false;
+  fGEMAlShieldThick = 50.0*um;
+  fGEMAirGapThick = 0.0*um;
+  
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -316,6 +368,20 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["Air"] = Air;
 
+  // Montgomery July 2018 gold for mtpc
+  G4Element* elAu  = man->FindOrBuildElement("Au");
+  G4Material *Au = man->FindOrBuildMaterial("G4_Au");
+  fMaterialsMap["Au"] = Au;
+  // bonus electronics readout board
+  double BonusPCBDen = 1.27*g/cm3;
+  G4Material* BonusPCB = new G4Material("BonusPCB", BonusPCBDen, 4 );
+  BonusPCB->AddElement(elH, 37);
+  BonusPCB->AddElement(elC, 24);
+  BonusPCB->AddElement(elO, 6);
+  BonusPCB->AddElement(elN, 2);
+  fMaterialsMap["BonusPCB"] = BonusPCB;
+
+
   G4Material *G4_polystyrene = man->FindOrBuildMaterial( "G4_POLYSTYRENE" );
   fMaterialsMap["POLYSTYRENE"] = G4_polystyrene;
     
@@ -483,17 +549,38 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //This would eliminate inconsistencies between the actual material density used in GEANT4 and the density assumed in calculating luminosity and
   //normalizing to a rate:
   double gasden = 10.5*atmosphere*(1.0079*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
+  // G4Material *refH2 = new G4Material("refH2", gasden, 1 );
+  // double H2den = 1.2*atmosphere*(1.00794*2*g/Avogadro)/(90.0*kelvin*k_Boltzmann);
+  gasden = 4.0*atmosphere*(1.00794*2*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
   G4Material *refH2 = new G4Material("refH2", gasden, 1 );
+  
   refH2->AddElement(elH, 1);
 
   fMaterialsMap["refH2"] = refH2;
 
-  gasden = 1.0*atmosphere*(2.0141*2*g/Avogadro)/(77*kelvin*k_Boltzmann);
+  //gasden = 1.0*atmosphere*(2.0141*2*g/Avogadro)/(77*kelvin*k_Boltzmann);
+  //G4Material *refD2 = new G4Material("refD2", gasden, 1 );
+  //double D2den = 1.2*atmosphere*(2.0141*2*g/Avogadro)/(90.0*kelvin*k_Boltzmann);
+  gasden = 4.0*atmosphere*(2.0141*2*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
   G4Material *refD2 = new G4Material("refD2", gasden, 1 );
   refD2->AddElement(elD, 1);
 
   fMaterialsMap["refD2"] = refD2;
 
+  /*
+  // TDIS: ATM HARD CODE HIGHER PRESSURE BUT NEED TO MAKE THIS A MESSENGER OPTION
+  // Redundant with above
+  gasden = 4.0*atmosphere*(1.0079*2*g/Avogadro)/(300.0*kelvin*k_Boltzmann);
+  G4Material *mTPCH2 = new G4Material("mTPCH2", gasden, 1 );
+  mTPCH2->AddElement(elH, 1);
+  fMaterialsMap["mTPCH2"] = mTPCH2;
+
+  gasden = 4.0*atmosphere*(2.0141*2*g/Avogadro)/(300.0*kelvin*k_Boltzmann);
+  G4Material *mTPCD2 = new G4Material("mTPCD2", gasden, 1 );
+  mTPCD2->AddElement(elD, 1);
+  fMaterialsMap["mTPCD2"] = mTPCD2;
+  //
+  */
   gasden = 10.5*atmosphere*(14.0067*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
   G4Material *refN2 = new G4Material("refN2", gasden, 1 );
   refN2->AddElement(elN, 1);
@@ -515,16 +602,17 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   double LD2den = 162.4*kg/m3;
   G4Material *LD2mat = new G4Material("LD2", LD2den, 1 );
   LD2mat->AddElement(elD, 1);
-
+  
   fMaterialsMap["LD2"] = LD2mat;
   
   //TPC/future targets? material
-  gasden = 0.1*atmosphere*(4.0026*g/Avogadro)/(300*kelvin*k_Boltzmann);
-  G4Material *ref4He = new G4Material("ref4He", gasden, 1 );
+  //G4double density_4He = 0.1*atmosphere*(4.0026*g/Avogadro)/(90*kelvin*k_Boltzmann);
+  G4double density_4He = 1.0*atmosphere*(4.0026*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
+  G4Material *ref4He = new G4Material("ref4He", density_4He, 1 );
   ref4He->AddElement(el4He, 1);
 
   fMaterialsMap["ref4He"] = ref4He;
-
+  
   // GEn polarized 3He materials (D Flay, July 2020)  
   // - includes materials for the full geometry
   // - most materials already defined above; adding carbon steel, 
@@ -579,6 +667,14 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   // density = 10.22 g/cm^3  
   fMaterialsMap["Molybdenum"] = man->FindOrBuildMaterial("G4_Mo"); 
 
+  // D Flay's mock ion chamber material 
+  // Nitrogen.  Take this from DF notes on ion chambers. 
+  // This density is from a typical LHC device 
+  G4double gasden_icN2 = 1.08*atmosphere*(14.0067*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
+  G4Material *icN2 = new G4Material("icN2",gasden_icN2,1);
+  icN2->AddElement(elN,1);
+  fMaterialsMap["GEnTarget_ionChamber_N2"] = icN2; 
+
   // Ultem (polyetherimide plastic, similar to PEEK)
   // - details from http://www.polymerprocessing.com/polymers/PEI.html
   G4Material *Ultem = new G4Material("Ultem",1.27*g/cm3,nel=4);
@@ -588,6 +684,52 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Ultem->AddElement(elN,2 ); 
   fMaterialsMap["Ultem"] = Ultem; 
   
+  //G4double density_CH4 = 0.1*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(90*kelvin*k_Boltzmann);
+  G4double density_CH4 = 1.0*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
+  G4Material *CH4 = new G4Material("CH4", density_CH4, nel=2 );
+  CH4->AddElement(elC, 1);
+  CH4->AddElement(elH, 4);
+
+  G4cout << "H2 density (g/cm3) = " << refH2->GetDensity()/(g/cm3) 
+	 << ", D2 density (g/cm3) = " << refD2->GetDensity()/(g/cm3) 
+	 << ", 4He density (g/cm3) = " << ref4He->GetDensity()/(g/cm3) 
+	 << ", CH4 density (g/cm3) = " << CH4->GetDensity()/(g/cm3) 
+	 << G4endl;
+  
+  fMaterialsMap["CH4"] = CH4;
+
+  G4double density_TPCgas = 0.7*density_4He+0.3*density_CH4;
+  G4Material *TPCgas= new G4Material("TPCgas", density_TPCgas, nel=2);
+  TPCgas->AddMaterial(ref4He, 0.7*density_4He/density_TPCgas) ;
+  TPCgas->AddMaterial(CH4, 0.3*density_CH4/density_TPCgas) ;
+
+  fMaterialsMap["TPCgas"] = TPCgas;
+
+
+  // Adjustable mTPC gas
+  //mtpc glabal variables default values
+  fmTPCHeGasFraction = 0.9;//fraction of 1
+  fmTPCCH4GasFraction = 0.1;//fraction of 1
+  fmTPCGasTemp = 300.0;//296.15;//K
+  fmTPCGasPressure = 1.0;//atm
+  //He4
+  G4double density_mTPC_4He = fmTPCGasPressure*atmosphere*(4.0026*g/Avogadro)/(fmTPCGasTemp*kelvin*k_Boltzmann);
+  G4Material *refmTPC4He = new G4Material("refmTPC4He", density_mTPC_4He, 1 );
+  refmTPC4He->AddElement(el4He, 1);
+  fMaterialsMap["refmTPC4He"] = refmTPC4He;
+  //CH4
+  G4double density_mTPC_CH4 = fmTPCGasPressure*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(fmTPCGasTemp*kelvin*k_Boltzmann);
+  G4Material *mTPCCH4 = new G4Material("mTPCCH4", density_mTPC_CH4, nel=2 );
+  mTPCCH4->AddElement(elC, 1);
+  mTPCCH4->AddElement(elH, 4);
+  fMaterialsMap["mTPCCH4"] = mTPCCH4;
+  // He4 and CH4 mix
+  G4double density_mTPCgas = fmTPCHeGasFraction*density_mTPC_4He + fmTPCCH4GasFraction*density_mTPC_CH4;
+  G4Material *mTPCgas= new G4Material("mTPCgas", density_mTPCgas, nel=2);
+  mTPCgas->AddMaterial(refmTPC4He, fmTPCHeGasFraction*density_mTPC_4He/density_mTPCgas) ;
+  mTPCgas->AddMaterial(mTPCCH4, fmTPCCH4GasFraction*density_mTPC_CH4/density_mTPCgas) ;
+  fMaterialsMap["mTPCgas"] = mTPCgas;
+
   //Beamline materials:
   density = 2.5*g/cm3;
   G4Material *Concrete = new G4Material("Concrete",density,6);
@@ -2220,7 +2362,19 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   osWLSToAir->SetMaterialPropertiesTable(osWLSToAir_mpt);
   fOpticalSurfacesMap["osWLSToAir"] = osWLSToAir;
 
+  //  *****************************
+  //  *  Large Angle Calorimeter  *
+  //  *****************************
+  G4double d_LAC_Scinti = 1.032*g/cm3;
+  
+  G4Material *LAC_Scinti = new G4Material( "LAC_Scinti", d_LAC_Scinti,  2 );
+  LAC_Scinti->AddMaterial(PolyVinylToluene, fractionmass = 0.40);
+  LAC_Scinti->AddMaterial(Anthracene, fractionmass = 0.60);
+  fMaterialsMap["LAC_Scinti"] = LAC_Scinti;
 
+  G4Material *Teflon = man->FindOrBuildMaterial("G4_TEFLON");
+  fMaterialsMap["Teflon"] = Teflon;
+  
   //   ************************
   //   *          C16         *
   //   ************************
@@ -2268,17 +2422,106 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   ///////////////////////////
   // DVCS calorimeter 
   ///////////////////////////
+  const G4int nentries_SiPM = 31;
+  G4double Ephoton_SiPM_data[nentries_SiPM] = 
+    { 1.37760*eV, 1.40891*eV, 1.44168*eV, 1.47600*eV, 1.51200*eV, 
+      1.54980*eV, 1.58954*eV, 1.63137*eV, 1.67546*eV, 1.72200*eV, 
+      1.77120*eV, 1.82330*eV, 1.87855*eV, 1.93725*eV, 1.99974*eV, 
+      2.06640*eV, 2.13766*eV, 2.21400*eV, 2.29600*eV, 2.38431*eV, 
+      2.47968*eV, 2.58300*eV, 2.69531*eV, 2.81782*eV, 2.95200*eV, 
+      3.09960*eV, 3.26274*eV, 3.44401*eV, 3.64659*eV, 3.75710*eV, 
+      3.87451*eV };
+  
+  G4double SiPM_RefIndex[nentries_SiPM] = 
+    { 1.41, 1.41, 1.41, 1.41, 1.41, 
+      1.41, 1.41, 1.41, 1.41, 1.41, 
+      1.41, 1.41, 1.41, 1.41, 1.41, 
+      1.41, 1.41, 1.41, 1.41, 1.41, 
+      1.41, 1.41, 1.41, 1.41, 1.41, 
+      1.41, 1.41, 1.41, 1.41, 1.41, 
+      1.41 };
+  
+  G4double SiPM_QE[nentries_SiPM] = 
+    { 0.0419274, 0.0519399, 0.0619524, 0.0750939, 0.0869837, 
+      0.100751, 0.115144, 0.131414, 0.149562, 0.168961, 
+      0.188986, 0.210889, 0.231539, 0.262203, 0.299124, 
+      0.329787, 0.359825, 0.394243, 0.428035, 0.459324, 
+      0.482478, 0.491239, 0.500000, 0.488736, 0.469962, 
+      0.441802, 0.379224, 0.300375, 0.169587, 0.0869837, 
+      0.0319149 };
+  
+  G4Material* SiPM_Silicon = new G4Material(name="SiPM_Silicon", z=14., 28.086*g/mole, density=2.33*g/cm3);
+  fMaterialsMap["SiPM_Silicon"] = SiPM_Silicon;
+  
+  MPT_temp = new G4MaterialPropertiesTable();
+  
+  MPT_temp->AddProperty("RINDEX", Ephoton_SiPM_data, SiPM_RefIndex, nentries_SiPM );
+  MPT_temp->AddProperty("EFFICIENCY", Ephoton_SiPM_data, SiPM_QE, nentries_SiPM );
+
+  if( fMaterialsListOpticalPhotonDisabled.find( "SiPM_Silicon" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    SiPM_Silicon->SetMaterialPropertiesTable( MPT_temp );
+  }
   
   G4Material* PbF2 = new G4Material("PbF2", density=7.77*g/cm3, 2);
   PbF2->AddElement(elPb,1);
   PbF2->AddElement(elF, 2);
   fMaterialsMap["PbF2"] = PbF2;
+  
+  G4double PbF2refIndex[nentries_SiPM] = 
+    { 1.74455, 1.74528, 1.74607, 1.74691, 1.74781, 
+      1.74879, 1.74984, 1.75098, 1.75221, 1.75356, 
+      1.75502, 1.75663, 1.75840, 1.76034, 1.76250, 
+      1.76489, 1.76757, 1.77057, 1.77396, 1.77780, 
+      1.78220, 1.78726, 1.79314, 1.80003, 1.80821, 
+      1.81804, 1.83007, 1.84514, 1.86466, 1.87690, 
+      1.89161 };
+ 
+  MPT_temp = new G4MaterialPropertiesTable();
 
+  MPT_temp->AddProperty("RINDEX", Ephoton_SiPM_data, PbF2refIndex, nentries_SiPM );
+  
+  if( fMaterialsListOpticalPhotonDisabled.find( "PbF2" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    PbF2->SetMaterialPropertiesTable( MPT_temp );
+  }
+    
   G4Material* PbWO4 = new G4Material("PbWO4", density=8.28*g/cm3, 3);
   PbWO4->AddElement(elPb,1);
   PbWO4->AddElement(elW, 1);
   PbWO4->AddElement(elO, 4);
   fMaterialsMap["PbWO4"] = PbWO4;
+  
+  G4double PbWO4refIndex[nentries_SiPM] = 
+    { 2.16929, 2.17000, 2.17071, 2.17143, 2.17286, 
+      2.17500, 2.17571, 2.17786, 2.18214, 2.18429, 
+      2.18500, 2.18929, 2.19071, 2.19643, 2.19857, 
+      2.20357, 2.20786, 2.21571, 2.22143, 2.22643, 
+      2.23857, 2.24857, 2.26143, 2.27643, 2.29214, 
+      2.31643, 2.34929, 2.41071, 2.51000, 2.52786, 
+      2.53571 };
+
+  G4double abslength_PbWO4[nentries_SiPM] = 
+    { 175.0000*cm, 175.0000*cm, 87.5000*cm, 87.50000*cm, 58.3333*cm, 
+       58.3333*cm,  43.7500*cm, 43.7500*cm, 35.00000*cm, 35.0000*cm, 
+       29.1667*cm,  25.0000*cm, 25.0000*cm, 21.87500*cm, 21.8750*cm, 
+       19.4444*cm,  17.5000*cm, 15.9091*cm, 14.58330*cm, 13.4615*cm, 
+       12.5000*cm,  11.6667*cm, 10.2941*cm,  9.21053*cm,  7.29167*cm, 
+        5.64516*cm,  3.01724*cm, 1.45833*cm, 0.562701*cm, 0.329567*cm, 
+        0.201381*cm };
+ 
+  MPT_temp = new G4MaterialPropertiesTable();
+
+  MPT_temp->AddProperty("RINDEX", Ephoton_SiPM_data, PbWO4refIndex, nentries_SiPM );
+  //MPT_temp->AddProperty("ABSLENGTH", Ephoton_SiPM_data, abslength_PbWO4, nentries_SiPM );
+  
+  //info taken at: http://scintillator.lbl.gov/
+  MPT_temp->AddConstProperty("SCINTILLATIONYIELD", 200.0/MeV);
+  MPT_temp->AddConstProperty("RESOLUTIONSCALE", 1.0);
+  MPT_temp->AddConstProperty("FASTTIMECONSTANT",6.00*ns);
+  MPT_temp->AddConstProperty("SLOWTIMECONSTANT",6.00*ns);
+  
+  if( fMaterialsListOpticalPhotonDisabled.find( "PbWO4" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    PbWO4->SetMaterialPropertiesTable( MPT_temp );
+  }
 
   ///////////////////////////////////////////
   //      CLAS Large-angle calorimeter:
@@ -2298,7 +2541,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //For Epoxy let's use Epotek-301-1 properties from the particle data group:
   G4double epoxy_den = 1.190*g/cm3;
   G4double tungsten_den = 19.3*g/cm3;
-  G4double collimator_den = 10.0*g/cm3;
+  G4double collimator_den = 9.53*g/cm3; // from Bert Metzger's drawings (A09016-03-06-0211) // 10.0*g/cm3;
 
   // f*rho_epoxy + (1-f)*rho_W = rho_coll
   // f*(rho_epoxy - rho_W) = rho_coll - rho_W
@@ -2312,6 +2555,11 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   TargetCollimator_Material->AddElement( elW, fractionmass = 1.0-massfrac_epoxy );
 
   fMaterialsMap["TargetCollimator_Material"] = TargetCollimator_Material;
+
+  // [for a test object] pure tungsten for a target collimator  
+  G4Material *TargetBeamCollimator = new G4Material("TargetBeamCollimator_Material",tungsten_den,1); 
+  TargetBeamCollimator->AddElement(elW,1); 
+  fMaterialsMap["TargetBeamCollimator_Material"] = TargetBeamCollimator; 
   
 }
 
@@ -2379,6 +2627,9 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
   fEArmBuilder->BuildComponent(WorldLog);
   fHArmBuilder->BuildComponent(WorldLog);
+  // I'd suggest not to build RTPC (nor mTPC) in here but in TargetBuilder anyway (E. Fuchey 2018/02/12)
+  // DetectorConstruction * RTPCWorld;
+  //fRTPC->Construct(RTPCWorld);
 
   G4FieldManager *fm = new G4FieldManager(fGlobalField);
 
@@ -2592,16 +2843,46 @@ void G4SBSDetectorConstruction::SetUniformMagneticField48D48( double B ) {
   fHArmBuilder->fFieldStrength = f48D48_uniform_bfield;
 }
 
-void G4SBSDetectorConstruction::AddToscaField( const char *fn ) { 
+void G4SBSDetectorConstruction::AddToscaField( const char *fn, int flag ) { 
 
-  if( f48d48field ){
+  if( f48d48field && flag != 1 ){ //this is either a global field definition or a "local" SBS field definition: delete local SBS uniform field if it exists
     fGlobalField->DropField( f48d48field );
     delete f48d48field;
     f48d48field = NULL;
   }
-  
-  fGlobalField->AddToscaField(fn); 
 
+  //Check existence of local BB field. If it exists and flag == 1, then we definitely want to delete it.
+  //Otherwise the situation is ambiguous, so we leave it alone. This isn't COMPLETELY idiot-proof, but
+  //probably the best we can do without additional layers of complexity:
+  if( fbbfield && flag == 1 ){
+    fGlobalField->DropField( fbbfield );
+    delete fbbfield;
+    fbbfield = NULL;
+  }
+   
+  fGlobalField->AddToscaField(fn, flag);
+
+  //Depending on flag, optionally override the map header info for map coordinate transformation:
+  if( flag == 1 ){
+    G4cout << "Warning: overriding map header coordinate transformation info using BigBite angle and distance for TOSCA map " << fn << G4endl;
+
+    fGlobalField->SetAngleAndDistance( fEArmBuilder->fBBang, fEArmBuilder->fBBdist, G4SBS::kEarm );
+
+    //This will make sure that if the angle and distance get changed AFTER this command is invoked, the field map rotation matrix
+    //and offset will also be changed:
+    fGlobalField->SetOverride_Earm( true );
+  }
+
+  if( flag == 2 ){
+    G4cout << "Warning: overriding map header coordinate transformation using SBS/48D48 angle and distance for TOSCA map " << fn << G4endl
+	   << "This will have unintended consequences if SBS/48D48 angle and distance are not already properly set   " << G4endl;
+    fGlobalField->SetAngleAndDistance( fHArmBuilder->f48D48ang, fHArmBuilder->f48D48dist, G4SBS::kHarm );
+
+    //This will make sure that if the angle and distance get changed AFTER this command is invoked, the field map rotation matrix
+    //and offset will also be changed:
+    fGlobalField->SetOverride_Harm( true );
+  }
+    
   G4cout << "fGlobalField::AddToscaField done" << G4endl;
   
   //When creating for the first time, initialize overall scale factor based on fFieldScale_SBS (defaults to 1, is overridden by messenger command).
@@ -2662,34 +2943,63 @@ void G4SBSDetectorConstruction::SetFlipGEM( G4bool b ){
   fGEMflip = b;
 }
 
-void G4SBSDetectorConstruction::SetTimeWindowAndThreshold( G4String SDname, G4double Edefault, G4double Tdefault ){
+void G4SBSDetectorConstruction::SetThresholdTimeWindowAndNTimeBins( G4String SDname, G4double Edefault, G4double Tdefault, G4int Ntbinsdefault ){
   G4SBSGEMSD *GEMSDptr;
   G4SBSCalSD *CalSDptr;
+  G4SBSECalSD *ECalSDptr;
 
   G4double timewindow, threshold;
+  G4int ntimebins;
   
   if( SDlist.find( SDname ) != SDlist.end() ){
     switch( SDtype[SDname] ){
     case G4SBS::kGEM: //For now, do nothing:
-      
+     
       break;
     case G4SBS::kCAL:
       CalSDptr = (G4SBSCalSD*) fSDman->FindSensitiveDetector( SDname, false );
 
       timewindow = SDgatewidth.find(SDname) != SDgatewidth.end() ? SDgatewidth[SDname] : Tdefault;
       threshold  = SDthreshold.find(SDname) != SDthreshold.end() ? SDthreshold[SDname] : Edefault;
+      ntimebins = SDntimebins.find(SDname) != SDntimebins.end() ? SDntimebins[SDname] : Ntbinsdefault;
 
       CalSDptr->SetEnergyThreshold( threshold );
       CalSDptr->SetHitTimeWindow( timewindow );
+      CalSDptr->SetNTimeBins( ntimebins );
+     
+      break;
+      // *****
+    case G4SBS::kECAL:
+      ECalSDptr = (G4SBSECalSD*) fSDman->FindSensitiveDetector( SDname, false );
+
+      timewindow = SDgatewidth.find(SDname) != SDgatewidth.end() ? SDgatewidth[SDname] : Tdefault;      
+      threshold  = SDthreshold.find(SDname) != SDthreshold.end() ? SDthreshold[SDname] : Edefault;
+      ntimebins = SDntimebins.find(SDname) != SDntimebins.end() ? SDntimebins[SDname] : Ntbinsdefault;
+
+      ECalSDptr->SetPEThreshold( threshold );
+      ECalSDptr->SetHitTimeWindow( timewindow );
+      ECalSDptr->SetNTimeBins( ntimebins );
       
       break;
-    default: //do nothing:
-      break;
+   default: //do nothing:
+
+     break;
     }
 
   }
+
+  // This part is the criminal
+  // G4double wbin = timewindow/double(ntimebins);
+  // for( int ibin=0; ibin<ntimebins; ibin++ ){
+  //   // CalSDptr->hold_tbins.push_back( ibin*wbin + 0.5*wbin );
+  //   CalSDptr->hold_tbins.push_back( 0.0 );
+  // }
   
   return;
+}
+
+void G4SBSDetectorConstruction::SetTPCSolenoidField(){
+  if( !fUseGlobalField ) fTargetBuilder->fUseLocalTPCSolenoid = true;
 }
 
 void G4SBSDetectorConstruction::InsertSDboundaryVolume( G4String bvname, G4String sdname ){

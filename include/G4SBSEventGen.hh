@@ -10,12 +10,20 @@
 #include "G4SBSIO.hh"
 #include "DSS2007FF.hh"
 #include "G4SBSPythiaOutput.hh"
+#include "G4SBSUtil.hh"
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
 #include "Pythia6_tree.h"
+// TDIS Acqu MC
+#include "G4SBSAcquMCOutput.hh"
+#include "AcquMCTree.h"
 
 #define MAXMOMPT 1000 // N points for targets momentum distribution interpolations
+
+#include "G4SBSTDISGen.hh"
+class G4SBSTDISGen;
+
 
 class G4SBSEventGen {
 public:
@@ -31,10 +39,15 @@ public:
   double GetElectronE(){ return fElectronE; }
   double GetNucleonE(){ return fNucleonE; }
   double GetHadronE(){ return fHadronE; }
+  double GetProtonSpecE(){ return fProtonSpecE; }
  
   G4ThreeVector GetElectronP(){ return fElectronP; }
   G4ThreeVector GetNucleonP(){ return fNucleonP; }
   G4ThreeVector GetHadronP(){ return fHadronP; }
+  G4ThreeVector GetProtonSpecP(){ return fProtonSpecP; }
+
+  // TDIS addition
+  G4ThreeVector PiMake();
  
   G4SBS::Nucl_t GetNucleonType(){ return fNuclType; }
   G4SBS::Nucl_t GetFinalNucleon(){ return fFinalNucl; }
@@ -56,6 +69,8 @@ public:
   void SetKine(G4SBS::Kine_t t ){fKineType = t;}
   G4SBS::Kine_t GetKine(){return fKineType;}
   
+  G4SBS::Targ_t GetTarget(){return fTargType;}
+  
   void SetTarget(G4SBS::Targ_t t ){fTargType = t;}
   void SetTargLen(double len){fTargLen = len;}
   void SetTargDen(double den){fTargDen = den;}
@@ -67,8 +82,14 @@ public:
   void SetRasterRadius(double v){fCircularRasterRadius = v;}
   void SetBeamSpotSize(double v){fBeamSpotSize = v;}
 
+  // D Flay (Aug 2020) 
   void SetBeamOffsetX(double v) { fBeamOffsetX = v;} 
-  void SetBeamOffsetY(double v) { fBeamOffsetY = v;} 
+  void SetBeamOffsetY(double v) { fBeamOffsetY = v;}
+
+  // D Flay (Oct 2020) 
+  void SetBeamAngleX(double v)  { fBeamAngleX = v; }
+  void SetBeamAngleY(double v)  { fBeamAngleY = v; }
+  void SetBeamAngleZ(double v)  { fBeamAngleZ = v; }
   
   void SetThMin(double v){fThMin = v;}
   void SetThMax(double v){fThMax = v;}
@@ -110,6 +131,16 @@ public:
   TChain *GetPythiaChain(){ return fPythiaChain; }
   
   void LoadPythiaChain(G4String fname);
+  void SetExclPythiaXSOption(G4int XSOption){fExclPyXSoption = XSOption;}
+
+  //TDIS AcquMC
+  void SetAcquMCEvent( G4SBSAcquMCOutput ev ){ fAcquMCEvent = ev; }
+  G4SBSAcquMCOutput GetAcquMCEvent(){ return fAcquMCEvent; }
+
+  AcquMCTree *GetAcquMCTree(){ return fAcquMCTree; }
+  TChain *GetAcquMCChain(){ return fAcquMCChain; }
+  
+  void LoadAcquMCChain(G4String fname);
 
   void Initialize();
 
@@ -128,6 +159,9 @@ public:
 
   void InitializePythia6_Tree();
 
+  //TDIS AcquMC
+  void InitializeAcquMC_Tree();
+
   int GetNfoils() const { return fNfoils; }
   // std::vector<double> GetZfoil() const { return fZfoil; }
   // std::vector<double> GetThickFoil() const { return fThickFoil; }
@@ -142,14 +176,24 @@ public:
   void SetPionPhoto_tmax( G4double tmax ){ fPionPhoto_tmax = tmax; }
   void SetUseRadiator( G4bool b ){fUseRadiator = b; }
   void SetRadthickX0( G4double thick ){ fRadiatorThick_X0 = thick; }
+  
 private:
 
+  //TDIS (I think I used these variables to cross-check I am storing the correct values)
+  G4LorentzVector tElectron_f; //scattered 4-vector electron (CA)
+  G4LorentzVector tNucleon_f; //final 4-vector nucleon (CA)
+  
   void InitializeRejectionSampling(); //Make private so it can only be called by G4SBSEventGen::Initialize()
 
-  double fElectronE, fNucleonE, fHadronE, fBeamE;
-  G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
+  // double fElectronE, fNucleonE, fHadronE, fBeamE;
+  // TDIS addition
+  double fElectronE, fNucleonE, fHadronE, fBeamE, fProtonSpecE, fNeutronE, fProton1E, fProton2E;
+  // G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
+  // TDIS addition
+  G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert, fProtonSpecP, fNeutronP, fProton1P, fProton2P;
   G4ThreeVector fHadronP;
   G4ThreeVector fBeamPol;
+  G4ThreeVector fTargPol;
   
   //Define parameters for cosmics generator
   G4ThreeVector fCosmPointer;
@@ -166,7 +210,10 @@ private:
   double fs, ft, fu, fcosthetaCM, fEgamma_lab;
   
   //Define additional kinematic quantities for SIDIS:
-  double fz, fPh_perp, fphi_h, fphi_S, fMx;
+  double fz, fPh_perp, fphi_h, fphi_S, fTheta_S, fMx;
+
+  //Define additional kinematic quantities for TDIS
+  double fxpi, ftpi, fxd, fnu, fya, fy, ff2p, ff2pi, fxa, fPtTDIS, fypi, fSigmaDIS, fSigmaTDIS;
   
   double fBeamCur;
   double fRunTime;
@@ -196,7 +243,10 @@ private:
   // set<G4String> G4TargetMaterialNames; 
  
   // D. Flay (8/25/20).  beam pointing 
-  double fBeamOffsetX,fBeamOffsetY; 
+  double fBeamOffsetX,fBeamOffsetY;
+
+  // D. Flay (10/15/20). beam angle 
+  double fBeamAngleX,fBeamAngleY,fBeamAngleZ;  
  
   // G4ThreeVector fTargOffset;
   // G4ThreeVector fBeamOffset;
@@ -209,6 +259,9 @@ private:
   
   double fPmisspar, fPmissperp, fPmissparSm;
   double fHCALdist, fToFres;
+  //TDIS
+  double fphi;
+
 
   double fGenVol; //Phase space generation volume
   double fLumi;   //Luminosity
@@ -234,10 +287,17 @@ private:
   bool GenerateBeam( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
   
   bool GenerateSIDIS( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+  bool GenerateTDIS( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
   bool GenerateWiser( G4SBS::Nucl_t, G4LorentzVector, G4LorentzVector );
+
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
+  // TDIS AcquMC
+  bool GenerateAcquMC(); //Generates primaries from a ROOT Tree containing AcquMC events.
   bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
+
+  // D Flay (10/15/20).  Generate random beam angle based on non-zero file input.  works for beam generator only
+  void CalculateBeamAnglesAndPositions(G4double bd_L,std::vector<G4double> &R,std::vector<G4double> &P);  
 
   G4bool fRejectionSamplingFlag; //Flag to turn on rejection sampling;
   G4double fMaxWeight; //Maximum event weight within generation limits
@@ -248,6 +308,9 @@ private:
   
   double deutpdist( double );
   double he3pdist( G4SBS::Nucl_t, double );
+
+  double f2p (double);
+  double f2pi (double, double, double);
   double c12pdist( double );
   
   DSS2007FF fFragFunc; //Class to calculate fragmentation functions using DSS2007
@@ -263,6 +326,16 @@ private:
   map<G4String, G4double> fPythiaSigma;
   
   G4SBSPythiaOutput fPythiaEvent;
+
+  G4int fExclPyXSoption; //Flag to choose "Exclusive pythia" event-by-event cross section events
+
+  G4int counter;//(CA)
+  
+  // TDIS AcquMC
+  long fAcquMCchainentry;
+  TChain *fAcquMCChain;
+  AcquMCTree *fAcquMCTree;
+  G4SBSAcquMCOutput fAcquMCEvent;
 
   G4double TriangleFunc(G4double a, G4double b, G4double c );
 };

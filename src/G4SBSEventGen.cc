@@ -21,14 +21,18 @@
 #include "G4SystemOfUnits.hh"
 #include "G4Material.hh"
 
-
 #include "wiser_pion.h"
+
+#include "G4SBSTDISGen.hh"
 
 #include <errno.h>
 
 using namespace CLHEP;
 
 G4SBSEventGen::G4SBSEventGen(){
+
+  counter = 0 ; //(CA)
+  
   //As default values, these don't make sense:
   fThMin = 0.0*deg;
   fThMax = 180.00*deg;
@@ -55,6 +59,10 @@ G4SBSEventGen::G4SBSEventGen(){
   // D. Flay (8/25/20).  beam pointing 
   fBeamOffsetX = 0.*mm;
   fBeamOffsetY = 0.*mm;
+
+  fBeamAngleX = 0.*rad; 
+  fBeamAngleY = 0.*rad; 
+  fBeamAngleZ = 0.*rad; 
 
   fBeamE = 2.2*GeV;
   fBeamP = G4ThreeVector( 0.0, 0.0, fBeamE );
@@ -117,6 +125,13 @@ G4SBSEventGen::G4SBSEventGen(){
   fPythiaTree = NULL;
   fchainentry = 0;
 
+  //TDIS AcquMC
+  fAcquMCChain = NULL;
+  fAcquMCTree = NULL;
+  fAcquMCchainentry = 0;
+
+  fExclPyXSoption = -10;
+  
   fInitialized = false;
   
   //fRejectionSamplingInitialized = false;
@@ -142,32 +157,47 @@ G4SBSEventGen::G4SBSEventGen(){
 G4SBSEventGen::~G4SBSEventGen(){
   delete fPythiaChain;
   delete fPythiaTree;
+  //TDIS AcquMC
+  delete fAcquMCChain;
+  delete fAcquMCTree;
 }
 
 void G4SBSEventGen::LoadPythiaChain( G4String fname ){
-  if( fPythiaChain != NULL ){
-    fPythiaChain->Add( fname );
-  } else { //First file:
-    fPythiaChain = new TChain("Tout");
-    fPythiaChain->Add(fname);
-    fchainentry = 0;
-  } 
-
-  // TFile *ftemp = new TFile( fname, "READ" );
-  // TGraph *gtemp;
-
-  // ftemp->GetObject( "graph_sigma", gtemp );
-
-  // if( gtemp ){
-  //   //fPythiaEvent.Sigma = gtemp->GetY()[gtemp->GetN()-1];
-  //   fPythiaSigma[fname] = gtemp->GetY()[gtemp->GetN()-1]*millibarn;
-  // } else {
-  //   //fPythiaEvent.Sigma = cm2;
-  //   fPythiaSigma[fname] = cm2;
+  fPythiaChain = new TChain("Tout");
+  fPythiaChain->Add(fname);
+  cout << "'Exclusive Pythia' XS option ? " << fExclPyXSoption << endl;
+  if(fExclPyXSoption>0){
+    fPythiaTree = new Pythia6_tree(fPythiaChain, true);
+  }else{
+    fPythiaTree = new Pythia6_tree(fPythiaChain, false);
+  }
+  
+  fchainentry = 0;
+ 
+  // if( !fPythiaTree ){
+  //   G4cerr << "Failed to initialize Pythia6 chain, from file " << fname << ", aborting..." << G4endl;
+  //   exit(-1);
   // }
 
-  // ftemp->Close();
-  // delete ftemp;
+  TFile *ftemp = fPythiaChain->GetFile();
+  TGraph *gtemp;
+
+  ftemp->GetObject( "graph_sigma", gtemp );
+
+  if( gtemp && fExclPyXSoption<0 ){
+    fPythiaEvent.Sigma = gtemp->GetY()[gtemp->GetN()-1];
+    cout << "Pythia cross section (mb) " << fPythiaEvent.Sigma << endl;
+  } else {
+    fPythiaEvent.Sigma = cm2;
+  }
+}
+
+//TDIS AcquMC
+void G4SBSEventGen::LoadAcquMCChain( G4String fname ){
+  fAcquMCChain = new TChain("h1");
+  fAcquMCChain->Add(fname);
+  fAcquMCTree = new AcquMCTree(fAcquMCChain);
+  fAcquMCchainentry = 0;
 }
 
 void G4SBSEventGen::Initialize(){
@@ -280,16 +310,19 @@ bool G4SBSEventGen::GenerateEvent(){
   if( !fInitialized ) Initialize();
   
   double Mp = proton_mass_c2;
+  G4double Mneu = neutron_mass_c2; //there is another variable called Mn, so to avoid issues I called Mneu (CA)
+
 
   G4LorentzVector ei( fBeamP, fBeamE );
   G4LorentzVector ni; 
-
+  
   // Generate initial nucleon - target dependent
   
   G4SBS::Nucl_t thisnucl;
   //Wfact = 0.0;
 
-  bool success = false; 
+  bool success = false;
+
 
   //AJRP: Wfact is now initialized in G4SBSEventGen::InitializeConstants(), invoked at start of run
   switch( fTargType ) {
@@ -308,7 +341,6 @@ bool G4SBSEventGen::GenerateEvent(){
     } else {
       thisnucl = G4SBS::kProton;
     }
-
     ni = GetInitialNucl( fTargType, thisnucl );
     //   Wfact = 2.0;
     // AJRP: Based on same considerations discussed above, this should be changed to 4:
@@ -378,7 +410,7 @@ bool G4SBSEventGen::GenerateEvent(){
   G4double beamy = fBeamOffsetY;
   
   if(fCircularRasterRadius){
-    G4double r2_raster = CLHEP::RandFlat::shoot(0.0, fCircularRasterRadius);
+    G4double r2_raster = CLHEP::RandFlat::shoot(0.0, pow(fCircularRasterRadius,2));
     G4double phi_raster = CLHEP::RandFlat::shoot(-pi, pi);
     beamx+= sqrt(r2_raster)*cos(phi_raster);
     beamy+= sqrt(r2_raster)*sin(phi_raster);
@@ -388,7 +420,7 @@ bool G4SBSEventGen::GenerateEvent(){
   }
   
   if(fBeamSpotSize){
-    G4double r2_spot = fabs(CLHEP::RandGauss::shoot(0.0, fBeamSpotSize));
+    G4double r2_spot = fabs(CLHEP::RandGauss::shoot(0.0, pow(fBeamSpotSize,2)));
     G4double phi_spot = CLHEP::RandFlat::shoot(-pi, pi);
     beamx+= sqrt(r2_spot)*cos(phi_spot);
     beamy+= sqrt(r2_spot)*sin(phi_spot);
@@ -445,11 +477,17 @@ bool G4SBSEventGen::GenerateEvent(){
   case G4SBS::kSIDIS:
     success = GenerateSIDIS( thisnucl, ei, ni );
     break;
+    //TDIS mod  Rachel 11/12/18, include Dasuni's event generator
+  case G4SBS::kTDISKin:
+    success = GenerateTDIS( thisnucl, ei , ni);
+    break;
   case G4SBS::kFlat:
     success = GenerateFlat( thisnucl, ei, ni );
     break;
   case G4SBS::kBeam:
-    fVert.setZ( -5.0*m ); // Set at something upstream if just simple beam
+    // fVert.setZ( -5.0*m ); // Set at something upstream if just simple beam
+    // More accurate: See JLab-TN-19-035, which shows that the last quad is about 9 m upstream of the target pivot.
+    fVert.setZ( -9.0*m );   
     success = GenerateBeam( thisnucl, ei, ni );
     break;
   case G4SBS::kGun:
@@ -461,9 +499,36 @@ bool G4SBSEventGen::GenerateEvent(){
   case G4SBS::kPYTHIA6:
     success = GeneratePythia();
     break;
+    //TDIS AcquMC
+  case G4SBS::kAcquMC:
+    success = GenerateAcquMC();
+    break;
   case G4SBS::kCosmics:
     success = GenerateCosmics();
     break;
+
+   //TDIS GENERATORS (NEED TO ASK ERIC) (CA)
+   // the cases with a 't' are mine (CA)
+  case tElastic:
+  case tQuasiElastic: //deuterium epc.f code
+  case tSIDIS:
+  case tTDISKinH: //TDIS hydrogen
+  case tTDISKinD: //TDIS deuterium
+  case kTDISGen: // to do (or to delete)
+  case tInelastic: // to do (maybe not... ->Pythia?)
+ 
+    // with this way, I can send the flow to the generator
+    // and work there independently.(CA)
+    G4cout<<"Going to TDIS"<<G4endl;
+    // tdishandler->Generate(GetKine(), thisnucl, ei, ni ); //(CA)
+    // success = true;
+    
+    //I changed this line after I consulted Eric about how should be counted 
+    // the number of entries for the space-phase (CA)
+    success =   tdishandler->Generate(GetKine(), thisnucl, ei, ni ); //(CA)
+    G4cout<<"Back from TDIS"<<G4endl;
+    break;
+    
   case G4SBS::kPionPhoto:
     success = GeneratePionPhotoproduction( thisnucl, ei, ni );
     break;
@@ -478,6 +543,11 @@ bool G4SBSEventGen::GenerateEvent(){
     //fMaxWeight = fSigma;
   }
 
+  // how to apply to fElectronP, fNucleonP, others?
+  // convert to unit vector, perform rotation, then turn back into absolute? 
+  // shouldn't this happen within each generator above? 
+  // safest first order approach is to put this in the beam generator only...   
+
   // How to normalize? events are thrown flat in phase space, and then accepted or rejected with probability
   // fSigma/fMaxWeight.
   // Overall normalization should be proportional to:
@@ -489,6 +559,35 @@ bool G4SBSEventGen::GenerateEvent(){
   }
   
   return success;
+}
+
+void G4SBSEventGen::CalculateBeamAnglesAndPositions(G4double bd_L,std::vector<G4double> &R,std::vector<G4double> &P){
+   // D. Flay (10/15/20) 
+   // Based on input file, generate a random beam angle
+
+   // randomize the angles by a small amount  
+   G4double pct  = 0.1*CLHEP::perCent;
+   G4double rx = CLHEP::RandGauss::shoot(fBeamAngleX,fBeamAngleX*pct); 
+   G4double ry = CLHEP::RandGauss::shoot(fBeamAngleY,fBeamAngleY*pct); 
+   G4double rz = 0;  
+   R.push_back(rx); 
+   R.push_back(ry); 
+   R.push_back(rz); 
+ 
+   // Store the particle vertex in case we have to account for this rotation, which technically 
+   // modifies the x and y positions at z = 0  
+   // - recall, the angle is some amount ABOUT an axis.  So we flip the angles here 
+   // - compute the new beam origin x and y 
+   G4double bd_x = bd_L*tan(ry);
+   G4double bd_y = bd_L*tan(rx);
+   P.push_back(bd_x); 
+   P.push_back(bd_y); 
+
+   // char msg[200]; 
+   // std::cout << "[G4SBSEventGen::CalculateBeamAngles]: Generated angles from z = " << bd_L/m << " m upstream: " << std::endl;
+   // sprintf(msg,"x = %.3lf mm, y = %.3lf mm, rx = %.3lf mrad, ry = %.3lf mrad",bd_x,bd_y,rx/mrad,ry/mrad);
+   // std::cout << msg << std::endl;
+
 }
 
 // bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
@@ -627,6 +726,10 @@ bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4L
 
   G4ThreeVector boost_Nrest = ni.boostVector();
 
+  //G4cout << "ni " << ni.e()/GeV << " " << ni.vect().x()/GeV << " " << ni.vect().y()/GeV << " " << ni.vect().z()/GeV << " " << ni.vect().phi()/rad << " " << ni.vect().theta()/rad << G4endl;
+  
+  G4LorentzVector nspec = G4LorentzVector(ni.e(), -ni.vect());
+  
   G4LorentzVector Pisum_lab = ei + ni;
 
   G4LorentzVector ei_Nrest = ei;
@@ -777,7 +880,16 @@ bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4L
   fNucleonP = nf_lab.vect();
   fNucleonE = nf_lab.e();
   //    printf("nfp_e = %f GeV\n", nfp.e()/GeV);
-
+  
+  if(nucl==G4SBS::kNeutron && fTargType==G4SBS::kD2){
+    fProtonSpecE = nspec.e();
+    fProtonSpecP = nspec.vect();
+  }else{
+    fProtonSpecE = -1.e9;
+    fProtonSpecP = G4ThreeVector();
+  }
+  //G4cout << "nspec " << nspec.e()/GeV << " " << nspec.vect().x()/GeV << " " << nspec.vect().y()/GeV << " " << nspec.vect().z()/GeV << " " << nspec.vect().phi()/rad << " " << nspec.vect().theta()/rad << G4endl;
+  
   fFinalNucl = nucl;
   return true;
 }
@@ -974,6 +1086,8 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
   double Mp = proton_mass_c2;
   double mpi = 0.140*GeV;
 
+  G4LorentzVector nspec = G4LorentzVector(ni.e(), -ni.vect());
+  
   G4LorentzVector Pisum_lab = ei + ni;
 
   G4ThreeVector boost_Nrest = ni.boostVector();
@@ -1074,9 +1188,40 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
     fFinalNucl = nucl==G4SBS::kProton?G4SBS::kNeutron:G4SBS::kProton;
   }
 
-  G4double Epi_GammaNrest = (W2 - pow(mpi,2) - pow(Mp,2))/(2.0*W);
+  fHadronE = 0.0;
+  fHadronP = G4ThreeVector();
+
+  G4double Mpi, M_ni, M_nf;
+
+  // Let's choose final state pion following charge conservation
+  if( nucl == G4SBS::kNeutron && fFinalNucl == G4SBS::kNeutron ){ //gamma n --> pi0 n         
+    Mpi = G4PionZero::PionZeroDefinition()->GetPDGMass();
+    M_ni = neutron_mass_c2;
+    M_nf = M_ni;
+    fHadronType = G4SBS::kPi0;
+  }
+  else if ( nucl == G4SBS::kProton && fFinalNucl == G4SBS::kProton ) { //gamma p --> pi0 p              
+    Mpi = G4PionZero::PionZeroDefinition()->GetPDGMass();
+    M_ni = proton_mass_c2;
+    M_nf = M_ni;
+    fHadronType = G4SBS::kPi0;
+  }
+  else if ( nucl == G4SBS::kProton && fFinalNucl == G4SBS::kNeutron ) { //gamma p --> pi+ n  
+    Mpi = G4PionPlus::PionPlusDefinition()->GetPDGMass();
+    M_ni = proton_mass_c2;
+    M_nf = neutron_mass_c2;
+    fHadronType = G4SBS::kPiPlus;
+ }
+  else if ( nucl == G4SBS::kNeutron && fFinalNucl == G4SBS::kProton ) { //gamma n --> pi- p  
+    Mpi = G4PionMinus::PionMinusDefinition()->GetPDGMass();
+    M_ni = neutron_mass_c2;
+    M_nf = proton_mass_c2;
+    fHadronType = G4SBS::kPiMinus;
+ }
+ 
+  G4double Epi_GammaNrest = (W2 + pow(Mpi,2) - pow(M_nf,2))/(2.0*W);
   G4double EN_GammaNrest = W - Epi_GammaNrest;
-  G4double PN_GammaNrest = sqrt(pow(EN_GammaNrest,2)-pow(Mp,2));
+  G4double PN_GammaNrest = sqrt(pow(EN_GammaNrest,2)-pow(M_nf,2));
 
   //This is the final nucleon momentum in the virtual photon-nucleon rest frame
   //It can be boosted directly to the lab frame: 
@@ -1086,11 +1231,19 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
 						       sin(thpi)*sin(phpi),
 						       cos(thpi) ) );
 
-  G4LorentzVector Pfnucleon_lab = Pfnucleon_GammaNrest; 
-  
+  G4LorentzVector Pfnucleon_lab = Pfnucleon_GammaNrest;  
   Pfnucleon_lab.boost( boost_GammaN_lab );
   
-  
+   // thpi -> pi + thpi, since N & pi will have equal & opposite momentum in the GammaN rest frame.
+  G4double Ppi_GammaNrest = PN_GammaNrest;
+  G4LorentzVector Pfpion_GammaNrest( Epi_GammaNrest,
+  					Ppi_GammaNrest *
+  					G4ThreeVector( sin(pi + thpi)*cos(phpi),
+  						       sin(pi + thpi)*sin(phpi),
+  						       cos(pi + thpi) ) );
+
+  G4LorentzVector Pfpion_lab = Pfpion_GammaNrest;   
+  Pfpion_lab.boost( boost_GammaN_lab );
   
   fQ2 = Q2;
   fW2 = W2;
@@ -1184,6 +1337,17 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
   fNucleonP = Pfnucleon_lab.vect();
   fNucleonE = Pfnucleon_lab.e();
 
+  fHadronP = Pfpion_lab.vect();
+  fHadronE = Pfpion_lab.e();
+  
+  if(nucl==G4SBS::kNeutron && fTargType==G4SBS::kD2){
+    fProtonSpecE = nspec.e();
+    fProtonSpecP = nspec.vect();
+  }else{
+    fProtonSpecE = -1.e9;
+    fProtonSpecP = G4ThreeVector();
+  }
+    
   return true;
 }
 
@@ -1197,6 +1361,8 @@ bool G4SBSEventGen::GenerateDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Loren
   // Here we are basically assuming DIS collisions on an on-shell nucleon with simplistic Fermi smearing by sampling the nucleon
   // momentum distribution in 3He or 2H!
   // G4LorentzVector eip = ei.boost(pboost); //eip is incident electron 4-mom boosted to nucleon rest frame
+  
+  G4LorentzVector nspec = G4LorentzVector(ni.e(), -ni.vect());
 
   G4LorentzVector Pisum_lab = ei + ni;
 
@@ -1342,7 +1508,15 @@ bool G4SBSEventGen::GenerateDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Loren
 
   fNucleonP = G4ThreeVector();
   fNucleonE = -1e9;  // This ensures we won't generate a nucleon event
-
+  
+  if(nucl==G4SBS::kNeutron && fTargType==G4SBS::kD2){
+    fProtonSpecE = nspec.e();
+    fProtonSpecP = nspec.vect();
+  }else{
+    fProtonSpecE = -1.e9;
+    fProtonSpecP = G4ThreeVector();
+  }
+  
   return true;
 }
 
@@ -1652,8 +1826,252 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
 }
 
 
-bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
+////////////////////////////////////////////////////////////////
+// TDIS process (D.Adikaram - March 09, 2015)
+////////////////////////////////////////////////////////////////
+bool G4SBSEventGen::GenerateTDIS(G4SBS::Nucl_t nucl, G4LorentzVector ei,  G4LorentzVector ni){
+  //The nucleon could be a proton or a neutron. It has initial 4-momentum ni:
+  //Boost to the nucleon rest frame:
+  G4ThreeVector boost_Nrest = ni.boostVector();
 
+  //Just in case, copy ei and ni to ei_Nrest and ni_Nrest before boosting:
+  G4LorentzVector ei_Nrest = ei;
+  G4LorentzVector ni_Nrest = ni;
+  ei_Nrest.boost( -boost_Nrest );
+  ni_Nrest.boost( -boost_Nrest );
+
+  //////////////
+  // Parametars
+  //////////////
+  double Md     = 1.87561282*GeV;
+  double Mp     = 0.938272*GeV;
+  double Mn     = 0.939565*GeV;
+  double EBeam  = ei.e();
+  double PI     = 3.1415;
+  double D2R    = PI/(180.0);
+
+  double EeMin  =  1.0*GeV;
+  double EeMax  = 10.0*GeV;
+
+  double Mt;
+  if (fNuclType == G4SBS::kNeutron)
+    Mt = Mn;
+  else
+    Mt = Mp;
+ 
+  ///////////////////////////////////////////////////////////
+  //Generate kinematics of the scattering electron and photon
+  ///////////////////////////////////////////////////////////
+  double E_e      = CLHEP::RandFlat::shoot( EeMin, EeMax);
+  double theta_e  = CLHEP::RandFlat::shoot( 5*D2R, 45*D2R);
+  double P_e      = sqrt( pow(E_e,2) - ei.m2() );
+  double phi_e    = CLHEP::RandFlat::shoot( -12*D2R , 12*D2R) ;
+  
+  G4LorentzVector ef( E_e, G4ThreeVector( P_e*sin(theta_e)*cos(phi_e), P_e*sin(theta_e)*sin(phi_e), P_e*cos(theta_e) ));
+  G4LorentzVector ef_Nrest = ef.boost( -boost_Nrest );
+  G4LorentzVector q_Nrest  = ei_Nrest - ef_Nrest; 
+  G4LorentzVector q = ei - ef;
+
+  double nu =  q.e();
+  double Q2 = -q.m2();
+  double xa =  Q2/(2*Mt*nu);
+  double ya =  nu/EBeam;
+ 
+  ///////////////////////////////////////////////////
+  //Generate a proton-neutron pair from the deuteron
+  ///////////////////////////////////////////////////
+  double Px_p1, Py_p1, Pz_p1, P_p1, E_p1, theta_p1, phi_p1;
+  double Px_n, Py_n, Pz_n, P_n, E_n, theta_n, phi_n;
+  double Px_p2, Py_p2, Pz_p2, P_p2, E_p2, theta_p2, phi_p2;
+  double Px_pi, Py_pi, Pz_pi, E_pi;
+
+  double pt, z, xbj;
+
+ // First Proton
+ //============
+ G4ThreeVector p1 = PiMake();
+
+ Px_p1  = p1.x();
+ Py_p1  = p1.y();
+ Pz_p1  = p1.z();
+    
+ P_p1     = p1.mag();
+ E_p1     = sqrt (pow(P_p1,2) + pow(Mp,2));
+ theta_p1 = acos( Pz_p1/P_p1);
+    
+ phi_p1 = 0.0;
+ if (Py_p1 > 0.0)
+   phi_p1 = acos( Px_p1/sqrt(Px_p1*Px_p1 + Py_p1*Py_p1));
+ else
+   phi_p1 = 2*PI - acos(Px_p1/sqrt(Px_p1*Px_p1 + Py_p1*Py_p1));
+
+if(fNuclType == G4SBS::kProton){ 
+
+  E_p1  = Mp;
+  Px_p1 = 0.0;
+  Py_p1 = 0.0;
+  Pz_p1 = 0.0;
+
+ }
+    
+  G4LorentzVector p1f( E_p1, G4ThreeVector( Px_p1, Py_p1, Pz_p1));
+
+ // Neutron
+ //========
+ Px_n = -Px_p1;
+ Py_n = -Py_p1;
+ Pz_n = -Pz_p1;
+ P_n  = sqrt( Px_n*Px_n + Py_n*Py_n +  Pz_n*Pz_n ); 
+ E_n  = Md - E_p1;
+ theta_n =  acos (Pz_n/P_n);
+    
+ phi_n = 0.0;
+ if (phi_p1 < PI)
+   phi_n = 2*PI - acos(Px_n/sqrt(Px_n*Px_n + Py_n*Py_n));
+ else
+   phi_n = acos(Px_n/sqrt(Px_n*Px_n + Py_n*Py_n));
+
+ if(fNuclType == G4SBS::kProton){ 
+
+  E_n  = 0.0;
+  Px_n = 0.0;
+  Py_n = 0.0;
+  Pz_n = 0.0;
+
+ }
+ 
+ G4LorentzVector nf( E_n, G4ThreeVector( Px_n, Py_n, Pz_n));
+    
+// Second proton
+//===============
+pt  = CLHEP::RandFlat::shoot(0.0, 0.5*GeV);
+z   = CLHEP::RandFlat::shoot(0.0, 1.0);
+
+double znq, Mx2, y;
+ if(fNuclType == G4SBS::kNeutron){ 
+  xbj = Q2/(2*nf.dot(q));
+  znq = z*nf.dot(q);
+  Mx2 = (q + nf).mag2();
+  y = (nf.dot(q))/(nf.dot(ei));
+ }
+ else{
+   xbj = Q2/(2*p1f.dot(q));
+   znq = z*p1f.dot(q);
+   Mx2 = (q + p1f).mag2();
+   y = (p1f.dot(q))/(p1f.dot(ei));
+ }
+  
+ Pz_p2 = ( -1.0*znq*q.z() + sqrt( znq*q.z()*znq*q.z() + Q2*(q.e()*q.e())*(Mp*Mp + pt*pt) - Q2*znq*znq) )/Q2;
+ P_p2  = sqrt (Pz_p2*Pz_p2 + pt*pt);
+ theta_p2 = acos (Pz_p2/P_p2);
+ E_p2 = sqrt ( P_p2*P_p2 + Mp*Mp);
+ phi_p2 = CLHEP::RandFlat::shoot( 0.0, 360.0*D2R) ;
+
+ G4LorentzVector p2f( E_p2, G4ThreeVector( P_p2*sin(theta_p2)*cos(phi_p2), P_p2*sin(theta_p2)*sin(phi_p2), P_p2*cos(theta_p2) ));
+ 
+ Px_p2 = pt*cos(phi_p2);
+ Py_p2 = pt*sin(phi_p2);
+
+ G4ThreeVector p1f_vec = p1f.vect();
+ G4ThreeVector p2f_vec = p2f.vect();
+ G4ThreeVector q_vec = q.vect();
+
+ double theta1 = acos( p1f_vec.unit().dot( q_vec.unit() ) );
+ double theta2 = acos( p2f_vec.unit().dot( q_vec.unit() ) );
+ 
+// Hadron 
+//========
+ if (fNuclType == G4SBS::kNeutron){
+  E_pi  = E_n - E_p2;
+  Px_pi = Px_n - Px_p2; 
+  Py_pi = Py_n - Py_p2;
+  Pz_pi = Pz_n - Pz_p2;
+ }
+
+ else{
+   E_pi  = Mp - E_p2;
+   Px_pi = - Px_p2; 
+   Py_pi = - Py_p2;
+   Pz_pi = - Pz_p2;
+ }
+
+ G4ThreeVector pi_vec(Px_pi, Py_pi, Pz_pi);
+ G4LorentzVector pif(E_pi, pi_vec);
+
+//======================================================
+ double tpi, ypi, fpi, xpi; 
+ xpi = xbj/(1 - z);
+ tpi = (E_pi*E_pi) - (pi_vec.mag()*pi_vec.mag());
+ ypi = pif.dot(q)/(pif.dot(ei));
+
+ double P_pi = pi_vec.mag()/GeV;
+ if (xbj > 0.055 && xbj < 0.3){
+   if ( fNuclType == G4SBS::kNeutron )
+       fpi = 2*f2pi(P_pi, xbj, theta2/D2R);
+     else
+       fpi = f2pi(P_pi, xbj, theta2/D2R);
+ }
+ else
+   fpi = 0.0;
+     
+// sigma
+//======
+// From the DIS event generator
+  double minE = 0.0;
+  double sigma_dis    = 0.0;
+  double sigma_tdis  = 0.0;
+
+  double f2N = 0.0;
+ 
+  if (xbj > 0 && xbj < 1.0){
+    // for the neutron/proton target
+    f2N   = F2N(xbj, Q2, nucl);  // F2N is define at G4SBSDIS.hh 
+    if ( fNuclType == G4SBS::kNeutron )
+      sigma_dis    = dissigma_n(ei.e()/GeV, theta_e/rad, E_e/GeV)*((ei.e()-minE)/GeV)*nanobarn; // dissigma_n is also defined in G4SBSDIS.hh
+    else
+      sigma_dis    = dissigma_p(ei.e()/GeV, theta_e/rad, E_e/GeV)*((ei.e()-minE)/GeV)*nanobarn; // dissigma_n is also defined in G4SBSDIS.hh
+    sigma_tdis   = sigma_dis * (fpi/f2N);
+    
+  }
+ 
+  /////////////////////////////
+  //Record all TDIS variables:
+  /////////////////////////////
+  fQ2   = Q2;
+  fnu   = nu;
+  fxa   = xa;
+  fya   = ya;
+  fW2   = Mx2;
+  fy    = y;
+  fxbj  = xbj;
+  fPtTDIS   = pt;
+  fz    = z;
+  fxpi  = xpi;
+  ftpi  = tpi;
+  fypi  = ypi;
+  ff2p   = f2N;
+  ff2pi   = fpi;
+  fSigmaDIS = sigma_dis;
+  fSigmaTDIS = sigma_tdis;
+ 
+  fElectronE = ef.e();
+  fElectronP = ef.vect();
+  fNeutronE = nf.e();
+  fNeutronP = nf.vect();
+  fProton1E = p1f.e();
+  fProton1P = p1f.vect();
+  fProton2E = p2f.e();
+  fProton2P = p2f.vect();
+  fHadronE  = pif.e();
+  fHadronP  = pif.vect();
+  return true;
+}
+
+////////////////////////////////////////////////////////////////
+// End of TDIS process 
+////////////////////////////////////////////////////////////////
+
+bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni ){
   
   double htheta = acos( CLHEP::RandFlat::shoot( cos( fThMax_had ), cos( fThMin_had ) ) );
   double hphi = CLHEP::RandFlat::shoot( fPhMin_had, fPhMax_had );
@@ -1870,6 +2288,38 @@ bool G4SBSEventGen::GenerateBeam( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lore
   fNucleonP = G4ThreeVector();
   fNucleonE = proton_mass_c2;
 
+  // D. Flay (10/15/20) 
+  // generate random beam angles (based on central values from input file)
+  G4double ba_L = fabs( fVert.z() ); // distance from beam origin to target center   
+  std::vector<G4double> R,pos; 
+  CalculateBeamAnglesAndPositions(ba_L,R,pos);  
+
+  // apply rotation angles  
+  G4ThreeVector pRot;
+  G4ThreeVector p0 = fElectronP; // for comparison  
+  G4SBS::Util::RotateVector(R,p0,pRot);
+  fElectronP = pRot;
+ 
+  // adjust vertex? 
+  // G4double dx = fabs(pos[0]); 
+  // G4double dy = fabs(pos[1]); 
+  // fVert.setX(fVert.x()-dx);  
+  // fVert.setY(fVert.y()-dy);  
+
+  G4bool isDebug = false;
+  if(isDebug){
+     std::cout << "[G4SBSEventGen::GenerateBeam]: Vector rotation! " << std::endl;
+     std::cout << "angles = " << R[0]/mrad << ", " << R[1]/mrad << ", " << R[2]/mrad << std::endl;
+     std::cout << "px = " << p0.x() << " px' = " << pRot.x() << std::endl;
+     std::cout << "py = " << p0.y() << " py' = " << pRot.y() << std::endl;
+     std::cout << "pz = " << p0.z() << " pz' = " << pRot.z() << std::endl;
+     std::cout << "mag = " << p0.mag() << " mag' = " << pRot.mag() << std::endl;
+     std::cout << "Vertex:" << std::endl;
+     std::cout << "x = " << fVert.x() << std::endl; 
+     std::cout << "y = " << fVert.y() << std::endl; 
+     std::cout << "z = " << fVert.z() << std::endl; 
+  }
+
   fSigma    = 1.0;
   fApar     = 0.0;
   fAperp    = 0.0;
@@ -2036,6 +2486,7 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
    
   switch( targ ){
   case G4SBS::kLD2:
+  case G4SBS::kD2:
     PMAX = 0.35*GeV;
     break;
   case G4SBS::k3He:
@@ -2062,7 +2513,7 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
       psample = CLHEP::RandFlat::shoot(PMAX);
     }
   }
-  if( targ == G4SBS::kLD2 ){
+  if( targ == G4SBS::kLD2 || targ == G4SBS::kLD2 ){
     while( CLHEP::RandFlat::shoot() > deutpdist( psample) ){
       psample = CLHEP::RandFlat::shoot(PMAX);
     }
@@ -2073,9 +2524,28 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
     }
   }
 
+
+  // I added these line to correct the mass of the nucleon (CA)
+  // probably there is a more elegant way to do it and avoid the 'if'
+  G4double Mnucl;
+  if (nucl == kProton)
+    {
+      Mnucl = proton_mass_c2;
+    }
+  else
+    {
+      Mnucl = neutron_mass_c2; 
+    }
+  
   p.setRThetaPhi( psample, theta, phi );
 
-  return G4LorentzVector( p, sqrt(p.mag2() + pow(proton_mass_c2,2.0) ) );
+  // ORIGINAL
+  //  return G4LorentzVector( p, sqrt(p.mag2() + pow(proton_mass_c2,2.0) ) );
+
+   //Andrew thinks that the final proton mass is incorrect (CA)
+  //  return G4LorentzVector( p, sqrt(p.mag2() + pow(proton_mass_c2,2.0) ) );
+  // Corrected expresion with the proper nucleon mass
+  return G4LorentzVector( p, sqrt(p.mag2() + pow(Mnucl,2.0) ) );
 }
 
 
@@ -2103,7 +2573,7 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
   phi   = CLHEP::RandFlat::shoot(2.0*pi);
 
   psample = -1e9;
-  if( nucl == kProton ){
+  if( nucl == G4SBS::kProton ){
   psample = CLHEP::RandFlat::shoot(PMAX);
   while( CLHEP::RandFlat::shoot() > he3pdist( psample, p_center, p_WIDTH )/fProtonMax ){
   psample = CLHEP::RandFlat::shoot(PMAX);
@@ -2136,7 +2606,32 @@ bool G4SBSEventGen::GeneratePythia(){
   //Populate the pythiaoutput data structure:
   fPythiaEvent.Clear();
   //fPythiaEvent.Nprimaries = fPythiaTree->Nparticles;
-  fPythiaEvent.Sigma = sigmatemp/cm2;
+  //if(fExclPyXSoption)fPythiaEvent.Sigma = fPythiaTree->XSxPSF;
+  if(fExclPyXSoption>0){
+    fPythiaEvent.Delta2 = fPythiaTree->Delta2*GeV*GeV;
+    fPythiaEvent.phigg = fPythiaTree->phi_gg*radian;
+    switch(fExclPyXSoption){
+    case(1):// Total unp. XS: (xs{+}+xs{-})/2
+      fPythiaEvent.Sigma = (fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0;
+      fPythiaEvent.SigmaDiff = (fPythiaTree->XSpXpsf - fPythiaTree->XSmXpsf)/2.0;
+      break;
+    case(2):// BH^2: (bh{+}-bh{-})/2
+      fPythiaEvent.Sigma = (fPythiaTree->BHpXpsf + fPythiaTree->BHmXpsf)/2.0;
+      fPythiaEvent.SigmaDiff = (fPythiaTree->BHpXpsf + fPythiaTree->BHmXpsf)/2.0;
+      break;
+    case(3):// DVCS^2: (xs{+}+xs{-})/2 - (bh{+}+bh{-})/2
+      fPythiaEvent.Sigma = 
+	(fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0 - (fPythiaTree->BHpXpsf + fPythiaTree->BHmXpsf)/2.0;
+      fPythiaEvent.SigmaDiff = 
+	(fPythiaTree->XSpXpsf - fPythiaTree->XSmXpsf)/2.0 - (fPythiaTree->BHpXpsf - fPythiaTree->BHmXpsf)/2.0;
+    default:
+      fPythiaEvent.Sigma = (fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0;
+      fPythiaEvent.SigmaDiff = (fPythiaTree->XSpXpsf - fPythiaTree->XSmXpsf)/2.0;
+      break;
+    }
+  }else{
+    fPythiaEvent.Sigma = sigmatemp/cm2;
+  }
   fPythiaEvent.Ebeam = (*(fPythiaTree->E))[0]*GeV;
   fPythiaEvent.Eprime = (*(fPythiaTree->E))[2]*GeV;
   fPythiaEvent.theta_e = (*(fPythiaTree->theta))[2]*radian;
@@ -2160,12 +2655,28 @@ bool G4SBSEventGen::GeneratePythia(){
   fPythiaEvent.xbj = fPythiaTree->xbj;
   fPythiaEvent.y   = fPythiaTree->y;
   fPythiaEvent.W2  = fPythiaTree->W2*GeV*GeV;
-
+  
   int ngood = 0;
 
   int ngen = 0;
   
+  // E.Fuchey, 2018/04/28: 
+  // If we generate exclusive event, we want to be able to select an event with the electron only: 
+  // if the electrons makes it, we want to keep everything; otherwise, we want to keep nothing.
+  G4bool good_excl_event = false;
+  if(fExclPyXSoption>=0){
+    G4double phi = fPythiaEvent.phi_e;
+    if(phi<0 && fPhMin>0)phi+= 8*atan(1);//then we consider the phi cut on 0.-360. instead of -180, 180.
+    if(fThMin <= fPythiaEvent.theta_e && fPythiaEvent.theta_e <= fThMax &&
+       fPhMin <= phi && phi <= fPhMax &&
+       fEeMin <= fPythiaEvent.Eprime && fPythiaEvent.Eprime <= fEeMax)good_excl_event = true;
+    //if(good_excl_event)cout << fPythiaEvent.theta_e << " " << phi << " " << fPythiaEvent.Eprime << endl;
+  }
+  
+  //cout << "G4SBSEventGen.cc" << endl;
   for( int i=0; i<fPythiaTree->Nparticles; i++ ){
+    //cout << i << " " << (*(fPythiaTree->status))[i] << " " << (*(fPythiaTree->pid))[i] << " " 
+    //<< (*(fPythiaTree->px))[i]*GeV << " " << (*(fPythiaTree->py))[i]*GeV << " " << (*(fPythiaTree->pz))[i]*GeV << endl;
     //Only fill the first four particles (event header info) and final-state particles (primaries to be generated):
     if( i<4 || (*(fPythiaTree->status))[i] == 1 ){
       fPythiaEvent.PID.push_back( (*(fPythiaTree->pid))[i] );
@@ -2182,13 +2693,15 @@ bool G4SBSEventGen::GeneratePythia(){
       fPythiaEvent.vz.push_back( (*(fPythiaTree->vz))[i]*mm + fVert.z() );
       fPythiaEvent.theta.push_back( (*(fPythiaTree->theta))[i]*radian );
       fPythiaEvent.phi.push_back( (*(fPythiaTree->phi))[i]*radian );
-      if( (*(fPythiaTree->status))[i] == 1 &&
-	  ( (fPythiaEvent.theta[ngood] >= fThMin && fPythiaEvent.theta[ngood] <= fThMax &&
-	     fPythiaEvent.phi[ngood] >= fPhMin && fPythiaEvent.phi[ngood] <= fPhMax &&
-	     fPythiaEvent.E[ngood] >= fEeMin && fPythiaEvent.E[ngood] <= fEeMax) ||
-	    (fPythiaEvent.theta[ngood] >= fThMin_had && fPythiaEvent.theta[ngood] <= fThMax_had &&
-	     fPythiaEvent.phi[ngood] >= fPhMin_had && fPythiaEvent.phi[ngood] <= fPhMax_had &&
-	     fPythiaEvent.E[ngood] >= fEhadMin && fPythiaEvent.E[ngood] <= fEhadMax) ) ){ 
+      if( (*(fPythiaTree->status))[i] == 1 && 
+	  ( good_excl_event || //if it is a good exclusive event, we want to keep everything
+	    ( (fExclPyXSoption<0) && 
+	      ( (fPythiaEvent.theta[ngood] >= fThMin && fPythiaEvent.theta[ngood] <= fThMax &&
+		 fPythiaEvent.phi[ngood] >= fPhMin && fPythiaEvent.phi[ngood] <= fPhMax &&
+		 fPythiaEvent.E[ngood] >= fEeMin && fPythiaEvent.E[ngood] <= fEeMax) ||
+		(fPythiaEvent.theta[ngood] >= fThMin_had && fPythiaEvent.theta[ngood] <= fThMax_had &&
+		 fPythiaEvent.phi[ngood] >= fPhMin_had && fPythiaEvent.phi[ngood] <= fPhMax_had &&
+		 fPythiaEvent.E[ngood] >= fEhadMin && fPythiaEvent.E[ngood] <= fEhadMax) ) ) ) ){ 
 	fPythiaEvent.genflag.push_back( 1 );
 	ngen++;
 	//G4cout << "located good event with one or more primary particles within generation limits" << G4endl;
@@ -2204,6 +2717,236 @@ bool G4SBSEventGen::GeneratePythia(){
   
   return true;
 }
+// TDIS AcquMC
+bool G4SBSEventGen::GenerateAcquMC(){
+  
+  fAcquMCTree->GetEntry(fAcquMCchainentry++);
+
+  // G4String fAcquMCnametemp = ( (TChain*) fAcquMCTree->fChain )->GetFile()->GetName();
+
+  if( fAcquMCchainentry % 1000 == 0 ) G4cout << "Passed event " << fAcquMCchainentry << " in AcquMC tree" << G4endl;
+  
+  fAcquMCEvent.Clear();
+  //fAcquMCEvent.Nprimaries = fAcquMCTree->Nparticles;
+
+  fAcquMCEvent.Vx =  fAcquMCTree->X_vtx*cm;
+  fAcquMCEvent.Vy =  fAcquMCTree->Y_vtx*cm;
+  fAcquMCEvent.Vz =  fAcquMCTree->Z_vtx*cm;
+  // fAcquMCEvent.Px =  fAcquMCTree->Px_bm *GeV;
+  // fAcquMCEvent.Py =  fAcquMCTree->Py_bm *GeV;
+  // fAcquMCEvent.Pz =  fAcquMCTree->Pz_bm *GeV;
+  fAcquMCEvent.Px =  fAcquMCTree->Px_l0114;//*GeV;
+  fAcquMCEvent.Py =  fAcquMCTree->Py_l0114;//*GeV;
+  fAcquMCEvent.Pz =  fAcquMCTree->Pz_l0114;//*GeV;
+  fAcquMCEvent.Pt =  fAcquMCTree->Pt_l0114*GeV;
+  fAcquMCEvent.E =  fAcquMCTree->En_l0114*GeV;
+
+  return true;
+
+}
+
+
+
+
+// TDIS
+// All this piece of code, with the file "moment_ld2b.dat"
+// is coded in G4SBSTDISGen. I leave here for compatibility with the old generator (CA)
+G4ThreeVector G4SBSEventGen::PiMake(){
+
+  ifstream in;
+  in.open(Form("moment_ld2b.dat")); // NB THIS FILE HAS TO BE IN SAME DIRECTORY AS EXECUTABLE
+
+  double degr=0.01745329252;
+  double fgev=0.1973;
+
+  const int nfermi = 201;
+  double ppfermi[nfermi] = {0.0};
+  double pfdis[nfermi]= {0.0};
+  double pfdis1[nfermi] = {0.0};
+  double pfdis2[nfermi]= {0.0};
+  int i = 0;
+  
+  while(1){
+    in>>ppfermi[i]>>pfdis[i]>>pfdis1[i]>>pfdis2[i];
+    //cout << ppfermi[i] << "\t" << pfdis[i] << endl;
+    ppfermi[i] = ppfermi[i]*fgev;
+    pfdis[i] = pfdis[i]*ppfermi[i]*ppfermi[i];
+    i++;
+    if(i==nfermi) break;
+  }
+  in.close();
+ 
+
+  for (int j = 1; j < nfermi; j++){
+    pfdis[j] = pfdis[j] +  pfdis[j-1];
+    //cout << ppfermi[j] << "\t" << pfdis[j] << endl;
+  }
+
+  if (pfdis[nfermi-1] > 0.0){
+    for (int j = 0; j < nfermi; j++){
+      pfdis[j] = pfdis[j]/pfdis[nfermi-1];
+    }
+  }
+  else
+    cout << "error in reading fermi file" << endl;
+ 
+  double xran = CLHEP::RandFlat::shoot(0.0,1.0);
+  
+  double fermi = -1.0;
+  for (int i = 0; i < nfermi; i++){
+    if (pfdis[i] == xran){
+      fermi = ppfermi[i];
+    }
+    else if (xran > pfdis[i] && xran < pfdis[i+1]){
+      double numerator   = ( ppfermi[i+1] -  ppfermi[i]);
+      double denominator = (  pfdis[i+1] -   pfdis[i]);
+      double slope = numerator/denominator;
+      fermi = ppfermi[i] + (xran - pfdis[i])*slope;
+     
+    }
+    
+  }
+  //  cout << fermi << "\t" << xran << endl;
+  
+  double xran1 = CLHEP::RandFlat::shoot(0.0,1.0);
+  double fth = acos(2*xran1 - 1.0);
+
+  double xran2 = CLHEP::RandFlat::shoot(0.0,1.0);
+  double fphi = 2*180.0*xran2*degr;
+
+  double fermix = fermi*sin(fth)*cos(fphi);
+  double fermiy = fermi*sin(fth)*sin(fphi);
+  double fermiz = fermi*cos(fth);
+   
+  return G4ThreeVector(fermix, fermiy, fermiz);
+ 
+}
+//TDIS
+double G4SBSEventGen::f2p( double x ){
+  double f2 = 0.0;
+  double p0 = 0.1736;
+  double p1 = 4.537;
+  double p2 = -48.66;
+  double p3 = 236.8;
+  double p4 = -665.8;
+  double p5 = 1094;
+  double p6 = -973.9;
+  double p7 = 363.2;
+  
+//
+    if( x < 0.0 || x > 0.6 ) 
+      return 0.0;
+    
+    else{
+      f2 = p0 + p1*pow(x,1) + p2*pow(x,2) + p3*pow(x,3) + p4*pow(x,4) + p5*pow(x,5) + p6*pow(x,6) + p7*pow(x,7);
+      return f2;
+
+    }
+}
+//TDIS
+// subroutine to calculate the f2pi as function of recoiled nucleon momentum, xbj, theta (Timothy J. Hobbs)
+// what is "th" = theta angle
+//
+// This is user parametrization by fit the Wally's codes 3Var_x.f() with integration of finite momentum range
+// typ = 2 !EXPONENTIAL FORM FACTOR (s-depdendent exp)
+// dis = 1 !NEUTRAL EXCHANGE
+// FLAG = 0  --- THE PION CONTRIBUTION      | J = 0 + 1/2
+//
+// DEPRECATED. NOBODY KNOWS FOR SURE HOW THIS PARAMETRIZATION WAS DONE
+double G4SBSEventGen::f2pi(double p, double x, double th){
+
+  double p0, p1, p2, p3, p4, p5;
+  int xflag = 0;
+  double fk = 0.0;
+  double fth = 0.0;
+
+  if (p > 0.05 && p <= 0.1){
+    
+    p0 = 3.656e-5;
+    p1 = -0.000402;
+    p2 = -0.008886;
+    p3 = 0.07359;
+    p4 = 1.079;
+    p5 = -8.953;
+
+    if (x < 0.0555 || x > 0.083) xflag = 1;
+
+    
+    fk = -0.954 + 66.5*p -1632.4*p*p + 14573*p*p*p; 
+    
+  }
+
+  if (p > 0.1 && p <= 0.2){
+    
+    p0 = 0.000287;
+    p1 = 0.009397;
+    p2 = -0.2632;
+    p3 = 2.029;
+    p4 = -5.878;
+    p5 = 4.664;
+
+    if (x < 0.0555 || x > 0.16) xflag = 1;
+    fk = 0.464 -15.4*p + 126.5*p*p;
+    
+  }
+  
+  if (p > 0.2 && p <= 0.3){
+    
+    p0 = 0.0003662;
+    p1 = 0.02811;
+    p2 = -0.4566;
+    p3 = 2.428;
+    p4 = -5.107;
+    p5 = 3.222;
+
+     if (x < 0.0555 || x > 0.226) xflag =1;
+
+     fk = -1.133 + 8.5354*p;
+  }
+
+  if (p > 0.3 && p <= 0.5){
+    
+    p0 = 0.0009412;
+    p1 = 0.01366;
+    p2 = -0.1744;
+    p3 = 0.3864;
+    p4 = 0.6615;
+    p5 = -2.113;
+    
+     if (x < 0.0555 || x > 0.281) xflag = 1;
+
+     fk = -1.345 + 9.47*p -7.91*p*p;
+
+  }
+
+  if (p < 0.05 || p > 0.5){
+    
+    p0 = 0.0;
+    p1 = 0.0;
+    p2 = 0.0;
+    p3 = 0.0;
+    p4 = 0.0;
+    p5 = 0.0;
+
+  }
+
+  if (th < 1.8 || th > 74)
+    fth = 0.0;
+  else
+    fth = -0.183 + 0.0976*th -0.0024*th*th + 0.000015*th*th*th; 
+
+  if( xflag == 1 || x < 0.0555 || x > 0.3) 
+      return 0.0;
+    
+    else{
+      double f2 = p0 + p1*pow(x,1) + p2*pow(x,2) + p3*pow(x,3) + p4*pow(x,4) + p5*pow(x,5);
+      return f2*fk*fth;
+
+    }
+  
+  
+ }
+
 
 ev_t G4SBSEventGen::GetEventData(){
   ev_t data;
@@ -2237,6 +2980,11 @@ ev_t G4SBSEventGen::GetEventData(){
       
   // }
 
+  //TDIS
+  if( fKineType == G4SBS::kTDISKin ){ //Then fSigma is dsig/dOmega_e dE'_e dOmega_h dE'_h
+    thisrate = fSigmaDIS*fLumi*fGenVol/fNevt;
+  }
+  
   data.count  = thisrate*fRunTime;
   data.rate   = thisrate*second;
   //data.solang = genvol/fNevt; 
@@ -2257,7 +3005,7 @@ ev_t G4SBSEventGen::GetEventData(){
   }
   data.Aperp  = fAperp;
   data.Apar   = fApar;
-  data.Pt     = fPt;
+  data.Pt     = fPtTDIS;
   data.Pl     = fPl;
   data.W2     = fW2/(GeV*GeV);
   data.xbj    = fxbj;
@@ -2282,7 +3030,9 @@ ev_t G4SBSEventGen::GetEventData(){
   data.phperp = fPh_perp/GeV;
   data.phih   = fphi_h;
   data.MX     = fMx/pow(GeV,2);
-
+  data.phiS = fphi_S;
+  data.thetaS = fTheta_S;
+  
   if( fKineType == G4SBS::kSIDIS ){ //Then replace final nucleon variables with final hadron variables:
     data.np = fHadronP.mag()/GeV;
     data.npx = fHadronP.x()/GeV;
@@ -2318,6 +3068,157 @@ ev_t G4SBSEventGen::GetEventData(){
       break;
     }
   }
+
+  if ( (fKineType == G4SBS::kDIS || fKineType == G4SBS::kInelastic || fKineType == G4SBS::kElastic) &&
+       fTargType == G4SBS::kD2 ){
+    //G4cout << "fprotonspec " << fProtonSpecP.mag()/GeV << " " << fProtonSpecP.x()/GeV << " " << fProtonSpecP.y()/GeV << " " << fProtonSpecP.z()/GeV << " " << fProtonSpecP.theta()/rad << " " << fProtonSpecP.phi()/rad << G4endl; 
+ 
+    data.p1p  = fProtonSpecP.mag()/GeV;
+    data.p1px = fProtonSpecP.x()/GeV;
+    data.p1py = fProtonSpecP.y()/GeV;
+    data.p1pz = fProtonSpecP.z()/GeV;
+    data.p1th = fProtonSpecP.theta()/rad;
+    data.p1ph = fProtonSpecP.phi()/rad;
+    
+    //G4cout << "data.p1 " << data.p1p << " " << data.p1px << " " << data.p1py << " " << data.p1pz << " " << data.p1th << " " << data.p1ph << G4endl; 
+  }
+  
+  // TDIS
+  if (fKineType == G4SBS::kTDISKin){
+    
+    data.xpi   = fxpi;
+    data.nu    = fnu/GeV;
+    data.y     = fy;
+    data.Q2    = fQ2/(GeV*GeV);
+    data.tpi   = ftpi/(GeV*GeV);
+    data.xa    = fxa;
+    data.pt    = fPtTDIS/GeV;
+    data.z     = fz;
+    data.xbj   = fxbj;
+    data.ypi   = fypi;
+    data.f2p   = ff2p;
+    data.f2pi  = ff2pi;
+    data.sigmaDIS = fSigmaDIS/cm2;
+    data.sigmaTDIS = fSigmaTDIS/cm2;
+    
+    
+    data.np  = fNeutronP.mag();
+    data.npx = fNeutronP.x();
+    data.npy = fNeutronP.y();
+    data.npz = fNeutronP.z();
+    data.nth = fNeutronP.theta()/rad;
+    data.nph = fNeutronP.phi()/rad;
+    
+    data.p1p  = fProton1P.mag();
+    data.p1px = fProton1P.x();
+    data.p1py = fProton1P.y();
+    data.p1pz = fProton1P.z();
+    data.p1th = fProton1P.theta()/rad;
+    data.p1ph = fProton1P.phi()/rad;
+    
+    data.p2p  = fProton2P.mag()/GeV;
+    data.p2px = fProton2P.x()/GeV;
+    data.p2py = fProton2P.y()/GeV;
+    data.p2pz = fProton2P.z()/GeV;
+    data.p2th = fProton2P.theta()/rad;
+    data.p2ph = fProton2P.phi()/rad;
+    
+    data.pip  = fHadronP.mag()/GeV;
+    data.pipx = fHadronP.x()/GeV;
+    data.pipy = fHadronP.y()/GeV;
+    data.pipz = fHadronP.z()/GeV;
+    data.pith = fHadronP.theta()/rad;
+    data.piph = fHadronP.phi()/rad;
+  }
+  
+//*********************************************
+// NEW TDIS Not all variables are filled yet
+  if (fKineType == tElastic || //new (CA)
+      fKineType == tInelastic || //new (CA)
+      fKineType == tQuasiElastic || //new (CA)
+      fKineType == tTDISKinH || //new (CA)
+      fKineType == tTDISKinD || //new (CA)
+      fKineType == tSIDIS
+      )
+    {
+      //      G4cout<<"Saving data new TDIS"<<G4endl;
+      
+      data.xpi   = tdishandler -> tGetxpi();
+      data.nu    = tdishandler -> tGetnu()/GeV;
+      data.y     = tdishandler -> tGettya(); 
+      data.Q2    = tdishandler -> tGetQ2()/(GeV*GeV);
+      data.KE    = tdishandler -> tGetKE()/GeV;
+      data.tpi   = tdishandler -> tGettpi()/(GeV*GeV);
+      data.xa    = tdishandler -> tGettxa(); ;
+      data.pt    = tdishandler -> tGetpt()/GeV;
+      data.z     = tdishandler -> tGetz();
+      data.xbj   = tdishandler -> tGetxbj();
+      data.ypi   = tdishandler -> tGetypi();
+      data.f2p   = tdishandler -> tGetf2N();
+      data.f2pi  = tdishandler -> tGetf2pi();
+      //  G4cout<<"saving ELASTIC XS: "<<tdishandler -> tGetELAsigma()/barn<<G4endl;
+      data.sigmaELA   = tdishandler -> tGetELAsigma()/barn;
+      data.sigmaQE    = tdishandler -> tGetQEsigma();
+      //    G4cout<<"saving QE XS: "<<tdishandler ->  tGetQEsigma()<<G4endl;
+      
+      data.sigmaSIDIS = tdishandler -> tGetSIDISsigma()/cm2*pow(GeV,2);
+      data.sigmaDIS   = tdishandler -> tGetDISsigma()/cm2;
+      //     G4cout<<"saving TDIS XS: "<<tdishandler -> tGetTDISsigma()/cm2<<G4endl;
+      data.sigmaTDIS  = tdishandler -> tGetTDISsigma()/cm2;
+
+      data.W2     = tdishandler->tGetW2()/(GeV*GeV);
+      data.MX     = tdishandler->tGetMX()/pow(GeV,2); //are units correct?
+
+      data.vx     = fVert.x()/m;// I understand that
+      data.vy     = fVert.y()/m;// these variables are 
+      data.vz     = fVert.z()/m;// generated in this class
+      
+      tElectron_f = tdishandler -> tGetelef_lab();
+
+      data.ep    = tElectron_f.vect().mag()/GeV;
+      data.epx   = tElectron_f.x()/GeV;
+      data.epy   = tElectron_f.y()/GeV;
+      data.epz   = tElectron_f.z()/GeV;
+      data.th    = tElectron_f.theta()/deg;
+      data.ph    = tElectron_f.phi()/deg;
+      
+      tNucleon_f = tdishandler -> tGetnucf_lab();
+
+      data.np     = tNucleon_f.vect().mag()/GeV;
+      data.npx    = tNucleon_f.x()/GeV;
+      data.npy    = tNucleon_f.y()/GeV;
+      data.npz    = tNucleon_f.z()/GeV;
+      data.nth    = tNucleon_f.theta()/deg;
+      data.nph    = tNucleon_f.phi()/deg;
+      
+      fProton1P = tdishandler -> tGetiProton();
+
+      data.p1p  = fProton1P.mag()/GeV;
+      data.p1px = fProton1P.x()/GeV;
+      data.p1py = fProton1P.y()/GeV;
+      data.p1pz = fProton1P.z()/GeV;
+      data.p1th = fProton1P.theta()/deg;
+      data.p1ph = fProton1P.phi()/deg;
+      
+      fProton2P = tdishandler -> tGetfProton();
+
+      data.p2p  = fProton2P.mag()/GeV;
+      data.p2px = fProton2P.x()/GeV;
+      data.p2py = fProton2P.y()/GeV;
+      data.p2pz = fProton2P.z()/GeV;
+      data.p2th = fProton2P.theta()/deg;
+      data.p2ph = fProton2P.phi()/deg;
+      
+      fHadronP = tdishandler -> tGetfPion();
+      data.pip  = fHadronP.mag()/GeV;
+      data.pipx = fHadronP.x()/GeV;
+      data.pipy = fHadronP.y()/GeV;
+      data.pipz = fHadronP.z()/GeV;
+      data.pith = fHadronP.theta()/deg;
+      data.piph = fHadronP.phi()/deg;
+    }
+  
+  
   data.pmpar  = fPmisspar/GeV;
   data.pmparsm= fPmissparSm/GeV;
   data.pmperp = fPmissperp/GeV;
@@ -2482,6 +3383,36 @@ void G4SBSEventGen::InitializePythia6_Tree(){
   
   if( !fPythiaTree ){
     G4cout << "Failed to initialize PYTHIA6 tree, aborting... " << G4endl;
+    exit(-1);
+  }
+}
+
+//TDIS AcquMC
+void G4SBSEventGen::InitializeAcquMC_Tree(){
+
+  // TObjArray *FileList = fAcquMCChain->GetListOfFiles();
+  // TIter next(FileList);
+
+  // TChainElement *chEl = 0;
+
+  // TGraph *gtemp;
+  
+  // while( (chEl = (TChainElement*) next()) ){
+  //   TFile newfile(chEl->GetTitle(),"READ");
+  //   newfile.GetObject("graph_sigma",gtemp);
+
+  //   if( gtemp ){
+  //     fAcquMCSigma[chEl->GetTitle()] = (gtemp->GetY()[gtemp->GetN()-1])*millibarn;
+  //   } else {
+  //     fAcquMCSigma[chEl->GetTitle()] = 1.0*cm2; //
+  //   }
+  //   newfile.Close();
+  // }
+  
+  fAcquMCTree = new AcquMCTree( fAcquMCChain );
+  
+  if( !fAcquMCTree ){
+    G4cout << "Failed to initialize AcquMC tree, aborting... " << G4endl;
     exit(-1);
   }
 }
@@ -2776,3 +3707,4 @@ G4double G4SBSEventGen::TriangleFunc( G4double a, G4double b, G4double c ){ //ut
 //   return (1.0/k)*4.0*alpha*pow(re,2) * ( (4./3.*(1.0-y) + pow(y,2))*(pow(Z,2)*(Lrad-f_Z)+Z*Lprad) + 1./9.*(1.0-y)*(pow(Z,2)+Z) );
  
 // }
+

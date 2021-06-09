@@ -61,6 +61,9 @@ private:
   
   G4UIcmdWithAString   *kineCmd;
   G4UIcmdWithAString   *PYTHIAfileCmd; 
+  // TDIS AcquMC
+  G4UIcmdWithAString   *AcquMCfileCmd; 
+  G4UIcmdWithAnInteger *exclPythiaXSoptCmd; 
   G4UIcmdWithAString   *expCmd;
   
   G4UIcmdWithAString   *GunParticleCmd;
@@ -71,8 +74,9 @@ private:
   G4UIcmdWithAnInteger *bigfieldCmd;
   G4UIcommand *bbfieldCmd;
   //G4UIcmdWithAString *bbfield_fnameCmd; //Set filename for BB magnetic field map
-  G4UIcmdWithAString *tosfieldCmd;
-
+  //  G4UIcmdWithAString *tosfieldCmd;
+  G4UIcommand *tosfieldCmd;
+  
   G4UIcmdWithAnInteger *eventStatusEveryCmd;
 
   G4UIcmdWithABool *geantinoCmd;
@@ -138,7 +142,11 @@ private:
   G4UIcmdWithADoubleAndUnit *sbstrkrdistCmd;
   
   G4UIcmdWithAString   *dvcsecalmatCmd;
-
+  G4UIcmdWithAnInteger *dvcsecalnrowsCmd;
+  G4UIcmdWithAnInteger *dvcsecalncolsCmd;
+  G4UIcmdWithADoubleAndUnit *dvcsecalhoffsetCmd;
+  G4UIcmdWithADoubleAndUnit *dvcsecalvoffsetCmd;
+  
   G4UIcmdWithAString   *GRINCH_gas_Cmd;
   G4UIcmdWithAString   *RICH_gas_Cmd; 
   
@@ -203,6 +211,9 @@ private:
   G4UIcmdWithABool *GENTargetColACmd;
   G4UIcmdWithABool *GENTargetColBCmd;
   G4UIcmdWithABool *GENTargetColCCmd;
+  
+  // D. Flay 12/9/20: command to enable the GEn target as an SD 
+  G4UIcmdWithABool *GENTargetSDEnableCmd; 
  
   // D. Flay 8/25/20 
   // command to set the beam offset 
@@ -210,7 +221,40 @@ private:
   G4UIcmdWithADoubleAndUnit *beamOffsetYcmd;
   // command to enable the beam diffuser 
   G4UIcmdWithABool *beamDumpCmd;  
-  G4UIcmdWithABool *beamDiffuserCmd;  
+  G4UIcmdWithABool *beamDiffuserCmd;
+
+  // D. Flay 10/15/20 
+  // beam angular alignment 
+  G4UIcmdWithADoubleAndUnit *beamAngleXcmd;
+  G4UIcmdWithADoubleAndUnit *beamAngleYcmd;
+  G4UIcmdWithADoubleAndUnit *beamAngleZcmd; 
+  // command to enable the ion chamber  
+  G4UIcmdWithABool *ionChamberEnableCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberXCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberYCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberZCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRXCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRYCmd; 
+  G4UIcmdWithADoubleAndUnit *ionChamberRZCmd; 
+
+  // D. Flay 11/5/20 
+  // beam collimator (for GEn)
+  // downstream 
+  G4UIcmdWithABool *beamCollimatorEnableDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorLDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDminDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDmaxDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorXDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorYDnCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorZDnCmd; 
+  // upstream
+  G4UIcmdWithABool *beamCollimatorEnableUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorLUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDminUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorDmaxUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorXUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorYUpCmd; 
+  G4UIcmdWithADoubleAndUnit *beamCollimatorZUpCmd; 
  
   G4UIcmdWithABool *BLneutronDetsCmd;
   G4UIcmdWithABool *GEMfrontendCmd;
@@ -237,8 +281,10 @@ private:
   G4UIcommand *LimitStepCALcmd; //Command to turn on step limiter physics for sensitive volumes defined as calorimeters, by detector name.
 
   G4UIcommand *SD_EnergyThresholdCmd;   //Set hit energy threshold for "Calorimeter" type sensitive detectors
-  G4UIcommand *SD_TimeWindowCmd; 
+  G4UIcommand *SD_TimeWindowCmd;
+  G4UIcommand *SD_NTimeBinsCmd;
 
+  G4UIcommand *KeepPulseShapeCmd; //Flag to turn on recording of Pulse Shape info  
   G4UIcommand *KeepSDtrackcmd; //Flag to turn on recording of "sensitive detector" track info
   
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
@@ -270,6 +316,31 @@ private:
   G4UIcmdWith3VectorAndUnit *CosmicsPointerCommand;
   G4UIcmdWithADoubleAndUnit *CosmicsPointerRadiusCommand;
   G4UIcmdWithADoubleAndUnit *CosmicsMaxAngleCommand;
+
+  // commands for TDIS and mTPC
+  G4UIcmdWithABool *SolUniFieldCmd;
+  //G4UIcmdWithADoubleAndUnit *SolUniFieldMagCmd;
+  G4UIcmdWithADouble *SolUniFieldMagCmd;
+  G4UIcmdWithABool *SolTosFieldCmd;
+  G4UIcmdWithADouble *SolTosFieldScaleCmd;
+  G4UIcmdWithADoubleAndUnit *SolTosFieldOffsetCmd;
+
+  G4UIcmdWithADouble *mTPCHeGasRatioCmd;
+  G4UIcmdWithADouble *mTPCCH4GasRatioCmd;
+  G4UIcmdWithADouble *mTPCGasTempCmd;
+  G4UIcmdWithADouble *mTPCGasPressureCmd;
+  //G4UIcmdWithADouble *mTPCTgtThickCmd;
+
+  G4UIcmdWithABool *mTPCkryptoCmd;
+
+  G4UIcmdWithABool *mTPCRoomTempCmd;
+  G4UIcmdWithADoubleAndUnit *TDIStgtWallThickCmd;
+  
+  G4UIcmdWithABool *WriteFieldMapCmd;
+
+  G4UIcmdWithABool *UseGEMshieldCmd;
+  G4UIcmdWithADoubleAndUnit *GEMshieldThickCmd;
+  G4UIcmdWithADoubleAndUnit *GEMshieldAirGapThickCmd; 
 };
 
 #endif//G4SBSMessenger_HH

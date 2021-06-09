@@ -81,7 +81,7 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fUseLocalField = false;
   fFieldStrength = 1.4*tesla;
 
-  fSBS_tracker_dist = 5.1*m;
+  fSBS_tracker_dist = 4.9*m;
   fSBS_tracker_pitch = 0.0*deg;
   
   fBuildSBSSieve = false;
@@ -692,7 +692,7 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
 void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
   
-  if( f48D48_fieldclamp_config == 1 ){ //BigBite: Field clamp version 1 (AFAIK) is obsolete.
+  if( false ){ //BigBite: Field clamp version 1 (AFAIK) is obsolete. Never build this...
 
     double clampdepth = 10.*cm;
     double clampoffset = 45*cm/2;
@@ -845,8 +845,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     frontclampLog->SetVisAttributes(clampVisAtt);
     frontextfaceLog->SetVisAttributes(clampVisAtt);
     backclampLog->SetVisAttributes(clampVisAtt);
-  } else if( f48D48_fieldclamp_config == 2  || f48D48_fieldclamp_config == 3) { // 2 == GEp, 3 == GMn
-   
+  } else if( f48D48_fieldclamp_config != 0 ) { // 2 == GEp, 3 == GMn
+
+    //Any non-zero value causes front clamp to be built: "2" causes both front and rear clamps to be built:
     G4double FrontClamp_width = 62.99*2.54*cm;
     G4double FrontClamp_height = 118.11*2.54*cm;
     G4double FrontClamp_depth = 3.94*2.54*cm;
@@ -899,47 +900,47 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     // Sorry in advance to whoemever is angry at the lack of indentation,
     // blame Linus for making git :D
     if( f48D48_fieldclamp_config == 2 ) { // GEp uses a back clamp too
-    ////REAR CLAMP:
-    G4double RearClamp_width = 105.12*2.54*cm;
-    G4double RearClamp_height = 114.96*2.54*cm;
-    G4double RearClamp_depth = 5.91*2.54*cm;
+      ////REAR CLAMP:
+      G4double RearClamp_width = 105.12*2.54*cm;
+      G4double RearClamp_height = 114.96*2.54*cm;
+      G4double RearClamp_depth = 5.91*2.54*cm;
 
-    G4Box *RearClamp_Box = new G4Box("RearClamp_Box", RearClamp_width/2.0, RearClamp_height/2.0, RearClamp_depth/2.0 );
+      G4Box *RearClamp_Box = new G4Box("RearClamp_Box", RearClamp_width/2.0, RearClamp_height/2.0, RearClamp_depth/2.0 );
     
-    G4double RearClamp_GapWidth = 18.11*2.54*cm;
-    G4double RearClamp_GapHeight = 51.18*2.54*cm;
-    G4double RearClamp_NotchWidth = 37.84*2.54*cm;
-    G4double RearClamp_NotchHeight = 39.37*2.54*cm;
+      G4double RearClamp_GapWidth = 18.11*2.54*cm;
+      G4double RearClamp_GapHeight = 51.18*2.54*cm;
+      G4double RearClamp_NotchWidth = 37.84*2.54*cm;
+      G4double RearClamp_NotchHeight = 39.37*2.54*cm;
 
-    G4double RearClamp_GapX = 36.61*2.54*cm; //This is the distance from the left edge of the rear clamp to the left edge of the opening.
+      G4double RearClamp_GapX = 36.61*2.54*cm; //This is the distance from the left edge of the rear clamp to the left edge of the opening.
 
-    G4Box *RearClamp_Gap = new G4Box("RearClamp_Gap", RearClamp_GapWidth/2.0, RearClamp_GapHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
+      G4Box *RearClamp_Gap = new G4Box("RearClamp_Gap", RearClamp_GapWidth/2.0, RearClamp_GapHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
 
-    G4SubtractionSolid *RearClamp_GapCutout = new G4SubtractionSolid( "RearClamp_GapCutout", RearClamp_Box, RearClamp_Gap, 0, 
-								      G4ThreeVector( -RearClamp_width/2.0 + RearClamp_GapX + RearClamp_GapWidth/2.0, 0.0, 0.0 ) );
+      G4SubtractionSolid *RearClamp_GapCutout = new G4SubtractionSolid( "RearClamp_GapCutout", RearClamp_Box, RearClamp_Gap, 0, 
+									G4ThreeVector( -RearClamp_width/2.0 + RearClamp_GapX + RearClamp_GapWidth/2.0, 0.0, 0.0 ) );
     
-    G4Box *RearClamp_Notch = new G4Box("RearClamp_Notch", RearClamp_NotchWidth/2.0+1.0*cm, RearClamp_NotchHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
+      G4Box *RearClamp_Notch = new G4Box("RearClamp_Notch", RearClamp_NotchWidth/2.0+1.0*cm, RearClamp_NotchHeight/2.0, RearClamp_depth/2.0 + 1.0*cm );
     
-    xnotch = -RearClamp_NotchWidth/2.0 + 1.0*cm + RearClamp_width/2.0;
+      xnotch = -RearClamp_NotchWidth/2.0 + 1.0*cm + RearClamp_width/2.0;
 
-    G4SubtractionSolid *RearClamp = new G4SubtractionSolid( "RearClamp", RearClamp_GapCutout, RearClamp_Notch, 0, 
-							    G4ThreeVector( xnotch, 0.0, 0.0 ) );
+      G4SubtractionSolid *RearClamp = new G4SubtractionSolid( "RearClamp", RearClamp_GapCutout, RearClamp_Notch, 0, 
+							      G4ThreeVector( xnotch, 0.0, 0.0 ) );
 
-    G4LogicalVolume *RearClamp_log = new G4LogicalVolume( RearClamp, GetMaterial("Fer"), "RearClamp_log" );
+      G4LogicalVolume *RearClamp_log = new G4LogicalVolume( RearClamp, GetMaterial("Fer"), "RearClamp_log" );
     
-    if(fDetCon->fTotalAbs) {
-      RearClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-    }
+      if(fDetCon->fTotalAbs) {
+	RearClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+      }
 
-    G4double RearClamp_zoffset = 11.43*2.54*cm + RearClamp_depth/2.0; 
-    G4double RearClamp_xoffset = -f48D48width/2.0 + RearClamp_width/2.0; 
-    G4double RearClamp_r = f48D48dist + f48D48depth + RearClamp_zoffset;
+      G4double RearClamp_zoffset = 11.43*2.54*cm + RearClamp_depth/2.0; 
+      G4double RearClamp_xoffset = -f48D48width/2.0 + RearClamp_width/2.0; 
+      G4double RearClamp_r = f48D48dist + f48D48depth + RearClamp_zoffset;
 
-    G4ThreeVector RearClamp_pos( -RearClamp_r*sin(f48D48ang) + RearClamp_xoffset*cos(f48D48ang), 0.0, RearClamp_r*cos(f48D48ang) + RearClamp_xoffset * sin(f48D48ang) );
+      G4ThreeVector RearClamp_pos( -RearClamp_r*sin(f48D48ang) + RearClamp_xoffset*cos(f48D48ang), 0.0, RearClamp_r*cos(f48D48ang) + RearClamp_xoffset * sin(f48D48ang) );
 
-    new G4PVPlacement( clamp_rot, RearClamp_pos, RearClamp_log, "RearClamp_phys", motherlog, false, 0, false );
+      new G4PVPlacement( clamp_rot, RearClamp_pos, RearClamp_log, "RearClamp_phys", motherlog, false, 0, false );
 
-    RearClamp_log->SetVisAttributes(clampVisAtt);
+      RearClamp_log->SetVisAttributes(clampVisAtt);
     } // Rear clamp log (GEp)
 
     //Make lead shielding in clamp:
@@ -1507,8 +1508,10 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     fDetCon->SDtype[HCalScintSDName] = G4SBS::kCAL;
     (HCalScintSD->detmap).depth = 1;
 
+    G4int default_ntbins = 25;
+
     //This will be overridden if the command /g4sbs/threshold has been invoked for this detector:
-    fDetCon->SetTimeWindowAndThreshold( HCalScintSDName, 10.0*MeV, 500.0*ns );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( HCalScintSDName, 0.0*MeV, 500.0*ns, 25 );
   }
   log_Scint->SetSensitiveDetector(HCalScintSD);
   fDetCon->InsertSDboundaryVolume( log_HCAL->GetName(), HCalScintSDName );
@@ -1525,6 +1528,10 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
     (fDetCon->SDlist).insert(HCalSDName);
     fDetCon->SDtype[HCalSDName] = G4SBS::kECAL;
     (HCalSD->detmap).depth = 1;
+
+    // *****
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( HCalSDName, 0.0*MeV, 250.0*ns, 25 );
+    // *****
   }
   log_PMTCathode->SetSensitiveDetector(HCalSD);
 
@@ -1807,7 +1814,9 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 
     (HCalScintSD->detmap).depth = 1;
 
-    fDetCon->SetTimeWindowAndThreshold( HCalScintSDname, 10.0*MeV, 100.0*ns );
+    G4int default_ntbins = 25;
+    
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( HCalScintSDname, 0.0*MeV, 100.0*ns, 25 );
   }
   logScinPl->SetSensitiveDetector(HCalScintSD);
 
@@ -2178,7 +2187,7 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
 
   G4ThreeVector SBS_tracker_pos = FirstPlane_pos + 20.0*cm*SBS_tracker_axis;
   
-  printf("sbs_tracker_pos: %f, %f, %f", SBS_tracker_pos.x(), SBS_tracker_pos.y(), SBS_tracker_pos.z() );
+  printf("sbs_tracker_pos: %f, %f, %f\n", SBS_tracker_pos.x(), SBS_tracker_pos.y(), SBS_tracker_pos.z() );
   
   new G4PVPlacement( SBStracker_rot, SBS_tracker_pos, SBStracker_log, "SBStracker_phys", motherlog, false, 0 );
 
@@ -3114,7 +3123,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     (cdet_scint_sd->detmap).depth = 1;
     ScintStripLog->SetSensitiveDetector( cdet_scint_sd );
 
-    fDetCon->SetTimeWindowAndThreshold( sdname, 4.0*MeV, 50.0*ns );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( sdname, 0.0*MeV, 50.0*ns, 25 );
   }
   
   //Now we need to define the coordinates of the "modules":
@@ -3785,7 +3794,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     AnalyzerMaterials.push_back( G4String("CH2") );
     
     break;
-  case 3: //6-plane FT + 22" CH2 + 5-plane FPP1 + 4-cm Cu + 5-plane FPP2:
+  case 3: //6-plane FT + 22" CH2 + 5-plane FPP1 + let's use 3.5" steel + 5-plane FPP2:
     nana = 2;
     ntracker = 3;
     GEM_z_spacing[0] = 9.0*cm;
@@ -3799,7 +3808,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     fGEP_CH2width[1] = 60.0*cm;
     fGEP_CH2height[1] = 200.0*cm;
 
-    fCH2thickFPP[1] = 4.0*cm; //Cu analyzer thickness
+    //fCH2thickFPP[1] = 3.5*2.54*cm; //GEN-RP steel analyzer thickness: let's not actually
+    //hard-code this8.
     
     SDnames.push_back("Harm/FT");
     SDnames.push_back("Harm/FPP1");
@@ -3813,7 +3823,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     trkr_zpos[2] = fGEP_CH2zpos[1] + fCH2thickFPP[1] + GEM_z_spacing[2];
 
     AnalyzerMaterials.push_back( "CH2" );
-    AnalyzerMaterials.push_back( "Copper" );
+    AnalyzerMaterials.push_back( "Steel" );
     
     break;
   case 2:
@@ -3922,6 +3932,81 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   // ana1log->SetVisAttributes( CH2anavisatt );
   // ana2log->SetVisAttributes( CH2anavisatt );
   
+}
+ 
+// Large angle calorimeter module
+void G4SBSHArmBuilder::MakeLACModule(G4LogicalVolume *motherlog)
+{
+  //instantiate SD manager
+  G4SDManager *sdman = fDetCon->fSDman;
+  
+  G4double mod_dx1 = 217.0*cm, mod_dx2 = 241.0*cm;
+  G4double mod_dy1 = 400.0*cm, mod_dy2 = 446.0*cm;
+  G4double mod_depth = 55.9*cm;
+  
+  //G4double dist_LACRadius = fHCALdist + mod_depth/2.0;
+  //  G4double dist_LACX = -dist_LACRadius*sin(f48D48ang);
+  //G4double dist_LACY = fHCALvertical_offset;
+  //G4double dist_LACZ = dist_LACRadius*cos(f48D48ang);
+  
+  G4Trd* LACmod_box = 
+    new G4Trd("LACmod_box", mod_dx1/2.0, mod_dx2/2.0, mod_dy1/2.0, mod_dy2/2.0, mod_depth/2.0);
+  
+  G4LogicalVolume* LACmod_log = 
+    new G4LogicalVolume(LACmod_box, GetMaterial("Steel"), "LACmod_log");
+
+  G4RotationMatrix *rot_LAC= new G4RotationMatrix();
+  rot_LAC->rotateY(f48D48ang);
+
+  G4ThreeVector pos_LAC(fHCALhorizontal_offset, fHCALvertical_offset, fHCALdist + mod_depth/2.0);
+  pos_LAC.rotateY(-f48D48ang);
+  
+  // Place the LAC module volume
+  new G4PVPlacement(rot_LAC, pos_LAC, LACmod_log, "LACmod", motherlog, false, 0, false);
+  
+  G4VisAttributes *LACmod_visatt = new G4VisAttributes( G4Colour(1.0, 1.0, 1.0) );
+  LACmod_visatt->SetForceWireframe(true);
+  
+  // Set step limit to all of LAC?
+  if( (fDetCon->StepLimiterList).find( LACmod_log->GetName() ) != (fDetCon->StepLimiterList).end() ){
+    G4UserLimits *limits = new G4UserLimits(0.0,0.0,0.0,DBL_MAX, DBL_MAX);
+    LACmod_log->SetUserLimits(limits);
+    G4cout << "Making " << LACmod_log->GetName() << " a total absorber" << G4endl;
+    G4String sdname = "Harm/LAC_box";
+    LACmod_visatt->SetForceWireframe(false);
+    G4String collname = "LAC_boxHitsCollection";
+    G4SBSCalSD *LACboxSD = NULL;
+    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(sdname)) ){
+      G4cout << "Adding LAC_box sensitive detector to SDman..." << G4endl;
+      LACboxSD = new G4SBSCalSD( sdname, collname );
+      sdman->AddNewDetector( LACboxSD );
+      (fDetCon->SDlist).insert( sdname );
+      fDetCon->SDtype[sdname] = G4SBS::kCAL;
+      (LACboxSD->detmap).depth = 0;
+      LACmod_log->SetSensitiveDetector( LACboxSD );
+    }
+  }
+  
+  LACmod_log->SetVisAttributes(LACmod_visatt);
+  
+  //stack construction
+  G4double dxdz = (mod_dx2-mod_dx1)/mod_depth;
+  G4double dydz = (mod_dx2-mod_dx1)/mod_depth;
+  
+  G4double leadthick = 0.2*cm;
+  G4double scintithick = 1.5*cm;
+  
+  
+  //need parametered volumes... look later.
+  /*
+  G4Box* leadsheet_box = new G4Box("leadsheet", mod_dx1/2.0, mod_dy1/2.0, leadthick/2.0);
+  G4Box* teflonsheet_box = new G4Box("leadsheet", mod_dx1/2.0, mod_dy1/2.0);
+
+  G4double depth = 0.0;
+  
+  for(G4int i = 0; i<33; i++){
+  }
+  */
 }
 
 //Sieve slit
@@ -4132,9 +4217,8 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
     fDetCon->SDtype[LACScintSDname] = G4SBS::kCAL;
     (LACScintSD->detmap).depth = 0;
 
-    fDetCon->SetTimeWindowAndThreshold( LACScintSDname, 10.0*MeV, 100.0*ns );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( LACScintSDname, 0.0*MeV, 100.0*ns, 25 );
   }
-
   fDetCon->InsertSDboundaryVolume( log_LAC->GetName(), LACScintSDname );
   
   //Now start populating the layers. In the absence of a better "guess", I will assume that there is one more layer's worth of "short" strips than "long" strips:
@@ -4268,7 +4352,7 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
 
 void G4SBSHArmBuilder::SetFPP_CH2thick( int ifpp, double CH2thick ){
   double fthickmin = 0.0*cm;
-  double fthickmax = 120.0*cm;
+  double fthickmax = 150.0*cm;
 
   ifpp = ifpp >= 1 ? ( ifpp <= 2 ? ifpp : 2 ) : 1;
   
@@ -4449,7 +4533,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     fDetCon->SDtype[ActAnScintSDname] = G4SBS::kCAL;
     (ActAnScintSD->detmap).depth = 0;
     
-    fDetCon->SetTimeWindowAndThreshold( ActAnScintSDname, ethresh_default, timewindow_default );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( ActAnScintSDname, ethresh_default, timewindow_default, 25 );
     fDetCon->InsertSDboundaryVolume( actanalog->GetName(), ActAnScintSDname );
   }
   G4VisAttributes *actanavisatt = new G4VisAttributes( G4Colour(0.0, 1.0, 0.0));
@@ -4563,7 +4647,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
       fDetCon->SDtype[PRPolScintBSSDname] = G4SBS::kCAL;
       (PRPolScintBSSD->detmap).depth = 0;
       
-      fDetCon->SetTimeWindowAndThreshold( PRPolScintBSSDname, ethresh_default, timewindow_default );
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintBSSDname, ethresh_default, timewindow_default, 25 );
       fDetCon->InsertSDboundaryVolume( prscintbslog->GetName(), PRPolScintBSSDname );
     }
     prbarbslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
@@ -4604,7 +4688,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     fDetCon->SDtype[PRPolScintFSSDname] = G4SBS::kCAL;
     (PRPolScintFSSD->detmap).depth = 0;
 
-    fDetCon->SetTimeWindowAndThreshold( PRPolScintFSSDname, ethresh_default, timewindow_default );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintFSSDname, ethresh_default, timewindow_default, 25 );
     fDetCon->InsertSDboundaryVolume( prscintfslog->GetName(), PRPolScintFSSDname );
   }
   prbarfslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
@@ -4672,7 +4756,7 @@ void G4SBSHArmBuilder::MakeNeutronVeto(G4LogicalVolume* worldlog, G4double dist_
     (veto_scint_sd->detmap).depth = 1;
     VetoScintLog->SetSensitiveDetector( veto_scint_sd );
 	
-    fDetCon->SetTimeWindowAndThreshold( sdname, 0.0*MeV, 50.0*ns );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( sdname, 0.0*MeV, 50.0*ns, 25 );
   }
       
   fDetCon->InsertSDboundaryVolume( VetoMotherLog->GetName(), sdname );

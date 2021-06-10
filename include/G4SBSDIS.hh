@@ -57,14 +57,13 @@ double dissigma( double ebeam, double th, double eprime, G4SBS::Nucl_t nucl ){
     double F1 = F2/(2.0*x);
 
     // From PDG
-    double ds_dxdy
-	= 4.0*3.14159*((1.0-y-pow(x*y*Mp,2.0)/Q2)*F2+y*y*x*F1)
-	          /(x*y*Q2*137.0*137.0);
+    double ds_dxdy = 4.0*CLHEP::pi*pow(CLHEP::fine_structure_const,2)*((1.0-y-pow(x*y*Mp,2)/Q2)*F2+y*y*x*F1)
+			  /(x*y*Q2);
 
     // In GeV^-2
-    double ds_dOmega_dE = ds_dxdy*eprime/(2.0*3.14159*Mp*nu);
+    double ds_dOmega_dE = ds_dxdy*eprime/(2.0*CLHEP::pi*Mp*nu);
 
-    return ds_dOmega_dE*0.197*0.197*1e7; // GeV2 -> nb
+    return ds_dOmega_dE*pow(CLHEP::hbarc,2)*1e7; // GeV2 -> nb
 }
 
 double dissigma_p(double eb, double th, double ep){

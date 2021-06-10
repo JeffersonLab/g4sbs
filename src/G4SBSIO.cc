@@ -178,8 +178,10 @@ void G4SBSIO::InitializeTree(){
   if( fKineType == G4SBS::kSIDIS ){ //Create branches for Collins and Sivers asymmetries (eventually others, like quark flavor contributions to cross sections/asymmetries/etc)
     fTree->Branch("AUT_Collins", &fAUT_Collins, "AUT_Collins/D");
     fTree->Branch("AUT_Sivers", &fAUT_Sivers, "AUT_Sivers/D" );
-    //Others to be added: dilution factors, proton and neutron asymmetries, effective polarizations,
-    // flavor decompositions, etc.
+    fTree->Branch("AUT_Collins_min", &fAUT_Collins_min, "AUT_Collins_min/D");
+    fTree->Branch("AUT_Collins_max", &fAUT_Collins_max, "AUT_Collins_max/D");
+    fTree->Branch("AUT_Sivers_min", &fAUT_Sivers_min, "AUT_Sivers_min/D");
+    fTree->Branch("AUT_Sivers_max", &fAUT_Sivers_max, "AUT_Sivers_max/D");
   }
   
   //Instead of having the same tree structure as before, we want to dynamically generate tree branches depending on what kinds of detectors are present: Since we already require the ROOT libraries, we might as well use TStrings:

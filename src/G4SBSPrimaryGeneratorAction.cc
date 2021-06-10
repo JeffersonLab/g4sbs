@@ -363,6 +363,12 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   fIO->SetAUT_Collins( sbsgen->GetAUT_Collins() );
   fIO->SetAUT_Sivers( sbsgen->GetAUT_Sivers() );
+
+  fIO->SetAUT_Collins_min( sbsgen->GetAUT_Collins_min() );
+  fIO->SetAUT_Sivers_min( sbsgen->GetAUT_Sivers_min() );
+
+  fIO->SetAUT_Collins_max( sbsgen->GetAUT_Collins_max() );
+  fIO->SetAUT_Sivers_max( sbsgen->GetAUT_Sivers_max() );
   
 }
 

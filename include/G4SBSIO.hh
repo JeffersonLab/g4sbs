@@ -220,6 +220,12 @@ public:
 
   void SetAUT_Collins( G4double Acoll ){ fAUT_Collins = Acoll; }
   void SetAUT_Sivers( G4double Asiv ){ fAUT_Sivers = Asiv; }
+
+  void SetAUT_Collins_min( G4double Acoll ){ fAUT_Collins_min = Acoll; }
+  void SetAUT_Sivers_min( G4double Asiv ){ fAUT_Sivers_min = Asiv; }
+
+  void SetAUT_Collins_max( G4double Acoll ){ fAUT_Collins_max = Acoll; }
+  void SetAUT_Sivers_max( G4double Asiv ){ fAUT_Sivers_max = Asiv; }
   
 private:
   TFile *fFile;
@@ -255,6 +261,12 @@ private:
   G4double fAUT_Collins;
   G4double fAUT_Sivers;
 
+  G4double fAUT_Collins_min;
+  G4double fAUT_Sivers_min;
+
+  G4double fAUT_Collins_max;
+  G4double fAUT_Sivers_max;
+  
   //Add more event-level variables here....
   
   //tr_t trdata;

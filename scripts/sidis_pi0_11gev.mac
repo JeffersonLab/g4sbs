@@ -1,0 +1,77 @@
+# Example SIDIS script:
+# To run with no optical photon production, do:
+# ./g4sbs scripts/preinit_nockov_noscint.mac scripts/sidis_example_script.mac
+# To run with Cerenkov ONLY:
+# ./g4sbs scripts/preinit_ckov_noscint.mac scripts/sidis_example_script.mac
+# To run with Scintillation ONLY:
+# ./g4sbs scripts/preinit_nockov_scint.mac scripts/sidis_example_scripts.mac
+# To run with both Cerenkov and Scintillation ON, do:
+# ./g4sbs scripts/preinit_ckov_scint.mac scripts/sidis_example_scripts.mac
+/g4sbs/filename sidis_pi0_11gev.root
+/g4sbs/beamcur  60.0 muA
+/g4sbs/target   3He
+/g4sbs/targpres 10.0 atmosphere
+/g4sbs/targlen  40.0 cm
+
+/g4sbs/rasterx  2.0 mm
+/g4sbs/rastery  2.0 mm
+/g4sbs/exp      sidis
+/g4sbs/hadron   pi0
+/g4sbs/kine     sidis
+#/g4sbs/kine beam
+
+/g4sbs/runtime     1.0 s
+/g4sbs/beamE      11.0 GeV
+/g4sbs/bbang      30.0 deg
+/g4sbs/bbdist      1.55 m
+/g4sbs/sbsang    14.0 deg
+/g4sbs/hcaldist    8.5 m
+/g4sbs/hcalhoffset -30.0 cm
+/g4sbs/48D48dist   2.8 m
+/g4sbs/sbsmagfield  1.4 tesla
+/g4sbs/48d48field   1
+/g4sbs/bbfield      1
+/g4sbs/sbsclampopt  2
+/g4sbs/uselead 0
+/g4sbs/richdist    4.6 m
+/g4sbs/richhoffset 0.025 m
+/g4sbs/sbstrkrdist 5.925 m
+/g4sbs/sbstrkrpitch 0.0 deg
+/g4sbs/userichaero true
+/g4sbs/richgas     C4F10
+/g4sbs/grinchgas   C4F10
+/g4sbs/thmin      24.0 deg
+/g4sbs/thmax      39.0 deg
+/g4sbs/phmin     -35.0 deg
+/g4sbs/phmax      35.0 deg
+#/g4sbs/phmin     150.0 deg
+#/g4sbs/phmax     220.0 deg
+/g4sbs/hthmin     10.0 deg
+/g4sbs/hthmax    20.0 deg
+/g4sbs/hphmin    140.0 deg
+/g4sbs/hphmax    220.0 deg
+/g4sbs/eemin      0.5 GeV
+/g4sbs/eemax      6.0 GeV
+/g4sbs/ehmin      1.0 GeV
+/g4sbs/ehmax      10.5 GeV
+
+/g4sbs/treeflag 1
+
+/g4sbs/totalabs true
+/g4sbs/rejectionsampling false
+/g4sbs/keepsdtrackinfo all true
+
+#new commands for polarized target SIDIS:
+/g4sbs/targpolmag 0.55
+/g4sbs/targpoldirection 0 1 0
+# turn on randomization of target spin direction
+/g4sbs/randomizetargetspin 1
+# specify number of discrete target spin states to simulate:
+/g4sbs/numtargspinstates 4
+# specify target spin polar angles:
+/g4sbs/targthetaspin 90 90 90 90 deg
+# specify target spin azimuthal angles:
+/g4sbs/targphispin 0 90 180 270 deg
+
+/g4sbs/eventstatusevery 100
+/g4sbs/run 250000

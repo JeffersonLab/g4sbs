@@ -35,6 +35,7 @@ void SIDIS_beam_background_plots(const char *rootfilename, const char *outfilena
 
   sidis_tree *T = new sidis_tree(C);
 
+  TFile *fout = new TFile(outfilename,"RECREATE");
   //Create the basic histograms. We will also want to look at the sources of the background as well:
   TH1D *hBBGEM_rate_vs_layer = new TH1D("hBBGEM_rate_vs_layer","BigBite GEM rates vs layer", 5, 0.5, 5.5);
   TH1D *hSBSGEM_rate_vs_layer = new TH1D("hSBSGEM_rate_vs_layer","SBS GEM rates vs layer", 5, 0.5, 5.5);
@@ -102,6 +103,6 @@ void SIDIS_beam_background_plots(const char *rootfilename, const char *outfilena
     }
   }
   
-  
+  fout->Write();
   
 }

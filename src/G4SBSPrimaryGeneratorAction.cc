@@ -85,25 +85,22 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 //PYTHIA6 event
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-  if( sbsgen->GetKine() == G4SBS::kPYTHIA6 )
-    { //PYTHIA6 event:
-      G4SBSPythiaOutput Primaries = sbsgen->GetPythiaEvent();
-      //cout << "G4SBSPrimaryGeneratorAction.cc" << endl;
-      for( int ipart = 0; ipart<Primaries.Nprimaries; ipart++ )
-	{
-	  //cout << ipart << " " << Primaries.genflag[ipart] << " " << Primaries.PID[ipart] << " " 
-	  //   << Primaries.Px[ipart] << " " << Primaries.Py[ipart] << " " << Primaries.Pz[ipart] << endl;
-	  if( Primaries.genflag[ipart] != 0 )
-	    {
-	      particle = particleTable->FindParticle( Primaries.PID[ipart] );
-	      particleGun->SetParticleDefinition(particle);
-	      particleGun->SetNumberOfParticles(1);
-	      particleGun->SetParticleEnergy( Primaries.E[ipart]-Primaries.M[ipart] );
-	      particleGun->SetParticleMomentumDirection( G4ThreeVector( Primaries.Px[ipart], Primaries.Py[ipart], Primaries.Pz[ipart] ).unit() );
-	      
-	      //G4ThreeVector vertex( Primaries.vx[ipart], Primaries.vy[ipart], Primaries.vz[ipart] );
-	      //vertex += sbsgen->GetV();
-	      particleGun->SetParticlePosition( G4ThreeVector( Primaries.vx[ipart], Primaries.vy[ipart], Primaries.vz[ipart] ) );
+  if( sbsgen->GetKine() == G4SBS::kPYTHIA6 ){ //PYTHIA6 event:
+    G4SBSPythiaOutput Primaries = sbsgen->GetPythiaEvent();
+    //cout << "G4SBSPrimaryGeneratorAction.cc" << endl;
+    for( int ipart = 0; ipart<Primaries.Nprimaries; ipart++ ){
+      //cout << ipart << " " << Primaries.genflag[ipart] << " " << Primaries.PID[ipart] << " " 
+      //   << Primaries.Px[ipart] << " " << Primaries.Py[ipart] << " " << Primaries.Pz[ipart] << endl;
+      if( Primaries.genflag[ipart] != 0 ){
+	particle = particleTable->FindParticle( Primaries.PID[ipart] );
+	particleGun->SetParticleDefinition(particle);
+	particleGun->SetNumberOfParticles(1);
+	particleGun->SetParticleEnergy( Primaries.E[ipart]-Primaries.M[ipart] );
+	particleGun->SetParticleMomentumDirection( G4ThreeVector( Primaries.Px[ipart], Primaries.Py[ipart], Primaries.Pz[ipart] ).unit() );
+	
+	//G4ThreeVector vertex( Primaries.vx[ipart], Primaries.vy[ipart], Primaries.vz[ipart] );
+	//vertex += sbsgen->GetV();
+	particleGun->SetParticlePosition( G4ThreeVector( Primaries.vx[ipart], Primaries.vy[ipart], Primaries.vz[ipart] ) );
 	particleGun->SetParticleTime( Primaries.t[ipart] );
 	particleGun->GeneratePrimaryVertex(anEvent);
 	    }
@@ -117,12 +114,11 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
 
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
- // TDIS AcquMC
+// TDIS AcquMC
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
   // TDIS AcquMC
-  if( sbsgen->GetKine() == G4SBS::kAcquMC )
-    { //AcquMC event:
+  if( sbsgen->GetKine() == G4SBS::kAcquMC ){ //AcquMC event:
       G4SBSAcquMCOutput Primaries = sbsgen->GetAcquMCEvent();
       
       particle = particleTable->FindParticle( Primaries.pid );
@@ -144,14 +140,12 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 // electron or geantino (and more)
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-  if( !fUseGeantino && sbsgen->GetKine() != G4SBS::kGun && sbsgen->GetKine() != G4SBS::kPionPhoto )
-    { //first primary is an electron!
-      particle = particleTable->FindParticle(particleName="e-");
-      if( fIO->GetDetCon()->fExpType == G4SBS::kGEPpositron )
-	{ //generate e+ instead of e-
-	  particle = particleTable->FindParticle(particleName="e+");
-	}
+  if( !fUseGeantino && sbsgen->GetKine() != G4SBS::kGun && sbsgen->GetKine() != G4SBS::kPionPhoto ){ //first primary is an electron!
+    particle = particleTable->FindParticle(particleName="e-");
+    if( fIO->GetDetCon()->fExpType == G4SBS::kGEPpositron ){ //generate e+ instead of e-
+      particle = particleTable->FindParticle(particleName="e+");
     }
+  }
   else if( fUseGeantino )
     { //first primary is a geantino!
       particle = particleTable->FindParticle(particleName="chargedgeantino");
@@ -294,7 +288,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	}
       return; // So that we don't generate any more particles by accident
     }
-
+  
   // Let's generate final state pions for inelastic generator
   if( sbsgen->GetKine() == G4SBS::kInelastic ){
     switch( sbsgen->GetHadronType() ){

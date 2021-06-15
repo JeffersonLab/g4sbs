@@ -3218,7 +3218,6 @@ ev_t G4SBSEventGen::GetEventData(){
       data.piph = fHadronP.phi()/deg;
     }
   
-  
   data.pmpar  = fPmisspar/GeV;
   data.pmparsm= fPmissparSm/GeV;
   data.pmperp = fPmissperp/GeV;

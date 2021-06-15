@@ -1205,6 +1205,20 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       //fevgen->SetMaxWeight( cm2 );
       validcmd = true;
     }
+    // TDIS addition
+    if (newValue.compareTo("tdiskin") == 0 ){
+      fevgen->SetKine(G4SBS::kTDISKin);
+      // fevgen->SetRejectionSamplingFlag(false);
+      //fevgen->SetMaxWeight( cm2 );
+      validcmd = true;
+    }
+    // TDIS AcquMC
+    if( newValue.compareTo("AcquMC") == 0 ){
+      fevgen->SetKine( G4SBS::kAcquMC );
+      fIO->SetUseAcquMC( true );
+      fevgen->SetRejectionSamplingFlag(false);
+      validcmd = true;
+    }
 
      // TDIS Generators (CA) (begin)
     // // TDIS addition

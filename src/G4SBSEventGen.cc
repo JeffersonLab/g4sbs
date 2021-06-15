@@ -2484,7 +2484,7 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
       psample = CLHEP::RandFlat::shoot(PMAX);
     }
   }
-  if( targ == G4SBS::kLD2 || targ == G4SBS::kLD2 ){
+  if( targ == G4SBS::kLD2 || targ == G4SBS::kD2 ){
     while( CLHEP::RandFlat::shoot() > deutpdist( psample) ){
       psample = CLHEP::RandFlat::shoot(PMAX);
     }

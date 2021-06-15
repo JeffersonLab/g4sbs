@@ -1945,7 +1945,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
   map<int,map<int,int> > nsteps_track; //counting number of steps on a track
   map<int,map<int,double> > x,y,z,trt,E,trtmin,trtmax,L; //average coordinates, energy, path length for each unique track ID depositing energy in a cell:
   map<int,map<int,double> > vx,vy,vz; //production vertex coordinates of each unique track ID depositing energy in a cell
-  map<int,map<int,int> > MID, PID; //mother ID and particle ID of unique tracks in each cell:
+  map<int,map<int,int> > MID, PID, TRID; //mother ID and particle ID of unique tracks in each cell:
   map<int,map<int,double> > p, px, py, pz, px_v, py_v, pz_v, edep; //initial momentum and total energy deposition of unique tracks in each cell:
   map<int,map<int,double> > ztravel; 
   map<int,map<int,int> >  nstrips; 
@@ -2012,6 +2012,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	vx[cell][track] = (*hits)[hit]->GetVertex().x(); 
 	vy[cell][track] = (*hits)[hit]->GetVertex().y(); 
 	vz[cell][track] = (*hits)[hit]->GetVertex().z();
+	TRID[cell][track] = (*hits)[hit]->GetTrackID();
 	MID[cell][track] = (*hits)[hit]->GetMotherID();
 	PID[cell][track] = pid;
 	p[cell][track] = (*hits)[hit]->GetMom().mag();
@@ -2150,6 +2151,10 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	// mtpcoutput.col.push_back(Cols[cell]);
 	// mtpcoutput.plane.push_back(Planes[cell]);
 	// mtpcoutput.wire.push_back(Wires[cell]);
+	mtpcoutput.mid.push_back( MID[cell][ihit] );
+	mtpcoutput.pid.push_back( PID[cell][ihit] );
+	mtpcoutput.trid.push_back( TRID[cell][ihit] );
+	
 	mtpcoutput.xcell.push_back( XCell[cell]/_L_UNIT );
 	mtpcoutput.ycell.push_back( YCell[cell]/_L_UNIT );
 	mtpcoutput.zcell.push_back( ZCell[cell]/_L_UNIT );

@@ -204,7 +204,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   }
   
   //generate the spectator proton if we have it:
-  if(sbsgen->GetTarget()==G4SBS::kLD2){
+  if(sbsgen->GetTarget()==G4SBS::kLD2 || sbsgen->GetTarget()==G4SBS::kD2){
     particle = particleTable->FindParticle(particleName="proton");
     particleGun->SetParticleDefinition(particle);
     

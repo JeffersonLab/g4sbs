@@ -66,23 +66,24 @@ G4bool G4SBSmTPCSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
   newHit->Setdx( aStep->GetStepLength() );
 
   G4ThreeVector pos = prestep->GetPosition();
-  //Pos refers to global position:
-  newHit->SetPos( pos );
-  // global momentum
+  //Pos refers to local position:
+  newHit->SetLPos( pos );
+  // local momentum
   G4ThreeVector mom = prestep->GetMomentum();
-  newHit->SetMom( mom );
+  newHit->SetLMom( mom );
   // set direction
-  newHit->SetDirection( mom );
+  newHit->SetLDirection( mom );
 
   //Let's change this so that it refers to the local position and direction of the hit: 
   G4AffineTransform mTPC_atrans = ( (G4TouchableHistory*) prestep->GetTouchable() )->GetHistory()->GetTopTransform();
 
-  //Lpos refers to local position of the hit:
+  //Lpos refers to global position of the hit:
   pos = mTPC_atrans.TransformPoint(pos); 
-  newHit->SetLPos( pos );
+  newHit->SetPos( pos );
   // and local momentum
-  mom *= (mTPC_atrans.NetRotation()).inverse();
-  newHit->SetLMom( mom );
+  //mom *= (mTPC_atrans.NetRotation()).inverse();
+  mom = track->GetVertexMomentumDirection()*(track->GetVertexKineticEnergy()+track->GetParticleDefinition()->GetPDGMass());
+  newHit->SetMom( mom );
   //and local momentum direction
   newHit->SetLDirection( mom );
 

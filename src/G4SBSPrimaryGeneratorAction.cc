@@ -256,6 +256,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       particleGun->SetParticlePosition(sbsgen->GetV());
       particleGun->GeneratePrimaryVertex(anEvent);
     }
+  }
   
   //generate the spectator proton if we have it:
   if(sbsgen->GetTarget()==G4SBS::kLD2)

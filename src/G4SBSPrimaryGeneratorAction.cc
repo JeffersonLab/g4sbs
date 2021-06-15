@@ -220,29 +220,40 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 // Wiser
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
-  if( sbsgen->GetKine()!= G4SBS::kWiser )
-    {
-      particleGun->SetParticlePolarization( G4ThreeVector(0.0,0.0,0.0) );
-      //G4cout << "Gun polarization for the primary electron: " << particleGun->GetParticlePolarization() << G4endl;
-      if( sbsgen->GetKine() == G4SBS::kGun )
-	{ //If a gun polarization is defined, transform polarization to TRANSPORT coordinates and set particle polarization:
-	  gen_t gendata = fIO->GetGenData();
-	  G4double sbsangle = gendata.thsbs;
-	  
-	  G4ThreeVector sbsaxis( -sin(sbsangle), 0.0, cos(sbsangle) );
-	  G4ThreeVector yaxis(0,1,0);
-	  G4ThreeVector xaxis = (yaxis.cross(sbsaxis)).unit();
-	  
-	  G4ThreeVector Pol_transport = GunPolarization.y() * xaxis - GunPolarization.x() * yaxis + GunPolarization.z() * sbsaxis;  
-	  
-	  evdata.Sx = GunPolarization.x();
-	  evdata.Sy = GunPolarization.y();
-	  evdata.Sz = GunPolarization.z();
-	  fIO->SetEventData( evdata );
-	  
-	  particleGun->SetParticlePolarization( Pol_transport );
-	  
-	}
+  if( sbsgen->GetKine()!= G4SBS::kWiser ){
+    particleGun->SetParticlePolarization( G4ThreeVector(0.0,0.0,0.0) );
+    //G4cout << "Gun polarization for the primary electron: " << particleGun->GetParticlePolarization() << G4endl;
+    if( sbsgen->GetKine() == G4SBS::kGun ){ //If a gun polarization is defined, transform polarization to TRANSPORT coordinates and set particle polarization:
+      gen_t gendata = fIO->GetGenData();
+      G4double sbsangle = gendata.thsbs;
+      
+      G4ThreeVector sbsaxis( -sin(sbsangle), 0.0, cos(sbsangle) );
+      G4ThreeVector yaxis(0,1,0);
+      G4ThreeVector xaxis = (yaxis.cross(sbsaxis)).unit();
+      
+      G4ThreeVector Pol_transport = GunPolarization.y() * xaxis - GunPolarization.x() * yaxis + GunPolarization.z() * sbsaxis;  
+      
+      evdata.Sx = GunPolarization.x();
+      evdata.Sy = GunPolarization.y();
+      evdata.Sz = GunPolarization.z();
+      fIO->SetEventData( evdata );
+      
+      particleGun->SetParticlePolarization( Pol_transport );
+      
+    }
+    particleGun->GeneratePrimaryVertex(anEvent);
+  }
+  
+  //generate the spectator proton if we have it:
+  if(sbsgen->GetTarget()==G4SBS::kLD2 || sbsgen->GetTarget()==G4SBS::kD2){
+    particle = particleTable->FindParticle(particleName="proton");
+    particleGun->SetParticleDefinition(particle);
+    
+    if(sbsgen->GetProtonSpecE()>0){
+      particleGun->SetParticleMomentumDirection(sbsgen->GetProtonSpecP().unit());
+      // This is KINETIC energy
+      particleGun->SetParticleEnergy(sbsgen->GetProtonSpecE()-particle->GetPDGMass());
+      particleGun->SetParticlePosition(sbsgen->GetV());
       particleGun->GeneratePrimaryVertex(anEvent);
     }
   

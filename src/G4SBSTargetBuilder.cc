@@ -68,7 +68,7 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   // // Montgomery July 2018, TDIS mTPC
   // // variables for target
   // ftdis_tgt_diam = 10.0*mm;
-  ftdis_tgt_wallthick = 0.030*mm;
+  ftdis_tgt_wallthick = 0.030*mm;//0.025
   ftdis_tgt_len = 400.0*mm; //40cm long
   
 }

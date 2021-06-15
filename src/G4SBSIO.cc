@@ -914,7 +914,9 @@ void G4SBSIO::BranchmTPC( G4String SDname="mTPC" ){
   fTree->Branch( branch_name.Format( "%s.hit.pz_v", branch_prefix.Data() ), &(mTPCdata[SDname].pz_v) );
   // fTree->Branch( branch_name.Format( "%s.hit.ztravel", branch_prefix.Data() ), &(mTPCdata[SDname].ztravel) );
   // fTree->Branch( branch_name.Format( "%s.hit.nstrips", branch_prefix.Data() ), &(mTPCdata[SDname].nstrips) );
-
+  fTree->Branch( branch_name.Format( "%s.hit.trid", branch_prefix.Data() ),  &(mTPCdata[SDname].trid) );
+  fTree->Branch( branch_name.Format( "%s.hit.mid", branch_prefix.Data() ), &(mTPCdata[SDname].mid) );
+  fTree->Branch( branch_name.Format( "%s.hit.pid", branch_prefix.Data() ), &(mTPCdata[SDname].pid) );
 
   // map<G4String,G4bool>::iterator it = KeepPartmTPCflags.find( SDname );
   // if( it != KeepPartmTPCflags.end() && it->second ){

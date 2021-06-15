@@ -1692,11 +1692,11 @@ G4double G4SBSTDISGen::QuasiElasticXS(G4double beam_energy, G4int z1, G4int n1, 
   // EPC notation (just neutron/proton now)
   if (partID == 0)
     {
-      partID = 1; //proton
+      partID = -1; // neutron
     }
   else
     {
-      partID = -1; // neutron
+      partID = 1; //proton
     }
 
   return  epc_func_(&beam_energy, &z1, &n1, &partID, &momentum, &angle);

@@ -1693,7 +1693,7 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
   double ubar = cteq_pdf_evolvepdf(__dis_pdf, -1, x, sqrt(Q2)/GeV );
   double dbar = cteq_pdf_evolvepdf(__dis_pdf, -2, x, sqrt(Q2)/GeV );
   double st = cteq_pdf_evolvepdf(__dis_pdf, 3, x, sqrt(Q2)/GeV );
-  double sbar = st;
+  double sbar = cteq_pdf_evolvepdf(__dis_pdf, -3, x, sqrt(Q2)/GeV );
 
   vector<double> pdf_unpol(6);
   pdf_unpol[0] = u;
@@ -1767,6 +1767,9 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
 
   fW2 = (ni_Nrest + q_Nrest).mag2();
   fMx = (ni_Nrest + q_Nrest - Phad_Nrest ).mag2();
+
+  //one question is, assuming we treat the sea quarks on an equal footing for protons and neutrons, should these formulas be different for the neutron? It shouldn't make much difference
+  // at high x, were everything is mostly valence-dominated
   
   //Compute SIDIS structure function for a proton:
   double H2 = x * b/CLHEP::twopi*exp(-b*pow(Ph_perp,2)) * ( pow(e_u,2) * (u * Dqh[0] + ubar * Dqh[1]) + 

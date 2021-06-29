@@ -1769,7 +1769,10 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
   fMx = (ni_Nrest + q_Nrest - Phad_Nrest ).mag2();
 
   //one question is, assuming we treat the sea quarks on an equal footing for protons and neutrons, should these formulas be different for the neutron? It shouldn't make much difference
-  // at high x, were everything is mostly valence-dominated
+  // at high x, were everything is mostly valence-dominated. Assuming that we only swap the ***valence*** d and u content
+  // between proton and neutron, we would have:
+  // uvn = dvp, dvn = uvp. usea neutron = usea proton = ubar proton, dsea neutron = dsea proton = dbar proton
+  // uneutron = uvn + usean = dvp + 
   
   //Compute SIDIS structure function for a proton:
   double H2 = x * b/CLHEP::twopi*exp(-b*pow(Ph_perp,2)) * ( pow(e_u,2) * (u * Dqh[0] + ubar * Dqh[1]) + 
@@ -3470,6 +3473,7 @@ void G4SBSEventGen::Collins( G4double z, vector<double> &coll_partons, int set )
 
 double G4SBSEventGen::AUT_Sivers( G4double x, G4double y, G4double Q2, G4double z, G4double PT, vector<double> pdf_unpol, vector<double> fragfunc_unpol, G4SBS::Nucl_t nucleon, int iset ){
 
+  //unpolarized PDFs: same as old generator
   double u = pdf_unpol[0];
   double ubar = pdf_unpol[1];
   double d = pdf_unpol[2];
@@ -3477,6 +3481,7 @@ double G4SBSEventGen::AUT_Sivers( G4double x, G4double y, G4double Q2, G4double 
   double strange = pdf_unpol[4];
   double sbar = pdf_unpol[5];
 
+  //unpolarized FFs: same as old generator at least for pion case:
   double Du = fragfunc_unpol[0];
   double Dubar = fragfunc_unpol[1];
   double Dd = fragfunc_unpol[2];
@@ -3511,7 +3516,7 @@ double G4SBSEventGen::AUT_Sivers( G4double x, G4double y, G4double Q2, G4double 
   double Siv_kperp2 = Siv_M2*fSIDISkperp2_avg/(Siv_M2 + fSIDISkperp2_avg);
   double Siv_PT2 = fSIDISpperp2_avg + pow(z,2)*Siv_kperp2;
   
-  double denominator = exp( -pow(PT,2)/PT2avg )/PT2avg *
+  double denominator = 2.*exp( -pow(PT,2)/PT2avg )/PT2avg *
     ( pow(e_u,2) * ( u * Du + ubar * Dubar ) +
       pow(e_d,2) * ( d * Dd + dbar * Ddbar ) +
       pow(e_s,2) * ( strange * Ds + sbar * Dsbar ) );
@@ -3522,7 +3527,7 @@ double G4SBSEventGen::AUT_Sivers( G4double x, G4double y, G4double Q2, G4double 
       pow(e_s,2) * ( siv_s * Ds + siv_sbar * Dsbar ) );
 
   if( nucleon == G4SBS::kNeutron ){ //swap distribution functions for quark density (but NOT fragmentation functions) between u and d:
-    denominator = exp( -pow(PT,2)/PT2avg )/PT2avg *
+    denominator = 2.*exp( -pow(PT,2)/PT2avg )/PT2avg *
       ( pow(e_u,2) * ( d * Du + dbar * Dubar ) +
 	pow(e_d,2) * ( u * Dd + ubar * Ddbar ) +
 	pow(e_s,2) * ( strange * Ds + sbar * Dsbar ) );
@@ -3551,6 +3556,7 @@ double G4SBSEventGen::AUT_Collins( G4double x, G4double y, G4double Q2, G4double
   // the Sivers asymmetry only depends on the unpolarized fragmentation functions:
   // 4: Dimensionful quantities are assumed to be in internal GEANT4 units, if we want to convert to GeV, we do it here:
 
+  //unpolarized PDFs: using CTEQ6 (same as old generator)
   double u = pdf_unpol[0];
   double ubar = pdf_unpol[1];
   double d = pdf_unpol[2];
@@ -3558,6 +3564,7 @@ double G4SBSEventGen::AUT_Collins( G4double x, G4double y, G4double Q2, G4double
   double strange = pdf_unpol[4];
   double sbar = pdf_unpol[5];
 
+  //unpolarized fragmentation functions: DSS2007 (same as old generator for pion case)
   double Du = fragfunc_unpol[0];
   double Dubar = fragfunc_unpol[1];
   double Dd = fragfunc_unpol[2];

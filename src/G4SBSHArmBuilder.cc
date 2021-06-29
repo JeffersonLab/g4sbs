@@ -3787,7 +3787,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     trkr_zpos[1] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0] + fCH2thickFPP[0] + GEM_z_spacing[1];
     fGEP_CH2zpos[0] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0]; //upstream edge of CH2
     SDnames.push_back( "Harm/FT" );
-    SDnames.push_back( "Harm/FPP" );
+    SDnames.push_back( "Harm/FPP1" );
     fGEP_CH2width[0] = 60.0*cm;
     fGEP_CH2height[0] = 200.0*cm;
 

@@ -519,14 +519,14 @@ bool G4SBSEventGen::GenerateEvent(){
  
     // with this way, I can send the flow to the generator
     // and work there independently.(CA)
-    G4cout<<"Going to TDIS"<<G4endl;
+    //G4cout<<"Going to TDIS"<<G4endl;
     // tdishandler->Generate(GetKine(), thisnucl, ei, ni ); //(CA)
     // success = true;
     
     //I changed this line after I consulted Eric about how should be counted 
     // the number of entries for the space-phase (CA)
     success =   tdishandler->Generate(GetKine(), thisnucl, ei, ni ); //(CA)
-    G4cout<<"Back from TDIS"<<G4endl;
+    //G4cout<<"Back from TDIS"<<G4endl;
     break;
     
   case G4SBS::kPionPhoto:

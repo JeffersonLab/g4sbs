@@ -332,14 +332,14 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     { 
       for(int i = 0; i < 2; i++ ) 
 	{
-	  G4cout<<"PGA(QE): in the loop "<< G4endl; 
+	  //G4cout<<"PGA(QE): in the loop "<< G4endl; 
 	  if(i==0)
 	    {
 	      particle = particleTable->FindParticle(particleName="e-");
 	      particleGun->SetParticleMomentumDirection( tdishandler -> tGetElectronP().unit() );
 	      particleGun->SetParticleEnergy(tdishandler->tGetElectronE()-particle->GetPDGMass());
-
-	      G4cout<<"PGA: electron direction: "  << tdishandler -> tGetElectronP().unit()<< " theta: "<<tdishandler -> tGetElectronP().theta()/deg<<" Energy:  "<<tdishandler->tGetElectronE()<<" K Energy:  "<<tdishandler->tGetElectronE()-particle->GetPDGMass()<<G4endl;
+	      
+	      //G4cout<<"PGA: electron direction: "  << tdishandler -> tGetElectronP().unit()<< " theta: "<<tdishandler -> tGetElectronP().theta()/deg<<" Energy:  "<<tdishandler->tGetElectronE()<<" K Energy:  "<<tdishandler->tGetElectronE()-particle->GetPDGMass()<<G4endl;
 	    }
 	  if(i==1)
 	    {
@@ -347,7 +347,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	      particle = particleTable->FindParticle(particleName="proton");
 	      particleGun->SetParticleMomentumDirection( tdishandler ->tGetnucf_lab().vect().unit() );
 	      particleGun->SetParticleEnergy(tdishandler ->tGetnucf_lab().e() -particle->GetPDGMass());
-	      G4cout<<"PGA: knock-out p direction: "  << tdishandler ->tGetnucf_lab().vect().unit()  << " theta: "<<tdishandler ->tGetnucf_lab().vect().unit() .theta()/deg<<" Energy:  "<<tdishandler->tGetnucf_lab().e()<<" K Energy:  "<<( tdishandler -> tGetnucf_lab().e()) -particle->GetPDGMass()<<G4endl;
+	      //G4cout<<"PGA: knock-out p direction: "  << tdishandler ->tGetnucf_lab().vect().unit()  << " theta: "<<tdishandler ->tGetnucf_lab().vect().unit() .theta()/deg<<" Energy:  "<<tdishandler->tGetnucf_lab().e()<<" K Energy:  "<<( tdishandler -> tGetnucf_lab().e()) -particle->GetPDGMass()<<G4endl;
 
 	    }
 
@@ -368,16 +368,16 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
        { 
 	 for(int i = 0; i < 2; i++ ) 
 	   {
-	     G4cout<<"PGA(SIDIS): in the loop "<< G4endl; 
+	     //G4cout<<"PGA(SIDIS): in the loop "<< G4endl; 
 
 	     if(i==0)
 	       {
-		 G4cout<<"Electron"<<G4endl;
+		 //G4cout<<"Electron"<<G4endl;
 		 particle = particleTable->FindParticle(particleName="e-");
 		 particleGun->SetParticleMomentumDirection( tdishandler -> tGetElectronP().unit() );
 		 particleGun->SetParticleEnergy(tdishandler->tGetElectronE()-particle->GetPDGMass());
 
-		 G4cout<<"PGA: electron direction: "  << tdishandler -> tGetElectronP().unit()<< " theta: "<<tdishandler -> tGetElectronP().theta()/deg<<" Energy:  "<<tdishandler->tGetElectronE()<<" K Energy:  "<<tdishandler->tGetElectronE()-particle->GetPDGMass()<<G4endl;
+		 //G4cout<<"PGA: electron direction: "  << tdishandler -> tGetElectronP().unit()<< " theta: "<<tdishandler -> tGetElectronP().theta()/deg<<" Energy:  "<<tdishandler->tGetElectronE()<<" K Energy:  "<<tdishandler->tGetElectronE()-particle->GetPDGMass()<<G4endl;
 	       }
 
 	     if(i==1)
@@ -386,14 +386,14 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 		 //the knock-out proton or pion. Brute-force, I want to carry the particle information from the TDIS generator and not selecting it twice
 		 if( tdishandler -> tGetSIDISHadron() == 0 )
 		   {
-		     G4cout<<"Pion"<<G4endl;
+		     //G4cout<<"Pion"<<G4endl;
 		     particle = particleTable->FindParticle(particleName="pi+");
 		   }
 		 else
 		   {
 		     if ( tdishandler -> tGetSIDISHadron() == 5 )
 		       {
-			 G4cout<<"Proton"<<G4endl;
+			 //G4cout<<"Proton"<<G4endl;
 			 particle = particleTable->FindParticle(particleName="proton");
 		       } 
 		   }
@@ -401,7 +401,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 		 particleGun->SetParticleMomentumDirection( tdishandler ->tGetnucf_lab().vect().unit() );
 		 particleGun->SetParticleEnergy(tdishandler ->tGetnucf_lab().e() -particle->GetPDGMass());
 	
-		 G4cout<<"PGA: knock-out hadron direction: "  << tdishandler ->tGetnucf_lab().vect().unit()  << " theta: "<<tdishandler ->tGetnucf_lab().vect().unit() .theta()/deg<<" Energy:  "<<tdishandler->tGetnucf_lab().e()<<" K Energy:  "<<( tdishandler -> tGetnucf_lab().e()) -particle->GetPDGMass()<<G4endl;
+		 //G4cout<<"PGA: knock-out hadron direction: "  << tdishandler ->tGetnucf_lab().vect().unit()  << " theta: "<<tdishandler ->tGetnucf_lab().vect().unit() .theta()/deg<<" Energy:  "<<tdishandler->tGetnucf_lab().e()<<" K Energy:  "<<( tdishandler -> tGetnucf_lab().e()) -particle->GetPDGMass()<<G4endl;
 
 	       }
 
@@ -425,14 +425,14 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
        { 
 	 for(int i = 0; i < 2; i++ ) 
 	   {
-	     G4cout<<"PGA: in the loop "<< G4endl; 
+	     //G4cout<<"PGA: in the loop "<< G4endl; 
 	     if(i==0)
 	       {
 		 particle = particleTable->FindParticle(particleName="e-");
 		 particleGun->SetParticleMomentumDirection( tdishandler -> tGetElectronP().unit() );
 		 particleGun->SetParticleEnergy(tdishandler->tGetElectronE()-particle->GetPDGMass());//(CA)
 
-		 G4cout<<"PGA: electron direction: "  << tdishandler -> tGetElectronP().unit()<< " theta: "<<tdishandler -> tGetElectronP().theta()/deg<<" Energy:  "<<tdishandler->tGetElectronE()<<" K Energy:  "<<tdishandler->tGetElectronE()-particle->GetPDGMass()<<G4endl;
+		 //G4cout<<"PGA: electron direction: "  << tdishandler -> tGetElectronP().unit()<< " theta: "<<tdishandler -> tGetElectronP().theta()/deg<<" Energy:  "<<tdishandler->tGetElectronE()<<" K Energy:  "<<tdishandler->tGetElectronE()-particle->GetPDGMass()<<G4endl;
 	       }
 	     if(i==1)
 	       {
@@ -440,7 +440,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 		 particle = particleTable->FindParticle(particleName="proton");
 		 particleGun->SetParticleMomentumDirection( tdishandler -> tGetfProton().vect().unit() );
 		 particleGun->SetParticleEnergy(tdishandler -> tGetfProton().e() -particle->GetPDGMass());
-		 G4cout<<"PGA: knock-out p direction: "  << tdishandler ->tGetfProton().vect().unit()  << " theta: "<<tdishandler ->tGetfProton().vect().unit() .theta()/deg<<" Energy:  "<<tdishandler-> tGetfProton().e()<<" K Energy:  "<<( tdishandler -> tGetfProton().e()) -particle->GetPDGMass()<<G4endl;
+		 //G4cout<<"PGA: knock-out p direction: "  << tdishandler ->tGetfProton().vect().unit()  << " theta: "<<tdishandler ->tGetfProton().vect().unit() .theta()/deg<<" Energy:  "<<tdishandler-> tGetfProton().e()<<" K Energy:  "<<( tdishandler -> tGetfProton().e()) -particle->GetPDGMass()<<G4endl;
 
 	       }
 
@@ -461,14 +461,14 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
        { 
 	 for(int i = 0; i < 3; i++ ) 
 	   {
-	     G4cout<<"PGA: in the loop "<< G4endl; 
+	     //G4cout<<"PGA: in the loop "<< G4endl; 
 	     if(i==0)
 	       {
 		 particle = particleTable->FindParticle(particleName="e-");
 		 particleGun->SetParticleMomentumDirection( tdishandler -> tGetElectronP().unit() );
 		 particleGun->SetParticleEnergy(tdishandler->tGetElectronE()-particle->GetPDGMass());//(CA)
 
-		 G4cout<<"PGA: electron direction: "  << tdishandler -> tGetElectronP().unit()<< " theta: "<<tdishandler -> tGetElectronP().theta()/deg<<" Energy:  "<<tdishandler->tGetElectronE()<<" K Energy:  "<<tdishandler->tGetElectronE()-particle->GetPDGMass()<<G4endl;
+		 //G4cout<<"PGA: electron direction: "  << tdishandler -> tGetElectronP().unit()<< " theta: "<<tdishandler -> tGetElectronP().theta()/deg<<" Energy:  "<<tdishandler->tGetElectronE()<<" K Energy:  "<<tdishandler->tGetElectronE()-particle->GetPDGMass()<<G4endl;
 	       }
 
 	     if(i==1)
@@ -477,7 +477,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 		 particle = particleTable->FindParticle(particleName="proton");
 		 particleGun->SetParticleMomentumDirection( tdishandler -> tGetiProton().vect().unit() );
 		 particleGun->SetParticleEnergy(tdishandler -> tGetiProton().e() -particle->GetPDGMass());
-		 G4cout<<"PGA: spectator p direction: "  << tdishandler ->tGetiProton().vect().unit()  << " theta: "<<tdishandler ->tGetiProton().vect().unit() .theta()/deg<<" Energy:  "<<tdishandler-> tGetiProton().e()<<" K Energy:  "<<(tdishandler-> tGetiProton().e())-particle->GetPDGMass()<<G4endl;
+		 //G4cout<<"PGA: spectator p direction: "  << tdishandler ->tGetiProton().vect().unit()  << " theta: "<<tdishandler ->tGetiProton().vect().unit() .theta()/deg<<" Energy:  "<<tdishandler-> tGetiProton().e()<<" K Energy:  "<<(tdishandler-> tGetiProton().e())-particle->GetPDGMass()<<G4endl;
 	       }
 
 	     if(i==2)
@@ -486,7 +486,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 		 particle = particleTable->FindParticle(particleName="proton");
 		 particleGun->SetParticleMomentumDirection( tdishandler -> tGetfProton().vect().unit() );
 		 particleGun->SetParticleEnergy(tdishandler -> tGetfProton().e() -particle->GetPDGMass());
-		 G4cout<<"PGA: knock-out p direction: "  << tdishandler ->tGetfProton().vect().unit()  << " theta: "<<tdishandler ->tGetfProton().vect().unit() .theta()/deg<<" Energy:  "<<tdishandler-> tGetfProton().e()<<" K Energy:  "<<( tdishandler -> tGetfProton().e()) -particle->GetPDGMass()<<G4endl;
+		 //G4cout<<"PGA: knock-out p direction: "  << tdishandler ->tGetfProton().vect().unit()  << " theta: "<<tdishandler ->tGetfProton().vect().unit() .theta()/deg<<" Energy:  "<<tdishandler-> tGetfProton().e()<<" K Energy:  "<<( tdishandler -> tGetfProton().e()) -particle->GetPDGMass()<<G4endl;
 
 	       }
 

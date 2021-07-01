@@ -198,8 +198,8 @@ bool G4SBSTDISGen::Generate(Kine_t tKineType, Nucl_t nucl, G4LorentzVector ei, G
   // ni here is just for the elastic and QE cases
   GenerateScatterElectron(tKineType, ei, ni, kfhat_lab);
 
-  // if(DEBUG)
-  G4cout<<" ef_lab_momentum: "<< ef_lab.vect().unit()<<G4endl;
+  if(DEBUG)
+    G4cout<<" ef_lab_momentum: "<< ef_lab.vect().unit()<<G4endl;
 
   // there is a not very good programming coding
   // I am using the variables global-ish.
@@ -249,10 +249,14 @@ bool G4SBSTDISGen::Generate(Kine_t tKineType, Nucl_t nucl, G4LorentzVector ei, G
     {
     case tElastic:
       xbj = 1.0; //force the x_Bj value for elastic
-      G4cout<<Ebeam_Nrest<<" "<<Eprime_Nrest<<" "<<eth_Nrest<<" "<<nucl<<G4endl;
+      if(DEBUG)
+	G4cout<<Ebeam_Nrest<<" "<<Eprime_Nrest<<" "<<eth_Nrest<<" "<<nucl<<G4endl;
       
-      ELAsigma = ElasticXS(Ebeam_Nrest, Eprime_Nrest, eth_Nrest, nucl);
-      //  if(DEBUG)
+      // EPAF: I think we want epc function for both elastic and quasielastic
+      ELAsigma = //ElasticXS(Ebeam_Nrest, Eprime_Nrest, eth_Nrest, nucl);
+	QuasiElasticXS(Ebeam_Nrest, z1, n1, partID, Phad_Nrest .vect().mag(), thN_Nrest);
+      
+      if(DEBUG)
 	G4cout<<"enter in TDIS elastic: "<<ELAsigma/barn<<G4endl;
       break;
       
@@ -526,7 +530,7 @@ G4ThreeVector G4SBSTDISGen::GenerateElectronAngles(Kine_t Kine)
 
   ph = CLHEP::RandFlat::shoot(PhiMin, PhiMax); 
 
-  //  if(DEBUG)
+  if(DEBUG)
     G4cout<<"Electron th: "<<th/deg<<" Electron ph: "<<ph/deg<< G4endl;
 
   //  G4ThreeVector direction_vec ( sin(th)*cos(ph), sin(th)*sin(ph),  cos(th) );

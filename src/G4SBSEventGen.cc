@@ -527,6 +527,7 @@ bool G4SBSEventGen::GenerateEvent(){
     // the number of entries for the space-phase (CA)
     success =   tdishandler->Generate(GetKine(), thisnucl, ei, ni ); //(CA)
     //G4cout<<"Back from TDIS"<<G4endl;
+    fSigma = tdishandler->GetSigma(GetKine());
     break;
     
   case G4SBS::kPionPhoto:
@@ -3262,7 +3263,9 @@ void G4SBSEventGen::InitializeRejectionSampling(){
 
   fRejectionSamplingFlag = fRejectionSamplingFlag &&
     (fKineType == G4SBS::kElastic || fKineType == G4SBS::kInelastic || fKineType == G4SBS::kDIS ||
-     fKineType == G4SBS::kSIDIS || fKineType == G4SBS::kWiser );
+     fKineType == G4SBS::kSIDIS || fKineType == G4SBS::kWiser || fKineType == kTDISGen || 
+     fKineType == tElastic || fKineType == tQuasiElastic || fKineType == tInelastic || 
+     fKineType == tTDISKinH || fKineType == tTDISKinD || fKineType == tSIDIS );
   
   if( fRejectionSamplingFlag ){
   
@@ -3288,7 +3291,7 @@ void G4SBSEventGen::InitializeRejectionSampling(){
       fMaxWeight = ( fSigma > fMaxWeight ) ? fSigma : fMaxWeight; 
     }  
 
-    if( fKineType == G4SBS::kSIDIS ){
+    if( fKineType == G4SBS::kSIDIS || fKineType == tSIDIS ){
       G4cout << "Initialized Rejection sampling, max. weight = " << fMaxWeight/(nanobarn/steradian/(GeV*GeV))
 	     << G4endl;
     } else {

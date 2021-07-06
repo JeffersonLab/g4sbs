@@ -163,6 +163,7 @@ public:
   void tSetThows(double v){NoOfThrows = v;}
   G4double tGetNoOfThrows(){ return NoOfThrows; }
 
+  G4double GetSigma(Kine_t);
   // BAD PROGRAMMING
 
 

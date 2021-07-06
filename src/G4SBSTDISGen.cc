@@ -253,8 +253,8 @@ bool G4SBSTDISGen::Generate(Kine_t tKineType, Nucl_t nucl, G4LorentzVector ei, G
 	G4cout<<Ebeam_Nrest<<" "<<Eprime_Nrest<<" "<<eth_Nrest<<" "<<nucl<<G4endl;
       
       // EPAF: I think we want epc function for both elastic and quasielastic
-      ELAsigma = //ElasticXS(Ebeam_Nrest, Eprime_Nrest, eth_Nrest, nucl);
-	QuasiElasticXS(Ebeam_Nrest, z1, n1, partID, Phad_Nrest .vect().mag(), thN_Nrest);
+      ELAsigma = ElasticXS(Ebeam_Nrest, Eprime_Nrest, eth_Nrest, nucl);
+      //QuasiElasticXS(Ebeam_Nrest, z1, n1, partID, Phad_Nrest .vect().mag(), thN_Nrest);
       
       if(DEBUG)
 	G4cout<<"enter in TDIS elastic: "<<ELAsigma/barn<<G4endl;
@@ -1929,5 +1929,26 @@ double G4SBSTDISGen::tdissigma_n(double eb, double thNR, double ep){
 
 
 
-
+G4double G4SBSTDISGen::GetSigma(Kine_t kin)
+{
+  switch(kin){
+  case (tElastic):
+    return ELAsigma;
+    break;
+  case (tQuasiElastic):
+    return QEsigma;
+  break;
+  case (tSIDIS):
+    return SIDISsigma;
+    break;
+  case (kTDISGen):
+  case (tTDISKinH):
+  case (tTDISKinD):
+    return TDISsigma;
+  break;
+  default:
+    return QEsigma;
+    break;
+  }
+}
 

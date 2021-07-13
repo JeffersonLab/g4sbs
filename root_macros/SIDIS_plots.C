@@ -21,7 +21,7 @@
 #include "TVector3.h"
 #include <set>
 
-void SIDIS_plots( const char *infilename, double ndays=40.0, const char *outfilename="SIDIS_plots_temp.root", int pi0flag=0 ){
+void SIDIS_plots( const char *infilename, double ndays=40.0, const char *outfilename="SIDIS_plots_temp.root" ){
 
   TFile *fout = new TFile(outfilename,"RECREATE" );
   
@@ -33,20 +33,43 @@ void SIDIS_plots( const char *infilename, double ndays=40.0, const char *outfile
 
   long ntries_total = 0;
 
+  map<TString,long> ntries_hadron;
+  map<int,TString> hadron_by_filenumber;
+  
   vector<G4SBSRunData *> RunData; //grab the run metadata object for each file:
+
+  int filecounter = 0;
   
   TString currentline;
   while( currentline.ReadLine( infile ) && !currentline.BeginsWith("endlist") ){
     if( !currentline.BeginsWith("#") ){
-      C->Add(currentline.Data());
 
-      G4SBSRunData *rdtemp;
-      TFile *ftemp = new TFile( currentline.Data(), "READ" );
-      ftemp->GetObject( "run_data", rdtemp );
-      
-      RunData.push_back( rdtemp );
-      
-      ntries_total += rdtemp->fNtries;
+      TObjArray *tokens = currentline.Tokenize(" ");
+
+      if( tokens->GetEntries() >= 2 ){
+	TString rootfilename = ( (TObjString*) (*tokens)[0] )->GetString();
+	TString hadron = ( (TObjString*) (*tokens)[1] )->GetString();
+
+	if( ntries_hadron.find( hadron ) == ntries_hadron.end() ){
+	  ntries_hadron[hadron] = 0;
+	}
+	
+	C->Add(rootfilename.Data());
+
+	G4SBSRunData *rdtemp;
+	TFile *ftemp = new TFile( rootfilename.Data(), "READ" );
+	ftemp->GetObject( "run_data", rdtemp );
+	
+	RunData.push_back( rdtemp );
+
+	ntries_hadron[hadron] += rdtemp->fNtries;
+
+	hadron_by_filenumber[filecounter] = hadron;
+
+	filecounter++;
+	
+	ntries_total += rdtemp->fNtries;
+      }
     }
   }
 
@@ -100,21 +123,31 @@ void SIDIS_plots( const char *infilename, double ndays=40.0, const char *outfile
 
   TH1D *hxbj_p = new TH1D("hxbj_p", "Bjorken x (struck proton)", 100, 0, 1 );
   TH1D *hxbj_n = new TH1D("hxbj_n", "Bjorken x (struck neutron)", 100, 0, 1 );
+
+  TH2D *hpT_phiSiv_polar = new TH2D("hpT_phiSiv_polar","",100,-1.5,1.5,100,-1.5,1.5);
+  TH2D *hpT_phiColl_polar = new TH2D("hpT_phiColl_polar","",100,-1.5,1.5,100,-1.5,1.5);
+
+  TH2D *hpT_z = new TH2D("hpT_z", "", 100, 0,1, 100, 0, 2 );
+
+  TH1D *hqT2overQ2 = new TH1D("hqT2overQ2", "p_{T}^{2}/(z^{2}Q^{2})", 100, 0.0,2.0 );
+  TH2D *hqT2overQ2_vs_x = new TH2D("hqT2overQ2_vs_x","p_{T}^{2}/(z^{2}Q^{2}) vs. x", 100, 0, 1, 100, 0, 2);
   
   while( C->GetEntry( elist->GetEntry( nevent++ ) ) ){
     double Ebeam, SBStheta, BBtheta, Lumi;
     int ifile = C->GetTreeNumber();
 
     Ebeam = RunData[ifile]->fBeamE;
-    SBStheta = RunData[ifile]->fSBStheta;
+    SBStheta = RunData[ifile]->fSBStheta; 
     BBtheta = RunData[ifile]->fBBtheta;
     Lumi = RunData[ifile]->fLuminosity;
 
+    TString hadron = hadron_by_filenumber[ifile];
+    
     //This will give a total yield:
-    double weight = T->ev_sigma * Lumi/double(ntries_total);
+    double weight = T->ev_sigma * Lumi/double(ntries_hadron[hadron]);
 
     if( nevent % 1000 == 0 ){
-      cout << "event, Ebeam, SBStheta, BBtheta, Lumi = " << nevent << ", " << Ebeam << ", " << SBStheta*57.3 << ", " << BBtheta*57.3 << ", " << Lumi << endl;
+      cout << "event, Ebeam, SBStheta, BBtheta, Lumi, ntries = " << nevent << ", " << Ebeam << ", " << SBStheta*57.3 << ", " << BBtheta*57.3 << ", " << Lumi << ", " << ntries_hadron[hadron] << endl;
     }
 
     //Now implement detector cuts for filling histograms:
@@ -134,7 +167,7 @@ void SIDIS_plots( const char *infilename, double ndays=40.0, const char *outfile
     
     bool goodHarm = T->Harm_SBSGEM_Track_ntracks==1 && (*(T->Harm_SBSGEM_Track_MID))[0]==0 && (*(T->Harm_SBSGEM_Track_P))[0]/T->ev_np >= 0.95 && HCALsum >= 0.1 && RICH_nhits >= 3;
 
-    if( pi0flag != 0 ){ //then we need some different analysis:
+    if( hadron == "pi0" ){ //then we need some different analysis:
       //we need to loop over all HCAL hits and find the ones caused by the pi0 decay photons:
       //Idea is to require both photons to hit HCAL:
       goodHarm = false;
@@ -195,6 +228,11 @@ void SIDIS_plots( const char *infilename, double ndays=40.0, const char *outfile
       hphih->Fill( T->ev_phih, weight );
       hphiS->Fill( T->ev_phiS, weight );
 
+      hpT_z->Fill( T->ev_z, T->ev_phperp, weight );
+
+      hqT2overQ2->Fill( pow(T->ev_phperp/T->ev_z, 2)/T->ev_Q2, weight );
+      hqT2overQ2_vs_x->Fill( T->ev_xbj, pow(T->ev_phperp/T->ev_z, 2)/T->ev_Q2, weight );
+      
       double phiSiv = T->ev_phih - T->ev_phiS;
       if( phiSiv > PI ) phiSiv -= 2.0*PI;
       if( phiSiv < -PI ) phiSiv += 2.0*PI;
@@ -204,6 +242,9 @@ void SIDIS_plots( const char *infilename, double ndays=40.0, const char *outfile
       if( phiColl < -PI ) phiColl += 2.0*PI;
 
       double phiPretz = 3.*T->ev_phih - T->ev_phiS;
+
+      hpT_phiSiv_polar->Fill( T->ev_phperp*cos(phiSiv), T->ev_phperp*sin(phiSiv), weight );
+      hpT_phiColl_polar->Fill( T->ev_phperp*cos(phiColl), T->ev_phperp*sin(phiColl), weight );
       
       hphiSiv->Fill( phiSiv, weight );
       hphiColl->Fill( phiColl, weight );

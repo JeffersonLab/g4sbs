@@ -38,6 +38,7 @@ public:
   
   void MakeCDET(G4double, G4double, G4LogicalVolume *); //
   void MakeGMnGEMShielding(G4LogicalVolume *);
+  void MakeGMnGEMShielding_update(G4LogicalVolume *); // update by D Flay 7/16/21 
 
   void SetDVCSECalMaterial(G4String str){ fDVCSECalMaterial = str; }
   void MakeBBSieveSlit(G4LogicalVolume *, G4ThreeVector);

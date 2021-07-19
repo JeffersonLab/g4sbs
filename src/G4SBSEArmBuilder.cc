@@ -3496,9 +3496,9 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
   bool checkOverlaps = true;
 
   // placement of the electronics hut (approximate)
-  G4double x0 = 3.*m;
+  G4double x0 = 3.*m;      // FIXME: Should be 3.2 m
   G4double y0 = -10.*foot; // about 10 feet below the beamline is the floor
-  G4double z0 = 7.0*m;  
+  G4double z0 = 7.0*m;     // FIXME: Should be 7.7 m  
   G4ThreeVector Pb = G4ThreeVector(x0,y0+GboxY/2.,z0);  
   G4RotationMatrix *rmb = new G4RotationMatrix();
   rmb->rotateY(90.*deg);

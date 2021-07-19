@@ -277,8 +277,10 @@ private:
   G4UIcommand *LimitStepCALcmd; //Command to turn on step limiter physics for sensitive volumes defined as calorimeters, by detector name.
 
   G4UIcommand *SD_EnergyThresholdCmd;   //Set hit energy threshold for "Calorimeter" type sensitive detectors
-  G4UIcommand *SD_TimeWindowCmd; 
+  G4UIcommand *SD_TimeWindowCmd;
+  G4UIcommand *SD_NTimeBinsCmd;
 
+  G4UIcommand *KeepPulseShapeCmd; //Flag to turn on recording of Pulse Shape info  
   G4UIcommand *KeepSDtrackcmd; //Flag to turn on recording of "sensitive detector" track info
   
   //Commands to activate/de-activate parts of the optical physics list (which are CPU intensive!!!)
@@ -294,12 +296,17 @@ private:
 
   G4UIcmdWithABool *FluxCmd; //Make sphere around target and use to compute flux of particles
 
-  //Command to define target spin orientation
+  //Command to define (fixed) target spin orientation
   G4UIcmdWith3Vector *TargPolDirectionCmd;
   G4UIcmdWithADouble *TargPolMagnitudeCmd;
-  G4UIcmdWithADouble *BeamPolMagnitudeCmd;
+  G4UIcmdWithADouble *BeamPolMagnitudeCmd; 
   G4UIcmdWith3Vector *BeamPolDirectionCmd;
- 
+
+  //For the SIDIS generator, we probably want the ability to randomize the target polarization direction: 
+  G4UIcmdWithABool        *RandomizeTargetSpinCmd; //randomize the target spin in the event generator
+  G4UIcmdWithAnInteger    *NumSpinStatesTargCmd;   // Number of target spin states: positive integer = discrete number of states, 0 = randomize in all three dimensions, -1 = randomize in the plane perpendicular to the beam direction
+  G4UIcommand             *TargThetaSpinCmd;       // Command to read in vector of target theta spin angles
+  G4UIcommand             *TargPhiSpinCmd;         // Command to read in vector of target phi spin angles
   
   // Command to set particle polarization for spin transport calculations:
   // ONLY relevant for particle gun generator!
@@ -312,6 +319,10 @@ private:
   G4UIcmdWithADoubleAndUnit *CosmicsMaxAngleCommand;
 
   G4UIcmdWithABool *WriteFieldMapCmd;
+
+  G4UIcmdWithABool *UseGEMshieldCmd;
+  G4UIcmdWithADoubleAndUnit *GEMshieldThickCmd;
+  G4UIcmdWithADoubleAndUnit *GEMshieldAirGapThickCmd; 
 };
 
 #endif//G4SBSMessenger_HH

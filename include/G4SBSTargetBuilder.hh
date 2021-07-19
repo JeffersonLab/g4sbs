@@ -83,7 +83,7 @@ public:
   G4ThreeVector GetTargPolDir() const { return fTargPolDir; }
   G4double GetTargPolMag() const { return fTargPolMag; }
   void SetTargPolDir( G4ThreeVector pdir ){ fTargPolDir = pdir.unit(); }
-  void SetTargPolMag( G4double pmag ){ fTargPolMag = pmag; }
+  void SetTargPolMag( G4double pmag ){ fTargPolMag = std::max(0.0,std::min(1.0,pmag)); }
 
   G4int GetNtargetFoils() const { return fNtargetFoils; }
   void SetNtargetFoils(G4int n);

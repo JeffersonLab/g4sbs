@@ -349,27 +349,27 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //SSeeds - added second sieve option to accomodate new plate 10.4.20
   //sseeds - added third and fourth for optics studies 11.5.20. Will need to find more efficient way to implement
   
- if( fBuildBBSieve == 1 ){ 
+  if( fBuildBBSieve == 1 ){ 
     G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm);
     MakeBBSieveSlit( bbmotherLog, BBSievePos );
- }
- else if( fBuildBBSieve == 2 ){  
-   G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
+  }
+  else if( fBuildBBSieve == 2 ){  
+    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
     MakeNewBBSieveSlit( bbmotherLog, BBSievePos );
- }
- else if( fBuildBBSieve == 3 ){  
-   G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
-   MakeThirdBBSieveSlit( bbmotherLog, BBSievePos );
- }
- else if( fBuildBBSieve == 4 ){  
-   G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
-   MakeFourthBBSieveSlit( bbmotherLog, BBSievePos );
- }
- else {
-   //cout << "Invalid sieve entry. Please enter 1 (old - straight holes and slots) or 2 (new - holes with angles in dispersive direction) or 3 (new - holes without angles). No sieve constructed.\n";
- }
+  }
+  else if( fBuildBBSieve == 3 ){  
+    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
+    MakeThirdBBSieveSlit( bbmotherLog, BBSievePos );
+  }
+  else if( fBuildBBSieve == 4 ){  
+    G4ThreeVector BBSievePos(0,0,-motherdepth/2.0+36.0*cm-0.75*2.54*cm); //Not sure where 0.75" comes from - sseeds
+    MakeFourthBBSieveSlit( bbmotherLog, BBSievePos );
+  }
+  else {
+    //cout << "Invalid sieve entry. Please enter 1 (old - straight holes and slots) or 2 (new - holes with angles in dispersive direction) or 3 (new - holes without angles). No sieve constructed.\n";
+  }
   
-  //  Bigbite field log volume
+  //  Bigbite field log volume: does not appear to serve any purpose. But maybe it is important for the geometry? And maybe it can be used for a hyper-local field definition?
   G4LogicalVolume *bbfieldLog=new G4LogicalVolume(bbairTrap, GetMaterial("Air"),
 						  "bbfieldLog", 0, 0, 0);
   
@@ -398,7 +398,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     }
   }
 
-  //does this volume serve any purpose? Apparently not
+  //does this volume serve any purpose? Not as far as I can tell
   new G4PVPlacement(0, G4ThreeVector(), bbfieldLog, "bbfieldPhysical", bbyokewgapLog, false,0, chkoverlap);
 
   //--------- BigBite Detector Volumes ------------
@@ -795,8 +795,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
     G4double ethresh_default = 0.0*MeV;
     G4double timewindow_default = 30.0*ns;
+    G4int default_ntbins = 25;
     
-    fDetCon->SetTimeWindowAndThreshold( BBHodoScintSDname, ethresh_default, timewindow_default );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( BBHodoScintSDname, ethresh_default, timewindow_default, default_ntbins );
   }
   bbhodoslatlog->SetSensitiveDetector( BBHodoScintSD ); 
 
@@ -887,9 +888,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     (BBSHTF1SD->detmap).depth = 1;
 
     G4double threshold_default = 0.0*MeV; //1% of 1 GeV
-    G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape. 
+    G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
+    G4int default_ntbins = 25;
     
-    fDetCon->SetTimeWindowAndThreshold( BBSHTF1SDname, threshold_default, timewindow_default );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( BBSHTF1SDname, threshold_default, timewindow_default, default_ntbins );
   }
   bbTF1log->SetSensitiveDetector( BBSHTF1SD );
 
@@ -918,6 +920,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     (fDetCon->SDlist).insert(BBSHSDname);
     fDetCon->SDtype[BBSHSDname] = G4SBS::kECAL;
     (BBSHSD->detmap).depth = 1;
+
+    // ****
+    G4double threshold_default = 0.0*MeV; 
+    G4double timewindow_default = 250.0*ns;
+    G4int default_ntbins = 25;
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( BBSHSDname, threshold_default, timewindow_default, default_ntbins );
+    // ****
   }
   bbpmtcathodelog->SetSensitiveDetector( BBSHSD );
 
@@ -1003,8 +1012,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     //Photoelectron yield is approximately 500/GeV (or so)
     G4double threshold_default = 0.0*MeV; //1% of 1 GeV
     G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
+    G4int default_ntbins = 25;
 
-    fDetCon->SetTimeWindowAndThreshold( BBPSTF1SDname, threshold_default, timewindow_default );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( BBPSTF1SDname, threshold_default, timewindow_default, default_ntbins );
   }
   bbpsTF1log->SetSensitiveDetector( BBPSTF1SD );
 
@@ -1030,6 +1040,10 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     (fDetCon->SDlist).insert(BBPSSDname);
     fDetCon->SDtype[BBPSSDname] = G4SBS::kECAL;
     (BBPSSD->detmap).depth = 1;
+
+    // *****
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( BBPSSDname, 0.0*MeV, 250*ns, 25 );
+    // *****
   }
   bbpspmtcathodelog->SetSensitiveDetector( BBPSSD );
 
@@ -1196,7 +1210,16 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4Box *Shield_backgem_box = new G4Box("Shield_backgem_box", 0.5*65*cm, 0.5*210*cm, 0.5*2.54*cm);
   G4LogicalVolume *Shield_backgem_log = new G4LogicalVolume(Shield_backgem_box, GetMaterial("CH2"), "Shield_backgem_log");//GetMaterial("CDET_Acrylic") ???
   //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fCerDist+fCerDepth+0.51*2.54*cm ), Shield_backgem_log, "", bbdetLog, false, 0, true);
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fGEMDist - 0.51*2.54*cm -1.6*cm ), Shield_backgem_log, "", bbdetLog, false, 0, true);
+
+  G4double z_Shield_backgem = detoffset+fGEMDist - 0.51*2.54*cm -1.6*cm;
+
+  if( fDetCon->GetGEMuseAlshield() ){
+    z_Shield_backgem -= fDetCon->GetGEMAirGapThick(); 
+  }
+  
+  G4ThreeVector pos_Shield_backgem(0,0,z_Shield_backgem);
+  
+  new G4PVPlacement(0, pos_Shield_backgem, Shield_backgem_log, "", bbdetLog, false, 0, true);
 }
 
 void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
@@ -1288,9 +1311,10 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
     (DVCSblkSD->detmap).depth = 1;
 
     G4double threshold_default = 0.0*MeV; //1% of 1 GeV
-    G4double timewindow_default = 100.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape. 
+    G4double timewindow_default = 100.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
+    G4int default_ntbins = 25;
 
-    fDetCon->SetTimeWindowAndThreshold( DVCSblkSDname, threshold_default, timewindow_default );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( DVCSblkSDname, threshold_default, timewindow_default, default_ntbins );
   }
   DVCSblklog->SetSensitiveDetector( DVCSblkSD ); 
 
@@ -1536,8 +1560,9 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
 
       G4double default_threshold = 0.0*MeV;
       G4double default_timewindow = 100.0*ns;
+      G4double default_ntbins = 25;
 
-      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( C16TF1SDname, default_threshold, default_timewindow,default_ntbins );
     }
     // Assign "kCAL" sensitivity to the lead-glass:
     LeadGlass_42_log->SetSensitiveDetector( C16TF1SD );
@@ -1640,8 +1665,9 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
 
       G4double default_threshold = 0.0*MeV;
       G4double default_timewindow = 100.0*ns;
+      G4int default_ntbins = 25;
 
-      fDetCon->SetTimeWindowAndThreshold( C16TF1SDname, default_threshold, default_timewindow );
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( C16TF1SDname, default_threshold, default_timewindow, default_ntbins );
     }
 
     G4int cell_number = 0 ;    // cell #
@@ -1986,8 +2012,9 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 
     G4double default_timewindow = 100.0*ns;
     G4double default_threshold  = 0.0*MeV;
+    G4int default_ntbins = 25;
 
-    fDetCon->SetTimeWindowAndThreshold( ECalTF1SDname, default_threshold, default_timewindow );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( ECalTF1SDname, default_threshold, default_timewindow, default_ntbins );
   }
 
   fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), ECalTF1SDname );
@@ -2650,8 +2677,9 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 
     G4double default_timewindow = 50.0*ns;
     G4double default_threshold  = 4.0*MeV;
+    G4int default_ntbins = 25;
 
-    fDetCon->SetTimeWindowAndThreshold( sdname, default_threshold, default_timewindow );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( sdname, default_threshold, default_timewindow, default_ntbins );
   }
 
   fDetCon->InsertSDboundaryVolume( mother->GetName(), sdname );
@@ -3740,7 +3768,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
     fDetCon->SDtype[GEMElectronicsname] = G4SBS::kCAL;
     (GEMElecSD->detmap).depth = 1;
 
-    fDetCon->SetTimeWindowAndThreshold( GEMElectronicsname );
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( GEMElectronicsname );
   }
   Electronics_log->SetSensitiveDetector( GEMElecSD );
   

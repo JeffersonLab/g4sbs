@@ -26,6 +26,7 @@
 
 #include "G4SBSBDParameterisation.hh"
 #include "G4SBSBeamDiffuserSD.hh"
+#include "TString.h"
 
 G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   assert(dc);

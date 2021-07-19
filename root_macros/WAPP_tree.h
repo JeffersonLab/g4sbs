@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Fri Jul 31 12:56:55 2020 by ROOT version 6.14/04
+// Mon May 24 17:51:39 2021 by ROOT version 6.22/08
 // from TTree T/Geant4 SBS Simulation
-// found on file: /volatile/halla/sbs/seeds/g4sbs_output/WAPP_beam/WAPP_beam_job3076.root
+// found on file: WAPP_test.root
 //////////////////////////////////////////////////////////
 
 #ifndef WAPP_tree_h
@@ -57,6 +57,7 @@ public :
    Double_t        ev_phperp;
    Double_t        ev_phih;
    Double_t        ev_phiS;
+   Double_t        ev_thetaS;
    Double_t        ev_MX2;
    Double_t        ev_Sx;
    Double_t        ev_Sy;
@@ -646,6 +647,13 @@ public :
    vector<double>  *SDTrack_polz;
    vector<double>  *SDTrack_Etot;
    vector<double>  *SDTrack_T;
+   vector<double>  *SDTrack_vx;
+   vector<double>  *SDTrack_vy;
+   vector<double>  *SDTrack_vz;
+   vector<double>  *SDTrack_vnx;
+   vector<double>  *SDTrack_vny;
+   vector<double>  *SDTrack_vnz;
+   vector<double>  *SDTrack_vEkin;
 
    // List of branches
    TBranch        *b_ev;   //!
@@ -1224,6 +1232,13 @@ public :
    TBranch        *b_SDTrack_polz;   //!
    TBranch        *b_SDTrack_Etot;   //!
    TBranch        *b_SDTrack_T;   //!
+   TBranch        *b_SDTrack_vx;   //!
+   TBranch        *b_SDTrack_vy;   //!
+   TBranch        *b_SDTrack_vz;   //!
+   TBranch        *b_SDTrack_vnx;   //!
+   TBranch        *b_SDTrack_vny;   //!
+   TBranch        *b_SDTrack_vnz;   //!
+   TBranch        *b_SDTrack_vEkin;   //!
 
    WAPP_tree(TTree *tree=0);
    virtual ~WAPP_tree();
@@ -1244,9 +1259,9 @@ WAPP_tree::WAPP_tree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/volatile/halla/sbs/seeds/g4sbs_output/WAPP_beam/WAPP_beam_job3076.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("WAPP_test.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("/volatile/halla/sbs/seeds/g4sbs_output/WAPP_beam/WAPP_beam_job3076.root");
+         f = new TFile("WAPP_test.root");
       }
       f->GetObject("T",tree);
 
@@ -1836,6 +1851,13 @@ void WAPP_tree::Init(TTree *tree)
    SDTrack_polz = 0;
    SDTrack_Etot = 0;
    SDTrack_T = 0;
+   SDTrack_vx = 0;
+   SDTrack_vy = 0;
+   SDTrack_vz = 0;
+   SDTrack_vnx = 0;
+   SDTrack_vny = 0;
+   SDTrack_vnz = 0;
+   SDTrack_vEkin = 0;
    // Set branch addresses and branch pointers
    if (!tree) return;
    fChain = tree;
@@ -2418,6 +2440,13 @@ void WAPP_tree::Init(TTree *tree)
    fChain->SetBranchAddress("SDTrack.polz", &SDTrack_polz, &b_SDTrack_polz);
    fChain->SetBranchAddress("SDTrack.Etot", &SDTrack_Etot, &b_SDTrack_Etot);
    fChain->SetBranchAddress("SDTrack.T", &SDTrack_T, &b_SDTrack_T);
+   fChain->SetBranchAddress("SDTrack.vx", &SDTrack_vx, &b_SDTrack_vx);
+   fChain->SetBranchAddress("SDTrack.vy", &SDTrack_vy, &b_SDTrack_vy);
+   fChain->SetBranchAddress("SDTrack.vz", &SDTrack_vz, &b_SDTrack_vz);
+   fChain->SetBranchAddress("SDTrack.vnx", &SDTrack_vnx, &b_SDTrack_vnx);
+   fChain->SetBranchAddress("SDTrack.vny", &SDTrack_vny, &b_SDTrack_vny);
+   fChain->SetBranchAddress("SDTrack.vnz", &SDTrack_vnz, &b_SDTrack_vnz);
+   fChain->SetBranchAddress("SDTrack.vEkin", &SDTrack_vEkin, &b_SDTrack_vEkin);
    Notify();
 }
 

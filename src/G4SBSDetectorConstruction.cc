@@ -708,27 +708,45 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   // Adjustable mTPC gas
   //mtpc glabal variables default values
-  fmTPCHeGasFraction = 0.9;//fraction of 1
-  fmTPCCH4GasFraction = 0.1;//fraction of 1
-  fmTPCGasTemp = 300.0;//296.15;//K
+  fmTPCHeGasFraction = 0.7;//fraction of 1
+  fmTPCCH4GasFraction = 0.3;//fraction of 1
+  fmTPCGasTemp = 296.15;//K
   fmTPCGasPressure = 1.0;//atm
-  //He4
-  G4double density_mTPC_4He = fmTPCGasPressure*atmosphere*(4.0026*g/Avogadro)/(fmTPCGasTemp*kelvin*k_Boltzmann);
-  G4Material *refmTPC4He = new G4Material("refmTPC4He", density_mTPC_4He, 1 );
-  refmTPC4He->AddElement(el4He, 1);
-  fMaterialsMap["refmTPC4He"] = refmTPC4He;
-  //CH4
-  G4double density_mTPC_CH4 = fmTPCGasPressure*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(fmTPCGasTemp*kelvin*k_Boltzmann);
-  G4Material *mTPCCH4 = new G4Material("mTPCCH4", density_mTPC_CH4, nel=2 );
-  mTPCCH4->AddElement(elC, 1);
-  mTPCCH4->AddElement(elH, 4);
-  fMaterialsMap["mTPCCH4"] = mTPCCH4;
-  // He4 and CH4 mix
-  G4double density_mTPCgas = fmTPCHeGasFraction*density_mTPC_4He + fmTPCCH4GasFraction*density_mTPC_CH4;
+  G4double density_mTPCgas = fmTPCHeGasFraction*density_4He+fmTPCCH4GasFraction*density_CH4;
   G4Material *mTPCgas= new G4Material("mTPCgas", density_mTPCgas, nel=2);
-  mTPCgas->AddMaterial(refmTPC4He, fmTPCHeGasFraction*density_mTPC_4He/density_mTPCgas) ;
-  mTPCgas->AddMaterial(mTPCCH4, fmTPCCH4GasFraction*density_mTPC_CH4/density_mTPCgas) ;
+  mTPCgas->AddMaterial(ref4He, fmTPCHeGasFraction*density_4He/density_mTPCgas) ;
+  mTPCgas->AddMaterial(CH4, fmTPCCH4GasFraction*density_CH4/density_mTPCgas) ;
   fMaterialsMap["mTPCgas"] = mTPCgas;
+  // G4cout <<  "density_4He " << ref4He->GetDensity()/(g/cm3) << G4endl;
+  // G4cout <<  "density_mTPCgas " << mTPCgas->GetDensity()/(g/cm3) << G4endl;
+
+  // // Adjustable mTPC gas
+  // //mtpc glabal variables default values
+  // fmTPCHeGasFraction = 0.7;//fraction of 1
+  // fmTPCCH4GasFraction = 0.3;//fraction of 1
+  // fmTPCGasTemp = 296.15;//K
+  // fmTPCGasPressure = 1.0;//atm
+  // //He4
+  // G4double density_mTPC_4He = fmTPCGasPressure*atmosphere*(4.0026*g/Avogadro)/(fmTPCGasTemp*kelvin*k_Boltzmann);
+  // G4Material *refmTPC4He = new G4Material("refmTPC4He", density_mTPC_4He, 1 );
+  // refmTPC4He->AddElement(el4He, 1);
+  // G4cout << "density of mtpc he gas " << density_mTPC_4He << G4endl;
+  // fMaterialsMap["refmTPC4He"] = refmTPC4He;
+  // //CH4
+  // G4double density_mTPC_CH4 = fmTPCGasPressure*atmosphere*((12.0107+4*1.0079)*g/Avogadro)/(fmTPCGasTemp*kelvin*k_Boltzmann);
+  // G4Material *mTPCCH4 = new G4Material("mTPCCH4", density_mTPC_CH4, nel=2 );
+  // mTPCCH4->AddElement(elC, 1);
+  // mTPCCH4->AddElement(elH, 4);
+  // G4cout << "density of mtpc ch4 gas " << density_mTPC_CH4 << G4endl;
+  // fMaterialsMap["mTPCCH4"] = mTPCCH4;
+  // // He4 and CH4 mix
+  // G4double density_mTPCgas = fmTPCHeGasFraction*density_mTPC_4He + fmTPCCH4GasFraction*density_mTPC_CH4;
+  // G4Material *mTPCgas= new G4Material("mTPCgas", density_mTPCgas, nel=2);
+  // mTPCgas->AddMaterial(refmTPC4He, fmTPCHeGasFraction*density_mTPC_4He/density_mTPCgas) ;
+  // mTPCgas->AddMaterial(mTPCCH4, fmTPCCH4GasFraction*density_mTPC_CH4/density_mTPCgas) ;
+  // fMaterialsMap["mTPCgas"] = mTPCgas;
+  // G4cout << "density of mtpc gas " << density_mTPCgas << G4endl;
+
 
   //Beamline materials:
   density = 2.5*g/cm3;

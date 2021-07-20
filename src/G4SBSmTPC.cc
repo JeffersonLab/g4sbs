@@ -1036,7 +1036,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 				 GetMaterial("Au"),
 				"mTPCHVDisc_log"); 
 	  
-	  if(fmTPCkrypto)mTPCHVDisc_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+	  // if(fmTPCkrypto)mTPCHVDisc_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
 	  
 	  new G4PVPlacement(0, 
 			    G4ThreeVector(0.0, 0.0, zposHVDisc), 

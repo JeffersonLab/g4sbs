@@ -123,8 +123,8 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   //TrackerArm.clear();
 
   //mtpc glabal variables default values
-  fmTPCHeGasFraction = 0.9;//fraction of 1
-  fmTPCCH4GasFraction = 0.1;//fraction of 1
+  fmTPCHeGasFraction = 0.7;//fraction of 1
+  fmTPCCH4GasFraction = 0.3;//fraction of 1
   fmTPCGasTemp = 296.15;//K
   fmTPCGasPressure = 1.0;//atm
 

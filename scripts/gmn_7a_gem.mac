@@ -31,9 +31,12 @@
 /g4sbs/48D48dist       2.25 m
 /g4sbs/sbsmagfield     1.50 tesla
 
+## Record SD track info 
+/g4sbs/keepsdtrackinfo all true
+
 ## Enable the GEM bunker 
 /g4sbs/buildGEMfrontend true
  
 ## Run events
 /g4sbs/eventstatusevery 1000
-/g4sbs/run              500000
+/g4sbs/run              1000000

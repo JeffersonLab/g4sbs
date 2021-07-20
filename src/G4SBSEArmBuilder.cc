@@ -3498,7 +3498,9 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
   // GEM electronics hut 
   // date: 7/16/21 
-  // Drawing: A00000-06-00-0200-P001 
+  // Drawings: 
+  // - A00000-00-01-1000-BB-A [BB GEM hut location] 
+  // - A00000-06-00-0200-P002 [BB GEM hut assembly] 
   // coordinate system: +x = beam left, +y = up, +z = downstream 
 
   G4double inch  = 2.54*cm;
@@ -3511,25 +3513,44 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
   G4Box *shield_tmp = new G4Box("shield_tmp",GboxX/2.,GboxY/2.,GboxZ/2.); 
 
   // define a cut to cut out the interior 
-  G4double GboxX_cut = 52.0*inch;
+  G4double GboxX_cut = 104.0*inch; // 52.0*inch;
   G4double GboxY_cut = 70.0*inch;
-  G4double GboxZ_cut = 130.0*inch;
+  G4double GboxZ_cut = 78.0*inch; // 130.0*inch;
   G4Box *shield_tmp_cut = new G4Box("shield_tmp_cut",GboxX_cut/2.,GboxY_cut/2.,GboxZ_cut/2.);
+  G4ThreeVector P_cut = G4ThreeVector(26*inch,-9*inch,0);
+  // G4ThreeVector P_cut = G4ThreeVector(0,-9*inch,-26.*inch);
 
-  G4ThreeVector P_cut = G4ThreeVector(0,-9*inch,-26.*inch);
-  G4SubtractionSolid *bunker = new G4SubtractionSolid("gemBunker",shield_tmp,shield_tmp_cut,0,P_cut);
+  // another cut for upstream side 
+  G4double GboxX_cut_2 = 52.*inch; 
+  G4double GboxY_cut_2 = 52.*inch; 
+  G4double GboxZ_cut_2 = 26.*inch; 
+  G4Box *shield_tmp_cut_2 = new G4Box("shield_tmp_cut_2",GboxX_cut_2/2.,GboxY_cut_2/2.,GboxZ_cut_2/2.); 
+  G4ThreeVector P_cut_2 = G4ThreeVector(52.*inch,-9.*inch,-GboxZ/2.+GboxZ_cut_2/2.);
+
+  G4SubtractionSolid *bunker = new G4SubtractionSolid("gemBunker0",shield_tmp,shield_tmp_cut,0,P_cut);
+  bunker = new G4SubtractionSolid("gemBunker",bunker,shield_tmp_cut_2,0,P_cut_2);
 
   G4LogicalVolume *bunker_log = new G4LogicalVolume(bunker,GetMaterial("Steel"),"gemBunker_log"); 
 
   bool checkOverlaps = true;
 
   // placement of the electronics hut (approximate)
-  G4double x0 = 3.*m;      // FIXME: Should be 3.2 m
+  // G4double x0 = 3.*m;      
+  // G4double y0 = -10.*foot; // about 10 feet below the beamline is the floor
+  // G4double z0 = 7.0*m;     
+  // based on drawings (listed above)  
+  G4double x0 = 72.21*inch + 0.5*GboxX; 
   G4double y0 = -10.*foot; // about 10 feet below the beamline is the floor
-  G4double z0 = 7.0*m;     // FIXME: Should be 7.7 m  
+  G4double z0 = 252.28*inch + 0.5*GboxZ;
+
+  // angular rotation
+  G4double thy  = 0.*deg;
+  G4double dthy = 4.*deg;
+  G4double TH   = thy + dthy; 
+ 
   G4ThreeVector Pb = G4ThreeVector(x0,y0+GboxY/2.,z0);  
   G4RotationMatrix *rmb = new G4RotationMatrix();
-  rmb->rotateY(90.*deg);
+  rmb->rotateY(TH);
 
   new G4PVPlacement(rmb,
                     Pb, 
@@ -3538,65 +3559,91 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
                     motherLog,          // logical mother 
                     true,               // boolean?  
                     0,                  // copy number 
-                    checkOverlaps);     // check overlaps  
+                    checkOverlaps);     // check overlaps 
+ 
+  // standalone block
+  G4double blk_x = 52.0*inch; 
+  G4double blk_y = 52.0*inch; 
+  G4double blk_z = 26.0*inch;
+  G4Box *solidBLK = new G4Box("solidBLK",blk_x/2.,blk_y/2.,blk_z/2.);  
+
+  G4LogicalVolume *blk_log = new G4LogicalVolume(solidBLK,GetMaterial("Steel"),"gemBunkerBLK_log");
+
+  G4double xb = x0 + - GboxX/2. + 78.*inch + blk_x + 2.*inch; 
+  G4double yb = y0 + blk_y/2.; 
+  G4double zb = z0 + - GboxZ/2. + blk_z/2.; 
+
+  G4ThreeVector Pblk = G4ThreeVector(xb,yb,zb);  
+  G4RotationMatrix *rmblk = new G4RotationMatrix();
+  rmblk->rotateY(-2.*deg);
+
+  new G4PVPlacement(rmb,
+                    Pblk, 
+		    blk_log,               // logical volume
+                    "gemBunkerBLK_phys",   // name 
+                    motherLog,             // logical mother 
+                    true,                  // boolean?  
+                    0,                     // copy number 
+                    checkOverlaps);        // check overlaps 
 
   // shielding plates (goes on top of bunker)
   // small 
-  G4double x_sm = 96.0*inch; 
+  G4double x_sm = 21.5*inch; // 96.0*inch; 
   G4double y_sm = 2.5*inch; 
-  G4double z_sm = 21.5*inch;
+  G4double z_sm = 96.0*inch; // 21.5*inch;
   G4Box *smallPlate = new G4Box("smallPlate",x_sm/2.,y_sm/2.,z_sm/2.);  
   // medium 
-  G4double x_med = 96.0*inch; 
+  G4double x_med = 23.5*inch; // 96.0*inch; 
   G4double y_med = 2.5*inch; 
-  G4double z_med = 23.5*inch;
+  G4double z_med = 96.0*inch; // 23.5*inch;
   G4Box *mediumPlate = new G4Box("mediumPlate",x_med/2.,y_med/2.,z_med/2.);  
   // large 
-  G4double x_lg = 120.0*inch; 
+  G4double x_lg = 21.5*inch; // 120.0*inch; 
   G4double y_lg = 2.5*inch; 
-  G4double z_lg = 21.5*inch;
+  G4double z_lg = 120.0*inch; // 21.5*inch;
   G4Box *largePlate = new G4Box("largePlate",x_lg/2.,y_lg/2.,z_lg/2.);  
 
   // union the plates
-  G4double dx = 0.5*(GboxX - z_lg); 
+  G4double dx = 0; // 0.5*(GboxX - z_lg); 
   G4double dy = 0.1*inch; 
   G4double dz = 13.0*inch; 
   // large plates 
   // pair 1
-  G4double zp1 = 0;
-  G4ThreeVector P1b  = G4ThreeVector(0,-y_lg,zp1);
+  G4double xp1 = 0;
+  G4ThreeVector P1b  = G4ThreeVector(xp1,-y_lg,0);
   G4UnionSolid *bunkerTop = new G4UnionSolid("bt_0",largePlate,largePlate,0,P1b);
   // G4ThreeVector P1t  = G4ThreeVector(0,y_lg,zp1);
   // bunkerTop = new G4UnionSolid("bt_1",bunkerTop,largePlate,0,P1t);
   // pair 2 
-  G4double zp2 = z_lg;
-  G4ThreeVector P2b  = G4ThreeVector(0,-y_lg,zp2);
+  G4double xp2 = xp1 - x_lg;
+  G4ThreeVector P2b  = G4ThreeVector(xp2,-y_lg,0);
   bunkerTop = new G4UnionSolid("bt_2",bunkerTop,largePlate,0,P2b);
-  G4ThreeVector P2t  = G4ThreeVector(0,0,zp2);
+  G4ThreeVector P2t  = G4ThreeVector(xp2,0,0);
   bunkerTop = new G4UnionSolid("bt_3",bunkerTop,largePlate,0,P2t);
   // pair 3: med on top, sm on bottom 
-  G4double zp3 = zp2 + 0.5*(z_sm + z_lg);
-  G4ThreeVector P3b = G4ThreeVector(0,-y_sm,zp3);
+  G4double xp3 = xp2 - 0.5*(x_sm + x_lg);
+  G4ThreeVector P3b = G4ThreeVector(xp3,-y_sm,0);
   bunkerTop = new G4UnionSolid("bt_4",bunkerTop,smallPlate,0,P3b);
-  G4ThreeVector P3t = G4ThreeVector(0,0,zp3);
+  G4ThreeVector P3t = G4ThreeVector(xp3,0,0);
   bunkerTop = new G4UnionSolid("bt_5",bunkerTop,mediumPlate,0,P3t);
   // pair 4: med on top, sm on bottom 
-  G4double zp4 = zp3 + 0.5*(z_sm + z_med) + dz;
-  G4ThreeVector P4b = G4ThreeVector(0,-y_sm,zp4);
+  G4double xp4 = xp3 - 0.5*(x_sm + x_med) + dx;
+  G4ThreeVector P4b = G4ThreeVector(xp4,-y_sm,0);
   bunkerTop = new G4UnionSolid("bt_6",bunkerTop,smallPlate,0,P4b);
-  G4ThreeVector P4t = G4ThreeVector(0,0,zp4);
+  G4ThreeVector P4t = G4ThreeVector(xp4,0,0);
   bunkerTop = new G4UnionSolid("gemBunkerTop",bunkerTop,mediumPlate,0,P4t);
 
   G4VisAttributes *visTop = new G4VisAttributes();
   visTop->SetColour( G4Colour::Magenta() );
+  visTop->SetForceWireframe(); 
 
   G4LogicalVolume *bunkerTop_log = new G4LogicalVolume(bunkerTop,GetMaterial("Steel"),"bunkerTop_log");
   bunkerTop_log->SetVisAttributes(visTop);  
 
   // placement
-  G4double xt = x0 + GboxZ/2. - z_lg/2.; 
+  G4double xt = x0 + GboxX/2. - x_lg/2.; 
   G4double yt = y0 + GboxY + 1.5*y_lg; 
-  G4double zt = z0 + (1./8.)*(x_lg/2.-GboxX/2.); 
+  G4double zt = z0 + (1./8.)*(z_lg/2.-GboxZ/2.); 
   G4ThreeVector Pbt = G4ThreeVector(xt,yt,zt);
 
   new G4PVPlacement(rmb,                   // rotation
@@ -3611,10 +3658,14 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
    // In order to calculate the dose, we need a SD of type CAL:
    // total volume = 101.6 x 101.6 x 2.54 cm^3 = 26219.302 cm^3 = 2638.961 in^3 
    // modified dimensions to match the same volume but fit inside the bunker 
-   G4double ElecX = 38*inch; 
+   G4double ElecX = 1.38*inch; // 38*inch; 
    G4double ElecY = 50*inch; 
-   G4double ElecZ = 1.38*inch; 
-  
+   G4double ElecZ = 38.*inch; // 1.38*inch; 
+
+   // name of sensitive detector  
+   G4String deviceName      = "BBGEMElectronics"; 
+   G4String deviceName_phys = "BBGEMElectronics_phys"; 
+ 
    G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
 
    G4VisAttributes *visElec = new G4VisAttributes();
@@ -3623,8 +3674,8 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
    G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
    Electronics_log->SetVisAttributes(visElec);  
 
-   G4String GEMElectronicsname = "Earm/GEMElectronics";
-   G4String GEMElectronicscollname = "GEMElectronicsHitsCollection";
+   G4String GEMElectronicsname = "Earm/" + deviceName;
+   G4String GEMElectronicscollname = deviceName + "HitsCollection";
    G4SBSCalSD *GEMElecSD = NULL;
  
    GEMElectronicsname += "GMn";
@@ -3633,14 +3684,16 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
    G4SDManager *sdman = fDetCon->fSDman;
  
    if( !( (G4SBSCalSD*) sdman->FindSensitiveDetector(GEMElectronicsname) )){
-     G4cout << "Adding GEM electronics Sensitive Detector to SDman..." << G4endl;
-     GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
-     sdman->AddNewDetector(GEMElecSD);
-     (fDetCon->SDlist).insert(GEMElectronicsname);
-     fDetCon->SDtype[GEMElectronicsname] = G4SBS::kCAL;
-     (GEMElecSD->detmap).depth = 1;
- 
-     fDetCon->SetTimeWindowAndThreshold( GEMElectronicsname );
+     // G4cout << "Adding GEM electronics Sensitive Detector to SDman..." << G4endl;
+      G4cout << "Adding " << deviceName << " Sensitive Detector to SDman..." << G4endl;
+      GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
+      sdman->AddNewDetector(GEMElecSD);
+      (fDetCon->SDlist).insert(GEMElectronicsname);
+      fDetCon->SDtype[GEMElectronicsname] = G4SBS::kCAL;
+      (GEMElecSD->detmap).depth = 1;
+
+      // fDetCon->SetTimeWindowAndThreshold( GEMElectronicsname );
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( GEMElectronicsname ); // updated function name 
    }
    Electronics_log->SetSensitiveDetector( GEMElecSD );
    
@@ -3657,7 +3710,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
    new G4PVPlacement(rmb,                 // rotation relative to mother
                      Pgem,                // position relative to mother
  		     Electronics_log,     // logical volume
-                     "GMn_Electronics",   // physical name
+                     deviceName_phys,     // physical name
                      motherLog,           // logical mother
                      false,               // boolean?
                      0,                   // copy number

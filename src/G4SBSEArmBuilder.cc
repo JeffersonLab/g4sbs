@@ -3667,10 +3667,11 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
    // G4double ElecY = 50*inch; 
    // G4double ElecZ = 38.*inch; // 1.38*inch; 
    // D Flay 7/21/21: updated estimate based on: 
-   // - (N BB GEM layers)*(MPDs/layer)*(MPD vol)*(silcon scale factor) ~ 595571.2 mm^3 = 595.6 cm^3
+   // - (N BB GEM layers)*(MPDs/layer)*(MPD vol)*(silcon scale factor) ~ 2970750 mm^3 = 2970.75 cm^3
+   // - scale factor = 0.75
    G4double ElecX = 2.0*mm; 
-   G4double ElecY = 391.4*mm; 
-   G4double ElecZ = 761.6*mm;  
+   G4double ElecY = 1218.8*mm; // 391.4*mm; 
+   G4double ElecZ = 1218.8*mm; // 761.6*mm;  
 
    // name of sensitive detector  
    G4String deviceName      = "BBGEMElectronics"; 

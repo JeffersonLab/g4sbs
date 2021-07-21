@@ -3647,7 +3647,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
 
   // placement
   G4double xt = x0 + GboxX/2. - x_lg/2.; 
-  G4double yt = y0 + GboxY + 1.5*y_lg; 
+  G4double yt = y0 + GboxY/2. + 1.5*y_lg; 
   G4double zt = z0 + (1./8.)*(z_lg/2.-GboxZ/2.); 
   G4ThreeVector Pbt = G4ThreeVector(xt,yt,zt);
 
@@ -3663,9 +3663,14 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
    // In order to calculate the dose, we need a SD of type CAL:
    // total volume = 101.6 x 101.6 x 2.54 cm^3 = 26219.302 cm^3 = 2638.961 in^3 
    // modified dimensions to match the same volume but fit inside the bunker 
-   G4double ElecX = 1.38*inch; // 38*inch; 
-   G4double ElecY = 50*inch; 
-   G4double ElecZ = 38.*inch; // 1.38*inch; 
+   // G4double ElecX = 1.38*inch; // 38*inch; 
+   // G4double ElecY = 50*inch; 
+   // G4double ElecZ = 38.*inch; // 1.38*inch; 
+   // D Flay 7/21/21: updated estimate based on: 
+   // - (N BB GEM layers)*(MPDs/layer)*(MPD vol)*(silcon scale factor) ~ 595571.2 mm^3 = 595.6 cm^3
+   G4double ElecX = 2.0*mm; 
+   G4double ElecY = 391.4*mm; 
+   G4double ElecZ = 761.6*mm;  
 
    // name of sensitive detector  
    G4String deviceName      = "BBGEMElectronics"; 
@@ -3708,7 +3713,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
  
    // Place the electronics in our hut:
    G4double xg = x0; 
-   G4double yg = y0 + ElecY/2.; 
+   G4double yg = y0 - ElecY/2.; 
    G4double zg = z0; 
    G4ThreeVector Pgem = G4ThreeVector(xg,yg,zg);
 

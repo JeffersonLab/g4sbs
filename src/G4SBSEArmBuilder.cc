@@ -3506,6 +3506,11 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
   G4double inch  = 2.54*cm;
   G4double foot  = 12.*inch; 
 
+  // upstream edge of BB GEM shielding bunker from drawing 
+  G4double x_e = 63.14*inch;
+  G4double y_e = -10.*foot; 
+  G4double z_e = 252.28*inch; 
+
   // outer dimensions of the shielding blocks
   G4double GboxX = 104.0*inch;
   G4double GboxY = 52.0*inch;
@@ -3521,11 +3526,11 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
   // G4ThreeVector P_cut = G4ThreeVector(0,-9*inch,-26.*inch);
 
   // another cut for upstream side 
-  G4double GboxX_cut_2 = 52.*inch; 
-  G4double GboxY_cut_2 = 52.*inch; 
-  G4double GboxZ_cut_2 = 26.*inch; 
+  G4double GboxX_cut_2 = 100.*inch; // arbitrarily larger  
+  G4double GboxY_cut_2 = 70.*inch;  // arbitrarily larger  
+  G4double GboxZ_cut_2 = 70.*inch;  // arbitrarily larger  
   G4Box *shield_tmp_cut_2 = new G4Box("shield_tmp_cut_2",GboxX_cut_2/2.,GboxY_cut_2/2.,GboxZ_cut_2/2.); 
-  G4ThreeVector P_cut_2 = G4ThreeVector(52.*inch,-9.*inch,-GboxZ/2.+GboxZ_cut_2/2.);
+  G4ThreeVector P_cut_2 = G4ThreeVector(26.*inch+GboxX_cut_2/2.,0,-GboxZ/2.+GboxZ_cut_2/2.);
 
   G4SubtractionSolid *bunker = new G4SubtractionSolid("gemBunker0",shield_tmp,shield_tmp_cut,0,P_cut);
   bunker = new G4SubtractionSolid("gemBunker",bunker,shield_tmp_cut_2,0,P_cut_2);
@@ -3539,16 +3544,16 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
   // G4double y0 = -10.*foot; // about 10 feet below the beamline is the floor
   // G4double z0 = 7.0*m;     
   // based on drawings (listed above)  
-  G4double x0 = 72.21*inch + 0.5*GboxX; 
-  G4double y0 = -10.*foot; // about 10 feet below the beamline is the floor
-  G4double z0 = 252.28*inch + 0.5*GboxZ;
+  G4double x0 = x_e + 0.5*GboxX; 
+  G4double y0 = y_e + 0.5*GboxY; 
+  G4double z0 = z_e + 0.5*GboxZ;
 
   // angular rotation
   G4double thy  = 0.*deg;
   G4double dthy = 4.*deg;
   G4double TH   = thy + dthy; 
  
-  G4ThreeVector Pb = G4ThreeVector(x0,y0+GboxY/2.,z0);  
+  G4ThreeVector Pb = G4ThreeVector(x0,y0,z0);  
   G4RotationMatrix *rmb = new G4RotationMatrix();
   rmb->rotateY(TH);
 
@@ -3569,17 +3574,17 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
 
   G4LogicalVolume *blk_log = new G4LogicalVolume(solidBLK,GetMaterial("Steel"),"gemBunkerBLK_log");
 
-  G4double xb = x0 + - GboxX/2. + 78.*inch + blk_x + 2.*inch; 
-  G4double yb = y0 + blk_y/2.; 
-  G4double zb = z0 + - GboxZ/2. + blk_z/2.; 
+  G4double xb = x_e + 78.*inch + blk_x/2. + 2.*inch + 5.5*inch; // last term is a fudge factor 
+  G4double yb = y_e + blk_y/2.; 
+  G4double zb = z_e + blk_z/2. + 1.*inch; // last term is a fudge factor   
 
   G4ThreeVector Pblk = G4ThreeVector(xb,yb,zb);  
   G4RotationMatrix *rmblk = new G4RotationMatrix();
   rmblk->rotateY(-2.*deg);
 
-  new G4PVPlacement(rmb,
+  new G4PVPlacement(rmblk,
                     Pblk, 
-		    blk_log,               // logical volume
+        	    blk_log,               // logical volume
                     "gemBunkerBLK_phys",   // name 
                     motherLog,             // logical mother 
                     true,                  // boolean?  

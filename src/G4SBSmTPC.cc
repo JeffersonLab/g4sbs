@@ -1001,8 +1001,8 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 
   //  cout << "mTPC inner " << mtpcinnerR  << " mTPC outer " << mtpcouterR << endl;
 
-  G4int NGasLayers = ceil( (mtpcouterR-mtpcinnerR)/GasLayerThick );
-  GasLayerThick = (mtpcouterR-mtpcinnerR)/NGasLayers;
+  //G4int NGasLayers = ceil( (mtpcouterR-mtpcinnerR)/GasLayerThick );
+  //GasLayerThick = (mtpcouterR-mtpcinnerR)/NGasLayers;
  
   // cout << "NGasLayers " << NGasLayers << " GasLayerThick " << GasLayerThick << endl;
   
@@ -1054,6 +1054,28 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 	{
 	  zposGasCell = mTPC_CentreCell - celllength/2.0 + CellGasLength/2.0 + HVThickness/2.0;
 	}
+      mTPCGasCell_solid = 
+	new G4Tubs("mTPCGasCell_solid", 
+		   mtpcinnerR,
+		   mtpcouterR, 
+		   CellGasLength/2.0, 
+		   0.*deg, 
+		   360.*deg);
+      mTPCGasCell_log = 
+	    new G4LogicalVolume(mTPCGasCell_solid, 
+				 GetMaterial("mTPCgas"),
+				"mTPCGasCell_log");
+      mTPCGasCell_log->SetSensitiveDetector(mTPCSD);
+      
+      new G4PVPlacement(0, 
+			G4ThreeVector(0.0, 0.0, zposGasCell), 
+			mTPCGasCell_log, 
+			"mTPCGasCell_phy",
+			motherlog, 
+			false, 
+			0, 
+			fChkOvLaps);
+      /*
       for(G4int i_gl = 0; i_gl<NGasLayers; i_gl++)
 	{
 	  mTPCGasCell_solid = 
@@ -1087,6 +1109,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 	  // set cell as a sensitive detector
 
 	}
+      */
     }
 
   printf("G4SBSmTPC::BuildmTPCGasCells: Leaving...\n");

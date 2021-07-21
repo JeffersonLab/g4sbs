@@ -2090,25 +2090,26 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
       
       // G4bool newhit = false;
       
-      if( istep == 0 || (nhits_cell[cell] > 0 && tstep > tmin[cell][hitindex] + mtpcoutput.timewindow ) ){
+      //if( istep == 0 || (nhits_cell[cell] > 0 && tstep > tmin[cell][hitindex] + mtpcoutput.timewindow ) ){
 	//This is either the first hit or a tracking step that fell outside the timing window (i.e., "gate") defined for this SD:
-	nhits_cell[cell]++;
-	nsteps_hit_cell[cell].push_back( 1 );
-	//all quantities that are summed over the hit are energy-deposition-weighted:
-	xsumg[cell].push_back( xgstep*estep );
-	ysumg[cell].push_back( ygstep*estep );
-	zsumg[cell].push_back( zgstep*estep );
-
-	xsum[cell].push_back( xstep*estep );
-	ysum[cell].push_back( ystep*estep );
-	zsum[cell].push_back( zstep*estep );
-
-	esum[cell].push_back( estep );
-	t[cell].push_back( tstep*estep );
-	t2[cell].push_back( pow(tstep,2)*estep );
-	//tmin and tmax values are unweighted:
-	tmin[cell].push_back( tstep );
-	tmax[cell].push_back( tstep );
+      nhits_cell[cell]++;
+      nsteps_hit_cell[cell].push_back( 1 );
+      //all quantities that are summed over the hit are energy-deposition-weighted:
+      xsumg[cell].push_back( xgstep*estep );
+      ysumg[cell].push_back( ygstep*estep );
+      zsumg[cell].push_back( zgstep*estep );
+      
+      xsum[cell].push_back( xstep*estep );
+      ysum[cell].push_back( ystep*estep );
+      zsum[cell].push_back( zstep*estep );
+      
+      esum[cell].push_back( estep );
+      t[cell].push_back( tstep*estep );
+      t2[cell].push_back( pow(tstep,2)*estep );
+      //tmin and tmax values are unweighted:
+      tmin[cell].push_back( tstep );
+      tmax[cell].push_back( tstep );
+      /*
       } else { //Add this step to the current hit:
 	xsumg[cell][hitindex] += estep * xgstep;
 	ysumg[cell][hitindex] += estep * ygstep;
@@ -2126,7 +2127,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 
 	nsteps_hit_cell[cell][hitindex]++;
       }
-
+	*/
       // hpstemp->Fill( tstep - tmin[cell][hitindex], estep );
       esum_total += estep;
 

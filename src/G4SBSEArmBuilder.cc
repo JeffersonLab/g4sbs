@@ -3503,6 +3503,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
   // - A00000-06-00-0200-P002 [BB GEM hut assembly] 
   // coordinate system: +x = beam left, +y = up, +z = downstream 
 
+  // units
   G4double inch  = 2.54*cm;
   G4double foot  = 12.*inch; 
 
@@ -3537,16 +3538,28 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
 
   G4LogicalVolume *bunker_log = new G4LogicalVolume(bunker,GetMaterial("Steel"),"gemBunker_log"); 
 
+  // place everything in a mother volume 
+  G4double mx = 1.4*GboxZ; // note we're making this a cube  
+  G4double my = 1.2*GboxZ; // note we're making this a cube 
+  G4double mz = 1.2*GboxZ; // note we're making this a cube
+  G4Box *motherBox = new G4Box("bunkerMother",mx/2.,my/2.,mz/2.); 
+
+  G4VisAttributes *visMotherAir = new G4VisAttributes();
+  visMotherAir->SetForceWireframe(); 
+
+  G4LogicalVolume *motherAirBox_log = new G4LogicalVolume(motherBox,GetMaterial("Air"),"motherAirBox_log");
+  motherAirBox_log->SetVisAttributes(visMotherAir);  
+
   bool checkOverlaps = true;
 
-  // placement of the electronics hut (approximate)
-  // G4double x0 = 3.*m;      
-  // G4double y0 = -10.*foot; // about 10 feet below the beamline is the floor
-  // G4double z0 = 7.0*m;     
   // based on drawings (listed above)  
-  G4double x0 = x_e + 0.5*GboxX; 
-  G4double y0 = y_e + 0.5*GboxY; 
-  G4double z0 = z_e + 0.5*GboxZ;
+  // G4double x0 = x_e + 0.5*GboxX; 
+  // G4double y0 = y_e + 0.5*GboxY; 
+  // G4double z0 = z_e + 0.5*GboxZ;
+  // relative to the mother air box 
+  G4double x0 = 0; // 0.5*GboxX; 
+  G4double y0 = 0; // 0.5*GboxY; 
+  G4double z0 = 0; // 0.5*GboxZ;
 
   // angular rotation
   G4double thy  = 0.*deg;
@@ -3559,9 +3572,9 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
 
   new G4PVPlacement(rmb,
                     Pb, 
-		    bunker_log,         // logical volume
+        	    bunker_log,         // logical volume
                     "gemBunker_phys",   // name 
-                    motherLog,          // logical mother 
+                    motherAirBox_log,   // logical mother 
                     true,               // boolean?  
                     0,                  // copy number 
                     checkOverlaps);     // check overlaps 
@@ -3574,9 +3587,13 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
 
   G4LogicalVolume *blk_log = new G4LogicalVolume(solidBLK,GetMaterial("Steel"),"gemBunkerBLK_log");
 
-  G4double xb = x_e + 78.*inch + blk_x/2. + 2.*inch + 5.5*inch; // last term is a fudge factor 
-  G4double yb = y_e + blk_y/2.; 
-  G4double zb = z_e + blk_z/2. + 1.*inch; // last term is a fudge factor   
+  // G4double xb = x_e + 78.*inch + blk_x/2. + 2.*inch + 5.5*inch; // last term is a fudge factor 
+  // G4double yb = y_e + blk_y/2.; 
+  // G4double zb = z_e + blk_z/2. + 1.*inch; // last term is a fudge factor  
+  // relative to the mother air box now  
+  G4double xb = 53.1*inch + 7.*inch; 
+  G4double yb = 0; 
+  G4double zb = -GboxZ/2. + blk_z/2. + 1.*inch;    
 
   G4ThreeVector Pblk = G4ThreeVector(xb,yb,zb);  
   G4RotationMatrix *rmblk = new G4RotationMatrix();
@@ -3586,7 +3603,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
                     Pblk, 
         	    blk_log,               // logical volume
                     "gemBunkerBLK_phys",   // name 
-                    motherLog,             // logical mother 
+                    motherAirBox_log,      // logical mother 
                     true,                  // boolean?  
                     0,                     // copy number 
                     checkOverlaps);        // check overlaps 
@@ -3646,16 +3663,20 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
   bunkerTop_log->SetVisAttributes(visTop);  
 
   // placement
-  G4double xt = x0 + GboxX/2. - x_lg/2.; 
-  G4double yt = y0 + GboxY/2. + 1.5*y_lg; 
-  G4double zt = z0 + (1./8.)*(z_lg/2.-GboxZ/2.); 
+  // G4double xt = x0 + GboxX/2. - x_lg/2.; 
+  // G4double yt = y0 + GboxY/2. + 1.5*y_lg; 
+  // G4double zt = z0 + (1./8.)*(z_lg/2.-GboxZ/2.);
+  G4double xt = GboxX/2. - x_lg/2.; 
+  G4double yt = GboxY/2. + 1.5*y_lg; 
+  G4double zt = (1./8.)*(z_lg/2.-mz/2.);
+   
   G4ThreeVector Pbt = G4ThreeVector(xt,yt,zt);
 
   new G4PVPlacement(rmb,                   // rotation
                     Pbt,                   // position  
-		    bunkerTop_log,         // logical volume
+        	    bunkerTop_log,         // logical volume
                     "gemBunkerTop_phys",   // name 
-                    motherLog,             // logical mother 
+                    motherAirBox_log,      // logical mother 
                     true,                  // boolean?  
                     0,                     // copy number 
                     checkOverlaps);        // check overlaps  
@@ -3666,12 +3687,13 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
    // G4double ElecX = 1.38*inch; // 38*inch; 
    // G4double ElecY = 50*inch; 
    // G4double ElecZ = 38.*inch; // 1.38*inch; 
-   // D Flay 7/21/21: updated estimate based on: 
-   // - (N BB GEM layers)*(MPDs/layer)*(MPD vol)*(silcon scale factor) ~ 2970750 mm^3 = 2970.75 cm^3
+   // D Flay 7/23/21: updated estimate based on: 
+   // - (N MPDs)*(MPD vol)*(silcon scale factor) ~ 60463.5 mm^3 = 60.46 cm^3
+   // - N MPDs = 23 (from Thir) 
    // - scale factor = 0.75
    G4double ElecX = 2.0*mm; 
-   G4double ElecY = 1218.8*mm; // 391.4*mm; 
-   G4double ElecZ = 1218.8*mm; // 761.6*mm;  
+   G4double ElecY = 833.9*mm; // 1218.8*mm; // 391.4*mm; 
+   G4double ElecZ = 833.9*mm; // 1218.8*mm; // 761.6*mm;  
 
    // name of sensitive detector  
    G4String deviceName      = "BBGEMElectronics"; 
@@ -3697,6 +3719,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
    if( !( (G4SBSCalSD*) sdman->FindSensitiveDetector(GEMElectronicsname) )){
      // G4cout << "Adding GEM electronics Sensitive Detector to SDman..." << G4endl;
       G4cout << "Adding " << deviceName << " Sensitive Detector to SDman..." << G4endl;
+      // maybe it should be a different type of SD so we get PID info per hit? 
       GEMElecSD = new G4SBSCalSD( GEMElectronicsname, GEMElectronicscollname );
       sdman->AddNewDetector(GEMElecSD);
       (fDetCon->SDlist).insert(GEMElectronicsname);
@@ -3713,19 +3736,35 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
    }
  
    // Place the electronics in our hut:
-   G4double xg = x0; 
-   G4double yg = y0 - ElecY/2.; 
-   G4double zg = z0; 
+   G4double xg = 0; // x0; 
+   G4double yg = 0; // y0; // + ElecY/2.; 
+   G4double zg = 0; // z0; 
    G4ThreeVector Pgem = G4ThreeVector(xg,yg,zg);
 
    new G4PVPlacement(rmb,                 // rotation relative to mother
                      Pgem,                // position relative to mother
- 		     Electronics_log,     // logical volume
+        	     Electronics_log,     // logical volume
                      deviceName_phys,     // physical name
-                     motherLog,           // logical mother
+                     motherAirBox_log,    // logical mother
                      false,               // boolean?
                      0,                   // copy number
                      checkOverlaps);      // check overlaps 
+
+  // now place the motherBox  
+  G4double xm = x_e - 0.5*(mx-GboxX) + mx/2.; 
+  G4double ym = -10.*foot + 0.5*(my-GboxY); // y_e + 0.5*(my-GboxY) - my/2.; 
+  G4double zm = z_e - 0.5*(mz-GboxZ) + mz/2.;  
+
+  G4ThreeVector Pm = G4ThreeVector(xm,ym,zm);
+
+  new G4PVPlacement(0,
+                    Pm, 
+		    motherAirBox_log,            // logical volume
+                    "motherAirGEMBunker_phys",   // name 
+                    motherLog,                   // logical mother 
+                    false,                       // boolean?  
+                    0,                           // copy number 
+                    checkOverlaps);              // check overlaps 
 
 }
 

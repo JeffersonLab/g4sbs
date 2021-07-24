@@ -3538,6 +3538,9 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
 
   G4LogicalVolume *bunker_log = new G4LogicalVolume(bunker,GetMaterial("Steel"),"gemBunker_log"); 
 
+  // y offset to put bunker flush with bottom of mother volume 
+  G4double YOFF = -GboxY; 
+
   // place everything in a mother volume 
   G4double mx = 1.4*GboxZ; // note we're making this a cube  
   G4double my = 1.2*GboxZ; // note we're making this a cube 
@@ -3558,7 +3561,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
   // G4double z0 = z_e + 0.5*GboxZ;
   // relative to the mother air box 
   G4double x0 = 0; // 0.5*GboxX; 
-  G4double y0 = 0; // 0.5*GboxY; 
+  G4double y0 = YOFF; // 0.5*GboxY; 
   G4double z0 = 0; // 0.5*GboxZ;
 
   // angular rotation
@@ -3592,7 +3595,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
   // G4double zb = z_e + blk_z/2. + 1.*inch; // last term is a fudge factor  
   // relative to the mother air box now  
   G4double xb = 53.1*inch + 7.*inch; 
-  G4double yb = 0; 
+  G4double yb = YOFF; 
   G4double zb = -GboxZ/2. + blk_z/2. + 1.*inch;    
 
   G4ThreeVector Pblk = G4ThreeVector(xb,yb,zb);  
@@ -3667,7 +3670,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
   // G4double yt = y0 + GboxY/2. + 1.5*y_lg; 
   // G4double zt = z0 + (1./8.)*(z_lg/2.-GboxZ/2.);
   G4double xt = GboxX/2. - x_lg/2.; 
-  G4double yt = GboxY/2. + 1.5*y_lg; 
+  G4double yt = YOFF + GboxY/2. + 1.5*y_lg; 
   G4double zt = (1./8.)*(z_lg/2.-mz/2.);
    
   G4ThreeVector Pbt = G4ThreeVector(xt,yt,zt);
@@ -3737,7 +3740,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
  
    // Place the electronics in our hut:
    G4double xg = 0; // x0; 
-   G4double yg = 0; // y0; // + ElecY/2.; 
+   G4double yg = YOFF; // y0; // + ElecY/2.; 
    G4double zg = 0; // z0; 
    G4ThreeVector Pgem = G4ThreeVector(xg,yg,zg);
 
@@ -3752,10 +3755,20 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
 
   // now place the motherBox  
   G4double xm = x_e - 0.5*(mx-GboxX) + mx/2.; 
-  G4double ym = -10.*foot + 0.5*(my-GboxY); // y_e + 0.5*(my-GboxY) - my/2.; 
+  // G4double ym = -10.*foot + 0.5*(my-GboxY); // y_e + 0.5*(my-GboxY) - my/2.; 
+  G4double ym = -10.*foot + 52.*inch + GboxY/2.;  
   G4double zm = z_e - 0.5*(mz-GboxZ) + mz/2.;  
 
   G4ThreeVector Pm = G4ThreeVector(xm,ym,zm);
+
+  // std::cout << "**** motherAir ****" << std::endl;
+  // std::cout << " x = " << xm/inch << " inch" << std::endl;
+  // std::cout << " y = " << ym/inch << " inch" << std::endl;
+  // std::cout << " z = " << zm/inch << " inch" << std::endl;
+  // std::cout << "LEADING EDGE OF BUNKER" << std::endl;
+  // std::cout << " x_e = " << x_e/inch << " inch" << std::endl;
+  // std::cout << " y_e = " << y_e/inch << " inch" << std::endl;
+  // std::cout << " z_e = " << z_e/inch << " inch" << std::endl;
 
   new G4PVPlacement(0,
                     Pm, 

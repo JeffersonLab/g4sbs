@@ -1949,6 +1949,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
   map<int,map<int,double> > p, px, py, pz, px_v, py_v, pz_v, edep; //initial momentum and total energy deposition of unique tracks in each cell:
   map<int,map<int,double> > ztravel; 
   map<int,map<int,int> >  nstrips; 
+  map<int,map<int,double> > steplen; 
 
   //Loop over all hits; in this loop, we want to sort tracking steps within individual cells chronologically:
   for( G4int hit=0; hit<hits->entries(); hit++ ){
@@ -2082,6 +2083,9 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
       G4double xgstep = (*hits)[jhit]->GetLPos().x();
       G4double ygstep = (*hits)[jhit]->GetLPos().y();
       G4double zgstep = (*hits)[jhit]->GetLPos().z();
+      // step length
+      // G4double steplen = (*hits)[jhit]->Getdx();
+
       
       G4int pid = (*hits)[jhit]->GetTrackPID();
       G4int hitindex = nhits_cell[cell] > 0 ? nhits_cell[cell]-1 : 0;
@@ -2186,6 +2190,8 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	// mtpcoutput.trms.push_back( sqrt( t2[cell]/double(nsteps_cell[cell]) - pow(t[cell],2) )/_T_UNIT );
 	mtpcoutput.tmin.push_back( tmin[cell][ihit]/_T_UNIT );
 	mtpcoutput.tmax.push_back( tmax[cell][ihit]/_T_UNIT );
+	//add step length
+	mtpcoutput.hitL.push_back( L[cell][ihit]/_L_UNIT );
 
 	goodhit_index[ihit] = mtpcoutput.nhits_mTPC;
 	

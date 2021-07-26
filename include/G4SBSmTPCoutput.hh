@@ -30,6 +30,8 @@ public:
   vector<double> sumedep, tavg, trms, tmin, tmax; //Sum of energy deposition, average, rms, min and max global times of energy depositions in this cell
   // vector<double> Ehit;
   // vector<double> pxhit, pyhit, pzhit;
+  // here we want to add step length of hit
+  vector<double> hitL;
 
   //"Part" keeps track of all unique particles depositing energy in a "calorimeter" sensitive volume:
   int npart_mTPC; //Number of particles depositing energy in a given cell

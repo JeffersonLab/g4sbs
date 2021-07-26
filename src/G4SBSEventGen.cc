@@ -2337,11 +2337,18 @@ bool G4SBSEventGen::GenerateGun(){
   // // 	 << fThMin/deg << ", " << fThMax/deg << ", " 
   // // 	 << fPhMin/deg << ", " << fPhMax/deg << ")" << G4endl;
 
-  G4double ep = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
-  G4double etheta = acos( CLHEP::RandFlat::shoot( cos(fThMax), cos(fThMin) ) );
-  G4double ephi   = CLHEP::RandFlat::shoot( fPhMin, fPhMax );
+  // origi
+  // G4double ep = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
+  // G4double etheta = acos( CLHEP::RandFlat::shoot( cos(fThMax), cos(fThMin) ) );
+  // G4double ephi   = CLHEP::RandFlat::shoot( fPhMin, fPhMax );
+
+  // tdis temp - ram
+  G4double ep = CLHEP::RandFlat::shoot( 0.06*GeV, 0.4*GeV);
+  G4double etheta = acos( CLHEP::RandFlat::shoot( cos(30.*deg), cos(70.*deg) ) );
+  G4double ephi   = CLHEP::RandFlat::shoot( 0.*deg, 360.*deg );
 
   //Generate a random momentum and vertex and store the results in fElectronP and fVert:
+  // orig
   fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
   
   // G4cout << "Gun generator: Actual p, theta, phi = " << ep/GeV << ", " << etheta/deg << ", " << ephi/deg << G4endl;
@@ -2350,6 +2357,9 @@ bool G4SBSEventGen::GenerateGun(){
   // fVert.set( CLHEP::RandFlat::shoot( -fRasterX/2.0, fRasterX/2.0 ),
   // 	     CLHEP::RandFlat::shoot( -fRasterY/2.0, fRasterY/2.0 ),
   // 	     CLHEP::RandFlat::shoot( -fTargLen/2.0, fTargLen/2.0 ) );
+
+  // tdis
+  fVert.set( 0.0, 0.0, CLHEP::RandFlat::shoot( -400.0/2.0*mm, 400.0/2.0*mm ));
 
   return true;
 }

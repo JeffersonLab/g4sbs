@@ -42,6 +42,7 @@ void G4SBSmTPCoutput::Clear(){
   // pxhit = 0.0;
   // pyhit = 0.0;
   // pzhit = 0.0;
+  hitL.clear();
  
   npart_mTPC = 0;
   px.clear();

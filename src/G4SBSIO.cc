@@ -61,6 +61,7 @@ G4SBSIO::G4SBSIO(){
   genTgtCUdata.clear(); 
   genTgtALdata.clear(); 
   genTgt3HEdata.clear(); 
+  mTPCdata.clear(); 
 
   //Set SD track data recording to OFF by default:
   fKeepAllSDtracks = false;
@@ -215,7 +216,6 @@ void G4SBSIO::InitializeTree(){
     case G4SBS::kmTPC:
       mTPCdata[SDname] = G4SBSmTPCoutput();
       //trackdata[SDname] = G4SBSTrackerOutput();
-      
       BranchmTPC(SDname);
       break;
     case G4SBS::kBD: 
@@ -905,6 +905,7 @@ void G4SBSIO::BranchmTPC( G4String SDname="mTPC" ){
   fTree->Branch( branch_name.Format( "%s.hit.trms", branch_prefix.Data() ), &(mTPCdata[SDname].trms) );
   fTree->Branch( branch_name.Format( "%s.hit.tmin", branch_prefix.Data() ), &(mTPCdata[SDname].tmin) );
   fTree->Branch( branch_name.Format( "%s.hit.tmax", branch_prefix.Data() ), &(mTPCdata[SDname].tmax) );
+  fTree->Branch( branch_name.Format( "%s.hit.hitL", branch_prefix.Data() ), &(mTPCdata[SDname].hitL) );
   // fTree->Branch( branch_name.Format( "%s.hit.Ehit", branch_prefix.Data() ), &(mTPCdata[SDname].Ehit) );
   fTree->Branch( branch_name.Format( "%s.hit.px", branch_prefix.Data() ), &(mTPCdata[SDname].px) );
   fTree->Branch( branch_name.Format( "%s.hit.py", branch_prefix.Data() ), &(mTPCdata[SDname].py) );
@@ -917,8 +918,7 @@ void G4SBSIO::BranchmTPC( G4String SDname="mTPC" ){
   fTree->Branch( branch_name.Format( "%s.hit.trid", branch_prefix.Data() ),  &(mTPCdata[SDname].trid) );
   fTree->Branch( branch_name.Format( "%s.hit.mid", branch_prefix.Data() ), &(mTPCdata[SDname].mid) );
   fTree->Branch( branch_name.Format( "%s.hit.pid", branch_prefix.Data() ), &(mTPCdata[SDname].pid) );
-  fTree->Branch( branch_name.Format( "%s.hit.Lpath", branch_prefix.Data() ), &(mTPCdata[SDname].Lpath) );
-
+  
   // map<G4String,G4bool>::iterator it = KeepPartmTPCflags.find( SDname );
   // if( it != KeepPartmTPCflags.end() && it->second ){
 

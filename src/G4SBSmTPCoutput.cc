@@ -41,11 +41,11 @@ void G4SBSmTPCoutput::Clear(){
   pid.clear();
   trid.clear();
   tmax.clear();
-  Lpath.clear();
   // Ehit = 0.0;
   // pxhit = 0.0;
   // pyhit = 0.0;
   // pzhit = 0.0;
+  hitL.clear();
  
   npart_mTPC = 0;
   px.clear();

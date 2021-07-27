@@ -31,8 +31,9 @@ public:
   // vector<double> Ehit;
   // vector<double> pxhit, pyhit, pzhit;
   vector<int> trid, mid, pid; //track ID, mother track ID and particle ID info
-  vector<double> Lpath; //z travel in hit for drift time calc
-
+  // here we want to add step length of hit
+  vector<double> hitL;
+  
   //"Part" keeps track of all unique particles depositing energy in a "calorimeter" sensitive volume:
   int npart_mTPC; //Number of particles depositing energy in a given cell
   vector<int> ihit; //hit index associated with this particle 

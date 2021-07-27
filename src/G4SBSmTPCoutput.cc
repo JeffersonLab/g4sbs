@@ -37,7 +37,11 @@ void G4SBSmTPCoutput::Clear(){
   tavg.clear();
   trms.clear();
   tmin.clear();
+  mid.clear();
+  pid.clear();
+  trid.clear();
   tmax.clear();
+  Lpath.clear();
   // Ehit = 0.0;
   // pxhit = 0.0;
   // pyhit = 0.0;
@@ -61,9 +65,9 @@ void G4SBSmTPCoutput::Clear(){
   vx.clear();
   vy.clear();
   vz.clear();
-  trid.clear();
-  mid.clear();
-  pid.clear();
+  trid_.clear();
+  mid_.clear();
+  pid_.clear();
   p.clear();
   edep.clear();
   ztravel.clear();

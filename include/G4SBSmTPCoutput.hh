@@ -30,13 +30,15 @@ public:
   vector<double> sumedep, tavg, trms, tmin, tmax; //Sum of energy deposition, average, rms, min and max global times of energy depositions in this cell
   // vector<double> Ehit;
   // vector<double> pxhit, pyhit, pzhit;
+  vector<int> trid, mid, pid; //track ID, mother track ID and particle ID info
+  vector<double> Lpath; //z travel in hit for drift time calc
 
   //"Part" keeps track of all unique particles depositing energy in a "calorimeter" sensitive volume:
   int npart_mTPC; //Number of particles depositing energy in a given cell
   vector<int> ihit; //hit index associated with this particle 
   vector<double> x, y, z, t, E, dt, L; //average global xyz coordinates of steps of this particle in this cell, average time, total time, path length, and initial energy of particles
   vector<double> vx, vy, vz; //global vertex coordinates of particles in this hit
-  vector<int> trid, mid, pid; //track ID, mother track ID and particle ID info
+  vector<int> trid_, mid_, pid_; //track ID, mother track ID and particle ID info
   vector<double> p, edep; //initial momentum and total energy deposition of particles.
   vector<double> px,py,pz; //momentum components at this hit
   vector<double> px_v,py_v,pz_v; //momentum components at vertex

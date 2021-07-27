@@ -1946,8 +1946,10 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
   map<int,map<int,double> > x,y,z,trt,E,trtmin,trtmax,L; //average coordinates, energy, path length for each unique track ID depositing energy in a cell:
   map<int,map<int,double> > vx,vy,vz; //production vertex coordinates of each unique track ID depositing energy in a cell
   map<int,map<int,int> > MID, PID, TRID; //mother ID and particle ID of unique tracks in each cell:
+  map<int,vector<int> > mid, pid, trid; //mother ID and particle ID of unique tracks in each cell:
   map<int,map<int,double> > p, px, py, pz, px_v, py_v, pz_v, edep; //initial momentum and total energy deposition of unique tracks in each cell:
   map<int,map<int,double> > ztravel; 
+  map<int,vector<double> > Lpath; 
   map<int,map<int,int> >  nstrips; 
 
   //Loop over all hits; in this loop, we want to sort tracking steps within individual cells chronologically:
@@ -2031,6 +2033,16 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	// y[cell][track] = w * y[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().y();
 	// z[cell][track] = w * z[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().z();
 	// trt[cell][track] = w * trt[cell][track] + (1.0-w)*(*hits)[hit]->GetTime();
+	// TRID[cell][track] = (*hits)[hit]->GetTrackID();
+	// MID[cell][track] = (*hits)[hit]->GetMotherID();
+	// PID[cell][track] = pid;
+	p[cell][track] = (*hits)[hit]->GetMom().mag();
+	px[cell][track] = (*hits)[hit]->GetLMom().x();
+	py[cell][track] = (*hits)[hit]->GetLMom().y();
+	pz[cell][track] = (*hits)[hit]->GetLMom().z();
+	px_v[cell][track] = (*hits)[hit]->GetMom().x();
+	py_v[cell][track] = (*hits)[hit]->GetMom().y();
+	pz_v[cell][track] = (*hits)[hit]->GetMom().z();
 	x[cell][track] += Edep * (*hits)[hit]->GetPos().x();
 	y[cell][track] += Edep * (*hits)[hit]->GetPos().y();
 	z[cell][track] += Edep * (*hits)[hit]->GetPos().z();
@@ -2083,7 +2095,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
       G4double ygstep = (*hits)[jhit]->GetLPos().y();
       G4double zgstep = (*hits)[jhit]->GetLPos().z();
       
-      G4int pid = (*hits)[jhit]->GetTrackPID();
+      //G4int pidstep = (*hits)[jhit]->GetTrackPID();
       G4int hitindex = nhits_cell[cell] > 0 ? nhits_cell[cell]-1 : 0;
 
       G4int tidstep = (*hits)[jhit]->GetTrackID();
@@ -2102,6 +2114,12 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
       xsum[cell].push_back( xstep*estep );
       ysum[cell].push_back( ystep*estep );
       zsum[cell].push_back( zstep*estep );
+      
+      mid[cell].push_back((*hits)[jhit]->GetMotherID());
+      trid[cell].push_back((*hits)[jhit]->GetTrackID());
+      pid[cell].push_back((*hits)[jhit]->GetTrackPID());
+      //if((*hits)[jhit]->GetMotherID()==0 && (*hits)[jhit]->GetTrackPID()!=2212)G4cout << (*hits)[jhit]->GetMotherID() << " " << (*hits)[jhit]->GetTrackID() << " " << (*hits)[jhit]->GetTrackPID() << G4endl;
+      Lpath[cell].push_back((*hits)[jhit]->Getdx());
       
       esum[cell].push_back( estep );
       t[cell].push_back( tstep*estep );
@@ -2145,53 +2163,57 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
     // G4double esum_total = 0.0;
     
     for( int ihit=0; ihit<nhits_cell[cell]; ihit++ ){
-      if( esum[cell][ihit] >= mtpcoutput.threshold ){
-	//HitList[cell].insert( mtpcoutput.nhits_mTPC );
-	mtpcoutput.cell.push_back(cell);
-	// mtpcoutput.row.push_back(Rows[cell]);
-	// mtpcoutput.col.push_back(Cols[cell]);
-	// mtpcoutput.plane.push_back(Planes[cell]);
-	// mtpcoutput.wire.push_back(Wires[cell]);
-	mtpcoutput.mid.push_back( MID[cell][ihit] );
-	mtpcoutput.pid.push_back( PID[cell][ihit] );
-	mtpcoutput.trid.push_back( TRID[cell][ihit] );
-	
-	mtpcoutput.xcell.push_back( XCell[cell]/_L_UNIT );
-	mtpcoutput.ycell.push_back( YCell[cell]/_L_UNIT );
-	mtpcoutput.zcell.push_back( ZCell[cell]/_L_UNIT );
-	mtpcoutput.xcellg.push_back( XCellG[cell]/_L_UNIT );
-	mtpcoutput.ycellg.push_back( YCellG[cell]/_L_UNIT );
-	mtpcoutput.zcellg.push_back( ZCellG[cell]/_L_UNIT );
-	mtpcoutput.sumedep.push_back( esum[cell][ihit]/_E_UNIT );
-
-	mtpcoutput.tavg.push_back( t[cell][ihit]/esum[cell][ihit]/_T_UNIT );
-	mtpcoutput.trms.push_back( sqrt( t2[cell][ihit]/esum[cell][ihit] - pow(t[cell][ihit]/esum[cell][ihit],2) )/_T_UNIT );
-	mtpcoutput.xhit.push_back( xsum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-	mtpcoutput.yhit.push_back( ysum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-	mtpcoutput.zhit.push_back( zsum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-
-	mtpcoutput.xhitg.push_back( xsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-	mtpcoutput.yhitg.push_back( ysumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-	mtpcoutput.zhitg.push_back( zsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-	
-	mtpcoutput.px.push_back( px[cell][ihit]/_E_UNIT );
-	mtpcoutput.py.push_back( py[cell][ihit]/_E_UNIT );
-	mtpcoutput.pz.push_back( pz[cell][ihit]/_E_UNIT );
-	
-	mtpcoutput.px_v.push_back( px_v[cell][ihit]/_E_UNIT );
-	mtpcoutput.py_v.push_back( py_v[cell][ihit]/_E_UNIT );
-	mtpcoutput.pz_v.push_back( pz_v[cell][ihit]/_E_UNIT );
-	
-	// mtpcoutput.tavg.push_back( t[cell]/_T_UNIT );
-	// mtpcoutput.trms.push_back( sqrt( t2[cell]/double(nsteps_cell[cell]) - pow(t[cell],2) )/_T_UNIT );
-	mtpcoutput.tmin.push_back( tmin[cell][ihit]/_T_UNIT );
-	mtpcoutput.tmax.push_back( tmax[cell][ihit]/_T_UNIT );
-
-	goodhit_index[ihit] = mtpcoutput.nhits_mTPC;
-	
-	mtpcoutput.nhits_mTPC++;
-      }
-
+      //if( esum[cell][ihit] >= mtpcoutput.threshold ){
+      //HitList[cell].insert( mtpcoutput.nhits_mTPC );
+      mtpcoutput.cell.push_back(cell);
+      // mtpcoutput.row.push_back(Rows[cell]);
+      // mtpcoutput.col.push_back(Cols[cell]);
+      // mtpcoutput.plane.push_back(Planes[cell]);
+      // mtpcoutput.wire.push_back(Wires[cell]);
+      // mtpcoutput.mid.push_back( MID[cell][ihit] );
+      // mtpcoutput.pid.push_back( PID[cell][ihit] );
+      // mtpcoutput.trid.push_back( TRID[cell][ihit] );
+      
+      mtpcoutput.xcell.push_back( XCell[cell]/_L_UNIT );
+      mtpcoutput.ycell.push_back( YCell[cell]/_L_UNIT );
+      mtpcoutput.zcell.push_back( ZCell[cell]/_L_UNIT );
+      mtpcoutput.xcellg.push_back( XCellG[cell]/_L_UNIT );
+      mtpcoutput.ycellg.push_back( YCellG[cell]/_L_UNIT );
+      mtpcoutput.zcellg.push_back( ZCellG[cell]/_L_UNIT );
+      mtpcoutput.sumedep.push_back( esum[cell][ihit]/_E_UNIT );
+      
+      mtpcoutput.tavg.push_back( t[cell][ihit]/esum[cell][ihit]/_T_UNIT );
+      mtpcoutput.trms.push_back( sqrt( t2[cell][ihit]/esum[cell][ihit] - pow(t[cell][ihit]/esum[cell][ihit],2) )/_T_UNIT );
+      mtpcoutput.xhit.push_back( xsum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      mtpcoutput.yhit.push_back( ysum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      mtpcoutput.zhit.push_back( zsum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      
+      mtpcoutput.xhitg.push_back( xsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      mtpcoutput.yhitg.push_back( ysumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      mtpcoutput.zhitg.push_back( zsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      
+      mtpcoutput.px.push_back( px[cell][ihit]/_E_UNIT );
+      mtpcoutput.py.push_back( py[cell][ihit]/_E_UNIT );
+      mtpcoutput.pz.push_back( pz[cell][ihit]/_E_UNIT );
+      
+      mtpcoutput.px_v.push_back( px_v[cell][ihit]/_E_UNIT );
+      mtpcoutput.py_v.push_back( py_v[cell][ihit]/_E_UNIT );
+      mtpcoutput.pz_v.push_back( pz_v[cell][ihit]/_E_UNIT );
+      
+      mtpcoutput.mid.push_back( mid[cell][ihit] );
+      mtpcoutput.pid.push_back( pid[cell][ihit] );
+      mtpcoutput.trid.push_back( trid[cell][ihit] );
+      // mtpcoutput.tavg.push_back( t[cell]/_T_UNIT );
+      // mtpcoutput.trms.push_back( sqrt( t2[cell]/double(nsteps_cell[cell]) - pow(t[cell],2) )/_T_UNIT );
+      mtpcoutput.tmin.push_back( tmin[cell][ihit]/_T_UNIT );
+      mtpcoutput.tmax.push_back( tmax[cell][ihit]/_T_UNIT );
+      mtpcoutput.Lpath.push_back( Lpath[cell][ihit]/_L_UNIT );
+      
+      goodhit_index[ihit] = mtpcoutput.nhits_mTPC;
+      
+      mtpcoutput.nhits_mTPC++;
+      //}
+      
       // esum_total += esum[cell][ihit];
     }
 
@@ -2219,9 +2241,9 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	mtpcoutput.vx.push_back( vx[cell][track]/_L_UNIT );
 	mtpcoutput.vy.push_back( vy[cell][track]/_L_UNIT );
 	mtpcoutput.vz.push_back( vz[cell][track]/_L_UNIT );
-	mtpcoutput.mid.push_back( MID[cell][track] );
-	mtpcoutput.pid.push_back( PID[cell][track] );
-	mtpcoutput.trid.push_back( track );
+	mtpcoutput.mid_.push_back( MID[cell][track] );
+	mtpcoutput.pid_.push_back( PID[cell][track] );
+	mtpcoutput.trid_.push_back( track );
 	mtpcoutput.p.push_back( p[cell][track]/_E_UNIT );
 	mtpcoutput.px.push_back( px[cell][track]/_E_UNIT );
 	mtpcoutput.py.push_back( py[cell][track]/_E_UNIT );

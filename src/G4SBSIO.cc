@@ -900,7 +900,7 @@ void G4SBSIO::BranchmTPC( G4String SDname="mTPC" ){
   fTree->Branch( branch_name.Format( "%s.hit.xhitg", branch_prefix.Data() ), &(mTPCdata[SDname].xhitg) );
   fTree->Branch( branch_name.Format( "%s.hit.yhitg", branch_prefix.Data() ), &(mTPCdata[SDname].yhitg) );
   fTree->Branch( branch_name.Format( "%s.hit.zhitg", branch_prefix.Data() ), &(mTPCdata[SDname].zhitg) );
-  fTree->Branch( branch_name.Format( "%s.hit.sumedep", branch_prefix.Data() ), &(mTPCdata[SDname].sumedep) );
+  fTree->Branch( branch_name.Format( "%s.hit.edep", branch_prefix.Data() ), &(mTPCdata[SDname].sumedep) );
   fTree->Branch( branch_name.Format( "%s.hit.tavg", branch_prefix.Data() ), &(mTPCdata[SDname].tavg) );
   fTree->Branch( branch_name.Format( "%s.hit.trms", branch_prefix.Data() ), &(mTPCdata[SDname].trms) );
   fTree->Branch( branch_name.Format( "%s.hit.tmin", branch_prefix.Data() ), &(mTPCdata[SDname].tmin) );
@@ -917,6 +917,7 @@ void G4SBSIO::BranchmTPC( G4String SDname="mTPC" ){
   fTree->Branch( branch_name.Format( "%s.hit.trid", branch_prefix.Data() ),  &(mTPCdata[SDname].trid) );
   fTree->Branch( branch_name.Format( "%s.hit.mid", branch_prefix.Data() ), &(mTPCdata[SDname].mid) );
   fTree->Branch( branch_name.Format( "%s.hit.pid", branch_prefix.Data() ), &(mTPCdata[SDname].pid) );
+  fTree->Branch( branch_name.Format( "%s.hit.Lpath", branch_prefix.Data() ), &(mTPCdata[SDname].Lpath) );
 
   // map<G4String,G4bool>::iterator it = KeepPartmTPCflags.find( SDname );
   // if( it != KeepPartmTPCflags.end() && it->second ){
@@ -937,9 +938,9 @@ void G4SBSIO::BranchmTPC( G4String SDname="mTPC" ){
     fTree->Branch( branch_name.Format( "%s.vx", branch_prefix.Data() ), &(mTPCdata[SDname].vx) );
     fTree->Branch( branch_name.Format( "%s.vy", branch_prefix.Data() ), &(mTPCdata[SDname].vy) );
     fTree->Branch( branch_name.Format( "%s.vz", branch_prefix.Data() ), &(mTPCdata[SDname].vz) );
-    fTree->Branch( branch_name.Format( "%s.trid", branch_prefix.Data() ),  &(mTPCdata[SDname].trid) );
-    fTree->Branch( branch_name.Format( "%s.mid", branch_prefix.Data() ), &(mTPCdata[SDname].mid) );
-    fTree->Branch( branch_name.Format( "%s.pid", branch_prefix.Data() ), &(mTPCdata[SDname].pid) );
+    fTree->Branch( branch_name.Format( "%s.trid", branch_prefix.Data() ),  &(mTPCdata[SDname].trid_) );
+    fTree->Branch( branch_name.Format( "%s.mid", branch_prefix.Data() ), &(mTPCdata[SDname].mid_) );
+    fTree->Branch( branch_name.Format( "%s.pid", branch_prefix.Data() ), &(mTPCdata[SDname].pid_) );
     fTree->Branch( branch_name.Format( "%s.p", branch_prefix.Data() ), &(mTPCdata[SDname].p) );
     fTree->Branch( branch_name.Format( "%s.px", branch_prefix.Data() ), &(mTPCdata[SDname].px) );
     fTree->Branch( branch_name.Format( "%s.py", branch_prefix.Data() ), &(mTPCdata[SDname].py) );

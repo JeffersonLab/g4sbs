@@ -73,7 +73,7 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   // HV
   fmTPC_HV_thick = 0.05*mm; // 50um say gold?
   //
-  fmTPCkrypto = false;//by default
+  fmTPCkrypto = true;//false;//by default
   fChkOvLaps = false;//true;//
 }
 

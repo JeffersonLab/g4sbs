@@ -130,7 +130,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       particleGun->GeneratePrimaryVertex(anEvent);
       
       
-      // Primaries.ConvertToTreeUnits();
+      Primaries.ConvertToTreeUnits();
       fIO->SetAcquMCOutput( Primaries );
       
       return;

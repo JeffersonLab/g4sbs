@@ -2740,15 +2740,15 @@ bool G4SBSEventGen::GenerateAcquMC(){
   fAcquMCEvent.Clear();
   //fAcquMCEvent.Nprimaries = fAcquMCTree->Nparticles;
 
-  fAcquMCEvent.Vx =  fAcquMCTree->X_vtx*cm;
-  fAcquMCEvent.Vy =  fAcquMCTree->Y_vtx*cm;
-  fAcquMCEvent.Vz =  fAcquMCTree->Z_vtx*cm;
+  fAcquMCEvent.Vx =  fAcquMCTree->X_vtx*m;//*cm;
+  fAcquMCEvent.Vy =  fAcquMCTree->Y_vtx*m;//*cm;
+  fAcquMCEvent.Vz =  fAcquMCTree->Z_vtx*m;//*cm;
   // fAcquMCEvent.Px =  fAcquMCTree->Px_bm *GeV;
   // fAcquMCEvent.Py =  fAcquMCTree->Py_bm *GeV;
   // fAcquMCEvent.Pz =  fAcquMCTree->Pz_bm *GeV;
-  fAcquMCEvent.Px =  fAcquMCTree->Px_l0114;//*GeV;
-  fAcquMCEvent.Py =  fAcquMCTree->Py_l0114;//*GeV;
-  fAcquMCEvent.Pz =  fAcquMCTree->Pz_l0114;//*GeV;
+  fAcquMCEvent.Px =  fAcquMCTree->Px_l0114*GeV;//*GeV;
+  fAcquMCEvent.Py =  fAcquMCTree->Py_l0114*GeV;//*GeV;
+  fAcquMCEvent.Pz =  fAcquMCTree->Pz_l0114*GeV;//*GeV;
   fAcquMCEvent.Pt =  fAcquMCTree->Pt_l0114*GeV;
   fAcquMCEvent.E =  fAcquMCTree->En_l0114*GeV;
 

@@ -512,6 +512,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   CH->AddElement(elC, 1);
   CH->AddElement(elH, 1);
 
+  //adding a random comment here to test git push issues
+  
   fMaterialsMap["CH"] = CH;
 
   //Target materials: these are hard-coded in two different places, leading to inconsistent calculations for luminosity, etc;

@@ -3538,8 +3538,8 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
 
   G4LogicalVolume *bunker_log = new G4LogicalVolume(bunker,GetMaterial("Steel"),"gemBunker_log"); 
 
-  // y offset to put bunker flush with bottom of mother volume 
-  G4double YOFF = -GboxY; 
+  // y offset to put bunker flush/close with bottom of mother volume 
+  G4double YOFF = -GboxY + 20*cm; 
 
   // place everything in a mother volume 
   G4double mx = 1.4*GboxZ; // note we're making this a cube  
@@ -3691,7 +3691,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding_update( G4LogicalVolume *motherLog ){
    // G4double ElecY = 50*inch; 
    // G4double ElecZ = 38.*inch; // 1.38*inch; 
    // D Flay 7/23/21: updated estimate based on: 
-   // - (N MPDs)*(MPD vol)*(silcon scale factor) ~ 60463.5 mm^3 = 60.46 cm^3
+   // - (N MPDs)*(MPD vol)*(silcon scale factor) ~ 1390778.4 mm^3 = 1391.1 cm^3
    // - N MPDs = 23 (from Thir) 
    // - scale factor = 0.75
    G4double ElecX = 2.0*mm; 

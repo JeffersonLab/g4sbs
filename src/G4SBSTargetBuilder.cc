@@ -496,6 +496,29 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
 
   logicScatChamberRightSnoutWindow = 
     new G4LogicalVolume(solidRightSnoutWindow, GetMaterial("Aluminum"), "SCRightSnoutWindow_log");
+
+  // D Flay (7/30/21): Make the window a sensitive detector (dose studies) 
+
+  // name of SD and the hitCollection  
+  G4String blSDname = "beamLeftTgtWin";  // NOTE: Right => beam LEFT (this function assumes we're looking *upstream*)  
+  // We have to remove all the directory structure from the 
+  // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+  G4String blSDname_nopath = blSDname;
+  blSDname_nopath.remove(0,blSDname.last('/')+1);
+  G4String blColName = blSDname_nopath;
+  blColName += "HitsCollection";
+
+  // make the SD of type Calorimeter
+  G4SBSCalSD *blSD = nullptr;
+  if( !(blSD = (G4SBSCalSD *)fDetCon->fSDman->FindSensitiveDetector(blSDname)) ){
+     // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+     G4cout << "Adding beam-left target window sensitive detector to SDman..." << G4endl;
+     blSD = new G4SBSCalSD(blSDname,blColName);
+     logicScatChamberRightSnoutWindow->SetSensitiveDetector(blSD);
+     fDetCon->fSDman->AddNewDetector(blSD);
+     (fDetCon->SDlist).insert(blSDname);
+     fDetCon->SDtype[blSDname] = G4SBS::kCAL;
+  }
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateY(-SCRightSnoutAngle);
@@ -624,7 +647,7 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4double SCLeftSnoutWindowFrameDist = SCLeftSnoutWindowDist+SCSnoutWindowThick*0.5+SCSnoutWindowFrameThick*0.5;
   G4double SCLeftSnoutHoleWidth = 12.673*inch;
   G4double SCLeftSnoutHoleCurvRad = 1.05*inch;
-  
+ 
   // window
   G4Box* solidLeftSnoutWindow_0 = 
     new G4Box("LeftSnoutWindow_sol", SCLeftSnoutWidth*0.5, SCLeftSnoutHeight*0.5, SCSnoutWindowThick*0.5);
@@ -638,6 +661,29 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   
   logicScatChamberLeftSnoutWindow = 
     new G4LogicalVolume(solidLeftSnoutWindow, GetMaterial("Aluminum"), "SCLeftSnoutWindow_log");
+
+  // D Flay (7/30/21): Make the window a sensitive detector (dose studies) 
+
+  // name of SD and the hitCollection  
+  G4String brSDname = "beamRightTgtWin";  // NOTE: Left => beam RIGHT (this function assumes we're looking *upstream*)  
+  // We have to remove all the directory structure from the 
+  // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+  G4String brSDname_nopath = brSDname;
+  brSDname_nopath.remove(0,brSDname.last('/')+1);
+  G4String brColName = brSDname_nopath;
+  brColName += "HitsCollection";
+
+  // make the SD of type Calorimeter
+  G4SBSCalSD *brSD = nullptr;
+  if( !(brSD = (G4SBSCalSD *)fDetCon->fSDman->FindSensitiveDetector(brSDname)) ){
+     // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+     G4cout << "Adding beam-left target window sensitive detector to SDman..." << G4endl;
+     brSD = new G4SBSCalSD(brSDname,brColName);
+     logicScatChamberLeftSnoutWindow->SetSensitiveDetector(brSD);
+     fDetCon->fSDman->AddNewDetector(brSD);
+     (fDetCon->SDlist).insert(brSDname);
+     fDetCon->SDtype[brSDname] = G4SBS::kCAL;
+  }
   
   rot_temp = new G4RotationMatrix();
   rot_temp->rotateY(-SCLeftSnoutAngle);
@@ -945,12 +991,15 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   G4VisAttributes* colourGrey = new G4VisAttributes(G4Colour(0.7,0.7,0.7)); 
   colourGrey->SetForceWireframe(true);
   G4VisAttributes* colourCyan = new G4VisAttributes(G4Colour(0.,1.,1.)); 
+  G4VisAttributes* colourGreen = new G4VisAttributes(G4Colour::Green()); 
   
   logicScatChamberTank->SetVisAttributes(colourDarkGrey);
   logicScatChamberFrontClamshell->SetVisAttributes(colourGrey);
   logicScatChamberLeftSnoutWindow->SetVisAttributes(Invisible);
+  // logicScatChamberLeftSnoutWindow->SetVisAttributes(colourGreen);
   logicScatChamberLeftSnoutWindowFrame->SetVisAttributes(colourCyan);
   logicScatChamberRightSnoutWindow->SetVisAttributes(Invisible);
+  // logicScatChamberRightSnoutWindow->SetVisAttributes(colourGreen);
   logicScatChamberRightSnoutWindowFrame->SetVisAttributes(colourCyan);
   logicScatChamberBackClamshell->SetVisAttributes(colourGrey);
   logicScatChamberExitFlangePlate->SetVisAttributes(colourGrey);

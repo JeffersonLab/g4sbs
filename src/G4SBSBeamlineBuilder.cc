@@ -114,6 +114,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   Vacuum_visatt->SetVisibility(false);
   G4VisAttributes *SteelColor = new G4VisAttributes( G4Colour( 0.75, 0.75, 0.75 ) );
   G4VisAttributes *CopperColor = new G4VisAttributes( G4Colour( 0.7, 0.3, 0.3 ) );
+  G4VisAttributes *GreenColor = new G4VisAttributes( G4Colour::Green() );
   
   G4double inch = 2.54*cm;
   
@@ -702,6 +703,9 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     Z = 23.130*inch+Thick/2.0; //Initial placement from JT and adding length to central placment of cylinder
     new G4PVPlacement(0,G4ThreeVector(X,Y,Z),S1_C1_log,"S1_C1_phys",worldlog,false,0,ChkOverlaps);
     new G4PVPlacement(0,G4ThreeVector(X,Y,Z),S1_C1_vaclog,"S1_C1_vacPhys",worldlog,false,0,ChkOverlaps);
+
+    // D Flay (7/30/21): Add Aluminum window here to estimate dose
+    // BuildBeamExitWindow(worldlog,Z); // FIXME: write this function 
     
     //Build cylinder 2 (C2)
     Z += Thick/2.0; //Shift z placement by the length of the first cylinder element

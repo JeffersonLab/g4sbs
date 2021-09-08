@@ -4055,7 +4055,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   // G4double rin_ringshield = z1_ringshield*sin(6.0*deg);
   // G4double rout_ringshield = z2_ringshield*sin(12.0*deg);
   
-  G4double z_SCshield = z1_ringshield+th_SCshield/2.0;
+  G4double z_SCshield = z1_ringshield+th_SCshield/2.0+0.5*inch;
   G4double x_SCshield = mindist_SCshield+(w1_SCshield+w2_SCshield)/4.0;
   
   //G4Trap* SCshield = new G4Trap("SCshield", w1_SCshield/2.0, w2_SCshield/2.0, 
@@ -4076,10 +4076,11 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   // Shielding for Spool piece.
   // 
-  G4double z1_spoolshield = z1_ringshield+th_SCshield;
+  G4double z1_spoolshield = z1_ringshield+0.5*inch+th_SCshield;
   G4double z2_spoolshield = //z1_spoolshield+1.89*m;
-    z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch;
-  
+    //z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch;
+    z1_spoolshield+36.5*inch;
+  //cout << "old length " << (z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch-z1_ringshield-th_SCshield)/inch << endl;
   G4double z_spoolshield = (z2_spoolshield+z1_spoolshield)/2.0;
   G4double L_spoolshield = z2_spoolshield-z1_spoolshield;
   G4double th_spoolshield = 2.0*inch;
@@ -4114,6 +4115,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   //rot_temp->rotateY(-1.5*deg);
   
   if(fDetCon->fLeadOption){
+    G4cout << "Adding downstream lead plate" << G4endl;
     //if(lead)
     new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield1, 0, z_BLshield1 ), BLshield1_log, "BLshield1_phys", worldlog, false, 0, checkoverlaps );
     BLshield1_log->SetVisAttributes(LeadColor);

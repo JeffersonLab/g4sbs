@@ -166,7 +166,7 @@ public:
   
   map<G4String, G4double> SDgatewidth; //Time window for accumulating hit signal
   map<G4String, G4double> SDthreshold; //threshold (energy deposition or photoelectrons) for recording a hit
-  //map<G4String, G4int>    SDntimebins; //Time bins for "pulse shape" histogram
+  map<G4String, G4int> SDntimebins; //Time bins for "pulse shape" histogram
 
   void InsertSDboundaryVolume( G4String bvname, G4String sdname );
   
@@ -221,13 +221,22 @@ public:
 
   void SetOpticalPhotonDisabled(G4String material){ fMaterialsListOpticalPhotonDisabled.insert( material ); }
 
-  void SetTimeWindowAndThreshold( G4String SDname, G4double Ethresh=0.0*MeV, G4double Twindow=1000.0*ns ); //utility function to set time window and threshold by sensitive detector name
+  void SetThresholdTimeWindowAndNTimeBins( G4String SDname, G4double Ethresh=0.0*MeV, G4double Twindow=1000.0*ns, G4int NTBins=25 ); //utility function to set time window, # of time bins and threshold by sensitive detector name
 
   inline set<G4String> GetTargetVolumes() const { return fTargetVolumes; }
   inline set<G4String> GetAnalyzerVolumes() const { return fAnalyzerVolumes; }
 
   inline void InsertTargetVolume( G4String vname ){ fTargetVolumes.insert(vname); }
   inline void InsertAnalyzerVolume( G4String vname ){ fAnalyzerVolumes.insert(vname); }
+
+  //getters and setters for GEM Al shielding parameters:
+  void SetGEMuseAlshield( G4bool useshield ){ fGEMuseAlshield = useshield; }
+  void SetGEMAlShieldThick( G4double thick ){ fGEMAlShieldThick = thick; }
+  void SetGEMAirGapThick( G4double thick ){ fGEMAirGapThick = thick; }
+
+  inline G4bool GetGEMuseAlshield() const { return fGEMuseAlshield; }
+  inline G4double GetGEMAlShieldThick() const { return fGEMAlShieldThick; }
+  inline G4double GetGEMAirGapThick() const { return fGEMAirGapThick; }
   
 private:
 
@@ -286,6 +295,13 @@ private:
   G4double fBeamCollimatorX_upstr,fBeamCollimatorY_upstr,fBeamCollimatorZ_upstr; 
   G4double fBeamCollimatorL_upstr,fBeamCollimatorDmin_upstr,fBeamCollimatorDmax_upstr;  
 
+  //Optional aluminum shielding of GEMs:
+  G4bool fGEMuseAlshield;
+
+  G4double fGEMAlShieldThick;
+  G4double fGEMAirGapThick; //Air gap is in the FRONT only
+  
+  
 };
 
 

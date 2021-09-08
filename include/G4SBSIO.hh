@@ -46,7 +46,7 @@ typedef struct {
   Double_t nth, nph;
   Double_t pmperp, pmpar, pmparsm;
   Double_t z, phperp, phih, phiS, thetaS, MX;
-  Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator
+  Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator (for the SIDIS generator, we now use these variables to hold the "true" target spin direction)
   Double_t s, t, u, costhetaCM, Egamma_lab; //Extra kinematic variables we would like to store for pion photoproduction
   Int_t nucl, fnucl;
   Int_t hadr;
@@ -192,6 +192,12 @@ public:
   void SetKeepSDtracks( G4String sdname, G4bool b=true ){ fKeepSDtracks[sdname] = b; }
   void SetKeepAllSDtracks( G4bool b ){ fKeepAllSDtracks=b; }
 
+  //Let keep the Pulse Shape info depending on the need
+  void SetKeepPulseShape( G4String sdname, G4bool b=true ){ fKeepPulseShape[sdname] = b; }
+  void SetKeepAllPulseShape( G4bool b ){ fKeepAllPulseShape=b; }
+  G4bool GetKeepAllPulseShape() const { return fKeepAllPulseShape; }
+  map<G4String,G4bool> GetKeepPulseShape() const { return fKeepPulseShape; }
+
   void SetUsingCerenkov( G4bool b ){ fUsingCerenkov = b; }
   void SetUsingScintillation( G4bool b ){ fUsingScintillation = b; }
 
@@ -199,6 +205,27 @@ public:
   map<G4String,G4bool> GetKeepSDtracks() const { return fKeepSDtracks; }
 
   void SetWriteFieldMaps( G4bool b ){ fWritePortableFieldMaps = b; }
+
+  //Set Kinematics: this determines what generator-specific tree branches we create:
+  void SetKine( G4SBS::Kine_t kine ){ fKineType = kine; }
+
+  //Setters for beam and target polarization info;
+  void SetTargPol( G4double pol ){ fTargPol = pol; }
+  void SetTargThetaSpin( G4double theta ){ fTargThetaSpin = theta; }
+  void SetTargPhiSpin( G4double phi ){ fTargPhiSpin = phi; }
+
+  void SetBeamPol( G4double pol ){ fBeamPol = pol; }
+  void SetBeamThetaSpin( G4double theta ){ fBeamThetaSpin = theta; }
+  void SetBeamPhiSpin( G4double phi ){ fBeamPhiSpin = phi; }
+
+  void SetAUT_Collins( G4double Acoll ){ fAUT_Collins = Acoll; }
+  void SetAUT_Sivers( G4double Asiv ){ fAUT_Sivers = Asiv; }
+
+  void SetAUT_Collins_min( G4double Acoll ){ fAUT_Collins_min = Acoll; }
+  void SetAUT_Sivers_min( G4double Asiv ){ fAUT_Sivers_min = Asiv; }
+
+  void SetAUT_Collins_max( G4double Acoll ){ fAUT_Collins_max = Acoll; }
+  void SetAUT_Sivers_max( G4double Asiv ){ fAUT_Sivers_max = Asiv; }
   
 private:
   TFile *fFile;
@@ -208,9 +235,40 @@ private:
 
   G4bool fKeepAllSDtracks;
   map<G4String,G4bool> fKeepSDtracks;
+
+  G4bool fKeepAllPulseShape;
+  map<G4String,G4bool> fKeepPulseShape;
   
   ev_t evdata;
   gen_t gendata;
+
+  // AJRP May 27, 2021:
+  //collecting additional event-level tree variables that aren't already accommodated by the ev_t data structure here:
+  //We are going to stop modifying the ev_t data structure, because every time we change it, we make older versions of the ROOT tree de facto unreadable.
+  //Instead, any future global event-level variables we want to store in the tree, we will declare them here and give them their own tree branches:
+  //Variables to store beam and target polarization and direction:
+
+  //Since these event-level variables will depend on the generator kinematics, let's store a copy of the Kine_t
+  G4SBS::Kine_t fKineType;
+
+  //Variables specific to generators that might make use of beam and target polarization and spin direction info:
+  G4double fTargPol;
+  G4double fTargThetaSpin, fTargPhiSpin;
+  G4double fBeamPol;
+  G4double fBeamThetaSpin, fBeamPhiSpin;
+
+  //Variables specific to SIDIS generator:
+  G4double fAUT_Collins;
+  G4double fAUT_Sivers;
+
+  G4double fAUT_Collins_min;
+  G4double fAUT_Sivers_min;
+
+  G4double fAUT_Collins_max;
+  G4double fAUT_Sivers_max;
+  
+  //Add more event-level variables here....
+  
   //tr_t trdata;
   // cal_t caldata;
   // hit_t hitdata;

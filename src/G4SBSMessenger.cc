@@ -744,6 +744,7 @@ G4SBSMessenger::G4SBSMessenger(){
   LimitStepCALcmd->SetParameter( new G4UIparameter("flag",'b',true) );
   LimitStepCALcmd->GetParameter(1)->SetDefaultValue(true);
 
+  // **********
   SD_EnergyThresholdCmd = new G4UIcommand("/g4sbs/threshold",this );
 
   SD_EnergyThresholdCmd->SetGuidance("Set hit energy threshold by sensitive detector name (only valid for kCAL, kGEM)");
@@ -758,6 +759,22 @@ G4SBSMessenger::G4SBSMessenger(){
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("timewindow", 'd', false ) );
   SD_TimeWindowCmd->SetParameter( new G4UIparameter("unit", 's', false) );
+
+  SD_NTimeBinsCmd = new G4UIcommand("/g4sbs/ntimebins",this);
+  SD_NTimeBinsCmd->SetGuidance( "Set number of time bins by sensitive detector name (only valid for kCAL, kGEM, kECAL)" );
+  SD_NTimeBinsCmd->SetGuidance( "Usage: /g4sbs/ntimebins" );
+  SD_NTimeBinsCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
+  SD_NTimeBinsCmd->SetParameter( new G4UIparameter("ntimebins", 'i', false ) );
+
+  KeepPulseShapeCmd = new G4UIcommand("/g4sbs/keeppulseshapeinfo",this);
+  KeepPulseShapeCmd->SetGuidance("Toggle recording of Pulse Shape info in the tree by SD name");
+  KeepPulseShapeCmd->SetGuidance("Usage: /g4sbs/keeppulseshapeinfo SDname flag");
+  KeepPulseShapeCmd->SetGuidance("SDname = sensitive detector name");
+  KeepPulseShapeCmd->SetGuidance("flag = true/false or 0/1 (default = false/0)");
+  KeepPulseShapeCmd->SetParameter( new G4UIparameter("sdname", 's', false ) );
+  KeepPulseShapeCmd->SetParameter( new G4UIparameter("flag", 'b', false) );
+  KeepPulseShapeCmd->GetParameter(1)->SetDefaultValue(false);    
+  // **********
 
   KeepSDtrackcmd = new G4UIcommand("/g4sbs/keepsdtrackinfo",this);
   KeepSDtrackcmd->SetGuidance("Toggle recording of SD track info in the tree by SD name");
@@ -807,6 +824,42 @@ G4SBSMessenger::G4SBSMessenger(){
   TargPolMagnitudeCmd->SetGuidance("0 <= Ptarg <= 1");
   TargPolMagnitudeCmd->SetParameterName("Ptgt",true);
   TargPolMagnitudeCmd->SetDefaultValue(1.0);
+
+  BeamPolDirectionCmd = new G4UIcmdWith3Vector("/g4sbs/beampoldirection", this );
+  BeamPolDirectionCmd->SetGuidance("Set beam polarization direction");
+  BeamPolDirectionCmd->SetGuidance("Three-vector arguments are x,y,z components of polarization");
+  BeamPolDirectionCmd->SetGuidance("Automatically converted to unit vector internally");
+  BeamPolDirectionCmd->SetGuidance("Assumed to be given in global coordinate system");
+  BeamPolDirectionCmd->SetParameterName("Px","Py","Pz",false);
+  
+  BeamPolMagnitudeCmd = new G4UIcmdWithADouble("/g4sbs/beampolmag", this );
+  BeamPolMagnitudeCmd->SetGuidance("Set beam polarization magnitude");
+  BeamPolMagnitudeCmd->SetGuidance("Not yet used by anything, but anticipated for use in polarized cross section calculation");
+  BeamPolMagnitudeCmd->SetGuidance("0 <= Pbeam <= 1");
+  BeamPolMagnitudeCmd->SetParameterName("Pbeam",true);
+  BeamPolMagnitudeCmd->SetDefaultValue(1.0);
+
+  RandomizeTargetSpinCmd = new G4UIcmdWithABool("/g4sbs/randomizetargetspin",this);
+  RandomizeTargetSpinCmd->SetGuidance("Turn on randomization of target spin direction in event generator");
+  RandomizeTargetSpinCmd->SetParameterName("randomizespin", true );
+  RandomizeTargetSpinCmd->SetDefaultValue(true);
+
+  NumSpinStatesTargCmd = new G4UIcmdWithAnInteger("/g4sbs/numtargspinstates",this);
+  NumSpinStatesTargCmd->SetGuidance("Specify number of target spin directions to randomly generate");
+  //NumSpinStatesTargCmd->SetGuidance("");
+  NumSpinStatesTargCmd->SetParameterName("Ntargspin", false);
+
+  TargThetaSpinCmd = new G4UIcommand("/g4sbs/targthetaspin",this);
+  TargThetaSpinCmd->SetGuidance("Specify polar angle(s) of target spin for randomized target spin direction in event generator");
+  TargThetaSpinCmd->SetGuidance("Number of angles must match number of target spin states (see /g4sbs/numtargspinstates)");
+  TargThetaSpinCmd->SetGuidance("Entries separated by whitespace, units at the end of the string (degrees or radians)"); 
+  TargThetaSpinCmd->SetParameter( new G4UIparameter("thetaspinlist",'s',false) ); //parameter is of string type
+
+  TargPhiSpinCmd = new G4UIcommand("/g4sbs/targphispin",this);
+  TargPhiSpinCmd->SetGuidance("Specify azimuthal angle(s) of target spin for randomized target spin direction in event generator");
+  TargPhiSpinCmd->SetGuidance("Number of angles must match number of target spin states (see /g4sbs/numtargspinstates)");
+  TargPhiSpinCmd->SetGuidance("Entries separated by whitespace, units at the end of the string (degrees or radians)"); 
+  TargPhiSpinCmd->SetParameter( new G4UIparameter("phispinlist",'s',false) ); //parameter is of string type
   
   GunPolarizationCommand = new G4UIcmdWith3Vector( "/g4sbs/gunpol", this );
   GunPolarizationCommand->SetGuidance( "Set particle polarization for gun generator:" );
@@ -847,6 +900,21 @@ G4SBSMessenger::G4SBSMessenger(){
   WriteFieldMapCmd = new G4UIcmdWithABool( "/g4sbs/writefieldmaps", this );
   WriteFieldMapCmd->SetGuidance( "Toggle writing of \"portable\" field maps for BB+SBS" );
   WriteFieldMapCmd->SetParameterName("writemapsflag", false );
+
+  UseGEMshieldCmd = new G4UIcmdWithABool( "/g4sbs/usegemshielding", this );
+  UseGEMshieldCmd->SetGuidance( "Include thin aluminum GEM shielding (for noise reduction)" );
+  UseGEMshieldCmd->SetParameterName("GEMshieldflag", false );
+
+  GEMshieldThickCmd = new G4UIcmdWithADoubleAndUnit( "/g4sbs/gemshieldthick", this );
+  GEMshieldThickCmd->SetGuidance( "Thickness of GEM aluminum shielding (give value and unit, default = 50 um)");
+  GEMshieldThickCmd->SetParameterName( "gemshieldthick", true );
+  GEMshieldThickCmd->SetDefaultValue( 50.0*CLHEP::um );
+
+  GEMshieldAirGapThickCmd = new G4UIcmdWithADoubleAndUnit( "/g4sbs/gemshieldairgapthick", this );
+  GEMshieldAirGapThickCmd->SetGuidance( "Thickness of air gap between aluminum shielding (in front) and GEM (give value and unit, default = 0)" );
+  GEMshieldAirGapThickCmd->SetParameterName( "gemshieldairgapthick", true );
+  GEMshieldAirGapThickCmd->SetDefaultValue( 0.0*CLHEP::um );
+  
 }
 
 G4SBSMessenger::~G4SBSMessenger(){
@@ -1033,17 +1101,24 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == kineCmd ){
     bool validcmd = false;
+
+    G4SBS::Kine_t kinetemp = G4SBS::kElastic;
+    
     if( newValue.compareTo("elastic") == 0 ){
-      fevgen->SetKine(G4SBS::kElastic);
+      kinetemp = G4SBS::kElastic;
+      // fevgen->SetKine(G4SBS::kElastic);
+      // fIO->SetKine(G4SBS::kElastic);
       validcmd = true;
     }
     if( newValue.compareTo("inelastic") == 0 ){
-      fevgen->SetKine(G4SBS::kInelastic);
+      kinetemp = G4SBS::kInelastic;
+      // fevgen->SetKine(G4SBS::kInelastic);
       //fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("flat") == 0 ){
-      fevgen->SetKine(G4SBS::kFlat);
+      kinetemp = G4SBS::kFlat;
+      //fevgen->SetKine(G4SBS::kFlat);
       //fevgen->SetMaxWeight( cm2 );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
@@ -1054,52 +1129,62 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("beam") == 0 ){
-      fevgen->SetKine(G4SBS::kBeam);
+      kinetemp = G4SBS::kBeam;
+      //fevgen->SetKine(G4SBS::kBeam);
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("sidis") == 0 ){
-      fevgen->SetKine( G4SBS::kSIDIS );
+      kinetemp = G4SBS::kSIDIS;
+      //fevgen->SetKine( G4SBS::kSIDIS );
       //fevgen->SetMaxWeight( cm2/pow(GeV,2) );
       validcmd = true;
     }
     if( newValue.compareTo("wiser") == 0 ){
-      fevgen->SetKine( G4SBS::kWiser);
+      kinetemp = G4SBS::kWiser;
+      //      fevgen->SetKine( G4SBS::kWiser);
       //fevgen->SetMaxWeight( cm2/GeV );
       validcmd = true;
     }
     if( newValue.compareTo("gun") == 0 ){
-      fevgen->SetKine( G4SBS::kGun );
+      kinetemp = G4SBS::kGun;
+      //   fevgen->SetKine( G4SBS::kGun );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if( newValue.compareTo("cosmics") == 0 ){
-      fevgen->SetKine( G4SBS::kCosmics );
+      kinetemp = G4SBS::kCosmics;
+      //     fevgen->SetKine( G4SBS::kCosmics );
       validcmd = true;
     }
 
     if( newValue.compareTo("pythia6") == 0 ){
-      fevgen->SetKine( G4SBS::kPYTHIA6 );
+      kinetemp = G4SBS::kPYTHIA6;
+      //fevgen->SetKine( G4SBS::kPYTHIA6 );
       fIO->SetUsePythia6( true );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
     if (newValue.compareTo("gmnelasticcheck") == 0 ){
-      fevgen->SetKine(G4SBS::kGMnElasticCheck);
+      kinetemp = G4SBS::kGMnElasticCheck;
+      //fevgen->SetKine(G4SBS::kGMnElasticCheck);
       fevgen->SetRejectionSamplingFlag(false);
       //fevgen->SetMaxWeight( cm2 );
       validcmd = true;
     }
 
     if( newValue.compareTo("wapp") == 0 ){ //wide angle pion photoproduction
-      fevgen->SetKine(G4SBS::kPionPhoto);
+      kinetemp = G4SBS::kPionPhoto;
+      //fevgen->SetKine(G4SBS::kPionPhoto);
       validcmd = true;
     }
 
     if( !validcmd ){
       fprintf(stderr, "%s: %s line %d - Error: kinematic type %s not valid\n", __PRETTY_FUNCTION__, __FILE__, __LINE__, newValue.data());
       exit(1);
-    } else {
+    } else { //valid kinematics given: 
+      fevgen->SetKine(kinetemp);
+      fIO->SetKine(kinetemp); //This is necessary because G4SBSIO and G4SBSEventGen cannot directly talk to each other
       G4SBSRun::GetRun()->GetData()->SetGenName(newValue.data());
     }
 
@@ -2171,6 +2256,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
   }
 
+  // ******
   if( cmd == SD_EnergyThresholdCmd ){ //store the SDname and dimensioned threshold value in a map<G4String,G4double> assigned to fdetcon?
     std::istringstream is(newValue);
 
@@ -2186,7 +2272,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
   }
 
-  if( cmd == SD_TimeWindowCmd ){ //store the SDname and dimensioned threshold value in a map<G4String,G4double> assigned to fdetcon?
+  if( cmd == SD_TimeWindowCmd ){ 
     std::istringstream is(newValue);
 
     G4String SDname;
@@ -2199,6 +2285,42 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     G4cout << "Set time window for SD name = " << SDname << " to " << fdetcon->SDgatewidth[SDname]/ns << " ns" << G4endl;
   }
+
+  if( cmd == SD_NTimeBinsCmd ){ 
+    std::istringstream is(newValue);
+
+    G4String SDname;
+    G4int ntimebins;
+ 
+    is >> SDname >> ntimebins;
+    
+    fdetcon->SDntimebins[SDname] = ntimebins;
+
+    G4cout << "Set number of time bins for SD name = " << SDname << " to " << fdetcon->SDntimebins[SDname] << G4endl;
+  }
+
+  if( cmd == KeepPulseShapeCmd ){ //
+
+    std::istringstream is(newValue);
+
+    G4String SDname;
+    G4bool flag;
+
+    is >> SDname;
+    
+    //Let's do (somewhat) intelligent parsing of the string here:
+    if( newValue.contains("true") || newValue.contains("false") ){ //parse with the "boolalpha" flag:
+      is >> std::boolalpha >> flag;
+    } else { //assume that the boolean parameter is given as 1 or 0:
+      is >> flag;
+    }
+    
+    //is >> SDname >> flag; 
+    fIO->SetKeepPulseShape( SDname, flag );
+    if( SDname == "all" ) fIO->SetKeepAllPulseShape(flag);
+   
+  }
+  // ******
 
   if( cmd == KeepSDtrackcmd ){ //
     //newValue.toLower();
@@ -2247,11 +2369,93 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == TargPolDirectionCmd ){
     G4ThreeVector v = TargPolDirectionCmd->GetNew3VectorValue(newValue);
     fdetcon->fTargetBuilder->SetTargPolDir( v.unit() );
+    fevgen->SetTargPolDir( v.unit() );
   }
 
   if( cmd == TargPolMagnitudeCmd ){
     G4double pol = TargPolMagnitudeCmd->GetNewDoubleValue( newValue );
     fdetcon->fTargetBuilder->SetTargPolMag( pol );
+    fevgen->SetTargPolMag( pol );
+  }
+
+  if( cmd == BeamPolDirectionCmd ){
+    G4ThreeVector v = BeamPolDirectionCmd->GetNew3VectorValue(newValue);
+    //fdetcon->fTargetBuilder->SetTargPolDir( v.unit() );
+    fevgen->SetBeamPolDir( v.unit() );
+  }
+
+  if( cmd == BeamPolMagnitudeCmd ){
+    G4double pol = BeamPolMagnitudeCmd->GetNewDoubleValue( newValue );
+    //fdetcon->fTargetBuilder->SetTargPolMag( pol );
+    fevgen->SetBeamPolMag( pol );
+  }
+
+  if( cmd == RandomizeTargetSpinCmd ){
+    G4bool flag = RandomizeTargetSpinCmd->GetNewBoolValue( newValue );
+    fevgen->SetRandomizeTargetSpin( flag );
+  }
+
+  if( cmd == NumSpinStatesTargCmd ){
+    G4int nspin = NumSpinStatesTargCmd->GetNewIntValue( newValue );
+    fevgen->SetNumTargetSpinDirections( nspin );
+  }
+
+  if( cmd == TargThetaSpinCmd ){ //there must be at least nspin entries or this will fail:
+    std::istringstream is(newValue);
+    G4int nspin = fevgen->GetNumTargetSpinDirections();
+
+    std::vector<G4double> thspintemp(nspin);
+
+    G4String unit;
+
+    bool success = true;
+    for( G4int ispin=0; ispin<nspin; ispin++ ){
+      is >> thspintemp[ispin];
+      if( is.eof() || is.fail() || is.bad() ){
+	success = false;
+	exit(-1);
+      }
+    }
+
+    
+    is >> unit; 
+    if( is.fail() || is.bad() || !is.eof() ) {
+      success = false;
+      exit(-1);
+    }
+
+    for( G4int ispin=0; ispin<nspin; ispin++ ){
+      fevgen->SetTargetThetaSpin( ispin, thspintemp[ispin]*cmd->ValueOf(unit) );
+    }
+  }
+
+  if( cmd == TargPhiSpinCmd ){ //there must be at least nspin entries or this will fail:
+    std::istringstream is(newValue);
+    G4int nspin = fevgen->GetNumTargetSpinDirections();
+
+    std::vector<G4double> phspintemp(nspin);
+
+    G4String unit;
+
+    bool success = true;
+    for( G4int ispin=0; ispin<nspin; ispin++ ){
+      is >> phspintemp[ispin];
+      if( is.eof() || is.fail() || is.bad() ){
+	success = false;
+	exit(-1);
+      }
+    }
+
+    
+    is >> unit; 
+    if( is.fail() || is.bad() || !is.eof() ) {
+      success = false;
+      exit(-1);
+    }
+
+    for( G4int ispin=0; ispin<nspin; ispin++ ){
+      fevgen->SetTargetPhiSpin( ispin, phspintemp[ispin]*cmd->ValueOf(unit) );
+    }
   }
   
   if( cmd == UseCerenkovCmd ){
@@ -2296,6 +2500,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == WriteFieldMapCmd ){
     G4bool flag = WriteFieldMapCmd->GetNewBoolValue(newValue);
     fIO->SetWriteFieldMaps(flag);
+  }
+
+  if( cmd == UseGEMshieldCmd ){
+    G4bool flag = UseGEMshieldCmd->GetNewBoolValue(newValue);
+    fdetcon->SetGEMuseAlshield(flag);
+  }
+
+  if( cmd == GEMshieldThickCmd ){
+    G4double shieldthick = GEMshieldThickCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetGEMAlShieldThick( shieldthick );
+  }
+
+  if( cmd == GEMshieldAirGapThickCmd ){
+    G4double airgapthick = GEMshieldAirGapThickCmd->GetNewDoubleValue(newValue);
+    fdetcon->SetGEMAirGapThick( airgapthick );
   }
   
 }

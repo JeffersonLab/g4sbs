@@ -50,6 +50,7 @@
 
 #include "G4SBSCalSD.hh"
 #include "G4SBSGEMSD.hh"
+#include "G4SBSECalSD.hh"
 
 #include "TSpline.h"
 
@@ -161,6 +162,11 @@ G4SBSDetectorConstruction::G4SBSDetectorConstruction()
   fBeamCollimatorDmin_dnstr   = 15*mm;  
   fBeamCollimatorDmax_dnstr   = 30*mm;  
 
+  //Default Aluminum shielding around GEMs to false:
+  fGEMuseAlshield = false;
+  fGEMAlShieldThick = 50.0*um;
+  fGEMAirGapThick = 0.0*um;
+  
 }
 
 G4SBSDetectorConstruction::~G4SBSDetectorConstruction()
@@ -506,6 +512,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   CH->AddElement(elC, 1);
   CH->AddElement(elH, 1);
 
+  //adding a random comment here to test git push issues
+  
   fMaterialsMap["CH"] = CH;
 
   //Target materials: these are hard-coded in two different places, leading to inconsistent calculations for luminosity, etc;
@@ -2737,32 +2745,57 @@ void G4SBSDetectorConstruction::SetFlipGEM( G4bool b ){
   fGEMflip = b;
 }
 
-void G4SBSDetectorConstruction::SetTimeWindowAndThreshold( G4String SDname, G4double Edefault, G4double Tdefault ){
+void G4SBSDetectorConstruction::SetThresholdTimeWindowAndNTimeBins( G4String SDname, G4double Edefault, G4double Tdefault, G4int Ntbinsdefault ){
   G4SBSGEMSD *GEMSDptr;
   G4SBSCalSD *CalSDptr;
+  G4SBSECalSD *ECalSDptr;
 
   G4double timewindow, threshold;
+  G4int ntimebins;
   
   if( SDlist.find( SDname ) != SDlist.end() ){
     switch( SDtype[SDname] ){
     case G4SBS::kGEM: //For now, do nothing:
-      
+     
       break;
     case G4SBS::kCAL:
       CalSDptr = (G4SBSCalSD*) fSDman->FindSensitiveDetector( SDname, false );
 
       timewindow = SDgatewidth.find(SDname) != SDgatewidth.end() ? SDgatewidth[SDname] : Tdefault;
       threshold  = SDthreshold.find(SDname) != SDthreshold.end() ? SDthreshold[SDname] : Edefault;
+      ntimebins = SDntimebins.find(SDname) != SDntimebins.end() ? SDntimebins[SDname] : Ntbinsdefault;
 
       CalSDptr->SetEnergyThreshold( threshold );
       CalSDptr->SetHitTimeWindow( timewindow );
+      CalSDptr->SetNTimeBins( ntimebins );
+     
+      break;
+      // *****
+    case G4SBS::kECAL:
+      ECalSDptr = (G4SBSECalSD*) fSDman->FindSensitiveDetector( SDname, false );
+
+      timewindow = SDgatewidth.find(SDname) != SDgatewidth.end() ? SDgatewidth[SDname] : Tdefault;      
+      threshold  = SDthreshold.find(SDname) != SDthreshold.end() ? SDthreshold[SDname] : Edefault;
+      ntimebins = SDntimebins.find(SDname) != SDntimebins.end() ? SDntimebins[SDname] : Ntbinsdefault;
+
+      ECalSDptr->SetPEThreshold( threshold );
+      ECalSDptr->SetHitTimeWindow( timewindow );
+      ECalSDptr->SetNTimeBins( ntimebins );
       
       break;
-    default: //do nothing:
-      break;
+   default: //do nothing:
+
+     break;
     }
 
   }
+
+  // This part is the criminal
+  // G4double wbin = timewindow/double(ntimebins);
+  // for( int ibin=0; ibin<ntimebins; ibin++ ){
+  //   // CalSDptr->hold_tbins.push_back( ibin*wbin + 0.5*wbin );
+  //   CalSDptr->hold_tbins.push_back( 0.0 );
+  // }
   
   return;
 }

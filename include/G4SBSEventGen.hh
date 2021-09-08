@@ -25,7 +25,9 @@ public:
   
   double GetBeamE(){ return fBeamE; }
   G4ThreeVector GetBeamP(){ return fBeamP; }
-  G4ThreeVector GetBeamPol(){ return fBeamPol; }
+  G4ThreeVector GetBeamPol(){ return fBeamPolMagnitude * fBeamPolDirection; }
+  G4ThreeVector GetBeamPolDirection(){ return fBeamPolDirection; }
+  G4double GetBeamPolMagnitude(){ return fBeamPolMagnitude; }
   
   G4ThreeVector GetV(){ return fVert; }
   
@@ -36,12 +38,32 @@ public:
   G4ThreeVector GetElectronP(){ return fElectronP; }
   G4ThreeVector GetNucleonP(){ return fNucleonP; }
   G4ThreeVector GetHadronP(){ return fHadronP; }
- 
+
+  G4ThreeVector GetTargPol(){ return fTargPolMagnitude * fTargPolDirection; }
+  G4ThreeVector GetTargPolDirection(){ return fTargPolDirection; }
+  G4double GetTargPolMagnitude(){ return fTargPolMagnitude; }
+
+  G4bool GetRandomizeTargetSpin() { return fRandomizeTargetSpin; }
+  G4int GetNumTargetSpinDirections() { return fNumTargetSpinDirections; }
+  vector<G4double> GetTargetThetaSpin() { return fTargetThetaSpin; }
+  vector<G4double> GetTargetPhiSpin() { return fTargetPhiSpin; }
+  G4double GetTargetThetaSpin(G4int ispin);
+  G4double GetTargetPhiSpin(G4int ispin);
+  
   G4SBS::Nucl_t GetNucleonType(){ return fNuclType; }
   G4SBS::Nucl_t GetFinalNucleon(){ return fFinalNucl; }
 
   G4SBS::Hadron_t GetHadronType(){ return fHadronType; }
 
+  G4double GetAUT_Collins(){ return fAUT_Collins; }
+  G4double GetAUT_Sivers(){ return fAUT_Sivers; }
+
+  G4double GetAUT_Collins_min(){ return fAUT_Collins_min; }
+  G4double GetAUT_Collins_max(){ return fAUT_Collins_max; }
+
+  G4double GetAUT_Sivers_min(){ return fAUT_Sivers_min; }
+  G4double GetAUT_Sivers_max(){ return fAUT_Sivers_max; }
+  
   double GetPt(){ return fPt; }
   double GetPl(){ return fPl; }
   
@@ -149,6 +171,64 @@ public:
   void SetPionPhoto_tmax( G4double tmax ){ fPionPhoto_tmax = tmax; }
   void SetUseRadiator( G4bool b ){fUseRadiator = b; }
   void SetRadthickX0( G4double thick ){ fRadiatorThick_X0 = thick; }
+  //void SetTargPol( G4ThreeVector pol ){ fTargPolDirection = pol.unit(); }
+  void SetTargPol( G4ThreeVector pol ){ //version with single three-vector argument; takes magnitude of vector as polarization, direction:
+    fTargPolDirection = pol.unit();
+    fTargPolMagnitude = std::max(0.0, std::min(1.0, pol.mag() ) );
+  }
+  void SetTargPol( G4ThreeVector dir, G4double mag ) //version with two arguments, explicitly set direction and magnitude
+  {
+    fTargPolDirection = dir.unit();
+    if( mag < 0.0 ){
+      fTargPolDirection *= -1.0;
+      mag = fabs(mag);
+    }
+    fTargPolMagnitude = std::max(0.0,std::min(1.0,mag));
+  };
+  void SetTargPolDir( G4ThreeVector dir ){ fTargPolDirection = dir.unit(); } 
+  void SetTargPolMag( G4double mag ){
+    fTargPolMagnitude = std::min(1.0,fabs(mag));
+    if( mag < 0.0 ){
+      fTargPolDirection *= -1.0;
+    }
+  }
+
+  void SetBeamPol( G4ThreeVector pol ){
+    fBeamPolDirection = pol.unit();
+    fBeamPolMagnitude = std::max(0.0, std::min(1.0,pol.mag()));
+  }
+  void SetBeamPol( G4ThreeVector dir, G4double mag )
+  {
+    fBeamPolDirection = dir.unit();
+    if( mag < 0.0 ){
+      fBeamPolDirection *= -1.0;
+      mag = fabs(mag);
+    }
+    fBeamPolMagnitude = std::max(0.0, std::min(1.0,mag));
+  };
+  void SetBeamPolDir( G4ThreeVector dir ){ fBeamPolDirection = dir.unit(); }
+  void SetBeamPolMag( G4double mag ){
+    fBeamPolMagnitude = std::min(1.0,fabs(mag));
+    if( mag < 0.0 ){
+      fBeamPolDirection *= -1.0;
+    }
+  }
+  
+  void SetRandomizeTargetSpin( G4bool flag ){ fRandomizeTargetSpin = flag; }
+  void SetNumTargetSpinDirections( G4int nspin );
+  void SetTargetThetaSpinVector( vector<double> &thspin ){ fTargetThetaSpin = thspin; }
+  void SetTargetPhiSpinVector( vector<double> &phspin ){ fTargetPhiSpin = phspin; }
+
+  //Setters for single element of array:
+  void SetTargetThetaSpin( G4int ispin, G4double theta );
+  void SetTargetPhiSpin( G4int ispin, G4double phi );
+  //void SetTargetThetaSpin( G4int ispin, G4double value )
+
+  void SetAUT_Collins_Sivers( G4double Acoll, G4double Asiv ){
+    fAUT_Collins = Acoll;
+    fAUT_Sivers = Asiv;
+  }
+  
 private:
 
   void InitializeRejectionSampling(); //Make private so it can only be called by G4SBSEventGen::Initialize()
@@ -156,8 +236,18 @@ private:
   double fElectronE, fNucleonE, fHadronE, fBeamE;
   G4ThreeVector fElectronP, fNucleonP, fBeamP, fVert;
   G4ThreeVector fHadronP;
-  G4ThreeVector fBeamPol;
-  G4ThreeVector fTargPol;
+  G4ThreeVector fBeamPolDirection;
+  G4ThreeVector fTargPolDirection;
+
+  G4double fBeamPolMagnitude;
+  G4double fTargPolMagnitude;
+
+  //Define parameters for randomized target spin generation (with a discrete number of directions):
+  G4bool fRandomizeTargetSpin;
+  G4int  fNumTargetSpinDirections;
+  // vectors of target spin angles:
+  vector<G4double> fTargetThetaSpin;
+  vector<G4double> fTargetPhiSpin; 
   
   //Define parameters for cosmics generator
   G4ThreeVector fCosmPointer;
@@ -172,6 +262,18 @@ private:
   //Adding these for pion photoproduction, but they can also be defined and calculated for the
   //elastic generators in principle:
   double fs, ft, fu, fcosthetaCM, fEgamma_lab;
+
+  //Define quantities to hold "true" values of Collins/Sivers asymmetries for target SSA simulations:
+  double fAUT_Collins, fAUT_Sivers; //These will be the undiluted asymmetry moments for the struck nucleon
+  double fAUT_Collins_min, fAUT_Collins_max; //"min" and "max" values from Alexei's parameter sets
+  double fAUT_Sivers_min, fAUT_Sivers_max; //"min" and "max" values from Alexei's parameter sets
+  //double fAUT_Collins_nucleus, fAUT_Sivers_nucleus; //These will be the effective asymmetries for the target nucleus, 
+  //Now, since we know on an event-by-event basis which nucleon was the struck nucleon, these can be the (undiluted) asymmetries for the struck nucleon
+  // The ACTUAL asymmetry that we generate for any given event (in terms of cross section)
+  // will be diluted by the "effective polarization" of the proton and neutron in Helium-3.
+  // If we have a vector-polarized deuterium target, we basically assume that deuteron vector
+  // polarization = proton + neutron polarization; i.e., both proton and neutron are polarized
+  // to the same degree along the same direction (this is an approximation)
   
   //Define additional kinematic quantities for SIDIS:
   double fz, fPh_perp, fphi_h, fphi_S, fTheta_S, fMx;
@@ -250,6 +352,31 @@ private:
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
   bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
 
+  //AJRP: June 5, 2021: calculate soffer bounds for transversity calculations:
+
+  G4bool fSofferGridInitialized;
+  vector<double> fSofferGrid;
+
+  G4bool fTransversityInitialized;
+  vector<double> fTran_a, fTran_b, fTran_n, fTran_m2; //Transversity parameters: size of these is 201*6
+  G4bool fSiversInitialized;
+  vector<double> fSiv_a, fSiv_b, fSiv_n, fSiv_m2; //Sivers parameters: also 201*6
+  
+  G4bool fCollinsInitialized;
+  vector<double> fColl_a, fColl_b, fColl_n, fColl_m2; //Collins parameters: also 201*6
+  
+  void SofferBound( G4double x, G4double Q2, vector<double> &partons );
+  void Transversity( G4double x, G4double Q2, vector<double> &partons, int iset=0 );
+  void Sivers( G4double x, vector<double> &partons, int iset=0 );
+  void Collins( G4double z, vector<double> &partons, int iset=0 );
+
+  double AUT_Collins( G4double x, G4double y, G4double Q2, G4double z, G4double PT, vector<double> pdf_unpol, vector<double> fragfunc_unpol, G4SBS::Nucl_t nucl, G4SBS::Hadron_t had, int iset=0 );
+  double AUT_Sivers( G4double x, G4double y, G4double Q2, G4double z, G4double PT, vector<double> pdf_unpol, vector<double> fragfunc_unpol, G4SBS::Nucl_t nucl, int iset=0 ); 
+  
+  G4double fSIDISkperp2_avg; //default 0.25 GeV^2
+  G4double fSIDISpperp2_avg; //default 0.20 GeV^2
+  
+  
   // D Flay (10/15/20).  Generate random beam angle based on non-zero file input.  works for beam generator only
   void CalculateBeamAnglesAndPositions(G4double bd_L,std::vector<G4double> &R,std::vector<G4double> &P);  
 

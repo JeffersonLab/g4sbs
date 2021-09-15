@@ -76,6 +76,7 @@ private:
   G4UIcmdWithAnInteger *gemconfigCmd;
   G4UIcmdWithAnInteger *shieldconfigCmd;
   G4UIcmdWithAnInteger *CDetconfigCmd;
+  G4UIcmdWithAnInteger *hcalcosmicconfigCmd;
 
   G4UIcmdWithABool *flipGEMCmd;
   

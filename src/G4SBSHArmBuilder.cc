@@ -98,7 +98,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     if(!fDetCon->UserDisabled("48d48"))
       Make48D48(worldlog, f48D48dist + f48D48depth/2. );
 
-    if(fBuildSBSSieve)
+    if(fBuildSBSSieve && !fDetCon->UserDisabled("sbssieve"))
       MakeSBSSieveSlit(worldlog);
 
     if(!fDetCon->UserDisabled("HCAL") &&
@@ -933,8 +933,8 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
   // Should the actual cathode be used, or just track to PMT Window?
   const G4bool const_UsePMTCathode       = true;
   // Build cosmic trigger scintillators?
-  const G4bool const_PlaceTrigScint = false;
-  const G4bool const_PlaceHCALFrontPlate = !const_PlaceTrigScint;
+  G4int cosmicOption = fDetCon->GetHCalCosmicOption();
+  const G4bool const_PlaceHCALFrontPlate = (cosmicOption!=1);
 
   // Record all primaries entering HCAL? This can be done by making the
   // front steel plate of the HCAL box a sensitive detector for primaries
@@ -1017,9 +1017,9 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
   // Specify the number of rows and columns for standard HCAL configuration
   G4double num_rows = 24;
   G4double num_cols = 12;
-  // We can build a special cosmic version that uses trigger scintillators
-  // to measure cosmics
-  if(const_PlaceTrigScint) {
+  // We can build a special cosmic version that uses two trigger scintillators
+  // on one vertical HCal module as setup at CMU
+  if(cosmicOption==1) {
     num_rows = num_cols = 1;
   }
 
@@ -1038,12 +1038,40 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
   // Specify dimensions of trigger scintillators
   // (used to compare simulation with cosmic data. Off by default
   // but could be enabled for debugging purposes)
+  G4double dim_TrigScintX = 0.0;
+  G4double dim_TrigScintY = 0.0;
+  G4double dim_TrigScintZ = 0.0;
+  G4double dist_TrigScintGapX = 0.0;
+  G4double dist_TrigScintGapY = 0.0;
+  G4double dist_TrigScintGapZ = 0.0;
+  G4double dim_HCALExtraX =  0.0;
+  G4double dim_HCALExtraY =  0.0;
+  G4double dim_HCALExtraZ =  0.0;
+
+/*
   G4double dim_TrigScintX = 38.6*CLHEP::mm;
   G4double dim_TrigScintY = dim_ModuleY;
   G4double dim_TrigScintZ =  7.2*CLHEP::mm;
   G4double dist_TrigScintGapZ = 10.0*CLHEP::mm;
-  G4double dim_HCALExtraZ = const_PlaceTrigScint ?
+  G4double dim_HCALExtraZ =  ?
     dim_TrigScintZ + dist_TrigScintGapZ : 0.0;
+  */
+  if(cosmicOption == 1) {
+    dim_TrigScintX = 38.6*CLHEP::mm;
+    dim_TrigScintY = dim_ModuleY;
+    dim_TrigScintZ =  7.2*CLHEP::mm;
+    dist_TrigScintGapZ = 10.0*CLHEP::mm;
+    dim_HCALExtraZ = 2.*(dim_TrigScintZ + dist_TrigScintGapZ);
+  } else if(cosmicOption == 2) {
+    // TestLab setup
+    // dim_TrigScintX to be set after HCALX determined
+    // Note: these values are just guesses for now.
+    dim_TrigScintY = 10.0*CLHEP::mm;
+    dim_TrigScintZ = 200.0*CLHEP::mm;
+    dist_TrigScintGapY = 100.0*CLHEP::mm;
+    dist_TrigScintGapZ = 300.0*CLHEP::mm;
+    dim_HCALExtraY = 2.*(dim_TrigScintY + dist_TrigScintGapY);
+  }
 
   // Specify number of Scint-Fe pairs per substack
   const int numSubstacks = 3;
@@ -1114,8 +1142,10 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
   // Specify the dimensions of the HCAL mother box/volume
   G4double dim_HCALX = (num_cols-1)*dist_ModuleCToCX + dim_ModuleX;
   G4double dim_HCALY = (num_rows-1)*dist_ModuleCToCY + dim_ModuleY;
-  G4double dim_HCALZ = dim_ModuleZ + dim_ModulePMTZ + dim_HCALFrontPlateZ
-    + dim_HCALExtraZ;
+  G4double dim_HCALZ = dim_ModuleZ + dim_ModulePMTZ + dim_HCALFrontPlateZ;
+  if(cosmicOption==2) {
+    dim_TrigScintX = dim_HCALX;
+  }
 
   // Specify the distance from entrance to HCAL to center of target
   G4double dist_HCalRadius = fHCALdist + dim_HCALZ/2.0;
@@ -1317,8 +1347,9 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
   // (make it slightly larger than needed so that setting the stepping limits
   // works)
   G4Box *sol_HCAL = new G4Box("sol_HCAL",
-      dim_HCALX/2.+0.01*mm, dim_HCALY/2.+0.01*mm,
-      dim_HCALZ/2. + 0.01*mm);
+      (dim_HCALX+dim_HCALExtraX)/2.+0.01*mm,
+      (dim_HCALY+dim_HCALExtraY)/2.+0.01*mm,
+      (dim_HCALZ+dim_HCALExtraZ)/2. + 0.01*mm);
   G4LogicalVolume *log_HCAL = new G4LogicalVolume( sol_HCAL,
       GetMaterial("Air"), "log_HCAL" );
 
@@ -1337,7 +1368,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
   // Solid and volume for optional Trigger Scintillators
   G4Box *sol_TrigScint = 0;
   G4LogicalVolume *log_TrigScint = 0;
-  if(const_PlaceTrigScint) {
+  if(cosmicOption>0) {
     sol_TrigScint = new G4Box("sol_TrigScint",
         dim_TrigScintX/2.,dim_TrigScintY/2.,dim_TrigScintZ/2.);
     log_TrigScint = new G4LogicalVolume(sol_TrigScint,
@@ -1661,7 +1692,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
   G4String HCalTrigScintCollName = "HCalTrigScintHitsCollection";
   G4SBSCalSD *HCalTrigScintSD = NULL;
 
-  if( const_PlaceTrigScint ) {
+  if( cosmicOption>0 ) {
     if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(HCalTrigScintSDName)) ){
       G4cout << "Adding HCal TrigScintillator Sensitive Detector to SDman..."
         << G4endl;
@@ -1724,20 +1755,48 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
   G4double posModZ = posZ + dim_ModuleZ/2.;
   G4double posExternalShimZ = -dim_HCALZ/2. + dim_HCALFrontPlateZ + dim_ExternalShimZ/2.;
   G4double posTrigScintX;
-  G4double dist_TrigScintOffsetZ = dim_ModuleZ/2. + dist_TrigScintGapZ +
-    dim_TrigScintZ/2.;
-  if(const_PlaceTrigScint) {
+  G4double dist_TrigScintOffsetX = 0.0;
+  G4double dist_TrigScintOffsetY = 0.0;
+  G4double dist_TrigScintOffsetZ = 0.0;
+  G4int copyNoTrigScint = 0;
+  if(cosmicOption == 1) {
     posModZ += dim_TrigScintZ + dist_TrigScintGapZ;
+    dist_TrigScintOffsetZ = dim_ModuleZ/2. + dist_TrigScintGapZ +
+      dim_TrigScintZ/2.;
+  } else if (cosmicOption == 2) { // Position the top trigger
+    new G4PVPlacement(0,G4ThreeVector(0.0, dim_HCALY/2. + dist_TrigScintGapY,
+          posZ + dist_TrigScintGapZ), log_TrigScint, "log_HCALTrigScint",
+        log_HCAL,false, copyNoTrigScint, checkOverlap);
+    (HCalTrigScintSD->detmap).Row[copyNoTrigScint] = 1;
+    (HCalTrigScintSD->detmap).Col[copyNoTrigScint] = 1;
+    (HCalTrigScintSD->detmap).Plane[copyNoTrigScint] = 0;
+    (HCalTrigScintSD->detmap).LocalCoord[copyNoTrigScint] = G4ThreeVector(
+        0.,100.0,0);
+    copyNoTrigScint++;
+    new G4PVPlacement(0,G4ThreeVector(0.0, -dim_HCALY/2. - dist_TrigScintGapY,
+          posZ + dist_TrigScintGapZ), log_TrigScint, "log_HCALTrigScint",
+        log_HCAL,false, copyNoTrigScint, checkOverlap);
+    (HCalTrigScintSD->detmap).Row[copyNoTrigScint] = 2;
+    (HCalTrigScintSD->detmap).Col[copyNoTrigScint] = 1;
+    (HCalTrigScintSD->detmap).Plane[copyNoTrigScint] = 0;
+    (HCalTrigScintSD->detmap).LocalCoord[copyNoTrigScint] = G4ThreeVector(
+        0.,-100.0,0);
+        //posTrigScintX,posModY,posZ);
+
   }
   copyNo = 0;
-  G4int copyNoTrigScint = 0;
+  G4RotationMatrix *rot_Rows[2];
+  rot_Rows[0] = 0; // No rotation for part of the rows
+  rot_Rows[1] = new G4RotationMatrix();
+  rot_Rows[1]->rotateZ(180.0*CLHEP::degree);
+
   // Construct physical volumes for each of the sensitive modules
   for(int row = 0; row <  num_rows; row++ ) {
     posModX = dim_HCALX/2. - dim_ModuleX/2.;
     for(int col = 0; col <  num_cols; col++ ) {
       // Place module inside HCAL
       G4VPhysicalVolume * phys_Module = new G4PVPlacement(
-          0, G4ThreeVector(posModX,posModY,posModZ),
+          rot_Rows[row%2], G4ThreeVector(posModX,posModY,posModZ),
           log_Module, "log_Module", log_HCAL, false, copyNo, checkOverlap);
 
       // Configure Sensitive Detector Map
@@ -1754,8 +1813,8 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
           copyNo, row, col, posModX/cm, posModY/cm );
       mapfile << currentline << endl;
 
-      // Place the optional trigger scintillators
-      if(const_PlaceTrigScint) {
+      // Place the optional cosmic trigger scintillators
+      if(cosmicOption==1) {
         // Compute new X position
         posTrigScintX = posModX - dim_ModuleX/2. + dim_TrigScintX/2.;
         // First the front TrigScint
@@ -1977,7 +2036,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog,
   }
 
   // TriggerScint (optional)
-  if(const_PlaceTrigScint) {
+  if(cosmicOption>0) {
     G4VisAttributes *vis_TrigScint = new G4VisAttributes(
         G4Colour(0.3,0.6,0.0,0.7));
     log_TrigScint->SetVisAttributes(vis_TrigScint);

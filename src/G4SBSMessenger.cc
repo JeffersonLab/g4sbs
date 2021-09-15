@@ -69,6 +69,13 @@ G4SBSMessenger::G4SBSMessenger(){
   CDetconfigCmd->SetGuidance("CDet Geometry Options(integer 1,2,3, or 4): Option 1 (default) = Simplest option, only material budget with no SD assigned, Option 2 = Flat, 2 planes with sensitive regions, Option 3 = Top/Bottom 'modules' are angled relative to central 'module', and Option 4 = Each bar is shimmed in order to optimize normal incidence");
   CDetconfigCmd->SetParameterName("CDetconfig",false);
 
+  hcalcosmicconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/hcalcosmicconfig",this);
+  hcalcosmicconfigCmd->SetGuidance("HCAL Cosmics configuration: ");
+  hcalcosmicconfigCmd->SetGuidance(" 0: no cosmic trigger scintillator");
+  hcalcosmicconfigCmd->SetGuidance(" 1: CMU vertical module cosmics (one module only)");
+  hcalcosmicconfigCmd->SetGuidance(" 2: One trigger scintillator paddle above");
+  hcalcosmicconfigCmd->SetParameterName("hcalcosmicconfig", false);
+
   flipGEMCmd = new G4UIcmdWithABool("/g4sbs/flipGEM",this);
   flipGEMCmd->SetGuidance("Reverse GEM orientation front-to-back (bool). Applies to ALL GEMs!");
   flipGEMCmd->SetParameterName("flipGEM", false );
@@ -624,6 +631,11 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == CDetconfigCmd ){
     G4int cdetconf = CDetconfigCmd->GetNewIntValue(newValue);
     fdetcon->SetCDetconfig(cdetconf);
+  }
+
+  if( cmd == hcalcosmicconfigCmd ) {
+    G4int hcalcosmicconfigVal = hcalcosmicconfigCmd->GetNewIntValue(newValue);
+    fdetcon->SetHCalCosmicOption(hcalcosmicconfigVal);
   }
 
   if( cmd == flipGEMCmd ){

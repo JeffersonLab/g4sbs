@@ -109,6 +109,10 @@ public:
   void SetCDetconfig( int );
   int GetCDetConfigOption() { return fCDetOption; }
 
+
+  void SetHCalCosmicOption( int opt ) { fHCalCosmicOption = opt; }
+  int GetHCalCosmicOption() { return fHCalCosmicOption; }
+
   void SetC16Segmentation( int );
   int GetC16Segmentation() { return fSegmentC16; }
 
@@ -161,6 +165,7 @@ private:
   G4double fFieldScale_BB;
   
   G4int fCDetOption;
+  G4int fHCalCosmicOption;
   G4int fSegmentC16;
 
   G4double fSegmentThickC16;

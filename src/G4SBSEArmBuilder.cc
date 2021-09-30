@@ -79,12 +79,14 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   G4double backGEM_depth = 11.59*cm;
   
   fCerDepth = 88.9*cm;
-  fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;//this shall be about right
-  
+  //fCerDist = frontGEM_depth - 8.571*cm + 1.811*cm;//this shall be about right
+  fCerDist = 58.62*cm; //From engineering drawings:
   //NB: fBBCalDist now designates the distance to the shielding
   //fix: add an extra 1.136 inch between the back of the GRINCH and the "GEM frame"
-  fBBCaldist = fCerDist + fCerDepth + 1.136*2.54*cm + backGEM_depth;
-  fGEMDist   = fCerDist + fCerDepth + 1.136*2.54*cm + 0.5*backGEM_depth;
+  //fBBCaldist = fCerDist + fCerDepth + 1.136*2.54*cm + backGEM_depth;
+  fBBCaldist = 169.6*cm; 
+  //fGEMDist   = fCerDist + fCerDepth + 1.136*2.54*cm + 0.5*backGEM_depth;
+  fGEMDist = 155.17*cm;
   fGEMOption = 2;
   /**/
   fShieldOption = 1;
@@ -410,11 +412,14 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //
   // Mother volume is at 10 degrees with BigBite
 
-  double detboxang    = 10.0*deg;
+  //  double detboxang    = 10.0*deg;
+  // AJRP: changed BB detector stack pitch angle to 10.24 degrees based on survey results for BigBite as in GMN Hall A.
+  // We should probably make this user-configurable:
+  double detboxang = 10.0*deg;
   double detboxheight = 2.5*m;
   double detboxdepth  = 4.0*m;
   double detboxplace  = 0.8*m; // From midplane pivot
-
+  
   G4RotationMatrix *bbdetrot = new G4RotationMatrix();
   // Y is "down"
   //bbdetrot->rotateZ(180.0*deg);
@@ -426,6 +431,12 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // this is in mother box coords
   double midplanez    = -motherdepth/2.0+clear+325.0*mm;
 
+  //AJRP: based on surveys of the as-installed BigBite detector stack for GMN:
+  //But we will need to correct for the offset of the first GEM layer wrt the front of the box (maybe):
+  detboxang = 10.24*deg;
+  midplanez = -motherdepth/2.0+clear + 202.14*mm;
+  detboxplace = 920.58*mm - 50.0*mm; //50 mm to account for placement of 1st GEM wrt front of box (see detoffset below)
+  
   G4Box *bbdetbox = new G4Box("bbdetbox", bbmagwidth/2.0, detboxheight/2.0, detboxdepth/2.0);
   G4LogicalVolume *bbdetLog=new G4LogicalVolume(bbdetbox, GetMaterial("Air"),
 						"bbdetLog", 0, 0, 0);
@@ -437,7 +448,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //  Just interested in the GEMs for now:
 
   double detoffset = 0.05*m -detboxdepth/2.0; //z offset of GEM plane positions within BB detector volume: "global" GEM plane z = detoffset + gemz[plane]
-
+  
   int i;
   int ngem = 0;
   double gemdsep;
@@ -453,7 +464,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     break;
   case 2:
     ngem = 5;
-    gemdsep = 0.15*m;
+    gemdsep = 0.137*m;
     break;
   case 3:
     ngem = 3;
@@ -544,6 +555,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   //AJRP 05/19/19: re-working BBCAL geometry so user tracking action and stepping action classes
   //behave properly. Put everything (including detectors/shielding) inside a single mother volume
+
+  //NOTE: we want fBBCaldist to represent the distance to the front of the preshower
   G4double bbcal_box_height = 27*8.5*cm;
   if(fBBPSOption==2)bbcal_box_height = 26*9.0*cm;
   G4double bbcal_box_width  = 2.0*37.0*cm;
@@ -599,10 +612,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //   SS_thick = SS_thick/2.0;
   // }
 
+  //The z position of the BBCal box should put the front of the preshower at a z position of fBBCALdist from the first GEM
+  G4double zpos_bbcal_box = detoffset + (fBBCaldist - shielding_space) - 0.25*2.54*cm - 0.05*cm + bbcal_total_thick/2.0;
+  
   // BB Ecal
   G4Box *bbcalbox = new G4Box( "bbcalbox", bbcal_box_width/2.0, bbcal_box_height/2.0, bbcal_total_thick/2.0+0.1*mm );
   G4LogicalVolume *bbcal_mother_log = new G4LogicalVolume(bbcalbox, GetMaterial("Air"), "bbcal_mother_log");
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, detoffset + fBBCaldist + bbcal_total_thick/2.0 ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 , chkoverlap); 
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_bbcal_box ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 , chkoverlap); 
 
   bbcal_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
   
@@ -874,7 +890,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // Make Lead Glass 
   G4Box *bbTF1box = new G4Box( "bbTF1box", bbTF1_x/2.0, bbTF1_y/2.0, bbTF1_z/2.0 );
-  G4LogicalVolume *bbTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF5"), "bbTF1log" );
+  G4LogicalVolume *bbTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbTF1log" );
   
   // Shower TF1 SD of type CAL
   //G4SDManager *sdman = fDetCon->fSDman;

@@ -28,6 +28,8 @@ public:
   void PrintAll();
 
   void SetZoffset(double z){ fZoffset = z; }
+
+  double GetZoffset() const { return fZoffset; }
   
   // map<G4String, int> GEMTrackerIDs; //Map to associate logical volume names with tracking modules
   // map<int, Arm_t>    GEMArmIDs;

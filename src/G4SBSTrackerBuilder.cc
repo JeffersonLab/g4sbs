@@ -146,6 +146,8 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
   G4VisAttributes *gemsdvisatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 0.0 ) );
 
+  
+  
   for( gidx = 0; gidx < nplanes; gidx++ ){
     sprintf( cgidx, "%02d", gidx );
 
@@ -195,6 +197,8 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
       new G4PVPlacement( 0, backshieldpos, alshield_log, backshieldphysname, Mother, true, gidx+1, false );
     }
+
+    double zdrift; //z position of center of drift region relative to GEM plane box:
     
     for( gpidx = 0; gpidx < nlayers; gpidx++ ){
       sprintf( cgpidx, "_%02d_%03d_", gidx, gpidx );
@@ -210,16 +214,20 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
       new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, ztemp - gempzsum/2.0 ), gplog, gempphysname, gemlog, false, 0, false ); 
 
-      ztemp += sign*gempz[gpidx]/2.0;
+      
 
       //Assign sensitive volume: why 5?  // SPR: This is the gas drift region
       if( gpidx == 5 ){
 	gplog->SetSensitiveDetector(GEMSD);
 	gplog->SetVisAttributes( gemsdvisatt );
 	// Until we implement actual strips/wires in the GEM construction, the detmap is irrelevant for the GEMs
+	zdrift = ztemp - gempzsum/2.0;
       } else {
 	gplog->SetVisAttributes( G4VisAttributes::Invisible );
       }
+
+      ztemp += sign*gempz[gpidx]/2.0;
+      
     }
 
     G4String gemname = TrackerPrefix + G4String("_gemphys_") + cgidx;
@@ -227,6 +235,9 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
     //G4ThreeVector plane_pos = pos + G4ThreeVector( 0.0, 0.0, zplanes[gidx] );
     G4ThreeVector plane_pos = pos + zplanes[gidx] * zaxis;
     //Now we are positioning the GEM AFTER positioning all of its components inside its logical volume:
+    if( gidx == 0 ){ //set Z offset of GEMSD to equal the center of the drift region of first GEM
+      GEMSD->SetZoffset( plane_pos.getZ() + zdrift );
+    }
     new G4PVPlacement( rot, plane_pos, gemlog, gemname, Mother, true, gidx+1, false );
   }
 }

@@ -548,7 +548,7 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
       // PTrackIndices[gemID][trid] = (*hits)[i]->GetPTrIdx();
       // SDTrackIndices[gemID][trid] = (*hits)[i]->GetSDTrIdx();
 
-      //Changed SDtrackoutput class so that the hit "track indices" are now actually G4 track IDs
+      
       //In principle there is no need to check for existence of the tracks in the list
       OTrackIndices[gemID][trid] = sdtracks.otracklist[(*hits)[i]->GetOTrIdx()];
       PTrackIndices[gemID][trid] = sdtracks.ptracklist[(*hits)[i]->GetPTrIdx()];

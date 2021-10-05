@@ -58,8 +58,10 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   G4int copyID = hist->GetReplicaNumber(1);
  
   //Each GEM chamber is placed inside a mother box, the entrance of which is defined as the Z position for tracking 
-  double offset = ((G4Box *) hist->GetSolid(2))->GetZHalfLength();
+  //double offset = ((G4Box *) hist->GetSolid(2))->GetZHalfLength();
 
+  double offset = GetZoffset();
+  
   G4SBSGEMHit* hit = new G4SBSGEMHit();
 
   //We are interested in the coordinate of this hit relative to the mother box that contains all the individual GEM planes in a given tracker
@@ -77,9 +79,9 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   G4ThreeVector polarization = aStep->GetPreStepPoint()->GetPolarization();
   polarization = aTrans.TransformAxis(polarization);
 
-  if( aStep->GetTrack()->GetParentID() == 0 && aStep->GetTrack()->GetTrackID() == 2 ){
+  //if( aStep->GetTrack()->GetParentID() == 0 && aStep->GetTrack()->GetTrackID() == 2 ){
     //G4cout << "Pre-step point, polarization = " << polarization << G4endl;
-  }
+  //}
   //Momentum direction in global coordinates:
   G4ThreeVector mom = aStep->GetPreStepPoint()->GetMomentumDirection();
   
@@ -93,8 +95,8 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   //mom *= aTrans.NetRotation().inverse();
   mom = aTrans.TransformAxis(mom); //Momentum direction in local coordinate system of "tracker box"
 
-  pos.setZ( pos.getZ() + offset ); //Offset local z position by half of "tracker box" z width (so that z position is relative to "front" of tracker box)
-  outpos.setZ( outpos.getZ() + offset ); //Offset local z position by half of "tracker box" z width (so that z position is relative to "front" of tracker box)
+  pos.setZ( pos.getZ() - offset ); //Offset local z position by half of "tracker box" z width (so that z position is relative to "front" of tracker box)
+  outpos.setZ( outpos.getZ() - offset ); //Offset local z position by half of "tracker box" z width (so that z position is relative to "front" of tracker box)
 
   // printf("pos x = %f y = %f z = %f\n", pos.x(), pos.y(), pos.z());
   // printf("outpos x = %f y = %f z = %f\n", outpos.x(), outpos.y(), outpos.z());

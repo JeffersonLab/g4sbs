@@ -3842,7 +3842,9 @@ void G4SBSEArmBuilder::MakeBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVector
   }
 
   G4LogicalVolume *BBSievePlate_log = new G4LogicalVolume( BBSievePlateCut, GetMaterial("Lead"), "BBSievePlate_log" );
-
+  if( fDetCon->fTotalAbs ){
+    BBSievePlate_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
   //Next we have to figure out where this sits in relation to the BB magnet: Naively we want it just in front of the coils:
   new G4PVPlacement( 0, pos, BBSievePlate_log, "BBSievePlate_phys", motherlog, 0, false, 0 );
   
@@ -3956,7 +3958,10 @@ void G4SBSEArmBuilder::MakeNewBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeVec
   G4cout << "finished holes..." << endl;
   
   G4LogicalVolume *NewBBSievePlate_log = new G4LogicalVolume(SievePlateCut, GetMaterial("Lead"), "New_BB_SievePlate_log");
-
+  if( fDetCon->fTotalAbs ){
+    NewBBSievePlate_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
+  
   //For BB, plate is oriented along z axis and offset is passed into function.
   //G4double SBSsieve_dist = offset_z - ThickPlate_z/2.0;
   //Placement:
@@ -4075,6 +4080,9 @@ void G4SBSEArmBuilder::MakeThirdBBSieveSlit(G4LogicalVolume *motherlog, G4ThreeV
   G4cout << "finished holes..." << endl;
   
   G4LogicalVolume *NewBBSievePlate_log = new G4LogicalVolume(SievePlateCut, GetMaterial("Lead"), "New_BB_SievePlate_log");
+  if( fDetCon->fTotalAbs ){
+    NewBBSievePlate_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
 
   //For BB, plate is oriented along z axis and offset is passed into function.
   //G4double SBSsieve_dist = offset_z - ThickPlate_z/2.0;
@@ -4176,6 +4184,9 @@ void G4SBSEArmBuilder::MakeFourthBBSieveSlit(G4LogicalVolume *motherlog, G4Three
   G4cout << "finished holes..." << endl;
   
   G4LogicalVolume *NewBBSievePlate_log = new G4LogicalVolume(SievePlateCut, GetMaterial("Lead"), "New_BB_SievePlate_log");
+  if( fDetCon->fTotalAbs ){
+    NewBBSievePlate_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+  }
 
   new G4PVPlacement(0, pos, NewBBSievePlate_log, "NewBBSievePlate_phys", motherlog, false, 0);
   

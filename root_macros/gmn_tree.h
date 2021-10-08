@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Sun Jun 28 11:17:17 2020 by ROOT version 6.14/04
+// Tue Oct  5 12:33:12 2021 by ROOT version 6.24/06
 // from TTree T/Geant4 SBS Simulation
-// found on file: gmn_13.5GeV2.root
+// found on file: /volatile/halla/sbs/puckett/g4sbs_output/gmn_beam_background/SBS1/gmn_background_SBS1_job1.root
 //////////////////////////////////////////////////////////
 
 #ifndef gmn_tree_h
@@ -57,6 +57,7 @@ public :
    Double_t        ev_phperp;
    Double_t        ev_phih;
    Double_t        ev_phiS;
+   Double_t        ev_thetaS;
    Double_t        ev_MX2;
    Double_t        ev_Sx;
    Double_t        ev_Sy;
@@ -71,6 +72,12 @@ public :
    Int_t           ev_hadr;
    Int_t           ev_earmaccept;
    Int_t           ev_harmaccept;
+   Double_t        TargPol;
+   Double_t        TargThetaSpin;
+   Double_t        TargPhiSpin;
+   Double_t        BeamPol;
+   Double_t        BeamThetaSpin;
+   Double_t        BeamPhiSpin;
    Int_t           Earm_BBGEM_hit_nhits;
    vector<int>     *Earm_BBGEM_hit_plane;
    vector<int>     *Earm_BBGEM_hit_strip;
@@ -285,52 +292,6 @@ public :
    vector<int>     *Earm_GRINCH_hit_otridx;
    vector<int>     *Earm_GRINCH_hit_ptridx;
    vector<int>     *Earm_GRINCH_hit_sdtridx;
-   Int_t           Harm_CDET_hit_nhits;
-   vector<int>     *Harm_CDET_hit_PMT;
-   vector<int>     *Harm_CDET_hit_row;
-   vector<int>     *Harm_CDET_hit_col;
-   vector<int>     *Harm_CDET_hit_plane;
-   vector<double>  *Harm_CDET_hit_xcell;
-   vector<double>  *Harm_CDET_hit_ycell;
-   vector<double>  *Harm_CDET_hit_zcell;
-   vector<double>  *Harm_CDET_hit_xgcell;
-   vector<double>  *Harm_CDET_hit_ygcell;
-   vector<double>  *Harm_CDET_hit_zgcell;
-   vector<int>     *Harm_CDET_hit_NumPhotoelectrons;
-   vector<double>  *Harm_CDET_hit_Time_avg;
-   vector<double>  *Harm_CDET_hit_Time_rms;
-   vector<double>  *Harm_CDET_hit_Time_min;
-   vector<double>  *Harm_CDET_hit_Time_max;
-   vector<int>     *Harm_CDET_hit_otridx;
-   vector<int>     *Harm_CDET_hit_ptridx;
-   vector<int>     *Harm_CDET_hit_sdtridx;
-   Double_t        Harm_CDET_Scint_det_esum;
-   Int_t           Harm_CDET_Scint_hit_nhits;
-   vector<int>     *Harm_CDET_Scint_hit_row;
-   vector<int>     *Harm_CDET_Scint_hit_col;
-   vector<int>     *Harm_CDET_Scint_hit_cell;
-   vector<int>     *Harm_CDET_Scint_hit_plane;
-   vector<int>     *Harm_CDET_Scint_hit_wire;
-   vector<double>  *Harm_CDET_Scint_hit_xcell;
-   vector<double>  *Harm_CDET_Scint_hit_ycell;
-   vector<double>  *Harm_CDET_Scint_hit_zcell;
-   vector<double>  *Harm_CDET_Scint_hit_xcellg;
-   vector<double>  *Harm_CDET_Scint_hit_ycellg;
-   vector<double>  *Harm_CDET_Scint_hit_zcellg;
-   vector<double>  *Harm_CDET_Scint_hit_xhit;
-   vector<double>  *Harm_CDET_Scint_hit_yhit;
-   vector<double>  *Harm_CDET_Scint_hit_zhit;
-   vector<double>  *Harm_CDET_Scint_hit_xhitg;
-   vector<double>  *Harm_CDET_Scint_hit_yhitg;
-   vector<double>  *Harm_CDET_Scint_hit_zhitg;
-   vector<double>  *Harm_CDET_Scint_hit_sumedep;
-   vector<double>  *Harm_CDET_Scint_hit_tavg;
-   vector<double>  *Harm_CDET_Scint_hit_trms;
-   vector<double>  *Harm_CDET_Scint_hit_tmin;
-   vector<double>  *Harm_CDET_Scint_hit_tmax;
-   vector<int>     *Harm_CDET_Scint_hit_otridx;
-   vector<int>     *Harm_CDET_Scint_hit_ptridx;
-   vector<int>     *Harm_CDET_Scint_hit_sdtridx;
    Int_t           Harm_HCal_hit_nhits;
    vector<int>     *Harm_HCal_hit_PMT;
    vector<int>     *Harm_HCal_hit_row;
@@ -421,9 +382,22 @@ public :
    vector<double>  *SDTrack_polz;
    vector<double>  *SDTrack_Etot;
    vector<double>  *SDTrack_T;
+   vector<double>  *SDTrack_vx;
+   vector<double>  *SDTrack_vy;
+   vector<double>  *SDTrack_vz;
+   vector<double>  *SDTrack_vnx;
+   vector<double>  *SDTrack_vny;
+   vector<double>  *SDTrack_vnz;
+   vector<double>  *SDTrack_vEkin;
 
    // List of branches
    TBranch        *b_ev;   //!
+   TBranch        *b_TargPol;   //!
+   TBranch        *b_TargThetaSpin;   //!
+   TBranch        *b_TargPhiSpin;   //!
+   TBranch        *b_BeamPol;   //!
+   TBranch        *b_BeamThetaSpin;   //!
+   TBranch        *b_BeamPhiSpin;   //!
    TBranch        *b_Earm_BBGEM_hit_nhits;   //!
    TBranch        *b_Earm_BBGEM_hit_plane;   //!
    TBranch        *b_Earm_BBGEM_hit_strip;   //!
@@ -638,52 +612,6 @@ public :
    TBranch        *b_Earm_GRINCH_hit_otridx;   //!
    TBranch        *b_Earm_GRINCH_hit_ptridx;   //!
    TBranch        *b_Earm_GRINCH_hit_sdtridx;   //!
-   TBranch        *b_Harm_CDET_hit_nhits;   //!
-   TBranch        *b_Harm_CDET_hit_PMT;   //!
-   TBranch        *b_Harm_CDET_hit_row;   //!
-   TBranch        *b_Harm_CDET_hit_col;   //!
-   TBranch        *b_Harm_CDET_hit_plane;   //!
-   TBranch        *b_Harm_CDET_hit_xcell;   //!
-   TBranch        *b_Harm_CDET_hit_ycell;   //!
-   TBranch        *b_Harm_CDET_hit_zcell;   //!
-   TBranch        *b_Harm_CDET_hit_xgcell;   //!
-   TBranch        *b_Harm_CDET_hit_ygcell;   //!
-   TBranch        *b_Harm_CDET_hit_zgcell;   //!
-   TBranch        *b_Harm_CDET_hit_NumPhotoelectrons;   //!
-   TBranch        *b_Harm_CDET_hit_Time_avg;   //!
-   TBranch        *b_Harm_CDET_hit_Time_rms;   //!
-   TBranch        *b_Harm_CDET_hit_Time_min;   //!
-   TBranch        *b_Harm_CDET_hit_Time_max;   //!
-   TBranch        *b_Harm_CDET_hit_otridx;   //!
-   TBranch        *b_Harm_CDET_hit_ptridx;   //!
-   TBranch        *b_Harm_CDET_hit_sdtridx;   //!
-   TBranch        *b_Harm_CDET_Scint_det_esum;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_nhits;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_row;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_col;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_cell;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_plane;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_wire;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_xcell;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_ycell;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_zcell;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_xcellg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_ycellg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_zcellg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_xhit;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_yhit;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_zhit;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_xhitg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_yhitg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_zhitg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_sumedep;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_tavg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_trms;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_tmin;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_tmax;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_otridx;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_ptridx;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_sdtridx;   //!
    TBranch        *b_Harm_HCal_hit_nhits;   //!
    TBranch        *b_Harm_HCal_hit_PMT;   //!
    TBranch        *b_Harm_HCal_hit_row;   //!
@@ -774,6 +702,13 @@ public :
    TBranch        *b_SDTrack_polz;   //!
    TBranch        *b_SDTrack_Etot;   //!
    TBranch        *b_SDTrack_T;   //!
+   TBranch        *b_SDTrack_vx;   //!
+   TBranch        *b_SDTrack_vy;   //!
+   TBranch        *b_SDTrack_vz;   //!
+   TBranch        *b_SDTrack_vnx;   //!
+   TBranch        *b_SDTrack_vny;   //!
+   TBranch        *b_SDTrack_vnz;   //!
+   TBranch        *b_SDTrack_vEkin;   //!
 
    gmn_tree(TTree *tree=0);
    virtual ~gmn_tree();
@@ -794,9 +729,9 @@ gmn_tree::gmn_tree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("gmn_13.5GeV2.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/volatile/halla/sbs/puckett/g4sbs_output/gmn_beam_background/SBS1/gmn_background_SBS1_job1.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("gmn_13.5GeV2.root");
+         f = new TFile("/volatile/halla/sbs/puckett/g4sbs_output/gmn_beam_background/SBS1/gmn_background_SBS1_job1.root");
       }
       f->GetObject("T",tree);
 
@@ -1043,49 +978,6 @@ void gmn_tree::Init(TTree *tree)
    Earm_GRINCH_hit_otridx = 0;
    Earm_GRINCH_hit_ptridx = 0;
    Earm_GRINCH_hit_sdtridx = 0;
-   Harm_CDET_hit_PMT = 0;
-   Harm_CDET_hit_row = 0;
-   Harm_CDET_hit_col = 0;
-   Harm_CDET_hit_plane = 0;
-   Harm_CDET_hit_xcell = 0;
-   Harm_CDET_hit_ycell = 0;
-   Harm_CDET_hit_zcell = 0;
-   Harm_CDET_hit_xgcell = 0;
-   Harm_CDET_hit_ygcell = 0;
-   Harm_CDET_hit_zgcell = 0;
-   Harm_CDET_hit_NumPhotoelectrons = 0;
-   Harm_CDET_hit_Time_avg = 0;
-   Harm_CDET_hit_Time_rms = 0;
-   Harm_CDET_hit_Time_min = 0;
-   Harm_CDET_hit_Time_max = 0;
-   Harm_CDET_hit_otridx = 0;
-   Harm_CDET_hit_ptridx = 0;
-   Harm_CDET_hit_sdtridx = 0;
-   Harm_CDET_Scint_hit_row = 0;
-   Harm_CDET_Scint_hit_col = 0;
-   Harm_CDET_Scint_hit_cell = 0;
-   Harm_CDET_Scint_hit_plane = 0;
-   Harm_CDET_Scint_hit_wire = 0;
-   Harm_CDET_Scint_hit_xcell = 0;
-   Harm_CDET_Scint_hit_ycell = 0;
-   Harm_CDET_Scint_hit_zcell = 0;
-   Harm_CDET_Scint_hit_xcellg = 0;
-   Harm_CDET_Scint_hit_ycellg = 0;
-   Harm_CDET_Scint_hit_zcellg = 0;
-   Harm_CDET_Scint_hit_xhit = 0;
-   Harm_CDET_Scint_hit_yhit = 0;
-   Harm_CDET_Scint_hit_zhit = 0;
-   Harm_CDET_Scint_hit_xhitg = 0;
-   Harm_CDET_Scint_hit_yhitg = 0;
-   Harm_CDET_Scint_hit_zhitg = 0;
-   Harm_CDET_Scint_hit_sumedep = 0;
-   Harm_CDET_Scint_hit_tavg = 0;
-   Harm_CDET_Scint_hit_trms = 0;
-   Harm_CDET_Scint_hit_tmin = 0;
-   Harm_CDET_Scint_hit_tmax = 0;
-   Harm_CDET_Scint_hit_otridx = 0;
-   Harm_CDET_Scint_hit_ptridx = 0;
-   Harm_CDET_Scint_hit_sdtridx = 0;
    Harm_HCal_hit_PMT = 0;
    Harm_HCal_hit_row = 0;
    Harm_HCal_hit_col = 0;
@@ -1170,6 +1062,13 @@ void gmn_tree::Init(TTree *tree)
    SDTrack_polz = 0;
    SDTrack_Etot = 0;
    SDTrack_T = 0;
+   SDTrack_vx = 0;
+   SDTrack_vy = 0;
+   SDTrack_vz = 0;
+   SDTrack_vnx = 0;
+   SDTrack_vny = 0;
+   SDTrack_vnz = 0;
+   SDTrack_vEkin = 0;
    // Set branch addresses and branch pointers
    if (!tree) return;
    fChain = tree;
@@ -1177,6 +1076,12 @@ void gmn_tree::Init(TTree *tree)
    fChain->SetMakeClass(1);
 
    fChain->SetBranchAddress("ev", &ev_count, &b_ev);
+   fChain->SetBranchAddress("TargPol", &TargPol, &b_TargPol);
+   fChain->SetBranchAddress("TargThetaSpin", &TargThetaSpin, &b_TargThetaSpin);
+   fChain->SetBranchAddress("TargPhiSpin", &TargPhiSpin, &b_TargPhiSpin);
+   fChain->SetBranchAddress("BeamPol", &BeamPol, &b_BeamPol);
+   fChain->SetBranchAddress("BeamThetaSpin", &BeamThetaSpin, &b_BeamThetaSpin);
+   fChain->SetBranchAddress("BeamPhiSpin", &BeamPhiSpin, &b_BeamPhiSpin);
    fChain->SetBranchAddress("Earm.BBGEM.hit.nhits", &Earm_BBGEM_hit_nhits, &b_Earm_BBGEM_hit_nhits);
    fChain->SetBranchAddress("Earm.BBGEM.hit.plane", &Earm_BBGEM_hit_plane, &b_Earm_BBGEM_hit_plane);
    fChain->SetBranchAddress("Earm.BBGEM.hit.strip", &Earm_BBGEM_hit_strip, &b_Earm_BBGEM_hit_strip);
@@ -1391,52 +1296,6 @@ void gmn_tree::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.GRINCH.hit.otridx", &Earm_GRINCH_hit_otridx, &b_Earm_GRINCH_hit_otridx);
    fChain->SetBranchAddress("Earm.GRINCH.hit.ptridx", &Earm_GRINCH_hit_ptridx, &b_Earm_GRINCH_hit_ptridx);
    fChain->SetBranchAddress("Earm.GRINCH.hit.sdtridx", &Earm_GRINCH_hit_sdtridx, &b_Earm_GRINCH_hit_sdtridx);
-   fChain->SetBranchAddress("Harm.CDET.hit.nhits", &Harm_CDET_hit_nhits, &b_Harm_CDET_hit_nhits);
-   fChain->SetBranchAddress("Harm.CDET.hit.PMT", &Harm_CDET_hit_PMT, &b_Harm_CDET_hit_PMT);
-   fChain->SetBranchAddress("Harm.CDET.hit.row", &Harm_CDET_hit_row, &b_Harm_CDET_hit_row);
-   fChain->SetBranchAddress("Harm.CDET.hit.col", &Harm_CDET_hit_col, &b_Harm_CDET_hit_col);
-   fChain->SetBranchAddress("Harm.CDET.hit.plane", &Harm_CDET_hit_plane, &b_Harm_CDET_hit_plane);
-   fChain->SetBranchAddress("Harm.CDET.hit.xcell", &Harm_CDET_hit_xcell, &b_Harm_CDET_hit_xcell);
-   fChain->SetBranchAddress("Harm.CDET.hit.ycell", &Harm_CDET_hit_ycell, &b_Harm_CDET_hit_ycell);
-   fChain->SetBranchAddress("Harm.CDET.hit.zcell", &Harm_CDET_hit_zcell, &b_Harm_CDET_hit_zcell);
-   fChain->SetBranchAddress("Harm.CDET.hit.xgcell", &Harm_CDET_hit_xgcell, &b_Harm_CDET_hit_xgcell);
-   fChain->SetBranchAddress("Harm.CDET.hit.ygcell", &Harm_CDET_hit_ygcell, &b_Harm_CDET_hit_ygcell);
-   fChain->SetBranchAddress("Harm.CDET.hit.zgcell", &Harm_CDET_hit_zgcell, &b_Harm_CDET_hit_zgcell);
-   fChain->SetBranchAddress("Harm.CDET.hit.NumPhotoelectrons", &Harm_CDET_hit_NumPhotoelectrons, &b_Harm_CDET_hit_NumPhotoelectrons);
-   fChain->SetBranchAddress("Harm.CDET.hit.Time_avg", &Harm_CDET_hit_Time_avg, &b_Harm_CDET_hit_Time_avg);
-   fChain->SetBranchAddress("Harm.CDET.hit.Time_rms", &Harm_CDET_hit_Time_rms, &b_Harm_CDET_hit_Time_rms);
-   fChain->SetBranchAddress("Harm.CDET.hit.Time_min", &Harm_CDET_hit_Time_min, &b_Harm_CDET_hit_Time_min);
-   fChain->SetBranchAddress("Harm.CDET.hit.Time_max", &Harm_CDET_hit_Time_max, &b_Harm_CDET_hit_Time_max);
-   fChain->SetBranchAddress("Harm.CDET.hit.otridx", &Harm_CDET_hit_otridx, &b_Harm_CDET_hit_otridx);
-   fChain->SetBranchAddress("Harm.CDET.hit.ptridx", &Harm_CDET_hit_ptridx, &b_Harm_CDET_hit_ptridx);
-   fChain->SetBranchAddress("Harm.CDET.hit.sdtridx", &Harm_CDET_hit_sdtridx, &b_Harm_CDET_hit_sdtridx);
-   fChain->SetBranchAddress("Harm.CDET_Scint.det.esum", &Harm_CDET_Scint_det_esum, &b_Harm_CDET_Scint_det_esum);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.nhits", &Harm_CDET_Scint_hit_nhits, &b_Harm_CDET_Scint_hit_nhits);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.row", &Harm_CDET_Scint_hit_row, &b_Harm_CDET_Scint_hit_row);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.col", &Harm_CDET_Scint_hit_col, &b_Harm_CDET_Scint_hit_col);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.cell", &Harm_CDET_Scint_hit_cell, &b_Harm_CDET_Scint_hit_cell);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.plane", &Harm_CDET_Scint_hit_plane, &b_Harm_CDET_Scint_hit_plane);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.wire", &Harm_CDET_Scint_hit_wire, &b_Harm_CDET_Scint_hit_wire);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.xcell", &Harm_CDET_Scint_hit_xcell, &b_Harm_CDET_Scint_hit_xcell);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.ycell", &Harm_CDET_Scint_hit_ycell, &b_Harm_CDET_Scint_hit_ycell);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.zcell", &Harm_CDET_Scint_hit_zcell, &b_Harm_CDET_Scint_hit_zcell);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.xcellg", &Harm_CDET_Scint_hit_xcellg, &b_Harm_CDET_Scint_hit_xcellg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.ycellg", &Harm_CDET_Scint_hit_ycellg, &b_Harm_CDET_Scint_hit_ycellg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.zcellg", &Harm_CDET_Scint_hit_zcellg, &b_Harm_CDET_Scint_hit_zcellg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.xhit", &Harm_CDET_Scint_hit_xhit, &b_Harm_CDET_Scint_hit_xhit);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.yhit", &Harm_CDET_Scint_hit_yhit, &b_Harm_CDET_Scint_hit_yhit);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.zhit", &Harm_CDET_Scint_hit_zhit, &b_Harm_CDET_Scint_hit_zhit);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.xhitg", &Harm_CDET_Scint_hit_xhitg, &b_Harm_CDET_Scint_hit_xhitg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.yhitg", &Harm_CDET_Scint_hit_yhitg, &b_Harm_CDET_Scint_hit_yhitg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.zhitg", &Harm_CDET_Scint_hit_zhitg, &b_Harm_CDET_Scint_hit_zhitg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.sumedep", &Harm_CDET_Scint_hit_sumedep, &b_Harm_CDET_Scint_hit_sumedep);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.tavg", &Harm_CDET_Scint_hit_tavg, &b_Harm_CDET_Scint_hit_tavg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.trms", &Harm_CDET_Scint_hit_trms, &b_Harm_CDET_Scint_hit_trms);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.tmin", &Harm_CDET_Scint_hit_tmin, &b_Harm_CDET_Scint_hit_tmin);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.tmax", &Harm_CDET_Scint_hit_tmax, &b_Harm_CDET_Scint_hit_tmax);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.otridx", &Harm_CDET_Scint_hit_otridx, &b_Harm_CDET_Scint_hit_otridx);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.ptridx", &Harm_CDET_Scint_hit_ptridx, &b_Harm_CDET_Scint_hit_ptridx);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.sdtridx", &Harm_CDET_Scint_hit_sdtridx, &b_Harm_CDET_Scint_hit_sdtridx);
    fChain->SetBranchAddress("Harm.HCal.hit.nhits", &Harm_HCal_hit_nhits, &b_Harm_HCal_hit_nhits);
    fChain->SetBranchAddress("Harm.HCal.hit.PMT", &Harm_HCal_hit_PMT, &b_Harm_HCal_hit_PMT);
    fChain->SetBranchAddress("Harm.HCal.hit.row", &Harm_HCal_hit_row, &b_Harm_HCal_hit_row);
@@ -1527,6 +1386,13 @@ void gmn_tree::Init(TTree *tree)
    fChain->SetBranchAddress("SDTrack.polz", &SDTrack_polz, &b_SDTrack_polz);
    fChain->SetBranchAddress("SDTrack.Etot", &SDTrack_Etot, &b_SDTrack_Etot);
    fChain->SetBranchAddress("SDTrack.T", &SDTrack_T, &b_SDTrack_T);
+   fChain->SetBranchAddress("SDTrack.vx", &SDTrack_vx, &b_SDTrack_vx);
+   fChain->SetBranchAddress("SDTrack.vy", &SDTrack_vy, &b_SDTrack_vy);
+   fChain->SetBranchAddress("SDTrack.vz", &SDTrack_vz, &b_SDTrack_vz);
+   fChain->SetBranchAddress("SDTrack.vnx", &SDTrack_vnx, &b_SDTrack_vnx);
+   fChain->SetBranchAddress("SDTrack.vny", &SDTrack_vny, &b_SDTrack_vny);
+   fChain->SetBranchAddress("SDTrack.vnz", &SDTrack_vnz, &b_SDTrack_vnz);
+   fChain->SetBranchAddress("SDTrack.vEkin", &SDTrack_vEkin, &b_SDTrack_vEkin);
    Notify();
 }
 

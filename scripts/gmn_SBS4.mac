@@ -1,5 +1,5 @@
 ## Configure G4SBS for gmn (Q^2 = 13.3 GeV^2)
-/g4sbs/filename        gmn_SBS1.root   ## Output rootfile
+/g4sbs/filename        gmn_SBS4.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gmn
@@ -13,14 +13,14 @@
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator
 /g4sbs/beamcur         30.0 muA
-/g4sbs/beamE           1.92 GeV
-/g4sbs/thmin           41.0 deg
-/g4sbs/thmax           61.0 deg
+/g4sbs/beamE            GeV
+/g4sbs/thmin           26.0 deg
+/g4sbs/thmax           46.0 deg
 /g4sbs/phmin           -30 deg
 /g4sbs/phmax           30 deg
 
 ## Configure standard detector settings
-/g4sbs/hcaldist        13.5 m
+/g4sbs/hcaldist        11.0 m
 /g4sbs/hcalvoffset     0.45 m
 /g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
 /g4sbs/sbsclampopt     3                 ## Front field clamp only
@@ -34,9 +34,9 @@
 #/g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
 /g4sbs/sbsmagfield     1.23 tesla
 /g4sbs/48d48field      1
-/g4sbs/bbang           51.0 deg
-/g4sbs/bbdist          1.85 m
-/g4sbs/sbsang          33.5 deg
+/g4sbs/bbang           36.0 deg
+/g4sbs/bbdist          1.80 m
+/g4sbs/sbsang          31.9 deg
 /g4sbs/48D48dist       2.25 m 
 
 

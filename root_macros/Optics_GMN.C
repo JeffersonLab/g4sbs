@@ -323,7 +323,7 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 
 	  bool goodfirsthit=false;
 	  for( int ihit=0; ihit<T->Earm_BBGEM_hit_nhits; ihit++ ){
-	    if( (*(T->Earm_BBGEM_hit_mid))[ihit] == 0 && (*(T->Earm_BBGEM_hit_p))[ihit] >= 0.004*T->ev_ep &&
+	    if( (*(T->Earm_BBGEM_hit_mid))[ihit] == 0 && (*(T->Earm_BBGEM_hit_p))[ihit] >= 0.994*T->ev_ep &&
 		(*(T->Earm_BBGEM_hit_plane))[ihit] == 1 ){
 	      goodfirsthit = true;
 	    }

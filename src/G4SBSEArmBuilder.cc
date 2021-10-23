@@ -433,9 +433,9 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   //AJRP: based on surveys of the as-installed BigBite detector stack for GMN:
   //But we will need to correct for the offset of the first GEM layer wrt the front of the box (maybe):
-  detboxang = 10.22*deg;
-  midplanez = -motherdepth/2.0+clear + 215.34*mm;
-  detboxplace = 909.35*mm - 50.0*mm; //50 mm to account for placement of 1st GEM wrt front of box (see detoffset below)
+  detboxang = 10.0*deg;
+  midplanez = -motherdepth/2.0+clear + 144.02*mm;
+  detboxplace = 979.57*mm - 50.0*mm; //50 mm to account for placement of 1st GEM wrt front of box (see detoffset below)
   
   G4Box *bbdetbox = new G4Box("bbdetbox", bbmagwidth/2.0, detboxheight/2.0, detboxdepth/2.0);
   G4LogicalVolume *bbdetLog=new G4LogicalVolume(bbdetbox, GetMaterial("Air"),

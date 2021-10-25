@@ -5,19 +5,19 @@
 /g4sbs/exp             gmn
 
 ## Configure the target
-/g4sbs/target          LD2
+/g4sbs/target          LH2
 /g4sbs/targlen         15.0 cm           ## Target Length
 /g4sbs/rasterx 	       2.0 mm  #raster size in X
 /g4sbs/rastery	       2.0 mm  #raster size in Y
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator
-/g4sbs/beamcur         30.0 muA
-/g4sbs/beamE            GeV
-/g4sbs/thmin           26.0 deg
-/g4sbs/thmax           46.0 deg
-/g4sbs/phmin           -30 deg
-/g4sbs/phmax           30 deg
+/g4sbs/beamcur         1.0 muA
+/g4sbs/beamE           3.7283 GeV
+/g4sbs/thmin           31.0 deg
+/g4sbs/thmax           43.0 deg
+/g4sbs/phmin           -25 deg
+/g4sbs/phmax           25 deg
 
 ## Configure standard detector settings
 /g4sbs/hcaldist        11.0 m

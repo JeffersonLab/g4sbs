@@ -155,6 +155,13 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 
   inputfile >> pexpansion_flag;
 
+  double cutxptar_true = 0.2;
+  double cutyptar_true = 0.1;
+  double cutytar_true = 0.1;
+  inputfile >> cutxptar_true;
+  inputfile >> cutyptar_true;
+  inputfile >> cutytar_true;
+  
   double dsieve=1.18; //m
   inputfile >> dsieve;
   
@@ -399,7 +406,8 @@ void Optics_GMN( const char *inputfilename, const char *outputfilename, int NMAX
 	  
 	  //shouldn't hardcode this but whatever:
 	  if( fabs( xsieve ) < 0.24 &&
-	      fabs( ysieve ) < 0.08 && fabs(xptar)<0.16 ){
+	      fabs( ysieve ) < 0.08 && fabs(xptar)<cutxptar_true && fabs(yptar)<cutyptar_true &&
+	      fabs(ytar) < cutytar_true ){
 	    goodtrack = true;
 	  }
 	  goodtrack = goodtrack && goodfirsthit;

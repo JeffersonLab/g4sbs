@@ -27,7 +27,8 @@
 
 ## Configure the magnets
 /g4sbs/bbfield         1
-/g4sbs/scalebbfield    1.0776     
+#/g4sbs/scalebbfield    1.0776
+/g4sbs/scalebbfield    0.9672 
 #/g4sbs/tosfield        GMN13_field_newheader.table
 #/g4sbs/sbsmagfield     0.97 tesla
 #/g4sbs/tosfield  	BigBitePortableFieldMap.table 1

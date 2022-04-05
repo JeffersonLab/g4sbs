@@ -323,7 +323,11 @@ private:
 
   G4UIcmdWithABool *UseGEMshieldCmd;
   G4UIcmdWithADoubleAndUnit *GEMshieldThickCmd;
-  G4UIcmdWithADoubleAndUnit *GEMshieldAirGapThickCmd; 
+  G4UIcmdWithADoubleAndUnit *GEMshieldAirGapThickCmd;
+  
+  G4UIcmdWithABool *EnableBigBitePlateCmd;
+  G4UIcmdWithADoubleAndUnit *SetBigBitePlateThicknessCmd;
+  G4UIcmdWithAString *SetBigBitePlateMaterialCmd;
 };
 
 #endif//G4SBSMessenger_HH

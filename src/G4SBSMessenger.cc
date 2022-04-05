@@ -914,6 +914,21 @@ G4SBSMessenger::G4SBSMessenger(){
   GEMshieldAirGapThickCmd->SetGuidance( "Thickness of air gap between aluminum shielding (in front) and GEM (give value and unit, default = 0)" );
   GEMshieldAirGapThickCmd->SetParameterName( "gemshieldairgapthick", true );
   GEMshieldAirGapThickCmd->SetDefaultValue( 0.0*CLHEP::um );
+
+  EnableBigBitePlateCmd = new G4UIcmdWithABool( "/g4sbs/setbigbiteplate", this );
+  EnableBigBitePlateCmd->SetGuidance( "setup a plate in front of BigBite, default false" );
+  EnableBigBitePlateCmd->SetParameterName( "setbigbiteplate", false );
+  EnableBigBitePlateCmd->SetDefaultValue( false );
+  
+  SetBigBitePlateThicknessCmd = new G4UIcmdWithADoubleAndUnit( "/g4sbs/bigbiteplatethick", this );
+  SetBigBitePlateThicknessCmd->SetGuidance( "set bigbite plate thickness, default 2.54cm" );
+  SetBigBitePlateThicknessCmd->SetParameterName( "bigbiteplatethick", false );
+  SetBigBitePlateThicknessCmd->SetDefaultValue( 2.54*CLHEP::cm );
+  
+  SetBigBitePlateMaterialCmd = new G4UIcmdWithAString( "/g4sbs/bigbiteplatematerial", this );
+  SetBigBitePlateMaterialCmd->SetGuidance( "set bigbite plate material, default CH2" );
+  SetBigBitePlateMaterialCmd->SetParameterName( "bigbiteplatematerial", false );
+  SetBigBitePlateMaterialCmd->SetDefaultValue( "CH2" );
   
 }
 
@@ -2516,5 +2531,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double airgapthick = GEMshieldAirGapThickCmd->GetNewDoubleValue(newValue);
     fdetcon->SetGEMAirGapThick( airgapthick );
   }
+  
+  if( cmd == EnableBigBitePlateCmd ){
+    G4bool flag = EnableBigBitePlateCmd->GetNewBoolValue(newValue);
+    fdetcon->fTargetBuilder->EnableBigBitePlate(flag);
+  }
+  
+  if( cmd == SetBigBitePlateThicknessCmd ){
+    G4double platethick = SetBigBitePlateThicknessCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetBigBitePlateThickness(platethick);
+  }
+  
+  if( cmd == SetBigBitePlateMaterialCmd ){
+    G4String platematerial = newValue;
+    fdetcon->fTargetBuilder->SetBigBitePlateMaterial(platematerial);
+  }
+  
   
 }

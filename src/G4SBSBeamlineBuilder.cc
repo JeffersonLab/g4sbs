@@ -4051,8 +4051,8 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   G4double mindist_SCshield = 6.125*inch;
   G4double th_SCshield = 4.0*inch;
   G4double h_SCshield = 12.0*inch;//18.0*inch;
-  G4double w1_SCshield = z1_ringshield*tan(25.1*deg)-mindist_SCshield;
-  G4double w2_SCshield = (z1_ringshield+th_SCshield)*tan(25.1*deg)-mindist_SCshield;
+  G4double w1_SCshield = z1_ringshield*tan(20.0*deg)-mindist_SCshield;
+  G4double w2_SCshield = (z1_ringshield+th_SCshield)*tan(20.0*deg)-mindist_SCshield;
   // G4double rin_ringshield = z1_ringshield*sin(6.0*deg);
   // G4double rout_ringshield = z2_ringshield*sin(12.0*deg);
   

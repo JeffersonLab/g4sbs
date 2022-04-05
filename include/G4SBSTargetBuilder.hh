@@ -97,6 +97,10 @@ public:
 
   void BuildRadiator(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector );
   
+  void EnableBigBitePlate( G4bool b ){fPlasticPlate = b;}
+  void SetBigBitePlateThickness( G4double v ){fPlasticPlateThickness = v;}
+  void SetBigBitePlateMaterial( G4String s ){fPlasticMaterial = s;}
+  
 private:
   //Multi-foil solid targets (only Carbon available for now):
   G4int fNtargetFoils;
@@ -121,6 +125,10 @@ private:
   G4double fRadZoffset;  //Distance upstream of target
 
   G4double fGEn_GLASS_TUBE_LENGTH; // length of GEn 3He glass tube (target cell)  
+  
+  G4bool fPlasticPlate;
+  G4double fPlasticPlateThickness;
+  G4String fPlasticMaterial;
   
   G4SBS::Targ_t fTargType;
 };

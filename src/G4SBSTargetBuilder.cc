@@ -46,6 +46,10 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fRadZoffset = 10.0*cm;
   
   fSchamFlag = 0;
+  
+  fPlasticPlate = false;
+  fPlasticPlateThickness = 2.54*cm;
+  fPlasticMaterial = G4String("CH2");
 }
 
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
@@ -575,6 +579,24 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   				  SCRightSnoutWindowFrameDist*cos(SCRightSnoutAngle)), 
   		    logicScatChamberRightSnoutWindowFrame, "SCRightSnoutWindowFrame", worldlog, false, 0, ChkOverlaps);
   
+
+  if( fPlasticPlate ){
+    G4Box* solidPlasticPlate = 
+    new G4Box("solidPlasticPlate", SCRightSnoutWidth*0.5, 
+	      SCRightSnoutHeight*0.5, fPlasticPlateThickness*0.5);
+    
+    G4double PlasticPlateDist = SCRightSnoutWindowFrameDist + 1.*inch + fPlasticPlateThickness*0.5;
+      
+    G4LogicalVolume* logicPlasticPlate = 
+      new G4LogicalVolume(solidPlasticPlate, GetMaterial(fPlasticMaterial.data()), "PlasticPlate_log");
+
+    new G4PVPlacement(rot_temp, 
+		      G4ThreeVector(PlasticPlateDist*sin(SCRightSnoutAngle),
+				    0,
+				    PlasticPlateDist*cos(SCRightSnoutAngle)), 
+		      logicPlasticPlate, "PlasticPlate", worldlog, false, 0, ChkOverlaps);
+    
+  }
 		    
   // Left snout opening:
   G4double SCLeftSnoutDepth = 4.0*inch;// x

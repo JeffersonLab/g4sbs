@@ -81,7 +81,7 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //BuildGasTarget( worldlog );
     BuildGEnTarget(worldlog);
     break;
-  default: //GMN, GEN-RP:
+  default: //GMN, GEN-RP, GEP_BB:
     BuildStandardScatCham( worldlog );
     break;
   }

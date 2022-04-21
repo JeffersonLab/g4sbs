@@ -50,6 +50,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     }
     break;
   case(G4SBS::kGMN):// GMn
+  case(G4SBS::kGEp_BB):
     fDetCon->fBeamlineConf = 3;
     MakeGMnBeamline(worldlog);
     //if(fDetCon->fLeadOption == 1){

@@ -1217,6 +1217,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fExpType = G4SBS::kGEp;
       validcmd = true;
     }
+
+    if( newValue.compareTo("gep_bb") == 0 ){
+      fExpType = G4SBS::kGEp_BB;
+      validcmd = true;
+    }
+    
     if( newValue.compareTo("gepeplus") == 0 ){
       fExpType = G4SBS::kGEPpositron;
       validcmd = true;

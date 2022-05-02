@@ -137,10 +137,10 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeTracker(worldlog);
     //MakeRICH( worldlog );
     MakeRICH_new( worldlog );
-  } else if ( exptype == G4SBS::kGEp || exptype == G4SBS::kGEPpositron ) {
+  } else if ( exptype == G4SBS::kGEp || exptype == G4SBS::kGEPpositron || exptype == G4SBS::kGEp_BB ) {
     //Subsystems unique to the GEp experiment include FPP and BigCal:
     MakeGEpFPP(worldlog);
-  }
+  } 
 
   if ( exptype == G4SBS::kA1n  || exptype == G4SBS::kTDIS || exptype == G4SBS::kNDVCS ) {
     //A1n case is similar to SIDIS, except now we want to use the SBS in
@@ -245,10 +245,19 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
 void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
 {
+
+  G4SBS::Exp_t exptype = fDetCon->fExpType;
+  
+  //If exptype is GEp_BB option, we build a slightly different version of the FPP:
+  
   //Let's make a box and then put the FPP in it:
   //Define the rotation matrix for the FPP (pitch angle of 5 deg relative to vertical): 
   G4double sbsboxpitch = 5.0*deg;
 
+  if( exptype == G4SBS::kGEp_BB ){
+    sbsboxpitch = 3.0*deg;
+  }
+  
   SetTrackerPitch( sbsboxpitch );
   
   G4RotationMatrix *SBS_FPP_rm = new G4RotationMatrix;
@@ -3754,6 +3763,12 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos ){
   //FPP consists of GEM tracker interspersed w/CH2 analyzers:
 
+  G4SBS::Exp_t exptype = fDetCon->fExpType;
+
+  if( exptype == G4SBS::kGEp_BB ) {
+    fGEPFPPoption = 4;
+  }
+  
   //Make analyzers first:
   // double anaheight = fGEP_CH2height;
   // double anawidth  = fGEP_CH2width;
@@ -3826,6 +3841,28 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 
     AnalyzerMaterials.push_back( "CH2" );
     AnalyzerMaterials.push_back( "Steel" );
+    
+    break;
+  case 4:
+    //4 = GEP BigBite option: since 4 U/V layers and 1 X/Y layer will be in BigBite, what is left over will be 9 X/Y layers 60x200. Let's try the following layout:
+    // 9 X/Y layers 50x120 in the front, plus 6 X/Y 60x150 in the back.
+    nana = 1;
+    ntracker = 2;
+
+    ngem[0] = 9;
+    ngem[1] = 6;
+    GEM_z_spacing[0] = 9.0*cm;
+    GEM_z_spacing[1] = 10.0*cm;
+
+    trkr_zpos[0] = 0.0;
+    trkr_zpos[1] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0] + fCH2thickFPP[0] + GEM_z_spacing[1];
+    fGEP_CH2zpos[0] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0]; //upstream edge of CH2;
+    SDnames.push_back( "Harm/FT" );
+    SDnames.push_back( "Harm/FPP1" );
+    fGEP_CH2width[0] = 60.0*cm;
+    fGEP_CH2height[0] = 200.0*cm;
+
+    AnalyzerMaterials.push_back( G4String("CH2") );
     
     break;
   case 2:
@@ -3914,16 +3951,27 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     gemh.resize( ngem[i] );
     for( j = 0; j < ngem[i]; j++ ){
       gemz[j] = trkr_zpos[i] + ((double) j)*GEM_z_spacing[i];
-      if( i == 0 && j < 6 ){ //FT 40x150:
-	//	gemz[j] = ((double) j)*GEM_z_spacing[i];
-	gemw[j] = 40.0*cm;
-	gemh[j] = 150.0*cm;
-      } else { //200x60
-	//gemz[j] = ((double) j)*10.0*cm + 1.2*m;
-	//gemz[j] = zavg + double(j-2)*GEM_z_spacing[i];
-	//	  gemz[i] = pairspac*((i-6)/2) + (i%2)*gemdsep + 1.2*m;
-	gemw[j] = 60.0*cm;
-	gemh[j] = 200.0*cm;
+
+      if( fGEPFPPoption != 4 ){
+	if( i == 0 && j < 6 ){ //FT 40x150:
+	  //	gemz[j] = ((double) j)*GEM_z_spacing[i];
+	  gemw[j] = 40.0*cm;
+	  gemh[j] = 150.0*cm;
+	} else { //200x60
+	  //gemz[j] = ((double) j)*10.0*cm + 1.2*m;
+	  //gemz[j] = zavg + double(j-2)*GEM_z_spacing[i];
+	  //	  gemz[i] = pairspac*((i-6)/2) + (i%2)*gemdsep + 1.2*m;
+	  gemw[j] = 60.0*cm;
+	  gemh[j] = 200.0*cm;
+	}
+      } else {
+	if( i == 0 ){
+	  gemw[j] = 50.0*cm;
+	  gemh[j] = 120.0*cm;
+	} else {
+	  gemw[j] = 60.0*cm;
+	  gemh[j] = 150.0*cm;
+	}
       }
     }
     //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //1 is H arm.  

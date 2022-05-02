@@ -89,9 +89,7 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     BuildStandardScatCham( worldlog );
     break;
   }
-
-  //if( fUseRad ) BuildRadiator();
-  
+    
   return;
 
 }
@@ -2304,16 +2302,25 @@ void G4SBSTargetBuilder::BuildToyScatCham( G4LogicalVolume *motherlog ){
 void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMatrix *rot, G4ThreeVector pos){
   G4double radthick = GetMaterial("Copper")->GetRadlen()*fRadThick;
 
-  //  G4cout << "Radiation length = " << fRadThick*100.0 << " % = " << radthick/mm << " mm" << G4endl;
+  G4cout << "Radiation length = " << fRadThick*100.0 << " % = " << radthick/mm << " mm" << G4endl;
   
   G4Box *radbox = new G4Box("radbox", fTargDiameter/2.0, fTargDiameter/2.0, radthick/2.0 );
 
   G4LogicalVolume *radlog = new G4LogicalVolume( radbox, GetMaterial("Copper"), "radlog" );
 
   new G4PVPlacement( rot, pos, radlog, "radphys", motherlog, false, 0 );
+  
+  G4VisAttributes *visRad = new G4VisAttributes();
+  visRad->SetColour( G4Colour(255,140,0) );
+  radlog->SetVisAttributes(visRad);
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
+  if( fUseRad ){
+    G4double zrad = fTargLen/2.0 + fRadZoffset; 
+    G4ThreeVector radiator_pos = -G4ThreeVector(0, 0, zrad);
+    BuildRadiator( motherLog, 0, radiator_pos );
+  }
   // Polarized 3He target for GEn
   // - geometry based on drawings from Bert Metzger and Gordon Cates  
 

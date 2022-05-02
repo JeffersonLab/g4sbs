@@ -2225,7 +2225,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   //CJT taking distance measurements from the target cylinder, not the end. The radius of the hemisphere in CJT is 0.41". Must subtract this from the total target length for calculation of offsets.
   G4double targetEndOffset_z = 22.8/2.0*inch; //(23.62"-2*0.41")/2
   //G4double P0initPlacement_z = -(23.62/2*inch) - 2.66*inch;  //From updated CJT file. -(half target length) - offset to beampipe flange
-  G4double P0initPlacement_z = -(targetEndOffset_z) - 2.66*inch;
+  G4double P0initPlacement_z = -(targetEndOffset_z) - 6.395*inch;
   
   //Ring 0A - Be window housing flange. Most proximal piece to target. Bolted to beampipe flange.
   G4double P0ringA_L = 0.510/2.0*inch;

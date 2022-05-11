@@ -93,10 +93,16 @@ G4bool G4SBSGEMSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 //  printf("%f %f %f\n", mom.x(), mom.y(), mom.z());
   //mom *= aTrans.NetRotation();
   //mom *= aTrans.NetRotation().inverse();
+
   mom = aTrans.TransformAxis(mom); //Momentum direction in local coordinate system of "tracker box"
 
+  // I wonder if the behavior below is what we really want? This commit was made in 2021 to get simulation optics coordinate system to match
+  // real data optics coordinate system for BigBite, but it breaks certain functionality for SBS polarimeter tracker.
+  
   pos.setZ( pos.getZ() - offset ); //Offset local z position by half of "tracker box" z width (so that z position is relative to "front" of tracker box)
   outpos.setZ( outpos.getZ() - offset ); //Offset local z position by half of "tracker box" z width (so that z position is relative to "front" of tracker box)
+
+  
 
   // printf("pos x = %f y = %f z = %f\n", pos.x(), pos.y(), pos.z());
   // printf("outpos x = %f y = %f z = %f\n", outpos.x(), outpos.y(), outpos.z());

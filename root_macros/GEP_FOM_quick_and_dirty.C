@@ -66,6 +66,31 @@ void calc_sclose_zclose( TVector3 Track1_Coord, TVector3 Track2_Coord, TVector3 
   zclose = 0.5*(z1 + z2 );
 }
 
+bool conetest( TVector3 Track1_Coord, TVector3 Track1_Slope, double theta, double zclose, double zback, double Lx=2.0, double Ly=0.6, double xcenter=0.0, double ycenter=0.0 ){
+  double xfp, yfp, xpfp, ypfp;
+
+  xfp = Track1_Coord.X() - Track1_Coord.Z() * Track1_Slope.X();
+  yfp = Track1_Coord.Y() - Track1_Coord.Z() * Track1_Slope.Y();
+  xpfp = Track1_Slope.X();
+  ypfp = Track1_Slope.Y();
+
+  double xclose = xfp + xpfp*zclose;
+  double yclose = yfp + ypfp*zclose;
+
+  double xpplus = (xpfp + tan(theta))/(1.-xpfp*tan(theta));
+  double xpminus = (xpfp - tan(theta))/(1.+xpfp*tan(theta));
+  double ypplus = (ypfp + tan(theta))/(1.-ypfp*tan(theta));
+  double ypminus = (ypfp - tan(theta))/(1.+ypfp*tan(theta));
+
+  double xmax = xclose + xpplus * (zback - zclose);
+  double xmin = xclose + xpminus * (zback - zclose);
+  double ymax = yclose + ypplus * (zback - zclose);
+  double ymin = yclose + ypminus * (zback - zclose);
+
+  return ( fabs( xmax - xcenter ) <= Lx/2.0 && fabs( xmin - xcenter ) <= Lx/2.0 && fabs( ymax - ycenter ) <= Ly/2.0 && fabs( ymin - ycenter ) <= Ly/2.0 );
+  
+}
+
 //Analyzing power parametrization: x = p_T, y = p
 TF2 *Ayfunc = new TF2("Ayfunc","([0]+[1]/y)*x*exp(-[2]*pow(x,2))",0.0,2.0, 1.0,15.0);
 TF1 *GEPfunc = new TF1("GEPfunc",KellyFunc, 0.0,40.0,4);
@@ -209,6 +234,14 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
   configfile >> zmin_FPP1 >> zmax_FPP1;
   configfile >> zmin_FPP2 >> zmax_FPP2;
 
+  int conetflag = 0; //default = don't require cone test
+  configfile >> conetflag;
+  
+  double zback_FPP1=1.622, zback_FPP2=2.761;
+  configfile >> zback_FPP1 >> zback_FPP2;
+
+  
+  
   TFile *fout = new TFile(outfilename,"RECREATE");
   
   TH1D *hECAL_sum = new TH1D("hECAL_sum","",200,0.0,7.0);
@@ -246,7 +279,18 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
   TH2D *hzclose_theta_FPP2 = new TH2D("hzclose_theta_FPP2","",250,0.0,3.0, 250,0.0,15.0);
   TH2D *hzclose_theta_FPP21 = new TH2D("hzclose_theta_FPP21","",250,0.0,3.0, 250,0.0,15.0);
   //Next step; add HCAL-based constraints
-  
+
+  //Add some diagnostic plots to check the conetest calculation:
+  TH1D *htheta_FPP1_conetfail = new TH1D("htheta_FPP1_conetfail","",250,0.0,15.0);
+  TH1D *htheta_FPP2_conetfail = new TH1D("htheta_FPP2_conetfail","",250,0.0,15.0);
+
+  //Add some diagnostic plots to check the conetest calculation:
+  TH1D *htheta_FPP1_conetpass = new TH1D("htheta_FPP1_conetpass","",250,0.0,15.0);
+  TH1D *htheta_FPP2_conetpass = new TH1D("htheta_FPP2_conetpass","",250,0.0,15.0);
+
+  //Add some diagnostic plots to check the conetest calculation:
+  TH2D *hzclose_theta_FPP1_conetfail = new TH2D("hzclose_theta_FPP1_conetfail","",250,0.0,3.0,250,0.0,15.0);
+  TH2D *hzclose_theta_FPP2_conetfail = new TH2D("hzclose_theta_FPP2_conetfail","",250,0.0,3.0,250,0.0,15.0);
   
   //Let's add zclose and zclose calculations, and also 
   
@@ -331,7 +375,7 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
     //   }
     // }
 
-    if( T->Harm_FPP2_Track_ntracks == 1 && NFPP ==2 ) idx_FPP2_track = 0;
+    if( T->Harm_FPP2_Track_ntracks == 1 && NFPP == 2 ) idx_FPP2_track = 0;
 
     if( idx_FT_track >= 0 ){
       TVector3 FT_track( (*(T->Harm_FT_Track_Xpfit))[idx_FT_track],
@@ -423,16 +467,24 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
 	
 	hPvstheta_FPP1->Fill( thetaFPP1*180.0/PI, (*(T->Harm_FPP1_Track_P))[idx_FPP1_track]/pp_FT, weight );
 
+	bool conetest1 = conetest( FT_coord, FT_track, thetaFPP1, zcloseFPP1, zback_FPP1 );
+
+	if( !conetest1 ) {
+	  htheta_FPP1_conetfail->Fill( thetaFPP1*180.0/PI, weight );
+	  hzclose_theta_FPP1_conetfail->Fill( zcloseFPP1, thetaFPP1*180./PI, weight );
+	} else {
+	  htheta_FPP1_conetpass->Fill( thetaFPP1*180.0/PI, weight );
+	}
 	
 	//Only fill zclose histograms if sclose < smax:
 	if( scloseFPP1 <= smax_FPP1 ){
-	  hzclose_FPP1->Fill( zcloseFPP1, weight );
-	  hzclose_theta_FPP1->Fill( zcloseFPP1, thetaFPP1*180./PI, weight );
+	  if( pT1 >= pTmin ) hzclose_FPP1->Fill( zcloseFPP1, weight );
+	  if( conetest1 ) hzclose_theta_FPP1->Fill( zcloseFPP1, thetaFPP1*180./PI, weight );
 	}
 
 	
 	if( pT1 >= pTmin && pT1 <= pTmax && scloseFPP1 <= smax_FPP1 && zcloseFPP1 >= zmin_FPP1
-	    && zcloseFPP1 <= zmax_FPP1 ){
+	    && zcloseFPP1 <= zmax_FPP1 && (conetest1||conetflag == 0 ) ){
 	  NAy2_sum += weight * pow( beampol * Ay1, 2 );
 	  goodFPP1 = true;
 	  Ngoodevent_sum += weight;
@@ -486,14 +538,22 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
 
 	hPvstheta_FPP2->Fill( thetaFPP2*180.0/PI, (*(T->Harm_FPP2_Track_P))[idx_FPP2_track]/pp_FT, weight );
 
+	bool conetest2 = conetest( FT_coord, FT_track, thetaFPP2, zcloseFPP2, zback_FPP2 );
+
+	if( !conetest2 ) {
+	  htheta_FPP2_conetfail->Fill( thetaFPP2*180.0/PI, weight );
+	  hzclose_theta_FPP2_conetfail->Fill( zcloseFPP2, thetaFPP2*180./PI, weight );
+	} else {
+	  htheta_FPP2_conetpass->Fill( thetaFPP2*180.0/PI, weight );
+	}
 	
 	if( scloseFPP2 <= smax_FPP2 ){
-	  hzclose_FPP2->Fill( zcloseFPP2, weight );
-	  hzclose_theta_FPP2->Fill( zcloseFPP2, thetaFPP2*180./PI, weight );
+	  if( pT2 >= pTmin ) hzclose_FPP2->Fill( zcloseFPP2, weight );
+	  if( conetest2 ) hzclose_theta_FPP2->Fill( zcloseFPP2, thetaFPP2*180./PI, weight );
 	}
 	  
 	if( pT2 >= pTmin && pT2 <= pTmax && scloseFPP2 <= smax_FPP2 &&
-	    zcloseFPP2 >= zmin_FPP2 && zcloseFPP2 <= zmax_FPP2 && !goodFPP1 ){
+	    zcloseFPP2 >= zmin_FPP2 && zcloseFPP2 <= zmax_FPP2 && (conetest2 || conetflag==0) && !goodFPP1 ){
 	  NAy2_sum += weight * pow( beampol * Ay2, 2 );
 	  Ngoodevent_sum += weight;
 	  PT_sum += PT*weight * pow( beampol * Ay2, 2 );

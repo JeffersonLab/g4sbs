@@ -2304,22 +2304,29 @@ void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMat
 
   G4cout << "Radiation length = " << fRadThick*100.0 << " % = " << radthick/mm << " mm" << G4endl;
   
-  G4Box *radbox = new G4Box("radbox", fTargDiameter/2.0, fTargDiameter/2.0, radthick/2.0 );
+  //G4Box *radbox = new G4Box("radbox", fTargDiameter/2.0, fTargDiameter/2.0, radthick/2.0);
+  
+  G4Tubs *radbox = new G4Tubs("radbox", 0, 1.854*cm, radthick/2.0, 0.0*deg, 360.*deg );
 
   G4LogicalVolume *radlog = new G4LogicalVolume( radbox, GetMaterial("Copper"), "radlog" );
 
-  new G4PVPlacement( rot, pos, radlog, "radphys", motherlog, false, 0 );
+  new G4PVPlacement( rot, pos, radlog, "radphys", motherlog, false, 0 , true);
+  
+  fDetCon->InsertTargetVolume( "radlog" );
   
   G4VisAttributes *visRad = new G4VisAttributes();
-  visRad->SetColour( G4Colour(255,140,0) );
+  visRad->SetColour( G4Colour(0.9,0.6,0.2) );
   radlog->SetVisAttributes(visRad);
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
-  if( fUseRad ){
+  if( fUseRad && fRadZoffset+fTargLen/2.0 < 28.895*cm-0.1*cm ){
     G4double zrad = fTargLen/2.0 + fRadZoffset; 
     G4ThreeVector radiator_pos = -G4ThreeVector(0, 0, zrad);
     BuildRadiator( motherLog, 0, radiator_pos );
+  }
+  if(fDetCon->GetGEnTargetCollimatorEnable()){
+    BuildGEnTarget_Collimators(motherLog, 0.0);
   }
   // Polarized 3He target for GEn
   // - geometry based on drawings from Bert Metzger and Gordon Cates  
@@ -2349,7 +2356,7 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
   G4cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = " << Q2 << " (GeV/c)^2" << G4endl; 
 
   //For now, omit TBD details of everything other than target for SIDIS:
-  if( fDetCon->fExpType == G4SBS::kGEN ){
+  if( fDetCon->fExpType == G4SBS::kGEN || fDetCon->fExpType == G4SBS::kSIDISExp ){
    
     BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
     BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);
@@ -4434,6 +4441,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
 void G4SBSTargetBuilder::BuildGEnTarget_Collimators(G4LogicalVolume *logicMother,G4double z0){
   // Collimators near target (beam left) 
   // Based on drawings from Sebastian Seeds (UConn), derived from Bert Metzger's JT file 
+  G4cout << " ********************* Building collimators for GEn ********************* " << G4endl;
   BuildGEnTarget_Collimator_A(logicMother,z0); 
   BuildGEnTarget_Collimator_B(logicMother,z0); 
   BuildGEnTarget_Collimator_C(logicMother,z0);

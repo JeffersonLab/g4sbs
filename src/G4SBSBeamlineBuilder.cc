@@ -2313,6 +2313,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 	false,
 	0,
 	ChkOverlaps );
+  
 
   //Tube 0B
   //G4double P0tubeB_L = 15.303/2.0*inch; //CJT
@@ -2401,6 +2402,23 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
                        false,
                        0,
                        ChkOverlaps);
+  }
+
+  //EPAF: add the Cu radiator *under certain conditions only*
+  // i.e the radiator is set to use, but it's distance is above
+  if(fDetCon->fTargetBuilder->UseRad()){
+    G4double zrad = fDetCon->fTargetBuilder->RadZoffset()+fDetCon->fTargetBuilder->GetTargLen()/2.0;
+    G4cout << "  " << targetEndOffset_z+0.1*cm << " <? " << zrad << " <? " <<  targetEndOffset_z+P0tubeA_L*2.0 << G4endl;
+    if(targetEndOffset_z+0.1*cm<zrad && zrad<targetEndOffset_z+P0tubeA_L*2.0){
+      fDetCon->fTargetBuilder->BuildRadiator( P0tubeA_winvacLog, 0, G4ThreeVector(0., 0., zrad+P0_vac_a_z) );
+      cout << zrad << " " << P0_vac_a_z << " => " << zrad+P0_vac_a_z << " " << P0tubeA_L << endl;
+    }else if(!enableBC_dnstr){
+      G4cout << "  " << targetEndOffset_z+P0tubeA_L << " <? " << zrad << " <? " << targetEndOffset_z+P0tubeA_L*2.0+P0tubeB_L*2.0 << G4endl;
+      if(targetEndOffset_z+P0tubeA_L*2.0<zrad && zrad<targetEndOffset_z+P0tubeA_L*2.0+P0tubeB_L*2.0){
+	cout << zrad << " " << P0_vac_b_z << " => " << zrad+P0_vac_b_z << " " << P0tubeB_L << endl;
+	fDetCon->fTargetBuilder->BuildRadiator( P0tubeB_vacLog, 0, G4ThreeVector(0., 0., zrad+P0_vac_b_z) );
+      }
+    }
   }
   
   //Tube 0C
@@ -4322,14 +4340,54 @@ void G4SBSBeamlineBuilder::MakeGEnClamp(G4LogicalVolume *worldlog){
 
 void G4SBSBeamlineBuilder::MakeGEnLead(G4LogicalVolume *worldlog){
   //Add geometry here for GEn lead shielding. None in current build - Jan 2021.
-
+  
 }
 
 
 
 void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   //Add geometry here for SIDIS lead shielding. None in current build - Jan 2021.
+  
+  //adding lead shielding for WAPP2:
+  G4cout << " ****************** Adding beamline shielding for SIDIS/WAPP **************" << G4endl;
+  bool checkoverlaps = true;
+  G4VisAttributes *visShield = new G4VisAttributes();
+  visShield->SetColour( G4Colour(0.4,0.4,0.4) );
+  // first for radiator: add a 3.75 cm thick, 18cm tall, 25cm long slab of lead, 
+  // 15 cm away from BL and as close as possible from tgt collimator A
+  G4double radshieldthick = 3.75*cm;
+  G4double radshieldlength = 30.0*cm;
+  G4double radshieldheight = 20.0*cm;
+  G4double radshield_zpos = -30*cm;
+  G4double radshield_xposl = 10*cm;
+  G4double radshield_xposr = -10*cm;
+  G4Box *radshield_solid = new G4Box("radshield_solid", radshieldthick/2.0, radshieldheight/2.0, radshieldlength/2.0);
+  
+  G4LogicalVolume *radshield_log = new G4LogicalVolume( radshield_solid, GetMaterial("Lead"), "radshield_log" );
+  radshield_log->SetVisAttributes(visShield);
+  
+  //G4RotationMatrix rot_temp = new G4RotationMatrix;
 
+  new G4PVPlacement( 0, G4ThreeVector( radshield_xposl, 0, radshield_zpos ), radshield_log, "radshield_phys_left", worldlog, false, 0, checkoverlaps );
+  
+  //do another one for right GEMs
+  new G4PVPlacement( 0, G4ThreeVector( radshield_xposr, 0, radshield_zpos ), radshield_log, "radshield_phys_right", worldlog, false, 0, checkoverlaps );
+    
+  // second for beamline: add a 5 cm thick, 30cm tall,  200 cm long slab of lead, 
+  // 30 cm away from BL and center around z=200cm
+  G4double blshieldthick = 5.0*cm;
+  G4double blshieldlength = 240.0*cm;
+  G4double blshieldheight = 40.0*cm;
+  G4double blshield_xpos = 30*cm;
+  G4double blshield_zpos = 185*cm;
+    
+  G4Box *blshield_solid = new G4Box("blshield_solid", blshieldthick/2.0, blshieldheight/2.0, blshieldlength/2.0);
+  
+  G4LogicalVolume *blshield_log = new G4LogicalVolume( blshield_solid, GetMaterial("Lead"), "blshield_log" );
+  
+  new G4PVPlacement( 0, G4ThreeVector( blshield_xpos, 0, blshield_zpos ), blshield_log, "blshield_phys", worldlog, false, 0, checkoverlaps );
+  blshield_log->SetVisAttributes(visShield);
+  
 }
 
 

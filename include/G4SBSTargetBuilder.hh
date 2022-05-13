@@ -95,6 +95,9 @@ public:
   void SetRadThick( G4double v ){ fRadThick = v; }
   void SetRadZoffset( G4double v ){ fRadZoffset = v; }
 
+  G4bool UseRad(){return fUseRad;}
+  G4double RadZoffset(){return fRadZoffset;}
+  
   void BuildRadiator(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector );
   
   void EnableBigBitePlate( G4bool b ){fPlasticPlate = b;}

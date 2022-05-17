@@ -1,0 +1,41 @@
+## Configure Experiment
+/g4sbs/exp             gepeplus
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         40.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         0.2 microampere
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           2.2 GeV
+/g4sbs/thmin           55.0 deg
+/g4sbs/thmax           85.0 deg
+/g4sbs/phmin           -60.0 deg
+/g4sbs/phmax           60.0 deg
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        6.8 m
+/g4sbs/hcalvoffset     45.0 cm
+/g4sbs/sbsclampopt     2
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/sbsmagfield     0.9 tesla # leads to 8.4 degree bend angle
+/g4sbs/48d48field      1
+/g4sbs/bbang           69.8 deg
+/g4sbs/bbdist          3.0 m
+/g4sbs/sbsang          23.2 deg
+/g4sbs/48D48dist       1.6 m
+
+## Run 100 events
+/g4sbs/totalabs		true
+/g4sbs/eventstatusevery 100
+/g4sbs/keepsdtrackinfo all true
+
+/g4sbs/filename        gep_positron_lowQ_loweps_job5.root
+/g4sbs/run             100000

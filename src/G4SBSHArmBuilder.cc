@@ -257,6 +257,13 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
   if( exptype == G4SBS::kGEp_BB ){
     sbsboxpitch = 3.0*deg;
   }
+
+  G4double sbsvoff = 0.0*cm;
+  
+  if( fGEPFPPoption != 2 ){
+    sbsboxpitch = 0.0*deg;
+    sbsvoff = 10.0*cm;
+  }
   
   SetTrackerPitch( sbsboxpitch );
   
@@ -280,7 +287,7 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
   sbslog->SetVisAttributes( G4VisAttributes::Invisible );
   //Now position and orient the FPP "box":
 
-  G4ThreeVector sbsbox_pos( -sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) );
+  G4ThreeVector sbsbox_pos( -sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch) + sbsvoff, sbsr*cos(f48D48ang) );
   
   new G4PVPlacement(SBS_FPP_rm, sbsbox_pos, sbslog,
 		    "sbsphys", worldlog, false, 0, false);
@@ -3806,8 +3813,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     fGEP_CH2zpos[0] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0]; //upstream edge of CH2
     SDnames.push_back( "Harm/FT" );
     SDnames.push_back( "Harm/FPP1" );
-    fGEP_CH2width[0] = 60.0*cm;
-    fGEP_CH2height[0] = 200.0*cm;
+    fGEP_CH2width[0] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[0] = 84.0*2.54*cm; //about 213.36 cm
 
     AnalyzerMaterials.push_back( G4String("CH2") );
     
@@ -3821,10 +3828,10 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 
     fGEP_CH2zpos[0] = 58.53*cm;
     fGEP_CH2zpos[1] = 170.3*cm;
-    fGEP_CH2width[0] = 60.0*cm;
-    fGEP_CH2height[0] = 200.0*cm;
-    fGEP_CH2width[1] = 60.0*cm;
-    fGEP_CH2height[1] = 200.0*cm;
+    fGEP_CH2width[0] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[0] = 84.0*2.54*cm; //about 213.36 cm
+    fGEP_CH2width[1] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[1] = 84.0*2.54*cm; //about 213.36 cm
 
     //fCH2thickFPP[1] = 3.5*2.54*cm; //GEN-RP steel analyzer thickness: let's not actually
     //hard-code this8.
@@ -3850,7 +3857,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     nana = 1;
     ntracker = 2;
 
-    ngem[0] = 9;
+    ngem[0] = 6;
     ngem[1] = 6;
     GEM_z_spacing[0] = 9.0*cm;
     GEM_z_spacing[1] = 10.0*cm;
@@ -3860,8 +3867,8 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     fGEP_CH2zpos[0] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0]; //upstream edge of CH2;
     SDnames.push_back( "Harm/FT" );
     SDnames.push_back( "Harm/FPP1" );
-    fGEP_CH2width[0] = 60.0*cm;
-    fGEP_CH2height[0] = 200.0*cm;
+    fGEP_CH2width[0] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[0] = 84.0*2.54*cm; //about 213.36 cm
 
     AnalyzerMaterials.push_back( G4String("CH2") );
     
@@ -3875,10 +3882,10 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     GEM_z_spacing[2] = 10.0*cm;
     fGEP_CH2zpos[0] = 58.53*cm;
     fGEP_CH2zpos[1] = 170.3*cm;
-    fGEP_CH2width[0] = 60.0*cm;
-    fGEP_CH2height[0] = 200.0*cm;
-    fGEP_CH2width[1] = 60.0*cm;
-    fGEP_CH2height[1] = 200.0*cm;
+    fGEP_CH2width[0] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[0] = 84.0*2.54*cm; //about 213.36 cm
+    fGEP_CH2width[1] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[1] = 84.0*2.54*cm; //about 213.36 cm
     
     SDnames.push_back("Harm/FT");
     SDnames.push_back("Harm/FPP1");
@@ -3966,17 +3973,20 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 	  gemh[j] = 200.0*cm;
 	}
       } else {
-	if( i == 0 ){
-	  gemw[j] = 50.0*cm;
-	  gemh[j] = 120.0*cm;
+	if( i == 0 && j<2 ){
+	  gemw[j] = 40.0*cm;
+	  gemh[j] = 150.0*cm;
 	} else {
 	  gemw[j] = 60.0*cm;
-	  gemh[j] = 150.0*cm;
+	  gemh[j] = 200.0*cm;
 	}
       }
     }
-    //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //1 is H arm.  
-    trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, SDnames[i] );
+    //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //1 is H arm.
+    G4bool ispolarimeter = false;
+    if( i > 0 ) ispolarimeter = true;
+    
+    trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, SDnames[i], ispolarimeter );
   }
 
   //CH2 analyzers:

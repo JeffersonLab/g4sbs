@@ -1,0 +1,47 @@
+## Configure G4SBS for gep (Q^2 = 12 GeV^2)
+/g4sbs/filename        gep_12GeV2_option1_75cm_job3.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gep
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         30.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         75.0 muA
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           11.0 GeV
+/g4sbs/thmin           19.0 deg
+/g4sbs/thmax           39.0 deg
+/g4sbs/phmin           -50.0 deg
+/g4sbs/phmax           50.0 deg
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        6.8 m
+/g4sbs/hcalvoffset     45.0 cm
+/g4sbs/sbsclampopt     2
+/g4sbs/uselead 	       1
+/g4sbs/beamlineconfig  1
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/tosfield        GEP_12map0_newheader.table
+/g4sbs/bbang           29.0 deg
+/g4sbs/bbdist          4.5 m
+/g4sbs/sbsang          16.9 deg
+/g4sbs/48D48dist       1.6 m
+
+## choose polarimeter configuration:
+/g4sbs/gepfppoption 1
+/g4sbs/FPP1CH2thick 75.0 cm
+
+/g4sbs/totalabs true
+/g4sbs/eventstatusevery 100
+
+## Run 100 events
+/g4sbs/run             100000

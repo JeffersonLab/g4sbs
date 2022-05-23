@@ -1,0 +1,43 @@
+## Configure G4SBS for gmn (Q^2 = 13.5 GeV^2)
+/g4sbs/filename        gmn_13.5GeV2.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gmn
+
+## Configure the target
+/g4sbs/target          LD2
+/g4sbs/targlen         15.0 cm           ## Target Length
+/g4sbs/rasterx 	       2.0 mm  #raster size in X
+/g4sbs/rastery	       2.0 mm  #raster size in Y
+
+## Configure generator settings
+#/g4sbs/kine            elastic           ## Generator
+/g4sbs/kine 		beam
+/g4sbs/beamcur         30.0 muA
+/g4sbs/beamE           11.0 GeV
+/g4sbs/thmin           27.0 deg
+/g4sbs/thmax           41.0 deg
+/g4sbs/phmin           -26 deg
+/g4sbs/phmax           26 deg
+
+## Configure standard detector settings
+/g4sbs/hcaldist        17.0 m
+/g4sbs/hcalvoffset     0.45 m
+/g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
+/g4sbs/sbsclampopt     3                 ## Front field clamp only
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/tosfield        GMN13_field_newheader.table
+#/g4sbs/48d48field      1
+/g4sbs/bbang           33.0 deg
+/g4sbs/bbdist          1.55 m
+/g4sbs/sbsang          14.8 deg
+/g4sbs/48D48dist       3.1 m
+#/g4sbs/sbsmagfield     0.97 tesla
+
+/g4sbs/keepsdtrackinfo 	all true
+/g4sbs/totalabs false
+
+## Run 100 events
+/g4sbs/run             1000000

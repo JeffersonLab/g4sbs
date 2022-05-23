@@ -25,7 +25,8 @@
 #include "G4PhysicalConstants.hh"
 
 G4SBSTrackerBuilder::G4SBSTrackerBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
-
+  fFrontTrackerZoffset = 0.0;
+  fFrontTrackerZoffsetIsSet = false;
 }
 
 G4SBSTrackerBuilder::~G4SBSTrackerBuilder(){;}
@@ -36,7 +37,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *){
 }
 
 //This routine allows us to flexibly position GEM modules without code duplication:
-void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos, unsigned int nplanes, vector<double> zplanes, vector<double> wplanes, vector<double> hplanes, G4String SDname ) 
+void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos, unsigned int nplanes, vector<double> zplanes, vector<double> wplanes, vector<double> hplanes, G4String SDname, G4bool ispolarimeter ) 
 {
   //This routine will create and position a GEM tracker consisting of nplanes planes centered at position pos oriented with rotation rot wrt logical volume Mother. 
   //The list of z coordinates, widths and heights of the planes are passed as arguments:
@@ -236,7 +237,15 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
     G4ThreeVector plane_pos = pos + zplanes[gidx] * zaxis;
     //Now we are positioning the GEM AFTER positioning all of its components inside its logical volume:
     if( gidx == 0 ){ //set Z offset of GEMSD to equal the center of the drift region of first GEM
-      GEMSD->SetZoffset( plane_pos.getZ() + zdrift );
+
+      //NOTE: the typical wor
+      
+      if( ispolarimeter && fFrontTrackerZoffsetIsSet ){
+	GEMSD->SetZoffset( GetFrontTrackerZoffset() );
+      } else {
+	GEMSD->SetZoffset( plane_pos.getZ() + zdrift );
+	SetFrontTrackerZoffset( GEMSD->GetZoffset() );
+      } 
     }
     new G4PVPlacement( rot, plane_pos, gemlog, gemname, Mother, true, gidx+1, false );
   }

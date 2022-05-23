@@ -2320,7 +2320,8 @@ void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMat
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
-  if( fUseRad && fRadZoffset+fTargLen/2.0 < 28.895*cm-0.1*cm ){
+  if( fUseRad && fRadZoffset < 28.895*cm-0.1*cm ){
+    G4cout << "Build radiator in target" << endl; 
     G4double zrad = fTargLen/2.0 + fRadZoffset; 
     G4ThreeVector radiator_pos = -G4ThreeVector(0, 0, zrad);
     BuildRadiator( motherLog, 0, radiator_pos );
@@ -2704,6 +2705,26 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
   // visGC->SetForceWireframe(true);
   logicGlassCell->SetVisAttributes(visGC);
 
+  ////// Define Sensitive Detector for glass target:
+  ////// TODO: make it optional
+  G4String GlassTargetSDname = "GlassTarget";
+  G4String GlassTargetcollname = "GlassTargetHitsCollection";
+  G4SBSCalSD *GlassTargetSD = NULL;
+    
+  if( !( GlassTargetSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(GlassTargetSDname) ) ){
+    G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
+    GlassTargetSD = new G4SBSCalSD( GlassTargetSDname, GlassTargetcollname );
+    fDetCon->fSDman->AddNewDetector( GlassTargetSD );
+    (fDetCon->SDlist).insert(GlassTargetSDname);
+    fDetCon->SDtype[GlassTargetSDname] = G4SBS::kCAL;
+    
+    (GlassTargetSD->detmap).depth = 1;
+
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( GlassTargetSDname, 0.0*MeV, 100.0*ns, 25 );
+  }
+  
+  logicGlassCell->SetSensitiveDetector( GlassTargetSD );
+  
   // place the volume
   // - note that this is relative to the *target chamber* as that is the first object in the union 
   // - rotation puts the cell oriented such that the pumping chamber is vertically above

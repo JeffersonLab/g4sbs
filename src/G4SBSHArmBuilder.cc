@@ -2171,7 +2171,14 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
   SBStracker_rot->rotateY( f48D48ang );
   SBStracker_rot->rotateX( fSBS_tracker_pitch );
 
-  G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
+  int ngems_SBStracker = 5;//EPAF temporary change! should be 5!
+  
+  G4double zspacing_SBStracker = 10.0*cm;
+  G4double zoffset_SBStracker = -(ngems_SBStracker-1)*zspacing_SBStracker/2.0;
+  G4double LtrackerBox = (ngems_SBStracker-1)*zspacing_SBStracker+4.0*cm;
+  printf("%f %f\n", zoffset_SBStracker, LtrackerBox/2.0);
+  
+  G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, LtrackerBox/2.0 );
 
   G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
 
@@ -2180,8 +2187,6 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
   //from the target:
   // xmidplane + L*sin
 
-  
-  
   G4double Tracker_yoffset = (fSBS_tracker_dist - (f48D48dist + 0.5*f48D48depth) )*tan(fSBS_tracker_pitch);
 
   G4ThreeVector FirstPlane_pos( -fSBS_tracker_dist*sin(f48D48ang),
@@ -2196,17 +2201,13 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
   // G4ThreeVector SBS_tracker_axis = (RICH_pos - SBS_midplane_pos).unit();
   // G4ThreeVector SBS_tracker_pos = RICH_pos - 0.3*m*SBS_tracker_axis;
 
-  G4ThreeVector SBS_tracker_pos = FirstPlane_pos + 20.0*cm*SBS_tracker_axis;
+  G4ThreeVector SBS_tracker_pos = FirstPlane_pos - zoffset_SBStracker*SBS_tracker_axis;
   
-  printf("sbs_tracker_pos: %f, %f, %f", SBS_tracker_pos.x(), SBS_tracker_pos.y(), SBS_tracker_pos.z() );
+  printf("sbs_tracker_pos: %f, %f, %f\n", SBS_tracker_pos.x(), SBS_tracker_pos.y(), SBS_tracker_pos.z() );
   
   new G4PVPlacement( SBStracker_rot, SBS_tracker_pos, SBStracker_log, "SBStracker_phys", motherlog, false, 0 );
 
-  int ngems_SBStracker = 5;
   vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
-
-  G4double zspacing_SBStracker = 10.0*cm;
-  G4double zoffset_SBStracker = -20.0*cm;
 
   for(int i=0; i<ngems_SBStracker; i++ ){
     zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );

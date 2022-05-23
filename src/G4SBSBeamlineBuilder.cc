@@ -2408,15 +2408,19 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   // i.e the radiator is set to use, but it's distance is above
   if(fDetCon->fTargetBuilder->UseRad()){
     G4double zrad = fDetCon->fTargetBuilder->RadZoffset()+fDetCon->fTargetBuilder->GetTargLen()/2.0;
-    G4cout << "  " << targetEndOffset_z+0.1*cm << " <? " << zrad << " <? " <<  targetEndOffset_z+P0tubeA_L*2.0 << G4endl;
-    if(targetEndOffset_z+0.1*cm<zrad && zrad<targetEndOffset_z+P0tubeA_L*2.0){
-      fDetCon->fTargetBuilder->BuildRadiator( P0tubeA_winvacLog, 0, G4ThreeVector(0., 0., zrad+P0_vac_a_z) );
-      cout << zrad << " " << P0_vac_a_z << " => " << zrad+P0_vac_a_z << " " << P0tubeA_L << endl;
+    //G4cout << "  " << targetEndOffset_z+0.1*cm << " <? " << fDetCon->fTargetBuilder->RadZoffset() << " <? " <<  targetEndOffset_z+P0tubeA_L*2.0 << G4endl;
+    G4cout << "  " << P0_vac_a_z+P0tubeA_L << " <? " << -zrad << " <? " << P0_vac_a_z-P0tubeA_L << G4endl;
+    
+    if(P0_vac_a_z-P0tubeA_L<-zrad && -zrad<P0_vac_a_z+P0tubeA_L){
+      cout << zrad << " " << P0_vac_a_z << " => " << -zrad-P0_vac_a_z << " " << P0tubeA_L << endl;
+      fDetCon->fTargetBuilder->BuildRadiator( P0tubeA_winvacLog, 0, G4ThreeVector(0., 0., -zrad-P0_vac_a_z) );
     }else if(!enableBC_dnstr){
-      G4cout << "  " << targetEndOffset_z+P0tubeA_L << " <? " << zrad << " <? " << targetEndOffset_z+P0tubeA_L*2.0+P0tubeB_L*2.0 << G4endl;
-      if(targetEndOffset_z+P0tubeA_L*2.0<zrad && zrad<targetEndOffset_z+P0tubeA_L*2.0+P0tubeB_L*2.0){
-	cout << zrad << " " << P0_vac_b_z << " => " << zrad+P0_vac_b_z << " " << P0tubeB_L << endl;
-	fDetCon->fTargetBuilder->BuildRadiator( P0tubeB_vacLog, 0, G4ThreeVector(0., 0., zrad+P0_vac_b_z) );
+      //G4cout << "  " << targetEndOffset_z+P0tubeA_L << " <? " << fDetCon->fTargetBuilder->RadZoffset() << " <? " << targetEndOffset_z+P0tubeA_L*2.0+P0tubeB_L*2.0 << G4endl;
+      G4cout << "  " << P0_vac_b_z+P0tubeB_L << " <? " << -zrad << " <? " << P0_vac_b_z-P0tubeB_L << G4endl;
+      
+      if(P0_vac_b_z-P0tubeB_L<-zrad && -zrad<P0_vac_b_z+P0tubeB_L){
+	cout << zrad << " " << P0_vac_b_z << " => " << -zrad-P0_vac_b_z << " " << P0tubeB_L << endl;
+	fDetCon->fTargetBuilder->BuildRadiator( P0tubeB_vacLog, 0, G4ThreeVector(0., 0.,-zrad-P0_vac_b_z) );
       }
     }
   }
@@ -4368,10 +4372,10 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   
   //G4RotationMatrix rot_temp = new G4RotationMatrix;
 
-  new G4PVPlacement( 0, G4ThreeVector( radshield_xposl, 0, radshield_zpos ), radshield_log, "radshield_phys_left", worldlog, false, 0, checkoverlaps );
+  //new G4PVPlacement( 0, G4ThreeVector( radshield_xposl, 0, radshield_zpos ), radshield_log, "radshield_phys_left", worldlog, false, 0, checkoverlaps );
   
   //do another one for right GEMs
-  new G4PVPlacement( 0, G4ThreeVector( radshield_xposr, 0, radshield_zpos ), radshield_log, "radshield_phys_right", worldlog, false, 0, checkoverlaps );
+  //new G4PVPlacement( 0, G4ThreeVector( radshield_xposr, 0, radshield_zpos ), radshield_log, "radshield_phys_right", worldlog, false, 0, checkoverlaps );
     
   // second for beamline: add a 5 cm thick, 30cm tall,  200 cm long slab of lead, 
   // 30 cm away from BL and center around z=200cm
@@ -4379,7 +4383,7 @@ void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   G4double blshieldlength = 240.0*cm;
   G4double blshieldheight = 40.0*cm;
   G4double blshield_xpos = 30*cm;
-  G4double blshield_zpos = 185*cm;
+  G4double blshield_zpos = 238*cm;
     
   G4Box *blshield_solid = new G4Box("blshield_solid", blshieldthick/2.0, blshieldheight/2.0, blshieldlength/2.0);
   

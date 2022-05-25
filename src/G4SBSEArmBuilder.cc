@@ -123,7 +123,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   //  The neutron experiments and the SIDIS experiment use BigBite:
   //------------ BigBite: -----------------------------------------------------
-  if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEN || exptype == G4SBS::kSIDISExp || exptype == G4SBS::kA1n  || exptype == G4SBS::kTDIS || exptype == G4SBS::kGEnRP || exptype == G4SBS::kGEp_BB) 
+  if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEN || exptype == G4SBS::kSIDISExp || exptype == G4SBS::kA1n  || exptype == G4SBS::kTDIS || exptype == G4SBS::kGEnRP || exptype == G4SBS::kGEp_BB || exptype == G4SBS::kALL) 
     {
       MakeBigBite( worldlog );
       //Move sieve slit construction to MakeBigBite subroutine:

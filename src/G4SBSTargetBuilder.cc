@@ -85,6 +85,10 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //BuildGasTarget( worldlog );
     BuildGEnTarget(worldlog);
     break;
+  case(G4SBS::kALL):
+    //BuildGasTarget( worldlog );
+    BuildGEnTarget(worldlog);
+    break;
   default: //GMN, GEN-RP, GEP_BB:
     BuildStandardScatCham( worldlog );
     break;
@@ -2357,7 +2361,7 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
   G4cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = " << Q2 << " (GeV/c)^2" << G4endl; 
 
   //For now, omit TBD details of everything other than target for SIDIS:
-  if( fDetCon->fExpType == G4SBS::kGEN || fDetCon->fExpType == G4SBS::kSIDISExp ){
+  if( fDetCon->fExpType == G4SBS::kGEN || fDetCon->fExpType == G4SBS::kSIDISExp || fDetCon->fExpType == G4SBS::kALL ){
    
     BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
     BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);

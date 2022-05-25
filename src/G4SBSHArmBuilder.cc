@@ -141,6 +141,13 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //Subsystems unique to the GEp experiment include FPP and BigCal:
     MakeGEpFPP(worldlog);
   } 
+  
+  if( exptype == G4SBS::kALL) {
+    
+    MakeTracker(worldlog, 8);
+    
+  }
+  
 
   if ( exptype == G4SBS::kA1n  || exptype == G4SBS::kTDIS || exptype == G4SBS::kNDVCS ) {
     //A1n case is similar to SIDIS, except now we want to use the SBS in
@@ -2164,7 +2171,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 //   SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
 // }
 
-void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
+void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog, G4int nplanes){
   //      G4double SBStracker_dist = fRICHdist - 0.3*m; //distance to the front of the SBS tracker
   
   G4ThreeVector SBS_midplane_pos( -(f48D48dist + 0.5*f48D48depth)*sin(f48D48ang), 0.0, (f48D48dist+0.5*f48D48depth)*cos(f48D48ang) );
@@ -2178,7 +2185,7 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
   SBStracker_rot->rotateY( f48D48ang );
   SBStracker_rot->rotateX( fSBS_tracker_pitch );
 
-  int ngems_SBStracker = 5;//EPAF temporary change! should be 5!
+  int ngems_SBStracker = nplanes;
   
   G4double zspacing_SBStracker = 10.0*cm;
   G4double zoffset_SBStracker = -(ngems_SBStracker-1)*zspacing_SBStracker/2.0;

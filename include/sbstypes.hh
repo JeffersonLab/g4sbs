@@ -21,7 +21,7 @@ namespace G4SBS {
   enum Kine_t   { kElastic, kFlat, kInelastic, kDIS, kBeam, kSIDIS, kGun, kWiser, kPYTHIA6, kGMnElasticCheck, kCosmics, kPionPhoto};
   // experiment type
   // enum Exp_t    { kGEp, kNeutronExp, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest};
-  enum Exp_t    { kGEp, kGMN, kGEN, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest, kGEPpositron, kWAPP, kGEp_BB };
+  enum Exp_t    { kGEp, kGMN, kGEN, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest, kGEPpositron, kWAPP, kGEp_BB, kALL };
   // detector arm type (for association of detector modules with spectrometer arms. Presently "E arm" and "H arm" are possible) 
   enum Arm_t    { kEarm, kHarm };
   // sensitive detector type  

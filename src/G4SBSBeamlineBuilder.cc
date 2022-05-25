@@ -82,6 +82,14 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
       MakeSIDISLead(worldlog);
     }
     break;
+  case(G4SBS::kALL):// ALL
+    fDetCon->fBeamlineConf = 2;
+    Make3HeBeamline(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      //Sseeds - leaving option in, but removing obsolete geometry
+      MakeSIDISLead(worldlog);// EPAF: gross hack: ALL shielding will need its own function
+    }
+    break;
   case(G4SBS::kGEMHCtest):// Hall C GEM test
     fDetCon->fBeamlineConf = 3;
     MakeGMnBeamline(worldlog);

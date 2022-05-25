@@ -87,7 +87,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     Make3HeBeamline(worldlog);
     if(fDetCon->fLeadOption == 1){
       //Sseeds - leaving option in, but removing obsolete geometry
-      MakeSIDISLead(worldlog);// EPAF: gross hack: ALL shielding will need its own function
+      MakeALLLead(worldlog);
     }
     break;
   case(G4SBS::kGEMHCtest):// Hall C GEM test
@@ -4355,10 +4355,14 @@ void G4SBSBeamlineBuilder::MakeGEnLead(G4LogicalVolume *worldlog){
   
 }
 
-
-
 void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   //Add geometry here for SIDIS lead shielding. None in current build - Jan 2021.
+
+
+}
+
+void G4SBSBeamlineBuilder::MakeALLLead( G4LogicalVolume *worldlog ){
+  //Add geometry here for ALL lead shielding.
   
   //adding lead shielding for WAPP2:
   G4cout << " ****************** Adding beamline shielding for SIDIS/WAPP **************" << G4endl;

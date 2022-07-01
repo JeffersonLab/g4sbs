@@ -50,6 +50,10 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fPlasticPlate = false;
   fPlasticPlateThickness = 2.54*cm;
   fPlasticMaterial = G4String("CH2");
+
+  fUseGEPtargShielding = false;
+  fGEPtargShieldingThick = 5.0*cm;
+  fGEPtargShieldingMaterial = G4String("CH2");
 }
 
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
@@ -138,6 +142,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   fDetCon->InsertTargetVolume( TargetWall_log->GetName() );
   fDetCon->InsertTargetVolume( uwindow_log->GetName() );
   fDetCon->InsertTargetVolume( dwindow_log->GetName() );
+
   
   // Now place everything:
   // Need to fix this later: Union solid defining vacuum chamber 
@@ -167,6 +172,23 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   targ_offset.setY(temp+targ_zcenter);
   
   new G4PVPlacement( rot_targ, targ_offset, TargetMother_log, "TargetMother_phys", motherlog, false, 0 );
+
+  if( fDetCon->fExpType == G4SBS::kGEp && fUseGEPtargShielding ){
+  
+    G4double thick_shield = fGEPtargShieldingThick;
+    G4double length_shield = fTargLen * 3.0;
+    G4double height_shield = 40.0*cm;
+  
+    G4Box *shield_wall = new G4Box("geptargshield_wall", thick_shield/2.0, height_shield/2.0, length_shield/2.0 );
+
+    G4LogicalVolume *shield_log = new G4LogicalVolume( shield_wall, GetMaterial(fGEPtargShieldingMaterial), "geptargshield_wall_log" );
+
+    G4ThreeVector shield_offset = targ_offset;
+    shield_offset.setX( -(shield_offset.getX() + Rcell + 2.5*cm + thick_shield/2.0) );
+    
+    new G4PVPlacement( rot_targ, shield_offset, shield_log, "geptargshield_wall_phys", motherlog, false, 0 );
+    
+  }
 
   if( fUseRad ){ //place radiator
     G4double yrad = fTargLen/2.0 + fRadZoffset; 

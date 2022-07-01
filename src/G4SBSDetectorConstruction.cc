@@ -2440,8 +2440,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   // new G4ChordFinder(fGlobalField, 1.0e-2*mm, stepper);
 
   G4Mag_SpinEqRhs* fBMTequation = new G4Mag_SpinEqRhs(fGlobalField);
-  G4MagIntegratorStepper *pStepper = new G4ClassicalRK4(fBMTequation,12);
-  //G4MagIntegratorStepper *pStepper = new G4DormandPrince745(fBMTequation,12);
+  //G4MagIntegratorStepper *pStepper = new G4ClassicalRK4(fBMTequation,12);
+  G4MagIntegratorStepper *pStepper = new G4DormandPrince745(fBMTequation,12);
   G4ChordFinder *cftemp = new G4ChordFinder(fGlobalField, 1.0e-2*mm, pStepper);
 
   fm->SetChordFinder(cftemp);

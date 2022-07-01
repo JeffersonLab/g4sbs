@@ -94,11 +94,17 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
                      //alternate configuration to be tested is one analyzer with the FPP1 GEMs re-distributed to FT and FPP2
 
   //default to two analyzers, with same transverse dimensions as the polarimeter GEMs, each 22 inches thick:
-  fGEP_CH2width[0] = fGEP_CH2width[1] = 60.0*cm;
-  fGEP_CH2height[0] = fGEP_CH2height[1] = 200.0*cm;
+  fGEP_CH2width[0] = fGEP_CH2width[1] = 28.88*2.54*cm;
+  fGEP_CH2height[0] = fGEP_CH2height[1] = 84.0*2.54*cm;
 
+  fGEP_CH2yoff[0] = fGEP_CH2yoff[1] = 0.0*cm;
+  //fGEP_trkryoff[0] = fGEP_trkryoff[1] = fGEP_trkryoff[2] = 0.0*cm;
+  
   fGEP_CH2zpos[0] = 58.53*cm;
   fGEP_CH2zpos[1] = 170.3*cm;
+
+  fGEP_CH2yoff[0] = fGEP_CH2yoff[1] = 0.0*cm;
+  
   
   fFTuseabsorber = false;
   fFTabsthick = 2.54*cm;
@@ -269,7 +275,7 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
   
   if( fGEPFPPoption != 2 ){
     sbsboxpitch = 0.0*deg;
-    sbsvoff = 10.0*cm;
+    //sbsvoff = 10.0*cm;
   }
   
   SetTrackerPitch( sbsboxpitch );
@@ -279,13 +285,14 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
   SBS_FPP_rm->rotateX( sbsboxpitch );
 
   //FPP box: 
-  double sbsdepth  = 3.0*m;
+  double sbsdepth  = 3.5*m;
   double sbswidth  = 2.0*m;
-  double sbsheight = 2.1*m;
+  double sbsheight = 3.5*m;
 
   //double sbsr = fHCALdist - 4.106*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
-  double sbsr = f48D48dist + 1.694*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
-
+  //double sbsr = f48D48dist + 1.694*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
+  double sbsr = f48D48dist + 48.0*2.54*cm + 0.82*m + sbsdepth/2.0;
+  
   SetTrackerDist( sbsr );
   
   G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
@@ -3802,6 +3809,10 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   int ngem[ntrackermax] = {6,5,5}; //defaults
   double GEM_z_spacing[ntrackermax];
   double trkr_zpos[ntrackermax];
+  double trkr_yoff[ntrackermax] = {0.0, 0.0, 0.0};
+
+  
+  
   vector<G4String> SDnames;
   vector<G4String> AnalyzerMaterials;
 
@@ -3809,22 +3820,27 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   
   switch( fGEPFPPoption ){ //1 = 8-plane front tracker of 6x(40x150 cm^2)+2x(60x200 cm^2) and 8-plane back tracker of 6x(60x200 cm^2)
   case 1:
+  default:
     nana = 1;
     ntracker = 2;
     ngem[0] = 8;
     ngem[1] = 8;
-    GEM_z_spacing[0] = 10.0*cm;
-    GEM_z_spacing[1] = 10.0*cm;
+    GEM_z_spacing[0] = 13.2*cm;
+    GEM_z_spacing[1] = 11.3*cm;
     trkr_zpos[0] = 0.0;
-    trkr_zpos[1] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0] + fCH2thickFPP[0] + GEM_z_spacing[1];
-    fGEP_CH2zpos[0] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0]; //upstream edge of CH2
+    //trkr_zpos[1] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0] + fCH2thickFPP[0] + GEM_z_spacing[1];
+    trkr_zpos[1] = 2.074*m;
+    //trkr_yoff[0] = 
+      //fGEP_CH2zpos[0] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0]; //upstream edge of CH2
+    fGEP_CH2zpos[0] = 1.518*m - 0.5*fCH2thickFPP[0];
     SDnames.push_back( "Harm/FT" );
     SDnames.push_back( "Harm/FPP1" );
     fGEP_CH2width[0] = 28.88*2.54*cm; //about 73 cm
     fGEP_CH2height[0] = 84.0*2.54*cm; //about 213.36 cm
-
+    fGEP_CH2yoff[0] = 25.78*cm;
     AnalyzerMaterials.push_back( G4String("CH2") );
-    
+    trkr_yoff[0] = 16.5*cm;
+    trkr_yoff[1] = 34.1*cm;
     break;
   case 3: //6-plane FT + 22" CH2 + 5-plane FPP1 + let's use 3.5" steel + 5-plane FPP2:
     nana = 2;
@@ -3881,7 +3897,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     
     break;
   case 2:
-  default: //2 = original layout: 6-plane FT of (40x150) cm^2 plus FPP1 and FPP2 trackers:
+    //default: //2 = original layout: 6-plane FT of (40x150) cm^2 plus FPP1 and FPP2 trackers:
     nana = 2;
     ntracker = 3;
     GEM_z_spacing[0] = 9.0*cm;
@@ -3932,7 +3948,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 
     analog_temp->SetVisAttributes( CH2anavisatt );
     
-    G4ThreeVector anapos_temp = pos + G4ThreeVector( 0.0, 0.0, fGEP_CH2zpos[ana] + fCH2thickFPP[ana]/2.0 );
+    G4ThreeVector anapos_temp = pos + G4ThreeVector( 0.0, fGEP_CH2yoff[ana], fGEP_CH2zpos[ana] + fCH2thickFPP[ana]/2.0 );
     new G4PVPlacement( 0, anapos_temp, analog_temp, anaphysname, Mother, false, 0, false );
   }
 
@@ -3993,7 +4009,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     G4bool ispolarimeter = false;
     if( i > 0 ) ispolarimeter = true;
     
-    trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, SDnames[i], ispolarimeter );
+    trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, SDnames[i], ispolarimeter, trkr_yoff[i] );
   }
 
   //CH2 analyzers:

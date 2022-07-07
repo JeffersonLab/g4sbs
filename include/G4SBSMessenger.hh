@@ -192,6 +192,10 @@ private:
 
   G4UIcmdWithAnInteger       *GEPFPPoptionCmd;
 
+  G4UIcmdWithABool *GEPtargshieldCmd;
+  G4UIcmdWithADoubleAndUnit *GEPtargshieldThickCmd;
+  G4UIcmdWithAString *GEPtargshieldMaterialCmd;
+  
   // D. Flay 7/28/20: command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
   G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd; 
 

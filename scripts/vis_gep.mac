@@ -1,5 +1,5 @@
 ## Configure G4SBS for gep (Q^2 = 12 GeV^2)
-/g4sbs/filename        gep_12GeV2_elastic_option2_temp.root   ## Output rootfile
+/g4sbs/filename        gep_12GeV2_elastic_option1_temp.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gep
@@ -22,8 +22,8 @@
 
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
-/g4sbs/hcaldist        6.8 m
-/g4sbs/hcalvoffset     45.0 cm
+/g4sbs/hcaldist        7.2 m
+/g4sbs/hcalvoffset     75.0 cm
 /g4sbs/sbsclampopt     2
 
 ## Configure the magnets
@@ -47,7 +47,7 @@
 # FPP configuration options:
 # option 1: single-analyzer, 8+8 front and back trackers:
 /g4sbs/gepfppoption 1
-/g4sbs/FPP1CH2thick 85.0 cm
+/g4sbs/FPP1CH2thick 55.88 cm
 
 # option 2: double-analyzer (both CH2)
 #/g4sbs/gepfppoption 2
@@ -64,8 +64,7 @@
 #/g4sbs/run             100
 
 
-/g4sbs/gepfppoption 1
-/g4sbs/FPP1CH2thick 100.0 cm
+
 # start with wide-open cuts:
 #/g4sbs/thmin 0 deg
 #/g4sbs/thmax 180 deg

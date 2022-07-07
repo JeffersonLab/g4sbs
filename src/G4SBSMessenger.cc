@@ -656,6 +656,18 @@ G4SBSMessenger::G4SBSMessenger(){
   GEPFPPoptionCmd->SetGuidance("3 = Same as 2, but with second analyzer replaced by 3.5\" steel from GEN-RP");
   GEPFPPoptionCmd->SetParameterName("gepfppoption",true);
   GEPFPPoptionCmd->SetDefaultValue(2);
+
+  GEPtargshieldCmd = new G4UIcmdWithABool("/g4sbs/usegeptargshield",this);
+  GEPtargshieldCmd->SetGuidance("Use target shield wall for GEP (yes/no)");
+
+  GEPtargshieldThickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/geptargshieldthick",this);
+  GEPtargshieldThickCmd->SetGuidance("GEP target shield wall thickness");
+  GEPtargshieldThickCmd->SetParameterName("geptargshieldwallthick",false);
+
+  GEPtargshieldMaterialCmd = new G4UIcmdWithAString("/g4sbs/geptargshieldmaterial",this);
+  GEPtargshieldMaterialCmd->SetGuidance("Material for GEP target shield wall");
+  GEPtargshieldMaterialCmd->SetGuidance("any valid material defined in G4SBSDetectorConstruction::ConstructMaterials()");
+  GEPtargshieldMaterialCmd->SetParameterName("geptargshieldwallmaterial",false);
   
   BLneutronDetsCmd = new G4UIcmdWithABool("/g4sbs/BLneutronDets",this);
   BLneutronDetsCmd->SetGuidance("Setup neutron detectors along the beamline");
@@ -2166,6 +2178,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == GEPFPPoptionCmd ){
     G4int i = GEPFPPoptionCmd->GetNewIntValue(newValue);
     fdetcon->fHArmBuilder->SetGEPFPPoption( i );
+  }
+
+  if( cmd == GEPtargshieldCmd ){
+    G4bool flag = GEPtargshieldCmd->GetNewBoolValue(newValue);
+    fdetcon->fTargetBuilder->EnableGEPtargShielding(flag);
+  }
+
+  if( cmd == GEPtargshieldThickCmd ){
+    G4double shieldthick = GEPtargshieldThickCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetGEPtargShieldingThick( shieldthick );
+  }
+
+  if( cmd == GEPtargshieldMaterialCmd ){
+    G4String matname = newValue;
+    fdetcon->fTargetBuilder->SetGEPtargShieldingMaterial( matname );
   }
   
   if( cmd == BLneutronDetsCmd ){

@@ -109,6 +109,8 @@ public:
   double fGEP_CH2width[2];
   double fGEP_CH2height[2]; 
   double fGEP_CH2zpos[2];
+  double fGEP_CH2yoff[2];
+  //double fGEP_trkryoff[3];
   
 private:
 

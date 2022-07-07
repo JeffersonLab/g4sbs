@@ -2516,14 +2516,14 @@ bool G4SBSEventGen::GenerateSIMC(){
   
   fSIMCEvent.p_e = fSIMCTree->p_e;
   fSIMCEvent.theta_e = fSIMCTree->th_e;
-  fSIMCEvent.phi_e = fSIMCTree->ph_e;
+  fSIMCEvent.phi_e = fSIMCTree->ph_e-TMath::PiOver2();
   fSIMCEvent.px_e = fSIMCTree->p_e*fSIMCTree->ux_e;
   fSIMCEvent.py_e = fSIMCTree->p_e*fSIMCTree->uy_e;
   fSIMCEvent.pz_e = fSIMCTree->p_e*fSIMCTree->uz_e;
   
   fSIMCEvent.p_n = fSIMCTree->p_p;
   fSIMCEvent.theta_n = fSIMCTree->th_p;
-  fSIMCEvent.phi_n = fSIMCTree->ph_p;
+  fSIMCEvent.phi_n = fSIMCTree->ph_p-TMath::PiOver2();
   fSIMCEvent.px_n = fSIMCTree->p_p*fSIMCTree->ux_p;
   fSIMCEvent.py_n = fSIMCTree->p_p*fSIMCTree->uy_p;
   fSIMCEvent.pz_n = fSIMCTree->p_p*fSIMCTree->uz_p;
@@ -2533,10 +2533,12 @@ bool G4SBSEventGen::GenerateSIMC(){
   fSIMCEvent.vz = fVert.z();
   
   fElectronP = G4ThreeVector(fSIMCEvent.px_e, fSIMCEvent.py_e, fSIMCEvent.pz_e);
+  fElectronP.rotateZ(-TMath::PiOver2());
   fElectronE = fSIMCEvent.p_e;
 
   fNucleonP = G4ThreeVector(fSIMCEvent.px_n, fSIMCEvent.py_n, fSIMCEvent.pz_n);
-  fNucleonE = fSIMCEvent.p_n;
+  fNucleonP.rotateZ(-TMath::PiOver2());
+  fNucleonE = sqrt(fSIMCEvent.p_n*fSIMCEvent.p_n+Mp*Mp);
 
   return true;
   

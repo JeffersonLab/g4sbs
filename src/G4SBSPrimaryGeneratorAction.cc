@@ -112,7 +112,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     particleGun->SetParticleEnergy(sbsgen->GetElectronE());
     particleGun->SetParticlePosition( sbsgen->GetV() );
     
-    //G4cout << sbsgen->GetElectronE() << " " << sbsgen->GetV().z() << G4endl;
+    particleGun->GeneratePrimaryVertex(anEvent);
     
     particle = particleTable->FindParticle(particleName="proton");
     particleGun->SetParticleDefinition(particle);

@@ -14,6 +14,7 @@
 #include "G4SBSSDTrackOutput.hh"
 #include "G4SBSDetectorConstruction.hh"
 #include "G4SBSPythiaOutput.hh"
+#include "G4SBSSIMCOutput.hh"
 
 // for D Flay studies
 #include "G4SBSBDoutput.hh"
@@ -156,6 +157,7 @@ public:
   //void BranchTracker(G4String s);
   void BranchECAL(G4String s);
   void BranchPythia();
+  void BranchSIMC();
   //void BranchSDTracks(G4String s);
   void BranchSDTracks();
   // for D Flay studies
@@ -177,6 +179,9 @@ public:
   
   void SetPythiaOutput( G4SBSPythiaOutput p ){ Primaries = p; }
   void SetUsePythia6( G4bool b ){ fUsePythia = b; }
+
+  void SetSIMCOutput( G4SBSSIMCOutput p ){ SIMCprimaries = p; }
+  void SetUseSIMC( G4bool b ){ fUseSIMC = b; }
 
   map<G4String,G4int> histogram_index; //map with key = SDname, val = histogram index in TClonesArray
 
@@ -288,6 +293,9 @@ private:
   
   G4bool fUsePythia;
   G4SBSPythiaOutput Primaries;
+  
+  G4bool fUseSIMC;
+  G4SBSSIMCOutput SIMCprimaries;
   
   G4SBSGlobalField *fGlobalField;
   

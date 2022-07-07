@@ -257,12 +257,16 @@ G4SBSMessenger::G4SBSMessenger(){
   beamCollimatorZUpCmd->SetParameterName("beamCollimatorZ_upstr",true);   
 
   kineCmd = new G4UIcmdWithAString("/g4sbs/kine",this);
-  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, wapp");
+  kineCmd->SetGuidance("Kinematics from elastic, inelastic, flat, dis, beam, sidis, wiser, gun, pythia6, simc, wapp");
   kineCmd->SetParameterName("kinetype", false);
 
   PYTHIAfileCmd = new G4UIcmdWithAString("/g4sbs/pythia6file",this);
   PYTHIAfileCmd->SetGuidance("Name of ROOT file containing PYTHIA6 events as a ROOT tree");
   PYTHIAfileCmd->SetParameterName("fname",false);
+  
+  SIMCfileCmd = new G4UIcmdWithAString("/g4sbs/simcfile",this);
+  SIMCfileCmd->SetGuidance("Name of ROOT file containing SIMC events as a ROOT tree");
+  SIMCfileCmd->SetParameterName("fname",false);
   
   expCmd = new G4UIcmdWithAString("/g4sbs/exp",this);
   expCmd->SetGuidance("Experiment type from gep, gmn, gen, a1n, sidis, C16, tdis, ndvcs, genrp");
@@ -957,6 +961,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       }
       fevgen->InitializePythia6_Tree();
     }
+    if( fevgen->GetKine() == G4SBS::kSIMC ){
+      if( fevgen->GetSIMCChain()->GetEntries() < nevt ){
+	nevt = fevgen->GetSIMCChain()->GetEntries();
+      }
+      fevgen->InitializeSIMC_Tree();
+    }
 
     //    G4double TargMassDensity;
     G4double TargNumberDensity; 
@@ -1180,7 +1190,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
-    if (newValue.compareTo("gmnelasticcheck") == 0 ){
+     if( newValue.compareTo("simc") == 0 ){
+      kinetemp = G4SBS::kSIMC;
+      fIO->SetUseSIMC( true );
+      fevgen->SetRejectionSamplingFlag(false);
+      validcmd = true;
+    }
+   if (newValue.compareTo("gmnelasticcheck") == 0 ){
       kinetemp = G4SBS::kGMnElasticCheck;
       //fevgen->SetKine(G4SBS::kGMnElasticCheck);
       fevgen->SetRejectionSamplingFlag(false);
@@ -1209,6 +1225,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == PYTHIAfileCmd ){
     fevgen->LoadPythiaChain( newValue );
+  }
+
+  if( cmd == SIMCfileCmd ){
+    fevgen->LoadSIMCChain( newValue );
   }
 
   if( cmd == expCmd ){

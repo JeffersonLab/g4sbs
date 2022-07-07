@@ -10,10 +10,12 @@
 #include "G4SBSIO.hh"
 #include "DSS2007FF.hh"
 #include "G4SBSPythiaOutput.hh"
+#include "G4SBSSIMCOutput.hh"
 #include "G4SBSUtil.hh"
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
+#include "simc_tree.h"
 #include "Pythia6_tree.h"
 
 #define MAXMOMPT 1000 // N points for targets momentum distribution interpolations
@@ -140,6 +142,15 @@ public:
   
   void LoadPythiaChain(G4String fname);
 
+  void SetSIMCEvent( G4SBSSIMCOutput ev ){ fSIMCEvent = ev; }
+  G4SBSSIMCOutput GetSIMCEvent(){ return fSIMCEvent; }
+
+  simc_tree *GetSIMCTree(){ return fSIMCTree; }
+  TChain *GetSIMCChain(){ return fSIMCChain; }
+  
+  void LoadSIMCChain(G4String fname);
+
+
   void Initialize();
 
   G4bool GetRejectionSamplingFlag(){ return fRejectionSamplingFlag; }
@@ -156,6 +167,7 @@ public:
   double GetMaxWeight(){ return fMaxWeight; }
 
   void InitializePythia6_Tree();
+  void InitializeSIMC_Tree();
 
   int GetNfoils() const { return fNfoils; }
   // std::vector<double> GetZfoil() const { return fZfoil; }
@@ -351,7 +363,8 @@ private:
   bool GenerateGun(); //The "GenerateGun" routine generates generic particles of any type, flat in costheta, phi and p within user-specified limits.
   bool GeneratePythia(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
   bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
-
+  bool GenerateSIMC(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
+  
   //AJRP: June 5, 2021: calculate soffer bounds for transversity calculations:
 
   G4bool fSofferGridInitialized;
@@ -404,6 +417,11 @@ private:
   map<G4String, G4double> fPythiaSigma;
   
   G4SBSPythiaOutput fPythiaEvent;
+
+  TChain *fSIMCChain;
+  simc_tree *fSIMCTree;
+  
+  G4SBSSIMCOutput fSIMCEvent;
 
   G4double TriangleFunc(G4double a, G4double b, G4double c );
 };

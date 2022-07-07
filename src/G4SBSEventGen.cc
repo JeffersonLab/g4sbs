@@ -132,6 +132,9 @@ G4SBSEventGen::G4SBSEventGen(){
 
   fPythiaChain = NULL;
   fPythiaTree = NULL;
+
+  fSIMCChain = NULL;
+  fSIMCTree = NULL;
   fchainentry = 0;
 
   fInitialized = false;
@@ -159,6 +162,8 @@ G4SBSEventGen::G4SBSEventGen(){
 G4SBSEventGen::~G4SBSEventGen(){
   delete fPythiaChain;
   delete fPythiaTree;
+  delete fSIMCChain;
+  delete fSIMCTree;
 }
 
 void G4SBSEventGen::LoadPythiaChain( G4String fname ){
@@ -186,6 +191,17 @@ void G4SBSEventGen::LoadPythiaChain( G4String fname ){
   // ftemp->Close();
   // delete ftemp;
 }
+
+void G4SBSEventGen::LoadSIMCChain( G4String fname ){
+  if( fSIMCChain != NULL ){
+    fSIMCChain->Add( fname );
+  } else { //First file:
+    fSIMCChain = new TChain("h10");
+    fSIMCChain->Add(fname);
+    fchainentry = 0;
+  } 
+}
+
 
 void G4SBSEventGen::Initialize(){
   //Initialize weight factor to convert molecules or atoms number density to number density of nucleons in luminosity calculation:
@@ -506,6 +522,9 @@ bool G4SBSEventGen::GenerateEvent(){
     break;
   case G4SBS::kPYTHIA6:
     success = GeneratePythia();
+    break;
+  case G4SBS::kSIMC:
+    success = GenerateSIMC();
     break;
   case G4SBS::kCosmics:
     success = GenerateCosmics();
@@ -2477,6 +2496,52 @@ bool G4SBSEventGen::GeneratePythia(){
   return true;
 }
 
+bool G4SBSEventGen::GenerateSIMC(){
+  G4double Mp = proton_mass_c2;
+  
+  fSIMCTree->GetEntry(fchainentry++);
+  
+  fSIMCEvent.Clear();
+
+  fSIMCEvent.sigma = fSIMCTree->sigcc;
+  fSIMCEvent.Weight = fSIMCTree->Weight;
+
+  fSIMCEvent.Q2 = fSIMCTree->Q2;
+  fSIMCEvent.xbj = fSIMCTree->Q2/(2*Mp*fSIMCTree->nu);
+  fSIMCEvent.nu = fSIMCTree->nu;
+  fSIMCEvent.W = fSIMCTree->W;
+  fSIMCEvent.epsilon = fSIMCTree->epsilon;
+  
+  fSIMCEvent.Ebeam = fBeamE;
+  
+  fSIMCEvent.p_e = fSIMCTree->p_e;
+  fSIMCEvent.theta_e = fSIMCTree->th_e;
+  fSIMCEvent.phi_e = fSIMCTree->ph_e;
+  fSIMCEvent.px_e = fSIMCTree->p_e*fSIMCTree->ux_e;
+  fSIMCEvent.py_e = fSIMCTree->p_e*fSIMCTree->uy_e;
+  fSIMCEvent.pz_e = fSIMCTree->p_e*fSIMCTree->uz_e;
+  
+  fSIMCEvent.p_n = fSIMCTree->p_p;
+  fSIMCEvent.theta_n = fSIMCTree->th_p;
+  fSIMCEvent.phi_n = fSIMCTree->ph_p;
+  fSIMCEvent.px_n = fSIMCTree->p_p*fSIMCTree->ux_p;
+  fSIMCEvent.py_n = fSIMCTree->p_p*fSIMCTree->uy_p;
+  fSIMCEvent.pz_n = fSIMCTree->p_p*fSIMCTree->uz_p;
+  
+  fSIMCEvent.vx = fVert.x();
+  fSIMCEvent.vy = fVert.y();
+  fSIMCEvent.vz = fVert.z();
+
+  fElectronP = G4ThreeVector(fSIMCEvent.px_e, fSIMCEvent.py_e, fSIMCEvent.pz_e);
+  fElectronE = fSIMCEvent.p_e;
+
+  fNucleonP = G4ThreeVector(fSIMCEvent.px_n, fSIMCEvent.py_n, fSIMCEvent.pz_n);
+  fNucleonE = fSIMCEvent.p_n;
+
+  return true;
+  
+}
+
 ev_t G4SBSEventGen::GetEventData(){
   ev_t data;
 
@@ -2756,6 +2821,21 @@ void G4SBSEventGen::InitializePythia6_Tree(){
   
   if( !fPythiaTree ){
     G4cout << "Failed to initialize PYTHIA6 tree, aborting... " << G4endl;
+    exit(-1);
+  }
+}
+
+void G4SBSEventGen::InitializeSIMC_Tree(){
+
+  TObjArray *FileList = fSIMCChain->GetListOfFiles();
+  TIter next(FileList);
+
+  //TChainElement *chEl = 0;
+
+  fSIMCTree = new simc_tree( fSIMCChain );
+  
+  if( !fSIMCTree ){
+    G4cout << "Failed to initialize SIMC tree, aborting... " << G4endl;
     exit(-1);
   }
 }

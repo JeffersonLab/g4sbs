@@ -73,6 +73,8 @@ G4SBSIO::G4SBSIO(){
   PulseShape_histograms = NULL;
     
   fUsePythia = false;
+  
+  fUseSIMC = false;
 
   fKineType = G4SBS::kElastic;
   
@@ -281,6 +283,9 @@ void G4SBSIO::InitializeTree(){
     BranchPythia();
   }
 
+  if( fUseSIMC ){
+    BranchSIMC();
+  }
   
   return;
 }
@@ -794,6 +799,36 @@ void G4SBSIO::BranchPythia(){
   fTree->Branch("Primaries.t",&(Primaries.t));
   fTree->Branch("Primaries.theta",&(Primaries.theta));
   fTree->Branch("Primaries.phi",&(Primaries.phi));
+}
+
+void G4SBSIO::BranchSIMC(){
+  fTree->Branch("simc.sigma",&(SIMCprimaries.sigma),"simc.sigma/D");
+  fTree->Branch("simc.Weight",&(SIMCprimaries.Weight),"simc.Weight/D");
+  fTree->Branch("simc.Q2",&(SIMCprimaries.Q2),"simc.Q2/D");
+  fTree->Branch("simc.xbj",&(SIMCprimaries.xbj),"simc.xbj/D");
+  fTree->Branch("simc.nu",&(SIMCprimaries.nu),"simc.nu/D");
+  fTree->Branch("simc.W",&(SIMCprimaries.W),"simc.W/D");
+  fTree->Branch("simc.epsilon",&(SIMCprimaries.xbj),"simc.epsilon/D");
+  
+  fTree->Branch("simc.Ebeam",&(SIMCprimaries.Ebeam),"simc.Ebeam/D");
+  
+  fTree->Branch("simc.p_e",&(SIMCprimaries.p_e),"simc.p_e/D");
+  fTree->Branch("simc.theta_e",&(SIMCprimaries.theta_e),"simc.theta_e/D");
+  fTree->Branch("simc.phi_e",&(SIMCprimaries.phi_e),"simc.phi_e/D");
+  fTree->Branch("simc.px_e",&(SIMCprimaries.px_e),"simc.px_e/D");
+  fTree->Branch("simc.py_e",&(SIMCprimaries.py_e),"simc.py_e/D");
+  fTree->Branch("simc.pz_e",&(SIMCprimaries.pz_e),"simc.pz_e/D");
+  fTree->Branch("simc.p_n",&(SIMCprimaries.p_n),"simc.p_n/D");
+  fTree->Branch("simc.theta_n",&(SIMCprimaries.theta_n),"simc.theta_n/D");
+  fTree->Branch("simc.phi_n",&(SIMCprimaries.phi_n),"simc.phi_n/D");
+  fTree->Branch("simc.px_n",&(SIMCprimaries.px_n),"simc.px_n/D");
+  fTree->Branch("simc.py_n",&(SIMCprimaries.py_n),"simc.py_n/D");
+  fTree->Branch("simc.pz_n",&(SIMCprimaries.pz_n),"simc.pz_n/D");
+  
+  fTree->Branch("simc.vx",&(SIMCprimaries.vx),"simc.vx/D");
+  fTree->Branch("simc.vy",&(SIMCprimaries.vy),"simc.vy/D");
+  fTree->Branch("simc.vz",&(SIMCprimaries.vz),"simc.vz/D");
+  
 }
 
 void G4SBSIO::UpdateGenDataFromDetCon(){ //Go with whatever is in fdetcon as of run start for constant parameters of the run describing detector layout:

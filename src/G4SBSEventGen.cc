@@ -2531,7 +2531,7 @@ bool G4SBSEventGen::GenerateSIMC(){
   fSIMCEvent.vx = fVert.x();
   fSIMCEvent.vy = fVert.y();
   fSIMCEvent.vz = fVert.z();
-
+  
   fElectronP = G4ThreeVector(fSIMCEvent.px_e, fSIMCEvent.py_e, fSIMCEvent.pz_e);
   fElectronE = fSIMCEvent.p_e;
 

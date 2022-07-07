@@ -103,6 +103,31 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     return;
   }
 
+  if( sbsgen->GetKine() == G4SBS::kSIMC ){ //SIMC event:
+    G4SBSSIMCOutput Primaries = sbsgen->GetSIMCEvent();
+    
+    particle = particleTable->FindParticle(particleName="e-");
+    particleGun->SetParticleDefinition(particle);
+    particleGun->SetParticleMomentumDirection( sbsgen->GetElectronP().unit() );
+    particleGun->SetParticleEnergy(sbsgen->GetElectronE());
+    particleGun->SetParticlePosition( sbsgen->GetV() );
+    
+    //G4cout << sbsgen->GetElectronE() << " " << sbsgen->GetV().z() << G4endl;
+    
+    particle = particleTable->FindParticle(particleName="proton");
+    particleGun->SetParticleDefinition(particle);
+    particleGun->SetParticleMomentumDirection( sbsgen->GetNucleonP().unit() );
+    particleGun->SetParticleEnergy(sbsgen->GetNucleonE()-particle->GetPDGMass());
+    particleGun->SetParticlePosition( sbsgen->GetV() );
+     
+    particleGun->GeneratePrimaryVertex(anEvent);
+    
+    Primaries.ConvertToTreeUnits();
+    fIO->SetSIMCOutput( Primaries );
+    
+    return;
+  }
+
   if( !fUseGeantino && sbsgen->GetKine() != G4SBS::kGun && sbsgen->GetKine() != G4SBS::kPionPhoto ){ //first primary is an electron!
     particle = particleTable->FindParticle(particleName="e-");
     if( fIO->GetDetCon()->fExpType == G4SBS::kGEPpositron ){ //generate e+ instead of e-

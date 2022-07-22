@@ -252,7 +252,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Build GEn-RP polarimeter
-  if( exptype == G4SBS::kGEnRP ) 
+  if( exptype == G4SBS::kGEnRP || exptype == G4SBS::kGEN) 
     MakePolarimeterGEnRP( worldlog );
 }
 
@@ -4418,7 +4418,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   G4ThreeVector cuana_pos = pos + G4ThreeVector( 0.0, 0.0, (cuanadist + cuanadepth/2.0) ); 
   
-  if( fGEnRP_analyzer_option >= 2 ) {
+  if( fGEnRP_analyzer_option >= 2 && fDetCon->fExpType != G4SBS::kGEN) {
     G4Box*           cuanabox  = new G4Box("cuanabox", cuanawidth/2.0, cuanaheight/2.0, cuanadepth/2.0 );
     //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("CH2"), "cuanalog");
     //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Copper"), "cuanalog");
@@ -4510,70 +4510,72 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     actanawidth = 60.0 *cm;
     actanadepth = actanabardepth * nactanabarsz;
   }    
-
-  G4ThreeVector actana_pos = pos + G4ThreeVector( 0.0, 0.0, (actanadist + actanadepth/2.0) );
-  
-  G4Box*           actanabox  = new G4Box("actanabox", actanawidth/2.0, actanaheight/2.0, actanadepth/2.0 );
-  G4LogicalVolume* actanalog  = new G4LogicalVolume(actanabox, GetMaterial("Air"), "actanalog");
-  
-  if( fGEnRP_analyzer_option == 2 ) {   // long axis parallel to neutron direction
-    G4RotationMatrix* rot_ana  = new G4RotationMatrix;
-    rot_ana->rotateX( 90.0 *deg );
-    new G4PVPlacement(rot_ana, actana_pos, actanalog,"actanaphys", sbslog, false, 0, false);  
-  }
-  else if( fGEnRP_analyzer_option == 3 || fGEnRP_analyzer_option == 4 )  // long axis perpendicular to neutron direction or CGEN configuration
-    new G4PVPlacement(0, actana_pos, actanalog,"actanaphys", sbslog, false, 0, false);  
-
-  actanalog ->SetVisAttributes( G4VisAttributes::Invisible );
-
-  G4String ActAnScintSDname   = "Harm/ActAnScint";
-  G4String ActAnScintcollname = "ActAnScintHitsCollection";
-  G4SBSCalSD *ActAnScintSD    = NULL;
-  
-  G4Box *actanabarbox = new G4Box("actanabarbox", actanabarwidth/2.0, actanaheight/2.0, actanabardepth/2.0 );
-  G4LogicalVolume *actanabarlog = new G4LogicalVolume( actanabarbox, GetMaterial("BBHodo_Scinti"), "actanabarlog" );
-  
-  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(ActAnScintSDname)) ) {
-    G4cout << "Adding SBS PR Polarimeter Scint BeamSide Sensitive Detector to SDman..." << G4endl;
-    ActAnScintSD = new G4SBSCalSD( ActAnScintSDname, ActAnScintcollname );
+  if( fDetCon->fExpType != G4SBS::kGEN) {  
+    G4ThreeVector actana_pos = pos + G4ThreeVector( 0.0, 0.0, (actanadist + actanadepth/2.0) );
     
-    sdman->AddNewDetector( ActAnScintSD );
-    (fDetCon->SDlist).insert( ActAnScintSDname );
-    fDetCon->SDtype[ActAnScintSDname] = G4SBS::kCAL;
-    (ActAnScintSD->detmap).depth = 0;
+    G4Box*           actanabox  = new G4Box("actanabox", actanawidth/2.0, actanaheight/2.0, actanadepth/2.0 );
+    G4LogicalVolume* actanalog  = new G4LogicalVolume(actanabox, GetMaterial("Air"), "actanalog");
     
-    fDetCon->SetThresholdTimeWindowAndNTimeBins( ActAnScintSDname, ethresh_default, timewindow_default, 25 );
-    fDetCon->InsertSDboundaryVolume( actanalog->GetName(), ActAnScintSDname );
-  }
-  G4VisAttributes *actanavisatt = new G4VisAttributes( G4Colour(0.0, 1.0, 0.0));
-  actanavisatt->SetForceWireframe(true);
-  actanabarlog->SetVisAttributes( actanavisatt );
-  actanabarlog->SetSensitiveDetector( ActAnScintSD ); 
-
-  fDetCon->InsertAnalyzerVolume( actanabarlog->GetName() );
+    if( fGEnRP_analyzer_option == 2 ) {   // long axis parallel to neutron direction
+      G4RotationMatrix* rot_ana  = new G4RotationMatrix;
+      rot_ana->rotateX( 90.0 *deg );
+      new G4PVPlacement(rot_ana, actana_pos, actanalog,"actanaphys", sbslog, false, 0, false);  
+    }
+    else if( fGEnRP_analyzer_option == 3 || fGEnRP_analyzer_option == 4 )  // long axis perpendicular to neutron direction or CGEN configuration
+      new G4PVPlacement(0, actana_pos, actanalog,"actanaphys", sbslog, false, 0, false);  
+    
+    actanalog ->SetVisAttributes( G4VisAttributes::Invisible );
+    
+    G4String ActAnScintSDname   = "Harm/ActAnScint";
+    G4String ActAnScintcollname = "ActAnScintHitsCollection";
+    G4SBSCalSD *ActAnScintSD    = NULL;
+    
+    G4Box *actanabarbox = new G4Box("actanabarbox", actanabarwidth/2.0, actanaheight/2.0, actanabardepth/2.0 );
+    G4LogicalVolume *actanabarlog = new G4LogicalVolume( actanabarbox, GetMaterial("BBHodo_Scinti"), "actanabarlog" );
+    
+    
+    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(ActAnScintSDname)) ) {
+      G4cout << "Adding SBS PR Polarimeter Scint BeamSide Sensitive Detector to SDman..." << G4endl;
+      ActAnScintSD = new G4SBSCalSD( ActAnScintSDname, ActAnScintcollname );
+      
+      sdman->AddNewDetector( ActAnScintSD );
+      (fDetCon->SDlist).insert( ActAnScintSDname );
+      fDetCon->SDtype[ActAnScintSDname] = G4SBS::kCAL;
+      (ActAnScintSD->detmap).depth = 0;
+    
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( ActAnScintSDname, ethresh_default, timewindow_default, 25 );
+      fDetCon->InsertSDboundaryVolume( actanalog->GetName(), ActAnScintSDname );
+    }
+    G4VisAttributes *actanavisatt = new G4VisAttributes( G4Colour(0.0, 1.0, 0.0));
+    actanavisatt->SetForceWireframe(true);
+    actanabarlog->SetVisAttributes( actanavisatt );
+    actanabarlog->SetSensitiveDetector( ActAnScintSD ); 
+    
+    fDetCon->InsertAnalyzerVolume( actanabarlog->GetName() );
   
-  int barindex = 0; // SD detectors indexing (left to right, bottom to top)
-  for(int ix = 0; ix < nactanabarsx; ix++) {
-    double xbar = (((double)(ix-nactanabarsx/2.0) * actanabarwidth) + actanabarwidth/2.0);
-    for(int iz = 0; iz < nactanabarsz; iz++) {
-      double zbar = (((double)(iz-nactanabarsz/2.0) * actanabardepth) + actanabardepth/2.0);
-      if( fGEnRP_analyzer_option == 2 || fGEnRP_analyzer_option == 3 ) // Glasgow
-	new G4PVPlacement( 0, G4ThreeVector(xbar, 0, zbar), actanabarlog, "actanabarphys", actanalog, false, barindex );
-      else if( fGEnRP_analyzer_option == 4 ) { // CGEN 
+    int barindex = 0; // SD detectors indexing (left to right, bottom to top)
+    for(int ix = 0; ix < nactanabarsx; ix++) {
+      double xbar = (((double)(ix-nactanabarsx/2.0) * actanabarwidth) + actanabarwidth/2.0);
+      for(int iz = 0; iz < nactanabarsz; iz++) {
+	double zbar = (((double)(iz-nactanabarsz/2.0) * actanabardepth) + actanabardepth/2.0);
+	if( fGEnRP_analyzer_option == 2 || fGEnRP_analyzer_option == 3 ) // Glasgow
+	  new G4PVPlacement( 0, G4ThreeVector(xbar, 0, zbar), actanabarlog, "actanabarphys", actanalog, false, barindex );
+	else if( fGEnRP_analyzer_option == 4 ) { // CGEN 
 	  xbar = (2*ix-1)*(actanawidth/2.0) + (1-2*ix)*actanabarwidth/2.0;
-	new G4PVPlacement( 0, G4ThreeVector(xbar, 0, 0), actanabarlog, "actanabarphys", actanalog, false, barindex );
-      }      
-      barindex++;
+	  new G4PVPlacement( 0, G4ThreeVector(xbar, 0, 0), actanabarlog, "actanabarphys", actanalog, false, barindex );
+	}      
+	barindex++;
+      }
     }
   }
-
+  
   if( fGEnRP_analyzer_option == 2 ) // long axis parallel to neutron direction (needed to maintain correct centering)
     actanadepth = actanaheight;
   
   // ----------------------------------------------------------------------------------------------------------------------
   // Make PR Polarimeter Trackers (2 UVa each)
   // ----------------------------------------------------------------------------------------------------------------------
-
+  
   double prgem_perpdist = 50.0 *cm;  // pependicular distance to first GEM from analyzer centre
   double prgem_spacing  = 10.0 *cm;
 
@@ -4589,7 +4591,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   G4ThreeVector prgem_posbs = pos + G4ThreeVector( prgem_perpdist, 0.0, (actanadist + actanadepth/2.) );
 
-  if( fGEnRP_analyzer_option != 0 ) {  
+  if( fGEnRP_analyzer_option != 0 && fDetCon->fExpType != G4SBS::kGEN) {  
     for( int j = 0; j < 2; j++ ){
       gemz[j] = (double)(j-1)*prgem_spacing; 
       gemw[j] = 60.0*cm;
@@ -4606,13 +4608,15 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   G4ThreeVector prgem_posfs = pos + G4ThreeVector( -prgem_perpdist, 0.0, (actanadist + actanadepth/2.0) );
   
-  for( int j = 0; j < 2; j++ ){
-    gemz[j] = (double)(j-1)*prgem_spacing; 
-    gemw[j] = 60.0*cm;
-    gemh[j] = 200.0*cm;
+  if( fDetCon->fExpType != G4SBS::kGEN) {  
+    for( int j = 0; j < 2; j++ ){
+      gemz[j] = (double)(j-1)*prgem_spacing; 
+      gemw[j] = 60.0*cm;
+      gemh[j] = 200.0*cm;
+    }
+    trackerbuilder.BuildComponent( sbslog, rot_fs, prgem_posfs, 2, gemz, gemw, gemh, G4String("Harm/PRPolGEMFarSide"));
   }
-  trackerbuilder.BuildComponent( sbslog, rot_fs, prgem_posfs, 2, gemz, gemw, gemh, G4String("Harm/PRPolGEMFarSide"));
-
+  
   // ----------------------------------------------------------------------------------------------------------------------
   // Make PR Polarimeter Hodoscopes (1 each)
   // ----------------------------------------------------------------------------------------------------------------------
@@ -4631,82 +4635,84 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
 
   G4ThreeVector prscintbs_pos = pos + G4ThreeVector( (prscint_perpdist + prscintbsdepth/2.0), 0.0, (actanadist + actanadepth/2.0) );
 
-  if( fGEnRP_analyzer_option != 0 ) {  
-    
-    G4Box *prscintbsbox = new G4Box("prscintbsbox", prscintwidth/2.0, prscintheight/2.0, prscintbsdepth/2.0 );
-    
-    G4LogicalVolume *prscintbslog = new G4LogicalVolume( prscintbsbox, GetMaterial("Air"), "prscintbslog" );
-    
-    new G4PVPlacement( rot_bs, prscintbs_pos, prscintbslog,"prscintbsphys", sbslog, false, 0, false);
-    prscintbslog->SetVisAttributes( G4VisAttributes::Invisible );
-  
-    G4Box *prbarbsbox = new G4Box("prbarbsbox", prscintwidth/2.0, prbarheight/2.0, prscintbsdepth/2.0 );
-    G4LogicalVolume *prbarbslog = new G4LogicalVolume( prbarbsbox, GetMaterial("BBHodo_Scinti"), "prbarbslog" );
-    
-    G4String PRPolScintBSSDname   = "Harm/PRPolScintBeamSide";
-    G4String PRPolScintBScollname = "PRPolScintBSHitsCollection";
-    G4SBSCalSD *PRPolScintBSSD    = NULL;
-    
-    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(PRPolScintBSSDname)) ) {
-      G4cout << "Adding SBS PR Polarimeter Scint BeamSide Sensitive Detector to SDman..." << G4endl;
-      PRPolScintBSSD = new G4SBSCalSD( PRPolScintBSSDname, PRPolScintBScollname );
+  if(fDetCon->fExpType != G4SBS::kGEN) {  
+    if( fGEnRP_analyzer_option != 0){ 
       
-      sdman->AddNewDetector( PRPolScintBSSD );
-      (fDetCon->SDlist).insert( PRPolScintBSSDname );
-      fDetCon->SDtype[PRPolScintBSSDname] = G4SBS::kCAL;
-      (PRPolScintBSSD->detmap).depth = 0;
+      G4Box *prscintbsbox = new G4Box("prscintbsbox", prscintwidth/2.0, prscintheight/2.0, prscintbsdepth/2.0 );
       
-      fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintBSSDname, ethresh_default, timewindow_default, 25 );
-      fDetCon->InsertSDboundaryVolume( prscintbslog->GetName(), PRPolScintBSSDname );
+      G4LogicalVolume *prscintbslog = new G4LogicalVolume( prscintbsbox, GetMaterial("Air"), "prscintbslog" );
+      
+      new G4PVPlacement( rot_bs, prscintbs_pos, prscintbslog,"prscintbsphys", sbslog, false, 0, false);
+      prscintbslog->SetVisAttributes( G4VisAttributes::Invisible );
+      
+      G4Box *prbarbsbox = new G4Box("prbarbsbox", prscintwidth/2.0, prbarheight/2.0, prscintbsdepth/2.0 );
+      G4LogicalVolume *prbarbslog = new G4LogicalVolume( prbarbsbox, GetMaterial("BBHodo_Scinti"), "prbarbslog" );
+      
+      G4String PRPolScintBSSDname   = "Harm/PRPolScintBeamSide";
+      G4String PRPolScintBScollname = "PRPolScintBSHitsCollection";
+      G4SBSCalSD *PRPolScintBSSD    = NULL;
+      
+      if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(PRPolScintBSSDname)) ) {
+	G4cout << "Adding SBS PR Polarimeter Scint BeamSide Sensitive Detector to SDman..." << G4endl;
+	PRPolScintBSSD = new G4SBSCalSD( PRPolScintBSSDname, PRPolScintBScollname );
+	
+	sdman->AddNewDetector( PRPolScintBSSD );
+	(fDetCon->SDlist).insert( PRPolScintBSSDname );
+	fDetCon->SDtype[PRPolScintBSSDname] = G4SBS::kCAL;
+	(PRPolScintBSSD->detmap).depth = 0;
+	
+	fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintBSSDname, ethresh_default, timewindow_default, 25 );
+	fDetCon->InsertSDboundaryVolume( prscintbslog->GetName(), PRPolScintBSSDname );
+      }
+      prbarbslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
+      prbarbslog->SetSensitiveDetector( PRPolScintBSSD ); 
+      
+      // SD detectors indexed from bottom to top
+      for(int i = 0; i < nprbars; i++) {
+	double ybar = (((double)(i-nprbars/2.0) * prbarheight) + prbarheight/2.0);
+	new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarbslog, "prbarbsphys", prscintbslog, false, i );
+      }
     }
-    prbarbslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
-    prbarbslog->SetSensitiveDetector( PRPolScintBSSD ); 
     
-    // SD detectors indexed from bottom to top
+    // -----------------------------------------------------------------------
+    // far side scintillator detectors
+    
+    G4ThreeVector prscintfs_pos = pos + G4ThreeVector( -(prscint_perpdist + prscintfsdepth/2.0), 0.0, (actanadist + actanadepth/2.0) );
+    
+    G4Box *prscintfsbox = new G4Box("prscintfsbox", prscintwidth/2.0, prscintheight/2.0, prscintfsdepth/2.0 );
+    
+    G4LogicalVolume *prscintfslog = new G4LogicalVolume( prscintfsbox, GetMaterial("Air"), "prscintfslog" );
+  
+    G4Box *prbarfsbox = new G4Box("prbarfsbox", prscintwidth/2.0, prbarheight/2.0, prscintfsdepth/2.0 );
+    G4LogicalVolume *prbarfslog = new G4LogicalVolume( prbarfsbox, GetMaterial("BBHodo_Scinti"), "prbarfslog" );
+    
+    new G4PVPlacement( rot_fs, prscintfs_pos, prscintfslog,"prscintfsphys", sbslog, false, 0, false);
+    prscintfslog->SetVisAttributes( G4VisAttributes::Invisible );
+    
+    G4String PRPolScintFSSDname   = "Harm/PRPolScintFarSide";
+    G4String PRPolScintFScollname = "PRPolScintFSHitsCollection";
+    G4SBSCalSD *PRPolScintFSSD    = NULL;
+    
+    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(PRPolScintFSSDname)) ) {
+      G4cout << "Adding SBS PR Polarimeter Scint Far Side Sensitive Detector to SDman..." << G4endl;
+      PRPolScintFSSD = new G4SBSCalSD( PRPolScintFSSDname, PRPolScintFScollname );
+      
+      sdman->AddNewDetector( PRPolScintFSSD );
+      (fDetCon->SDlist).insert( PRPolScintFSSDname );
+      fDetCon->SDtype[PRPolScintFSSDname] = G4SBS::kCAL;
+      (PRPolScintFSSD->detmap).depth = 0;
+      
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintFSSDname, ethresh_default, timewindow_default, 25 );
+      fDetCon->InsertSDboundaryVolume( prscintfslog->GetName(), PRPolScintFSSDname );
+    }
+    prbarfslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
+    prbarfslog->SetSensitiveDetector( PRPolScintFSSD ); 
+    
+    // SD detectors indexed from bottom to top 
     for(int i = 0; i < nprbars; i++) {
       double ybar = (((double)(i-nprbars/2.0) * prbarheight) + prbarheight/2.0);
-      new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarbslog, "prbarbsphys", prscintbslog, false, i );
+      new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarfslog, "prbarfsphys", prscintfslog, false, i );
     }
-  }
-
-  // -----------------------------------------------------------------------
-  // far side scintillator detectors
-
-  G4ThreeVector prscintfs_pos = pos + G4ThreeVector( -(prscint_perpdist + prscintfsdepth/2.0), 0.0, (actanadist + actanadepth/2.0) );
-
-  G4Box *prscintfsbox = new G4Box("prscintfsbox", prscintwidth/2.0, prscintheight/2.0, prscintfsdepth/2.0 );
-  
-  G4LogicalVolume *prscintfslog = new G4LogicalVolume( prscintfsbox, GetMaterial("Air"), "prscintfslog" );
-  
-  G4Box *prbarfsbox = new G4Box("prbarfsbox", prscintwidth/2.0, prbarheight/2.0, prscintfsdepth/2.0 );
-  G4LogicalVolume *prbarfslog = new G4LogicalVolume( prbarfsbox, GetMaterial("BBHodo_Scinti"), "prbarfslog" );
-    
-  new G4PVPlacement( rot_fs, prscintfs_pos, prscintfslog,"prscintfsphys", sbslog, false, 0, false);
-  prscintfslog->SetVisAttributes( G4VisAttributes::Invisible );
-
-  G4String PRPolScintFSSDname   = "Harm/PRPolScintFarSide";
-  G4String PRPolScintFScollname = "PRPolScintFSHitsCollection";
-  G4SBSCalSD *PRPolScintFSSD    = NULL;
-  
-  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(PRPolScintFSSDname)) ) {
-    G4cout << "Adding SBS PR Polarimeter Scint Far Side Sensitive Detector to SDman..." << G4endl;
-    PRPolScintFSSD = new G4SBSCalSD( PRPolScintFSSDname, PRPolScintFScollname );
-    
-    sdman->AddNewDetector( PRPolScintFSSD );
-    (fDetCon->SDlist).insert( PRPolScintFSSDname );
-    fDetCon->SDtype[PRPolScintFSSDname] = G4SBS::kCAL;
-    (PRPolScintFSSD->detmap).depth = 0;
-
-    fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintFSSDname, ethresh_default, timewindow_default, 25 );
-    fDetCon->InsertSDboundaryVolume( prscintfslog->GetName(), PRPolScintFSSDname );
-  }
-  prbarfslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
-  prbarfslog->SetSensitiveDetector( PRPolScintFSSD ); 
-
-  // SD detectors indexed from bottom to top 
-  for(int i = 0; i < nprbars; i++) {
-    double ybar = (((double)(i-nprbars/2.0) * prbarheight) + prbarheight/2.0);
-    new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarfslog, "prbarfsphys", prscintfslog, false, i );
   }
 
 }

@@ -2417,6 +2417,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
   // Glass cell for polarized 3He
   // - drawing number: internal from G. Cates (May 2020) 
 
+  bool enableSD = fDetCon->GetGEnTargetSDEnable();  
+  
   G4double glassWall = 1.0*mm; // estimate 
   G4double tubeLength = fGEn_GLASS_TUBE_LENGTH; // 571.7*mm; // 579.0*mm;  
 
@@ -2736,20 +2738,22 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
   G4String GlassTargetSDname = "GlassTarget";
   G4String GlassTargetcollname = "GlassTargetHitsCollection";
   G4SBSCalSD *GlassTargetSD = NULL;
-    
-  if( !( GlassTargetSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(GlassTargetSDname) ) ){
-    G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
-    GlassTargetSD = new G4SBSCalSD( GlassTargetSDname, GlassTargetcollname );
-    fDetCon->fSDman->AddNewDetector( GlassTargetSD );
-    (fDetCon->SDlist).insert(GlassTargetSDname);
-    fDetCon->SDtype[GlassTargetSDname] = G4SBS::kCAL;
-    
-    (GlassTargetSD->detmap).depth = 1;
 
-    fDetCon->SetThresholdTimeWindowAndNTimeBins( GlassTargetSDname, 0.0*MeV, 100.0*ns, 25 );
-  }
+  if( enableSD ){
+    if( !( GlassTargetSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(GlassTargetSDname) ) ){
+      G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
+      GlassTargetSD = new G4SBSCalSD( GlassTargetSDname, GlassTargetcollname );
+      fDetCon->fSDman->AddNewDetector( GlassTargetSD );
+      (fDetCon->SDlist).insert(GlassTargetSDname);
+      fDetCon->SDtype[GlassTargetSDname] = G4SBS::kCAL;
+    
+      (GlassTargetSD->detmap).depth = 1;
+
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( GlassTargetSDname, 0.0*MeV, 100.0*ns, 25 );
+    }
   
-  logicGlassCell->SetSensitiveDetector( GlassTargetSD );
+    logicGlassCell->SetSensitiveDetector( GlassTargetSD );
+  }
   
   // place the volume
   // - note that this is relative to the *target chamber* as that is the first object in the union 
@@ -2794,7 +2798,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
   fDetCon->InsertTargetVolume( logicGlassCell->GetName() );
 
   // now turn this into a sensitive detector if enabled
-  bool enableSD = fDetCon->GetGEnTargetSDEnable();  
+  //bool enableSD = fDetCon->GetGEnTargetSDEnable();  
 
   // name of SD and the hitCollection  
   G4String gcSDname = "Target/Glass";   

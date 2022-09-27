@@ -4444,45 +4444,80 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   // int ngem_ce[3]       = {2,2,4};
   // double cegem_spacing = 10.0 *cm;
 
-  int ntracker_ce      = 2; 
-  int ngem_ce[2]       = {4,4};
-  double cegem_spacing = 10.0 *cm;
+  //SBS tracking geometry notes:
+  // 1. SBS detector box starts just downstream of rear clamp; i.e. front edge of SBS box starts at the back edge of rear clamp, which according to "sbsr" above is 11.43+5.91 inches downstream of the back edge of the magnet.
+  // 2. according to the GEP detector stack drawings (I know, I know, not the same as GEN), the first SBS tracking layer (INFN) starts 55.91 inches downstream of the CENTER of the SBS magnet, which is 37 cm downstream of the start of the SBS box:
   
-  vector<G4String> SDnames_ce; 
-  //SDnames_ce.push_back("Harm/CEPolFront1");
-  //SDnames_ce.push_back("Harm/CEPolFront2");
-  //SDnames_ce.push_back("Harm/CEPolRear");
+  if( fDetCon->fExpType == G4SBS::kGEN ){ //build ONE tracker, not two. 
+    int ntracker = 1;
+    int ngem = 8;
 
-  // SDnames_ce.push_back("Harm/CEPolFront1");
-  SDnames_ce.push_back("Harm/CEPolFront");
-  SDnames_ce.push_back("Harm/CEPolRear");
+    G4String SDname = "Harm/SBSGEM";
+
+    vector<double> zplanes_SBStracker(ngem), wplanes_SBStracker(ngem), hplanes_SBStracker(ngem);
+
+    for( int igem=0; igem<ngem; igem++ ){
+      double ztemp;
+      if( igem < 4 ){
+	ztemp = igem*10.0*cm;
+      } else {
+	ztemp = (igem+1)*10.0*cm;
+      }
+	
+      zplanes_SBStracker[igem] = detoffset + 37.0*cm + ztemp;
+      if( igem<2 ){
+	wplanes_SBStracker[igem] = 40.0*cm;
+	hplanes_SBStracker[igem] = 150.0*cm;
+      } else {
+	wplanes_SBStracker[igem] = 60.0*cm;
+	hplanes_SBStracker[igem] = 200.0*cm;
+      }
+    }
+
+    trackerbuilder.BuildComponent( sbslog, rot_I, G4ThreeVector(0,0,0), ngem, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, SDname );
+    
+  } else {
   
-  for( int i = 0; i<ntracker_ce; i++){ 
-    gemz.resize( ngem_ce[i] ); 
-    gemw.resize( ngem_ce[i] );
-    gemh.resize( ngem_ce[i] );
-    for( int j = 0; j < ngem_ce[i]; j++ ){
-      if( i == 0 ){
-	gemz[j] = -cuanadepth/2.0 + (double)(j-4)*cegem_spacing;
-	if( j < 2 ){
-	  gemw[j] = 40.0*cm;
-	  gemh[j] = 150.0*cm;
-	} else {
+    int ntracker_ce      = 2; 
+    int ngem_ce[2]       = {4,4};
+    double cegem_spacing = 10.0 *cm;
+  
+    vector<G4String> SDnames_ce; 
+    //SDnames_ce.push_back("Harm/CEPolFront1");
+    //SDnames_ce.push_back("Harm/CEPolFront2");
+    //SDnames_ce.push_back("Harm/CEPolRear");
+
+    // SDnames_ce.push_back("Harm/CEPolFront1");
+    SDnames_ce.push_back("Harm/CEPolFront");
+    SDnames_ce.push_back("Harm/CEPolRear");
+  
+    for( int i = 0; i<ntracker_ce; i++){ 
+      gemz.resize( ngem_ce[i] ); 
+      gemw.resize( ngem_ce[i] );
+      gemh.resize( ngem_ce[i] );
+      for( int j = 0; j < ngem_ce[i]; j++ ){
+	if( i == 0 ){
+	  gemz[j] = -cuanadepth/2.0 + (double)(j-4)*cegem_spacing;
+	  if( j < 2 ){
+	    gemw[j] = 40.0*cm;
+	    gemh[j] = 150.0*cm;
+	  } else {
+	    gemw[j] = 60.0*cm;
+	    gemh[j] = 200.0*cm;
+	  }
+	} else {// else if( i == 1 ){
+	  // 	gemz[j] = -cuanadepth/2.0 + (double)(j-2)*cegem_spacing;
+	  // 	gemw[j] = 60.0*cm;
+	  // 	gemh[j] = 200.0*cm;
+	  // }
+	  //else {
+	  gemz[j] = cuanadepth/2.0 + (double)(j+1)*cegem_spacing;
 	  gemw[j] = 60.0*cm;
 	  gemh[j] = 200.0*cm;
 	}
-      } else {// else if( i == 1 ){
-      // 	gemz[j] = -cuanadepth/2.0 + (double)(j-2)*cegem_spacing;
-      // 	gemw[j] = 60.0*cm;
-      // 	gemh[j] = 200.0*cm;
-      // }
-      //else {
-  	gemz[j] = cuanadepth/2.0 + (double)(j+1)*cegem_spacing;
-  	gemw[j] = 60.0*cm;
-  	gemh[j] = 200.0*cm;
       }
+      trackerbuilder.BuildComponent( sbslog, rot_I, cuana_pos, ngem_ce[i], gemz, gemw, gemh, SDnames_ce[i] );
     }
-    trackerbuilder.BuildComponent( sbslog, rot_I, cuana_pos, ngem_ce[i], gemz, gemw, gemh, SDnames_ce[i] );
   }
   
   // ----------------------------------------------------------------------------------------------------------------------

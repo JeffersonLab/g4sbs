@@ -1692,7 +1692,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
   if( cmd == tgtPresCmd ){
     G4double pre = tgtPresCmd->GetNewDoubleValue(newValue);
-    G4double den = pre/(296.0*kelvin*k_Boltzmann);
+    G4double den = pre/(296.0*kelvin*k_Boltzmann); //molecules/unit volume
     fevgen->SetTargDen(den);
     fdetcon->fTargetBuilder->SetTargDen(den);
     fevgen->SetInitialized(false);

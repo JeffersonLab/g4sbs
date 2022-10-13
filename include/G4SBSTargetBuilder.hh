@@ -66,7 +66,7 @@ public:
   
   void SetTarget(G4SBS::Targ_t t){fTargType = t;}
   void SetTargLen(G4double len){ fTargLen = len;}
-  void SetTargDen(G4double den){ fTargDen = den;} //Currently, fTargDen has NO effect!
+  void SetTargDen(G4double den){ fTargDen = den;} //currently has no effect except for luminosity calculation.
   void SetTargDiameter(G4double D){ fTargDiameter = D; }
   void SetSchamFlag(int flag){ fSchamFlag = flag; }
 

@@ -214,13 +214,13 @@ void G4SBSEventGen::Initialize(){
   
   switch(fTargType){
   case G4SBS::kH2:
-    Wfact = 2.0;
+    Wfact = 1.0; 
     fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
     fTargRadLen = fTargLen / G4Material::GetMaterial("refH2")->GetRadlen();
     fTargZatomic = 1.;
     break;
   case G4SBS::kD2:
-    Wfact = 4.0;
+    Wfact = 2.0;
     fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
     fTargRadLen = fTargLen / G4Material::GetMaterial("refD2")->GetRadlen();
     fTargZatomic = 1.;
@@ -265,7 +265,7 @@ void G4SBSEventGen::Initialize(){
 
   fLumi = fBeamCur / (e_SI*ampere*second) * fTargDen * Wfact * fTargLen; //This is in electrons*nucleons/cm^2/s
   
-  //G4cout << "Luminosity = " << fLumi*cm2*s << " cm^{-2} s^{-1}" << G4endl;
+  G4cout << "[ G4SBSEventGen::Initialize() ]: Luminosity = " << fLumi*cm2*s << " cm^{-2} s^{-1}" << G4endl;
   
   fGenVol = (fPhMax - fPhMin)*(cos(fThMin)-cos(fThMax));
   //This expression works for elastic and inelastic, and any other generator that is differential in solid angle only.

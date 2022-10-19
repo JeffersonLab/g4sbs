@@ -33,13 +33,14 @@
 #include "TObjArray.h"
 #include "TObjString.h"
 #include "G4SBSRunData.hh"
+#include "G4SBSTextFile.hh"
 
 
 const double PI = TMath::Pi();
 
 //Optics fit code for GMN/GEN-RP
 
-void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX=1000000){
+void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX=1000000, double BBscale=0.97){
   
   
   ifstream inputfile(inputfilename);
@@ -81,7 +82,9 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
   map<TString,double> SBSang_file;
   map<TString,double> SBSdist_file;
 
-  double A_pth1 = 0.28615*0.97;
+  //map<TString,double> BBscale_file; 
+  
+  double A_pth1 = 0.28615*BBscale;
   double B_pth1 = 0.1976 + 0.4764 * 1.55;
   
   while( (chEl=(TChainElement*)next() )){
@@ -556,7 +559,7 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 		  if( pexpansion_flag == 0 ){
 		    b_pinv(ipar) += term[ipar]*p*thetabend;
 		  } else if( arm == 0 && pexpansion_flag == 2 ){
-		    double pth1 = 0.28615*0.97*( 1.0 + (0.1976 + 0.4764*R0) * xptar ); //GeV/c * rad
+		    double pth1 = A_pth1*( 1.0 + B_pth1 * xptar ); //GeV/c * rad
 		    double delta = p*(thetabend)/pth1 - 1.0;
 		    b_pinv(ipar) += term[ipar]*delta;
 		  } else {
@@ -1102,8 +1105,8 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	  } else if ( arm == 0 && pexpansion_flag == 2 ) {
 	    double delta_fit = pthetabend_fit;
 	    double delta_recon = pthetabend_recon;
-	    double pth1_fit = 0.28615*0.97*(1.0 + (0.1976 + 0.4764*R0) * xptar_fit );
-	    double pth1_recon = 0.28615*0.97*(1.0 + (0.1976 + 0.4764*R0) * xptar_recon );
+	    double pth1_fit = A_pth1*(1.0 + B_pth1 * xptar_fit );
+	    double pth1_recon = A_pth1*(1.0 + B_pth1 * xptar_recon );
 
 	    p_fit = pth1_fit * (1.0 + delta_fit)/thetabend_fit;
 	    p_recon = pth1_recon * (1.0 + delta_recon)/thetabend_recon;

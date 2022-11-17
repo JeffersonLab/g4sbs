@@ -104,9 +104,13 @@ public:
   void SetBigBitePlateThickness( G4double v ){fPlasticPlateThickness = v;}
   void SetBigBitePlateMaterial( G4String s ){fPlasticMaterial = s;}
 
-  void EnableGEPtargShielding( G4bool b ){ fUseGEPtargShielding = b; }
-  void SetGEPtargShieldingThick( G4double v ){ fGEPtargShieldingThick = v; }
-  void SetGEPtargShieldingMaterial( G4String str ){ fGEPtargShieldingMaterial = str; }
+  //void EnableGEPtargShielding( G4bool b ){ fUseGEPtargShielding = b; }
+  void SetHadronFilterThick( G4double v ){ fHadronFilterThick = v; }
+  void SetHadronFilterMaterial( G4String str ){ fHadronFilterMaterial = str; }
+
+  void EnableHadronFilter( G4bool b ){ fUseHadronFilter = b; }
+
+  void BuildHadronFilter( G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector );
   
 private:
   //Multi-foil solid targets (only Carbon available for now):
@@ -137,9 +141,11 @@ private:
   G4double fPlasticPlateThickness;
   G4String fPlasticMaterial;
 
-  G4bool fUseGEPtargShielding;
-  G4double fGEPtargShieldingThick;
-  G4String fGEPtargShieldingMaterial;
+  G4bool fUseHadronFilter;
+  
+  //G4bool fUseGEPtargShielding;
+  G4double fHadronFilterThick;
+  G4String fHadronFilterMaterial;
   
   G4SBS::Targ_t fTargType;
 };

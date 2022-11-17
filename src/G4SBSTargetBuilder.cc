@@ -51,9 +51,11 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fPlasticPlateThickness = 2.54*cm;
   fPlasticMaterial = G4String("CH2");
 
-  fUseGEPtargShielding = false;
-  fGEPtargShieldingThick = 5.0*cm;
-  fGEPtargShieldingMaterial = G4String("CH2");
+  
+  fHadronFilterThick = 0.75*2.54*cm;
+  fHadronFilterMaterial = G4String("NEMAG10");
+
+  fUseHadronFilter = false;
 }
 
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
@@ -173,22 +175,37 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   
   new G4PVPlacement( rot_targ, targ_offset, TargetMother_log, "TargetMother_phys", motherlog, false, 0 );
 
-  if( fDetCon->fExpType == G4SBS::kGEp && fUseGEPtargShielding ){
-  
-    G4double thick_shield = fGEPtargShieldingThick;
-    G4double length_shield = fTargLen * 3.0;
-    G4double height_shield = 40.0*cm;
-  
-    G4Box *shield_wall = new G4Box("geptargshield_wall", thick_shield/2.0, height_shield/2.0, length_shield/2.0 );
+  if( fDetCon->fExpType == G4SBS::kGEp && fUseHadronFilter ){
+   
 
-    G4LogicalVolume *shield_log = new G4LogicalVolume( shield_wall, GetMaterial(fGEPtargShieldingMaterial), "geptargshield_wall_log" );
+    //we need a Z offset and (I think) an x offset: 
 
-    G4ThreeVector shield_offset = targ_offset;
-    shield_offset.setX( -(shield_offset.getX() + Rcell + 2.5*cm + thick_shield/2.0) );
+    G4ThreeVector hfilter_offset = targ_offset;
+    hfilter_offset.setX( -(hfilter_offset.getX() + Rcell + 1.0*cm + fHadronFilterThick/2.0 ) );
+    hfilter_offset.setY( hfilter_offset.getY() +0.5*(fTargLen - 4.45*2.54*cm) );
+    //hfilter_offset.SetZ( targ_offset.getZ()
     
-    new G4PVPlacement( rot_targ, shield_offset, shield_log, "geptargshield_wall_phys", motherlog, false, 0 );
+    BuildHadronFilter( motherlog, rot_targ, hfilter_offset );
     
   }
+  
+  //Commenting this out for now we have hadron filter geometry from Bogdan
+  // if( fDetCon->fExpType == G4SBS::kGEp && fUseGEPtargShielding ){
+  
+  //   G4double thick_shield = fGEPtargShieldingThick;
+  //   G4double length_shield = fTargLen * 3.0;
+  //   G4double height_shield = 40.0*cm;
+  
+  //   G4Box *shield_wall = new G4Box("geptargshield_wall", thick_shield/2.0, height_shield/2.0, length_shield/2.0 );
+
+  //   G4LogicalVolume *shield_log = new G4LogicalVolume( shield_wall, GetMaterial(fGEPtargShieldingMaterial), "geptargshield_wall_log" );
+
+  //   G4ThreeVector shield_offset = targ_offset;
+  //   shield_offset.setX( -(shield_offset.getX() + Rcell + 2.5*cm + thick_shield/2.0) );
+    
+  //   new G4PVPlacement( rot_targ, shield_offset, shield_log, "geptargshield_wall_phys", motherlog, false, 0 );
+    
+  // }
 
   if( fUseRad ){ //place radiator
     G4double yrad = fTargLen/2.0 + fRadZoffset; 
@@ -1226,6 +1243,10 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   
   //Call BuildStandardCryoTarget HERE !
   BuildStandardCryoTarget(ScatChamber_log, rot_temp, G4ThreeVector(0, -TargetCenter_zoffset, 0));
+
+  //Also call BuildHadronFilter here:
+  
+  
   
   /*
   //HERE
@@ -5273,4 +5294,34 @@ void G4SBSTargetBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
 		    0,                // copy number
 		    true);            // checking overlaps 
 
+}
+
+/////////////////////////////////////////////
+void G4SBSTargetBuilder::BuildHadronFilter( G4LogicalVolume *mother, G4RotationMatrix *rot, G4ThreeVector pos ){
+  //This should be the union of a box and a trapezoid.
+  G4double inch = 2.54*cm;
+  G4double boxlen = 4.45*inch;
+  G4double boxheight = 3.0*inch;
+  G4double boxthick = fHadronFilterThick;
+
+  G4double traplen = 29.62*inch - boxlen;
+  G4double trapthick = boxthick;
+  G4double trapheight1 = boxheight;
+  G4double trapheight2 = 4.00*inch;
+
+  //in the GEP scattering chamber this will have some complicated rotations, but let's assume the length is along z, the height is along y, and the thickness is along x:
+  
+  G4Box *HadronFilter_box = new G4Box( "HadronFilter_box", boxthick/2.0, boxheight/2.0, boxlen/2.0 );
+
+  G4Trd *HadronFilter_trap = new G4Trd( "HadronFilter_trap", trapthick/2.0, trapthick/2.0, trapheight1/2.0, trapheight2/2.0, traplen/2.0 );
+
+  G4RotationMatrix *rot_trap_box = new G4RotationMatrix; //Identity:
+
+  G4ThreeVector offset( 0, 0, (boxlen + traplen)/2.0 );
+  
+  G4UnionSolid *HadronFilter_Solid = new G4UnionSolid( "HadronFilter_Solid", HadronFilter_box, HadronFilter_trap, rot_trap_box, offset );
+
+  G4LogicalVolume *HadronFilter_log = new G4LogicalVolume( HadronFilter_Solid, GetMaterial(fHadronFilterMaterial), "HadronFilter_log" );
+
+  new G4PVPlacement( rot, pos, HadronFilter_log, "HadronFilter_phys", mother, false, 0 );
 }

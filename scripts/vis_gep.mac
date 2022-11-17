@@ -6,7 +6,7 @@
 
 ## Configure the target
 /g4sbs/target          LH2
-/g4sbs/targlen         25.0 cm           ## Target Length
+/g4sbs/targlen         30.0 cm           ## Target Length
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator
@@ -22,7 +22,7 @@
 
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
-/g4sbs/hcaldist        7.2 m
+/g4sbs/hcaldist        11.0 m
 /g4sbs/hcalvoffset     75.0 cm
 /g4sbs/sbsclampopt     2
 
@@ -48,6 +48,8 @@
 # option 1: single-analyzer, 8+8 front and back trackers:
 /g4sbs/gepfppoption 1
 /g4sbs/FPP1CH2thick 55.88 cm
+
+/g4sbs/usehadronfilter true
 
 # option 2: double-analyzer (both CH2)
 #/g4sbs/gepfppoption 2
@@ -127,12 +129,12 @@
 #
 # To draw only gammas:
 /vis/filtering/trajectories/create/particleFilter
-/vis/filtering/trajectories/particleFilter-0/add gamma
-#/vis/filtering/trajectories/particleFilter-0/add neutron
+/vis/filtering/trajectories/particleFilter-0/add e-
+/vis/filtering/trajectories/particleFilter-0/add proton
 #
 # To invert the above, drawing all particles except gammas,
 # keep the above two lines but also add:
-/vis/filtering/trajectories/particleFilter-0/invert true
+#/vis/filtering/trajectories/particleFilter-0/invert true
 #
 # Many other options are available with /vis/modeling and /vis/filtering.
 # For example, to select colour by particle ID:

@@ -24,7 +24,7 @@
 /g4sbs/beamcur         60.0 muA
 /g4sbs/rasterR         3.0 mm
 /g4sbs/beamspotsize    0.5 mm
-/g4sbs/beamE           4.2 GeV
+/g4sbs/beamE           4.3 GeV
 # "standard" angle and energy generation limits for BB: 
 /g4sbs/thmin           19.5 deg
 /g4sbs/thmax           39.5 deg
@@ -51,7 +51,7 @@
 /g4sbs/scalebbfield    0.97
 /g4sbs/48d48field      1
 # Note: SBS maximum field in GEN corresponds to 1.58 T*m or 1.3 T uniform field
-/g4sbs/sbsmagfield     0.65 T
+/g4sbs/sbsmagfield     0.4 T
 /g4sbs/bbang           29.5 deg
 /g4sbs/bbdist          1.63 m
 /g4sbs/sbsang          34.7 deg

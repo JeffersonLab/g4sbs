@@ -11,7 +11,7 @@
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator
 /g4sbs/runtime         1.0 s 
-/g4sbs/beamcur         50.0 microampere
+/g4sbs/beamcur         70.0 microampere
 /g4sbs/rasterx         4.0 mm
 /g4sbs/rastery         4.0 mm
 /g4sbs/beamE           10.6 GeV

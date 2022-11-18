@@ -2498,16 +2498,15 @@ bool G4SBSEventGen::GeneratePythia(){
 
 bool G4SBSEventGen::GenerateSIMC(){
   G4double Mp = proton_mass_c2;
-  
   fSIMCTree->GetEntry(fchainentry++);
   
   fSIMCEvent.Clear();
 
-  fSIMCEvent.sigma = fSIMCTree->sigcc;
+  fSIMCEvent.sigma = fSIMCTree->sigcc/cm2;
   fSIMCEvent.Weight = fSIMCTree->Weight;
 
   fSIMCEvent.Q2 = fSIMCTree->Q2;
-  fSIMCEvent.xbj = fSIMCTree->Q2/(2*Mp*fSIMCTree->nu);
+  fSIMCEvent.xbj = fSIMCTree->Q2/(2*Mp/GeV*fSIMCTree->nu);//Q2 and nu are in GeV...
   fSIMCEvent.nu = fSIMCTree->nu;
   fSIMCEvent.W = fSIMCTree->W;
   fSIMCEvent.epsilon = fSIMCTree->epsilon;

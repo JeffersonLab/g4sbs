@@ -39,10 +39,10 @@ void G4SBSSIMCOutput::Clear(){
 }
 
 void G4SBSSIMCOutput::ConvertToTreeUnits(){ //This is called once per event after primary vertices are generated. When this is called, all quantities should be in GEANT4 standard units of MeV, ns, cm;
-  sigma /= (1.0/(cm*cm));
-  Q2 /= (GeV*GeV);
-  W /= (GeV);
-  nu /= (GeV);
+  //sigma /= (1.0/(cm*cm));
+  //Q2 /= (GeV*GeV);
+  //W /= (GeV);
+  //nu /= (GeV);
   
   Ebeam /= GeV;
   

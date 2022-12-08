@@ -1,20 +1,20 @@
 ## Configure G4SBS for gmn (Q^2 = 13.3 GeV^2)
-/g4sbs/filename        gmn_SBS9_egun_job4.root   ## Output rootfile
+/g4sbs/filename        gmn_SBS9_beam_LD2_job7.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gmn
 
 ## Configure the target
-/g4sbs/target          LH2
+/g4sbs/target          LD2
 /g4sbs/targlen         15.0 cm           ## Target Length
 /g4sbs/rasterx 	       2.0 mm  #raster size in X
 /g4sbs/rastery	       2.0 mm  #raster size in Y
 
 ## Configure generator settings
-/g4sbs/kine            gun           ## Generator
+/g4sbs/kine            beam         ## Generator
 /g4sbs/particle        e-
 /g4sbs/beamcur         1.0 muA
-/g4sbs/beamE           4.03 GeV
+/g4sbs/beamE           4.015 GeV
 /g4sbs/thmin           43.0 deg
 /g4sbs/thmax           56.0 deg
 /g4sbs/phmin           -22 deg
@@ -46,8 +46,8 @@
 
 
 /g4sbs/keepsdtrackinfo 	all true
-/g4sbs/totalabs true
+/g4sbs/totalabs false
 
 ## Run 100 events
-/g4sbs/eventstatusevery 100
-/g4sbs/run             50000
+/g4sbs/eventstatusevery 1000
+/g4sbs/run             10000000

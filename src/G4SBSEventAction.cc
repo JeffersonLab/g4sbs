@@ -192,6 +192,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     G4SBSTargetoutput cu; 
     G4SBSTargetoutput al; 
     G4SBSTargetoutput he3; 
+
+    sd.Clear();
     
     switch(Det_type){
 
@@ -203,12 +205,12 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	
 	if( gemHC != NULL ){
 
-	  sd = GEMSDptr->SDtracks;
+	  sd = GEMSDptr->SDtracks; //copy GEM SD track output to sd (temporarily)
 
 	  //This should only be called once, otherwise units will be wrong!
 	  sd.ConvertToTreeUnits();
 
-	  sdtemp = &sd;
+	  sdtemp = &sd; //what is the purpose of this line?
 
 	  map<G4String,G4bool>::iterator keep = fIO->GetKeepSDtracks().find( *d );
 

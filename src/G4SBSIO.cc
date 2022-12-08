@@ -860,6 +860,7 @@ void G4SBSIO::BranchSDTracks(){
   fTree->Branch(  "OTrack.TID", &(allsdtrackdata.otrid) );
   fTree->Branch(  "OTrack.MID", &(allsdtrackdata.omid) );
   fTree->Branch(  "OTrack.PID", &(allsdtrackdata.opid) );
+  fTree->Branch(  "OTrack.MPID", &(allsdtrackdata.ompid) );
   fTree->Branch(  "OTrack.posx", &(allsdtrackdata.oposx) );
   fTree->Branch(  "OTrack.posy", &(allsdtrackdata.oposy) );
   fTree->Branch(  "OTrack.posz", &(allsdtrackdata.oposz) );
@@ -893,6 +894,7 @@ void G4SBSIO::BranchSDTracks(){
   fTree->Branch(  "SDTrack.TID", &(allsdtrackdata.sdtrid) );
   fTree->Branch(  "SDTrack.MID", &(allsdtrackdata.sdmid) );
   fTree->Branch(  "SDTrack.PID", &(allsdtrackdata.sdpid) );
+  fTree->Branch(  "SDTrack.MPID", &(allsdtrackdata.sdmpid) );
   fTree->Branch(  "SDTrack.posx", &(allsdtrackdata.sdposx) );
   fTree->Branch(  "SDTrack.posy", &(allsdtrackdata.sdposy) );
   fTree->Branch(  "SDTrack.posz", &(allsdtrackdata.sdposz) );

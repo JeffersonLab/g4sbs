@@ -1,12 +1,12 @@
 ## Configure G4SBS for gen (Q^2 = 10.18 GeV^2)
 #/g4sbs/filename        GEN4_elastic.root   ## Output rootfile
-/g4sbs/filename 	GEN4_egun_BBfield_0p97_job1.root
+/g4sbs/filename 	GEN4_elastic_3He_BBfield_0p97_job4.root
 
 ## Configure Experiment
 /g4sbs/exp             gen
 
 ## Configure the target
-/g4sbs/target          H2
+/g4sbs/target          3He
 /g4sbs/targpres        10 atmosphere     ## Target pressure
 /g4sbs/targlen         60.0 cm           ## Target Length
 
@@ -20,14 +20,14 @@
 /g4sbs/beamDiffuserEnable false
 
 ## Configure generator settings
-#/g4sbs/kine            elastic           ## Generator
-/g4sbs/kine 		gun
+/g4sbs/kine            elastic           ## Generator
+#/g4sbs/kine 		gun
 /g4sbs/particle 	e-
 /g4sbs/runtime         1.0 s
 /g4sbs/beamcur         60.0 muA
-/g4sbs/rasterR         3.0 mm
+/g4sbs/rasterR         2.5 mm
 /g4sbs/beamspotsize    0.5 mm
-/g4sbs/beamE           8.4 GeV
+/g4sbs/beamE           8.451 GeV
 # "standard" angle and energy generation limits for BB: 
 /g4sbs/thmin           28.0 deg
 /g4sbs/thmax           44.0 deg
@@ -35,7 +35,7 @@
 /g4sbs/phmax           25.0 deg
 # energy limits for inelastic generator:
 /g4sbs/eemin 	       0.8 GeV
-/g4sbs/eemax	       4.0 GeV
+/g4sbs/eemax	       4.5 GeV
 # "standard" angle and energy generation limits for SBS:
 /g4sbs/hthmin 	       8.0 deg
 /g4sbs/hthmax 	       30.0 deg
@@ -72,4 +72,4 @@
 #/g4sbs/buildBBsieve 1
 
 ## Run 100 events
-/g4sbs/run             100000
+/g4sbs/run             10000

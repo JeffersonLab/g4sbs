@@ -8,7 +8,7 @@
 
 
 
-void ECAL_HCAL_Correlations(const char *rootfilename, const char *outfilename, double threshold=0.001){
+void ECAL_HCAL_Correlations(const char *rootfilename, const char *outfilename, double threshold=0.01){
   TFile *fin = new TFile( rootfilename, "READ" );
   ofstream outfile(outfilename);
 

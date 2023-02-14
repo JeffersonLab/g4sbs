@@ -20,6 +20,25 @@
 /g4sbs/phmin           -45.0 deg
 /g4sbs/phmax           45.0 deg
 
+# settings for Wiser generator:
+# Wiser pi0, ECAL:
+/g4sbs/kine    	     wiser
+/g4sbs/hadron 	     pi-
+/g4sbs/hthmin 	     20.0 deg
+/g4sbs/hthmax 	     40.0 deg
+/g4sbs/hphmin 	     -45.0 deg
+/g4sbs/hphmax 	     45.0 deg
+/g4sbs/ehmin 	     1.0 GeV
+/g4sbs/ehmax	     7.0 GeV
+/g4sbs/filename      GEP12_wiser_piminus_job3.root
+
+# settings for inelastic generator:
+#/g4sbs/kine      inelastic
+#/g4sbs/eemin 	 1.0 GeV
+#/g4sbs/eemax 	 7.0 GeV
+#/g4sbs/filename  GEP12_inelastic_job3.root
+
+
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
 /g4sbs/hcaldist        11.0 m
@@ -61,4 +80,4 @@
 
 
 ## Run 100 events
-/g4sbs/run             10000
+/g4sbs/run             100000

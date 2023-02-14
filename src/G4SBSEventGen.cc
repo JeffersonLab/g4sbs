@@ -2000,6 +2000,15 @@ bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
   double sigpip = wiser_sigma(ei.e()/GeV, Phad_lab.vect().mag()/GeV, htheta, rad_len*4.0/3.0 + intrad, 0)*nanobarn/GeV;
   double sigpim = wiser_sigma(ei.e()/GeV, Phad_lab.vect().mag()/GeV, htheta, rad_len*4.0/3.0 + intrad, 1)*nanobarn/GeV;
 
+  // Wiser xsec is given in nb/(GeV*sr). The above calculation is equivalent to
+  // multiplying by a constant factor in GEANT4's system of units (mm, MeV).
+  // GeV = 1000. * MeV = 1000.
+  // meter = 1000. * mm = 1000.
+  // meter2 = 1e6
+  // barn = 1.e-28 * meter2 = 1.e-22 * mm^2
+  // nanobarn = 1.e-9 * barn = 1.e-31 * mm^2 = 1.e-33 * cm^2
+  // 1. nanobarn / GeV = 1.e-31/1000. = 1.e-34 in GEANT4 units (mm^2/MeV)
+  
 
   if( fNuclType == G4SBS::kProton ){
     switch( fHadronType ){
@@ -2010,7 +2019,7 @@ bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
       fSigma = sigpim;
       break;
     case G4SBS::kPi0:
-      fSigma = (sigpip +sigpim)*2.0;
+      fSigma = (sigpip +sigpim)/2.0;
       break;
     default:
       fSigma = 0;
@@ -2025,7 +2034,7 @@ bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
       fSigma = sigpip;
       break;
     case G4SBS::kPi0:
-      fSigma = (sigpip +sigpim)*2.0;
+      fSigma = (sigpip +sigpim)/2.0;
       break;
     default:
       fSigma = 0;
@@ -2585,8 +2594,12 @@ ev_t G4SBSEventGen::GetEventData(){
   data.sigma = fSigma/cm2;
 
   if( fKineType == G4SBS::kDIS || fKineType == G4SBS::kWiser){
-    data.sigma = fSigma/cm2*GeV;
+    data.sigma = fSigma/cm2*GeV; //fSigma/cm2 * GeV is equivalent to fSigma/100*1000 = fSigma*10; but is it correct? In theory it should give
+    G4cout << "Wiser xsec in GetEventData = " << data.sigma << "
     data.solang = fGenVol/GeV;
+    // here for wiser the xsec is given in mm^2/MeV; i.e., it is in internal G4 units
+    // divide by cm^2 and multiply by GeV = 1000. So this looks correct
+    // for generation 
   }
   
   if( fKineType == G4SBS::kSIDIS ){ //The SIDIS cross section is also differential in e- energy and hadron energy and has units of area/energy^2/sr^2, so we also need to express it in the correct energy units:

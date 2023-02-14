@@ -32,7 +32,7 @@
 # assume 2.4 T*m / 1.22 m = 1.97 Tesla
 #/g4sbs/sbsmagfield     1.97 tesla
 #/g4sbs/48d48field      1
-/g4sbs/bbang           29.0 deg
+/g4sbs/bbang           30.0 deg
 /g4sbs/bbdist          4.5 m
 /g4sbs/sbsang          16.9 deg
 /g4sbs/48D48dist       1.6 m
@@ -49,7 +49,7 @@
 /g4sbs/gepfppoption 1
 /g4sbs/FPP1CH2thick 55.88 cm
 
-/g4sbs/usehadronfilter true
+/g4sbs/usehadronfilter false
 
 # option 2: double-analyzer (both CH2)
 #/g4sbs/gepfppoption 2
@@ -99,13 +99,15 @@
 /vis/viewer/set/autoRefresh false
 /vis/verbose errors
 #
+/vis/viewer/set/background 1 1 1 0
+
 # Draw geometry:
 /vis/drawVolume worlds
 #
 # Set specific colour for identification : ghost parallel geometry envelope ("ghost") as yellow
 #
 # Specify view angle:
-/vis/viewer/set/viewpointThetaPhi 106.9 180 deg
+/vis/viewer/set/viewpointThetaPhi 90 120  deg
 #
 # Specify zoom value:
 /vis/viewer/zoom 2.5
@@ -140,10 +142,14 @@
 # For example, to select colour by particle ID:
 /vis/modeling/trajectories/create/drawByParticleID
 /vis/modeling/trajectories/drawByParticleID-0/set e- blue
-/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton white
+/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton green
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA proton  1.0 0.5 0.1 1
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA neutron 0 1 0.6 1
 /vis/modeling/trajectories/drawByParticleID-0/setRGBA pi- 1. 0.2 1.0 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA pi+ 1. 0.2 1.0 1.0
 /vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon+ 0.3 1.0 0.5 1.0
 /vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
+
 #
 # To superimpose all of the events from a given run:
 /vis/scene/endOfEventAction accumulate 10000
@@ -156,15 +162,23 @@
 #/vis/viewer/flush
 /g4sbs/run  0
 
+/g4sbs/thmin 30.0 deg
+/g4sbs/thmax 30.0 deg
+/g4sbs/phmin 0 deg
+/g4sbs/phmax 0 deg
+
 #/vis/geometry/set/visibility RICHbox_log -1 0
 #/vis/geometry/set/visibility lHCalo -1 0
-#/vis/geometry/set/visibility earm_mother_log -1 0
-/vis/geometry/set/forceWireframe bigcoil_log -1 1
-/vis/geometry/set/forceWireframe woundcoil_log -1 1
-/vis/geometry/set/forceWireframe bigcoilthr_log -1 1
-/vis/geometry/set/forceWireframe b48d48Log -1 1
-/vis/geometry/set/forceWireframe leftslabLog -1 1
-/vis/geometry/set/forceWireframe rightslabLog -1 1
-/vis/geometry/set/forceWireframe FrontClamp_log -1 1
-/vis/geometry/set/forceWireframe RearClamp_log -1 1
+/vis/geometry/set/visibility earm_mother_log 0 0
+/vis/geometry/set/visibility CH2_filter_log 0 0
+#/vis/geometry/set/forceWireframe bigcoil_log -1 1
+#/vis/geometry/set/forceWireframe woundcoil_log -1 1
+#/vis/geometry/set/forceWireframe bigcoilthr_log -1 1
+#/vis/geometry/set/forceWireframe b48d48Log -1 1
+#/vis/geometry/set/forceWireframe leftslabLog -1 1
+#/vis/geometry/set/forceWireframe rightslabLog -1 1
+#/vis/geometry/set/forceWireframe FrontClamp_log -1 1
+#/vis/geometry/set/forceWireframe RearClamp_log -1 1
+
+/run/beamOn 1 
 /vis/viewer/flush

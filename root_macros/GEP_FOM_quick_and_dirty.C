@@ -203,7 +203,7 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
 
   C->Draw(">>elist_temp",globalcut);
 
-  auto T =  new gep_tree_new( C, NFPP );
+  auto T =  new gep_tree_new( C );
 
   //if( treeflag == 1 ) T = T1; 
 

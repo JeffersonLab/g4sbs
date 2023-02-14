@@ -41,7 +41,7 @@
 
 /g4sbs/keepsdtrackinfo 	all true
 /g4sbs/totalabs 	true
-/g4sbs/cdetready 	true
+/g4sbs/cdetready 	false
 
 ## Run 100 events
 /g4sbs/eventstatusevery		100
@@ -68,6 +68,9 @@
 # trajectories are established:
 /vis/viewer/set/autoRefresh false
 /vis/verbose errors
+
+/vis/viewer/set/background 1 1 1 0
+
 #
 # Draw geometry:
 /vis/drawVolume worlds
@@ -75,7 +78,7 @@
 # Set specific colour for identification : ghost parallel geometry envelope ("ghost") as yellow
 #
 # Specify view angle:
-/vis/viewer/set/viewpointThetaPhi 90 89 deg
+/vis/viewer/set/viewpointThetaPhi 90 120 deg
 #
 # Specify zoom value:
 /vis/viewer/zoom 2.2
@@ -100,7 +103,7 @@
 # To draw only gammas:
 /vis/filtering/trajectories/create/particleFilter
 /vis/filtering/trajectories/particleFilter-0/add gamma
-/vis/filtering/trajectories/particleFilter-0/add neutron
+#/vis/filtering/trajectories/particleFilter-0/add neutron
 #
 # To invert the above, drawing all particles except gammas,
 # keep the above two lines but also add:
@@ -110,8 +113,11 @@
 # For example, to select colour by particle ID:
 /vis/modeling/trajectories/create/drawByParticleID
 /vis/modeling/trajectories/drawByParticleID-0/set e- blue
-/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton white
+/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton green
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA proton  1.0 0 0 1
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA neutron 1 1 1 1
 /vis/modeling/trajectories/drawByParticleID-0/setRGBA pi- 1. 0.2 1.0 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA pi+ 1. 0.2 1.0 1.0
 /vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon+ 0.3 1.0 0.5 1.0
 /vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
 #

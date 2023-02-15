@@ -2008,7 +2008,11 @@ bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
   // barn = 1.e-28 * meter2 = 1.e-22 * mm^2
   // nanobarn = 1.e-9 * barn = 1.e-31 * mm^2 = 1.e-33 * cm^2
   // 1. nanobarn / GeV = 1.e-31/1000. = 1.e-34 in GEANT4 units (mm^2/MeV)
-  
+
+  // G4cout << "(sigpi+,sigpi-) = (" << sigpip*GeV/nanobarn << ", "
+  // 	 << sigpim*GeV/nanobarn << ") nb/(GeV*sr)" << G4endl;
+  // G4cout << "(sigpi+,sigpi-) = (" << sigpip << ", " << sigpim << ") in G4 units (mm^2/(MeV*sr))" << G4endl;
+  // G4cout << "(sigpi+,sigpi-) = (" << sigpip/cm2*GeV << ", " << sigpim/cm2*GeV << ") cm2/(GeV*sr)" << G4endl;
 
   if( fNuclType == G4SBS::kProton ){
     switch( fHadronType ){
@@ -2041,7 +2045,7 @@ bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
       break;
     }
   }
-
+  
   //AJRP: Why is this line here? To be consistent with the other generators, we keep fSigma as the differential cross section,
   // and multiply in the phase space volume at the stage of a rate calculation/normalization; commented out:
   //  fSigma *= (fEhadMax-fEhadMin)*(cos( fThMax_had) - cos( fThMin_had ))*(fPhMax_had-fPhMin_had)/(cos(fThMax)-cos(fThMin) )/(fPhMax-fPhMin);
@@ -2064,7 +2068,11 @@ bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
   fHadronE = Phad_lab.e();
   fHadronP = Phad_lab.vect();
 
-  return true;
+  if( fSigma != 0.0 ){ //only generate kinematically allowed events to save CPU cycles
+    return true;
+  } else {
+    return false;
+  }
 }
 
 
@@ -2594,8 +2602,8 @@ ev_t G4SBSEventGen::GetEventData(){
   data.sigma = fSigma/cm2;
 
   if( fKineType == G4SBS::kDIS || fKineType == G4SBS::kWiser){
-    data.sigma = fSigma/cm2*GeV; //fSigma/cm2 * GeV is equivalent to fSigma/100*1000 = fSigma*10; but is it correct? In theory it should give
-    G4cout << "Wiser xsec in GetEventData = " << data.sigma << "
+    data.sigma = fSigma/cm2*GeV; //fSigma/cm2 * GeV is equivalent to fSigma/100*1000 = fSigma*10; but is it correct? YES
+    
     data.solang = fGenVol/GeV;
     // here for wiser the xsec is given in mm^2/MeV; i.e., it is in internal G4 units
     // divide by cm^2 and multiply by GeV = 1000. So this looks correct

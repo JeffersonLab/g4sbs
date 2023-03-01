@@ -2832,11 +2832,37 @@ void G4SBSEventGen::InitializePythia6_Tree(){
     newfile.GetObject("graph_sigma",gtemp);
 
     if( gtemp ){
-      fPythiaSigma[chEl->GetTitle()] = (gtemp->GetY()[gtemp->GetN()-1])*millibarn;
+      bool goodsigma=false;
+      int npoints = gtemp->GetN();
+      G4double sigmatemp = gtemp->GetY()[npoints-1];
+
+      //G4cout << "sigmatemp, isnan = " << sigmatemp << ", " << std::isnan(sigmatemp) << G4endl;
+
+      int ipoint=npoints-1;
+      if( !std::isnan(sigmatemp) ) {
+	goodsigma=true;
+	fPythiaSigma[chEl->GetTitle()] = sigmatemp*millibarn;
+      }
+      while( !goodsigma && ipoint>0 ){ //work backwards from the end of the array, take first cross section that isn't a "NAN"
+	ipoint--;
+	sigmatemp = gtemp->GetY()[ipoint];
+
+	if( !std::isnan(sigmatemp) ) {
+	  goodsigma = true;
+	  fPythiaSigma[chEl->GetTitle()] = (gtemp->GetY()[ipoint])*millibarn;
+	  //G4cout << "Found good cross section, ipoint, sigma = "
+	}
+      }
+
+      if( !goodsigma ){      
+	fPythiaSigma[chEl->GetTitle()] = 1.0*cm2;
+      }
     } else {
       fPythiaSigma[chEl->GetTitle()] = 1.0*cm2; //
     }
     newfile.Close();
+
+    G4cout << "PYTHIA6 cross section = " << fPythiaSigma[chEl->GetTitle()]/millibarn << " mb" << G4endl;
   }
   
   fPythiaTree = new Pythia6_tree( fPythiaChain );

@@ -44,11 +44,23 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 
   setupfile >> mean_npeGeV;
   setupfile >> rindex_PbGl;
+
+  int generator_flag = 0; //0 = beam, 1 = pythia, 2 = other:
+  setupfile >> generator_flag; 
+
+  cout << "mean npe/GeV BBCAL = " << mean_npeGeV << endl;
+  cout << "rindex Pb-Gl = " << rindex_PbGl << endl;
+  cout << "generator flag = " << generator_flag << endl;
   
   G4SBSRunData *rd;
   
   // C->Add(rootfilename);
 
+  map<TString,double> Lumi_file;
+  map<TString,double> genvol_file; 
+  
+  double Lumi_default = 3.97e36; //1 uA on 15-cm LH2
+  double genvol_default = 1.0;
   long ngen = 0;
 
   int nfiles = 0;
@@ -65,6 +77,10 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
     newfile.GetObject("run_data",rd);
     if( rd ){
       ngen += rd->fNtries;
+      Lumi_file[chEl->GetTitle()] = rd->fLuminosity;
+      genvol_file[chEl->GetTitle()] = rd->fGenVol;
+      Lumi_default = rd->fLuminosity;
+      genvol_default = rd->fGenVol;
       nfiles++;
     } else {
       bad_file_list.insert( chEl->GetTitle());
@@ -201,7 +217,6 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
   double Xbinwidth = 210.0/100.0;
   double Ybinwidth = 62.0/100.0;
   
-  
   while( T->GetEntry( nevent++ ) ){
     if( nevent % 1000 == 0 ) cout << nevent << endl;
     
@@ -209,6 +224,15 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 
     if( bad_file_list.find( f->GetName() ) == bad_file_list.end() ){
 
+      if( generator_flag == 1 ){ //PYTHIA:
+	weight = Lumi_file[f->GetName()] * T->primaries_Sigma / double(ngen);
+
+	//cout << "lumi, sigma, weight = " << Lumi_file[f->GetName()] << ", " << T->primaries_Sigma << ", " << weight << endl;
+      }
+      if( generator_flag == 2 ){ //Generic g4sbs "built-in" generators:
+	weight = Lumi_file[f->GetName()] * T->ev_sigma * genvol_file[f->GetName()] / double(ngen);	
+      }
+      
       //Add GEMs:
       for( int ihit=0; ihit<T->Earm_BBGEM_hit_nhits; ihit++ ){
 	int plane = (*(T->Earm_BBGEM_hit_plane))[ihit];
@@ -217,207 +241,229 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
 	hitrate_vs_Y_BBGEM->Fill( plane, (*(T->Earm_BBGEM_hit_y))[ihit], weight/Ybinwidth/BBGEM_LX[plane-1] );
       }
       
-      if( pheflag != 0 ){ //optical photons ON: only consider hits with optical photons detected in PMTs
-	for( int ihit=0; ihit<T->Harm_HCal_hit_nhits; ihit++ ){
-	  int PMT = (*(T->Harm_HCal_hit_PMT))[ihit];
-	  int nphe = (*(T->Harm_HCal_hit_NumPhotoelectrons))[ihit];
+      // if( pheflag != 0 ){ //optical photons ON: only consider hits with optical photons detected in PMTs
+      // 	for( int ihit=0; ihit<T->Harm_HCal_hit_nhits; ihit++ ){
+      // 	  int PMT = (*(T->Harm_HCal_hit_PMT))[ihit];
+      // 	  int nphe = (*(T->Harm_HCal_hit_NumPhotoelectrons))[ihit];
 
-	  double edep = 0.0;
+      // 	  double edep = 0.0;
 	
-	  for( int jhit=0; jhit<T->Harm_HCalScint_hit_nhits; jhit++ ){
-	    if( (*(T->Harm_HCalScint_hit_cell))[jhit] == PMT ){
-	      edep = (*(T->Harm_HCalScint_hit_sumedep))[jhit];
-	    }
-	  }
-	  hrate_vs_nphe_HCAL->Fill( PMT, nphe, weight );
-	  hrate_vs_edep_HCALscint->Fill( PMT, edep, weight );
+      // 	  for( int jhit=0; jhit<T->Harm_HCalScint_hit_nhits; jhit++ ){
+      // 	    if( (*(T->Harm_HCalScint_hit_cell))[jhit] == PMT ){
+      // 	      edep = (*(T->Harm_HCalScint_hit_sumedep))[jhit];
+      // 	    }
+      // 	  }
+      // 	  hrate_vs_nphe_HCAL->Fill( PMT, nphe, weight );
+      // 	  hrate_vs_edep_HCALscint->Fill( PMT, edep, weight );
 
-	  hnphe_vs_edep_HCAL->Fill( edep, nphe, weight );
+      // 	  hnphe_vs_edep_HCAL->Fill( edep, nphe, weight );
 	
-	  sumedep_HCAL[PMT] += edep * weight;
-	  sumnphe_HCAL[PMT] += nphe * weight;
+      // 	  sumedep_HCAL[PMT] += edep * weight;
+      // 	  sumnphe_HCAL[PMT] += nphe * weight;
 
-	  if( edep >= thresh_HCAL ) hitrate_HCAL[PMT] += weight;
-	}
+      // 	  if( edep >= thresh_HCAL ) hitrate_HCAL[PMT] += weight;
+      // 	}
 
-	// for( int ihit=0; ihit<T->Harm_CDET_hit_nhits; ihit++ ){
-	//   int PMT = (*(T->Harm_CDET_hit_PMT))[ihit];
-	//   int nphe = (*(T->Harm_CDET_hit_NumPhotoelectrons))[ihit];
+      // 	// for( int ihit=0; ihit<T->Harm_CDET_hit_nhits; ihit++ ){
+      // 	//   int PMT = (*(T->Harm_CDET_hit_PMT))[ihit];
+      // 	//   int nphe = (*(T->Harm_CDET_hit_NumPhotoelectrons))[ihit];
 
-	//   double edep = 0.0;
+      // 	//   double edep = 0.0;
 	
-	//   for( int jhit=0; jhit<T->Harm_CDET_Scint_hit_nhits; jhit++ ){
-	//     if( (*(T->Harm_CDET_Scint_hit_cell))[jhit] == PMT ){
-	//       edep = (*(T->Harm_CDET_Scint_hit_sumedep))[jhit];
-	//     }
-	//   }
-	//   hrate_vs_nphe_CDET->Fill( PMT, nphe, weight );
-	//   hrate_vs_edep_CDETscint->Fill( PMT, edep, weight );
+      // 	//   for( int jhit=0; jhit<T->Harm_CDET_Scint_hit_nhits; jhit++ ){
+      // 	//     if( (*(T->Harm_CDET_Scint_hit_cell))[jhit] == PMT ){
+      // 	//       edep = (*(T->Harm_CDET_Scint_hit_sumedep))[jhit];
+      // 	//     }
+      // 	//   }
+      // 	//   hrate_vs_nphe_CDET->Fill( PMT, nphe, weight );
+      // 	//   hrate_vs_edep_CDETscint->Fill( PMT, edep, weight );
 
-	//   hnphe_vs_edep_CDET->Fill( edep, nphe, weight );
+      // 	//   hnphe_vs_edep_CDET->Fill( edep, nphe, weight );
 	
-	//   sumedep_CDET[PMT] += edep * weight;
-	//   sumnphe_CDET[PMT] += nphe * weight;
+      // 	//   sumedep_CDET[PMT] += edep * weight;
+      // 	//   sumnphe_CDET[PMT] += nphe * weight;
 
-	//   if( edep >= thresh_CDET ) hitrate_CDET[PMT] += weight;
-	// }
+      // 	//   if( edep >= thresh_CDET ) hitrate_CDET[PMT] += weight;
+      // 	// }
 
-	for( int ihit=0; ihit<T->Earm_BBHodoScint_hit_nhits; ihit++ ){
-	  double edep = (*(T->Earm_BBHodoScint_hit_sumedep))[ihit];
-	  int PMT = (*(T->Earm_BBHodoScint_hit_cell))[ihit];
-	  hrate_vs_edep_BBHodoScint->Fill( PMT, edep, weight );
+      // 	for( int ihit=0; ihit<T->Earm_BBHodoScint_hit_nhits; ihit++ ){
+      // 	  double edep = (*(T->Earm_BBHodoScint_hit_sumedep))[ihit];
+      // 	  int PMT = (*(T->Earm_BBHodoScint_hit_cell))[ihit];
+      // 	  hrate_vs_edep_BBHodoScint->Fill( PMT, edep, weight );
 
-	  sumedep_BBHodo[PMT] += edep * weight;
+      // 	  sumedep_BBHodo[PMT] += edep * weight;
 
-	  if( edep >= thresh_BBhodo ) hitrate_BBHodo[PMT] += weight;
-	}
+      // 	  if( edep >= thresh_BBhodo ) hitrate_BBHodo[PMT] += weight;
+      // 	}
 
-	//BB PS:
-	for( int ihit=0; ihit<T->Earm_BBPS_hit_nhits; ihit++ ){
-	  int PMT = (*(T->Earm_BBPS_hit_PMT))[ihit];
-	  int nphe = (*(T->Earm_BBPS_hit_NumPhotoelectrons))[ihit];
-	  double edep = 0.0;
-	  for( int jhit=0; jhit<T->Earm_BBPSTF1_hit_nhits; jhit++ ){
-	    int cell = (*(T->Earm_BBPSTF1_hit_cell))[jhit];
-	    if( cell == PMT ){
-	      edep = (*(T->Earm_BBPSTF1_hit_sumedep))[jhit];
-	    }
-	  }
+      // 	//BB PS:
+      // 	for( int ihit=0; ihit<T->Earm_BBPS_hit_nhits; ihit++ ){
+      // 	  int PMT = (*(T->Earm_BBPS_hit_PMT))[ihit];
+      // 	  int nphe = (*(T->Earm_BBPS_hit_NumPhotoelectrons))[ihit];
+      // 	  double edep = 0.0;
+      // 	  for( int jhit=0; jhit<T->Earm_BBPSTF1_hit_nhits; jhit++ ){
+      // 	    int cell = (*(T->Earm_BBPSTF1_hit_cell))[jhit];
+      // 	    if( cell == PMT ){
+      // 	      edep = (*(T->Earm_BBPSTF1_hit_sumedep))[jhit];
+      // 	    }
+      // 	  }
 
-	  hrate_vs_nphe_BBPS->Fill( PMT, nphe, weight );
-	  hrate_vs_edep_BBPSTF1->Fill( PMT, edep, weight );
+      // 	  hrate_vs_nphe_BBPS->Fill( PMT, nphe, weight );
+      // 	  hrate_vs_edep_BBPSTF1->Fill( PMT, edep, weight );
 
-	  hnphe_vs_edep_BBPS->Fill( edep, nphe, weight );
+      // 	  hnphe_vs_edep_BBPS->Fill( edep, nphe, weight );
 
-	  sumnphe_PS[PMT] += nphe * weight;
-	  sumedep_PS[PMT] += edep * weight;
+      // 	  sumnphe_PS[PMT] += nphe * weight;
+      // 	  sumedep_PS[PMT] += edep * weight;
 
-	  if( edep >= thresh_BBPS ) hitrate_PS[PMT] += weight;
-	}
+      // 	  if( edep >= thresh_BBPS ) hitrate_PS[PMT] += weight;
+      // 	}
 
-	//BB SH:
-	for( int ihit=0; ihit<T->Earm_BBSH_hit_nhits; ihit++ ){
-	  int PMT = (*(T->Earm_BBSH_hit_PMT))[ihit];
-	  int nphe = (*(T->Earm_BBSH_hit_NumPhotoelectrons))[ihit];
-	  double edep = 0.0;
-	  for( int jhit=0; jhit<T->Earm_BBSHTF1_hit_nhits; jhit++ ){
-	    int cell = (*(T->Earm_BBSHTF1_hit_cell))[jhit];
-	    if( cell == PMT ){
-	      edep = (*(T->Earm_BBSHTF1_hit_sumedep))[jhit];
-	    }
-	  }
+      // 	//BB SH:
+      // 	for( int ihit=0; ihit<T->Earm_BBSH_hit_nhits; ihit++ ){
+      // 	  int PMT = (*(T->Earm_BBSH_hit_PMT))[ihit];
+      // 	  int nphe = (*(T->Earm_BBSH_hit_NumPhotoelectrons))[ihit];
+      // 	  double edep = 0.0;
+      // 	  for( int jhit=0; jhit<T->Earm_BBSHTF1_hit_nhits; jhit++ ){
+      // 	    int cell = (*(T->Earm_BBSHTF1_hit_cell))[jhit];
+      // 	    if( cell == PMT ){
+      // 	      edep = (*(T->Earm_BBSHTF1_hit_sumedep))[jhit];
+      // 	    }
+      // 	  }
 
-	  hrate_vs_nphe_BBSH->Fill( PMT, nphe, weight );
-	  hrate_vs_edep_BBSHTF1->Fill( PMT, edep, weight );
+      // 	  hrate_vs_nphe_BBSH->Fill( PMT, nphe, weight );
+      // 	  hrate_vs_edep_BBSHTF1->Fill( PMT, edep, weight );
 
-	  hnphe_vs_edep_BBSH->Fill( edep, nphe, weight );
+      // 	  hnphe_vs_edep_BBSH->Fill( edep, nphe, weight );
 	
-	  sumnphe_SH[PMT] += nphe * weight;
-	  sumedep_SH[PMT] += edep * weight;
+      // 	  sumnphe_SH[PMT] += nphe * weight;
+      // 	  sumedep_SH[PMT] += edep * weight;
 
-	  if( edep >= thresh_BBSH ) hitrate_SH[PMT] += weight;
-	}
+      // 	  if( edep >= thresh_BBSH ) hitrate_SH[PMT] += weight;
+      // 	}
       
-      } else { // no optical photons:
-	//HCAL:
-	for( int jhit=0; jhit<T->Harm_HCalScint_hit_nhits; jhit++ ){
+      // } else { // no optical photons:
+      //HCAL:
+      for( int jhit=0; jhit<T->Harm_HCalScint_hit_nhits; jhit++ ){
 
-	  int PMT = (*(T->Harm_HCalScint_hit_cell))[jhit];
-	  double edep = (*(T->Harm_HCalScint_hit_sumedep))[jhit];
+	int PMT = (*(T->Harm_HCalScint_hit_cell))[jhit];
+	double edep = (*(T->Harm_HCalScint_hit_sumedep))[jhit];
 
-	  if( edep >= thresh_HCAL ) hitrate_HCAL[PMT] += weight;
+	if( edep >= thresh_HCAL ) hitrate_HCAL[PMT] += weight;
 
-	  hrate_vs_edep_HCALscint->Fill( PMT, edep, weight );
+	hrate_vs_edep_HCALscint->Fill( PMT, edep, weight );
 
-	  sumedep_HCAL[PMT] += edep * weight;
+	sumedep_HCAL[PMT] += edep * weight;
 	  
-	}
-
-	hrate_vs_esum_HCAL->Fill( T->Harm_HCalScint_det_esum, weight );
-
-	//CDET:
-	// for( int jhit=0; jhit<T->Harm_CDET_Scint_hit_nhits; jhit++ ){
-	//   int PMT = (*(T->Harm_CDET_Scint_hit_cell))[jhit];
-	//   double edep = (*(T->Harm_CDET_Scint_hit_sumedep))[jhit];
-
-	//   if( edep >= thresh_CDET ) hitrate_CDET[PMT] += weight;
-
-	//   hrate_vs_edep_CDETscint->Fill( PMT, edep, weight );
-
-	//   sumedep_CDET[PMT] += edep * weight;
-	// }
-
-	//BB timing hodo:
-	for( int ihit=0; ihit<T->Earm_BBHodoScint_hit_nhits; ihit++ ){
-	  double edep = (*(T->Earm_BBHodoScint_hit_sumedep))[ihit];
-	  int PMT = (*(T->Earm_BBHodoScint_hit_cell))[ihit];
-	  hrate_vs_edep_BBHodoScint->Fill( PMT, edep, weight );
-
-	  sumedep_BBHodo[PMT] += edep * weight;
-
-	  if( edep >= thresh_BBhodo ) hitrate_BBHodo[PMT] += weight;
-	}
-
-	//BB PS:
-	
-	for( int jhit=0; jhit<T->Earm_BBPSTF1_hit_nhits; jhit++ ){
-	  int PMT = (*(T->Earm_BBPSTF1_hit_cell))[jhit];
-	  double edep = (*(T->Earm_BBPSTF1_hit_sumedep))[jhit];
-
-	  double beta_edep = sqrt(pow(edep,2)+2.0*me*edep)/(me+edep);
-	  double sin2thetaC_edep = 1.0-pow(TMath::Max(beta_edep,1.0/rindex_PbGl)*rindex_PbGl,-2);
-	  double sin2thetaC_max = 1.0-pow(rindex_PbGl,-2);
-
-	  int npe_edep = num.Poisson(edep*mean_npeGeV*sin2thetaC_edep/sin2thetaC_max);
-
-	  hrate_vs_nphe_BBPS_from_edep->Fill( PMT, npe_edep, weight );
-	  
-	  if( edep >= thresh_BBPS ) hitrate_PS[PMT] += weight;
-
-	  hrate_vs_edep_BBPSTF1->Fill( PMT, edep, weight );
-
-	  sumedep_PS[PMT] += edep * weight;
-	}
-
-	//BB SH:
-	
-	for( int jhit=0; jhit<T->Earm_BBSHTF1_hit_nhits; jhit++ ){
-	  int PMT = (*(T->Earm_BBSHTF1_hit_cell))[jhit];
-	  double edep = (*(T->Earm_BBSHTF1_hit_sumedep))[jhit];
-
-	  double beta_edep = sqrt(pow(edep,2)+2.0*me*edep)/(me+edep);
-	  double sin2thetaC_edep = 1.0-pow(TMath::Max(beta_edep,1.0/rindex_PbGl)*rindex_PbGl,-2);
-	  double sin2thetaC_max = 1.0-pow(rindex_PbGl,-2);
-
-	  int npe_edep = num.Poisson(edep*mean_npeGeV*sin2thetaC_edep/sin2thetaC_max);
-
-	  hrate_vs_nphe_BBSH_from_edep->Fill( PMT, npe_edep, weight );
-	  
-	  if( edep >= thresh_BBSH ) hitrate_SH[PMT] += weight;
-
-	  hrate_vs_edep_BBSHTF1->Fill( PMT, edep, weight );
-
-	  sumedep_SH[PMT] += edep * weight;
-	}
-
-	double etot_PS = T->Earm_BBPSTF1_det_esum;
-	double etot_SH = T->Earm_BBSHTF1_det_esum;
-
-	double npemean_PS = etot_PS * mean_npeGeV;
-	double npemean_SH = etot_SH * mean_npeGeV;
-
-	double npesmear_PS = num.Gaus( npemean_PS, sqrt(npemean_PS) );
-	double npesmear_SH = num.Gaus( npemean_SH, sqrt(npemean_SH) );
-
-	//Smeared energy:
-	double etot_PS_smear = npesmear_PS/mean_npeGeV;
-	double etot_SH_smear = npesmear_SH/mean_npeGeV;
-
-	double esum_BBCAL_smear = etot_PS_smear + etot_SH_smear;
-
-	hrate_vs_esum_BBCAL->Fill( esum_BBCAL_smear, weight );
-	
       }
+
+      hrate_vs_esum_HCAL->Fill( T->Harm_HCalScint_det_esum, weight );
+
+      //CDET:
+      // for( int jhit=0; jhit<T->Harm_CDET_Scint_hit_nhits; jhit++ ){
+      //   int PMT = (*(T->Harm_CDET_Scint_hit_cell))[jhit];
+      //   double edep = (*(T->Harm_CDET_Scint_hit_sumedep))[jhit];
+
+      //   if( edep >= thresh_CDET ) hitrate_CDET[PMT] += weight;
+
+      //   hrate_vs_edep_CDETscint->Fill( PMT, edep, weight );
+
+      //   sumedep_CDET[PMT] += edep * weight;
+      // }
+
+      //BB timing hodo:
+      for( int ihit=0; ihit<T->Earm_BBHodoScint_hit_nhits; ihit++ ){
+	double edep = (*(T->Earm_BBHodoScint_hit_sumedep))[ihit];
+	int PMT = (*(T->Earm_BBHodoScint_hit_cell))[ihit];
+	hrate_vs_edep_BBHodoScint->Fill( PMT, edep, weight );
+
+	sumedep_BBHodo[PMT] += edep * weight;
+
+	if( edep >= thresh_BBhodo ) hitrate_BBHodo[PMT] += weight;
+      }
+
+      //BB PS:
+	
+      for( int jhit=0; jhit<T->Earm_BBPSTF1_hit_nhits; jhit++ ){
+	int PMT = (*(T->Earm_BBPSTF1_hit_cell))[jhit];
+	double edep = (*(T->Earm_BBPSTF1_hit_sumedep))[jhit];
+
+	double beta_edep = sqrt(pow(edep,2)+2.0*me*edep)/(me+edep);
+	//cout << "beta_edep = " << beta_edep << endl;
+
+	//sin^2 (thetaC) = 1 - 1/(beta*n)^2, 
+
+	double sin2thetaC_edep = (beta_edep > 1./rindex_PbGl ) ? 1.0 - pow( beta_edep * rindex_PbGl, -2 ) : 0.0;
+	//if( beta_edep > 1.0/rindex_PbGl )
+	
+	//double sin2thetaC_edep = 1.0-pow(TMath::Max(beta_edep,1.0/rindex_PbGl)*rindex_PbGl,-2);
+	double sin2thetaC_max = 1.0-pow(rindex_PbGl,-2);
+
+	double mean_npe = edep * mean_npeGeV * sin2thetaC_edep/sin2thetaC_max; 
+	
+	double npe_edep = num.Gaus(mean_npeGeV, sqrt(mean_npeGeV) );
+
+	hrate_vs_nphe_BBPS_from_edep->Fill( PMT, npe_edep, weight );
+	  
+	if( edep >= thresh_BBPS ) hitrate_PS[PMT] += weight;
+
+	hrate_vs_edep_BBPSTF1->Fill( PMT, edep, weight );
+
+	sumedep_PS[PMT] += edep * weight;
+      }
+
+      //BB SH:
+	
+      for( int jhit=0; jhit<T->Earm_BBSHTF1_hit_nhits; jhit++ ){
+	int PMT = (*(T->Earm_BBSHTF1_hit_cell))[jhit];
+	double edep = (*(T->Earm_BBSHTF1_hit_sumedep))[jhit];
+
+	double beta_edep = sqrt(pow(edep,2)+2.0*me*edep)/(me+edep);
+	// Let edep be the kinetic energy of the electron; then Etot = me + edep
+	// p^2 = (me + edep)^2 - me^2 = me^2 - me^2 + edep2 + 2medep
+	//cout << "beta_edep = " << beta_edep << endl;
+
+	//sin^2 (thetaC) = 1 - 1/(beta*n)^2, 
+
+	double sin2thetaC_edep = (beta_edep > 1./rindex_PbGl ) ? 1.0 - pow( beta_edep * rindex_PbGl, -2 ) : 0.0;
+	//if( beta_edep > 1.0/rindex_PbGl )
+	
+	//double sin2thetaC_edep = 1.0-pow(TMath::Max(beta_edep,1.0/rindex_PbGl)*rindex_PbGl,-2);
+	double sin2thetaC_max = 1.0-pow(rindex_PbGl,-2);
+
+	double mean_npe = edep * mean_npeGeV * sin2thetaC_edep/sin2thetaC_max; 
+	
+	double npe_edep = num.Gaus(mean_npeGeV, sqrt(mean_npeGeV) );
+
+	hrate_vs_nphe_BBSH_from_edep->Fill( PMT, npe_edep, weight );
+	  
+	if( edep >= thresh_BBSH ) hitrate_SH[PMT] += weight;
+
+	hrate_vs_edep_BBSHTF1->Fill( PMT, edep, weight );
+
+	sumedep_SH[PMT] += edep * weight;
+      }
+
+      double etot_PS = T->Earm_BBPSTF1_det_esum;
+      double etot_SH = T->Earm_BBSHTF1_det_esum;
+
+      double npemean_PS = etot_PS * mean_npeGeV;
+      double npemean_SH = etot_SH * mean_npeGeV;
+
+      double npesmear_PS = num.Gaus( npemean_PS, sqrt(npemean_PS) );
+      double npesmear_SH = num.Gaus( npemean_SH, sqrt(npemean_SH) );
+
+      //Smeared energy:
+      double etot_PS_smear = npesmear_PS/mean_npeGeV;
+      double etot_SH_smear = npesmear_SH/mean_npeGeV;
+
+      double esum_BBCAL_smear = etot_PS_smear + etot_SH_smear;
+
+      //cout << "esum_BBCAL_smear = " << esum_BBCAL_smear << endl;
+      
+      hrate_vs_esum_BBCAL->Fill( esum_BBCAL_smear, weight );
+	
+      
     }
   }
 

@@ -620,7 +620,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4LogicalVolume *bbcal_mother_log = new G4LogicalVolume(bbcalbox, GetMaterial("Air"), "bbcal_mother_log");
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_bbcal_box ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 , chkoverlap); 
 
-  bbcal_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  bbcal_mother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   //option to "turn off" BBCAL (make total absorber)
   if( (fDetCon->StepLimiterList).find( "bbcal_mother_log" ) != (fDetCon->StepLimiterList).end() ){
@@ -645,7 +645,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //Get rid of dedicated shielding box, it's not needed
   // G4Box *bbcalshieldbox = new G4Box( "bbcalshieldbox", bbmagwidth/2.0-2.0*cm, bbcal_box_height/2.0, bbcal_shield_thick/2.0 );
   // G4LogicalVolume *bbcal_shield_log = new G4LogicalVolume(bbcalshieldbox, GetMaterial("Air"), "bbcal_shield_log");
-  // bbcal_shield_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // bbcal_shield_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   // G4Box *bbcalfrontmufoil = new G4Box( "bbcalfrontmufoil", bbcal_box_width/2.0, bbcal_box_height/2.0, 0.5*mm/2.0 );
   // G4LogicalVolume *bbcal_front_mufoil_log = new G4LogicalVolume(bbcalfrontmufoil, GetMaterial("mu-metal"), "bbcal_front_mufoil_log");
@@ -775,7 +775,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4cout << "BB hodo front (mm) " << detoffset + fBBCaldist+bbcal_total_thick/2.+zpos_temp+detboxdepth/2.0+1.0*mm << endl;
   zpos_temp += bbhododepth/2.0+1.0*mm;
   new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0, chkoverlap );
-  bbhodolog->SetVisAttributes(G4VisAttributes::Invisible);
+  bbhodolog->SetVisAttributes(G4VisAttributes::GetInvisible());
   // zpos_temp += bbhododepth/2.0+honeycombAlplate->GetZHalfLength();
   // new G4PVPlacement( 0, G4ThreeVector(0,0, zpos_temp ), honeycombAlplate_log, "honeycombplateback1_phys", bbcal_mother_log, false, 0, chkoverlap );
   // zpos_temp += 1.905*cm-2*bbcalfrontmufoil->GetZHalfLength();
@@ -1118,20 +1118,20 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   
   //--------- Visualization attributes -------------------------------
   //Mother volumes
-  bbdetLog->SetVisAttributes( G4VisAttributes::Invisible );
-  bbfieldLog->SetVisAttributes( G4VisAttributes::Invisible );
-  bbmotherLog->SetVisAttributes( G4VisAttributes::Invisible );
+  bbdetLog->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  bbfieldLog->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  bbmotherLog->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
-  bbpslog->SetVisAttributes( G4VisAttributes::Invisible ); 
-  bbshowerlog->SetVisAttributes( G4VisAttributes::Invisible );
+  bbpslog->SetVisAttributes( G4VisAttributes::GetInvisible() ); 
+  bbshowerlog->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   //Mylar
   G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );
   bbmylarwraplog->SetVisAttributes(mylar_colour);
 
   //Air
-  showermodlog->SetVisAttributes( G4VisAttributes::Invisible );
-  preshowermodlog->SetVisAttributes( G4VisAttributes::Invisible );
+  showermodlog->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  preshowermodlog->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   //TF1
   G4VisAttributes *TF1_colour = new G4VisAttributes(G4Colour( 0.8, 0.8, 0.0 ) );
@@ -1401,9 +1401,9 @@ void G4SBSEArmBuilder::MakeDVCSECal(G4LogicalVolume *motherlog){
   dvcsblkecallog->SetVisAttributes( DVCSblkecalbox_visatt );
     
   //G4VisAttributes *mydvcsblkmodbox_visatt = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0) );
-  dvcsblkmodlog->SetVisAttributes( DVCSblkecalbox_visatt );// G4VisAttributes::Invisible );//
+  dvcsblkmodlog->SetVisAttributes( DVCSblkecalbox_visatt );// G4VisAttributes::GetInvisible() );//
   
-  dvcsblkmylarwraplog->SetVisAttributes( G4VisAttributes::Invisible );
+  dvcsblkmylarwraplog->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   //TF1
   G4VisAttributes *DVCSblk_visatt = new G4VisAttributes(G4Colour( 1.0, 1.0, 0.0 ) );
@@ -1531,7 +1531,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
   G4VisAttributes *C16WG_visatt = new G4VisAttributes( G4Colour(0.54, 0.53, 0.79) );
   G4VisAttributes *Foam_visatt = new G4VisAttributes( G4Colour( 0.0, 0.6, 0.6) );
   // C16 Mother:
-  C16_Log->SetVisAttributes( G4VisAttributes::Invisible );
+  C16_Log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   // Al Plate & Foil:
   Alvisatt->SetForceWireframe(true);
   Al_Plate_Log->SetVisAttributes( Alvisatt );
@@ -1619,7 +1619,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
       }
     }
     // Set Visuals
-    Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
+    Module_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
     LeadGlass_42_log->SetVisAttributes( TF1visatt );
     Al_wrap_42_log->SetVisAttributes( Alvisatt );  
   } else {
@@ -1770,7 +1770,7 @@ void G4SBSEArmBuilder::MakeC16( G4LogicalVolume *motherlog ){
       }
     }
     // Set Visuals
-    Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
+    Module_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
     Al_wrap_42_log->SetVisAttributes( Alvisatt );
   }
 }
@@ -2275,7 +2275,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   new G4PVPlacement( 0, G4ThreeVector( 0, (ycalo_min - height_earm/2.0)/2.0, depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 ), bottom_Al_log, "bottom_Al_phys", earm_mother_log, false, 0 ); 
 
   // bottom_Al_log->SetVisAttributes( Alvisatt );
-  bottom_Al_log->SetVisAttributes( G4VisAttributes::Invisible );
+  bottom_Al_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   for( int super_row=0; super_row<20; super_row++ ){
     for( int sub_row=0; sub_row<4; sub_row++ ){
       global_row = sub_row + 4*super_row;
@@ -2341,7 +2341,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler1_log = new G4LogicalVolume( Al_filler1, GetMaterial("Al"), logname );
 	  
 	  //Al_filler1_log->SetVisAttributes( Alvisatt );
-	  Al_filler1_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
 	  G4ThreeVector pos( (xlow_row - width_earm/2.0)/2.0,
 			     ysum - 0.5*width_42,
@@ -2362,7 +2362,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler2_log = new G4LogicalVolume( Al_filler2, GetMaterial("Al"), logname );
 	  //Al_filler2_log->SetVisAttributes( Alvisatt );
 
-	  Al_filler2_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler2_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 	  
 	  //G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0, modpos.y(), modpos.z() );
 	  G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0,
@@ -2428,7 +2428,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler1_log = new G4LogicalVolume( Al_filler1, GetMaterial("Al"), logname );
 	  //Al_filler1_log->SetVisAttributes( Alvisatt );
 
-	  Al_filler1_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 	  
 	  G4ThreeVector pos( (xlow_row - width_earm/2.0)/2.0,
 			     ysum - 0.5*width_40,
@@ -2449,7 +2449,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler2_log = new G4LogicalVolume( Al_filler2, GetMaterial("Al"), logname );
 	  //Al_filler2_log->SetVisAttributes( Alvisatt );
 
-	  Al_filler2_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler2_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 	  
 	  //G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0, modpos.y(), modpos.z() );
 	  G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0,
@@ -2515,7 +2515,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler1_log = new G4LogicalVolume( Al_filler1, GetMaterial("Al"), logname );
 	  //Al_filler1_log->SetVisAttributes( Alvisatt );
 
-	  Al_filler1_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 	  
 	  G4ThreeVector pos( (xlow_row - width_earm/2.0)/2.0,
 			     ysum - 0.5*width_38,
@@ -2536,7 +2536,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 	  G4LogicalVolume *Al_filler2_log = new G4LogicalVolume( Al_filler2, GetMaterial("Al"), logname );
 	  //Al_filler2_log->SetVisAttributes( Alvisatt );
 
-	  Al_filler2_log->SetVisAttributes( G4VisAttributes::Invisible );
+	  Al_filler2_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 	  
 	  //G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0, modpos.y(), modpos.z() );
 	  G4ThreeVector pos( (xhigh_row + width_earm/2.0)/2.0,
@@ -2558,7 +2558,7 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
   new G4PVPlacement( 0, G4ThreeVector( 0, (ysum + height_earm/2.0)/2.0, depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass/2.0 ), top_Al_log, "top_Al_phys", earm_mother_log, false, 0 ); 
 
   //  top_Al_log->SetVisAttributes( Alvisatt );
-  top_Al_log->SetVisAttributes( G4VisAttributes::Invisible );
+  top_Al_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   //Next: Put front Aluminum plate in front of ECAL (make wireframe):
   G4Box *ECAL_FrontPlate = new G4Box( "ECAL_FrontPlate", width_earm/2.0, height_earm/2.0, depth_ecal_frontplate/2.0 );
@@ -2588,10 +2588,10 @@ void G4SBSEArmBuilder::MakeBigCal(G4LogicalVolume *motherlog){
 
   CH2_filter_log->SetVisAttributes(CH2_visatt);
   
-  earm_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
-  Module_42_log->SetVisAttributes( G4VisAttributes::Invisible );
-  Module_40_log->SetVisAttributes( G4VisAttributes::Invisible );
-  Module_38_log->SetVisAttributes( G4VisAttributes::Invisible );
+  earm_mother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  Module_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  Module_40_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  Module_38_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   G4VisAttributes *Mylarvisatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
   Mylarvisatt->SetForceWireframe(true);
@@ -2804,7 +2804,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
     }
   }
 
-  Scint_module->SetVisAttributes( G4VisAttributes::Invisible );
+  Scint_module->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *scintstrip_visatt = new G4VisAttributes( G4Colour( 0.8, 0, 0.8 ) );
   ScintStripLog->SetVisAttributes( scintstrip_visatt );
@@ -3143,11 +3143,11 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //   }
 
 //   // VISUALIZATIONS
-//   CDetLog->SetVisAttributes( G4VisAttributes::Invisible );
-//   CDetBarLog->SetVisAttributes( G4VisAttributes::Invisible );
-//   CDetModuleLog->SetVisAttributes( G4VisAttributes::Invisible );
-//   PlaneLog->SetVisAttributes( G4VisAttributes::Invisible );
-//   CDetModuleLog4->SetVisAttributes( G4VisAttributes::Invisible );
+//   CDetLog->SetVisAttributes( G4VisAttributes::GetInvisible() );
+//   CDetBarLog->SetVisAttributes( G4VisAttributes::GetInvisible() );
+//   CDetModuleLog->SetVisAttributes( G4VisAttributes::GetInvisible() );
+//   PlaneLog->SetVisAttributes( G4VisAttributes::GetInvisible() );
+//   CDetModuleLog4->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
 //   //G4VisAttributes *CDetPlaneVis = new G4VisAttributes( G4Colour::Green() );
 //   //CDetPlaneVis->SetForceWireframe(true);
@@ -3160,7 +3160,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //   // Mylar
 //   G4VisAttributes *CDetMylarVis = new G4VisAttributes( G4Colour(0.5,0.5,0.5) );
 //   CDetMylarLog->SetVisAttributes( CDetMylarVis );
-//   //CDetMylarLog->SetVisAttributes( G4VisAttributes::Invisible );
+//   //CDetMylarLog->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
 //   // Waveguide
 //   G4VisAttributes *CDetWLSVis = new G4VisAttributes( G4Colour(0.0, 1.0, 1.0) );
@@ -3472,15 +3472,15 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 
 //   //VISUALIZATIONS
 //   //Make mother volume invisible
-//   ecal_log->SetVisAttributes( G4VisAttributes::Invisible );
+//   ecal_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 	
 //   //Mylar
 //   G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );
-//   mylar_wrap_log->SetVisAttributes(G4VisAttributes::Invisible);
+//   mylar_wrap_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   
 //   //Air
 //   G4VisAttributes *air_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));
-//   module_log_type1->SetVisAttributes(G4VisAttributes::Invisible);
+//   module_log_type1->SetVisAttributes(G4VisAttributes::GetInvisible());
 
 //   //TF1
 //   G4VisAttributes *TF1_colour = new G4VisAttributes(G4Colour( 0.8, 0.8, 0.0 ) );
@@ -3497,7 +3497,7 @@ void G4SBSEArmBuilder::MakeCDET( G4double R0, G4double z0, G4LogicalVolume *moth
 //   PMTcathode_ecal_log->SetVisAttributes(PMT_colour);
 
 //   //Electron Arm Package - Houses Polyethylene, CDet, Al
-//   earm_mother_log->SetVisAttributes(G4VisAttributes::Invisible);
+//   earm_mother_log->SetVisAttributes(G4VisAttributes::GetInvisible());
 
 //   //Polyethylene
 //   G4VisAttributes *poly_colour = new G4VisAttributes(G4Colour( 0.2,0.3,0.4 ));
@@ -3572,7 +3572,7 @@ void G4SBSEArmBuilder::MakeGMnGEMShielding( G4LogicalVolume *motherlog ){
   G4LogicalVolume *ShieldLog = new G4LogicalVolume( ShieldBox, GetMaterial("Air"), "ShieldLog");
   G4VisAttributes *temp = new G4VisAttributes(G4Colour(0.0,0.6,0.0));
   //temp->SetForceWireframe(true);
-  ShieldLog->SetVisAttributes(G4VisAttributes::Invisible);
+  ShieldLog->SetVisAttributes(G4VisAttributes::GetInvisible());
  
   // And place everything within the Mother:
   new G4PVPlacement( 0, G4ThreeVector(-ShieldMotherX/2.0 + GboxX/2.0, -SPlateY/2.0, 0.0 ), 
@@ -4206,7 +4206,7 @@ void G4SBSEArmBuilder::MakeHallCGEM(G4LogicalVolume *motherlog){
   
   G4LogicalVolume* HCGEMlog = new G4LogicalVolume(HCGEMBox, GetMaterial("Air"),
 						  "HCGEMLog", 0, 0, 0);
-  HCGEMlog->SetVisAttributes(G4VisAttributes::Invisible);
+  HCGEMlog->SetVisAttributes(G4VisAttributes::GetInvisible());
   G4RotationMatrix *HCGEMrot = new G4RotationMatrix();
   
   HCGEMrot->rotateY(-fBBang);

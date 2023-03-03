@@ -213,7 +213,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       //G4VisAttributes* VisAtt = new G4VisAttributes( G4Colour(1, 1, 1) );
       //VisAtt->SetForceWireframe(true);
       //CDetmother_log->SetVisAttributes( VisAtt );
-      CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+      CDetmother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
       
       G4double z0_CDET = -0.15*m;
       G4double planes_hoffset = 0.84*m;
@@ -298,7 +298,7 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
   G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
   G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
 
-  sbslog->SetVisAttributes( G4VisAttributes::Invisible );
+  sbslog->SetVisAttributes( G4VisAttributes::GetInvisible() );
   //Now position and orient the FPP "box":
 
   G4ThreeVector sbsbox_pos( -sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch) + sbsvoff, sbsr*cos(f48D48ang) );
@@ -715,9 +715,9 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
   }
 
-  bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
-  //  backclampLog->SetVisAttributes(G4VisAttributes::Invisible);
-  //  frontclampLog->SetVisAttributes(G4VisAttributes::Invisible);
+  bigfieldLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  //  backclampLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  //  frontclampLog->SetVisAttributes(G4VisAttributes::GetInvisible());
 }
 
 void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
@@ -1711,15 +1711,15 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   //G4VisAttributes *vis_Module  = new G4VisAttributes(G4Colour::Blue());
   //vis_Module ->SetForceWireframe(true);
   //log_Module->SetVisAttributes(vis_Module);
-  log_Module->SetVisAttributes(G4VisAttributes::Invisible);
+  log_Module->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   // Hide the Can
   //G4VisAttributes *vis_ModCan = new G4VisAttributes(G4Colour(0.78,0.92,0.27));
   //log_ModCan->SetVisAttributes(vis_ModCan);
-  log_ModCan->SetVisAttributes(G4VisAttributes::Invisible);
+  log_ModCan->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   // Module Mylar (invisible)
-  log_ModuleMylar->SetVisAttributes(G4VisAttributes::Invisible);
+  log_ModuleMylar->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   // Absorber
   G4VisAttributes *vis_Absorb = new G4VisAttributes(G4Colour(0.83,0.84,0.85));
@@ -1761,7 +1761,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   log_HCALFrontPlate->SetVisAttributes(vis_HCALFrontPlate);
 
   // HCAL enclosure should be invisible
-  log_HCAL->SetVisAttributes(G4VisAttributes::Invisible);
+  log_HCAL->SetVisAttributes(G4VisAttributes::GetInvisible());
 }
 
 void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOffset=0.0*cm ){
@@ -2125,12 +2125,12 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   logModule->SetVisAttributes(logModuleVis);
 
   // Scint Plate
-  logScinPlWrap->SetVisAttributes(G4VisAttributes::Invisible);
+  logScinPlWrap->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   // Mother Volume
   //G4VisAttributes * caloVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
   //caloVisAtt->SetForceWireframe(true);
-  logCalo->SetVisAttributes(G4VisAttributes::Invisible);
+  logCalo->SetVisAttributes(G4VisAttributes::GetInvisible());
 }
 
 // void G4SBSHArmBuilder::MakeTracker( G4LogicalVolume *worldlog)
@@ -2175,7 +2175,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 //   trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
 //       ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
 
-//   SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
+//   SBStracker_log->SetVisAttributes(G4VisAttributes::GetInvisible());
 // }
 
 void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog, G4int nplanes){
@@ -2243,7 +2243,7 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog, G4int nplanes){
   trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
       ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
 
-  SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
+  SBStracker_log->SetVisAttributes(G4VisAttributes::GetInvisible());
 }
 
 void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
@@ -2825,7 +2825,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool extended_s
   G4Tubs *PMTcylinder = new G4Tubs( "PMTcylinder", 0.0*cm, (1.86/2.0)*cm, 4.5*cm, 0.0, twopi ); //cylinder full of vacuum, mother volume for PMT
   G4LogicalVolume *PMTcylinder_log = new G4LogicalVolume( PMTcylinder, GetMaterial("BlandAir"), "PMTcylinder_log" );
 
-  PMTcylinder_log->SetVisAttributes( G4VisAttributes::Invisible );
+  PMTcylinder_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   //Define the PMT windows as 1 mm-thick discs of "UVglass"; how thick are the windows really? 1 mm is a guess; let's go with 2 mm just to be conservative
   G4Tubs *PMTwindow = new G4Tubs( "PMTwindow", 0.0*cm, (1.66/2.0)*cm, 0.1*cm, 0.0, twopi ); 
@@ -3013,8 +3013,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool extended_s
   v_spacer_log->SetVisAttributes( tedlar_vis );
   h_spacer_log->SetVisAttributes( tedlar_vis );
 
-  Aerogel_wall_container_log->SetVisAttributes( G4VisAttributes::Invisible );
-  RICHbox_log->SetVisAttributes( G4VisAttributes::Invisible );
+  Aerogel_wall_container_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  RICHbox_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   G4VisAttributes *RICHbox_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
   RICHbox_visatt->SetForceWireframe(true);
@@ -3259,7 +3259,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     }
   }
 
-  Scint_module->SetVisAttributes( G4VisAttributes::Invisible );
+  Scint_module->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *scintstrip_visatt = new G4VisAttributes( G4Colour( 0.8, 0, 0.8 ) );
   ScintStripLog->SetVisAttributes( scintstrip_visatt );
@@ -3747,7 +3747,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 
   //  G4VisAttributes for PMT assemblies:
 
-  PMTcylinder_log->SetVisAttributes( G4VisAttributes::Invisible );
+  PMTcylinder_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *PMTtube_vis = new G4VisAttributes( G4Colour( 0.4, 0.4, 0.4 ) );
   
@@ -4189,7 +4189,7 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
 
   G4LogicalVolume *log_LAC = new G4LogicalVolume( LAC_mother_box, GetMaterial("Air"), "log_LAC" );
 
-  //G4VisAttributes *LAC_visatt = new G4VisAttributes( G4VisAttributes::Invisible );
+  //G4VisAttributes *LAC_visatt = new G4VisAttributes( G4VisAttributes::GetInvisible() );
 
   log_LAC->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
@@ -4386,7 +4386,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   G4Box*           sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
   G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
-  sbslog->SetVisAttributes( G4VisAttributes::Invisible );
+  sbslog->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   new G4PVPlacement(SBS_FPP_rm, G4ThreeVector(-sbsr*sin(f48D48ang), 0.0, sbsr*cos(f48D48ang) ), 
 		    sbslog, "sbsphys", worldlog, false, 0, false);
@@ -4559,7 +4559,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     else if( fGEnRP_analyzer_option == 3 || fGEnRP_analyzer_option == 4 )  // long axis perpendicular to neutron direction or CGEN configuration
       new G4PVPlacement(0, actana_pos, actanalog,"actanaphys", sbslog, false, 0, false);  
     
-    actanalog ->SetVisAttributes( G4VisAttributes::Invisible );
+    actanalog ->SetVisAttributes( G4VisAttributes::GetInvisible() );
     
     G4String ActAnScintSDname   = "Harm/ActAnScint";
     G4String ActAnScintcollname = "ActAnScintHitsCollection";
@@ -4678,7 +4678,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
       G4LogicalVolume *prscintbslog = new G4LogicalVolume( prscintbsbox, GetMaterial("Air"), "prscintbslog" );
       
       new G4PVPlacement( rot_bs, prscintbs_pos, prscintbslog,"prscintbsphys", sbslog, false, 0, false);
-      prscintbslog->SetVisAttributes( G4VisAttributes::Invisible );
+      prscintbslog->SetVisAttributes( G4VisAttributes::GetInvisible() );
       
       G4Box *prbarbsbox = new G4Box("prbarbsbox", prscintwidth/2.0, prbarheight/2.0, prscintbsdepth/2.0 );
       G4LogicalVolume *prbarbslog = new G4LogicalVolume( prbarbsbox, GetMaterial("BBHodo_Scinti"), "prbarbslog" );
@@ -4722,7 +4722,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     G4LogicalVolume *prbarfslog = new G4LogicalVolume( prbarfsbox, GetMaterial("BBHodo_Scinti"), "prbarfslog" );
     
     new G4PVPlacement( rot_fs, prscintfs_pos, prscintfslog,"prscintfsphys", sbslog, false, 0, false);
-    prscintfslog->SetVisAttributes( G4VisAttributes::Invisible );
+    prscintfslog->SetVisAttributes( G4VisAttributes::GetInvisible() );
     
     G4String PRPolScintFSSDname   = "Harm/PRPolScintFarSide";
     G4String PRPolScintFScollname = "PRPolScintFSHitsCollection";
@@ -4819,9 +4819,9 @@ void G4SBSHArmBuilder::MakeNeutronVeto(G4LogicalVolume* worldlog, G4double dist_
     }
   }
       	
-  VetoMotherLog->SetVisAttributes(G4VisAttributes::Invisible);
-  VetoElemLog->SetVisAttributes(G4VisAttributes::Invisible);
-  MylarWrapLog->SetVisAttributes(G4VisAttributes::Invisible);
+  VetoMotherLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  VetoElemLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  MylarWrapLog->SetVisAttributes(G4VisAttributes::GetInvisible());
   VetoScintLog->SetVisAttributes(G4Colour(0.0, 1.0, 1.0, 1.0));
 }
   
@@ -4878,7 +4878,7 @@ void G4SBSHArmBuilder::MakeTest( G4LogicalVolume *worldlog)
   trackerbuilder.BuildComponent( Test_Log, GEMRot, gem_pos, ngem, gemz, gemw, gemh, "Test/HC" );
 
   //Visual
-  Test_Log->SetVisAttributes( G4VisAttributes::Invisible );
+  Test_Log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   // G4VisAttributes *Testvisatt = new G4VisAttributes( G4Colour( 0.0, 0.0, 1.0 ) );
   // Testvisatt->SetForceWireframe(true);
   // Test_Log->SetVisAttributes( Testvisatt );

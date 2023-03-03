@@ -253,7 +253,7 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
     }
   }
 
-  Scint_module->SetVisAttributes( G4VisAttributes::Invisible );
+  Scint_module->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *scintstrip_visatt = new G4VisAttributes( G4Colour( 0.8, 0, 0.8 ) );
   ScintStripLog->SetVisAttributes( scintstrip_visatt );

@@ -152,19 +152,19 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double SMWidth,
   // G4VisAttributes *mother_visatt = new G4VisAttributes( G4Colour( 1, 1, 1 ) );
   // mother_visatt->SetForceWireframe(true);
   // SM_mother_log->SetVisAttributes(mother_visatt);
-  SM_mother_log->SetVisAttributes(G4VisAttributes::Invisible);
+  SM_mother_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   // G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.7 ) );
   // Ti_visatt->SetForceWireframe(true);
   // TiSideWall_log->SetVisAttributes(Ti_visatt);
-  TiSideWall_log->SetVisAttributes(G4VisAttributes::Invisible);
+  TiSideWall_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   // G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
   // Al_visatt->SetForceWireframe(true);
   // FrontPlate_log->SetVisAttributes(Al_visatt);
   // ClampingBar_log->SetVisAttributes(Al_visatt);
-  FrontPlate_log->SetVisAttributes(G4VisAttributes::Invisible);
-  ClampingBar_log->SetVisAttributes(G4VisAttributes::Invisible);
+  FrontPlate_log->SetVisAttributes(G4VisAttributes::GetInvisible());
+  ClampingBar_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   return(SM_mother_log);
 }
@@ -935,7 +935,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   mother_visatt->SetForceWireframe(true);
   earm_mother_log->SetVisAttributes(mother_visatt);
    
-  //earm_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  //earm_mother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   Module_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   Module_40_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
@@ -966,12 +966,12 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   PMTFlange_42_2_log->SetVisAttributes( G4Colour( 0.7, 0.0, 0.0 ) );
   PMTFlange_40_1_log->SetVisAttributes( G4Colour( 0.0, 0.7, 0.0 ) );
   PMTFlange_40_2_log->SetVisAttributes( G4Colour( 0.7, 0.0, 0.0 ) );
-  Spacer_42_1_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
-  Spacer_42_2_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
-  Spacer_40_1_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
-  Spacer_40_2_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
-  Standoff_42_log->SetVisAttributes( G4VisAttributes::Invisible ); //Al_visatt);
-  Standoff_40_log->SetVisAttributes( G4VisAttributes::Invisible ); //Al_visatt);
+  Spacer_42_1_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Spacer_42_2_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Spacer_40_1_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Spacer_40_2_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Standoff_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //Al_visatt);
+  Standoff_40_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //Al_visatt);
   
   
   G4VisAttributes *ECALpmtvisatt = new G4VisAttributes( G4Colour( 0, 0, 1 ) );

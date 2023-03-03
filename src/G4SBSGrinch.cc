@@ -559,7 +559,7 @@ void  G4SBSGrinch::BuildComponent(G4LogicalVolume *bblog) {
   // Add a new vacuum volume behind the photocathode
   G4Tubs* GC_PMT_vac = new G4Tubs(GC_PMT_vac_Name.data(), 0, GC_PMT_Radius, (GC_PMT_Length-GC_PMT_Glass_Thickness-GC_PMT_PhotoCathodeThickness)*0.5, 0, 360*deg);
   G4LogicalVolume* GC_PMT_vac_log = new G4LogicalVolume(GC_PMT_vac, GetMaterial(G4String("Vacuum")), GC_PMT_Name+"_log", 0, 0, 0);
-  GC_PMT_vac_log->SetVisAttributes(G4VisAttributes::Invisible);
+  GC_PMT_vac_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   // Change the photocathode thickness
   //G4Tubs* GC_PMT = new G4Tubs(GC_PMT_Name.data(), 0, GC_PMT_Radius, (GC_PMT_Length-GC_PMT_Glass_Thickness)*0.5, 0, 360*deg);

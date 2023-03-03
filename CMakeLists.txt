@@ -38,7 +38,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 #
 # Force use of c++11 standard
 #
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #----------------------------------------------------------------------------
@@ -46,6 +46,24 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Setup include directory for this project
 #
 
+#----------------------------------------------------------------------------
+# Find Geant4 package, activating all available UI and Vis drivers by default
+# You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
+# to build a batch mode only executable
+#
+option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
+if(WITH_GEANT4_UIVIS)
+  find_package(Geant4 REQUIRED ui_all vis_all)
+else()
+  find_package(Geant4 REQUIRED)
+endif()
+
+#----------------------------------------------------------------------------
+# Setup Geant4 include directories and compile definitions
+# Setup include directory for this project
+#
+include(${Geant4_USE_FILE})
+#include_directories(${PROJECT_SOURCE_DIR}/include)
 
 #ROOT path
 # commented out the following line so that this procedure will evolve with ROOT:
@@ -59,7 +77,7 @@ find_package(ROOT REQUIRED)
 #---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
 include(${ROOT_USE_FILE})
 
-include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR}
+include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR} ${Geant4_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 
@@ -76,21 +94,7 @@ file(GLOB cteqheaders ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
 file(GLOB libsources ${PROJECT_SOURCE_DIR}/src/G4SBSRunData.cc ${PROJECT_SOURCE_DIR}/src/G4SBSTextFile.cc)
 file(GLOB libheaders ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh )
 
-#----------------------------------------------------------------------------
-# Find Geant4 package, activating all available UI and Vis drivers by default
-# You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
-# to build a batch mode only executable
-#
-option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
-if(WITH_GEANT4_UIVIS)
-  find_package(Geant4 REQUIRED ui_all vis_all)
-#  find_package(Geant4 REQUIRED qt vis_opengl_x11)
-  
-else()
-  find_package(Geant4 REQUIRED)
-endif()
 
-include(${Geant4_USE_FILE})
 
 # Generate the dictionary for G4SBS classes deriving from TOb ect:
 ROOT_GENERATE_DICTIONARY(

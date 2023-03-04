@@ -108,7 +108,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   G4LogicalVolume *floorLog = new G4LogicalVolume(floor_tube, GetMaterial("Concrete"), "floor_log", 0, 0, 0);
   new G4PVPlacement(floorrm, G4ThreeVector(0.0, -floorthick/2 - beamheight, 0.0), floorLog, "floor_phys", worldlog, false, 0);
   
-  floorLog->SetVisAttributes(G4VisAttributes::Invisible);
+  floorLog->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   return;
 
@@ -1375,7 +1375,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     
     G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
     G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
-    Electronics_log->SetVisAttributes(G4VisAttributes::Invisible);
+    Electronics_log->SetVisAttributes(G4VisAttributes::GetInvisible());
     G4String GEMElectronicsname = "BLneutronDet";
     G4String  GEMElectronicscollname = "BLneutronDet";
     G4SBSCalSD *GEMElecSD = NULL;
@@ -1452,18 +1452,18 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // TML9_log->SetVisAttributes( AlColor );
 
   // // Vacuum
-  // FVL1_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // FVL2_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // FVL3_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // FVL5_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // FVL6_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // FVL7_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TVB1_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TVL8_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TVL9_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TMV9_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TTV1_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TTV2_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // FVL1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // FVL2_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // FVL3_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // FVL5_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // FVL6_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // FVL7_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TVB1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TVL8_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TVL9_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TMV9_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TTV1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TTV2_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   /*
   //SSeeds 12.17.20 - test to see where common exit beamline connects with target to midpipe section. Test ring marks beginning of target to midpipe section according to JT file - Dec 2020
@@ -2119,7 +2119,7 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
     
     G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
     G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
-    Electronics_log->SetVisAttributes(G4VisAttributes::Invisible);
+    Electronics_log->SetVisAttributes(G4VisAttributes::GetInvisible());
     G4String GEMElectronicsname = "BLneutronDet";
     G4String  GEMElectronicscollname = "BLneutronDet";
     G4SBSCalSD *GEMElecSD = NULL;
@@ -2200,10 +2200,10 @@ void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
   MakeBeamExit(worldlog,0.0*inch); // account for offset of 6.5" in MakeCommonExitBeamline   
   
   G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
-  entvacLog->SetVisAttributes(G4VisAttributes::Invisible);
+  entvacLog->SetVisAttributes(G4VisAttributes::GetInvisible());
   entLog->SetVisAttributes(pipeVisAtt);
   
-  //entvacLog_cut->SetVisAttributes(G4VisAttributes::Invisible);
+  //entvacLog_cut->SetVisAttributes(G4VisAttributes::GetInvisible());
   //entLog_cut->SetVisAttributes(pipeVisAtt);
 }
 
@@ -2955,7 +2955,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   G4VisAttributes * WireFrameVisAtt = new G4VisAttributes(G4Colour(0.,1.,1.));  //Keeping for debugging purposes
   WireFrameVisAtt->SetForceWireframe(true);
   //P1tubeBLog->SetVisAttributes( WireFrameVisAtt );
-  //P1tubeA_winvacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P1tubeA_winvacLog->SetVisAttributes( G4VisAttributes::GetInvisible());
 
   P1ringALog->SetVisAttributes( Aluminum);
   P1domeALog->SetVisAttributes( Beryllium);
@@ -3464,7 +3464,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   P5testRing2Log->SetVisAttributes( G4Colour::Green()); //Debug
   */
-  //P5ringE_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringE_vacLog->SetVisAttributes( G4VisAttributes::GetInvisible());
   /*
   //Ring F
   G4double P5ringF_rin = 11.750/2*inch; 
@@ -3525,7 +3525,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4double inch = 2.54*cm;
   G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.3,0.3,0.3));
   G4VisAttributes *CopperColor = new G4VisAttributes(G4Colour(0.7,0.3,0.3));
-    //P1tubeA_winvacLog->SetVisAttributes( G4VisAttributes::Invisible);
+    //P1tubeA_winvacLog->SetVisAttributes( G4VisAttributes::GetInvisible());
   
   G4double X=0.0, Y=0.0, Z=0.0;
   G4ThreeVector zero(0.0, 0.0, 0.0);
@@ -3590,7 +3590,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4LogicalVolume *UpstreamCoil_log = new G4LogicalVolume(UpstreamCoil, GetMaterial("Copper"), "UpstreamCoil_log" );
 
   UpstreamCoil_log->SetVisAttributes( CopperColor );
-  //UpstreamCoil_log->SetVisAttributes( G4VisAttributes::Invisible); //Debug, keep in
+  //UpstreamCoil_log->SetVisAttributes( G4VisAttributes::GetInvisible()); //Debug, keep in
   
   Z = z_formed_bellows+Bellows1L;
   X = (UpstreamCoilWidth+UpstreamCoilThickX)/2.0;
@@ -3614,7 +3614,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4LogicalVolume *YokeTopPiece_log = new G4LogicalVolume( YokeTopPiece, GetMaterial("Iron"), "YokeTopPiece_log" );
 
   YokeTopPiece_log->SetVisAttributes( ironColor );
-  //YokeTopPiece_log->SetVisAttributes( G4VisAttributes::Invisible); //Debug, keep in
+  //YokeTopPiece_log->SetVisAttributes( G4VisAttributes::GetInvisible()); //Debug, keep in
   
   X = 0.0;
   Y = (11.81*inch + YokeTopPiece_Height)/2.0;
@@ -3627,7 +3627,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4Box *YokeLeftPiece = new G4Box("YokeLeftPiece", YokeLeftPiece_Width/2.0, YokeLeftPiece_Height/2.0, YokeLeftPiece_Depth/2.0 );
   G4LogicalVolume *YokeLeftPiece_log = new G4LogicalVolume( YokeLeftPiece, GetMaterial("Iron"), "YokeLeftPiece_log" );
   YokeLeftPiece_log->SetVisAttributes(ironColor );
-  //YokeLeftPiece_log->SetVisAttributes( G4VisAttributes::Invisible); //Debug, keep in
+  //YokeLeftPiece_log->SetVisAttributes( G4VisAttributes::GetInvisible()); //Debug, keep in
   
   X = 7.52*inch + YokeLeftPiece_Width/2.0;
   Y = 0.0;
@@ -3646,7 +3646,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4LogicalVolume *YokeRightPiece_log = new G4LogicalVolume(YokeRightPiece, GetMaterial("Iron"), "YokeRightPiece_log" );
 
   YokeRightPiece_log->SetVisAttributes(ironColor);
-  //YokeRightPiece_log->SetVisAttributes( G4VisAttributes::Invisible); //Debug, keep in
+  //YokeRightPiece_log->SetVisAttributes( G4VisAttributes::GetInvisible()); //Debug, keep in
 
   X = -7.52*inch - 0.5*(YokeRightWidthFinal/2.0 + YokeRightWidthInitial/2.0);
   Y = 0.0;
@@ -3662,7 +3662,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4LogicalVolume *DownstreamYoke_log = new G4LogicalVolume( DownstreamYoke, GetMaterial("Iron"), "DownstreamYoke_log" );
 
   DownstreamYoke_log->SetVisAttributes( ironColor );
-  //DownstreamYoke_log->SetVisAttributes( G4VisAttributes::Invisible); //Debug, keep in
+  //DownstreamYoke_log->SetVisAttributes( G4VisAttributes::GetInvisible()); //Debug, keep in
 
   
   //Setting DS Corrector position from input
@@ -3896,10 +3896,10 @@ void G4SBSBeamlineBuilder::MakeDefaultBeamline(G4LogicalVolume *worldlog){// Old
   G4VisAttributes *extVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
   extLog->SetVisAttributes(extVisAtt);
   
-  extvacLog->SetVisAttributes(G4VisAttributes::Invisible);
-  entvacLog->SetVisAttributes(G4VisAttributes::Invisible);
+  extvacLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  entvacLog->SetVisAttributes(G4VisAttributes::GetInvisible());
     
-  entvacLog_cut->SetVisAttributes(G4VisAttributes::Invisible);
+  entvacLog_cut->SetVisAttributes(G4VisAttributes::GetInvisible());
     
   G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
     
@@ -4233,7 +4233,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   rot_temp->rotateX(+90*deg);
   
   new G4PVPlacement( rot_temp, G4ThreeVector( x_woodshield, 0, z_woodshield ), sideshield_log, "sideshield_phys", worldlog, false, 0 );
-  sideshield_log->SetVisAttributes( G4VisAttributes::Invisible );
+  sideshield_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4Trap* woodshield = new G4Trap("woodshield", h_woodshield, L_woodshield, th2_woodshield-2.5*cm, 
 				  th1_woodshield-2.5*cm);
@@ -4273,7 +4273,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   rot_temp = new G4RotationMatrix;
   
   new G4PVPlacement( rot_temp, G4ThreeVector( x_sideshield, 0, z_sideshield ), sideshield_log, "sideshield_phys", worldlog, false, 0, checkoverlaps );
-  sideshield_log->SetVisAttributes( G4VisAttributes::Invisible );
+  sideshield_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4double th_Alshield = 4.0*inch;
   G4double th_SSshield = 1.0*inch;
@@ -4546,7 +4546,8 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
    // We have to remove all the directory structure from the 
    // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
    G4String bdSDname_nopath = bdSDname;
-   bdSDname_nopath.remove(0,bdSDname.last('/')+1);
+   //bdSDname_nopath.remove(0,bdSDname.last('/')+1);
+   bdSDname_nopath.erase(0,bdSDname.find_last_of('/')+1);
    G4String bdColName = bdSDname_nopath; 
    bdColName += "HitsCollection";
 

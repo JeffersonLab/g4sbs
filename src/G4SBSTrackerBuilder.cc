@@ -57,7 +57,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
   //Create sensitive detector for this tracker:
   G4String GEMSDname = SDname;
   G4String GEMSDname_nopath = SDname;
-  GEMSDname_nopath.remove(0,SDname.last('/')+1);
+  GEMSDname_nopath.erase(0,SDname.find_last_of('/')+1);
   G4String GEMcolname = GEMSDname_nopath; //We have to remove all the directory structure from the Hits collection name or else GEANT4 SDmanager routines will not handle correctly.
   GEMcolname += "HitsCollection";
 
@@ -226,7 +226,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 	// Until we implement actual strips/wires in the GEM construction, the detmap is irrelevant for the GEMs
 	zdrift = ztemp - gempzsum/2.0;
       } else {
-	gplog->SetVisAttributes( G4VisAttributes::Invisible );
+	gplog->SetVisAttributes( G4VisAttributes::GetInvisible() );
       }
 
       ztemp += sign*gempz[gpidx]/2.0;

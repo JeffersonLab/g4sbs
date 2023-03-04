@@ -1869,17 +1869,17 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
     gasname.toUpper();
 
-    if( gasname.index( "C4F10" ) != gasname.npos ){
+    if( gasname.contains( "C4F10" ) ){
       gasname = "C4F10_gas";
-    } else if( gasname.index( "C4F8O" ) != gasname.npos ){
+    } else if( gasname.contains( "C4F8O" ) ){
       gasname = "C4F8O";
-    } else if( gasname.index( "CF4" ) != gasname.npos ){
+    } else if( gasname.contains( "CF4" ) ){
       gasname = "CF4_gas";
-    } else if( gasname.index( "SF6" ) != gasname.npos ){
+    } else if( gasname.contains( "SF6" ) ){
       gasname = "SF6_gas";
-    } else if( gasname.index( "CO2" ) != gasname.npos ){
+    } else if( gasname.contains( "CO2" ) ){
       gasname = "CO2";
-    } else if( gasname.index( "C4F8" ) != gasname.npos ){
+    } else if( gasname.contains( "C4F8" ) ){
       gasname = "C4F8_gas";
     } else { //default to C4F10 if no valid name given:
       gasname = "C4F10_gas";
@@ -1896,25 +1896,25 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
     gasname.toUpper();
 
-    G4cout << "gasname = " << gasname << G4endl;
+    //G4cout << "gasname = " << gasname << G4endl;
 
-    G4cout << gasname.index( "C4F10" ) << G4endl;
+    //G4cout << gasname.index( "C4F10" ) << G4endl;
     
-    if( gasname.index( "C4F10" ) != gasname.npos ){
+    if( gasname.contains( "C4F10" ) ){
       gasname = "C4F10_gas";
-    } else if( gasname.index( "C4F8O" ) != gasname.npos ){
+    } else if( gasname.contains( "C4F8O" ) ){
       gasname = "C4F8O";
-    } else if( gasname.index( "CF4" ) != gasname.npos ){
+    } else if( gasname.contains( "CF4" ) ){
       gasname = "CF4_gas";
-    } else if( gasname.index( "SF6" ) != gasname.npos ){
+    } else if( gasname.contains( "SF6" ) ){
       gasname = "SF6_gas";
-    } else if( gasname.index( "CO2" ) != gasname.npos ){
+    } else if( gasname.contains( "CO2" ) ){
       gasname = "CO2";
-    } else if( gasname.index( "C4F8" ) != gasname.npos ){
+    } else if( gasname.contains( "C4F8" ) ){
       gasname = "C4F8_gas";
     } else { //default to C4F10 if no valid name given:
       gasname = "C4F10_gas";
-      G4cout << "WARNING: invalid GRINCH gas option, defaulting to C4F10" << G4endl;
+      G4cout << "WARNING: invalid RICH gas option, defaulting to C4F10" << G4endl;
     }
 
     G4cout << "/g4sbs/richgas invoked, setting RICH gas to " << gasname << G4endl;

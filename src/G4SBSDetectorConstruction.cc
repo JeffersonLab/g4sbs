@@ -1797,8 +1797,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4double AbsLength_CDET[2] = {3.80*m, 3.80*m};
     
   MPT_temp = new G4MaterialPropertiesTable();
-  MPT_temp->AddProperty("FASTCOMPONENT", Ephoton_CDET, RelativeYield_CDET, nentries_CDET_scint );
-  MPT_temp->AddConstProperty("FASTTIMECONSTANT", 2.1*ns);
+  MPT_temp->AddProperty("SCINTILLATIONCOMPONENT1", Ephoton_CDET, RelativeYield_CDET, nentries_CDET_scint );
+  MPT_temp->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 2.1*ns);
   MPT_temp->AddConstProperty("SCINTILLATIONYIELD", 0.64*17400.0/MeV);
   MPT_temp->AddConstProperty("RESOLUTIONSCALE", 1.0 );
   MPT_temp->AddProperty("RINDEX", Ephoton_rindex_CDET, Rindex_CDET, 2 );
@@ -1899,7 +1899,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     2.338914317*eV, 2.310000796*eV, 2.279201125*eV, 2.252992604*eV, 2.233575468*eV,
     2.218774127*eV, 2.19813402*eV, 2.180237337*eV, 2.154512292*eV, 2.12207618*eV,
     2.087884362*eV, 2.069597591*eV };
-
+  
   G4double BCF92_emission_relative[nentries_BCF92_emission] = {
     0, 0.042618, 0.129376, 0.196347, 0.394216,
     0.506849, 0.598174, 0.715373, 0.805175, 0.890411,
@@ -1908,9 +1908,18 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     0.48554, 0.392694, 0.316591, 0.266362, 0.2207,
     0.190259, 0.165906, 0.136986, 0.112633, 0.0791476,
     0.0669711, 0.0502283 };
+
+  //this needs to be sorted in increasing order of energy; since the above is sorted in descending order,
+  //we don't need any fancy sort algorithm, just reverse the order:
+  G4double Ephoton_BCF92_emission_sorted[nentries_BCF92_emission];
+  G4double BCF92_emission_relative_sorted[nentries_BCF92_emission];
+  for( int i=0; i<nentries_BCF92_emission; i++ ){
+    Ephoton_BCF92_emission_sorted[i] = Ephoton_BCF92_emission[nentries_BCF92_emission-i-1];
+    BCF92_emission_relative_sorted[i] = BCF92_emission_relative[nentries_BCF92_emission-i-1];
+  }
     
   MPT_temp->AddProperty("WLSABSLENGTH", Ephoton_BCF92_abs, WLSabslength_BCF92, nentries_BCF92_abs );
-  MPT_temp->AddProperty("WLSCOMPONENT", Ephoton_BCF92_emission, BCF92_emission_relative, nentries_BCF92_emission );
+  MPT_temp->AddProperty("WLSCOMPONENT", Ephoton_BCF92_emission_sorted, BCF92_emission_relative_sorted, nentries_BCF92_emission );
 
   if( fMaterialsListOpticalPhotonDisabled.find( "BCF_92" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     BCF_92->SetMaterialPropertiesTable( MPT_temp );
@@ -2019,6 +2028,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   EJ232->AddElement(H , natoms=11);
   EJ232->AddElement(C , natoms=10);
 
+  //for G4 version 11, everything here needs to be re-ordered in increasing order of photon energy, unfortunately:
+  
   // -- EJ232 optical properties 
   const G4int nEntriesEJ232 = 66;
   G4double PhotonWaveLength_HC[nEntriesEJ232] = 
@@ -2054,23 +2065,27 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       0.00, 0.00, 0.00, 0.00, 0.00,0.00
     };
 
+  G4double ABSL_EJ232_sorted[nEntriesEJ232];
+  G4double FAST_EJ232_sorted[nEntriesEJ232];
+  
   G4double PhotonEnergyEJ232[nEntriesEJ232];
   G4double RefractiveIndexEJ232[nEntriesEJ232];
   for(int ii = 0; ii < nEntriesEJ232; ii++) {
-    PhotonEnergyEJ232[ii] = 1240.0/(PhotonWaveLength_HC[ii]) *eV;
+    PhotonEnergyEJ232[ii] = 1240.0/(PhotonWaveLength_HC[nEntriesEJ232-ii-1]) *eV;
     RefractiveIndexEJ232[ii] = 1.58;
-    ABSL_EJ232[ii]           = ABSL_EJ232[ii]*mm;
+    ABSL_EJ232_sorted[ii]           = ABSL_EJ232[nEntriesEJ232-ii-1]*mm;
+    FAST_EJ232_sorted[ii] = FAST_EJ232[nEntriesEJ232-ii-1];
   }
 
   G4MaterialPropertiesTable* MPT_EJ232 = new G4MaterialPropertiesTable();
   MPT_EJ232->AddProperty("RINDEX"       , PhotonEnergyEJ232 , RefractiveIndexEJ232 , nEntriesEJ232);
-  MPT_EJ232->AddProperty("FASTCOMPONENT", PhotonEnergyEJ232 , FAST_EJ232           , nEntriesEJ232);
-  MPT_EJ232->AddProperty("ABSLENGTH",     PhotonEnergyEJ232 , ABSL_EJ232           , nEntriesEJ232);
+  MPT_EJ232->AddProperty("SCINTILLATIONCOMPONENT1", PhotonEnergyEJ232 , FAST_EJ232_sorted           , nEntriesEJ232);
+  MPT_EJ232->AddProperty("ABSLENGTH",     PhotonEnergyEJ232 , ABSL_EJ232_sorted           , nEntriesEJ232);
   MPT_EJ232->AddConstProperty("SCINTILLATIONYIELD", (8400.0/MeV * 5.51591522788642652e-01 * 0.5/1.4)/MeV);
   MPT_EJ232->AddConstProperty("RESOLUTIONSCALE", 1.0);
-  MPT_EJ232->AddConstProperty("FASTTIMECONSTANT",1.40*ns);
-  MPT_EJ232->AddConstProperty("SLOWTIMECONSTANT",1.40*ns);
-  MPT_EJ232->AddConstProperty("YIELDRATIO",1.0);
+  MPT_EJ232->AddConstProperty("SCINTILLATIONTIMECONSTANT1",1.40*ns);
+  //MPT_EJ232->AddConstProperty("SLOWTIMECONSTANT",1.40*ns);
+  //MPT_EJ232->AddConstProperty("YIELDRATIO",1.0);
   if( fMaterialsListOpticalPhotonDisabled.find( "EJ232" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     EJ232->SetMaterialPropertiesTable(MPT_EJ232);
   }
@@ -2104,18 +2119,22 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       4.1532e-01, 3.6851e-01, 3.2695e-01, 2.9074e-01, 2.5784e-01, 2.2847e-01, 1.9965e-01, 1.7665e-01, 1.5485e-01, 1.3599e-01,
       1.1646e-01, 1.0068e-01, 8.6331e-02, 7.1257e-02, 5.9146e-02, 4.7958e-02
     };
+
   G4double PhotonEnergyBC484[nEntriesBC484];
   G4double RefractiveIndexBC484[nEntriesBC484];
-
+  G4double AbsWLSfiberBC484_sorted[nEntriesBC484];
+  G4double EmissionFibBC484_sorted[nEntriesBC484];
+  
   for(int ii = 0; ii < nEntriesBC484; ii++) {
-    PhotonEnergyBC484[ii]    = 1240.0/(PhotonWaveLength_HC[ii]) *eV;
+    PhotonEnergyBC484[ii]    = 1240.0/(PhotonWaveLength_HC[nEntriesBC484-ii-1]) *eV;
     RefractiveIndexBC484[ii] = 1.58;
-    AbsWLSfiberBC484[ii]     = AbsWLSfiberBC484[ii]*cm;        
+    AbsWLSfiberBC484_sorted[ii]     = AbsWLSfiberBC484[nEntriesBC484-ii-1]*cm;
+    EmissionFibBC484_sorted[ii] = EmissionFibBC484[nEntriesBC484-ii-1];
   }
   G4MaterialPropertiesTable* MPT_BC484 = new G4MaterialPropertiesTable();
   MPT_BC484->AddProperty("RINDEX"              , PhotonEnergyBC484 , RefractiveIndexBC484 , nEntriesBC484);
-  MPT_BC484->AddProperty("WLSABSLENGTH"        , PhotonEnergyBC484 , AbsWLSfiberBC484     , nEntriesBC484);
-  MPT_BC484->AddProperty("WLSCOMPONENT"        , PhotonEnergyBC484 , EmissionFibBC484     , nEntriesBC484);
+  MPT_BC484->AddProperty("WLSABSLENGTH"        , PhotonEnergyBC484 , AbsWLSfiberBC484_sorted     , nEntriesBC484);
+  MPT_BC484->AddProperty("WLSCOMPONENT"        , PhotonEnergyBC484 , EmissionFibBC484_sorted     , nEntriesBC484);
   MPT_BC484->AddConstProperty("WLSTIMECONSTANT", 3.0*ns);
   if( fMaterialsListOpticalPhotonDisabled.find( "BC484" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     BC484->SetMaterialPropertiesTable(MPT_BC484);
@@ -2135,6 +2154,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   Glass_HC->AddElement(C , 91.533*perCent);
   Glass_HC->AddElement(H ,  8.467*perCent);
 
+
+  //no need to sort these since they're all the same
   G4double Glass_HC_RIND[nEntriesEJ232] =
     { 
       1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 1.58 , 
@@ -2184,6 +2205,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
     0.951, 0.950, 0.950, 0.950, 0.950, 0.950, 0.949, 0.949, 0.949, 0.949,
     0.949, 0.948, 0.948, 0.948, 0.948, 0.947
   };
+  G4double MilliPoreRefl_sorted[nEntriesEJ232];
+  for( int ii = 0; ii<nEntriesEJ232; ii++ ){
+    MilliPoreRefl_sorted[ii] = MilliPoreRefl[nEntriesEJ232-ii-1];
+  }
   G4double MilliPoreRefrIndexl[nEntriesEJ232] = { 1.5 };
   G4double MilliPoreSS[nEntriesEJ232] = { 0.1 };
   G4double MilliPoreSL[nEntriesEJ232] = { 0.1 };
@@ -2191,7 +2216,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   G4MaterialPropertiesTable *Paper_MPT = new G4MaterialPropertiesTable();
   Paper_MPT->AddProperty("RINDEX"                , PhotonEnergyBC484 , MilliPoreRefrIndexl , nEntriesEJ232);
-  Paper_MPT->AddProperty("REFLECTIVITY"          , PhotonEnergyBC484 , MilliPoreRefl       , nEntriesEJ232);
+  Paper_MPT->AddProperty("REFLECTIVITY"          , PhotonEnergyBC484 , MilliPoreRefl_sorted       , nEntriesEJ232);
   Paper_MPT->AddProperty("SPECULARLOBECONSTANT"  , PhotonEnergyBC484 , MilliPoreSL , nEntriesEJ232);
   Paper_MPT->AddProperty("SPECULARSPIKECONSTANT" , PhotonEnergyBC484 , MilliPoreSS , nEntriesEJ232);
   Paper_MPT->AddProperty("BACKSCATTERCONSTANT"   , PhotonEnergyBC484 , MilliPoreBK , nEntriesEJ232);
@@ -2211,6 +2236,12 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
       0.860, 0.860, 0.860, 0.860, 0.860, 0.860, 0.860, 0.860, 0.860, 0.860,
       0.860, 0.860, 0.860, 0.860, 0.860, 0.861
     };
+
+  G4double Foil_refl_sorted[nEntriesEJ232];
+  for( int ii=0; ii<nEntriesEJ232; ii++ ){
+    Foil_refl_sorted[ii] = Foil_refl[nEntriesEJ232-ii-1];
+  }
+  
   G4double Zero_refl[nEntriesEJ232];
 
   G4double Foil_efficiency[nEntriesEJ232];
@@ -2222,7 +2253,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4OpticalSurface * OpFoilSurface = new G4OpticalSurface("FoilSurface", unified , polished , dielectric_metal);
 
   G4MaterialPropertiesTable *foil_mpt = new G4MaterialPropertiesTable();
-  foil_mpt->AddProperty("REFLECTIVITY", PhotonEnergyBC484 , Foil_refl , nEntriesEJ232 );
+  foil_mpt->AddProperty("REFLECTIVITY", PhotonEnergyBC484 , Foil_refl_sorted , nEntriesEJ232 );
   OpFoilSurface->SetMaterialPropertiesTable(foil_mpt);
 
   fOpticalSurfacesMap["Foil"] = OpFoilSurface;
@@ -2487,7 +2518,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
 
 
   //--------- Visualization attributes -------------------------------
-  WorldLog->SetVisAttributes(G4VisAttributes::Invisible);
+  WorldLog->SetVisAttributes(G4VisAttributes::GetInvisible());
 
 
 
@@ -2503,8 +2534,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   //xLog->SetVisAttributes(xVisAtt);
 
   /*
-    hcallog->SetVisAttributes(G4VisAttributes::Invisible);
-    big48d48Log->SetVisAttributes(G4VisAttributes::Invisible);
+    hcallog->SetVisAttributes(G4VisAttributes::GetInvisible());
+    big48d48Log->SetVisAttributes(G4VisAttributes::GetInvisible());
   */
 
 

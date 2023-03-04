@@ -246,7 +246,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   TargetWall_log->SetVisAttributes( TargWall_visatt );
   uwindow_log->SetVisAttributes( TargWall_visatt );
   dwindow_log->SetVisAttributes( TargWall_visatt );
-  TargetMother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  TargetMother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 }
 
 void G4SBSTargetBuilder::BuildCfoil(G4LogicalVolume *motherlog, G4RotationMatrix *rot_targ, G4ThreeVector targ_offset){
@@ -286,7 +286,7 @@ void G4SBSTargetBuilder::BuildOpticsTarget(G4LogicalVolume *motherlog, G4Rotatio
 
   G4LogicalVolume *MultiFoil_MotherLog = new G4LogicalVolume( MultiFoil_MotherBox, motherlog->GetMaterial(), "MultiFoil_MotherLog" );
 
-  MultiFoil_MotherLog->SetVisAttributes( G4VisAttributes::Invisible );
+  MultiFoil_MotherLog->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4double foilwidth = fTargDiameter/2.0;
   for( int ifoil=0; ifoil<fNtargetFoils; ifoil++ ){
@@ -1587,11 +1587,11 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   // PlateUnionLog->SetVisAttributes( Snout_VisAtt );
   // LeftCornerLog->SetVisAttributes( Snout_VisAtt );
   // RightCornerLog->SetVisAttributes( Snout_VisAtt );
-  // RightWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // LeftWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // RightWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // LeftWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
-  SnoutHarmWindowCutout_log->SetVisAttributes( G4VisAttributes::Invisible );
-  SnoutEarmWindowCutout_log->SetVisAttributes( G4VisAttributes::Invisible );
+  SnoutHarmWindowCutout_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  SnoutEarmWindowCutout_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *Snout_VisAttWire = new G4VisAttributes( G4Colour( 0.6, 0.55, 0.65 ) );
   Snout_VisAttWire->SetForceWireframe(true);
@@ -1612,7 +1612,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   // TargetWall_log->SetVisAttributes( TargWall_visatt );
   // uwindow_log->SetVisAttributes( TargWall_visatt );
   // dwindow_log->SetVisAttributes( TargWall_visatt );
-  // TargetMother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // TargetMother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.4,0.4,0.4));
   //LeftAl_Log->SetVisAttributes( AlColor );
@@ -1913,16 +1913,16 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   G4VisAttributes * schamVisAtt = new G4VisAttributes(G4Colour(0.7,0.7,1.0));
   schamVisAtt->SetForceWireframe(true);
   scham_wall_log->SetVisAttributes(schamVisAtt);
-  scham_vacuum_log->SetVisAttributes(G4VisAttributes::Invisible);
+  scham_vacuum_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   sc_topbottom_log->SetVisAttributes(schamVisAtt);
   dvcs_snout_vacuum_log->SetVisAttributes( schamVisAtt );
-  // chamber_inner_log->SetVisAttributes(G4VisAttributes::Invisible);
-  // sc_entry_hole_vacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // sc_exit_hole_vacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // chamber_inner_log->SetVisAttributes(G4VisAttributes::GetInvisible());
+  // sc_entry_hole_vacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // sc_exit_hole_vacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   // G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
   // extpipe_log->SetVisAttributes(pipeVisAtt);
-  // extvac_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // extvac_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   // G4VisAttributes *winVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
   // sc_hcalwin_log->SetVisAttributes(winVisAtt);
@@ -2042,10 +2042,10 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   //   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_vacuum_log, "sc_vacuum_phys", worldlog, false, 0 );
   // }
   
-  // sc_vacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // sc_vacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   //Visualization attributes:
-  //ScatteringChamber_log->SetVisAttributes( G4VisAttributes::Invisible );
+  //ScatteringChamber_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   G4VisAttributes *sc_wall_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
   sc_wall_visatt->SetForceWireframe(true);
@@ -2104,7 +2104,7 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   // sensitize gas
   
   // Visualization attributes
-  TPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  TPCmother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
   tpcwalls_visatt->SetForceWireframe(true);
@@ -2237,10 +2237,10 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
     new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_vacuum_log, "sc_vacuum_phys", worldlog, false, 0 );
   }
   
-  sc_vacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
+  sc_vacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   //Visualization attributes:
-  //ScatteringChamber_log->SetVisAttributes( G4VisAttributes::Invisible );
+  //ScatteringChamber_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   G4VisAttributes *sc_wall_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
   sc_wall_visatt->SetForceWireframe(true);
@@ -2338,7 +2338,7 @@ void G4SBSTargetBuilder::BuildToyScatCham( G4LogicalVolume *motherlog ){
   G4RotationMatrix *rot_sc = new G4RotationMatrix;
   rot_sc->rotateX(-90.0*deg);
 
-  sc_vacuum_tube_log->SetVisAttributes(G4VisAttributes::Invisible);
+  sc_vacuum_tube_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   new G4PVPlacement( rot_sc, G4ThreeVector(0,0,0), sc_vacuum_tube_log, "scatcham_phys", motherlog, false, 0 );
 
@@ -2826,7 +2826,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
   // We have to remove all the directory structure from the 
   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
   G4String gcSDname_nopath = gcSDname;
-  gcSDname_nopath.remove(0,gcSDname.last('/')+1);
+  //gcSDname_nopath.remove(0,gcSDname.last('/')+1);
+  gcSDname_nopath.erase(0,gcSDname.find_last_of('/')+1);
   G4String gcColName = gcSDname_nopath;
   gcColName += "HitsCollection";
 
@@ -3040,12 +3041,14 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
   // upstream 
   G4String alSDname_us_nopath = alSDname_us;
-  alSDname_us_nopath.remove(0,alSDname_us.last('/')+1);
+  //alSDname_us_nopath.remove(0,alSDname_us.last('/')+1);
+  alSDname_us_nopath.erase(0,alSDname_us.find_last_of('/')+1);
   G4String alHCname_us = alSDname_us_nopath;
   alHCname_us += "HitsCollection";
   // downstream
   G4String alSDname_ds_nopath = alSDname_ds;
-  alSDname_ds_nopath.remove(0,alSDname_ds.last('/')+1);
+  //  alSDname_ds_nopath.remove(0,alSDname_ds.last('/')+1);
+  alSDname_ds_nopath.erase(0,alSDname_ds.find_last_of('/')+1);
   G4String alHCname_ds = alSDname_ds_nopath;
   alHCname_ds += "HitsCollection";
 
@@ -3063,12 +3066,12 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
 
   // upstream 
   G4String cuSDname_us_nopath = cuSDname_us;
-  cuSDname_us_nopath.remove(0,cuSDname_us.last('/')+1);
+  cuSDname_us_nopath.erase(0,cuSDname_us.find_last_of('/')+1);
   G4String cuHCname_us = cuSDname_us_nopath;
   alHCname_us += "HitsCollection";
   // downstream
   G4String cuSDname_ds_nopath = cuSDname_ds;
-  cuSDname_ds_nopath.remove(0,cuSDname_ds.last('/')+1);
+  cuSDname_ds_nopath.erase(0,cuSDname_ds.find_last_of('/')+1);
   G4String cuHCname_ds = cuSDname_ds_nopath;
   cuHCname_ds += "HitsCollection";
 
@@ -3620,7 +3623,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   // We have to remove all the directory structure from the 
   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
   G4String heSDname_nopath = heSDname;
-  heSDname_nopath.remove(0,heSDname.last('/')+1);
+  heSDname_nopath.erase(0,heSDname.find_last_of('/')+1);
   G4String heColName = heSDname_nopath;
   heColName += "HitsCollection";
 
@@ -5161,7 +5164,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_IonChamber(G4LogicalVolume *motherLog){
   // We have to remove all the directory structure from the 
   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
   G4String icSDname_nopath = icSDname;
-  icSDname_nopath.remove(0,icSDname.last('/')+1);
+  icSDname_nopath.erase(0,icSDname.find_last_of('/')+1);
   G4String icColName = icSDname_nopath;
   icColName += "HitsCollection";
 

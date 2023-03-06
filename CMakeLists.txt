@@ -65,6 +65,17 @@ endif()
 include(${Geant4_USE_FILE})
 #include_directories(${PROJECT_SOURCE_DIR}/include)
 
+#check for absence of GEANT4's built-in CLHEP and use of a custom CLHEP:
+set(SYSTEM_CLHEP OFF)
+
+if( NOT EXISTS ${Geant4_INCLUDE_DIR}/CLHEP ) 
+    set(SYSTEM_CLHEP ON)
+endif()
+
+if( ${SYSTEM_CLHEP} )
+    find_package(CLHEP REQUIRED)
+endif()
+
 #ROOT path
 # commented out the following line so that this procedure will evolve with ROOT:
 # set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
@@ -77,9 +88,11 @@ find_package(ROOT REQUIRED)
 #---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
 include(${ROOT_USE_FILE})
 
-include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR} ${Geant4_INCLUDE_DIR}
-    ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR} ${Geant4_INCLUDE_DIR} ${CLHEP_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include)
 
+if( ${SYSTEM_CLHEP} )
+    include_directories(${CLHEP_INCLUDE_DIR})
+endif()
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
@@ -93,8 +106,6 @@ file(GLOB cteqheaders ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
 
 file(GLOB libsources ${PROJECT_SOURCE_DIR}/src/G4SBSRunData.cc ${PROJECT_SOURCE_DIR}/src/G4SBSTextFile.cc)
 file(GLOB libheaders ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh )
-
-
 
 # Generate the dictionary for G4SBS classes deriving from TOb ect:
 ROOT_GENERATE_DICTIONARY(
@@ -116,6 +127,11 @@ add_library(g4sbsroot SHARED ${libsources} ${libheaders} G__g4sbsroot.cxx)
 
 target_link_libraries(g4sbs g4sbsroot ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
 target_link_libraries(g4sbsroot ${ROOT_LIBRARIES} )
+
+if( ${SYSTEM_CLHEP} )
+    target_link_libraries(g4sbs CLHEP::CLHEP)
+    target_link_libraries(g4sbsroot CLHEP::CLHEP)
+endif()
 
 option(WITH_G4SBS_GDML "Build g4sbs with GDML output" OFF)
 if( WITH_G4SBS_GDML)

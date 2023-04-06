@@ -114,7 +114,21 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     
     particleGun->GeneratePrimaryVertex(anEvent);
     
-    particle = particleTable->FindParticle(particleName="proton");
+    bool invalid_hadron = true;
+    switch(sbsgen->GetHadronType()) {
+    case G4SBS::kP:
+      particle = particleTable->FindParticle(particleName="proton");
+      invalid_hadron = false;
+      break;
+    case G4SBS::kN:
+      particle = particleTable->FindParticle(particleName="neutron");
+      invalid_hadron = false;
+      break;
+    }
+    if (invalid_hadron) {
+      fprintf(stderr, "%s: %s line %d - Error: Given Hadron type not valid for SIMC generator. \n", __PRETTY_FUNCTION__, __FILE__, __LINE__);
+      exit(1);
+    }
     particleGun->SetParticleDefinition(particle);
     particleGun->SetParticleMomentumDirection( sbsgen->GetNucleonP().unit() );
     particleGun->SetParticleEnergy(sbsgen->GetNucleonE()-particle->GetPDGMass());
@@ -345,6 +359,9 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     case G4SBS::kPbar:
       particle = particleTable->FindParticle(particleName="anti_proton");
       break;
+    case G4SBS::kN:
+      fprintf(stderr, "%s: %s line %d - Error: Given hadron type is not valid for SIDIS/Wiser generator.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);
+      exit(1);
     default:
       particle = particleTable->FindParticle(particleName="pi+");
       break;

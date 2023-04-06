@@ -2514,16 +2514,35 @@ bool G4SBSEventGen::GeneratePythia(){
 }
 
 bool G4SBSEventGen::GenerateSIMC(){
-  G4double Mp = proton_mass_c2;
+
   fSIMCTree->GetEntry(fchainentry++);
-  
   fSIMCEvent.Clear();
+
+  G4double Mh;
+  bool invalid_hadron = true;
+  switch(fHadronType) {
+  case G4SBS::kP:
+    Mh = proton_mass_c2;
+    fSIMCEvent.fnucl = 1;
+    invalid_hadron = false;
+    break;
+  case G4SBS::kN:
+    Mh = neutron_mass_c2;
+    fSIMCEvent.fnucl = 0;
+    invalid_hadron = false;
+    break;
+  }
+  if (invalid_hadron) {
+    fprintf(stderr, "%s: %s line %d - Error: Given Hadron type not is valid for SIMC generator.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);
+    exit(1);
+  }
+
 
   fSIMCEvent.sigma = fSIMCTree->sigcc/cm2;
   fSIMCEvent.Weight = fSIMCTree->Weight;
 
   fSIMCEvent.Q2 = fSIMCTree->Q2;
-  fSIMCEvent.xbj = fSIMCTree->Q2/(2*Mp/GeV*fSIMCTree->nu);//Q2 and nu are in GeV...
+  fSIMCEvent.xbj = fSIMCTree->Q2/(2*Mh/GeV*fSIMCTree->nu);//Q2 and nu are in GeV...
   fSIMCEvent.nu = fSIMCTree->nu;
   fSIMCEvent.W = fSIMCTree->W;
   fSIMCEvent.epsilon = fSIMCTree->epsilon;
@@ -2554,7 +2573,7 @@ bool G4SBSEventGen::GenerateSIMC(){
 
   fNucleonP = G4ThreeVector(fSIMCEvent.px_n, fSIMCEvent.py_n, fSIMCEvent.pz_n);
   fNucleonP.rotateZ(-TMath::PiOver2());
-  fNucleonE = sqrt(fSIMCEvent.p_n*fSIMCEvent.p_n+Mp*Mp);
+  fNucleonE = sqrt(fSIMCEvent.p_n*fSIMCEvent.p_n+Mh*Mh);
 
   return true;
   
@@ -2674,6 +2693,9 @@ ev_t G4SBSEventGen::GetEventData(){
     case G4SBS::kPbar:
       data.hadr = -3;
       break;
+    case G4SBS::kN:
+      fprintf(stderr, "%s: %s line %d - Error: Given hadron type is not valid for SIDIS/Wiser generator.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);
+      exit(1);
     default:
       data.hadr = 1;
       break;

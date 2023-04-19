@@ -2563,9 +2563,11 @@ bool G4SBSEventGen::GenerateSIMC(){
   fSIMCEvent.py_n = fSIMCTree->p_p*fSIMCTree->uy_p;
   fSIMCEvent.pz_n = fSIMCTree->p_p*fSIMCTree->uz_p;
   
-  fSIMCEvent.vx = fVert.x();
-  fSIMCEvent.vy = fVert.y();
-  fSIMCEvent.vz = fVert.z();
+  fSIMCEvent.vx = fSIMCTree->vxi*cm;
+  fSIMCEvent.vy = fSIMCTree->vyi*cm;
+  fSIMCEvent.vz = fSIMCTree->vzi*cm;
+
+  fVert.set(fSIMCEvent.vx, fSIMCEvent.vy, fSIMCEvent.vz);
   
   fElectronP = G4ThreeVector(fSIMCEvent.px_e, fSIMCEvent.py_e, fSIMCEvent.pz_e);
   fElectronP.rotateZ(-TMath::PiOver2());

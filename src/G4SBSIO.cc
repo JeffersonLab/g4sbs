@@ -812,6 +812,7 @@ void G4SBSIO::BranchSIMC(){
   
   fTree->Branch("simc.Ebeam",&(SIMCprimaries.Ebeam),"simc.Ebeam/D");
   
+  fTree->Branch("simc.fnucl",&(SIMCprimaries.fnucl),"simc.fnucl/I");
   fTree->Branch("simc.p_e",&(SIMCprimaries.p_e),"simc.p_e/D");
   fTree->Branch("simc.theta_e",&(SIMCprimaries.theta_e),"simc.theta_e/D");
   fTree->Branch("simc.phi_e",&(SIMCprimaries.phi_e),"simc.phi_e/D");

@@ -37,7 +37,9 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fTargPos = G4ThreeVector( 0, 0, 0 );
   fTargDir = G4ThreeVector( 0, 0, 1 );
 
-  fTargDiameter = 8.0*cm; //default of 8 cm.
+  //fTargDiameter = 8.0*cm; //default of 8 cm.
+
+  fTargDiameter = 2.64*2.54*cm; //2.64 inches default for GEP configuration
   
   fFlux = false;
 
@@ -108,18 +110,32 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 // The code for building C16 and GEp are indeed almost identical.
 void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog, 
 						 G4RotationMatrix *rot_targ, G4ThreeVector targ_offset){
-  // Now let's make a cryotarget:
+  // Now let's make a cryotarget. Cylinder with 
   //G4double Rcell = 4.0*cm;
   G4double Rcell  = fTargDiameter/2.0;
   //These are assumptions. Probably should be made user-adjustable as well.
   G4double uthick = 0.1*mm;
   G4double dthick = 0.15*mm;
   G4double sthick = 0.2*mm;
+
+  //later: flow-diverters
+  
+  if( fDetCon->fExpType == G4SBS::kGEp ){ //make a cylindrical target with half-spherical downstream endcap:
+    G4double uthick = 0.005*2.54*cm;
+    G4double dthick = 0.005*2.54*cm;
+    G4double sthick = 0.02*2.54*cm;
+  }
+    
   
   G4Tubs *TargetMother_solid = new G4Tubs( "TargetMother_solid", 0, Rcell + sthick, (fTargLen+uthick+dthick)/2.0, 0.0, twopi );
   G4LogicalVolume *TargetMother_log = new G4LogicalVolume( TargetMother_solid, GetMaterial("Vacuum"), "TargetMother_log" );
+
+  //We will need the union of a cylindrical part and a half-spherical part: 
   
-  G4Tubs *TargetCell = new G4Tubs( "TargetCell", 0, Rcell, fTargLen/2.0, 0, twopi );
+  G4Tubs *TargetCell_cylinder = new G4Tubs( "TargetCell_cylinder", 0, Rcell, (fTargLen-Rcell)/2.0, 0, twopi );
+  G4Sphere *TargetCell_halfsphere = new G4Sphere( "TargetCell_halfsphere", 0.0, Rcell, 0.0*degree, 360.0*degree, 0.0*degree, 90.0*degree );
+  
+  G4UnionSolid *TargetCell = new G4UnionSolid( "TargetCell", TargetCell_cylinder, TargetCell_halfsphere, 0, G4ThreeVector( 0, 0, (fTargLen-Rcell)/2.0 ) );
   
   G4LogicalVolume *TargetCell_log;
   
@@ -131,19 +147,23 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
 
   fDetCon->InsertTargetVolume( TargetCell_log->GetName() );
   
-  G4Tubs *TargetWall = new G4Tubs("TargetWall", Rcell, Rcell + sthick, fTargLen/2.0, 0, twopi );
+  G4Tubs *TargetWall_cylinder = new G4Tubs("TargetWall_cylinder", Rcell, Rcell + sthick, (fTargLen-Rcell)/2.0, 0, twopi );
+  G4Sphere *TargetWall_halfsphere = new G4Sphere( "TargetWall_halfsphere", Rcell, Rcell + dthick, 0.0*degree, 360.0*degree, 0.0*degree, 90.0*degree );
+
+  G4UnionSolid *TargetWall = new G4UnionSolid( "TargetWall", TargetWall_cylinder, TargetWall_halfsphere, 0, G4ThreeVector( 0, 0, (fTargLen-Rcell)/2.0 ) );
   
   G4LogicalVolume *TargetWall_log = new G4LogicalVolume( TargetWall, GetMaterial("Al"), "TargetWall_log" );
   
   G4Tubs *UpstreamWindow = new G4Tubs("UpstreamWindow", 0, Rcell + sthick, uthick/2.0, 0, twopi );
-  G4Tubs *DownstreamWindow = new G4Tubs("DownstreamWindow", 0, Rcell + sthick, dthick/2.0, 0, twopi );
+  //AJRP: downstream window replaced by half-spherical end cap
+  //G4Tubs *DownstreamWindow = new G4Tubs("DownstreamWindow", 0, Rcell + sthick, dthick/2.0, 0, twopi );
   
   G4LogicalVolume *uwindow_log = new G4LogicalVolume( UpstreamWindow, GetMaterial("Al"), "uwindow_log" );
-  G4LogicalVolume *dwindow_log = new G4LogicalVolume( DownstreamWindow, GetMaterial("Al"), "dwindow_log" );
+  //G4LogicalVolume *dwindow_log = new G4LogicalVolume( DownstreamWindow, GetMaterial("Al"), "dwindow_log" );
 
   fDetCon->InsertTargetVolume( TargetWall_log->GetName() );
   fDetCon->InsertTargetVolume( uwindow_log->GetName() );
-  fDetCon->InsertTargetVolume( dwindow_log->GetName() );
+  //fDetCon->InsertTargetVolume( dwindow_log->GetName() );
 
   
   // Now place everything:
@@ -156,10 +176,10 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+uthick/2.0), uwindow_log, "uwindow_phys", TargetMother_log, false, 0 );
   // Place target and side walls:
   ztemp += uthick;
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetCell_log, "TargetCell_phys", TargetMother_log, false, 0 );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetWall_log, "TargetWall_phys", TargetMother_log, false, 0 );
-  ztemp += fTargLen;
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+dthick/2.0), dwindow_log, "dwindow_phys", TargetMother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+(fTargLen-Rcell)/2.0), TargetCell_log, "TargetCell_phys", TargetMother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+(fTargLen-Rcell)/2.0), TargetWall_log, "TargetWall_phys", TargetMother_log, false, 0 );
+  //ztemp += fTargLen;
+  //new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+dthick/2.0), dwindow_log, "dwindow_phys", TargetMother_log, false, 0 );
   
   G4double targ_zcenter = (uthick-dthick)/2.0; //position of target center relative to target mother volume
    
@@ -245,7 +265,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   TargWall_visatt->SetForceWireframe( true );
   TargetWall_log->SetVisAttributes( TargWall_visatt );
   uwindow_log->SetVisAttributes( TargWall_visatt );
-  dwindow_log->SetVisAttributes( TargWall_visatt );
+  //dwindow_log->SetVisAttributes( TargWall_visatt );
   TargetMother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 }
 

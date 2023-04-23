@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Wed Feb 22 12:03:37 2023 by ROOT version 6.26/06
+// Sun Apr 23 15:00:22 2023 by ROOT version 6.26/10
 // from TTree T/Geant4 SBS Simulation
-// found on file: Pythia_gmn_sbs11_processed_E9p86GeV_proton_job1.root
+// found on file: gmn_SBS11_pythia.root
 //////////////////////////////////////////////////////////
 
 #ifndef gmn_tree_h
@@ -168,6 +168,25 @@ public :
    vector<int>     *Earm_BBHodoScint_hit_otridx;
    vector<int>     *Earm_BBHodoScint_hit_ptridx;
    vector<int>     *Earm_BBHodoScint_hit_sdtridx;
+   Int_t           Earm_BBPS_hit_nhits;
+   vector<int>     *Earm_BBPS_hit_PMT;
+   vector<int>     *Earm_BBPS_hit_row;
+   vector<int>     *Earm_BBPS_hit_col;
+   vector<int>     *Earm_BBPS_hit_plane;
+   vector<double>  *Earm_BBPS_hit_xcell;
+   vector<double>  *Earm_BBPS_hit_ycell;
+   vector<double>  *Earm_BBPS_hit_zcell;
+   vector<double>  *Earm_BBPS_hit_xgcell;
+   vector<double>  *Earm_BBPS_hit_ygcell;
+   vector<double>  *Earm_BBPS_hit_zgcell;
+   vector<int>     *Earm_BBPS_hit_NumPhotoelectrons;
+   vector<double>  *Earm_BBPS_hit_Time_avg;
+   vector<double>  *Earm_BBPS_hit_Time_rms;
+   vector<double>  *Earm_BBPS_hit_Time_min;
+   vector<double>  *Earm_BBPS_hit_Time_max;
+   vector<int>     *Earm_BBPS_hit_otridx;
+   vector<int>     *Earm_BBPS_hit_ptridx;
+   vector<int>     *Earm_BBPS_hit_sdtridx;
    Double_t        Earm_BBPSTF1_det_esum;
    Int_t           Earm_BBPSTF1_hit_nhits;
    vector<int>     *Earm_BBPSTF1_hit_row;
@@ -195,6 +214,25 @@ public :
    vector<int>     *Earm_BBPSTF1_hit_otridx;
    vector<int>     *Earm_BBPSTF1_hit_ptridx;
    vector<int>     *Earm_BBPSTF1_hit_sdtridx;
+   Int_t           Earm_BBSH_hit_nhits;
+   vector<int>     *Earm_BBSH_hit_PMT;
+   vector<int>     *Earm_BBSH_hit_row;
+   vector<int>     *Earm_BBSH_hit_col;
+   vector<int>     *Earm_BBSH_hit_plane;
+   vector<double>  *Earm_BBSH_hit_xcell;
+   vector<double>  *Earm_BBSH_hit_ycell;
+   vector<double>  *Earm_BBSH_hit_zcell;
+   vector<double>  *Earm_BBSH_hit_xgcell;
+   vector<double>  *Earm_BBSH_hit_ygcell;
+   vector<double>  *Earm_BBSH_hit_zgcell;
+   vector<int>     *Earm_BBSH_hit_NumPhotoelectrons;
+   vector<double>  *Earm_BBSH_hit_Time_avg;
+   vector<double>  *Earm_BBSH_hit_Time_rms;
+   vector<double>  *Earm_BBSH_hit_Time_min;
+   vector<double>  *Earm_BBSH_hit_Time_max;
+   vector<int>     *Earm_BBSH_hit_otridx;
+   vector<int>     *Earm_BBSH_hit_ptridx;
+   vector<int>     *Earm_BBSH_hit_sdtridx;
    Double_t        Earm_BBSHTF1_det_esum;
    Int_t           Earm_BBSHTF1_hit_nhits;
    vector<int>     *Earm_BBSHTF1_hit_row;
@@ -222,6 +260,57 @@ public :
    vector<int>     *Earm_BBSHTF1_hit_otridx;
    vector<int>     *Earm_BBSHTF1_hit_ptridx;
    vector<int>     *Earm_BBSHTF1_hit_sdtridx;
+   Int_t           Earm_GRINCH_hit_nhits;
+   vector<int>     *Earm_GRINCH_hit_PMT;
+   vector<int>     *Earm_GRINCH_hit_row;
+   vector<int>     *Earm_GRINCH_hit_col;
+   vector<double>  *Earm_GRINCH_hit_xpmt;
+   vector<double>  *Earm_GRINCH_hit_ypmt;
+   vector<double>  *Earm_GRINCH_hit_zpmt;
+   vector<double>  *Earm_GRINCH_hit_xgpmt;
+   vector<double>  *Earm_GRINCH_hit_ygpmt;
+   vector<double>  *Earm_GRINCH_hit_zgpmt;
+   vector<int>     *Earm_GRINCH_hit_NumPhotoelectrons;
+   vector<double>  *Earm_GRINCH_hit_Time_avg;
+   vector<double>  *Earm_GRINCH_hit_Time_rms;
+   vector<double>  *Earm_GRINCH_hit_Time_min;
+   vector<double>  *Earm_GRINCH_hit_Time_max;
+   vector<int>     *Earm_GRINCH_hit_mTrackNo;
+   vector<double>  *Earm_GRINCH_hit_xhit;
+   vector<double>  *Earm_GRINCH_hit_yhit;
+   vector<double>  *Earm_GRINCH_hit_zhit;
+   vector<double>  *Earm_GRINCH_hit_pxhit;
+   vector<double>  *Earm_GRINCH_hit_pyhit;
+   vector<double>  *Earm_GRINCH_hit_pzhit;
+   vector<double>  *Earm_GRINCH_hit_pvx;
+   vector<double>  *Earm_GRINCH_hit_pvy;
+   vector<double>  *Earm_GRINCH_hit_pvz;
+   vector<double>  *Earm_GRINCH_hit_ppx;
+   vector<double>  *Earm_GRINCH_hit_ppy;
+   vector<double>  *Earm_GRINCH_hit_ppz;
+   vector<int>     *Earm_GRINCH_hit_volume_flag;
+   vector<int>     *Earm_GRINCH_hit_otridx;
+   vector<int>     *Earm_GRINCH_hit_ptridx;
+   vector<int>     *Earm_GRINCH_hit_sdtridx;
+   Int_t           Harm_HCal_hit_nhits;
+   vector<int>     *Harm_HCal_hit_PMT;
+   vector<int>     *Harm_HCal_hit_row;
+   vector<int>     *Harm_HCal_hit_col;
+   vector<int>     *Harm_HCal_hit_plane;
+   vector<double>  *Harm_HCal_hit_xcell;
+   vector<double>  *Harm_HCal_hit_ycell;
+   vector<double>  *Harm_HCal_hit_zcell;
+   vector<double>  *Harm_HCal_hit_xgcell;
+   vector<double>  *Harm_HCal_hit_ygcell;
+   vector<double>  *Harm_HCal_hit_zgcell;
+   vector<int>     *Harm_HCal_hit_NumPhotoelectrons;
+   vector<double>  *Harm_HCal_hit_Time_avg;
+   vector<double>  *Harm_HCal_hit_Time_rms;
+   vector<double>  *Harm_HCal_hit_Time_min;
+   vector<double>  *Harm_HCal_hit_Time_max;
+   vector<int>     *Harm_HCal_hit_otridx;
+   vector<int>     *Harm_HCal_hit_ptridx;
+   vector<int>     *Harm_HCal_hit_sdtridx;
    Double_t        Harm_HCalScint_det_esum;
    Int_t           Harm_HCalScint_hit_nhits;
    vector<int>     *Harm_HCalScint_hit_row;
@@ -440,6 +529,25 @@ public :
    TBranch        *b_Earm_BBHodoScint_hit_otridx;   //!
    TBranch        *b_Earm_BBHodoScint_hit_ptridx;   //!
    TBranch        *b_Earm_BBHodoScint_hit_sdtridx;   //!
+   TBranch        *b_Earm_BBPS_hit_nhits;   //!
+   TBranch        *b_Earm_BBPS_hit_PMT;   //!
+   TBranch        *b_Earm_BBPS_hit_row;   //!
+   TBranch        *b_Earm_BBPS_hit_col;   //!
+   TBranch        *b_Earm_BBPS_hit_plane;   //!
+   TBranch        *b_Earm_BBPS_hit_xcell;   //!
+   TBranch        *b_Earm_BBPS_hit_ycell;   //!
+   TBranch        *b_Earm_BBPS_hit_zcell;   //!
+   TBranch        *b_Earm_BBPS_hit_xgcell;   //!
+   TBranch        *b_Earm_BBPS_hit_ygcell;   //!
+   TBranch        *b_Earm_BBPS_hit_zgcell;   //!
+   TBranch        *b_Earm_BBPS_hit_NumPhotoelectrons;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_avg;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_rms;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_min;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_max;   //!
+   TBranch        *b_Earm_BBPS_hit_otridx;   //!
+   TBranch        *b_Earm_BBPS_hit_ptridx;   //!
+   TBranch        *b_Earm_BBPS_hit_sdtridx;   //!
    TBranch        *b_Earm_BBPSTF1_det_esum;   //!
    TBranch        *b_Earm_BBPSTF1_hit_nhits;   //!
    TBranch        *b_Earm_BBPSTF1_hit_row;   //!
@@ -467,6 +575,25 @@ public :
    TBranch        *b_Earm_BBPSTF1_hit_otridx;   //!
    TBranch        *b_Earm_BBPSTF1_hit_ptridx;   //!
    TBranch        *b_Earm_BBPSTF1_hit_sdtridx;   //!
+   TBranch        *b_Earm_BBSH_hit_nhits;   //!
+   TBranch        *b_Earm_BBSH_hit_PMT;   //!
+   TBranch        *b_Earm_BBSH_hit_row;   //!
+   TBranch        *b_Earm_BBSH_hit_col;   //!
+   TBranch        *b_Earm_BBSH_hit_plane;   //!
+   TBranch        *b_Earm_BBSH_hit_xcell;   //!
+   TBranch        *b_Earm_BBSH_hit_ycell;   //!
+   TBranch        *b_Earm_BBSH_hit_zcell;   //!
+   TBranch        *b_Earm_BBSH_hit_xgcell;   //!
+   TBranch        *b_Earm_BBSH_hit_ygcell;   //!
+   TBranch        *b_Earm_BBSH_hit_zgcell;   //!
+   TBranch        *b_Earm_BBSH_hit_NumPhotoelectrons;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_avg;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_rms;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_min;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_max;   //!
+   TBranch        *b_Earm_BBSH_hit_otridx;   //!
+   TBranch        *b_Earm_BBSH_hit_ptridx;   //!
+   TBranch        *b_Earm_BBSH_hit_sdtridx;   //!
    TBranch        *b_Earm_BBSHTF1_det_esum;   //!
    TBranch        *b_Earm_BBSHTF1_hit_nhits;   //!
    TBranch        *b_Earm_BBSHTF1_hit_row;   //!
@@ -494,6 +621,57 @@ public :
    TBranch        *b_Earm_BBSHTF1_hit_otridx;   //!
    TBranch        *b_Earm_BBSHTF1_hit_ptridx;   //!
    TBranch        *b_Earm_BBSHTF1_hit_sdtridx;   //!
+   TBranch        *b_Earm_GRINCH_hit_nhits;   //!
+   TBranch        *b_Earm_GRINCH_hit_PMT;   //!
+   TBranch        *b_Earm_GRINCH_hit_row;   //!
+   TBranch        *b_Earm_GRINCH_hit_col;   //!
+   TBranch        *b_Earm_GRINCH_hit_xpmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_ypmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_zpmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_xgpmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_ygpmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_zgpmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_NumPhotoelectrons;   //!
+   TBranch        *b_Earm_GRINCH_hit_Time_avg;   //!
+   TBranch        *b_Earm_GRINCH_hit_Time_rms;   //!
+   TBranch        *b_Earm_GRINCH_hit_Time_min;   //!
+   TBranch        *b_Earm_GRINCH_hit_Time_max;   //!
+   TBranch        *b_Earm_GRINCH_hit_mTrackNo;   //!
+   TBranch        *b_Earm_GRINCH_hit_xhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_yhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_zhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_pxhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_pyhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_pzhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_pvx;   //!
+   TBranch        *b_Earm_GRINCH_hit_pvy;   //!
+   TBranch        *b_Earm_GRINCH_hit_pvz;   //!
+   TBranch        *b_Earm_GRINCH_hit_ppx;   //!
+   TBranch        *b_Earm_GRINCH_hit_ppy;   //!
+   TBranch        *b_Earm_GRINCH_hit_ppz;   //!
+   TBranch        *b_Earm_GRINCH_hit_volume_flag;   //!
+   TBranch        *b_Earm_GRINCH_hit_otridx;   //!
+   TBranch        *b_Earm_GRINCH_hit_ptridx;   //!
+   TBranch        *b_Earm_GRINCH_hit_sdtridx;   //!
+   TBranch        *b_Harm_HCal_hit_nhits;   //!
+   TBranch        *b_Harm_HCal_hit_PMT;   //!
+   TBranch        *b_Harm_HCal_hit_row;   //!
+   TBranch        *b_Harm_HCal_hit_col;   //!
+   TBranch        *b_Harm_HCal_hit_plane;   //!
+   TBranch        *b_Harm_HCal_hit_xcell;   //!
+   TBranch        *b_Harm_HCal_hit_ycell;   //!
+   TBranch        *b_Harm_HCal_hit_zcell;   //!
+   TBranch        *b_Harm_HCal_hit_xgcell;   //!
+   TBranch        *b_Harm_HCal_hit_ygcell;   //!
+   TBranch        *b_Harm_HCal_hit_zgcell;   //!
+   TBranch        *b_Harm_HCal_hit_NumPhotoelectrons;   //!
+   TBranch        *b_Harm_HCal_hit_Time_avg;   //!
+   TBranch        *b_Harm_HCal_hit_Time_rms;   //!
+   TBranch        *b_Harm_HCal_hit_Time_min;   //!
+   TBranch        *b_Harm_HCal_hit_Time_max;   //!
+   TBranch        *b_Harm_HCal_hit_otridx;   //!
+   TBranch        *b_Harm_HCal_hit_ptridx;   //!
+   TBranch        *b_Harm_HCal_hit_sdtridx;   //!
    TBranch        *b_Harm_HCalScint_det_esum;   //!
    TBranch        *b_Harm_HCalScint_hit_nhits;   //!
    TBranch        *b_Harm_HCalScint_hit_row;   //!
@@ -633,9 +811,9 @@ gmn_tree::gmn_tree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("Pythia_gmn_sbs11_processed_E9p86GeV_proton_job1.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("gmn_SBS11_pythia.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("Pythia_gmn_sbs11_processed_E9p86GeV_proton_job1.root");
+         f = new TFile("gmn_SBS11_pythia.root");
       }
       f->GetObject("T",tree);
 
@@ -765,6 +943,24 @@ void gmn_tree::Init(TTree *tree)
    Earm_BBHodoScint_hit_otridx = 0;
    Earm_BBHodoScint_hit_ptridx = 0;
    Earm_BBHodoScint_hit_sdtridx = 0;
+   Earm_BBPS_hit_PMT = 0;
+   Earm_BBPS_hit_row = 0;
+   Earm_BBPS_hit_col = 0;
+   Earm_BBPS_hit_plane = 0;
+   Earm_BBPS_hit_xcell = 0;
+   Earm_BBPS_hit_ycell = 0;
+   Earm_BBPS_hit_zcell = 0;
+   Earm_BBPS_hit_xgcell = 0;
+   Earm_BBPS_hit_ygcell = 0;
+   Earm_BBPS_hit_zgcell = 0;
+   Earm_BBPS_hit_NumPhotoelectrons = 0;
+   Earm_BBPS_hit_Time_avg = 0;
+   Earm_BBPS_hit_Time_rms = 0;
+   Earm_BBPS_hit_Time_min = 0;
+   Earm_BBPS_hit_Time_max = 0;
+   Earm_BBPS_hit_otridx = 0;
+   Earm_BBPS_hit_ptridx = 0;
+   Earm_BBPS_hit_sdtridx = 0;
    Earm_BBPSTF1_hit_row = 0;
    Earm_BBPSTF1_hit_col = 0;
    Earm_BBPSTF1_hit_cell = 0;
@@ -790,6 +986,24 @@ void gmn_tree::Init(TTree *tree)
    Earm_BBPSTF1_hit_otridx = 0;
    Earm_BBPSTF1_hit_ptridx = 0;
    Earm_BBPSTF1_hit_sdtridx = 0;
+   Earm_BBSH_hit_PMT = 0;
+   Earm_BBSH_hit_row = 0;
+   Earm_BBSH_hit_col = 0;
+   Earm_BBSH_hit_plane = 0;
+   Earm_BBSH_hit_xcell = 0;
+   Earm_BBSH_hit_ycell = 0;
+   Earm_BBSH_hit_zcell = 0;
+   Earm_BBSH_hit_xgcell = 0;
+   Earm_BBSH_hit_ygcell = 0;
+   Earm_BBSH_hit_zgcell = 0;
+   Earm_BBSH_hit_NumPhotoelectrons = 0;
+   Earm_BBSH_hit_Time_avg = 0;
+   Earm_BBSH_hit_Time_rms = 0;
+   Earm_BBSH_hit_Time_min = 0;
+   Earm_BBSH_hit_Time_max = 0;
+   Earm_BBSH_hit_otridx = 0;
+   Earm_BBSH_hit_ptridx = 0;
+   Earm_BBSH_hit_sdtridx = 0;
    Earm_BBSHTF1_hit_row = 0;
    Earm_BBSHTF1_hit_col = 0;
    Earm_BBSHTF1_hit_cell = 0;
@@ -815,6 +1029,55 @@ void gmn_tree::Init(TTree *tree)
    Earm_BBSHTF1_hit_otridx = 0;
    Earm_BBSHTF1_hit_ptridx = 0;
    Earm_BBSHTF1_hit_sdtridx = 0;
+   Earm_GRINCH_hit_PMT = 0;
+   Earm_GRINCH_hit_row = 0;
+   Earm_GRINCH_hit_col = 0;
+   Earm_GRINCH_hit_xpmt = 0;
+   Earm_GRINCH_hit_ypmt = 0;
+   Earm_GRINCH_hit_zpmt = 0;
+   Earm_GRINCH_hit_xgpmt = 0;
+   Earm_GRINCH_hit_ygpmt = 0;
+   Earm_GRINCH_hit_zgpmt = 0;
+   Earm_GRINCH_hit_NumPhotoelectrons = 0;
+   Earm_GRINCH_hit_Time_avg = 0;
+   Earm_GRINCH_hit_Time_rms = 0;
+   Earm_GRINCH_hit_Time_min = 0;
+   Earm_GRINCH_hit_Time_max = 0;
+   Earm_GRINCH_hit_mTrackNo = 0;
+   Earm_GRINCH_hit_xhit = 0;
+   Earm_GRINCH_hit_yhit = 0;
+   Earm_GRINCH_hit_zhit = 0;
+   Earm_GRINCH_hit_pxhit = 0;
+   Earm_GRINCH_hit_pyhit = 0;
+   Earm_GRINCH_hit_pzhit = 0;
+   Earm_GRINCH_hit_pvx = 0;
+   Earm_GRINCH_hit_pvy = 0;
+   Earm_GRINCH_hit_pvz = 0;
+   Earm_GRINCH_hit_ppx = 0;
+   Earm_GRINCH_hit_ppy = 0;
+   Earm_GRINCH_hit_ppz = 0;
+   Earm_GRINCH_hit_volume_flag = 0;
+   Earm_GRINCH_hit_otridx = 0;
+   Earm_GRINCH_hit_ptridx = 0;
+   Earm_GRINCH_hit_sdtridx = 0;
+   Harm_HCal_hit_PMT = 0;
+   Harm_HCal_hit_row = 0;
+   Harm_HCal_hit_col = 0;
+   Harm_HCal_hit_plane = 0;
+   Harm_HCal_hit_xcell = 0;
+   Harm_HCal_hit_ycell = 0;
+   Harm_HCal_hit_zcell = 0;
+   Harm_HCal_hit_xgcell = 0;
+   Harm_HCal_hit_ygcell = 0;
+   Harm_HCal_hit_zgcell = 0;
+   Harm_HCal_hit_NumPhotoelectrons = 0;
+   Harm_HCal_hit_Time_avg = 0;
+   Harm_HCal_hit_Time_rms = 0;
+   Harm_HCal_hit_Time_min = 0;
+   Harm_HCal_hit_Time_max = 0;
+   Harm_HCal_hit_otridx = 0;
+   Harm_HCal_hit_ptridx = 0;
+   Harm_HCal_hit_sdtridx = 0;
    Harm_HCalScint_hit_row = 0;
    Harm_HCalScint_hit_col = 0;
    Harm_HCalScint_hit_cell = 0;
@@ -1007,6 +1270,25 @@ void gmn_tree::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.BBHodoScint.hit.otridx", &Earm_BBHodoScint_hit_otridx, &b_Earm_BBHodoScint_hit_otridx);
    fChain->SetBranchAddress("Earm.BBHodoScint.hit.ptridx", &Earm_BBHodoScint_hit_ptridx, &b_Earm_BBHodoScint_hit_ptridx);
    fChain->SetBranchAddress("Earm.BBHodoScint.hit.sdtridx", &Earm_BBHodoScint_hit_sdtridx, &b_Earm_BBHodoScint_hit_sdtridx);
+   fChain->SetBranchAddress("Earm.BBPS.hit.nhits", &Earm_BBPS_hit_nhits, &b_Earm_BBPS_hit_nhits);
+   fChain->SetBranchAddress("Earm.BBPS.hit.PMT", &Earm_BBPS_hit_PMT, &b_Earm_BBPS_hit_PMT);
+   fChain->SetBranchAddress("Earm.BBPS.hit.row", &Earm_BBPS_hit_row, &b_Earm_BBPS_hit_row);
+   fChain->SetBranchAddress("Earm.BBPS.hit.col", &Earm_BBPS_hit_col, &b_Earm_BBPS_hit_col);
+   fChain->SetBranchAddress("Earm.BBPS.hit.plane", &Earm_BBPS_hit_plane, &b_Earm_BBPS_hit_plane);
+   fChain->SetBranchAddress("Earm.BBPS.hit.xcell", &Earm_BBPS_hit_xcell, &b_Earm_BBPS_hit_xcell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.ycell", &Earm_BBPS_hit_ycell, &b_Earm_BBPS_hit_ycell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.zcell", &Earm_BBPS_hit_zcell, &b_Earm_BBPS_hit_zcell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.xgcell", &Earm_BBPS_hit_xgcell, &b_Earm_BBPS_hit_xgcell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.ygcell", &Earm_BBPS_hit_ygcell, &b_Earm_BBPS_hit_ygcell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.zgcell", &Earm_BBPS_hit_zgcell, &b_Earm_BBPS_hit_zgcell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.NumPhotoelectrons", &Earm_BBPS_hit_NumPhotoelectrons, &b_Earm_BBPS_hit_NumPhotoelectrons);
+   fChain->SetBranchAddress("Earm.BBPS.hit.Time_avg", &Earm_BBPS_hit_Time_avg, &b_Earm_BBPS_hit_Time_avg);
+   fChain->SetBranchAddress("Earm.BBPS.hit.Time_rms", &Earm_BBPS_hit_Time_rms, &b_Earm_BBPS_hit_Time_rms);
+   fChain->SetBranchAddress("Earm.BBPS.hit.Time_min", &Earm_BBPS_hit_Time_min, &b_Earm_BBPS_hit_Time_min);
+   fChain->SetBranchAddress("Earm.BBPS.hit.Time_max", &Earm_BBPS_hit_Time_max, &b_Earm_BBPS_hit_Time_max);
+   fChain->SetBranchAddress("Earm.BBPS.hit.otridx", &Earm_BBPS_hit_otridx, &b_Earm_BBPS_hit_otridx);
+   fChain->SetBranchAddress("Earm.BBPS.hit.ptridx", &Earm_BBPS_hit_ptridx, &b_Earm_BBPS_hit_ptridx);
+   fChain->SetBranchAddress("Earm.BBPS.hit.sdtridx", &Earm_BBPS_hit_sdtridx, &b_Earm_BBPS_hit_sdtridx);
    fChain->SetBranchAddress("Earm.BBPSTF1.det.esum", &Earm_BBPSTF1_det_esum, &b_Earm_BBPSTF1_det_esum);
    fChain->SetBranchAddress("Earm.BBPSTF1.hit.nhits", &Earm_BBPSTF1_hit_nhits, &b_Earm_BBPSTF1_hit_nhits);
    fChain->SetBranchAddress("Earm.BBPSTF1.hit.row", &Earm_BBPSTF1_hit_row, &b_Earm_BBPSTF1_hit_row);
@@ -1034,6 +1316,25 @@ void gmn_tree::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.BBPSTF1.hit.otridx", &Earm_BBPSTF1_hit_otridx, &b_Earm_BBPSTF1_hit_otridx);
    fChain->SetBranchAddress("Earm.BBPSTF1.hit.ptridx", &Earm_BBPSTF1_hit_ptridx, &b_Earm_BBPSTF1_hit_ptridx);
    fChain->SetBranchAddress("Earm.BBPSTF1.hit.sdtridx", &Earm_BBPSTF1_hit_sdtridx, &b_Earm_BBPSTF1_hit_sdtridx);
+   fChain->SetBranchAddress("Earm.BBSH.hit.nhits", &Earm_BBSH_hit_nhits, &b_Earm_BBSH_hit_nhits);
+   fChain->SetBranchAddress("Earm.BBSH.hit.PMT", &Earm_BBSH_hit_PMT, &b_Earm_BBSH_hit_PMT);
+   fChain->SetBranchAddress("Earm.BBSH.hit.row", &Earm_BBSH_hit_row, &b_Earm_BBSH_hit_row);
+   fChain->SetBranchAddress("Earm.BBSH.hit.col", &Earm_BBSH_hit_col, &b_Earm_BBSH_hit_col);
+   fChain->SetBranchAddress("Earm.BBSH.hit.plane", &Earm_BBSH_hit_plane, &b_Earm_BBSH_hit_plane);
+   fChain->SetBranchAddress("Earm.BBSH.hit.xcell", &Earm_BBSH_hit_xcell, &b_Earm_BBSH_hit_xcell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.ycell", &Earm_BBSH_hit_ycell, &b_Earm_BBSH_hit_ycell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.zcell", &Earm_BBSH_hit_zcell, &b_Earm_BBSH_hit_zcell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.xgcell", &Earm_BBSH_hit_xgcell, &b_Earm_BBSH_hit_xgcell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.ygcell", &Earm_BBSH_hit_ygcell, &b_Earm_BBSH_hit_ygcell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.zgcell", &Earm_BBSH_hit_zgcell, &b_Earm_BBSH_hit_zgcell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.NumPhotoelectrons", &Earm_BBSH_hit_NumPhotoelectrons, &b_Earm_BBSH_hit_NumPhotoelectrons);
+   fChain->SetBranchAddress("Earm.BBSH.hit.Time_avg", &Earm_BBSH_hit_Time_avg, &b_Earm_BBSH_hit_Time_avg);
+   fChain->SetBranchAddress("Earm.BBSH.hit.Time_rms", &Earm_BBSH_hit_Time_rms, &b_Earm_BBSH_hit_Time_rms);
+   fChain->SetBranchAddress("Earm.BBSH.hit.Time_min", &Earm_BBSH_hit_Time_min, &b_Earm_BBSH_hit_Time_min);
+   fChain->SetBranchAddress("Earm.BBSH.hit.Time_max", &Earm_BBSH_hit_Time_max, &b_Earm_BBSH_hit_Time_max);
+   fChain->SetBranchAddress("Earm.BBSH.hit.otridx", &Earm_BBSH_hit_otridx, &b_Earm_BBSH_hit_otridx);
+   fChain->SetBranchAddress("Earm.BBSH.hit.ptridx", &Earm_BBSH_hit_ptridx, &b_Earm_BBSH_hit_ptridx);
+   fChain->SetBranchAddress("Earm.BBSH.hit.sdtridx", &Earm_BBSH_hit_sdtridx, &b_Earm_BBSH_hit_sdtridx);
    fChain->SetBranchAddress("Earm.BBSHTF1.det.esum", &Earm_BBSHTF1_det_esum, &b_Earm_BBSHTF1_det_esum);
    fChain->SetBranchAddress("Earm.BBSHTF1.hit.nhits", &Earm_BBSHTF1_hit_nhits, &b_Earm_BBSHTF1_hit_nhits);
    fChain->SetBranchAddress("Earm.BBSHTF1.hit.row", &Earm_BBSHTF1_hit_row, &b_Earm_BBSHTF1_hit_row);
@@ -1061,6 +1362,57 @@ void gmn_tree::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.BBSHTF1.hit.otridx", &Earm_BBSHTF1_hit_otridx, &b_Earm_BBSHTF1_hit_otridx);
    fChain->SetBranchAddress("Earm.BBSHTF1.hit.ptridx", &Earm_BBSHTF1_hit_ptridx, &b_Earm_BBSHTF1_hit_ptridx);
    fChain->SetBranchAddress("Earm.BBSHTF1.hit.sdtridx", &Earm_BBSHTF1_hit_sdtridx, &b_Earm_BBSHTF1_hit_sdtridx);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.nhits", &Earm_GRINCH_hit_nhits, &b_Earm_GRINCH_hit_nhits);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.PMT", &Earm_GRINCH_hit_PMT, &b_Earm_GRINCH_hit_PMT);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.row", &Earm_GRINCH_hit_row, &b_Earm_GRINCH_hit_row);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.col", &Earm_GRINCH_hit_col, &b_Earm_GRINCH_hit_col);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.xpmt", &Earm_GRINCH_hit_xpmt, &b_Earm_GRINCH_hit_xpmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ypmt", &Earm_GRINCH_hit_ypmt, &b_Earm_GRINCH_hit_ypmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.zpmt", &Earm_GRINCH_hit_zpmt, &b_Earm_GRINCH_hit_zpmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.xgpmt", &Earm_GRINCH_hit_xgpmt, &b_Earm_GRINCH_hit_xgpmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ygpmt", &Earm_GRINCH_hit_ygpmt, &b_Earm_GRINCH_hit_ygpmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.zgpmt", &Earm_GRINCH_hit_zgpmt, &b_Earm_GRINCH_hit_zgpmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.NumPhotoelectrons", &Earm_GRINCH_hit_NumPhotoelectrons, &b_Earm_GRINCH_hit_NumPhotoelectrons);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.Time_avg", &Earm_GRINCH_hit_Time_avg, &b_Earm_GRINCH_hit_Time_avg);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.Time_rms", &Earm_GRINCH_hit_Time_rms, &b_Earm_GRINCH_hit_Time_rms);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.Time_min", &Earm_GRINCH_hit_Time_min, &b_Earm_GRINCH_hit_Time_min);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.Time_max", &Earm_GRINCH_hit_Time_max, &b_Earm_GRINCH_hit_Time_max);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.mTrackNo", &Earm_GRINCH_hit_mTrackNo, &b_Earm_GRINCH_hit_mTrackNo);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.xhit", &Earm_GRINCH_hit_xhit, &b_Earm_GRINCH_hit_xhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.yhit", &Earm_GRINCH_hit_yhit, &b_Earm_GRINCH_hit_yhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.zhit", &Earm_GRINCH_hit_zhit, &b_Earm_GRINCH_hit_zhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pxhit", &Earm_GRINCH_hit_pxhit, &b_Earm_GRINCH_hit_pxhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pyhit", &Earm_GRINCH_hit_pyhit, &b_Earm_GRINCH_hit_pyhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pzhit", &Earm_GRINCH_hit_pzhit, &b_Earm_GRINCH_hit_pzhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pvx", &Earm_GRINCH_hit_pvx, &b_Earm_GRINCH_hit_pvx);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pvy", &Earm_GRINCH_hit_pvy, &b_Earm_GRINCH_hit_pvy);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pvz", &Earm_GRINCH_hit_pvz, &b_Earm_GRINCH_hit_pvz);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ppx", &Earm_GRINCH_hit_ppx, &b_Earm_GRINCH_hit_ppx);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ppy", &Earm_GRINCH_hit_ppy, &b_Earm_GRINCH_hit_ppy);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ppz", &Earm_GRINCH_hit_ppz, &b_Earm_GRINCH_hit_ppz);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.volume_flag", &Earm_GRINCH_hit_volume_flag, &b_Earm_GRINCH_hit_volume_flag);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.otridx", &Earm_GRINCH_hit_otridx, &b_Earm_GRINCH_hit_otridx);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ptridx", &Earm_GRINCH_hit_ptridx, &b_Earm_GRINCH_hit_ptridx);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.sdtridx", &Earm_GRINCH_hit_sdtridx, &b_Earm_GRINCH_hit_sdtridx);
+   fChain->SetBranchAddress("Harm.HCal.hit.nhits", &Harm_HCal_hit_nhits, &b_Harm_HCal_hit_nhits);
+   fChain->SetBranchAddress("Harm.HCal.hit.PMT", &Harm_HCal_hit_PMT, &b_Harm_HCal_hit_PMT);
+   fChain->SetBranchAddress("Harm.HCal.hit.row", &Harm_HCal_hit_row, &b_Harm_HCal_hit_row);
+   fChain->SetBranchAddress("Harm.HCal.hit.col", &Harm_HCal_hit_col, &b_Harm_HCal_hit_col);
+   fChain->SetBranchAddress("Harm.HCal.hit.plane", &Harm_HCal_hit_plane, &b_Harm_HCal_hit_plane);
+   fChain->SetBranchAddress("Harm.HCal.hit.xcell", &Harm_HCal_hit_xcell, &b_Harm_HCal_hit_xcell);
+   fChain->SetBranchAddress("Harm.HCal.hit.ycell", &Harm_HCal_hit_ycell, &b_Harm_HCal_hit_ycell);
+   fChain->SetBranchAddress("Harm.HCal.hit.zcell", &Harm_HCal_hit_zcell, &b_Harm_HCal_hit_zcell);
+   fChain->SetBranchAddress("Harm.HCal.hit.xgcell", &Harm_HCal_hit_xgcell, &b_Harm_HCal_hit_xgcell);
+   fChain->SetBranchAddress("Harm.HCal.hit.ygcell", &Harm_HCal_hit_ygcell, &b_Harm_HCal_hit_ygcell);
+   fChain->SetBranchAddress("Harm.HCal.hit.zgcell", &Harm_HCal_hit_zgcell, &b_Harm_HCal_hit_zgcell);
+   fChain->SetBranchAddress("Harm.HCal.hit.NumPhotoelectrons", &Harm_HCal_hit_NumPhotoelectrons, &b_Harm_HCal_hit_NumPhotoelectrons);
+   fChain->SetBranchAddress("Harm.HCal.hit.Time_avg", &Harm_HCal_hit_Time_avg, &b_Harm_HCal_hit_Time_avg);
+   fChain->SetBranchAddress("Harm.HCal.hit.Time_rms", &Harm_HCal_hit_Time_rms, &b_Harm_HCal_hit_Time_rms);
+   fChain->SetBranchAddress("Harm.HCal.hit.Time_min", &Harm_HCal_hit_Time_min, &b_Harm_HCal_hit_Time_min);
+   fChain->SetBranchAddress("Harm.HCal.hit.Time_max", &Harm_HCal_hit_Time_max, &b_Harm_HCal_hit_Time_max);
+   fChain->SetBranchAddress("Harm.HCal.hit.otridx", &Harm_HCal_hit_otridx, &b_Harm_HCal_hit_otridx);
+   fChain->SetBranchAddress("Harm.HCal.hit.ptridx", &Harm_HCal_hit_ptridx, &b_Harm_HCal_hit_ptridx);
+   fChain->SetBranchAddress("Harm.HCal.hit.sdtridx", &Harm_HCal_hit_sdtridx, &b_Harm_HCal_hit_sdtridx);
    fChain->SetBranchAddress("Harm.HCalScint.det.esum", &Harm_HCalScint_det_esum, &b_Harm_HCalScint_det_esum);
    fChain->SetBranchAddress("Harm.HCalScint.hit.nhits", &Harm_HCalScint_hit_nhits, &b_Harm_HCalScint_hit_nhits);
    fChain->SetBranchAddress("Harm.HCalScint.hit.row", &Harm_HCalScint_hit_row, &b_Harm_HCalScint_hit_row);

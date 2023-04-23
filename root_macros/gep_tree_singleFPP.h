@@ -1,12 +1,12 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Fri Apr 21 23:36:10 2023 by ROOT version 6.26/04
+// Mon Mar 22 13:33:14 2021 by ROOT version 6.14/04
 // from TTree T/Geant4 SBS Simulation
-// found on file: GEP3_elastic.root
+// found on file: /volatile/halla/sbs/puckett/g4sbs_output/gep_12GeV2_elastic/fppoption1/thick89/gep12_elastic_fppoption1_thick89_job191.root
 //////////////////////////////////////////////////////////
 
-#ifndef gep_tree_new_h
-#define gep_tree_new_h
+#ifndef gep_tree_singleFPP_h
+#define gep_tree_singleFPP_h
 
 #include <TROOT.h>
 #include <TChain.h>
@@ -16,7 +16,7 @@
 #include "vector"
 #include "vector"
 
-class gep_tree_new {
+class gep_tree_singleFPP {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
@@ -72,12 +72,6 @@ public :
    Int_t           ev_hadr;
    Int_t           ev_earmaccept;
    Int_t           ev_harmaccept;
-   Double_t        TargPol;
-   Double_t        TargThetaSpin;
-   Double_t        TargPhiSpin;
-   Double_t        BeamPol;
-   Double_t        BeamThetaSpin;
-   Double_t        BeamPhiSpin;
    Double_t        Earm_CDET_Scint_det_esum;
    Int_t           Earm_CDET_Scint_hit_nhits;
    vector<int>     *Earm_CDET_Scint_hit_row;
@@ -132,6 +126,9 @@ public :
    vector<int>     *Earm_ECalTF1_hit_otridx;
    vector<int>     *Earm_ECalTF1_hit_ptridx;
    vector<int>     *Earm_ECalTF1_hit_sdtridx;
+
+   //Perhaps we should declare the FPP2 variables as well just so the existing macros don't crash when we use the single-FPP option
+
    Int_t           Harm_FPP1_hit_nhits;
    vector<int>     *Harm_FPP1_hit_plane;
    vector<int>     *Harm_FPP1_hit_strip;
@@ -195,6 +192,8 @@ public :
    vector<int>     *Harm_FPP1_Track_otridx;
    vector<int>     *Harm_FPP1_Track_ptridx;
    vector<int>     *Harm_FPP1_Track_sdtridx;
+
+   //Declare the FPP2 variables as dummy variables just to keep compilers happy:
    Int_t           Harm_FPP2_hit_nhits;
    vector<int>     *Harm_FPP2_hit_plane;
    vector<int>     *Harm_FPP2_hit_strip;
@@ -258,6 +257,9 @@ public :
    vector<int>     *Harm_FPP2_Track_otridx;
    vector<int>     *Harm_FPP2_Track_ptridx;
    vector<int>     *Harm_FPP2_Track_sdtridx;
+
+
+
    Int_t           Harm_FT_hit_nhits;
    vector<int>     *Harm_FT_hit_plane;
    vector<int>     *Harm_FT_hit_strip;
@@ -352,7 +354,6 @@ public :
    vector<int>     *OTrack_TID;
    vector<int>     *OTrack_MID;
    vector<int>     *OTrack_PID;
-   vector<int>     *OTrack_MPID;
    vector<double>  *OTrack_posx;
    vector<double>  *OTrack_posy;
    vector<double>  *OTrack_posz;
@@ -382,7 +383,6 @@ public :
    vector<int>     *SDTrack_TID;
    vector<int>     *SDTrack_MID;
    vector<int>     *SDTrack_PID;
-   vector<int>     *SDTrack_MPID;
    vector<double>  *SDTrack_posx;
    vector<double>  *SDTrack_posy;
    vector<double>  *SDTrack_posz;
@@ -404,12 +404,6 @@ public :
 
    // List of branches
    TBranch        *b_ev;   //!
-   TBranch        *b_TargPol;   //!
-   TBranch        *b_TargThetaSpin;   //!
-   TBranch        *b_TargPhiSpin;   //!
-   TBranch        *b_BeamPol;   //!
-   TBranch        *b_BeamThetaSpin;   //!
-   TBranch        *b_BeamPhiSpin;   //!
    TBranch        *b_Earm_CDET_Scint_det_esum;   //!
    TBranch        *b_Earm_CDET_Scint_hit_nhits;   //!
    TBranch        *b_Earm_CDET_Scint_hit_row;   //!
@@ -527,69 +521,6 @@ public :
    TBranch        *b_Harm_FPP1_Track_otridx;   //!
    TBranch        *b_Harm_FPP1_Track_ptridx;   //!
    TBranch        *b_Harm_FPP1_Track_sdtridx;   //!
-   TBranch        *b_Harm_FPP2_hit_nhits;   //!
-   TBranch        *b_Harm_FPP2_hit_plane;   //!
-   TBranch        *b_Harm_FPP2_hit_strip;   //!
-   TBranch        *b_Harm_FPP2_hit_x;   //!
-   TBranch        *b_Harm_FPP2_hit_y;   //!
-   TBranch        *b_Harm_FPP2_hit_z;   //!
-   TBranch        *b_Harm_FPP2_hit_polx;   //!
-   TBranch        *b_Harm_FPP2_hit_poly;   //!
-   TBranch        *b_Harm_FPP2_hit_polz;   //!
-   TBranch        *b_Harm_FPP2_hit_t;   //!
-   TBranch        *b_Harm_FPP2_hit_trms;   //!
-   TBranch        *b_Harm_FPP2_hit_tmin;   //!
-   TBranch        *b_Harm_FPP2_hit_tmax;   //!
-   TBranch        *b_Harm_FPP2_hit_tx;   //!
-   TBranch        *b_Harm_FPP2_hit_ty;   //!
-   TBranch        *b_Harm_FPP2_hit_xin;   //!
-   TBranch        *b_Harm_FPP2_hit_yin;   //!
-   TBranch        *b_Harm_FPP2_hit_zin;   //!
-   TBranch        *b_Harm_FPP2_hit_xout;   //!
-   TBranch        *b_Harm_FPP2_hit_yout;   //!
-   TBranch        *b_Harm_FPP2_hit_zout;   //!
-   TBranch        *b_Harm_FPP2_hit_txp;   //!
-   TBranch        *b_Harm_FPP2_hit_typ;   //!
-   TBranch        *b_Harm_FPP2_hit_xg;   //!
-   TBranch        *b_Harm_FPP2_hit_yg;   //!
-   TBranch        *b_Harm_FPP2_hit_zg;   //!
-   TBranch        *b_Harm_FPP2_hit_trid;   //!
-   TBranch        *b_Harm_FPP2_hit_mid;   //!
-   TBranch        *b_Harm_FPP2_hit_pid;   //!
-   TBranch        *b_Harm_FPP2_hit_vx;   //!
-   TBranch        *b_Harm_FPP2_hit_vy;   //!
-   TBranch        *b_Harm_FPP2_hit_vz;   //!
-   TBranch        *b_Harm_FPP2_hit_p;   //!
-   TBranch        *b_Harm_FPP2_hit_edep;   //!
-   TBranch        *b_Harm_FPP2_hit_beta;   //!
-   TBranch        *b_Harm_FPP2_hit_otridx;   //!
-   TBranch        *b_Harm_FPP2_hit_ptridx;   //!
-   TBranch        *b_Harm_FPP2_hit_sdtridx;   //!
-   TBranch        *b_Harm_FPP2_Track_ntracks;   //!
-   TBranch        *b_Harm_FPP2_Track_TID;   //!
-   TBranch        *b_Harm_FPP2_Track_PID;   //!
-   TBranch        *b_Harm_FPP2_Track_MID;   //!
-   TBranch        *b_Harm_FPP2_Track_NumHits;   //!
-   TBranch        *b_Harm_FPP2_Track_NumPlanes;   //!
-   TBranch        *b_Harm_FPP2_Track_NDF;   //!
-   TBranch        *b_Harm_FPP2_Track_Chi2fit;   //!
-   TBranch        *b_Harm_FPP2_Track_Chi2true;   //!
-   TBranch        *b_Harm_FPP2_Track_X;   //!
-   TBranch        *b_Harm_FPP2_Track_Y;   //!
-   TBranch        *b_Harm_FPP2_Track_Xp;   //!
-   TBranch        *b_Harm_FPP2_Track_Yp;   //!
-   TBranch        *b_Harm_FPP2_Track_T;   //!
-   TBranch        *b_Harm_FPP2_Track_P;   //!
-   TBranch        *b_Harm_FPP2_Track_Sx;   //!
-   TBranch        *b_Harm_FPP2_Track_Sy;   //!
-   TBranch        *b_Harm_FPP2_Track_Sz;   //!
-   TBranch        *b_Harm_FPP2_Track_Xfit;   //!
-   TBranch        *b_Harm_FPP2_Track_Yfit;   //!
-   TBranch        *b_Harm_FPP2_Track_Xpfit;   //!
-   TBranch        *b_Harm_FPP2_Track_Ypfit;   //!
-   TBranch        *b_Harm_FPP2_Track_otridx;   //!
-   TBranch        *b_Harm_FPP2_Track_ptridx;   //!
-   TBranch        *b_Harm_FPP2_Track_sdtridx;   //!
    TBranch        *b_Harm_FT_hit_nhits;   //!
    TBranch        *b_Harm_FT_hit_plane;   //!
    TBranch        *b_Harm_FT_hit_strip;   //!
@@ -684,7 +615,6 @@ public :
    TBranch        *b_OTrack_TID;   //!
    TBranch        *b_OTrack_MID;   //!
    TBranch        *b_OTrack_PID;   //!
-   TBranch        *b_OTrack_MPID;   //!
    TBranch        *b_OTrack_posx;   //!
    TBranch        *b_OTrack_posy;   //!
    TBranch        *b_OTrack_posz;   //!
@@ -714,7 +644,6 @@ public :
    TBranch        *b_SDTrack_TID;   //!
    TBranch        *b_SDTrack_MID;   //!
    TBranch        *b_SDTrack_PID;   //!
-   TBranch        *b_SDTrack_MPID;   //!
    TBranch        *b_SDTrack_posx;   //!
    TBranch        *b_SDTrack_posy;   //!
    TBranch        *b_SDTrack_posz;   //!
@@ -734,8 +663,8 @@ public :
    TBranch        *b_SDTrack_vnz;   //!
    TBranch        *b_SDTrack_vEkin;   //!
 
-   gep_tree_new(TTree *tree=0);
-   virtual ~gep_tree_new();
+   gep_tree_singleFPP(TTree *tree=0);
+   virtual ~gep_tree_singleFPP();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
@@ -747,15 +676,15 @@ public :
 
 #endif
 
-#ifdef gep_tree_new_cxx
-gep_tree_new::gep_tree_new(TTree *tree) : fChain(0) 
+#ifdef gep_tree_singleFPP_cxx
+gep_tree_singleFPP::gep_tree_singleFPP(TTree *tree) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("GEP3_elastic.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/volatile/halla/sbs/puckett/g4sbs_output/gep_12GeV2_elastic/fppoption1/thick89/gep12_elastic_fppoption1_thick89_job191.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("GEP3_elastic.root");
+         f = new TFile("/volatile/halla/sbs/puckett/g4sbs_output/gep_12GeV2_elastic/fppoption1/thick89/gep12_elastic_fppoption1_thick89_job191.root");
       }
       f->GetObject("T",tree);
 
@@ -763,19 +692,19 @@ gep_tree_new::gep_tree_new(TTree *tree) : fChain(0)
    Init(tree);
 }
 
-gep_tree_new::~gep_tree_new()
+gep_tree_singleFPP::~gep_tree_singleFPP()
 {
    if (!fChain) return;
    delete fChain->GetCurrentFile();
 }
 
-Int_t gep_tree_new::GetEntry(Long64_t entry)
+Int_t gep_tree_singleFPP::GetEntry(Long64_t entry)
 {
 // Read contents of entry.
    if (!fChain) return 0;
    return fChain->GetEntry(entry);
 }
-Long64_t gep_tree_new::LoadTree(Long64_t entry)
+Long64_t gep_tree_singleFPP::LoadTree(Long64_t entry)
 {
 // Set the environment to read one entry
    if (!fChain) return -5;
@@ -788,7 +717,7 @@ Long64_t gep_tree_new::LoadTree(Long64_t entry)
    return centry;
 }
 
-void gep_tree_new::Init(TTree *tree)
+void gep_tree_singleFPP::Init(TTree *tree)
 {
    // The Init() function is called when the selector needs to initialize
    // a new tree or chain. Typically here the branch addresses and branch
@@ -910,6 +839,7 @@ void gep_tree_new::Init(TTree *tree)
    Harm_FPP1_Track_otridx = 0;
    Harm_FPP1_Track_ptridx = 0;
    Harm_FPP1_Track_sdtridx = 0;
+
    Harm_FPP2_hit_plane = 0;
    Harm_FPP2_hit_strip = 0;
    Harm_FPP2_hit_x = 0;
@@ -971,6 +901,8 @@ void gep_tree_new::Init(TTree *tree)
    Harm_FPP2_Track_otridx = 0;
    Harm_FPP2_Track_ptridx = 0;
    Harm_FPP2_Track_sdtridx = 0;
+
+
    Harm_FT_hit_plane = 0;
    Harm_FT_hit_strip = 0;
    Harm_FT_hit_x = 0;
@@ -1060,7 +992,6 @@ void gep_tree_new::Init(TTree *tree)
    OTrack_TID = 0;
    OTrack_MID = 0;
    OTrack_PID = 0;
-   OTrack_MPID = 0;
    OTrack_posx = 0;
    OTrack_posy = 0;
    OTrack_posz = 0;
@@ -1088,7 +1019,6 @@ void gep_tree_new::Init(TTree *tree)
    SDTrack_TID = 0;
    SDTrack_MID = 0;
    SDTrack_PID = 0;
-   SDTrack_MPID = 0;
    SDTrack_posx = 0;
    SDTrack_posy = 0;
    SDTrack_posz = 0;
@@ -1114,12 +1044,6 @@ void gep_tree_new::Init(TTree *tree)
    fChain->SetMakeClass(1);
 
    fChain->SetBranchAddress("ev", &ev_count, &b_ev);
-   fChain->SetBranchAddress("TargPol", &TargPol, &b_TargPol);
-   fChain->SetBranchAddress("TargThetaSpin", &TargThetaSpin, &b_TargThetaSpin);
-   fChain->SetBranchAddress("TargPhiSpin", &TargPhiSpin, &b_TargPhiSpin);
-   fChain->SetBranchAddress("BeamPol", &BeamPol, &b_BeamPol);
-   fChain->SetBranchAddress("BeamThetaSpin", &BeamThetaSpin, &b_BeamThetaSpin);
-   fChain->SetBranchAddress("BeamPhiSpin", &BeamPhiSpin, &b_BeamPhiSpin);
    fChain->SetBranchAddress("Earm.CDET_Scint.det.esum", &Earm_CDET_Scint_det_esum, &b_Earm_CDET_Scint_det_esum);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.nhits", &Earm_CDET_Scint_hit_nhits, &b_Earm_CDET_Scint_hit_nhits);
    fChain->SetBranchAddress("Earm.CDET_Scint.hit.row", &Earm_CDET_Scint_hit_row, &b_Earm_CDET_Scint_hit_row);
@@ -1174,132 +1098,69 @@ void gep_tree_new::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.ECalTF1.hit.otridx", &Earm_ECalTF1_hit_otridx, &b_Earm_ECalTF1_hit_otridx);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.ptridx", &Earm_ECalTF1_hit_ptridx, &b_Earm_ECalTF1_hit_ptridx);
    fChain->SetBranchAddress("Earm.ECalTF1.hit.sdtridx", &Earm_ECalTF1_hit_sdtridx, &b_Earm_ECalTF1_hit_sdtridx);
-   fChain->SetBranchAddress("Harm.FPP1.hit.nhits", &Harm_FPP1_hit_nhits, &b_Harm_FPP1_hit_nhits);
-   fChain->SetBranchAddress("Harm.FPP1.hit.plane", &Harm_FPP1_hit_plane, &b_Harm_FPP1_hit_plane);
-   fChain->SetBranchAddress("Harm.FPP1.hit.strip", &Harm_FPP1_hit_strip, &b_Harm_FPP1_hit_strip);
-   fChain->SetBranchAddress("Harm.FPP1.hit.x", &Harm_FPP1_hit_x, &b_Harm_FPP1_hit_x);
-   fChain->SetBranchAddress("Harm.FPP1.hit.y", &Harm_FPP1_hit_y, &b_Harm_FPP1_hit_y);
-   fChain->SetBranchAddress("Harm.FPP1.hit.z", &Harm_FPP1_hit_z, &b_Harm_FPP1_hit_z);
-   fChain->SetBranchAddress("Harm.FPP1.hit.polx", &Harm_FPP1_hit_polx, &b_Harm_FPP1_hit_polx);
-   fChain->SetBranchAddress("Harm.FPP1.hit.poly", &Harm_FPP1_hit_poly, &b_Harm_FPP1_hit_poly);
-   fChain->SetBranchAddress("Harm.FPP1.hit.polz", &Harm_FPP1_hit_polz, &b_Harm_FPP1_hit_polz);
-   fChain->SetBranchAddress("Harm.FPP1.hit.t", &Harm_FPP1_hit_t, &b_Harm_FPP1_hit_t);
-   fChain->SetBranchAddress("Harm.FPP1.hit.trms", &Harm_FPP1_hit_trms, &b_Harm_FPP1_hit_trms);
-   fChain->SetBranchAddress("Harm.FPP1.hit.tmin", &Harm_FPP1_hit_tmin, &b_Harm_FPP1_hit_tmin);
-   fChain->SetBranchAddress("Harm.FPP1.hit.tmax", &Harm_FPP1_hit_tmax, &b_Harm_FPP1_hit_tmax);
-   fChain->SetBranchAddress("Harm.FPP1.hit.tx", &Harm_FPP1_hit_tx, &b_Harm_FPP1_hit_tx);
-   fChain->SetBranchAddress("Harm.FPP1.hit.ty", &Harm_FPP1_hit_ty, &b_Harm_FPP1_hit_ty);
-   fChain->SetBranchAddress("Harm.FPP1.hit.xin", &Harm_FPP1_hit_xin, &b_Harm_FPP1_hit_xin);
-   fChain->SetBranchAddress("Harm.FPP1.hit.yin", &Harm_FPP1_hit_yin, &b_Harm_FPP1_hit_yin);
-   fChain->SetBranchAddress("Harm.FPP1.hit.zin", &Harm_FPP1_hit_zin, &b_Harm_FPP1_hit_zin);
-   fChain->SetBranchAddress("Harm.FPP1.hit.xout", &Harm_FPP1_hit_xout, &b_Harm_FPP1_hit_xout);
-   fChain->SetBranchAddress("Harm.FPP1.hit.yout", &Harm_FPP1_hit_yout, &b_Harm_FPP1_hit_yout);
-   fChain->SetBranchAddress("Harm.FPP1.hit.zout", &Harm_FPP1_hit_zout, &b_Harm_FPP1_hit_zout);
-   fChain->SetBranchAddress("Harm.FPP1.hit.txp", &Harm_FPP1_hit_txp, &b_Harm_FPP1_hit_txp);
-   fChain->SetBranchAddress("Harm.FPP1.hit.typ", &Harm_FPP1_hit_typ, &b_Harm_FPP1_hit_typ);
-   fChain->SetBranchAddress("Harm.FPP1.hit.xg", &Harm_FPP1_hit_xg, &b_Harm_FPP1_hit_xg);
-   fChain->SetBranchAddress("Harm.FPP1.hit.yg", &Harm_FPP1_hit_yg, &b_Harm_FPP1_hit_yg);
-   fChain->SetBranchAddress("Harm.FPP1.hit.zg", &Harm_FPP1_hit_zg, &b_Harm_FPP1_hit_zg);
-   fChain->SetBranchAddress("Harm.FPP1.hit.trid", &Harm_FPP1_hit_trid, &b_Harm_FPP1_hit_trid);
-   fChain->SetBranchAddress("Harm.FPP1.hit.mid", &Harm_FPP1_hit_mid, &b_Harm_FPP1_hit_mid);
-   fChain->SetBranchAddress("Harm.FPP1.hit.pid", &Harm_FPP1_hit_pid, &b_Harm_FPP1_hit_pid);
-   fChain->SetBranchAddress("Harm.FPP1.hit.vx", &Harm_FPP1_hit_vx, &b_Harm_FPP1_hit_vx);
-   fChain->SetBranchAddress("Harm.FPP1.hit.vy", &Harm_FPP1_hit_vy, &b_Harm_FPP1_hit_vy);
-   fChain->SetBranchAddress("Harm.FPP1.hit.vz", &Harm_FPP1_hit_vz, &b_Harm_FPP1_hit_vz);
-   fChain->SetBranchAddress("Harm.FPP1.hit.p", &Harm_FPP1_hit_p, &b_Harm_FPP1_hit_p);
-   fChain->SetBranchAddress("Harm.FPP1.hit.edep", &Harm_FPP1_hit_edep, &b_Harm_FPP1_hit_edep);
-   fChain->SetBranchAddress("Harm.FPP1.hit.beta", &Harm_FPP1_hit_beta, &b_Harm_FPP1_hit_beta);
-   fChain->SetBranchAddress("Harm.FPP1.hit.otridx", &Harm_FPP1_hit_otridx, &b_Harm_FPP1_hit_otridx);
-   fChain->SetBranchAddress("Harm.FPP1.hit.ptridx", &Harm_FPP1_hit_ptridx, &b_Harm_FPP1_hit_ptridx);
-   fChain->SetBranchAddress("Harm.FPP1.hit.sdtridx", &Harm_FPP1_hit_sdtridx, &b_Harm_FPP1_hit_sdtridx);
-   fChain->SetBranchAddress("Harm.FPP1.Track.ntracks", &Harm_FPP1_Track_ntracks, &b_Harm_FPP1_Track_ntracks);
-   fChain->SetBranchAddress("Harm.FPP1.Track.TID", &Harm_FPP1_Track_TID, &b_Harm_FPP1_Track_TID);
-   fChain->SetBranchAddress("Harm.FPP1.Track.PID", &Harm_FPP1_Track_PID, &b_Harm_FPP1_Track_PID);
-   fChain->SetBranchAddress("Harm.FPP1.Track.MID", &Harm_FPP1_Track_MID, &b_Harm_FPP1_Track_MID);
-   fChain->SetBranchAddress("Harm.FPP1.Track.NumHits", &Harm_FPP1_Track_NumHits, &b_Harm_FPP1_Track_NumHits);
-   fChain->SetBranchAddress("Harm.FPP1.Track.NumPlanes", &Harm_FPP1_Track_NumPlanes, &b_Harm_FPP1_Track_NumPlanes);
-   fChain->SetBranchAddress("Harm.FPP1.Track.NDF", &Harm_FPP1_Track_NDF, &b_Harm_FPP1_Track_NDF);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Chi2fit", &Harm_FPP1_Track_Chi2fit, &b_Harm_FPP1_Track_Chi2fit);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Chi2true", &Harm_FPP1_Track_Chi2true, &b_Harm_FPP1_Track_Chi2true);
-   fChain->SetBranchAddress("Harm.FPP1.Track.X", &Harm_FPP1_Track_X, &b_Harm_FPP1_Track_X);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Y", &Harm_FPP1_Track_Y, &b_Harm_FPP1_Track_Y);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Xp", &Harm_FPP1_Track_Xp, &b_Harm_FPP1_Track_Xp);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Yp", &Harm_FPP1_Track_Yp, &b_Harm_FPP1_Track_Yp);
-   fChain->SetBranchAddress("Harm.FPP1.Track.T", &Harm_FPP1_Track_T, &b_Harm_FPP1_Track_T);
-   fChain->SetBranchAddress("Harm.FPP1.Track.P", &Harm_FPP1_Track_P, &b_Harm_FPP1_Track_P);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Sx", &Harm_FPP1_Track_Sx, &b_Harm_FPP1_Track_Sx);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Sy", &Harm_FPP1_Track_Sy, &b_Harm_FPP1_Track_Sy);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Sz", &Harm_FPP1_Track_Sz, &b_Harm_FPP1_Track_Sz);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Xfit", &Harm_FPP1_Track_Xfit, &b_Harm_FPP1_Track_Xfit);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Yfit", &Harm_FPP1_Track_Yfit, &b_Harm_FPP1_Track_Yfit);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Xpfit", &Harm_FPP1_Track_Xpfit, &b_Harm_FPP1_Track_Xpfit);
-   fChain->SetBranchAddress("Harm.FPP1.Track.Ypfit", &Harm_FPP1_Track_Ypfit, &b_Harm_FPP1_Track_Ypfit);
-   fChain->SetBranchAddress("Harm.FPP1.Track.otridx", &Harm_FPP1_Track_otridx, &b_Harm_FPP1_Track_otridx);
-   fChain->SetBranchAddress("Harm.FPP1.Track.ptridx", &Harm_FPP1_Track_ptridx, &b_Harm_FPP1_Track_ptridx);
-   fChain->SetBranchAddress("Harm.FPP1.Track.sdtridx", &Harm_FPP1_Track_sdtridx, &b_Harm_FPP1_Track_sdtridx);
-   fChain->SetBranchAddress("Harm.FPP2.hit.nhits", &Harm_FPP2_hit_nhits, &b_Harm_FPP2_hit_nhits);
-   fChain->SetBranchAddress("Harm.FPP2.hit.plane", &Harm_FPP2_hit_plane, &b_Harm_FPP2_hit_plane);
-   fChain->SetBranchAddress("Harm.FPP2.hit.strip", &Harm_FPP2_hit_strip, &b_Harm_FPP2_hit_strip);
-   fChain->SetBranchAddress("Harm.FPP2.hit.x", &Harm_FPP2_hit_x, &b_Harm_FPP2_hit_x);
-   fChain->SetBranchAddress("Harm.FPP2.hit.y", &Harm_FPP2_hit_y, &b_Harm_FPP2_hit_y);
-   fChain->SetBranchAddress("Harm.FPP2.hit.z", &Harm_FPP2_hit_z, &b_Harm_FPP2_hit_z);
-   fChain->SetBranchAddress("Harm.FPP2.hit.polx", &Harm_FPP2_hit_polx, &b_Harm_FPP2_hit_polx);
-   fChain->SetBranchAddress("Harm.FPP2.hit.poly", &Harm_FPP2_hit_poly, &b_Harm_FPP2_hit_poly);
-   fChain->SetBranchAddress("Harm.FPP2.hit.polz", &Harm_FPP2_hit_polz, &b_Harm_FPP2_hit_polz);
-   fChain->SetBranchAddress("Harm.FPP2.hit.t", &Harm_FPP2_hit_t, &b_Harm_FPP2_hit_t);
-   fChain->SetBranchAddress("Harm.FPP2.hit.trms", &Harm_FPP2_hit_trms, &b_Harm_FPP2_hit_trms);
-   fChain->SetBranchAddress("Harm.FPP2.hit.tmin", &Harm_FPP2_hit_tmin, &b_Harm_FPP2_hit_tmin);
-   fChain->SetBranchAddress("Harm.FPP2.hit.tmax", &Harm_FPP2_hit_tmax, &b_Harm_FPP2_hit_tmax);
-   fChain->SetBranchAddress("Harm.FPP2.hit.tx", &Harm_FPP2_hit_tx, &b_Harm_FPP2_hit_tx);
-   fChain->SetBranchAddress("Harm.FPP2.hit.ty", &Harm_FPP2_hit_ty, &b_Harm_FPP2_hit_ty);
-   fChain->SetBranchAddress("Harm.FPP2.hit.xin", &Harm_FPP2_hit_xin, &b_Harm_FPP2_hit_xin);
-   fChain->SetBranchAddress("Harm.FPP2.hit.yin", &Harm_FPP2_hit_yin, &b_Harm_FPP2_hit_yin);
-   fChain->SetBranchAddress("Harm.FPP2.hit.zin", &Harm_FPP2_hit_zin, &b_Harm_FPP2_hit_zin);
-   fChain->SetBranchAddress("Harm.FPP2.hit.xout", &Harm_FPP2_hit_xout, &b_Harm_FPP2_hit_xout);
-   fChain->SetBranchAddress("Harm.FPP2.hit.yout", &Harm_FPP2_hit_yout, &b_Harm_FPP2_hit_yout);
-   fChain->SetBranchAddress("Harm.FPP2.hit.zout", &Harm_FPP2_hit_zout, &b_Harm_FPP2_hit_zout);
-   fChain->SetBranchAddress("Harm.FPP2.hit.txp", &Harm_FPP2_hit_txp, &b_Harm_FPP2_hit_txp);
-   fChain->SetBranchAddress("Harm.FPP2.hit.typ", &Harm_FPP2_hit_typ, &b_Harm_FPP2_hit_typ);
-   fChain->SetBranchAddress("Harm.FPP2.hit.xg", &Harm_FPP2_hit_xg, &b_Harm_FPP2_hit_xg);
-   fChain->SetBranchAddress("Harm.FPP2.hit.yg", &Harm_FPP2_hit_yg, &b_Harm_FPP2_hit_yg);
-   fChain->SetBranchAddress("Harm.FPP2.hit.zg", &Harm_FPP2_hit_zg, &b_Harm_FPP2_hit_zg);
-   fChain->SetBranchAddress("Harm.FPP2.hit.trid", &Harm_FPP2_hit_trid, &b_Harm_FPP2_hit_trid);
-   fChain->SetBranchAddress("Harm.FPP2.hit.mid", &Harm_FPP2_hit_mid, &b_Harm_FPP2_hit_mid);
-   fChain->SetBranchAddress("Harm.FPP2.hit.pid", &Harm_FPP2_hit_pid, &b_Harm_FPP2_hit_pid);
-   fChain->SetBranchAddress("Harm.FPP2.hit.vx", &Harm_FPP2_hit_vx, &b_Harm_FPP2_hit_vx);
-   fChain->SetBranchAddress("Harm.FPP2.hit.vy", &Harm_FPP2_hit_vy, &b_Harm_FPP2_hit_vy);
-   fChain->SetBranchAddress("Harm.FPP2.hit.vz", &Harm_FPP2_hit_vz, &b_Harm_FPP2_hit_vz);
-   fChain->SetBranchAddress("Harm.FPP2.hit.p", &Harm_FPP2_hit_p, &b_Harm_FPP2_hit_p);
-   fChain->SetBranchAddress("Harm.FPP2.hit.edep", &Harm_FPP2_hit_edep, &b_Harm_FPP2_hit_edep);
-   fChain->SetBranchAddress("Harm.FPP2.hit.beta", &Harm_FPP2_hit_beta, &b_Harm_FPP2_hit_beta);
-   fChain->SetBranchAddress("Harm.FPP2.hit.otridx", &Harm_FPP2_hit_otridx, &b_Harm_FPP2_hit_otridx);
-   fChain->SetBranchAddress("Harm.FPP2.hit.ptridx", &Harm_FPP2_hit_ptridx, &b_Harm_FPP2_hit_ptridx);
-   fChain->SetBranchAddress("Harm.FPP2.hit.sdtridx", &Harm_FPP2_hit_sdtridx, &b_Harm_FPP2_hit_sdtridx);
-   fChain->SetBranchAddress("Harm.FPP2.Track.ntracks", &Harm_FPP2_Track_ntracks, &b_Harm_FPP2_Track_ntracks);
-   fChain->SetBranchAddress("Harm.FPP2.Track.TID", &Harm_FPP2_Track_TID, &b_Harm_FPP2_Track_TID);
-   fChain->SetBranchAddress("Harm.FPP2.Track.PID", &Harm_FPP2_Track_PID, &b_Harm_FPP2_Track_PID);
-   fChain->SetBranchAddress("Harm.FPP2.Track.MID", &Harm_FPP2_Track_MID, &b_Harm_FPP2_Track_MID);
-   fChain->SetBranchAddress("Harm.FPP2.Track.NumHits", &Harm_FPP2_Track_NumHits, &b_Harm_FPP2_Track_NumHits);
-   fChain->SetBranchAddress("Harm.FPP2.Track.NumPlanes", &Harm_FPP2_Track_NumPlanes, &b_Harm_FPP2_Track_NumPlanes);
-   fChain->SetBranchAddress("Harm.FPP2.Track.NDF", &Harm_FPP2_Track_NDF, &b_Harm_FPP2_Track_NDF);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Chi2fit", &Harm_FPP2_Track_Chi2fit, &b_Harm_FPP2_Track_Chi2fit);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Chi2true", &Harm_FPP2_Track_Chi2true, &b_Harm_FPP2_Track_Chi2true);
-   fChain->SetBranchAddress("Harm.FPP2.Track.X", &Harm_FPP2_Track_X, &b_Harm_FPP2_Track_X);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Y", &Harm_FPP2_Track_Y, &b_Harm_FPP2_Track_Y);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Xp", &Harm_FPP2_Track_Xp, &b_Harm_FPP2_Track_Xp);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Yp", &Harm_FPP2_Track_Yp, &b_Harm_FPP2_Track_Yp);
-   fChain->SetBranchAddress("Harm.FPP2.Track.T", &Harm_FPP2_Track_T, &b_Harm_FPP2_Track_T);
-   fChain->SetBranchAddress("Harm.FPP2.Track.P", &Harm_FPP2_Track_P, &b_Harm_FPP2_Track_P);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Sx", &Harm_FPP2_Track_Sx, &b_Harm_FPP2_Track_Sx);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Sy", &Harm_FPP2_Track_Sy, &b_Harm_FPP2_Track_Sy);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Sz", &Harm_FPP2_Track_Sz, &b_Harm_FPP2_Track_Sz);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Xfit", &Harm_FPP2_Track_Xfit, &b_Harm_FPP2_Track_Xfit);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Yfit", &Harm_FPP2_Track_Yfit, &b_Harm_FPP2_Track_Yfit);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Xpfit", &Harm_FPP2_Track_Xpfit, &b_Harm_FPP2_Track_Xpfit);
-   fChain->SetBranchAddress("Harm.FPP2.Track.Ypfit", &Harm_FPP2_Track_Ypfit, &b_Harm_FPP2_Track_Ypfit);
-   fChain->SetBranchAddress("Harm.FPP2.Track.otridx", &Harm_FPP2_Track_otridx, &b_Harm_FPP2_Track_otridx);
-   fChain->SetBranchAddress("Harm.FPP2.Track.ptridx", &Harm_FPP2_Track_ptridx, &b_Harm_FPP2_Track_ptridx);
-   fChain->SetBranchAddress("Harm.FPP2.Track.sdtridx", &Harm_FPP2_Track_sdtridx, &b_Harm_FPP2_Track_sdtridx);
+   fChain->SetBranchAddress("Harm.FPP.hit.nhits", &Harm_FPP1_hit_nhits, &b_Harm_FPP1_hit_nhits);
+   fChain->SetBranchAddress("Harm.FPP.hit.plane", &Harm_FPP1_hit_plane, &b_Harm_FPP1_hit_plane);
+   fChain->SetBranchAddress("Harm.FPP.hit.strip", &Harm_FPP1_hit_strip, &b_Harm_FPP1_hit_strip);
+   fChain->SetBranchAddress("Harm.FPP.hit.x", &Harm_FPP1_hit_x, &b_Harm_FPP1_hit_x);
+   fChain->SetBranchAddress("Harm.FPP.hit.y", &Harm_FPP1_hit_y, &b_Harm_FPP1_hit_y);
+   fChain->SetBranchAddress("Harm.FPP.hit.z", &Harm_FPP1_hit_z, &b_Harm_FPP1_hit_z);
+   fChain->SetBranchAddress("Harm.FPP.hit.polx", &Harm_FPP1_hit_polx, &b_Harm_FPP1_hit_polx);
+   fChain->SetBranchAddress("Harm.FPP.hit.poly", &Harm_FPP1_hit_poly, &b_Harm_FPP1_hit_poly);
+   fChain->SetBranchAddress("Harm.FPP.hit.polz", &Harm_FPP1_hit_polz, &b_Harm_FPP1_hit_polz);
+   fChain->SetBranchAddress("Harm.FPP.hit.t", &Harm_FPP1_hit_t, &b_Harm_FPP1_hit_t);
+   fChain->SetBranchAddress("Harm.FPP.hit.trms", &Harm_FPP1_hit_trms, &b_Harm_FPP1_hit_trms);
+   fChain->SetBranchAddress("Harm.FPP.hit.tmin", &Harm_FPP1_hit_tmin, &b_Harm_FPP1_hit_tmin);
+   fChain->SetBranchAddress("Harm.FPP.hit.tmax", &Harm_FPP1_hit_tmax, &b_Harm_FPP1_hit_tmax);
+   fChain->SetBranchAddress("Harm.FPP.hit.tx", &Harm_FPP1_hit_tx, &b_Harm_FPP1_hit_tx);
+   fChain->SetBranchAddress("Harm.FPP.hit.ty", &Harm_FPP1_hit_ty, &b_Harm_FPP1_hit_ty);
+   fChain->SetBranchAddress("Harm.FPP.hit.xin", &Harm_FPP1_hit_xin, &b_Harm_FPP1_hit_xin);
+   fChain->SetBranchAddress("Harm.FPP.hit.yin", &Harm_FPP1_hit_yin, &b_Harm_FPP1_hit_yin);
+   fChain->SetBranchAddress("Harm.FPP.hit.zin", &Harm_FPP1_hit_zin, &b_Harm_FPP1_hit_zin);
+   fChain->SetBranchAddress("Harm.FPP.hit.xout", &Harm_FPP1_hit_xout, &b_Harm_FPP1_hit_xout);
+   fChain->SetBranchAddress("Harm.FPP.hit.yout", &Harm_FPP1_hit_yout, &b_Harm_FPP1_hit_yout);
+   fChain->SetBranchAddress("Harm.FPP.hit.zout", &Harm_FPP1_hit_zout, &b_Harm_FPP1_hit_zout);
+   fChain->SetBranchAddress("Harm.FPP.hit.txp", &Harm_FPP1_hit_txp, &b_Harm_FPP1_hit_txp);
+   fChain->SetBranchAddress("Harm.FPP.hit.typ", &Harm_FPP1_hit_typ, &b_Harm_FPP1_hit_typ);
+   fChain->SetBranchAddress("Harm.FPP.hit.xg", &Harm_FPP1_hit_xg, &b_Harm_FPP1_hit_xg);
+   fChain->SetBranchAddress("Harm.FPP.hit.yg", &Harm_FPP1_hit_yg, &b_Harm_FPP1_hit_yg);
+   fChain->SetBranchAddress("Harm.FPP.hit.zg", &Harm_FPP1_hit_zg, &b_Harm_FPP1_hit_zg);
+   fChain->SetBranchAddress("Harm.FPP.hit.trid", &Harm_FPP1_hit_trid, &b_Harm_FPP1_hit_trid);
+   fChain->SetBranchAddress("Harm.FPP.hit.mid", &Harm_FPP1_hit_mid, &b_Harm_FPP1_hit_mid);
+   fChain->SetBranchAddress("Harm.FPP.hit.pid", &Harm_FPP1_hit_pid, &b_Harm_FPP1_hit_pid);
+   fChain->SetBranchAddress("Harm.FPP.hit.vx", &Harm_FPP1_hit_vx, &b_Harm_FPP1_hit_vx);
+   fChain->SetBranchAddress("Harm.FPP.hit.vy", &Harm_FPP1_hit_vy, &b_Harm_FPP1_hit_vy);
+   fChain->SetBranchAddress("Harm.FPP.hit.vz", &Harm_FPP1_hit_vz, &b_Harm_FPP1_hit_vz);
+   fChain->SetBranchAddress("Harm.FPP.hit.p", &Harm_FPP1_hit_p, &b_Harm_FPP1_hit_p);
+   fChain->SetBranchAddress("Harm.FPP.hit.edep", &Harm_FPP1_hit_edep, &b_Harm_FPP1_hit_edep);
+   fChain->SetBranchAddress("Harm.FPP.hit.beta", &Harm_FPP1_hit_beta, &b_Harm_FPP1_hit_beta);
+   fChain->SetBranchAddress("Harm.FPP.hit.otridx", &Harm_FPP1_hit_otridx, &b_Harm_FPP1_hit_otridx);
+   fChain->SetBranchAddress("Harm.FPP.hit.ptridx", &Harm_FPP1_hit_ptridx, &b_Harm_FPP1_hit_ptridx);
+   fChain->SetBranchAddress("Harm.FPP.hit.sdtridx", &Harm_FPP1_hit_sdtridx, &b_Harm_FPP1_hit_sdtridx);
+   fChain->SetBranchAddress("Harm.FPP.Track.ntracks", &Harm_FPP1_Track_ntracks, &b_Harm_FPP1_Track_ntracks);
+   fChain->SetBranchAddress("Harm.FPP.Track.TID", &Harm_FPP1_Track_TID, &b_Harm_FPP1_Track_TID);
+   fChain->SetBranchAddress("Harm.FPP.Track.PID", &Harm_FPP1_Track_PID, &b_Harm_FPP1_Track_PID);
+   fChain->SetBranchAddress("Harm.FPP.Track.MID", &Harm_FPP1_Track_MID, &b_Harm_FPP1_Track_MID);
+   fChain->SetBranchAddress("Harm.FPP.Track.NumHits", &Harm_FPP1_Track_NumHits, &b_Harm_FPP1_Track_NumHits);
+   fChain->SetBranchAddress("Harm.FPP.Track.NumPlanes", &Harm_FPP1_Track_NumPlanes, &b_Harm_FPP1_Track_NumPlanes);
+   fChain->SetBranchAddress("Harm.FPP.Track.NDF", &Harm_FPP1_Track_NDF, &b_Harm_FPP1_Track_NDF);
+   fChain->SetBranchAddress("Harm.FPP.Track.Chi2fit", &Harm_FPP1_Track_Chi2fit, &b_Harm_FPP1_Track_Chi2fit);
+   fChain->SetBranchAddress("Harm.FPP.Track.Chi2true", &Harm_FPP1_Track_Chi2true, &b_Harm_FPP1_Track_Chi2true);
+   fChain->SetBranchAddress("Harm.FPP.Track.X", &Harm_FPP1_Track_X, &b_Harm_FPP1_Track_X);
+   fChain->SetBranchAddress("Harm.FPP.Track.Y", &Harm_FPP1_Track_Y, &b_Harm_FPP1_Track_Y);
+   fChain->SetBranchAddress("Harm.FPP.Track.Xp", &Harm_FPP1_Track_Xp, &b_Harm_FPP1_Track_Xp);
+   fChain->SetBranchAddress("Harm.FPP.Track.Yp", &Harm_FPP1_Track_Yp, &b_Harm_FPP1_Track_Yp);
+   fChain->SetBranchAddress("Harm.FPP.Track.T", &Harm_FPP1_Track_T, &b_Harm_FPP1_Track_T);
+   fChain->SetBranchAddress("Harm.FPP.Track.P", &Harm_FPP1_Track_P, &b_Harm_FPP1_Track_P);
+   fChain->SetBranchAddress("Harm.FPP.Track.Sx", &Harm_FPP1_Track_Sx, &b_Harm_FPP1_Track_Sx);
+   fChain->SetBranchAddress("Harm.FPP.Track.Sy", &Harm_FPP1_Track_Sy, &b_Harm_FPP1_Track_Sy);
+   fChain->SetBranchAddress("Harm.FPP.Track.Sz", &Harm_FPP1_Track_Sz, &b_Harm_FPP1_Track_Sz);
+   fChain->SetBranchAddress("Harm.FPP.Track.Xfit", &Harm_FPP1_Track_Xfit, &b_Harm_FPP1_Track_Xfit);
+   fChain->SetBranchAddress("Harm.FPP.Track.Yfit", &Harm_FPP1_Track_Yfit, &b_Harm_FPP1_Track_Yfit);
+   fChain->SetBranchAddress("Harm.FPP.Track.Xpfit", &Harm_FPP1_Track_Xpfit, &b_Harm_FPP1_Track_Xpfit);
+   fChain->SetBranchAddress("Harm.FPP.Track.Ypfit", &Harm_FPP1_Track_Ypfit, &b_Harm_FPP1_Track_Ypfit);
+   fChain->SetBranchAddress("Harm.FPP.Track.otridx", &Harm_FPP1_Track_otridx, &b_Harm_FPP1_Track_otridx);
+   fChain->SetBranchAddress("Harm.FPP.Track.ptridx", &Harm_FPP1_Track_ptridx, &b_Harm_FPP1_Track_ptridx);
+   fChain->SetBranchAddress("Harm.FPP.Track.sdtridx", &Harm_FPP1_Track_sdtridx, &b_Harm_FPP1_Track_sdtridx);
    fChain->SetBranchAddress("Harm.FT.hit.nhits", &Harm_FT_hit_nhits, &b_Harm_FT_hit_nhits);
    fChain->SetBranchAddress("Harm.FT.hit.plane", &Harm_FT_hit_plane, &b_Harm_FT_hit_plane);
    fChain->SetBranchAddress("Harm.FT.hit.strip", &Harm_FT_hit_strip, &b_Harm_FT_hit_strip);
@@ -1394,7 +1255,6 @@ void gep_tree_new::Init(TTree *tree)
    fChain->SetBranchAddress("OTrack.TID", &OTrack_TID, &b_OTrack_TID);
    fChain->SetBranchAddress("OTrack.MID", &OTrack_MID, &b_OTrack_MID);
    fChain->SetBranchAddress("OTrack.PID", &OTrack_PID, &b_OTrack_PID);
-   fChain->SetBranchAddress("OTrack.MPID", &OTrack_MPID, &b_OTrack_MPID);
    fChain->SetBranchAddress("OTrack.posx", &OTrack_posx, &b_OTrack_posx);
    fChain->SetBranchAddress("OTrack.posy", &OTrack_posy, &b_OTrack_posy);
    fChain->SetBranchAddress("OTrack.posz", &OTrack_posz, &b_OTrack_posz);
@@ -1424,7 +1284,6 @@ void gep_tree_new::Init(TTree *tree)
    fChain->SetBranchAddress("SDTrack.TID", &SDTrack_TID, &b_SDTrack_TID);
    fChain->SetBranchAddress("SDTrack.MID", &SDTrack_MID, &b_SDTrack_MID);
    fChain->SetBranchAddress("SDTrack.PID", &SDTrack_PID, &b_SDTrack_PID);
-   fChain->SetBranchAddress("SDTrack.MPID", &SDTrack_MPID, &b_SDTrack_MPID);
    fChain->SetBranchAddress("SDTrack.posx", &SDTrack_posx, &b_SDTrack_posx);
    fChain->SetBranchAddress("SDTrack.posy", &SDTrack_posy, &b_SDTrack_posy);
    fChain->SetBranchAddress("SDTrack.posz", &SDTrack_posz, &b_SDTrack_posz);
@@ -1446,7 +1305,7 @@ void gep_tree_new::Init(TTree *tree)
    Notify();
 }
 
-Bool_t gep_tree_new::Notify()
+Bool_t gep_tree_singleFPP::Notify()
 {
    // The Notify() function is called when a new file is opened. This
    // can be either for a new TTree in a TChain or when when a new TTree
@@ -1457,18 +1316,18 @@ Bool_t gep_tree_new::Notify()
    return kTRUE;
 }
 
-void gep_tree_new::Show(Long64_t entry)
+void gep_tree_singleFPP::Show(Long64_t entry)
 {
 // Print contents of entry.
 // If entry is not specified, print current entry
    if (!fChain) return;
    fChain->Show(entry);
 }
-Int_t gep_tree_new::Cut(Long64_t entry)
+Int_t gep_tree_singleFPP::Cut(Long64_t entry)
 {
 // This function may be called from Loop.
 // returns  1 if entry is accepted.
 // returns -1 otherwise.
    return 1;
 }
-#endif // #ifdef gep_tree_new_cxx
+#endif // #ifdef gep_tree_singleFPP_cxx

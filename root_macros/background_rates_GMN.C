@@ -118,6 +118,7 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
   TH2D *hrate_vs_nphe_BBSH_from_edep = new TH2D("hrate_vs_nphe_BBSH_from_edep","",189,-0.5,188.5,501,-0.5,500.5);
 
   TH1D *hitrate_vs_layer_BBGEM = new TH1D("hitrate_vs_layer_BBGEM","",5,0.5,5.5);
+  TH1D *hrate_edep_vs_layer_BBGEM = new TH1D("hrate_edep_vs_layer_BBGEM","BigBite GEM primary ionization region; GEM layer; Energy deposit rate (MeV/cm^{2}/s)", 5,0.5,5.5); 
   TH2D *hitrate_vs_X_BBGEM = new TH2D("hitrate_vs_X_BBGEM","Hit rate (Hz/cm^{2}/uA), 15-cm LD2",5,0.5,5.5,100,-1.05,1.05);
   TH2D *hitrate_vs_Y_BBGEM = new TH2D("hitrate_vs_Y_BBGEM","Hit rate (Hz/cm^{2}/uA), 15-cm LD2",5,0.5,5.5,100,-0.31,0.31);
 
@@ -139,6 +140,18 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
   double BBGEM_LX[5] = {150.,150.,150.,150.,200.};
   double BBGEM_LY[5] = {40.,40.,40.,40.,60.};
 
+  TClonesArray *BBGEM_edep = new TClonesArray("TH1D",5);
+  TClonesArray *BBGEM_logedep_keV = new TClonesArray("TH1D",5);
+  TClonesArray *BBGEM_yvsx = new TClonesArray("TH2D",5);
+  TClonesArray *BBGEM_dyvsdx = new TClonesArray("TH2D",5);
+  
+
+  for( int layer=0; layer<5; layer++ ){
+    new( (*BBGEM_edep)[layer] ) TH1D( Form("h1_BBGEM_Edep_%d",layer), Form("BB GEM layer %d; Energy deposit (MeV)",layer), 500,0,0.1);
+    new( (*BBGEM_logedep_keV)[layer] ) TH1D( Form("h1_BBGEM_Edep_log_%d",layer), Form("BB GEM layer %d;log(Energy deposit (keV))",layer), 200, -5.,5.);
+    new( (*BBGEM_yvsx)[layer] ) TH2D( Form("h1_BBGEM_yVsx_%d",layer), Form("BB GEM layer %d; x hit (m); y hit (m)",layer), 105, -1.05, 1.05, 36, -0.36, 0.36 );
+    new( (*BBGEM_dyvsdx)[layer] ) TH2D( Form("h1_BBGEM_dyVsdx_%d",layer), Form("BB GEM layer %d; dx/dz ; dy/dz",layer), 100,-0.03,0.03,100,-0.03,0.03);
+  }
   
   
   double pmtnum[288];
@@ -236,9 +249,28 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
       //Add GEMs:
       for( int ihit=0; ihit<T->Earm_BBGEM_hit_nhits; ihit++ ){
 	int plane = (*(T->Earm_BBGEM_hit_plane))[ihit];
+
 	hitrate_vs_layer_BBGEM->Fill( plane, weight/BBGEM_area_cm2[plane-1] );
 	hitrate_vs_X_BBGEM->Fill( plane, (*(T->Earm_BBGEM_hit_x))[ihit], weight/Xbinwidth/BBGEM_LY[plane-1] );
 	hitrate_vs_Y_BBGEM->Fill( plane, (*(T->Earm_BBGEM_hit_y))[ihit], weight/Ybinwidth/BBGEM_LX[plane-1] );
+
+	double edep = (*(T->Earm_BBGEM_hit_edep))[ihit];
+
+	hrate_edep_vs_layer_BBGEM->Fill( plane, weight * edep * 1000.0 / BBGEM_area_cm2[plane-1] );
+
+	double xhit = (*(T->Earm_BBGEM_hit_x))[ihit];
+	double yhit = (*(T->Earm_BBGEM_hit_y))[ihit];
+	//double dxhit = (*(T->Earm_BBGEM_hit_txp))[ihit];
+	//double dyhit = (*(T->Earm_BBGEM_hit_typ))[ihit];
+	double dxhit = (*(T->Earm_BBGEM_hit_xout))[ihit]-(*(T->Earm_BBGEM_hit_xin))[ihit];
+	double dyhit = (*(T->Earm_BBGEM_hit_yout))[ihit]-(*(T->Earm_BBGEM_hit_yin))[ihit];
+	double logedep_keV = log( edep*1.e6 );
+	
+	( (TH1D*) (*BBGEM_edep)[plane-1] )->Fill( edep *1000.0);
+	( (TH1D*) (*BBGEM_logedep_keV)[plane-1] )->Fill( logedep_keV );
+	( (TH2D*) (*BBGEM_yvsx)[plane-1] )->Fill( xhit, yhit );
+	( (TH2D*) (*BBGEM_dyvsdx)[plane-1] )->Fill( dxhit, dyhit );
+	
       }
       
       // if( pheflag != 0 ){ //optical photons ON: only consider hits with optical photons detected in PMTs
@@ -586,7 +618,13 @@ void background_rates_GMN( const char *setupfilename, const char *outfilename ){
     hrate_vs_threshold_HCAL->SetBinError(i, dint_i );
     
   }
-  
+
+  cout << "Total number of generated events = " << ngen << endl;
+
+  BBGEM_edep->Write();
+  BBGEM_logedep_keV->Write();
+  BBGEM_yvsx->Write();
+  BBGEM_dyvsdx->Write();
   
   fout->Write();
   

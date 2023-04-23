@@ -26,6 +26,8 @@ void GEM_background_plots( const char *rootfilename, const char *outputfilename 
 
   int nplanes_FT = 8;
   int nplanes_FPP = 8;
+
+  double thresh_CDET = 0.005; //5 MeV CDET threshold
   
   vector<double> wplanes_FT(nplanes_FT,40.0);
   vector<double> hplanes_FT(nplanes_FT,150.0);
@@ -79,6 +81,12 @@ void GEM_background_plots( const char *rootfilename, const char *outputfilename 
 
   TH1D *hrate_layer_FT = new TH1D("hrate_layer_FT","SBS front tracker; GEM layer; Hit rate (Hz/cm^{2})",8,0.5,8.5);
   TH1D *hrate_layer_FPP1 = new TH1D("hrate_layer_FPP1","SBS back tracker; GEM layer; Hit rate (Hz/cm^{2})",8,0.5,8.5);
+
+  TH1D *hrate_edep_layer_FT = new TH1D("hrate_edep_layer_FT","SBS front tracker primary ionization region; GEM layer; Energy deposit rate (MeV/cm^{2}/s)",8,0.5,8.5);
+  TH1D *hrate_edep_layer_FPP1 = new TH1D("hrate_edep_layer_FPP1","SBS back tracker primary ionization region; GEM layer; Energy deposit rate (MeV/cm^{2}/s)",8,0.5,8.5);
+
+  TH1D *hrate_versus_channel_CDET = new TH1D("hrate_versus_channel_CDET", "CDET (energy threshold = 5 MeV); channel ; Hit rate (Hz)",2401,-0.5,2400.5);
+  
   //TH1D *hrate_layer_FPP2 = new TH1D("hrate_layer_FPP2","",5,0.5,5.5);
   TH2D *hvx_vz_layer1_FT = new TH2D("hvx_vz_layer1_FT","FT layer 1; vertex z (m); vertex x (m)",200,-1,7,200,-2,1);
   TH1D *hrate_vs_x_layer1_FT = new TH1D("hrate_vs_x_layer1_FT","FT layer 1; hit x (m); hit rate (Hz/cm^{2})",200,-.75,.75);
@@ -98,6 +106,8 @@ void GEM_background_plots( const char *rootfilename, const char *outputfilename 
   TH1D *hrate_vs_p_pion_FPP1 = new TH1D("hrate_vs_p_pion_FPP1","FPP pion-induced hits; p (GeV); rate (Hz/cm^{2}/layer)",200,0.0,8.0);
   TH1D *hrate_vs_p_proton_FPP1 = new TH1D("hrate_vs_p_proton_FPP1","FPP proton-induced hits; p (GeV); rate (Hz/cm^{2}/layer)",200,0.0,8.0);
   TH1D *hrate_vs_p_other_FPP1 = new TH1D("hrate_vs_p_other_FPP1","FPP other-induced hits; p (GeV); rate (Hz/cm^{2}/layer)",200,0.0,8.0);
+
+  
   
   // TH1D *hrate_vs_p_gamma_FPP2 = new TH1D("hrate_vs_p_gamma_FPP2","",200,0.0,.0002);
   // TH1D *hrate_vs_p_electron_FPP2 = new TH1D("hrate_vs_p_electron_FPP2","",200,0.0,.1);
@@ -279,7 +289,7 @@ void GEM_background_plots( const char *rootfilename, const char *outputfilename 
   TH1D *hSD_vz_FPP_electron = new TH1D("hSD_vz_FPP_electron", "Back tracker e^{+}/e^{-}-induced; vertex z (m); hit rate (Hz/cm^{2}/layer)", 200, -1, 7 );
   TH1D *hSD_vz_FPP_other = new TH1D("hSD_vz_FPP_other", "Back tracker hadron-induced; vertex z (m); hit rate (Hz/cm^{2}/layer)", 200, -1, 7 );
   
-  double weight = 70e-6/1.602e-19/double(nevents_generated);
+  double weight = 50e-6/1.602e-19/double(nevents_generated);
   // double weight_FT = weight / wplanes[0] / hplanes[0];
   // double weight_FPP1 = weight / wplanes[1] / hplanes[1];
   //double weight_FPP2 = weight / wplanes[2] / hplanes[2];
@@ -296,6 +306,8 @@ void GEM_background_plots( const char *rootfilename, const char *outputfilename 
       for( int hit=0; hit<T->Harm_FT_hit_nhits; hit++ ){
 	int plane = (*(T->Harm_FT_hit_plane))[hit];
 
+	double edep_MeV = (*(T->Harm_FT_hit_edep))[hit] * 1000.0 ;
+	
 	double hitweight = weight/wplanes_FT[plane-1]/hplanes_FT[plane-1];
 	if( (*(T->Harm_FT_hit_plane))[hit]  == 1 ){
 	  hvx_vz_layer1_FT->Fill( (*(T->Harm_FT_hit_vz))[hit], (*(T->Harm_FT_hit_vx))[hit], hitweight );
@@ -307,7 +319,8 @@ void GEM_background_plots( const char *rootfilename, const char *outputfilename 
 	  hrate_vs_p_layer1_FT_wide->Fill( (*(T->Harm_FT_hit_p))[hit], hitweight );
 	  hrate_vs_p_layer1_FT_zoom->Fill( (*(T->Harm_FT_hit_p))[hit], hitweight );
 	}
-	hrate_layer_FT->Fill( (*(T->Harm_FT_hit_plane))[hit], hitweight );	
+	hrate_layer_FT->Fill( (*(T->Harm_FT_hit_plane))[hit], hitweight );
+	hrate_edep_layer_FT->Fill( plane, hitweight * edep_MeV );
 	if( (*(T->Harm_FT_hit_pid))[hit] == 22 ){ //gammas:
 	  hrate_vs_p_gamma_FT->Fill( (*(T->Harm_FT_hit_p))[hit], hitweight/double(nplanes_FT) );
 	} else if( abs( (*(T->Harm_FT_hit_pid))[hit] ) == 11 ){ //e+/e-
@@ -357,10 +370,13 @@ void GEM_background_plots( const char *rootfilename, const char *outputfilename 
       for( int hit=0; hit<T->Harm_FPP1_hit_nhits; hit++ ){
 
 	int plane = (*(T->Harm_FPP1_hit_plane))[hit];
+
+	double edep_MeV = (*(T->Harm_FPP1_hit_edep))[hit] * 1000.0;
 	
 	double hitweight = weight/wplanes_FPP[plane-1]/hplanes_FPP[plane-1];
 	
 	hrate_layer_FPP1->Fill( (*(T->Harm_FPP1_hit_plane))[hit], hitweight );
+	hrate_edep_layer_FPP1->Fill( plane, hitweight * edep_MeV );
 	
 	if( (*(T->Harm_FPP1_hit_pid))[hit] == 22 ){ 
 	  hrate_vs_p_gamma_FPP1->Fill( (*(T->Harm_FPP1_hit_p))[hit], hitweight/double(nplanes_FPP) );
@@ -408,6 +424,15 @@ void GEM_background_plots( const char *rootfilename, const char *outputfilename 
 	
       }
 
+      for( int ihit=0; ihit<T->Earm_CDET_Scint_hit_nhits; ihit++ ){
+	double edep = (*(T->Earm_CDET_Scint_hit_sumedep))[ihit];
+
+	double hitweight = weight;
+	
+	if( edep >= thresh_CDET ){
+	  hrate_versus_channel_CDET->Fill( (*(T->Earm_CDET_Scint_hit_cell))[ihit], hitweight );
+	}
+      }
       
     }
   }

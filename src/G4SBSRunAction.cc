@@ -38,6 +38,7 @@ void G4SBSRunAction::BeginOfRunAction(const G4Run* aRun)
   
   gen_t gendata = fIO->GetGenData();
   rmrundata->SetBeamE( gendata.Ebeam );
+  rmrundata->SetBeamCur( gendata.Ibeam );
   rmrundata->SetBBtheta( gendata.thbb );
   rmrundata->SetBBdist( gendata.dbb );
   rmrundata->SetSBStheta( gendata.thsbs );
@@ -54,7 +55,7 @@ void G4SBSRunAction::BeginOfRunAction(const G4Run* aRun)
 
   //some of these are redundant with the behavior of G4SBSMessenger commands;
   
-  rmrundata->Print();
+  //rmrundata->Print();
 
 }
 
@@ -74,6 +75,7 @@ void G4SBSRunAction::EndOfRunAction(const G4Run* aRun)
   G4SBSRunData *rmrundata = G4SBSRun::GetRun()->GetData();
   
   rmrundata->CalcNormalization();
+  rmrundata->Print();
   
   fIO->WriteTree();
 }

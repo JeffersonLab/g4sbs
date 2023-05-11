@@ -2547,7 +2547,7 @@ bool G4SBSEventGen::GenerateSIMC(){
   fSIMCEvent.W = fSIMCTree->W;
   fSIMCEvent.epsilon = fSIMCTree->epsilon;
   
-  fSIMCEvent.Ebeam = fBeamE;
+  fSIMCEvent.Ebeam = fSIMCTree->ebeam/MeV;
   
   fSIMCEvent.p_e = fSIMCTree->p_e;
   fSIMCEvent.theta_e = fSIMCTree->th_e;

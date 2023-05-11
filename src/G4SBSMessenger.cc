@@ -1084,6 +1084,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == fileCmd ){
     fIO->SetFilename(newValue.data());
+    G4SBSRun::GetRun()->GetData()->SetFileName(newValue);
   }
 
   if( cmd == sigfileCmd ){
@@ -1716,6 +1717,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = beamcurCmd->GetNewDoubleValue(newValue);
     printf("Setting beam current to %f uA\n", v/microampere);
     fevgen->SetBeamCur(v);
+    fIO->SetBeamCur(v/microampere);
     fevgen->SetInitialized(false);
   }
   if( cmd == runtimeCmd ){

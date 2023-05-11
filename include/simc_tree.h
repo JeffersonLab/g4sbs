@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Tue Apr 18 17:03:32 2023 by ROOT version 6.20/04
+// Wed May 10 13:47:40 2023 by ROOT version 6.20/04
 // from TTree h10/h10
-// found on file: temp1.root
+// found on file: example_deen_GMn_SBS4.root
 //////////////////////////////////////////////////////////
 
 #ifndef simc_tree_h
@@ -81,6 +81,7 @@ public :
    Float_t         vxi;
    Float_t         vyi;
    Float_t         vzi;
+   Float_t         ebeam;
 
    // List of branches
    TBranch        *b_hsdelta;   //!
@@ -142,6 +143,7 @@ public :
    TBranch        *b_vxi;   //!
    TBranch        *b_vyi;   //!
    TBranch        *b_vzi;   //!
+   TBranch        *b_ebeam;   //!
 
    simc_tree(TTree *tree=0);
    virtual ~simc_tree();
@@ -162,9 +164,9 @@ simc_tree::simc_tree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("temp1.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("example_deen_GMn_SBS4.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("temp1.root");
+         f = new TFile("example_deen_GMn_SBS4.root");
       }
       f->GetObject("h10",tree);
 
@@ -272,6 +274,7 @@ void simc_tree::Init(TTree *tree)
    fChain->SetBranchAddress("vxi", &vxi, &b_vxi);
    fChain->SetBranchAddress("vyi", &vyi, &b_vyi);
    fChain->SetBranchAddress("vzi", &vzi, &b_vzi);
+   fChain->SetBranchAddress("ebeam", &ebeam, &b_ebeam);
    Notify();
 }
 

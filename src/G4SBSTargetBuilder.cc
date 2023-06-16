@@ -121,11 +121,26 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   //later: flow-diverters
   
   if( fDetCon->fExpType == G4SBS::kGEp ){ //make a cylindrical target with half-spherical downstream endcap:
-    G4double uthick = 0.005*2.54*cm;
-    G4double dthick = 0.005*2.54*cm;
-    G4double sthick = 0.02*2.54*cm;
+    uthick = 0.005*2.54*cm;
+    dthick = 0.005*2.54*cm;
+    sthick = 0.02*2.54*cm;
   }
-    
+
+  //Kip Work Starts Here
+
+  //if( fDetCon->fExpType == G4SBS::kGEp ){ //make a flow-diverter
+  G4double fdthick = 0.175*mm;
+  G4double fdDwnStrmInDm = 0.984*2.54*cm;
+  G4double fdUpStrmInDm = 1.5134*2.54*cm;
+  G4double fdlength = 9.526*2.54*cm;
+  //G4double fdOpenAng = 1.5923*degree;
+    //}
+
+  G4Cons *FlowDiv = new G4Cons( "FlowDiv", fdUpStrmInDm/2.0, (fdUpStrmInDm/2.0)+fdthick, fdDwnStrmInDm/2.0, (fdDwnStrmInDm/2.0)+fdthick, fdlength/2.0, 0, 360.0*deg);
+
+  G4LogicalVolume *FlowDiv_log = new G4LogicalVolume( FlowDiv, GetMaterial("Al"), "FlowDiv_log" );
+
+  //Kip Work Ends Here    
   
   G4Tubs *TargetMother_solid = new G4Tubs( "TargetMother_solid", 0, Rcell + sthick, (fTargLen+uthick+dthick)/2.0, 0.0, twopi );
   G4LogicalVolume *TargetMother_log = new G4LogicalVolume( TargetMother_solid, GetMaterial("Vacuum"), "TargetMother_log" );
@@ -188,6 +203,15 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   //G4RotationMatrix *rot_temp = new G4RotationMatrix;
   //rot_temp = new G4RotationMatrix();
   //rot_temp->rotateX(90.0*deg);
+
+  //Kip Work Starts Here
+
+  new G4PVPlacement( 0, G4ThreeVector(0,0,-((fTargLen-Rcell-fdlength)/2)), FlowDiv_log, "FlowDiv_phys", TargetCell_log, false, 0);
+
+  G4VisAttributes* colourDRed = new G4VisAttributes(G4Colour(0.9,0.,0.));
+  FlowDiv_log->SetVisAttributes(colourDRed);
+
+  //Kip Work Ends Here
 
   //for z of target center to be at zero, 
   G4double temp = targ_offset.y();

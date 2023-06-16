@@ -1493,6 +1493,10 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   TF1->AddMaterial(K2O, 0.070);
   TF1->AddMaterial(As2O3, 0.005);
 
+  //lead-glass with no optical properties:
+  G4Material *TF1_dead = new G4Material("TF1_dead", 3.86 * g/cm3, 1 );
+  TF1_dead->AddMaterial( TF1, 1. );
+
   //This is an approximation of the BigBite preshower lead-glass, which is more dense:
   //chemical composition is not correct, but higher density is needed to get the
   //preshower energy deposition right:
@@ -1515,6 +1519,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   }
   fMaterialsMap["TF1"] = TF1; //Default TF1: no temperature increase, no rad. damage.
   fMaterialsMap["TF5"] = TF5;
+  fMaterialsMap["TF1_dead"] = TF1_dead;
   
   //For C16 and/or ECAL, we need the following configurations of lead-glass:
   //C16: Elevated temp, no rad. damage: z-dependent temperature --> z-dependent absorption

@@ -30,7 +30,7 @@ class G4SBSGlobalField;
 
 //These aren't really "event"-level quantities, as they are constants describing the setup, and should be stored in the "rundata" object.
 typedef struct {
-  Double_t thbb, thsbs, dbb, dsbs, dhcal,voffhcal, hoffhcal, drich, dsbstrkr, sbstrkrpitch, dlac, vofflac, hofflac, Ebeam;
+  Double_t thbb, thsbs, dbb, dsbs, dhcal,voffhcal, hoffhcal, drich, dsbstrkr, sbstrkrpitch, dlac, vofflac, hofflac, Ebeam, Ibeam;
 } gen_t;
 
 
@@ -131,6 +131,7 @@ public:
   void WriteTree();
   
   void SetBeamE(double E){ gendata.Ebeam = E/CLHEP::GeV; }
+  void SetBeamCur(double cur){ gendata.Ibeam = cur; }
   void SetBigBiteTheta(double th){ gendata.thbb = th; }
   void SetBigBiteDist(double d){ gendata.dbb = d/CLHEP::m; }
   void SetSBSTheta(double th){ gendata.thsbs = th; }

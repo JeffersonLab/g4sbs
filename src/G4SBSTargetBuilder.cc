@@ -225,7 +225,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
     //we need a Z offset and (I think) an x offset: 
 
     G4ThreeVector hfilter_offset = targ_offset;
-    hfilter_offset.setX( -(hfilter_offset.getX() + Rcell + 1.0*cm + fHadronFilterThick/2.0 ) );
+    hfilter_offset.setX( -(hfilter_offset.getX() + Rcell + 1.0*cm + fHadronFilterThick/2.0 ) -5.0*cm);
     hfilter_offset.setY( hfilter_offset.getY() +0.5*(fTargLen - 4.45*2.54*cm) );
     //hfilter_offset.SetZ( targ_offset.getZ()
     
@@ -5348,7 +5348,7 @@ void G4SBSTargetBuilder::BuildHadronFilter( G4LogicalVolume *mother, G4RotationM
   //This should be the union of a box and a trapezoid.
   G4double inch = 2.54*cm;
   G4double boxlen = 4.45*inch;
-  G4double boxheight = 3.0*inch;
+  G4double boxheight = 7.75*inch;
   G4double boxthick = fHadronFilterThick;
 
   G4double traplen = 29.62*inch - boxlen;

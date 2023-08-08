@@ -34,6 +34,7 @@ G4SBSIO::G4SBSIO(){
   //Easiest (but not necessarily best?) way is to store a pointer to G4SBSIO as a data member of G4SBSDetectorConstruction so they can
   //directly talk to each other?
   gendata.Ebeam = 2.2;
+  gendata.Ibeam = 1.0;
   gendata.thbb = 40.0*CLHEP::deg;
   gendata.dbb = 1.5;
   gendata.thsbs = 39.4*CLHEP::deg;
@@ -812,6 +813,7 @@ void G4SBSIO::BranchSIMC(){
   
   fTree->Branch("simc.Ebeam",&(SIMCprimaries.Ebeam),"simc.Ebeam/D");
   
+  fTree->Branch("simc.fnucl",&(SIMCprimaries.fnucl),"simc.fnucl/I");
   fTree->Branch("simc.p_e",&(SIMCprimaries.p_e),"simc.p_e/D");
   fTree->Branch("simc.theta_e",&(SIMCprimaries.theta_e),"simc.theta_e/D");
   fTree->Branch("simc.phi_e",&(SIMCprimaries.phi_e),"simc.phi_e/D");

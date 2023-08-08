@@ -277,7 +277,7 @@ G4SBSMessenger::G4SBSMessenger(){
   GunParticleCmd->SetParameterName("ptype", false );
 
   HadrCmd = new G4UIcmdWithAString("/g4sbs/hadron",this);
-  HadrCmd->SetGuidance("Hadron type h for SIDIS N(e,e'h)X generator: pi+/pi-/K+/K-/p/pbar possible");
+  HadrCmd->SetGuidance("Hadron type h for SIDIS N(e,e'h)X generator: pi+/pi-/K+/K-/p/pbar possible. Also, Nucleon type N for SIMC A(e,e'N) generator: p/n are possible.");
   HadrCmd->SetParameterName("hadrontype", false );
 
   RejectionSamplingCmd = new G4UIcommand("/g4sbs/rejectionsampling",this);
@@ -1084,6 +1084,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == fileCmd ){
     fIO->SetFilename(newValue.data());
+    G4SBSRun::GetRun()->GetData()->SetFileName(newValue);
   }
 
   if( cmd == sigfileCmd ){
@@ -1345,6 +1346,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     } 
     if( newValue.compareTo("pbar") == 0 ){
       fevgen->SetHadronType( G4SBS::kPbar );
+      validcmd = true;
+    }
+    if( newValue.compareTo("n") == 0 ){
+      fevgen->SetHadronType( G4SBS::kN );
       validcmd = true;
     }
 
@@ -1712,6 +1717,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = beamcurCmd->GetNewDoubleValue(newValue);
     printf("Setting beam current to %f uA\n", v/microampere);
     fevgen->SetBeamCur(v);
+    fIO->SetBeamCur(v/microampere);
     fevgen->SetInitialized(false);
   }
   if( cmd == runtimeCmd ){

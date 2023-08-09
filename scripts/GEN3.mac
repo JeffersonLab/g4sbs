@@ -1,11 +1,11 @@
 ## Configure G4SBS for gen (Q^2 = 10.18 GeV^2)
-/g4sbs/filename        GEN3_H2_elastic_job5.root   ## Output rootfile
+/g4sbs/filename        GEN3_He3_elastic_job1.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gen
 
 ## Configure the target
-/g4sbs/target          H2
+/g4sbs/target          3He
 /g4sbs/targpres        10 atmosphere     ## Target pressure
 /g4sbs/targlen         60.0 cm           ## Target Length
 
@@ -46,7 +46,8 @@
 
 ## Configure standard detector settings
 /g4sbs/hcaldist        17.0 m
-/g4sbs/hcalvoffset     0.38 m
+/g4sbs/hcalvoffset     0.75 m
+/g4sbs/hcalhoffset     0.15 m # horizontal offset toward beam left reflecting smaller angle
 
 ## Configure the magnets
 /g4sbs/bbfield         1

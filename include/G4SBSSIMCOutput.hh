@@ -11,6 +11,8 @@ public:
   void Clear();
   void ConvertToTreeUnits();
   
+  int fnucl; // Final-state nucleon type: 1 = proton, 0 = neutron
+
   double sigma, Weight;
   double Q2; //negative of virtual photon invariant mass:
   double xbj; //Usual Bjorken x variable;

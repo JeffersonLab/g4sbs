@@ -2572,8 +2572,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   //info taken at: http://scintillator.lbl.gov/
   MPT_temp->AddConstProperty("SCINTILLATIONYIELD", 200.0/MeV);
   MPT_temp->AddConstProperty("RESOLUTIONSCALE", 1.0);
-  MPT_temp->AddConstProperty("FASTTIMECONSTANT",6.00*ns);
-  MPT_temp->AddConstProperty("SLOWTIMECONSTANT",6.00*ns);
+  MPT_temp->AddConstProperty("FASTTIMECONSTANT",6.00*ns, true);
+  MPT_temp->AddConstProperty("SLOWTIMECONSTANT",6.00*ns, true);
   
   if( fMaterialsListOpticalPhotonDisabled.find( "PbWO4" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     PbWO4->SetMaterialPropertiesTable( MPT_temp );

@@ -67,7 +67,11 @@ G4SBSEventGen::G4SBSEventGen(){
   fBeamE = 2.2*GeV;
   fBeamP = G4ThreeVector( 0.0, 0.0, fBeamE );
 
-  fBeamPol = G4ThreeVector( 0.0, 0.0, 1.0 );
+  //Default beam and target polarization to be along the z axis with 100% degree of polarization:
+  SetBeamPol( G4ThreeVector(0,0,1) );
+  SetTargPol( G4ThreeVector(0,0,1) );
+  
+  //fBeamPol = G4ThreeVector( 0.0, 0.0, 1.0 );
   fhel = 1;
 
   fCosmPointer = G4ThreeVector(0.0*m, 0.0*m, 0.0*m);
@@ -109,6 +113,15 @@ G4SBSEventGen::G4SBSEventGen(){
     gridpathname += "/share/DSS2007_GRIDS";
     fFragFunc.SetGridPath(gridpathname);
   }
+
+  fSofferGridInitialized = false;
+  fTransversityInitialized = false;
+  fSiversInitialized = false;
+  fCollinsInitialized = false;
+
+  //Express in internal G4 units:
+  fSIDISkperp2_avg = 0.25 * pow(CLHEP::GeV,2);
+  fSIDISpperp2_avg = 0.20 * pow(CLHEP::GeV,2);
   
   fEeMin = 0.5*GeV;
   fEeMax = 11.0*GeV;
@@ -123,6 +136,9 @@ G4SBSEventGen::G4SBSEventGen(){
 
   fPythiaChain = NULL;
   fPythiaTree = NULL;
+
+  fSIMCChain = NULL;
+  fSIMCTree = NULL;
   fchainentry = 0;
 
   //TDIS AcquMC
@@ -157,9 +173,14 @@ G4SBSEventGen::G4SBSEventGen(){
 G4SBSEventGen::~G4SBSEventGen(){
   delete fPythiaChain;
   delete fPythiaTree;
+  // // // // HEAD
   //TDIS AcquMC
   delete fAcquMCChain;
   delete fAcquMCTree;
+  // // // // 
+  delete fSIMCChain;
+  delete fSIMCTree;
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
 }
 
 void G4SBSEventGen::LoadPythiaChain( G4String fname ){
@@ -200,6 +221,17 @@ void G4SBSEventGen::LoadAcquMCChain( G4String fname ){
   fAcquMCchainentry = 0;
 }
 
+void G4SBSEventGen::LoadSIMCChain( G4String fname ){
+  if( fSIMCChain != NULL ){
+    fSIMCChain->Add( fname );
+  } else { //First file:
+    fSIMCChain = new TChain("h10");
+    fSIMCChain->Add(fname);
+    fchainentry = 0;
+  } 
+}
+
+
 void G4SBSEventGen::Initialize(){
   //Initialize weight factor to convert molecules or atoms number density to number density of nucleons in luminosity calculation:
 
@@ -211,13 +243,13 @@ void G4SBSEventGen::Initialize(){
   
   switch(fTargType){
   case G4SBS::kH2:
-    Wfact = 2.0;
+    Wfact = 1.0; 
     fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
     fTargRadLen = fTargLen / G4Material::GetMaterial("refH2")->GetRadlen();
     fTargZatomic = 1.;
     break;
   case G4SBS::kD2:
-    Wfact = 4.0;
+    Wfact = 2.0;
     fTargUpstreamWindowRadLen = 0.126*mm / G4Material::GetMaterial("GE180")->GetRadlen();
     fTargRadLen = fTargLen / G4Material::GetMaterial("refD2")->GetRadlen();
     fTargZatomic = 1.;
@@ -262,7 +294,7 @@ void G4SBSEventGen::Initialize(){
 
   fLumi = fBeamCur / (e_SI*ampere*second) * fTargDen * Wfact * fTargLen; //This is in electrons*nucleons/cm^2/s
   
-  //G4cout << "Luminosity = " << fLumi*cm2*s << " cm^{-2} s^{-1}" << G4endl;
+  G4cout << "[ G4SBSEventGen::Initialize() ]: Luminosity = " << fLumi*cm2*s << " cm^{-2} s^{-1}" << G4endl;
   
   fGenVol = (fPhMax - fPhMin)*(cos(fThMin)-cos(fThMax));
   //This expression works for elastic and inelastic, and any other generator that is differential in solid angle only.
@@ -461,7 +493,33 @@ bool G4SBSEventGen::GenerateEvent(){
     //    std::vector<double> zfoil_un
     
   }
-    
+
+  // If the randomize target spin flag is set, generate target spin randomly, from
+  // either a discrete set of orientations, or within the plane perpendicular to the beamline,
+  // or in three dimensions:
+  if( fRandomizeTargetSpin ){
+    double thspin, phspin;
+    if( fNumTargetSpinDirections < 0 ){ //random in 3D:
+      thspin = acos( CLHEP::RandFlat::shoot( -1.0, 1.0 ) );
+      phspin = CLHEP::RandFlat::shoot( -CLHEP::pi, CLHEP::pi );
+    } else if( fNumTargetSpinDirections == 0 ){ //random in the plane perp. to beamline
+      thspin = CLHEP::pi/2.0; //polar angle 90 deg.
+      phspin = CLHEP::RandFlat::shoot(-CLHEP::pi, CLHEP::pi );
+    } else { //choose randomly among each of N discrete settings:
+      int ispin = CLHEP::RandFlat::shootInt( fNumTargetSpinDirections );
+      if( ispin >= 0 && ispin < fNumTargetSpinDirections ){
+	thspin = fTargetThetaSpin[ispin];
+	phspin = fTargetPhiSpin[ispin];
+      } else {
+	thspin = 0.0;
+	phspin = 0.0;
+      }
+    }
+
+    fTargPolDirection.set( sin(thspin)*cos(phspin), sin(thspin)*sin(phspin), cos(thspin) );
+
+  }
+  
   fNuclType = thisnucl;
 
   switch(fKineType){
@@ -499,9 +557,14 @@ bool G4SBSEventGen::GenerateEvent(){
   case G4SBS::kPYTHIA6:
     success = GeneratePythia();
     break;
+    // // // // HEAD
     //TDIS AcquMC
   case G4SBS::kAcquMC:
     success = GenerateAcquMC();
+    // // // // 
+  case G4SBS::kSIMC:
+    success = GenerateSIMC();
+    // // // // 11a33984f47772444ffb08222f8a978d2bee837e
     break;
   case G4SBS::kCosmics:
     success = GenerateCosmics();
@@ -820,8 +883,8 @@ bool G4SBSEventGen::GenerateElastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4L
   // Calculate longitudinal / transverse polarization components 
   double r = GE / GM;
   double epsilon = pow(1.0 + 2.0*(1.0+tau)*tan(th_Nrest/2.0)*tan(th_Nrest/2.0), -1);
-  fPt = ( -fhel*fBeamPol.z()*sqrt( (2.0*epsilon*(1.0-epsilon))/tau) ) * ( r / (1.0+epsilon*r*r/tau) );
-  fPl = ( fhel*fBeamPol.z()*sqrt(1.0-epsilon*epsilon) ) / ( 1.0+epsilon*r*r/tau );
+  fPt = ( -fhel*(GetBeamPol()).z()*sqrt( (2.0*epsilon*(1.0-epsilon))/tau) ) * ( r / (1.0+epsilon*r*r/tau) );
+  fPl = ( fhel*(GetBeamPol()).z()*sqrt(1.0-epsilon*epsilon) ) / ( 1.0+epsilon*r*r/tau );
 
   // Boost back
 
@@ -1237,12 +1300,16 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
   
    // thpi -> pi + thpi, since N & pi will have equal & opposite momentum in the GammaN rest frame.
   G4double Ppi_GammaNrest = PN_GammaNrest;
-  G4LorentzVector Pfpion_GammaNrest( Epi_GammaNrest,
-  					Ppi_GammaNrest *
-  					G4ThreeVector( sin(pi + thpi)*cos(phpi),
-  						       sin(pi + thpi)*sin(phpi),
-  						       cos(pi + thpi) ) );
+  // G4LorentzVector Pfpion_GammaNrest( Epi_GammaNrest,
+  // 					Ppi_GammaNrest *
+  // 					G4ThreeVector( sin(pi + thpi)*cos(phpi),
+  // 						       sin(pi + thpi)*sin(phpi),
+  // 						       cos(pi + thpi) ) );
 
+  //should give same results as formula above, but safer:
+  G4LorentzVector Pfpion_GammaNrest( Epi_GammaNrest, -Pfnucleon_GammaNrest.vect() );
+				     
+  
   G4LorentzVector Pfpion_lab = Pfpion_GammaNrest;   
   Pfpion_lab.boost( boost_GammaN_lab );
   
@@ -1607,6 +1674,8 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
    
   G4LorentzVector ef_lab( Eeprime, G4ThreeVector( Peprime*sin(etheta)*cos(ephi), Peprime*sin(etheta)*sin(ephi), Peprime*cos(etheta) ) );
 
+  G4LorentzVector q_lab = ei - ef_lab;
+  
   double htheta = acos( CLHEP::RandFlat::shoot( cos( fThMax_had ), cos( fThMin_had ) ) );
   double hphi = CLHEP::RandFlat::shoot( fPhMin_had, fPhMax_had );
 
@@ -1691,17 +1760,7 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
     return false;
   }
   
-  //Get PDFs: sqrt(Q2) has units of energy, we should divide by GeV as argument to CTEQ: 
-  double u = cteq_pdf_evolvepdf(__dis_pdf, 1, x, sqrt(Q2)/GeV );
-  double d = cteq_pdf_evolvepdf(__dis_pdf, 2, x, sqrt(Q2)/GeV );
-  double ubar = cteq_pdf_evolvepdf(__dis_pdf, -1, x, sqrt(Q2)/GeV );
-  double dbar = cteq_pdf_evolvepdf(__dis_pdf, -2, x, sqrt(Q2)/GeV );
-  double st = cteq_pdf_evolvepdf(__dis_pdf, 3, x, sqrt(Q2)/GeV );
-  double sbar = st;
   
-  //Gaussian model for transverse momentum widths of quark distribution (kperp) and fragmentation (pperp):
-  double kperp2_avg = 0.25 * GeV * GeV;
-  double pperp2_avg = 0.20 * GeV * GeV;
   
   //Compute SIDIS kinematic quantities:
   // z = P dot Ph / P dot q:
@@ -1722,14 +1781,55 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
     return false ;
   }
 
+  //double s_Nrest = (ni_Nrest + ei_Nrest).m2();
+  
+  //double y = Q2/x/s_Nrest; //Note, this definition is Lorentz-Invariant, but not identical to the usual one, which is y = P dot q / P dot k = nu/E in the target rest frame
+
+  //let's use the correct definition of y instead of the incorrect one from the fortran code:
+  double y = ni_Nrest.dot( q_Nrest ) / ni_Nrest.dot( ei_Nrest );
+
+  //y should also be between 0 and 1:
+  
+  if( y > 1.0 ){
+    fSigma = 0.0;
+    fHadronE = 0.0;
+    fHadronP = G4ThreeVector();
+    fElectronE = 0.0;
+    fElectronP = G4ThreeVector();
+    fWeight = 0.0;
+    fxbj = -1.0;
+    fz = -1.0;
+    fW2 = (ni_Nrest + q_Nrest).m2();
+    return false ;
+  }
+  
+  //Get PDFs: sqrt(Q2) has units of energy, we should divide by GeV as argument to CTEQ: 
+  double u = cteq_pdf_evolvepdf(__dis_pdf, 1, x, sqrt(Q2)/GeV );
+  double d = cteq_pdf_evolvepdf(__dis_pdf, 2, x, sqrt(Q2)/GeV );
+  double ubar = cteq_pdf_evolvepdf(__dis_pdf, -1, x, sqrt(Q2)/GeV );
+  double dbar = cteq_pdf_evolvepdf(__dis_pdf, -2, x, sqrt(Q2)/GeV );
+  double st = cteq_pdf_evolvepdf(__dis_pdf, 3, x, sqrt(Q2)/GeV );
+  double sbar = cteq_pdf_evolvepdf(__dis_pdf, -3, x, sqrt(Q2)/GeV );
+
+  vector<double> pdf_unpol(6);
+  pdf_unpol[0] = u;
+  pdf_unpol[1] = ubar;
+  pdf_unpol[2] = d;
+  pdf_unpol[3] = dbar;
+  pdf_unpol[4] = st;
+  pdf_unpol[5] = sbar; 
+  
+  //Gaussian model for transverse momentum widths of quark distribution (kperp) and fragmentation (pperp):
+  double kperp2_avg = fSIDISkperp2_avg;
+  double pperp2_avg = fSIDISpperp2_avg;
+  
   fxbj = x;
   fQ2  = Q2;
 
+  //Get unpolarized fragmentation functions:
   vector<double> Dqh;
   fFragFunc.GetFFs( ihadron, icharge, z, sqrt(Q2)/GeV, Dqh );
-
-  // G4cout << "Got fragmentation functions..." << G4endl;
-  
+ 
   // for( int iparton=0; iparton<6; iparton++ ){
   //   G4cout << "iparton, z, Q2, Dhq = " << iparton << ", " << z << ", " << Q2/pow(GeV,2) << ", " << Dqh[iparton] << endl;
   // }
@@ -1742,8 +1842,31 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
 
   G4ThreeVector Phad_perp = phad_Nrest_vect - ( phad_Nrest_vect.dot(q_Nrest_vect)/q_Nrest_vect.mag2() ) * q_Nrest_vect ;
 
-  double Ph_perp = sqrt( Phad_perp.mag2() );
+  double Ph_perp = Phad_perp.mag();
 
+  //calculate central values of Collins and Sivers asymmetry moments:
+  fAUT_Collins = AUT_Collins( x, y, Q2, z, Ph_perp, pdf_unpol, Dqh, nucl, fHadronType );
+  fAUT_Sivers  = AUT_Sivers( x, y, Q2, z, Ph_perp, pdf_unpol, Dqh, nucl ); //hadron type not needed for Sivers calculation since it only depends on unpolarized FFs.
+
+  fAUT_Collins_min = fAUT_Collins;
+  fAUT_Collins_max = fAUT_Collins;
+
+  fAUT_Sivers_min = fAUT_Sivers;
+  fAUT_Sivers_max = fAUT_Sivers;
+
+  //Loop over parameter sets, and grab min and max values for asymmetries for this event's
+  // kinematics:
+  for( int iset=1; iset<=200; iset++ ){
+    double AColltemp = AUT_Collins( x, y, Q2, z, Ph_perp, pdf_unpol, Dqh, nucl, fHadronType, iset );
+    double ASivtemp = AUT_Sivers( x, y, Q2, z, Ph_perp, pdf_unpol, Dqh, nucl, iset );
+      
+    fAUT_Collins_min = (AColltemp < fAUT_Collins_min ) ? AColltemp : fAUT_Collins_min;
+    fAUT_Collins_max = (AColltemp > fAUT_Collins_max ) ? AColltemp : fAUT_Collins_max;
+
+    fAUT_Sivers_min = (ASivtemp < fAUT_Sivers_min ) ? ASivtemp : fAUT_Sivers_min;
+    fAUT_Sivers_max = (ASivtemp > fAUT_Sivers_max ) ? ASivtemp : fAUT_Sivers_max;
+  }
+  
   double b = 1.0/( pow(z,2)*kperp2_avg + pperp2_avg );
 
   double e_u = 2.0/3.0;
@@ -1756,36 +1879,94 @@ bool G4SBSEventGen::GenerateSIDIS( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
 
   //This is phi hadron, the azimuthal angle between the hadron production plane and the lepton scattering plane:
   double phi_hadron = atan2( phad_Nrest_vect.dot( yaxis ), phad_Nrest_vect.dot( xaxis ) );
-  fphi_h = phi_hadron;
+  fphi_h = phi_hadron; //perhaps replace this with lab frame calculation later:
 
   fW2 = (ni_Nrest + q_Nrest).mag2();
   fMx = (ni_Nrest + q_Nrest - Phad_Nrest ).mag2();
+
+  //one question is, assuming we treat the sea quarks on an equal footing for protons and neutrons, should these formulas be different for the neutron? It shouldn't make much difference
+  // at high x, were everything is mostly valence-dominated. Assuming that we only swap the ***valence*** d and u content
+  // between proton and neutron, we would have:
+  // uvn = dvp, dvn = uvp. usea neutron = usea proton = ubar proton, dsea neutron = dsea proton = dbar proton
+  // uneutron = uvn + usean = dvp + 
   
   //Compute SIDIS structure function for a proton:
-  double H2 = x * b/twopi*exp(-b*pow(Ph_perp,2)) * ( pow(e_u,2) * (u * Dqh[0] + ubar * Dqh[1]) + 
-						     pow(e_d,2) * (d * Dqh[2] + dbar * Dqh[3]) + 
-						     pow(e_s,2) * (st * Dqh[4] + sbar * Dqh[5]) );
+  double H2 = x * b/CLHEP::twopi*exp(-b*pow(Ph_perp,2)) * ( pow(e_u,2) * (u * Dqh[0] + ubar * Dqh[1]) + 
+							    pow(e_d,2) * (d * Dqh[2] + dbar * Dqh[3]) + 
+							    pow(e_s,2) * (st * Dqh[4] + sbar * Dqh[5]) );
+								 
+								      
   
   if( nucl == G4SBS::kNeutron ){ //Interchange u and d quarks: the d quark density in a neutron = u quark density in a proton etc.
     H2 = x * b/twopi*exp(-b*pow(Ph_perp,2)) * ( pow(e_u,2) * (d * Dqh[0] + dbar * Dqh[1]) + 
 						pow(e_d,2) * (u * Dqh[2] + ubar * Dqh[3]) + 
 						pow(e_s,2) * (st * Dqh[4] + sbar * Dqh[5]) );
+    
   }
-
+  
   double H1 = H2/(2.0*x); //Callan-Gross relation
 
   double nu_Nrest = q_Nrest.e();
   //Compute the e- scattering angle in the nucleon rest frame:
   G4ThreeVector ki_Nrest = ei_Nrest.vect();
   G4ThreeVector kf_Nrest = ef_Nrest.vect();
+
+  //Compute phi_S, theta_S in the LAB frame:
+  //
+  G4ThreeVector zaxis_lab = q_lab.vect().unit();
+  G4ThreeVector yaxis_lab = zaxis_lab.cross(ei.vect().unit()).unit();
+  G4ThreeVector xaxis_lab = yaxis_lab.cross(zaxis_lab).unit();
+
+  fTheta_S = acos( fTargPolDirection.dot( zaxis_lab ) );
+  fphi_S = atan2( fTargPolDirection.dot( yaxis_lab ), fTargPolDirection.dot( xaxis_lab ) );
+
+  //for now, replace phi_h with the angle as computed in the lab frame:
+  fphi_h = atan2( Phad_lab.vect().dot( yaxis_lab ), Phad_lab.vect().dot( xaxis_lab ) );
+
+  //Now that spin and azimuthal angles are known, compute target SSA xsec modification factor:
+  //double SSA_factor = 1.0;
+
+  //Both phi_h and phi_S are computed with atan2 so in -pi, pi
+  // phi_h +/- phi_S ranges from -2pi to +2pi; if the combination lies in -2pi -> -pi, add 2pi
+  // if the combination lies in pi --> 2pi, subtract 2pi
+  double phi_Collins = fphi_h + fphi_S;
+  double phi_Sivers = fphi_h - fphi_S;
+  if( phi_Collins < -CLHEP::pi ) phi_Collins += CLHEP::twopi;
+  if( phi_Collins > CLHEP::pi ) phi_Collins -= CLHEP::twopi;
+  if( phi_Sivers < -CLHEP::pi ) phi_Sivers += CLHEP::twopi;
+  if( phi_Sivers > CLHEP::pi ) phi_Sivers -= CLHEP::twopi;
+
+  //proton or (vector polarized) deuteron target; no meaningful "dilution" or "effective polarization" to consider. Later on we will want to implement NH3 or ND3:
+
+  double effpol = 1.0;
+
+  if( fTargType == G4SBS::k3He ){
+    if( nucl == G4SBS::kNeutron ){
+      effpol = 0.86;
+    } else {
+      effpol = -0.028;
+    }
+  }
+
+  
+  
+  double SSA_factor = 1.0 + fTargPolMagnitude * effpol * sin(fTheta_S) * ( fAUT_Collins * sin( phi_Collins ) + fAUT_Sivers * sin( phi_Sivers ) );
+
+  // G4cout << "(x,y,Q2,z,PT,AUTcoll, AUTsiv, SSA_factor)=("
+  // 	 << x << ", " << y << ", " << Q2/pow(CLHEP::GeV,2) << ", " << z << ", "
+  // 	 << Ph_perp/CLHEP::GeV << ", " << fAUT_Collins << ", " << fAUT_Sivers
+  // 	 << ", " << SSA_factor << ")" << G4endl;
+
   
   double etheta_Nrest = acos( ki_Nrest.unit().dot( kf_Nrest.unit() ) );
 
   double theta_pq_Nrest = acos( phad_Nrest_vect.unit().dot( q_Nrest_vect.unit() ) );
 
-  double sigsemi = 4.0*pow(fine_structure_const,2)*hbarc_squared * pow(ef_Nrest.e(),2)/pow(Q2,2) * ( 2.0*H1/proton_mass_c2 * pow(sin(etheta_Nrest/2.0),2) + H2/nu_Nrest * pow(cos(etheta_Nrest/2.0),2) );
+  //Unpolarized cross section:
+  double sigsemi = 4.0*pow(CLHEP::fine_structure_const,2)*CLHEP::hbarc_squared * pow(ef_Nrest.e(),2)/pow(Q2,2) * ( 2.0*H1/CLHEP::proton_mass_c2 * pow(sin(etheta_Nrest/2.0),2) + H2/nu_Nrest * pow(cos(etheta_Nrest/2.0),2) );
   double jacobian = 2.0*phad_Nrest_vect.mag2() * cos( theta_pq_Nrest ) / nu_Nrest;
-  sigsemi *= jacobian; 
+  sigsemi *= jacobian;
+  sigsemi *= SSA_factor;
   //This jacobian factor converts the cross section from d5sig/dE'dOmega_e dz dPh_perp^2 dphi_h  to 
   // d5sig/dE'dOmega_e dE_h dOmega_h. 
   
@@ -2160,6 +2341,19 @@ bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
   double sigpip = wiser_sigma(ei.e()/GeV, Phad_lab.vect().mag()/GeV, htheta, rad_len*4.0/3.0 + intrad, 0)*nanobarn/GeV;
   double sigpim = wiser_sigma(ei.e()/GeV, Phad_lab.vect().mag()/GeV, htheta, rad_len*4.0/3.0 + intrad, 1)*nanobarn/GeV;
 
+  // Wiser xsec is given in nb/(GeV*sr). The above calculation is equivalent to
+  // multiplying by a constant factor in GEANT4's system of units (mm, MeV).
+  // GeV = 1000. * MeV = 1000.
+  // meter = 1000. * mm = 1000.
+  // meter2 = 1e6
+  // barn = 1.e-28 * meter2 = 1.e-22 * mm^2
+  // nanobarn = 1.e-9 * barn = 1.e-31 * mm^2 = 1.e-33 * cm^2
+  // 1. nanobarn / GeV = 1.e-31/1000. = 1.e-34 in GEANT4 units (mm^2/MeV)
+
+  // G4cout << "(sigpi+,sigpi-) = (" << sigpip*GeV/nanobarn << ", "
+  // 	 << sigpim*GeV/nanobarn << ") nb/(GeV*sr)" << G4endl;
+  // G4cout << "(sigpi+,sigpi-) = (" << sigpip << ", " << sigpim << ") in G4 units (mm^2/(MeV*sr))" << G4endl;
+  // G4cout << "(sigpi+,sigpi-) = (" << sigpip/cm2*GeV << ", " << sigpim/cm2*GeV << ") cm2/(GeV*sr)" << G4endl;
 
   if( fNuclType == G4SBS::kProton ){
     switch( fHadronType ){
@@ -2170,7 +2364,7 @@ bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
       fSigma = sigpim;
       break;
     case G4SBS::kPi0:
-      fSigma = (sigpip +sigpim)*2.0;
+      fSigma = (sigpip +sigpim)/2.0;
       break;
     default:
       fSigma = 0;
@@ -2185,14 +2379,14 @@ bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
       fSigma = sigpip;
       break;
     case G4SBS::kPi0:
-      fSigma = (sigpip +sigpim)*2.0;
+      fSigma = (sigpip +sigpim)/2.0;
       break;
     default:
       fSigma = 0;
       break;
     }
   }
-
+  
   //AJRP: Why is this line here? To be consistent with the other generators, we keep fSigma as the differential cross section,
   // and multiply in the phase space volume at the stage of a rate calculation/normalization; commented out:
   //  fSigma *= (fEhadMax-fEhadMin)*(cos( fThMax_had) - cos( fThMin_had ))*(fPhMax_had-fPhMin_had)/(cos(fThMax)-cos(fThMin) )/(fPhMax-fPhMin);
@@ -2215,7 +2409,11 @@ bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
   fHadronE = Phad_lab.e();
   fHadronP = Phad_lab.vect();
 
-  return true;
+  if( fSigma != 0.0 ){ //only generate kinematically allowed events to save CPU cycles
+    return true;
+  } else {
+    return false;
+  }
 }
 
 
@@ -2959,8 +3157,77 @@ double G4SBSEventGen::f2pi(double p, double x, double th){
  }
 
 
+bool G4SBSEventGen::GenerateSIMC(){
+
+  fSIMCTree->GetEntry(fchainentry++);
+  fSIMCEvent.Clear();
+
+  G4double Mh;
+  bool invalid_hadron = true;
+  switch(fHadronType) {
+  case G4SBS::kP:
+    Mh = proton_mass_c2;
+    fSIMCEvent.fnucl = 1;
+    invalid_hadron = false;
+    break;
+  case G4SBS::kN:
+    Mh = neutron_mass_c2;
+    fSIMCEvent.fnucl = 0;
+    invalid_hadron = false;
+    break;
+  }
+  if (invalid_hadron) {
+    fprintf(stderr, "%s: %s line %d - Error: Given Hadron type not is valid for SIMC generator.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);
+    exit(1);
+  }
+
+
+  fSIMCEvent.sigma = fSIMCTree->sigcc/cm2;
+  fSIMCEvent.Weight = fSIMCTree->Weight;
+
+  fSIMCEvent.Q2 = fSIMCTree->Q2;
+  fSIMCEvent.xbj = fSIMCTree->Q2/(2*Mh/GeV*fSIMCTree->nu);//Q2 and nu are in GeV...
+  fSIMCEvent.nu = fSIMCTree->nu;
+  fSIMCEvent.W = fSIMCTree->W;
+  fSIMCEvent.epsilon = fSIMCTree->epsilon;
+  
+  fSIMCEvent.Ebeam = fSIMCTree->ebeam/MeV;
+  
+  fSIMCEvent.p_e = fSIMCTree->p_e;
+  fSIMCEvent.theta_e = fSIMCTree->th_e;
+  fSIMCEvent.phi_e = fSIMCTree->ph_e-TMath::PiOver2();
+  fSIMCEvent.px_e = fSIMCTree->p_e*fSIMCTree->ux_e;
+  fSIMCEvent.py_e = fSIMCTree->p_e*fSIMCTree->uy_e;
+  fSIMCEvent.pz_e = fSIMCTree->p_e*fSIMCTree->uz_e;
+  
+  fSIMCEvent.p_n = fSIMCTree->p_p;
+  fSIMCEvent.theta_n = fSIMCTree->th_p;
+  fSIMCEvent.phi_n = fSIMCTree->ph_p-TMath::PiOver2();
+  fSIMCEvent.px_n = fSIMCTree->p_p*fSIMCTree->ux_p;
+  fSIMCEvent.py_n = fSIMCTree->p_p*fSIMCTree->uy_p;
+  fSIMCEvent.pz_n = fSIMCTree->p_p*fSIMCTree->uz_p;
+  
+  fSIMCEvent.vx = fSIMCTree->vxi*cm;
+  fSIMCEvent.vy = fSIMCTree->vyi*cm;
+  fSIMCEvent.vz = fSIMCTree->vzi*cm;
+
+  fVert.set(fSIMCEvent.vx, fSIMCEvent.vy, fSIMCEvent.vz);
+  
+  fElectronP = G4ThreeVector(fSIMCEvent.px_e, fSIMCEvent.py_e, fSIMCEvent.pz_e);
+  fElectronP.rotateZ(-TMath::PiOver2());
+  fElectronE = fSIMCEvent.p_e;
+
+  fNucleonP = G4ThreeVector(fSIMCEvent.px_n, fSIMCEvent.py_n, fSIMCEvent.pz_n);
+  fNucleonP.rotateZ(-TMath::PiOver2());
+  fNucleonE = sqrt(fSIMCEvent.p_n*fSIMCEvent.p_n+Mh*Mh);
+
+  return true;
+  
+}
+
 ev_t G4SBSEventGen::GetEventData(){
   ev_t data;
+  ev_tdis_t tdis_data;
 
   //Why are we calculating these constant quantities every event?
   //Let's do it once, we can do it via the SBS messenger when we invoke
@@ -3006,8 +3273,12 @@ ev_t G4SBSEventGen::GetEventData(){
   data.sigma = fSigma/cm2;
 
   if( fKineType == G4SBS::kDIS || fKineType == G4SBS::kWiser){
-    data.sigma = fSigma/cm2*GeV;
+    data.sigma = fSigma/cm2*GeV; //fSigma/cm2 * GeV is equivalent to fSigma/100*1000 = fSigma*10; but is it correct? YES
+    
     data.solang = fGenVol/GeV;
+    // here for wiser the xsec is given in mm^2/MeV; i.e., it is in internal G4 units
+    // divide by cm^2 and multiply by GeV = 1000. So this looks correct
+    // for generation 
   }
   
   if( fKineType == G4SBS::kSIDIS ){ //The SIDIS cross section is also differential in e- energy and hadron energy and has units of area/energy^2/sr^2, so we also need to express it in the correct energy units:
@@ -3074,6 +3345,9 @@ ev_t G4SBSEventGen::GetEventData(){
     case G4SBS::kPbar:
       data.hadr = -3;
       break;
+    case G4SBS::kN:
+      fprintf(stderr, "%s: %s line %d - Error: Given hadron type is not valid for SIDIS/Wiser generator.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);
+      exit(1);
     default:
       data.hadr = 1;
       break;
@@ -3084,12 +3358,12 @@ ev_t G4SBSEventGen::GetEventData(){
        fTargType == G4SBS::kD2 ){
     //G4cout << "fprotonspec " << fProtonSpecP.mag()/GeV << " " << fProtonSpecP.x()/GeV << " " << fProtonSpecP.y()/GeV << " " << fProtonSpecP.z()/GeV << " " << fProtonSpecP.theta()/rad << " " << fProtonSpecP.phi()/rad << G4endl; 
  
-    data.p1p  = fProtonSpecP.mag()/GeV;
-    data.p1px = fProtonSpecP.x()/GeV;
-    data.p1py = fProtonSpecP.y()/GeV;
-    data.p1pz = fProtonSpecP.z()/GeV;
-    data.p1th = fProtonSpecP.theta()/rad;
-    data.p1ph = fProtonSpecP.phi()/rad;
+    tdis_data.p1p  = fProtonSpecP.mag()/GeV;
+    tdis_data.p1px = fProtonSpecP.x()/GeV;
+    tdis_data.p1py = fProtonSpecP.y()/GeV;
+    tdis_data.p1pz = fProtonSpecP.z()/GeV;
+    tdis_data.p1th = fProtonSpecP.theta()/rad;
+    tdis_data.p1ph = fProtonSpecP.phi()/rad;
     
     //G4cout << "data.p1 " << data.p1p << " " << data.p1px << " " << data.p1py << " " << data.p1pz << " " << data.p1th << " " << data.p1ph << G4endl; 
   }
@@ -3097,20 +3371,20 @@ ev_t G4SBSEventGen::GetEventData(){
   // TDIS
   if (fKineType == G4SBS::kTDISKin){
     
-    data.xpi   = fxpi;
-    data.nu    = fnu/GeV;
-    data.y     = fy;
+    tdis_data.xpi   = fxpi;
+    tdis_data.nu    = fnu/GeV;
+    tdis_data.y     = fy;
     data.Q2    = fQ2/(GeV*GeV);
-    data.tpi   = ftpi/(GeV*GeV);
-    data.xa    = fxa;
-    data.pt    = fPtTDIS/GeV;
+    tdis_data.tpi   = ftpi/(GeV*GeV);
+    tdis_data.xa    = fxa;
+    tdis_data.pt    = fPtTDIS/GeV;
     data.z     = fz;
     data.xbj   = fxbj;
-    data.ypi   = fypi;
-    data.f2p   = ff2p;
-    data.f2pi  = ff2pi;
-    data.sigmaDIS = fSigmaDIS/cm2;
-    data.sigmaTDIS = fSigmaTDIS/cm2;
+    tdis_data.ypi   = fypi;
+    tdis_data.f2p   = ff2p;
+    tdis_data.f2pi  = ff2pi;
+    tdis_data.sigmaDIS = fSigmaDIS/cm2;
+    tdis_data.sigmaTDIS = fSigmaTDIS/cm2;
     
     
     data.np  = fNeutronP.mag();
@@ -3120,26 +3394,26 @@ ev_t G4SBSEventGen::GetEventData(){
     data.nth = fNeutronP.theta()/rad;
     data.nph = fNeutronP.phi()/rad;
     
-    data.p1p  = fProton1P.mag();
-    data.p1px = fProton1P.x();
-    data.p1py = fProton1P.y();
-    data.p1pz = fProton1P.z();
-    data.p1th = fProton1P.theta()/rad;
-    data.p1ph = fProton1P.phi()/rad;
+    tdis_data.p1p  = fProton1P.mag();
+    tdis_data.p1px = fProton1P.x();
+    tdis_data.p1py = fProton1P.y();
+    tdis_data.p1pz = fProton1P.z();
+    tdis_data.p1th = fProton1P.theta()/rad;
+    tdis_data.p1ph = fProton1P.phi()/rad;
     
-    data.p2p  = fProton2P.mag()/GeV;
-    data.p2px = fProton2P.x()/GeV;
-    data.p2py = fProton2P.y()/GeV;
-    data.p2pz = fProton2P.z()/GeV;
-    data.p2th = fProton2P.theta()/rad;
-    data.p2ph = fProton2P.phi()/rad;
+    tdis_data.p2p  = fProton2P.mag()/GeV;
+    tdis_data.p2px = fProton2P.x()/GeV;
+    tdis_data.p2py = fProton2P.y()/GeV;
+    tdis_data.p2pz = fProton2P.z()/GeV;
+    tdis_data.p2th = fProton2P.theta()/rad;
+    tdis_data.p2ph = fProton2P.phi()/rad;
     
-    data.pip  = fHadronP.mag()/GeV;
-    data.pipx = fHadronP.x()/GeV;
-    data.pipy = fHadronP.y()/GeV;
-    data.pipz = fHadronP.z()/GeV;
-    data.pith = fHadronP.theta()/rad;
-    data.piph = fHadronP.phi()/rad;
+    tdis_data.pip  = fHadronP.mag()/GeV;
+    tdis_data.pipx = fHadronP.x()/GeV;
+    tdis_data.pipy = fHadronP.y()/GeV;
+    tdis_data.pipz = fHadronP.z()/GeV;
+    tdis_data.pith = fHadronP.theta()/rad;
+    tdis_data.piph = fHadronP.phi()/rad;
   }
   
 //*********************************************
@@ -3154,28 +3428,28 @@ ev_t G4SBSEventGen::GetEventData(){
     {
       //      G4cout<<"Saving data new TDIS"<<G4endl;
       
-      data.xpi   = tdishandler -> tGetxpi();
-      data.nu    = tdishandler -> tGetnu()/GeV;
-      data.y     = tdishandler -> tGettya(); 
+      tdis_data.xpi   = tdishandler -> tGetxpi();
+      tdis_data.nu    = tdishandler -> tGetnu()/GeV;
+      tdis_data.y     = tdishandler -> tGettya(); 
       data.Q2    = tdishandler -> tGetQ2()/(GeV*GeV);
-      data.KE    = tdishandler -> tGetKE()/GeV;
-      data.tpi   = tdishandler -> tGettpi()/(GeV*GeV);
-      data.xa    = tdishandler -> tGettxa(); ;
-      data.pt    = tdishandler -> tGetpt()/GeV;
+      tdis_data.KE    = tdishandler -> tGetKE()/GeV;
+      tdis_data.tpi   = tdishandler -> tGettpi()/(GeV*GeV);
+      tdis_data.xa    = tdishandler -> tGettxa(); ;
+      tdis_data.pt    = tdishandler -> tGetpt()/GeV;
       data.z     = tdishandler -> tGetz();
       data.xbj   = tdishandler -> tGetxbj();
-      data.ypi   = tdishandler -> tGetypi();
-      data.f2p   = tdishandler -> tGetf2N();
-      data.f2pi  = tdishandler -> tGetf2pi();
+      tdis_data.ypi   = tdishandler -> tGetypi();
+      tdis_data.f2p   = tdishandler -> tGetf2N();
+      tdis_data.f2pi  = tdishandler -> tGetf2pi();
       //  G4cout<<"saving ELASTIC XS: "<<tdishandler -> tGetELAsigma()/barn<<G4endl;
-      data.sigmaELA   = tdishandler -> tGetELAsigma()/barn;
-      data.sigmaQE    = tdishandler -> tGetQEsigma();
+      tdis_data.sigmaELA   = tdishandler -> tGetELAsigma()/barn;
+      tdis_data.sigmaQE    = tdishandler -> tGetQEsigma();
       //    G4cout<<"saving QE XS: "<<tdishandler ->  tGetQEsigma()<<G4endl;
       
-      data.sigmaSIDIS = tdishandler -> tGetSIDISsigma()/cm2*pow(GeV,2);
-      data.sigmaDIS   = tdishandler -> tGetDISsigma()/cm2;
+      tdis_data.sigmaSIDIS = tdishandler -> tGetSIDISsigma()/cm2*pow(GeV,2);
+      tdis_data.sigmaDIS   = tdishandler -> tGetDISsigma()/cm2;
       //     G4cout<<"saving TDIS XS: "<<tdishandler -> tGetTDISsigma()/cm2<<G4endl;
-      data.sigmaTDIS  = tdishandler -> tGetTDISsigma()/cm2;
+      tdis_data.sigmaTDIS  = tdishandler -> tGetTDISsigma()/cm2;
 
       data.W2     = tdishandler->tGetW2()/(GeV*GeV);
       data.MX     = tdishandler->tGetMX()/pow(GeV,2); //are units correct?
@@ -3204,29 +3478,29 @@ ev_t G4SBSEventGen::GetEventData(){
       
       fProton1P = tdishandler -> tGetiProton();
 
-      data.p1p  = fProton1P.mag()/GeV;
-      data.p1px = fProton1P.x()/GeV;
-      data.p1py = fProton1P.y()/GeV;
-      data.p1pz = fProton1P.z()/GeV;
-      data.p1th = fProton1P.theta()/deg;
-      data.p1ph = fProton1P.phi()/deg;
+      tdis_data.p1p  = fProton1P.mag()/GeV;
+      tdis_data.p1px = fProton1P.x()/GeV;
+      tdis_data.p1py = fProton1P.y()/GeV;
+      tdis_data.p1pz = fProton1P.z()/GeV;
+      tdis_data.p1th = fProton1P.theta()/deg;
+      tdis_data.p1ph = fProton1P.phi()/deg;
       
       fProton2P = tdishandler -> tGetfProton();
 
-      data.p2p  = fProton2P.mag()/GeV;
-      data.p2px = fProton2P.x()/GeV;
-      data.p2py = fProton2P.y()/GeV;
-      data.p2pz = fProton2P.z()/GeV;
-      data.p2th = fProton2P.theta()/deg;
-      data.p2ph = fProton2P.phi()/deg;
+      tdis_data.p2p  = fProton2P.mag()/GeV;
+      tdis_data.p2px = fProton2P.x()/GeV;
+      tdis_data.p2py = fProton2P.y()/GeV;
+      tdis_data.p2pz = fProton2P.z()/GeV;
+      tdis_data.p2th = fProton2P.theta()/deg;
+      tdis_data.p2ph = fProton2P.phi()/deg;
       
       fHadronP = tdishandler -> tGetfPion();
-      data.pip  = fHadronP.mag()/GeV;
-      data.pipx = fHadronP.x()/GeV;
-      data.pipy = fHadronP.y()/GeV;
-      data.pipz = fHadronP.z()/GeV;
-      data.pith = fHadronP.theta()/deg;
-      data.piph = fHadronP.phi()/deg;
+      tdis_data.pip  = fHadronP.mag()/GeV;
+      tdis_data.pipx = fHadronP.x()/GeV;
+      tdis_data.pipy = fHadronP.y()/GeV;
+      tdis_data.pipz = fHadronP.z()/GeV;
+      tdis_data.pith = fHadronP.theta()/deg;
+      tdis_data.piph = fHadronP.phi()/deg;
     }
   
   data.pmpar  = fPmisspar/GeV;
@@ -3384,11 +3658,37 @@ void G4SBSEventGen::InitializePythia6_Tree(){
     newfile.GetObject("graph_sigma",gtemp);
 
     if( gtemp ){
-      fPythiaSigma[chEl->GetTitle()] = (gtemp->GetY()[gtemp->GetN()-1])*millibarn;
+      bool goodsigma=false;
+      int npoints = gtemp->GetN();
+      G4double sigmatemp = gtemp->GetY()[npoints-1];
+
+      //G4cout << "sigmatemp, isnan = " << sigmatemp << ", " << std::isnan(sigmatemp) << G4endl;
+
+      int ipoint=npoints-1;
+      if( !std::isnan(sigmatemp) ) {
+	goodsigma=true;
+	fPythiaSigma[chEl->GetTitle()] = sigmatemp*millibarn;
+      }
+      while( !goodsigma && ipoint>0 ){ //work backwards from the end of the array, take first cross section that isn't a "NAN"
+	ipoint--;
+	sigmatemp = gtemp->GetY()[ipoint];
+
+	if( !std::isnan(sigmatemp) ) {
+	  goodsigma = true;
+	  fPythiaSigma[chEl->GetTitle()] = (gtemp->GetY()[ipoint])*millibarn;
+	  //G4cout << "Found good cross section, ipoint, sigma = "
+	}
+      }
+
+      if( !goodsigma ){      
+	fPythiaSigma[chEl->GetTitle()] = 1.0*cm2;
+      }
     } else {
       fPythiaSigma[chEl->GetTitle()] = 1.0*cm2; //
     }
     newfile.Close();
+
+    G4cout << "PYTHIA6 cross section = " << fPythiaSigma[chEl->GetTitle()]/millibarn << " mb" << G4endl;
   }
   
   fPythiaTree = new Pythia6_tree( fPythiaChain );
@@ -3399,6 +3699,7 @@ void G4SBSEventGen::InitializePythia6_Tree(){
   }
 }
 
+// // // // HEAD
 //TDIS AcquMC
 void G4SBSEventGen::InitializeAcquMC_Tree(){
 
@@ -3425,6 +3726,22 @@ void G4SBSEventGen::InitializeAcquMC_Tree(){
   
   if( !fAcquMCTree ){
     G4cout << "Failed to initialize AcquMC tree, aborting... " << G4endl;
+    exit(-1);
+  }
+}
+// // // // 
+void G4SBSEventGen::InitializeSIMC_Tree(){
+
+  TObjArray *FileList = fSIMCChain->GetListOfFiles();
+  TIter next(FileList);
+
+  //TChainElement *chEl = 0;
+
+  fSIMCTree = new simc_tree( fSIMCChain );
+  
+  if( !fSIMCTree ){
+    G4cout << "Failed to initialize SIMC tree, aborting... " << G4endl;
+// // // // 11a33984f47772444ffb08222f8a978d2bee837e
     exit(-1);
   }
 }
@@ -3513,6 +3830,7 @@ bool G4SBSEventGen::GeneratePionPhotoproduction( G4SBS::Nucl_t nucl, G4LorentzVe
   G4double tgen_gev2 = CLHEP::RandFlat::shoot( fPionPhoto_tmin, fPionPhoto_tmax ); //-t in GeV^2
 
   G4double tgen = tgen_gev2*GeV*GeV; //convert to internal G4 units
+
   
   G4double phipi_lab = CLHEP::RandFlat::shoot( fPhMin, fPhMax ); 
   
@@ -3552,6 +3870,7 @@ bool G4SBSEventGen::GeneratePionPhotoproduction( G4SBS::Nucl_t nucl, G4LorentzVe
 
   //In the nucleon rest frame, the outgoing nucleon energy has a simple relation to t:
 
+  // t = (Pgamma - Ppi)^2, Pgamma + PNi = Ppi + PNf, t = (PNf - PNi)^2 = Mnf^2 + Mni^2 - 2Mni E'_N
   // t = Mni^2 + Mnf^2 -2 Mni E'_N
   // E'_N = (Mni^2 + Mnf^2 - t)/(2Mni)
   G4double EprimeNucleon_Nrest = ( pow( M_ni,2) + pow( M_nf, 2 ) + tgen )/(2.0*M_ni); //~= M_N + t/2MN, what we are calling t here is actually -t
@@ -3559,18 +3878,36 @@ bool G4SBSEventGen::GeneratePionPhotoproduction( G4SBS::Nucl_t nucl, G4LorentzVe
   G4double EprimePion_Nrest = Egamma_Nrest + M_ni - EprimeNucleon_Nrest;
   G4double PprimePion_Nrest = sqrt(pow(EprimePion_Nrest,2)-pow(Mpi,2));
 
-  //Now to get the scattering angle in the nucleon rest frame, we use
-  // t = (Pgamma-Ppi)^2 = Mpi^2 - 2Pgamma dot Ppi = Mpi^2 - 2Egamma * (Epi - ppi cos theta) \\
+  //Now to get the polar scattering angle in the nucleon rest frame, we use
+  // t = (Pgamma-Ppi)^2 = Mpi^2 - 2Pgamma dot Ppi = Mpi^2 - 2Egamma * (Epi - ppi cos theta)
   // --> Mpi^2 - t = 2Egamma (Epi - ppi cos theta) \\
   // --> (Mpi^2-t)/2Egamma = Epi - ppi cos theta
   // cos theta = Epi / ppi  + (t-Mpi^2)/2Egamma ppi
+
+  // t = Mpi^2  - 2Egamma Epi + 2pgamma dot ppi = Mpi^2 - 2Egamma Epi + 2 Egamma ppi cos(theta_pigamma)
   G4double costheta_Nrest = EprimePion_Nrest/PprimePion_Nrest - (pow(Mpi,2)+tgen)/(2.0*Egamma_Nrest*PprimePion_Nrest); //I HOPE this lies between -1 and 1
 
+  //NOTE: the following polar angle is relative to the incident PHOTON direction in the nucleon rest frame, which does NOT coincide with the z axis of the lab frame per se:
   G4double thetapi_Nrest = acos(costheta_Nrest);
 
-  G4ThreeVector Ppionvect( sin(thetapi_Nrest)*cos(phipi_lab), sin(thetapi_Nrest)*sin(phipi_lab), cos(thetapi_Nrest) );
+  //G4ThreeVector Ppionvect( sin(thetapi_Nrest)*cos(phipi_lab), sin(thetapi_Nrest)*sin(phipi_lab), cos(thetapi_Nrest) );
 
-  Ppionvect *= PprimePion_Nrest;
+  //Compute unit vector along beam direction in nucleon rest frame: This should ALMOST coincide with the z axis
+  G4ThreeVector BeamDirection_nrest = Pgamma_Nrest.vect().unit();
+
+  //Now we want to compute the unit vector along the direction PERPENDICULAR to the incident photon direction in the nucleon rest frame but (as closely as possible) parallel
+  //to the desired azimuthal angle of the reaction plane in the LAB frame:
+
+  G4ThreeVector uperp( cos(phipi_lab), sin(phipi_lab), 0 );
+
+  G4ThreeVector unitnormal = BeamDirection_nrest.cross( uperp ).unit();
+
+  G4ThreeVector uperp_nrest = unitnormal.cross( BeamDirection_nrest ).unit();
+
+  G4ThreeVector Ppionvect = PprimePion_Nrest * ( BeamDirection_nrest * costheta_Nrest + uperp_nrest * sin(thetapi_Nrest) );
+  //Ppionvect *= PprimePion_Nrest;
+
+  //In the nucleon rest frame, the outgoing pion 
   
   G4LorentzVector Ppion_Nrest( Ppionvect, EprimePion_Nrest );
 
@@ -3679,6 +4016,46 @@ G4double G4SBSEventGen::TriangleFunc( G4double a, G4double b, G4double c ){ //ut
   return pow(a,2) + pow(b,2) + pow(c,2) - 2.*a*b - 2.*a*c - 2.*b*c;
 }
 
+G4double G4SBSEventGen::GetTargetThetaSpin(G4int ispin){
+  if( ispin >= 0 && ispin < fNumTargetSpinDirections ){
+    return fTargetThetaSpin[ispin];
+  } else {
+    return 0.0;
+  }
+}
+
+G4double G4SBSEventGen::GetTargetPhiSpin(G4int ispin){
+  if( ispin >= 0 && ispin < fNumTargetSpinDirections ){
+    return fTargetPhiSpin[ispin];
+  } else {
+    return 0.0;
+  }
+}
+
+void G4SBSEventGen::SetTargetThetaSpin( G4int ispin, G4double theta ){
+  if( ispin >= 0 && ispin < fNumTargetSpinDirections ){
+    fTargetThetaSpin[ispin] = theta;
+  }
+}
+
+void G4SBSEventGen::SetTargetPhiSpin( G4int ispin, G4double phi ){
+  if( ispin >= 0 && ispin < fNumTargetSpinDirections ){
+    fTargetPhiSpin[ispin] = phi;
+  }
+}
+
+void G4SBSEventGen::SetNumTargetSpinDirections( G4int nspin ){
+  fNumTargetSpinDirections = nspin;
+  if( nspin <= 0){
+    fNumTargetSpinDirections = 0;
+    fRandomizeTargetSpin = false;
+    fTargetThetaSpin.clear();
+    fTargetPhiSpin.clear();
+  } else {
+    fTargetThetaSpin.resize(nspin);
+    fTargetPhiSpin.resize(nspin);
+  }
+}
 // void dsigmadk_Brems( G4double y, G4double Z ){
 //   //This formula comes from the PDG review on passage of particles through matter, 2020 edition, equation (34.28)
 //   G4double k = y*fBeamE;
@@ -3720,3 +4097,595 @@ G4double G4SBSEventGen::TriangleFunc( G4double a, G4double b, G4double c ){ //ut
  
 // }
 
+// // // // HEAD
+// // // // 
+void G4SBSEventGen::SofferBound( G4double x, G4double Q2, vector<double> &SofferBound_by_parton ){
+
+  //Q2 is assumed to be passed to this routine already converted to units of GeV^2
+  
+  const int nQ2 = 30;
+  const double Q2grid[nQ2] = {0.8, 1.0, 1.25, 1.5, 2.0, 2.5, 4.0, 6.4, 10.0, 15.0, 25.0, 40.0, 64.0, 100.0,
+		     180.0, 320.0, 580.0, 1000.0, 1800.0, 3200.0, 5800.0, 10000.0, 1.8e4, 3.2e4, 5.8e4,
+		     1.0e5, 1.8e5, 3.2e5, 5.8e5, 1.0e6};
+  
+  const int nxbj = 42;
+  const double xgrid[nxbj] = {1.e-4, 1.5e-4, 2.2e-4, 3.2e-4, 4.8e-4, 7.0e-4,
+			1.e-3, 1.5e-3, 2.2e-3, 3.2e-3, 4.8e-3, 7.0e-3,
+			1.e-2, 1.5e-2, 2.2e-2, 3.2e-2, 5.0e-2, 7.5e-2,
+			0.1, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25, 0.275,
+			0.3, 0.325, 0.35, 0.375, 0.4, 0.45, 0.5, 0.55,
+			0.6, 0.65,  0.7,  0.75,  0.8, 0.85, 0.9, 1.0 };
+
+  //it would be more efficient not to do this log(Q2) calculation every time:
+  double logQ2grid[nQ2];
+  for( int i=0; i<nQ2; i++ ){
+    logQ2grid[i] = log(Q2grid[i]);
+  }
+  double logxgrid[nxbj];
+  for( int i=0; i<nxbj; i++ ){
+    logxgrid[i] = log(xgrid[i]);
+  }
+  
+  
+  const int nparton = 6;
+  
+  if( !fSofferGridInitialized ){
+    fSofferGridInitialized = true; 
+  
+    fSofferGrid.resize( nQ2 * nxbj * nparton );
+
+    G4String gridpath = "./";
+    char *prefix = std::getenv("G4SBS");
+
+    if( prefix != NULL ){ 
+      gridpath = prefix;
+      gridpath += "/share/transversity_grids/";
+    }
+
+    G4String gridfilename = gridpath + "transmaxlo_new.grid";
+    
+    ifstream gridfile( gridfilename.data() );
+    for( int ix=0; ix<nxbj; ix++ ){ 
+      for( int iQ=0; iQ<nQ2; iQ++ ){
+	for( int iparton=0; iparton<nparton; iparton++ ){
+	  double xtemp = xgrid[ix];
+	  double ftemp = 0.0;
+	  if( ix+1 < nxbj ) {
+	    gridfile >> ftemp;
+	    switch( iparton ){
+	    case 0:
+	      ftemp /= (pow(1.0-xtemp,3)*xtemp);
+	      break;
+	    case 1:
+	      ftemp /= (pow(1.0-xtemp,4)*xtemp);
+	      break;
+	    default:
+	      ftemp /= (pow(1.0-xtemp,8)*sqrt(xtemp));
+	      break;
+	    }
+	  }
+
+	  if( ix+1 == nxbj ) ftemp = 0.0; //because everything is assumed to go to zero at x = 1:
+	  fSofferGrid[iparton + nparton*iQ + nparton*nQ2*ix] = ftemp;
+	  
+	}
+      }
+    }
+  }
+
+  //Now the idea is to do bilinear interpolation of the x, Q2 grid for each parton (up to 5):
+
+  //Force logx and log q2 to fit inside the grid
+  double logx = std::max(logxgrid[0],std::min(logxgrid[nxbj-1],log(x) ) );
+  double logQ2 = std::max(logQ2grid[0],std::min(logQ2grid[nQ2-1],log(Q2) ) );
+ 
+  // compute initial guesses for log(x), log(Q2) bins based on assumption of uniform grid:
+  int ibin_logx = int( (logx - logxgrid[0])/(logxgrid[nxbj-1]-logxgrid[0])*(nxbj-1) );
+  int ibin_logQ2 = int( (logQ2 - logQ2grid[0])/(logQ2grid[nQ2-1]-logQ2grid[0])*(nQ2-1) );
+
+  //if logx is below the low edge of the bin, we guessed too high, decrement:
+  while( logx < logxgrid[ibin_logx] ) ibin_logx--;
+  //if logx is above the high edge of the bin, we guessed too low, increment:
+  while( logx > logxgrid[ibin_logx+1] ) ibin_logx++;
+  //do the same for Q2:
+  while( logQ2 < logQ2grid[ibin_logQ2] ) ibin_logQ2--;
+  while( logQ2 > logQ2grid[ibin_logQ2+1] ) ibin_logQ2++;
+
+  assert( logx >= logxgrid[ibin_logx] && logx < logxgrid[ibin_logx+1] );
+  assert( logQ2 >= logQ2grid[ibin_logQ2] && logQ2 < logQ2grid[ibin_logQ2+1] );
+
+  double fracx = (logx-logxgrid[ibin_logx])/(logxgrid[ibin_logx+1]-logxgrid[ibin_logx]);
+  double fracQ2 = (logQ2-logQ2grid[ibin_logQ2])/(logQ2grid[ibin_logQ2+1]-logQ2grid[ibin_logQ2]);
+
+  if( SofferBound_by_parton.size() < 6 ){
+    SofferBound_by_parton.resize(6);
+  }
+  //now do the interpolation:
+  for( int iparton=0; iparton<5; iparton++ ){
+    double f00 = fSofferGrid[iparton + nparton*ibin_logQ2 + nparton*nQ2*ibin_logx];
+    double f01 = fSofferGrid[iparton + nparton*(ibin_logQ2+1) + nparton*nQ2*ibin_logx];
+    double f10 = fSofferGrid[iparton + nparton*ibin_logQ2 + nparton*nQ2*(ibin_logx+1)];
+    double f11 = fSofferGrid[iparton + nparton*(ibin_logQ2+1) + nparton*nQ2*(ibin_logx+1)];
+
+    double fqxlo = f00*(1.0-fracQ2) + fracQ2 * f01;
+    double fqxhi = f10*(1.0-fracQ2) + fracQ2 * f11;
+    double fxq = fqxlo * (1.0 - fracx) + fqxhi * fracx; 
+
+    switch( iparton ){
+    case 0:
+      fxq *= pow(1.0-x,3)*x;
+      break;
+    case 1:
+      fxq *= pow(1.0-x,4)*x;
+      break;
+    default:
+      fxq *= pow(1.0-x,8)*sqrt(x);
+      break;
+    }
+    
+    SofferBound_by_parton[iparton] = fxq;
+  }
+  //copy s to sbar:
+  SofferBound_by_parton[5] = SofferBound_by_parton[4];
+}
+
+void G4SBSEventGen::Transversity( G4double x, G4double Q2, vector<double> &h1_partons, int set ){
+  vector<double> Soffer(6);
+
+  //Q2 is assumed to be passed to this function in internal GEANT4 units, but SofferBound expects GeV2:
+  
+  SofferBound( x, Q2/pow(CLHEP::GeV,2), Soffer ); //Order is u, d, ubar, dbar, s
+
+  // for( int iparton=0; iparton<6; iparton++ ){
+  //   G4cout << "iparton, x, Q2, SofferBound = " << iparton << ", " << x << ", " << Q2/pow(CLHEP::GeV,2)
+  // 	 << ", " << Soffer[iparton] << G4endl;
+  // }
+  
+  if( !fTransversityInitialized ){
+    fTransversityInitialized = true;
+    
+    fTran_a.resize( 201*6 );
+    fTran_b.resize( 201*6 );
+    fTran_n.resize( 201*6 );
+    fTran_m2.resize( 201*6 ); //does not appear to be used in any of the cross section or asymmetry calculations:
+
+    //look in current working directory or $G4SBS/share/transversity_grids/
+    G4String gridpath = "./";
+    char *prefix = std::getenv("G4SBS");
+
+    if( prefix != NULL ){ 
+      gridpath = prefix;
+      gridpath += "/share/transversity_grids/";
+    }
+
+    G4String gridfilename = gridpath + "transversity_parameters.dat"; //this is supposed to be the "central" set:
+    
+    ifstream gridfile( gridfilename.data() );
+
+    int iset = 0, iparton=0;
+
+    double dummy; //to hold parameter "errors"
+    
+    for( iparton=0; iparton<6; iparton++ ){
+      gridfile >> fTran_a[iparton + 6*iset] >> dummy
+	       >> fTran_b[iparton + 6*iset] >> dummy
+	       >> fTran_n[iparton + 6*iset] >> dummy
+	       >> fTran_m2[iparton + 6*iset] >> dummy;
+
+      fTran_m2[iparton + 6*iset] *= pow(CLHEP::GeV,2);
+    }
+
+    
+    
+    gridfile.close();
+    
+    //Now read in the 200 parameter sets to define error bands:
+    gridfilename = gridpath + "transversity_sets.dat"; //These are supposed to be the "error" sets
+
+    gridfile.open( gridfilename );
+    
+    for( iset=1; iset<=200; iset++ ){
+      for( iparton=0; iparton<6; iparton++ ){
+	gridfile >> fTran_a[iparton+6*iset] >> fTran_b[iparton+6*iset]
+		 >> fTran_n[iparton+6*iset] >> fTran_m2[iparton+6*iset];
+
+	fTran_m2[iparton + 6*iset] *= pow(CLHEP::GeV,2);
+      }     
+    }
+  }
+
+  //assumed order of partons is:
+  // u, d, ubar, dbar, s = sbar?
+
+  if( h1_partons.size() < 6 ) h1_partons.resize(6);
+  
+  for( int iparton=0; iparton<6; iparton++ ){
+    double a = fTran_a[iparton+6*set];
+    double b = fTran_b[iparton+6*set];
+    double n = fTran_n[iparton+6*set];
+
+    //This returns the magnitude of the transversity density:
+    h1_partons[iparton] = Soffer[iparton]/x*n*pow(x/a,a)*pow((1.0-x)/b,b) * pow(a+b,a+b);
+  }
+  
+  
+}
+
+//The sivers model has no built-in Q^2 dependence:
+void G4SBSEventGen::Sivers( G4double x, vector<double> &siv_partons, int set ){
+  
+  if( !fSiversInitialized ){
+    fSiversInitialized = true;
+    
+    fSiv_a.resize( 201*6 );
+    fSiv_b.resize( 201*6 );
+    fSiv_n.resize( 201*6 );
+    fSiv_m2.resize( 201*6 ); //does not appear to be used in any of the cross section or asymmetry calculations:
+
+    //look in current working directory or $G4SBS/share/transversity_grids/
+    G4String gridpath = "./";
+    char *prefix = std::getenv("G4SBS");
+
+    if( prefix != NULL ){ 
+      gridpath = prefix;
+      gridpath += "/share/transversity_grids/";
+    }
+
+    G4String gridfilename = gridpath + "sivers_parameters.dat";
+    
+    ifstream gridfile( gridfilename.data() );
+
+    int iset = 0, iparton=0;
+
+    double dummy; //to hold parameter "errors"
+    
+    for( iparton=0; iparton<6; iparton++ ){
+      gridfile >> fSiv_a[iparton + 6*iset] >> dummy
+	       >> fSiv_b[iparton + 6*iset] >> dummy
+	       >> fSiv_n[iparton + 6*iset] >> dummy
+	       >> fSiv_m2[iparton + 6*iset] >> dummy;
+
+      fSiv_m2[iparton + 6*iset] *= pow(CLHEP::GeV,2);
+    }
+
+    gridfile.close();
+    
+    //Now read in the 200 parameter sets to define error bands:
+    gridfilename = gridpath + "sivers_sets.dat";
+
+    gridfile.open( gridfilename );
+    
+    for( iset=1; iset<=200; iset++ ){
+      for( iparton=0; iparton<6; iparton++ ){
+	gridfile >> fSiv_a[iparton+6*iset] >> fSiv_b[iparton+6*iset]
+		 >> fSiv_n[iparton+6*iset] >> fSiv_m2[iparton+6*iset];
+
+	fSiv_m2[iparton + 6*iset] *= pow(CLHEP::GeV,2);
+      }
+    }
+  }
+
+  //assumed order of partons is:
+  // u, d, ubar, dbar, s, sbar:
+
+  if( siv_partons.size() < 6 ) siv_partons.resize(6);
+  
+  for( int iparton=0; iparton<6; iparton++ ){
+    double a = fSiv_a[iparton+6*set];
+    double b = fSiv_b[iparton+6*set];
+    double n = fSiv_n[iparton+6*set];
+    double m2 = fSiv_m2[iparton+6*set]; 
+    
+    siv_partons[iparton] = n*pow(x/a,a)*pow((1.0-x)/b,b) * pow(a+b,a+b); //NOTE: this x dependence will later be multiplied by the corresponding unpolarized PDFs in the cross section calculation routine!
+    // G4cout << "iparton, Siv_partons[iparton] = " << iparton << ", " << siv_partons[iparton]
+    // 	   << G4endl;
+  }
+  
+  
+}
+
+//Collins fragmentation function: the Collins model has no built-in Q^2 dependence:
+void G4SBSEventGen::Collins( G4double z, vector<double> &coll_partons, int set ){
+  
+  if( !fCollinsInitialized ){
+    fCollinsInitialized = true;
+    
+    fColl_a.resize( 201*6 );
+    fColl_b.resize( 201*6 );
+    fColl_n.resize( 201*6 );
+    fColl_m2.resize( 201*6 ); //does not appear to be used in any of the cross section or asymmetry calculations:
+
+    //look in current working directory or $G4SBS/share/transversity_grids/
+    G4String gridpath = "./";
+    char *prefix = std::getenv("G4SBS");
+
+    if( prefix != NULL ){ 
+      gridpath = prefix;
+      gridpath += "/share/transversity_grids/";
+    }
+
+    G4String gridfilename = gridpath + "collins_parameters.dat";
+    
+    ifstream gridfile( gridfilename.data() );
+
+    int iset = 0, iparton=0;
+
+    double dummy; //to hold parameter "errors"
+    
+    for( iparton=0; iparton<6; iparton++ ){
+      gridfile >> fColl_a[iparton + 6*iset] >> dummy
+	       >> fColl_b[iparton + 6*iset] >> dummy
+	       >> fColl_n[iparton + 6*iset] >> dummy
+	       >> fColl_m2[iparton + 6*iset] >> dummy;
+
+      //
+      fColl_m2[iparton+6*iset] *= pow(CLHEP::GeV,2); //convert to GEANT4 internal units:
+    }
+
+    gridfile.close();
+    
+    //Now read in the 200 parameter sets to define error bands:
+    gridfilename = gridpath + "collins_sets.dat";
+
+    gridfile.open( gridfilename );
+    
+    for( iset=1; iset<=200; iset++ ){
+      for( iparton=0; iparton<6; iparton++ ){
+	gridfile >> fColl_a[iparton+6*iset] >> fColl_b[iparton+6*iset]
+		 >> fColl_n[iparton+6*iset] >> fColl_m2[iparton+6*iset];
+
+	fColl_m2[iparton+6*iset] *= pow(CLHEP::GeV,2); //convert to GEANT4 internal units:
+      }
+    }
+  }
+
+  //assumed order of partons is:
+  // u, d, ubar, dbar, s = sbar?
+
+  if( coll_partons.size() != 6 ) coll_partons.resize(6);
+
+  //Build in the transverse momentum dependence:
+  
+  for( int iparton=0; iparton<6; iparton++ ){
+    double a = fColl_a[iparton+6*set];
+    double b = fColl_b[iparton+6*set];
+    double n = fColl_n[iparton+6*set];
+    double m2 = fColl_m2[iparton+6*set];
+    
+    coll_partons[iparton] = n*pow(z/a,a)*pow((1.0-z)/b,b) * pow(a+b,a+b); //NOTE: this z dependence will be multiplied by the appropriate unpolarized fragmentation function in the cross section
+    //calculation routine
+  }
+  
+  
+}
+
+double G4SBSEventGen::AUT_Sivers( G4double x, G4double y, G4double Q2, G4double z, G4double PT, vector<double> pdf_unpol, vector<double> fragfunc_unpol, G4SBS::Nucl_t nucleon, int iset ){
+
+  //unpolarized PDFs: same as old generator
+  double u = pdf_unpol[0];
+  double ubar = pdf_unpol[1];
+  double d = pdf_unpol[2];
+  double dbar = pdf_unpol[3];
+  double strange = pdf_unpol[4];
+  double sbar = pdf_unpol[5];
+
+  //unpolarized FFs: same as old generator at least for pion case:
+  double Du = fragfunc_unpol[0];
+  double Dubar = fragfunc_unpol[1];
+  double Dd = fragfunc_unpol[2];
+  double Ddbar = fragfunc_unpol[3];
+  double Ds = fragfunc_unpol[4];
+  double Dsbar = fragfunc_unpol[5];
+  
+  double PT2avg = fSIDISpperp2_avg + pow(z,2) * fSIDISkperp2_avg;
+
+  //Okay, what other ingredients do we need?
+
+  double e_u = 2./3.;
+  double e_d = -1./3.;
+  double e_s = e_d;
+
+  vector<double> f1Tperp_partons;
+
+  Sivers( x, f1Tperp_partons, iset );
+
+  double siv_u = f1Tperp_partons[0]*u;
+  double siv_d = f1Tperp_partons[1]*d;
+  double siv_ubar = f1Tperp_partons[2]*ubar;
+  double siv_dbar = f1Tperp_partons[3]*dbar;
+  double siv_s = f1Tperp_partons[4]*strange;
+  double siv_sbar = f1Tperp_partons[5]*sbar;
+
+  // G4cout << "Sivers (u,d,ubar,dbar,s,sbar)=(" << siv_u << ", " << siv_d << ", " << siv_ubar
+  // 	 << ", " << siv_dbar << ", " << siv_s << ", " << siv_sbar << ")" << G4endl;
+  
+  double Siv_M2 = fSiv_m2[6*iset];
+
+  double Siv_kperp2 = Siv_M2*fSIDISkperp2_avg/(Siv_M2 + fSIDISkperp2_avg);
+  double Siv_PT2 = fSIDISpperp2_avg + pow(z,2)*Siv_kperp2;
+  
+  double denominator = 2.*exp( -pow(PT,2)/PT2avg )/PT2avg *
+    ( pow(e_u,2) * ( u * Du + ubar * Dubar ) +
+      pow(e_d,2) * ( d * Dd + dbar * Ddbar ) +
+      pow(e_s,2) * ( strange * Ds + sbar * Dsbar ) );
+
+  double numerator = sqrt(2.0*exp(1.0))*z*PT/sqrt(Siv_M2) * pow( Siv_kperp2/Siv_PT2, 2 )/fSIDISkperp2_avg * exp( -pow(PT,2)/Siv_PT2 ) *
+    ( pow(e_u,2) * ( siv_u * Du + siv_ubar * Dubar ) +
+      pow(e_d,2) * ( siv_d * Dd + siv_dbar * Ddbar ) +
+      pow(e_s,2) * ( siv_s * Ds + siv_sbar * Dsbar ) );
+
+  if( nucleon == G4SBS::kNeutron ){ //swap distribution functions for quark density (but NOT fragmentation functions) between u and d:
+    denominator = 2.*exp( -pow(PT,2)/PT2avg )/PT2avg *
+      ( pow(e_u,2) * ( d * Du + dbar * Dubar ) +
+	pow(e_d,2) * ( u * Dd + ubar * Ddbar ) +
+	pow(e_s,2) * ( strange * Ds + sbar * Dsbar ) );
+
+    numerator = sqrt(2.0*exp(1.0))*z*PT/sqrt(Siv_M2) * pow( Siv_kperp2/Siv_PT2, 2 )/fSIDISkperp2_avg * exp( -pow(PT,2)/Siv_PT2 ) *
+      ( pow(e_u,2) * ( siv_d * Du + siv_dbar * Dubar ) +
+	pow(e_d,2) * ( siv_u * Dd + siv_ubar * Ddbar ) +
+	pow(e_s,2) * ( siv_s * Ds + siv_sbar * Dsbar ) );
+    
+  }
+
+  // G4cout << "AUT Sivers: transverse momentum-dependent prefactor = " << sqrt(2.0*exp(1.0))*z*PT/sqrt(Siv_M2) * pow( Siv_kperp2/Siv_PT2, 2 )/fSIDISkperp2_avg * exp( -pow(PT,2)/Siv_PT2 ) << G4endl;
+  
+  // G4cout << "AUT Sivers calculation: (numerator, denominator)=(" << numerator << ", "
+  // 	 << denominator << ")" << G4endl;
+  
+  return numerator / denominator; 
+  
+}
+
+double G4SBSEventGen::AUT_Collins( G4double x, G4double y, G4double Q2, G4double z, G4double PT, vector<double> pdf_unpol, vector<double> fragfunc_unpol, G4SBS::Nucl_t nucleon, G4SBS::Hadron_t hadron, int iset ){
+  //Let's state our assumptions:
+  // 1: unpolarized PDFs and fragmentation functions are given in the order u, ubar, d, dbar, s, sbar
+  // 2: we still need the hadron type argument for the calculation of the Collins FF.
+  // 3: we will not need to pass the hadron type argument to the Sivers function, since
+  // the Sivers asymmetry only depends on the unpolarized fragmentation functions:
+  // 4: Dimensionful quantities are assumed to be in internal GEANT4 units, if we want to convert to GeV, we do it here:
+
+  //unpolarized PDFs: using CTEQ6 (same as old generator)
+  double u = pdf_unpol[0];
+  double ubar = pdf_unpol[1];
+  double d = pdf_unpol[2];
+  double dbar = pdf_unpol[3];
+  double strange = pdf_unpol[4];
+  double sbar = pdf_unpol[5];
+
+  //unpolarized fragmentation functions: DSS2007 (same as old generator for pion case)
+  double Du = fragfunc_unpol[0];
+  double Dubar = fragfunc_unpol[1];
+  double Dd = fragfunc_unpol[2];
+  double Ddbar = fragfunc_unpol[3];
+  double Ds = fragfunc_unpol[4];
+  double Dsbar = fragfunc_unpol[5];
+  
+  double PT2avg = fSIDISpperp2_avg + pow(z,2) * fSIDISkperp2_avg;
+
+  double e_u = 2./3.;
+  double e_d = -1./3.;
+  double e_s = e_d;
+  
+  vector<double> h1_partons(6);
+
+  Transversity( x, Q2, h1_partons, iset );
+
+  //h1_partons should now contain 
+
+  vector<double> H1perp_partons(6); 
+
+  Collins( z, H1perp_partons, iset );
+
+  //In fact, only the first two sets of Collins functions are relevant (the "favored" and "unfavored") for our analysis:
+  
+  double pperp2_C[6];
+  double PT2_C[6];
+  double M_C[6];
+  for( int iparton=0; iparton<6; iparton++ ){
+    pperp2_C[iparton] = fColl_m2[iparton+6*iset] * fSIDISpperp2_avg / ( fColl_m2[iparton+6*iset] + fSIDISpperp2_avg );
+    PT2_C[iparton] = pperp2_C[iparton] + pow(z,2)*fSIDISkperp2_avg;
+    M_C[iparton] = sqrt(fColl_m2[iparton]);
+  }
+
+  double H1perp_u, H1perp_d, H1perp_ubar, H1perp_dbar, H1perp_s, H1perp_sbar;
+  double h1_u, h1_d, h1_ubar, h1_dbar, h1_s, h1_sbar;
+
+  h1_u = h1_partons[0];
+  h1_d = -h1_partons[1]; //h1_partons contains the magnitude of h1; evidence from HERMES proton data indicates sign is negative for d quark transversity
+  //all of these are zero for the parameter sets we have:
+  h1_ubar = h1_partons[2];
+  h1_dbar = h1_partons[3];
+  h1_s = h1_partons[4];
+  h1_sbar = h1_partons[5];
+  // note that presently, all the transversity sets other than u and d are forced to zero
+
+  double H1perp_favored = H1perp_partons[0];
+  double H1perp_unfavored = H1perp_partons[1];
+  
+  switch( hadron ){
+  case G4SBS::kPiPlus: //u dbar favored, d ubar unfavored, s, sbar 0
+    H1perp_u = H1perp_favored;
+    H1perp_d = H1perp_unfavored;
+    H1perp_ubar = H1perp_unfavored;
+    H1perp_dbar = H1perp_favored;
+    H1perp_s = 0.0;
+    H1perp_sbar = 0.0;
+    break;
+  case G4SBS::kPiMinus: //d ubar 
+    H1perp_u = H1perp_unfavored;
+    H1perp_d = H1perp_favored;
+    H1perp_ubar = H1perp_favored;
+    H1perp_dbar = H1perp_unfavored;
+    H1perp_s = 0.0;
+    H1perp_sbar = 0.0;
+    break;
+  case G4SBS::kPi0: //u_ubar and d_dbar: Take average of favored and unfavored for all light flavors (not sure how reliable/accurate this will be, but consistent with how we treat the unpolarized FFs for pi0):
+    H1perp_u = 0.5*(H1perp_favored+H1perp_unfavored);
+    H1perp_d = 0.5*(H1perp_favored+H1perp_unfavored);
+    H1perp_ubar = 0.5*(H1perp_favored+H1perp_unfavored);
+    H1perp_dbar = 0.5*(H1perp_favored+H1perp_unfavored);
+    H1perp_s = 0.0;
+    H1perp_sbar = 0.0;
+  case G4SBS::kKPlus: //u sbar
+    H1perp_u = H1perp_favored;
+    H1perp_d = 0.0;
+    H1perp_ubar = H1perp_unfavored;
+    H1perp_dbar = 0.0;
+    H1perp_s = H1perp_unfavored;
+    H1perp_sbar = H1perp_favored;
+    break;
+  case G4SBS::kKMinus: //s ubar 
+    H1perp_u = H1perp_unfavored;
+    H1perp_d = 0.0;
+    H1perp_ubar = H1perp_favored;
+    H1perp_dbar = 0.0;
+    H1perp_s = H1perp_favored;
+    H1perp_sbar = H1perp_unfavored;
+    break; 
+  default:
+    H1perp_u = 0.0;
+    H1perp_d = 0.0;
+    H1perp_ubar = 0.0;
+    H1perp_dbar = 0.0;
+    H1perp_s = 0.0;
+    H1perp_sbar = 0.0;
+    break;
+  }
+
+  //Note that as defined, we need to multiply in the unpolarized fragmentation functions
+  //with a factor of 2 to get the Collins fragmentation functions:
+  H1perp_u *= 2.*Du;
+  H1perp_d *= 2.*Dd;
+  H1perp_ubar *= 2.*Dubar;
+  H1perp_dbar *= 2.*Ddbar;
+  H1perp_s *= 2.*Ds;
+  H1perp_sbar *= 2.*Dsbar;
+  
+  
+  //For now we take all the transverse momentum dependence parameters to be flavor-independent: this is certainly the case for the parameter sets that we have:
+  //The first calculation is for the proton:
+  double numerator = PT/M_C[0] * (1.0-y)/(1.0+pow(1.0-y,2)) * sqrt(2.0*exp(1.0)) * pow( pperp2_C[0]/PT2_C[0], 2 )/fSIDISpperp2_avg * exp( -pow(PT,2)/PT2_C[0] ) *
+    ( pow( e_u, 2 ) * ( h1_u * H1perp_u + h1_ubar * H1perp_ubar ) +
+      pow( e_d, 2 ) * ( h1_d * H1perp_d + h1_dbar * H1perp_dbar ) +
+      pow( e_s, 2 ) * ( h1_s * H1perp_s + h1_sbar * H1perp_sbar ) );
+
+  double denominator = exp( -pow(PT,2)/PT2avg )/PT2avg *
+    ( pow(e_u,2) * ( u * Du + ubar * Dubar ) +
+      pow(e_d,2) * ( d * Dd + dbar * Ddbar ) +
+      pow(e_s,2) * ( strange * Ds + sbar * Dsbar ) );
+
+  if ( nucleon == G4SBS::kNeutron ){ //just swap the roles of u and d quark:
+    numerator = PT/M_C[0] * (1.0-y)/(1.0+pow(1.0-y,2)) * sqrt(2.0*exp(1.0)) * pow( pperp2_C[0]/PT2_C[0], 2 )/fSIDISpperp2_avg * exp( -pow(PT,2)/PT2_C[0] ) *
+      ( pow( e_u, 2 ) * ( h1_d * H1perp_u + h1_dbar * H1perp_ubar ) +
+	pow( e_d, 2 ) * ( h1_u * H1perp_d + h1_ubar * H1perp_dbar ) +
+	pow( e_s, 2 ) * ( h1_s * H1perp_s + h1_sbar * H1perp_sbar ) );
+
+    denominator = exp( -pow(PT,2)/PT2avg )/PT2avg *
+      ( pow(e_u,2) * ( d * Du + dbar * Dubar ) +
+	pow(e_d,2) * ( u * Dd + ubar * Ddbar ) +
+	pow(e_s,2) * ( strange * Ds + sbar * Dsbar ) );
+  }
+  
+  return numerator / denominator;
+}
+// // // // 11a33984f47772444ffb08222f8a978d2bee837e

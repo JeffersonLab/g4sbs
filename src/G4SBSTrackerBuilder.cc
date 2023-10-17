@@ -25,7 +25,8 @@
 #include "G4PhysicalConstants.hh"
 
 G4SBSTrackerBuilder::G4SBSTrackerBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
-
+  fFrontTrackerZoffset = 0.0;
+  fFrontTrackerZoffsetIsSet = false;
 }
 
 G4SBSTrackerBuilder::~G4SBSTrackerBuilder(){;}
@@ -36,7 +37,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *){
 }
 
 //This routine allows us to flexibly position GEM modules without code duplication:
-void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos, unsigned int nplanes, vector<double> zplanes, vector<double> wplanes, vector<double> hplanes, G4String SDname ) 
+void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos, unsigned int nplanes, vector<double> zplanes, vector<double> wplanes, vector<double> hplanes, G4String SDname, G4bool ispolarimeter, G4double yoffset ) 
 {
   //This routine will create and position a GEM tracker consisting of nplanes planes centered at position pos oriented with rotation rot wrt logical volume Mother. 
   //The list of z coordinates, widths and heights of the planes are passed as arguments:
@@ -47,6 +48,8 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
   // Since pos is the nominal position of the tracker with respect to the mother volume, 
   // the positioning of the centers of the tracker planes should be pos + zplane * tracker_zaxis
   G4ThreeVector zaxis(0,0,1);
+  G4ThreeVector yaxis(0,1,0);
+  
   zaxis *= rot->inverse();
   
   G4String TrackerPrefix = SDname; 
@@ -54,7 +57,7 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
   //Create sensitive detector for this tracker:
   G4String GEMSDname = SDname;
   G4String GEMSDname_nopath = SDname;
-  GEMSDname_nopath.remove(0,SDname.last('/')+1);
+  GEMSDname_nopath.erase(0,SDname.find_last_of('/')+1);
   G4String GEMcolname = GEMSDname_nopath; //We have to remove all the directory structure from the Hits collection name or else GEANT4 SDmanager routines will not handle correctly.
   GEMcolname += "HitsCollection";
 
@@ -146,6 +149,8 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
   G4VisAttributes *gemsdvisatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 0.0 ) );
 
+  
+  
   for( gidx = 0; gidx < nplanes; gidx++ ){
     sprintf( cgidx, "%02d", gidx );
 
@@ -195,6 +200,8 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
       new G4PVPlacement( 0, backshieldpos, alshield_log, backshieldphysname, Mother, true, gidx+1, false );
     }
+
+    double zdrift; //z position of center of drift region relative to GEM plane box:
     
     for( gpidx = 0; gpidx < nlayers; gpidx++ ){
       sprintf( cgpidx, "_%02d_%03d_", gidx, gpidx );
@@ -210,23 +217,38 @@ void G4SBSTrackerBuilder::BuildComponent(G4LogicalVolume *Mother, G4RotationMatr
 
       new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, ztemp - gempzsum/2.0 ), gplog, gempphysname, gemlog, false, 0, false ); 
 
-      ztemp += sign*gempz[gpidx]/2.0;
+      
 
       //Assign sensitive volume: why 5?  // SPR: This is the gas drift region
       if( gpidx == 5 ){
 	gplog->SetSensitiveDetector(GEMSD);
 	gplog->SetVisAttributes( gemsdvisatt );
 	// Until we implement actual strips/wires in the GEM construction, the detmap is irrelevant for the GEMs
+	zdrift = ztemp - gempzsum/2.0;
       } else {
-	gplog->SetVisAttributes( G4VisAttributes::Invisible );
+	gplog->SetVisAttributes( G4VisAttributes::GetInvisible() );
       }
+
+      ztemp += sign*gempz[gpidx]/2.0;
+      
     }
 
     G4String gemname = TrackerPrefix + G4String("_gemphys_") + cgidx;
     //Now place the fully constructed GEM plane in the mother logical volume:
     //G4ThreeVector plane_pos = pos + G4ThreeVector( 0.0, 0.0, zplanes[gidx] );
-    G4ThreeVector plane_pos = pos + zplanes[gidx] * zaxis;
+    G4ThreeVector plane_pos = pos + zplanes[gidx] * zaxis + yoffset * yaxis;
     //Now we are positioning the GEM AFTER positioning all of its components inside its logical volume:
+    if( gidx == 0 ){ //set Z offset of GEMSD to equal the center of the drift region of first GEM
+
+      //NOTE: the typical wor
+      
+      if( ispolarimeter && fFrontTrackerZoffsetIsSet ){
+	GEMSD->SetZoffset( GetFrontTrackerZoffset() );
+      } else {
+	GEMSD->SetZoffset( plane_pos.getZ() + zdrift );
+	SetFrontTrackerZoffset( GEMSD->GetZoffset() );
+      } 
+    }
     new G4PVPlacement( rot, plane_pos, gemlog, gemname, Mother, true, gidx+1, false );
   }
 }

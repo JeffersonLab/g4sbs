@@ -22,7 +22,6 @@
 using namespace CLHEP;
 using namespace G4SBS;
 
-
 class G4SBSTDISGen //should I use inheritance (CA)
 {
 public: 

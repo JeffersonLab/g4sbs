@@ -35,6 +35,7 @@ G4SBSIO::G4SBSIO(){
   //Easiest (but not necessarily best?) way is to store a pointer to G4SBSIO as a data member of G4SBSDetectorConstruction so they can
   //directly talk to each other?
   gendata.Ebeam = 2.2;
+  gendata.Ibeam = 1.0;
   gendata.thbb = 40.0*CLHEP::deg;
   gendata.dbb = 1.5;
   gendata.thsbs = 39.4*CLHEP::deg;
@@ -75,10 +76,17 @@ G4SBSIO::G4SBSIO(){
   PulseShape_histograms = NULL;
     
   fUsePythia = false;
+  // // // // HEAD
   fExclPythia = false;
   
   // TDIS
   fUseAcquMC = false;
+  // // // // 
+  
+  fUseSIMC = false;
+
+  fKineType = G4SBS::kElastic;
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   
   fNhistograms = 0;
 
@@ -167,12 +175,42 @@ void G4SBSIO::InitializeTree(){
   fNhistograms = 0;
     
   fTree = new TTree("T", "Geant4 SBS Simulation");
-  // Added variables for TDIS
-  fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:KE/D:sigmaELA/D:sigmaQE/D:sigmaSIDIS/D:sigmaDIS/D:sigmaTDIS/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:p1p/D:p2p/D:pip/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:p1px/D:p1py/D:p1pz/D:p2px/D:p2py/D:p2pz/D:pipx/D:pipy/D:pipz/D:nth/D:nph/D:p1th/D:p1ph/D:p2th/D:p2ph/D:pith/D:piph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:phiS/D:thetaS/D:MX2/D:Sx/D:Sy/D:Sz/D:xpi/D:tpi/D:xa/D:pt/D:nu/D:ya/D:y/D:f2p/D:f2pi/D:ypi/D:s/D:t/D:u/D:costhetaCM/D:Egamma/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
-  //fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:sigmaDIS/D:sigmaTDIS/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:p1p/D:p2p/D:pip/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:p1px/D:p1py/D:p1pz/D:p2px/D:p2py/D:p2pz/D:pipx/D:pipy/D:pipz/D:nth/D:nph/D:p1th/D:p1ph/D:p2th/D:p2ph/D:pith/D:piph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:phiS/D:thetaS/D:MX2/D:Sx/D:Sy/D:Sz/D:xpi/D:tpi/D:xa/D:pt/D:nu/D:ya/D:y/D:f2p/D:f2pi/D:ypi/D:s/D:t/D:u/D:costhetaCM/D:Egamma/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
+// // // // HEAD
+// //   // Added variables for TDIS
+// //   fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:KE/D:sigmaELA/D:sigmaQE/D:sigmaSIDIS/D:sigmaDIS/D:sigmaTDIS/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:p1p/D:p2p/D:pip/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:p1px/D:p1py/D:p1pz/D:p2px/D:p2py/D:p2pz/D:pipx/D:pipy/D:pipz/D:nth/D:nph/D:p1th/D:p1ph/D:p2th/D:p2ph/D:pith/D:piph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:phiS/D:thetaS/D:MX2/D:Sx/D:Sy/D:Sz/D:xpi/D:tpi/D:xa/D:pt/D:nu/D:ya/D:y/D:f2p/D:f2pi/D:ypi/D:s/D:t/D:u/D:costhetaCM/D:Egamma/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
+// //   //fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:sigmaDIS/D:sigmaTDIS/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:p1p/D:p2p/D:pip/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:p1px/D:p1py/D:p1pz/D:p2px/D:p2py/D:p2pz/D:pipx/D:pipy/D:pipz/D:nth/D:nph/D:p1th/D:p1ph/D:p2th/D:p2ph/D:pith/D:piph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:phiS/D:thetaS/D:MX2/D:Sx/D:Sy/D:Sz/D:xpi/D:tpi/D:xa/D:pt/D:nu/D:ya/D:y/D:f2p/D:f2pi/D:ypi/D:s/D:t/D:u/D:costhetaCM/D:Egamma/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
   
+// //   //fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
+// //   //fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:voffhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
+// // // // 
+
+  // Let's stop changing the ev_t data structure, because it screws up reading of the tree in the future. If we want to store any other event-specific information,
+  // then let's add dedicated tree branches to hold said information:
+  fTree->Branch("ev", &evdata, "count/D:rate/D:solang/D:sigma/D:W2/D:xbj/D:Q2/D:th/D:ph/D:Aperp/D:Apar/D:Pt/D:Pl/D:vx/D:vy/D:vz/D:ep/D:np/D:epx/D:epy/D:epz/D:npx/D:npy/D:npz/D:nth/D:nph/D:pmperp/D:pmpar/D:pmparsm/D:z/D:phperp/D:phih/D:phiS/D:thetaS/D:MX2/D:Sx/D:Sy/D:Sz/D:s/D:t/D:u/D:costhetaCM/D:Egamma/D:nucl/I:fnucl/I:hadr/I:earmaccept/I:harmaccept/I");
+  fTree->Branch("ev_tdis", &evtdisdata, "KE/D:sigmaELA/D:sigmaQE/D:sigmaSIDIS/D:sigmaDIS/D:sigmaTDIS/D:p1p/D:p2p/D:pip/D:p1py/D:p1pz/D:p2px/D:p2py/D:p2pz/D:pipx/D:pipy/D:pipz/D:p1th/D:p1ph/D:p2th/D:p2ph/D:pith/D:piph/D:ya/D:y/D:f2p/D:f2pi/D:ypi/D");
   //fTree->Branch("tr", &trdata, "x/D:y/D:xp/D:yp/D:tx/D:ty/D:txp/D:typ/D:hcal/I:bb/I:gemtr/I:hcx/D:hcy/D:bcx/D:bcy/D:hct/D:hctex/D:hclx/D:hcly/D:hclz/D:hcdang/D");
   //fTree->Branch("gen", &gendata, "thbb/D:thsbs/D:dbb/D:dsbs/D:dhcal/D:voffhcal/D:drich/D:dsbstrkr/D:Ebeam/D");
+
+  //Going forward, all new event-level variables and tree branches you want to add should go in their own branches. We start with the new SIDIS ones:
+  //The beam and target polarization information will be potentially useful for all generators
+  fTree->Branch( "TargPol", &fTargPol, "TargPol/D" );
+  fTree->Branch( "TargThetaSpin", &fTargThetaSpin, "TargThetaSpin/D");
+  fTree->Branch( "TargPhiSpin", &fTargPhiSpin, "TargPhiSpin/D");
+  fTree->Branch( "BeamPol", &fBeamPol, "BeamPol/D");
+  fTree->Branch( "BeamThetaSpin", &fBeamThetaSpin, "BeamThetaSpin/D" );
+  fTree->Branch( "BeamPhiSpin", &fBeamPhiSpin, "BeamPhiSpin/D" );
+
+  if( fKineType == G4SBS::kSIDIS ){ //Create branches for Collins and Sivers asymmetries (eventually others, like quark flavor contributions to cross sections/asymmetries/etc)
+    fTree->Branch("AUT_Collins", &fAUT_Collins, "AUT_Collins/D");
+    fTree->Branch("AUT_Sivers", &fAUT_Sivers, "AUT_Sivers/D" );
+    fTree->Branch("AUT_Collins_min", &fAUT_Collins_min, "AUT_Collins_min/D");
+    fTree->Branch("AUT_Collins_max", &fAUT_Collins_max, "AUT_Collins_max/D");
+    fTree->Branch("AUT_Sivers_min", &fAUT_Sivers_min, "AUT_Sivers_min/D");
+    fTree->Branch("AUT_Sivers_max", &fAUT_Sivers_max, "AUT_Sivers_max/D");
+  }
+  
+  
+// // // // 11a33984f47772444ffb08222f8a978d2bee837e
   
   //Instead of having the same tree structure as before, we want to dynamically generate tree branches depending on what kinds of detectors are present: Since we already require the ROOT libraries, we might as well use TStrings:
     
@@ -259,7 +297,8 @@ void G4SBSIO::InitializeTree(){
 
       if( SDtype == G4SBS::kGEM || SDtype == G4SBS::kCAL ||
 	  fUsingCerenkov || fUsingScintillation ){
-
+	// NOTE: the above if condition is written this way because if the SDtype is ECAL or RICH, we only want to enable the SDtrack branches
+	// if at least one optical photon-producing process is turned on!
 	keepanysdtracks = true;
 	//BranchSDTracks( SDname );
       }
@@ -279,122 +318,10 @@ void G4SBSIO::InitializeTree(){
     BranchPythia();
   }
 
-  // // Tedious, but we want dynamically scaled
-  // fTree->Branch("ht.ndata", &hitdata.ndata, "ht.ndata/I");
-  // fTree->Branch("ht.gid", &hitdata.gid, "ht.gid[ht.ndata]/I");
-  // fTree->Branch("ht.trkrid", &hitdata.trkrid, "ht.trkrid[ht.ndata]/I");
-  // fTree->Branch("ht.x", &hitdata.x, "ht.x[ht.ndata]/D");
-  // fTree->Branch("ht.y", &hitdata.y, "ht.y[ht.ndata]/D");
-  // fTree->Branch("ht.z", &hitdata.z, "ht.z[ht.ndata]/D");
-  // fTree->Branch("ht.t", &hitdata.t, "ht.t[ht.ndata]/D");
-  // fTree->Branch("ht.vx", &hitdata.vx, "ht.vx[ht.ndata]/D");
-  // fTree->Branch("ht.vy", &hitdata.vy, "ht.vy[ht.ndata]/D");
-  // fTree->Branch("ht.vz", &hitdata.vz, "ht.vz[ht.ndata]/D");
-  // fTree->Branch("ht.dx", &hitdata.dx, "ht.dx[ht.ndata]/D");
-  // fTree->Branch("ht.dy", &hitdata.dy, "ht.dy[ht.ndata]/D");
-  // fTree->Branch("ht.p", &hitdata.p, "ht.p[ht.ndata]/D");
-
-  // fTree->Branch("ht.trid", &hitdata.trid, "ht.trid[ht.ndata]/I");
-  // fTree->Branch("ht.pid", &hitdata.pid, "ht.pid[ht.ndata]/I");
-  // fTree->Branch("ht.mid", &hitdata.mid, "ht.mid[ht.ndata]/I");
-  // fTree->Branch("ht.edep", &hitdata.edep, "ht.edep[ht.ndata]/D");
-
-  // fTree->Branch("ht.tx", &hitdata.tx, "ht.tx[ht.ndata]/D");
-  // fTree->Branch("ht.ty", &hitdata.ty, "ht.ty[ht.ndata]/D");
-  // fTree->Branch("ht.txp", &hitdata.txp, "ht.txp[ht.ndata]/D");
-  // fTree->Branch("ht.typ", &hitdata.typ, "ht.typ[ht.ndata]/D");
-
-  // fTree->Branch("hc.ndata", &caldata.hcndata, "hc.ndata/I");
-  // fTree->Branch("hc.x", &caldata.hcx, "hc.x[hc.ndata]/D");
-  // fTree->Branch("hc.y", &caldata.hcy, "hc.y[hc.ndata]/D");
-  // fTree->Branch("hc.z", &caldata.hcz, "hc.z[hc.ndata]/D");
-  // fTree->Branch("hc.e", &caldata.hce, "hc.e[hc.ndata]/D");
-  // fTree->Branch("hc.t", &caldata.hct, "hc.t[hc.ndata]/D");
-  // fTree->Branch("hc.vx", &caldata.hcvx, "hc.vx[hc.ndata]/D");
-  // fTree->Branch("hc.vy", &caldata.hcvy, "hc.vy[hc.ndata]/D");
-  // fTree->Branch("hc.vz", &caldata.hcvz, "hc.vz[hc.ndata]/D");
-  // fTree->Branch("hc.trid", &caldata.hctrid, "hc.trid[hc.ndata]/I");
-  // fTree->Branch("hc.mid", &caldata.hcmid, "hc.mid[hc.ndata]/I");
-  // fTree->Branch("hc.pid", &caldata.hcpid, "hc.pid[hc.ndata]/I");
-
-  // fTree->Branch("bc.ndata", &caldata.bcndata, "bc.ndata/I");
-  // fTree->Branch("bc.x", &caldata.bcx, "bc.x[bc.ndata]/D");
-  // fTree->Branch("bc.y", &caldata.bcy, "bc.y[bc.ndata]/D");
-  // fTree->Branch("bc.z", &caldata.bcz, "bc.z[bc.ndata]/D");
-  // fTree->Branch("bc.e", &caldata.bce, "bc.e[bc.ndata]/D");
-  // fTree->Branch("bc.t", &caldata.bct, "bc.t[bc.ndata]/D");
-  // fTree->Branch("bc.vx", &caldata.bcvx, "bc.vx[bc.ndata]/D");
-  // fTree->Branch("bc.vy", &caldata.bcvy, "bc.vy[bc.ndata]/D");
-  // fTree->Branch("bc.vz", &caldata.bcvz, "bc.vz[bc.ndata]/D");
-  // fTree->Branch("bc.trid", &caldata.bctrid, "bc.trid[bc.ndata]/I");
-  // fTree->Branch("bc.mid", &caldata.bcmid, "bc.mid[bc.ndata]/I");
-  // fTree->Branch("bc.pid", &caldata.bcpid, "bc.pid[bc.ndata]/I");
-
-  // //Declare new "vectorized" Tracking output branches:
-  // fTree->Branch("ntracks", &(trackdata.ntracks), "ntracks/I");
-  // fTree->Branch("trackerid", &(trackdata.TrackerID) );
-  // fTree->Branch("trackid", &(trackdata.TrackTID) );
-  // fTree->Branch("trackpid", &(trackdata.TrackPID) );
-  // fTree->Branch("tracknhits", &(trackdata.NumHits) );
-  // fTree->Branch("tracknplanes", &(trackdata.NumPlanes) );
-  // fTree->Branch("trackndf", &(trackdata.NDF) );
-  // fTree->Branch("trackchi2", &(trackdata.Chi2fit) );
-  // fTree->Branch("trackchi2true", &(trackdata.Chi2true) );
-  // fTree->Branch("trackx", &(trackdata.TrackX) );
-  // fTree->Branch("tracky", &(trackdata.TrackY) );
-  // fTree->Branch("trackxp", &(trackdata.TrackXp) );
-  // fTree->Branch("trackyp", &(trackdata.TrackYp) );
-  // fTree->Branch("trackt", &(trackdata.TrackT) );
-  // fTree->Branch("trackp", &(trackdata.TrackP) );
-  // fTree->Branch("trackxfit", &(trackdata.TrackXfit) );
-  // fTree->Branch("trackyfit", &(trackdata.TrackYfit) );
-  // fTree->Branch("trackxpfit", &(trackdata.TrackXpfit) );
-  // fTree->Branch("trackypfit", &(trackdata.TrackYpfit) );
-
-  // //Declare RICH-related branches of the tree:
-  // //richdata are stored as STL vectors (basically dynamically sized arrays). Newer ROOT versions know how to handle this, older may not.
-  // fTree->Branch("RICH_nhits", &(richdata.nhits_RICH), "nhits_RICH/I");
-  // fTree->Branch("RICH_pmt", &(richdata.PMTnumber) );
-  // fTree->Branch("RICH_row", &(richdata.row) );
-  // fTree->Branch("RICH_col", &(richdata.col) );
-  // fTree->Branch("RICH_nphe", &(richdata.NumPhotoelectrons) );
-  // fTree->Branch("RICH_tavg", &(richdata.Time_avg) );
-  // fTree->Branch("RICH_trms", &(richdata.Time_rms) );
-  // fTree->Branch("RICH_mID", &(richdata.mTrackNo) );
-  // fTree->Branch("RICH_vol", &(richdata.volume_flag) );
-  // fTree->Branch("RICH_xhit", &(richdata.xhit) );
-  // fTree->Branch("RICH_yhit", &(richdata.yhit) );
-  // fTree->Branch("RICH_zhit", &(richdata.zhit) );
-  // fTree->Branch("RICH_pxhit", &(richdata.pxhit) );
-  // fTree->Branch("RICH_pyhit", &(richdata.pyhit) );
-  // fTree->Branch("RICH_pzhit", &(richdata.pzhit) );
-  // fTree->Branch("RICH_vxhit", &(richdata.pvx) );
-  // fTree->Branch("RICH_vyhit", &(richdata.pvy) );
-  // fTree->Branch("RICH_vzhit", &(richdata.pvz) );
-  // fTree->Branch("RICH_vpxhit", &(richdata.ppx) );
-  // fTree->Branch("RICH_vpyhit", &(richdata.ppy) );
-  // fTree->Branch("RICH_vpzhit", &(richdata.ppz) );
-  // //The RICH parent track data only gets filled if /tracking/storeTrajectory 1 has been issued by the user (because keeping track of this info is CPU and memory intensive).
-  // fTree->Branch("RICH_ntracks", &(richdata.ntracks_RICH), "ntracks_RICH/I");
-  // fTree->Branch("RICH_mPID", &(richdata.mPID) );
-  // fTree->Branch("RICH_mTID", &(richdata.mTID) );
-  // fTree->Branch("RICH_mMID", &(richdata.mMID) );
-  // fTree->Branch("RICH_mvx", &(richdata.mvx) );
-  // fTree->Branch("RICH_mvy", &(richdata.mvy) );
-  // fTree->Branch("RICH_mvz", &(richdata.mvz) );
-  // fTree->Branch("RICH_mpx", &(richdata.mpx) );
-  // fTree->Branch("RICH_mpy", &(richdata.mpy) );
-  // fTree->Branch("RICH_mpz", &(richdata.mpz) );
-
-  // //ECal uses the same approach as RICH
-  // fTree->Branch("ECal_nhits", &(ecaldata.nhits_ECal), "nhits_ECal/I");
-  // fTree->Branch("ECal_pmt", &(ecaldata.PMTnumber) );
-  // fTree->Branch("ECal_row", &(ecaldata.row) );
-  // fTree->Branch("ECal_col", &(ecaldata.col) );
-  // fTree->Branch("ECal_nphe", &(ecaldata.NumPhotoelectrons) );
-  // fTree->Branch("ECal_tavg", &(ecaldata.Time_avg) );
-  // fTree->Branch("ECal_trms", &(ecaldata.Time_rms) );
-  //fTree->Print();
+  if( fUseSIMC ){
+    BranchSIMC();
+  }
+  
   return;
 }
 
@@ -1023,6 +950,7 @@ void G4SBSIO::BranchPythia(){
   fTree->Branch("Primaries.phi",&(Primaries.phi));
 }
 
+// // // // HEAD
 // TDIS AcquMC
 void G4SBSIO::BranchAcquMC(){
   //Per-event variables:
@@ -1035,6 +963,38 @@ void G4SBSIO::BranchAcquMC(){
   fTree->Branch("AcquMCPrimaries.Pt",&(AcquMCPrimaries.Pt),"AcquMCPrimaries.Pt/D");
   fTree->Branch("AcquMCPrimaries.E",&(AcquMCPrimaries.E),"AcquMCPrimaries.E/D");
   fTree->Branch("AcquMCPrimaries.pid",&(AcquMCPrimaries.pid),"AcquMCPrimaries.pid/I");
+}
+// // // // 
+void G4SBSIO::BranchSIMC(){
+  fTree->Branch("simc.sigma",&(SIMCprimaries.sigma),"simc.sigma/D");
+  fTree->Branch("simc.Weight",&(SIMCprimaries.Weight),"simc.Weight/D");
+  fTree->Branch("simc.Q2",&(SIMCprimaries.Q2),"simc.Q2/D");
+  fTree->Branch("simc.xbj",&(SIMCprimaries.xbj),"simc.xbj/D");
+  fTree->Branch("simc.nu",&(SIMCprimaries.nu),"simc.nu/D");
+  fTree->Branch("simc.W",&(SIMCprimaries.W),"simc.W/D");
+  fTree->Branch("simc.epsilon",&(SIMCprimaries.xbj),"simc.epsilon/D");
+  
+  fTree->Branch("simc.Ebeam",&(SIMCprimaries.Ebeam),"simc.Ebeam/D");
+  
+  fTree->Branch("simc.fnucl",&(SIMCprimaries.fnucl),"simc.fnucl/I");
+  fTree->Branch("simc.p_e",&(SIMCprimaries.p_e),"simc.p_e/D");
+  fTree->Branch("simc.theta_e",&(SIMCprimaries.theta_e),"simc.theta_e/D");
+  fTree->Branch("simc.phi_e",&(SIMCprimaries.phi_e),"simc.phi_e/D");
+  fTree->Branch("simc.px_e",&(SIMCprimaries.px_e),"simc.px_e/D");
+  fTree->Branch("simc.py_e",&(SIMCprimaries.py_e),"simc.py_e/D");
+  fTree->Branch("simc.pz_e",&(SIMCprimaries.pz_e),"simc.pz_e/D");
+  fTree->Branch("simc.p_n",&(SIMCprimaries.p_n),"simc.p_n/D");
+  fTree->Branch("simc.theta_n",&(SIMCprimaries.theta_n),"simc.theta_n/D");
+  fTree->Branch("simc.phi_n",&(SIMCprimaries.phi_n),"simc.phi_n/D");
+  fTree->Branch("simc.px_n",&(SIMCprimaries.px_n),"simc.px_n/D");
+  fTree->Branch("simc.py_n",&(SIMCprimaries.py_n),"simc.py_n/D");
+  fTree->Branch("simc.pz_n",&(SIMCprimaries.pz_n),"simc.pz_n/D");
+  
+  fTree->Branch("simc.vx",&(SIMCprimaries.vx),"simc.vx/D");
+  fTree->Branch("simc.vy",&(SIMCprimaries.vy),"simc.vy/D");
+  fTree->Branch("simc.vz",&(SIMCprimaries.vz),"simc.vz/D");
+  
+// // // // 11a33984f47772444ffb08222f8a978d2bee837e
 }
 
 void G4SBSIO::UpdateGenDataFromDetCon(){ //Go with whatever is in fdetcon as of run start for constant parameters of the run describing detector layout:
@@ -1066,6 +1026,7 @@ void G4SBSIO::BranchSDTracks(){
   fTree->Branch(  "OTrack.TID", &(allsdtrackdata.otrid) );
   fTree->Branch(  "OTrack.MID", &(allsdtrackdata.omid) );
   fTree->Branch(  "OTrack.PID", &(allsdtrackdata.opid) );
+  fTree->Branch(  "OTrack.MPID", &(allsdtrackdata.ompid) );
   fTree->Branch(  "OTrack.posx", &(allsdtrackdata.oposx) );
   fTree->Branch(  "OTrack.posy", &(allsdtrackdata.oposy) );
   fTree->Branch(  "OTrack.posz", &(allsdtrackdata.oposz) );
@@ -1099,6 +1060,7 @@ void G4SBSIO::BranchSDTracks(){
   fTree->Branch(  "SDTrack.TID", &(allsdtrackdata.sdtrid) );
   fTree->Branch(  "SDTrack.MID", &(allsdtrackdata.sdmid) );
   fTree->Branch(  "SDTrack.PID", &(allsdtrackdata.sdpid) );
+  fTree->Branch(  "SDTrack.MPID", &(allsdtrackdata.sdmpid) );
   fTree->Branch(  "SDTrack.posx", &(allsdtrackdata.sdposx) );
   fTree->Branch(  "SDTrack.posy", &(allsdtrackdata.sdposy) );
   fTree->Branch(  "SDTrack.posz", &(allsdtrackdata.sdposz) );

@@ -144,7 +144,7 @@ G4bool G4SBSRICHSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
     if( QEvect != NULL ){
       G4double Ephoton = newHit->GetEnergy();
       
-      G4bool inrange = Ephoton >= QEvect->GetMinLowEdgeEnergy() && Ephoton <= QEvect->GetMaxLowEdgeEnergy();
+      G4bool inrange = Ephoton >= QEvect->GetMinEnergy() && Ephoton <= QEvect->GetMaxEnergy();
       
       G4double QEtemp = QEvect->Value( Ephoton );
 

@@ -53,6 +53,7 @@ void GEN_ERR_plots(const char *configfilename, const char *outputfilename="GEN_E
   set<TString> list_of_files;
   map<TString,double> SBStheta_file;
   map<TString,double> BBtheta_file;
+  map<TString,double> BBdist_file;
   map<TString,double> HCALdist_file;
   map<TString,double> HCALvoff_file;
   map<TString,double> HCALhoff_file; //for GEN we can ignore this safely:
@@ -63,6 +64,7 @@ void GEN_ERR_plots(const char *configfilename, const char *outputfilename="GEN_E
   map<TString,double> Genvol_file;
 
   double BBtheta = 34.0 * PI/180.0;
+  double BBdist = 1.63;
   double SBStheta = 17.5 * PI/180.0;
   double HCALdist = 17.0; //m
   double HCALvoff = 0.0;
@@ -87,6 +89,7 @@ void GEN_ERR_plots(const char *configfilename, const char *outputfilename="GEN_E
 	list_of_files.insert(currentline);
 	SBStheta_file[currentline] = rd->fSBStheta;
 	BBtheta_file[currentline] = rd->fBBtheta;
+	BBdist_file[currentline] = rd->fBBdist;
 	HCALdist_file[currentline] = rd->fHCALdist;
 	HCALvoff_file[currentline] = rd->fHCALvoff;
 	HCALhoff_file[currentline] = rd->fHCALhoff;
@@ -100,6 +103,7 @@ void GEN_ERR_plots(const char *configfilename, const char *outputfilename="GEN_E
 
 	//Initialize defaults:
 	BBtheta = rd->fBBtheta;
+	BBdist = rd->fBBdist;
 	SBStheta = rd->fSBStheta;
 	HCALdist = rd->fHCALdist;
 	HCALvoff = rd->fHCALvoff;
@@ -225,6 +229,9 @@ void GEN_ERR_plots(const char *configfilename, const char *outputfilename="GEN_E
   TH1D *hEoverP_HCAL = new TH1D("hEoverP_HCAL","",250,0.0,0.5);
   TH1D *hErecon_HCAL = new TH1D("hErecon_HCAL","",250,0.0,12.0);
   TH1D *hdErecon_HCAL = new TH1D("hdErecon_HCAL","",250,-1.0,1.0);
+
+  //default to distance of 1.63 m:
+  double A_pth1=0.97*0.28615,B_pth1=(0.1976+0.4764*1.63),C_pth1=0.0;
   
   //hpmisspar_vs_W2_proton->SetBit(TH1::kCanRebin, false);
   
@@ -265,12 +272,15 @@ void GEN_ERR_plots(const char *configfilename, const char *outputfilename="GEN_E
 	BBtrackerpitch = sval.Atof()*PI/180.0;
       }
 
+      //we are going to assume the "preconflag=1" formalism for optics reconstruction going forward
       if( skey == "BBopticsfile" ){ //BigBite optics model
 	TString sfname = ( (TObjString*) (*tokens)[1] )->GetString();
 	ifstream opticsfile(sfname.Data() );
 
 	if( opticsfile ) cout << "Opened file " << sfname << endl;
 
+	opticsfile >> A_pth1 >> B_pth1 >> C_pth1;
+	
 	int nterms;
 	opticsfile >> nterms;
 						   
@@ -358,6 +368,7 @@ void GEN_ERR_plots(const char *configfilename, const char *outputfilename="GEN_E
       HCALdist = HCALdist_file[fname];
       HCALvoff = HCALvoff_file[fname];
       HCALhoff = HCALhoff_file[fname];
+      BBdist = BBdist_file[fname];
       Ebeam = Ebeam_file[fname];
       Lumi = Lumi_file[fname];
       GenVol = Genvol_file[fname];
@@ -441,7 +452,15 @@ void GEN_ERR_plots(const char *configfilename, const char *outputfilename="GEN_E
 
       double thetabend_recon = acos( phat_fp.Dot( phat_tgt ) );
 
-      double p_recon = pthetabend_recon/thetabend_recon;
+      //      double p_recon = pthetabend_recon/thetabend_recon;
+
+      double pth_recon1 = A_pth1 * ( 1. + (B_pth1 + C_pth1*BBdist)*xptar_recon );
+
+      double delta = pthetabend_recon;
+
+      //     pth_recon1 *= (1.0 + delta);
+
+      double p_recon = pth_recon1 * (1.0 + delta)/thetabend_recon;
       
       //cout << "p_recon, ptrue = " << p_recon << ", " << (*(T->Earm_BBGEM_Track_P))[0] << endl;
       
@@ -696,9 +715,9 @@ void GEN_ERR_plots(const char *configfilename, const char *outputfilename="GEN_E
 
 	TVector3 hitpos(xclust[imax_clust],yclust[imax_clust],HCALdist);
 
-	TVector3 hitpos_global = hitpos.X() * HCAL_xaxis + hitpos.Y() * HCAL_yaxis + hitpos.Z() * HCAL_zaxis;
+	TVector3 hitpos_global = hitpos.X() * HCAL_xaxis + (hitpos.Y() + HCALvoff)* HCAL_yaxis + hitpos.Z() * HCAL_zaxis;
 
-	TVector3 HCAL_center_pos = HCALdist * HCAL_zaxis;
+	TVector3 HCAL_center_pos = HCALdist * HCAL_zaxis + HCALvoff * HCAL_yaxis;
 
 	TVector3 SDpos_rel = SDTrack_pos - HCAL_center_pos;
 

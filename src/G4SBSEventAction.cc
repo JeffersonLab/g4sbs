@@ -197,6 +197,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     G4SBSTargetoutput cu; 
     G4SBSTargetoutput al; 
     G4SBSTargetoutput he3; 
+
+    sd.Clear();
     
     switch(Det_type){
 
@@ -208,12 +210,12 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	
 	if( gemHC != NULL ){
 
-	  sd = GEMSDptr->SDtracks;
+	  sd = GEMSDptr->SDtracks; //copy GEM SD track output to sd (temporarily)
 
 	  //This should only be called once, otherwise units will be wrong!
 	  sd.ConvertToTreeUnits();
 
-	  sdtemp = &sd;
+	  sdtemp = &sd; //what is the purpose of this line?
 
 	  map<G4String,G4bool>::iterator keep = fIO->GetKeepSDtracks().find( *d );
 
@@ -462,7 +464,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   }
 
   fIO->SetAllSDtrackData( allsdtracks );
-  
+
+  //This copy operation may be inefficient:
   ev_t evdata = fIO->GetEventData();
   evdata.earmaccept = 0;
   evdata.harmaccept = 0;
@@ -567,7 +570,7 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
       // PTrackIndices[gemID][trid] = (*hits)[i]->GetPTrIdx();
       // SDTrackIndices[gemID][trid] = (*hits)[i]->GetSDTrIdx();
 
-      //Changed SDtrackoutput class so that the hit "track indices" are now actually G4 track IDs
+      
       //In principle there is no need to check for existence of the tracks in the list
       OTrackIndices[gemID][trid] = sdtracks.otracklist[(*hits)[i]->GetOTrIdx()];
       PTrackIndices[gemID][trid] = sdtracks.ptracklist[(*hits)[i]->GetPTrIdx()];
@@ -1208,9 +1211,9 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
   ecaloutput.gatewidth = ecaloutput.timewindow;
     
-  G4cout << " ******** timewindow ********* " << ecaloutput.timewindow << endl;
-  G4cout << " ******** threshold ********* " << ecaloutput.threshold << endl;
-  G4cout << " ******** ntimebins ********* " << ecaloutput.ntimebins << endl;
+  //G4cout << " ******** timewindow ********* " << ecaloutput.timewindow << endl;
+  //G4cout << " ******** threshold ********* " << ecaloutput.threshold << endl;
+  //G4cout << " ******** ntimebins ********* " << ecaloutput.ntimebins << endl;
   // *****
   
   //G4MaterialPropertiesTable *MPT; 

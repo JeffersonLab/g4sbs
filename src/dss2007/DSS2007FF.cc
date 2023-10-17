@@ -102,8 +102,8 @@ void DSS2007FF::Interpolate(int ihadron, double x, double Q2, vector<double> &xD
   for(int i=0; i<NQ; i++){ logQ2table[i] = log(Qtable[i]); }
 
   //Initial guesses assume fixed bin width:
-  int ix = int( (logx - logxtable[0])*double(Nx)/(logxtable[Nx-1]-logxtable[0]) );
-  int iq = int( (logQ2 - logQ2table[0])*double(NQ)/(logQ2table[NQ-1]-logQ2table[0]) );
+  int ix = int( (logx - logxtable[0])*double(Nx-1)/(logxtable[Nx-1]-logxtable[0]) );
+  int iq = int( (logQ2 - logQ2table[0])*double(NQ-1)/(logQ2table[NQ-1]-logQ2table[0]) );
 
   //Increment or decrement bin numbers until we are in the correct bin:
   while( logx > logxtable[ix+1] ){ ix++; } //log(x) is above the bin upper edge, increment bin by 1
@@ -177,7 +177,7 @@ void DSS2007FF::GetFFs( int ihadron, int icharge, double z, double Q2, vector<do
     Dqh[3] = DBp; //Ddbarh
     Dqh[4] = Sp;
     Dqh[5] = SBp;
-  } else if( icharge == -1 ){ //-charge:
+  } else if( icharge == -1 ){ //-charge: exchange quarks and antiquarks
     Dqh[0] = UBp; //Duh
     Dqh[1] = Up; //Dubarh
     Dqh[2] = DBp; //Ddh

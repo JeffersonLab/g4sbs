@@ -89,7 +89,8 @@
 /g4sbs/sbsclampopt     0                 ## Disable all field clamps
 
 /g4sbs/solunifield	true
-/g4sbs/solunimag	4.7
+#/g4sbs/solunimag	4.7
+/g4sbs/solunimag	1.5
 #/g4sbs/soltoscafield	true
 #/g4sbs/soltoscascale	1.0
 #/g4sbs/soltoscaoffset	200.0 mm

@@ -45,7 +45,8 @@
 using namespace std;
 
 G4SBSCDet::G4SBSCDet(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
-  fR0 = 4050.0*cm;
+  //fR0 = 4050.0*cm;
+  fR0 = 405.0*cm;
   fZ0 = -426.5*cm;
   fPlanesHOffset = 0.0;
   fPlanesInterDist = 1.0*cm;
@@ -109,6 +110,7 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
   G4LogicalVolume *WLSFiberLog = new G4LogicalVolume( WLSfiber, GetMaterial("BCF_92"), "WLSFiberLog" );
   G4LogicalVolume *WLSCladdingLog = new G4LogicalVolume( WLScladding, GetMaterial("CDET_Acrylic"), "WLSCladdingLog" );
 
+  //place everything so far into Scint_module logical volume
   new G4PVPlacement( 0, G4ThreeVector( 0,0,0 ), ScintWrapLog, "ScintWrapPhys", Scint_module, false, 0 );
   new G4PVPlacement( 0, G4ThreeVector( -mylar_thick/2.0, 0, 0 ), ScintStripLog, "ScintStripPhys", Scint_module, false, 0 );
   new G4PVPlacement( rot_fiber, G4ThreeVector( -mylar_thick/2.0, 0, 0 ), WLSFiberLog, "WLSFiberPhys", Scint_module, false, 0 );
@@ -171,8 +173,15 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
   //Nominal distance to CDET used to define the projective geometry:
   //G4double R0_CDET = 405.0*cm;
   //Nominal distance to planes:
-  G4double R0_planes[2] = { fR0 + Lz_scint/2.0 + 1.0*cm,
-			    fR0 + 3.0*Lz_scint/2.0 + 1.0*cm + fPlanesInterDist }; //allow for some small (1 cm) gaps between CH2 and start of 1st plane and between 1st and second planes...
+
+  //Relative distance between the two planes is 7.25in according to JT model
+  G4double planes_zDisplacement = 7.25*2.54*cm;
+
+  G4double R0_planes[2] = {fR0 + Lz_scint/2.0 + 1.0*cm,
+			   fR0 + Lz_scint/2.0 + 1.0*cm + planes_zDisplacement};
+
+  //G4double R0_planes[2] = { fR0 + Lz_scint/2.0 + 1.0*cm,
+  //                          fR0 + 3.0*Lz_scint/2.0 + 1.0*cm + fPlanesInterDist}; //allow for some small (1 cm) gaps between CH2 and start of 1st plane and between 1st and second planes...
 
   G4int istrip=0;
   
@@ -253,7 +262,7 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
     }
   }
 
-  Scint_module->SetVisAttributes( G4VisAttributes::Invisible );
+  Scint_module->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *scintstrip_visatt = new G4VisAttributes( G4Colour( 0.8, 0, 0.8 ) );
   ScintStripLog->SetVisAttributes( scintstrip_visatt );

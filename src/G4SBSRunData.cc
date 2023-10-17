@@ -19,6 +19,7 @@ G4SBSRunData::G4SBSRunData(){
     fNthrown = -1;
     fNtries = -1;
     fBeamE   = -1e9;
+    fBeamCur   = -1e9;
     fExpType[0]  = '\0';
     fGenName[0]  = '\0';
     fGitInfo[0]  = '\0';
@@ -33,6 +34,7 @@ void G4SBSRunData::Init(){
     fNthrown = 0;
     fNtries = 0;
     fBeamE   = 0;
+    fBeamCur   = 0;
     fNormalization = 1.0;
     fGenVol = 4.0*pi;
     fLuminosity = 0.0;
@@ -46,6 +48,7 @@ void G4SBSRunData::Init(){
     fSBSTrackerdist = 4.5*meter;
     fSBSTrackerPitch = 0.0*degree;
     
+    fFileName = "";
     strcpy(fExpType, "default");
     strcpy(fGenName, "default");
     strcpy(fGitInfo, gGitInfoStr);
@@ -71,6 +74,8 @@ void G4SBSRunData::Print() const {
    sprintf(msg,"N_tries,%ld",fNtries);
    line.push_back(msg);
    sprintf(msg,"Beam_Energy_GeV,%f",fBeamE);
+   line.push_back(msg);
+   sprintf(msg,"Beam_Current_muA,%f",fBeamCur);
    line.push_back(msg);
    sprintf(msg,"Experiment,%s",fExpType);
    line.push_back(msg);
@@ -105,10 +110,14 @@ void G4SBSRunData::Print() const {
 
    const int NL = line.size(); 
 
+   // constructing the name of resulting CSV file
+   TString csvtemp = fFileName;
+   csvtemp.ReplaceAll(".root", ".csv");
+
    std::ofstream outfile;
-   outfile.open("run-data.csv"); 
+   outfile.open(csvtemp.Data()); 
    if( outfile.fail() ){
-      std::cout << "[G4SBSRunData::Print]: Cannot open the file: run-data.csv" << std::endl;
+     std::cout << "[G4SBSRunData::Print]: Cannot open the file: " << csvtemp << std::endl;
    }else{
       for(int i=0;i<NL;i++) outfile << line[i] << std::endl;
       outfile.close();
@@ -123,6 +132,7 @@ void G4SBSRunData::Print(Option_t *) const {
     printf("N generated = %ld\n", fNthrown);
     printf("N tries     = %ld\n", fNtries);
     printf("Beam Energy = %f GeV\n", fBeamE);
+    printf("Beam Current = %f muA\n", fBeamCur);
     printf("Experiment  = %s\n", fExpType);
     printf("Generator   = %s\n", fGenName);
     printf("Normalization = %8.5g\n", fNormalization);

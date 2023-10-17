@@ -1,0 +1,171 @@
+## Configure G4SBS for gep (Q^2 = 12 GeV^2)
+/g4sbs/filename        gep_BB_10GeV2.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gep_bb
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         25.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         50.0 microampere
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           8.5 GeV
+/g4sbs/thmin           25.5 deg
+/g4sbs/thmax           45.5 deg
+/g4sbs/phmin           -45.0 deg
+/g4sbs/phmax           45.0 deg
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        9.0 m
+/g4sbs/hcalvoffset     45.0 cm
+/g4sbs/sbsclampopt     2
+
+## Configure the magnets
+/g4sbs/bbfield         1
+#/g4sbs/tosfield        GEP_12map0_newheader.table
+/g4sbs/sbsmagfield  	1.4 tesla
+/g4sbs/48d48field 	1
+/g4sbs/bbang           35.5 deg
+/g4sbs/bbdist          1.55 m
+/g4sbs/sbsang          17.3 deg
+/g4sbs/48D48dist       2.25 m
+
+#/control/execute scripts/default_thresholds.mac
+/g4sbs/totalabs true
+/g4sbs/treeflag 1
+/g4sbs/eventstatusevery 100
+/g4sbs/keepsdtrackinfo all true
+#/g4sbs/keepsdtrackinfo Harm/HCalScint true
+
+# FPP configuration options:
+# option 1: single-analyzer, 8+8 front and back trackers:
+#/g4sbs/gepfppoption 1
+#/g4sbs/FPP1CH2thick 55.88 cm
+
+# option 2: double-analyzer (both CH2)
+#/g4sbs/gepfppoption 2
+#/g4sbs/FPP1CH2thick 55.88 cm
+#/g4sbs/FPP2CH2thick 55.88 cm
+
+# option 3: double-analyzer, first analyzer CH2, second analyz
+#/g4sbs/gepfppoption 3
+#/g4sbs/FPP1CH2thick 55.88 cm
+#/g4sbs/FPP2CH2thick
+
+# option 4: single-analyzer
+/g4sbs/gepfppoption 4
+/g4sbs/FPP1CH2thick 90.0 cm
+
+## Run 100 events
+#/g4sbs/run             100000
+
+
+/g4sbs/gepfppoption 1
+/g4sbs/FPP1CH2thick 100.0 cm
+# start with wide-open cuts:
+#/g4sbs/thmin 0 deg
+#/g4sbs/thmax 180 deg
+#/g4sbs/phmin -180 deg
+#/g4sbs/phmax 180 deg
+#/g4sbs/eemin 0. GeV
+#/g4sbs/eemax 15. GeV
+#/g4sbs/keephistory Harm/FT true
+#/g4sbs/keephistory Harm/FPP1 1
+#/g4sbs/keephistory Harm/FPP2 0
+#/g4sbs/keephistory Earm/ECAL false
+
+# Use this open statement to create an OpenGL view:
+/vis/open OGLIQt 800x800-0+0
+#
+# Use this open statement to create a .prim file suitable for
+# viewing in DAWN:
+#/vis/open DAWNFILE
+#
+# Use this open statement to create a .heprep file suitable for
+# viewing in HepRApp:
+#/vis/open HepRepFile
+#
+# Use this open statement to create a .wrl file suitable for
+# viewing in a VRML viewer:
+#/vis/open VRML2FILE
+#
+# Disable auto refresh and quieten vis messages whilst scene and
+# trajectories are established:
+/vis/viewer/set/autoRefresh false
+/vis/verbose errors
+#
+# Draw geometry:
+/vis/drawVolume worlds
+#
+# Set specific colour for identification : ghost parallel geometry envelope ("ghost") as yellow
+#
+# Specify view angle:
+/vis/viewer/set/viewpointThetaPhi 106.9 180 deg
+#
+# Specify zoom value:
+/vis/viewer/zoom 2.5
+#
+# Specify style (surface or wireframe):
+/vis/viewer/set/style surface
+#
+# Draw coordinate axes:
+#/vis/scene/add/axes 0 0 0 1 m
+#
+# Draw smooth trajectories at end of event, showing trajectory points
+# as markers 2 pixels wide:
+/vis/scene/add/trajectories smooth
+/vis/modeling/trajectories/create/drawByCharge
+/vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
+/vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 2
+# (if too many tracks cause core dump => /tracking/storeTrajectory 0)
+#
+# Draw hits at end of event:
+/vis/scene/add/hits
+#
+# To draw only gammas:
+/vis/filtering/trajectories/create/particleFilter
+/vis/filtering/trajectories/particleFilter-0/add gamma
+#/vis/filtering/trajectories/particleFilter-0/add neutron
+#
+# To invert the above, drawing all particles except gammas,
+# keep the above two lines but also add:
+/vis/filtering/trajectories/particleFilter-0/invert true
+#
+# Many other options are available with /vis/modeling and /vis/filtering.
+# For example, to select colour by particle ID:
+/vis/modeling/trajectories/create/drawByParticleID
+/vis/modeling/trajectories/drawByParticleID-0/set e- blue
+/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton white
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA pi- 1. 0.2 1.0 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon+ 0.3 1.0 0.5 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
+#
+# To superimpose all of the events from a given run:
+/vis/scene/endOfEventAction accumulate 10000
+#
+# Re-establish auto refreshing and verbosity:
+/vis/viewer/set/autoRefresh true
+/vis/verbose warnings
+#
+# For file-based drivers, use this to create an empty detector view:
+#/vis/viewer/flush
+/g4sbs/run  0
+
+#/vis/geometry/set/visibility RICHbox_log -1 0
+#/vis/geometry/set/visibility lHCalo -1 0
+#/vis/geometry/set/visibility earm_mother_log -1 0
+/vis/geometry/set/forceWireframe bigcoil_log -1 1
+/vis/geometry/set/forceWireframe woundcoil_log -1 1
+/vis/geometry/set/forceWireframe bigcoilthr_log -1 1
+/vis/geometry/set/forceWireframe b48d48Log -1 1
+/vis/geometry/set/forceWireframe leftslabLog -1 1
+/vis/geometry/set/forceWireframe rightslabLog -1 1
+/vis/geometry/set/forceWireframe FrontClamp_log -1 1
+/vis/geometry/set/forceWireframe RearClamp_log -1 1
+/vis/viewer/flush

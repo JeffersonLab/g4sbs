@@ -972,7 +972,7 @@ void G4SBSIO::BranchSIMC(){
   fTree->Branch("simc.xbj",&(SIMCprimaries.xbj),"simc.xbj/D");
   fTree->Branch("simc.nu",&(SIMCprimaries.nu),"simc.nu/D");
   fTree->Branch("simc.W",&(SIMCprimaries.W),"simc.W/D");
-  fTree->Branch("simc.epsilon",&(SIMCprimaries.xbj),"simc.epsilon/D");
+  fTree->Branch("simc.epsilon",&(SIMCprimaries.epsilon),"simc.epsilon/D");
   
   fTree->Branch("simc.Ebeam",&(SIMCprimaries.Ebeam),"simc.Ebeam/D");
   

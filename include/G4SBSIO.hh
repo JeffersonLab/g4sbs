@@ -127,6 +127,7 @@ public:
   //void SetTrackData(tr_t td){ trdata = td; }
   //void SetCalData(cal_t cd){ caldata = cd; }
   void SetEventData(ev_t ed){ evdata = ed; }
+  void SetTDISEventData(ev_tdis_t ed){ evtdisdata = ed; }
   //void SetHitData(hit_t ht){ hitdata = ht; }
   //void SetRICHData( G4SBSRICHoutput rd ) { richdata = rd; }
   //void SetTrackData( G4SBSTrackerOutput td ){ trackdata = td; }
@@ -177,6 +178,7 @@ public:
   void SetGlobalField(G4SBSGlobalField *gf){fGlobalField = gf; }
   
   ev_t GetEventData(){ return evdata; }
+  ev_tdis_t GetTDISEventData(){ return evtdisdata; }
   gen_t GetGenData(){ return gendata; }
   
   void InitializeTree();

@@ -81,6 +81,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   //evdata = sbsgen->GetEventData();
   fIO->SetEventData(sbsgen->GetEventData());
+  fIO->SetTDISEventData(sbsgen->GetTDISEventData());
 
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 //PYTHIA6 event
@@ -377,7 +378,6 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	      particle = particleTable->FindParticle(particleName="e-");
 	      particleGun->SetParticleMomentumDirection( tdishandler -> tGetElectronP().unit() );
 	      particleGun->SetParticleEnergy(tdishandler->tGetElectronE()-particle->GetPDGMass());
-	      
 	      //G4cout<<"PGA: electron direction: "  << tdishandler -> tGetElectronP().unit()<< " theta: "<<tdishandler -> tGetElectronP().theta()/deg<<" Energy:  "<<tdishandler->tGetElectronE()<<" K Energy:  "<<tdishandler->tGetElectronE()-particle->GetPDGMass()<<G4endl;
 	    }
 	  if(i==1)

@@ -88,6 +88,7 @@ public:
   bool GenerateEvent();
   
   ev_t GetEventData();
+  ev_tdis_t GetTDISEventData();
   
   void SetNevents(int n){fNevt = n;}
   void SetBeamCur(double c){fBeamCur = c;}

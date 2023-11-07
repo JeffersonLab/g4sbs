@@ -3227,8 +3227,6 @@ bool G4SBSEventGen::GenerateSIMC(){
 
 ev_t G4SBSEventGen::GetEventData(){
   ev_t data;
-  ev_tdis_t tdis_data;
-
   //Why are we calculating these constant quantities every event?
   //Let's do it once, we can do it via the SBS messenger when we invoke
   // /g4sbs/run command
@@ -3354,38 +3352,12 @@ ev_t G4SBSEventGen::GetEventData(){
     }
   }
 
-  if ( (fKineType == G4SBS::kDIS || fKineType == G4SBS::kInelastic || fKineType == G4SBS::kElastic) &&
-       fTargType == G4SBS::kD2 ){
-    //G4cout << "fprotonspec " << fProtonSpecP.mag()/GeV << " " << fProtonSpecP.x()/GeV << " " << fProtonSpecP.y()/GeV << " " << fProtonSpecP.z()/GeV << " " << fProtonSpecP.theta()/rad << " " << fProtonSpecP.phi()/rad << G4endl; 
- 
-    tdis_data.p1p  = fProtonSpecP.mag()/GeV;
-    tdis_data.p1px = fProtonSpecP.x()/GeV;
-    tdis_data.p1py = fProtonSpecP.y()/GeV;
-    tdis_data.p1pz = fProtonSpecP.z()/GeV;
-    tdis_data.p1th = fProtonSpecP.theta()/rad;
-    tdis_data.p1ph = fProtonSpecP.phi()/rad;
-    
-    //G4cout << "data.p1 " << data.p1p << " " << data.p1px << " " << data.p1py << " " << data.p1pz << " " << data.p1th << " " << data.p1ph << G4endl; 
-  }
-  
   // TDIS
   if (fKineType == G4SBS::kTDISKin){
     
-    tdis_data.xpi   = fxpi;
-    tdis_data.nu    = fnu/GeV;
-    tdis_data.y     = fy;
     data.Q2    = fQ2/(GeV*GeV);
-    tdis_data.tpi   = ftpi/(GeV*GeV);
-    tdis_data.xa    = fxa;
-    tdis_data.pt    = fPtTDIS/GeV;
     data.z     = fz;
     data.xbj   = fxbj;
-    tdis_data.ypi   = fypi;
-    tdis_data.f2p   = ff2p;
-    tdis_data.f2pi  = ff2pi;
-    tdis_data.sigmaDIS = fSigmaDIS/cm2;
-    tdis_data.sigmaTDIS = fSigmaTDIS/cm2;
-    
     
     data.np  = fNeutronP.mag();
     data.npx = fNeutronP.x();
@@ -3393,27 +3365,6 @@ ev_t G4SBSEventGen::GetEventData(){
     data.npz = fNeutronP.z();
     data.nth = fNeutronP.theta()/rad;
     data.nph = fNeutronP.phi()/rad;
-    
-    tdis_data.p1p  = fProton1P.mag();
-    tdis_data.p1px = fProton1P.x();
-    tdis_data.p1py = fProton1P.y();
-    tdis_data.p1pz = fProton1P.z();
-    tdis_data.p1th = fProton1P.theta()/rad;
-    tdis_data.p1ph = fProton1P.phi()/rad;
-    
-    tdis_data.p2p  = fProton2P.mag()/GeV;
-    tdis_data.p2px = fProton2P.x()/GeV;
-    tdis_data.p2py = fProton2P.y()/GeV;
-    tdis_data.p2pz = fProton2P.z()/GeV;
-    tdis_data.p2th = fProton2P.theta()/rad;
-    tdis_data.p2ph = fProton2P.phi()/rad;
-    
-    tdis_data.pip  = fHadronP.mag()/GeV;
-    tdis_data.pipx = fHadronP.x()/GeV;
-    tdis_data.pipy = fHadronP.y()/GeV;
-    tdis_data.pipz = fHadronP.z()/GeV;
-    tdis_data.pith = fHadronP.theta()/rad;
-    tdis_data.piph = fHadronP.phi()/rad;
   }
   
 //*********************************************
@@ -3428,29 +3379,10 @@ ev_t G4SBSEventGen::GetEventData(){
     {
       //      G4cout<<"Saving data new TDIS"<<G4endl;
       
-      tdis_data.xpi   = tdishandler -> tGetxpi();
-      tdis_data.nu    = tdishandler -> tGetnu()/GeV;
-      tdis_data.y     = tdishandler -> tGettya(); 
       data.Q2    = tdishandler -> tGetQ2()/(GeV*GeV);
-      tdis_data.KE    = tdishandler -> tGetKE()/GeV;
-      tdis_data.tpi   = tdishandler -> tGettpi()/(GeV*GeV);
-      tdis_data.xa    = tdishandler -> tGettxa(); ;
-      tdis_data.pt    = tdishandler -> tGetpt()/GeV;
       data.z     = tdishandler -> tGetz();
       data.xbj   = tdishandler -> tGetxbj();
-      tdis_data.ypi   = tdishandler -> tGetypi();
-      tdis_data.f2p   = tdishandler -> tGetf2N();
-      tdis_data.f2pi  = tdishandler -> tGetf2pi();
-      //  G4cout<<"saving ELASTIC XS: "<<tdishandler -> tGetELAsigma()/barn<<G4endl;
-      tdis_data.sigmaELA   = tdishandler -> tGetELAsigma()/barn;
-      tdis_data.sigmaQE    = tdishandler -> tGetQEsigma();
-      //    G4cout<<"saving QE XS: "<<tdishandler ->  tGetQEsigma()<<G4endl;
       
-      tdis_data.sigmaSIDIS = tdishandler -> tGetSIDISsigma()/cm2*pow(GeV,2);
-      tdis_data.sigmaDIS   = tdishandler -> tGetDISsigma()/cm2;
-      //     G4cout<<"saving TDIS XS: "<<tdishandler -> tGetTDISsigma()/cm2<<G4endl;
-      tdis_data.sigmaTDIS  = tdishandler -> tGetTDISsigma()/cm2;
-
       data.W2     = tdishandler->tGetW2()/(GeV*GeV);
       data.MX     = tdishandler->tGetMX()/pow(GeV,2); //are units correct?
 
@@ -3475,32 +3407,6 @@ ev_t G4SBSEventGen::GetEventData(){
       data.npz    = tNucleon_f.z()/GeV;
       data.nth    = tNucleon_f.theta()/deg;
       data.nph    = tNucleon_f.phi()/deg;
-      
-      fProton1P = tdishandler -> tGetiProton();
-
-      tdis_data.p1p  = fProton1P.mag()/GeV;
-      tdis_data.p1px = fProton1P.x()/GeV;
-      tdis_data.p1py = fProton1P.y()/GeV;
-      tdis_data.p1pz = fProton1P.z()/GeV;
-      tdis_data.p1th = fProton1P.theta()/deg;
-      tdis_data.p1ph = fProton1P.phi()/deg;
-      
-      fProton2P = tdishandler -> tGetfProton();
-
-      tdis_data.p2p  = fProton2P.mag()/GeV;
-      tdis_data.p2px = fProton2P.x()/GeV;
-      tdis_data.p2py = fProton2P.y()/GeV;
-      tdis_data.p2pz = fProton2P.z()/GeV;
-      tdis_data.p2th = fProton2P.theta()/deg;
-      tdis_data.p2ph = fProton2P.phi()/deg;
-      
-      fHadronP = tdishandler -> tGetfPion();
-      tdis_data.pip  = fHadronP.mag()/GeV;
-      tdis_data.pipx = fHadronP.x()/GeV;
-      tdis_data.pipy = fHadronP.y()/GeV;
-      tdis_data.pipz = fHadronP.z()/GeV;
-      tdis_data.pith = fHadronP.theta()/deg;
-      tdis_data.piph = fHadronP.phi()/deg;
     }
   
   data.pmpar  = fPmisspar/GeV;
@@ -3542,6 +3448,139 @@ ev_t G4SBSEventGen::GetEventData(){
 
   return data;
 }
+
+
+ev_tdis_t G4SBSEventGen::GetTDISEventData(){
+  ev_tdis_t tdis_data;
+
+  //Why are we calculating these constant quantities every event?
+  //Let's do it once, we can do it via the SBS messenger when we invoke
+  // /g4sbs/run command
+  // double lumin    = fTargDen*Wfact // Nucleons/Volume
+  //   *fTargLen       // Nuclei/area
+  //   *fBeamCur/(e_SI*ampere*second);
+  //AJRP: moved luminosity calculation to Initialize()
+    
+  // printf("density = %e N/m3\n", fTargDen*m3);
+  // printf("density = %e N/cm3\n", fTargDen*cm3);
+  // printf("targlen = %f m\n", fTargLen/m);
+  // printf("%e e-/s (I = %f uA)\n", fBeamCur/(e_SI*ampere), fBeamCur/(1e-6*ampere) );
+  //printf("luminosity = %e Hz/cm2\n", lumin*second*cm2);
+  // printf("e_SI = %e, ampere = %f, \n", e_SI);
+
+  if ( (fKineType == G4SBS::kDIS || fKineType == G4SBS::kInelastic || fKineType == G4SBS::kElastic) &&
+       fTargType == G4SBS::kD2 ){
+    //G4cout << "fprotonspec " << fProtonSpecP.mag()/GeV << " " << fProtonSpecP.x()/GeV << " " << fProtonSpecP.y()/GeV << " " << fProtonSpecP.z()/GeV << " " << fProtonSpecP.theta()/rad << " " << fProtonSpecP.phi()/rad << G4endl; 
+ 
+    tdis_data.p1p  = fProtonSpecP.mag()/GeV;
+    tdis_data.p1px = fProtonSpecP.x()/GeV;
+    tdis_data.p1py = fProtonSpecP.y()/GeV;
+    tdis_data.p1pz = fProtonSpecP.z()/GeV;
+    tdis_data.p1th = fProtonSpecP.theta()/rad;
+    tdis_data.p1ph = fProtonSpecP.phi()/rad;
+    
+    //G4cout << "data.p1 " << data.p1p << " " << data.p1px << " " << data.p1py << " " << data.p1pz << " " << data.p1th << " " << data.p1ph << G4endl; 
+  }
+  
+  // TDIS
+  if (fKineType == G4SBS::kTDISKin){
+    
+    tdis_data.xpi   = fxpi;
+    tdis_data.nu    = fnu/GeV;
+    tdis_data.y     = fy;
+    tdis_data.tpi   = ftpi/(GeV*GeV);
+    tdis_data.xa    = fxa;
+    tdis_data.pt    = fPtTDIS/GeV;
+    tdis_data.ypi   = fypi;
+    tdis_data.f2p   = ff2p;
+    tdis_data.f2pi  = ff2pi;
+    tdis_data.sigmaDIS = fSigmaDIS/cm2;
+    tdis_data.sigmaTDIS = fSigmaTDIS/cm2;
+    
+    tdis_data.p1p  = fProton1P.mag();
+    tdis_data.p1px = fProton1P.x();
+    tdis_data.p1py = fProton1P.y();
+    tdis_data.p1pz = fProton1P.z();
+    tdis_data.p1th = fProton1P.theta()/rad;
+    tdis_data.p1ph = fProton1P.phi()/rad;
+    
+    tdis_data.p2p  = fProton2P.mag()/GeV;
+    tdis_data.p2px = fProton2P.x()/GeV;
+    tdis_data.p2py = fProton2P.y()/GeV;
+    tdis_data.p2pz = fProton2P.z()/GeV;
+    tdis_data.p2th = fProton2P.theta()/rad;
+    tdis_data.p2ph = fProton2P.phi()/rad;
+    
+    tdis_data.pip  = fHadronP.mag()/GeV;
+    tdis_data.pipx = fHadronP.x()/GeV;
+    tdis_data.pipy = fHadronP.y()/GeV;
+    tdis_data.pipz = fHadronP.z()/GeV;
+    tdis_data.pith = fHadronP.theta()/rad;
+    tdis_data.piph = fHadronP.phi()/rad;
+  }
+  
+//*********************************************
+// NEW TDIS Not all variables are filled yet
+  if (fKineType == tElastic || //new (CA)
+      fKineType == tInelastic || //new (CA)
+      fKineType == tQuasiElastic || //new (CA)
+      fKineType == tTDISKinH || //new (CA)
+      fKineType == tTDISKinD || //new (CA)
+      fKineType == tSIDIS
+      )
+    {
+      //      G4cout<<"Saving data new TDIS"<<G4endl;
+      
+      tdis_data.xpi   = tdishandler -> tGetxpi();
+      tdis_data.nu    = tdishandler -> tGetnu()/GeV;
+      tdis_data.y     = tdishandler -> tGettya(); 
+      tdis_data.KE    = tdishandler -> tGetKE()/GeV;
+      tdis_data.tpi   = tdishandler -> tGettpi()/(GeV*GeV);
+      tdis_data.xa    = tdishandler -> tGettxa(); ;
+      tdis_data.pt    = tdishandler -> tGetpt()/GeV;
+      tdis_data.ypi   = tdishandler -> tGetypi();
+      tdis_data.f2p   = tdishandler -> tGetf2N();
+      tdis_data.f2pi  = tdishandler -> tGetf2pi();
+      //  G4cout<<"saving ELASTIC XS: "<<tdishandler -> tGetELAsigma()/barn<<G4endl;
+      tdis_data.sigmaELA   = tdishandler -> tGetELAsigma()/barn;
+      tdis_data.sigmaQE    = tdishandler -> tGetQEsigma();
+      //    G4cout<<"saving QE XS: "<<tdishandler ->  tGetQEsigma()<<G4endl;
+      
+      tdis_data.sigmaSIDIS = tdishandler -> tGetSIDISsigma()/cm2*pow(GeV,2);
+      tdis_data.sigmaDIS   = tdishandler -> tGetDISsigma()/cm2;
+      //     G4cout<<"saving TDIS XS: "<<tdishandler -> tGetTDISsigma()/cm2<<G4endl;
+      tdis_data.sigmaTDIS  = tdishandler -> tGetTDISsigma()/cm2;
+
+      fProton1P = tdishandler -> tGetiProton();
+
+      tdis_data.p1p  = fProton1P.mag()/GeV;
+      tdis_data.p1px = fProton1P.x()/GeV;
+      tdis_data.p1py = fProton1P.y()/GeV;
+      tdis_data.p1pz = fProton1P.z()/GeV;
+      tdis_data.p1th = fProton1P.theta()/deg;
+      tdis_data.p1ph = fProton1P.phi()/deg;
+      
+      fProton2P = tdishandler -> tGetfProton();
+
+      tdis_data.p2p  = fProton2P.mag()/GeV;
+      tdis_data.p2px = fProton2P.x()/GeV;
+      tdis_data.p2py = fProton2P.y()/GeV;
+      tdis_data.p2pz = fProton2P.z()/GeV;
+      tdis_data.p2th = fProton2P.theta()/deg;
+      tdis_data.p2ph = fProton2P.phi()/deg;
+      
+      fHadronP = tdishandler -> tGetfPion();
+      tdis_data.pip  = fHadronP.mag()/GeV;
+      tdis_data.pipx = fHadronP.x()/GeV;
+      tdis_data.pipy = fHadronP.y()/GeV;
+      tdis_data.pipz = fHadronP.z()/GeV;
+      tdis_data.pith = fHadronP.theta()/deg;
+      tdis_data.piph = fHadronP.phi()/deg;
+    }
+
+  return tdis_data;
+}
+
 
 void G4SBSEventGen::InitializeRejectionSampling(){
 

@@ -1,5 +1,5 @@
 ## Configure G4SBS for TDIS
-##/g4sbs/filename        beambkgd.root   ## Output rootfile
+/g4sbs/filename        tdis_h2_beambkgd_1.5T.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             tdis
@@ -100,4 +100,4 @@
 #/g4sbs/steplimit LACmod_log 1 
 
 ## Run xxx events
-##/g4sbs/run           10
+/g4sbs/run           500000

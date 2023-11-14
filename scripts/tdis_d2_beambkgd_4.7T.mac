@@ -98,7 +98,7 @@
 /g4sbs/totalabs false
 #/g4sbs/steplimit LACmod_log 1 
 
-/g4sbs/keephistory SBS/mTPC
+/g4sbs/keepsdtrackinfo all true
 
 ## Run xxx events
 /g4sbs/run           500000

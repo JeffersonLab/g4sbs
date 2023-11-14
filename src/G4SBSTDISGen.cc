@@ -94,7 +94,7 @@ G4SBSTDISGen::~G4SBSTDISGen()
 G4SBSTDISGen *tdishandler=NULL;
 
 
-bool G4SBSTDISGen::Generate(Kine_t tKineType, Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni)
+bool G4SBSTDISGen::Generate(Kine_t tKineType, Targ_t tTargType,  Nucl_t nucl, G4LorentzVector ei, G4LorentzVector ni)
 {
 
   if(DEBUG)
@@ -116,22 +116,22 @@ bool G4SBSTDISGen::Generate(Kine_t tKineType, Nucl_t nucl, G4LorentzVector ei, G
 
   ei_lab = ei;
 
-  // to keep coherence with the nomenclature used, I should change n=0, p=1
+  // sbstypes.hh --> enum Nucl_t   { kProton, kNeutron };
   if(nucl == 0)
     {
       if(DEBUG)
-	G4cout << "nucl: "<<  nucl << " A NEUTRON" << G4endl;
-      Mt = Mn;
+	G4cout << "\nnucl: "<<  nucl << " A PROTON" << G4endl;
+      Mt = Mp;
     }
   else
     {
       if(DEBUG)
-	G4cout << "nucl: "<<  nucl << " A PROTON" << G4endl;
-      Mt = Mp;
+	G4cout << "\nnucl: "<<  nucl << " A NEUTRON" << G4endl;
+      Mt = Mn; 
     }
    
 
-    if (counter == 0)
+  if (counter == 0)
     {
       if(DEBUG)
 	G4cout <<" tThMin = "<<tThMin/deg<<G4endl;
@@ -228,16 +228,38 @@ bool G4SBSTDISGen::Generate(Kine_t tKineType, Nucl_t nucl, G4LorentzVector ei, G
   // treated differently, maybe just one line, maybe a whole 
   // method (as the pion structure generator will need)
 
-   if(DEBUG)
+  if(DEBUG)
     G4cout<<"kine: "<<tKineType<<G4endl; 
 
-  // REPAIR THIS!!!
-  //These values are set fixed now for Deuterium target with the epc code
-  // later on, the target used should be carried here
-  // NOTE: I don't know why but these line cannot be inside the switch    
-  G4int z1 = 1; //atomic number (number of protons)
-  G4int n1 = 1; //THIS IS NUMBER OF NEUTRONS!!! 
-  G4int partID = (Nucl_t) nucl; 
+  if(DEBUG)
+     G4cout<<"tTargType: "<<tTargType<<G4endl;
+
+   // These lines are needed for the EPC function
+   // TARGETS VALUES (sbstypes.hh)
+   // kH2 = 0
+   // kD2 = 1
+   // kLH2 = 2
+   // kLD2 = 3
+ 
+   // I understand we don't use kLH2 and kLD2
+   // NOTE: I just checked with DD that EPC doesn't work with hydrogen, so this switch is useless.
+
+ switch(tTargType)
+    {
+    case kH2:
+      z1 = 1; //atomic number (number of protons)
+      n1 = 0; //THIS IS NUMBER OF NEUTRONS!!! 
+      partID = (Nucl_t) nucl; // should be always proton
+      break;
+
+    case kD2:
+      z1 = 1; //atomic number (number of protons)
+      n1 = 1; //THIS IS NUMBER OF NEUTRONS!!! 
+      partID = (Nucl_t) nucl; 
+      break;
+    }
+ G4cout<<"TDISGen (1): "<< partID<<G4endl;
+
 
   // PART OF SIDIS FOR A PROTON OR PI+
 
@@ -269,7 +291,10 @@ bool G4SBSTDISGen::Generate(Kine_t tKineType, Nucl_t nucl, G4LorentzVector ei, G
 
       //always in Nucleon Rest Frame
       thN_Nrest = Phad_Nrest.theta() ; //nucleon theta angle in N rest frame
-      
+
+      if(DEBUG)
+	G4cout<<" Ebeam_Nrest: "<<Ebeam_Nrest<<"\n z1: "<< z1<<"\n n1: "<< n1<<"\n partID: "<< partID<<"\n Phad_Nrest.vect().mag(): "<< Phad_Nrest.vect().mag()<<"\n thN_Nrest: "<< thN_Nrest<<G4endl;
+
       QEsigma = QuasiElasticXS(Ebeam_Nrest, z1, n1, partID, Phad_Nrest .vect().mag(), thN_Nrest);
       
       if(DEBUG)
@@ -501,7 +526,9 @@ G4ThreeVector G4SBSTDISGen::GenerateElectronAngles(Kine_t Kine)
 {
   G4double ThetaMax, ThetaMin, PhiMax, PhiMin;
 
-  if(Kine != tTDISKinD && Kine != tTDISKinH )
+
+// uncomment the lines for TDIS case (I commented to generate TDIS20)
+  // if(Kine != tTDISKinD && Kine != tTDISKinH )
     {
       ThetaMax = tThMax;
       ThetaMin = tThMin;
@@ -513,18 +540,18 @@ G4ThreeVector G4SBSTDISGen::GenerateElectronAngles(Kine_t Kine)
       G4cout<<"tPhMax: "<<tPhMax/deg<<" tPhMin: "<<tPhMin/deg<< G4endl;
       th = acos( CLHEP::RandFlat::shoot(cos(ThetaMax), cos(ThetaMin)) );
     }
-  else
-    {
-      //SBS acceptance (hard coded) for TDIS case
-      ThetaMax =  17*deg;
-      ThetaMin =  12*deg;
-      PhiMax   = (180-12)*deg;
-      PhiMin   = (180+12)*deg;
-     // redefinition for FIXED angle
-      //ThetaMax = ThetaMin = 35*deg; 
-      th = acos( CLHEP::RandFlat::shoot(cos(ThetaMax), cos(ThetaMin)));
-      //   th = 35*deg;
-    }
+  // else
+  //   {
+  //     //SBS acceptance (hard coded) for TDIS case
+  //     ThetaMax =  17*deg;
+  //     ThetaMin =  12*deg;
+  //     PhiMax   = (180-12)*deg;
+  //     PhiMin   = (180+12)*deg;
+  //    // redefinition for FIXED angle
+  //     //ThetaMax = ThetaMin = 35*deg; 
+  //     th = acos( CLHEP::RandFlat::shoot(cos(ThetaMax), cos(ThetaMin)));
+  //     //   th = 35*deg;
+  //   }
 
   //Generate both theta and phi angles in the LAB frame:
 
@@ -609,7 +636,6 @@ void G4SBSTDISGen::GenerateScatterElectron(Kine_t Kine,  G4LorentzVector ei, G4L
   Eprime_Nrest = ef_Nrest.e();  
 
   tElectronf_lab = ef_lab; //to rootfile
-
 
   // this is the angle used to calculate Cross-sections 
   // at least Elastic and Mott (for the moment)
@@ -736,7 +762,7 @@ void G4SBSTDISGen::GenerateFinalState(Kine_t Kine, G4LorentzVector ni)
 
   if(DEBUG)
     G4cout<<"W2: "<<W2<<" Mx2: "<<Mx2<< G4endl;
-
+  
   return;
 }
 
@@ -839,10 +865,10 @@ void G4SBSTDISGen::GenerateInitialStateTDIS(Kine_t Kine)
       iNeutron.set(0);
     }
   
-  // if(DEBUG)
-    G4cout<<"iProton: " << iProton  <<G4endl;
   if(DEBUG)
-    G4cout<<"iNeutron: "<< iNeutron.e()<< " "<<iNeutron.e()/GeV<<G4endl;
+      G4cout<<"iProton: " << iProton  <<G4endl;
+  if(DEBUG)
+      G4cout<<"iNeutron: "<< iNeutron.e()<< " "<<iNeutron.e()/GeV<<G4endl;
   
   // New statement for TDIS
   Pisum_lab = tGetiElectron() + iProton;
@@ -856,7 +882,9 @@ void G4SBSTDISGen::GenerateInitialStateTDIS(Kine_t Kine)
 void G4SBSTDISGen::GenerateFinalStateTDIS(Kine_t Kine,G4LorentzVector ei )
 {
   G4LorentzVector q = q_lab;// calculated in PhotonKinematics
+ if(DEBUG)
   G4cout<<"ei:"<< ei <<G4endl;
+ if(DEBUG)
   G4cout<<"iProton: " << iProton  <<G4endl;   
 
   // The proton to be detected
@@ -900,8 +928,9 @@ void G4SBSTDISGen::GenerateFinalStateTDIS(Kine_t Kine,G4LorentzVector ei )
       tya = (iProton.dot(q))/(iProton.dot(ei));
     }
   
-  //  if(DEBUG)
+  if(DEBUG)
     G4cout<<"xbj(TDIS): "<<xbj<<" tya: "<< tya<<" znq: "<<znq<<" Mx2: "<< Mx2 <<G4endl;
+  if(DEBUG)
     G4cout<<"q: "<<q<<" iProton.dot(q): "<< iProton.dot(q)<<" iProton.dot(ei): "<<iProton.dot(ei) <<G4endl;
   
   // pt is randomize, so we need to calculate the z-component and then
@@ -1049,11 +1078,11 @@ G4double G4SBSTDISGen::GenerateTDIS(G4LorentzVector ei, Kine_t Kine)
 
       kbinning(km, km1, km2); //function to obtain the bound limits of the momentum, parameters called by reference
     
-      //    if(DEBUG)
+      if(DEBUG)
 	G4cout<<"Recoil proton momentum: "<<P_recoil_proton<<G4endl;
-	//      if(DEBUG)
+      if(DEBUG)
 	G4cout<<"km: "<< km<<" km1: "<<km1<<" km2: "<<km2<<G4endl;
-	//      if(DEBUG)
+      if(DEBUG)
 	G4cout << " xbj: "<<xbj<<"z: " << z << " 1-z: "<< 1-z<<" xpi: " << xpi <<G4endl;
 
       double f2_pi_TH;
@@ -1165,10 +1194,10 @@ void G4SBSTDISGen::kbinning(G4double km_b, G4double &km_b1, G4double &km_b2)
   //     km_b2 = k_max_arr[6];
   //   }
 
-  //  if(DEBUG)
-    G4cout<<"km_b: "<<km_b<<G4endl;
-    //  if(DEBUG)
-    G4cout<<"km_b1: "<<km_b1<<" km_b2: "<<km_b2<<G4endl;
+  if(DEBUG)
+      G4cout<<"km_b: "<<km_b<<G4endl;
+  if(DEBUG)
+      G4cout<<"km_b1: "<<km_b1<<" km_b2: "<<km_b2<<G4endl;
 
 }
 
@@ -1600,8 +1629,13 @@ G4double G4SBSTDISGen::ElasticXS(G4double beam_energy, G4double scatter_e_energy
 
   //Mott x Recoil fraction x form factors relation
 
-  G4double eSigma = MottXS(theta, E)* (E_prime/E)*
-    ( (pow(GE(nu),2)+tau()*pow(GM(nu),2)/(1.0+tau()) + 2.0*tau()*pow(GM(nu),2)*pow(tan(theta/2.0),2) )); 
+  G4double eSigma = MottXS(theta, E)* (E_prime/E) * (
+						     ( 
+						      ( pow(GE(nu),2) + tau()*pow(GM(nu),2) ) 
+						      / (1.0+tau()) 
+						       ) 
+						     + ( 2.0*tau()*pow(GM(nu),2)*pow(tan(theta/2.0),2) ) 
+						     ) ; 
   // Dimensions of area 
   
   return eSigma*FluxC;
@@ -1691,19 +1725,28 @@ G4double G4SBSTDISGen::QuasiElasticXS(G4double beam_energy, G4int z1, G4int n1, 
   angle = angle*(180./TMath::Pi());
 
   if(DEBUG)
+    G4cout<<"IN FUNCTION: \nz1: "<< z1<<"\n n1: "<< n1<<"\n partID: "<< partID<<G4endl;
+
+  if(DEBUG)
     G4cout<<"QuasiElasticXS: beam_energy: "<<beam_energy<< " momentum: "<<momentum<<" angle: "<<angle<<G4endl;
 
   // EPC notation (just neutron/proton now)
+  // sbstypes.hh --> enum Nucl_t { kProton, kNeutron };
   if (partID == 0)
     {
-      partID = -1; // neutron
+      partID = 1; //proton
+      //    G4cout<<"proton"<<G4endl;  
     }
   else
     {
-      partID = 1; //proton
+      partID = -1; // neutron
+      //      G4cout<<"neutron"<<G4endl;  
     }
 
-  return  epc_func_(&beam_energy, &z1, &n1, &partID, &momentum, &angle);
+  // we are always working in the nucleon rest frame when the XS is calculated
+  // but we need to move to Lab Frame, I think this is the reason of the FluxC factor
+  return  epc_func_(&beam_energy, &z1, &n1, &partID, &momentum, &angle) *FluxC;
+  //  return  epc_func_(&beam_energy, &z1, &n1, &partID, &momentum, &angle) ; // VERY TEMP, A SMALL TEST
 
 }
 
@@ -1737,7 +1780,7 @@ G4double G4SBSTDISGen::DipoleFF()
 
 G4double G4SBSTDISGen::GE( Nucl_t nucleon)
 {
-  //I need to find where this comes from
+  //Kelly's parametrization Phys Rev C 70
 
   if (nucleon == 0) //a proton
     {

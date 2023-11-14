@@ -35,7 +35,7 @@ c redefining the variables with the code nomenclature (CA)
       real*8 p
       real*8 thp
 
-c      print *,"beam:", ebeam,"z:",z1, " n:", n1, "partID:", partID  !(CA)
+      print *,"beam:", ebeam,"z:",z1, " n:", n1, "partID:", partID  !(CA)
 c      print *, "p:", p, "angle: ", thp  !(CA)
 
 
@@ -145,7 +145,7 @@ c  'an' is effective number of nucleons for one pion production
       else
          stop
       endif
-c      write(6,*)an,ip
+      write(6,*)an,ip
       if (ia.eq.1) then
       else if (abs(ip).eq.1) then
          if (ia.gt.1.and.ia.lt.5) then
@@ -165,21 +165,21 @@ c      if (e1.le.0.) goto 2
       if (e1.le.0.) goto 1001
       th = thp*pi/180.
       if (abs(ip).eq.1) then
-c         print *, " p: ", p, "am:", am
+c        print *, " p: ", p, "am:", am
          e = sqrt(p**2+am**2)
          tp = p**2/(e+am)
-c         print *, "tp: ", tp, " p: ", p, "e: ", e, "am:", am
+c        print *, "tp: ", tp, " p: ", p, "e: ", e, "am:", am
          aj = p/e
          if (ia.eq.1) then
             d2qd = 0.
             d2qf = 0.
          else if (ia.gt.1) then
             call dep(e1,tp,th,ip,d2qd)
-c            print *, "--->d2qd ", d2qd, "aj", aj
+c           print *, "--->d2qd ", d2qd, "aj", aj
             d2qd = d2qd*aj
-c            print *, "***d2qd ", d2qd, "aj", aj
+c           print *, "***d2qd ", d2qd, "aj", aj
       
-c            write(6,*)d2qd
+            write(6,*)d2qd
             call ep(e1,tp,th,d2qf)
             d2qf = d2qf*aj
          endif
@@ -199,7 +199,7 @@ c            write(6,*)d2qd
       else
          d2del = 0.
          if (abs(ip).eq.2.or.ip.eq.0) then
-c            write(6,*)'calling s2pi'
+            write(6,*)'calling s2pi'
             call s2pi(2,e1,tp,th,d2sc1)
             call s2pi(-2,e1,tp,th,d2sc2)
             if (part.eq.'pi+') then
@@ -248,11 +248,11 @@ c1000  write(6,*)'error reading file'
 c      close(1)
 c      close(2)
 
-c      print *,"Kinetic Energy", tp ! (CA)
+c     print *,"Kinetic Energy", tp ! (CA)
         
       epc_func = totale
 
-c      print *,"coming back (END) ", totale ! (CA)
+c     print *,"coming back (END) ", totale ! (CA)
 
       return ! because this is a function (CA)
 
@@ -330,34 +330,36 @@ c  phys. rev. c26,2349(1982) and nuc. phys. a379,407(1982)
 
       pi = acos(-1.)
       ef0 = ei-w0
-      if (ef0.lt.ame) goto 1
-      aki = sqrt(ei**2-ame**2)
-      akf0 = sqrt(ef0**2-ame**2)
-      akp = sqrt(tp**2+2.*am1*tp)
-      ep = tp+am1
-      ar = ei+amt-ep
-      br = ef0*(akp*cos(th)-aki)/akf0
+      if (ef0.ge.ame) then
+         aki = sqrt(ei**2-ame**2)
+         akf0 = sqrt(ef0**2-ame**2)
+         akp = sqrt(tp**2+2.*am1*tp)
+         ep = tp+am1
+         ar = ei+amt-ep
+         br = ef0*(akp*cos(th)-aki)/akf0
 c     brp = (akf0/ef0)**2*br
-      a = ame**2-ei*ef0
-      b = aki*akf0
-      d = -ame**2*br*(ei/ef0-1.)/ar
-      ap = a-d
-      bp = b+d
-      an1 = 1./137./2./pi*w0**2/aki**2
-      apb = -ame**2*(aki-akf0)**2/(ame**2+ei*ef0+aki*akf0)
-      an1 = an1*b/bp*(ar+br)/(ar-ap/bp*br)
-      an2 = 1.-2.*a/w0**2
-      an4 = ((ap-bp)*(ar+br)/apb/(ar-br))
-      if (an4.le.0.)go to 1
-      an2 = an2*log(an4)
-      an3 = -4.*b/w0**2
-      ane = an1*(an2+an3)
-      d0 = amt+ei-ep+ef0/akf0*(akp*cos(th)-aki)
-      r = (amt+w0-ep/akp*w0*cos(th))/d0
-      gn = ane*r/w0
-      if (gn.lt.0.)gn = 0.
-      return
-    1 gn = 0.
+         a = ame**2-ei*ef0
+         b = aki*akf0
+         d = -ame**2*br*(ei/ef0-1.)/ar
+         ap = a-d
+         bp = b+d
+         an1 = 1./137./2./pi*w0**2/aki**2
+         apb = -ame**2*(aki-akf0)**2/(ame**2+ei*ef0+aki*akf0)
+         an1 = an1*b/bp*(ar+br)/(ar-ap/bp*br)
+         an2 = 1.-2.*a/w0**2
+         an4 = ((ap-bp)*(ar+br)/apb/(ar-br))
+         if (an4.gt.0.) then
+            an2 = an2*log(an4)
+            an3 = -4.*b/w0**2
+            ane = an1*(an2+an3)
+            d0 = amt+ei-ep+ef0/akf0*(akp*cos(th)-aki)
+            r = (amt+w0-ep/akp*w0*cos(th))/d0
+            gn = ane*r/w0
+            if (gn.lt.0.)gn = 0.
+            return
+         endif
+      endif
+      gn = 0.
 
       return
       end
@@ -373,20 +375,21 @@ c  quasi-deuteron cross section
 
       data am/939./,amd/1876./
 
-      if (ia.eq.1)goto 1
-      pn = sqrt(tp**2+2.*am*tp)
-      call kine(amd,am,am,pn,th,w0,thc)
-      if (w0.ge.e1)go to 1
-      if (w0.le.0.)go to 1
-      w0g = w0/1000.
-      call sigd(w0g,thc,ip,dsqd)
-      call part(amd,am,am,pn,th,ajt,ajw)
-c  cross section in ub/mev-sr
-      call vtp(amd,am,e1,w0,tp,th,phi)
-      d2qd = qdf*phi*dsqd*ajw*ajt
-c      print *, "*-*-*d2qd ", d2qd
-      return
-    1 d2qd = 0.
+      if (ia.ne.1) then
+         pn = sqrt(tp**2+2.*am*tp)
+         call kine(amd,am,am,pn,th,w0,thc)
+         if (w0.gt.0. .and. w0.lt.e1) then
+            w0g = w0/1000.
+            call sigd(w0g,thc,ip,dsqd)
+            call part(amd,am,am,pn,th,ajt,ajw)
+c     cross section in ub/mev-sr
+            call vtp(amd,am,e1,w0,tp,th,phi)
+            d2qd = qdf*phi*dsqd*ajw*ajt
+c           print *, "*-*-*d2qd ", d2qd
+            return
+         endif
+      endif
+      d2qd = 0.
 
       return
       end
@@ -420,14 +423,16 @@ c  coeficients
          a(0) = c0(1)*exp(c0(2)*e)+c0(3)*exp(c0(4)*e)
          a(0) = a(0)+(c0(5)+c0(6)*e)/(1.+c0(8)*(e-c0(7))**2)
          dsqd = a(0)*p(0,x)
-         do 2 l = 1,4
-         b(1,l) = c1(l)
-         b(2,l) = c2(l)
-         b(3,l) = c3(l)
-    2    b(4,l) = c4(l)
-         do 1 l = 1,4
-         a(l) = b(l,1)*exp(b(l,2)*e)+ b(l,3)*exp(b(l,4)*e)
-    1    dsqd = dsqd+a(l)*p(l,x)
+         do l = 1,4
+            b(1,l) = c1(l)
+            b(2,l) = c2(l)
+            b(3,l) = c3(l)
+            b(4,l) = c4(l)
+         enddo
+         do l = 1,4
+            a(l) = b(l,1)*exp(b(l,2)*e)+ b(l,3)*exp(b(l,4)*e)
+            dsqd = dsqd+a(l)*p(l,x)
+         enddo
       else if (e.lt..700) then
          dsqd = .3
       else if (e.lt..800) then
@@ -484,15 +489,15 @@ c  photoproduction of nucleons and pions via delta
       ep = tp+am1
       pn = sqrt(ep**2-am1**2)
       call kine(am,am1,am2,pn,th,w,tc)
-      if (w.le.0.)go to 1
-      if (w.ge.e1)go to 1
-      call part(am,am1,am2,pn,th,ajt,ajw)
-      call sigma(w,tc,dsigg)
-      call vtp(am,am1,e1,w,tp,th,phi)
-      d2del = phi*dsigg*ajt
+      if (w.gt.0. .and. w.lt.e1) then
+         call part(am,am1,am2,pn,th,ajt,ajw)
+         call sigma(w,tc,dsigg)
+         call vtp(am,am1,e1,w,tp,th,phi)
+         d2del = phi*dsigg*ajt
 c cross section in ub/mev-sr
-      return
-    1 d2del = 0.
+         return
+      endif
+      d2del = 0.
 
       return
       end
@@ -596,9 +601,10 @@ c  cross section in ub/mev-sr
       dimension v(3),u(3)
 
       dot = 0.
-      do 1 i = 1,3
-    1 dot = dot+v(i)*u(i)
-
+      do i = 1,3
+         dot = dot+v(i)*u(i)
+      enddo
+      
       return
       end
 
@@ -630,33 +636,34 @@ c           stops program if a, c, b are out of sequence
       be = (a+b-2*c)/(b-a)
       m = (n+1)/2
       dn = n
-      do 5 i = 1,m
-       di = i
-       x = pi*(4.d0*(dn-di)+3.d0)/(4.d0*dn+2.d0)
-       xn = (1.d0-(dn-1.d0)/(8.d0*dn*dn*dn))*cos(x)
-       if (i.gt.n/2) xn = 0
-       do 3 iter = 1,10
-        x = xn
-        y1 = 1.d0
-        y = x
-        if (n.lt.2) go to 2
-        do 1 j = 2,n
-         dj = j
-         y2 = y1
-         y1 = y
-    1    y = ((2.d0*dj-1.d0)*x*y1-(dj-1.d0)*y2)/dj
-    2   continue
-        ys = dn*(x*y-y1)/(x*x-1.d0)
-        h = -y/ys
-        xn = x+h
-        if (abs(h).lt.eps) go to 4
-    3   continue
-    4  e(i) = (c+al*x)/(1.d0-be*x)
-       e(n-i+1) = (c-al*x)/(1.d0+be*x)
-       gew = 2.d0/((1.d0-x*x)*ys*ys)
-       w(i) = gew*(al+be*c)/(1.d0-be*x)**2
-       w(n-i+1) = gew*(al+be*c)/(1.d0+be*x)**2
-    5  continue
+      do i = 1,m
+         di = i
+         x = pi*(4.d0*(dn-di)+3.d0)/(4.d0*dn+2.d0)
+         xn = (1.d0-(dn-1.d0)/(8.d0*dn*dn*dn))*cos(x)
+         if (i.gt.n/2) xn = 0
+         do iter = 1,10
+            x = xn
+            y1 = 1.d0
+            y = x
+            if (n.ge.2) then
+               do j = 2,n
+                  dj = j
+                  y2 = y1
+                  y1 = y
+                  y = ((2.d0*dj-1.d0)*x*y1-(dj-1.d0)*y2)/dj
+               enddo
+            endif
+            ys = dn*(x*y-y1)/(x*x-1.d0)
+            h = -y/ys
+            xn = x+h
+            if (abs(h).lt.eps) exit
+         enddo
+         e(i) = (c+al*x)/(1.d0-be*x)
+         e(n-i+1) = (c-al*x)/(1.d0+be*x)
+         gew = 2.d0/((1.d0-x*x)*ys*ys)
+         w(i) = gew*(al+be*c)/(1.d0-be*x)**2
+         w(n-i+1) = gew*(al+be*c)/(1.d0+be*x)**2
+      enddo
 
       return
       end
@@ -695,8 +702,9 @@ c  cartesian components of electron and proton vectors
       dimension v(3)
 
       amag = 0.
-      do 1 i = 1,3
-    1 amag = amag+v(i)**2
+      do i = 1,3
+         amag = amag+v(i)**2
+      enddo
       amag = sqrt(amag)
 
       return
@@ -741,8 +749,9 @@ c  fully differential cross section
       call lept(e1,e2,ak1,ak2,aml,qs,qus,the,v)
       call form(qs,p,thqp,cphip,w)
       sum = 0.
-      do 1 i = 1,5
-    1 sum = sum+v(i)*w(i)
+      do i = 1,5
+         sum = sum+v(i)*w(i)
+      enddo
       dsig = sm*ps*fns*sum*sgsl(pp)
       return
       end
@@ -758,21 +767,24 @@ c  integral over electron polar angle
       common/e1/th3(24),wt3(24)
 
       d2s1 = 0.
-      do 1 i = 1,12
-      the = th1(i)
-      call sphi(d3s)
+      do i = 1,12
+         the = th1(i)
+         call sphi(d3s)
 
-    1 d2s1 = d2s1+d3s*wt1(i)*sin(the)
+         d2s1 = d2s1+d3s*wt1(i)*sin(the)
+      enddo
       d2s2 = 0.
-      do 2 i = 1,12
-      the = th2(i)
-      call sphi(d3s)
-    2 d2s2 = d2s2+d3s*wt2(i)*sin(the)
+      do i = 1,12
+         the = th2(i)
+         call sphi(d3s)
+         d2s2 = d2s2+d3s*wt2(i)*sin(the)
+      enddo
       d2s3 = 0.
-      do 3 i = 1,24
-      the = th3(i)
-      call sphi(d3s)
-    3 d2s3 = d2s3+d3s*wt3(i)*sin(the)
+      do i = 1,24
+         the = th3(i)
+         call sphi(d3s)
+         d2s3 = d2s3+d3s*wt3(i)*sin(the)
+      enddo
       d2s = d2s1+d2s2+d2s3
 
       return
@@ -791,25 +803,26 @@ c  integrate over electron azimuthal angle
       dimension qxp(3),ak1x2(3)
 
       d3s = 0.
-      do 1 i = 1,10
-      phi = ph(i)
-      call vect(thp,the,phi,p,ak1,ak2)
-      call cross(qv,pv,qxp)
-      call cross(ak1v,ak2v,ak1x2)
+      do i = 1,10
+         phi = ph(i)
+         call vect(thp,the,phi,p,ak1,ak2)
+         call cross(qv,pv,qxp)
+         call cross(ak1v,ak2v,ak1x2)
 c  proton theta
-      cthep = dot(pv,qv)/amag(pv)/amag(qv)
-      thqp = acos(cthep)
+         cthep = dot(pv,qv)/amag(pv)/amag(qv)
+         thqp = acos(cthep)
 c  proton phi
-      cphip = dot(qxp,ak1x2)
-      if (cphip.eq.0.) then
-         cphip = 1.
-      else
-         cphip = cphip/amag(qxp)/amag(ak1x2)
-      endif
-      ppm = amag(pp)
-      call d4s(ak1,ak2,the,p,ppm,thqp,cphip,dsig)
+         cphip = dot(qxp,ak1x2)
+         if (cphip.eq.0.) then
+            cphip = 1.
+         else
+            cphip = cphip/amag(qxp)/amag(ak1x2)
+         endif
+         ppm = amag(pp)
+         call d4s(ak1,ak2,the,p,ppm,thqp,cphip,dsig)
 
-    1 d3s = d3s+dsig*wph(i)
+         d3s = d3s+dsig*wph(i)
+      enddo
 
       return
       end
@@ -952,20 +965,21 @@ c  two pion thr
       p = sqrt(tp**2+2.*ap*tp)
       e = tp+ap
       call kine(am,ap,am2,p,th,thr,tc)
-c      write(6,*)'thr is',thr
-      if (e1.le.thr)goto 2
-      dw = (e1-thr)/20.
-      sum = 0.
-      do 1 i = 1,20
-      w = thr+(float(i)-.5)*dw
-      call vtp(am,amp,e1,w,tp,th,gn)
-      call wiser(w/1.e3,p/1.e3,th,f)
-      sum = sum+gn*f*dw
-    1 continue
-c      write(6,*)'sum=',sum
-      d2sc = sum*p**2/e*1.e-6
-      return
-    2 d2sc = 0.
+      write(6,*)'thr is',thr
+      if (e1.gt.thr) then
+         dw = (e1-thr)/20.
+         sum = 0.
+         do i = 1,20
+            w = thr+(float(i)-.5)*dw
+            call vtp(am,amp,e1,w,tp,th,gn)
+            call wiser(w/1.e3,p/1.e3,th,f)
+            sum = sum+gn*f*dw
+         enddo
+         write(6,*)'sum=',sum
+         d2sc = sum*p**2/e*1.e-6
+         return
+      endif
+      d2sc = 0.
 
       return
       end

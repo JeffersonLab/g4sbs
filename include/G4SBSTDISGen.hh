@@ -30,7 +30,7 @@ public:
 
   G4SBSIO *fIO;
    
-  bool Generate(Kine_t, Nucl_t, G4LorentzVector , G4LorentzVector);
+  bool Generate(Kine_t, Targ_t, Nucl_t, G4LorentzVector , G4LorentzVector);
 
   void Initial4Vectors(G4LorentzVector, G4LorentzVector);
   G4ThreeVector GenerateElectronAngles(Kine_t);
@@ -163,6 +163,9 @@ public:
   G4double tGetNoOfThrows(){ return NoOfThrows; }
 
   G4double GetSigma(Kine_t);
+
+  //  G4SBS::Targ_t GetTarget(){return fTargType;} // why this getter doesn't work here? I need to study more about it
+
   // BAD PROGRAMMING
 
 
@@ -282,10 +285,10 @@ private:
   G4double tnu;
   G4LorentzVector tElectronf_lab, tNucleonf_lab;
 
+  G4SBS::Targ_t fTargType;
 
-
-
-
+  G4int z1, n1; //values for the EPC function. z1: number of protons, n1: number of neutrons. 
+  G4int partID;
 
 
 

@@ -1,6 +1,3 @@
-#include "G4SBSRunData.hh"
-#include "G4PhysicalConstants.hh"
-#include "G4SystemOfUnits.hh"
 //#include "G4UImanager.hh"
 
 #include <string.h>
@@ -10,6 +7,11 @@
 
 #include "TObjArray.h"
 #include "TObjString.h"
+
+#include "G4SBSRunData.hh"
+#include "G4PhysicalConstants.hh"
+#include "G4SystemOfUnits.hh"
+
 
 #ifdef __APPLE__
 #include "unistd.h"

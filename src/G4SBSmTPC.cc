@@ -78,8 +78,8 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
 
 
   //step user limit of the particle in the gas detector 
-  // -1*mm -> default G4 step (no user limit
-  // size should be greater than 0*mm
+  // -1*mm -> default G4 step (no user limit)
+  // user step size should be greater than 0*mm!
   fmTPCstep = -1*mm;
 
     if(fmTPCstep != -1*mm)

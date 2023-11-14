@@ -339,11 +339,13 @@ bool G4SBSEventGen::GenerateEvent(){
     // MAYBE it is not important, but in sbstypes.hh --> enum Nucl_t   { kProton, kNeutron };
     // thus for coherence with the rest of the code, the lines should be exchanged, i.e. when ==0 -> kProton (CA)
   case G4SBS::kD2:
-    if( CLHEP::RandFlat::shootInt(2) == 0 ){
+    if( CLHEP::RandFlat::shootInt(2) == 0 ){ //well, it is not important since it is random the nucleon
       thisnucl = G4SBS::kNeutron;
-   } else {
+    } else {
       thisnucl = G4SBS::kProton;
     }
+    G4cout<<"EventGen (1): "<< thisnucl<<G4endl;
+
 
  
     ni = GetInitialNucl( fTargType, thisnucl );
@@ -369,7 +371,6 @@ bool G4SBSEventGen::GenerateEvent(){
     } else {
       thisnucl = G4SBS::kProton;
     }
-
     ni = GetInitialNucl( fTargType, thisnucl );
     //Wfact = 2.0;
     //AJRP: for liquid deuterium, we compute the number density using the mass density, Avogadro's number, and the molar mass, so
@@ -530,7 +531,9 @@ bool G4SBSEventGen::GenerateEvent(){
     
     //I changed this line after I consulted Eric about how should be counted 
     // the number of entries for the space-phase (CA)
-    success =   tdishandler->Generate(GetKine(), GetTarget(), thisnucl, ei, ni ); //(CA)
+
+      G4cout<<"EventGen(2): "<< thisnucl<<G4endl;
+      success =   tdishandler->Generate(GetKine(), GetTarget(), thisnucl, ei, ni ); //(CA)
     //G4cout<<"Back from TDIS"<<G4endl;
     fSigma = tdishandler->GetSigma(GetKine());
     break;
@@ -3251,7 +3254,8 @@ ev_t G4SBSEventGen::GetEventData(){
     data.nucl   = -1;
     break;
   }
-    
+   
+  G4cout<<"EventGen (3): "<<  fNuclType<<G4endl;
   // I am not sure, but it could be confussing having p=0 in the whole sbs
   // but p=1 in the rootfile. 
   // The last makes more sense for physics

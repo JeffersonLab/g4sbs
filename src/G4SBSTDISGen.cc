@@ -258,7 +258,7 @@ bool G4SBSTDISGen::Generate(Kine_t tKineType, Targ_t tTargType,  Nucl_t nucl, G4
       partID = (Nucl_t) nucl; 
       break;
     }
-
+ G4cout<<"TDISGen (1): "<< partID<<G4endl;
 
 
   // PART OF SIDIS FOR A PROTON OR PI+
@@ -526,7 +526,9 @@ G4ThreeVector G4SBSTDISGen::GenerateElectronAngles(Kine_t Kine)
 {
   G4double ThetaMax, ThetaMin, PhiMax, PhiMin;
 
-  if(Kine != tTDISKinD && Kine != tTDISKinH )
+
+// uncomment the lines for TDIS case (I commented to generate TDIS20)
+  // if(Kine != tTDISKinD && Kine != tTDISKinH )
     {
       ThetaMax = tThMax;
       ThetaMin = tThMin;
@@ -538,18 +540,18 @@ G4ThreeVector G4SBSTDISGen::GenerateElectronAngles(Kine_t Kine)
       G4cout<<"tPhMax: "<<tPhMax/deg<<" tPhMin: "<<tPhMin/deg<< G4endl;
       th = acos( CLHEP::RandFlat::shoot(cos(ThetaMax), cos(ThetaMin)) );
     }
-  else
-    {
-      //SBS acceptance (hard coded) for TDIS case
-      ThetaMax =  17*deg;
-      ThetaMin =  12*deg;
-      PhiMax   = (180-12)*deg;
-      PhiMin   = (180+12)*deg;
-     // redefinition for FIXED angle
-      //ThetaMax = ThetaMin = 35*deg; 
-      th = acos( CLHEP::RandFlat::shoot(cos(ThetaMax), cos(ThetaMin)));
-      //   th = 35*deg;
-    }
+  // else
+  //   {
+  //     //SBS acceptance (hard coded) for TDIS case
+  //     ThetaMax =  17*deg;
+  //     ThetaMin =  12*deg;
+  //     PhiMax   = (180-12)*deg;
+  //     PhiMin   = (180+12)*deg;
+  //    // redefinition for FIXED angle
+  //     //ThetaMax = ThetaMin = 35*deg; 
+  //     th = acos( CLHEP::RandFlat::shoot(cos(ThetaMax), cos(ThetaMin)));
+  //     //   th = 35*deg;
+  //   }
 
   //Generate both theta and phi angles in the LAB frame:
 
@@ -863,10 +865,10 @@ void G4SBSTDISGen::GenerateInitialStateTDIS(Kine_t Kine)
       iNeutron.set(0);
     }
   
-  // if(DEBUG)
-    G4cout<<"iProton: " << iProton  <<G4endl;
   if(DEBUG)
-    G4cout<<"iNeutron: "<< iNeutron.e()<< " "<<iNeutron.e()/GeV<<G4endl;
+      G4cout<<"iProton: " << iProton  <<G4endl;
+  if(DEBUG)
+      G4cout<<"iNeutron: "<< iNeutron.e()<< " "<<iNeutron.e()/GeV<<G4endl;
   
   // New statement for TDIS
   Pisum_lab = tGetiElectron() + iProton;
@@ -880,7 +882,9 @@ void G4SBSTDISGen::GenerateInitialStateTDIS(Kine_t Kine)
 void G4SBSTDISGen::GenerateFinalStateTDIS(Kine_t Kine,G4LorentzVector ei )
 {
   G4LorentzVector q = q_lab;// calculated in PhotonKinematics
+ if(DEBUG)
   G4cout<<"ei:"<< ei <<G4endl;
+ if(DEBUG)
   G4cout<<"iProton: " << iProton  <<G4endl;   
 
   // The proton to be detected
@@ -924,8 +928,9 @@ void G4SBSTDISGen::GenerateFinalStateTDIS(Kine_t Kine,G4LorentzVector ei )
       tya = (iProton.dot(q))/(iProton.dot(ei));
     }
   
-  //  if(DEBUG)
+  if(DEBUG)
     G4cout<<"xbj(TDIS): "<<xbj<<" tya: "<< tya<<" znq: "<<znq<<" Mx2: "<< Mx2 <<G4endl;
+  if(DEBUG)
     G4cout<<"q: "<<q<<" iProton.dot(q): "<< iProton.dot(q)<<" iProton.dot(ei): "<<iProton.dot(ei) <<G4endl;
   
   // pt is randomize, so we need to calculate the z-component and then
@@ -1073,11 +1078,11 @@ G4double G4SBSTDISGen::GenerateTDIS(G4LorentzVector ei, Kine_t Kine)
 
       kbinning(km, km1, km2); //function to obtain the bound limits of the momentum, parameters called by reference
     
-      //    if(DEBUG)
+      if(DEBUG)
 	G4cout<<"Recoil proton momentum: "<<P_recoil_proton<<G4endl;
-	//      if(DEBUG)
+      if(DEBUG)
 	G4cout<<"km: "<< km<<" km1: "<<km1<<" km2: "<<km2<<G4endl;
-	//      if(DEBUG)
+      if(DEBUG)
 	G4cout << " xbj: "<<xbj<<"z: " << z << " 1-z: "<< 1-z<<" xpi: " << xpi <<G4endl;
 
       double f2_pi_TH;
@@ -1189,10 +1194,10 @@ void G4SBSTDISGen::kbinning(G4double km_b, G4double &km_b1, G4double &km_b2)
   //     km_b2 = k_max_arr[6];
   //   }
 
-  //  if(DEBUG)
-    G4cout<<"km_b: "<<km_b<<G4endl;
-    //  if(DEBUG)
-    G4cout<<"km_b1: "<<km_b1<<" km_b2: "<<km_b2<<G4endl;
+  if(DEBUG)
+      G4cout<<"km_b: "<<km_b<<G4endl;
+  if(DEBUG)
+      G4cout<<"km_b1: "<<km_b1<<" km_b2: "<<km_b2<<G4endl;
 
 }
 
@@ -1740,7 +1745,8 @@ G4double G4SBSTDISGen::QuasiElasticXS(G4double beam_energy, G4int z1, G4int n1, 
 
   // we are always working in the nucleon rest frame when the XS is calculated
   // but we need to move to Lab Frame, I think this is the reason of the FluxC factor
-  return  epc_func_(&beam_energy, &z1, &n1, &partID, &momentum, &angle) *FluxC; 
+  return  epc_func_(&beam_energy, &z1, &n1, &partID, &momentum, &angle) *FluxC;
+  //  return  epc_func_(&beam_energy, &z1, &n1, &partID, &momentum, &angle) ; // VERY TEMP, A SMALL TEST
 
 }
 

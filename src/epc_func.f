@@ -35,7 +35,7 @@ c redefining the variables with the code nomenclature (CA)
       real*8 p
       real*8 thp
 
-c      print *,"beam:", ebeam,"z:",z1, " n:", n1, "partID:", partID  !(CA)
+      print *,"beam:", ebeam,"z:",z1, " n:", n1, "partID:", partID  !(CA)
 c      print *, "p:", p, "angle: ", thp  !(CA)
 
 
@@ -165,19 +165,19 @@ c      if (e1.le.0.) goto 2
       if (e1.le.0.) goto 1001
       th = thp*pi/180.
       if (abs(ip).eq.1) then
-         print *, " p: ", p, "am:", am
+c        print *, " p: ", p, "am:", am
          e = sqrt(p**2+am**2)
          tp = p**2/(e+am)
-         print *, "tp: ", tp, " p: ", p, "e: ", e, "am:", am
+c        print *, "tp: ", tp, " p: ", p, "e: ", e, "am:", am
          aj = p/e
          if (ia.eq.1) then
             d2qd = 0.
             d2qf = 0.
          else if (ia.gt.1) then
             call dep(e1,tp,th,ip,d2qd)
-            print *, "--->d2qd ", d2qd, "aj", aj
+c           print *, "--->d2qd ", d2qd, "aj", aj
             d2qd = d2qd*aj
-            print *, "***d2qd ", d2qd, "aj", aj
+c           print *, "***d2qd ", d2qd, "aj", aj
       
             write(6,*)d2qd
             call ep(e1,tp,th,d2qf)
@@ -230,7 +230,7 @@ c I added this condition, because sometimes the value d2sc return NaN
 
 c      if (totale.eq.0)
 
-      print *,"d2qd", d2qd, "d2qf", d2qf, "d2del", d2del,"d2sc", d2sc ! (CA)
+c      print *,"d2qd", d2qd, "d2qf", d2qf, "d2del", d2del,"d2sc", d2sc ! (CA)
 
 
 c COMMENTED TO REMOVE THE OUTPUT FILE (CA)
@@ -248,11 +248,11 @@ c1000  write(6,*)'error reading file'
 c      close(1)
 c      close(2)
 
-      print *,"Kinetic Energy", tp ! (CA)
+c     print *,"Kinetic Energy", tp ! (CA)
         
       epc_func = totale
 
-      print *,"coming back (END) ", totale ! (CA)
+c     print *,"coming back (END) ", totale ! (CA)
 
       return ! because this is a function (CA)
 
@@ -385,7 +385,7 @@ c  quasi-deuteron cross section
 c     cross section in ub/mev-sr
             call vtp(amd,am,e1,w0,tp,th,phi)
             d2qd = qdf*phi*dsqd*ajw*ajt
-            print *, "*-*-*d2qd ", d2qd
+c           print *, "*-*-*d2qd ", d2qd
             return
          endif
       endif

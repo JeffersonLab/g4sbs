@@ -118,8 +118,8 @@ subroutine f2pi_sub(E, x, theta_e, km1, km2, F2pi_ret)
 !---------------------------------------------------------------------
 !***********************************************************************
 
-        print *, 'IN f2pi_sub.f90'
-        print *, E, x, theta_e, km1, km2
+!       print *, 'IN f2pi_sub.f90'
+!       print *, E, x, theta_e, km1, km2
 
 !       WE NOW COMPUTE CONVOLUTIONS AND DISTRIBUTIONS OVER THE RELEVANT x
 	ix = 1
@@ -141,7 +141,7 @@ subroutine f2pi_sub(E, x, theta_e, km1, km2, F2pi_ret)
         * (1.D0 - 1.D0/( (2.D0*E/(x*mN)) &
         * DSIN((theta_e/180.D0)*pi)**2.D0 + 1.D0 ) )
 
-           print *, 'Q2: ', Q2
+!          print *, 'Q2: ', Q2
 
 	   nu = Q2 / (2.D0 * mN * x) !DIS MOMENTUM EXCHANGE, GeV
 
@@ -246,7 +246,7 @@ subroutine f2pi_sub(E, x, theta_e, km1, km2, F2pi_ret)
 
            F2pi_ret = F2piK(ix)! the pion SF to return (CA)
 !	   print*, x, km1, F2piK(ix),   F2piK99(ix) 
-	   print*, x, km1, F2piK(ix),   F2pi_ret 
+!	   print*, x, km1, F2piK(ix),   F2pi_ret 
 
 !_____________________________________________________________________________
 !_____________________________________________________________________________

@@ -52,11 +52,11 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   // taken from M. carmignotto gemc mtpc implementation
   // inner electrode at r=5cm
   fmTPC_inelectrode_r = 50.0*mm; //5cm of inner electrode
-  fmTPC_inelectrode_kaptonthick = 0.002*mm; //2um kapton
+  fmTPC_inelectrode_kaptonthick = 0.012*mm; //12um kapton
   fmTPC_inelectrode_authick = 0.0001*mm; //0.1um Au
   // outer electrode at r=15cm
   fmTPC_outelectrode_r = 150.0*mm; //5cm of inner electrode
-  fmTPC_outelectrode_kaptonthick = 0.002*mm; //2um kapton
+  fmTPC_outelectrode_kaptonthick = 0.012*mm; //12um kapton
   fmTPC_outelectrode_authick = 0.0001*mm; //0.1um Au
   // mtpc chambers
   fmTPC_cell_len = 50.0*mm; //5cm length cells
@@ -75,6 +75,20 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   //
   fmTPCkrypto = true;//false;//by default
   fChkOvLaps = false;//true;//
+
+
+  //step user limit of the particle in the gas detector 
+  // -1*mm -> default G4 step (no user limit)
+  // user step size should be greater than 0*mm!
+  fmTPCstep = -1*mm;
+
+    if(fmTPCstep != -1*mm)
+      {
+	G4cout<<"****************************************************************************************"<<G4endl;
+	G4cout<<"            WARNING!! STEP LIMIT IN DRIFT GAS: "<< fmTPCstep<< " mm"<<G4endl;
+	G4cout<<"****************************************************************************************"<<G4endl;
+      }
+
 }
 
 void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
@@ -1075,6 +1089,13 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 			false, 
 			0, 
 			fChkOvLaps);
+
+      //Shorten the step length (CA)
+      if(fmTPCstep != -1*mm)
+	{
+	  mTPCGasCell_log->SetUserLimits( new G4UserLimits(fmTPCstep, DBL_MAX , DBL_MAX, 0, 0) );
+	}
+
       /*
       for(G4int i_gl = 0; i_gl<NGasLayers; i_gl++)
 	{

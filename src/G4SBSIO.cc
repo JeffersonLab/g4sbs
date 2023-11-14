@@ -19,6 +19,11 @@
 #include <assert.h>
 #include "sbstypes.hh"
 
+#include <time.h> //(CA)
+#include <stdio.h>
+#include <string.h>
+
+
 G4SBSIO::G4SBSIO(){
   fTree = NULL;
   //InitializeTree(); //We want experiment-dependent ROOT tree! Don't invoke until after fdetcon->ConstructAll() has been invoked!
@@ -156,6 +161,20 @@ void G4SBSIO::InitializeTree(){
     fFile->Close();
     delete fFile;
   }
+
+
+//Filename with timestamp (CA)
+  // time_t     now = time(0);
+  // struct tm  tstruct;
+  // char       buf[80];
+  // tstruct = *localtime(&now);
+  // strftime(buf, sizeof(buf), "-%Y%m%d_%H:%M:%S", &tstruct);
+  // strcat (fFilename, buf);
+  // strcat (fFilename, ".root");
+
+//END. Filename with timestamp (CA)
+
+  cout<< fFilename<<endl;
 
   fFile = new TFile(fFilename, "RECREATE"); 
 

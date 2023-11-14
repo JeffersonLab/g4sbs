@@ -8,7 +8,7 @@
 #include "G4Run.hh"
 #include "G4SBSRICHoutput.hh"
 #include "G4SBSECaloutput.hh"
-#include "G4SBSTrackerOutput.hh"
+
 #include "G4SBSCALoutput.hh"
 #include "G4SBSGEMoutput.hh"
 #include "G4SBSmTPCoutput.hh"
@@ -16,6 +16,9 @@
 #include "G4SBSDetectorConstruction.hh"
 #include "G4SBSPythiaOutput.hh"
 #include "G4SBSAcquMCOutput.hh"
+
+#include "G4SBSTrackerOutput.hh"
+
 
 // for D Flay studies
 #include "G4SBSBDoutput.hh"

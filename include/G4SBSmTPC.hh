@@ -107,6 +107,10 @@ private:
   G4bool fmTPCkrypto;
   G4bool fChkOvLaps;
 
+  //User step limit of particle in the drift gas (CA)
+  G4double fmTPCstep;
+
+
 };
 
 //extern G4SBSmTPC *mTPC;

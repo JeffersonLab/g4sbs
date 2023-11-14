@@ -8,7 +8,7 @@
 #include "G4Run.hh"
 #include "G4SBSRICHoutput.hh"
 #include "G4SBSECaloutput.hh"
-#include "G4SBSTrackerOutput.hh"
+
 #include "G4SBSCALoutput.hh"
 #include "G4SBSGEMoutput.hh"
 #include "G4SBSmTPCoutput.hh"
@@ -20,6 +20,9 @@
 // // // //
 #include "G4SBSSIMCOutput.hh"
 // // // // 11a33984f47772444ffb08222f8a978d2bee837e
+
+#include "G4SBSTrackerOutput.hh"
+
 
 // for D Flay studies
 #include "G4SBSBDoutput.hh"

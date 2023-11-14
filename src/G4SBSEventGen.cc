@@ -240,7 +240,7 @@ void G4SBSEventGen::Initialize(){
   //Default to very large numbers: 
   fTargUpstreamWindowRadLen = 1000.0*m;
   fTargRadLen = 1000.0*m;
-  
+
   switch(fTargType){
   case G4SBS::kH2:
     Wfact = 1.0; 
@@ -367,12 +367,19 @@ bool G4SBSEventGen::GenerateEvent(){
     // you have twice as many protons per unit volume. So let's actually change the code to reflect this.
     //Wfact = 2.0;
     break;
+
+    // MAYBE it is not important, but in sbstypes.hh --> enum Nucl_t   { kProton, kNeutron };
+    // thus for coherence with the rest of the code, the lines should be exchanged, i.e. when ==0 -> kProton (CA)
   case G4SBS::kD2:
-    if( CLHEP::RandFlat::shootInt(2) == 0 ){
+    if( CLHEP::RandFlat::shootInt(2) == 0 ){ //well, it is not important since it is random the nucleon
       thisnucl = G4SBS::kNeutron;
     } else {
       thisnucl = G4SBS::kProton;
     }
+    G4cout<<"EventGen (1): "<< thisnucl<<G4endl;
+
+
+ 
     ni = GetInitialNucl( fTargType, thisnucl );
     //   Wfact = 2.0;
     // AJRP: Based on same considerations discussed above, this should be changed to 4:
@@ -396,7 +403,6 @@ bool G4SBSEventGen::GenerateEvent(){
     } else {
       thisnucl = G4SBS::kProton;
     }
-
     ni = GetInitialNucl( fTargType, thisnucl );
     //Wfact = 2.0;
     //AJRP: for liquid deuterium, we compute the number density using the mass density, Avogadro's number, and the molar mass, so
@@ -579,7 +585,7 @@ bool G4SBSEventGen::GenerateEvent(){
   case tTDISKinD: //TDIS deuterium
   case kTDISGen: // to do (or to delete)
   case tInelastic: // to do (maybe not... ->Pythia?)
- 
+
     // with this way, I can send the flow to the generator
     // and work there independently.(CA)
     //G4cout<<"Going to TDIS"<<G4endl;
@@ -588,7 +594,9 @@ bool G4SBSEventGen::GenerateEvent(){
     
     //I changed this line after I consulted Eric about how should be counted 
     // the number of entries for the space-phase (CA)
-    success =   tdishandler->Generate(GetKine(), thisnucl, ei, ni ); //(CA)
+
+      G4cout<<"EventGen(2): "<< thisnucl<<G4endl;
+      success =   tdishandler->Generate(GetKine(), GetTarget(), thisnucl, ei, ni ); //(CA)
     //G4cout<<"Back from TDIS"<<G4endl;
     fSigma = tdishandler->GetSigma(GetKine());
     break;
@@ -3382,7 +3390,6 @@ ev_t G4SBSEventGen::GetEventData(){
       data.Q2    = tdishandler -> tGetQ2()/(GeV*GeV);
       data.z     = tdishandler -> tGetz();
       data.xbj   = tdishandler -> tGetxbj();
-      
       data.W2     = tdishandler->tGetW2()/(GeV*GeV);
       data.MX     = tdishandler->tGetMX()/pow(GeV,2); //are units correct?
 
@@ -3391,6 +3398,8 @@ ev_t G4SBSEventGen::GetEventData(){
       data.vz     = fVert.z()/m;// generated in this class
       
       tElectron_f = tdishandler -> tGetelef_lab();
+
+      //      G4cout<<" tElectron_fsaving: "<< tElectron_f <<" tElectron_f.vect().mag()/GeV: "<< tElectron_f.vect().mag()/GeV<< G4endl;
 
       data.ep    = tElectron_f.vect().mag()/GeV;
       data.epx   = tElectron_f.x()/GeV;
@@ -3424,7 +3433,12 @@ ev_t G4SBSEventGen::GetEventData(){
     data.nucl   = -1;
     break;
   }
-    
+   
+  G4cout<<"EventGen (3): "<<  fNuclType<<G4endl;
+  // I am not sure, but it could be confussing having p=0 in the whole sbs
+  // but p=1 in the rootfile. 
+  // The last makes more sense for physics
+
   switch( fFinalNucl ){
   case( G4SBS::kProton ):
     data.fnucl   = 1;

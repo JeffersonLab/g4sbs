@@ -11,6 +11,8 @@
 
 #include "G4SBSEventAction.hh" //RICHHit.hh, RICHoutput.hh, ECalHit.hh, ECaloutput.hh are here
 
+
+
 #include "G4SBSEventGen.hh"
 #include "G4SBSCalHit.hh"
 #include "G4SBSmTPCHit.hh"
@@ -34,8 +36,7 @@
 
 
 #include "G4SBSIO.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4PhysicalConstants.hh"
+
 
 #include "G4MaterialPropertiesTable.hh"
 #include "G4MaterialPropertyVector.hh"
@@ -129,7 +130,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   // bool RICHSD_exists = false; 
   // bool ECalSD_exists = false;
   
-  G4bool warn = false;
+  // compilation indicates it is not used (CA)
+  //  G4bool warn = false;
   
   G4SBSGEMSD *GEMSDptr;
   G4SBSCalSD *CalSDptr;

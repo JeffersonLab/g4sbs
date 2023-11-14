@@ -1073,7 +1073,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 			"mTPCGasCell_phy",
 			motherlog, 
 			false, 
-			0, 
+			incCell, 
 			fChkOvLaps);
       /*
       for(G4int i_gl = 0; i_gl<NGasLayers; i_gl++)

@@ -3467,7 +3467,9 @@ ev_tdis_t G4SBSEventGen::GetTDISEventData(){
   // printf("%e e-/s (I = %f uA)\n", fBeamCur/(e_SI*ampere), fBeamCur/(1e-6*ampere) );
   //printf("luminosity = %e Hz/cm2\n", lumin*second*cm2);
   // printf("e_SI = %e, ampere = %f, \n", e_SI);
-
+  
+  
+  
   if ( (fKineType == G4SBS::kDIS || fKineType == G4SBS::kInelastic || fKineType == G4SBS::kElastic) &&
        fTargType == G4SBS::kD2 ){
     //G4cout << "fprotonspec " << fProtonSpecP.mag()/GeV << " " << fProtonSpecP.x()/GeV << " " << fProtonSpecP.y()/GeV << " " << fProtonSpecP.z()/GeV << " " << fProtonSpecP.theta()/rad << " " << fProtonSpecP.phi()/rad << G4endl; 
@@ -3478,7 +3480,6 @@ ev_tdis_t G4SBSEventGen::GetTDISEventData(){
     tdis_data.p1pz = fProtonSpecP.z()/GeV;
     tdis_data.p1th = fProtonSpecP.theta()/rad;
     tdis_data.p1ph = fProtonSpecP.phi()/rad;
-    
     //G4cout << "data.p1 " << data.p1p << " " << data.p1px << " " << data.p1py << " " << data.p1pz << " " << data.p1th << " " << data.p1ph << G4endl; 
   }
   

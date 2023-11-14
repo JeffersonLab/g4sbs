@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Mon Oct 19 19:30:34 2020 by ROOT version 6.22/00
+// Thu Sep 22 12:04:16 2022 by ROOT version 6.26/06
 // from TTree T/Geant4 SBS Simulation
-// found on file: gen1018_elastic.root
+// found on file: GEN1_temp.root
 //////////////////////////////////////////////////////////
 
 #ifndef gen_tree_h
@@ -13,8 +13,8 @@
 #include <TFile.h>
 
 // Header file for the classes stored in the TTree if any.
-#include "vector"
-#include "vector"
+#include "c++/v1/vector"
+#include "c++/v1/vector"
 
 class gen_tree {
 public :
@@ -57,6 +57,7 @@ public :
    Double_t        ev_phperp;
    Double_t        ev_phih;
    Double_t        ev_phiS;
+   Double_t        ev_thetaS;
    Double_t        ev_MX2;
    Double_t        ev_Sx;
    Double_t        ev_Sy;
@@ -71,6 +72,12 @@ public :
    Int_t           ev_hadr;
    Int_t           ev_earmaccept;
    Int_t           ev_harmaccept;
+   Double_t        TargPol;
+   Double_t        TargThetaSpin;
+   Double_t        TargPhiSpin;
+   Double_t        BeamPol;
+   Double_t        BeamThetaSpin;
+   Double_t        BeamPhiSpin;
    Int_t           Earm_BBGEM_hit_nhits;
    vector<int>     *Earm_BBGEM_hit_plane;
    vector<int>     *Earm_BBGEM_hit_strip;
@@ -161,6 +168,25 @@ public :
    vector<int>     *Earm_BBHodoScint_hit_otridx;
    vector<int>     *Earm_BBHodoScint_hit_ptridx;
    vector<int>     *Earm_BBHodoScint_hit_sdtridx;
+   Int_t           Earm_BBPS_hit_nhits;
+   vector<int>     *Earm_BBPS_hit_PMT;
+   vector<int>     *Earm_BBPS_hit_row;
+   vector<int>     *Earm_BBPS_hit_col;
+   vector<int>     *Earm_BBPS_hit_plane;
+   vector<double>  *Earm_BBPS_hit_xcell;
+   vector<double>  *Earm_BBPS_hit_ycell;
+   vector<double>  *Earm_BBPS_hit_zcell;
+   vector<double>  *Earm_BBPS_hit_xgcell;
+   vector<double>  *Earm_BBPS_hit_ygcell;
+   vector<double>  *Earm_BBPS_hit_zgcell;
+   vector<int>     *Earm_BBPS_hit_NumPhotoelectrons;
+   vector<double>  *Earm_BBPS_hit_Time_avg;
+   vector<double>  *Earm_BBPS_hit_Time_rms;
+   vector<double>  *Earm_BBPS_hit_Time_min;
+   vector<double>  *Earm_BBPS_hit_Time_max;
+   vector<int>     *Earm_BBPS_hit_otridx;
+   vector<int>     *Earm_BBPS_hit_ptridx;
+   vector<int>     *Earm_BBPS_hit_sdtridx;
    Double_t        Earm_BBPSTF1_det_esum;
    Int_t           Earm_BBPSTF1_hit_nhits;
    vector<int>     *Earm_BBPSTF1_hit_row;
@@ -188,6 +214,25 @@ public :
    vector<int>     *Earm_BBPSTF1_hit_otridx;
    vector<int>     *Earm_BBPSTF1_hit_ptridx;
    vector<int>     *Earm_BBPSTF1_hit_sdtridx;
+   Int_t           Earm_BBSH_hit_nhits;
+   vector<int>     *Earm_BBSH_hit_PMT;
+   vector<int>     *Earm_BBSH_hit_row;
+   vector<int>     *Earm_BBSH_hit_col;
+   vector<int>     *Earm_BBSH_hit_plane;
+   vector<double>  *Earm_BBSH_hit_xcell;
+   vector<double>  *Earm_BBSH_hit_ycell;
+   vector<double>  *Earm_BBSH_hit_zcell;
+   vector<double>  *Earm_BBSH_hit_xgcell;
+   vector<double>  *Earm_BBSH_hit_ygcell;
+   vector<double>  *Earm_BBSH_hit_zgcell;
+   vector<int>     *Earm_BBSH_hit_NumPhotoelectrons;
+   vector<double>  *Earm_BBSH_hit_Time_avg;
+   vector<double>  *Earm_BBSH_hit_Time_rms;
+   vector<double>  *Earm_BBSH_hit_Time_min;
+   vector<double>  *Earm_BBSH_hit_Time_max;
+   vector<int>     *Earm_BBSH_hit_otridx;
+   vector<int>     *Earm_BBSH_hit_ptridx;
+   vector<int>     *Earm_BBSH_hit_sdtridx;
    Double_t        Earm_BBSHTF1_det_esum;
    Int_t           Earm_BBSHTF1_hit_nhits;
    vector<int>     *Earm_BBSHTF1_hit_row;
@@ -215,6 +260,57 @@ public :
    vector<int>     *Earm_BBSHTF1_hit_otridx;
    vector<int>     *Earm_BBSHTF1_hit_ptridx;
    vector<int>     *Earm_BBSHTF1_hit_sdtridx;
+   Int_t           Earm_GRINCH_hit_nhits;
+   vector<int>     *Earm_GRINCH_hit_PMT;
+   vector<int>     *Earm_GRINCH_hit_row;
+   vector<int>     *Earm_GRINCH_hit_col;
+   vector<double>  *Earm_GRINCH_hit_xpmt;
+   vector<double>  *Earm_GRINCH_hit_ypmt;
+   vector<double>  *Earm_GRINCH_hit_zpmt;
+   vector<double>  *Earm_GRINCH_hit_xgpmt;
+   vector<double>  *Earm_GRINCH_hit_ygpmt;
+   vector<double>  *Earm_GRINCH_hit_zgpmt;
+   vector<int>     *Earm_GRINCH_hit_NumPhotoelectrons;
+   vector<double>  *Earm_GRINCH_hit_Time_avg;
+   vector<double>  *Earm_GRINCH_hit_Time_rms;
+   vector<double>  *Earm_GRINCH_hit_Time_min;
+   vector<double>  *Earm_GRINCH_hit_Time_max;
+   vector<int>     *Earm_GRINCH_hit_mTrackNo;
+   vector<double>  *Earm_GRINCH_hit_xhit;
+   vector<double>  *Earm_GRINCH_hit_yhit;
+   vector<double>  *Earm_GRINCH_hit_zhit;
+   vector<double>  *Earm_GRINCH_hit_pxhit;
+   vector<double>  *Earm_GRINCH_hit_pyhit;
+   vector<double>  *Earm_GRINCH_hit_pzhit;
+   vector<double>  *Earm_GRINCH_hit_pvx;
+   vector<double>  *Earm_GRINCH_hit_pvy;
+   vector<double>  *Earm_GRINCH_hit_pvz;
+   vector<double>  *Earm_GRINCH_hit_ppx;
+   vector<double>  *Earm_GRINCH_hit_ppy;
+   vector<double>  *Earm_GRINCH_hit_ppz;
+   vector<int>     *Earm_GRINCH_hit_volume_flag;
+   vector<int>     *Earm_GRINCH_hit_otridx;
+   vector<int>     *Earm_GRINCH_hit_ptridx;
+   vector<int>     *Earm_GRINCH_hit_sdtridx;
+   Int_t           Harm_HCal_hit_nhits;
+   vector<int>     *Harm_HCal_hit_PMT;
+   vector<int>     *Harm_HCal_hit_row;
+   vector<int>     *Harm_HCal_hit_col;
+   vector<int>     *Harm_HCal_hit_plane;
+   vector<double>  *Harm_HCal_hit_xcell;
+   vector<double>  *Harm_HCal_hit_ycell;
+   vector<double>  *Harm_HCal_hit_zcell;
+   vector<double>  *Harm_HCal_hit_xgcell;
+   vector<double>  *Harm_HCal_hit_ygcell;
+   vector<double>  *Harm_HCal_hit_zgcell;
+   vector<int>     *Harm_HCal_hit_NumPhotoelectrons;
+   vector<double>  *Harm_HCal_hit_Time_avg;
+   vector<double>  *Harm_HCal_hit_Time_rms;
+   vector<double>  *Harm_HCal_hit_Time_min;
+   vector<double>  *Harm_HCal_hit_Time_max;
+   vector<int>     *Harm_HCal_hit_otridx;
+   vector<int>     *Harm_HCal_hit_ptridx;
+   vector<int>     *Harm_HCal_hit_sdtridx;
    Double_t        Harm_HCalScint_det_esum;
    Int_t           Harm_HCalScint_hit_nhits;
    vector<int>     *Harm_HCalScint_hit_row;
@@ -242,6 +338,69 @@ public :
    vector<int>     *Harm_HCalScint_hit_otridx;
    vector<int>     *Harm_HCalScint_hit_ptridx;
    vector<int>     *Harm_HCalScint_hit_sdtridx;
+   Int_t           Harm_SBSGEM_hit_nhits;
+   vector<int>     *Harm_SBSGEM_hit_plane;
+   vector<int>     *Harm_SBSGEM_hit_strip;
+   vector<double>  *Harm_SBSGEM_hit_x;
+   vector<double>  *Harm_SBSGEM_hit_y;
+   vector<double>  *Harm_SBSGEM_hit_z;
+   vector<double>  *Harm_SBSGEM_hit_polx;
+   vector<double>  *Harm_SBSGEM_hit_poly;
+   vector<double>  *Harm_SBSGEM_hit_polz;
+   vector<double>  *Harm_SBSGEM_hit_t;
+   vector<double>  *Harm_SBSGEM_hit_trms;
+   vector<double>  *Harm_SBSGEM_hit_tmin;
+   vector<double>  *Harm_SBSGEM_hit_tmax;
+   vector<double>  *Harm_SBSGEM_hit_tx;
+   vector<double>  *Harm_SBSGEM_hit_ty;
+   vector<double>  *Harm_SBSGEM_hit_xin;
+   vector<double>  *Harm_SBSGEM_hit_yin;
+   vector<double>  *Harm_SBSGEM_hit_zin;
+   vector<double>  *Harm_SBSGEM_hit_xout;
+   vector<double>  *Harm_SBSGEM_hit_yout;
+   vector<double>  *Harm_SBSGEM_hit_zout;
+   vector<double>  *Harm_SBSGEM_hit_txp;
+   vector<double>  *Harm_SBSGEM_hit_typ;
+   vector<double>  *Harm_SBSGEM_hit_xg;
+   vector<double>  *Harm_SBSGEM_hit_yg;
+   vector<double>  *Harm_SBSGEM_hit_zg;
+   vector<int>     *Harm_SBSGEM_hit_trid;
+   vector<int>     *Harm_SBSGEM_hit_mid;
+   vector<int>     *Harm_SBSGEM_hit_pid;
+   vector<double>  *Harm_SBSGEM_hit_vx;
+   vector<double>  *Harm_SBSGEM_hit_vy;
+   vector<double>  *Harm_SBSGEM_hit_vz;
+   vector<double>  *Harm_SBSGEM_hit_p;
+   vector<double>  *Harm_SBSGEM_hit_edep;
+   vector<double>  *Harm_SBSGEM_hit_beta;
+   vector<int>     *Harm_SBSGEM_hit_otridx;
+   vector<int>     *Harm_SBSGEM_hit_ptridx;
+   vector<int>     *Harm_SBSGEM_hit_sdtridx;
+   Int_t           Harm_SBSGEM_Track_ntracks;
+   vector<int>     *Harm_SBSGEM_Track_TID;
+   vector<int>     *Harm_SBSGEM_Track_PID;
+   vector<int>     *Harm_SBSGEM_Track_MID;
+   vector<int>     *Harm_SBSGEM_Track_NumHits;
+   vector<int>     *Harm_SBSGEM_Track_NumPlanes;
+   vector<int>     *Harm_SBSGEM_Track_NDF;
+   vector<double>  *Harm_SBSGEM_Track_Chi2fit;
+   vector<double>  *Harm_SBSGEM_Track_Chi2true;
+   vector<double>  *Harm_SBSGEM_Track_X;
+   vector<double>  *Harm_SBSGEM_Track_Y;
+   vector<double>  *Harm_SBSGEM_Track_Xp;
+   vector<double>  *Harm_SBSGEM_Track_Yp;
+   vector<double>  *Harm_SBSGEM_Track_T;
+   vector<double>  *Harm_SBSGEM_Track_P;
+   vector<double>  *Harm_SBSGEM_Track_Sx;
+   vector<double>  *Harm_SBSGEM_Track_Sy;
+   vector<double>  *Harm_SBSGEM_Track_Sz;
+   vector<double>  *Harm_SBSGEM_Track_Xfit;
+   vector<double>  *Harm_SBSGEM_Track_Yfit;
+   vector<double>  *Harm_SBSGEM_Track_Xpfit;
+   vector<double>  *Harm_SBSGEM_Track_Ypfit;
+   vector<int>     *Harm_SBSGEM_Track_otridx;
+   vector<int>     *Harm_SBSGEM_Track_ptridx;
+   vector<int>     *Harm_SBSGEM_Track_sdtridx;
    Int_t           OTrack_ntracks;
    vector<int>     *OTrack_TID;
    vector<int>     *OTrack_MID;
@@ -286,9 +445,22 @@ public :
    vector<double>  *SDTrack_polz;
    vector<double>  *SDTrack_Etot;
    vector<double>  *SDTrack_T;
+   vector<double>  *SDTrack_vx;
+   vector<double>  *SDTrack_vy;
+   vector<double>  *SDTrack_vz;
+   vector<double>  *SDTrack_vnx;
+   vector<double>  *SDTrack_vny;
+   vector<double>  *SDTrack_vnz;
+   vector<double>  *SDTrack_vEkin;
 
    // List of branches
    TBranch        *b_ev;   //!
+   TBranch        *b_TargPol;   //!
+   TBranch        *b_TargThetaSpin;   //!
+   TBranch        *b_TargPhiSpin;   //!
+   TBranch        *b_BeamPol;   //!
+   TBranch        *b_BeamThetaSpin;   //!
+   TBranch        *b_BeamPhiSpin;   //!
    TBranch        *b_Earm_BBGEM_hit_nhits;   //!
    TBranch        *b_Earm_BBGEM_hit_plane;   //!
    TBranch        *b_Earm_BBGEM_hit_strip;   //!
@@ -379,6 +551,25 @@ public :
    TBranch        *b_Earm_BBHodoScint_hit_otridx;   //!
    TBranch        *b_Earm_BBHodoScint_hit_ptridx;   //!
    TBranch        *b_Earm_BBHodoScint_hit_sdtridx;   //!
+   TBranch        *b_Earm_BBPS_hit_nhits;   //!
+   TBranch        *b_Earm_BBPS_hit_PMT;   //!
+   TBranch        *b_Earm_BBPS_hit_row;   //!
+   TBranch        *b_Earm_BBPS_hit_col;   //!
+   TBranch        *b_Earm_BBPS_hit_plane;   //!
+   TBranch        *b_Earm_BBPS_hit_xcell;   //!
+   TBranch        *b_Earm_BBPS_hit_ycell;   //!
+   TBranch        *b_Earm_BBPS_hit_zcell;   //!
+   TBranch        *b_Earm_BBPS_hit_xgcell;   //!
+   TBranch        *b_Earm_BBPS_hit_ygcell;   //!
+   TBranch        *b_Earm_BBPS_hit_zgcell;   //!
+   TBranch        *b_Earm_BBPS_hit_NumPhotoelectrons;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_avg;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_rms;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_min;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_max;   //!
+   TBranch        *b_Earm_BBPS_hit_otridx;   //!
+   TBranch        *b_Earm_BBPS_hit_ptridx;   //!
+   TBranch        *b_Earm_BBPS_hit_sdtridx;   //!
    TBranch        *b_Earm_BBPSTF1_det_esum;   //!
    TBranch        *b_Earm_BBPSTF1_hit_nhits;   //!
    TBranch        *b_Earm_BBPSTF1_hit_row;   //!
@@ -406,6 +597,25 @@ public :
    TBranch        *b_Earm_BBPSTF1_hit_otridx;   //!
    TBranch        *b_Earm_BBPSTF1_hit_ptridx;   //!
    TBranch        *b_Earm_BBPSTF1_hit_sdtridx;   //!
+   TBranch        *b_Earm_BBSH_hit_nhits;   //!
+   TBranch        *b_Earm_BBSH_hit_PMT;   //!
+   TBranch        *b_Earm_BBSH_hit_row;   //!
+   TBranch        *b_Earm_BBSH_hit_col;   //!
+   TBranch        *b_Earm_BBSH_hit_plane;   //!
+   TBranch        *b_Earm_BBSH_hit_xcell;   //!
+   TBranch        *b_Earm_BBSH_hit_ycell;   //!
+   TBranch        *b_Earm_BBSH_hit_zcell;   //!
+   TBranch        *b_Earm_BBSH_hit_xgcell;   //!
+   TBranch        *b_Earm_BBSH_hit_ygcell;   //!
+   TBranch        *b_Earm_BBSH_hit_zgcell;   //!
+   TBranch        *b_Earm_BBSH_hit_NumPhotoelectrons;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_avg;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_rms;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_min;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_max;   //!
+   TBranch        *b_Earm_BBSH_hit_otridx;   //!
+   TBranch        *b_Earm_BBSH_hit_ptridx;   //!
+   TBranch        *b_Earm_BBSH_hit_sdtridx;   //!
    TBranch        *b_Earm_BBSHTF1_det_esum;   //!
    TBranch        *b_Earm_BBSHTF1_hit_nhits;   //!
    TBranch        *b_Earm_BBSHTF1_hit_row;   //!
@@ -433,6 +643,57 @@ public :
    TBranch        *b_Earm_BBSHTF1_hit_otridx;   //!
    TBranch        *b_Earm_BBSHTF1_hit_ptridx;   //!
    TBranch        *b_Earm_BBSHTF1_hit_sdtridx;   //!
+   TBranch        *b_Earm_GRINCH_hit_nhits;   //!
+   TBranch        *b_Earm_GRINCH_hit_PMT;   //!
+   TBranch        *b_Earm_GRINCH_hit_row;   //!
+   TBranch        *b_Earm_GRINCH_hit_col;   //!
+   TBranch        *b_Earm_GRINCH_hit_xpmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_ypmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_zpmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_xgpmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_ygpmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_zgpmt;   //!
+   TBranch        *b_Earm_GRINCH_hit_NumPhotoelectrons;   //!
+   TBranch        *b_Earm_GRINCH_hit_Time_avg;   //!
+   TBranch        *b_Earm_GRINCH_hit_Time_rms;   //!
+   TBranch        *b_Earm_GRINCH_hit_Time_min;   //!
+   TBranch        *b_Earm_GRINCH_hit_Time_max;   //!
+   TBranch        *b_Earm_GRINCH_hit_mTrackNo;   //!
+   TBranch        *b_Earm_GRINCH_hit_xhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_yhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_zhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_pxhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_pyhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_pzhit;   //!
+   TBranch        *b_Earm_GRINCH_hit_pvx;   //!
+   TBranch        *b_Earm_GRINCH_hit_pvy;   //!
+   TBranch        *b_Earm_GRINCH_hit_pvz;   //!
+   TBranch        *b_Earm_GRINCH_hit_ppx;   //!
+   TBranch        *b_Earm_GRINCH_hit_ppy;   //!
+   TBranch        *b_Earm_GRINCH_hit_ppz;   //!
+   TBranch        *b_Earm_GRINCH_hit_volume_flag;   //!
+   TBranch        *b_Earm_GRINCH_hit_otridx;   //!
+   TBranch        *b_Earm_GRINCH_hit_ptridx;   //!
+   TBranch        *b_Earm_GRINCH_hit_sdtridx;   //!
+   TBranch        *b_Harm_HCal_hit_nhits;   //!
+   TBranch        *b_Harm_HCal_hit_PMT;   //!
+   TBranch        *b_Harm_HCal_hit_row;   //!
+   TBranch        *b_Harm_HCal_hit_col;   //!
+   TBranch        *b_Harm_HCal_hit_plane;   //!
+   TBranch        *b_Harm_HCal_hit_xcell;   //!
+   TBranch        *b_Harm_HCal_hit_ycell;   //!
+   TBranch        *b_Harm_HCal_hit_zcell;   //!
+   TBranch        *b_Harm_HCal_hit_xgcell;   //!
+   TBranch        *b_Harm_HCal_hit_ygcell;   //!
+   TBranch        *b_Harm_HCal_hit_zgcell;   //!
+   TBranch        *b_Harm_HCal_hit_NumPhotoelectrons;   //!
+   TBranch        *b_Harm_HCal_hit_Time_avg;   //!
+   TBranch        *b_Harm_HCal_hit_Time_rms;   //!
+   TBranch        *b_Harm_HCal_hit_Time_min;   //!
+   TBranch        *b_Harm_HCal_hit_Time_max;   //!
+   TBranch        *b_Harm_HCal_hit_otridx;   //!
+   TBranch        *b_Harm_HCal_hit_ptridx;   //!
+   TBranch        *b_Harm_HCal_hit_sdtridx;   //!
    TBranch        *b_Harm_HCalScint_det_esum;   //!
    TBranch        *b_Harm_HCalScint_hit_nhits;   //!
    TBranch        *b_Harm_HCalScint_hit_row;   //!
@@ -460,6 +721,69 @@ public :
    TBranch        *b_Harm_HCalScint_hit_otridx;   //!
    TBranch        *b_Harm_HCalScint_hit_ptridx;   //!
    TBranch        *b_Harm_HCalScint_hit_sdtridx;   //!
+   TBranch        *b_Harm_SBSGEM_hit_nhits;   //!
+   TBranch        *b_Harm_SBSGEM_hit_plane;   //!
+   TBranch        *b_Harm_SBSGEM_hit_strip;   //!
+   TBranch        *b_Harm_SBSGEM_hit_x;   //!
+   TBranch        *b_Harm_SBSGEM_hit_y;   //!
+   TBranch        *b_Harm_SBSGEM_hit_z;   //!
+   TBranch        *b_Harm_SBSGEM_hit_polx;   //!
+   TBranch        *b_Harm_SBSGEM_hit_poly;   //!
+   TBranch        *b_Harm_SBSGEM_hit_polz;   //!
+   TBranch        *b_Harm_SBSGEM_hit_t;   //!
+   TBranch        *b_Harm_SBSGEM_hit_trms;   //!
+   TBranch        *b_Harm_SBSGEM_hit_tmin;   //!
+   TBranch        *b_Harm_SBSGEM_hit_tmax;   //!
+   TBranch        *b_Harm_SBSGEM_hit_tx;   //!
+   TBranch        *b_Harm_SBSGEM_hit_ty;   //!
+   TBranch        *b_Harm_SBSGEM_hit_xin;   //!
+   TBranch        *b_Harm_SBSGEM_hit_yin;   //!
+   TBranch        *b_Harm_SBSGEM_hit_zin;   //!
+   TBranch        *b_Harm_SBSGEM_hit_xout;   //!
+   TBranch        *b_Harm_SBSGEM_hit_yout;   //!
+   TBranch        *b_Harm_SBSGEM_hit_zout;   //!
+   TBranch        *b_Harm_SBSGEM_hit_txp;   //!
+   TBranch        *b_Harm_SBSGEM_hit_typ;   //!
+   TBranch        *b_Harm_SBSGEM_hit_xg;   //!
+   TBranch        *b_Harm_SBSGEM_hit_yg;   //!
+   TBranch        *b_Harm_SBSGEM_hit_zg;   //!
+   TBranch        *b_Harm_SBSGEM_hit_trid;   //!
+   TBranch        *b_Harm_SBSGEM_hit_mid;   //!
+   TBranch        *b_Harm_SBSGEM_hit_pid;   //!
+   TBranch        *b_Harm_SBSGEM_hit_vx;   //!
+   TBranch        *b_Harm_SBSGEM_hit_vy;   //!
+   TBranch        *b_Harm_SBSGEM_hit_vz;   //!
+   TBranch        *b_Harm_SBSGEM_hit_p;   //!
+   TBranch        *b_Harm_SBSGEM_hit_edep;   //!
+   TBranch        *b_Harm_SBSGEM_hit_beta;   //!
+   TBranch        *b_Harm_SBSGEM_hit_otridx;   //!
+   TBranch        *b_Harm_SBSGEM_hit_ptridx;   //!
+   TBranch        *b_Harm_SBSGEM_hit_sdtridx;   //!
+   TBranch        *b_Harm_SBSGEM_Track_ntracks;   //!
+   TBranch        *b_Harm_SBSGEM_Track_TID;   //!
+   TBranch        *b_Harm_SBSGEM_Track_PID;   //!
+   TBranch        *b_Harm_SBSGEM_Track_MID;   //!
+   TBranch        *b_Harm_SBSGEM_Track_NumHits;   //!
+   TBranch        *b_Harm_SBSGEM_Track_NumPlanes;   //!
+   TBranch        *b_Harm_SBSGEM_Track_NDF;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Chi2fit;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Chi2true;   //!
+   TBranch        *b_Harm_SBSGEM_Track_X;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Y;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Xp;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Yp;   //!
+   TBranch        *b_Harm_SBSGEM_Track_T;   //!
+   TBranch        *b_Harm_SBSGEM_Track_P;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Sx;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Sy;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Sz;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Xfit;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Yfit;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Xpfit;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Ypfit;   //!
+   TBranch        *b_Harm_SBSGEM_Track_otridx;   //!
+   TBranch        *b_Harm_SBSGEM_Track_ptridx;   //!
+   TBranch        *b_Harm_SBSGEM_Track_sdtridx;   //!
    TBranch        *b_OTrack_ntracks;   //!
    TBranch        *b_OTrack_TID;   //!
    TBranch        *b_OTrack_MID;   //!
@@ -504,6 +828,13 @@ public :
    TBranch        *b_SDTrack_polz;   //!
    TBranch        *b_SDTrack_Etot;   //!
    TBranch        *b_SDTrack_T;   //!
+   TBranch        *b_SDTrack_vx;   //!
+   TBranch        *b_SDTrack_vy;   //!
+   TBranch        *b_SDTrack_vz;   //!
+   TBranch        *b_SDTrack_vnx;   //!
+   TBranch        *b_SDTrack_vny;   //!
+   TBranch        *b_SDTrack_vnz;   //!
+   TBranch        *b_SDTrack_vEkin;   //!
 
    gen_tree(TTree *tree=0);
    virtual ~gen_tree();
@@ -524,9 +855,9 @@ gen_tree::gen_tree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("gen1018_elastic.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("GEN1_temp.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("gen1018_elastic.root");
+         f = new TFile("GEN1_temp.root");
       }
       f->GetObject("T",tree);
 
@@ -656,6 +987,24 @@ void gen_tree::Init(TTree *tree)
    Earm_BBHodoScint_hit_otridx = 0;
    Earm_BBHodoScint_hit_ptridx = 0;
    Earm_BBHodoScint_hit_sdtridx = 0;
+   Earm_BBPS_hit_PMT = 0;
+   Earm_BBPS_hit_row = 0;
+   Earm_BBPS_hit_col = 0;
+   Earm_BBPS_hit_plane = 0;
+   Earm_BBPS_hit_xcell = 0;
+   Earm_BBPS_hit_ycell = 0;
+   Earm_BBPS_hit_zcell = 0;
+   Earm_BBPS_hit_xgcell = 0;
+   Earm_BBPS_hit_ygcell = 0;
+   Earm_BBPS_hit_zgcell = 0;
+   Earm_BBPS_hit_NumPhotoelectrons = 0;
+   Earm_BBPS_hit_Time_avg = 0;
+   Earm_BBPS_hit_Time_rms = 0;
+   Earm_BBPS_hit_Time_min = 0;
+   Earm_BBPS_hit_Time_max = 0;
+   Earm_BBPS_hit_otridx = 0;
+   Earm_BBPS_hit_ptridx = 0;
+   Earm_BBPS_hit_sdtridx = 0;
    Earm_BBPSTF1_hit_row = 0;
    Earm_BBPSTF1_hit_col = 0;
    Earm_BBPSTF1_hit_cell = 0;
@@ -681,6 +1030,24 @@ void gen_tree::Init(TTree *tree)
    Earm_BBPSTF1_hit_otridx = 0;
    Earm_BBPSTF1_hit_ptridx = 0;
    Earm_BBPSTF1_hit_sdtridx = 0;
+   Earm_BBSH_hit_PMT = 0;
+   Earm_BBSH_hit_row = 0;
+   Earm_BBSH_hit_col = 0;
+   Earm_BBSH_hit_plane = 0;
+   Earm_BBSH_hit_xcell = 0;
+   Earm_BBSH_hit_ycell = 0;
+   Earm_BBSH_hit_zcell = 0;
+   Earm_BBSH_hit_xgcell = 0;
+   Earm_BBSH_hit_ygcell = 0;
+   Earm_BBSH_hit_zgcell = 0;
+   Earm_BBSH_hit_NumPhotoelectrons = 0;
+   Earm_BBSH_hit_Time_avg = 0;
+   Earm_BBSH_hit_Time_rms = 0;
+   Earm_BBSH_hit_Time_min = 0;
+   Earm_BBSH_hit_Time_max = 0;
+   Earm_BBSH_hit_otridx = 0;
+   Earm_BBSH_hit_ptridx = 0;
+   Earm_BBSH_hit_sdtridx = 0;
    Earm_BBSHTF1_hit_row = 0;
    Earm_BBSHTF1_hit_col = 0;
    Earm_BBSHTF1_hit_cell = 0;
@@ -706,6 +1073,55 @@ void gen_tree::Init(TTree *tree)
    Earm_BBSHTF1_hit_otridx = 0;
    Earm_BBSHTF1_hit_ptridx = 0;
    Earm_BBSHTF1_hit_sdtridx = 0;
+   Earm_GRINCH_hit_PMT = 0;
+   Earm_GRINCH_hit_row = 0;
+   Earm_GRINCH_hit_col = 0;
+   Earm_GRINCH_hit_xpmt = 0;
+   Earm_GRINCH_hit_ypmt = 0;
+   Earm_GRINCH_hit_zpmt = 0;
+   Earm_GRINCH_hit_xgpmt = 0;
+   Earm_GRINCH_hit_ygpmt = 0;
+   Earm_GRINCH_hit_zgpmt = 0;
+   Earm_GRINCH_hit_NumPhotoelectrons = 0;
+   Earm_GRINCH_hit_Time_avg = 0;
+   Earm_GRINCH_hit_Time_rms = 0;
+   Earm_GRINCH_hit_Time_min = 0;
+   Earm_GRINCH_hit_Time_max = 0;
+   Earm_GRINCH_hit_mTrackNo = 0;
+   Earm_GRINCH_hit_xhit = 0;
+   Earm_GRINCH_hit_yhit = 0;
+   Earm_GRINCH_hit_zhit = 0;
+   Earm_GRINCH_hit_pxhit = 0;
+   Earm_GRINCH_hit_pyhit = 0;
+   Earm_GRINCH_hit_pzhit = 0;
+   Earm_GRINCH_hit_pvx = 0;
+   Earm_GRINCH_hit_pvy = 0;
+   Earm_GRINCH_hit_pvz = 0;
+   Earm_GRINCH_hit_ppx = 0;
+   Earm_GRINCH_hit_ppy = 0;
+   Earm_GRINCH_hit_ppz = 0;
+   Earm_GRINCH_hit_volume_flag = 0;
+   Earm_GRINCH_hit_otridx = 0;
+   Earm_GRINCH_hit_ptridx = 0;
+   Earm_GRINCH_hit_sdtridx = 0;
+   Harm_HCal_hit_PMT = 0;
+   Harm_HCal_hit_row = 0;
+   Harm_HCal_hit_col = 0;
+   Harm_HCal_hit_plane = 0;
+   Harm_HCal_hit_xcell = 0;
+   Harm_HCal_hit_ycell = 0;
+   Harm_HCal_hit_zcell = 0;
+   Harm_HCal_hit_xgcell = 0;
+   Harm_HCal_hit_ygcell = 0;
+   Harm_HCal_hit_zgcell = 0;
+   Harm_HCal_hit_NumPhotoelectrons = 0;
+   Harm_HCal_hit_Time_avg = 0;
+   Harm_HCal_hit_Time_rms = 0;
+   Harm_HCal_hit_Time_min = 0;
+   Harm_HCal_hit_Time_max = 0;
+   Harm_HCal_hit_otridx = 0;
+   Harm_HCal_hit_ptridx = 0;
+   Harm_HCal_hit_sdtridx = 0;
    Harm_HCalScint_hit_row = 0;
    Harm_HCalScint_hit_col = 0;
    Harm_HCalScint_hit_cell = 0;
@@ -731,6 +1147,67 @@ void gen_tree::Init(TTree *tree)
    Harm_HCalScint_hit_otridx = 0;
    Harm_HCalScint_hit_ptridx = 0;
    Harm_HCalScint_hit_sdtridx = 0;
+   Harm_SBSGEM_hit_plane = 0;
+   Harm_SBSGEM_hit_strip = 0;
+   Harm_SBSGEM_hit_x = 0;
+   Harm_SBSGEM_hit_y = 0;
+   Harm_SBSGEM_hit_z = 0;
+   Harm_SBSGEM_hit_polx = 0;
+   Harm_SBSGEM_hit_poly = 0;
+   Harm_SBSGEM_hit_polz = 0;
+   Harm_SBSGEM_hit_t = 0;
+   Harm_SBSGEM_hit_trms = 0;
+   Harm_SBSGEM_hit_tmin = 0;
+   Harm_SBSGEM_hit_tmax = 0;
+   Harm_SBSGEM_hit_tx = 0;
+   Harm_SBSGEM_hit_ty = 0;
+   Harm_SBSGEM_hit_xin = 0;
+   Harm_SBSGEM_hit_yin = 0;
+   Harm_SBSGEM_hit_zin = 0;
+   Harm_SBSGEM_hit_xout = 0;
+   Harm_SBSGEM_hit_yout = 0;
+   Harm_SBSGEM_hit_zout = 0;
+   Harm_SBSGEM_hit_txp = 0;
+   Harm_SBSGEM_hit_typ = 0;
+   Harm_SBSGEM_hit_xg = 0;
+   Harm_SBSGEM_hit_yg = 0;
+   Harm_SBSGEM_hit_zg = 0;
+   Harm_SBSGEM_hit_trid = 0;
+   Harm_SBSGEM_hit_mid = 0;
+   Harm_SBSGEM_hit_pid = 0;
+   Harm_SBSGEM_hit_vx = 0;
+   Harm_SBSGEM_hit_vy = 0;
+   Harm_SBSGEM_hit_vz = 0;
+   Harm_SBSGEM_hit_p = 0;
+   Harm_SBSGEM_hit_edep = 0;
+   Harm_SBSGEM_hit_beta = 0;
+   Harm_SBSGEM_hit_otridx = 0;
+   Harm_SBSGEM_hit_ptridx = 0;
+   Harm_SBSGEM_hit_sdtridx = 0;
+   Harm_SBSGEM_Track_TID = 0;
+   Harm_SBSGEM_Track_PID = 0;
+   Harm_SBSGEM_Track_MID = 0;
+   Harm_SBSGEM_Track_NumHits = 0;
+   Harm_SBSGEM_Track_NumPlanes = 0;
+   Harm_SBSGEM_Track_NDF = 0;
+   Harm_SBSGEM_Track_Chi2fit = 0;
+   Harm_SBSGEM_Track_Chi2true = 0;
+   Harm_SBSGEM_Track_X = 0;
+   Harm_SBSGEM_Track_Y = 0;
+   Harm_SBSGEM_Track_Xp = 0;
+   Harm_SBSGEM_Track_Yp = 0;
+   Harm_SBSGEM_Track_T = 0;
+   Harm_SBSGEM_Track_P = 0;
+   Harm_SBSGEM_Track_Sx = 0;
+   Harm_SBSGEM_Track_Sy = 0;
+   Harm_SBSGEM_Track_Sz = 0;
+   Harm_SBSGEM_Track_Xfit = 0;
+   Harm_SBSGEM_Track_Yfit = 0;
+   Harm_SBSGEM_Track_Xpfit = 0;
+   Harm_SBSGEM_Track_Ypfit = 0;
+   Harm_SBSGEM_Track_otridx = 0;
+   Harm_SBSGEM_Track_ptridx = 0;
+   Harm_SBSGEM_Track_sdtridx = 0;
    OTrack_TID = 0;
    OTrack_MID = 0;
    OTrack_PID = 0;
@@ -772,6 +1249,13 @@ void gen_tree::Init(TTree *tree)
    SDTrack_polz = 0;
    SDTrack_Etot = 0;
    SDTrack_T = 0;
+   SDTrack_vx = 0;
+   SDTrack_vy = 0;
+   SDTrack_vz = 0;
+   SDTrack_vnx = 0;
+   SDTrack_vny = 0;
+   SDTrack_vnz = 0;
+   SDTrack_vEkin = 0;
    // Set branch addresses and branch pointers
    if (!tree) return;
    fChain = tree;
@@ -779,6 +1263,12 @@ void gen_tree::Init(TTree *tree)
    fChain->SetMakeClass(1);
 
    fChain->SetBranchAddress("ev", &ev_count, &b_ev);
+   fChain->SetBranchAddress("TargPol", &TargPol, &b_TargPol);
+   fChain->SetBranchAddress("TargThetaSpin", &TargThetaSpin, &b_TargThetaSpin);
+   fChain->SetBranchAddress("TargPhiSpin", &TargPhiSpin, &b_TargPhiSpin);
+   fChain->SetBranchAddress("BeamPol", &BeamPol, &b_BeamPol);
+   fChain->SetBranchAddress("BeamThetaSpin", &BeamThetaSpin, &b_BeamThetaSpin);
+   fChain->SetBranchAddress("BeamPhiSpin", &BeamPhiSpin, &b_BeamPhiSpin);
    fChain->SetBranchAddress("Earm.BBGEM.hit.nhits", &Earm_BBGEM_hit_nhits, &b_Earm_BBGEM_hit_nhits);
    fChain->SetBranchAddress("Earm.BBGEM.hit.plane", &Earm_BBGEM_hit_plane, &b_Earm_BBGEM_hit_plane);
    fChain->SetBranchAddress("Earm.BBGEM.hit.strip", &Earm_BBGEM_hit_strip, &b_Earm_BBGEM_hit_strip);
@@ -869,6 +1359,25 @@ void gen_tree::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.BBHodoScint.hit.otridx", &Earm_BBHodoScint_hit_otridx, &b_Earm_BBHodoScint_hit_otridx);
    fChain->SetBranchAddress("Earm.BBHodoScint.hit.ptridx", &Earm_BBHodoScint_hit_ptridx, &b_Earm_BBHodoScint_hit_ptridx);
    fChain->SetBranchAddress("Earm.BBHodoScint.hit.sdtridx", &Earm_BBHodoScint_hit_sdtridx, &b_Earm_BBHodoScint_hit_sdtridx);
+   fChain->SetBranchAddress("Earm.BBPS.hit.nhits", &Earm_BBPS_hit_nhits, &b_Earm_BBPS_hit_nhits);
+   fChain->SetBranchAddress("Earm.BBPS.hit.PMT", &Earm_BBPS_hit_PMT, &b_Earm_BBPS_hit_PMT);
+   fChain->SetBranchAddress("Earm.BBPS.hit.row", &Earm_BBPS_hit_row, &b_Earm_BBPS_hit_row);
+   fChain->SetBranchAddress("Earm.BBPS.hit.col", &Earm_BBPS_hit_col, &b_Earm_BBPS_hit_col);
+   fChain->SetBranchAddress("Earm.BBPS.hit.plane", &Earm_BBPS_hit_plane, &b_Earm_BBPS_hit_plane);
+   fChain->SetBranchAddress("Earm.BBPS.hit.xcell", &Earm_BBPS_hit_xcell, &b_Earm_BBPS_hit_xcell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.ycell", &Earm_BBPS_hit_ycell, &b_Earm_BBPS_hit_ycell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.zcell", &Earm_BBPS_hit_zcell, &b_Earm_BBPS_hit_zcell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.xgcell", &Earm_BBPS_hit_xgcell, &b_Earm_BBPS_hit_xgcell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.ygcell", &Earm_BBPS_hit_ygcell, &b_Earm_BBPS_hit_ygcell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.zgcell", &Earm_BBPS_hit_zgcell, &b_Earm_BBPS_hit_zgcell);
+   fChain->SetBranchAddress("Earm.BBPS.hit.NumPhotoelectrons", &Earm_BBPS_hit_NumPhotoelectrons, &b_Earm_BBPS_hit_NumPhotoelectrons);
+   fChain->SetBranchAddress("Earm.BBPS.hit.Time_avg", &Earm_BBPS_hit_Time_avg, &b_Earm_BBPS_hit_Time_avg);
+   fChain->SetBranchAddress("Earm.BBPS.hit.Time_rms", &Earm_BBPS_hit_Time_rms, &b_Earm_BBPS_hit_Time_rms);
+   fChain->SetBranchAddress("Earm.BBPS.hit.Time_min", &Earm_BBPS_hit_Time_min, &b_Earm_BBPS_hit_Time_min);
+   fChain->SetBranchAddress("Earm.BBPS.hit.Time_max", &Earm_BBPS_hit_Time_max, &b_Earm_BBPS_hit_Time_max);
+   fChain->SetBranchAddress("Earm.BBPS.hit.otridx", &Earm_BBPS_hit_otridx, &b_Earm_BBPS_hit_otridx);
+   fChain->SetBranchAddress("Earm.BBPS.hit.ptridx", &Earm_BBPS_hit_ptridx, &b_Earm_BBPS_hit_ptridx);
+   fChain->SetBranchAddress("Earm.BBPS.hit.sdtridx", &Earm_BBPS_hit_sdtridx, &b_Earm_BBPS_hit_sdtridx);
    fChain->SetBranchAddress("Earm.BBPSTF1.det.esum", &Earm_BBPSTF1_det_esum, &b_Earm_BBPSTF1_det_esum);
    fChain->SetBranchAddress("Earm.BBPSTF1.hit.nhits", &Earm_BBPSTF1_hit_nhits, &b_Earm_BBPSTF1_hit_nhits);
    fChain->SetBranchAddress("Earm.BBPSTF1.hit.row", &Earm_BBPSTF1_hit_row, &b_Earm_BBPSTF1_hit_row);
@@ -896,6 +1405,25 @@ void gen_tree::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.BBPSTF1.hit.otridx", &Earm_BBPSTF1_hit_otridx, &b_Earm_BBPSTF1_hit_otridx);
    fChain->SetBranchAddress("Earm.BBPSTF1.hit.ptridx", &Earm_BBPSTF1_hit_ptridx, &b_Earm_BBPSTF1_hit_ptridx);
    fChain->SetBranchAddress("Earm.BBPSTF1.hit.sdtridx", &Earm_BBPSTF1_hit_sdtridx, &b_Earm_BBPSTF1_hit_sdtridx);
+   fChain->SetBranchAddress("Earm.BBSH.hit.nhits", &Earm_BBSH_hit_nhits, &b_Earm_BBSH_hit_nhits);
+   fChain->SetBranchAddress("Earm.BBSH.hit.PMT", &Earm_BBSH_hit_PMT, &b_Earm_BBSH_hit_PMT);
+   fChain->SetBranchAddress("Earm.BBSH.hit.row", &Earm_BBSH_hit_row, &b_Earm_BBSH_hit_row);
+   fChain->SetBranchAddress("Earm.BBSH.hit.col", &Earm_BBSH_hit_col, &b_Earm_BBSH_hit_col);
+   fChain->SetBranchAddress("Earm.BBSH.hit.plane", &Earm_BBSH_hit_plane, &b_Earm_BBSH_hit_plane);
+   fChain->SetBranchAddress("Earm.BBSH.hit.xcell", &Earm_BBSH_hit_xcell, &b_Earm_BBSH_hit_xcell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.ycell", &Earm_BBSH_hit_ycell, &b_Earm_BBSH_hit_ycell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.zcell", &Earm_BBSH_hit_zcell, &b_Earm_BBSH_hit_zcell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.xgcell", &Earm_BBSH_hit_xgcell, &b_Earm_BBSH_hit_xgcell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.ygcell", &Earm_BBSH_hit_ygcell, &b_Earm_BBSH_hit_ygcell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.zgcell", &Earm_BBSH_hit_zgcell, &b_Earm_BBSH_hit_zgcell);
+   fChain->SetBranchAddress("Earm.BBSH.hit.NumPhotoelectrons", &Earm_BBSH_hit_NumPhotoelectrons, &b_Earm_BBSH_hit_NumPhotoelectrons);
+   fChain->SetBranchAddress("Earm.BBSH.hit.Time_avg", &Earm_BBSH_hit_Time_avg, &b_Earm_BBSH_hit_Time_avg);
+   fChain->SetBranchAddress("Earm.BBSH.hit.Time_rms", &Earm_BBSH_hit_Time_rms, &b_Earm_BBSH_hit_Time_rms);
+   fChain->SetBranchAddress("Earm.BBSH.hit.Time_min", &Earm_BBSH_hit_Time_min, &b_Earm_BBSH_hit_Time_min);
+   fChain->SetBranchAddress("Earm.BBSH.hit.Time_max", &Earm_BBSH_hit_Time_max, &b_Earm_BBSH_hit_Time_max);
+   fChain->SetBranchAddress("Earm.BBSH.hit.otridx", &Earm_BBSH_hit_otridx, &b_Earm_BBSH_hit_otridx);
+   fChain->SetBranchAddress("Earm.BBSH.hit.ptridx", &Earm_BBSH_hit_ptridx, &b_Earm_BBSH_hit_ptridx);
+   fChain->SetBranchAddress("Earm.BBSH.hit.sdtridx", &Earm_BBSH_hit_sdtridx, &b_Earm_BBSH_hit_sdtridx);
    fChain->SetBranchAddress("Earm.BBSHTF1.det.esum", &Earm_BBSHTF1_det_esum, &b_Earm_BBSHTF1_det_esum);
    fChain->SetBranchAddress("Earm.BBSHTF1.hit.nhits", &Earm_BBSHTF1_hit_nhits, &b_Earm_BBSHTF1_hit_nhits);
    fChain->SetBranchAddress("Earm.BBSHTF1.hit.row", &Earm_BBSHTF1_hit_row, &b_Earm_BBSHTF1_hit_row);
@@ -923,6 +1451,57 @@ void gen_tree::Init(TTree *tree)
    fChain->SetBranchAddress("Earm.BBSHTF1.hit.otridx", &Earm_BBSHTF1_hit_otridx, &b_Earm_BBSHTF1_hit_otridx);
    fChain->SetBranchAddress("Earm.BBSHTF1.hit.ptridx", &Earm_BBSHTF1_hit_ptridx, &b_Earm_BBSHTF1_hit_ptridx);
    fChain->SetBranchAddress("Earm.BBSHTF1.hit.sdtridx", &Earm_BBSHTF1_hit_sdtridx, &b_Earm_BBSHTF1_hit_sdtridx);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.nhits", &Earm_GRINCH_hit_nhits, &b_Earm_GRINCH_hit_nhits);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.PMT", &Earm_GRINCH_hit_PMT, &b_Earm_GRINCH_hit_PMT);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.row", &Earm_GRINCH_hit_row, &b_Earm_GRINCH_hit_row);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.col", &Earm_GRINCH_hit_col, &b_Earm_GRINCH_hit_col);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.xpmt", &Earm_GRINCH_hit_xpmt, &b_Earm_GRINCH_hit_xpmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ypmt", &Earm_GRINCH_hit_ypmt, &b_Earm_GRINCH_hit_ypmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.zpmt", &Earm_GRINCH_hit_zpmt, &b_Earm_GRINCH_hit_zpmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.xgpmt", &Earm_GRINCH_hit_xgpmt, &b_Earm_GRINCH_hit_xgpmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ygpmt", &Earm_GRINCH_hit_ygpmt, &b_Earm_GRINCH_hit_ygpmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.zgpmt", &Earm_GRINCH_hit_zgpmt, &b_Earm_GRINCH_hit_zgpmt);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.NumPhotoelectrons", &Earm_GRINCH_hit_NumPhotoelectrons, &b_Earm_GRINCH_hit_NumPhotoelectrons);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.Time_avg", &Earm_GRINCH_hit_Time_avg, &b_Earm_GRINCH_hit_Time_avg);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.Time_rms", &Earm_GRINCH_hit_Time_rms, &b_Earm_GRINCH_hit_Time_rms);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.Time_min", &Earm_GRINCH_hit_Time_min, &b_Earm_GRINCH_hit_Time_min);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.Time_max", &Earm_GRINCH_hit_Time_max, &b_Earm_GRINCH_hit_Time_max);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.mTrackNo", &Earm_GRINCH_hit_mTrackNo, &b_Earm_GRINCH_hit_mTrackNo);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.xhit", &Earm_GRINCH_hit_xhit, &b_Earm_GRINCH_hit_xhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.yhit", &Earm_GRINCH_hit_yhit, &b_Earm_GRINCH_hit_yhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.zhit", &Earm_GRINCH_hit_zhit, &b_Earm_GRINCH_hit_zhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pxhit", &Earm_GRINCH_hit_pxhit, &b_Earm_GRINCH_hit_pxhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pyhit", &Earm_GRINCH_hit_pyhit, &b_Earm_GRINCH_hit_pyhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pzhit", &Earm_GRINCH_hit_pzhit, &b_Earm_GRINCH_hit_pzhit);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pvx", &Earm_GRINCH_hit_pvx, &b_Earm_GRINCH_hit_pvx);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pvy", &Earm_GRINCH_hit_pvy, &b_Earm_GRINCH_hit_pvy);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.pvz", &Earm_GRINCH_hit_pvz, &b_Earm_GRINCH_hit_pvz);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ppx", &Earm_GRINCH_hit_ppx, &b_Earm_GRINCH_hit_ppx);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ppy", &Earm_GRINCH_hit_ppy, &b_Earm_GRINCH_hit_ppy);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ppz", &Earm_GRINCH_hit_ppz, &b_Earm_GRINCH_hit_ppz);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.volume_flag", &Earm_GRINCH_hit_volume_flag, &b_Earm_GRINCH_hit_volume_flag);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.otridx", &Earm_GRINCH_hit_otridx, &b_Earm_GRINCH_hit_otridx);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.ptridx", &Earm_GRINCH_hit_ptridx, &b_Earm_GRINCH_hit_ptridx);
+   fChain->SetBranchAddress("Earm.GRINCH.hit.sdtridx", &Earm_GRINCH_hit_sdtridx, &b_Earm_GRINCH_hit_sdtridx);
+   fChain->SetBranchAddress("Harm.HCal.hit.nhits", &Harm_HCal_hit_nhits, &b_Harm_HCal_hit_nhits);
+   fChain->SetBranchAddress("Harm.HCal.hit.PMT", &Harm_HCal_hit_PMT, &b_Harm_HCal_hit_PMT);
+   fChain->SetBranchAddress("Harm.HCal.hit.row", &Harm_HCal_hit_row, &b_Harm_HCal_hit_row);
+   fChain->SetBranchAddress("Harm.HCal.hit.col", &Harm_HCal_hit_col, &b_Harm_HCal_hit_col);
+   fChain->SetBranchAddress("Harm.HCal.hit.plane", &Harm_HCal_hit_plane, &b_Harm_HCal_hit_plane);
+   fChain->SetBranchAddress("Harm.HCal.hit.xcell", &Harm_HCal_hit_xcell, &b_Harm_HCal_hit_xcell);
+   fChain->SetBranchAddress("Harm.HCal.hit.ycell", &Harm_HCal_hit_ycell, &b_Harm_HCal_hit_ycell);
+   fChain->SetBranchAddress("Harm.HCal.hit.zcell", &Harm_HCal_hit_zcell, &b_Harm_HCal_hit_zcell);
+   fChain->SetBranchAddress("Harm.HCal.hit.xgcell", &Harm_HCal_hit_xgcell, &b_Harm_HCal_hit_xgcell);
+   fChain->SetBranchAddress("Harm.HCal.hit.ygcell", &Harm_HCal_hit_ygcell, &b_Harm_HCal_hit_ygcell);
+   fChain->SetBranchAddress("Harm.HCal.hit.zgcell", &Harm_HCal_hit_zgcell, &b_Harm_HCal_hit_zgcell);
+   fChain->SetBranchAddress("Harm.HCal.hit.NumPhotoelectrons", &Harm_HCal_hit_NumPhotoelectrons, &b_Harm_HCal_hit_NumPhotoelectrons);
+   fChain->SetBranchAddress("Harm.HCal.hit.Time_avg", &Harm_HCal_hit_Time_avg, &b_Harm_HCal_hit_Time_avg);
+   fChain->SetBranchAddress("Harm.HCal.hit.Time_rms", &Harm_HCal_hit_Time_rms, &b_Harm_HCal_hit_Time_rms);
+   fChain->SetBranchAddress("Harm.HCal.hit.Time_min", &Harm_HCal_hit_Time_min, &b_Harm_HCal_hit_Time_min);
+   fChain->SetBranchAddress("Harm.HCal.hit.Time_max", &Harm_HCal_hit_Time_max, &b_Harm_HCal_hit_Time_max);
+   fChain->SetBranchAddress("Harm.HCal.hit.otridx", &Harm_HCal_hit_otridx, &b_Harm_HCal_hit_otridx);
+   fChain->SetBranchAddress("Harm.HCal.hit.ptridx", &Harm_HCal_hit_ptridx, &b_Harm_HCal_hit_ptridx);
+   fChain->SetBranchAddress("Harm.HCal.hit.sdtridx", &Harm_HCal_hit_sdtridx, &b_Harm_HCal_hit_sdtridx);
    fChain->SetBranchAddress("Harm.HCalScint.det.esum", &Harm_HCalScint_det_esum, &b_Harm_HCalScint_det_esum);
    fChain->SetBranchAddress("Harm.HCalScint.hit.nhits", &Harm_HCalScint_hit_nhits, &b_Harm_HCalScint_hit_nhits);
    fChain->SetBranchAddress("Harm.HCalScint.hit.row", &Harm_HCalScint_hit_row, &b_Harm_HCalScint_hit_row);
@@ -950,6 +1529,69 @@ void gen_tree::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.HCalScint.hit.otridx", &Harm_HCalScint_hit_otridx, &b_Harm_HCalScint_hit_otridx);
    fChain->SetBranchAddress("Harm.HCalScint.hit.ptridx", &Harm_HCalScint_hit_ptridx, &b_Harm_HCalScint_hit_ptridx);
    fChain->SetBranchAddress("Harm.HCalScint.hit.sdtridx", &Harm_HCalScint_hit_sdtridx, &b_Harm_HCalScint_hit_sdtridx);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.nhits", &Harm_SBSGEM_hit_nhits, &b_Harm_SBSGEM_hit_nhits);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.plane", &Harm_SBSGEM_hit_plane, &b_Harm_SBSGEM_hit_plane);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.strip", &Harm_SBSGEM_hit_strip, &b_Harm_SBSGEM_hit_strip);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.x", &Harm_SBSGEM_hit_x, &b_Harm_SBSGEM_hit_x);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.y", &Harm_SBSGEM_hit_y, &b_Harm_SBSGEM_hit_y);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.z", &Harm_SBSGEM_hit_z, &b_Harm_SBSGEM_hit_z);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.polx", &Harm_SBSGEM_hit_polx, &b_Harm_SBSGEM_hit_polx);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.poly", &Harm_SBSGEM_hit_poly, &b_Harm_SBSGEM_hit_poly);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.polz", &Harm_SBSGEM_hit_polz, &b_Harm_SBSGEM_hit_polz);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.t", &Harm_SBSGEM_hit_t, &b_Harm_SBSGEM_hit_t);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.trms", &Harm_SBSGEM_hit_trms, &b_Harm_SBSGEM_hit_trms);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.tmin", &Harm_SBSGEM_hit_tmin, &b_Harm_SBSGEM_hit_tmin);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.tmax", &Harm_SBSGEM_hit_tmax, &b_Harm_SBSGEM_hit_tmax);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.tx", &Harm_SBSGEM_hit_tx, &b_Harm_SBSGEM_hit_tx);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.ty", &Harm_SBSGEM_hit_ty, &b_Harm_SBSGEM_hit_ty);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.xin", &Harm_SBSGEM_hit_xin, &b_Harm_SBSGEM_hit_xin);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.yin", &Harm_SBSGEM_hit_yin, &b_Harm_SBSGEM_hit_yin);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.zin", &Harm_SBSGEM_hit_zin, &b_Harm_SBSGEM_hit_zin);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.xout", &Harm_SBSGEM_hit_xout, &b_Harm_SBSGEM_hit_xout);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.yout", &Harm_SBSGEM_hit_yout, &b_Harm_SBSGEM_hit_yout);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.zout", &Harm_SBSGEM_hit_zout, &b_Harm_SBSGEM_hit_zout);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.txp", &Harm_SBSGEM_hit_txp, &b_Harm_SBSGEM_hit_txp);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.typ", &Harm_SBSGEM_hit_typ, &b_Harm_SBSGEM_hit_typ);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.xg", &Harm_SBSGEM_hit_xg, &b_Harm_SBSGEM_hit_xg);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.yg", &Harm_SBSGEM_hit_yg, &b_Harm_SBSGEM_hit_yg);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.zg", &Harm_SBSGEM_hit_zg, &b_Harm_SBSGEM_hit_zg);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.trid", &Harm_SBSGEM_hit_trid, &b_Harm_SBSGEM_hit_trid);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.mid", &Harm_SBSGEM_hit_mid, &b_Harm_SBSGEM_hit_mid);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.pid", &Harm_SBSGEM_hit_pid, &b_Harm_SBSGEM_hit_pid);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.vx", &Harm_SBSGEM_hit_vx, &b_Harm_SBSGEM_hit_vx);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.vy", &Harm_SBSGEM_hit_vy, &b_Harm_SBSGEM_hit_vy);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.vz", &Harm_SBSGEM_hit_vz, &b_Harm_SBSGEM_hit_vz);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.p", &Harm_SBSGEM_hit_p, &b_Harm_SBSGEM_hit_p);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.edep", &Harm_SBSGEM_hit_edep, &b_Harm_SBSGEM_hit_edep);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.beta", &Harm_SBSGEM_hit_beta, &b_Harm_SBSGEM_hit_beta);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.otridx", &Harm_SBSGEM_hit_otridx, &b_Harm_SBSGEM_hit_otridx);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.ptridx", &Harm_SBSGEM_hit_ptridx, &b_Harm_SBSGEM_hit_ptridx);
+   fChain->SetBranchAddress("Harm.SBSGEM.hit.sdtridx", &Harm_SBSGEM_hit_sdtridx, &b_Harm_SBSGEM_hit_sdtridx);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.ntracks", &Harm_SBSGEM_Track_ntracks, &b_Harm_SBSGEM_Track_ntracks);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.TID", &Harm_SBSGEM_Track_TID, &b_Harm_SBSGEM_Track_TID);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.PID", &Harm_SBSGEM_Track_PID, &b_Harm_SBSGEM_Track_PID);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.MID", &Harm_SBSGEM_Track_MID, &b_Harm_SBSGEM_Track_MID);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.NumHits", &Harm_SBSGEM_Track_NumHits, &b_Harm_SBSGEM_Track_NumHits);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.NumPlanes", &Harm_SBSGEM_Track_NumPlanes, &b_Harm_SBSGEM_Track_NumPlanes);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.NDF", &Harm_SBSGEM_Track_NDF, &b_Harm_SBSGEM_Track_NDF);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Chi2fit", &Harm_SBSGEM_Track_Chi2fit, &b_Harm_SBSGEM_Track_Chi2fit);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Chi2true", &Harm_SBSGEM_Track_Chi2true, &b_Harm_SBSGEM_Track_Chi2true);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.X", &Harm_SBSGEM_Track_X, &b_Harm_SBSGEM_Track_X);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Y", &Harm_SBSGEM_Track_Y, &b_Harm_SBSGEM_Track_Y);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Xp", &Harm_SBSGEM_Track_Xp, &b_Harm_SBSGEM_Track_Xp);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Yp", &Harm_SBSGEM_Track_Yp, &b_Harm_SBSGEM_Track_Yp);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.T", &Harm_SBSGEM_Track_T, &b_Harm_SBSGEM_Track_T);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.P", &Harm_SBSGEM_Track_P, &b_Harm_SBSGEM_Track_P);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Sx", &Harm_SBSGEM_Track_Sx, &b_Harm_SBSGEM_Track_Sx);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Sy", &Harm_SBSGEM_Track_Sy, &b_Harm_SBSGEM_Track_Sy);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Sz", &Harm_SBSGEM_Track_Sz, &b_Harm_SBSGEM_Track_Sz);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Xfit", &Harm_SBSGEM_Track_Xfit, &b_Harm_SBSGEM_Track_Xfit);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Yfit", &Harm_SBSGEM_Track_Yfit, &b_Harm_SBSGEM_Track_Yfit);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Xpfit", &Harm_SBSGEM_Track_Xpfit, &b_Harm_SBSGEM_Track_Xpfit);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.Ypfit", &Harm_SBSGEM_Track_Ypfit, &b_Harm_SBSGEM_Track_Ypfit);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.otridx", &Harm_SBSGEM_Track_otridx, &b_Harm_SBSGEM_Track_otridx);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.ptridx", &Harm_SBSGEM_Track_ptridx, &b_Harm_SBSGEM_Track_ptridx);
+   fChain->SetBranchAddress("Harm.SBSGEM.Track.sdtridx", &Harm_SBSGEM_Track_sdtridx, &b_Harm_SBSGEM_Track_sdtridx);
    fChain->SetBranchAddress("OTrack.ntracks", &OTrack_ntracks, &b_OTrack_ntracks);
    fChain->SetBranchAddress("OTrack.TID", &OTrack_TID, &b_OTrack_TID);
    fChain->SetBranchAddress("OTrack.MID", &OTrack_MID, &b_OTrack_MID);
@@ -994,6 +1636,13 @@ void gen_tree::Init(TTree *tree)
    fChain->SetBranchAddress("SDTrack.polz", &SDTrack_polz, &b_SDTrack_polz);
    fChain->SetBranchAddress("SDTrack.Etot", &SDTrack_Etot, &b_SDTrack_Etot);
    fChain->SetBranchAddress("SDTrack.T", &SDTrack_T, &b_SDTrack_T);
+   fChain->SetBranchAddress("SDTrack.vx", &SDTrack_vx, &b_SDTrack_vx);
+   fChain->SetBranchAddress("SDTrack.vy", &SDTrack_vy, &b_SDTrack_vy);
+   fChain->SetBranchAddress("SDTrack.vz", &SDTrack_vz, &b_SDTrack_vz);
+   fChain->SetBranchAddress("SDTrack.vnx", &SDTrack_vnx, &b_SDTrack_vnx);
+   fChain->SetBranchAddress("SDTrack.vny", &SDTrack_vny, &b_SDTrack_vny);
+   fChain->SetBranchAddress("SDTrack.vnz", &SDTrack_vnz, &b_SDTrack_vnz);
+   fChain->SetBranchAddress("SDTrack.vEkin", &SDTrack_vEkin, &b_SDTrack_vEkin);
    Notify();
 }
 

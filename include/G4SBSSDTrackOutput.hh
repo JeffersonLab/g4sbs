@@ -56,7 +56,7 @@ public:
   
   //"Original track" info:
   int notracks;
-  vector<int> otrid, omid, opid;
+  vector<int> otrid, omid, opid, ompid;
   //vector<TVector3> opos, omom, opol;
   vector<double> oposx,oposy,oposz,omomx,omomy,omomz,opolx,opoly,opolz;
   vector<double> oenergy, otime;
@@ -70,7 +70,7 @@ public:
 
   //SD boundary crossing info:
   int nsdtracks;
-  vector<int> sdtrid, sdmid, sdpid;
+  vector<int> sdtrid, sdmid, sdpid, sdmpid;
   //vector<TVector3> sdpos, sdmom, sdpol;
   vector<double> sdposx,sdposy,sdposz,sdmomx,sdmomy,sdmomz,sdpolx,sdpoly,sdpolz;
   vector<double> sdenergy, sdtime;

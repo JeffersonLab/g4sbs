@@ -45,8 +45,13 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   
   fTargPos = G4ThreeVector( 0, 0, 0 );
   fTargDir = G4ThreeVector( 0, 0, 1 );
+  // // // // <<<<<<< HEAD
   
-  fTargDiameter = 8.0*cm; //default of 8 cm.
+  // // fTargDiameter = 8.0*cm; //default of 8 cm.
+  // // // // =======
+
+  fTargDiameter = 2.64*2.54*cm; //2.64 inches default for GEP configuration
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   
   fFlux = false;
   
@@ -56,6 +61,7 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   
   fSchamFlag = 0;
   
+  // // // // HEAD
   fUseLocalTPCSolenoid = false;
   fSolUni = false;
   fSolUniMag = 5.0;// default 5 tesla;
@@ -71,6 +77,17 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   ftdis_tgt_wallthick = 0.030*mm;//0.025
   ftdis_tgt_len = 400.0*mm; //40cm long
   
+  // // // // 
+  fPlasticPlate = false;
+  fPlasticPlateThickness = 2.54*cm;
+  fPlasticMaterial = G4String("CH2");
+
+  
+  fHadronFilterThick = 0.75*2.54*cm;
+  fHadronFilterMaterial = G4String("NEMAG10");
+
+  fUseHadronFilter = false;
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
 }
 
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
@@ -107,11 +124,14 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     //BuildGasTarget( worldlog );
     BuildGEnTarget(worldlog);
     break;
-  default: //GMN, GEN-RP:
+  case(G4SBS::kALL):
+    //BuildGasTarget( worldlog );
+    BuildGEnTarget(worldlog);
+    break;
+  default: //GMN, GEN-RP, GEP_BB:
     BuildStandardScatCham( worldlog );
     break;
   }
-
   return;
 
 }
@@ -120,18 +140,47 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
 // The code for building C16 and GEp are indeed almost identical.
 void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog, 
 						 G4RotationMatrix *rot_targ, G4ThreeVector targ_offset){
-  // Now let's make a cryotarget:
+  // Now let's make a cryotarget. Cylinder with 
   //G4double Rcell = 4.0*cm;
   G4double Rcell  = fTargDiameter/2.0;
   //These are assumptions. Probably should be made user-adjustable as well.
   G4double uthick = 0.1*mm;
   G4double dthick = 0.15*mm;
   G4double sthick = 0.2*mm;
+
+  //later: flow-diverters
+  
+  if( fDetCon->fExpType == G4SBS::kGEp ){ //make a cylindrical target with half-spherical downstream endcap:
+    uthick = 0.005*2.54*cm;
+    dthick = 0.005*2.54*cm;
+    sthick = 0.02*2.54*cm;
+  }
+
+  //Kip Work Starts Here
+
+  //if( fDetCon->fExpType == G4SBS::kGEp ){ //make a flow-diverter
+  G4double fdthick = 0.175*mm;
+  G4double fdDwnStrmInDm = 0.984*2.54*cm;
+  G4double fdUpStrmInDm = 1.5134*2.54*cm;
+  G4double fdlength = 9.526*2.54*cm;
+  //G4double fdOpenAng = 1.5923*degree;
+    //}
+
+  G4Cons *FlowDiv = new G4Cons( "FlowDiv", fdUpStrmInDm/2.0, (fdUpStrmInDm/2.0)+fdthick, fdDwnStrmInDm/2.0, (fdDwnStrmInDm/2.0)+fdthick, fdlength/2.0, 0, 360.0*deg);
+
+  G4LogicalVolume *FlowDiv_log = new G4LogicalVolume( FlowDiv, GetMaterial("Al"), "FlowDiv_log" );
+
+  //Kip Work Ends Here    
   
   G4Tubs *TargetMother_solid = new G4Tubs( "TargetMother_solid", 0, Rcell + sthick, (fTargLen+uthick+dthick)/2.0, 0.0, twopi );
   G4LogicalVolume *TargetMother_log = new G4LogicalVolume( TargetMother_solid, GetMaterial("Vacuum"), "TargetMother_log" );
+
+  //We will need the union of a cylindrical part and a half-spherical part: 
   
-  G4Tubs *TargetCell = new G4Tubs( "TargetCell", 0, Rcell, fTargLen/2.0, 0, twopi );
+  G4Tubs *TargetCell_cylinder = new G4Tubs( "TargetCell_cylinder", 0, Rcell, (fTargLen-Rcell)/2.0, 0, twopi );
+  G4Sphere *TargetCell_halfsphere = new G4Sphere( "TargetCell_halfsphere", 0.0, Rcell, 0.0*degree, 360.0*degree, 0.0*degree, 90.0*degree );
+  
+  G4UnionSolid *TargetCell = new G4UnionSolid( "TargetCell", TargetCell_cylinder, TargetCell_halfsphere, 0, G4ThreeVector( 0, 0, (fTargLen-Rcell)/2.0 ) );
   
   G4LogicalVolume *TargetCell_log;
   
@@ -143,19 +192,24 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   
   fDetCon->InsertTargetVolume( TargetCell_log->GetName() );
   
-  G4Tubs *TargetWall = new G4Tubs("TargetWall", Rcell, Rcell + sthick, fTargLen/2.0, 0, twopi );
+  G4Tubs *TargetWall_cylinder = new G4Tubs("TargetWall_cylinder", Rcell, Rcell + sthick, (fTargLen-Rcell)/2.0, 0, twopi );
+  G4Sphere *TargetWall_halfsphere = new G4Sphere( "TargetWall_halfsphere", Rcell, Rcell + dthick, 0.0*degree, 360.0*degree, 0.0*degree, 90.0*degree );
+
+  G4UnionSolid *TargetWall = new G4UnionSolid( "TargetWall", TargetWall_cylinder, TargetWall_halfsphere, 0, G4ThreeVector( 0, 0, (fTargLen-Rcell)/2.0 ) );
   
   G4LogicalVolume *TargetWall_log = new G4LogicalVolume( TargetWall, GetMaterial("Al"), "TargetWall_log" );
   
   G4Tubs *UpstreamWindow = new G4Tubs("UpstreamWindow", 0, Rcell + sthick, uthick/2.0, 0, twopi );
-  G4Tubs *DownstreamWindow = new G4Tubs("DownstreamWindow", 0, Rcell + sthick, dthick/2.0, 0, twopi );
+  //AJRP: downstream window replaced by half-spherical end cap
+  //G4Tubs *DownstreamWindow = new G4Tubs("DownstreamWindow", 0, Rcell + sthick, dthick/2.0, 0, twopi );
   
   G4LogicalVolume *uwindow_log = new G4LogicalVolume( UpstreamWindow, GetMaterial("Al"), "uwindow_log" );
-  G4LogicalVolume *dwindow_log = new G4LogicalVolume( DownstreamWindow, GetMaterial("Al"), "dwindow_log" );
+  //G4LogicalVolume *dwindow_log = new G4LogicalVolume( DownstreamWindow, GetMaterial("Al"), "dwindow_log" );
 
   fDetCon->InsertTargetVolume( TargetWall_log->GetName() );
   fDetCon->InsertTargetVolume( uwindow_log->GetName() );
-  fDetCon->InsertTargetVolume( dwindow_log->GetName() );
+  //fDetCon->InsertTargetVolume( dwindow_log->GetName() );
+
   
   // Now place everything:
   // Need to fix this later: Union solid defining vacuum chamber 
@@ -167,10 +221,17 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+uthick/2.0), uwindow_log, "uwindow_phys", TargetMother_log, false, 0, fChkOvLaps );
   // Place target and side walls:
   ztemp += uthick;
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetCell_log, "TargetCell_phys", TargetMother_log, false, 0, fChkOvLaps );
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetWall_log, "TargetWall_phys", TargetMother_log, false, 0, fChkOvLaps );
-  ztemp += fTargLen;
-  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+dthick/2.0), dwindow_log, "dwindow_phys", TargetMother_log, false, 0, fChkOvLaps );
+  // // // // HEAD
+  // // new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetCell_log, "TargetCell_phys", TargetMother_log, false, 0, fChkOvLaps );
+  // // new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+fTargLen/2.0), TargetWall_log, "TargetWall_phys", TargetMother_log, false, 0, fChkOvLaps );
+  // // ztemp += fTargLen;
+  // // new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+dthick/2.0), dwindow_log, "dwindow_phys", TargetMother_log, false, 0, fChkOvLaps );
+  // // // // 
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+(fTargLen-Rcell)/2.0), TargetCell_log, "TargetCell_phys", TargetMother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+(fTargLen-Rcell)/2.0), TargetWall_log, "TargetWall_phys", TargetMother_log, false, 0 );
+  //ztemp += fTargLen;
+  //new G4PVPlacement( 0, G4ThreeVector(0,0,ztemp+dthick/2.0), dwindow_log, "dwindow_phys", TargetMother_log, false, 0 );
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   
   G4double targ_zcenter = (uthick-dthick)/2.0; //position of target center relative to target mother volume
    
@@ -180,11 +241,52 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   //rot_temp = new G4RotationMatrix();
   //rot_temp->rotateX(90.0*deg);
 
+  //Kip Work Starts Here
+
+  new G4PVPlacement( 0, G4ThreeVector(0,0,-((fTargLen-Rcell-fdlength)/2)), FlowDiv_log, "FlowDiv_phys", TargetCell_log, false, 0);
+
+  G4VisAttributes* colourDRed = new G4VisAttributes(G4Colour(0.9,0.,0.));
+  FlowDiv_log->SetVisAttributes(colourDRed);
+
+  //Kip Work Ends Here
+
   //for z of target center to be at zero, 
   G4double temp = targ_offset.y();
   targ_offset.setY(temp+targ_zcenter);
   
   new G4PVPlacement( rot_targ, targ_offset, TargetMother_log, "TargetMother_phys", motherlog, false, 0, fChkOvLaps );
+
+  if( fDetCon->fExpType == G4SBS::kGEp && fUseHadronFilter ){
+   
+
+    //we need a Z offset and (I think) an x offset: 
+
+    G4ThreeVector hfilter_offset = targ_offset;
+    hfilter_offset.setX( -(hfilter_offset.getX() + Rcell + 1.0*cm + fHadronFilterThick/2.0 ) -5.0*cm);
+    hfilter_offset.setY( hfilter_offset.getY() +0.5*(fTargLen - 4.45*2.54*cm) );
+    //hfilter_offset.SetZ( targ_offset.getZ()
+    
+    BuildHadronFilter( motherlog, rot_targ, hfilter_offset );
+    
+  }
+  
+  //Commenting this out for now we have hadron filter geometry from Bogdan
+  // if( fDetCon->fExpType == G4SBS::kGEp && fUseGEPtargShielding ){
+  
+  //   G4double thick_shield = fGEPtargShieldingThick;
+  //   G4double length_shield = fTargLen * 3.0;
+  //   G4double height_shield = 40.0*cm;
+  
+  //   G4Box *shield_wall = new G4Box("geptargshield_wall", thick_shield/2.0, height_shield/2.0, length_shield/2.0 );
+
+  //   G4LogicalVolume *shield_log = new G4LogicalVolume( shield_wall, GetMaterial(fGEPtargShieldingMaterial), "geptargshield_wall_log" );
+
+  //   G4ThreeVector shield_offset = targ_offset;
+  //   shield_offset.setX( -(shield_offset.getX() + Rcell + 2.5*cm + thick_shield/2.0) );
+    
+  //   new G4PVPlacement( rot_targ, shield_offset, shield_log, "geptargshield_wall_phys", motherlog, false, 0 );
+    
+  // }
 
   if( fUseRad ){ //place radiator
     G4double yrad = fTargLen/2.0 + fRadZoffset; 
@@ -224,8 +326,8 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   TargWall_visatt->SetForceWireframe( true );
   TargetWall_log->SetVisAttributes( TargWall_visatt );
   uwindow_log->SetVisAttributes( TargWall_visatt );
-  dwindow_log->SetVisAttributes( TargWall_visatt );
-  TargetMother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  //dwindow_log->SetVisAttributes( TargWall_visatt );
+  TargetMother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 }
 
 void G4SBSTargetBuilder::BuildCfoil(G4LogicalVolume *motherlog, G4RotationMatrix *rot_targ, G4ThreeVector targ_offset){
@@ -265,7 +367,7 @@ void G4SBSTargetBuilder::BuildOpticsTarget(G4LogicalVolume *motherlog, G4Rotatio
 
   G4LogicalVolume *MultiFoil_MotherLog = new G4LogicalVolume( MultiFoil_MotherBox, motherlog->GetMaterial(), "MultiFoil_MotherLog" );
 
-  MultiFoil_MotherLog->SetVisAttributes( G4VisAttributes::Invisible );
+  MultiFoil_MotherLog->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4double foilwidth = fTargDiameter/2.0;
   for( int ifoil=0; ifoil<fNtargetFoils; ifoil++ ){
@@ -599,6 +701,24 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   				  SCRightSnoutWindowFrameDist*cos(SCRightSnoutAngle)), 
   		    logicScatChamberRightSnoutWindowFrame, "SCRightSnoutWindowFrame", worldlog, false, 0, ChkOverlaps);
   
+
+  if( fPlasticPlate ){
+    G4Box* solidPlasticPlate = 
+    new G4Box("solidPlasticPlate", SCRightSnoutWidth*0.5, 
+	      SCRightSnoutHeight*0.5, fPlasticPlateThickness*0.5);
+    
+    G4double PlasticPlateDist = SCRightSnoutWindowFrameDist + 1.*inch + fPlasticPlateThickness*0.5;
+      
+    G4LogicalVolume* logicPlasticPlate = 
+      new G4LogicalVolume(solidPlasticPlate, GetMaterial(fPlasticMaterial.data()), "PlasticPlate_log");
+
+    new G4PVPlacement(rot_temp, 
+		      G4ThreeVector(PlasticPlateDist*sin(SCRightSnoutAngle),
+				    0,
+				    PlasticPlateDist*cos(SCRightSnoutAngle)), 
+		      logicPlasticPlate, "PlasticPlate", worldlog, false, 0, ChkOverlaps);
+    
+  }
 		    
   // Left snout opening:
   G4double SCLeftSnoutDepth = 4.0*inch;// x
@@ -1206,6 +1326,10 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   
   //Call BuildStandardCryoTarget HERE !
   BuildStandardCryoTarget(ScatChamber_log, rot_temp, G4ThreeVector(0, -TargetCenter_zoffset, 0));
+
+  //Also call BuildHadronFilter here:
+  
+  
   
   /*
   //HERE
@@ -1545,11 +1669,11 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   // PlateUnionLog->SetVisAttributes( Snout_VisAtt );
   // LeftCornerLog->SetVisAttributes( Snout_VisAtt );
   // RightCornerLog->SetVisAttributes( Snout_VisAtt );
-  // RightWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // LeftWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // RightWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // LeftWindowCutoutVacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
-  SnoutHarmWindowCutout_log->SetVisAttributes( G4VisAttributes::Invisible );
-  SnoutEarmWindowCutout_log->SetVisAttributes( G4VisAttributes::Invisible );
+  SnoutHarmWindowCutout_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  SnoutEarmWindowCutout_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *Snout_VisAttWire = new G4VisAttributes( G4Colour( 0.6, 0.55, 0.65 ) );
   Snout_VisAttWire->SetForceWireframe(true);
@@ -1570,7 +1694,7 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   // TargetWall_log->SetVisAttributes( TargWall_visatt );
   // uwindow_log->SetVisAttributes( TargWall_visatt );
   // dwindow_log->SetVisAttributes( TargWall_visatt );
-  // TargetMother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // TargetMother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *AlColor= new G4VisAttributes(G4Colour(0.4,0.4,0.4));
   //LeftAl_Log->SetVisAttributes( AlColor );
@@ -1871,16 +1995,16 @@ void G4SBSTargetBuilder::BuildC16ScatCham(G4LogicalVolume *worldlog ){
   G4VisAttributes * schamVisAtt = new G4VisAttributes(G4Colour(0.7,0.7,1.0));
   schamVisAtt->SetForceWireframe(true);
   scham_wall_log->SetVisAttributes(schamVisAtt);
-  scham_vacuum_log->SetVisAttributes(G4VisAttributes::Invisible);
+  scham_vacuum_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   sc_topbottom_log->SetVisAttributes(schamVisAtt);
   dvcs_snout_vacuum_log->SetVisAttributes( schamVisAtt );
-  // chamber_inner_log->SetVisAttributes(G4VisAttributes::Invisible);
-  // sc_entry_hole_vacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // sc_exit_hole_vacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // chamber_inner_log->SetVisAttributes(G4VisAttributes::GetInvisible());
+  // sc_entry_hole_vacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // sc_exit_hole_vacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   // G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
   // extpipe_log->SetVisAttributes(pipeVisAtt);
-  // extvac_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // extvac_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   // G4VisAttributes *winVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
   // sc_hcalwin_log->SetVisAttributes(winVisAtt);
@@ -2048,7 +2172,7 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   // solenoid map vol is tube centred on 0,0,0 with r=25cm, length 150cm 
 
   //Visualization attributes:
-  TPCBfield_log->SetVisAttributes( G4VisAttributes::Invisible );
+  TPCBfield_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   G4VisAttributes *tgt_cell_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
   G4VisAttributes *tgt_cap_visatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 1.0 ) );
@@ -2092,7 +2216,7 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
 
   G4VisAttributes *tgt_mTPCmother_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
   tgt_mTPCmother_visatt->SetForceWireframe(true);
-  // mTPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // mTPCmother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   mTPCmother_log->SetVisAttributes( tgt_mTPCmother_visatt );
 
   /*
@@ -2207,9 +2331,10 @@ void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
   //   TPCgas_log->SetVisAttributes( tpcgas_visatt );
   // }
   
+  // // // // HEAD
   // // Visualization attributes
-  // TPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TPCinnergas_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // TPCmother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TPCinnergas_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   // G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
   // tpcwalls_visatt->SetForceWireframe(true);
@@ -2263,6 +2388,12 @@ void G4SBSTargetBuilder::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtp
   mtpc_kaptonboudary_visatt->SetForceWireframe(true);
   mTPCinnerwall1_log->SetVisAttributes( mtpc_kaptonboudary_visatt );
   mTPCouterwall2_log->SetVisAttributes( mtpc_kaptonboudary_visatt );
+  // // // // 
+  // sc_vacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+
+  //Visualization attributes:
+  //ScatteringChamber_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
 
 
   G4VisAttributes *mtpc_electrodeboudary_visatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 0.0) );
@@ -2337,6 +2468,7 @@ void G4SBSTargetBuilder::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double 
 
 }
 
+// // // // HEAD
 void G4SBSTargetBuilder::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double centrecell1, G4double celllength, G4double mtpcinnerR, G4double mtpcouterR){
 
   G4Tubs* mTPCGEMfoil_solid;
@@ -2514,6 +2646,49 @@ void G4SBSTargetBuilder::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double 
   //   (fDetCon->SDlist).insert(mTPCSDname);
   //   fDetCon->SDtype[mTPCSDname] = kGEM;
   // }
+// // // // 
+void G4SBSTargetBuilder::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos){
+  // oversimplistic TPC
+  G4Tubs* TPCmother_solid = 
+    new G4Tubs("TPCmother_solid", 10.0*cm/2.0, 30.*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  G4Tubs* TPCinnerwall_solid = 
+    new G4Tubs("TPCinnerwall_solid", 10.0*cm/2.0, 10.*cm/2.0+0.002*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  G4Tubs* TPCouterwall_solid = 
+    new G4Tubs("TPCouterwall_solid", 30.0*cm/2.0-0.002*mm, 30.*cm/2.0, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  G4Tubs* TPCgas_solid = 
+    new G4Tubs("TPCgas_solid", 10.*cm/2.0+0.002*mm, 30.0*cm/2.0-0.002*mm, (fTargLen+10.0*cm)/2.0, 0.*deg, 360.*deg );
+  
+  G4LogicalVolume* TPCmother_log = 
+    new G4LogicalVolume(TPCmother_solid, GetMaterial("Air"),"TPCmother_log");
+  G4LogicalVolume* TPCinnerwall_log = 
+    new G4LogicalVolume(TPCinnerwall_solid, GetMaterial("Kapton"),"TPCinnerwall_log");
+  G4LogicalVolume* TPCouterwall_log = 
+    new G4LogicalVolume(TPCouterwall_solid, GetMaterial("Kapton"),"TPCouterwall_log");
+  G4LogicalVolume* TPCgas_log = 
+    new G4LogicalVolume(TPCgas_solid, GetMaterial("ref4He"),"TPCouterwall_log");
+  
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCmother_log,
+		    "TPCmother_phys", motherlog, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCinnerwall_log,
+		    "TPCinnerwall_phys", TPCmother_log, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCouterwall_log,
+		    "TPCouterwall_phys", TPCmother_log, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), TPCgas_log,
+		    "TPCgas_phys", TPCmother_log, false, 0);
+  
+  // sensitize gas
+  
+  // Visualization attributes
+  TPCmother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  
+  G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
+  tpcwalls_visatt->SetForceWireframe(true);
+  TPCinnerwall_log->SetVisAttributes( tpcwalls_visatt );
+  TPCouterwall_log->SetVisAttributes( tpcwalls_visatt );
+  
+  G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.5 ) );
+  TPCgas_log->SetVisAttributes( tpcgas_visatt );
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   
   G4SBSmTPCSD* mTPCSD;
   if( !(mTPCSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
@@ -2721,10 +2896,10 @@ void G4SBSTargetBuilder::BuildGasTarget(G4LogicalVolume *worldlog){
     new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_sc), sc_vacuum_log, "sc_vacuum_phys", worldlog, false, 0, fChkOvLaps );
   }
   
-  sc_vacuum_log->SetVisAttributes( G4VisAttributes::Invisible );
+  sc_vacuum_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   //Visualization attributes:
-  //ScatteringChamber_log->SetVisAttributes( G4VisAttributes::Invisible );
+  //ScatteringChamber_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   G4VisAttributes *sc_wall_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
   sc_wall_visatt->SetForceWireframe(true);
@@ -2822,7 +2997,7 @@ void G4SBSTargetBuilder::BuildToyScatCham( G4LogicalVolume *motherlog ){
   G4RotationMatrix *rot_sc = new G4RotationMatrix;
   rot_sc->rotateX(-90.0*deg);
 
-  sc_vacuum_tube_log->SetVisAttributes(G4VisAttributes::Invisible);
+  sc_vacuum_tube_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   new G4PVPlacement( rot_sc, G4ThreeVector(0,0,0), sc_vacuum_tube_log, "scatcham_phys", motherlog, false, 0 );
 
@@ -2833,16 +3008,33 @@ void G4SBSTargetBuilder::BuildToyScatCham( G4LogicalVolume *motherlog ){
 void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMatrix *rot, G4ThreeVector pos){
   G4double radthick = GetMaterial("Copper")->GetRadlen()*fRadThick;
 
-  //  G4cout << "Radiation length = " << fRadThick*100.0 << " % = " << radthick/mm << " mm" << G4endl;
+  G4cout << "Radiation length = " << fRadThick*100.0 << " % = " << radthick/mm << " mm" << G4endl;
   
-  G4Box *radbox = new G4Box("radbox", fTargDiameter/2.0, fTargDiameter/2.0, radthick/2.0 );
+  //G4Box *radbox = new G4Box("radbox", fTargDiameter/2.0, fTargDiameter/2.0, radthick/2.0);
+  
+  G4Tubs *radbox = new G4Tubs("radbox", 0, 1.854*cm, radthick/2.0, 0.0*deg, 360.*deg );
 
   G4LogicalVolume *radlog = new G4LogicalVolume( radbox, GetMaterial("Copper"), "radlog" );
 
-  new G4PVPlacement( rot, pos, radlog, "radphys", motherlog, false, 0 );
+  new G4PVPlacement( rot, pos, radlog, "radphys", motherlog, false, 0 , true);
+  
+  fDetCon->InsertTargetVolume( "radlog" );
+  
+  G4VisAttributes *visRad = new G4VisAttributes();
+  visRad->SetColour( G4Colour(0.9,0.6,0.2) );
+  radlog->SetVisAttributes(visRad);
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
+  if( fUseRad && fRadZoffset < 28.895*cm-0.1*cm ){
+    G4cout << "Build radiator in target" << endl; 
+    G4double zrad = fTargLen/2.0 + fRadZoffset; 
+    G4ThreeVector radiator_pos = -G4ThreeVector(0, 0, zrad);
+    BuildRadiator( motherLog, 0, radiator_pos );
+  }
+  if(fDetCon->GetGEnTargetCollimatorEnable()){
+    BuildGEnTarget_Collimators(motherLog, 0.0);
+  }
   // Polarized 3He target for GEn
   // - geometry based on drawings from Bert Metzger and Gordon Cates  
 
@@ -2871,7 +3063,7 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
   G4cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = " << Q2 << " (GeV/c)^2" << G4endl; 
 
   //For now, omit TBD details of everything other than target for SIDIS:
-  if( fDetCon->fExpType == G4SBS::kGEN ){
+  if( fDetCon->fExpType == G4SBS::kGEN || fDetCon->fExpType == G4SBS::kSIDISExp || fDetCon->fExpType == G4SBS::kALL ){
    
     BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
     BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);
@@ -2905,6 +3097,8 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
   // Glass cell for polarized 3He
   // - drawing number: internal from G. Cates (May 2020) 
 
+  bool enableSD = fDetCon->GetGEnTargetSDEnable();  
+  
   G4double glassWall = 1.0*mm; // estimate 
   G4double tubeLength = fGEn_GLASS_TUBE_LENGTH; // 571.7*mm; // 579.0*mm;  
 
@@ -3219,6 +3413,28 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
   // visGC->SetForceWireframe(true);
   logicGlassCell->SetVisAttributes(visGC);
 
+  ////// Define Sensitive Detector for glass target:
+  ////// TODO: make it optional
+  G4String GlassTargetSDname = "GlassTarget";
+  G4String GlassTargetcollname = "GlassTargetHitsCollection";
+  G4SBSCalSD *GlassTargetSD = NULL;
+
+  if( enableSD ){
+    if( !( GlassTargetSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(GlassTargetSDname) ) ){
+      G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
+      GlassTargetSD = new G4SBSCalSD( GlassTargetSDname, GlassTargetcollname );
+      fDetCon->fSDman->AddNewDetector( GlassTargetSD );
+      (fDetCon->SDlist).insert(GlassTargetSDname);
+      fDetCon->SDtype[GlassTargetSDname] = G4SBS::kCAL;
+    
+      (GlassTargetSD->detmap).depth = 1;
+
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( GlassTargetSDname, 0.0*MeV, 100.0*ns, 25 );
+    }
+  
+    logicGlassCell->SetSensitiveDetector( GlassTargetSD );
+  }
+  
   // place the volume
   // - note that this is relative to the *target chamber* as that is the first object in the union 
   // - rotation puts the cell oriented such that the pumping chamber is vertically above
@@ -3262,14 +3478,15 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
   fDetCon->InsertTargetVolume( logicGlassCell->GetName() );
 
   // now turn this into a sensitive detector if enabled
-  bool enableSD = fDetCon->GetGEnTargetSDEnable();  
+  //bool enableSD = fDetCon->GetGEnTargetSDEnable();  
 
   // name of SD and the hitCollection  
   G4String gcSDname = "Target/Glass";   
   // We have to remove all the directory structure from the 
   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
   G4String gcSDname_nopath = gcSDname;
-  gcSDname_nopath.remove(0,gcSDname.last('/')+1);
+  //gcSDname_nopath.remove(0,gcSDname.last('/')+1);
+  gcSDname_nopath.erase(0,gcSDname.find_last_of('/')+1);
   G4String gcColName = gcSDname_nopath;
   gcColName += "HitsCollection";
 
@@ -3483,12 +3700,14 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
   // upstream 
   G4String alSDname_us_nopath = alSDname_us;
-  alSDname_us_nopath.remove(0,alSDname_us.last('/')+1);
+  //alSDname_us_nopath.remove(0,alSDname_us.last('/')+1);
+  alSDname_us_nopath.erase(0,alSDname_us.find_last_of('/')+1);
   G4String alHCname_us = alSDname_us_nopath;
   alHCname_us += "HitsCollection";
   // downstream
   G4String alSDname_ds_nopath = alSDname_ds;
-  alSDname_ds_nopath.remove(0,alSDname_ds.last('/')+1);
+  //  alSDname_ds_nopath.remove(0,alSDname_ds.last('/')+1);
+  alSDname_ds_nopath.erase(0,alSDname_ds.find_last_of('/')+1);
   G4String alHCname_ds = alSDname_ds_nopath;
   alHCname_ds += "HitsCollection";
 
@@ -3506,12 +3725,12 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
 
   // upstream 
   G4String cuSDname_us_nopath = cuSDname_us;
-  cuSDname_us_nopath.remove(0,cuSDname_us.last('/')+1);
+  cuSDname_us_nopath.erase(0,cuSDname_us.find_last_of('/')+1);
   G4String cuHCname_us = cuSDname_us_nopath;
   alHCname_us += "HitsCollection";
   // downstream
   G4String cuSDname_ds_nopath = cuSDname_ds;
-  cuSDname_ds_nopath.remove(0,cuSDname_ds.last('/')+1);
+  cuSDname_ds_nopath.erase(0,cuSDname_ds.find_last_of('/')+1);
   G4String cuHCname_ds = cuSDname_ds_nopath;
   cuHCname_ds += "HitsCollection";
 
@@ -4063,7 +4282,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
   // We have to remove all the directory structure from the 
   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
   G4String heSDname_nopath = heSDname;
-  heSDname_nopath.remove(0,heSDname.last('/')+1);
+  heSDname_nopath.erase(0,heSDname.find_last_of('/')+1);
   G4String heColName = heSDname_nopath;
   heColName += "HitsCollection";
 
@@ -4956,6 +5175,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
 void G4SBSTargetBuilder::BuildGEnTarget_Collimators(G4LogicalVolume *logicMother,G4double z0){
   // Collimators near target (beam left) 
   // Based on drawings from Sebastian Seeds (UConn), derived from Bert Metzger's JT file 
+  G4cout << " ********************* Building collimators for GEn ********************* " << G4endl;
   BuildGEnTarget_Collimator_A(logicMother,z0); 
   BuildGEnTarget_Collimator_B(logicMother,z0); 
   BuildGEnTarget_Collimator_C(logicMother,z0);
@@ -5603,7 +5823,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_IonChamber(G4LogicalVolume *motherLog){
   // We have to remove all the directory structure from the 
   // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
   G4String icSDname_nopath = icSDname;
-  icSDname_nopath.remove(0,icSDname.last('/')+1);
+  icSDname_nopath.erase(0,icSDname.find_last_of('/')+1);
   G4String icColName = icSDname_nopath;
   icColName += "HitsCollection";
 
@@ -5736,4 +5956,34 @@ void G4SBSTargetBuilder::CheckZPos(G4LogicalVolume *logicMother,G4double z0){
 		    0,                // copy number
 		    true);            // checking overlaps 
 
+}
+
+/////////////////////////////////////////////
+void G4SBSTargetBuilder::BuildHadronFilter( G4LogicalVolume *mother, G4RotationMatrix *rot, G4ThreeVector pos ){
+  //This should be the union of a box and a trapezoid.
+  G4double inch = 2.54*cm;
+  G4double boxlen = 4.45*inch;
+  G4double boxheight = 7.75*inch;
+  G4double boxthick = fHadronFilterThick;
+
+  G4double traplen = 29.62*inch - boxlen;
+  G4double trapthick = boxthick;
+  G4double trapheight1 = boxheight;
+  G4double trapheight2 = 4.00*inch;
+
+  //in the GEP scattering chamber this will have some complicated rotations, but let's assume the length is along z, the height is along y, and the thickness is along x:
+  
+  G4Box *HadronFilter_box = new G4Box( "HadronFilter_box", boxthick/2.0, boxheight/2.0, boxlen/2.0 );
+
+  G4Trd *HadronFilter_trap = new G4Trd( "HadronFilter_trap", trapthick/2.0, trapthick/2.0, trapheight1/2.0, trapheight2/2.0, traplen/2.0 );
+
+  G4RotationMatrix *rot_trap_box = new G4RotationMatrix; //Identity:
+
+  G4ThreeVector offset( 0, 0, (boxlen + traplen)/2.0 );
+  
+  G4UnionSolid *HadronFilter_Solid = new G4UnionSolid( "HadronFilter_Solid", HadronFilter_box, HadronFilter_trap, rot_trap_box, offset );
+
+  G4LogicalVolume *HadronFilter_log = new G4LogicalVolume( HadronFilter_Solid, GetMaterial(fHadronFilterMaterial), "HadronFilter_log" );
+
+  new G4PVPlacement( rot, pos, HadronFilter_log, "HadronFilter_phys", mother, false, 0 );
 }

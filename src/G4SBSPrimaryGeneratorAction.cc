@@ -81,6 +81,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   //evdata = sbsgen->GetEventData();
   fIO->SetEventData(sbsgen->GetEventData());
+  fIO->SetTDISEventData(sbsgen->GetTDISEventData());
 
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 //PYTHIA6 event
@@ -139,6 +140,45 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // electron or geantino (and more)
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+  if( sbsgen->GetKine() == G4SBS::kSIMC ){ //SIMC event:
+    G4SBSSIMCOutput Primaries = sbsgen->GetSIMCEvent();
+    
+    particle = particleTable->FindParticle(particleName="e-");
+    particleGun->SetParticleDefinition(particle);
+    particleGun->SetParticleMomentumDirection( sbsgen->GetElectronP().unit() );
+    particleGun->SetParticleEnergy(sbsgen->GetElectronE());
+    particleGun->SetParticlePosition( sbsgen->GetV() );
+    
+    particleGun->GeneratePrimaryVertex(anEvent);
+    
+    bool invalid_hadron = true;
+    switch(sbsgen->GetHadronType()) {
+    case G4SBS::kP:
+      particle = particleTable->FindParticle(particleName="proton");
+      invalid_hadron = false;
+      break;
+    case G4SBS::kN:
+      particle = particleTable->FindParticle(particleName="neutron");
+      invalid_hadron = false;
+      break;
+    }
+    if (invalid_hadron) {
+      fprintf(stderr, "%s: %s line %d - Error: Given Hadron type not valid for SIMC generator. Check /g4sbs/hadron flag. \n", __PRETTY_FUNCTION__, __FILE__, __LINE__);
+      exit(1);
+    }
+    particleGun->SetParticleDefinition(particle);
+    particleGun->SetParticleMomentumDirection( sbsgen->GetNucleonP().unit() );
+    particleGun->SetParticleEnergy(sbsgen->GetNucleonE()-particle->GetPDGMass());
+    particleGun->SetParticlePosition( sbsgen->GetV() );
+     
+    particleGun->GeneratePrimaryVertex(anEvent);
+    
+    Primaries.ConvertToTreeUnits();
+    fIO->SetSIMCOutput( Primaries );
+    
+    return;
+  }
 
   if( !fUseGeantino && sbsgen->GetKine() != G4SBS::kGun && sbsgen->GetKine() != G4SBS::kPionPhoto ){ //first primary is an electron!
     particle = particleTable->FindParticle(particleName="e-");
@@ -338,7 +378,6 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	      particle = particleTable->FindParticle(particleName="e-");
 	      particleGun->SetParticleMomentumDirection( tdishandler -> tGetElectronP().unit() );
 	      particleGun->SetParticleEnergy(tdishandler->tGetElectronE()-particle->GetPDGMass());
-	      
 	      //G4cout<<"PGA: electron direction: "  << tdishandler -> tGetElectronP().unit()<< " theta: "<<tdishandler -> tGetElectronP().theta()/deg<<" Energy:  "<<tdishandler->tGetElectronE()<<" K Energy:  "<<tdishandler->tGetElectronE()-particle->GetPDGMass()<<G4endl;
 	    }
 	  if(i==1)
@@ -615,6 +654,9 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     case G4SBS::kPbar:
       particle = particleTable->FindParticle(particleName="anti_proton");
       break;
+    case G4SBS::kN:
+      fprintf(stderr, "%s: %s line %d - Error: Given hadron type is not valid for SIDIS/Wiser generator. Check /g4sbs/hadron flag.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);
+      exit(1);
     default:
       particle = particleTable->FindParticle(particleName="pi+");
       break;
@@ -640,6 +682,30 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     //G4cout << "Gun polarization = " << particleGun->GetParticlePolarization() << G4endl;
       particleGun->GeneratePrimaryVertex(anEvent);
   }
+
+  //Set some of the event-level variables that will end up in the root tree here:
+  //Since the primary generator action is the only class other than the messenger that can talk directly to both the G4SBSIO and the G4SBSEventGen classes,
+  //This is the place to set these values:
+  fIO->SetTargPol( sbsgen->GetTargPolMagnitude() );
+  fIO->SetBeamPol( sbsgen->GetBeamPolMagnitude() );
+  
+  G4ThreeVector targpoldir = sbsgen->GetTargPolDirection();
+  G4ThreeVector beampoldir = sbsgen->GetBeamPolDirection();
+  
+  fIO->SetTargThetaSpin( targpoldir.theta() );
+  fIO->SetTargPhiSpin( targpoldir.phi() );
+  //In almost all cases, the beam polarization will be along Z:
+  fIO->SetBeamThetaSpin( beampoldir.theta() );
+  fIO->SetBeamPhiSpin( beampoldir.phi() );
+
+  fIO->SetAUT_Collins( sbsgen->GetAUT_Collins() );
+  fIO->SetAUT_Sivers( sbsgen->GetAUT_Sivers() );
+
+  fIO->SetAUT_Collins_min( sbsgen->GetAUT_Collins_min() );
+  fIO->SetAUT_Sivers_min( sbsgen->GetAUT_Sivers_min() );
+
+  fIO->SetAUT_Collins_max( sbsgen->GetAUT_Collins_max() );
+  fIO->SetAUT_Sivers_max( sbsgen->GetAUT_Sivers_max() );
   
 }
 

@@ -48,8 +48,13 @@ public:
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
   void MakeRICH(G4LogicalVolume *);
   void MakeRICH_new(G4LogicalVolume *, bool extended_snout = false);
-  void MakeTracker(G4LogicalVolume *);
+  void MakeTracker(G4LogicalVolume *, G4int nplanes = 5);
   void MakeGEpFPP(G4LogicalVolume *);
+  // // // // HEAD
+  // // // //
+  //void MakeGEpFPP_BB( G4LogicalVolume *);
+  void MakeTracker_A1n(G4LogicalVolume *);
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   void MakeElectronModeSBS(G4LogicalVolume *);
   void MakeLACModule(G4LogicalVolume *);
   void MakeSBSSieveSlit(G4LogicalVolume *);
@@ -108,6 +113,8 @@ public:
   double fGEP_CH2width[2];
   double fGEP_CH2height[2]; 
   double fGEP_CH2zpos[2];
+  double fGEP_CH2yoff[2];
+  //double fGEP_trkryoff[3];
   
 private:
 

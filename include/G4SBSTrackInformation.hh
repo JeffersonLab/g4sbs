@@ -61,6 +61,8 @@ public:
 
   void SetOriginalTrackInformation(const G4Track* aTrack);
   void SetPrimaryTrackInformation(const G4Track* aTrack);
+  inline void SetOriginalParentPID( G4ParticleDefinition *PID ){ fOriginalParentPID = PID; }
+  inline void SetParentPID( G4ParticleDefinition *PID ){ fParentPID = PID; }
   void SetTrackSDInformation(G4String SDname, const G4Track *aTrack);
   virtual void Print() const;
 
@@ -74,11 +76,14 @@ public:
   inline G4int GetOriginalTrackID() const { return fOriginalTrackID; }
   inline G4int GetOriginalParentID() const { return fOriginalParentID; }
   inline G4ParticleDefinition *GetOriginalDefinition() const { return fOriginalDefinition; }
+  inline G4ParticleDefinition *GetOriginalParentPID() const { return fOriginalParentPID; }
+  inline G4ParticleDefinition *GetParentPID() const { return fParentPID; }
   inline G4ThreeVector GetOriginalPosition() const { return fOriginalPosition; }
   inline G4ThreeVector GetOriginalMomentum() const { return fOriginalMomentum; }
   inline G4ThreeVector GetOriginalPolarization() const { return fOriginalPolarization; }
   inline G4double GetOriginalEnergy() const { return fOriginalEnergy; }
   inline G4double GetOriginalTime() const { return fOriginalTime; }
+  //inline G4int GetNbounce() const { return fNbounce; }
 
   inline G4int GetPrimaryTrackID() const { return fPrimaryTrackID; }
   inline G4ParticleDefinition *GetPrimaryDefinition() const { return fPrimaryDefinition; }
@@ -87,7 +92,7 @@ public:
   inline G4ThreeVector GetPrimaryPolarization() const { return fPrimaryPolarization; }
   inline G4double GetPrimaryEnergy() const { return fPrimaryEnergy; }
   inline G4double GetPrimaryTime() const { return fPrimaryTime; }
-
+  
 private:
   //THIS NOTATION (COPIED FROM EXAMPLE RE01) SUCKS, BTW. "Original" and "Source" sound the same
   //and totally interchangeable and ambiguous.
@@ -129,12 +134,15 @@ private:
   G4int                 fOriginalTrackID;  // Track ID of original particle
   G4int                 fOriginalParentID; //IF applicable
   G4ParticleDefinition* fOriginalDefinition;
+  G4ParticleDefinition* fOriginalParentPID; //Particle ID of immediate parent of this particle; if produced in an analyzer or target volume
   G4ThreeVector         fOriginalPosition;
   G4ThreeVector         fOriginalMomentum;
   G4ThreeVector         fOriginalPolarization;
   G4double              fOriginalEnergy;
   G4double              fOriginalTime;
 
+  G4ParticleDefinition *fParentPID; //Particle ID of immediate parent of this particle, regardless of where it was produced
+  
   // This is the primary track responsible for the current track at the primary vertex:
   G4int                 fPrimaryTrackID;  // Track ID of primary particle
   G4ParticleDefinition* fPrimaryDefinition;
@@ -144,11 +152,17 @@ private:
   G4double              fPrimaryEnergy;
   G4double              fPrimaryTime;
 
+  //G4int                   fNbounce; //Number of "bounces" from primary track to current track
+  //vector<G4int>           fPIDbounce; //PID of current track at each bounce
+
 public:
   set<G4String>                       fSDlist; //list of SD names associated with this track
   map<G4String,G4ParticleDefinition*> fSDDefinition; //Particle ID of track when entering SD
+  map<G4String,G4ParticleDefinition*> fSDParentPID; //Particle ID of immediate parent of particle entering SD
   map<G4String,G4int>                 fSDTrackID;    //Track ID of track entering SD
   map<G4String,G4int>                 fSDParentID;   //Parent ID of track entering SD
+  //map<G4String,G4int>                 fSDNbounce;  //Number of "bounces" between primary track and SD boundary crossing track
+  // map<G4String,vector<G4int> >        fSDPIDbounce; 
   map<G4String,G4ThreeVector>         fSDPosition; //Global position of track when entering SD.
   map<G4String,G4ThreeVector>         fSDMomentum; //Global three-momentum of track when entering SD.
   map<G4String,G4ThreeVector>         fSDPolarization; //Global Polarization of track when entering SD

@@ -44,13 +44,40 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 #
 # Force use of c++11 standard
 #
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 # Setup include directory for this project
 #
+
+#----------------------------------------------------------------------------
+# Find Geant4 package, activating all available UI and Vis drivers by default
+# You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
+# to build a batch mode only executable
+#
+option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
+if(WITH_GEANT4_UIVIS)
+  find_package(Geant4 REQUIRED ui_all vis_all)
+else()
+  find_package(Geant4 REQUIRED)
+endif()
+
+#----------------------------------------------------------------------------
+# Setup Geant4 include directories and compile definitions
+# Setup include directory for this project
+#
+include(${Geant4_USE_FILE})
+#include_directories(${PROJECT_SOURCE_DIR}/include)
+
+#check for absence of GEANT4's built-in CLHEP and use of a custom CLHEP:
+#set(SYSTEM_CLHEP OFF)
+
+#if( NOT EXISTS ${Geant4_INCLUDE_DIR}/CLHEP ) 
+#    set(SYSTEM_CLHEP ON)
+#endif()
+
 
 
 #ROOT path
@@ -65,8 +92,9 @@ find_package(ROOT REQUIRED)
 #---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
 include(${ROOT_USE_FILE})
 
-include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR}
-    ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include)
+#### HEAD
+#include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR}
+#    ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include)
 #    ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/ )
 # 
 #ROOT_GENERATE_DICTIONARY(
@@ -75,16 +103,25 @@ include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR}
 #    "include/G4SBSTextFile.hh"
 #    LINKDEF "include/G4SBSLinkDef.h"  # ROOT linkDef file
 #)
+####
+include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR} ${Geant4_INCLUDE_DIR} ${CLHEP_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/dss2007 ${CMAKE_CURRENT_BINARY_DIR}/include)
+
+#### 11a33984f47772444ffb08222f8a978d2bee837e
 
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc ${PROJECT_SOURCE_DIR}/src/dss2007/*.cc ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.C ${PROJECT_SOURCE_DIR}/include/AcquMCTree.C ${PROJECT_SOURCE_DIR}/src/epc_func.f ${PROJECT_SOURCE_DIR}/src/f2pi_sub.f90)
+#### HEAD
+#file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc ${PROJECT_SOURCE_DIR}/src/dss2007/*.cc ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.C 
 #${PROJECT_SOURCE_DIR}/RTPC_2v4/src/RTPC.cc ${PROJECT_SOURCE_DIR}/RTPC_2v4/src/Array*.cc ${PROJECT_SOURCE_DIR}/RTPC_2v4/src/RootIO.cc ${PROJECT_SOURCE_DIR}/RTPC_2v4/src/*Field*.cc ${PROJECT_SOURCE_DIR}/RTPC_2v4/src/BeamLine.cc)
-file(GLOB headers ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/wiser_pion.h ${PROJECT_SOURCE_DIR}/src/cteq/*.h ${PROJECT_SOURCE_DIR}/src/dss2007/*.hh ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.h)
+#file(GLOB headers ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/wiser_pion.h ${PROJECT_SOURCE_DIR}/src/cteq/*.h ${PROJECT_SOURCE_DIR}/src/dss2007/*.hh ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.h)
 #${PROJECT_SOURCE_DIR}/RTPC_2v4/include/RTPC.hh ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/Array*.cc ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/RootIO.hh ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/*Field*.hh)
+####
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc ${PROJECT_SOURCE_DIR}/src/dss2007/*.cc ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.C ${PROJECT_SOURCE_DIR}/include/simc_tree.C ${PROJECT_SOURCE_DIR}/include/AcquMCTree.C ${PROJECT_SOURCE_DIR}/src/epc_func.f ${PROJECT_SOURCE_DIR}/src/f2pi_sub.f90)
+file(GLOB headers ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/wiser_pion.h ${PROJECT_SOURCE_DIR}/src/cteq/*.h ${PROJECT_SOURCE_DIR}/src/dss2007/*.hh ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.h ${PROJECT_SOURCE_DIR}/include/simc_tree.h)
+#### 11a33984f47772444ffb08222f8a978d2bee837e
 
 file(GLOB cteqsources ${PROJECT_SOURCE_DIR}/src/cteq/*.c  )
 file(GLOB cteqheaders ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
@@ -92,6 +129,7 @@ file(GLOB cteqheaders ${PROJECT_SOURCE_DIR}/src/cteq/*.h )
 file(GLOB libsources ${PROJECT_SOURCE_DIR}/src/G4SBSRunData.cc ${PROJECT_SOURCE_DIR}/src/G4SBSTextFile.cc) 
 file(GLOB libheaders ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh )
 
+####
 #add_subdirectory(RTPC_2v4)
 
 #----------------------------------------------------------------------------
@@ -109,6 +147,9 @@ else()
 endif()
 
 include(${Geant4_USE_FILE})
+
+####
+#### 11a33984f47772444ffb08222f8a978d2bee837e
 
 # Generate the dictionary for G4SBS classes deriving from TOb ect:
 ROOT_GENERATE_DICTIONARY(
@@ -130,6 +171,17 @@ add_library(g4sbsroot SHARED ${libsources} ${libheaders} G__g4sbsroot.cxx)
 
 target_link_libraries(g4sbs g4sbsroot ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} sbscteq )
 target_link_libraries(g4sbsroot ${ROOT_LIBRARIES} )
+
+#if( ${SYSTEM_CLHEP} )
+# check for absence of GEANT4's built-in CLHEP. If it isn't there,
+# we have to find it:
+if( NOT ${Geant4_builtin_clhep_FOUND})
+    find_package(CLHEP REQUIRED)
+
+    include_directories(${CLHEP_INCLUDE_DIR})
+    target_link_libraries(g4sbs CLHEP::CLHEP)
+    target_link_libraries(g4sbsroot CLHEP::CLHEP)
+endif()
 
 option(WITH_G4SBS_GDML "Build g4sbs with GDML output" OFF)
 if( WITH_G4SBS_GDML)
@@ -318,6 +370,7 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/root_macros DESTINATION ${CMAKE_INSTALL_
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/farmsub_scripts DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/integration_tests DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/database DESTINATION ${CMAKE_INSTALL_PREFIX}/run_g4sbs_here)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/transversity_grids DESTINATION ${CMAKE_INSTALL_DATAROOTDIR})
 #install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/run_g4sbs_here ${CMAKE_INSTALL_PREFIX})
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(FILES ${dss_grids} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/DSS2007_GRIDS)

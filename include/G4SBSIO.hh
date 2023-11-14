@@ -15,7 +15,11 @@
 #include "G4SBSSDTrackOutput.hh"
 #include "G4SBSDetectorConstruction.hh"
 #include "G4SBSPythiaOutput.hh"
+// // // // HEAD
 #include "G4SBSAcquMCOutput.hh"
+// // // //
+#include "G4SBSSIMCOutput.hh"
+// // // // 11a33984f47772444ffb08222f8a978d2bee837e
 
 #include "G4SBSTrackerOutput.hh"
 
@@ -34,7 +38,7 @@ class G4SBSGlobalField;
 
 //These aren't really "event"-level quantities, as they are constants describing the setup, and should be stored in the "rundata" object.
 typedef struct {
-  Double_t thbb, thsbs, dbb, dsbs, dhcal,voffhcal, hoffhcal, drich, dsbstrkr, sbstrkrpitch, dlac, vofflac, hofflac, Ebeam;
+  Double_t thbb, thsbs, dbb, dsbs, dhcal,voffhcal, hoffhcal, drich, dsbstrkr, sbstrkrpitch, dlac, vofflac, hofflac, Ebeam, Ibeam;
 } gen_t;
 
 
@@ -43,28 +47,42 @@ typedef struct {
 typedef struct {
   // Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph;
   Double_t count, rate, solang, sigma, W2, xbj, Q2, th, ph; 
-  Double_t KE, sigmaELA, sigmaQE, sigmaSIDIS, sigmaDIS, sigmaTDIS; // TDIS
+  // Double_t KE, sigmaELA, sigmaQE, sigmaSIDIS, sigmaDIS, sigmaTDIS; // TDIS
   Double_t Aperp, Apar;
   Double_t Pt, Pl;
   Double_t vx, vy, vz;
   Double_t ep, np;
-  Double_t p1p, p2p, pip; // TDIS
+  // Double_t p1p, p2p, pip; // TDIS
   Double_t epx, epy, epz;
   Double_t npx, npy, npz;
-  Double_t p1px, p1py, p1pz; // TDIS
-  Double_t p2px, p2py, p2pz; // TDIS
-  Double_t pipx, pipy, pipz; // TDIS
+  // Double_t p1px, p1py, p1pz; // TDIS
+  // Double_t p2px, p2py, p2pz; // TDIS
+  // Double_t pipx, pipy, pipz; // TDIS
   Double_t nth, nph;
-  Double_t p1th, p1ph, p2th, p2ph, pith, piph; // TDIS
+  // Double_t p1th, p1ph, p2th, p2ph, pith, piph; // TDIS
   Double_t pmperp, pmpar, pmparsm;
   Double_t z, phperp, phih, phiS, thetaS, MX;
-  Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator
-  Double_t xpi, tpi, xa,pt, nu, ya, y, f2p, f2pi, ypi; // TDIS
+  // // // // HEAD
+  Double_t Sx, Sy, Sz; //polarization: only meaningful for gun generator (for the SIDIS generator, we now use these variables to hold the "true" target spin direction)
+  // Double_t xpi, tpi, xa,pt, nu, ya, y, f2p, f2pi, ypi; // TDIS
+  // // // // 
+  // //   Double_t Sx, Sy, Sz; //polarization: 
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   Double_t s, t, u, costhetaCM, Egamma_lab; //Extra kinematic variables we would like to store for pion photoproduction
   Int_t nucl, fnucl;
   Int_t hadr;
   Int_t earmaccept, harmaccept;
 } ev_t;
+
+typedef struct {
+  Double_t KE, sigmaELA, sigmaQE, sigmaSIDIS, sigmaDIS, sigmaTDIS; // TDIS
+  Double_t p1p, p2p, pip; // TDIS
+  Double_t p1px, p1py, p1pz; // TDIS
+  Double_t p2px, p2py, p2pz; // TDIS
+  Double_t pipx, pipy, pipz; // TDIS
+  Double_t p1th, p1ph, p2th, p2ph, pith, piph; // TDIS
+  Double_t xpi, tpi, xa,pt, nu, ya, y, f2p, f2pi, ypi; // TDIS
+} ev_tdis_t;
 
 typedef struct {
   Double_t x, y, xp, yp;
@@ -112,6 +130,7 @@ public:
   //void SetTrackData(tr_t td){ trdata = td; }
   //void SetCalData(cal_t cd){ caldata = cd; }
   void SetEventData(ev_t ed){ evdata = ed; }
+  void SetTDISEventData(ev_tdis_t ed){ evtdisdata = ed; }
   //void SetHitData(hit_t ht){ hitdata = ht; }
   //void SetRICHData( G4SBSRICHoutput rd ) { richdata = rd; }
   //void SetTrackData( G4SBSTrackerOutput td ){ trackdata = td; }
@@ -144,6 +163,7 @@ public:
   void WriteTree();
   
   void SetBeamE(double E){ gendata.Ebeam = E/CLHEP::GeV; }
+  void SetBeamCur(double cur){ gendata.Ibeam = cur; }
   void SetBigBiteTheta(double th){ gendata.thbb = th; }
   void SetBigBiteDist(double d){ gendata.dbb = d/CLHEP::m; }
   void SetSBSTheta(double th){ gendata.thsbs = th; }
@@ -161,6 +181,7 @@ public:
   void SetGlobalField(G4SBSGlobalField *gf){fGlobalField = gf; }
   
   ev_t GetEventData(){ return evdata; }
+  ev_tdis_t GetTDISEventData(){ return evtdisdata; }
   gen_t GetGenData(){ return gendata; }
   
   void InitializeTree();
@@ -171,8 +192,12 @@ public:
   void BranchECAL(G4String s);
   void BranchmTPC(G4String s);
   void BranchPythia();
+  // // // // HEAD
   // TDIS
   void BranchAcquMC();
+  // // // // 
+  void BranchSIMC();
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   //void BranchSDTracks(G4String s);
   void BranchSDTracks();
   // for D Flay studies
@@ -199,6 +224,9 @@ public:
   // TDIS
   void SetAcquMCOutput( G4SBSAcquMCOutput p ){ AcquMCPrimaries = p; }
   void SetUseAcquMC( G4bool b ){ fUseAcquMC = b; }
+
+  void SetSIMCOutput( G4SBSSIMCOutput p ){ SIMCprimaries = p; }
+  void SetUseSIMC( G4bool b ){ fUseSIMC = b; }
 
   map<G4String,G4int> histogram_index; //map with key = SDname, val = histogram index in TClonesArray
 
@@ -227,6 +255,27 @@ public:
   map<G4String,G4bool> GetKeepSDtracks() const { return fKeepSDtracks; }
 
   void SetWriteFieldMaps( G4bool b ){ fWritePortableFieldMaps = b; }
+
+  //Set Kinematics: this determines what generator-specific tree branches we create:
+  void SetKine( G4SBS::Kine_t kine ){ fKineType = kine; }
+
+  //Setters for beam and target polarization info;
+  void SetTargPol( G4double pol ){ fTargPol = pol; }
+  void SetTargThetaSpin( G4double theta ){ fTargThetaSpin = theta; }
+  void SetTargPhiSpin( G4double phi ){ fTargPhiSpin = phi; }
+
+  void SetBeamPol( G4double pol ){ fBeamPol = pol; }
+  void SetBeamThetaSpin( G4double theta ){ fBeamThetaSpin = theta; }
+  void SetBeamPhiSpin( G4double phi ){ fBeamPhiSpin = phi; }
+
+  void SetAUT_Collins( G4double Acoll ){ fAUT_Collins = Acoll; }
+  void SetAUT_Sivers( G4double Asiv ){ fAUT_Sivers = Asiv; }
+
+  void SetAUT_Collins_min( G4double Acoll ){ fAUT_Collins_min = Acoll; }
+  void SetAUT_Sivers_min( G4double Asiv ){ fAUT_Sivers_min = Asiv; }
+
+  void SetAUT_Collins_max( G4double Acoll ){ fAUT_Collins_max = Acoll; }
+  void SetAUT_Sivers_max( G4double Asiv ){ fAUT_Sivers_max = Asiv; }
   
 private:
   TFile *fFile;
@@ -241,7 +290,36 @@ private:
   map<G4String,G4bool> fKeepPulseShape;
   
   ev_t evdata;
+  ev_tdis_t evtdisdata;
   gen_t gendata;
+
+  // AJRP May 27, 2021:
+  //collecting additional event-level tree variables that aren't already accommodated by the ev_t data structure here:
+  //We are going to stop modifying the ev_t data structure, because every time we change it, we make older versions of the ROOT tree de facto unreadable.
+  //Instead, any future global event-level variables we want to store in the tree, we will declare them here and give them their own tree branches:
+  //Variables to store beam and target polarization and direction:
+
+  //Since these event-level variables will depend on the generator kinematics, let's store a copy of the Kine_t
+  G4SBS::Kine_t fKineType;
+
+  //Variables specific to generators that might make use of beam and target polarization and spin direction info:
+  G4double fTargPol;
+  G4double fTargThetaSpin, fTargPhiSpin;
+  G4double fBeamPol;
+  G4double fBeamThetaSpin, fBeamPhiSpin;
+
+  //Variables specific to SIDIS generator:
+  G4double fAUT_Collins;
+  G4double fAUT_Sivers;
+
+  G4double fAUT_Collins_min;
+  G4double fAUT_Sivers_min;
+
+  G4double fAUT_Collins_max;
+  G4double fAUT_Sivers_max;
+  
+  //Add more event-level variables here....
+  
   //tr_t trdata;
   // cal_t caldata;
   // hit_t hitdata;
@@ -267,6 +345,9 @@ private:
   // TDIS
   G4bool fUseAcquMC;
   G4SBSAcquMCOutput AcquMCPrimaries;
+  
+  G4bool fUseSIMC;
+  G4SBSSIMCOutput SIMCprimaries;
   
   G4SBSGlobalField *fGlobalField;
   

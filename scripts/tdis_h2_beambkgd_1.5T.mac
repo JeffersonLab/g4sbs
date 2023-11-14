@@ -1,0 +1,103 @@
+## Configure G4SBS for TDIS
+/g4sbs/filename        tdis_h2_beambkgd_1.5T.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             tdis
+
+## Configure the target
+/g4sbs/target          H2
+/g4sbs/targlen         40.0 cm           ## Target Length
+/g4sbs/targdiam        1.0 cm          ## Target Diameter
+/g4sbs/tdistgtwallthick 0.02 mm
+
+## Configure generator settings
+# pythia6 -> make use of Pythia generator file
+# /g4sbs/pythia6file <pythia_events_.root> FILE WITH PYTHIA EVENTS
+
+
+# LIST OF TDIS KINEMATICS
+# tdisgen -> original generator
+# tdisela -> new tdis elastic
+# tdisine -> new tdis inelastic
+# tdisqua -> new tdis quasielastic
+# tsidis  -> new tdis SIDIS (DO NOT USE)
+# tdiskinH -> new TDIS (hydrogen)
+# tdiskinD -> new TDIS (deuterium)
+
+/g4sbs/kine            beam
+
+
+# when using pythia the rest of variables are irrelevant
+# /g4sbs/kine             pythia6
+
+# IN THIS FARM DIRECTORY, THERE ARE MANY PYTHIA FILES COMPILED BY ANDREW
+#/g4sbs/pythia6file /w/halla-scifs17exp/sbs/puckett/Pythia6_11GeV_proton_target/Pythia6_minbias_protontarget_E11GeV_job1.root
+
+/g4sbs/particle        proton
+/g4sbs/beamE	       11.0 GeV
+
+# electron energy range 
+/g4sbs/eemin           0.05 GeV  ## actually momentum...
+/g4sbs/eemax           10.0 GeV  ## actually momentum...
+
+# electron angles for the TDIS case (SBS acceptance) are hard coded
+# SO NEXT VARIABLES ARE USELESS (TO BE CHANGED)
+
+# electron angles range
+/g4sbs/thmin           0.01 deg
+/g4sbs/thmax           90.0 deg
+/g4sbs/phmin        -180.0 deg
+/g4sbs/phmax         180.0 deg
+
+# hadron angles range 
+/g4sbs/hthmin     10.0 deg
+/g4sbs/hthmax     90.0 deg
+/g4sbs/hphmin    -180.0 deg
+/g4sbs/hphmax    180.0 deg
+
+# hadron energy range 
+# /g4sbs/ehmin: Minimum generated hadron energy. Requires value and unit.
+# /g4sbs/ehmax: Maximum generated hadron energy. Requires value and unit. 
+
+# IT IS NECESARY TO SET THE MINIMUM VALUES TO AVOID NaN ERRORS
+# min: 0,.940 protons; 0.140 pions, so the energy will be close to 0
+/g4sbs/ehmin      0.140 GeV
+/g4sbs/ehmax      1.5 GeV
+
+
+# hadron type for SIDIS case (pi+/pi-/K+/K-/p/pbar) (TDIS limeted to p and pi+)
+/g4sbs/hadron    p
+
+
+## Configure standard detector settings
+/g4sbs/lacdist       10.5 m
+/g4sbs/lacvoffset     0.40 m
+/g4sbs/lachoffset    -0.20 m
+/g4sbs/sbstrkrdist     4.4 m
+/g4sbs/sbstrkrpitch    5.0 deg
+
+/g4sbs/richdist        5.0 m
+/g4sbs/richgas         CF4
+/g4sbs/userichaero     false
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/sbsmagfield    -0.90 tesla
+/g4sbs/48d48field      1
+/g4sbs/sbsang          12.0 deg
+/g4sbs/48D48dist       2.5 m
+/g4sbs/sbsclampopt     0                 ## Disable all field clamps
+
+/g4sbs/solunifield	true
+#/g4sbs/solunimag	4.7
+/g4sbs/solunimag	1.5
+#/g4sbs/soltoscafield	true
+#/g4sbs/soltoscascale	1.0
+#/g4sbs/soltoscaoffset	200.0 mm
+
+/g4sbs/treeflag 0
+/g4sbs/totalabs true
+#/g4sbs/steplimit LACmod_log 1 
+
+## Run xxx events
+/g4sbs/run           500000

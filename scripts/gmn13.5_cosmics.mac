@@ -1,0 +1,45 @@
+## Configure G4SBS for gmn (Q^2 = 13.5 GeV^2)
+/g4sbs/filename         elastic.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gmn
+
+## Configure the target
+/g4sbs/target          LD2
+/g4sbs/targlen         15.0 cm           ## Target Length
+/g4sbs/rasterx         2.0 mm  #raster size in X
+/g4sbs/rastery         2.0 mm  #raster size in Y
+
+## Configure generator settings
+/g4sbs/kine            cosmics           ## Generator
+/g4sbs/eemin           100.0 GeV
+/g4sbs/eemax           100.0 GeV
+#/g4sbs/cosmicpointer  -4.703 -3.048 +16.960 m #for HCal
+/g4sbs/cosmicpointer  +2.41575 -3.048 +3.71992 m #for BBCal
+/g4sbs/cosmicpointerradius 1.2 m
+/g4sbs/cosmicmaxangle  60 deg
+
+## Configure standard detector settings
+/g4sbs/hcaldist        17.0 m
+/g4sbs/hcalvoffset     0.45 m
+/g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
+/g4sbs/sbsclampopt     3                 ## Front field clamp only
+/g4sbs/uselead         1                 ## set beamline shielding
+
+## Configure the magnets
+/g4sbs/bbfield         0
+#/g4sbs/tosfield        GMN13_field_newheader.table
+#/g4sbs/48d48field      1
+/g4sbs/bbang           33.0 deg
+/g4sbs/bbdist          1.55 m
+/g4sbs/sbsang          14.8 deg
+/g4sbs/48D48dist       3.1 m
+#/g4sbs/sbsmagfield     0.97 tesla
+
+/g4sbs/keepsdtrackinfo all true
+/g4sbs/totalabs        false
+
+/control/execute default_thresholds.mac
+
+## Run 100 events
+/g4sbs/run             50000

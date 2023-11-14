@@ -47,12 +47,15 @@ G4SBSTrackInformation::G4SBSTrackInformation()
   fOriginalTrackID = 0;
   fOriginalParentID = 0;
   fOriginalDefinition = 0;
+  fOriginalParentPID = 0;
   fOriginalPosition = G4ThreeVector(0.,0.,0.);
   fOriginalMomentum = G4ThreeVector(0.,0.,0.);
   fOriginalPolarization = G4ThreeVector(0.,0.,0.);
   fOriginalEnergy = 0.;
   fOriginalTime = 0.;
-    
+
+  fParentPID = 0;
+  
   fPrimaryTrackID = 0;
   fPrimaryDefinition = 0;
   fPrimaryPosition = G4ThreeVector(0.,0.,0.);
@@ -61,8 +64,12 @@ G4SBSTrackInformation::G4SBSTrackInformation()
   fPrimaryEnergy = 0.;
   fPrimaryTime = 0.;
 
+  //fNbounce = 0;
+  //fPIDbounce.clear();
+  
   fSDlist.clear();
   fSDDefinition.clear();
+  fSDParentPID.clear();
   fSDTrackID.clear();
   fSDPosition.clear();
   fSDMomentum.clear();
@@ -72,6 +79,9 @@ G4SBSTrackInformation::G4SBSTrackInformation()
   fSDVertexPosition.clear();
   fSDVertexDirection.clear();
   fSDVertexKineticEnergy.clear();
+
+  //fSDNbounce.clear();
+  //fSDPIDbounce.clear();
 }
 
 //This G4Track based constructor will typically get invoked only when new tracks are created:
@@ -80,17 +90,21 @@ G4SBSTrackInformation::G4SBSTrackInformation()
 G4SBSTrackInformation::G4SBSTrackInformation(const G4Track* aTrack)
   : G4VUserTrackInformation()
 {
+  
   fTrackingStatus = 0;
   
   fOriginalTrackID = aTrack->GetTrackID();
   fOriginalParentID = aTrack->GetParentID();
   fOriginalDefinition = aTrack->GetDefinition();
+  fOriginalParentPID = aTrack->GetDefinition(); //When we invoke the G4Track-based constructor we initially set the Original Parent PID and parent pid to the PID of the track itself. 
   fOriginalPosition = aTrack->GetPosition();
   fOriginalMomentum = aTrack->GetMomentum();
   fOriginalPolarization = aTrack->GetPolarization();
   fOriginalEnergy = aTrack->GetTotalEnergy();
   fOriginalTime = aTrack->GetGlobalTime();
 
+  fParentPID = aTrack->GetDefinition(); 
+  
   if( aTrack->GetParentID() == 0 ){ //Primary particle:
     fPrimaryTrackID = aTrack->GetTrackID();
     fPrimaryDefinition = aTrack->GetDefinition();
@@ -99,12 +113,16 @@ G4SBSTrackInformation::G4SBSTrackInformation(const G4Track* aTrack)
     fPrimaryPolarization = aTrack->GetPolarization();
     fPrimaryEnergy = aTrack->GetTotalEnergy();
     fPrimaryTime   = aTrack->GetGlobalTime();
+    //fNbounce = 0;
+    //fPIDbounce.clear();
+    //fPIDbounce.push_back( fPrimaryDefinition->GetPDGEncoding() );
   }
-
+  
   fSDlist.clear();
   fSDDefinition.clear();
   fSDTrackID.clear();
   fSDParentID.clear();
+  fSDParentPID.clear();
   fSDPosition.clear();
   fSDMomentum.clear();
   fSDPolarization.clear();
@@ -113,6 +131,8 @@ G4SBSTrackInformation::G4SBSTrackInformation(const G4Track* aTrack)
   fSDVertexPosition.clear();
   fSDVertexDirection.clear();
   fSDVertexKineticEnergy.clear();
+  //fSDNbounce.clear();
+  //fSDPIDbounce.clear();
  
 }
 
@@ -124,12 +144,15 @@ G4SBSTrackInformation
 {
   fOriginalTrackID = aTrackInfo->fOriginalTrackID;
   fOriginalParentID = aTrackInfo->fOriginalParentID;
+  fOriginalParentPID = aTrackInfo->fOriginalParentPID;
   fOriginalDefinition = aTrackInfo->fOriginalDefinition;
   fOriginalPosition = aTrackInfo->fOriginalPosition;
   fOriginalMomentum = aTrackInfo->fOriginalMomentum;
   fOriginalPolarization = aTrackInfo->fOriginalPolarization;
   fOriginalEnergy = aTrackInfo->fOriginalEnergy;
   fOriginalTime = aTrackInfo->fOriginalTime;
+
+  fParentPID = aTrackInfo->fParentPID;
   
   fTrackingStatus = aTrackInfo->fTrackingStatus;
 
@@ -141,10 +164,14 @@ G4SBSTrackInformation
   fPrimaryEnergy = aTrackInfo->fPrimaryEnergy;
   fPrimaryTime = aTrackInfo->fPrimaryTime;
 
+  //fNbounce = aTrackInfo->fNbounce;
+  //fPIDbounce = aTrackInfo->fPIDbounce;
+  
   fSDlist     = aTrackInfo->fSDlist;
   fSDDefinition = aTrackInfo->fSDDefinition;
   fSDTrackID    = aTrackInfo->fSDTrackID;
   fSDParentID   = aTrackInfo->fSDParentID;
+  fSDParentPID = aTrackInfo->fSDParentPID;
   fSDPosition = aTrackInfo->fSDPosition;
   fSDMomentum = aTrackInfo->fSDMomentum;
   fSDPolarization = aTrackInfo->fSDPolarization;
@@ -153,6 +180,8 @@ G4SBSTrackInformation
   fSDVertexPosition = aTrackInfo->fSDVertexPosition;
   fSDVertexDirection = aTrackInfo->fSDVertexDirection;
   fSDVertexKineticEnergy = aTrackInfo->fSDVertexKineticEnergy;
+  //fSDNbounce = aTrackInfo->fSDNbounce;
+  //fSDPIDbounce = aTrackInfo->fSDPIDbounce;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -166,15 +195,21 @@ G4SBSTrackInformation& G4SBSTrackInformation
 {
   fOriginalTrackID = aTrackInfo.fOriginalTrackID;
   fOriginalParentID = aTrackInfo.fOriginalParentID;
+  fOriginalParentPID = aTrackInfo.fOriginalParentPID;
   fOriginalDefinition = aTrackInfo.fOriginalDefinition;
   fOriginalPosition = aTrackInfo.fOriginalPosition;
   fOriginalMomentum = aTrackInfo.fOriginalMomentum;
   fOriginalPolarization = aTrackInfo.fOriginalPolarization;
   fOriginalEnergy = aTrackInfo.fOriginalEnergy;
   fOriginalTime = aTrackInfo.fOriginalTime;
+
+  fParentPID = aTrackInfo.fParentPID;
   
   fTrackingStatus = aTrackInfo.fTrackingStatus;
 
+  //  fNbounce = aTrackInfo.fNbounce;
+  //fPIDbounce = aTrackInfo.fPIDbounce;
+  
   fPrimaryTrackID = aTrackInfo.fPrimaryTrackID;
   fPrimaryDefinition = aTrackInfo.fPrimaryDefinition;
   fPrimaryPosition = aTrackInfo.fPrimaryPosition;
@@ -185,6 +220,7 @@ G4SBSTrackInformation& G4SBSTrackInformation
 
   fSDlist     = aTrackInfo.fSDlist;
   fSDDefinition = aTrackInfo.fSDDefinition;
+  fSDParentPID = aTrackInfo.fSDParentPID;
   fSDTrackID    = aTrackInfo.fSDTrackID;
   fSDParentID   = aTrackInfo.fSDParentID;
   fSDPosition = aTrackInfo.fSDPosition;
@@ -195,6 +231,7 @@ G4SBSTrackInformation& G4SBSTrackInformation
   fSDVertexPosition = aTrackInfo.fSDVertexPosition;
   fSDVertexDirection = aTrackInfo.fSDVertexDirection;
   fSDVertexKineticEnergy = aTrackInfo.fSDVertexKineticEnergy;
+  //fSDNbounce = aTrackInfo.fSDNbounce;
   return *this;
 }
 
@@ -215,7 +252,9 @@ void G4SBSTrackInformation::SetOriginalTrackInformation(const G4Track* aTrack)
 {
   fOriginalTrackID = aTrack->GetTrackID();
   fOriginalParentID = aTrack->GetParentID();
+  //fOriginalParentPID = aTrack->GetParentPID();
   fOriginalDefinition = aTrack->GetDefinition();
+  if( aTrack->GetParentID() == 0 ) fOriginalParentPID = aTrack->GetDefinition(); //if this is a primary particle, set "parent PID" to the PID of the particle itself, to avoid edge cases with erroneous parent PID presumably left over from previous events and/or tracks
   fOriginalPosition = aTrack->GetPosition();
   fOriginalMomentum = aTrack->GetMomentum();
   fOriginalPolarization = aTrack->GetPolarization();
@@ -229,6 +268,7 @@ void G4SBSTrackInformation::SetTrackSDInformation(G4String SDname, const G4Track
   std::pair<std::set<G4String>::iterator,bool> newSD = fSDlist.insert( SDname ); 
   if( newSD.second ){ //Only do anything if this is the first instance of this track crossing this SD boundary:
     fSDDefinition[SDname] = aTrack->GetDefinition();
+    //fSDParentPID[SDname] = aTrack->GetDefinition();
     fSDTrackID[SDname] = aTrack->GetTrackID();
     fSDParentID[SDname] = aTrack->GetParentID();
     fSDPosition[SDname] = aTrack->GetPosition();
@@ -239,6 +279,12 @@ void G4SBSTrackInformation::SetTrackSDInformation(G4String SDname, const G4Track
     fSDVertexPosition[SDname] = aTrack->GetVertexPosition();
     fSDVertexDirection[SDname] = aTrack->GetVertexMomentumDirection();
     fSDVertexKineticEnergy[SDname] = aTrack->GetVertexKineticEnergy();
+    
+    G4SBSTrackInformation *info = (G4SBSTrackInformation *) ( aTrack->GetUserInformation() );
+
+    fSDParentPID[SDname] = info->GetParentPID(); //If this is a primary track, GetOriginalParentPID() should return the primary track PID. If this is a secondary, then GetParentPID() should return the PID of the immediate parent of the track.
+
+    //fSDNbounce[SDname] = info->GetNbounce();
   }
 }
 

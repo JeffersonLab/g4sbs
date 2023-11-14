@@ -95,8 +95,10 @@
 #/g4sbs/soltoscaoffset	200.0 mm
 
 /g4sbs/treeflag 0
-/g4sbs/totalabs true
+/g4sbs/totalabs false
 #/g4sbs/steplimit LACmod_log 1 
+
+/g4sbs/keephistory SBS/mTPC
 
 ## Run xxx events
 /g4sbs/run           500000

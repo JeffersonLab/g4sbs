@@ -95,7 +95,7 @@
 #/g4sbs/soltoscascale	1.0
 #/g4sbs/soltoscaoffset	200.0 mm
 
-/g4sbs/treeflag 0
+/g4sbs/treeflag 1
 /g4sbs/totalabs true
 #/g4sbs/steplimit LACmod_log 1 
 

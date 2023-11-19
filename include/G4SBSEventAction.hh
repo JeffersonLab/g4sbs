@@ -85,7 +85,7 @@ public:
   // void FillGEnGlassCellData(const G4Event *evt,G4SBSTargetHitsCollection *hc,G4SBSTargetoutput &out); // for the GEn target   
   void FillGEnTargetData(const G4Event *evt,G4SBSTargetHitsCollection *hc,G4SBSTargetoutput &out); // for the GEn target   
   
-  void FillmTPCData( const G4Event*, G4SBSmTPCHitsCollection*, G4SBSmTPCoutput & );
+  void FillmTPCData( const G4Event*, G4SBSmTPCHitsCollection*, G4SBSmTPCoutput &, G4SBSSDTrackOutput &  );
   
   //map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run. 
   set<G4String> SDlist;

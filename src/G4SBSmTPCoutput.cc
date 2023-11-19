@@ -47,6 +47,10 @@ void G4SBSmTPCoutput::Clear(){
   // pzhit = 0.0;
   hitL.clear();
  
+  otridx.clear();
+  ptridx.clear();
+  sdtridx.clear();
+  
   npart_mTPC = 0;
   px.clear();
   py.clear();

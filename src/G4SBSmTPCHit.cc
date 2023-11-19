@@ -48,6 +48,10 @@ G4SBSmTPCHit::G4SBSmTPCHit(const G4SBSmTPCHit &hit ) : G4VHit() //copy construct
   fvolume_log = hit.GetLogicalVolume();
   fZTravel = hit.GetZTravel();
   fNStrips = hit.GetNStrips();
+
+  otridx = hit.GetOTrIdx();
+  ptridx = hit.GetPTrIdx();
+  sdtridx = hit.GetSDTrIdx();
 }
 
 const G4SBSmTPCHit& G4SBSmTPCHit::operator=(const G4SBSmTPCHit &hit) //assignment operator
@@ -73,6 +77,10 @@ const G4SBSmTPCHit& G4SBSmTPCHit::operator=(const G4SBSmTPCHit &hit) //assignmen
   fvolume_log = hit.GetLogicalVolume();
   fZTravel = hit.GetZTravel();
   fNStrips = hit.GetNStrips();
+  
+  otridx = hit.GetOTrIdx();
+  ptridx = hit.GetPTrIdx();
+  sdtridx = hit.GetSDTrIdx();
 
   return *this;
 }

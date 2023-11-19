@@ -895,24 +895,33 @@ void G4SBSIO::BranchmTPC( G4String SDname="mTPC" ){
     fTree->Branch( branch_name.Format( "%s.ztravel", branch_prefix.Data() ), &(mTPCdata[SDname].ztravel) );
     fTree->Branch( branch_name.Format( "%s.nstrips", branch_prefix.Data() ), &(mTPCdata[SDname].nstrips) );
   }
-
-  it = KeepHistoryflags.find( SDname );
-
-  if( it != KeepHistoryflags.end() && it->second ){
-    //Branches with "Particle History" data:
-    fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.npart) );
-    fTree->Branch( branch_name.Format("%s.part.PID", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.PID) );
-    fTree->Branch( branch_name.Format("%s.part.MID", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.MID) );
-    fTree->Branch( branch_name.Format("%s.part.TID", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.TID) );
-    fTree->Branch( branch_name.Format("%s.part.nbounce", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.nbounce) );
-    fTree->Branch( branch_name.Format("%s.part.hitindex", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.hitindex) );
-    fTree->Branch( branch_name.Format("%s.part.vx", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.vx) );
-    fTree->Branch( branch_name.Format("%s.part.vy", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.vy) );
-    fTree->Branch( branch_name.Format("%s.part.vz", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.vz) );
-    fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.px) );
-    fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.py) );
-    fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.pz) );
+  
+  map<G4String,G4bool>::iterator keepsdflag = fKeepSDtracks.find( SDname );
+    
+  if( fKeepAllSDtracks || (keepsdflag != fKeepSDtracks.end() && keepsdflag->second ) ){
+    //Add "SD track" indices:
+    fTree->Branch( branch_name.Format( "%s.hit.otridx", branch_prefix.Data() ), &(mTPCdata[SDname].otridx) );
+    fTree->Branch( branch_name.Format( "%s.hit.ptridx", branch_prefix.Data() ), &(mTPCdata[SDname].ptridx) );
+    fTree->Branch( branch_name.Format( "%s.hit.sdtridx", branch_prefix.Data() ), &(mTPCdata[SDname].sdtridx) );
   }
+
+  // it = KeepHistoryflags.find( SDname );
+
+  // if( it != KeepHistoryflags.end() && it->second ){
+  //   //Branches with "Particle History" data:
+  //   fTree->Branch( branch_name.Format("%s.part.npart", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.npart) );
+  //   fTree->Branch( branch_name.Format("%s.part.PID", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.PID) );
+  //   fTree->Branch( branch_name.Format("%s.part.MID", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.MID) );
+  //   fTree->Branch( branch_name.Format("%s.part.TID", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.TID) );
+  //   fTree->Branch( branch_name.Format("%s.part.nbounce", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.nbounce) );
+  //   fTree->Branch( branch_name.Format("%s.part.hitindex", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.hitindex) );
+  //   fTree->Branch( branch_name.Format("%s.part.vx", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.vx) );
+  //   fTree->Branch( branch_name.Format("%s.part.vy", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.vy) );
+  //   fTree->Branch( branch_name.Format("%s.part.vz", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.vz) );
+  //   fTree->Branch( branch_name.Format("%s.part.px", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.px) );
+  //   fTree->Branch( branch_name.Format("%s.part.py", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.py) );
+  //   fTree->Branch( branch_name.Format("%s.part.pz", branch_prefix.Data() ), &(mTPCdata[SDname].ParticleHistory.pz) );
+  // }
 
   return;
 }

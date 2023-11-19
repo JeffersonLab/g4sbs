@@ -98,5 +98,7 @@
 /g4sbs/totalabs true
 #/g4sbs/steplimit LACmod_log 1 
 
+/g4sbs/keepsdtrackinfo all true
+
 ## Run xxx events
 /g4sbs/run           10000

@@ -383,8 +383,9 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
       if( mTPCSDptr != NULL ){
 	mTPCHC = (G4SBSmTPCHitsCollection*) (HCE->GetHC(SDman->GetCollectionID(colNam=mTPCSDptr->GetCollectionName(0))));
 	
+	fIO->SetSDtrackData( *d, sd );
 	
-	FillmTPCData( evt, mTPCHC, md );
+	FillmTPCData( evt, mTPCHC, md, *sdtemp );
 	
 	fIO->SetmTPCData( *d, md );
 	
@@ -1909,7 +1910,7 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
 
 
 
-void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection *hits, G4SBSmTPCoutput &mtpcoutput ){
+void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection *hits, G4SBSmTPCoutput &mtpcoutput, G4SBSSDTrackOutput &SDtracks ){
   // at the moment this is COPIED FROM CAL output class
   // Will tailor to mTPC after deciding what is actually required
   // eg. complete step info might actually be useful, time ordering needed?
@@ -1946,6 +1947,10 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
   map<int,vector<double> > xsum, ysum, zsum; //sum of local positions of tracks
   map<int,vector<double> > xsumg, ysumg, zsumg; //sum of global positions of tracks
   map<int,vector<double> > esum, t, t2, tmin, tmax;
+  map<int,set<int> > OTrackIndices; //key = cell, value = list of all "OTracks" contributing to this hit in this cell
+  map<int,set<int> > PTrackIndices; //key = cell, value = list of all "PTracks" contributing to this hit in this cell
+  map<int,set<int> > SDTrackIndices; //key = cell, value = list of all "SDTracks" contributing to this hit in this cell
+  
   map<int,set<int> > TrackIDs; //mapping between cells and a list of unique track IDs depositing energy in a cell
   map<int,map<int,int> > nsteps_track; //counting number of steps on a track
   map<int,map<int,double> > x,y,z,trt,E,trtmin,trtmax,L; //average coordinates, energy, path length for each unique track ID depositing energy in a cell:
@@ -2033,6 +2038,14 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	edep[cell][track] = Edep;
 	ztravel[cell][track] = (*hits)[hit]->GetZTravel();
 	nstrips[cell][track] = (*hits)[hit]->GetNStrips();
+	
+	
+	//This is the appropriate place to add this info, since each track in a CALSD
+	//can only have exactly one set of otrack, ptrack, and sdtrack info, regardless of how many
+	//steps
+	OTrackIndices[cell].insert( SDtracks.otracklist[(*hits)[hit]->GetOTrIdx()] );
+	PTrackIndices[cell].insert( SDtracks.ptracklist[(*hits)[hit]->GetPTrIdx()] );
+	SDTrackIndices[cell].insert( SDtracks.sdtracklist[(*hits)[hit]->GetSDTrIdx()][hits->GetSDname()] );
       } else { //additional step in this cell:
 	//double w = double(nsteps_track[cell][track])/(double(nsteps_track[cell][track]+1) );
 	// x[cell][track] = w * x[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().x(); //local
@@ -2218,13 +2231,63 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
       mtpcoutput.tmax.push_back( tmax[cell][ihit]/_T_UNIT );
       mtpcoutput.hitL.push_back( Lpath[cell][ihit]/_L_UNIT );
       
+      // *****
+      //If there are multiple Otracks contributing to this hit, choose the one with the highest total energy:
+      G4double maxE = 0.0;
+      G4bool firsttrack=true;
+      int otridx_final=-1;
+      for( set<int>::iterator iotrk=OTrackIndices[cell].begin(); iotrk!=OTrackIndices[cell].end(); ++iotrk ){
+	G4double Eotrack = SDtracks.oenergy[*iotrk];
+	if( firsttrack || Eotrack > maxE ){
+	  otridx_final = *iotrk;
+	  maxE = Eotrack;
+	  firsttrack = false;
+	}
+      }
+      
+      //Primary tracks:
+      maxE = 0.0;
+      firsttrack = true;
+      int ptridx_final=-1;
+      for( set<int>::iterator iptrk=PTrackIndices[cell].begin(); iptrk!=PTrackIndices[cell].end(); ++iptrk ){
+	G4double Eptrack = SDtracks.penergy[*iptrk];
+	if( firsttrack || Eptrack > maxE ){
+	  ptridx_final = *iptrk;
+	  maxE = Eptrack;
+	  firsttrack = false;
+	}
+      }
+      
+      //SD boundary crossing tracks:
+      maxE = 0.0;
+      firsttrack = true;
+      int sdtridx_final=-1;
+      for( set<int>::iterator isdtrk=SDTrackIndices[cell].begin(); isdtrk!=SDTrackIndices[cell].end(); ++isdtrk ){
+	int sdidxtemp = *isdtrk;
+	
+	if( sdidxtemp >= 0 && sdidxtemp <SDtracks.sdenergy.size() ){
+	  G4double Esdtrack = SDtracks.sdenergy[sdidxtemp];
+	  if( firsttrack || Esdtrack > maxE ){
+	    sdtridx_final = *isdtrk;
+	    maxE = Esdtrack;
+	    firsttrack = false;
+	  }
+	}
+      }
+      
+      mtpcoutput.otridx.push_back( otridx_final );
+      mtpcoutput.ptridx.push_back( ptridx_final );
+      mtpcoutput.sdtridx.push_back( sdtridx_final );
+      
       goodhit_index[ihit] = mtpcoutput.nhits_mTPC;
       
       mtpcoutput.nhits_mTPC++;
       //}
       // esum_total += esum[cell][ihit];
     }
-
+    
+    
+    
     if( mtpcoutput.nhits_mTPC > 0 ){
       // hesumtemp->Fill( esum_total );
     

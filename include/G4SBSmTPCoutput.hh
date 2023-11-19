@@ -34,6 +34,8 @@ public:
   // here we want to add step length of hit
   vector<double> hitL;
   
+  //Add bookkeeping indices for "original", "primary", and "SD boundary" tracks:
+  vector<int> otridx,ptridx,sdtridx;
   //"Part" keeps track of all unique particles depositing energy in a "calorimeter" sensitive volume:
   int npart_mTPC; //Number of particles depositing energy in a given cell
   vector<int> ihit; //hit index associated with this particle 

@@ -5,6 +5,12 @@
 #include "G4SBSmTPCHit.hh"
 #include "G4SBSDetMap.hh"
 #include "G4Step.hh"
+#include "G4SBSSDTrackOutput.hh"
+
+class G4Step;
+class G4HCofThisEvent;
+class G4TouchableHistory;
+class G4SBSSDTrackOutput;
 
 class G4SBSmTPCSD : public G4VSensitiveDetector
 {
@@ -30,6 +36,7 @@ public:
   void SetHitTimeWindow( G4double T ){ fHitTimeWindow = T; } 
   void SetEnergyThreshold( G4double Emin){ fEnergyThreshold = Emin; } 
 
+  G4SBSSDTrackOutput SDtracks;
 
 private:
   G4SBSmTPCHitsCollection *hitCollection;

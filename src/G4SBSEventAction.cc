@@ -381,6 +381,22 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
      
 
       if( mTPCSDptr != NULL ){
+	sd =mTPCSDptr->SDtracks;
+	
+	//This should only be called once, otherwise units will be wrong!
+	sd.ConvertToTreeUnits();
+	
+	sdtemp = &sd;
+	
+	map<G4String,G4bool>::iterator keep = fIO->GetKeepSDtracks().find( *d );
+	
+	G4bool keepthis = keep != fIO->GetKeepSDtracks().end() && keep->second;
+	
+	if( fIO->GetKeepAllSDtracks() || keepthis ){
+	  allsdtracks.Merge( sd );
+	  sdtemp = &allsdtracks;
+	}
+	
 	mTPCHC = (G4SBSmTPCHitsCollection*) (HCE->GetHC(SDman->GetCollectionID(colNam=mTPCSDptr->GetCollectionName(0))));
 	
 	fIO->SetSDtrackData( *d, sd );
@@ -1163,7 +1179,6 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
     }
   }
 }
-
 void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECaloutput &ecaloutput, G4SBSSDTrackOutput &SDtracks )
 {
   
@@ -2039,7 +2054,6 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	ztravel[cell][track] = (*hits)[hit]->GetZTravel();
 	nstrips[cell][track] = (*hits)[hit]->GetNStrips();
 	
-	
 	//This is the appropriate place to add this info, since each track in a CALSD
 	//can only have exactly one set of otrack, ptrack, and sdtrack info, regardless of how many
 	//steps
@@ -2237,6 +2251,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
       G4bool firsttrack=true;
       int otridx_final=-1;
       for( set<int>::iterator iotrk=OTrackIndices[cell].begin(); iotrk!=OTrackIndices[cell].end(); ++iotrk ){
+	if(*iotrk>=SDtracks.oenergy.size())G4cout << "otrack is corrupted" << G4endl;
 	G4double Eotrack = SDtracks.oenergy[*iotrk];
 	if( firsttrack || Eotrack > maxE ){
 	  otridx_final = *iotrk;
@@ -2250,6 +2265,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
       firsttrack = true;
       int ptridx_final=-1;
       for( set<int>::iterator iptrk=PTrackIndices[cell].begin(); iptrk!=PTrackIndices[cell].end(); ++iptrk ){
+	if(*iptrk>=SDtracks.penergy.size())G4cout << "ptrack is corrupted" << G4endl;
 	G4double Eptrack = SDtracks.penergy[*iptrk];
 	if( firsttrack || Eptrack > maxE ){
 	  ptridx_final = *iptrk;
@@ -2264,6 +2280,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
       int sdtridx_final=-1;
       for( set<int>::iterator isdtrk=SDTrackIndices[cell].begin(); isdtrk!=SDTrackIndices[cell].end(); ++isdtrk ){
 	int sdidxtemp = *isdtrk;
+	if(*isdtrk>=SDtracks.sdenergy.size())G4cout << "sdtrack is corrupted" << G4endl;
 	
 	if( sdidxtemp >= 0 && sdidxtemp <SDtracks.sdenergy.size() ){
 	  G4double Esdtrack = SDtracks.sdenergy[sdidxtemp];
@@ -2274,7 +2291,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	  }
 	}
       }
-      
+
       mtpcoutput.otridx.push_back( otridx_final );
       mtpcoutput.ptridx.push_back( ptridx_final );
       mtpcoutput.sdtridx.push_back( sdtridx_final );

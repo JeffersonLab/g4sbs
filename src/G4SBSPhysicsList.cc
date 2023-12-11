@@ -12,6 +12,11 @@
 #include "G4StoppingPhysics.hh"
 #include "G4HadronPhysicsFTFP_BERT.hh"
 //#include "HadronPhysicsQGSP_BERT.hh"
+#include "G4IonPhysicsXS.hh"
+#include "G4IonElasticPhysics.hh"
+#include "G4HadronInelasticQBBC.hh"
+#include "G4HadronElasticPhysicsXS.hh"
+#include "G4NeutronTrackingCut.hh"
 #include "G4OpticalPhysics.hh"
 #include "G4OpticalParameters.hh"
 #include "G4StepLimiterPhysics.hh"
@@ -30,15 +35,23 @@ G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
 
   G4int verb = 0;
   SetVerboseLevel(verb);
-
+  defaultCutValue = 0.7*CLHEP::mm;
+    
   RegisterPhysics( new G4DecayPhysics(verb) );
   RegisterPhysics( new G4EmStandardPhysics(verb) );
   RegisterPhysics( new G4EmExtraPhysics(verb) );
-  RegisterPhysics( new G4HadronElasticPhysics(verb) );
   RegisterPhysics( new G4IonPhysics(verb) );
   RegisterPhysics( new G4NeutronTrackingCut(verb) );
   RegisterPhysics( new G4HadronPhysicsFTFP_BERT(verb) );
+  //QBBC specifics
+  RegisterPhysics( new G4HadronElasticPhysicsXS(verb) );
+  RegisterPhysics( new G4HadronElasticPhysics(verb) );
+  RegisterPhysics( new G4IonPhysicsXS(verb) );
+  RegisterPhysics( new G4IonElasticPhysics(verb) );
   RegisterPhysics( new G4StoppingPhysics(verb) );
+  //RegisterPhysics( new G4HadronInelasticQBBC(verb) );
+  RegisterPhysics( new G4NeutronTrackingCut(verb) );
+
   RegisterPhysics( G4SBSOpticalPhysics = new G4OpticalPhysics(verb) );
   RegisterPhysics( new G4StepLimiterPhysics );
 

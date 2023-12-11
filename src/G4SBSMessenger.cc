@@ -1466,6 +1466,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fExpType = G4SBS::kTDIS;
       validcmd = true;
     }
+    if( newValue.compareTo("mtpc") == 0 ){
+      fExpType = G4SBS::kMTPConly;
+      validcmd = true;
+    }
     if( newValue.compareTo("ndvcs") == 0 ){
       fExpType = G4SBS::kNDVCS;
       validcmd = true;

@@ -127,7 +127,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   // Build the 48D48 magnet and HCAL
   // All three types of experiments have a 48D48 magnet:
-  if( exptype != G4SBS::kC16 && exptype != G4SBS::kGEMHCtest ) {
+  if( exptype != G4SBS::kC16 && exptype != G4SBS::kGEMHCtest && exptype != G4SBS::kMTPConly) {
     Make48D48(worldlog, f48D48dist + f48D48depth/2. );
     if(fBuildSBSSieve)
       MakeSBSSieveSlit(worldlog);

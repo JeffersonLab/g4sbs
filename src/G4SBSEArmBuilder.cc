@@ -125,7 +125,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   // // // // HEAD
   // //   if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEN || exptype == G4SBS::kSIDISExp || exptype == G4SBS::kA1n  || exptype == G4SBS::kGEnRP ) 
   // // // //
-  if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEN || exptype == G4SBS::kSIDISExp || exptype == G4SBS::kA1n  || exptype == G4SBS::kTDIS || exptype == G4SBS::kGEnRP || exptype == G4SBS::kGEp_BB || exptype == G4SBS::kALL) 
+  if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEN || exptype == G4SBS::kSIDISExp || exptype == G4SBS::kA1n || exptype == G4SBS::kGEnRP || exptype == G4SBS::kGEp_BB || exptype == G4SBS::kALL) 
     // // // // 11a33984f47772444ffb08222f8a978d2bee837e
     {
       MakeBigBite( worldlog );

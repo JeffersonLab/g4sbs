@@ -109,6 +109,9 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
   case(G4SBS::kTDIS):
     BuildTDISTarget( worldlog );
     break;
+  case(G4SBS::kMTPConly):
+    BuildTDISTarget( worldlog );
+    break;
   case(G4SBS::kNDVCS):
     BuildTDISTarget( worldlog );
     break;

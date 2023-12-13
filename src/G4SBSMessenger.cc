@@ -472,6 +472,10 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalhoffsetCmd->SetGuidance("HCAL horizontal offset relative to SBS center line (+ = TOWARD beam line)");
   hcalhoffsetCmd->SetParameterName("dist", false);
 
+  hcalangoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalangoffset",this);
+  hcalangoffsetCmd->SetGuidance("HCAL angular offset relative to exit beamline (+ = away from beamline)");
+  hcalangoffsetCmd->SetParameterName("angle", false);
+
   CDetReadyCmd = new G4UIcmdWithABool("/g4sbs/cdetready",this);
   CDetReadyCmd->SetGuidance("Will CDet be ready or not for the experiment");
   CDetReadyCmd->SetParameterName("dist", false);
@@ -1947,6 +1951,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fHArmBuilder->SetHCALHOffset(v);
     //fevgen->SetHCALDist(v);
     fIO->SetHcalHOffset(v);
+  }
+
+  if( cmd == hcalangoffsetCmd ){
+    G4double v = hcalangoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetHCALAngOffset(v);
+    //fevgen->SetHCALDist(v);
+    fIO->SetHcalAngOffset(v);
   }
 
   if( cmd == CDetReadyCmd ){

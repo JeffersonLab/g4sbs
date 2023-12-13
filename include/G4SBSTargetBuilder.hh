@@ -45,9 +45,11 @@ public:
 
   // GEn Polarized 3He target (D Flay, July 2020) 
   void BuildGEnTarget(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_GlassCell_old(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog); 
-  void BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_EndWindows_CuAl(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_PolarizedHe3_old(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_HelmholtzCoils(const int config,const std::string type,G4LogicalVolume *motherLog); 
   void BuildGEnTarget_Shield(const int config,G4LogicalVolume *motherLog); 

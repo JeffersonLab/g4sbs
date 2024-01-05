@@ -105,7 +105,7 @@ G4SBSMessenger::G4SBSMessenger(){
   GENTargetHelmholtzCmd->SetGuidance("GEn 3He target Helmholts coil configuration based on central Q2 value"); 
   GENTargetHelmholtzCmd->SetGuidance("146 => Q2 = 1.46 (GeV/c)^2, 368 => Q2 = 3.68 (GeV/c)^2, 677 => Q2 = 6.77 (GeV/c)^2, 1018 => Q2 = 10.18 (GeV/c)^2, "); 
   GENTargetHelmholtzCmd->SetParameterName("targgenhhconfig",false); // user must provide an integer value, non-argument not allowed 
-  GENTargetHelmholtzCmd->SetDefaultValue(G4SBS::kGEN_146);          // probably not utilized since we require an input value 
+  GENTargetHelmholtzCmd->SetDefaultValue(G4SBS::kGEN_300);          // probably not utilized since we require an input value 
 
   // D. Flay (9/29/20) 
   // for GEn 3He target rotational misalignment 

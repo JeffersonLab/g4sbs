@@ -49,7 +49,7 @@
 /g4sbs/gepfppoption 1
 /g4sbs/FPP1CH2thick 55.88 cm
 
-/g4sbs/usehadronfilter false
+/g4sbs/usehadronfilter true
 
 # option 2: double-analyzer (both CH2)
 #/g4sbs/gepfppoption 2

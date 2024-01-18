@@ -809,7 +809,7 @@ void G4SBSIO::BranchSIMC(){
   fTree->Branch("simc.xbj",&(SIMCprimaries.xbj),"simc.xbj/D");
   fTree->Branch("simc.nu",&(SIMCprimaries.nu),"simc.nu/D");
   fTree->Branch("simc.W",&(SIMCprimaries.W),"simc.W/D");
-  fTree->Branch("simc.epsilon",&(SIMCprimaries.xbj),"simc.epsilon/D");
+  fTree->Branch("simc.epsilon",&(SIMCprimaries.epsilon),"simc.epsilon/D");
   
   fTree->Branch("simc.Ebeam",&(SIMCprimaries.Ebeam),"simc.Ebeam/D");
   
@@ -841,6 +841,7 @@ void G4SBSIO::UpdateGenDataFromDetCon(){ //Go with whatever is in fdetcon as of 
   gendata.dhcal = fdetcon->fHArmBuilder->fHCALdist/CLHEP::m;
   gendata.voffhcal = fdetcon->fHArmBuilder->fHCALvertical_offset/CLHEP::m;
   gendata.hoffhcal = fdetcon->fHArmBuilder->fHCALhorizontal_offset/CLHEP::m;
+  gendata.angoffhcal = fdetcon->fHArmBuilder->fHCALangular_offset;
   gendata.dlac = fdetcon->fHArmBuilder->fLACdist/CLHEP::m;
   gendata.vofflac = fdetcon->fHArmBuilder->fLACvertical_offset/CLHEP::m;
   gendata.hofflac = fdetcon->fHArmBuilder->fLAChorizontal_offset/CLHEP::m;

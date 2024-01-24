@@ -226,10 +226,11 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
 
     G4ThreeVector hfilter_offset = targ_offset;
     hfilter_offset.setX( -(hfilter_offset.getX() + Rcell + 1.0*cm + fHadronFilterThick/2.0 ) -5.0*cm);
-    hfilter_offset.setY( hfilter_offset.getY() +0.5*(fTargLen - 4.45*2.54*cm) );
+    hfilter_offset.setY( hfilter_offset.getY() +0.5*(fTargLen - 29.62*2.54*cm) );
     //hfilter_offset.SetZ( targ_offset.getZ()
     
     BuildHadronFilter( motherlog, rot_targ, hfilter_offset );
+    //BuildHadronFilterGEp( motherlog, rot_targ, hfilter_offset );
     
   }
   
@@ -5922,7 +5923,7 @@ void G4SBSTargetBuilder::BuildHadronFilter( G4LogicalVolume *mother, G4RotationM
   //This should be the union of a box and a trapezoid.
   G4double inch = 2.54*cm;
   G4double boxlen = 4.45*inch;
-  G4double boxheight = 7.75*inch;
+  G4double boxheight = 3.0*inch;
   G4double boxthick = fHadronFilterThick;
 
   G4double traplen = 29.62*inch - boxlen;
@@ -5931,18 +5932,32 @@ void G4SBSTargetBuilder::BuildHadronFilter( G4LogicalVolume *mother, G4RotationM
   G4double trapheight2 = 4.00*inch;
 
   //in the GEP scattering chamber this will have some complicated rotations, but let's assume the length is along z, the height is along y, and the thickness is along x:
+
+  if( fDetCon->fExpType != G4SBS::kGEp ){
+    G4Box *HadronFilter_box = new G4Box( "HadronFilter_box", boxthick/2.0, boxheight/2.0, boxlen/2.0 );
+
+    G4Trd *HadronFilter_trap = new G4Trd( "HadronFilter_trap", trapthick/2.0, trapthick/2.0, trapheight1/2.0, trapheight2/2.0, traplen/2.0 );
+
+    G4RotationMatrix *rot_trap_box = new G4RotationMatrix; //Identity:
+
+    G4ThreeVector offset( 0, 0, (boxlen + traplen)/2.0 );
   
-  G4Box *HadronFilter_box = new G4Box( "HadronFilter_box", boxthick/2.0, boxheight/2.0, boxlen/2.0 );
+    G4UnionSolid *HadronFilter_Solid = new G4UnionSolid( "HadronFilter_Solid", HadronFilter_box, HadronFilter_trap, rot_trap_box, offset );
 
-  G4Trd *HadronFilter_trap = new G4Trd( "HadronFilter_trap", trapthick/2.0, trapthick/2.0, trapheight1/2.0, trapheight2/2.0, traplen/2.0 );
+    G4LogicalVolume *HadronFilter_log = new G4LogicalVolume( HadronFilter_Solid, GetMaterial(fHadronFilterMaterial), "HadronFilter_log" );
 
-  G4RotationMatrix *rot_trap_box = new G4RotationMatrix; //Identity:
+    new G4PVPlacement( rot, pos, HadronFilter_log, "HadronFilter_phys", mother, false, 0 );
+  } else { //just make a box:
+    boxlen = 29.62*inch;
+    boxheight = 8.0*inch;
 
-  G4ThreeVector offset( 0, 0, (boxlen + traplen)/2.0 );
-  
-  G4UnionSolid *HadronFilter_Solid = new G4UnionSolid( "HadronFilter_Solid", HadronFilter_box, HadronFilter_trap, rot_trap_box, offset );
+    G4Box *HadronFilter_box = new G4Box( "HadronFilter_box", boxthick/2.0, boxheight/2.0, boxlen/2.0 );
 
-  G4LogicalVolume *HadronFilter_log = new G4LogicalVolume( HadronFilter_Solid, GetMaterial(fHadronFilterMaterial), "HadronFilter_log" );
+    G4LogicalVolume *HadronFilter_log = new G4LogicalVolume( HadronFilter_box, GetMaterial(fHadronFilterMaterial), "HadronFilter_log" );
 
-  new G4PVPlacement( rot, pos, HadronFilter_log, "HadronFilter_phys", mother, false, 0 );
+    new G4PVPlacement( rot, pos, HadronFilter_log, "HadronFilter_phys", mother, false, 0 );
+    
+  }
 }
+
+//void G4SBSTargetBuilder::BuildHadronFilterGEp( 

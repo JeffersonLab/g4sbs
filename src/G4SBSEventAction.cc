@@ -2280,7 +2280,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
       int sdtridx_final=-1;
       for( set<int>::iterator isdtrk=SDTrackIndices[cell].begin(); isdtrk!=SDTrackIndices[cell].end(); ++isdtrk ){
 	int sdidxtemp = *isdtrk;
-	if(*isdtrk>=SDtracks.sdenergy.size())G4cout << "sdtrack is corrupted" << G4endl;
+	//if(*isdtrk>=SDtracks.sdenergy.size())G4cout << "sdtrack is corrupted" << G4endl;
 	
 	if( sdidxtemp >= 0 && sdidxtemp <SDtracks.sdenergy.size() ){
 	  G4double Esdtrack = SDtracks.sdenergy[sdidxtemp];

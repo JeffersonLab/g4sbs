@@ -94,6 +94,10 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     fDetCon->fBeamlineConf = 3;
     MakeGMnBeamline(worldlog);
     break;  
+  case(G4SBS::kTDIS):// Hall C GEM test
+    fDetCon->fBeamlineConf = 2;
+    MakeTDISBeamline(worldlog);
+    break;  
   default:
     MakeDefaultBeamline(worldlog);
     break;
@@ -3819,6 +3823,34 @@ void G4SBSBeamlineBuilder::MakeSIDISLead(G4LogicalVolume *worldlog){
   }
 
 */
+
+void G4SBSBeamlineBuilder::MakeTDISBeamline(G4LogicalVolume *worldlog){// Old beam line...                                                                                                              
+  MakeDefaultBeamline(worldlog);
+  //add stuff
+  double Wcollimator_length = 35.*mm;
+  double Wcollimator_bore = 7.*mm;
+  double Wcollimator_diameter = 50.*mm;
+  double BeWindowThickness = 20*um;
+  
+  G4Tubs *Wcollimator_sol = new G4Tubs("Wcollimator_sol", Wcollimator_bore, Wcollimator_diameter, Wcollimator_length/2, 0.*deg, 360.*deg );
+  G4Tubs *Wcollimatorhole_sol  = new G4Tubs("Wcollimatorhole_sol", 0.0, Wcollimator_bore, Wcollimator_length/2, 0.*deg, 360.*deg );
+
+  G4LogicalVolume *Wcollimator_log = new G4LogicalVolume(Wcollimator_sol, GetMaterial("TargetBeamCollimator_Material"), "Wcollimatorhole_log", 0, 0, 0);
+  G4LogicalVolume *Wcollimatorhole_log = new G4LogicalVolume(Wcollimatorhole_sol, GetMaterial("Vacuum"), "Wcollimatorhole_log", 0, 0, 0);
+  
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness-Wcollimator_length/2.), Wcollimator_log, "Wcollimator_phys", worldlog, false,0);
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness-Wcollimator_length/2.), Wcollimatorhole_log, "Wcollimatorhole_phys", worldlog, false,0);
+  
+  G4Tubs *BeWindow_sol = new G4Tubs("BeWindow_sol", 0, Wcollimator_diameter, BeWindowThickness/2, 0.*deg, 360.*deg );
+  
+  G4LogicalVolume *BeWindow_log = new G4LogicalVolume(BeWindow_sol, GetMaterial("Beryllium"), "BeWindow_log", 0, 0, 0);
+
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness/2.), BeWindow_log, "BeWindow_phys0", worldlog, false,0);  
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -350.*mm+BeWindowThickness/2.), BeWindow_log, "BeWindow_phys1", worldlog, false,0);  
+  
+  
+}
+
 
 // This is the "default" beam line (for C16)
 void G4SBSBeamlineBuilder::MakeDefaultBeamline(G4LogicalVolume *worldlog){// Old beam line...

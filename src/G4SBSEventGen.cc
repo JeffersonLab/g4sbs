@@ -376,7 +376,7 @@ bool G4SBSEventGen::GenerateEvent(){
     } else {
       thisnucl = G4SBS::kProton;
     }
-    G4cout<<"EventGen (1): "<< thisnucl<<G4endl;
+    //G4cout<<"EventGen (1): "<< thisnucl<<G4endl;
 
 
  
@@ -551,7 +551,7 @@ bool G4SBSEventGen::GenerateEvent(){
   case G4SBS::kBeam:
     // fVert.setZ( -5.0*m ); // Set at something upstream if just simple beam
     // More accurate: See JLab-TN-19-035, which shows that the last quad is about 9 m upstream of the target pivot.
-    fVert.setZ( -9.0*m );   
+    fVert.setZ( -0.35*m );//-9.0*m );   
     success = GenerateBeam( thisnucl, ei, ni );
     break;
   case G4SBS::kGun:
@@ -3434,7 +3434,7 @@ ev_t G4SBSEventGen::GetEventData(){
     break;
   }
    
-  G4cout<<"EventGen (3): "<<  fNuclType<<G4endl;
+  //G4cout<<"EventGen (3): "<<  fNuclType<<G4endl;
   // I am not sure, but it could be confussing having p=0 in the whole sbs
   // but p=1 in the rootfile. 
   // The last makes more sense for physics

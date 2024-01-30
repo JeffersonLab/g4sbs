@@ -609,7 +609,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   
   //TPC/future targets? material
   //G4double density_4He = 0.1*atmosphere*(4.0026*g/Avogadro)/(90*kelvin*k_Boltzmann);
-  G4double density_4He = 1.0*atmosphere*(4.0026*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
+  G4double density_4He = 0.15*atmosphere*(4.0026*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
   G4Material *ref4He = new G4Material("ref4He", density_4He, 1 );
   ref4He->AddElement(el4He, 1);
 
@@ -2664,7 +2664,7 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::ConstructAll()
   //--------------
   //G4Box *WorldBox= new G4Box("WorldBox",20*m, 20*m, 28*m);
   G4Box *WorldBox= new G4Box("WorldBox",50*m, 50*m, 50*m);
-  G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,GetMaterial("Air"),
+  G4LogicalVolume *WorldLog=new G4LogicalVolume(WorldBox,GetMaterial("Vacuum"),//GetMaterial("Air"),
 						"WorldLogical", 0, 0, 0);
   G4PVPlacement *WorldPhys=new G4PVPlacement(0,G4ThreeVector(),
 					     "WorldPhysical",

@@ -118,7 +118,7 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
   
   G4LogicalVolume* mTPCmother_log = 
     new G4LogicalVolume(mTPCmother_solid, 
-			 GetMaterial("mTPCgas"),
+			 GetMaterial("ref4He"),
 			"mTPCmother_log");
   
   new G4PVPlacement(0, 
@@ -759,7 +759,7 @@ void G4SBSmTPC::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double centrecel
       
       mTPCReadoutGEMGap_log = 
 	new G4LogicalVolume(mTPCReadoutGEMGap_solid, 
-			     GetMaterial("mTPCgas"),
+			     GetMaterial("ref4He"),
 			    "mTPCReadoutGEMGap_log");    
       
       new G4PVPlacement(0, 
@@ -971,7 +971,7 @@ void G4SBSmTPC::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double centrecell1, 
 
 	  mTPCGEMGap_log = 
 	    new G4LogicalVolume(mTPCGEMGap_solid, 
-				 GetMaterial("mTPCgas"),
+				 GetMaterial("ref4He"),
 				mTPCGEMGap_logname);
 	  
 	  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposgap), 
@@ -1111,7 +1111,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 		   360.*deg);
       mTPCGasCell_log = 
 	    new G4LogicalVolume(mTPCGasCell_solid, 
-				 GetMaterial("mTPCgas"),
+				 GetMaterial("ref4He"),
 				"mTPCGasCell_log");
       mTPCGasCell_log->SetSensitiveDetector(mTPCSD);
       
@@ -1143,7 +1143,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 
 	  mTPCGasCell_log = 
 	    new G4LogicalVolume(mTPCGasCell_solid, 
-				 GetMaterial("mTPCgas"),
+				 GetMaterial("ref4He"),
 				"mTPCGasCell_log");    
 
 	  mTPCGasCell_log->SetSensitiveDetector(mTPCSD);

@@ -31,6 +31,7 @@ private:
   void MakeGMnBeamline(G4LogicalVolume *);
   void Make3HeBeamline(G4LogicalVolume *);// for GEn, A1n, SIDIS
   void MakeDefaultBeamline(G4LogicalVolume *);// Old beam line...
+  void MakeTDISBeamline(G4LogicalVolume *);
   void MakeToyBeamline(G4LogicalVolume *); // "Toy" beam line for playing around with extreme forward angles of detectors, etc:
 
   // Functions added by sseeds (Oct 2020)

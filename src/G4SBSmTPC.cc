@@ -189,10 +189,10 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
   // Visualization attributes
   G4VisAttributes *tgt_mTPCmother_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
   tgt_mTPCmother_visatt->SetForceWireframe(true);
-  //mTPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  //mTPCmother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   mTPCmother_log->SetVisAttributes( tgt_mTPCmother_visatt );  
   
-  // TPCinnergas_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // TPCinnergas_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
    
   // G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
   // tpcwalls_visatt->SetForceWireframe(true);
@@ -512,7 +512,7 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
   //Solenoid attributes
   // G4VisAttributes * TPCBFiled_log_att = new G4VisAttributes(G4Colour(1.,1.,0.));
   // TPCBfield_log->SetVisAttributes( TPCBFiled_log_att );
-  TPCBfield_log->SetVisAttributes( G4VisAttributes::Invisible );
+  TPCBfield_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
 
 

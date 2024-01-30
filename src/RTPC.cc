@@ -41,13 +41,13 @@
 #include "G4FieldManager.hh"
 #include "G4MagneticField.hh"
 #include "TOSCAField3D.hh"
-#include "TOSCAField2D.hh"
-#include "BonusBField.hh"
-#include "Field3D.hh"
+//#include "TOSCAField2D.hh"
+//#include "BonusBField.hh"
+//#include "Field3D.hh"
 #include "ArraySD.hh"
 #include "BeamLine.hh"
 //#include "TH3D.h"
-enum {EUniField, ENonUniField, EToscaField3D, EBonusBField, EToscaField2D};
+enum {EUniField, EToscaField3D};//, ENonUniField, EBonusBField, EToscaField2D};
 
 //----------------------------------------------------------------------------
 RTPC::RTPC(DetectorConstruction* rectagg)
@@ -97,8 +97,8 @@ G4int RTPC::ReadParameters(G4String file)
 		      (char*)"Be-Window:", (char*)"Beam-Colli:",
 		      (char*)"Bonus-Field:", (char*)"Tosca-2DField:",NULL };
   enum { EBfieldBox, ETargDim, EMagField, EGasVol, EEndFoil, ETargMat, EGasMat,
-	 EBLDim, EGEMDim, ENonUniField, EToscaField, EBaffleDim, EGEMPixels,
-	 EOutCham, EBeWind, EBeamColli, EBonusField, ETosca2Field,ENULL };
+	 EBLDim, EGEMDim, EToscaField, EBaffleDim, EGEMPixels,
+	 EOutCham, EBeWind, EBeamColli,ENULL };//, ENonUniField, EBonusField, ETosca2Field
   G4int ikey, iread, ierr;
   ierr = 0;
   char line[256];
@@ -199,22 +199,22 @@ G4int RTPC::ReadParameters(G4String file)
       if( iread != 5 ) ierr++;
       fBFieldType = EToscaField3D;
       break;
-    case ETosca2Field:
-      // Tosca magnetic field
-      fFieldMap = new char[64];
-      iread = sscanf(line,"%*s%lf%lf%lf%s%lf",
-		     &fTXoff,&fTYoff,&fTZoff,fFieldMap,&fBScaleFac);
-      if( iread != 5 ) ierr++;
-      fBFieldType = EToscaField2D;
-      break;
-    case EBonusField:
-      // Bonus magnetic field
-      fFieldMap = new char[64];
-      iread = sscanf(line,"%*s%lf%lf%lf%s%lf",
-		     &fTXoff,&fTYoff,&fTZoff,fFieldMap,&fBScaleFac);
-      if( iread != 5 ) ierr++;
-      fBFieldType = EBonusBField;
-      break;
+    // case ETosca2Field:
+    //   // Tosca magnetic field
+    //   fFieldMap = new char[64];
+    //   iread = sscanf(line,"%*s%lf%lf%lf%s%lf",
+    // 		     &fTXoff,&fTYoff,&fTZoff,fFieldMap,&fBScaleFac);
+    //   if( iread != 5 ) ierr++;
+    //   fBFieldType = EToscaField2D;
+    //   break;
+    // case EBonusField:
+    //   // Bonus magnetic field
+    //   fFieldMap = new char[64];
+    //   iread = sscanf(line,"%*s%lf%lf%lf%s%lf",
+    // 		     &fTXoff,&fTYoff,&fTZoff,fFieldMap,&fBScaleFac);
+    //   if( iread != 5 ) ierr++;
+    //   fBFieldType = EBonusBField;
+    //   break;
     case EBaffleDim:
       // Baffle dimensions
       iread = sscanf(line,"%*s%lf%lf",&fRbaf,&fTbaf);
@@ -247,7 +247,7 @@ G4VPhysicalVolume* RTPC::Construct(G4LogicalVolume* maw){
     new G4LogicalVolume(Bfield, fRtag->GetAir(),"LBfield",0,0,0);
   new G4PVPlacement(0,G4ThreeVector(0,0,0),fLBfield,"PBfield",fMaw,false,0,
 		    fIsOverlapVol);
-  //fLBfield->SetVisAttributes (G4VisAttributes::Invisible);
+  //fLBfield->SetVisAttributes (G4VisAttributes::GetInvisible());
   G4SDManager* SDman = G4SDManager::GetSDMpointer();
   G4double parm[5];
   parm[0] = fZst;
@@ -294,8 +294,8 @@ void RTPC::ConGEM()
   G4Tubs* G1c = new G4Tubs("G1c",rg,rg+tgcu,fZHe,0.0,360*deg);
   G4LogicalVolume* LG1c =
     new G4LogicalVolume(G1c,fRtag->GetCu(),"LG1c",0,0,0);
-  LG1a->SetVisAttributes(G4VisAttributes::Invisible);
-  LG1b->SetVisAttributes(G4VisAttributes::Invisible);
+  LG1a->SetVisAttributes(G4VisAttributes::GetInvisible());
+  LG1b->SetVisAttributes(G4VisAttributes::GetInvisible());
   LG1c->SetVisAttributes(new G4VisAttributes(G4Colour::Red()));
   // Middle GEM
   rg = fRHe2 + tgap;
@@ -310,8 +310,8 @@ void RTPC::ConGEM()
   G4Tubs* G2c = new G4Tubs("G2c",rg,rg+tgcu,fZHe,0.0,360*deg);
   G4LogicalVolume* LG2c =
     new G4LogicalVolume(G2c,fRtag->GetCu(),"LG2c",0,0,0);
-  LG2a->SetVisAttributes(G4VisAttributes::Invisible);
-  LG2b->SetVisAttributes(G4VisAttributes::Invisible);
+  LG2a->SetVisAttributes(G4VisAttributes::GetInvisible());
+  LG2b->SetVisAttributes(G4VisAttributes::GetInvisible());
   LG2c->SetVisAttributes(new G4VisAttributes(G4Colour::Red()));
   // Outer GEM
   rg = fRHe2 + 2*tgap;
@@ -326,8 +326,8 @@ void RTPC::ConGEM()
   G4Tubs* G3c = new G4Tubs("G3c",rg,rg+tgcu,fZHe,0.0,360*deg);
   G4LogicalVolume* LG3c =
     new G4LogicalVolume(G3c,fRtag->GetCu(),"LG3c",0,0,0);
-  LG3a->SetVisAttributes(G4VisAttributes::Invisible);
-  LG3b->SetVisAttributes(G4VisAttributes::Invisible);
+  LG3a->SetVisAttributes(G4VisAttributes::GetInvisible());
+  LG3b->SetVisAttributes(G4VisAttributes::GetInvisible());
   LG3c->SetVisAttributes(new G4VisAttributes(G4Colour::Red()));
   // Redaout Foil
   rg = fRHe2 + 3*tgap;
@@ -344,8 +344,8 @@ void RTPC::ConGEM()
   //
   G4LogicalVolume* LG4c =
     new G4LogicalVolume(G4c,fRtag->GetCu(),"LG4c",0,0,0);
-  LG4a->SetVisAttributes(G4VisAttributes::Invisible);
-  LG4b->SetVisAttributes(G4VisAttributes::Invisible);
+  LG4a->SetVisAttributes(G4VisAttributes::GetInvisible());
+  LG4b->SetVisAttributes(G4VisAttributes::GetInvisible());
   LG4c->SetVisAttributes(new G4VisAttributes(G4Colour::Red()));
   //
   // Volume to hold all GEM components...fill with RTPC gas
@@ -354,7 +354,7 @@ void RTPC::ConGEM()
     new G4LogicalVolume(Gall,fMgas,"LGall",0,0,0);
   new G4PVPlacement(0,G4ThreeVector(0,0,0),
   		    LGall,"PGall",fLrtpc,false,2,fIsOverlapVol);
-  LGall->SetVisAttributes(G4VisAttributes::Invisible);
+  LGall->SetVisAttributes(G4VisAttributes::GetInvisible());
   LGall->SetSensitiveDetector( fArrSD );
 
   //
@@ -486,7 +486,7 @@ void RTPC::ConGas()
   new G4PVPlacement(0,G4ThreeVector(0,0,0),
 		    fLHe2,"PHe2",fLrtpc,false,0,fIsOverlapVol);
   // Gas invisible and sensitive volume
-  //fLHe2->SetVisAttributes(G4VisAttributes::Invisible);
+  //fLHe2->SetVisAttributes(G4VisAttributes::GetInvisible());
   fLHe2->SetSensitiveDetector( fArrSD );
 
 }
@@ -688,7 +688,7 @@ void RTPC::ConEndCap()
   //new G4PVPlacement(0,G4ThreeVector(0,370,fOvHe*mm),
   new G4PVPlacement(0,G4ThreeVector(0,0,0),
   		    fLrtpc,"Prtpc",fLBfield,false,0,fIsOverlapVol);
-  fLrtpc->SetVisAttributes (G4VisAttributes::Invisible);
+  fLrtpc->SetVisAttributes (G4VisAttributes::GetInvisible());
 }
 //----------------------------------------------------------------------------
 void RTPC::SetMagField( )
@@ -705,14 +705,14 @@ void RTPC::SetMagField( )
   default:
     magField = new G4UniformMagField( G4ThreeVector(0,0,fBz*tesla) );
     break;
-  case ENonUniField:
-    magField = new Field3D(fXmin, fBmin, fBmax);
-    break;
+  // case ENonUniField:
+  //   magField = new Field3D(fXmin, fBmin, fBmax);
+  //   break;
   case EToscaField3D:
     magField = new TOSCAField3D(fFieldMap, fTXoff, fTYoff, fTZoff, fBScaleFac);
     break;
-  case EBonusBField:
-    magField = new BonusBField(fFieldMap, fTXoff, fTYoff, fTZoff, fBScaleFac);
+  // case EBonusBField:
+  //   magField = new BonusBField(fFieldMap, fTXoff, fTYoff, fTZoff, fBScaleFac);
     /*
     for(G4int i=0; i<10; i++){
       pos[0] = 0;
@@ -724,24 +724,24 @@ void RTPC::SetMagField( )
     }
     */
     break;
-  case EToscaField2D:
-    magField = new TOSCAField2D(fFieldMap, fTXoff, fTYoff, fTZoff, fBScaleFac);
-    for(G4int i=0;i<100;i++){
-      pos[0] = 0.0;
-      pos[1] = 0.0;
-      pos[2] = -1500 + i*30;
-      magField->GetFieldValue(pos,b);
-      printf("%g, %g, %g, %g\n",pos[2],b[0]/tesla,b[1]/tesla,b[2]/tesla);
-    }
-    for(G4int i=0;i<100;i++){
-      pos[0] = -500 + i*10;
-      pos[1] = 0.0;
-      pos[2] = 0.0;
-      magField->GetFieldValue(pos,b);
-      printf("%g, %g, %g, %g\n",pos[0],b[0]/tesla,b[1]/tesla,b[2]/tesla);
-    }
-    break;
-  }
+  // case EToscaField2D:
+  //   magField = new TOSCAField2D(fFieldMap, fTXoff, fTYoff, fTZoff, fBScaleFac);
+  //   for(G4int i=0;i<100;i++){
+  //     pos[0] = 0.0;
+  //     pos[1] = 0.0;
+  //     pos[2] = -1500 + i*30;
+  //     magField->GetFieldValue(pos,b);
+  //     printf("%g, %g, %g, %g\n",pos[2],b[0]/tesla,b[1]/tesla,b[2]/tesla);
+  //   }
+  //   for(G4int i=0;i<100;i++){
+  //     pos[0] = -500 + i*10;
+  //     pos[1] = 0.0;
+  //     pos[2] = 0.0;
+  //     magField->GetFieldValue(pos,b);
+  //     printf("%g, %g, %g, %g\n",pos[0],b[0]/tesla,b[1]/tesla,b[2]/tesla);
+  //   }
+  //   break;
+  // }
   magField->GetFieldValue(pos,b);
   printf("Value of Magnetic Field at (0,0.01,0) is Bx:%g  By:%g Bz:%g\n",
 	 b[0],b[1],b[2]);

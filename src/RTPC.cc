@@ -185,12 +185,12 @@ G4int RTPC::ReadParameters(G4String file)
       iread = sscanf(line,"%*s%lf%lf",&fRG,&fTG);
       if( iread != 2 ) ierr++;
       break;
-    case ENonUniField:
-      // Non uniform magnetic field
-      iread = sscanf(line,"%*s%lf%lf%lf",&fXmin,&fBmin,&fBmax);
-      if( iread != 3 ) ierr++;
-      fBFieldType = ENonUniField;
-      break;
+    // case ENonUniField:
+    //   // Non uniform magnetic field
+    //   iread = sscanf(line,"%*s%lf%lf%lf",&fXmin,&fBmin,&fBmax);
+    //   if( iread != 3 ) ierr++;
+    //   fBFieldType = ENonUniField;
+    //   break;
     case EToscaField:
       // Tosca magnetic field
       fFieldMap = new char[64];
@@ -741,7 +741,7 @@ void RTPC::SetMagField( )
   //     printf("%g, %g, %g, %g\n",pos[0],b[0]/tesla,b[1]/tesla,b[2]/tesla);
   //   }
   //   break;
-  // }
+  }
   magField->GetFieldValue(pos,b);
   printf("Value of Magnetic Field at (0,0.01,0) is Bx:%g  By:%g Bz:%g\n",
 	 b[0],b[1],b[2]);
@@ -759,6 +759,7 @@ void RTPC::SetMagField( )
 
   fLBfield->SetFieldManager(magFieldMgr,true);
 }
+
 G4int* RTPC::GetNhits(){ return fArrSD->GetNhits(); }
 G4int* RTPC::GetHitID(){ return fArrSD->GetHitID(); }
 G4int* RTPC::GetHits(){ return fArrSD->GetHits(); }

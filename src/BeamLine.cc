@@ -170,10 +170,10 @@ void Beamline::BuildComponent(G4LogicalVolume *worldlog){
   new G4PVPlacement(floorrm, G4ThreeVector(0.0, -floorthick/2 - beamheight, 0.0), floorLog, "floor_phys", worldlog, false, 0, fOvLap);
   */
 
-  extvacLog->SetVisAttributes(G4VisAttributes::Invisible);
-  entvacLog->SetVisAttributes(G4VisAttributes::Invisible);
+  extvacLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  entvacLog->SetVisAttributes(G4VisAttributes::GetInvisible());
 
-  entvacLog_cut->SetVisAttributes(G4VisAttributes::Invisible);
+  entvacLog_cut->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.2,0.6,0.2));
 
@@ -183,7 +183,7 @@ void Beamline::BuildComponent(G4LogicalVolume *worldlog){
 
   /*    G4VisAttributes *floorVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
 	floorLog->SetVisAttributes(floorVisAtt); */
-  //floorLog->SetVisAttributes(G4VisAttributes::Invisible);
+  //floorLog->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   //MakeGEnClamp(worldlog);
   //MakeGEnLead(worldlog);

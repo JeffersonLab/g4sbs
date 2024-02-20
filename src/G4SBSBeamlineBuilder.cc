@@ -3825,7 +3825,8 @@ void G4SBSBeamlineBuilder::MakeSIDISLead(G4LogicalVolume *worldlog){
 */
 
 void G4SBSBeamlineBuilder::MakeTDISBeamline(G4LogicalVolume *worldlog){// Old beam line...                                                                                                              
-  MakeDefaultBeamline(worldlog);
+  G4bool fOvLap = true;
+  //MakeDefaultBeamline(worldlog);
   //add stuff
   double Wcollimator_length = 35.*mm;
   double Wcollimator_bore = 7.*mm;
@@ -3848,6 +3849,32 @@ void G4SBSBeamlineBuilder::MakeTDISBeamline(G4LogicalVolume *worldlog){// Old be
   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness/2.), BeWindow_log, "BeWindow_phys0", worldlog, false,0);  
   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -350.*mm+BeWindowThickness/2.), BeWindow_log, "BeWindow_phys1", worldlog, false,0);  
   
+  MakeCommonExitBeamline(worldlog);  
+  
+  int nsec = 6;
+  //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
+  G4double exit_z[]   = { 527.*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };
+  G4double exit_z_vac[] = { 527.*cm, 610.24*cm,610.35*cm, 1161.52*cm, 1161.53*cm,2726.46*cm };
+
+  G4double exit_zero[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  G4double exit_rin[] = { 14.8*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };
+  G4double exit_rou[] = { 15.0*cm,15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };
+
+
+  G4Polycone *ext_cone = new G4Polycone("ext_cone", 0.0*deg, 360.0*deg, nsec, exit_z, exit_rin, exit_rou);
+  G4Polycone *ext_vac  = new G4Polycone("ext_vac ", 0.0*deg, 360.0*deg, nsec, exit_z_vac, exit_zero, exit_rin);
+
+  G4LogicalVolume *extLog =
+    new G4LogicalVolume(ext_cone, GetMaterial("Aluminum"), "ext_log", 0, 0, 0);
+  G4LogicalVolume *extvacLog =
+    new G4LogicalVolume(ext_vac, GetMaterial("Vacuum"), "extvac_log", 0, 0, 0);
+
+  new G4PVPlacement(0,G4ThreeVector(0, 0, 0.*m), extLog, "ext_phys", worldlog, false,0,fOvLap);
+  new G4PVPlacement(0,G4ThreeVector(0, 0, 0.*m), extvacLog, "extvac_phys", worldlog,false,0,fOvLap);
+
+  extvacLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.2,0.6,0.2));
+  extLog->SetVisAttributes(pipeVisAtt);
   
 }
 

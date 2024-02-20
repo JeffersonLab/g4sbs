@@ -553,7 +553,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   double gasden = 10.5*atmosphere*(1.0079*2*g/Avogadro)/(300*kelvin*k_Boltzmann);
   // G4Material *refH2 = new G4Material("refH2", gasden, 1 );
   // double H2den = 1.2*atmosphere*(1.00794*2*g/Avogadro)/(90.0*kelvin*k_Boltzmann);
-  gasden = 4.0*atmosphere*(1.00794*2*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
+  gasden = 1.0*atmosphere*(1.00794*2*g/Avogadro)/(77.0*kelvin*k_Boltzmann);
   G4Material *refH2 = new G4Material("refH2", gasden, 1 );
   
   refH2->AddElement(elH, 1);
@@ -609,7 +609,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   
   //TPC/future targets? material
   //G4double density_4He = 0.1*atmosphere*(4.0026*g/Avogadro)/(90*kelvin*k_Boltzmann);
-  G4double density_4He = 0.15*atmosphere*(4.0026*g/Avogadro)/(293.0*kelvin*k_Boltzmann);
+  G4double density_4He = 0.15*atmosphere*(4.0026*g/Avogadro)/(77.0*kelvin*k_Boltzmann);
+  G4cout << "Density of Helium (g/cm3): " << density_4He/(g/cm3) << G4endl;
   G4Material *ref4He = new G4Material("ref4He", density_4He, 1 );
   ref4He->AddElement(el4He, 1);
 

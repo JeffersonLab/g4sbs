@@ -105,7 +105,7 @@ G4SBSMessenger::G4SBSMessenger(){
   GENTargetHelmholtzCmd->SetGuidance("GEn 3He target Helmholts coil configuration based on central Q2 value"); 
   GENTargetHelmholtzCmd->SetGuidance("146 => Q2 = 1.46 (GeV/c)^2, 368 => Q2 = 3.68 (GeV/c)^2, 677 => Q2 = 6.77 (GeV/c)^2, 1018 => Q2 = 10.18 (GeV/c)^2, "); 
   GENTargetHelmholtzCmd->SetParameterName("targgenhhconfig",false); // user must provide an integer value, non-argument not allowed 
-  GENTargetHelmholtzCmd->SetDefaultValue(G4SBS::kGEN_146);          // probably not utilized since we require an input value 
+  GENTargetHelmholtzCmd->SetDefaultValue(G4SBS::kGEN_300);          // probably not utilized since we require an input value 
 
   // D. Flay (9/29/20) 
   // for GEn 3He target rotational misalignment 
@@ -277,7 +277,7 @@ G4SBSMessenger::G4SBSMessenger(){
   GunParticleCmd->SetParameterName("ptype", false );
 
   HadrCmd = new G4UIcmdWithAString("/g4sbs/hadron",this);
-  HadrCmd->SetGuidance("Hadron type h for SIDIS N(e,e'h)X generator: pi+/pi-/K+/K-/p/pbar possible");
+  HadrCmd->SetGuidance("Hadron type h for SIDIS N(e,e'h)X generator: pi+/pi-/K+/K-/p/pbar possible. Also, Nucleon type N for SIMC A(e,e'N) generator: p/n are possible.");
   HadrCmd->SetParameterName("hadrontype", false );
 
   RejectionSamplingCmd = new G4UIcommand("/g4sbs/rejectionsampling",this);
@@ -471,6 +471,10 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
   hcalhoffsetCmd->SetGuidance("HCAL horizontal offset relative to SBS center line (+ = TOWARD beam line)");
   hcalhoffsetCmd->SetParameterName("dist", false);
+
+  hcalangoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalangoffset",this);
+  hcalangoffsetCmd->SetGuidance("HCAL angular offset relative to exit beamline (+ = away from beamline)");
+  hcalangoffsetCmd->SetParameterName("angle", false);
 
   CDetReadyCmd = new G4UIcmdWithABool("/g4sbs/cdetready",this);
   CDetReadyCmd->SetGuidance("Will CDet be ready or not for the experiment");
@@ -1084,6 +1088,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == fileCmd ){
     fIO->SetFilename(newValue.data());
+    G4SBSRun::GetRun()->GetData()->SetFileName(newValue);
   }
 
   if( cmd == sigfileCmd ){
@@ -1345,6 +1350,10 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     } 
     if( newValue.compareTo("pbar") == 0 ){
       fevgen->SetHadronType( G4SBS::kPbar );
+      validcmd = true;
+    }
+    if( newValue.compareTo("n") == 0 ){
+      fevgen->SetHadronType( G4SBS::kN );
       validcmd = true;
     }
 
@@ -1712,6 +1721,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double v = beamcurCmd->GetNewDoubleValue(newValue);
     printf("Setting beam current to %f uA\n", v/microampere);
     fevgen->SetBeamCur(v);
+    fIO->SetBeamCur(v/microampere);
     fevgen->SetInitialized(false);
   }
   if( cmd == runtimeCmd ){
@@ -1941,6 +1951,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fHArmBuilder->SetHCALHOffset(v);
     //fevgen->SetHCALDist(v);
     fIO->SetHcalHOffset(v);
+  }
+
+  if( cmd == hcalangoffsetCmd ){
+    G4double v = hcalangoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetHCALAngOffset(v);
+    //fevgen->SetHCALDist(v);
+    fIO->SetHcalAngOffset(v);
   }
 
   if( cmd == CDetReadyCmd ){

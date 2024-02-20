@@ -17,6 +17,7 @@ public:
   void SetHCALDist(double a){ fHCALdist= a;   }
   void SetHCALVOffset(double a){ fHCALvertical_offset = a; }
   void SetHCALHOffset(double a){ fHCALhorizontal_offset = a; }
+  void SetHCALAngOffset(double a){ fHCALangular_offset = a; }
   void Set48D48Dist(double a){ f48D48dist = a; }
   void SetLACDist( double a ){ fLACdist = a; }
   void SetLACVOffset( double a ){ fLACvertical_offset = a; }
@@ -66,6 +67,7 @@ public:
   double fHCALdist;
   double fHCALvertical_offset;  // Vertical offset (from center) of HCAL
   double fHCALhorizontal_offset; // Horizontal offset (from SBS center line) of HCAL (by convention, +X is toward smaller angle)
+  double fHCALangular_offset; // Angular offset of HCAL wrt exit beamline (+ = away from beamline).
   double fRICHdist; //Distance from target to RICH entry window (in horizontal plane)
   double fRICHvertical_offset; //Vertical offset (from center)
   double fRICHhorizontal_offset; //Horizontal offset (from SBS center line, + = toward beamline).

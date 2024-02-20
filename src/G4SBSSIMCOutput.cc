@@ -11,6 +11,8 @@ G4SBSSIMCOutput::~G4SBSSIMCOutput(){
 }
 
 void G4SBSSIMCOutput::Clear(){
+  fnucl = 0;
+
   sigma = 0.0;
   Weight = 0.0;
   Q2 = 0.0;

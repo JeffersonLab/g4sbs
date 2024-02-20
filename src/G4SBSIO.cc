@@ -34,6 +34,7 @@ G4SBSIO::G4SBSIO(){
   //Easiest (but not necessarily best?) way is to store a pointer to G4SBSIO as a data member of G4SBSDetectorConstruction so they can
   //directly talk to each other?
   gendata.Ebeam = 2.2;
+  gendata.Ibeam = 1.0;
   gendata.thbb = 40.0*CLHEP::deg;
   gendata.dbb = 1.5;
   gendata.thsbs = 39.4*CLHEP::deg;
@@ -808,10 +809,11 @@ void G4SBSIO::BranchSIMC(){
   fTree->Branch("simc.xbj",&(SIMCprimaries.xbj),"simc.xbj/D");
   fTree->Branch("simc.nu",&(SIMCprimaries.nu),"simc.nu/D");
   fTree->Branch("simc.W",&(SIMCprimaries.W),"simc.W/D");
-  fTree->Branch("simc.epsilon",&(SIMCprimaries.xbj),"simc.epsilon/D");
+  fTree->Branch("simc.epsilon",&(SIMCprimaries.epsilon),"simc.epsilon/D");
   
   fTree->Branch("simc.Ebeam",&(SIMCprimaries.Ebeam),"simc.Ebeam/D");
   
+  fTree->Branch("simc.fnucl",&(SIMCprimaries.fnucl),"simc.fnucl/I");
   fTree->Branch("simc.p_e",&(SIMCprimaries.p_e),"simc.p_e/D");
   fTree->Branch("simc.theta_e",&(SIMCprimaries.theta_e),"simc.theta_e/D");
   fTree->Branch("simc.phi_e",&(SIMCprimaries.phi_e),"simc.phi_e/D");
@@ -839,6 +841,7 @@ void G4SBSIO::UpdateGenDataFromDetCon(){ //Go with whatever is in fdetcon as of 
   gendata.dhcal = fdetcon->fHArmBuilder->fHCALdist/CLHEP::m;
   gendata.voffhcal = fdetcon->fHArmBuilder->fHCALvertical_offset/CLHEP::m;
   gendata.hoffhcal = fdetcon->fHArmBuilder->fHCALhorizontal_offset/CLHEP::m;
+  gendata.angoffhcal = fdetcon->fHArmBuilder->fHCALangular_offset;
   gendata.dlac = fdetcon->fHArmBuilder->fLACdist/CLHEP::m;
   gendata.vofflac = fdetcon->fHArmBuilder->fLACvertical_offset/CLHEP::m;
   gendata.hofflac = fdetcon->fHArmBuilder->fLAChorizontal_offset/CLHEP::m;

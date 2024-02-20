@@ -45,6 +45,7 @@ public:
   const char *GetExpType(){ return fExpType; }
 
   void SetBeamE(double E){ fBeamE = E; }
+  void SetBeamCur(double cur){ fBeamCur = cur; }
   void SetSeed(unsigned int seed){ fSeed = seed; }
 
   void SetNormalization( double N ){ fNormalization = N; }
@@ -64,6 +65,8 @@ public:
   void SetRICHdist( double d ){ fRICHdist = d; }
   void SetSBSTrackerDist( double d ){ fSBSTrackerdist = d; }
   void SetSBSTrackerPitch( double a ){ fSBSTrackerPitch = a; }
+
+  void SetFileName( TString fname ){ fFileName = fname; }
   
   void CalcNormalization();
   
@@ -98,6 +101,7 @@ public:
   long int fNtries;
   unsigned int  fSeed;
   double fBeamE; //GeV
+  double fBeamCur; //muA
   double fNormalization; //Normalization constant to convert observed counts to a rate. This accounts for efficiency of Monte Carlo generation, phase space volume, luminosity, etc
   double fGenVol; //Phase space generation volume; process-dependent;
   double fLuminosity; //Hz/cm^2
@@ -124,6 +128,8 @@ public:
   char fRunPath[__RUNSTR_LEN];
 
   TString fMacroPath; //Store the GEANT4 UI manager's macro search path to locate macros that aren't in current working directory
+  TString fFileName;
+
   G4SBSTextFile              fMacro;
   G4SBSTextFile   fPreInitMacro; //PreInit Commands
   std::vector<G4SBSTextFile> fExternalMacros; ///< External macros called by

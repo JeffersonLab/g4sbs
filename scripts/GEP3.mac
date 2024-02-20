@@ -1,5 +1,5 @@
 ## Configure G4SBS for gep (Q^2 = 7.8 GeV^2, 4th pass)
-/g4sbs/filename        GEP3_elastic.root   ## Output rootfile
+/g4sbs/filename        GEP3_elastic_job1.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gep

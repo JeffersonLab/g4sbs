@@ -14,7 +14,7 @@
 namespace G4SBS { 
   // particle type definitions (matches the GEANT4 standard) 
   enum Nucl_t   { kProton, kNeutron };
-  enum Hadron_t { kPiPlus, kPiMinus, kPi0, kKPlus, kKMinus, kP, kPbar}; //Hadron types for SIDIS event generator
+  enum Hadron_t { kPiPlus, kPiMinus, kPi0, kKPlus, kKMinus, kP, kPbar, kN}; //Hadron types for SIDIS & SIMC event generator
   // target type; include fictional neutron target
   enum Targ_t   { kH2, kD2, kLH2, kLD2, k3He, kNeutTarg, kCfoil, kOptics };
   // kinematic type 
@@ -37,12 +37,9 @@ namespace G4SBS {
   // - full => full window cut (remove panel 1, 2, 3, and door) 
   // - new  => new design from Bert Metzger (6/2020)  
   enum GEnConfig_t {
-    kGEN_146   = 146,
-    kGEN_368   = 368,
-    kGEN_677   = 677,
-    kGEN_1018  = 1018,
-    kGEN_full  = 5,
-    kGEN_new   = 6
+    kGEN_300   = 300,
+    kGEN_683   = 683,
+    kGEN_982   = 982
   };
 
 }

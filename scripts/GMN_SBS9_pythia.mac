@@ -1,0 +1,71 @@
+## Configure G4SBS for gmn (Q^2 = 13.3 GeV^2)
+/g4sbs/filename        GMN_SBS9_PYTHIA_proton_job5.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gmn
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         15.0 cm           ## Target Length
+/g4sbs/rasterx 	       2.0 mm  #raster size in X
+/g4sbs/rastery	       2.0 mm  #raster size in Y
+
+## Configure generator settings
+#/g4sbs/kine            elastic        ## Generator
+/g4sbs/kine 		pythia6
+/g4sbs/particle        e-
+/g4sbs/beamcur         1.0 muA
+/g4sbs/beamE           4.015 GeV
+/g4sbs/thmin           43.0 deg
+/g4sbs/thmax           56.0 deg
+/g4sbs/phmin           -22 deg
+/g4sbs/phmax           22 deg
+/g4sbs/eemin 	       0.8 GeV
+/g4sbs/eemax	       3.0 GeV
+
+/g4sbs/pythia6file     Pythia_GMN_SBS9_proton_job5.root
+
+/g4sbs/thmin 0 deg
+/g4sbs/thmax 180 deg
+/g4sbs/phmin -180 deg
+/g4sbs/phmax 180 deg
+
+/g4sbs/hthmin 0 deg
+/g4sbs/hthmax 180 deg
+/g4sbs/hphmin -180 deg
+/g4sbs/hphmax 180 deg
+
+/g4sbs/eemin 0 GeV
+/g4sbs/eemax 10 GeV
+/g4sbs/ehmin 0 GeV
+/g4sbs/ehmax 10 GeV
+
+## Configure standard detector settings
+/g4sbs/hcaldist        11.0 m
+/g4sbs/hcalvoffset     0.75 m
+/g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
+/g4sbs/sbsclampopt     3                 ## Front field clamp only
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/scalebbfield    0.9644     
+#/g4sbs/tosfield        GMN13_field_newheader.table
+#/g4sbs/sbsmagfield     0.97 tesla
+#/g4sbs/tosfield  	BigBitePortableFieldMap.table 1
+#/g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+#/g4sbs/sbsmagfield     1.23 tesla
+/g4sbs/sbsmagfield     1.02 tesla
+/g4sbs/48d48field      1
+/g4sbs/bbang           49.0 deg
+#/g4sbs/bbdist          2.00 m
+/g4sbs/bbdist 		1.55 m
+/g4sbs/sbsang          22.5 deg
+/g4sbs/48D48dist       2.25 m 
+
+
+/g4sbs/keepsdtrackinfo 	all true
+/g4sbs/totalabs true
+
+## Run 100 events
+/g4sbs/eventstatusevery 10
+/g4sbs/run             125000

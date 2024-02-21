@@ -132,31 +132,31 @@ void G4SBS_spin_transport( const char *inputfilename, const char *outputfilename
 
   std::set<TString> bad_file_list;
 
-  // for( int ifile=0; ifile<C->GetNtrees(); ifile++ ){
-  //   TObjArray *list_temp = C->GetListOfFiles();
-
-  //   TString fname_temp = (*list_temp)[0]->GetTitle();
-  //   cout << "file " << ifile << ", name = " << fname_temp.Data() << endl; 
-
-  //   TFile *ftemp = new TFile(fname_temp.Data(),"READ");
-
-  //   if( !ftemp->IsZombie() ){
-  //     G4SBSRunData *rdtemp;
-  //     ftemp->GetObject("run_data",rdtemp);
-  //     if( rdtemp ){
-  // 	SBSang_file[fname_temp] = rdtemp->fSBStheta;
-  // 	//SBStrkrpitch_file[fname_temp] = rdtemp->f
-  //     } else {
-  // 	bad_file_list.insert( fname_temp );
-  //     }
-  //     ftemp->Close();
-  //     delete ftemp;
-  //   } else {
-  //     bad_file_list.insert( fname_temp );
-  //     ftemp->Close(); 
-  //     delete ftemp;
-  //   }
-  // }
+  for( int ifile=0; ifile<C->GetNtrees(); ifile++ ){
+    TObjArray *list_temp = C->GetListOfFiles();
+    
+    TString fname_temp = (*list_temp)[0]->GetTitle();
+    cout << "file " << ifile << ", name = " << fname_temp.Data() << endl; 
+    
+    TFile *ftemp = new TFile(fname_temp.Data(),"READ");
+    
+    if( !ftemp->IsZombie() ){
+      G4SBSRunData *rdtemp;
+      ftemp->GetObject("run_data",rdtemp);
+      if( rdtemp ){
+  	SBSang_file[fname_temp] = rdtemp->fSBStheta;
+  	//SBStrkrpitch_file[fname_temp] = rdtemp->f
+      } else {
+  	bad_file_list.insert( fname_temp );
+      }
+      ftemp->Close();
+      delete ftemp;
+    } else {
+      bad_file_list.insert( fname_temp );
+      ftemp->Close(); 
+      delete ftemp;
+    }
+  }
   
   cout << "finished reading list of files" 
        << endl;

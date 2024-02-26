@@ -2023,12 +2023,128 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   // At the moment the mother volume dimension for the solenoid field is fixed to match the tosca field map
   // tosca field map is fixed at 50cm in radial and 150cm in z
   // will have to have this as an option if tosca field map changes
-  double BFieldRMax = 50.0;
-  double BFieldZMax = 150.0;
-  G4Tubs* TPCBfield_solid = new G4Tubs("TPCBfield_solid", 0.0,BFieldRMax*cm/2.0,BFieldZMax*cm/2.0,0.0,360*deg);
+  double BFieldRMax = 50.0*cm;
+  double BFieldZMax = 150.0*cm;
+  G4Tubs* TPCBfield_solid_0 = new G4Tubs("TPCBfield_solid_0", 0.0,BFieldRMax/2.0,BFieldZMax/2.0,0.0,360*deg);
+  G4Tubs* TPCBfield_solid_upbl = new G4Tubs("TPCBfield_solid_upbl", 0.0,5.*cm,300.*cm,0.0,360*deg);
+  G4UnionSolid* TPCBfield_solid = new G4UnionSolid("TPCBfield_solid", TPCBfield_solid_0, TPCBfield_solid_upbl, 0, G4ThreeVector(0, 0, -300.*cm));
   G4LogicalVolume* TPCBfield_log = 
-    new G4LogicalVolume(TPCBfield_solid, GetMaterial("Air"),"TPCBfield_log");
+    new G4LogicalVolume(TPCBfield_solid, GetMaterial("Vacuum"),"TPCBfield_log");
   // will place tpc mother volume into a b-field volume to switch between either uni or tosca
+
+
+  // Construct electron beam line
+  //
+  G4bool fOvLap = true;
+  G4double fZrtpc = 200.*mm + 40*mm + 2*20.0*mm;
+  G4int fNbl = 2;
+  G4double fRbl = 30.0*mm;
+  G4double fTbl = 2.0*mm;
+  G4double fSbl = 18.0*mm;
+  G4double fZbl = 1622.0*mm;
+  G4double Zbli = 0.5*(fZbl - fZrtpc);
+  G4double Zble = Zbli/fNbl;
+
+  G4double fBmClen1 = 35.0*mm;
+  G4double fBmCr1 = 2.5*mm;
+  G4double fBmClen2 = 18.0*mm;
+  G4double fBmCr2 = 3.5*mm;
+  
+  double BeWindowThickness = 20*um;
+  G4Tubs *BeWindow_sol = new G4Tubs("BeWindow_sol", 0, fBmCr2, BeWindowThickness/2, 0.*deg, 360.*deg );
+  
+  G4LogicalVolume *BeWindow_log = new G4LogicalVolume(BeWindow_sol, GetMaterial("Beryllium"), "BeWindow_log", 0, 0, 0);
+
+  G4int nbl = 3*fNbl;
+  G4Tubs** Bl = new G4Tubs*[nbl];
+  G4LogicalVolume** LBl = new G4LogicalVolume*[nbl];
+  char name[64];
+  G4Tubs* BlinI = new G4Tubs("BLinI",0.0,fRbl,Zbli,0.0,360*deg);
+  G4Tubs* BlinO = new G4Tubs("BLinO",0.0,fRbl+fTbl,Zbli,0.0,360*deg);
+  G4Tubs* Colli1 = new G4Tubs("Colli1",fBmCr1,fRbl,fBmClen1,0.0,360*deg);
+  G4Tubs* Colli2 = new G4Tubs("Colli2",fBmCr2,fRbl,fBmClen2,0.0,360*deg);
+  G4double rbl = fRbl;
+  for(G4int ibl=0; ibl<nbl; ibl+=3){
+    sprintf(name,"BlO-%d",ibl);
+    Bl[ibl] = new G4Tubs(name,0.0,rbl+fTbl,Zble,0.0,360*deg);
+    sprintf(name,"BlI-%d",ibl);
+    Bl[ibl+1] = new G4Tubs(name,0.0,rbl,Zble,0.0,360*deg);
+    sprintf(name,"BlE-%d",ibl);
+    Bl[ibl+2] = new G4Tubs(name,rbl+fTbl,rbl+fTbl+fSbl,fTbl,0.0,360*deg);
+    rbl += fSbl;
+  }
+  // Create vacuum and Al beam pipe logical volumes
+  // Put vacuum inside Al. 
+  G4LogicalVolume* LBlinI = 
+    new G4LogicalVolume(BlinI,GetMaterial("Vacuum"),"LBlinI",0,0,0);
+  G4LogicalVolume* LBlinO =
+    new G4LogicalVolume(BlinO,GetMaterial("Aluminum"),"LBlinO",0,0,0);
+  G4LogicalVolume* LColli1 =
+    new G4LogicalVolume(Colli1,GetMaterial("TargetBeamCollimator_Material"),"LColli1",0,0,0);
+  G4LogicalVolume* LColli2 =
+    new G4LogicalVolume(Colli2,GetMaterial("TargetBeamCollimator_Material"),"LColli2",0,0,0);
+
+  LColli1->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
+  LColli2->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
+  //
+  new G4PVPlacement(0,G4ThreeVector(0,0,0),LColli1,"PColli1",LBlinI,0,0, fOvLap);
+
+  G4VisAttributes* vis_upbl = new G4VisAttributes();
+  vis_upbl->SetForceWireframe();
+  LBlinI->SetVisAttributes( vis_upbl );
+  LBlinO->SetVisAttributes( vis_upbl );
+
+  new G4PVPlacement(0,G4ThreeVector(0,0,0),LBlinI,"PBlin",LBlinO,0,0, fOvLap);
+
+  new G4PVPlacement(0,G4ThreeVector(0,0,+Zbli-fBmClen2),LColli2, "PColli2",LBlinI,0,0, fOvLap);
+  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, +Zbli-BeWindowThickness/2.), BeWindow_log, "BeWindow_phys0", LBlinI, false,0, fOvLap);  
+  new G4PVPlacement(0,G4ThreeVector(0,0,-(fZrtpc+Zbli)),LBlinO,"PBlU",TPCBfield_log,0,0, fOvLap);
+
+  
+  //
+  for(G4int ibl=0; ibl<nbl; ibl+=3){
+    sprintf(name,"LBlI-%d",ibl);
+    LBl[ibl+1] = new G4LogicalVolume(Bl[ibl+1],GetMaterial("Vacuum"),name,0,0,0);
+    sprintf(name,"LBlO-%d",ibl);
+    LBl[ibl] = new G4LogicalVolume(Bl[ibl],GetMaterial("Aluminum"),name,0,0,0);
+    sprintf(name,"LBlE-%d",ibl+1);
+    LBl[ibl+2] = new G4LogicalVolume(Bl[ibl+2],GetMaterial("Aluminum"),name,0,0,0);
+    sprintf(name,"PB-%d",ibl);
+    new G4PVPlacement(0,G4ThreeVector(0,0,0),LBl[ibl+1],name,LBl[ibl],0,0, fOvLap);
+  }
+  // Place beam-line elements
+  //G4double zz = fZst + fZbl;
+  //G4double zz = fShZO + fZbl;
+  G4double zz = fZrtpc + Zble;
+  for(G4int ibl=0; ibl<nbl; ibl+=3){
+    G4LogicalVolume* lbf = worldlog;
+    G4cout << " ibl = "<< ibl << ", zz = " << zz <<  " zz+Zble-fTbl =  " << zz+Zble-fTbl << G4endl;
+    //if(ibl >= nbl/2) lbf = fMaw;
+    sprintf(name,"PBl-%d",ibl);
+    new G4PVPlacement(0,G4ThreeVector(0,0,zz),LBl[ibl],name,lbf,0,
+    		      0, fOvLap);
+    //zz = zz + fZbl + fTbl;
+    sprintf(name,"PBlE-%d",ibl);
+    if(ibl+3 < nbl)
+      new G4PVPlacement(0,G4ThreeVector(0,0,zz+Zble-fTbl),LBl[ibl+2],name,lbf,0,
+			0, fOvLap);
+    zz = zz + 2*Zble;
+  }
+  // Optional downstream shield
+  /*
+  G4Tubs* Shield = NULL;
+  G4LogicalVolume* LShield = NULL;
+  if(fTsh){
+    Shield = new G4Tubs("Shield",fRbl+fTbl,fRGtot,fTsh,0.0,360*deg);
+    LShield =  new G4LogicalVolume(Shield,fRtag->GetAl(),"Shield",0,0,0);
+    new G4PVPlacement(0,G4ThreeVector(0,0,-ZblOff+fZsh),LShield,"PShield",
+          fLBfield,false,0,fIsOverlapVol);
+  }
+  */
+  LColli1->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
+  LColli2->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
+  //
+  
 
   // the tpc mother is now the b field cylinder
   // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, z_pos), TPCBfield_log,

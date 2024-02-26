@@ -3828,29 +3828,30 @@ void G4SBSBeamlineBuilder::MakeTDISBeamline(G4LogicalVolume *worldlog){// Old be
   G4bool fOvLap = true;
   //MakeDefaultBeamline(worldlog);
   //add stuff
-  double Wcollimator_length = 35.*mm;
-  double Wcollimator_bore = 7.*mm;
-  double Wcollimator_diameter = 50.*mm;
-  double BeWindowThickness = 20*um;
+  // double Wcollimator_length = 35.*mm;
+  // double Wcollimator_bore = 7.*mm;
+  // double Wcollimator_diameter = 50.*mm;
+  // double BeWindowThickness = 20*um;
   
-  G4Tubs *Wcollimator_sol = new G4Tubs("Wcollimator_sol", Wcollimator_bore, Wcollimator_diameter, Wcollimator_length/2, 0.*deg, 360.*deg );
-  G4Tubs *Wcollimatorhole_sol  = new G4Tubs("Wcollimatorhole_sol", 0.0, Wcollimator_bore, Wcollimator_length/2, 0.*deg, 360.*deg );
+  // G4Tubs *Wcollimator_sol = new G4Tubs("Wcollimator_sol", Wcollimator_bore, Wcollimator_diameter, Wcollimator_length/2, 0.*deg, 360.*deg );
+  // G4Tubs *Wcollimatorhole_sol  = new G4Tubs("Wcollimatorhole_sol", 0.0, Wcollimator_bore, Wcollimator_length/2, 0.*deg, 360.*deg );
 
-  G4LogicalVolume *Wcollimator_log = new G4LogicalVolume(Wcollimator_sol, GetMaterial("TargetBeamCollimator_Material"), "Wcollimatorhole_log", 0, 0, 0);
-  G4LogicalVolume *Wcollimatorhole_log = new G4LogicalVolume(Wcollimatorhole_sol, GetMaterial("Vacuum"), "Wcollimatorhole_log", 0, 0, 0);
+  // G4LogicalVolume *Wcollimator_log = new G4LogicalVolume(Wcollimator_sol, GetMaterial("TargetBeamCollimator_Material"), "Wcollimatorhole_log", 0, 0, 0);
+  // G4LogicalVolume *Wcollimatorhole_log = new G4LogicalVolume(Wcollimatorhole_sol, GetMaterial("Vacuum"), "Wcollimatorhole_log", 0, 0, 0);
   
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness-Wcollimator_length/2.), Wcollimator_log, "Wcollimator_phys", worldlog, false,0);
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness-Wcollimator_length/2.), Wcollimatorhole_log, "Wcollimatorhole_phys", worldlog, false,0);
+  // // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness-Wcollimator_length/2.), Wcollimator_log, "Wcollimator_phys", worldlog, false,0);
+  // // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness-Wcollimator_length/2.), Wcollimatorhole_log, "Wcollimatorhole_phys", worldlog, false,0);
   
-  G4Tubs *BeWindow_sol = new G4Tubs("BeWindow_sol", 0, Wcollimator_diameter, BeWindowThickness/2, 0.*deg, 360.*deg );
+  // G4Tubs *BeWindow_sol = new G4Tubs("BeWindow_sol", 0, Wcollimator_diameter, BeWindowThickness/2, 0.*deg, 360.*deg );
   
-  G4LogicalVolume *BeWindow_log = new G4LogicalVolume(BeWindow_sol, GetMaterial("Beryllium"), "BeWindow_log", 0, 0, 0);
+  // G4LogicalVolume *BeWindow_log = new G4LogicalVolume(BeWindow_sol, GetMaterial("Beryllium"), "BeWindow_log", 0, 0, 0);
 
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness/2.), BeWindow_log, "BeWindow_phys0", worldlog, false,0);  
-  new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -350.*mm+BeWindowThickness/2.), BeWindow_log, "BeWindow_phys1", worldlog, false,0);  
+  // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness/2.), BeWindow_log, "BeWindow_phys0", worldlog, false,0);  
+  // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -350.*mm+BeWindowThickness/2.), BeWindow_log, "BeWindow_phys1", worldlog, false,0);  
   
   MakeCommonExitBeamline(worldlog);  
   
+  //Downstream beam pipe
   int nsec = 6;
   //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
   G4double exit_z[]   = { 527.*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };
@@ -3875,6 +3876,7 @@ void G4SBSBeamlineBuilder::MakeTDISBeamline(G4LogicalVolume *worldlog){// Old be
   extvacLog->SetVisAttributes(G4VisAttributes::GetInvisible());
   G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.2,0.6,0.2));
   extLog->SetVisAttributes(pipeVisAtt);
+  
   
 }
 

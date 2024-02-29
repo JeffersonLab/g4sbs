@@ -74,7 +74,7 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   fmTPC_HV_thick = 0.05*mm; // 50um say gold?
   //
   fmTPCkrypto = true;//false;//by default
-  fChkOvLaps = false;//true;//
+  fChkOvLaps = true;//
 
 
   //step user limit of the particle in the gas detector 

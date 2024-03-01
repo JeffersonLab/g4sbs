@@ -168,7 +168,7 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
    
   //Call for the construction of the different mTPC parts
 
-  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCWalls " << G4endl;  
+  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCWalls -> Rin = " << mTPC_rIN/mm << " , Rout " << mTPC_rOUT/mm << G4endl;  
   // make the field electrodes and boundary walls at the inner and outer radii
   BuildmTPCWalls(mTPCmother_log, mTPC_z_total, fZpos, mTPC_rIN, mTPC_rOUT);
 

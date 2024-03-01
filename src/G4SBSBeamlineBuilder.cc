@@ -94,9 +94,17 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     fDetCon->fBeamlineConf = 3;
     MakeGMnBeamline(worldlog);
     break;  
-  case(G4SBS::kTDIS):// Hall C GEM test
+  case(G4SBS::kTDIS):
     fDetCon->fBeamlineConf = 2;
     MakeTDISBeamline(worldlog);
+    break;  
+  case(G4SBS::kNDVCS):
+    fDetCon->fBeamlineConf = 2;
+    MakeTDISBeamline(worldlog);
+    break;  
+  case(G4SBS::kMTPConly):
+    //fDetCon->fBeamlineConf = 2;
+    //MakeTDISBeamline(worldlog);
     break;  
   default:
     MakeDefaultBeamline(worldlog);

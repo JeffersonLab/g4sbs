@@ -1111,7 +1111,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 		   360.*deg);
       mTPCGasCell_log = 
 	    new G4LogicalVolume(mTPCGasCell_solid, 
-				 GetMaterial("ref4He"),
+				 GetMaterial("mTPCgas"),
 				"mTPCGasCell_log");
       mTPCGasCell_log->SetSensitiveDetector(mTPCSD);
       

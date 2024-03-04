@@ -841,6 +841,7 @@ void G4SBSIO::UpdateGenDataFromDetCon(){ //Go with whatever is in fdetcon as of 
   gendata.dhcal = fdetcon->fHArmBuilder->fHCALdist/CLHEP::m;
   gendata.voffhcal = fdetcon->fHArmBuilder->fHCALvertical_offset/CLHEP::m;
   gendata.hoffhcal = fdetcon->fHArmBuilder->fHCALhorizontal_offset/CLHEP::m;
+  gendata.angoffhcal = fdetcon->fHArmBuilder->fHCALangular_offset;
   gendata.dlac = fdetcon->fHArmBuilder->fLACdist/CLHEP::m;
   gendata.vofflac = fdetcon->fHArmBuilder->fLACvertical_offset/CLHEP::m;
   gendata.hofflac = fdetcon->fHArmBuilder->fLAChorizontal_offset/CLHEP::m;

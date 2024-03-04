@@ -134,12 +134,14 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   G4double fdUpStrmInDm = 1.5134*2.54*cm;
   G4double fdlength = 9.526*2.54*cm;
   //G4double fdOpenAng = 1.5923*degree;
-    //}
+  //}
 
   G4Cons *FlowDiv = new G4Cons( "FlowDiv", fdUpStrmInDm/2.0, (fdUpStrmInDm/2.0)+fdthick, fdDwnStrmInDm/2.0, (fdDwnStrmInDm/2.0)+fdthick, fdlength/2.0, 0, 360.0*deg);
 
   G4LogicalVolume *FlowDiv_log = new G4LogicalVolume( FlowDiv, GetMaterial("Al"), "FlowDiv_log" );
 
+  //AJRP DON'T PLACE THE FLOW DIVERTER UNLESS EXPERIMENT IS GEP!
+  
   //Kip Work Ends Here    
   
   G4Tubs *TargetMother_solid = new G4Tubs( "TargetMother_solid", 0, Rcell + sthick, (fTargLen+uthick+dthick)/2.0, 0.0, twopi );
@@ -180,6 +182,18 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   fDetCon->InsertTargetVolume( uwindow_log->GetName() );
   //fDetCon->InsertTargetVolume( dwindow_log->GetName() );
 
+  //Kip Work Starts Here
+
+  //place flow diverter in target cell BEFORE placing target cell itself. Not 100% sure if this matters.
+  
+  if( fDetCon->fExpType == G4SBS::kGEp ){
+    new G4PVPlacement( 0, G4ThreeVector(0,0,-((fTargLen-Rcell-fdlength)/2)), FlowDiv_log, "FlowDiv_phys", TargetCell_log, false, 0);
+
+    G4VisAttributes* colourDRed = new G4VisAttributes(G4Colour(0.9,0.,0.));
+    FlowDiv_log->SetVisAttributes(colourDRed);
+  }
+
+  //Kip Work Ends Here
   
   // Now place everything:
   // Need to fix this later: Union solid defining vacuum chamber 
@@ -204,14 +218,7 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   //rot_temp = new G4RotationMatrix();
   //rot_temp->rotateX(90.0*deg);
 
-  //Kip Work Starts Here
-
-  new G4PVPlacement( 0, G4ThreeVector(0,0,-((fTargLen-Rcell-fdlength)/2)), FlowDiv_log, "FlowDiv_phys", TargetCell_log, false, 0);
-
-  G4VisAttributes* colourDRed = new G4VisAttributes(G4Colour(0.9,0.,0.));
-  FlowDiv_log->SetVisAttributes(colourDRed);
-
-  //Kip Work Ends Here
+  
 
   //for z of target center to be at zero, 
   G4double temp = targ_offset.y();
@@ -226,10 +233,11 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
 
     G4ThreeVector hfilter_offset = targ_offset;
     hfilter_offset.setX( -(hfilter_offset.getX() + Rcell + 1.0*cm + fHadronFilterThick/2.0 ) -5.0*cm);
-    hfilter_offset.setY( hfilter_offset.getY() +0.5*(fTargLen - 4.45*2.54*cm) );
+    hfilter_offset.setY( hfilter_offset.getY() +0.5*(fTargLen - 29.62*2.54*cm) );
     //hfilter_offset.SetZ( targ_offset.getZ()
     
     BuildHadronFilter( motherlog, rot_targ, hfilter_offset );
+    //BuildHadronFilterGEp( motherlog, rot_targ, hfilter_offset );
     
   }
   
@@ -2411,6 +2419,9 @@ void G4SBSTargetBuilder::BuildRadiator(G4LogicalVolume *motherlog, G4RotationMat
 }
 
 void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
+
+  G4double inch = 25.4*mm; 
+
   if( fUseRad && fRadZoffset < 28.895*cm-0.1*cm ){
     G4cout << "Build radiator in target" << endl; 
     G4double zrad = fTargLen/2.0 + fRadZoffset; 
@@ -2427,24 +2438,29 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
   // CheckZPos(motherLog,-30.*cm);
   // CheckZPos(motherLog, 30.*cm);
    
-  fGEn_GLASS_TUBE_LENGTH = 54.33*cm; // 571.7*mm;  
+  fGEn_GLASS_TUBE_LENGTH = 57.7*cm; 
 
   // glass cell
-  BuildGEnTarget_GlassCell(motherLog);
+  //BuildGEnTarget_GlassCell_old(motherLog); //Old cell design
 
   // Al/Cu end windows for the target cell 
-  BuildGEnTarget_EndWindows(motherLog);
+  //BuildGEnTarget_EndWindows_CuAl(motherLog); // old cell design
 
   // cylinder of polarized 3He
-  BuildGEnTarget_PolarizedHe3(motherLog);
+  //BuildGEnTarget_PolarizedHe3_old(motherLog);  // Old cell design
+
+  // new glass cell
+  BuildGEnTarget_GlassCell(motherLog);  //Offical version used in GENII
+
+  // cylinder of polarized 3He
+  BuildGEnTarget_PolarizedHe3(motherLog); //Official version used in GENII
 
   // helmholtz coils
   int config = fDetCon->GetGEnTargetHelmholtzConfig();
-  double Q2=0; 
-  if(config==G4SBS::kGEN_146)  Q2 = 1.46; 
-  if(config==G4SBS::kGEN_368)  Q2 = 3.68; 
-  if(config==G4SBS::kGEN_677)  Q2 = 6.77; 
-  if(config==G4SBS::kGEN_1018) Q2 = 10.18;
+  double Q2=0;
+  if(config==G4SBS::kGEN_300)  Q2 = 3.00; 
+  if(config==G4SBS::kGEN_683)  Q2 = 6.83; 
+  if(config==G4SBS::kGEN_982) Q2 = 9.82;
   G4cout << "[G4SBSTargetBuilder::BuildGEnTarget]: Using config for Q2 = " << Q2 << " (GeV/c)^2" << G4endl; 
 
   //For now, omit TBD details of everything other than target for SIDIS:
@@ -2455,7 +2471,6 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
     BuildGEnTarget_HelmholtzCoils(config,"min",motherLog);
 
     // magnetic shield
-    // config = kGEN_new; // for when the shield design is finalized  
     BuildGEnTarget_Shield(config,motherLog);
 
     // target ladder 
@@ -2475,10 +2490,33 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
     if(enableBC_dnstr) BuildGEnTarget_BeamCollimator(motherLog,0); 
     if(enableBC_upstr) BuildGEnTarget_BeamCollimator(motherLog,1); 
 
+    if(fUseHadronFilter){
+      // Numbers come from Glass cell and hadron filter. These should not be
+      // hard coded but this is how it is for now. Should make it more 
+      // streamlined later.
+      G4double boxlen = 4.45*inch;
+      G4double filtlen = 29.62*inch;
+      G4double traplen = filtlen - boxlen;
+      G4double tgtlen = fGEn_GLASS_TUBE_LENGTH + 23*mm;
+      G4double extra_off = 5.0*inch;
+
+      // Drawings from Chris Soova - November, 2022
+      G4double x_offset = -1.75*inch;
+      G4double y_offset = 5*cm;
+      G4double z_offset = -traplen/2 - (filtlen - tgtlen)/2 + extra_off;
+      
+      G4ThreeVector hfilter_offset;
+      hfilter_offset.setX(x_offset);
+      hfilter_offset.setY(y_offset);
+      hfilter_offset.setZ(z_offset);
+    
+      BuildHadronFilter( motherLog, new G4RotationMatrix(), hfilter_offset );
+    }
+
   }
 }
 
-void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
+void G4SBSTargetBuilder::BuildGEnTarget_GlassCell_old(G4LogicalVolume *motherLog){
   // Glass cell for polarized 3He
   // - drawing number: internal from G. Cates (May 2020) 
 
@@ -2890,7 +2928,445 @@ void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
 
 }
 
-void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
+
+void G4SBSTargetBuilder::BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog){
+  // Glass cell for polarized 3He
+  // - drawing number: internal from G. Cates (June 2021) 
+
+  bool enableSD = fDetCon->GetGEnTargetSDEnable();  
+  
+  G4double glassWall = 1.0*mm; // estimate 
+  G4double tubeLength = fGEn_GLASS_TUBE_LENGTH; // 571.7*mm; // 579.0*mm;  
+
+  //pumping chamber dimensions
+  G4double pumpCh_glassWall = 4.2*mm;
+  G4double pumpCh_OD = 108*mm;
+  G4double pumpCh_ypos = 330.2*mm;
+
+  // pumping chamber 
+  partParameters_t pumpCh; 
+  pumpCh.name = "pumpingChamber"; pumpCh.shape = "sphere"; 
+  pumpCh.r_tor = 0.0*mm; pumpCh.r_max = pumpCh_OD/2; pumpCh.r_min = pumpCh.r_max - pumpCh_glassWall; pumpCh.length = 0.0*mm;
+  pumpCh.x_len = 0.0*mm; pumpCh.y_len = 0.0*mm; pumpCh.z_len = 0.0*mm;
+  pumpCh.startTheta = 0.0*deg; pumpCh.dTheta = 180.0*deg;
+  pumpCh.startPhi = 0.0*deg; pumpCh.dPhi = 360.0*deg;
+  pumpCh.x = 0.0*mm; pumpCh.y = -pumpCh_ypos; pumpCh.z = 0.0*mm;
+  pumpCh.rx = 0.0*deg; pumpCh.ry = 0.0*deg; pumpCh.rz = 0.0*deg;
+
+  G4Sphere *pumpChamberShape = new G4Sphere(pumpCh.name,
+					    pumpCh.r_min     ,pumpCh.r_max,
+					    pumpCh.startPhi  ,pumpCh.dPhi,
+					    pumpCh.startTheta,pumpCh.dTheta);
+
+  G4ThreeVector P_pc = G4ThreeVector(pumpCh.x,pumpCh.y,pumpCh.z);
+  G4RotationMatrix *rm_pc = new G4RotationMatrix();
+  rm_pc->rotateX(pumpCh.rx); rm_pc->rotateY(pumpCh.ry); rm_pc->rotateZ(pumpCh.rz);
+  
+  // target chamber dimensions
+  G4double tgtCh_glassWall = 1.1*mm;
+  G4double tgtCh_OD = 23*mm;
+
+  // target chamber 
+  partParameters_t tgtCh;
+  tgtCh.name = "targetChamber"; tgtCh.shape = "tube"; 
+  tgtCh.r_tor = 0.0*mm; tgtCh.r_max = tgtCh_OD/2; tgtCh.r_min = tgtCh.r_max - tgtCh_glassWall; tgtCh.length = tubeLength;
+  tgtCh.x_len = 0.0*mm; tgtCh.y_len = 0.0*mm; tgtCh.z_len = 0.0*mm;
+  tgtCh.startTheta = 0.0*deg; tgtCh.dTheta = 0.0*deg;
+  tgtCh.startPhi = 0.0*deg; tgtCh.dPhi = 360.0*deg;
+  tgtCh.x = 0.0*mm; tgtCh.y = 0.0*mm; tgtCh.z = 0.0*mm;
+  tgtCh.rx = 0.0*deg; tgtCh.ry = 0.0*deg; tgtCh.rz = 0.0*deg;
+
+  G4Tubs *targetChamberShape = new G4Tubs(tgtCh.name,
+					  tgtCh.r_min    ,tgtCh.r_max,
+					  tgtCh.length/2.,
+					  tgtCh.startPhi ,tgtCh.dPhi);
+
+  G4ThreeVector P_tc = G4ThreeVector(tgtCh.x,tgtCh.y,tgtCh.z);
+  G4RotationMatrix *rm_tc = new G4RotationMatrix();
+  rm_tc->rotateX(tgtCh.rx); rm_tc->rotateY(tgtCh.ry); rm_tc->rotateZ(tgtCh.rz);
+
+
+  // transfer tube lower dimensions
+  G4double tt_glassWall = 1.5*mm; //All transfer tubes have same OD and thickness
+  G4double tt_OD = 11*mm;
+  G4double ttul_length = 32*mm;
+  G4double ttul_extra = 1*mm;  //Extra length to connect to next piece
+  G4double ttul_zpos = 250*mm;
+
+  // Transfer tube upstream lower
+  partParameters_t ttul;
+  ttul.name = "transTube_up_low"; ttul.shape = "tube"; 
+  ttul.r_tor = 0.0*mm; ttul.r_max = tt_OD/2; ttul.r_min = ttul.r_max - tt_glassWall; ttul.length = ttul_length + ttul_extra;
+  ttul.x_len = 0.0*mm; ttul.y_len = 0.0*mm; ttul.z_len = 0.0*mm;
+  ttul.startTheta = 0.0*deg; ttul.dTheta = 0.0*deg;
+  ttul.startPhi = 0.0*deg; ttul.dPhi = 360.0*deg;
+  ttul.x = 0.0*mm; ttul.y = -tgtCh_OD/2 - (ttul_length + ttul_extra)/2 + ttul_extra; ttul.z = -ttul_zpos;
+  ttul.rx = 90.0*deg; ttul.ry = 0.0*deg; ttul.rz = 0.0*deg;
+
+
+  G4Tubs *transTubeUpLowShape = new G4Tubs(ttul.name,
+					  ttul.r_min    ,ttul.r_max,
+					  ttul.length/2.,
+					  ttul.startPhi ,ttul.dPhi);
+
+  G4ThreeVector P_ttul = G4ThreeVector(ttul.x,ttul.y,ttul.z);
+  G4RotationMatrix *rm_ttul = new G4RotationMatrix();
+  rm_ttul->rotateX(ttul.rx); rm_ttul->rotateY(ttul.ry); rm_ttul->rotateZ(ttul.rz);
+
+
+  // transfer tube high dimensions
+  G4double ttuh_length = 14*cm;
+  G4double ttuh_zpos = 51/2*mm;
+  G4double ttuh_extra = 10*mm;
+
+
+  // Transfer tube upstream high
+  partParameters_t ttuh;
+  ttuh.name = "transTube_up_high"; ttuh.shape = "tube"; 
+  ttuh.r_tor = 0.0*mm; ttuh.r_max = tt_OD/2; ttuh.r_min = ttuh.r_max - tt_glassWall; ttuh.length = ttuh_length + ttuh_extra;
+  ttuh.x_len = 0.0*mm; ttuh.y_len = 0.0*mm; ttuh.z_len = 0.0*mm;
+  ttuh.startTheta = 0.0*deg; ttuh.dTheta = 0.0*deg;
+  ttuh.startPhi = 0.0*deg; ttuh.dPhi = 360.0*deg;
+  ttuh.x = 0.0*mm; ttuh.y = -pumpCh_ypos + pumpCh_OD/2 - (ttuh_length + ttuh_extra)/2 + ttuh_length; ttuh.z = -ttuh_zpos;
+  ttuh.rx = 90.0*deg; ttuh.ry = 0.0*deg; ttuh.rz = 0.0*deg;
+
+
+  G4Tubs *transTubeUpHighShape = new G4Tubs(ttuh.name,
+					  ttuh.r_min    ,ttuh.r_max,
+					  ttuh.length/2.,
+					  ttuh.startPhi ,ttuh.dPhi);
+
+  G4ThreeVector P_ttuh = G4ThreeVector(ttuh.x,ttuh.y,ttuh.z);
+  G4RotationMatrix *rm_ttuh = new G4RotationMatrix();
+  rm_ttuh->rotateX(ttuh.rx); rm_ttuh->rotateY(ttuh.ry); rm_ttuh->rotateZ(ttuh.rz);
+
+  // transfer tube mid dimensions
+  /////////// Some geoemtry needed to connect the pieces ///////////
+  /////////////////////////////////////////////////////////////////
+  //Start with mid point of upper and lower pieces
+  G4double ttum_y1 = ttul.y - ttul.length/2;
+  G4double ttum_y2 = ttuh.y + ttuh.length/2;
+  G4double ttum_z1 = ttul.z;
+  G4double ttum_z2 = ttuh.z;
+
+  //Points on the edge of upper a lower pieces to connect
+  G4double ttum_x1 = ttum_z1 + tt_OD/2;  
+  G4double ttum_x2 = ttum_z2 - tt_OD/2;
+
+  //position of the tube is midway between these points
+  G4double ttum_y = (ttum_y1 + ttum_y2) / 2;
+  G4double ttum_z = (ttum_x1 + ttum_x2) / 2;
+
+  G4double ttum_c2 = pow(ttum_x2 - ttum_x1,2) + pow(ttum_y2 - ttum_y1,2); //diagonal of the tube
+  G4double ttum_length = sqrt(ttum_c2 - tt_OD*tt_OD);
+
+  G4double ttum_ang = atan((ttum_y2 - ttum_y1)/(ttum_x2 - ttum_x1)) + asin(tt_OD/sqrt(ttum_c2))*180/3.14159*deg;
+  ////// end geometry calculations ////////////////////////////
+  /////////////////////////////////////////////////////////////
+
+  // Transfer tube upstream mid
+  partParameters_t ttum;
+  ttum.name = "transTube_up_mid"; ttum.shape = "tube"; 
+  ttum.r_tor = 0.0*mm; ttum.r_max = tt_OD/2; ttum.r_min = ttum.r_max - tt_glassWall; ttum.length = ttum_length;
+  ttum.x_len = 0.0*mm; ttum.y_len = 0.0*mm; ttum.z_len = 0.0*mm;
+  ttum.startTheta = 0.0*deg; ttum.dTheta = 0.0*deg;
+  ttum.startPhi = 0.0*deg; ttum.dPhi = 360.0*deg;
+  ttum.x = 0.0*mm; ttum.y = ttum_y; ttum.z = ttum_z;
+  ttum.rx = ttum_ang; ttum.ry = 0.0*deg; ttum.rz = 0.0*deg;
+
+
+  G4Tubs *transTubeUpMidShape = new G4Tubs(ttum.name,
+					  ttum.r_min    ,ttum.r_max,
+					  ttum.length/2.,
+					  ttum.startPhi ,ttum.dPhi);
+
+  G4ThreeVector P_ttum = G4ThreeVector(ttum.x,ttum.y,ttum.z);
+  G4RotationMatrix *rm_ttum = new G4RotationMatrix();
+  rm_ttum->rotateX(ttum.rx); rm_ttum->rotateY(ttum.ry); rm_ttum->rotateZ(ttum.rz);  
+
+
+  // transfer tube upstream lower elbow dimensions
+  G4double ttulel_z = ttum_x1;
+  G4double ttulel_y = ttum_y1;
+  G4double ttulel_ang = 90.0*deg + ttum_ang;
+  
+  // transfer tube upstream lower elbow
+  partParameters_t ttulel;
+  ttulel.name = "transTube_up_low_el"; ttulel.shape = "torus"; 
+  ttulel.r_tor = tt_OD/2*1.01*mm; ttulel.r_max = tt_OD/2; ttulel.r_min = ttulel.r_max - tt_glassWall; ttulel.length = 0.0*mm;
+  ttulel.x_len = 0.0*mm; ttulel.y_len = 0.0*mm; ttulel.z_len = 0.0*mm;
+  ttulel.startTheta = 0.0*deg; ttulel.dTheta = 0.0*deg;
+  ttulel.startPhi = 0.0*deg; ttulel.dPhi = ttulel_ang;
+  ttulel.x = 0.0*mm; ttulel.y = ttulel_y; ttulel.z = ttulel_z;
+  ttulel.rx = 180.0*deg; ttulel.ry = 90.0*deg; ttulel.rz = 0.0*deg;
+
+  G4Torus *transTubeUpLowElShape = new G4Torus(ttulel.name,
+					    ttulel.r_min   ,ttulel.r_max,ttulel.r_tor,
+					    ttulel.startPhi,ttulel.dPhi);
+
+  G4ThreeVector P_ttulel = G4ThreeVector(ttulel.x,ttulel.y,ttulel.z);
+  G4RotationMatrix *rm_ttulel = new G4RotationMatrix();
+  rm_ttulel->rotateX(ttulel.rx); rm_ttulel->rotateY(ttulel.ry); rm_ttulel->rotateZ(ttulel.rz);
+
+
+
+  // transfer tube upstream upper elbow dimensions
+  G4double ttuhel_z = ttum_x2;
+  G4double ttuhel_y = ttum_y2;
+  G4double ttuhel_ang = 90.0*deg + ttum_ang;
+  
+  // transfer tube upstream upper elbow
+  partParameters_t ttuhel;
+  ttuhel.name = "transTube_up_low_el"; ttuhel.shape = "torus"; 
+  ttuhel.r_tor = tt_OD/2*1.01*mm; ttuhel.r_max = tt_OD/2; ttuhel.r_min = ttuhel.r_max - tt_glassWall; ttuhel.length = 0.0*mm;
+  ttuhel.x_len = 0.0*mm; ttuhel.y_len = 0.0*mm; ttuhel.z_len = 0.0*mm;
+  ttuhel.startTheta = 0.0*deg; ttuhel.dTheta = 0.0*deg;
+  ttuhel.startPhi = 0.0*deg; ttuhel.dPhi = ttuhel_ang;
+  ttuhel.x = 0.0*mm; ttuhel.y = ttuhel_y; ttuhel.z = ttuhel_z;
+  ttuhel.rx = 0.0*deg; ttuhel.ry = 90.0*deg; ttuhel.rz = 0.0*deg;
+
+  G4Torus *transTubeUpHighElShape = new G4Torus(ttuhel.name,
+					    ttuhel.r_min   ,ttuhel.r_max,ttuhel.r_tor,
+					    ttuhel.startPhi,ttuhel.dPhi);
+
+  G4ThreeVector P_ttuhel = G4ThreeVector(ttuhel.x,ttuhel.y,ttuhel.z);
+  G4RotationMatrix *rm_ttuhel = new G4RotationMatrix();
+  rm_ttuhel->rotateX(ttuhel.rx); rm_ttuhel->rotateY(ttuhel.ry); rm_ttuhel->rotateZ(ttuhel.rz);
+
+
+
+  //////// Nowe we copy everything we did above but downstream ////////
+  
+  // Transfer tube dowstream lower
+  partParameters_t ttdl = ttul; 
+  ttdl.name = "transTube_dn_low";
+  ttdl.z *= -1.;
+
+  G4Tubs *transTubeDnLowShape = new G4Tubs(ttdl.name,
+				    ttdl.r_min    ,ttdl.r_max,
+				    ttdl.length/2.,
+				    ttdl.startPhi ,ttdl.dPhi);
+
+  G4ThreeVector P_ttdl      = G4ThreeVector(ttdl.x,ttdl.y,ttdl.z);
+  G4RotationMatrix *rm_ttdl = new G4RotationMatrix();
+  rm_ttdl->rotateX(ttdl.rx); rm_ttdl->rotateY(ttdl.ry); rm_ttdl->rotateZ(ttdl.rz);
+
+  // Transfer tube downstream high
+  partParameters_t ttdh = ttuh; 
+  ttdh.name = "transTube_dn_high";
+  ttdh.z *= -1.;
+
+  G4Tubs *transTubeDnHighShape = new G4Tubs(ttdh.name,
+				    ttdh.r_min    ,ttdh.r_max,
+				    ttdh.length/2.,
+				    ttdh.startPhi ,ttdh.dPhi);
+
+  G4ThreeVector P_ttdh      = G4ThreeVector(ttdh.x,ttdh.y,ttdh.z);
+  G4RotationMatrix *rm_ttdh = new G4RotationMatrix();
+  rm_ttdh->rotateX(ttdh.rx); rm_ttdh->rotateY(ttdh.ry); rm_ttdh->rotateZ(ttdh.rz);
+
+  // Transfer tube downstream mid
+  partParameters_t ttdm = ttum; 
+  ttdm.name = "transTube_dn_mid";
+  ttdm.z *= -1.;
+  ttdm.rx *= -1.;
+
+  G4Tubs *transTubeDnMidShape = new G4Tubs(ttdm.name,
+				    ttdm.r_min    ,ttdm.r_max,
+				    ttdm.length/2.,
+				    ttdm.startPhi ,ttdm.dPhi);
+
+  G4ThreeVector P_ttdm      = G4ThreeVector(ttdm.x,ttdm.y,ttdm.z);
+  G4RotationMatrix *rm_ttdm = new G4RotationMatrix();
+  rm_ttdm->rotateX(ttdm.rx); rm_ttdm->rotateY(ttdm.ry); rm_ttdm->rotateZ(ttdm.rz);
+  
+  // transfer tube downstream lower elbow
+  partParameters_t ttdlel = ttulel; 
+  ttdlel.name = "transTube_dn_low_el"; ttdlel.shape = "torus";
+  ttdlel.z *= -1.; ttdlel.rx *= -1.; ttdlel.ry *= -1.;
+
+  G4Torus *transTubeDnLowElShape = new G4Torus(ttdlel.name,
+					    ttdlel.r_min   ,ttdlel.r_max,ttdlel.r_tor,
+					    ttdlel.startPhi,ttdlel.dPhi);
+
+  G4ThreeVector P_ttdlel      = G4ThreeVector(ttdlel.x,ttdlel.y,ttdlel.z);
+  G4RotationMatrix *rm_ttdlel = new G4RotationMatrix();
+  rm_ttdlel->rotateX(ttdlel.rx); rm_ttdlel->rotateY(ttdlel.ry); rm_ttdlel->rotateZ(ttdlel.rz);
+  
+  // transfer tube downstream upper elbow
+  partParameters_t ttdhel = ttuhel; 
+  ttdhel.name = "transTube_dn_high_el";
+  ttdhel.z *= -1.; ttdhel.rx *= -1.; ttdhel.ry *= -1.;
+
+  G4Torus *transTubeDnHighElShape = new G4Torus(ttdhel.name,
+					    ttdhel.r_min   ,ttdhel.r_max,ttdhel.r_tor,
+					    ttdhel.startPhi,ttdhel.dPhi);
+
+  G4ThreeVector P_ttdhel = G4ThreeVector(ttdhel.x,ttdhel.y,ttdhel.z);
+  G4RotationMatrix *rm_ttdhel = new G4RotationMatrix();
+  rm_ttdhel->rotateX(ttdhel.rx); rm_ttdhel->rotateY(ttdhel.ry); rm_ttdhel->rotateZ(ttdhel.rz);
+  
+
+  /// We now build the ends of the target chamber
+
+  // Upstream cap first
+  partParameters_t ttcapu;  
+  ttcapu.name = "targetChamber_cap_up"; ttcapu.shape = "sphere";
+  ttcapu.r_tor = 0.0*mm; ttcapu.r_max = tgtCh_OD/2; ttcapu.r_min = ttcapu.r_max - tgtCh_glassWall; ttcapu.length = 0.0*mm;
+  ttcapu.x_len = 0.0*mm; ttcapu.y_len = 0.0*mm; ttcapu.z_len = 0.0*mm;
+  ttcapu.startTheta = 0*deg; ttcapu.dTheta = 90*deg;
+  ttcapu.startPhi = 0.0*deg; ttcapu.dPhi = 360.0*deg;
+  ttcapu.x = 0.0*mm; ttcapu.y = 0.0*mm; ttcapu.z = -tgtCh.length/2; 
+  ttcapu.rx = 180.0*deg; ttcapu.ry = 0.0*deg; ttcapu.rz = 0.0*deg;
+
+  G4Sphere *targetChamberCapUpShape = new G4Sphere(ttcapu.name,
+				    ttcapu.r_min     ,ttcapu.r_max,
+				    ttcapu.startPhi  ,ttcapu.dPhi,
+				    ttcapu.startTheta,ttcapu.dTheta);
+
+  G4ThreeVector P_ttcapu = G4ThreeVector(ttcapu.x,ttcapu.y,ttcapu.z);
+  G4RotationMatrix *rm_ttcapu = new G4RotationMatrix();
+  rm_ttcapu->rotateX(ttcapu.rx); rm_ttcapu->rotateY(ttcapu.ry); rm_ttcapu->rotateZ(ttcapu.rz); 
+
+
+  // Downstream cap now
+  partParameters_t ttcapd = ttcapu; 
+  ttcapd.name = "targetChamber_cap_dn";
+  ttcapd.z *= -1.; ttcapd.rx = 0.0*deg;
+
+  G4Sphere *targetChamberCapDnShape = new G4Sphere(ttcapd.name,
+				    ttcapd.r_min     ,ttcapd.r_max,
+				    ttcapd.startPhi  ,ttcapd.dPhi,
+				    ttcapd.startTheta,ttcapd.dTheta);
+
+  G4ThreeVector P_ttcapd = G4ThreeVector(ttcapd.x,ttcapd.y,ttcapd.z);
+  G4RotationMatrix *rm_ttcapd = new G4RotationMatrix();
+  rm_ttcapd->rotateX(ttcapd.rx); rm_ttcapd->rotateY(ttcapd.ry); rm_ttcapd->rotateZ(ttcapd.rz);  
+
+
+  // union solid 
+  G4UnionSolid *glassCell;
+  // target chamber + transfer tube posts
+  // upstream  
+  glassCell = new G4UnionSolid("gc_tc_pc" ,targetChamberShape,pumpChamberShape,rm_pc,P_pc);
+  glassCell = new G4UnionSolid("gc_tc_pc_ttul" ,glassCell,transTubeUpLowShape,rm_ttul,P_ttul);
+  glassCell = new G4UnionSolid("gc_tc_pc_ttul_ttum" ,glassCell,transTubeUpMidShape,rm_ttum,P_ttum);
+  glassCell = new G4UnionSolid("gc_tc_pc_ttul_ttum_ttuh" ,glassCell,transTubeUpHighShape,rm_ttuh,P_ttuh);
+  glassCell = new G4UnionSolid("gc_tc_pc_ttul_ttum_ttuh_ttulel" ,glassCell,transTubeUpLowElShape,rm_ttulel,P_ttulel);
+  glassCell = new G4UnionSolid("gc_tc_pc_ttul_ttum_ttuh_ttulel_ttuhel" ,glassCell,transTubeUpHighElShape,rm_ttuhel,P_ttuhel);
+  glassCell = new G4UnionSolid("gc_tc_pc_ttul_ttum_ttuh_ttulel_ttuhel" ,glassCell,transTubeUpHighElShape,rm_ttuhel,P_ttuhel);
+  glassCell = new G4UnionSolid("gc_tc_pc_upstream_ttdl" ,glassCell,transTubeDnLowShape,rm_ttdl,P_ttdl);
+  glassCell = new G4UnionSolid("gc_tc_pc_upstream_ttdl_ttdh" ,glassCell,transTubeDnHighShape,rm_ttdh,P_ttdh);
+  glassCell = new G4UnionSolid("gc_tc_pc_upstream_ttdl_ttdh_ttdm" ,glassCell,transTubeDnMidShape,rm_ttdm,P_ttdm);
+  glassCell = new G4UnionSolid("gc_tc_pc_upstream_ttdl_ttdh_ttdm_ttdlel" ,glassCell,transTubeDnLowElShape,rm_ttdlel,P_ttdlel);
+  glassCell = new G4UnionSolid("gc_tc_pc_upstream_ttdl_ttdh_ttdm_ttdlel_ttdhel" ,glassCell,transTubeDnHighElShape,rm_ttdhel,P_ttdhel);
+  glassCell = new G4UnionSolid("all_ttcapu" ,glassCell,targetChamberCapUpShape,rm_ttcapu,P_ttcapu);
+  glassCell = new G4UnionSolid("all_ttcapu_ttcapd" ,glassCell,targetChamberCapDnShape,rm_ttcapd,P_ttcapd);
+
+  // logical volume
+  G4LogicalVolume *logicGlassCell = new G4LogicalVolume(glassCell,GetMaterial("GE180"),"logicGEnTarget_GlassCell");
+
+  // visualization 
+  G4VisAttributes *visGC = new G4VisAttributes();
+  visGC->SetColour( G4Colour::White() );
+  // visGC->SetForceWireframe(true);
+  logicGlassCell->SetVisAttributes(visGC);
+
+  ////// Define Sensitive Detector for glass target:
+  ////// TODO: make it optional
+  G4String GlassTargetSDname = "GlassTarget";
+  G4String GlassTargetcollname = "GlassTargetHitsCollection";
+  G4SBSCalSD *GlassTargetSD = NULL;
+
+  if( enableSD ){
+    if( !( GlassTargetSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(GlassTargetSDname) ) ){
+      G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
+      GlassTargetSD = new G4SBSCalSD( GlassTargetSDname, GlassTargetcollname );
+      fDetCon->fSDman->AddNewDetector( GlassTargetSD );
+      (fDetCon->SDlist).insert(GlassTargetSDname);
+      fDetCon->SDtype[GlassTargetSDname] = G4SBS::kCAL;
+    
+      (GlassTargetSD->detmap).depth = 1;
+
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( GlassTargetSDname, 0.0*MeV, 100.0*ns, 25 );
+    }
+  
+    logicGlassCell->SetSensitiveDetector( GlassTargetSD );
+  }
+  
+  // place the volume
+  // - note that this is relative to the *target chamber* as that is the first object in the union 
+  // - rotation puts the cell oriented such that the pumping chamber is vertically above
+  //   and the beam enters from the side where the small sphere on the transfer tube is 
+  //   closest to the upstream side
+
+  // angular misalignment 
+  G4double drx = fDetCon->GetGEnTargetDRX(); 
+  G4double dry = fDetCon->GetGEnTargetDRY(); 
+  G4double drz = fDetCon->GetGEnTargetDRZ();
+  
+  if(drx!=0||dry!=0||drz!=0){ 
+    std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_GlassCell]: Using GEn 3He target angular misalignments: " << std::endl;
+    std::cout << "RX = " << drx/deg << " deg" << std::endl;
+    std::cout << "RY = " << dry/deg << " deg" << std::endl;
+    std::cout << "RZ = " << drz/deg << " deg" << std::endl;
+  }
+
+  // total angles 
+  G4double RX = drx; 
+  G4double RY = 180.*deg + dry;  
+  G4double RZ = 180.*deg + drz;  
+ 
+  G4ThreeVector P_tgt_o = G4ThreeVector(0.*cm,0.*cm,0.*cm);
+  G4RotationMatrix *rm_gc = new G4RotationMatrix();
+  rm_gc->rotateX(RX); rm_gc->rotateY(RY); rm_gc->rotateZ(RZ);
+
+  bool isBoolean     = true;
+  bool checkOverlaps = true;
+
+  new G4PVPlacement(rm_gc,             // rotation relative to logical mother    
+		    P_tgt_o,           // position relative to logical mother      
+		    logicGlassCell,   // logical volume        
+		    "physGlassCell",   // name of physical volume      
+		    motherLog,         // logical mother        
+		    isBoolean,         // is a boolean object?     
+		    0,                 // copy number     
+		    checkOverlaps);    // check overlaps
+
+  // register with DetectorConstruction object 
+  fDetCon->InsertTargetVolume( logicGlassCell->GetName() );
+
+  // now turn this into a sensitive detector if enabled
+  //bool enableSD = fDetCon->GetGEnTargetSDEnable();  
+
+  // name of SD and the hitCollection  
+  G4String gcSDname = "Target/Glass";   
+  // We have to remove all the directory structure from the 
+  // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+  G4String gcSDname_nopath = gcSDname;
+  //gcSDname_nopath.remove(0,gcSDname.last('/')+1);
+  gcSDname_nopath.erase(0,gcSDname.find_last_of('/')+1);
+  G4String gcColName = gcSDname_nopath;
+  gcColName += "HitsCollection";
+
+  G4SBSTargetSD *gcSD = nullptr;
+  if(enableSD){
+    if( !(gcSD = (G4SBSTargetSD *)fDetCon->fSDman->FindSensitiveDetector(gcSDname)) ){
+      // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+      G4cout << "Adding GEn Glass Cell sensitive detector to SDman..." << G4endl;
+      gcSD = new G4SBSTargetSD(gcSDname,gcColName);
+      logicGlassCell->SetSensitiveDetector(gcSD);
+      fDetCon->fSDman->AddNewDetector(gcSD);
+      (fDetCon->SDlist).insert(gcSDname);
+      fDetCon->SDtype[gcSDname] = G4SBS::kTarget_GEn_Glass;
+    }
+  }
+
+}
+
+
+
+void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_CuAl(G4LogicalVolume *motherLog){
   // Aluminum/Copper end window on 3He cell
   // - drawing number: internal from G. Cates (Assembly MK-II Drawing_july_11_2017.pdf, received June 2020)
 
@@ -3058,7 +3534,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
   G4double drz = fDetCon->GetGEnTargetDRZ();
 
   if(drx!=0||dry!=0||drz!=0){ 
-    std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_EndWindows]: Using GEn 3He target angular misalignments: " << std::endl;
+    std::cout << "[G4SBSTargetBuilder::BuildGEnTarget_EndWindows_CuAl]: Using GEn 3He target angular misalignments: " << std::endl;
     std::cout << "RX = " << drx/deg << " deg" << std::endl;
     std::cout << "RY = " << dry/deg << " deg" << std::endl;
     std::cout << "RZ = " << drz/deg << " deg" << std::endl;
@@ -3220,6 +3696,9 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog){
   }
  
 }
+
+
+
 
 void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *motherLog){
   // Copper end window on 3He cell
@@ -3411,7 +3890,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *moth
  
 }
 
-void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog){
+void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3_old(G4LogicalVolume *motherLog){
   // Polarized 3He
   // - takes the form of the target chamber of the glass cell 
    
@@ -3686,12 +4165,150 @@ void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog)
 
 }
 
+
+void G4SBSTargetBuilder::BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog){
+  // Polarized 3He
+  // - takes the form of the target chamber of the glass cell 
+   
+  G4double inch       = 25.4*mm; 
+  G4double glassWall  = 1.0*mm;   // estimate 
+  G4double tubeLength = fGEn_GLASS_TUBE_LENGTH; // 571.7*mm; // 579.0*mm;  
+
+  //glass target dimensions
+  G4double tgtCh_glassWall = 1.1*mm;
+  G4double tgtCh_OD = 23*mm;
+
+  // target chamber component 
+  partParameters_t tc; 
+  tc.name   = "targetChamber"; tc.shape  = "tube";
+  tc.r_tor  = 0.*mm; tc.r_min = 0.*mm; tc.r_max = tgtCh_OD/2 - tgtCh_glassWall; tc.length = tubeLength; 
+  tc.startTheta = 0*deg; tc.dTheta = 0*deg;
+  tc.startPhi = 0*deg; tc.dPhi = 360*deg;
+  tc.x = 0*mm; tc.y = 0*mm; tc.z = 0*mm;
+  tc.rx = 0*deg; tc.ry = 0*deg; tc.rz = 0*deg;
+
+  G4Tubs *tcShape = new G4Tubs("He3_tc",
+			       tc.r_min    ,tc.r_max,
+			       tc.length/2.,
+			       tc.startPhi ,tc.dPhi);
+
+  G4ThreeVector P_tc = G4ThreeVector(tc.x,tc.y,tc.z);
+  G4RotationMatrix *rm_tc = new G4RotationMatrix();
+  rm_tc->rotateX(tc.rx); rm_tc->rotateY(tc.ry); rm_tc->rotateZ(tc.rz);
+
+  
+  // Upstream cap first
+  partParameters_t ttcapu;  
+  ttcapu.name = "He3_cap_up"; ttcapu.shape = "sphere";
+  ttcapu.r_tor = 0.0*mm; ttcapu.r_max = tc.r_max; ttcapu.r_min = 0; ttcapu.length = 0.0*mm;
+  ttcapu.x_len = 0.0*mm; ttcapu.y_len = 0.0*mm; ttcapu.z_len = 0.0*mm;
+  ttcapu.startTheta = 0*deg; ttcapu.dTheta = 90*deg;
+  ttcapu.startPhi = 0.0*deg; ttcapu.dPhi = 360.0*deg;
+  ttcapu.x = 0.0*mm; ttcapu.y = 0.0*mm; ttcapu.z = -tc.length/2; 
+  ttcapu.rx = 180.0*deg; ttcapu.ry = 0.0*deg; ttcapu.rz = 0.0*deg;
+
+  G4Sphere *He3CapUpShape = new G4Sphere(ttcapu.name,
+				    ttcapu.r_min     ,ttcapu.r_max,
+				    ttcapu.startPhi  ,ttcapu.dPhi,
+				    ttcapu.startTheta,ttcapu.dTheta);
+
+  G4ThreeVector P_ttcapu = G4ThreeVector(ttcapu.x,ttcapu.y,ttcapu.z);
+  G4RotationMatrix *rm_ttcapu = new G4RotationMatrix();
+  rm_ttcapu->rotateX(ttcapu.rx); rm_ttcapu->rotateY(ttcapu.ry); rm_ttcapu->rotateZ(ttcapu.rz); 
+
+
+  // Downstream cap now
+  partParameters_t ttcapd = ttcapu; 
+  ttcapd.name = "He3_cap_dn";
+  ttcapd.z *= -1.; ttcapd.rx = 0.0*deg;
+
+  G4Sphere *He3CapDnShape = new G4Sphere(ttcapd.name,
+				    ttcapd.r_min     ,ttcapd.r_max,
+				    ttcapd.startPhi  ,ttcapd.dPhi,
+				    ttcapd.startTheta,ttcapd.dTheta);
+
+  G4ThreeVector P_ttcapd = G4ThreeVector(ttcapd.x,ttcapd.y,ttcapd.z);
+  G4RotationMatrix *rm_ttcapd = new G4RotationMatrix();
+  rm_ttcapd->rotateX(ttcapd.rx); rm_ttcapd->rotateY(ttcapd.ry); rm_ttcapd->rotateZ(ttcapd.rz);  
+
+
+  // create the union solid 
+  G4UnionSolid *he3Tube;
+  // main shaft + upstream "cap"  
+  he3Tube = new G4UnionSolid("tc_uc",tcShape,He3CapUpShape,rm_ttcapu ,P_ttcapu );
+  he3Tube = new G4UnionSolid("tc_uc_dc",he3Tube,He3CapUpShape,rm_ttcapd ,P_ttcapd );  
+
+
+  // set the color of He3 
+  G4VisAttributes *visHe3 = new G4VisAttributes();
+  visHe3->SetColour( G4Colour::Yellow() );
+  // visHe3->SetForceWireframe(true);  
+
+  // logical volume of He3
+  G4LogicalVolume *logicHe3 = new G4LogicalVolume(he3Tube,GetMaterial("pol3He"),"logicGEnTarget_polHe3");
+  logicHe3->SetVisAttributes(visHe3);
+
+  // placement of He3 is *inside target chamber*  
+  G4ThreeVector posHe3 = G4ThreeVector(0.*cm,0.*cm,0.*cm);
+
+  bool isBoolean = true;
+  bool checkOverlaps = true;
+
+  // angular misalignment 
+  G4double drx = fDetCon->GetGEnTargetDRX(); 
+  G4double dry = fDetCon->GetGEnTargetDRY(); 
+  G4double drz = fDetCon->GetGEnTargetDRZ();
+
+  G4RotationMatrix *rm = new G4RotationMatrix();
+  rm->rotateX(drx); rm->rotateY(dry); rm->rotateZ(drz); 
+
+  new G4PVPlacement(rm,                     // rotation
+		    posHe3,                 // position 
+		    logicHe3,               // logical volume 
+		    "physGEnTarget_polHe3", // name 
+		    motherLog,              // logical mother volume  
+		    isBoolean,              // boolean operations?  
+		    0,                      // copy number 
+		    checkOverlaps);         // check overlaps 
+
+  // register with DetectorConstruction object
+  fDetCon->InsertTargetVolume( logicHe3->GetName() ); 
+
+  // now turn this into a sensitive detector if enabled
+  bool enableSD = fDetCon->GetGEnTargetSDEnable();  
+
+  // name of SD and the hitCollection  
+  G4String heSDname = "Target/He3";   
+  // We have to remove all the directory structure from the 
+  // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
+  G4String heSDname_nopath = heSDname;
+  heSDname_nopath.erase(0,heSDname.find_last_of('/')+1);
+  G4String heColName = heSDname_nopath;
+  heColName += "HitsCollection";
+
+  G4SBSTargetSD *heSD = nullptr;
+  if(enableSD){
+    if( !(heSD = (G4SBSTargetSD *)fDetCon->fSDman->FindSensitiveDetector(heSDname)) ){
+      // check to see if this SD exists already; if not, create a new SD object and append to the list of SDs  
+      G4cout << "Adding GEn 3He sensitive detector to SDman..." << G4endl;
+      heSD = new G4SBSTargetSD(heSDname,heColName);
+      logicHe3->SetSensitiveDetector(heSD);
+      fDetCon->fSDman->AddNewDetector(heSD);
+      (fDetCon->SDlist).insert(heSDname);
+      fDetCon->SDtype[heSDname] = G4SBS::kTarget_GEn_3He;
+    }
+  }
+
+}
+
+
+
 void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const std::string type,G4LogicalVolume *motherLog){
   // Helmholtz coils for B fields
   // - no magnetic fields are implemented!
   // - materials: outer shell of G10.  thickness based on type
   //              core is solid aluminum
-  // - config: kGEN_677, kGEN_1018, kGEN_368, kGEN_146
+  // - config: kGEN_683, kGEN_982, kGEN_300
   //           different rotation angle based on index number (Q2 setting)   
   // - types: maj = large radius coil pair
   //          min = small radius coil pair 
@@ -3809,15 +4426,9 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
   // additional rotation to match engineering drawings (number A09016-03-08-0000) 
   G4double dry=0;
   if( type.compare("maj")==0 || type.compare("min")==0 ){
-    if(config==G4SBS::kGEN_146 || config==G4SBS::kGEN_368)  dry = 43.5*deg;
-    if(config==G4SBS::kGEN_677 || config==G4SBS::kGEN_1018) dry = 10.0*deg;
+    if(config==G4SBS::kGEN_300)  dry = 46.2*deg;
+    if(config==G4SBS::kGEN_683 || config==G4SBS::kGEN_982) dry = 7.8*deg;
   }
-
-  // adjust for y rotation.  
-  // WARNING: should this exactly follow rotated coordinates?
-  // rotation about y 
-  // x' =  xcos + zsin 
-  // z' = -xsin + zcos
 
   // rotation 
   G4double RX = cn.rx;
@@ -3843,16 +4454,15 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
   G4double z[2] = {z0,z0}; 
 
   if(type.compare("maj")==0){
-    x[0] = x0 - (D/2.)*fabs(SIN_TOT); 
-    x[1] = x0 + (D/2.)*fabs(SIN_TOT); 
-    z[0] = z0 - (D/2.)*fabs(COS_TOT); 
-    z[1] = z0 + (D/2.)*fabs(COS_TOT); 
+    x[0] = x0*COS_TOT + D/2.*SIN_TOT;
+    x[1] = x0*COS_TOT - D/2.*SIN_TOT;
+    z[0] = x0*SIN_TOT - D/2.*COS_TOT;
+    z[1] = x0*SIN_TOT + D/2.*COS_TOT;
   }else if(type.compare("min")==0){
-    x[0] = x0 + (D/2.)*fabs(SIN_TOT); 
-    x[1] = x0 - (D/2.)*fabs(SIN_TOT); 
-    // note sign doesn't flip for z! 
-    z[0] = z0 - (D/2.)*fabs(COS_TOT); 
-    z[1] = z0 + (D/2.)*fabs(COS_TOT); 
+    x[0] = x0*COS_TOT + D/2.*SIN_TOT;
+    x[1] = x0*COS_TOT - D/2.*SIN_TOT;
+    z[0] = x0*SIN_TOT - D/2.*COS_TOT;
+    z[1] = x0*SIN_TOT + D/2.*COS_TOT;
   }else if(type.compare("rfy")==0){
     y[0] = y0 - D/2.; // below
     y[1] = y0 + D/2.; // above 
@@ -3932,7 +4542,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_HelmholtzCoils(const int config,const st
 void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume *motherLog){
   // Shield box for the target magnetic field 
   // - Material: Carbon steel 1008
-  // - config: kGEN_146, kGEN_368, kGEN_677, kGEN_1018
+  // - config:  kGEN_300, kGEN_683, kGEN_982
   //           Different cutaways based on index number (Q2 setting)   
   // - The shield is actually two layers
   //   - each layer is 0.25" thick
@@ -3987,30 +4597,6 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
   // G4double dzs = 22.*cm;                       // fudge factor to align with BigBite aperture 
   // G4double zs = -zw_bl/2. + dzs;               // right on top of the right side wall (before rotation) 
 
-  // if(config==G4SBS::kGEN_new){
-  //    // FIXME: This is an estimate 
-  //    // new cut as of 6/27/20 (new design from Bert)
-  //    xw_bl = 10.*cm; // arbitrary size
-  //    yw_bl = 0.8*sh.y_len;
-  //    zw_bl = door;
-  //    // coordinates 
-  //    ys    = (-1.)*(sh.y_len/2.-yw_bl/2.);          // this should center the cut properly  
-  // }else if(config==G4SBS::kGEN_final){
-  //    // from drawing JL0044092
-  //    xw_bl = 16.75*inch; // arbitrary to make sure the cut goes through
-  //    yw_bl = 28.50*inch;
-  //    zw_bl = 16.75*inch;     
-  //    // coordinates 
-  //    ys    = (-1.)*(sh.y_len/2.-yw_bl/2.);          // this should center the cut properly  
-  // }else{
-  //    // original cut as per drawing A09016-03-0851  
-  //    xw_bl = 15.*inch; 
-  //    yw_bl = 28.44*inch;
-  //    zw_bl = 15.*inch;
-  //    // coordinates 
-  //    ys    = 0.*cm;
-  // }
-
  
   G4ThreeVector Pw_bl_dn = G4ThreeVector(xs,ys,zs);  // position of cut 
 
@@ -4031,25 +4617,19 @@ void G4SBSTargetBuilder::BuildGEnTarget_Shield(const int config,G4LogicalVolume 
   G4double dx=0,dx0=1.63*inch; //new number from drawing JL0042553; old dx0=5.*cm;
   G4double xw_br=0,yw_br=0;
   G4double zw_br=10.*cm; // arbitrary cut depth in z; just need enough to break through 
-  if(config==G4SBS::kGEN_146){
-    dx    = dx0 + p1 + p2 + p3;
-    xw_br = dh;
-    yw_br = 21.34*inch;
-    // coordinates 
-    ys    = 0.*cm;
-  }else if(config==G4SBS::kGEN_368){
+  if(config==G4SBS::kGEN_300){
     dx    = dx0 + p2 + p3;
     xw_br = dh;
     yw_br = 21.34*inch;
     // coordinates 
     ys    = 0.*cm;
-  }else if(config==G4SBS::kGEN_677){
+  }else if(config==G4SBS::kGEN_683){
     dx    = dx0 + p3;
     xw_br = dh;
     yw_br = 21.34*inch;
     // coordinates 
     ys    = 0.*cm;
-  }else if(config==G4SBS::kGEN_1018){
+  }else if(config==G4SBS::kGEN_982){
     dx    = dx0;
     xw_br = dh;
     yw_br = 21.34*inch;
@@ -4373,8 +4953,10 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
   // - Drawing number: A09016-03-04-0601
 
   // global offsets from JT model
+  G4double trtube_OD = 11*mm; //Transfer Tube diameter
   G4double inch = 25.4*mm;  
-  G4double x0   = -0.438*inch; // beam right   
+  G4double plate_width = 12.7*mm;  
+  G4double x0   = -trtube_OD/2 - plate_width/2; // beam right   
   G4double y0   = -5.33*cm;    // lower than target cell  
   G4double z0   =  1.5*inch + 2.*mm;   // TODO: should be 1.5*inch, but I see overlaps in stand-alone build.  
   // z0 issue SOLVED 10/16/20 (target was previously too long by about 2.4 inches)
@@ -4385,7 +4967,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
   partParameters_t lvu; 
   lvu.name = "ladder_vert_up"; lvu.shape = "box";
   lvu.r_tor = 0.0*mm; lvu.r_min = 0.0*mm; lvu.r_max = 0.0*mm; lvu.length = 0.0*mm;
-  lvu.x_len = 12.7*mm; lvu.y_len = 203.2*mm; lvu.z_len = 38.1*mm;
+  lvu.x_len = plate_width; lvu.y_len = 203.2*mm; lvu.z_len = 38.1*mm;
   lvu.startTheta = 0.0*deg; lvu.dTheta = 0.0*deg;
   lvu.startPhi = 0.0*deg; lvu.dPhi = 0.0*deg;
   lvu.x = -11.1*mm; lvu.y = 0.0*mm; lvu.z = -363.0*mm;
@@ -4400,7 +4982,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
   partParameters_t lvd; 
   lvd.name = "ladder_vert_dn"; lvd.shape = "box";
   lvd.r_tor = 0.0*mm; lvd.r_min = 0.0*mm; lvd.r_max = 0.0*mm; lvd.length = 0.0*mm;
-  lvd.x_len = 12.7*mm; lvd.y_len = 203.2*mm; lvd.z_len = 38.1*mm;
+  lvd.x_len = plate_width; lvd.y_len = 203.2*mm; lvd.z_len = 38.1*mm;
   lvd.startTheta = 0.0*deg; lvd.dTheta = 0.0*deg;
   lvd.startPhi = 0.0*deg; lvd.dPhi = 0.0*deg;
   lvd.x = 0.0*mm; lvd.y = 0.0*mm; lvd.z = 363.0*mm;
@@ -4416,7 +4998,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
   partParameters_t la;  
   la.name = "ladder_above"; la.shape = "box";
   la.r_tor = 0.0*mm; la.r_min = 0.0*mm; la.r_max = 0.0*mm; la.length = 0.0*mm;
-  la.x_len = 12.7*mm; la.y_len = 38.1*mm; la.z_len = 370.0*mm;
+  la.x_len = plate_width; la.y_len = 38.1*mm; la.z_len = 370.0*mm;
   la.startTheta = 0.0*deg; la.dTheta = 0.0*deg;
   la.startPhi = 0.0*deg; la.dPhi = 0.0*deg;
   la.x = 0.0*mm; la.y = 226.4*mm; la.z = 314.2*mm;
@@ -4431,7 +5013,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
   partParameters_t lb; 
   lb.name = "ladder_below"; lb.shape = "box";
   lb.r_tor = 0.0*mm; lb.r_min = 0.0*mm; lb.r_max = 0.0*mm; lb.length = 0.0*mm;
-  lb.x_len = 12.7*mm; lb.y_len = 38.1*mm; lb.z_len = 114.3*mm;
+  lb.x_len = plate_width; lb.y_len = 38.1*mm; lb.z_len = 114.3*mm;
   lb.startTheta = 0.0*deg; lb.dTheta = 0.0*deg; 
   lb.startPhi = 0.0*deg; lb.dPhi = 0.0*deg;
   lb.x = 0.0*mm; lb.y = -158.3*mm; lb.z = 314.2*mm;
@@ -4447,7 +5029,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
   partParameters_t aau;  
   aau.name = "ladder_ang_above_up"; aau.shape = "box";
   aau.r_tor = 0.0*mm; aau.r_min = 0.0*mm; aau.r_max = 0.0*mm; aau.length = 0.0*mm;
-  aau.x_len = 12.7*mm; aau.y_len = 38.1*mm; aau.z_len = 240.0*mm;
+  aau.x_len = plate_width; aau.y_len = 38.1*mm; aau.z_len = 240.0*mm;
   aau.startTheta = 0.0*deg; aau.dTheta = 0.0*deg; 
   aau.startPhi = 0.0*deg; aau.dPhi = 0.0*deg;
   aau.x = 0.0*mm; aau.y = 150.0*mm; aau.z = 70.4*mm;
@@ -4462,7 +5044,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
   partParameters_t aad;
   aad.name = "ladder_ang_above_dn"; aad.shape = "box";
   aad.r_tor = 0.0*mm; aad.r_min = 0.0*mm; aad.r_max = 0.0*mm; aad.length = 0.0*mm;
-  aad.x_len = 12.7*mm; aad.y_len = 38.1*mm; aad.z_len = 280.0*mm;
+  aad.x_len = plate_width; aad.y_len = 38.1*mm; aad.z_len = 280.0*mm;
   aad.startTheta = 0.0*deg; aad.dTheta = 0.0*deg; 
   aad.startPhi = 0.0*deg; aad.dPhi = 0.0*deg;
   aad.x = 0.0*mm; aad.y = 150.0*mm; aad.z = 600.0*mm;
@@ -4478,7 +5060,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
   partParameters_t abu;
   abu.name = "ladder_ang_below_up"; abu.shape = "box";
   abu.r_tor = 0.0*mm; abu.r_min = 0.0*mm; abu.r_max = 0.0*mm; abu.length = 0.0*mm;
-  abu.x_len = 12.7*mm; abu.y_len = 38.1*mm; abu.z_len = 282.0*mm;
+  abu.x_len = plate_width; abu.y_len = 38.1*mm; abu.z_len = 282.0*mm;
   abu.startTheta = 0.0*deg; abu.dTheta = 0.0*deg;
   abu.startPhi = 0.0*deg; abu.dPhi = 0.0*deg;
   abu.x = 0.0*mm; abu.y = -125.0*mm; abu.z = 131.0*mm;
@@ -4493,7 +5075,7 @@ void G4SBSTargetBuilder::BuildGEnTarget_LadderPlate(G4LogicalVolume *motherLog){
   partParameters_t abd; 
   abd.name = "ladder_ang_below_dn"; abd.shape = "box";
   abd.r_tor = 0.0*mm; abd.r_min = 0.0*mm; abd.r_max = 0.0*mm; abd.length = 0.0*mm;
-  abd.x_len = 12.7*mm; abd.y_len = 38.1*mm; abd.z_len = 350.0*mm;
+  abd.x_len = plate_width; abd.y_len = 38.1*mm; abd.z_len = 350.0*mm;
   abd.startTheta = 0.0*deg; abd.dTheta = 0.0*deg;
   abd.startPhi = 0.0*deg; abd.dPhi = 0.0*deg;
   abd.x = 0.0*mm; abd.y = -125.0*mm; abd.z = 540.0*mm;
@@ -5348,7 +5930,7 @@ void G4SBSTargetBuilder::BuildHadronFilter( G4LogicalVolume *mother, G4RotationM
   //This should be the union of a box and a trapezoid.
   G4double inch = 2.54*cm;
   G4double boxlen = 4.45*inch;
-  G4double boxheight = 7.75*inch;
+  G4double boxheight = 3.0*inch;
   G4double boxthick = fHadronFilterThick;
 
   G4double traplen = 29.62*inch - boxlen;
@@ -5357,18 +5939,32 @@ void G4SBSTargetBuilder::BuildHadronFilter( G4LogicalVolume *mother, G4RotationM
   G4double trapheight2 = 4.00*inch;
 
   //in the GEP scattering chamber this will have some complicated rotations, but let's assume the length is along z, the height is along y, and the thickness is along x:
+
+  if( fDetCon->fExpType != G4SBS::kGEp ){
+    G4Box *HadronFilter_box = new G4Box( "HadronFilter_box", boxthick/2.0, boxheight/2.0, boxlen/2.0 );
+
+    G4Trd *HadronFilter_trap = new G4Trd( "HadronFilter_trap", trapthick/2.0, trapthick/2.0, trapheight1/2.0, trapheight2/2.0, traplen/2.0 );
+
+    G4RotationMatrix *rot_trap_box = new G4RotationMatrix; //Identity:
+
+    G4ThreeVector offset( 0, 0, (boxlen + traplen)/2.0 );
   
-  G4Box *HadronFilter_box = new G4Box( "HadronFilter_box", boxthick/2.0, boxheight/2.0, boxlen/2.0 );
+    G4UnionSolid *HadronFilter_Solid = new G4UnionSolid( "HadronFilter_Solid", HadronFilter_box, HadronFilter_trap, rot_trap_box, offset );
 
-  G4Trd *HadronFilter_trap = new G4Trd( "HadronFilter_trap", trapthick/2.0, trapthick/2.0, trapheight1/2.0, trapheight2/2.0, traplen/2.0 );
+    G4LogicalVolume *HadronFilter_log = new G4LogicalVolume( HadronFilter_Solid, GetMaterial(fHadronFilterMaterial), "HadronFilter_log" );
 
-  G4RotationMatrix *rot_trap_box = new G4RotationMatrix; //Identity:
+    new G4PVPlacement( rot, pos, HadronFilter_log, "HadronFilter_phys", mother, false, 0 );
+  } else { //just make a box:
+    boxlen = 29.62*inch;
+    boxheight = 8.0*inch;
 
-  G4ThreeVector offset( 0, 0, (boxlen + traplen)/2.0 );
-  
-  G4UnionSolid *HadronFilter_Solid = new G4UnionSolid( "HadronFilter_Solid", HadronFilter_box, HadronFilter_trap, rot_trap_box, offset );
+    G4Box *HadronFilter_box = new G4Box( "HadronFilter_box", boxthick/2.0, boxheight/2.0, boxlen/2.0 );
 
-  G4LogicalVolume *HadronFilter_log = new G4LogicalVolume( HadronFilter_Solid, GetMaterial(fHadronFilterMaterial), "HadronFilter_log" );
+    G4LogicalVolume *HadronFilter_log = new G4LogicalVolume( HadronFilter_box, GetMaterial(fHadronFilterMaterial), "HadronFilter_log" );
 
-  new G4PVPlacement( rot, pos, HadronFilter_log, "HadronFilter_phys", mother, false, 0 );
+    new G4PVPlacement( rot, pos, HadronFilter_log, "HadronFilter_phys", mother, false, 0 );
+    
+  }
 }
+
+//void G4SBSTargetBuilder::BuildHadronFilterGEp( 

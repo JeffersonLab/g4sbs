@@ -85,24 +85,20 @@ namespace G4SBS {
 // //   // sensitive detector type  
 // //   enum SDet_t   { kGEM, kCAL, kRICH, kECAL, kBD, kIC, kTarget_GEn_Glass, kTarget_GEn_Al, kTarget_GEn_Cu, kTarget_GEn_3He }; 
   
-// //   // switches for GEn
-// //   // Helmholtz coils or shielding 
-// //   // - 146  => Q2 = 1.46  (GeV/c)^2  
-// //   // - 368  => Q2 = 3.68  (GeV/c)^2  
-// //   // - 677  => Q2 = 6.77  (GeV/c)^2  
-// //   // - 1018 => Q2 = 10.18 (GeV/c)^2
-// //   // for shielding only:  
-// //   // - full => full window cut (remove panel 1, 2, 3, and door) 
-// //   // - new  => new design from Bert Metzger (6/2020)  
-// //   enum GEnConfig_t {
-// //     kGEN_146   = 146,
-// //     kGEN_368   = 368,
-// //     kGEN_677   = 677,
-// //     kGEN_1018  = 1018,
-// //     kGEN_full  = 5,
-// //     kGEN_new   = 6
-// //   };
-// // // // 11a33984f47772444ffb08222f8a978d2bee837e
+  // switches for GEn
+  // Helmholtz coils or shielding 
+  // - 146  => Q2 = 1.46  (GeV/c)^2  
+  // - 368  => Q2 = 3.68  (GeV/c)^2  
+  // - 677  => Q2 = 6.77  (GeV/c)^2  
+  // - 1018 => Q2 = 10.18 (GeV/c)^2
+  // for shielding only:  
+  // - full => full window cut (remove panel 1, 2, 3, and door) 
+  // - new  => new design from Bert Metzger (6/2020)  
+  enum GEnConfig_t {
+    kGEN_300   = 300,
+    kGEN_683   = 683,
+    kGEN_982   = 982
+  };
 
 }
 

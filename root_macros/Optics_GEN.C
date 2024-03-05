@@ -40,7 +40,7 @@ const double PI = TMath::Pi();
 
 //Optics fit code for GMN/GEN-RP
 
-void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX=1000000, double BBscale=0.97){
+void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX=1000000, double BBscale=0.97, int downbend=0){
   
   
   ifstream inputfile(inputfilename);
@@ -86,6 +86,8 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
   
   double A_pth1 = 0.28615*BBscale;
   double B_pth1 = 0.1976 + 0.4764 * 1.55;
+
+  
   
   while( (chEl=(TChainElement*)next() )){
     TFile newfile(chEl->GetTitle());
@@ -123,6 +125,11 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
     if( !currentline.BeginsWith("#") ){
       global_cut += currentline.Data();
     }
+  }
+
+  if( downbend != 0 ){
+    A_pth1 = 0.2885 * BBscale/0.9644;
+    B_pth1 = 0.994; //to be refined later
   }
   
   TEventList *elist = new TEventList("elist");
@@ -337,6 +344,11 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	theta0 = BBang_file[fname]; //on beam left:
 	R0 = BBdist_file[fname];
 	B_pth1 = 0.1976 + 0.4764*R0;
+	if( downbend != 0 ){
+	  A_pth1 = 0.2885 * BBscale/0.9644;
+	  B_pth1 = 0.994; //to be refined later
+	}
+	
       } else if( arm == 1 ){ //SBS:
 	theta0 = SBSang_file[fname]; //on beam right
 	R0 = SBSdist_file[fname];

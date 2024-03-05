@@ -131,6 +131,7 @@ private:
   G4UIcmdWithADoubleAndUnit *hcaldistCmd;
   G4UIcmdWithADoubleAndUnit *hcalvoffsetCmd;
   G4UIcmdWithADoubleAndUnit *hcalhoffsetCmd;
+  G4UIcmdWithADoubleAndUnit *hcalangoffsetCmd;
 
   G4UIcmdWithABool *CDetReadyCmd;   //Cerenkov
 

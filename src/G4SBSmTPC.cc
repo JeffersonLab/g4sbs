@@ -110,7 +110,7 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
   // make a mother shell for mtpc filled with the drift gas
   G4Tubs* mTPCmother_solid = 
     new G4Tubs("mTPCmother_solid", 
-	       fDetCon->fTargetBuilder->GetTargDiameter(),
+	       fDetCon->fTargetBuilder->GetTargDiameter()/2,
 	       fmTPC_outelectrode_r, 
 	       mTPC_z_total/2.0, 
 	       0.*deg, 

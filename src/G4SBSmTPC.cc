@@ -144,7 +144,7 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
 
   G4Tubs* mInnerGas_solid = 
     new G4Tubs("mInnerGas_solid", 
-	       fDetCon->fTargetBuilder->GetTargDiameter(),
+	       fDetCon->fTargetBuilder->GetTargDiameter()/2,
 	       fmTPC_inelectrode_r, 
 	       mTPC_z_total/2.0, 
 	       0.*deg, 

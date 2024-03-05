@@ -2098,8 +2098,8 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
 
   new G4PVPlacement(0,G4ThreeVector(0,0,+Zbli-fBmClen2),LColli2, "PColli2",LBlinI,0,0, fChkOvLaps);
   new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, +Zbli-BeWindowThickness/2.), BeWindow_log, "BeWindow_phys0", LBlinI, false,0, fChkOvLaps);  
-  new G4PVPlacement(0,G4ThreeVector(0,0,-(fZrtpc+Zbli)),LBlinO,"PBlU",//TPCBfield_log,0,0, fChkOvLaps);
-		    worldlog,0,0, fChkOvLaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,-(fZrtpc+Zbli)),LBlinO,"PBlU",TPCBfield_log,0,0, fChkOvLaps);
+  //worldlog,0,0, fChkOvLaps);
 
   
   //
@@ -2118,8 +2118,8 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   //G4double zz = fShZO + fZbl;
   G4double zz = fZrtpc + Zble;
   for(G4int ibl=0; ibl<nbl; ibl+=3){
-    G4LogicalVolume* lbf = worldlog;
-    //G4LogicalVolume* lbf = TPCBfield_log;
+    //G4LogicalVolume* lbf = worldlog;
+    G4LogicalVolume* lbf = TPCBfield_log;
     //if(ibl==3)lbf = worldlog;
     G4cout << " ibl = "<< ibl << ", zz = " << zz <<  " zz+Zble-fTbl =  " << zz+Zble-fTbl << G4endl;
     //if(ibl >= nbl/2) lbf = fMaw;

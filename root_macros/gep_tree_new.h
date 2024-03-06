@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Mon Jan 23 13:37:53 2023 by ROOT version 6.26/06
+// Fri Apr 21 23:36:10 2023 by ROOT version 6.26/04
 // from TTree T/Geant4 SBS Simulation
-// found on file: gep_12GeV2_elastic_option2.root
+// found on file: GEP3_elastic.root
 //////////////////////////////////////////////////////////
 
 #ifndef gep_tree_new_h
@@ -13,8 +13,8 @@
 #include <TFile.h>
 
 // Header file for the classes stored in the TTree if any.
-#include "c++/v1/vector"
-#include "c++/v1/vector"
+#include "vector"
+#include "vector"
 
 class gep_tree_new {
 public :
@@ -352,6 +352,7 @@ public :
    vector<int>     *OTrack_TID;
    vector<int>     *OTrack_MID;
    vector<int>     *OTrack_PID;
+   vector<int>     *OTrack_MPID;
    vector<double>  *OTrack_posx;
    vector<double>  *OTrack_posy;
    vector<double>  *OTrack_posz;
@@ -381,6 +382,7 @@ public :
    vector<int>     *SDTrack_TID;
    vector<int>     *SDTrack_MID;
    vector<int>     *SDTrack_PID;
+   vector<int>     *SDTrack_MPID;
    vector<double>  *SDTrack_posx;
    vector<double>  *SDTrack_posy;
    vector<double>  *SDTrack_posz;
@@ -682,6 +684,7 @@ public :
    TBranch        *b_OTrack_TID;   //!
    TBranch        *b_OTrack_MID;   //!
    TBranch        *b_OTrack_PID;   //!
+   TBranch        *b_OTrack_MPID;   //!
    TBranch        *b_OTrack_posx;   //!
    TBranch        *b_OTrack_posy;   //!
    TBranch        *b_OTrack_posz;   //!
@@ -711,6 +714,7 @@ public :
    TBranch        *b_SDTrack_TID;   //!
    TBranch        *b_SDTrack_MID;   //!
    TBranch        *b_SDTrack_PID;   //!
+   TBranch        *b_SDTrack_MPID;   //!
    TBranch        *b_SDTrack_posx;   //!
    TBranch        *b_SDTrack_posy;   //!
    TBranch        *b_SDTrack_posz;   //!
@@ -749,9 +753,9 @@ gep_tree_new::gep_tree_new(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("gep_12GeV2_elastic_option2.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("GEP3_elastic.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("gep_12GeV2_elastic_option2.root");
+         f = new TFile("GEP3_elastic.root");
       }
       f->GetObject("T",tree);
 
@@ -1056,6 +1060,7 @@ void gep_tree_new::Init(TTree *tree)
    OTrack_TID = 0;
    OTrack_MID = 0;
    OTrack_PID = 0;
+   OTrack_MPID = 0;
    OTrack_posx = 0;
    OTrack_posy = 0;
    OTrack_posz = 0;
@@ -1083,6 +1088,7 @@ void gep_tree_new::Init(TTree *tree)
    SDTrack_TID = 0;
    SDTrack_MID = 0;
    SDTrack_PID = 0;
+   SDTrack_MPID = 0;
    SDTrack_posx = 0;
    SDTrack_posy = 0;
    SDTrack_posz = 0;
@@ -1388,6 +1394,7 @@ void gep_tree_new::Init(TTree *tree)
    fChain->SetBranchAddress("OTrack.TID", &OTrack_TID, &b_OTrack_TID);
    fChain->SetBranchAddress("OTrack.MID", &OTrack_MID, &b_OTrack_MID);
    fChain->SetBranchAddress("OTrack.PID", &OTrack_PID, &b_OTrack_PID);
+   fChain->SetBranchAddress("OTrack.MPID", &OTrack_MPID, &b_OTrack_MPID);
    fChain->SetBranchAddress("OTrack.posx", &OTrack_posx, &b_OTrack_posx);
    fChain->SetBranchAddress("OTrack.posy", &OTrack_posy, &b_OTrack_posy);
    fChain->SetBranchAddress("OTrack.posz", &OTrack_posz, &b_OTrack_posz);
@@ -1417,6 +1424,7 @@ void gep_tree_new::Init(TTree *tree)
    fChain->SetBranchAddress("SDTrack.TID", &SDTrack_TID, &b_SDTrack_TID);
    fChain->SetBranchAddress("SDTrack.MID", &SDTrack_MID, &b_SDTrack_MID);
    fChain->SetBranchAddress("SDTrack.PID", &SDTrack_PID, &b_SDTrack_PID);
+   fChain->SetBranchAddress("SDTrack.MPID", &SDTrack_MPID, &b_SDTrack_MPID);
    fChain->SetBranchAddress("SDTrack.posx", &SDTrack_posx, &b_SDTrack_posx);
    fChain->SetBranchAddress("SDTrack.posy", &SDTrack_posy, &b_SDTrack_posy);
    fChain->SetBranchAddress("SDTrack.posz", &SDTrack_posz, &b_SDTrack_posz);

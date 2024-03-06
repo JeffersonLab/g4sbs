@@ -60,6 +60,7 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fLACdist   = 14.0*m;
   fHCALvertical_offset = 0.0*cm;
   fHCALhorizontal_offset = 0.0*cm;
+  fHCALangular_offset = 0.0*deg;
 
   fLACvertical_offset = 0.0*cm;
   fLAChorizontal_offset = 0.0*cm;
@@ -1217,13 +1218,13 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
 
   // Specify the distance from entrance to HCAL to center of target
   G4double dist_HCalRadius = fHCALdist + dim_HCALZ/2.0;
-  G4double dist_HCALX = -dist_HCalRadius*sin(f48D48ang);
+  G4double dist_HCALX = -dist_HCalRadius*sin(f48D48ang+fHCALangular_offset);
   G4double dist_HCALY = VerticalOffset;
-  G4double dist_HCALZ = dist_HCalRadius*cos(f48D48ang);
+  G4double dist_HCALZ = dist_HCalRadius*cos(f48D48ang+fHCALangular_offset);
 
   // Specify the rotation matrix for this HCAL
   G4RotationMatrix *rot_HCAL= new G4RotationMatrix;
-  rot_HCAL->rotateY(f48D48ang);
+  rot_HCAL->rotateY(f48D48ang+fHCALangular_offset);
 
   // Define the solid for the module container and "CAN"
   G4Box *sol_Module = new G4Box("sol_Module",

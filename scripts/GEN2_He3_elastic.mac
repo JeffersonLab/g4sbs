@@ -4,7 +4,7 @@
 /g4sbs/exp             gen
 
 ## Configure the target
-/g4sbs/target          H2
+/g4sbs/target          3He
 /g4sbs/targpres        10 atmosphere     ## Target pressure
 /g4sbs/targlen         60.0 cm           ## Target Length
 /g4sbs/targgenhhconfig 300               ## HH coil position
@@ -53,5 +53,4 @@
 /g4sbs/totalabs false
 
 #/g4sbs/buildBBsieve 1
-
 

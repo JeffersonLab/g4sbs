@@ -1,13 +1,13 @@
-## Configure G4SBS for gen (Q^2 = 3.0 GeV^2)
+## Configure G4SBS for gen (Q^2 = 6.83 GeV^2)
 
 ## Configure Experiment
 /g4sbs/exp             gen
 
 ## Configure the target
-/g4sbs/target          H2
+/g4sbs/target          3He
 /g4sbs/targpres        10 atmosphere     ## Target pressure
 /g4sbs/targlen         60.0 cm           ## Target Length
-/g4sbs/targgenhhconfig 300               ## HH coil position
+/g4sbs/targgenhhconfig 683               ## HH coil position
 /g4sbs/targgenDRX      0 deg             ## target angular misalignment about x axis  
 /g4sbs/targgenDRY      0 deg             ## target angular misalignment about y axis
 /g4sbs/targgenDRZ      0 deg             ## target angular misalignment about z axis
@@ -22,9 +22,9 @@
 /g4sbs/beamspotsize    0.5 mm
 /g4sbs/beamoffsetx     0.0 mm
 /g4sbs/beamoffsety     0.0 mm
-/g4sbs/beamE           4.291 GeV
-/g4sbs/thmin           19.0 deg
-/g4sbs/thmax           39.0 deg
+/g4sbs/beamE           6.373 GeV
+/g4sbs/thmin           26.0 deg
+/g4sbs/thmax           46.0 deg
 /g4sbs/phmin          -30.0 deg
 /g4sbs/phmax           30.0 deg
 
@@ -34,14 +34,14 @@
 
 ## Configure the magnets
 /g4sbs/bbfield         1
-/g4sbs/scalebbfield    0.905
+/g4sbs/scalebbfield    0.97
 #/g4sbs/48d48field      1
-#/g4sbs/sbsmagfield     0.82 T
+#/g4sbs/sbsmagfield     1.02 T
 /g4sbs/tosfield        SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
-/g4sbs/scalesbsfield   0.88
-/g4sbs/bbang           29.5 deg
-/g4sbs/bbdist          1.63 m
-/g4sbs/sbsang          34.7 deg
+/g4sbs/scalesbsfield   0.98
+/g4sbs/bbang           36.5 deg
+/g4sbs/bbdist          1.625 m
+/g4sbs/sbsang          22.1 deg
 /g4sbs/48D48dist       2.8 m
 
 ## Optional detectors 
@@ -53,5 +53,4 @@
 /g4sbs/totalabs false
 
 #/g4sbs/buildBBsieve 1
-
 

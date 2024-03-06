@@ -1,61 +1,44 @@
-## Configure G4SBS for gen (Q^2 = 10.18 GeV^2)
-/g4sbs/filename        GEN3_test.root   ## Output rootfile
+## Configure G4SBS for gen (Q^2 = 6.83 GeV^2)
 
 ## Configure Experiment
 /g4sbs/exp             gen
 
 ## Configure the target
-#/g4sbs/target          3He
-/g4sbs/target 		H2
+/g4sbs/target          H2
 /g4sbs/targpres        10 atmosphere     ## Target pressure
 /g4sbs/targlen         60.0 cm           ## Target Length
-
-/g4sbs/targgenhhconfig 677              ## Q2 = 10.18 GeV^2
+/g4sbs/targgenhhconfig 683               ## HH coil position
 /g4sbs/targgenDRX      0 deg             ## target angular misalignment about x axis  
 /g4sbs/targgenDRY      0 deg             ## target angular misalignment about y axis
-/g4sbs/targgenDRZ      0 deg             ## target angular misalignment about z axis 
-/g4sbs/targgenSDEnable false
-/g4sbs/ionChamberEnable false
-/g4sbs/targgenColEnable false
-/g4sbs/beamDiffuserEnable false
+/g4sbs/targgenDRZ      0 deg             ## target angular misalignment about z axis
+/g4sbs/targgenColEnable true
+/g4sbs/usehadronfilter true
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator
-#/g4sbs/kine 		gun
-/g4sbs/particle 	e-
-/g4sbs/runtime         1.0 s
+/g4sbs/runtime         0.1 s
 /g4sbs/beamcur         60.0 muA
 /g4sbs/rasterR         2.5 mm
 /g4sbs/beamspotsize    0.5 mm
+/g4sbs/beamoffsetx     0.0 mm
+/g4sbs/beamoffsety     0.0 mm
 /g4sbs/beamE           6.373 GeV
-# "standard" angle and energy generation limits for BB: 
-/g4sbs/thmin           30.5 deg
-/g4sbs/thmax           44.5 deg
-/g4sbs/phmin          -24.0 deg
-/g4sbs/phmax           24.0 deg
-# energy limits for inelastic generator:
-/g4sbs/eemin 	       0.8 GeV
-/g4sbs/eemax	       3.5 GeV
-# "standard" angle and energy generation limits for SBS:
-/g4sbs/hthmin 	       18.0 deg
-/g4sbs/hthmax 	       27.0 deg
-/g4sbs/hphmin 	       155.0 deg
-/g4sbs/hphmax 	       210.0 deg
-/g4sbs/ehmin 	       0.5 GeV
-/g4sbs/ehmax 	       6.3 GeV
-
+/g4sbs/thmin           26.0 deg
+/g4sbs/thmax           46.0 deg
+/g4sbs/phmin          -30.0 deg
+/g4sbs/phmax           30.0 deg
 
 ## Configure standard detector settings
 /g4sbs/hcaldist        17.0 m
-/g4sbs/hcalvoffset     0.75 m
-/g4sbs/hcalhoffset     0.15 m # horizontal offset toward beam left reflecting smaller angle
+/g4sbs/hcalvoffset     0.0 m
 
 ## Configure the magnets
 /g4sbs/bbfield         1
 /g4sbs/scalebbfield    0.97
-/g4sbs/48d48field      1
-# Note: SBS maximum field in GEN corresponds to 1.58 T*m or 1.3 T uniform field
-/g4sbs/sbsmagfield     1.3 T
+#/g4sbs/48d48field      1
+#/g4sbs/sbsmagfield     1.02 T
+/g4sbs/tosfield        SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+/g4sbs/scalesbsfield   0.82
 /g4sbs/bbang           36.5 deg
 /g4sbs/bbdist          1.625 m
 /g4sbs/sbsang          22.1 deg
@@ -63,18 +46,13 @@
 
 ## Optional detectors 
 /g4sbs/beamDumpEnable true
-/g4sbs/beamDiffuserEnable false 
+/g4sbs/beamDiffuserEnable false
 /g4sbs/uselead 0
 
 /g4sbs/keepsdtrackinfo all true
-/g4sbs/totalabs true
-/g4sbs/eventstatusevery 100
+/g4sbs/totalabs false
 
 #/g4sbs/buildBBsieve 1
-
-## Run 100 events
-#/g4sbs/run             20000
-
 
 
 

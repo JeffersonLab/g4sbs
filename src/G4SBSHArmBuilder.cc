@@ -4702,7 +4702,8 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
 	fDetCon->InsertSDboundaryVolume( prscintbslog->GetName(), PRPolScintBSSDname );
       }
       prbarbslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
-      prbarbslog->SetSensitiveDetector( PRPolScintBSSD ); 
+      // EPAF 2024/01/22: scint beam side will not be present in experiment after all 
+      //prbarbslog->SetSensitiveDetector( PRPolScintBSSD ); 
       
       // SD detectors indexed from bottom to top
       for(int i = 0; i < nprbars; i++) {

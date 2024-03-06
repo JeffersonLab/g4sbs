@@ -4620,7 +4620,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   // -----------------------------------------------------------------------
   // beamline side gem detectors
-
+  
   G4RotationMatrix* rot_bs  = new G4RotationMatrix;
   rot_bs->rotateY( 90.0 *deg );
   
@@ -4632,7 +4632,8 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
       gemw[j] = 60.0*cm;
       gemh[j] = 200.0*cm;
     }
-    trackerbuilder.BuildComponent( sbslog, rot_bs, prgem_posbs, 2, gemz, gemw, gemh, G4String("Harm/PRPolGEMBeamSide"));
+    // EPAF 2024/01/22: GEM beam side will not be present in experiment after all 
+    //trackerbuilder.BuildComponent( sbslog, rot_bs, prgem_posbs, 2, gemz, gemw, gemh, G4String("Harm/PRPolGEMBeamSide"));
   }
 
   // -----------------------------------------------------------------------
@@ -4705,7 +4706,8 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
       // SD detectors indexed from bottom to top
       for(int i = 0; i < nprbars; i++) {
 	double ybar = (((double)(i-nprbars/2.0) * prbarheight) + prbarheight/2.0);
-	new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarbslog, "prbarbsphys", prscintbslog, false, i );
+	// EPAF 2024/01/22: scint beam side will not be present in experiment after all 
+	//new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarbslog, "prbarbsphys", prscintbslog, false, i );
       }
     }
     

@@ -1143,9 +1143,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == kineCmd ){
     bool validcmd = false;
-
-    G4SBS::Kine_t kinetemp = G4SBS::kElastic;
     
+    G4SBS::Kine_t kinetemp = G4SBS::kElastic;
     if( newValue.compareTo("elastic") == 0 ){
       kinetemp = G4SBS::kElastic;
       // fevgen->SetKine(G4SBS::kElastic);
@@ -1166,6 +1165,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("dis") == 0 ){
+      kinetemp = G4SBS::kDIS;
       fevgen->SetKine(G4SBS::kDIS);
       //fevgen->SetMaxWeight( cm2/GeV );
       validcmd = true;
@@ -1235,7 +1235,6 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fIO->SetKine(kinetemp); //This is necessary because G4SBSIO and G4SBSEventGen cannot directly talk to each other
       G4SBSRun::GetRun()->GetData()->SetGenName(newValue.data());
     }
-
     //After any change of kinematics, set this flag to false so that rejection sampling will be re-initialized:
     fevgen->SetInitialized(false);
   }

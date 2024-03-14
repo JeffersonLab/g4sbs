@@ -830,7 +830,9 @@ void G4SBSIO::BranchSIMC(){
   fTree->Branch("simc.vx",&(SIMCprimaries.vx),"simc.vx/D");
   fTree->Branch("simc.vy",&(SIMCprimaries.vy),"simc.vy/D");
   fTree->Branch("simc.vz",&(SIMCprimaries.vz),"simc.vz/D");
-  
+
+  fTree->Branch("simc.veE",&(SIMCprimaries.veE),"simc.veE/D");
+  fTree->Branch("simc.vetheta",&(SIMCprimaries.vetheta),"simc.vetheta/D");
 }
 
 void G4SBSIO::UpdateGenDataFromDetCon(){ //Go with whatever is in fdetcon as of run start for constant parameters of the run describing detector layout:

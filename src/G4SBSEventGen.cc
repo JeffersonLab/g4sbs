@@ -2548,6 +2548,9 @@ bool G4SBSEventGen::GenerateSIMC(){
   fSIMCEvent.epsilon = fSIMCTree->epsilon;
   
   fSIMCEvent.Ebeam = fSIMCTree->ebeam/MeV;
+  //scattered e- kinematics at vertex
+  fSIMCEvent.veE = fSIMCTree->veE/1E3; //GeV
+  fSIMCEvent.vetheta = fSIMCTree->vetheta;
   
   fSIMCEvent.p_e = fSIMCTree->p_e;
   fSIMCEvent.theta_e = fSIMCTree->th_e;

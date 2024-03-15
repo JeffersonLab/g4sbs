@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Wed May 10 13:47:40 2023 by ROOT version 6.20/04
+// Thu Mar 14 14:52:38 2024 by ROOT version 6.26/10
 // from TTree h10/h10
-// found on file: example_deen_GMn_SBS4.root
+// found on file: 0p733sf_sbs7_sbs85p_simc_deep.root
 //////////////////////////////////////////////////////////
 
 #ifndef simc_tree_h
@@ -82,6 +82,10 @@ public :
    Float_t         vyi;
    Float_t         vzi;
    Float_t         ebeam;
+   Float_t         veE;
+   Float_t         vetheta;
+   Float_t         vQ2;
+   Float_t         vnu;
 
    // List of branches
    TBranch        *b_hsdelta;   //!
@@ -144,6 +148,10 @@ public :
    TBranch        *b_vyi;   //!
    TBranch        *b_vzi;   //!
    TBranch        *b_ebeam;   //!
+   TBranch        *b_veE;   //!
+   TBranch        *b_vetheta;   //!
+   TBranch        *b_vQ2;   //!
+   TBranch        *b_vnu;   //!
 
    simc_tree(TTree *tree=0);
    virtual ~simc_tree();
@@ -164,9 +172,9 @@ simc_tree::simc_tree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("example_deen_GMn_SBS4.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("0p733sf_sbs7_sbs85p_simc_deep.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("example_deen_GMn_SBS4.root");
+         f = new TFile("0p733sf_sbs7_sbs85p_simc_deep.root");
       }
       f->GetObject("h10",tree);
 
@@ -275,6 +283,10 @@ void simc_tree::Init(TTree *tree)
    fChain->SetBranchAddress("vyi", &vyi, &b_vyi);
    fChain->SetBranchAddress("vzi", &vzi, &b_vzi);
    fChain->SetBranchAddress("ebeam", &ebeam, &b_ebeam);
+   fChain->SetBranchAddress("veE", &veE, &b_veE);
+   fChain->SetBranchAddress("vetheta", &vetheta, &b_vetheta);
+   fChain->SetBranchAddress("vQ2", &vQ2, &b_vQ2);
+   fChain->SetBranchAddress("vnu", &vnu, &b_vnu);
    Notify();
 }
 

@@ -24,6 +24,7 @@ public:
   double p_e, theta_e, phi_e, px_e, py_e, pz_e;
   double p_n, theta_n, phi_n, px_n, py_n, pz_n;
   double vx, vy, vz;
+  double veE, vetheta; //scattered e- kinematics at vertex
 };
 
 #endif

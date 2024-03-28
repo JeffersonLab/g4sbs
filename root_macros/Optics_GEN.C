@@ -53,6 +53,11 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
   opticsfilename.ReplaceAll(".root",".txt");  
   ofstream opticsfile(opticsfilename);
 
+  TString TOFfilename = outputfilename;
+  TOFfilename.ReplaceAll(".root",".dat");
+  TOFfilename.Prepend("TOF_");
+  ofstream TOFfile(TOFfilename);
+  
   opticsfilename.Prepend("foptics_");
   ofstream fopticsfile(opticsfilename);
   
@@ -87,7 +92,7 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
   double A_pth1 = 0.28615*BBscale;
   double B_pth1 = 0.1976 + 0.4764 * 1.55;
 
-  
+  double BBdist_default = 1.63;
   
   while( (chEl=(TChainElement*)next() )){
     TFile newfile(chEl->GetTitle());
@@ -109,6 +114,8 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
       cout << "BigBite distance = " << BBdist_file[chEl->GetTitle()] << " meters" << endl;
       cout << "SBS theta = " << SBSang_file[chEl->GetTitle()]*180.0/PI << " degrees" << endl;
       cout << "SBS distance = " << SBSdist_file[chEl->GetTitle()] << " meters" << endl;
+
+      BBdist_default = rd->fBBdist;
       
     } else {
       bad_file_list.insert( chEl->GetTitle());
@@ -185,6 +192,8 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 
   double dsieve=1.18; //m
   inputfile >> dsieve;
+
+  
   
   fout->cd();
   
@@ -279,6 +288,8 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
   TH2D *hyfp_recon_vs_true_foptics = new TH2D("hyfp_recon_vs_true_foptics","",250,-0.25,0.25,250,-0.25,0.25);
   TH2D *hxpfp_recon_vs_true_foptics = new TH2D("hxpfp_recon_vs_true_foptics","",250,-0.4,0.4,250,-0.4,0.4);
   TH2D *hypfp_recon_vs_true_foptics = new TH2D("hypfp_recon_vs_true_foptics","",250,-0.1,0.1,250,-0.1,0.1);
+
+  
   
   int nparams = 0;
 
@@ -309,11 +320,19 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
   TMatrixD M(nparams,nparams), Mforward(nparams,nparams);
   TVectorD b_xptar(nparams), b_yptar(nparams), b_ytar(nparams), b_pinv(nparams);
   TVectorD b_xfp(nparams), b_yfp(nparams), b_xpfp(nparams), b_ypfp(nparams);
+
+  //Set up equations for electron time-of-flight (really path length)
+  TMatrixD M_etof(nparams,nparams); //technically we don't need another M for etof it is the same as for the optics (we're just adding another "b").
+  TVectorD b_etof(nparams);
+  //What is our expansion formalism for electron TOF in BigBite?
+  //Should we expand in terms of target variables or focal plane variables?
+  //We want etof = t0avg + \sum_{i,j,k,l,m=1}^i+j+k+l+m<=order 
   
   for(int i=0; i<nparams; i++){
     for(int j=0; j<nparams; j++){
       M(i,j) = 0.0;
       Mforward(i,j) = 0.0;
+      M_etof(i,j) = 0.0;
     }
     b_xptar(i) = 0.0;
     b_yptar(i) = 0.0;
@@ -324,6 +343,8 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
     b_yfp(i) = 0.0;
     b_xpfp(i) = 0.0;
     b_ypfp(i) = 0.0;
+
+    b_etof(i) = 0.0;
   }
 
  
@@ -335,9 +356,9 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
     }
 
     TString fname = C->GetFile()->GetName();
-
+    
     if( bad_file_list.find( fname ) == bad_file_list.end() ){
-
+      
       double R0; 
       double theta0;
       if( arm == 0 ){ //BB:
@@ -356,6 +377,12 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 
       //      cout << "fname, arm, theta0 = " << fname << ", " << arm << ", " << theta0 << endl;
 
+      //Electron time-of-flight (to hodoscope):
+      //In g4sbs, the hodo is about 3 meters downstream of the magnet:
+      //Don't worry about SBS (yet).
+      double etof_avg_BB = (3.0 + R0) / 3.0e8*1.e9; //convert to ns. 
+      double Lpath_avg_BB = 3.0+R0;
+      
       double vx, vy, vz, px, py, pz;
       double p, xptar, yptar, ytar, xtar;
       double xfp, yfp, xpfp, ypfp;
@@ -369,6 +396,9 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
       TVector3 vertex(vx,vy,vz);
 
       bool goodtrack = false;
+      bool good_t_hodo = false;
+
+      double thodo = 0.0;
     
       if( arm == 0 ){
 	if( T->Earm_BBGEM_Track_ntracks == 1 && (*(T->Earm_BBGEM_Track_MID))[0] == 0
@@ -380,6 +410,26 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	    if( (*(T->Earm_BBGEM_hit_mid))[ihit] == 0 && (*(T->Earm_BBGEM_hit_p))[ihit] >= 0.994*T->ev_ep ){
 	      //&& (*(T->Earm_BBGEM_hit_plane))[ihit] == 1 ){
 	      goodfirsthit = true;
+	    }
+	  }
+
+	  //
+	  if( T->Earm_BBHodoScint_det_esum > 0.01 ){
+
+	    double Ehodomax = 0.0;
+	    double ihitmax_hodo = -1;
+	    for( int ihit=0; ihit<T->Earm_BBHodoScint_hit_nhits; ihit++ ){
+	      double Ehit = T->Earm_BBHodoScint_hit_sumedep->at(ihit);
+	      double thit = T->Earm_BBHodoScint_hit_tavg->at(ihit);
+
+	      if( Ehit > Ehodomax ){
+		Ehodomax = Ehit;
+		ihitmax_hodo = ihit;
+	      }
+	    }
+	    if( ihitmax_hodo >= 0 && Ehodomax > 0.01 ){
+	      good_t_hodo = true;
+	      thodo = T->Earm_BBHodoScint_hit_tavg->at(ihitmax_hodo);
 	    }
 	  }
 	  
@@ -549,6 +599,7 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	
 	vector<double> term(nparams);
 	vector<double> fterm(nparams);
+	//vector<double> tterm(nparams);
 	//      vector<double> term_y(nparams);
 	int ipar=0;
 	for(int i=0; i<=order; i++){
@@ -578,6 +629,13 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 		    b_pinv(ipar) += term[ipar]/p;
 		  }
 
+		  //initially, let's try expanding etof in terms of focal plane variables:
+		  //tterm[ipar] = term[ipar];
+
+		  if( good_t_hodo ){
+		    b_etof[ipar] += term[ipar]*(thodo-etof_avg_BB);
+		  }
+		  
 		  fterm[ipar] = pow(xptar,m)*pow(yptar,l)*pow(ytar,k)*pow(1.0/p,j)*pow(xtar,i);
 		  b_xfp[ipar] += fterm[ipar]*xfp;
 		  b_yfp[ipar] += fterm[ipar]*yfp;
@@ -596,6 +654,7 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	    //double term_ij = term[ipar]*term[jpar];
 	    M(ipar,jpar) += term[ipar]*term[jpar];
 	    Mforward(ipar,jpar) += fterm[ipar]*fterm[jpar];
+	    //
 	  }
 	}
       
@@ -616,6 +675,7 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	b_yptar(ipar) = 0.0;
 	b_ytar(ipar) = 0.0;
 	b_pinv(ipar) = 0.0;
+	b_etof(ipar) = 0.0;
 
 	Mforward(ipar,ipar) = 1.0;
 	b_xfp(ipar) = 0.0;
@@ -640,6 +700,9 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
   TDecompSVD A_yptar(M);
   cout << "Setting up SVD for ytar:" << endl;
   TDecompSVD A_ytar(M);
+
+  cout << "Setting up SVD for etof:" << endl;
+  TDecompSVD A_etof(M);
   
 
   cout << "Solving for xptar coefficients:" << endl;
@@ -654,6 +717,8 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
   cout << "Solving for 1/p coefficients:" << endl;
   bool good_pinv = A_pinv.Solve(b_pinv);
   cout << "1/p done, success = " << good_pinv << endl;
+  bool good_etof = A_etof.Solve(b_etof);
+  cout << "e^- TOF done, success = " << good_etof << endl;
 
   // Solving for forward matrix elements
   TDecompSVD A_xfp(Mforward);
@@ -673,7 +738,15 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
     opticsfile << stemp.Format("bb.B_pth1 = %15.9g",B_pth1) << endl;
     opticsfile << "bb.C_pth1 = 0.0" << endl << endl;
   }
-  
+
+  if( arm == 0 ){
+    TString stemp;
+    double etof_avg = (BBdist_default + 3.0)/3.0e8*1.e9;
+    //Write out the TOF expansion:
+    TOFfile << "# Average TOF to hodoscope based on BigBite magnet distance" << endl;
+    TOFfile << stemp.Format("bb.etof_avg = %15.9g", etof_avg) << endl << endl;
+    TOFfile << "bb.etof_parameters = " << endl;
+  }
   // Write out the backward optics file:
   // Order is: xptar, yptar, ytar, 1/p, exponents:
   opticsfile << nparams << endl;
@@ -693,9 +766,14 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	    sprintf( ccoeff, "%15.8g", b_pinv(ipar) );
 	    opticsfile << ccoeff;
 
+	    sprintf( ccoeff, "%15.8g", b_etof(ipar) );
+	    TOFfile << ccoeff;
+	    
 	    char cexpon[100];
 	    sprintf( cexpon, "  %d %d %d %d %d", m, l, k, j, i );
 	    opticsfile << cexpon << endl;
+
+	    TOFfile << cexpon << endl;
 	    
 	    ipar++;
 	  }
@@ -703,7 +781,7 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
       }
     }
   }
-
+    
   // Write out the forward optics file:
   // Order is: xfp, yfp, xpfp, ypfp, exponents:
   fopticsfile << nparams << endl;
@@ -749,9 +827,12 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
   double thetabend_fit;
   double thetabend_recon;
   double xtar_recon, xtar_fit;
+  double etof, etof_recon; 
   
   TTree *tout = new TTree("tout","BigBite or SBS optics fit results, diagnostic ROOT tree");
 
+  tout->Branch("etof",&etof);
+  tout->Branch("etof_recon",&etof_recon);
   tout->Branch("vxtrue",&vx);
   tout->Branch("vytrue",&vy);
   tout->Branch("vztrue",&vz);
@@ -812,7 +893,9 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	theta0 = SBSang_file[fname]; //on beam right
 	R0 = SBSdist_file[fname];
       }
-    
+
+      double etof_avg_BB = (3.0 + R0) / 3.0e8*1.e9; //convert to ns. 
+      
       pinv_fit = 0.0;
       pinv_recon = 0.0;
 
@@ -824,6 +907,10 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 
       bool goodtrack = false;
 
+      bool good_t_hodo = false;
+
+      double thodo = 0.0;
+
       TVector3 spec_xaxis_fp,spec_yaxis_fp, spec_zaxis_fp;
       TVector3 spec_xaxis_tgt,spec_yaxis_tgt, spec_zaxis_tgt;
       
@@ -831,6 +918,22 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	if( T->Earm_BBGEM_Track_ntracks == 1 && (*(T->Earm_BBGEM_Track_MID))[0] == 0
 	    && (*(T->Earm_BBGEM_Track_P))[0]/T->ev_ep >= 0.99 
 	    && (*(T->Earm_BBGEM_Track_Chi2fit))[0]/(*(T->Earm_BBGEM_Track_NDF))[0] <= chi2cut ){ //BB
+
+	  double Ehodomax = 0.0;
+	  double ihitmax_hodo = -1;
+	  for( int ihit=0; ihit<T->Earm_BBHodoScint_hit_nhits; ihit++ ){
+	    double Ehit = T->Earm_BBHodoScint_hit_sumedep->at(ihit);
+	    double thit = T->Earm_BBHodoScint_hit_tavg->at(ihit);
+	    
+	    if( Ehit > Ehodomax ){
+	      Ehodomax = Ehit;
+	      ihitmax_hodo = ihit;
+	    }
+	  }
+	  if( ihitmax_hodo >= 0 && Ehodomax > 0.0 ){
+	    good_t_hodo = true;
+	    thodo = T->Earm_BBHodoScint_hit_tavg->at(ihitmax_hodo);
+	  }
 	  
 	  p = T->ev_ep;
 	  px = T->ev_epx;
@@ -998,7 +1101,7 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	  xtar_fit   = -vy;
 	} 
 
-	
+	etof = thodo;
 
 	for( int iter=0; iter<niter; iter++){
 	
@@ -1020,6 +1123,8 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	  yfpforward = 0.0;
 	  xpfpforward = 0.0;
 	  ypfpforward = 0.0;	  
+
+	  etof_recon = etof_avg_BB; //start with average. The expansion is around this average
 	  
 	  ipar=0;
 	  for(int i=0; i<=order; i++){
@@ -1046,6 +1151,8 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 		    yfpforward += fterm * b_yfp(ipar);
 		    xpfpforward += fterm * b_xpfp(ipar);
 		    ypfpforward += fterm * b_ypfp(ipar);
+
+		    etof_recon += b_etof(ipar) * term;
 		    
 		    ipar++;
 		  }

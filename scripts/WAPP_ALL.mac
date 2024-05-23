@@ -1,8 +1,8 @@
 ## Configure G4SBS for genrp (Q^2 = 4.5 GeV^2)
-/g4sbs/filename        WAPP_final_job5.root	   ## Output rootfile
+/g4sbs/filename        WAPP_test.root	   ## Output rootfile
 
 ## Configure Experiment
-/g4sbs/exp             genrp
+/g4sbs/exp             gmn
 
 ## Configure the target
 /g4sbs/target          LD2
@@ -14,24 +14,24 @@
 #/g4sbs/pythia6file     Pythia_E6p6GeV_neutron.root
 #/g4sbs/hadron 	       pi0
 /g4sbs/beamcur         5 muA
-/g4sbs/beamE           6.368 GeV
+/g4sbs/beamE           6.6 GeV
 /g4sbs/thmin           37.0 deg
 /g4sbs/thmax           49.0 deg
-/g4sbs/phmin           -25 deg
-/g4sbs/phmax           25 deg
+/g4sbs/phmin           -24 deg
+/g4sbs/phmax           24 deg
 /g4sbs/hthmin           37.0 deg
 /g4sbs/hthmax           49.0 deg
 /g4sbs/hphmin           -30 deg
 /g4sbs/hphmax           30 deg
 /g4sbs/rasterx	       2.0 mm
 /g4sbs/rastery 	       2.0 mm
-/g4sbs/eemin 	       3.7 GeV
-/g4sbs/eemax	       6.368 GeV
+/g4sbs/eemin 	       4.0 GeV
+/g4sbs/eemax	       6.6 GeV
 #/g4sbs/ehmin 	       0.2 GeV
 #/g4sbs/ehmax 	       4.0 GeV
-/g4sbs/tmin 	       3.0
+/g4sbs/tmin 	       3.5
 /g4sbs/tmax 	       9.0
-/g4sbs/userad	       1
+/g4sbs/userad	       0
 /g4sbs/radthick        0.06
 /g4sbs/radz 	       10.0 cm
 # generation limits for pythia only:
@@ -49,7 +49,7 @@
 #/g4sbs/ehmax 	    6.6 GeV
 
 ## Configure standard detector settings
-/g4sbs/hcaldist        9.0 m
+/g4sbs/hcaldist        8.5 m
 /g4sbs/hcalvoffset     0.75 m
 /g4sbs/sbsclampopt     2                 ## Front and rear field clamps
 
@@ -58,25 +58,21 @@
 
 ## Configure the magnets
 /g4sbs/bbfield         1
-#/g4sbs/sbsmagfield     1.4 tesla # for + polarity (proton upbending)
+/g4sbs/sbsmagfield     1.4 tesla # for + polarity (proton upbending)
 #/g4sbs/sbsmagfield    -1.4 tesla # for - polarity (proton downbending)
-#/g4sbs/48d48field      1
-
-/g4sbs/bbang           42.5 deg
+/g4sbs/48d48field      1
+/g4sbs/bbang           41.9 deg
 /g4sbs/bbdist          1.55 m
 /g4sbs/sbsang          24.7 deg
 /g4sbs/48D48dist       2.25 m
 # Unless and until I get some documentation of the coordinate system for this field map, we will NOT be using:
 #/g4sbs/tosfield 	GEN-RP-tosca_newheader.table
 
-/g4sbs/tosfield  	GENRP_fieldmap_g4sbs_friendly_coordinate_system.table
-/g4sbs/scalesbsfield 	0.7
-
 /g4sbs/keepsdtrackinfo 	all true
 /g4sbs/totalabs 	true
-/g4sbs/cdetready 	false
+/g4sbs/cdetready 	true
 
 
 ## Run 100 events
 /g4sbs/eventstatusevery		100
-/g4sbs/run             500000
+/g4sbs/run             1000000

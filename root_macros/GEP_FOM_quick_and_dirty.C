@@ -16,6 +16,7 @@
 #include "TString.h"
 #include "TMatrixD.h"
 #include "TVectorD.h"
+#include "TRandom3.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -96,7 +97,7 @@ TF2 *Ayfunc = new TF2("Ayfunc","([0]+[1]/y)*x*exp(-[2]*pow(x,2))",0.0,2.0, 1.0,1
 TF1 *GEPfunc = new TF1("GEPfunc",KellyFunc, 0.0,40.0,4);
 TF1 *GMPfunc = new TF1("GMPfunc",KellyFunc, 0.0,40.0,4);
 
-void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename="GEP_FOM.root"){
+void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename="GEP_FOM.root", int rsampling=0, double maxweight=3.215e-34){
   ifstream configfile(configfilename);
 
   double geppar[4] = {-0.01,12.16,9.7,37.0};
@@ -106,7 +107,7 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
   GMPfunc->SetParameters(gmppar);
   
   double pTmin = 0.07;
-  double pTmax = 1.2;
+  double pTmax = 1.0;
 
   double smax_FPP1 = 0.005; //meters
   double smax_FPP2 = 0.01; //meters
@@ -244,38 +245,38 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
   
   TFile *fout = new TFile(outfilename,"RECREATE");
   
-  TH1D *hECAL_sum = new TH1D("hECAL_sum","",200,0.0,7.0);
-  TH1D *hHCAL_sum_all = new TH1D("hHCAL_sum_all","",200,0.0,1.0);
-  TH1D *hHCAL_sum_goodFPP1 = new TH1D("hHCAL_sum_goodFPP1","",200,0.0,1.0);
+  TH1D *hECAL_sum = new TH1D("hECAL_sum","ECAL;Energy deposit in Pb-glass (GeV);",200,0.0,7.0);
+  TH1D *hHCAL_sum_all = new TH1D("hHCAL_sum_all","HCAL; Energy deposit in Scintillator (GeV)",200,0.0,1.0);
+  TH1D *hHCAL_sum_goodFPP1 = new TH1D("hHCAL_sum_goodFPP1","HCAL (good FPP events); Energy deposit in scintillator (GeV);",200,0.0,1.0);
   TH1D *hHCAL_sum_goodFPP2 = new TH1D("hHCAL_sum_goodFPP2","",200,0.0,1.0);
 
   TH2D *hPvstheta_FPP1 = new TH2D("hPvstheta_FPP1","",200,0.0,15.0,200,0.0,1.0);
   TH2D *hPvstheta_FPP2 = new TH2D("hPvstheta_FPP2","",200,0.0,15.0,200,0.0,1.0);
 
-  TH1D *hQ2 = new TH1D("hQ2","",150,0.0,15.0);
-  TH1D *hepsilon = new TH1D("hepsilon","",250,0.0,1.0);
-  TH1D *hetheta = new TH1D("hethetadeg","",250,0.0,90.0);
-  TH1D *hEprime = new TH1D("hEprime","",250,0.0,11.0);
-  TH1D *hptheta = new TH1D("hpthetadeg","",250,0.0,90.0);
-  TH1D *hpp     = new TH1D("hpp","",250,0.0,11.0);
-  TH1D *hpT_FPP1     = new TH1D("hpT_FPP1","",250,0.0,2.0);
+  TH1D *hQ2 = new TH1D("hQ2","Good coincidences; Q^{2} (GeV^{2})",150,0.0,15.0);
+  TH1D *hepsilon = new TH1D("hepsilon",";#varepsilon;",250,0.0,1.0);
+  TH1D *hetheta = new TH1D("hethetadeg",";#theta_{e} (deg)",250,0.0,90.0);
+  TH1D *hEprime = new TH1D("hEprime",";E'_{e} (GeV);",250,0.0,11.0);
+  TH1D *hptheta = new TH1D("hpthetadeg",";#theta_{p} (deg)",250,0.0,90.0);
+  TH1D *hpp     = new TH1D("hpp",";p_{p} (GeV);",250,0.0,11.0);
+  TH1D *hpT_FPP1     = new TH1D("hpT_FPP1",";p_{T} #equiv p_p sin(#theta_{FPP});",250,0.0,2.0);
   TH1D *hpT_FPP2     = new TH1D("hpT_FPP2","",250,0.0,2.0);
-  TH1D *htheta_FPP1  = new TH1D("htheta_FPP1","",250,0.0,15.0); //plot in degrees
-  TH1D *hphi_FPP1    = new TH1D("hphi_FPP1", "", 180,-180.0,180.0);
+  TH1D *htheta_FPP1  = new TH1D("htheta_FPP1",";#theta_{FPP} (deg);",200,0.0,20.0); //plot in degrees
+  TH1D *hphi_FPP1    = new TH1D("hphi_FPP1", ";#varphi_{FPP} (deg);", 36,-180.0,180.0);
   TH1D *htheta_FPP2  = new TH1D("htheta_FPP2","",250,0.0,15.0); //plot in degrees
-  TH1D *hphi_FPP2    = new TH1D("hphi_FPP2", "", 180,-180.0,180.0);
+  TH1D *hphi_FPP2    = new TH1D("hphi_FPP2", "", 36,-180.0,180.0);
   TH1D *htheta_FPP21 = new TH1D("htheta_FPP21","",250,0.0,15.0);
-  TH1D *hphi_FPP21    = new TH1D("hphi_FPP21", "", 180,-180.0,180.0);
+  TH1D *hphi_FPP21    = new TH1D("hphi_FPP21", "", 36,-180.0,180.0);
   
-  TH1D *hsclose_FPP1 = new TH1D("hsclose_FPP1","",250,0.0,10.0); //millimeters
+  TH1D *hsclose_FPP1 = new TH1D("hsclose_FPP1",";s_{close} (mm);",250,0.0,10.0); //millimeters
   TH1D *hsclose_FPP2 = new TH1D("hsclose_FPP2","",250,0.0,20.0); //millimeters
   TH1D *hsclose_FPP21 = new TH1D("hsclose_FPP21","",250,0.0,10.0);
 
-  TH1D *hzclose_FPP1 = new TH1D("hzclose_FPP1","",250,0.0,3.0); //meters
+  TH1D *hzclose_FPP1 = new TH1D("hzclose_FPP1",";z_{close} (m);",250,0.0,3.0); //meters
   TH1D *hzclose_FPP2 = new TH1D("hzclose_FPP2","",250,0.0,3.0); //meters
   TH1D *hzclose_FPP21 = new TH1D("hzclose_FPP21","",250,0.0,3.0);
 
-  TH2D *hzclose_theta_FPP1 = new TH2D("hzclose_theta_FPP1","",250,0.0,3.0, 250,0.0,15.0);
+  TH2D *hzclose_theta_FPP1 = new TH2D("hzclose_theta_FPP1",";z_{close} (m);#theta_{FPP} (deg)",150,0.0,3.0, 200,0.0,20.0);
   TH2D *hzclose_theta_FPP2 = new TH2D("hzclose_theta_FPP2","",250,0.0,3.0, 250,0.0,15.0);
   TH2D *hzclose_theta_FPP21 = new TH2D("hzclose_theta_FPP21","",250,0.0,3.0, 250,0.0,15.0);
   //Next step; add HCAL-based constraints
@@ -291,6 +292,12 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
   //Add some diagnostic plots to check the conetest calculation:
   TH2D *hzclose_theta_FPP1_conetfail = new TH2D("hzclose_theta_FPP1_conetfail","",250,0.0,3.0,250,0.0,15.0);
   TH2D *hzclose_theta_FPP2_conetfail = new TH2D("hzclose_theta_FPP2_conetfail","",250,0.0,3.0,250,0.0,15.0);
+
+  TH1D *hphiplus_FPP1 = new TH1D("hphiplus_FPP1","FPP1;#varphi_{FPP} (deg);",36,-180.,180.);
+  TH1D *hphiminus_FPP1 = new TH1D("hphiminus_FPP1","FPP1;#varphi_{FPP} (deg);",36,-180.,180.);
+
+  TH1D *hchideg = new TH1D("hchideg","Precession angle #chi (deg)",160,25.,41.0);
+  TH2D *hchidegvsp = new TH2D("hchidegvsp","Precession versus proton momentum;p_{p} (GeV);#chi (deg)",250,2.0,3.5,160,25.,41.);
   
   //Let's add zclose and zclose calculations, and also 
   
@@ -298,9 +305,11 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
 
   double Ebeam_current = Ebeam_default;
   double SBStheta = 16.9*TMath::Pi()/180.0;
-  double SBStracker_pitch = 5.0*TMath::Pi()/180.0;
+  double SBStracker_pitch = 0.0*TMath::Pi()/180.0;
   //double EventWeight_current = 1.0;
 
+  TRandom3 num(0);
+  
   double weight = 1.0;
   
   while( T->GetEntry( elist_temp->GetEntry( nevent++ ) ) ){
@@ -323,6 +332,10 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
     }
 
     weight = T->ev_sigma * T->ev_solang * Lumi / Ngen_total;
+
+    if( rsampling != 0 ){
+      weight = T->ev_solang * maxweight * Lumi / Ngen_total;
+    }
     
     TVector3 SBS_zaxis( -sin(SBStheta), 0, cos(SBStheta) );
     TVector3 SBS_xaxis(0, -1, 0 );
@@ -414,6 +427,9 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
       double chi = gamma*(mu_p - 1.0)*thetabend;
       double sinchi = sin(chi);
 
+      hchideg->Fill( chi * 180.0/TMath::Pi() );
+      hchidegvsp->Fill( pp, chi * 180.0/TMath::Pi() );
+      
       double PT = T->ev_Pt;
       double PL = T->ev_Pl;
       
@@ -497,6 +513,22 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
 	  FFratio_sum += R * weight * pow( beampol * Ay1, 2 );
 
 	  hphi_FPP1->Fill( phiFPP1*180.0/PI, weight );
+
+	  //Sample helicity; asymmetry goes like:
+	  // Asym = Ay * Pe * (PT cos(phi) +PL sin(chi) sin(phi));
+	  // Asym ~= PyFPP cos(phi) - PxFPP sin(phi)
+	  // PyFPP ~= PT
+	  // PxFPP ~= -PL sin chi
+	  double Asym = Ay1 * beampol * (PT*cos(phiFPP1)+PL*sinchi*sin(phiFPP1));
+	  //Asym = (f+ - f-)/(f+ + f-)
+	  double prob_hplus = 0.5*(1.0+Asym);
+
+	  if( num.Uniform() < prob_hplus ){
+	    hphiplus_FPP1->Fill( phiFPP1*180.0/PI, weight );
+	  } else {
+	    hphiminus_FPP1->Fill( phiFPP1*180.0/PI, weight );
+	  }
+	  
 
 	  hHCAL_sum_goodFPP1->Fill( T->Harm_HCalScint_det_esum, weight );
 
@@ -623,10 +655,18 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
   double dPT = sqrt(2.0/NAy2_sum/effrecon);
   double dPL = dPT/sinchi_sum;
 
+  cout << "P_T +/- dPT = " << PT_sum << " +/- " << dPT << endl;
+  cout << "P_L +/- dPL = " << PL_sum << " +/- " << dPL << endl;
+  
   double dR = fabs(FFratio_sum)*sqrt(pow( dPT/PT_sum, 2 ) + pow( dPL/PL_sum, 2 ) );
 
   cout << "Assuming " << 100.*effrecon << "% reconstruction efficiency:" << endl;
   cout << "Projected FF ratio uncertainty (absolute Delta (mu GE/GM) ) = " << dR << endl;
+
+  TH1D *hphidiff = new TH1D(*hphiplus_FPP1);
+  hphidiff->SetName("hAsym_FPP1");
+  hphidiff->Add(hphiminus_FPP1,-1.);
+  hphidiff->Divide(hphi_FPP1);
   
   
   elist_temp->Delete();

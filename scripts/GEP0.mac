@@ -1,0 +1,68 @@
+## Configure G4SBS for gep (Q^2 = 5.7 GeV^2, 3rd pass)
+/g4sbs/filename        GEP0b_elastic_job15.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gep
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         30.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         50.0 microampere
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           4.3 GeV
+/g4sbs/thmin           29.0 deg
+/g4sbs/thmax           42.0 deg
+/g4sbs/phmin           -25.0 deg
+/g4sbs/phmax           25.0 deg
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        10.0 m
+/g4sbs/hcalvoffset     75.0 cm
+/g4sbs/sbsclampopt     2
+
+## Configure the magnets
+/g4sbs/bbfield         0
+#/g4sbs/tosfield        GEP_12map0_newheader.table
+/g4sbs/tosfield SBSPortableFieldMap_TwoClamps_PoleShims.table 2
+/g4sbs/scalesbsfield     0.39
+# keep default maximum field for now
+# assume 2.4 T*m / 1.22 m = 1.97 Tesla
+#/g4sbs/sbsmagfield     1.97 tesla
+#/g4sbs/48d48field      1
+/g4sbs/bbang           35.0 deg
+/g4sbs/bbdist          5.0 m
+/g4sbs/sbsang          28.5 deg
+/g4sbs/48D48dist       1.6 m
+
+#/control/execute scripts/default_thresholds.mac
+/g4sbs/totalabs true
+/g4sbs/treeflag 1
+/g4sbs/eventstatusevery 10
+/g4sbs/keepsdtrackinfo all true
+#/g4sbs/keepsdtrackinfo Harm/HCalScint true
+
+# FPP configuration options:
+# option 1: single-analyzer, 8+8 front and back trackers:
+/g4sbs/gepfppoption 1
+/g4sbs/FPP1CH2thick 55.88 cm
+
+# option 2: double-analyzer (both CH2)
+#/g4sbs/gepfppoption 2
+#/g4sbs/FPP1CH2thick 55.88 cm
+#/g4sbs/FPP2CH2thick 55.88 cm
+
+# option 3: double-analyzer, first analyzer CH2, second analyz
+#/g4sbs/gepfppoption 3
+#/g4sbs/FPP1CH2thick 55 cm
+#/g4sbs/FPP2CH2thick
+
+/g4sbs/rejectionsampling 1 1000000
+
+## Run 100 events
+/g4sbs/run             200000

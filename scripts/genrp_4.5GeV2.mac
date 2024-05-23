@@ -1,5 +1,5 @@
 ## Configure G4SBS for genrp (Q^2 = 4.5 GeV^2)
-/g4sbs/filename        genrp_4.5GeV2_conf3.root   ## Output rootfile
+/g4sbs/filename        genrp_SBS_pgun_SBS70percent_job5.root
 
 ## Configure Experiment
 /g4sbs/exp             genrp
@@ -9,19 +9,34 @@
 /g4sbs/targlen         15.0 cm           ## Target Length
  
 ## Configure generator settings
-/g4sbs/kine            elastic           ## Generator
+#/g4sbs/kine            elastic           ## Generator
+/g4sbs/kine 		gun
+/g4sbs/particle 	proton
 /g4sbs/beamcur         30 muA
-/g4sbs/beamE           4.4 GeV
-/g4sbs/thmin           37.0 deg
-/g4sbs/thmax           49.0 deg
-/g4sbs/phmin           -25 deg
-/g4sbs/phmax           25 deg
+/g4sbs/beamE           6.368 GeV
+# the following generation limits are good for electrons in bigbite:
+#/g4sbs/thmin           38.0 deg
+#/g4sbs/thmax           49.0 deg
+#/g4sbs/phmin           -25 deg
+#/g4sbs/phmax           25 deg
+#/g4sbs/eemin 0.7 GeV
+#/g4sbs/eemax 3.5 GeV
+
+# the following generation limits are good for protons in SBS (with gun generator): comment out for normal running.
+/g4sbs/thmin  	       18.0 deg
+/g4sbs/thmax 	       32.0 deg
+/g4sbs/phmin 	       145.0 deg
+/g4sbs/phmax 	       225.0 deg
+/g4sbs/eemin  	       0.7 GeV
+/g4sbs/eemax 	       6.4 GeV
+
 /g4sbs/rasterx	       2.0 mm
 /g4sbs/rastery 	       2.0 mm
 
+
 ## Configure standard detector settings
-/g4sbs/hcaldist        8.5 m
-/g4sbs/hcalvoffset     0.45 m
+/g4sbs/hcaldist        9.0 m
+/g4sbs/hcalvoffset     0.75 m
 /g4sbs/sbsclampopt     2                 ## Front and rear field clamps
 
 ## Configure GEn-RP analyzer
@@ -29,21 +44,24 @@
 
 ## Configure the magnets
 /g4sbs/bbfield         1
-/g4sbs/sbsmagfield     1.4 tesla # for + polarity (proton upbending)
+/g4sbs/scalebbfield   0.97
+#/g4sbs/sbsmagfield     1.3 tesla # for + polarity (proton upbending)
 #/g4sbs/sbsmagfield    -1.4 tesla # for - polarity (proton downbending)
-/g4sbs/48d48field      1
-/g4sbs/bbang           41.9 deg
+#/g4sbs/48d48field      1
+/g4sbs/bbang           42.5 deg
 /g4sbs/bbdist          1.55 m
 /g4sbs/sbsang          24.7 deg
 /g4sbs/48D48dist       2.25 m
 # Unless and until I get some documentation of the coordinate system for this field map, we will NOT be using:
 #/g4sbs/tosfield 	GEN-RP-tosca_newheader.table
+/g4sbs/tosfield  	GENRP_fieldmap_g4sbs_friendly_coordinate_system.table
+/g4sbs/scalesbsfield 	0.7
 
 /g4sbs/keepsdtrackinfo 	all true
 /g4sbs/totalabs 	true
-/g4sbs/cdetready 	true
+/g4sbs/cdetready 	false
 
 
 ## Run 100 events
 /g4sbs/eventstatusevery		100
-/g4sbs/run             10000
+/g4sbs/run             500000

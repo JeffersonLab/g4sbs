@@ -1,26 +1,55 @@
 ## Configure G4SBS for genrp (Q^2 = 4.5 GeV^2)
-/g4sbs/filename        genrp_test.root
+/g4sbs/filename        WAPP_test.root	   ## Output rootfile
 
 ## Configure Experiment
-/g4sbs/exp             genrp
+/g4sbs/exp             gmn
 
 ## Configure the target
 /g4sbs/target          LD2
 /g4sbs/targlen         15.0 cm           ## Target Length
  
 ## Configure generator settings
-/g4sbs/kine            elastic           ## Generator
-/g4sbs/beamcur         30 muA
-/g4sbs/beamE           4.3 GeV
-/g4sbs/thmin           34.5 deg
-/g4sbs/thmax           50.5 deg
+/g4sbs/kine            wapp           ## Generator
+#/g4sbs/kine 		beam
+#/g4sbs/pythia6file     Pythia_E6p6GeV_neutron.root
+#/g4sbs/hadron 	       pi0
+/g4sbs/beamcur         5 muA
+/g4sbs/beamE           6.6 GeV
+/g4sbs/thmin           37.0 deg
+/g4sbs/thmax           49.0 deg
 /g4sbs/phmin           -30 deg
 /g4sbs/phmax           30 deg
+/g4sbs/hthmin           37.0 deg
+/g4sbs/hthmax           49.0 deg
+/g4sbs/hphmin           -30 deg
+/g4sbs/hphmax           30 deg
 /g4sbs/rasterx	       2.0 mm
 /g4sbs/rastery 	       2.0 mm
+/g4sbs/eemin 	       4.0 GeV
+/g4sbs/eemax	       6.6 GeV
+#/g4sbs/ehmin 	       0.2 GeV
+#/g4sbs/ehmax 	       4.0 GeV
+/g4sbs/tmin 	       3.5
+/g4sbs/tmax 	       9.0
+/g4sbs/userad	       0
+/g4sbs/radthick        0.06
+/g4sbs/radz 	       10.0 cm
+# generation limits for pythia only:
+#/g4sbs/thmin        0.0 deg
+#/g4sbs/thmax	    180.0 deg
+#/g4sbs/phmin	    -180.0 deg
+#/g4sbs/phmax 	    180.0 deg
+#/g4sbs/hthmin        0.0 deg
+#/g4sbs/hthmax	    180.0 deg
+#/g4sbs/hphmin	    -180.0 deg
+#/g4sbs/hphmax 	    180.0 deg
+#/g4sbs/eemin 	    0.0 GeV
+#/g4sbs/eemax 	    6.6 GeV
+#/g4sbs/ehmin 	    0.0 GeV
+#/g4sbs/ehmax 	    6.6 GeV
 
 ## Configure standard detector settings
-/g4sbs/hcaldist        9.0 m
+/g4sbs/hcaldist        8.5 m
 /g4sbs/hcalvoffset     0.75 m
 /g4sbs/sbsclampopt     2                 ## Front and rear field clamps
 
@@ -29,25 +58,23 @@
 
 ## Configure the magnets
 /g4sbs/bbfield         1
-#/g4sbs/sbsmagfield     1.3 tesla # for + polarity (proton upbending)
+/g4sbs/sbsmagfield     1.3 tesla # for + polarity (proton upbending)
 #/g4sbs/sbsmagfield    -1.4 tesla # for - polarity (proton downbending)
-#/g4sbs/48d48field      1
-/g4sbs/bbang           42.5 deg
+/g4sbs/48d48field      1
+/g4sbs/bbang           31.5 deg
 /g4sbs/bbdist          1.55 m
-/g4sbs/sbsang          24.7 deg
+/g4sbs/sbsang          31.5 deg
 /g4sbs/48D48dist       2.25 m
 # Unless and until I get some documentation of the coordinate system for this field map, we will NOT be using:
 #/g4sbs/tosfield 	GEN-RP-tosca_newheader.table
-/g4sbs/tosfield  	GENRP_fieldmap_g4sbs_friendly_coordinate_system.table
-/g4sbs/scalesbsfield 	1.0
 
 /g4sbs/keepsdtrackinfo 	all true
 /g4sbs/totalabs 	true
 /g4sbs/cdetready 	false
 
-
 ## Run 100 events
 /g4sbs/eventstatusevery		100
+#/g4sbs/run             10000
 
 
 #visualization stuff:
@@ -71,7 +98,7 @@
 /vis/viewer/set/autoRefresh false
 /vis/verbose errors
 
-/vis/viewer/set/background 0 0 0 0
+/vis/viewer/set/background 1 1 1 0
 
 #
 # Draw geometry:
@@ -132,6 +159,6 @@
 #
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
-/g4sbs/run  1
+/g4sbs/run  0
 #/vis/geometry/set/visibility RICHbox_log -1 0
 /vis/viewer/flush

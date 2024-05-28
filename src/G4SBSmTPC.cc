@@ -92,6 +92,9 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
 }
 
 void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
+  // Check if "Kryptonite" is activated
+  if(fmTPCkrypto)G4cout << "Superman is dead!" << G4endl;
+
   // Montgomery July 2018
   // implementing geometry atm as a exact copy of implementation in gemc by park/carmignotto
   // There is no end cap on mTPC beyond readout discs and also no cathode planes
@@ -104,8 +107,6 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
   // inner is inner radius plus the inner electrode material and equivalent for outer
   double mTPC_rIN = fmTPC_inelectrode_r + fmTPC_inelectrode_kaptonthick + fmTPC_inelectrode_authick;
   double mTPC_rOUT = fmTPC_outelectrode_r - fmTPC_outelectrode_kaptonthick - fmTPC_outelectrode_authick;
-   
-
    
   // make a mother shell for mtpc filled with the drift gas
   G4Tubs* mTPCmother_solid = 
@@ -642,7 +643,7 @@ void G4SBSmTPC::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtpctotallen
 		    fChkOvLaps);
 
   if(fmTPCkrypto)mTPCouterwall2_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
-   
+  
   //Visualization attributes:
   G4VisAttributes *mtpc_kaptonboudary_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0) );
   mtpc_kaptonboudary_visatt->SetForceWireframe(true);

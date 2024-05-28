@@ -134,7 +134,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       MakeSBSSieveSlit(worldlog);
     
     //MakeHCAL( worldlog, fHCALvertical_offset );
-    if( exptype != G4SBS::kA1n  && exptype != G4SBS::kTDIS && exptype != G4SBS::kNDVCS )
+    if( exptype != G4SBS::kA1n  && exptype != G4SBS::kTDIS )// && exptype != G4SBS::kNDVCS )
       MakeHCALV2( worldlog, fHCALvertical_offset );
   }
 

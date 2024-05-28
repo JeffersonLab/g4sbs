@@ -114,7 +114,11 @@ void G4SBSTargetBuilder::BuildComponent(G4LogicalVolume *worldlog){
     BuildTDISTarget( worldlog );
     break;
   case(G4SBS::kNDVCS):
+    // if(G4SBS::kCfoil){
+    //   BuildCfoil(worldlog, 0, G4ThreeVector(0, 0, 0));
+    // }else{
     BuildTDISTarget( worldlog );
+    // }
     break;
   case(G4SBS::kGEMHCtest):
     BuildStandardScatCham( worldlog );
@@ -2252,15 +2256,17 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   double capthick  = 0.015;//15um thick Al //0.05*mm;
 
   // volumes for target wall material and cap
+  if(fTargType == G4SBS::kCH2)ftdis_tgt_len = 50.*mm;
+  
   G4Tubs *targ_tube = new G4Tubs("targ_tube", fTargDiameter/2.0-ftdis_tgt_wallthick, fTargDiameter/2.0, ftdis_tgt_len/2.0, 0.*deg, 360.*deg );
   G4Tubs *targ_cap = new G4Tubs("targ_cap", 0.0, fTargDiameter/2.0, capthick/2.0, 0.*deg, 360.*deg );
-
-  //fDetCon->InsertTargetVolume( sc_vacuum_log->GetName() );
   
+  //fDetCon->InsertTargetVolume( sc_vacuum_log->GetName() );
+    
   // target gas material volume and material
   G4Tubs *gas_tube = new G4Tubs("gas_tube", 0.0, fTargDiameter/2.0-ftdis_tgt_wallthick, ftdis_tgt_len/2.0, 0.*deg, 360.*deg );
   G4LogicalVolume* gas_tube_log = NULL;
-  
+    
   if( fTargType == G4SBS::kH2 || fTargType == G4SBS::kNeutTarg ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("refH2"), "gas_tube_log");
     //gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("mTPCH2"), "gas_tube_log");
@@ -2272,17 +2278,23 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   if( fTargType == G4SBS::k3He ){
     gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("pol3He"), "gas_tube_log");
   }
+  if( fTargType == G4SBS::kWater ){
+    gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("H2O"), "gas_tube_log");
+  }
+  if( fTargType == G4SBS::kCH2 ){
+    gas_tube_log = new G4LogicalVolume(gas_tube, GetMaterial("CH2"), "gas_tube_log");
+  }
 
   // put target construction material within solenoid bounding box as mother vol
   G4LogicalVolume *motherlog = TPCBfield_log;
   double target_zpos = 0.0; // no z-offset
-
+    
   G4LogicalVolume* targ_tube_log = new G4LogicalVolume(targ_tube, GetMaterial("Kapton"),"targ_tube_log");
   // G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Kapton"),"targ_cap_log");
   G4LogicalVolume* targ_cap_log = new G4LogicalVolume(targ_cap, GetMaterial("Aluminum"),"targ_cap_log"); //aluminium
   
   fDetCon->InsertTargetVolume( gas_tube_log->GetName() );
-
+    
   //if( fTargType == G4SBS::kH2 || fTargType == G4SBS::k3He || fTargType == G4SBS::kNeutTarg ){
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), targ_tube_log,
 		    "targ_tube_phys", motherlog, false, 0, fChkOvLaps);
@@ -2290,12 +2302,12 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
 		    "targ_cap_phys1", motherlog, false, 0, fChkOvLaps);
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos-ftdis_tgt_len/2.0-capthick/2.0), targ_cap_log,
 		    "targ_cap_phys2", motherlog, false, 1, fChkOvLaps);
-  
+    
   // now place target gas material inside
   assert(gas_tube_log);
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, target_zpos), gas_tube_log,
 		    "gas_tube_phys", motherlog, false, 0, fChkOvLaps);
-  
+
   fDetCon->fmTPC->BuildComponent(motherlog);
   //BuildTPC(motherlog, target_zpos);//TPC actually centered on the target
   // TPC is inside mother log vol which for now is solenoid map vol

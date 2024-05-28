@@ -438,6 +438,22 @@ bool G4SBSEventGen::GenerateEvent(){
     //Wfact = 3.0;
     //AJRP: 3He gas is monatomic, so Wfact = 3 is appropriate here
     break;
+  case G4SBS::kWater:
+    if( CLHEP::RandFlat::shootInt(18) < 8 ){
+      thisnucl = G4SBS::kNeutron;
+    } else {
+      thisnucl = G4SBS::kProton;
+    }
+    ni = GetInitialNucl( fTargType, thisnucl );
+    break;
+  case G4SBS::kCH2:
+    if( CLHEP::RandFlat::shootInt(14) < 6 ){
+      thisnucl = G4SBS::kNeutron;
+    } else {
+      thisnucl = G4SBS::kProton;
+    }
+    ni = GetInitialNucl( fTargType, thisnucl );
+    break;
   default:
     thisnucl = G4SBS::kProton;
     ni = G4LorentzVector(Mp);
@@ -2696,6 +2712,27 @@ double G4SBSEventGen::c12pdist( double p ){
   }
 }
 
+double G4SBSEventGen::o16pdist( double p ){
+  //O16 being symmetric, we don't need to make a distinction between p and n
+  //Add code here:
+  double thisp = p/GeV;
+  if( p < 0.0 ) return 0.0;
+
+
+  double a0 = 1.199e-6/7.8e-10;
+  double b0 = -6.0522;
+  double c0 = 7.202e2;
+
+  double a1 = 1.6e-9/7.8e-10;
+  double b1 = 17.448;
+
+  if( p < 0.048*GeV ){
+    return a0*thisp*thisp*exp(-thisp*b0-thisp*thisp*c0);
+  } else {
+    return a1*exp(-thisp*b1);
+  }
+}
+
 
 G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t nucl ){
 
@@ -2711,6 +2748,12 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
     break;
   case G4SBS::kCfoil:
     PMAX = 1.00*GeV;// PMAX to be adjusted for carbon 12
+    break;
+  case G4SBS::kCH2:
+    PMAX = 1.00*GeV;// PMAX to be adjusted for carbon 12
+    break;
+  case G4SBS::kWater:
+    PMAX = 1.00*GeV;// PMAX to be adjusted for Oxygen 16
     break;
   default:
     PMAX = 0.0;
@@ -2738,6 +2781,24 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
   if( targ == G4SBS::kCfoil ){
     while( CLHEP::RandFlat::shoot() > c12pdist( psample) ){
       psample = CLHEP::RandFlat::shoot(PMAX);
+    }
+  }
+  if( targ == G4SBS::kCH2 ){
+    if( CLHEP::RandFlat::shootInt(14) < 12 ){
+      while( CLHEP::RandFlat::shoot() > c12pdist( psample) ){
+	psample = CLHEP::RandFlat::shoot(PMAX);
+      }
+    }else{
+      psample = 0.0;
+    }
+  }
+  if( targ == G4SBS::kWater ){
+    if( CLHEP::RandFlat::shootInt(18) < 16 ){
+      while( CLHEP::RandFlat::shoot() > o16pdist( psample) ){
+	psample = CLHEP::RandFlat::shoot(PMAX);
+      }
+    }else{
+      psample = 0.0;
     }
   }
 

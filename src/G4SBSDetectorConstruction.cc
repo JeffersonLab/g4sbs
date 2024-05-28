@@ -535,6 +535,14 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   fMaterialsMap["CH2"] = CH2;
 
+  //Water for ndvcs elastic calibration
+  G4double density_H2O = 1.00*g/cm3;
+  G4Material* H2O = new G4Material("H2O", density_H2O, nel=2);
+  H2O->AddElement(elO, 1);
+  H2O->AddElement(elH, 2);
+
+  fMaterialsMap["H2O"] = H2O;
+
   G4double density_CH = 0.95*g/cm3;
   G4Material* CH = new G4Material("CH", density_CH, nel=2);
   CH->AddElement(elC, 1);

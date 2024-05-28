@@ -18,7 +18,7 @@ namespace G4SBS {
    enum Nucl_t   { kProton, kNeutron };
    enum Hadron_t { kPiPlus, kPiMinus, kPi0, kKPlus, kKMinus, kP, kPbar, kN}; //Hadron types for SIDIS & SIMC event generators
    // target type; include fictional neutron target
-   enum Targ_t   { kH2, kD2, kLH2, kLD2, k3He, kNeutTarg, kCfoil, kOptics };
+  enum Targ_t   { kH2, kD2, kLH2, kLD2, k3He, kNeutTarg, kCfoil, kOptics, kCH2, kWater };
    // kinematic type 
    enum Kine_t { kElastic, // 0
 		kFlat, 

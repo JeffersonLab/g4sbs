@@ -459,6 +459,7 @@ private:
   double f2p (double);
   double f2pi (double, double, double);
   double c12pdist( double );
+  double o16pdist( double );
   
   DSS2007FF fFragFunc; //Class to calculate fragmentation functions using DSS2007
 

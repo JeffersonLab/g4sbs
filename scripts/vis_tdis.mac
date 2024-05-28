@@ -7,7 +7,7 @@
 ## Configure the target
 /g4sbs/target          D2
 /g4sbs/targlen         40.0 cm           ## Target Length
-/g4sbs/targdiam        1.905 cm          ## Target Diameter
+/g4sbs/targdiam        1.0 cm          ## Target Diameter
 /g4sbs/targpres        1.0 atmosphere
 
 ## Configure generator settings

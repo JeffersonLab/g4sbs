@@ -1631,12 +1631,21 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fdetcon->SetTarget(G4SBS::kCfoil);
       validcmd = true;
     }
-
     if( newValue.compareTo("optics") == 0 ){
       fevgen->SetTarget(G4SBS::kOptics);
       fdetcon->SetTarget(G4SBS::kOptics);
       validcmd = true;
       //fdetcon->fTargetBuilder->SetNtargetFoils(1); //default to one carbon foil at Z = 0;
+    }
+    if( newValue.compareTo("CH2") == 0 ){
+      fevgen->SetTarget(G4SBS::kCH2);
+      fdetcon->SetTarget(G4SBS::kCH2);
+      validcmd = true;
+    }
+    if( newValue.compareTo("Water") == 0 ){
+      fevgen->SetTarget(G4SBS::kWater);
+      fdetcon->SetTarget(G4SBS::kWater);
+      validcmd = true;
     }
     
     if( !validcmd ){

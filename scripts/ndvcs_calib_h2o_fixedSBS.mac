@@ -1,0 +1,65 @@
+## Configure G4SBS for TDIS
+#/g4sbs/filename        nDVCS_test.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             ndvcs
+
+## Configure the target
+/g4sbs/target          Water
+/g4sbs/targlen         40.0 cm           ## Target Length
+/g4sbs/targdiam        1.905 cm          ## Target Diameter
+/g4sbs/targpres        1.0 atmosphere
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/beamcur         5.0 muA
+/g4sbs/beamE           4.4 GeV
+/g4sbs/thmin          50.0 deg
+/g4sbs/thmax          95.0 deg
+/g4sbs/phmin         -25.0 deg
+/g4sbs/phmax          25.0 deg
+
+## Configure standard detector settings
+/g4sbs/lacdist       10.5 m
+/g4sbs/lacvoffset     0.40 m
+/g4sbs/lachoffset    -0.20 m
+/g4sbs/sbstrkrdist     4.4 m
+/g4sbs/sbstrkrpitch    5.0 deg
+
+/g4sbs/richdist        5.0 m
+/g4sbs/richgas         CF4
+/g4sbs/userichaero     false
+
+/g4sbs/dvcsecalhoffset 0.0 m
+/g4sbs/dvcsecalmat PbWO4
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/sbsmagfield    -0.90 tesla
+/g4sbs/48d48field      1
+/g4sbs/bbang           75.00 deg
+/g4sbs/bbdist          2.0 m 
+/g4sbs/sbsang          12.0 deg
+/g4sbs/48D48dist       2.5 m
+/g4sbs/sbsclampopt     0                 ## Disable all field clamps
+
+## Configure the TPC solenoid magnet
+## either select a uni field to test different strengths
+## or select the tosca simulation map
+## currently tosca map is hard coded since we only have one file
+## the tosca map can be scaled or read using offset in z (200mm is standard)
+## the tosca file must be in same directory as g4sbs executable
+## in future aim to add variable map name and addition to global field
+/g4sbs/solunifield	false
+#/g4sbs/solunimag	4.7
+#/g4sbs/soltoscafield	true
+#/g4sbs/soltoscascale	1.0
+#/g4sbs/soltoscaoffset	200.0 mm
+
+/g4sbs/totalabs   false
+/g4sbs/mtpckrypto false
+#/g4sbs/steplimit LACmod_log 1
+
+## Run 100 events
+#/g4sbs/run             100
+

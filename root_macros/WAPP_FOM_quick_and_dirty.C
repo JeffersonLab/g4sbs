@@ -222,6 +222,12 @@ void WAPP_FOM_quick_and_dirty(const char *configfilename, const char *outfilenam
 
   TH1D *hphiplus_FPP1 = new TH1D("hphiplus_FPP1","",36,-TMath::Pi(),TMath::Pi());
   TH1D *hphiminus_FPP1 = new TH1D("hphiminus_FPP1","",36,-TMath::Pi(),TMath::Pi());
+
+  TH1D *hEBBCAL_smear = new TH1D("hEBBCAL_smear",";Total shower energy (GeV);",300,0,3.0);
+  TH1D *hEPS_smear = new TH1D("hEPS_smear",";Preshower energy (GeV);",300,0,1.5);
+  TH1D *hESH_smear = new TH1D("hESH_smear",";Shower energy (GeV);",300,0,3.0);
+  TH2D *hESH_EPS_smear = new TH2D("hESH_EPS_smear",";Preshower Energy (GeV); Shower energy (GeV)", 300,0,1.5,300,0,3);
+
   
   int treenumber = -1, oldtreenumber = -1;
 
@@ -230,7 +236,7 @@ void WAPP_FOM_quick_and_dirty(const char *configfilename, const char *outfilenam
   double SBStracker_pitch = 0.0*TMath::Pi()/180.0;
   //double EventWeight_current = 1.0;
 
-  double BBtheta = 41.9*TMath::Pi()/180.0;
+  double BBtheta = 42.5*TMath::Pi()/180.0;
   
   double weight = 1.0;
   
@@ -403,6 +409,14 @@ void WAPP_FOM_quick_and_dirty(const char *configfilename, const char *outfilenam
     double ESHsm = num.Gaus( 200.0*ESH, sqrt(fabs(200.*ESH)) )/200.0;
     double EPSsm = num.Gaus( 200.0*EPS, sqrt(fabs(200.*EPS)) )/200.0;
 
+    if( T->ev_Egamma >= 4.0 ){
+    
+      hEBBCAL_smear->Fill( ESHsm + EPSsm, weight );
+      hEPS_smear->Fill( EPSsm, weight );
+      hESH_smear->Fill( ESHsm, weight );
+      hESH_EPS_smear->Fill( EPSsm, ESHsm, weight );
+
+    }
     bool BBtrig = (EPSsm <= thresh_PS && ESHsm >= thresh_SH);
     if( thresh_PS < 0. ) BBtrig = ((EPSsm + ESHsm) >= thresh_SH);
     
@@ -663,6 +677,12 @@ void WAPP_FOM_quick_and_dirty(const char *configfilename, const char *outfilenam
 
     //hasym_FPP1->SetBinContent
     hasym_FPP1->SetBinError( ibin, dA );
+  }
+
+  TH1D *heffpi_vs_thresh_BBCAL = new TH1D("heffpi_vs_thresh_BBCAL",";threshold (GeV);Charged pion effficiency",300,0,3.0);
+
+  for( int i=1; i<=300; i++ ){
+    heffpi_vs_thresh_BBCAL->SetBinContent( i, hEBBCAL_smear->Integral(i,300)/hEBBCAL_smear->GetEntries() );
   }
   
   elist_temp->Delete();

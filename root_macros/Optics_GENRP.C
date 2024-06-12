@@ -13,7 +13,7 @@
 //#include "gep_tree_with_spin.C"
 //#include "genrp_tree.C"
 //#include "gmn_tree.C"
-#include "gen_tree.C"
+#include "genrp_tree.C"
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
@@ -40,7 +40,7 @@ const double PI = TMath::Pi();
 
 //Optics fit code for GMN/GEN-RP
 
-void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX=1000000, double BBscale=0.97, int downbend=0){
+void Optics_GENRP( const char *inputfilename, const char *outputfilename, int NMAX=1000000, double BBscale=0.97, int downbend=0){
   
   
   ifstream inputfile(inputfilename);
@@ -146,7 +146,7 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
   cout << "Number of events passing global cut = " << elist->GetN() << endl;
 
   // genrp_tree *T = new genrp_tree(C);
-  gen_tree *T = new gen_tree(C);
+  genrp_tree *T = new genrp_tree(C);
 
   //Expansion is of the form: 
   // ( xptar yptar 1/p ytar ) = sum_{i+j+k+l+m<=N} C_{ijklm} xfp^i yfp^j xpfp^k ypfp^l xtar^m 
@@ -510,13 +510,13 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	  goodtrack = goodtrack && goodfirsthit;
 	}
       } else if( arm == 1 ){
-	if( T->Harm_SBSGEM_Track_ntracks==1 && (*(T->Harm_SBSGEM_Track_MID))[0] == 0 &&
-	    (*(T->Harm_SBSGEM_Track_P))[0]/T->ev_ep >= 0.95 &&
-	    (*(T->Harm_SBSGEM_Track_Chi2fit))[0]/(*(T->Harm_SBSGEM_Track_NDF))[0] <= chi2cut ){
+	if( T->Harm_CEPolFront_Track_ntracks==1 && (*(T->Harm_CEPolFront_Track_MID))[0] == 0 &&
+	    (*(T->Harm_CEPolFront_Track_P))[0]/T->ev_ep >= 0.95 &&
+	    (*(T->Harm_CEPolFront_Track_Chi2fit))[0]/(*(T->Harm_CEPolFront_Track_NDF))[0] <= chi2cut ){
 
 	  bool goodfirsthit = false;
-	  for( int ihit=0; ihit<T->Harm_SBSGEM_hit_nhits; ihit++ ){
-	    if( (*(T->Harm_SBSGEM_hit_mid))[ihit]==0&&(*(T->Harm_SBSGEM_hit_p))[ihit] >= 0.994*T->ev_ep ){
+	  for( int ihit=0; ihit<T->Harm_CEPolFront_hit_nhits; ihit++ ){
+	    if( (*(T->Harm_CEPolFront_hit_mid))[ihit]==0&&(*(T->Harm_CEPolFront_hit_p))[ihit] >= 0.997*T->ev_ep ){
 	      goodfirsthit=true;
 	    }
 	  }
@@ -549,20 +549,20 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	  ytar = vertex_SBS.Y() - yptar * vertex_SBS.Z();
 	  xtar = vertex_SBS.X() - xptar * vertex_SBS.Z();
 
-	  xfp = (*(T->Harm_SBSGEM_Track_X))[0];
-	  yfp = (*(T->Harm_SBSGEM_Track_Y))[0];
-	  xpfp = (*(T->Harm_SBSGEM_Track_Xp))[0];
-	  ypfp = (*(T->Harm_SBSGEM_Track_Yp))[0];
+	  xfp = (*(T->Harm_CEPolFront_Track_X))[0];
+	  yfp = (*(T->Harm_CEPolFront_Track_Y))[0];
+	  xpfp = (*(T->Harm_CEPolFront_Track_Xp))[0];
+	  ypfp = (*(T->Harm_CEPolFront_Track_Yp))[0];
 
 	  hxfp->Fill(xfp);
 	  hyfp->Fill(yfp);
 	  hxpfp->Fill(xpfp);
 	  hypfp->Fill(ypfp);
 	  
-	  hxfprecon->Fill( (*(T->Harm_SBSGEM_Track_Xfit))[0] );
-	  hyfprecon->Fill( (*(T->Harm_SBSGEM_Track_Yfit))[0] );
-	  hxpfprecon->Fill( (*(T->Harm_SBSGEM_Track_Xpfit))[0] );
-	  hypfprecon->Fill( (*(T->Harm_SBSGEM_Track_Ypfit))[0] );
+	  hxfprecon->Fill( (*(T->Harm_CEPolFront_Track_Xfit))[0] );
+	  hyfprecon->Fill( (*(T->Harm_CEPolFront_Track_Yfit))[0] );
+	  hxpfprecon->Fill( (*(T->Harm_CEPolFront_Track_Xpfit))[0] );
+	  hypfprecon->Fill( (*(T->Harm_CEPolFront_Track_Ypfit))[0] );
 
 	  TVector3 pvect_fp_SBS( xpfp, ypfp, 1.0 );
 	  pvect_fp_SBS = pvect_fp_SBS.Unit();
@@ -575,7 +575,9 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 
 	  thetabend = acos( phat_fp_global.Dot( phat_targ_global ) );
 	  
-	  goodtrack = goodfirsthit;
+	  goodtrack = goodfirsthit && fabs(xptar)<cutxptar_true && fabs(yptar)<cutyptar_true &&
+									       fabs(ytar)<cutytar_true;
+									       
 	  // }
 	}
       }
@@ -632,8 +634,10 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 		  //initially, let's try expanding etof in terms of focal plane variables:
 		  //tterm[ipar] = term[ipar];
 
-		  if( good_t_hodo ){
+		  if( good_t_hodo && arm == 0 ){
 		    b_etof[ipar] += term[ipar]*(thodo-etof_avg_BB);
+		  } else {
+		    
 		  }
 		  
 		  fterm[ipar] = pow(xptar,m)*pow(yptar,l)*pow(ytar,k)*pow(1.0/p,j)*pow(xtar,i);
@@ -717,9 +721,11 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
   cout << "Solving for 1/p coefficients:" << endl;
   bool good_pinv = A_pinv.Solve(b_pinv);
   cout << "1/p done, success = " << good_pinv << endl;
-  bool good_etof = A_etof.Solve(b_etof);
-  cout << "e^- TOF done, success = " << good_etof << endl;
 
+  if( arm == 0 ){
+    bool good_etof = A_etof.Solve(b_etof);
+    cout << "e^- TOF done, success = " << good_etof << endl;
+  }
   // Solving for forward matrix elements
   TDecompSVD A_xfp(Mforward);
   TDecompSVD A_yfp(Mforward);
@@ -996,17 +1002,20 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	  
 	}
       } else if( arm == 1 ){
-	if( T->Harm_SBSGEM_Track_ntracks==1 && (*(T->Harm_SBSGEM_Track_MID))[0] == 0 &&
-	    (*(T->Harm_SBSGEM_Track_P))[0]/T->ev_ep >= 0.95 &&
-	    (*(T->Harm_SBSGEM_Track_Chi2fit))[0]/(*(T->Harm_SBSGEM_Track_NDF))[0] <= chi2cut ){
+	if( T->Harm_CEPolFront_Track_ntracks==1 && (*(T->Harm_CEPolFront_Track_MID))[0] == 0 &&
+	    (*(T->Harm_CEPolFront_Track_P))[0]/T->ev_ep >= 0.95 &&
+	    (*(T->Harm_CEPolFront_Track_Chi2fit))[0]/(*(T->Harm_CEPolFront_Track_NDF))[0] <= chi2cut ){
 
 	  // bool goodfirsthit = false;
-	  // for( int ihit=0; ihit<T->Harm_SBSGEM_hit_nhits; ihit++ ){
-	  //   if( (*(T->Harm_SBSGEM_hit_mid))[ihit]==0&&(*(T->Harm_SBSGEM_hit_p))[ihit] >= 0.994*T->ev_ep ){
+	  // for( int ihit=0; ihit<T->Harm_CEPolFront_hit_nhits; ihit++ ){
+	  //   if( (*(T->Harm_CEPolFront_hit_mid))[ihit]==0&&(*(T->Harm_CEPolFront_hit_p))[ihit] >= 0.994*T->ev_ep ){
 	  //     goodfirsthit=true;
 	  //   }
 	  // }
 
+	  good_t_hodo = true;
+	  //thodo = T->Harm_CEPolFront_Track_
+	  
 	  p = T->ev_ep;
 	  px = T->ev_epx;
 	  py = T->ev_epy;
@@ -1047,25 +1056,25 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 	  ytar = vertex_SBS.Y() - yptar * vertex_SBS.Z();
 	  xtar = vertex_SBS.X() - xptar * vertex_SBS.Z();
 
-	  xfp = (*(T->Harm_SBSGEM_Track_X))[0];
-	  yfp = (*(T->Harm_SBSGEM_Track_Y))[0];
-	  xpfp = (*(T->Harm_SBSGEM_Track_Xp))[0];
-	  ypfp = (*(T->Harm_SBSGEM_Track_Yp))[0];
+	  xfp = (*(T->Harm_CEPolFront_Track_X))[0];
+	  yfp = (*(T->Harm_CEPolFront_Track_Y))[0];
+	  xpfp = (*(T->Harm_CEPolFront_Track_Xp))[0];
+	  ypfp = (*(T->Harm_CEPolFront_Track_Yp))[0];
 
-	  xfp_fit = (*(T->Harm_SBSGEM_Track_Xfit))[0];
-	  yfp_fit = (*(T->Harm_SBSGEM_Track_Yfit))[0];
-	  xpfp_fit = (*(T->Harm_SBSGEM_Track_Xpfit))[0];
-	  ypfp_fit = (*(T->Harm_SBSGEM_Track_Ypfit))[0];
+	  xfp_fit = (*(T->Harm_CEPolFront_Track_Xfit))[0];
+	  yfp_fit = (*(T->Harm_CEPolFront_Track_Yfit))[0];
+	  xpfp_fit = (*(T->Harm_CEPolFront_Track_Xpfit))[0];
+	  ypfp_fit = (*(T->Harm_CEPolFront_Track_Ypfit))[0];
 	  
 	  hxfpdiff->Fill(xfp_fit-xfp);
 	  hyfpdiff->Fill(yfp_fit-yfp);
 	  hxpfpdiff->Fill(xpfp_fit-xpfp);
 	  hypfpdiff->Fill(ypfp_fit-ypfp);
 	  
-	  // hxfprecon->Fill( (*(T->Harm_SBSGEM_Track_Xfit))[0] );
-	  // hyfprecon->Fill( (*(T->Harm_SBSGEM_Track_Yfit))[0] );
-	  // hxpfprecon->Fill( (*(T->Harm_SBSGEM_Track_Xpfit))[0] );
-	  // hypfprecon->Fill( (*(T->Harm_SBSGEM_Track_Ypfit))[0] );
+	  // hxfprecon->Fill( (*(T->Harm_CEPolFront_Track_Xfit))[0] );
+	  // hyfprecon->Fill( (*(T->Harm_CEPolFront_Track_Yfit))[0] );
+	  // hxpfprecon->Fill( (*(T->Harm_CEPolFront_Track_Xpfit))[0] );
+	  // hypfprecon->Fill( (*(T->Harm_CEPolFront_Track_Ypfit))[0] );
 
 	  TVector3 pvect_fp_SBS( xpfp, ypfp, 1.0 );
 	  pvect_fp_SBS = pvect_fp_SBS.Unit();
@@ -1152,7 +1161,7 @@ void Optics_GEN( const char *inputfilename, const char *outputfilename, int NMAX
 		    xpfpforward += fterm * b_xpfp(ipar);
 		    ypfpforward += fterm * b_ypfp(ipar);
 
-		    etof_recon += b_etof(ipar) * term;
+		    if( arm == 0 ) etof_recon += b_etof(ipar) * term;
 		    
 		    ipar++;
 		  }

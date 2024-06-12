@@ -4517,7 +4517,10 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
 	  gemh[j] = 200.0*cm;
 	}
       }
-      trackerbuilder.BuildComponent( sbslog, rot_I, cuana_pos, ngem_ce[i], gemz, gemw, gemh, SDnames_ce[i] );
+
+      bool ispol = i > 0;
+      
+      trackerbuilder.BuildComponent( sbslog, rot_I, cuana_pos, ngem_ce[i], gemz, gemw, gemh, SDnames_ce[i], ispol );
     }
   }
   

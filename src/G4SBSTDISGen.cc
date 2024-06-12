@@ -258,7 +258,8 @@ bool G4SBSTDISGen::Generate(Kine_t tKineType, Targ_t tTargType,  Nucl_t nucl, G4
       partID = (Nucl_t) nucl; 
       break;
     }
- G4cout<<"TDISGen (1): "<< partID<<G4endl;
+ if(DEBUG)
+   G4cout<<"TDISGen (1): "<< partID<<G4endl;
 
 
   // PART OF SIDIS FOR A PROTON OR PI+
@@ -301,6 +302,7 @@ bool G4SBSTDISGen::Generate(Kine_t tKineType, Targ_t tTargType,  Nucl_t nucl, G4
 	G4cout<<"[TDIS] quasielastic sigma (uB/(MeV sr): "<<QEsigma<<G4endl;
       // This is from definition BUT it is NOT clear for me. Nevertheless, it coincides with the epc code
       // value 'tp' which I believe is the kinetic energy  (CA)
+      QEsigma*=1.e-30; //from ub to cm2
       if(DEBUG)
 	G4cout<<" KE from definition:  "<< sqrt( pow(Phad_Nrest.vect().mag(),2) + ni_Nrest.m2()) - ni_Nrest.m()<<G4endl;   
       KE =  sqrt( pow(Phad_Nrest.vect().mag(),2) + ni_Nrest.m2()) - ni_Nrest.m();

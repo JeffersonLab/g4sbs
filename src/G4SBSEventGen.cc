@@ -235,6 +235,8 @@ void G4SBSEventGen::LoadSIMCChain( G4String fname ){
 void G4SBSEventGen::Initialize(){
   //Initialize weight factor to convert molecules or atoms number density to number density of nucleons in luminosity calculation:
 
+  G4cout << " kine??? " << fKineType << G4endl;
+  
   G4double radlength = 0.0; //compute in units of X0:
 
   //Default to very large numbers: 
@@ -544,6 +546,8 @@ bool G4SBSEventGen::GenerateEvent(){
   
   fNuclType = thisnucl;
 
+  //G4cout << "Generating event: kine type? " << fKineType << " ?  " << G4SBS::tElastic << G4endl;
+  
   switch(fKineType){
   case G4SBS::kElastic:
     success = GenerateElastic( thisnucl, ei, ni );
@@ -594,27 +598,28 @@ bool G4SBSEventGen::GenerateEvent(){
 
    //TDIS GENERATORS (NEED TO ASK ERIC) (CA)
    // the cases with a 't' are mine (CA)
-  case tElastic:
-  case tQuasiElastic: //deuterium epc.f code
-  case tSIDIS:
-  case tTDISKinH: //TDIS hydrogen
-  case tTDISKinD: //TDIS deuterium
-  case kTDISGen: // to do (or to delete)
-  case tInelastic: // to do (maybe not... ->Pythia?)
+  case G4SBS::tElastic:
+  case G4SBS::tQuasiElastic: //deuterium epc.f code
+  case G4SBS::tSIDIS:
+  case G4SBS::tTDISKinH: //TDIS hydrogen
+  case G4SBS::tTDISKinD: //TDIS deuterium
+  case G4SBS::kTDISGen: // to do (or to delete)
+  case G4SBS::tInelastic: // to do (maybe not... ->Pythia?)
 
     // with this way, I can send the flow to the generator
     // and work there independently.(CA)
-    //G4cout<<"Going to TDIS"<<G4endl;
+    // G4cout<<"Going to TDIS"<<G4endl;
     // tdishandler->Generate(GetKine(), thisnucl, ei, ni ); //(CA)
     // success = true;
     
     //I changed this line after I consulted Eric about how should be counted 
     // the number of entries for the space-phase (CA)
 
-      G4cout<<"EventGen(2): "<< thisnucl<<G4endl;
-      success =   tdishandler->Generate(GetKine(), GetTarget(), thisnucl, ei, ni ); //(CA)
+    //G4cout<<"EventGen(2): "<< thisnucl<<G4endl;
+    success =   tdishandler->Generate(GetKine(), GetTarget(), thisnucl, ei, ni ); //(CA)
     //G4cout<<"Back from TDIS"<<G4endl;
     fSigma = tdishandler->GetSigma(GetKine());
+    // G4cout << fSigma << G4endl;
     break;
     
   case G4SBS::kPionPhoto:
@@ -2560,28 +2565,15 @@ bool G4SBSEventGen::GenerateGun(){
   // // 	 << fPhMin/deg << ", " << fPhMax/deg << ")" << G4endl;
 
   // origi
-  // G4double ep = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
-  // G4double etheta = acos( CLHEP::RandFlat::shoot( cos(fThMax), cos(fThMin) ) );
-  // G4double ephi   = CLHEP::RandFlat::shoot( fPhMin, fPhMax );
-
-  // tdis temp - ram
-  G4double ep = CLHEP::RandFlat::shoot( 0.06*GeV, 0.4*GeV);
-  G4double etheta = acos( CLHEP::RandFlat::shoot( cos(30.*deg), cos(70.*deg) ) );
-  G4double ephi   = CLHEP::RandFlat::shoot( 0.*deg, 360.*deg );
-
-  //Generate a random momentum and vertex and store the results in fElectronP and fVert:
-  // orig
+  G4double ep = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
+  G4double etheta = acos( CLHEP::RandFlat::shoot( cos(fThMax), cos(fThMin) ) );
+  G4double ephi   = CLHEP::RandFlat::shoot( fPhMin, fPhMax );
+  
   fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
   
-  // G4cout << "Gun generator: Actual p, theta, phi = " << ep/GeV << ", " << etheta/deg << ", " << ephi/deg << G4endl;
-  // G4cout << "Gun generator: (px, py, pz)=(" << fElectronP.x()/GeV << ", " << fElectronP.y()/GeV << ", " << fElectronP.z()/GeV << ")" << G4endl;
-
-  // fVert.set( CLHEP::RandFlat::shoot( -fRasterX/2.0, fRasterX/2.0 ),
-  // 	     CLHEP::RandFlat::shoot( -fRasterY/2.0, fRasterY/2.0 ),
-  // 	     CLHEP::RandFlat::shoot( -fTargLen/2.0, fTargLen/2.0 ) );
-
-  // tdis
-  fVert.set( 0.0, 0.0, CLHEP::RandFlat::shoot( -400.0/2.0*mm, 400.0/2.0*mm ));
+  fVert.set( CLHEP::RandFlat::shoot( -fRasterX/2.0, fRasterX/2.0 ),
+	     CLHEP::RandFlat::shoot( -fRasterY/2.0, fRasterY/2.0 ),
+	     CLHEP::RandFlat::shoot( -fTargLen/2.0, fTargLen/2.0 ) );
 
   return true;
 }
@@ -2909,6 +2901,7 @@ bool G4SBSEventGen::GeneratePythia(){
     }
   }else{
     fPythiaEvent.Sigma = sigmatemp/cm2;
+    G4cout << "sigma (mb) = " << sigmatemp << " in cm2??? " << cm2 << " " << fPythiaEvent.Sigma << G4endl;
   }
   fPythiaEvent.Ebeam = (*(fPythiaTree->E))[0]*GeV;
   fPythiaEvent.Eprime = (*(fPythiaTree->E))[2]*GeV;

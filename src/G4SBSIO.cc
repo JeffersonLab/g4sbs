@@ -349,7 +349,6 @@ void G4SBSIO::FillTree(){
     fprintf(stderr, "Error %s: %s line %d - Trying to fill non-existant tree\n", __PRETTY_FUNCTION__, __FILE__, __LINE__ );
     return; 
   }
-
   fTree->Fill();
 }
 

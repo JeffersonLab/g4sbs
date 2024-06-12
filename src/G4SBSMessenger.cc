@@ -1349,30 +1349,38 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     // TDIS addition
     if (newValue.compareTo("tdisgen") == 0 ){ //the original generator 
+      kinetemp = G4SBS::kTDISKin;
       fevgen->SetKine(kTDISKin);
       validcmd = true;
     }
     if (newValue.compareTo("tdisela") == 0 ){ //elastic
+      kinetemp = G4SBS::tElastic;
       fevgen->SetKine(tElastic);
+      G4cout << "setting kine to " << tElastic << G4endl;
       validcmd = true;
     }
     if (newValue.compareTo("tdisqua") == 0 ){ //quaislestic
+      kinetemp = G4SBS::tQuasiElastic;
       fevgen->SetKine(tQuasiElastic);
       validcmd = true;
     }
     if (newValue.compareTo("tsidis") == 0 ){ //SIDIS for TDIS
+      kinetemp = G4SBS::tSIDIS;
       fevgen->SetKine(tSIDIS);
       validcmd = true;
     }
     if (newValue.compareTo("tdisine") == 0 ){
+      kinetemp = G4SBS::tInelastic;
       fevgen->SetKine(tInelastic);
       validcmd = true;
     }
     if (newValue.compareTo("tdiskinH") == 0 ){ //the TDIS case with H (CA)
+      kinetemp = G4SBS::tTDISKinH;
       fevgen->SetKine(tTDISKinH);
       validcmd = true;
     }
     if (newValue.compareTo("tdiskinD") == 0 ){ //the TDIS case with D (CA)
+      kinetemp = G4SBS::tTDISKinD;
       fevgen->SetKine(tTDISKinD);
       validcmd = true;
     }

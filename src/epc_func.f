@@ -35,7 +35,7 @@ c redefining the variables with the code nomenclature (CA)
       real*8 p
       real*8 thp
 
-      print *,"beam:", ebeam,"z:",z1, " n:", n1, "partID:", partID  !(CA)
+c      print *,"beam:", ebeam,"z:",z1, " n:", n1, "partID:", partID  !(CA)
 c      print *, "p:", p, "angle: ", thp  !(CA)
 
 
@@ -145,7 +145,7 @@ c  'an' is effective number of nucleons for one pion production
       else
          stop
       endif
-      write(6,*)an,ip
+c      write(6,*)an,ip
       if (ia.eq.1) then
       else if (abs(ip).eq.1) then
          if (ia.gt.1.and.ia.lt.5) then
@@ -179,7 +179,7 @@ c           print *, "--->d2qd ", d2qd, "aj", aj
             d2qd = d2qd*aj
 c           print *, "***d2qd ", d2qd, "aj", aj
       
-            write(6,*)d2qd
+c            write(6,*)d2qd
             call ep(e1,tp,th,d2qf)
             d2qf = d2qf*aj
          endif
@@ -199,7 +199,7 @@ c           print *, "***d2qd ", d2qd, "aj", aj
       else
          d2del = 0.
          if (abs(ip).eq.2.or.ip.eq.0) then
-            write(6,*)'calling s2pi'
+c            write(6,*)'calling s2pi'
             call s2pi(2,e1,tp,th,d2sc1)
             call s2pi(-2,e1,tp,th,d2sc2)
             if (part.eq.'pi+') then
@@ -965,7 +965,7 @@ c  two pion thr
       p = sqrt(tp**2+2.*ap*tp)
       e = tp+ap
       call kine(am,ap,am2,p,th,thr,tc)
-      write(6,*)'thr is',thr
+c      write(6,*)'thr is',thr
       if (e1.gt.thr) then
          dw = (e1-thr)/20.
          sum = 0.
@@ -975,7 +975,7 @@ c  two pion thr
             call wiser(w/1.e3,p/1.e3,th,f)
             sum = sum+gn*f*dw
          enddo
-         write(6,*)'sum=',sum
+c         write(6,*)'sum=',sum
          d2sc = sum*p**2/e*1.e-6
          return
       endif

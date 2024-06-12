@@ -131,18 +131,18 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
 		    0, 
 		    fChkOvLaps);
    
+  
+  // G4String mInnerGasSDname = "SBS/InnerGas";
+  // G4String mInnerGasSDcolname = "mInnerGasHitsCollection";
 
-  G4String mInnerGasSDname = "SBS/InnerGas";
-  G4String mInnerGasSDcolname = "mInnerGasHitsCollection";
-
-  G4SBSmTPCSD *mInnerGasSD;
-  if( !(mInnerGasSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mInnerGasSDname)) ){ //Make sure SD with this name doesn't already exist
-    mInnerGasSD = new G4SBSmTPCSD( mInnerGasSDname, mInnerGasSDcolname );
-    fDetCon->fSDman->AddNewDetector(mInnerGasSD);
-    (fDetCon->SDlist).insert(mInnerGasSDname);
-    fDetCon->SDtype[mInnerGasSDname] = G4SBS::kmTPC;
-  }
-
+  // G4SBSmTPCSD *mInnerGasSD;
+  // if( !(mInnerGasSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mInnerGasSDname)) ){ //Make sure SD with this name doesn't already exist
+  //   mInnerGasSD = new G4SBSmTPCSD( mInnerGasSDname, mInnerGasSDcolname );
+  //   fDetCon->fSDman->AddNewDetector(mInnerGasSD);
+  //   (fDetCon->SDlist).insert(mInnerGasSDname);
+  //   fDetCon->SDtype[mInnerGasSDname] = G4SBS::kmTPC;
+  // }
+  
   G4Tubs* mInnerGas_solid = 
     new G4Tubs("mInnerGas_solid", 
 	       fDetCon->fTargetBuilder->GetTargDiameter()/2,
@@ -155,7 +155,7 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
     new G4LogicalVolume(mInnerGas_solid, 
 			 GetMaterial("ref4He"),
 			"mInnerGas_log");
-  mInnerGas_log->SetSensitiveDetector(mInnerGasSD);  
+  //mInnerGas_log->SetSensitiveDetector(mInnerGasSD);  
   
   new G4PVPlacement(0, 
 		    G4ThreeVector(0.0, 0.0, fZpos), 

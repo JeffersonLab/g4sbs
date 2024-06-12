@@ -24,7 +24,7 @@
 # tdiskinH -> new TDIS (hydrogen)
 # tdiskinD -> new TDIS (deuterium)
 
-/g4sbs/kine            tdisela
+/g4sbs/kine            tdisqua
 
 
 # when using pythia the rest of variables are irrelevant

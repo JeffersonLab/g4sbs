@@ -40,12 +40,12 @@
 /g4sbs/beamcur         5.0 muA
 /g4sbs/beamE          11.0 GeV
 /g4sbs/hadron          pi-
-/g4sbs/eemin           0.5 GeV
-/g4sbs/eemax          10.0 GeV
-/g4sbs/thmin           5.0 deg
-/g4sbs/thmax          25.0 deg
-/g4sbs/phmin         120.0 deg
-/g4sbs/phmax         240.0 deg
+/g4sbs/ehmin           0.5 GeV
+/g4sbs/ehmax          10.0 GeV
+/g4sbs/hthmin           5.0 deg
+/g4sbs/hthmax          25.0 deg
+/g4sbs/hphmin         120.0 deg
+/g4sbs/hphmax         240.0 deg
 
 ## Configure standard detector settings
 /g4sbs/lacdist       10.5 m

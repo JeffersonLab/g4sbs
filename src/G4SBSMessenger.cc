@@ -1269,7 +1269,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       validcmd = true;
     }
     if( newValue.compareTo("dis") == 0 ){
-      fevgen->SetKine(G4SBS::kDIS);
+      kinetemp = G4SBS::kDIS;
+      //fevgen->SetKine(G4SBS::kDIS);
       //fevgen->SetMaxWeight( cm2/GeV );
       validcmd = true;
     }

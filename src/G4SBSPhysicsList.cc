@@ -14,7 +14,7 @@
 //#include "HadronPhysicsQGSP_BERT.hh"
 #include "G4IonPhysicsXS.hh"
 #include "G4IonElasticPhysics.hh"
-#include "G4HadronInelasticQBBC.hh"
+//#include "G4HadronInelasticQBBC.hh"
 #include "G4HadronElasticPhysicsXS.hh"
 #include "G4NeutronTrackingCut.hh"
 #include "G4OpticalPhysics.hh"

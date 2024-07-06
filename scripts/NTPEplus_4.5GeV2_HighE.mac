@@ -10,7 +10,7 @@
 /g4sbs/rastery	       2.0 mm  #raster size in Y
 
 ## Configure generator settings
-/g4sbs/kine            gun           ## Generator
+/g4sbs/kine            elastic           ## Generator
 /g4sbs/beamcur         0.2 muA
 /g4sbs/beamE           6.6 GeV
 /g4sbs/thmin           18.0 deg

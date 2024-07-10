@@ -2349,11 +2349,16 @@ bool G4SBSEventGen::GenerateWiser( G4SBS::Nucl_t nucl, G4LorentzVector ei, G4Lor
   switch( fTargType ){
   case G4SBS::kH2:
     rad_len = glasswallradlen + targlen_passed/(52.*g/cm2)/(fTargDen*g/6.022e23);
+    //rad_len = targlen_passed/(63.04*cm/3.3504e-4);
+    break;
   case G4SBS::kNeutTarg:
     rad_len = glasswallradlen;
     break;
   case G4SBS::k3He:
     rad_len = glasswallradlen + targlen_passed/(94.32*3.*g/cm2/4.)/(fTargDen*3*g/6.022e23);
+    break;
+  case G4SBS::kD2:
+    rad_len = targlen_passed/(125.97*cm/6.708e-4);
     break;
   case G4SBS::kLH2:
     rad_len = targlen_passed/(63.04*cm/0.071);

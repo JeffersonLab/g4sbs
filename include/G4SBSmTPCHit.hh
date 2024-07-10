@@ -66,6 +66,9 @@ private:
   G4double fZTravel;            // z travel
   G4int fNStrips;               // estimated number of readout pads hit
   
+  //rewrite for more compact tree structure: store G4 Track IDs in the hit classes and then
+  //use the existing maps in the SDtrackoutput classes:
+  G4int otridx, ptridx, sdtridx; 
   //static std::map<G4String, G4AttDef> fAttDefs; //For visualization
   
 public:
@@ -160,6 +163,13 @@ public:
   inline void SetNStrips( G4double nstrips ){ fNStrips = nstrips; }
   inline G4int GetNStrips() const { return fNStrips; }
 
+  inline void SetOTrIdx(G4int idx){ otridx = idx; }
+  inline void SetPTrIdx(G4int idx){ ptridx = idx; }
+  inline void SetSDTrIdx(G4int idx){ sdtridx = idx; }
+  
+  inline G4int GetOTrIdx() const { return otridx; }
+  inline G4int GetPTrIdx() const { return ptridx; }
+  inline G4int GetSDTrIdx() const { return sdtridx; }
 };
 
 typedef G4THitsCollection<G4SBSmTPCHit> G4SBSmTPCHitsCollection;

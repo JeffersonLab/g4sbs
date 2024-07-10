@@ -17,6 +17,7 @@ public:
   void SetHCALDist(double a){ fHCALdist= a;   }
   void SetHCALVOffset(double a){ fHCALvertical_offset = a; }
   void SetHCALHOffset(double a){ fHCALhorizontal_offset = a; }
+  void SetHCALAngOffset(double a){ fHCALangular_offset = a; }
   void Set48D48Dist(double a){ f48D48dist = a; }
   void SetLACDist( double a ){ fLACdist = a; }
   void SetLACVOffset( double a ){ fLACvertical_offset = a; }
@@ -48,8 +49,13 @@ public:
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
   void MakeRICH(G4LogicalVolume *);
   void MakeRICH_new(G4LogicalVolume *, bool extended_snout = false);
-  void MakeTracker(G4LogicalVolume *);
+  void MakeTracker(G4LogicalVolume *, G4int nplanes = 5);
   void MakeGEpFPP(G4LogicalVolume *);
+  // // // // HEAD
+  // // // //
+  //void MakeGEpFPP_BB( G4LogicalVolume *);
+  void MakeTracker_A1n(G4LogicalVolume *);
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   void MakeElectronModeSBS(G4LogicalVolume *);
   void MakeLACModule(G4LogicalVolume *);
   void MakeSBSSieveSlit(G4LogicalVolume *);
@@ -65,6 +71,7 @@ public:
   double fHCALdist;
   double fHCALvertical_offset;  // Vertical offset (from center) of HCAL
   double fHCALhorizontal_offset; // Horizontal offset (from SBS center line) of HCAL (by convention, +X is toward smaller angle)
+  double fHCALangular_offset; // Angular offset of HCAL wrt exit beamline (+ = away from beamline).
   double fRICHdist; //Distance from target to RICH entry window (in horizontal plane)
   double fRICHvertical_offset; //Vertical offset (from center)
   double fRICHhorizontal_offset; //Horizontal offset (from SBS center line, + = toward beamline).
@@ -108,6 +115,8 @@ public:
   double fGEP_CH2width[2];
   double fGEP_CH2height[2]; 
   double fGEP_CH2zpos[2];
+  double fGEP_CH2yoff[2];
+  //double fGEP_trkryoff[3];
   
 private:
 

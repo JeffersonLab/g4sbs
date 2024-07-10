@@ -17,10 +17,20 @@ public:
   ~G4SBSTrackerBuilder();
 
   void BuildComponent(G4LogicalVolume *);
-  void BuildComponent(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector, unsigned int, vector<double>, vector<double>, vector<double>, G4String );
+  // // // // HEAD
+  // void BuildComponent(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector, unsigned int, vector<double>, vector<double>, vector<double>, G4String );
 
-private:
+  // // // // 
+  void BuildComponent(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector, unsigned int, vector<double>, vector<double>, vector<double>, G4String, G4bool ispolarimeter=false, G4double yoffset=0.0 );
+
+  inline void SetFrontTrackerZoffset( G4double z ){ fFrontTrackerZoffset = z; fFrontTrackerZoffsetIsSet = true; }
+  inline G4double GetFrontTrackerZoffset() const { return fFrontTrackerZoffset; }
   
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
+private:
+
+  G4double fFrontTrackerZoffset;
+  G4bool fFrontTrackerZoffsetIsSet; 
   
 };
 

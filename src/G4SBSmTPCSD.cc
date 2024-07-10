@@ -140,6 +140,11 @@ G4bool G4SBSmTPCSD::ProcessHits( G4Step *aStep, G4TouchableHistory* ){
 
 
   newHit->SetLogicalVolume( prestep->GetPhysicalVolume()->GetLogicalVolume() );
+
+  newHit->SetOTrIdx( SDtracks.InsertOriginalTrackInformation( track ) );
+  newHit->SetPTrIdx( SDtracks.InsertPrimaryTrackInformation( track ) );
+  newHit->SetSDTrIdx( SDtracks.InsertSDTrackInformation( track ) );
+
   hitCollection->insert( newHit );
 
   return true;

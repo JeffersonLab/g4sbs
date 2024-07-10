@@ -60,6 +60,7 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fLACdist   = 14.0*m;
   fHCALvertical_offset = 0.0*cm;
   fHCALhorizontal_offset = 0.0*cm;
+  fHCALangular_offset = 0.0*deg;
 
   fLACvertical_offset = 0.0*cm;
   fLAChorizontal_offset = 0.0*cm;
@@ -94,11 +95,17 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
                      //alternate configuration to be tested is one analyzer with the FPP1 GEMs re-distributed to FT and FPP2
 
   //default to two analyzers, with same transverse dimensions as the polarimeter GEMs, each 22 inches thick:
-  fGEP_CH2width[0] = fGEP_CH2width[1] = 60.0*cm;
-  fGEP_CH2height[0] = fGEP_CH2height[1] = 200.0*cm;
+  fGEP_CH2width[0] = fGEP_CH2width[1] = 28.88*2.54*cm;
+  fGEP_CH2height[0] = fGEP_CH2height[1] = 84.0*2.54*cm;
 
+  fGEP_CH2yoff[0] = fGEP_CH2yoff[1] = 0.0*cm;
+  //fGEP_trkryoff[0] = fGEP_trkryoff[1] = fGEP_trkryoff[2] = 0.0*cm;
+  
   fGEP_CH2zpos[0] = 58.53*cm;
   fGEP_CH2zpos[1] = 170.3*cm;
+
+  fGEP_CH2yoff[0] = fGEP_CH2yoff[1] = 0.0*cm;
+  
   
   fFTuseabsorber = false;
   fFTabsthick = 2.54*cm;
@@ -121,13 +128,13 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   // Build the 48D48 magnet and HCAL
   // All three types of experiments have a 48D48 magnet:
-  if( exptype != G4SBS::kC16 && exptype != G4SBS::kGEMHCtest ) {
+  if( exptype != G4SBS::kC16 && exptype != G4SBS::kGEMHCtest && exptype != G4SBS::kMTPConly) {
     Make48D48(worldlog, f48D48dist + f48D48depth/2. );
     if(fBuildSBSSieve)
       MakeSBSSieveSlit(worldlog);
     
     //MakeHCAL( worldlog, fHCALvertical_offset );
-    if( exptype != G4SBS::kA1n  && exptype != G4SBS::kTDIS && exptype != G4SBS::kNDVCS )
+    if( exptype != G4SBS::kA1n  && exptype != G4SBS::kTDIS )// && exptype != G4SBS::kNDVCS )
       MakeHCALV2( worldlog, fHCALvertical_offset );
   }
 
@@ -137,10 +144,17 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     MakeTracker(worldlog);
     //MakeRICH( worldlog );
     MakeRICH_new( worldlog );
-  } else if ( exptype == G4SBS::kGEp || exptype == G4SBS::kGEPpositron ) {
+  } else if ( exptype == G4SBS::kGEp || exptype == G4SBS::kGEPpositron || exptype == G4SBS::kGEp_BB ) {
     //Subsystems unique to the GEp experiment include FPP and BigCal:
     MakeGEpFPP(worldlog);
+  } 
+  
+  if( exptype == G4SBS::kALL) {
+    
+    MakeTracker(worldlog, 8);
+    
   }
+  
 
   if ( exptype == G4SBS::kA1n  || exptype == G4SBS::kTDIS || exptype == G4SBS::kNDVCS ) {
     //A1n case is similar to SIDIS, except now we want to use the SBS in
@@ -200,7 +214,7 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       //G4VisAttributes* VisAtt = new G4VisAttributes( G4Colour(1, 1, 1) );
       //VisAtt->SetForceWireframe(true);
       //CDetmother_log->SetVisAttributes( VisAtt );
-      CDetmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+      CDetmother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
       
       G4double z0_CDET = -0.15*m;
       G4double planes_hoffset = 0.84*m;
@@ -239,16 +253,32 @@ void G4SBSHArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
   }
 
   // Build GEn-RP polarimeter
-  if( exptype == G4SBS::kGEnRP ) 
+  if( exptype == G4SBS::kGEnRP || exptype == G4SBS::kGEN) 
     MakePolarimeterGEnRP( worldlog );
 }
 
 void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
 {
+
+  G4SBS::Exp_t exptype = fDetCon->fExpType;
+  
+  //If exptype is GEp_BB option, we build a slightly different version of the FPP:
+  
   //Let's make a box and then put the FPP in it:
   //Define the rotation matrix for the FPP (pitch angle of 5 deg relative to vertical): 
   G4double sbsboxpitch = 5.0*deg;
 
+  if( exptype == G4SBS::kGEp_BB ){
+    sbsboxpitch = 3.0*deg;
+  }
+
+  G4double sbsvoff = 0.0*cm;
+  
+  if( fGEPFPPoption != 2 ){
+    sbsboxpitch = 0.0*deg;
+    //sbsvoff = 10.0*cm;
+  }
+  
   SetTrackerPitch( sbsboxpitch );
   
   G4RotationMatrix *SBS_FPP_rm = new G4RotationMatrix;
@@ -256,22 +286,23 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
   SBS_FPP_rm->rotateX( sbsboxpitch );
 
   //FPP box: 
-  double sbsdepth  = 3.0*m;
+  double sbsdepth  = 3.5*m;
   double sbswidth  = 2.0*m;
-  double sbsheight = 2.1*m;
+  double sbsheight = 3.5*m;
 
   //double sbsr = fHCALdist - 4.106*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
-  double sbsr = f48D48dist + 1.694*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
-
+  //double sbsr = f48D48dist + 1.694*m + sbsheight*sin(sbsboxpitch)/2.0 + sbsdepth/2.0;
+  double sbsr = f48D48dist + 48.0*2.54*cm + 0.82*m + sbsdepth/2.0;
+  
   SetTrackerDist( sbsr );
   
   G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
   G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
 
-  sbslog->SetVisAttributes( G4VisAttributes::Invisible );
+  sbslog->SetVisAttributes( G4VisAttributes::GetInvisible() );
   //Now position and orient the FPP "box":
 
-  G4ThreeVector sbsbox_pos( -sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch), sbsr*cos(f48D48ang) );
+  G4ThreeVector sbsbox_pos( -sbsr*sin(f48D48ang), (sbsr-f48D48dist)*sin(sbsboxpitch) + sbsvoff, sbsr*cos(f48D48ang) );
   
   new G4PVPlacement(SBS_FPP_rm, sbsbox_pos, sbslog,
 		    "sbsphys", worldlog, false, 0, false);
@@ -685,9 +716,9 @@ void G4SBSHArmBuilder::Make48D48( G4LogicalVolume *worldlog, double r48d48 ){
 
   }
 
-  bigfieldLog->SetVisAttributes(G4VisAttributes::Invisible);
-  //  backclampLog->SetVisAttributes(G4VisAttributes::Invisible);
-  //  frontclampLog->SetVisAttributes(G4VisAttributes::Invisible);
+  bigfieldLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  //  backclampLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  //  frontclampLog->SetVisAttributes(G4VisAttributes::GetInvisible());
 }
 
 void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
@@ -867,7 +898,7 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     G4SubtractionSolid *FrontClamp = new G4SubtractionSolid( "FrontClamp", FrontClamp_Box, FrontClamp_Notch, 0, G4ThreeVector( xnotch, 0.0, 0.0 ) );
 
     G4LogicalVolume *FrontClamp_log = new G4LogicalVolume( FrontClamp, GetMaterial("Fer"), "FrontClamp_log" );
-    //fDetCon->InsertAnalyzerVolume( FrontClamp_log-> GetName() );
+    fDetCon->InsertAnalyzerVolume( FrontClamp_log-> GetName() );
     if(fDetCon->fTotalAbs) {
       FrontClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
     }
@@ -927,7 +958,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 							      G4ThreeVector( xnotch, 0.0, 0.0 ) );
 
       G4LogicalVolume *RearClamp_log = new G4LogicalVolume( RearClamp, GetMaterial("Fer"), "RearClamp_log" );
-    
+
+      fDetCon->InsertAnalyzerVolume( RearClamp_log->GetName() );
+      
       if(fDetCon->fTotalAbs) {
 	RearClamp_log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
       }
@@ -1185,13 +1218,13 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
 
   // Specify the distance from entrance to HCAL to center of target
   G4double dist_HCalRadius = fHCALdist + dim_HCALZ/2.0;
-  G4double dist_HCALX = -dist_HCalRadius*sin(f48D48ang);
+  G4double dist_HCALX = -dist_HCalRadius*sin(f48D48ang+fHCALangular_offset);
   G4double dist_HCALY = VerticalOffset;
-  G4double dist_HCALZ = dist_HCalRadius*cos(f48D48ang);
+  G4double dist_HCALZ = dist_HCalRadius*cos(f48D48ang+fHCALangular_offset);
 
   // Specify the rotation matrix for this HCAL
   G4RotationMatrix *rot_HCAL= new G4RotationMatrix;
-  rot_HCAL->rotateY(f48D48ang);
+  rot_HCAL->rotateY(f48D48ang+fHCALangular_offset);
 
   // Define the solid for the module container and "CAN"
   G4Box *sol_Module = new G4Box("sol_Module",
@@ -1679,15 +1712,15 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   //G4VisAttributes *vis_Module  = new G4VisAttributes(G4Colour::Blue());
   //vis_Module ->SetForceWireframe(true);
   //log_Module->SetVisAttributes(vis_Module);
-  log_Module->SetVisAttributes(G4VisAttributes::Invisible);
+  log_Module->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   // Hide the Can
   //G4VisAttributes *vis_ModCan = new G4VisAttributes(G4Colour(0.78,0.92,0.27));
   //log_ModCan->SetVisAttributes(vis_ModCan);
-  log_ModCan->SetVisAttributes(G4VisAttributes::Invisible);
+  log_ModCan->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   // Module Mylar (invisible)
-  log_ModuleMylar->SetVisAttributes(G4VisAttributes::Invisible);
+  log_ModuleMylar->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   // Absorber
   G4VisAttributes *vis_Absorb = new G4VisAttributes(G4Colour(0.83,0.84,0.85));
@@ -1729,7 +1762,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   log_HCALFrontPlate->SetVisAttributes(vis_HCALFrontPlate);
 
   // HCAL enclosure should be invisible
-  log_HCAL->SetVisAttributes(G4VisAttributes::Invisible);
+  log_HCAL->SetVisAttributes(G4VisAttributes::GetInvisible());
 }
 
 void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOffset=0.0*cm ){
@@ -2093,12 +2126,12 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   logModule->SetVisAttributes(logModuleVis);
 
   // Scint Plate
-  logScinPlWrap->SetVisAttributes(G4VisAttributes::Invisible);
+  logScinPlWrap->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   // Mother Volume
   //G4VisAttributes * caloVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
   //caloVisAtt->SetForceWireframe(true);
-  logCalo->SetVisAttributes(G4VisAttributes::Invisible);
+  logCalo->SetVisAttributes(G4VisAttributes::GetInvisible());
 }
 
 // void G4SBSHArmBuilder::MakeTracker( G4LogicalVolume *worldlog)
@@ -2143,10 +2176,10 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
 //   trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
 //       ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
 
-//   SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
+//   SBStracker_log->SetVisAttributes(G4VisAttributes::GetInvisible());
 // }
 
-void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
+void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog, G4int nplanes){
   //      G4double SBStracker_dist = fRICHdist - 0.3*m; //distance to the front of the SBS tracker
   
   G4ThreeVector SBS_midplane_pos( -(f48D48dist + 0.5*f48D48depth)*sin(f48D48ang), 0.0, (f48D48dist+0.5*f48D48depth)*cos(f48D48ang) );
@@ -2160,7 +2193,14 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
   SBStracker_rot->rotateY( f48D48ang );
   SBStracker_rot->rotateX( fSBS_tracker_pitch );
 
-  G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, 22.0*cm );
+  int ngems_SBStracker = nplanes;
+  
+  G4double zspacing_SBStracker = 10.0*cm;
+  G4double zoffset_SBStracker = -(ngems_SBStracker-1)*zspacing_SBStracker/2.0;
+  G4double LtrackerBox = (ngems_SBStracker-1)*zspacing_SBStracker+4.0*cm;
+  printf("%f %f\n", zoffset_SBStracker, LtrackerBox/2.0);
+  
+  G4Box *SBStracker_box = new G4Box("SBStracker_box", 32.0*cm, 102.0*cm, LtrackerBox/2.0 );
 
   G4LogicalVolume *SBStracker_log = new G4LogicalVolume( SBStracker_box, GetMaterial("Air"), "SBStracker_log" );
 
@@ -2169,8 +2209,6 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
   //from the target:
   // xmidplane + L*sin
 
-  
-  
   G4double Tracker_yoffset = (fSBS_tracker_dist - (f48D48dist + 0.5*f48D48depth) )*tan(fSBS_tracker_pitch);
 
   G4ThreeVector FirstPlane_pos( -fSBS_tracker_dist*sin(f48D48ang),
@@ -2185,17 +2223,13 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
   // G4ThreeVector SBS_tracker_axis = (RICH_pos - SBS_midplane_pos).unit();
   // G4ThreeVector SBS_tracker_pos = RICH_pos - 0.3*m*SBS_tracker_axis;
 
-  G4ThreeVector SBS_tracker_pos = FirstPlane_pos + 20.0*cm*SBS_tracker_axis;
+  G4ThreeVector SBS_tracker_pos = FirstPlane_pos - zoffset_SBStracker*SBS_tracker_axis;
   
   printf("sbs_tracker_pos: %f, %f, %f\n", SBS_tracker_pos.x(), SBS_tracker_pos.y(), SBS_tracker_pos.z() );
   
   new G4PVPlacement( SBStracker_rot, SBS_tracker_pos, SBStracker_log, "SBStracker_phys", motherlog, false, 0 );
 
-  int ngems_SBStracker = 5;
   vector<double> zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker;
-
-  G4double zspacing_SBStracker = 10.0*cm;
-  G4double zoffset_SBStracker = -20.0*cm;
 
   for(int i=0; i<ngems_SBStracker; i++ ){
     zplanes_SBStracker.push_back( zoffset_SBStracker + i*zspacing_SBStracker );
@@ -2210,7 +2244,7 @@ void G4SBSHArmBuilder::MakeTracker(G4LogicalVolume *motherlog){
   trackerbuilder.BuildComponent( SBStracker_log, SBStracker_rot_I, G4ThreeVector(0,0,0), 
       ngems_SBStracker, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, G4String("Harm/SBSGEM") );
 
-  SBStracker_log->SetVisAttributes(G4VisAttributes::Invisible);
+  SBStracker_log->SetVisAttributes(G4VisAttributes::GetInvisible());
 }
 
 void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
@@ -2792,7 +2826,7 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool extended_s
   G4Tubs *PMTcylinder = new G4Tubs( "PMTcylinder", 0.0*cm, (1.86/2.0)*cm, 4.5*cm, 0.0, twopi ); //cylinder full of vacuum, mother volume for PMT
   G4LogicalVolume *PMTcylinder_log = new G4LogicalVolume( PMTcylinder, GetMaterial("BlandAir"), "PMTcylinder_log" );
 
-  PMTcylinder_log->SetVisAttributes( G4VisAttributes::Invisible );
+  PMTcylinder_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   //Define the PMT windows as 1 mm-thick discs of "UVglass"; how thick are the windows really? 1 mm is a guess; let's go with 2 mm just to be conservative
   G4Tubs *PMTwindow = new G4Tubs( "PMTwindow", 0.0*cm, (1.66/2.0)*cm, 0.1*cm, 0.0, twopi ); 
@@ -2980,8 +3014,8 @@ void G4SBSHArmBuilder::MakeRICH_new( G4LogicalVolume *motherlog, bool extended_s
   v_spacer_log->SetVisAttributes( tedlar_vis );
   h_spacer_log->SetVisAttributes( tedlar_vis );
 
-  Aerogel_wall_container_log->SetVisAttributes( G4VisAttributes::Invisible );
-  RICHbox_log->SetVisAttributes( G4VisAttributes::Invisible );
+  Aerogel_wall_container_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  RICHbox_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   G4VisAttributes *RICHbox_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
   RICHbox_visatt->SetForceWireframe(true);
@@ -3226,7 +3260,7 @@ void G4SBSHArmBuilder::MakeCDET( G4LogicalVolume *mother, G4double z0, G4double 
     }
   }
 
-  Scint_module->SetVisAttributes( G4VisAttributes::Invisible );
+  Scint_module->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *scintstrip_visatt = new G4VisAttributes( G4Colour( 0.8, 0, 0.8 ) );
   ScintStripLog->SetVisAttributes( scintstrip_visatt );
@@ -3714,7 +3748,7 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 
   //  G4VisAttributes for PMT assemblies:
 
-  PMTcylinder_log->SetVisAttributes( G4VisAttributes::Invisible );
+  PMTcylinder_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4VisAttributes *PMTtube_vis = new G4VisAttributes( G4Colour( 0.4, 0.4, 0.4 ) );
   
@@ -3752,6 +3786,12 @@ void G4SBSHArmBuilder::MakeRICH( G4LogicalVolume *motherlog ){
 void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, G4ThreeVector pos ){
   //FPP consists of GEM tracker interspersed w/CH2 analyzers:
 
+  G4SBS::Exp_t exptype = fDetCon->fExpType;
+
+  if( exptype == G4SBS::kGEp_BB ) {
+    fGEPFPPoption = 4;
+  }
+  
   //Make analyzers first:
   // double anaheight = fGEP_CH2height;
   // double anawidth  = fGEP_CH2width;
@@ -3770,6 +3810,10 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   int ngem[ntrackermax] = {6,5,5}; //defaults
   double GEM_z_spacing[ntrackermax];
   double trkr_zpos[ntrackermax];
+  double trkr_yoff[ntrackermax] = {0.0, 0.0, 0.0};
+
+  
+  
   vector<G4String> SDnames;
   vector<G4String> AnalyzerMaterials;
 
@@ -3777,22 +3821,27 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   
   switch( fGEPFPPoption ){ //1 = 8-plane front tracker of 6x(40x150 cm^2)+2x(60x200 cm^2) and 8-plane back tracker of 6x(60x200 cm^2)
   case 1:
+  default:
     nana = 1;
     ntracker = 2;
     ngem[0] = 8;
     ngem[1] = 8;
-    GEM_z_spacing[0] = 10.0*cm;
-    GEM_z_spacing[1] = 10.0*cm;
+    GEM_z_spacing[0] = 13.2*cm;
+    GEM_z_spacing[1] = 11.3*cm;
     trkr_zpos[0] = 0.0;
-    trkr_zpos[1] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0] + fCH2thickFPP[0] + GEM_z_spacing[1];
-    fGEP_CH2zpos[0] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0]; //upstream edge of CH2
+    //trkr_zpos[1] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0] + fCH2thickFPP[0] + GEM_z_spacing[1];
+    trkr_zpos[1] = 2.074*m;
+    //trkr_yoff[0] = 
+      //fGEP_CH2zpos[0] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0]; //upstream edge of CH2
+    fGEP_CH2zpos[0] = 1.518*m - 0.5*fCH2thickFPP[0];
     SDnames.push_back( "Harm/FT" );
-    SDnames.push_back( "Harm/FPP" );
-    fGEP_CH2width[0] = 60.0*cm;
-    fGEP_CH2height[0] = 200.0*cm;
-
+    SDnames.push_back( "Harm/FPP1" );
+    fGEP_CH2width[0] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[0] = 84.0*2.54*cm; //about 213.36 cm
+    fGEP_CH2yoff[0] = 25.78*cm;
     AnalyzerMaterials.push_back( G4String("CH2") );
-    
+    trkr_yoff[0] = 16.5*cm;
+    trkr_yoff[1] = 34.1*cm;
     break;
   case 3: //6-plane FT + 22" CH2 + 5-plane FPP1 + let's use 3.5" steel + 5-plane FPP2:
     nana = 2;
@@ -3803,10 +3852,10 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 
     fGEP_CH2zpos[0] = 58.53*cm;
     fGEP_CH2zpos[1] = 170.3*cm;
-    fGEP_CH2width[0] = 60.0*cm;
-    fGEP_CH2height[0] = 200.0*cm;
-    fGEP_CH2width[1] = 60.0*cm;
-    fGEP_CH2height[1] = 200.0*cm;
+    fGEP_CH2width[0] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[0] = 84.0*2.54*cm; //about 213.36 cm
+    fGEP_CH2width[1] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[1] = 84.0*2.54*cm; //about 213.36 cm
 
     //fCH2thickFPP[1] = 3.5*2.54*cm; //GEN-RP steel analyzer thickness: let's not actually
     //hard-code this8.
@@ -3826,8 +3875,30 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     AnalyzerMaterials.push_back( "Steel" );
     
     break;
+  case 4:
+    //4 = GEP BigBite option: since 4 U/V layers and 1 X/Y layer will be in BigBite, what is left over will be 9 X/Y layers 60x200. Let's try the following layout:
+    // 9 X/Y layers 50x120 in the front, plus 6 X/Y 60x150 in the back.
+    nana = 1;
+    ntracker = 2;
+
+    ngem[0] = 6;
+    ngem[1] = 6;
+    GEM_z_spacing[0] = 9.0*cm;
+    GEM_z_spacing[1] = 10.0*cm;
+
+    trkr_zpos[0] = 0.0;
+    trkr_zpos[1] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0] + fCH2thickFPP[0] + GEM_z_spacing[1];
+    fGEP_CH2zpos[0] = trkr_zpos[0] + ngem[0]*GEM_z_spacing[0]; //upstream edge of CH2;
+    SDnames.push_back( "Harm/FT" );
+    SDnames.push_back( "Harm/FPP1" );
+    fGEP_CH2width[0] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[0] = 84.0*2.54*cm; //about 213.36 cm
+
+    AnalyzerMaterials.push_back( G4String("CH2") );
+    
+    break;
   case 2:
-  default: //2 = original layout: 6-plane FT of (40x150) cm^2 plus FPP1 and FPP2 trackers:
+    //default: //2 = original layout: 6-plane FT of (40x150) cm^2 plus FPP1 and FPP2 trackers:
     nana = 2;
     ntracker = 3;
     GEM_z_spacing[0] = 9.0*cm;
@@ -3835,10 +3906,10 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     GEM_z_spacing[2] = 10.0*cm;
     fGEP_CH2zpos[0] = 58.53*cm;
     fGEP_CH2zpos[1] = 170.3*cm;
-    fGEP_CH2width[0] = 60.0*cm;
-    fGEP_CH2height[0] = 200.0*cm;
-    fGEP_CH2width[1] = 60.0*cm;
-    fGEP_CH2height[1] = 200.0*cm;
+    fGEP_CH2width[0] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[0] = 84.0*2.54*cm; //about 213.36 cm
+    fGEP_CH2width[1] = 28.88*2.54*cm; //about 73 cm
+    fGEP_CH2height[1] = 84.0*2.54*cm; //about 213.36 cm
     
     SDnames.push_back("Harm/FT");
     SDnames.push_back("Harm/FPP1");
@@ -3878,7 +3949,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 
     analog_temp->SetVisAttributes( CH2anavisatt );
     
-    G4ThreeVector anapos_temp = pos + G4ThreeVector( 0.0, 0.0, fGEP_CH2zpos[ana] + fCH2thickFPP[ana]/2.0 );
+    G4ThreeVector anapos_temp = pos + G4ThreeVector( 0.0, fGEP_CH2yoff[ana], fGEP_CH2zpos[ana] + fCH2thickFPP[ana]/2.0 );
     new G4PVPlacement( 0, anapos_temp, analog_temp, anaphysname, Mother, false, 0, false );
   }
 
@@ -3912,20 +3983,34 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     gemh.resize( ngem[i] );
     for( j = 0; j < ngem[i]; j++ ){
       gemz[j] = trkr_zpos[i] + ((double) j)*GEM_z_spacing[i];
-      if( i == 0 && j < 6 ){ //FT 40x150:
-	//	gemz[j] = ((double) j)*GEM_z_spacing[i];
-	gemw[j] = 40.0*cm;
-	gemh[j] = 150.0*cm;
-      } else { //200x60
-	//gemz[j] = ((double) j)*10.0*cm + 1.2*m;
-	//gemz[j] = zavg + double(j-2)*GEM_z_spacing[i];
-	//	  gemz[i] = pairspac*((i-6)/2) + (i%2)*gemdsep + 1.2*m;
-	gemw[j] = 60.0*cm;
-	gemh[j] = 200.0*cm;
+
+      if( fGEPFPPoption != 4 ){
+	if( i == 0 && j < 6 ){ //FT 40x150:
+	  //	gemz[j] = ((double) j)*GEM_z_spacing[i];
+	  gemw[j] = 40.0*cm;
+	  gemh[j] = 150.0*cm;
+	} else { //200x60
+	  //gemz[j] = ((double) j)*10.0*cm + 1.2*m;
+	  //gemz[j] = zavg + double(j-2)*GEM_z_spacing[i];
+	  //	  gemz[i] = pairspac*((i-6)/2) + (i%2)*gemdsep + 1.2*m;
+	  gemw[j] = 60.0*cm;
+	  gemh[j] = 200.0*cm;
+	}
+      } else {
+	if( i == 0 && j<2 ){
+	  gemw[j] = 40.0*cm;
+	  gemh[j] = 150.0*cm;
+	} else {
+	  gemw[j] = 60.0*cm;
+	  gemh[j] = 200.0*cm;
+	}
       }
     }
-    //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //1 is H arm.  
-    trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, SDnames[i] );
+    //(fDetCon->TrackerArm)[fDetCon->TrackerIDnumber] = kHarm; //1 is H arm.
+    G4bool ispolarimeter = false;
+    if( i > 0 ) ispolarimeter = true;
+    
+    trackerbuilder.BuildComponent( Mother, rot, pos, ngem[i], gemz, gemw, gemh, SDnames[i], ispolarimeter, trkr_yoff[i] );
   }
 
   //CH2 analyzers:
@@ -4180,7 +4265,7 @@ void G4SBSHArmBuilder::MakeLAC( G4LogicalVolume *motherlog ){
 
   G4LogicalVolume *log_LAC = new G4LogicalVolume( LAC_mother_box, GetMaterial("Air"), "log_LAC" );
 
-  //G4VisAttributes *LAC_visatt = new G4VisAttributes( G4VisAttributes::Invisible );
+  //G4VisAttributes *LAC_visatt = new G4VisAttributes( G4VisAttributes::GetInvisible() );
 
   log_LAC->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
@@ -4377,7 +4462,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   G4Box*           sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
   G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
-  sbslog->SetVisAttributes( G4VisAttributes::Invisible );
+  sbslog->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   new G4PVPlacement(SBS_FPP_rm, G4ThreeVector(-sbsr*sin(f48D48ang), 0.0, sbsr*cos(f48D48ang) ), 
 		    sbslog, "sbsphys", worldlog, false, 0, false);
@@ -4409,7 +4494,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   G4ThreeVector cuana_pos = pos + G4ThreeVector( 0.0, 0.0, (cuanadist + cuanadepth/2.0) ); 
   
-  if( fGEnRP_analyzer_option >= 2 ) {
+  if( fGEnRP_analyzer_option >= 2 && fDetCon->fExpType != G4SBS::kGEN) {
     G4Box*           cuanabox  = new G4Box("cuanabox", cuanawidth/2.0, cuanaheight/2.0, cuanadepth/2.0 );
     //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("CH2"), "cuanalog");
     //G4LogicalVolume* cuanalog  = new G4LogicalVolume(cuanabox, GetMaterial("Copper"), "cuanalog");
@@ -4435,45 +4520,80 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   // int ngem_ce[3]       = {2,2,4};
   // double cegem_spacing = 10.0 *cm;
 
-  int ntracker_ce      = 2; 
-  int ngem_ce[2]       = {4,4};
-  double cegem_spacing = 10.0 *cm;
+  //SBS tracking geometry notes:
+  // 1. SBS detector box starts just downstream of rear clamp; i.e. front edge of SBS box starts at the back edge of rear clamp, which according to "sbsr" above is 11.43+5.91 inches downstream of the back edge of the magnet.
+  // 2. according to the GEP detector stack drawings (I know, I know, not the same as GEN), the first SBS tracking layer (INFN) starts 55.91 inches downstream of the CENTER of the SBS magnet, which is 37 cm downstream of the start of the SBS box:
   
-  vector<G4String> SDnames_ce; 
-  //SDnames_ce.push_back("Harm/CEPolFront1");
-  //SDnames_ce.push_back("Harm/CEPolFront2");
-  //SDnames_ce.push_back("Harm/CEPolRear");
+  if( fDetCon->fExpType == G4SBS::kGEN ){ //build ONE tracker, not two. 
+    int ntracker = 1;
+    int ngem = 8;
 
-  // SDnames_ce.push_back("Harm/CEPolFront1");
-  SDnames_ce.push_back("Harm/CEPolFront");
-  SDnames_ce.push_back("Harm/CEPolRear");
+    G4String SDname = "Harm/SBSGEM";
+
+    vector<double> zplanes_SBStracker(ngem), wplanes_SBStracker(ngem), hplanes_SBStracker(ngem);
+
+    for( int igem=0; igem<ngem; igem++ ){
+      double ztemp;
+      if( igem < 4 ){
+	ztemp = igem*10.0*cm;
+      } else {
+	ztemp = (igem+1)*10.0*cm;
+      }
+	
+      zplanes_SBStracker[igem] = detoffset + 37.0*cm + ztemp;
+      if( igem<2 ){
+	wplanes_SBStracker[igem] = 40.0*cm;
+	hplanes_SBStracker[igem] = 150.0*cm;
+      } else {
+	wplanes_SBStracker[igem] = 60.0*cm;
+	hplanes_SBStracker[igem] = 200.0*cm;
+      }
+    }
+
+    trackerbuilder.BuildComponent( sbslog, rot_I, G4ThreeVector(0,0,0), ngem, zplanes_SBStracker, wplanes_SBStracker, hplanes_SBStracker, SDname );
+    
+  } else {
   
-  for( int i = 0; i<ntracker_ce; i++){ 
-    gemz.resize( ngem_ce[i] ); 
-    gemw.resize( ngem_ce[i] );
-    gemh.resize( ngem_ce[i] );
-    for( int j = 0; j < ngem_ce[i]; j++ ){
-      if( i == 0 ){
-	gemz[j] = -cuanadepth/2.0 + (double)(j-4)*cegem_spacing;
-	if( j < 2 ){
-	  gemw[j] = 40.0*cm;
-	  gemh[j] = 150.0*cm;
-	} else {
+    int ntracker_ce      = 2; 
+    int ngem_ce[2]       = {4,4};
+    double cegem_spacing = 10.0 *cm;
+  
+    vector<G4String> SDnames_ce; 
+    //SDnames_ce.push_back("Harm/CEPolFront1");
+    //SDnames_ce.push_back("Harm/CEPolFront2");
+    //SDnames_ce.push_back("Harm/CEPolRear");
+
+    // SDnames_ce.push_back("Harm/CEPolFront1");
+    SDnames_ce.push_back("Harm/CEPolFront");
+    SDnames_ce.push_back("Harm/CEPolRear");
+  
+    for( int i = 0; i<ntracker_ce; i++){ 
+      gemz.resize( ngem_ce[i] ); 
+      gemw.resize( ngem_ce[i] );
+      gemh.resize( ngem_ce[i] );
+      for( int j = 0; j < ngem_ce[i]; j++ ){
+	if( i == 0 ){
+	  gemz[j] = -cuanadepth/2.0 + (double)(j-4)*cegem_spacing;
+	  if( j < 2 ){
+	    gemw[j] = 40.0*cm;
+	    gemh[j] = 150.0*cm;
+	  } else {
+	    gemw[j] = 60.0*cm;
+	    gemh[j] = 200.0*cm;
+	  }
+	} else {// else if( i == 1 ){
+	  // 	gemz[j] = -cuanadepth/2.0 + (double)(j-2)*cegem_spacing;
+	  // 	gemw[j] = 60.0*cm;
+	  // 	gemh[j] = 200.0*cm;
+	  // }
+	  //else {
+	  gemz[j] = cuanadepth/2.0 + (double)(j+1)*cegem_spacing;
 	  gemw[j] = 60.0*cm;
 	  gemh[j] = 200.0*cm;
 	}
-      } else {// else if( i == 1 ){
-      // 	gemz[j] = -cuanadepth/2.0 + (double)(j-2)*cegem_spacing;
-      // 	gemw[j] = 60.0*cm;
-      // 	gemh[j] = 200.0*cm;
-      // }
-      //else {
-  	gemz[j] = cuanadepth/2.0 + (double)(j+1)*cegem_spacing;
-  	gemw[j] = 60.0*cm;
-  	gemh[j] = 200.0*cm;
       }
+      trackerbuilder.BuildComponent( sbslog, rot_I, cuana_pos, ngem_ce[i], gemz, gemw, gemh, SDnames_ce[i] );
     }
-    trackerbuilder.BuildComponent( sbslog, rot_I, cuana_pos, ngem_ce[i], gemz, gemw, gemh, SDnames_ce[i] );
   }
   
   // ----------------------------------------------------------------------------------------------------------------------
@@ -4501,70 +4621,72 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
     actanawidth = 60.0 *cm;
     actanadepth = actanabardepth * nactanabarsz;
   }    
-
-  G4ThreeVector actana_pos = pos + G4ThreeVector( 0.0, 0.0, (actanadist + actanadepth/2.0) );
-  
-  G4Box*           actanabox  = new G4Box("actanabox", actanawidth/2.0, actanaheight/2.0, actanadepth/2.0 );
-  G4LogicalVolume* actanalog  = new G4LogicalVolume(actanabox, GetMaterial("Air"), "actanalog");
-  
-  if( fGEnRP_analyzer_option == 2 ) {   // long axis parallel to neutron direction
-    G4RotationMatrix* rot_ana  = new G4RotationMatrix;
-    rot_ana->rotateX( 90.0 *deg );
-    new G4PVPlacement(rot_ana, actana_pos, actanalog,"actanaphys", sbslog, false, 0, false);  
-  }
-  else if( fGEnRP_analyzer_option == 3 || fGEnRP_analyzer_option == 4 )  // long axis perpendicular to neutron direction or CGEN configuration
-    new G4PVPlacement(0, actana_pos, actanalog,"actanaphys", sbslog, false, 0, false);  
-
-  actanalog ->SetVisAttributes( G4VisAttributes::Invisible );
-
-  G4String ActAnScintSDname   = "Harm/ActAnScint";
-  G4String ActAnScintcollname = "ActAnScintHitsCollection";
-  G4SBSCalSD *ActAnScintSD    = NULL;
-  
-  G4Box *actanabarbox = new G4Box("actanabarbox", actanabarwidth/2.0, actanaheight/2.0, actanabardepth/2.0 );
-  G4LogicalVolume *actanabarlog = new G4LogicalVolume( actanabarbox, GetMaterial("BBHodo_Scinti"), "actanabarlog" );
-  
-  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(ActAnScintSDname)) ) {
-    G4cout << "Adding SBS PR Polarimeter Scint BeamSide Sensitive Detector to SDman..." << G4endl;
-    ActAnScintSD = new G4SBSCalSD( ActAnScintSDname, ActAnScintcollname );
+  if( fDetCon->fExpType != G4SBS::kGEN) {  
+    G4ThreeVector actana_pos = pos + G4ThreeVector( 0.0, 0.0, (actanadist + actanadepth/2.0) );
     
-    sdman->AddNewDetector( ActAnScintSD );
-    (fDetCon->SDlist).insert( ActAnScintSDname );
-    fDetCon->SDtype[ActAnScintSDname] = G4SBS::kCAL;
-    (ActAnScintSD->detmap).depth = 0;
+    G4Box*           actanabox  = new G4Box("actanabox", actanawidth/2.0, actanaheight/2.0, actanadepth/2.0 );
+    G4LogicalVolume* actanalog  = new G4LogicalVolume(actanabox, GetMaterial("Air"), "actanalog");
     
-    fDetCon->SetThresholdTimeWindowAndNTimeBins( ActAnScintSDname, ethresh_default, timewindow_default, 25 );
-    fDetCon->InsertSDboundaryVolume( actanalog->GetName(), ActAnScintSDname );
-  }
-  G4VisAttributes *actanavisatt = new G4VisAttributes( G4Colour(0.0, 1.0, 0.0));
-  actanavisatt->SetForceWireframe(true);
-  actanabarlog->SetVisAttributes( actanavisatt );
-  actanabarlog->SetSensitiveDetector( ActAnScintSD ); 
-
-  fDetCon->InsertAnalyzerVolume( actanabarlog->GetName() );
+    if( fGEnRP_analyzer_option == 2 ) {   // long axis parallel to neutron direction
+      G4RotationMatrix* rot_ana  = new G4RotationMatrix;
+      rot_ana->rotateX( 90.0 *deg );
+      new G4PVPlacement(rot_ana, actana_pos, actanalog,"actanaphys", sbslog, false, 0, false);  
+    }
+    else if( fGEnRP_analyzer_option == 3 || fGEnRP_analyzer_option == 4 )  // long axis perpendicular to neutron direction or CGEN configuration
+      new G4PVPlacement(0, actana_pos, actanalog,"actanaphys", sbslog, false, 0, false);  
+    
+    actanalog ->SetVisAttributes( G4VisAttributes::GetInvisible() );
+    
+    G4String ActAnScintSDname   = "Harm/ActAnScint";
+    G4String ActAnScintcollname = "ActAnScintHitsCollection";
+    G4SBSCalSD *ActAnScintSD    = NULL;
+    
+    G4Box *actanabarbox = new G4Box("actanabarbox", actanabarwidth/2.0, actanaheight/2.0, actanabardepth/2.0 );
+    G4LogicalVolume *actanabarlog = new G4LogicalVolume( actanabarbox, GetMaterial("BBHodo_Scinti"), "actanabarlog" );
+    
+    
+    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(ActAnScintSDname)) ) {
+      G4cout << "Adding SBS PR Polarimeter Scint BeamSide Sensitive Detector to SDman..." << G4endl;
+      ActAnScintSD = new G4SBSCalSD( ActAnScintSDname, ActAnScintcollname );
+      
+      sdman->AddNewDetector( ActAnScintSD );
+      (fDetCon->SDlist).insert( ActAnScintSDname );
+      fDetCon->SDtype[ActAnScintSDname] = G4SBS::kCAL;
+      (ActAnScintSD->detmap).depth = 0;
+    
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( ActAnScintSDname, ethresh_default, timewindow_default, 25 );
+      fDetCon->InsertSDboundaryVolume( actanalog->GetName(), ActAnScintSDname );
+    }
+    G4VisAttributes *actanavisatt = new G4VisAttributes( G4Colour(0.0, 1.0, 0.0));
+    actanavisatt->SetForceWireframe(true);
+    actanabarlog->SetVisAttributes( actanavisatt );
+    actanabarlog->SetSensitiveDetector( ActAnScintSD ); 
+    
+    fDetCon->InsertAnalyzerVolume( actanabarlog->GetName() );
   
-  int barindex = 0; // SD detectors indexing (left to right, bottom to top)
-  for(int ix = 0; ix < nactanabarsx; ix++) {
-    double xbar = (((double)(ix-nactanabarsx/2.0) * actanabarwidth) + actanabarwidth/2.0);
-    for(int iz = 0; iz < nactanabarsz; iz++) {
-      double zbar = (((double)(iz-nactanabarsz/2.0) * actanabardepth) + actanabardepth/2.0);
-      if( fGEnRP_analyzer_option == 2 || fGEnRP_analyzer_option == 3 ) // Glasgow
-	new G4PVPlacement( 0, G4ThreeVector(xbar, 0, zbar), actanabarlog, "actanabarphys", actanalog, false, barindex );
-      else if( fGEnRP_analyzer_option == 4 ) { // CGEN 
+    int barindex = 0; // SD detectors indexing (left to right, bottom to top)
+    for(int ix = 0; ix < nactanabarsx; ix++) {
+      double xbar = (((double)(ix-nactanabarsx/2.0) * actanabarwidth) + actanabarwidth/2.0);
+      for(int iz = 0; iz < nactanabarsz; iz++) {
+	double zbar = (((double)(iz-nactanabarsz/2.0) * actanabardepth) + actanabardepth/2.0);
+	if( fGEnRP_analyzer_option == 2 || fGEnRP_analyzer_option == 3 ) // Glasgow
+	  new G4PVPlacement( 0, G4ThreeVector(xbar, 0, zbar), actanabarlog, "actanabarphys", actanalog, false, barindex );
+	else if( fGEnRP_analyzer_option == 4 ) { // CGEN 
 	  xbar = (2*ix-1)*(actanawidth/2.0) + (1-2*ix)*actanabarwidth/2.0;
-	new G4PVPlacement( 0, G4ThreeVector(xbar, 0, 0), actanabarlog, "actanabarphys", actanalog, false, barindex );
-      }      
-      barindex++;
+	  new G4PVPlacement( 0, G4ThreeVector(xbar, 0, 0), actanabarlog, "actanabarphys", actanalog, false, barindex );
+	}      
+	barindex++;
+      }
     }
   }
-
+  
   if( fGEnRP_analyzer_option == 2 ) // long axis parallel to neutron direction (needed to maintain correct centering)
     actanadepth = actanaheight;
   
   // ----------------------------------------------------------------------------------------------------------------------
   // Make PR Polarimeter Trackers (2 UVa each)
   // ----------------------------------------------------------------------------------------------------------------------
-
+  
   double prgem_perpdist = 50.0 *cm;  // pependicular distance to first GEM from analyzer centre
   double prgem_spacing  = 10.0 *cm;
 
@@ -4580,7 +4702,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   G4ThreeVector prgem_posbs = pos + G4ThreeVector( prgem_perpdist, 0.0, (actanadist + actanadepth/2.) );
 
-  if( fGEnRP_analyzer_option != 0 ) {  
+  if( fGEnRP_analyzer_option != 0 && fDetCon->fExpType != G4SBS::kGEN) {  
     for( int j = 0; j < 2; j++ ){
       gemz[j] = (double)(j-1)*prgem_spacing; 
       gemw[j] = 60.0*cm;
@@ -4597,13 +4719,15 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   G4ThreeVector prgem_posfs = pos + G4ThreeVector( -prgem_perpdist, 0.0, (actanadist + actanadepth/2.0) );
   
-  for( int j = 0; j < 2; j++ ){
-    gemz[j] = (double)(j-1)*prgem_spacing; 
-    gemw[j] = 60.0*cm;
-    gemh[j] = 200.0*cm;
+  if( fDetCon->fExpType != G4SBS::kGEN) {  
+    for( int j = 0; j < 2; j++ ){
+      gemz[j] = (double)(j-1)*prgem_spacing; 
+      gemw[j] = 60.0*cm;
+      gemh[j] = 200.0*cm;
+    }
+    trackerbuilder.BuildComponent( sbslog, rot_fs, prgem_posfs, 2, gemz, gemw, gemh, G4String("Harm/PRPolGEMFarSide"));
   }
-  trackerbuilder.BuildComponent( sbslog, rot_fs, prgem_posfs, 2, gemz, gemw, gemh, G4String("Harm/PRPolGEMFarSide"));
-
+  
   // ----------------------------------------------------------------------------------------------------------------------
   // Make PR Polarimeter Hodoscopes (1 each)
   // ----------------------------------------------------------------------------------------------------------------------
@@ -4622,82 +4746,84 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
 
   G4ThreeVector prscintbs_pos = pos + G4ThreeVector( (prscint_perpdist + prscintbsdepth/2.0), 0.0, (actanadist + actanadepth/2.0) );
 
-  if( fGEnRP_analyzer_option != 0 ) {  
-    
-    G4Box *prscintbsbox = new G4Box("prscintbsbox", prscintwidth/2.0, prscintheight/2.0, prscintbsdepth/2.0 );
-    
-    G4LogicalVolume *prscintbslog = new G4LogicalVolume( prscintbsbox, GetMaterial("Air"), "prscintbslog" );
-    
-    new G4PVPlacement( rot_bs, prscintbs_pos, prscintbslog,"prscintbsphys", sbslog, false, 0, false);
-    prscintbslog->SetVisAttributes( G4VisAttributes::Invisible );
-  
-    G4Box *prbarbsbox = new G4Box("prbarbsbox", prscintwidth/2.0, prbarheight/2.0, prscintbsdepth/2.0 );
-    G4LogicalVolume *prbarbslog = new G4LogicalVolume( prbarbsbox, GetMaterial("BBHodo_Scinti"), "prbarbslog" );
-    
-    G4String PRPolScintBSSDname   = "Harm/PRPolScintBeamSide";
-    G4String PRPolScintBScollname = "PRPolScintBSHitsCollection";
-    G4SBSCalSD *PRPolScintBSSD    = NULL;
-    
-    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(PRPolScintBSSDname)) ) {
-      G4cout << "Adding SBS PR Polarimeter Scint BeamSide Sensitive Detector to SDman..." << G4endl;
-      PRPolScintBSSD = new G4SBSCalSD( PRPolScintBSSDname, PRPolScintBScollname );
+  if(fDetCon->fExpType != G4SBS::kGEN) {  
+    if( fGEnRP_analyzer_option != 0){ 
       
-      sdman->AddNewDetector( PRPolScintBSSD );
-      (fDetCon->SDlist).insert( PRPolScintBSSDname );
-      fDetCon->SDtype[PRPolScintBSSDname] = G4SBS::kCAL;
-      (PRPolScintBSSD->detmap).depth = 0;
+      G4Box *prscintbsbox = new G4Box("prscintbsbox", prscintwidth/2.0, prscintheight/2.0, prscintbsdepth/2.0 );
       
-      fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintBSSDname, ethresh_default, timewindow_default, 25 );
-      fDetCon->InsertSDboundaryVolume( prscintbslog->GetName(), PRPolScintBSSDname );
+      G4LogicalVolume *prscintbslog = new G4LogicalVolume( prscintbsbox, GetMaterial("Air"), "prscintbslog" );
+      
+      new G4PVPlacement( rot_bs, prscintbs_pos, prscintbslog,"prscintbsphys", sbslog, false, 0, false);
+      prscintbslog->SetVisAttributes( G4VisAttributes::GetInvisible() );
+      
+      G4Box *prbarbsbox = new G4Box("prbarbsbox", prscintwidth/2.0, prbarheight/2.0, prscintbsdepth/2.0 );
+      G4LogicalVolume *prbarbslog = new G4LogicalVolume( prbarbsbox, GetMaterial("BBHodo_Scinti"), "prbarbslog" );
+      
+      G4String PRPolScintBSSDname   = "Harm/PRPolScintBeamSide";
+      G4String PRPolScintBScollname = "PRPolScintBSHitsCollection";
+      G4SBSCalSD *PRPolScintBSSD    = NULL;
+      
+      if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(PRPolScintBSSDname)) ) {
+	G4cout << "Adding SBS PR Polarimeter Scint BeamSide Sensitive Detector to SDman..." << G4endl;
+	PRPolScintBSSD = new G4SBSCalSD( PRPolScintBSSDname, PRPolScintBScollname );
+	
+	sdman->AddNewDetector( PRPolScintBSSD );
+	(fDetCon->SDlist).insert( PRPolScintBSSDname );
+	fDetCon->SDtype[PRPolScintBSSDname] = G4SBS::kCAL;
+	(PRPolScintBSSD->detmap).depth = 0;
+	
+	fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintBSSDname, ethresh_default, timewindow_default, 25 );
+	fDetCon->InsertSDboundaryVolume( prscintbslog->GetName(), PRPolScintBSSDname );
+      }
+      prbarbslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
+      prbarbslog->SetSensitiveDetector( PRPolScintBSSD ); 
+      
+      // SD detectors indexed from bottom to top
+      for(int i = 0; i < nprbars; i++) {
+	double ybar = (((double)(i-nprbars/2.0) * prbarheight) + prbarheight/2.0);
+	new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarbslog, "prbarbsphys", prscintbslog, false, i );
+      }
     }
-    prbarbslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
-    prbarbslog->SetSensitiveDetector( PRPolScintBSSD ); 
     
-    // SD detectors indexed from bottom to top
+    // -----------------------------------------------------------------------
+    // far side scintillator detectors
+    
+    G4ThreeVector prscintfs_pos = pos + G4ThreeVector( -(prscint_perpdist + prscintfsdepth/2.0), 0.0, (actanadist + actanadepth/2.0) );
+    
+    G4Box *prscintfsbox = new G4Box("prscintfsbox", prscintwidth/2.0, prscintheight/2.0, prscintfsdepth/2.0 );
+    
+    G4LogicalVolume *prscintfslog = new G4LogicalVolume( prscintfsbox, GetMaterial("Air"), "prscintfslog" );
+  
+    G4Box *prbarfsbox = new G4Box("prbarfsbox", prscintwidth/2.0, prbarheight/2.0, prscintfsdepth/2.0 );
+    G4LogicalVolume *prbarfslog = new G4LogicalVolume( prbarfsbox, GetMaterial("BBHodo_Scinti"), "prbarfslog" );
+    
+    new G4PVPlacement( rot_fs, prscintfs_pos, prscintfslog,"prscintfsphys", sbslog, false, 0, false);
+    prscintfslog->SetVisAttributes( G4VisAttributes::GetInvisible() );
+    
+    G4String PRPolScintFSSDname   = "Harm/PRPolScintFarSide";
+    G4String PRPolScintFScollname = "PRPolScintFSHitsCollection";
+    G4SBSCalSD *PRPolScintFSSD    = NULL;
+    
+    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(PRPolScintFSSDname)) ) {
+      G4cout << "Adding SBS PR Polarimeter Scint Far Side Sensitive Detector to SDman..." << G4endl;
+      PRPolScintFSSD = new G4SBSCalSD( PRPolScintFSSDname, PRPolScintFScollname );
+      
+      sdman->AddNewDetector( PRPolScintFSSD );
+      (fDetCon->SDlist).insert( PRPolScintFSSDname );
+      fDetCon->SDtype[PRPolScintFSSDname] = G4SBS::kCAL;
+      (PRPolScintFSSD->detmap).depth = 0;
+      
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintFSSDname, ethresh_default, timewindow_default, 25 );
+      fDetCon->InsertSDboundaryVolume( prscintfslog->GetName(), PRPolScintFSSDname );
+    }
+    prbarfslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
+    prbarfslog->SetSensitiveDetector( PRPolScintFSSD ); 
+    
+    // SD detectors indexed from bottom to top 
     for(int i = 0; i < nprbars; i++) {
       double ybar = (((double)(i-nprbars/2.0) * prbarheight) + prbarheight/2.0);
-      new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarbslog, "prbarbsphys", prscintbslog, false, i );
+      new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarfslog, "prbarfsphys", prscintfslog, false, i );
     }
-  }
-
-  // -----------------------------------------------------------------------
-  // far side scintillator detectors
-
-  G4ThreeVector prscintfs_pos = pos + G4ThreeVector( -(prscint_perpdist + prscintfsdepth/2.0), 0.0, (actanadist + actanadepth/2.0) );
-
-  G4Box *prscintfsbox = new G4Box("prscintfsbox", prscintwidth/2.0, prscintheight/2.0, prscintfsdepth/2.0 );
-  
-  G4LogicalVolume *prscintfslog = new G4LogicalVolume( prscintfsbox, GetMaterial("Air"), "prscintfslog" );
-  
-  G4Box *prbarfsbox = new G4Box("prbarfsbox", prscintwidth/2.0, prbarheight/2.0, prscintfsdepth/2.0 );
-  G4LogicalVolume *prbarfslog = new G4LogicalVolume( prbarfsbox, GetMaterial("BBHodo_Scinti"), "prbarfslog" );
-    
-  new G4PVPlacement( rot_fs, prscintfs_pos, prscintfslog,"prscintfsphys", sbslog, false, 0, false);
-  prscintfslog->SetVisAttributes( G4VisAttributes::Invisible );
-
-  G4String PRPolScintFSSDname   = "Harm/PRPolScintFarSide";
-  G4String PRPolScintFScollname = "PRPolScintFSHitsCollection";
-  G4SBSCalSD *PRPolScintFSSD    = NULL;
-  
-  if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(PRPolScintFSSDname)) ) {
-    G4cout << "Adding SBS PR Polarimeter Scint Far Side Sensitive Detector to SDman..." << G4endl;
-    PRPolScintFSSD = new G4SBSCalSD( PRPolScintFSSDname, PRPolScintFScollname );
-    
-    sdman->AddNewDetector( PRPolScintFSSD );
-    (fDetCon->SDlist).insert( PRPolScintFSSDname );
-    fDetCon->SDtype[PRPolScintFSSDname] = G4SBS::kCAL;
-    (PRPolScintFSSD->detmap).depth = 0;
-
-    fDetCon->SetThresholdTimeWindowAndNTimeBins( PRPolScintFSSDname, ethresh_default, timewindow_default, 25 );
-    fDetCon->InsertSDboundaryVolume( prscintfslog->GetName(), PRPolScintFSSDname );
-  }
-  prbarfslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
-  prbarfslog->SetSensitiveDetector( PRPolScintFSSD ); 
-
-  // SD detectors indexed from bottom to top 
-  for(int i = 0; i < nprbars; i++) {
-    double ybar = (((double)(i-nprbars/2.0) * prbarheight) + prbarheight/2.0);
-    new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarfslog, "prbarfsphys", prscintfslog, false, i );
   }
 
 }
@@ -4769,9 +4895,9 @@ void G4SBSHArmBuilder::MakeNeutronVeto(G4LogicalVolume* worldlog, G4double dist_
     }
   }
       	
-  VetoMotherLog->SetVisAttributes(G4VisAttributes::Invisible);
-  VetoElemLog->SetVisAttributes(G4VisAttributes::Invisible);
-  MylarWrapLog->SetVisAttributes(G4VisAttributes::Invisible);
+  VetoMotherLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  VetoElemLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  MylarWrapLog->SetVisAttributes(G4VisAttributes::GetInvisible());
   VetoScintLog->SetVisAttributes(G4Colour(0.0, 1.0, 1.0, 1.0));
 }
   
@@ -4828,7 +4954,7 @@ void G4SBSHArmBuilder::MakeTest( G4LogicalVolume *worldlog)
   trackerbuilder.BuildComponent( Test_Log, GEMRot, gem_pos, ngem, gemz, gemw, gemh, "Test/HC" );
 
   //Visual
-  Test_Log->SetVisAttributes( G4VisAttributes::Invisible );
+  Test_Log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   // G4VisAttributes *Testvisatt = new G4VisAttributes( G4Colour( 0.0, 0.0, 1.0 ) );
   // Testvisatt->SetForceWireframe(true);
   // Test_Log->SetVisAttributes( Testvisatt );

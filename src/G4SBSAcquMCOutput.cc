@@ -43,14 +43,14 @@ void G4SBSAcquMCOutput::ConvertToTreeUnits(){ //This is called once per event af
   // W2 /= (GeV*GeV);
   // Delta2 /= (GeV*GeV);
 
-  // Vx /= m;
-  // Vy /= m;
-  // Vz /= m;
-  // Px /= GeV;
-  // Py /= GeV;
-  // Pz /= GeV;
-  // Pt /= GeV;
-  // E /= GeV;
+  Vx /= m;
+  Vy /= m;
+  Vz /= m;
+  Px /= GeV;
+  Py /= GeV;
+  Pz /= GeV;
+  Pt /= GeV;
+  E /= GeV;
 
   // for( int i=0; i<Nprimaries; i++ ){
   //   Px[i] /= GeV;

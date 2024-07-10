@@ -24,12 +24,14 @@ private:
   void MakeGEnLead(G4LogicalVolume *);
   void MakeGEnClamp(G4LogicalVolume *);
   void MakeSIDISLead( G4LogicalVolume * );
+  void MakeALLLead( G4LogicalVolume * );
 
   void MakeCommonExitBeamline(G4LogicalVolume *);
   void MakeGEpBeamline(G4LogicalVolume *);
   void MakeGMnBeamline(G4LogicalVolume *);
   void Make3HeBeamline(G4LogicalVolume *);// for GEn, A1n, SIDIS
   void MakeDefaultBeamline(G4LogicalVolume *);// Old beam line...
+  void MakeTDISBeamline(G4LogicalVolume *);
   void MakeToyBeamline(G4LogicalVolume *); // "Toy" beam line for playing around with extreme forward angles of detectors, etc:
 
   // Functions added by sseeds (Oct 2020)

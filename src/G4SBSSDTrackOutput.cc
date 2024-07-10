@@ -21,7 +21,8 @@ void G4SBSSDTrackOutput::Clear(){
   otrid.clear();
   omid.clear();
   opid.clear();
-
+  ompid.clear();
+  
   oposx.clear();
   omomx.clear();
   opolx.clear();
@@ -61,6 +62,7 @@ void G4SBSSDTrackOutput::Clear(){
   sdtrid.clear();
   sdmid.clear();
   sdpid.clear();
+  sdmpid.clear();
 
   sdposx.clear();
   sdmomx.clear();
@@ -160,7 +162,8 @@ G4int G4SBSSDTrackOutput::InsertOriginalTrackInformation( G4Track *aTrack ){
     otrid.push_back( tidtemp );
     omid.push_back( aTrackInfo->GetOriginalParentID() );
     opid.push_back( aTrackInfo->GetOriginalDefinition()->GetPDGEncoding() );
-
+    ompid.push_back( aTrackInfo->GetOriginalParentPID()->GetPDGEncoding() );
+    
     G4ThreeVector postemp = aTrackInfo->GetOriginalPosition();
     G4ThreeVector momtemp = aTrackInfo->GetOriginalMomentum();
     G4ThreeVector poltemp = aTrackInfo->GetOriginalPolarization();
@@ -255,6 +258,7 @@ G4int G4SBSSDTrackOutput::InsertSDTrackInformation( G4Track *aTrack ){
     sdtrid.push_back( tidtemp );
     sdmid.push_back( (aTrackInfo->fSDParentID)[sdname] );
     sdpid.push_back( (aTrackInfo->fSDDefinition)[sdname]->GetPDGEncoding() );
+    sdmpid.push_back( (aTrackInfo->fSDParentPID)[sdname]->GetPDGEncoding() );
     
     G4ThreeVector postemp = (aTrackInfo->fSDPosition)[sdname];
     G4ThreeVector momtemp = (aTrackInfo->fSDMomentum)[sdname];
@@ -293,7 +297,7 @@ G4int G4SBSSDTrackOutput::InsertSDTrackInformation( G4Track *aTrack ){
 
     //this is the index in the SD track array
     //return sdtracklist[tidtemp][sdname];
-    return tidtemp; //This is the G4 Track ID: EndOfEventAction NOW expects this! 
+    return tidtemp; //This is the G4 Track ID: EndOfEventAction now EXPECTS this! 
   } else { //May alter this behavior later...
     // G4cout << "no SD track info available for track " << aTrack->GetTrackID() << ", SD name = " << sdname
     // 	   << G4endl;
@@ -313,6 +317,7 @@ void G4SBSSDTrackOutput::Merge( G4SBSSDTrackOutput &sd ){
       otrid.push_back( sd.otrid[i] );
       omid.push_back( sd.omid[i] );
       opid.push_back( sd.opid[i] );
+      ompid.push_back( sd.ompid[i] );
 
       oposx.push_back( sd.oposx[i] );
       oposy.push_back( sd.oposy[i] );
@@ -389,6 +394,7 @@ void G4SBSSDTrackOutput::Merge( G4SBSSDTrackOutput &sd ){
 	sdtrid.push_back( sd.sdtrid[idx] );
 	sdmid.push_back( sd.sdmid[idx] );
 	sdpid.push_back( sd.sdpid[idx] );
+	sdmpid.push_back( sd.sdmpid[idx] );
 
 	sdposx.push_back( sd.sdposx[idx] );
 	sdposy.push_back( sd.sdposy[idx] );

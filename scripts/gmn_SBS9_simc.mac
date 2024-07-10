@@ -1,0 +1,51 @@
+/g4sbs/filename simc_sbs9.root
+
+/g4sbs/simcfile elastic_sbs9.root
+
+## Configure Experiment
+/g4sbs/exp             gmn
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         15.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            simc           ## Generator
+/g4sbs/beamcur         30 muA
+/g4sbs/rasterx         2.0 mm
+/g4sbs/rastery         2.0 mm
+/g4sbs/beamE           4.03 GeV
+/g4sbs/thmin           44.0 deg
+/g4sbs/thmax           56.0 deg
+/g4sbs/phmin          -20 deg
+/g4sbs/phmax           20 deg
+
+## Configure standard detector settings
+/g4sbs/hcaldist       10.0 m
+/g4sbs/hcalvoffset     0.45 m
+/g4sbs/beamlineconfig  3                 ## set relevant beamline configuration
+/g4sbs/sbsclampopt     3                 ## Front field clamp only
+/g4sbs/uselead         0                 ## Lead turned off
+
+## Configure the magnets
+#/g4sbs/tosfield        BigBitePortableFieldMap.table 1
+#/g4sbs/tosfield        SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+/g4sbs/bbfield         1
+#/g4sbs/scalebbfield    1.077586
+/g4sbs/scalebbfield    0.9672
+/g4sbs/48d48field      1
+/g4sbs/sbsmagfield     0.9188 tesla
+/g4sbs/bbang          49.0 deg
+/g4sbs/bbdist          1.55 m
+/g4sbs/sbsang         22.5 deg
+/g4sbs/48D48dist       2.25 m
+
+/g4sbs/setbigbiteplate 1
+/g4sbs/bigbiteplatethick 0.3175 cm
+/g4sbs/bigbiteplatematerial Aluminum
+
+## misc
+/g4sbs/keepsdtrackinfo all true
+/g4sbs/totalabs        true
+
+/g4sbs/run 1000

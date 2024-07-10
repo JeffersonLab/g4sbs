@@ -5,6 +5,8 @@
 #include "TString.h"
 #include "TMatrixTBase.h"
 
+
+
 #include "G4UserEventAction.hh"
 #include "globals.hh"
 
@@ -18,7 +20,7 @@
 #include "G4SBSGEMoutput.hh"
 #include "G4SBSmTPCHit.hh"
 #include "G4SBSmTPCoutput.hh"
-#include "G4SBSTrackerOutput.hh"
+
 #include "G4SBSParticleOutput.hh"
 #include "sbstypes.hh"
 
@@ -33,6 +35,12 @@
 #include "G4SBSTargetSD.hh"
 #include "G4SBSTargetHit.hh"
 #include "G4SBSTargetoutput.hh"
+
+#include "G4SBSTrackerOutput.hh"
+
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
 
 #include <set> 
 
@@ -77,7 +85,7 @@ public:
   // void FillGEnGlassCellData(const G4Event *evt,G4SBSTargetHitsCollection *hc,G4SBSTargetoutput &out); // for the GEn target   
   void FillGEnTargetData(const G4Event *evt,G4SBSTargetHitsCollection *hc,G4SBSTargetoutput &out); // for the GEn target   
   
-  void FillmTPCData( const G4Event*, G4SBSmTPCHitsCollection*, G4SBSmTPCoutput & );
+  void FillmTPCData( const G4Event*, G4SBSmTPCHitsCollection*, G4SBSmTPCoutput &, G4SBSSDTrackOutput &  );
   
   //map<G4String, G4VSensitiveDetector*> SDlist; //List of all sensitive detectors in the run. 
   set<G4String> SDlist;

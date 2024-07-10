@@ -13,38 +13,59 @@
 
 // encapsulate in a namespace so we don't step on the ROOT and GEANT4 definitions 
 namespace G4SBS { 
+  // // // // HEAD
    // particle type definitions (matches the GEANT4 standard) 
    enum Nucl_t   { kProton, kNeutron };
-   enum Hadron_t { kPiPlus, kPiMinus, kPi0, kKPlus, kKMinus, kP, kPbar}; //Hadron types for SIDIS event generator
+   enum Hadron_t { kPiPlus, kPiMinus, kPi0, kKPlus, kKMinus, kP, kPbar, kN}; //Hadron types for SIDIS & SIMC event generators
    // target type; include fictional neutron target
-   enum Targ_t   { kH2, kD2, kLH2, kLD2, k3He, kNeutTarg, kCfoil, kOptics };
+  enum Targ_t   { kH2, kD2, kLH2, kLD2, k3He, kNeutTarg, kCfoil, kOptics, kCH2, kWater };
    // kinematic type 
-  enum Kine_t   { kElastic, kFlat, kInelastic, kDIS, kBeam, kSIDIS, kGun, kWiser, kPYTHIA6, kGMnElasticCheck, kCosmics, kPionPhoto, kTDISKin, kAcquMC};
+   enum Kine_t { kElastic, // 0
+		kFlat, 
+		kInelastic,
+		kDIS, 
+		kBeam, 
+		kSIDIS, //5
+		kGun, 
+		kWiser, 
+		kPYTHIA6,
+		kSIMC,
+		kGMnElasticCheck, //10
+		kCosmics, 
+		kPionPhoto,
+		kTDISKin, 
+		kAcquMC, 
+		kTDISGen, //15 
+		tElastic,  
+		tQuasiElastic,
+		tInelastic, 
+		tTDISKinH,
+		 tTDISKinD,//20
+		tSIDIS }; // TDIS, added kTDISGen, tElastic, tQuasiElastic, tInelastic, tTDISKin, TSIDIS used in my class (CA)
+  //note the 't' before to indicate is the TDIS case (CA)
+  
    // experiment type
    // enum Exp_t    { kGEp, kNeutronExp, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest};
-   enum Exp_t    { kGEp, kGMN, kGEN, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest, kGEPpositron, kWAPP};
+  enum Exp_t    { kGEp, kGMN, kGEN, kSIDISExp, kC16, kA1n, kTDIS, kNDVCS, kGEnRP, kGEMHCtest, kGEPpositron, kWAPP, kGEp_BB, kALL, kMTPConly };
    // detector arm type (for association of detector modules with spectrometer arms. Presently "E arm" and "H arm" are possible) 
    enum Arm_t    { kEarm, kHarm };
    // sensitive detector type  
   enum SDet_t   { kGEM, kCAL, kRICH, kECAL, kBD, kIC, kTarget_GEn_Glass, kTarget_GEn_Al, kTarget_GEn_Cu, kTarget_GEn_3He, kmTPC }; 
 
-   // switches for GEn
-   // Helmholtz coils or shielding 
-   // - 146  => Q2 = 1.46  (GeV/c)^2  
-   // - 368  => Q2 = 3.68  (GeV/c)^2  
-   // - 677  => Q2 = 6.77  (GeV/c)^2  
-   // - 1018 => Q2 = 10.18 (GeV/c)^2
-   // for shielding only:  
-   // - full => full window cut (remove panel 1, 2, 3, and door) 
-   // - new  => new design from Bert Metzger (6/2020)  
-   enum GEnConfig_t {
-      kGEN_146   = 146,
-      kGEN_368   = 368,
-      kGEN_677   = 677,
-      kGEN_1018  = 1018,
-      kGEN_full  = 5,
-      kGEN_new   = 6
-   };
+  // switches for GEn
+  // Helmholtz coils or shielding 
+  // - 146  => Q2 = 1.46  (GeV/c)^2  
+  // - 368  => Q2 = 3.68  (GeV/c)^2  
+  // - 677  => Q2 = 6.77  (GeV/c)^2  
+  // - 1018 => Q2 = 10.18 (GeV/c)^2
+  // for shielding only:  
+  // - full => full window cut (remove panel 1, 2, 3, and door) 
+  // - new  => new design from Bert Metzger (6/2020)  
+  enum GEnConfig_t {
+    kGEN_300   = 300,
+    kGEN_683   = 683,
+    kGEN_982   = 982
+  };
 
 }
 

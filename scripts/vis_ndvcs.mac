@@ -37,7 +37,7 @@
 /g4sbs/bbfield         0
 /g4sbs/sbsmagfield    -0.90 tesla
 /g4sbs/48d48field      1
-/g4sbs/bbang           14.85 deg
+/g4sbs/bbang           24.85 deg
 /g4sbs/bbdist          2.0 m 
 /g4sbs/sbsang          12.0 deg
 /g4sbs/48D48dist       2.5 m
@@ -50,9 +50,9 @@
 ## the tosca map can be scaled or read using offset in z (200mm is standard)
 ## the tosca file must be in same directory as g4sbs executable
 ## in future aim to add variable map name and addition to global field
-#/g4sbs/solunifield	true
-#/g4sbs/solunimag	7
-/g4sbs/soltoscafield	true
+/g4sbs/solunifield	true
+/g4sbs/solunimag	4.7
+#/g4sbs/soltoscafield	true
 #/g4sbs/soltoscascale	1.0
 #/g4sbs/soltoscaoffset	200.0 mm
 
@@ -65,8 +65,7 @@
 
 #visualization stuff:
 # Use this open statement to create an OpenGL view:
-#/vis/open OGLSX 1280x800-0+0
-/vis/open OGLSQt
+/vis/open OGLSX 1280x800-0+0
 #
 # Use this open statement to create a .prim file suitable for
 # viewing in DAWN:

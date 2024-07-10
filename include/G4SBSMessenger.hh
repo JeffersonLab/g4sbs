@@ -61,9 +61,13 @@ private:
   
   G4UIcmdWithAString   *kineCmd;
   G4UIcmdWithAString   *PYTHIAfileCmd; 
+  // // // // HEAD
   // TDIS AcquMC
   G4UIcmdWithAString   *AcquMCfileCmd; 
   G4UIcmdWithAnInteger *exclPythiaXSoptCmd; 
+  // // // //
+  G4UIcmdWithAString   *SIMCfileCmd; 
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   G4UIcmdWithAString   *expCmd;
   
   G4UIcmdWithAString   *GunParticleCmd;
@@ -127,6 +131,7 @@ private:
   G4UIcmdWithADoubleAndUnit *hcaldistCmd;
   G4UIcmdWithADoubleAndUnit *hcalvoffsetCmd;
   G4UIcmdWithADoubleAndUnit *hcalhoffsetCmd;
+  G4UIcmdWithADoubleAndUnit *hcalangoffsetCmd;
 
   G4UIcmdWithABool *CDetReadyCmd;   //Cerenkov
 
@@ -198,6 +203,10 @@ private:
 
   G4UIcmdWithAnInteger       *GEPFPPoptionCmd;
 
+  G4UIcmdWithABool *HadronFilterCmd;
+  G4UIcmdWithADoubleAndUnit *HadronFilterThickCmd;
+  G4UIcmdWithAString *HadronFilterMaterialCmd;
+  
   // D. Flay 7/28/20: command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
   G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd; 
 
@@ -258,7 +267,11 @@ private:
  
   G4UIcmdWithABool *BLneutronDetsCmd;
   G4UIcmdWithABool *GEMfrontendCmd;
-  
+
+  G4UIcmdWithADoubleAndUnit *GEMfrontendDistCmd;
+  G4UIcmdWithADoubleAndUnit *GEMfrontendPosAngleCmd;
+  G4UIcmdWithADoubleAndUnit *GEMfrontendRotAngleCmd;
+    
   G4UIcmdWithABool *SetGrinchPMTglassHitsCmd;
 
   G4UIcmdWithABool *buildSBSsieveCmd; //Build the SBS Sieve slit
@@ -300,12 +313,17 @@ private:
 
   G4UIcmdWithABool *FluxCmd; //Make sphere around target and use to compute flux of particles
 
-  //Command to define target spin orientation
+  //Command to define (fixed) target spin orientation
   G4UIcmdWith3Vector *TargPolDirectionCmd;
   G4UIcmdWithADouble *TargPolMagnitudeCmd;
-  G4UIcmdWithADouble *BeamPolMagnitudeCmd;
+  G4UIcmdWithADouble *BeamPolMagnitudeCmd; 
   G4UIcmdWith3Vector *BeamPolDirectionCmd;
- 
+
+  //For the SIDIS generator, we probably want the ability to randomize the target polarization direction: 
+  G4UIcmdWithABool        *RandomizeTargetSpinCmd; //randomize the target spin in the event generator
+  G4UIcmdWithAnInteger    *NumSpinStatesTargCmd;   // Number of target spin states: positive integer = discrete number of states, 0 = randomize in all three dimensions, -1 = randomize in the plane perpendicular to the beam direction
+  G4UIcommand             *TargThetaSpinCmd;       // Command to read in vector of target theta spin angles
+  G4UIcommand             *TargPhiSpinCmd;         // Command to read in vector of target phi spin angles
   
   // Command to set particle polarization for spin transport calculations:
   // ONLY relevant for particle gun generator!
@@ -340,7 +358,11 @@ private:
 
   G4UIcmdWithABool *UseGEMshieldCmd;
   G4UIcmdWithADoubleAndUnit *GEMshieldThickCmd;
-  G4UIcmdWithADoubleAndUnit *GEMshieldAirGapThickCmd; 
+  G4UIcmdWithADoubleAndUnit *GEMshieldAirGapThickCmd;
+  
+  G4UIcmdWithABool *EnableBigBitePlateCmd;
+  G4UIcmdWithADoubleAndUnit *SetBigBitePlateThicknessCmd;
+  G4UIcmdWithAString *SetBigBitePlateMaterialCmd;
 };
 
 #endif//G4SBSMessenger_HH

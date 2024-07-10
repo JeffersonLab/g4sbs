@@ -11,6 +11,8 @@
 
 #include "G4SBSEventAction.hh" //RICHHit.hh, RICHoutput.hh, ECalHit.hh, ECaloutput.hh are here
 
+
+
 #include "G4SBSEventGen.hh"
 #include "G4SBSCalHit.hh"
 #include "G4SBSmTPCHit.hh"
@@ -34,8 +36,7 @@
 
 
 #include "G4SBSIO.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4PhysicalConstants.hh"
+
 
 #include "G4MaterialPropertiesTable.hh"
 #include "G4MaterialPropertyVector.hh"
@@ -129,7 +130,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   // bool RICHSD_exists = false; 
   // bool ECalSD_exists = false;
   
-  G4bool warn = false;
+  // compilation indicates it is not used (CA)
+  //  G4bool warn = false;
   
   G4SBSGEMSD *GEMSDptr;
   G4SBSCalSD *CalSDptr;
@@ -197,6 +199,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     G4SBSTargetoutput cu; 
     G4SBSTargetoutput al; 
     G4SBSTargetoutput he3; 
+
+    sd.Clear();
     
     switch(Det_type){
 
@@ -208,12 +212,12 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
 	
 	if( gemHC != NULL ){
 
-	  sd = GEMSDptr->SDtracks;
+	  sd = GEMSDptr->SDtracks; //copy GEM SD track output to sd (temporarily)
 
 	  //This should only be called once, otherwise units will be wrong!
 	  sd.ConvertToTreeUnits();
 
-	  sdtemp = &sd;
+	  sdtemp = &sd; //what is the purpose of this line?
 
 	  map<G4String,G4bool>::iterator keep = fIO->GetKeepSDtracks().find( *d );
 
@@ -377,10 +381,27 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
      
 
       if( mTPCSDptr != NULL ){
+	sd =mTPCSDptr->SDtracks;
+	
+	//This should only be called once, otherwise units will be wrong!
+	sd.ConvertToTreeUnits();
+	
+	sdtemp = &sd;
+	
+	map<G4String,G4bool>::iterator keep = fIO->GetKeepSDtracks().find( *d );
+	
+	G4bool keepthis = keep != fIO->GetKeepSDtracks().end() && keep->second;
+	
+	if( fIO->GetKeepAllSDtracks() || keepthis ){
+	  allsdtracks.Merge( sd );
+	  sdtemp = &allsdtracks;
+	}
+	
 	mTPCHC = (G4SBSmTPCHitsCollection*) (HCE->GetHC(SDman->GetCollectionID(colNam=mTPCSDptr->GetCollectionName(0))));
 	
+	fIO->SetSDtrackData( *d, sd );
 	
-	FillmTPCData( evt, mTPCHC, md );
+	FillmTPCData( evt, mTPCHC, md, *sdtemp );
 	
 	fIO->SetmTPCData( *d, md );
 	
@@ -462,7 +483,8 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
   }
 
   fIO->SetAllSDtrackData( allsdtracks );
-  
+
+  //This copy operation may be inefficient:
   ev_t evdata = fIO->GetEventData();
   evdata.earmaccept = 0;
   evdata.harmaccept = 0;
@@ -567,7 +589,7 @@ void G4SBSEventAction::FillGEMData( const G4Event *evt, G4SBSGEMHitsCollection *
       // PTrackIndices[gemID][trid] = (*hits)[i]->GetPTrIdx();
       // SDTrackIndices[gemID][trid] = (*hits)[i]->GetSDTrIdx();
 
-      //Changed SDtrackoutput class so that the hit "track indices" are now actually G4 track IDs
+      
       //In principle there is no need to check for existence of the tracks in the list
       OTrackIndices[gemID][trid] = sdtracks.otracklist[(*hits)[i]->GetOTrIdx()];
       PTrackIndices[gemID][trid] = sdtracks.ptracklist[(*hits)[i]->GetPTrIdx()];
@@ -1157,7 +1179,6 @@ void G4SBSEventAction::FillCalData( const G4Event *evt, G4SBSCalHitsCollection *
     }
   }
 }
-
 void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECaloutput &ecaloutput, G4SBSSDTrackOutput &SDtracks )
 {
   
@@ -1208,9 +1229,9 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 
   ecaloutput.gatewidth = ecaloutput.timewindow;
     
-  G4cout << " ******** timewindow ********* " << ecaloutput.timewindow << endl;
-  G4cout << " ******** threshold ********* " << ecaloutput.threshold << endl;
-  G4cout << " ******** ntimebins ********* " << ecaloutput.ntimebins << endl;
+  //G4cout << " ******** timewindow ********* " << ecaloutput.timewindow << endl;
+  //G4cout << " ******** threshold ********* " << ecaloutput.threshold << endl;
+  //G4cout << " ******** ntimebins ********* " << ecaloutput.ntimebins << endl;
   // *****
   
   //G4MaterialPropertiesTable *MPT; 
@@ -1904,7 +1925,7 @@ void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection
 
 
 
-void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection *hits, G4SBSmTPCoutput &mtpcoutput ){
+void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection *hits, G4SBSmTPCoutput &mtpcoutput, G4SBSSDTrackOutput &SDtracks ){
   // at the moment this is COPIED FROM CAL output class
   // Will tailor to mTPC after deciding what is actually required
   // eg. complete step info might actually be useful, time ordering needed?
@@ -1941,14 +1962,21 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
   map<int,vector<double> > xsum, ysum, zsum; //sum of local positions of tracks
   map<int,vector<double> > xsumg, ysumg, zsumg; //sum of global positions of tracks
   map<int,vector<double> > esum, t, t2, tmin, tmax;
+  map<int,set<int> > OTrackIndices; //key = cell, value = list of all "OTracks" contributing to this hit in this cell
+  map<int,set<int> > PTrackIndices; //key = cell, value = list of all "PTracks" contributing to this hit in this cell
+  map<int,set<int> > SDTrackIndices; //key = cell, value = list of all "SDTracks" contributing to this hit in this cell
+  
   map<int,set<int> > TrackIDs; //mapping between cells and a list of unique track IDs depositing energy in a cell
   map<int,map<int,int> > nsteps_track; //counting number of steps on a track
   map<int,map<int,double> > x,y,z,trt,E,trtmin,trtmax,L; //average coordinates, energy, path length for each unique track ID depositing energy in a cell:
   map<int,map<int,double> > vx,vy,vz; //production vertex coordinates of each unique track ID depositing energy in a cell
   map<int,map<int,int> > MID, PID, TRID; //mother ID and particle ID of unique tracks in each cell:
+  map<int,vector<int> > mid, pid, trid; //mother ID and particle ID of unique tracks in each cell:
   map<int,map<int,double> > p, px, py, pz, px_v, py_v, pz_v, edep; //initial momentum and total energy deposition of unique tracks in each cell:
   map<int,map<int,double> > ztravel; 
+  map<int,vector<double> > Lpath; 
   map<int,map<int,int> >  nstrips; 
+  map<int,map<int,double> > steplen; 
 
   //Loop over all hits; in this loop, we want to sort tracking steps within individual cells chronologically:
   for( G4int hit=0; hit<hits->entries(); hit++ ){
@@ -2025,12 +2053,29 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	edep[cell][track] = Edep;
 	ztravel[cell][track] = (*hits)[hit]->GetZTravel();
 	nstrips[cell][track] = (*hits)[hit]->GetNStrips();
+	
+	//This is the appropriate place to add this info, since each track in a CALSD
+	//can only have exactly one set of otrack, ptrack, and sdtrack info, regardless of how many
+	//steps
+	OTrackIndices[cell].insert( SDtracks.otracklist[(*hits)[hit]->GetOTrIdx()] );
+	PTrackIndices[cell].insert( SDtracks.ptracklist[(*hits)[hit]->GetPTrIdx()] );
+	SDTrackIndices[cell].insert( SDtracks.sdtracklist[(*hits)[hit]->GetSDTrIdx()][hits->GetSDname()] );
       } else { //additional step in this cell:
 	//double w = double(nsteps_track[cell][track])/(double(nsteps_track[cell][track]+1) );
 	// x[cell][track] = w * x[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().x(); //local
 	// y[cell][track] = w * y[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().y();
 	// z[cell][track] = w * z[cell][track] + (1.0-w)*(*hits)[hit]->GetPos().z();
 	// trt[cell][track] = w * trt[cell][track] + (1.0-w)*(*hits)[hit]->GetTime();
+	// TRID[cell][track] = (*hits)[hit]->GetTrackID();
+	// MID[cell][track] = (*hits)[hit]->GetMotherID();
+	// PID[cell][track] = pid;
+	p[cell][track] = (*hits)[hit]->GetMom().mag();
+	px[cell][track] = (*hits)[hit]->GetLMom().x();
+	py[cell][track] = (*hits)[hit]->GetLMom().y();
+	pz[cell][track] = (*hits)[hit]->GetLMom().z();
+	px_v[cell][track] = (*hits)[hit]->GetMom().x();
+	py_v[cell][track] = (*hits)[hit]->GetMom().y();
+	pz_v[cell][track] = (*hits)[hit]->GetMom().z();
 	x[cell][track] += Edep * (*hits)[hit]->GetPos().x();
 	y[cell][track] += Edep * (*hits)[hit]->GetPos().y();
 	z[cell][track] += Edep * (*hits)[hit]->GetPos().z();
@@ -2082,33 +2127,43 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
       G4double xgstep = (*hits)[jhit]->GetLPos().x();
       G4double ygstep = (*hits)[jhit]->GetLPos().y();
       G4double zgstep = (*hits)[jhit]->GetLPos().z();
+      // step length
+      // G4double steplen = (*hits)[jhit]->Getdx();
+
       
-      G4int pid = (*hits)[jhit]->GetTrackPID();
+      //G4int pidstep = (*hits)[jhit]->GetTrackPID();
       G4int hitindex = nhits_cell[cell] > 0 ? nhits_cell[cell]-1 : 0;
 
       G4int tidstep = (*hits)[jhit]->GetTrackID();
       
       // G4bool newhit = false;
       
-      if( istep == 0 || (nhits_cell[cell] > 0 && tstep > tmin[cell][hitindex] + mtpcoutput.timewindow ) ){
+      //if( istep == 0 || (nhits_cell[cell] > 0 && tstep > tmin[cell][hitindex] + mtpcoutput.timewindow ) ){
 	//This is either the first hit or a tracking step that fell outside the timing window (i.e., "gate") defined for this SD:
-	nhits_cell[cell]++;
-	nsteps_hit_cell[cell].push_back( 1 );
-	//all quantities that are summed over the hit are energy-deposition-weighted:
-	xsumg[cell].push_back( xgstep*estep );
-	ysumg[cell].push_back( ygstep*estep );
-	zsumg[cell].push_back( zgstep*estep );
-
-	xsum[cell].push_back( xstep*estep );
-	ysum[cell].push_back( ystep*estep );
-	zsum[cell].push_back( zstep*estep );
-
-	esum[cell].push_back( estep );
-	t[cell].push_back( tstep*estep );
-	t2[cell].push_back( pow(tstep,2)*estep );
-	//tmin and tmax values are unweighted:
-	tmin[cell].push_back( tstep );
-	tmax[cell].push_back( tstep );
+      nhits_cell[cell]++;
+      nsteps_hit_cell[cell].push_back( 1 );
+      //all quantities that are summed over the hit are energy-deposition-weighted:
+      xsumg[cell].push_back( xgstep*estep );
+      ysumg[cell].push_back( ygstep*estep );
+      zsumg[cell].push_back( zgstep*estep );
+      
+      xsum[cell].push_back( xstep*estep );
+      ysum[cell].push_back( ystep*estep );
+      zsum[cell].push_back( zstep*estep );
+      
+      mid[cell].push_back((*hits)[jhit]->GetMotherID());
+      trid[cell].push_back((*hits)[jhit]->GetTrackID());
+      pid[cell].push_back((*hits)[jhit]->GetTrackPID());
+      //if((*hits)[jhit]->GetMotherID()==0 && (*hits)[jhit]->GetTrackPID()!=2212)G4cout << (*hits)[jhit]->GetMotherID() << " " << (*hits)[jhit]->GetTrackID() << " " << (*hits)[jhit]->GetTrackPID() << G4endl;
+      Lpath[cell].push_back((*hits)[jhit]->Getdx());
+      
+      esum[cell].push_back( estep );
+      t[cell].push_back( tstep*estep );
+      t2[cell].push_back( pow(tstep,2)*estep );
+      //tmin and tmax values are unweighted:
+      tmin[cell].push_back( tstep );
+      tmax[cell].push_back( tstep );
+      /*
       } else { //Add this step to the current hit:
 	xsumg[cell][hitindex] += estep * xgstep;
 	ysumg[cell][hitindex] += estep * ygstep;
@@ -2126,7 +2181,7 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 
 	nsteps_hit_cell[cell][hitindex]++;
       }
-
+	*/
       // hpstemp->Fill( tstep - tmin[cell][hitindex], estep );
       esum_total += estep;
 
@@ -2144,56 +2199,112 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
     // G4double esum_total = 0.0;
     
     for( int ihit=0; ihit<nhits_cell[cell]; ihit++ ){
-      if( esum[cell][ihit] >= mtpcoutput.threshold ){
-	//HitList[cell].insert( mtpcoutput.nhits_mTPC );
-	mtpcoutput.cell.push_back(cell);
-	// mtpcoutput.row.push_back(Rows[cell]);
-	// mtpcoutput.col.push_back(Cols[cell]);
-	// mtpcoutput.plane.push_back(Planes[cell]);
-	// mtpcoutput.wire.push_back(Wires[cell]);
-	mtpcoutput.mid.push_back( MID[cell][ihit] );
-	mtpcoutput.pid.push_back( PID[cell][ihit] );
-	mtpcoutput.trid.push_back( TRID[cell][ihit] );
+      //if( esum[cell][ihit] >= mtpcoutput.threshold ){
+      //HitList[cell].insert( mtpcoutput.nhits_mTPC );
+      mtpcoutput.cell.push_back(cell);
+      // mtpcoutput.row.push_back(Rows[cell]);
+      // mtpcoutput.col.push_back(Cols[cell]);
+      // mtpcoutput.plane.push_back(Planes[cell]);
+      // mtpcoutput.wire.push_back(Wires[cell]);
+      // mtpcoutput.mid.push_back( MID[cell][ihit] );
+      // mtpcoutput.pid.push_back( PID[cell][ihit] );
+      // mtpcoutput.trid.push_back( TRID[cell][ihit] );
+      
+      mtpcoutput.xcell.push_back( XCell[cell]/_L_UNIT );
+      mtpcoutput.ycell.push_back( YCell[cell]/_L_UNIT );
+      mtpcoutput.zcell.push_back( ZCell[cell]/_L_UNIT );
+      mtpcoutput.xcellg.push_back( XCellG[cell]/_L_UNIT );
+      mtpcoutput.ycellg.push_back( YCellG[cell]/_L_UNIT );
+      mtpcoutput.zcellg.push_back( ZCellG[cell]/_L_UNIT );
+      mtpcoutput.sumedep.push_back( esum[cell][ihit]/_E_UNIT );
+      
+      mtpcoutput.tavg.push_back( t[cell][ihit]/esum[cell][ihit]/_T_UNIT );
+      mtpcoutput.trms.push_back( sqrt( t2[cell][ihit]/esum[cell][ihit] - pow(t[cell][ihit]/esum[cell][ihit],2) )/_T_UNIT );
+      mtpcoutput.xhit.push_back( xsum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      mtpcoutput.yhit.push_back( ysum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      mtpcoutput.zhit.push_back( zsum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      
+      mtpcoutput.xhitg.push_back( xsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      mtpcoutput.yhitg.push_back( ysumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      mtpcoutput.zhitg.push_back( zsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
+      
+      mtpcoutput.px.push_back( px[cell][ihit]/_E_UNIT );
+      mtpcoutput.py.push_back( py[cell][ihit]/_E_UNIT );
+      mtpcoutput.pz.push_back( pz[cell][ihit]/_E_UNIT );
+      
+      mtpcoutput.px_v.push_back( px_v[cell][ihit]/_E_UNIT );
+      mtpcoutput.py_v.push_back( py_v[cell][ihit]/_E_UNIT );
+      mtpcoutput.pz_v.push_back( pz_v[cell][ihit]/_E_UNIT );
+      
+      mtpcoutput.mid.push_back( mid[cell][ihit] );
+      mtpcoutput.pid.push_back( pid[cell][ihit] );
+      mtpcoutput.trid.push_back( trid[cell][ihit] );
+      // mtpcoutput.tavg.push_back( t[cell]/_T_UNIT );
+      // mtpcoutput.trms.push_back( sqrt( t2[cell]/double(nsteps_cell[cell]) - pow(t[cell],2) )/_T_UNIT );
+      mtpcoutput.tmin.push_back( tmin[cell][ihit]/_T_UNIT );
+      mtpcoutput.tmax.push_back( tmax[cell][ihit]/_T_UNIT );
+      mtpcoutput.hitL.push_back( Lpath[cell][ihit]/_L_UNIT );
+      
+      // *****
+      //If there are multiple Otracks contributing to this hit, choose the one with the highest total energy:
+      G4double maxE = 0.0;
+      G4bool firsttrack=true;
+      int otridx_final=-1;
+      for( set<int>::iterator iotrk=OTrackIndices[cell].begin(); iotrk!=OTrackIndices[cell].end(); ++iotrk ){
+	if(*iotrk>=SDtracks.oenergy.size())G4cout << "otrack is corrupted" << G4endl;
+	G4double Eotrack = SDtracks.oenergy[*iotrk];
+	if( firsttrack || Eotrack > maxE ){
+	  otridx_final = *iotrk;
+	  maxE = Eotrack;
+	  firsttrack = false;
+	}
+      }
+      
+      //Primary tracks:
+      maxE = 0.0;
+      firsttrack = true;
+      int ptridx_final=-1;
+      for( set<int>::iterator iptrk=PTrackIndices[cell].begin(); iptrk!=PTrackIndices[cell].end(); ++iptrk ){
+	if(*iptrk>=SDtracks.penergy.size())G4cout << "ptrack is corrupted" << G4endl;
+	G4double Eptrack = SDtracks.penergy[*iptrk];
+	if( firsttrack || Eptrack > maxE ){
+	  ptridx_final = *iptrk;
+	  maxE = Eptrack;
+	  firsttrack = false;
+	}
+      }
+      
+      //SD boundary crossing tracks:
+      maxE = 0.0;
+      firsttrack = true;
+      int sdtridx_final=-1;
+      for( set<int>::iterator isdtrk=SDTrackIndices[cell].begin(); isdtrk!=SDTrackIndices[cell].end(); ++isdtrk ){
+	int sdidxtemp = *isdtrk;
+	//if(*isdtrk>=SDtracks.sdenergy.size())G4cout << "sdtrack is corrupted" << G4endl;
 	
-	mtpcoutput.xcell.push_back( XCell[cell]/_L_UNIT );
-	mtpcoutput.ycell.push_back( YCell[cell]/_L_UNIT );
-	mtpcoutput.zcell.push_back( ZCell[cell]/_L_UNIT );
-	mtpcoutput.xcellg.push_back( XCellG[cell]/_L_UNIT );
-	mtpcoutput.ycellg.push_back( YCellG[cell]/_L_UNIT );
-	mtpcoutput.zcellg.push_back( ZCellG[cell]/_L_UNIT );
-	mtpcoutput.sumedep.push_back( esum[cell][ihit]/_E_UNIT );
-
-	mtpcoutput.tavg.push_back( t[cell][ihit]/esum[cell][ihit]/_T_UNIT );
-	mtpcoutput.trms.push_back( sqrt( t2[cell][ihit]/esum[cell][ihit] - pow(t[cell][ihit]/esum[cell][ihit],2) )/_T_UNIT );
-	mtpcoutput.xhit.push_back( xsum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-	mtpcoutput.yhit.push_back( ysum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-	mtpcoutput.zhit.push_back( zsum[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-
-	mtpcoutput.xhitg.push_back( xsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-	mtpcoutput.yhitg.push_back( ysumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-	mtpcoutput.zhitg.push_back( zsumg[cell][ihit]/esum[cell][ihit]/_L_UNIT );
-	
-	mtpcoutput.px.push_back( px[cell][ihit]/_E_UNIT );
-	mtpcoutput.py.push_back( py[cell][ihit]/_E_UNIT );
-	mtpcoutput.pz.push_back( pz[cell][ihit]/_E_UNIT );
-	
-	mtpcoutput.px_v.push_back( px_v[cell][ihit]/_E_UNIT );
-	mtpcoutput.py_v.push_back( py_v[cell][ihit]/_E_UNIT );
-	mtpcoutput.pz_v.push_back( pz_v[cell][ihit]/_E_UNIT );
-	
-	// mtpcoutput.tavg.push_back( t[cell]/_T_UNIT );
-	// mtpcoutput.trms.push_back( sqrt( t2[cell]/double(nsteps_cell[cell]) - pow(t[cell],2) )/_T_UNIT );
-	mtpcoutput.tmin.push_back( tmin[cell][ihit]/_T_UNIT );
-	mtpcoutput.tmax.push_back( tmax[cell][ihit]/_T_UNIT );
-
-	goodhit_index[ihit] = mtpcoutput.nhits_mTPC;
-	
-	mtpcoutput.nhits_mTPC++;
+	if( sdidxtemp >= 0 && sdidxtemp <SDtracks.sdenergy.size() ){
+	  G4double Esdtrack = SDtracks.sdenergy[sdidxtemp];
+	  if( firsttrack || Esdtrack > maxE ){
+	    sdtridx_final = *isdtrk;
+	    maxE = Esdtrack;
+	    firsttrack = false;
+	  }
+	}
       }
 
+      mtpcoutput.otridx.push_back( otridx_final );
+      mtpcoutput.ptridx.push_back( ptridx_final );
+      mtpcoutput.sdtridx.push_back( sdtridx_final );
+      
+      goodhit_index[ihit] = mtpcoutput.nhits_mTPC;
+      
+      mtpcoutput.nhits_mTPC++;
+      //}
       // esum_total += esum[cell][ihit];
     }
-
+    
+    
+    
     if( mtpcoutput.nhits_mTPC > 0 ){
       // hesumtemp->Fill( esum_total );
     
@@ -2218,9 +2329,9 @@ void G4SBSEventAction::FillmTPCData( const G4Event *evt, G4SBSmTPCHitsCollection
 	mtpcoutput.vx.push_back( vx[cell][track]/_L_UNIT );
 	mtpcoutput.vy.push_back( vy[cell][track]/_L_UNIT );
 	mtpcoutput.vz.push_back( vz[cell][track]/_L_UNIT );
-	mtpcoutput.mid.push_back( MID[cell][track] );
-	mtpcoutput.pid.push_back( PID[cell][track] );
-	mtpcoutput.trid.push_back( track );
+	mtpcoutput.mid_.push_back( MID[cell][track] );
+	mtpcoutput.pid_.push_back( PID[cell][track] );
+	mtpcoutput.trid_.push_back( track );
 	mtpcoutput.p.push_back( p[cell][track]/_E_UNIT );
 	mtpcoutput.px.push_back( px[cell][track]/_E_UNIT );
 	mtpcoutput.py.push_back( py[cell][track]/_E_UNIT );

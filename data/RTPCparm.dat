@@ -1,0 +1,144 @@
+# RTPC geant4 simulation of Lund Neutron Test Facility
+# J.R.M.Annand ay 2014
+## Box containing B-field 250x250x400mm 1/2 length
+## outside this box the field is 0
+#Bfield-Box: 250.0 250.0 400.0
+#Bfield-Box: 250.0 250.0 1000.0
+Bfield-Box: 600.0 600.0 1622.0
+#
+## 2 Outer Al cylinders radii, lengths, thickness mm
+Outer-Chamber: 166 172 264 270 2.0
+Be-Window: 0.010  1
+#Be-Window: 0.000010  1
+Beam-Colli: 35.0 2.5 18.0 3.5
+## 5mm radius, 200mm 1/2 length, 10 micron thickness (Al = 1)
+Target-Dim: 10.0 200.0 0.010 1
+## B-Field spec
+#Uni-Field: 4.0
+#Non-Uni-Field: -100 1.0 3.0
+#Tosca-Field: 0 0 -300 data/B-7.table 1.0
+#Tosca-Field: 0 0 0 data/B-7.table 1.0
+Tosca-2DField: 0 0 200 data/sol_map_03.dat 0.5
+#Bonus-Field: 0 0 79 data/saclay5.tab 0.85
+#
+## 50 12.7micron W wires at 50.0mm radius.
+## 100 12.7 micron W wires at 100.0mm radius
+## Outer radius 150.0mm
+## 0 inner (r<50) and outer (r>50) are treated as single sensitive volume
+## 1 inner and outer are treated as separate sensitive volumes
+Gas-Volume: 50.0 100.0 150 0 0.0127 50 100 40.0
+#
+## deuterium @ 0.00257 g/cm**2
+#Target-Mat: 2 0.00514
+#Target-Mat: 2 0.00257
+##D2 2atm 25K
+#Target-Mat: 2 0.0039312
+##D2 1atm 77K
+#Target-Mat: 2 0.0006381
+##H2 2atm 25K
+#Target-Mat: 1 0.001964
+##H2 2atm 77K
+#Target-Mat: 1 0.0006377
+##H2 1atm 77K
+Target-Mat: 1 0.0003188
+#
+## Gas Vol
+## he density g/cm**3
+#Gas-Mat: 2 0.00006332
+## He 0.05atm 25K
+## He 0.154atm 77K
+Gas-Mat: 2 0.000097516
+## H2 0.05atm 25K
+#Gas-Mat: 1 0.000049074
+#
+## GEM detector spacing and thickness enclosure can (mm)
+GEM-Dim: 2.0 3.0
+GEM-Pixels: 128 256
+#
+## 100 um end foil (kapton)
+#End-Foil: 0.1 0.1
+End-Foil: 1.0 1.0
+#
+## Beam line (Al) inner/outer radii in mm, # downstream extensions, shield thick
+## 0
+#BL-Dim: 8.5 10.0 0 0 0
+## 3
+#BL-Dim: 8.5 10.0 3 0 0
+## 3a
+#BL-Dim: 12 14 3 0 0
+## 3b
+#BL-Dim: 20 22 3 0 0
+## 3c
+#BL-Dim: 30 33 3 0 0
+## 3d
+#BL-Dim: 40 43 3 5.0 0
+## 3e
+#BL-Dim: 8.5 10.0 3 5.0 0
+## 3f
+#BL-Dim: 8.5 10.0 3 0.5 0
+## 3g
+#BL-Dim: 8.5 10.0 3 0.5 85
+## 3h
+#BL-Dim: 8.5 10.0 3 0.5 -85
+## 3i
+#BL-Dim: 8.5 10.0 3 5.0 85
+## 3j
+#BL-Dim: 8.5 10.0 3 5.0 -85
+## 3k
+#BL-Dim: 8.5 10.0 3 10.0 0
+## 3l
+#BL-Dim: 40 43 3 10.0 0
+####
+## 1k B7 250x250x1000
+#BL-Dim: 8.5 10.0 1 10.0 0
+## 1l B7
+#BL-Dim: 40 43 1 10.0 0
+## 1m B7
+#BL-Dim: 40 43 1 5.0 0
+## 1n B7
+#BL-Dim: 60 63 1 10.0 0
+## 1o B7
+#BL-Dim: 40 43 1 5.0 300
+## 1p B7
+#BL-Dim: 40 43 1 5.0 -300
+## 1q B7
+#BL-Dim: 40 43 1 0.0 0
+#
+## 1k B7 600x600x1000
+## 1r B7
+#BL-Dim: 40 43 1 0.0 0
+## 1s B7
+#BL-Dim: 40 43 1 5.0 0
+## 1t B7 250x250x400
+#BL-Dim: 40 43 1 0.0 0
+##
+## 3aa 0.5mm beam
+## 3ba 0.25mm beam
+## 3ca 1.0mm beam
+#BL-Dim: 10.0 2.0 3 5.0 100.0
+## 3ab
+#BL-Dim: 10.0 0.2 3 5.0 100.0
+## 3ac
+#BL-Dim: 10.0 2.0 3 10.0 100.0
+## 3ad
+#BL-Dim: 10.0 0.2 3 10.0 100.0
+## 3ae 0.5mm beam
+## 3be 0.25mm beam
+## 3ce 1.0mm beam
+#BL-Dim: 10.0 2.0 3 15.0 100.0
+## 3af
+#BL-Dim: 10.0 0.2 3 15.0 100.0
+## 3ag
+#BL-Dim: 10.0 2.0 3 20.0 100.0
+## 3ah
+#BL-Dim: 10.0 0.2 3 20.0 100.0
+## 3ai
+#BL-Dim: 20.0 2.0 3 10.0 100.0
+## 3aj
+#BL-Dim: 30.0 2.0 3 10.0 100.0
+## 3ak 0.5mm beam
+## 3bk 0.25mm beam
+## 3ck 1.0mm beam
+#BL-Dim: 10.0 4.0 3 15.0 100.0 xxx
+## 3aj
+BL-Dim: 30.0 2.0 2 18.0 1622.0

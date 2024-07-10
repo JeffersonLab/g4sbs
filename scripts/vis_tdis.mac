@@ -7,7 +7,7 @@
 ## Configure the target
 /g4sbs/target          D2
 /g4sbs/targlen         40.0 cm           ## Target Length
-/g4sbs/targdiam        1.905 cm          ## Target Diameter
+/g4sbs/targdiam        1.0 cm          ## Target Diameter
 /g4sbs/targpres        1.0 atmosphere
 
 ## Configure generator settings
@@ -45,6 +45,13 @@
 
 #/g4sbs/steplimit LACmod_log 1
 
+/g4sbs/solunifield	true
+#/g4sbs/solunimag	4.7
+/g4sbs/solunimag	1.5
+#/g4sbs/soltoscafield	true
+#/g4sbs/soltoscascale	1.0
+#/g4sbs/soltoscaoffset	200.0 mm
+
 #configure mTPC
 #/g4sbs/mtpchegasratio 0.9
 #/g4sbs/mTPCCH4GasRatio 0.1
@@ -53,6 +60,9 @@
 #/g4sbs/mtpctargetthick 0.02 #mm
 #/g4sbs/mtpckrypto 1
 #/g4sbs/tdistgtwallthick 0.04 #mm
+
+
+/g4sbs/checkOverlap true
 
 ## Run 100 events
 #/g4sbs/run             100

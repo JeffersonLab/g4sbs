@@ -12,7 +12,13 @@
 #include "G4StoppingPhysics.hh"
 #include "G4HadronPhysicsFTFP_BERT.hh"
 //#include "HadronPhysicsQGSP_BERT.hh"
+#include "G4IonPhysicsXS.hh"
+#include "G4IonElasticPhysics.hh"
+//#include "G4HadronInelasticQBBC.hh"
+#include "G4HadronElasticPhysicsXS.hh"
+#include "G4NeutronTrackingCut.hh"
 #include "G4OpticalPhysics.hh"
+#include "G4OpticalParameters.hh"
 #include "G4StepLimiterPhysics.hh"
 #include "G4ProcessManager.hh"
 //#include "G4DataQuestionaire.hh"
@@ -29,7 +35,7 @@ G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
 
   G4int verb = 0;
   SetVerboseLevel(verb);
-
+    
   RegisterPhysics( new G4DecayPhysics(verb) );
   RegisterPhysics( new G4EmStandardPhysics(verb) );
   RegisterPhysics( new G4EmExtraPhysics(verb) );
@@ -39,7 +45,13 @@ G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
   RegisterPhysics( new G4HadronPhysicsFTFP_BERT(verb) );
   RegisterPhysics( new G4StoppingPhysics(verb) );
   RegisterPhysics( G4SBSOpticalPhysics = new G4OpticalPhysics(verb) );
-  RegisterPhysics( new G4StepLimiterPhysics(verb) );
+  RegisterPhysics( new G4StepLimiterPhysics );
+
+  //QBBC specifics
+  //RegisterPhysics( new G4HadronElasticPhysicsXS(verb) );
+  //RegisterPhysics( new G4IonPhysicsXS(verb) );
+  //RegisterPhysics( new G4IonElasticPhysics(verb) );
+  //RegisterPhysics( new G4HadronInelasticQBBC(verb) );
 
   // //G4SBSParticleList = new G4DecayPhysics("decays");
   // G4SBSParticleList = new G4DecayPhysics(verb);
@@ -56,13 +68,17 @@ G4SBSPhysicsList::G4SBSPhysicsList() : G4VModularPhysicsList() {
   // G4SBSHadronicPhysics.push_back( new G4StepLimiterBuilder(verb) );
 
   //G4SBSOpticalPhysics = new G4OpticalPhysics(verb);
+
+  G4OpticalParameters *optParam = G4OpticalParameters::Instance();
+
+  optParam->SetDefaults();
   
-  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetScintillationYieldFactor(1.0);
-  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetScintillationExcitationRatio(0.0);
-  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetMaxNumPhotonsPerStep(300);
-  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetMaxBetaChangePerStep(10.0);
-  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetTrackSecondariesFirst( kCerenkov, false );
-  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetTrackSecondariesFirst( kScintillation, false );
+  // ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetScintillationYieldFactor(1.0);
+  // ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetScintillationExcitationRatio(0.0);
+  // ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetMaxNumPhotonsPerStep(300);
+  // ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetMaxBetaChangePerStep(10.0);
+  // ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetTrackSecondariesFirst( kCerenkov, false );
+  // ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->SetTrackSecondariesFirst( kScintillation, false );
 
   //G4SBSHadronicPhysics.push_back( opt_phys );
 
@@ -90,11 +106,15 @@ G4SBSPhysicsList::~G4SBSPhysicsList(){
 }
 
 void G4SBSPhysicsList::ToggleCerenkov(G4bool useckov=true){
-  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->Configure( kCerenkov, useckov );
+  //( (G4OpticalPhysics*) G4SBSOpticalPhysics )->Configure( kCerenkov, useckov );
+  G4OpticalParameters *optParam = G4OpticalParameters::Instance();
+  optParam->SetProcessActivation( "Cerenkov", useckov );
 }
 
 void G4SBSPhysicsList::ToggleScintillation( G4bool usescint=true ){
-  ( (G4OpticalPhysics*) G4SBSOpticalPhysics )->Configure( kScintillation, usescint );
+  //( (G4OpticalPhysics*) G4SBSOpticalPhysics )->Configure( kScintillation, usescint );
+  G4OpticalParameters *optParam = G4OpticalParameters::Instance();
+  optParam->SetProcessActivation( "Scintillation", usescint );
 }
 
 void G4SBSPhysicsList::SetCuts()

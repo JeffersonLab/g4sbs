@@ -194,7 +194,7 @@ void G4SBSToscaField::ReadField(){
     G4String prefix = G4SBS_ENV_VAR;
     prefix += "/share/fieldmaps/";
     
-    fFilename.prepend( prefix );
+    fFilename.insert(0, prefix );
     
     G4cout << "Trying " << fFilename << G4endl;
     

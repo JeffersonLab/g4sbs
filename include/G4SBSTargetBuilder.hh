@@ -51,9 +51,11 @@ public:
 
   // GEn Polarized 3He target (D Flay, July 2020) 
   void BuildGEnTarget(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_GlassCell_old(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_GlassCell(G4LogicalVolume *motherLog); 
-  void BuildGEnTarget_EndWindows(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_EndWindows_CuAl(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_EndWindows_solidCu(G4LogicalVolume *motherLog); 
+  void BuildGEnTarget_PolarizedHe3_old(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_PolarizedHe3(G4LogicalVolume *motherLog); 
   void BuildGEnTarget_HelmholtzCoils(const int config,const std::string type,G4LogicalVolume *motherLog); 
   void BuildGEnTarget_Shield(const int config,G4LogicalVolume *motherLog); 
@@ -72,7 +74,7 @@ public:
   
   void SetTarget(G4SBS::Targ_t t){fTargType = t;}
   void SetTargLen(G4double len){ fTargLen = len;}
-  void SetTargDen(G4double den){ fTargDen = den;} //Currently, fTargDen has NO effect!
+  void SetTargDen(G4double den){ fTargDen = den;} //currently has no effect except for luminosity calculation.
   void SetTargDiameter(G4double D){ fTargDiameter = D; }
   void SetSchamFlag(int flag){ fSchamFlag = flag; }
 
@@ -96,7 +98,7 @@ public:
   G4ThreeVector GetTargPolDir() const { return fTargPolDir; }
   G4double GetTargPolMag() const { return fTargPolMag; }
   void SetTargPolDir( G4ThreeVector pdir ){ fTargPolDir = pdir.unit(); }
-  void SetTargPolMag( G4double pmag ){ fTargPolMag = pmag; }
+  void SetTargPolMag( G4double pmag ){ fTargPolMag = std::max(0.0,std::min(1.0,pmag)); }
 
   G4int GetNtargetFoils() const { return fNtargetFoils; }
   void SetNtargetFoils(G4int n);
@@ -110,7 +112,22 @@ public:
   void SetRadThick( G4double v ){ fRadThick = v; }
   void SetRadZoffset( G4double v ){ fRadZoffset = v; }
 
+  G4bool UseRad(){return fUseRad;}
+  G4double RadZoffset(){return fRadZoffset;}
+  
   void BuildRadiator(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector );
+  
+  void EnableBigBitePlate( G4bool b ){fPlasticPlate = b;}
+  void SetBigBitePlateThickness( G4double v ){fPlasticPlateThickness = v;}
+  void SetBigBitePlateMaterial( G4String s ){fPlasticMaterial = s;}
+
+  //void EnableGEPtargShielding( G4bool b ){ fUseGEPtargShielding = b; }
+  void SetHadronFilterThick( G4double v ){ fHadronFilterThick = v; }
+  void SetHadronFilterMaterial( G4String str ){ fHadronFilterMaterial = str; }
+
+  void EnableHadronFilter( G4bool b ){ fUseHadronFilter = b; }
+
+  void BuildHadronFilter( G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector );
   
 private:
   //Multi-foil solid targets (only Carbon available for now):
@@ -137,6 +154,7 @@ private:
 
   G4double fGEn_GLASS_TUBE_LENGTH; // length of GEn 3He glass tube (target cell)  
   
+  // // // // HEAD
   // Montgomery 2018, tdis solenoid implement
   G4bool fSolUni;
   G4double fSolUniMag;
@@ -151,6 +169,17 @@ private:
   G4double ftdis_tgt_wallthick;
   G4double ftdis_tgt_len;
   G4bool fChkOvLaps;
+  // // // // 
+  G4bool fPlasticPlate;
+  G4double fPlasticPlateThickness;
+  G4String fPlasticMaterial;
+
+  G4bool fUseHadronFilter;
+  
+  //G4bool fUseGEPtargShielding;
+  G4double fHadronFilterThick;
+  G4String fHadronFilterMaterial;
+  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   
   G4SBS::Targ_t fTargType;
 };

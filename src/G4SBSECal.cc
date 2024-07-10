@@ -162,24 +162,28 @@ G4LogicalVolume* G4SBSECal::MakeSuperModule( G4double SMWidth,
   // G4VisAttributes *mother_visatt = new G4VisAttributes( G4Colour( 1, 1, 1 ) );
   // mother_visatt->SetForceWireframe(true);
   // SM_mother_log->SetVisAttributes(mother_visatt);
-  SM_mother_log->SetVisAttributes(G4VisAttributes::Invisible);
+  SM_mother_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   // G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.7 ) );
   // Ti_visatt->SetForceWireframe(true);
   // TiSideWall_log->SetVisAttributes(Ti_visatt);
-  TiSideWall_log->SetVisAttributes(G4VisAttributes::Invisible);
+  TiSideWall_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   // G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
   // Al_visatt->SetForceWireframe(true);
   // FrontPlate_log->SetVisAttributes(Al_visatt);
   // ClampingBar_log->SetVisAttributes(Al_visatt);
-  FrontPlate_log->SetVisAttributes(G4VisAttributes::Invisible);
-  ClampingBar_log->SetVisAttributes(G4VisAttributes::Invisible);
+  FrontPlate_log->SetVisAttributes(G4VisAttributes::GetInvisible());
+  ClampingBar_log->SetVisAttributes(G4VisAttributes::GetInvisible());
   
   return(SM_mother_log);
 }
+// // // // HEAD
 */
 
+// // // // 
+/* KIP CUTOFF//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// // // // 11a33984f47772444ffb08222f8a978d2bee837e
 void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   // Define the inch
   G4double inch = 2.54*cm;
@@ -478,29 +482,29 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   // Place the blocks
   G4int NrowsSM_40 = 10; 
   G4int NrowsSM_42 = 15; 
-  /*
+  
   G4int NrowsSM_40 = 0; 
   G4int NrowsSM_42 = 24; 
   */
-  G4int NcolsSM_40[10] = {3, 5, 6, 7, 8, 8, 9, 9, 9, 9};// from bottom to top
-  G4int NcolsSM_42[15] = {9, 9, 9, 9, 9, 9, 9, 9, 8, 8, 8, 7, 6, 5, 3};// from bottom to top
+
+  //G4int NcolsSM_40[10] = {3, 5, 6, 7, 8, 8, 9, 9, 9, 9};// from bottom to top
+  //G4int NcolsSM_42[15] = {9, 9, 9, 9, 9, 9, 9, 9, 8, 8, 8, 7, 6, 5, 3};// from bottom to top
   /*
   G4int NcolsSM_42[24] = {4, 6, 7, 7, 8, 8, 
 			  9, 9, 9, 9, 9, 9, 
 			  9, 9, 9, 9, 9, 9, 
 			  8, 8, 7, 7, 6, 4};// from bottom to top
   */
-  G4double yfp_start_40[10] = {-62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, 
-			       -58.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm};//start of the block edge
+  //G4double yfp_start_40[10] = {-62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -58.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm};//start of the block edge
 
-  G4double yfp_start_42[15] = {-54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, 
-			       -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -58.0*cm,
-			       -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm};//start of the block edge
+  //G4double yfp_start_42[15] = {-54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -58.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm};//start of the block edge
   /*  
   G4double yfp_start_42[24] = {-54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, 
 			       -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -58.0*cm,
 			       -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm};//start of the block edge
   */
+
+/* KIP CUTOFF///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   G4double xfpstart = -153.8*cm;
   G4int copy_nb = 0;
   G4double X_block, Y_block;
@@ -926,7 +930,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     //G4double R0_CDET = fDist - depth_leadglass - depth_CDET;
     G4double R0_CDET = fDist - depth_CDET;
     
-    G4SBSCDet* CDet = fDetCon->fCDet;
+    G4SBSCDet* CDet = new G4SBSCDet(fDetCon);
     CDet->SetArmName("Earm");
     CDet->SetR0(R0_CDET);
     CDet->SetZ0(z0_CDET);
@@ -946,7 +950,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   mother_visatt->SetForceWireframe(true);
   earm_mother_log->SetVisAttributes(mother_visatt);
    
-  //earm_mother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  //earm_mother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   Module_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   Module_40_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
@@ -977,18 +981,1107 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   PMTFlange_42_2_log->SetVisAttributes( G4Colour( 0.7, 0.0, 0.0 ) );
   PMTFlange_40_1_log->SetVisAttributes( G4Colour( 0.0, 0.7, 0.0 ) );
   PMTFlange_40_2_log->SetVisAttributes( G4Colour( 0.7, 0.0, 0.0 ) );
-  Spacer_42_1_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
-  Spacer_42_2_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
-  Spacer_40_1_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
-  Spacer_40_2_log->SetVisAttributes( G4VisAttributes::Invisible ); //G4Colour( 0.0, 0.7, 0.0 ));
-  Standoff_42_log->SetVisAttributes( G4VisAttributes::Invisible ); //Al_visatt);
-  Standoff_40_log->SetVisAttributes( G4VisAttributes::Invisible ); //Al_visatt);
+  Spacer_42_1_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Spacer_42_2_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Spacer_40_1_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Spacer_40_2_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Standoff_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //Al_visatt);
+  Standoff_40_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //Al_visatt);
   
   
   G4VisAttributes *ECALpmtvisatt = new G4VisAttributes( G4Colour( 0, 0, 1 ) );
   ecal_PMT_log->SetVisAttributes( ECALpmtvisatt );
 }
 
+
+*/
+//KIP CUTOFF///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Workspace for Kip updating the ECal Geometry, this is an edited version of what is above for the MakeECal_new code, if messed up, uncomment where its labelled KIP CUTOFF and comment out everything in the KIP workspace below
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////KIP
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////KIP
+void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
+  // Define the inch
+  G4double inch = 2.54*cm;
+
+  // Pointer to SDmanager, used frequently in this routine
+  G4SDManager *sdman = fDetCon->fSDman;
+
+  G4double width_42 = 4.25*cm;
+  G4double width_40 = 4.0*cm;
+  
+  G4double depth_42 = 34.3*cm;
+  G4double depth_40 = 40.0*cm;
+  
+  G4double depth_leadglass = 45.0*cm;
+  G4double depth_ecal_pmt = 0.3*cm;
+  G4double depth_lightguide_short = 20.0*cm;
+  G4double diam_lightguide = 2.5*cm;
+  G4double radius_ecal_pmt = 1.25*cm;
+  G4double absorber_depth = 7.0*2.54*cm;
+  // G4double depth_ecal_frontplate = 2.54*cm;
+  G4double depth_CH2 = 20.0*cm; //This goes directly in front of CDET:
+  G4double depth_CDET = 45.0*cm; // CDET starts 45 cm in front of ECAL:
+  
+  //Define "Earm" box a bit wider than total ECAL area:
+  G4double width_earm = 150.0*cm;
+  G4double height_earm = 340.0*cm;
+  G4double depth_earm = depth_CH2 + depth_CDET + depth_ecal_pmt + depth_leadglass + depth_lightguide_short + absorber_depth; //   
+
+  // Rotations, offsets, and distances from Target:
+  G4RotationMatrix *bbrm = new G4RotationMatrix;
+  bbrm->rotateY(-fAng);
+  
+  G4Box *earm_mother_box = new G4Box( "earm_mother_box", width_earm/2.0, height_earm/2.0, (depth_earm+1.0*mm)/2.0 );
+  G4LogicalVolume *earm_mother_log = new G4LogicalVolume( earm_mother_box, GetMaterial("Air"), "earm_mother_log");
+
+  //If "earm_mother_log" is in the step limiter list, make ECAL a total-absorber with "kCAL" sensitivity:
+  if( (fDetCon->StepLimiterList).find( "earm_mother_log" ) != (fDetCon->StepLimiterList).end() ){
+    earm_mother_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+
+    G4String sdname = "Earm/ECAL_box";
+    G4String collname = "ECAL_boxHitsCollection";
+    G4SBSCalSD *earm_mother_SD = NULL;
+    if( !( (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(sdname) ) ){
+      G4cout << "Adding ECAL_box sensitive detector to SDman..." << G4endl;
+      earm_mother_SD = new G4SBSCalSD( sdname, collname );
+      fDetCon->fSDman->AddNewDetector( earm_mother_SD );
+      (fDetCon->SDlist).insert( sdname );
+      fDetCon->SDtype[sdname] = G4SBS::kCAL;
+      (earm_mother_SD->detmap).depth = 0;
+      
+      earm_mother_log->SetSensitiveDetector( earm_mother_SD );
+    }
+  }
+  
+  //fDist should now be interpreted to mean the distance from the origin to the ****FRONT**** of the ECAL lead-glass:
+  //G4double zback_ECAL = depth_earm/2.0 - depth_ecal_pmt;
+  G4double zfront_ECAL = depth_earm/2.0 - depth_ecal_pmt - depth_lightguide_short - depth_leadglass;
+  //?since depth_earm has been modified to account for the absorber, does this(zfront_ECAL) need to be modifified as well?
+  G4double R_Earm = fDist - zfront_ECAL;
+  
+  G4ThreeVector pos_ECAL( R_Earm*sin(fAng), 0.0, R_Earm*cos(fAng) );
+  
+  new G4PVPlacement( bbrm, pos_ECAL, earm_mother_log, "earm_mother_phys", motherlog, false, 0 );
+  
+  //Blocks
+  G4double mylar_thick = 0.001*inch;
+  G4double air_thick = mylar_thick;   
+
+  G4double copper_thick = 0.005*inch;
+  G4double al_thick = 0.50*mm;
+  G4VisAttributes* hc_visAtt = new G4VisAttributes();
+  
+  G4double hcf_thick = copper_thick;
+  const char* hcf_mat_name = "Copper";
+  hc_visAtt->SetColour(1.0, 0.5, 0.0);
+  hc_visAtt->SetForceWireframe(true);
+  // G4double hcf_thick = al_thick;
+  // const char* hcf_mat_name = "Aluminum";
+  // hc_visAtt->SetColour(0.7, 0.7, 0.7);
+  
+
+  //Creating Light Guides
+
+  G4Tubs *LightGuide_42 = new G4Tubs("LightGuide_42", 0.0, diam_lightguide/2.0, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LightGuide_42_log = new G4LogicalVolume( LightGuide_42, GetMaterial("Pyrex_Glass"), "LightGuide_42_log" );
+  //creates solid lightguide volume   
+
+  G4Tubs *LGWrap_42 = new G4Tubs( "LGWrap_42", diam_lightguide/2.0+air_thick, diam_lightguide/2.0 + air_thick + mylar_thick, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LGWrap_42_log = new G4LogicalVolume( LGWrap_42, GetMaterial("Mylar"), "LGWrap_42_log" );
+  //creates cylindrical shell of mylar 
+
+  G4Tubs *LG42 = new G4Tubs("LG42", 0.0, diam_lightguide/2.0 + air_thick + mylar_thick+0.1*mm, (depth_lightguide_short+depth_40-depth_42)/2.0, 0.0*deg, 360.0*deg );
+  G4LogicalVolume *LG42_log = new G4LogicalVolume( LG42, GetMaterial("Special_Air"), "LG42_log" );
+  //creates logical volume to contain both lg and mylar
+
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LightGuide_42_log, "LightGuide_42_phys", LG42_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector(0,0,0), LGWrap_42_log, "LGWrap_42_phys", LG42_log, false, 0 );
+  //places lg and mylar in physical volume
+
+  width_42 = width_42 + 2*( hcf_thick + mylar_thick + air_thick );
+  //this should come out to be 4.25 cm
+  
+  G4Box *Module_42 = new G4Box( "Module_42", width_42/2.0, width_42/2.0, depth_42/2.0 );
+  G4LogicalVolume *Module_42_log = new G4LogicalVolume( Module_42, GetMaterial("Special_Air"), "Module_42_log" );
+
+  G4Box *Module_42_k = new G4Box( "Module_42_k", width_42/2.0, width_42/2.0, depth_42/2.0-0.25*mm );
+  //why the 0.25 subtraction?
+
+  G4Box *hc_42 = new G4Box( "hc_42", width_42/2.0 - hcf_thick, width_42/2.0 - hcf_thick, depth_42/2.0 );
+  G4SubtractionSolid *hc_foil_42 = new G4SubtractionSolid( "hc_foil_42", Module_42_k, hc_42, 0, G4ThreeVector( 0, 0, 0 ) );
+  G4LogicalVolume *hc_foil_42_log = new G4LogicalVolume( hc_foil_42, GetMaterial(hcf_mat_name), "hc_foil_42_log" );
+  hc_foil_42_log->SetVisAttributes(hc_visAtt);
+  //defining the volume of the the hc foil
+
+  G4Box *Mylar_42 = new G4Box( "Mylar_42", width_42/2.0 - hcf_thick - mylar_thick, width_42/2.0 - hcf_thick - mylar_thick, depth_42/2.0 + 1.0*cm );
+  G4SubtractionSolid *Mylar_wrap_42 = new G4SubtractionSolid( "Mylar_wrap_42", hc_42, Mylar_42, 0, G4ThreeVector( 0, 0, mylar_thick + 1.0*cm ) );
+  G4LogicalVolume *Mylar_wrap_42_log = new G4LogicalVolume( Mylar_wrap_42, GetMaterial("Mylar"), "Mylar_wrap_42_log" );
+  //defining the volume of the mylar wrapping
+
+
+  ////// Define Sensitive Detector for lead-glass:
+  G4String ECalTF1SDname = "Earm/ECalTF1";
+  G4String ECalTF1collname = "ECalTF1HitsCollection";
+  G4SBSCalSD *ECalTF1SD = NULL;
+    
+  if( !( ECalTF1SD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(ECalTF1SDname) ) ){
+    G4cout << "Adding ECal TF1 Sensitive Detector to SDman..." << G4endl;
+    ECalTF1SD = new G4SBSCalSD( ECalTF1SDname, ECalTF1collname );
+    fDetCon->fSDman->AddNewDetector( ECalTF1SD );
+    (fDetCon->SDlist).insert(ECalTF1SDname);
+    fDetCon->SDtype[ECalTF1SDname] = G4SBS::kCAL;
+    //fDetCon->SDarm[ECalTF1SDname] = G4SBS::kEarm;
+
+    (ECalTF1SD->detmap).depth = 1;
+
+    fDetCon->SetThresholdTimeWindowAndNTimeBins( ECalTF1SDname, 0.0*MeV, 100.0*ns, 25 );
+  }
+
+  fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), ECalTF1SDname );
+
+  if( fDetCon->GetC16Segmentation() <= 0 ){
+    G4Box *LeadGlass_42 = new G4Box("LeadGlass_42", width_42/2.0 - hcf_thick - mylar_thick - air_thick, width_42/2.0 - hcf_thick - mylar_thick - air_thick, (depth_42 - mylar_thick - air_thick)/2.0 );
+    G4LogicalVolume *LeadGlass_42_log = new G4LogicalVolume( LeadGlass_42, GetMaterial("TF1"), "LeadGlass_42_log" );
+
+    //Assign "kCAL" sensitivity to the lead-glass:
+    LeadGlass_42_log->SetSensitiveDetector( ECalTF1SD );
+
+    G4VisAttributes *TF1visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0 ) );
+    LeadGlass_42_log->SetVisAttributes( TF1visatt );
+    
+    //Positioning of lead-glass in module:
+    // z + Lz/2 - m/2 - a/2 = Lz/2 --> z = m/2 + a/2
+    //lead-glass:
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, (mylar_thick + air_thick)/2.0 ), LeadGlass_42_log, "LeadGlass_42_phys", Module_42_log, false, 0 );
+
+  } else {
+    G4int nsegments = fDetCon->GetC16Segmentation();
+    G4double segthick = fDetCon->GetSegmentThickC16();
+
+    //Segment the lead-glass longitudinally so that different optical properties can be defined:
+    G4int nseg_42 = G4int( (depth_42 - mylar_thick - air_thick)/segthick );
+    if( nseg_42 > nsegments ){
+      nseg_42 = nsegments;
+    }
+    G4double remainder_42 = (depth_42 - mylar_thick - air_thick) - nseg_42 * segthick; //remainder is always non-negative!
+
+    if( nseg_42 == 0 ){
+      nseg_42 = 1;
+      segthick = (depth_42 - mylar_thick - air_thick);
+      remainder_42 = 0.0;
+    }
+
+    G4Box *segment_42 = new G4Box( "segment_42", (width_42 - 2.*(mylar_thick+air_thick) )/2.0, (width_42 - 2.*(mylar_thick+air_thick) )/2.0, segthick/2.0 );
+    G4Box *lastsegment_42 = new G4Box( "lastsegment_42", (width_42 - 2.*(mylar_thick+air_thick) )/2.0, (width_42 - 2.*(mylar_thick+air_thick) )/2.0, (segthick+remainder_42)/2.0 );
+
+    G4double ztemp = -depth_42/2.0 + mylar_thick + air_thick;
+    
+    for( int seg42=0; seg42<nseg_42; seg42++ ){
+      TString material_name, lv_name, pv_name;
+      material_name.Form( "TF1_anneal_ECAL_z%d", seg42 );
+      lv_name.Form("segment_42_log_%d", seg42 );
+      pv_name.Form("segment_42_phys_%d", seg42 );
+      G4LogicalVolume *Seg42_log;
+      if( seg42 + 1 < nseg_42 || nseg_42 == 1 ){
+	Seg42_log = new G4LogicalVolume( segment_42, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += segthick/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg42_log, pv_name.Data(), Module_42_log, false, 0 );
+	ztemp += segthick/2.0;
+      } else {
+	Seg42_log = new G4LogicalVolume( lastsegment_42, GetMaterial( material_name.Data() ), lv_name.Data() );
+	ztemp += (segthick+remainder_42)/2.0;
+	new G4PVPlacement( 0, G4ThreeVector( 0, 0, ztemp ), Seg42_log, pv_name.Data(), Module_42_log, false, 0 );
+	ztemp += (segthick+remainder_42)/2.0;
+      }
+      Seg42_log->SetSensitiveDetector( ECalTF1SD );
+
+      G4VisAttributes *Segment_VisAtt = new G4VisAttributes( G4Colour( 0.8*(seg42/15.0)+0.20, 0.8*(seg42/15.0)+0.20, 0.0 ) );
+      Seg42_log->SetVisAttributes( Segment_VisAtt );
+    }   
+  }
+  /////End of Sensitivity coding for lead-glass
+
+
+
+
+
+  //Place lead-glass and mylar wrap inside module:
+  
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), hc_foil_42_log, "hc_foil_42_phys", Module_42_log, false, 0 );
+  
+  //mylar:
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, 0 ), Mylar_wrap_42_log, "Mylar_wrap_42_phys", Module_42_log, false, 0 );
+
+  new G4LogicalSkinSurface( "Mylar_skin_42", Mylar_wrap_42_log, GetOpticalSurface("Mirrsurf") );
+
+  new G4LogicalSkinSurface( "lgwrap_42", LGWrap_42_log, GetOpticalSurface("Mirrsurf") );
+  
+  //Next: PMTs:
+  G4Tubs *ecal_PMT = new G4Tubs( "ecal_PMT", 0.0, radius_ecal_pmt, depth_ecal_pmt/2.0, 0.0, twopi );
+  G4LogicalVolume *ecal_PMT_log = new G4LogicalVolume( ecal_PMT, GetMaterial("Photocathode_material_ecal"), "ecal_PMT_log" );
+
+  //sensitivity for pmts
+  G4String sdname = "Earm/ECAL";
+  G4String collname = "ECALHitsCollection";
+
+  G4SBSECalSD *ECalSD = NULL;
+
+  if( !( (G4SBSECalSD*) sdman->FindSensitiveDetector( sdname ) ) ){
+    G4cout << "Adding ECAL PMT sensitive detector to SDman..." << G4endl;
+    ECalSD = new G4SBSECalSD( sdname, collname );
+    sdman->AddNewDetector( ECalSD );
+    (fDetCon->SDlist).insert( sdname );
+    fDetCon->SDtype[sdname] = G4SBS::kECAL;
+    (ECalSD->detmap).depth = 0;
+  }
+
+  ecal_PMT_log->SetSensitiveDetector( ECalSD );
+  fDetCon->InsertSDboundaryVolume( earm_mother_log->GetName(), sdname );
+  //end of sensitivity for pmts
+
+  
+  //decided doing a subtraction for creating the surrounding inactive pb-glass would be better than dealing with overlaps due to placing the SM's inside of this new parent volume
+  //create box of inactive pb-glass to surround ECal
+
+  
+  //using depth of SM such that none of the inactive pb-glass covers the front face of the pb-glass in ECal
+  
+  /*
+  G4Box *inactivePbGls = new G4Box( "inactivePbGls", inactiveBox_width/2.0, inactiveBox_height/2.0, depth_42/2.0);
+  G4LogicalVolume *inactivePbGls_log = new G4LogicalVolume( inactivePbGls, GetMaterial("TF1_dead"), "inactivePbGls_log" );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , 0 , zfront_ECAL + (depth_42/2.0)), inactivePbGls_log, "inactivePbGls_phys", earm_mother_log, false, 0 );
+  */
+
+  // Place the super modules 
+   
+  G4int NrowsSM_42 = 23; 
+ 
+  G4int Nblocks_per_rowSM_42[23] = {4, 6, 7, 7, 8, 8, 
+			  9, 9, 9, 9, 9, 9, 
+			  9, 9, 9, 9, 9, 9, 
+			  8, 8, 7, 7, 6};// from bottom to top
+
+  // G4double yfp_start_40[10] = {-62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -58.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm};//start of the block edge
+
+  // G4double yfp_start_42[15] = {-54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -58.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm, -62.0*cm};//start of the block edge
+  /*
+  G4double yfp_start_42[23] = {-61.88*cm, -57.92*cm, -61.88*cm, -57.92*cm, -61.88*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, 
+			       -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -54.0*cm, -61.79*cm,
+			       -58.16*cm, -61.95*cm, -58.32*cm};//start of the block edge's right side, there are 14 starting at -54 from 12 rows of 9 SM's and 2 rows of 8 SM's alligned at their right side
+  //this allignment is assuming the 12 rows of 9 SM's should start at -54 cm, this will likely need to be shifted
+  */
+
+  //shifted to be centered on beam line based on center in JT model
+  G4double yfp_start_42[23] = {-58.69*cm, -54.73*cm, -58.69*cm, -54.73*cm, -58.69*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, 
+			       -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -58.60*cm,
+			       -54.97*cm, -58.76*cm, -55.13*cm};// from bottom to top
+
+  //xfp and yfp are following the analysis coordinate system, not the same as g4 coord system
+  
+  //xfpstart based on center of ECal JT model
+  G4double xfpstart = -147.22*cm;
+  G4int copy_nb = 0;
+  G4double X_block, Y_block;
+
+  //the width(or height) of a SM is defined elsewhere as 5.06in, however everything seems to be properly alligned only when using 5.04in
+  G4double width42 = 5.134*2.54*cm;
+  G4double height42 = 5.07*2.54*cm;
+  G4double depthInactive = 15.75*2.54*cm;
+  G4double inactiveBox_width = 54.42*2.54*cm;
+  G4double inactiveBox_height = 125.12*2.54*cm;
+
+  G4Box *inactivePbGls = new G4Box( "inactivePbGls", inactiveBox_width/2.0, width42/2.0, depthInactive/2.0 );
+
+  G4LogicalVolume *inactivePbGls_log = new G4LogicalVolume( inactivePbGls, GetMaterial("TF1_dead"), "inactivePbGls_log" );
+  
+  //Make subtraction shell of inactive pb glass surrounding the Supermodules in ECal
+
+  //this is extremely messy just because im currently not sure how to do this with a for loop, but trying to be methodical, numbering follows the order of the above arrays used to describe the rows of SM's going from top to bottom
+
+  //width of # of supermodules to be subtracted from box of inactive pbglass, these are just the numbers needed from Nblocks_per_rowSM_42
+  /* 
+ G4double cutout4wide = 4*width42;
+  G4double cutout6wide = 6*width42;
+  G4double cutout7wide = 7*width42;
+  G4double cutout8wide = 8*width42;
+  G4double cutout9wide = 9*width42;
+
+  */
+
+  //z offset between front face of SM's and front face of inactive pbglass
+  G4double zOffset42 = 0.5*2.54*cm;
+
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[0] + (inactiveBox_width/2.0) , xfpstart - (1*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactivePbGls_log, "inactivePbGls_phys", earm_mother_log, false, 1 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[0] + (inactiveBox_width/2.0) , xfpstart + (47*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactivePbGls_log, "inactivePbGls_phys", earm_mother_log, false, 1 );
+  
+  //left side of inactive pb glass
+
+  G4double widthGlsL0 = 29.45*2.54*cm;
+  G4double widthGlsL1 = 16.46*2.54*cm;
+  G4double widthGlsL2 = 12.92*2.54*cm;
+  G4double widthGlsL3 = 11.43*2.54*cm;
+  G4double widthGlsL4 = 8.61*2.54*cm;
+  G4double widthGlsL5 = 5.47*2.54*cm;
+  G4double widthGlsL6_17 = 1.0*2.54*cm;
+  G4double widthGlsL18 = 5.77*2.54*cm;
+  G4double widthGlsL19 = 8.75*2.54*cm;
+  G4double widthGlsL20 = 13.29*2.54*cm;
+  G4double widthGlsL21 = 15.1*2.54*cm;
+  G4double widthGlsL22 = 18.76*2.54*cm;
+
+  G4Box *inactiveGlsL0 = new G4Box( "inactiveGlsL0",( widthGlsL0 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsL1 = new G4Box( "inactiveGlsL1",( widthGlsL1 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsL2 = new G4Box( "inactiveGlsL2",( widthGlsL2 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsL3 = new G4Box( "inactiveGlsL3",( widthGlsL3 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsL4 = new G4Box( "inactiveGlsL4",( widthGlsL4 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsL5 = new G4Box( "inactiveGlsL5",( widthGlsL5 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsL6_17 = new G4Box( "inactiveGlsL6_17",( widthGlsL6_17 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsL18 = new G4Box( "inactiveGlsL18",( widthGlsL18 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsL19 = new G4Box( "inactiveGlsL19",( widthGlsL19 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsL20 = new G4Box( "inactiveGlsL20",( widthGlsL20 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsL21 = new G4Box( "inactiveGlsL21",( widthGlsL21 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsL22 = new G4Box( "inactiveGlsL22",( widthGlsL22 )/2.0, height42/2.0, depthInactive/2.0 );
+  
+  G4LogicalVolume *inactiveGlsL0_log = new G4LogicalVolume( inactiveGlsL0, GetMaterial("TF1_dead"), "inactiveGlsL0_log" );
+  G4LogicalVolume *inactiveGlsL1_log = new G4LogicalVolume( inactiveGlsL1, GetMaterial("TF1_dead"), "inactiveGlsL1_log" );
+  G4LogicalVolume *inactiveGlsL2_log = new G4LogicalVolume( inactiveGlsL2, GetMaterial("TF1_dead"), "inactiveGlsL2_log" );
+  G4LogicalVolume *inactiveGlsL3_log = new G4LogicalVolume( inactiveGlsL3, GetMaterial("TF1_dead"), "inactiveGlsL3_log" );
+  G4LogicalVolume *inactiveGlsL4_log = new G4LogicalVolume( inactiveGlsL4, GetMaterial("TF1_dead"), "inactiveGlsL4_log" );
+  G4LogicalVolume *inactiveGlsL5_log = new G4LogicalVolume( inactiveGlsL5, GetMaterial("TF1_dead"), "inactiveGlsL5_log" );
+  G4LogicalVolume *inactiveGlsL6_17_log = new G4LogicalVolume( inactiveGlsL6_17, GetMaterial("TF1_dead"), "inactiveGlsL6_17_log" );
+  G4LogicalVolume *inactiveGlsL18_log = new G4LogicalVolume( inactiveGlsL18, GetMaterial("TF1_dead"), "inactiveGlsL18_log" );
+  G4LogicalVolume *inactiveGlsL19_log = new G4LogicalVolume( inactiveGlsL19, GetMaterial("TF1_dead"), "inactiveGlsL19_log" );
+  G4LogicalVolume *inactiveGlsL20_log = new G4LogicalVolume( inactiveGlsL20, GetMaterial("TF1_dead"), "inactiveGlsL20_log" );
+  G4LogicalVolume *inactiveGlsL21_log = new G4LogicalVolume( inactiveGlsL21, GetMaterial("TF1_dead"), "inactiveGlsL21_log" );
+  G4LogicalVolume *inactiveGlsL22_log = new G4LogicalVolume( inactiveGlsL22, GetMaterial("TF1_dead"), "inactiveGlsL22_log" );
+  
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[0] + width42*Nblocks_per_rowSM_42[0] + widthGlsL0/2.0 , xfpstart + (1*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL0_log, "inactiveGlsL0_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[1] + width42*Nblocks_per_rowSM_42[1] + widthGlsL1/2.0 , xfpstart + (3*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL1_log, "inactiveGlsL1_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[2] + width42*Nblocks_per_rowSM_42[2] + widthGlsL2/2.0 , xfpstart + (5*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL2_log, "inactiveGlsL2_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[3] + width42*Nblocks_per_rowSM_42[3] + widthGlsL3/2.0 , xfpstart + (7*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL3_log, "inactiveGlsL3_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[4] + width42*Nblocks_per_rowSM_42[4] + widthGlsL4/2.0 , xfpstart + (9*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL4_log, "inactiveGlsL4_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[5] + width42*Nblocks_per_rowSM_42[5] + widthGlsL5/2.0 , xfpstart + (11*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL5_log, "inactiveGlsL5_phys", earm_mother_log, false, 0 );
+
+  for( int i = 6; i < 18; i++ ){
+
+    new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[i] + width42*Nblocks_per_rowSM_42[i] + widthGlsL6_17/2.0 , xfpstart + (((i*2)+1)*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL6_17_log, "inactiveGlsL6_17_phys", earm_mother_log, false, 12 );
+
+  }
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[18] + width42*Nblocks_per_rowSM_42[18] + widthGlsL18/2.0 , xfpstart + (37*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL18_log, "inactiveGlsL18_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[19] + width42*Nblocks_per_rowSM_42[19] + widthGlsL19/2.0 , xfpstart + (39*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL19_log, "inactiveGlsL19_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[20] + width42*Nblocks_per_rowSM_42[20] + widthGlsL20/2.0 , xfpstart + (41*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL20_log, "inactiveGlsL20_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[21] + width42*Nblocks_per_rowSM_42[21] + widthGlsL21/2.0 , xfpstart + (43*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL21_log, "inactiveGlsL21_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[22] + width42*Nblocks_per_rowSM_42[22] + widthGlsL22/2.0 , xfpstart + (45*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsL22_log, "inactiveGlsL22_phys", earm_mother_log, false, 0 ); 
+
+  //right side of inactive pb glass
+
+  G4double widthGlsR0 = 1.0*2.54*cm;
+  G4double widthGlsR1 = 2.56*2.54*cm;
+  G4double widthGlsR2 = 1.0*2.54*cm;
+  G4double widthGlsR3 = 2.56*2.54*cm;
+  G4double widthGlsR4 = 1.0*2.54*cm;
+  G4double widthGlsR5 = 4.13*2.54*cm;
+  G4double widthGlsR6_17 = 4.13*2.54*cm;
+  G4double widthGlsR18 = 4.13*2.54*cm;
+  G4double widthGlsR19 = 1.0*2.54*cm;
+  G4double widthGlsR20 = 2.56*2.54*cm;
+  G4double widthGlsR21 = 1.0*2.54*cm;
+  G4double widthGlsR22 = 2.56*2.54*cm;
+
+  G4Box *inactiveGlsR0 = new G4Box( "inactiveGlsR0",( widthGlsR0 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsR1 = new G4Box( "inactiveGlsR1",( widthGlsR1 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsR2 = new G4Box( "inactiveGlsR2",( widthGlsR2 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsR3 = new G4Box( "inactiveGlsR3",( widthGlsR3 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsR4 = new G4Box( "inactiveGlsR4",( widthGlsR4 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsR5 = new G4Box( "inactiveGlsR5",( widthGlsR5 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsR6_17 = new G4Box( "inactiveGlsR6_17",( widthGlsR6_17 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsR18 = new G4Box( "inactiveGlsR18",( widthGlsR18 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsR19 = new G4Box( "inactiveGlsR19",( widthGlsR19 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsR20 = new G4Box( "inactiveGlsR20",( widthGlsR20 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsR21 = new G4Box( "inactiveGlsR21",( widthGlsR21 )/2.0, height42/2.0, depthInactive/2.0 );
+  G4Box *inactiveGlsR22 = new G4Box( "inactiveGlsR22",( widthGlsR22 )/2.0, height42/2.0, depthInactive/2.0 );
+  
+  G4LogicalVolume *inactiveGlsR0_log = new G4LogicalVolume( inactiveGlsR0, GetMaterial("TF1_dead"), "inactiveGlsR0_log" );
+  G4LogicalVolume *inactiveGlsR1_log = new G4LogicalVolume( inactiveGlsR1, GetMaterial("TF1_dead"), "inactiveGlsR1_log" );
+  G4LogicalVolume *inactiveGlsR2_log = new G4LogicalVolume( inactiveGlsR2, GetMaterial("TF1_dead"), "inactiveGlsR2_log" );
+  G4LogicalVolume *inactiveGlsR3_log = new G4LogicalVolume( inactiveGlsR3, GetMaterial("TF1_dead"), "inactiveGlsR3_log" );
+  G4LogicalVolume *inactiveGlsR4_log = new G4LogicalVolume( inactiveGlsR4, GetMaterial("TF1_dead"), "inactiveGlsR4_log" );
+  G4LogicalVolume *inactiveGlsR5_log = new G4LogicalVolume( inactiveGlsR5, GetMaterial("TF1_dead"), "inactiveGlsR5_log" );
+  G4LogicalVolume *inactiveGlsR6_17_log = new G4LogicalVolume( inactiveGlsR6_17, GetMaterial("TF1_dead"), "inactiveGlsR6_17_log" );
+  G4LogicalVolume *inactiveGlsR18_log = new G4LogicalVolume( inactiveGlsR18, GetMaterial("TF1_dead"), "inactiveGlsR18_log" );
+  G4LogicalVolume *inactiveGlsR19_log = new G4LogicalVolume( inactiveGlsR19, GetMaterial("TF1_dead"), "inactiveGlsR19_log" );
+  G4LogicalVolume *inactiveGlsR20_log = new G4LogicalVolume( inactiveGlsR20, GetMaterial("TF1_dead"), "inactiveGlsR20_log" );
+  G4LogicalVolume *inactiveGlsR21_log = new G4LogicalVolume( inactiveGlsR21, GetMaterial("TF1_dead"), "inactiveGlsR21_log" );
+  G4LogicalVolume *inactiveGlsR22_log = new G4LogicalVolume( inactiveGlsR22, GetMaterial("TF1_dead"), "inactiveGlsR22_log" );
+
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[0] - widthGlsR0/2.0 , xfpstart + (1*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR0_log, "inactiveGlsR0_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[1] - widthGlsR1/2.0 , xfpstart + (3*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR1_log, "inactiveGlsR1_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[2] - widthGlsR2/2.0 , xfpstart + (5*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR2_log, "inactiveGlsR2_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[3] - widthGlsR3/2.0 , xfpstart + (7*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR3_log, "inactiveGlsR3_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[4] - widthGlsR4/2.0 , xfpstart + (9*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR4_log, "inactiveGlsR4_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[5] - widthGlsR5/2.0 , xfpstart + (11*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR5_log, "inactiveGlsR5_phys", earm_mother_log, false, 0 );
+
+  for( int i = 6; i < 18; i++ ){
+
+    new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[i] - widthGlsR6_17/2.0 , xfpstart + (((i*2)+1)*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR6_17_log, "inactiveGlsR6_17_phys", earm_mother_log, false, 12 );
+
+  }
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[18] - widthGlsR18/2.0 , xfpstart + (37*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR18_log, "inactiveGlsR18_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[19] - widthGlsR19/2.0 , xfpstart + (39*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR19_log, "inactiveGlsR19_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[20] - widthGlsR20/2.0 , xfpstart + (41*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR20_log, "inactiveGlsR20_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[21] - widthGlsR21/2.0 , xfpstart + (43*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR21_log, "inactiveGlsR21_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( yfp_start_42[22] - widthGlsR22/2.0 , xfpstart + (45*height42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveGlsR22_log, "inactiveGlsR22_phys", earm_mother_log, false, 0 ); 
+
+  G4VisAttributes *tf1dead_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.5 ) );
+
+  inactiveGlsL0_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsL1_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsL2_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsL3_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsL4_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsL5_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsL6_17_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsL18_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsL19_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsL20_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsL21_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsL22_log->SetVisAttributes(tf1dead_visatt);
+
+  inactiveGlsR0_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsR1_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsR2_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsR3_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsR4_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsR5_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsR6_17_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsR18_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsR19_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsR20_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsR21_log->SetVisAttributes(tf1dead_visatt);
+  inactiveGlsR22_log->SetVisAttributes(tf1dead_visatt);
+
+  
+
+  /*
+
+  //boxes to be cut out, making them larger than the inactivePbGls to avoid issues of subtracting at coincident planes 
+  G4Box *PbGlsCutout4wide = new G4Box( "PbGlsCutout4wide", cutout4wide/2.0, width42/2.0 + 1.0*cm, depthInactive/2.0 + 1.0*cm );
+  G4Box *PbGlsCutout6wide = new G4Box( "PbGlsCutout6wide", cutout6wide/2.0, width42/2.0 + 1.0*cm, depthInactive/2.0 + 1.0*cm );
+  G4Box *PbGlsCutout7wide = new G4Box( "PbGlsCutout7wide", cutout7wide/2.0, width42/2.0 + 1.0*cm, depthInactive/2.0 + 1.0*cm );
+  G4Box *PbGlsCutout8wide = new G4Box( "PbGlsCutout8wide", cutout8wide/2.0, width42/2.0 + 1.0*cm, depthInactive/2.0 + 1.0*cm );
+  G4Box *PbGlsCutout9wide = new G4Box( "PbGlsCutout9wide", cutout9wide/2.0, width42/2.0 + 1.0*cm, depthInactive/2.0 + 1.0*cm );
+
+  //subtraction of cutouts from inactive pbglass and empty space centerd to match placement of SM rows within the mother volume
+  //note:rows 6 through 17 have 9 SM's and are alligned
+  G4SubtractionSolid *inactiveShell0 = new G4SubtractionSolid( "inactiveShell0", inactivePbGls, PbGlsCutout4wide, 0, G4ThreeVector( yfp_start_42[0] + (width42*Nblocks_per_rowSM_42[0]/2.0), 0, 0 ) );
+  G4SubtractionSolid *inactiveShell1 = new G4SubtractionSolid( "inactiveShell1", inactivePbGls, PbGlsCutout6wide, 0, G4ThreeVector( yfp_start_42[1] + (width42*Nblocks_per_rowSM_42[1]/2.0), 0, 0 ) );
+  G4SubtractionSolid *inactiveShell2 = new G4SubtractionSolid( "inactiveShell2", inactivePbGls, PbGlsCutout7wide, 0, G4ThreeVector( yfp_start_42[2] + (width42*Nblocks_per_rowSM_42[2]/2.0), 0, 0 ) );
+  G4SubtractionSolid *inactiveShell3 = new G4SubtractionSolid( "inactiveShell3", inactivePbGls, PbGlsCutout7wide, 0, G4ThreeVector( yfp_start_42[3] + (width42*Nblocks_per_rowSM_42[3]/2.0), 0, 0 ) );
+  G4SubtractionSolid *inactiveShell4 = new G4SubtractionSolid( "inactiveShell4", inactivePbGls, PbGlsCutout8wide, 0, G4ThreeVector( yfp_start_42[4] + (width42*Nblocks_per_rowSM_42[4]/2.0), 0, 0 ) );
+  G4SubtractionSolid *inactiveShell5 = new G4SubtractionSolid( "inactiveShell5", inactivePbGls, PbGlsCutout8wide, 0, G4ThreeVector( yfp_start_42[5] + (width42*Nblocks_per_rowSM_42[5]/2.0), 0, 0 ) );
+  G4SubtractionSolid *inactiveShell6_17 = new G4SubtractionSolid( "inactiveShell6_17", inactivePbGls, PbGlsCutout9wide, 0, G4ThreeVector( yfp_start_42[6] + (width42*Nblocks_per_rowSM_42[6]/2.0), 0, 0 ) );
+  G4SubtractionSolid *inactiveShell18 = new G4SubtractionSolid( "inactiveShell18", inactivePbGls, PbGlsCutout8wide, 0, G4ThreeVector( yfp_start_42[18] + (width42*Nblocks_per_rowSM_42[18]/2.0), 0, 0 ) );
+  G4SubtractionSolid *inactiveShell19 = new G4SubtractionSolid( "inactiveShell19", inactivePbGls, PbGlsCutout8wide, 0, G4ThreeVector( yfp_start_42[19] + (width42*Nblocks_per_rowSM_42[19]/2.0), 0, 0 ) );
+  G4SubtractionSolid *inactiveShell20 = new G4SubtractionSolid( "inactiveShell20", inactivePbGls, PbGlsCutout7wide, 0, G4ThreeVector( yfp_start_42[20] + (width42*Nblocks_per_rowSM_42[20]/2.0), 0, 0 ) );
+  G4SubtractionSolid *inactiveShell21 = new G4SubtractionSolid( "inactiveShell21", inactivePbGls, PbGlsCutout7wide, 0, G4ThreeVector( yfp_start_42[21] + (width42*Nblocks_per_rowSM_42[21]/2.0), 0, 0 ) );
+  G4SubtractionSolid *inactiveShell22 = new G4SubtractionSolid( "inactiveShell22", inactivePbGls, PbGlsCutout6wide, 0, G4ThreeVector( yfp_start_42[22] + (width42*Nblocks_per_rowSM_42[22]/2.0), 0, 0 ) );
+  
+  G4LogicalVolume *inactiveShell0_log = new G4LogicalVolume( inactiveShell0, GetMaterial("TF1_dead"), "inactiveShell0_log" );
+  G4LogicalVolume *inactiveShell1_log = new G4LogicalVolume( inactiveShell1, GetMaterial("TF1_dead"), "inactiveShell1_log" );
+  G4LogicalVolume *inactiveShell2_log = new G4LogicalVolume( inactiveShell2, GetMaterial("TF1_dead"), "inactiveShell2_log" );
+  G4LogicalVolume *inactiveShell3_log = new G4LogicalVolume( inactiveShell3, GetMaterial("TF1_dead"), "inactiveShell3_log" );
+  G4LogicalVolume *inactiveShell4_log = new G4LogicalVolume( inactiveShell4, GetMaterial("TF1_dead"), "inactiveShell4_log" );
+  G4LogicalVolume *inactiveShell5_log = new G4LogicalVolume( inactiveShell5, GetMaterial("TF1_dead"), "inactiveShell5_log" );
+  G4LogicalVolume *inactiveShell6_17_log = new G4LogicalVolume( inactiveShell6_17, GetMaterial("TF1_dead"), "inactiveShell6_17_log" );
+  G4LogicalVolume *inactiveShell18_log = new G4LogicalVolume( inactiveShell18, GetMaterial("TF1_dead"), "inactiveShell18_log" );
+  G4LogicalVolume *inactiveShell19_log = new G4LogicalVolume( inactiveShell19, GetMaterial("TF1_dead"), "inactiveShell19_log" );
+  G4LogicalVolume *inactiveShell20_log = new G4LogicalVolume( inactiveShell20, GetMaterial("TF1_dead"), "inactiveShell20_log" );
+  G4LogicalVolume *inactiveShell21_log = new G4LogicalVolume( inactiveShell21, GetMaterial("TF1_dead"), "inactiveShell21_log" );
+  G4LogicalVolume *inactiveShell22_log = new G4LogicalVolume( inactiveShell22, GetMaterial("TF1_dead"), "inactiveShell22_log" );
+
+  //z offset between front face of SM's and front face of inactive pbglass
+  G4double zOffset42 = 0.5*2.54*cm;
+
+  //starting at bottom and going up 
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart - (1*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactivePbGls_log, "inactivePbGls_phys", earm_mother_log, false, 1 );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (1*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell0_log, "inactiveShell0_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (3*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell1_log, "inactiveShell1_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (5*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell2_log, "inactiveShell2_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (7*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell3_log, "inactiveShell3_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (9*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell4_log, "inactiveShell4_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (11*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell5_log, "inactiveShell5_phys", earm_mother_log, false, 0 );
+
+  for( int i = 6; i < 18; i++ ){
+    new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + ((1+(i*2))*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell6_17_log, "inactiveShell6_17_phys", earm_mother_log, false, 12 );
+  }
+
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (37*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell18_log, "inactiveShell18_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (39*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell19_log, "inactiveShell19_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (41*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell20_log, "inactiveShell20_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (43*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell21_log, "inactiveShell21_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (45*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactiveShell22_log, "inactiveShell22_phys", earm_mother_log, false, 0 );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , xfpstart + (47*width42/2.0) , zfront_ECAL + (depthInactive/2.0) - zOffset42), inactivePbGls_log, "inactivePbGls_phys", earm_mother_log, false, 1 );
+
+  //color the inactive pbglass
+  G4VisAttributes *tf1dead_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.5 ) );
+
+  inactivePbGls_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell0_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell1_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell2_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell3_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell4_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell5_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell6_17_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell18_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell19_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell20_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell21_log->SetVisAttributes(tf1dead_visatt);
+  inactiveShell22_log->SetVisAttributes(tf1dead_visatt);
+
+  */
+
+  // Make Super Modules for 42 mm and 40 mm wide blocks
+  // G4double BlockSpace_42 = 1.68*inch;
+  // G4double BlockFirst_42 = 0.84*inch;
+  G4double BlockSpace_42 = 1.69*inch;
+  G4double BlockFirst_42 = 0.845*inch;
+  
+  // G4double SMWidth_42_1 = 5.06*inch;
+  G4double SMWidth_42_1 = 5.07*inch;
+  G4double SMWidth_42_2 = 5.12*inch;
+  G4double SMHeight_42 = 5.07*inch;
+
+  G4double TiWallLength_42_1 = 14.83*inch;
+  G4double TiWallLength_42_2 = 15.83*inch;
+  G4double TiWallThick = 0.032*inch;
+
+  G4double ClampingBarThick = 0.125*inch;
+  G4double ClampingBarWidth = 0.78*inch;
+
+  G4double SpacerLength_42_1 = 0.43*inch;
+  G4double SpacerLength_42_2 = 1.43*inch;
+  G4double SpacerOutDiam = 1.5*inch;
+  
+  G4double FrontFlangeThick = 0.25*inch;
+  G4double BackFlangeThick = 0.5*inch;
+  
+  G4double BackFlangeHoleSize = 1.37*inch;
+  G4double PMTFlangeHoleSize = 1.42*inch;
+  
+  G4double StandoffLength_42 = 3.00*inch;
+  G4double StandoffDiam = 0.375*inch;
+
+  //using only 42 for quick testing, should change instances of 40 elsewhere to 42 in order to get rid of unneccesary definitions but this is faster for now
+  G4double BlockSpace_40 = BlockSpace_42;
+  G4double BlockFirst_40 = BlockFirst_42;
+  
+  G4double SMWidth_40_1 = SMWidth_42_1;
+  G4double SMWidth_40_2 = SMWidth_42_2;
+  G4double SMHeight_40 = SMHeight_42;
+
+  G4double TiWallLength_40_1 = TiWallLength_42_1;
+  G4double TiWallLength_40_2 = TiWallLength_42_2;
+
+  G4double SpacerLength_40_1 = SpacerLength_42_1;
+  G4double SpacerLength_40_2 = SpacerLength_42_2;
+  
+  G4double StandoffLength_40 = StandoffLength_42;
+  
+  //Titanium Walls
+  G4Box* TiSideWall_42_1_box = 
+    new G4Box("TiSideWall_42_1_box", TiWallThick/2.0, SMHeight_42/2.0, TiWallLength_42_1/2.0);
+  G4LogicalVolume* TiSideWall_42_1_log = 
+    new G4LogicalVolume(TiSideWall_42_1_box, GetMaterial("Titanium"), "TiSideWall_42_1_log");
+
+  G4Box* TiSideWall_42_2_box = 
+    new G4Box("TiSideWall_42_2_box", TiWallThick/2.0, SMHeight_42/2.0, TiWallLength_42_2/2.0);
+  G4LogicalVolume* TiSideWall_42_2_log = 
+    new G4LogicalVolume(TiSideWall_42_2_box, GetMaterial("Titanium"), "TiSideWall_42_2_log");
+  /* 
+  G4Box* TiSideWall_40_1_box = 
+    new G4Box("TiSideWall_40_1_box", TiWallThick/2.0, SMHeight_40/2.0, TiWallLength_40_1/2.0);
+  G4LogicalVolume* TiSideWall_40_1_log = 
+    new G4LogicalVolume(TiSideWall_40_1_box, GetMaterial("Titanium"), "TiSideWall_40_1_log");
+
+  G4Box* TiSideWall_40_2_box = 
+    new G4Box("TiSideWall_40_2_box", TiWallThick/2.0, SMHeight_40/2.0, TiWallLength_40_2/2.0);
+  G4LogicalVolume* TiSideWall_40_2_log = 
+    new G4LogicalVolume(TiSideWall_40_2_box, GetMaterial("Titanium"), "TiSideWall_40_2_log");
+  */
+  // Flanges:
+  // Front
+  G4Box* FrontFlange_42_1_box = 
+    new G4Box("FrontFlange_42_1_box", SMWidth_42_1/2.0, SMHeight_42/2.0, FrontFlangeThick/2.0);
+  G4Box* FrontFlange_42_2_box = 
+    new G4Box("FrontFlange_42_2_box", SMWidth_42_2/2.0, SMHeight_42/2.0, FrontFlangeThick/2.0);
+  
+  G4Box* ClampingBar_box = 
+    new G4Box("ClampingBar_box", ClampingBarWidth/2.0, ClampingBarWidth/2.0, ClampingBarThick/2.0);
+  
+  G4UnionSolid* FrontFlange_42_1_solid = 
+    new G4UnionSolid("FrontFlange_42_1_solid", FrontFlange_42_1_box, ClampingBar_box, 0, 
+		     G4ThreeVector(0.0, 0.0, (FrontFlangeThick+ClampingBarThick)/2.0));
+  
+  G4UnionSolid* FrontFlange_42_2_solid = 
+    new G4UnionSolid("FrontFlange_42_2_solid", FrontFlange_42_2_box, ClampingBar_box, 0, 
+		     G4ThreeVector(0.0, 0.0, (FrontFlangeThick+ClampingBarThick)/2.0));
+  /*
+  G4Box* FrontFlange_40_1_box = 
+    new G4Box("FrontFlange_40_1_box", SMWidth_40_1/2.0, SMHeight_40/2.0, FrontFlangeThick/2.0);
+  G4Box* FrontFlange_40_2_box = 
+    new G4Box("FrontFlange_40_2_box", SMWidth_40_2/2.0, SMHeight_40/2.0, FrontFlangeThick/2.0);
+  
+  G4UnionSolid* FrontFlange_40_1_solid = 
+    new G4UnionSolid("FrontFlange_40_1_solid", FrontFlange_40_1_box, ClampingBar_box, 0, 
+		     G4ThreeVector(0.0, 0.0, (FrontFlangeThick+ClampingBarThick)/2.0));
+  
+  G4UnionSolid* FrontFlange_40_2_solid = 
+    new G4UnionSolid("FrontFlange_40_2_solid", FrontFlange_40_2_box, ClampingBar_box, 0, 
+		     G4ThreeVector(0.0, 0.0, (FrontFlangeThick+ClampingBarThick)/2.0));
+  */
+  // Back
+  G4Box* BackFlange_42_1_box = 
+    new G4Box("BackFlange_42_1_box", SMWidth_42_1/2.0, SMHeight_42/2.0, BackFlangeThick/2.0);
+  
+  G4Box* BackFlange_42_2_box = 
+    new G4Box("BackFlange_42_2_box", SMWidth_42_2/2.0, SMHeight_42/2.0, BackFlangeThick/2.0);
+  
+  G4Tubs *BackFlange_hole = new G4Tubs("BackFlange_hole", 0.0, BackFlangeHoleSize/2.0, BackFlangeThick, 0.0*deg, 360.0*deg );
+  
+  
+  G4SubtractionSolid* BackFlange_42_1_solid = 
+    new G4SubtractionSolid("BackFlange_42_1_solid", BackFlange_42_1_box, BackFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  
+  G4SubtractionSolid* BackFlange_42_2_solid = 
+    new G4SubtractionSolid("BackFlange_42_2_solid", BackFlange_42_2_box, BackFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  /*
+  G4Box* BackFlange_40_1_box = 
+    new G4Box("BackFlange_40_1_box", SMWidth_40_1/2.0, SMHeight_40/2.0, BackFlangeThick/2.0);
+  
+  G4Box* BackFlange_40_2_box = 
+    new G4Box("BackFlange_40_2_box", SMWidth_40_2/2.0, SMHeight_40/2.0, BackFlangeThick/2.0);
+  
+  G4SubtractionSolid* BackFlange_40_1_solid = 
+    new G4SubtractionSolid("BackFlange_40_1_solid", BackFlange_40_1_box, BackFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  
+  G4SubtractionSolid* BackFlange_40_2_solid = 
+    new G4SubtractionSolid("BackFlange_40_2_solid", BackFlange_40_2_box, BackFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  */
+  // PMT
+  G4Tubs *PMTFlange_hole = new G4Tubs("PMTFlange_hole", 0.0, PMTFlangeHoleSize/2.0, FrontFlangeThick, 0.0*deg, 360.0*deg );
+  
+  G4SubtractionSolid* PMTFlange_42_1_solid = 
+    new G4SubtractionSolid("PMTFlange_42_1_solid", FrontFlange_42_1_box, PMTFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  
+  G4SubtractionSolid* PMTFlange_42_2_solid = 
+    new G4SubtractionSolid("PMTFlange_42_2_solid", FrontFlange_42_2_box, PMTFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  /*
+  G4SubtractionSolid* PMTFlange_40_1_solid = 
+    new G4SubtractionSolid("PMTFlange_40_1_solid", FrontFlange_40_1_box, PMTFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  
+  G4SubtractionSolid* PMTFlange_40_2_solid = 
+    new G4SubtractionSolid("PMTFlange_40_2_solid", FrontFlange_40_2_box, PMTFlange_hole, 0, G4ThreeVector(0.0, 0.0, 0.0));
+  */
+  // Flanges boolean solids
+  for(int i = 0; i<3; i++){
+    for(int j = 0; j<3; j++){
+      FrontFlange_42_1_solid = 
+	new G4UnionSolid("FrontFlange_42_1_solid", FrontFlange_42_1_solid, ClampingBar_box, 0, 
+			 G4ThreeVector(BlockSpace_42*(i-1),BlockSpace_42*(j-1), (FrontFlangeThick+ClampingBarThick)/2.0));
+      FrontFlange_42_2_solid = 
+	new G4UnionSolid("FrontFlange_42_1_solid", FrontFlange_42_2_solid, ClampingBar_box, 0, 
+			 G4ThreeVector(BlockSpace_42*(i-1),BlockSpace_42*(j-1), (FrontFlangeThick+ClampingBarThick)/2.0));
+      
+      
+       BackFlange_42_1_solid = new G4SubtractionSolid("BackFlange_42_1_solid", BackFlange_42_1_solid, BackFlange_hole, 0, G4ThreeVector(BlockSpace_42*(i-1),BlockSpace_42*(j-1),0.0));
+      
+       BackFlange_42_2_solid = new G4SubtractionSolid("BackFlange_42_2_solid", BackFlange_42_2_solid, BackFlange_hole, 0, G4ThreeVector(BlockSpace_42*(i-1),BlockSpace_42*(j-1),0.0));
+      
+      PMTFlange_42_1_solid = new G4SubtractionSolid("PMTFlange_42_1_solid", PMTFlange_42_1_solid, PMTFlange_hole, 0, G4ThreeVector(BlockSpace_42*(i-1),BlockSpace_42*(j-1),0.0));
+      
+      PMTFlange_42_2_solid = new G4SubtractionSolid("PMTFlange_42_2_solid", PMTFlange_42_2_solid, PMTFlange_hole, 0, G4ThreeVector(BlockSpace_42*(i-1),BlockSpace_42*(j-1),0.0));
+      /*
+      FrontFlange_40_1_solid = 
+	new G4UnionSolid("FrontFlange_40_1_solid", FrontFlange_40_1_solid, ClampingBar_box, 0, 
+			 G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1), (FrontFlangeThick+ClampingBarThick)/2.0));
+      FrontFlange_40_2_solid = 
+	new G4UnionSolid("FrontFlange_40_1_solid", FrontFlange_40_2_solid, ClampingBar_box, 0, 
+			 G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1), (FrontFlangeThick+ClampingBarThick)/2.0));
+      
+      
+       BackFlange_40_1_solid = new G4SubtractionSolid("BackFlange_40_1_solid", BackFlange_40_1_solid, BackFlange_hole, 0, G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1),0.0));
+      
+       BackFlange_40_2_solid = new G4SubtractionSolid("BackFlange_40_2_solid", BackFlange_40_2_solid, BackFlange_hole, 0, G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1),0.0));
+      
+      PMTFlange_40_1_solid = new G4SubtractionSolid("PMTFlange_40_1_solid", PMTFlange_40_1_solid, PMTFlange_hole, 0, G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1),0.0));
+      
+      PMTFlange_40_2_solid = new G4SubtractionSolid("PMTFlange_40_2_solid", PMTFlange_40_2_solid, PMTFlange_hole, 0, G4ThreeVector(BlockSpace_40*(i-1),BlockSpace_40*(j-1),0.0));
+      */
+      }
+  }
+  
+  G4LogicalVolume* FrontFlange_42_1_log = 
+    new G4LogicalVolume(FrontFlange_42_1_solid, GetMaterial("Aluminum"), "FrontFlange_42_1_log");
+  G4LogicalVolume* FrontFlange_42_2_log = 
+    new G4LogicalVolume(FrontFlange_42_2_solid, GetMaterial("Aluminum"), "FrontFlange_42_2_log");
+  
+  G4LogicalVolume* BackFlange_42_1_log = 
+    new G4LogicalVolume(BackFlange_42_1_solid, GetMaterial("Aluminum"), "BackFlange_42_1_log");
+  G4LogicalVolume* BackFlange_42_2_log = 
+    new G4LogicalVolume(BackFlange_42_2_solid, GetMaterial("Aluminum"), "BackFlange_42_2_log");
+  
+  G4LogicalVolume* PMTFlange_42_1_log = 
+    new G4LogicalVolume(PMTFlange_42_1_solid, GetMaterial("Aluminum"), "PMTFlange_42_1_log");
+  G4LogicalVolume* PMTFlange_42_2_log = 
+    new G4LogicalVolume(PMTFlange_42_2_solid, GetMaterial("Aluminum"), "PMTFlange_42_2_log");
+  /*
+  G4LogicalVolume* FrontFlange_40_1_log = 
+    new G4LogicalVolume(FrontFlange_40_1_solid, GetMaterial("Aluminum"), "FrontFlange_40_1_log");
+  G4LogicalVolume* FrontFlange_40_2_log = 
+    new G4LogicalVolume(FrontFlange_40_2_solid, GetMaterial("Aluminum"), "FrontFlange_40_2_log");
+  
+  G4LogicalVolume* BackFlange_40_1_log = 
+    new G4LogicalVolume(BackFlange_40_1_solid, GetMaterial("Aluminum"), "BackFlange_40_1_log");
+  G4LogicalVolume* BackFlange_40_2_log = 
+    new G4LogicalVolume(BackFlange_40_2_solid, GetMaterial("Aluminum"), "BackFlange_40_2_log");
+  
+  G4LogicalVolume* PMTFlange_40_1_log = 
+    new G4LogicalVolume(PMTFlange_40_1_solid, GetMaterial("Aluminum"), "PMTFlange_40_1_log");
+  G4LogicalVolume* PMTFlange_40_2_log = 
+    new G4LogicalVolume(PMTFlange_40_2_solid, GetMaterial("Aluminum"), "PMTFlange_40_2_log");
+  */
+  // Spacers
+  G4Tubs *Spacer_42_1_solid = new G4Tubs("Spacer_42_1_solid", BackFlangeHoleSize/2.0, SpacerOutDiam/2.0, SpacerLength_42_1/2.0, 0.0*deg, 360.0*deg );
+  G4Tubs *Spacer_42_2_solid = new G4Tubs("Spacer_42_2_solid", BackFlangeHoleSize/2.0, SpacerOutDiam/2.0, SpacerLength_42_2/2.0, 0.0*deg, 360.0*deg );
+   
+  G4LogicalVolume* Spacer_42_1_log = 
+    new G4LogicalVolume(Spacer_42_1_solid, 
+			GetMaterial("Aluminum"), "Spacer_42_1_log");
+  G4LogicalVolume* Spacer_42_2_log = 
+    new G4LogicalVolume(Spacer_42_2_solid, 
+			GetMaterial("Aluminum"), "Spacer_42_2_log");
+  /*
+  G4Tubs *Spacer_40_1_solid = new G4Tubs("Spacer_40_1_solid", BackFlangeHoleSize/2.0, SpacerOutDiam/2.0, SpacerLength_40_1/2.0, 0.0*deg, 360.0*deg );
+  G4Tubs *Spacer_40_2_solid = new G4Tubs("Spacer_40_2_solid", BackFlangeHoleSize/2.0, SpacerOutDiam/2.0, SpacerLength_40_2/2.0, 0.0*deg, 360.0*deg );
+   
+  G4LogicalVolume* Spacer_40_1_log = 
+    new G4LogicalVolume(Spacer_40_1_solid, 
+			GetMaterial("Aluminum"), "Spacer_40_1_log");
+  G4LogicalVolume* Spacer_40_2_log = 
+    new G4LogicalVolume(Spacer_40_2_solid, 
+			GetMaterial("Aluminum"), "Spacer_40_2_log");
+  */
+  //Standoffs
+  G4Tubs *Standoff_42_solid = new G4Tubs("Standoff_42_solid", 0, StandoffDiam/2.0, StandoffLength_42/2.0, 0.0*deg, 360.0*deg );
+  
+  G4LogicalVolume* Standoff_42_log = 
+    new G4LogicalVolume(Standoff_42_solid, 
+			GetMaterial("Aluminum"), "Standoff_42_log");
+  /*
+  G4Tubs *Standoff_40_solid = new G4Tubs("Standoff_40_solid", 0, StandoffDiam/2.0, StandoffLength_40/2.0, 0.0*deg, 360.0*deg );
+  
+  G4LogicalVolume* Standoff_40_log = 
+    new G4LogicalVolume(Standoff_40_solid, 
+			GetMaterial("Aluminum"), "Standoff_40_log");
+  */
+  ofstream mapfile("database/ecal_gep_blockmap.txt");
+
+  TString  output_line = "";
+  output_line.Form("#%16s, %16s, %16s, %16s, %16s", "Cell", "Row", "Column", "Xcenter (cm)", "Ycenter (cm)" ); 
+
+  mapfile << output_line << endl;
+  
+
+  //replace all 40's with 42 here, original 42's placement currently commented out
+   
+  G4int SM_num = 0;
+  X_block = xfpstart+BlockFirst_42;
+  for(int i_ = 0; i_<NrowsSM_42*3; i_++){
+    Y_block = yfp_start_42[i_/3]+TiWallThick+BlockFirst_42;
+    for(int j_ = 0; j_<Nblocks_per_rowSM_42[i_/3]*3; j_++){
+      //printf("i_ = %d, j = %d, i_/3, copy_nb = %d, X_block = %f, Y_Block = %f \n", i_, j_, i_/3, copy_nb, X_block, Y_block);
+      G4ThreeVector modpos( Y_block, X_block, zfront_ECAL + depth_42/2.0 );
+
+      // depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+      new G4PVPlacement( 0, modpos, Module_42_log, "Module_42_phys", earm_mother_log, false, copy_nb );
+
+      output_line.Form( "%16d, %16d, %16d, %16.3f, %16.3f", copy_nb, i_, j_, Y_block/cm, X_block/cm );
+      mapfile << output_line << endl;
+      
+      (ECalTF1SD->detmap).Row[copy_nb] = i_;
+      (ECalTF1SD->detmap).Col[copy_nb] = j_;
+      (ECalTF1SD->detmap).LocalCoord[copy_nb] = modpos;
+      
+      G4ThreeVector pmtpos( modpos.x(), modpos.y(), 
+			    modpos.z() + depth_42/2.0 + LG42->GetZHalfLength()*2 + depth_ecal_pmt/2.0 );
+      new G4PVPlacement( 0, pmtpos, ecal_PMT_log, "ecal_PMT_phys", earm_mother_log, false, copy_nb );
+      
+      (ECalSD->detmap).Row[copy_nb] = i_;
+      (ECalSD->detmap).Col[copy_nb] = j_;
+      (ECalSD->detmap).LocalCoord[copy_nb] = pmtpos;
+      
+      //Add light-guide with mylar wrap:
+      G4ThreeVector LGpos( modpos.x(), modpos.y(), modpos.z() + depth_42/2.0 + LG42->GetZHalfLength() );
+      new G4PVPlacement( 0, LGpos, LG42_log, "LG42_phys", earm_mother_log, false, copy_nb );
+      
+      // //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
+      // // shall be temporary, and not end in the repo...
+      // (ECalLGSD->detmap).Row[copy_nb] = global_row;
+      // (ECalLGSD->detmap).Col[copy_nb] = col;
+      // (ECalLGSD->detmap).LocalCoord[copy_nb] = modpos;
+      
+      // Placing the supermodule
+      // Spacers...
+      G4double z0_SM = zfront_ECAL - FrontFlangeThick - ClampingBarThick;
+      G4RotationMatrix* rm_temp = new G4RotationMatrix();
+      G4ThreeVector pos_temp(Y_block, X_block, z0_SM + TiWallLength_42_1-BackFlangeThick-SpacerLength_42_1/2.0);
+      new G4PVPlacement(rm_temp, pos_temp, Spacer_42_1_log, "Spacer_42_1_phys", earm_mother_log, false, 0 );
+      
+      if(i_%3==1 && j_%3==1){
+	// Front Flange
+	pos_temp.setZ(z0_SM + FrontFlangeThick/2.0);
+	new G4PVPlacement(rm_temp, pos_temp, FrontFlange_42_1_log, "FrontFlange_42_1_phys", earm_mother_log, false, 0 );
+	
+	// Back Flange
+	pos_temp.setZ(z0_SM + TiWallLength_42_1 - BackFlangeThick/2.0);
+	new G4PVPlacement(rm_temp, pos_temp, BackFlange_42_1_log, "BackFlange_42_1_phys", earm_mother_log, false, 0 );
+	
+	// PMT Flange
+	pos_temp.setZ(z0_SM + TiWallLength_42_1 + StandoffLength_42 + FrontFlangeThick/2.0);
+	new G4PVPlacement(rm_temp, pos_temp, PMTFlange_42_1_log, "PMTFlange_42_1_phys", earm_mother_log, false, 0 );
+	
+	// Ti walls and Standoffs
+	for(int k = 0; k<2; k++){
+	  pos_temp.setZ(z0_SM + TiWallLength_42_1/2.0);
+	  pos_temp.setY(X_block);
+	  //pos_temp.setX(Y_block+(k-0.5)*(SMWidth_42_1+TiWallThick/2.0));
+	  pos_temp.setX(Y_block+(k-0.5)*((3*BlockSpace_42)+(2*TiWallThick)-TiWallThick));
+	  new G4PVPlacement(rm_temp, pos_temp, TiSideWall_42_1_log, "TiSideWall_42_1_phys", 
+			    earm_mother_log, false, 0 );
+	  for(int l = 0; l<2; l++){
+	    pos_temp.setX(Y_block+BlockSpace_42*(l-0.5));
+	    pos_temp.setY(X_block+(SMHeight_42-StandoffDiam)*(k-0.5));
+	    pos_temp.setZ(z0_SM + TiWallLength_42_1 + StandoffLength_42/2.0);
+	    new G4PVPlacement(rm_temp, pos_temp, Standoff_42_log, "Standoff_42_phys", 
+			      earm_mother_log, false, 0 );
+	  }
+	}
+	SM_num++;
+	//if(NcolsSM_40[i_/3]%2==0 && j_>(NcolsSM_40[i_/3]-1)*3)SM_num++;
+      }
+      
+      Y_block+= BlockSpace_42;
+      // if(j_%3==2)Y_block+= 2*BlockFirst_42+2*TiWallThick-BlockSpace_42;
+      if(j_%3==2)Y_block+= 2*TiWallThick;
+      copy_nb++;
+    }
+    X_block+= BlockSpace_42;
+  }
+  
+  /*
+
+  //arranging and placing the 42's
+  X_block+= BlockFirst_42+BlockFirst_40-BlockSpace_40;
+  for(int i_ = 0; i_<NrowsSM_42*3; i_++){
+    Y_block = yfp_start_42[i_/3]+TiWallThick+BlockFirst_42;
+    for(int j_ = 0; j_<Nblocks_per_rowSM_42[i_/3]*3; j_++){
+      //printf("i_ = %d, j = %d, i_/3, copy_nb = %d, X_block = %f, Y_Block = %f \n", i_, j_, i_/3, copy_nb, X_block, Y_block);
+      G4ThreeVector modpos( Y_block, X_block, zfront_ECAL + depth_42/2.0 );
+      // depth_earm/2.0 - depth_ecal_pmt - depth_leadglass/2.0 );
+      new G4PVPlacement( 0, modpos, Module_42_log, "Module_42_phys", earm_mother_log, false, copy_nb );
+
+      output_line.Form( "%16d, %16d, %16d, %16.3f, %16.3f", copy_nb, i_ + NrowsSM_40*3, j_, Y_block/cm, X_block/cm );
+      mapfile << output_line << endl;
+      
+      (ECalTF1SD->detmap).Row[copy_nb] = i_ + 3*NrowsSM_40;
+      (ECalTF1SD->detmap).Col[copy_nb] = j_;
+      (ECalTF1SD->detmap).LocalCoord[copy_nb] = modpos;
+
+      G4ThreeVector pmtpos( modpos.x(), modpos.y(),  
+			    modpos.z() + depth_42/2.0 + LG42->GetZHalfLength()*2 + depth_ecal_pmt/2.0 );
+      new G4PVPlacement( 0, pmtpos, ecal_PMT_log, "ecal_PMT_phys", earm_mother_log, false, copy_nb );
+
+      (ECalSD->detmap).Row[copy_nb] = i_ + 3*NrowsSM_40;
+      (ECalSD->detmap).Col[copy_nb] = j_;
+      (ECalSD->detmap).LocalCoord[copy_nb] = pmtpos;
+
+      //Add light-guide with mylar wrap:
+      G4ThreeVector LGpos( modpos.x(), modpos.y(), modpos.z() + depth_42/2.0 + LG42->GetZHalfLength() );
+      new G4PVPlacement( 0, LGpos, LG42_log, "LG42_phys", earm_mother_log, false, copy_nb );
+
+      // //EFuchey 2017-01-12: Need to make sensitive the three volumes above, to measure their dose.
+      // // shall be temporary, and not end in the repo...
+      // (ECalLGSD->detmap).Row[copy_nb] = global_row;
+      // (ECalLGSD->detmap).Col[copy_nb] = col;
+      // (ECalLGSD->detmap).LocalCoord[copy_nb] = modpos;
+      
+      // Placing the supermodule
+      // Spacers...
+      G4double z0_SM = zfront_ECAL - FrontFlangeThick - ClampingBarThick;
+      G4RotationMatrix* rm_temp = new G4RotationMatrix();
+      G4ThreeVector pos_temp(Y_block, X_block, z0_SM + TiWallLength_42_1-BackFlangeThick-SpacerLength_42_1/2.0);
+      new G4PVPlacement(rm_temp, pos_temp, Spacer_42_1_log, "Spacer_42_1_phys", earm_mother_log, false, 0 );
+      
+      if(i_%3==1 && j_%3==1){
+	// Front Flange
+	pos_temp.setZ(z0_SM + FrontFlangeThick/2.0);
+	new G4PVPlacement(rm_temp, pos_temp, FrontFlange_42_1_log, "FrontFlange_42_1_phys", earm_mother_log, false, 0 );
+	
+	// Back Flange
+	pos_temp.setZ(z0_SM + TiWallLength_42_1 - BackFlangeThick/2.0);
+	new G4PVPlacement(rm_temp, pos_temp, BackFlange_42_1_log, "BackFlange_42_1_phys", earm_mother_log, false, 0 );
+	
+	// PMT Flange
+	pos_temp.setZ(z0_SM + TiWallLength_42_1 + StandoffLength_42 + FrontFlangeThick/2.0);
+	new G4PVPlacement(rm_temp, pos_temp, PMTFlange_42_1_log, "PMTFlange_42_1_phys", earm_mother_log, false, 0 );
+	
+	// Ti walls and Standoffs
+	for(int k = 0; k<2; k++){
+	  pos_temp.setZ(z0_SM + TiWallLength_42_1/2.0);
+	  pos_temp.setY(X_block);
+	  pos_temp.setX(Y_block+(k-0.5)*(SMWidth_42_1+TiWallThick/2.0));
+	  new G4PVPlacement(rm_temp, pos_temp, TiSideWall_42_1_log, "TiSideWall_42_1_phys", 
+			    earm_mother_log, false, 0 );
+	  for(int l = 0; l<2; l++){
+	    pos_temp.setX(Y_block+BlockSpace_42*(l-0.5));
+	    pos_temp.setY(X_block+(SMHeight_42-StandoffDiam)*(k-0.5));
+	    pos_temp.setZ(z0_SM + TiWallLength_42_1 + StandoffLength_42/2.0);
+	    new G4PVPlacement(rm_temp, pos_temp, Standoff_42_log, "Standoff_42_phys", 
+			      earm_mother_log, false, 0 );
+	  }
+	}
+	SM_num++;
+	//if(NcolsSM_42[i_/3]%2==0 && j_>(NcolsSM_42[i_/3]-1)*3)SM_num++;
+      }
+      Y_block+= BlockSpace_42;
+      if(j_%3==2)Y_block+= 2*BlockFirst_42+2*TiWallThick-BlockSpace_42;
+      copy_nb++;
+    }
+    X_block+= BlockSpace_42;
+    if(i_==2)X_block+= 2.0*mm;// to leave space for the steel plate instered there
+  }
+  */
+  mapfile.close();
+  
+  // Build CDet:
+  if(fDetCon->fExpType==G4SBS::kGEp || fDetCon->fExpType == G4SBS::kGEPpositron ){
+    //Next: CH2 filter:
+    G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );
+    G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
+    new G4PVPlacement( 0, G4ThreeVector( 0, 0, zfront_ECAL - depth_CDET - depth_CH2/2.0 ), CH2_filter_log, "CH2_filter_phys", earm_mother_log, false, 0 );
+    
+    G4double z0_CDET = -depth_earm/2.0 + depth_CH2;
+    //G4double R0_CDET = R_Earm - depth_leadglass - depth_CDET;
+    //G4double R0_CDET = fDist - depth_leadglass - depth_CDET;
+    G4double R0_CDET = fDist - depth_CDET;
+    
+    G4SBSCDet* CDet = fDetCon->fCDet;
+    CDet->SetArmName("Earm");
+    CDet->SetR0(R0_CDET);
+    CDet->SetZ0(z0_CDET);
+    CDet->SetPlanesHOffset(0.0);
+    CDet->SetPlanesInterDistance(1.0*cm);
+    CDet->BuildComponent( earm_mother_log );
+    //MakeCDET( earm_mother_log );
+    
+    G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
+    CH2_visatt->SetForceWireframe(true);
+    
+    CH2_filter_log->SetVisAttributes(CH2_visatt);
+  }
+
+   //Create heat shielding in between ECal supermodule array and CDet
+
+  G4double HSCent_width = 8.908*2.54*cm;
+  G4double HSSide_width = 36.2*2.54*cm;
+  G4double HSAll_height = 24.058*2.54*cm;
+  G4double HSAll_depth = 9.944*2.54*cm;
+  G4double HSAll_vert_space = 0.29*2.54*cm;
+  G4double HSAll_hrz_space = 0.19*2.54*cm;
+  G4double HSAll_ystart = 2.5*HSAll_height + 2.0*HSAll_vert_space;
+  G4double HSSide_xblockcenter = HSCent_width/2.0 + HSAll_hrz_space + HSSide_width/2.0;
+  
+  G4Box *HeatShield_cent = new G4Box( "HeatShield_cent", HSCent_width/2.0, HSAll_height/2.0, HSAll_depth/2.0 );
+  G4LogicalVolume *HeatShield_cent_log = new G4LogicalVolume( HeatShield_cent, GetMaterial("SiO2_C16"), "HeatShield_cent_log" );
+
+  G4Box *HeatShield_side = new G4Box( "HeatShield_side", HSSide_width/2.0, HSAll_height/2.0, HSAll_depth/2.0 );
+  G4LogicalVolume *HeatShield_side_log = new G4LogicalVolume( HeatShield_side, GetMaterial("SiO2_C16"), "HeatShield_side_log" );
+
+  for(int i = 0; i < 5; i++){ 
+    new G4PVPlacement( 0, G4ThreeVector( 0, HSAll_ystart - (HSAll_height/2.0) - i*(HSAll_height + HSAll_vert_space), zfront_ECAL - 2.23*2.54*cm - HSAll_depth/2.0 ), HeatShield_cent_log, "HeatShield_cent_phys", earm_mother_log, false, 5 );
+    new G4PVPlacement( 0, G4ThreeVector( HSSide_xblockcenter, HSAll_ystart - (HSAll_height/2.0) - i*(HSAll_height + HSAll_vert_space), zfront_ECAL - 2.23*2.54*cm - HSAll_depth/2.0 ), HeatShield_side_log, "HeatShield_side_phys_left", earm_mother_log, false, 5 );
+    new G4PVPlacement( 0, G4ThreeVector( -HSSide_xblockcenter, HSAll_ystart - (HSAll_height/2.0) - i*(HSAll_height + HSAll_vert_space), zfront_ECAL - 2.23*2.54*cm - HSAll_depth/2.0 ), HeatShield_side_log, "HeatShield_side_phys_right", earm_mother_log, false, 5 ); 
+  }
+  //color for heat shielding
+  G4VisAttributes *HeatShield_visatt = new G4VisAttributes( G4Colour( 0.9, 0.7, 0.9 ) );
+  HeatShield_cent_log->SetVisAttributes(HeatShield_visatt);
+  HeatShield_side_log->SetVisAttributes(HeatShield_visatt);
+
+  //Create absorbers in front of cdet
+
+  G4double absorb_width = 48*2.54*cm;
+  G4double absorb_height = 120*2.54*cm;
+  G4double absorb_depth = 6*2.54*cm;
+
+  G4Box *absorber = new G4Box( "absorber", absorb_width/2.0, absorb_height/2.0, absorb_depth/2.0 );
+  G4LogicalVolume *absorber_log = new G4LogicalVolume( absorber, GetMaterial("Polyethylene"), "absorber_log" );
+  new G4PVPlacement( 0, G4ThreeVector( 0 , 0 , zfront_ECAL - 28.45*2.54*cm - (absorb_depth/2.0)), absorber_log, "absorber_phys", earm_mother_log, false, 0); 
+
+  //color for absorber
+  G4VisAttributes *absorber_visatt = new G4VisAttributes( G4Colour( 0, 1, 1 ) );
+  absorber_log->SetVisAttributes(absorber_visatt);
+
+  //Visualization:
+  G4VisAttributes *mother_visatt = new G4VisAttributes( G4Colour( 1, 1, 1 ) );
+  mother_visatt->SetForceWireframe(true);
+  earm_mother_log->SetVisAttributes(mother_visatt);
+   
+  //earm_mother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  Module_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // Module_40_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  
+  G4VisAttributes *Mylarvisatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
+  Mylarvisatt->SetForceWireframe(true);
+  Mylar_wrap_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  //Mylar_wrap_40_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+
+  G4VisAttributes *Ti_visatt = new G4VisAttributes( G4Colour( 0.8, 0.8, 0.7 ) );
+  Ti_visatt->SetForceWireframe(true);
+  TiSideWall_42_1_log->SetVisAttributes(Ti_visatt);
+  TiSideWall_42_2_log->SetVisAttributes(Ti_visatt);
+  //TiSideWall_40_1_log->SetVisAttributes(Ti_visatt);
+  //TiSideWall_40_2_log->SetVisAttributes(Ti_visatt);
+  // TiSideWall_log->SetVisAttributes(G4VisAttributes::GetInvisible());//
+  
+  G4VisAttributes *Al_visatt = new G4VisAttributes( G4Colour( 0.7, 0.7, 0.7 ) );
+  Al_visatt->SetForceWireframe(true);
+  FrontFlange_42_1_log->SetVisAttributes(Al_visatt);
+  FrontFlange_42_2_log->SetVisAttributes(Al_visatt);
+  //FrontFlange_40_1_log->SetVisAttributes(Al_visatt);
+  //FrontFlange_40_2_log->SetVisAttributes(Al_visatt);
+  BackFlange_42_1_log->SetVisAttributes(Al_visatt);
+  BackFlange_42_2_log->SetVisAttributes(Al_visatt);
+  //BackFlange_40_1_log->SetVisAttributes(Al_visatt);
+  //BackFlange_40_2_log->SetVisAttributes(Al_visatt);
+  PMTFlange_42_1_log->SetVisAttributes( G4Colour( 0.0, 0.7, 0.0 ) );
+  PMTFlange_42_2_log->SetVisAttributes( G4Colour( 0.7, 0.0, 0.0 ) );
+  //PMTFlange_40_1_log->SetVisAttributes( G4Colour( 0.0, 0.7, 0.0 ) );
+  //PMTFlange_40_2_log->SetVisAttributes( G4Colour( 0.7, 0.0, 0.0 ) );
+  Spacer_42_1_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Spacer_42_2_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  //Spacer_40_1_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  //Spacer_40_2_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //G4Colour( 0.0, 0.7, 0.0 ));
+  Standoff_42_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //Al_visatt);
+  //Standoff_40_log->SetVisAttributes( G4VisAttributes::GetInvisible() ); //Al_visatt);
+  
+  
+  G4VisAttributes *ECALpmtvisatt = new G4VisAttributes( G4Colour( 0, 0, 1 ) );
+  ecal_PMT_log->SetVisAttributes( ECALpmtvisatt );
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////KIP
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////KIP
 
 void G4SBSECal::MakeC16( G4LogicalVolume *motherlog ){
   printf("C16 at %f deg\n", fAng/deg);
@@ -2128,6 +3221,7 @@ void G4SBSECal::MakeBigCal(G4LogicalVolume *motherlog){
   G4LogicalVolume *ECAL_FrontPlate_log = new G4LogicalVolume( ECAL_FrontPlate, GetMaterial("Al"), "ECAL_FrontPlate_log" );
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, zfront_ECAL - depth_ecal_frontplate/2.0 ), ECAL_FrontPlate_log, "ECAL_FrontPlate_phys", earm_mother_log, false, 0 );
 
+
   if(fDetCon->fExpType==G4SBS::kGEp){
     //Next: CH2 filter:
     G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );
@@ -2183,7 +3277,7 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
   G4double PMTsize;
   
   G4cout << "DVCS ECal material = " << fDVCSECalMaterial << G4endl;
-  G4cout << " => " << fDVCSNrows << " * " << fDVCSNcols << "blocks" << G4endl;
+  G4cout << " => " << fDVCSNrows << " rows x " << fDVCSNcols << " columns blocks" << G4endl;
   
   if(fDVCSECalMaterial=="PbF2"){
     dvcsblkmodule_x = 3.00*cm;
@@ -2343,15 +3437,15 @@ void G4SBSECal::MakeDVCSECal(G4LogicalVolume *motherlog){
   }
 
   // Visualization attributes 
-  dvcsecallog->SetVisAttributes( G4VisAttributes::Invisible );
+  dvcsecallog->SetVisAttributes( G4VisAttributes::GetInvisible() );
   G4VisAttributes *DVCSecalbox_visatt = new G4VisAttributes(G4Colour(0.7, 0.7, 0.7) );
   DVCSecalbox_visatt->SetForceWireframe(true);
   dvcsecalAlBox_log->SetVisAttributes( DVCSecalbox_visatt );
     
   //G4VisAttributes *mydvcsblkmodbox_visatt = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0) );
-  dvcsblkmodlog->SetVisAttributes( G4VisAttributes::Invisible );//
+  dvcsblkmodlog->SetVisAttributes( G4VisAttributes::GetInvisible() );//
   
-  dvcsblkmylarwraplog->SetVisAttributes( G4VisAttributes::Invisible );
+  dvcsblkmylarwraplog->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   //TF1
   G4VisAttributes *DVCSblk_visatt = new G4VisAttributes(G4Colour( 1.0, 1.0, 0.0 ) );

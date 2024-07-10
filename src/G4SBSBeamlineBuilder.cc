@@ -26,6 +26,7 @@
 
 #include "G4SBSBDParameterisation.hh"
 #include "G4SBSBeamDiffuserSD.hh"
+#include "TString.h"
 
 G4SBSBeamlineBuilder::G4SBSBeamlineBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   assert(dc);
@@ -49,11 +50,12 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
     }
     break;
   case(G4SBS::kGMN):// GMn
+  case(G4SBS::kGEp_BB):
     fDetCon->fBeamlineConf = 3;
     MakeGMnBeamline(worldlog);
-    if(fDetCon->fLeadOption == 1){
-      MakeGMnLead(worldlog);
-    }
+    //if(fDetCon->fLeadOption == 1){
+    MakeGMnLead(worldlog);
+    //}
     break;
   case(G4SBS::kGEnRP):// GEnRP
     fDetCon->fBeamlineConf = 3;
@@ -80,9 +82,29 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
       MakeSIDISLead(worldlog);
     }
     break;
+  case(G4SBS::kALL):// ALL
+    fDetCon->fBeamlineConf = 2;
+    Make3HeBeamline(worldlog);
+    if(fDetCon->fLeadOption == 1){
+      //Sseeds - leaving option in, but removing obsolete geometry
+      MakeALLLead(worldlog);
+    }
+    break;
   case(G4SBS::kGEMHCtest):// Hall C GEM test
     fDetCon->fBeamlineConf = 3;
     MakeGMnBeamline(worldlog);
+    break;  
+  case(G4SBS::kTDIS):
+    fDetCon->fBeamlineConf = 2;
+    MakeTDISBeamline(worldlog);
+    break;  
+  case(G4SBS::kNDVCS):
+    fDetCon->fBeamlineConf = 2;
+    MakeTDISBeamline(worldlog);
+    break;  
+  case(G4SBS::kMTPConly):
+    //fDetCon->fBeamlineConf = 2;
+    //MakeTDISBeamline(worldlog);
     break;  
   default:
     MakeDefaultBeamline(worldlog);
@@ -98,7 +120,7 @@ void G4SBSBeamlineBuilder::BuildComponent(G4LogicalVolume *worldlog){
   G4LogicalVolume *floorLog = new G4LogicalVolume(floor_tube, GetMaterial("Concrete"), "floor_log", 0, 0, 0);
   new G4PVPlacement(floorrm, G4ThreeVector(0.0, -floorthick/2 - beamheight, 0.0), floorLog, "floor_phys", worldlog, false, 0);
   
-  floorLog->SetVisAttributes(G4VisAttributes::Invisible);
+  floorLog->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   return;
 
@@ -1365,7 +1387,7 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
     
     G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
     G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
-    Electronics_log->SetVisAttributes(G4VisAttributes::Invisible);
+    Electronics_log->SetVisAttributes(G4VisAttributes::GetInvisible());
     G4String GEMElectronicsname = "BLneutronDet";
     G4String  GEMElectronicscollname = "BLneutronDet";
     G4SBSCalSD *GEMElecSD = NULL;
@@ -1442,18 +1464,18 @@ void G4SBSBeamlineBuilder::MakeCommonExitBeamline(G4LogicalVolume *worldlog) {
   // TML9_log->SetVisAttributes( AlColor );
 
   // // Vacuum
-  // FVL1_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // FVL2_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // FVL3_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // FVL5_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // FVL6_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // FVL7_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TVB1_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TVL8_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TVL9_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TMV9_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TTV1_log->SetVisAttributes( G4VisAttributes::Invisible );
-  // TTV2_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // FVL1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // FVL2_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // FVL3_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // FVL5_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // FVL6_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // FVL7_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TVB1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TVL8_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TVL9_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TMV9_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TTV1_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // TTV2_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   /*
   //SSeeds 12.17.20 - test to see where common exit beamline connects with target to midpipe section. Test ring marks beginning of target to midpipe section according to JT file - Dec 2020
@@ -2109,7 +2131,7 @@ void G4SBSBeamlineBuilder::MakeGEpBeamline(G4LogicalVolume *worldlog) {
     
     G4Box *Electronics = new G4Box( "Electronics" , ElecX/2.0, ElecY/2.0, ElecZ/2.0);
     G4LogicalVolume *Electronics_log = new G4LogicalVolume( Electronics , GetMaterial("Silicon"), "Electronics_log" );
-    Electronics_log->SetVisAttributes(G4VisAttributes::Invisible);
+    Electronics_log->SetVisAttributes(G4VisAttributes::GetInvisible());
     G4String GEMElectronicsname = "BLneutronDet";
     G4String  GEMElectronicscollname = "BLneutronDet";
     G4SBSCalSD *GEMElecSD = NULL;
@@ -2190,10 +2212,10 @@ void G4SBSBeamlineBuilder::MakeGMnBeamline(G4LogicalVolume *worldlog){
   MakeBeamExit(worldlog,0.0*inch); // account for offset of 6.5" in MakeCommonExitBeamline   
   
   G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
-  entvacLog->SetVisAttributes(G4VisAttributes::Invisible);
+  entvacLog->SetVisAttributes(G4VisAttributes::GetInvisible());
   entLog->SetVisAttributes(pipeVisAtt);
   
-  //entvacLog_cut->SetVisAttributes(G4VisAttributes::Invisible);
+  //entvacLog_cut->SetVisAttributes(G4VisAttributes::GetInvisible());
   //entLog_cut->SetVisAttributes(pipeVisAtt);
 }
 
@@ -2223,7 +2245,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   //CJT taking distance measurements from the target cylinder, not the end. The radius of the hemisphere in CJT is 0.41". Must subtract this from the total target length for calculation of offsets.
   G4double targetEndOffset_z = 22.8/2.0*inch; //(23.62"-2*0.41")/2
   //G4double P0initPlacement_z = -(23.62/2*inch) - 2.66*inch;  //From updated CJT file. -(half target length) - offset to beampipe flange
-  G4double P0initPlacement_z = -(targetEndOffset_z) - 2.66*inch;
+  G4double P0initPlacement_z = -(targetEndOffset_z) - 6.395*inch;
   
   //Ring 0A - Be window housing flange. Most proximal piece to target. Bolted to beampipe flange.
   G4double P0ringA_L = 0.510/2.0*inch;
@@ -2311,6 +2333,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 	false,
 	0,
 	ChkOverlaps );
+  
 
   //Tube 0B
   //G4double P0tubeB_L = 15.303/2.0*inch; //CJT
@@ -2399,6 +2422,27 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
                        false,
                        0,
                        ChkOverlaps);
+  }
+
+  //EPAF: add the Cu radiator *under certain conditions only*
+  // i.e the radiator is set to use, but it's distance is above
+  if(fDetCon->fTargetBuilder->UseRad()){
+    G4double zrad = fDetCon->fTargetBuilder->RadZoffset()+fDetCon->fTargetBuilder->GetTargLen()/2.0;
+    //G4cout << "  " << targetEndOffset_z+0.1*cm << " <? " << fDetCon->fTargetBuilder->RadZoffset() << " <? " <<  targetEndOffset_z+P0tubeA_L*2.0 << G4endl;
+    G4cout << "  " << P0_vac_a_z+P0tubeA_L << " <? " << -zrad << " <? " << P0_vac_a_z-P0tubeA_L << G4endl;
+    
+    if(P0_vac_a_z-P0tubeA_L<-zrad && -zrad<P0_vac_a_z+P0tubeA_L){
+      cout << zrad << " " << P0_vac_a_z << " => " << -zrad-P0_vac_a_z << " " << P0tubeA_L << endl;
+      fDetCon->fTargetBuilder->BuildRadiator( P0tubeA_winvacLog, 0, G4ThreeVector(0., 0., -zrad-P0_vac_a_z) );
+    }else if(!enableBC_dnstr){
+      //G4cout << "  " << targetEndOffset_z+P0tubeA_L << " <? " << fDetCon->fTargetBuilder->RadZoffset() << " <? " << targetEndOffset_z+P0tubeA_L*2.0+P0tubeB_L*2.0 << G4endl;
+      G4cout << "  " << P0_vac_b_z+P0tubeB_L << " <? " << -zrad << " <? " << P0_vac_b_z-P0tubeB_L << G4endl;
+      
+      if(P0_vac_b_z-P0tubeB_L<-zrad && -zrad<P0_vac_b_z+P0tubeB_L){
+	cout << zrad << " " << P0_vac_b_z << " => " << -zrad-P0_vac_b_z << " " << P0tubeB_L << endl;
+	fDetCon->fTargetBuilder->BuildRadiator( P0tubeB_vacLog, 0, G4ThreeVector(0., 0.,-zrad-P0_vac_b_z) );
+      }
+    }
   }
   
   //Tube 0C
@@ -2923,7 +2967,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
   G4VisAttributes * WireFrameVisAtt = new G4VisAttributes(G4Colour(0.,1.,1.));  //Keeping for debugging purposes
   WireFrameVisAtt->SetForceWireframe(true);
   //P1tubeBLog->SetVisAttributes( WireFrameVisAtt );
-  //P1tubeA_winvacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P1tubeA_winvacLog->SetVisAttributes( G4VisAttributes::GetInvisible());
 
   P1ringALog->SetVisAttributes( Aluminum);
   P1domeALog->SetVisAttributes( Beryllium);
@@ -3432,7 +3476,7 @@ void G4SBSBeamlineBuilder::Make3HeBeamline(G4LogicalVolume *worldlog){  // for G
 
   P5testRing2Log->SetVisAttributes( G4Colour::Green()); //Debug
   */
-  //P5ringE_vacLog->SetVisAttributes( G4VisAttributes::Invisible);
+  //P5ringE_vacLog->SetVisAttributes( G4VisAttributes::GetInvisible());
   /*
   //Ring F
   G4double P5ringF_rin = 11.750/2*inch; 
@@ -3493,7 +3537,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4double inch = 2.54*cm;
   G4VisAttributes *ironColor= new G4VisAttributes(G4Colour(0.3,0.3,0.3));
   G4VisAttributes *CopperColor = new G4VisAttributes(G4Colour(0.7,0.3,0.3));
-    //P1tubeA_winvacLog->SetVisAttributes( G4VisAttributes::Invisible);
+    //P1tubeA_winvacLog->SetVisAttributes( G4VisAttributes::GetInvisible());
   
   G4double X=0.0, Y=0.0, Z=0.0;
   G4ThreeVector zero(0.0, 0.0, 0.0);
@@ -3558,7 +3602,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4LogicalVolume *UpstreamCoil_log = new G4LogicalVolume(UpstreamCoil, GetMaterial("Copper"), "UpstreamCoil_log" );
 
   UpstreamCoil_log->SetVisAttributes( CopperColor );
-  //UpstreamCoil_log->SetVisAttributes( G4VisAttributes::Invisible); //Debug, keep in
+  //UpstreamCoil_log->SetVisAttributes( G4VisAttributes::GetInvisible()); //Debug, keep in
   
   Z = z_formed_bellows+Bellows1L;
   X = (UpstreamCoilWidth+UpstreamCoilThickX)/2.0;
@@ -3582,7 +3626,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4LogicalVolume *YokeTopPiece_log = new G4LogicalVolume( YokeTopPiece, GetMaterial("Iron"), "YokeTopPiece_log" );
 
   YokeTopPiece_log->SetVisAttributes( ironColor );
-  //YokeTopPiece_log->SetVisAttributes( G4VisAttributes::Invisible); //Debug, keep in
+  //YokeTopPiece_log->SetVisAttributes( G4VisAttributes::GetInvisible()); //Debug, keep in
   
   X = 0.0;
   Y = (11.81*inch + YokeTopPiece_Height)/2.0;
@@ -3595,7 +3639,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4Box *YokeLeftPiece = new G4Box("YokeLeftPiece", YokeLeftPiece_Width/2.0, YokeLeftPiece_Height/2.0, YokeLeftPiece_Depth/2.0 );
   G4LogicalVolume *YokeLeftPiece_log = new G4LogicalVolume( YokeLeftPiece, GetMaterial("Iron"), "YokeLeftPiece_log" );
   YokeLeftPiece_log->SetVisAttributes(ironColor );
-  //YokeLeftPiece_log->SetVisAttributes( G4VisAttributes::Invisible); //Debug, keep in
+  //YokeLeftPiece_log->SetVisAttributes( G4VisAttributes::GetInvisible()); //Debug, keep in
   
   X = 7.52*inch + YokeLeftPiece_Width/2.0;
   Y = 0.0;
@@ -3614,7 +3658,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4LogicalVolume *YokeRightPiece_log = new G4LogicalVolume(YokeRightPiece, GetMaterial("Iron"), "YokeRightPiece_log" );
 
   YokeRightPiece_log->SetVisAttributes(ironColor);
-  //YokeRightPiece_log->SetVisAttributes( G4VisAttributes::Invisible); //Debug, keep in
+  //YokeRightPiece_log->SetVisAttributes( G4VisAttributes::GetInvisible()); //Debug, keep in
 
   X = -7.52*inch - 0.5*(YokeRightWidthFinal/2.0 + YokeRightWidthInitial/2.0);
   Y = 0.0;
@@ -3630,7 +3674,7 @@ void G4SBSBeamlineBuilder::MakeCorrectorMagnets(G4LogicalVolume *logicMother, G4
   G4LogicalVolume *DownstreamYoke_log = new G4LogicalVolume( DownstreamYoke, GetMaterial("Iron"), "DownstreamYoke_log" );
 
   DownstreamYoke_log->SetVisAttributes( ironColor );
-  //DownstreamYoke_log->SetVisAttributes( G4VisAttributes::Invisible); //Debug, keep in
+  //DownstreamYoke_log->SetVisAttributes( G4VisAttributes::GetInvisible()); //Debug, keep in
 
   
   //Setting DS Corrector position from input
@@ -3788,6 +3832,63 @@ void G4SBSBeamlineBuilder::MakeSIDISLead(G4LogicalVolume *worldlog){
 
 */
 
+void G4SBSBeamlineBuilder::MakeTDISBeamline(G4LogicalVolume *worldlog){// Old beam line...                                                                                                              
+  G4bool fOvLap = true;
+  //MakeDefaultBeamline(worldlog);
+  //add stuff
+  // double Wcollimator_length = 35.*mm;
+  // double Wcollimator_bore = 7.*mm;
+  // double Wcollimator_diameter = 50.*mm;
+  // double BeWindowThickness = 20*um;
+  
+  // G4Tubs *Wcollimator_sol = new G4Tubs("Wcollimator_sol", Wcollimator_bore, Wcollimator_diameter, Wcollimator_length/2, 0.*deg, 360.*deg );
+  // G4Tubs *Wcollimatorhole_sol  = new G4Tubs("Wcollimatorhole_sol", 0.0, Wcollimator_bore, Wcollimator_length/2, 0.*deg, 360.*deg );
+
+  // G4LogicalVolume *Wcollimator_log = new G4LogicalVolume(Wcollimator_sol, GetMaterial("TargetBeamCollimator_Material"), "Wcollimatorhole_log", 0, 0, 0);
+  // G4LogicalVolume *Wcollimatorhole_log = new G4LogicalVolume(Wcollimatorhole_sol, GetMaterial("Vacuum"), "Wcollimatorhole_log", 0, 0, 0);
+  
+  // // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness-Wcollimator_length/2.), Wcollimator_log, "Wcollimator_phys", worldlog, false,0);
+  // // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness-Wcollimator_length/2.), Wcollimatorhole_log, "Wcollimatorhole_phys", worldlog, false,0);
+  
+  // G4Tubs *BeWindow_sol = new G4Tubs("BeWindow_sol", 0, Wcollimator_diameter, BeWindowThickness/2, 0.*deg, 360.*deg );
+  
+  // G4LogicalVolume *BeWindow_log = new G4LogicalVolume(BeWindow_sol, GetMaterial("Beryllium"), "BeWindow_log", 0, 0, 0);
+
+  // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -250.*mm-BeWindowThickness/2.), BeWindow_log, "BeWindow_phys0", worldlog, false,0);  
+  // new G4PVPlacement(0,G4ThreeVector(0.0, 0.0, -350.*mm+BeWindowThickness/2.), BeWindow_log, "BeWindow_phys1", worldlog, false,0);  
+  
+  MakeCommonExitBeamline(worldlog);  
+  
+  //Downstream beam pipe
+  int nsec = 6;
+  //  Definition taken from GEN_10M.opc by Bogdan to z = 5.92.  2mm thickness assumed
+  G4double exit_z[]   = { 527.*cm, 609.84*cm,609.85*cm, 1161.02*cm, 1161.03*cm,2725.66*cm };
+  G4double exit_z_vac[] = { 527.*cm, 610.24*cm,610.35*cm, 1161.52*cm, 1161.53*cm,2726.46*cm };
+
+  G4double exit_zero[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  G4double exit_rin[] = { 14.8*cm,15.24*cm, 30.48*cm,  30.48*cm,45.72*cm, 45.72*cm };
+  G4double exit_rou[] = { 15.0*cm,15.558*cm,30.798*cm,30.798*cm, 46.038*cm, 46.038*cm  };
+
+
+  G4Polycone *ext_cone = new G4Polycone("ext_cone", 0.0*deg, 360.0*deg, nsec, exit_z, exit_rin, exit_rou);
+  G4Polycone *ext_vac  = new G4Polycone("ext_vac ", 0.0*deg, 360.0*deg, nsec, exit_z_vac, exit_zero, exit_rin);
+
+  G4LogicalVolume *extLog =
+    new G4LogicalVolume(ext_cone, GetMaterial("Aluminum"), "ext_log", 0, 0, 0);
+  G4LogicalVolume *extvacLog =
+    new G4LogicalVolume(ext_vac, GetMaterial("Vacuum"), "extvac_log", 0, 0, 0);
+
+  new G4PVPlacement(0,G4ThreeVector(0, 0, 0.*m), extLog, "ext_phys", worldlog, false,0,fOvLap);
+  new G4PVPlacement(0,G4ThreeVector(0, 0, 0.*m), extvacLog, "extvac_phys", worldlog,false,0,fOvLap);
+
+  extvacLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.2,0.6,0.2));
+  extLog->SetVisAttributes(pipeVisAtt);
+  
+  
+}
+
+
 // This is the "default" beam line (for C16)
 void G4SBSBeamlineBuilder::MakeDefaultBeamline(G4LogicalVolume *worldlog){// Old beam line...
   G4SBS::Targ_t targtype = fDetCon->fTargType;
@@ -3864,10 +3965,10 @@ void G4SBSBeamlineBuilder::MakeDefaultBeamline(G4LogicalVolume *worldlog){// Old
   G4VisAttributes *extVisAtt= new G4VisAttributes(G4Colour(0.9,0.9,0.9));
   extLog->SetVisAttributes(extVisAtt);
   
-  extvacLog->SetVisAttributes(G4VisAttributes::Invisible);
-  entvacLog->SetVisAttributes(G4VisAttributes::Invisible);
+  extvacLog->SetVisAttributes(G4VisAttributes::GetInvisible());
+  entvacLog->SetVisAttributes(G4VisAttributes::GetInvisible());
     
-  entvacLog_cut->SetVisAttributes(G4VisAttributes::Invisible);
+  entvacLog_cut->SetVisAttributes(G4VisAttributes::GetInvisible());
     
   G4VisAttributes *pipeVisAtt= new G4VisAttributes(G4Colour(0.6,0.6,0.6));
     
@@ -3954,7 +4055,7 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   
   //new G4PVPlacement( 0, G4ThreeVector(), leadshield2_log, "leadshield2_phys", worldlog, false, 0 );
 
-  ////// New geometry with vertical wall(s): 
+  ///////////////////// New geometry with vertical wall(s): 
 
   G4ThreeVector zaxis_temp( -sin(16.9*deg), 0.0, cos(16.9*deg) );
   G4ThreeVector yaxis_temp( 0,1,0);
@@ -3977,11 +4078,13 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
   rot_temp->rotateY( 1.5*deg );
   
-  new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, 0.0, zstart_lead_wall1 + 0.5*1.25*m ), lead_wall1_log, "lead_wall1_phys", worldlog, false, 0 );
+  //new G4PVPlacement( rot_temp, G4ThreeVector( xtemp, 0.0, zstart_lead_wall1 + 0.5*1.25*m ), lead_wall1_log, "lead_wall1_phys", worldlog, false, 0 );
 
   G4cout << "Lead wall A (x,y,z) = (" << xtemp/cm << ", " << 0.0 << ", " << (zstart_lead_wall1 + 0.5*1.25*m)/cm << ")" << G4endl;
   
   lead_wall1_log->SetVisAttributes( lead_visatt );
+
+  //first lead wall is lead_wall2 adjacent to iron rings,lead_wall1 is not being used
 
   G4double zstart_lead_wall2 = z_formed_bellows + 76.09*inch + 1.71*inch + 15.75*inch + 1.0*inch;
   //G4double zstop_lead_wall2 = 207.144*inch - TargetCenter_zoffset + 40.0*inch;
@@ -3989,11 +4092,12 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
 
   G4cout << "Lead wall B zstart - zstop = " << (zstop_lead_wall2 - zstart_lead_wall2)/cm << G4endl;
   
-  G4double zpos_lead_wall2 = 0.5*(zstart_lead_wall2 + zstop_lead_wall2 );
+  G4double zpos_lead_wall2 = 0.5*(zstart_lead_wall2 + zstop_lead_wall2 - (10.0*inch));
+  //zpos offset by 10 inches to fully shield length of beam pipe from line of sight of GEMs
   //we want x position to have x = 
-  G4double xpos_lead_wall2 = -(8.0*inch + 2.5*cm + (zpos_lead_wall2 - 201.632*inch + TargetCenter_zoffset )*tan(1.5*deg));
-
-  G4Box *lead_wall2 = new G4Box("lead_wall2", 5.0*cm/2.0, 24.0*inch/2.0, 0.5*(zstop_lead_wall2 - zstart_lead_wall2) );
+  G4double xpos_lead_wall2 = -(8.0*inch + 2.5*cm + (zpos_lead_wall2 - 201.632*inch + TargetCenter_zoffset )*tan(1.5*deg) + 2.0*inch);
+  //xpos_lead_wall2 offset by 2 inches in negative x direction such that wall 3 doesnt clip into the beam pipe, this is done assuming walls 2 and 3 are coupled and offset by 4.5 inches from eachother as given by the model from jlab
+  G4Box *lead_wall2 = new G4Box("lead_wall2", 5.0*cm/2.0, 24.0*inch/2.0, 60.0*inch/2.0 );
 
   G4LogicalVolume *lead_wall2_log = new G4LogicalVolume( lead_wall2, GetMaterial("Lead"), "lead_wall2_log" );
 
@@ -4006,13 +4110,26 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   
   lead_wall2_log->SetVisAttributes( lead_visatt );
   
+  //second lead wall downstream from lead_wall2
+
+  G4Box *lead_wall3 = new G4Box("lead_wall3", 5.0*cm/2.0, 24.0*inch/2.0, 36.0*inch/2.0 );
+
+  G4LogicalVolume *lead_wall3_log = new G4LogicalVolume( lead_wall3, GetMaterial("Lead"), "lead_wall3_log" );
+
+  rot_temp = new G4RotationMatrix;
+  rot_temp->rotateY( 1.5*deg );
+
+  new G4PVPlacement( rot_temp, G4ThreeVector( xpos_lead_wall2-(4.5*inch), 0, zpos_lead_wall2+(30.0*inch)+(18.0*inch)), lead_wall3_log, "lead_wall3_phys", worldlog, false, 0 );
+
+  lead_wall3_log->SetVisAttributes( lead_visatt );
+
 }
 
 //lead shielding for GMn
 void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
 
   //SSeeds 1.14.21 - Commenting as obsolete. Will leave here for potential beam studies.
-  /*
+  /**/
   bool leadring = true;
   bool checkoverlaps = false;
 
@@ -4050,12 +4167,12 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   G4double mindist_SCshield = 6.125*inch;
   G4double th_SCshield = 4.0*inch;
   G4double h_SCshield = 12.0*inch;//18.0*inch;
-  G4double w1_SCshield = z1_ringshield*tan(25.1*deg)-mindist_SCshield;
-  G4double w2_SCshield = (z1_ringshield+th_SCshield)*tan(25.1*deg)-mindist_SCshield;
+  G4double w1_SCshield = z1_ringshield*tan(20.0*deg)-mindist_SCshield;
+  G4double w2_SCshield = (z1_ringshield+th_SCshield)*tan(20.0*deg)-mindist_SCshield;
   // G4double rin_ringshield = z1_ringshield*sin(6.0*deg);
   // G4double rout_ringshield = z2_ringshield*sin(12.0*deg);
   
-  G4double z_SCshield = z1_ringshield+th_SCshield/2.0;
+  G4double z_SCshield = z1_ringshield+th_SCshield/2.0+0.5*inch;
   G4double x_SCshield = mindist_SCshield+(w1_SCshield+w2_SCshield)/4.0;
   
   //G4Trap* SCshield = new G4Trap("SCshield", w1_SCshield/2.0, w2_SCshield/2.0, 
@@ -4076,10 +4193,11 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   
   // Shielding for Spool piece.
   // 
-  G4double z1_spoolshield = z1_ringshield+th_SCshield;
+  G4double z1_spoolshield = z1_ringshield+0.5*inch+th_SCshield;
   G4double z2_spoolshield = //z1_spoolshield+1.89*m;
-    z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch;
-  
+    //z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch;
+    z1_spoolshield+36.5*inch;
+  //cout << "old length " << (z_conic_vacline_weldment + (0.84 + 0.14 + 11.62)*inch-z1_ringshield-th_SCshield)/inch << endl;
   G4double z_spoolshield = (z2_spoolshield+z1_spoolshield)/2.0;
   G4double L_spoolshield = z2_spoolshield-z1_spoolshield;
   G4double th_spoolshield = 2.0*inch;
@@ -4098,7 +4216,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   // Beamline shielding : between before 1st corrector magnets (BL4 only)
   //
   G4double th_BLshield1 = 2.0*inch;
-  G4double L_BLshield1 = 34.0*inch;
+  G4double L_BLshield1 = 28.0*inch;//34.0*inch;
   G4double h_BLshield1 = h_SCshield;
   
   G4double z_BLshield1 = z_conic_vacline_weldment + (0.84 + 0.14 + 45.62 + 14.38*0.65 - 34.0/2.0)*inch;
@@ -4111,15 +4229,16 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   G4LogicalVolume *BLshield1_log = new G4LogicalVolume( BLshield1, GetMaterial("Lead"), "BLshield1_log" );
   
   rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY(-1.5*deg);
+  //rot_temp->rotateY(-1.5*deg);
   
-  if(fDetCon->fBeamlineConf==4){
+  if(fDetCon->fLeadOption){
+    G4cout << "Adding downstream lead plate" << G4endl;
     //if(lead)
     new G4PVPlacement( rot_temp, G4ThreeVector( x_BLshield1, 0, z_BLshield1 ), BLshield1_log, "BLshield1_phys", worldlog, false, 0, checkoverlaps );
     BLshield1_log->SetVisAttributes(LeadColor);
   }
   
- */
+  /**/
 
 
 
@@ -4199,7 +4318,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   rot_temp->rotateX(+90*deg);
   
   new G4PVPlacement( rot_temp, G4ThreeVector( x_woodshield, 0, z_woodshield ), sideshield_log, "sideshield_phys", worldlog, false, 0 );
-  sideshield_log->SetVisAttributes( G4VisAttributes::Invisible );
+  sideshield_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4Trap* woodshield = new G4Trap("woodshield", h_woodshield, L_woodshield, th2_woodshield-2.5*cm, 
 				  th1_woodshield-2.5*cm);
@@ -4239,7 +4358,7 @@ void G4SBSBeamlineBuilder::MakeGMnLead(G4LogicalVolume *worldlog){
   rot_temp = new G4RotationMatrix;
   
   new G4PVPlacement( rot_temp, G4ThreeVector( x_sideshield, 0, z_sideshield ), sideshield_log, "sideshield_phys", worldlog, false, 0, checkoverlaps );
-  sideshield_log->SetVisAttributes( G4VisAttributes::Invisible );
+  sideshield_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   
   G4double th_Alshield = 4.0*inch;
   G4double th_SSshield = 1.0*inch;
@@ -4296,7 +4415,7 @@ void G4SBSBeamlineBuilder::MakeGEnRPLead(G4LogicalVolume *worldlog){
 
   G4double X2 = -21.0*2.54*cm; 
   G4double Y2 = 0.0;
-  G4double Z2 = Z1 + l_leadwall1/2.0 + l_leadwall2/2.0 - 1.*2.54*cm;  
+  G4double Z2 = Z1 + l_leadwall1/2.0 + l_leadwall2/2.0 - 1*2.54*cm;  
 
   new G4PVPlacement( 0, G4ThreeVector(X2,Y2,Z2), leadwall2_log, "leadwall2_phys", worldlog, false, 0, chkovrlps );
   leadwall2_log->SetVisAttributes(LeadColor);
@@ -4318,14 +4437,58 @@ void G4SBSBeamlineBuilder::MakeGEnClamp(G4LogicalVolume *worldlog){
 
 void G4SBSBeamlineBuilder::MakeGEnLead(G4LogicalVolume *worldlog){
   //Add geometry here for GEn lead shielding. None in current build - Jan 2021.
-
+  
 }
-
-
 
 void G4SBSBeamlineBuilder::MakeSIDISLead( G4LogicalVolume *worldlog ){
   //Add geometry here for SIDIS lead shielding. None in current build - Jan 2021.
 
+
+}
+
+void G4SBSBeamlineBuilder::MakeALLLead( G4LogicalVolume *worldlog ){
+  //Add geometry here for ALL lead shielding.
+  
+  //adding lead shielding for WAPP2:
+  G4cout << " ****************** Adding beamline shielding for SIDIS/WAPP **************" << G4endl;
+  bool checkoverlaps = true;
+  G4VisAttributes *visShield = new G4VisAttributes();
+  visShield->SetColour( G4Colour(0.4,0.4,0.4) );
+  // first for radiator: add a 3.75 cm thick, 18cm tall, 25cm long slab of lead, 
+  // 15 cm away from BL and as close as possible from tgt collimator A
+  G4double radshieldthick = 3.75*cm;
+  G4double radshieldlength = 30.0*cm;
+  G4double radshieldheight = 20.0*cm;
+  G4double radshield_zpos = -30*cm;
+  G4double radshield_xposl = 10*cm;
+  G4double radshield_xposr = -10*cm;
+  G4Box *radshield_solid = new G4Box("radshield_solid", radshieldthick/2.0, radshieldheight/2.0, radshieldlength/2.0);
+  
+  G4LogicalVolume *radshield_log = new G4LogicalVolume( radshield_solid, GetMaterial("Lead"), "radshield_log" );
+  radshield_log->SetVisAttributes(visShield);
+  
+  //G4RotationMatrix rot_temp = new G4RotationMatrix;
+
+  //new G4PVPlacement( 0, G4ThreeVector( radshield_xposl, 0, radshield_zpos ), radshield_log, "radshield_phys_left", worldlog, false, 0, checkoverlaps );
+  
+  //do another one for right GEMs
+  //new G4PVPlacement( 0, G4ThreeVector( radshield_xposr, 0, radshield_zpos ), radshield_log, "radshield_phys_right", worldlog, false, 0, checkoverlaps );
+    
+  // second for beamline: add a 5 cm thick, 30cm tall,  200 cm long slab of lead, 
+  // 30 cm away from BL and center around z=200cm
+  G4double blshieldthick = 5.0*cm;
+  G4double blshieldlength = 240.0*cm;
+  G4double blshieldheight = 40.0*cm;
+  G4double blshield_xpos = 30*cm;
+  G4double blshield_zpos = 238*cm;
+    
+  G4Box *blshield_solid = new G4Box("blshield_solid", blshieldthick/2.0, blshieldheight/2.0, blshieldlength/2.0);
+  
+  G4LogicalVolume *blshield_log = new G4LogicalVolume( blshield_solid, GetMaterial("Lead"), "blshield_log" );
+  
+  new G4PVPlacement( 0, G4ThreeVector( blshield_xpos, 0, blshield_zpos ), blshield_log, "blshield_phys", worldlog, false, 0, checkoverlaps );
+  blshield_log->SetVisAttributes(visShield);
+  
 }
 
 
@@ -4468,7 +4631,8 @@ void G4SBSBeamlineBuilder::MakeBeamDump_Diffuser(G4LogicalVolume *logicMother,G4
    // We have to remove all the directory structure from the 
    // Hits Collection name or else GEANT4 SDmanager routines will not handle correctly.
    G4String bdSDname_nopath = bdSDname;
-   bdSDname_nopath.remove(0,bdSDname.last('/')+1);
+   //bdSDname_nopath.remove(0,bdSDname.last('/')+1);
+   bdSDname_nopath.erase(0,bdSDname.find_last_of('/')+1);
    G4String bdColName = bdSDname_nopath; 
    bdColName += "HitsCollection";
 

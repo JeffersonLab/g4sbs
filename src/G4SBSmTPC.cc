@@ -52,11 +52,11 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   // taken from M. carmignotto gemc mtpc implementation
   // inner electrode at r=5cm
   fmTPC_inelectrode_r = 50.0*mm; //5cm of inner electrode
-  fmTPC_inelectrode_kaptonthick = 0.002*mm; //2um kapton
+  fmTPC_inelectrode_kaptonthick = 0.012*mm; //12um kapton
   fmTPC_inelectrode_authick = 0.0001*mm; //0.1um Au
   // outer electrode at r=15cm
   fmTPC_outelectrode_r = 150.0*mm; //5cm of inner electrode
-  fmTPC_outelectrode_kaptonthick = 0.002*mm; //2um kapton
+  fmTPC_outelectrode_kaptonthick = 0.012*mm; //12um kapton
   fmTPC_outelectrode_authick = 0.0001*mm; //0.1um Au
   // mtpc chambers
   fmTPC_cell_len = 50.0*mm; //5cm length cells
@@ -73,11 +73,28 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   // HV
   fmTPC_HV_thick = 0.05*mm; // 50um say gold?
   //
-  fmTPCkrypto = false;//by default
-  fChkOvLaps = false;//true;//
+  fmTPCkrypto = true;//false;//by default
+  fChkOvLaps = true;//
+
+
+  //step user limit of the particle in the gas detector 
+  // -1*mm -> default G4 step (no user limit)
+  // user step size should be greater than 0*mm!
+  fmTPCstep = -1*mm;
+
+    if(fmTPCstep != -1*mm)
+      {
+	G4cout<<"****************************************************************************************"<<G4endl;
+	G4cout<<"            WARNING!! STEP LIMIT IN DRIFT GAS: "<< fmTPCstep<< " mm"<<G4endl;
+	G4cout<<"****************************************************************************************"<<G4endl;
+      }
+
 }
 
 void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
+  // Check if "Kryptonite" is activated
+  if(fmTPCkrypto)G4cout << "Superman is dead!" << G4endl;
+
   // Montgomery July 2018
   // implementing geometry atm as a exact copy of implementation in gemc by park/carmignotto
   // There is no end cap on mTPC beyond readout discs and also no cathode planes
@@ -91,12 +108,10 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
   double mTPC_rIN = fmTPC_inelectrode_r + fmTPC_inelectrode_kaptonthick + fmTPC_inelectrode_authick;
   double mTPC_rOUT = fmTPC_outelectrode_r - fmTPC_outelectrode_kaptonthick - fmTPC_outelectrode_authick;
    
-
-   
   // make a mother shell for mtpc filled with the drift gas
   G4Tubs* mTPCmother_solid = 
     new G4Tubs("mTPCmother_solid", 
-	       fDetCon->fTargetBuilder->GetTargDiameter(),
+	       fDetCon->fTargetBuilder->GetTargDiameter()/2,
 	       fmTPC_outelectrode_r, 
 	       mTPC_z_total/2.0, 
 	       0.*deg, 
@@ -104,7 +119,7 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
   
   G4LogicalVolume* mTPCmother_log = 
     new G4LogicalVolume(mTPCmother_solid, 
-			 GetMaterial("mTPCgas"),
+			 GetMaterial("ref4He"),
 			"mTPCmother_log");
   
   new G4PVPlacement(0, 
@@ -117,10 +132,44 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
 		    fChkOvLaps);
    
   
+  // G4String mInnerGasSDname = "SBS/InnerGas";
+  // G4String mInnerGasSDcolname = "mInnerGasHitsCollection";
+
+  // G4SBSmTPCSD *mInnerGasSD;
+  // if( !(mInnerGasSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mInnerGasSDname)) ){ //Make sure SD with this name doesn't already exist
+  //   mInnerGasSD = new G4SBSmTPCSD( mInnerGasSDname, mInnerGasSDcolname );
+  //   fDetCon->fSDman->AddNewDetector(mInnerGasSD);
+  //   (fDetCon->SDlist).insert(mInnerGasSDname);
+  //   fDetCon->SDtype[mInnerGasSDname] = G4SBS::kmTPC;
+  // }
+  
+  G4Tubs* mInnerGas_solid = 
+    new G4Tubs("mInnerGas_solid", 
+	       fDetCon->fTargetBuilder->GetTargDiameter()/2,
+	       fmTPC_inelectrode_r, 
+	       mTPC_z_total/2.0, 
+	       0.*deg, 
+	       360.*deg );
+  
+  G4LogicalVolume* mInnerGas_log = 
+    new G4LogicalVolume(mInnerGas_solid, 
+			 GetMaterial("ref4He"),
+			"mInnerGas_log");
+  //mInnerGas_log->SetSensitiveDetector(mInnerGasSD);  
+  
+  new G4PVPlacement(0, 
+		    G4ThreeVector(0.0, 0.0, fZpos), 
+		    mInnerGas_log,
+		    "mInnerGas_phys", 
+		    mTPCmother_log, 
+		    false, 
+		    0, 
+		    fChkOvLaps);
+  
    
   //Call for the construction of the different mTPC parts
 
-  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCWalls " << G4endl;  
+  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCWalls -> Rin = " << mTPC_rIN/mm << " , Rout " << mTPC_rOUT/mm << G4endl;  
   // make the field electrodes and boundary walls at the inner and outer radii
   BuildmTPCWalls(mTPCmother_log, mTPC_z_total, fZpos, mTPC_rIN, mTPC_rOUT);
 
@@ -141,10 +190,10 @@ void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
   // Visualization attributes
   G4VisAttributes *tgt_mTPCmother_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
   tgt_mTPCmother_visatt->SetForceWireframe(true);
-  //mTPCmother_log->SetVisAttributes( G4VisAttributes::Invisible );
+  //mTPCmother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
   mTPCmother_log->SetVisAttributes( tgt_mTPCmother_visatt );  
   
-  // TPCinnergas_log->SetVisAttributes( G4VisAttributes::Invisible );
+  // TPCinnergas_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
    
   // G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
   // tpcwalls_visatt->SetForceWireframe(true);
@@ -464,7 +513,7 @@ void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
   //Solenoid attributes
   // G4VisAttributes * TPCBFiled_log_att = new G4VisAttributes(G4Colour(1.,1.,0.));
   // TPCBfield_log->SetVisAttributes( TPCBFiled_log_att );
-  TPCBfield_log->SetVisAttributes( G4VisAttributes::Invisible );
+  TPCBfield_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
 
 
@@ -594,7 +643,7 @@ void G4SBSmTPC::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtpctotallen
 		    fChkOvLaps);
 
   if(fmTPCkrypto)mTPCouterwall2_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
-   
+  
   //Visualization attributes:
   G4VisAttributes *mtpc_kaptonboudary_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0) );
   mtpc_kaptonboudary_visatt->SetForceWireframe(true);
@@ -711,7 +760,7 @@ void G4SBSmTPC::BuildmTPCReadouts(G4LogicalVolume *motherlog, G4double centrecel
       
       mTPCReadoutGEMGap_log = 
 	new G4LogicalVolume(mTPCReadoutGEMGap_solid, 
-			     GetMaterial("mTPCgas"),
+			     GetMaterial("ref4He"),
 			    "mTPCReadoutGEMGap_log");    
       
       new G4PVPlacement(0, 
@@ -923,7 +972,7 @@ void G4SBSmTPC::BuildmTPCGEMs(G4LogicalVolume *motherlog, G4double centrecell1, 
 
 	  mTPCGEMGap_log = 
 	    new G4LogicalVolume(mTPCGEMGap_solid, 
-				 GetMaterial("mTPCgas"),
+				 GetMaterial("ref4He"),
 				mTPCGEMGap_logname);
 	  
 	  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zposgap), 
@@ -1001,8 +1050,8 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 
   //  cout << "mTPC inner " << mtpcinnerR  << " mTPC outer " << mtpcouterR << endl;
 
-  G4int NGasLayers = ceil( (mtpcouterR-mtpcinnerR)/GasLayerThick );
-  GasLayerThick = (mtpcouterR-mtpcinnerR)/NGasLayers;
+  //G4int NGasLayers = ceil( (mtpcouterR-mtpcinnerR)/GasLayerThick );
+  //GasLayerThick = (mtpcouterR-mtpcinnerR)/NGasLayers;
  
   // cout << "NGasLayers " << NGasLayers << " GasLayerThick " << GasLayerThick << endl;
   
@@ -1036,7 +1085,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 				 GetMaterial("Au"),
 				"mTPCHVDisc_log"); 
 	  
-	  if(fmTPCkrypto)mTPCHVDisc_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
+	  // if(fmTPCkrypto)mTPCHVDisc_log->SetUserLimits( new G4UserLimits( 0.0, 0.0, 0.0, DBL_MAX, DBL_MAX ) );
 	  
 	  new G4PVPlacement(0, 
 			    G4ThreeVector(0.0, 0.0, zposHVDisc), 
@@ -1054,6 +1103,35 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 	{
 	  zposGasCell = mTPC_CentreCell - celllength/2.0 + CellGasLength/2.0 + HVThickness/2.0;
 	}
+      mTPCGasCell_solid = 
+	new G4Tubs("mTPCGasCell_solid", 
+		   mtpcinnerR,
+		   mtpcouterR, 
+		   CellGasLength/2.0, 
+		   0.*deg, 
+		   360.*deg);
+      mTPCGasCell_log = 
+	    new G4LogicalVolume(mTPCGasCell_solid, 
+				 GetMaterial("mTPCgas"),
+				"mTPCGasCell_log");
+      mTPCGasCell_log->SetSensitiveDetector(mTPCSD);
+      
+      new G4PVPlacement(0, 
+			G4ThreeVector(0.0, 0.0, zposGasCell), 
+			mTPCGasCell_log, 
+			"mTPCGasCell_phy",
+			motherlog, 
+			false, 
+			incCell, 
+			fChkOvLaps);
+
+      //Shorten the step length (CA)
+      if(fmTPCstep != -1*mm)
+	{
+	  mTPCGasCell_log->SetUserLimits( new G4UserLimits(fmTPCstep, DBL_MAX , DBL_MAX, 0, 0) );
+	}
+
+      /*
       for(G4int i_gl = 0; i_gl<NGasLayers; i_gl++)
 	{
 	  mTPCGasCell_solid = 
@@ -1066,7 +1144,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 
 	  mTPCGasCell_log = 
 	    new G4LogicalVolume(mTPCGasCell_solid, 
-				 GetMaterial("mTPCgas"),
+				 GetMaterial("ref4He"),
 				"mTPCGasCell_log");    
 
 	  mTPCGasCell_log->SetSensitiveDetector(mTPCSD);
@@ -1087,6 +1165,7 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 	  // set cell as a sensitive detector
 
 	}
+      */
     }
 
   printf("G4SBSmTPC::BuildmTPCGasCells: Leaving...\n");

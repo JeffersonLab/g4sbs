@@ -1,0 +1,42 @@
+## Configure G4SBS for gep (Q^2 = 5 GeV^2)
+/g4sbs/filename        gep_positron_lowQ.root    ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gepeplus
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         40.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         0.2 microampere
+/g4sbs/rasterx         4.0 mm
+/g4sbs/rastery         4.0 mm
+/g4sbs/beamE           4.4 GeV
+/g4sbs/thmin           20.5 deg
+/g4sbs/thmax           33.5 deg
+/g4sbs/phmin           -25.0 deg
+/g4sbs/phmax           25.0 deg
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        6.8 m
+/g4sbs/hcalvoffset     45.0 cm
+/g4sbs/sbsclampopt     2
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/sbsmagfield     1.0 tesla # leads to 
+/g4sbs/48d48field      1
+/g4sbs/bbang           27.0 deg
+/g4sbs/bbdist          4.5 m
+/g4sbs/sbsang          36.2 deg
+/g4sbs/48D48dist       1.6 m
+
+## Run 100 events
+/g4sbs/totalabs		true
+/g4sbs/eventstatusevery 100
+/g4sbs/keepsdtrackinfo all true
+/g4sbs/run             100000

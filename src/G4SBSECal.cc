@@ -1016,7 +1016,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4RotationMatrix *bbrm = new G4RotationMatrix;
   bbrm->rotateY(-fAng);
   
-  G4Box *earm_mother_box = new G4Box( "earm_mother_box", width_earm/2.0, height_earm/2.0, (depth_earm+1.0*mm)/2.0 );
+  G4Box *earm_mother_box = new G4Box( "earm_mother_box", width_earm/2.0 + 20.0*cm, height_earm/2.0 + 5.0*cm, (depth_earm+1.0*mm)/2.0 +15.0*cm );
   G4LogicalVolume *earm_mother_log = new G4LogicalVolume( earm_mother_box, GetMaterial("Air"), "earm_mother_log");
 
   //If "earm_mother_log" is in the step limiter list, make ECAL a total-absorber with "kCAL" sensitivity:
@@ -1257,6 +1257,21 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   */
 
   //shifted to be centered on beam line based on center in JT model
+
+  /*
+  G4double yfp_start_42_default[23] = {-58.69*cm, -54.73*cm, -58.69*cm, -54.73*cm, -58.69*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, 
+			       -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -58.60*cm,
+			       -54.97*cm, -58.76*cm, -55.13*cm};// from bottom to top
+
+  G4double ECal_hrz_shift = 0.0*cm; //looking downstream at front of ECal, positive shift moves ECal leftward, negative shift moves ECal rightward
+
+  G4double yfp_start_42[23] = {};
+
+  for( int i = 0; i < 23; i++ ){
+    yfp_start_42[i] = yfp_start_42_default[i] + ECal_hrz_shift;
+  }
+  */
+  
   G4double yfp_start_42[23] = {-58.69*cm, -54.73*cm, -58.69*cm, -54.73*cm, -58.69*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, 
 			       -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -58.60*cm,
 			       -54.97*cm, -58.76*cm, -55.13*cm};// from bottom to top
@@ -1954,7 +1969,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     //Next: CH2 filter:
     G4Box *CH2_filter = new G4Box( "CH2_filter", width_earm/2.0, height_earm/2.0, depth_CH2/2.0 );
     G4LogicalVolume *CH2_filter_log = new G4LogicalVolume( CH2_filter, GetMaterial("Polyethylene"), "CH2_filter_log" );
-    new G4PVPlacement( 0, G4ThreeVector( 0, 0, zfront_ECAL - depth_CDET - depth_CH2/2.0 ), CH2_filter_log, "CH2_filter_phys", earm_mother_log, false, 0 );
+    //new G4PVPlacement( 0, G4ThreeVector( 0, 0, zfront_ECAL - depth_CDET - depth_CH2/2.0 ), CH2_filter_log, "CH2_filter_phys", earm_mother_log, false, 0 );
     
     G4double z0_CDET = -depth_earm/2.0 + depth_CH2;
     //G4double R0_CDET = R_Earm - depth_leadglass - depth_CDET;
@@ -1973,7 +1988,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     G4VisAttributes *CH2_visatt = new G4VisAttributes( G4Colour( 0, 0.6, 0.6 ) );
     CH2_visatt->SetForceWireframe(true);
     
-    CH2_filter_log->SetVisAttributes(CH2_visatt);
+    //CH2_filter_log->SetVisAttributes(CH2_visatt);
   }
 
    //Create heat shielding in between ECal supermodule array and CDet

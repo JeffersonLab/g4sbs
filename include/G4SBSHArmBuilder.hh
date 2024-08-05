@@ -39,7 +39,15 @@ public:
   void SetFTuseabsorber( G4bool b ){ fFTuseabsorber = b; }
   void SetFTabsmaterial( G4String s ){ fFTabsmaterial = s; }
   void SetCDetReady( G4bool b ){fCDetReady = b;}
-  
+
+  void EnableLeadWallConnected( G4bool b ){fUseLeadWallConnected = b; }
+  void EnableOldLeadWall( G4bool b ){fUseOldLeadWall = b; }
+  void EnableAddExtensionLeadInsert( G4bool b ){fUseExtensionLeadInsert = b; }
+
+  void SetLeadWallThick( G4double t){ fLeadWallThick = t; }
+  void SetLeadInsertUpstreamOffset( G4double t){ fLeadInsertUpstreamOffset = t; }  
+  void SetLeadInsertLeftOffset( G4double t){ fLeadInsertLeftOffset = t; }  
+
   void Make48D48(G4LogicalVolume*, double);
   void MakeSBSFieldClamps(G4LogicalVolume*);
   void MakeHCAL(G4LogicalVolume*, G4double);
@@ -73,6 +81,14 @@ public:
   double fRICHhorizontal_offset; //Horizontal offset (from SBS center line, + = toward beamline).
   double fSBS_tracker_pitch; //SBS tracker pitch angle for electron mode
   double fSBS_tracker_dist; 
+
+  bool fUseLeadWallConnected;
+  bool fUseOldLeadWall;
+  bool fUseExtensionLeadInsert;
+ 
+  double fLeadWallThick;
+  double fLeadInsertUpstreamOffset;
+  double fLeadInsertLeftOffset;  
   
   // Useful constants
   double f48D48depth;

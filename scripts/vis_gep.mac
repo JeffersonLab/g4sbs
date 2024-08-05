@@ -53,6 +53,23 @@
 /g4sbs/FPP1CH2thick 55.88 cm
 
 
+/g4sbs/usehadronfilter true
+
+# option 2: double-analyzer (both CH2)
+#/g4sbs/gepfppoption 2
+#/g4sbs/FPP1CH2thick 55.88 cm
+#/g4sbs/FPP2CH2thick 55.88 cm
+
+# option 3: double-analyzer, first analyzer CH2, second analyz
+#/g4sbs/gepfppoption 3
+#/g4sbs/FPP1CH2thick 55 cm
+#/g4sbs/FPP2CH2thick
+
+
+## Run 100 events
+#/g4sbs/run             100
+
+
 
 # start with wide-open cuts:
 #/g4sbs/thmin 0 deg

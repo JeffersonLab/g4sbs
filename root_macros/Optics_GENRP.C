@@ -516,7 +516,7 @@ void Optics_GENRP( const char *inputfilename, const char *outputfilename, int NM
 
 	  bool goodfirsthit = false;
 	  for( int ihit=0; ihit<T->Harm_CEPolFront_hit_nhits; ihit++ ){
-	    if( (*(T->Harm_CEPolFront_hit_mid))[ihit]==0&&(*(T->Harm_CEPolFront_hit_p))[ihit] >= 0.997*T->ev_ep ){
+	    if( (*(T->Harm_CEPolFront_hit_mid))[ihit]==0&&(*(T->Harm_CEPolFront_hit_p))[ihit] >= 0.992*T->ev_ep ){
 	      goodfirsthit=true;
 	    }
 	  }
@@ -573,7 +573,13 @@ void Optics_GENRP( const char *inputfilename, const char *outputfilename, int NM
 
 	  TVector3 phat_targ_global = pvect.Unit();
 
-	  thetabend = acos( phat_fp_global.Dot( phat_targ_global ) );
+	  double thetabend1 = acos( phat_fp_global.Dot( phat_targ_global ) );
+	  double thetabend2 = acos( pvect_fp_SBS.Dot( pvect_SBS.Unit() ) );
+
+	  // cout << "SBS bend angle, (method1, method2)=(" << thetabend1 * 180.0/PI << ", "
+	  //      << thetabend2 * 180.0/PI << ")" << endl;
+	  
+	  thetabend = thetabend1;
 	  
 	  goodtrack = goodfirsthit && fabs(xptar)<cutxptar_true && fabs(yptar)<cutyptar_true &&
 									       fabs(ytar)<cutytar_true;

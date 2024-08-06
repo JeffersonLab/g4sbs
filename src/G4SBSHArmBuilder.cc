@@ -4142,7 +4142,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 
     new G4PVPlacement( 0, lead_wall3_pos, lead_wall3_log, "lead_wall3_phys", Mother, false, 0 );
 
-    //analyzer shield wall
+    //lead_wall1 is now used as the shielding in the space between the corrector magnet and the lead wall blocking the line of sight between the beamline and the front tracker(lead_wall2)
 
     //if(fUseLeadWallConnected == true){
 

@@ -16,6 +16,10 @@ public:
 
   void BuildComponent(G4LogicalVolume *);
 
+  //void EnableOldLeadWall1( G4bool b ){ fUseOldLeadWall1 = b; }
+  //G4bool fUseOldLeadWall1;
+
+
 private:
 
   void MakeGEpLead(G4LogicalVolume *);
@@ -49,7 +53,8 @@ private:
   void MakeBeamDump_ISOWallWeldment(G4LogicalVolume *logicMother,G4double z0=0);
   void MakeBeamDump_UpstreamPipe(G4LogicalVolume *logicMother,G4double z0=0);
   void MakeBeamDump_DownstreamPipe(G4LogicalVolume *logicMother,G4double z0=0);
-  
+
+
 };
 
 #endif//__G4SBSBeamlineBuilder_hh

@@ -17,7 +17,7 @@ if( f != 0):
 else:
     boringstring = "git information unavailable"
 
-maxlen = 2048
+maxlen = 4096
 
 boringstring += "Source dir " + os.getcwd()
 boringstring += "\nBuild  dir " + presentcwd + "\n"
@@ -42,7 +42,7 @@ newheadertext = """#ifndef __GITINFO_HH
 -------------------------------------------------------------
 */
 
-#define __GITMAXINFO_SIZE 2048
+#define __GITMAXINFO_SIZE 4096
 
 #define gGitInfoStr \"""" + fullstring + '\"' \
 + \

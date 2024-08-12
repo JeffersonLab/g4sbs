@@ -708,10 +708,44 @@ G4SBSMessenger::G4SBSMessenger(){
   HadronFilterThickCmd->SetGuidance("target shield wall thickness");
   HadronFilterThickCmd->SetParameterName("hadronfilterthick",false);
 
+  HadronFilterOffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hadronfilteroffset",this);
+  HadronFilterOffsetCmd->SetGuidance("target shield negative x direction(hall coords) offset from target");
+  HadronFilterOffsetCmd->SetParameterName("hadronfilteroffset",false);
+
   HadronFilterMaterialCmd = new G4UIcmdWithAString("/g4sbs/hadronfiltermaterial",this);
   HadronFilterMaterialCmd->SetGuidance("Material for target shield wall");
   HadronFilterMaterialCmd->SetGuidance("any valid material defined in G4SBSDetectorConstruction::ConstructMaterials()");
   HadronFilterMaterialCmd->SetParameterName("hadronfiltermaterial",false);
+
+  HadronFilterPerpendicularCmd = new G4UIcmdWithABool("/g4sbs/hadronfilterperp", this);
+  HadronFilterPerpendicularCmd->SetGuidance("True if using perpendicular variant of hadron filter");
+  HadronFilterPerpendicularCmd->SetParameterName("hadronfilterperp",false);
+
+
+  LeadWallConnectedCmd = new G4UIcmdWithABool("/g4sbs/leadwallconnect", this);
+  LeadWallConnectedCmd->SetGuidance("Testing one solid wall vs two pieces separated in z at the analyzer");
+  LeadWallConnectedCmd->SetParameterName("leadwallconnect",false);
+
+  LeadWallThickCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/leadwallthick", this);
+  LeadWallThickCmd->SetParameterName("leadwallthick",false);
+
+  OldLeadWallCmd = new G4UIcmdWithABool("/g4sbs/oldleadwall", this);
+  OldLeadWallCmd->SetGuidance("set true if want to use old lead wall coupled to beamline instead of closer to HArm");
+  OldLeadWallCmd->SetParameterName("oldleadwall",false);
+
+  //OldLeadWall1Cmd = new G4UIcmdWithABool("/g4sbs/oldleadwall1", this);
+  //OldLeadWall1Cmd->SetGuidance("set true if want to use old lead wall coupled to beamline instead of closer to HArm");
+  //OldLeadWall1Cmd->SetParameterName("oldleadwall1",false);
+
+  AddExtensionFieldClampLeadInsertCmd = new G4UIcmdWithABool("/g4sbs/extendleadinsert", this);
+  AddExtensionFieldClampLeadInsertCmd->SetGuidance("if true adds extended piece to default front field clamp lead insert");
+  AddExtensionFieldClampLeadInsertCmd->SetParameterName("extendleadinsert", false);
+
+  MoveLeadInsertUpstreamCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/moveleadinsertupstream", this);
+  MoveLeadInsertUpstreamCmd->SetParameterName("moveleadinsertupstream",false);
+
+  MoveLeadInsertLeftCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/moveleadinsertleft", this);
+  MoveLeadInsertLeftCmd->SetParameterName("moveleadinsertleft",false);  
   
   BLneutronDetsCmd = new G4UIcmdWithABool("/g4sbs/BLneutronDets",this);
   BLneutronDetsCmd->SetGuidance("Setup neutron detectors along the beamline");
@@ -1246,9 +1280,8 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
   if( cmd == kineCmd ){
     bool validcmd = false;
-
-    G4SBS::Kine_t kinetemp = G4SBS::kElastic;
     
+    G4SBS::Kine_t kinetemp = G4SBS::kElastic;
     if( newValue.compareTo("elastic") == 0 ){
       kinetemp = G4SBS::kElastic;
       // fevgen->SetKine(G4SBS::kElastic);
@@ -1270,7 +1303,7 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
     if( newValue.compareTo("dis") == 0 ){
       kinetemp = G4SBS::kDIS;
-      //fevgen->SetKine(G4SBS::kDIS);
+      fevgen->SetKine(G4SBS::kDIS);
       //fevgen->SetMaxWeight( cm2/GeV );
       validcmd = true;
     }
@@ -1411,7 +1444,6 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fIO->SetKine(kinetemp); //This is necessary because G4SBSIO and G4SBSEventGen cannot directly talk to each other
       G4SBSRun::GetRun()->GetData()->SetGenName(newValue.data());
     }
-
     //After any change of kinematics, set this flag to false so that rejection sampling will be re-initialized:
     fevgen->SetInitialized(false);
   }
@@ -2447,9 +2479,54 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fTargetBuilder->SetHadronFilterThick( shieldthick );
   }
 
+  if( cmd == HadronFilterOffsetCmd ){
+    G4double shieldoffset = HadronFilterOffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fTargetBuilder->SetHadronFilterOffset( shieldoffset );
+  }
+
   if( cmd == HadronFilterMaterialCmd ){
     G4String matname = newValue;
     fdetcon->fTargetBuilder->SetHadronFilterMaterial( matname );
+  }
+
+  if( cmd == HadronFilterPerpendicularCmd ){
+    G4bool usehadronfilterperp = HadronFilterPerpendicularCmd->GetNewBoolValue(newValue);
+    fdetcon->fTargetBuilder->EnableHadronFilterPerpendicular( usehadronfilterperp );
+  }
+
+  if( cmd == LeadWallConnectedCmd ){
+    G4bool useconnectedwall = LeadWallConnectedCmd->GetNewBoolValue(newValue);
+    fdetcon->fHArmBuilder->EnableLeadWallConnected( useconnectedwall );
+  }
+
+  if( cmd == OldLeadWallCmd ){
+    G4bool useoldleadwall = OldLeadWallCmd->GetNewBoolValue(newValue);
+    fdetcon->fHArmBuilder->EnableOldLeadWall( useoldleadwall );
+  }
+  /*
+  if( cmd == OldLeadWall1Cmd ){
+    G4bool useoldleadwall1 = OldLeadWall1Cmd->GetNewBoolValue(newValue);
+    fdetcon->fBeamlineBuilder->EnableOldLeadWall1( useoldleadwall1 );
+  }
+  */
+  if( cmd == AddExtensionFieldClampLeadInsertCmd ){
+    G4bool addext = AddExtensionFieldClampLeadInsertCmd->GetNewBoolValue(newValue);
+    fdetcon->fHArmBuilder->EnableAddExtensionLeadInsert( addext );
+  }
+
+  if( cmd == LeadWallThickCmd ){
+    G4double leadwallthick = LeadWallThickCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetLeadWallThick( leadwallthick );
+  }
+
+  if( cmd == MoveLeadInsertUpstreamCmd ){
+    G4double upstream = MoveLeadInsertUpstreamCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetLeadInsertUpstreamOffset( upstream );
+  }
+
+  if( cmd == MoveLeadInsertLeftCmd ){
+    G4double left = MoveLeadInsertLeftCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetLeadInsertLeftOffset( left );
   }
   
   if( cmd == BLneutronDetsCmd ){

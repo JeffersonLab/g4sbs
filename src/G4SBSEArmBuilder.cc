@@ -122,11 +122,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 
   //  The neutron experiments and the SIDIS experiment use BigBite:
   //------------ BigBite: -----------------------------------------------------
-  // // // // HEAD
-  // //   if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEN || exptype == G4SBS::kSIDISExp || exptype == G4SBS::kA1n  || exptype == G4SBS::kGEnRP ) 
-  // // // //
-  if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEN || exptype == G4SBS::kSIDISExp || exptype == G4SBS::kA1n || exptype == G4SBS::kGEnRP || exptype == G4SBS::kGEp_BB || exptype == G4SBS::kALL) 
-    // // // // 11a33984f47772444ffb08222f8a978d2bee837e
+  if( exptype == G4SBS::kGMN || exptype == G4SBS::kGEN || exptype == G4SBS::kSIDISExp || exptype == G4SBS::kA1n  || exptype == G4SBS::kGEnRP || exptype == G4SBS::kGEp_BB || exptype == G4SBS::kALL) 
     {
       MakeBigBite( worldlog );
       //Move sieve slit construction to MakeBigBite subroutine:
@@ -157,7 +153,6 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
     ECal->SetDist(fBBdist);
     ECal->BuildComponent(worldlog);
   }
-  
   if( exptype ==  G4SBS::kGEMHCtest){
     MakeHallCGEM(worldlog);
   }

@@ -4014,45 +4014,61 @@ void G4SBSBeamlineBuilder::MakeGEpLead(G4LogicalVolume *worldlog){
   G4cout << "Lead wall A (x,y,z) = (" << xtemp/cm << ", " << 0.0 << ", " << (zstart_lead_wall1 + 0.5*1.25*m)/cm << ")" << G4endl;
   
   lead_wall1_log->SetVisAttributes( lead_visatt );
-
-  //first lead wall is lead_wall2 adjacent to iron rings,lead_wall1 is not being used
-
-  G4double zstart_lead_wall2 = z_formed_bellows + 76.09*inch + 1.71*inch + 15.75*inch + 1.0*inch;
-  //G4double zstop_lead_wall2 = 207.144*inch - TargetCenter_zoffset + 40.0*inch;
-  G4double zstop_lead_wall2 = 207.144*inch - TargetCenter_zoffset + 12.5*inch; //SSeeds 2021 - Temporary extension pending JT
-
-  G4cout << "Lead wall B zstart - zstop = " << (zstop_lead_wall2 - zstart_lead_wall2)/cm << G4endl;
   
-  G4double zpos_lead_wall2 = 0.5*(zstart_lead_wall2 + zstop_lead_wall2 - (10.0*inch));
-  //zpos offset by 10 inches to fully shield length of beam pipe from line of sight of GEMs
-  //we want x position to have x = 
-  G4double xpos_lead_wall2 = -(8.0*inch + 2.5*cm + (zpos_lead_wall2 - 201.632*inch + TargetCenter_zoffset )*tan(1.5*deg) + 2.0*inch);
-  //xpos_lead_wall2 offset by 2 inches in negative x direction such that wall 3 doesnt clip into the beam pipe, this is done assuming walls 2 and 3 are coupled and offset by 4.5 inches from eachother as given by the model from jlab
-  G4Box *lead_wall2 = new G4Box("lead_wall2", 5.0*cm/2.0, 24.0*inch/2.0, 60.0*inch/2.0 );
+  G4bool fUseOldLeadWall1 = false;
 
-  G4LogicalVolume *lead_wall2_log = new G4LogicalVolume( lead_wall2, GetMaterial("Lead"), "lead_wall2_log" );
+  if(fUseOldLeadWall1 == true){
 
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( 1.5*deg );
+    //first lead wall is lead_wall2 adjacent to iron rings,lead_wall1 is not being used
 
-  new G4PVPlacement( rot_temp, G4ThreeVector( xpos_lead_wall2, 0, zpos_lead_wall2 ), lead_wall2_log, "lead_wall2_phys", worldlog, false, 0 );
+    G4double zstart_lead_wall2 = z_formed_bellows + 76.09*inch + 1.71*inch + 15.75*inch + 1.0*inch;
+    //G4double zstop_lead_wall2 = 207.144*inch - TargetCenter_zoffset + 40.0*inch;
+    G4double zstop_lead_wall2 = 207.144*inch - TargetCenter_zoffset + 12.5*inch; //SSeeds 2021 - Temporary extension pending JT
 
-  G4cout << "Lead wall B (x,y,z) = (" << xpos_lead_wall2/cm << ", " << 0.0 << ", " << zpos_lead_wall2/cm << ")" << G4endl;
+    G4cout << "Lead wall B zstart - zstop = " << (zstop_lead_wall2 - zstart_lead_wall2)/cm << G4endl;
   
-  lead_wall2_log->SetVisAttributes( lead_visatt );
-  
-  //second lead wall downstream from lead_wall2
+    G4double zpos_lead_wall2 = 0.5*(zstart_lead_wall2 + zstop_lead_wall2 - (10.0*inch));
+    //zpos offset by 10 inches to fully shield length of beam pipe from line of sight of GEMs
+    //we want x position to have x = 
+    G4double xpos_lead_wall2 = -(8.0*inch + 2.5*cm + (zpos_lead_wall2 - 201.632*inch + TargetCenter_zoffset )*tan(1.5*deg) + 2.0*inch);
+    //xpos_lead_wall2 offset by 2 inches in negative x direction such that wall 3 doesnt clip into the beam pipe, this is done assuming walls 2 and 3 are coupled and offset by 4.5 inches from eachother as given by the model from jlab
+    G4Box *lead_wall2 = new G4Box("lead_wall2", 5.0*cm/2.0, 24.0*inch/2.0, 60.0*inch/2.0 );
+    
+    G4LogicalVolume *lead_wall2_log = new G4LogicalVolume( lead_wall2, GetMaterial("Lead"), "lead_wall2_log" );
 
-  G4Box *lead_wall3 = new G4Box("lead_wall3", 5.0*cm/2.0, 24.0*inch/2.0, 36.0*inch/2.0 );
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateY( 1.5*deg );
+    //1.5*deg for gep3
+    //5.2*deg for gep2
+    //8.8*deg for gep1
 
-  G4LogicalVolume *lead_wall3_log = new G4LogicalVolume( lead_wall3, GetMaterial("Lead"), "lead_wall3_log" );
-
-  rot_temp = new G4RotationMatrix;
-  rot_temp->rotateY( 1.5*deg );
-
-  new G4PVPlacement( rot_temp, G4ThreeVector( xpos_lead_wall2-(4.5*inch), 0, zpos_lead_wall2+(30.0*inch)+(18.0*inch)), lead_wall3_log, "lead_wall3_phys", worldlog, false, 0 );
-
-  lead_wall3_log->SetVisAttributes( lead_visatt );
+    G4ThreeVector lead_wall2_pos( xpos_lead_wall2, 0, zpos_lead_wall2 );
+    G4ThreeVector lead_wall2_pos_gep2( xpos_lead_wall2 - sin(5.2*deg)*zpos_lead_wall2, 0, zpos_lead_wall2 - (zpos_lead_wall2 - cos(5.2*deg)*zpos_lead_wall2) );  
+    G4ThreeVector lead_wall2_pos_gep1( xpos_lead_wall2 - sin(8.8*deg)*zpos_lead_wall2, 0, zpos_lead_wall2 - (zpos_lead_wall2 - cos(8.8*deg)*zpos_lead_wall2) );  
+    
+    new G4PVPlacement( rot_temp, lead_wall2_pos, lead_wall2_log, "lead_wall2_phys", worldlog, false, 0 );
+    
+    G4cout << "Lead wall B (x,y,z) = (" << xpos_lead_wall2/cm << ", " << 0.0 << ", " << zpos_lead_wall2/cm << ")" << G4endl;
+    
+    lead_wall2_log->SetVisAttributes( lead_visatt );
+    
+    //second lead wall downstream from lead_wall2
+    
+    G4Box *lead_wall3 = new G4Box("lead_wall3", 5.0*cm/2.0, 24.0*inch/2.0, 36.0*inch/2.0 );
+    
+    G4LogicalVolume *lead_wall3_log = new G4LogicalVolume( lead_wall3, GetMaterial("Lead"), "lead_wall3_log" );
+    
+    rot_temp = new G4RotationMatrix;
+    rot_temp->rotateY( 1.5*deg );
+    
+    G4ThreeVector lead_wall3_pos( xpos_lead_wall2 - (4.5*inch), 0, zpos_lead_wall2 + (30.0*inch) + (18.0*inch) );  
+    G4ThreeVector lead_wall3_pos_gep2( xpos_lead_wall2 - (4.5*inch) - sin(5.2*deg)*zpos_lead_wall2, 0, zpos_lead_wall2 + (30.0*inch) + (18.0*inch) - (zpos_lead_wall2 - cos(5.2*deg)*zpos_lead_wall2) ); 
+    G4ThreeVector lead_wall3_pos_gep1( xpos_lead_wall2 - (6.5*inch) - sin(8.8*deg)*zpos_lead_wall2, 0, zpos_lead_wall2 + (30.0*inch) + (18.0*inch) - (zpos_lead_wall2 + (30*inch) + (18.0*inch) - cos(8.8*deg)*(zpos_lead_wall2 + (30.0*inch) + (18.0*inch))) ); 
+    
+    new G4PVPlacement( rot_temp, lead_wall3_pos, lead_wall3_log, "lead_wall3_phys", worldlog, false, 0 );
+    
+    lead_wall3_log->SetVisAttributes( lead_visatt );
+  }
 
 }
 

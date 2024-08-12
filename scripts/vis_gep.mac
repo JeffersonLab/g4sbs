@@ -52,6 +52,27 @@
 /g4sbs/gepfppoption 1
 /g4sbs/FPP1CH2thick 55.88 cm
 
+<<<<<<< HEAD
+
+/g4sbs/usehadronfilter true
+=======
+/g4sbs/usehadronfilter false
+>>>>>>> 7e44313 (Modifications to G4SBS geometry including, modified GEM shielding from beamline line of sight, front and back field clamp shielding,and hadron filter in scattering chamber. Along with root macro modifications and updated g4sbs script user commands.)
+
+# option 2: double-analyzer (both CH2)
+#/g4sbs/gepfppoption 2
+#/g4sbs/FPP1CH2thick 55.88 cm
+#/g4sbs/FPP2CH2thick 55.88 cm
+
+# option 3: double-analyzer, first analyzer CH2, second analyz
+#/g4sbs/gepfppoption 3
+#/g4sbs/FPP1CH2thick 55 cm
+#/g4sbs/FPP2CH2thick
+
+
+## Run 100 events
+#/g4sbs/run             100
+
 
 
 # start with wide-open cuts:

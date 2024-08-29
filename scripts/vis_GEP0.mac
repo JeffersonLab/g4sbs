@@ -1,5 +1,5 @@
 ## Configure G4SBS for gep (Q^2 = 5.7 GeV^2, 3rd pass)
-/g4sbs/filename        GEP0_elastic.root   ## Output rootfile
+/g4sbs/filename       vis_GEP0_test.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gep
@@ -9,16 +9,27 @@
 /g4sbs/targlen         30.0 cm           ## Target Length
 
 ## Configure generator settings
-/g4sbs/kine            elastic           ## Generator
+/g4sbs/kine            elastic          ## Generator
 /g4sbs/runtime         1.0 s
 /g4sbs/beamcur         50.0 microampere
-/g4sbs/rasterx         4.0 mm
-/g4sbs/rastery         4.0 mm
-/g4sbs/beamE           4.3 GeV
-/g4sbs/thmin           29.0 deg
-/g4sbs/thmax           42.0 deg
-/g4sbs/phmin           -25.0 deg
-/g4sbs/phmax           25.0 deg
+/g4sbs/rasterx         2.0 mm
+/g4sbs/rastery         2.0 mm
+/g4sbs/beamE           4.359 GeV
+/g4sbs/thmin           25.0 deg
+/g4sbs/thmax           45.0 deg
+/g4sbs/phmin           -40.0 deg
+/g4sbs/phmax           40.0 deg
+
+/g4sbs/eemin 	       0.5 GeV
+/g4sbs/eemax 	       4.3 GeV
+
+#/g4sbs/hadron pi0
+#/g4sbs/hphmin -25.0 deg
+#/g4sbs/hphmax  25.0 deg
+#/g4sbs/hthmin 29.0 deg
+#/g4sbs/hthmax 42.0 deg
+#/g4sbs/ehmin 0.5 GeV
+#/g4sbs/ehmax 4.3 GeV
 
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
@@ -62,10 +73,10 @@
 #/g4sbs/FPP1CH2thick 55 cm
 #/g4sbs/FPP2CH2thick
 
+/g4sbs/rejectionsampling 1 1000000
 
 ## Run 100 events
-#/g4sbs/run             100
-
+#/g4sbs/run             1000
 
 
 # start with wide-open cuts:
@@ -108,10 +119,11 @@
 # Set specific colour for identification : ghost parallel geometry envelope ("ghost") as yellow
 #
 # Specify view angle:
-/vis/viewer/set/viewpointThetaPhi 90 120  deg
+/vis/viewer/set/viewpointThetaPhi 90 60  deg
+/vis/viewer/pan 15 0 m
 #
 # Specify zoom value:
-/vis/viewer/zoom 2.5
+/vis/viewer/zoom 3
 #
 # Specify style (surface or wireframe):
 /vis/viewer/set/style surface

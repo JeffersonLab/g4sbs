@@ -435,7 +435,7 @@ bool G4SBSEventGen::GenerateEvent(){
 			  CLHEP::RandFlat::shoot(-fTargLen/2.0, fTargLen/2.0));
     */
     fVert = G4ThreeVector(beamx, beamy, 
-			  CLHEP::RandFlat::shoot(-fTargLen/2.0, fTargLen/2.0));
+			  CLHEP::RandFlat::shoot(fTargZoffset - fTargLen/2.0, fTargZoffset + fTargLen/2.0));
   } else { //vertex generation for multi-foil optics target:
     
     //G4double beamx = fBeamOffsetX + CLHEP::RandFlat::shoot(-fRasterX/2.0, fRasterX/2.0 );
@@ -1117,6 +1117,11 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
 
   G4LorentzVector q_Nrest = ei_Nrest - ef_Nrest; 
 
+  G4double eth_Nrest = acos( (ei_Nrest.vect().unit()).dot( ef_Nrest.vect().unit() ) ); 
+
+  //  G4cout << "Electron scattering angle, (lab frame, rest frame)=(" << 57.3 * eth << ", "
+  //	 << 57.3 * eth_Nrest << G4endl;
+  
   //Calculate the boosted value of Bjorken x:
   G4double x = -q_Nrest.m2()/(2.0*ni_Nrest.dot( q_Nrest ) );
 
@@ -1245,11 +1250,11 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
   if( nucl == G4SBS::kProton ){
     //	printf("sigma p! %f %f %f\n", eip.e()/GeV, th/deg, eprime/GeV);
     //fSigma    = sigma_p(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
-    fSigma    = sigma_p(ei_Nrest.e()/GeV, eth/rad, ef_Nrest.e()/GeV)*((maxE-minE)/GeV)*nanobarn; // Dimensions of area
+    fSigma    = sigma_p(ei_Nrest.e()/GeV, eth_Nrest/rad, ef_Nrest.e()/GeV)*((maxE-minE)/GeV)*nanobarn; // Dimensions of area
   }
   if( nucl == G4SBS::kNeutron ){
     //fSigma    = sigma_n(eip.e()/GeV, th/rad, eprime/GeV)*((eip.e()-minE-mpi)/GeV)*nanobarn; // Dimensions of area
-    fSigma    = sigma_n(ei_Nrest.e()/GeV, eth/rad, ef_Nrest.e()/GeV)*((maxE-minE)/GeV)*nanobarn; // Dimensions of area
+    fSigma    = sigma_n(ei_Nrest.e()/GeV, eth_Nrest/rad, ef_Nrest.e()/GeV)*((maxE-minE)/GeV)*nanobarn; // Dimensions of area
   }
   //    printf("fSigma = %e\n", fSigma);
 
@@ -1259,7 +1264,7 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
   fAperp = 0.0;
 
   // Boost back:
-  //Now that we have the DIS cross section in the nucleon rest frame, we have
+  //Now that we have the inelastic cross section in the nucleon rest frame, we have
   //to account for the modification of the flux factor due to the fact that the collision in the lab frame is no longer collinear
   //(this is the only part of the cross section that is not Lorentz-invariant--it transforms like a cross-sectional area!):
   // Ratio F(lab)/F(Nrest) = 4Ee_lab*En_lab*| v_e - v_n |_lab/4M E_e_Nrest
@@ -1278,6 +1283,8 @@ bool G4SBSEventGen::GenerateInelastic( G4SBS::Nucl_t nucl, G4LorentzVector ei, G
   double flux_Nrest = 4.0*ni.m()*ei_Nrest.e();
   double flux_lab = 4.0*ei.e()*ni.e()*sqrt( 2.0*(1.0-betaN_lab*costheta_eN_lab) - pow(gammaN_lab,-2) );
 
+  //G4cout << "flux_Nrest/flux_lab = " << flux_Nrest / flux_lab << G4endl;
+  
   fSigma *= flux_Nrest/flux_lab; //The lines above already converted the cross section to GEANT4 units. Now this has dimensions of area, is expressed in the lab frame, and is differential in solid angle only!
 
   //The last step is to compute the "true" and "smeared" missing energy and momentum quantities in the lab frame by boosting the
@@ -2383,7 +2390,12 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
 
   p.setRThetaPhi( psample, theta, phi );
 
-  return G4LorentzVector( p, sqrt(p.mag2() + pow(proton_mass_c2,2.0) ) );
+  G4double Mass = proton_mass_c2;
+  if( nucl == G4SBS::kNeutron ){
+    Mass = neutron_mass_c2;
+  }
+  
+  return G4LorentzVector( p, sqrt(p.mag2() + pow(Mass,2.0) ) );
 }
 
 

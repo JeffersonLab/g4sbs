@@ -225,6 +225,9 @@ public:
       fBeamPolDirection *= -1.0;
     }
   }
+
+  void SetTargZoffset( double z ){ fTargZoffset = z; }
+  double GetTargZoffset() const { return fTargZoffset; }
   
   void SetRandomizeTargetSpin( G4bool flag ){ fRandomizeTargetSpin = flag; }
   void SetNumTargetSpinDirections( G4int nspin );
@@ -309,6 +312,8 @@ private:
   double fThMin_had, fThMax_had, fPhMin_had, fPhMax_had; //Angular generation limits for hadron arm 
   double fEhadMin, fEhadMax; //Hadron (total) energy generation limits (for SIDIS case)--Later we will want to add exclusive hadron production.
   double fTargLen, fRasterX, fRasterY, fTargDen; //Targ density is given in atoms or molecules/unit volume
+  double fTargZoffset;
+  
   double fBeamSpotSize;
   double fCircularRasterRadius;
   //double fTargRadLen; //Radiation length of target material, regardless of thickness

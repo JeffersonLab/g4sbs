@@ -356,6 +356,11 @@ G4SBSMessenger::G4SBSMessenger(){
   tgtDiamCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targdiam",this);
   tgtDiamCmd->SetGuidance("Cryotarget or gas target cell diameter (assumed cylindrical), applies to LH2/LD2/H2/3He");
   tgtDiamCmd->SetParameterName("targdiam", false);
+
+  TargOffsetCmd = new G4UIcmdWith3VectorAndUnit( "/g4sbs/targpos",this );
+  TargOffsetCmd->SetGuidance("Target position offset (relative to nominal)");
+  TargOffsetCmd->SetGuidance("Requires three vector (x,y,z) position in global coordinates and unit");
+  TargOffsetCmd->SetParameterName("tgtx0", "tgty0", "tgtz0", false );
   
   // SchamGasTgtCmd = new G4UIcmdWithAnInteger("/g4sbs/schbrflag",this);
   // SchamGasTgtCmd->SetGuidance("Build evacuated scattering chamber for gas target? (1=yes, 0=no)");
@@ -1745,6 +1750,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fTargetBuilder->SetTargDiameter(Dcell);
   }
 
+  if( cmd == TargOffsetCmd ){
+    G4ThreeVector pos = TargOffsetCmd->GetNew3VectorValue( newValue );
+    fdetcon->fTargetBuilder->SetTargPos( pos );
+    fevgen->SetTargZoffset( pos.z() );
+  }
+  
   // if( cmd == SchamGasTgtCmd ){
   //   G4int flag = SchamGasTgtCmd->GetNewIntValue( newValue );
   //   fdetcon->fTargetBuilder->SetSchamFlag( flag );

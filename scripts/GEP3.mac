@@ -1,5 +1,5 @@
-## Configure G4SBS for gep (Q^2 = 7.8 GeV^2, 4th pass)
-/g4sbs/filename        GEP3_elastic_job5.root   ## Output rootfile
+## Configure G4SBS for gep (Q^2 = 12 GeV^2, 5th pass)
+/g4sbs/filename        GEP3_elastic_temp.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gep
@@ -12,11 +12,11 @@
 /g4sbs/kine            elastic           ## Generator
 /g4sbs/runtime         1.0 s
 /g4sbs/beamcur         50.0 microampere
-/g4sbs/rasterx         4.0 mm
-/g4sbs/rastery         4.0 mm
-/g4sbs/beamE           10.6 GeV
+/g4sbs/rasterx         2.0 mm
+/g4sbs/rastery         2.0 mm
+/g4sbs/beamE           10.688 GeV
 /g4sbs/thmin           20.0 deg
-/g4sbs/thmax           40.0 deg
+/g4sbs/thmax           42.0 deg
 /g4sbs/phmin           -45.0 deg
 /g4sbs/phmax           45.0 deg
 
@@ -35,8 +35,8 @@
 # assume 2.4 T*m / 1.22 m = 1.97 Tesla
 #/g4sbs/sbsmagfield     1.97 tesla
 #/g4sbs/48d48field      1
-/g4sbs/bbang           30.0 deg
-/g4sbs/bbdist          4.5 m
+/g4sbs/bbang           29.75 deg
+/g4sbs/bbdist          4.7 m
 /g4sbs/sbsang          16.9 deg
 /g4sbs/48D48dist       1.6 m
 

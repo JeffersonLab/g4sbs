@@ -81,6 +81,8 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   if( sbsgen->GetKine() == G4SBS::kPYTHIA6 ){ //PYTHIA6 event:
     G4SBSPythiaOutput Primaries = sbsgen->GetPythiaEvent();
 
+    int ngen=0;
+    
     for( int ipart = 0; ipart<Primaries.Nprimaries; ipart++ ){
       if( Primaries.genflag[ipart] != 0 ){
 	particle = particleTable->FindParticle( Primaries.PID[ipart] );
@@ -94,9 +96,12 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	particleGun->SetParticlePosition( G4ThreeVector( Primaries.vx[ipart], Primaries.vy[ipart], Primaries.vz[ipart] ) );
 	particleGun->SetParticleTime( Primaries.t[ipart] );
 	particleGun->GeneratePrimaryVertex(anEvent);
+	ngen++;
       }
     }
 
+    //if( ngen <= 0 ) G4cout << "Warning: no primaries generated for event " << anEvent->GetEventID() << G4endl;
+    
     Primaries.ConvertToTreeUnits();
     fIO->SetPythiaOutput( Primaries );
     

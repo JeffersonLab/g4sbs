@@ -74,6 +74,10 @@ public:
   ev_t GetEventData();
   
   void SetNevents(int n){fNevt = n;}
+  void SetFirstEvent(long n);
+
+  long GetFirstEvent() const { return fFirstEvent; }
+  
   void SetBeamCur(double c){fBeamCur = c;}
   void SetBeamE(double c){fBeamE= c; fBeamP = G4ThreeVector(0.0, 0.0, c); }
   void SetRunTime(double t){fRunTime = t;}
@@ -415,6 +419,7 @@ private:
 
   //TFile *fPythiaFile;
   //TTree *fPythiaTree;
+  long fFirstEvent; //option to start at some event index other than zero
   long fchainentry;
   TChain *fPythiaChain;
   Pythia6_tree *fPythiaTree;

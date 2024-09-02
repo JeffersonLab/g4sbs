@@ -73,7 +73,7 @@
 #/g4sbs/FPP1CH2thick 55 cm
 #/g4sbs/FPP2CH2thick
 
-/g4sbs/rejectionsampling 1 1000000
+#/g4sbs/rejectionsampling 1 1000000
 
 ## Run 100 events
 #/g4sbs/run             100

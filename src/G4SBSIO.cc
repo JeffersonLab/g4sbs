@@ -708,7 +708,8 @@ void G4SBSIO::BranchECAL(G4String SDname="ECAL"){
   G4double gatewidthtemp = SDtemp->GetTimeWindow();
   G4int ntimebinstemp = SDtemp->GetNTimeBins();
   // *****
-  
+
+  fTree->Branch( branch_name.Format("%s.det.SumPhotoelectrons", branch_prefix.Data() ), &(ecaldata[SDname].SumPhotoelectrons) );
   fTree->Branch( branch_name.Format("%s.hit.nhits", branch_prefix.Data() ), &(ecaldata[SDname].nhits_ECal) );
   fTree->Branch( branch_name.Format("%s.hit.PMT", branch_prefix.Data() ), &(ecaldata[SDname].PMTnumber) );
   fTree->Branch( branch_name.Format("%s.hit.row", branch_prefix.Data() ), &(ecaldata[SDname].row) );

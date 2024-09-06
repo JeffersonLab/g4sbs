@@ -70,7 +70,7 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fHadronFilterMaterial = G4String("Aluminum");
 
 
-  fUseHadronFilter = true;
+  fUseHadronFilter = false;
 }
 
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
@@ -1330,9 +1330,11 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateX( -90.0*deg );
+
+  //rotation about X by -90 degrees sends 
   
   //Call BuildStandardCryoTarget HERE !
-  BuildStandardCryoTarget(ScatChamber_log, rot_temp, G4ThreeVector(0, -TargetCenter_zoffset, 0));
+  BuildStandardCryoTarget(ScatChamber_log, rot_temp, G4ThreeVector(fTargPos.x(), -(TargetCenter_zoffset+fTargPos.z()), fTargPos.y()));
 
   //Also call BuildHadronFilter here:
   

@@ -74,6 +74,10 @@ public:
   ev_t GetEventData();
   
   void SetNevents(int n){fNevt = n;}
+  void SetFirstEvent(long n);
+
+  long GetFirstEvent() const { return fFirstEvent; }
+  
   void SetBeamCur(double c){fBeamCur = c;}
   void SetBeamE(double c){fBeamE= c; fBeamP = G4ThreeVector(0.0, 0.0, c); }
   void SetRunTime(double t){fRunTime = t;}
@@ -225,6 +229,9 @@ public:
       fBeamPolDirection *= -1.0;
     }
   }
+
+  void SetTargZoffset( double z ){ fTargZoffset = z; }
+  double GetTargZoffset() const { return fTargZoffset; }
   
   void SetRandomizeTargetSpin( G4bool flag ){ fRandomizeTargetSpin = flag; }
   void SetNumTargetSpinDirections( G4int nspin );
@@ -309,6 +316,8 @@ private:
   double fThMin_had, fThMax_had, fPhMin_had, fPhMax_had; //Angular generation limits for hadron arm 
   double fEhadMin, fEhadMax; //Hadron (total) energy generation limits (for SIDIS case)--Later we will want to add exclusive hadron production.
   double fTargLen, fRasterX, fRasterY, fTargDen; //Targ density is given in atoms or molecules/unit volume
+  double fTargZoffset;
+  
   double fBeamSpotSize;
   double fCircularRasterRadius;
   //double fTargRadLen; //Radiation length of target material, regardless of thickness
@@ -410,6 +419,7 @@ private:
 
   //TFile *fPythiaFile;
   //TTree *fPythiaTree;
+  long fFirstEvent; //option to start at some event index other than zero
   long fchainentry;
   TChain *fPythiaChain;
   Pythia6_tree *fPythiaTree;

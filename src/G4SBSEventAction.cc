@@ -1147,6 +1147,8 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
   int nG4hits = hits->entries(); //Loop over nG4hits
   ecaloutput.Clear();
 
+  int NPE_total = 0;
+  
   set<int> TIDs_unique;
   set<int> PMTs_unique;
 
@@ -1415,7 +1417,7 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
 	  
 
       // *****
-
+      NPE_total += PMT_Numphotoelectrons[pmt];
       
       if( PMT_Numphotoelectrons[pmt] >= ecaloutput.threshold ){
 	
@@ -1493,6 +1495,8 @@ void G4SBSEventAction::FillECalData( G4SBSECalHitsCollection *hits, G4SBSECalout
       }
     } //for    
   }//while
+
+  ecaloutput.SumPhotoelectrons = NPE_total;
 }//void
 
 void G4SBSEventAction::FillRICHData( const G4Event *evt, G4SBSRICHHitsCollection *hits, G4SBSRICHoutput &richoutput, G4SBSSDTrackOutput &SDtracks ){

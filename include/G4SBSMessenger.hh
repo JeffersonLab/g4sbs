@@ -60,8 +60,10 @@ private:
   G4UIcmdWithAString   *sigfileCmd;
   
   G4UIcmdWithAString   *kineCmd;
-  G4UIcmdWithAString   *PYTHIAfileCmd; 
-  G4UIcmdWithAString   *SIMCfileCmd; 
+  G4UIcmdWithAString   *PYTHIAfileCmd;
+  G4UIcmdWithAString   *SIMCfileCmd;
+  G4UIcmdWithAnInteger *FirstEventCmd;
+  
   G4UIcmdWithAString   *expCmd;
   
   G4UIcmdWithAString   *GunParticleCmd;
@@ -104,6 +106,8 @@ private:
   G4UIcmdWithADoubleAndUnit *rasteryCmd;
   G4UIcmdWithADoubleAndUnit *rasterrCmd;
   G4UIcmdWithADoubleAndUnit *beamspotsizeCmd;
+
+  G4UIcmdWith3VectorAndUnit *TargOffsetCmd; //Offset target position from nominal
   
   //commands controlling pion photoproduction event generation:
   G4UIcmdWithADouble *PionPhoto_tminCmd;

@@ -60,8 +60,10 @@ private:
   G4UIcmdWithAString   *sigfileCmd;
   
   G4UIcmdWithAString   *kineCmd;
-  G4UIcmdWithAString   *PYTHIAfileCmd; 
-  G4UIcmdWithAString   *SIMCfileCmd; 
+  G4UIcmdWithAString   *PYTHIAfileCmd;
+  G4UIcmdWithAString   *SIMCfileCmd;
+  G4UIcmdWithAnInteger *FirstEventCmd;
+  
   G4UIcmdWithAString   *expCmd;
   
   G4UIcmdWithAString   *GunParticleCmd;

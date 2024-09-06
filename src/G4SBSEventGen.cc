@@ -137,6 +137,8 @@ G4SBSEventGen::G4SBSEventGen(){
   fSIMCTree = NULL;
   fchainentry = 0;
 
+  fFirstEvent = 0;
+  
   fInitialized = false;
   
   //fRejectionSamplingInitialized = false;
@@ -2444,6 +2446,8 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
   }
 */
 bool G4SBSEventGen::GeneratePythia(){
+
+  if( fchainentry % 1000 == 0 ) G4cout << "Passed event " << fchainentry << " in PYTHIA6 tree" << G4endl;
   
   fPythiaTree->GetEntry(fchainentry++);
 
@@ -2451,7 +2455,7 @@ bool G4SBSEventGen::GeneratePythia(){
 
   G4double sigmatemp = fPythiaSigma[fnametemp];
   
-  if( fchainentry % 1000 == 0 ) G4cout << "Passed event " << fchainentry << " in PYTHIA6 tree" << G4endl;
+  
   
   //Populate the pythiaoutput data structure:
   fPythiaEvent.Clear();
@@ -2520,7 +2524,9 @@ bool G4SBSEventGen::GeneratePythia(){
   }
   fPythiaEvent.Nprimaries = fPythiaEvent.PID.size();
 
-  if( ngen == 0 ) return false;
+  //if( ngen == 0 ) return false;
+  //ALWAYS return true even if we aren't going to actually generate and track any particles,
+  // to avoid accidentally trying to read beyond the end of the PYTHIA event tree!
   
   return true;
 }
@@ -3866,4 +3872,9 @@ double G4SBSEventGen::AUT_Collins( G4double x, G4double y, G4double Q2, G4double
   }
   
   return numerator / denominator;
+}
+
+void G4SBSEventGen::SetFirstEvent( long n ){
+  fFirstEvent = n;
+  fchainentry = n; //Start chain at fFirstEvent
 }

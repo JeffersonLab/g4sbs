@@ -1095,7 +1095,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   if(fBBPSOption==0){
     bbpsTF1log = new G4LogicalVolume( bbPSTF1box, GetMaterial("TF5"), "bbpsTF1log" );
   }else{
-    bbpsTF1log = new G4LogicalVolume( bbPSTF1box, GetMaterial("TF1"), "bbpsTF1log" );
+    bbpsTF1log = new G4LogicalVolume( bbPSTF1box, GetMaterial("F101"), "bbpsTF1log" );
   }
   G4cout << "BBPS blocks material is " << bbpsTF1log->GetMaterial()->GetName() << G4endl;
 

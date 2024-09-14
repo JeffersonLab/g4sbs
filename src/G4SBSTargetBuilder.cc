@@ -730,8 +730,8 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   // Left snout opening:
   G4double SCLeftSnoutDepth = 4.0*inch;// x
   G4double SCLeftSnoutWidth = 16.338*inch;// y
-  G4double SCLeftSnoutHeight = 11.0*inch; //z
-  G4double SCLeftSnoutHoleHeight = 7.0*inch;
+  G4double SCLeftSnoutHeight = 18.0*inch; //z
+  G4double SCLeftSnoutHoleHeight = 14.0*inch;
   G4double SCLeftSnoutHoleAngleApert = 30.0*deg;
   G4double SCLeftSnoutYOffset = 0.50*inch;
   

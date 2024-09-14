@@ -1,4 +1,4 @@
-## Configure G4SBS for NTPE+, 3.0 GeV^2, epsilon = 0.638
+## Configure G4SBS for for NTPE+, 7.5 GeV^2, epsilon = 0.566
 
 ## Configure Experiment
 /g4sbs/exp             gmn
@@ -10,14 +10,13 @@
 /g4sbs/rastery	       2.0 mm  #raster size in Y
 
 ## Configure generator settings
-/g4sbs/kine            elastic           ## Generator
-/g4sbs/runtime         0.1 s
+/g4sbs/kine            elastic        ## Generator
 /g4sbs/beamcur         0.2 muA
-/g4sbs/beamE           3.3 GeV
-/g4sbs/thmin           38.0 deg
-/g4sbs/thmax           53.0 deg
-/g4sbs/phmin          -25.0 deg
-/g4sbs/phmax           25.0 deg
+/g4sbs/beamE           6.6 GeV
+/g4sbs/thmin           28.0 deg
+/g4sbs/thmax           48.0 deg
+/g4sbs/phmin          -25 deg
+/g4sbs/phmax           25 deg
 
 ## Configure standard detector settings
 /g4sbs/hcaldist        11.0 m
@@ -29,12 +28,13 @@
 ## Configure the magnets
 /g4sbs/bbfield         1
 /g4sbs/scalebbfield    0.905
+/g4sbs/sbsmagfield     1.02 tesla
 /g4sbs/48d48field      1
-/g4sbs/sbsmagfield     0.42 T
-/g4sbs/bbang           42.8 deg
-/g4sbs/bbdist          1.55 m
-/g4sbs/sbsang          29.5 deg
-/g4sbs/48D48dist       2.8 m
+/g4sbs/bbang           38.6 deg
+/g4sbs/bbdist 	       1.55 m
+/g4sbs/sbsang          19.6 deg
+/g4sbs/48D48dist       2.25 m 
 
-/g4sbs/keepsdtrackinfo all true
+
+/g4sbs/keepsdtrackinfo 	all true
 /g4sbs/totalabs false

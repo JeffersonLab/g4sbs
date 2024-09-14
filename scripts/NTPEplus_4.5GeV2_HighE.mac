@@ -4,13 +4,13 @@
 /g4sbs/exp             gmn
 
 ## Configure the target
-/g4sbs/target          LH2
+/g4sbs/target          LD2
 /g4sbs/targlen         15.0 cm           ## Target Length
 /g4sbs/rasterx 	       2.0 mm  #raster size in X
 /g4sbs/rastery	       2.0 mm  #raster size in Y
 
 ## Configure generator settings
-/g4sbs/kine            gun           ## Generator
+/g4sbs/kine            elastic           ## Generator
 /g4sbs/beamcur         0.2 muA
 /g4sbs/beamE           6.6 GeV
 /g4sbs/thmin           18.0 deg

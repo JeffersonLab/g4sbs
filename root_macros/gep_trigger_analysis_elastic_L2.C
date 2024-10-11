@@ -495,8 +495,8 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
     int biny = bin/nbinsx;
     int nclust = nodes_by_binglobal_ecal[bin].size();
     line.Form( "          %20d, %15d, %15d, %20g, %20g, %20d", bin, binx, biny,
-	       binxmin + (2.0*binx + 1.0 )*xspace,
-	       binymin + (2.0*biny + 1.0 )*yspace,
+	       binxmin + (3.0*binx + 1.0 )*xspace,
+	       binymin + (3.0*biny + 1.0 )*yspace,
 	       nclust );
     
     clusterbins_ecal << line; 
@@ -566,11 +566,14 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
   map<int,int> binx_by_cell_hcal;
   map<int,int> biny_by_cell_hcal;
   map<int,int> binglobal_by_cell_hcal;
-
+  
   map<int,int> binx_by_node_hcal;
   map<int,int> biny_by_node_hcal;
   map<int,int> binglobal_by_node_hcal;
-
+  map<int,set<int> > nodes_by_binglobal_hcal;
+  map<int,double> xcellavg_by_binglobal_hcal;
+  map<int,double> ycellavg_by_binglobal_hcal;
+  
   while( currentline.ReadLine( HCAL_cell_map ) ){
     if( !currentline.BeginsWith("#") ){
       TObjArray *tokens = currentline.Tokenize(",");
@@ -642,6 +645,8 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
 	    biny_by_cell_hcal[cell] = biny;
 	    binglobal_by_cell_hcal[cell] = binglobal;
 
+	    nodes_by_binglobal_hcal[binglobal].insert(current_node);
+
 	    list_of_bins_hcal.insert( binglobal );
 	  }
 	  
@@ -672,24 +677,55 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
     }
   }
 
+  
+
   //TODO: write out cluster mapping and binning info for HCAL as well:
 
   ofstream clustermap_hcal("database/hcal_cluster_mapping.txt");
 
   header = "# Format: node index, cluster center cell index, x bin number, y bin number, global bin number, total number of cells, list of cells";
+
+  header.Form( "# Format: %15s, %25s, %15s, %15s, %15s, %15s, %20s, %25s, %15s", "cluster index", "cluster center cell index", "x center (m)", "y center (m)", "x bin number", "y bin number", "global bin number", "total number of cells", "list of cells" );
   clustermap_hcal << header.Data() << endl;
 
   for ( auto node : list_of_nodes_hcal ){
-    clustermap_hcal << node << ", " << cluster_centers_hcal_by_node[node] << ", "
-		    << binx_by_node_hcal[node] << ", " << biny_by_node_hcal[node] << ", "
-		    << binglobal_by_node_hcal[node] << ", " << cells_logic_sums_hcal[node].size();
+    // clustermap_hcal << node << ", " << cluster_centers_hcal_by_node[node] << ", "
+    // 		    << binx_by_node_hcal[node] << ", " << biny_by_node_hcal[node] << ", "
+    // 		    << binglobal_by_node_hcal[node] << ", " << cells_logic_sums_hcal[node].size();
+
+    TString line;
+    line.Form( "          %15d, %25d, %15.6g, %15.6g, %15d, %15d, %20d, %25d",
+	       node, cluster_centers_hcal_by_node[node], xcell_hcal[cluster_centers_hcal_by_node[node]], ycell_hcal[cluster_centers_hcal_by_node[node]],
+	       binx_by_node_hcal[node], biny_by_node_hcal[node], binglobal_by_node_hcal[node], cells_logic_sums_hcal[node].size() );
+    clustermap_hcal << line;
     for( auto cell : cells_logic_sums_hcal[node] ){
       clustermap_hcal << ", " << cell;
     }
     clustermap_hcal << endl;
   }
   
-  
+  ofstream clusterbins_hcal("database/hcal_cluster_binning.txt");
+
+  header.Form("# Format: %20s, %15s, %15s, %20s, %20s","global bin number", "X bin number", "Y bin number", "Number of clusters", "List of clusters");
+
+  clusterbins_hcal << header.Data() << endl;
+
+  for( auto bin : list_of_bins_hcal ){
+    int binx = bin % 5;
+    int biny = bin/5;
+    int nclust = nodes_by_binglobal_hcal[bin].size();
+
+    TString line;
+    line.Form( "          %20d, %15d, %15d, %20d", bin, binx, biny, nclust); 
+
+    clusterbins_hcal << line;
+
+    for( auto clust : nodes_by_binglobal_hcal[bin] ){
+      clusterbins_hcal << ", " << clust;
+    }
+    clusterbins_hcal << endl;
+  }
+	      
   TH1D::SetDefaultSumw2();
 
   //double PI = TMath::Pi();
@@ -733,13 +769,29 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
   map<int, set<int> > ECAL_nodes_HCAL;
   if( assocfile ){
     while( !assocfile.eof() ){
-      int hcalnode, N;
-      assocfile >> hcalnode >> N;
-      for( int i=0; i<N; i++ ){
-	int ecalnode;
-	assocfile >> ecalnode;
 
-	ECAL_nodes_HCAL[hcalnode].insert(ecalnode);
+      TString currentline;
+      while( currentline.ReadLine(assocfile) ){
+	if( !currentline.BeginsWith("#") ) {
+	  TObjArray *tokens = currentline.Tokenize(",");
+	  if( tokens->GetEntries() > 2 ){
+	    TString shcalbin = ( (TObjString*) (*tokens)[0] )->GetString();
+	    TString sNecalbins = ( (TObjString*) (*tokens)[1] )->GetString();
+
+	    int hcalbin = shcalbin.Atoi();
+	    int N = sNecalbins.Atoi();
+
+	    if( tokens->GetEntries() >= N+2 ){
+	      for( int i=0; i<N; i++ ){
+		TString secalbin = ( (TObjString*) (*tokens)[i+2] )->GetString();
+		int ecalbin = secalbin.Atoi();
+
+		ECAL_nodes_HCAL[hcalbin].insert(ecalbin);
+	      }
+	    }
+	  }
+	  
+	}
       }
     }
   }

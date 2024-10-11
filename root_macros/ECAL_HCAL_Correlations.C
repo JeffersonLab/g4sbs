@@ -8,7 +8,7 @@
 
 
 
-void ECAL_HCAL_Correlations(const char *rootfilename, const char *outfilename, double threshold=0.01){
+void ECAL_HCAL_Correlations(const char *rootfilename, const char *outfilename, double threshold=0.0){
   TFile *fin = new TFile( rootfilename, "READ" );
   ofstream outfile(outfilename);
 
@@ -18,6 +18,11 @@ void ECAL_HCAL_Correlations(const char *rootfilename, const char *outfilename, d
   TH1D *htemp;
 
   map<int,set<int> > ECAL_list_HCAL;
+
+  TString header;
+  header.Form("#%16s, %30s, %15s", "HCAL bin number", "Number of associated ECAL bins", "list of associated ECAL bins");
+
+  outfile << header.Data() << endl;
   
   for( int i=1; i<=hcorrplot->GetNbinsX(); i++ ){
     int nodeH = int(hcorrplot->GetXaxis()->GetBinCenter(i));
@@ -35,9 +40,14 @@ void ECAL_HCAL_Correlations(const char *rootfilename, const char *outfilename, d
       }
     }
 
-    outfile << nodeH << " " << ECAL_list_HCAL[nodeH].size();
-    for( set<int>::iterator k=ECAL_list_HCAL[nodeH].begin(); k!=ECAL_list_HCAL[nodeH].end(); ++k ){
-      outfile << " " << *k; 
+    TString temp;
+    temp.Form( " %16d, %30d", nodeH, ECAL_list_HCAL[nodeH].size() );
+
+    outfile << temp.Data(); 
+    //outfile << nodeH << "     " << ECAL_list_HCAL[nodeH].size() << "    ";
+    //for( set<int>::iterator k=ECAL_list_HCAL[nodeH].begin(); k!=ECAL_list_HCAL[nodeH].end(); ++k ){
+    for( auto k : ECAL_list_HCAL[nodeH] ){
+      outfile << ", " << k; 
     }
     outfile << endl;
   }

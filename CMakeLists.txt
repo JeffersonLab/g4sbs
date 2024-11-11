@@ -402,9 +402,6 @@ if(INSTALL_SBS_FIELD_MAPS)
   message("Downloading GEN-RP field map from Bogdan, New Year's Day 2024")
   file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEn-RP-SBS_field.table ${CMAKE_CURRENT_BINARY_DIR}/GEn-RP-SBS_field.table SHOW_PROGRESS)	
 
-  message("Downloading GEN-RP field map in g4sbs-friendly coordinate system")
-  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GENRP_fieldmap_g4sbs_friendly_coordinate_system.table ${CMAKE_CURRENT_BINARY_DIR}/GENRP_fieldmap_g4sbs_friendly_coordinate_system.table SHOW_PROGRESS)
-
   message("Other field maps forthcoming... Anybody know how to get CMake to download files AFTER the configure step, during the build step?")
 
   file(GLOB sbs_field_maps ${CMAKE_CURRENT_BINARY_DIR}/*.table ${CMAKE_CURRENT_BINARY_DIR}/map_696A.dat)

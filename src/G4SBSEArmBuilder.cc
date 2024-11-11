@@ -159,7 +159,7 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
 }
 
 void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
-  bool chkoverlap = true;
+  bool chkoverlap = false;
   //Lines of code used to build BigBite moved to their own method:
   printf("BigBite at %f deg\n", fBBang/deg);
 
@@ -558,30 +558,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   //behave properly. Put everything (including detectors/shielding) inside a single mother volume
 
   //NOTE: we want fBBCaldist to represent the distance to the front of the preshower
-  //G4double bbcal_tolerance=1.0*mm;
-  
-  // G4double bbcal_box_height = 27*8.5*cm;
-  // if(fBBPSOption==2)bbcal_box_height = 26*9.0*cm;
-  // G4double bbcal_box_width  = 2.0*37.0*cm;
+  G4double bbcal_box_height = 27*8.5*cm;
+  if(fBBPSOption==2)bbcal_box_height = 26*9.0*cm;
+  G4double bbcal_box_width  = 2.0*37.0*cm;
   //G4double bbcal_box_depth  = (8.5+2.5+37.0)*cm;
-  
-  G4double PSlength = 34.0*cm + bbpmtz;
-  G4double PSwidth = 8.5*cm;
-  G4double SHlength = 34.0*cm + bbpmtz;
-  G4double SHwidth = 8.5*cm;
-  if( fBBPSOption>0 ){
-    PSlength = 29.5*cm + bbpmtz; 
-    PSwidth = 9.0*cm;
-  }
-
-  //make the height and width of the mother box sufficient to contain the whole detector:
-  G4double bbcal_box_height = std::max( 26.0*PSwidth, 27.0*SHwidth );
-  G4double bbcal_box_width = std::max( 60.0*cm, std::max(2.0*PSlength, 7.0*SHwidth ) ); //here 60 cm is the width of the hodoscope box
-
-  
-  // space for optional shielding + steel plate (1/4") + mu-metal (0.05 cm?) + PS block (8.5 or 9 cm) + space for hodoscope + Shower blocks
+  // space for optional shielding + steel plate + mu-metal + PS block + space for hodoscope + Shower blocks
   G4double shielding_space = 3.75*2.54*cm;
-  G4double bbcal_box_depth  = shielding_space+(0.25*2.54 + 0.05 + 3.5*2.54)*cm + PSwidth + SHlength;//8.89 cm (3.5") is the size of the gap between the PS and the SH
+  G4double bbcal_box_depth  = shielding_space+(0.25*2.54 + 0.05 + 8.5 + 3.5*2.54 +37.0)*cm;//8.89 cm (3.5") is the size of the gap between the PS and the SH
 
   // Big Bite Calorimeter shielding.
   // 
@@ -634,7 +617,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   G4double zpos_bbcal_box = detoffset + (fBBCaldist - shielding_space) - 0.25*2.54*cm - 0.05*cm + bbcal_total_thick/2.0;
   
   // BB Ecal
-  G4Box *bbcalbox = new G4Box( "bbcalbox", bbcal_box_width/2.0, bbcal_box_height/2.0, bbcal_total_thick/2.0 );
+  G4Box *bbcalbox = new G4Box( "bbcalbox", bbcal_box_width/2.0, bbcal_box_height/2.0, bbcal_total_thick/2.0+0.1*mm );
   G4LogicalVolume *bbcal_mother_log = new G4LogicalVolume(bbcalbox, GetMaterial("Air"), "bbcal_mother_log");
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_bbcal_box ), bbcal_mother_log, "bbcal_mother_phys", bbdetLog, false, 0 , chkoverlap); 
 
@@ -742,24 +725,15 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // **** BIGBITE PRESHOWER **** 
   // 2 columns, 27 rows
 
-  double psheight = 26.0*PSwidth; //by default the preshower has 26 rows of 9 cm height
-  double pswidth = 2.0*PSlength;
-  double psdepth = PSwidth;
+  double psheight = 27*8.5*cm;
+  double pswidth  = 2.0*37.0*cm;
+  double psdepth  = 8.5*cm;
 
-  switch(fBBPSOption){
-  case 0: //OLD preshower: 27 rows 8.5 cm
-    psheight = 27.0*PSwidth;
-    break;
-  case 1: //NEW preshower with 
-    psheight = 25.0*PSwidth;
-    break;
-  case 2:
-  default:
-    psheight = 26.0*PSwidth;
-    break;
+  if(fBBPSOption>=1){
+    psdepth = 9.0*cm;
+    psheight = psdepth*25;
+    if(fBBPSOption==2)psheight+=psdepth;
   }
-
-  //Place the preshower mother box:
 
   G4Box *bbpsbox = new G4Box("bbpsbox", pswidth/2.0, psheight/2.0, psdepth/2.0 );
   G4LogicalVolume *bbpslog = new G4LogicalVolume(bbpsbox, GetMaterial("Air"), "bbpslog");
@@ -770,7 +744,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   zpos_temp += psdepth/2.0 + bbcalfrontsteelplate->GetZHalfLength();
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp ), bbcal_front_steelplate_log, "bbcal_front_steelplate_phys", bbcal_mother_log, false, 0, chkoverlap );
   zpos_temp += bbcalfrontsteelplate->GetZHalfLength();
-  //looks like we're putting 1/4" steel behind the ps too!
+  
   
   //placement of second mu-metal foil behind the PS
   //zpos_temp += psdepth/2.0 + bbcalfrontmufoil->GetZHalfLength();
@@ -794,9 +768,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   double bbhodoheight= bbslat_section*n_bbhodoslats;
   double bbhodowidth = bbslat_length;
   
-  //G4Box *bbhodobox = new G4Box("bbhodobox", pswidth/2.0, psheight/2.0, bbhododepth/2.0 );
-  //Use hodoscope dimensions for hodoscope mother box!
-  G4Box *bbhodobox = new G4Box( "bbhodobox", bbhodowidth/2.0, bbhodoheight/2.0, bbhododepth/2.0 );
+  G4Box *bbhodobox = new G4Box("bbhodobox", pswidth/2.0, psheight/2.0, bbhododepth/2.0 );
   G4LogicalVolume *bbhodolog = new G4LogicalVolume( bbhodobox, GetMaterial("Air"), "bbhodolog" );
   //new G4PVPlacement(0, G4ThreeVector(0.0,0.0, detoffset+fBBCaldist+psdepth+bbhododepth/2.0), bbhodolog, "bbhodophys", bbdetLog, false, 0);
   //new G4PVPlacement( 0, G4ThreeVector(0,0, -bbcal_box_depth/2.0 + psdepth + bbhododepth/2.0 ), bbhodolog, "bbhodophys", bbcal_mother_log, false, 0 );
@@ -881,68 +853,45 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   // **** BIGBITE SHOWER ****
   // 7 columns, 27 rows
-  double calheight = 27*SHwidth;
-  double calwidth  = 7*SHwidth;
-  double caldepth  = SHlength;
+  double calheight = 27*8.5*cm;
+  double calwidth  = 7*8.5*cm;
+  double caldepth  = 37.0*cm;
   G4Box *bbshowerbox = new G4Box("bbshowerbox", calwidth/2.0, calheight/2.0, caldepth/2.0);
   G4LogicalVolume *bbshowerlog = new G4LogicalVolume(bbshowerbox, GetMaterial("Air"), "bbshowerlog");
- 
-  //AJRP 9/4/2024: This section is confusing AF. Let's try to add some helpful comments, understand/fix what's going on:
-
-  //As far as I can tell, this is the placement of the two "honeycomb" plates enclosing the hodoscope:
-  //First plate starts 1.905 cm upstream of the shower. I'm getting rid of what appears to be a redundant factor of 2; i.e., GetZHalfLength()/2.0 is 1/4 of the length.
-  //Pretty sure that's not intended. 
-  zpos_temp = bbcal_total_thick/2.0 - caldepth - 1.905*cm+honeycombAlplate->GetZHalfLength();
+  //new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, detoffset+fBBCaldist+psdepth+bbhododepth+caldepth/2.0), bbshowerlog, "bbshowerphys", bbdetLog, false, 0);
+  //new G4PVPlacement( 0, G4ThreeVector( 0, 0, -bbcal_box_depth/2.0 + psdepth + bbhododepth + caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0 );
+  
+  zpos_temp = bbcal_total_thick/2.0 - caldepth - 1.905*cm+honeycombAlplate->GetZHalfLength()/2.0;
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), honeycombAlplate_log, "honeycombplate1_phys", bbcal_mother_log, false, 0, chkoverlap );
-
-  zpos_temp+=1.905*cm-2.0*honeycombAlplate->GetZHalfLength(); 
-
-  //now place 2nd honeycomb plate at what appears to be exactly the same place as the first one? This makes no sense!
-  // I'm commenting this out because I'm assuming it's a mistake. 
-  //new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_total_thick/2.0 - caldepth + honeycombAlplate->GetZHalfLength()/2.0-1.905*cm), honeycombAlplate_log, "honeycombplate2_phys", bbcal_mother_log, false, 0, chkoverlap );
-
-  new G4PVPlacement( 0, G4ThreeVector( 0, 0, zpos_temp), honeycombAlplate_log, "honeycombplate2_phys", bbcal_mother_log, false, 0, chkoverlap );
-  zpos_temp+=honeycombAlplate->GetZHalfLength();
+  zpos_temp+=1.905*cm-honeycombAlplate->GetZHalfLength();
+  new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_total_thick/2.0 - caldepth + honeycombAlplate->GetZHalfLength()/2.0-1.905*cm), honeycombAlplate_log, "honeycombplate2_phys", bbcal_mother_log, false, 0, chkoverlap );
+  zpos_temp+=honeycombAlplate->GetZHalfLength()/2.0;
 
   G4cout << "BB SH front (m) " << detoffset + fBBCaldist+bbcal_total_thick-caldepth+detboxdepth/2.0 << endl;
-
-  //Now place mother box containing shower:
+  
   new G4PVPlacement( 0, G4ThreeVector( 0, 0, +bbcal_total_thick/2.0 - caldepth/2.0), bbshowerlog, "bbshowerphys", bbcal_mother_log, false, 0, chkoverlap );
   
 
   // Shower module:
-  // Here let's use the already-defined dimensions to avoid possible inconsistency:
-  //double bbmodule_x = 8.5*cm, bbmodule_y = 8.5*cm, bbmodule_z = 34.0*cm+bbpmtz; //add PMT photocathode thickness to module total thickness:
+  double bbmodule_x = 8.5*cm, bbmodule_y = 8.5*cm;  
+  double bbTF1_x = bbmodule_x - 2*mylar_air_sum;
+  double bbTF1_y = bbmodule_y - 2*mylar_air_sum;
+  double bbTF1_z = caldepth - 2*bbpmtz - mylar_air_sum;
 
-  //Lead-glass block should fill the module box allowing for .002 cm mylar on all sides and in front, plus .004 cm air on the sides: 
-  double bbSHTF1_x = SHwidth - 2*mylar_air_sum; //CORRECT
-  double bbSHTF1_y = SHwidth - 2*mylar_air_sum; //CORRECT
-  double bbSHTF1_z = SHlength - mylarthickness - bbpmtz; //no need to put an "air gap" at the FRONT and/or back of the shower blocks
-  
-  
-  G4Box *showermodbox = new G4Box("showermodbox", SHwidth/2.0, SHwidth/2.0, SHlength/2.0);
+  G4Box *showermodbox = new G4Box("showermodbox", bbmodule_x/2.0, bbmodule_y/2.0, caldepth/2.0);
   G4LogicalVolume *showermodlog = new G4LogicalVolume(showermodbox, GetMaterial("Special_Air"), "showermodlog");
 
+  G4Box *tempbox = new G4Box("tempbox", bbmodule_x/2.0, bbmodule_y/2.0, (caldepth-2*bbpmtz)/2.0);
 
-  //The purpose of the following lines is to define the mylar wrapping around the block:
-  // it is a subtraction solid. Outer box should have side dimensions SHwidth - 2 * airthick
-  // inner box should have side dimensions SHwidth - 2 * airthick - 2 * mylarthick = SHwidth - 2*mylar_air_sum
-  // No air gap at the front and open at one end means the total length of the mylar wrapping outer box should equal SHlength-bbpmtz,
-  // while the total length of the inner wrapping should equal SHlength-bbpmtz-mylarthickness
-  G4Box *mylarwrap_outer = new G4Box("mylarwrap_outer", (SHwidth-2*airthickness)/2.0, (SHwidth-2*airthickness)/2.0, (SHlength-bbpmtz)/2.0);
-  //G4Box *tempbox = new G4Box("tempbox", bbmodule_x/2.0, bbmodule_y/2.0, (caldepth-2*bbpmtz)/2.0);
-  G4Box *mylarwrap_inner = new G4Box("mylarwrap_inner", (SHwidth-2*mylar_air_sum)/2.0, (SHwidth-2*mylar_air_sum)/2.0, (SHlength-bbpmtz-mylarthickness)/2.0 );
-
- 
-  // Subtraction solid should cut mylarwrap_inner out of mylarwrap_outer
-  //G4Box *showermodbox_sub = new G4Box( "showermodbox_sub", (bbmodule_x-2*mylarthickness)/2.0, (bbmodule_y-2*mylarthickness)/2.0, (caldepth-2*bbpmtz)/2.0 );
-  G4SubtractionSolid *bbmylarwrap = new G4SubtractionSolid( "bbmylarwrap", mylarwrap_outer, mylarwrap_inner, 0, G4ThreeVector(0.0, 0.0, mylarthickness/2.0) );
+  // Subtraction
+  G4Box *showermodbox_sub = new G4Box( "showermodbox_sub", (bbmodule_x-2*mylarthickness)/2.0, (bbmodule_y-2*mylarthickness)/2.0, (caldepth-2*bbpmtz)/2.0 );
+  G4SubtractionSolid *bbmylarwrap = new G4SubtractionSolid( "bbmylarwrap", tempbox, showermodbox_sub, 0, G4ThreeVector(0.0, 0.0, mylarthickness) );
   G4LogicalVolume *bbmylarwraplog = new G4LogicalVolume( bbmylarwrap, GetMaterial("Mylar"), "bbmylarwraplog" ); 
   new G4LogicalSkinSurface( "BB Mylar Skin", bbmylarwraplog, GetOpticalSurface("Mirrsurf") );
 
-  // Make Lead Glass block with correct dimensions:
-  G4Box *bbSHTF1box = new G4Box( "bbSHTF1box", bbSHTF1_x/2.0, bbSHTF1_y/2.0, bbSHTF1_z/2.0 );
-  G4LogicalVolume *bbSHTF1log = new G4LogicalVolume( bbSHTF1box, GetMaterial("TF1"), "bbSHTF1log" );
+  // Make Lead Glass 
+  G4Box *bbTF1box = new G4Box( "bbTF1box", bbTF1_x/2.0, bbTF1_y/2.0, bbTF1_z/2.0 );
+  G4LogicalVolume *bbTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbTF1log" );
   
   // Shower TF1 SD of type CAL
   //G4SDManager *sdman = fDetCon->fSDman;
@@ -966,22 +915,20 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
     
     fDetCon->SetThresholdTimeWindowAndNTimeBins( BBSHTF1SDname, threshold_default, timewindow_default, default_ntbins );
   }
-  bbSHTF1log->SetSensitiveDetector( BBSHTF1SD );
+  bbTF1log->SetSensitiveDetector( BBSHTF1SD );
 
   //fDetCon->InsertSDboundaryVolume( bbshowerlog->GetName(), BBSHTF1SDname );
   fDetCon->InsertSDboundaryVolume( bbcal_mother_log->GetName(), BBSHTF1SDname );
   
   if( (fDetCon->StepLimiterList).find( BBSHTF1SDname ) != (fDetCon->StepLimiterList).end() ){
-    bbSHTF1log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
+    bbTF1log->SetUserLimits( new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
   }
 
-  // Make PMT/Window the whole thickness. Is 2 mm accurate? Who cares, it's reasonable.
-  // Make the photocathode thin, so it doesn't "detect" too many spurious photons.
+  // Make PMT/Window
   double pmtrad = 7.62/2.0*cm;
-  G4Tubs *bbPMTwindow = new G4Tubs( "bbPMT", 0.0*cm, pmtrad, 0.99*bbpmtz/2.0, 0.0, twopi );
-  G4Tubs *bbPMTcathode = new G4Tubs( "bbPMTcathode", 0.0*cm, pmtrad, 0.01*bbpmtz/2.0, 0.0, twopi );
-  G4LogicalVolume *bbpmtwindowlog = new G4LogicalVolume( bbPMTwindow, GetMaterial("QuartzWindow_ECal"), "bbpmtwindowlog" );
-  G4LogicalVolume *bbpmtcathodelog = new G4LogicalVolume( bbPMTcathode, GetMaterial("Photocathode_BB"), "bbpmtcathodelog" );
+  G4Tubs *bbPMT = new G4Tubs( "bbPMT", 0.0*cm, pmtrad, bbpmtz/2.0, 0.0, twopi );
+  G4LogicalVolume *bbpmtwindowlog = new G4LogicalVolume( bbPMT, GetMaterial("QuartzWindow_ECal"), "bbpmtwindowlog" );
+  G4LogicalVolume *bbpmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_BB"), "bbpmtcathodelog" );
 
   // Shower PMT SD of type ECAL
   G4String BBSHSDname = "Earm/BBSH";
@@ -1007,35 +954,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
   fDetCon->InsertSDboundaryVolume( bbcal_mother_log->GetName(), BBSHSDname );
   
-  // Put everything in a BB Shower Module:
-
-  //Placements of all the components of a shower module:
+  // Put everything in a BB Shower Module
   int shower_copy_number = 0;
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-bbpmtz)/2.0), bbpmtcathodelog,"bbcathodephys", showermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*bbpmtz)/2.0), bbpmtwindowlog, "bbwindowphys", showermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbTF1log, "bbTF1phys", showermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -bbpmtz), bbmylarwraplog, "bbmylarphys", showermodlog, false, 0, chkoverlap );
 
-  //Put the cathode at the back of the module:
-  zpos_temp = caldepth/2.0 - bbPMTcathode->GetZHalfLength();
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), bbpmtcathodelog,"bbcathodephys", showermodlog, false, 0, chkoverlap ); //correct
-
-  //Now place window:
-  zpos_temp -= bbPMTcathode->GetZHalfLength()+bbPMTwindow->GetZHalfLength();
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), bbpmtwindowlog, "bbwindowphys", showermodlog, false, 0, chkoverlap );
-
-  //Now place mylar wrapping:  
-  //zpos_temp = caldepth - bbpmtz - mylarwrap_outer->GetZHalfLength();
-  //Relative to center of module, mylar wrapping should be centered at -bbpmtz (but this is clearly wrong from visualization).
-  // The total length of the mylar wrapping solid is SHlength - bbpmtz + mylarthickness
-  zpos_temp = -caldepth/2.0 + mylarwrap_outer->GetZHalfLength();
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), bbmylarwraplog, "bbmylarphys", showermodlog, false, 0, chkoverlap ); //correct (I think)
-
-  // Now place lead-glass block itself: total thickness is SHlength - mylarthick - bbpmtz,
-  // upstream edge should be located at -SHlength/2 + mylarthickness
-  // so center is at -SHlength/2 + mylarthickness + Zhalflength. caldepth is the same thing as SHlength:
-  zpos_temp = -caldepth/2.0 + mylarthickness + bbSHTF1box->GetZHalfLength();
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), bbSHTF1log, "bbSHTF1phys", showermodlog, false, 0, chkoverlap ); //correct (I think);
-  
-
-
-  //Next: place the shower modules:
   mapfile.open("database/BBSH_blockmap.txt");
 
   currentline.Form("# %15s, %15s, %15s, %18s, %18s",
@@ -1051,22 +976,18 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       (BBSHSD->detmap).Row[shower_copy_number] = j;
       (BBSHTF1SD->detmap).Col[shower_copy_number] = l;
       (BBSHTF1SD->detmap).Row[shower_copy_number] = j;
-      double xtemp = (calwidth - SHwidth)/2.0 - l*SHwidth;
-      double ytemp = (calheight - SHwidth)/2.0 - j*SHwidth;
+      double xtemp = (calwidth - bbmodule_x)/2.0 - l*bbmodule_x;
+      double ytemp = (calheight - bbmodule_y)/2.0 - j*bbmodule_y;
 
       currentline.Form( "  %15d, %15d, %15d, %18.3f, %18.3f",
 			shower_copy_number, j, l, xtemp/cm, ytemp/cm );
 
       mapfile << currentline << endl;
-
-      //Z of physical placement is (and should be!) zero relative to shower mother box.
+      
       new G4PVPlacement(0, G4ThreeVector(xtemp,ytemp,0.0), showermodlog, "showermodphys", bbshowerlog, false, shower_copy_number, chkoverlap);
-
-      //This one technically should be the center of the photocathode, but z pos not
-      // important:
+      
       (BBSHSD->detmap).LocalCoord[shower_copy_number] = G4ThreeVector( xtemp,ytemp,(caldepth-bbpmtz)/2.0  );
-      //This one should be the center of the lead-glass:
-      (BBSHTF1SD->detmap).LocalCoord[shower_copy_number] = G4ThreeVector( xtemp, ytemp, -caldepth/2.0 + mylarthickness + bbSHTF1box->GetZHalfLength() );
+      (BBSHTF1SD->detmap).LocalCoord[shower_copy_number] = G4ThreeVector( xtemp, ytemp, (caldepth-4*bbpmtz-bbTF1_z)/2.0 );
       shower_copy_number++;
     }
   }
@@ -1079,25 +1000,21 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 		   "Cell", "Row", "Column", "Xcenter", "Ycenter" );
 
   mapfile << currentline << endl;
-
-  double bbPSTF1_x = PSwidth-2*mylar_air_sum;
-  double bbPSTF1_y = PSwidth-2*mylar_air_sum;
-  //Unlike in the shower case, we allow for a small air gap between left and right columns of the PS:
-  double bbPSTF1_z = PSlength - bbpmtz - mylar_air_sum;
-  // ****Preshower Continued****
-  // AJRP 9/5/2024. Let's NOT reuse the shower modules since they're different sizes!
-  G4Box *preshowermodbox = new G4Box( "preshowermodbox", PSwidth/2.0, PSwidth/2.0, PSlength/2.0 );
-  G4LogicalVolume *preshowermodlog = new G4LogicalVolume( preshowermodbox, GetMaterial("Special_Air"), "preshowermodlog" );
-
-  //We meed to make a new lead-glass block for preshower with appropriate dimensions!
-  G4Box *bbPSTF1box = new G4Box("bbPSTF1box", bbPSTF1_x/2.0, bbPSTF1_y/2.0, bbPSTF1_z/2.0 );
   
+  if(fBBPSOption>0){
+    bbmodule_x = bbmodule_y = 9.0*cm;
+  }
+  // ****Preshower Continued****
+  // Reusing modules from Shower (same variables), rotated by either +/- 90 deg depending on column #
+  G4Box *preshowermodbox = new G4Box( "preshowermodbox", bbmodule_x/2.0, bbmodule_y/2.0, caldepth/2.0 );
+  G4LogicalVolume *preshowermodlog = new G4LogicalVolume( preshowermodbox, GetMaterial("Special_Air"), "preshowermodlog" );
+ 
   // Preshower TF1 SD of type CAL
   G4LogicalVolume *bbpsTF1log;
   if(fBBPSOption==0){
-    bbpsTF1log = new G4LogicalVolume( bbPSTF1box, GetMaterial("TF5"), "bbpsTF1log" );
+    bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF5"), "bbpsTF1log" );
   }else{
-    bbpsTF1log = new G4LogicalVolume( bbPSTF1box, GetMaterial("F101"), "bbpsTF1log" );
+    bbpsTF1log = new G4LogicalVolume( bbTF1box, GetMaterial("TF1"), "bbpsTF1log" );
   }
   G4cout << "BBPS blocks material is " << bbpsTF1log->GetMaterial()->GetName() << G4endl;
 
@@ -1116,7 +1033,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
 
     //Photoelectron yield is approximately 500/GeV (or so)
     G4double threshold_default = 0.0*MeV; //1% of 1 GeV
-    G4double timewindow_default = 250.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
+    G4double timewindow_default = 50.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
     G4int default_ntbins = 25;
 
     fDetCon->SetThresholdTimeWindowAndNTimeBins( BBPSTF1SDname, threshold_default, timewindow_default, default_ntbins );
@@ -1132,11 +1049,7 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   // Preshower PMT SD of type ECAL
   //G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_material_ecal"), "bbpspmtcathodelog" );
 
-  //We'll re-use PMT window and cathode from shower (even though in reality there are
-  // at least two types of PMTs in use in BBCAL)
-  // We need a different logical volume for the sensitive detector since we
-  // treat shower and preshower separately:
-  G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMTcathode, GetMaterial("Photocathode_BB"), "bbpspmtcathodelog" );
+  G4LogicalVolume *bbpspmtcathodelog = new G4LogicalVolume( bbPMT, GetMaterial("Photocathode_BB"), "bbpspmtcathodelog" );
   
   G4String BBPSSDname = "Earm/BBPS";
   G4String BBPScollname = "BBPSHitsCollection";
@@ -1157,37 +1070,11 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   bbpspmtcathodelog->SetSensitiveDetector( BBPSSD );
 
   fDetCon->InsertSDboundaryVolume( bbcal_mother_log->GetName(), BBPSSDname );
-
-  //Now we need a DIFFERENT mylar wrapping subtraction solid for the preshower, so let's set that up here:
-
-  G4Box *mylarwrap_outer_ps = new G4Box("mylarwrap_outer_PS", (PSwidth-2*airthickness)/2.0, (PSwidth-2*airthickness)/2.0, (PSlength-bbpmtz-airthickness)/2.0 );
-  G4Box *mylarwrap_inner_ps = new G4Box("mylarwrap_inner_PS", (PSwidth-2*mylar_air_sum)/2.0, (PSwidth-2*mylar_air_sum)/2.0, (PSlength-bbpmtz-mylar_air_sum)/2.0 );
-
-  G4SubtractionSolid *bbmylarwrap_ps = new G4SubtractionSolid( "bbmylarwrap_ps", mylarwrap_outer_ps, mylarwrap_inner_ps, 0, G4ThreeVector(0,0,mylarthickness/2.0) );
-  G4LogicalVolume *bbmylarwraplog_ps = new G4LogicalVolume( bbmylarwrap_ps, GetMaterial("Mylar"), "bbmylarwraplog_ps" );
-
-  new G4LogicalSkinSurface( "BB PS mylar skin", bbmylarwraplog_ps, GetOpticalSurface("Mirrsurf") );
-
-  //NOW we can place the module components inside the volume:
-  // again, start with PMT cathode:
-  zpos_temp = PSlength/2.0 - bbPMTcathode->GetZHalfLength(); 
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), bbpspmtcathodelog,"bbpscathodephys", preshowermodlog, false, 0, chkoverlap );
-
-  //PMT window:
-  zpos_temp -= bbPMTcathode->GetZHalfLength() + bbPMTwindow->GetZHalfLength();
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), bbpmtwindowlog, "bbpswindowphys", preshowermodlog, false, 0, chkoverlap );
-
-  zpos_temp -= bbPMTwindow->GetZHalfLength()+mylarwrap_outer_ps->GetZHalfLength();
-  //Mylar wrapping:
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), bbmylarwraplog_ps, "bbpsmylarphys", preshowermodlog, false, 0, chkoverlap );
-
-  // Now place lead-glass block itself: total thickness is PSlength - mylarthick - airthick - bbpmtz, therefore 
-  // upstream edge should be located at -PSlength/2 + mylarthickness + airthickness
-  // so center is at -PSlength/2 + mylarthickness + airthickness + Zhalflength:
-
-  zpos_temp = PSlength/2.0 - 2.0*(bbPMTcathode->GetZHalfLength()+bbPMTwindow->GetZHalfLength()) - bbPSTF1box->GetZHalfLength();
-  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), bbpsTF1log, "bbpsTF1phys", preshowermodlog, false, 0, chkoverlap );
- 
+  
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-bbpmtz)/2.0), bbpspmtcathodelog,"bbpscathodephys", preshowermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-3*bbpmtz)/2.0), bbpmtwindowlog, "bbpswindowphys", preshowermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, (caldepth-4*bbpmtz-bbTF1_z)/2.0), bbpsTF1log, "bbpsTF1phys", preshowermodlog, false, 0, chkoverlap );
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, -bbpmtz), bbmylarwraplog, "bbpsmylarphys", preshowermodlog, false, 0, chkoverlap );
   
   G4RotationMatrix *bbpsrm_col1 = new G4RotationMatrix;
   bbpsrm_col1->rotateY(-90.0*deg);
@@ -1201,12 +1088,8 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   int ps_copy_number = 0;
   for(int l=0; l<bbpscol; l++) {
     for(int j=0; j<bbpsrow; j++) {
-      //double xtemp = (pswidth-caldepth)/2.0 - l*caldepth;
-      //double ytemp = (psheight-bbmodule_y)/2.0 - j*bbmodule_y;
-      //NOTES preshower positioning:
-      // Left (right) column should be located at +length/2 (-length/2)
-      double xtemp = PSlength/2.0 - l * PSlength;
-      double ytemp = (psheight - PSwidth)/2.0 - j*PSwidth;
+      double xtemp = (pswidth-caldepth)/2.0 - l*caldepth;
+      double ytemp = (psheight-bbmodule_y)/2.0 - j*bbmodule_y;
       (BBPSSD->detmap).Col[ps_copy_number] = l;
       (BBPSSD->detmap).Row[ps_copy_number] = j;
       (BBPSTF1SD->detmap).Col[ps_copy_number] = l;
@@ -1219,13 +1102,13 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
       
       if(l==0) { 
 	new G4PVPlacement( bbpsrm_col1, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number, chkoverlap );
-	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp+PSlength/2.0-bbpmtz/2.0, ytemp, 0.0);
+	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp+caldepth/2.0-bbpmtz/2.0, ytemp, 0.0);
 	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
 	ps_copy_number++;
       }
       if(l==1) {
 	new G4PVPlacement( bbpsrm_col2, G4ThreeVector(xtemp,ytemp,0.0), preshowermodlog, "preshowermodphys", bbpslog, false, ps_copy_number, chkoverlap );
-	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-PSlength/2.0+bbpmtz/2.0, ytemp, 0.0);
+	(BBPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-caldepth/2.0+bbpmtz/2.0, ytemp, 0.0);
 	(BBPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
 	ps_copy_number++;
       }
@@ -1244,19 +1127,16 @@ void G4SBSEArmBuilder::MakeBigBite(G4LogicalVolume *worldlog){
   bbshowerlog->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   //Mylar
-  G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.1, 0.5, 0.2 ) );
-  mylar_colour->SetForceWireframe(true);
-  
+  G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.5, 0.5, 0.5 ) );
   bbmylarwraplog->SetVisAttributes(mylar_colour);
-  bbmylarwraplog_ps->SetVisAttributes(mylar_colour);
-  
+
   //Air
   showermodlog->SetVisAttributes( G4VisAttributes::GetInvisible() );
   preshowermodlog->SetVisAttributes( G4VisAttributes::GetInvisible() );
 
   //TF1
   G4VisAttributes *TF1_colour = new G4VisAttributes(G4Colour( 0.8, 0.8, 0.0 ) );
-  bbSHTF1log->SetVisAttributes(TF1_colour);
+  bbTF1log->SetVisAttributes(TF1_colour);
   bbpsTF1log->SetVisAttributes(TF1_colour);
 
   //PMTcathode

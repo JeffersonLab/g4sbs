@@ -88,13 +88,7 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   if( sbsgen->GetKine() == G4SBS::kPYTHIA6 ){ //PYTHIA6 event:
     G4SBSPythiaOutput Primaries = sbsgen->GetPythiaEvent();
-<<<<<<< HEAD
     //cout << "G4SBSPrimaryGeneratorAction.cc" << endl;
-=======
-
-    int ngen=0;
-    
->>>>>>> 2df031e5bdf4a7314a37d98a74ec4e0a19d9a57a
     for( int ipart = 0; ipart<Primaries.Nprimaries; ipart++ ){
       //cout << ipart << " " << Primaries.genflag[ipart] << " " << Primaries.PID[ipart] << " " 
       //   << Primaries.Px[ipart] << " " << Primaries.Py[ipart] << " " << Primaries.Pz[ipart] << endl;
@@ -110,7 +104,6 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	particleGun->SetParticlePosition( G4ThreeVector( Primaries.vx[ipart], Primaries.vy[ipart], Primaries.vz[ipart] ) );
 	particleGun->SetParticleTime( Primaries.t[ipart] );
 	particleGun->GeneratePrimaryVertex(anEvent);
-<<<<<<< HEAD
 	    }
 	}
       
@@ -147,19 +140,6 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 // electron or geantino (and more)
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-=======
-	ngen++;
-      }
-    }
-
-    //if( ngen <= 0 ) G4cout << "Warning: no primaries generated for event " << anEvent->GetEventID() << G4endl;
-    
-    Primaries.ConvertToTreeUnits();
-    fIO->SetPythiaOutput( Primaries );
-    
-    return;
-  }
->>>>>>> 2df031e5bdf4a7314a37d98a74ec4e0a19d9a57a
 
   if( sbsgen->GetKine() == G4SBS::kSIMC ){ //SIMC event:
     G4SBSSIMCOutput Primaries = sbsgen->GetSIMCEvent();

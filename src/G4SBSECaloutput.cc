@@ -20,8 +20,6 @@ void G4SBSECaloutput::Clear(){
   nhits_ECal = 0;
   //ntracks_ECal = 0;
 
-  SumPhotoelectrons = 0;
-  
   NPE_vs_time.clear();
   
   PMTnumber.clear();

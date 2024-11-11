@@ -979,21 +979,19 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
       RearClamp_log->SetVisAttributes(clampVisAtt);
     } // Rear clamp log (GEp)
 
-    // G4RotationMatrix *rot_copper = new G4RotationMatrix;
+    G4RotationMatrix *rot_copper = new G4RotationMatrix;
 
-    // rot_copper->rotateY( f48D48ang + 6.0*deg);
+    rot_copper->rotateY( f48D48ang + 6.0*deg);
 
-    // G4Box *copper_shield = new G4Box("copper_shield", (20.0*2.54*cm)/2.0, (20.0*2.54*cm)/2.0, (0.05*cm)/2.0);
+    G4Box *copper_shield = new G4Box("copper_shield", (20.0*2.54*cm)/2.0, (20.0*2.54*cm)/2.0, (0.05*cm)/2.0);
 
-    // G4LogicalVolume *copper_shield_log = new G4LogicalVolume( copper_shield, GetMaterial("Copper"), "copper_shield_log" );
+    G4LogicalVolume *copper_shield_log = new G4LogicalVolume( copper_shield, GetMaterial("Copper"), "copper_shield_log" );
 
-    // //G4ThreeVector copper_shield_pos(RearClamp_pos.X(), RearClamp_pos.Y(), RearClamp_pos.Z() - 120.0*cm);
-    // G4ThreeVector copper_shield_pos( -FrontClamp_r*sin( f48D48ang ) + FrontClamp_xoffset*cos(f48D48ang) - 7.0*cm, 0.0, FrontClamp_r*cos(f48D48ang) + FrontClamp_xoffset*sin(f48D48ang) - 12.0*cm);
+    //G4ThreeVector copper_shield_pos(RearClamp_pos.X(), RearClamp_pos.Y(), RearClamp_pos.Z() - 120.0*cm);
+    G4ThreeVector copper_shield_pos( -FrontClamp_r*sin( f48D48ang ) + FrontClamp_xoffset*cos(f48D48ang) - 7.0*cm, 0.0, FrontClamp_r*cos(f48D48ang) + FrontClamp_xoffset*sin(f48D48ang) - 12.0*cm);
 
-    //new G4PVPlacement( rot_copper, copper_shield_pos, copper_shield_log, "copper_shield_phys", motherlog, false, 0, false );
+    new G4PVPlacement( rot_copper, copper_shield_pos, copper_shield_log, "copper_shield_phys", motherlog, false, 0, false );
 
-
-    
     //Make lead shielding in clamp:
     // G4double angtrap = 10.0*deg;
     // G4double Trap_DZ = 70.0*cm; //length in z

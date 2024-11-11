@@ -68,7 +68,7 @@ void G4SBSRunAction::EndOfRunAction(const G4Run* aRun)
   G4cout << "Elapsed time = " << timer->GetRealElapsed() << G4endl;
   G4cout << *timer << G4endl;
 
-  G4cout << "simulation rate = " << double(aRun->GetNumberOfEvent())/timer->GetRealElapsed() << " events/s" << G4endl;
+  G4cout << "simulation rate = " << double(Ntries)/timer->GetRealElapsed() << " events/s" << G4endl;
   
   G4SBSRun::GetRun()->GetData()->SetNtries( Ntries );
 

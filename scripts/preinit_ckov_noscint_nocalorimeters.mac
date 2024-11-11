@@ -5,7 +5,6 @@
 /g4sbs/DisableOpticalPhotonByMaterial Special_Air
 /g4sbs/DisableOpticalPhotonByMaterial Mylar
 /g4sbs/DisableOpticalPhotonByMaterial TF1
-/g4sbs/DisableOpticalPhotonByMaterial F101
 /g4sbs/DisableOpticalPhotonByMaterial TF5
 /g4sbs/DisableOpticalPhotonByMaterial QuartzWindow_ECal
 /g4sbs/DisableOpticalPhotonByMaterial Photocathode_BB

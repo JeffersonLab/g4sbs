@@ -22,8 +22,6 @@ public:
   vector< vector<double> > NPE_vs_time;
   double gatewidth;
 
-  int SumPhotoelectrons; //total NPE in the whole detector
-  
   //"Hit" variables:
   int nhits_ECal; //number of "logical hits" in the ECal detector.
   vector<int> PMTnumber;

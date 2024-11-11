@@ -60,6 +60,7 @@ private:
   G4UIcmdWithAString   *sigfileCmd;
   
   G4UIcmdWithAString   *kineCmd;
+<<<<<<< HEAD
   G4UIcmdWithAString   *PYTHIAfileCmd; 
   // // // // HEAD
   // TDIS AcquMC
@@ -68,6 +69,12 @@ private:
   // // // //
   G4UIcmdWithAString   *SIMCfileCmd; 
   // // // // 11a33984f47772444ffb08222f8a978d2bee837e
+=======
+  G4UIcmdWithAString   *PYTHIAfileCmd;
+  G4UIcmdWithAString   *SIMCfileCmd;
+  G4UIcmdWithAnInteger *FirstEventCmd;
+  
+>>>>>>> 2df031e5bdf4a7314a37d98a74ec4e0a19d9a57a
   G4UIcmdWithAString   *expCmd;
   
   G4UIcmdWithAString   *GunParticleCmd;
@@ -110,6 +117,8 @@ private:
   G4UIcmdWithADoubleAndUnit *rasteryCmd;
   G4UIcmdWithADoubleAndUnit *rasterrCmd;
   G4UIcmdWithADoubleAndUnit *beamspotsizeCmd;
+
+  G4UIcmdWith3VectorAndUnit *TargOffsetCmd; //Offset target position from nominal
   
   //commands controlling pion photoproduction event generation:
   G4UIcmdWithADouble *PionPhoto_tminCmd;

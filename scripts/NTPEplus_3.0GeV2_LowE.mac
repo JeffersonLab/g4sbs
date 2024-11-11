@@ -4,7 +4,7 @@
 /g4sbs/exp             gmn
 
 ## Configure the target
-/g4sbs/target          LH2
+/g4sbs/target          LD2
 /g4sbs/targlen         15.0 cm           ## Target Length
 /g4sbs/rasterx 	       2.0 mm  #raster size in X
 /g4sbs/rastery	       2.0 mm  #raster size in Y

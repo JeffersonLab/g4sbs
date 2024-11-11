@@ -22,6 +22,8 @@
 #include <vector>
 #include <map>
 #include <set> 
+#include "TTreeFormula.h"
+#include "TRotation.h"
 
 const double Mp = 0.9382720813;
 const double mu_p = 2.79284734462;
@@ -107,7 +109,7 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
   GMPfunc->SetParameters(gmppar);
   
   double pTmin = 0.07;
-  double pTmax = 1.0;
+  double pTmax = 1.2;
 
   double smax_FPP1 = 0.005; //meters
   double smax_FPP2 = 0.01; //meters
@@ -191,7 +193,7 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
     }
   }
 
-  
+  TTreeFormula *GlobalCut = new TTreeFormula("GlobalCut",globalcut, C);
   //gep_tree *T = new gep_tree(C);
   //don't initialize the "gep_tree" yet. We need some kind of flag to select the single-FPP or double-FPP options
 
@@ -200,9 +202,9 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
 
   NFPP = std::max(1,std::min(NFPP,2));
 
-  TEventList *elist_temp = new TEventList("elist_temp");
+  //TEventList *elist_temp = new TEventList("elist_temp");
 
-  C->Draw(">>elist_temp",globalcut);
+  //  C->Draw(">>elist_temp",globalcut);
 
   auto T =  new gep_tree_new( C );
 
@@ -296,8 +298,14 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
   TH1D *hphiplus_FPP1 = new TH1D("hphiplus_FPP1","FPP1;#varphi_{FPP} (deg);",36,-180.,180.);
   TH1D *hphiminus_FPP1 = new TH1D("hphiminus_FPP1","FPP1;#varphi_{FPP} (deg);",36,-180.,180.);
 
-  TH1D *hchideg = new TH1D("hchideg","Precession angle #chi (deg)",160,25.,41.0);
-  TH2D *hchidegvsp = new TH2D("hchidegvsp","Precession versus proton momentum;p_{p} (GeV);#chi (deg)",250,2.0,3.5,160,25.,41.);
+  TH1D *hchitruedeg = new TH1D("hchitruedeg", "True precession angle; #chi (deg); event rate (Hz/bin)",1000,0,100);
+  TH2D *hchitruedeg_vs_p = new TH2D("hchitruedeg_vs_p", "True precession angle; #chi (deg); event rate (Hz/bin)", 1000,0.0,10.0,1000,0.0,100.0);
+  
+  TH1D *hchideg = new TH1D("hchideg","Precession angle #chi (deg)",1000,0,100.0);
+  TH2D *hchidegvsp = new TH2D("hchidegvsp","Precession versus proton momentum;p_{p} (GeV);#chi (deg)",1000,0.0,10.0,1000,0.0,100.0);
+
+  TH1D *hzvertex = new TH1D("hzvertex", "; vertex z (m); Event rate (Hz/(2 mm))", 300,-0.3,0.3);
+  TH2D *hQ2_zvertex = new TH2D("hQ2_zvertex", "; vertex z (m); Q^{2} (GeV^{2})", 300,-0.3,0.3,1500,0.0,15.0);
   
   //Let's add zclose and zclose calculations, and also 
   
@@ -311,8 +319,10 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
   TRandom3 num(0);
   
   double weight = 1.0;
+
+  //oldtreenum=-1;
   
-  while( T->GetEntry( elist_temp->GetEntry( nevent++ ) ) ){
+  while( C->GetEntry( nevent++ ) ){
     if( (nevent-1) % 1000 == 0 ) cout << "Event " << nevent << endl;
 
     //double weight = T->ev_rate;
@@ -322,6 +332,8 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
       cout << "New tree found, new tree number = " << treenum
 	   << " old tree number = " << oldtreenumber
 	   << " event = " << nevent << endl;
+
+      GlobalCut->UpdateFormulaLeaves();
       
       TString fname_temp = C->GetFile()->GetName();
       Ebeam_current = Ebeam_file[fname_temp];
@@ -331,280 +343,348 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
       oldtreenumber = treenum;
     }
 
-    weight = T->ev_sigma * T->ev_solang * Lumi / Ngen_total;
+    bool passedglobal = GlobalCut->EvalInstance(0) != 0;
 
-    if( rsampling != 0 ){
-      weight = T->ev_solang * maxweight * Lumi / Ngen_total;
-    }
+    if( passedglobal ){
     
-    TVector3 SBS_zaxis( -sin(SBStheta), 0, cos(SBStheta) );
-    TVector3 SBS_xaxis(0, -1, 0 );
-    TVector3 SBS_yaxis = SBS_zaxis.Cross(SBS_xaxis).Unit();
-
-    TVector3 ppvect_global(T->ev_npx, T->ev_npy, T->ev_npz );
-    TVector3 ppunit_global = ppvect_global.Unit();
-
-    TVector3 ppunit_sbs( ppunit_global.Dot( SBS_xaxis ),
-			 ppunit_global.Dot( SBS_yaxis ),
-			 ppunit_global.Dot( SBS_zaxis ) );
-
-    TVector3 SBS_FT_zaxis( -sin(SBStracker_pitch) ,0,cos(SBStracker_pitch) );
-    TVector3 SBS_FT_yaxis( 0,1,0 );
-    TVector3 SBS_FT_xaxis = SBS_FT_yaxis.Cross(SBS_FT_zaxis).Unit();
-
-    // SBS_FT_zaxis.Print();
-    // SBS_FT_xaxis.Print();
-    
-    //Get FT Track:
-    int idx_FT_track = -1;
-    for( int itrack=0; itrack<T->Harm_FT_Track_ntracks; itrack++ ){
-      int MID = (*(T->Harm_FT_Track_MID))[itrack];
-      if( MID == 0 ) {
-	idx_FT_track = itrack;
-	break;
+      weight = T->ev_sigma * T->ev_solang * Lumi / Ngen_total;
+      
+      if( rsampling != 0 ){
+	weight = T->ev_solang * maxweight * Lumi / Ngen_total;
       }
-    }
-
-    //Get FPP1 Track:
-    int idx_FPP1_track = -1;
-
-    // for( int itrack=0; itrack<T->Harm_FPP1_Track_ntracks; itrack++ ){
-    //   int MID = (*(T->Harm_FPP1_Track_MID))[itrack];
-    //   if( MID == 0 || T->Harm_FPP1_Track_ntracks == 1 ) {
-    // 	idx_FPP1_track = itrack;
-    // 	break;
-    //   }
-    // }
-    if( T->Harm_FPP1_Track_ntracks == 1 ) idx_FPP1_track = 0;
-
-    //Get FPP2 Track:
-    int idx_FPP2_track = -1;
-
-    // for( int itrack=0; itrack<T->Harm_FPP2_Track_ntracks; itrack++ ){
-    //   int MID = (*(T->Harm_FPP2_Track_MID))[itrack];
-    //   if( MID == 0 || T->Harm_FPP1_Track_ntracks == 1 ) {
-    // 	idx_FPP2_track = itrack;
-    // 	break;
-    //   }
-    // }
-
-    if( T->Harm_FPP2_Track_ntracks == 1 && NFPP == 2 ) idx_FPP2_track = 0;
-
-    if( idx_FT_track >= 0 ){
-      TVector3 FT_track( (*(T->Harm_FT_Track_Xpfit))[idx_FT_track],
-			 (*(T->Harm_FT_Track_Ypfit))[idx_FT_track],
-			 1.0 );
-
-      FT_track = FT_track.Unit();
-
-      TVector3 FT_coord( (*(T->Harm_FT_Track_Xfit))[idx_FT_track],
-			 (*(T->Harm_FT_Track_Yfit))[idx_FT_track],
-			 0.0 );
       
-      TVector3 FT_track_SBS = FT_track.X() * SBS_FT_xaxis +
-	FT_track.Y() * SBS_FT_yaxis +
-	FT_track.Z() * SBS_FT_zaxis;
-
-      double thetabend = acos( FT_track_SBS.Dot( ppunit_sbs ) );
+      TVector3 SBS_zaxis( -sin(SBStheta), 0, cos(SBStheta) );
+      TVector3 SBS_xaxis(0, -1, 0 );
+      TVector3 SBS_yaxis = SBS_zaxis.Cross(SBS_xaxis).Unit();
       
+      TVector3 ppvect_global(T->ev_npx, T->ev_npy, T->ev_npz );
+      TVector3 ppunit_global = ppvect_global.Unit();
       
-      double pp_FT = (*(T->Harm_FT_Track_P))[idx_FT_track];
-      double etheta = T->ev_th;
-      double Eprime = T->ev_ep;
-      double ptheta = T->ev_nth;
-      double pp = T->ev_np;
-
-      // cout << "SBS theta = " << SBStheta * 57.3 << endl;
-      // cout << "FT track in SBS target coords = " << endl;
-      //FT_track_SBS.Print();
-      // cout << "Target track in SBS target coords = " << endl;
-      //ppunit_sbs.Print();
+      TVector3 ppunit_sbs( ppunit_global.Dot( SBS_xaxis ),
+			   ppunit_global.Dot( SBS_yaxis ),
+			   ppunit_global.Dot( SBS_zaxis ) );
       
-      //      cout << "pp, thetabend, pp*thetabend, BdL = " << pp << ", " << thetabend * 57.3 << ", " << pp*thetabend
-      //	   << ", " << pp*thetabend/0.3 << endl;
-
-      double gamma = sqrt(1.+pow(pp/Mp,2));
-      double chi = gamma*(mu_p - 1.0)*thetabend;
-      double sinchi = sin(chi);
-
-      hchideg->Fill( chi * 180.0/TMath::Pi() );
-      hchidegvsp->Fill( pp, chi * 180.0/TMath::Pi() );
+      TVector3 SBS_FT_zaxis( -sin(SBStracker_pitch) ,0,cos(SBStracker_pitch) );
+      TVector3 SBS_FT_yaxis( 0,1,0 );
+      TVector3 SBS_FT_xaxis = SBS_FT_yaxis.Cross(SBS_FT_zaxis).Unit();
       
-      double PT = T->ev_Pt;
-      double PL = T->ev_Pl;
+      // SBS_FT_zaxis.Print();
+      // SBS_FT_xaxis.Print();
       
-      double Q2 = T->ev_Q2;
-
-      double tau = Q2/(4.*pow(Mp,2));
-      double epsilon = pow( 1. + 2.*(1.+tau)*pow(tan(etheta/2.),2), -1 );
-
-      double kinfact = mu_p * sqrt(tau*(1.+epsilon)/(2.*epsilon));
-      double R = -kinfact * PT/PL;
-      
-      hQ2->Fill( Q2, weight );
-      hepsilon->Fill( epsilon, weight );
-      hetheta->Fill( etheta * 180.0/TMath::Pi(), weight );
-      hEprime->Fill( Eprime, weight );
-      hptheta->Fill( ptheta * 180.0/TMath::Pi(), weight );
-      hpp->Fill( pp, weight );
-
-      hECAL_sum->Fill( T->Earm_ECalTF1_det_esum, weight );
-      hHCAL_sum_all->Fill( T->Harm_HCalScint_det_esum, weight );
-
-      bool goodFPP1 = false;
-      
-      if( idx_FPP1_track >= 0 ){ 
-	TVector3 FPP1_track( (*(T->Harm_FPP1_Track_Xpfit))[idx_FPP1_track],
-			     (*(T->Harm_FPP1_Track_Ypfit))[idx_FPP1_track],
-			     1.0 );
-	FPP1_track = FPP1_track.Unit();
-
-	TVector3 FPP1_coord( (*(T->Harm_FPP1_Track_Xfit))[idx_FPP1_track],
-			     (*(T->Harm_FPP1_Track_Yfit))[idx_FPP1_track],
-			     0.0 );
-	
-	double thetaFPP1 = acos( FPP1_track.Dot( FT_track ) );
-	double pT1 = pp_FT*sin(thetaFPP1);
-	double Ay1 = Ayfunc->Eval( pT1, pp_FT );
-
-	//Calculate phi angles:
-	TVector3 yaxistemp(0,1,0);
-	TVector3 xaxistemp = yaxistemp.Cross(FT_track).Unit();
-	yaxistemp = FT_track.Cross(xaxistemp).Unit();
-
-	double phiFPP1 = TMath::ATan2( FPP1_track.Dot(yaxistemp), FPP1_track.Dot(xaxistemp) );
-	
-	double scloseFPP1,zcloseFPP1;
-
-	calc_sclose_zclose( FT_coord, FPP1_coord, FT_track, FPP1_track, scloseFPP1, zcloseFPP1 );
-
-	hsclose_FPP1->Fill( scloseFPP1*1000.0, weight );
-	htheta_FPP1->Fill( thetaFPP1*180./PI, weight );
-	
-	hPvstheta_FPP1->Fill( thetaFPP1*180.0/PI, (*(T->Harm_FPP1_Track_P))[idx_FPP1_track]/pp_FT, weight );
-
-	bool conetest1 = conetest( FT_coord, FT_track, thetaFPP1, zcloseFPP1, zback_FPP1 );
-
-	if( !conetest1 ) {
-	  htheta_FPP1_conetfail->Fill( thetaFPP1*180.0/PI, weight );
-	  hzclose_theta_FPP1_conetfail->Fill( zcloseFPP1, thetaFPP1*180./PI, weight );
-	} else {
-	  htheta_FPP1_conetpass->Fill( thetaFPP1*180.0/PI, weight );
+      //Get FT Track:
+      int idx_FT_track = -1;
+      for( int itrack=0; itrack<T->Harm_FT_Track_ntracks; itrack++ ){
+	int MID = (*(T->Harm_FT_Track_MID))[itrack];
+	if( MID == 0 ) {
+	  idx_FT_track = itrack;
+	  break;
 	}
+      }
+
+      //Get FPP1 Track:
+      int idx_FPP1_track = -1;
+
+      // for( int itrack=0; itrack<T->Harm_FPP1_Track_ntracks; itrack++ ){
+      //   int MID = (*(T->Harm_FPP1_Track_MID))[itrack];
+      //   if( MID == 0 || T->Harm_FPP1_Track_ntracks == 1 ) {
+      // 	idx_FPP1_track = itrack;
+      // 	break;
+      //   }
+      // }
+      if( T->Harm_FPP1_Track_ntracks == 1 ) idx_FPP1_track = 0;
+
+      //Get FPP2 Track:
+      int idx_FPP2_track = -1;
+
+      // for( int itrack=0; itrack<T->Harm_FPP2_Track_ntracks; itrack++ ){
+      //   int MID = (*(T->Harm_FPP2_Track_MID))[itrack];
+      //   if( MID == 0 || T->Harm_FPP1_Track_ntracks == 1 ) {
+      // 	idx_FPP2_track = itrack;
+      // 	break;
+      //   }
+      // }
+
+      if( T->Harm_FPP2_Track_ntracks == 1 && NFPP == 2 ) idx_FPP2_track = 0;
+
+      if( idx_FT_track >= 0 ){
+	TVector3 FT_track( (*(T->Harm_FT_Track_Xpfit))[idx_FT_track],
+			   (*(T->Harm_FT_Track_Ypfit))[idx_FT_track],
+			   1.0 );
+
+	FT_track = FT_track.Unit();
+
+	TVector3 FT_coord( (*(T->Harm_FT_Track_Xfit))[idx_FT_track],
+			   (*(T->Harm_FT_Track_Yfit))[idx_FT_track],
+			   0.0 );
+      
+	TVector3 FT_track_SBS = FT_track.X() * SBS_FT_xaxis +
+	  FT_track.Y() * SBS_FT_yaxis +
+	  FT_track.Z() * SBS_FT_zaxis;
+
+	double thetabend = acos( FT_track_SBS.Dot( ppunit_sbs ) );
+      
+      
+	double pp_FT = (*(T->Harm_FT_Track_P))[idx_FT_track];
+	double etheta = T->ev_th;
+	double Eprime = T->ev_ep;
+	double ptheta = T->ev_nth;
+	double pp = T->ev_np;
+
+	//These are both expressed in TRANSPORT coordinates:
+	TVector3 PolTgt(T->ev_Sx, T->ev_Sy, T->ev_Sz );
+	TVector3 PolFp( T->Harm_FT_Track_Sx->at(idx_FT_track),
+			T->Harm_FT_Track_Sy->at(idx_FT_track),
+			T->Harm_FT_Track_Sz->at(idx_FT_track) );
+
+	PolTgt = PolTgt.Unit();
+	PolFp = PolFp.Unit();
 	
-	//Only fill zclose histograms if sclose < smax:
-	if( scloseFPP1 <= smax_FPP1 ){
-	  if( pT1 >= pTmin ) hzclose_FPP1->Fill( zcloseFPP1, weight );
-	  if( conetest1 ) hzclose_theta_FPP1->Fill( zcloseFPP1, thetaFPP1*180./PI, weight );
-	}
+	TVector3 spin_rotation_axis = (PolTgt.Cross(PolFp)).Unit();
+	double spin_rotation_angle = acos( PolTgt.Dot(PolFp));
 
+	//Let's express the target polarization and focal plane polarization
+	// in the coordinate system comoving with the proton trajectory
+
+	TVector3 PolTgtGlobal = PolTgt.X() * SBS_xaxis + PolTgt.Y() * SBS_yaxis + PolTgt.Z() * SBS_zaxis;
+	TVector3 FT_zaxis_global = SBS_FT_zaxis.X() * SBS_xaxis + SBS_FT_zaxis.Y() * SBS_yaxis + SBS_FT_zaxis.Z() * SBS_zaxis;
+	TVector3 FT_xaxis_global = SBS_FT_xaxis.X() * SBS_xaxis + SBS_FT_xaxis.Y() * SBS_yaxis + SBS_FT_xaxis.Z() * SBS_zaxis;
+	TVector3 FT_yaxis_global = SBS_FT_yaxis.X() * SBS_xaxis + SBS_FT_yaxis.Y() * SBS_yaxis + SBS_FT_yaxis.Z() * SBS_zaxis;
+
+	TVector3 PolFpGlobal = PolFp.X() * FT_xaxis_global + PolFp.Y() * FT_yaxis_global + PolFp.Z() * FT_zaxis_global;
+
+	TVector3 zaxis_comoving_tgt = ppunit_global;
+
+	TVector3 zaxis_global(0,0,1);
+	//k cross k':
+	TVector3 xaxis_comoving_tgt = zaxis_global.Cross( zaxis_comoving_tgt ).Unit();
+	TVector3 yaxis_comoving_tgt = zaxis_comoving_tgt.Cross(xaxis_comoving_tgt).Unit();
+
+	TVector3 PolTgtComoving( PolTgtGlobal.Dot( xaxis_comoving_tgt ),
+				 PolTgtGlobal.Dot( yaxis_comoving_tgt ),
+				 PolTgtGlobal.Dot( zaxis_comoving_tgt ) );
+	TVector3 zaxis_comoving_fp = FT_track.X() * FT_xaxis_global + FT_track.Y() * FT_yaxis_global + FT_track.Z() * FT_zaxis_global;
+
+	//since the bend is primarily vertical, let's choose the y axis of the comoving coordinates at the fp to be the unit vector normal to the trajectory bend plane: 
+	TVector3 yaxis_comoving_fp = (zaxis_comoving_fp.Cross( zaxis_comoving_tgt ) ).Unit();
+	TVector3 xaxis_comoving_fp = yaxis_comoving_fp.Cross( zaxis_comoving_fp ).Unit();
+
+	TVector3 PolFpComoving( PolFpGlobal.Dot( xaxis_comoving_fp ),
+				PolFpGlobal.Dot( yaxis_comoving_fp ),
+				PolFpGlobal.Dot( zaxis_comoving_fp ) );
+
+	double spin_rotation_angle_comoving = acos( PolFpComoving.Dot( PolTgtComoving ));
+
+	TVector3 spin_rotation_axis_comoving = (PolTgtComoving.Cross( PolFpComoving )).Unit();
+
+	//double chitrue = spin_rotation_angle_comoving;
+
+	TRotation Rspin;
+	Rspin.Rotate( spin_rotation_angle_comoving, spin_rotation_axis_comoving );
+
+	//double chitrue = acos( Rspin.XX() );
+
+	double chitrue = spin_rotation_angle - thetabend;
 	
-	if( pT1 >= pTmin && pT1 <= pTmax && scloseFPP1 <= smax_FPP1 && zcloseFPP1 >= zmin_FPP1
-	    && zcloseFPP1 <= zmax_FPP1 && (conetest1||conetflag == 0 ) ){
-	  NAy2_sum += weight * pow( beampol * Ay1, 2 );
-	  goodFPP1 = true;
-	  Ngoodevent_sum += weight;
-	  PT_sum += PT*weight * pow( beampol * Ay1, 2 );
-	  PL_sum += PL*weight * pow( beampol * Ay1, 2 );
-	  sinchi_sum += sinchi * weight * pow( beampol * Ay1, 2 );
-	  Q2_sum += Q2 * weight * pow( beampol * Ay1, 2 );
-	  epsilon_sum += epsilon * weight * pow( beampol * Ay1, 2 );
-	  kinfact_sum += mu_p * sqrt(tau*(1.+epsilon)/(2.*epsilon)) * weight * pow( beampol * Ay1, 2 );
-	  FFratio_sum += R * weight * pow( beampol * Ay1, 2 );
+	//These are the absolute spin rotations
+	// cout << "SBS theta = " << SBStheta * 57.3 << endl;
+	// cout << "FT track in SBS target coords = " << endl;
+	//FT_track_SBS.Print();
+	// cout << "Target track in SBS target coords = " << endl;
+	//ppunit_sbs.Print();
+      
+	//      cout << "pp, thetabend, pp*thetabend, BdL = " << pp << ", " << thetabend * 57.3 << ", " << pp*thetabend
+	//	   << ", " << pp*thetabend/0.3 << endl;
 
-	  hphi_FPP1->Fill( phiFPP1*180.0/PI, weight );
+	double gamma = sqrt(1.+pow(pp/Mp,2));
+	double chi = gamma*(mu_p - 1.0)*thetabend;
+	double sinchi = sin(chi);
 
-	  //Sample helicity; asymmetry goes like:
-	  // Asym = Ay * Pe * (PT cos(phi) +PL sin(chi) sin(phi));
-	  // Asym ~= PyFPP cos(phi) - PxFPP sin(phi)
-	  // PyFPP ~= PT
-	  // PxFPP ~= -PL sin chi
-	  double Asym = Ay1 * beampol * (PT*cos(phiFPP1)+PL*sinchi*sin(phiFPP1));
-	  //Asym = (f+ - f-)/(f+ + f-)
-	  double prob_hplus = 0.5*(1.0+Asym);
+	//What about the rotation RELATIVE to the trajectory? 
 
-	  if( num.Uniform() < prob_hplus ){
-	    hphiplus_FPP1->Fill( phiFPP1*180.0/PI, weight );
+	hchideg->Fill( chi * 180.0/TMath::Pi() );
+	hchidegvsp->Fill( pp, chi * 180.0/TMath::Pi() );
+
+	hchitruedeg->Fill( chitrue * 180.0/TMath::Pi() );
+	hchitruedeg_vs_p->Fill( pp, chitrue * 180.0/TMath::Pi() );
+	
+	double PT = T->ev_Pt;
+	double PL = T->ev_Pl;
+      
+	double Q2 = T->ev_Q2;
+
+	double tau = Q2/(4.*pow(Mp,2));
+	double epsilon = pow( 1. + 2.*(1.+tau)*pow(tan(etheta/2.),2), -1 );
+
+	double kinfact = mu_p * sqrt(tau*(1.+epsilon)/(2.*epsilon));
+	double R = -kinfact * PT/PL;
+      
+	hQ2->Fill( Q2, weight );
+	hepsilon->Fill( epsilon, weight );
+	hetheta->Fill( etheta * 180.0/TMath::Pi(), weight );
+	hEprime->Fill( Eprime, weight );
+	hptheta->Fill( ptheta * 180.0/TMath::Pi(), weight );
+	hpp->Fill( pp, weight );
+
+	hzvertex->Fill( T->ev_vz, weight );
+	hQ2_zvertex->Fill( T->ev_vz, Q2, weight );
+	
+	hECAL_sum->Fill( T->Earm_ECalTF1_det_esum, weight );
+	hHCAL_sum_all->Fill( T->Harm_HCalScint_det_esum, weight );
+
+	bool goodFPP1 = false;
+      
+	if( idx_FPP1_track >= 0 ){ 
+	  TVector3 FPP1_track( (*(T->Harm_FPP1_Track_Xpfit))[idx_FPP1_track],
+			       (*(T->Harm_FPP1_Track_Ypfit))[idx_FPP1_track],
+			       1.0 );
+	  FPP1_track = FPP1_track.Unit();
+
+	  TVector3 FPP1_coord( (*(T->Harm_FPP1_Track_Xfit))[idx_FPP1_track],
+			       (*(T->Harm_FPP1_Track_Yfit))[idx_FPP1_track],
+			       0.0 );
+	
+	  double thetaFPP1 = acos( FPP1_track.Dot( FT_track ) );
+	  double pT1 = pp_FT*sin(thetaFPP1);
+	  double Ay1 = Ayfunc->Eval( pT1, pp_FT );
+
+	  //Calculate phi angles:
+	  TVector3 yaxistemp(0,1,0);
+	  TVector3 xaxistemp = yaxistemp.Cross(FT_track).Unit();
+	  yaxistemp = FT_track.Cross(xaxistemp).Unit();
+
+	  double phiFPP1 = TMath::ATan2( FPP1_track.Dot(yaxistemp), FPP1_track.Dot(xaxistemp) );
+	
+	  double scloseFPP1,zcloseFPP1;
+
+	  calc_sclose_zclose( FT_coord, FPP1_coord, FT_track, FPP1_track, scloseFPP1, zcloseFPP1 );
+
+	  hsclose_FPP1->Fill( scloseFPP1*1000.0, weight );
+	  htheta_FPP1->Fill( thetaFPP1*180./PI, weight );
+	
+	  hPvstheta_FPP1->Fill( thetaFPP1*180.0/PI, (*(T->Harm_FPP1_Track_P))[idx_FPP1_track]/pp_FT, weight );
+
+	  bool conetest1 = conetest( FT_coord, FT_track, thetaFPP1, zcloseFPP1, zback_FPP1 );
+
+	  if( !conetest1 ) {
+	    htheta_FPP1_conetfail->Fill( thetaFPP1*180.0/PI, weight );
+	    hzclose_theta_FPP1_conetfail->Fill( zcloseFPP1, thetaFPP1*180./PI, weight );
 	  } else {
-	    hphiminus_FPP1->Fill( phiFPP1*180.0/PI, weight );
+	    htheta_FPP1_conetpass->Fill( thetaFPP1*180.0/PI, weight );
+	  }
+	
+	  //Only fill zclose histograms if sclose < smax:
+	  if( scloseFPP1 <= smax_FPP1 ){
+	    if( pT1 >= pTmin ) hzclose_FPP1->Fill( zcloseFPP1, weight );
+	    if( conetest1 ) hzclose_theta_FPP1->Fill( zcloseFPP1, thetaFPP1*180./PI, weight );
+	  }
+
+	
+	  if( pT1 >= pTmin && pT1 <= pTmax && scloseFPP1 <= smax_FPP1 && zcloseFPP1 >= zmin_FPP1
+	      && zcloseFPP1 <= zmax_FPP1 && (conetest1||conetflag == 0 ) ){
+	    NAy2_sum += weight * pow( beampol * Ay1, 2 );
+	    goodFPP1 = true;
+	    Ngoodevent_sum += weight;
+	    PT_sum += PT*weight * pow( beampol * Ay1, 2 );
+	    PL_sum += PL*weight * pow( beampol * Ay1, 2 );
+	    sinchi_sum += sinchi * weight * pow( beampol * Ay1, 2 );
+	    Q2_sum += Q2 * weight * pow( beampol * Ay1, 2 );
+	    epsilon_sum += epsilon * weight * pow( beampol * Ay1, 2 );
+	    kinfact_sum += mu_p * sqrt(tau*(1.+epsilon)/(2.*epsilon)) * weight * pow( beampol * Ay1, 2 );
+	    FFratio_sum += R * weight * pow( beampol * Ay1, 2 );
+
+	    hphi_FPP1->Fill( phiFPP1*180.0/PI, weight );
+
+	    //Sample helicity; asymmetry goes like:
+	    // Asym = Ay * Pe * (PT cos(phi) +PL sin(chi) sin(phi));
+	    // Asym ~= PyFPP cos(phi) - PxFPP sin(phi)
+	    // PyFPP ~= PT
+	    // PxFPP ~= -PL sin chi
+	    double Asym = Ay1 * beampol * (PT*cos(phiFPP1)+PL*sinchi*sin(phiFPP1));
+	    //Asym = (f+ - f-)/(f+ + f-)
+	    double prob_hplus = 0.5*(1.0+Asym);
+
+	    if( num.Uniform() < prob_hplus ){
+	      hphiplus_FPP1->Fill( phiFPP1*180.0/PI, weight );
+	    } else {
+	      hphiminus_FPP1->Fill( phiFPP1*180.0/PI, weight );
+	    }
+	  
+
+	    hHCAL_sum_goodFPP1->Fill( T->Harm_HCalScint_det_esum, weight );
+
+	    Ngoodevent_sum1 += weight;
+	  }
+	
+	  hpT_FPP1->Fill( pT1, weight );
+	}
+	if( idx_FPP2_track >= 0 ){
+	  TVector3 FPP2_track( (*(T->Harm_FPP2_Track_Xpfit))[idx_FPP2_track],
+			       (*(T->Harm_FPP2_Track_Ypfit))[idx_FPP2_track],
+			       1.0 );
+	
+	  FPP2_track = FPP2_track.Unit();
+	
+	  TVector3 FPP2_coord( (*(T->Harm_FPP2_Track_Xfit))[idx_FPP2_track],
+			       (*(T->Harm_FPP2_Track_Yfit))[idx_FPP2_track],
+			       0.0 );
+	
+	  double thetaFPP2 = acos( FPP2_track.Dot( FT_track ) );
+	  double pT2 = pp_FT*sin(thetaFPP2);
+	  double Ay2 = Ayfunc->Eval( pT2, pp_FT );
+	
+	  hpT_FPP2->Fill( pT2, weight );
+	
+	  //Calculate phi angles:
+	  TVector3 yaxistemp(0,1,0);
+	  TVector3 xaxistemp = yaxistemp.Cross(FT_track).Unit();
+	  yaxistemp = FT_track.Cross(xaxistemp).Unit();
+	  
+	  double phiFPP2 = TMath::ATan2( FPP2_track.Dot(yaxistemp), FPP2_track.Dot(xaxistemp) );
+	
+	  double scloseFPP2,zcloseFPP2;
+	
+	  calc_sclose_zclose( FT_coord, FPP2_coord, FT_track, FPP2_track, scloseFPP2, zcloseFPP2 );
+	
+	  hsclose_FPP2->Fill( scloseFPP2*1000.0, weight );
+	  htheta_FPP2->Fill( thetaFPP2*180./PI, weight );
+
+	  hPvstheta_FPP2->Fill( thetaFPP2*180.0/PI, (*(T->Harm_FPP2_Track_P))[idx_FPP2_track]/pp_FT, weight );
+
+	  bool conetest2 = conetest( FT_coord, FT_track, thetaFPP2, zcloseFPP2, zback_FPP2 );
+
+	  if( !conetest2 ) {
+	    htheta_FPP2_conetfail->Fill( thetaFPP2*180.0/PI, weight );
+	    hzclose_theta_FPP2_conetfail->Fill( zcloseFPP2, thetaFPP2*180./PI, weight );
+	  } else {
+	    htheta_FPP2_conetpass->Fill( thetaFPP2*180.0/PI, weight );
+	  }
+	
+	  if( scloseFPP2 <= smax_FPP2 ){
+	    if( pT2 >= pTmin ) hzclose_FPP2->Fill( zcloseFPP2, weight );
+	    if( conetest2 ) hzclose_theta_FPP2->Fill( zcloseFPP2, thetaFPP2*180./PI, weight );
 	  }
 	  
+	  if( pT2 >= pTmin && pT2 <= pTmax && scloseFPP2 <= smax_FPP2 &&
+	      zcloseFPP2 >= zmin_FPP2 && zcloseFPP2 <= zmax_FPP2 && (conetest2 || conetflag==0) && !goodFPP1 ){
+	    NAy2_sum += weight * pow( beampol * Ay2, 2 );
+	    Ngoodevent_sum += weight;
+	    PT_sum += PT*weight * pow( beampol * Ay2, 2 );
+	    PL_sum += PL*weight * pow( beampol * Ay2, 2 );
+	    sinchi_sum += sinchi * weight * pow( beampol * Ay2, 2 );
+	    Q2_sum += Q2 * weight * pow( beampol * Ay2, 2 );
+	    epsilon_sum += epsilon * weight * pow( beampol * Ay2, 2 );
+	    kinfact_sum += mu_p * sqrt(tau*(1.+epsilon)/(2.*epsilon)) * weight * pow( beampol * Ay2, 2 );
+	    FFratio_sum += R * weight * pow( beampol * Ay2, 2 );
 
-	  hHCAL_sum_goodFPP1->Fill( T->Harm_HCalScint_det_esum, weight );
+	    hHCAL_sum_goodFPP2->Fill( T->Harm_HCalScint_det_esum, weight );
+	    hphi_FPP2->Fill( phiFPP2*180.0/PI, weight );
 
-	  Ngoodevent_sum1 += weight;
+	    Ngoodevent_sum2 += weight;
+	  }
+	
 	}
-	
-	hpT_FPP1->Fill( pT1, weight );
-      }
-      if( idx_FPP2_track >= 0 ){
-	TVector3 FPP2_track( (*(T->Harm_FPP2_Track_Xpfit))[idx_FPP2_track],
-			     (*(T->Harm_FPP2_Track_Ypfit))[idx_FPP2_track],
-			     1.0 );
-	
-	FPP2_track = FPP2_track.Unit();
-	
-	TVector3 FPP2_coord( (*(T->Harm_FPP2_Track_Xfit))[idx_FPP2_track],
-			     (*(T->Harm_FPP2_Track_Yfit))[idx_FPP2_track],
-			     0.0 );
-	
-	double thetaFPP2 = acos( FPP2_track.Dot( FT_track ) );
-	double pT2 = pp_FT*sin(thetaFPP2);
-	double Ay2 = Ayfunc->Eval( pT2, pp_FT );
-	
-	hpT_FPP2->Fill( pT2, weight );
-	
-	//Calculate phi angles:
-	TVector3 yaxistemp(0,1,0);
-	TVector3 xaxistemp = yaxistemp.Cross(FT_track).Unit();
-	yaxistemp = FT_track.Cross(xaxistemp).Unit();
-	  
-	double phiFPP2 = TMath::ATan2( FPP2_track.Dot(yaxistemp), FPP2_track.Dot(xaxistemp) );
-	
-	double scloseFPP2,zcloseFPP2;
-	
-	calc_sclose_zclose( FT_coord, FPP2_coord, FT_track, FPP2_track, scloseFPP2, zcloseFPP2 );
-	
-	hsclose_FPP2->Fill( scloseFPP2*1000.0, weight );
-	htheta_FPP2->Fill( thetaFPP2*180./PI, weight );
-
-	hPvstheta_FPP2->Fill( thetaFPP2*180.0/PI, (*(T->Harm_FPP2_Track_P))[idx_FPP2_track]/pp_FT, weight );
-
-	bool conetest2 = conetest( FT_coord, FT_track, thetaFPP2, zcloseFPP2, zback_FPP2 );
-
-	if( !conetest2 ) {
-	  htheta_FPP2_conetfail->Fill( thetaFPP2*180.0/PI, weight );
-	  hzclose_theta_FPP2_conetfail->Fill( zcloseFPP2, thetaFPP2*180./PI, weight );
-	} else {
-	  htheta_FPP2_conetpass->Fill( thetaFPP2*180.0/PI, weight );
-	}
-	
-	if( scloseFPP2 <= smax_FPP2 ){
-	  if( pT2 >= pTmin ) hzclose_FPP2->Fill( zcloseFPP2, weight );
-	  if( conetest2 ) hzclose_theta_FPP2->Fill( zcloseFPP2, thetaFPP2*180./PI, weight );
-	}
-	  
-	if( pT2 >= pTmin && pT2 <= pTmax && scloseFPP2 <= smax_FPP2 &&
-	    zcloseFPP2 >= zmin_FPP2 && zcloseFPP2 <= zmax_FPP2 && (conetest2 || conetflag==0) && !goodFPP1 ){
-	  NAy2_sum += weight * pow( beampol * Ay2, 2 );
-	  Ngoodevent_sum += weight;
-	  PT_sum += PT*weight * pow( beampol * Ay2, 2 );
-	  PL_sum += PL*weight * pow( beampol * Ay2, 2 );
-	  sinchi_sum += sinchi * weight * pow( beampol * Ay2, 2 );
-	  Q2_sum += Q2 * weight * pow( beampol * Ay2, 2 );
-	  epsilon_sum += epsilon * weight * pow( beampol * Ay2, 2 );
-	  kinfact_sum += mu_p * sqrt(tau*(1.+epsilon)/(2.*epsilon)) * weight * pow( beampol * Ay2, 2 );
-	  FFratio_sum += R * weight * pow( beampol * Ay2, 2 );
-
-	  hHCAL_sum_goodFPP2->Fill( T->Harm_HCalScint_det_esum, weight );
-	  hphi_FPP2->Fill( phiFPP2*180.0/PI, weight );
-
-	  Ngoodevent_sum2 += weight;
-	}
-	
       }
     }
-    
   }
   
 
@@ -669,6 +749,6 @@ void GEP_FOM_quick_and_dirty(const char *configfilename, const char *outfilename
   hphidiff->Divide(hphi_FPP1);
   
   
-  elist_temp->Delete();
+  //  elist_temp->Delete();
   fout->Write();
 }

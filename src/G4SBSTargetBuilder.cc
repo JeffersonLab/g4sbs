@@ -98,8 +98,12 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fHadronFilterMaterial = G4String("Aluminum");
 
 
+<<<<<<< HEAD
   fUseHadronFilter = true;
   fChkOvLaps = true;
+=======
+  fUseHadronFilter = false;
+>>>>>>> 2df031e5bdf4a7314a37d98a74ec4e0a19d9a57a
 }
 
 G4SBSTargetBuilder::~G4SBSTargetBuilder(){;}
@@ -773,8 +777,8 @@ void G4SBSTargetBuilder::BuildStandardScatCham(G4LogicalVolume *worldlog ){
   // Left snout opening:
   G4double SCLeftSnoutDepth = 4.0*inch;// x
   G4double SCLeftSnoutWidth = 16.338*inch;// y
-  G4double SCLeftSnoutHeight = 11.0*inch; //z
-  G4double SCLeftSnoutHoleHeight = 7.0*inch;
+  G4double SCLeftSnoutHeight = 18.0*inch; //z
+  G4double SCLeftSnoutHoleHeight = 14.0*inch;
   G4double SCLeftSnoutHoleAngleApert = 30.0*deg;
   G4double SCLeftSnoutYOffset = 0.50*inch;
   
@@ -1375,9 +1379,11 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   
   rot_temp = new G4RotationMatrix;
   rot_temp->rotateX( -90.0*deg );
+
+  //rotation about X by -90 degrees sends 
   
   //Call BuildStandardCryoTarget HERE !
-  BuildStandardCryoTarget(ScatChamber_log, rot_temp, G4ThreeVector(0, -TargetCenter_zoffset, 0));
+  BuildStandardCryoTarget(ScatChamber_log, rot_temp, G4ThreeVector(fTargPos.x(), -(TargetCenter_zoffset+fTargPos.z()), fTargPos.y()));
 
   //Also call BuildHadronFilter here:
   

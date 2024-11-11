@@ -13,11 +13,16 @@ void get_trigger_thresholds_gep( const char *rootfilename, const char *outfilena
   TH2D *hnodesums_ECAL;
   TH2D *hnodesums_HCAL;
 
+  TH1D *hEsum_smear_norm_ECAL, *hEsum_smear_norm_HCAL;
+  
   TFile *fin = new TFile(rootfilename,"READ");
   fin->GetObject( "hEsum_smear_vs_node_ECAL_max", hnodesums_ECAL );
   //fin->GetObject( "hnphesum_vs_node_ECAL_all", hnodesums_ECAL );
   fin->GetObject( "hEsum_smear_vs_node_HCALmax_FPP1cut", hnodesums_HCAL );
 
+  fin->GetObject("hEsum_smear_norm_HCAL_max_FPP1cut", hEsum_smear_norm_HCAL );
+  fin->GetObject("hEsum_smear_norm_ECAL_max", hEsum_smear_norm_ECAL );
+  
   TF1 *gaussfunc = new TF1("gaussfunc","[0]*exp(-0.5*pow((x-[1])/[2],2))", 0.0,5000.0);
   TF1 *gaussplusexpo = new TF1("gaussplusexpo","[0]*exp(-[1]*x)+[2]*exp(-0.5*pow((x-[3])/[4],2))",0.0,5000.0 );
 

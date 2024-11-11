@@ -114,6 +114,10 @@ public:
 
   G4bool UseRad(){return fUseRad;}
   G4double RadZoffset(){return fRadZoffset;}
+
+  G4ThreeVector GetTargPos() const { return fTargPos; }
+  void SetTargPos( G4ThreeVector pos ){ fTargPos = pos; }
+
   
   void BuildRadiator(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector );
   

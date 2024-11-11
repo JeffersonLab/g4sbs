@@ -32,11 +32,11 @@ void rootlogon(){
     }
   }
   
-  //gSystem->AddIncludePath(" -I/Users/puckett/G4SBS/G4SBSv11/g4sbs/include");
-  //gSystem->AddIncludePath(" -I/Users/puckett/G4SBS/G4SBSv11/install/include");
-  gSystem->AddIncludePath(" -I/Users/puckett/G4SBS/G4SBSv11/install/include");
+  //gSystem->AddIncludePath(" -I/work/halla/sbs/puckett/g4sbs/include");
+  //gSystem->AddIncludePath(" -I/work/halla/sbs/puckett/install_g4sbs/include");
+  gSystem->AddIncludePath(" -I/work/halla/sbs/puckett/install_g4sbs/include");
 
-  TString libname = "/Users/puckett/G4SBS/G4SBSv11/install/lib/libg4sbsroot.so";
+  TString libname = "/work/halla/sbs/puckett/install_g4sbs/lib64/libg4sbsroot.so";
 
   SysInfo_t sysinfo;
   gSystem->GetSysInfo( &sysinfo );

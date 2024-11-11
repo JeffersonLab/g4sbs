@@ -286,6 +286,10 @@ G4SBSMessenger::G4SBSMessenger(){
   SIMCfileCmd = new G4UIcmdWithAString("/g4sbs/simcfile",this);
   SIMCfileCmd->SetGuidance("Name of ROOT file containing SIMC events as a ROOT tree");
   SIMCfileCmd->SetParameterName("fname",false);
+
+  FirstEventCmd = new G4UIcmdWithAnInteger("/g4sbs/firstevent",this);
+  FirstEventCmd->SetGuidance("Start simulation at event i in input file (SIMC or PYTHIA)");
+  FirstEventCmd->SetParameterName("firstevent",false);
   
   // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   expCmd = new G4UIcmdWithAString("/g4sbs/exp",this);
@@ -376,6 +380,11 @@ G4SBSMessenger::G4SBSMessenger(){
   tgtDiamCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/targdiam",this);
   tgtDiamCmd->SetGuidance("Cryotarget or gas target cell diameter (assumed cylindrical), applies to LH2/LD2/H2/3He");
   tgtDiamCmd->SetParameterName("targdiam", false);
+
+  TargOffsetCmd = new G4UIcmdWith3VectorAndUnit( "/g4sbs/targpos",this );
+  TargOffsetCmd->SetGuidance("Target position offset (relative to nominal)");
+  TargOffsetCmd->SetGuidance("Requires three vector (x,y,z) position in global coordinates and unit");
+  TargOffsetCmd->SetParameterName("tgtx0", "tgty0", "tgtz0", false );
   
   // SchamGasTgtCmd = new G4UIcmdWithAnInteger("/g4sbs/schbrflag",this);
   // SchamGasTgtCmd->SetGuidance("Build evacuated scattering chamber for gas target? (1=yes, 0=no)");
@@ -1101,15 +1110,30 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
 
     //If the generator is PYTHIA, don't try to generate more events than we have available:
     if( fevgen->GetKine() == G4SBS::kPYTHIA6 ){
-      if( fevgen->GetPythiaChain()->GetEntries() < nevt ){
-	nevt = fevgen->GetPythiaChain()->GetEntries();
-      }
+      // At this point all parameters of event generation should be set: 
+      // We WANT to simulate from firstevent to firstevent + Nevt - 1
+      long firstevt = fevgen->GetFirstEvent();
+      //long lastevt = firstevt + nevt - 1;
+      // events in chain run from 0 to nentries-1
+
+      long lastevt_chain = fevgen->GetPythiaChain()->GetEntries()-1;
+      nevt = std::min( long(nevt), lastevt_chain-firstevt + 1 );
+      
+      // if( fevgen->GetPythiaChain()->GetEntries() < nevt ){
+      // 	nevt = fevgen->GetPythiaChain()->GetEntries();
+      // }
       fevgen->InitializePythia6_Tree();
     }
     if( fevgen->GetKine() == G4SBS::kSIMC ){
-      if( fevgen->GetSIMCChain()->GetEntries() < nevt ){
-	nevt = fevgen->GetSIMCChain()->GetEntries();
-      }
+      //Also allow for starting at a different entry than zero in the SIMC chain:
+      long firstevt = fevgen->GetFirstEvent();
+
+      long lastevt_chain = fevgen->GetPythiaChain()->GetEntries()-1;
+      nevt = std::min( long(nevt), lastevt_chain-firstevt + 1 );
+      
+      // if( fevgen->GetSIMCChain()->GetEntries() < nevt ){
+      // 	nevt = fevgen->GetSIMCChain()->GetEntries();
+      // }
       fevgen->InitializeSIMC_Tree();
     }
 
@@ -1466,6 +1490,13 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fevgen->LoadSIMCChain( newValue );
   }
 
+  if( cmd == FirstEventCmd ){
+    G4int n = FirstEventCmd->GetNewIntValue(newValue);
+    if( n >= 0 ){
+      fevgen->SetFirstEvent( n );
+    }
+  }
+  
   if( cmd == expCmd ){
     bool validcmd = false;
     if( newValue.compareTo("gep") == 0 ){
@@ -1949,6 +1980,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fTargetBuilder->SetTargDiameter(Dcell);
   }
 
+  if( cmd == TargOffsetCmd ){
+    G4ThreeVector pos = TargOffsetCmd->GetNew3VectorValue( newValue );
+    fdetcon->fTargetBuilder->SetTargPos( pos );
+    fevgen->SetTargZoffset( pos.z() );
+  }
+  
   // if( cmd == SchamGasTgtCmd ){
   //   G4int flag = SchamGasTgtCmd->GetNewIntValue( newValue );
   //   fdetcon->fTargetBuilder->SetSchamFlag( flag );

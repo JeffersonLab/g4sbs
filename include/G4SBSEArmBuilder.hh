@@ -50,12 +50,17 @@ public:
   
   void SetGEMfrontend(bool b ){ fBuildGEMfrontend = b; }
 
+  void SetECALVertOffset(double a){fECALVertOffset = a;}
+  void SetECALHorizOffset(double a){fECALHorizOffset = a;}
+
   void MakeHallCGEM(G4LogicalVolume *);
   
   double fBBang;
   double fBBdist;
   double fBBCaldist;
 
+  double fECALVertOffset;
+  double fECALHorizOffset;
   //G4SBSBigBiteField *fbbfield; //Why do we need this in both EArmBuilder and DetectorConstruction?
 
   double fRICHdist; //distance from target of RICH detector

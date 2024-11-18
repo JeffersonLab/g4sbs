@@ -647,6 +647,14 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
   SBSLeadOptionCmd->SetParameterName("uselead",false);
 
+  ECALVertOffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ecalvertoffset",this);
+  ECALVertOffsetCmd->SetGuidance("Vertical offset of ecal");
+  ECALVertOffsetCmd->SetParameterName("ecaloffsetvertical",false);
+
+  ECALHorizOffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ecalhorizoffset",this);
+  ECALHorizOffsetCmd->SetGuidance("Horizontal offset of ecal relative to frame center alignment");
+  ECALHorizOffsetCmd->SetParameterName("ecaloffsethorizontal",false);
+
   GENRPAnalyzerOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/genrpAnalyzer",this);
   GENRPAnalyzerOptionCmd->SetGuidance("GEnRP Analyzer configuration: 0=none+no beamline PR; 1=none, 2=Cu+Gla(para), 3=Cu+Gla(perp), 4=Cu+CGEN");
   GENRPAnalyzerOptionCmd->SetParameterName("genrpAnalyzer",false);
@@ -2000,6 +2008,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4cout << "/g4sbs/richgas invoked, setting RICH gas to " << gasname << G4endl;
     
     fdetcon->fHArmBuilder->SetRICHgas( gasname );
+  }
+
+  if( cmd == ECALVertOffsetCmd ){
+    G4double v = ECALVertOffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fEArmBuilder->SetECALVertOffset( v );
+  }
+  
+  if( cmd == ECALHorizOffsetCmd ){
+    G4double v = ECALHorizOffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fEArmBuilder->SetECALHorizOffset( v );
   }
   
   if( cmd == hcaldistCmd ){

@@ -978,21 +978,21 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
       RearClamp_log->SetVisAttributes(clampVisAtt);
     } // Rear clamp log (GEp)
-
+    /*
     G4RotationMatrix *rot_copper = new G4RotationMatrix;
 
+    rot_copper->rotateY( 17.0*deg + 4.4*deg);
 
-    rot_copper->rotateY( f48D48ang + 4.0*deg);
+    G4Box *copper_shield = new G4Box("copper_shield", (22.0*2.54*cm)/2.0, (22.0*2.54*cm)/2.0, (2.54*cm)/2.0);
 
-    G4Box *copper_shield = new G4Box("copper_shield", (22.0*2.54*cm)/2.0, (22.0*2.54*cm)/2.0, fLeadWallThick/2.0);
+    G4LogicalVolume *copper_shield_log = new G4LogicalVolume( copper_shield, GetMaterial("Copper"), "copper_shield_log" );
 
-     G4LogicalVolume *copper_shield_log = new G4LogicalVolume( copper_shield, GetMaterial("Copper"), "copper_shield_log" );
-
-     G4ThreeVector copper_shield_pos(RearClamp_pos.X(), RearClamp_pos.Y(), RearClamp_pos.Z() - 120.0*cm);
-     G4ThreeVector copper_shield_pos( -FrontClamp_r*sin( f48D48ang ) + FrontClamp_xoffset*cos(f48D48ang) - 7.0*cm, 0.0, FrontClamp_r*cos(f48D48ang) + FrontClamp_xoffset*sin(f48D48ang) - 12.0*cm);
-
-     new G4PVPlacement( rot_copper, copper_shield_pos, copper_shield_log, "copper_shield_phys", motherlog, false, 0, false );
-
+    //G4ThreeVector copper_shield_pos(RearClamp_pos.X(), RearClamp_pos.Y(), RearClamp_pos.Z() - 120.0*cm);
+    //G4ThreeVector copper_shield_pos( -FrontClamp_r*sin( f48D48ang ) + FrontClamp_xoffset*cos(f48D48ang) - 7.0*cm, 0.0, FrontClamp_r*cos(f48D48ang) + FrontClamp_xoffset*sin(f48D48ang) - 12.0*cm);
+    G4ThreeVector copper_shield_pos(-50.0*cm, 0.0, 103.0*cm); 
+    
+    new G4PVPlacement( rot_copper, copper_shield_pos, copper_shield_log, "copper_shield_phys", motherlog, false, 0, false );
+    */
 
     
     //Make lead shielding in clamp:
@@ -4208,7 +4208,7 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     
     G4ThreeVector lead_wall4_pos = G4ThreeVector( 23.75*2.54*cm, trkr_yoff[1] - (30.0*cm), trkr_zpos[1] -317.0*cm -6.1*GEM_z_spacing[1] + 60.0*2.54*cm );
     
-    new G4PVPlacement( 0, lead_wall4_pos, lead_wall4_log, "lead_wall4_phys", Mother, false, 0 );
+    //new G4PVPlacement( 0, lead_wall4_pos, lead_wall4_log, "lead_wall4_phys", Mother, false, 0 );
     
     
     

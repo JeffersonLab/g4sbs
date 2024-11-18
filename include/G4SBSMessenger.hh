@@ -192,6 +192,9 @@ private:
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
   G4UIcmdWithAnInteger      *GENRPAnalyzerOptionCmd;
 
+  G4UIcmdWithADoubleAndUnit *ECALVertOffsetCmd;
+  G4UIcmdWithADoubleAndUnit *ECALHorizOffsetCmd;
+
   G4UIcmdWithADoubleAndUnit  *GEPFPP1_CH2thickCmd;
   G4UIcmdWithADoubleAndUnit  *GEPFPP2_CH2thickCmd;
 

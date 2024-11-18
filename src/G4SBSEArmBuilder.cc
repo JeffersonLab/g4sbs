@@ -58,6 +58,9 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fBBang  = 40.0*deg;
   fBBdist = 1.5*m;
 
+  fECALVertOffset = 0.0*cm;
+  fECALHorizOffset = 0.0*cm;
+
   /*
   G4double frontGEM_depth = 20.*cm;
   G4double backGEM_depth = 10.*cm;
@@ -135,7 +138,10 @@ void G4SBSEArmBuilder::BuildComponent(G4LogicalVolume *worldlog){
       G4SBSECal* ECal = new G4SBSECal(fDetCon);
       ECal->SetAng(fBBang);
       ECal->SetDist(fBBdist);
+      ECal->SetVOff(fECALVertOffset);
+      ECal->SetHOff(fECALHorizOffset);
       ECal->BuildComponent(worldlog);
+      
       //MakeBigCal( worldlog );
     }
   if( exptype == G4SBS::kC16 ) 

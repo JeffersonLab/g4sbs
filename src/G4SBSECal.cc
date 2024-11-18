@@ -1282,9 +1282,10 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
 			       -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -58.73*cm,
 			       -54.29*cm, -58.73*cm, -54.29*cm};// from bottom to top, make these match center frame measurement from Don Jones, user command shift
   for(int i = 0; i < 23; i++){
-    yfp_start_42[i] += fHOff;
+    yfp_start_42[i] += (fHOff + 2.25*2.54*cm); //this, by default, places ecal 2.25 inches closer to the beamline, thus ecal is positioned via its "crystal center"
   }
 
+  //After analyzing the two centering schemes, the crystal center gives very slightly better rate weighted acceptance. This crystal center places ecal 2.25 inches to the right (small angle direction toward beamline) of the frame center which is what the yfp_start_42 defines.
 
   //Don Jones gave direct measurements of ECAL and we want to align along the frame center rather than the block center. Oddly enough, the blocks not in the large central cluster(without the horizontal offsets) seem to already match up with the frame center, but the blocks in the large center group should have a y starting pos at -53.0225cm
 

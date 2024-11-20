@@ -59,7 +59,7 @@ G4SBSEArmBuilder::G4SBSEArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fBBdist = 1.5*m;
 
   fECALVertOffset = 0.0*cm;
-  fECALHorizOffset = 0.0*cm;
+  fECALHorizOffset = -2.25*2.54*cm; //shifting the ecal to be positioned along crystal center
 
   /*
   G4double frontGEM_depth = 20.*cm;

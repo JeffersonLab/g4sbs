@@ -648,11 +648,11 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSLeadOptionCmd->SetParameterName("uselead",false);
 
   ECALVertOffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ecalvertoffset",this);
-  ECALVertOffsetCmd->SetGuidance("Vertical offset of ecal");
+  ECALVertOffsetCmd->SetGuidance("Vertical offset of ecal, positive number moves ecal upwards");
   ECALVertOffsetCmd->SetParameterName("ecaloffsetvertical",false);
 
   ECALHorizOffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ecalhorizoffset",this);
-  ECALHorizOffsetCmd->SetGuidance("Horizontal offset of ecal relative to crystal center alignment, positive number moves ecal closer to the beamline");
+  ECALHorizOffsetCmd->SetGuidance("Horizontal offset of ecal relative to frame center alignment, negative number moves ecal closer to the beamline, this is -2.25inches by default in order to place ecal along its crystal center");
   ECALHorizOffsetCmd->SetParameterName("ecaloffsethorizontal",false);
 
   GENRPAnalyzerOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/genrpAnalyzer",this);

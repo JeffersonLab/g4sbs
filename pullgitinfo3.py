@@ -27,7 +27,7 @@ if  len(boringstring) > maxlen:
      boringstring = boringstring[0:maxlen-1]
 
 for x in boringstring:
-    fullstring += '\\x'+x.encode('utf-8').hex()
+    fullstring += '\\x'+x.encode(encoding="utf-8",errors="strict").hex()
 
      
 

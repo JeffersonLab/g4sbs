@@ -14,6 +14,8 @@ public:
   
   void SetAng(double a){ fAng = a; }
   void SetDist(double a){ fDist= a; }
+  void SetVOff(double a){ fVOff = a; }
+  void SetHOff(double a){ fHOff = a; }
 
   G4LogicalVolume* MakeSuperModule(G4double, G4double, G4double);
   
@@ -26,6 +28,8 @@ public:
 
   double fAng;
   double fDist;
+  double fVOff;
+  double fHOff;
   
 private:
 };

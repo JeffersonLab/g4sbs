@@ -48,6 +48,8 @@ using namespace std;
 G4SBSECal::G4SBSECal(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fAng = 29.0*deg;
   fDist = 4.9*m;
+  fVOff = 0.0*cm;
+  fHOff = -2.25*2.54*cm;//default ecal positioning along crystal center
 
   fnzsegments_leadglass_ECAL = 1;
   fnzsegments_leadglass_C16 = 1;
@@ -1044,7 +1046,18 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   //?since depth_earm has been modified to account for the absorber, does this(zfront_ECAL) need to be modifified as well?
   G4double R_Earm = fDist - zfront_ECAL;
   
-  G4ThreeVector pos_ECAL( R_Earm*sin(fAng), 0.0, R_Earm*cos(fAng) );
+  G4ThreeVector pos_ECAL( R_Earm*sin(fAng), 0.0, R_Earm*cos(fAng) );//z-direction
+  G4ThreeVector y_axis_ecal(0, 1, 0);
+  G4ThreeVector y_axis_ecal_unit = y_axis_ecal.unit();
+  
+  G4ThreeVector x_axis_ecal = y_axis_ecal_unit.cross(pos_ECAL);
+  G4ThreeVector x_axis_ecal_unit = x_axis_ecal.unit();
+  
+  G4ThreeVector x_pos_ecal_shift = fHOff*x_axis_ecal_unit;
+  G4ThreeVector y_pos_ecal_shift = fVOff*y_axis_ecal_unit;
+
+  pos_ECAL += x_pos_ecal_shift;
+  pos_ECAL += y_pos_ecal_shift;
   
   new G4PVPlacement( bbrm, pos_ECAL, earm_mother_log, "earm_mother_phys", motherlog, false, 0 );
   
@@ -1271,11 +1284,23 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
     yfp_start_42[i] = yfp_start_42_default[i] + ECal_hrz_shift;
   }
   */
-  
+  /*
   G4double yfp_start_42[23] = {-58.69*cm, -54.73*cm, -58.69*cm, -54.73*cm, -58.69*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, 
 			       -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -58.60*cm,
 			       -54.97*cm, -58.76*cm, -55.13*cm};// from bottom to top
+  */
+  G4double yfp_start_42[23] = {-58.73*cm, -54.61*cm, -58.73*cm, -54.61*cm, -58.73*cm, -52.87*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, 
+			       -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -58.73*cm,
+			       -54.29*cm, -58.73*cm, -54.29*cm};// from bottom to top, make these match center frame measurement from Don Jones, thus the user command shift is relative to frame center, by default this shift is -2.25in to put ecal at crystal center
+  //for(int i = 0; i < 23; i++){
+  //yfp_start_42[i] += (fHOff + 2.25*2.54*cm);
+  //}
 
+  //After analyzing the two centering schemes, the crystal center gives very slightly better rate weighted acceptance. This crystal center places ecal 2.25 inches to the right (small angle direction toward beamline) of the frame center which is what the yfp_start_42 defines.
+
+  //Don Jones gave direct measurements of ECAL and we want to align along the frame center rather than the block center. Oddly enough, the blocks not in the large central cluster(without the horizontal offsets) seem to already match up with the frame center, but the blocks in the large center group should have a y starting pos at -53.0225cm
+
+  
   //xfp and yfp are following the analysis coordinate system, not the same as g4 coord system
   
   //xfpstart based on center of ECal JT model
@@ -1795,7 +1820,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
 
   //replace all 40's with 42 here, original 42's placement currently commented out
    
-  G4int SM_num = 0;
+  G4int SM_num = 0; //KIP EDIT HERE FOR 1.25 INCH OFFSET
   X_block = xfpstart+BlockFirst_42;
   for(int i_ = 0; i_<NrowsSM_42*3; i_++){
     Y_block = yfp_start_42[i_/3]+TiWallThick+BlockFirst_42;

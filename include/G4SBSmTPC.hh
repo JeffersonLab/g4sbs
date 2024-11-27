@@ -21,38 +21,45 @@ public:
   
   void BuildComponent(G4LogicalVolume *);
   
-  void BuildTDISTarget(G4LogicalVolume *);
-  void BuildGasTarget(G4LogicalVolume *);
+  // EPAF 2024/11/18: depreacated
+  // void BuildTDISTarget(G4LogicalVolume *);
+  // void BuildGasTarget(G4LogicalVolume *);
   //void BuildTPC(G4LogicalVolume *, G4double);
   // Montgomery July 2018, mtpc implement
   void BuildmTPCWalls(G4LogicalVolume *, G4double, G4double, G4double, G4double);
   void BuildmTPCReadouts(G4LogicalVolume *, G4double, G4double, G4double,  G4double);//, G4SBSmTPCSD *);
   void BuildmTPCGEMs(G4LogicalVolume *, G4double, G4double, G4double, G4double);
   void BuildmTPCGasCells(G4LogicalVolume *, G4double, G4double, G4double, G4double);//, G4SBSmTPCSD *);//, G4SBSmTPCSD *);
-    
-  // EFuchey: 2017/02/10:  This function is now meant to build the cryotarget and target cell only.
-  // This function takes as input the mother logical volume, a rotation matrix, and a 3-vector offset.
-  void BuildStandardCryoTarget(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector);
+
+  // EPAF 2024/11/18: Methods for MLPC design
+  void BuildMLPCCathode(G4LogicalVolume *mother, G4double z);
+  void BuildMLPCG10Support(G4LogicalVolume *mother, G4double z);
+  void BuildMLPCWires(G4LogicalVolume *mother, G4double z, G4double angle, G4int WirePlaneNum);
+
+  // EPAF 2024/11/18: depreacated
+  // // EFuchey: 2017/02/10:  This function is now meant to build the cryotarget and target cell only.
+  // // This function takes as input the mother logical volume, a rotation matrix, and a 3-vector offset.
+  // void BuildStandardCryoTarget(G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector);
   
-  // EFuchey: 2017/02/10: Added those functions to build scattering chamber separately from target,
-  // and avoid, if possible, duplicates of the code actually building the target.
-  void BuildStandardScatCham(G4LogicalVolume *);
-  void BuildGEpScatCham(G4LogicalVolume *);
-  void BuildC16ScatCham(G4LogicalVolume *);
+  // // EFuchey: 2017/02/10: Added those functions to build scattering chamber separately from target,
+  // // and avoid, if possible, duplicates of the code actually building the target.
+  // void BuildStandardScatCham(G4LogicalVolume *);
+  // void BuildGEpScatCham(G4LogicalVolume *);
+  // void BuildC16ScatCham(G4LogicalVolume *);
   
-  //  void SetTarget(Targ_t t){fTargType = t;} //defined in sbstype.hh
-  void SetTargLen(G4double len){ fTargLen = len;}
-  void SetTargDen(G4double den){ fTargDen = den;} //Currently, fTargDen has NO effect!
-  void SetTargDiameter(G4double D){ fTargDiameter = D; }
-  void SetSchamFlag(int flag){ fSchamFlag = flag; }
+  // //  void SetTarget(Targ_t t){fTargType = t;} //defined in sbstype.hh
+  // void SetTargLen(G4double len){ fTargLen = len;}
+  // void SetTargDen(G4double den){ fTargDen = den;} //Currently, fTargDen has NO effect!
+  // void SetTargDiameter(G4double D){ fTargDiameter = D; }
+  // void SetSchamFlag(int flag){ fSchamFlag = flag; }
   
-  int GetSchamFlag() const { return fSchamFlag; }
-  G4double GetTargLen() const { return fTargLen; }
-  G4double GetTargDiameter() const { return fTargDiameter; }
-  //G4LogicalVolume *BuildSnoutWindows(G4Box *, G4double, G4double, G4double, G4double, G4double);
+  // int GetSchamFlag() const { return fSchamFlag; }
+  // G4double GetTargLen() const { return fTargLen; }
+  // G4double GetTargDiameter() const { return fTargDiameter; }
+  // //G4LogicalVolume *BuildSnoutWindows(G4Box *, G4double, G4double, G4double, G4double, G4double);
   
-  G4bool GetFlux() const { return fFlux; }
-  void SetFlux(G4bool b){fFlux = b;}
+  // G4bool GetFlux() const { return fFlux; }
+  // void SetFlux(G4bool b){fFlux = b;}
   
   // G4bool fUseLocalTPCSolenoid;
   // void SetSolUni(G4bool soluniflag){fSolUni = soluniflag;}
@@ -63,6 +70,7 @@ public:
   
   //mTPC functions
   //void SetmTPCTgtWallThick(double thickness){ftdis_tgt_wallthick = thickness;};
+  void SetTPCdesign(int design){fTPCdesign = design;};
   void SetmTPCkrypto(bool iskrypto){fmTPCkrypto = iskrypto;};
   
   
@@ -70,13 +78,15 @@ public:
   //void SetTDIStgtWallThick(double th){fTDIStgtWallThick = th;};
   
 private:
-  G4double fTargLen;
-  G4double fTargDen;
-  G4double fTargDiameter; //diameter of cryotarget
-  G4ThreeVector fTargPos; //Note: fTargPos currently has no effect!
-  G4ThreeVector fTargDir; //Note: fTargDir currently has no effect!
-  int fSchamFlag;
+  // G4double fTargLen;
+  // G4double fTargDen;
+  // G4double fTargDiameter; //diameter of cryotarget
+  // G4ThreeVector fTargPos; //Note: fTargPos currently has no effect!
+  // G4ThreeVector fTargDir; //Note: fTargDir currently has no effect!
+  // int fSchamFlag;
 
+  G4int fTPCdesign;
+  
   G4double fZpos;
   G4bool fFlux;
 
@@ -103,6 +113,20 @@ private:
   G4double fmTPC_gap_GEMGEM;
   // HV
   G4double fmTPC_HV_thick;
+
+  // Parameters for MLPC design
+  G4int fMLPC_NplaneWires;
+  G4int fMLPC_NWiresPerHalfPlane;
+  G4double fMLPC_InterWireGap;
+  G4double fMLPC_InnerWireDistance;
+  G4double fMLPC_SupportThickness;
+  G4double fMLPC_RinSupport;
+  G4double fMLPC_RoutSupport;
+  G4double fMLPC_CathodeRin;
+  G4double fMLPC_CathodeMylarThickness;
+  G4double fMLPC_CathodeAlThickness;
+  G4double fMLPC_WirePlaneThickness;
+
   //GasSettings
   G4bool fmTPCkrypto;
   G4bool fChkOvLaps;

@@ -360,6 +360,8 @@ private:
   G4UIcmdWithADouble *mTPCGasPressureCmd;
   //G4UIcmdWithADouble *mTPCTgtThickCmd;
 
+  G4UIcmdWithAnInteger *TPCdesignCmd;
+
   G4UIcmdWithABool *mTPCkryptoCmd;
 
   G4UIcmdWithABool *mTPCRoomTempCmd;

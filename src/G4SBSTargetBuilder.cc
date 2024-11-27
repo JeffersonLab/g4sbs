@@ -2134,12 +2134,14 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   G4LogicalVolume* LColli2 =
     new G4LogicalVolume(Colli2,GetMaterial("TargetBeamCollimator_Material"),"LColli2",0,0,0);
 
-  LColli1->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
-  LColli2->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
+  G4VisAttributes *colli_visatt = new G4VisAttributes( G4Colour( 0.0, 0.0, 1.0 ) );
+  colli_visatt->SetForceWireframe(true);
+  LColli1->SetVisAttributes(colli_visatt);
+  LColli2->SetVisAttributes(colli_visatt);
   //
   new G4PVPlacement(0,G4ThreeVector(0,0,0),LColli1,"PColli1",LBlinI,0,0, fChkOvLaps);
 
-  G4VisAttributes* vis_upbl = new G4VisAttributes();
+  G4VisAttributes* vis_upbl = new G4VisAttributes( G4Colour( 0.6, 0.6, 0.6 ));
   vis_upbl->SetForceWireframe();
   LBlinI->SetVisAttributes( vis_upbl );
   LBlinO->SetVisAttributes( vis_upbl );
@@ -2194,8 +2196,6 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
           fLBfield,false,0,fIsOverlapVol);
   }
   */
-  LColli1->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
-  LColli2->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
   //
   
 

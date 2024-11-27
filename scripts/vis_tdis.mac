@@ -61,7 +61,7 @@
 #/g4sbs/mtpckrypto 1
 #/g4sbs/tdistgtwallthick 0.04 #mm
 
-
+/g4sbs/tpcdesign 1
 /g4sbs/checkOverlap true
 
 ## Run 100 events

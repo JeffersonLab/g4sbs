@@ -76,7 +76,7 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   fmTPC_HV_thick = 0.05*mm; // 50um say gold?
   //
   fmTPCkrypto = true;//false;//by default
-  fChkOvLaps = true;//
+  fChkOvLaps = false;//true;//
 
   fMLPC_NplaneWires = 150;
   fMLPC_NWiresPerHalfPlane = 130;
@@ -955,19 +955,7 @@ void G4SBSmTPC::BuildMLPCWires(G4LogicalVolume *motherlog, G4double zPos, G4doub
 	      fMLPC_InterWireGap*0.5,
 	      fMLPC_RinSupport,
 	      fMLPC_SupportThickness+fMLPC_WirePlaneThickness*0.5);
-
-  G4RotationMatrix* RotationWire = new G4RotationMatrix();
-  RotationWire->rotateX(90.0*deg);
-  
- 
-  G4Tubs* Wire_tubs =
-    new G4Tubs("Wire_tubs",
-	      0.0,
-	      fMLPC_WirePlaneThickness*0.5,
-	      fMLPC_RinSupport,
-	      0.*deg, 
-	      360.*deg);
-
+   
   G4String mTPCSDname = "SBS/MLPC";
   G4String mTPCcolname = "mTPCHitsCollection";
   
@@ -978,68 +966,84 @@ void G4SBSmTPC::BuildMLPCWires(G4LogicalVolume *motherlog, G4double zPos, G4doub
     (fDetCon->SDlist).insert(mTPCSDname);
     fDetCon->SDtype[mTPCSDname] = G4SBS::kmTPC;
   }
-
   
   for(int i = 0; i<fMLPC_NWiresPerHalfPlane; i++){
     G4double WireDistanceToCenter = fMLPC_InnerWireDistance+fMLPC_InterWireGap*i;
 
-    G4IntersectionSolid* WireCell_solid =
-      new G4IntersectionSolid("WireCell_solid",
-		       MLPCWiresGas_solid,
-		       WireCell_box,
-		       0,
-		       G4ThreeVector(WireDistanceToCenter, 0, 0));
-
-    G4LogicalVolume* WireCell_log = 
-    new G4LogicalVolume(WireCell_solid,
-			GetMaterial("mTPCgas"),
-			"WireCell_log");
+    G4Tubs* Wire_solid =
+      new G4Tubs("Wire_solid",
+		 0,
+		 fMLPC_WirePlaneThickness*0.5,
+		 fMLPC_RinSupport*cos( asin( (WireDistanceToCenter+fMLPC_WirePlaneThickness*0.5)/fMLPC_RinSupport ) ),
+		 0.*deg,
+		 360.*deg);
     
-    G4IntersectionSolid* Wire_solid =
-      new G4IntersectionSolid("Wire_solid",
-		       WireCell_solid,
-		       Wire_tubs,
-		       RotationWire,
-		       G4ThreeVector(WireDistanceToCenter, 0, 0));
-
+    G4IntersectionSolid* WireCell_solid_0 =
+      new G4IntersectionSolid("WireCell_solid_0",
+			      MLPCWiresGas_solid,
+			      WireCell_box,
+			      0,
+			      G4ThreeVector(WireDistanceToCenter, 0, 0));
+    
+    G4RotationMatrix* RotationWire = new G4RotationMatrix();
+    RotationWire->rotateX(90.0*deg);
+    
+    G4SubtractionSolid* WireCell_solid =
+      new G4SubtractionSolid("WireCell_solid",
+			     WireCell_solid_0,
+			     Wire_solid,
+			     RotationWire,
+			     G4ThreeVector(WireDistanceToCenter, 0, 0));
+    
+    G4LogicalVolume* WireCell_log = 
+      new G4LogicalVolume(WireCell_solid,
+			  GetMaterial("mTPCgas"),
+			  "WireCell_log");
+    
+    
     G4LogicalVolume* Wire_log = 
-    new G4LogicalVolume(Wire_solid,
-			GetMaterial("Tungsten"),
-		        "Wire_log");
-
+      new G4LogicalVolume(Wire_solid,
+			  GetMaterial("Tungsten"),
+			  "Wire_log");
+    
     WireCell_log->SetVisAttributes( tpc_gas_visatt );
     Wire_log->SetVisAttributes( wire_visatt );
 
     //G4cout << " Wire distance to center: " << WireDistanceToCenter/mm << " mm " << G4endl; 
 
     for(int j = 0; j<2; j++){
-      G4int WireUniqueID = (WirePlaneNum*fMLPC_NWiresPerHalfPlane*2+i)*2+j;
-      //G4cout << " j "<<  j << " WireUniqueID " << WireUniqueID << " cos angle??? " << cos(angle+j*180.0*deg) << " sin angle??? " << sin(angle+j*180.0*deg) << G4endl; 
+      G4int WireUniqueID = WirePlaneNum*fMLPC_NWiresPerHalfPlane*2+i*2+j;
+      G4cout << " j "<<  j << " WireUniqueID " << WireUniqueID << " cos angle??? " << cos(angle+j*180.0*deg) << " sin angle??? " << sin(angle+j*180.0*deg) << G4endl; 
 
       G4RotationMatrix* RotationPlane = new G4RotationMatrix();
-      RotationPlane->rotateZ(angle+j*180.0*deg);
+      RotationPlane->rotateZ(-angle+j*180.0*deg);
 
       new G4PVPlacement(RotationPlane,//0
 			G4ThreeVector(0, 0, 0),
-			//G4ThreeVector(WireDistanceToCenter*cos(angle+j*180.0*deg), -WireDistanceToCenter*sin(angle+j*180.0*deg), 0.0), 
 			WireCell_log,
 			"WireCell", 
 			MLPCWiresGas_log, 
 			false, 
 			WireUniqueID, 
-			false//fChkOvLaps
+			fChkOvLaps
 			);
       
       WireCell_log->SetSensitiveDetector(mTPCSD);
-      // new G4PVPlacement(0,
-      //  			G4ThreeVector(0, 0, 0), 
-      //  			Wire_log,
-      //  			"Wire", 
-      //  			WireCell_log, 
-      //  			false, 
-      //  			WireUniqueID, 
-      //  			fChkOvLaps);
 
+      RotationWire = new G4RotationMatrix();
+      RotationWire->rotateX(90.0*deg);
+      RotationWire->rotateY(angle);
+      
+      new G4PVPlacement(RotationWire,
+			G4ThreeVector(WireDistanceToCenter*cos(angle+j*180.0*deg), WireDistanceToCenter*sin(angle+j*180.0*deg), 0), 
+			Wire_log,
+			"Wire", 
+			MLPCWiresGas_log, 
+			false, 
+			WireUniqueID, 
+			fChkOvLaps
+			);
+      
     }
   }
 }

@@ -1,5 +1,5 @@
 ## Configure G4SBS for genrp (Q^2 = 4.5 GeV^2)
-/g4sbs/filename        genrp_SBS_pgun_SBS107percent_job1.root
+/g4sbs/filename        genrp_test.root
 
 ## Configure Experiment
 /g4sbs/exp             genrp
@@ -30,6 +30,8 @@
 /g4sbs/eemin  	       0.7 GeV
 /g4sbs/eemax 	       6.4 GeV
 
+/g4sbs/gunpol   0 0 1
+
 /g4sbs/rasterx	       2.0 mm
 /g4sbs/rastery 	       2.0 mm
 
@@ -55,8 +57,8 @@
 # Unless and until I get some documentation of the coordinate system for this field map, we will NOT be using:
 #/g4sbs/tosfield 	GEN-RP-tosca_newheader.table
 /g4sbs/tosfield  	GENRP_fieldmap_g4sbs_friendly_coordinate_system.table
-#/g4sbs/scalesbsfield 	1.0
-/g4sbs/scalesbsfield    1.0657 # with final alignment 
+/g4sbs/scalesbsfield 	1.0
+#/g4sbs/scalesbsfield    1.0657 # with final alignment 
 
 /g4sbs/keepsdtrackinfo 	all true
 /g4sbs/totalabs 	true

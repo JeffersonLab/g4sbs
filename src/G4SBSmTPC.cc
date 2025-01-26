@@ -1013,7 +1013,7 @@ void G4SBSmTPC::BuildMLPCWires(G4LogicalVolume *motherlog, G4double zPos, G4doub
 
     for(int j = 0; j<2; j++){
       G4int WireUniqueID = WirePlaneNum*fMLPC_NWiresPerHalfPlane*2+i*2+j;
-      G4cout << " j "<<  j << " WireUniqueID " << WireUniqueID << " cos angle??? " << cos(angle+j*180.0*deg) << " sin angle??? " << sin(angle+j*180.0*deg) << G4endl; 
+      //G4cout << " j "<<  j << " WireUniqueID " << WireUniqueID << " cos angle??? " << cos(angle+j*180.0*deg) << " sin angle??? " << sin(angle+j*180.0*deg) << G4endl; 
 
       G4RotationMatrix* RotationPlane = new G4RotationMatrix();
       RotationPlane->rotateZ(-angle+j*180.0*deg);
@@ -1057,32 +1057,9 @@ void G4SBSmTPC::BuildMLPCCathode(G4LogicalVolume *motherlog, G4double zPos)
 	       fMLPC_CathodeMylarThickness*0.5+fMLPC_CathodeAlThickness, 
 	       0.*deg, 
 	       360.*deg );
-
-  // G4Tubs* MLPCCathode_hole =
-  //   new G4Tubs("MLPCCathode_hole",
-  // 	       0,
-  // 	       0.5*cm,
-  // 	       fMLPC_CathodeMylarThickness,
-  // 	       0.*deg, 
-  // 	       360.*deg );
-
-  // const G4int Nholes = 8;
-  // const G4double HoleDistToCenter = 3.0*cm;
-  
-  // G4SubtractionSolid* MLPCCathode_solid[Nholes];
-  // for(int k = 0; k<Nholes; k++){
-  //   G4double angle = (360.*k/Nholes)*deg;
-  //   if(k==0){
-  //     MLPCCathode_solid[k] = 
-  // 	new G4SubtractionSolid(G4String("MLPCCathode_solid_"+k), MLPCCathode_solid_base, MLPCCathode_hole, 0, G4ThreeVector(HoleDistToCenter*cos(angle), HoleDistToCenter*sin(angle), 0.0));
-  //   }else{
-  //     MLPCCathode_solid[k] = 
-  // 	new G4SubtractionSolid(G4String("MLPCCathode_solid_"+k), MLPCCathode_solid[k-1], MLPCCathode_hole, 0, G4ThreeVector(HoleDistToCenter*cos(angle), HoleDistToCenter*sin(angle), 0.0));
-  //   }
-  // }
   
   G4LogicalVolume* MLPCCathode_log = 
-    new G4LogicalVolume(MLPCCathode_solid_base, //MLPCCathode_solid[Nholes-1],
+    new G4LogicalVolume(MLPCCathode_solid_base,
 			GetMaterial("Mylar"),
 			"MLPCCathode_log");
 
@@ -1093,21 +1070,9 @@ void G4SBSmTPC::BuildMLPCCathode(G4LogicalVolume *motherlog, G4double zPos)
 	       fMLPC_CathodeAlThickness*0.5, 
 	       0.*deg, 
 	       360.*deg );
-
-  // G4SubtractionSolid* MLPCCathodeAlCoating_solid[Nholes];
-  // for(int k = 0; k<Nholes; k++){
-  //   G4double angle = (360.*k/Nholes)*deg;
-  //   if(k==0){
-  //     MLPCCathodeAlCoating_solid[k] = 
-  // 	new G4SubtractionSolid(G4String("MLPCCathodeAlCoating_solid_"+k), MLPCCathodeAlCoating_solid_base, MLPCCathode_hole, 0, G4ThreeVector(HoleDistToCenter*cos(angle), HoleDistToCenter*sin(angle), 0.0));
-  //   }else{
-  //     MLPCCathodeAlCoating_solid[k] = 
-  // 	new G4SubtractionSolid(G4String("MLPCCathodeAlCoating_solid_"+k), MLPCCathodeAlCoating_solid[k-1], MLPCCathode_hole, 0, G4ThreeVector(HoleDistToCenter*cos(angle), HoleDistToCenter*sin(angle), 0.0));
-  //   }
-  // }
   
   G4LogicalVolume* MLPCCathodeAlCoating_log = 
-    new G4LogicalVolume(MLPCCathodeAlCoating_solid_base,//MLPCCathodeAlCoating_solid[Nholes-1],
+    new G4LogicalVolume(MLPCCathodeAlCoating_solid_base,
 			GetMaterial("Aluminum"),
 			"MLPCCathodeAlCoating_log");
   

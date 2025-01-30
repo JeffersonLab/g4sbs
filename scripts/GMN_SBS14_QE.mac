@@ -56,14 +56,12 @@
 ## Configure the magnets
 /g4sbs/bbfield         1
 /g4sbs/scalebbfield    0.9672
-#/g4sbs/tosfield        GMN13_field_newheader.table
-#/g4sbs/sbsmagfield     0.97 tesla
-#/g4sbs/tosfield  	BigBitePortableFieldMap.table 1
-#/g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
-#/g4sbs/scalesbsfield    0.914 # approximate field scale factor for 30% field setting
-#/g4sbs/sbsmagfield     1.23 tesla
-/g4sbs/sbsmagfield     0.914 tesla
+
 /g4sbs/48d48field      1
+/g4sbs/sbsmagfield     0.917 tesla
+#/g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+#/g4sbs/scalesbsfield    0.554 # approximate field scale factor for 50% field setting
+
 /g4sbs/bbang           46.5 deg
 /g4sbs/bbdist          1.85 m
 /g4sbs/sbsang          17.3 deg

@@ -30,7 +30,7 @@
 /g4sbs/exp             gmn
 
 ## Configure the target
-/g4sbs/target          LD2
+/g4sbs/target          LH2
 /g4sbs/targlen         15.0 cm           ## Target Length
 /g4sbs/rasterx 	       2.0 mm  #raster size in X
 /g4sbs/rastery	       2.0 mm  #raster size in Y
@@ -56,10 +56,10 @@
 /g4sbs/bbfield         1
 /g4sbs/scalebbfield    0.9672 
 
-/g4sbs/48d48field      1
-/g4sbs/sbsmagfield     1.310 tesla
-#/g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
-#/g4sbs/scalesbsfield    0.554 # approximate field scale factor for 50% field setting
+#/g4sbs/48d48field      1
+#/g4sbs/sbsmagfield     1.310 tesla
+/g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+/g4sbs/scalesbsfield    0.985 # approximate field scale factor for 50% field setting
 
 /g4sbs/bbang           42.0 deg
 /g4sbs/bbdist          1.55 m

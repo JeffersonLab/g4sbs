@@ -1,0 +1,76 @@
+## Configure G4SBS for gen (Q^2 = 10.18 GeV^2)
+/g4sbs/filename        ALL_BBoptics_egun_job3.root
+
+#/g4sbs/filename        GEN2_egun_SBS50percent_BB92percent.root
+
+## Configure Experiment
+/g4sbs/exp             gen
+
+## Configure the target
+/g4sbs/target          3He
+/g4sbs/targpres        10 atmosphere     ## Target pressure
+/g4sbs/targlen         60.0 cm           ## Target Length
+
+/g4sbs/targgenhhconfig 368              ## Q2 = 10.18 GeV^2
+/g4sbs/targgenDRX      0 deg             ## target angular misalignment about x axis  
+/g4sbs/targgenDRY      0 deg             ## target angular misalignment about y axis
+/g4sbs/targgenDRZ      0 deg             ## target angular misalignment about z axis 
+/g4sbs/targgenSDEnable false
+/g4sbs/ionChamberEnable false
+/g4sbs/targgenColEnable false
+/g4sbs/beamDiffuserEnable false
+
+## Configure generator settings
+#/g4sbs/kine            elastic           ## Generator
+/g4sbs/kine 		gun
+/g4sbs/particle 	e-
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         60.0 muA
+/g4sbs/rasterR         2.5 mm
+/g4sbs/beamspotsize    0.5 mm
+/g4sbs/beamE           4.291 GeV
+# "standard" angle and energy generation limits for BB: 
+/g4sbs/thmin           25.0 deg
+/g4sbs/thmax           42.0 deg
+/g4sbs/phmin          -30.0 deg
+/g4sbs/phmax           30.0 deg
+# energy limits for inelastic generator:
+/g4sbs/eemin 	       0.2 GeV
+/g4sbs/eemax	       4.0 GeV
+# "standard" angle and energy generation limits for SBS:
+/g4sbs/hthmin 	       29.0 deg
+/g4sbs/hthmax 	       41.0 deg
+/g4sbs/hphmin 	       165.0 deg
+/g4sbs/hphmax 	       200.0 deg
+/g4sbs/ehmin 	       0.5 GeV
+/g4sbs/ehmax 	       4.2 GeV
+
+
+## Configure standard detector settings
+/g4sbs/hcaldist        11.0 m
+/g4sbs/hcalvoffset     0.75 m
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/scalebbfield    0.97
+/g4sbs/48d48field      1
+# Note: SBS maximum field in GEN corresponds to 1.58 T*m or 1.3 T uniform field
+/g4sbs/sbsmagfield     0.65 T
+/g4sbs/bbang           32.0 deg
+/g4sbs/bbdist          1.63 m
+/g4sbs/sbsang          32.0 deg
+/g4sbs/48D48dist       2.8 m
+
+## Optional detectors 
+/g4sbs/beamDumpEnable true
+/g4sbs/beamDiffuserEnable false 
+/g4sbs/uselead 0
+
+/g4sbs/keepsdtrackinfo all true
+/g4sbs/totalabs true
+/g4sbs/eventstatusevery 100
+
+#/g4sbs/buildBBsieve 1
+
+## Run 100 events
+/g4sbs/run             50000

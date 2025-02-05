@@ -123,11 +123,14 @@ public:
 
   //void EnableGEPtargShielding( G4bool b ){ fUseGEPtargShielding = b; }
   void SetHadronFilterThick( G4double v ){ fHadronFilterThick = v; }
+  void SetHadronFilterOffset( G4double v ){ fHadronFilterOffset = v; }
   void SetHadronFilterMaterial( G4String str ){ fHadronFilterMaterial = str; }
 
   void EnableHadronFilter( G4bool b ){ fUseHadronFilter = b; }
+  void EnableHadronFilterPerpendicular( G4bool b){ fHadronFilterPerpendicular = b; }
 
   void BuildHadronFilter( G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector );
+  void BuildHadronFilter2( G4LogicalVolume *, G4RotationMatrix *, G4ThreeVector );
   
 private:
   //Multi-foil solid targets (only Carbon available for now):
@@ -175,9 +178,11 @@ private:
   G4String fPlasticMaterial;
 
   G4bool fUseHadronFilter;
+  G4bool fHadronFilterPerpendicular;
   
   //G4bool fUseGEPtargShielding;
   G4double fHadronFilterThick;
+  G4double fHadronFilterOffset;
   G4String fHadronFilterMaterial;
   // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   

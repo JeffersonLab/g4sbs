@@ -82,12 +82,23 @@ G4SBSTargetBuilder::G4SBSTargetBuilder(G4SBSDetectorConstruction *dc):G4SBSCompo
   fPlasticPlateThickness = 2.54*cm;
   fPlasticMaterial = G4String("CH2");
 
+  fHadronFilterPerpendicular = false;
   
-  fHadronFilterThick = 0.75*2.54*cm;
-  fHadronFilterMaterial = G4String("NEMAG10");
+  if(fHadronFilterPerpendicular == true){
+  
+    fHadronFilterOffset = 10.0*cm;//5cm default for para filter, 8cm for perp filter
 
-  fUseHadronFilter = false;
-  // // // // 11a33984f47772444ffb08222f8a978d2bee837e
+  }else{
+
+    fHadronFilterOffset = 5.0*cm;
+
+  }
+  
+  fHadronFilterThick = 0.75*2.54*cm; //0.75inch default
+  fHadronFilterMaterial = G4String("Aluminum");
+
+
+  fUseHadronFilter = true;
   fChkOvLaps = true;
 }
 
@@ -274,15 +285,38 @@ void G4SBSTargetBuilder::BuildStandardCryoTarget(G4LogicalVolume *motherlog,
   if( fDetCon->fExpType == G4SBS::kGEp && fUseHadronFilter ){
    
 
-    //we need a Z offset and (I think) an x offset: 
+    //we need a Z offset and (I think) an x offset:
+    if(fHadronFilterPerpendicular == true){
+      ///////////////////////////perpendicular filter settings      
+      G4ThreeVector hfilter_offset = targ_offset;
+      //hfilter_offset.setX( -(hfilter_offset.getX() + Rcell + 1.0*cm + fHadronFilterThick/2.0 ) - fHadronFilterOffset - fHadronFilterThick/2.0 - 2.0*2.54*cm);
+      hfilter_offset.setX( -(hfilter_offset.getX() + Rcell + 1.0*cm + fHadronFilterThick/2.0 ) - fHadronFilterOffset - fHadronFilterThick/2.0 - 2.0*2.54*cm);
+      hfilter_offset.setY( hfilter_offset.getY() +0.5*(fTargLen - 29.62*2.54*cm) - 0.5*2.54*cm); //this is actually the z shift, so not sbs coord
+      //hfilter_offset.setZ(  10.0*2.54*cm );
 
-    G4ThreeVector hfilter_offset = targ_offset;
-    hfilter_offset.setX( -(hfilter_offset.getX() + Rcell + 1.0*cm + fHadronFilterThick/2.0 ) -5.0*cm);
-    hfilter_offset.setY( hfilter_offset.getY() +0.5*(fTargLen - 29.62*2.54*cm) );
-    //hfilter_offset.SetZ( targ_offset.getZ()
+
+      G4RotationMatrix* rot_fil = new G4RotationMatrix();
+      rot_fil->rotateX(90.0*deg);
+      rot_fil->rotateY(73.1*deg);
     
-    BuildHadronFilter( motherlog, rot_targ, hfilter_offset );
-    //BuildHadronFilterGEp( motherlog, rot_targ, hfilter_offset );
+      BuildHadronFilter( motherlog, rot_fil, hfilter_offset ); //use this with rot_fil for perp filter
+
+      
+    }else{
+      fHadronFilterOffset = 5.0*cm;
+
+      //////////////////////////parallel filter settings
+      G4ThreeVector hfilter_offset = targ_offset;
+      hfilter_offset.setX( -(hfilter_offset.getX() + Rcell + fHadronFilterThick/2.0 ) - fHadronFilterOffset);
+      hfilter_offset.setY( hfilter_offset.getY() +0.5*(fTargLen - 29.62*2.54*cm) - 6.0*2.54*cm); //this is actually the z shift, so not sbs coord //2.5
+      //hfilter_offset.setZ(  10.0*2.54*cm );
+
+      BuildHadronFilter( motherlog, rot_targ, hfilter_offset ); // use this with rot_targ for para filter
+
+      
+    }
+
+   
     
   }
   
@@ -1334,6 +1368,8 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
   new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), ScatChamber_log, "ScatChamber_phys", worldlog, false, 0, fChkOvLaps );
 
+  //BuildHadronFilter(worldlog, rot_temp, G4ThreeVector(-10.0*cm ,0,+20.0*cm));
+
   //Add scattering chamber and all target materials to the list of "TARGET" volumes:
   fDetCon->InsertTargetVolume( ScatChamber_log->GetName() );
   
@@ -1525,6 +1561,8 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
   new G4PVPlacement( rot_temp, G4ThreeVector(0,0,-TargetCenter_zoffset), SnoutVacuum_log, "SnoutVacuum_phys", worldlog, false, 0, fChkOvLaps );
 
   fDetCon->InsertTargetVolume( SnoutVacuum_log->GetName() );
+
+  //BuildHadronFilter2( SnoutVacuum_log, rot_temp, G4ThreeVector(-9.0*cm, 19.0*2.54*cm, 0.0*2.54*cm) ); // use this with rot_targ for para filter //was 0 z, y comp actually gives z shift, was 27
   
   //Iron Tube inside the Snout vacuum volume:
   G4double IronTube_Rmin = 5.0*cm;
@@ -2096,12 +2134,14 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
   G4LogicalVolume* LColli2 =
     new G4LogicalVolume(Colli2,GetMaterial("TargetBeamCollimator_Material"),"LColli2",0,0,0);
 
-  LColli1->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
-  LColli2->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
+  G4VisAttributes *colli_visatt = new G4VisAttributes( G4Colour( 0.0, 0.0, 1.0 ) );
+  colli_visatt->SetForceWireframe(true);
+  LColli1->SetVisAttributes(colli_visatt);
+  LColli2->SetVisAttributes(colli_visatt);
   //
   new G4PVPlacement(0,G4ThreeVector(0,0,0),LColli1,"PColli1",LBlinI,0,0, fChkOvLaps);
 
-  G4VisAttributes* vis_upbl = new G4VisAttributes();
+  G4VisAttributes* vis_upbl = new G4VisAttributes( G4Colour( 0.6, 0.6, 0.6 ));
   vis_upbl->SetForceWireframe();
   LBlinI->SetVisAttributes( vis_upbl );
   LBlinO->SetVisAttributes( vis_upbl );
@@ -2156,8 +2196,6 @@ void G4SBSTargetBuilder::BuildTDISTarget(G4LogicalVolume *worldlog){
           fLBfield,false,0,fIsOverlapVol);
   }
   */
-  LColli1->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
-  LColli2->SetVisAttributes(new G4VisAttributes(G4Colour::Blue()));
   //
   
 
@@ -6704,16 +6742,70 @@ void G4SBSTargetBuilder::BuildHadronFilter( G4LogicalVolume *mother, G4RotationM
 
     new G4PVPlacement( rot, pos, HadronFilter_log, "HadronFilter_phys", mother, false, 0 );
   } else { //just make a box:
-    boxlen = 29.62*inch;
-    boxheight = 8.0*inch;
+
+
+    if(fHadronFilterPerpendicular == true){
+      
+      //dimensions for perp filter
+      boxlen = 30.0*inch; //used to be 25?
+      boxheight = 18.0*inch;// used to be 8
+    
+    }else{
+      
+      //dimesnions for para filter
+      boxlen = 35.0*inch; //14 is the tallest it can be without clipping into the snoutvacuum logical volume
+      boxheight = 14.0*inch;
+    
+    }
+    
+    //testing a larger filter geometry it seems the one weve been working with is not covering the entire solid angle of elastically scattered protons
+
+    //boxheight = 12.0*inch;
+
+    //G4ThreeVector upstr_shift(0.5*inch, -10*inch, 13.0*inch);
+
+    //G4ThreeVector new_pos = pos + upstr_shift;
 
     G4Box *HadronFilter_box = new G4Box( "HadronFilter_box", boxthick/2.0, boxheight/2.0, boxlen/2.0 );
+    //G4Box *HadronFilter_box2 = new G4Box( "HadronFilter_box2", boxthick/2.0, (20.*inch)/2.0, (10.0*inch)/2.0   );
 
     G4LogicalVolume *HadronFilter_log = new G4LogicalVolume( HadronFilter_box, GetMaterial(fHadronFilterMaterial), "HadronFilter_log" );
+    //G4LogicalVolume *HadronFilter2_log = new G4LogicalVolume( HadronFilter_box2, GetMaterial(fHadronFilterMaterial), "HadronFilter2_log" );
 
     new G4PVPlacement( rot, pos, HadronFilter_log, "HadronFilter_phys", mother, false, 0 );
     
+    
   }
+}
+
+//void G4SBSTargetBuilder::BuildHadronFilterGEp( 
+
+void G4SBSTargetBuilder::BuildHadronFilter2( G4LogicalVolume *mother, G4RotationMatrix *rot, G4ThreeVector pos ){
+  //This should be the union of a box and a trapezoid.
+  G4double inch = 2.54*cm;
+  G4double boxlen = 4.45*inch;// 4.45def
+  G4double boxheight = 3.0*inch;
+  G4double boxthick = 0.75*inch;;
+
+
+
+      
+  //dimesnions for para filter
+  boxlen = 30.0*inch; //14 is the tallest it can be without clipping into the snoutvacuum logical volume // 10 in def for len
+  boxheight = 14.0*inch;
+    
+    
+    
+  G4Box *HadronFilter2_box = new G4Box( "HadronFilter2_box", boxthick/2.0, boxheight/2.0, boxlen/2.0 );
+  //G4Box *HadronFilter_box2 = new G4Box( "HadronFilter_box2", boxthick/2.0, (20.*inch)/2.0, (10.0*inch)/2.0   );
+  
+  G4LogicalVolume *HadronFilter2_log = new G4LogicalVolume( HadronFilter2_box, GetMaterial(fHadronFilterMaterial), "HadronFilter2_log" );
+  //G4LogicalVolume *HadronFilter2_log = new G4LogicalVolume( HadronFilter_box2, GetMaterial(fHadronFilterMaterial), "HadronFilter2_log" );
+  
+  new G4PVPlacement( rot, pos, HadronFilter2_log, "HadronFilter2_phys", mother, false, 0 );
+  
+  
+
 }
 
 //void G4SBSTargetBuilder::BuildHadronFilterGEp( 

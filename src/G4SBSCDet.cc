@@ -178,10 +178,10 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
   G4double planes_zDisplacement = 7.25*2.54*cm;
 
   G4double R0_planes[2] = {fR0 + Lz_scint/2.0 + 1.0*cm,
-			   fR0 + Lz_scint/2.0 + 1.0*cm + planes_zDisplacement};
+  			   fR0 + Lz_scint/2.0 + 1.0*cm + planes_zDisplacement};
 
   //G4double R0_planes[2] = { fR0 + Lz_scint/2.0 + 1.0*cm,
-  //                          fR0 + 3.0*Lz_scint/2.0 + 1.0*cm + fPlanesInterDist}; //allow for some small (1 cm) gaps between CH2 and start of 1st plane and between 1st and second planes...
+  //                        fR0 + 3.0*Lz_scint/2.0 + 1.0*cm + fPlanesInterDist}; //allow for some small (1 cm) gaps between CH2 and start of 1st plane and between 1st and second planes...
 
   G4int istrip=0;
   
@@ -215,12 +215,14 @@ void G4SBSCDet::MakeCDET( G4LogicalVolume *mother ){
 
 	(cdet_sd->detmap).Row[istrip] = row+295;
 	(cdet_sd->detmap).Col[istrip] = col+1;
-	(cdet_sd->detmap).Plane[istrip] = plane+1;
+	//(cdet_sd->detmap).Plane[istrip] = plane+1;
+	(cdet_sd->detmap).Plane[istrip] = plane;	
 	(cdet_sd->detmap).LocalCoord[istrip] = pos_pmt;
 
 	(cdet_scint_sd->detmap).Row[istrip] = row+295;
 	(cdet_scint_sd->detmap).Col[istrip] = col+1;
-	(cdet_scint_sd->detmap).Plane[istrip] = plane+1;
+	//(cdet_scint_sd->detmap).Plane[istrip] = plane+1;
+	(cdet_scint_sd->detmap).Plane[istrip] = plane;
 	(cdet_scint_sd->detmap).LocalCoord[istrip] = pos_strip;
 	
 	istrip++;

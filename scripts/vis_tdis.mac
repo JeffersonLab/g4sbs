@@ -1,5 +1,5 @@
 ## Configure G4SBS for TDIS
-#/g4sbs/filename        TDIS_test.root   ## Output rootfile
+/g4sbs/filename        TDIS_test.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             tdis
@@ -11,13 +11,16 @@
 /g4sbs/targpres        1.0 atmosphere
 
 ## Configure generator settings
-/g4sbs/kine            dis           ## Generator
+/g4sbs/kine            gun           ## Generator
+/g4sbs/particle        proton
 /g4sbs/beamcur        50.0 muA
-/g4sbs/beamE          11.0 GeV
-/g4sbs/thmin           5.0 deg
-/g4sbs/thmax          45.0 deg
-/g4sbs/phmin         135.0 deg
-/g4sbs/phmax         225.0 deg
+#/g4sbs/beamE          11.0 GeV
+/g4sbs/eemin           0.06 GeV
+/g4sbs/eemax           0.20 GeV
+/g4sbs/thmin          75.0 deg
+/g4sbs/thmax         105.0 deg
+/g4sbs/phmin        -180.0 deg
+/g4sbs/phmax         180.0 deg
 
 ## Configure standard detector settings
 /g4sbs/lacdist       10.5 m
@@ -61,7 +64,7 @@
 #/g4sbs/mtpckrypto 1
 #/g4sbs/tdistgtwallthick 0.04 #mm
 
-
+/g4sbs/tpcdesign 1
 /g4sbs/checkOverlap true
 
 ## Run 100 events
@@ -118,7 +121,7 @@
 # (if too many tracks cause core dump => /tracking/storeTrajectory 0)
 #
 # Draw hits at end of event:
-/vis/scene/add/hits
+#/vis/scene/add/hits
 #
 # To draw only gammas:
 /vis/filtering/trajectories/create/particleFilter
@@ -132,11 +135,12 @@
 # Many other options are available with /vis/modeling and /vis/filtering.
 # For example, to select colour by particle ID:
 /vis/modeling/trajectories/create/drawByParticleID
-/vis/modeling/trajectories/drawByParticleID-0/set e- blue
-/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton white
-/vis/modeling/trajectories/drawByParticleID-0/setRGBA pi- 1. 0.2 1.0 1.0
-/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon+ 0.3 1.0 0.5 1.0
-/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
+#/vis/modeling/trajectories/drawByParticleID-0/set e- blue
+/vis/modeling/trajectories/drawByParticleID-0/set proton red
+#/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton white
+#/vis/modeling/trajectories/drawByParticleID-0/setRGBA pi- 1. 0.2 1.0 1.0
+#/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon+ 0.3 1.0 0.5 1.0
+#/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
 #
 # To superimpose all of the events from a given run:
 /vis/scene/endOfEventAction accumulate 10000

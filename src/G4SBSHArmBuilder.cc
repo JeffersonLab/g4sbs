@@ -6,6 +6,7 @@
 #include "G4VisAttributes.hh"
 #include "G4SubtractionSolid.hh"
 #include "G4UnionSolid.hh"
+#include "G4MultiUnion.hh"
 #include "G4IntersectionSolid.hh"
 #include "G4UserLimits.hh"
 #include "G4SDManager.hh"
@@ -296,7 +297,9 @@ void G4SBSHArmBuilder::MakeGEpFPP(G4LogicalVolume *worldlog)
   
   SetTrackerDist( sbsr );
   
-  G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
+  // G4Box *sbsbox = new G4Box("sbsbox", sbswidth/2.0, sbsheight/2.0, sbsdepth/2.0 );
+  G4Box *sbsbox = new G4Box("sbsbox", (sbswidth/2.0) + 8.0*cm, (sbsheight/2.0) + 8.0*cm, (sbsdepth/2.0) + 8.0*cm );
+
   G4LogicalVolume* sbslog = new G4LogicalVolume(sbsbox, GetMaterial("Air"), "sbslog");
 
   sbslog->SetVisAttributes( G4VisAttributes::GetInvisible() );
@@ -976,6 +979,19 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
       RearClamp_log->SetVisAttributes(clampVisAtt);
     } // Rear clamp log (GEp)
 
+    G4RotationMatrix *rot_copper = new G4RotationMatrix;
+
+    rot_copper->rotateY( f48D48ang + 6.0*deg);
+
+    G4Box *copper_shield = new G4Box("copper_shield", (20.0*2.54*cm)/2.0, (20.0*2.54*cm)/2.0, (0.05*cm)/2.0);
+
+    G4LogicalVolume *copper_shield_log = new G4LogicalVolume( copper_shield, GetMaterial("Copper"), "copper_shield_log" );
+
+    //G4ThreeVector copper_shield_pos(RearClamp_pos.X(), RearClamp_pos.Y(), RearClamp_pos.Z() - 120.0*cm);
+    G4ThreeVector copper_shield_pos( -FrontClamp_r*sin( f48D48ang ) + FrontClamp_xoffset*cos(f48D48ang) - 7.0*cm, 0.0, FrontClamp_r*cos(f48D48ang) + FrontClamp_xoffset*sin(f48D48ang) - 12.0*cm);
+
+    new G4PVPlacement( rot_copper, copper_shield_pos, copper_shield_log, "copper_shield_phys", motherlog, false, 0, false );
+
     //Make lead shielding in clamp:
     // G4double angtrap = 10.0*deg;
     // G4double Trap_DZ = 70.0*cm; //length in z
@@ -990,7 +1006,16 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     // G4double Trap_TL2 = 20.0*cm;
     // G4double Trap_alpha2 = angtrap;
 
+    //commenting this out for now since im not sure if LeadOption = 1 affects any thing else outside of this 
+    //doing this for bkg testing, andrew says this should not be part of final build
+    //NEVERMIND, need to use the lead shielding, bkg rate dramatically increadse when its gone, presenting this to collab in order for it to be made and used in exp
+
     if( fDetCon->fLeadOption == 1 &&  fDetCon->fExpType == G4SBS::kGEp ){
+
+      //Testing if simpler geometry works. Try a box instead of a trapezoidal shape for easier machining
+
+      /*
+
       //Let us redefine this guy so that the sides make proper angles:
       G4double Trap_DZ = 13.6*cm;
       G4double Trap_Width1 = 15*cm;
@@ -1030,10 +1055,93 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
       G4VisAttributes *lead_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
       FrontClampLeadInsert_log->SetVisAttributes( lead_visatt );
     
-      //G4ThreeVector FrontClampLeadInsert_posrel( +17.5*cm, 0.0, -102.9*cm ); //Position relative to SBS magnet
+      */
+
+      G4ThreeVector zaxis_temp( -sin(16.9*deg), 0, cos(16.9*deg) );
+      G4ThreeVector yaxis_temp(0,1,0);
+      G4ThreeVector xaxis_temp = (yaxis_temp.cross(zaxis_temp)).unit(); 
+
+      //G4Box *FrontClampLeadInsert = new G4Box( "FrontClampLeadInsert", 7.0*cm, 35.0*cm, (3.94*2.54*0.5)*cm );
+
+      //testing lead blocks available from mcmaster-carr
+      //G4Box *FrontClampLeadInsert = new G4Box( "FrontClampLeadInsert", (5.0*2.54*0.5)*cm, (30.0*2.54*0.5)*cm, (4.0*2.54*0.5)*cm );
+
+      //FCLI is Front Clamp Lead Insert
+      G4double FCLIdefxdim = (5.0*2.54)*cm;
+      G4double FCLIdefydim = FrontClamp_notch_height;
+      G4double FCLIdefzdim = (4.0*2.54)*cm;
+
+      G4double FCLIadd1xdim = (2.0*2.54)*cm;
+      G4double FCLIadd1ydim = FrontClamp_notch_height;
+      G4double FCLIadd1zdim = (7.25*2.54)*cm;
+
+      G4double FCLIadd2xdim = (1.0*2.54)*cm;
+      G4double FCLIadd2ydim = FrontClamp_notch_height;
+      G4double FCLIadd2zdim = (3.9*2.54)*cm;
+
+      G4ThreeVector FCLIadd1vec(FCLIadd1xdim*0.5 - FCLIdefxdim*0.5, 0.0, FCLIdefzdim*0.5 + FCLIadd1zdim*0.5);
+      G4ThreeVector FCLIadd2vec(FCLIadd1xdim + FCLIadd2xdim*0.5 - FCLIdefxdim*0.5, 0.0, FCLIdefzdim*0.5 + FCLIadd2zdim*0.5);
+      G4ThreeVector nullvec(0.0, 0.0, 0.0);
+      G4RotationMatrix nullrot(0.0, 0.0, 0.0);
+
+      G4Transform3D nulltrans(nullrot, nullvec);
+      G4Transform3D FCLIadd1trans(nullrot,FCLIadd1vec);
+      G4Transform3D FCLIadd2trans(nullrot,FCLIadd2vec);
+      
+      G4VSolid *FrontClampLeadInsert = new G4Box( "FrontClampLeadInsert", FCLIdefxdim*0.5, FCLIdefydim*0.5, FCLIdefzdim*0.5 );
+
+      G4VSolid *FrontClampLeadInsertAdd = new G4Box( "FrontClampLeadInsertAdd", FCLIadd1xdim*0.5, FCLIadd1ydim*0.5, FCLIadd1zdim*0.5 );
+      G4VSolid *FrontClampLeadInsertAdd2 = new G4Box( "FrontClampLeadInsertAdd2", FCLIadd2xdim*0.5, FCLIadd2ydim*0.5, FCLIadd2zdim*0.5 );
+
+      G4MultiUnion *FrontClampLeadInsertUnion = new G4MultiUnion("FrontClampLeadInsertUnion");
+
+      FrontClampLeadInsertUnion->AddNode(*FrontClampLeadInsert, nulltrans);
+      FrontClampLeadInsertUnion->AddNode(*FrontClampLeadInsertAdd, FCLIadd1trans);
+      FrontClampLeadInsertUnion->AddNode(*FrontClampLeadInsertAdd2, FCLIadd2trans);
+
+      FrontClampLeadInsertUnion->Voxelize();
+      
+
+      G4Box *BackClampLeadInsert = new G4Box( "BackClampLeadInsert", (8.0*2.54*0.5)*cm, 95.0*cm*0.5, (4.0*2.54*0.5)*cm );
+      G4Box *BackClampLeadInsertAdd = new G4Box( "BackClampLeadInsertAdd", (4.0*2.54*0.5)*cm, 95.0*cm*0.5, (4.0*2.54*0.5)*cm );
+
+      G4Box *MagnetCutoutLeadBackCover = new G4Box( "MagnetCutoutLeadBackCover", (9.5*2.54*0.5)*cm, (12.0*2.54*0.5)*cm, (4.0*2.54*0.5)*cm );
+
+
+      G4LogicalVolume *FrontClampLeadInsert_log = new G4LogicalVolume( FrontClampLeadInsert, GetMaterial("Lead"), "FrontClampLeadInsert_log" );
+
+      G4LogicalVolume *FrontClampLeadInsertAdd_log = new G4LogicalVolume( FrontClampLeadInsertAdd, GetMaterial("Lead"), "FrontClampLeadInsertAdd_log" );
+      G4LogicalVolume *FrontClampLeadInsertAdd2_log = new G4LogicalVolume( FrontClampLeadInsertAdd2, GetMaterial("Lead"), "FrontClampLeadInsertAdd2_log" );
+
+      G4LogicalVolume *FrontClampLeadInsertUnion_log = new G4LogicalVolume( FrontClampLeadInsertUnion, GetMaterial("Lead"), "FrontClampLeadInsertUnion_log" );
+
+      G4LogicalVolume *BackClampLeadInsert_log = new G4LogicalVolume( BackClampLeadInsert, GetMaterial("Lead"), "BackClampLeadInsert_log" );
+      G4LogicalVolume *BackClampLeadInsertAdd_log = new G4LogicalVolume( BackClampLeadInsertAdd, GetMaterial("Lead"), "BackClampLeadInsertAdd_log" );
+
+      G4LogicalVolume *MagnetCutoutLeadBackCover_log = new G4LogicalVolume( MagnetCutoutLeadBackCover, GetMaterial("Lead"), "MagnetCutoutLeadBackCover_log" );
+
+      G4VisAttributes *lead_visatt = new G4VisAttributes( G4Colour( 0.5, 0.5, 0.5 ) );
+      FrontClampLeadInsert_log->SetVisAttributes( lead_visatt );
+      FrontClampLeadInsertAdd_log->SetVisAttributes( lead_visatt );
+      FrontClampLeadInsertAdd2_log->SetVisAttributes( lead_visatt );
+      FrontClampLeadInsertUnion_log->SetVisAttributes( lead_visatt );
+      //BackClampLeadInsertAdd_log->SetVisAttributes( lead_visatt );      
+   
+      //G4ThreeVector posrel_leadinsert(17.0*cm, 0, -102.9*cm + 1.6*m + f48D48depth/2.0 + 0.25*cm );
+      G4ThreeVector posrel_leadinsert(17.0*cm, 0, f48D48dist - FrontClamp_zoffset );
+
+      G4ThreeVector posrel_backleadinsert(23.0*2.54*cm, 0, f48D48dist - FrontClamp_zoffset + 210.0*cm + (0*2.54)*cm);
+
+      G4ThreeVector posrel_magcutoutlead(23.*2.54*cm, 0, f48D48dist - FrontClamp_zoffset + 170.0*cm + (0*2.54)*cm);
+      
+      //f48D48dist - FrontClamp_zoffset
+
       //rotation matrix has z axis along +y and x axis along +x, y axis along -z. This is a rotation about the x axis by 90 deg:
       G4RotationMatrix *rot_lead = new G4RotationMatrix;
-      rot_lead->rotateY( f48D48ang );
+      G4RotationMatrix *rot_lead_cutout = new G4RotationMatrix;
+
+      rot_lead->rotateY( f48D48ang - 2.7*deg);
+      rot_lead_cutout->rotateY( f48D48ang );
       //rot_lead->rotateZ( 180.0*deg );
       //rot_lead->rotateX( -90.0*deg );
       //rot_lead->rotateX( 90.0*deg );
@@ -1041,14 +1149,44 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
       G4ThreeVector SBS_xaxis( cos( f48D48ang ), 0, sin(f48D48ang ) );
       G4ThreeVector SBS_yaxis(0,1,0);
       G4ThreeVector SBS_zaxis( -sin( f48D48ang ), 0, cos(f48D48ang ) );
-    
-      G4ThreeVector FrontClampLeadInsert_pos = posrel_leadinsert.x() * SBS_xaxis + posrel_leadinsert.y() * SBS_yaxis + posrel_leadinsert.z() * SBS_zaxis;
 
-      // Add lead inserts IFF lead option is turned on:
-      //if( fDetCon->fLeadOption == 1 ){
-      new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
+      fLeadInsertUpstreamOffset = 0;
+      fLeadInsertLeftOffset = 0.0*cm;
+      fUseExtensionLeadInsert = true;
     
+      G4ThreeVector FrontClampLeadInsert_pos = (posrel_leadinsert.x() + fLeadInsertLeftOffset) * SBS_xaxis + posrel_leadinsert.y() * SBS_yaxis + (posrel_leadinsert.z() + fLeadInsertUpstreamOffset) * SBS_zaxis;
+
+      G4ThreeVector BackClampLeadInsert_pos = (posrel_backleadinsert.x()) * SBS_xaxis + posrel_backleadinsert.y() * SBS_yaxis + (posrel_backleadinsert.z()) * SBS_zaxis;
+      G4ThreeVector BackClampLeadInsertAdd_pos = (posrel_backleadinsert.x() + (1.95*2.54)*cm) * SBS_xaxis + posrel_backleadinsert.y() * SBS_yaxis + (posrel_backleadinsert.z() + (3.95*2.54)*cm) * SBS_zaxis;
+
+      G4ThreeVector magcutoutlead_pos = (posrel_magcutoutlead.x()) * SBS_xaxis + posrel_magcutoutlead.y() * SBS_yaxis + (posrel_magcutoutlead.z()) * SBS_zaxis;
+
+      // if(fUseExtensionLeadInsert == true){
+      G4ThreeVector FrontClampLeadInsertAdd_pos( FrontClampLeadInsert_pos.x() - (3.25*2.54)*cm + (0.55*2.54)*cm + fLeadInsertLeftOffset, FrontClampLeadInsert_pos.y(), FrontClampLeadInsert_pos.z() + FCLIdefzdim*0.5 + FCLIadd1zdim*0.5+ fLeadInsertUpstreamOffset);
+      G4ThreeVector FrontClampLeadInsertAdd2_pos( FrontClampLeadInsert_pos.x() - (3.25*2.54)*cm + (0.55*2.54)*cm + fLeadInsertLeftOffset + (0.65*2.54)*cm + (0.325*2.54)*cm , FrontClampLeadInsert_pos.y(), FrontClampLeadInsert_pos.z() + FCLIdefzdim*0.5 + FCLIadd2zdim*0.5 + fLeadInsertUpstreamOffset);
+	    
+	//}
+
+      G4ThreeVector FrontClampLeadInsertTrap_pos( FrontClampLeadInsert_pos.x() - (3.25*2.54)*cm + (0.45*2.54)*cm, FrontClampLeadInsert_pos.y(), FrontClampLeadInsert_pos.z() + (5.5*2.54)*cm );
+
+
+      new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsert_log, "FrontClampLeadInsert_phys", motherlog, false, 0, false );
       
+      //new G4PVPlacement( rot_lead, FrontClampLeadInsert_pos, FrontClampLeadInsertUnion_log, "FrontClampLeadInsertUnion_phys", motherlog, false, 0, false );
+
+      //new G4PVPlacement( rot_lead, BackClampLeadInsert_pos, BackClampLeadInsert_log, "BackClampLeadInsert_phys", motherlog, false, 0, false );
+      //new G4PVPlacement( rot_lead, BackClampLeadInsertAdd_pos, BackClampLeadInsertAdd_log, "BackClampLeadInsertAdd_phys", motherlog, false, 0, false );
+
+      //new G4PVPlacement( rot_lead, FrontClampLeadInsertAdd_pos, FrontClampLeadInsertAdd_log, "FrontClampLeadInsertAdd_phys", motherlog, false, 0, false );
+      //new G4PVPlacement( rot_lead, FrontClampLeadInsertAdd2_pos, FrontClampLeadInsertAdd2_log, "FrontClampLeadInsertAdd2_phys", motherlog, false, 0, false );
+
+      new G4PVPlacement( rot_lead_cutout, magcutoutlead_pos, MagnetCutoutLeadBackCover_log, "MagnetCutoutLeadBackCover_phys", motherlog, false, 0, false );
+      
+      //new G4PVPlacement( rot_lead, FrontClampLeadInsertTrap_pos, FrontClampLeadInsertTrap_log, "FrontClampLeadInsertTrap_phys", motherlog, false, 0, false );
+
+    
+      //Testing no lead bar, seems like its not actually responsible for blocking any background
+      /*
       //Add lead bar:
       G4Box *FrontClampLeadBar = new G4Box( "FrontClampLeadBar", 25.0*cm, 10.0*cm, 2.3*cm );
       G4LogicalVolume *FrontClampLeadBar_log = new G4LogicalVolume( FrontClampLeadBar, GetMaterial("Lead"), "FrontClampLeadBar_log" );
@@ -1060,7 +1198,10 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
       //if( fDetCon->fLeadOption == 1 ){
       new G4PVPlacement( clamp_rot, FrontClampLeadBar_pos, FrontClampLeadBar_log, "FrontClampLeadBar_phys", motherlog, false, 0, false );
+
+      */
     }
+   
     
   }
 }
@@ -1929,7 +2070,7 @@ void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOf
   G4double pDx1   =  LightGuideX;
   G4double pDx2   =  LightGuideX;
   G4double pDy1   =  LightGuideY; //5 mm = full length at -dz/2
-  G4double pDx3   =  2.7*cm;
+  G4double pDx3   =  2.7*m;
   G4double pDx4   =  2.7*cm;
   G4double pDy2   =  2.7*cm;
   G4double pDz    =  2.0*LightGuideX; //28.4 cm = full length along z.
@@ -3960,7 +4101,62 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
   //int ngem = 0;
   
   vector<double> gemz, gemw, gemh;
+
+  //ft shield wall
+
+  fLeadWallThick = 10.16*cm;
+  //fUseLeadWallConnected = false;
+  fUseOldLeadWall = false;
+
+  if(fUseOldLeadWall == false){
+
+    G4RotationMatrix *rot_lead_wall = new G4RotationMatrix;
+    //G4RotationMatrix *rot_lead_cutout = new G4RotationMatrix;
+
+    rot_lead_wall->rotateY( f48D48ang - 32.0*deg);
+
+    //G4Box *lead_wall2 = new G4Box("lead_wall2", fLeadWallThick/2.0, 160.0*cm/2.0, GEM_z_spacing[0]*9.0/2.0 );
+    //was 11.5 in z
+
+    G4Box *lead_wall2 = new G4Box("lead_wall2", fLeadWallThick/2.0, (64.0*2.54*cm)/2.0, (60.0*2.54*cm)/2.0 );
+
+    G4LogicalVolume *lead_wall2_log = new G4LogicalVolume( lead_wall2, GetMaterial("Lead"), "lead_wall2_log" );
+
+    //G4ThreeVector lead_wall2_pos = G4ThreeVector( 36.0*cm, trkr_yoff[0], -78.0*cm -3.5*GEM_z_spacing[0]  );
+
+    G4ThreeVector lead_wall2_pos = G4ThreeVector( 34.5*2.54*cm, trkr_yoff[0] - (00.0*cm), -68.5*cm -1.9*GEM_z_spacing[0]  );
+    //was 3.4 gemz
+    //x offset was 31.5, testing chris soova model distance
+
+    new G4PVPlacement( 0, lead_wall2_pos, lead_wall2_log, "lead_wall2_phys", Mother, false, 0 );
+
+    //fpp shield wall
+
+    //G4Box *lead_wall3 = new G4Box("lead_wall3", fLeadWallThick/2.0, 180.0*cm/2.0, GEM_z_spacing[1]*10.0/2.0 );
+
+    G4Box *lead_wall3 = new G4Box("lead_wall3", fLeadWallThick/2.0, (80.0*2.54*cm)/2.0, (60.0*2.54*cm)/2.0 );
+    
+    G4LogicalVolume *lead_wall3_log = new G4LogicalVolume( lead_wall3, GetMaterial("Lead"), "lead_wall3_log" );
+
+    G4ThreeVector lead_wall3_pos = G4ThreeVector( 34.5*2.54*cm, trkr_yoff[1] - (00.0*cm), trkr_zpos[1] -75.0*cm -7.5*GEM_z_spacing[1] );
+
+    new G4PVPlacement( 0, lead_wall3_pos, lead_wall3_log, "lead_wall3_phys", Mother, false, 0 );
+
+    //lead_wall1 is now used as the shielding in the space between the corrector magnet and the lead wall blocking the line of sight between the beamline and the front tracker(lead_wall2)
+
+    //if(fUseLeadWallConnected == true){
+
+    G4Box *lead_wall1 = new G4Box("lead_wall1", fLeadWallThick/2.0, (40.0*2.54*cm)/2.0, (8.0*2.54*cm)/2.0);
+    
+    G4LogicalVolume *lead_wall1_log = new G4LogicalVolume( lead_wall1, GetMaterial("Lead"), "lead_wall1_log" );
+    
+    G4ThreeVector lead_wall1_pos = G4ThreeVector( 34.0*2.54*cm, trkr_yoff[1] - (30.0*cm), trkr_zpos[1] -317.0*cm -6.4*GEM_z_spacing[1] );
+    
+    new G4PVPlacement( rot_lead_wall, lead_wall1_pos, lead_wall1_log, "lead_wall1_phys", Mother, false, 0 );
+    
+      //}
   
+  }
   // int ntracker = 3; //FT, FPP1, FPP2
   // int ngem[3] = {6,5,5};
 
@@ -4592,7 +4788,10 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
 	  gemh[j] = 200.0*cm;
 	}
       }
-      trackerbuilder.BuildComponent( sbslog, rot_I, cuana_pos, ngem_ce[i], gemz, gemw, gemh, SDnames_ce[i] );
+
+      bool ispol = i > 0;
+      
+      trackerbuilder.BuildComponent( sbslog, rot_I, cuana_pos, ngem_ce[i], gemz, gemw, gemh, SDnames_ce[i], ispol );
     }
   }
   
@@ -4696,7 +4895,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   
   // -----------------------------------------------------------------------
   // beamline side gem detectors
-
+  
   G4RotationMatrix* rot_bs  = new G4RotationMatrix;
   rot_bs->rotateY( 90.0 *deg );
   
@@ -4708,7 +4907,8 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
       gemw[j] = 60.0*cm;
       gemh[j] = 200.0*cm;
     }
-    trackerbuilder.BuildComponent( sbslog, rot_bs, prgem_posbs, 2, gemz, gemw, gemh, G4String("Harm/PRPolGEMBeamSide"));
+    // EPAF 2024/01/22: GEM beam side will not be present in experiment after all 
+    //trackerbuilder.BuildComponent( sbslog, rot_bs, prgem_posbs, 2, gemz, gemw, gemh, G4String("Harm/PRPolGEMBeamSide"));
   }
 
   // -----------------------------------------------------------------------
@@ -4776,12 +4976,14 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
 	fDetCon->InsertSDboundaryVolume( prscintbslog->GetName(), PRPolScintBSSDname );
       }
       prbarbslog->SetVisAttributes(G4Colour(0.0, 1.0, 0.0));
-      prbarbslog->SetSensitiveDetector( PRPolScintBSSD ); 
+      // EPAF 2024/01/22: scint beam side will not be present in experiment after all 
+      //prbarbslog->SetSensitiveDetector( PRPolScintBSSD ); 
       
       // SD detectors indexed from bottom to top
       for(int i = 0; i < nprbars; i++) {
 	double ybar = (((double)(i-nprbars/2.0) * prbarheight) + prbarheight/2.0);
-	new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarbslog, "prbarbsphys", prscintbslog, false, i );
+	// EPAF 2024/01/22: scint beam side will not be present in experiment after all 
+	//new G4PVPlacement( 0, G4ThreeVector(0, ybar, 0), prbarbslog, "prbarbsphys", prscintbslog, false, i );
       }
     }
     

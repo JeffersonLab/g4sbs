@@ -1,5 +1,5 @@
 ## Configure G4SBS for gep (Q^2 = 7.8 GeV^2, 4th pass)
-/g4sbs/filename        GEP3_elastic_job5.root   ## Output rootfile
+/g4sbs/filename        GEP3_pgun_Px_test.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gep
@@ -9,16 +9,26 @@
 /g4sbs/targlen         30.0 cm           ## Target Length
 
 ## Configure generator settings
-/g4sbs/kine            elastic           ## Generator
+/g4sbs/kine            gun           ## Generator
+/g4sbs/particle        proton 
 /g4sbs/runtime         1.0 s
 /g4sbs/beamcur         50.0 microampere
 /g4sbs/rasterx         4.0 mm
 /g4sbs/rastery         4.0 mm
 /g4sbs/beamE           10.6 GeV
-/g4sbs/thmin           20.0 deg
-/g4sbs/thmax           40.0 deg
-/g4sbs/phmin           -45.0 deg
-/g4sbs/phmax           45.0 deg
+#/g4sbs/thmin           20.0 deg
+#/g4sbs/thmax           40.0 deg
+#/g4sbs/phmin           -45.0 deg
+#/g4sbs/phmax           45.0 deg
+
+/g4sbs/thmin          8.0 deg
+/g4sbs/thmax 	      26.0 deg
+/g4sbs/phmin 	      135.0 deg
+/g4sbs/phmax 	      225.0 deg
+/g4sbs/eemin   	      2.0 GeV
+/g4sbs/eemax 	      11.0 GeV
+
+/g4sbs/gunpol         1 0 0 
 
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
@@ -64,4 +74,4 @@
 
 
 ## Run 100 events
-/g4sbs/run             1000
+/g4sbs/run             100

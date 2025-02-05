@@ -1,11 +1,11 @@
 ## Configure G4SBS for gmn (Q^2 = 13.3 GeV^2)
-/g4sbs/filename        gmn_SBS4.root   ## Output rootfile
+/g4sbs/filename        gmn_SBS4_LD2_30percent_job5.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gmn
 
 ## Configure the target
-/g4sbs/target          LH2
+/g4sbs/target          LD2
 /g4sbs/targlen         15.0 cm           ## Target Length
 /g4sbs/rasterx 	       2.0 mm  #raster size in X
 /g4sbs/rastery	       2.0 mm  #raster size in Y
@@ -13,7 +13,7 @@
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator
 /g4sbs/beamcur         1.0 muA
-/g4sbs/beamE           3.7283 GeV
+/g4sbs/beamE           3.7393 GeV
 /g4sbs/thmin           31.0 deg
 /g4sbs/thmax           43.0 deg
 /g4sbs/phmin           -25 deg
@@ -21,7 +21,7 @@
 
 ## Configure standard detector settings
 /g4sbs/hcaldist        11.0 m
-/g4sbs/hcalvoffset     0.45 m
+/g4sbs/hcalvoffset     0.75 m
 /g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
 /g4sbs/sbsclampopt     3                 ## Front field clamp only
 
@@ -32,9 +32,11 @@
 #/g4sbs/tosfield        GMN13_field_newheader.table
 #/g4sbs/sbsmagfield     0.97 tesla
 #/g4sbs/tosfield  	BigBitePortableFieldMap.table 1
-#/g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
-/g4sbs/sbsmagfield     1.23 tesla
-/g4sbs/48d48field      1
+/g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+#/g4sbs/scalesbsfield    0.653 # approximate field scale factor for 50% field setting
+/g4sbs/scalesbsfield    0.392 # approximate field scale factor for 30% field setting
+#/g4sbs/sbsmagfield     1.23 tesla
+#/g4sbs/48d48field      1
 /g4sbs/bbang           36.0 deg
 /g4sbs/bbdist          1.80 m
 /g4sbs/sbsang          31.9 deg
@@ -44,6 +46,8 @@
 /g4sbs/keepsdtrackinfo 	all true
 /g4sbs/totalabs true
 
+/g4sbs/rejectionsampling true 1000000
+
 ## Run 100 events
 /g4sbs/eventstatusevery 100
-/g4sbs/run             50000
+/g4sbs/run             100000

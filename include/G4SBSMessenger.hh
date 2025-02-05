@@ -205,7 +205,18 @@ private:
 
   G4UIcmdWithABool *HadronFilterCmd;
   G4UIcmdWithADoubleAndUnit *HadronFilterThickCmd;
+  G4UIcmdWithADoubleAndUnit *HadronFilterOffsetCmd;
   G4UIcmdWithAString *HadronFilterMaterialCmd;
+  G4UIcmdWithABool *HadronFilterPerpendicularCmd;
+
+  G4UIcmdWithABool *LeadWallConnectedCmd;
+  G4UIcmdWithABool *OldLeadWallCmd;
+  G4UIcmdWithABool *OldLeadWall1Cmd;
+  G4UIcmdWithABool *AddExtensionFieldClampLeadInsertCmd;
+
+  G4UIcmdWithADoubleAndUnit *LeadWallThickCmd;
+  G4UIcmdWithADoubleAndUnit *MoveLeadInsertUpstreamCmd;
+  G4UIcmdWithADoubleAndUnit *MoveLeadInsertLeftCmd;
   
   // D. Flay 7/28/20: command to set GEn 3He target Helmholtz coils and magnetic shield orientations 
   G4UIcmdWithAnInteger       *GENTargetHelmholtzCmd; 
@@ -348,6 +359,8 @@ private:
   G4UIcmdWithADouble *mTPCGasTempCmd;
   G4UIcmdWithADouble *mTPCGasPressureCmd;
   //G4UIcmdWithADouble *mTPCTgtThickCmd;
+
+  G4UIcmdWithAnInteger *TPCdesignCmd;
 
   G4UIcmdWithABool *mTPCkryptoCmd;
 

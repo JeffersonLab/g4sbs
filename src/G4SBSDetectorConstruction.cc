@@ -2625,6 +2625,8 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Material *TargetBeamCollimator = new G4Material("TargetBeamCollimator_Material",tungsten_den,1); 
   TargetBeamCollimator->AddElement(elW,1); 
   fMaterialsMap["TargetBeamCollimator_Material"] = TargetBeamCollimator; 
+
+  fMaterialsMap["Tungsten"] = new G4Material("Tungsten",    z=74., a= 183.85*g/mole, density= 19.30*g/cm3);
   
 }
 

@@ -48,6 +48,8 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   assert(fDetCon);
   G4cout << "<G4SBSmTPC::G4SBSmTPC>: creating mTPC" << G4endl;
   
+  fTPCdesign = 0;
+  
   // variables for mtpc construction
   // taken from M. carmignotto gemc mtpc implementation
   // inner electrode at r=5cm
@@ -74,8 +76,20 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   fmTPC_HV_thick = 0.05*mm; // 50um say gold?
   //
   fmTPCkrypto = true;//false;//by default
-  fChkOvLaps = true;//
+  fChkOvLaps = false;//true;//
 
+  fMLPC_NplaneWires = 150;
+  fMLPC_NWiresPerHalfPlane = 130;
+  fMLPC_InterWireGap = 1.0*mm;
+  fMLPC_InnerWireDistance = 2.0*cm;
+  fMLPC_SupportThickness = 1.6*mm;
+  fMLPC_RinSupport = 15.*cm;
+  fMLPC_RoutSupport = 16.*cm;
+  fMLPC_CathodeRin = 1.5*cm;
+  fMLPC_CathodeMylarThickness = 0.001*mm;//1.0 um Mylar
+  fMLPC_CathodeAlThickness =    0.00001*mm; //0.01um Al;
+  fMLPC_WirePlaneThickness =    0.008*mm;//8 um wires;
+  
 
   //step user limit of the particle in the gas detector 
   // -1*mm -> default G4 step (no user limit)
@@ -93,454 +107,183 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
 
 void G4SBSmTPC::BuildComponent(G4LogicalVolume *motherlog){
   // Check if "Kryptonite" is activated
-  if(fmTPCkrypto)G4cout << "Superman is dead!" << G4endl;
-
-  // Montgomery July 2018
-  // implementing geometry atm as a exact copy of implementation in gemc by park/carmignotto
-  // There is no end cap on mTPC beyond readout discs and also no cathode planes
-  // variables for building detector
-  // total length
-  double mTPC_z_total =  fmTPC_cell_len * fmTPC_Ncells;
-  // centre of 1st cell
-  double mTPC_centre_cell1 = -1.0 * fmTPC_cell_len * (fmTPC_Ncells-1) / 2.0;
-  // radii of disks
-  // inner is inner radius plus the inner electrode material and equivalent for outer
-  double mTPC_rIN = fmTPC_inelectrode_r + fmTPC_inelectrode_kaptonthick + fmTPC_inelectrode_authick;
-  double mTPC_rOUT = fmTPC_outelectrode_r - fmTPC_outelectrode_kaptonthick - fmTPC_outelectrode_authick;
-   
-  // make a mother shell for mtpc filled with the drift gas
-  G4Tubs* mTPCmother_solid = 
-    new G4Tubs("mTPCmother_solid", 
-	       fDetCon->fTargetBuilder->GetTargDiameter()/2,
-	       fmTPC_outelectrode_r, 
-	       mTPC_z_total/2.0, 
-	       0.*deg, 
-	       360.*deg );
   
-  G4LogicalVolume* mTPCmother_log = 
-    new G4LogicalVolume(mTPCmother_solid, 
-			 GetMaterial("ref4He"),
-			"mTPCmother_log");
-  
-  new G4PVPlacement(0, 
-		    G4ThreeVector(0.0, 0.0, fZpos), 
-		    mTPCmother_log,
-		    "mTPCmother_phys", 
-		    motherlog, 
-		    false, 
-		    0, 
-		    fChkOvLaps);
-   
-  
-  // G4String mInnerGasSDname = "SBS/InnerGas";
-  // G4String mInnerGasSDcolname = "mInnerGasHitsCollection";
+  if(fTPCdesign==1){//MLPC design
+    G4double gap = 0.0*mm;// small gap...
+    G4double MLPC_z_total = (fMLPC_SupportThickness*2+fMLPC_CathodeMylarThickness+fMLPC_CathodeAlThickness*2+fMLPC_WirePlaneThickness+gap*4)*fMLPC_NplaneWires+fMLPC_CathodeMylarThickness+fMLPC_CathodeAlThickness*2+fMLPC_SupportThickness*2+gap*4;
 
-  // G4SBSmTPCSD *mInnerGasSD;
-  // if( !(mInnerGasSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mInnerGasSDname)) ){ //Make sure SD with this name doesn't already exist
-  //   mInnerGasSD = new G4SBSmTPCSD( mInnerGasSDname, mInnerGasSDcolname );
-  //   fDetCon->fSDman->AddNewDetector(mInnerGasSD);
-  //   (fDetCon->SDlist).insert(mInnerGasSDname);
-  //   fDetCon->SDtype[mInnerGasSDname] = G4SBS::kmTPC;
-  // }
-  
-  G4Tubs* mInnerGas_solid = 
-    new G4Tubs("mInnerGas_solid", 
-	       fDetCon->fTargetBuilder->GetTargDiameter()/2,
-	       fmTPC_inelectrode_r, 
-	       mTPC_z_total/2.0, 
-	       0.*deg, 
-	       360.*deg );
-  
-  G4LogicalVolume* mInnerGas_log = 
-    new G4LogicalVolume(mInnerGas_solid, 
-			 GetMaterial("ref4He"),
-			"mInnerGas_log");
-  //mInnerGas_log->SetSensitiveDetector(mInnerGasSD);  
-  
-  new G4PVPlacement(0, 
-		    G4ThreeVector(0.0, 0.0, fZpos), 
-		    mInnerGas_log,
-		    "mInnerGas_phys", 
-		    mTPCmother_log, 
-		    false, 
-		    0, 
-		    fChkOvLaps);
-  
-   
-  //Call for the construction of the different mTPC parts
-
-  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCWalls -> Rin = " << mTPC_rIN/mm << " , Rout " << mTPC_rOUT/mm << G4endl;  
-  // make the field electrodes and boundary walls at the inner and outer radii
-  BuildmTPCWalls(mTPCmother_log, mTPC_z_total, fZpos, mTPC_rIN, mTPC_rOUT);
-
-  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCReadouts" << G4endl;
-  // build the readout discs and the gap between readout disc and gems (1 per cell)
-  BuildmTPCReadouts(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCReadoutSD);
-
-  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCGEMs" << G4endl;
-  // build the gem detectors
-  BuildmTPCGEMs(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);
-
-  G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCGasCells" << G4endl;
-  // build the sensitive gas cells
-  BuildmTPCGasCells(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCSD);//, mTPCHVSD);
-   
- 
- 
-  // Visualization attributes
-  G4VisAttributes *tgt_mTPCmother_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
-  tgt_mTPCmother_visatt->SetForceWireframe(true);
-  //mTPCmother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
-  mTPCmother_log->SetVisAttributes( tgt_mTPCmother_visatt );  
-  
-  // TPCinnergas_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
-   
-  // G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
-  // tpcwalls_visatt->SetForceWireframe(true);
-  // TPCinnerwall_log->SetVisAttributes( tpcwalls_visatt );
-  // TPCouterwall_log->SetVisAttributes( tpcwalls_visatt );
-   
-  // // G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.1 ) );
-  // // TPCgas_log->SetVisAttributes( tpcgas_visatt );
-
-}
-
-//G4SBSmTPC *mTPC = NULL;
-/*
-void G4SBSmTPC::BuildTDISTarget(G4LogicalVolume *physiParent)
-{
-  G4cout<<"G4SBSmTPC::BuildTDISTarget: Enter"<<G4endl;
-  // E. Fuchey:
-  // Move this over to the BuildTDISTarget function to avoid overlap between this volume and the target...
-  
-  // Rachel 23/03/18
-  // currently solenoid is local
-  // At the moment the mother volume dimension for the solenoid field is fixed to match the tosca field map
-  // tosca field map is fixed at 50cm in radial and 150cm in z
-  // will have to have this as an option if tosca field map changes
-  double BFieldRMax = 50.0;
-  double BFieldZMax = 150.0;
-  
-  G4Tubs* TPCBfield_solid = 
-    new G4Tubs("TPCBfield_solid", 
-	       0.0,
-	       BFieldRMax*cm/2.0,
-	       BFieldZMax*cm/2.0,
-	       0.0,
-	       360*deg);
- 
-  G4cout << " ouh ?" << G4endl;
-  G4LogicalVolume* TPCBfield_log = 
-    new G4LogicalVolume(TPCBfield_solid, 
-			 GetMaterial("Air"),
-			"TPCBfield_log");
-
-  // will place tpc mother volume into a b-field volume to switch between either uni or tosca
-  
-  // the tpc mother is now the b field cylinder
-  // new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, fZpos), TPCBfield_log,
-  // 		    "TPCBfield_phys", motherlog, false, 0);
-
-  new G4PVPlacement(0,                             //no rotation
-		    G4ThreeVector(0.0, 0.0*m, 0.0),  //its position
-		    TPCBfield_log,                 //its logical volume
-		    "TPCBfield_phys",              //its name
-		    physiParent,                   //its mother
-		    false,                         //no boolean operat
-		    0);                            //copy number
-
-  G4cout << " ouh " << G4endl;
-  // R. Montgomery 23/03/18
-  // At the moment the TPC solenoid can be either a uniform field for test or the tosca simulation
-  // It will only be set if there is no global field in g4sbs, ie no tosca map for sbs is called
-  // Need to add to global field option in future
-  // The filename for tosca map for solenoid is hard coded, need to add this as an option
-  // the solenoid tosca map must be in same directory as g4sbs executable
-  // The solenoid also always has negative z component, as in tosca file, need to add an inverse option too
-  if(fUseLocalTPCSolenoid)
-    {//only envoke TPC local sol if no global sbs field in place atm
-      double SolSign = -1.0;
-      double SolStrength = SolSign * fSolUniMag *tesla;//*tesla;
-      // Using uniform field along TPC z-axis
-      
-      if(fSolUni && !fSolTosca)
-	{
-	  printf("\n\n\n\n************************* TPC:: uniform solenoid field\n");
-	  G4UniformMagField* SolUniMagField = 
-	    new G4UniformMagField(G4ThreeVector(0.0, 
-						0.0, 
-						SolStrength));
-
-	  G4FieldManager *SolFieldMgr = 
-	    new G4FieldManager(SolUniMagField);
-
-	  SolFieldMgr->SetDetectorField(SolUniMagField);
-	  SolFieldMgr->CreateChordFinder(SolUniMagField);
-
-	  G4double minStep = 0.10 *mm;
-	  SolFieldMgr->GetChordFinder()->SetDeltaChord(minStep);
-	  TPCBfield_log->SetFieldManager(SolFieldMgr,true);
+    G4cout << "MLPC total length = " << MLPC_z_total/cm << " cm " << G4endl; 
     
-	  G4double posChck[3];
-	  G4double bChck[3];
-	  posChck[0] = posChck[1] = posChck[2] = 0.0;
-	  bChck[0] = bChck[1] = bChck[2] = 0.0;
-	  SolUniMagField->GetFieldValue(posChck,bChck);
-	  printf("Uniform Solenoid Field at (%lf,%lf,%lf) mm is Bx:%lf  By:%lf Bz:%lf Tesla\n\n\n\n",
-		 posChck[0]/mm,posChck[1]/mm,posChck[2]/mm,
-		 bChck[0]/tesla,bChck[1]/tesla,bChck[2]/tesla);
-	}//if useing uniform solenoid
-      
-      // Using TOSCA sim field
-      double SolOffX, SolOffY, SolOffZ;
-      SolOffX = SolOffY = 0.0;
-      SolOffZ = fSolToscaOffset;// *mm;
- 
-      if(fSolTosca && !fSolUni)
-	{
-	  printf("\n\n\n\n************************* TPC:: tosca solenoid field\n");
-     
-	  if(fSolToscaScale!=1.0) printf("Tosca field is scaled by %lf\n", fSolToscaScale);
-	  G4SBSTPCTOSCAField2D* SolToscaMagField;
-	  SolToscaMagField = 
-	    new G4SBSTPCTOSCAField2D(SolOffX, 
-				     SolOffY, 
-				     SolOffZ, 
-				     fSolToscaScale);
+    // make a mother shell for mtpc filled with the drift gas
+    G4Tubs* MLPCmother_solid = 
+      new G4Tubs("MLPCmother_solid", 
+		 fDetCon->fTargetBuilder->GetTargDiameter()/2,
+		 fMLPC_RoutSupport,
+		 MLPC_z_total*0.5, 
+		 0.*deg, 
+		 360.*deg );
+  
+    G4LogicalVolume* MLPCmother_log = 
+      new G4LogicalVolume(MLPCmother_solid, 
+			  GetMaterial("mTPCgas"),
+			  "MLPCmother_log");
+    
+    new G4PVPlacement(0, 
+		      G4ThreeVector(0.0, 0.0, fZpos), 
+		      MLPCmother_log,
+		      "MLPCmother_phys", 
+		      motherlog, 
+		      false, 
+		      0, 
+		      fChkOvLaps);
 
-	  G4FieldManager *SolFieldMgr = 
-	    new G4FieldManager(SolToscaMagField);
-
-	  G4double minStep = 0.10 *mm;
-	  SolFieldMgr->GetChordFinder()->SetDeltaChord(minStep);
-	  TPCBfield_log->SetFieldManager(SolFieldMgr,true);
-	  G4double posChck[3];
-	  G4double bChck[3];
-	  posChck[0] = posChck[1] = posChck[2] = 0.0;
-	  bChck[0] = bChck[1] = bChck[2] = 0.0;
-	  SolToscaMagField->GetFieldValue(posChck,bChck);
-	  printf("Tosca Solenoid Field at (%lf,%lf,%lf) mm is Bx:%lf  By:%lf Bz:%lf Tesla\n\n\n\n",
-		 posChck[0],posChck[1],posChck[2],
-		 bChck[0]/tesla,bChck[1]/tesla,bChck[2]/tesla);
-	}// if using tosca field
- 
-      if(fSolUni && fSolTosca) printf("\n\n\n\n******** TPC: BEWARE no solenoid since uniform and tosca fields switched on\n\n\n\n");
-      if(fSolUni==false && fSolTosca==false) printf("\n\n\n\n******** TPC: BEWARE no solenoid since neither field type switched on\n\n\n\n");
-    }// if not using G4SBSGlobalField can use local field for TPC sol
-  else printf("\n\n\n******** TPC: BEWARE: not using a solenoid field\n\n\n");
- 
- 
-  G4cout << " ouh oouh " << G4endl;
-  //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-  //Make a sphere to compute particle flux:
-
-  if( fFlux )
-    { 
-      G4Sphere *fsph = 
-	new G4Sphere( "fsph", 
-		      1.5*fTargLen/2.0, 
-		      1.5*fTargLen/2.0+cm, 
-		      0.0*deg, 
-		      360.*deg,
-		      0.*deg, 
-		      150.*deg );
-
-      G4LogicalVolume *fsph_log = 
-	new G4LogicalVolume( fsph, 
-			      GetMaterial("Air"), 
-			     "fsph_log" );
-
-      new G4PVPlacement( 0, 
-			 G4ThreeVector(0,0,0), 
-			 fsph_log, 
-			 "fsph_phys", 
-			 TPCBfield_log, 
-			 false, 
-			 0, 
-			 fChkOvLaps );
-      
-      fsph_log->SetUserLimits(  new G4UserLimits(0.0, 0.0, 0.0, DBL_MAX, DBL_MAX) );
-      
-      //    G4String FluxSDname = "FLUX";
-      //    G4String Fluxcollname = "FLUXHitsCollection";
-      // G4SBSCalSD *FluxSD = NULL;
-      // if( !( FluxSD = (G4SBSCalSD*) fDetCon->fSDman->FindSensitiveDetector(FluxSDname) ) )
-      //   {
-      // 	G4cout << "Adding FLUX SD to SDman..." << G4endl;
-      // 	FluxSD = new G4SBSCalSD( FluxSDname, Fluxcollname );
-      // 	fDetCon->fSDman->AddNewDetector( FluxSD );
-      // 	(fDetCon->SDlist).insert( FluxSDname );
-      // 	fDetCon->SDtype[FluxSDname] = kCAL;
-      
-      // 	(FluxSD->detmap).depth = 0;
-      //   }
-      
-      //  fsph_log->SetSensitiveDetector( FluxSD );
+    G4double zpos = -MLPC_z_total*0.5 + fMLPC_SupportThickness*0.5+gap;
+    G4double theta = 0.0*deg;
+    G4cout << " Z position = " << zpos/mm << " mm " << endl;
+    //starting with one G10 support
+    BuildMLPCG10Support(MLPCmother_log, zpos);
+    //loop on number of wire planes:
+    // 1 layer of cathode;
+    // 1 support;
+    // 1 layer of wires, rotated by an angle theta;
+    // 1 support;
+    for(int k = 0; k<fMLPC_NplaneWires; k++){
+      zpos+= (fMLPC_SupportThickness+fMLPC_CathodeMylarThickness)*0.5+fMLPC_CathodeAlThickness+gap;
+      G4cout << " Z position = " << zpos/mm << " mm " << endl;
+      BuildMLPCCathode(MLPCmother_log, zpos);
+      zpos+= (fMLPC_CathodeMylarThickness+fMLPC_SupportThickness)*0.5+fMLPC_CathodeAlThickness+gap;
+      G4cout << " Z position = " << zpos/mm << " mm " << endl;
+      BuildMLPCG10Support(MLPCmother_log, zpos);
+      zpos+= (fMLPC_SupportThickness+fMLPC_WirePlaneThickness)*0.5+gap;
+      G4cout << " Z position = " << zpos/mm << " mm " << endl;
+      BuildMLPCWires(MLPCmother_log, zpos, theta, k);
+      theta+= 120.0*deg;
+      zpos+= (fMLPC_WirePlaneThickness+fMLPC_SupportThickness)*0.5+gap;
+      G4cout << " Z position = " << zpos/mm << " mm " << endl;
+      BuildMLPCG10Support(MLPCmother_log, zpos);
     }
+    //after building all wires, capping with a cathode plane and a G10 support plane
+    zpos+= (fMLPC_SupportThickness+fMLPC_CathodeMylarThickness)*0.5+fMLPC_CathodeAlThickness+gap;
+    G4cout << " Z position = " << zpos/mm << " mm " << endl;
+    BuildMLPCCathode(MLPCmother_log, zpos);
+    zpos+= (fMLPC_CathodeMylarThickness+fMLPC_SupportThickness)*0.5+fMLPC_CathodeAlThickness+gap;
+    G4cout << " Z position = " << zpos/mm << " mm " << endl;
+    BuildMLPCG10Support(MLPCmother_log, zpos);
+    
+    MLPCmother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  }else{
+    if(fmTPCkrypto)G4cout << "Superman is dead!" << G4endl;
+
+    // Montgomery July 2018
+    // implementing geometry atm as a exact copy of implementation in gemc by park/carmignotto
+    // There is no end cap on mTPC beyond readout discs and also no cathode planes
+    // variables for building detector
+    // total length
+    double mTPC_z_total =  fmTPC_cell_len * fmTPC_Ncells;
+    // centre of 1st cell
+    double mTPC_centre_cell1 = -1.0 * fmTPC_cell_len * (fmTPC_Ncells-1) / 2.0;
+    // radii of disks
+    // inner is inner radius plus the inner electrode material and equivalent for outer
+    double mTPC_rIN = fmTPC_inelectrode_r + fmTPC_inelectrode_kaptonthick + fmTPC_inelectrode_authick;
+    double mTPC_rOUT = fmTPC_outelectrode_r - fmTPC_outelectrode_kaptonthick - fmTPC_outelectrode_authick;
+   
+    // make a mother shell for mtpc filled with the drift gas
+    G4Tubs* mTPCmother_solid = 
+      new G4Tubs("mTPCmother_solid", 
+		 fDetCon->fTargetBuilder->GetTargDiameter()/2,
+		 fmTPC_outelectrode_r, 
+		 mTPC_z_total/2.0, 
+		 0.*deg, 
+		 360.*deg );
   
-  //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    G4LogicalVolume* mTPCmother_log = 
+      new G4LogicalVolume(mTPCmother_solid, 
+			  GetMaterial("ref4He"),
+			  "mTPCmother_log");
+  
+    new G4PVPlacement(0, 
+		      G4ThreeVector(0.0, 0.0, fZpos), 
+		      mTPCmother_log,
+		      "mTPCmother_phys", 
+		      motherlog, 
+		      false, 
+		      0, 
+		      fChkOvLaps);
+   
+  
+    // G4String mInnerGasSDname = "SBS/InnerGas";
+    // G4String mInnerGasSDcolname = "mInnerGasHitsCollection";
 
-  G4cout << " ouh oouh ouh " << G4endl;
+    // G4SBSmTPCSD *mInnerGasSD;
+    // if( !(mInnerGasSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mInnerGasSDname)) ){ //Make sure SD with this name doesn't already exist
+    //   mInnerGasSD = new G4SBSmTPCSD( mInnerGasSDname, mInnerGasSDcolname );
+    //   fDetCon->fSDman->AddNewDetector(mInnerGasSD);
+    //   (fDetCon->SDlist).insert(mInnerGasSDname);
+    //   fDetCon->SDtype[mInnerGasSDname] = G4SBS::kmTPC;
+    // }
+  
+    G4Tubs* mInnerGas_solid = 
+      new G4Tubs("mInnerGas_solid", 
+		 fDetCon->fTargetBuilder->GetTargDiameter()/2,
+		 fmTPC_inelectrode_r, 
+		 mTPC_z_total/2.0, 
+		 0.*deg, 
+		 360.*deg );
+  
+    G4LogicalVolume* mInnerGas_log = 
+      new G4LogicalVolume(mInnerGas_solid, 
+			  GetMaterial("ref4He"),
+			  "mInnerGas_log");
+    //mInnerGas_log->SetSensitiveDetector(mInnerGasSD);  
+  
+    new G4PVPlacement(0, 
+		      G4ThreeVector(0.0, 0.0, fZpos), 
+		      mInnerGas_log,
+		      "mInnerGas_phys", 
+		      mTPCmother_log, 
+		      false, 
+		      0, 
+		      fChkOvLaps);
+  
+   
+    //Call for the construction of the different mTPC parts
 
+    G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCWalls -> Rin = " << mTPC_rIN/mm << " , Rout " << mTPC_rOUT/mm << G4endl;  
+    // make the field electrodes and boundary walls at the inner and outer radii
+    BuildmTPCWalls(mTPCmother_log, mTPC_z_total, fZpos, mTPC_rIN, mTPC_rOUT);
 
-  //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*  
-  // R. Montgomery July 2018 mTPC
-  // TDIS target
-  // this cap needs checked and updated!!
+    G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCReadouts" << G4endl;
+    // build the readout discs and the gap between readout disc and gems (1 per cell)
+    BuildmTPCReadouts(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCReadoutSD);
 
-  double capthick  = 0.015;//15um thick Al //0.05*mm;
+    G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCGEMs" << G4endl;
+    // build the gem detectors
+    BuildmTPCGEMs(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);
+
+    G4cout << "<G4SBSmTPC::G4SBSmTPC>: BuildmTPCGasCells" << G4endl;
+    // build the sensitive gas cells
+    BuildmTPCGasCells(mTPCmother_log, mTPC_centre_cell1, fmTPC_cell_len, mTPC_rIN,  mTPC_rOUT);//, mTPCSD);//, mTPCHVSD);
+   
  
-  // volumes for target wall material and cap
-
-  G4Tubs *targ_tube = 
-    new G4Tubs("targ_tube", 
-	       ftdis_tgt_diam/2.0-ftdis_tgt_wallthick, 
-	       ftdis_tgt_diam/2.0, 
-	       ftdis_tgt_len/2.0, 
-	       0.*deg, 
-	       360.*deg );
-
-  G4Tubs *targ_cap = 
-    new G4Tubs("targ_cap", 
-	       0.0, 
-	       ftdis_tgt_diam/2.0, 
-	       capthick/2.0, 
-	       0.*deg, 
-	       360.*deg );
+ 
+    // Visualization attributes
+    G4VisAttributes *tgt_mTPCmother_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
+    tgt_mTPCmother_visatt->SetForceWireframe(true);
+    //mTPCmother_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+    mTPCmother_log->SetVisAttributes( tgt_mTPCmother_visatt );  
   
-  // target gas material volume and material
-  G4Tubs *gas_tube = 
-    new G4Tubs("gas_tube", 
-	       0.0, 
-	       ftdis_tgt_diam/2.0-ftdis_tgt_wallthick, 
-	       ftdis_tgt_len/2.0, 
-	       0.*deg, 
-	       360.*deg );
-
-  G4LogicalVolume* gas_tube_log = NULL;
-
-  if( fTargType == G4SBS::kH2 ){
-    gas_tube_log = new G4LogicalVolume(gas_tube, 
-				       //GetMaterial("mTPCH2"), 
-				       GetMaterial("refH2"), 
-				       "gas_tube_log");
+    // TPCinnergas_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+   
+    // G4VisAttributes *tpcwalls_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
+    // tpcwalls_visatt->SetForceWireframe(true);
+    // TPCinnerwall_log->SetVisAttributes( tpcwalls_visatt );
+    // TPCouterwall_log->SetVisAttributes( tpcwalls_visatt );
+   
+    // // G4VisAttributes *tpcgas_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 0.0, 0.1 ) );
+    // // TPCgas_log->SetVisAttributes( tpcgas_visatt );
   }
- 
-  if( fTargType == G4SBS::kD2 || fTargType == G4SBS::kNeutTarg  ){ //moved neut target from kH2
-    gas_tube_log = new G4LogicalVolume(gas_tube, 
-				       //GetMaterial("mTPCD2"), 
-				       GetMaterial("refD2"), 
-				       "gas_tube_log");
-  }
- 
-  if( fTargType == G4SBS::k3He ){
-    gas_tube_log = new G4LogicalVolume(gas_tube, 
-				        GetMaterial("pol3He"), 
-				       "gas_tube_log");
-  }
- 
- 
-  // put target construction material within solenoid bounding box as mother vol
-
-  G4LogicalVolume *motherlog = TPCBfield_log;
-
-  double target_zpos = 0.0; // no z-offset
   
-  G4LogicalVolume* targ_tube_log = 
-    new G4LogicalVolume(targ_tube, 
-			 GetMaterial("Kapton"),
-			"targ_tube_log");
- 
-  G4LogicalVolume* targ_cap_log = 
-    new G4LogicalVolume(targ_cap, 
-			 GetMaterial("Aluminum"),
-			"targ_cap_log"); //aluminium
-
-  new G4PVPlacement(0, 
-		    G4ThreeVector(0.0, 0.0, target_zpos), 
-		    targ_tube_log,
-		    "targ_tube_phys", 
-		    motherlog, 
-		    false, 
-		    0, 
-		    fChkOvLaps);
-
-  new G4PVPlacement(0, 
-		    G4ThreeVector(0.0, 0.0, target_zpos+ftdis_tgt_len/2.0+capthick/2.0), 
-		    targ_cap_log,
-		    "targ_cap_phys1", 
-		    motherlog, 
-		    false, 
-		    0, 
-		    fChkOvLaps);
-
-  new G4PVPlacement(0, 
-		    G4ThreeVector(0.0, 0.0, target_zpos-ftdis_tgt_len/2.0-capthick/2.0), 
-		    targ_cap_log,
-		    "targ_cap_phys2", 
-		    motherlog, 
-		    false, 
-		    1, 
-		    fChkOvLaps);
-  
-  // now place target gas material inside
-  assert(gas_tube_log);
-  new G4PVPlacement(0, 
-		    G4ThreeVector(0.0, 0.0, target_zpos), 
-		    gas_tube_log,
-		    "gas_tube_phys", 
-		    motherlog, 
-		    false, 
-		    0, 
-		    fChkOvLaps);
-
-
-  //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*  
-  printf("G4SBSmTPC::G4SBSmTPC: to BuildTPC \n");
-
-  //BuildTPC(motherlog, target_zpos);//TPC actually centered on the target
-  // TPC is inside mother log vol which for now is solenoid map vol
-  // solenoid map vol is tube centred on 0,0,0 with r=25cm, length 150cm 
-
-  printf("G4SBSmTPC::G4SBSmTPC: return BuildTPC \n");  
-  //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-
-
-  //Visualization attributes:
-
-
-  //Solenoid attributes
-  // G4VisAttributes * TPCBFiled_log_att = new G4VisAttributes(G4Colour(1.,1.,0.));
-  // TPCBfield_log->SetVisAttributes( TPCBFiled_log_att );
-  TPCBfield_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
-
-
-
- 
-  G4VisAttributes *tgt_cell_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0 ) );
-  G4VisAttributes *tgt_cap_visatt = new G4VisAttributes( G4Colour( 1.0, 0.0, 1.0 ) );
-  tgt_cell_visatt->SetForceWireframe(true);
-  // tgt_cap_visatt->SetForceWireframe(true);
-  
-
-  targ_cap_log  -> SetVisAttributes( tgt_cap_visatt );
-  targ_tube_log -> SetVisAttributes( tgt_cell_visatt );
-
-
-  G4VisAttributes *tgt_gas_visatt = new G4VisAttributes( G4Colour( 0.0, 1.0, 1.0 ) );
-  gas_tube_log->SetVisAttributes( tgt_gas_visatt );
-
-  G4cout<<"G4SBSmTPC::BuildTDISTarget: Leaving"<<G4endl;
-
-  return;
-
 }
-*/
-//void G4SBSmTPC::BuildTPC(G4LogicalVolume *motherlog, G4double z_pos)
-//{
-//}
- 
  
 void G4SBSmTPC::BuildmTPCWalls(G4LogicalVolume *motherlog, G4double mtpctotallength, G4double mtpczpos, G4double mtpcinnerR, G4double mtpcouterR){
   // make inner and outer boundary layers
@@ -1172,6 +915,223 @@ void G4SBSmTPC::BuildmTPCGasCells(G4LogicalVolume *motherlog, G4double centrecel
 }
 
 
+// EPAF 2024/11/18
+// Methods to build MLPC design components.
+void G4SBSmTPC::BuildMLPCWires(G4LogicalVolume *motherlog, G4double zPos, G4double angle, G4int WirePlaneNum)
+{
+  G4Tubs* MLPCWiresGas_solid = 
+    new G4Tubs("MLPCWiresGas_solid", 
+	       fDetCon->fTargetBuilder->GetTargDiameter()/2,
+	       fMLPC_RinSupport, 
+	       fMLPC_SupportThickness+fMLPC_WirePlaneThickness*0.5, 
+	       0.*deg, 
+	       360.*deg );
+  
+  //mother volume for the wires...
+  G4LogicalVolume* MLPCWiresGas_log = 
+    new G4LogicalVolume(MLPCWiresGas_solid,
+			GetMaterial("mTPCgas"),
+			"MLPCWiresGas_log");
+  
+  new G4PVPlacement(0, 
+		    G4ThreeVector(0.0, 0.0, zPos), 
+		    MLPCWiresGas_log,
+		    "MLPCWiresGas_phys", 
+		    motherlog, 
+		    false, 
+		    WirePlaneNum, 
+		    fChkOvLaps);
+
+  G4VisAttributes *tpc_gas_visatt = new G4VisAttributes( G4Colour( 0.0, 0.75, 1.0) );
+  tpc_gas_visatt->SetForceWireframe(true);
+
+  G4VisAttributes *wire_visatt = new G4VisAttributes( G4Colour( 0.8, 0.75, 0.0) );
+  
+  MLPCWiresGas_log->SetVisAttributes( tpc_gas_visatt );
+  
+  //Split gas in cells for wires... will be tedious
+  G4Box* WireCell_box = 
+    new G4Box("WireCell_box",
+	      fMLPC_InterWireGap*0.5,
+	      fMLPC_RinSupport,
+	      fMLPC_SupportThickness+fMLPC_WirePlaneThickness*0.5);
+   
+  G4String mTPCSDname = "SBS/MLPC";
+  G4String mTPCcolname = "mTPCHitsCollection";
+  
+  G4SBSmTPCSD* mTPCSD;
+  if( !(mTPCSD = (G4SBSmTPCSD*) fDetCon->fSDman->FindSensitiveDetector(mTPCSDname)) ){ //Make sure SD with this name doesn't already exist
+    mTPCSD = new G4SBSmTPCSD( mTPCSDname, mTPCcolname );
+    fDetCon->fSDman->AddNewDetector(mTPCSD);
+    (fDetCon->SDlist).insert(mTPCSDname);
+    fDetCon->SDtype[mTPCSDname] = G4SBS::kmTPC;
+  }
+  
+  for(int i = 0; i<fMLPC_NWiresPerHalfPlane; i++){
+    G4double WireDistanceToCenter = fMLPC_InnerWireDistance+fMLPC_InterWireGap*i;
+
+    G4Tubs* Wire_solid =
+      new G4Tubs("Wire_solid",
+		 0,
+		 fMLPC_WirePlaneThickness*0.5,
+		 fMLPC_RinSupport*cos( asin( (WireDistanceToCenter+fMLPC_WirePlaneThickness*0.5)/fMLPC_RinSupport ) ),
+		 0.*deg,
+		 360.*deg);
+    
+    G4IntersectionSolid* WireCell_solid_0 =
+      new G4IntersectionSolid("WireCell_solid_0",
+			      MLPCWiresGas_solid,
+			      WireCell_box,
+			      0,
+			      G4ThreeVector(WireDistanceToCenter, 0, 0));
+    
+    G4RotationMatrix* RotationWire = new G4RotationMatrix();
+    RotationWire->rotateX(90.0*deg);
+    
+    G4SubtractionSolid* WireCell_solid =
+      new G4SubtractionSolid("WireCell_solid",
+			     WireCell_solid_0,
+			     Wire_solid,
+			     RotationWire,
+			     G4ThreeVector(WireDistanceToCenter, 0, 0));
+    
+    G4LogicalVolume* WireCell_log = 
+      new G4LogicalVolume(WireCell_solid,
+			  GetMaterial("mTPCgas"),
+			  "WireCell_log");
+    
+    
+    G4LogicalVolume* Wire_log = 
+      new G4LogicalVolume(Wire_solid,
+			  GetMaterial("Tungsten"),
+			  "Wire_log");
+    
+    WireCell_log->SetVisAttributes( tpc_gas_visatt );
+    Wire_log->SetVisAttributes( wire_visatt );
+
+    //G4cout << " Wire distance to center: " << WireDistanceToCenter/mm << " mm " << G4endl; 
+
+    for(int j = 0; j<2; j++){
+      G4int WireUniqueID = WirePlaneNum*fMLPC_NWiresPerHalfPlane*2+i*2+j;
+      //G4cout << " j "<<  j << " WireUniqueID " << WireUniqueID << " cos angle??? " << cos(angle+j*180.0*deg) << " sin angle??? " << sin(angle+j*180.0*deg) << G4endl; 
+
+      G4RotationMatrix* RotationPlane = new G4RotationMatrix();
+      RotationPlane->rotateZ(-angle+j*180.0*deg);
+
+      new G4PVPlacement(RotationPlane,//0
+			G4ThreeVector(0, 0, 0),
+			WireCell_log,
+			"WireCell", 
+			MLPCWiresGas_log, 
+			false, 
+			WireUniqueID, 
+			fChkOvLaps
+			);
+      
+      WireCell_log->SetSensitiveDetector(mTPCSD);
+
+      RotationWire = new G4RotationMatrix();
+      RotationWire->rotateX(90.0*deg);
+      RotationWire->rotateY(angle);
+      
+      new G4PVPlacement(RotationWire,
+			G4ThreeVector(WireDistanceToCenter*cos(angle+j*180.0*deg), WireDistanceToCenter*sin(angle+j*180.0*deg), 0), 
+			Wire_log,
+			"Wire", 
+			MLPCWiresGas_log, 
+			false, 
+			WireUniqueID, 
+			fChkOvLaps
+			);
+      
+    }
+  }
+}
+
+void G4SBSmTPC::BuildMLPCCathode(G4LogicalVolume *motherlog, G4double zPos)
+{
+  G4Tubs* MLPCCathode_solid_base = 
+    new G4Tubs("MLPCCathode_solid_base", 
+	       fMLPC_CathodeRin, 
+	       fMLPC_RoutSupport, 
+	       fMLPC_CathodeMylarThickness*0.5+fMLPC_CathodeAlThickness, 
+	       0.*deg, 
+	       360.*deg );
+  
+  G4LogicalVolume* MLPCCathode_log = 
+    new G4LogicalVolume(MLPCCathode_solid_base,
+			GetMaterial("Mylar"),
+			"MLPCCathode_log");
+
+  G4Tubs* MLPCCathodeAlCoating_solid_base = 
+    new G4Tubs("MLPCCathodeAlCoating_solid_base", 
+	       fMLPC_CathodeRin, 
+	       fMLPC_RoutSupport, 
+	       fMLPC_CathodeAlThickness*0.5, 
+	       0.*deg, 
+	       360.*deg );
+  
+  G4LogicalVolume* MLPCCathodeAlCoating_log = 
+    new G4LogicalVolume(MLPCCathodeAlCoating_solid_base,
+			GetMaterial("Aluminum"),
+			"MLPCCathodeAlCoating_log");
+  
+  for(int k = 0; k<2; k++){
+    new G4PVPlacement(0, 
+		      G4ThreeVector(0.0, 0.0, pow(-1, k) * (fMLPC_CathodeMylarThickness*0.5-fMLPC_CathodeAlThickness*0.5) ), 
+		      MLPCCathodeAlCoating_log,
+		      "MLPCCathodeAlCoating_phys", 
+		      MLPCCathode_log, 
+		      false, 
+		      0, 
+		      fChkOvLaps);
+  }
+  
+  new G4PVPlacement(0, 
+		    G4ThreeVector(0.0, 0.0, zPos), 
+		    MLPCCathode_log,
+		    "MLPCCathode_phys", 
+		    motherlog, 
+		    false, 
+		    0, 
+		    fChkOvLaps);
+
+  G4VisAttributes *cathode_visatt = new G4VisAttributes( G4Colour( 0.8, 0.75, 0.0) );
+  cathode_visatt->SetForceWireframe(true);
+  MLPCCathode_log->SetVisAttributes( cathode_visatt );
+
+  MLPCCathodeAlCoating_log->SetVisAttributes( G4VisAttributes::GetInvisible() );
+}
+
+void G4SBSmTPC::BuildMLPCG10Support(G4LogicalVolume *motherlog, G4double zPos)
+{
+  G4Tubs* MLPCSupport_solid = 
+    new G4Tubs("MLPCSupport_solid", 
+	       fMLPC_RinSupport, 
+	       fMLPC_RoutSupport, 
+	       fMLPC_SupportThickness*0.5, 
+	       0.*deg, 
+	       360.*deg );
+  
+  G4LogicalVolume* MLPCSupport_log = 
+    new G4LogicalVolume(MLPCSupport_solid,
+			GetMaterial("NEMAG10"),
+			"MLPCSupport_log");
+  
+  new G4PVPlacement(0, 
+		    G4ThreeVector(0.0, 0.0, zPos), 
+		    MLPCSupport_log,
+		    "MLPCSupport_phys", 
+		    motherlog, 
+		    false, 
+		    0, 
+		    fChkOvLaps);
+
+  G4VisAttributes *support_visatt = new G4VisAttributes( G4Colour( 1.0, 1.0, 1.0) );
+  support_visatt->SetForceWireframe(true);
+  MLPCSupport_log->SetVisAttributes( support_visatt );
+ 
+}
 
 
 G4SBSmTPC::~G4SBSmTPC()

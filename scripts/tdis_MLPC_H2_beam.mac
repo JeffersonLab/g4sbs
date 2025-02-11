@@ -38,8 +38,8 @@
 
 /g4sbs/tpcdesign 1
 
-/g4sbs/treeflag 0
-/g4sbs/totalabs true
+/g4sbs/treeflag 1
+/g4sbs/totalabs false
 ##/g4sbs/steplimit LACmod_log 1 
 
 /g4sbs/keepsdtrackinfo all true

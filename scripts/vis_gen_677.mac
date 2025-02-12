@@ -7,17 +7,15 @@
 /g4sbs/exp             gen
 
 ## Configure the target
-/g4sbs/target            3He
-/g4sbs/targpres          10.77 atmosphere  ## Target pressure
-/g4sbs/targlen           55.0 cm           ## Target Length (depricated) 
-/g4sbs/targgenhhconfig   677               ## Q2 = 6.77 GeV^2
-/g4sbs/targgenColEnable  true              ## set to false if you want to turn off the collimators  
-/g4sbs/targgenColEnableA true              ## upstream collimator 
-/g4sbs/targgenColEnableB true              ## downstream collimator 1
-/g4sbs/targgenColEnableC true              ## downstream collimator 2 (furthest downstream) 
-/g4sbs/targgenDRX        0 deg             ## target angular misalignment about x axis  
-/g4sbs/targgenDRY        0 deg             ## target angular misalignment about y axis
-/g4sbs/targgenDRZ        0 deg             ## target angular misalignment about z axis
+/g4sbs/target          3He
+/g4sbs/targpres        10 atmosphere     ## Target pressure
+/g4sbs/targlen         60.0 cm           ## Target Length
+/g4sbs/targgenhhconfig 683               ## HH coil position
+/g4sbs/targgenDRX      0 deg             ## target angular misalignment about x axis  
+/g4sbs/targgenDRY      0 deg             ## target angular misalignment about y axis
+/g4sbs/targgenDRZ      0 deg             ## target angular misalignment about z axis
+/g4sbs/targgenColEnable true
+/g4sbs/usehadronfilter true
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator

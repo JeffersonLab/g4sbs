@@ -60,6 +60,7 @@
 #/g4sbs/sbsmagfield     0.917 tesla
 /g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
 /g4sbs/scalesbsfield   0.638 # approximate field scale factor for 50% field setting
+#/g4sbs/scalesbsfield   0.655 # approximate field scale factor for 50% field setting
 
 /g4sbs/bbang           26.5 deg
 /g4sbs/bbdist 		1.9594 m

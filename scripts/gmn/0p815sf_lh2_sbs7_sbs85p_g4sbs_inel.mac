@@ -1,0 +1,46 @@
+## ---------------
+## Created by Provakar Datta
+## ---------------
+
+## Configure G4SBS for GMn SBS-7 (Q^2 = 10.0 GeV^2)
+
+## Configure Experiment
+/g4sbs/exp             gmn
+
+## Configure the target
+/g4sbs/target	       LH2
+/g4sbs/targlen         15.0 cm     ## Target Length
+/g4sbs/rasterx         2.0 mm      ## Raster size in X
+/g4sbs/rastery         2.0 mm      ## Raster size in Y
+
+## Configure generator settings
+/g4sbs/kine            inelastic     ## Generator
+/g4sbs/beamcur         1.0 muA
+/g4sbs/beamE           7.9308 GeV
+/g4sbs/thmin           35.0 deg    ## 40.0 deg - 5.0 deg
+/g4sbs/thmax           45.0 deg    ## 40.0 deg + 5.0 deg
+/g4sbs/phmin           -25 deg     
+/g4sbs/phmax           25 deg	 	
+/g4sbs/eemin 	       1.2 GeV
+/g4sbs/eemax 	       4.0 GeV	
+
+## Configure standard detector settings
+/g4sbs/hcaldist        14.0 m
+/g4sbs/hcalvoffset     0.75 m
+/g4sbs/beamlineconfig  3
+/g4sbs/sbsclampopt     3
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/scalebbfield    0.9672
+/g4sbs/tosfield        SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+/g4sbs/scalesbsfield   0.815 ## Change to get the data and simulation dx peaks to agree.
+/g4sbs/bbang           40.0 deg
+/g4sbs/bbdist          1.84896 m
+/g4sbs/sbsang          16.1 deg
+/g4sbs/48D48dist       2.25 m
+
+/g4sbs/keepsdtrackinfo all true
+/g4sbs/totalabs true
+
+/g4sbs/eventstatusevery 1000

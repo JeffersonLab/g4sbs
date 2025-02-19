@@ -1038,15 +1038,15 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->InitializePythia6_Tree();
     }
     if( fevgen->GetKine() == G4SBS::kSIMC ){
-      //Also allow for starting at a different entry than zero in the SIMC chain:
-      long firstevt = fevgen->GetFirstEvent();
+      // //Also allow for starting at a different entry than zero in the SIMC chain:
+      // long firstevt = fevgen->GetFirstEvent();
 
-      long lastevt_chain = fevgen->GetPythiaChain()->GetEntries()-1;
-      nevt = std::min( long(nevt), lastevt_chain-firstevt + 1 );
+      // long lastevt_chain = fevgen->GetPythiaChain()->GetEntries()-1;
+      // nevt = std::min( long(nevt), lastevt_chain-firstevt + 1 );
       
-      // if( fevgen->GetSIMCChain()->GetEntries() < nevt ){
-      // 	nevt = fevgen->GetSIMCChain()->GetEntries();
-      // }
+      if( fevgen->GetSIMCChain()->GetEntries() < nevt ){
+	nevt = fevgen->GetSIMCChain()->GetEntries();
+      }
       fevgen->InitializeSIMC_Tree();
     }
 

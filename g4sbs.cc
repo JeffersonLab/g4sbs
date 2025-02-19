@@ -251,16 +251,19 @@ int main(int argc, char** argv)
 
   //
   macropathcmd += ".:./scripts";
+  //  macropathcmd += ".:./scripts/gmn";  
 
   char *G4SBS_env_var = std::getenv("G4SBS");
   if( G4SBS_env_var != NULL ){
     macropathcmd += ":";
     macropathcmd += G4SBS_env_var;
     macropathcmd += "/scripts";
+    macropathcmd += ":";
+    macropathcmd += G4SBS_env_var;    
+    macropathcmd += "/scripts/gmn";    
   }
 
-  //Let GEANT4 search ./scripts and $G4SBS/scripts for macros:
-  
+  //Let GEANT4 search ./scripts, $G4SBS/scripts, and $G4SBS/scripts/gmn for macros:
   UImanager->ApplyCommand( macropathcmd );
   //#endif  
 

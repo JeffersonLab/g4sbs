@@ -1,5 +1,5 @@
 ## Configure G4SBS for gep (Q^2 = 5.7 GeV^2, 3rd pass)
-#/g4sbs/filename        GEP0c_rsamp_test2.root   ## Output rootfile
+#/g4sbs/filename        GEP0_elastic_test.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gep
@@ -7,6 +7,7 @@
 ## Configure the target
 /g4sbs/target          LH2
 /g4sbs/targlen         30.0 cm           ## Target Length
+/g4sbs/targpos 	       0.0 0.0 -9.0 cm   ## Target z offset
 
 ## Configure generator settings
 /g4sbs/kine            elastic          ## Generator
@@ -40,13 +41,14 @@
 ## Configure the magnets
 /g4sbs/bbfield         0
 #/g4sbs/tosfield        GEP_12map0_newheader.table
-/g4sbs/tosfield SBSPortableFieldMap_TwoClamps_PoleShims.table 2
-/g4sbs/scalesbsfield     0.39
+#/g4sbs/tosfield SBSPortableFieldMap_TwoClamps_PoleShims.table 2
+#/g4sbs/scalesbsfield     0.39
+/g4sbs/tosfield GEP0_map.table
 # keep default maximum field for now
 # assume 2.4 T*m / 1.22 m = 1.97 Tesla
 #/g4sbs/sbsmagfield     1.97 tesla
 #/g4sbs/48d48field      1
-/g4sbs/bbang           36.1 deg
+/g4sbs/bbang           35.0 deg
 /g4sbs/bbdist          5.0 m
 /g4sbs/sbsang          28.5 deg
 /g4sbs/48D48dist       1.6 m

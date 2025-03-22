@@ -53,6 +53,9 @@
 /g4sbs/sbsang          28.5 deg
 /g4sbs/48D48dist       1.6 m
 
+/g4sbs/usehadronfilter false
+/g4sbs/leadwallconnect true
+
 #/control/execute scripts/default_thresholds.mac
 /g4sbs/totalabs true
 /g4sbs/treeflag 1

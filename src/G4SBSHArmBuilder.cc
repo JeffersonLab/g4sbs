@@ -116,6 +116,8 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fCDetReady = false; //default to false for both of these
   
   fUseNeutronVeto=false;
+
+  fUseLeadWallConnected = true;
   
   assert(fDetCon);
 }

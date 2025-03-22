@@ -20,7 +20,7 @@ const double Mp = 0.938272046; //GeV/c^2
 const double mu_p = 2.792847356; //mu_N
 const double kappa_p = mu_p - 1.0; //anomalous magnetic moment
 const double PI = TMath::Pi();
-const double SBS_thetabend = 5.0*PI/180.0; //central bend angle
+const double SBS_thetabend = 0.0*PI/180.0; //central bend angle
 
 //const double SBS_thetabend = 5.0*PI/180.0;
 

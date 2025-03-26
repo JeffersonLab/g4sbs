@@ -179,6 +179,29 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     
     return;
   }
+  
+  if( sbsgen->GetKine() == G4SBS::kSIMCPi0 ){ //SIMC event:
+    G4SBSSIMCPi0Output Primaries = sbsgen->GetSIMCPi0Event();
+    
+    particle = particleTable->FindParticle(particleName="gamma");
+    particleGun->SetParticleDefinition(particle);
+    particleGun->SetParticleMomentumDirection( sbsgen->GetNucleonP().unit() );
+    particleGun->SetParticleEnergy(sbsgen->GetNucleonE());
+    particleGun->SetParticlePosition( sbsgen->GetV() );
+    particleGun->GeneratePrimaryVertex(anEvent);
+    
+    particle = particleTable->FindParticle(particleName="gamma");
+    particleGun->SetParticleDefinition(particle);
+    particleGun->SetParticleMomentumDirection( sbsgen->GetHadronP().unit() );
+    particleGun->SetParticleEnergy(sbsgen->GetHadronE());
+    particleGun->SetParticlePosition( sbsgen->GetV() );
+    particleGun->GeneratePrimaryVertex(anEvent);
+    
+    Primaries.ConvertToTreeUnits();
+    fIO->SetSIMCPi0Output( Primaries );
+    
+    return;
+  }
 
   if( !fUseGeantino && sbsgen->GetKine() != G4SBS::kGun && sbsgen->GetKine() != G4SBS::kPionPhoto ){ //first primary is an electron!
     particle = particleTable->FindParticle(particleName="e-");

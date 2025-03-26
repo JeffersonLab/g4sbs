@@ -19,6 +19,7 @@
 #include "G4SBSAcquMCOutput.hh"
 // // // //
 #include "G4SBSSIMCOutput.hh"
+#include "G4SBSSIMCPi0Output.hh"
 // // // // 11a33984f47772444ffb08222f8a978d2bee837e
 
 #include "G4SBSTrackerOutput.hh"
@@ -198,6 +199,7 @@ public:
   void BranchAcquMC();
   // // // // 
   void BranchSIMC();
+  void BranchSIMCPi0();
   // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   //void BranchSDTracks(G4String s);
   void BranchSDTracks();
@@ -227,6 +229,7 @@ public:
   void SetUseAcquMC( G4bool b ){ fUseAcquMC = b; }
 
   void SetSIMCOutput( G4SBSSIMCOutput p ){ SIMCprimaries = p; }
+  void SetSIMCPi0Output( G4SBSSIMCPi0Output p ){ SIMCPi0primaries = p; }
   void SetUseSIMC( G4bool b ){ fUseSIMC = b; }
 
   map<G4String,G4int> histogram_index; //map with key = SDname, val = histogram index in TClonesArray
@@ -349,6 +352,7 @@ private:
   
   G4bool fUseSIMC;
   G4SBSSIMCOutput SIMCprimaries;
+  G4SBSSIMCPi0Output SIMCPi0primaries;
   
   G4SBSGlobalField *fGlobalField;
   

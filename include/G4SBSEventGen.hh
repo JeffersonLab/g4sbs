@@ -11,11 +11,13 @@
 #include "DSS2007FF.hh"
 #include "G4SBSPythiaOutput.hh"
 #include "G4SBSSIMCOutput.hh"
+#include "G4SBSSIMCPi0Output.hh"
 #include "G4SBSUtil.hh"
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
 #include "simc_tree.h"
+#include "simc_pi0_tree.h"
 #include "Pythia6_tree.h"
 // TDIS Acqu MC
 #include "G4SBSAcquMCOutput.hh"
@@ -177,7 +179,14 @@ public:
   simc_tree *GetSIMCTree(){ return fSIMCTree; }
   TChain *GetSIMCChain(){ return fSIMCChain; }
   
+  void SetSIMCPi0Event( G4SBSSIMCPi0Output ev ){ fSIMCPi0Event = ev; }
+  G4SBSSIMCPi0Output GetSIMCPi0Event(){ return fSIMCPi0Event; }
+
+  simc_pi0_tree *GetSIMCPi0Tree(){ return fSIMCPi0Tree; }
+  TChain *GetSIMCPi0Chain(){ return fSIMCPi0Chain; }
+  
   void LoadSIMCChain(G4String fname);
+  void LoadSIMCPi0Chain(G4String fname);
 
 
   void Initialize();
@@ -416,7 +425,8 @@ private:
   // TDIS AcquMC
   bool GenerateAcquMC(); //Generates primaries from a ROOT Tree containing AcquMC events.
   bool GenerateCosmics(); //Generates muons from the top of the world geometry, directed towards a point in space
-  bool GenerateSIMC(); //Generates primaries from a ROOT Tree containing PYTHIA6 events.
+  bool GenerateSIMC(); //Generates primaries from a ROOT Tree containing SIMC events
+  bool GenerateSIMCPi0(); //Generates primaries from a ROOT Tree containing SIMC pi0 events
   
   //AJRP: June 5, 2021: calculate soffer bounds for transversity calculations:
 
@@ -490,6 +500,11 @@ private:
   simc_tree *fSIMCTree;
   
   G4SBSSIMCOutput fSIMCEvent;
+  
+  TChain *fSIMCPi0Chain;
+  simc_pi0_tree *fSIMCPi0Tree;
+  
+  G4SBSSIMCPi0Output fSIMCPi0Event;
   // // // // 11a33984f47772444ffb08222f8a978d2bee837e
 
   G4double TriangleFunc(G4double a, G4double b, G4double c );

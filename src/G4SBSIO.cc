@@ -1024,6 +1024,36 @@ void G4SBSIO::BranchSIMC(){
   fTree->Branch("simc.vetheta",&(SIMCprimaries.vetheta),"simc.vetheta/D");
 }
 
+void G4SBSIO::BranchSIMCPi0(){
+  fTree->Branch("simc.sigma",&(SIMCprimaries.sigma),"simc.sigma/D");
+  fTree->Branch("simc.Weight",&(SIMCprimaries.Weight),"simc.Weight/D");
+  fTree->Branch("simc.Q2",&(SIMCprimaries.Q2),"simc.Q2/D");
+  fTree->Branch("simc.xbj",&(SIMCprimaries.xbj),"simc.xbj/D");
+  fTree->Branch("simc.nu",&(SIMCprimaries.nu),"simc.nu/D");
+  fTree->Branch("simc.W",&(SIMCprimaries.W),"simc.W/D");
+  fTree->Branch("simc.epsilon",&(SIMCprimaries.epsilon),"simc.epsilon/D");
+  
+  fTree->Branch("simc.Ebeam",&(SIMCprimaries.Ebeam),"simc.Ebeam/D");
+  
+  fTree->Branch("simc.fnucl",&(SIMCprimaries.fnucl),"simc.fnucl/I");
+  fTree->Branch("simc.p_g1",&(SIMCprimaries.p_e),"simc.p_g1/D");
+  fTree->Branch("simc.theta_g1",&(SIMCprimaries.theta_e),"simc.theta_g1/D");
+  fTree->Branch("simc.phi_g1",&(SIMCprimaries.phi_e),"simc.phi_g1/D");
+  fTree->Branch("simc.px_g1",&(SIMCprimaries.px_e),"simc.px_g1/D");
+  fTree->Branch("simc.py_g1",&(SIMCprimaries.py_e),"simc.py_g1/D");
+  fTree->Branch("simc.pz_g1",&(SIMCprimaries.pz_e),"simc.pz_g1/D");
+  fTree->Branch("simc.p_g2",&(SIMCprimaries.p_n),"simc.p_g2/D");
+  fTree->Branch("simc.theta_g2",&(SIMCprimaries.theta_n),"simc.theta_g2/D");
+  fTree->Branch("simc.phi_g2",&(SIMCprimaries.phi_n),"simc.phi_g2/D");
+  fTree->Branch("simc.px_g2",&(SIMCprimaries.px_n),"simc.px_g2/D");
+  fTree->Branch("simc.py_g2",&(SIMCprimaries.py_n),"simc.py_g2/D");
+  fTree->Branch("simc.pz_g2",&(SIMCprimaries.pz_n),"simc.pz_g2/D");
+  
+  fTree->Branch("simc.vx",&(SIMCprimaries.vx),"simc.vx/D");
+  fTree->Branch("simc.vy",&(SIMCprimaries.vy),"simc.vy/D");
+  fTree->Branch("simc.vz",&(SIMCprimaries.vz),"simc.vz/D");
+}
+
 void G4SBSIO::UpdateGenDataFromDetCon(){ //Go with whatever is in fdetcon as of run start for constant parameters of the run describing detector layout:
   gendata.thbb = fdetcon->fEArmBuilder->fBBang;
   gendata.dbb  = fdetcon->fEArmBuilder->fBBdist/CLHEP::m;

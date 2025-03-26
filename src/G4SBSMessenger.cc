@@ -1354,6 +1354,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
     }
+     if( newValue.compareTo("simcpi0") == 0 ){
+      kinetemp = G4SBS::kSIMCPi0;
+      fIO->SetUseSIMC( true );
+      fevgen->SetRejectionSamplingFlag(false);
+      validcmd = true;
+    }
    if (newValue.compareTo("gmnelasticcheck") == 0 ){
       kinetemp = G4SBS::kGMnElasticCheck;
       //fevgen->SetKine(G4SBS::kGMnElasticCheck);

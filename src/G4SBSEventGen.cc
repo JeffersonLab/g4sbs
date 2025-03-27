@@ -183,6 +183,7 @@ G4SBSEventGen::~G4SBSEventGen(){
   // // // // 
   delete fSIMCChain;
   delete fSIMCTree;
+  delete fSIMCPi0Tree;
   // // // // 11a33984f47772444ffb08222f8a978d2bee837e
 }
 
@@ -225,13 +226,24 @@ void G4SBSEventGen::LoadAcquMCChain( G4String fname ){
 }
 
 void G4SBSEventGen::LoadSIMCChain( G4String fname ){
-  if( fSIMCChain != NULL ){
-    fSIMCChain->Add( fname );
-  } else { //First file:
-    fSIMCChain = new TChain("h10");
-    fSIMCChain->Add(fname);
-    fchainentry = 0;
-  } 
+  if(fKineType==kSIMCPi0){
+    if( fSIMCChain != NULL ){
+      fSIMCPi0Chain->Add( fname );
+    } else { //First file:
+      fSIMCPi0Chain = new TChain("h10");
+      fSIMCPi0Chain->Add(fname);
+      fchainentry = 0;
+    } 
+  }else{
+    if( fSIMCChain != NULL ){
+      fSIMCChain->Add( fname );
+    } else { //First file:
+      fSIMCChain = new TChain("h10");
+      fSIMCChain->Add(fname);
+      fchainentry = 0;
+    }
+  }
+      
 }
 
 void G4SBSEventGen::LoadSIMCPi0Chain( G4String fname ){
@@ -3318,8 +3330,8 @@ bool G4SBSEventGen::GenerateSIMCPi0(){
   fSIMCPi0Tree->GetEntry(fchainentry++);
   fSIMCPi0Event.Clear();
 
-  G4double Mh;
-  bool invalid_hadron = true;
+  // G4double Mh;
+  // bool invalid_hadron = true;
   // switch(fHadronType) {
   // case G4SBS::kP:
   //   Mh = proton_mass_c2;
@@ -3337,7 +3349,7 @@ bool G4SBSEventGen::GenerateSIMCPi0(){
   //   exit(1);
   // }
 
-
+  /*
   fSIMCPi0Event.sigma = fSIMCPi0Tree->siglab/cm2;
   fSIMCPi0Event.Weight = fSIMCPi0Tree->Weight;
 
@@ -3372,7 +3384,7 @@ bool G4SBSEventGen::GenerateSIMCPi0(){
   fNucleonE = fSIMCPi0Tree->Egamma1;
   fHadronP.set(fSIMCPi0Tree->Pgamma2x, fSIMCPi0Tree->Pgamma2y, fSIMCPi0Tree->Pgamma2z);
   fHadronE = fSIMCPi0Tree->Egamma2;
-  
+  */
   return true;
   
 }
@@ -3942,12 +3954,20 @@ void G4SBSEventGen::InitializeSIMC_Tree(){
 
   //TChainElement *chEl = 0;
 
-  fSIMCTree = new simc_tree( fSIMCChain );
-  
-  if( !fSIMCTree ){
-    G4cout << "Failed to initialize SIMC tree, aborting... " << G4endl;
-// // // // 11a33984f47772444ffb08222f8a978d2bee837e
-    exit(-1);
+  if(fKineType==kSIMCPi0){
+    fSIMCPi0Tree = new simc_pi0_tree( fSIMCPi0Chain );
+    
+    if( !fSIMCPi0Tree ){
+      G4cout << "Failed to initialize SIMC Pi0 tree, aborting... " << G4endl;
+      exit(-1);
+    }
+  }else{
+    fSIMCTree = new simc_tree( fSIMCChain );
+    
+    if( !fSIMCTree ){
+      G4cout << "Failed to initialize SIMC tree, aborting... " << G4endl;
+      exit(-1);
+    }
   }
 }
 

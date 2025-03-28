@@ -49,9 +49,6 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
   double phispin, thetaspin, psispin;
 
   double Rxx,Rxy,Rxz,Ryx,Ryy,Ryz,Rzx,Rzy,Rzz;
-  double ptrack;
-
-  double chitrue; 
   
   Tout->Branch("beta",&beta);
   Tout->Branch("gamma",&gamma);
@@ -69,7 +66,6 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
   Tout->Branch("xptar",&xptar);
   Tout->Branch("yptar",&yptar);
   Tout->Branch("p",&p);
-  Tout->Branch("ptrack",&ptrack);
   Tout->Branch("chi",&chi);
   Tout->Branch("chiphi",&chiphi);
   Tout->Branch("phitrack",&phitrack);
@@ -191,28 +187,6 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
   double SBStheta = SBStheta_default;
   int treenum = -1;
   int oldtreenum = -1;
-
-  //Declare unit vectors:
-  TVector3 SBS_zaxis_global(-sin(SBStheta),0,cos(SBStheta));
-  TVector3 SBS_xaxis_global(0,-1,0);
-  TVector3 SBS_yaxis_global = SBSzaxis.Cross(SBSxaxis).Unit();
-
-  //Front tracker axes relative to transport axes:
-  TVector3 FT_zaxis_local( -sin(SBS_thetabend),0,cos(SBS_thetabend) );
-  TVector3 FT_yaxis_local(0,1,0);
-  TVector3 FT_xaxis_local(cos(SBS_thetabend),0,sin(SBS_thetabend) );
-
-  TVector3 FT_zaxis_global = FT_zaxis_local.X() * SBSxaxis_global +
-    FT_zaxis_local.Y() * SBSyaxis_global +
-    FT_zaxis_local.Z() * SBSzaxis_global;
-
-  TVector3 FT_yaxis_global = FT_yaxis_local.X() * SBSxaxis_global +
-    FT_yaxis_local.Y() * SBSyaxis_global +
-    FT_yaxis_local.Z() * SBSzaxis_global;
-  
-  TVector3 FT_xaxis_global = FT_xaxis_local.X() * SBSxaxis_global +
-    FT_xaxis_local.Y() * SBSyaxis_global +
-    FT_xaxis_local.Z() * SBSzaxis_global;
   
   while( T->GetEntry(nevent++) ){
     if( nevent%10000 == 0 ) cout << nevent << endl;
@@ -232,24 +206,6 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 
       if( SBSang_file.find(fname) != SBSang_file.end() ){
 	SBStheta = SBSang_file[fname];
-
-	//re-calculate global basis vectors
-	SBS_zaxis_global.SetXYZ( -sin(SBStheta), 0, cos(SBStheta) );
-	SBS_xaxis_global.SetXYZ(0,-1,0);
-	SBS_yaxis_global.SetXYZ( cos(SBStheta), 0, sin(SBStheta) );
-
-	FT_zaxis_global = FT_zaxis_local.X() * SBSxaxis_global +
-	  FT_zaxis_local.Y() * SBSyaxis_global +
-	  FT_zaxis_local.Z() * SBSzaxis_global;
-	
-	FT_yaxis_global = FT_yaxis_local.X() * SBSxaxis_global +
-	  FT_yaxis_local.Y() * SBSyaxis_global +
-	  FT_yaxis_local.Z() * SBSzaxis_global;
-	
-	FT_xaxis_global = FT_xaxis_local.X() * SBSxaxis_global +
-	  FT_xaxis_local.Y() * SBSyaxis_global +
-	  FT_xaxis_local.Z() * SBSzaxis_global;
-	
       } 
       if( bad_file_list.find( fname ) != bad_file_list.end() ) goodfile = false;
     }
@@ -270,12 +226,8 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 	ypfprecon = (*(T->Harm_FT_Track_Ypfit))[0];
 	
 	t = (*(T->Harm_FT_Track_T))[0];
-	p = T->ev_ep; //use the generated momentum;
-	ptrack = T->Harm_FT_Track_P->At(0);
-	if( pflag != 0 ){
-	  p = T->ev_np;
-	}
-	//	p = (*(T->Harm_FT_Track_P))[0];
+	//p = T->ev_ep; //use "track" momentum (because most of the eloss will occur on the way out of the target?
+	p = (*(T->Harm_FT_Track_P))[0];
 	beta = p/sqrt(pow(p,2)+pow(Mp,2));
 	gamma = sqrt(1.0 + pow(p/Mp,2));
 
@@ -297,10 +249,13 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 
 	TVector3 phall(px,py,pz);
 	TVector3 phall_unit = phall.Unit();
+	TVector3 SBSzaxis( -sin(SBStheta),0,cos(SBStheta) );
+	TVector3 SBSxaxis(0,-1,0);
+	TVector3 SBSyaxis = (SBSzaxis.Cross(SBSxaxis)).Unit();
 
-	TVector3 punit_TRANSPORT( phall_unit.Dot( SBS_xaxis_global ),
-				  phall_unit.Dot( SBS_yaxis_global ),
-				  phall_unit.Dot( SBS_zaxis_global ) );
+	TVector3 punit_TRANSPORT( phall_unit.Dot( SBSxaxis ),
+				  phall_unit.Dot( SBSyaxis ),
+				  phall_unit.Dot( SBSzaxis ) );
 
 	TVector3 vertex_hall( T->ev_vx, T->ev_vy, T->ev_vz ); //in m
       

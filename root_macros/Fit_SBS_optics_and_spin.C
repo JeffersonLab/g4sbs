@@ -546,6 +546,7 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 
   opticsfile << "# number of nonzero terms = " << endl
 	     << ncoeff_optics_nonzero << endl;
+  opticsfile << "# total number of terms = " << ncoeff_optics << endl;
   opticsfile << "# Expansion is: u = sum_{i,j,k,l,m}=0^{i+j+k+l+m<=order} Cu_{ijklm} xfp^i * yfp^j * xpfp^k * ypfp^l * xtar^m, " << endl
 	     << "# u = xptar, yptar, ytar, p*thetabend. Columns are:" << endl; 
   optics_header.Form( "# %15s %15s %15s %15s   i j k l m",
@@ -569,7 +570,7 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 			    b_xptar(ipar), b_yptar(ipar),
 			    b_ytar(ipar), b_pinv(ipar),
 			    m, l, k, j, i );
-	      if( i+j+k+l+m == ordertemp && (i==0 || use_xtar_flag > 0 )){
+	      if( i+j+k+l+m == ordertemp ){
 		opticsfile << opticsline << endl;
 	      }
 	      ipar++;
@@ -590,6 +591,8 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 
   fopticsfile << "# number of nonzero terms = " << endl
 	      << ncoeff_optics_nonzero << endl;
+  fopticsfile << "# total number of terms = " << endl
+	      << ncoeff_optics << endl;
   fopticsfile << "# Expansion is: u = sum_{i,j,k,l,m}=0^{i+j+k+l+m<=order} Cu_{ijklm} xptar^i * yptar^j * ytar^k * (1/p)^l * xtar^m, " << endl
 	     << "# u = xfp, yfp, xpfp, ypfp. Columns are:" << endl; 
   optics_header.Form( "# %15s %15s %15s %15s   i j k l m",
@@ -614,7 +617,7 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 			      b_xpfp(ipar), b_ypfp(ipar),
 			      m, l, k, j, i );
 
-	      if( i+j+k+l+m == ordertemp && (i==0 || use_xtar_flag > 0 )){
+	      if( i+j+k+l+m == ordertemp ){
 		
 		fopticsfile << opticsline << endl;
 	      }
@@ -634,7 +637,8 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 
   spinfile << "# number of nonzero terms = " << endl
 	   << ncoeff_spin_nonzero << endl;
-  
+  spinfile << "# total number of terms = " << endl
+	   << ncoeff_spin << endl;
   spinfile << "# Expansion is: S_{ab} = sum_{i,j,k,l,m}=0^{i+j+k+l+m<=order} Cab_{ijklm} xptar^i yptar^j ytar^k (1/p)^l xtar^m, " << endl
 	   << "# ab = xx,xy,xz,yx,yy,yz,zx,zy,zz: Columns are:" << endl;
 
@@ -660,7 +664,7 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 			    b_Syx(ipar), b_Syy(ipar), b_Syz(ipar),
 			    b_Szx(ipar), b_Szy(ipar), b_Szz(ipar),
 			    m,l,k,j,i );
-	      if( i+j+k+l+m == ordertemp && (i == 0 || use_xtar_flag > 0 ) ){
+	      if( i+j+k+l+m == ordertemp ){
 		spinfile << spinline << endl;
 	      }
 	      

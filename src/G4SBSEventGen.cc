@@ -3349,15 +3349,14 @@ bool G4SBSEventGen::GenerateSIMCPi0(){
   //   exit(1);
   // }
 
-  /*
   fSIMCPi0Event.sigma = fSIMCPi0Tree->siglab/cm2;
   fSIMCPi0Event.Weight = fSIMCPi0Tree->Weight;
 
-  fSIMCPi0Event.Q2 = fSIMCPi0Tree->Q2;
-  fSIMCPi0Event.xbj = fSIMCPi0Tree->Q2/(2*Mh/GeV*fSIMCPi0Tree->nu);//Q2 and nu are in GeV...
-  fSIMCPi0Event.nu = fSIMCPi0Tree->nu;
-  fSIMCPi0Event.W = fSIMCPi0Tree->W;
-  fSIMCPi0Event.epsilon = fSIMCPi0Tree->epsilon;
+  // fSIMCPi0Event.Q2 = fSIMCPi0Tree->Q2;
+  // fSIMCPi0Event.xbj = fSIMCPi0Tree->Q2/(2*Mh/GeV*fSIMCPi0Tree->nu);//Q2 and nu are in GeV...
+  // fSIMCPi0Event.nu = fSIMCPi0Tree->nu;
+  // fSIMCPi0Event.W = fSIMCPi0Tree->W;
+  // fSIMCPi0Event.epsilon = fSIMCPi0Tree->epsilon;
   
   fSIMCPi0Event.p_g1 = fSIMCPi0Tree->Egamma1;
   fSIMCPi0Event.theta_g1 = acos(fSIMCPi0Tree->Pgamma1z/fSIMCPi0Tree->Egamma1);
@@ -3384,7 +3383,7 @@ bool G4SBSEventGen::GenerateSIMCPi0(){
   fNucleonE = fSIMCPi0Tree->Egamma1;
   fHadronP.set(fSIMCPi0Tree->Pgamma2x, fSIMCPi0Tree->Pgamma2y, fSIMCPi0Tree->Pgamma2z);
   fHadronE = fSIMCPi0Tree->Egamma2;
-  */
+  
   return true;
   
 }
@@ -3949,12 +3948,12 @@ void G4SBSEventGen::InitializeAcquMC_Tree(){
 // // // // 
 void G4SBSEventGen::InitializeSIMC_Tree(){
 
-  TObjArray *FileList = fSIMCChain->GetListOfFiles();
-  TIter next(FileList);
-
   //TChainElement *chEl = 0;
 
   if(fKineType==kSIMCPi0){
+    TObjArray *FileList = fSIMCPi0Chain->GetListOfFiles();
+    TIter next(FileList);
+
     fSIMCPi0Tree = new simc_pi0_tree( fSIMCPi0Chain );
     
     if( !fSIMCPi0Tree ){
@@ -3962,6 +3961,9 @@ void G4SBSEventGen::InitializeSIMC_Tree(){
       exit(-1);
     }
   }else{
+    TObjArray *FileList = fSIMCChain->GetListOfFiles();
+    TIter next(FileList);
+
     fSIMCTree = new simc_tree( fSIMCChain );
     
     if( !fSIMCTree ){

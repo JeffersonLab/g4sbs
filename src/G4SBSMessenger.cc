@@ -1116,6 +1116,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       }
       fevgen->InitializeSIMC_Tree();
     }
+    if( fevgen->GetKine() == G4SBS::kSIMCPi0 ){
+      if( fevgen->GetSIMCPi0Chain()->GetEntries() < nevt ){
+	nevt = fevgen->GetSIMCPi0Chain()->GetEntries();
+      }
+      fevgen->InitializeSIMC_Tree();
+    }
 
     // TDIS
     if( fevgen->GetKine() == G4SBS::kAcquMC ){

@@ -126,6 +126,9 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
       Ebeam_file[chEl->GetTitle()] = rd->fBeamE;
       Lumi_file[chEl->GetTitle()] = rd->fLuminosity;
       GenVol_file[chEl->GetTitle()] = rd->fGenVol;
+
+      std::cout << "fname, Lumi, GenVol = " << chEl->GetTitle() << ", " << rd->fLuminosity << ", " << rd->fGenVol << std::endl;
+      
       HCALdist_file[chEl->GetTitle()] = rd->fHCALdist;
       HCALvoff_file[chEl->GetTitle()] = rd->fHCALvoff;
       SBSdist_file[chEl->GetTitle()] = rd->fSBSdist;
@@ -227,7 +230,10 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
   xcellmin = 1.e9;
   xcellmax = -1.e9;
 
+  ofstream ecalposdb("ECALPOSDBTEMP.dat");
 
+  double HOFF_ECAL = 2.25*2.54/100.0; //2.25 inches
+  
   //Get cell mapping info:
   while( currentline.ReadLine( mapfile_ecal ) ){
     //    cout << currentline << endl;
@@ -289,6 +295,40 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
     }
   }
 
+  ecalposdb << "earm.ecal.xpos = " << endl;
+
+  int ncolumns = 16;
+
+  int row=0,col=0;
+  int oldrow = row;
+  
+  for ( auto cell : cells_ecal ){
+
+    row = rows_cells_ecal[cell];
+    if( row != oldrow ) ecalposdb << " #ECAL row " << oldrow << endl;
+
+    ecalposdb << -ycell_ecal[cell] << " ";
+    //   if ( (cell+1)%ncolumns == 0 ) ecalposdb << endl;
+
+    oldrow = row;
+  }
+
+  ecalposdb << endl << endl;
+  ecalposdb << "earm.ecal.ypos = " << endl;
+
+  row = 0;
+  oldrow = 0;
+  
+  for( auto cell : cells_ecal ){
+    
+    row = rows_cells_ecal[cell];
+    if( row != oldrow ) ecalposdb << " #ECAL row " << oldrow << endl;
+    oldrow = row;
+
+    ecalposdb << xcell_ecal[cell] - HOFF_ECAL << " ";
+    //  if( (cell+1)%ncolumns == 0 ) ecalposdb << endl;
+  }
+    
   std::cout << "(xcellmin, xcellmax)=(" << xcellmin << ", " << xcellmax << ") m" << std::endl;
   std::cout << "(ycellmin, ycellmax)=(" << ycellmin << ", " << ycellmax << ") m" << std::endl;
 
@@ -976,6 +1016,10 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
       double Ebeam = Ebeam_file[fnametemp];
 
       weight = T->ev_sigma * Lumi_file[fnametemp] * GenVol_file[fnametemp] / double(ngen);
+
+      //1 barn =1e-24 cm^2
+      double nanobarn = 1.e-24*1.e-9;
+      //std::cout << "(fname, sigma (nb/sr), Lumi, genvol, ngen)=(" << fnametemp.Data() << ", " << T->ev_sigma/nanobarn  << ", " << Lumi_file[fnametemp] << ", " << GenVol_file[fnametemp] << ", " << ngen << ")" << std::endl; 
       
       // cout << "(R, thetacal)=(" << R << ", " << thetacal*57.3 << endl;
     //if( Q2cut == 0 || (T->ev_Q2 >= 10.5 && T->ev_Q2 <= 14.0) ){

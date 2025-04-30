@@ -1313,19 +1313,19 @@ void G4SBSTargetBuilder::BuildGEpScatCham(G4LogicalVolume *worldlog ){
 
 
 
-    G4RotationMatrix *rot_copper = new G4RotationMatrix;
+    // G4RotationMatrix *rot_copper = new G4RotationMatrix;
 
-    rot_copper->rotateY( 17.0*deg + 4.4*deg);
+    // rot_copper->rotateY( 17.0*deg + 4.4*deg);
 
-    G4Box *copper_shield = new G4Box("copper_shield", (22.0*2.54*cm)/2.0, (22.0*2.54*cm)/2.0, (2.54*cm)/2.0);
+    // G4Box *copper_shield = new G4Box("copper_shield", (22.0*2.54*cm)/2.0, (22.0*2.54*cm)/2.0, (2.54*cm)/2.0);
 
-    G4LogicalVolume *copper_shield_log = new G4LogicalVolume( copper_shield, GetMaterial("Copper"), "copper_shield_log" );
+    // G4LogicalVolume *copper_shield_log = new G4LogicalVolume( copper_shield, GetMaterial("Copper"), "copper_shield_log" );
 
-    //new G4PVPlacement( rot_copper, copper_shield_pos, copper_shield_log, "copper_shield_phys", motherlog, false, 0, fals
+    // //new G4PVPlacement( rot_copper, copper_shield_pos, copper_shield_log, "copper_shield_phys", motherlog, false, 0, fals
     
-    G4ThreeVector copper_shield_pos( (HarmCutout_pos_global.getX() + 2.0*cm), HarmCutout_pos_global.getY(), (HarmCutout_pos_global.getZ() + 7.0*cm) ); 
+    // G4ThreeVector copper_shield_pos( (HarmCutout_pos_global.getX() + 2.0*cm), HarmCutout_pos_global.getY(), (HarmCutout_pos_global.getZ() + 7.0*cm) ); 
 
-    new G4PVPlacement( rot_copper, copper_shield_pos, copper_shield_log, "copper_shield_phys", worldlog, false, 0 );
+    // new G4PVPlacement( rot_copper, copper_shield_pos, copper_shield_log, "copper_shield_phys", worldlog, false, 0 );
   }
   //What's next? Define scattering chamber vacuum volume:
   G4double ScatChamberRadius = 23.80*inch;

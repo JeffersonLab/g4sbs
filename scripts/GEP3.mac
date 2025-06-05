@@ -7,6 +7,8 @@
 ## Configure the target
 /g4sbs/target          LH2
 /g4sbs/targlen         30.0 cm           ## Target Length
+/g4sbs/targpos         0.0 0.0 -9.0 cm   # target z offset, -9 cm means shift target UPSTREAM
+
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator
@@ -28,17 +30,21 @@
 
 ## Configure the magnets
 /g4sbs/bbfield         0
-/g4sbs/tosfield        GEP_12map0_newheader.table
+#/g4sbs/tosfield        GEP_12map0_newheader.table
 #/g4sbs/tosfield SBSPortableFieldMap_TwoClamps_PoleShims.table 2
 #/g4sbs/scalesbsfield     0.53
 # keep default maximum field for now
 # assume 2.4 T*m / 1.22 m = 1.97 Tesla
 #/g4sbs/sbsmagfield     1.97 tesla
 #/g4sbs/48d48field      1
+/g4sbs/tosfield  GEP3_map.table
 /g4sbs/bbang           29.75 deg
 /g4sbs/bbdist          4.7 m
 /g4sbs/sbsang          16.9 deg
 /g4sbs/48D48dist       1.6 m
+
+/g4sbs/usehadronfilter false
+/g4sbs/leadwallconnect true
 
 #/control/execute scripts/default_thresholds.mac
 /g4sbs/totalabs true

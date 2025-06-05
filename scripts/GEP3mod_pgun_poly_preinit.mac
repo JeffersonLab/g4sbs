@@ -1,5 +1,5 @@
-## Configure G4SBS for gep (Q^2 = 5.7 GeV^2, 3rd pass)
-## /g4sbs/filename        GEP1_elastic.root   ## Output rootfile
+## Configure G4SBS for gep (Q^2 = 12 GeV^2, 5th pass)
+#/g4sbs/filename        GEP3_elastic_temp.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gep
@@ -7,19 +7,32 @@
 ## Configure the target
 /g4sbs/target          LH2
 /g4sbs/targlen         30.0 cm           ## Target Length
-/g4sbs/targpos       0.0 0.0 -9.0 cm      # target position (a negative z offset means shift target upstream)
+/g4sbs/targpos         0.0 0.0 -10.03 cm   # target z offset, -9 cm means shift target UPSTREAM
+
 
 ## Configure generator settings
-/g4sbs/kine            elastic           ## Generator
+#/g4sbs/kine            elastic           ## Generator
+/g4sbs/kine            gun           ## Generator
+/g4sbs/particle        proton
+/g4sbs/gunpol 	       0 1 0  # polarization
 /g4sbs/runtime         1.0 s
 /g4sbs/beamcur         50.0 microampere
 /g4sbs/rasterx         2.0 mm
 /g4sbs/rastery         2.0 mm
-/g4sbs/beamE           6.476 GeV
-/g4sbs/thmin           21.0 deg
-/g4sbs/thmax           35.0 deg
-/g4sbs/phmin           -35.0 deg
-/g4sbs/phmax           35.0 deg
+/g4sbs/beamE           10.688 GeV
+# commenting out electron angle generation limits for elastic:
+#/g4sbs/thmin           19.0 deg
+#/g4sbs/thmax           34.0 deg
+#/g4sbs/phmin           -37.0 deg
+#/g4sbs/phmax           35.0 deg
+
+# limits for proton gun generator:
+/g4sbs/thmin 13.0 deg
+/g4sbs/thmax 27.0 deg
+/g4sbs/phmin 140.0 deg
+/g4sbs/phmax 230.0 deg
+/g4sbs/eemin 	       3.5 GeV
+/g4sbs/eemax 	       10.0 GeV
 
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
@@ -32,15 +45,15 @@
 #/g4sbs/tosfield        GEP_12map0_newheader.table
 #/g4sbs/tosfield SBSPortableFieldMap_TwoClamps_PoleShims.table 2
 #/g4sbs/scalesbsfield     0.53
-/g4sbs/tosfield GEP1_map.table
 # keep default maximum field for now
 # assume 2.4 T*m / 1.22 m = 1.97 Tesla
 #/g4sbs/sbsmagfield     1.97 tesla
 #/g4sbs/48d48field      1
-/g4sbs/bbang           29.46 deg
-/g4sbs/bbdist          8.0 m
-/g4sbs/sbsang          25.7 deg
-/g4sbs/48D48dist       1.6 m
+/g4sbs/tosfield  GEP3mod_map.table
+/g4sbs/bbang           27.0 deg
+/g4sbs/bbdist          6.0113 m
+/g4sbs/sbsang          18.6 deg
+/g4sbs/48D48dist       1.6281 m
 
 /g4sbs/usehadronfilter false
 /g4sbs/leadwallconnect true
@@ -69,4 +82,4 @@
 
 
 ## Run 100 events
-## /g4sbs/run             10000
+#/g4sbs/run             100

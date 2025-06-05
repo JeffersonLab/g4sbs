@@ -1,5 +1,5 @@
 ## Configure G4SBS for gep (Q^2 = 5.7 GeV^2, 3rd pass)
-## /g4sbs/filename        GEP1_elastic.root   ## Output rootfile
+#/g4sbs/filename        GEP1_pgun_polx_test.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gep
@@ -10,16 +10,28 @@
 /g4sbs/targpos       0.0 0.0 -9.0 cm      # target position (a negative z offset means shift target upstream)
 
 ## Configure generator settings
-/g4sbs/kine            elastic           ## Generator
+#/g4sbs/kine            elastic           ## Generator
+/g4sbs/kine 	       gun
+/g4sbs/particle        proton
+/g4sbs/gunpol	       1 0 0 
 /g4sbs/runtime         1.0 s
 /g4sbs/beamcur         50.0 microampere
 /g4sbs/rasterx         2.0 mm
 /g4sbs/rastery         2.0 mm
 /g4sbs/beamE           6.476 GeV
-/g4sbs/thmin           21.0 deg
-/g4sbs/thmax           35.0 deg
-/g4sbs/phmin           -35.0 deg
-/g4sbs/phmax           35.0 deg
+#/g4sbs/thmin           21.0 deg
+#/g4sbs/thmax           35.0 deg
+#/g4sbs/phmin           -35.0 deg
+#/g4sbs/phmax           35.0 deg
+
+# settings for proton gun generator:
+/g4sbs/thmin           20.7 deg
+/g4sbs/thmax 	       34.7 deg
+/g4sbs/phmin	       145.0 deg
+/g4sbs/phmax 	       225.0 deg
+
+/g4sbs/eemin 	       0.75 GeV
+/g4sbs/eemax 	       5.0 GeV
 
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
@@ -70,3 +82,4 @@
 
 ## Run 100 events
 ## /g4sbs/run             10000
+#/g4sbs/run 10000

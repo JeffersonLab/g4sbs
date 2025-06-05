@@ -116,6 +116,8 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fCDetReady = false; //default to false for both of these
   
   fUseNeutronVeto=false;
+
+  fUseLeadWallConnected = true;
   
   assert(fDetCon);
 }
@@ -1060,7 +1062,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     
       */
 
-      G4ThreeVector zaxis_temp( -sin(16.9*deg), 0, cos(16.9*deg) );
+
+      //DON'T HARDCODE THIS:
+      G4ThreeVector zaxis_temp( -sin(f48D48ang), 0, cos(f48D48ang) );
       G4ThreeVector yaxis_temp(0,1,0);
       G4ThreeVector xaxis_temp = (yaxis_temp.cross(zaxis_temp)).unit(); 
 

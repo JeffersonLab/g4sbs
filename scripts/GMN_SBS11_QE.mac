@@ -22,8 +22,9 @@
 #/g4sbs/DisableOpticalPhotonByMaterial Air
 #/g4sbs/DisableOpticalPhotonByMaterial RICH_air
 
+
 ## Configure G4SBS for gmn (Q^2 = 13.3 GeV^2)
-##/g4sbs/filename        gmn_visgrinch.root   ## Output rootfile
+##/g4sbs/filename        gmn_SBS11.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gmn
@@ -35,17 +36,17 @@
 /g4sbs/rastery	       2.0 mm  #raster size in Y
 
 ## Configure generator settings
-#/g4sbs/kine            elastic           ## Generator
-/g4sbs/kine 		gun
-/g4sbs/particle 	e-
+/g4sbs/kine            elastic           ## Generator
+#/g4sbs/particle 	e-
 /g4sbs/beamcur         1.0 muA
 /g4sbs/beamE           9.860 GeV
 /g4sbs/thmin           32.0 deg
 /g4sbs/thmax           52.0 deg
-/g4sbs/phmin          -45. deg
-/g4sbs/phmax           45. deg
+/g4sbs/phmin           -45 deg
+/g4sbs/phmax           45 deg
 
 ## Configure standard detector settings
+/g4sbs/grinchgas      CO2
 /g4sbs/hcaldist        14.5 m
 /g4sbs/hcalvoffset     0.45 m
 /g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
@@ -53,14 +54,13 @@
 
 ## Configure the magnets
 /g4sbs/bbfield         1
-#/g4sbs/scalebbfield    1.0776
 /g4sbs/scalebbfield    0.9672 
-#/g4sbs/tosfield        GMN13_field_newheader.table
-#/g4sbs/sbsmagfield     0.97 tesla
-#/g4sbs/tosfield  	BigBitePortableFieldMap.table 1
-#/g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
-/g4sbs/sbsmagfield     1.23 tesla
-/g4sbs/48d48field      1
+
+#/g4sbs/48d48field      1
+#/g4sbs/sbsmagfield     1.310 tesla
+/g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+/g4sbs/scalesbsfield    0.985 # approximate field scale factor for 50% field setting
+
 /g4sbs/bbang           42.0 deg
 /g4sbs/bbdist          1.55 m
 /g4sbs/sbsang          13.3 deg
@@ -68,12 +68,10 @@
 
 
 /g4sbs/keepsdtrackinfo 	all true
-/g4sbs/uselead 	     1
 /g4sbs/totalabs true
+
+/g4sbs/rejectionsampling true 1000000
 
 ## Run 100 events
 /g4sbs/eventstatusevery 100
-
-
-#/vis/viewer/flush
-##/g4sbs/run  1
+##/g4sbs/run             200000

@@ -1,3 +1,27 @@
+/g4sbs/usescint 0
+/g4sbs/useckov 1
+
+/g4sbs/DisableOpticalPhotonByMaterial BBHodo_Scinti
+/g4sbs/DisableOpticalPhotonByMaterial Special_Air
+/g4sbs/DisableOpticalPhotonByMaterial Mylar
+/g4sbs/DisableOpticalPhotonByMaterial TF1
+/g4sbs/DisableOpticalPhotonByMaterial F101
+/g4sbs/DisableOpticalPhotonByMaterial TF5
+/g4sbs/DisableOpticalPhotonByMaterial QuartzWindow_ECal
+/g4sbs/DisableOpticalPhotonByMaterial Photocathode_BB
+/g4sbs/DisableOpticalPhotonByMaterial Photocathode_material_ecal
+/g4sbs/DisableOpticalPhotonByMaterial Pyrex_Glass
+/g4sbs/DisableOpticalPhotonByMaterial CDET_BC408
+/g4sbs/DisableOpticalPhotonByMaterial BCF_92
+/g4sbs/DisableOpticalPhotonByMaterial CDET_Acrylic
+/g4sbs/DisableOpticalPhotonByMaterial Photocathode_CDet
+/g4sbs/DisableOpticalPhotonByMaterial EJ232
+/g4sbs/DisableOpticalPhotonByMaterial BC484
+/g4sbs/DisableOpticalPhotonByMaterial Glass_HC
+/g4sbs/DisableOpticalPhotonByMaterial Paper
+#/g4sbs/DisableOpticalPhotonByMaterial Air
+#/g4sbs/DisableOpticalPhotonByMaterial RICH_air
+
 ## Configure G4SBS for gen (Q^2 = 3.0 GeV^2)
 
 ## Configure Experiment

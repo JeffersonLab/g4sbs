@@ -14,7 +14,7 @@
 #/g4sbs/kine            elastic           ## Generator
 #/g4sbs/kine            gun           ## Generator
 /g4sbs/kine            wiser           ## Generator
-/g4sbs/particle        pi0
+/g4sbs/hadron        pi0
 /g4sbs/runtime         1.0 s
 /g4sbs/beamcur         50.0 microampere
 /g4sbs/rasterx         2.0 mm
@@ -27,10 +27,10 @@
 #/g4sbs/phmax           35.0 deg
 
 # limits for pi0 in ECal: similar to limits used for electrons, slightly larger
-/g4sbs/thmin 15.0 deg
-/g4sbs/thmax 35.0 deg
-/g4sbs/phmin -40.0 deg
-/g4sbs/phmax  40.0 deg
+/g4sbs/hthmin 15.0 deg
+/g4sbs/hthmax 35.0 deg
+/g4sbs/hphmin -40.0 deg
+/g4sbs/hphmax  40.0 deg
 /g4sbs/ehmin 	       0.5 GeV
 /g4sbs/ehmax 	      10.0 GeV
 

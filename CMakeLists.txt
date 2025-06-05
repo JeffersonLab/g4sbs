@@ -369,6 +369,9 @@ if(INSTALL_SBS_FIELD_MAPS)
   message("Downloading field map for GEP-3")
   file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEP3_map.table ${CMAKE_CURRENT_BINARY_DIR}/GEP3_map.table SHOW_PROGRESS)
   
+  message("Downloading field map for GEP-3mod")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEP3mod_map.table ${CMAKE_CURRENT_BINARY_DIR}/GEP3mod_map.table SHOW_PROGRESS)
+  
   message("Other field maps forthcoming... Anybody know how to get CMake to download files AFTER the configure step, during the build step?")
 
   file(GLOB sbs_field_maps ${CMAKE_CURRENT_BINARY_DIR}/*.table ${CMAKE_CURRENT_BINARY_DIR}/map_696A.dat)

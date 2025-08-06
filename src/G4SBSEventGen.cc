@@ -2914,6 +2914,7 @@ bool G4SBSEventGen::GeneratePythia(){
   if(fExclPyXSoption>0){
     fPythiaEvent.Delta2 = fPythiaTree->Delta2*GeV*GeV;
     fPythiaEvent.phigg = fPythiaTree->phi_gg*radian;
+    fPythiaEvent.PSF = fPythiaTree->psf;
     switch(fExclPyXSoption){
     case(1):// Total unp. XS: (xs{+}+xs{-})/2
       fPythiaEvent.Sigma = (fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0;
@@ -3352,12 +3353,12 @@ bool G4SBSEventGen::GenerateSIMCPi0(){
   fSIMCPi0Event.sigma = fSIMCPi0Tree->siglab/cm2;
   fSIMCPi0Event.Weight = fSIMCPi0Tree->Weight;
 
-  // fSIMCPi0Event.Q2 = fSIMCPi0Tree->Q2;
-  // fSIMCPi0Event.xbj = fSIMCPi0Tree->Q2/(2*Mh/GeV*fSIMCPi0Tree->nu);//Q2 and nu are in GeV...
-  // fSIMCPi0Event.nu = fSIMCPi0Tree->nu;
-  // fSIMCPi0Event.W = fSIMCPi0Tree->W;
-  // fSIMCPi0Event.epsilon = fSIMCPi0Tree->epsilon;
-  
+  fSIMCPi0Event.Q2 = fSIMCPi0Tree->Q2;
+  fSIMCPi0Event.xbj = fSIMCPi0Tree->xbj;
+  fSIMCPi0Event.nu = fSIMCPi0Tree->nu;
+  fSIMCPi0Event.W = fSIMCPi0Tree->W;
+  fSIMCPi0Event.epsilon = fSIMCPi0Tree->epsilon;
+
   fSIMCPi0Event.p_g1 = fSIMCPi0Tree->Egamma1;
   fSIMCPi0Event.theta_g1 = acos(fSIMCPi0Tree->Pgamma1z/fSIMCPi0Tree->Egamma1);
   fSIMCPi0Event.phi_g1 = atan2(fSIMCPi0Tree->Pgamma1x, fSIMCPi0Tree->Pgamma1y); 
@@ -3372,13 +3373,24 @@ bool G4SBSEventGen::GenerateSIMCPi0(){
   fSIMCPi0Event.py_g2 = fSIMCPi0Tree->Pgamma2y;
   fSIMCPi0Event.pz_g2 = fSIMCPi0Tree->Pgamma2z;
 
+  fSIMCPi0Event.p_e = fSIMCPi0Tree->p_e/GeV;
+  fSIMCPi0Event.theta_e = TMath::ACos(fSIMCPi0Tree->uz_e);
+  fSIMCPi0Event.phi_e = TMath::ATan2(fSIMCPi0Tree->ux_e, fSIMCPi0Tree->uy_e);
+  fSIMCPi0Event.px_e = fSIMCPi0Event.p_e*fSIMCPi0Tree->ux_e;
+  fSIMCPi0Event.py_e = fSIMCPi0Event.p_e*fSIMCPi0Tree->uy_e;
+  fSIMCPi0Event.pz_e = fSIMCPi0Event.p_e*fSIMCPi0Tree->uz_e;
+  
   fSIMCPi0Event.vx = CLHEP::RandFlat::shoot( -fRasterX/2.0, fRasterX/2.0 );
   fSIMCPi0Event.vy = CLHEP::RandFlat::shoot( -fRasterY/2.0, fRasterY/2.0 );
-  fSIMCPi0Event.vz = CLHEP::RandFlat::shoot( -fTargLen/2.0, fTargLen/2.0 );
+  //EPAF: below, we should grab the actual angle, but I'm too lazy for it rn.
+  fSIMCPi0Event.vz = fSIMCPi0Tree->hsytari/sin(0.20943951);//CLHEP::RandFlat::shoot( -fTargLen/2.0, fTargLen/2.0 );
+
   
   fVert.set(fSIMCPi0Event.vx, fSIMCPi0Event.vy, fSIMCPi0Event.vz);
 
   //Bending Nucleon and Hadron to be both our photons
+  fElectronE = fSIMCPi0Event.p_e;
+  fElectronP.set(fSIMCPi0Event.px_e, fSIMCPi0Event.py_e, fSIMCPi0Event.pz_e);
   fNucleonP.set(fSIMCPi0Tree->Pgamma1x, fSIMCPi0Tree->Pgamma1y, fSIMCPi0Tree->Pgamma1z);
   fNucleonE = fSIMCPi0Tree->Egamma1;
   fHadronP.set(fSIMCPi0Tree->Pgamma2x, fSIMCPi0Tree->Pgamma2y, fSIMCPi0Tree->Pgamma2z);

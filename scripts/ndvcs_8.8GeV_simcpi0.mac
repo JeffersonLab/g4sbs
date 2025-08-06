@@ -27,7 +27,7 @@
 #/g4sbs/filename        nDVCS_test.root   ## Output rootfile
 
 /g4sbs/kine     simcpi0
-/g4sbs/exclpythiaXSoption 1
+#/g4sbs/exclpythiaXSoption 1
 #/g4sbs/pythia6file dvcs_file.root
 
 ## Configure Experiment
@@ -45,10 +45,10 @@
 /g4sbs/beamE           8.8 GeV
 /g4sbs/eemin           0.5 GeV
 /g4sbs/eemax           8.0 GeV
-#/g4sbs/thmin           0.0 deg
-#/g4sbs/thmax         180.0 deg
-#/g4sbs/phmin        -180.0 deg
-#/g4sbs/phmax         180.0 deg
+/g4sbs/thmin           0.0 deg
+/g4sbs/thmax         180.0 deg
+/g4sbs/phmin        -180.0 deg
+/g4sbs/phmax         180.0 deg
 
 ## Configure standard detector settings
 /g4sbs/lacdist       10.5 m

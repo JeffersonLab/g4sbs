@@ -1,5 +1,5 @@
 ## Configure G4SBS for TDIS
-/g4sbs/filename        tdis_d2_1.5T.root   ## Output rootfile
+##/g4sbs/filename        tdis_d2_1.5T.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             tdis
@@ -102,4 +102,4 @@
 /g4sbs/keepsdtrackinfo all true
 
 ## Run xxx events
-/g4sbs/run           10000
+##/g4sbs/run           10000

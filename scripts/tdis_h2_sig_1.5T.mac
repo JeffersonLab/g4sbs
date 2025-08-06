@@ -1,5 +1,5 @@
 ## Configure G4SBS for TDIS
-/g4sbs/filename        tdis_h2_1.5T.root   ## Output rootfile
+##/g4sbs/filename        tdis_h2_1.5T.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             tdis
@@ -24,7 +24,7 @@
 # tdiskinH -> new TDIS (hydrogen)
 # tdiskinD -> new TDIS (deuterium)
 
-/g4sbs/kine            tdiskinD
+/g4sbs/kine            tdiskinH
 
 
 # when using pythia the rest of variables are irrelevant
@@ -37,7 +37,7 @@
 /g4sbs/beamE	       11.0 GeV
 
 # electron energy range 
-/g4sbs/eemin           0.05 GeV  ## actually momentum...
+/g4sbs/eemin           0.5 GeV  ## actually momentum...
 /g4sbs/eemax           10.0 GeV  ## actually momentum...
 
 # electron angles for the TDIS case (SBS acceptance) are hard coded
@@ -102,4 +102,4 @@
 /g4sbs/keepsdtrackinfo all true
 
 ## Run xxx events
-/g4sbs/run           10000
+#/g4sbs/run           10000

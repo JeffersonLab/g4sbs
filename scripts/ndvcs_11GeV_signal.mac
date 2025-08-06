@@ -27,7 +27,7 @@
 #/g4sbs/filename        nDVCS_test.root   ## Output rootfile
 
 /g4sbs/kine     pythia6
-/g4sbs/exclpythiaXSoption 1
+/g4sbs/exclpythiaXSoption 2
 #/g4sbs/pythia6file dvcs_file.root
 
 ## Configure Experiment

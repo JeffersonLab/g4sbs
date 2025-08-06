@@ -182,7 +182,13 @@ void G4SBSPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   
   if( sbsgen->GetKine() == G4SBS::kSIMCPi0 ){ //SIMC event:
     G4SBSSIMCPi0Output Primaries = sbsgen->GetSIMCPi0Event();
-    
+
+    particle = particleTable->FindParticle(particleName="e-");
+    particleGun->SetParticleDefinition(particle);
+    particleGun->SetParticleMomentumDirection( sbsgen->GetElectronP().unit() );
+    particleGun->SetParticleEnergy(sbsgen->GetElectronE());
+    particleGun->SetParticlePosition( sbsgen->GetV() );
+        
     particle = particleTable->FindParticle(particleName="gamma");
     particleGun->SetParticleDefinition(particle);
     particleGun->SetParticleMomentumDirection( sbsgen->GetNucleonP().unit() );

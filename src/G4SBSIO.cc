@@ -338,7 +338,8 @@ void G4SBSIO::InitializeTree(){
   }
 
   if( fUseSIMC ){
-    BranchSIMC();
+    //BranchSIMC();
+    BranchSIMCPi0();
   }
   
   return;
@@ -931,7 +932,10 @@ void G4SBSIO::BranchmTPC( G4String SDname="mTPC" ){
 void G4SBSIO::BranchPythia(){
   //Per-event variables:
   fTree->Branch("primaries.Sigma",&(Primaries.Sigma),"primaries.Sigma/D");
-  if(fExclPythia)fTree->Branch("primaries.SigmaDiff",&(Primaries.SigmaDiff),"primaries.SigmaDiff/D");
+  if(fExclPythia){
+    fTree->Branch("primaries.SigmaDiff",&(Primaries.SigmaDiff),"primaries.SigmaDiff/D");
+    fTree->Branch("primaries.PSF",&(Primaries.PSF),"primaries.PSF/D");
+  }
   fTree->Branch("primaries.Ebeam",&(Primaries.Ebeam),"primaries.Ebeam/D");
   fTree->Branch("primaries.Eprime",&(Primaries.Eprime),"primaries.Eprime/D");
   fTree->Branch("primaries.Q2",&(Primaries.Q2),"primaries.Q2/D");
@@ -1025,33 +1029,39 @@ void G4SBSIO::BranchSIMC(){
 }
 
 void G4SBSIO::BranchSIMCPi0(){
-  fTree->Branch("simc.sigma",&(SIMCprimaries.sigma),"simc.sigma/D");
-  fTree->Branch("simc.Weight",&(SIMCprimaries.Weight),"simc.Weight/D");
-  fTree->Branch("simc.Q2",&(SIMCprimaries.Q2),"simc.Q2/D");
-  fTree->Branch("simc.xbj",&(SIMCprimaries.xbj),"simc.xbj/D");
-  fTree->Branch("simc.nu",&(SIMCprimaries.nu),"simc.nu/D");
-  fTree->Branch("simc.W",&(SIMCprimaries.W),"simc.W/D");
-  fTree->Branch("simc.epsilon",&(SIMCprimaries.epsilon),"simc.epsilon/D");
+  fTree->Branch("simcpi0.sigma",&(SIMCPi0primaries.sigma),"simc.sigma/D");
+  fTree->Branch("simcpi0.Weight",&(SIMCPi0primaries.Weight),"simc.Weight/D");
+  fTree->Branch("simcpi0.Q2",&(SIMCPi0primaries.Q2),"simc.Q2/D");
+  fTree->Branch("simcpi0.xbj",&(SIMCPi0primaries.xbj),"simc.xbj/D");
+  fTree->Branch("simcpi0.nu",&(SIMCPi0primaries.nu),"simc.nu/D");
+  fTree->Branch("simcpi0.W",&(SIMCPi0primaries.W),"simc.W/D");
+  fTree->Branch("simcpi0.epsilon",&(SIMCPi0primaries.epsilon),"simc.epsilon/D");
   
-  fTree->Branch("simc.Ebeam",&(SIMCprimaries.Ebeam),"simc.Ebeam/D");
+  fTree->Branch("simcpi0.Ebeam",&(SIMCPi0primaries.Ebeam),"simc.Ebeam/D");
   
-  fTree->Branch("simc.fnucl",&(SIMCprimaries.fnucl),"simc.fnucl/I");
-  fTree->Branch("simc.p_g1",&(SIMCprimaries.p_e),"simc.p_g1/D");
-  fTree->Branch("simc.theta_g1",&(SIMCprimaries.theta_e),"simc.theta_g1/D");
-  fTree->Branch("simc.phi_g1",&(SIMCprimaries.phi_e),"simc.phi_g1/D");
-  fTree->Branch("simc.px_g1",&(SIMCprimaries.px_e),"simc.px_g1/D");
-  fTree->Branch("simc.py_g1",&(SIMCprimaries.py_e),"simc.py_g1/D");
-  fTree->Branch("simc.pz_g1",&(SIMCprimaries.pz_e),"simc.pz_g1/D");
-  fTree->Branch("simc.p_g2",&(SIMCprimaries.p_n),"simc.p_g2/D");
-  fTree->Branch("simc.theta_g2",&(SIMCprimaries.theta_n),"simc.theta_g2/D");
-  fTree->Branch("simc.phi_g2",&(SIMCprimaries.phi_n),"simc.phi_g2/D");
-  fTree->Branch("simc.px_g2",&(SIMCprimaries.px_n),"simc.px_g2/D");
-  fTree->Branch("simc.py_g2",&(SIMCprimaries.py_n),"simc.py_g2/D");
-  fTree->Branch("simc.pz_g2",&(SIMCprimaries.pz_n),"simc.pz_g2/D");
+  fTree->Branch("simcpi0.fnucl",&(SIMCPi0primaries.fnucl),"simc.fnucl/I");
+  fTree->Branch("simcpi0.p_g1",&(SIMCPi0primaries.p_g1),"simc.p_g1/D");
+  fTree->Branch("simcpi0.theta_g1",&(SIMCPi0primaries.theta_g1),"simc.theta_g1/D");
+  fTree->Branch("simcpi0.phi_g1",&(SIMCPi0primaries.phi_g1),"simc.phi_g1/D");
+  fTree->Branch("simcpi0.px_g1",&(SIMCPi0primaries.px_g1),"simc.px_g1/D");
+  fTree->Branch("simcpi0.py_g1",&(SIMCPi0primaries.py_g1),"simc.py_g1/D");
+  fTree->Branch("simcpi0.pz_g1",&(SIMCPi0primaries.pz_g1),"simc.pz_g1/D");
+  fTree->Branch("simcpi0.p_g2",&(SIMCPi0primaries.p_g2),"simc.p_g2/D");
+  fTree->Branch("simcpi0.theta_g2",&(SIMCPi0primaries.theta_g2),"simc.theta_g2/D");
+  fTree->Branch("simcpi0.phi_g2",&(SIMCPi0primaries.phi_g2),"simc.phi_g2/D");
+  fTree->Branch("simcpi0.px_g2",&(SIMCPi0primaries.px_g2),"simc.px_g2/D");
+  fTree->Branch("simcpi0.py_g2",&(SIMCPi0primaries.py_g2),"simc.py_g2/D");
+  fTree->Branch("simcpi0.pz_g2",&(SIMCPi0primaries.pz_g2),"simc.pz_g2/D");
+  fTree->Branch("simcpi0.p_e",&(SIMCPi0primaries.p_e),"simc.p_e/D");
+  fTree->Branch("simcpi0.theta_e",&(SIMCPi0primaries.theta_e),"simc.theta_e/D");
+  fTree->Branch("simcpi0.phi_e",&(SIMCPi0primaries.phi_e),"simc.phi_e/D");
+  fTree->Branch("simcpi0.px_e",&(SIMCPi0primaries.px_e),"simc.px_e/D");
+  fTree->Branch("simcpi0.py_e",&(SIMCPi0primaries.py_e),"simc.py_e/D");
+  fTree->Branch("simcpi0.pz_e",&(SIMCPi0primaries.pz_e),"simc.pz_e/D");
   
-  fTree->Branch("simc.vx",&(SIMCprimaries.vx),"simc.vx/D");
-  fTree->Branch("simc.vy",&(SIMCprimaries.vy),"simc.vy/D");
-  fTree->Branch("simc.vz",&(SIMCprimaries.vz),"simc.vz/D");
+  fTree->Branch("simcpi0.vx",&(SIMCPi0primaries.vx),"simc.vx/D");
+  fTree->Branch("simcpi0.vy",&(SIMCPi0primaries.vy),"simc.vy/D");
+  fTree->Branch("simcpi0.vz",&(SIMCPi0primaries.vz),"simc.vz/D");
 }
 
 void G4SBSIO::UpdateGenDataFromDetCon(){ //Go with whatever is in fdetcon as of run start for constant parameters of the run describing detector layout:

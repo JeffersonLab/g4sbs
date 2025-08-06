@@ -13,6 +13,7 @@ public:
 
   double Sigma; //PYTHIA6 calculated total cross section
   double SigmaDiff; //Exclusive cross section difference (+)-(-)
+  double PSF; //phase space factor for exclusive events
   double Ebeam; //Incident beam energy
   //The outgoing electron:
   double Eprime; //Outgoing electron energy

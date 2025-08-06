@@ -90,6 +90,10 @@ public :
    Float_t         Pgamma2x;
    Float_t         Pgamma2y;
    Float_t         Pgamma2z;
+   Float_t         p_e;
+   Float_t         ux_e;
+   Float_t         uy_e;
+   Float_t         uz_e;
 
    // List of branches
    TBranch        *b_hsdelta;   //!
@@ -160,6 +164,10 @@ public :
    TBranch        *b_Pgamma2x;   //!
    TBranch        *b_Pgamma2y;   //!
    TBranch        *b_Pgamma2z;   //!
+   TBranch        *b_p_e;   //!
+   TBranch        *b_ux_e;   //!
+   TBranch        *b_uy_e;   //!
+   TBranch        *b_uz_e;   //!
 
    simc_pi0_tree(TTree *tree=0);
    virtual ~simc_pi0_tree();
@@ -299,6 +307,10 @@ void simc_pi0_tree::Init(TTree *tree)
    fChain->SetBranchAddress("Pgamma2x", &Pgamma2x, &b_Pgamma2x);
    fChain->SetBranchAddress("Pgamma2y", &Pgamma2y, &b_Pgamma2y);
    fChain->SetBranchAddress("Pgamma2z", &Pgamma2z, &b_Pgamma2z);
+   fChain->SetBranchAddress("p_e", &p_e, &b_p_e);
+   fChain->SetBranchAddress("ux_e", &ux_e, &b_ux_e);
+   fChain->SetBranchAddress("uy_e", &uy_e, &b_uy_e);
+   fChain->SetBranchAddress("uz_e", &uz_e, &b_uz_e);
    Notify();
 }
 

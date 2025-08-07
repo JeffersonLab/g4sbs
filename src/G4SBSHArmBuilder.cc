@@ -1906,6 +1906,133 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   log_HCAL->SetVisAttributes(G4VisAttributes::GetInvisible());
 }
 
+void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double VerticalOffset=0.0*cm ){
+  // Now register the Sensitive Detectors
+  G4SDManager *sdman = fDetCon->fSDman;
+  
+  G4bool checkOverlap = fDetCon->fCheckOverlap;
+  G4RotationMatrix *rot_HCAL= new G4RotationMatrix;
+  rot_HCAL->rotateY(f48D48ang+fHCALangular_offset);
+  G4double dim_HCALPSZ = 21.0*cm;
+  // provision for 2 stacks of blocks sandwiched between 3 honey combs (<= 1 cm each)
+  if(false){
+    dim_HCALPSZ = 610.0*CLHEP::mm;// about 152.4cm * 4
+  }
+
+  G4double dist_HCalPSRadius = fHCALdist-dim_HCALPSZ/2.0-5.0*cm;
+  G4double dist_HCALPSX = -dist_HCalPSRadius*sin(f48D48ang+fHCALangular_offset);
+  G4double dist_HCALPSY = VerticalOffset;
+  G4double dist_HCALPSZ = dist_HCalPSRadius*cos(f48D48ang+fHCALangular_offset);
+ 
+  G4ThreeVector HCALPS_zaxis( dist_HCALPSX, 0.0, dist_HCALPSZ );
+  G4ThreeVector HCALPS_yaxis( 0.0,        1.0, 0.0        );
+  HCALPS_zaxis = HCALPS_zaxis.unit();
+  G4ThreeVector HCALPS_xaxis = HCALPS_yaxis.cross( HCALPS_zaxis ).unit();
+
+  G4ThreeVector HCALPS_pos =
+    HCALPS_zaxis * dist_HCalPSRadius +
+    HCALPS_xaxis * fHCALhorizontal_offset +
+    HCALPS_yaxis * fHCALvertical_offset;
+
+  // EPAF: 2025/08/06
+  // "HCAL" Preshower should be configurable,
+  // but my hunch is that the Hermes blocks will be better,
+  // so I will make that the default option
+  if(true){
+    // HERMES blocks option: default
+    // Also mostly gross copy paste of the BB PS code, because there is no reason no to...
+    double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
+    double mylar_air_sum = mylarthickness + airthickness;
+    double pmtz = 0.20*cm;
+
+    G4double hcalpslength = 50.0*cm + pmtz;
+    G4double hcalpswidth = 9.0*cm;
+    G4double hcalpsdepth = hcalpswidth;
+    G4double hcalpsheight = hcalpswidth*25;
+    
+    G4Box *hcalpsbox = new G4Box("hcalpsbox", hcalpslength, hcalpsheight/2.0, dim_HCALPSZ/2.0 );
+    G4LogicalVolume *hcalpslog = new G4LogicalVolume(hcalpsbox, GetMaterial("Air"), "hcalpslog");
+
+    new G4PVPlacement(rot_HCAL, HCALPS_pos,
+      hcalpslog, "HCal PS Mother", motherlog, false, 0, checkOverlap);
+
+    double hcalpsTF1_x = hcalpswidth-2*mylar_air_sum;
+    double hcalpsTF1_y = hcalpswidth-2*mylar_air_sum;
+    //Unlike in the shower case, we allow for a small air gap between left and right columns of the PS:
+    double hcalpsTF1_z = hcalpslength - pmtz - mylar_air_sum;
+    // ****Preshower Continued****
+    // AJRP 9/5/2024. Let's NOT reuse the shower modules since they're different sizes!
+    G4Box *hcalpsmodbox = new G4Box( "hcalpsmodbox", hcalpswidth/2.0, hcalpswidth/2.0, hcalpslength/2.0 );
+    G4LogicalVolume *hcalpsmodlog = new G4LogicalVolume( hcalpsmodbox, GetMaterial("Special_Air"), "hcalpsmodlog" );
+
+    //We meed to make a new lead-glass block for preshower with appropriate dimensions!
+    G4Box *hcalpsTF1box = new G4Box("hcalpsTF1box", hcalpsTF1_x/2.0, hcalpsTF1_y/2.0, hcalpsTF1_z/2.0 );
+  
+    // Preshower TF1 SD of type CAL
+    G4LogicalVolume *hcalpsTF1log;
+    hcalpsTF1log = new G4LogicalVolume( hcalpsTF1box, GetMaterial("F101"), "hcalpsTF1log" );
+
+    G4cout << "HCALPS blocks material is " << hcalpsTF1log->GetMaterial()->GetName() << G4endl;
+    
+    G4String HCALPSTF1SDname = "Earm/HCALPSTF1";
+    G4String HCALPSTF1collname = "HCALPSTF1HitsCollection";
+    G4SBSCalSD *HCALPSTF1SD = NULL;
+
+    if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(HCALPSTF1SDname)) ) {
+      G4cout << "Adding BB Preshower TF1 Sensitive Detector to SDman..." << G4endl;
+      HCALPSTF1SD = new G4SBSCalSD( HCALPSTF1SDname, HCALPSTF1collname );
+      
+      sdman->AddNewDetector( HCALPSTF1SD );
+      (fDetCon->SDlist).insert( HCALPSTF1SDname );
+      fDetCon->SDtype[HCALPSTF1SDname] = G4SBS::kCAL;
+      (HCALPSTF1SD->detmap).depth = 1;
+      
+      //Photoelectron yield is approximately 500/GeV (or so)
+      G4double threshold_default = 0.0*MeV; //1% of 1 GeV
+      G4double timewindow_default = 250.0*ns; //We could use 10 ns here if we wanted, but also have to consider pulse shape.
+      G4int default_ntbins = 25;
+      
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( HCALPSTF1SDname, threshold_default, timewindow_default, default_ntbins );
+    }
+    hcalpsTF1log->SetSensitiveDetector( HCALPSTF1SD );
+
+    
+    
+  }else{
+    // Dimensions as defined by CAD drawing HCALJ-0002
+    // This contains only the "sensitive" parts of the module:
+    //   Scintillators + Fe Absorbers + Wavelenght Shifter + Front/Back Plate
+    // Excludes:
+    //  - Extending cylindrical piece of light guide
+    //  - PMT and associated enclosure
+    G4double dim_ModuleX    =  152.40*CLHEP::mm;
+    G4double dim_ModuleY    =  152.40*CLHEP::mm;
+    G4double dim_ModuleZ    = 1555.70*CLHEP::mm;
+    G4double dim_ModCanZ    = 1238.00*CLHEP::mm;//948.00*CLHEP::mm;
+
+    // Also define the "CAN" dimensions, since there is still ~1.5 mm of steel
+    // in the top and bottom  about ~3 mm of steel at the sides.
+    G4double dim_ModCanThickX = 2*1.4478*CLHEP::mm; // Twice as thick in sides
+    G4double dim_ModCanThickY =   1.4478*CLHEP::mm; // Top and bottom thickness
+    G4double dim_ModCanX0    = dim_ModuleX-dim_ModCanThickX;
+    G4double dim_ModCanY0    = dim_ModuleY-dim_ModCanThickY;
+
+    // Dimensions as defined by CAD drawing HCALJ-00011
+    G4double dim_ScintX     =   69.35*CLHEP::mm;
+    G4double dim_ScintY     =  147.00*CLHEP::mm;
+    G4double dim_ScintZ     =    9.90*CLHEP::mm;
+
+    // Dimensions as defined by CAD drawing HCALJ-00010-V2
+    // (simplified, does not include the small triangular-cuts on outer corners)
+    G4double dim_ThinAbsorbX    =   69.60*CLHEP::mm;
+    G4double dim_ThinAbsorbY    =  148.80*CLHEP::mm;
+    G4double dim_ThinAbsorbZ    =    6.35*CLHEP::mm;
+
+  }
+}
+
+
+
 void G4SBSHArmBuilder::MakeHCAL( G4LogicalVolume *motherlog, G4double VerticalOffset=0.0*cm ){
 
 
@@ -2397,7 +2524,11 @@ void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
     MakeHCALV2( motherlog, fHCALvertical_offset );
     MakeLAC( motherlog );
   } else { //TDIS or NDVCS: LAC only:
-    MakeLAC( motherlog );
+    //MakeLAC( motherlog );
+    // EPAF: 2025/08/06 for the moment let's not worry about truncating HCal
+    // since we can literally create the extra blocks out of thin air...
+    MakeHCALV2( motherlog, fHCALvertical_offset );
+    MakeHCALPreshower(motherlog, fHCALvertical_offset );
   }
 }
 

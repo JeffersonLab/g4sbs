@@ -52,6 +52,7 @@ public:
   void MakeSBSFieldClamps(G4LogicalVolume*);
   void MakeHCAL(G4LogicalVolume*, G4double);
   void MakeHCALV2(G4LogicalVolume*, G4double);
+  void MakeHCALPreshower(G4LogicalVolume*, G4double);
   void MakeCDET(G4LogicalVolume*, G4double, G4double);
   void MakeNeutronVeto(G4LogicalVolume*, G4double);
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );

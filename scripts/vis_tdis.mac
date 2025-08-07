@@ -23,18 +23,19 @@
 /g4sbs/phmax         180.0 deg
 
 ## Configure standard detector settings
-/g4sbs/lacdist       10.5 m
-/g4sbs/lacvoffset     0.40 m
-/g4sbs/lachoffset    -0.20 m
+#/g4sbs/lacdist       10.5 m
+#/g4sbs/lacvoffset     0.40 m
+#/g4sbs/lachoffset    -0.20 m
+/g4sbs/hcaldist        7.0 m
+/g4sbs/hcalvoffset     0.75 m
+/g4sbs/hcalhoffset     0.00 m
+
 /g4sbs/sbstrkrdist     4.4 m
 /g4sbs/sbstrkrpitch    5.0 deg
 
 /g4sbs/richdist        5.0 m
 /g4sbs/richgas         CF4
 /g4sbs/userichaero     false
-
-/g4sbs/dvcsecalhoffset 0.0 m
-/g4sbs/dvcsecalmat PbWO4
 
 ## Configure the magnets
 /g4sbs/bbfield         0
@@ -64,7 +65,7 @@
 #/g4sbs/mtpckrypto 1
 #/g4sbs/tdistgtwallthick 0.04 #mm
 
-/g4sbs/tpcdesign 1
+#/g4sbs/tpcdesign 1
 /g4sbs/checkOverlap true
 
 ## Run 100 events

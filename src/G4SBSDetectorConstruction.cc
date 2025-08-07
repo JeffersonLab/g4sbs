@@ -1400,6 +1400,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4Element* elPb = man->FindOrBuildElement("Pb");
   G4Element* elBe = man->FindOrBuildElement("Be");
   G4Element* elW = man->FindOrBuildElement("W");
+  G4Element* elCe = man->FindOrBuildElement("Ce");
   
   G4Material* Titanium = man->FindOrBuildMaterial("G4_Ti");
   fMaterialsMap["Titanium"] = Titanium;
@@ -1413,16 +1414,24 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   PbO->AddElement(elO, 1);
   fMaterialsMap["TF1_PbO"] = PbO;
 
+  G4Material* Pb3O4 = new G4Material("F101_Pb3O4", bigden, 2);
+  Pb3O4->AddElement(elPb, 3);
+  Pb3O4->AddElement(elO, 4);
+  fMaterialsMap["F101_Pb3O4"] = Pb3O4;
+  
   G4Material* K2O = new G4Material("TF1_K2O", bigden, 2);
   K2O->AddElement(elK, 2);
   K2O->AddElement(elO, 1);
   fMaterialsMap["TF1_K2O"] = K2O;
-
+  
   G4Material* As2O3 = new G4Material("TF1_As2O3", bigden, 2);
   As2O3->AddElement(elAs, 2);
   As2O3->AddElement(elO, 3);
   fMaterialsMap["TF1_As2O3"] = As2O3;
   
+  G4Material *Ce = new G4Material("matCe", bigden, 1 );
+  Ce->AddElement(elCe,1);
+  fMaterialsMap["matCe"] = Ce;
   // Simulating annealing: http://hallaweb.jlab.org/12GeV/SuperBigBite/SBS-minutes/2014/Sergey_Abrahamyan_LGAnnealing_2014.pdf
   // const G4int nentries_annealing_model=50;
 
@@ -1628,6 +1637,19 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   TF5->AddMaterial(SiO2, 0.413);
   TF5->AddMaterial(K2O, 0.070);
   TF5->AddMaterial(As2O3, 0.005);
+
+  //Let's also make F101 LG for the BigBite preshower used during SBS:
+  //Density based on Arun's weighing of the preshower blocks:
+  G4Material *F101 = new G4Material("F101", 3.84*g/cm3, 4 );
+
+  F101->AddMaterial( Pb3O4, 0.5123 );
+  F101->AddMaterial( SiO2, 0.4153 );
+  F101->AddMaterial( K2O, 0.07 );
+  F101->AddMaterial( Ce, 0.002 );
+  
+  if( fMaterialsListOpticalPhotonDisabled.find( "F101" ) == fMaterialsListOpticalPhotonDisabled.end() ){
+    F101->SetMaterialPropertiesTable( MPT_temp );
+  }
   
   MPT_temp = new G4MaterialPropertiesTable();
   MPT_temp->AddProperty("RINDEX", Ephoton_ECAL_QE, Rindex_TF1, nentries_ecal_QE );
@@ -1640,6 +1662,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   if( fMaterialsListOpticalPhotonDisabled.find( "TF5" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     TF5->SetMaterialPropertiesTable( MPT_temp );
   }
+  fMaterialsMap["F101"] = F101; // For BigBite preshower
   fMaterialsMap["TF1"] = TF1; //Default TF1: no temperature increase, no rad. damage.
   fMaterialsMap["TF5"] = TF5;
   fMaterialsMap["TF1_dead"] = TF1_dead;

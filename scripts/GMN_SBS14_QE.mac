@@ -1,0 +1,78 @@
+/g4sbs/usescint 0
+/g4sbs/useckov 1
+
+/g4sbs/DisableOpticalPhotonByMaterial BBHodo_Scinti
+/g4sbs/DisableOpticalPhotonByMaterial Special_Air
+/g4sbs/DisableOpticalPhotonByMaterial Mylar
+/g4sbs/DisableOpticalPhotonByMaterial TF1
+/g4sbs/DisableOpticalPhotonByMaterial F101
+/g4sbs/DisableOpticalPhotonByMaterial TF5
+/g4sbs/DisableOpticalPhotonByMaterial QuartzWindow_ECal
+/g4sbs/DisableOpticalPhotonByMaterial Photocathode_BB
+/g4sbs/DisableOpticalPhotonByMaterial Photocathode_material_ecal
+/g4sbs/DisableOpticalPhotonByMaterial Pyrex_Glass
+/g4sbs/DisableOpticalPhotonByMaterial CDET_BC408
+/g4sbs/DisableOpticalPhotonByMaterial BCF_92
+/g4sbs/DisableOpticalPhotonByMaterial CDET_Acrylic
+/g4sbs/DisableOpticalPhotonByMaterial Photocathode_CDet
+/g4sbs/DisableOpticalPhotonByMaterial EJ232
+/g4sbs/DisableOpticalPhotonByMaterial BC484
+/g4sbs/DisableOpticalPhotonByMaterial Glass_HC
+/g4sbs/DisableOpticalPhotonByMaterial Paper
+#/g4sbs/DisableOpticalPhotonByMaterial Air
+#/g4sbs/DisableOpticalPhotonByMaterial RICH_air
+
+
+## Configure G4SBS for gmn (Q^2 = 13.3 GeV^2)
+##/g4sbs/filename        gmn_SBS14_elastic.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gmn
+
+## Configure the target
+/g4sbs/target          LD2
+/g4sbs/targlen         15.0 cm           ## Target Length
+/g4sbs/rasterx 	       2.0 mm  #raster size in X
+/g4sbs/rastery	       2.0 mm  #raster size in Y
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+#/g4sbs/hadron          pi-
+/g4sbs/beamcur         1.0 muA
+/g4sbs/beamE           5.965 GeV
+/g4sbs/thmin           36.5 deg
+/g4sbs/thmax           56.5 deg
+/g4sbs/phmin           -30 deg
+/g4sbs/phmax           30 deg
+#/g4sbs/eemin           0.5 GeV
+#/g4sbs/eemax           5.7 GeV
+
+## Configure standard detector settings
+/g4sbs/hcaldist        14.0 m
+/g4sbs/hcalvoffset     0.365 m
+/g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
+/g4sbs/sbsclampopt     3                 ## Front field clamp only
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/scalebbfield    0.9672
+
+#/g4sbs/48d48field      1
+#/g4sbs/sbsmagfield     0.917 tesla
+/g4sbs/tosfield 	SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+/g4sbs/scalesbsfield   0.640 # approximate field scale factor for 50% field setting
+
+/g4sbs/bbang           46.5 deg
+/g4sbs/bbdist          1.85 m
+/g4sbs/sbsang          17.3 deg
+/g4sbs/48D48dist       2.25 m 
+
+
+/g4sbs/keepsdtrackinfo 	all true
+/g4sbs/totalabs true
+
+/g4sbs/rejectionsampling true 1000000
+
+## Run 100 events
+/g4sbs/eventstatusevery 100
+##/g4sbs/run             10000

@@ -1,0 +1,63 @@
+##Switch on Cherenkov for all subsystems except for GRINCH/RICH
+/g4sbs/usescint 0
+/g4sbs/useckov 1
+
+/g4sbs/DisableOpticalPhotonByMaterial BBHodo_Scinti
+/g4sbs/DisableOpticalPhotonByMaterial Special_Air
+/g4sbs/DisableOpticalPhotonByMaterial Mylar
+/g4sbs/DisableOpticalPhotonByMaterial TF1
+/g4sbs/DisableOpticalPhotonByMaterial TF5
+/g4sbs/DisableOpticalPhotonByMaterial QuartzWindow_ECal
+/g4sbs/DisableOpticalPhotonByMaterial Photocathode_BB
+/g4sbs/DisableOpticalPhotonByMaterial Photocathode_material_ecal
+/g4sbs/DisableOpticalPhotonByMaterial Pyrex_Glass
+/g4sbs/DisableOpticalPhotonByMaterial CDET_BC408
+/g4sbs/DisableOpticalPhotonByMaterial BCF_92
+/g4sbs/DisableOpticalPhotonByMaterial CDET_Acrylic
+/g4sbs/DisableOpticalPhotonByMaterial Photocathode_CDet
+/g4sbs/DisableOpticalPhotonByMaterial EJ232
+/g4sbs/DisableOpticalPhotonByMaterial BC484
+/g4sbs/DisableOpticalPhotonByMaterial Glass_HC
+/g4sbs/DisableOpticalPhotonByMaterial Paper
+
+## Configure G4SBS for gmn (Q^2 = 4.5 GeV^2, SBS-9)
+#/g4sbs/filename $SWIF_JOB_WORK_DIR/sbs9_sbs70p_simc_deen.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gmn
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         15.0 cm           ## Target Length
+
+## Configure generator settings
+/g4sbs/kine            simc               ## Generator
+/g4sbs/hadron	       p
+
+## Configure standard detector settings
+/g4sbs/hcaldist        11.0 m
+/g4sbs/hcalvoffset     0.75 m             ## Was 0.45, should be 0.75 to match data. 
+/g4sbs/beamlineconfig  4                  ## set relevant beamline configuration
+/g4sbs/sbsclampopt     3                  ## Front field clamp only
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/scalebbfield    0.9672 
+/g4sbs/tosfield        SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+/g4sbs/scalesbsfield   0.0              ##going for 70%: 0.885-> -2.54134 for dx_p, 0.369->-1.08869 (JB)
+/g4sbs/bbang           49.0 deg
+/g4sbs/bbdist          1.550 m            ## db_run.dat
+/g4sbs/sbsang          22.5 deg
+/g4sbs/48D48dist       2.25 m 
+/g4sbs/hcalangoffset   -0.5 deg   ## Due to the 0.5 deg difference between HCal and SBS angle (HCal was at 22.0 deg)
+
+## Scattering chamber shielding to reduce bg
+/g4sbs/setbigbiteplate      1           ## ON (1) for SBS11,14,8,9
+/g4sbs/bigbiteplatethick    0.3175 cm   ## 1/8 in
+/g4sbs/bigbiteplatematerial Al
+
+/g4sbs/keepsdtrackinfo 	all true
+/g4sbs/totalabs true
+
+## Run 100 events
+/g4sbs/eventstatusevery 100

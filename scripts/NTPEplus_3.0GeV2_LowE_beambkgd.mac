@@ -1,0 +1,36 @@
+## Configure G4SBS for NTPE+, 3.0 GeV^2, epsilon = 0.638
+
+## Configure Experiment
+/g4sbs/exp             gmn
+
+## Configure the target
+/g4sbs/target          LD2
+/g4sbs/targlen         15.0 cm           ## Target Length
+/g4sbs/rasterx 	       2.0 mm  #raster size in X
+/g4sbs/rastery	       2.0 mm  #raster size in Y
+
+## Configure generator settings
+/g4sbs/kine            beam           ## Generator
+/g4sbs/runtime         0.1 s
+/g4sbs/beamcur         0.2 muA
+/g4sbs/beamE           3.3 GeV
+
+## Configure standard detector settings
+/g4sbs/hcaldist        11.0 m
+/g4sbs/hcalvoffset     0.75 m
+/g4sbs/beamlineconfig  4                 ## set relevant beamline configuration
+/g4sbs/sbsclampopt     3                 ## Front field clamp only
+/g4sbs/uselead         1
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/scalebbfield    0.905
+/g4sbs/48d48field      1
+/g4sbs/sbsmagfield     0.42 T
+/g4sbs/bbang           42.8 deg
+/g4sbs/bbdist          1.55 m
+/g4sbs/sbsang          29.5 deg
+/g4sbs/48D48dist       2.8 m
+
+/g4sbs/keepsdtrackinfo all true
+/g4sbs/totalabs false

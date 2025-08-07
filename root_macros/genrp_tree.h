@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Thu Apr 11 14:15:11 2024 by ROOT version 6.26/10
+// Mon Jan 27 13:29:21 2025 by ROOT version 6.30/04
 // from TTree T/Geant4 SBS Simulation
-// found on file: genrp_LH2_pgun_job1.root
+// found on file: /volatile/halla/sbs/stucker/g4sbs_output/K_LL_sim/SBS100/z_pol/KLL_protongun_polz_job_1.root
 //////////////////////////////////////////////////////////
 
 #ifndef genrp_tree_h
@@ -13,8 +13,8 @@
 #include <TFile.h>
 
 // Header file for the classes stored in the TTree if any.
-#include "c++/v1/vector"
-#include "c++/v1/vector"
+#include "vector"
+#include "vector"
 
 class genrp_tree {
 public :
@@ -249,33 +249,6 @@ public :
    vector<int>     *Harm_ActAnScint_hit_otridx;
    vector<int>     *Harm_ActAnScint_hit_ptridx;
    vector<int>     *Harm_ActAnScint_hit_sdtridx;
-   Double_t        Harm_CDET_Scint_det_esum;
-   Int_t           Harm_CDET_Scint_hit_nhits;
-   vector<int>     *Harm_CDET_Scint_hit_row;
-   vector<int>     *Harm_CDET_Scint_hit_col;
-   vector<int>     *Harm_CDET_Scint_hit_cell;
-   vector<int>     *Harm_CDET_Scint_hit_plane;
-   vector<int>     *Harm_CDET_Scint_hit_wire;
-   vector<double>  *Harm_CDET_Scint_hit_xcell;
-   vector<double>  *Harm_CDET_Scint_hit_ycell;
-   vector<double>  *Harm_CDET_Scint_hit_zcell;
-   vector<double>  *Harm_CDET_Scint_hit_xcellg;
-   vector<double>  *Harm_CDET_Scint_hit_ycellg;
-   vector<double>  *Harm_CDET_Scint_hit_zcellg;
-   vector<double>  *Harm_CDET_Scint_hit_xhit;
-   vector<double>  *Harm_CDET_Scint_hit_yhit;
-   vector<double>  *Harm_CDET_Scint_hit_zhit;
-   vector<double>  *Harm_CDET_Scint_hit_xhitg;
-   vector<double>  *Harm_CDET_Scint_hit_yhitg;
-   vector<double>  *Harm_CDET_Scint_hit_zhitg;
-   vector<double>  *Harm_CDET_Scint_hit_sumedep;
-   vector<double>  *Harm_CDET_Scint_hit_tavg;
-   vector<double>  *Harm_CDET_Scint_hit_trms;
-   vector<double>  *Harm_CDET_Scint_hit_tmin;
-   vector<double>  *Harm_CDET_Scint_hit_tmax;
-   vector<int>     *Harm_CDET_Scint_hit_otridx;
-   vector<int>     *Harm_CDET_Scint_hit_ptridx;
-   vector<int>     *Harm_CDET_Scint_hit_sdtridx;
    Int_t           Harm_CEPolFront_hit_nhits;
    vector<int>     *Harm_CEPolFront_hit_plane;
    vector<int>     *Harm_CEPolFront_hit_strip;
@@ -429,69 +402,6 @@ public :
    vector<int>     *Harm_HCalScint_hit_otridx;
    vector<int>     *Harm_HCalScint_hit_ptridx;
    vector<int>     *Harm_HCalScint_hit_sdtridx;
-   Int_t           Harm_PRPolGEMBeamSide_hit_nhits;
-   vector<int>     *Harm_PRPolGEMBeamSide_hit_plane;
-   vector<int>     *Harm_PRPolGEMBeamSide_hit_strip;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_x;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_y;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_z;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_polx;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_poly;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_polz;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_t;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_trms;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_tmin;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_tmax;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_tx;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_ty;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_xin;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_yin;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_zin;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_xout;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_yout;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_zout;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_txp;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_typ;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_xg;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_yg;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_zg;
-   vector<int>     *Harm_PRPolGEMBeamSide_hit_trid;
-   vector<int>     *Harm_PRPolGEMBeamSide_hit_mid;
-   vector<int>     *Harm_PRPolGEMBeamSide_hit_pid;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_vx;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_vy;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_vz;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_p;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_edep;
-   vector<double>  *Harm_PRPolGEMBeamSide_hit_beta;
-   vector<int>     *Harm_PRPolGEMBeamSide_hit_otridx;
-   vector<int>     *Harm_PRPolGEMBeamSide_hit_ptridx;
-   vector<int>     *Harm_PRPolGEMBeamSide_hit_sdtridx;
-   Int_t           Harm_PRPolGEMBeamSide_Track_ntracks;
-   vector<int>     *Harm_PRPolGEMBeamSide_Track_TID;
-   vector<int>     *Harm_PRPolGEMBeamSide_Track_PID;
-   vector<int>     *Harm_PRPolGEMBeamSide_Track_MID;
-   vector<int>     *Harm_PRPolGEMBeamSide_Track_NumHits;
-   vector<int>     *Harm_PRPolGEMBeamSide_Track_NumPlanes;
-   vector<int>     *Harm_PRPolGEMBeamSide_Track_NDF;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Chi2fit;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Chi2true;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_X;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Y;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Xp;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Yp;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_T;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_P;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Sx;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Sy;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Sz;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Xfit;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Yfit;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Xpfit;
-   vector<double>  *Harm_PRPolGEMBeamSide_Track_Ypfit;
-   vector<int>     *Harm_PRPolGEMBeamSide_Track_otridx;
-   vector<int>     *Harm_PRPolGEMBeamSide_Track_ptridx;
-   vector<int>     *Harm_PRPolGEMBeamSide_Track_sdtridx;
    Int_t           Harm_PRPolGEMFarSide_hit_nhits;
    vector<int>     *Harm_PRPolGEMFarSide_hit_plane;
    vector<int>     *Harm_PRPolGEMFarSide_hit_strip;
@@ -842,33 +752,6 @@ public :
    TBranch        *b_Harm_ActAnScint_hit_otridx;   //!
    TBranch        *b_Harm_ActAnScint_hit_ptridx;   //!
    TBranch        *b_Harm_ActAnScint_hit_sdtridx;   //!
-   TBranch        *b_Harm_CDET_Scint_det_esum;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_nhits;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_row;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_col;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_cell;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_plane;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_wire;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_xcell;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_ycell;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_zcell;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_xcellg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_ycellg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_zcellg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_xhit;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_yhit;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_zhit;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_xhitg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_yhitg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_zhitg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_sumedep;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_tavg;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_trms;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_tmin;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_tmax;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_otridx;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_ptridx;   //!
-   TBranch        *b_Harm_CDET_Scint_hit_sdtridx;   //!
    TBranch        *b_Harm_CEPolFront_hit_nhits;   //!
    TBranch        *b_Harm_CEPolFront_hit_plane;   //!
    TBranch        *b_Harm_CEPolFront_hit_strip;   //!
@@ -1022,69 +905,6 @@ public :
    TBranch        *b_Harm_HCalScint_hit_otridx;   //!
    TBranch        *b_Harm_HCalScint_hit_ptridx;   //!
    TBranch        *b_Harm_HCalScint_hit_sdtridx;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_nhits;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_plane;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_strip;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_x;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_y;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_z;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_polx;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_poly;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_polz;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_t;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_trms;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_tmin;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_tmax;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_tx;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_ty;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_xin;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_yin;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_zin;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_xout;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_yout;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_zout;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_txp;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_typ;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_xg;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_yg;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_zg;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_trid;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_mid;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_pid;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_vx;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_vy;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_vz;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_p;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_edep;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_beta;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_otridx;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_ptridx;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_hit_sdtridx;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_ntracks;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_TID;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_PID;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_MID;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_NumHits;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_NumPlanes;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_NDF;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Chi2fit;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Chi2true;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_X;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Y;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Xp;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Yp;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_T;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_P;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Sx;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Sy;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Sz;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Xfit;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Yfit;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Xpfit;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_Ypfit;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_otridx;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_ptridx;   //!
-   TBranch        *b_Harm_PRPolGEMBeamSide_Track_sdtridx;   //!
    TBranch        *b_Harm_PRPolGEMFarSide_hit_nhits;   //!
    TBranch        *b_Harm_PRPolGEMFarSide_hit_plane;   //!
    TBranch        *b_Harm_PRPolGEMFarSide_hit_strip;   //!
@@ -1275,9 +1095,9 @@ genrp_tree::genrp_tree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("genrp_LH2_pgun_job1.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/volatile/halla/sbs/stucker/g4sbs_output/K_LL_sim/SBS100/z_pol/KLL_protongun_polz_job_1.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("genrp_LH2_pgun_job1.root");
+         f = new TFile("/volatile/halla/sbs/stucker/g4sbs_output/K_LL_sim/SBS100/z_pol/KLL_protongun_polz_job_1.root");
       }
       f->GetObject("T",tree);
 
@@ -1482,31 +1302,6 @@ void genrp_tree::Init(TTree *tree)
    Harm_ActAnScint_hit_otridx = 0;
    Harm_ActAnScint_hit_ptridx = 0;
    Harm_ActAnScint_hit_sdtridx = 0;
-   Harm_CDET_Scint_hit_row = 0;
-   Harm_CDET_Scint_hit_col = 0;
-   Harm_CDET_Scint_hit_cell = 0;
-   Harm_CDET_Scint_hit_plane = 0;
-   Harm_CDET_Scint_hit_wire = 0;
-   Harm_CDET_Scint_hit_xcell = 0;
-   Harm_CDET_Scint_hit_ycell = 0;
-   Harm_CDET_Scint_hit_zcell = 0;
-   Harm_CDET_Scint_hit_xcellg = 0;
-   Harm_CDET_Scint_hit_ycellg = 0;
-   Harm_CDET_Scint_hit_zcellg = 0;
-   Harm_CDET_Scint_hit_xhit = 0;
-   Harm_CDET_Scint_hit_yhit = 0;
-   Harm_CDET_Scint_hit_zhit = 0;
-   Harm_CDET_Scint_hit_xhitg = 0;
-   Harm_CDET_Scint_hit_yhitg = 0;
-   Harm_CDET_Scint_hit_zhitg = 0;
-   Harm_CDET_Scint_hit_sumedep = 0;
-   Harm_CDET_Scint_hit_tavg = 0;
-   Harm_CDET_Scint_hit_trms = 0;
-   Harm_CDET_Scint_hit_tmin = 0;
-   Harm_CDET_Scint_hit_tmax = 0;
-   Harm_CDET_Scint_hit_otridx = 0;
-   Harm_CDET_Scint_hit_ptridx = 0;
-   Harm_CDET_Scint_hit_sdtridx = 0;
    Harm_CEPolFront_hit_plane = 0;
    Harm_CEPolFront_hit_strip = 0;
    Harm_CEPolFront_hit_x = 0;
@@ -1654,67 +1449,6 @@ void genrp_tree::Init(TTree *tree)
    Harm_HCalScint_hit_otridx = 0;
    Harm_HCalScint_hit_ptridx = 0;
    Harm_HCalScint_hit_sdtridx = 0;
-   Harm_PRPolGEMBeamSide_hit_plane = 0;
-   Harm_PRPolGEMBeamSide_hit_strip = 0;
-   Harm_PRPolGEMBeamSide_hit_x = 0;
-   Harm_PRPolGEMBeamSide_hit_y = 0;
-   Harm_PRPolGEMBeamSide_hit_z = 0;
-   Harm_PRPolGEMBeamSide_hit_polx = 0;
-   Harm_PRPolGEMBeamSide_hit_poly = 0;
-   Harm_PRPolGEMBeamSide_hit_polz = 0;
-   Harm_PRPolGEMBeamSide_hit_t = 0;
-   Harm_PRPolGEMBeamSide_hit_trms = 0;
-   Harm_PRPolGEMBeamSide_hit_tmin = 0;
-   Harm_PRPolGEMBeamSide_hit_tmax = 0;
-   Harm_PRPolGEMBeamSide_hit_tx = 0;
-   Harm_PRPolGEMBeamSide_hit_ty = 0;
-   Harm_PRPolGEMBeamSide_hit_xin = 0;
-   Harm_PRPolGEMBeamSide_hit_yin = 0;
-   Harm_PRPolGEMBeamSide_hit_zin = 0;
-   Harm_PRPolGEMBeamSide_hit_xout = 0;
-   Harm_PRPolGEMBeamSide_hit_yout = 0;
-   Harm_PRPolGEMBeamSide_hit_zout = 0;
-   Harm_PRPolGEMBeamSide_hit_txp = 0;
-   Harm_PRPolGEMBeamSide_hit_typ = 0;
-   Harm_PRPolGEMBeamSide_hit_xg = 0;
-   Harm_PRPolGEMBeamSide_hit_yg = 0;
-   Harm_PRPolGEMBeamSide_hit_zg = 0;
-   Harm_PRPolGEMBeamSide_hit_trid = 0;
-   Harm_PRPolGEMBeamSide_hit_mid = 0;
-   Harm_PRPolGEMBeamSide_hit_pid = 0;
-   Harm_PRPolGEMBeamSide_hit_vx = 0;
-   Harm_PRPolGEMBeamSide_hit_vy = 0;
-   Harm_PRPolGEMBeamSide_hit_vz = 0;
-   Harm_PRPolGEMBeamSide_hit_p = 0;
-   Harm_PRPolGEMBeamSide_hit_edep = 0;
-   Harm_PRPolGEMBeamSide_hit_beta = 0;
-   Harm_PRPolGEMBeamSide_hit_otridx = 0;
-   Harm_PRPolGEMBeamSide_hit_ptridx = 0;
-   Harm_PRPolGEMBeamSide_hit_sdtridx = 0;
-   Harm_PRPolGEMBeamSide_Track_TID = 0;
-   Harm_PRPolGEMBeamSide_Track_PID = 0;
-   Harm_PRPolGEMBeamSide_Track_MID = 0;
-   Harm_PRPolGEMBeamSide_Track_NumHits = 0;
-   Harm_PRPolGEMBeamSide_Track_NumPlanes = 0;
-   Harm_PRPolGEMBeamSide_Track_NDF = 0;
-   Harm_PRPolGEMBeamSide_Track_Chi2fit = 0;
-   Harm_PRPolGEMBeamSide_Track_Chi2true = 0;
-   Harm_PRPolGEMBeamSide_Track_X = 0;
-   Harm_PRPolGEMBeamSide_Track_Y = 0;
-   Harm_PRPolGEMBeamSide_Track_Xp = 0;
-   Harm_PRPolGEMBeamSide_Track_Yp = 0;
-   Harm_PRPolGEMBeamSide_Track_T = 0;
-   Harm_PRPolGEMBeamSide_Track_P = 0;
-   Harm_PRPolGEMBeamSide_Track_Sx = 0;
-   Harm_PRPolGEMBeamSide_Track_Sy = 0;
-   Harm_PRPolGEMBeamSide_Track_Sz = 0;
-   Harm_PRPolGEMBeamSide_Track_Xfit = 0;
-   Harm_PRPolGEMBeamSide_Track_Yfit = 0;
-   Harm_PRPolGEMBeamSide_Track_Xpfit = 0;
-   Harm_PRPolGEMBeamSide_Track_Ypfit = 0;
-   Harm_PRPolGEMBeamSide_Track_otridx = 0;
-   Harm_PRPolGEMBeamSide_Track_ptridx = 0;
-   Harm_PRPolGEMBeamSide_Track_sdtridx = 0;
    Harm_PRPolGEMFarSide_hit_plane = 0;
    Harm_PRPolGEMFarSide_hit_strip = 0;
    Harm_PRPolGEMFarSide_hit_x = 0;
@@ -2060,33 +1794,6 @@ void genrp_tree::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.ActAnScint.hit.otridx", &Harm_ActAnScint_hit_otridx, &b_Harm_ActAnScint_hit_otridx);
    fChain->SetBranchAddress("Harm.ActAnScint.hit.ptridx", &Harm_ActAnScint_hit_ptridx, &b_Harm_ActAnScint_hit_ptridx);
    fChain->SetBranchAddress("Harm.ActAnScint.hit.sdtridx", &Harm_ActAnScint_hit_sdtridx, &b_Harm_ActAnScint_hit_sdtridx);
-   fChain->SetBranchAddress("Harm.CDET_Scint.det.esum", &Harm_CDET_Scint_det_esum, &b_Harm_CDET_Scint_det_esum);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.nhits", &Harm_CDET_Scint_hit_nhits, &b_Harm_CDET_Scint_hit_nhits);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.row", &Harm_CDET_Scint_hit_row, &b_Harm_CDET_Scint_hit_row);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.col", &Harm_CDET_Scint_hit_col, &b_Harm_CDET_Scint_hit_col);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.cell", &Harm_CDET_Scint_hit_cell, &b_Harm_CDET_Scint_hit_cell);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.plane", &Harm_CDET_Scint_hit_plane, &b_Harm_CDET_Scint_hit_plane);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.wire", &Harm_CDET_Scint_hit_wire, &b_Harm_CDET_Scint_hit_wire);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.xcell", &Harm_CDET_Scint_hit_xcell, &b_Harm_CDET_Scint_hit_xcell);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.ycell", &Harm_CDET_Scint_hit_ycell, &b_Harm_CDET_Scint_hit_ycell);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.zcell", &Harm_CDET_Scint_hit_zcell, &b_Harm_CDET_Scint_hit_zcell);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.xcellg", &Harm_CDET_Scint_hit_xcellg, &b_Harm_CDET_Scint_hit_xcellg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.ycellg", &Harm_CDET_Scint_hit_ycellg, &b_Harm_CDET_Scint_hit_ycellg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.zcellg", &Harm_CDET_Scint_hit_zcellg, &b_Harm_CDET_Scint_hit_zcellg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.xhit", &Harm_CDET_Scint_hit_xhit, &b_Harm_CDET_Scint_hit_xhit);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.yhit", &Harm_CDET_Scint_hit_yhit, &b_Harm_CDET_Scint_hit_yhit);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.zhit", &Harm_CDET_Scint_hit_zhit, &b_Harm_CDET_Scint_hit_zhit);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.xhitg", &Harm_CDET_Scint_hit_xhitg, &b_Harm_CDET_Scint_hit_xhitg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.yhitg", &Harm_CDET_Scint_hit_yhitg, &b_Harm_CDET_Scint_hit_yhitg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.zhitg", &Harm_CDET_Scint_hit_zhitg, &b_Harm_CDET_Scint_hit_zhitg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.sumedep", &Harm_CDET_Scint_hit_sumedep, &b_Harm_CDET_Scint_hit_sumedep);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.tavg", &Harm_CDET_Scint_hit_tavg, &b_Harm_CDET_Scint_hit_tavg);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.trms", &Harm_CDET_Scint_hit_trms, &b_Harm_CDET_Scint_hit_trms);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.tmin", &Harm_CDET_Scint_hit_tmin, &b_Harm_CDET_Scint_hit_tmin);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.tmax", &Harm_CDET_Scint_hit_tmax, &b_Harm_CDET_Scint_hit_tmax);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.otridx", &Harm_CDET_Scint_hit_otridx, &b_Harm_CDET_Scint_hit_otridx);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.ptridx", &Harm_CDET_Scint_hit_ptridx, &b_Harm_CDET_Scint_hit_ptridx);
-   fChain->SetBranchAddress("Harm.CDET_Scint.hit.sdtridx", &Harm_CDET_Scint_hit_sdtridx, &b_Harm_CDET_Scint_hit_sdtridx);
    fChain->SetBranchAddress("Harm.CEPolFront.hit.nhits", &Harm_CEPolFront_hit_nhits, &b_Harm_CEPolFront_hit_nhits);
    fChain->SetBranchAddress("Harm.CEPolFront.hit.plane", &Harm_CEPolFront_hit_plane, &b_Harm_CEPolFront_hit_plane);
    fChain->SetBranchAddress("Harm.CEPolFront.hit.strip", &Harm_CEPolFront_hit_strip, &b_Harm_CEPolFront_hit_strip);
@@ -2240,69 +1947,6 @@ void genrp_tree::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.HCalScint.hit.otridx", &Harm_HCalScint_hit_otridx, &b_Harm_HCalScint_hit_otridx);
    fChain->SetBranchAddress("Harm.HCalScint.hit.ptridx", &Harm_HCalScint_hit_ptridx, &b_Harm_HCalScint_hit_ptridx);
    fChain->SetBranchAddress("Harm.HCalScint.hit.sdtridx", &Harm_HCalScint_hit_sdtridx, &b_Harm_HCalScint_hit_sdtridx);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.nhits", &Harm_PRPolGEMBeamSide_hit_nhits, &b_Harm_PRPolGEMBeamSide_hit_nhits);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.plane", &Harm_PRPolGEMBeamSide_hit_plane, &b_Harm_PRPolGEMBeamSide_hit_plane);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.strip", &Harm_PRPolGEMBeamSide_hit_strip, &b_Harm_PRPolGEMBeamSide_hit_strip);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.x", &Harm_PRPolGEMBeamSide_hit_x, &b_Harm_PRPolGEMBeamSide_hit_x);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.y", &Harm_PRPolGEMBeamSide_hit_y, &b_Harm_PRPolGEMBeamSide_hit_y);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.z", &Harm_PRPolGEMBeamSide_hit_z, &b_Harm_PRPolGEMBeamSide_hit_z);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.polx", &Harm_PRPolGEMBeamSide_hit_polx, &b_Harm_PRPolGEMBeamSide_hit_polx);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.poly", &Harm_PRPolGEMBeamSide_hit_poly, &b_Harm_PRPolGEMBeamSide_hit_poly);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.polz", &Harm_PRPolGEMBeamSide_hit_polz, &b_Harm_PRPolGEMBeamSide_hit_polz);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.t", &Harm_PRPolGEMBeamSide_hit_t, &b_Harm_PRPolGEMBeamSide_hit_t);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.trms", &Harm_PRPolGEMBeamSide_hit_trms, &b_Harm_PRPolGEMBeamSide_hit_trms);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.tmin", &Harm_PRPolGEMBeamSide_hit_tmin, &b_Harm_PRPolGEMBeamSide_hit_tmin);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.tmax", &Harm_PRPolGEMBeamSide_hit_tmax, &b_Harm_PRPolGEMBeamSide_hit_tmax);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.tx", &Harm_PRPolGEMBeamSide_hit_tx, &b_Harm_PRPolGEMBeamSide_hit_tx);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.ty", &Harm_PRPolGEMBeamSide_hit_ty, &b_Harm_PRPolGEMBeamSide_hit_ty);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.xin", &Harm_PRPolGEMBeamSide_hit_xin, &b_Harm_PRPolGEMBeamSide_hit_xin);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.yin", &Harm_PRPolGEMBeamSide_hit_yin, &b_Harm_PRPolGEMBeamSide_hit_yin);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.zin", &Harm_PRPolGEMBeamSide_hit_zin, &b_Harm_PRPolGEMBeamSide_hit_zin);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.xout", &Harm_PRPolGEMBeamSide_hit_xout, &b_Harm_PRPolGEMBeamSide_hit_xout);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.yout", &Harm_PRPolGEMBeamSide_hit_yout, &b_Harm_PRPolGEMBeamSide_hit_yout);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.zout", &Harm_PRPolGEMBeamSide_hit_zout, &b_Harm_PRPolGEMBeamSide_hit_zout);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.txp", &Harm_PRPolGEMBeamSide_hit_txp, &b_Harm_PRPolGEMBeamSide_hit_txp);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.typ", &Harm_PRPolGEMBeamSide_hit_typ, &b_Harm_PRPolGEMBeamSide_hit_typ);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.xg", &Harm_PRPolGEMBeamSide_hit_xg, &b_Harm_PRPolGEMBeamSide_hit_xg);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.yg", &Harm_PRPolGEMBeamSide_hit_yg, &b_Harm_PRPolGEMBeamSide_hit_yg);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.zg", &Harm_PRPolGEMBeamSide_hit_zg, &b_Harm_PRPolGEMBeamSide_hit_zg);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.trid", &Harm_PRPolGEMBeamSide_hit_trid, &b_Harm_PRPolGEMBeamSide_hit_trid);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.mid", &Harm_PRPolGEMBeamSide_hit_mid, &b_Harm_PRPolGEMBeamSide_hit_mid);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.pid", &Harm_PRPolGEMBeamSide_hit_pid, &b_Harm_PRPolGEMBeamSide_hit_pid);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.vx", &Harm_PRPolGEMBeamSide_hit_vx, &b_Harm_PRPolGEMBeamSide_hit_vx);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.vy", &Harm_PRPolGEMBeamSide_hit_vy, &b_Harm_PRPolGEMBeamSide_hit_vy);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.vz", &Harm_PRPolGEMBeamSide_hit_vz, &b_Harm_PRPolGEMBeamSide_hit_vz);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.p", &Harm_PRPolGEMBeamSide_hit_p, &b_Harm_PRPolGEMBeamSide_hit_p);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.edep", &Harm_PRPolGEMBeamSide_hit_edep, &b_Harm_PRPolGEMBeamSide_hit_edep);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.beta", &Harm_PRPolGEMBeamSide_hit_beta, &b_Harm_PRPolGEMBeamSide_hit_beta);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.otridx", &Harm_PRPolGEMBeamSide_hit_otridx, &b_Harm_PRPolGEMBeamSide_hit_otridx);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.ptridx", &Harm_PRPolGEMBeamSide_hit_ptridx, &b_Harm_PRPolGEMBeamSide_hit_ptridx);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.hit.sdtridx", &Harm_PRPolGEMBeamSide_hit_sdtridx, &b_Harm_PRPolGEMBeamSide_hit_sdtridx);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.ntracks", &Harm_PRPolGEMBeamSide_Track_ntracks, &b_Harm_PRPolGEMBeamSide_Track_ntracks);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.TID", &Harm_PRPolGEMBeamSide_Track_TID, &b_Harm_PRPolGEMBeamSide_Track_TID);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.PID", &Harm_PRPolGEMBeamSide_Track_PID, &b_Harm_PRPolGEMBeamSide_Track_PID);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.MID", &Harm_PRPolGEMBeamSide_Track_MID, &b_Harm_PRPolGEMBeamSide_Track_MID);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.NumHits", &Harm_PRPolGEMBeamSide_Track_NumHits, &b_Harm_PRPolGEMBeamSide_Track_NumHits);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.NumPlanes", &Harm_PRPolGEMBeamSide_Track_NumPlanes, &b_Harm_PRPolGEMBeamSide_Track_NumPlanes);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.NDF", &Harm_PRPolGEMBeamSide_Track_NDF, &b_Harm_PRPolGEMBeamSide_Track_NDF);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Chi2fit", &Harm_PRPolGEMBeamSide_Track_Chi2fit, &b_Harm_PRPolGEMBeamSide_Track_Chi2fit);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Chi2true", &Harm_PRPolGEMBeamSide_Track_Chi2true, &b_Harm_PRPolGEMBeamSide_Track_Chi2true);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.X", &Harm_PRPolGEMBeamSide_Track_X, &b_Harm_PRPolGEMBeamSide_Track_X);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Y", &Harm_PRPolGEMBeamSide_Track_Y, &b_Harm_PRPolGEMBeamSide_Track_Y);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Xp", &Harm_PRPolGEMBeamSide_Track_Xp, &b_Harm_PRPolGEMBeamSide_Track_Xp);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Yp", &Harm_PRPolGEMBeamSide_Track_Yp, &b_Harm_PRPolGEMBeamSide_Track_Yp);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.T", &Harm_PRPolGEMBeamSide_Track_T, &b_Harm_PRPolGEMBeamSide_Track_T);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.P", &Harm_PRPolGEMBeamSide_Track_P, &b_Harm_PRPolGEMBeamSide_Track_P);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Sx", &Harm_PRPolGEMBeamSide_Track_Sx, &b_Harm_PRPolGEMBeamSide_Track_Sx);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Sy", &Harm_PRPolGEMBeamSide_Track_Sy, &b_Harm_PRPolGEMBeamSide_Track_Sy);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Sz", &Harm_PRPolGEMBeamSide_Track_Sz, &b_Harm_PRPolGEMBeamSide_Track_Sz);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Xfit", &Harm_PRPolGEMBeamSide_Track_Xfit, &b_Harm_PRPolGEMBeamSide_Track_Xfit);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Yfit", &Harm_PRPolGEMBeamSide_Track_Yfit, &b_Harm_PRPolGEMBeamSide_Track_Yfit);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Xpfit", &Harm_PRPolGEMBeamSide_Track_Xpfit, &b_Harm_PRPolGEMBeamSide_Track_Xpfit);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.Ypfit", &Harm_PRPolGEMBeamSide_Track_Ypfit, &b_Harm_PRPolGEMBeamSide_Track_Ypfit);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.otridx", &Harm_PRPolGEMBeamSide_Track_otridx, &b_Harm_PRPolGEMBeamSide_Track_otridx);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.ptridx", &Harm_PRPolGEMBeamSide_Track_ptridx, &b_Harm_PRPolGEMBeamSide_Track_ptridx);
-   fChain->SetBranchAddress("Harm.PRPolGEMBeamSide.Track.sdtridx", &Harm_PRPolGEMBeamSide_Track_sdtridx, &b_Harm_PRPolGEMBeamSide_Track_sdtridx);
    fChain->SetBranchAddress("Harm.PRPolGEMFarSide.hit.nhits", &Harm_PRPolGEMFarSide_hit_nhits, &b_Harm_PRPolGEMFarSide_hit_nhits);
    fChain->SetBranchAddress("Harm.PRPolGEMFarSide.hit.plane", &Harm_PRPolGEMFarSide_hit_plane, &b_Harm_PRPolGEMFarSide_hit_plane);
    fChain->SetBranchAddress("Harm.PRPolGEMFarSide.hit.strip", &Harm_PRPolGEMFarSide_hit_strip, &b_Harm_PRPolGEMFarSide_hit_strip);

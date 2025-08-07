@@ -1,0 +1,50 @@
+## Configure G4SBS for gmn SBS14 (Q^2 = 6 GeV^2)
+# /g4sbs/filename        $SWIF_JOB_WORK_DIR/jb_sbs14_sbs70p_g4sbs_deeN.root   
+
+## Configure Experiment
+/g4sbs/exp             gmn
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         15.0 cm           ## Target Length
+# /g4sbs/rasterx 	       2.0 mm  #raster size in X
+# /g4sbs/rastery	       2.0 mm  #raster size in Y
+
+## Configure generator settings
+/g4sbs/kine            simc           ## Generator
+/g4sbs/hadron          p
+# /g4sbs/kine            elastic           ## Generator
+# /g4sbs/beamcur         1.0 muA
+# ##Beam energy should be divided by correction factor of 1.03 (5.9826/1.003 = 5.9647)
+# /g4sbs/beamE           5.9828 GeV
+# /g4sbs/thmin           41.5 deg
+# /g4sbs/thmax           51.5 deg
+# /g4sbs/phmin           -25 deg
+# /g4sbs/phmax           25 deg
+
+## Configure standard detector settings
+/g4sbs/hcaldist        14.0 m
+/g4sbs/hcalvoffset     0.75 m 			### Was 0.45, should be 0.75 to match data. 
+/g4sbs/beamlineconfig  3                 ## set relevant beamline configuration
+/g4sbs/sbsclampopt     3                 ## Front field clamp only
+
+/g4sbs/setbigbiteplate       1           ## Should be ON for SBS11,14,8,9
+/g4sbs/bigbiteplatethick     0.3175 cm   ## 1/8 in
+/g4sbs/bigbiteplatematerial  Al          ##aluminum
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/scalebbfield    0.9672 
+/g4sbs/tosfield        SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+/g4sbs/scalesbsfield   0.674
+/g4sbs/bbang           46.5 deg
+/g4sbs/bbdist          1.84787 m ##from survey (db_run.dat)
+/g4sbs/sbsang          17.3 deg
+/g4sbs/48D48dist       2.25 m 
+
+/g4sbs/keepsdtrackinfo 	all true
+/g4sbs/totalabs true
+
+## Run 100 events
+/g4sbs/eventstatusevery 100
+#/g4sbs/run             250000

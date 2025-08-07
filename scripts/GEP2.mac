@@ -7,15 +7,17 @@
 ## Configure the target
 /g4sbs/target          LH2
 /g4sbs/targlen         30.0 cm           ## Target Length
+/g4sbs/targpos      0.0 0.0 -9.0 cm    # target position:
+
 
 ## Configure generator settings
 /g4sbs/kine            elastic           ## Generator
 /g4sbs/runtime         1.0 s
 /g4sbs/beamcur         50.0 microampere
-/g4sbs/rasterx         4.0 mm
-/g4sbs/rastery         4.0 mm
-/g4sbs/beamE           8.5 GeV
-/g4sbs/thmin           21.0 deg
+/g4sbs/rasterx         2.0 mm
+/g4sbs/rastery         2.0 mm
+/g4sbs/beamE           8.588 GeV
+/g4sbs/thmin           19.0 deg
 /g4sbs/thmax           35.0 deg
 /g4sbs/phmin           -35.0 deg
 /g4sbs/phmax           35.0 deg
@@ -29,16 +31,20 @@
 ## Configure the magnets
 /g4sbs/bbfield         0
 #/g4sbs/tosfield        GEP_12map0_newheader.table
-/g4sbs/tosfield SBSPortableFieldMap_TwoClamps_PoleShims.table 2
+#/g4sbs/tosfield SBSPortableFieldMap_TwoClamps_PoleShims.table 2
 #/g4sbs/scalesbsfield     0.53
 # keep default maximum field for now
 # assume 2.4 T*m / 1.22 m = 1.97 Tesla
 #/g4sbs/sbsmagfield     1.97 tesla
 #/g4sbs/48d48field      1
-/g4sbs/bbang           27.5 deg
+/g4sbs/tosfield        GEP2_map.table
+/g4sbs/bbang           27.27 deg
 /g4sbs/bbdist          6.5 m
 /g4sbs/sbsang          22.1 deg
 /g4sbs/48D48dist       1.6 m
+
+/g4sbs/usehadronfilter false
+/g4sbs/leadwallconnect true
 
 #/control/execute scripts/default_thresholds.mac
 /g4sbs/totalabs true
@@ -64,4 +70,4 @@
 
 
 ## Run 100 events
-/g4sbs/run             10000
+#/g4sbs/run             10000

@@ -116,6 +116,8 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fCDetReady = false; //default to false for both of these
   
   fUseNeutronVeto=false;
+
+  fUseLeadWallConnected = true;
   
   assert(fDetCon);
 }
@@ -978,20 +980,23 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
       RearClamp_log->SetVisAttributes(clampVisAtt);
     } // Rear clamp log (GEp)
-
+    /*
     G4RotationMatrix *rot_copper = new G4RotationMatrix;
 
-    rot_copper->rotateY( f48D48ang + 6.0*deg);
+    rot_copper->rotateY( 17.0*deg + 4.4*deg);
 
-    G4Box *copper_shield = new G4Box("copper_shield", (20.0*2.54*cm)/2.0, (20.0*2.54*cm)/2.0, (0.05*cm)/2.0);
+    G4Box *copper_shield = new G4Box("copper_shield", (22.0*2.54*cm)/2.0, (22.0*2.54*cm)/2.0, (2.54*cm)/2.0);
 
     G4LogicalVolume *copper_shield_log = new G4LogicalVolume( copper_shield, GetMaterial("Copper"), "copper_shield_log" );
 
     //G4ThreeVector copper_shield_pos(RearClamp_pos.X(), RearClamp_pos.Y(), RearClamp_pos.Z() - 120.0*cm);
-    G4ThreeVector copper_shield_pos( -FrontClamp_r*sin( f48D48ang ) + FrontClamp_xoffset*cos(f48D48ang) - 7.0*cm, 0.0, FrontClamp_r*cos(f48D48ang) + FrontClamp_xoffset*sin(f48D48ang) - 12.0*cm);
-
+    //G4ThreeVector copper_shield_pos( -FrontClamp_r*sin( f48D48ang ) + FrontClamp_xoffset*cos(f48D48ang) - 7.0*cm, 0.0, FrontClamp_r*cos(f48D48ang) + FrontClamp_xoffset*sin(f48D48ang) - 12.0*cm);
+    G4ThreeVector copper_shield_pos(-50.0*cm, 0.0, 103.0*cm); 
+    
     new G4PVPlacement( rot_copper, copper_shield_pos, copper_shield_log, "copper_shield_phys", motherlog, false, 0, false );
+    */
 
+    
     //Make lead shielding in clamp:
     // G4double angtrap = 10.0*deg;
     // G4double Trap_DZ = 70.0*cm; //length in z
@@ -1057,7 +1062,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
     
       */
 
-      G4ThreeVector zaxis_temp( -sin(16.9*deg), 0, cos(16.9*deg) );
+
+      //DON'T HARDCODE THIS:
+      G4ThreeVector zaxis_temp( -sin(f48D48ang), 0, cos(f48D48ang) );
       G4ThreeVector yaxis_temp(0,1,0);
       G4ThreeVector xaxis_temp = (yaxis_temp.cross(zaxis_temp)).unit(); 
 
@@ -1107,6 +1114,10 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
       G4Box *MagnetCutoutLeadBackCover = new G4Box( "MagnetCutoutLeadBackCover", (9.5*2.54*0.5)*cm, (12.0*2.54*0.5)*cm, (4.0*2.54*0.5)*cm );
 
+      G4Box *MagnetCutoutLeadFill = new G4Box( "MagnetCutoutLeadFill", (8.0*2.54*0.5)*cm, (10.8*2.54*0.5)*cm, (4.0*2.54*0.5)*cm );
+ 
+      G4LogicalVolume *MagnetCutoutLeadFill_log = new G4LogicalVolume( MagnetCutoutLeadFill, GetMaterial("Lead"), "MagnetCutoutLeadFill_log" );					       
+
 
       G4LogicalVolume *FrontClampLeadInsert_log = new G4LogicalVolume( FrontClampLeadInsert, GetMaterial("Lead"), "FrontClampLeadInsert_log" );
 
@@ -1133,6 +1144,8 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
       G4ThreeVector posrel_backleadinsert(23.0*2.54*cm, 0, f48D48dist - FrontClamp_zoffset + 210.0*cm + (0*2.54)*cm);
 
       G4ThreeVector posrel_magcutoutlead(23.*2.54*cm, 0, f48D48dist - FrontClamp_zoffset + 170.0*cm + (0*2.54)*cm);
+
+      G4ThreeVector posrel_magcutoutleadfill(23.0*2.54*cm, -0.4*2.54*cm, f48D48dist - FrontClamp_zoffset + 155.0*cm + (0*2.54)*cm);
       
       //f48D48dist - FrontClamp_zoffset
 
@@ -1161,6 +1174,9 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
 
       G4ThreeVector magcutoutlead_pos = (posrel_magcutoutlead.x()) * SBS_xaxis + posrel_magcutoutlead.y() * SBS_yaxis + (posrel_magcutoutlead.z()) * SBS_zaxis;
 
+      G4ThreeVector magcutoutleadfill_pos = (posrel_magcutoutleadfill.x()) * SBS_xaxis + posrel_magcutoutleadfill.y() * SBS_yaxis + (posrel_magcutoutleadfill.z()) * SBS_zaxis;
+
+      
       // if(fUseExtensionLeadInsert == true){
       G4ThreeVector FrontClampLeadInsertAdd_pos( FrontClampLeadInsert_pos.x() - (3.25*2.54)*cm + (0.55*2.54)*cm + fLeadInsertLeftOffset, FrontClampLeadInsert_pos.y(), FrontClampLeadInsert_pos.z() + FCLIdefzdim*0.5 + FCLIadd1zdim*0.5+ fLeadInsertUpstreamOffset);
       G4ThreeVector FrontClampLeadInsertAdd2_pos( FrontClampLeadInsert_pos.x() - (3.25*2.54)*cm + (0.55*2.54)*cm + fLeadInsertLeftOffset + (0.65*2.54)*cm + (0.325*2.54)*cm , FrontClampLeadInsert_pos.y(), FrontClampLeadInsert_pos.z() + FCLIdefzdim*0.5 + FCLIadd2zdim*0.5 + fLeadInsertUpstreamOffset);
@@ -1180,7 +1196,10 @@ void G4SBSHArmBuilder::MakeSBSFieldClamps( G4LogicalVolume *motherlog ){
       //new G4PVPlacement( rot_lead, FrontClampLeadInsertAdd_pos, FrontClampLeadInsertAdd_log, "FrontClampLeadInsertAdd_phys", motherlog, false, 0, false );
       //new G4PVPlacement( rot_lead, FrontClampLeadInsertAdd2_pos, FrontClampLeadInsertAdd2_log, "FrontClampLeadInsertAdd2_phys", motherlog, false, 0, false );
 
-      new G4PVPlacement( rot_lead_cutout, magcutoutlead_pos, MagnetCutoutLeadBackCover_log, "MagnetCutoutLeadBackCover_phys", motherlog, false, 0, false );
+
+      //new G4PVPlacement( rot_lead_cutout, magcutoutlead_pos, MagnetCutoutLeadBackCover_log, "MagnetCutoutLeadBackCover_phys", motherlog, false, 0, false );
+      
+      new G4PVPlacement( rot_lead_cutout, magcutoutleadfill_pos, MagnetCutoutLeadFill_log, "MagnetCutoutLeadFill_phys", motherlog, false, 0, false );
       
       //new G4PVPlacement( rot_lead, FrontClampLeadInsertTrap_pos, FrontClampLeadInsertTrap_log, "FrontClampLeadInsertTrap_phys", motherlog, false, 0, false );
 
@@ -1913,13 +1932,13 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
   G4bool checkOverlap = fDetCon->fCheckOverlap;
   G4RotationMatrix *rot_HCAL= new G4RotationMatrix;
   rot_HCAL->rotateY(f48D48ang+fHCALangular_offset);
-  G4double dim_HCALPSZ = 21.0*cm;
+  G4double dim_HCALPSZ = 19.0*cm;
   // provision for 2 stacks of blocks sandwiched between 3 honey combs (<= 1 cm each)
   if(false){
     dim_HCALPSZ = 610.0*CLHEP::mm;// about 152.4cm * 4
   }
 
-  G4double dist_HCalPSRadius = fHCALdist-dim_HCALPSZ/2.0-5.0*cm;
+  G4double dist_HCalPSRadius = fHCALdist-dim_HCALPSZ/2.0-0.1*mm;
   G4double dist_HCALPSX = -dist_HCalPSRadius*sin(f48D48ang+fHCALangular_offset);
   G4double dist_HCALPSY = VerticalOffset;
   G4double dist_HCALPSZ = dist_HCalPSRadius*cos(f48D48ang+fHCALangular_offset);
@@ -1944,7 +1963,8 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
     double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
     double mylar_air_sum = mylarthickness + airthickness;
     double pmtz = 0.20*cm;
-
+    double pmtrad = 7.62/2.0*cm;
+    
     G4double hcalpslength = 50.0*cm + pmtz;
     G4double hcalpswidth = 9.0*cm;
     G4double hcalpsdepth = hcalpswidth;
@@ -1955,7 +1975,7 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
 
     new G4PVPlacement(rot_HCAL, HCALPS_pos,
       hcalpslog, "HCal PS Mother", motherlog, false, 0, checkOverlap);
-
+    
     double hcalpsTF1_x = hcalpswidth-2*mylar_air_sum;
     double hcalpsTF1_y = hcalpswidth-2*mylar_air_sum;
     //Unlike in the shower case, we allow for a small air gap between left and right columns of the PS:
@@ -1970,11 +1990,11 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
   
     // Preshower TF1 SD of type CAL
     G4LogicalVolume *hcalpsTF1log;
-    hcalpsTF1log = new G4LogicalVolume( hcalpsTF1box, GetMaterial("F101"), "hcalpsTF1log" );
+    hcalpsTF1log = new G4LogicalVolume( hcalpsTF1box, GetMaterial("TF1"), "hcalpsTF1log" );
 
     G4cout << "HCALPS blocks material is " << hcalpsTF1log->GetMaterial()->GetName() << G4endl;
     
-    G4String HCALPSTF1SDname = "Earm/HCALPSTF1";
+    G4String HCALPSTF1SDname = "Harm/HCALPSTF1";
     G4String HCALPSTF1collname = "HCALPSTF1HitsCollection";
     G4SBSCalSD *HCALPSTF1SD = NULL;
 
@@ -1995,8 +2015,122 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
       fDetCon->SetThresholdTimeWindowAndNTimeBins( HCALPSTF1SDname, threshold_default, timewindow_default, default_ntbins );
     }
     hcalpsTF1log->SetSensitiveDetector( HCALPSTF1SD );
-
     
+    G4Tubs *hcalpsPMTwindow = new G4Tubs( "hcalpsPMT", 0.0*cm, pmtrad, 0.99*pmtz/2.0, 0.0, 360.0*deg );
+    G4Tubs *hcalpsPMTcathode = new G4Tubs( "hcalpsPMTcathode", 0.0*cm, pmtrad, 0.01*pmtz/2.0, 0.0, 360.0*deg );
+    G4LogicalVolume *hcalpspmtwindowlog = new G4LogicalVolume( hcalpsPMTwindow, GetMaterial("QuartzWindow_ECal"), "hcalpspmtwindowlog" );
+  G4LogicalVolume *hcalpspmtcathodelog = new G4LogicalVolume( hcalpsPMTcathode, GetMaterial("Photocathode_BB"), "hcalpspmtcathodelog" );
+    
+    G4String HCALPSSDname = "Harm/HCALPS";
+    G4String HCALPScollname = "HCALPSHitsCollection";
+    G4SBSECalSD *HCALPSSD = NULL;
+    
+    if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(HCALPSSDname)) ) {
+      G4cout << "Adding BB Preshower PMT Sensitive Detector to SDman..." << G4endl;
+      HCALPSSD = new G4SBSECalSD( HCALPSSDname, HCALPScollname );
+      sdman->AddNewDetector( HCALPSSD );
+      (fDetCon->SDlist).insert(HCALPSSDname);
+      fDetCon->SDtype[HCALPSSDname] = G4SBS::kECAL;
+      (HCALPSSD->detmap).depth = 1;
+      
+      // *****
+      fDetCon->SetThresholdTimeWindowAndNTimeBins( HCALPSSDname, 0.0*MeV, 250*ns, 25 );
+      // *****
+    }
+    hcalpspmtcathodelog->SetSensitiveDetector( HCALPSSD );
+    
+    //Now we need a DIFFERENT mylar wrapping subtraction solid for the preshower, so let's set that up here:
+    
+    G4Box *mylarwrap_outer_ps = new G4Box("mylarwrap_outer_PS", (hcalpswidth-2*airthickness)/2.0, (hcalpswidth-2*airthickness)/2.0, (hcalpslength-pmtz-airthickness)/2.0 );
+    G4Box *mylarwrap_inner_ps = new G4Box("mylarwrap_inner_PS", (hcalpswidth-2*mylar_air_sum)/2.0, (hcalpswidth-2*mylar_air_sum)/2.0, (hcalpslength-pmtz-mylar_air_sum)/2.0 );
+
+    G4SubtractionSolid *mylarwrap_ps = new G4SubtractionSolid( "bbmylarwrap_ps", mylarwrap_outer_ps, mylarwrap_inner_ps, 0, G4ThreeVector(0,0,mylarthickness/2.0) );
+    G4LogicalVolume *mylarwraplog_ps = new G4LogicalVolume( mylarwrap_ps, GetMaterial("Mylar"), "bbmylarwraplog_ps" );
+
+    new G4LogicalSkinSurface( "HCAL PS mylar skin", mylarwraplog_ps, GetOpticalSurface("Mirrsurf") );
+
+    //NOW we can place the module components inside the volume:
+    // again, start with PMT cathode:
+    double zpos_temp = hcalpslength/2.0 - hcalpsPMTcathode->GetZHalfLength(); 
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), hcalpspmtcathodelog,"hcalpscathodephys", hcalpsmodlog, false, 0, checkOverlap );
+
+    //PMT window:
+    zpos_temp -= hcalpsPMTcathode->GetZHalfLength() + hcalpsPMTwindow->GetZHalfLength();
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), hcalpspmtwindowlog, "hcalpswindowphys", hcalpsmodlog, false, 0, checkOverlap );
+
+    zpos_temp -= hcalpsPMTwindow->GetZHalfLength()+mylarwrap_outer_ps->GetZHalfLength();
+    //Mylar wrapping:
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), mylarwraplog_ps, "hcalpsmylarphys", hcalpsmodlog, false, 0, checkOverlap );
+
+    // Now place lead-glass block itself: total thickness is PSlength - mylarthick - airthick - pmtz, therefore 
+    // upstream edge should be located at -PSlength/2 + mylarthickness + airthickness
+    // so center is at -PSlength/2 + mylarthickness + airthickness + Zhalflength:
+
+    zpos_temp = hcalpslength/2.0 - 2.0*(hcalpsPMTcathode->GetZHalfLength()+hcalpsPMTwindow->GetZHalfLength()) - hcalpsTF1box->GetZHalfLength();
+    new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, zpos_temp), hcalpsTF1log, "hcalpsTF1phys", hcalpsmodlog, false, 0, checkOverlap );
+ 
+  
+    G4RotationMatrix *hcalpsrm_col1 = new G4RotationMatrix;
+    hcalpsrm_col1->rotateY(-90.0*deg);
+    G4RotationMatrix *hcalpsrm_col2 = new G4RotationMatrix;
+    hcalpsrm_col2->rotateY(90.0*deg);
+  
+    int hcalpsplane = 2;
+    int hcalpscol = 2;
+    int hcalpsrow = 25;
+    int ps_copy_number = 0;
+    for(int k=0; k<hcalpsplane; k++) {
+      for(int l=0; l<hcalpscol; l++) {
+	for(int j=0; j<hcalpsrow; j++) {
+	  //double xtemp = (pswidth-caldepth)/2.0 - l*caldepth;
+	  //double ytemp = (psheight-bbmodule_y)/2.0 - j*bbmodule_y;
+	  //NOTES preshower positioning:
+	  // Left (right) column should be located at +length/2 (-length/2)
+	  double xtemp = hcalpslength/2.0 - l * hcalpslength;
+	  double ytemp = (hcalpsheight - hcalpswidth)/2.0 - j*hcalpswidth;
+	  double ztemp = - dim_HCALPSZ/2.0 + hcalpsdepth*(k+0.5);
+	  (HCALPSSD->detmap).Plane[ps_copy_number] = k;
+	  (HCALPSSD->detmap).Col[ps_copy_number] = l;
+	  (HCALPSSD->detmap).Row[ps_copy_number] = j;
+	  (HCALPSTF1SD->detmap).Plane[ps_copy_number] = k;
+	  (HCALPSTF1SD->detmap).Col[ps_copy_number] = l;
+	  (HCALPSTF1SD->detmap).Row[ps_copy_number] = j;
+	  
+	  if(l==0) {
+	    G4cout << xtemp/cm << " " << ytemp/cm << " " << ztemp/cm << G4endl;
+	    new G4PVPlacement( hcalpsrm_col1, G4ThreeVector(xtemp,ytemp,ztemp), hcalpsmodlog, "hcalpsmodphys", hcalpslog, false, ps_copy_number, checkOverlap );
+	    (HCALPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp+hcalpslength/2.0-pmtz/2.0, ytemp, 0.0);
+	    (HCALPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
+	    ps_copy_number++;
+	  }
+	  if(l==1) {
+	    G4cout << xtemp/cm << " " << ytemp/cm << " " << ztemp/cm << G4endl;
+	    new G4PVPlacement( hcalpsrm_col2, G4ThreeVector(xtemp,ytemp,ztemp), hcalpsmodlog, "hcalpsmodphys", hcalpslog, false, ps_copy_number, checkOverlap );
+	    (HCALPSSD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp-hcalpslength/2.0+pmtz/2.0, ytemp, 0.0);
+	    (HCALPSTF1SD->detmap).LocalCoord[ps_copy_number] = G4ThreeVector(xtemp,ytemp,0.0);
+	    ps_copy_number++;
+	  }
+	}
+      }
+    }
+    hcalpslog->SetVisAttributes( G4VisAttributes::GetInvisible() ); 
+    
+    //Mylar
+    G4VisAttributes *mylar_colour = new G4VisAttributes(G4Colour( 0.1, 0.5, 0.2 ) );
+    mylar_colour->SetForceWireframe(true);
+    mylarwraplog_ps->SetVisAttributes(mylar_colour);
+    
+    //Air
+    hcalpsmodlog->SetVisAttributes( G4VisAttributes::GetInvisible() );
+    
+    //TF1
+    G4VisAttributes *TF1_colour = new G4VisAttributes(G4Colour( 0.8, 0.8, 0.0 ) );
+    hcalpsTF1log->SetVisAttributes(TF1_colour);
+    
+    //PMTcathode
+    G4VisAttributes *PMT_colour = new G4VisAttributes(G4Colour( G4Colour::Blue() ));
+    PMT_colour->SetForceLineSegmentsPerCircle( 12 );
+    hcalpspmtcathodelog->SetVisAttributes(PMT_colour);
     
   }else{
     // Dimensions as defined by CAD drawing HCALJ-0002
@@ -4235,11 +4369,26 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 
   //ft shield wall
 
-  fLeadWallThick = 10.16*cm;
+  double fLeadWallThick1 = 10.16*cm;
   //fUseLeadWallConnected = false;
   fUseOldLeadWall = false;
 
   if(fUseOldLeadWall == false){
+
+    G4double RearClamp_width = 105.12*2.54*cm;
+    G4double RearClamp_height = 114.96*2.54*cm;
+    G4double RearClamp_depth = 5.91*2.54*cm;
+    
+    G4Box *RearClamp_Box = new G4Box("RearClamp_Box", RearClamp_width/2.0, RearClamp_height/2.0, RearClamp_depth/2.0 );
+    
+    G4double RearClamp_GapWidth = 18.11*2.54*cm;
+    G4double RearClamp_GapHeight = 51.18*2.54*cm;
+    G4double RearClamp_NotchWidth = 37.84*2.54*cm;
+    G4double RearClamp_NotchHeight = 39.37*2.54*cm;
+
+    G4double RearClamp_zoffset = 11.43*2.54*cm + RearClamp_depth/2.0; 
+    G4double RearClamp_xoffset = -f48D48width/2.0 + RearClamp_width/2.0; 
+    G4double RearClamp_r = f48D48dist + f48D48depth + RearClamp_zoffset;
 
     G4RotationMatrix *rot_lead_wall = new G4RotationMatrix;
     //G4RotationMatrix *rot_lead_cutout = new G4RotationMatrix;
@@ -4249,13 +4398,18 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
     //G4Box *lead_wall2 = new G4Box("lead_wall2", fLeadWallThick/2.0, 160.0*cm/2.0, GEM_z_spacing[0]*9.0/2.0 );
     //was 11.5 in z
 
-    G4Box *lead_wall2 = new G4Box("lead_wall2", fLeadWallThick/2.0, (64.0*2.54*cm)/2.0, (60.0*2.54*cm)/2.0 );
+    G4Box *lead_wall2 = new G4Box("lead_wall2", fLeadWallThick1/4.0, (64.0*2.54*cm)/2.0, (60.0*2.54*cm)/2.0 );
 
     G4LogicalVolume *lead_wall2_log = new G4LogicalVolume( lead_wall2, GetMaterial("Lead"), "lead_wall2_log" );
 
     //G4ThreeVector lead_wall2_pos = G4ThreeVector( 36.0*cm, trkr_yoff[0], -78.0*cm -3.5*GEM_z_spacing[0]  );
 
-    G4ThreeVector lead_wall2_pos = G4ThreeVector( 34.5*2.54*cm, trkr_yoff[0] - (00.0*cm), -68.5*cm -1.9*GEM_z_spacing[0]  );
+    //RearClamp_r*cos(f48D48ang) + RearClamp_xoffset * sin(f48D48ang) rear clamp zpos
+
+    G4ThreeVector lead_wall2_pos = G4ThreeVector( 35.5*2.54*cm, trkr_yoff[0] - (00.0*cm), -68.5*cm -1.9*GEM_z_spacing[0] + 12.0*2.54*cm );
+    
+
+    
     //was 3.4 gemz
     //x offset was 31.5, testing chris soova model distance
 
@@ -4265,28 +4419,49 @@ void G4SBSHArmBuilder::MakeFPP( G4LogicalVolume *Mother, G4RotationMatrix *rot, 
 
     //G4Box *lead_wall3 = new G4Box("lead_wall3", fLeadWallThick/2.0, 180.0*cm/2.0, GEM_z_spacing[1]*10.0/2.0 );
 
-    G4Box *lead_wall3 = new G4Box("lead_wall3", fLeadWallThick/2.0, (80.0*2.54*cm)/2.0, (60.0*2.54*cm)/2.0 );
+    G4Box *lead_wall3 = new G4Box("lead_wall3", fLeadWallThick1/2.0, (80.0*2.54*cm)/2.0, (60.0*2.54*cm)/2.0 );
     
     G4LogicalVolume *lead_wall3_log = new G4LogicalVolume( lead_wall3, GetMaterial("Lead"), "lead_wall3_log" );
 
-    G4ThreeVector lead_wall3_pos = G4ThreeVector( 34.5*2.54*cm, trkr_yoff[1] - (00.0*cm), trkr_zpos[1] -75.0*cm -7.5*GEM_z_spacing[1] );
+    G4ThreeVector lead_wall3_pos = G4ThreeVector( 35.5*2.54*cm, trkr_yoff[1] - (00.0*cm), trkr_zpos[1] -75.0*cm -7.5*GEM_z_spacing[1] + 12.0*2.54*cm);
+
 
     new G4PVPlacement( 0, lead_wall3_pos, lead_wall3_log, "lead_wall3_phys", Mother, false, 0 );
 
     //lead_wall1 is now used as the shielding in the space between the corrector magnet and the lead wall blocking the line of sight between the beamline and the front tracker(lead_wall2)
 
-    //if(fUseLeadWallConnected == true){
+    if(fUseLeadWallConnected == true){
+      G4Box *lead_wall1 = new G4Box("lead_wall1", fLeadWallThick1/4.0, (40.0*2.54*cm)/2.0, (8.0*2.54*cm)/2.0);
+      
+      G4LogicalVolume *lead_wall1_log = new G4LogicalVolume( lead_wall1, GetMaterial("Lead"), "lead_wall1_log" );
+      
+      G4ThreeVector lead_wall1_pos = G4ThreeVector( 32.5*2.54*cm, trkr_yoff[1] - (30.0*cm), trkr_zpos[1] -317.0*cm -6.1*GEM_z_spacing[1] );
+      
+      new G4PVPlacement( rot_lead_wall, lead_wall1_pos, lead_wall1_log, "lead_wall1_phys", Mother, false, 0 );
+      
+      
+      
+      
+      G4Box *lead_wall0 = new G4Box("lead_wall0", fLeadWallThick1/4.0, (40.0*2.54*cm)/2.0, (10.0*2.54*cm)/2.0);
+      
+      G4LogicalVolume *lead_wall0_log = new G4LogicalVolume( lead_wall0, GetMaterial("Lead"), "lead_wall0_log" );
+      
+      G4ThreeVector lead_wall0_pos = G4ThreeVector( 34.9*2.54*cm, trkr_yoff[1] - (30.0*cm), trkr_zpos[1] -317.0*cm -6.1*GEM_z_spacing[1] + 8.5*2.54*cm );
+      
+      new G4PVPlacement( rot_lead_wall, lead_wall0_pos, lead_wall0_log, "lead_wall0_phys", Mother, false, 0 );
+      
+    }
 
-    G4Box *lead_wall1 = new G4Box("lead_wall1", fLeadWallThick/2.0, (40.0*2.54*cm)/2.0, (8.0*2.54*cm)/2.0);
+    G4Box *lead_wall4 = new G4Box("lead_wall4", (15.75*2.54*cm)/2.0, (40.0*2.54*cm)/2.0, (4.0*2.54*cm)/2.0);
     
-    G4LogicalVolume *lead_wall1_log = new G4LogicalVolume( lead_wall1, GetMaterial("Lead"), "lead_wall1_log" );
+    G4LogicalVolume *lead_wall4_log = new G4LogicalVolume( lead_wall4, GetMaterial("Lead"), "lead_wall4_log" );
     
-    G4ThreeVector lead_wall1_pos = G4ThreeVector( 34.0*2.54*cm, trkr_yoff[1] - (30.0*cm), trkr_zpos[1] -317.0*cm -6.4*GEM_z_spacing[1] );
+    G4ThreeVector lead_wall4_pos = G4ThreeVector( 23.75*2.54*cm, trkr_yoff[1] - (30.0*cm), trkr_zpos[1] -317.0*cm -6.1*GEM_z_spacing[1] + 60.0*2.54*cm );
     
-    new G4PVPlacement( rot_lead_wall, lead_wall1_pos, lead_wall1_log, "lead_wall1_phys", Mother, false, 0 );
+    //new G4PVPlacement( 0, lead_wall4_pos, lead_wall4_log, "lead_wall4_phys", Mother, false, 0 );
     
-      //}
-  
+    
+    
   }
   // int ntracker = 3; //FT, FPP1, FPP2
   // int ngem[3] = {6,5,5};

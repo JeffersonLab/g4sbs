@@ -133,6 +133,10 @@ private:
   G4UIcmdWithADoubleAndUnit *hcalhoffsetCmd;
   G4UIcmdWithADoubleAndUnit *hcalangoffsetCmd;
 
+  G4UIcmdWithAnInteger *hcalpsconfigCmd;
+  G4UIcmdWithADoubleAndUnit *hcalpsvoffsetCmd;
+  G4UIcmdWithADoubleAndUnit *hcalpshoffsetCmd;
+  
   G4UIcmdWithABool *CDetReadyCmd;   //Cerenkov
 
   G4UIcmdWithADoubleAndUnit *lacdistCmd;

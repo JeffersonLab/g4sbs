@@ -505,10 +505,6 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalvoffsetCmd->SetParameterName("hcalvoffset", false);
 
   hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
-  hcalhoffsetCmd->SetGuidance("HCAL horizontal offset");
-  hcalhoffsetCmd->SetParameterName("hcalhoffset", false);
-
-  hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
   hcalhoffsetCmd->SetGuidance("HCAL horizontal offset relative to SBS center line (+ = TOWARD beam line)");
   hcalhoffsetCmd->SetParameterName("dist", false);
 
@@ -516,6 +512,18 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalangoffsetCmd->SetGuidance("HCAL angular offset relative to exit beamline (+ = away from beamline)");
   hcalangoffsetCmd->SetParameterName("angle", false);
 
+  hcalpsconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/hcalpsconfig",this);
+  hcalpsconfigCmd->SetGuidance("HCALPS configuration");
+  hcalpsconfigCmd->SetParameterName("hcalpsconfig", false);
+  
+  hcalpsvoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalpsvoffset",this);
+  hcalpsvoffsetCmd->SetGuidance("HCALPS vertical offset");
+  hcalpsvoffsetCmd->SetParameterName("hcalpsvoffset", false);
+
+  hcalpshoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalpshoffset",this);
+  hcalpshoffsetCmd->SetGuidance("HCALPS horizontal offset");
+  hcalpshoffsetCmd->SetParameterName("hcalpshoffset", false);
+  
   CDetReadyCmd = new G4UIcmdWithABool("/g4sbs/cdetready",this);
   CDetReadyCmd->SetGuidance("Will CDet be ready or not for the experiment");
   CDetReadyCmd->SetParameterName("dist", false);
@@ -2252,6 +2260,27 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fHArmBuilder->SetHCALHOffset(v);
     //fevgen->SetHCALDist(v);
     fIO->SetHcalHOffset(v);
+  }
+  
+  if( cmd == hcalpsconfigCmd ){
+    G4double v = hcalpsconfigCmd->GetNewIntValue(newValue);
+    fdetcon->fHArmBuilder->SetHCALPSConfig(v);
+    //fevgen->SetHCALPSDist(v);
+    //fIO->SetHcalpsConfig(v);
+  }
+
+  if( cmd == hcalpsvoffsetCmd ){
+    G4double v = hcalpsvoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetHCALPSVOffset(v);
+    //fevgen->SetHCALPSDist(v);
+    fIO->SetHcalpsVOffset(v);
+  }
+
+  if( cmd == hcalpshoffsetCmd ){
+    G4double v = hcalpshoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetHCALPSHOffset(v);
+    //fevgen->SetHCALPSDist(v);
+    fIO->SetHcalpsHOffset(v);
   }
 
   if( cmd == hcalangoffsetCmd ){

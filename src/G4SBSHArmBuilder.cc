@@ -63,6 +63,10 @@ G4SBSHArmBuilder::G4SBSHArmBuilder(G4SBSDetectorConstruction *dc):G4SBSComponent
   fHCALhorizontal_offset = 0.0*cm;
   fHCALangular_offset = 0.0*deg;
 
+  fHCALPSconfig = 1;
+  fHCALPSvertical_offset = 1000.0*m;
+  fHCALPShorizontal_offset = 1000.0*m;
+
   fLACvertical_offset = 0.0*cm;
   fLAChorizontal_offset = 0.0*cm;
 
@@ -1928,16 +1932,19 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
 void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double VerticalOffset=0.0*cm ){
   // Now register the Sensitive Detectors
   G4SDManager *sdman = fDetCon->fSDman;
+
+  if(fHCALPSvertical_offset>10.0*m)fHCALPSvertical_offset=fHCALvertical_offset;
+  if(fHCALPShorizontal_offset>10.0*m)fHCALPShorizontal_offset=fHCALhorizontal_offset;
   
   G4bool checkOverlap = fDetCon->fCheckOverlap;
   G4RotationMatrix *rot_HCAL= new G4RotationMatrix;
   rot_HCAL->rotateY(f48D48ang+fHCALangular_offset);
-  G4double dim_HCALPSZ = 19.0*cm;
+  G4double dim_HCALPSZ = 610.0*mm;
   // provision for 2 stacks of blocks sandwiched between 3 honey combs (<= 1 cm each)
-  if(false){
-    dim_HCALPSZ = 610.0*CLHEP::mm;// about 152.4cm * 4
-  }
-
+  if(fHCALPSconfig==1)dim_HCALPSZ = 100.0*CLHEP::mm;
+  if(fHCALPSconfig==2)dim_HCALPSZ = 190.0*CLHEP::mm;
+  
+  
   G4double dist_HCalPSRadius = fHCALdist-dim_HCALPSZ/2.0-0.1*mm;
   G4double dist_HCALPSX = -dist_HCalPSRadius*sin(f48D48ang+fHCALangular_offset);
   G4double dist_HCALPSY = VerticalOffset;
@@ -1950,14 +1957,14 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
 
   G4ThreeVector HCALPS_pos =
     HCALPS_zaxis * dist_HCalPSRadius +
-    HCALPS_xaxis * fHCALhorizontal_offset +
-    HCALPS_yaxis * fHCALvertical_offset;
+    HCALPS_xaxis * fHCALPShorizontal_offset +
+    HCALPS_yaxis * fHCALPSvertical_offset;
 
   // EPAF: 2025/08/06
   // "HCAL" Preshower should be configurable,
   // but my hunch is that the Hermes blocks will be better,
   // so I will make that the default option
-  if(true){
+  if(fHCALPSconfig>0){
     // HERMES blocks option: default
     // Also mostly gross copy paste of the BB PS code, because there is no reason no to...
     double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
@@ -1968,13 +1975,14 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
     G4double hcalpslength = 50.0*cm + pmtz;
     G4double hcalpswidth = 9.0*cm;
     G4double hcalpsdepth = hcalpswidth;
-    G4double hcalpsheight = hcalpswidth*25;
-    
+    G4double hcalpsheight = hcalpswidth*42;
+    if(fHCALPSconfig==2)hcalpsheight = hcalpswidth*25;
+      
     G4Box *hcalpsbox = new G4Box("hcalpsbox", hcalpslength, hcalpsheight/2.0, dim_HCALPSZ/2.0 );
     G4LogicalVolume *hcalpslog = new G4LogicalVolume(hcalpsbox, GetMaterial("Air"), "hcalpslog");
 
     new G4PVPlacement(rot_HCAL, HCALPS_pos,
-      hcalpslog, "HCal PS Mother", motherlog, false, 0, checkOverlap);
+		      hcalpslog, "HCal PS Mother", motherlog, false, 0, checkOverlap);
     
     double hcalpsTF1_x = hcalpswidth-2*mylar_air_sum;
     double hcalpsTF1_y = hcalpswidth-2*mylar_air_sum;
@@ -2019,7 +2027,7 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
     G4Tubs *hcalpsPMTwindow = new G4Tubs( "hcalpsPMT", 0.0*cm, pmtrad, 0.99*pmtz/2.0, 0.0, 360.0*deg );
     G4Tubs *hcalpsPMTcathode = new G4Tubs( "hcalpsPMTcathode", 0.0*cm, pmtrad, 0.01*pmtz/2.0, 0.0, 360.0*deg );
     G4LogicalVolume *hcalpspmtwindowlog = new G4LogicalVolume( hcalpsPMTwindow, GetMaterial("QuartzWindow_ECal"), "hcalpspmtwindowlog" );
-  G4LogicalVolume *hcalpspmtcathodelog = new G4LogicalVolume( hcalpsPMTcathode, GetMaterial("Photocathode_BB"), "hcalpspmtcathodelog" );
+    G4LogicalVolume *hcalpspmtcathodelog = new G4LogicalVolume( hcalpsPMTcathode, GetMaterial("Photocathode_BB"), "hcalpspmtcathodelog" );
     
     G4String HCALPSSDname = "Harm/HCALPS";
     G4String HCALPScollname = "HCALPSHitsCollection";
@@ -2075,9 +2083,13 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
     G4RotationMatrix *hcalpsrm_col2 = new G4RotationMatrix;
     hcalpsrm_col2->rotateY(90.0*deg);
   
-    int hcalpsplane = 2;
+    int hcalpsplane = 1;
     int hcalpscol = 2;
-    int hcalpsrow = 25;
+    int hcalpsrow = 42;
+    if(fHCALPSconfig==2){
+      hcalpsplane = 2;
+      hcalpsrow = 25;
+    }
     int ps_copy_number = 0;
     for(int k=0; k<hcalpsplane; k++) {
       for(int l=0; l<hcalpscol; l++) {
@@ -2088,7 +2100,7 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
 	  // Left (right) column should be located at +length/2 (-length/2)
 	  double xtemp = hcalpslength/2.0 - l * hcalpslength;
 	  double ytemp = (hcalpsheight - hcalpswidth)/2.0 - j*hcalpswidth;
-	  double ztemp = - dim_HCALPSZ/2.0 + hcalpsdepth*(k+0.5);
+	  double ztemp = 1.0*cm - dim_HCALPSZ/2.0 + hcalpsdepth*(k+0.5);
 	  (HCALPSSD->detmap).Plane[ps_copy_number] = k;
 	  (HCALPSSD->detmap).Col[ps_copy_number] = l;
 	  (HCALPSSD->detmap).Row[ps_copy_number] = j;
@@ -2162,6 +2174,8 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
     G4double dim_ThinAbsorbY    =  148.80*CLHEP::mm;
     G4double dim_ThinAbsorbZ    =    6.35*CLHEP::mm;
 
+
+    
   }
 }
 

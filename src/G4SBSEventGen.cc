@@ -137,6 +137,9 @@ G4SBSEventGen::G4SBSEventGen(){
   fPythiaChain = NULL;
   fPythiaTree = NULL;
 
+  fSIMCPi0Chain = NULL;
+  fSIMCPi0Tree = NULL;
+  
   fSIMCChain = NULL;
   fSIMCTree = NULL;
   fchainentry = 0;
@@ -180,6 +183,7 @@ G4SBSEventGen::~G4SBSEventGen(){
   // // // // 
   delete fSIMCChain;
   delete fSIMCTree;
+  delete fSIMCPi0Tree;
   // // // // 11a33984f47772444ffb08222f8a978d2bee837e
 }
 
@@ -222,11 +226,32 @@ void G4SBSEventGen::LoadAcquMCChain( G4String fname ){
 }
 
 void G4SBSEventGen::LoadSIMCChain( G4String fname ){
+  if(fKineType==kSIMCPi0){
+    if( fSIMCChain != NULL ){
+      fSIMCPi0Chain->Add( fname );
+    } else { //First file:
+      fSIMCPi0Chain = new TChain("h10");
+      fSIMCPi0Chain->Add(fname);
+      fchainentry = 0;
+    } 
+  }else{
+    if( fSIMCChain != NULL ){
+      fSIMCChain->Add( fname );
+    } else { //First file:
+      fSIMCChain = new TChain("h10");
+      fSIMCChain->Add(fname);
+      fchainentry = 0;
+    }
+  }
+      
+}
+
+void G4SBSEventGen::LoadSIMCPi0Chain( G4String fname ){
   if( fSIMCChain != NULL ){
-    fSIMCChain->Add( fname );
+    fSIMCPi0Chain->Add( fname );
   } else { //First file:
-    fSIMCChain = new TChain("h10");
-    fSIMCChain->Add(fname);
+    fSIMCPi0Chain = new TChain("h10");
+    fSIMCPi0Chain->Add(fname);
     fchainentry = 0;
   } 
 }
@@ -590,6 +615,10 @@ bool G4SBSEventGen::GenerateEvent(){
     // // // // 
   case G4SBS::kSIMC:
     success = GenerateSIMC();
+    // // // // 11a33984f47772444ffb08222f8a978d2bee837e
+    break;
+  case G4SBS::kSIMCPi0:
+    success = GenerateSIMCPi0();
     // // // // 11a33984f47772444ffb08222f8a978d2bee837e
     break;
   case G4SBS::kCosmics:
@@ -2869,9 +2898,9 @@ G4LorentzVector G4SBSEventGen::GetInitialNucl( G4SBS::Targ_t targ, G4SBS::Nucl_t
   }
 */
 bool G4SBSEventGen::GeneratePythia(){
-  
   fPythiaTree->GetEntry(fchainentry++);
-
+  //G4cout << " entry: " << fchainentry << " E' " << (*(fPythiaTree->E))[2] << " Q2 " << fPythiaTree->Q2 << " Delta2 (t) " << fPythiaTree->Delta2 << " phi_gg " << fPythiaTree->phi_gg << " BH + " << fPythiaTree->BHpXpsf << " BH - " << fPythiaTree->BHmXpsf << ", XS + " << fPythiaTree->XSpXpsf << " XS - " << fPythiaTree->XSmXpsf << " " << G4endl;
+ 
   G4String fnametemp = ( (TChain*) fPythiaTree->fChain )->GetFile()->GetName();
 
   G4double sigmatemp = fPythiaSigma[fnametemp];
@@ -2885,6 +2914,7 @@ bool G4SBSEventGen::GeneratePythia(){
   if(fExclPyXSoption>0){
     fPythiaEvent.Delta2 = fPythiaTree->Delta2*GeV*GeV;
     fPythiaEvent.phigg = fPythiaTree->phi_gg*radian;
+    fPythiaEvent.PSF = fPythiaTree->psf;
     switch(fExclPyXSoption){
     case(1):// Total unp. XS: (xs{+}+xs{-})/2
       fPythiaEvent.Sigma = (fPythiaTree->XSpXpsf + fPythiaTree->XSmXpsf)/2.0;
@@ -3294,6 +3324,84 @@ bool G4SBSEventGen::GenerateSIMC(){
   return true;
   
 }
+
+
+bool G4SBSEventGen::GenerateSIMCPi0(){
+
+  fSIMCPi0Tree->GetEntry(fchainentry++);
+  fSIMCPi0Event.Clear();
+
+  // G4double Mh;
+  // bool invalid_hadron = true;
+  // switch(fHadronType) {
+  // case G4SBS::kP:
+  //   Mh = proton_mass_c2;
+  //   fSIMCPi0Event.fnucl = 1;
+  //   invalid_hadron = false;
+  //   break;
+  // case G4SBS::kN:
+  //   Mh = neutron_mass_c2;
+  //   fSIMCPi0Event.fnucl = 0;
+  //   invalid_hadron = false;
+  //   break;
+  // }
+  // if (invalid_hadron) {
+  //   fprintf(stderr, "%s: %s line %d - Error: Given Hadron type not is valid for SIMC generator.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);
+  //   exit(1);
+  // }
+
+  fSIMCPi0Event.sigma = fSIMCPi0Tree->siglab/cm2;
+  fSIMCPi0Event.Weight = fSIMCPi0Tree->Weight;
+
+  fSIMCPi0Event.Q2 = fSIMCPi0Tree->Q2;
+  fSIMCPi0Event.xbj = fSIMCPi0Tree->xbj;
+  fSIMCPi0Event.nu = fSIMCPi0Tree->nu;
+  fSIMCPi0Event.W = fSIMCPi0Tree->W;
+  fSIMCPi0Event.epsilon = fSIMCPi0Tree->epsilon;
+
+  fSIMCPi0Event.p_g1 = fSIMCPi0Tree->Egamma1;
+  fSIMCPi0Event.theta_g1 = acos(fSIMCPi0Tree->Pgamma1z/fSIMCPi0Tree->Egamma1);
+  fSIMCPi0Event.phi_g1 = atan2(fSIMCPi0Tree->Pgamma1x, fSIMCPi0Tree->Pgamma1y); 
+  fSIMCPi0Event.px_g1 = fSIMCPi0Tree->Pgamma1x;
+  fSIMCPi0Event.py_g1 = fSIMCPi0Tree->Pgamma1y;
+  fSIMCPi0Event.pz_g1 = fSIMCPi0Tree->Pgamma1z;
+  
+  fSIMCPi0Event.p_g2 = fSIMCPi0Tree->Egamma2;
+  fSIMCPi0Event.theta_g2 = acos(fSIMCPi0Tree->Pgamma2z/fSIMCPi0Tree->Egamma2);
+  fSIMCPi0Event.phi_g2 = atan2(fSIMCPi0Tree->Pgamma2x, fSIMCPi0Tree->Pgamma2y); 
+  fSIMCPi0Event.px_g2 = fSIMCPi0Tree->Pgamma2x;
+  fSIMCPi0Event.py_g2 = fSIMCPi0Tree->Pgamma2y;
+  fSIMCPi0Event.pz_g2 = fSIMCPi0Tree->Pgamma2z;
+
+  fSIMCPi0Event.p_e = fSIMCPi0Tree->p_e/GeV;
+  fSIMCPi0Event.theta_e = TMath::ACos(fSIMCPi0Tree->uz_e);
+  fSIMCPi0Event.phi_e = TMath::ATan2(fSIMCPi0Tree->ux_e, fSIMCPi0Tree->uy_e);
+  fSIMCPi0Event.px_e = fSIMCPi0Event.p_e*fSIMCPi0Tree->ux_e;
+  fSIMCPi0Event.py_e = fSIMCPi0Event.p_e*fSIMCPi0Tree->uy_e;
+  fSIMCPi0Event.pz_e = fSIMCPi0Event.p_e*fSIMCPi0Tree->uz_e;
+  
+  fSIMCPi0Event.vx = CLHEP::RandFlat::shoot( -fRasterX/2.0, fRasterX/2.0 );
+  fSIMCPi0Event.vy = CLHEP::RandFlat::shoot( -fRasterY/2.0, fRasterY/2.0 );
+  //EPAF: below, we should grab the actual angle, but I'm too lazy for it rn.
+  fSIMCPi0Event.vz = fSIMCPi0Tree->hsytari/sin(0.20943951);//CLHEP::RandFlat::shoot( -fTargLen/2.0, fTargLen/2.0 );
+
+  
+  fVert.set(fSIMCPi0Event.vx, fSIMCPi0Event.vy, fSIMCPi0Event.vz);
+
+  //Bending Nucleon and Hadron to be both our photons
+  fElectronE = fSIMCPi0Event.p_e;
+  fElectronP.set(fSIMCPi0Event.px_e, fSIMCPi0Event.py_e, fSIMCPi0Event.pz_e);
+  fNucleonP.set(fSIMCPi0Tree->Pgamma1x, fSIMCPi0Tree->Pgamma1y, fSIMCPi0Tree->Pgamma1z);
+  fNucleonE = fSIMCPi0Tree->Egamma1;
+  fHadronP.set(fSIMCPi0Tree->Pgamma2x, fSIMCPi0Tree->Pgamma2y, fSIMCPi0Tree->Pgamma2z);
+  fHadronE = fSIMCPi0Tree->Egamma2;
+  
+  return true;
+  
+}
+
+
+
 
 ev_t G4SBSEventGen::GetEventData(){
   ev_t data;
@@ -3807,7 +3915,11 @@ void G4SBSEventGen::InitializePythia6_Tree(){
     G4cout << "PYTHIA6 cross section = " << fPythiaSigma[chEl->GetTitle()]/millibarn << " mb" << G4endl;
   }
   
-  fPythiaTree = new Pythia6_tree( fPythiaChain );
+  if(fExclPyXSoption>0){
+    fPythiaTree = new Pythia6_tree(fPythiaChain, true);
+  }else{
+    fPythiaTree = new Pythia6_tree(fPythiaChain, false);
+  }
   
   if( !fPythiaTree ){
     G4cout << "Failed to initialize PYTHIA6 tree, aborting... " << G4endl;
@@ -3848,17 +3960,28 @@ void G4SBSEventGen::InitializeAcquMC_Tree(){
 // // // // 
 void G4SBSEventGen::InitializeSIMC_Tree(){
 
-  TObjArray *FileList = fSIMCChain->GetListOfFiles();
-  TIter next(FileList);
-
   //TChainElement *chEl = 0;
 
-  fSIMCTree = new simc_tree( fSIMCChain );
-  
-  if( !fSIMCTree ){
-    G4cout << "Failed to initialize SIMC tree, aborting... " << G4endl;
-// // // // 11a33984f47772444ffb08222f8a978d2bee837e
-    exit(-1);
+  if(fKineType==kSIMCPi0){
+    TObjArray *FileList = fSIMCPi0Chain->GetListOfFiles();
+    TIter next(FileList);
+
+    fSIMCPi0Tree = new simc_pi0_tree( fSIMCPi0Chain );
+    
+    if( !fSIMCPi0Tree ){
+      G4cout << "Failed to initialize SIMC Pi0 tree, aborting... " << G4endl;
+      exit(-1);
+    }
+  }else{
+    TObjArray *FileList = fSIMCChain->GetListOfFiles();
+    TIter next(FileList);
+
+    fSIMCTree = new simc_tree( fSIMCChain );
+    
+    if( !fSIMCTree ){
+      G4cout << "Failed to initialize SIMC tree, aborting... " << G4endl;
+      exit(-1);
+    }
   }
 }
 

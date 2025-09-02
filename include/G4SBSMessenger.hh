@@ -133,6 +133,10 @@ private:
   G4UIcmdWithADoubleAndUnit *hcalhoffsetCmd;
   G4UIcmdWithADoubleAndUnit *hcalangoffsetCmd;
 
+  G4UIcmdWithAnInteger *hcalpsconfigCmd;
+  G4UIcmdWithADoubleAndUnit *hcalpsvoffsetCmd;
+  G4UIcmdWithADoubleAndUnit *hcalpshoffsetCmd;
+  
   G4UIcmdWithABool *CDetReadyCmd;   //Cerenkov
 
   G4UIcmdWithADoubleAndUnit *lacdistCmd;
@@ -197,6 +201,9 @@ private:
   G4UIcmdWithAnInteger      *SBSBeamlineConfCmd;
   G4UIcmdWithAnInteger      *SBSLeadOptionCmd;
   G4UIcmdWithAnInteger      *GENRPAnalyzerOptionCmd;
+
+  G4UIcmdWithADoubleAndUnit *ECALVertOffsetCmd;
+  G4UIcmdWithADoubleAndUnit *ECALHorizOffsetCmd;
 
   G4UIcmdWithADoubleAndUnit  *GEPFPP1_CH2thickCmd;
   G4UIcmdWithADoubleAndUnit  *GEPFPP2_CH2thickCmd;

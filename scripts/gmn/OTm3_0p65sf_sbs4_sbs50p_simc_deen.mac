@@ -1,0 +1,57 @@
+## Configure G4SBS for gmn (Q^2 = 3 GeV^2)
+#/g4sbs/filename        tout/simc/simc_sbs4_sbs50p_89T_qelas_deen.root 
+
+#/g4sbs/simcfile /w/halla-scshelf2102/sbs/pdbforce/simc_gfortran/worksim/simc_qelas_deen_gen_sbs4.root
+
+## Configure Experiment
+/g4sbs/exp             gmn
+
+## Configure the target
+# /g4sbs/target          LD2
+# /g4sbs/targlen         15.0 cm           ## Target Length
+# /g4sbs/rasterx 	       2.0 mm  #raster size in X
+# /g4sbs/rastery	       2.0 mm  #raster size in Y
+
+## Configure generator settings
+/g4sbs/kine            simc           ## Generator
+/g4sbs/hadron          n           
+# /g4sbs/kine            elastic           ## Generator
+# /g4sbs/beamcur         1.0 muA
+# /g4sbs/beamE           3.7393 GeV
+# /g4sbs/thmin           31.0 deg
+# /g4sbs/thmax           43.0 deg
+# /g4sbs/phmin           -25 deg
+# /g4sbs/phmax           25 deg
+
+## Configure standard detector settings
+/g4sbs/hcaldist        11.0 m
+/g4sbs/hcalvoffset     0.75 m
+/g4sbs/beamlineconfig  3                 ## set relevant beamline configuration
+/g4sbs/sbsclampopt     3                 ## Front field clamp only
+
+## Configure the magnets
+/g4sbs/bbfield         1
+/g4sbs/scalebbfield    0.9672 
+# /g4sbs/tosfield        GMN13_field_newheader.table
+# /g4sbs/tosfield  	 BigBitePortableFieldMap.table 1
+/g4sbs/tosfield        SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
+/g4sbs/scalesbsfield   0.65
+# /g4sbs/sbsmagfield     0.89 tesla
+# /g4sbs/48d48field      1
+/g4sbs/bbang           36.0 deg
+/g4sbs/bbdist          1.7988 m
+/g4sbs/sbsang          31.9 deg
+/g4sbs/48D48dist       2.25 m 
+
+## Additional shielding in front of the scattering chamber
+## to reduce bg rates in the front tracker
+/g4sbs/setbigbiteplate      0           ## Should be ON for SBS11,14,8,9
+/g4sbs/bigbiteplatethick    0.3175 cm   ## 1/8 in
+/g4sbs/bigbiteplatematerial Al
+
+/g4sbs/keepsdtrackinfo 	all true
+/g4sbs/totalabs true
+
+## Run 100 events
+/g4sbs/eventstatusevery 100
+#/g4sbs/run             100000

@@ -30,6 +30,7 @@ namespace G4SBS {
 		kWiser, 
 		kPYTHIA6,
 		kSIMC,
+		kSIMCPi0,
 		kGMnElasticCheck, //10
 		kCosmics, 
 		kPionPhoto,

@@ -38,6 +38,7 @@ public :
    Double_t        XSmXpsf;
    Double_t        BHpXpsf;
    Double_t        BHmXpsf;
+   Double_t        psf;
    // ----------------------
    vector<int>     *status;
    vector<int>     *pid;
@@ -70,6 +71,7 @@ public :
    TBranch        *b_XSmXpsf;   //!
    TBranch        *b_BHpXpsf;   //!
    TBranch        *b_BHmXpsf;   //!
+   TBranch        *b_psf;   //!
    // ----------------------
    TBranch        *b_status;   //!
    TBranch        *b_pid;   //!
@@ -190,6 +192,7 @@ void Pythia6_tree::Init(TTree *tree)
      fChain->SetBranchAddress("XSmXpsf", &XSmXpsf, &b_XSmXpsf);
      fChain->SetBranchAddress("BHpXpsf", &BHpXpsf, &b_BHpXpsf);
      fChain->SetBranchAddress("BHmXpsf", &BHmXpsf, &b_BHmXpsf);
+     fChain->SetBranchAddress("psf", &psf, &b_psf);
    }
    fChain->SetBranchAddress("status", &status, &b_status);
    fChain->SetBranchAddress("pid", &pid, &b_pid);

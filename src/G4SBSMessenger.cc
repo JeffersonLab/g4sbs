@@ -505,10 +505,6 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalvoffsetCmd->SetParameterName("hcalvoffset", false);
 
   hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
-  hcalhoffsetCmd->SetGuidance("HCAL horizontal offset");
-  hcalhoffsetCmd->SetParameterName("hcalhoffset", false);
-
-  hcalhoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalhoffset",this);
   hcalhoffsetCmd->SetGuidance("HCAL horizontal offset relative to SBS center line (+ = TOWARD beam line)");
   hcalhoffsetCmd->SetParameterName("dist", false);
 
@@ -516,6 +512,18 @@ G4SBSMessenger::G4SBSMessenger(){
   hcalangoffsetCmd->SetGuidance("HCAL angular offset relative to exit beamline (+ = away from beamline)");
   hcalangoffsetCmd->SetParameterName("angle", false);
 
+  hcalpsconfigCmd = new G4UIcmdWithAnInteger("/g4sbs/hcalpsconfig",this);
+  hcalpsconfigCmd->SetGuidance("HCALPS configuration");
+  hcalpsconfigCmd->SetParameterName("hcalpsconfig", false);
+  
+  hcalpsvoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalpsvoffset",this);
+  hcalpsvoffsetCmd->SetGuidance("HCALPS vertical offset");
+  hcalpsvoffsetCmd->SetParameterName("hcalpsvoffset", false);
+
+  hcalpshoffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/hcalpshoffset",this);
+  hcalpshoffsetCmd->SetGuidance("HCALPS horizontal offset");
+  hcalpshoffsetCmd->SetParameterName("hcalpshoffset", false);
+  
   CDetReadyCmd = new G4UIcmdWithABool("/g4sbs/cdetready",this);
   CDetReadyCmd->SetGuidance("Will CDet be ready or not for the experiment");
   CDetReadyCmd->SetParameterName("dist", false);
@@ -677,6 +685,14 @@ G4SBSMessenger::G4SBSMessenger(){
   SBSLeadOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/uselead",this);
   SBSLeadOptionCmd->SetGuidance("SBS beamline lead shielding configuration: 0= nope 1=yes");
   SBSLeadOptionCmd->SetParameterName("uselead",false);
+
+  ECALVertOffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ecalvertoffset",this);
+  ECALVertOffsetCmd->SetGuidance("Vertical offset of ecal, positive number moves ecal upwards");
+  ECALVertOffsetCmd->SetParameterName("ecaloffsetvertical",false);
+
+  ECALHorizOffsetCmd = new G4UIcmdWithADoubleAndUnit("/g4sbs/ecalhorizoffset",this);
+  ECALHorizOffsetCmd->SetGuidance("Horizontal offset of ecal relative to frame center alignment, negative number moves ecal closer to the beamline, this is -2.25inches by default in order to place ecal along its crystal center");
+  ECALHorizOffsetCmd->SetParameterName("ecaloffsethorizontal",false);
 
   GENRPAnalyzerOptionCmd = new G4UIcmdWithAnInteger("/g4sbs/genrpAnalyzer",this);
   GENRPAnalyzerOptionCmd->SetGuidance("GEnRP Analyzer configuration: 0=none+no beamline PR; 1=none, 2=Cu+Gla(para), 3=Cu+Gla(perp), 4=Cu+CGEN");
@@ -1111,8 +1127,20 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
       fevgen->InitializePythia6_Tree();
     }
     if( fevgen->GetKine() == G4SBS::kSIMC ){
+      // //Also allow for starting at a different entry than zero in the SIMC chain:
+      // long firstevt = fevgen->GetFirstEvent();
+
+      // long lastevt_chain = fevgen->GetPythiaChain()->GetEntries()-1;
+      // nevt = std::min( long(nevt), lastevt_chain-firstevt + 1 );
+      
       if( fevgen->GetSIMCChain()->GetEntries() < nevt ){
 	nevt = fevgen->GetSIMCChain()->GetEntries();
+      }
+      fevgen->InitializeSIMC_Tree();
+    }
+    if( fevgen->GetKine() == G4SBS::kSIMCPi0 ){
+      if( fevgen->GetSIMCPi0Chain()->GetEntries() < nevt ){
+	nevt = fevgen->GetSIMCPi0Chain()->GetEntries();
       }
       fevgen->InitializeSIMC_Tree();
     }
@@ -1350,6 +1378,12 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     }
      if( newValue.compareTo("simc") == 0 ){
       kinetemp = G4SBS::kSIMC;
+      fIO->SetUseSIMC( true );
+      fevgen->SetRejectionSamplingFlag(false);
+      validcmd = true;
+    }
+     if( newValue.compareTo("simcpi0") == 0 ){
+      kinetemp = G4SBS::kSIMCPi0;
       fIO->SetUseSIMC( true );
       fevgen->SetRejectionSamplingFlag(false);
       validcmd = true;
@@ -2196,6 +2230,16 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     
     fdetcon->fHArmBuilder->SetRICHgas( gasname );
   }
+
+  if( cmd == ECALVertOffsetCmd ){
+    G4double v = ECALVertOffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fEArmBuilder->SetECALVertOffset( v );
+  }
+  
+  if( cmd == ECALHorizOffsetCmd ){
+    G4double v = ECALHorizOffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fEArmBuilder->SetECALHorizOffset( v );
+  }
   
   if( cmd == hcaldistCmd ){
     G4double v = hcaldistCmd->GetNewDoubleValue(newValue);
@@ -2216,6 +2260,27 @@ void G4SBSMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fdetcon->fHArmBuilder->SetHCALHOffset(v);
     //fevgen->SetHCALDist(v);
     fIO->SetHcalHOffset(v);
+  }
+  
+  if( cmd == hcalpsconfigCmd ){
+    G4double v = hcalpsconfigCmd->GetNewIntValue(newValue);
+    fdetcon->fHArmBuilder->SetHCALPSConfig(v);
+    //fevgen->SetHCALPSDist(v);
+    //fIO->SetHcalpsConfig(v);
+  }
+
+  if( cmd == hcalpsvoffsetCmd ){
+    G4double v = hcalpsvoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetHCALPSVOffset(v);
+    //fevgen->SetHCALPSDist(v);
+    fIO->SetHcalpsVOffset(v);
+  }
+
+  if( cmd == hcalpshoffsetCmd ){
+    G4double v = hcalpshoffsetCmd->GetNewDoubleValue(newValue);
+    fdetcon->fHArmBuilder->SetHCALPSHOffset(v);
+    //fevgen->SetHCALPSDist(v);
+    fIO->SetHcalpsHOffset(v);
   }
 
   if( cmd == hcalangoffsetCmd ){

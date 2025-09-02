@@ -1,0 +1,76 @@
+## Configure G4SBS for TDIS
+##/g4sbs/filename        tdis_h2_elastic_1.5T.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             tdis
+
+## Configure the target
+/g4sbs/target          H2
+/g4sbs/targlen         40.0 cm           ## Target Length
+/g4sbs/targdiam        1.0 cm          ## Target Diameter
+/g4sbs/tdistgtwallthick 0.02 mm
+
+## Configure generator settings
+# pythia6 -> make use of Pythia generator file
+# /g4sbs/pythia6file <pythia_events_.root> FILE WITH PYTHIA EVENTS
+
+
+# LIST OF TDIS KINEMATICS
+# tdisgen -> original generator
+# tdisela -> new tdis elastic
+# tdisine -> new tdis inelastic
+# tdisqua -> new tdis quasielastic
+# tsidis  -> new tdis SIDIS (DO NOT USE)
+# tdiskinH -> new TDIS (hydrogen)
+# tdiskinD -> new TDIS (deuterium)
+
+/g4sbs/kine            dis
+
+
+/g4sbs/beamE	       11.0 GeV
+
+# electron energy range 
+/g4sbs/eemin           0.5 GeV  ## actually momentum...
+/g4sbs/eemax          10.0 GeV  ## actually momentum...
+/g4sbs/thmin           5.0 deg
+/g4sbs/thmax          25.0 deg
+/g4sbs/phmin         120.0 deg
+/g4sbs/phmax         240.0 deg
+
+## Configure standard detector settings
+#/g4sbs/lacdist       10.5 m
+#/g4sbs/lacvoffset     0.40 m
+#/g4sbs/lachoffset    -0.20 m
+/g4sbs/hcaldist        7.0 m
+/g4sbs/hcalvoffset     0.75 m
+/g4sbs/hcalhoffset     0.00 m
+/g4sbs/sbstrkrdist     4.4 m
+/g4sbs/sbstrkrpitch    5.0 deg
+
+/g4sbs/richdist        5.0 m
+/g4sbs/richgas         CF4
+/g4sbs/userichaero     false
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/sbsmagfield    -0.90 tesla
+/g4sbs/48d48field      1
+/g4sbs/sbsang          12.0 deg
+/g4sbs/48D48dist       2.5 m
+/g4sbs/sbsclampopt     0                 ## Disable all field clamps
+
+/g4sbs/solunifield	true
+/g4sbs/solunimag	4.7
+#/g4sbs/solunimag	1.5
+#/g4sbs/soltoscafield	true
+#/g4sbs/soltoscascale	1.0
+#/g4sbs/soltoscaoffset	200.0 mm
+
+/g4sbs/treeflag 1
+/g4sbs/totalabs true
+#/g4sbs/steplimit LACmod_log 1 
+
+/g4sbs/keepsdtrackinfo all true
+
+## Run xxx events
+##/g4sbs/run           10000

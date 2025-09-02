@@ -119,8 +119,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR} ${Geant4_I
 #file(GLOB headers ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/wiser_pion.h ${PROJECT_SOURCE_DIR}/src/cteq/*.h ${PROJECT_SOURCE_DIR}/src/dss2007/*.hh ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.h)
 #${PROJECT_SOURCE_DIR}/RTPC_2v4/include/RTPC.hh ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/Array*.cc ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/RootIO.hh ${PROJECT_SOURCE_DIR}/RTPC_2v4/include/*Field*.hh)
 ####
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc ${PROJECT_SOURCE_DIR}/src/dss2007/*.cc ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.C ${PROJECT_SOURCE_DIR}/include/simc_tree.C ${PROJECT_SOURCE_DIR}/include/AcquMCTree.C ${PROJECT_SOURCE_DIR}/src/epc_func.f ${PROJECT_SOURCE_DIR}/src/f2pi_sub.f90)
-file(GLOB headers ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/wiser_pion.h ${PROJECT_SOURCE_DIR}/src/cteq/*.h ${PROJECT_SOURCE_DIR}/src/dss2007/*.hh ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.h ${PROJECT_SOURCE_DIR}/include/simc_tree.h)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/G4SBS*.cc ${PROJECT_SOURCE_DIR}/src/dss2007/*.cc ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.C ${PROJECT_SOURCE_DIR}/include/simc_tree.C ${PROJECT_SOURCE_DIR}/include/simc_pi0_tree.C ${PROJECT_SOURCE_DIR}/include/AcquMCTree.C ${PROJECT_SOURCE_DIR}/src/epc_func.f ${PROJECT_SOURCE_DIR}/src/f2pi_sub.f90)
+file(GLOB headers ${CMAKE_CURRENT_BINARY_DIR}/include/gitinfo.hh ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/wiser_pion.h ${PROJECT_SOURCE_DIR}/src/cteq/*.h ${PROJECT_SOURCE_DIR}/src/dss2007/*.hh ${PROJECT_SOURCE_DIR}/include/Pythia6_tree.h ${PROJECT_SOURCE_DIR}/include/simc_tree.h ${PROJECT_SOURCE_DIR}/include/simc_pi0_tree.h)
 #### 11a33984f47772444ffb08222f8a978d2bee837e
 
 file(GLOB cteqsources ${PROJECT_SOURCE_DIR}/src/cteq/*.c  )
@@ -402,6 +402,24 @@ if(INSTALL_SBS_FIELD_MAPS)
   message("Downloading GEN-RP field map from Bogdan, New Year's Day 2024")
   file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEn-RP-SBS_field.table ${CMAKE_CURRENT_BINARY_DIR}/GEn-RP-SBS_field.table SHOW_PROGRESS)	
 
+  message("Downloading GEN-RP field map in g4sbs-friendly coordinate system")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GENRP_fieldmap_g4sbs_friendly_coordinate_system.table ${CMAKE_CURRENT_BINARY_DIR}/GENRP_fieldmap_g4sbs_friendly_coordinate_system.table SHOW_PROGRESS)
+
+  message("Downloading field map for GEP-0")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEP0_map.table ${CMAKE_CURRENT_BINARY_DIR}/GEP0_map.table SHOW_PROGRESS)
+
+  message("Downloading field map for GEP-1")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEP1_map.table ${CMAKE_CURRENT_BINARY_DIR}/GEP1_map.table SHOW_PROGRESS)
+
+  message("Downloading field map for GEP-2")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEP2_map.table ${CMAKE_CURRENT_BINARY_DIR}/GEP2_map.table SHOW_PROGRESS)
+
+  message("Downloading field map for GEP-3")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEP3_map.table ${CMAKE_CURRENT_BINARY_DIR}/GEP3_map.table SHOW_PROGRESS)
+  
+  message("Downloading field map for GEP-3mod")
+  file(DOWNLOAD https://hallaweb.jlab.org/12GeV/SuperBigBite/downloads/GEP3mod_map.table ${CMAKE_CURRENT_BINARY_DIR}/GEP3mod_map.table SHOW_PROGRESS)
+  
   message("Other field maps forthcoming... Anybody know how to get CMake to download files AFTER the configure step, during the build step?")
 
   file(GLOB sbs_field_maps ${CMAKE_CURRENT_BINARY_DIR}/*.table ${CMAKE_CURRENT_BINARY_DIR}/map_696A.dat)

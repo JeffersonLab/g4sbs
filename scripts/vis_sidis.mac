@@ -9,9 +9,16 @@
 # ./g4sbs scripts/preinit_ckov_scint.mac scripts/sidis_example_scripts.mac
 /g4sbs/filename sidis_example.root
 /g4sbs/beamcur  60.0 muA
-/g4sbs/target   3He
-/g4sbs/targpres 10.0 atmosphere
-/g4sbs/targlen  40.0 cm
+/g4sbs/target          H2
+/g4sbs/targpres        10 atmosphere     ## Target pressure
+/g4sbs/targlen         60.0 cm           ## Target Length
+/g4sbs/targgenhhconfig 982               ## Q2 = 9.82 GeV^2 
+/g4sbs/targgenDRX      0 deg             ## target angular misalignment about x axis  
+/g4sbs/targgenDRY      0 deg             ## target angular misalignment about y axis
+/g4sbs/targgenDRZ      0 deg             ## target angular misalignment about z axis
+/g4sbs/targgenColEnable true
+/g4sbs/usehadronfilter true
+
 
 /g4sbs/rasterx  2.0 mm
 /g4sbs/rastery  2.0 mm

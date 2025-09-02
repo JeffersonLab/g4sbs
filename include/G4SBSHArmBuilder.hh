@@ -18,6 +18,9 @@ public:
   void SetHCALVOffset(double a){ fHCALvertical_offset = a; }
   void SetHCALHOffset(double a){ fHCALhorizontal_offset = a; }
   void SetHCALAngOffset(double a){ fHCALangular_offset = a; }
+  void SetHCALPSConfig(int a){ fHCALPSconfig = a; }
+  void SetHCALPSVOffset(double a){ fHCALPSvertical_offset = a; }
+  void SetHCALPSHOffset(double a){ fHCALPShorizontal_offset = a; }
   void Set48D48Dist(double a){ f48D48dist = a; }
   void SetLACDist( double a ){ fLACdist = a; }
   void SetLACVOffset( double a ){ fLACvertical_offset = a; }
@@ -52,6 +55,7 @@ public:
   void MakeSBSFieldClamps(G4LogicalVolume*);
   void MakeHCAL(G4LogicalVolume*, G4double);
   void MakeHCALV2(G4LogicalVolume*, G4double);
+  void MakeHCALPreshower(G4LogicalVolume*, G4double);
   void MakeCDET(G4LogicalVolume*, G4double, G4double);
   void MakeNeutronVeto(G4LogicalVolume*, G4double);
   void MakeFPP(G4LogicalVolume*, G4RotationMatrix*, G4ThreeVector );
@@ -80,6 +84,9 @@ public:
   double fHCALvertical_offset;  // Vertical offset (from center) of HCAL
   double fHCALhorizontal_offset; // Horizontal offset (from SBS center line) of HCAL (by convention, +X is toward smaller angle)
   double fHCALangular_offset; // Angular offset of HCAL wrt exit beamline (+ = away from beamline).
+  int fHCALPSconfig;  // configuration for HCal PS: 0: PS with HCAL blocks; 1: PS with HERMES blocks, 1 plane; 2: PS with HERMES blocks, 2 planesz
+  double fHCALPSvertical_offset;  // Vertical offset (from center) of HCAL
+  double fHCALPShorizontal_offset; // Horizontal offset (from SBS center line) of HCAL (by convention, +X is toward smaller angle)
   double fRICHdist; //Distance from target to RICH entry window (in horizontal plane)
   double fRICHvertical_offset; //Vertical offset (from center)
   double fRICHhorizontal_offset; //Horizontal offset (from SBS center line, + = toward beamline).

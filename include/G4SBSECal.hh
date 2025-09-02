@@ -14,6 +14,8 @@ public:
   
   void SetAng(double a){ fAng = a; }
   void SetDist(double a){ fDist= a; }
+  void SetVOff(double a){ fVOff = a; }
+  void SetHOff(double a){ fHOff = a; }
 
   void SetDVCSECalMaterial(G4String str){ fDVCSECalMaterial = str; }
   void SetDVCSECalNRows(G4int nrows){ fDVCSNrows = nrows; }
@@ -39,6 +41,9 @@ public:
   G4int fDVCSNcols;
   G4double fDVCSECALhorizontal_offset;  // Horizontal offset (from center) of DVCS ECal
   G4double fDVCSECALvertical_offset;  // Horizontal offset (from center) of DVCS ECal
+
+  double fVOff;
+  double fHOff;
   
 private:
 };

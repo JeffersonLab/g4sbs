@@ -32,10 +32,40 @@ TF1 *gaussplusexpo = new TF1("gaussplusexpo", "[0]*exp(-0.5*pow((x-[1])/[2],2))+
 const double Mp = 0.938272; //GeV
 const double PI = TMath::Pi();
 
-void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outputfilename="gep_L2_trigger_analysis_elastic_temp.root", const char *thresholdfilename_ecal="database/ecal_trigger_thresholds_12GeV2.txt", const char *thresholdfilename_hcal="database/hcal_trigger_thresholds_12GeV2.txt", int pheflag=0, const char *assocfilename="database/ECAL_HCAL_L2_default.txt"){
+struct calblock {
+  int cell;
+  int row;
+  int col;
+  double x;
+  double y;
+  double E; //smeared energy
+  double Etrue; //true energy
+  double nphe; //estimated nphe
+};
 
-  double nominal_threshold_HCAL = 0.5;
-  double nominal_threshold_ECAL = 0.8;
+struct calcluster {
+  int node; //"node" index
+  int cell; //cell index of center cell;
+  int bin;  //bin number of cluster = binx + biny * nbinsx
+  int binx,biny;
+  double Esum_true;
+  double nphesum;
+  double Esum; //cluster energy sum
+  double Esum_norm; //cluster energy sum / elastic peak energy
+};
+
+bool CompareCalBlocks( const calblock &b1, const calblock &b2 ){
+  return b1.E > b2.E;
+}
+
+bool CompareCalClusters( const calcluster &c1, const calcluster &c2 ){
+  return c1.Esum > c2.Esum; 
+}
+
+void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outputfilename="gep_L2_trigger_analysis_elastic_temp.root", const char *assocfilename="database/ECAL_HCAL_L2_default.txt", double normfac_ECAL=0.88, double normfac_HCAL=1.064, double thresh_ECAL=0.8, double thresh_HCAL=0.5, double pdeflect_default=0.7853, int pheflag=0){
+
+  double nominal_threshold_HCAL = thresh_HCAL;
+  double nominal_threshold_ECAL = thresh_ECAL;
   
   TFile *fout = new TFile(outputfilename,"RECREATE");
   TChain *C = new TChain("T");
@@ -43,6 +73,14 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
 
   gep_tree_elastic *T = new gep_tree_elastic( C );
 
+  C->SetBranchStatus("*",0);
+
+  C->SetBranchStatus("ev*",1);
+  C->SetBranchStatus("Harm.FT.Track.*",1);
+  C->SetBranchStatus("Harm.FPP1.Track.*",1);
+  C->SetBranchStatus("Earm.ECalTF1.hit.*",1);
+  C->SetBranchStatus("Harm.HCalScint.hit.*",1);
+  
   G4SBSRunData *rd;
 
   long ngen = 0;
@@ -67,7 +105,24 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
 
       ECALdist_file[chEl->GetTitle()] = rd->fBBdist;
       ECALtheta_file[chEl->GetTitle()] = rd->fBBtheta;
+      Ebeam_file[chEl->GetTitle()] = rd->fBeamE;
+      Lumi_file[chEl->GetTitle()] = rd->fLuminosity;
+      GenVol_file[chEl->GetTitle()] = rd->fGenVol;
 
+      std::cout << "fname, Lumi, GenVol = " << chEl->GetTitle() << ", " << rd->fLuminosity << ", " << rd->fGenVol << std::endl;
+      
+      HCALdist_file[chEl->GetTitle()] = rd->fHCALdist;
+      HCALvoff_file[chEl->GetTitle()] = rd->fHCALvoff;
+      SBSdist_file[chEl->GetTitle()] = rd->fSBSdist;
+      SBStheta_file[chEl->GetTitle()] = rd->fSBStheta;
+      
+      Ebeam_default = rd->fBeamE;
+      ECALtheta_default = rd->fBBtheta;
+      ECALdist_default = rd->fBBdist;
+      HCALdist_default = rd->fHCALdist;
+      HCALvoff_default = rd->fHCALvoff;
+      SBSdist_default = rd->fSBSdist;
+      SBStheta_default = rd->fSBStheta;
     } else {
       bad_file_list.insert( chEl->GetTitle());
     }
@@ -112,7 +167,10 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
   ycellmin = 1.0e9;
   ycellmax = -1.0e9;
 
+  ofstream ecalposdb("ECALPOSDBTEMP.dat");
 
+  double HOFF_ECAL = 2.25*2.54/100.0; //2.25 inches
+  
   //Get cell mapping info:
   while( currentline.ReadLine( mapfile_ecal ) ){
     cout << currentline << endl;
@@ -162,6 +220,45 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
       }
     }
   }
+
+  ecalposdb << "earm.ecal.xpos = " << endl;
+
+  int ncolumns = 16;
+
+  int row=0,col=0;
+  int oldrow = row;
+  
+  for ( auto cell : cells_ecal ){
+
+    row = rows_cells_ecal[cell];
+    if( row != oldrow ) ecalposdb << " #ECAL row " << oldrow << endl;
+
+    ecalposdb << -ycell_ecal[cell] << " ";
+    //   if ( (cell+1)%ncolumns == 0 ) ecalposdb << endl;
+
+    oldrow = row;
+  }
+
+  ecalposdb << endl << endl;
+  ecalposdb << "earm.ecal.ypos = " << endl;
+
+  row = 0;
+  oldrow = 0;
+  
+  for( auto cell : cells_ecal ){
+    
+    row = rows_cells_ecal[cell];
+    if( row != oldrow ) ecalposdb << " #ECAL row " << oldrow << endl;
+    oldrow = row;
+
+    ecalposdb << xcell_ecal[cell] - HOFF_ECAL << " ";
+    //  if( (cell+1)%ncolumns == 0 ) ecalposdb << endl;
+  }
+    
+  std::cout << "(xcellmin, xcellmax)=(" << xcellmin << ", " << xcellmax << ") m" << std::endl;
+  std::cout << "(ycellmin, ycellmax)=(" << ycellmin << ", " << ycellmax << ") m" << std::endl;
+
+  //we want to superimpose a rectangular binning on the ECAL clusters:
   
   int current_node = 1;
 
@@ -200,8 +297,112 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
     }
   }
 
+  ofstream clustermap_ecal("database/ecal_cluster_mapping.txt");
+
+  TString header = "# Format: cluster index, cluster center cell index, x center (m), y center (m), x bin number, y bin number, global bin number, total number of cells, list of cells";
+
+  header.Form( "# Format: %15s, %25s, %15s, %15s, %15s, %15s, %20s, %25s, %25s, %15s", "cluster index", "cluster center cell index", "x center (m)", "y center (m)", "x bin number", "y bin number", "global bin number", "Elastic e- energy (GeV)","total number of cells", "list of cells" ); 
+  
+  clustermap_ecal << header.Data() << endl;
+  for( auto node : list_of_nodes_ecal ){
+    //TString thisnode;
+    // clustermap_ecal << node << ", " << cluster_centers_ecal_by_node[node] << ", "
+    // 		    << binx_by_node_ecal[node] << ", " << biny_by_node_ecal[node] << ", "
+    // 		    << binglobal_by_node_ecal[node] << ", " << cells_logic_sums_ecal[node].size();
+
+    TString line;
+    line.Form( "          %15d, %25d, %15.6g, %15.6g, %15d, %15d, %20d, %25g, %25d", 
+	       node, cluster_centers_ecal_by_node[node], xcell_ecal[cluster_centers_ecal_by_node[node]], ycell_ecal[cluster_centers_ecal_by_node[node]],
+	       binx_by_node_ecal[node], biny_by_node_ecal[node], binglobal_by_node_ecal[node], Eprime_expect_by_node_ecal[node], cells_logic_sums_ecal[node].size() );
+    
+    clustermap_ecal << line;
+    
+    for( auto cell : cells_logic_sums_ecal[node] ){
+      clustermap_ecal << ", " << cell;
+    }
+
+    clustermap_ecal << endl;
+    
+    //  clustermap_ecal << ", " << xcell_ecal[cluster_centers_ecal_by_node[node]]
+    //		    << ", " << ycell_ecal[cluster_centers_ecal_by_node[node]] << endl; 
+					 
+
+  }
+
+  //Also output cluster bins by 
+  ofstream clusterbins_ecal("database/ecal_cluster_binning.txt");
+
+  //Here we want the global bin number, x bin number, y bin number, X low, X high, Y low, Y high (or maybe just the centers?) number of clusters in the bin, and the list of clusters contained in that global bin:
+  header.Form("# Format: %20s, %15s, %15s, %20s, %20s, %20s, %15s","global bin number", "X bin number", "Y bin number", "X bin center (m)", "Y bin center (m)", "Number of clusters", "List of clusters");
+
+  clusterbins_ecal << header.Data() << endl;
+
+  for( auto bin : list_of_bins_ecal ){
+    TString line;
+
+    int binx = bin%nbinsx;
+    int biny = bin/nbinsx;
+    int nclust = nodes_by_binglobal_ecal[bin].size();
+    line.Form( "          %20d, %15d, %15d, %20g, %20g, %20d", bin, binx, biny,
+	       binxmin + (3.0*binx + 1.0 )*xspace,
+	       binymin + (3.0*biny + 1.0 )*yspace,
+	       nclust );
+    
+    clusterbins_ecal << line; 
+    for( auto clust : nodes_by_binglobal_ecal[bin] ){
+      clusterbins_ecal << ", " << clust;
+    }
+    clusterbins_ecal << endl;
+    
+  }
+  
+  // int current_node = 1;
+
+  // bool first_cell = true;
+
+  // //Get trigger logic summing info:
+  
+  // while( currentline.ReadLine(logicfile_ecal) ){
+  //   if( !currentline.BeginsWith( "#" ) ){
+      
+  //     TObjArray *tokens = currentline.Tokenize(" ");
+  //     int ntokens = tokens->GetEntries();
+
+  //     TString snode = ( (TObjString*) (*tokens)[0] )->GetString();
+  //     int nodenumber = snode.Atoi() + 1;
+      
+  //     TString sncell_node = ( (TObjString*) (*tokens)[1] )->GetString();
+  //     int ncell_node = sncell_node.Atoi();
+      
+  //     if( ntokens >= ncell_node + 2 ){
+  // 	list_of_nodes_ecal.insert( nodenumber );
+  // 	for( int itoken = 2; itoken < ncell_node+2; itoken++ ){
+  // 	  TString scell = ( (TObjString*) (*tokens)[itoken] )->GetString();
+  // 	  int cell = scell.Atoi();
+
+  // 	  cells_logic_sums_ecal[nodenumber].insert( cell );
+
+  // 	  //provide default values;
+  // 	  logic_mean_ecal[nodenumber] = 3.0;
+  // 	  logic_sigma_ecal[nodenumber] = 0.06*3.0;
+  // 	  threshold_ecal[nodenumber] = 0.8;
+	  
+  // 	  nodes_cells_ecal[ cell ].insert( nodenumber );
+  // 	}
+  //     }
+  //   }
+  // }
+
+  //For HCAL we want to read in HCAL_map.txt but only for the purpose of mapping cell indices to block positions. HCAL will always have exactly 24 rows x 12 columns; however, if the mapping between cell and row/column indices in g4sbs changes in the future, then significant parts of this code will need re-writing:
+
+  ifstream HCAL_cell_map("database/HCAL_map.txt");
+  map<int,double> xcell_hcal;
+  map<int,double> ycell_hcal;
+  
+  //For HCAL we are going to use 3x3 sums:
   set<int> list_of_nodes_hcal;
   map<int, set<int> > cells_logic_sums_hcal; //mapping between node numbers and cell numbers
+  map<int, double> Tp_expect_hcal; //Proton KE by cluster center
   map<int, double> logic_mean_hcal; //mean peak positions by node number
   map<int, double> logic_sigma_hcal; //peak width by node number
   map<int, double> threshold_hcal; //threshold by node number
@@ -227,13 +428,55 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
 	}
       }
 
-      logic_mean_hcal[current_node] = 1199.0;
-      logic_sigma_hcal[current_node] = 346.3;
+      //Use some sensible default value for logic mean and logic sigma:
+
+      //double Eprime_expect = Ebeam_default/(1.0+Ebeam_default/Mp*(1.0-cos(ECALtheta_default)));
+      double xcelltemp = xcell_hcal[cluster_centers_hcal_by_node[current_node]];
+      double ycelltemp = ycell_hcal[cluster_centers_hcal_by_node[current_node]];
+
+      TVector3 cellpos = HCALpos + xcelltemp * HCAL_xaxis + ycelltemp * HCAL_yaxis;
+
+      TVector3 cellpos_corr = cellpos - pdeflect_default * HCAL_yaxis;
+
+      double ptheta_cell = acos( cellpos_corr.Z() / cellpos_corr.Mag() );
+
+      double pp_ptheta = 2.0*Mp*Ebeam_default * (Mp + Ebeam_default)*cos(ptheta_cell) / ( pow(Mp,2) + 2.0*Mp*Ebeam_default + pow(Ebeam_default*sin(ptheta_cell),2) ); 
+      
+      double Tp_expect = sqrt( pow(pp_ptheta,2)+pow(Mp,2) ) - Mp;
+      
+      //do this in terms of energy, not photoelectrons:
+      logic_mean_hcal[current_node] = 0.065*Tp_expect*normfac_HCAL;
+      logic_sigma_hcal[current_node] = 0.5*logic_mean_hcal[current_node];
+      Tp_expect_hcal[current_node] = Tp_expect;
       
       current_node++;
     }
   }
   
+  //TODO: write out cluster mapping and binning info for HCAL as well:
+
+  ofstream clustermap_hcal("database/hcal_cluster_mapping.txt");
+
+  header = "# Format: node index, cluster center cell index, x bin number, y bin number, global bin number, total number of cells, list of cells";
+
+  header.Form( "# Format: %15s, %25s, %15s, %15s, %15s, %15s, %20s, %25s, %25s, %25s, %20s, %15s", "cluster index", "cluster center cell index", "x center (m)", "y center (m)", "x bin number", "y bin number", "global bin number", "Elastic proton KE (GeV)", "edep in HCAL scint (GeV)","Sampling Fraction","total number of cells", "list of cells" );
+  clustermap_hcal << header.Data() << endl;
+
+  for ( auto node : list_of_nodes_hcal ){
+    // clustermap_hcal << node << ", " << cluster_centers_hcal_by_node[node] << ", "
+    // 		    << binx_by_node_hcal[node] << ", " << biny_by_node_hcal[node] << ", "
+    // 		    << binglobal_by_node_hcal[node] << ", " << cells_logic_sums_hcal[node].size();
+
+    TString line;
+    line.Form( "          %15d, %25d, %15.6g, %15.6g, %15d, %15d, %20d, %25g, %25g, %25d",
+	       node, cluster_centers_hcal_by_node[node], xcell_hcal[cluster_centers_hcal_by_node[node]], ycell_hcal[cluster_centers_hcal_by_node[node]],
+	       binx_by_node_hcal[node], biny_by_node_hcal[node], binglobal_by_node_hcal[node], Tp_expect_hcal[node], logic_mean_hcal[node], cells_logic_sums_hcal[node].size() );
+    clustermap_hcal << line;
+    for( auto cell : cells_logic_sums_hcal[node] ){
+      clustermap_hcal << ", " << cell;
+    }
+    clustermap_hcal << endl;
+  }
   
   TH1D::SetDefaultSumw2();
 
@@ -408,6 +651,12 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
       double R = ECALdist_file[fnametemp];
       double thetacal = ECALtheta_file[fnametemp];
 
+      weight = T->ev_sigma * Lumi_file[fnametemp] * GenVol_file[fnametemp] / double(ngen);
+
+      //1 barn =1e-24 cm^2
+      double nanobarn = 1.e-24*1.e-9;
+      //std::cout << "(fname, sigma (nb/sr), Lumi, genvol, ngen)=(" << fnametemp.Data() << ", " << T->ev_sigma/nanobarn  << ", " << Lumi_file[fnametemp] << ", " << GenVol_file[fnametemp] << ", " << ngen << ")" << std::endl; 
+      
       // cout << "(R, thetacal)=(" << R << ", " << thetacal*57.3 << endl;
     //if( Q2cut == 0 || (T->ev_Q2 >= 10.5 && T->ev_Q2 <= 14.0) ){
     
@@ -773,8 +1022,14 @@ void gep_trigger_analysis_elastic_L2( const char *rootfilename, const char *outp
 	coin_trigger_fired[ithr] = 0;
       }
 
-    
+      std::sort( HCALclusters.begin(), HCALclusters.end(), CompareCalClusters );
+      
+      
+      vector<int> trigger_nodes_fired_hcal(hefficiency_vs_threshold_HCAL_FTcut->GetNbinsX(),0);
+      
 
+      vector<int> coin_trigger_fired( hefficiency_vs_threshold_HCAL_FTcut->GetNbinsX()*hefficiency_vs_threshold_ECAL->GetNbinsX(),0 );
+ 
       bool cointrig_nominal_threshold = false;
     
       for( set<int>::iterator inode = list_of_nodes_hcal.begin(); inode != list_of_nodes_hcal.end(); ++inode ){

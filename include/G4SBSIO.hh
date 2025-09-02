@@ -19,6 +19,7 @@
 #include "G4SBSAcquMCOutput.hh"
 // // // //
 #include "G4SBSSIMCOutput.hh"
+#include "G4SBSSIMCPi0Output.hh"
 // // // // 11a33984f47772444ffb08222f8a978d2bee837e
 
 #include "G4SBSTrackerOutput.hh"
@@ -38,7 +39,7 @@ class G4SBSGlobalField;
 
 //These aren't really "event"-level quantities, as they are constants describing the setup, and should be stored in the "rundata" object.
 typedef struct {
-  Double_t thbb, thsbs, dbb, dsbs, dhcal, voffhcal, hoffhcal, angoffhcal, drich, dsbstrkr, sbstrkrpitch, dlac, vofflac, hofflac, Ebeam, Ibeam;
+  Double_t thbb, thsbs, dbb, dsbs, dhcal, voffhcal, hoffhcal, angoffhcal, voffhcalps, hoffhcalps, drich, dsbstrkr, sbstrkrpitch, dlac, vofflac, hofflac, Ebeam, Ibeam;
 } gen_t;
 
 
@@ -171,6 +172,8 @@ public:
   void SetHcalVOffset(double d){ gendata.voffhcal = d/CLHEP::m; }
   void SetHcalHOffset(double d){ gendata.hoffhcal = d/CLHEP::m; }
   void SetHcalAngOffset(double th){ gendata.angoffhcal = th; }
+  void SetHcalpsVOffset(double d){ gendata.voffhcalps = d/CLHEP::m; }
+  void SetHcalpsHOffset(double d){ gendata.hoffhcalps = d/CLHEP::m; }
   void SetLACDist( double d){ gendata.dlac = d/CLHEP::m; }
   void SetLACVOffset( double d ){ gendata.vofflac = d/CLHEP::m; }
   void SetLACHOffset( double d ){ gendata.hofflac = d/CLHEP::m; }
@@ -198,6 +201,7 @@ public:
   void BranchAcquMC();
   // // // // 
   void BranchSIMC();
+  void BranchSIMCPi0();
   // // // // 11a33984f47772444ffb08222f8a978d2bee837e
   //void BranchSDTracks(G4String s);
   void BranchSDTracks();
@@ -227,6 +231,7 @@ public:
   void SetUseAcquMC( G4bool b ){ fUseAcquMC = b; }
 
   void SetSIMCOutput( G4SBSSIMCOutput p ){ SIMCprimaries = p; }
+  void SetSIMCPi0Output( G4SBSSIMCPi0Output p ){ SIMCPi0primaries = p; }
   void SetUseSIMC( G4bool b ){ fUseSIMC = b; }
 
   map<G4String,G4int> histogram_index; //map with key = SDname, val = histogram index in TClonesArray
@@ -349,6 +354,7 @@ private:
   
   G4bool fUseSIMC;
   G4SBSSIMCOutput SIMCprimaries;
+  G4SBSSIMCPi0Output SIMCPi0primaries;
   
   G4SBSGlobalField *fGlobalField;
   

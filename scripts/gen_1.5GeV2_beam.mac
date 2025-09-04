@@ -34,7 +34,7 @@
 #/g4sbs/bbcaldist       1.4 m
 #/g4sbs/gemconfig       1                 ## (Used to be 2, but changed to 1 on the recommendation of documentation on wiki)
 /g4sbs/hcaldist        17.0 m
-/g4sbs/hcalvoffset     0.0 m
+/g4sbs/hcalvoffset     0.75 m
 
 ## Configure the magnets
 /g4sbs/bbfield         1

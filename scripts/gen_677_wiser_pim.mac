@@ -32,7 +32,7 @@
 
 ## Configure standard detector settings
 /g4sbs/hcaldist        17.0 m
-/g4sbs/hcalvoffset     0.0 m
+/g4sbs/hcalvoffset     0.75 m
 
 ## Configure the magnets
 /g4sbs/bbfield         1

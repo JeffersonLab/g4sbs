@@ -21,7 +21,7 @@
 
 ## Configure standard detector settings
 /g4sbs/hcaldist        8.5 m
-/g4sbs/hcalvoffset     0.45 m
+/g4sbs/hcalvoffset     0.75 m
 /g4sbs/sbsclampopt     2                 ## Front and rear field clamps
 
 ## Configure GEn-RP analyzer

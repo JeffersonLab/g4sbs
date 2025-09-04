@@ -28,7 +28,7 @@
 
 ## Configure standard detector settings
 /g4sbs/hcaldist        17.0 m
-/g4sbs/hcalvoffset     0.0 m
+/g4sbs/hcalvoffset     0.75 m
 /g4sbs/beamlineconfig  2		##GEn beamline configuration
 
 ## Configure the magnets

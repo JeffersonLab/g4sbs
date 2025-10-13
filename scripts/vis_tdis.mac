@@ -5,30 +5,51 @@
 /g4sbs/exp             tdis
 
 ## Configure the target
-/g4sbs/target          D2
+/g4sbs/target          H2
 /g4sbs/targlen         40.0 cm           ## Target Length
 /g4sbs/targdiam        1.0 cm          ## Target Diameter
-/g4sbs/targpres        1.0 atmosphere
+/g4sbs/tdistgtwallthick 0.02 mm
 
 ## Configure generator settings
-/g4sbs/kine            gun           ## Generator
-/g4sbs/particle        proton
-/g4sbs/beamcur        50.0 muA
-#/g4sbs/beamE          11.0 GeV
-/g4sbs/eemin           0.06 GeV
-/g4sbs/eemax           0.20 GeV
-/g4sbs/thmin          75.0 deg
-/g4sbs/thmax         105.0 deg
-/g4sbs/phmin        -180.0 deg
-/g4sbs/phmax         180.0 deg
+# pythia6 -> make use of Pythia generator file
+# /g4sbs/pythia6file <pythia_events_.root> FILE WITH PYTHIA EVENTS
+
+
+# LIST OF TDIS KINEMATICS
+# tdisgen -> original generator
+# tdisela -> new tdis elastic
+# tdisine -> new tdis inelastic
+# tdisqua -> new tdis quasielastic
+# tsidis  -> new tdis SIDIS (DO NOT USE)
+# tdiskinH -> new TDIS (hydrogen)
+# tdiskinD -> new TDIS (deuterium)
+
+/g4sbs/kine            dis
+
+
+/g4sbs/beamE	       11.0 GeV
+
+# electron energy range 
+/g4sbs/eemin           1.0 GeV  ## actually momentum...
+/g4sbs/eemax           6.5 GeV  ## actually momentum...
+/g4sbs/thmin           8.0 deg
+/g4sbs/thmax          16.0 deg
+/g4sbs/phmin         135.0 deg
+/g4sbs/phmax         225.0 deg
 
 ## Configure standard detector settings
-#/g4sbs/lacdist       10.5 m
-#/g4sbs/lacvoffset     0.40 m
-#/g4sbs/lachoffset    -0.20 m
-/g4sbs/hcaldist        7.0 m
+#/g4sbs/hcaldist       10.0 m
+#/g4sbs/hcalvoffset     0.75 m
+#/g4sbs/hcalhoffset    -0.20 m
+#/g4sbs/hcalpsconfig    0
+#/g4sbs/hcalpsvoffset     0.27375 m
+#/g4sbs/hcalpshoffset     0.00 m
+/g4sbs/hcaldist       7.0 m
 /g4sbs/hcalvoffset     0.75 m
-/g4sbs/hcalhoffset     0.00 m
+/g4sbs/hcalhoffset    -0.20 m
+/g4sbs/hcalpsconfig    1
+/g4sbs/hcalpsvoffset     0.75 m
+/g4sbs/hcalpshoffset     0.00 m
 
 /g4sbs/sbstrkrdist     4.4 m
 /g4sbs/sbstrkrpitch    5.0 deg
@@ -50,8 +71,7 @@
 #/g4sbs/steplimit LACmod_log 1
 
 /g4sbs/solunifield	true
-#/g4sbs/solunimag	4.7
-/g4sbs/solunimag	1.5
+/g4sbs/solunimag	4.7
 #/g4sbs/soltoscafield	true
 #/g4sbs/soltoscascale	1.0
 #/g4sbs/soltoscaoffset	200.0 mm
@@ -62,7 +82,7 @@
 #/g4sbs/mtpcgastemp 296.15
 #/g4sbs/mtpcgaspressure 1.0
 #/g4sbs/mtpctargetthick 0.02 #mm
-#/g4sbs/mtpckrypto 1
+/g4sbs/mtpckrypto 0
 #/g4sbs/tdistgtwallthick 0.04 #mm
 
 #/g4sbs/tpcdesign 1
@@ -122,12 +142,12 @@
 # (if too many tracks cause core dump => /tracking/storeTrajectory 0)
 #
 # Draw hits at end of event:
-#/vis/scene/add/hits
+/vis/scene/add/hits
 #
 # To draw only gammas:
 /vis/filtering/trajectories/create/particleFilter
 /vis/filtering/trajectories/particleFilter-0/add gamma
-/vis/filtering/trajectories/particleFilter-0/add neutron
+#/vis/filtering/trajectories/particleFilter-0/add neutron
 #
 # To invert the above, drawing all particles except gammas,
 # keep the above two lines but also add:
@@ -136,15 +156,15 @@
 # Many other options are available with /vis/modeling and /vis/filtering.
 # For example, to select colour by particle ID:
 /vis/modeling/trajectories/create/drawByParticleID
-#/vis/modeling/trajectories/drawByParticleID-0/set e- blue
+/vis/modeling/trajectories/drawByParticleID-0/set e- blue
 /vis/modeling/trajectories/drawByParticleID-0/set proton red
-#/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton white
-#/vis/modeling/trajectories/drawByParticleID-0/setRGBA pi- 1. 0.2 1.0 1.0
-#/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon+ 0.3 1.0 0.5 1.0
-#/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
+/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton white
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA pi- 1. 0.2 1.0 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon+ 0.3 1.0 0.5 1.0
+/vis/modeling/trajectories/drawByParticleID-0/setRGBA kaon- 0.3 1.0 0.5 1.0
 #
 # To superimpose all of the events from a given run:
-/vis/scene/endOfEventAction accumulate 10000
+/vis/scene/endOfEventAction accumulate 100
 #
 # Re-establish auto refreshing and verbosity:
 /vis/viewer/set/autoRefresh true
@@ -153,7 +173,7 @@
 #
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
-/g4sbs/run  1
+/g4sbs/run  100
 #/vis/geometry/set/visibility RICHbox_log -1 0
 #/vis/geometry/set/forceWireframe hcalpslog -1 1
 #/vis/geometry/set/visibility hcalpslog -1 0

@@ -2035,7 +2035,7 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
     G4SBSCalSD *HCALPSTF1SD = NULL;
 
     if( !((G4SBSCalSD*) sdman->FindSensitiveDetector(HCALPSTF1SDname)) ) {
-      G4cout << "Adding BB Preshower TF1 Sensitive Detector to SDman..." << G4endl;
+      G4cout << "Adding HCAL Preshower TF1 Sensitive Detector to SDman..." << G4endl;
       HCALPSTF1SD = new G4SBSCalSD( HCALPSTF1SDname, HCALPSTF1collname );
       
       sdman->AddNewDetector( HCALPSTF1SD );
@@ -2062,7 +2062,7 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
     G4SBSECalSD *HCALPSSD = NULL;
     
     if( !((G4SBSECalSD*) sdman->FindSensitiveDetector(HCALPSSDname)) ) {
-      G4cout << "Adding BB Preshower PMT Sensitive Detector to SDman..." << G4endl;
+      G4cout << "Adding HCAL Preshower PMT Sensitive Detector to SDman..." << G4endl;
       HCALPSSD = new G4SBSECalSD( HCALPSSDname, HCALPScollname );
       sdman->AddNewDetector( HCALPSSD );
       (fDetCon->SDlist).insert(HCALPSSDname);
@@ -3283,7 +3283,7 @@ void G4SBSHArmBuilder::MakeElectronModeSBS(G4LogicalVolume *motherlog){
     //MakeLAC( motherlog );
     // EPAF: 2025/08/06 for the moment let's not worry about truncating HCal
     // since we can literally create the extra blocks out of thin air...
-    MakeHCALV2( motherlog, fHCALvertical_offset, 0 );
+    MakeHCALV2( motherlog, fHCALvertical_offset, 2 );
     MakeHCALPreshower(motherlog, fHCALvertical_offset );
   }
 }

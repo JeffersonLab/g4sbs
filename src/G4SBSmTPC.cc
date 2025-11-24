@@ -78,17 +78,17 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   fmTPCkrypto = true;//false;//by default
   fChkOvLaps = false;//true;//
 
-  fMLPC_NplaneWires = 150;
-  fMLPC_NWiresPerHalfPlane = 130;
-  fMLPC_InterWireGap = 1.0*mm;
+  fMLPC_NplaneWires = 120;//150;//
+  fMLPC_NWiresPerHalfPlane = 65;//130;//
+  fMLPC_InterWireGap = 2.0*mm;//1.0*mm;//
   fMLPC_InnerWireDistance = 2.0*cm;
-  fMLPC_SupportThickness = 1.6*mm;
+  fMLPC_SupportThickness = 2.0*mm;//1.6*mm;//
   fMLPC_RinSupport = 15.*cm;
   fMLPC_RoutSupport = 16.*cm;
   fMLPC_CathodeRin = 1.5*cm;
-  fMLPC_CathodeMylarThickness = 0.001*mm;//1.0 um Mylar
-  fMLPC_CathodeAlThickness =    0.00001*mm; //0.01um Al;
-  fMLPC_WirePlaneThickness =    0.008*mm;//8 um wires;
+  fMLPC_CathodeMylarThickness = 0.01*mm;//0.001*mm;//1.0 um Mylar
+  fMLPC_CathodeAlThickness =    0.00001*mm; //0.01um Al;//
+  fMLPC_WirePlaneThickness =    0.008*mm;//8 um wires;//
   
 
   //step user limit of the particle in the gas detector 

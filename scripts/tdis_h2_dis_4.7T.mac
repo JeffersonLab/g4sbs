@@ -10,22 +10,7 @@
 /g4sbs/targdiam        1.0 cm          ## Target Diameter
 /g4sbs/tdistgtwallthick 0.02 mm
 
-## Configure generator settings
-# pythia6 -> make use of Pythia generator file
-# /g4sbs/pythia6file <pythia_events_.root> FILE WITH PYTHIA EVENTS
-
-
-# LIST OF TDIS KINEMATICS
-# tdisgen -> original generator
-# tdisela -> new tdis elastic
-# tdisine -> new tdis inelastic
-# tdisqua -> new tdis quasielastic
-# tsidis  -> new tdis SIDIS (DO NOT USE)
-# tdiskinH -> new TDIS (hydrogen)
-# tdiskinD -> new TDIS (deuterium)
-
 /g4sbs/kine            dis
-
 
 /g4sbs/beamE	       11.0 GeV
 

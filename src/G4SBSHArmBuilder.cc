@@ -1374,7 +1374,7 @@ void G4SBSHArmBuilder::MakeHCALV2( G4LogicalVolume *motherlog,
   // According to Eric Day, this should be about 0.75 inches
   // (and for simplicity, the x,y dimensions will be the whole of HCal)
   G4double dim_HCALFrontPlateZ = 19.05*CLHEP::mm;
-  if(plateoption==2)dim_HCALFrontPlateZ = 9.525*CLHEP::mm;
+  if(plateoption==2)dim_HCALFrontPlateZ = 12.7*CLHEP::mm;
   
   // Specify the dimensions of the HCAL mother box/volume
   G4double dim_HCALX = (num_cols-1)*dist_ModuleCToCX + dim_ModuleX;
@@ -1944,9 +1944,9 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
   G4bool checkOverlap = fDetCon->fCheckOverlap;
   G4RotationMatrix *rot_HCAL= new G4RotationMatrix;
   rot_HCAL->rotateY(f48D48ang+fHCALangular_offset);
-  G4double dim_HCALPSX = 3200.0*mm;
+  G4double dim_HCALPSX = 3000.0*mm;
   G4double dim_HCALPSY = 2857.5*mm;
-  G4double dim_HCALPSZ = 900.0*mm;
+  G4double dim_HCALPSZ = 800.0*mm;
   // provision for 2 stacks of blocks sandwiched between 3 honey combs (<= 1 cm each)
   if(fHCALPSconfig==1){
     dim_HCALPSX = 1004.0*mm;
@@ -1958,8 +1958,9 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
     dim_HCALPSY = 2250.0*mm;
     dim_HCALPSZ = 190.0*mm;
   }
+  G4double HCalPSplateX = 1000.0*mm;
   G4double HCalPSplateZ = 6.35*mm;
-  G4Box *HCalPreshowerPlate = new G4Box("HCalPreshowerPlate_solid", dim_HCALPSX*0.5, dim_HCALPSY*0.5, HCalPSplateZ*0.5);
+  G4Box *HCalPreshowerPlate = new G4Box("HCalPreshowerPlate_solid", HCalPSplateX*0.5, dim_HCALPSY*0.5, HCalPSplateZ*0.5);
   G4LogicalVolume* HCalPreshowerPlate_log = new G4LogicalVolume(HCalPreshowerPlate, GetMaterial("Aluminum"), "HCalPreshowerPlate_log");
   
   G4double dist_HCalPSRadius = fHCALdist-dim_HCALPSZ/2.0-1.0*cm;
@@ -1986,8 +1987,6 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
   new G4PVPlacement(rot_HCAL, HCALPS_pos,
 		    log_HCALPS, "HCal PS Mother", motherlog, false, 0, checkOverlap);
   
-  new G4PVPlacement(0, G4ThreeVector(0, 0, -dim_HCALPSZ*0.5+1.0*cm-HCalPSplateZ*0.5), HCalPreshowerPlate_log, "HCalPSFrontPlate", log_HCALPS, false, 0, checkOverlap);
-  
   // EPAF: 2025/08/06
   // "HCAL" Preshower should be configurable,
   // but my hunch is that the Hermes blocks will be better,
@@ -1995,6 +1994,8 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
   if(fHCALPSconfig>0){
     // HERMES blocks option: default
     // Also mostly gross copy paste of the BB PS code, because there is no reason no to...
+    new G4PVPlacement(0, G4ThreeVector(0, 0, -dim_HCALPSZ*0.5+1.0*cm-HCalPSplateZ*0.5), HCalPreshowerPlate_log, "HCalPSFrontPlate", log_HCALPS, false, 0, checkOverlap);
+    
     double mylarthickness = 0.0020*cm, airthickness = 0.0040*cm;
     double mylar_air_sum = mylarthickness + airthickness;
     double pmtz = 0.20*cm;
@@ -2184,7 +2185,7 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
     //  - PMT and associated enclosure
     G4double dim_ModuleX    =  152.40*CLHEP::mm;
     G4double dim_ModuleY    =  152.40*CLHEP::mm;
-    G4double dim_ModuleZ    = 1555.70*CLHEP::mm;
+    G4double dim_ModuleZ    = 1355.70*CLHEP::mm;
     G4double dim_ModCanZ    = 1238.00*CLHEP::mm;//948.00*CLHEP::mm;
 
     // Also define the "CAN" dimensions, since there is still ~1.5 mm of steel
@@ -2648,6 +2649,14 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
     
     // Construct physical volumes for each of the sensitive modules
     G4double dist_ModuleCToCY     =  158.75*CLHEP::mm;
+
+    G4RotationMatrix *HCalPSplateRot = new G4RotationMatrix;
+    HCalPSplateRot->rotateY(15.0*deg);
+    new G4PVPlacement(HCalPSplateRot, G4ThreeVector(-HCalPSplateX*0.5*cos(15.0*deg)-HCalPSplateZ*0.5*cos(15.0*deg), 0, -dim_HCALPSZ*0.5+HCalPSplateX*0.97*sin(15.0*deg)), HCalPreshowerPlate_log, "HCalPSFrontPlate1", log_HCALPS, false, 0, checkOverlap);
+
+    HCalPSplateRot = new G4RotationMatrix;
+    HCalPSplateRot->rotateY(-15.0*deg);
+    new G4PVPlacement(HCalPSplateRot, G4ThreeVector(+HCalPSplateX*0.5*cos(15.0*deg)+HCalPSplateZ*0.5*cos(15.0*deg), 0, -dim_HCALPSZ*0.5+HCalPSplateX*0.97*sin(15.0*deg)), HCalPreshowerPlate_log, "HCalPSFrontPlate1", log_HCALPS, false, 0, checkOverlap);
     
     for(int row = 0; row < num_rows; row++ ) {
       for(int col = 0; col < 2; col++ ) {
@@ -2656,12 +2665,17 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
 	  G4RotationMatrix *HCalPSRot = new G4RotationMatrix;
 	  HCalPSRot->rotateY(pow(-1, col+1)*105.0*deg);
 	  
-	  posModX = pow(-1, col)*dim_ModCanZ*0.65*cos(15.0*deg);
-	  posModZ = pow(-1, pl)*dim_ModuleX*0.65*cos(15.0*deg);
+	  posModX = pow(-1, col)*dim_ModCanZ*0.56*cos(15.0*deg);
+	  posModZ = //-25.4*mm
+	    +pow(-1, pl)*dim_ModuleX*0.75*cos(15.0*deg);
 
-	  //posModX+= ;
-	  //posModZ+= ;
-	  
+	  if(col==0){
+	    posModX+= pow(-1, pl+1)*pow(-1, row+1)*152.4*mm*cos(15.0*deg);
+	    posModZ+= pow(-1, pl+1)*pow(-1, row)*152.4*mm*sin(15.0*deg);
+	  }else{
+	    posModX+= pow(-1, pl+1)*pow(-1, row+1)*152.4*mm*cos(15.0*deg);
+	    posModZ+= pow(-1, pl)*pow(-1, row)*152.4*mm*sin(15.0*deg);
+	  }
 	  new G4PVPlacement(HCalPSRot, G4ThreeVector(posModX,posModY,posModZ),
 			    log_Module, "log_Module", log_HCALPS, false, copyNo, checkOverlap);
 	  
@@ -2734,14 +2748,14 @@ void G4SBSHArmBuilder::MakeHCALPreshower( G4LogicalVolume *motherlog, G4double V
     double trans = 0.35; // Translucency of light guide + scintillators
 
     // Module
-    //G4VisAttributes *vis_Module  = new G4VisAttributes(G4Colour::Blue());
-    //vis_Module ->SetForceWireframe(true);
-    //log_Module->SetVisAttributes(vis_Module);
+    // G4VisAttributes *vis_Module  = new G4VisAttributes(G4Colour::Blue());
+    // vis_Module ->SetForceWireframe(true);
+    // log_Module->SetVisAttributes(vis_Module);
     log_Module->SetVisAttributes(G4VisAttributes::GetInvisible());
 
     // Hide the Can
-    //G4VisAttributes *vis_ModCan = new G4VisAttributes(G4Colour(0.78,0.92,0.27));
-    //log_ModCan->SetVisAttributes(vis_ModCan);
+    // G4VisAttributes *vis_ModCan = new G4VisAttributes(G4Colour(0.78,0.92,0.27));
+    // log_ModCan->SetVisAttributes(vis_ModCan);
     log_ModCan->SetVisAttributes(G4VisAttributes::GetInvisible());
 
     // Module Mylar (invisible)

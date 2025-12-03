@@ -86,7 +86,7 @@ G4SBSmTPC::G4SBSmTPC(G4SBSDetectorConstruction *dc):G4SBSComponent(dc)
   fMLPC_RinSupport = 15.*cm;
   fMLPC_RoutSupport = 16.*cm;
   fMLPC_CathodeRin = 1.5*cm;
-  fMLPC_CathodeMylarThickness = 0.01*mm;//0.001*mm;//1.0 um Mylar
+  fMLPC_CathodeMylarThickness = 0.001*mm;//0.001*mm;//1.0 um Mylar
   fMLPC_CathodeAlThickness =    0.00001*mm; //0.01um Al;//
   fMLPC_WirePlaneThickness =    0.008*mm;//8 um wires;//
   

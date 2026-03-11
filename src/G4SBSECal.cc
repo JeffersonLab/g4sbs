@@ -49,7 +49,7 @@ G4SBSECal::G4SBSECal(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fAng = 29.0*deg;
   fDist = 4.9*m;
   fVOff = 0.0*cm;
-  fHOff = -2.25*2.54*cm;//default ecal positioning along crystal center
+  fHOff = -2.341*2.54*cm;//default ecal positioning along crystal center
 
   fnzsegments_leadglass_ECAL = 1;
   fnzsegments_leadglass_C16 = 1;

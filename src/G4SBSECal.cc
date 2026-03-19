@@ -983,9 +983,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
 
 */
 //KIP CUTOFF///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Workspace for Kip updating the ECal Geometry, this is an edited version of what is above for the MakeECal_new code, if messed up, uncomment where its labelled KIP CUTOFF and comment out everything in the KIP workspace below
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////KIP
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////KIP
+//Workspace for Kip updating the ECal Geometry, this is an edited version of what is above for the MakeECal_new code,
 void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   // Define the inch
   G4double inch = 2.54*cm;
@@ -1308,9 +1306,13 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   G4int copy_nb = 0;
   G4double X_block, Y_block;
 
-  //the width(or height) of a SM is defined elsewhere as 5.06in, however everything seems to be properly alligned only when using 5.04in
+  //the width(or height) of a SM is defined elsewhere as 5.06in, however everything seems to be properly alligned only when using 5.07in
+  //previously (with just th 5.07in height of SM assumption) we were not including the effective vertical spacing as measured by Don Jones in the hall which is basically 2x the Ti wall thickness despite there being no actual Ti walls above or below the lead-glass array in the SM
   G4double width42 = 5.134*2.54*cm;
-  G4double height42 = 5.07*2.54*cm;
+  G4double height42_noTiSpacing = 5.07*2.54*cm;
+  G4double TiWallSpace = 2.0*0.032*2.54*cm;
+  G4double height42 = height42_noTiSpacing + TiWallSpace;
+  //G4double height42 = 5.07*2.54*cm;
   G4double depthInactive = 15.75*2.54*cm;
   G4double inactiveBox_width = 54.42*2.54*cm;
   G4double inactiveBox_height = 125.12*2.54*cm;
@@ -1902,6 +1904,8 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
       copy_nb++;
     }
     X_block+= BlockSpace_42;
+    if(i_%3==2)X_block+= 2*TiWallThick;
+    //there are no Ti walls on the top and botom of the SM module frame, only the sides. However after reviewing hand-measurements by Don Jones of ECal in the hall, it seems there is an effective vertical offset for which this simulation did not previously account. Therefore we are adding this vertical spacing such that the sim matches the real measurements; this will hopefully fix the spurious correlation seen in optics reconstruction between dx(vertical hit position as determined by ecal minus vertical hit position as determined by tracking) and x-ecal.
   }
   
   /*

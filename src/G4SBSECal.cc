@@ -49,7 +49,7 @@ G4SBSECal::G4SBSECal(G4SBSDetectorConstruction *dc):G4SBSComponent(dc){
   fAng = 29.0*deg;
   fDist = 4.9*m;
   fVOff = 0.0*cm;
-  fHOff = -2.25*2.54*cm;//default ecal positioning along crystal center
+  fHOff = -2.341*2.54*cm;//default ecal positioning along crystal center
 
   fnzsegments_leadglass_ECAL = 1;
   fnzsegments_leadglass_C16 = 1;
@@ -1287,7 +1287,7 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
 			       -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -50.81*cm, -58.60*cm,
 			       -54.97*cm, -58.76*cm, -55.13*cm};// from bottom to top
   */
-  G4double yfp_start_42[23] = {-58.73*cm, -54.61*cm, -58.73*cm, -54.61*cm, -58.73*cm, -52.87*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, 
+  G4double yfp_start_42[23] = {-58.73*cm, -54.61*cm, -58.73*cm, -54.61*cm, -58.89*cm, -52.87*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, 
 			       -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -53.02*cm, -58.73*cm,
 			       -54.29*cm, -58.73*cm, -54.29*cm};// from bottom to top, make these match center frame measurement from Don Jones, thus the user command shift is relative to frame center, by default this shift is -2.25in to put ecal at crystal center
   //for(int i = 0; i < 23; i++){

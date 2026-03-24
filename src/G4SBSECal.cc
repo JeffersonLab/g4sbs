@@ -1302,7 +1302,8 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   //xfp and yfp are following the analysis coordinate system, not the same as g4 coord system
   
   //xfpstart based on center of ECal JT model
-  G4double xfpstart = -147.22*cm;
+  //G4double xfpstart = -147.22*cm;
+  G4double xfpstart = -149.108*cm; //Updated to match new block spacing and Kin. 3 survey offset. 
   G4int copy_nb = 0;
   G4double X_block, Y_block;
 

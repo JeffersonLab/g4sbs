@@ -2523,31 +2523,32 @@ void G4SBSTargetBuilder::BuildGEnTarget(G4LogicalVolume *motherLog){
 
   //For now, omit TBD details of everything other than target for SIDIS:
   if( fDetCon->fExpType == G4SBS::kGEN || fDetCon->fExpType == G4SBS::kSIDISExp || fDetCon->fExpType == G4SBS::kALL ){
-   
-    BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
-    BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);
-    BuildGEnTarget_HelmholtzCoils(config,"min",motherLog);
 
-    // magnetic shield
-    BuildGEnTarget_Shield(config,motherLog);
+    if( fDetCon->fExpType != G4SBS::kSIDISExp ){ //Don't make HH coils for SIDIS for the time being! 
+      BuildGEnTarget_HelmholtzCoils(config,"maj",motherLog);
+      BuildGEnTarget_HelmholtzCoils(config,"rfy",motherLog);
+      BuildGEnTarget_HelmholtzCoils(config,"min",motherLog);
 
-    // target ladder 
-    BuildGEnTarget_LadderPlate(motherLog);
+      // magnetic shield (I can only assume this means the target enclosure!) 
+      BuildGEnTarget_Shield(config,motherLog);
+      
+      // target ladder 
+      BuildGEnTarget_LadderPlate(motherLog);
 
-    // pickup coils 
-    BuildGEnTarget_PickupCoils(motherLog);
+      // pickup coils 
+      BuildGEnTarget_PickupCoils(motherLog);
 
+      // ion chamber (for test purposes) 
+      bool enableIC = fDetCon->GetIonChamberEnable(); 
+      if(enableIC) BuildGEnTarget_IonChamber(motherLog); 
 
-    // ion chamber (for test purposes) 
-    bool enableIC = fDetCon->GetIonChamberEnable(); 
-    if(enableIC) BuildGEnTarget_IonChamber(motherLog); 
-
-    // beam collimator (for test purposes) 
-    bool enableBC_dnstr = fDetCon->GetBeamCollimatorEnable_dnstr(); 
-    bool enableBC_upstr = fDetCon->GetBeamCollimatorEnable_upstr(); 
-    if(enableBC_dnstr) BuildGEnTarget_BeamCollimator(motherLog,0); 
-    if(enableBC_upstr) BuildGEnTarget_BeamCollimator(motherLog,1); 
-
+      // beam collimator (for test purposes) 
+      bool enableBC_dnstr = fDetCon->GetBeamCollimatorEnable_dnstr(); 
+      bool enableBC_upstr = fDetCon->GetBeamCollimatorEnable_upstr(); 
+      if(enableBC_dnstr) BuildGEnTarget_BeamCollimator(motherLog,0); 
+      if(enableBC_upstr) BuildGEnTarget_BeamCollimator(motherLog,1); 
+    }
+    
     if(fUseHadronFilter){
       // Numbers come from Glass cell and hadron filter. These should not be
       // hard coded but this is how it is for now. Should make it more 

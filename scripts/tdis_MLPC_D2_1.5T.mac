@@ -1,0 +1,57 @@
+## Configure G4SBS for TDIS
+##/g4sbs/filename        test.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             tdis
+
+/g4sbs/target          D2
+/g4sbs/targlen         40.0 cm           ## Target Length
+/g4sbs/targdiam        1.0 cm          ## Target Diameter
+/g4sbs/tdistgtwallthick 0.02 mm
+
+/g4sbs/kine            gun
+
+
+/g4sbs/particle        proton
+/g4sbs/beamE	       11.0 GeV
+
+# electron energy range 
+/g4sbs/eemin           0.040 GeV  ## actually momentum...
+/g4sbs/eemax           1.000 GeV  ## actually momentum...
+/g4sbs/thmin           10.0 deg
+/g4sbs/thmax          170.0 deg
+/g4sbs/phmin        -180.0 deg
+/g4sbs/phmax         180.0 deg
+
+## Configure standard detector settings
+/g4sbs/lacdist       10.5 m
+/g4sbs/lacvoffset     0.40 m
+/g4sbs/lachoffset    -0.20 m
+/g4sbs/sbstrkrdist     4.4 m
+/g4sbs/sbstrkrpitch    5.0 deg
+
+/g4sbs/richdist        5.0 m
+/g4sbs/richgas         CF4
+/g4sbs/userichaero     false
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/sbsmagfield    -0.90 tesla
+/g4sbs/48d48field      1
+/g4sbs/sbsang          12.0 deg
+/g4sbs/48D48dist       2.5 m
+/g4sbs/sbsclampopt     0                 ## Disable all field clamps
+
+/g4sbs/solunifield	true
+/g4sbs/solunimag	1.5
+
+/g4sbs/tpcdesign 1
+
+/g4sbs/treeflag 0
+/g4sbs/totalabs true
+##/g4sbs/steplimit LACmod_log 1 
+
+/g4sbs/keepsdtrackinfo all true
+
+## Run xxx events
+##/g4sbs/run           10

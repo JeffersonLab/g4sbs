@@ -2602,13 +2602,22 @@ bool G4SBSEventGen::GenerateGun(){
   G4double ep = CLHEP::RandFlat::shoot( fEeMin, fEeMax );
   G4double etheta = acos( CLHEP::RandFlat::shoot( cos(fThMax), cos(fThMin) ) );
   G4double ephi   = CLHEP::RandFlat::shoot( fPhMin, fPhMax );
-  
+
+  // if(fThMax==0.1*deg && fThMin==0.0){
+  //   fElectronP.set(0.0, 0.0, ep);
+  // }else{
   fElectronP.set( ep*sin(etheta)*cos(ephi), ep*sin(etheta)*sin(ephi), ep*cos(etheta) );
+  // }
   
+  // if(fThMax==0.1*deg && fThMin==0.0){
+  //   fVert.set(4.1*cm,
+  // 	      0.0*cm,
+  // 	      -23.0*cm);
+  // }else{
   fVert.set( CLHEP::RandFlat::shoot( -fRasterX/2.0, fRasterX/2.0 ),
 	     CLHEP::RandFlat::shoot( -fRasterY/2.0, fRasterY/2.0 ),
 	     CLHEP::RandFlat::shoot( -fTargLen/2.0, fTargLen/2.0 ) );
-
+  // }
   return true;
 }
 

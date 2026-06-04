@@ -1,8 +1,8 @@
 ## Configure G4SBS for TDIS
-##/g4sbs/filename        tdis_h2_elastic_1.5T.root   ## Output rootfile
+##/g4sbs/filename        tdis_h2_1.5T.root   ## Output rootfile
 
 ## Configure Experiment
-/g4sbs/exp             tdis
+/g4sbs/exp             mtpc
 
 ## Configure the target
 /g4sbs/target          H2
@@ -10,26 +10,23 @@
 /g4sbs/targdiam        1.0 cm          ## Target Diameter
 /g4sbs/tdistgtwallthick 0.02 mm
 
-/g4sbs/kine            dis
+/g4sbs/kine            gun
+/g4sbs/particle        proton
 
-/g4sbs/beamE	       11.0 GeV
+/g4sbs/eemin           0.04 GeV  ## actually momentum...
+/g4sbs/eemax           1.00 GeV  ## actually momentum...
 
-# electron energy range 
-/g4sbs/eemin           0.5 GeV  ## actually momentum...
-/g4sbs/eemax          10.0 GeV  ## actually momentum...
-/g4sbs/thmin           5.0 deg
-/g4sbs/thmax          25.0 deg
-/g4sbs/phmin         120.0 deg
-/g4sbs/phmax         240.0 deg
+# electron angles range
+/g4sbs/thmin           0.0 deg
+/g4sbs/thmax         180.0 deg
+/g4sbs/phmin        -180.0 deg
+/g4sbs/phmax         180.0 deg
+
 
 ## Configure standard detector settings
-/g4sbs/hcaldist       10.0 m
-/g4sbs/hcalvoffset     0.75 m
-/g4sbs/hcalhoffset    -0.20 m
-/g4sbs/hcalpsconfig    0
-/g4sbs/hcalpsvoffset     0.27375 m
-/g4sbs/hcalpshoffset     0.00 m
-
+/g4sbs/lacdist       10.5 m
+/g4sbs/lacvoffset     0.40 m
+/g4sbs/lachoffset    -0.20 m
 /g4sbs/sbstrkrdist     4.4 m
 /g4sbs/sbstrkrpitch    5.0 deg
 
@@ -47,13 +44,10 @@
 
 /g4sbs/solunifield	true
 /g4sbs/solunimag	4.7
-#/g4sbs/solunimag	1.5
-#/g4sbs/soltoscafield	true
-#/g4sbs/soltoscascale	1.0
-#/g4sbs/soltoscaoffset	200.0 mm
 
-/g4sbs/treeflag 1
-/g4sbs/totalabs true
+/g4sbs/treeflag 0
+/g4sbs/totalabs false
+/g4sbs/mtpckrypto false
 #/g4sbs/steplimit LACmod_log 1 
 
 /g4sbs/keepsdtrackinfo all true

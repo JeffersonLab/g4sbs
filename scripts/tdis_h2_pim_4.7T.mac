@@ -10,17 +10,19 @@
 /g4sbs/targdiam        1.0 cm          ## Target Diameter
 /g4sbs/tdistgtwallthick 0.02 mm
 
-/g4sbs/kine            dis
+/g4sbs/kine            wiser
+/g4sbs/hadron          pi-
+
 
 /g4sbs/beamE	       11.0 GeV
 
-# electron energy range 
-/g4sbs/eemin           0.5 GeV  ## actually momentum...
-/g4sbs/eemax          10.0 GeV  ## actually momentum...
-/g4sbs/thmin           5.0 deg
-/g4sbs/thmax          25.0 deg
-/g4sbs/phmin         120.0 deg
-/g4sbs/phmax         240.0 deg
+# pion energy range 
+/g4sbs/hthmin           5.0 deg
+/g4sbs/hthmax          25.0 deg
+/g4sbs/hphmin         120.0 deg
+/g4sbs/hphmax         240.0 deg
+/g4sbs/ehmin           0.5 GeV
+/g4sbs/ehmax          10.0 GeV
 
 ## Configure standard detector settings
 /g4sbs/hcaldist       10.0 m

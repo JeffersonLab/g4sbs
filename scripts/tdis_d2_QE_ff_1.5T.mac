@@ -1,11 +1,11 @@
 ## Configure G4SBS for TDIS
-/g4sbs/filename        tdis_h2_4.7T.root   ## Output rootfile
+##/g4sbs/filename        tdis_d2_QE_1.5T.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             tdis
 
 ## Configure the target
-/g4sbs/target          H2
+/g4sbs/target          D2
 /g4sbs/targlen         40.0 cm           ## Target Length
 /g4sbs/targdiam        1.0 cm          ## Target Diameter
 /g4sbs/tdistgtwallthick 0.02 mm
@@ -24,7 +24,7 @@
 # tdiskinH -> new TDIS (hydrogen)
 # tdiskinD -> new TDIS (deuterium)
 
-/g4sbs/kine            tdiskinH
+/g4sbs/kine            elastic
 
 
 # when using pythia the rest of variables are irrelevant
@@ -70,13 +70,9 @@
 
 
 ## Configure standard detector settings
-/g4sbs/hcaldist        7.0 m
-/g4sbs/hcalvoffset     0.75 m
-/g4sbs/hcalhoffset    -0.20 m
-/g4sbs/hcalpsconfig   -1
-/g4sbs/hcalpsvoffset   0.75 m
-/g4sbs/hcalpshoffset   0.00 m
-
+/g4sbs/lacdist       10.5 m
+/g4sbs/lacvoffset     0.40 m
+/g4sbs/lachoffset    -0.20 m
 /g4sbs/sbstrkrdist     4.4 m
 /g4sbs/sbstrkrpitch    5.0 deg
 
@@ -93,7 +89,8 @@
 /g4sbs/sbsclampopt     0                 ## Disable all field clamps
 
 /g4sbs/solunifield	true
-/g4sbs/solunimag	4.7
+#/g4sbs/solunimag	4.7
+/g4sbs/solunimag	1.5
 #/g4sbs/soltoscafield	true
 #/g4sbs/soltoscascale	1.0
 #/g4sbs/soltoscaoffset	200.0 mm
@@ -105,4 +102,4 @@
 /g4sbs/keepsdtrackinfo all true
 
 ## Run xxx events
-/g4sbs/run           10000
+##/g4sbs/run           10000

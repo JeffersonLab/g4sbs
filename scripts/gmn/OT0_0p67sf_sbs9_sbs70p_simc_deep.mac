@@ -1,3 +1,5 @@
+## COpied from /w/halla-scshelf2102/sbs/seeds/sim/install/scripts
+
 ##Switch on Cherenkov for all subsystems except for GRINCH/RICH
 /g4sbs/usescint 0
 /g4sbs/useckov 1
@@ -21,14 +23,14 @@
 /g4sbs/DisableOpticalPhotonByMaterial Glass_HC
 /g4sbs/DisableOpticalPhotonByMaterial Paper
 
-## Configure G4SBS for gmn (Q^2 = 4.5 GeV^2, SBS-8)
-#/g4sbs/filename $SWIF_JOB_WORK_DIR/sbs8_sbs70p_simc_deen.root   ## Output rootfile
+## Configure G4SBS for gmn (Q^2 = 4.5 GeV^2, SBS-9)
+#/g4sbs/filename $SWIF_JOB_WORK_DIR/sbs9_sbs70p_simc_deep.root   ## Output rootfile
 
 ## Configure Experiment
 /g4sbs/exp             gmn
 
 ## Configure the target
-/g4sbs/target          LH2
+/g4sbs/target          LD2
 /g4sbs/targlen         15.0 cm           ## Target Length
 
 ## Configure generator settings
@@ -45,11 +47,11 @@
 /g4sbs/bbfield         1
 /g4sbs/scalebbfield    0.9672 
 /g4sbs/tosfield        SBSPortableFieldMap_FrontClampOnly_NoPoleShims.table 2
-/g4sbs/scalesbsfield   0                  ##via Z.Wertz study 2023
-/g4sbs/bbang           26.5 deg
-/g4sbs/bbdist          1.97473 m          ## db_run.dat
-/g4sbs/sbsang          29.9 deg
-/g4sbs/48D48dist       2.25 m 
+/g4sbs/scalesbsfield   0.67              ##going for 70%: 0.885-> -2.54134 for dx_p, 0.369->-1.08869 (JB)
+/g4sbs/bbang           49.0 deg
+/g4sbs/bbdist          1.550 m            ## db_run.dat
+/g4sbs/sbsang          22.5 deg
+/g4sbs/48D48dist       2.25 m
 /g4sbs/hcalangoffset   -0.5 deg   ## Due to the 0.5 deg difference between HCal and SBS angle (HCal was at 22.0 deg)
 
 ## Scattering chamber shielding to reduce bg
@@ -61,4 +63,4 @@
 /g4sbs/totalabs true
 
 ## Run 100 events
-/g4sbs/eventstatusevery 10
+/g4sbs/eventstatusevery 100

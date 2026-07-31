@@ -1,0 +1,71 @@
+## Configure G4SBS for gep (Q^2 = 5.7 GeV^2, 3rd pass)
+## /g4sbs/filename        GEP1_elastic.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gep
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         30.0 cm           ## Target Length
+/g4sbs/targpos       0.0 0.0 -9.17 cm      # target position (a negative z offset means shift target upstream)
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         50.0 microampere
+/g4sbs/rasterx         2.0 mm
+/g4sbs/rastery         2.0 mm
+/g4sbs/beamE           6.465 GeV # NOTE: this applies the scale factor of 1.0027 from EPICS HALLA:p (average of 6.448 GeV in run 3443) to "true" beam energy found by Doug H
+/g4sbs/thmin           21.0 deg
+/g4sbs/thmax           35.0 deg
+/g4sbs/phmin           -35.0 deg
+/g4sbs/phmax           35.0 deg
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        10.0 m
+/g4sbs/hcalvoffset     75.53 cm # NOTE: this value is taken from survey A2143
+/g4sbs/hcalhoffset     0.665 cm # number from survey A2143
+/g4sbs/sbsclampopt     2
+
+## Configure the magnets
+/g4sbs/bbfield         0
+/g4sbs/tosfield GEP1_map_finalsurvey.table
+/g4sbs/scalesbsfield  1.0
+/g4sbs/bbang           29.46 deg
+/g4sbs/bbdist          7.9923 m # survey distance to ECAL surface, adjusted for target offset and mispointing
+/g4sbs/sbsang          25.756 deg # survey angle
+/g4sbs/48D48dist       1.59782 m # survey distance
+
+# the following offsets reflect our best understanding/interpretation of the Kin. 1 survey results:
+/g4sbs/ecalhorizoffset -6.001 cm
+/g4sbs/ecalvertoffset -1.775 cm 
+
+/g4sbs/usehadronfilter false
+/g4sbs/leadwallconnect true
+
+#/control/execute scripts/default_thresholds.mac
+/g4sbs/totalabs true
+/g4sbs/treeflag 1
+/g4sbs/eventstatusevery 10
+/g4sbs/keepsdtrackinfo all true
+#/g4sbs/keepsdtrackinfo Harm/HCalScint true
+
+# FPP configuration options:
+# option 1: single-analyzer, 8+8 front and back trackers:
+/g4sbs/gepfppoption 1
+/g4sbs/FPP1CH2thick 55.88 cm
+
+# option 2: double-analyzer (both CH2)
+#/g4sbs/gepfppoption 2
+#/g4sbs/FPP1CH2thick 55.88 cm
+#/g4sbs/FPP2CH2thick 55.88 cm
+
+# option 3: double-analyzer, first analyzer CH2, second analyz
+#/g4sbs/gepfppoption 3
+#/g4sbs/FPP1CH2thick 55 cm
+#/g4sbs/FPP2CH2thick
+
+
+## Run 100 events
+## /g4sbs/run             10000

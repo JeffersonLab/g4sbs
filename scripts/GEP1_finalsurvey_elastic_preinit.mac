@@ -24,7 +24,7 @@
 ## Configure standard detector settings
 /g4sbs/gemres          0.070 mm
 /g4sbs/hcaldist        10.00531 m # adjusted to reflect survey result
-/g4sbs/hcalvoffset     75.53 cm # NOTE: this value is taken from survey A2143
+/g4sbs/hcalvoffset     75.144 cm # NOTE: this value is taken from survey A2143
 /g4sbs/hcalhoffset     0.665 cm # number from survey A2143
 /g4sbs/sbsclampopt     2
 

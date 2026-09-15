@@ -1,0 +1,88 @@
+## Configure G4SBS for gep (Q^2 = 12 GeV^2, 5th pass)
+#/g4sbs/filename        GEP3_elastic_temp.root   ## Output rootfile
+
+## Configure Experiment
+/g4sbs/exp             gep
+
+## Configure the target
+/g4sbs/target          LH2
+/g4sbs/targlen         30.0 cm           ## Target Length
+#/g4sbs/targpos         0.0 0.0 -9.0 cm   # target z offset, -9 cm means shift target UPSTREAM
+# account for horizontal mispointing of SBS by shifting target further upstream? probably works for SBS but not quite right for ECAL...
+# if ECAL is shifted 7 mm toward beam right relative to ideal, then its ideal center is pointing about 1.5 cm downstream of ideal target center
+# this maps to about 5 mm downstream of the "SBS origin". So if we shift target 1 cm upstream to account
+# for SBS horizontal mispointing, then we only need to shift ECAL by 5 mm * sin(27 deg) = 2.25 mm. This is reflected in the horizoffset below!
+
+
+/g4sbs/targpos         0.0 0.0 -10.03 cm  # canonical target z offset of 9.01 + 1.02 SBS pointing offset
+
+
+## Configure generator settings
+/g4sbs/kine            elastic           ## Generator
+/g4sbs/runtime         1.0 s
+/g4sbs/beamcur         50.0 microampere
+/g4sbs/rasterx         2.0 mm
+/g4sbs/rastery         2.0 mm
+/g4sbs/beamE           10.6897 GeV # adjusted beam energy after applying canonical scale factor of 1.0027 from typical EPICS HALLA:p value
+
+# Recall these are ELECTRON energy generation limits for elastic ep!
+/g4sbs/thmin           18.0 deg
+/g4sbs/thmax           35.0 deg
+/g4sbs/phmin           -38.0 deg
+/g4sbs/phmax           38.0 deg
+
+## Configure standard detector settings
+/g4sbs/gemres          0.070 mm
+/g4sbs/hcaldist        9.9872 m # this distance more accurately reflects SBS pointing offset
+/g4sbs/hcalvoffset     74.825 cm # this distance more accurately reflects SBS Kin. 3 survey result
+/g4sbs/hcalhoffset     0.3682 mm # from survey results
+
+/g4sbs/sbsclampopt     2
+
+## Configure the magnets
+/g4sbs/bbfield         0
+#/g4sbs/tosfield        GEP_12map0_newheader.table
+#/g4sbs/tosfield SBSPortableFieldMap_TwoClamps_PoleShims.table 2
+#/g4sbs/scalesbsfield     0.53
+# keep default maximum field for now
+# assume 2.4 T*m / 1.22 m = 1.97 Tesla
+#/g4sbs/sbsmagfield     1.97 tesla
+#/g4sbs/48d48field      1
+/g4sbs/tosfield  GEP3mod_map_long_finalsurvey.table
+
+# add horizontal offset of ECAL relative to ideal:
+/g4sbs/ecalhorizoffset  -6.162 cm # this plus additional target offset should take care of the survey offsets for ECAL 
+/g4sbs/bbang           27.0 deg
+/g4sbs/bbdist          6.00221 m # add survey offset of 11.3 mm and subtract out effect of SBS pointing offset
+/g4sbs/sbsang          18.6127 deg
+# the following accounts for SBS magnet downstream offset according to survey
+/g4sbs/48D48dist       1.6184 m
+
+/g4sbs/usehadronfilter false
+/g4sbs/leadwallconnect true
+
+#/control/execute scripts/default_thresholds.mac
+/g4sbs/totalabs true
+/g4sbs/treeflag 1
+/g4sbs/eventstatusevery 10
+/g4sbs/keepsdtrackinfo all true
+#/g4sbs/keepsdtrackinfo Harm/HCalScint true
+
+# FPP configuration options:
+# option 1: single-analyzer, 8+8 front and back trackers:
+/g4sbs/gepfppoption 1
+/g4sbs/FPP1CH2thick 55.88 cm
+
+# option 2: double-analyzer (both CH2)
+#/g4sbs/gepfppoption 2
+#/g4sbs/FPP1CH2thick 55.88 cm
+#/g4sbs/FPP2CH2thick 55.88 cm
+
+# option 3: double-analyzer, first analyzer CH2, second analyz
+#/g4sbs/gepfppoption 3
+#/g4sbs/FPP1CH2thick 55 cm
+#/g4sbs/FPP2CH2thick
+
+
+## Run 100 events
+#/g4sbs/run             100

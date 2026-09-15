@@ -37,8 +37,9 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 
   double beta, gamma; //relativistic factors for the proton.
   double xfp, yfp, xpfp, ypfp, t; //include time-of-flight!
+  
   double xfprecon,yfprecon,xpfprecon,ypfprecon; //includes detector resolution!
-  double xtar, ytar, xptar, yptar, p;
+  double xtar, ytar, xptar, yptar, p, vx, vy, vz;
   double chi, chiphi; //usual dipole precession angles
   //Euler angles for the trajectory bend:
   double phitrack, thetatrack, psitrack;
@@ -66,6 +67,9 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
   Tout->Branch("xptar",&xptar);
   Tout->Branch("yptar",&yptar);
   Tout->Branch("p",&p);
+  Tout->Branch("vx",&vx);
+  Tout->Branch("vy",&vy);
+  Tout->Branch("vz",&vz);
   Tout->Branch("chi",&chi);
   Tout->Branch("chiphi",&chiphi);
   Tout->Branch("phitrack",&phitrack);
@@ -231,6 +235,10 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 	beta = p/sqrt(pow(p,2)+pow(Mp,2));
 	gamma = sqrt(1.0 + pow(p/Mp,2));
 
+	vx = T->ev_vx;
+	vy = T->ev_vy;
+	vz = T->ev_vz;
+	
 	//Now need target quantities!
 
 	//ouble px,py,pz;
@@ -253,6 +261,7 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 	TVector3 SBSxaxis(0,-1,0);
 	TVector3 SBSyaxis = (SBSzaxis.Cross(SBSxaxis)).Unit();
 
+	//Track direction at target, expressed in TARGET TRANSPORT coord system!
 	TVector3 punit_TRANSPORT( phall_unit.Dot( SBSxaxis ),
 				  phall_unit.Dot( SBSyaxis ),
 				  phall_unit.Dot( SBSzaxis ) );
@@ -265,7 +274,7 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 	TVector3 vertex_TRANSPORT( vertex_hall.Dot( SBSxaxis ),
 				   vertex_hall.Dot( SBSyaxis ),
 				   vertex_hall.Dot( SBSzaxis ) );
-
+	
 	xtar = vertex_TRANSPORT.X() - xptar * vertex_TRANSPORT.Z();
 	ytar = vertex_TRANSPORT.Y() - yptar * vertex_TRANSPORT.Z();
 
@@ -277,26 +286,30 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 
 	//Compute Euler angles: for this we need to compute the axes of the tgt and fp comoving coordinate systems:
 	TVector3 pfp_TRANSPORT( xpfp, ypfp, 1.0 );
-	pfp_TRANSPORT = pfp_TRANSPORT.Unit();
+	pfp_TRANSPORT = pfp_TRANSPORT.Unit(); //track direction at FP in FP transport coords.
 
-	TVector3 SBSzaxis_fp( -sin(SBS_thetabend), 0, cos(SBS_thetabend) );
-	TVector3 SBSxaxis_fp( cos(SBS_thetabend), 0, sin(SBS_thetabend) );
-	TVector3 SBSyaxis_fp(0,1,0);
+	//Unit vectors of FP coord system expressed in TARGET TRANSPORT coords (in ordinary GEP sims and analysis, FP and target TRANSPORT coord systems are the SAME! (SBS_thetabend = "central" bend angle based on ideal GEM stack orientation = 0)
+	TVector3 SBSzaxis_fp( -sin(SBS_thetabend), 0, cos(SBS_thetabend) ); //ordinarily (0,0,1)
+	TVector3 SBSxaxis_fp( cos(SBS_thetabend), 0, sin(SBS_thetabend) ); //ordinarily (1,0,0)
+	TVector3 SBSyaxis_fp(0,1,0); 
 
+	// track direction at FP in TARGET transport coords!
 	TVector3 pfp_bent =
 	  pfp_TRANSPORT.X() * SBSxaxis_fp +
 	  pfp_TRANSPORT.Y() * SBSyaxis_fp +
 	  pfp_TRANSPORT.Z() * SBSzaxis_fp;
 
+	//Unit vectors of comoving coord system with FP track, expressed in TARGET TRANSPORT coords!
 	TVector3 xaxis_comoving_fp = SBSxaxis_fp;
-	TVector3 zaxis_comoving_fp = pfp_bent;
-	TVector3 yaxis_comoving_fp = (zaxis_comoving_fp.Cross( xaxis_comoving_fp )).Unit();
-	xaxis_comoving_fp = (yaxis_comoving_fp.Cross(zaxis_comoving_fp)).Unit();
+	TVector3 zaxis_comoving_fp = pfp_bent; //track direction in FP coords.
+	TVector3 yaxis_comoving_fp = (zaxis_comoving_fp.Cross( xaxis_comoving_fp )).Unit(); //unit vector perp to track direction and parallel to yz plane of FP TRANSPORT coords
+	xaxis_comoving_fp = (yaxis_comoving_fp.Cross(zaxis_comoving_fp)).Unit(); // xhat = yhat cross zhat to complete orthonormal basis:
 
+	//Unit vectors of comoving coord system with TARGET track, expressed in TARGET TRANSPORT coords!
 	TVector3 xaxis_comoving_tgt(1,0,0);
-	TVector3 zaxis_comoving_tgt = punit_TRANSPORT;
-	TVector3 yaxis_comoving_tgt = (zaxis_comoving_tgt.Cross(xaxis_comoving_tgt)).Unit();
-	xaxis_comoving_tgt = (yaxis_comoving_tgt.Cross(zaxis_comoving_tgt)).Unit();
+	TVector3 zaxis_comoving_tgt = punit_TRANSPORT; //track direction at target in target TRANSPORT coords
+	TVector3 yaxis_comoving_tgt = (zaxis_comoving_tgt.Cross(xaxis_comoving_tgt)).Unit(); //unit vector perp to track direction and parallel to yz plane of target TRANSPORT coords.
+	xaxis_comoving_tgt = (yaxis_comoving_tgt.Cross(zaxis_comoving_tgt)).Unit(); //xhat = yhat cross zhat to complete orthonormal basis
 
 	// phitrack = atan2( yaxis_comoving_fp.Dot( xaxis_comoving_tgt ), -zaxis_comoving_fp.Dot( xaxis_comoving_tgt ) );
 	// psitrack = atan2( xaxis_comoving_fp.Dot( yaxis_comoving_tgt ), xaxis_comoving_fp.Dot( zaxis_comoving_tgt ) );
@@ -305,19 +318,21 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 	TVector3 rotation_axis_track = (punit_TRANSPORT.Cross( pfp_bent) ).Unit();
 	double rotation_angle_track = acos( punit_TRANSPORT.Dot( pfp_bent ) );
 
+	//NET total rotation of proton trajectory based on initial and final directions:
 	TRotation Rtrack;
 	Rtrack.Rotate( rotation_angle_track, rotation_axis_track );
 
+	//Euler angles for total rotation of proton track in TARGET TRANSPORT coordinates 
 	phitrack = atan2( Rtrack.XY(), -Rtrack.XZ() );
 	thetatrack = acos( Rtrack.XX() );
 	psitrack = atan2( Rtrack.YX(), Rtrack.ZX() );
       
-	//In TRANSPORT coordinates at the target:
+	//"True" proton polarization directional components (unit vector) in TRANSPORT coordinates at the target:
 	Pxtg = T->ev_Sx;
 	Pytg = T->ev_Sy;
 	Pztg = T->ev_Sz;
       
-	//In TRANSPORT coordinates at the fp:
+	//"True" proton polarization directional components (unit vector) in TRANSPORT coordinates at the fp:
 	Pxfp = (*(T->Harm_FT_Track_Sx))[0];
 	Pyfp = (*(T->Harm_FT_Track_Sy))[0];
 	Pzfp = (*(T->Harm_FT_Track_Sz))[0];
@@ -329,28 +344,38 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 	SpinFp = SpinFp.Unit();
 
 
+	//Proton spin at the FP, expressed in TARGET TRANSPORT coords. Ordinarily the same as SpinFp 
 	TVector3 SpinFp_bent =
 	  SpinFp.X() * SBSxaxis_fp +
 	  SpinFp.Y() * SBSyaxis_fp +
 	  SpinFp.Z() * SBSzaxis_fp;
       
 	//Compute geometric approximation rotation matrix:
+	// Proton spin at target in comoving coordinates 
 	TVector3 SpinTg_comoving( SpinTg.Dot( xaxis_comoving_tgt ),
 				  SpinTg.Dot( yaxis_comoving_tgt ),
 				  SpinTg.Dot( zaxis_comoving_tgt ) );
 
+	// For "geometric approximation" we rotate about X (in the horizontal plane) by -gamma * kappa * (phi + psi)/2,
+	// then about Y by -gamma * kappa * theta,
+	// then about X again by -gamma * kappa * (phi + psi)/2
 	TRotation R;
 	R.RotateX( -gamma*kappa_p*(phitrack+psitrack)/2.0 );
 	R.RotateY( -gamma*kappa_p*thetatrack );
 	R.RotateX( -gamma*kappa_p*(phitrack+psitrack)/2.0 );
 
+	//For "Ideal dipole" approximation, we simply rotate about Y by -gamma * kappa * theta
 	TRotation Rdipole;
 	Rdipole.RotateY( -gamma*kappa_p*thetatrack );
-      
+
+	//Apply the approximate expected spin rotations relative to the proton trajectory in comoving coordinates
+	//for both "geometric" and "dipole" approximations:
+	
 	TVector3 SpinFp_comoving_geom = R * SpinTg_comoving;
 	TVector3 SpinFp_comoving_dipole = Rdipole * SpinTg_comoving;
 
 	//Now this is expressed in "bent" FP coordinates or target transport coordinates:
+	//Geometric approximation prediction in TARGET transport coordinates:
 	TVector3 SpinFp_bent_geom =
 	  SpinFp_comoving_geom.X() * xaxis_comoving_fp +
 	  SpinFp_comoving_geom.Y() * yaxis_comoving_fp +
@@ -358,11 +383,13 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 
 	//TVector3 SpinFp_TRANSPORT_geom( SpinFp_bent_geom.Dot( SBS
 
+	//Geometric approximation prediction in FP transport coordinates (for comparison to MC truth!)
 	TVector3 SpinFp_TRANSPORT_geom( SpinFp_bent_geom.Dot( SBSxaxis_fp ),
 					SpinFp_bent_geom.Dot( SBSyaxis_fp ),
 					SpinFp_bent_geom.Dot( SBSzaxis_fp ) );
-
+	
 	//Now this is expressed in "bent" FP coordinates or target transport coordinates:
+	//Ideal dipole prediction in TARGET TRANSPORT coordinates:
 	TVector3 SpinFp_bent_dipole =
 	  SpinFp_comoving_dipole.X() * xaxis_comoving_fp +
 	  SpinFp_comoving_dipole.Y() * yaxis_comoving_fp +
@@ -370,6 +397,7 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 
 	//TVector3 SpinFp_TRANSPORT_dipole( SpinFp_bent_dipole.Dot( SBS
 
+	//Ideal dipole prediction in FP TRANSPORT coordinates (for comparison to MC truth!)
 	TVector3 SpinFp_TRANSPORT_dipole( SpinFp_bent_dipole.Dot( SBSxaxis_fp ),
 					  SpinFp_bent_dipole.Dot( SBSyaxis_fp ),
 					  SpinFp_bent_dipole.Dot( SBSzaxis_fp ) );
@@ -385,14 +413,15 @@ void MakeGEP_optics_tree( const char *inputfilename, const char *outputfilename,
 	Pyfpdipole = SpinFp_TRANSPORT_dipole.Y();
 	Pzfpdipole = SpinFp_TRANSPORT_dipole.Z();
 
-	//Compute the total rotation of the spin in fixed transport coordinates:
+	//Compute the NET total rotation of the spin in fixed transport coordinates:
 	TVector3 spin_rotation_axis = (SpinTg.Cross(SpinFp)).Unit();
 	double spin_rotation_angle = acos( SpinTg.Dot(SpinFp));
 
 	//cout << "Spin rotation axis in TRANSPORT coordinates:" << endl;
 	//spin_rotation_axis.Print();
 	//cout << "Total spin rotation angle in TRANSPORT coordinates = " << spin_rotation_angle*180.0/TMath::Pi() << " deg" << endl;
-      
+
+	//For the moment, we don't record the results below to the tree or otherwise use them.
       
 	TRotation Rspin;
 	Rspin.Rotate( spin_rotation_angle, spin_rotation_axis );

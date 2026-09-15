@@ -24,7 +24,10 @@ const double SBS_thetabend = 0.0*PI/180.0; //central bend angle
 
 //const double SBS_thetabend = 5.0*PI/180.0;
 
-void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int order_spin=4, const char *outfilename="SBS_optics_fitresult.root", int use_xtar_flag=0 ){
+void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int order_spin=4, const char *outfilename="SBS_optics_fitresult.root", int use_xtar_flag=0, double SBStheta_central=25.756, double trkrdist=3.685, int fix_ytar=1, int fix_yptar=1 ){
+
+  SBStheta_central *= PI/180.0;
+  
   int ncoeff_optics = 0;
 
   int ncoeff_optics_nonzero = 0;
@@ -77,12 +80,16 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
   TMatrixD Moptics(ncoeff_optics,ncoeff_optics);
   TVectorD b_xptar(ncoeff_optics), b_yptar(ncoeff_optics), b_ytar(ncoeff_optics), b_pinv(ncoeff_optics);
 
+  //Experimental: fit vertex z directly instead of the usual ytarget
+  TVectorD b_vz(ncoeff_optics);
+  
   for( int ipar=0; ipar<ncoeff_optics; ipar++ ){
     b_xptar(ipar) = 0.0;
     b_yptar(ipar) = 0.0;
     b_ytar(ipar) = 0.0;
     b_pinv(ipar) = 0.0;
-
+    b_vz(ipar) = 0.0;
+    
     b_xfp(ipar) = 0.0;
     b_yfp(ipar) = 0.0;
     b_xpfp(ipar) = 0.0;
@@ -138,12 +145,20 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 
     //First compute bend angle:
 
-    TVector3 zaxis_fp(-sin(SBS_thetabend),0,cos(SBS_thetabend));
-    TVector3 yaxis_fp(0,1,0);
-    TVector3 xaxis_fp = yaxis_fp.Cross(zaxis_fp).Unit();
+    //SBS thetabend is 0
 
-    TVector3 nhat_fp(T->xpfp, T->ypfp, 1.0 );
+    // This calculation of basis vectors is unnecessary when thetabend is hard-coded to be zero
+    // It leads essentially to a "rotation" by the identity matrix:
+    
+    TVector3 zaxis_fp(-sin(SBS_thetabend),0,cos(SBS_thetabend)); // (0,0,1)
+    TVector3 yaxis_fp(0,1,0); //Up vector! 
+    TVector3 xaxis_fp = yaxis_fp.Cross(zaxis_fp).Unit(); // (1,0,0)
+
+    
+    TVector3 nhat_fp(T->xpfp, T->ypfp, 1.0 ); //THIS is expressed in TRANSPORT coordinates!
     nhat_fp = nhat_fp.Unit();
+
+    // When thetabend = 0, nhat_fp_global = nhat_fp!
     TVector3 nhat_fp_global = nhat_fp.X()*xaxis_fp +
       nhat_fp.Y()*yaxis_fp +
       nhat_fp.Z()*zaxis_fp;
@@ -171,12 +186,14 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 	      
 	      b_xptar[icoeff] += term[icoeff]*T->xptar;
 	      //if( i == 0 ){ //don't include xtar-dependent terms in yptar, ytar fits:
-	      b_yptar[icoeff] += term[icoeff]*T->yptar;
-	      b_ytar[icoeff] += term[icoeff]*T->ytar;
-		//}
+	      b_yptar[icoeff] += term[icoeff]*(T->yptar); //For yptarget, we fit to the RESIDUALS wrt a first-order approximation (yptar = ypfp), NOT to yptar itself!
+	      b_ytar[icoeff] += term[icoeff]*(T->ytar); //For ytarget, we fit to the RESIDUALS wrt a first-order approximation, NOT to ytarget itself!
+		//} 
 	      //	      b_pinv[icoeff] += term[icoeff]/T->p;
 	      b_pinv[icoeff] += term[icoeff]*T->p*thetabend;
 
+	      b_vz[icoeff] += term[icoeff]*T->vz;
+	      
 	      b_xfp[icoeff] += fterm[icoeff]*T->xfp;
 	      b_yfp[icoeff] += fterm[icoeff]*T->yfp;
 	      b_xpfp[icoeff] += fterm[icoeff]*T->xpfp;
@@ -321,6 +338,8 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 	b_ytar[icoeff] = 0.0;
 	b_pinv[icoeff] = 0.0;
 
+	b_vz[icoeff] = 0.0;
+
 	b_xfp[icoeff] = 0.0;
 	b_yfp[icoeff] = 0.0;
 	b_xpfp[icoeff] = 0.0;
@@ -373,6 +392,8 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
   TDecompSVD A_yptar(Moptics);
   TDecompSVD A_ytar(Moptics);
 
+  TDecompSVD A_vz(Moptics);
+  
   cout << "solving xptar" << endl;
   bool good_xptar = A_xptar.Solve(b_xptar);
   cout << "xptar done, success = " << good_xptar << endl;
@@ -385,7 +406,11 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
   cout << "solving pinv" << endl;
   bool good_pinv = A_pinv.Solve(b_pinv);
   cout << "pinv done, success = " << good_pinv << endl;
-
+  cout << "solving vz..." << endl;
+  bool good_vz = A_vz.Solve(b_vz);
+  cout << "vz done, success = " << good_vz << endl;
+  
+  
   TDecompSVD A_xfp(Mforward);
   TDecompSVD A_yfp(Mforward);
   TDecompSVD A_xpfp(Mforward);
@@ -433,8 +458,8 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
   TTree *Tout = new TTree("Tout","SBS optics fit result");
 
   double xfp,yfp,xpfp,ypfp,xfprecon,yfprecon,xpfprecon,ypfprecon;
-  double xptar,yptar,ytar,xtar,p,thetabend;
-  double xptarrecon,yptarrecon,ytarrecon,xtarrecon,precon,thetabendrecon;
+  double xptar,yptar,ytar,xtar,p,thetabend,vz;
+  double xptarrecon,yptarrecon,ytarrecon,xtarrecon,precon,thetabendrecon,vzrecon_ytar,vzrecon_direct;
   double xfpforward,yfpforward,xpfpforward,ypfpforward;
 
   Tout->Branch("xfp",&xfp);
@@ -451,12 +476,15 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
   Tout->Branch("xtar",&xtar);
   Tout->Branch("p",&p);
   Tout->Branch("thetabend",&thetabend);
+  Tout->Branch("vz", &vz);
   Tout->Branch("xptarrecon",&xptarrecon);
   Tout->Branch("yptarrecon",&yptarrecon);
   Tout->Branch("ytarrecon",&ytarrecon);
   Tout->Branch("xtarrecon",&xtarrecon);
   Tout->Branch("precon",&precon);
   Tout->Branch("thetabendrecon",&thetabendrecon);
+  Tout->Branch("vzrecon_ytar", &vzrecon_ytar);
+  Tout->Branch("vzrecon_direct", &vzrecon_direct);
   Tout->Branch("xfpforward",&xfpforward);
   Tout->Branch("yfpforward",&yfpforward);
   Tout->Branch("xpfpforward",&xpfpforward);
@@ -565,6 +593,40 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 	for( int k=0; k<=order_optics-i-j; k++ ){
 	  for( int l=0; l<=order_optics-i-j-k; l++ ){
 	    for( int m=0; m<=order_optics-i-j-k-l; m++ ){
+
+	      if( ordertemp == 0 && fix_ytar == 1 ){
+		b_ytar[ipar] = 0.0;
+	      }
+	      if( ordertemp == 0 && fix_yptar == 1 ){
+		b_yptar[ipar] = 0.0;
+	      }
+	      
+	      if( i+j+k+l+m == 1 && ordertemp == 1 ){
+		if( l == 1 ){ //first-order yfp term.
+		  if( fix_ytar == 1 ) b_ytar[ipar] = 1.0;
+		}
+
+		if( j == 1 ){ //first-order ypfp term.
+		  if( fix_ytar == 1 ) b_ytar[ipar] = -trkrdist;
+		  if( fix_yptar == 1 ) b_yptar[ipar] = 1.0;
+		}
+	      }
+	      // 	if( l == 1 ){ //Add 1 to the first-order yfp term
+
+	      // 	  cout << "adding 1 to b_ytar, old = " << b_ytar[ipar] << ", new = ";
+	      // 	  b_ytar[ipar] += 1.0;
+	      // 	  cout << b_ytar[ipar] << endl;
+	      // 	}
+	      // 	if( j == 1 ){ //Add -trkrdist to the first-order ypfp term:
+	      // 	  cout << "adding -trkrdist = " << trkrdist << " m to b_ytar, old = " << b_ytar[ipar] << ", new = ";
+	      // 	  b_ytar[ipar] -= trkrdist;
+	      // 	  cout << b_ytar[ipar] << endl;
+	      // 	  cout << "adding 1 to b_yptar, old = " << b_yptar[ipar] << ", new = ";
+	      // 	  b_yptar[ipar] += 1.0; //Add 1 to the first-order ypfp term for yptar
+	      // 	  cout << b_yptar[ipar] << endl;
+	      // 	}
+	      // }
+	  
 	      TString opticsline;
 	      opticsline.Form("  %15.8g %15.8g %15.8g %15.8g   %d %d %d %d %d",
 			    b_xptar(ipar), b_yptar(ipar),
@@ -697,6 +759,8 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
     xtar = T->xtar;
     p = T->p;
 
+    vz = T->vz;
+    
     Pxtg = T->Pxtg;
     Pytg = T->Pytg;
     Pztg = T->Pztg;
@@ -738,11 +802,15 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
     double xptar_sum = 0.0;
     double yptar_sum = 0.0;
     double ytar_sum = 0.0;
+    double vz_sum = 0.0;
 
     double xfp_sum = 0.0;
     double yfp_sum = 0.0;
     double xpfp_sum = 0.0;
     double ypfp_sum = 0.0;
+
+    double ytar_firstorder = T->yfp - trkrdist * T->ypfp;
+    double yptar_firstorder = T->ypfp;
     
     int icoeff=0;
     for( int i=0; i<=order_optics; i++ ){
@@ -758,6 +826,8 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 	      ytar_sum += term * b_ytar[icoeff];
 	      pinv_sum += term * b_pinv[icoeff];
 
+	      vz_sum += term * b_vz[icoeff];
+	      
 	      double fterm = pow(T->xptar,m)*pow(T->yptar,l)*pow(T->ytar,k)*pow(1.0/T->p,j)*pow(T->xtar,i);
 	      xfp_sum += fterm * b_xfp[icoeff];
 	      yfp_sum += fterm * b_yfp[icoeff];
@@ -770,7 +840,9 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
 	}
       }
     }
-
+    
+    vzrecon_direct = vz_sum;
+    
     xfpforward = xfp_sum;
     yfpforward = yfp_sum;
     xpfpforward = xpfp_sum;
@@ -788,7 +860,14 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
  
     xptarrecon = xptar_sum;
     yptarrecon = yptar_sum;
+    //ytarrecon = ytar_sum + ytar_firstorder;
+    //yptarrecon = yptar_sum + yptar_firstorder;
+
     ytarrecon = ytar_sum;
+    yptarrecon = yptar_sum;
+    
+    vzrecon_ytar = ytarrecon/(sin(SBStheta_central)-yptarrecon*cos(SBStheta_central));
+    
     //precon = 1.0/pinv_sum;
     //now pinv_sum = p*thetabend, so we need to compute the reconstructed and true thetabend!
 

@@ -79,7 +79,13 @@
 #/g4sbs/keephistory Earm/ECAL false
 
 # Use this open statement to create an OpenGL view:
-/vis/open OGLIQt 800x800-0+0
+#/vis/open OGLIQt 800x800-0+0
+
+# use the following commands to create a TSG view (works much better on macOS silicon).
+/vis/sceneHandler/create TSG scene-handler-tsg
+/vis/viewer/create scene-handler-tsg viewer-tsg 600x600-0+0
+
+
 #
 # Use this open statement to create a .prim file suitable for
 # viewing in DAWN:
@@ -98,7 +104,7 @@
 /vis/viewer/set/autoRefresh false
 /vis/verbose errors
 #
-/vis/viewer/set/background 1 1 1 0
+/vis/viewer/set/background 0 0 0 1
 
 # Draw geometry:
 /vis/drawVolume worlds

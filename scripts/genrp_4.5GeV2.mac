@@ -1,36 +1,37 @@
 ## Configure G4SBS for genrp (Q^2 = 4.5 GeV^2)
-/g4sbs/filename        genrp_test.root
+/g4sbs/filename        genrp_elastic_test_job5.root
 
 ## Configure Experiment
 /g4sbs/exp             genrp
 
 ## Configure the target
 /g4sbs/target          LD2
-/g4sbs/targlen         30.0 cm           ## Target Length
+/g4sbs/targlen         15.0 cm           ## Target Length
  
 ## Configure generator settings
-#/g4sbs/kine            elastic           ## Generator
-/g4sbs/kine 		gun
-/g4sbs/particle 	proton
+/g4sbs/kine            elastic           ## Generator
+#/g4sbs/kine 		gun
+#/g4sbs/particle 	proton
 /g4sbs/beamcur         30 muA
-/g4sbs/beamE           6.368 GeV
+#/g4sbs/beamE           6.368 GeV # this energy is for Pion-K_LL
+/g4sbs/beamE 		4.3 GeV # this is for GEN-RP
 # the following generation limits are good for electrons in bigbite:
-#/g4sbs/thmin           38.0 deg
-#/g4sbs/thmax           49.0 deg
-#/g4sbs/phmin           -25 deg
-#/g4sbs/phmax           25 deg
-#/g4sbs/eemin 0.7 GeV
-#/g4sbs/eemax 3.5 GeV
+/g4sbs/thmin           38.0 deg
+/g4sbs/thmax           49.0 deg
+/g4sbs/phmin           -25 deg
+/g4sbs/phmax           25 deg
+/g4sbs/eemin 0.7 GeV
+/g4sbs/eemax 3.5 GeV
 
 # the following generation limits are good for protons in SBS (with gun generator): comment out for normal running.
-/g4sbs/thmin  	       20.0 deg
-/g4sbs/thmax 	       32.0 deg
-/g4sbs/phmin 	       155.0 deg
-/g4sbs/phmax 	       215.0 deg
-/g4sbs/eemin  	       0.7 GeV
-/g4sbs/eemax 	       6.4 GeV
+#/g4sbs/thmin  	       20.0 deg
+#/g4sbs/thmax 	       32.0 deg
+#/g4sbs/phmin 	       155.0 deg
+#/g4sbs/phmax 	       215.0 deg
+#/g4sbs/eemin  	       0.7 GeV
+#/g4sbs/eemax 	       6.4 GeV
 
-/g4sbs/gunpol   0 0 1
+#/g4sbs/gunpol   0 0 1
 
 /g4sbs/rasterx	       2.0 mm
 /g4sbs/rastery 	       2.0 mm
@@ -42,7 +43,7 @@
 /g4sbs/sbsclampopt     2                 ## Front and rear field clamps
 
 ## Configure GEn-RP analyzer
-/g4sbs/genrpAnalyzer 3
+/g4sbs/genrpAnalyzer 2
 
 ## Configure the magnets
 /g4sbs/bbfield         1
@@ -66,5 +67,5 @@
 
 
 ## Run 100 events
-/g4sbs/eventstatusevery		100
-/g4sbs/run             100000
+/g4sbs/eventstatusevery		10
+/g4sbs/run             10000

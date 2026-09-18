@@ -4808,7 +4808,7 @@ void G4SBSHArmBuilder::MakePolarimeterGEnRP(G4LogicalVolume *worldlog)
   if( fDetCon->fExpType != G4SBS::kGEN) {  
     G4ThreeVector actana_pos = pos + G4ThreeVector( 0.0, 0.0, (actanadist + actanadepth/2.0) );
     
-    G4Box*           actanabox  = new G4Box("actanabox", actanawidth/2.0, actanaheight/2.0, actanadepth/2.0 );
+    G4Box*           actanabox  = new G4Box("actanabox", actanawidth/2.0+0.05*mm, actanaheight/2.0+0.05*mm, actanadepth/2.0+0.05*mm );
     G4LogicalVolume* actanalog  = new G4LogicalVolume(actanabox, GetMaterial("Air"), "actanalog");
     
     if( fGEnRP_analyzer_option == 2 ) {   // long axis parallel to neutron direction

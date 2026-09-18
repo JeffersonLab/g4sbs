@@ -1303,7 +1303,9 @@ void G4SBSECal::MakeECal_new(G4LogicalVolume *motherlog){
   
   //xfpstart based on center of ECal JT model
   //G4double xfpstart = -147.22*cm;
-  G4double xfpstart = -149.108*cm; //Updated to match new block spacing and Kin. 3 survey offset. 
+  //G4double xfpstart = -149.108*cm; //Updated to match new block spacing and Kin. 3 survey offset.
+  G4double xfpstart = -142.588*cm; // 9/9/2026: updated AGAIN to match new block spacing and CORRECTED interpretation of Kin. 3 survey offset!
+  
   G4int copy_nb = 0;
   G4double X_block, Y_block;
 

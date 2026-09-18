@@ -443,6 +443,13 @@ void G4SBSEventAction::EndOfEventAction(const G4Event* evt )
     }
   }
 
+  G4VVisManager *pVVisManager = G4VVisManager::GetConcreteInstance();
+  if( pVVisManager != nullptr && HCE != nullptr ){
+    for( G4int i=0; i<HCE->GetNumberOfCollections(); i++ ){
+      HCE->GetHC(i)->DrawAllHits();
+    }
+  }
+  
   fIO->SetAllSDtrackData( allsdtracks );
 
   //This copy operation may be inefficient:

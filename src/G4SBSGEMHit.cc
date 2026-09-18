@@ -83,6 +83,7 @@ void G4SBSGEMHit::Draw()
   if( pVVisManager ){
     G4Circle circle( globalpos );
     circle.SetScreenSize(5);
+    //  circle.SetWorldSize(2.5*CLHEP::mm);
     circle.SetFillStyle( G4Circle::filled );
     G4VisAttributes attribs(G4Colour(0.0,1.0,0.0) );
     circle.SetVisAttributes( attribs );

@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Fri Jan 11 18:31:29 2019 by ROOT version 6.14/06
+// Wed Aug 19 09:23:40 2026 by ROOT version 6.36.14
 // from TTree Tout/SBS optics and spin transport for GEP
-// found on file: SBS_optics_and_spin_inputfile.root
+// found on file: GEP1_optics_tree_finalsurvey.root
 //////////////////////////////////////////////////////////
 
 #ifndef gep_optics_tree_h
@@ -38,6 +38,9 @@ public :
    Double_t        xptar;
    Double_t        yptar;
    Double_t        p;
+   Double_t        vx;
+   Double_t        vy;
+   Double_t        vz;
    Double_t        chi;
    Double_t        chiphi;
    Double_t        phitrack;
@@ -73,6 +76,9 @@ public :
    TBranch        *b_xptar;   //!
    TBranch        *b_yptar;   //!
    TBranch        *b_p;   //!
+   TBranch        *b_vx;   //!
+   TBranch        *b_vy;   //!
+   TBranch        *b_vz;   //!
    TBranch        *b_chi;   //!
    TBranch        *b_chiphi;   //!
    TBranch        *b_phitrack;   //!
@@ -98,7 +104,7 @@ public :
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
    virtual void     Loop();
-   virtual Bool_t   Notify();
+   virtual bool     Notify();
    virtual void     Show(Long64_t entry = -1);
 };
 
@@ -110,9 +116,9 @@ gep_optics_tree::gep_optics_tree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("SBS_optics_and_spin_inputfile.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("GEP1_optics_tree_finalsurvey.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("SBS_optics_and_spin_inputfile.root");
+         f = new TFile("GEP1_optics_tree_finalsurvey.root");
       }
       f->GetObject("Tout",tree);
 
@@ -177,6 +183,9 @@ void gep_optics_tree::Init(TTree *tree)
    fChain->SetBranchAddress("xptar", &xptar, &b_xptar);
    fChain->SetBranchAddress("yptar", &yptar, &b_yptar);
    fChain->SetBranchAddress("p", &p, &b_p);
+   fChain->SetBranchAddress("vx", &vx, &b_vx);
+   fChain->SetBranchAddress("vy", &vy, &b_vy);
+   fChain->SetBranchAddress("vz", &vz, &b_vz);
    fChain->SetBranchAddress("chi", &chi, &b_chi);
    fChain->SetBranchAddress("chiphi", &chiphi, &b_chiphi);
    fChain->SetBranchAddress("phitrack", &phitrack, &b_phitrack);
@@ -197,7 +206,7 @@ void gep_optics_tree::Init(TTree *tree)
    Notify();
 }
 
-Bool_t gep_optics_tree::Notify()
+bool gep_optics_tree::Notify()
 {
    // The Notify() function is called when a new file is opened. This
    // can be either for a new TTree in a TChain or when when a new TTree
@@ -205,7 +214,7 @@ Bool_t gep_optics_tree::Notify()
    // to the generated code, but the routine can be extended by the
    // user if needed. The return value is currently not used.
 
-   return kTRUE;
+   return true;
 }
 
 void gep_optics_tree::Show(Long64_t entry)

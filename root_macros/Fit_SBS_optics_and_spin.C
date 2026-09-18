@@ -14,6 +14,13 @@
 #include "TRotation.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TTreeFormula.h"
+#include "TCut.h"
+#include "TString.h"
+#include "TObjArray.h"
+#include "TObjString.h"
+#include <iostream>
+#include <fstream>
 
 //double PI = TMath::Pi();
 const double Mp = 0.938272046; //GeV/c^2
@@ -24,9 +31,82 @@ const double SBS_thetabend = 0.0*PI/180.0; //central bend angle
 
 //const double SBS_thetabend = 5.0*PI/180.0;
 
-void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int order_spin=4, const char *outfilename="SBS_optics_fitresult.root", int use_xtar_flag=0, double SBStheta_central=25.756, double trkrdist=3.685, int fix_ytar=1, int fix_yptar=1 ){
+//void Fit_SBS_optics_and_spin( const char *configfile, const char *outfilename, int order_optics=4, int order_spin=4, const char *outfilename="SBS_optics_fitresult.root", int use_xtar_flag=0, double SBStheta_central=25.756, double trkrdist=3.685, int fix_ytar=1, int fix_yptar=1 ){
 
+void Fit_SBS_optics_and_spin( const char *configfilename, const char *outfilename="SBS_optics_fitresult.root" ){
+
+  double SBStheta_central = 18.6127; //Kin. 3 value
+  //  double SBStheta_central = 25.756; //Kin. 1 value
+
+  int order_spin=2, order_optics=4;
+  int use_xtar_flag=0;
+  double trkrdist = 3.685; //default, corresponds to IDEAL SBS magnet distance from IDEAL target center. In general, 
+  int fix_ytar=0, fix_yptar=0;
+  
   SBStheta_central *= PI/180.0;
+
+  TChain *C = new TChain("Tout");
+  //C->Add(rootfilename);
+  
+  ifstream infile(configfilename);
+  if( !infile ) return;
+
+  TString currentline;
+
+  while( currentline.ReadLine(infile) && !currentline.BeginsWith("endlist") ){
+    if( !currentline.BeginsWith("#") ){
+      C->Add(currentline.Data());
+    }
+  }
+
+  TCut globalcut = "";
+  while( currentline.ReadLine(infile) && !currentline.BeginsWith("endcut") ){
+    if( !currentline.BeginsWith("#") ){
+      globalcut += currentline.Data();
+    }
+  }
+  
+  while( currentline.ReadLine(infile) && !currentline.BeginsWith("endconfig") ){
+    if( !currentline.BeginsWith("#") ){
+      TObjArray *tokens = currentline.Tokenize(" ");
+      if( tokens->GetEntries() >= 2 ){
+	TString skey = ( (TObjString*) (*tokens)[0] )->GetString();
+
+	TString sval = ( (TObjString*) (*tokens)[1] )->GetString();
+
+	if( skey == "SBStheta_central" ){
+	  SBStheta_central = sval.Atof();
+	  SBStheta_central *= PI/180.0;
+	}
+
+	if( skey == "order_optics" ){
+	  order_optics = sval.Atoi();
+	}
+
+	if( skey == "order_spin" ){
+	  order_spin = sval.Atoi();
+	}
+
+	if( skey == "use_xtar_flag" ){
+	  use_xtar_flag = sval.Atoi();
+	}
+
+	if( skey == "trkrdist" ){
+	  trkrdist = sval.Atof();
+	}
+
+	if( skey == "fix_ytar" ){
+	  fix_ytar = sval.Atoi();
+	}
+
+	if( skey == "fix_yptar" ){
+	  fix_yptar = sval.Atoi();
+	}
+      }
+    }
+  }
+
+  TTreeFormula *GlobalCut = new TTreeFormula("GlobalCut", globalcut, C );
   
   int ncoeff_optics = 0;
 
@@ -130,195 +210,207 @@ void Fit_SBS_optics_and_spin( const char *rootfilename, int order_optics=4, int 
       Mspinz(ipar,jpar) = 0.0;
     }
   }
-  
-  TChain *C = new TChain("Tout");
-  C->Add(rootfilename);
 
   gep_optics_tree *T = new gep_optics_tree(C);
+
+  int treenum=-1, oldtreenum=-1;
   
   long nevent=0;
   while( T->GetEntry(nevent++) ){
     if( nevent%100 == 0 ) cout << nevent << endl;
 
-    //optics fitting:
-    //
+    treenum = C->GetTreeNumber();
 
-    //First compute bend angle:
+    if( treenum != oldtreenum ){
+      GlobalCut->UpdateFormulaLeaves();
+      oldtreenum = treenum;
+    }
 
-    //SBS thetabend is 0
+    bool passed_global_cut = GlobalCut->EvalInstance(0) != 0;
 
-    // This calculation of basis vectors is unnecessary when thetabend is hard-coded to be zero
-    // It leads essentially to a "rotation" by the identity matrix:
+
+    if( passed_global_cut ){
+      //optics fitting:
+      //
+
+      //First compute bend angle:
+
+      //SBS thetabend is 0
+
+      // This calculation of basis vectors is unnecessary when thetabend is hard-coded to be zero
+      // It leads essentially to a "rotation" by the identity matrix:
     
-    TVector3 zaxis_fp(-sin(SBS_thetabend),0,cos(SBS_thetabend)); // (0,0,1)
-    TVector3 yaxis_fp(0,1,0); //Up vector! 
-    TVector3 xaxis_fp = yaxis_fp.Cross(zaxis_fp).Unit(); // (1,0,0)
+      TVector3 zaxis_fp(-sin(SBS_thetabend),0,cos(SBS_thetabend)); // (0,0,1)
+      TVector3 yaxis_fp(0,1,0); //Up vector! 
+      TVector3 xaxis_fp = yaxis_fp.Cross(zaxis_fp).Unit(); // (1,0,0)
 
     
-    TVector3 nhat_fp(T->xpfp, T->ypfp, 1.0 ); //THIS is expressed in TRANSPORT coordinates!
-    nhat_fp = nhat_fp.Unit();
+      TVector3 nhat_fp(T->xpfp, T->ypfp, 1.0 ); //THIS is expressed in TRANSPORT coordinates!
+      nhat_fp = nhat_fp.Unit();
 
-    // When thetabend = 0, nhat_fp_global = nhat_fp!
-    TVector3 nhat_fp_global = nhat_fp.X()*xaxis_fp +
-      nhat_fp.Y()*yaxis_fp +
-      nhat_fp.Z()*zaxis_fp;
+      // When thetabend = 0, nhat_fp_global = nhat_fp!
+      TVector3 nhat_fp_global = nhat_fp.X()*xaxis_fp +
+	nhat_fp.Y()*yaxis_fp +
+	nhat_fp.Z()*zaxis_fp;
 
-    TVector3 nhat_tgt(T->xptar, T->yptar, 1.0);
-    nhat_tgt = nhat_tgt.Unit();
+      TVector3 nhat_tgt(T->xptar, T->yptar, 1.0);
+      nhat_tgt = nhat_tgt.Unit();
 
-    double thetabend = acos(nhat_fp_global.Dot(nhat_tgt));
+      double thetabend = acos(nhat_fp_global.Dot(nhat_tgt));
 
-    TVector3 bend_axis = nhat_tgt.Cross( nhat_fp_global ).Unit();
+      TVector3 bend_axis = nhat_tgt.Cross( nhat_fp_global ).Unit();
     
-    //    cout << "(p (GeV), thetabend (deg) ) = (" << T->p << ", " << thetabend*180.0/PI << ")" << endl;
+      //    cout << "(p (GeV), thetabend (deg) ) = (" << T->p << ", " << thetabend*180.0/PI << ")" << endl;
     
-    vector<double> term(ncoeff_optics);
-    vector<double> fterm(ncoeff_optics);
+      vector<double> term(ncoeff_optics);
+      vector<double> fterm(ncoeff_optics);
     
-    int icoeff=0;
-    for( int i=0; i<=order_optics; i++ ){
-      for( int j=0; j<=order_optics-i; j++ ){
-	for( int k=0; k<=order_optics-i-j; k++ ){
-	  for( int l=0; l<=order_optics-i-j-k; l++ ){
-	    for( int m=0; m<=order_optics-i-j-k-l; m++ ){
-	      term[icoeff] = pow(T->xfp,m)*pow(T->yfp,l)*pow(T->xpfp,k)*pow(T->ypfp,j)*pow(T->xtar,i);
-	      fterm[icoeff] = pow(T->xptar,m)*pow(T->yptar,l)*pow(T->ytar,k)*pow(1.0/T->p,j)*pow(T->xtar,i);
+      int icoeff=0;
+      for( int i=0; i<=order_optics; i++ ){
+	for( int j=0; j<=order_optics-i; j++ ){
+	  for( int k=0; k<=order_optics-i-j; k++ ){
+	    for( int l=0; l<=order_optics-i-j-k; l++ ){
+	      for( int m=0; m<=order_optics-i-j-k-l; m++ ){
+		term[icoeff] = pow(T->xfp,m)*pow(T->yfp,l)*pow(T->xpfp,k)*pow(T->ypfp,j)*pow(T->xtar,i);
+		fterm[icoeff] = pow(T->xptar,m)*pow(T->yptar,l)*pow(T->ytar,k)*pow(1.0/T->p,j)*pow(T->xtar,i);
 	      
-	      b_xptar[icoeff] += term[icoeff]*T->xptar;
-	      //if( i == 0 ){ //don't include xtar-dependent terms in yptar, ytar fits:
-	      b_yptar[icoeff] += term[icoeff]*(T->yptar); //For yptarget, we fit to the RESIDUALS wrt a first-order approximation (yptar = ypfp), NOT to yptar itself!
-	      b_ytar[icoeff] += term[icoeff]*(T->ytar); //For ytarget, we fit to the RESIDUALS wrt a first-order approximation, NOT to ytarget itself!
+		b_xptar[icoeff] += term[icoeff]*T->xptar;
+		//if( i == 0 ){ //don't include xtar-dependent terms in yptar, ytar fits:
+		b_yptar[icoeff] += term[icoeff]*(T->yptar); //For yptarget, we fit to the RESIDUALS wrt a first-order approximation (yptar = ypfp), NOT to yptar itself!
+		b_ytar[icoeff] += term[icoeff]*(T->ytar); //For ytarget, we fit to the RESIDUALS wrt a first-order approximation, NOT to ytarget itself!
 		//} 
-	      //	      b_pinv[icoeff] += term[icoeff]/T->p;
-	      b_pinv[icoeff] += term[icoeff]*T->p*thetabend;
+		//	      b_pinv[icoeff] += term[icoeff]/T->p;
+		b_pinv[icoeff] += term[icoeff]*T->p*thetabend;
 
-	      b_vz[icoeff] += term[icoeff]*T->vz;
+		b_vz[icoeff] += term[icoeff]*T->vz;
 	      
-	      b_xfp[icoeff] += fterm[icoeff]*T->xfp;
-	      b_yfp[icoeff] += fterm[icoeff]*T->yfp;
-	      b_xpfp[icoeff] += fterm[icoeff]*T->xpfp;
-	      b_ypfp[icoeff] += fterm[icoeff]*T->ypfp;
-	      icoeff++;
+		b_xfp[icoeff] += fterm[icoeff]*T->xfp;
+		b_yfp[icoeff] += fterm[icoeff]*T->yfp;
+		b_xpfp[icoeff] += fterm[icoeff]*T->xpfp;
+		b_ypfp[icoeff] += fterm[icoeff]*T->ypfp;
+		icoeff++;
+	      }
 	    }
 	  }
 	}
       }
-    }
 
-    for( icoeff=0; icoeff<ncoeff_optics; icoeff++ ){
-      for( int jcoeff=0; jcoeff<ncoeff_optics; jcoeff++ ){
-	Moptics(icoeff,jcoeff) += term[icoeff]*term[jcoeff];
-	Mforward(icoeff,jcoeff) += fterm[icoeff]*fterm[jcoeff];
+      for( icoeff=0; icoeff<ncoeff_optics; icoeff++ ){
+	for( int jcoeff=0; jcoeff<ncoeff_optics; jcoeff++ ){
+	  Moptics(icoeff,jcoeff) += term[icoeff]*term[jcoeff];
+	  Mforward(icoeff,jcoeff) += fterm[icoeff]*fterm[jcoeff];
+	}
       }
-    }
 
-    //gamma = E/m = sqrt(p^2+m^2)/m = sqrt(1+p^2/m^2)
-    double gamma = sqrt(1.0 + pow(T->p/Mp,2));
-    double chi = gamma*kappa_p*thetabend; //
-    double thetaspin = chi + thetabend;
+      //gamma = E/m = sqrt(p^2+m^2)/m = sqrt(1+p^2/m^2)
+      double gamma = sqrt(1.0 + pow(T->p/Mp,2));
+      double chi = gamma*kappa_p*thetabend; //
+      double thetaspin = chi + thetabend;
     
-    //compute the spin transport matrix in dipole approximation:
-    //double chi_transport = T->chi + atan(T->xptar) - atan(T->xpfp);
-    //T->chi is defined as gamma * kappa_p * (SBS_thetabend + atan(xptar)-atan(xpfp))
-    // We are thus expanding the deviations of the actual spin transport relative to the dipole approximation
-    // double Sxx_dipole = cos( chi_transport );
-    // double Sxy_dipole = 0.0;
-    // double Sxz_dipole = -sin( chi_transport );
-    // double Syx_dipole = 0.0;
-    // double Syy_dipole = 1.0;
-    // double Syz_dipole =
+      //compute the spin transport matrix in dipole approximation:
+      //double chi_transport = T->chi + atan(T->xptar) - atan(T->xpfp);
+      //T->chi is defined as gamma * kappa_p * (SBS_thetabend + atan(xptar)-atan(xpfp))
+      // We are thus expanding the deviations of the actual spin transport relative to the dipole approximation
+      // double Sxx_dipole = cos( chi_transport );
+      // double Sxy_dipole = 0.0;
+      // double Sxz_dipole = -sin( chi_transport );
+      // double Syx_dipole = 0.0;
+      // double Syy_dipole = 1.0;
+      // double Syz_dipole =
 
-    //    bend_axis.Print();
+      //    bend_axis.Print();
     
-    TRotation Rdipole;
-    //Rdipole.RotateY( -chi_transpo;
-    Rdipole.Rotate( thetaspin, bend_axis );
+      TRotation Rdipole;
+      //Rdipole.RotateY( -chi_transpo;
+      Rdipole.Rotate( thetaspin, bend_axis );
 
-    // cout << Rdipole.XX() << ", " << Rdipole.XY() << ", " << Rdipole.XZ() << endl
-    // 	 << Rdipole.YX() << ", " << Rdipole.YY() << ", " << Rdipole.YZ() << endl
-    // 	 << Rdipole.ZX() << ", " << Rdipole.ZY() << ", " << Rdipole.ZZ() << endl;
+      // cout << Rdipole.XX() << ", " << Rdipole.XY() << ", " << Rdipole.XZ() << endl
+      // 	 << Rdipole.YX() << ", " << Rdipole.YY() << ", " << Rdipole.YZ() << endl
+      // 	 << Rdipole.ZX() << ", " << Rdipole.ZY() << ", " << Rdipole.ZZ() << endl;
     
-    Rdipole.RotateY( SBS_thetabend );
+      Rdipole.RotateY( SBS_thetabend );
     
-    // cout << Rdipole.XX() << ", " << Rdipole.XY() << ", " << Rdipole.XZ() << endl
-    // 	 << Rdipole.YX() << ", " << Rdipole.YY() << ", " << Rdipole.YZ() << endl
-    // 	 << Rdipole.ZX() << ", " << Rdipole.ZY() << ", " << Rdipole.ZZ() << endl;
+      // cout << Rdipole.XX() << ", " << Rdipole.XY() << ", " << Rdipole.XZ() << endl
+      // 	 << Rdipole.YX() << ", " << Rdipole.YY() << ", " << Rdipole.YZ() << endl
+      // 	 << Rdipole.ZX() << ", " << Rdipole.ZY() << ", " << Rdipole.ZZ() << endl;
       
-    if( T->Pxtg == 1. ){ //what should the expansion for Spin matrix elements look like?
-      // Here we are expanding the deviations from the dipole approximation in powers of
-      // xptar, yptar, ytar, and 1/p. Is 1/p really the best expansion variable for the spin transport matrices?
-      // Naively it seems like yes, it is.
-      vector<double> term(ncoeff_spin);
-      int icoeff=0;
-      for( int i=0; i<=order_spin; i++ ){
-	for( int j=0; j<=order_spin-i; j++ ){
-	  for( int k=0; k<=order_spin-i-j; k++ ){
-	    for( int l=0; l<=order_spin-i-j-k; l++ ){
-	      for( int m=0; m<=order_spin-i-j-k-l; m++ ){
-		term[icoeff] = pow(T->xptar,m)*pow(T->yptar,l)*pow(T->xtar,i)*pow(T->ytar,k)*pow(1.0/T->p,j);
-		b_Sxx[icoeff] += (T->Pxfp - Rdipole.XX() ) * term[icoeff];
-		b_Syx[icoeff] += (T->Pyfp - Rdipole.YX() ) * term[icoeff];
-		b_Szx[icoeff] += (T->Pzfp - Rdipole.ZX() ) * term[icoeff];
-		icoeff++;
+      if( T->Pxtg == 1. ){ //what should the expansion for Spin matrix elements look like?
+	// Here we are expanding the deviations from the dipole approximation in powers of
+	// xptar, yptar, ytar, and 1/p. Is 1/p really the best expansion variable for the spin transport matrices?
+	// Naively it seems like yes, it is.
+	vector<double> term(ncoeff_spin);
+	int icoeff=0;
+	for( int i=0; i<=order_spin; i++ ){
+	  for( int j=0; j<=order_spin-i; j++ ){
+	    for( int k=0; k<=order_spin-i-j; k++ ){
+	      for( int l=0; l<=order_spin-i-j-k; l++ ){
+		for( int m=0; m<=order_spin-i-j-k-l; m++ ){
+		  term[icoeff] = pow(T->xptar,m)*pow(T->yptar,l)*pow(T->xtar,i)*pow(T->ytar,k)*pow(1.0/T->p,j);
+		  b_Sxx[icoeff] += (T->Pxfp - Rdipole.XX() ) * term[icoeff];
+		  b_Syx[icoeff] += (T->Pyfp - Rdipole.YX() ) * term[icoeff];
+		  b_Szx[icoeff] += (T->Pzfp - Rdipole.ZX() ) * term[icoeff];
+		  icoeff++;
+		}
 	      }
 	    }
 	  }
 	}
-      }
 
-      for( icoeff=0; icoeff<ncoeff_spin; icoeff++ ){
-	for( int jcoeff=0; jcoeff<ncoeff_spin; jcoeff++ ){
-	  Mspinx(icoeff,jcoeff) += term[icoeff]*term[jcoeff];
+	for( icoeff=0; icoeff<ncoeff_spin; icoeff++ ){
+	  for( int jcoeff=0; jcoeff<ncoeff_spin; jcoeff++ ){
+	    Mspinx(icoeff,jcoeff) += term[icoeff]*term[jcoeff];
+	  }
 	}
-      }
-    } else if( T->Pytg == 1. ){
-      vector<double> term(ncoeff_spin);
-      int icoeff=0;
-      for( int i=0; i<=order_spin; i++ ){
-	for( int j=0; j<=order_spin-i; j++ ){
-	  for( int k=0; k<=order_spin-i-j; k++ ){
-	    for( int l=0; l<=order_spin-i-j-k; l++ ){
-	      for( int m=0; m<=order_spin-i-j-k-l; m++ ){
-		term[icoeff] = pow(T->xptar,m)*pow(T->yptar,l)*pow(T->xtar,i)*pow(T->ytar,k)*pow(1.0/T->p,j);
-		b_Sxy[icoeff] += (T->Pxfp - Rdipole.XY() ) * term[icoeff];
-		b_Syy[icoeff] += (T->Pyfp - Rdipole.YY() ) * term[icoeff];
-		b_Szy[icoeff] += (T->Pzfp - Rdipole.ZY() ) * term[icoeff];
-		icoeff++;
+      } else if( T->Pytg == 1. ){
+	vector<double> term(ncoeff_spin);
+	int icoeff=0;
+	for( int i=0; i<=order_spin; i++ ){
+	  for( int j=0; j<=order_spin-i; j++ ){
+	    for( int k=0; k<=order_spin-i-j; k++ ){
+	      for( int l=0; l<=order_spin-i-j-k; l++ ){
+		for( int m=0; m<=order_spin-i-j-k-l; m++ ){
+		  term[icoeff] = pow(T->xptar,m)*pow(T->yptar,l)*pow(T->xtar,i)*pow(T->ytar,k)*pow(1.0/T->p,j);
+		  b_Sxy[icoeff] += (T->Pxfp - Rdipole.XY() ) * term[icoeff];
+		  b_Syy[icoeff] += (T->Pyfp - Rdipole.YY() ) * term[icoeff];
+		  b_Szy[icoeff] += (T->Pzfp - Rdipole.ZY() ) * term[icoeff];
+		  icoeff++;
+		}
 	      }
 	    }
 	  }
 	}
-      }
 
-      for( icoeff=0; icoeff<ncoeff_spin; icoeff++ ){
-	for( int jcoeff=0; jcoeff<ncoeff_spin; jcoeff++ ){
-	  Mspiny(icoeff,jcoeff) += term[icoeff]*term[jcoeff];
+	for( icoeff=0; icoeff<ncoeff_spin; icoeff++ ){
+	  for( int jcoeff=0; jcoeff<ncoeff_spin; jcoeff++ ){
+	    Mspiny(icoeff,jcoeff) += term[icoeff]*term[jcoeff];
+	  }
 	}
-      }
-    } else if( T->Pztg == 1. ){
-      vector<double> term(ncoeff_spin);
-      int icoeff=0;
-      for( int i=0; i<=order_spin; i++ ){
-	for( int j=0; j<=order_spin-i; j++ ){
-	  for( int k=0; k<=order_spin-i-j; k++ ){
-	    for( int l=0; l<=order_spin-i-j-k; l++ ){
-	      for( int m=0; m<=order_spin-i-j-k-l; m++ ){
-		term[icoeff] = pow(T->xptar,m)*pow(T->yptar,l)*pow(T->xtar,i)*pow(T->ytar,k)*pow(1.0/T->p,j);
-		b_Sxz[icoeff] += (T->Pxfp - Rdipole.XZ() ) * term[icoeff];
-		b_Syz[icoeff] += (T->Pyfp - Rdipole.YZ() ) * term[icoeff];
-		b_Szz[icoeff] += (T->Pzfp - Rdipole.ZZ() ) * term[icoeff];
-		icoeff++;
+      } else if( T->Pztg == 1. ){
+	vector<double> term(ncoeff_spin);
+	int icoeff=0;
+	for( int i=0; i<=order_spin; i++ ){
+	  for( int j=0; j<=order_spin-i; j++ ){
+	    for( int k=0; k<=order_spin-i-j; k++ ){
+	      for( int l=0; l<=order_spin-i-j-k; l++ ){
+		for( int m=0; m<=order_spin-i-j-k-l; m++ ){
+		  term[icoeff] = pow(T->xptar,m)*pow(T->yptar,l)*pow(T->xtar,i)*pow(T->ytar,k)*pow(1.0/T->p,j);
+		  b_Sxz[icoeff] += (T->Pxfp - Rdipole.XZ() ) * term[icoeff];
+		  b_Syz[icoeff] += (T->Pyfp - Rdipole.YZ() ) * term[icoeff];
+		  b_Szz[icoeff] += (T->Pzfp - Rdipole.ZZ() ) * term[icoeff];
+		  icoeff++;
+		}
 	      }
 	    }
 	  }
 	}
-      }
 
-      for( icoeff=0; icoeff<ncoeff_spin; icoeff++ ){
-	for( int jcoeff=0; jcoeff<ncoeff_spin; jcoeff++ ){
-	  Mspinz(icoeff,jcoeff) += term[icoeff]*term[jcoeff];
+	for( icoeff=0; icoeff<ncoeff_spin; icoeff++ ){
+	  for( int jcoeff=0; jcoeff<ncoeff_spin; jcoeff++ ){
+	    Mspinz(icoeff,jcoeff) += term[icoeff]*term[jcoeff];
+	  }
 	}
       }
+
     }
   }
 

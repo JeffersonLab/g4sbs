@@ -180,6 +180,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::Construct(){
 
   if( fMaterialsMap.empty() ) ConstructMaterials();
 
+  G4cout << "ConstructMaterials() done..." << G4endl;
+  
   G4Material *Mtemp = GetMaterial("BlandAir");
 
   G4Box *WorldBox= new G4Box("WorldBox",50*m, 50*m, 50*m);
@@ -195,6 +197,8 @@ G4VPhysicalVolume* G4SBSDetectorConstruction::Construct(){
 
 void G4SBSDetectorConstruction::ConstructMaterials(){
 
+  G4cout << "Constructing Materials..." << G4endl;
+  
   G4NistManager *man = G4NistManager::Instance();
 
   G4MaterialPropertiesTable *MPT_temp; //pointer to hold material optical properties:
@@ -475,6 +479,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   if( fMaterialsListOpticalPhotonDisabled.find( "C4F8O" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     C4F8O->SetMaterialPropertiesTable(MPC4F8O);
+    G4cout << "Defined MPT for C4F8O" << G4endl;
   }
   
   fMaterialsMap["C4F8O"] = C4F8O;
@@ -733,6 +738,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   if( fMaterialsListOpticalPhotonDisabled.find( "UVT_Lucite" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     UVT_Lucite->SetMaterialPropertiesTable( MPT_temp );
+     G4cout << "Defined MPT for UVT_Lucite" << G4endl;
   }
   // G4cout << "Material optical properties for material UVT_Lucite" << G4endl;
   // MPT_temp->DumpTable();
@@ -886,6 +892,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   if( fMaterialsListOpticalPhotonDisabled.find( "QuartzWindow" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     QuartzWindow->SetMaterialPropertiesTable( MPT_temp );
+    G4cout << "Defined MPT for QuartzWindow" << G4endl;
   }
   fMaterialsMap["QuartzWindow"] = QuartzWindow;
 
@@ -929,6 +936,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   if( fMaterialsListOpticalPhotonDisabled.find( "C4F10_gas" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     C4F10_gas->SetMaterialPropertiesTable( MPT_temp );
+    G4cout << "Defined MPT for C4F10_gas" << G4endl;
   }
   
   fMaterialsMap["C4F10_gas"] = C4F10_gas;
@@ -951,6 +959,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   if( fMaterialsListOpticalPhotonDisabled.find( "C4F8_gas" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     C4F8_gas->SetMaterialPropertiesTable( MPT_temp );
+     G4cout << "Defined MPT for C4F8_gas" << G4endl;
   }
   fMaterialsMap["C4F8_gas"] = C4F8_gas;
    
@@ -973,6 +982,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   if( fMaterialsListOpticalPhotonDisabled.find( "CF4_gas" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     CF4_gas->SetMaterialPropertiesTable( MPT_temp );
+    G4cout << "Defined MPT for CF4_gas" << G4endl;
   }
   fMaterialsMap["CF4_gas"] = CF4_gas;
   //SF6 = 146.05 g/mol, P = rho RT / Mmol, rho = Mmol*P/RT;
@@ -997,6 +1007,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   if( fMaterialsListOpticalPhotonDisabled.find( "SF6_gas" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     mat_SF6->SetMaterialPropertiesTable( MPT_temp );
+    G4cout << "Defined MPT for SF6_gas" << G4endl;
   }
   fMaterialsMap["SF6_gas"] = mat_SF6;
  
@@ -1018,6 +1029,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   
   if( fMaterialsListOpticalPhotonDisabled.find( "RICH_air" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     RICH_air->SetMaterialPropertiesTable( MPT_temp );
+    G4cout << "Defined MPT for RICH_air" << G4endl;
   }
 
   fMaterialsMap["RICH_air"] = RICH_air;
@@ -1066,11 +1078,12 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp = new G4MaterialPropertiesTable();
   MPT_temp->AddProperty("EFFICIENCY", Ephoton_QE_RICH_NIM, PMT_QuantumEfficiency_RICH_NIM, nentries_QE_RICH_NIM );
   MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz );
-  MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, nentries_quartz );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, Nabs_quartz );
   //MPT_temp->AddProperty("REFLECTIVITY", Ephot_Rcathode, Rcathode, 2 );
 
   if( fMaterialsListOpticalPhotonDisabled.find( "Photocathode_material_RICH" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     Photocathode_material_RICH->SetMaterialPropertiesTable( MPT_temp );
+    G4cout << "Defined MPT for Photocathode_material_RICH" << G4endl;
   }
 
   fMaterialsMap["Photocathode_material_RICH"] = Photocathode_material_RICH;
@@ -1108,11 +1121,12 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   MPT_temp = new G4MaterialPropertiesTable();
   MPT_temp->AddProperty("EFFICIENCY", Ephoton_QE_GRINCH, PMT_QuantumEfficiency_GRINCH, nentries_QE_GRINCH );
   MPT_temp->AddProperty("RINDEX", Ephoton_quartz, Rindex_quartz, nentries_quartz );
-  MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, nentries_quartz );
+  MPT_temp->AddProperty("ABSLENGTH", Ephoton_abs_quartz, Abslength_quartz, Nabs_quartz );
   //MPT_temp->AddProperty("REFLECTIVITY", Ephot_Rcathode, Rcathode, 2 );
 
   if( fMaterialsListOpticalPhotonDisabled.find( "Photocathode_material_GRINCH" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     Photocathode_material_GRINCH->SetMaterialPropertiesTable( MPT_temp );
+    G4cout << "Defined MPT for Photocathode_material_GRINCH" << G4endl;
   }
 
   fMaterialsMap["Photocathode_material_GRINCH"] = Photocathode_material_GRINCH;
@@ -1157,9 +1171,9 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
   G4double hbarc_eV_nm = 197.3269718; //eV nm
 
 
-  G4double *Ephoton_aerogel  = new G4double [nsteps];
-  G4double *Rindex_aerogel   = new G4double [nsteps];
-  G4double *Rayleigh_aerogel = new G4double [nsteps];
+  G4double *Ephoton_aerogel  = new G4double[nsteps];
+  G4double *Rindex_aerogel   = new G4double[nsteps];
+  G4double *Rayleigh_aerogel = new G4double[nsteps];
 
   G4bool inrange = true;
 
@@ -1178,7 +1192,6 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 	  
     int idx = nsteps - (i+1);
 	  
-	
     Ephoton_aerogel[idx] = (twopi * hbarc_eV_nm / ltemp )*eV;
     //Since C is in um^3, we need to compute lambda^4 in um^4. The result will be in microns, which we then convert to cm:
     Rayleigh_aerogel[idx] = (pow( ltemp/1000.0, 4 )/C_aerogel / 10000.0 )*cm; //scattering length in cm
@@ -1197,6 +1210,7 @@ void G4SBSDetectorConstruction::ConstructMaterials(){
 
   if( fMaterialsListOpticalPhotonDisabled.find( "Aerogel" ) == fMaterialsListOpticalPhotonDisabled.end() ){
     Aerogel->SetMaterialPropertiesTable( MPT_temp );
+    G4cout << "Defined MPT for Aerogel" << G4endl;
   }
   fMaterialsMap["Aerogel"] = Aerogel;
   
